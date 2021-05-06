@@ -1,0 +1,14 @@
+﻿<div class="spinner-row"><div class="@spinnerClass"><div></div><div></div><div></div><div></div></div></div>
+
+@code {
+    [Parameter]
+    public bool Small { get; set; } = false;
+
+    public string spinnerClass
+    {
+        get
+        {
+            return Small ? "lds-ring-sm" : "lds-ring";
+        }
+    }
+}

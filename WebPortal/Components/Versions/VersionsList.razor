@@ -1,0 +1,62 @@
+﻿@inject IMSGraphService MSGraphService
+
+<div class="versionContainer">
+    @foreach (var version in Versions)
+    {
+        <div class="fileGrid" @onclick="() => SelectRowById(version.versionid)">
+            <div class="grid-item">
+                <i class="@iconClass(version)"></i>
+            </div>
+            <div class="grid-item">
+                <b>@Localizer["VERSION-LIST-PAGE.Version", version.index]&nbsp;</b> @version.index == Versions.Count ? Localizer["VERSION-LIST-PAGE.Current"] : string.Empty
+            </div>
+            <div class="grid-item">
+                @GetStatus(version)
+            </div>
+            <div class="grid-item">
+                @version.metadata.uploadeddate.ToString("f", CultureInfo.CreateSpecificCulture("en-CA"))
+            </div>
+            <div class="grid-item">
+                @DatahubTools.BytesToString(version.metadata.filesize.ToString())
+            </div>
+        </div>
+    }
+
+</div>
+
+@code {
+
+    [Parameter]
+    public List<NRCan.Datahub.Shared.Data.Version> Versions { get; set; }
+    [Parameter]
+    public EventCallback<string> SelectedItem { get; set; }
+
+    string _selectedItem;
+
+    public string iconClass(NRCan.Datahub.Shared.Data.Version item)
+    {
+        if (_selectedItem == item.versionid)
+        {
+            return "far fa-check-circle icon-color";
+        }
+
+        return "fal fa-circle icon-color";
+    }
+
+    private Task SelectRowById(string versionid)
+    {
+        _selectedItem = versionid;
+        return SelectedItem.InvokeAsync(versionid);
+    }
+
+    private string GetStatus(NRCan.Datahub.Shared.Data.Version version)
+    {
+        string createdUser = MSGraphService.GetUserName(version.metadata.createdby); 
+        if (string.IsNullOrWhiteSpace(createdUser))
+        {
+            createdUser = Localizer["VERSION-LIST-PAGE.Unknown"];
+        }
+
+        return Localizer[ version.index == 1 ? "VERSION-LIST-PAGE.CreatedBy" : "VERSION-LIST-PAGE.EditedBy", createdUser];
+    }
+}

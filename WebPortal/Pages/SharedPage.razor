@@ -1,0 +1,28 @@
+﻿@inject IApiService ApiService
+@inject IUserInformationService UserInformationService
+@inject DataRetrievalService DataRetrievalService
+
+@page "/shared"
+
+<FileGrid CurrentFolder="ApiService.SharedDataFolder" />
+
+@code
+{
+    public bool isLoaded { get; set; } = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        // We need to load user and check they have root folder
+        var rootFolder = await UserInformationService.GetUserRootFolder();
+        var currentUser = await UserInformationService.GetCurrentUserAsync();
+
+        // Set the user folder ID!
+        ApiService.MyDataFolder.id = rootFolder;
+        ApiService.SharedDataFolder.id = rootFolder;
+
+        ApiService.CurrentFolder = ApiService.SharedDataFolder;
+        isLoaded = true;
+    }
+}

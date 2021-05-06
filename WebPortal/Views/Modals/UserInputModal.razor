@@ -1,0 +1,58 @@
+﻿@inject UIControlsService UI
+@inject IJSRuntime JSRuntime
+
+<div class="modal-background" @onclick="() => OnDecision?.Invoke((false, string.Empty))"></div>
+<div id="inputModalContent" class="modal-content">
+    <h4 class="nrcan-typography h4 modal-header">@HeaderText</h4>
+    <input @ref="inputId" class="ae input" id="inputId" type="text" @bind-value="_inputValue" @bind-value:event="oninput" disabled="@(isProcessing)" />
+    @if (isProcessing)
+    {
+        <Spinner />
+    }
+    <div class="modal-footer">
+        <button class="submitbutton finish" disabled="@(isConfirmDisabled || isProcessing)" type="submit" @onclick="() => Processing()">@Localizer["BUTTONS.Confirm"]</button>
+        <button class="submitbutton cancel" disabled="@isProcessing" @onclick="() => OnDecision?.Invoke((false, string.Empty))">@Localizer["BUTTONS.Cancel"]</button>
+    </div>
+</div>
+
+@code{
+    [Parameter]
+    public Action<(bool, string)> OnDecision { get; set; }
+    [Parameter]
+    public string HeaderText { get; set; }
+    [Parameter]
+    public string _inputValue { get; set; } = string.Empty;
+
+    private ElementReference inputId;
+
+    private string originaValue { get; set; } = string.Empty;
+
+    public bool isConfirmDisabled
+    {
+        get
+        {
+            return originaValue == _inputValue;
+        }
+    }
+
+    public bool isProcessing { get; set; } = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        originaValue = _inputValue;
+    }
+
+    protected async override Task OnAfterRenderAsync(bool firstRender)
+    {
+        await inputId.FocusAsync();
+    }
+
+    public void Processing()
+    {
+        isProcessing = true;
+        StateHasChanged();
+        OnDecision?.Invoke((true, _inputValue));
+    }
+
+}

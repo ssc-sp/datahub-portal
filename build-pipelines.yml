@@ -1,0 +1,68 @@
+# ASP.NET Core (.NET Framework)
+# Build and test ASP.NET Core projects targeting the full .NET Framework.
+# Add steps that publish symbols, save build artifacts, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/dotnet-core
+name: 'Unknown until run'
+
+parameters:
+- name: overwrite_existing_tag
+  type: boolean
+  default: true
+
+variables:
+  solution: '**/NRCan.Datahub.Portal.sln'
+  buildPlatform: 'Any CPU'
+  buildConfiguration: 'Release'
+  version.MajorMinor: '1.0' # Manually adjust the version number as needed for semantic versioning. Revision is auto-incremented.
+  version.Revision: $[counter(variables['version.MajorMinor'], 0)]
+  versionNumber: '$(version.MajorMinor).$(version.Revision)'
+
+pool:
+  vmImage: 'windows-latest'
+
+steps:
+- checkout: self
+  clean: true
+  persistCredentials: true
+
+- task: PowerShell@2
+  displayName: Set the name of the build (i.e. the Build.BuildNumber)
+  inputs:
+    targetType: 'inline'
+    script: |
+      [string] $dateCode = (Get-Date -Format 'yyyyMMdd')
+      [string] $buildName = "$(versionNumber)_$dateCode"
+      Write-Host "Setting the name of the build to '$buildName'."
+      Write-Host "##vso[build.updatebuildnumber]$buildName"
+
+- task: UseDotNet@2
+  displayName: 'Install .NET Core SDK'
+  inputs:
+    version: 5.0.x
+    performMultiLevelLookup: true
+    includePreviewVersions: true # Required for preview versions
+- task: NodeTool@0
+  displayName: 'install node'
+  inputs:
+    versionSpec: '15.11.0'
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'publish'
+    projects: 'WebPortal/*.csproj'
+    arguments: ' -o $(Build.ArtifactStagingDirectory)/output -r win-x64 --self-contained true'
+    zipAfterPublish: true
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)/output'
+    ArtifactName: 'datahub-portal'
+    publishLocation: 'Container'
+
+- task: PowerShell@2
+  displayName: Add tag
+  inputs:
+    targetType: 'inline'
+    script: |
+      git config --global user.name "AzureDevOps Agent"
+      git tag "$(versionNumber)" --force
+      git push origin "$(versionNumber)" --force
+      Write-Output "Tagging $(Build.Repository.Name) with $(versionNumber)"

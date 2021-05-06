@@ -1,0 +1,86 @@
+﻿@inherits LayoutComponentBase
+@inject IMSGraphService MSGraphService
+@inject CommonAzureServices CommonAzureServices
+@inject IApiService ApiService
+
+<AuthorizeView>
+    <Authorized>        
+        <div class="application-wrapper">
+            <Sidebar />
+            <div class="main-layout">
+                <Topbar />
+                <div class="ui-control">
+                    <div class="page">
+                        @Body
+                    </div>
+                    <RightSidebar />
+                    <Modal />
+
+                    <ErrorModal />
+                    <div id="blazor-error-ui">
+                        <div class="page-modal modal-content-large">
+                            <div id="escapearea" class="modal-background"></div>
+                            <div class="modal-content">
+                                <h4 class="nrcan-typography h4 modal-header">@Localizer["Something went wrong. Please try again later."]</h4>
+
+                                <div class="modal-body">
+                                    <h3>@Localizer["TECHNICAL DETAILS"]</h3>
+                                    <p>@Localizer["An error has happened on the DataHub server. The team has been notified and the error has been recorded. The correlation ID for this error is <>. To avoid network issues, if you are currently on the VPN, please try to disconnect the VPN and retry your actions."]</p>
+                                </div>
+
+                                <div class="modal-footer">
+                                    <a href="javascript:location.reload(true)" type="button" class="submitbutton finish">@Localizer["Ok"]</a>
+                                </div>
+                            </div>
+                        </div> 
+                   </div>
+
+                    <div id="components-reconnect-modal" class="components-reconnect-hide">
+                        <div class="page-modal">
+                            <div class="modal-background"></div>
+                            <div class="modal-content">
+                                <h4 class="nrcan-typography h4 modal-header">@Localizer["Connection to server..."]</h4>
+
+                                <div class="show">
+                                    <p>@Localizer["Attempting to re-connect with server, please wait..."]</p>
+                                    <div class="spinner-row"><div class="lds-ring"><div></div><div></div><div></div><div></div></div></div>
+                                </div>
+
+                                <div class="failed">
+                                    <p>@Localizer["Failed to connect, please try again later"]</p>
+
+                                    <div class="modal-footer">  
+                                        <button onClick="window.location.reload();" class="submitbutton finish">@Localizer["Reload"]</button>
+                                    </div>
+                                </div>
+
+                                <div class="rejected">
+                                    <p>@Localizer["Connection refused, please try again later"]</p>
+
+                                    <div class="modal-footer">  
+                                        <button onClick="window.location.reload();" class="submitbutton finish">@Localizer["Reload"]</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </Authorized>
+    <NotAuthorized>
+        <div>@Localizer["Connection lost, please refresh this page"]</div>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code
+{
+
+    protected override async Task OnInitializedAsync()
+    {
+        await MSGraphService.LoadUsersAsync();
+        await ApiService.LoadApplicationData();
+    }
+}
+

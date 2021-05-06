@@ -1,0 +1,223 @@
+/** ********************************************** **
+    @Author         TM
+	@Website		NRCAN DataHub
+
+	TABLE CONTENTS
+	-------------------------------
+        General Layout
+        Swiper Layout
+        Swiper Ad Titling
+ 
+*************************************************** **/
+
+
+/** General Layout
+**************************************************************** **/
+
+html, body {
+    position: relative;
+    height: 100%;
+    font-size: 100%;
+}
+
+body {
+    background: #fff;
+    font-family: Roboto, Helvetica Neue, Helvetica, Arial, sans-serif;
+    font-size: 1.0em;
+    color: #000;
+    margin: 0;
+    padding: 0;
+}
+
+
+/** Swiper Layout
+**************************************************************** **/
+
+.swiper-container { /* Sets the contianer height. */
+    width: auto;
+    /* width: 100% */
+    height: 50vh;
+}
+
+.swiper-slide {
+    background-size: cover; /* Resize the background image to cover the entire container */
+    background: #df9f4c !important;
+}
+
+.swiper-pagination-bullet {
+    background: #ddd !important;
+}
+
+.alt-bg.swiper-slide{
+    background: #57C4EC !important;
+}
+
+.alt-bg-even.nrcan-slide .nrcan-title,
+.alt-bg-even.nrcan-slide .nrcan-content  {
+    background: #fff !important;
+    color: #000 !important;
+}
+
+.alt-bg-odd.nrcan-slide .nrcan-title,
+.alt-bg-odd.nrcan-slide .nrcan-content {
+    background: #57C4EC !important;
+    color: #fff !important;
+}
+
+.alt-bg-odd.nrcan-slide .nrcan-content a { /* Content for the ad. */
+    color: #000;
+}
+
+.alt-bg-even.nrcan-slide .nrcan-content a { /* Content for the ad. */
+    color: #57C4EC;
+}
+
+
+/** Swiper Ad Titling
+**************************************************************** **/
+.nrcan-slide {
+    padding: 1rem 0 1rem 1rem;
+    display: grid;
+    grid-template-columns: auto 15vw;
+    grid-template-rows: auto;
+    grid-template-areas: 
+      "header sidebar"
+      "main sidebar";    
+}
+
+.scrollable-slide.nrcan-slide {
+    background: #fff;
+    padding: 1rem;
+}
+
+.nrcan-title {  /* Title for the ad. */
+    font-family: "Open Sans",sans-serif;
+    font-weight: 700;
+    text-align: left;
+    font-size: 1.5em;
+    color: #fff;
+    grid-area: header;
+}
+
+.scrollable-slide.nrcan-slide .nrcan-title {
+    padding: 1rem;
+}
+
+.nrcan-title > p {
+    margin: 0;
+}
+
+.nrcan-content { /* Content for the ad. */
+    text-align: left;
+    font-size: 1.0em;
+    padding: 0 2rem;
+    grid-area: main;
+}
+
+.nrcan-image { /* Image for the ad. */
+    grid-area: sidebar;
+    margin: auto;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+}
+
+.nrcan-image > img {
+    width: 50%;
+    height: 50%;
+}
+
+.list-points {
+    display: inline-flex;
+}
+
+.list-points .list-icon {
+    padding-right: 20px !important;
+}
+
+.list-points .img-responsive.list-icon {
+    height: 33% !important;
+    width: 33% !important;
+}
+
+
+/**
+    BLAZOR CONNECT UI
+**/
+
+.components-reconnect-hide {
+    display: none;
+}
+
+.components-reconnect-failed > div,
+.components-reconnect-show > div,
+.components-reconnect-refused > div {
+    display: block;
+}
+
+.components-reconnect-show .failed,
+.components-reconnect-show .rejected {
+    display: none;
+}
+
+.components-reconnect-failed .show,
+.components-reconnect-failed .rejected {
+    display: none;
+}
+
+.components-reconnect-refused .show,
+.components-reconnect-refused .failed {
+    display: none;
+}
+
+/**
+	ICON LIST
+**/
+ul.list-icons {
+	margin-left: 1.75em;
+	position:relative;
+    list-style-type: none;
+}
+ul.list-icons>li {
+	position:relative;
+}
+ul.list-icons>li:before{
+    content: ' ';
+    display: block;
+    width: 78px;
+    height: 48px;
+    position: absolute;
+}
+ul.list-icons>li>i {
+	position: absolute;
+	left: -2.5em;
+	width: 32px;
+	height: 32px;
+	text-align: center;
+	top: 5px;
+}
+
+.font-black {
+    color: #000;
+}
+.font-blue {
+    color: #4696B4;
+}
+.font-white {
+    color: #fff;
+    text-shadow: 1px 1px #444;
+}
+
+.font-light-grey {
+    color: #CCC;
+}
+
+.font-dark-grey {
+    color: #444;
+}
+
+.font-script {
+    font-family: 'Arizonia', cursive;
+    font-size: 1.5em;
+}
+

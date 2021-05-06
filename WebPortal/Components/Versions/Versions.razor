@@ -1,0 +1,66 @@
+﻿@inject DataRetrievalService DataRetreivalService
+@inject IApiService ApiService
+@inject UIControlsService UI
+@inject NotifierService NotifierService
+
+<h4 class="nrcan-typography h4">@Localizer["VERSION-PAGE.Header", File.filename]</h4>
+<p class="nrcan-typography paragragh">@Localizer["VERSION-PAGE.Introduction1"]</p>
+<p class="nrcan-typography paragragh">@Localizer["VERSION-PAGE.Introduction2"]</p>
+
+<div style="padding-top:2rem">
+
+</div>
+@if (versions == null)
+{
+    <Spinner />
+}
+else
+{
+    <div class="tacdivbox">
+        <VersionsList Versions="versions" SelectedItem="((string s) => OnSelectItem(s))"></VersionsList>
+    </div>
+    <div class="modal-footer" style="padding-top:1rem">
+        <AeButton Disabled="@string.IsNullOrWhiteSpace(selectedVersionId)" class="submitbutton finish" @onclick="() => OnDecision(true)">@Localizer["BUTTONS.Restore"]</AeButton>
+        <AeButton class="cancelbutton cancel" @onclick="() => OnDecision(false)">@Localizer["BUTTONS.Cancel"]</AeButton>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public FileMetaData File { get; set; }
+
+    public List<NRCan.Datahub.Shared.Data.Version> versions { get; set; }
+    private string header { get; set; }
+    private string selectedVersionId { get; set; }
+
+    private void OnSelectItem(string versionId)
+    {
+        selectedVersionId = versionId;
+        StateHasChanged();
+    }
+
+    private async void OnDecision(bool restore)
+    {
+        if (restore)
+        {
+            await ApiService.RestoreVersionOfBlob(selectedVersionId, File.fileid);
+            await NotifierService.Update("filegrid", true);
+        }
+        await UI.ToggleModal();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        versions = await DataRetreivalService.GetFileVersions(File.fileid);
+        versions.Reverse();
+
+        IndexVersions();
+        StateHasChanged();
+    }
+
+    private void IndexVersions()
+    {
+        var idx = versions.Count;
+        versions.ForEach(item => item.index = idx--);
+    }
+}

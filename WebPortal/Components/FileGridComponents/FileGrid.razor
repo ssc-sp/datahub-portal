@@ -1,0 +1,427 @@
+@inject IApiService ApiService
+@inject DataRetrievalService DataRetrievalService
+@inject DataRemovalService  DataRemovalService
+@inject DataCreatorService  DataCreatorService
+@inject DataUpdatingService DataUpdatingService
+@inject IJSRuntime JSRuntime
+@inject IMSGraphService MSGraphService
+@inject IUserInformationService UserInformationService
+@inject UIControlsService UI
+@inject NotifierService NotifierService
+@inject NavigationManager NavigationManager
+@inject CognitiveSearchService CognitiveSearchService
+
+@using NRCan.Datahub.Shared.Data
+
+<div class="header-wrapper" @onclick="UnSelectFiles" @onclick:preventDefault="true" @oncontextmenu="UnSelectFiles" @oncontextmenu:preventDefault="true">
+    <h3 class="nrcan-typography h3">@Localizer[CurrentFolder.name]</h3>
+    @if (CurrentFolder.parent != null)
+    {
+        <div class="roundbutton" style="margin-right: 1rem" @onclick="() => GetParentFolder()">
+            <i class="fal fa-arrow-left"></i>
+        </div>
+    }
+
+    @if (CanAddData)
+    {
+        <div class="pillbutton" @onclick="@(() => NavigationManager.NavigateTo("add-data"))">
+            <i class="fas fa-plus"></i>@Localizer["FILE-GRID-PAGE.AddData"]
+        </div>
+    }
+</div>
+
+@if (isLoading)
+{
+    <Spinner />
+}
+else
+{
+    <div class="fileListContainer" @onfocusout="UnSelectFiles">
+        <div class="file-grid-menu">
+            <FileGridMenu SelectedItem="selectedMetaData" PerformMenuAction="(MenuActions m) => PerformMenuAction(m, selectedMetaData)" IsSearchedData="@IsSearchResults" CurrentUser="@CurrentUserId" />
+        </div>
+        <FileGridHeader IsSharedFiles=@CurrentFolder.isShared SortAscending=@CurrentFolder.sortAscending ToggleSort="ToggleSort" IsSearchedData="IsSearchResults" />
+        @foreach (var child in CurrentFolder.children)
+        {
+            var isSelected = child.id == selectedMetaData?.id;
+            if (child.dataType == MetadataType.Folder)
+            {
+                <FileGridFolder Folder=@(child as Folder) IsSelected=@isSelected OnEllipsisClick="(e) => OnEllipsisClick(child as Folder, e)" SelectRow="() => SelectRow(child)" RemoveFolderFromList="RemoveFolderFromList" GetFilesForFolder="() => GetChildFolder(child as Folder)" PerformMenuAction="(MenuActions m) => PerformMenuAction(m, child)"  CurrentUser="@CurrentUserId"/>
+            }
+            else
+            {
+                <FileGridFiles File=@(child as FileMetaData) IsSelected=@isSelected OnEllipsisClick="(e) => OnEllipsisClick(child as FileMetaData, e)" SelectRow="() => SelectRow(child)" PerformMenuAction="(MenuActions m) => PerformMenuAction(m, child)" IsSearchedData="IsSearchResults" CurrentUser="@CurrentUserId" />
+            }
+        }
+    </div>
+}
+
+@code
+{
+    [Parameter]
+    public string SearchText { get; set; }
+    [Parameter]
+    public Folder CurrentFolder
+    {
+         get
+         {
+             return ApiService.CurrentFolder;
+         }
+         set
+         {
+             ApiService.CurrentFolder = value;
+         }
+    }
+    [Parameter]
+    public bool CanAddData { get; set; } = false;
+
+    //user and file tracking
+    public Microsoft.Graph.User CurrentUser { get; set; }
+    public string CurrentUserId
+    {
+        get
+        {
+            if (CurrentUser != null)
+            {
+                return CurrentUser.Id;
+            }
+
+            return "";
+        }
+    }
+
+    private BaseMetadata selectedMetaData;
+    private bool isLoading = false;
+
+    private List<string> allFolders = new List<string>();
+
+    public bool LowMemoryMode
+    {
+        get
+        {
+            return true;
+        }
+    }
+
+    public bool IsSearchResults
+    {
+        get
+        {
+            return !string.IsNullOrWhiteSpace(SearchText);
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        CurrentUser = await UserInformationService.GetCurrentUserAsync();
+
+        // If we get displayed on return from file upload, don't refresh from datalake
+        await GetFileList();
+
+        StateHasChanged();
+    }
+
+    private void UpdateFolderFromDownloads()
+    {
+        // Any downloads???
+        if (ApiService.UploadedFiles.Count() > 0)
+        {
+            foreach (var uploadedFile in ApiService.UploadedFiles)
+            {
+                // Is in the folder we are currently displaying?
+                if (uploadedFile.Value.folderpath == CurrentFolder.fullPathFromRoot)
+                {
+                    // See if the filemetadata is in list (could be in filesystem, but not fully uploaded)
+                    var file = CurrentFolder.AllFiles.FirstOrDefault(f => f.filename == uploadedFile.Value.filename);
+                    if (file != null)
+                    {
+                        CurrentFolder.Remove(file);
+                    }
+                    CurrentFolder.Add(uploadedFile.Value);
+                }
+            }
+            CurrentFolder.Sort();
+        }
+
+    }
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        NotifierService.Notify += OnNotify;
+
+        UI.OnRightSidebarChange += StateHasChanged;
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            selectedMetaData = null;
+        }
+    }
+
+    public async void Refresh()
+    {
+        await GetFileList();
+        UnSelectFiles();
+    }
+    public async Task OnNotify(string key, bool reloadData)
+    {
+        if (key == "filegrid")
+        {
+            if (reloadData)
+            {
+                Refresh();
+            }
+            await InvokeAsync(() => {StateHasChanged();});
+        }
+    }
+
+    public void Dispose()
+    {
+        NotifierService.Notify -= OnNotify;
+    }
+
+    public void UnSelectFiles()
+    {
+        selectedMetaData = null;
+        StateHasChanged();
+    }
+
+    public void RemoveFolderFromList(Folder folder)
+    {
+        CurrentFolder.Remove(folder);
+        StateHasChanged();
+    }
+
+    public async void GetParentFolder()
+    {
+        if (CurrentFolder.parent != null)
+        {
+            CurrentFolder = CurrentFolder.parent;
+            await GetFileList();            
+        }
+        UnSelectFiles();
+    }
+
+    public async void GetChildFolder(Folder folder = null)
+    {
+        if (folder != null)
+        {
+            // When going down a folder, clear the parent so it only has 'folder' selected
+            if (LowMemoryMode)
+            {
+                CurrentFolder.Clear();
+                CurrentFolder.Add(folder);
+            }
+
+            CurrentFolder = folder;
+            await GetFileList();
+        }
+        UnSelectFiles();
+    }
+
+    public async void PerformMenuAction(MenuActions actionCode, dynamic item)
+    {
+        switch (actionCode)
+        {
+            case MenuActions.DeleteRow:
+            {
+                var messages = new List<string>() { Localizer["FILE-GRID-PAGE.ConfirmDeletePrompt", item.name] };
+                await UI.ToggleModal(@<UserChoiceModal HeaderText="Confirm Delete" ChoiceTextList=@messages OnDecision="(a) => OnConfirmDelete(a, item)" />);
+            }
+            break;
+
+            case MenuActions.DownloadFile:
+            {
+                await DataRetrievalService.DownloadFile(item);
+            }
+            break;
+
+            case MenuActions.OpenDetails:
+            {
+                RenderFragment fragment = @<ItemDetails SelectedFile="item" />;
+                UI.ToggleRightSidebar(fragment);
+            }
+            break;
+
+            case MenuActions.OpenManageAccess:
+            {
+                UI.ToggleRightSidebar(@<ManageAccess SelectedFile="item" />);
+            }
+            break;
+
+            case MenuActions.CreateFolder:
+            {
+                await UI.ToggleModal(@<UserInputModal HeaderText="@Localizer["FILE-GRID-PAGE.CreateFolderPrompt"]" OnDecision="OnConfirmCreateFolder" />);
+            }
+            break;
+
+            case MenuActions.Rename:
+            {
+                string headerTextRes = (selectedMetaData.dataType == MetadataType.File) ? "FILE-GRID-PAGE.RenameFilePrompt" : "FILE-GRID-PAGE.RenameFolderPrompt";
+                await UI.ToggleModal(@<UserInputModal HeaderText="@Localizer[headerTextRes]" OnDecision="(a) => OnConfirmRename(a, item)" _inputValue="@item.name" />);
+            }
+            break;
+
+            case MenuActions.MoveTo:
+            {
+                allFolders = await DataRetrievalService.GetAllFolders(CurrentFolder.rootFolderName, CurrentUser);
+                await UI.ToggleModal(@<FolderViewModal OnDecision="(a) => OnConfirmMoveFile(a, item)" />);
+            }
+            break;
+
+            case MenuActions.OpenVersions:
+            {
+                RenderFragment frag = @<Versions File="selectedMetaData as FileMetaData"></Versions>;
+                await UI.ToggleModal(@<RenderFragmentModal Fragment=frag />);
+            }
+            break;
+        }
+    }
+        
+    private async void OnConfirmCreateFolder((bool, string) isContinue)
+    {
+        if (isContinue.Item1)
+        {
+            var folderName = isContinue.Item2;
+            if (!string.IsNullOrWhiteSpace(folderName))
+            {
+                var now = DateTime.Now.Date;
+                var folder = new Folder()
+                {
+                    id = folderName,
+                    name = folderName,
+                    createdby = CurrentUser.Id,
+                    createdts = now,
+                    lastmodifiedby = CurrentUser.Id,
+                    lastmodifiedts = now
+                };
+
+                if (await DataCreatorService.CreateFolder(folder, CurrentFolder, CurrentUser))
+                {
+                    // Will add and then sort!
+                    CurrentFolder.Add(folder, true);
+                    StateHasChanged();
+                }
+            }
+
+        }
+        await UI.ToggleModal();
+    }
+
+    private async void OnConfirmMoveFile((bool, Folder) isContinue, FileMetaData file)
+    {
+        if (isContinue.Item1)
+        {
+            var selectedFolder = isContinue.Item2;
+            if (selectedFolder != null && !string.IsNullOrWhiteSpace(selectedFolder.name))
+            {
+                if (await DataUpdatingService.MoveFile(file, selectedFolder.fullPathFromRoot, CurrentUser))
+                {
+                    CurrentFolder.Remove(file);
+                    UnSelectFiles();
+                }
+            }
+        }
+        await UI.ToggleModal();
+    }
+
+    private async Task OnEllipsisClick(FileMetaData file, MouseEventArgs args)
+    {
+        SelectRow(file);
+        await JSRuntime.InvokeAsync<object>("toggleMenu", $"{file.id}Menu", "show", args.ClientX, args.ClientY);
+    }
+
+    private async Task OnEllipsisClick(Folder folder, MouseEventArgs args)
+    {
+        SelectRow(folder);
+        await JSRuntime.InvokeAsync<object>("toggleMenu", $"{FileMetaDataExtensions.GetFolderIdForJS(folder.id)}Menu", "show", args.ClientX, args.ClientY);
+    }
+
+    private void SelectRow(BaseMetadata item)
+    {
+        selectedMetaData = item;
+        StateHasChanged();
+    }
+
+    private async Task ToggleMenu(BaseMetadata item)
+    {
+        selectedMetaData = item;
+        await JSRuntime.InvokeAsync<object>("toggleMenu", $"{FileMetaDataExtensions.GetFolderIdForJS(item.id)}Div", "selected-item");
+        StateHasChanged();
+    }
+
+    private async Task GetFileList()
+    {
+        UnSelectFiles();
+        isLoading = true;
+
+        // Get our list of files!
+        CurrentFolder = await DataRetrievalService.GetFolderContents(CurrentFolder, SearchText, CurrentUser);
+        // Check for downloading files to update!
+        UpdateFolderFromDownloads();
+
+        isLoading = false;
+        StateHasChanged();
+    }
+
+    private void ToggleSort()
+    {
+        CurrentFolder.sortAscending = !CurrentFolder.sortAscending;
+        CurrentFolder.Sort();
+        StateHasChanged();
+    }
+
+    private async void OnConfirmRename((bool, string) isContinue, BaseMetadata metadata)
+    {
+        if (isContinue.Item1)
+        {
+            if (await ConfirmRename((dynamic)metadata, isContinue.Item2))
+            {
+                CurrentFolder.Sort();
+                StateHasChanged();
+            }
+        }
+        await UI.ToggleModal();
+    }
+
+    private async Task<bool> ConfirmRename(FileMetaData file, string newFileName)
+    {
+        return (await DataUpdatingService.RenameFile(file, newFileName, CurrentUser));
+    }
+
+    private async Task<bool> ConfirmRename(Folder folder, string newFolderName)
+    {
+        return (await DataUpdatingService.RenameFolder(folder, newFolderName, CurrentUser));
+    }
+
+    private async Task Delete(FileMetaData file)
+    {
+        if (await DataRemovalService.Delete(file, CurrentUser))
+        {
+            CurrentFolder.Remove(file);
+            UnSelectFiles();
+        }
+    }
+
+    private async Task Delete(Folder folder)
+    {
+        if (await DataRemovalService.Delete(folder, CurrentUser))  //, "ownedroot");
+        {
+            CurrentFolder.Remove(folder);
+            UnSelectFiles();
+        }
+    }
+
+    private async void OnConfirmDelete(bool isConfirmed, dynamic item)
+    {
+        if (isConfirmed)
+        {
+            Delete(item);
+            UnSelectFiles();
+        }
+        await UI.ToggleModal();
+    }
+}

@@ -1,0 +1,23 @@
+﻿@inject IApiService ApiService
+@inject NavigationManager NavigationManager
+
+@page "/search/"
+@page "/search/{searchtext}"
+
+<FileGrid SearchText=@searchtext CurrentFolder="ApiService.SearchDataFolder" CanAddData="false"/>
+
+@code
+{
+    [Parameter]
+    public string searchtext { get; set; }
+  
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        if (string.IsNullOrWhiteSpace(searchtext))
+        {
+            NavigationManager.NavigateTo("data");
+        }
+    }
+}

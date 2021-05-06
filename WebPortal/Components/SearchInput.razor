@@ -1,0 +1,32 @@
+﻿@using System.Timers;
+
+<input type="text" @bind-value="_inputValue" @bind-value:event="oninput" @onkeyup="HandleKeyUp" placeholder="@Localizer["Search-Placeholder"]" />
+
+@code {
+
+    [Parameter]
+    public List<string> SearchList { get; set; }
+
+
+    private string _inputValue = "";
+    private System.Timers.Timer inputTimer;
+    public int EventTimer { get; set; } = 500;
+
+    protected override void OnInitialized()
+    {
+        inputTimer = new System.Timers.Timer(EventTimer);
+        inputTimer.Elapsed += OnTimerFire;
+        inputTimer.AutoReset = false;
+    }
+
+    private void HandleKeyUp(KeyboardEventArgs e)
+    {
+        inputTimer.Stop();
+        inputTimer.Start();
+    }
+
+    private void OnTimerFire(Object source, ElapsedEventArgs e)
+    {
+    }
+
+}

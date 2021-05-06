@@ -1,0 +1,39 @@
+
+<div id="sidebar">
+    <div class="logo">
+        <div class="img">
+            <img src="_content/Datahub.Shared/img/datahub-logo-v2.png" />
+        </div>
+        <div class="text">
+            <div class="subtitle">@Localizer["SIDEBAR.NR-Title"]</div>
+            <div class="title">@Localizer["SIDEBAR.DataHub"]</div>
+        </div>
+    </div>
+    <NavLink href="/" Match="NavLinkMatch.All" ActiveClass="active">
+        <i class="fas fa-home"></i>
+        @Localizer["SIDEBAR.Home"]
+    </NavLink>
+    <NavLink href="/data" Match="NavLinkMatch.Prefix" ActiveClass="active">
+        <i class="fal fa-database"></i>
+        @Localizer["MyData"]
+    </NavLink>
+    <NavLink href="/shared" Match="NavLinkMatch.Prefix" ActiveClass="active">
+        <i class="fal fa-user-friends"></i>
+        @Localizer["SharedWithYou"]
+    </NavLink>
+    <NavLink href="/projects" Match="NavLinkMatch.Prefix" ActiveClass="active">
+        <i class="fas fa-project-diagram"></i>
+        @Localizer["Data Projects"]
+    </NavLink>
+    <AuthorizeView Roles="datahub-admin, project-admin">
+        <NavLink href="/admin" Match="NavLinkMatch.Prefix" ActiveClass="active">
+            <i class="fad fa-user-lock"></i>
+            @Localizer["Admin"]
+        </NavLink>
+    </AuthorizeView>
+    <div class="divider"></div>
+    @*<NavLink href="/reports" Match="NavLinkMatch.Prefix" ActiveClass="active">
+          <i class="fal fa-chart-pie"></i>
+          Dashboard & Reports
+        </NavLink>*@
+</div>

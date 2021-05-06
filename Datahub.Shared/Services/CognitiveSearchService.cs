@@ -1,0 +1,65 @@
+﻿using Azure;
+using Azure.Search.Documents;
+using Azure.Search.Documents.Indexes;
+using Azure.Search.Documents.Models;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using NRCan.Datahub.Shared.Data;
+using NRCan.Datahub.Shared.Services;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace NRCan.Datahub.Shared.Services
+{
+    public class CognitiveSearchService
+    {
+        private ILogger<CognitiveSearchService> _logger;
+        private IKeyVaultService _keyVaultService;
+        private IOptions<APITarget> _targets;
+        private CommonAzureServices _commonAzureServices;
+
+        public CognitiveSearchService(ILogger<CognitiveSearchService> logger,
+                    IKeyVaultService keyVaultService,
+                    CommonAzureServices commonAzureServices,
+                    IOptions<APITarget> targets)
+        {
+            _logger = logger;
+            _keyVaultService = keyVaultService;
+            _targets = targets;
+            _commonAzureServices = commonAzureServices;
+        }
+
+
+        public async Task RunIndexerAsnyc()
+        {
+            var indexerClient =  await _commonAzureServices.GetCognitiveSearchIndexerClient();
+            var response = await indexerClient.RunIndexerAsync(_targets.Value.FileIndexerName);
+
+            _logger.LogInformation($"indexer response: {response.Status}");
+        }
+        public async Task DeleteDocumentFromIndex(string documentId)
+        {
+            var searchClient = await _commonAzureServices.GetSearchClient();
+
+            List<string> idsToDelete = new List<string>() { documentId };
+            var response = searchClient.DeleteDocuments("fileid", idsToDelete);
+        }
+        public async Task AddDocumentToIndex(FileMetaData fileMetaData)
+        {
+            var searchClient = await _commonAzureServices.GetSearchClient();
+
+            IndexDocumentsBatch<FileMetaData> batch = IndexDocumentsBatch.Create(IndexDocumentsAction.Upload(fileMetaData));
+            IndexDocumentsResult result = searchClient.IndexDocuments(batch);
+        }
+        public async Task EditDocument(FileMetaData fileMetaData)
+        {
+            var searchClient = await _commonAzureServices.GetSearchClient();
+
+            IndexDocumentsBatch<FileMetaData> batch = IndexDocumentsBatch.Create(IndexDocumentsAction.Merge(fileMetaData));
+            IndexDocumentsResult result = searchClient.IndexDocuments(batch);
+        }
+
+    }
+}

@@ -1,0 +1,34 @@
+﻿@using Microsoft.AspNetCore.Components
+
+@if (!string.IsNullOrWhiteSpace(To))
+{
+    <AeButton class="ae button dark fa-button" To="@To"><i class="@Icon"></i>@Text</AeButton>
+}
+else
+{
+    @if (IconLocation == "right")
+    {
+        <AeButton class="ae button dark fa-button" @onclick="onclick">@Text<i class="@Icon"></i></AeButton>
+    }
+    else
+    {
+        <AeButton class="ae button dark fa-button" @onclick="onclick"><i class="@Icon"></i>@Text</AeButton>
+    }
+}
+
+@code {
+    [Parameter]
+    public string Text { get; set; }
+    [Parameter]
+    public string Icon { get; set; }
+
+    [Parameter]
+    public string To { get; set; }
+
+    [Parameter]
+    public string IconLocation { get; set; }
+
+    [Parameter]
+    public EventCallback<MouseEventArgs> onclick { get; set; }
+
+}

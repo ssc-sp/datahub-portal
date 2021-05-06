@@ -1,0 +1,322 @@
+﻿@inject IJSRuntime JSRuntime
+@inject IApiService ApiService
+@inject IMSGraphService MSGraphService
+@inject UIControlsService UI
+@inject NotifierService NotifierService
+@inject DataLakeClientService DataLakeClientService
+@inject DataSharingService DataSharingService
+@inject IUserInformationService UserInformationService
+
+<div class="manage-access">
+    <h4 class="nrcan-typography h4 title">@Localizer["MANAGE-ACCESS-PAGE.Title"]</h4>
+    <div class="textrows">
+        <div class="nrcan-typography">@Localizer["Owner"]</div>
+        <ProfileCircle FullName="@MSGraphService.GetUserName(SelectedFile.ownedby)" style="margin-left: 1rem" />
+        <AuthorizeView>
+            <div class="nrcan-typography">
+                <div class="name">
+                    @MSGraphService.GetUserName(SelectedFile.ownedby)
+                </div>
+            </div>
+        </AuthorizeView>
+    </div>
+    <div class="nrcan-typography textrows">@Localizer["MANAGE-ACCESS-PAGE.Share-Label"]</div>
+
+    @if (chosenUser != null)
+    {
+        <div class="selectedDisplay">
+            <div class="selectedText">
+                <ProfileCircle FullName="@chosenUser.DisplayName" />
+                <a>@chosenUser.DisplayName</a>
+            </div>
+
+            @if (!waitingOnAddShare)
+            {
+                <AeDropdown LabelRenderFragment="getIcon" Items="permissionOptions" Renderer="GetOption"
+                            OnChange="ChosenUserSelectPermissions" class="manageAccessDropdown" />
+            }
+            else
+            {
+                <div class="selectedText">
+                    <a>@GetOption(selectedPermission)</a>
+                </div>
+            }
+        </div>
+
+        @if (waitingOnAddShare)
+        {
+            <Spinner Small="true" />
+        }
+
+        <div class="button-footer">
+            <button class="submitbutton cancel" disabled="@(waitingOnAddShare)" type="reset" @onclick="() => RefreshSelectedUser()">@Localizer["BUTTONS.Cancel"]</button>
+            <button class="submitbutton finish" disabled="@(addShareDisabled || waitingOnAddShare)" type="submit" @onclick="() => AddNewUserToShare()">@Localizer["BUTTONS.Finish"]</button>
+        </div>
+    }
+    else
+    {
+        <div>
+            <input type="text" id="inputSearch" class="formuserinput" @onclick="() => OnSearchUserClick()" @onkeyup="() => OnSearchUserClick()" @bind-value="_inputValue" @bind-value:event="oninput" />
+            <div class="nrcan-typography dropdown-content ddsearch" id="usermenu">
+                @foreach (var item in filteredUsersList.Take(10))
+                {
+                    <a @onclick="() => OnUserClick(item.Value)">@item.Value.DisplayName</a>
+                }
+            </div>
+        </div>
+    }
+    <div class="line"></div>
+
+    @foreach (var person in SelectedFile.sharedwith)
+    {
+        var userName = MSGraphService.GetUserName(person.userid);
+
+        <div class="textrows">
+            <ProfileCircle FullName="@userName" style="margin-left: 1rem" />
+            <div class="nrcan-typography">
+                @userName
+            </div>
+            <div class="nrcan-typography">
+                @if (waitingOnUserOp.ContainsKey(person.userid))
+                {
+                    <Spinner Small="true" />
+                }
+                else
+                {
+                   <AeDropdown LabelRenderFragment="@(() => GetLabel(person.role))" Items="permissionOptions.Where(s => s != person.role)" class="manageAccessDropdown" 
+                            Renderer="GetOption" OnChange="(selectedItem) => OnPermissionSwitch(person, userName, selectedItem)" />      
+                }
+            </div>
+            <div class="nrcan-typography">
+                <i class="fal fa-times-circle" style="cursor:pointer" @onclick="() => RemoveSharedUser(person.userid)"></i>
+            </div>
+        </div>
+    }
+</div>
+
+@code{
+
+    [Parameter]
+    public FileMetaData SelectedFile { get; set; }
+    [Parameter]
+    public EventCallback RefreshParent { get; set; }
+
+    public bool waitingOnAddShare = false;
+    public Dictionary<string, bool> waitingOnUserOp = new Dictionary<string, bool>();
+
+    public static List<string> permissionOptions = new List<string>
+    {
+        AccessPermissions.Viewer,
+        AccessPermissions.Editor,
+        AccessPermissions.ChangeOwner
+    };
+
+    public bool addShareDisabled
+    {
+        get
+
+        {
+            if (chosenUser == null)
+            {
+                return true;
+            }
+
+            if (string.IsNullOrWhiteSpace(selectedPermission))
+            {
+                return true;
+            }
+
+            return false;
+        }
+    }
+
+    private Microsoft.Graph.User _currentUser;
+
+    public GraphUser chosenUser = null;
+    public static string selectedPermission { get; set; } = string.Empty;
+
+    private Dictionary<string, GraphUser> filteredUsersList { get; set; } = new Dictionary<string, GraphUser>();
+    private string _inputValue = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        chosenUser = null;
+        selectedPermission = string.Empty;
+        _currentUser = await UserInformationService.GetCurrentUserAsync();
+
+        await DataSharingService.LoadSharedUsers(SelectedFile);
+    }
+
+    protected async override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (chosenUser == null)
+        {
+            await JSRuntime.InvokeAsync<object>("SetFocusToElement", "inputSearch");
+        }
+    }
+
+    private void OnUserClick(GraphUser user)
+    {
+        chosenUser = user;
+        StateHasChanged();
+    }
+
+    private void RefreshSelectedUser()
+    {
+        chosenUser = null;
+        selectedPermission = string.Empty;
+        _inputValue = string.Empty;
+        StateHasChanged();
+    }
+
+    private async void RemoveSharedUser(string userId)
+    {
+        toggleWaitOnUser(userId);
+        if (await DataSharingService.RemoveSharedUsers(SelectedFile, userId))
+        {
+            SelectedFile.sharedwith.RemoveAll(x => x.userid == userId);
+            StateHasChanged();
+        }
+        toggleWaitOnUser(userId);
+    }
+
+    private void ChosenUserSelectPermissions(string permission)
+    {
+        selectedPermission = permission;
+        StateHasChanged();
+    }
+
+    private async Task AddNewUserToShare()
+    {
+        waitingOnAddShare = true;
+        if (selectedPermission != AccessPermissions.ChangeOwner)
+        {
+            await DataSharingService.AddSharedUsers(SelectedFile, chosenUser.Id, selectedPermission);
+            RefreshSelectedUser();
+            waitingOnAddShare = false;
+        }
+        else
+        {
+            var waitingOn = new Sharedwith()
+            {
+                userid = chosenUser.Id,
+                role = selectedPermission
+            };
+            await OnConfirmChangeOwner(chosenUser.DisplayName, waitingOn);
+        }
+    }   
+
+    private void toggleWaitOnUser(string userId)
+    {
+        if (!waitingOnUserOp.ContainsKey(userId))
+        {
+            waitingOnUserOp[userId] = true;
+        }
+        else
+        {
+            waitingOnUserOp.Remove(userId);
+        }
+        StateHasChanged();
+    }
+
+    private async Task OnPermissionSwitch(Sharedwith person, string userName, string selectedItem)
+    {        
+        if (selectedItem != AccessPermissions.ChangeOwner)
+        {
+            toggleWaitOnUser(person.userid);
+            if (await DataSharingService.AddSharedUsers(SelectedFile, person.userid, selectedItem))
+            {
+                person.role = selectedItem;
+            }
+            toggleWaitOnUser(person.userid);
+        }
+        else
+        {
+            // Set the sharedwith instance we are waiting for completion on!
+            await OnConfirmChangeOwner(userName, person);
+        }
+    }
+
+    private async Task OnConfirmChangeOwner(string userName, Sharedwith waitingOn)
+    {
+        List<string> choiceTextList = new List<string>() {  Localizer["MANAGE-ACCESS-PAGE.ChangeOwnerPrompt", SelectedFile.filename, userName] };
+        await UI.ToggleModal(@<UserChoiceModal HeaderText="@Localizer["MANAGE-ACCESS-PAGE.ChangeOwnerTitle"]" OnDecision="(b) => HandleAlertDecision(b, waitingOn)" ChoiceTextList=choiceTextList />);
+    }
+
+    private async void HandleAlertDecision(bool IsContinue, Sharedwith waitingOn)
+    {
+        if (IsContinue)
+        {
+            // Save a lookup (ONLY when this is on the chosen user, which is already in memory)
+            var newOwner = (chosenUser?.Id == waitingOn.userid) ? chosenUser : MSGraphService.GetUser(waitingOn.userid);
+            // Check if the user has a root folder (i.e. have they logged in)
+            if (await ApiService.DoesFolderExist(newOwner.RootFolder))
+            {
+                if (await DataSharingService.ChangeFileOwner(SelectedFile, newOwner, _currentUser.Id))
+                {
+                    waitingOn.role = AccessPermissions.ChangeOwner;
+                    SelectedFile.parent.Remove(SelectedFile);
+
+                    UI.ToggleRightSidebar();
+                    await NotifierService.Update("filegrid", true);
+                }
+            }
+            else
+            {
+                var textList = new List<string>()
+                {
+                    Localizer.GetString("MANAGE-ACCESS-PAGE.FolderNotExist")
+                };
+
+                await UI.ToggleModal();
+                await UI.ToggleModal(@<WarningModal OnDecision="HandleWarningDecision" WarningTextString=@textList />);
+                return;
+            }
+        }
+
+        waitingOnAddShare = false;
+        await UI.ToggleModal();
+        RefreshSelectedUser();
+    }
+
+    private async void HandleWarningDecision(bool IsContinue)
+    {
+        waitingOnAddShare = false;
+        await UI.ToggleModal();
+        StateHasChanged();
+    }
+
+
+    private async Task OnSearchUserClick()
+    {
+        var toggleMenu = "false";
+
+        if (_inputValue.Length > 3)
+        {
+            filteredUsersList = MSGraphService.UsersDict.Where(gu => gu.Value.DisplayName.Contains(_inputValue, StringComparison.OrdinalIgnoreCase)).ToDictionary(v => v.Key, v => v.Value);
+            toggleMenu = "true";
+        }
+
+        await JSRuntime.InvokeAsync<object>("toggleMenuWithBool", $"usermenu", toggleMenu);
+    }
+
+    private async Task OnPermissionsDropdownClick(string divId)
+    {
+        await JSRuntime.InvokeAsync<object>("toggleMenu", divId);
+    }
+
+    private async Task CloseNavBar()
+    {
+        await JSRuntime.InvokeAsync<object>("closeNav");
+        await RefreshParent.InvokeAsync(null);
+    }
+
+    private RenderFragment GetOption(string option)
+    {
+        return @<span>@Localizer[option]</span>;
+    }
+
+    private async Task<RenderFragment> GetLabel(string role) => @<div class="ae button"> <div>@Localizer[role]</div> <i class="fal fa-chevron-down chevronborder"></i></div>;
+
+    private async Task<RenderFragment> getIcon() => @<div id="manageButton" class="ae button"> <div>@selectedPermission</div> <i class="fal fa-chevron-down chevronborder"></i></div>;
+}

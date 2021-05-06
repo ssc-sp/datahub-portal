@@ -1,0 +1,22 @@
+﻿@inherits HtmlElement
+
+<div class="@_classname" @attributes="InputAttributesWithoutClass" @onclick="OnClick">
+    <div class="nrcan-typography">
+        @ChildContent
+    </div>
+    @if (IsEditable)
+    {
+        <i class="fal fa-times-circle" @onclick="OnDeleteClick"></i>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public bool IsEditable { get; set; } = true;
+    [Parameter]
+    public Action OnClick { get; set; }
+    [Parameter]
+    public Action OnDeleteClick { get; set; }
+
+    private string _classname => $"nrcan-tag {_inputClass}";
+}

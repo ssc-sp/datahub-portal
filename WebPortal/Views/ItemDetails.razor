@@ -1,0 +1,128 @@
+﻿@using NRCan.Datahub.Portal.Components;
+@inject IMSGraphService MSGraphService
+@inject CommonAzureServices CommonAzureServices;
+
+<div class="item-details-container">
+    <h4 class="nrcan-typography title h4">
+        <i class="@DatahubTools.GetFileTypeIcon(SelectedFile.fileformat)"></i>
+        @SelectedFile.filename
+    </h4>
+
+    <div class="tab">
+        <h4 class="nrcan-typography @_detailsTabClassname h4" @onclick="@(() => TabClick("details"))">
+            @Localizer["ITEM-DETAILS-PAGE.Details-Label"]
+        </h4>
+        <h4 class="nrcan-typography @_activityTabClassname h4" @onclick="@(() => TabClick("activity"))">
+            @Localizer["ITEM-DETAILS-PAGE.Activity-Label"]
+        </h4>
+    </div>
+    <div class="@_detailsContentClassname">
+        @foreach(string propertyName in FileMetaDataExtensions.GetMetadataProperties(null).Where(p => p.isVisible).Select(p => p.key))
+        {
+            @if (propertyName == "customfields")
+            {
+                @for (int i = 0; i < SelectedFile.customfields.Count; i++)
+                {
+                    <CustomFieldsView Field="@SelectedFile.customfields[i]" IncludeHeader="@(i == 0)" />
+                }
+            }
+            else if (!string.IsNullOrWhiteSpace(GetPropertyDisplayValue(propertyName)))
+            {
+                <div class="item-row">
+                    <div class="nrcan-typography item-label">
+                        @Localizer["ITEM-DETAILS-PAGE." + propertyName]
+                    </div>
+                    <div class="nrcan-typography item-text">
+                        @GetPropertyDisplayValue(propertyName)
+                    </div>
+                </div>
+            }
+        }
+        <div class="item-row">
+            <AeInput disabled DefaultValue="@PowerBIPasteText" class="formuserinput" id="powerbi-connectionstring" />
+            <a onclick="copyToClipboard('powerbi-connectionstring')">
+                <i class="fas fa-copy" style="padding-left: 1rem;"></i>
+            </a>
+        </div>
+        <div class="item-row">
+            <AeInput disabled DefaultValue="@FileLinkURL" class="formuserinput" id="datalake-connectionstring" />
+            <a onclick="copyToClipboard('datalake-connectionstring')">
+                <i class="fas fa-copy" style="padding-left: 1rem;"></i>
+            </a>
+        </div>
+
+    </div>
+    <div class="@_activityContentClassname">
+        @foreach (var activity in SelectedFile.activities)
+        {
+            <div class="item-row"> 
+                @*In the future, instead of "created", use @activity.verb*@
+                @((MarkupString)GetActivity(activity))
+                <div class="nrcan-typography mini-timestamp">
+                    @activity.activityts
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public FileMetaData SelectedFile { get; set; }
+
+    public string FileLinkURL
+    {
+        get
+        {
+            return $"https://{CommonAzureServices.StorageAccountName}.blob.core.windows.net/datahub/{SelectedFile.folderpath}/{SelectedFile.filename}";
+        }
+    }
+
+    public string PowerBIPasteText
+    {
+        get
+        {
+            return $"abfs://{CommonAzureServices.FileSystemName}@{CommonAzureServices.StorageAccountName}.dfs.core.windows.net/{SelectedFile.folderpath}/{SelectedFile.filename}";
+        }
+    }
+    private bool _detailsActive = true;
+
+    private string _detailsTabClassname => $"tab-link {(_detailsActive ? "active" : "")}";
+    private string _activityTabClassname => $"tab-link {(!_detailsActive ? "active" : "")}";
+
+    private string _detailsContentClassname => $"tab-content item-details {(_detailsActive ? "" : "hidden")}";
+    private string _activityContentClassname => $"tab-content item-activity {(_detailsActive ? "hidden" : "")}";
+
+    private string GetActivity(Activity activity)
+    {
+        //var localizer = @"<Typography>{0} {1} <span class=""bluetext"">{2}</span> in <span class=""bluetext"">{3}</span></Typography>";
+        //var loc = string.Format(HtmlLocalizer[localizer].Value, MSGraphService.GetUserName(activity.userid), activity.activity, "another text", "foldername");
+        return string.Empty;
+    }
+    private void TabClick(string tabName)
+    {
+        _detailsActive = tabName == "details";
+        StateHasChanged();
+    }
+
+    private string GetPropertyDisplayValue(string propertyName)
+    {
+        var value = SelectedFile.GetMetadataPropertyValue(propertyName);
+        switch (propertyName)
+        {
+            case "ownedby":
+            case "lastmodifiedby":
+            case "createdby":
+            {
+                return MSGraphService.GetUserName(value);
+            }
+
+            case "tags":
+            {
+                return SelectedFile._tags;
+            }
+        }
+       
+       return value;
+    }
+}

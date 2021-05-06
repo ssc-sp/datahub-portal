@@ -1,0 +1,116 @@
+﻿
+@if (SelectedItem != null)
+{
+    @if (SelectedItem.ownedby == CurrentUser)
+    {
+        <div class="file-grid-item" @onclick="DeleteRow">
+            <i class="far fa-trash-alt icon-color sm-icon"></i>
+            @Localizer["Delete"]
+        </div>
+    }
+
+    @if (SelectedItem.dataType == MetadataType.File)
+    {
+        <div class="file-grid-item" @onclick="DownloadFile">
+            <i class="far fa-cloud-download icon-color sm-icon"></i>
+            @Localizer["Download"]
+        </div>
+<!-- To be added when we support it
+        <div class="file-grid-item" @onclick="OpenVersions">
+            <i class="fas fa-code-branch icon-color sm-icon"></i>
+            @Localizer["Versions"]
+        </div>
+-->
+        <div class="file-grid-item" @onclick="OpenDetails">
+            <i class="far fa-info-circle icon-color sm-icon"></i>
+            @Localizer["ViewDetails"]
+        </div>
+    }
+    
+    @if (SelectedItem.ownedby == CurrentUser)
+    {
+        if (SelectedItem.dataType == MetadataType.File)
+        {
+            <div class="file-grid-item" @onclick="MoveTo">
+                <i class="fal fa-arrow-to-right icon-color sm-icon"></i>
+                @Localizer["MoveTo"]
+            </div>
+        }
+        <div class="file-grid-item" @onclick="Rename">
+            <i class="fal fa-pencil icon-color sm-icon"></i>
+            @Localizer["Rename"]
+        </div>
+        if (SelectedItem.dataType == MetadataType.File)
+        {
+            <div class="file-grid-item" @onclick="OpenManageAccess">
+                <i class="far fa-link icon-color sm-icon"></i>
+                @Localizer["ManageAccess"]
+            </div>
+        }
+    }
+    
+    // If current item is a folder which we do not own, guarantee we show a blank entry
+    @if (SelectedItem.ownedby != CurrentUser && SelectedItem.dataType == MetadataType.Folder)
+    {
+        <div class="file-grid-item">
+            &nbsp;
+        </div>
+    }
+}
+else if (!IsSearchedData)
+{
+    <div class="file-grid-item" @onclick="CreateFolder">
+        <i class="far fa-folder-plus icon-color sm-icon"></i>
+        @Localizer["CreateFolder"]
+    </div>
+}
+else
+{
+    <div class="file-grid-item">
+        &nbsp;
+    </div>
+}
+@code {
+
+    [Parameter]
+    public EventCallback<MenuActions> PerformMenuAction { get; set; }
+    [Parameter]
+    public BaseMetadata SelectedItem { get; set; } = null;
+    [Parameter]
+    public bool IsSearchedData { get; set; } = false;
+    [Parameter]
+    public string CurrentUser { get; set; }
+
+    private Task DeleteRow()
+    {
+        return PerformMenuAction.InvokeAsync(MenuActions.DeleteRow);
+    }
+    private Task DownloadFile()
+    {
+        return PerformMenuAction.InvokeAsync(MenuActions.DownloadFile);
+    }
+    private Task OpenDetails()
+    {
+        return PerformMenuAction.InvokeAsync(MenuActions.OpenDetails);
+    }
+    private Task OpenVersions()
+    {
+        return PerformMenuAction.InvokeAsync(MenuActions.OpenVersions);
+    }
+    private Task OpenManageAccess()
+    {
+        return PerformMenuAction.InvokeAsync(MenuActions.OpenManageAccess);
+    }
+    private Task CreateFolder()
+    {
+        return PerformMenuAction.InvokeAsync(MenuActions.CreateFolder);
+    }
+    private Task MoveTo()
+    {
+        return PerformMenuAction.InvokeAsync(MenuActions.MoveTo);
+    }
+    private Task Rename()
+    {
+        return PerformMenuAction.InvokeAsync(MenuActions.Rename);
+    }
+}

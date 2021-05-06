@@ -1,0 +1,72 @@
+﻿@inject UIControlsService UI
+
+<div class="modal-background" @onclick="() => OnDecision?.Invoke((false, string.Empty))"></div>
+<div class="modal-content">
+    <h4 class="nrcan-typography h4 modal-header">@HeaderText</h4>
+
+    <AeDropdown Items="Values" OnChange="HandleDropdownChange" LabelRenderFragment="getIcon" class="manageAccessDropdown" disabled="@isProcessing" />
+    @if (isProcessing)
+    {
+        <Spinner />
+    }
+
+    <div class="modal-footer">
+        <button class="submitbutton finish" disabled="@(isConfirmDisabled || isProcessing)" @onclick="() => Processing()">@Localizer[ConfirmLabel]</button>
+        @if (!HideCancel)
+        {
+            <button class="submitbutton cancel" disabled="@isProcessing" @onclick="() => OnDecision?.Invoke((false, string.Empty))">@Localizer[CancelLabel]</button>
+        }
+    </div>
+</div>
+
+@code
+{
+
+    [Parameter]
+    public bool HideCancel { get; set; }
+    [Parameter]
+    public string ConfirmLabel { get; set; } = "BUTTONS.Confirm";
+    [Parameter]
+    public string CancelLabel { get; set; } = "BUTTONS.Cancel";    
+    [Parameter]
+    public Action<(bool, string)> OnDecision { get; set; }
+    [Parameter]
+    public string HeaderText { get; set; }
+    [Parameter]
+    public List<string> Values { get; set; }
+
+    public string _selectedItem;
+
+    public bool isConfirmDisabled
+    {
+        get
+        {
+            return string.IsNullOrWhiteSpace(_selectedItem);
+        }
+    }
+    public bool isProcessing { get; set; } = false;
+
+    private void HandleDropdownChange(string selectedItem)
+    {
+        _selectedItem = selectedItem;
+        StateHasChanged();
+    }
+
+    protected override void OnParametersSet()
+    {
+        _selectedItem = string.Empty;
+    }
+
+    public void Processing()
+    {
+        isProcessing = true;
+        StateHasChanged();
+        OnDecision?.Invoke((true, _selectedItem));
+    }
+
+    private async Task<RenderFragment> getIcon()
+    {
+        return @<div id="manageButton" class="ae button"> <div>@_selectedItem</div> <i class="fal fa-chevron-down chevronborder"></i></div>;
+}
+
+}

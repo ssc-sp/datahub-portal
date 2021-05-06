@@ -1,0 +1,33 @@
+﻿
+<div class="progressBarContainer">    
+    <div class="progress" style="height: 15px; position: relative; min-width: 45px;">
+        <AeProgress Percent="@Progress" />
+        <AeTypography Variant="hint" class="progressBarLabel" style="font-size: 0.6rem;">@Localizer["FILE-UPLOAD.UploadingToRepository"]</AeTypography>
+    </div>
+</div>
+
+@code
+{
+    [Parameter]
+    public FileMetaData File { get; set; }
+
+
+    public float Progress
+    {
+        get
+        {
+            if (File?.bytesToUpload > 0)
+            {
+                return ((float)File.uploadedBytes / (float)File.bytesToUpload) * 100.0F;
+            }
+
+            return 0F;
+        }    
+    }
+
+    protected override async Task OnInitializedAsync()
+    {        
+        await base.OnInitializedAsync();
+    }
+
+}

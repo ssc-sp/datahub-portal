@@ -1,0 +1,15 @@
+﻿@import '../_colors.scss';
+
+
+.nrcan-close-button {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    font-size: 1rem;
+
+    &:hover {
+        color: $borderblue;
+        cursor: pointer;
+    }
+}
+

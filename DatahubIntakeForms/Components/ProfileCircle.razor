@@ -1,0 +1,25 @@
+﻿@inherits HtmlElement
+
+<div class="@_classname" @attributes="InputAttributesWithoutClass">
+    <Typography class="profile-letters">@Letters()</Typography>
+</div>
+
+@code {
+
+    [Parameter]
+    public string FullName { get; set; }
+
+    private string _classname => $"profile-circle {_inputClass}";
+
+
+    private string Letters()
+    {
+        if (string.IsNullOrWhiteSpace(FullName))
+        {
+            return "";
+        }
+
+        var words = FullName.Split(" ");
+        return $"{words.LastOrDefault()?.Substring(0, 1)}{words.FirstOrDefault()?.Substring(0, 1)}".Trim();
+    }
+}

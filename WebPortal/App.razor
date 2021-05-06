@@ -1,0 +1,14 @@
+﻿@using Shared.Layout
+<Router AppAssembly="@typeof(Program).Assembly">
+    <Found Context="routeData">
+        <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(NRCan.Datahub.Portal.Layout.PortalLayout)" />
+    </Found>
+    <NotFound>
+        <CascadingAuthenticationState>
+            <LayoutView Layout="@typeof(NRCan.Datahub.Portal.Layout.PortalLayout)">
+                <p>@Localizer["404-Page-error"]</p>
+            </LayoutView>
+        </CascadingAuthenticationState>
+    </NotFound>
+</Router>
+<ApplicationInsightsComponent />

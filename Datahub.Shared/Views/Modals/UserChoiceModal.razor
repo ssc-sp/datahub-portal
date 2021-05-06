@@ -1,0 +1,37 @@
+﻿@inject UIControlsService UI
+
+<div class="modal-content">
+    <div class="modal-background" @onclick="() => OnDecision?.Invoke(false)"></div>
+
+    <h4 class="nrcan-typography h4 modal-header">@HeaderText</h4>
+
+    @foreach (var text in ChoiceTextList)
+    {
+        <div class="modal-body">@text</div>
+    }
+
+    @if (isProcessing)
+    {
+        <Spinner />
+    }
+    <div class="modal-footer">
+        <button class="submitbutton finish" disabled="@isProcessing" @onclick="() => Processing(true)">@Localizer["BUTTONS.Confirm"]</button>
+        <button class="submitbutton cancel" disabled="@isProcessing" @onclick="() => Processing(false)">@Localizer["BUTTONS.Cancel"]</button>
+    </div>
+</div>
+
+@code{
+    [Parameter]
+    public Action<bool> OnDecision { get; set; }
+    [Parameter]
+    public List<string> ChoiceTextList { get; set; }
+    [Parameter]
+    public string HeaderText { get; set; }
+    public bool isProcessing { get; set; } = false;
+    public void Processing(bool response)
+    {
+        isProcessing = true;
+        StateHasChanged();
+        OnDecision?.Invoke(response);
+    }  
+}

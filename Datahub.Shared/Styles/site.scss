@@ -1,0 +1,180 @@
+@import 'colors';
+@import 'sidebar';
+@import 'topbar';
+@import 'banner';
+@import 'main-layout';
+@import 'list-layout';
+@import 'sharedcontrols';
+@import 'spinner';
+@import 'overlay';
+@import 'page-titles';
+@import '_typography.scss';
+@import '_progressbar.scss';
+@import '_tacmodal.scss';
+@import 'search-layout';
+
+@import 'Components/versionList';
+@import 'Components/_tag.scss';
+@import 'Components/_profileCircle.scss';
+@import 'Components/_popup.scss';
+@import 'Components/_closeButton.scss';
+@import 'Components/_faButton.scss';
+@import 'Components/_facard1.scss';
+
+@import 'Views/_item-details.scss';
+@import 'Theme/_elemental-override.scss';
+
+
+body {
+    font-family: 'Roboto','RobotoDraft',Helvetica,Arial,sans-serif;
+    font-size: 0.8rem;
+    background-color: $white;
+}
+
+.add-data-wrapper {
+    display: none;
+}
+
+/* Add Data page dropdown styling */
+#securityDropdown .ae.button {
+    color: $black;
+    background-color: transparent;
+    min-width: 30rem;
+    border-color: $borderblue;
+    border-width: 0px 0px 1px 0px;
+    border-style: solid;
+    padding: 4px 4px 4px 8px;
+    min-height: 19px;
+
+    &:hover {
+        background-color: transparent;
+        border-color: $borderblue;
+    }
+}
+
+#securityClassButton {
+    display: flex;
+    justify-content: space-between;
+}
+
+#securityClassButton > i {
+    margin: 0;
+    border-width: 0;
+    border-style: none;
+    max-height: 10px;
+}
+
+#securityDropdown .ae.content-wrapper {
+    padding-left: 8px;
+    padding-right: 4px;
+    margin-top: 0px;
+}
+
+/* Manage access dropdown styling */
+.manageAccessDropdown .ae.button {
+    height: 32px;
+    background-color: #F7F7F7;
+    color: inherit; 
+    min-width: 7rem;
+    display: flex;
+    padding-top: 6px;
+    /* text-align: right; */
+    justify-content: flex-end;
+}
+
+#manageButton {
+    display: flex;
+    justify-content: space-between;
+    min-height: 22px;
+    padding-top: 6px;
+    min-width: 8.7rem;
+}
+
+#manageButton > i {
+    margin: 0;
+    border-width: 0;
+    border-style: none;
+    max-height: 10px;
+    padding-top: 5px;
+    padding-left: 10px;
+}
+
+.manageAccessDropdown .ae.content-wrapper {
+    min-width: 100%;
+    position: absolute;
+}
+
+.manageAccessDropdown {
+    position: relative;
+    width: auto !important;
+}
+
+/*********************************/
+
+.ae.dropdown-wrapper .ae.content-wrapper .ae.dropdown-item {
+    padding: 16px;
+}
+
+.show-add-data + .add-data-wrapper {
+    display: block;
+}
+
+.header {
+    width: 10rem;
+    padding: 0;
+}
+
+.index {
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+    z-index: 0;
+    top: 0;
+}
+
+img {
+    max-width: 100%;
+    max-height: 100%;
+    float: left;
+    background-size: cover;
+}
+
+/*********************************/
+.flexContent {
+    padding: 80px 15px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    border-bottom: 1px;
+    border-bottom-color: rgba(0,0,0,0.1);
+    border-bottom-style: solid;
+}
+
+.flexItem {
+    //flex-basis: 50%;
+}
+
+.flexItem p {
+    max-width: 600px;
+    margin-bottom: 30px;
+    color: $black;
+    font-size: 1rem;
+}
+
+.flexItem img {
+    margin-left: 60px;
+}
+
+.flexItem h1 {
+    font-size: 36px;
+    font-weight: 500;
+    margin: 0px;
+}
+
+.alert-danger {
+    background-color: $red-200;
+    color: $red-900;
+    border-color: $red-900;
+    border-left: 8px solid $red-900;
+}

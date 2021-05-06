@@ -1,0 +1,98 @@
+{
+   // Use IntelliSense to find out which attributes exist for C# debugging
+   // Use hover for the description of the existing attributes
+   // For further information visit https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md
+   "version": "0.2.0",
+   "configurations": [
+        {
+            "name": "Portal (web)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/WebPortal/bin/Debug/net5.0/NRCan.Datahub.Portal.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/WebPortal/",
+            "stopAtEntry": false,
+            "serverReadyAction": {
+                "action": "openExternally",
+                "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
+            },
+            "env": {
+                "AZURE_CLIENT_SECRET": "###DH_CLIENT_SECRET###",
+                "AZURE_CLIENT_ID": "###DH_CLIENT_ID###",
+                "ASPNETCORE_ENVIRONMENT": "Development"
+               ,"IS_LOCAL": "true"
+               ,"AZURE_TENANT_ID": "###DH_TENANT_ID###"
+               //,"AZURE_TENANT_ID": "${env:AZURE_TENANT_ID}"
+               //,"AZURE_CLIENT_ID": "${env:AZURE_CLIENT_ID}"
+               //,"AZURE_CLIENT_SECRET": "${env:AZURE_CLIENT_SECRET}"
+            },
+            "sourceFileMap": {
+                "/Views": "${workspaceFolder}/Views"
+            }
+        },
+        
+        {
+            "name": ".NET Core Launch (web)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            // If you have changed target frameworks, make sure to update the program path.
+            "program": "${workspaceFolder}/WebPortal/bin/Debug/net5.0/NRCan.Datahub.Portal.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/WebPortal",
+            "stopAtEntry": false,
+            // Enable launching a web browser when ASP.NET Core starts. For more information: https://aka.ms/VSCode-CS-LaunchJson-WebBrowser
+            "serverReadyAction": {
+                "action": "openExternally",
+                "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
+            },
+            "env": {
+               "AZURE_CLIENT_SECRET": "###DH_CLIENT_SECRET###",
+               "AZURE_CLIENT_ID": "###DH_CLIENT_ID###",
+               "ASPNETCORE_ENVIRONMENT": "Development"
+              ,"IS_LOCAL": "true"
+              ,"AZURE_TENANT_ID": "###DH_TENANT_ID###"
+//               ,"AZURE_TENANT_ID": "${env:AZURE_TENANT_ID}"
+//               ,"AZURE_CLIENT_ID": "${env:AZURE_CLIENT_ID}"
+//               ,"AZURE_CLIENT_SECRET": "${env:AZURE_CLIENT_SECRET}"
+
+            },
+            "sourceFileMap": {
+                "/Views": "${workspaceFolder}/Views"
+            }
+        },
+        {
+            "name": "TEST Resource Group (tst)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            // If you have changed target frameworks, make sure to update the program path.
+            "program": "${workspaceFolder}/WebPortal/bin/Debug/net5.0/NRCan.Datahub.Portal.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/WebPortal",
+            "stopAtEntry": false,
+            // Enable launching a web browser when ASP.NET Core starts. For more information: https://aka.ms/VSCode-CS-LaunchJson-WebBrowser
+            "serverReadyAction": {
+                "action": "openExternally",
+                "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
+            },
+            "env": {
+               "ASPNETCORE_ENVIRONMENT": "Tst"
+              ,"IS_LOCAL": "true"
+              ,"AZURE_TENANT_ID": "${env:AZURE_TENANT_ID}"
+              ,"AZURE_CLIENT_ID": "${env:AZURE_CLIENT_ID}"
+              ,"AZURE_CLIENT_SECRET": "${env:AZURE_CLIENT_SECRET}"
+            },
+            "sourceFileMap": {
+                "/Views": "${workspaceFolder}/Views"
+            }
+        },
+        {
+            "name": ".NET Core Attach",
+            "type": "coreclr",
+            "request": "attach",
+            "processId": "${command:pickProcess}"
+        }
+    ]
+}

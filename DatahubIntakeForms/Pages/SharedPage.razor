@@ -1,0 +1,7 @@
+﻿@page "/shared"
+@inject IStringLocalizer<SharedResources> Localizer
+
+<div class="header-wrapper">
+    <Typography Variant="h3">@Localizer["Shared with you"]</Typography>
+</div>
+<FileGrid IsSharedFiles="true" />

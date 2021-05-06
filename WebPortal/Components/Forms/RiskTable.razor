@@ -1,0 +1,46 @@
+﻿
+@inject IStringLocalizer DataLocalizer
+@inject PIPDBContext Context
+
+<h2>Associated Risks</h2>
+<AeTable Accessors="accessorFunctionsRisks"
+         Renderers="RenderFunctions"
+         T="PIP_Risks"
+         Dataset="IndicatorRisks"
+         Headers="riskheaders"
+         GridTemplateColumns="1fr 4fr 7fr"
+         MaxHeight="200"
+         OnRowClick="@OnToggleRisk" />
+
+
+@code {
+
+    [Parameter]
+    public List<PIP_Risks> IndicatorRisks { get; set; }
+
+    [Parameter]
+    public List<Func<PIP_Risks, RenderFragment>> RenderFunctions { get; set; }
+
+    [Parameter]
+    public EventCallback<PIP_Risks> ToggleRisk { get; set; }
+
+    private List<string> riskheaders = new List<string>
+{
+        "Active", "Risk Id","Description"
+    };
+
+    private List<Func<PIP_Risks, string>> accessorFunctionsRisks = new List<Func<PIP_Risks, string>>
+{
+        new Func<PIP_Risks, string>(p => { return string.Empty; }),
+        new Func<PIP_Risks, string>(p => { return p.Risk_Id_TXT; }),
+        new Func<PIP_Risks, string>(p => { return p.Risk_Description_TXT; }),
+    };
+
+
+    private Task OnToggleRisk(PIP_Risks risk)
+    {
+        return ToggleRisk.InvokeAsync(risk);
+    }
+
+   
+}

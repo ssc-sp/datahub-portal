@@ -1,0 +1,60 @@
+@using Pages
+@using Pages.Static.en_CA
+@using Pages.Static.fr_CA
+@inject IJSRuntime JSRuntime
+
+
+<div class="swiper-container">
+    <div class="swiper-wrapper">
+        @for(int i = 0; i < SlideFragments.Count; i++)
+        {
+            var slide = SlideFragments[i];
+
+            <div class="nrcan-slide swiper-slide @(i % 2 == 0 ? "alt-bg" : "")">
+                @renderWidget(slide)
+            </div>            
+        }
+    </div>
+    <!-- Add Pagination -->
+    <div class="swiper-pagination swiper-pagination-white"></div>
+</div>
+
+@code
+{
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JSRuntime.InvokeAsync<object>("initializeSwiper", ".swiper-container", ".swiper-pagination");
+        }
+    }
+
+    private List<Type> SlideFragments = new List<Type>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        if (Thread.CurrentThread.CurrentCulture.TwoLetterISOLanguageName == "fr")
+        {
+            SlideFragments.Add(typeof(DataScientistsFr));
+            SlideFragments.Add(typeof(DesignForProfessionals2Fr));
+            SlideFragments.Add(typeof(ExecutivesFr));
+        }
+        else
+        {
+            SlideFragments.Add(typeof(DataScientistsEn));
+            SlideFragments.Add(typeof(DesignForProfessionals2En));
+            SlideFragments.Add(typeof(ExecutivesEn));
+        }
+
+        StateHasChanged();
+    }
+
+    private RenderFragment renderWidget(Type t) => builder =>
+    {
+        builder.OpenComponent(0, t);
+        builder.CloseComponent();
+    };
+
+}

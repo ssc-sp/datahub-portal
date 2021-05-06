@@ -1,0 +1,229 @@
+﻿@inject IStringLocalizer DataLocalizer
+@inject PIPDBContext Context
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JsInterop
+@inject IUserInformationService UserInformationService
+@page "/pip/indicators/{tombstone}"
+
+@using Elemental.Components.Forms
+
+<h1>Indicator And Results</h1>
+
+<ProgramTable tombstone="@tombstone"></ProgramTable>
+
+<h2>Step 2: Enter/Select Indicators and Results for Selected Program</h2>
+<div>
+    <AeFlex Vertical id="indexFlex">
+
+
+
+        <AeTable Accessors="accessorFunctions"
+                 T="PIP_IndicatorAndResults"
+                 Dataset="_indicators"
+                 ColorAccessor="getColor"
+                 Headers="headers"
+                 GridTemplateColumns="2fr 2fr 2fr"
+                 MaxHeight="400"
+                 OnRowClick="@SetFormEdit" />
+
+
+    </AeFlex>
+    @if (_indicator == null)
+    {
+        <AeFlex id="buttonBar">
+            <div class="icon-container" style="margin-bottom: 10px; margin-left: 5px;">
+
+                <FAButton Text="Add New" Icon="far fa-plus-square" onclick="e => CreateNewIndicator()" />
+            </div>
+        </AeFlex>
+    }
+</div>
+
+@if (_indicator != null)
+{
+    if (_indicator.IndicatorAndResult_ID > 0)
+    {
+        <h2>Editing Indicator and Result @_indicator.IndicatorAndResult_ID</h2>
+    }
+    else
+    {
+        <h2>Update Outcome and Indicator Data</h2>
+    }
+
+    <AeModelForm Model="_indicator"
+                 T="PIP_IndicatorAndResults"
+                 OnValidSubmit="HandleValidSubmit"
+                 OnCancel="ClearForm"
+                 CancelLabel="Cancel"
+                 SubmitLabel="@SubmitLabel"
+                 LabelForPropertyFunc="@GetDataLabel"
+                 OnConfigure="OnConfigure"
+                 LabelsOnTop="true" />
+
+    if (_indicator.IndicatorAndResult_ID > 0)
+    {
+        <RiskTable ToggleRisk="ToggleRisk" IndicatorRisks="@_risks" RenderFunctions="@renderFunctions"></RiskTable>
+    }
+}
+
+<AeFlex id="buttonBar">
+    <div class="icon-container" style="margin-bottom: 10px; margin-left: 5px;">
+        <FAButton Text="Tombstone" Icon="fal fa-arrow-left" onclick="e => GoToPreviousSheet()" />
+        <FAButton Text="Risks" Icon="fal fa-arrow-right" IconLocation="right" onclick="e => GoToNextSheet()" />
+    </div>
+</AeFlex>
+
+@code {
+
+    [Parameter]
+    public string tombstone { get; set; }
+
+
+    private List<PIP_IndicatorAndResults> _indicators;
+    private PIP_IndicatorAndResults _indicator;
+    private List<PIP_Tombstone> _tombstones;
+    private List<PIP_Risks> _risks = new List<PIP_Risks>();
+    private PIP_Tombstone _tombstone;
+    private bool _navToEdit = false;
+    private Microsoft.Graph.User CurrentUser;
+    private string SubmitLabel = "Save";
+
+    protected override async Task OnInitializedAsync()
+    {
+        renderFunctions = new List<Func<PIP_Risks, RenderFragment>>
+{
+        new Func<PIP_Risks, RenderFragment>(p => { return p.PIP_IndicatorRisks.Any(q => q.Pip_Indicator == _indicator) ? @<i class="fal fa-check-square"></i> : @<i class="fal fa-square"></i>; }),
+        null,
+        null,
+    };
+        CurrentUser = await UserInformationService.GetCurrentUserAsync();
+        // load projects
+        _tombstone = Context.Tombstones.Where(p => p.Tombstone_ID == Convert.ToInt32(tombstone)).FirstOrDefault();
+        _indicators = Context.IndicatorAndResults.Where(p => p.PIP_Tombstone.Tombstone_ID == _tombstone.Tombstone_ID).ToList();
+    }
+
+    private async Task CreateNewIndicator()
+    {
+        _indicator = new PIP_IndicatorAndResults() { PIP_Tombstone = _tombstone, Last_Updated_DT = DateTime.Now, Date_201920_Result_Collected_DT = DateTime.Now, Date_To_Achieve_Target_DT = DateTime.Now };
+        StateHasChanged();
+        _navToEdit = true;
+    }
+
+    private async Task OnConfigure(ModelFormContext<PIP_IndicatorAndResults> context)
+    {
+        await context.UpdateValidValues("Outcome_Level_DESC", new[] { "Immediate", "Intermediate", "Ultimate", "Output" });
+        await context.UpdateValidValues("Source_Of_Indicator_DESC", new[] { "Horizontal Intiative", "DRF indicator", "GC InfoBase Indicator", "TB Sub indicator", "DSDS indicator", "SDG indicator", "TPP indicator", "Internal program indicator only" }); await context.UpdateValidValues("Frequency_DESC", new[] { "Monthly", "Bi-Monthly", "Quarterly", "Semi-Anually", "Annually", "2 Years", "3 Years", "5 Years", "Other" });
+        await context.UpdateValidValues("Source_Of_Indicator2_DESC", new[] { "Horizontal Intiative", "DRF indicator", "GC InfoBase Indicator", "TB Sub indicator", "DSDS indicator", "SDG indicator", "TPP indicator", "Internal program indicator only" }); await context.UpdateValidValues("Frequency_DESC", new[] { "Monthly", "Bi-Monthly", "Quarterly", "Semi-Anually", "Annually", "2 Years", "3 Years", "5 Years", "Other" });
+        await context.UpdateValidValues("Source_Of_Indicator3_DESC", new[] { "Horizontal Intiative", "DRF indicator", "GC InfoBase Indicator", "TB Sub indicator", "DSDS indicator", "SDG indicator", "TPP indicator", "Internal program indicator only" }); await context.UpdateValidValues("Frequency_DESC", new[] { "Monthly", "Bi-Monthly", "Quarterly", "Semi-Anually", "Annually", "2 Years", "3 Years", "5 Years", "Other" });
+        await context.UpdateValidValues("Indicator__Progressive_Or_Aggregate_DESC", new[] { "Progressive", "Aggregate" });
+        await context.UpdateValidValues("Indicator_Category_DESC", new[] { "Quantitative", "Qualitative" });
+        await context.UpdateValidValues("Indicator_Direction_DESC", new[] { "Increase", "Decrease", "Maintain" });
+        await context.UpdateValidValues("Data_Type_DESC", new[] { "Number", "Non numeric", "Dollar", "Percent" });
+        await context.UpdateValidValues("Target_Type_DESC", new[] { "Minimum value(at least)", "Maximum value(at most)", "Closed range", "Exact(single) value" });
+        await context.UpdateValidValues("Target_Met", new[] { "On Track", "Met", "Not Met", "Not on track to meet target" });
+        await context.UpdateValidValues("Does_This_Indicator_Support_Gba", new[] { "Yes", "No" });
+    }
+
+
+
+    private List<Func<PIP_IndicatorAndResults, string>> accessorFunctions = new List<Func<PIP_IndicatorAndResults, string>>
+{
+        new Func<PIP_IndicatorAndResults, string>(p => { return p.Outcome_Level_DESC; }),
+        new Func<PIP_IndicatorAndResults, string>(p => { return p.Program_Output_Or_Outcome_DESC; }),
+        new Func<PIP_IndicatorAndResults, string>(p => { return p.Indicator_DESC; }),
+    };
+
+    private async Task HandleValidSubmit()
+    {
+        if (_indicator != null)
+        {
+            _indicator.Last_Updated_DT = DateTime.Now;
+            _indicator.Last_Updated_UserId = CurrentUser.Id;
+            if (_indicator.IndicatorAndResult_ID == 0)
+            {
+                _indicator = Context.IndicatorAndResults.Add(_indicator).Entity;
+            }
+            await Context.SaveChangesAsync();
+            await OnInitializedAsync();
+            _indicator = null;
+        }
+    }
+
+    private async Task GoToNextSheet()
+    {
+        await HandleValidSubmit();
+        NavigationManager.NavigateTo($"/pip/risks/{_tombstone.Tombstone_ID}");
+    }
+
+    private async Task GoToPreviousSheet()
+    {
+        await HandleValidSubmit();
+        NavigationManager.NavigateTo($"/pip/programs/{_tombstone.Tombstone_ID}");
+    }
+
+    private void SetFormEdit(PIP_IndicatorAndResults indicator)
+    {
+        _indicator = indicator;
+        UpdateRisks();
+        StateHasChanged();
+        _navToEdit = true;
+    }
+
+    private void UpdateRisks()
+    {
+        _risks.Clear();
+        _risks = Context.Risks.Include(r => r.PIP_IndicatorRisks).ToList();
+    }
+
+    private string getColor(PIP_IndicatorAndResults current)
+    {
+        if (current == _indicator)
+        {
+            return "yellow";
+        }
+        return "";
+    }
+
+    private async Task<PIP_IndicatorAndResults> ClearForm()
+    {
+        _indicator = null;
+        StateHasChanged();
+        return null;
+    }
+
+    public string GetDataLabel(string propName)
+    {
+        return DataLocalizer[propName];
+    }
+
+    private List<string> headers = new List<string>
+{
+        "Outcome Level","Program Output or Outcome", "Indicator"
+    };
+
+    private List<Func<PIP_Risks, RenderFragment>> renderFunctions = null;
+
+
+    private void ToggleRisk(PIP_Risks risk)
+    {
+        var storedRisks = _risks.Where(r => r.Risks_ID == risk.Risks_ID).First().PIP_IndicatorRisks.Where(i => i.Pip_Indicator.IndicatorAndResult_ID == _indicator.IndicatorAndResult_ID).ToList();
+        if (storedRisks.Any(r => r.Pip_Risk == risk))
+        {
+            var indicatorRisk = Context.IndicatorRisks.Where(r => r.Pip_Risk == risk && r.Pip_Indicator.IndicatorAndResult_ID == _indicator.IndicatorAndResult_ID).FirstOrDefault();
+            Context.IndicatorRisks.Remove(indicatorRisk);
+        }
+        else
+        {
+            var pipIndicator = Context.IndicatorAndResults.Where(i => i.IndicatorAndResult_ID == _indicator.IndicatorAndResult_ID).First();
+            var indicatorRisk = new PIP_IndicatorRisks() { Pip_Indicator = pipIndicator, Pip_Risk = risk };
+            Context.IndicatorRisks.Add(indicatorRisk);
+        }
+        Context.SaveChanges();
+
+        UpdateRisks();
+        StateHasChanged();
+
+    }
+
+
+}

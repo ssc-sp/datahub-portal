@@ -1,0 +1,120 @@
+﻿
+@inject IMSGraphService MSGraphService
+@inject DataRemovalService DataRemovalService
+@inject DataUpdatingService DataUpdatingService
+@inject UIControlsService UI
+
+<div id="@($"{FileMetaDataExtensions.GetFolderIdForJS(Folder.id)}Div")" class="fileGrid" @onclick="() => SelectFolder()"
+     @oncontextmenu="HandleRightClick" @oncontextmenu:preventDefault="true">
+    <div class="grid-item" style="@CurrentlySelectedStyle">
+        <i class="@(!IsSelected ? "": "far fa-check-circle icon-color ")">&nbsp;</i>
+    </div>
+    <div class="grid-item" style="cursor:pointer" @onclick="GetFolderData">
+        <div class="textcontent">
+            <i class="far fa-folder"></i>
+            <div id="@FileMetaDataExtensions.GetFolderIdForJS(Folder.id)">@Folder.name</div>
+        </div>
+    </div>
+    <div class="grid-item">
+        <div class="ellipsis">
+            @if (Folder.ownedby == CurrentUser)
+            {
+                <i class="far fa-ellipsis-v" @onclick="(e) => OnEllipsisClickFolder(e)"></i>
+                <div id="@($"{FileMetaDataExtensions.GetFolderIdForJS(Folder.id)}Menu")" class="context-menu dropdown-content">
+                    <a @onclick="OnRenameFolder">
+                        <i class="fal fa-pencil icon-color sm-icon"></i>
+                        @Localizer["Rename"]
+                    </a>
+                    <a @onclick="DeleteFolder">
+                        <i class="far fa-trash-alt icon-color sm-icon"></i>
+                        @Localizer["Delete"]
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+    <div class="grid-item">@Folder.lastmodifiedts.ToShortDateString()</div>
+    <div class="grid-item">@MSGraphService.GetUserName(Folder.lastmodifiedby)</div>
+    <div class="grid-item">@MSGraphService.GetUserName(Folder.createdby)</div>
+    <div class="grid-item"></div>
+    <div class="grid-item"></div>
+</div>
+@code {
+    [Parameter]
+    public Folder Folder { get; set; }
+    [Parameter]
+    public EventCallback<Folder> SelectRow { get; set; }
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnEllipsisClick { get; set; }
+    [Parameter]
+    public EventCallback<Folder> RemoveFolderFromList { get; set; }
+    [Parameter]
+    public EventCallback<Folder> GetFilesForFolder { get; set; }
+    [Parameter]
+    public EventCallback<MenuActions> PerformMenuAction { get; set; }
+    [Parameter]
+    public bool IsSelected { get; set; } = false;
+    [Parameter]
+    public string CurrentUser { get; set; }
+
+    public string CurrentlySelectedStyle
+    {
+        get
+        {
+            if (!IsSelected)
+            {
+                return "padding: 0px 1.6rem;";
+            }
+
+            return string.Empty;
+        }
+    }
+    private Task SelectFolder()
+    {
+        return SelectRow.InvokeAsync(Folder);
+    }
+
+    private void HandleRightClick(MouseEventArgs args)
+    {
+        if (args.Button == 2)
+        {
+            OnEllipsisClickFolder(args);
+        }
+    }
+    
+    private Task OnEllipsisClickFolder(MouseEventArgs args)
+    {
+        return OnEllipsisClick.InvokeAsync(args);
+    }
+
+    private void OpenManageAccess()
+    {
+
+    }
+
+    private void MoveFolder()
+    {
+    }
+
+    private void OpenDetails()
+    {
+
+    }
+
+    private Task DeleteFolder()
+    {
+        return PerformMenuAction.InvokeAsync(MenuActions.DeleteRow);
+    }
+
+    private async void GetFolderData()
+    {
+        await GetFilesForFolder.InvokeAsync(Folder);
+    }
+
+    private Task OnRenameFolder()
+    {
+        return PerformMenuAction.InvokeAsync(MenuActions.Rename);
+    }
+
+
+}

@@ -1,0 +1,80 @@
+﻿@inject IJSRuntime JSRuntime
+
+<div class="modal-content-large">
+
+    <h3 class="nrcan-typography h3centered">@LocalizerRes("TAC-PAGE.Title")</h3>
+    <div class="bodytext" style="padding-left: 1rem">
+        @LocalizerRes("TAC-PAGE.Introduction")
+    </div>
+
+    <div id="termsandconditions" class="tacdivbox" @onscroll="() => checkScroll()">
+    @if (Language == "en-CA")
+    {
+        <TACComponent />
+    }
+    else
+    {
+        <TACComponentFr />
+    }
+    </div>
+
+    <div class="bodytext" style="padding-left: 1rem">
+        @LocalizerRes("TAC-PAGE.AcceptTerms")<div class="redtext">*</div>
+    </div>
+
+    <div class="tacfooter">
+        <input id="acceptterms" type="checkbox" @onclick="ToggleCheck" disabled />&nbsp;
+        <label for="acceptterms">@LocalizerRes("TAC-PAGE.AgreeToTAC")</label>
+    </div>
+
+    <div class="modal-footer">
+        <button class="submitbutton finish" disabled="@(!isChecked)" type="submit" @onclick="() => OnDecision?.Invoke(true)">@LocalizerRes("BUTTONS.Submit")</button>
+        <button class="submitbutton cancel" @onclick="() => OnDecision?.Invoke(false)">@LocalizerRes("BUTTONS.Cancel")</button>
+    </div>
+</div>
+
+@code
+{
+    [Parameter]
+    public Action<bool> OnDecision { get; set; }
+    [Parameter]
+    public string Language { get; set; }
+    private bool isChecked { get; set; } = false;
+
+    // When we figure out how to switch languages without having to reload app
+    // OR we can open the json file to get values REMOVE THIS HACK!
+    private static Dictionary<string, Dictionary<string, string>> resources = new Dictionary<string, Dictionary<string, string>>() {
+        {"en-CA", new Dictionary<string, string>() {
+                    {"TAC-PAGE.AcceptTerms",    "Accept Terms"},
+                    {"TAC-PAGE.AgreeToTAC",     "I agree to the Terms and Conditions"},
+                    {"TAC-PAGE.Introduction",   "Scroll down to read the complete terms and conditions before accepting."},
+                    {"TAC-PAGE.Title",          "Welcome to NRCAN DataHub"},
+                    {"BUTTONS.Submit",          "Submit"},
+                    {"BUTTONS.Cancel",          "Cancel"}
+        }},
+        {"fr-CA", new Dictionary<string, string>() {
+                    {"TAC-PAGE.AcceptTerms",    "Accepté les termes et conditions"},
+                    {"TAC-PAGE.AgreeToTAC",     "J'accepte les termes et conditions"},
+                    {"TAC-PAGE.Introduction",   "Faites défiler vers le bas pour lire les termes et conditions complets avant d'accepter."},
+                    {"TAC-PAGE.Title",          "Bienvenue au RNCan DataHub"},
+                    {"BUTTONS.Submit",          "Soumettre"},
+                    {"BUTTONS.Cancel",          "Annuler"}
+        }}
+    };
+
+    private void ToggleCheck()
+    {
+        isChecked = !isChecked;
+    }
+
+    public string LocalizerRes(string resId)
+    {
+        var langDict = resources[Language];
+
+        return langDict[resId];
+    }
+    public async void checkScroll()
+    {
+        await JSRuntime.InvokeAsync<object>("enableOnScroll", "termsandconditions", "acceptterms");
+    }
+}

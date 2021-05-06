@@ -1,0 +1,24 @@
+﻿@inject IUserInformationService UserInformationService
+@inject IApiService ApiService
+
+@page "/data"
+@page "/data/{uploaded}"
+
+<FileGrid CurrentFolder="ApiService.CurrentFolder" CanAddData="true" />
+
+@code
+{
+    [Parameter]
+    public string uploaded { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        // If we came from file upload, just reload the current folder
+        if (string.IsNullOrWhiteSpace(uploaded) || !uploaded.Equals("true", StringComparison.OrdinalIgnoreCase))
+        {
+            ApiService.CurrentFolder = ApiService.MyDataFolder;
+        }
+    }
+}

@@ -1,0 +1,15 @@
+﻿@inherits HtmlElement
+
+<div class="@_classname" @attributes="InputAttributesWithoutClass" @onclick="OnClick">
+    <Typography>@ChildContent</Typography>
+    <i class="fal fa-times-circle" @onclick="OnDeleteClick"></i>
+</div>
+
+@code {
+    [Parameter]
+    public Action OnClick { get; set; }
+    [Parameter]
+    public Action OnDeleteClick { get; set; }
+
+    private string _classname => $"nrcan-tag {_inputClass}";
+}

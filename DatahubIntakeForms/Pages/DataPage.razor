@@ -1,0 +1,9 @@
+﻿@page "/data"
+@inject NavigationManager NavigationManager
+@inject IStringLocalizer<SharedResources> Localizer
+
+<div class="header-wrapper">
+    <Typography Variant="h3">@Localizer["My Data"]</Typography>
+    <div class="pillbutton" @onclick="@(() => NavigationManager.NavigateTo("add-data"))"><i class="fas fa-plus"></i>@Localizer["Add Data"]</div>
+</div>
+<FileGrid />

@@ -1,0 +1,32 @@
+﻿@inherits HtmlElement
+
+@if (Show)
+{
+    <div class="@_classname" @attributes="InputAttributesWithoutClass">
+        <i class="fal fa-times-circle nrcan-close-button" @onclick="OnCloseClick"></i>
+        @if(ChildContent != null)
+        {
+            <div class="content">
+                @ChildContent
+            </div>
+        }
+        @if(Footer != null)
+        {
+            <div class="footer">
+                @Footer
+            </div>
+        }
+    </div>
+}
+
+
+@code {
+    [Parameter]
+    public RenderFragment Footer { get; set; }
+    [Parameter]
+    public Action OnCloseClick { get; set; }
+    [Parameter]
+    public bool Show { get; set; }
+
+    private string _classname => $"{_inputClass}";
+}

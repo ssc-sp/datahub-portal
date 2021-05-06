@@ -1,0 +1,40 @@
+# ASP.NET Core (.NET Framework)
+# Build and test ASP.NET Core projects targeting the full .NET Framework.
+# Add steps that publish symbols, save build artifacts, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/dotnet-core
+
+trigger:
+- develop
+
+pool:
+  vmImage: 'windows-latest'
+
+variables:
+  solution: '**/NRCan.Datahub.Forms.sln'
+  buildPlatform: 'Any CPU'
+  buildConfiguration: 'Release'
+
+steps:
+
+- task: UseDotNet@2
+  displayName: 'Install .NET Core SDK'
+  inputs:
+    version: 5.0.x
+    performMultiLevelLookup: true
+    includePreviewVersions: true # Required for preview versions
+
+- task: DotNetCoreCLI@2
+  displayName: 'Publish web project'
+  inputs:
+    command: 'publish'
+    publishWebProjects: false
+    projects: 'DatahubPBILicenseForms/Datahub.ProjectForms.csproj'
+    arguments: '-r win-x64 --self-contained true'
+
+- task: AzureRmWebAppDeployment@4
+  inputs:
+    ConnectionType: 'AzureRM'
+    azureSubscription: 'datahub-dev-service-connection'
+    appType: 'webApp'
+    WebAppName: 'webforms-ciosb-datahub-dev'
+    packageForLinux: '$(System.DefaultWorkingDirectory)/DatahubPBILicenseForms/**/*.zip'

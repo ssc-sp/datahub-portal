@@ -1,0 +1,108 @@
+@import '_colors.scss';
+@import '_constants.scss';
+@import '_box-shadow.scss';
+
+
+.application-wrapper {
+    display: flex;
+    min-height: 100vh;
+
+    .main-layout {
+        flex-grow: 1;
+        overflow: hidden;
+        position: relative;
+        padding-top: 47px;
+
+        .ui-control {
+            display: flex;
+
+            .page {
+                display: grid;
+                flex-grow: 1;
+            }
+
+            .right-sidebar {
+                position: absolute;
+                top: $topbarHeight;
+                right: 0;
+                width: 400px;
+                height: 100%;
+                overflow-y: auto;
+                background-color: $white;
+                border-left: 1px solid $gray-200;
+                border-top: 1px solid $gray-200;
+                transition: all .3s $cubic-bezier;
+
+                &.hidden {
+                    width: 0px;
+
+                    .nrcan-close-button {
+                        display: none;
+                    }
+                }
+            }
+
+            .page-modal {
+                position: fixed;
+                top: 0;
+                left: 0;
+                z-index: 1050;
+                display: block;
+                width: 100%;
+                height: 100%;
+                overflow: hidden;
+                outline: 0;
+                background-color: rgb(0,0,0); /* Fallback color */
+                background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+                &.hidden {
+                    display: none;
+                }
+
+                .modal-content-large {
+                    background-color: $white;
+                    margin: 5% auto;
+                    padding: 20px;
+                    border: 1px solid #888;
+                    width: 50rem; 
+                }
+
+                .modal-content {
+                    background-color: $white;
+                    margin: 5% auto; /* 15% from the top and centered */
+                    padding: 20px;
+                    border: 1px solid #888;
+                    width: 30%; /* Could be more or less, depending on screen size */
+                }
+
+                .modal-background {
+                    z-index: -1;
+                    top: 0;
+                    left: 0;
+                    position: fixed;
+                    width: 100%;
+                    height: 100%;
+                    background-color: rgb(0,0,0); /* Fallback color */
+                    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+                }
+
+                .modal-header {
+                    padding: 2px 16px;
+                    border: 0px;
+                    background-color: $white;
+                }
+                /* Modal Body */
+                .modal-body {
+                    padding: 0rem 1rem 1rem 1rem;
+                }
+                /* Modal Footer */
+                .modal-footer {
+                    padding: 2px 16px;
+                    background-color: $white;
+                    border: 0px;
+                    display: flex;
+                    flex-direction: row-reverse;
+                }
+            }
+        }
+    }
+}

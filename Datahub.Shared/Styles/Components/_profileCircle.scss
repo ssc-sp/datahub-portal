@@ -1,0 +1,17 @@
+﻿@import '../_colors.scss';
+
+.profile-circle {
+    background-color: $gray-700;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 4rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .profile-letters {
+        font-size: .75rem;
+        font-weight: bold;
+        color: $white;
+    }
+}

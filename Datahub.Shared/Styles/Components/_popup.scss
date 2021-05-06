@@ -1,0 +1,24 @@
+﻿@import '../_colors.scss';
+@import '../_constants.scss';
+@import '../_box-shadow.scss';
+
+
+.nrcan-popup {
+    position: absolute;
+    top: 0;
+    max-width: 500px;
+    margin-left: -500px;
+    background-color: $white;
+    padding: 1rem;
+
+    @include BoxShadow(2);
+
+
+    &.top-nav-popup {
+        top: $topbarHeight;
+    }
+
+    .footer {
+        border-top: 1px solid $gray-200;
+    }
+}

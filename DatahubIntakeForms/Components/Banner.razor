@@ -1,0 +1,37 @@
+@inject IJSRuntime JSRuntime
+@inject IStringLocalizer<SharedResources> Localizer
+
+<div class="swiper-container">
+    <div class="swiper-wrapper">
+        <div class="swiper-slide">
+            <div class="nrcan-title font-white">@Localizer["Upload, share, create"]</div>
+            <div class="nrcan-subtitle font-dark-grey">@Localizer["Collaborate with teams across NRCAN"]</div>
+        </div>
+        <div class="swiper-slide">
+            <div class="nrcan-title font-blue">@Localizer["Powerful analytics"]</div>
+            <div class="nrcan-subtitle font-dark-grey">@Localizer["Gain rapid insights into your data for better decisions"]</div>
+        </div>
+        <div class="swiper-slide">
+            <div class="nrcan-title font-dark-grey">@Localizer["Files on Demand"]</div>
+            <div class="nrcan-subtitle font-dark-grey">@Localizer["Take your files with you anywhere you go"]</div>
+        </div>
+        <div class="swiper-slide">
+            <div class="nrcan-title font-white">@Localizer["Innovate Faster"]</div>
+            <div class="nrcan-subtitle font-dark-grey">@Localizer["Explore new technologies and experiment without limits"]</div>
+        </div>
+    </div>
+    <!-- Add Pagination -->
+    <div class="swiper-pagination swiper-pagination-white"></div>
+</div>
+
+@code{
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JSRuntime.InvokeAsync<object>("initializeSwiper", ".swiper-container", ".swiper-pagination");
+        }
+    }
+
+}

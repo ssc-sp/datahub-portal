@@ -1,0 +1,46 @@
+﻿@import '../_box-shadow.scss';
+@import '../_colors.scss';
+
+.ae.flex {
+
+    &.wrap {
+        flex-wrap: wrap
+    }
+}
+
+.facard1 {
+    width: 400px;
+    background-color: $gray-200;
+    margin: .25rem;
+
+    &:hover {
+        background-color: $gray-400;
+        @include BoxShadow(3);
+    }
+
+    h3 {
+        margin-top: 0;
+        color: $black;
+    }
+
+    .ae.icon {
+        color: $gray-500;
+    }
+
+    .ae.typography {
+        color: $gray-800;
+    }
+
+    .big-icon {
+        font-size: 2.5rem;
+        align-self: center;
+        margin: 0 1.5rem 0 .25rem;
+    }
+
+    .top-right {
+        font-size: 1.5rem;
+        position: absolute;
+        top: .5rem;
+        right: 1rem;
+    }
+}

@@ -1,0 +1,28 @@
+﻿@import '_colors.scss';
+@import '_box-shadow.scss';
+@import '_constants.scss';
+
+
+
+.header-wrapper {
+    .pillbutton {
+        background-color: $borderblue;
+        color: $white;
+        text-align: center;
+        cursor: pointer;
+        border-radius: 1rem;
+        font-size: 0.6rem;
+        margin-left: 2rem;
+        padding: 0.25rem 0.5rem;
+        transition: all 0.2s ease-in-out;
+
+        &:hover {
+            background-color: rgba($borderblue, 0.8);
+        }
+
+        i {
+            margin-right: 0.5rem;
+        }
+    }
+}
+

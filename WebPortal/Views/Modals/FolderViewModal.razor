@@ -1,0 +1,113 @@
+@inject IApiService ApiService
+@inject UIControlsService UI
+@inject DataRetrievalService DataRetrievalService
+@inject IUserInformationService UserInformationService
+
+@if (isLoading)
+{
+    <Spinner />
+}
+else
+{
+    <div class="modal-background" @onclick="() => OnDecision?.Invoke((false, null))"></div>
+    <div class="modal-content">
+        <h4 class="nrcan-typography h4 modal-header">@Localizer["FILE-GRID-PAGE.MoveToFolderPrompt"]</h4>
+
+        <div class="folder-list">
+            <FolderView Folder="RootItem" SelectedFolder="_selectedFolder" SelectFolder="SelectFolder" />
+        </div>
+
+        @if (isProcessing)
+        {
+            <Spinner />
+        }
+        <div class="modal-footer">
+            <button class="submitbutton finish" disabled="@(isConfirmDisabled || isProcessing)" @onclick="() => Processing()">@Localizer["BUTTONS.Confirm"]</button>
+            <button class="submitbutton cancel" disabled="@isProcessing" @onclick="() => OnDecision?.Invoke((false, null))">@Localizer["BUTTONS.Cancel"]</button>
+        </div>
+    </div>
+}
+
+@code
+{
+    [Parameter]
+    public Action<(bool, Folder)> OnDecision { get; set; }
+
+    public static Folder _selectedFolder = null;
+
+    public bool isLoading {get; set; }
+    public bool isProcessing { get; set; } = false;
+    public bool isConfirmDisabled
+    {
+        get
+        {
+            return _selectedFolder == null;
+        }
+    }
+
+    public Folder RootFolder { get; set; }
+
+    public ExpandableItem<Folder> RootItem { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        isLoading = true;
+        var user = await UserInformationService.GetCurrentUserAsync();
+
+        RootFolder = new Folder()
+        {
+            id = ApiService.MyDataFolder.id,
+            name = ApiService.MyDataFolder.name,
+            isShared = ApiService.MyDataFolder.isShared
+        };
+        
+        // If we get displayed on return from file upload, don't refresh from datalake
+        RootFolder = await DataRetrievalService.GetFolderStructure(RootFolder, user);
+        RootItem = LoadChildFolders(new ExpandableItem<Folder>()
+                                    {
+                                        item = RootFolder,
+                                        expanded = true
+                                    });
+
+        isLoading = false;
+        StateHasChanged();
+    }
+
+    // Here we are replicating the folder structure into an expandable tree
+    // Used to keep track of expansion of sub items.
+    private ExpandableItem<Folder> LoadChildFolders(ExpandableItem<Folder> parent)
+    {        
+        parent.item.SubFolders.ForEach(subFolder =>
+        {
+            var child = LoadChildFolders(new ExpandableItem<Folder>()
+                                         {
+                                            item = subFolder,
+                                            expanded = false,
+                                            selected = false
+                                         });
+
+            parent.Add(child);
+        });
+
+        return parent;
+    }
+
+    protected override void OnParametersSet()
+    {
+        _selectedFolder = null;
+    }
+
+    public void SelectFolder(Folder folder)
+    {
+        _selectedFolder = folder;
+        StateHasChanged();
+    }
+    public void Processing()
+    {
+        isProcessing = true;
+        StateHasChanged();
+        OnDecision?.Invoke((true, _selectedFolder));
+    }    
+}

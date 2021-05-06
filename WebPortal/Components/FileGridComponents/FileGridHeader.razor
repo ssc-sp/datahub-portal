@@ -1,0 +1,61 @@
+﻿
+<div class="fileGrid">
+    <div class="grid-item-header">
+        &nbsp;
+    </div>
+    <div class="grid-item-header">
+        @Localizer["FILE-GRID-HEADER-PAGE.Name"]
+        <i class="@SortIconClass" @onclick="ToggleSort"></i>
+    </div>
+    <div class="grid-item-header">
+        &nbsp;
+    </div>
+    <div class="grid-item-header">@Localizer["FILE-GRID-HEADER-PAGE.Modified"]</div>
+    <div class="grid-item-header">@Localizer["FILE-GRID-HEADER-PAGE.ModifiedBy"]</div>
+    <div class="grid-item-header">@Localizer[OwnedOrCreatedByHeaderText]</div>
+    <div class="grid-item-header">@Localizer["FILE-GRID-HEADER-PAGE.FileSize"]</div>
+    <div class="grid-item-header">@Localizer[SharingOrRoleHeaderText]</div>
+</div>
+
+@code {
+    [Parameter]
+    public bool IsSharedFiles { get; set; } = false;
+    [Parameter]
+    public bool IsSearchedData { get; set; } = false;
+    [Parameter]
+    public bool SortAscending { get; set; }
+    [Parameter]
+    public EventCallback ToggleSort { get; set; }
+
+    public string SortIconClass
+    {
+        get
+        {
+            return (!SortAscending ? "fal fa-chevron-up" : "fal fa-chevron-down");
+        }
+    }
+    public string OwnedOrCreatedByHeaderText
+    {
+        get
+        {
+            if (IsSharedFiles || IsSearchedData)
+            {
+                return "FILE-GRID-HEADER-PAGE.OwnedBy";
+            }
+
+            return "FILE-GRID-HEADER-PAGE.CreatedBy";
+        }
+    }
+    public string SharingOrRoleHeaderText
+    {
+        get
+        {
+            if (!IsSharedFiles)
+            {
+                return "Sharing";
+            }
+
+            return "Role";
+        }
+    }
+}

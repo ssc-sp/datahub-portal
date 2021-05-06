@@ -1,0 +1,84 @@
+﻿@page "/"
+@namespace NRCan.Datahub.Portal.Pages
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>NRCAN DataHub</title>
+
+    <base href="~/" />
+
+    @*Favicons*@
+    <!-- For old IEs -->
+    <link rel="shortcut icon" href="/img/favicons/favicon.ico" />
+    <!-- For new browsers - multisize ico  -->
+    <link rel="icon" type="image/x-icon" sizes="16x16 32x32" href="/img/favicons/favicon.ico">
+    <!-- For iPad with high-resolution Retina display running iOS ≥ 7: -->
+    <link rel="apple-touch-icon" sizes="152x152" href="/img/favicons/favicon-152-precomposed.png">
+    <!-- For iPad with high-resolution Retina display running iOS ≤ 6: -->
+    <link rel="apple-touch-icon" sizes="144x144" href="/img/favicons/favicon-144-precomposed.png">
+    <!-- For iPhone with high-resolution Retina display running iOS ≥ 7: -->
+    <link rel="apple-touch-icon" sizes="120x120" href="/img/favicons/favicon-120-precomposed.png">
+    <!-- For iPhone with high-resolution Retina display running iOS ≤ 6: -->
+    <link rel="apple-touch-icon" sizes="114x114" href="/img/favicons/favicon-114-precomposed.png">
+    <!-- For iPhone 6+ -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/img/favicons/favicon-180-precomposed.png">
+    <!-- For first- and second-generation iPad: -->
+    <link rel="apple-touch-icon" sizes="72x72" href="/img/favicons/favicon-72-precomposed.png">
+    <!-- For non-Retina iPhone, iPod Touch, and Android 2.1+ devices: -->
+    <link rel="apple-touch-icon" sizes="57x57" href="/img/favicons/favicon-57.png">
+    <!-- For Old Chrome -->
+    <link rel="icon" sizes="32x32" href="/img/favicons/favicon-32.png">
+    <!-- For IE10 Metro -->
+    <meta name="msapplication-TileColor" content="#FFFFFF">
+    <meta name="msapplication-TileImage" content="/img/favicons/favicon-144.png">
+    <meta name="theme-color" content="#ffffff">
+    <!-- Chrome for Android -->
+    <link rel="manifest" href="/img/favicons/manifest.json">
+    <link rel="icon" sizes="192x192" href="/img/favicons/favicon-192.png">
+
+
+
+    @*<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">*@
+    <link rel="stylesheet" href="~/css/third-party/swiper-bundle.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400%7CRaleway:300,400,500,600,700%7CLato:300,400,400italic,600,700" rel="stylesheet" type="text/css" />
+
+
+    @* CSS styling from DATAHUB_HOMEPAGE *@
+    <link rel="stylesheet" href="css/third-party/blue.css" type="text/css" id="color_scheme" />
+    <link rel="stylesheet" href="css/third-party/layout.css" type="text/css" />
+    <link rel="stylesheet" href="css/third-party/datahub.css" type="text/css" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Arizonia&display=swap" type="text/css">
+    <link href="css/third-party/font-awesome-all.min.css" rel="stylesheet" />
+    <link href="css/third-party/normalize.css" rel="stylesheet" />
+    <link href="_content/Apption.Elemental.Theme/elemental.css" rel="stylesheet" />
+    <link href="css/site.css" rel="stylesheet" />
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha256-4+XzXVhsDmqanXGHaHvgh1gMQKX40OUvDEBTu8JcmNs=" crossorigin="anonymous"></script>
+    @*<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>*@
+    @*<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js" integrity="sha384-LtrjvnR4Twt/qOuYxE721u19sVFLVSA4hf/rRt6PrZTmiPltdZcI7q7PXQBYTKyf" crossorigin="anonymous"></script>*@
+    <script src="js/swiper-bundle.min.js"></script>
+    <script src="js/inputfile.js"></script>
+    <script src="js/swiper.js"></script>
+    <script src="js/filegrid.js"></script>
+    <script src="_content/Apption.Elemental/js/ae_dropdown.js"></script>
+    <script src="_content/Apption.Elemental/js/saveAsFile.js"></script>
+    <script src="_content/Apption.Elemental/js/virtualScrolling.js"></script>
+
+</head>
+<body>
+    <app>
+        <component type="typeof(App)" render-mode="Server" />
+    </app>
+    <script src="_framework/blazor.server.js"></script>
+</body>
+</html>
+

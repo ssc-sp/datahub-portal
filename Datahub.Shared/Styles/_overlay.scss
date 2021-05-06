@@ -1,0 +1,215 @@
+﻿@import 'colors';
+@import 'box-shadow';
+@import 'profile-mixin';
+@import '_constants';
+
+.manage-access {
+    padding: 1rem;
+    font-size: 0.8rem;
+
+    .chevronborder {
+        width: 1rem;
+        margin-top: auto;
+        height: 1rem;
+        padding-top: 0.25rem;
+    }
+
+    .title {
+    }
+
+    .button-footer {
+        display: flex;
+        flex-wrap: nowrap;
+        align-items: center;
+        justify-content: flex-end;
+        margin: 2rem 1rem;
+    }
+
+    .textrows {
+        height: 2rem;
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: nowrap;
+        padding: 3rem 1rem 1rem 1rem;
+        align-items: center;
+        font-size: 0.8rem;
+
+        .picture {
+            @include pictureproperties();
+        }
+    }
+
+    .toprow {
+        height: 4rem;
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: nowrap;
+        font-size: 12pt;
+        padding: 1rem;
+        height: 1.5rem;
+
+        .closebutton {
+            display: flex;
+            height: 100%;
+
+            &:hover {
+                background-color: $nrcangray;
+                cursor: pointer;
+            }
+        }
+    }
+
+    .messagetextarea {
+        width: 21rem;
+        display: flex;
+        flex-direction: row;
+        border-color: $nrcangray;
+        border-width: 1px 1px 1px 1px;
+        border-style: solid;
+        background-color: $nrcangray;
+        font-size: 0.8rem;
+        border-color: $nrcangray;
+        resize: none;
+        padding: 0.3rem;
+
+        &:focus {
+            outline: none;
+            border-color: $nrcangray;
+        }
+    }
+
+    .line {
+        width: 21rem;
+        height: 5px;
+        border-bottom: 1px solid $borderblue;
+        position: absolute;
+        margin-left: 1rem;
+        margin-bottom: 3rem;
+    }
+
+    .dropdown-content {
+        display: none;
+        position: absolute;
+        background-color: $nrcangray;
+        box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+        z-index: 1;
+        font-size: 0.8rem;
+
+        .bottomborder {
+            border: solid $gray-400;
+            border-width: 0 0 1px 0;
+        }
+
+        > a {
+            padding: 1rem;
+            cursor: pointer;
+            color: #212529;
+        }
+
+        > a:hover {
+            background-color: $gray-200;
+            color: $gray-600;
+        }
+    }
+
+    .ddsearch {
+        width: 21rem;
+        margin-left: 1rem;
+        margin-top: 0.25rem;
+    }
+
+    .ddopts {
+        margin-top: 12rem;
+        width: 9rem;
+    }
+
+    .show {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .formuserinput {
+        display: flex;
+        flex-direction: row;
+        border-width: 0px;
+        background-color: $nrcangray;
+        font-size: 0.8rem;
+        margin: 1rem 1rem 0rem 1rem;
+        width: 21rem;
+        height: 1.5rem;
+
+        &:focus {
+            outline: none;
+        }
+    }
+
+
+    .selectedDisplay {
+        height: 2rem;
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        flex-wrap: nowrap;
+        padding: 1rem;
+        align-items: center;
+        font-size: 0.8rem;
+
+        .selectedText {
+            flex-grow: 2;
+            background-color: #F7F7F7;
+            margin-right: 0.5rem;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+
+            > a {
+                color: #212529;
+                padding-left: 1rem;
+            }
+        }
+
+        .selectedDropdown {
+            height: 2rem;
+            flex-grow: 1;
+            background-color: #F7F7F7;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+
+            > a {
+                width: 6rem;
+                margin-right: 0.5rem;
+            }
+        }
+
+        .picture {
+            @include pictureproperties();
+        }
+    }
+}
+
+.overlay-content {
+    position: relative;
+    top: 25%;
+    width: 100%;
+    text-align: center;
+    margin-top: 30px;
+}
+
+.overlay a {
+    padding: 8px;
+    text-decoration: none;
+    display: block;
+    transition: 0.3s;
+}
+
+.overlay a:hover, .overlay a:focus {
+    color: #f1f1f1;
+}
+
+.overlay .closebtn {
+    position: absolute;
+    top: 20px;
+    right: 45px;
+    font-size: 60px;
+}

@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "DatahubTest": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}

@@ -1,0 +1,33 @@
+@import 'colors';
+@import 'box-shadow';
+
+#notifications {
+    @include BoxShadow(1);
+    position: relative;
+    display: flex;
+
+    .toprow {
+        height: 4rem;
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: nowrap;
+    }
+
+    .title {
+        display: flex;
+        align-items: center;
+        padding-left: 1rem;
+    }
+
+    .closebutton {
+        display: flex;
+        align-items: center;
+        padding: 0 1rem;
+        height: 100%;
+
+        &:hover {
+            background-color: $nrcangray;
+            cursor: pointer;
+        }
+    }
+}

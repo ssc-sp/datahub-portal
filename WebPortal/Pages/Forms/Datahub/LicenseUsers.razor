@@ -1,0 +1,121 @@
+﻿
+@inject DatahubProjectDBContext Context
+@page "/licenseusers/{RequestIDParam}"
+
+<AeFlex Vertical id="indexFlex">
+<AeTable Accessors="accessorFunctions"
+       Dataset="_userRequests"
+       Renderers="GetRenderers()"
+       Headers="headers" />
+</AeFlex>
+@if(_userRequest.ID > 0)
+{
+    <h3>Editing user @_userRequest.ID</h3>
+}
+else
+{
+    <h3>Add new user</h3>
+}
+
+<EditForm Model="_userRequest" OnValidSubmit="@HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <p>
+        <label>
+            User Email:
+        </label>
+            <InputText @bind-Value="_userRequest.UserEmail" />
+
+    </p>
+    <p>
+        <label>
+            License Type:
+        </label>
+            <InputSelect @bind-Value="_userRequest.LicenseType">
+                <option value="">Select license type ...</option>
+                <option value="FreeUser">Free</option>
+                <option value="ProUser">Pro</option>
+            </InputSelect>
+    </p>
+
+    <button type="submit">@SubmitLabel</button>
+
+</EditForm>
+
+
+@code {
+    [Parameter]
+    public string RequestIDParam {get;set;}
+    private int RequestID;
+    private PBI_User_License_Request _userRequest;
+    private List<PBI_User_License_Request> _userRequests = new List<PBI_User_License_Request>();
+    private string SubmitLabel = "Add new";
+
+    // Define the headers at the top of the table
+    private List<string> headers = new List<string>
+    {
+        "Email", "License Type", "Actions"
+    };
+
+    // Typeparam class to hold row data, can be anything
+
+
+    // Accessor functions to retrieve cell value
+    private List<Func<PBI_User_License_Request, string>> accessorFunctions = new List<Func<PBI_User_License_Request, string>>
+    {
+        new Func<PBI_User_License_Request, string>(p => { return p.UserEmail; }),
+        new Func<PBI_User_License_Request, string>(p => { return p.LicenseType.ToString(); }),
+        new Func<PBI_User_License_Request, string>(p => { return p.ID.ToString(); })
+    };
+
+    private async Task Delete(PBI_User_License_Request project)
+    {
+        Context.PowerBI_License_User_Requests.Remove(project);
+        await Context.SaveChangesAsync();
+        _userRequests = Context.PowerBI_License_User_Requests.ToList();
+    }
+
+    private void SetFormEdit(PBI_User_License_Request project)
+    {
+        _userRequest = project;
+        SubmitLabel = "Save Changes";
+    }
+
+    private List<Func<PBI_User_License_Request, RenderFragment>> GetRenderers()
+    {
+        return new List<Func<PBI_User_License_Request, RenderFragment>>
+        {
+            null, null, null, 
+            new Func<PBI_User_License_Request, RenderFragment>(q =>
+            {
+                return 
+                @<div class="icon-container">
+                    <i class="fad fa-edit" @onclick="() => SetFormEdit(q)"></i>
+                    <i class="fad fa-trash-alt" @onclick="async () => await Delete(q)"></i>
+                </div>;
+            })
+        };
+    }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        // load projects        
+        RequestID= Int32.Parse(RequestIDParam);
+        _userRequests = Context.PowerBI_License_User_Requests.ToList();
+        _userRequest = new PBI_User_License_Request() { ID = 0, RequestID = RequestID } ;
+
+    }
+
+     private async Task HandleValidSubmit()
+    {
+        if(_userRequest.ID == 0)
+        {
+            Context.PowerBI_License_User_Requests.Add(_userRequest);
+        }
+        await Context.SaveChangesAsync();
+        _userRequest = new PBI_User_License_Request() { ID = 0, RequestID = RequestID } ;
+        _userRequests = Context.PowerBI_License_User_Requests.ToList();
+        SubmitLabel = "Add New";
+    }
+}

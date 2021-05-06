@@ -1,0 +1,241 @@
+﻿
+@inject IApiService ApiService
+@inject DataRetrievalService DataRetrievalService
+@inject IJSRuntime JSRuntime
+@inject IMSGraphService MSGraphService
+@inject IUserInformationService UserInformationService
+@inject NotifierService NotifierService
+
+<div id="@($"{File.fileid}Div")" class="fileGrid" style="@FileStatusCssStyle" @onclick="() => SelectFile()" @ondblclick="DownloadFile"
+     @oncontextmenu="HandleRightClick" @oncontextmenu:preventDefault="true" @onclick:preventDefault="true">
+    <div class="grid-item" style="@CurrentlySelectedStyle">
+        <i class="@(!IsSelected ? "": "far fa-check-circle icon-color ")">&nbsp;</i>
+    </div>
+    <div class="grid-item" >
+        <div class="textcontent">
+            <i class="@DatahubTools.GetFileTypeIcon(File.fileformat)"></i>
+            <div id="@File.fileid">@File.filename</div>
+        </div>
+    </div>
+    <div class="grid-item">
+        <div class="ellipsis">
+            <i class="far fa-ellipsis-v" @onclick="(e) => OnEllipsisClickFile(e)"></i>
+            <div id="@($"{File.fileid}Menu")" class="context-menu dropdown-content">
+                @if (File.ownedby == CurrentUser)
+                {
+                    <a class="bottomborder" @onclick="OpenManageAccess">
+                        <i class="far fa-link icon-color sm-icon"></i>
+                        @Localizer["ManageAccess"]
+                    </a>
+                    <a @onclick="FileRename">
+                        <i class="fal fa-pencil icon-color sm-icon"></i>
+                        @Localizer["Rename"]
+                    </a>
+                    <a class="bottomborder" @onclick="MoveTo">
+                        <i class="fal fa-arrow-to-right icon-color sm-icon"></i>
+                        @Localizer["MoveTo"]
+                    </a>
+                }
+                <a @onclick="OpenDetails">
+                    <i class="far fa-info-circle icon-color sm-icon"></i>
+                    @Localizer["ViewDetails"]
+                </a>
+<!-- To be added when we support it
+                <a @onclick="OpenVersions">
+                    <i class="fas fa-code-branch icon-color sm-icon"></i>
+                    @Localizer["Versions"]
+                </a>
+-->
+                <a class="bottomborder" @onclick="DownloadFile">
+                    <i class="far fa-cloud-download icon-color sm-icon"></i>
+                    @Localizer["Download"]
+                </a>
+                @if (File.ownedby == CurrentUser)
+                {
+                    <a @onclick="DeleteRow">
+                        <i class="far fa-trash-alt icon-color sm-icon"></i>
+                        @Localizer["Delete"]
+                    </a>
+                }
+            </div>
+        </div>
+    </div>
+    <div class="grid-item">@File.lastmodifiedts.ToShortDateString()</div>
+    <div class="grid-item">@MSGraphService.GetUserName(File.lastmodifiedby)</div>
+    <div class="grid-item">@OwnedOrCreatedByValue</div>
+    <div class="grid-item">
+        @switch (File.uploadStatus)
+        {
+            case FileUploadStatus.None:
+            case FileUploadStatus.FileUploadSuccess:
+            {
+                @DatahubTools.BytesToString(File.filesize)
+            }
+            break;
+
+            case FileUploadStatus.UploadingToRepository:
+            {
+                <UploadProgress File="@File" />
+            }
+            break;
+
+            default:
+            {
+                @Localizer["FILE-UPLOAD." + File.uploadStatus]
+            }
+            break;
+        }
+    </div>
+    <div class="grid-item" >
+        <div class="textcontent">
+            @if (File.sharedwith.Any())
+            {
+                <i class="far fa-user-friends"></i>
+            }
+            <a>@Localizer[SharingOrRoleValue]</a>
+        </div>
+    </div>
+</div>
+
+@code
+{
+    [Parameter]
+    public FileMetaData File { get; set; }
+    [Parameter]
+    public EventCallback<FileMetaData> SelectRow { get; set; }
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnEllipsisClick { get; set; }
+    [Parameter]
+    public EventCallback<MenuActions> PerformMenuAction { get; set; }
+    [Parameter]
+    public bool IsSearchedData { get; set; } = false;
+    [Parameter]
+    public bool IsSelected { get; set; } = false;
+    [Parameter]
+    public string CurrentUser { get; set; }
+
+    public string FileStatusCssStyle
+    {
+        get
+        {
+            if (File.uploadStatus == FileUploadStatus.FileUploadError)
+            {
+                return "background-color: red;";
+            }
+
+            if (File.uploadStatus == FileUploadStatus.FileUploadCanceled)
+            {
+                return "background-color: yellow;";
+            }
+
+            return "";
+        }
+    }
+    public string CurrentlySelectedStyle
+    {
+        get
+        {
+            if (!IsSelected)
+            {
+                return "padding: 0px 1.6rem;";
+            }
+
+            return string.Empty;
+        }
+    }
+    public string OwnedOrCreatedByValue
+    {
+        get
+        {
+            var key = (File.isShared || IsSearchedData) ? File.ownedby : File.createdby;
+
+            return MSGraphService.GetUserName(key);
+        }
+    }
+    public string SharingOrRoleValue
+    {
+        get
+        {
+            if (!File.isShared)
+            {
+                if (File.sharedwith.Any())
+                {
+                    return "Shared";
+                }
+
+                return "OnlyYou";
+            }
+
+            return string.Empty;
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        NotifierService.Notify += OnNotify;
+    }
+
+    public async Task OnNotify(string key, bool reloadData)
+    {
+        await InvokeAsync(() =>
+        {
+            if (key == $"{File.folderpath}/{File.filename}" && reloadData)
+            {
+                StateHasChanged();
+            }
+        });
+    }
+
+    public void Dispose()
+    {
+        NotifierService.Notify -= OnNotify;
+    }
+
+    private Task SelectFile()
+    {
+        return SelectRow.InvokeAsync(File);
+    }
+
+    private void HandleRightClick(MouseEventArgs args)
+    {
+        if (args.Button == 2)
+        {
+            OnEllipsisClickFile(args);
+        }
+    }
+    
+    private Task OnEllipsisClickFile(MouseEventArgs args)
+    {
+        return OnEllipsisClick.InvokeAsync(args);
+    }
+
+    private Task DeleteRow()
+    {
+        return PerformMenuAction.InvokeAsync(MenuActions.DeleteRow);
+    }
+    private Task DownloadFile()
+    {
+        return PerformMenuAction.InvokeAsync(MenuActions.DownloadFile);
+    }
+    private Task OpenDetails()
+    {
+        return PerformMenuAction.InvokeAsync(MenuActions.OpenDetails);
+    }
+    private Task OpenManageAccess()
+    {
+        return PerformMenuAction.InvokeAsync(MenuActions.OpenManageAccess);
+    }
+    private Task FileRename()
+    {
+        return PerformMenuAction.InvokeAsync(MenuActions.Rename);
+    }
+    private Task MoveTo()
+    {
+        return PerformMenuAction.InvokeAsync(MenuActions.MoveTo);
+    }
+    private Task OpenVersions()
+    {
+        return PerformMenuAction.InvokeAsync(MenuActions.OpenVersions);
+    }
+}

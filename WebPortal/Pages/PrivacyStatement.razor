@@ -1,0 +1,10 @@
+﻿@page "/privacystatement"
+
+@if (Thread.CurrentThread.CurrentCulture.Name == "fr-CA")
+{
+    <PrivacyContentFr></PrivacyContentFr>
+}
+else
+{ 
+    <PrivacyContentEn></PrivacyContentEn>
+}

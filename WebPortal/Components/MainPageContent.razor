@@ -1,0 +1,60 @@
+﻿@using NRCan.Datahub.Portal.Pages.Static.en_CA
+@using NRCan.Datahub.Portal.Pages.Static.fr_CA
+
+<AeFlex Vertical id="indexFlex">
+    
+        @for(int i = 0; i < SlideFragments.Count; i++)
+        {
+            var slide = SlideFragments[i];
+
+            <div class="scrollable-slide nrcan-slide @(i % 2 == 0 ? "alt-bg-even" : "alt-bg-odd")">
+                @renderWidget(slide)
+            </div>            
+        }
+</AeFlex>
+
+@code
+{
+    private List<Type> SlideFragments = new List<Type>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        if (Thread.CurrentThread.CurrentCulture.TwoLetterISOLanguageName == "fr")
+        {
+            SlideFragments.Add(typeof(EnterprisePlatformFr));
+            SlideFragments.Add(typeof(Faq1Fr));
+            SlideFragments.Add(typeof(JumpStartFr));
+            SlideFragments.Add(typeof(KeyCapabilities1Fr));
+            SlideFragments.Add(typeof(KeyCapabilities2Fr));
+            SlideFragments.Add(typeof(KeyCapabilities3Fr));
+            SlideFragments.Add(typeof(KeyCapabilities4Fr));
+            SlideFragments.Add(typeof(KeyCapabilities5Fr));
+            SlideFragments.Add(typeof(StartBuildTodayFr));
+            SlideFragments.Add(typeof(TryItFr));
+        }
+        else
+        {
+            SlideFragments.Add(typeof(EnterprisePlatformEn));
+            SlideFragments.Add(typeof(Faq1En));
+            SlideFragments.Add(typeof(JumpStartEn));
+            SlideFragments.Add(typeof(KeyCapabilities1En));
+            SlideFragments.Add(typeof(KeyCapabilities2En));
+            SlideFragments.Add(typeof(KeyCapabilities3En));
+            SlideFragments.Add(typeof(KeyCapabilities4En));
+            SlideFragments.Add(typeof(KeyCapabilities5En));
+            SlideFragments.Add(typeof(StartBuildTodayEn));
+            SlideFragments.Add(typeof(TryItEn));
+        }
+
+        StateHasChanged();
+    }
+    
+    private RenderFragment renderWidget(Type t) => builder =>
+    {
+        builder.OpenComponent(0, t);
+        builder.CloseComponent();
+    };
+
+}

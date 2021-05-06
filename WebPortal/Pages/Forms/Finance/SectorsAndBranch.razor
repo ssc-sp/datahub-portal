@@ -1,0 +1,183 @@
+﻿@inject IStringLocalizer DataLocalizer
+@inject FinanceDBContext Context
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JsInterop
+@page "/finance/programs"
+
+<h1>Finance Forms</h1>
+<h2>Step 1: Select/Enter Sector and Branch Information</h2>
+
+<AeFlex id="buttonBar">
+    <div class="icon-container" style="margin-bottom: 10px; margin-left: 5px;">
+        <FAButton Text="Add New" Icon="far fa-plus-square" onclick="e => CreateNewProject()" />
+    </div>
+</AeFlex>
+
+
+<AeTable Accessors="accessorFunctions"
+         T="SectorAndBranch"
+         Dataset="_sectors"
+         ColorAccessor="getColor"
+         Headers="headers"
+         GridTemplateColumns="4fr 8fr"
+         MaxHeight="400"
+         OnRowClick="@SetFormEdit" />
+
+@if (_sector != null)
+{
+    if (_sector.SectorBranch_ID > 0)
+    {
+        <h2>Edit Sector: @(_sector.Sector_TXT), Branch: #@_sector.Branch_TXT </h2>
+    }
+    else
+    {
+        <h2>Enter Sector Details</h2>
+    }
+
+    <AeModelForm Model="_sector"
+                 T="SectorAndBranch"
+                 OnValidSubmit="HandleValidSubmit"
+                 OnCancel="ClearForm"
+                 OnConfigure="OnConfigure"
+                 CancelLabel="Cancel"
+                 SubmitLabel="@SubmitLabel"
+                 LabelForPropertyFunc="@GetDataLabel" />
+
+
+
+    <AeFlex id="buttonBar">
+        <div class="icon-container" style="margin-bottom: 10px; margin-left: 5px;">
+            <FAButton Text="Budgets" Icon="fal fa-arrow-right" IconLocation="right" onclick="e => GoToNextSheet()" />
+        </div>
+    </AeFlex>
+}
+
+
+
+@code {
+    private List<SectorAndBranch> _sectors;
+    private SectorAndBranch _sector;
+    private List<Sector> _sectorLookup;
+    private string SubmitLabel = "Add New";
+    private bool _navToEdit = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // load projects
+        _sectors = Context.SectorAndBranches.ToList();
+        _sectorLookup = Context.Sectors.Include(s => s.Branches).ToList();
+    }
+
+
+    private async Task GoToNextSheet()
+    {
+        var sector = _sector;
+        await HandleValidSubmit();
+        NavigationManager.NavigateTo($"/finance/budgets/{sector.SectorBranch_ID}");
+    }
+
+    private List<Func<SectorAndBranch, string>> accessorFunctions = new List<Func<SectorAndBranch, string>>
+{
+        new Func<SectorAndBranch, string>(p => { return p.Sector_TXT; }),
+        new Func<SectorAndBranch, string>(p => { return p.Branch_TXT; }),
+    };
+
+    private string getColor(SectorAndBranch current)
+    {
+        if (current == _sector)
+        {
+            return "yellow";
+        }
+        return "";
+    }
+
+    private List<string> headers = new List<string>
+{
+        "Sector","Branch"
+    };
+
+    private void SetFormEdit(SectorAndBranch project)
+    {
+        _sector = project;
+        StateHasChanged();
+        _navToEdit = true;
+    }
+
+    private async Task CreateNewProject()
+    {
+        var defaultBranch = _sectorLookup.Where(s => s.SectorId == 1).First().Branches.Where(b => b.BranchId == 1).First();
+        _sector = new SectorAndBranch() { Last_Updated_DT = DateTime.Now, Sector = _sectorLookup.Where(s => s.SectorId == 1).First(), Branch = defaultBranch };
+        StateHasChanged();
+        _navToEdit = true;
+    }
+
+    private async Task HandleValidSubmit()
+    {
+
+
+        if (_sector != null)
+        {
+
+            //this is temporary, it loads ALL the branches. will need to change when on change is working. 
+            List<Branch> branchesList = new();
+            _sectorLookup.ForEach(s => branchesList.AddRange(s.Branches));
+            var sector = _sectorLookup.Where(s => s.SectorNameEn == _sector.Sector_TXT).FirstOrDefault();
+            var branch = branchesList.Where(b => b.BranchNameEn == _sector.Branch_TXT).FirstOrDefault();
+
+
+            _sector.Sector = sector ?? null;
+            _sector.Branch = branch ?? null;
+
+            if (_sector.SectorBranch_ID == 0)
+            {
+                _sector = Context.SectorAndBranches.Add(_sector).Entity;
+            }
+            _sector.Last_Updated_DT = DateTime.Now;
+            await Context.SaveChangesAsync();
+            _sectors = Context.SectorAndBranches.ToList();
+            //_tombstone = null;
+        }
+
+        _sector = null;
+        StateHasChanged();
+    }
+
+    private async Task<SectorAndBranch> ClearForm()
+    {
+        _sector = null;
+        StateHasChanged();
+        return null;
+    }
+
+    private string GetDataLabel(string propName)
+    {
+        return DataLocalizer[propName];
+    }
+
+    private async Task OnConfigure(ModelFormContext<SectorAndBranch> context)
+    {
+        await context.UpdateValidValues("Sector_TXT", _sectorLookup.Select(s => s.SectorNameEn));
+
+        List<Branch> branchesList = new();
+        _sectorLookup.ForEach(s => branchesList.AddRange(s.Branches));
+        //var branchesList =_sectorLookup.Where(s => s.SectorId == _sector.Sector.SectorId).FirstOrDefault().Branches;
+
+        //branchesList.AddRange()
+
+        //(s => branchesList.AddRange(s.Branches));
+        await context.UpdateValidValues("Branch_TXT", branchesList.Select(bn => bn.BranchNameEn));
+
+    }
+
+    private async Task OnChange(ModelFormChangeArgs<SectorAndBranch> args)
+    {
+        var context = args.Context;
+        if (args.HasPropertyChanged(s => s.Sector_TXT))
+        {
+            // _sector = _sectorLookup.Where(s => s.SectorNameEn == args.EditContext.)
+
+            var branchesList = _sectorLookup.Where(s => s.SectorId == _sector.Sector.SectorId).FirstOrDefault().Branches;
+            await context.UpdateValidValues("Branch_TXT", branchesList.Select(bn => bn.BranchNameEn));
+        }
+    }
+}

@@ -1,0 +1,20 @@
+@inject UIControlsService UI
+
+
+<div id="overlays">
+    <div class="toprow">
+        <div class="title">@Localizer["Notifications"]</div>
+        <div class="closebutton" @onclick="ToggleNotifications">
+            <i class="fal fa-times-circle"></i>
+        </div>
+    </div>
+</div>
+
+@code {
+
+    public void ToggleNotifications()
+    {
+        UI.ToggleRightSidebar();
+    }
+
+}

@@ -1,0 +1,50 @@
+﻿@inject NavigationManager NavigationManager
+
+<AeCard class="facard1">
+    <ChildContent>
+        <AeFlex>
+            <AeIcon class="@GetIconClass()" />
+            <AeFlex Vertical>
+@if (NavLink is null)
+{
+    <AeTypography Variant="h3">@Title</AeTypography>
+}
+else
+{
+    <NavLink href="@NavLink"><AeTypography Variant="h3">@Title</AeTypography></NavLink>
+}
+@if (!(InfoLink is null))
+{
+                <AeTypography Variant="a" class="top-right" @onclick="@(() => NavigationManager.NavigateTo(InfoLink))">
+                    <AeIcon class="@Icon" />
+                </AeTypography>
+}
+                <AeTypography>@Text</AeTypography>
+            </AeFlex>
+        </AeFlex>
+    </ChildContent>
+</AeCard>
+
+@code {
+    [Parameter]
+    public string Icon { get; set; }
+
+    [Parameter]
+    public string Title { get; set;}
+
+    [Parameter]
+    public string Text { get; set;}
+
+    [Parameter]
+    public string NavLink { get; set; }
+
+    [Parameter]
+    public string InfoLink { get; set; }
+
+    private string GetIconClass()
+    {
+
+        return Icon != null ? $"{Icon} big-icon" : "fas fa-table big-icon";
+    }
+
+}

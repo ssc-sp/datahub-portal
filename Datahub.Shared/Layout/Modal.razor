@@ -1,0 +1,63 @@
+﻿@inherits HtmlElement
+@inject IJSRuntime JSRuntime
+@inject UIControlsService UI
+
+
+<div class="@_classname">
+    <div id="escapearea" class="modal-background" @onclick="CloseModalWithClick" @onkeypress="@KeyPressInDiv"></div>
+    @_currentModalRenderFragment
+</div>
+
+@*<dialog>@_currentModalRenderFragment</dialog>*@
+
+@code {
+
+    private string _classname => $"page-modal {(_currentModalRenderFragment == null ? "hidden" : "")} {_inputClass}";
+    private RenderFragment _currentModalRenderFragment;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        UI.OnModalChange += UpdatePageOverlay;
+    }
+
+    protected async override Task OnAfterRenderAsync(bool firstRender)
+    {
+        await JSRuntime.InvokeVoidAsync("SetFocusToElement", "escapearea");
+    }
+
+    private void UpdatePageOverlay()
+    {
+        _currentModalRenderFragment = UI.CurrentModalRenderFragment;
+        StateHasChanged();
+    }
+
+    private async Task CloseModalWithClick()
+    {
+        if (UI.AllowEscape)
+        {
+            await CloseModal();
+        }
+    }
+
+    private async Task CloseModal()
+    {
+        await UI.ToggleModal();
+    }
+
+    async Task ModalOk()
+    {
+        Console.WriteLine("Modal ok");
+        await UI.ToggleModal();
+    }
+    private void KeyPressInDiv(KeyboardEventArgs ev)
+    {
+        var clicked = ev.Code;
+        if (clicked == "Escape")
+        {
+            InvokeAsync(() => CloseModal());
+        }
+    }
+
+}

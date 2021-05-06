@@ -1,0 +1,49 @@
+<div class="bodytext">
+    <div class="formlabel">
+        @if (IncludeHeader)
+        {
+            <a>@Localizer["ADD-DATA-PAGE.CustomFields-Label"]</a>
+        }
+    </div>
+    <div class="customuserinput">
+        <span>@Localizer["ADD-DATA-PAGE.Key-Label"]</span>
+        <input type="text" value="@Field.key" @onchange="OnKeyChange" />
+    </div>
+    <div class="customuserinput">
+        <span>@Localizer["ADD-DATA-PAGE.Value-Label"]</span>
+        <input type="text" value="@Field.value" @onchange="OnValueChange" />
+    </div>
+    <div class="roundbutton" style="margin-right: 1rem" @onclick="OnDeleteRow">
+        <i class="fal fa-trash-alt"></i>
+    </div>
+</div>
+
+@code{
+
+    [Parameter]
+    public Customfield Field { get; set; }
+    [Parameter]
+    public EventCallback CustomFieldChanged { get; set; }
+    [Parameter]
+    public EventCallback<Customfield> DeleteRow { get; set; }
+    [Parameter]
+    public bool IncludeHeader { get; set; }
+
+    private Task OnDeleteRow()
+    {
+        return DeleteRow.InvokeAsync(Field);
+    }
+
+    private Task OnKeyChange(ChangeEventArgs e)
+    {
+        Field.key = e.Value.ToString();
+        return CustomFieldChanged.InvokeAsync(null);
+    }
+
+    private Task OnValueChange(ChangeEventArgs e)
+    {
+        Field.value = e.Value.ToString();
+        return CustomFieldChanged.InvokeAsync(null);
+    }
+
+}

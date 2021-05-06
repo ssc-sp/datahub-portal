@@ -1,0 +1,91 @@
+﻿@inject IStringLocalizer<SharedResources> Localizer
+@inject DatahubTrackingDBContext Context
+@page "/powerbi/"
+
+<AeFlex Vertical id="indexFlex">
+<AeTable Accessors="accessorFunctions"
+       Dataset="_projects"
+       Renderers="GetRenderers()"
+       Headers="headers" />
+</AeFlex>
+@if(_project.ProjectID > 0)
+{
+    <h3>Editing project @_project.ProjectID</h3>
+}
+else
+{
+    <h3>Add new project</h3>
+}
+<AeModelForm Model="_project" OnValidSubmit="HandleValidSubmit" Submit="@SubmitLabel"/>
+
+@code {
+    private List<DatahubProject> _projects = new List<DatahubProject>();
+    private DatahubProject _project = new DatahubProject() { ProjectID = 0 } ;
+    private string SubmitLabel = "Add new";
+
+    // Define the headers at the top of the table
+    private List<string> headers = new List<string>
+    {
+        "Project ID", "Description", "Sector", "Actions"
+    };
+
+    // Typeparam class to hold row data, can be anything
+
+
+    // Accessor functions to retrieve cell value
+    private List<Func<DatahubProject, string>> accessorFunctions = new List<Func<DatahubProject, string>>
+    {
+        new Func<DatahubProject, string>(p => { return p.ProjectID.ToString(); }),
+        new Func<DatahubProject, string>(p => { return p.Description; }),
+        new Func<DatahubProject, string>(p => { return p.Sector; }),
+        new Func<DatahubProject, string>(p => { return p.ProjectID.ToString(); })
+    };
+
+    private async Task Delete(DatahubProject project)
+    {
+        Context.Projects.Remove(project);
+        await Context.SaveChangesAsync();
+        _projects = Context.Projects.ToList();
+    }
+
+    private void SetFormEdit(DatahubProject project)
+    {
+        _project = project;
+        SubmitLabel = "Save Changes";
+    }
+
+    private List<Func<DatahubProject, RenderFragment>> GetRenderers()
+    {
+        return new List<Func<DatahubProject, RenderFragment>>
+        {
+            null, null, null, 
+            new Func<DatahubProject, RenderFragment>(q =>
+            {
+                return 
+                @<div class="icon-container">
+                    <i class="fad fa-edit" @onclick="() => SetFormEdit(q)"></i>
+                    <i class="fad fa-trash-alt" @onclick="async () => await Delete(q)"></i>
+                </div>;
+            })
+        };
+    }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        // load projects        
+        _projects = Context.Projects.ToList();
+    }
+
+     private async Task HandleValidSubmit()
+    {
+        if(_project.ProjectID == 0)
+        {
+            Context.Projects.Add(_project);
+        }
+        await Context.SaveChangesAsync();
+        _project = new DatahubProject() { ProjectID = 0 } ;
+        _projects = Context.Projects.ToList();
+        SubmitLabel = "Add New";
+    }
+}

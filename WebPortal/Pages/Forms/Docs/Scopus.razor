@@ -1,0 +1,23 @@
+﻿@inject IStringLocalizer DataLocalizer
+@inject DatahubProjectDBContext Context
+@inject NavigationManager NavigationManager
+@inject NRCan.Datahub.Portal.Services.StaticStorageReader StaticStorageReader
+@inject IJSRuntime JsInterop
+@using Microsoft.EntityFrameworkCore.Query
+@using Microsoft.EntityFrameworkCore;
+@page "/docs/scopus"
+
+
+<AeFlex class="markdown-container">
+    @((MarkupString)doc)
+</AeFlex>
+
+@code {
+    private string doc;
+
+    protected override async Task OnInitializedAsync()
+    {
+        doc = await StaticStorageReader.GetHTMLFromMDBlob("publish_output/scopusDataset.md");
+    }
+
+}

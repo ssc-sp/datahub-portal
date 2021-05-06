@@ -1,0 +1,22 @@
+    <div class="item-row">
+        <div class="nrcan-typography item-label">
+        @if (IncludeHeader)
+        {
+            @Localizer["ITEM-DETAILS-PAGE.customfields"]
+        }
+        </div>
+        <span class="nrcan-typography item-label">
+            @Field.key:  
+        </span>
+        <span class="nrcan-typography item-text" >
+            @Field.value
+        </span>
+    </div>
+
+@code{
+
+    [Parameter]
+    public Customfield Field { get; set; }
+    [Parameter]
+    public bool IncludeHeader { get; set; }
+}

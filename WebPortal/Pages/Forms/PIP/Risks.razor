@@ -1,0 +1,208 @@
+﻿@inject IStringLocalizer DataLocalizer
+@inject PIPDBContext Context
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JsInterop
+@inject IUserInformationService UserInformationService
+@page "/pip/risks/{tombstone}"
+@using Elemental.Components.Forms
+
+<h1>PIP Risk</h1>
+
+<h2>Selected Program</h2>
+<AeTable Accessors="accessorFunctionsPip"
+         T="PIP_Tombstone"
+         Dataset="_tombstones"
+         Headers="pipheaders"
+         GridTemplateColumns="4fr 8fr"
+         MaxHeight="200" />
+
+<h2>Step 3: Enter risks associated with the program</h2>
+
+<div>
+    <AeFlex Vertical id="indexFlex">
+
+
+
+        <AeTable Accessors="accessorFunctions"
+                 T="PIP_Risks"
+                 Dataset="_risks"
+                 ColorAccessor="getColor"
+                 Headers="headers"
+                 GridTemplateColumns="2fr 2fr 2fr"
+                 MaxHeight="400"
+                 OnRowClick="@SetFormEdit" />
+
+
+    </AeFlex>
+    @if (_risk == null)
+    {
+        <AeFlex id="buttonBar">
+            <div class="icon-container" style="margin-bottom: 10px; margin-left: 5px;">
+
+                <FAButton Text="Add New" Icon="far fa-plus-square" onclick="e => CreateNewRisk()" />
+            </div>
+        </AeFlex>
+    }
+</div>
+
+@if (_risk != null)
+{
+    if (_risk.Risks_ID > 0)
+    {
+        <h2>Editing Risk @_risk.Risk_Id_TXT</h2>
+    }
+    else
+    {
+        <h2>Add New Risk</h2>
+    }
+
+    <AeModelForm Model="_risk"
+                 T="PIP_Risks"
+                 OnValidSubmit="HandleValidSubmit"
+                 OnCancel="ClearForm"
+                 CancelLabel="Cancel"
+                 SubmitLabel="@SubmitLabel"
+                 LabelForPropertyFunc="@GetDataLabel"
+                 OnConfigure="OnConfigure"
+                 LabelsOnTop="true" />
+
+
+}
+
+<AeFlex id="buttonBar">
+    <div class="icon-container" style="margin-bottom: 10px; margin-left: 5px;">
+        <FAButton Text="Indicator and Results" Icon="fal fa-arrow-left" onclick="e => GoToPreviousSheet()" />
+    </div>
+</AeFlex>
+
+@code {
+    [Parameter]
+    public string tombstone { get; set; }
+
+    private List<PIP_Risks> _risks;
+    private PIP_Risks _risk;
+    private List<PIP_Tombstone> _tombstones;
+    private PIP_Tombstone _tombstone;
+    private bool _navToEdit = false;
+    private string SubmitLabel = "Save";
+    private Microsoft.Graph.User CurrentUser;
+
+    protected override async Task OnInitializedAsync()
+    {
+        CurrentUser = await UserInformationService.GetCurrentUserAsync();
+        // load projects
+        _tombstones = Context.Tombstones.Where(p => p.Tombstone_ID == Convert.ToInt32(tombstone)).ToList();
+        _tombstone = _tombstones[0];
+        _risks = Context.Risks.Where(p => p.PIP_Tombstone.Tombstone_ID == _tombstone.Tombstone_ID).ToList();
+    }
+
+
+    private async Task HandleValidSubmit()
+    {
+        if (_risk != null)
+        {
+            _risk.Last_Updated_DT = DateTime.Now;
+            _risk.Last_Updated_UserId = CurrentUser.Id;
+            if (_risk.Risks_ID == 0)
+            {
+                _risk = Context.Risks.Add(_risk).Entity;
+            }
+            await Context.SaveChangesAsync();
+            await OnInitializedAsync();
+            _risk = null;
+        }
+    }
+
+    private async Task GoToPreviousSheet()
+    {
+        await HandleValidSubmit();
+        NavigationManager.NavigateTo($"/pip/indicators/{_tombstone.Tombstone_ID}");
+    }
+
+    private async Task<PIP_Risks> ClearForm()
+    {
+        _risk = null;
+        StateHasChanged();
+        return null;
+    }
+
+    private void SetFormEdit(PIP_Risks risk)
+    {
+        _risk = risk;
+        StateHasChanged();
+        _navToEdit = true;
+    }
+
+    private string getColor(PIP_Risks current)
+    {
+        if (current == _risk)
+        {
+            return "yellow";
+        }
+        return "";
+    }
+
+    private List<Func<PIP_Risks, string>> accessorFunctions = new List<Func<PIP_Risks, string>>
+{
+        new Func<PIP_Risks, string>(p => { return p.Risk_Title; }),
+        new Func<PIP_Risks, string>(p => { return p.Risk_Description_TXT; }),
+        new Func<PIP_Risks, string>(p => { return p.Risk_Drivers_TXT; }),
+    };
+
+    private List<string> pipheaders = new List<string>
+{
+        "Title","Lead Sector"
+    };
+
+    private List<Func<PIP_Tombstone, string>> accessorFunctionsPip = new List<Func<PIP_Tombstone, string>>
+{
+        new Func<PIP_Tombstone, string>(p => { return p.Program_Title; }),
+        new Func<PIP_Tombstone, string>(p => { return p.Lead_Sector; }),
+    };
+
+    private List<string> headers = new List<string>
+{
+        "Risk Title","Risk Description", "Risk Drivers"
+    };
+
+    private async Task CreateNewRisk()
+    {
+        _risk = new PIP_Risks() { PIP_Tombstone = _tombstone, Last_Updated_DT = DateTime.Now };
+        StateHasChanged();
+        _navToEdit = true;
+    }
+
+    public string GetDataLabel(string propName)
+    {
+        return DataLocalizer[propName];
+    }
+
+
+    private async Task OnConfigure(ModelFormContext<PIP_Risks> context)
+    {
+        await context.UpdateValidValues("Risk_Category", new[] { "Strategic", "Operational" });
+
+        await context.UpdateValidValues("Risk_Trend_TXT", new[] { "↑ increasing risk",
+                                                                    "→ stable, risk is being managed",
+                                                                    "↓ decreasing risk",
+                                                                    "N/A"
+                                                                 });
+        await context.UpdateValidValues("Relevant_Corporate_Priorities_TXT", new[] {"Accelerate development and adoption of clean technology and transition to a net-zero future in a post-pandemic economic recovery",
+                                                                    "Improve market access and competitiveness for Canada’s resource sectors",
+                                                                    "Advance reconciliation, build relationships and share economic benefits with Indigenous peoples",
+                                                                    "Promote a diverse and inclusive workforce while supporting resource communities",
+                                                                    "Protect Canadians from the impacts of natural and human-induced hazards and support climate action",
+                                                                    "N/A"
+                                                                 });
+        await context.UpdateValidValues("Relevant_Corporate_Risks_TXT", new[] { "1. Competitiveness of Natural Resources Sectors and Trade ",
+                                                                                "2. Safety and Security of Energy Infrastructure",
+                                                                                "3. Innovation, Science and Clean Technology",
+                                                                                "4. Climate Change Adaptation and Mitigation",
+                                                                                "5. Public Confidence and Engagement",
+                                                                                "6. Cybersecurity",
+                                                                                "7. Hazards and Emergency Management",
+                                                                                "8. Enabling Program Delivery",
+                                                                                "N/A"
+                                                                 });
+    }
+}

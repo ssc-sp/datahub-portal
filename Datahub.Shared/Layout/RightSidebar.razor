@@ -1,0 +1,32 @@
+﻿@inherits HtmlElement
+
+@inject UIControlsService UI
+
+<div class="@_classname" @attributes="InputAttributesWithoutClass">
+    <i class="fal fa-times-circle nrcan-close-button" @onclick="CloseSidebar"></i>
+    @_currentRightSidebarRenderFragment
+</div>
+
+@code {
+
+    private string _classname => $"right-sidebar {(_currentRightSidebarRenderFragment == null ? "hidden" : "")} {_inputClass}";
+    private RenderFragment _currentRightSidebarRenderFragment;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        UI.OnRightSidebarChange += UpdateRightSidebar;
+    }
+
+    private void CloseSidebar()
+    {
+        UI.ToggleRightSidebar();
+    }
+
+    private void UpdateRightSidebar()
+    {
+        _currentRightSidebarRenderFragment = UI.CurrentRightSidebarRenderFragment;
+        StateHasChanged();
+    }
+}
