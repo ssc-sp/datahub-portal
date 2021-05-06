@@ -18,8 +18,7 @@ $instruKey=az webapp config appsettings list -g $rgName -n ("dh-portal-app-" + $
 $files=Get-Childitem -Path WebPortal,DatahubIntakeForms,.vscode -Include  appsettings*json-tmpl,launch*json-tmpl -File -Recurse -ErrorAction SilentlyContinue  | Where {$_.FullName -notlike "*\Debug\*"}
 foreach ($file in $files){
     $fileRendered=$file.FullName.trim("-tmpl")
-    $fileRelativePath = ($fileRendered|Resolve-Path -Relative).Replace("\", "/").trim("./")
-    Write-Host "Processing file: ${file} > $fileRendered ($fileRelativePath)"
+    Write-Host "Processing file: ${file} > $fileRendered"
 
     Copy-Item $file.FullName -Force -Destination $fileRendered
 
@@ -31,6 +30,7 @@ foreach ($file in $files){
     ((Get-Content -path $fileRendered -Raw) -replace "###DH_TENANT_ID###", $tenantId.trim('"')) | Set-Content -Path $fileRendered  
     ((Get-Content -path $fileRendered -Raw) -replace "###DH_INSTRU_KEY###", $instruKey.trim('"')) | Set-Content -Path $fileRendered      
 
+    $fileRelativePath = ($fileRendered|Resolve-Path -Relative).Replace("\", "/").trim("./")
     if ((Get-Content .gitignore | Select-String -SimpleMatch -Pattern $fileRelativePath).length -lt 1) {
         Add-Content .gitignore "$fileRelativePath"
     }
