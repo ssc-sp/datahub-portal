@@ -2550,6 +2550,16 @@ body {
     padding: 0.75rem; }
   .ae.card.small .ae.card-footer {
     padding: 0.75rem; }
+  .ae.card.Horizontal {
+    display: flex; }
+    .ae.card.Horizontal .ae.card-header {
+      width: 40%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 5rem; }
+    .ae.card.Horizontal .ae.card-content-wrapper {
+      width: 60%; }
 
 /**
  * Copyright (c) 2020 Apption Corporation
@@ -4575,6 +4585,12 @@ body {
  */
 .ae.outline-row {
   display: block; }
+
+.ae.card.outline-fixed {
+  width: 250px;
+  position: fixed;
+  top: 0px;
+  right: 0px; }
 
 .ae.row {
   display: -ms-flexbox;
