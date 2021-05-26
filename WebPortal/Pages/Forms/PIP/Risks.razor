@@ -3,6 +3,8 @@
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JsInterop
 @inject IUserInformationService UserInformationService
+@inject UIControlsService UI
+@inject IMSGraphService MSGraphService
 @page "/pip/risks/{tombstone}"
 @using Elemental.Components.Forms
 
@@ -64,7 +66,9 @@
                  SubmitLabel="@SubmitLabel"
                  LabelForPropertyFunc="@GetDataLabel"
                  OnConfigure="OnConfigure"
-                 LabelsOnTop="true" />
+                 LabelsOnTop="true" 
+                 OnChange ="OnChange"
+                 Flexbox />
 
 
 }
@@ -86,6 +90,7 @@
     private bool _navToEdit = false;
     private string SubmitLabel = "Save";
     private Microsoft.Graph.User CurrentUser;
+    private string navigationUrl = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
@@ -97,9 +102,9 @@
     }
 
 
-    private async Task HandleValidSubmit()
+    private async void OnConfirmSave(bool isConfirmed, dynamic item)
     {
-        if (_risk != null)
+        if (isConfirmed && _risk != null)
         {
             _risk.Last_Updated_DT = DateTime.Now;
             _risk.Last_Updated_UserId = CurrentUser.Id;
@@ -111,12 +116,30 @@
             await OnInitializedAsync();
             _risk = null;
         }
+        
+        await UI.ToggleModal();
+
+        if (!string.IsNullOrEmpty(navigationUrl))        
+            NavigationManager.NavigateTo(navigationUrl);
+
+        StateHasChanged();
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        var messages = new List<string>() { "Would you like to save risk data?" };
+        await UI.ToggleModal(
+        @<UserChoiceModal HeaderText="Save Data" ChoiceTextList=@messages OnDecision="(a) => OnConfirmSave(a, null)"  ConfirmText="Yes" CancelText="No" />);
+
     }
 
     private async Task GoToPreviousSheet()
     {
-        await HandleValidSubmit();
-        NavigationManager.NavigateTo($"/pip/indicators/{_tombstone.Tombstone_ID}");
+        navigationUrl = $"/pip/indicators/{_tombstone.Tombstone_ID}";
+        if (_risk == null)
+            NavigationManager.NavigateTo(navigationUrl);
+        else
+            await HandleValidSubmit();           
     }
 
     private async Task<PIP_Risks> ClearForm()
@@ -129,6 +152,7 @@
     private void SetFormEdit(PIP_Risks risk)
     {
         _risk = risk;
+        _risk.Last_Updated_UserId = MSGraphService.GetUserName(_risk.Last_Updated_UserId);
         StateHasChanged();
         _navToEdit = true;
     }
@@ -177,6 +201,10 @@
         return DataLocalizer[propName];
     }
 
+    private async Task OnChange(ModelFormChangeArgs<PIP_Risks> args)
+    {
+        StateHasChanged();
+    }
 
     private async Task OnConfigure(ModelFormContext<PIP_Risks> context)
     {
@@ -204,5 +232,23 @@
                                                                                 "8. Enabling Program Delivery",
                                                                                 "N/A"
                                                                  });
+        
+        await context.UpdateValidValues(p => p.Impact1, PIP_Constants.FIVE_OPTIONS_MANDATORY);
+        await context.UpdateValidValues(p => p.Impact2, PIP_Constants.FIVE_OPTIONS_MANDATORY);
+        await context.UpdateValidValues(p => p.Impact3, PIP_Constants.FIVE_OPTIONS_MANDATORY);
+        await context.UpdateValidValues(p => p.Likelihood1, PIP_Constants.FIVE_OPTIONS_MANDATORY);
+        await context.UpdateValidValues(p => p.Likelihood2, PIP_Constants.FIVE_OPTIONS_MANDATORY);
+        await context.UpdateValidValues(p => p.Likelihood3, PIP_Constants.FIVE_OPTIONS_MANDATORY);
+        await context.UpdateValidValues(p => p.Ongoing_Monitoring_Activities_TXT, PIP_Constants.ONGOING_ACTIVITIES);
+        await context.UpdateValidValues(p => p.Ongoing_Monitoring_Activities_TXT2, PIP_Constants.ONGOING_ACTIVITIES);
+        await context.UpdateValidValues(p => p.Ongoing_Monitoring_Activities_TXT3, PIP_Constants.ONGOING_ACTIVITIES);
+        await context.UpdateValidValues(p => p.Ongoing_Monitoring_Timeframe_TXT, PIP_Constants.ONGOING_ACTIVITIES_TIMEFRAME);
+        await context.UpdateValidValues(p => p.Ongoing_Monitoring_Timeframe2_TXT, PIP_Constants.ONGOING_ACTIVITIES_TIMEFRAME);
+        await context.UpdateValidValues(p => p.Ongoing_Monitoring_Timeframe3_TXT, PIP_Constants.ONGOING_ACTIVITIES_TIMEFRAME);
+        await context.UpdateValidValues(p => p.Strategy_Timeline1, PIP_Constants.TIMELINE);
+        await context.UpdateValidValues(p => p.Strategy_Timeline2, PIP_Constants.TIMELINE);
+        await context.UpdateValidValues(p => p.Strategy_Timeline3, PIP_Constants.TIMELINE);
+        await context.UpdateValidValues(p => p.Strategy_Timeline4, PIP_Constants.TIMELINE);
+        await context.UpdateValidValues(p => p.Strategy_Timeline5, PIP_Constants.TIMELINE);
     }
 }

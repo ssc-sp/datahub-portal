@@ -1,0 +1,77 @@
+﻿@page "/project/{ProjectAcronym}/forms/{FormId}/newfield"
+@inject NavigationManager NavManager
+@inject DatahubProjectDBContext projectContext
+
+@if(_formField == null)
+{
+    <h3>Please Wait</h3>
+}
+else
+{
+    <h3>New Form Field</h3>
+
+    <AeModelForm
+        Model="@_formField"
+        SubmitLabel="Save Changes"
+        OnValidSubmit="@HandleValidSubmit"
+        CancelLabel="Reset"
+        OnCancel="@DoCreateFormField"
+    />
+}
+
+@if (_form != null)
+{
+    <AeButton To=@($"/project/{ProjectAcronym}/forms/{_form.WebForm_ID}")>Back</AeButton>
+}
+else
+{
+    <AeButton To=@("/project/{ProjectAcronym}/forms")>Back</AeButton>
+}
+
+@code {
+
+    [Parameter]
+    public string ProjectAcronym { get; set; }
+
+    [Parameter]
+    public string FormId { get; set; }
+
+    private WebForm_Field _formField;
+    private WebForm _form;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _form = await projectContext.WebForms
+            .Include(f => f.Fields)
+            .Include(f => f.Project)
+            .SingleOrDefaultAsync(f => f.WebForm_ID == int.Parse(FormId));
+        
+        if (_form != null)
+        {
+            _formField = await DoCreateFormField();
+        }
+        else
+        {
+            NavManager.NavigateTo($"/project/{ProjectAcronym}/forms");
+        }
+    }
+
+    private async Task<WebForm_Field> DoCreateFormField()
+    {
+        return await Task.FromResult(new WebForm_Field()
+        {
+            WebForm = _form
+        });
+    }
+
+    private async void HandleValidSubmit()
+    {
+        //TODO error handling, logging
+        _formField.Date_Updated_DT = DateTime.UtcNow;
+        var result = await projectContext.Fields.AddAsync(_formField);
+        _formField = result.Entity;
+        await projectContext.SaveChangesAsync();
+
+        NavManager.NavigateTo($"/project/{ProjectAcronym}/forms/fields/{_formField.FieldID}");
+    }
+}

@@ -26,3 +26,6 @@
 ### PIP Form
 
 - Context class is NRCan.Datahub.ProjectForms.Data.PIP.PIPDBContext
+- Add-Migration -name InitialPip -context pipdbcontext -o Migrations/Forms/PIP
+
+

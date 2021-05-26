@@ -4,6 +4,9 @@
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JsInterop
 @inject IUserInformationService UserInformationService
+@inject IMSGraphService MSGraphService
+@inject UIControlsService UI
+
 @page "/pip/programs"
 @page "/pip/programs/{tombstone}"
 @using Elemental.Components.Forms
@@ -45,7 +48,8 @@
                  OnChange="OnChange"
                  SubmitLabel="@SubmitLabel"
                  LabelForPropertyFunc="@GetDataLabel"
-                 LabelsOnTop="true" />
+                 LabelsOnTop="true" 
+                 Flexbox/>
 
     <AeFlex id="buttonBar">
         <div class="icon-container" style="margin-bottom: 10px; margin-left: 5px;">
@@ -61,8 +65,9 @@
 
     private List<PIP_Tombstone> _projects;
     private PIP_Tombstone _tombstone;// = new PIP_Tombstone();
-    private string SubmitLabel = "Add new";
+    private string SubmitLabel = "Save";
     private const string EMAIL = "offline@nrcan-cnrcan.gc.ca";
+    private string navigationUrl = string.Empty;
     private bool _navToEdit = false;
     private Microsoft.Graph.User CurrentUser;
     private List<string> headers = new List<string>
@@ -108,6 +113,7 @@
     private void SetFormEdit(PIP_Tombstone project)
     {
         _tombstone = project;
+        _tombstone.Last_Updated_UserId = MSGraphService.GetUserName(_tombstone.Last_Updated_UserId);
         SubmitLabel = "Save";
         StateHasChanged();
         _navToEdit = true;
@@ -151,6 +157,10 @@
         await context.UpdateValidValues(p => p.Transfer_Payment_Programs_1_DESC, PIP_Constants.TRANSFER_PROGRAMS);
         await context.UpdateValidValues(p => p.Transfer_Payment_Programs_2_DESC, PIP_Constants.TRANSFER_PROGRAMS);
         await context.UpdateValidValues(p => p.Transfer_Payment_Programs_3_DESC, PIP_Constants.TRANSFER_PROGRAMS);
+        await context.UpdateValidValues(p => p.Transfer_Payment_Programs_4_DESC, PIP_Constants.TRANSFER_PROGRAMS);
+        await context.UpdateValidValues(p => p.Transfer_Payment_Programs_5_DESC, PIP_Constants.TRANSFER_PROGRAMS);
+        await context.UpdateValidValues(p => p.Transfer_Payment_Programs_6_DESC, PIP_Constants.TRANSFER_PROGRAMS);
+        await context.UpdateValidValues(p => p.Transfer_Payment_Programs_7_DESC, PIP_Constants.TRANSFER_PROGRAMS);
         await context.UpdateValidValues(p => p.Transfer_Payment_Programs_Less5_1_DESC, PIP_Constants.TRANSFER_PROGRAMS_LESS5);
         await context.UpdateValidValues(p => p.Transfer_Payment_Programs_Less5_2_DESC, PIP_Constants.TRANSFER_PROGRAMS_LESS5);
         await context.UpdateValidValues(p => p.Transfer_Payment_Programs_Less5_3_DESC, PIP_Constants.TRANSFER_PROGRAMS_LESS5);
@@ -213,14 +223,15 @@
     private async Task GoToNextSheet()
     {
         var id = _tombstone.Tombstone_ID;
+        navigationUrl = $"/pip/indicators/{id}";
         await HandleValidSubmit();
-        NavigationManager.NavigateTo($"/pip/indicators/{id}");
+        
     }
 
-    private async Task HandleValidSubmit()
+    private async void OnConfirmSave(bool isConfirmed, dynamic item)
     {
-        if (_tombstone != null)
-        {
+        if (isConfirmed && _tombstone != null )
+        {            
             _tombstone.Last_Updated_DT = DateTime.Now;
             _tombstone.Last_Updated_UserId = CurrentUser.Id;
             //_tombstone.
@@ -230,9 +241,22 @@
             }
             await Context.SaveChangesAsync();
             _projects = Context.Tombstones.ToList();
-            _tombstone = null;
+            _tombstone = null;        
         }
+        await UI.ToggleModal();
 
+        if (!string.IsNullOrEmpty(navigationUrl))        
+            NavigationManager.NavigateTo(navigationUrl);
+
+        StateHasChanged();
+    }
+
+
+    private async Task HandleValidSubmit()
+    {
+        var messages = new List<string>() { "Would you like to save PIP data?" };
+        await UI.ToggleModal(
+        @<UserChoiceModal HeaderText="Save Data" ChoiceTextList=@messages OnDecision="(a) => OnConfirmSave(a, null)" ConfirmText="Yes" CancelText="No" />);
     }
 
     private List<Func<PIP_Tombstone, RenderFragment>> GetRenderers()

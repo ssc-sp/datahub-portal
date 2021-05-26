@@ -5,7 +5,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Identity.Client;
-using Npgsql.TypeHandlers.NetworkHandlers;
 using NRCan.Datahub.Shared.Data;
 using System;
 using System.Collections.Generic;

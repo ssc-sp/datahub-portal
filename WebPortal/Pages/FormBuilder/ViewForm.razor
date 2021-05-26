@@ -1,0 +1,126 @@
+﻿@page "/project/{ProjectAcronym}/forms/{FormId}"
+@using System.Linq
+@inject DatahubProjectDBContext projectContext;
+
+@if(_form != null)
+{
+    <h2>@_form.Title_DESC</h2>
+    <p>@_form.Description_DESC</p>
+}
+
+<h3>Form Fields</h3>
+
+@if(_formId.HasValue)
+{
+    <AeButton To=@($"/project/{ProjectAcronym}/forms/{_formId.Value}/newfield") class="blue">
+        <AeIcon Icon="add-circle" IconStyle="Elemental.Code.RXIcon.RXStyle.Fill" />
+        Create New Form Field
+    </AeButton>
+}
+
+@if (_formFields != null && _formFields.Count() > 0)
+{
+    <AeTable 
+        Accessors="accessorFunctions"
+        Renderers="renderFunctions"
+        Dataset="@_formFields"
+        Headers="@headers"
+    />
+
+
+    <h4>JSON</h4>
+    <pre>
+        <code>
+            @foreach (var field in _formFields)
+            {
+                @field.JSON
+                <br />
+            }
+        </code>
+    </pre>
+
+    <h4>C#</h4>
+    <pre>
+        <code>
+            @foreach (var field in _formFields)
+            {
+                @field.CSCode
+                <br />
+            }
+        </code>
+    </pre>
+    
+}
+
+<AeButton To=@($"/project/{ProjectAcronym}/forms")>Back to Form List</AeButton>
+
+@code 
+{
+
+    [Parameter]
+    public string ProjectAcronym { get; set; }
+
+    [Parameter]
+    public string FormId 
+    {
+        get { return _formId?.ToString(); }
+        set 
+        {
+            try
+            {
+                _formId = int.Parse(value);
+            }
+            catch (Exception ex) when (ex is ArgumentNullException || ex is FormatException || ex is OverflowException)
+            {
+                _formId = null;
+            }
+        }
+    }
+
+    private int? _formId { get; set;}
+
+    private WebForm _form;
+
+    private List<string> headers = new List<string>()
+    {
+        "Section", "Field", "Mandatory", "Field Type", "Extension"
+    };
+
+    private List<Func<WebForm_Field, string>> accessorFunctions = new List<Func<WebForm_Field, string>>()
+    {
+        (f => f.Section_DESC),
+        (f => f.Field_DESC),
+        (f => f.Mandatory_FLAG? "Yes": "No" ),
+        (f => f.Type_CD),
+        (f => f.ExtensionLabel)
+    };
+
+    private List<Func<WebForm_Field, RenderFragment>> renderFunctions = new List<Func<WebForm_Field, RenderFragment>>()
+    {
+        null,
+        (f => @<a href=@($"/project/{f.WebForm.Project.Project_Acronym_CD}/forms/fields/{f.FieldID}")>@f.Field_DESC</a>),
+        (f => f.Mandatory_FLAG? @<AeIcon class="fas fa-asterisk" /> : @<span></span>),
+        null,
+        null
+    };
+
+    private List<WebForm_Field> _formFields = new List<WebForm_Field>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (_formId.HasValue)
+        {
+            _form = await projectContext.WebForms
+                .Include(f => f.Fields)
+                .Include(f => f.Project)
+                .SingleOrDefaultAsync(f => f.WebForm_ID == _formId.Value);
+            
+            if (_form != null)
+            {
+                _formFields = _form.Fields;
+            }
+        }
+    }
+
+}
+

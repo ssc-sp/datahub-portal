@@ -1,8 +1,10 @@
-﻿@inject IStringLocalizer DataLocalizer
+﻿@inject UIControlsService UI
+@inject IStringLocalizer DataLocalizer
 @inject PIPDBContext Context
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JsInterop
 @inject IUserInformationService UserInformationService
+@inject IMSGraphService MSGraphService
 @page "/pip/indicators/{tombstone}"
 
 @using Elemental.Components.Forms
@@ -58,7 +60,8 @@
                  SubmitLabel="@SubmitLabel"
                  LabelForPropertyFunc="@GetDataLabel"
                  OnConfigure="OnConfigure"
-                 LabelsOnTop="true" />
+                 LabelsOnTop="true" 
+                 Flexbox/>
 
     if (_indicator.IndicatorAndResult_ID > 0)
     {
@@ -86,6 +89,7 @@
     private PIP_Tombstone _tombstone;
     private bool _navToEdit = false;
     private Microsoft.Graph.User CurrentUser;
+    private string navigationUrl = string.Empty;
     private string SubmitLabel = "Save";
 
     protected override async Task OnInitializedAsync()
@@ -120,8 +124,13 @@
         await context.UpdateValidValues("Indicator_Direction_DESC", new[] { "Increase", "Decrease", "Maintain" });
         await context.UpdateValidValues("Data_Type_DESC", new[] { "Number", "Non numeric", "Dollar", "Percent" });
         await context.UpdateValidValues("Target_Type_DESC", new[] { "Minimum value(at least)", "Maximum value(at most)", "Closed range", "Exact(single) value" });
-        await context.UpdateValidValues("Target_Met", new[] { "On Track", "Met", "Not Met", "Not on track to meet target" });
-        await context.UpdateValidValues("Does_This_Indicator_Support_Gba", new[] { "Yes", "No" });
+        await context.UpdateValidValues("Target_Met", new[] { "On Track", "Met", "Not Met", "Not on track to meet target" });        
+
+        await context.UpdateValidValues(p => p.Is_Equity_Seeking_Group, PIP_Constants.EQUITY_SEEKING_GROUPS);
+        await context.UpdateValidValues(p => p.Is_Equity_Seeking_Group2, PIP_Constants.EQUITY_SEEKING_GROUPS);
+        await context.UpdateValidValues(p => p.Does_Indicator_Enable_Program_Measure_Equity_Option, PIP_Constants.YESNO);
+        await context.UpdateValidValues(p => p.Cannot_Report_On_Indicator, PIP_Constants.NOT_REPORTABLE_INDICATOR);
+        await context.UpdateValidValues(p => p.Can_Report_On_Indicator, PIP_Constants.YESNO);
     }
 
 
@@ -133,9 +142,9 @@
         new Func<PIP_IndicatorAndResults, string>(p => { return p.Indicator_DESC; }),
     };
 
-    private async Task HandleValidSubmit()
+    private async void OnConfirmSave(bool isConfirmed, dynamic item)
     {
-        if (_indicator != null)
+        if (isConfirmed && _indicator != null)
         {
             _indicator.Last_Updated_DT = DateTime.Now;
             _indicator.Last_Updated_UserId = CurrentUser.Id;
@@ -147,23 +156,44 @@
             await OnInitializedAsync();
             _indicator = null;
         }
+        
+        await UI.ToggleModal();
+
+        if (!string.IsNullOrEmpty(navigationUrl))        
+            NavigationManager.NavigateTo(navigationUrl);
+
+        StateHasChanged();
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        var messages = new List<string>() { "Would you like to save indicator data?" };
+        await UI.ToggleModal(
+        @<UserChoiceModal HeaderText="Save Data" ChoiceTextList=@messages OnDecision="(a) => OnConfirmSave(a, null)" ConfirmText="Yes" CancelText="No"  />);
     }
 
     private async Task GoToNextSheet()
     {
-        await HandleValidSubmit();
-        NavigationManager.NavigateTo($"/pip/risks/{_tombstone.Tombstone_ID}");
+        navigationUrl = $"/pip/risks/{_tombstone.Tombstone_ID}";
+        if (_indicator == null)
+            NavigationManager.NavigateTo(navigationUrl);
+        else
+            await HandleValidSubmit();
     }
 
     private async Task GoToPreviousSheet()
     {
-        await HandleValidSubmit();
-        NavigationManager.NavigateTo($"/pip/programs/{_tombstone.Tombstone_ID}");
+        navigationUrl = $"/pip/programs/{_tombstone.Tombstone_ID}";
+        if (_indicator == null)
+            NavigationManager.NavigateTo(navigationUrl);
+        else
+            await HandleValidSubmit();        
     }
 
     private void SetFormEdit(PIP_IndicatorAndResults indicator)
     {
         _indicator = indicator;
+        _indicator.Last_Updated_UserId = MSGraphService.GetUserName(_indicator.Last_Updated_UserId);
         UpdateRisks();
         StateHasChanged();
         _navToEdit = true;

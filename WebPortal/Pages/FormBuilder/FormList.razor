@@ -1,0 +1,70 @@
+﻿@page "/project/{ProjectAcronym}/forms"
+@inject DatahubProjectDBContext projectContext
+
+@if(_project == null)
+{
+    <h1>Forms</h1>
+}
+else
+{
+    <h1>Forms for @_project.ProjectName</h1>
+}
+
+
+
+<AeButton To=@($"/project/{ProjectAcronym}/forms/new") class="blue">
+    <AeIcon Icon="add-circle" IconStyle="Elemental.Code.RXIcon.RXStyle.Fill" />
+    Create New Form
+</AeButton>
+
+@if (_forms != null && _forms.Count > 0)
+{
+    <AeTable
+        Accessors=@accessorFunctions
+        Renderers=@renderFunctions
+        Dataset=@_forms
+        Headers=@headers
+    />
+}
+
+@if(_project != null)
+{
+    <AeButton To=@($"/project/{ProjectAcronym}")>Back to @_project.ProjectName</AeButton>
+}
+
+
+@code {
+
+    [Parameter]
+    public string ProjectAcronym { get; set; }
+
+    private Datahub_Project _project;
+
+    private List<WebForm> _forms = new List<WebForm>();
+
+    private List<string> headers = new List<string>()
+    {
+        "Form Title", "Description"
+    };
+
+    private List<Func<WebForm, string>> accessorFunctions = new List<Func<WebForm, string>>()
+    {
+        (f => f.Title_DESC),
+        (f => f.Description_DESC)
+    };
+
+    private List<Func<WebForm, RenderFragment>> renderFunctions = new List<Func<WebForm, RenderFragment>>()
+    {
+        (f => @<a href=@($"/project/{f.Project.Project_Acronym_CD}/forms/{f.WebForm_ID}")>@f.Title_DESC</a>),
+        null
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        _project = await projectContext.Projects.Include(p => p.WebForms).SingleOrDefaultAsync(p => p.Project_Acronym_CD == ProjectAcronym);
+        if (_project != null)
+        {
+            _forms = _project.WebForms;
+        }
+    }
+}

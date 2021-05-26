@@ -15,8 +15,8 @@
         <Spinner />
     }
     <div class="modal-footer">
-        <button class="submitbutton finish" disabled="@isProcessing" @onclick="() => Processing(true)">@Localizer["BUTTONS.Confirm"]</button>
-        <button class="submitbutton cancel" disabled="@isProcessing" @onclick="() => Processing(false)">@Localizer["BUTTONS.Cancel"]</button>
+        <button class="submitbutton finish" disabled="@isProcessing" @onclick="() => Processing(true)">@ConfirmText</button>
+        <button class="submitbutton cancel" disabled="@isProcessing" @onclick="() => Processing(false)">@CancelText</button>
     </div>
 </div>
 
@@ -27,7 +27,20 @@
     public List<string> ChoiceTextList { get; set; }
     [Parameter]
     public string HeaderText { get; set; }
+
+    [Parameter]
+    public string ConfirmText { get; set; }
+
+    [Parameter]
+    public string CancelText { get; set; } 
+
     public bool isProcessing { get; set; } = false;
+
+    protected override void OnInitialized()
+    {
+        ConfirmText = string.IsNullOrEmpty(ConfirmText) ? Localizer["BUTTONS.Confirm"] : ConfirmText;
+        CancelText = string.IsNullOrEmpty(CancelText) ? Localizer["BUTTONS.Cancel"] : CancelText;
+    }
     public void Processing(bool response)
     {
         isProcessing = true;

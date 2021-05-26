@@ -1,0 +1,161 @@
+﻿@page "/project/{ProjectAcronym}/forms/fields/{id}"
+@inject NavigationManager NavManager
+@inject DatahubProjectDBContext projectContext
+
+@if(_formField == null)
+{
+    <h3>Please Wait</h3>
+}
+else 
+{
+    <h3>@_formField.Section_DESC - @_formField.Field_DESC</h3>
+
+    @if (_mode == ViewMode.View)
+    {
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Property</th>
+                    <th>Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Section</td>
+                    <td>@_formField.Section_DESC</td>
+                </tr>
+                <tr>
+                    <td>Field</td>
+                    <td>@_formField.Field_DESC</td>
+                </tr>
+                <tr>
+                    <td>Extension</td>
+                    <td>@_formField.ExtensionLabel</td>
+                </tr>
+                <tr>
+                    <td>MaxLength</td>
+                    <td>@_formField.Max_Length_NUM</td>
+                </tr>
+                <tr>
+                    <td>Mandatory</td>
+                    <td>@_formField.Mandatory_FLAG</td>
+                </tr>
+                <tr>
+                    <td>Formatted</td>
+                    <td>@_formField.Formatted</td>
+                </tr>
+                <tr>
+                    <td>Code</td>
+                    <td>@_formField.Code</td>
+                </tr>
+                <tr>
+                    <td>SQL Name</td>
+                    <td>@_formField.SQLName</td>
+                </tr>
+                <tr>
+                    <td>JSON</td>
+                    <td><pre><code>@_formField.JSON</code></pre></td>
+                </tr>
+                <tr>
+                    <td>C# Code</td>
+                    <td>
+                        <pre><code>@_formField.CSCode</code></pre>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <AeButton OnClickEvent="@GoToEditMode" class="blue">Edit</AeButton>
+    }
+    else if (_mode == ViewMode.Edit)
+    {
+        <AeModelForm
+            Model="@_formField"
+            SubmitLabel="Save Changes"
+            OnValidSubmit="@HandleValidSubmit"
+            CancelLabel="Cancel"
+            OnCancel="@HandleCancel"
+        />
+
+    }
+}
+
+@if (_formField == null)
+{
+    <AeButton To=@($"/project/{ProjectAcronym}/forms")>Back</AeButton>
+}
+else
+{
+    <AeButton To=@($"/project/{ProjectAcronym}/forms/{_formField.WebForm_ID}")>Back</AeButton>
+}
+
+
+
+@code {
+
+    [Parameter]
+    public string ProjectAcronym { get; set; }
+
+    private enum ViewMode { View, Edit }
+    private ViewMode _mode = ViewMode.View;
+
+    [Parameter]
+    public string Id { get; set; }
+
+    private WebForm_Field _formField;
+    private WebForm_Field _originalFormField;
+
+    private void ChangeViewMode(ViewMode mode)
+    {
+        _mode = mode;
+        InvokeAsync(() => StateHasChanged());
+    }
+
+    private async void GoToEditMode()
+    {
+        await Task.Run(() => ChangeViewMode(ViewMode.Edit));
+    }
+
+    private async void GoToViewMode()
+    {
+        await Task.Run(() => ChangeViewMode(ViewMode.View));
+    }
+
+    private async Task<WebForm_Field> LoadFormField()
+    {
+        var formField = await projectContext.Fields
+            .SingleOrDefaultAsync(f => f.FieldID == int.Parse(Id));
+        
+        if (formField != null) 
+        {
+            _originalFormField = formField.Clone();
+        }
+
+        return formField;
+    }
+
+    private async Task<WebForm_Field> HandleCancel()
+    {
+        _formField.TakeValuesFrom(_originalFormField); //workaround to prevent cancelled changes from being saved
+        GoToViewMode();
+        return await LoadFormField();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _formField = await LoadFormField();
+    }
+
+    private async void HandleValidSubmit()
+    {
+        //TODO error checking, logging
+        _formField.Date_Updated_DT = DateTime.UtcNow;
+        var result = projectContext.Fields.Update(_formField);
+        await projectContext.SaveChangesAsync();
+
+        GoToViewMode();
+    }
+
+}
+   

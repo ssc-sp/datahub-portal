@@ -180,6 +180,7 @@ namespace NRCan.Datahub.Portal
             services.AddScoped<DataCreatorService>();
             services.AddScoped<DataRetrievalService>();
             services.AddScoped<DataRemovalService>();
+            services.AddScoped<DataImportingService>();
             services.AddSingleton<DatahubTools>();
             services.AddSingleton<CognitiveSearchService>();
             services.AddScoped<NotificationsService>();

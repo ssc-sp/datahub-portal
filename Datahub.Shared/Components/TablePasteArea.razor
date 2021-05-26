@@ -31,7 +31,7 @@
     [Parameter]
     public EventCallback CancelPaste { get; set; }
 
-    private List<String[]> _excelContent = new List<String[]>();
+    private List<string[]> _excelContent = new List<string[]>();
     private String _parserType = "text";
     private List<Func<String[], string>> pasteAccessors = new List<Func<String[], string>>();
     private List<string> pasteHeaders = new List<string>();
@@ -39,7 +39,7 @@
 
     private Task ImportRecords()
     {
-        var content = _excelContent;
+        var content = new List<string[]>(_excelContent);
         _excelContent.Clear();
         return ExcelContent.InvokeAsync(content);
     }

@@ -15,6 +15,41 @@ namespace FormTests
     public class UnitTest1
     {
 
+        [Fact]
+        public void GivenStrArray_ThenReadToClass()
+        {
+            string[] values = { "item1", "item2", "item3", "item4" };
+            Assert.True(values.Count() == 4);
+
+            var properties = typeof(Importlist).GetProperties();
+
+            //Check to make sure array length will fit into the object
+            Assert.True(values.Count() == properties.Length);
+
+            Importlist list = new Importlist();
+
+            int index = 0;
+            foreach (var item in properties)
+            {
+                //check to make sure the types in the array match the object
+                //in prod this has to be a bit more subtle
+                var arrayValue = values[index];
+
+                Assert.True(arrayValue.GetType() == item.PropertyType);
+                var propertyName = item.Name;
+                var objectproperty = list.GetType().GetProperty(propertyName);
+                objectproperty.SetValue(list, values[index]);
+                index++;
+            }
+
+            Assert.True(list.item1 == "item1");
+            Assert.True(list.item2 == "item2");
+            Assert.True(list.item3 == "item3");
+            Assert.True(list.item4 == "item4");
+
+            Assert.True(properties.Length == 4);
+        }
+
 
         [Fact]
         public void TestShortenContactList()
@@ -50,5 +85,14 @@ namespace FormTests
             //var (c1, l1) = s1[0];
         }
 
+        
+    }
+
+    public class Importlist
+    { 
+        public string item1 { get; set; }
+        public string item2 { get; set; }
+        public string item3 { get; set; }
+        public string item4 { get; set; }
     }
 }

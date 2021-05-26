@@ -1,6 +1,7 @@
 ﻿@inject IStringLocalizer DataLocalizer
 @inject FinanceDBContext Context
 @inject NavigationManager NavigationManager
+@inject DataImportingService DataImportingService
 @inject IJSRuntime JsInterop
 @page "/finance/budgets/{sector}"
 
@@ -77,8 +78,16 @@
     };
 
     private void HandleExcelPaste(List<String[]> items)
-    {
-        var excelItems = items;
+    {      
+        //var objectItems = DataImportingService.CreateBudgets(items);
+        var objectItems = DataImportingService.CreateObjects<NRCan.Datahub.Portal.Data.Finance.Budget>(items);
+        foreach(var item in objectItems)
+        {
+            item.SectorAndBranch = _sector;
+        }
+        Context.Budgets.AddRange(objectItems);
+        Context.SaveChanges();
+        OnInitialized();
         StateHasChanged();
     }
 
@@ -122,7 +131,7 @@
             }
             _budget.Last_Updated_DT = DateTime.Now;
             await Context.SaveChangesAsync();
-            await OnInitializedAsync();
+            OnInitialized();
             _budget = null;
         }
     }
@@ -138,8 +147,8 @@
         StateHasChanged();
         return null;
     }
-
-    protected override async Task OnInitializedAsync()
+    
+    protected override void OnInitialized()
     {
         // load projects
         _sector = Context.SectorAndBranches.Where(p => p.SectorBranch_ID == Convert.ToInt32(sector)).FirstOrDefault();

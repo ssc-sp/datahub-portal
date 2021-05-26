@@ -35,7 +35,19 @@ namespace NRCan.Datahub.Data.Projects
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<WebForm_Field>().HasOne(p => p.WebForm).WithMany(p => p.Fields);
+            modelBuilder.Entity<WebForm_Field>()
+                .HasOne(p => p.WebForm)
+                .WithMany(p => p.Fields);
+
+            modelBuilder.Entity<WebForm_Field>()
+                .Property(e => e.Extension_CD)
+                .HasDefaultValue("NONE");
+
+            modelBuilder.Entity<WebForm_Field>()
+                .Property(e => e.Type_CD)
+                .HasDefaultValue("Text");
+
+            modelBuilder.Entity<WebForm>().HasOne(e => e.Project).WithMany(e => e.WebForms);
 
             modelBuilder.Entity<Datahub_Project>().HasOne(p => p.PBI_License_Request).WithOne(p => p.Project).HasForeignKey<PBI_License_Request>(l => l.Project_ID);
 

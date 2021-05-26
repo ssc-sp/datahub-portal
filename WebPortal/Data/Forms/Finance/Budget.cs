@@ -132,15 +132,13 @@ namespace NRCan.Datahub.Portal.Data.Finance
         /** Section: Adjustments to Forecast **/
         public double? Adjustments_To_Forecast_NUM { get; set; }
         /** Section: Forecast Adjustment for Salary Attrition **/
-        public double? Attrition_Percentage_PCT { get; set; }
-        /** Section: Forecast Adjustment for Salary Attrition **/
         public double? Forecast_Adjustment_For_Salary_Attrition_NUM { get; set; }
         /** Section: Forecast Adjustment for Risk Management **/
         public double? Forecast_Adjustment_For_Risk_Management_NUM { get; set; }
         /** Section: Revised Forecasts **/
         [Editable(false)]
         [DisplayFormat(DataFormatString = "c")]
-        public double? Revised_Forecasts_NUM => (Adjustments_To_Forecast_NUM ?? 0) + (Attrition_Percentage_PCT ?? 0) + (Forecast_Adjustment_For_Salary_Attrition_NUM ?? 0) + (Forecast_Adjustment_For_Risk_Management_NUM ?? 0);
+        public double? Revised_Forecasts_NUM => (Adjustments_To_Forecast_NUM ?? 0) + (Forecast_Adjustment_For_Salary_Attrition_NUM ?? 0) + (Forecast_Adjustment_For_Risk_Management_NUM ?? 0);
         /** Section: % of Forecast to Budget **/
         public double? Percent_Of_Forecast_To_Budget_NUM { get; set; }
         /** Section: Comments/Notes for Financial Information  **/
@@ -153,7 +151,7 @@ namespace NRCan.Datahub.Portal.Data.Finance
         [MaxLength(7500)] 
         public string? Comments_Notes_For_NonFinancial_Information_TXT { get; set; }
 
-
+        [AeFormIgnore]
         public SectorAndBranch SectorAndBranch { get; set; }
         [AeFormIgnore]
         public string Last_Updated_UserId { get; set; }

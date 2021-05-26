@@ -1,0 +1,52 @@
+﻿@page "/project/{ProjectAcronym}/forms/new"
+@inject DatahubProjectDBContext projectContext
+@inject NavigationManager NavManager
+
+
+@if (_form == null)
+{
+    <h3>Please Wait</h3>
+}
+else
+{
+    <h3>New Form</h3>
+
+    <AeModelForm
+        Model=@_form
+        SubmitLabel="Save Changes"
+        OnValidSubmit=@HandleValidSubmit
+        CancelLabel="Reset"
+        OnCancel=@DoCreateForm
+    />
+}
+
+@code {
+
+    [Parameter]
+    public string ProjectAcronym { get; set; }
+
+    private Datahub_Project _project;
+    private WebForm _form;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _project = projectContext.Projects.Include(p => p.WebForms).Single(p => p.Project_Acronym_CD == ProjectAcronym);
+        _form = await DoCreateForm();
+    }
+
+    private async Task<WebForm> DoCreateForm()
+    {
+        return await Task.FromResult(new WebForm() { Project = _project });
+    }
+
+    private async void HandleValidSubmit()
+    {
+        //TODO error checking, logging
+
+        var result = await projectContext.WebForms.AddAsync(_form);
+        _form = result.Entity;
+        await projectContext.SaveChangesAsync();
+        NavManager.NavigateTo($"/project/{ProjectAcronym}/forms/{_form.WebForm_ID}");
+    }
+
+}

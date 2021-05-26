@@ -155,6 +155,8 @@ namespace NRCan.Datahub.Data.Projects
         [StringLength(400)]
         public string WebForms_URL { get; set; }
 
+        public List<WebForm> WebForms { get; set; }
+
         [AeFormIgnore]
         [Timestamp]
         public byte[] Timestamp { get; set; }

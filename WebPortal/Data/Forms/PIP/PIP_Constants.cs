@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Elemental.Components.FormsInternal;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -8,6 +9,33 @@ namespace NRCan.Datahub.ProjectForms.Data.PIP
     public class PIP_Constants
     {
         public static readonly string[] NA = { "N/A" };
+
+
+        public static readonly string[] FIVE_OPTIONS_MANDATORY = { "TO BE COMPLETED", "1", "2", "3", "4", "5" };
+        public static readonly string[] FIVE_OPTIONS = { "1", "2", "3", "4", "5" };
+        public static readonly string[] TIMELINE = { "Ongoing", "Future" };
+        public static readonly string[] YESNO = { "Yes", "No" };
+        public static readonly string[] NOT_REPORTABLE_INDICATOR = { "Indicator outdated", "Indicator or data quality issues", "Program ending", "Methodology needs updating", "Data not available", "Other" };
+
+        public static readonly string[] ONGOING_ACTIVITIES = { "Risk Analysis", "Risk controls", "Measurement and Communication", "No monitoring activities", "Other" };
+        public static readonly string[] ONGOING_ACTIVITIES_TIMEFRAME = { "Daily",
+                                                    "Weekly",
+                                                    "Bi-weekly",
+                                                    "Monthly",
+                                                    "Bi-monthly",
+                                                    "Quarterly", 
+                                                    "Semi-annually", 
+                                                    "Annually", 
+                                                    "Ad-hoc", 
+                                                    "Other", 
+                                                    "N/A"
+        };
+        
+
+
+        public static readonly string[] EQUITY_SEEKING_GROUPS = { "Indigenous Peoples", "LGBTQ2S+", "People with disabilities", "Black people and racialized people", "Women", 
+                                                                    "Underrepresented groups including immigrants", "older adults", " people living in poverty", "rural/remote residents and language minorities" };
+
 
         public static readonly string[] CORE_RESPONSIBILITY1 = { "R1 Canadians have access to cutting-edge research to inform decisions on the management  of natural resources",
 "R2 Communities and officials have the tools to safeguard Canadians from natural hazards and explosives",
