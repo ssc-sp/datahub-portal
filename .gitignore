@@ -14,7 +14,6 @@ artifacts/
 .dotnet/
 *.binlog
 .DS_Store
-elemental-theme/
 dh-code.bat
 Datahub.Shared/node_modules
 DatahubIntakeForms/appsettings.Development.json

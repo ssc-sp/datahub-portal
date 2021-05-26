@@ -1,0 +1,22 @@
+﻿@import 'colors';
+@import 'utils';
+
+$checkboxOptions: ( 
+    "default":( 
+        "width" : 16px,
+        "height": 16px,
+        "border": 1px solid $grey-500,
+        "display": flex,
+        "align-items": center,
+        "justify-content": center,
+        "text-align": center,
+        "margin-right": 8px,
+        "&:hover": (
+                "background-color": $grey-200,
+        ),
+    ),
+) !default;
+
+.ae.checkbox {
+    @include set-variations($checkboxOptions);
+}

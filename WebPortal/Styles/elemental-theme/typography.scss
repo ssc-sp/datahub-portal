@@ -1,0 +1,65 @@
+﻿@import 'colors';
+@import 'utils';
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap');
+
+
+
+$typgraphyOptions: (
+    "default": (
+        "color": $text-primary,
+        "overflow-wrap": break-word,
+        "font-size": 0.9rem,
+        "font-family": 'Open Sans',
+        "line-height": 1.75,
+    ),
+    "h1": (
+        "margin-bottom": .5rem,
+        "line-height": 1.25,
+        "font-size": 2.5rem,
+        "font-weight": 600,
+    ),
+    "h2": (
+        "margin-bottom": .5rem,
+        "line-height": 1.35,
+        "font-size": 1.75rem,
+        "font-weight": 600,
+    ),
+    "h3": (
+        "margin-bottom": .5rem,
+        "line-height": 1.3,
+        "font-size": 1.5rem,
+        "font-weight": 600,
+    ),
+    "h4": (
+        "margin-bottom": .5rem,
+        "line-height": 1.2,
+        "font-size": 1.25rem,
+        "font-weight": 600,
+    ),
+    "a": (
+        "text-decoration": none,
+        "color": $blue-500,
+        "cursor": pointer,
+        "&:hover": (
+            "text-decoration": underline,
+        ),
+    ),
+    "p": (
+        "line-height": 1.75,
+    ),
+    "hint": (
+        "color": $text-hint,
+    ),
+    "warning": (
+        "color": $orange-400,
+    ),
+    "danger": (
+        "color": $red-600,
+    ),
+) !default;
+
+
+.ae.typography {
+    @include set-variations($typgraphyOptions);
+}
+

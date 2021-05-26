@@ -1,0 +1,88 @@
+﻿@import 'colors';
+@import 'constants';
+@import 'box-shadow';
+@import 'utils';
+
+
+$toggleOptions: ( 
+  "default": ( 
+    "position": relative,
+    "display": inline-block,
+    "width": 60px, 
+    "height": 34px,      
+
+    "& input": (
+      "opacity": 0,
+      "width": 0,
+      "height": 0,
+    ),
+
+    ".slider": (
+      "position": absolute,
+      "cursor": pointer,
+      "top": 0,
+      "left": 0,
+      "right": 0,
+      "bottom": 0,
+      "background-color": #ccc,
+      "transition": .4s,
+    ),
+
+    ".slider:before": (
+      "position": absolute,
+      "content": "",
+      "top": 6px,
+      "left": 6px,
+      "right": 32px,
+      "bottom": 6px,
+      "background-color": $white,
+      "transition": .4s,
+    ),
+
+    "& input:checked + .slider": (
+        "background-color": #2196F3,
+    ),
+
+    "& input:focus + .slider": (
+        "box-shadow": 0 0 1px #2196F3,
+    ),
+
+    "& input:checked + .slider:before": (
+        "-webkit-transform": translateX(26px),
+        "-ms-transform": translateX(26px),
+        "translate": translateX(26px),
+    ),
+  ), 
+
+  "round": ( 
+    ".slider":(
+        "border-radius":34px,
+    ),
+    ".slider:before":(
+        "border-radius":50%,
+    ),
+  ),
+
+  "small": (
+    "width": 30px, 
+    "height": 19px, 
+
+    ".slider:before": (
+      "top": 4px,
+      "left": 4px,
+      "right": 16px,
+      "bottom": 5px,
+    ),
+
+    "& input:checked + .slider:before": (
+        "-webkit-transform": translateX(13px),
+        "-ms-transform": translateX(13px),
+        "translate": translateX(13px),
+    ),
+  ),
+
+)  !default;
+
+.ae.toggle {
+  @include set-variations($toggleOptions);
+}
