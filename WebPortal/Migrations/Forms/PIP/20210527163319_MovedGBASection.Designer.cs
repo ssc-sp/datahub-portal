@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NRCan.Datahub.ProjectForms.Data.PIP;
 
 namespace NRCan.Datahub.Portal.Migrations.Forms.PIP
 {
     [DbContext(typeof(PIPDBContext))]
-    partial class PIPDBContextModelSnapshot : ModelSnapshot
+    [Migration("20210527163319_MovedGBASection")]
+    partial class MovedGBASection
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

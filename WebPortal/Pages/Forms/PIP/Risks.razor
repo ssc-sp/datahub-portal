@@ -30,7 +30,7 @@
                  Dataset="_risks"
                  ColorAccessor="getColor"
                  Headers="headers"
-                 GridTemplateColumns="2fr 2fr 2fr"
+                 GridTemplateColumns="2fr 2fr 2fr 2fr 2fr 2fr"
                  MaxHeight="400"
                  OnRowClick="@SetFormEdit" />
 
@@ -170,7 +170,10 @@
 {
         new Func<PIP_Risks, string>(p => { return p.Risk_Title; }),
         new Func<PIP_Risks, string>(p => { return p.Risk_Description_TXT; }),
-        new Func<PIP_Risks, string>(p => { return p.Risk_Drivers_TXT; }),
+        new Func<PIP_Risks, string>(p => { return p.Risk_Id_TXT; }),
+        new Func<PIP_Risks, string>(p => { return p.InherentLevel1.ToString(); }),
+        new Func<PIP_Risks, string>(p => { return p.InherentLevel2.ToString(); }),
+        new Func<PIP_Risks, string>(p => { return p.InherentLevel3.ToString(); }),
     };
 
     private List<string> pipheaders = new List<string>
@@ -185,8 +188,8 @@
     };
 
     private List<string> headers = new List<string>
-{
-        "Risk Title","Risk Description", "Risk Drivers"
+    {
+	    "Risk Title","Risk Description", "Risk Area", "Inherent Risk Level", "Residual Risk Level", "Target Risk Level"
     };
 
     private async Task CreateNewRisk()
