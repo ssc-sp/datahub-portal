@@ -17,7 +17,7 @@ namespace NRCan.Datahub.ProjectForms.Data.PIP
         [MaxLength(400)] 
         public string? Outcome_Level_DESC { get; set; }
 
-        [AeLabel(row: "2", column: "1")]
+        [AeLabel(row: "1", column: "2")]
         [MaxLength(1000)] 
         public string? Program_Output_Or_Outcome_DESC { get; set; }
 
@@ -29,11 +29,11 @@ namespace NRCan.Datahub.ProjectForms.Data.PIP
         [MaxLength(1000)]
         public string? Source_Of_Indicator_DESC { get; set; }
 
-        [AeLabel(row: "5", column: "1", isDropDown: true, placeholder: "Please Select")]
+        [AeLabel(row: "4", column: "2", isDropDown: true, placeholder: "Please Select")]
         [MaxLength(1000)]
         public string? Source_Of_Indicator2_DESC { get; set; }
         
-        [AeLabel(row: "6", column: "1", isDropDown: true, placeholder: "Please Select")]
+        [AeLabel(row: "4", column: "3", isDropDown: true, placeholder: "Please Select")]
         [MaxLength(1000)]
         public string? Source_Of_Indicator3_DESC { get; set; }
 
@@ -158,37 +158,7 @@ namespace NRCan.Datahub.ProjectForms.Data.PIP
         public string? Result_201718_DESC { get; set; }
 
 
-        [AeLabel(row: "23", column: "1", isDropDown: true, placeholder: "Please Select")]
-        [AeFormCategory("GBA+", 40)]
-        [MaxLength(50)]
-        public string? Does_Indicator_Enable_Program_Measure_Equity_Option { get; set; }
-        [AeFormCategory("GBA+", 40)]
-        [AeLabel(row: "23", column: "2")]
-        [MaxLength(8000)]
-        public string? Does_Indicator_Enable_Program_Measure_Equity { get; set; }
-
-
-
-        [AeFormCategory("GBA+", 40)]
-        [AeLabel(row: "24", column: "1", isDropDown: true, placeholder: "Please Select")]
-        [MaxLength(1000)]
-        public string? Is_Equity_Seeking_Group { get; set; }
-
-        [AeFormCategory("GBA+", 40)]
-        [AeLabel(row: "25", column: "1", isDropDown: true, placeholder: "Please Select")]
-        [MaxLength(1000)]
-        public string? Is_Equity_Seeking_Group2 { get; set; }
-
-        [AeFormCategory("GBA+", 40)]
-        [AeLabel(row: "26", column: "1", placeholder: "If others, please add comment here ")]
-        [MaxLength(4000)]
-        public string? Is_Equity_Seeking_Group_Other { get; set; }
-
-        [AeLabel(row: "27", column: "1")]
-        [AeFormCategory("GBA+", 40)]
-        [MaxLength(4000)]
-        public string? No_Equity_Seeking_Group { get; set; }
-
+        
 
 
 

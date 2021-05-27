@@ -131,10 +131,43 @@ namespace NRCan.Datahub.ProjectForms.Data.PIP
         [AeLabel(row: "33", column: "3")]
         [AeFormCategory("Date of PIP Approval", 55)] public DateTime? Functional_SignOff_DT { get; set; }
 
-        [AeLabel(row: "34", column: "1")]
+        [AeLabel(row: "34", column: "1", isDropDown: true, placeholder: "Please Select")]
+        [AeFormCategory("GBA+", 56)]
+        [MaxLength(50)]
+        public string? Does_Indicator_Enable_Program_Measure_Equity_Option { get; set; }
+        [AeFormCategory("GBA+", 56)]
+        [AeLabel(row: "34", column: "2")]
+        [MaxLength(8000)]
+        public string? Does_Indicator_Enable_Program_Measure_Equity { get; set; }
+
+
+
+        [AeFormCategory("GBA+", 56)]
+        [AeLabel(row: "35", column: "1", isDropDown: true, placeholder: "Please Select")]
+        [MaxLength(1000)]
+        public string? Is_Equity_Seeking_Group { get; set; }
+
+        [AeFormCategory("GBA+", 56)]
+        [AeLabel(row: "36", column: "1", isDropDown: true, placeholder: "Please Select")]
+        [MaxLength(1000)]
+        public string? Is_Equity_Seeking_Group2 { get; set; }
+
+        [AeFormCategory("GBA+", 56)]
+        [AeLabel(row: "37", column: "1", placeholder: "If others, please add comment here ")]
+        [MaxLength(4000)]
+        public string? Is_Equity_Seeking_Group_Other { get; set; }
+
+        [AeLabel(row: "38", column: "1")]
+        [AeFormCategory("GBA+", 56)]
+        [MaxLength(4000)]
+        public string? No_Equity_Seeking_Group { get; set; }
+
+
+
+        [AeLabel(row: "39", column: "1")]
         [AeFormCategory("Latest Update Information", 60)]
         [Editable(false)] public string Last_Updated_UserId { get; set; }
-        [AeLabel(row: "34", column: "2")]        
+        [AeLabel(row: "40", column: "2")]        
         [AeFormCategory("Latest Update Information", 60)]
         [Required] public DateTime Date_Updated_DT { get; set; }
         

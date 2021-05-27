@@ -63,10 +63,10 @@
                  LabelsOnTop="true" 
                  Flexbox/>
 
-    if (_indicator.IndicatorAndResult_ID > 0)
+    @*if (_indicator.IndicatorAndResult_ID > 0)
     {
         <RiskTable ToggleRisk="ToggleRisk" IndicatorRisks="@_risks" RenderFunctions="@renderFunctions"></RiskTable>
-    }
+    }*@
 }
 
 <AeFlex id="buttonBar">
@@ -126,9 +126,7 @@
         await context.UpdateValidValues("Target_Type_DESC", new[] { "Minimum value(at least)", "Maximum value(at most)", "Closed range", "Exact(single) value" });
         await context.UpdateValidValues("Target_Met", new[] { "On Track", "Met", "Not Met", "Not on track to meet target" });        
 
-        await context.UpdateValidValues(p => p.Is_Equity_Seeking_Group, PIP_Constants.EQUITY_SEEKING_GROUPS);
-        await context.UpdateValidValues(p => p.Is_Equity_Seeking_Group2, PIP_Constants.EQUITY_SEEKING_GROUPS);
-        await context.UpdateValidValues(p => p.Does_Indicator_Enable_Program_Measure_Equity_Option, PIP_Constants.YESNO);
+        
         await context.UpdateValidValues(p => p.Cannot_Report_On_Indicator, PIP_Constants.NOT_REPORTABLE_INDICATOR);
         await context.UpdateValidValues(p => p.Can_Report_On_Indicator, PIP_Constants.YESNO);
     }
