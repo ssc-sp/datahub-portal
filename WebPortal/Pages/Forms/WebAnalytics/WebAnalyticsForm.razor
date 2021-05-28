@@ -1,8 +1,10 @@
 ﻿@inject IStringLocalizer DataLocalizer
-@inject WebAnalyticsContext Context
+
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JsInterop
 @page "/webanalytics/entry"
+@implements IDisposable
+@inject IDbContextFactory<WebAnalyticsContext> DbFactory
 
 <h1>Web Analytics</h1>
 <h2>Select/Enter Web Analytics Data</h2>
@@ -58,11 +60,13 @@
     private WebAnalytics _webanalytic;
     private string SubmitLabel = "Save";
     private bool _navToEdit = false;
+    private WebAnalyticsContext Context;  
    
 
     protected override async Task OnInitializedAsync()
     {
         // load projects
+        Context = DbFactory.CreateDbContext();
         _webanalytics = Context.WebAnalytics.ToList();
     }
 
@@ -141,6 +145,6 @@
     }
 
 
-    
+    public void Dispose() { Context.Dispose(); }
 
 }

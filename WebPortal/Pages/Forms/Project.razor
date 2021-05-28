@@ -6,8 +6,10 @@
 @inject Elemental.Services.UIControlsService UIControlService
 @inject IUserInformationService UserInformationService
 @inject IJSRuntime JsInterop
-@inject DatahubProjectDBContext projectContext
-@inject SqlCiosbDatahubEtldbContext etlContext
+@implements IDisposable
+@inject IDbContextFactory<DatahubProjectDBContext> DbFactoryProject
+@inject IDbContextFactory<SqlCiosbDatahubEtldbContext> DbFactoryEtl
+
 @page "/project/{projectAcronym}"
 
 <div style="padding-left: 2rem;padding-right: 2rem">
@@ -171,6 +173,10 @@
     //Service Types - 1 = DataBricks, 2 = PowerBi
     //Service Status - 0 = pending creation, 1 = created
 
+    private DatahubProjectDBContext projectContext;
+    private SqlCiosbDatahubEtldbContext etlContext;
+
+
     // Define the headers at the top of the table
     private List<string> pipelineHeaders = new List<string>
     {
@@ -194,7 +200,8 @@
                                                                 return @<div><i class="fad fa-check"></i> OK</div>;
                                                             else 
                                                                 return @<div><i class="fad fa-exclamation-triangle"></i> Error</div>;}),
-        new Func<ETL_CONTROL_TBL, RenderFragment>(etl => { return @<div><i class="fad fa-check"></i> OK</div>; })
+        new Func<ETL_CONTROL_TBL, RenderFragment>(etl => { return @<div><i class="fad fa-check"></i> OK</div>
+    ; })
     };
 
     [Parameter]
@@ -217,6 +224,8 @@
 
     protected override async Task OnInitializedAsync()
     {
+        projectContext = DbFactoryProject.CreateDbContext();
+        etlContext = DbFactoryEtl.CreateDbContext();
         await RefreshComponents(false);
         var allPipelines = _project.Pipelines?.Select(p => p.Process_Nm).ToList();
         if (allPipelines != null)
@@ -288,5 +297,11 @@
         _project = projectContext.Projects.Include(p => p.Requests).Include(p => p.Pipelines).Single(p => p.Project_Acronym_CD == projectAcronym);
         _serviceRequests = projectContext.Project_Requests.Where(p => p.Project == _project).ToList();
         StateHasChanged();
+    }
+
+    public void Dispose() 
+    { 
+        projectContext.Dispose(); 
+        etlContext.Dispose();
     }
 }

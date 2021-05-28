@@ -1,6 +1,10 @@
 ﻿@page "/project/{ProjectAcronym}/forms/{FormId}"
 @using System.Linq
-@inject DatahubProjectDBContext projectContext;
+@inject NavigationManager NavManager
+
+@implements IDisposable
+@inject IDbContextFactory<DatahubProjectDBContext> DbFactory
+
 
 @if(_form != null)
 {
@@ -56,6 +60,7 @@
 
 @code 
 {
+    private DatahubProjectDBContext projectContext;
 
     [Parameter]
     public string ProjectAcronym { get; set; }
@@ -99,7 +104,8 @@
     {
         null,
         (f => @<a href=@($"/project/{f.WebForm.Project.Project_Acronym_CD}/forms/fields/{f.FieldID}")>@f.Field_DESC</a>),
-        (f => f.Mandatory_FLAG? @<AeIcon class="fas fa-asterisk" /> : @<span></span>),
+        (f => f.Mandatory_FLAG? @<AeIcon class="fas fa-asterisk" /> : @<span></span>
+    ),
         null,
         null
     };
@@ -108,6 +114,7 @@
 
     protected override async Task OnInitializedAsync()
     {
+        projectContext = DbFactory.CreateDbContext();
         if (_formId.HasValue)
         {
             _form = await projectContext.WebForms
@@ -122,5 +129,7 @@
         }
     }
 
+
+    public void Dispose() { projectContext.Dispose(); }
 }
 

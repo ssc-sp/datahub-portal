@@ -3,7 +3,8 @@
 @inject IStringLocalizer<DataLabels> DataLocalizer
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JsInterop
-@inject DatahubProjectDBContext projectContext
+@implements IDisposable
+@inject IDbContextFactory<DatahubProjectDBContext> DbFactory
 @page "/projects"
 
 
@@ -19,10 +20,16 @@
 
 @code {
     private List<Datahub_Project> _projects;
-
+    DatahubProjectDBContext Context;
     protected override async Task OnInitializedAsync()
     {
-        _projects = projectContext.Projects.Where(p => !p.Is_Private && !string.IsNullOrWhiteSpace(p.Project_Acronym_CD) && !string.IsNullOrWhiteSpace(p.Project_Name)).Include(p => p.Users).ToList();
+        Context = DbFactory.CreateDbContext();
+        _projects = Context.Projects.Where(p => !p.Is_Private && !string.IsNullOrWhiteSpace(p.Project_Acronym_CD) && !string.IsNullOrWhiteSpace(p.Project_Name)).Include(p => p.Users).ToList();
     }
 
+
+     public void Dispose() 
+    { 
+        Context.Dispose();         
+    }
 }

@@ -1,6 +1,8 @@
 ﻿
 @inject IStringLocalizer DataLocalizer
-@inject DatahubProjectDBContext Context
+@implements IDisposable
+@inject IDbContextFactory<DatahubProjectDBContext> DbFactory
+
 @inject NavigationManager NavigationManager
 @inject Elemental.Services.UIControlsService UIControlService
 @inject IJSRuntime JsInterop
@@ -102,7 +104,8 @@ if (_project.Project_ID > 0)
     private string SubmitLabel = "Add new";
     private const string EMAIL = "offline@nrcan-cnrcan.gc.ca";
     private bool _navToEdit = false;
- 
+    private DatahubProjectDBContext Context;
+    
     private List<string> headers = new List<string>
     {
         "Status", "Sector","Project", "Name", "Last Contact", "Contacts"
@@ -202,6 +205,7 @@ if (_project.Project_ID > 0)
     protected override async Task OnInitializedAsync()
     {
         // load projects        
+        Context = DbFactory.CreateDbContext();
         _projects = Context.Projects.Include(r => r.Comments).Where(p => p.Deleted_DT == null).ToList();
     }
 
@@ -313,4 +317,6 @@ if (_project.Project_ID > 0)
                                                                 "Ongoing Maintenance and Support"
                                                                  });
     }
+
+    public void Dispose() { Context.Dispose(); }
 }

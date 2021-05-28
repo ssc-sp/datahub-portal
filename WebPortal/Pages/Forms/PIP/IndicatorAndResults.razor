@@ -1,10 +1,12 @@
 ﻿@inject UIControlsService UI
 @inject IStringLocalizer DataLocalizer
-@inject PIPDBContext Context
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JsInterop
 @inject IUserInformationService UserInformationService
 @inject IMSGraphService MSGraphService
+@implements IDisposable
+@inject IDbContextFactory<PIPDBContext> DbFactory
+
 @page "/pip/indicators/{tombstone}"
 
 @using Elemental.Components.Forms
@@ -87,6 +89,7 @@
     private List<PIP_Tombstone> _tombstones;
     private List<PIP_Risks> _risks = new List<PIP_Risks>();
     private PIP_Tombstone _tombstone;
+    private PIPDBContext Context;  
     private bool _navToEdit = false;
     private Microsoft.Graph.User CurrentUser;
     private string navigationUrl = string.Empty;
@@ -94,6 +97,7 @@
 
     protected override async Task OnInitializedAsync()
     {
+        Context = DbFactory.CreateDbContext();
         renderFunctions = new List<Func<PIP_Risks, RenderFragment>>
 {
         new Func<PIP_Risks, RenderFragment>(p => { return p.PIP_IndicatorRisks.Any(q => q.Pip_Indicator == _indicator) ? @<i class="fal fa-check-square"></i> : @<i class="fal fa-square"></i>; }),
@@ -252,6 +256,8 @@
         StateHasChanged();
 
     }
+
+    public void Dispose() { Context.Dispose(); }
 
 
 }

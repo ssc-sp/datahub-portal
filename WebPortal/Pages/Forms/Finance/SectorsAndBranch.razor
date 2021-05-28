@@ -1,5 +1,7 @@
 ﻿@inject IStringLocalizer DataLocalizer
-@inject FinanceDBContext Context
+@implements IDisposable
+@inject IDbContextFactory<FinanceDBContext> DbFactory
+
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JsInterop
 @page "/finance/programs"
@@ -60,10 +62,12 @@
     private List<Sector> _sectorLookup;
     private string SubmitLabel = "Add New";
     private bool _navToEdit = false;
+    private FinanceDBContext Context;
 
     protected override async Task OnInitializedAsync()
     {
         // load projects
+        Context = DbFactory.CreateDbContext();
         _sectors = Context.SectorAndBranches.ToList();
         _sectorLookup = Context.Sectors.Include(s => s.Branches).ToList();
     }
@@ -180,4 +184,6 @@
             await context.UpdateValidValues("Branch_TXT", branchesList.Select(bn => bn.BranchNameEn));
         }
     }
+
+    public void Dispose() { Context.Dispose(); }
 }

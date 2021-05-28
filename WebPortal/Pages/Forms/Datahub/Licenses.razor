@@ -1,5 +1,6 @@
 ﻿
-@inject DatahubProjectDBContext Context
+@implements IDisposable
+@inject IDbContextFactory<DatahubProjectDBContext> DbFactory
 @inject NavigationManager NavigationManager
 @page "/licenses/{ProjectIDParam}"
 
@@ -74,6 +75,7 @@ else
     private PBI_License_Request _request;
     private string SubmitLabel = "Add new";
     private const string EMAIL = "offline@nrcan-cnrcan.gc.ca";
+    private DatahubProjectDBContext Context;
  
     private void SetFormEdit(PBI_License_Request project)
     {
@@ -84,6 +86,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        Context = DbFactory.CreateDbContext();
         ProjectID = Convert.ToInt32(ProjectIDParam);
         // load projects        
         _project = Context.Projects.Find(ProjectID);
@@ -104,4 +107,7 @@ else
         await Context.SaveChangesAsync();
         NavigationManager.NavigateTo("LicenseUsers/" + _request.Request_ID);
     }
+
+    public void Dispose() { Context.Dispose(); }
+
 }

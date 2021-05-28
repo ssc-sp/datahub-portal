@@ -1,5 +1,6 @@
 ﻿@page "/project/{ProjectAcronym}/forms/new"
-@inject DatahubProjectDBContext projectContext
+@implements IDisposable
+@inject IDbContextFactory<DatahubProjectDBContext> DbFactory
 @inject NavigationManager NavManager
 
 
@@ -25,11 +26,13 @@ else
     [Parameter]
     public string ProjectAcronym { get; set; }
 
+    private DatahubProjectDBContext projectContext;
     private Datahub_Project _project;
     private WebForm _form;
 
     protected override async Task OnInitializedAsync()
     {
+        projectContext = DbFactory.CreateDbContext();
         _project = projectContext.Projects.Include(p => p.WebForms).Single(p => p.Project_Acronym_CD == ProjectAcronym);
         _form = await DoCreateForm();
     }
@@ -48,5 +51,5 @@ else
         await projectContext.SaveChangesAsync();
         NavManager.NavigateTo($"/project/{ProjectAcronym}/forms/{_form.WebForm_ID}");
     }
-
+    public void Dispose() { projectContext.Dispose(); }
 }

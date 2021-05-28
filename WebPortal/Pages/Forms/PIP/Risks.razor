@@ -1,5 +1,4 @@
 ﻿@inject IStringLocalizer DataLocalizer
-@inject PIPDBContext Context
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JsInterop
 @inject IUserInformationService UserInformationService
@@ -7,6 +6,9 @@
 @inject IMSGraphService MSGraphService
 @page "/pip/risks/{tombstone}"
 @using Elemental.Components.Forms
+
+@implements IDisposable
+@inject IDbContextFactory<PIPDBContext> DbFactory
 
 <h1>PIP Risk</h1>
 
@@ -91,9 +93,11 @@
     private string SubmitLabel = "Save";
     private Microsoft.Graph.User CurrentUser;
     private string navigationUrl = string.Empty;
+    private PIPDBContext Context;  
 
     protected override async Task OnInitializedAsync()
     {
+        Context = DbFactory.CreateDbContext();
         CurrentUser = await UserInformationService.GetCurrentUserAsync();
         // load projects
         _tombstones = Context.Tombstones.Where(p => p.Tombstone_ID == Convert.ToInt32(tombstone)).ToList();
@@ -254,4 +258,6 @@
         await context.UpdateValidValues(p => p.Strategy_Timeline4, PIP_Constants.TIMELINE);
         await context.UpdateValidValues(p => p.Strategy_Timeline5, PIP_Constants.TIMELINE);
     }
+
+    public void Dispose() { Context.Dispose(); }
 }

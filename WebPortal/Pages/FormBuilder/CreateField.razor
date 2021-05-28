@@ -1,6 +1,7 @@
 ﻿@page "/project/{ProjectAcronym}/forms/{FormId}/newfield"
 @inject NavigationManager NavManager
-@inject DatahubProjectDBContext projectContext
+@implements IDisposable
+@inject IDbContextFactory<DatahubProjectDBContext> DbFactory
 
 @if(_formField == null)
 {
@@ -36,11 +37,13 @@ else
     [Parameter]
     public string FormId { get; set; }
 
+    private DatahubProjectDBContext projectContext;
     private WebForm_Field _formField;
     private WebForm _form;
 
     protected override async Task OnInitializedAsync()
     {
+        projectContext = DbFactory.CreateDbContext();
         _form = await projectContext.WebForms
             .Include(f => f.Fields)
             .Include(f => f.Project)
@@ -74,4 +77,6 @@ else
 
         NavManager.NavigateTo($"/project/{ProjectAcronym}/forms/fields/{_formField.FieldID}");
     }
+
+    public void Dispose() { projectContext.Dispose(); }
 }

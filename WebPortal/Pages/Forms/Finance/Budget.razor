@@ -1,5 +1,6 @@
 ﻿@inject IStringLocalizer DataLocalizer
-@inject FinanceDBContext Context
+@implements IDisposable
+@inject IDbContextFactory<FinanceDBContext> DbFactory
 @inject NavigationManager NavigationManager
 @inject DataImportingService DataImportingService
 @inject IJSRuntime JsInterop
@@ -68,7 +69,7 @@
     private string SubmitLabel = "Add new";
     private List<SectorAndBranch> _sectors;
     private SectorAndBranch _sector;
-
+    private FinanceDBContext Context;
 
     private List<Func<NRCan.Datahub.Portal.Data.Finance.Budget, string>> accessorFunctions = new List<Func<NRCan.Datahub.Portal.Data.Finance.Budget, string>>
 {
@@ -151,6 +152,7 @@
     protected override void OnInitialized()
     {
         // load projects
+        Context = DbFactory.CreateDbContext();
         _sector = Context.SectorAndBranches.Where(p => p.SectorBranch_ID == Convert.ToInt32(sector)).FirstOrDefault();
         _budgets = Context.Budgets.Where(p => p.SectorAndBranch.SectorBranch_ID == _sector.SectorBranch_ID).ToList();
     }
@@ -167,6 +169,6 @@
     {
         NavigationManager.NavigateTo($"/finance/programs");
     }
-
+    public void Dispose() { Context.Dispose(); }
 
 }

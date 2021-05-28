@@ -7,10 +7,7 @@ namespace NRCan.Datahub.Portal.Data
 {
     public class SqlCiosbDatahubEtldbContext : DbContext
     {
-        public SqlCiosbDatahubEtldbContext()
-        {
-        }
-
+        
         public SqlCiosbDatahubEtldbContext(DbContextOptions<SqlCiosbDatahubEtldbContext> options)
             : base(options)
         {

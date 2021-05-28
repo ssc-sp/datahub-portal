@@ -220,7 +220,9 @@ namespace NRCan.Datahub.Portal
             services.AddDbContextPool<WebAnalyticsContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("datahub-mssql-webanalytics") ?? throw new ArgumentNullException("ASPNETCORE_CONNECTION STRING")));
 
-            services.AddDbContext<SqlCiosbDatahubEtldbContext>(options =>
+            services.AddPooledDbContextFactory<SqlCiosbDatahubEtldbContext>(options =>
+                options.UseSqlServer(Configuration.GetConnectionString("datahub-mssql-etldb") ?? throw new ArgumentNullException("ASPNETCORE_CONNECTION STRING")));
+            services.AddDbContextPool<SqlCiosbDatahubEtldbContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("datahub-mssql-etldb") ?? throw new ArgumentNullException("ASPNETCORE_CONNECTION STRING")));
 
             IConfigurationSection sec = Configuration.GetSection("APITargets");

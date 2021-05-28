@@ -1,11 +1,13 @@
 ﻿
 @inject IStringLocalizer DataLocalizer
-@inject PIPDBContext Context
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JsInterop
 @inject IUserInformationService UserInformationService
 @inject IMSGraphService MSGraphService
 @inject UIControlsService UI
+
+@implements IDisposable
+@inject IDbContextFactory<PIPDBContext> DbFactory
 
 @page "/pip/programs"
 @page "/pip/programs/{tombstone}"
@@ -70,6 +72,7 @@
     private string navigationUrl = string.Empty;
     private bool _navToEdit = false;
     private Microsoft.Graph.User CurrentUser;
+    private PIPDBContext Context;  
     private List<string> headers = new List<string>
 {
         "Title","Lead Sector"
@@ -123,6 +126,7 @@
     protected override async Task OnInitializedAsync()
     {
         // load projects
+        Context = DbFactory.CreateDbContext();
         _projects = Context.Tombstones.ToList();
         if (!string.IsNullOrEmpty(tombstone))
         {
@@ -284,4 +288,5 @@
             }
         }
 
+        public void Dispose() { Context.Dispose(); }
 }

@@ -1,6 +1,8 @@
 ﻿@page "/project/{ProjectAcronym}/forms/fields/{id}"
 @inject NavigationManager NavManager
-@inject DatahubProjectDBContext projectContext
+
+@implements IDisposable
+@inject IDbContextFactory<DatahubProjectDBContext> DbFactory
 
 @if(_formField == null)
 {
@@ -94,6 +96,8 @@ else
 
 @code {
 
+    private DatahubProjectDBContext projectContext;
+
     [Parameter]
     public string ProjectAcronym { get; set; }
 
@@ -144,6 +148,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        projectContext = DbFactory.CreateDbContext();
         _formField = await LoadFormField();
     }
 
@@ -157,5 +162,6 @@ else
         GoToViewMode();
     }
 
+    public void Dispose() { projectContext.Dispose(); }
 }
    

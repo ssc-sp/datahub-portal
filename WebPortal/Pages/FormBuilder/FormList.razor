@@ -1,5 +1,6 @@
 ﻿@page "/project/{ProjectAcronym}/forms"
-@inject DatahubProjectDBContext projectContext
+@implements IDisposable
+@inject IDbContextFactory<DatahubProjectDBContext> DbFactory
 
 @if(_project == null)
 {
@@ -38,6 +39,7 @@ else
     [Parameter]
     public string ProjectAcronym { get; set; }
 
+    private DatahubProjectDBContext projectContext;
     private Datahub_Project _project;
 
     private List<WebForm> _forms = new List<WebForm>();
@@ -61,10 +63,13 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        projectContext = DbFactory.CreateDbContext();
         _project = await projectContext.Projects.Include(p => p.WebForms).SingleOrDefaultAsync(p => p.Project_Acronym_CD == ProjectAcronym);
         if (_project != null)
         {
             _forms = _project.WebForms;
         }
     }
+    public void Dispose() { projectContext.Dispose(); }
+
 }

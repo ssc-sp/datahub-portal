@@ -1,5 +1,7 @@
 ﻿
-@inject DatahubProjectDBContext Context
+@implements IDisposable
+@inject IDbContextFactory<DatahubProjectDBContext> DbFactory
+
 @page "/licenseusers/{RequestIDParam}"
 
 <AeFlex Vertical id="indexFlex">
@@ -50,6 +52,7 @@ else
     private PBI_User_License_Request _userRequest;
     private List<PBI_User_License_Request> _userRequests = new List<PBI_User_License_Request>();
     private string SubmitLabel = "Add new";
+    private DatahubProjectDBContext Context;
 
     // Define the headers at the top of the table
     private List<string> headers = new List<string>
@@ -101,6 +104,7 @@ else
     protected override async Task OnInitializedAsync()
     {
         // load projects        
+        Context = DbFactory.CreateDbContext();
         RequestID= Int32.Parse(RequestIDParam);
         _userRequests = Context.PowerBI_License_User_Requests.ToList();
         _userRequest = new PBI_User_License_Request() { ID = 0, RequestID = RequestID } ;
@@ -118,4 +122,6 @@ else
         _userRequests = Context.PowerBI_License_User_Requests.ToList();
         SubmitLabel = "Add New";
     }
+
+    public void Dispose() { Context.Dispose(); }
 }
