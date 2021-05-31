@@ -124,13 +124,6 @@ namespace NRCan.Datahub.ProjectForms.Data.PIP
         public string? Related_Program_Or_Activities { get; set; }
 
         
-        [AeLabel(row: "33", column: "1")]
-        [AeFormCategory("Date of PIP Approval", 55)] public DateTime? Approval_By_Program_Offical_DT { get; set; }
-        [AeLabel(row: "33", column: "2")]
-        [AeFormCategory("Date of PIP Approval", 55)] public DateTime? Consultation_With_The_Head_Of_Evaluation_DT { get; set; }
-        [AeLabel(row: "33", column: "3")]
-        [AeFormCategory("Date of PIP Approval", 55)] public DateTime? Functional_SignOff_DT { get; set; }
-
         [AeLabel(row: "34", column: "1", isDropDown: true, placeholder: "Please Select")]
         [AeFormCategory("GBA+", 56)]
         [MaxLength(50)]
@@ -165,6 +158,17 @@ namespace NRCan.Datahub.ProjectForms.Data.PIP
 
 
         [AeLabel(row: "39", column: "1")]
+        [AeFormCategory("Date of PIP Approval", 57)] public DateTime? Approval_By_Program_Offical_DT { get; set; }
+        [AeLabel(row: "39", column: "2")]
+        [AeFormCategory("Date of PIP Approval", 57)] public DateTime? Consultation_With_The_Head_Of_Evaluation_DT { get; set; }
+        [AeLabel(row: "39", column: "3")]
+        [AeFormCategory("Date of PIP Approval", 57)] public DateTime? Functional_SignOff_DT { get; set; }
+
+
+
+
+
+        [AeLabel(row: "40", column: "1")]
         [AeFormCategory("Latest Update Information", 60)]
         [Editable(false)] public string Last_Updated_UserId { get; set; }
         [AeLabel(row: "40", column: "2")]        
