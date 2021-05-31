@@ -269,7 +269,7 @@
   "Output_2_From_Immediate_Outcome_4_DESC": "Output 2 (from Immediate Outcome 4)",
   "Activity_2_From_Immediate_Outcome_4_DESC": "Activity 2 (from Immediate Outcome 4)",
   "Does_Indicator_Enable_Program_Measure_Equity": "If Yes, explain what impacts are being monitored (positive/negative/direct/indirect), if No, please provide a reason / rationale.",
-  "Is_Equity_Seeking_Group": "Is data collected against this program being disaggregated by equity seeking groups to monitor and measure impacts?  If “Yes”, which equity seeking group is data being collected on?",
+  "Is_Equity_Seeking_Group": "Is data collected against this program being disaggregated? if yes, which equity seeking group is the data being collected on?",
   "Is_Equity_Seeking_Group2": "",
   "Is_Equity_Seeking_Group_Other": "",
   "No_Equity_Seeking_Group": "If 'No', please provide a reason/rationale.",
