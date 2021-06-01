@@ -22,6 +22,7 @@ using Microsoft.AspNetCore.Http;
 using Azure.Search.Documents;
 using Azure.Search.Documents.Models;
 using System.Diagnostics;
+using Azure.Storage.Sas;
 
 namespace NRCan.Datahub.Shared.Services
 {
@@ -192,6 +193,11 @@ namespace NRCan.Datahub.Shared.Services
                 DataLakeDirectoryClient directoryClient = fileSystemClient.GetDirectoryClient(file.folderpath);
                 DataLakeFileClient fileClient = directoryClient.GetFileClient(file.filename);
                 Response<FileDownloadInfo> downloadResponse = await fileClient.ReadAsync();
+
+
+               // DataLakeFileSystemSasPermissions perm = new DataLakeFileSystemSasPermissions();
+              //  DataLakeSasBuilder builder = new DataLakeSasBuilder(DataLakeFileSystemSasPermissions.All, DateTimeOffset.UtcNow.AddDays(7));
+              //  var uri = fileClient.GenerateSasUri(builder);
 
                 _logger.LogDebug($"GetFileContents file: {file.folderpath}/{file.filename} SUCCEEDED.");
 
