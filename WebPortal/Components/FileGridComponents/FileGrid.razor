@@ -235,7 +235,8 @@ else
 
             case MenuActions.DownloadFile:
             {
-                await DataRetrievalService.DownloadFile(item);
+                var uri = await DataRetrievalService.DownloadFile(item);    
+                await Task.Run(() => RedirectAndDownload(uri));                
             }
             break;
 
@@ -275,7 +276,8 @@ else
             case MenuActions.OpenVersions:
             {
                 RenderFragment frag = @<Versions File="selectedMetaData as FileMetaData"></Versions>;
-                await UI.ToggleModal(@<RenderFragmentModal Fragment=frag />);
+                await UI.ToggleModal(@<RenderFragmentModal Fragment=frag />
+    );
             }
             break;
         }
@@ -338,6 +340,11 @@ else
     {
         SelectRow(folder);
         await JSRuntime.InvokeAsync<object>("toggleMenu", $"{FileMetaDataExtensions.GetFolderIdForJS(folder.id)}Menu", "show", args.ClientX, args.ClientY);
+    }
+
+    private async Task RedirectAndDownload(Uri uri)
+    {
+        await JSRuntime.InvokeAsync<object>("open", uri.ToString(), "_blank");
     }
 
     private void SelectRow(BaseMetadata item)

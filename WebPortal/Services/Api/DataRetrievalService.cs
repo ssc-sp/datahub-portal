@@ -101,16 +101,18 @@ namespace NRCan.Datahub.Portal.Services
             return folder;
         }
 
-        public async Task DownloadFile(FileMetaData file)
+        public async Task<Uri> DownloadFile(FileMetaData file)
         {
             try
             {
-                await _apiService.DownloadFile(file);
+                return await _apiService.DownloadFile(file);
+                
             }
             catch (Exception ex)
             {
                 base.DisplayErrorUI(ex);
             }
+            return null;
         }
 
         public async Task<List<Shared.Data.Version>> GetFileVersions(string fileId)

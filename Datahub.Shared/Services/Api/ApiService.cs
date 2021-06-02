@@ -23,6 +23,7 @@ using Azure.Search.Documents;
 using Azure.Search.Documents.Models;
 using System.Diagnostics;
 using Azure.Storage.Sas;
+using Azure.Storage;
 
 namespace NRCan.Datahub.Shared.Services
 {
@@ -164,28 +165,7 @@ namespace NRCan.Datahub.Shared.Services
             }
         }
 
-        public async Task DownloadFile(FileMetaData file)
-        {
-            try
-            {
-                var downloadResponse = await GetFileContents(file);
-
-                using (var memoryStream = new MemoryStream())
-                {
-                    await downloadResponse.Content.CopyToAsync(memoryStream);
-                    await _jsRuntime.InvokeVoidAsync("saveAsFile", file.filename, Convert.ToBase64String(memoryStream.ToArray()));
-                }            
-
-                _logger.LogDebug($"Download file: {file.folderpath}/{file.filename} SUCCEEDED.");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Download file: {file.folderpath}/{file.filename} FAILED.");
-                throw;
-            }
-        }
-
-        protected async Task<FileDownloadInfo> GetFileContents(FileMetaData file)
+        public async Task<Uri> DownloadFile(FileMetaData file)
         {
             try
             {
@@ -194,21 +174,44 @@ namespace NRCan.Datahub.Shared.Services
                 DataLakeFileClient fileClient = directoryClient.GetFileClient(file.filename);
                 Response<FileDownloadInfo> downloadResponse = await fileClient.ReadAsync();
 
+                var sharedKeyCredential = await _dataLakeClientService.GetSharedKeyCredential();
 
-               // DataLakeFileSystemSasPermissions perm = new DataLakeFileSystemSasPermissions();
-              //  DataLakeSasBuilder builder = new DataLakeSasBuilder(DataLakeFileSystemSasPermissions.All, DateTimeOffset.UtcNow.AddDays(7));
-              //  var uri = fileClient.GenerateSasUri(builder);
 
-                _logger.LogDebug($"GetFileContents file: {file.folderpath}/{file.filename} SUCCEEDED.");
+                DataLakeSasBuilder sasBuilder = new DataLakeSasBuilder()
+                {
+                    FileSystemName = fileSystemClient.Name,
+                    Path = fileClient.Path,
+                    Resource = "d",
+                    StartsOn = DateTimeOffset.UtcNow,
+                    ExpiresOn = DateTimeOffset.UtcNow.AddDays(7)
+                };
 
-                return downloadResponse.Value;
+                // Specify read and write permissions for the SAS.
+                sasBuilder.SetPermissions(DataLakeAccountSasPermissions.Read |
+                                          DataLakeAccountSasPermissions.Write);
+
+
+                DataLakeUriBuilder dataLakeUriBuilder = new DataLakeUriBuilder(fileClient.Uri)
+                {
+                    // Specify the user delegation key.
+                    //Sas = sasBuilder.ToSasQueryParameters(userDelegationKey,
+                    //                                  fileClient.AccountName)
+
+                    Sas = sasBuilder.ToSasQueryParameters(sharedKeyCredential)
+                };
+
+                _logger.LogDebug($"File URI Generation: {file.folderpath}/{file.filename} SUCCEEDED.");
+
+                return dataLakeUriBuilder.ToUri();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"GetFileContents file: {file.folderpath}/{file.filename} FAILED.");
+                _logger.LogError(ex, $"File URI Generation: {file.folderpath}/{file.filename} FAILED.");
                 throw;
             }
         }
+
+       
 
         public async Task UploadFile(FileMetaData fileMetadata)
         {

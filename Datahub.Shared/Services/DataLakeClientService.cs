@@ -20,6 +20,7 @@ namespace NRCan.Datahub.Shared.Services
         private ILogger<DataLakeClientService> _logger;
         private IKeyVaultService _keyVaultService;
         private IOptions<APITarget> _targets;
+        private StorageSharedKeyCredential _sharedKeyCredential;
 
         public DataLakeClientService(ILogger<DataLakeClientService> logger,
                     IKeyVaultService keyVaultService,
@@ -38,11 +39,18 @@ namespace NRCan.Datahub.Shared.Services
         private async Task SetDataLakeServiceClient()
         {
             var datalakeSecret = await _keyVaultService.GetSecret("Datahub-StorageDL-Secret");
-            var sharedKeyCredential = new StorageSharedKeyCredential(_targets.Value.StorageAccountName, datalakeSecret);
+            _sharedKeyCredential = new StorageSharedKeyCredential(_targets.Value.StorageAccountName, datalakeSecret);
             string dfsUri = $"https://{_targets.Value.StorageAccountName}.dfs.core.windows.net";
 
-            dataLakeServiceClient = new DataLakeServiceClient(new Uri(dfsUri), sharedKeyCredential);
+            dataLakeServiceClient = new DataLakeServiceClient(new Uri(dfsUri), _sharedKeyCredential);
             dataLakeFileSystemClient = dataLakeServiceClient.GetFileSystemClient(_targets.Value.FileSystemName);
+        }
+
+
+        public async Task<StorageSharedKeyCredential> GetSharedKeyCredential()
+        {
+            await CheckClients();
+            return _sharedKeyCredential;
         }
 
         public async Task<DataLakeServiceClient> GetDataLakeServiceClient()

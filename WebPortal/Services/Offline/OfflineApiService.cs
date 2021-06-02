@@ -155,7 +155,7 @@ namespace NRCan.Datahub.Portal.Services.Offline
             throw new NotImplementedException();
         }
 
-        public Task DownloadFile(FileMetaData file)
+        public Task<Uri> DownloadFile(FileMetaData file)
         {
             throw new NotImplementedException();
         }
