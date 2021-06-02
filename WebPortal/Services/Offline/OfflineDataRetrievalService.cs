@@ -12,9 +12,9 @@ namespace NRCan.Datahub.Portal.Services.Offline
         {
         }
 
-        public Task DownloadFile(FileMetaData file)
+        public Task<System.Uri> DownloadFile(FileMetaData file)
         {
-            return Task.FromResult(0);
+            return Task.FromResult(new System.Uri("anyfile"));
         }
 
         public Task<List<string>> GetAllFolders(string rootFolderName, User user)

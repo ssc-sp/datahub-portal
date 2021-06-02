@@ -155,7 +155,7 @@ namespace NRCan.Datahub.Portal.Services.Offline
 
         public Task<Uri> DownloadFile(FileMetaData file)
         {
-            return Task.FromResult(0);
+            return Task.FromResult(new Uri(""));
         }
 
         public Task<Folder> GetFileList(Folder folder, Microsoft.Graph.User user, bool onlyFolders = false, bool recursive = false)
