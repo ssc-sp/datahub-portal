@@ -49,8 +49,8 @@ namespace NRCan.Datahub.Portal.Services
 
         public static List<string> ExtractEmails(string emailList)
         {
-            var split = emailList.Split(';',StringSplitOptions.RemoveEmptyEntries);
-            return split.Select(b => ExtractEmail(b)?.ToLowerInvariant()).Where(b => b != null).ToList();
+            var split = emailList.Split(';', StringSplitOptions.RemoveEmptyEntries).Select(email => email.Trim()).ToArray();
+            return split.Select(b => ExtractEmail(b)?.ToLowerInvariant()).Where(b => b != null).ToList();            
         }
 
         public async Task ClearProjectAdminCache()
@@ -67,8 +67,10 @@ namespace NRCan.Datahub.Portal.Services
 
         public async Task<bool> IsProjectAdmin(string email)
         {
+            
             bool isProjectAdmin = false;
             var normEmail = email.ToLowerInvariant();
+
             if (!projectAdminCache.TryGetValue(normEmail, out isProjectAdmin))
             {
                 ImmutableHashSet<string> allProjectAdmins;

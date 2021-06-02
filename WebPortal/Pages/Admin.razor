@@ -39,7 +39,7 @@
 
     private List<string> headers = new List<string>
 {
-        "Project", "User", "Date","Actions"
+        "Project", "User", "Service", "Date","Actions"
     };
 
     // Accessor functions to retrieve cell value
@@ -47,6 +47,7 @@
 {
         new Func<Datahub_Project_Access_Request, string>(p => { return p.Project.Project_Name; }),
         new Func<Datahub_Project_Access_Request, string>(p => { return p.User_Name; }),
+        new Func<Datahub_Project_Access_Request, string>(p => { return (p.Databricks ? "Databricks" : (p.PowerBI ? "PowerBI" : "Web Forms")); }),
         new Func<Datahub_Project_Access_Request, string>(p => { return p.Request_DT.ToShortDateString(); }),
         new Func<Datahub_Project_Access_Request, string>(p => { return ".."; }),
     };
@@ -54,7 +55,11 @@
     // [Optional] Can define custom rendering for columns, order matters
     private List<Func<Datahub_Project_Access_Request, RenderFragment>> renderFunctions;
 
-    private async Task AuthorizeUser(Datahub_Project_Access_Request r)
+    private void GetServiceType(Datahub_Project_Access_Request request)
+    { 
+    
+    }
+  private async Task AuthorizeUser(Datahub_Project_Access_Request r)
     {
         r.Completion_DT = DateTime.UtcNow;
         await projectContext.SaveChangesAsync();
@@ -87,13 +92,15 @@
                 null,
                 null,
                 null,
+                null,
                 new Func<Datahub_Project_Access_Request, RenderFragment>(a => {
                     if (a.Completion_DT != null)
                     {
                         return @<div>@Localizer["Authorized"]</div>;
                     }
                    else
-                   {
+      
+                 {
                        return @<AeButton @onclick="async () => await AuthorizeUser(a)">Authorize user</AeButton>;
                    }
                 })

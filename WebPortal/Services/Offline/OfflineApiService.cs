@@ -153,7 +153,7 @@ namespace NRCan.Datahub.Portal.Services.Offline
 
         }
 
-        public Task DownloadFile(FileMetaData file)
+        public Task<Uri> DownloadFile(FileMetaData file)
         {
             return Task.FromResult(0);
         }

@@ -24,7 +24,7 @@ namespace NRCan.Datahub.Shared.Services
         Task<long> GetUserUsedDataTotal(Microsoft.Graph.User user);
         Task RestoreVersionOfBlob(string fileid, string versionId);
         Task<Folder> SearchIndex(dynamic folder, string filter, Microsoft.Graph.User user);
-        Task DownloadFile(FileMetaData file);
+        Task<Uri> DownloadFile(FileMetaData file);
         Task<Folder> GetFileList(Folder folder, Microsoft.Graph.User user, bool onlyFolders = false, bool recursive = false);
         Task<bool> DoesFolderExist(string folderName);
     }    
