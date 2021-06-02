@@ -45,6 +45,7 @@ namespace NRCan.Datahub.Shared.Services
                   }
               });
         }
+
         public async Task<Dictionary<string, GraphUser>> GetUsersAsync()
         {
             if (UsersDict != null)
@@ -81,6 +82,7 @@ namespace NRCan.Datahub.Shared.Services
 
             return null;
         }
+
         public string GetUserName(string userId)
         {
             if (!string.IsNullOrWhiteSpace(userId))

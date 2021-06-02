@@ -1,22 +1,19 @@
 ﻿using Azure.Storage;
 using Azure.Storage.Files.DataLake;
 using Azure.Storage.Files.DataLake.Models;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.Identity.Client;
 using NRCan.Datahub.Shared.Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace NRCan.Datahub.Shared.Services
 {
     public class DataLakeClientService
     {
-        private CognitiveSearchService _cognitiveSearchService;
+        private ICognitiveSearchService _cognitiveSearchService;
         private ILogger<DataLakeClientService> _logger;
         private IKeyVaultService _keyVaultService;
         private IOptions<APITarget> _targets;
@@ -24,13 +21,13 @@ namespace NRCan.Datahub.Shared.Services
         public DataLakeClientService(ILogger<DataLakeClientService> logger,
                     IKeyVaultService keyVaultService,
                     IOptions<APITarget> targets,
-                    CognitiveSearchService cognitiveSearchService
+                    ICognitiveSearchService cognitiveSearchService
                     )
         {
             _cognitiveSearchService = cognitiveSearchService;
             _logger = logger;
             _keyVaultService = keyVaultService;
-            _targets = targets;            
+            _targets = targets;
         }
 
         private DataLakeServiceClient dataLakeServiceClient { get; set; }
@@ -58,7 +55,7 @@ namespace NRCan.Datahub.Shared.Services
         }
 
         public async Task<bool> AssignOwnerPermissionsToFile(FileMetaData file, string userId, string permissions)
-        {            
+        {
             var accessControlTuple = await GetAccessControlList(file);
             var accessControlList = accessControlTuple.Item1;
             var fileClient = accessControlTuple.Item2;
@@ -125,7 +122,7 @@ namespace NRCan.Datahub.Shared.Services
                 Sharedwith sharedwith = new Sharedwith();
                 sharedwith.userid = item.EntityId;
                 sharedwith.role = item.Permissions.HasFlag(RolePermissions.Write) ? "Editor" : "Viewer";
-                file.sharedwith.Add(sharedwith);                
+                file.sharedwith.Add(sharedwith);
             }
         }
 

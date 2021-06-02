@@ -1,19 +1,15 @@
-﻿using Azure.Storage.Files.DataLake;
-using Microsoft.AspNetCore.Components;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using NRCan.Datahub.Shared.Data;
-using NRCan.Datahub.Shared.Services;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+﻿using System;
 using System.Net.Http;
 using System.Threading.Tasks;
-using System.Web;
+using Azure.Storage.Files.DataLake;
+using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.Logging;
+using NRCan.Datahub.Shared.Data;
+using NRCan.Datahub.Shared.Services;
+
 namespace NRCan.Datahub.Portal.Services
 {
-    public class DataUpdatingService : BaseService
+    public class DataUpdatingService : BaseService, IDataUpdatingService
     {
         private ILogger<DataUpdatingService> _logger;
         private IHttpClientFactory _httpClient;
@@ -21,16 +17,17 @@ namespace NRCan.Datahub.Portal.Services
         private ApiCallService _apiCallService;
         private IApiService _apiService;
         private DataLakeClientService _dataLakeClientService;
-        private DataRetrievalService _retrievalService;
-        
-        private CognitiveSearchService _cognitiveSearchService;
+        private IDataRetrievalService _retrievalService;
+
+        private ICognitiveSearchService _cognitiveSearchService;
+
         public DataUpdatingService(ILogger<DataUpdatingService> logger,
                     IHttpClientFactory clientFactory,
-                    IUserInformationService userInformationService,                    
+                    IUserInformationService userInformationService,
                     DataLakeClientService dataLakeClientService,
-                    CognitiveSearchService cognitiveSearchService,
+                    ICognitiveSearchService cognitiveSearchService,
                     IApiService apiService,
-                    DataRetrievalService retrievalService,
+                    IDataRetrievalService retrievalService,
                     ApiCallService apiCallService,
                     NavigationManager navigationManager,
                     UIControlsService uiService)
@@ -43,7 +40,7 @@ namespace NRCan.Datahub.Portal.Services
             _apiService = apiService;
             _cognitiveSearchService = cognitiveSearchService;
             _dataLakeClientService = dataLakeClientService;
-            _retrievalService = retrievalService;            
+            _retrievalService = retrievalService;
         }
 
         public async Task<bool> RenameFolder(Folder folder, string newFolderName, Microsoft.Graph.User currentUser)
@@ -73,7 +70,7 @@ namespace NRCan.Datahub.Portal.Services
                 base.DisplayErrorUI(ex);
             }
 
-            return false;          
+            return false;
         }
 
         public async Task<bool> RenameFile(FileMetaData file, string newFileName, Microsoft.Graph.User currentUser)
@@ -90,7 +87,7 @@ namespace NRCan.Datahub.Portal.Services
                 base.DisplayErrorUI(ex);
             }
 
-            return false;          
+            return false;
         }
 
         public async Task<bool> MoveFile(FileMetaData file, string newParentFolder, Microsoft.Graph.User currentUser)
@@ -108,7 +105,7 @@ namespace NRCan.Datahub.Portal.Services
                 base.DisplayErrorUI(ex);
             }
 
-            return false;          
+            return false;
         }
 
         protected async Task UpdateFilesWithNewFolderPath(DataLakeFileSystemClient fileSystemClient, Folder folder, Microsoft.Graph.User currentUser)
@@ -127,7 +124,7 @@ namespace NRCan.Datahub.Portal.Services
                     }
 
                     // Iterate down sub folders
-                    foreach(Folder subFolder in folder.SubFolders)
+                    foreach (Folder subFolder in folder.SubFolders)
                     {
                         await UpdateFilesWithNewFolderPath(fileSystemClient, subFolder, currentUser);
                     }
@@ -164,7 +161,7 @@ namespace NRCan.Datahub.Portal.Services
                 _logger.LogError(ex, $"File's parent folder path changed from: {oldFolderpath} to: {file.parent.fullPathFromRoot} User: {currentUser.DisplayName} FAILED.");
             }
         }
-                
+
         protected async Task<bool> ChangeFile(FileMetaData file, string newFolderPath, string newFileName, Microsoft.Graph.User currentUser)
         {
             try
@@ -173,7 +170,7 @@ namespace NRCan.Datahub.Portal.Services
                 var fileSystemClient = await _dataLakeClientService.GetDataLakeFileSystemClient();
                 var directoryClient = fileSystemClient.GetDirectoryClient(file.folderpath);
                 var fileClient = directoryClient.GetFileClient(file.filename);
-                
+
                 var response = await fileClient.RenameAsync($"{newFolderPath}/{newFileName}");
                 if (response.Value != null)
                 {
@@ -185,7 +182,7 @@ namespace NRCan.Datahub.Portal.Services
                     file.lastmodifiedts = DateTime.UtcNow;
                     file.lastmodifiedby = currentUser.Id;
                     response.Value.SetMetadata(file.GenerateMetadata());
-                    
+
                     await _cognitiveSearchService.EditDocument(file);
                 }
 

@@ -1,7 +1,7 @@
 ﻿
 @inject IMSGraphService MSGraphService
-@inject DataRemovalService DataRemovalService
-@inject DataUpdatingService DataUpdatingService
+@inject IDataRemovalService DataRemovalService
+@inject IDataUpdatingService DataUpdatingService
 @inject UIControlsService UI
 
 <div id="@($"{FileMetaDataExtensions.GetFolderIdForJS(Folder.id)}Div")" class="fileGrid" @onclick="() => SelectFolder()"

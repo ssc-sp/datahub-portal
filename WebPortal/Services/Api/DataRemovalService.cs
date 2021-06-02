@@ -15,16 +15,16 @@ using System.Web;
 
 namespace NRCan.Datahub.Portal.Services
 {
-    public class DataRemovalService : BaseService
+    public class DataRemovalService : BaseService, IDataRemovalService
     {
         private ILogger<DataRemovalService> _logger;
-        private CognitiveSearchService _cognitiveSearchService;
+        private ICognitiveSearchService _cognitiveSearchService;
         private DataLakeClientService _dataLakeClientService;
-        private DataRetrievalService _dataRetrievalService;
+        private IDataRetrievalService _dataRetrievalService;
 
         public DataRemovalService(ILogger<DataRemovalService> logger,
                                   DataLakeClientService dataLakeClientService,
-                                  DataRetrievalService dataRetrievalService,
+                                  IDataRetrievalService dataRetrievalService,
                                   CognitiveSearchService cognitiveSearchService,
                                   IApiService apiService,
                                   NavigationManager navigationManager,
@@ -56,7 +56,7 @@ namespace NRCan.Datahub.Portal.Services
                 base.DisplayErrorUI(ex);
             }
 
-            return false;          
+            return false;
         }
 
         public async Task<bool> Delete(FileMetaData file, Microsoft.Graph.User currentUser)
@@ -79,7 +79,7 @@ namespace NRCan.Datahub.Portal.Services
                 base.DisplayErrorUI(ex);
             }
 
-            return false;          
+            return false;
         }
 
         protected async Task<DataLakeDirectoryClient> DeleteAllFilesUnderneath(Folder folder, Microsoft.Graph.User currentUser)
@@ -119,7 +119,7 @@ namespace NRCan.Datahub.Portal.Services
                     }
 
                     // Iterate down sub folders
-                    foreach(Folder subFolder in folder.SubFolders)
+                    foreach (Folder subFolder in folder.SubFolders)
                     {
                         await MarkChildFilesForDeletion(fileSystemClient, subFolder, currentUser);
                     }
@@ -156,7 +156,7 @@ namespace NRCan.Datahub.Portal.Services
             {
                 MarkFileForDeletion(fileClient, file, currentUser);
 
-                var response = await fileClient.DeleteAsync();            
+                var response = await fileClient.DeleteAsync();
                 if (response.Status == 200)
                 {
                     await _cognitiveSearchService.DeleteDocumentFromIndex(file.fileid);

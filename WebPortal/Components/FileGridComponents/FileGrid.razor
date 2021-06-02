@@ -1,15 +1,15 @@
 @inject IApiService ApiService
-@inject DataRetrievalService DataRetrievalService
-@inject DataRemovalService  DataRemovalService
-@inject DataCreatorService  DataCreatorService
-@inject DataUpdatingService DataUpdatingService
+@inject IDataRetrievalService DataRetrievalService
+@inject IDataRemovalService  DataRemovalService
+@inject IDataCreatorService  DataCreatorService
+@inject IDataUpdatingService DataUpdatingService
 @inject IJSRuntime JSRuntime
 @inject IMSGraphService MSGraphService
 @inject IUserInformationService UserInformationService
 @inject UIControlsService UI
 @inject NotifierService NotifierService
 @inject NavigationManager NavigationManager
-@inject CognitiveSearchService CognitiveSearchService
+@inject ICognitiveSearchService CognitiveSearchService
 
 @using NRCan.Datahub.Shared.Data
 
