@@ -31,13 +31,13 @@ namespace NRCan.Datahub.Shared.Services
     {
         private IOptions<APITarget> _targets;
         private DataLakeClientService _dataLakeClientService;
-        private CognitiveSearchService _cognitiveSearchService;
+        private ICognitiveSearchService _cognitiveSearchService;
         private readonly IHttpClientFactory _httpClient;
         private readonly ILogger _logger;
         private readonly IUserInformationService _userInformationService;
         private readonly IKeyVaultService _keyVaultService;
         private readonly NotifierService _notifierService;
-        private readonly ApiCallService _apiCallService;
+        private readonly IApiCallService _apiCallService;
         private readonly IJSRuntime _jsRuntime;
 
         private CommonAzureServices _commonAzureServices;
@@ -48,9 +48,9 @@ namespace NRCan.Datahub.Shared.Services
                     IKeyVaultService keyVaultService,
                     IOptions<APITarget> targets,
                     NotifierService notifierService,
-                    ApiCallService apiCallService,
+                    IApiCallService apiCallService,
                     IJSRuntime jSRuntime,
-                    CognitiveSearchService cognitiveSearchService,
+                    ICognitiveSearchService cognitiveSearchService,
                     DataLakeClientService dataLakeClientService,
                     ApiTelemetryService telemetryService,
                     CommonAzureServices commonAzureServices)

@@ -7,21 +7,20 @@ using System.Threading.Tasks;
 
 namespace NRCan.Datahub.Shared.Services
 {
-    public class ApiCallService
+    public class ApiCallService : IApiCallService
     {
         private readonly IHttpClientFactory _httpClient;
         private readonly ILogger _logger;
         private readonly IKeyVaultService _keyVaultService;
-        
+
         public ApiCallService(ILogger<ApiCallService> logger,
                    IHttpClientFactory clientFactory,
-                   IKeyVaultService keyVaultService)                   
+                   IKeyVaultService keyVaultService)
         {
             _logger = logger;
             _httpClient = clientFactory;
             _keyVaultService = keyVaultService;
         }
-
 
         public async Task<bool> CallApi(UriBuilder builder, string Url, HttpMethod httpMethod, string secretKey = "DataHub-API-Gateway-Key", Dictionary<string, string> headers = null)
         {
@@ -62,6 +61,7 @@ namespace NRCan.Datahub.Shared.Services
             }
             return string.Empty;
         }
+
         public string getBlobContainerName()
         {
             return "datahub-nrcan" + ("dev" == getEnvSuffix() ? "-dev" : "");
@@ -79,6 +79,7 @@ namespace NRCan.Datahub.Shared.Services
             var blobKey = await _keyVaultService.GetSecret("DataHub-Blob-Access-Key");
             return "DefaultEndpointsProtocol=https;AccountName=datahubstorage" + getEnvSuffix() + ";AccountKey=" + blobKey + ";EndpointSuffix=core.windows.net";
         }
+
         private string getEnvSuffix()
         {
             var envName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
@@ -90,6 +91,5 @@ namespace NRCan.Datahub.Shared.Services
 
             return envName;
         }
-
     }
 }

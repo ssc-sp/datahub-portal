@@ -1,16 +1,11 @@
-﻿using BlazorInputFile;
-using Microsoft.Extensions.Logging;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.IO;
-using System.Linq;
-using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using Tewr.Blazor.FileReader;
-using NRCan.Datahub.Shared.Services;
+using BlazorInputFile;
+using Microsoft.Extensions.Logging;
 using NRCan.Datahub.Shared.Data;
+using NRCan.Datahub.Shared.Services;
 
 namespace NRCan.Datahub.Portal.Services.Offline
 {
@@ -109,7 +104,7 @@ namespace NRCan.Datahub.Portal.Services.Offline
             fileMetadata.fileformat = GetExtension(fileMetadata.filename);
         }
 
-        public async Task UploadFile(FileMetaData fileMetadata)
+        public Task UploadFile(FileMetaData fileMetadata)
         {
             try
             {
@@ -130,6 +125,8 @@ namespace NRCan.Datahub.Portal.Services.Offline
                 fileMetadata.FinishUploadInfo(FileUploadStatus.FileUploadError);
                 _logger.LogError(e, "Error uploading file");
             }
+
+            return Task.FromResult(0);
         }
 
         public string GetExtension(string FileName)
@@ -141,38 +138,40 @@ namespace NRCan.Datahub.Portal.Services.Offline
 
         public Task<long> GetUserUsedDataTotal(Microsoft.Graph.User user)
         {
-            throw new NotImplementedException();
+            return Task.FromResult(0L);
         }
 
 
         public Task RestoreVersionOfBlob(string fileid, string versionId)
         {
-            throw new NotImplementedException();
+            return Task.FromResult(0);
         }
 
         public Task<Folder> SearchIndex(dynamic folder, string filter, Microsoft.Graph.User user)
         {
-            throw new NotImplementedException();
+            return Task.FromResult(new Folder());
+
         }
 
         public Task<Uri> DownloadFile(FileMetaData file)
         {
-            throw new NotImplementedException();
+            return Task.FromResult(new Uri(""));
         }
 
         public Task<Folder> GetFileList(Folder folder, Microsoft.Graph.User user, bool onlyFolders = false, bool recursive = false)
         {
-            throw new NotImplementedException();
+            return Task.FromResult(new Folder());
+
         }
 
         public Task<bool> DoesFolderExist(string folderName)
         {
-            throw new NotImplementedException();
+            return Task.FromResult(true);
         }
 
         public Task LoadApplicationData()
         {
-            throw new NotImplementedException();
+            return Task.FromResult(0);
         }
     }
 }

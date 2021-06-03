@@ -23,26 +23,26 @@ using System.Web;
 
 namespace NRCan.Datahub.Portal.Services
 {
-    public class DataRetrievalService : BaseService
+    public class DataRetrievalService : BaseService, IDataRetrievalService
     {
         private ILogger<DataRetrievalService> _logger;
         private IHttpClientFactory _httpClient;
         private IUserInformationService _userInformationService;
         private IKeyVaultService _keyVaultService;
-        private ApiCallService _apiCallService;
+        private IApiCallService _apiCallService;
         private DataLakeClientService _dataLakeClientService;
         private IJSRuntime _jsRuntime;
         private CommonAzureServices _commonAzureServices;
-        private CognitiveSearchService _cognitiveSearchService;
+        private ICognitiveSearchService _cognitiveSearchService;
 
         public DataRetrievalService(ILogger<DataRetrievalService> logger,
                                     IHttpClientFactory clientFactory,
                                     IUserInformationService userInformationService,
                                     IKeyVaultService keyVaultService,
-                                    ApiCallService apiCallService,
+                                    IApiCallService apiCallService,
                                     IApiService apiService,
                                     DataLakeClientService dataLakeClientService,
-                                    CognitiveSearchService cognitiveSearchService,
+                                    ICognitiveSearchService cognitiveSearchService,
                                     CommonAzureServices commonAzureServices,
                                     IJSRuntime jSRuntime,
                                     NavigationManager navigationManager,
@@ -61,7 +61,7 @@ namespace NRCan.Datahub.Portal.Services
         }
 
         public async Task<Folder> GetFolderStructure(Folder folder, Microsoft.Graph.User user, bool onlyFolders = true)
-        {    
+        {
             try
             {
                 return await _apiService.GetFileList(folder, user, onlyFolders, true);
@@ -86,10 +86,11 @@ namespace NRCan.Datahub.Portal.Services
                     return await getSearchResults(folder, filterSearch, user);
                 }
 
-                if (folder.isShared) {
+                if (folder.isShared)
+                {
                     return await getSharedFileList(folder, user);
                 }
-        
+
                 return await _apiService.GetFileList(folder, user);
             }
             catch (Exception ex)
@@ -118,8 +119,8 @@ namespace NRCan.Datahub.Portal.Services
         public async Task<List<Shared.Data.Version>> GetFileVersions(string fileId)
         {
             try
-            {                
-                List<Shared.Data.Version> versions = new List<Shared.Data.Version>();                
+            {
+                List<Shared.Data.Version> versions = new List<Shared.Data.Version>();
                 return versions;
             }
             catch (Exception ex)
@@ -128,7 +129,7 @@ namespace NRCan.Datahub.Portal.Services
                 base.DisplayErrorUI(ex);
             }
 
-            return new List<Shared.Data.Version>();          
+            return new List<Shared.Data.Version>();
         }
 
         public async Task<List<string>> GetSubFolders(DataLakeFileSystemClient fileSystemClient, string folderName)
@@ -163,17 +164,17 @@ namespace NRCan.Datahub.Portal.Services
                 base.DisplayErrorUI(ex);
             }
 
-            return new List<string>();          
+            return new List<string>();
         }
 
         public async Task<List<string>> GetAllFolders(string rootFolderName, Microsoft.Graph.User user)
-        {            
+        {
             try
             {
                 var fileSystemClient = await _dataLakeClientService.GetDataLakeFileSystemClient();
                 var subFolders = await GetSubFolders(fileSystemClient, rootFolderName);
 
-                List<string> displayableSubFolders = new List<string>();              
+                List<string> displayableSubFolders = new List<string>();
                 subFolders.ForEach(f => displayableSubFolders.Add(f.Replace(rootFolderName, @".")));
 
                 _logger.LogDebug($"Get all folders under folder: {rootFolderName} for user: {user.DisplayName} SUCCEEDED.");
@@ -185,14 +186,14 @@ namespace NRCan.Datahub.Portal.Services
                 base.DisplayErrorUI(ex);
             }
 
-            return new List<string>();          
+            return new List<string>();
         }
 
         protected async Task<Folder> getSharedFileList(dynamic folder, Microsoft.Graph.User user)
         {
             string filter = $"sharedwith/any(c: c/userid eq '{user.Id}')";
             return await _apiService.SearchIndex(folder, filter, user);
-        } 
+        }
 
         protected async Task<Folder> getSearchResults(dynamic folder, string searchText, Microsoft.Graph.User user)
         {

@@ -1,90 +1,81 @@
-﻿using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
-using Microsoft.Graph.Auth;
-using Microsoft.Identity.Client;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace NRCan.Datahub.Shared.Services
 {
     public class OfflineUserInformationService : IUserInformationService
     {
-        
-        private ILogger<IUserInformationService> _logger;
-        private GraphServiceClient graphServiceClient;
-        
+        readonly ILogger<IUserInformationService> _logger;
 
         public OfflineUserInformationService(ILogger<IUserInformationService> logger)
         {
             _logger = logger;
         }
 
-        public async Task<User> GetCurrentUserAsync()
+        public Task<User> GetCurrentUserAsync()
         {
-            return await GetUserAsync();
+            return GetUserAsync();
         }
 
-        public async Task<User> GetUserAsync()
+        public Task<User> GetUserAsync()
         {
-            return new User
+            return Task.FromResult(new User
             {
                 DisplayName = "Offline User",
                 Id = "1",
                 UserPrincipalName = "me@me.com"
-            };
+            });
         }
 
         public Task<string> GetUserEmailDomain()
         {
-            throw new NotImplementedException();
+            return Task.FromResult("me@me.com");
         }
 
         public Task<string> GetUserEmailPrefix()
         {
-            throw new NotImplementedException();
+            return Task.FromResult("");
         }
 
-        public async Task<string> GetUserIdString()
+        public Task<string> GetUserIdString()
         {
-            return "1";
+            return Task.FromResult("1");
         }
 
-        public async Task<string> GetUserLanguage()
+        public Task<string> GetUserLanguage()
         {
-            return "en-CA";
+            return Task.FromResult("en-CA");
         }
 
-        public async Task<string> GetUserRootFolder()
+        public Task<string> GetUserRootFolder()
         {
-            return "/";
+            return Task.FromResult("/");
         }
 
-        public async Task<bool> HasUserAcceptedTAC()
+        public Task<bool> HasUserAcceptedTAC()
         {
-            return true;
+            return Task.FromResult(true);
         }
 
-        public async Task<bool> IsFrench()
+        public Task<bool> IsFrench()
         {
-            return false;
+            return Task.FromResult(false);
         }
 
         public Task<bool> RegisterUserTAC()
         {
-            throw new NotImplementedException();
+            return Task.FromResult(true);
         }
 
         public Task<bool> RegisterUserLanguage(string language)
         {
-            throw new NotImplementedException();
+            return Task.FromResult(true);
         }
         
         public bool SetLanguage(string language)
         {
-            throw new NotImplementedException();
+            return true;
         }
     }
 }

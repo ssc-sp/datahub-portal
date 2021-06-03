@@ -7,8 +7,6 @@
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <DockerfileContext>.</DockerfileContext>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(RunConfiguration)' == 'Datahub' " />
-  <PropertyGroup Condition=" '$(RunConfiguration)' == 'Datahub (Offline)' " />
   <ItemGroup>
     <_ContentIncludedByDefault Remove="efpt.config.json" />
     <_ContentIncludedByDefault Remove="wwwroot\css\site.css" />

@@ -54,8 +54,10 @@ namespace NRCan.Datahub.Portal
             _currentEnvironment = env;
         }
 
-        public IConfiguration Configuration { get; }
+        private readonly IConfiguration Configuration;
         private readonly IWebHostEnvironment _currentEnvironment;
+
+        private bool Offline => _currentEnvironment.IsEnvironment("Offline");
 
         // This method gets called by the runtime. Use this method to add services to the container.
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
@@ -79,33 +81,8 @@ namespace NRCan.Datahub.Portal
             services.AddHttpContextAccessor();
             services.AddOptions();
 
-            //https://docs.microsoft.com/en-us/azure/active-directory/develop/scenario-web-app-call-api-app-configuration?tabs=aspnetcore
-            //services.AddSignIn(Configuration, "AzureAd")
-            //        .AddInMemoryTokenCaches();
-
-            // This is required to be instantiated before the OpenIdConnectOptions starts getting configured.
-            // By default, the claims mapping will map claim names in the old format to accommodate older SAML applications.
-            // 'http://schemas.microsoft.com/ws/2008/06/identity/claims/role' instead of 'roles'
-            // This flag ensures that the ClaimsIdentity claims collection will be built from the claims in the token
-            // JwtSecurityTokenHandler.DefaultMapInboundClaims = false;
-
-            // Token acquisition service based on MSAL.NET
-            // and chosen token cache implementation
-
-            if (!_currentEnvironment.IsEnvironment("Offline"))
-            {
-                services.AddAuthentication(AzureADDefaults.AuthenticationScheme)
-                        .AddAzureAD(options => Configuration.Bind("AzureAd", options));
-
-                services.AddControllersWithViews(options =>
-                {
-                    var policy = new AuthorizationPolicyBuilder()
-                        .RequireAuthenticatedUser()
-                        .Build();
-                    options.Filters.Add(new AuthorizeFilter(policy));
-
-                }).AddMicrosoftIdentityUI();
-            }
+            // use this method to setup the authentication and authorization
+            ConfigureAuthentication(services);
 
             services.AddSession(options =>
             {
@@ -124,112 +101,25 @@ namespace NRCan.Datahub.Portal
 
             services.AddControllers();
 
-            var cultureSection = Configuration.GetSection("CultureSettings");
+            ConfigureLocalization(services);
 
-            var supportedCultures = new HashSet<CultureInfo>();
-            var values = cultureSection.GetValue<string>("SupportedCultures");
-            
-            values.Split('|').ToList().ForEach(value => supportedCultures.Add(new CultureInfo($"{value.Substring(0, 2).ToLower()}-CA")));
+            // add custom app services in this method
+            ConfigureDatahubServices(services);
 
-            services.AddJsonLocalization(options => {
-                options.CacheDuration = TimeSpan.FromMinutes(15);
-                options.ResourcesPath = "i18n";
-                options.UseBaseName = false;
-                options.IsAbsolutePath = true;
-                options.LocalizationMode = Askmethat.Aspnet.JsonLocalizer.JsonOptions.LocalizationMode.I18n;
-                options.MissingTranslationLogBehavior = MissingTranslationLogBehavior.Ignore;
-                options.FileEncoding = Encoding.GetEncoding("UTF-8");
-                options.SupportedCultureInfos = supportedCultures;
-            });
-
-            services.Configure<RequestLocalizationOptions>(options =>
-            {
-                options.DefaultRequestCulture = new RequestCulture(cultureSection.GetValue<string>("Default"));
-                options.SupportedCultures = supportedCultures.ToList();
-                options.SupportedUICultures = supportedCultures.ToList();
-            });
-
-            //services.AddMvc()
-            //    .AddViewLocalization(opts => { opts.ResourcesPath = "Resources"; })
-            //    .AddViewLocalization(LanguageViewLocationExpanderFormat.Suffix)
-            //    .AddDataAnnotationsLocalization();
-
-
-            //services.Configure<AzureADOptions>(options => Configuration.Bind("AzureAd", options));
-            //services.Configure<ConfidentialClientApplicationOptions>(options => Configuration.Bind("AzureAd", options));
-
-            if (_currentEnvironment.IsEnvironment("Offline"))
-            {
-                services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
-                services.AddScoped<IUserInformationService, OfflineUserInformationService>();
-                services.AddSingleton<IMSGraphService, OfflineMSGraphService>();
-                services.AddSingleton<IKeyVaultService, OfflineKeyVaultService>();
-                services.AddScoped<IApiService, OfflineApiService>();
-            }
-            else
-            {
-                services.AddScoped<IUserInformationService, UserInformationService>();
-                services.AddSingleton<IMSGraphService, MSGraphService>();
-                services.AddSingleton<IKeyVaultService, KeyVaultService>();
-                services.AddScoped<IApiService, ApiService>();
-            }
-            services.AddSingleton<CommonAzureServices>();
-            services.AddScoped<ApiCallService>();
-            services.AddScoped<DataUpdatingService>();
-            services.AddScoped<DataSharingService>();
-            services.AddScoped<DataCreatorService>();
-            services.AddScoped<DataRetrievalService>();
-            services.AddScoped<DataRemovalService>();
-            services.AddScoped<DataImportingService>();
-            services.AddSingleton<DatahubTools>();
-            services.AddSingleton<CognitiveSearchService>();
-            services.AddScoped<NotificationsService>();
-            services.AddScoped<UIControlsService>();
-            //services.AddScoped<Elemental.Services.UIControlsService>();
             services.AddHttpClient();
             services.AddFileReaderService();
             services.AddBlazorDownloadFile();
-            services.AddScoped<NotifierService>();
-            services.AddScoped<DataLakeClientService>();
             services.AddScoped<ApiTelemetryService>();
             services.AddScoped<GetDimensionsService>();
             services.AddElemental();
 
-            services.AddPooledDbContextFactory<DatahubProjectDBContext>(options =>
-                options.UseSqlServer(Configuration.GetConnectionString("datahub-mssql-project") ?? throw new ArgumentNullException("ASPNETCORE_CONNECTION STRING")));
-            services.AddDbContextPool<DatahubProjectDBContext>(options =>
-                options.UseSqlServer(Configuration.GetConnectionString("datahub-mssql-project") ?? throw new ArgumentNullException("ASPNETCORE_CONNECTION STRING")));
-
-            services.AddPooledDbContextFactory<PIPDBContext>(options =>
-                options.UseSqlServer(Configuration.GetConnectionString("datahub-mssql-pip") ?? throw new ArgumentNullException("ASPNETCORE_CONNECTION STRING")));
-            services.AddDbContextPool<PIPDBContext>(options =>
-                options.UseSqlServer(Configuration.GetConnectionString("datahub-mssql-pip") ?? throw new ArgumentNullException("ASPNETCORE_CONNECTION STRING")));
-
-            services.AddPooledDbContextFactory<FinanceDBContext>(options =>
-                options.UseSqlServer(Configuration.GetConnectionString("datahub-mssql-finance") ?? throw new ArgumentNullException("ASPNETCORE_CONNECTION STRING")));
-            services.AddDbContextPool<FinanceDBContext>(options =>
-                options.UseSqlServer(Configuration.GetConnectionString("datahub-mssql-finance") ?? throw new ArgumentNullException("ASPNETCORE_CONNECTION STRING")));
-
-            services.AddPooledDbContextFactory<EFCoreDatahubContext>(options =>
-                options.UseCosmos(Configuration.GetConnectionString("datahub-cosmosdb") ?? throw new ArgumentNullException("ASPNETCORE_CONNECTION STRING"), databaseName: "datahub-catalog-db"));
-            services.AddDbContextPool<EFCoreDatahubContext>(options =>
-                options.UseCosmos(Configuration.GetConnectionString("datahub-cosmosdb") ?? throw new ArgumentNullException("ASPNETCORE_CONNECTION STRING"), databaseName: "datahub-catalog-db"));
-
-            services.AddPooledDbContextFactory<WebAnalyticsContext>(options =>
-                options.UseSqlServer(Configuration.GetConnectionString("datahub-mssql-webanalytics") ?? throw new ArgumentNullException("ASPNETCORE_CONNECTION STRING")));
-            services.AddDbContextPool<WebAnalyticsContext>(options =>
-                options.UseSqlServer(Configuration.GetConnectionString("datahub-mssql-webanalytics") ?? throw new ArgumentNullException("ASPNETCORE_CONNECTION STRING")));
-
-            services.AddPooledDbContextFactory<SqlCiosbDatahubEtldbContext>(options =>
-                options.UseSqlServer(Configuration.GetConnectionString("datahub-mssql-etldb") ?? throw new ArgumentNullException("ASPNETCORE_CONNECTION STRING")));
-            services.AddDbContextPool<SqlCiosbDatahubEtldbContext>(options =>
-                options.UseSqlServer(Configuration.GetConnectionString("datahub-mssql-etldb") ?? throw new ArgumentNullException("ASPNETCORE_CONNECTION STRING")));
+            // configure db contexts in this method
+            ConfigureDbContexts(services);
 
             IConfigurationSection sec = Configuration.GetSection("APITargets");
             services.Configure<APITarget>(sec);
 
             services.AddScoped<IClaimsTransformation, RoleClaimTransformer>();
-            services.AddSingleton<ServiceAuthManager>();
 
             services.AddSignalRCore();
         }
@@ -237,9 +127,7 @@ namespace NRCan.Datahub.Portal
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-
-            app.UseRequestLocalization
-                (app.ApplicationServices.GetService<IOptions<RequestLocalizationOptions>>().Value);
+            app.UseRequestLocalization(app.ApplicationServices.GetService<IOptions<RequestLocalizationOptions>>().Value);
 
             if (env.IsDevelopment())
             {
@@ -269,6 +157,169 @@ namespace NRCan.Datahub.Portal
 
         }
 
+        private void ConfigureAuthentication(IServiceCollection services)
+        {
+            //https://docs.microsoft.com/en-us/azure/active-directory/develop/scenario-web-app-call-api-app-configuration?tabs=aspnetcore
+            //services.AddSignIn(Configuration, "AzureAd")
+            //        .AddInMemoryTokenCaches();
 
+            // This is required to be instantiated before the OpenIdConnectOptions starts getting configured.
+            // By default, the claims mapping will map claim names in the old format to accommodate older SAML applications.
+            // 'http://schemas.microsoft.com/ws/2008/06/identity/claims/role' instead of 'roles'
+            // This flag ensures that the ClaimsIdentity claims collection will be built from the claims in the token
+            // JwtSecurityTokenHandler.DefaultMapInboundClaims = false;
+
+            // Token acquisition service based on MSAL.NET
+            // and chosen token cache implementation
+
+            if (!Offline)
+            {
+                // todo: review suggestions!
+                services.AddAuthentication(AzureADDefaults.AuthenticationScheme)
+                        .AddAzureAD(options => Configuration.Bind("AzureAd", options));
+
+                services.AddControllersWithViews(options =>
+                {
+                    var policy = new AuthorizationPolicyBuilder()
+                        .RequireAuthenticatedUser()
+                        .Build();
+                    options.Filters.Add(new AuthorizeFilter(policy));
+
+                }).AddMicrosoftIdentityUI();
+            }
+        }
+
+        private void ConfigureLocalization(IServiceCollection services)
+        {
+            var cultureSection = Configuration.GetSection("CultureSettings");
+
+            var defaultCulture = cultureSection.GetValue<string>("Default");
+            var supportedCultures = cultureSection.GetValue<string>("SupportedCultures");
+            var supportedCultureInfos = new HashSet<CultureInfo>(ParseCultures(supportedCultures));
+
+            services.AddJsonLocalization(options =>
+            {
+                options.CacheDuration = TimeSpan.FromMinutes(15);
+                options.ResourcesPath = "i18n";
+                options.UseBaseName = false;
+                options.IsAbsolutePath = true;
+                options.LocalizationMode = Askmethat.Aspnet.JsonLocalizer.JsonOptions.LocalizationMode.I18n;
+                options.MissingTranslationLogBehavior = MissingTranslationLogBehavior.Ignore;
+                options.FileEncoding = Encoding.GetEncoding("UTF-8");
+                options.SupportedCultureInfos = supportedCultureInfos;
+            });
+
+            services.Configure<RequestLocalizationOptions>(options =>
+            {
+                options.DefaultRequestCulture = new RequestCulture(defaultCulture);
+                options.SupportedCultures = supportedCultureInfos.ToList();
+                options.SupportedUICultures = supportedCultureInfos.ToList();
+            });
+        }
+
+        static IEnumerable<CultureInfo> ParseCultures(string values)
+        {
+            return (values ?? "").Split('|').Select(c => new CultureInfo($"{c.Substring(0, 2).ToLower()}-CA"));
+        }
+
+        private void ConfigureDatahubServices(IServiceCollection services)
+        {
+            // configure online/offline services
+            if (!Offline)
+            {
+                services.AddSingleton<IKeyVaultService, KeyVaultService>();
+
+                services.AddSingleton<CommonAzureServices>();
+                services.AddScoped<DataLakeClientService>();
+
+                services.AddScoped<IUserInformationService, UserInformationService>();
+                services.AddSingleton<IMSGraphService, MSGraphService>();
+
+                services.AddScoped<IApiService, ApiService>();
+                services.AddScoped<IApiCallService, ApiCallService>();
+
+                services.AddScoped<IDataUpdatingService, DataUpdatingService>();
+                services.AddScoped<IDataSharingService, DataSharingService>();
+                services.AddScoped<IDataCreatorService, DataCreatorService>();
+                services.AddScoped<IDataRetrievalService, DataRetrievalService>();
+                services.AddScoped<IDataRemovalService, DataRemovalService>();
+
+                services.AddSingleton<ICognitiveSearchService, CognitiveSearchService>();
+            }
+            else
+            {
+                services.AddSingleton<IKeyVaultService, OfflineKeyVaultService>();
+
+                services.AddSingleton<CommonAzureServices>();
+                //services.AddScoped<DataLakeClientService>();
+
+                services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
+                services.AddScoped<IUserInformationService, OfflineUserInformationService>();
+                services.AddSingleton<IMSGraphService, OfflineMSGraphService>();
+
+                services.AddScoped<IApiService, OfflineApiService>();
+                services.AddScoped<IApiCallService, OfflineApiCallService>();
+
+                services.AddScoped<IDataUpdatingService, OfflineDataUpdatingService>();
+                services.AddScoped<IDataSharingService, OfflineDataSharingService>();
+                services.AddScoped<IDataCreatorService, OfflineDataCreatorService>();
+                services.AddScoped<IDataRetrievalService, OfflineDataRetrievalService>();
+                services.AddScoped<IDataRemovalService, OfflineDataRemovalService>();
+
+                services.AddSingleton<ICognitiveSearchService, OfflineCognitiveSearchService>();
+            }
+
+            services.AddScoped<DataImportingService>();
+            services.AddSingleton<DatahubTools>();
+
+            services.AddScoped<NotificationsService>();
+            services.AddScoped<UIControlsService>();
+            services.AddScoped<NotifierService>();
+
+            services.AddSingleton<ServiceAuthManager>();
+        }
+
+        private void ConfigureDbContexts(IServiceCollection services)
+        {
+            services.AddPooledDbContextFactory<DatahubProjectDBContext>(options =>
+                            options.UseSqlServer(Configuration.GetConnectionString("datahub-mssql-project") ?? throw new ArgumentNullException("ASPNETCORE_CONNECTION STRING")));
+            services.AddDbContextPool<DatahubProjectDBContext>(options =>
+                options.UseSqlServer(Configuration.GetConnectionString("datahub-mssql-project") ?? throw new ArgumentNullException("ASPNETCORE_CONNECTION STRING")));
+
+            services.AddPooledDbContextFactory<PIPDBContext>(options =>
+                options.UseSqlServer(Configuration.GetConnectionString("datahub-mssql-pip") ?? throw new ArgumentNullException("ASPNETCORE_CONNECTION STRING")));
+            services.AddDbContextPool<PIPDBContext>(options =>
+                options.UseSqlServer(Configuration.GetConnectionString("datahub-mssql-pip") ?? throw new ArgumentNullException("ASPNETCORE_CONNECTION STRING")));
+
+            services.AddPooledDbContextFactory<FinanceDBContext>(options =>
+                options.UseSqlServer(Configuration.GetConnectionString("datahub-mssql-finance") ?? throw new ArgumentNullException("ASPNETCORE_CONNECTION STRING")));
+            services.AddDbContextPool<FinanceDBContext>(options =>
+                options.UseSqlServer(Configuration.GetConnectionString("datahub-mssql-finance") ?? throw new ArgumentNullException("ASPNETCORE_CONNECTION STRING")));
+
+            if (!Offline)
+            {
+                services.AddPooledDbContextFactory<EFCoreDatahubContext>(options =>
+                options.UseCosmos(Configuration.GetConnectionString("datahub-cosmosdb") ?? throw new ArgumentNullException("ASPNETCORE_CONNECTION STRING"), databaseName: "datahub-catalog-db"));
+                services.AddDbContextPool<EFCoreDatahubContext>(options =>
+                    options.UseCosmos(Configuration.GetConnectionString("datahub-cosmosdb") ?? throw new ArgumentNullException("ASPNETCORE_CONNECTION STRING"), databaseName: "datahub-catalog-db"));
+            }
+            else
+            {
+                services.AddPooledDbContextFactory<EFCoreDatahubContext>(options =>
+                options.UseSqlServer(Configuration.GetConnectionString("datahub-cosmosdb") ?? throw new ArgumentNullException("ASPNETCORE_CONNECTION STRING")));
+                services.AddDbContextPool<EFCoreDatahubContext>(options =>
+                    options.UseSqlServer(Configuration.GetConnectionString("datahub-cosmosdb") ?? throw new ArgumentNullException("ASPNETCORE_CONNECTION STRING")));
+            }
+
+            services.AddPooledDbContextFactory<WebAnalyticsContext>(options =>
+                options.UseSqlServer(Configuration.GetConnectionString("datahub-mssql-webanalytics") ?? throw new ArgumentNullException("ASPNETCORE_CONNECTION STRING")));
+            services.AddDbContextPool<WebAnalyticsContext>(options =>
+                options.UseSqlServer(Configuration.GetConnectionString("datahub-mssql-webanalytics") ?? throw new ArgumentNullException("ASPNETCORE_CONNECTION STRING")));
+
+            services.AddPooledDbContextFactory<SqlCiosbDatahubEtldbContext>(options =>
+                options.UseSqlServer(Configuration.GetConnectionString("datahub-mssql-etldb") ?? throw new ArgumentNullException("ASPNETCORE_CONNECTION STRING")));
+            services.AddDbContextPool<SqlCiosbDatahubEtldbContext>(options =>
+                options.UseSqlServer(Configuration.GetConnectionString("datahub-mssql-etldb") ?? throw new ArgumentNullException("ASPNETCORE_CONNECTION STRING")));
+        }          
     }
 }

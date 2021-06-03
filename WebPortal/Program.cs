@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Resources;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
@@ -67,7 +68,12 @@ namespace NRCan.Datahub.Portal
                     var key = hostingContext.Configuration.GetSection("ApplicationInsights").GetValue<string>("InstrumentationKey");
                     logBuilder.AddApplicationInsights(key);
                     logBuilder.AddAzureWebAppDiagnostics();
-                    logBuilder.AddEventLog();
+
+                    // event log only works if app is hosted in a Windows enviroment
+                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                    {
+                        logBuilder.AddEventLog();
+                    }
 
                     // Adding the filter below to ensure logs of all severity from Program.cs
                     // is sent to ApplicationInsights.
