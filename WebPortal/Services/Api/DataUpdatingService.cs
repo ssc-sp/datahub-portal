@@ -14,8 +14,7 @@ namespace NRCan.Datahub.Portal.Services
         private ILogger<DataUpdatingService> _logger;
         private IHttpClientFactory _httpClient;
         private IUserInformationService _userInformationService;
-        private ApiCallService _apiCallService;
-        private IApiService _apiService;
+        private IApiCallService _apiCallService;
         private DataLakeClientService _dataLakeClientService;
         private IDataRetrievalService _retrievalService;
 
@@ -28,7 +27,7 @@ namespace NRCan.Datahub.Portal.Services
                     ICognitiveSearchService cognitiveSearchService,
                     IApiService apiService,
                     IDataRetrievalService retrievalService,
-                    ApiCallService apiCallService,
+                    IApiCallService apiCallService,
                     NavigationManager navigationManager,
                     UIControlsService uiService)
             : base(navigationManager, apiService, uiService)
@@ -37,7 +36,6 @@ namespace NRCan.Datahub.Portal.Services
             _httpClient = clientFactory;
             _userInformationService = userInformationService;
             _apiCallService = apiCallService;
-            _apiService = apiService;
             _cognitiveSearchService = cognitiveSearchService;
             _dataLakeClientService = dataLakeClientService;
             _retrievalService = retrievalService;

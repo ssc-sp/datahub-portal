@@ -29,7 +29,7 @@ namespace NRCan.Datahub.Portal.Services
         private IHttpClientFactory _httpClient;
         private IUserInformationService _userInformationService;
         private IKeyVaultService _keyVaultService;
-        private ApiCallService _apiCallService;
+        private IApiCallService _apiCallService;
         private DataLakeClientService _dataLakeClientService;
         private IJSRuntime _jsRuntime;
         private CommonAzureServices _commonAzureServices;
@@ -39,7 +39,7 @@ namespace NRCan.Datahub.Portal.Services
                                     IHttpClientFactory clientFactory,
                                     IUserInformationService userInformationService,
                                     IKeyVaultService keyVaultService,
-                                    ApiCallService apiCallService,
+                                    IApiCallService apiCallService,
                                     IApiService apiService,
                                     DataLakeClientService dataLakeClientService,
                                     ICognitiveSearchService cognitiveSearchService,

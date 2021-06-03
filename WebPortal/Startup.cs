@@ -81,33 +81,8 @@ namespace NRCan.Datahub.Portal
             services.AddHttpContextAccessor();
             services.AddOptions();
 
-            //https://docs.microsoft.com/en-us/azure/active-directory/develop/scenario-web-app-call-api-app-configuration?tabs=aspnetcore
-            //services.AddSignIn(Configuration, "AzureAd")
-            //        .AddInMemoryTokenCaches();
-
-            // This is required to be instantiated before the OpenIdConnectOptions starts getting configured.
-            // By default, the claims mapping will map claim names in the old format to accommodate older SAML applications.
-            // 'http://schemas.microsoft.com/ws/2008/06/identity/claims/role' instead of 'roles'
-            // This flag ensures that the ClaimsIdentity claims collection will be built from the claims in the token
-            // JwtSecurityTokenHandler.DefaultMapInboundClaims = false;
-
-            // Token acquisition service based on MSAL.NET
-            // and chosen token cache implementation
-
-            if (!Offline)
-            {
-                services.AddAuthentication(AzureADDefaults.AuthenticationScheme)
-                        .AddAzureAD(options => Configuration.Bind("AzureAd", options));
-
-                services.AddControllersWithViews(options =>
-                {
-                    var policy = new AuthorizationPolicyBuilder()
-                        .RequireAuthenticatedUser()
-                        .Build();
-                    options.Filters.Add(new AuthorizeFilter(policy));
-
-                }).AddMicrosoftIdentityUI();
-            }
+            // use this method to setup the authentication and authorization
+            ConfigureAuthentication(services);
 
             services.AddSession(options =>
             {
@@ -182,6 +157,38 @@ namespace NRCan.Datahub.Portal
 
         }
 
+        private void ConfigureAuthentication(IServiceCollection services)
+        {
+            //https://docs.microsoft.com/en-us/azure/active-directory/develop/scenario-web-app-call-api-app-configuration?tabs=aspnetcore
+            //services.AddSignIn(Configuration, "AzureAd")
+            //        .AddInMemoryTokenCaches();
+
+            // This is required to be instantiated before the OpenIdConnectOptions starts getting configured.
+            // By default, the claims mapping will map claim names in the old format to accommodate older SAML applications.
+            // 'http://schemas.microsoft.com/ws/2008/06/identity/claims/role' instead of 'roles'
+            // This flag ensures that the ClaimsIdentity claims collection will be built from the claims in the token
+            // JwtSecurityTokenHandler.DefaultMapInboundClaims = false;
+
+            // Token acquisition service based on MSAL.NET
+            // and chosen token cache implementation
+
+            if (!Offline)
+            {
+                // todo: review suggestions!
+                services.AddAuthentication(AzureADDefaults.AuthenticationScheme)
+                        .AddAzureAD(options => Configuration.Bind("AzureAd", options));
+
+                services.AddControllersWithViews(options =>
+                {
+                    var policy = new AuthorizationPolicyBuilder()
+                        .RequireAuthenticatedUser()
+                        .Build();
+                    options.Filters.Add(new AuthorizeFilter(policy));
+
+                }).AddMicrosoftIdentityUI();
+            }
+        }
+
         private void ConfigureLocalization(IServiceCollection services)
         {
             var cultureSection = Configuration.GetSection("CultureSettings");
@@ -220,19 +227,19 @@ namespace NRCan.Datahub.Portal
             // configure online/offline services
             if (!Offline)
             {
+                services.AddSingleton<IKeyVaultService, KeyVaultService>();
+
                 services.AddSingleton<CommonAzureServices>();
                 services.AddScoped<DataLakeClientService>();
 
                 services.AddScoped<IUserInformationService, UserInformationService>();
                 services.AddSingleton<IMSGraphService, MSGraphService>();
-                services.AddSingleton<IKeyVaultService, KeyVaultService>();
-                services.AddScoped<IApiService, ApiService>();
 
+                services.AddScoped<IApiService, ApiService>();
                 services.AddScoped<IApiCallService, ApiCallService>();
 
                 services.AddScoped<IDataUpdatingService, DataUpdatingService>();
                 services.AddScoped<IDataSharingService, DataSharingService>();
-
                 services.AddScoped<IDataCreatorService, DataCreatorService>();
                 services.AddScoped<IDataRetrievalService, DataRetrievalService>();
                 services.AddScoped<IDataRemovalService, DataRemovalService>();
@@ -241,19 +248,20 @@ namespace NRCan.Datahub.Portal
             }
             else
             {
+                services.AddSingleton<IKeyVaultService, OfflineKeyVaultService>();
+
                 services.AddSingleton<CommonAzureServices>();
                 //services.AddScoped<DataLakeClientService>();
 
                 services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
                 services.AddScoped<IUserInformationService, OfflineUserInformationService>();
                 services.AddSingleton<IMSGraphService, OfflineMSGraphService>();
-                services.AddSingleton<IKeyVaultService, OfflineKeyVaultService>();
+
                 services.AddScoped<IApiService, OfflineApiService>();
                 services.AddScoped<IApiCallService, OfflineApiCallService>();
 
                 services.AddScoped<IDataUpdatingService, OfflineDataUpdatingService>();
                 services.AddScoped<IDataSharingService, OfflineDataSharingService>();
-
                 services.AddScoped<IDataCreatorService, OfflineDataCreatorService>();
                 services.AddScoped<IDataRetrievalService, OfflineDataRetrievalService>();
                 services.AddScoped<IDataRemovalService, OfflineDataRemovalService>();
