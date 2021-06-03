@@ -25,7 +25,7 @@ namespace NRCan.Datahub.Portal.Services
         public DataRemovalService(ILogger<DataRemovalService> logger,
                                   DataLakeClientService dataLakeClientService,
                                   IDataRetrievalService dataRetrievalService,
-                                  CognitiveSearchService cognitiveSearchService,
+                                  ICognitiveSearchService cognitiveSearchService,
                                   IApiService apiService,
                                   NavigationManager navigationManager,
                                   UIControlsService uiService)
