@@ -1,18 +1,13 @@
-﻿using Azure.Identity;
-using Microsoft.AspNetCore.Components.Authorization;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
 using Microsoft.Graph.Auth;
 using Microsoft.Identity.Client;
 using NRCan.Datahub.Shared.Data;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http.Headers;
-using System.Threading.Tasks;
 
 namespace NRCan.Datahub.Shared.Services
 {
@@ -22,7 +17,6 @@ namespace NRCan.Datahub.Shared.Services
         private IConfiguration _configuration;
         private IWebHostEnvironment _webHostEnvironment;
         private ILogger<MSGraphService> _logger;
-        string accessToken;
 
         public Dictionary<string, GraphUser> UsersDict { get; set; }
 

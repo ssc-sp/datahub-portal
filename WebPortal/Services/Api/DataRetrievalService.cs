@@ -116,12 +116,11 @@ namespace NRCan.Datahub.Portal.Services
             return null;
         }
 
-        public async Task<List<Shared.Data.Version>> GetFileVersions(string fileId)
+        public Task<List<Shared.Data.Version>> GetFileVersions(string fileId)
         {
             try
             {
-                List<Shared.Data.Version> versions = new List<Shared.Data.Version>();
-                return versions;
+                // todo: get file versions
             }
             catch (Exception ex)
             {
@@ -129,12 +128,12 @@ namespace NRCan.Datahub.Portal.Services
                 base.DisplayErrorUI(ex);
             }
 
-            return new List<Shared.Data.Version>();
+            return Task.FromResult(new List<Shared.Data.Version>());
         }
 
         public async Task<List<string>> GetSubFolders(DataLakeFileSystemClient fileSystemClient, string folderName)
         {
-            List<string> folders = new List<string>();
+            var folders = new List<string>();
 
             try
             {

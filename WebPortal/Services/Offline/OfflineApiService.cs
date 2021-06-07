@@ -13,15 +13,16 @@ namespace NRCan.Datahub.Portal.Services.Offline
     public class OfflineApiService : IApiService
     {
 
-        private IFileListEntry _file;
+        private IFileListEntry _file = null;
+
         public IFileListEntry GetFile()
         {
             return _file;
         }
+
         public string CurrentFolderId { get; set; }
         private IUserInformationService _userInformationService;
         private readonly ILogger<OfflineApiService> _logger;
-        private List<FileMetaData> _mySharedDataFilelist;
 
         public Exception LastException { get; set; }
 

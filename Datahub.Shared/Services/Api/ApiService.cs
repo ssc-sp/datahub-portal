@@ -261,7 +261,7 @@ namespace NRCan.Datahub.Shared.Services
                     ProgressHandler = new Progress<long>((progress) =>
                     {
                         fileMetadata.uploadedBytes = progress;
-                        _notifierService.Update($"{fileMetadata.folderpath}/{fileMetadata.filename}", true);
+                        _ = _notifierService.Update($"{fileMetadata.folderpath}/{fileMetadata.filename}", true);
                     })
                 };
 

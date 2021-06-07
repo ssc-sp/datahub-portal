@@ -33,7 +33,7 @@ namespace NRCan.Datahub.Portal.Services
 
         public static readonly Regex Email_Regex = new Regex(@"\A(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)\Z", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
-        public static string? ExtractEmail(string input)
+        public static string ExtractEmail(string input)
         {
             if (Email_Regex.IsMatch(input))
                 return input;
@@ -55,14 +55,16 @@ namespace NRCan.Datahub.Portal.Services
 
         public async Task ClearProjectAdminCache()
         {
-            serviceAuthCache.Remove(PROJECT_ADMIN_KEY);
-            if (_resetCacheToken != null && !_resetCacheToken.IsCancellationRequested && _resetCacheToken.Token.CanBeCanceled)
+            await Task.Run(() =>
             {
-                _resetCacheToken.Cancel();
-                _resetCacheToken.Dispose();
-            }
-
-            _resetCacheToken = new CancellationTokenSource();
+                serviceAuthCache.Remove(PROJECT_ADMIN_KEY);
+                if (_resetCacheToken != null && !_resetCacheToken.IsCancellationRequested && _resetCacheToken.Token.CanBeCanceled)
+                {
+                    _resetCacheToken.Cancel();
+                    _resetCacheToken.Dispose();
+                }
+                _resetCacheToken = new CancellationTokenSource();
+            });
         }
 
         public async Task<bool> IsProjectAdmin(string email)

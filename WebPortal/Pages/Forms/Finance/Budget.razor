@@ -65,9 +65,8 @@
 
     private NRCan.Datahub.Portal.Data.Finance.Budget _budget;
     private List<NRCan.Datahub.Portal.Data.Finance.Budget> _budgets;
-    private bool _navToEdit = false;
+    private bool _navToEdit;
     private string SubmitLabel = "Add new";
-    private List<SectorAndBranch> _sectors;
     private SectorAndBranch _sector;
     private FinanceDBContext Context;
 
@@ -79,7 +78,7 @@
     };
 
     private void HandleExcelPaste(List<String[]> items)
-    {      
+    {
         //var objectItems = DataImportingService.CreateBudgets(items);
         var objectItems = DataImportingService.CreateObjects<NRCan.Datahub.Portal.Data.Finance.Budget>(items);
         foreach(var item in objectItems)
@@ -92,7 +91,7 @@
         StateHasChanged();
     }
 
-    
+
     private string getColor(NRCan.Datahub.Portal.Data.Finance.Budget current)
     {
         if (current == _budget)
@@ -103,7 +102,7 @@
     }
 
     private List<string> headers = new List<string>
-{
+    {
         "Division","Sublevel", "Funding Type"
     };
 
@@ -115,11 +114,14 @@
         _navToEdit = true;
     }
 
-    private async Task CreateNewBudget()
+    private Task CreateNewBudget()
     {
-        _budget = new NRCan.Datahub.Portal.Data.Finance.Budget() { SectorAndBranch = _sector, Last_Updated_DT = DateTime.Now };
-        StateHasChanged();
-        _navToEdit = true;
+        return Task.Run(() =>
+        {
+            _budget = new NRCan.Datahub.Portal.Data.Finance.Budget() { SectorAndBranch = _sector, Last_Updated_DT = DateTime.Now };
+            StateHasChanged();
+            _navToEdit = true;
+        });
     }
 
     private async Task HandleValidSubmit()
@@ -144,11 +146,13 @@
 
     private async Task<NRCan.Datahub.Portal.Data.Finance.Budget> ClearForm()
     {
-        _budget = null;
-        StateHasChanged();
-        return null;
+        return await Task.Run<NRCan.Datahub.Portal.Data.Finance.Budget>(() => {
+            _budget = null;
+            StateHasChanged();
+            return (NRCan.Datahub.Portal.Data.Finance.Budget)(null);
+        });
     }
-    
+
     protected override void OnInitialized()
     {
         // load projects
@@ -164,11 +168,13 @@
         await context.UpdateValidValues("Key_Activity_TXT", new[] { "Activity 1", "Activity 2", "Activity 3", "Activity 4", "Activity 5", "Activity 6", "Activity 7", "Activity 8", "Activity 9", "Activity 10" });
     }
 
-
     private async Task GoBack()
     {
-        NavigationManager.NavigateTo($"/finance/programs");
+        await Task.Run(() => NavigationManager.NavigateTo($"/finance/programs"));
     }
-    public void Dispose() { Context.Dispose(); }
 
+    public void Dispose()
+    {
+        Context.Dispose();
+    }
 }

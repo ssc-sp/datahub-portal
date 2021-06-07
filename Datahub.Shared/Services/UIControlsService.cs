@@ -1,7 +1,5 @@
 using Microsoft.AspNetCore.Components;
-using Microsoft.Graph;
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace NRCan.Datahub.Shared.Services
@@ -15,7 +13,6 @@ namespace NRCan.Datahub.Shared.Services
         public event Action OnRightSidebarChange;
         public event Action OnModalChange;
         public event Action OnErrorModalShow;
-
         
         private void NotifyRightSidebarChange() => OnRightSidebarChange?.Invoke();
         private void NotifyModalChange() => OnModalChange?.Invoke();
@@ -26,16 +23,19 @@ namespace NRCan.Datahub.Shared.Services
             CurrentRightSidebarRenderFragment = (CurrentRightSidebarRenderFragment == rightSidebarRenderFragment) ? null : rightSidebarRenderFragment;
             NotifyRightSidebarChange();
         }
+
         public async Task ToggleModal(RenderFragment modalRenderFragment = null)
         {
-            CurrentModalRenderFragment = (CurrentModalRenderFragment == modalRenderFragment) ? null : modalRenderFragment;
-            NotifyModalChange();
+            await Task.Run(() =>
+            {
+                CurrentModalRenderFragment = (CurrentModalRenderFragment == modalRenderFragment) ? null : modalRenderFragment;
+                NotifyModalChange();
+            });            
         }
 
         public void ShowErrorModal()
         {
             NotifyErrorModalShow();
         }     
-
     }
 }

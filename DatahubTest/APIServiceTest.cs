@@ -115,7 +115,7 @@ namespace DatahubTest
 
 
         [Fact]
-        public async Task ParseCustomFieldsToJson()
+        public void ParseCustomFieldsToJson()
         {
 
             List<Customfield> customFields = new List<Customfield>();
@@ -130,19 +130,17 @@ namespace DatahubTest
         }
 
         [Fact]
-        public async Task GivenVersionJSONresponse_ThenParseCorrectlyToClass()
+        public void GivenVersionJSONresponse_ThenParseCorrectlyToClass()
         {
             string json = @"[{""versionid"":""2020 - 11 - 16T17: 45:43.9741390Z"",""metadata"":{ ""folderowner"":""0403528c - 5abc - 423f - 9201 - 9c945f628595"",""folderid"":""ownedroot - 0403528c - 5abc - 423f - 9201 - 9c945f628595"",""createdby"":""0403528c - 5abc - 423f - 9201 - 9c945f628595"",""lastmodifiedby"":""0403528c - 5abc - 423f - 9201 - 9c945f628595"",""filename"":""ResXManager.VSIX.vsix"",""fileformat"":""vsix"",""securityclass"":""Unclassified"",""ownedby"":""0403528c - 5abc - 423f - 9201 - 9c945f628595""},""timestamp"":""2020 - 11 - 16T17: 45:43 + 00:00""},{""versionid"":""2020 - 11 - 16T17: 46:14.6966275Z"",""metadata"":{ ""folderowner"":""0403528c - 5abc - 423f - 9201 - 9c945f628595"",""folderid"":""ownedroot - 0403528c - 5abc - 423f - 9201 - 9c945f628595"",""createdby"":""0403528c - 5abc - 423f - 9201 - 9c945f628595"",""lastmodifiedby"":""0403528c - 5abc - 423f - 9201 - 9c945f628595"",""filename"":""ResXManager.VSIX.vsix"",""fileformat"":""vsix"",""securityclass"":""Protected A"",""ownedby"":""0403528c - 5abc - 423f - 9201 - 9c945f628595""},""timestamp"":""2020 - 11 - 16T17: 46:14 + 00:00""},{""versionid"":""2020 - 11 - 16T20: 16:56.4849377Z"",""metadata"":{ ""folderowner"":""0403528c - 5abc - 423f - 9201 - 9c945f628595"",""folderid"":""ownedroot - 0403528c - 5abc - 423f - 9201 - 9c945f628595"",""createdby"":""0403528c - 5abc - 423f - 9201 - 9c945f628595"",""lastmodifiedby"":""0403528c - 5abc - 423f - 9201 - 9c945f628595"",""filename"":""ResXManager.VSIX.vsix"",""fileformat"":""vsix"",""securityclass"":""Unclassified"",""ownedby"":""0403528c - 5abc - 423f - 9201 - 9c945f628595""},""timestamp"":""2020 - 11 - 16T20: 16:56 + 00:00""},{""versionid"":""2020 - 11 - 17T18: 51:07.7526279Z"",""metadata"":{ ""folderowner"":""0403528c - 5abc - 423f - 9201 - 9c945f628595"",""folderid"":""ownedroot - 0403528c - 5abc - 423f - 9201 - 9c945f628595"",""createdby"":""0403528c - 5abc - 423f - 9201 - 9c945f628595"",""lastmodifiedby"":""0403528c - 5abc - 423f - 9201 - 9c945f628595"",""filename"":""ResXManager.VSIX.vsix"",""fileformat"":""vsix"",""securityclass"":""Unclassified"",""ownedby"":""0403528c - 5abc - 423f - 9201 - 9c945f628595""},""timestamp"":""2020 - 11 - 17T18: 51:07 + 00:00""}]";
             var versions = JsonConvert.DeserializeObject<List<NRCan.Datahub.Shared.Data.Version>>(json);
 
             Assert.True(versions.Count > 0);
-
         }
 
         [Fact]
-        public async Task GivenGen2URL_GenerateABFSUri()
+        public void GivenGen2URL_GenerateABFSUri()
         {
-            
             var fileSystemName = "datahub";
             var accountName = "datahubdatalakedev";
             var folderpath = "NRCan-RNCan.gc.ca/nabeel.bader";
@@ -154,7 +152,7 @@ namespace DatahubTest
         }
 
         [Fact]
-        public async Task SerializeVersions()
+        public void SerializeVersions()
         {
             Metadata metadata = new Metadata();
             metadata.createdby = "nab";
@@ -171,12 +169,9 @@ namespace DatahubTest
             myArray.timestamp = DateTime.Now.ToString();
             myArray.versionid = string.Empty;
 
-
             var json = JsonConvert.SerializeObject(myArray);
             Assert.NotNull(json);
-
         }
-
 
         string storageAccountName = "datahubdatalakedev";
         string storageAccountKey = @"3GURb30PvhqD3L4aD+27fDxhNmde5oY0kpu5G0imTMdgwExq9MafQOgpWDnElgLQFHjpY6tkekf28SAdIjiSNQ==";
@@ -212,7 +207,6 @@ namespace DatahubTest
             //var deleteresponse = await dataLakeServiceClient.DeleteFileSystemAsync("nabeel-container");
             //Assert.NotNull(deleteresponse);
         }
-
 
         [Fact]
         public async Task ListDirectories()
@@ -298,9 +292,6 @@ namespace DatahubTest
 
             await ManageFileACLs(fileSystemClient);
             //Assert.NotNull(FileAccessControl);
-
-
-
         }
 
         [Fact]
@@ -316,7 +307,7 @@ namespace DatahubTest
         }
 
         [Fact]
-        public async Task Get_Index()
+        public void Get_Index()
         {
             var azureKeyCreds = new AzureKeyCredential("21D5756DF91AE0E5E65C47D41DDE3ACF");
             
@@ -336,8 +327,6 @@ namespace DatahubTest
         [Fact]
         public async Task DeleteFile()
         {
-
-
             var sharedKeyCredential = new StorageSharedKeyCredential(storageAccountName, storageAccountKey);
             string dfsUri = "https://" + storageAccountName + ".dfs.core.windows.net";
             DataLakeServiceClient dataLakeServiceClient = new DataLakeServiceClient(new Uri(dfsUri), sharedKeyCredential);
@@ -357,10 +346,8 @@ namespace DatahubTest
         [Fact]
         public async Task GivenSearchParameters_RetrieveJsonFromCognitiveSearch()
         {
-            var searchValue = "";
             var indexClient = CreateSearchIndexClient("azureblob-index");
             SearchResults<FileMetaData> results;
-
 
             var options = new SearchOptions()
             {
@@ -389,11 +376,10 @@ namespace DatahubTest
             }
 
             Assert.NotEmpty(fileMetaDatas);
-
         }
 
         [Fact]
-        public async Task CreateIndex()
+        public Task CreateIndex()
         {
             FieldBuilder fieldBuilder = new FieldBuilder();
             var searchFields = fieldBuilder.Build(typeof(FileMetaData));
@@ -407,13 +393,14 @@ namespace DatahubTest
             definition.Suggesters.Add(suggester);
 
             adminClient.CreateOrUpdateIndex(definition);
+            return Task.CompletedTask;
         }
-        [Fact]
-        public async Task Cosmostest()
-        {
-            
 
+        [Fact]
+        public void Cosmostest()
+        {
         }
+
         private SearchClient CreateSearchIndexClient(string indexName)
         {
             var azureKeyCreds = new AzureKeyCredential("21D5756DF91AE0E5E65C47D41DDE3ACF");
@@ -421,7 +408,8 @@ namespace DatahubTest
             SearchClient indexClient = new SearchClient(new Uri("https://datahub-search-dev.search.windows.net"),indexName , azureKeyCreds);
             return indexClient;
         }
-        public async Task ManageFileACLs(DataLakeFileSystemClient fileSystemClient)
+
+        private async Task ManageFileACLs(DataLakeFileSystemClient fileSystemClient)
         {
             DataLakeDirectoryClient directoryClient =
                 fileSystemClient.GetDirectoryClient("NRCan-RNCan.gc.ca/nabeel.bader");
@@ -446,7 +434,7 @@ namespace DatahubTest
             fileClient.SetAccessControlList(accessControlList);
         }
 
-        public static async Task UploadFile(DataLakeFileSystemClient fileSystemClient)
+        static async Task UploadFile(DataLakeFileSystemClient fileSystemClient)
         {
             DataLakeDirectoryClient directoryClient =
                 fileSystemClient.GetDirectoryClient("my-directory");
@@ -468,15 +456,6 @@ namespace DatahubTest
             await fileClient.AppendAsync(fileStream, offset: 0);
 
             await fileClient.FlushAsync(position: fileSize);
-
-
-            
         }
-
-
-
-        
     }
-
-
 }

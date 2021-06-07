@@ -37,11 +37,11 @@ namespace NRCan.Datahub.Portal.Data.Finance
         /** Section: Funding Type **/
         [Required]
         [MaxLength(200)] 
-        public string? Funding_Type_TXT { get; set; }
+        public string Funding_Type_TXT { get; set; }
         /** Section: Program Activity **/
         [Required]
         [MaxLength(200)] 
-        public string? Program_Activity_TXT { get; set; }
+        public string Program_Activity_TXT { get; set; }
         /** Section: Budget **/        
         public double? Budget_NUM { get; set; }
         /** Section: Anticipated Transfers **/        
@@ -143,13 +143,13 @@ namespace NRCan.Datahub.Portal.Data.Finance
         public double? Percent_Of_Forecast_To_Budget_NUM { get; set; }
         /** Section: Comments/Notes for Financial Information  **/
         [MaxLength(7500)] 
-        public string? Comments_Notes_For_Financial_Information_TXT { get; set; }
+        public string Comments_Notes_For_Financial_Information_TXT { get; set; }
         /** Section: Involves an IT or Real Property Component? **/
         [MaxLength(7500)] 
-        public string? Involves_An_It_Or_Real_Property_Component_TXT { get; set; }
+        public string Involves_An_It_Or_Real_Property_Component_TXT { get; set; }
         /** Section: Comments/Notes for Non-Financial Information  **/
         [MaxLength(7500)] 
-        public string? Comments_Notes_For_NonFinancial_Information_TXT { get; set; }
+        public string Comments_Notes_For_NonFinancial_Information_TXT { get; set; }
 
         [AeFormIgnore]
         public SectorAndBranch SectorAndBranch { get; set; }
