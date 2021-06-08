@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using BlazorInputFile;
+using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.Extensions.Logging;
 using NRCan.Datahub.Shared.Data;
 using NRCan.Datahub.Shared.Services;
@@ -172,6 +173,11 @@ namespace NRCan.Datahub.Portal.Services.Offline
         public Task LoadApplicationData()
         {
             return Task.FromResult(0);
+        }
+
+        public Task UploadGen2File(IBrowserFile browserFile, FileMetaData fileMetadata)
+        {
+            throw new NotImplementedException();
         }
     }
 }

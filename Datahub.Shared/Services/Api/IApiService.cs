@@ -1,4 +1,5 @@
-﻿using NRCan.Datahub.Shared.Data;
+﻿using Microsoft.AspNetCore.Components.Forms;
+using NRCan.Datahub.Shared.Data;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -27,5 +28,6 @@ namespace NRCan.Datahub.Shared.Services
         Task<Uri> DownloadFile(FileMetaData file);
         Task<Folder> GetFileList(Folder folder, Microsoft.Graph.User user, bool onlyFolders = false, bool recursive = false);
         Task<bool> DoesFolderExist(string folderName);
+        Task UploadGen2File(IBrowserFile browserFile, FileMetaData fileMetadata);
     }    
 }

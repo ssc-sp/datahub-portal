@@ -24,6 +24,7 @@ using Azure.Search.Documents.Models;
 using System.Diagnostics;
 using Azure.Storage.Sas;
 using Azure.Storage;
+using Microsoft.AspNetCore.Components.Forms;
 
 namespace NRCan.Datahub.Shared.Services
 {
@@ -221,7 +222,10 @@ namespace NRCan.Datahub.Shared.Services
                 fileMetadata.filesize = fileMetadata.bytesToUpload.ToString();                                
 
                 // Ok, so we need to upload to gen 2 storage!
-                await UploadToGen2Storage(fileMetadata, fileMetadata.fileData);
+                //await UploadToGen2Storage(fileMetadata, fileMetadata.fileData); //xhr
+
+                //set metadata
+                //run cognitive index
 
                 //await _cognitiveSearchService.RunIndexerAsnyc();
                 await _cognitiveSearchService.AddDocumentToIndex(fileMetadata);
@@ -244,15 +248,56 @@ namespace NRCan.Datahub.Shared.Services
             await _notifierService.Update($"{fileMetadata.folderpath}/{fileMetadata.filename}", true);
         }
 
-        private async Task UploadToGen2Storage(FileMetaData fileMetadata, Stream ms)
+
+        public async Task UploadGen2File(IBrowserFile browserFile, FileMetaData fileMetadata)
         {
             try
             {
+                fileMetadata.bytesToUpload = browserFile.Size;
+                fileMetadata.filesize = browserFile.Size.ToString();
+
+                // Ok, so we need to upload to gen 2 storage!
+                await UploadToGen2Storage(fileMetadata, browserFile); //xhr
+
+                //set metadata
+                //run cognitive index
+
+                //await _cognitiveSearchService.RunIndexerAsnyc();
+                await _cognitiveSearchService.AddDocumentToIndex(fileMetadata);
+
+                fileMetadata.FinishUploadInfo(FileUploadStatus.FileUploadSuccess);
+
+                // Done, so we can remove!
+                UploadedFiles.Remove($"{fileMetadata.folderpath}/{fileMetadata.filename}");
+
+                _logger.LogInformation($"Uploading file: {fileMetadata.folderpath}/{fileMetadata.filename} User: {fileMetadata.ownedby}");
+            }
+            catch (Exception e)
+            {
+                fileMetadata.FinishUploadInfo(FileUploadStatus.FileUploadError);
+                _logger.LogError(e, $"Error uploading file: {fileMetadata.folderpath}/{fileMetadata.filename} User: {fileMetadata.ownedby}");
+
+            }
+
+            // Done upload, update ONE last time!
+            await _notifierService.Update($"{fileMetadata.folderpath}/{fileMetadata.filename}", true);
+
+
+        }
+        private async Task UploadToGen2Storage(FileMetaData fileMetadata, IBrowserFile browserFile)
+        {
+            try
+            {
+                
+                
+                
                 fileMetadata.uploadStatus = FileUploadStatus.UploadingToRepository;
 
                 var fileSystemClient = await _dataLakeClientService.GetDataLakeFileSystemClient();
                 var directoryClient = fileSystemClient.GetDirectoryClient(fileMetadata.folderpath);
                 DataLakeFileClient fileClient = directoryClient.GetFileClient(fileMetadata.filename);
+
+                //await fileClient.UploadAsync()
 
                 var fileUploading = $"{fileMetadata.folderpath}/{fileMetadata.filename}";
 
@@ -265,12 +310,13 @@ namespace NRCan.Datahub.Shared.Services
                     })
                 };
 
-                ms.Position = 0;
-
+                
                 Stopwatch watch = new Stopwatch();
                 watch.Start();
 
-                await fileClient.UploadAsync(ms, uploadOptions);
+                long maxFileSize = 1024000 * 15;
+
+                await fileClient.UploadAsync(browserFile.OpenReadStream(maxFileSize), uploadOptions);
 
                 watch.Stop();
                 _telemetryService.LogFileUploadSize(fileMetadata.uploadedBytes, fileUploading);

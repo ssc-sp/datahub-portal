@@ -48,11 +48,19 @@ else
                 @*<div>
                         <input type="file" @ref=inputTypeFileElement />
                     </div>*@
-                <div class="drag-drop-zone">
+                @*<div class="drag-drop-zone">
                     <input type="file" class="clickable" @ref=dropTargetInput @onchange="OnInputChange" />
                     @status
+                </div>*@
+                <div class="drag-drop-zone">
+                    <label>
+                        Upload files:
+                        <Microsoft.AspNetCore.Components.Forms.InputFile OnChange="@OnInputFileChange" multiple />
+                    </label>
                 </div>
             </div>
+            
+                
 
             <div class="bodytext">
                 <div class="formlabel">
@@ -127,6 +135,15 @@ else
     private ElementReference inputTypeFileElement;
     private ElementReference dropTargetInput;
     private IFileReference fileReference;
+    private IBrowserFile browserFile;
+
+    private async Task OnInputFileChange(InputFileChangeEventArgs e)
+    {
+         foreach (var file in e.GetMultipleFiles(10))
+        {
+            browserFile = file;
+        }
+    }
 
     public bool isSubmitDisabled
     {
@@ -172,7 +189,9 @@ else
                         Localizer.GetString("ADD-DATA-PAGE.Protected-B-Warning-2")
                     };
 
-                    await UI.ToggleModal(@<WarningModal OnDecision="HandleWarningDecision" WarningTextString=@textList />);
+                    await UI.ToggleModal(
+    @<WarningModal OnDecision="HandleWarningDecision" WarningTextString=@textList />
+    );
                 }
                 break;
         }
@@ -222,24 +241,25 @@ else
 
     private async Task HandleValidSubmit()
     {
-        if (fileReference != null)
+        if (browserFile != null)
         {
-            var fileInfo = await fileReference.ReadFileInfoAsync();
-
-            // Initial population of info!
-            await ApiService.PopulateOtherMetadata(_fileMetadata);
+             await ApiService.PopulateOtherMetadata(_fileMetadata);
 
             _fileMetadata.folderpath = ApiService.CurrentFolder.fullPathFromRoot;
-            _fileMetadata.filename = fileInfo.Name;
-            _fileMetadata.filesize = fileInfo.Size.ToString();
-            _fileMetadata.lastmodifiedts = fileInfo.LastModifiedDate.HasValue ? fileInfo.LastModifiedDate.Value : DateTime.Now;
+            _fileMetadata.filename = browserFile.Name;
+            _fileMetadata.filesize = browserFile.Size.ToString();
+            _fileMetadata.lastmodifiedts = DateTime.Now;
 
-            var overwriteFile = ApiService.CurrentFolder.AllFiles.FirstOrDefault(f => f.filename == fileInfo.Name);
+            
+            //await ApiService.UploadGen2File(browserFile, _fileMetadata);
+
+            var overwriteFile = ApiService.CurrentFolder.AllFiles.FirstOrDefault(f => f.filename == browserFile.Name);
             if (overwriteFile != null)
             {
                 _fileMetadata.fileid = overwriteFile.fileid;
                 List<string> overwriteList = new List<string>() { Localizer["ADD-DATA-PAGE.OverwriteFilePrompt", _fileMetadata.filename] };
-                await UI.ToggleModal(@<UserChoiceModal HeaderText="@Localizer["ADD-DATA-PAGE.AddData"]" ChoiceTextList=overwriteList OnDecision="HandleUpload"></UserChoiceModal>);
+                await UI.ToggleModal(
+    @<UserChoiceModal HeaderText="@Localizer["ADD-DATA-PAGE.AddData"]" ChoiceTextList=overwriteList OnDecision="HandleUpload"></UserChoiceModal>);
             }
             else
             {
@@ -255,15 +275,12 @@ else
             _fileMetadata.uploadStatus = FileUploadStatus.SelectedToUpload;
 
             CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
-            _fileMetadata.fileData = new MemoryStream();
+
 
             isLoading = true;
-            await using (Stream stream = await fileReference.OpenReadAsync())
-            {
-                await stream.CopyToAsync(_fileMetadata.fileData, 20480, cancellationTokenSource.Token);
-            }
 
-            if (_fileMetadata != null && !string.IsNullOrWhiteSpace(_fileMetadata.filename) && _fileMetadata.fileData != null && _fileMetadata.fileData.CanRead)
+
+            if (_fileMetadata != null && !string.IsNullOrWhiteSpace(_fileMetadata.filename))
             {
                 // We have file in browser, add to list of files downloaded!
                 ApiService.UploadedFiles.Add($"{_fileMetadata.folderpath}/{_fileMetadata.filename}", _fileMetadata);
@@ -277,7 +294,9 @@ else
                 StateHasChanged();
 
                 // Kickstart the download!
-                Task.Run(async () => await ApiService.UploadFile(_fileMetadata));
+                // dont do this, need a cancellation token 
+
+                Task.Run(async () => await ApiService.UploadGen2File(browserFile, _fileMetadata));
             }
             else
             {
