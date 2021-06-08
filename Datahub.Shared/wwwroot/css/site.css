@@ -4989,7 +4989,7 @@ body {
   background-color: #fff; }
 
 .add-data-wrapper {
-  display: none; }
+  display: block; }
 
 /* Add Data page dropdown styling */
 #securityDropdown .ae.button {

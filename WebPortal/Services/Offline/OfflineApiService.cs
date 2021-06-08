@@ -51,6 +51,7 @@ namespace NRCan.Datahub.Portal.Services.Offline
         }
 
         public Dictionary<string, FileMetaData> UploadedFiles { get; set; } = new Dictionary<string, FileMetaData>();
+        public IBrowserFile browserFile { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
         public OfflineApiService(IUserInformationService userInformationService, ILogger<OfflineApiService> logger)
         {
@@ -175,7 +176,7 @@ namespace NRCan.Datahub.Portal.Services.Offline
             return Task.FromResult(0);
         }
 
-        public Task UploadGen2File(IBrowserFile browserFile, FileMetaData fileMetadata)
+        public Task UploadGen2File(FileMetaData fileMetadata)
         {
             throw new NotImplementedException();
         }

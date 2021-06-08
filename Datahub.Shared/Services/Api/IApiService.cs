@@ -11,6 +11,7 @@ namespace NRCan.Datahub.Shared.Services
 {
     public interface IApiService
     {
+        IBrowserFile browserFile { get; set; }
         Exception LastException { get; set; }
         Folder CurrentFolder { get; set; }
         Folder MyDataFolder { get; }
@@ -28,6 +29,6 @@ namespace NRCan.Datahub.Shared.Services
         Task<Uri> DownloadFile(FileMetaData file);
         Task<Folder> GetFileList(Folder folder, Microsoft.Graph.User user, bool onlyFolders = false, bool recursive = false);
         Task<bool> DoesFolderExist(string folderName);
-        Task UploadGen2File(IBrowserFile browserFile, FileMetaData fileMetadata);
+        Task UploadGen2File(FileMetaData fileMetadata);
     }    
 }

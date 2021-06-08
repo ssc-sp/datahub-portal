@@ -9,116 +9,108 @@
 @inject IFileReaderService fileReaderService
 @inject IDataRetrievalService DataRetrievalService
 
-@page "/add-data"
-
-@if (isLoading)
-{
-    <Spinner />
-}
-else
-{
-    <EditForm Model="_fileMetadata" OnValidSubmit="HandleValidSubmit">
-        <DataAnnotationsValidator />
-        <div>
-            <div class="header-wrapper">
-                <div class="roundbutton" style="margin-right: 1rem" @onclick="@(() => NavigationManager.NavigateTo("data"))">
-                    <i class="fal fa-arrow-left"></i>
-                </div>
-                <div class="header">
-                    <h4 class="nrcan-typography h4">@Localizer["ADD-DATA-PAGE.AddData"]</h4>
-                </div>
+<EditForm Model="_fileMetadata" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <div>
+        <div class="header-wrapper">
+            <div class="roundbutton" style="margin-right: 1rem" @onclick="@(() => NavigationManager.NavigateTo("data"))">
+                <i class="fal fa-arrow-left"></i>
             </div>
-            <div class="bodytext">
-                @Localizer["ADD-DATA-PAGE.Instructions"]
+            <div class="header">
+                <h4 class="nrcan-typography h4">@Localizer["ADD-DATA-PAGE.AddData"]</h4>
             </div>
-            <div class="bodytext">
-                <div class="bluetext">*&nbsp;</div>@Localizer["RequiredField"]
+        </div>
+        <div class="bodytext">
+            @Localizer["ADD-DATA-PAGE.Instructions"]
+        </div>
+        <div class="bodytext">
+            <div class="bluetext">*&nbsp;</div>@Localizer["RequiredField"]
+        </div>
+        <div class="bodytext">
+            <label for="description" class="formlabel">@Localizer["ADD-DATA-PAGE.Description-Label"]</label>
+            <InputTextArea @bind-Value="_fileMetadata.description" class="formtextarea" id="description" placeholder=@Localizer["ADD-DATA-PAGE.Description-Placeholder"] rows="4" />
+        </div>
+        <div class="bodytext">
+            <div class="formlabel">
+                @Localizer["ADD-DATA-PAGE.File-Label"]
             </div>
-            <div class="bodytext">
-                <label for="description" class="formlabel">@Localizer["ADD-DATA-PAGE.Description-Label"]</label>
-                <InputTextArea @bind-Value="_fileMetadata.description" class="formtextarea" id="description" placeholder=@Localizer["ADD-DATA-PAGE.Description-Placeholder"] rows="4" />
-            </div>
-            <div class="bodytext">
-                <div class="formlabel">
-                    @Localizer["ADD-DATA-PAGE.File-Label"]
-                </div>
-                @*<div class="drag-drop-zone">
-                        <InputFile OnChange="HandleFileSelected" />
-                    </div>*@
-                @*<div>
-                        <input type="file" @ref=inputTypeFileElement />
-                    </div>*@
-                @*<div class="drag-drop-zone">
-                    <input type="file" class="clickable" @ref=dropTargetInput @onchange="OnInputChange" />
-                    @status
+            @*<div class="drag-drop-zone">
+                    <InputFile OnChange="HandleFileSelected" />
                 </div>*@
-                <div class="drag-drop-zone">
-                    <label>
-                        Upload files:
-                        <Microsoft.AspNetCore.Components.Forms.InputFile OnChange="@OnInputFileChange" multiple />
-                    </label>
-                </div>
+            @*<div>
+                    <input type="file" @ref=inputTypeFileElement />
+                </div>*@
+            @*<div class="drag-drop-zone">
+                <input type="file" class="clickable" @ref=dropTargetInput @onchange="OnInputChange" />
+                @status
+            </div>*@
+            <div class="drag-drop-zone">
+                <label>
+                    Upload files:
+                    <Microsoft.AspNetCore.Components.Forms.InputFile OnChange="@OnInputFileChange" multiple />
+                </label>
             </div>
+        </div>
             
                 
 
-            <div class="bodytext">
-                <div class="formlabel">
-                    @Localizer["ADD-DATA-PAGE.Format-Label"]
-                </div>
-                <div>
-                    @_fileMetadata.fileformat
-                </div>
+        <div class="bodytext">
+            <div class="formlabel">
+                @Localizer["ADD-DATA-PAGE.Format-Label"]
             </div>
-            <div class="bodytext">
-                <label for="tags" class="formlabel">@Localizer["ADD-DATA-PAGE.Tags-Label"]</label>
-                <InputText @bind-Value="_fileMetadata._tags" class="formuserinput" id="tags" placeholder=@Localizer["ADD-DATA-PAGE.Tags-Placeholder"] />
-            </div>
-            <div class="bodytext">
-                <label for="securityclass" class="formlabel">@Localizer["ADD-DATA-PAGE.SecurityClassification-Label"]<div class="bluetext">*</div></label>
-                <AeDropdown Items="securityClassOptions" Renderer="GetOption" OnChange="HandleDropdownChange" LabelRenderFragment="getIcon" id="securityDropdown" />
-            </div>
-            <div class="errortext">
-                <div class="formlabel"></div>
-                <ValidationMessage For="@(() => _fileMetadata.securityclass)" />
-            </div>
-
-            @foreach (var field in _fileMetadata.customfields)
-            {
-                showHeader = _fileMetadata.customfields.First() == field;
-                <CustomFields Field="@field" CustomFieldChanged="CustomFieldChanged" DeleteRow="DeleteRow" IncludeHeader="showHeader" />
-            }
-
-            <div class="bodytext">
-                <div class="formlabel">
-                    @if (_fileMetadata.customfields.Count == 0)
-                    {
-                        <a>@Localizer["ADD-DATA-PAGE.CustomFields-Label"]</a>
-                    }
-                </div>
-                @if (showAddRow)
-                {
-                    <div class="roundbutton" style="margin-right: 1rem" @onclick="AddRow">
-                        <i class="fal fa-plus"></i>
-                    </div>
-                }
-            </div>
-            <div class="bodytext">
-                <div class="privacytext">
-                    @Localizer["ADD-DATA-PAGE.Disclaimer-1"]&nbsp;
-                    <div class="bluetext" @onclick="NavigateToTermsOfUse">@Localizer["TermsOfUse"]</div>&nbsp;
-                    @Localizer["ADD-DATA-PAGE.Disclaimer-2"]&nbsp;
-                    <div class="bluetext" @onclick="NavigateToPrivacyStatement">@Localizer["PrivacyPolicy"]</div>&nbsp;
-                    @Localizer["ADD-DATA-PAGE.Disclaimer-3"]
-                </div>
-            </div>
-            <div class="submitrow">
-                <button class="submitbutton cancel" type="reset" @onclick="@(() => NavigationManager.NavigateTo("data"))">@Localizer["BUTTONS.Cancel"]</button>
-                <button class="submitbutton finish" disabled="@isSubmitDisabled" type="submit">@Localizer["BUTTONS.Finish"]</button>
+            <div>
+                @_fileMetadata.fileformat
             </div>
         </div>
-    </EditForm>
-}
+        <div class="bodytext">
+            <label for="tags" class="formlabel">@Localizer["ADD-DATA-PAGE.Tags-Label"]</label>
+            <InputText @bind-Value="_fileMetadata._tags" class="formuserinput" id="tags" placeholder=@Localizer["ADD-DATA-PAGE.Tags-Placeholder"] />
+        </div>
+        <div class="bodytext">
+            <label for="securityclass" class="formlabel">@Localizer["ADD-DATA-PAGE.SecurityClassification-Label"]<div class="bluetext">*</div></label>
+            <AeDropdown Items="securityClassOptions" Renderer="GetOption" OnChange="HandleDropdownChange" LabelRenderFragment="getIcon" id="securityDropdown" />
+        </div>
+        <div class="errortext">
+            <div class="formlabel"></div>
+            <ValidationMessage For="@(() => _fileMetadata.securityclass)" />
+        </div>
+
+        @foreach (var field in _fileMetadata.customfields)
+        {
+            showHeader = _fileMetadata.customfields.First() == field;
+            <CustomFields Field="@field" CustomFieldChanged="CustomFieldChanged" DeleteRow="DeleteRow" IncludeHeader="showHeader" />
+        }
+
+        <div class="bodytext">
+            <div class="formlabel">
+                @if (_fileMetadata.customfields.Count == 0)
+                {
+                    <a>@Localizer["ADD-DATA-PAGE.CustomFields-Label"]</a>
+                }
+            </div>
+            @if (showAddRow)
+            {
+                <div class="roundbutton" style="margin-right: 1rem" @onclick="AddRow">
+                    <i class="fal fa-plus"></i>
+                </div>
+            }
+        </div>
+        <div class="bodytext">
+            <div class="privacytext">
+                @Localizer["ADD-DATA-PAGE.Disclaimer-1"]&nbsp;
+                <div class="bluetext" @onclick="NavigateToTermsOfUse">@Localizer["TermsOfUse"]</div>&nbsp;
+                @Localizer["ADD-DATA-PAGE.Disclaimer-2"]&nbsp;
+                <div class="bluetext" @onclick="NavigateToPrivacyStatement">@Localizer["PrivacyPolicy"]</div>&nbsp;
+                @Localizer["ADD-DATA-PAGE.Disclaimer-3"]
+            </div>
+        </div>
+        <div class="submitrow">
+            <button class="submitbutton cancel" type="reset" @onclick="@(() => NavigationManager.NavigateTo("data"))">@Localizer["BUTTONS.Cancel"]</button>
+            <button class="submitbutton finish" disabled="@isSubmitDisabled" type="submit">@Localizer["BUTTONS.Finish"]</button>
+        </div>
+    </div>
+</EditForm>
+
 
 @code
 {
@@ -135,13 +127,13 @@ else
     private ElementReference inputTypeFileElement;
     private ElementReference dropTargetInput;
     private IFileReference fileReference;
-    private IBrowserFile browserFile;
+    //private IBrowserFile browserFile;
 
     private async Task OnInputFileChange(InputFileChangeEventArgs e)
     {
          foreach (var file in e.GetMultipleFiles(10))
         {
-            browserFile = file;
+            ApiService.browserFile = file;
         }
     }
 
@@ -241,25 +233,26 @@ else
 
     private async Task HandleValidSubmit()
     {
-        if (browserFile != null)
+        if (ApiService.browserFile != null)
         {
              await ApiService.PopulateOtherMetadata(_fileMetadata);
 
             _fileMetadata.folderpath = ApiService.CurrentFolder.fullPathFromRoot;
-            _fileMetadata.filename = browserFile.Name;
-            _fileMetadata.filesize = browserFile.Size.ToString();
+            _fileMetadata.filename = ApiService.browserFile.Name;
+            _fileMetadata.filesize = ApiService.browserFile.Size.ToString();
             _fileMetadata.lastmodifiedts = DateTime.Now;
 
             
             //await ApiService.UploadGen2File(browserFile, _fileMetadata);
 
-            var overwriteFile = ApiService.CurrentFolder.AllFiles.FirstOrDefault(f => f.filename == browserFile.Name);
+            var overwriteFile = ApiService.CurrentFolder.AllFiles.FirstOrDefault(f => f.filename == ApiService.browserFile.Name);
             if (overwriteFile != null)
             {
                 _fileMetadata.fileid = overwriteFile.fileid;
                 List<string> overwriteList = new List<string>() { Localizer["ADD-DATA-PAGE.OverwriteFilePrompt", _fileMetadata.filename] };
                 await UI.ToggleModal(
-    @<UserChoiceModal HeaderText="@Localizer["ADD-DATA-PAGE.AddData"]" ChoiceTextList=overwriteList OnDecision="HandleUpload"></UserChoiceModal>);
+    @<UserChoiceModal HeaderText="@Localizer["ADD-DATA-PAGE.AddData"]" ChoiceTextList=overwriteList OnDecision="HandleUpload"></UserChoiceModal>
+    );
             }
             else
             {
@@ -287,16 +280,15 @@ else
 
                 isLoading = false;
 
+                //need cancellation token for this.
+                InvokeAsync(async () =>
+                {
+                    await ApiService.UploadGen2File(_fileMetadata);
+                });
                 // Return to grid view
-                NavigationManager.NavigateTo("data/true");
+                NavigationManager.NavigateTo("data");
 
-                await UI.ToggleModal();
-                StateHasChanged();
-
-                // Kickstart the download!
-                // dont do this, need a cancellation token 
-
-                Task.Run(async () => await ApiService.UploadGen2File(browserFile, _fileMetadata));
+                
             }
             else
             {
@@ -342,7 +334,8 @@ else
 
     private async Task<RenderFragment> getIcon()
     {
-        return @<div id="securityClassButton" class="ae button"> <div>@_fileMetadata.securityclass</div> <i class="fal fa-chevron-down chevronborder"></i></div>;
+        return 
+    @<div id="securityClassButton" class="ae button"> <div>@_fileMetadata.securityclass</div> <i class="fal fa-chevron-down chevronborder"></i></div>;
     }
 
 

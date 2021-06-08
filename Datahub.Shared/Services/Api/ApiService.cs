@@ -113,6 +113,8 @@ namespace NRCan.Datahub.Shared.Services
             }    
         }
 
+        public IBrowserFile browserFile { get; set; }
+
         public Dictionary<string, FileMetaData> UploadedFiles { get; set; } = new Dictionary<string, FileMetaData>();
 
         public async Task LoadApplicationData()
@@ -249,7 +251,7 @@ namespace NRCan.Datahub.Shared.Services
         }
 
 
-        public async Task UploadGen2File(IBrowserFile browserFile, FileMetaData fileMetadata)
+        public async Task UploadGen2File(FileMetaData fileMetadata)
         {
             try
             {
@@ -257,7 +259,7 @@ namespace NRCan.Datahub.Shared.Services
                 fileMetadata.filesize = browserFile.Size.ToString();
 
                 // Ok, so we need to upload to gen 2 storage!
-                await UploadToGen2Storage(fileMetadata, browserFile); //xhr
+                await UploadToGen2Storage(fileMetadata, browserFile); 
 
                 //set metadata
                 //run cognitive index
@@ -314,7 +316,7 @@ namespace NRCan.Datahub.Shared.Services
                 Stopwatch watch = new Stopwatch();
                 watch.Start();
 
-                long maxFileSize = 1024000 * 15;
+                long maxFileSize = 1024000000000;
 
                 await fileClient.UploadAsync(browserFile.OpenReadStream(maxFileSize), uploadOptions);
 
