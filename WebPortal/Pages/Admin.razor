@@ -3,7 +3,6 @@
 @inject IStringLocalizer<DataLabels> DataLocalizer
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JsInterop
-@inject DatahubProjectDBContext projectContext
 @inject IDbContextFactory<DatahubProjectDBContext> dbFactory
 @page "/admin"
 
@@ -36,6 +35,8 @@
     private Task<AuthenticationState> authenticationStateTask { get; set; }
 
     private List<Datahub_Project_Access_Request> _usersAuthorization;
+
+    private DatahubProjectDBContext projectContext;
 
     private List<string> headers = new List<string>
 {
@@ -86,6 +87,7 @@
 
     protected override async Task OnInitializedAsync()
     {
+        projectContext = dbFactory.CreateDbContext();
         await RefreshData();
         renderFunctions = new List<Func<Datahub_Project_Access_Request, RenderFragment>>
 {
@@ -107,5 +109,6 @@
 
         };
                                 }
-
+	
+         public void Dispose() { projectContext.Dispose(); }
 }
