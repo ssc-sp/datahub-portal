@@ -114,6 +114,7 @@ namespace NRCan.Datahub.Shared.Services
         }
 
         public IBrowserFile browserFile { get; set; }
+        public InputFile InputFile { get; set; }
 
         public Dictionary<string, FileMetaData> UploadedFiles { get; set; } = new Dictionary<string, FileMetaData>();
 
@@ -253,6 +254,7 @@ namespace NRCan.Datahub.Shared.Services
 
         public async Task UploadGen2File(FileMetaData fileMetadata)
         {
+            //await _notifierService.Update($"{fileMetadata.folderpath}/{fileMetadata.filename}", true);
             try
             {
                 fileMetadata.bytesToUpload = browserFile.Size;
@@ -308,7 +310,7 @@ namespace NRCan.Datahub.Shared.Services
                     ProgressHandler = new Progress<long>((progress) =>
                     {
                         fileMetadata.uploadedBytes = progress;
-                        _notifierService.Update($"{fileMetadata.folderpath}/{fileMetadata.filename}", true);
+                        _notifierService.Update($"adddata", false);
                     })
                 };
 

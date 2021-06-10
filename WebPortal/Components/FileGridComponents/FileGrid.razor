@@ -27,6 +27,10 @@
         <div class="pillbutton" @onclick="@(() => NavigationManager.NavigateTo("add-data"))">
             <i class="fas fa-plus"></i>@Localizer["FILE-GRID-PAGE.AddData"]
         </div>
+
+        <div class="pillbutton" @onclick="@(() => ToggleAddData())">
+            <i class="fas fa-plus"></i>@Localizer["FILE-GRID-PAGE.AddData"]
+        </div>
     }
 </div>
 
@@ -220,6 +224,12 @@ else
             await GetFileList();
         }
         UnSelectFiles();
+    }
+
+    private async void ToggleAddData()
+    {
+        RenderFragment fragment = @<AddDataBar />;
+        UI.ToggleRightSidebar(fragment);
     }
 
     public async void PerformMenuAction(MenuActions actionCode, dynamic item)
