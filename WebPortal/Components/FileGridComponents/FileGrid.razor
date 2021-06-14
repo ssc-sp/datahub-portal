@@ -79,6 +79,10 @@ else
     [Parameter]
     public bool CanAddData { get; set; } = false;
 
+    [Parameter]
+    public bool IsProjectFolder { get; set; } = false;
+
+
     //user and file tracking
     public Microsoft.Graph.User CurrentUser { get; set; }
     public string CurrentUserId
@@ -93,6 +97,7 @@ else
             return "";
         }
     }
+
 
     private BaseMetadata selectedMetaData;
     private bool isLoading = false;
@@ -228,7 +233,8 @@ else
 
     private async void ToggleAddData()
     {
-        RenderFragment fragment = @<AddDataBar />;
+        RenderFragment fragment = 
+    @<AddDataBar />;
         UI.ToggleRightSidebar(fragment);
     }
 

@@ -1,0 +1,15 @@
+﻿@page "/project/{ProjectAcronym}/filelist"
+@implements IDisposable
+@inject IDbContextFactory<DatahubProjectDBContext> DbFactory
+
+
+<h3>FileList</h3>
+
+@code {
+
+    [Parameter]
+    public string ProjectAcronym { get; set; }
+
+
+
+}
