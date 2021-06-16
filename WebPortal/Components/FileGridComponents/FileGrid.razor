@@ -23,11 +23,7 @@
     }
 
     @if (CanAddData)
-    {
-        <div class="pillbutton" @onclick="@(() => NavigationManager.NavigateTo("add-data"))">
-            <i class="fas fa-plus"></i>@Localizer["FILE-GRID-PAGE.AddData"]
-        </div>
-
+    {        
         <div class="pillbutton" @onclick="@(() => ToggleAddData())">
             <i class="fas fa-plus"></i>@Localizer["FILE-GRID-PAGE.AddData"]
         </div>
@@ -80,7 +76,7 @@ else
     public bool CanAddData { get; set; } = false;
 
     [Parameter]
-    public bool IsProjectFolder { get; set; } = false;
+    public string Project { get; set; }
 
 
     //user and file tracking
@@ -382,7 +378,12 @@ else
         isLoading = true;
 
         // Get our list of files!
-        CurrentFolder = await DataRetrievalService.GetFolderContents(CurrentFolder, SearchText, CurrentUser);
+        CurrentFolder = await DataRetrievalService.GetFolderContents(CurrentFolder, SearchText, CurrentUser, Project.ToLower());
+
+        if (!string.IsNullOrEmpty(Project))
+        {
+            CurrentFolder.name = Project;
+        }
         // Check for downloading files to update!
         UpdateFolderFromDownloads();
 

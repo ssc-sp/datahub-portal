@@ -1,9 +1,8 @@
 ﻿@page "/project/{ProjectAcronym}/filelist"
-@implements IDisposable
-@inject IDbContextFactory<DatahubProjectDBContext> DbFactory
+@*@implements IDisposable
+@inject IDbContextFactory<DatahubProjectDBContext> DbFactory*@
 
-
-<h3>FileList</h3>
+<FileGrid CurrentFolder="null" CanAddData="true" Project="@ProjectAcronym"/>
 
 @code {
 

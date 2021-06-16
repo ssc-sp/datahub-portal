@@ -173,7 +173,7 @@ namespace NRCan.Datahub.Shared.Services
         {
             try
             {
-                var fileSystemClient = await _dataLakeClientService.GetDataLakeFileSystemClient();
+                var fileSystemClient = await _dataLakeClientService.GetDataLakeFileSystemClient(null);
                 DataLakeDirectoryClient directoryClient = fileSystemClient.GetDirectoryClient(file.folderpath);
                 DataLakeFileClient fileClient = directoryClient.GetFileClient(file.filename);
                 Response<FileDownloadInfo> downloadResponse = await fileClient.ReadAsync();
@@ -425,72 +425,76 @@ namespace NRCan.Datahub.Shared.Services
 
         protected BaseMetadata Map(PathItem item, DataLakeDirectoryClient directoryClient)
         {
-            var itemName = System.IO.Path.GetFileName(item.Name);
-            if (item.IsDirectory == true)
-            {
-                return new Folder()
-                {
-                    name = itemName,
-                    id = itemName,
-                    createdby = item.Owner,
-                    lastmodifiedby = item.Owner,
-                    lastmodifiedts = item.LastModified.DateTime
-                };
-            }
+            //var itemName = System.IO.Path.GetFileName(item.Name);
+            //if (item.IsDirectory == true)
+            //{
+            //    return new Folder()
+            //    {
+            //        name = itemName,
+            //        id = itemName,
+            //        createdby = item.Owner,
+            //        lastmodifiedby = item.Owner,
+            //        lastmodifiedts = item.LastModified.DateTime
+            //    };
+            //}
 
-            DataLakeFileClient fileClient = directoryClient.GetFileClient(itemName);
-            PathProperties properties = fileClient.GetProperties();
-            var file = new FileMetaData()
-            {
-                filename = itemName,
-                ownedby = item.Owner,
-                createdby = item.Owner,
-                lastmodifiedby = item.Owner,
-                lastmodifiedts = item.LastModified.DateTime
-            };
+            //DataLakeFileClient fileClient = directoryClient.GetFileClient(itemName);
+            //PathProperties properties = fileClient.GetProperties();
+            //var file = new FileMetaData()
+            //{
+            //    filename = itemName,
+            //    ownedby = item.Owner,
+            //    createdby = item.Owner,
+            //    lastmodifiedby = item.Owner,
+            //    lastmodifiedts = item.LastModified.DateTime
+            //};
 
-            file.ParseDictionary(properties.Metadata);
+            //file.ParseDictionary(properties.Metadata);
 
-            return file;
+            //return file;
+
+            return null;
         }
 
         public async Task<Folder> GetFileList(Folder folder, Microsoft.Graph.User user, bool onlyFolders = false, bool recursive = false)
         {
-            try
-            {
-                var fileSystemClient = await _dataLakeClientService.GetDataLakeFileSystemClient();
-                var directoryClient = fileSystemClient.GetDirectoryClient(folder.fullPathFromRoot);
-                var subdirectories = directoryClient.GetPathsAsync().AsPages(default, 20);
+            //try
+            //{
+            //    var fileSystemClient = await _dataLakeClientService.GetDataLakeFileSystemClient();
+            //    var directoryClient = fileSystemClient.GetDirectoryClient(folder.fullPathFromRoot);
+            //    var subdirectories = directoryClient.GetPathsAsync().AsPages(default, 20);
 
-                await foreach (Azure.Page<PathItem> directoryPage in subdirectories)
-                {
-                    // The directoryPage.Values will contain both files and folders
-                    // We will ALWAYS add subfolders
-                    // ONLY add files IFF onlyFolders is false!
-                    foreach (var item in directoryPage.Values.Where(i => i.IsDirectory.Value || !onlyFolders ))
-                    {
-                        dynamic child = Map(item, directoryClient);
-                        folder.Add(child, false);
+            //    await foreach (Azure.Page<PathItem> directoryPage in subdirectories)
+            //    {
+            //        // The directoryPage.Values will contain both files and folders
+            //        // We will ALWAYS add subfolders
+            //        // ONLY add files IFF onlyFolders is false!
+            //        foreach (var item in directoryPage.Values.Where(i => i.IsDirectory.Value || !onlyFolders ))
+            //        {
+            //            dynamic child = Map(item, directoryClient);
+            //            folder.Add(child, false);
 
-                        // If directrory and recursive, go down the tree
-                        // THIS IS USUALLY ONLY FOR Folder lists!
-                        if (item.IsDirectory.Value && recursive)
-                        {
-                            child = await GetFileList(child, user, onlyFolders, recursive);
-                        }
-                    }
-                }
+            //            // If directrory and recursive, go down the tree
+            //            // THIS IS USUALLY ONLY FOR Folder lists!
+            //            if (item.IsDirectory.Value && recursive)
+            //            {
+            //                child = await GetFileList(child, user, onlyFolders, recursive);
+            //            }
+            //        }
+            //    }
 
-                folder.Sort();
-                _logger.LogDebug($"Get file list for folder: {folder.fullPathFromRoot} for user: {user.DisplayName} results: {folder.children.Count} SUCCEEDED.");
+            //    folder.Sort();
+            //    _logger.LogDebug($"Get file list for folder: {folder.fullPathFromRoot} for user: {user.DisplayName} results: {folder.children.Count} SUCCEEDED.");
 
-                return folder;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Get file list for folder: {folder.fullPathFromRoot} for user: {user.DisplayName} FAILED.");
-                throw;
-            }
+            //    return folder;
+            //}
+            //catch (Exception ex)
+            //{
+            //    _logger.LogError(ex, $"Get file list for folder: {folder.fullPathFromRoot} for user: {user.DisplayName} FAILED.");
+            //    throw;
+            //}
+
+            return null;
         }
 
         public async Task<long> GetUserUsedDataTotal(Microsoft.Graph.User user)

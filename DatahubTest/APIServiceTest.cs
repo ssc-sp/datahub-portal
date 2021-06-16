@@ -108,10 +108,10 @@ namespace DatahubTest
     {
 
         private readonly IApiService _apiService;
-        public APIServiceTest(IApiService ApiService)
-        {
-            _apiService = ApiService;
-        }
+        //public APIServiceTest(IApiService ApiService)
+        //{
+        //    _apiService = ApiService;
+        //}
 
 
         [Fact]
@@ -142,7 +142,7 @@ namespace DatahubTest
         [Fact]
         public async Task GivenGen2URL_GenerateABFSUri()
         {
-            
+
             var fileSystemName = "datahub";
             var accountName = "datahubdatalakedev";
             var folderpath = "NRCan-RNCan.gc.ca/nabeel.bader";
@@ -182,6 +182,46 @@ namespace DatahubTest
         string storageAccountKey = @"3GURb30PvhqD3L4aD+27fDxhNmde5oY0kpu5G0imTMdgwExq9MafQOgpWDnElgLQFHjpY6tkekf28SAdIjiSNQ==";
         string fileSystemName = "datahub";
         string userId = "0403528c-5abc-423f-9201-9c945f628595";
+        string storageAccountNameFlat = "dhcanmetrobodev";
+        string storageAccountKeyFlat = @"FvGP17Hc8RlR5ztEjmwafUU/MFmILU8v5f+JQOf9bW+QZWYRoayUMyX38XxNrLbbICwrWnLLIGPlXi/b60gnBQ==";
+
+
+      
+
+        [Fact]
+        public async Task ConnectToGen2SAFlat()
+        {
+            
+            var sharedKeyCredential = new StorageSharedKeyCredential(storageAccountNameFlat, storageAccountKeyFlat);
+            string dfsUri = "https://" + storageAccountNameFlat + ".dfs.core.windows.net";
+            DataLakeServiceClient dataLakeServiceClient = new DataLakeServiceClient(new Uri(dfsUri), sharedKeyCredential);
+
+            Assert.NotNull(dataLakeServiceClient);
+
+
+            var fileSystemClient = dataLakeServiceClient.GetFileSystemClient(fileSystemName);
+
+            Assert.NotNull(fileSystemClient);
+
+            IAsyncEnumerator<PathItem> enumerator =
+                fileSystemClient.GetPathsAsync(string.Empty).GetAsyncEnumerator();
+
+            
+            int count = 0;
+
+            while (await enumerator.MoveNextAsync())
+            {
+                var item = enumerator.Current;
+                count++;
+            }
+            
+
+            Assert.True(count == 2);
+
+        }
+
+
+
 
         [Fact]
         public async Task ConnectToGen2SA()
@@ -319,7 +359,7 @@ namespace DatahubTest
         public async Task Get_Index()
         {
             var azureKeyCreds = new AzureKeyCredential("21D5756DF91AE0E5E65C47D41DDE3ACF");
-            
+
             var searchIndexClient = new SearchIndexClient(new Uri("https://datahub-search-dev.search.windows.net"), azureKeyCreds);
 
             var index = searchIndexClient.GetIndex("datahub-file-index");
@@ -399,7 +439,7 @@ namespace DatahubTest
             var searchFields = fieldBuilder.Build(typeof(FileMetaData));
             var azureKeyCreds = new AzureKeyCredential("21D5756DF91AE0E5E65C47D41DDE3ACF");
             var adminClient = new SearchIndexClient(new Uri("https://datahub-search-dev.search.windows.net"), azureKeyCreds);
-            
+
 
             var definition = new SearchIndex("filemetadata-index", searchFields);
 
@@ -411,14 +451,14 @@ namespace DatahubTest
         [Fact]
         public async Task Cosmostest()
         {
-            
+
 
         }
         private SearchClient CreateSearchIndexClient(string indexName)
         {
             var azureKeyCreds = new AzureKeyCredential("21D5756DF91AE0E5E65C47D41DDE3ACF");
-            
-            SearchClient indexClient = new SearchClient(new Uri("https://datahub-search-dev.search.windows.net"),indexName , azureKeyCreds);
+
+            SearchClient indexClient = new SearchClient(new Uri("https://datahub-search-dev.search.windows.net"), indexName, azureKeyCreds);
             return indexClient;
         }
         public async Task ManageFileACLs(DataLakeFileSystemClient fileSystemClient)
@@ -470,12 +510,12 @@ namespace DatahubTest
             await fileClient.FlushAsync(position: fileSize);
 
 
-            
+
         }
 
 
 
-        
+
     }
 
 
