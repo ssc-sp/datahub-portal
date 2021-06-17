@@ -3,9 +3,9 @@ using CsvHelper;
 using CsvHelper.Configuration;
 using System.Globalization;
 
-namespace Datahub.Metadata.CSV
+namespace Datahub.Metadata
 {
-    public class CsvOpenMetadataParser
+    public class OpenMetadataParser
     {
         public static MetadataDefinition Parse(string csvData, bool ignoreDuplicateDefinitions)
         {

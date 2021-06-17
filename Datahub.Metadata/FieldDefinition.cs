@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Datahub.Metadata
 {
@@ -19,7 +20,7 @@ namespace Datahub.Metadata
         public string ObligationFrench { get; set; }
         public List<FieldChoice> Choices { get; set; }
 
-        public bool IsMandatory => "Mandatory".Equals(ObligationEnglish, System.StringComparison.InvariantCultureIgnoreCase);
+        public bool IsMandatory => "Mandatory".Equals(ObligationEnglish, StringComparison.InvariantCultureIgnoreCase);
         public bool HasChoices => Choices?.Count > 0;
     }    
 }

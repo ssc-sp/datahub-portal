@@ -1,10 +1,9 @@
 using System.IO;
 using Xunit;
-using Datahub.Metadata.CSV;
 
 namespace Datahub.Metadata.Tests
 {
-    public class CsvMetadataParserTests
+    public class OpenMetadataParserTests
     {
         [Fact]
         public void Parse_OpenMetadata_ShouldLoadMetadataFieldDefinitions()
@@ -12,7 +11,7 @@ namespace Datahub.Metadata.Tests
             var data = GetCvsFileContent("GCopenmetadata-GCmetadonneesouvertes.csv");
             Assert.NotNull(data);
 
-            var definitions = CsvOpenMetadataParser.Parse(data, ignoreDuplicateDefinitions: true);
+            var definitions = OpenMetadataParser.Parse(data, ignoreDuplicateDefinitions: true);
             Assert.NotNull(definitions);
         }
 
@@ -22,7 +21,7 @@ namespace Datahub.Metadata.Tests
             var data = GetCvsFileContent("GCopenmetadata-GCmetadonneesouvertes.csv");
             Assert.NotNull(data); 
 
-            var definitions = CsvOpenMetadataParser.Parse(data, ignoreDuplicateDefinitions: true);
+            var definitions = OpenMetadataParser.Parse(data, ignoreDuplicateDefinitions: true);
             Assert.NotNull(definitions);
 
             var testFields = "restrictions|audience|type|COLLECTION|Maintainer_Email|contact_Information.en|contact_information.fr|contributor_en|contributor_fr|title_en|title_fr";
