@@ -7,10 +7,12 @@ namespace Datahub.Metadata
     public class MetadataDefinition
     {
         readonly Dictionary<string, FieldDefinition> _fields;
+        readonly bool _ignoreDuplicates;
 
-        public MetadataDefinition()
+        public MetadataDefinition(bool ignoreDuplicates = true)
         {
             _fields = new Dictionary<string, FieldDefinition>(32);
+            _ignoreDuplicates = ignoreDuplicates;
         }
 
         public void Add(FieldDefinition field)
@@ -23,7 +25,12 @@ namespace Datahub.Metadata
 
             var key = field.Id.ToLower();
             if (_fields.ContainsKey(key))
+            {
+                if (_ignoreDuplicates)
+                    return;
+
                 throw new ArgumentException($"Duplicated field '{field.Id}' detected!");
+            }
 
             _fields.Add(key, field);
         }
