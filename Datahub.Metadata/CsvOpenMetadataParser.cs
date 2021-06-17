@@ -5,7 +5,7 @@ using System.Globalization;
 
 namespace Datahub.Metadata.CSV
 {
-    public class CsvMetadataParser
+    public class CsvOpenMetadataParser
     {
         public static MetadataDefinition Parse(string csvData, bool ignoreDuplicateDefinitions)
         {
@@ -19,15 +19,17 @@ namespace Datahub.Metadata.CSV
             csvReader.Read();
 
             var sortOrder = 1;
-            foreach (var row in csvReader.GetRecords<CsvMetadataField>())
+            foreach (var row in csvReader.GetRecords<OpenMetadataField>())
             {
                 var fieldDefinition = new FieldDefinition()
                 {
                     Id = row.FieldId,
-                    NameEnglish = row.LabelEnglish,
-                    NameFrench = row.LabelFrench,
+                    NameEnglish = row.NameEnglish,
+                    NameFrench = row.NameFrench,
                     DescriptionEnglish = row.DescriptionEnglish,
                     DescriptionFrench = row.DescriptionFrench,
+                    ObligationEnglish = row.ObligationEnglish,
+                    ObligationFrench = row.ObligationFrench,
                     SortOrder = sortOrder++
                 };
                 definitions.Add(fieldDefinition);

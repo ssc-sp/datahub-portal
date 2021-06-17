@@ -12,17 +12,17 @@ namespace Datahub.Metadata.Tests
             var data = GetCvsFileContent("GCopenmetadata-GCmetadonneesouvertes.csv");
             Assert.NotNull(data);
 
-            var definitions = CsvMetadataParser.Parse(data, ignoreDuplicateDefinitions: true);
+            var definitions = CsvOpenMetadataParser.Parse(data, ignoreDuplicateDefinitions: true);
             Assert.NotNull(definitions);
         }
 
         [Fact]
-        public void Parse_OpenMetadata_ShouldContainExpectedFields()
+        public void Parse_OpenMetadata_ShouldContainExpectedFieldsDespiteTheNameCasing()
         {
             var data = GetCvsFileContent("GCopenmetadata-GCmetadonneesouvertes.csv");
-            Assert.NotNull(data);
+            Assert.NotNull(data); 
 
-            var definitions = CsvMetadataParser.Parse(data, ignoreDuplicateDefinitions: true);
+            var definitions = CsvOpenMetadataParser.Parse(data, ignoreDuplicateDefinitions: true);
             Assert.NotNull(definitions);
 
             var testFields = "restrictions|audience|type|COLLECTION|Maintainer_Email|contact_Information.en|contact_information.fr|contributor_en|contributor_fr|title_en|title_fr";
