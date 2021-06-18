@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using BlazorInputFile;
+using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.Extensions.Logging;
 using NRCan.Datahub.Shared.Data;
 using NRCan.Datahub.Shared.Services;
@@ -51,6 +52,8 @@ namespace NRCan.Datahub.Portal.Services.Offline
         }
 
         public Dictionary<string, FileMetaData> UploadedFiles { get; set; } = new Dictionary<string, FileMetaData>();
+        public IBrowserFile browserFile { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public string ProjectUploadCode { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
         public OfflineApiService(IUserInformationService userInformationService, ILogger<OfflineApiService> logger)
         {
@@ -105,31 +108,7 @@ namespace NRCan.Datahub.Portal.Services.Offline
             fileMetadata.fileformat = GetExtension(fileMetadata.filename);
         }
 
-        public Task UploadFile(FileMetaData fileMetadata)
-        {
-            try
-            {
-                CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
-                fileMetadata.uploadStatus = FileUploadStatus.SelectedToUpload;
-
-                UploadedFiles.Add( $"{fileMetadata.folderpath}/{fileMetadata.filename}", fileMetadata);
-                   
-                fileMetadata.filesize = fileMetadata.fileData.Length.ToString();
-                
-                fileMetadata.FinishUploadInfo(FileUploadStatus.FileUploadSuccess);
-                UploadedFiles.Remove( $"{fileMetadata.folderpath}/{fileMetadata.filename}");
-                
-                _logger.LogInformation("End File Read");
-            }
-            catch (Exception e)
-            {
-                fileMetadata.FinishUploadInfo(FileUploadStatus.FileUploadError);
-                _logger.LogError(e, "Error uploading file");
-            }
-
-            return Task.FromResult(0);
-        }
-
+        
         public string GetExtension(string FileName)
         {
             int pos = FileName.LastIndexOf(".") + 1;
@@ -173,6 +152,11 @@ namespace NRCan.Datahub.Portal.Services.Offline
         public Task LoadApplicationData()
         {
             return Task.FromResult(0);
+        }
+
+        public Task UploadGen2File(FileMetaData fileMetadata)
+        {
+            throw new NotImplementedException();
         }
     }
 }

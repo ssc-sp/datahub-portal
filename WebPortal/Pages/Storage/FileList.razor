@@ -1,0 +1,14 @@
+﻿@page "/project/{ProjectAcronym}/filelist"
+@*@implements IDisposable
+@inject IDbContextFactory<DatahubProjectDBContext> DbFactory*@
+
+<FileGrid CurrentFolder="null" CanAddData="true" Project="@ProjectAcronym"/>
+
+@code {
+
+    [Parameter]
+    public string ProjectAcronym { get; set; }
+
+
+
+}

@@ -27,7 +27,7 @@
         </div>
     }
     
-    @if (SelectedItem.ownedby == CurrentUser)
+    @if (SelectedItem.ownedby == CurrentUser && string.IsNullOrEmpty(Project))
     {
         if (SelectedItem.dataType == MetadataType.File)
         {
@@ -57,7 +57,7 @@
         </div>
     }
 }
-else if (!IsSearchedData)
+else if (!IsSearchedData && string.IsNullOrEmpty(Project))
 {
     <div class="file-grid-item" @onclick="CreateFolder">
         <i class="far fa-folder-plus icon-color sm-icon"></i>
@@ -80,6 +80,8 @@ else
     public bool IsSearchedData { get; set; } = false;
     [Parameter]
     public string CurrentUser { get; set; }
+    [Parameter]
+    public string Project { get; set; }
 
     private Task DeleteRow()
     {

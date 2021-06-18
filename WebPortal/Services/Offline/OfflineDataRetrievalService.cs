@@ -27,7 +27,7 @@ namespace NRCan.Datahub.Portal.Services.Offline
             return Task.FromResult(new List<Shared.Data.Version>());
         }
 
-        public Task<Shared.Data.Folder> GetFolderContents(dynamic folder, string filterSearch, User user)
+        public Task<Shared.Data.Folder> GetFolderContents(dynamic folder, string filterSearch, User user, string project)
         {
             return Task.FromResult(new Shared.Data.Folder());
         }
