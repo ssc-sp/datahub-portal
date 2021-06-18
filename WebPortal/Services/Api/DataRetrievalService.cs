@@ -93,7 +93,7 @@ namespace NRCan.Datahub.Portal.Services
                     return await getSharedFileList(folder, user);
                 }
 
-                if (!string.IsNullOrEmpty(project))
+                if (!string.IsNullOrEmpty(_apiService.ProjectUploadCode))
                 {
                     return await GetProjectFileList(project, user);
                 }

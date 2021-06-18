@@ -82,13 +82,15 @@
             </div>
         </div>*@
 
-
-        <div class="bodytext">
-            <UploadProgress File="@_fileMetadata" />
-        </div>
+        @if(isLoading)
+        {
+            <div class="bodytext">
+                <UploadProgress File="@_fileMetadata" />
+            </div>
+        }
         <div class="bodytext">
             <button class="submitbutton cancel" type="reset" @onclick="@(() => NavigationManager.NavigateTo("data"))">@Localizer["BUTTONS.Cancel"]</button>
-            <button class="submitbutton finish" disabled="@isSubmitDisabled" type="submit">@Localizer["BUTTONS.Finish"]</button>
+            <button class="submitbutton finish" disabled="@isSubmitDisabled" type="submit">@Localizer["BUTTONS.Upload"]</button>
         </div>
     </div>
 </EditForm>
@@ -136,6 +138,15 @@
             ApiService.browserFile = file;
             status = file.Name;
         }
+        StateHasChanged();
+    }
+
+    private async Task ResetControls()
+    {
+        ApiService.browserFile = null;
+        status = Localizer.GetString("ADD-DATA-PAGE.DefaultStatusText");
+        _fileMetadata = new FileMetaData();
+        isLoading = false;
         StateHasChanged();
     }
 
@@ -258,7 +269,9 @@
             }
             else
             {
+                isLoading = true;
                 HandleUpload(true);
+                
             }
         }
     }
@@ -272,26 +285,26 @@
             CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 
 
-            isLoading = true;
-
+            
 
             if (_fileMetadata != null && !string.IsNullOrWhiteSpace(_fileMetadata.filename))
             {
                 // We have file in browser, add to list of files downloaded!
                 ApiService.UploadedFiles.Add($"{_fileMetadata.folderpath}/{_fileMetadata.filename}", _fileMetadata);
 
-                isLoading = false;
-
                 InvokeAsync(async () =>
                 {
                     await ApiService.UploadGen2File(_fileMetadata);
+                    await NotifierService.Update("filegrid", true);
+                    await ResetControls();
                 });
+
+                
                 
             }
             else
             {
                 _fileMetadata.FinishUploadInfo(FileUploadStatus.FileUploadError);
-                isLoading = false;
 
                 await UI.ToggleModal();
                 StateHasChanged();

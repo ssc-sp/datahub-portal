@@ -36,7 +36,8 @@
     "ConfirmBilingual": "Confirm/Confirmé",
     "Finish": "Finish",
     "Restore": "Restore",
-    "Submit": "Submit"
+    "Submit": "Submit",
+    "Upload": "Upload"
   },
   "ERROR-PAGE": {
     "Title": "Error has occured",

@@ -121,6 +121,8 @@ else
         await base.OnInitializedAsync();
         CurrentUser = await UserInformationService.GetCurrentUserAsync();
 
+
+
         if (!string.IsNullOrEmpty(Project))
             ApiService.ProjectUploadCode = Project.ToLower();
 
