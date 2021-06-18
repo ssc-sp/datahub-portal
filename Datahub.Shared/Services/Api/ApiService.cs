@@ -25,6 +25,7 @@ using System.Diagnostics;
 using Azure.Storage.Sas;
 using Azure.Storage;
 using Microsoft.AspNetCore.Components.Forms;
+using Azure.Storage.Blobs.Models;
 
 namespace NRCan.Datahub.Shared.Services
 {
@@ -115,6 +116,8 @@ namespace NRCan.Datahub.Shared.Services
 
         public IBrowserFile browserFile { get; set; }
         public InputFile InputFile { get; set; }
+
+        public string ProjectUploadCode { get; set; }
 
         public Dictionary<string, FileMetaData> UploadedFiles { get; set; } = new Dictionary<string, FileMetaData>();
 
@@ -217,40 +220,7 @@ namespace NRCan.Datahub.Shared.Services
 
        
 
-        public async Task UploadFile(FileMetaData fileMetadata)
-        {
-            try
-            {
-                fileMetadata.bytesToUpload = fileMetadata.fileData.Length;
-                fileMetadata.filesize = fileMetadata.bytesToUpload.ToString();                                
-
-                // Ok, so we need to upload to gen 2 storage!
-                //await UploadToGen2Storage(fileMetadata, fileMetadata.fileData); //xhr
-
-                //set metadata
-                //run cognitive index
-
-                //await _cognitiveSearchService.RunIndexerAsnyc();
-                await _cognitiveSearchService.AddDocumentToIndex(fileMetadata);
-                
-                fileMetadata.FinishUploadInfo(FileUploadStatus.FileUploadSuccess);
-
-                // Done, so we can remove!
-                UploadedFiles.Remove( $"{fileMetadata.folderpath}/{fileMetadata.filename}");
-
-                _logger.LogInformation($"Uploading file: {fileMetadata.folderpath}/{fileMetadata.filename} User: {fileMetadata.ownedby}");
-            }
-            catch (Exception e)
-            {
-                fileMetadata.FinishUploadInfo(FileUploadStatus.FileUploadError);
-                _logger.LogError(e, $"Error uploading file: {fileMetadata.folderpath}/{fileMetadata.filename} User: {fileMetadata.ownedby}");
-                
-            }
-
-            // Done upload, update ONE last time!
-            await _notifierService.Update($"{fileMetadata.folderpath}/{fileMetadata.filename}", true);
-        }
-
+        
 
         public async Task UploadGen2File(FileMetaData fileMetadata)
         {
@@ -259,15 +229,18 @@ namespace NRCan.Datahub.Shared.Services
             {
                 fileMetadata.bytesToUpload = browserFile.Size;
                 fileMetadata.filesize = browserFile.Size.ToString();
+                fileMetadata.folderpath = string.IsNullOrEmpty(ProjectUploadCode) ? fileMetadata.folderpath : string.Empty;
 
-                // Ok, so we need to upload to gen 2 storage!
-                await UploadToGen2Storage(fileMetadata, browserFile); 
 
-                //set metadata
-                //run cognitive index
-
-                //await _cognitiveSearchService.RunIndexerAsnyc();
-                await _cognitiveSearchService.AddDocumentToIndex(fileMetadata);
+                if (string.IsNullOrEmpty(ProjectUploadCode))
+                {
+                    await UploadToGen2Storage(fileMetadata);
+                    await _cognitiveSearchService.AddDocumentToIndex(fileMetadata);
+                }
+                else
+                {
+                    await UploadToProject(fileMetadata);
+                }
 
                 fileMetadata.FinishUploadInfo(FileUploadStatus.FileUploadSuccess);
 
@@ -288,19 +261,46 @@ namespace NRCan.Datahub.Shared.Services
 
 
         }
-        private async Task UploadToGen2Storage(FileMetaData fileMetadata, IBrowserFile browserFile)
+
+        private async Task UploadToProject(FileMetaData fileMetadata)
+        {
+            string cxnstring = @"DefaultEndpointsProtocol=https;AccountName=dhcanmetrobodev;AccountKey=FvGP17Hc8RlR5ztEjmwafUU/MFmILU8v5f+JQOf9bW+QZWYRoayUMyX38XxNrLbbICwrWnLLIGPlXi/b60gnBQ==;EndpointSuffix=core.windows.net";
+            BlobServiceClient blobServiceClient = new BlobServiceClient(cxnstring);
+            BlobContainerClient containerClient = blobServiceClient.GetBlobContainerClient("datahub");
+
+
+            // Get a reference to a blob named "sample-file" in a container named "sample-container"
+            BlobClient blob = containerClient.GetBlobClient(fileMetadata.filename);
+
+            var metadata = fileMetadata.GenerateMetadata();
+            var uploadOptions = new BlobUploadOptions()
+            {
+                ProgressHandler = new Progress<long>((progress) =>
+                {
+                    fileMetadata.uploadedBytes = progress;
+                    _notifierService.Update($"adddata", false);
+                })
+            };
+
+            long maxFileSize = 1024000000000;
+            await blob.UploadAsync(browserFile.OpenReadStream(maxFileSize), uploadOptions);
+            await blob.SetMetadataAsync(metadata);
+            // Upload local file
+            
+        }
+
+        private async Task UploadToGen2Storage(FileMetaData fileMetadata)
         {
             try
             {
                 
-                
-                
                 fileMetadata.uploadStatus = FileUploadStatus.UploadingToRepository;
 
-                var fileSystemClient = await _dataLakeClientService.GetDataLakeFileSystemClient();
+                var fileSystemClient = await _dataLakeClientService.GetDataLakeFileSystemClient(ProjectUploadCode);
                 var directoryClient = fileSystemClient.GetDirectoryClient(fileMetadata.folderpath);
                 DataLakeFileClient fileClient = directoryClient.GetFileClient(fileMetadata.filename);
 
+                
                 //await fileClient.UploadAsync()
 
                 var fileUploading = $"{fileMetadata.folderpath}/{fileMetadata.filename}";

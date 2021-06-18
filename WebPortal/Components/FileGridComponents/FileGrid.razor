@@ -121,6 +121,9 @@ else
         await base.OnInitializedAsync();
         CurrentUser = await UserInformationService.GetCurrentUserAsync();
 
+        if (!string.IsNullOrEmpty(Project))
+            ApiService.ProjectUploadCode = Project.ToLower();
+
         // If we get displayed on return from file upload, don't refresh from datalake
         await GetFileList();
 
@@ -377,6 +380,8 @@ else
         UnSelectFiles();
         isLoading = true;
 
+        if (Project == null)
+            Project = string.Empty;
         // Get our list of files!
         CurrentFolder = await DataRetrievalService.GetFolderContents(CurrentFolder, SearchText, CurrentUser, Project.ToLower());
 

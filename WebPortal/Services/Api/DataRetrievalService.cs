@@ -1,6 +1,8 @@
 ﻿using Azure;
 using Azure.Search.Documents;
 using Azure.Search.Documents.Models;
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
 using Azure.Storage.Files.DataLake;
 using Azure.Storage.Files.DataLake.Models;
 using Microsoft.AspNetCore.Components;
@@ -111,28 +113,36 @@ namespace NRCan.Datahub.Portal.Services
         {
             try
             {
-                var fileSystemClient = await _dataLakeClientService.GetDataLakeFileSystemClient(project);
 
-                IAsyncEnumerator<PathItem> enumerator = fileSystemClient.GetPathsAsync(string.Empty).GetAsyncEnumerator();
+                string cxnstring = @"DefaultEndpointsProtocol=https;AccountName=dhcanmetrobodev;AccountKey=FvGP17Hc8RlR5ztEjmwafUU/MFmILU8v5f+JQOf9bW+QZWYRoayUMyX38XxNrLbbICwrWnLLIGPlXi/b60gnBQ==;EndpointSuffix=core.windows.net";
+                BlobServiceClient blobServiceClient = new BlobServiceClient(cxnstring);
+                BlobContainerClient containerClient = blobServiceClient.GetBlobContainerClient("datahub");
 
                 Folder folder = new Folder();
-                if (enumerator.Current != null)
+                var resultSegment = containerClient.GetBlobsAsync(BlobTraits.Metadata)
+                .AsPages(default, 30);
+
+                // Enumerate the blobs returned for each page.
+                await foreach (Azure.Page<BlobItem> blobPage in resultSegment)
                 {
-                    while (await enumerator.MoveNextAsync())
+                    foreach (BlobItem blobItem in blobPage.Values)
                     {
-                        var item = enumerator.Current;
+                        
+                        Console.WriteLine("Blob name: {0}", blobItem.Name);
                         var file = new FileMetaData()
                         {
-                            filename = item.Name,
-                            ownedby = item.Owner,
-                            createdby = item.Owner,
-                            lastmodifiedby = item.Owner,
-                            lastmodifiedts = item.LastModified.DateTime
+                            filename = blobItem.Name,
+                            ownedby = blobItem.Metadata["ownedby"],
+                            createdby = blobItem.Metadata["createdby"],
+                            lastmodifiedby = blobItem.Metadata["lastmodifiedby"],
+                            lastmodifiedts = DateTime.Now
                         };
-                        folder.Add(file);
+                        folder.Add(file, false);
                     }
-                    await enumerator.DisposeAsync();
+
+
                 }
+
                 return folder;
             }
             catch (Exception ex)
