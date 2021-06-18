@@ -38,7 +38,7 @@ else
 {
     <div class="fileListContainer" @onfocusout="UnSelectFiles">
         <div class="file-grid-menu">
-            <FileGridMenu SelectedItem="selectedMetaData" PerformMenuAction="(MenuActions m) => PerformMenuAction(m, selectedMetaData)" IsSearchedData="@IsSearchResults" CurrentUser="@CurrentUserId" />
+            <FileGridMenu SelectedItem="selectedMetaData" PerformMenuAction="(MenuActions m) => PerformMenuAction(m, selectedMetaData)" IsSearchedData="@IsSearchResults" CurrentUser="@CurrentUserId" Project="@Project"/>
         </div>
         <FileGridHeader IsSharedFiles=@CurrentFolder.isShared SortAscending=@CurrentFolder.sortAscending ToggleSort="ToggleSort" IsSearchedData="IsSearchResults" />
         @foreach (var child in CurrentFolder.children)

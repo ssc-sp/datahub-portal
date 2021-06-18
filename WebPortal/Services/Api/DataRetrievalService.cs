@@ -131,6 +131,7 @@ namespace NRCan.Datahub.Portal.Services
                         Console.WriteLine("Blob name: {0}", blobItem.Name);
                         var file = new FileMetaData()
                         {
+                            id = blobItem.Metadata["fileid"],
                             filename = blobItem.Name,
                             ownedby = blobItem.Metadata["ownedby"],
                             createdby = blobItem.Metadata["createdby"],
