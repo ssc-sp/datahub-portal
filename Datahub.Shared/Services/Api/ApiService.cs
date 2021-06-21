@@ -176,7 +176,7 @@ namespace NRCan.Datahub.Shared.Services
         {
             try
             {
-                var fileSystemClient = await _dataLakeClientService.GetDataLakeFileSystemClient(null);
+                var fileSystemClient = await _dataLakeClientService.GetDataLakeFileSystemClient();
                 DataLakeDirectoryClient directoryClient = fileSystemClient.GetDirectoryClient(file.folderpath);
                 DataLakeFileClient fileClient = directoryClient.GetFileClient(file.filename);
                 Response<FileDownloadInfo> downloadResponse = await fileClient.ReadAsync();
@@ -310,7 +310,7 @@ namespace NRCan.Datahub.Shared.Services
                     ProgressHandler = new Progress<long>((progress) =>
                     {
                         fileMetadata.uploadedBytes = progress;
-                        _notifierService.Update($"adddata", false);
+                        _ = _notifierService.Update($"adddata", false);
                     })
                 };
 

@@ -143,8 +143,7 @@ namespace DatahubTest
         [Fact]
         public void GivenGen2URL_GenerateABFSUri()
         {
-
-            var fileSystemName = "datahub";
+             var fileSystemName = "datahub";
             var accountName = "datahubdatalakedev";
             var folderpath = "NRCan-RNCan.gc.ca/nabeel.bader";
             var filename = "favicon-192.png";
@@ -466,11 +465,7 @@ namespace DatahubTest
             return Task.CompletedTask;
         }
 
-        [Fact]
-        public void Cosmostest()
-        {
-
-
+       
         private SearchClient CreateSearchIndexClient(string indexName)
         {
             var azureKeyCreds = new AzureKeyCredential("21D5756DF91AE0E5E65C47D41DDE3ACF");
@@ -527,12 +522,8 @@ namespace DatahubTest
 
             await fileClient.FlushAsync(position: fileSize);
 
-
-
         }
 
-
-        
-
     }
+
 }
