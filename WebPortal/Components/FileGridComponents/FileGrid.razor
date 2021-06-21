@@ -23,8 +23,8 @@
     }
 
     @if (CanAddData)
-    {
-        <div class="pillbutton" @onclick="@(() => NavigationManager.NavigateTo("add-data"))">
+    {        
+        <div class="pillbutton" @onclick="@(() => ToggleAddData())">
             <i class="fas fa-plus"></i>@Localizer["FILE-GRID-PAGE.AddData"]
         </div>
     }
@@ -38,7 +38,7 @@ else
 {
     <div class="fileListContainer" @onfocusout="UnSelectFiles">
         <div class="file-grid-menu">
-            <FileGridMenu SelectedItem="selectedMetaData" PerformMenuAction="(MenuActions m) => PerformMenuAction(m, selectedMetaData)" IsSearchedData="@IsSearchResults" CurrentUser="@CurrentUserId" />
+            <FileGridMenu SelectedItem="selectedMetaData" PerformMenuAction="(MenuActions m) => PerformMenuAction(m, selectedMetaData)" IsSearchedData="@IsSearchResults" CurrentUser="@CurrentUserId" Project="@Project"/>
         </div>
         <FileGridHeader IsSharedFiles=@CurrentFolder.isShared SortAscending=@CurrentFolder.sortAscending ToggleSort="ToggleSort" IsSearchedData="IsSearchResults" />
         @foreach (var child in CurrentFolder.children)
@@ -75,6 +75,10 @@ else
     [Parameter]
     public bool CanAddData { get; set; } = false;
 
+    [Parameter]
+    public string Project { get; set; }
+
+
     //user and file tracking
     public Microsoft.Graph.User CurrentUser { get; set; }
     public string CurrentUserId
@@ -89,6 +93,7 @@ else
             return "";
         }
     }
+
 
     private BaseMetadata selectedMetaData;
     private bool isLoading = false;
@@ -115,6 +120,11 @@ else
     {
         await base.OnInitializedAsync();
         CurrentUser = await UserInformationService.GetCurrentUserAsync();
+
+
+
+        if (!string.IsNullOrEmpty(Project))
+            ApiService.ProjectUploadCode = Project.ToLower();
 
         // If we get displayed on return from file upload, don't refresh from datalake
         await GetFileList();
@@ -220,6 +230,13 @@ else
             await GetFileList();
         }
         UnSelectFiles();
+    }
+
+    private async void ToggleAddData()
+    {
+        RenderFragment fragment = 
+    @<AddDataBar />;
+        UI.ToggleRightSidebar(fragment);
     }
 
     public async void PerformMenuAction(MenuActions actionCode, dynamic item)
@@ -365,8 +382,15 @@ else
         UnSelectFiles();
         isLoading = true;
 
+        if (Project == null)
+            Project = string.Empty;
         // Get our list of files!
-        CurrentFolder = await DataRetrievalService.GetFolderContents(CurrentFolder, SearchText, CurrentUser);
+        CurrentFolder = await DataRetrievalService.GetFolderContents(CurrentFolder, SearchText, CurrentUser, Project.ToLower());
+
+        if (!string.IsNullOrEmpty(Project))
+        {
+            CurrentFolder.name = Project;
+        }
         // Check for downloading files to update!
         UpdateFolderFromDownloads();
 
