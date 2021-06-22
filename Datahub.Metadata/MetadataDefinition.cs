@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Datahub.Metadata
+namespace NRCan.Datahub.Metadata
 {
     public class MetadataDefinition
     {

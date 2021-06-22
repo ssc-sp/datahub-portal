@@ -1,4 +1,4 @@
-﻿namespace Datahub.Metadata
+﻿namespace NRCan.Datahub.Metadata
 {
     public class FieldChoice
     {

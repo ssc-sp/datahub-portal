@@ -1,0 +1,38 @@
+﻿@page "/metadata"
+@using NRCan.Datahub.Metadata;
+
+<AeFlex>
+    @*<div style="width: 200px; flex-grow: 0.5">
+        [Missing content]
+    </div>*@
+    <div style="width: 200px; flex-grow: 0.5">
+        <MetadataEditor Definitions="@_definitions" FieldValues="@_fieldValues"></MetadataEditor>
+    </div>
+</AeFlex>
+
+
+
+@code {
+
+    private MetadataDefinition _definitions { get; set; }
+
+    private FieldValues _fieldValues { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var metadataCsv = await System.IO.File.ReadAllTextAsync("/temp/GCopenmetadata-GCmetadonneesouvertes.csv");
+        _definitions = OpenMetadataParser.Parse(metadataCsv, true);
+
+        _fieldValues = new FieldValues()
+        {
+            new FieldValue()
+            {
+                DefinitionId = "notes_fr",
+            },
+            new FieldValue()
+            {
+                DefinitionId = "Type",
+            }
+        };
+    }
+}

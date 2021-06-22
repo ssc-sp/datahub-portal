@@ -58,6 +58,7 @@
     <Folder Include="wwwroot\css\" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Datahub.Metadata\Datahub.Metadata.csproj" />
     <ProjectReference Include="..\Datahub.Shared\Datahub.Shared.csproj" />
   </ItemGroup>
   <ItemGroup>

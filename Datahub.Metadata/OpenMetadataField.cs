@@ -1,6 +1,6 @@
 ﻿using CsvHelper.Configuration.Attributes;
 
-namespace Datahub.Metadata
+namespace NRCan.Datahub.Metadata
 {
     class OpenMetadataField
     {

@@ -1,0 +1,19 @@
+﻿.metadata-field {
+    display: flex;
+    margin: 10px;
+}
+
+.metadata-key {
+    margin: 10px;
+    width: 100px;
+    flex-grow: 1;
+    flex-basis: 0;
+    color: red;
+}
+
+.metadata-value {
+    margin: 10px;
+    width: 100px;
+    flex-grow: 2;
+    flex-basis: 0;
+}

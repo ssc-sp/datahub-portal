@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using Xunit;
 
-namespace Datahub.Metadata.Tests
+namespace NRCan.Datahub.Metadata.Tests
 {
     public class MetadataDefinitionTests
     {

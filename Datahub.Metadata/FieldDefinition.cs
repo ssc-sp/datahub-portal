@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 
-namespace Datahub.Metadata
+namespace NRCan.Datahub.Metadata
 {
     public class FieldDefinition
     {
@@ -20,7 +21,12 @@ namespace Datahub.Metadata
         public string ObligationFrench { get; set; }
         public List<FieldChoice> Choices { get; set; }
 
+        public string Name => IsFrenchCulture() ? NameFrench : NameEnglish;
+        public string Description => IsFrenchCulture() ? DescriptionFrench : DescriptionEnglish;
+        public string Obligation => IsFrenchCulture() ? ObligationFrench : ObligationEnglish;
         public bool IsMandatory => "Mandatory".Equals(ObligationEnglish, StringComparison.InvariantCultureIgnoreCase);
         public bool HasChoices => Choices?.Count > 0;
-    }    
+
+        static bool IsFrenchCulture() => CultureInfo.CurrentCulture.Name.StartsWith("fr", StringComparison.InvariantCulture);
+    }
 }

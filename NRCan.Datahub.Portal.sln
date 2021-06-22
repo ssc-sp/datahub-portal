@@ -23,9 +23,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Devops", "Devops", "{FA743C
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FormTests", "FormTests\FormTests.csproj", "{C74EAD65-0161-425B-B121-30C69BED59A3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Datahub.Metadata", "Datahub.Metadata\Datahub.Metadata.csproj", "{9250A606-7EB6-46E7-93F6-B940DB23BB51}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Metadata", "Datahub.Metadata\Datahub.Metadata.csproj", "{9250A606-7EB6-46E7-93F6-B940DB23BB51}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Datahub.Metadata.Tests", "Datahub.Metadata.Tests\Datahub.Metadata.Tests.csproj", "{83A2FEC1-BDE1-4779-931D-C56FF5DE77F7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Metadata.Tests", "Datahub.Metadata.Tests\Datahub.Metadata.Tests.csproj", "{83A2FEC1-BDE1-4779-931D-C56FF5DE77F7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -62,8 +62,8 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {9DC4B901-16FF-4FF2-9ED6-B286EA17048E}
-		RESX_AutoCreateNewLanguageFiles = True
 		RESX_ConfirmAddLanguageFile = True
+		RESX_AutoCreateNewLanguageFiles = True
+		SolutionGuid = {9DC4B901-16FF-4FF2-9ED6-B286EA17048E}
 	EndGlobalSection
 EndGlobal

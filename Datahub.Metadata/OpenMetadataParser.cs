@@ -3,7 +3,7 @@ using CsvHelper;
 using CsvHelper.Configuration;
 using System.Globalization;
 
-namespace Datahub.Metadata
+namespace NRCan.Datahub.Metadata
 {
     public class OpenMetadataParser
     {

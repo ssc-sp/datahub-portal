@@ -1,7 +1,7 @@
 using System.IO;
 using Xunit;
 
-namespace Datahub.Metadata.Tests
+namespace NRCan.Datahub.Metadata.Tests
 {
     public class OpenMetadataParserTests
     {

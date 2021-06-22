@@ -1,0 +1,73 @@
+﻿@using NRCan.Datahub.Metadata
+
+@if (Definitions != null && FieldValues != null)
+{
+    <div class="metadata-grid" style="margin: 10px">
+
+        <MetadataFieldEditor HeaderRole="true" />
+
+        @foreach (var field in GetFieldValues())
+        {
+            <MetadataFieldEditor FieldValue="field"
+                                 Definitions="Definitions"
+                                 OnDeleted="OnFieldDeleted"
+                                 OnFieldChanged="OnFieldChanged" />
+        }
+
+    </div>
+}
+
+@code {
+
+    [Parameter]
+    public MetadataDefinition Definitions { get; set; }
+
+    [Parameter]
+    public FieldValues FieldValues { get; set; }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+    }
+
+    private async Task OnFieldDeleted(FieldValue field)
+    {
+        await Task.Run(() => FieldValues.Remove(field));
+    }
+
+    private async Task OnFieldChanged(FieldValue field)
+    {
+        await Task.Run(() =>
+        {
+            if (!FieldValues.Contains(field))
+            {
+                FieldValues.Add(field);
+            }
+            
+            if (!string.IsNullOrEmpty(field.DefinitionId) && field == FieldValues.LastOrDefault())
+            {
+                AddField();
+            }
+        });
+    }
+
+    private IEnumerable<FieldValue> GetFieldValues()
+    {
+        foreach (var fieldValue in FieldValues)
+        {
+            yield return fieldValue;
+        }
+
+        var lastValue = FieldValues.LastOrDefault();
+
+        if (lastValue == null || !string.IsNullOrEmpty(lastValue.DefinitionId))
+        {
+            yield return new FieldValue();
+        }
+    }
+
+    private void AddField()
+    {
+        FieldValues.Add(new FieldValue());
+    }
+}
