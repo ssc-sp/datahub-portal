@@ -175,6 +175,9 @@ namespace NRCan.Datahub.ProjectForms.Data.PIP
         [AeFormCategory("Latest Update Information", 60)]
         [Required] public DateTime Date_Updated_DT { get; set; }
         
+        [NotMapped]
+        [AeFormIgnore]
+        public string PowerBiUrl { get; set; }
 
 
         [AeFormIgnore]

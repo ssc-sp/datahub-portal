@@ -43,6 +43,10 @@ using NRCan.Datahub.Portal.Data.Finance;
 using NRCan.Datahub.Portal.Data.WebAnalytics;
 using BlazorApplicationInsights;
 using NRCan.Datahub.Portal.RoleManagement;
+using Microsoft.Graph;
+using Polly;
+using System.Net.Http;
+using Polly.Extensions.Http;
 
 namespace NRCan.Datahub.Portal
 {
@@ -107,6 +111,7 @@ namespace NRCan.Datahub.Portal
             ConfigureDatahubServices(services);
 
             services.AddHttpClient();
+            services.AddHttpClient<IGraphServiceClient, GraphServiceClient>().AddPolicyHandler(GetRetryPolicy());
             services.AddFileReaderService();
             services.AddBlazorDownloadFile();
             services.AddScoped<ApiTelemetryService>();
@@ -123,6 +128,17 @@ namespace NRCan.Datahub.Portal
 
             services.AddSignalRCore();
         }
+
+        static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
+        {
+            return HttpPolicyExtensions
+                .HandleTransientHttpError()
+                .OrResult(msg => msg.StatusCode == System.Net.HttpStatusCode.NotFound)
+                .WaitAndRetryAsync(6, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2,
+                                                                            retryAttempt)));
+        }
+
+
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -231,7 +247,7 @@ namespace NRCan.Datahub.Portal
 
                 services.AddSingleton<CommonAzureServices>();
                 services.AddScoped<DataLakeClientService>();
-
+                
                 services.AddScoped<IUserInformationService, UserInformationService>();
                 services.AddSingleton<IMSGraphService, MSGraphService>();
 
