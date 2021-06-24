@@ -27,7 +27,8 @@ The web interface lets users browse data project, request access and work with t
 
 ## System Architecture
 
-The diagram below shows the key components of the platfor
+The diagram below shows the key components of the platform
+
 ![image](https://user-images.githubusercontent.com/82101285/122604469-fd8a0800-d043-11eb-8e51-e1a3b3325ee2.png)
 
 # Github Structure
