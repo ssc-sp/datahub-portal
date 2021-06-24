@@ -4,14 +4,14 @@
 {
     <div class="metadata-grid" style="margin: 10px">
 
-        <MetadataFieldEditor HeaderRole="true" />
+        <MetadataFieldEditorA HeaderRole="true" />
 
         @foreach (var field in GetFieldValues())
-        {
-            <MetadataFieldEditor FieldValue="field"
-                                 Definitions="Definitions"
-                                 OnDeleted="OnFieldDeleted"
-                                 OnFieldChanged="OnFieldChanged" />
+        { 
+            <MetadataFieldEditorA FieldValue="field"
+                                  Definitions="Definitions"
+                                  OnDeleted="OnFieldDeleted"
+                                  OnFieldChanged="OnFieldChanged" />
         }
 
     </div>
