@@ -2,16 +2,14 @@
 using Azure.Storage.Files.DataLake.Models;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using NRCan.Datahub.Shared.Data;
 using NRCan.Datahub.Shared.Services;
 using System;
-using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace NRCan.Datahub.Portal.Services
 {
-    public class DataCreatorService : BaseService
+    public class DataCreatorService : BaseService, IDataCreatorService
     {        
         private ILogger<DataCreatorService> _logger;
         private DataLakeClientService _dataLakeClientService;

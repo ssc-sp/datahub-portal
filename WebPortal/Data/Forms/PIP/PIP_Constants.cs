@@ -125,7 +125,11 @@ namespace NRCan.Datahub.ProjectForms.Data.PIP
 "Contributions in support of Accommodation Measures for the Trans Mountain Expansion project (voted)",
 "Contributions in support of the Electric Vehicle Infrastructure Demonstration Program (voted)",
 "Contributions in support of Climate Change Adaptation (voted)",
-"Grants in support of Home Retrofits (voted)"};
+"Grants in support of Home Retrofits (voted)",
+"Payments to the Nova Scotia Offshore Revenue Account (Statutory)",
+"Payment to support students and youth impacted by Covid-19",
+"Fund for Safety measures in forest sector operations (COVID-19)"
+        };
 
         public static readonly string[] TRANSFER_PROGRAMS_LESS5 = {"Grants in support of Outreach and Engagement, Energy Efficiency and Energy Innovation (voted)",
 "Grants in support of Innovative Solutions Canada (voted)",
@@ -143,7 +147,8 @@ namespace NRCan.Datahub.ProjectForms.Data.PIP
 "Grants and Contributions in support of Oil Spill Recovery Technology under the program entitled Incentives to Develop Oil Spill Recovery Technologies (voted)",
 "Contributions in support of Cyber Security and Critical Energy Infrastructure Protection (voted)",
 "Contributions in support of Wildland Fire Resilience (voted)",
-"Contributions in support of Earthquake Early Warning (voted)"};
+"Contributions in support of Earthquake Early Warning (voted)",
+"Climate Action Support Payments (Energy Manager Program and Clean Energy for Rural and Remote Communities Program)"};
 
         public static readonly string[] HORIZONTAL_INITIATIVES = { "CGCC – Clean Growth and Climate Change (ECCC)",
 "Emergency Management Strategy (PSC)",

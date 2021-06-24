@@ -9,17 +9,17 @@ using System.Threading.Tasks;
 
 namespace NRCan.Datahub.Portal.Services
 {
-    public class DataSharingService : BaseService
+    public class DataSharingService : BaseService, IDataSharingService
     {
         private ILogger<DataSharingService> _logger;
         private DataLakeClientService _dataLakeClientService;
-        private CognitiveSearchService _cognitiveSearchService;
+        private ICognitiveSearchService _cognitiveSearchService;
 
         public DataSharingService(ILogger<DataSharingService> logger,
                                   DataLakeClientService dataLakeClientService,
                                   IApiService apiService,
                                   NavigationManager navigationManager,
-                                  CognitiveSearchService cognitiveSearchService,
+                                  ICognitiveSearchService cognitiveSearchService,
                                   UIControlsService uiService)
             : base(navigationManager, apiService, uiService)
         {
@@ -52,7 +52,7 @@ namespace NRCan.Datahub.Portal.Services
                 file.ownedby = newOwner.Id;
                 file.lastmodifiedts = DateTime.UtcNow;
                 fileClient.SetMetadata(file.GenerateMetadata());
-                              
+
                 await _cognitiveSearchService.EditDocument(file);
 
                 // STEP 3: Assign us back as a shared user
@@ -75,7 +75,7 @@ namespace NRCan.Datahub.Portal.Services
                 base.DisplayErrorUI(ex);
             }
 
-            return false;          
+            return false;
         }
 
         public async Task<bool> AddSharedUsers(FileMetaData file, string sharedUserId, string role)
@@ -87,7 +87,7 @@ namespace NRCan.Datahub.Portal.Services
 
                 var status = result ? "SUCCEEDED" : "FAILED";
                 _logger.LogDebug($"Added shared user for file: {file.folderpath}/{file.filename} for user: {sharedUserId} with role: {role} {status}.");
-             
+
                 return result;
             }
             catch (Exception ex)
@@ -96,7 +96,7 @@ namespace NRCan.Datahub.Portal.Services
                 base.DisplayErrorUI(ex);
             }
 
-            return false;          
+            return false;
         }
 
         public async Task<bool> RemoveSharedUsers(FileMetaData file, string sharedUserId)
@@ -106,7 +106,7 @@ namespace NRCan.Datahub.Portal.Services
                 var result = await _dataLakeClientService.RemoveSharedUser(file, sharedUserId);
                 var status = result ? "SUCCEEDED" : "FAILED";
                 _logger.LogDebug($"Removed shared user for file: {file.folderpath}/{file.filename} for user: {sharedUserId} {status}.");
-             
+
                 return result;
             }
             catch (Exception ex)
@@ -115,7 +115,7 @@ namespace NRCan.Datahub.Portal.Services
                 base.DisplayErrorUI(ex);
             }
 
-            return false;          
+            return false;
         }
 
         public async Task LoadSharedUsers(FileMetaData file)

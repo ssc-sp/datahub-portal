@@ -1,0 +1,357 @@
+@using Microsoft.Extensions.Logging
+@using System.IO
+
+@inject NotifierService NotifierService
+@inject NavigationManager NavigationManager
+@inject ILogger<AddDataBar> logger
+@inject IApiService ApiService
+@inject IJSRuntime JSRuntime
+@inject UIControlsService UI
+@inject IFileReaderService fileReaderService
+@inject IDataRetrievalService DataRetrievalService
+
+<EditForm Model="_fileMetadata" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <div>
+        <div class="header-wrapper">
+            <div class="header">
+                <h4 class="nrcan-typography h4">@Localizer["ADD-DATA-PAGE.AddData"]</h4>
+            </div>
+        </div>
+        <div class="bodytext">
+            @Localizer["ADD-DATA-PAGE.Instructions"]
+        </div>
+        <div class="bodytext">
+            <div class="bluetext">*&nbsp;</div>@Localizer["RequiredField"]
+        </div>
+        <div class="bodytext">
+            <label for="description" class="formlabel">@Localizer["ADD-DATA-PAGE.Description-Label"]</label>
+            <InputTextArea @bind-Value="_fileMetadata.description" class="formtextarea" id="description" placeholder=@Localizer["ADD-DATA-PAGE.Description-Placeholder"] rows="4" />
+        </div>
+        <div class="bodytext">
+            <div class="formlabel">
+                @Localizer["ADD-DATA-PAGE.File-Label"]
+            </div>
+            <div class="drag-drop-zone">
+                <label>
+                    @status
+                    <Microsoft.AspNetCore.Components.Forms.InputFile OnChange="@OnInputFileChange" multiple />
+                </label>
+            </div>
+        </div>
+        <div class="bodytext">
+            <label for="tags" class="formlabel">@Localizer["ADD-DATA-PAGE.Tags-Label"]</label>
+            <InputText @bind-Value="_fileMetadata._tags" class="formuserinput" id="tags" placeholder=@Localizer["ADD-DATA-PAGE.Tags-Placeholder"] />
+        </div>
+        <div class="bodytext">
+            <label for="securityclass" class="formlabel">@Localizer["ADD-DATA-PAGE.SecurityClassification-Label"]<div class="bluetext">*</div></label>
+            <AeDropdown Items="securityClassOptions" Renderer="GetOption" OnChange="HandleDropdownChange" LabelRenderFragment="getIcon" id="securityDropdown" />
+        </div>
+        <div class="errortext">
+            <div class="formlabel"></div>
+            <ValidationMessage For="@(() => _fileMetadata.securityclass)" />
+        </div>
+
+        @foreach (var field in _fileMetadata.customfields)
+        {
+            showHeader = _fileMetadata.customfields.First() == field;
+            <CustomFields Field="@field" CustomFieldChanged="CustomFieldChanged" DeleteRow="DeleteRow" IncludeHeader="showHeader" />
+        }
+
+@*        <div class="bodytext">
+            <div class="formlabel">
+                @if (_fileMetadata.customfields.Count == 0)
+                {
+                    <a>@Localizer["ADD-DATA-PAGE.CustomFields-Label"]</a>
+                }
+            </div>
+            @if (showAddRow)
+            {
+                <div class="roundbutton" style="margin-right: 1rem" @onclick="AddRow">
+                    <i class="fal fa-plus"></i>
+                </div>
+            }
+        </div>
+        <div class="bodytext">
+            <div class="privacytext">
+                @Localizer["ADD-DATA-PAGE.Disclaimer-1"]&nbsp;
+                <div class="bluetext" @onclick="NavigateToTermsOfUse">@Localizer["TermsOfUse"]</div>&nbsp;
+                @Localizer["ADD-DATA-PAGE.Disclaimer-2"]&nbsp;
+                <div class="bluetext" @onclick="NavigateToPrivacyStatement">@Localizer["PrivacyPolicy"]</div>&nbsp;
+                @Localizer["ADD-DATA-PAGE.Disclaimer-3"]
+            </div>
+        </div>*@
+
+        @if(isLoading)
+        {
+            <div class="bodytext">
+                <UploadProgress File="@_fileMetadata" />
+            </div>
+        }
+        <div class="bodytext">
+            <button class="submitbutton cancel" type="reset" @onclick="@(() => NavigationManager.NavigateTo("data"))">@Localizer["BUTTONS.Cancel"]</button>
+            <button class="submitbutton finish" disabled="@isSubmitDisabled" type="submit">@Localizer["BUTTONS.Upload"]</button>
+        </div>
+    </div>
+</EditForm>
+
+
+@code
+{
+    [Parameter]
+    public string DummyParam { get; set; }
+
+    public bool isLoading { get; set; } = false;
+
+    private FileMetaData _fileMetadata;
+    private IFileListEntry _fileToUpload;
+    private string status;
+    bool showAddRow = true;
+    bool showHeader;
+    private ElementReference inputTypeFileElement;
+    private ElementReference dropTargetInput;
+    private IFileReference fileReference;
+    //private IBrowserFile browserFile;
+
+    
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        NotifierService.Notify += OnNotify;
+        
+    }
+
+    public async Task OnNotify(string key, bool reloadData)
+    {
+        if (key == "adddata")
+        {            
+            await InvokeAsync(() => {StateHasChanged();});
+        }
+    }
+
+    private async Task OnInputFileChange(InputFileChangeEventArgs e)
+    {
+        foreach (var file in e.GetMultipleFiles(10))
+        {
+            
+            ApiService.browserFile = file;
+            status = file.Name;
+        }
+        StateHasChanged();
+    }
+
+    private async Task ResetControls()
+    {
+        ApiService.browserFile = null;
+        status = Localizer.GetString("ADD-DATA-PAGE.DefaultStatusText");
+        _fileMetadata = new FileMetaData();
+        isLoading = false;
+        StateHasChanged();
+    }
+
+    public bool isSubmitDisabled
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(status))
+            {
+                return true;
+            }
+
+            if (string.IsNullOrWhiteSpace(_fileMetadata.securityclass))
+            {
+                return true;
+            }
+
+            return false;
+        }
+    }
+
+    private static List<string> securityClassOptions = new List<string>()
+    {
+        SecurityClassification.Unclassified,
+        SecurityClassification.ProtectedA,
+        SecurityClassification.ProtectedB
+    };
+
+    private async void HandleDropdownChange(string selectedItem)
+    {
+        switch (selectedItem)
+        {
+            case SecurityClassification.Unclassified:
+            case SecurityClassification.ProtectedA:
+                {
+                    _fileMetadata.securityclass = selectedItem;
+                }
+                break;
+
+            case SecurityClassification.ProtectedB:
+                {
+                    var textList = new List<string>()
+                    {
+                        Localizer.GetString("ADD-DATA-PAGE.Protected-B-Warning-1"),
+                        Localizer.GetString("ADD-DATA-PAGE.Protected-B-Warning-2")
+                    };
+
+                    await UI.ToggleModal(
+    @<WarningModal OnDecision="HandleWarningDecision" WarningTextString=@textList />
+    );
+                }
+                break;
+        }
+        StateHasChanged();
+    }
+
+    protected async override Task OnAfterRenderAsync(bool firstRender)
+    {
+        await JSRuntime.InvokeAsync<object>("SetFocusToElement", "description");
+    }
+
+    protected override void OnParametersSet()
+    {
+        status = Localizer.GetString("ADD-DATA-PAGE.DefaultStatusText");
+        _fileMetadata = new FileMetaData();
+    }
+
+    private void NavigateToTermsOfUse()
+    {
+        NavigationManager.NavigateTo("termsandconditions");
+    }
+
+    private void NavigateToPrivacyStatement()
+    {
+        NavigationManager.NavigateTo("privacystatement");
+    }
+    private void AddRow()
+    {
+        _fileMetadata.customfields.Add(new Customfield { key = string.Empty, value = string.Empty });
+        ToggleAddRowSymbol();
+        StateHasChanged();
+    }
+    private void ToggleAddRowSymbol()
+    {
+        showAddRow = _fileMetadata.customfields.All(f => !string.IsNullOrWhiteSpace(f.key) && !string.IsNullOrWhiteSpace(f.value));
+    }
+    public void CustomFieldChanged()
+    {
+        ToggleAddRowSymbol();
+        StateHasChanged();
+    }
+    public void DeleteRow(Customfield customField)
+    {
+        _fileMetadata.customfields.Remove(customField);
+        StateHasChanged();
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (ApiService.browserFile != null)
+        {
+             await ApiService.PopulateOtherMetadata(_fileMetadata);
+
+            _fileMetadata.folderpath = ApiService.CurrentFolder.fullPathFromRoot;
+            _fileMetadata.filename = ApiService.browserFile.Name;
+            _fileMetadata.filesize = ApiService.browserFile.Size.ToString();
+            _fileMetadata.lastmodifiedts = DateTime.Now;
+
+            
+            //await ApiService.UploadGen2File(browserFile, _fileMetadata);
+
+            var overwriteFile = ApiService.CurrentFolder.AllFiles.FirstOrDefault(f => f.filename == ApiService.browserFile.Name);
+            if (overwriteFile != null)
+            {
+                _fileMetadata.fileid = overwriteFile.fileid;
+                List<string> overwriteList = new List<string>() { Localizer["ADD-DATA-PAGE.OverwriteFilePrompt", _fileMetadata.filename] };
+                await UI.ToggleModal(
+    @<UserChoiceModal HeaderText="@Localizer["ADD-DATA-PAGE.AddData"]" ChoiceTextList=overwriteList OnDecision="HandleUpload"></UserChoiceModal>
+    );
+            }
+            else
+            {
+                isLoading = true;
+                HandleUpload(true);
+                
+            }
+        }
+    }
+
+    private async void HandleUpload(bool isConfirmed)
+    {
+        if (isConfirmed)
+        {
+            _fileMetadata.uploadStatus = FileUploadStatus.SelectedToUpload;
+
+            CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+
+
+            
+
+            if (_fileMetadata != null && !string.IsNullOrWhiteSpace(_fileMetadata.filename))
+            {
+                // We have file in browser, add to list of files downloaded!
+                ApiService.UploadedFiles.Add($"{_fileMetadata.folderpath}/{_fileMetadata.filename}", _fileMetadata);
+
+                InvokeAsync(async () =>
+                {
+                    await ApiService.UploadGen2File(_fileMetadata);
+                    await NotifierService.Update("filegrid", true);
+                    await ResetControls();
+                });
+
+                
+                
+            }
+            else
+            {
+                _fileMetadata.FinishUploadInfo(FileUploadStatus.FileUploadError);
+
+                await UI.ToggleModal();
+                StateHasChanged();
+            }
+        }
+    }
+
+    private async Task OnSecClassificationClick()
+    {
+        await JSRuntime.InvokeAsync<object>("toggleMenu", "securityclassification");
+    }
+
+    private async void HandleWarningDecision(bool IsContinue)
+    {
+        _fileMetadata.securityclass = "";
+        await UI.ToggleModal();
+        StateHasChanged();
+    }
+
+    void HandleFileSelected(IFileListEntry[] files)
+    {
+        _fileToUpload = files.FirstOrDefault();
+        status = _fileToUpload.Name;
+        StateHasChanged();
+    }
+
+    public async Task OnInputChange(EventArgs e)
+    {
+        foreach (var file in await fileReaderService.CreateReference(dropTargetInput).EnumerateFilesAsync())
+        {
+            fileReference = file;
+            var fileInfo = await fileReference.ReadFileInfoAsync();
+            status = fileInfo.Name;
+            _fileMetadata.filename = fileInfo.Name;
+            StateHasChanged();
+        }
+    }
+
+    private async Task<RenderFragment> getIcon()
+    {
+        return 
+    @<div id="securityClassButton" class="ae button"> <div>@_fileMetadata.securityclass</div> <i class="fal fa-chevron-down chevronborder"></i></div>;
+    }
+
+
+    private RenderFragment GetOption(string option)
+    {
+        return @<span>@Localizer[option]</span>;
+    }
+}

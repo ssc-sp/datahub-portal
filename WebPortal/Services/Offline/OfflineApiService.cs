@@ -1,16 +1,12 @@
-﻿using BlazorInputFile;
-using Microsoft.Extensions.Logging;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.IO;
-using System.Linq;
-using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using Tewr.Blazor.FileReader;
-using NRCan.Datahub.Shared.Services;
+using BlazorInputFile;
+using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.Extensions.Logging;
 using NRCan.Datahub.Shared.Data;
+using NRCan.Datahub.Shared.Services;
 
 namespace NRCan.Datahub.Portal.Services.Offline
 {
@@ -18,15 +14,16 @@ namespace NRCan.Datahub.Portal.Services.Offline
     public class OfflineApiService : IApiService
     {
 
-        private IFileListEntry _file;
+        private IFileListEntry _file = null;
+
         public IFileListEntry GetFile()
         {
             return _file;
         }
+
         public string CurrentFolderId { get; set; }
         private IUserInformationService _userInformationService;
         private readonly ILogger<OfflineApiService> _logger;
-        private List<FileMetaData> _mySharedDataFilelist;
 
         public Exception LastException { get; set; }
 
@@ -55,6 +52,8 @@ namespace NRCan.Datahub.Portal.Services.Offline
         }
 
         public Dictionary<string, FileMetaData> UploadedFiles { get; set; } = new Dictionary<string, FileMetaData>();
+        public IBrowserFile browserFile { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public string ProjectUploadCode { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
         public OfflineApiService(IUserInformationService userInformationService, ILogger<OfflineApiService> logger)
         {
@@ -109,29 +108,7 @@ namespace NRCan.Datahub.Portal.Services.Offline
             fileMetadata.fileformat = GetExtension(fileMetadata.filename);
         }
 
-        public async Task UploadFile(FileMetaData fileMetadata)
-        {
-            try
-            {
-                CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
-                fileMetadata.uploadStatus = FileUploadStatus.SelectedToUpload;
-
-                UploadedFiles.Add( $"{fileMetadata.folderpath}/{fileMetadata.filename}", fileMetadata);
-                   
-                fileMetadata.filesize = fileMetadata.fileData.Length.ToString();
-                
-                fileMetadata.FinishUploadInfo(FileUploadStatus.FileUploadSuccess);
-                UploadedFiles.Remove( $"{fileMetadata.folderpath}/{fileMetadata.filename}");
-                
-                _logger.LogInformation("End File Read");
-            }
-            catch (Exception e)
-            {
-                fileMetadata.FinishUploadInfo(FileUploadStatus.FileUploadError);
-                _logger.LogError(e, "Error uploading file");
-            }
-        }
-
+        
         public string GetExtension(string FileName)
         {
             int pos = FileName.LastIndexOf(".") + 1;
@@ -141,36 +118,43 @@ namespace NRCan.Datahub.Portal.Services.Offline
 
         public Task<long> GetUserUsedDataTotal(Microsoft.Graph.User user)
         {
-            throw new NotImplementedException();
+            return Task.FromResult(0L);
         }
 
 
         public Task RestoreVersionOfBlob(string fileid, string versionId)
         {
-            throw new NotImplementedException();
+            return Task.FromResult(0);
         }
 
         public Task<Folder> SearchIndex(dynamic folder, string filter, Microsoft.Graph.User user)
         {
-            throw new NotImplementedException();
+            return Task.FromResult(new Folder());
+
         }
 
         public Task<Uri> DownloadFile(FileMetaData file)
         {
-            throw new NotImplementedException();
+            return Task.FromResult(new Uri(""));
         }
 
         public Task<Folder> GetFileList(Folder folder, Microsoft.Graph.User user, bool onlyFolders = false, bool recursive = false)
         {
-            throw new NotImplementedException();
+            return Task.FromResult(new Folder());
+
         }
 
         public Task<bool> DoesFolderExist(string folderName)
         {
-            throw new NotImplementedException();
+            return Task.FromResult(true);
         }
 
         public Task LoadApplicationData()
+        {
+            return Task.FromResult(0);
+        }
+
+        public Task UploadGen2File(FileMetaData fileMetadata)
         {
             throw new NotImplementedException();
         }

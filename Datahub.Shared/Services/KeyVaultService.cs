@@ -83,12 +83,12 @@ namespace NRCan.Datahub.Shared.Services
                 var azureCredentialOptions = new DefaultAzureCredentialOptions();
                 azureCredentialOptions.SharedTokenCacheUsername = _configuration["KeyVault:UserName"];
                 credential = new DefaultAzureCredential(azureCredentialOptions);
-                _keyVaultClient = new KeyVaultClient(async (authority, resource, scope) =>
+                _keyVaultClient = new KeyVaultClient((authority, resource, scope) =>
                 {
                     var token = credential.GetToken(
                         new Azure.Core.TokenRequestContext(
                             new[] { "https://vault.azure.net/.default" }));
-                    return token.Token;
+                    return Task.FromResult(token.Token);
                 });
             }
             else

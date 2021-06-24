@@ -27,10 +27,10 @@
         await JSRuntime.InvokeVoidAsync("SetFocusToElement", "escapearea");
     }
 
-    private void UpdatePageOverlay()
+    private async void UpdatePageOverlay()
     {
         _currentModalRenderFragment = UI.CurrentModalRenderFragment;
-        StateHasChanged();
+        await InvokeAsync(() =>  StateHasChanged());
     }
 
     private async Task CloseModalWithClick()

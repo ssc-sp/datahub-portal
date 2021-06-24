@@ -1,37 +1,35 @@
 ﻿using Azure.Storage;
 using Azure.Storage.Files.DataLake;
 using Azure.Storage.Files.DataLake.Models;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.Identity.Client;
 using NRCan.Datahub.Shared.Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace NRCan.Datahub.Shared.Services
 {
     public class DataLakeClientService
     {
-        private CognitiveSearchService _cognitiveSearchService;
+        private ICognitiveSearchService _cognitiveSearchService;
         private ILogger<DataLakeClientService> _logger;
         private IKeyVaultService _keyVaultService;
         private IOptions<APITarget> _targets;
         private StorageSharedKeyCredential _sharedKeyCredential;
+        private Dictionary<string, DataLakeServiceClient> _projectServiceClients;
 
         public DataLakeClientService(ILogger<DataLakeClientService> logger,
                     IKeyVaultService keyVaultService,
                     IOptions<APITarget> targets,
-                    CognitiveSearchService cognitiveSearchService
+                    ICognitiveSearchService cognitiveSearchService
                     )
         {
             _cognitiveSearchService = cognitiveSearchService;
             _logger = logger;
             _keyVaultService = keyVaultService;
-            _targets = targets;            
+            _targets = targets;
         }
 
         private DataLakeServiceClient dataLakeServiceClient { get; set; }
@@ -46,6 +44,17 @@ namespace NRCan.Datahub.Shared.Services
             dataLakeFileSystemClient = dataLakeServiceClient.GetFileSystemClient(_targets.Value.FileSystemName);
         }
 
+        private async Task<DataLakeServiceClient> GetNewProjectClient(string project)
+        {
+            var key = $"datahub-blob-key-{project}";
+            var storageAccountName = $"dh{project}dev";
+            var datalakeSecret = await _keyVaultService.GetSecret(key);
+            _sharedKeyCredential = new StorageSharedKeyCredential(storageAccountName, datalakeSecret);
+            string dfsUri = $"https://{storageAccountName}.dfs.core.windows.net";
+
+            return new DataLakeServiceClient(new Uri(dfsUri), _sharedKeyCredential);
+            //dataLakeFileSystemClient = dataLakeServiceClient.GetFileSystemClient(_targets.Value.FileSystemName);
+        }
 
         public async Task<StorageSharedKeyCredential> GetSharedKeyCredential()
         {
@@ -59,14 +68,24 @@ namespace NRCan.Datahub.Shared.Services
             return dataLakeServiceClient;
         }
 
-        public async Task<DataLakeFileSystemClient> GetDataLakeFileSystemClient()
+        public async Task<DataLakeFileSystemClient> GetDataLakeFileSystemClient(string project = null)
         {
             await CheckClients();
-            return dataLakeFileSystemClient;
+            if (project is null)
+            {
+                return dataLakeFileSystemClient;
+            }
+            else
+            {
+                var _projectServiceClient = await GetProjectServiceClient(project);
+                return _projectServiceClient.GetFileSystemClient(_targets.Value.FileSystemName);
+
+            }
+
         }
 
         public async Task<bool> AssignOwnerPermissionsToFile(FileMetaData file, string userId, string permissions)
-        {            
+        {
             var accessControlTuple = await GetAccessControlList(file);
             var accessControlList = accessControlTuple.Item1;
             var fileClient = accessControlTuple.Item2;
@@ -133,7 +152,7 @@ namespace NRCan.Datahub.Shared.Services
                 Sharedwith sharedwith = new Sharedwith();
                 sharedwith.userid = item.EntityId;
                 sharedwith.role = item.Permissions.HasFlag(RolePermissions.Write) ? "Editor" : "Viewer";
-                file.sharedwith.Add(sharedwith);                
+                file.sharedwith.Add(sharedwith);
             }
         }
 
@@ -154,6 +173,29 @@ namespace NRCan.Datahub.Shared.Services
             {
                 await SetDataLakeServiceClient();
             }
+
+            if (_projectServiceClients == null)
+            {
+                _projectServiceClients = new Dictionary<string, DataLakeServiceClient>();
+            }
+
         }
+
+        private async Task<DataLakeServiceClient> GetProjectServiceClient(string project)
+        {
+            CheckClients();
+            if (_projectServiceClients.ContainsKey(project))
+            {
+                return _projectServiceClients[project];
+            }
+            else
+            {
+                var projectServiceClient = await GetNewProjectClient(project);
+                _projectServiceClients.Add(project, projectServiceClient);
+                return projectServiceClient;
+            }
+        }
+
+
     }
 }

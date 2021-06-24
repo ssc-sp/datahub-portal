@@ -1,18 +1,14 @@
-﻿using Azure.Identity;
-using Microsoft.AspNetCore.Components.Authorization;
+﻿using System;
+using System.Collections.Generic;
+using System.Net.Http;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
 using Microsoft.Graph.Auth;
 using Microsoft.Identity.Client;
 using NRCan.Datahub.Shared.Data;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http.Headers;
-using System.Threading.Tasks;
 
 namespace NRCan.Datahub.Shared.Services
 {
@@ -22,16 +18,17 @@ namespace NRCan.Datahub.Shared.Services
         private IConfiguration _configuration;
         private IWebHostEnvironment _webHostEnvironment;
         private ILogger<MSGraphService> _logger;
-        string accessToken;
+        private IHttpClientFactory _httpClientFactory;
 
         public Dictionary<string, GraphUser> UsersDict { get; set; }
 
-        public MSGraphService(IWebHostEnvironment webHostEnvironment, IConfiguration configureOptions, ILogger<MSGraphService> logger)
+        public MSGraphService(IWebHostEnvironment webHostEnvironment, IConfiguration configureOptions, ILogger<MSGraphService> logger, IHttpClientFactory clientFactory)
         {
             //clientSecret = configuration["ClientAppSecret"];            
             _webHostEnvironment = webHostEnvironment;
             _configuration = configureOptions;
             _logger = logger;
+            _httpClientFactory = clientFactory;
         }
 
         public GraphUser GetUser(string userId)
@@ -135,7 +132,11 @@ namespace NRCan.Datahub.Shared.Services
                                 .WithClientSecret(Environment.GetEnvironmentVariable("AZURE_CLIENT_SECRET"))
                                 .Build();
                 ClientCredentialProvider authProvider = new ClientCredentialProvider(confidentialClientApplication);
-                graphServiceClient = new GraphServiceClient(authProvider);
+
+                var httpClient = _httpClientFactory.CreateClient();
+                var graphServiceClient = new GraphServiceClient(httpClient);
+
+                graphServiceClient.AuthenticationProvider = authProvider;
 
             }
             catch (Exception e)

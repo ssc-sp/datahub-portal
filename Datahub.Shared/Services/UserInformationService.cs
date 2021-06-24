@@ -1,49 +1,19 @@
-﻿using Azure.Identity;
-using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using Microsoft.Graph;
-using Microsoft.Graph.Auth;
-using Microsoft.Identity.Client;
-using NRCan.Datahub.Shared.Data;
-using NRCan.Datahub.Shared.EFCore;
-using System;
-using System.Collections.Generic;
-using System.Globalization;
+﻿using System;
 using System.IO;
 using System.Linq;
-using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Net.Mail;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Web;
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.Extensions.Logging;
+using Microsoft.Graph;
+using Microsoft.Graph.Auth;
+using Microsoft.Identity.Client;
+using NRCan.Datahub.Shared.EFCore;
 
 namespace NRCan.Datahub.Shared.Services
 {
-    public interface IUserInformationService
-    {
-        //Task<byte[]> GetStreamWithAuthAsync(string accessToken, string endpoint);
-        Task<User> GetUserAsync();
-        Task<string> GetUserIdString();
-        Task<bool> HasUserAcceptedTAC();
-        Task<bool> RegisterUserTAC();
-        Task<bool> RegisterUserLanguage(string language);
-        Task<string> GetUserLanguage();
-        Task<bool> IsFrench();
-        Task<User> GetCurrentUserAsync();
-        Task<string> GetUserEmailDomain();
-        Task<string> GetUserEmailPrefix();
-        bool SetLanguage(string language);
-        Task<string> GetUserRootFolder();
-        
-        //Task<string> GetMePhotoAsync();
-    }
-
     public class UserInformationService : IUserInformationService
     {
         private ILogger<UserInformationService> _logger;
@@ -96,6 +66,7 @@ namespace NRCan.Datahub.Shared.Services
             var prefix = await GetUserEmailPrefix();
             return $"{domain}/{prefix}";
         }
+
         public async Task<User> GetUserAsync()
         {
             try
@@ -292,6 +263,7 @@ namespace NRCan.Datahub.Shared.Services
             var userSetting = _eFCoreDatahubContext.UserSettings.FirstOrDefault(u => u.UserId == userId);
             return userSetting != null ? userSetting.Language : string.Empty;
         }
+
         public bool SetLanguage(string language)
         {
             if (!Thread.CurrentThread.CurrentCulture.Name.Equals(language, StringComparison.OrdinalIgnoreCase))
@@ -313,6 +285,7 @@ namespace NRCan.Datahub.Shared.Services
             var lang = await GetUserLanguage();
             return !lang.ToLower().Contains("en");
         }
+
         public async Task<bool> HasUserAcceptedTAC()
         {
             var userId = await GetUserIdString();
@@ -320,7 +293,6 @@ namespace NRCan.Datahub.Shared.Services
 
             return userSetting != null ? userSetting.AcceptedDate.HasValue : false;
         }
-
 
         private async Task CheckUser()
         {

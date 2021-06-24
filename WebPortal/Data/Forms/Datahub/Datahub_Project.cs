@@ -101,7 +101,7 @@ namespace NRCan.Datahub.Data.Projects
         [StringLength(10)]
         public string Project_Acronym_CD { get; set; }
 
-        public string? Project_Admin { get; set; }
+        public string Project_Admin { get; set; }
         public string Project_Summary_Desc { get; set; }
         public string Project_Summary_Desc_Fr { get; set; }
 
