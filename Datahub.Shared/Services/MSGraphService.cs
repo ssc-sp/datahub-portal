@@ -134,7 +134,7 @@ namespace NRCan.Datahub.Shared.Services
                 ClientCredentialProvider authProvider = new ClientCredentialProvider(confidentialClientApplication);
 
                 var httpClient = _httpClientFactory.CreateClient();
-                var graphServiceClient = new GraphServiceClient(httpClient);
+                graphServiceClient = new GraphServiceClient(httpClient);
 
                 graphServiceClient.AuthenticationProvider = authProvider;
 
