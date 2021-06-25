@@ -296,7 +296,7 @@ namespace NRCan.Datahub.Shared.Services
                 
                 fileMetadata.uploadStatus = FileUploadStatus.UploadingToRepository;
 
-                var fileSystemClient = await _dataLakeClientService.GetDataLakeFileSystemClient(ProjectUploadCode);
+                var fileSystemClient = await _dataLakeClientService.GetDataLakeFileSystemClient();
                 var directoryClient = fileSystemClient.GetDirectoryClient(fileMetadata.folderpath);
                 DataLakeFileClient fileClient = directoryClient.GetFileClient(fileMetadata.filename);
 

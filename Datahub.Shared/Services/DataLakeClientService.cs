@@ -68,20 +68,10 @@ namespace NRCan.Datahub.Shared.Services
             return dataLakeServiceClient;
         }
 
-        public async Task<DataLakeFileSystemClient> GetDataLakeFileSystemClient(string project = null)
+        public async Task<DataLakeFileSystemClient> GetDataLakeFileSystemClient()
         {
             await CheckClients();
-            if (project is null)
-            {
-                return dataLakeFileSystemClient;
-            }
-            else
-            {
-                var _projectServiceClient = await GetProjectServiceClient(project);
-                return _projectServiceClient.GetFileSystemClient(_targets.Value.FileSystemName);
-
-            }
-
+            return dataLakeFileSystemClient;            
         }
 
         public async Task<bool> AssignOwnerPermissionsToFile(FileMetaData file, string userId, string permissions)
