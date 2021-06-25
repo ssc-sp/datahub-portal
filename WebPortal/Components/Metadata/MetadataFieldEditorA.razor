@@ -30,13 +30,13 @@
     <div class="metadata-value" style="width: 300px; margin: 2px; flex-grow: 1;">
         @if (HeaderRole)
         {
-            <string>Value</string>
+            <strong>Value</strong>
         }
         else
         {
             <div class="customuserinput">
                 <input type="text"
-                       @bind="FieldValue.Value"
+                       @bind="BoundValue"
                        @ref="FieldValueInput"
                        style="width: 100%" />
             </div>
@@ -87,6 +87,19 @@
                 FieldValue.DefinitionId = value;
                 OnFieldChanged.InvokeAsync(FieldValue);
                 FieldValueInput.FocusAsync();
+            }
+        }
+    }
+
+    private string BoundValue
+    {
+        get => FieldValue.Value;
+        set
+        {
+            if (value != FieldValue.Value)
+            {
+                FieldValue.Value = value;
+                OnFieldChanged.InvokeAsync(FieldValue);
             }
         }
     }

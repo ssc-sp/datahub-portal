@@ -8,12 +8,16 @@
 
         @foreach (var definition in Definitions.Fields)
         {
-            var fieldValue = GetFieldValue(definition.Id);
+            var fieldValue = GetFieldValue(definition.Id, Preview);
 
-            <MetadataFieldEditorB FieldValue="fieldValue" 
-                                  FieldLabel="@definition.Name"
-                                  Mandatory="definition.IsMandatory"
-                                  OnFieldChanged="OnFieldChanged" />
+            if (fieldValue != null)
+            {
+                <MetadataFieldEditorB Preview="Preview"
+                                      FieldValue="fieldValue"
+                                      FieldLabel="@definition.Name"
+                                      Mandatory="definition.IsMandatory"
+                                      OnFieldChanged="FieldChanged" />
+            }
         }
 
     </div>
@@ -22,35 +26,37 @@
 @code {
 
     [Parameter]
+    public bool Preview { get; set; }
+
+    [Parameter]
     public MetadataDefinition Definitions { get; set; }
 
     [Parameter]
     public FieldValues FieldValues { get; set; }
+
+    [Parameter]
+    public EventCallback<FieldValue> OnFieldChanged { get; set; }
 
     protected override void OnInitialized()
     {
         base.OnInitialized();
     }
 
-    private async Task OnFieldDeleted(FieldValue field)
+    private async Task FieldChanged(FieldValue field)
     {
-        await Task.Run(() => FieldValues.Remove(field));
-    }
-
-    private async Task OnFieldChanged(FieldValue field)
-    {
-        await Task.Run(() =>
+        if (!FieldValues.Contains(field))
         {
-            if (!FieldValues.Contains(field))
-            {
-                FieldValues.Add(field);
-            }
-        });
+            FieldValues.Add(field);
+        }
+        await OnFieldChanged.InvokeAsync(field);
     }
 
-    private FieldValue GetFieldValue(string definitionId)
+    private FieldValue GetFieldValue(string definitionId, bool preview)
     {
-        return FieldValues.FirstOrDefault(f => f.DefinitionId == definitionId) 
-            ?? new FieldValue() { DefinitionId = definitionId };
+        var field = FieldValues.FirstOrDefault(f => f.DefinitionId == definitionId);
+        if (!preview)
+            return field ?? new FieldValue() { DefinitionId = definitionId };
+        else
+            return field;
     }
 }

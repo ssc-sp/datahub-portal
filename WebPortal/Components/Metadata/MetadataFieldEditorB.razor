@@ -24,17 +24,26 @@
         else
         {
             <div class="customuserinput">
-                <input type="text"
-                       @bind="BoundValue"
-                       @ref="FieldValueInput"
-                       style="@FieldStyle" />
+
+                @if (Preview)
+                {
+                    <span>@BoundValue</span>
+                }
+                else
+                {
+                    <input type="text"
+                           @bind="BoundValue"
+                           @ref="FieldValueInput"
+                           disabled="@Preview"
+                           style="@FieldStyle" />
+                }
             </div>
         }
     </div>
 
     <!-- button -->
     <div class="metadata-button" style="width: 30px; margin: 2px; flex-grow: 0;">
-        @if (HeaderRole)
+        @if (HeaderRole || Preview)
         {
             // leave empty
         }
@@ -51,6 +60,9 @@
 
     [Parameter]
     public bool HeaderRole { get; set; }
+
+    [Parameter]
+    public bool Preview { get; set; }
 
     [Parameter]
     public FieldValue FieldValue { get; set; }
@@ -92,7 +104,8 @@
 
     private async void SelectField()
     {
-        await FieldValueInput.FocusAsync();
+        if (!Preview)
+            await FieldValueInput.FocusAsync();
     }
 }
 

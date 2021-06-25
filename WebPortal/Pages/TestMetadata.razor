@@ -1,14 +1,34 @@
 ﻿@page "/metadata"
 @using NRCan.Datahub.Metadata;
 
+<div>
+    <button @onclick="TogglePreview">Toggle Preview</button>
+</div>
 <AeFlex>
 
     <div style="width: 200px; flex-grow: 0.5">
-        <MetadataEditorA Definitions="@_definitions" FieldValues="@_fieldValues"></MetadataEditorA>
+        <div>
+            <h2>Metadata</h2>
+        </div>
+        @*<MetadataEditorA Definitions="@_definitions"
+        FieldValues="@_fieldValues"
+        OnFieldChanged="FieldChanged"
+        />*@
+        <MetadataEditorB Preview="false"
+                         Definitions="@_definitions"
+                         FieldValues="@_fieldValues"
+                         OnFieldChanged="FieldChanged" />
     </div>
 
     <div style="width: 200px; flex-grow: 0.5">
-        <MetadataEditorB Definitions="@_definitions" FieldValues="@_fieldValues"></MetadataEditorB>
+        <div>
+            <h2>Metadata Preview</h2>
+        </div>
+        <MetadataEditorB Preview="_preview"
+                         Definitions="@_definitions" 
+                         FieldValues="@_fieldValues" 
+                         OnFieldChanged="FieldChanged"
+                         />
     </div>
 
 </AeFlex>
@@ -21,6 +41,8 @@
 
     private FieldValues _fieldValues { get; set; }
 
+    private bool _preview = true;
+
     protected override async Task OnInitializedAsync()
     {
         var metadataCsv = await System.IO.File.ReadAllTextAsync("/temp/GCopenmetadata-GCmetadonneesouvertes.csv");
@@ -31,11 +53,23 @@
             new FieldValue()
             {
                 DefinitionId = "notes_fr",
+                Value = "Sample note francais"
             },
             new FieldValue()
             {
                 DefinitionId = "Type",
+                Value = "Sample type"
             }
         };
+    }
+
+    private void FieldChanged(FieldValue field)
+    {
+        StateHasChanged();
+    }
+
+    private void TogglePreview()
+    {
+        _preview = !_preview;
     }
 }

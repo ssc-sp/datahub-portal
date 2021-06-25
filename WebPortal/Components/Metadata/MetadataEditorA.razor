@@ -10,8 +10,8 @@
         { 
             <MetadataFieldEditorA FieldValue="field"
                                   Definitions="Definitions"
-                                  OnDeleted="OnFieldDeleted"
-                                  OnFieldChanged="OnFieldChanged" />
+                                  OnDeleted="FieldDeleted"
+                                  OnFieldChanged="FieldChanged" />
         }
 
     </div>
@@ -25,30 +25,33 @@
     [Parameter]
     public FieldValues FieldValues { get; set; }
 
+    [Parameter]
+    public EventCallback<FieldValue> OnFieldChanged { get; set; }
+
     protected override void OnInitialized()
     {
         base.OnInitialized();
     }
 
-    private async Task OnFieldDeleted(FieldValue field)
+    private async Task FieldDeleted(FieldValue field)
     {
-        await Task.Run(() => FieldValues.Remove(field));
+        FieldValues.Remove(field);
+        await OnFieldChanged.InvokeAsync(field);
     }
 
-    private async Task OnFieldChanged(FieldValue field)
+    private async Task FieldChanged(FieldValue field)
     {
-        await Task.Run(() =>
+        if (!FieldValues.Contains(field))
         {
-            if (!FieldValues.Contains(field))
-            {
-                FieldValues.Add(field);
-            }
-            
-            if (!string.IsNullOrEmpty(field.DefinitionId) && field == FieldValues.LastOrDefault())
-            {
-                AddField();
-            }
-        });
+            FieldValues.Add(field);
+        }
+
+        if (!string.IsNullOrEmpty(field.DefinitionId) && field == FieldValues.LastOrDefault())
+        {
+            AddField();
+        }
+
+        await OnFieldChanged.InvokeAsync();
     }
 
     private IEnumerable<FieldValue> GetFieldValues()
