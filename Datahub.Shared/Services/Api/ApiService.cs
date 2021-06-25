@@ -172,10 +172,61 @@ namespace NRCan.Datahub.Shared.Services
             }
         }
 
+        async static Task<Uri> GetUserDelegationSasBlob(FileMetaData file)
+        {
+            string cxnstring = @"DefaultEndpointsProtocol=https;AccountName=dhcanmetrobodev;AccountKey=FvGP17Hc8RlR5ztEjmwafUU/MFmILU8v5f+JQOf9bW+QZWYRoayUMyX38XxNrLbbICwrWnLLIGPlXi/b60gnBQ==;EndpointSuffix=core.windows.net";
+            BlobServiceClient blobServiceClient = new BlobServiceClient(cxnstring);
+            BlobContainerClient containerClient = blobServiceClient.GetBlobContainerClient("datahub");
+
+
+            // Get a reference to a blob named "sample-file" in a container named "sample-container"
+            BlobClient blobClient = containerClient.GetBlobClient(file.filename);
+            
+            // Get a user delegation key for the Blob service that's valid for 7 days.
+            // You can use the key to generate any number of shared access signatures 
+            // over the lifetime of the key.
+            Azure.Storage.Blobs.Models.UserDelegationKey userDelegationKey =
+                await blobServiceClient.GetUserDelegationKeyAsync(DateTimeOffset.UtcNow,
+                                                                  DateTimeOffset.UtcNow.AddDays(7));
+
+
+
+            // Create a SAS token that's also valid for 7 days.
+            BlobSasBuilder sasBuilder = new BlobSasBuilder()
+            {
+                BlobContainerName = "datahub",
+                BlobName = file.name,
+                Resource = "b",
+                StartsOn = DateTimeOffset.UtcNow,
+                ExpiresOn = DateTimeOffset.UtcNow.AddDays(1)
+            };
+
+            // Specify read and write permissions for the SAS.
+            sasBuilder.SetPermissions(BlobSasPermissions.Read |
+                                      BlobSasPermissions.Write);
+
+            // Add the SAS token to the blob URI.
+            BlobUriBuilder blobUriBuilder = new BlobUriBuilder(blobClient.Uri)
+            {
+                // Specify the user delegation key.
+                Sas = sasBuilder.ToSasQueryParameters(userDelegationKey,
+                                                      blobServiceClient.AccountName)
+            };
+
+            Console.WriteLine("Blob user delegation SAS URI: {0}", blobUriBuilder);
+            Console.WriteLine();
+            return blobUriBuilder.ToUri();
+        }
+
         public async Task<Uri> DownloadFile(FileMetaData file)
         {
             try
             {
+                if (!string.IsNullOrEmpty(ProjectUploadCode))
+                {
+                    return await GetUserDelegationSasBlob(file);                    
+                }
+
                 var fileSystemClient = await _dataLakeClientService.GetDataLakeFileSystemClient();
                 DataLakeDirectoryClient directoryClient = fileSystemClient.GetDirectoryClient(file.folderpath);
                 DataLakeFileClient fileClient = directoryClient.GetFileClient(file.filename);
