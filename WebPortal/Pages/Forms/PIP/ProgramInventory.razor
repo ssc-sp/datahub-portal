@@ -60,14 +60,6 @@
         </div>
     </AeFlex>
 
-
-    @if(!string.IsNullOrEmpty(_powerBiUrl))
-    {
-        <div>
-            <a href="@_powerBiUrl" target="blank">Open PowerBI Report</a>
-            
-        </div>
-    }
 }
 
 @code {
@@ -82,10 +74,9 @@
     private bool _navToEdit = false;
     private Microsoft.Graph.User CurrentUser;
     private PIPDBContext Context;
-    private string _powerBiUrl;
     private List<string> headers = new List<string>
-{
-	"Title","Lead Sector", "Report"
+    {
+	    "Title","Lead Sector", "Report"
     };
 
     private async Task<PIP_Tombstone> ClearForm()
@@ -130,8 +121,8 @@
         {
             if (!string.IsNullOrEmpty(powerBiTargets))
             {
-                _powerBiUrl = $"{powerBiTargets}rp:p_program_title={project.Program_Title.Replace(" ", "+")}";
-                project.PowerBiUrl = @<a href="@_powerBiUrl" target="blank">Open PowerBI Report</a>;
+                var powerBiUrl = $"{powerBiTargets}rp:p_program_title={project.Program_Title.Replace(" ", "+")}";
+                project.PowerBiUrl = @<a href="@powerBiUrl" target="blank">Open PowerBI Report</a>;
             }
         }
 
@@ -148,11 +139,7 @@
         var powerBiTargets = Configuration["PowerBiTargets:SPI"];
         _tombstone = project;
         _tombstone.Last_Updated_UserId = MSGraphService.GetUserName(_tombstone.Last_Updated_UserId);
-        if (!string.IsNullOrEmpty(powerBiTargets) && _tombstone != null)
-            {
-                _powerBiUrl = $"{powerBiTargets}rp:p_program_title={_tombstone.Program_Title.Replace(" ", "+")}";
-                var link = $"<a href=\"{_powerBiUrl}\" target=\"blank\">Open PowerBI Report</a>";
-            }
+        
         SubmitLabel = "Save";
         StateHasChanged();
         _navToEdit = true;
@@ -172,7 +159,8 @@
             
         }
         CurrentUser = await UserInformationService.GetCurrentUserAsync();
-    }
+    }
+
 
     private async Task CreateNewProject()
     {
