@@ -23,11 +23,10 @@ namespace NRCan.Datahub.Shared.Services
         Task LoadApplicationData();
         Task PopulateOtherMetadata(FileMetaData fileMetadata);        
         Task<long> GetUserUsedDataTotal(Microsoft.Graph.User user);
+        Task<bool> DoesFolderExist(string folderName);
         Task RestoreVersionOfBlob(string fileid, string versionId);
         Task<Folder> SearchIndex(dynamic folder, string filter, Microsoft.Graph.User user);
         Task<Uri> DownloadFile(FileMetaData file);
-        Task<Folder> GetFileList(Folder folder, Microsoft.Graph.User user, bool onlyFolders = false, bool recursive = false);
-        Task<bool> DoesFolderExist(string folderName);
         Task UploadGen2File(FileMetaData fileMetadata);
         string ProjectUploadCode { get; set; }
     }    

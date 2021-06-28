@@ -11,5 +11,6 @@ namespace NRCan.Datahub.Shared.Services
         Task<string> CallGetApi(UriBuilder builder, string Url, string secretKey = "DataHub-API-Gateway-Key", Dictionary<string, string> headers = null);
         string getBlobContainerName();
         Task<string> getStorageConnString();
+        Task<string> GetProjectConnectionString(string accountName);
     }
 }

@@ -62,6 +62,7 @@ namespace NRCan.Datahub.Portal.Services
             _cognitiveSearchService = cognitiveSearchService;
         }
 
+
         public async Task<Folder> GetFolderStructure(Folder folder, Microsoft.Graph.User user, bool onlyFolders = true)
         {
             try
@@ -114,7 +115,7 @@ namespace NRCan.Datahub.Portal.Services
             try
             {
 
-                string cxnstring = @"DefaultEndpointsProtocol=https;AccountName=dhcanmetrobodev;AccountKey=FvGP17Hc8RlR5ztEjmwafUU/MFmILU8v5f+JQOf9bW+QZWYRoayUMyX38XxNrLbbICwrWnLLIGPlXi/b60gnBQ==;EndpointSuffix=core.windows.net";
+                string cxnstring = await _apiCallService.GetProjectConnectionString(project);
                 BlobServiceClient blobServiceClient = new BlobServiceClient(cxnstring);
                 BlobContainerClient containerClient = blobServiceClient.GetBlobContainerClient("datahub");
 
