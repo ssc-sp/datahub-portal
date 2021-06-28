@@ -79,11 +79,11 @@
 	    "Title","Lead Sector", "Report"
     };
 
-    private async Task<PIP_Tombstone> ClearForm()
-    {
+    private Task<PIP_Tombstone> ClearForm()
+    {        
         _tombstone = null;
         StateHasChanged();
-        return null;
+        return Task.FromResult<PIP_Tombstone>(null);
     }
 
     public string GetDataLabel(string propName)
@@ -122,7 +122,8 @@
             if (!string.IsNullOrEmpty(powerBiTargets))
             {
                 var powerBiUrl = $"{powerBiTargets}rp:p_program_title={project.Program_Title.Replace(" ", "+")}";
-                project.PowerBiUrl = @<a href="@powerBiUrl" target="blank">Open PowerBI Report</a>;
+                project.PowerBiUrl = @<a href="@powerBiUrl" target="blank">Open PowerBI Report</a>
+    ;
             }
         }
 
@@ -162,11 +163,12 @@
     }
 
 
-    private async Task CreateNewProject()
+    private Task CreateNewProject()
     {
         _tombstone = new PIP_Tombstone() { Last_Updated_DT = DateTime.Now, Date_Updated_DT = DateTime.Now };
         StateHasChanged();
         _navToEdit = true;
+        return Task.FromResult(0);
     }
 
     private string getColor(PIP_Tombstone current)
