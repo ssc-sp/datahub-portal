@@ -34,67 +34,47 @@
   height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: #fff;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02), 0 1px 2px rgba(0, 0, 0, 0.14); }
-  #sidebar > a, #sidebar > div {
-    padding: .5rem; }
-  #sidebar > a {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    border-left: 4px solid transparent;
-    border-right: 4px solid transparent;
-    font-size: 0.5rem;
-    text-transform: uppercase;
-    text-decoration: none;
-    color: #a0aec0;
-    transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1); }
-    #sidebar > a i {
-      height: 36px;
-      font-size: 2rem;
-      margin-bottom: 2px; }
-    #sidebar > a .powerbi-svg {
-      background-color: red;
-      width: 32px;
-      height: 32px;
-      -webkit-mask: url("icons/svg/power-bi.svg") no-repeat center;
-      mask: url("icons/svg/power-bi.svg") no-repeat center; }
-    #sidebar > a:hover {
-      background-color: #F7F7F7;
-      color: #4a5568; }
-    #sidebar > a.active {
-      background-color: #F7F7F7;
-      border-left-color: #57C4EC;
-      color: #4a5568; }
-  #sidebar .logo {
-    background-color: #fff;
-    display: flex;
-    align-items: center;
-    border-bottom: 1px solid transparent;
-    padding-top: 0;
-    padding-bottom: 0;
-    margin-top: 14px;
-    margin-bottom: 50px; }
-    #sidebar .logo .img {
-      width: 2.3rem;
-      height: 2.3rem;
-      background-color: #fff; }
-    #sidebar .logo .text {
+  background-color: #fff; }
+  #sidebar .links {
+    height: 100%;
+    border-right: 1px solid #edf2f7; }
+    #sidebar .links > a, #sidebar .links > div {
+      padding: .5rem; }
+    #sidebar .links > a {
       display: flex;
       flex-direction: column;
-      padding-left: 0.8rem;
-      color: #000; }
-      #sidebar .logo .text .title {
-        font-size: 1.05rem; }
-      #sidebar .logo .text .subtitle {
-        text-transform: uppercase;
-        font-size: 0.7rem;
-        max-height: 12px;
-        padding-left: 1px; }
-  #sidebar .divider {
-    padding-top: 1rem;
-    border-bottom: 1px solid #edf2f7;
-    margin: -1rem 0 1rem; }
+      align-items: center;
+      border-left: 4px solid transparent;
+      border-right: 4px solid transparent;
+      font-size: 0.5rem;
+      text-transform: uppercase;
+      text-decoration: none;
+      color: #a0aec0;
+      transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1); }
+      #sidebar .links > a i {
+        height: 36px;
+        font-size: 2rem;
+        margin-bottom: 2px; }
+      #sidebar .links > a .powerbi-svg {
+        background-color: red;
+        width: 32px;
+        height: 32px;
+        -webkit-mask: url("icons/svg/power-bi.svg") no-repeat center;
+        mask: url("icons/svg/power-bi.svg") no-repeat center; }
+      #sidebar .links > a:hover {
+        background-color: #F7F7F7;
+        color: #4a5568; }
+      #sidebar .links > a.active {
+        background-color: #F7F7F7;
+        border-left-color: #57C4EC;
+        color: #1a202c; }
+  #sidebar .logo {
+    background-color: #fff;
+    border-bottom: 1px solid transparent;
+    height: 60px;
+    margin: 0 auto; }
+    #sidebar .logo img {
+      padding: .5rem; }
 
 /** Transparent **/
 /** Black **/
@@ -119,7 +99,7 @@
   display: flex;
   align-items: center;
   flex-wrap: nowrap;
-  height: 3.2rem;
+  height: 60px;
   padding-top: 8px; }
   #topbar .spacer {
     flex-grow: 1; }
@@ -384,7 +364,7 @@
         flex-grow: 1; }
       .application-wrapper .main-layout .ui-control .right-sidebar {
         position: absolute;
-        top: 3.2rem;
+        top: 60px;
         right: 0;
         width: 400px;
         height: 100%;
@@ -603,7 +583,7 @@
 /** Pink **/
 #add-data-wrapper {
   position: absolute;
-  top: 3.2rem;
+  top: 60px;
   left: 0px;
   background-color: #fff;
   width: 100%;
@@ -1344,7 +1324,7 @@
   padding: 1rem;
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.06), 0 3px 6px rgba(0, 0, 0, 0.13); }
   .nrcan-popup.top-nav-popup {
-    top: 3.2rem; }
+    top: 60px; }
   .nrcan-popup .footer {
     border-top: 1px solid #edf2f7; }
 

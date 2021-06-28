@@ -12,90 +12,62 @@
     display: flex;
     flex-direction: column;
     background-color: $white;
-    @include BoxShadow(1);
 
+    .links {
+        height: 100%;
+        border-right: 1px solid $gray-200;
 
-    > a, > div {
-        padding: .5rem;
-    }
-
-    > a {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        border-left: 4px solid $transparent;
-        border-right: 4px solid $transparent;
-        font-size: 0.5rem;
-        text-transform: uppercase;
-        text-decoration: none;
-        color: $gray-500;
-        transition: all .2s $cubic-bezier;
-
-        i {
-            height: 36px;
-            font-size: 2rem;
-            margin-bottom: 2px;
+        > a, > div {
+            padding: .5rem;
         }
 
-        .powerbi-svg {
-            background-color: red;
-            width: 32px;
-            height: 32px;
-            -webkit-mask: url('icons/svg/power-bi.svg') no-repeat center;
-            mask: url('icons/svg/power-bi.svg') no-repeat center;
-        }
+        > a {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border-left: 4px solid $transparent;
+            border-right: 4px solid $transparent;
+            font-size: 0.5rem;
+            text-transform: uppercase;
+            text-decoration: none;
+            color: $gray-500;
+            transition: all .2s $cubic-bezier;
 
-        &:hover {
-            background-color: #F7F7F7;
-            color: $gray-700;
-        }
+            i {
+                height: 36px;
+                font-size: 2rem;
+                margin-bottom: 2px;
+            }
 
-        &.active {
-            background-color: #F7F7F7;
-            border-left-color: $borderblue;
-            color: $textPrimary;
+            .powerbi-svg {
+                background-color: red;
+                width: 32px;
+                height: 32px;
+                -webkit-mask: url('icons/svg/power-bi.svg') no-repeat center;
+                mask: url('icons/svg/power-bi.svg') no-repeat center;
+            }
+
+            &:hover {
+                background-color: #F7F7F7;
+                color: $gray-700;
+            }
+
+            &.active {
+                background-color: #F7F7F7;
+                border-left-color: $borderblue;
+                color: $gray-900;
+            }
         }
     }
 
     .logo {
         background-color: $white;
-        display: flex;
-        align-items: center;
         border-bottom: 1px solid transparent;
-        padding-top: 0;
-        padding-bottom: 0;
-        margin-top: 14px;
-        margin-bottom: 50px;
+        height: $topbarHeight;
+        margin: 0 auto;
 
-        .img {
-            width: 2.3rem;
-            height: 2.3rem;
-            background-color: $white;
+        img {
+            padding: .5rem;
         }
-
-        .text {
-            display: flex;
-            flex-direction: column;
-            padding-left: 0.8rem;
-            color: $black;
-
-            .title {
-                font-size: 1.05rem;
-                //font-weight: bold;
-            }
-
-            .subtitle {
-                text-transform: uppercase;
-                font-size: 0.7rem;
-                max-height: 12px;
-                padding-left: 1px;
-            }
-        }
-    }
-
-    .divider {
-        padding-top: 1rem;
-        border-bottom: 1px solid $gray-200;
-        margin: -1rem 0 1rem;
     }
 }
