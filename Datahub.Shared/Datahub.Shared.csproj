@@ -97,5 +97,8 @@
 
   <ItemGroup>
     <UpToDateCheckInput Remove="Styles\Components\_icons.scss" />
+    <UpToDateCheckInput Remove="Styles\Pages\Landing\_index.scss" />
+    <UpToDateCheckInput Remove="Styles\Pages\Landing\_welcome-banner.scss" />
+    <UpToDateCheckInput Remove="Styles\Views\_landing.scss" />
   </ItemGroup>
 </Project>

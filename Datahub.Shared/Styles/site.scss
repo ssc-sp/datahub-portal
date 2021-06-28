@@ -1,3 +1,5 @@
+@import 'Theme/_elemental-override.scss';
+
 @import 'colors';
 @import 'sidebar';
 @import 'topbar';
@@ -22,7 +24,7 @@
 @import 'Components/_facard1.scss';
 
 @import 'Views/_item-details.scss';
-@import 'Theme/_elemental-override.scss';
+@import 'Pages/Landing/_index.scss';
 
 
 body {

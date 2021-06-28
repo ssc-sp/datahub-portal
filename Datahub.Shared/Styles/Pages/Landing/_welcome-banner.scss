@@ -1,0 +1,19 @@
+﻿@import '../../elemental-theme/colors.scss';
+
+
+.welcome-banner {
+    background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 100%), url("/img/landing/earth-background.jpg") no-repeat center center fixed;
+    -webkit-background-size: cover;
+    -moz-background-size: cover;
+    -o-background-size: cover;
+    background-size: cover;
+    height: 360px;
+    display: flex;
+    flex-direction: column-reverse;
+
+    .greeting {
+        padding: 1rem;
+        color: $white;
+        text-shadow: 1px 1px 5px $baseBlack;
+    }
+}

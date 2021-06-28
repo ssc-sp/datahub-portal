@@ -1,5 +1,5 @@
-﻿@import '../elemental-theme/colors.scss';
-@import '../elemental-theme/constants.scss';
+﻿@import '../_colors.scss';
+@import '../constants.scss';
 
 $buttonOptions: ( 
     "default": (
@@ -16,28 +16,28 @@ $buttonOptions: (
         "transition": all .3s $cubic-bezier,
         "cursor": pointer,
         "color": $white,
-        "background-color": $grey-600,
-        "border-color": $grey-600,
+        "background-color": $gray-600,
+        "border-color": $gray-600,
         "&:hover": (
-            "background-color": $grey-700,
-            "border-color": $grey-700,
+            "background-color": $gray-700,
+            "border-color": $gray-700,
         ),
     ),
     "dark": (
-        "background-color": $grey-800,
-        "border-color": $grey-800,
+        "background-color": $gray-800,
+        "border-color": $gray-800,
         "&:hover": (
-            "background-color": $grey-700,
-            "border-color": $grey-700,
+            "background-color": $gray-700,
+            "border-color": $gray-700,
         ),
     ),
     "light": (
-        "color": $grey-600,
-        "background-color": $grey-100,
-        "border-color": $grey-100,
+        "color": $gray-600,
+        "background-color": $gray-100,
+        "border-color": $gray-100,
         "&:hover": (
-            "background-color": $grey-300,
-            "border-color": $grey-300,
+            "background-color": $gray-300,
+            "border-color": $gray-300,
         ),
     ),
     "blue": (
