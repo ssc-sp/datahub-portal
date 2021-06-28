@@ -44,17 +44,16 @@ namespace NRCan.Datahub.Shared.Services
             dataLakeFileSystemClient = dataLakeServiceClient.GetFileSystemClient(_targets.Value.FileSystemName);
         }
 
-        private async Task<DataLakeServiceClient> GetNewProjectClient(string project)
+        public async Task<StorageSharedKeyCredential> GetSharedKeyCredential(string project)
         {
             var key = $"datahub-blob-key-{project}";
             var storageAccountName = $"dh{project}dev";
             var datalakeSecret = await _keyVaultService.GetSecret(key);
-            _sharedKeyCredential = new StorageSharedKeyCredential(storageAccountName, datalakeSecret);
-            string dfsUri = $"https://{storageAccountName}.dfs.core.windows.net";
-
-            return new DataLakeServiceClient(new Uri(dfsUri), _sharedKeyCredential);
-            //dataLakeFileSystemClient = dataLakeServiceClient.GetFileSystemClient(_targets.Value.FileSystemName);
+            return new StorageSharedKeyCredential(storageAccountName, datalakeSecret);
+                        
         }
+
+        
 
         public async Task<StorageSharedKeyCredential> GetSharedKeyCredential()
         {
@@ -170,22 +169,6 @@ namespace NRCan.Datahub.Shared.Services
             }
 
         }
-
-        private async Task<DataLakeServiceClient> GetProjectServiceClient(string project)
-        {
-            CheckClients();
-            if (_projectServiceClients.ContainsKey(project))
-            {
-                return _projectServiceClients[project];
-            }
-            else
-            {
-                var projectServiceClient = await GetNewProjectClient(project);
-                _projectServiceClients.Add(project, projectServiceClient);
-                return projectServiceClient;
-            }
-        }
-
-
+        
     }
 }
