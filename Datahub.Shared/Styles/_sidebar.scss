@@ -12,32 +12,48 @@
     display: flex;
     flex-direction: column;
     background-color: $white;
-    //margin-top: $marginTop;
     @include BoxShadow(1);
 
 
     > a, > div {
-        padding: 1rem 0.5rem;
+        padding: .5rem;
     }
 
     > a {
-        color: $textPrimary;
-        text-decoration: none;
-        font-size: 0.8rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
         border-left: 4px solid $transparent;
+        border-right: 4px solid $transparent;
+        font-size: 0.5rem;
+        text-transform: uppercase;
+        text-decoration: none;
+        color: $gray-500;
+        transition: all .2s $cubic-bezier;
 
         i {
-            margin-left: 0.25rem;
-            width: 1.75rem;
+            height: 36px;
+            font-size: 2rem;
+            margin-bottom: 2px;
+        }
+
+        .powerbi-svg {
+            background-color: red;
+            width: 32px;
+            height: 32px;
+            -webkit-mask: url('icons/svg/power-bi.svg') no-repeat center;
+            mask: url('icons/svg/power-bi.svg') no-repeat center;
         }
 
         &:hover {
             background-color: #F7F7F7;
+            color: $gray-700;
         }
 
         &.active {
             background-color: #F7F7F7;
-            border-left: 8px solid $borderblue;
+            border-left-color: $borderblue;
+            color: $textPrimary;
         }
     }
 

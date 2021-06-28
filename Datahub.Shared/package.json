@@ -8,6 +8,7 @@
     "node-sass": "^5.0.0"
   },
   "scripts": {
+    "css:watch": "node-sass --include-path Styles --source-map true Styles/site.scss wwwroot/css/site.css -w",
     "build-css": "node-sass --include-path Styles --source-map true Styles/site.scss wwwroot/css/site.css && node-sass --include-path Styles --output-style compressed Styles/site.scss wwwroot/css/site.min.css"
   },
   "author": "Apption",

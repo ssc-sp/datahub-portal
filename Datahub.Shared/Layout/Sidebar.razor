@@ -4,31 +4,35 @@
         <div class="img">
             <img src="_content/Datahub.Shared/img/datahub-logo-v2.png" />
         </div>
-        <div class="text">
-            <div class="subtitle">@Localizer["SIDEBAR.NR-Title"]</div>
-            <div class="title">@Localizer["SIDEBAR.DataHub"]</div>
-        </div>
     </div>
     <NavLink href="/" Match="NavLinkMatch.All" ActiveClass="active">
-        <i class="fas fa-home"></i>
+        <i class="fal fa-home"></i>
         @Localizer["SIDEBAR.Home"]
     </NavLink>
-    <NavLink href="/data" Match="NavLinkMatch.Prefix" ActiveClass="active">
-        <i class="fal fa-database"></i>
-        @Localizer["MyData"]
+    <NavLink href="/storage" Match="NavLinkMatch.Prefix" ActiveClass="active">
+        <i class="fal fa-hdd"></i>
+        @Localizer["SIDEBAR.Storage"]
     </NavLink>
-    <NavLink href="/shared" Match="NavLinkMatch.Prefix" ActiveClass="active">
-        <i class="fal fa-user-friends"></i>
-        @Localizer["SharedWithYou"]
+    <NavLink href="/resources" Match="NavLinkMatch.Prefix" ActiveClass="active">
+        <i class="fal fa-project-diagram"></i>
+        @Localizer["SIDEBAR.Resources"]
     </NavLink>
-    <NavLink href="/projects" Match="NavLinkMatch.Prefix" ActiveClass="active">
-        <i class="fas fa-project-diagram"></i>
-        @Localizer["Data Projects"]
+    <NavLink href="/datasets" Match="NavLinkMatch.Prefix" ActiveClass="active">
+        <i class="fal fa-cabinet-filing"></i>
+        @Localizer["SIDEBAR.Datasets"]
+    </NavLink>
+    <NavLink href="/powerbi" Match="NavLinkMatch.Prefix" ActiveClass="active">
+        <i class="fal fa-chart-bar"></i>
+        @Localizer["SIDEBAR.PowerBI"]
+    </NavLink>
+    <NavLink href="/admin" Match="NavLinkMatch.Prefix" ActiveClass="active">
+        <i class="fal fa-user-cog"></i>
+        @Localizer["SIDEBAR.Admin"]
     </NavLink>
     <AuthorizeView Roles="datahub-admin, project-admin">
         <NavLink href="/admin" Match="NavLinkMatch.Prefix" ActiveClass="active">
-            <i class="fad fa-user-lock"></i>
-            @Localizer["Admin"]
+            <i class="fal fa-user-cog"></i>
+            @Localizer["SIDEBAR.Admin"]
         </NavLink>
     </AuthorizeView>
     @* <NavLink href="/forms" Match="NavLinkMatch.Prefix" ActiveClass="active">

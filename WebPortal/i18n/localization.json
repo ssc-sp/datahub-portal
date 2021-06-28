@@ -127,7 +127,12 @@
     "DataHub": "DataHub",
     "MyData": "My Data",
     "MyProjects": "Data Projects",
-    "SharedWithYou": "Shared With You"
+    "SharedWithYou": "Shared With You",
+    "Storage": "Storage",
+    "Resources": "Resources",
+    "Datasets": "Datasets",
+    "PowerBI": "PowerBI",
+    "Admin": "Admin"
   },
   "TAC-PAGE": {
     "AcceptTerms": "Accept Terms",

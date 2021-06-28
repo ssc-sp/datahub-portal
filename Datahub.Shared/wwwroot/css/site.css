@@ -29,28 +29,43 @@
   z-index: 2;
   position: sticky;
   top: 0;
-  width: 200px;
-  min-width: 200px;
+  width: 80px;
+  min-width: 80px;
   height: 100vh;
   display: flex;
   flex-direction: column;
   background-color: #fff;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02), 0 1px 2px rgba(0, 0, 0, 0.14); }
   #sidebar > a, #sidebar > div {
-    padding: 1rem 0.5rem; }
+    padding: .5rem; }
   #sidebar > a {
-    color: #4a5568;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    font-size: 0.5rem;
+    text-transform: uppercase;
     text-decoration: none;
-    font-size: 0.8rem;
-    border-left: 4px solid transparent; }
+    color: #a0aec0;
+    transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1); }
     #sidebar > a i {
-      margin-left: 0.25rem;
-      width: 1.75rem; }
+      height: 36px;
+      font-size: 2rem;
+      margin-bottom: 2px; }
+    #sidebar > a .powerbi-svg {
+      background-color: red;
+      width: 32px;
+      height: 32px;
+      -webkit-mask: url("icons/svg/power-bi.svg") no-repeat center;
+      mask: url("icons/svg/power-bi.svg") no-repeat center; }
     #sidebar > a:hover {
-      background-color: #F7F7F7; }
+      background-color: #F7F7F7;
+      color: #4a5568; }
     #sidebar > a.active {
       background-color: #F7F7F7;
-      border-left: 8px solid #57C4EC; }
+      border-left-color: #57C4EC;
+      color: #4a5568; }
   #sidebar .logo {
     background-color: #fff;
     display: flex;
