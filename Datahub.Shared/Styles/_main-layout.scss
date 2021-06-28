@@ -11,7 +11,7 @@
         flex-grow: 1;
         overflow: hidden;
         position: relative;
-        padding-top: 47px;
+        margin-top: $topbarHeight;
 
         .ui-control {
             display: flex;

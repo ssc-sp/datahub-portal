@@ -2,6 +2,9 @@
 @import 'box-shadow';
 @import 'constants';
 
+@import 'Components/_icons.scss';
+
+
 #sidebar {
     z-index: 2;
     position: sticky;
@@ -30,8 +33,10 @@
             font-size: 0.5rem;
             text-transform: uppercase;
             text-decoration: none;
-            color: $gray-500;
             transition: all .2s $cubic-bezier;
+
+            @include icon-color;
+
 
             i {
                 height: 36px;
@@ -48,9 +53,9 @@
             }
 
             &:hover {
-                background-color: #F7F7F7;
-                color: $gray-700;
+                @include icon-hover;
             }
+
 
             &.active {
                 background-color: #F7F7F7;
@@ -71,3 +76,4 @@
         }
     }
 }
+

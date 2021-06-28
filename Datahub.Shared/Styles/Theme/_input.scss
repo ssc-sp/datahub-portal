@@ -8,12 +8,12 @@ $inputOptions: (
         "width": 100%,
         "min-width": 0,
         "padding": 0.5rem 0.75rem,
-        "color": $text-primary,
+        "color": $text-hint,
         "font-size": 0.9rem,
         "line-height": 1.5,
-        "background-color": #F7F7F7,
-        "border": 1px solid $grey-300,
-        "border-radius": 8px,
+        "background-color": $grey-100,
+        "border": 1px solid $grey-200,
+        "border-radius": 4px,
         "transition": all .3s,
         "&:hover":(
             "border-color": $borderblue,
@@ -21,6 +21,7 @@ $inputOptions: (
         "&:focus": (
             "border-color": $borderblue,
             "outline": 0,
+            "color": $text-primary,
             "box-shadow": 0 0 0 2px rgba($borderblue, 0.2),
         ),
     ),
@@ -36,7 +37,6 @@ $inputOptions: (
 $searchInputOptions: (
     "display": flex,
     "align-items": baseline,
-    "padding-bottom": 0.5rem,
     ".ae.input": (
         "padding-left": 2rem,
     ),

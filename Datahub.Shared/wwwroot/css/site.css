@@ -24,6 +24,19 @@
 /** Indigo **/
 /** Purple **/
 /** Pink **/
+/** Transparent **/
+/** Black **/
+/** White **/
+/** Gray **/
+/** Red **/
+/** Orange **/
+/** Yellow **/
+/** Green **/
+/** Teal **/
+/** Blue **/
+/** Indigo **/
+/** Purple **/
+/** Pink **/
 @import url("https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap");
 #sidebar {
   z-index: 2;
@@ -49,8 +62,8 @@
       font-size: 0.5rem;
       text-transform: uppercase;
       text-decoration: none;
-      color: #a0aec0;
-      transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1); }
+      transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+      color: #a0aec0; }
       #sidebar .links > a i {
         height: 36px;
         font-size: 2rem;
@@ -61,8 +74,8 @@
         height: 32px;
         -webkit-mask: url("icons/svg/power-bi.svg") no-repeat center;
         mask: url("icons/svg/power-bi.svg") no-repeat center; }
-      #sidebar .links > a:hover {
-        background-color: #F7F7F7;
+      #sidebar .links > a:hover:hover {
+        background-color: #f7fafc;
         color: #4a5568; }
       #sidebar .links > a.active {
         background-color: #F7F7F7;
@@ -89,50 +102,47 @@
 /** Indigo **/
 /** Purple **/
 /** Pink **/
+/** Transparent **/
+/** Black **/
+/** White **/
+/** Gray **/
+/** Red **/
+/** Orange **/
+/** Yellow **/
+/** Green **/
+/** Teal **/
+/** Blue **/
+/** Indigo **/
+/** Purple **/
+/** Pink **/
 #topbar {
   background-color: #fff;
-  z-index: 1;
   position: fixed;
-  left: 200px;
+  z-index: 999;
   top: 0;
-  width: calc( 100% - 200px);
+  width: calc(100% - 80px);
   display: flex;
   align-items: center;
-  flex-wrap: nowrap;
   height: 60px;
-  padding-top: 8px; }
-  #topbar .spacer {
-    flex-grow: 1; }
-  #topbar #topSearch {
-    min-width: 500px; }
-  #topbar .icon {
+  box-shadow: 0 1px 0 #edf2f7; }
+  #topbar .search-spacer {
     display: flex;
+    justify-content: center;
+    flex-grow: 1; }
+    #topbar .search-spacer #topSearch {
+      min-width: 500px; }
+  #topbar .icon-container {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    justify-content: center;
     align-items: center;
-    height: 100%; }
-    #topbar .icon .topbar-icon {
-      padding: 0 1rem;
-      cursor: pointer;
-      height: 100%;
-      display: flex;
-      align-items: center; }
-      #topbar .icon .topbar-icon:hover {
-        background-color: #f7f7f7; }
-  #topbar .notifications {
-    position: relative; }
-    #topbar .notifications .count {
-      position: absolute;
-      top: 1rem;
-      right: 0.5rem;
-      background-color: #e53e3e;
-      color: #fff;
-      border-radius: 5rem;
-      width: 1rem;
-      height: 1rem;
-      font-weight: bold;
-      font-size: 0.6rem;
-      display: flex;
-      justify-content: center;
-      align-items: center; }
+    cursor: pointer;
+    font-size: 1.25rem;
+    color: #a0aec0; }
+    #topbar .icon-container:hover {
+      background-color: #f7fafc;
+      color: #4a5568; }
   #topbar .help-popup h3 {
     margin-top: 0; }
   #topbar .help-popup .nrcan-typography {
@@ -356,7 +366,7 @@
     flex-grow: 1;
     overflow: hidden;
     position: relative;
-    padding-top: 47px; }
+    margin-top: 60px; }
     .application-wrapper .main-layout .ui-control {
       display: flex; }
       .application-wrapper .main-layout .ui-control .page {
@@ -2304,18 +2314,19 @@ body {
   width: 100%;
   min-width: 0;
   padding: 0.5rem 0.75rem;
-  color: #2d3748;
+  color: #cbd5e0;
   font-size: 0.9rem;
   line-height: 1.5;
-  background-color: #F7F7F7;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
+  background-color: #f7fafc;
+  border: 1px solid #edf2f7;
+  border-radius: 4px;
   transition: all 0.3s; }
   .ae.input:hover {
     border-color: #57C4EC; }
   .ae.input:focus {
     border-color: #57C4EC;
     outline: 0;
+    color: #2d3748;
     box-shadow: 0 0 0 2px rgba(87, 196, 236, 0.2); }
   .ae.input.disabled {
     background-color: #e2e8f0;
@@ -2325,8 +2336,7 @@ body {
 
 .ae.search-wrapper {
   display: flex;
-  align-items: baseline;
-  padding-bottom: 0.5rem; }
+  align-items: baseline; }
   .ae.search-wrapper .ae.input {
     padding-left: 2rem; }
   .ae.search-wrapper .ae.search-icon {

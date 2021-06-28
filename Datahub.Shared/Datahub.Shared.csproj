@@ -94,4 +94,8 @@
     <UpToDateCheckInput Include="Styles/**/*.scss" Set="Css" />
     <UpToDateCheckBuilt Include="wwwroot/css/*.css" Set="Css" />
   </ItemGroup>
+
+  <ItemGroup>
+    <UpToDateCheckInput Remove="Styles\Components\_icons.scss" />
+  </ItemGroup>
 </Project>

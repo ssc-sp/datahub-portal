@@ -1,0 +1,14 @@
+﻿@import '../_colors.scss';
+@import '../_constants.scss';
+
+
+@mixin icon-color {
+    color: $gray-500;
+}
+
+@mixin icon-hover {
+    &:hover {
+        background-color: $gray-100;
+        color: $gray-700;
+    }
+}
