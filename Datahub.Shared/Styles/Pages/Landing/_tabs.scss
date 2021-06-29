@@ -1,0 +1,31 @@
+﻿@import '../../_colors.scss';
+@import '../../_constants.scss';
+
+.tab-control {
+    .tab-selection {
+        display: flex;
+        flex-wrap: wrap;
+
+        margin: 1rem 0;
+
+        .tab {
+            padding: .5rem 1rem;
+
+            border-bottom: 2px solid $transparent;
+            transition: all .2s $cubic-bezier;
+            cursor: pointer;
+
+            &:hover {
+                background-color: $gray-100;
+            }
+            
+            &.active {
+                border-color: $borderblue;
+            }
+        }
+    }
+
+    .tab-content {
+        
+    }
+}

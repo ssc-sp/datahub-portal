@@ -4972,16 +4972,10 @@ template {
         font-size: 0.6rem;
         margin-top: .25rem; }
 
-/**
- * Copyright (c) 2020 Apption Corporation
- * 
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
- */
 /** Transparent **/
 /** Black **/
 /** White **/
+/** Transparent **/
 /** Gray **/
 /** Red **/
 /** Orange **/
@@ -5004,7 +4998,39 @@ template {
   .welcome-banner .greeting {
     padding: 1rem;
     color: #fff;
-    text-shadow: 1px 1px 5px #000000; }
+    text-shadow: 1px 1px 5px #000; }
+
+/** Transparent **/
+/** Black **/
+/** White **/
+/** Transparent **/
+/** Gray **/
+/** Red **/
+/** Orange **/
+/** Yellow **/
+/** Green **/
+/** Teal **/
+/** Blue **/
+/** Indigo **/
+/** Purple **/
+/** Pink **/
+.tab-control .tab-selection {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 1rem 0; }
+  .tab-control .tab-selection .tab {
+    padding: .5rem 1rem;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+    cursor: pointer; }
+    .tab-control .tab-selection .tab:hover {
+      background-color: #f7fafc; }
+    .tab-control .tab-selection .tab.active {
+      border-color: #57C4EC; }
+
+.landing-content-wrapper {
+  margin: 1rem auto 0;
+  max-width: 1200px; }
 
 body {
   font-family: 'Roboto','RobotoDraft',Helvetica,Arial,sans-serif;

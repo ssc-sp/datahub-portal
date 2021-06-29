@@ -1,0 +1,32 @@
+﻿@namespace NRCan.Datahub.Portal.Components
+
+<AeFlex class="landing-content-wrapper">
+    <TabControl>
+        @foreach(var tab in GetTabs()){
+            <TabPage>
+              <Control>
+                  <AeTypography>@tab.Control</AeTypography>
+              </Control>
+              <ChildContent>
+                @tab.Content
+              </ChildContent>
+            </TabPage>  
+        }
+    </TabControl>
+</AeFlex>
+
+@code {
+
+
+  private List<(string Control, RenderFragment Content)> GetTabs()
+  {
+    return new List<(string, RenderFragment)> 
+    {
+        ("Recent", @<NRCan.Datahub.Portal.Components.Landing.Tabs.RecentTab />),
+        ("My Projects", @<AeTypography>My Projects frag</AeTypography>),
+        ("Shared with Me", @<AeTypography>Shared with Me frag</AeTypography>),
+        ("Featured Projects", @<AeTypography>Featured Projects frag</AeTypography>),
+    };
+  }
+
+}
