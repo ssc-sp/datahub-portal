@@ -17,19 +17,24 @@
 
     @include base-icon-color;
     @include base-icon-hover;
+    @include icon-colors;
     transition: all .2s $cubic-bezier;
     border-left: 0px solid $transparent;
 
     &:hover {
       cursor: pointer;
       border-left: 4px solid $transparent;
-      @include icon-colors;
       @include sidebar-border-colors;
+
+      i {
+        opacity: 1;
+      }
     }
 
     i {
       font-size: 2rem;
       width: 50px;
+      opacity: .5;
     }
 
     .text {
