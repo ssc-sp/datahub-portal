@@ -1,3 +1,4 @@
+@using NRCan.Datahub.Shared.Data
 
 <div id="sidebar">
   <div class="logo">
@@ -6,16 +7,16 @@
   <div class="links">
     @foreach(var link in GetLinks())
     {
-      <NavLink class="@link.Color" href="@link.Href" Match="NavLinkMatch.All" ActiveClass="active">
-        <i class="@link.Icon"></i>
+      <NavLink class="@link.Icon.Color" href="@link.Href" Match="NavLinkMatch.All" ActiveClass="active">
+        <i class="@link.Icon.Name"></i>
         @Localizer[@link.Label]
       </NavLink>
     }
     @foreach(var link in GetAuthorizedLinks())
     {
       <AuthorizeView Roles="@string.Join(',', link.Roles)">
-        <NavLink class="@link.Color" href="@link.Href" Match="NavLinkMatch.All" ActiveClass="active">
-          <i class="@link.Icon"></i>
+        <NavLink class="@link.Icon.Color" href="@link.Href" Match="NavLinkMatch.All" ActiveClass="active">
+          <i class="@link.Icon.Name"></i>
           @Localizer[@link.Label]
         </NavLink>
       </AuthorizeView>
@@ -25,24 +26,24 @@
 
 @code {
 
-  private List<(string Href, string Icon, string Label, string Color)> GetLinks()
+  private List<(string Href, Icon Icon, string Label)> GetLinks()
   {
-    return new List<(string, string, string, string)>()
+    return new List<(string, Icon, string)>()
     {
-      ("/", "fad fa-home", "SIDEBAR.Home", "blue"),
-      ("/storage", "fad fa-hdd", "SIDEBAR.Storage", "indigo"),
-      ("/resources", "fad fa-project-diagram", "SIDEBAR.Resources", "purple"),
-      ("/datasets", "fad fa-cabinet-filing", "SIDEBAR.Datasets", "pink"),
-      ("/powerbi", "fad fa-chart-bar", "SIDEBAR.PowerBI", "yellow"),
-      ("/admin", "fad fa-user-cog", "SIDEBAR.Admin", "green")
+      ("/", Icon.HOME, "SIDEBAR.Home"),
+      ("/storage", Icon.STORAGE, "SIDEBAR.Storage"),
+      ("/resources", Icon.RESOURCES, "SIDEBAR.Resources"),
+      ("/datasets", Icon.DATASETS, "SIDEBAR.Datasets"),
+      ("/powerbi", Icon.POWERBI, "SIDEBAR.PowerBI"),
+      ("/admin", Icon.ADMIN, "SIDEBAR.Admin")
     };
   }
 
-  private List<(string Href, string Icon, string Label, string Color, List<string> Roles)> GetAuthorizedLinks()
+  private List<(string Href, Icon Icon, string Label, List<string> Roles)> GetAuthorizedLinks()
   {
-    return new List<(string, string, string, string, List<string>)>()
+    return new List<(string, Icon, string, List<string>)>()
     {
-      ("/admin", "fad fa-user-cog", "SIDEBAR.Admin", "green",
+      ("/admin", Icon.ADMIN, "SIDEBAR.Admin",
         new List<string>()
         {
           "datahub-admin",

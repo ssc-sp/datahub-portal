@@ -1,9 +1,9 @@
-﻿<AeFlex Vertical class="recent-card-container">
+﻿<AeFlex class="recent-card-container">
   @foreach (var card in GetCards())
   {
     <AeFlex class="recent-card">
-      <i class="@card.Icon" />
-      <AeFlex Vertical>
+      <i class="@card.Icon.Name" />
+      <AeFlex class="text">
         <AeTypography class="title">@card.Title</AeTypography>
         <AeTypography class="subtitle">@card.Subtitle</AeTypography>
       </AeFlex>
@@ -14,14 +14,14 @@
 
 @code {
 
-  private List<(string Icon, string Title, string Subtitle)> GetCards()
+  private List<(Icon Icon, string Title, string Subtitle)> GetCards()
   {
-    return new List<(string, string, string)>()
+    return new List<(Icon, string, string)>()
     {
-      ("fad fa-keyboard", "PIP Web Form", "SPI Performance Measurement >> Data Entry"),
-      ("fad fa-keyboard", "PIP Web Form", "SPI Performance Measurement >> Data Entry"),
-      ("fad fa-keyboard", "PIP Web Form", "SPI Performance Measurement >> Data Entry"),
-      ("fad fa-keyboard", "PIP Web Form", "SPI Performance Measurement >> Data Entry")
+      (Icon.DATAENTRY, "PIP Web Form", "SPI Performance Measurement >> Data Entry"),
+      (Icon.POWERBI, "PIP Dashboard", "SPI Performance Measurement >> PowerBI"),
+      (Icon.DATASETS, "PIP Web Form", "SPI Performance Measurement >> Data Entry"),
+      (Icon.STORAGE, "PIP Web Form", "SPI Performance Measurement >> Data Entry")
     };
   }
 }

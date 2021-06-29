@@ -5094,6 +5094,34 @@ template {
   margin: 0 auto 0;
   max-width: 1200px; }
 
+/** Transparent **/
+/** Black **/
+/** White **/
+/** Transparent **/
+/** Gray **/
+/** Red **/
+/** Orange **/
+/** Yellow **/
+/** Green **/
+/** Teal **/
+/** Blue **/
+/** Indigo **/
+/** Purple **/
+/** Pink **/
+.recent-card-container {
+  display: flex;
+  flex-direction: column; }
+  .recent-card-container .recent-card {
+    display: flex;
+    align-items: center;
+    margin: 1rem 0; }
+    .recent-card-container .recent-card i {
+      font-size: 2rem;
+      width: 50px; }
+    .recent-card-container .recent-card .text .subtitle {
+      font-size: .6rem;
+      color: #a0aec0; }
+
 body {
   font-family: 'Roboto','RobotoDraft',Helvetica,Arial,sans-serif;
   font-size: 0.8rem;

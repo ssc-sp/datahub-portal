@@ -1,0 +1,31 @@
+﻿@import '../../_colors.scss';
+
+
+.recent-card-container {
+  display: flex;
+  flex-direction: column;
+
+
+  .recent-card {
+    display: flex;
+    align-items: center;
+
+    margin: 1rem 0;
+
+    i {
+      font-size: 2rem;
+      width: 50px;
+    }
+
+    .text {
+      .title {
+        
+      }
+      .subtitle {
+        font-size: .6rem;
+        color: $gray-500;
+      }
+    }
+  }
+
+}
