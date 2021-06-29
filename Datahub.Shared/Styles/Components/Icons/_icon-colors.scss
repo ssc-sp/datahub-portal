@@ -25,6 +25,14 @@ $icon-colors: (
     "primary": $green-500,
     "secondary": $green-600,
   ),
+  "grey": (
+    "primary": $gray-700,
+    "secondary": $gray-700,
+  ),
+  "base": (
+    "primary": $gray-500,
+    "secondary": $gray-500,
+  )
 );
 
 @mixin icon-colors {
@@ -37,12 +45,13 @@ $icon-colors: (
 }
 
 @mixin base-icon-color {
-  color: $gray-500;
+  --fa-primary-color: #{map-get(map-get($icon-colors, "base"), "primary")};
+  --fa-secondary-color: #{map-get(map-get($icon-colors, "base"), "secondary")};
 }
 
 @mixin base-icon-hover {
   &:hover {
-    background-color: $gray-100;
-    color: $gray-700;
+    --fa-primary-color: #{map-get(map-get($icon-colors, "grey"), "primary")};
+    --fa-secondary-color: #{map-get(map-get($icon-colors, "grey"), "secondary")};
   }
 }

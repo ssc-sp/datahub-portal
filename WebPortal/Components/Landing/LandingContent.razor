@@ -1,6 +1,7 @@
 ﻿@namespace NRCan.Datahub.Portal.Components
 
 <AeFlex class="landing-content-wrapper">
+  <AeFlex class="landing-content">
     <TabControl>
         @foreach(var tab in GetTabs()){
             <TabPage>
@@ -13,6 +14,7 @@
             </TabPage>  
         }
     </TabControl>
+  </AeFlex>
 </AeFlex>
 
 @code {

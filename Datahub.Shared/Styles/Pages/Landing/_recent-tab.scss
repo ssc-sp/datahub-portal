@@ -1,20 +1,31 @@
 ﻿@import '../../_colors.scss';
+@import '../../_constants.scss';
+@import '../../_box-shadow.scss';
 @import '../../Components/Icons/_icon-colors.scss';
+@import '../../Components/Sidebar/_coloring.scss';
 
 
 .recent-card-container {
-  display: flex;
-  flex-direction: column;
+  display: inline-block;
 
 
   .recent-card {
     display: flex;
     align-items: center;
-
+    padding: 1rem;
     margin: 1rem 0;
 
+    @include base-icon-color;
+    @include base-icon-hover;
+    transition: all .2s $cubic-bezier;
+    border-left: 0px solid $transparent;
 
-    @include icon-colors;
+    &:hover {
+      cursor: pointer;
+      border-left: 4px solid $transparent;
+      @include icon-colors;
+      @include sidebar-border-colors;
+    }
 
     i {
       font-size: 2rem;
@@ -23,13 +34,12 @@
 
     .text {
       .title {
-        
       }
+
       .subtitle {
         font-size: .6rem;
         color: $gray-500;
       }
     }
   }
-
 }

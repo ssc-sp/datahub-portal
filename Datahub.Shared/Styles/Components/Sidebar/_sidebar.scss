@@ -35,6 +35,7 @@
       text-transform: uppercase;
       text-decoration: none;
       transition: all .2s $cubic-bezier;
+      color: $gray-700;
 
       @include base-icon-color;
 
@@ -43,7 +44,6 @@
         height: 36px;
         font-size: 2rem;
         margin-bottom: 2px;
-        color: $gray-500;
       }
 
       .powerbi-svg {
@@ -55,6 +55,7 @@
       }
 
       &:hover {
+        background-color: $gray-100;
         @include base-icon-hover;
         @include sidebar-icon-colors;
       }

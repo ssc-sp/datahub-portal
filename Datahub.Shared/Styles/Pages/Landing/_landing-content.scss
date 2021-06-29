@@ -1,6 +1,9 @@
-﻿
-.landing-content-wrapper {
+﻿@import '../../_colors.scss';
 
-    margin: 0 auto 0;
+.landing-content-wrapper {
+    
+  .landing-content {
+    margin: 0 5rem;
     max-width: 1200px;
+  }
 }
