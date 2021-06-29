@@ -6,7 +6,7 @@
              Renderers="renderFunctions"
              Accessors="accessorFunctions"
              Dataset="GetRows()"
-             Headers="headers" />
+             Headers="Headers" />
 }
 
 @code {
@@ -27,10 +27,7 @@
         base.OnInitialized();
     }
 
-    private List<string> headers = new List<string>
-{
-        "Field", "Value"
-    };
+    private List<string> Headers => new List<string> { "Field", "Value" };
 
     private List<Func<RowData, string>> accessorFunctions = new List<Func<RowData, string>>
     {

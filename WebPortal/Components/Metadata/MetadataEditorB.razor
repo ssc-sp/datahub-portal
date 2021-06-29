@@ -15,6 +15,7 @@
                 <hr />
                 <MetadataFieldEditorB Preview="Preview"
                                       FieldValue="fieldValue"
+                                      FieldDefinition="definition"
                                       FieldLabel="@definition.Name"
                                       Mandatory="definition.IsMandatory"
                                       OnFieldChanged="FieldChanged" />
@@ -45,7 +46,11 @@
 
     private async Task FieldChanged(FieldValue field)
     {
-        if (!FieldValues.Contains(field))
+        if (string.IsNullOrEmpty(field.Value))
+        {
+            FieldValues.Remove(field);
+        }
+        else if (!FieldValues.Contains(field))
         {
             FieldValues.Add(field);
         }

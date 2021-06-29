@@ -25,10 +25,21 @@
         <i class="fas fa-project-diagram"></i>
         @Localizer["Data Projects"]
     </NavLink>
-    <NavLink href="/metadata" Match="NavLinkMatch.Prefix" ActiveClass="active">
+    <NavLink href="/metadataa" Match="NavLinkMatch.Prefix" ActiveClass="active">
         <i class="fad fa-user-lock"></i>
-        Test Metadata...
+        Test Metadata (A)
     </NavLink>
+
+    <NavLink href="/metadatab" Match="NavLinkMatch.Prefix" ActiveClass="active">
+        <i class="fad fa-user-lock"></i>
+        Test Metadata (B)
+    </NavLink>
+
+    <NavLink href="/metadatac" Match="NavLinkMatch.Prefix" ActiveClass="active">
+        <i class="fad fa-user-lock"></i>
+        Test Metadata (C)
+    </NavLink>
+
     <AuthorizeView Roles="datahub-admin, project-admin">
         <NavLink href="/admin" Match="NavLinkMatch.Prefix" ActiveClass="active">
             <i class="fad fa-user-lock"></i>

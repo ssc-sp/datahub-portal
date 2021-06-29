@@ -9,8 +9,18 @@
         }
         else
         {
-            <div class="customuserinput" @onclick="SelectField">
-                <label style="cursor: pointer;">@FieldLabel</label>
+            <div class="_customuserinput" @onclick="SelectField">
+                <label style="cursor: pointer;">
+                    @if (!Preview && FieldDefinition.IsMandatory)
+                    {
+                        <strong style="color: red">*&nbsp;</strong>
+                    }
+                    @FieldDefinition.Name
+                    @*@if (!Preview && FieldDefinition.IsMandatory)
+                    {
+                        <span style="color: red">&nbsp;(required)</span>
+                    }*@
+                </label>                
             </div>
         }
     </div>
@@ -31,11 +41,28 @@
                 }
                 else
                 {
-                    <input type="text"
-                           @bind="BoundValue"
-                           @ref="FieldValueInput"
-                           disabled="@Preview"
-                           style="@FieldStyle" />
+                    if (!FieldDefinition.HasChoices)
+                    {
+                        <input type="text"
+                               @bind="BoundValue"
+                               @ref="FieldValueInput"
+                               disabled="@Preview"
+                               style="@FieldStyle" />
+                    }
+                    else
+                    {
+                        <select style="@FieldStyle" 
+                                @bind="BoundValue"
+                                @ref="FieldValueInput">
+
+                            <option value=""></option>
+
+                            @foreach (var choice in FieldDefinition.Choices)
+                            {
+                                <option value="@choice.ChoiceId">@choice.Label</option> 
+                            }
+                        </select>
+                    }
                 }
             </div>
         }
@@ -66,6 +93,9 @@
 
     [Parameter]
     public FieldValue FieldValue { get; set; }
+
+    [Parameter]
+    public FieldDefinition FieldDefinition { get; set; }
 
     [Parameter]
     public string FieldLabel { get; set; }
