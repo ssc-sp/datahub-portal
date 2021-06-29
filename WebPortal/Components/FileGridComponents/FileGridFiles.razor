@@ -21,7 +21,7 @@
         <div class="ellipsis">
             <i class="far fa-ellipsis-v" @onclick="(e) => OnEllipsisClickFile(e)"></i>
             <div id="@($"{File.fileid}Menu")" class="context-menu dropdown-content">
-                @if (File.ownedby == CurrentUser)
+                @if (File.ownedby == CurrentUser && string.IsNullOrEmpty(Project))
                 {
                     <a class="bottomborder" @onclick="OpenManageAccess">
                         <i class="far fa-link icon-color sm-icon"></i>
@@ -113,6 +113,8 @@
     public bool IsSelected { get; set; } = false;
     [Parameter]
     public string CurrentUser { get; set; }
+    [Parameter]
+    public string Project { get; set; }
 
     public string FileStatusCssStyle
     {

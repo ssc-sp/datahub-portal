@@ -50,7 +50,7 @@ else
             }
             else
             {
-                <FileGridFiles File=@(child as FileMetaData) IsSelected=@isSelected OnEllipsisClick="(e) => OnEllipsisClick(child as FileMetaData, e)" SelectRow="() => SelectRow(child)" PerformMenuAction="(MenuActions m) => PerformMenuAction(m, child)" IsSearchedData="IsSearchResults" CurrentUser="@CurrentUserId" />
+                <FileGridFiles File=@(child as FileMetaData) IsSelected=@isSelected OnEllipsisClick="(e) => OnEllipsisClick(child as FileMetaData, e)" SelectRow="() => SelectRow(child)" PerformMenuAction="(MenuActions m) => PerformMenuAction(m, child)" IsSearchedData="IsSearchResults" CurrentUser="@CurrentUserId" Project="@Project" />
             }
         }
     </div>
