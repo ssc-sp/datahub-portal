@@ -1,4 +1,5 @@
 ﻿@import '../../_colors.scss';
+@import '../../Components/Icons/_icon-colors.scss';
 
 
 .recent-card-container {
@@ -11,6 +12,9 @@
     align-items: center;
 
     margin: 1rem 0;
+
+
+    @include icon-colors;
 
     i {
       font-size: 2rem;

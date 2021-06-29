@@ -1,0 +1,48 @@
+﻿@import '../../_colors.scss';
+
+$icon-colors: (
+  "blue": (
+    "primary": $blue-300,
+    "secondary": $blue-400,
+  ),
+  "indigo": (
+    "primary": $indigo-500,
+    "secondary": $indigo-600,
+  ),
+  "purple": (
+    "primary": $purple-500,
+    "secondary": $purple-600,
+  ),
+  "pink": (
+    "primary": $pink-500,
+    "secondary": $pink-600,
+  ),
+  "yellow": (
+    "primary": $yellow-500,
+    "secondary": $yellow-700,
+  ),
+  "green": (
+    "primary": $green-500,
+    "secondary": $green-600,
+  ),
+);
+
+@mixin icon-colors {
+  @each $color, $palette in $icon-colors {
+    &.#{$color} {
+      --fa-primary-color: #{map-get($palette, "primary")};
+      --fa-secondary-color: #{map-get($palette, "secondary")};
+    }
+  }
+}
+
+@mixin base-icon-color {
+  color: $gray-500;
+}
+
+@mixin base-icon-hover {
+  &:hover {
+    background-color: $gray-100;
+    color: $gray-700;
+  }
+}

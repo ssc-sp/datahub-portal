@@ -38,19 +38,19 @@ namespace NRCan.Datahub.Shared.Data
     public static readonly Icon POWERBI = new()
     {
       Name = "fad fa-chart-bar",
-      Color = "blue",
+      Color = "yellow",
     };
 
     public static readonly Icon ADMIN = new()
     {
       Name = "fad fa-user-cog",
-      Color = "blue",
+      Color = "green",
     };
 
     public static readonly Icon DATAENTRY = new()
     {
       Name = "fad fa-keyboard",
-      Color = "blue",
+      Color = "grey",
     };
   }
 }

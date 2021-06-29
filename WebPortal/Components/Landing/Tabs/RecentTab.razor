@@ -1,7 +1,7 @@
 ﻿<AeFlex class="recent-card-container">
   @foreach (var card in GetCards())
   {
-    <AeFlex class="recent-card">
+    <AeFlex class="@($"recent-card {card.Icon.Color}")">
       <i class="@card.Icon.Name" />
       <AeFlex class="text">
         <AeTypography class="title">@card.Title</AeTypography>

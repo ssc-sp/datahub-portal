@@ -4864,6 +4864,20 @@ template {
 /** Indigo **/
 /** Purple **/
 /** Pink **/
+/** Transparent **/
+/** Black **/
+/** White **/
+/** Transparent **/
+/** Gray **/
+/** Red **/
+/** Orange **/
+/** Yellow **/
+/** Green **/
+/** Teal **/
+/** Blue **/
+/** Indigo **/
+/** Purple **/
+/** Pink **/
 #sidebar {
   z-index: 2;
   position: sticky;
@@ -5108,6 +5122,20 @@ template {
 /** Indigo **/
 /** Purple **/
 /** Pink **/
+/** Transparent **/
+/** Black **/
+/** White **/
+/** Transparent **/
+/** Gray **/
+/** Red **/
+/** Orange **/
+/** Yellow **/
+/** Green **/
+/** Teal **/
+/** Blue **/
+/** Indigo **/
+/** Purple **/
+/** Pink **/
 .recent-card-container {
   display: flex;
   flex-direction: column; }
@@ -5115,6 +5143,24 @@ template {
     display: flex;
     align-items: center;
     margin: 1rem 0; }
+    .recent-card-container .recent-card.blue {
+      --fa-primary-color: #90cdf4;
+      --fa-secondary-color: #63b3ed; }
+    .recent-card-container .recent-card.indigo {
+      --fa-primary-color: #667eea;
+      --fa-secondary-color: #5a67d8; }
+    .recent-card-container .recent-card.purple {
+      --fa-primary-color: #9f7aea;
+      --fa-secondary-color: #805ad5; }
+    .recent-card-container .recent-card.pink {
+      --fa-primary-color: #ed64a6;
+      --fa-secondary-color: #d53f8c; }
+    .recent-card-container .recent-card.yellow {
+      --fa-primary-color: #ecc94b;
+      --fa-secondary-color: #b7791f; }
+    .recent-card-container .recent-card.green {
+      --fa-primary-color: #48bb78;
+      --fa-secondary-color: #38a169; }
     .recent-card-container .recent-card i {
       font-size: 2rem;
       width: 50px; }
