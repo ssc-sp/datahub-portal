@@ -1,0 +1,54 @@
+﻿@import '../../_colors.scss';
+
+
+$sidebar-colors: (
+  "blue": (
+    "primary": $blue-300,
+    "secondary": $blue-400,
+  ),
+  "indigo": (
+    "primary": $indigo-500,
+    "secondary": $indigo-600,
+  ),
+  "purple": (
+    "primary": $purple-500,
+    "secondary": $purple-600,
+  ),
+  "pink": (
+    "primary": $pink-500,
+    "secondary": $pink-600,
+  ),
+  "yellow": (
+    "primary": $yellow-500,
+    "secondary": $yellow-700,
+  ),
+  "green": (
+    "primary": $green-500,
+    "secondary": $green-600,
+  ),
+);
+
+@mixin sidebar-border-colors {
+  @each $color, $colors in $sidebar-colors {
+    &.#{$color} {
+      border-left-color: #{map-get($colors, "primary")};
+    }
+  }
+}
+
+@mixin sidebar-icon-colors {
+  @each $color, $palette in $sidebar-colors {
+    &.#{$color} {
+      --fa-primary-color: #{map-get($palette, "primary")};
+      --fa-secondary-color: #{map-get($palette, "secondary")};
+    }
+  }
+}
+
+
+
+
+
+
+
+

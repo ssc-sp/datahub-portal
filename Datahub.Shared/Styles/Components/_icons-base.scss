@@ -2,11 +2,11 @@
 @import '../_constants.scss';
 
 
-@mixin icon-color {
+@mixin base-icon-color {
     color: $gray-500;
 }
 
-@mixin icon-hover {
+@mixin base-icon-hover {
     &:hover {
         background-color: $gray-100;
         color: $gray-700;

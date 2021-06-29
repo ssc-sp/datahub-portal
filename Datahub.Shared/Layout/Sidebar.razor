@@ -6,7 +6,7 @@
   <div class="links">
     @foreach(var link in GetLinks())
     {
-      <NavLink href="@link.Href" Match="NavLinkMatch.All" ActiveClass="active">
+      <NavLink class="@link.Color" href="@link.Href" Match="NavLinkMatch.All" ActiveClass="active">
         <i class="@link.Icon"></i>
         @Localizer[@link.Label]
       </NavLink>
@@ -14,7 +14,7 @@
     @foreach(var link in GetAuthorizedLinks())
     {
       <AuthorizeView Roles="@string.Join(',', link.Roles)">
-        <NavLink href="@link.Href" Match="NavLinkMatch.All" ActiveClass="active">
+        <NavLink class="@link.Color" href="@link.Href" Match="NavLinkMatch.All" ActiveClass="active">
           <i class="@link.Icon"></i>
           @Localizer[@link.Label]
         </NavLink>
@@ -25,24 +25,24 @@
 
 @code {
 
-  private List<(string Href, string Icon, string Label)> GetLinks()
+  private List<(string Href, string Icon, string Label, string Color)> GetLinks()
   {
-    return new List<(string, string, string)>()
+    return new List<(string, string, string, string)>()
     {
-      ("/", "fad fa-home", "SIDEBAR.Home"),
-      ("/storage", "fad fa-hdd", "SIDEBAR.Storage"),
-      ("/resources", "fad fa-project-diagram", "SIDEBAR.Resources"),
-      ("/datasets", "fad fa-cabinet-filing", "SIDEBAR.Datasets"),
-      ("/powerbi", "fad fa-chart-bar", "SIDEBAR.PowerBI"),
-      ("/admin", "fad fa-user-cog", "SIDEBAR.Admin")
+      ("/", "fad fa-home", "SIDEBAR.Home", "blue"),
+      ("/storage", "fad fa-hdd", "SIDEBAR.Storage", "indigo"),
+      ("/resources", "fad fa-project-diagram", "SIDEBAR.Resources", "purple"),
+      ("/datasets", "fad fa-cabinet-filing", "SIDEBAR.Datasets", "pink"),
+      ("/powerbi", "fad fa-chart-bar", "SIDEBAR.PowerBI", "yellow"),
+      ("/admin", "fad fa-user-cog", "SIDEBAR.Admin", "green")
     };
   }
 
-  private List<(string Href, string Icon, string Label, List<string> Roles)> GetAuthorizedLinks()
+  private List<(string Href, string Icon, string Label, string Color, List<string> Roles)> GetAuthorizedLinks()
   {
-    return new List<(string, string, string, List<string>)>()
+    return new List<(string, string, string, string, List<string>)>()
     {
-      ("/admin", "fad fa-user-cog", "SIDEBAR.Admin",
+      ("/admin", "fad fa-user-cog", "SIDEBAR.Admin", "green",
         new List<string>()
         {
           "datahub-admin",

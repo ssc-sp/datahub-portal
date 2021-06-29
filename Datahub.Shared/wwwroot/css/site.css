@@ -3517,85 +3517,6 @@ template {
 /** Indigo **/
 /** Purple **/
 /** Pink **/
-#sidebar {
-  z-index: 2;
-  position: sticky;
-  top: 0;
-  width: 80px;
-  min-width: 80px;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  background-color: #fff; }
-  #sidebar .links {
-    height: 100%;
-    border-right: 1px solid #edf2f7; }
-    #sidebar .links > a, #sidebar .links > div {
-      padding: .5rem; }
-    #sidebar .links > a {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      border-left: 4px solid transparent;
-      border-right: 4px solid transparent;
-      font-size: 0.5rem;
-      text-transform: uppercase;
-      text-decoration: none;
-      transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
-      color: #a0aec0; }
-      #sidebar .links > a i {
-        height: 36px;
-        font-size: 2rem;
-        margin-bottom: 2px; }
-      #sidebar .links > a .powerbi-svg {
-        background-color: red;
-        width: 32px;
-        height: 32px;
-        -webkit-mask: url("icons/svg/power-bi.svg") no-repeat center;
-        mask: url("icons/svg/power-bi.svg") no-repeat center; }
-      #sidebar .links > a:hover:hover {
-        background-color: #f7fafc;
-        color: #4a5568; }
-      #sidebar .links > a.active {
-        background-color: #F7F7F7;
-        border-left-color: #57C4EC;
-        color: #1a202c; }
-  #sidebar .logo {
-    background-color: #fff;
-    border-bottom: 1px solid transparent;
-    height: 60px;
-    margin: 0 auto; }
-    #sidebar .logo img {
-      padding: .5rem; }
-
-/** Transparent **/
-/** Black **/
-/** White **/
-/** Transparent **/
-/** Gray **/
-/** Red **/
-/** Orange **/
-/** Yellow **/
-/** Green **/
-/** Teal **/
-/** Blue **/
-/** Indigo **/
-/** Purple **/
-/** Pink **/
-/** Transparent **/
-/** Black **/
-/** White **/
-/** Transparent **/
-/** Gray **/
-/** Red **/
-/** Orange **/
-/** Yellow **/
-/** Green **/
-/** Teal **/
-/** Blue **/
-/** Indigo **/
-/** Purple **/
-/** Pink **/
 #topbar {
   background-color: #fff;
   position: fixed;
@@ -4900,6 +4821,147 @@ template {
     position: absolute;
     top: .5rem;
     right: 1rem; }
+
+/** Transparent **/
+/** Black **/
+/** White **/
+/** Transparent **/
+/** Gray **/
+/** Red **/
+/** Orange **/
+/** Yellow **/
+/** Green **/
+/** Teal **/
+/** Blue **/
+/** Indigo **/
+/** Purple **/
+/** Pink **/
+/** Transparent **/
+/** Black **/
+/** White **/
+/** Transparent **/
+/** Gray **/
+/** Red **/
+/** Orange **/
+/** Yellow **/
+/** Green **/
+/** Teal **/
+/** Blue **/
+/** Indigo **/
+/** Purple **/
+/** Pink **/
+/** Transparent **/
+/** Black **/
+/** White **/
+/** Transparent **/
+/** Gray **/
+/** Red **/
+/** Orange **/
+/** Yellow **/
+/** Green **/
+/** Teal **/
+/** Blue **/
+/** Indigo **/
+/** Purple **/
+/** Pink **/
+#sidebar {
+  z-index: 2;
+  position: sticky;
+  top: 0;
+  width: 80px;
+  min-width: 80px;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #fff; }
+  #sidebar .links {
+    height: 100%;
+    border-right: 1px solid #edf2f7; }
+    #sidebar .links > a, #sidebar .links > div {
+      padding: .75rem 0; }
+    #sidebar .links > a {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      border-left: 4px solid transparent;
+      border-right: 4px solid transparent;
+      font-size: 0.5rem;
+      text-transform: uppercase;
+      text-decoration: none;
+      transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+      color: #a0aec0; }
+      #sidebar .links > a i {
+        height: 36px;
+        font-size: 2rem;
+        margin-bottom: 2px;
+        color: #a0aec0; }
+      #sidebar .links > a .powerbi-svg {
+        background-color: red;
+        width: 32px;
+        height: 32px;
+        -webkit-mask: url("icons/svg/power-bi.svg") no-repeat center;
+        mask: url("icons/svg/power-bi.svg") no-repeat center; }
+      #sidebar .links > a:hover:hover {
+        background-color: #f7fafc;
+        color: #4a5568; }
+      #sidebar .links > a:hover.blue {
+        --fa-primary-color: #90cdf4;
+        --fa-secondary-color: #63b3ed; }
+      #sidebar .links > a:hover.indigo {
+        --fa-primary-color: #667eea;
+        --fa-secondary-color: #5a67d8; }
+      #sidebar .links > a:hover.purple {
+        --fa-primary-color: #9f7aea;
+        --fa-secondary-color: #805ad5; }
+      #sidebar .links > a:hover.pink {
+        --fa-primary-color: #ed64a6;
+        --fa-secondary-color: #d53f8c; }
+      #sidebar .links > a:hover.yellow {
+        --fa-primary-color: #ecc94b;
+        --fa-secondary-color: #b7791f; }
+      #sidebar .links > a:hover.green {
+        --fa-primary-color: #48bb78;
+        --fa-secondary-color: #38a169; }
+      #sidebar .links > a.active {
+        background-color: #F7F7F7;
+        color: #1a202c; }
+        #sidebar .links > a.active.blue {
+          border-left-color: #90cdf4; }
+        #sidebar .links > a.active.indigo {
+          border-left-color: #667eea; }
+        #sidebar .links > a.active.purple {
+          border-left-color: #9f7aea; }
+        #sidebar .links > a.active.pink {
+          border-left-color: #ed64a6; }
+        #sidebar .links > a.active.yellow {
+          border-left-color: #ecc94b; }
+        #sidebar .links > a.active.green {
+          border-left-color: #48bb78; }
+        #sidebar .links > a.active.blue {
+          --fa-primary-color: #90cdf4;
+          --fa-secondary-color: #63b3ed; }
+        #sidebar .links > a.active.indigo {
+          --fa-primary-color: #667eea;
+          --fa-secondary-color: #5a67d8; }
+        #sidebar .links > a.active.purple {
+          --fa-primary-color: #9f7aea;
+          --fa-secondary-color: #805ad5; }
+        #sidebar .links > a.active.pink {
+          --fa-primary-color: #ed64a6;
+          --fa-secondary-color: #d53f8c; }
+        #sidebar .links > a.active.yellow {
+          --fa-primary-color: #ecc94b;
+          --fa-secondary-color: #b7791f; }
+        #sidebar .links > a.active.green {
+          --fa-primary-color: #48bb78;
+          --fa-secondary-color: #38a169; }
+  #sidebar .logo {
+    background-color: #fff;
+    border-bottom: 1px solid transparent;
+    height: 60px;
+    margin: 0 auto; }
+    #sidebar .logo img {
+      padding: .5rem; }
 
 /** Transparent **/
 /** Black **/

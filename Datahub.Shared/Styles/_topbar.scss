@@ -2,7 +2,7 @@
 @import 'box-shadow';
 @import 'constants';
 
-@import 'Components/_icons.scss';
+@import 'Components/_icons-base.scss';
 
 #topbar {
     background-color: $white;
@@ -34,8 +34,8 @@
         cursor: pointer;
         font-size: 1.25rem;
 
-        @include icon-color;
-        @include icon-hover;
+        @include base-icon-color;
+        @include base-icon-hover;
     }
 
 

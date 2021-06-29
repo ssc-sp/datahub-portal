@@ -1,7 +1,6 @@
 @import 'Theme/_elemental-override.scss';
 
 @import 'colors';
-@import 'sidebar';
 @import 'topbar';
 @import 'banner';
 @import 'main-layout';
@@ -22,6 +21,8 @@
 @import 'Components/_closeButton.scss';
 @import 'Components/_faButton.scss';
 @import 'Components/_facard1.scss';
+
+@import 'Components/Sidebar/_index.scss';
 
 @import 'Views/_item-details.scss';
 @import 'Pages/Landing/_index.scss';
