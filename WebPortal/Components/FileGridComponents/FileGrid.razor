@@ -430,11 +430,23 @@ else
 
     private async Task Delete(FileMetaData file)
     {
-        if (await DataRemovalService.Delete(file, CurrentUser))
+        if (string.IsNullOrEmpty(Project))
         {
-            CurrentFolder.Remove(file);
-            UnSelectFiles();
+            if (await DataRemovalService.Delete(file, CurrentUser))
+            {
+                CurrentFolder.Remove(file);
+                UnSelectFiles();
+            }
         }
+        else
+        {
+            if (await DataRemovalService.DeleteStorageBlob(file, Project.ToLower(), CurrentUser))
+            {
+                CurrentFolder.Remove(file);
+                UnSelectFiles();
+            }
+        }
+
     }
 
     private async Task Delete(Folder folder)
