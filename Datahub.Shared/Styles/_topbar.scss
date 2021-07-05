@@ -34,6 +34,10 @@
         cursor: pointer;
         font-size: 1.25rem;
 
+        &:hover {
+          background-color: $gray-100;
+        }
+
         @include base-icon-color;
         @include base-icon-hover;
     }
@@ -97,7 +101,7 @@
             margin-top: 0px;
 
             &:hover {
-                background-color: $nrcangray;
+                background-color: $gray-100;
                 cursor: pointer;
             }
         }

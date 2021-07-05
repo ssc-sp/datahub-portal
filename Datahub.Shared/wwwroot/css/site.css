@@ -3544,6 +3544,8 @@ template {
     --fa-primary-color: #a0aec0;
     --fa-secondary-color: #a0aec0; }
     #topbar .icon-container:hover {
+      background-color: #f7fafc; }
+    #topbar .icon-container:hover {
       --fa-primary-color: #4a5568;
       --fa-secondary-color: #4a5568; }
   #topbar .help-popup h3 {
@@ -3582,7 +3584,7 @@ template {
       padding: 0 1rem;
       margin-top: 0px; }
       #topbar .profile .toggle:hover {
-        background-color: #f7f7f7;
+        background-color: #f7fafc;
         cursor: pointer; }
     #topbar .profile .picture {
       margin-left: 1rem;
