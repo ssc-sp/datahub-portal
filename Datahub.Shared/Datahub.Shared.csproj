@@ -35,6 +35,7 @@
     <PackageReference Include="BlazorInputFile" Version="0.2.0" />
     <PackageReference Include="Localization.AspNetCore.TagHelpers" Version="0.6.0" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.16.0" />
+    <PackageReference Include="Microsoft.AspNetCore.ApplicationInsights.HostingStartup" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.AzureAD.UI" Version="5.0.2" />
     <PackageReference Include="Microsoft.AspNetCore.DataProtection.Abstractions" Version="5.0.2" />
     <PackageReference Include="Microsoft.Azure.KeyVault" Version="3.0.5" />
