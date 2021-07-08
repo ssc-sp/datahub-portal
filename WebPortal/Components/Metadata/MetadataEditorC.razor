@@ -40,7 +40,7 @@
         return Definitions.Fields.Select(f => new RowData()
         {
             Label = f.Name,
-            FieldId = f.Id
+            FieldId = f.FieldName
         }).ToList();
     }
 

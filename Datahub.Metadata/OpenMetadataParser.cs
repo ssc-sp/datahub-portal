@@ -2,6 +2,7 @@
 using CsvHelper;
 using CsvHelper.Configuration;
 using System.Globalization;
+using System;
 
 namespace NRCan.Datahub.Metadata
 {
@@ -23,13 +24,12 @@ namespace NRCan.Datahub.Metadata
             {
                 var fieldDefinition = new FieldDefinition()
                 {
-                    Id = row.FieldId,
+                    FieldName = row.FieldId,
                     NameEnglish = row.NameEnglish,
                     NameFrench = row.NameFrench,
                     DescriptionEnglish = row.DescriptionEnglish,
                     DescriptionFrench = row.DescriptionFrench,
-                    ObligationEnglish = row.ObligationEnglish,
-                    ObligationFrench = row.ObligationFrench,
+                    Required = "Mandatory".Equals(row.ObligationEnglish, StringComparison.InvariantCultureIgnoreCase),
                     SortOrder = sortOrder++
                 };
                 definitions.Add(fieldDefinition);

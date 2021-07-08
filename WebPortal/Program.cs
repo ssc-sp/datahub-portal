@@ -16,6 +16,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using NRCan.Datahub.Data.Projects;
+using NRCan.Datahub.Metadata;
 using NRCan.Datahub.Portal.Data.Finance;
 using NRCan.Datahub.Portal.EFCore;
 using NRCan.Datahub.ProjectForms.Data.PIP;
@@ -48,6 +49,8 @@ namespace NRCan.Datahub.Portal
                 var pipdb = scope.ServiceProvider.GetRequiredService<PIPDBContext>();
                 pipdb.Database.Migrate();
 
+                var metadataDb = scope.ServiceProvider.GetRequiredService<MetadataDbContext>();
+                metadataDb.Database.Migrate();
             }
             
             host.Run();

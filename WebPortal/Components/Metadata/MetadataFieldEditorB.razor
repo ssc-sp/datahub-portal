@@ -11,15 +11,11 @@
         {
             <div class="_customuserinput" @onclick="SelectField">
                 <label style="cursor: pointer;">
-                    @if (!Preview && FieldDefinition.IsMandatory)
+                    @if (!Preview && FieldDefinition.Required && FieldValueEmpty)
                     {
                         <strong style="color: red">*&nbsp;</strong>
                     }
                     @FieldDefinition.Name
-                    @*@if (!Preview && FieldDefinition.IsMandatory)
-                    {
-                        <span style="color: red">&nbsp;(required)</span>
-                    }*@
                 </label>                
             </div>
         }
@@ -59,7 +55,7 @@
 
                             @foreach (var choice in FieldDefinition.Choices)
                             {
-                                <option value="@choice.ChoiceId">@choice.Label</option> 
+                                <option value="@choice.Id">@choice.Label</option> 
                             }
                         </select>
                     }
@@ -124,7 +120,9 @@
     const string MandatoryField = "border: 0; width: 100%; background-color: rgb(255, 235, 230);";
     const string OptionalField = "border: 0; width: 100%;";
 
-    private string FieldStyle => Mandatory ? MandatoryField : OptionalField;
+    private string FieldStyle => Mandatory && FieldValueEmpty ? MandatoryField : OptionalField;
+
+    private bool FieldValueEmpty => string.IsNullOrEmpty(BoundValue);
 
     private void ClearField()
     {

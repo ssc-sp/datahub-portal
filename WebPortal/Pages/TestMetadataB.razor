@@ -78,11 +78,12 @@
             .Split('|')
             .Select(choice => new FieldChoice()
             {
-                ChoiceId = choice,
+                Value = choice,
                 LabelEnglish = choice,
                 LabelFrench = choice
-            });
+            })
+            .ToList();
 
-        _definitions.Get("Collection").Choices.AddRange(choices);
+        _definitions.Get("Collection").Choices = choices;
     }
 }

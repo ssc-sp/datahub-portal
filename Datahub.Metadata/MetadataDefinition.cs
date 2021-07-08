@@ -20,16 +20,16 @@ namespace NRCan.Datahub.Metadata
             if (field == null)
                 throw new ArgumentException("Null field definition!");
 
-            if (string.IsNullOrEmpty(field?.Id))
+            if (string.IsNullOrEmpty(field?.FieldName))
                 throw new ArgumentException("Field with empty id!");
 
-            var key = field.Id.ToLower();
+            var key = field.FieldName.ToLower();
             if (_fields.ContainsKey(key))
             {
                 if (_ignoreDuplicates)
                     return;
 
-                throw new ArgumentException($"Duplicated field '{field.Id}' detected!");
+                throw new ArgumentException($"Duplicated field '{field.FieldName}' detected!");
             }
 
             _fields.Add(key, field);

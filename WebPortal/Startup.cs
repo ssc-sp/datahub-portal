@@ -43,6 +43,7 @@ using NRCan.Datahub.Portal.Data.Finance;
 using NRCan.Datahub.Portal.Data.WebAnalytics;
 using BlazorApplicationInsights;
 using NRCan.Datahub.Portal.RoleManagement;
+using NRCan.Datahub.Metadata;
 
 namespace NRCan.Datahub.Portal
 {
@@ -281,45 +282,39 @@ namespace NRCan.Datahub.Portal
 
         private void ConfigureDbContexts(IServiceCollection services)
         {
-            services.AddPooledDbContextFactory<DatahubProjectDBContext>(options =>
-                            options.UseSqlServer(Configuration.GetConnectionString("datahub-mssql-project") ?? throw new ArgumentNullException("ASPNETCORE_CONNECTION STRING")));
-            services.AddDbContextPool<DatahubProjectDBContext>(options =>
-                options.UseSqlServer(Configuration.GetConnectionString("datahub-mssql-project") ?? throw new ArgumentNullException("ASPNETCORE_CONNECTION STRING")));
-
-            services.AddPooledDbContextFactory<PIPDBContext>(options =>
-                options.UseSqlServer(Configuration.GetConnectionString("datahub-mssql-pip") ?? throw new ArgumentNullException("ASPNETCORE_CONNECTION STRING")));
-            services.AddDbContextPool<PIPDBContext>(options =>
-                options.UseSqlServer(Configuration.GetConnectionString("datahub-mssql-pip") ?? throw new ArgumentNullException("ASPNETCORE_CONNECTION STRING")));
-
-            services.AddPooledDbContextFactory<FinanceDBContext>(options =>
-                options.UseSqlServer(Configuration.GetConnectionString("datahub-mssql-finance") ?? throw new ArgumentNullException("ASPNETCORE_CONNECTION STRING")));
-            services.AddDbContextPool<FinanceDBContext>(options =>
-                options.UseSqlServer(Configuration.GetConnectionString("datahub-mssql-finance") ?? throw new ArgumentNullException("ASPNETCORE_CONNECTION STRING")));
-
+            ConfigureDbContext<DatahubProjectDBContext>(services, "datahub-mssql-project");
+            ConfigureDbContext<PIPDBContext>(services, "datahub-mssql-pip");
+            ConfigureDbContext<FinanceDBContext>(services, "datahub-mssql-finance");
             if (!Offline)
             {
-                services.AddPooledDbContextFactory<EFCoreDatahubContext>(options =>
-                options.UseCosmos(Configuration.GetConnectionString("datahub-cosmosdb") ?? throw new ArgumentNullException("ASPNETCORE_CONNECTION STRING"), databaseName: "datahub-catalog-db"));
-                services.AddDbContextPool<EFCoreDatahubContext>(options =>
-                    options.UseCosmos(Configuration.GetConnectionString("datahub-cosmosdb") ?? throw new ArgumentNullException("ASPNETCORE_CONNECTION STRING"), databaseName: "datahub-catalog-db"));
+                ConfigureCosmosDbContext<EFCoreDatahubContext>(services, "datahub-cosmosdb", "datahub-catalog-db");
             }
             else
             {
-                services.AddPooledDbContextFactory<EFCoreDatahubContext>(options =>
-                options.UseSqlServer(Configuration.GetConnectionString("datahub-cosmosdb") ?? throw new ArgumentNullException("ASPNETCORE_CONNECTION STRING")));
-                services.AddDbContextPool<EFCoreDatahubContext>(options =>
-                    options.UseSqlServer(Configuration.GetConnectionString("datahub-cosmosdb") ?? throw new ArgumentNullException("ASPNETCORE_CONNECTION STRING")));
+                ConfigureDbContext<EFCoreDatahubContext>(services, "datahub-cosmosdb");
             }
+            ConfigureDbContext<WebAnalyticsContext>(services, "datahub-mssql-webanalytics");
+            ConfigureDbContext<SqlCiosbDatahubEtldbContext>(services, "datahub-mssql-etldb");
+            ConfigureDbContext<MetadataDbContext>(services, "datahub-mssql-metadata");
+        }
 
-            services.AddPooledDbContextFactory<WebAnalyticsContext>(options =>
-                options.UseSqlServer(Configuration.GetConnectionString("datahub-mssql-webanalytics") ?? throw new ArgumentNullException("ASPNETCORE_CONNECTION STRING")));
-            services.AddDbContextPool<WebAnalyticsContext>(options =>
-                options.UseSqlServer(Configuration.GetConnectionString("datahub-mssql-webanalytics") ?? throw new ArgumentNullException("ASPNETCORE_CONNECTION STRING")));
+        private void ConfigureDbContext<T>(IServiceCollection services, string connectionStringName) where T : DbContext
+        {
+            var connectionString = GetConnectionString(connectionStringName);
+            services.AddPooledDbContextFactory<T>(options => options.UseSqlServer(connectionString));
+            services.AddDbContextPool<T>(options => options.UseSqlServer(connectionString));
+        }
 
-            services.AddPooledDbContextFactory<SqlCiosbDatahubEtldbContext>(options =>
-                options.UseSqlServer(Configuration.GetConnectionString("datahub-mssql-etldb") ?? throw new ArgumentNullException("ASPNETCORE_CONNECTION STRING")));
-            services.AddDbContextPool<SqlCiosbDatahubEtldbContext>(options =>
-                options.UseSqlServer(Configuration.GetConnectionString("datahub-mssql-etldb") ?? throw new ArgumentNullException("ASPNETCORE_CONNECTION STRING")));
-        }          
+        private void ConfigureCosmosDbContext<T>(IServiceCollection services, string connectionStringName, string catalogName) where T : DbContext
+        {
+            var connectionString = GetConnectionString(connectionStringName);
+            services.AddPooledDbContextFactory<T>(options => options.UseCosmos(connectionString, databaseName: catalogName));
+            services.AddDbContextPool<T>(options => options.UseCosmos(connectionString, databaseName: catalogName));
+        }
+
+        private string GetConnectionString(string name)
+        {
+            return Configuration.GetConnectionString(name) ?? throw new ArgumentNullException($"ASPNETCORE_CONNECTION STRING ({name})");
+        }
     }
 }
