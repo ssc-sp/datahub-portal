@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30114.128
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31423.177
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NRCan.Datahub.Portal", "WebPortal\NRCan.Datahub.Portal.csproj", "{7C55A80E-F420-45A7-A85E-BBF054533EE3}"
 EndProject
@@ -33,8 +33,8 @@ Global
 		{7C55A80E-F420-45A7-A85E-BBF054533EE3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7C55A80E-F420-45A7-A85E-BBF054533EE3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7C55A80E-F420-45A7-A85E-BBF054533EE3}.Release|Any CPU.Build.0 = Release|Any CPU
-		{9437DD2A-0322-47ED-8FA2-96B8B87928CB}.Debug|Any CPU.ActiveCfg = Release|Any CPU
-		{9437DD2A-0322-47ED-8FA2-96B8B87928CB}.Debug|Any CPU.Build.0 = Release|Any CPU
+		{9437DD2A-0322-47ED-8FA2-96B8B87928CB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9437DD2A-0322-47ED-8FA2-96B8B87928CB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9437DD2A-0322-47ED-8FA2-96B8B87928CB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9437DD2A-0322-47ED-8FA2-96B8B87928CB}.Release|Any CPU.Build.0 = Release|Any CPU
 		{E536F8EC-31D3-4C07-AEB2-C2A8D8634480}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -50,8 +50,8 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		RESX_ConfirmAddLanguageFile = True
-		RESX_AutoCreateNewLanguageFiles = True
 		SolutionGuid = {9DC4B901-16FF-4FF2-9ED6-B286EA17048E}
+		RESX_AutoCreateNewLanguageFiles = True
+		RESX_ConfirmAddLanguageFile = True
 	EndGlobalSection
 EndGlobal
