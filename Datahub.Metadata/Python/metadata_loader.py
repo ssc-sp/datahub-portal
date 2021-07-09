@@ -97,7 +97,7 @@ def _readFluentFieldDefinition(preset, choices, lang):
     d.descriptionEnglish = _getValue(preset, 'values/fluent_help_text/%s/en'%(lang))
     d.descriptionFrench  = _getValue(preset, 'values/fluent_help_text/%s/fr'%(lang))
 
-    d.required = _getValue(preset, 'values/required') == 'true'
+    d.required = _getValue(preset, 'values/required')
 
     d.choices = _convertFieldChoices(_getValue(preset, 'values/choices', []), choices)
 

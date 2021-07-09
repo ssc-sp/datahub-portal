@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NRCan.Datahub.Metadata;
 
 namespace NRCan.Datahub.Metadata.Migrations
 {
     [DbContext(typeof(MetadataDbContext))]
-    partial class MetadataDbContextModelSnapshot : ModelSnapshot
+    [Migration("20210709152648_AddingMetadataVersion")]
+    partial class AddingMetadataVersion
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -82,10 +84,10 @@ namespace NRCan.Datahub.Metadata.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("VersionId");
-
-                    b.HasIndex("FieldName", "VersionId")
+                    b.HasIndex("FieldName")
                         .IsUnique();
+
+                    b.HasIndex("VersionId");
 
                     b.ToTable("FieldDefinition");
                 });

@@ -12,7 +12,8 @@ namespace NRCan.Datahub.Metadata
         }
 
         public int Id { get; set; }
-        public MetadataSource Source { get; set; }
+        public int VersionId { get; set; }
+        public virtual MetadataVersion Version { get; set; }
         public string FieldName { get; set; }
         public int SortOrder { get; set; }
         public string NameEnglish { get; set; }
@@ -30,10 +31,5 @@ namespace NRCan.Datahub.Metadata
         static bool IsFrenchCulture() => CultureInfo.CurrentCulture.Name.StartsWith("fr", StringComparison.InvariantCulture);
         
         #endregion
-    }
-
-    public enum MetadataSource
-    {
-        OpenData        
     }
 }
