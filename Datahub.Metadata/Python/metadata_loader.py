@@ -151,6 +151,7 @@ def _hashPresets(presets):
 
 def _readSchemaFieldDefinition(data):
     '''reads a schema field definition'''
+    
     d = FieldDefinition()
     
     d.fieldName = _getValue(data, 'field_name')

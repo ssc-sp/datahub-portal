@@ -66,7 +66,7 @@ def _addDefinitionToDatabase(cursor, definition, versionId, order):
             _escape(definition.nameFrench), 
             _escape(definition.descriptionEnglish), 
             _escape(definition.descriptionFrench), 
-            _toInt(definition.required))
+            _boolToInt(definition.required))
 
     return _executeQueryAndGetIdentity(cursor, query)
 
@@ -87,16 +87,8 @@ def _escape(s):
     return s.replace("'", "''")
 
 
-def _toInt(f):
+def _boolToInt(f):
     return 1 if f else 0
-
-
-def _loadYamlFile(path):
-    '''loads a yaml field into a dictionary'''
-
-    with open(path, encoding="utf-8") as f:
-        data = yaml.load(f, Loader=SafeLoader)
-        return data
 
 
 def _readConnectionString(path):
@@ -135,14 +127,14 @@ presetsData = _downloadFileContent(presetsUrl)
 
 checksum = _calcCheckSum(_calcCheckSum(datasetData) + _calcCheckSum(presetsData))
 
-defs = loadMetadata(_parseYamlData(datasetData), _parseYamlData(presetsData))
+definitions = loadMetadata(_parseYamlData(datasetData), _parseYamlData(presetsData))
 
 connectionString = _readConnectionString('.connectionstring')
 
-_seedDatabase(connectionString, checksum, defs)
+_seedDatabase(connectionString, checksum, definitions)
 
 # just for fun print the french names to verify the text encoding is right, check for accents
-for d in defs:
+for d in definitions:
     print(d.nameFrench)
 
 #seeding end

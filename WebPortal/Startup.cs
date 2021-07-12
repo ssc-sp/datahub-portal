@@ -270,6 +270,8 @@ namespace NRCan.Datahub.Portal
                 services.AddSingleton<ICognitiveSearchService, OfflineCognitiveSearchService>();
             }
 
+            services.AddScoped<IMetadataBrokerService, MetadataBrokerService>();
+
             services.AddScoped<DataImportingService>();
             services.AddSingleton<DatahubTools>();
 

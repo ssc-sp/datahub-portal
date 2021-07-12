@@ -34,6 +34,9 @@
 
 @code {
 
+    [Inject]
+    public IMetadataBrokerService MetadataBrokerService { get; set; }
+
     private MetadataDefinition _definitions { get; set; }
 
     private FieldValues _fieldValues { get; set; }
@@ -42,10 +45,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var metadataCsv = await System.IO.File.ReadAllTextAsync("/temp/GCopenmetadata-GCmetadonneesouvertes.csv");
-        _definitions = OpenMetadataParser.Parse(metadataCsv, true);
-
-        AppendTestChoices();
+        _definitions = await MetadataBrokerService.GetMetadataDefinition();
 
         _fieldValues = new FieldValues()
         {

@@ -21,6 +21,8 @@ namespace NRCan.Datahub.Metadata
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.Id).ValueGeneratedOnAdd();
 
+                entity.Property(e => e.Source).HasMaxLength(32);
+
                 entity.Property(e => e.VersionData).HasMaxLength(128);
             });
 
