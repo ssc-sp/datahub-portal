@@ -244,7 +244,7 @@ namespace NRCan.Datahub.Portal
             if (!Offline)
             {
                 services.AddSingleton<IKeyVaultService, KeyVaultService>();
-
+                services.AddScoped<UserLocationManagerService>();
                 services.AddSingleton<CommonAzureServices>();
                 services.AddScoped<DataLakeClientService>();
                 
@@ -265,7 +265,7 @@ namespace NRCan.Datahub.Portal
             else
             {
                 services.AddSingleton<IKeyVaultService, OfflineKeyVaultService>();
-
+                services.AddScoped<UserLocationManagerService>();
                 services.AddSingleton<CommonAzureServices>();
                 //services.AddScoped<DataLakeClientService>();
 
