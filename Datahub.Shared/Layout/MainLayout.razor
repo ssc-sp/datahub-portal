@@ -81,7 +81,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        NavigationManager.LocationChanged += LocationChanged;
+        //NavigationManager.LocationChanged += LocationChanged;
         await MSGraphService.LoadUsersAsync();
         await ApiService.LoadApplicationData();
     }
