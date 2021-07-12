@@ -80,6 +80,19 @@ namespace NRCan.Datahub.Shared.Services
             return "DefaultEndpointsProtocol=https;AccountName=datahubstorage" + getEnvSuffix() + ";AccountKey=" + blobKey + ";EndpointSuffix=core.windows.net";
         }
 
+        public async Task<string> GetProjectConnectionString(string accountName)
+        {
+            var envName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+            envName = (envName != null ? envName.ToLower() : "dev");
+            if (envName.Equals("development"))
+            {
+                envName = "dev";
+            }
+            string key = $"datahub-blob-key-{accountName}";
+            var accountKey = await _keyVaultService.GetSecret(key);
+            return @$"DefaultEndpointsProtocol=https;AccountName=dh{accountName}{envName};AccountKey={accountKey};EndpointSuffix=core.windows.net";
+        }
+
         private string getEnvSuffix()
         {
             var envName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");

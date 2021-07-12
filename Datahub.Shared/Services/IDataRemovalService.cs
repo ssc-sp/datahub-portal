@@ -8,5 +8,6 @@ namespace NRCan.Datahub.Shared.Services
     {
         Task<bool> Delete(Shared.Data.Folder folder, User currentUser);
         Task<bool> Delete(FileMetaData file, User currentUser);
+        Task<bool> DeleteStorageBlob(FileMetaData file, string project, User currentUser);
     }
 }

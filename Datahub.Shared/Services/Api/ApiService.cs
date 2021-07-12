@@ -172,10 +172,55 @@ namespace NRCan.Datahub.Shared.Services
             }
         }
 
+        public async Task<Uri> GetUserDelegationSasBlob(FileMetaData file, string project = null)   
+        {
+
+            var projectStr = project ?? ProjectUploadCode;
+            string cxnstring = await _apiCallService.GetProjectConnectionString(projectStr);
+            BlobServiceClient blobServiceClient = new BlobServiceClient(cxnstring);
+            BlobContainerClient containerClient = blobServiceClient.GetBlobContainerClient("datahub");
+
+
+            // Get a reference to a blob named "sample-file" in a container named "sample-container"
+            BlobClient blobClient = containerClient.GetBlobClient(file.filename);
+            
+            
+            var sharedKeyCred = await _dataLakeClientService.GetSharedKeyCredential(projectStr);
+
+            // Create a SAS token that's also valid for 7 days.
+            BlobSasBuilder sasBuilder = new BlobSasBuilder()
+            {
+                BlobContainerName = "datahub",
+                BlobName = file.name,
+                Resource = "b",
+                StartsOn = DateTimeOffset.UtcNow,
+                ExpiresOn = DateTimeOffset.UtcNow.AddDays(1)
+            };
+
+            // Specify read and write permissions for the SAS.
+            sasBuilder.SetPermissions(BlobSasPermissions.Read |
+                                      BlobSasPermissions.Write);
+
+            // Add the SAS token to the blob URI.
+            BlobUriBuilder blobUriBuilder = new BlobUriBuilder(blobClient.Uri)
+            {                
+                Sas = sasBuilder.ToSasQueryParameters(sharedKeyCred)
+            };
+
+            
+            return blobUriBuilder.ToUri();
+        }
+
+        
         public async Task<Uri> DownloadFile(FileMetaData file)
         {
             try
             {
+                if (!string.IsNullOrEmpty(ProjectUploadCode))
+                {
+                    return await GetUserDelegationSasBlob(file);                    
+                }
+
                 var fileSystemClient = await _dataLakeClientService.GetDataLakeFileSystemClient();
                 DataLakeDirectoryClient directoryClient = fileSystemClient.GetDirectoryClient(file.folderpath);
                 DataLakeFileClient fileClient = directoryClient.GetFileClient(file.filename);
@@ -264,7 +309,7 @@ namespace NRCan.Datahub.Shared.Services
 
         private async Task UploadToProject(FileMetaData fileMetadata)
         {
-            string cxnstring = @"DefaultEndpointsProtocol=https;AccountName=dhcanmetrobodev;AccountKey=FvGP17Hc8RlR5ztEjmwafUU/MFmILU8v5f+JQOf9bW+QZWYRoayUMyX38XxNrLbbICwrWnLLIGPlXi/b60gnBQ==;EndpointSuffix=core.windows.net";
+            string cxnstring = await _apiCallService.GetProjectConnectionString(ProjectUploadCode);
             BlobServiceClient blobServiceClient = new BlobServiceClient(cxnstring);
             BlobContainerClient containerClient = blobServiceClient.GetBlobContainerClient("datahub");
 
@@ -423,79 +468,7 @@ namespace NRCan.Datahub.Shared.Services
             }
         }
 
-        protected BaseMetadata Map(PathItem item, DataLakeDirectoryClient directoryClient)
-        {
-            //var itemName = System.IO.Path.GetFileName(item.Name);
-            //if (item.IsDirectory == true)
-            //{
-            //    return new Folder()
-            //    {
-            //        name = itemName,
-            //        id = itemName,
-            //        createdby = item.Owner,
-            //        lastmodifiedby = item.Owner,
-            //        lastmodifiedts = item.LastModified.DateTime
-            //    };
-            //}
-
-            //DataLakeFileClient fileClient = directoryClient.GetFileClient(itemName);
-            //PathProperties properties = fileClient.GetProperties();
-            //var file = new FileMetaData()
-            //{
-            //    filename = itemName,
-            //    ownedby = item.Owner,
-            //    createdby = item.Owner,
-            //    lastmodifiedby = item.Owner,
-            //    lastmodifiedts = item.LastModified.DateTime
-            //};
-
-            //file.ParseDictionary(properties.Metadata);
-
-            //return file;
-
-            return null;
-        }
-
-        public async Task<Folder> GetFileList(Folder folder, Microsoft.Graph.User user, bool onlyFolders = false, bool recursive = false)
-        {
-            //try
-            //{
-            //    var fileSystemClient = await _dataLakeClientService.GetDataLakeFileSystemClient();
-            //    var directoryClient = fileSystemClient.GetDirectoryClient(folder.fullPathFromRoot);
-            //    var subdirectories = directoryClient.GetPathsAsync().AsPages(default, 20);
-
-            //    await foreach (Azure.Page<PathItem> directoryPage in subdirectories)
-            //    {
-            //        // The directoryPage.Values will contain both files and folders
-            //        // We will ALWAYS add subfolders
-            //        // ONLY add files IFF onlyFolders is false!
-            //        foreach (var item in directoryPage.Values.Where(i => i.IsDirectory.Value || !onlyFolders ))
-            //        {
-            //            dynamic child = Map(item, directoryClient);
-            //            folder.Add(child, false);
-
-            //            // If directrory and recursive, go down the tree
-            //            // THIS IS USUALLY ONLY FOR Folder lists!
-            //            if (item.IsDirectory.Value && recursive)
-            //            {
-            //                child = await GetFileList(child, user, onlyFolders, recursive);
-            //            }
-            //        }
-            //    }
-
-            //    folder.Sort();
-            //    _logger.LogDebug($"Get file list for folder: {folder.fullPathFromRoot} for user: {user.DisplayName} results: {folder.children.Count} SUCCEEDED.");
-
-            //    return folder;
-            //}
-            //catch (Exception ex)
-            //{
-            //    _logger.LogError(ex, $"Get file list for folder: {folder.fullPathFromRoot} for user: {user.DisplayName} FAILED.");
-            //    throw;
-            //}
-
-            return null;
-        }
+        
 
         public async Task<long> GetUserUsedDataTotal(Microsoft.Graph.User user)
         {
@@ -503,7 +476,8 @@ namespace NRCan.Datahub.Shared.Services
                                                 name = MyDataFolder.name,
                                                 isShared = false
                                             };
-            rootFolder = await GetFileList(rootFolder, user, false, true);
+            //TODO - refactor this call. GetFileList has been moved to the Data Retrieval Service
+            //rootFolder = await GetFileList(rootFolder, user, false, true);
 
             return rootFolder.TotalSpace();
         }
