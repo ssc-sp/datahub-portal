@@ -1,0 +1,44 @@
+presets:
+  - preset_name: canada_collection
+    values:
+      field_name: collection
+      label:
+        en: Collection Type
+        fr: Type de collection
+      help_text:
+        en: "The collection (domain specific) to which the metadata record belongs, Example: Non-Spatial"
+        fr: "Collection (propre au domaine) à laquelle appartient le dossier de métadonnées, par exemple : données non spatiales"
+      required: true
+      choices:
+      - label:
+          en: Consultations
+          fr: Consultations
+        value: consultations
+      - label:
+          en: Non-Spatial
+          fr: Non spatiales
+        value: primary
+      - label:
+          en: Open code
+          fr: Code ouvert
+        value: code
+      - label:
+          en: API
+          fr: API
+        value: api
+      - label:
+          en: Application
+          fr: Application
+        value: app
+      - label:
+          en: Geospatial
+          fr: Géospatiales
+        value: geogratis
+      - label:
+          en: Open Maps
+          fr: Cartes Ouvertes
+        value: fgp
+      - label:
+          en: Publications
+          fr: Publication
+        value: publication

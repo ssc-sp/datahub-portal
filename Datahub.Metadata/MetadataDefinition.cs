@@ -15,6 +15,12 @@ namespace NRCan.Datahub.Metadata
             _ignoreDuplicates = ignoreDuplicates;
         }
 
+        public void Add(IEnumerable<FieldDefinition> fields)
+        {
+            foreach (var field in fields)
+                Add(field);
+        }
+
         public void Add(FieldDefinition field)
         {
             if (field == null)
