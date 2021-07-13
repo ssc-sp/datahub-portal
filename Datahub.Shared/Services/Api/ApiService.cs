@@ -24,6 +24,8 @@ using Azure.Search.Documents.Models;
 using System.Diagnostics;
 using Azure.Storage.Sas;
 using Azure.Storage;
+using Microsoft.AspNetCore.Components.Forms;
+using Azure.Storage.Blobs.Models;
 
 namespace NRCan.Datahub.Shared.Services
 {
@@ -112,6 +114,11 @@ namespace NRCan.Datahub.Shared.Services
             }    
         }
 
+        public IBrowserFile browserFile { get; set; }
+        public InputFile InputFile { get; set; }
+
+        public string ProjectUploadCode { get; set; }
+
         public Dictionary<string, FileMetaData> UploadedFiles { get; set; } = new Dictionary<string, FileMetaData>();
 
         public async Task LoadApplicationData()
@@ -165,10 +172,55 @@ namespace NRCan.Datahub.Shared.Services
             }
         }
 
+        public async Task<Uri> GetUserDelegationSasBlob(FileMetaData file, string project = null)   
+        {
+
+            var projectStr = project ?? ProjectUploadCode;
+            string cxnstring = await _apiCallService.GetProjectConnectionString(projectStr);
+            BlobServiceClient blobServiceClient = new BlobServiceClient(cxnstring);
+            BlobContainerClient containerClient = blobServiceClient.GetBlobContainerClient("datahub");
+
+
+            // Get a reference to a blob named "sample-file" in a container named "sample-container"
+            BlobClient blobClient = containerClient.GetBlobClient(file.filename);
+            
+            
+            var sharedKeyCred = await _dataLakeClientService.GetSharedKeyCredential(projectStr);
+
+            // Create a SAS token that's also valid for 7 days.
+            BlobSasBuilder sasBuilder = new BlobSasBuilder()
+            {
+                BlobContainerName = "datahub",
+                BlobName = file.name,
+                Resource = "b",
+                StartsOn = DateTimeOffset.UtcNow,
+                ExpiresOn = DateTimeOffset.UtcNow.AddDays(1)
+            };
+
+            // Specify read and write permissions for the SAS.
+            sasBuilder.SetPermissions(BlobSasPermissions.Read |
+                                      BlobSasPermissions.Write);
+
+            // Add the SAS token to the blob URI.
+            BlobUriBuilder blobUriBuilder = new BlobUriBuilder(blobClient.Uri)
+            {                
+                Sas = sasBuilder.ToSasQueryParameters(sharedKeyCred)
+            };
+
+            
+            return blobUriBuilder.ToUri();
+        }
+
+        
         public async Task<Uri> DownloadFile(FileMetaData file)
         {
             try
             {
+                if (!string.IsNullOrEmpty(ProjectUploadCode))
+                {
+                    return await GetUserDelegationSasBlob(file);                    
+                }
+
                 var fileSystemClient = await _dataLakeClientService.GetDataLakeFileSystemClient();
                 DataLakeDirectoryClient directoryClient = fileSystemClient.GetDirectoryClient(file.folderpath);
                 DataLakeFileClient fileClient = directoryClient.GetFileClient(file.filename);
@@ -213,23 +265,32 @@ namespace NRCan.Datahub.Shared.Services
 
        
 
-        public async Task UploadFile(FileMetaData fileMetadata)
+        
+
+        public async Task UploadGen2File(FileMetaData fileMetadata)
         {
+            //await _notifierService.Update($"{fileMetadata.folderpath}/{fileMetadata.filename}", true);
             try
             {
-                fileMetadata.bytesToUpload = fileMetadata.fileData.Length;
-                fileMetadata.filesize = fileMetadata.bytesToUpload.ToString();                                
+                fileMetadata.bytesToUpload = browserFile.Size;
+                fileMetadata.filesize = browserFile.Size.ToString();
+                fileMetadata.folderpath = string.IsNullOrEmpty(ProjectUploadCode) ? fileMetadata.folderpath : string.Empty;
 
-                // Ok, so we need to upload to gen 2 storage!
-                await UploadToGen2Storage(fileMetadata, fileMetadata.fileData);
 
-                //await _cognitiveSearchService.RunIndexerAsnyc();
-                await _cognitiveSearchService.AddDocumentToIndex(fileMetadata);
-                
+                if (string.IsNullOrEmpty(ProjectUploadCode))
+                {
+                    await UploadToGen2Storage(fileMetadata);
+                    await _cognitiveSearchService.AddDocumentToIndex(fileMetadata);
+                }
+                else
+                {
+                    await UploadToProject(fileMetadata);
+                }
+
                 fileMetadata.FinishUploadInfo(FileUploadStatus.FileUploadSuccess);
 
                 // Done, so we can remove!
-                UploadedFiles.Remove( $"{fileMetadata.folderpath}/{fileMetadata.filename}");
+                UploadedFiles.Remove($"{fileMetadata.folderpath}/{fileMetadata.filename}");
 
                 _logger.LogInformation($"Uploading file: {fileMetadata.folderpath}/{fileMetadata.filename} User: {fileMetadata.ownedby}");
             }
@@ -237,22 +298,55 @@ namespace NRCan.Datahub.Shared.Services
             {
                 fileMetadata.FinishUploadInfo(FileUploadStatus.FileUploadError);
                 _logger.LogError(e, $"Error uploading file: {fileMetadata.folderpath}/{fileMetadata.filename} User: {fileMetadata.ownedby}");
-                
+
             }
 
             // Done upload, update ONE last time!
             await _notifierService.Update($"{fileMetadata.folderpath}/{fileMetadata.filename}", true);
+
+
         }
 
-        private async Task UploadToGen2Storage(FileMetaData fileMetadata, Stream ms)
+        private async Task UploadToProject(FileMetaData fileMetadata)
+        {
+            string cxnstring = await _apiCallService.GetProjectConnectionString(ProjectUploadCode);
+            BlobServiceClient blobServiceClient = new BlobServiceClient(cxnstring);
+            BlobContainerClient containerClient = blobServiceClient.GetBlobContainerClient("datahub");
+
+
+            // Get a reference to a blob named "sample-file" in a container named "sample-container"
+            BlobClient blob = containerClient.GetBlobClient(fileMetadata.filename);
+
+            var metadata = fileMetadata.GenerateMetadata();
+            var uploadOptions = new BlobUploadOptions()
+            {
+                ProgressHandler = new Progress<long>((progress) =>
+                {
+                    fileMetadata.uploadedBytes = progress;
+                    _notifierService.Update($"adddata", false);
+                })
+            };
+
+            long maxFileSize = 1024000000000;
+            await blob.UploadAsync(browserFile.OpenReadStream(maxFileSize), uploadOptions);
+            await blob.SetMetadataAsync(metadata);
+            // Upload local file
+            
+        }
+
+        private async Task UploadToGen2Storage(FileMetaData fileMetadata)
         {
             try
             {
+                
                 fileMetadata.uploadStatus = FileUploadStatus.UploadingToRepository;
 
                 var fileSystemClient = await _dataLakeClientService.GetDataLakeFileSystemClient();
                 var directoryClient = fileSystemClient.GetDirectoryClient(fileMetadata.folderpath);
                 DataLakeFileClient fileClient = directoryClient.GetFileClient(fileMetadata.filename);
+
+                
+                //await fileClient.UploadAsync()
 
                 var fileUploading = $"{fileMetadata.folderpath}/{fileMetadata.filename}";
 
@@ -261,16 +355,17 @@ namespace NRCan.Datahub.Shared.Services
                     ProgressHandler = new Progress<long>((progress) =>
                     {
                         fileMetadata.uploadedBytes = progress;
-                        _ = _notifierService.Update($"{fileMetadata.folderpath}/{fileMetadata.filename}", true);
+                        _ = _notifierService.Update($"adddata", false);
                     })
                 };
 
-                ms.Position = 0;
-
+                
                 Stopwatch watch = new Stopwatch();
                 watch.Start();
 
-                await fileClient.UploadAsync(ms, uploadOptions);
+                long maxFileSize = 1024000000000;
+
+                await fileClient.UploadAsync(browserFile.OpenReadStream(maxFileSize), uploadOptions);
 
                 watch.Stop();
                 _telemetryService.LogFileUploadSize(fileMetadata.uploadedBytes, fileUploading);
@@ -373,75 +468,7 @@ namespace NRCan.Datahub.Shared.Services
             }
         }
 
-        protected BaseMetadata Map(PathItem item, DataLakeDirectoryClient directoryClient)
-        {
-            var itemName = System.IO.Path.GetFileName(item.Name);
-            if (item.IsDirectory == true)
-            {
-                return new Folder()
-                {
-                    name = itemName,
-                    id = itemName,
-                    createdby = item.Owner,
-                    lastmodifiedby = item.Owner,
-                    lastmodifiedts = item.LastModified.DateTime
-                };
-            }
-
-            DataLakeFileClient fileClient = directoryClient.GetFileClient(itemName);
-            PathProperties properties = fileClient.GetProperties();
-            var file = new FileMetaData()
-            {
-                filename = itemName,
-                ownedby = item.Owner,
-                createdby = item.Owner,
-                lastmodifiedby = item.Owner,
-                lastmodifiedts = item.LastModified.DateTime
-            };
-
-            file.ParseDictionary(properties.Metadata);
-
-            return file;
-        }
-
-        public async Task<Folder> GetFileList(Folder folder, Microsoft.Graph.User user, bool onlyFolders = false, bool recursive = false)
-        {
-            try
-            {
-                var fileSystemClient = await _dataLakeClientService.GetDataLakeFileSystemClient();
-                var directoryClient = fileSystemClient.GetDirectoryClient(folder.fullPathFromRoot);
-                var subdirectories = directoryClient.GetPathsAsync().AsPages(default, 20);
-
-                await foreach (Azure.Page<PathItem> directoryPage in subdirectories)
-                {
-                    // The directoryPage.Values will contain both files and folders
-                    // We will ALWAYS add subfolders
-                    // ONLY add files IFF onlyFolders is false!
-                    foreach (var item in directoryPage.Values.Where(i => i.IsDirectory.Value || !onlyFolders ))
-                    {
-                        dynamic child = Map(item, directoryClient);
-                        folder.Add(child, false);
-
-                        // If directrory and recursive, go down the tree
-                        // THIS IS USUALLY ONLY FOR Folder lists!
-                        if (item.IsDirectory.Value && recursive)
-                        {
-                            child = await GetFileList(child, user, onlyFolders, recursive);
-                        }
-                    }
-                }
-
-                folder.Sort();
-                _logger.LogDebug($"Get file list for folder: {folder.fullPathFromRoot} for user: {user.DisplayName} results: {folder.children.Count} SUCCEEDED.");
-
-                return folder;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Get file list for folder: {folder.fullPathFromRoot} for user: {user.DisplayName} FAILED.");
-                throw;
-            }
-        }
+        
 
         public async Task<long> GetUserUsedDataTotal(Microsoft.Graph.User user)
         {
@@ -449,7 +476,8 @@ namespace NRCan.Datahub.Shared.Services
                                                 name = MyDataFolder.name,
                                                 isShared = false
                                             };
-            rootFolder = await GetFileList(rootFolder, user, false, true);
+            //TODO - refactor this call. GetFileList has been moved to the Data Retrieval Service
+            //rootFolder = await GetFileList(rootFolder, user, false, true);
 
             return rootFolder.TotalSpace();
         }

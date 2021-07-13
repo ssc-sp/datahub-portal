@@ -1,6 +1,8 @@
 ﻿using Azure;
 using Azure.Search.Documents;
 using Azure.Search.Documents.Models;
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
 using Azure.Storage.Files.DataLake;
 using Azure.Storage.Files.DataLake.Models;
 using Microsoft.AspNetCore.Components;
@@ -60,11 +62,12 @@ namespace NRCan.Datahub.Portal.Services
             _cognitiveSearchService = cognitiveSearchService;
         }
 
+
         public async Task<Folder> GetFolderStructure(Folder folder, Microsoft.Graph.User user, bool onlyFolders = true)
         {
             try
             {
-                return await _apiService.GetFileList(folder, user, onlyFolders, true);
+                return await GetFileList(folder, user, onlyFolders, true);
             }
             catch (Exception ex)
             {
@@ -75,7 +78,7 @@ namespace NRCan.Datahub.Portal.Services
             return folder;
         }
 
-        public async Task<Folder> GetFolderContents(dynamic folder, string filterSearch, Microsoft.Graph.User user)
+        public async Task<Folder> GetFolderContents(dynamic folder, string filterSearch, Microsoft.Graph.User user, string project = null)
         {
             try
             {
@@ -91,7 +94,12 @@ namespace NRCan.Datahub.Portal.Services
                     return await getSharedFileList(folder, user);
                 }
 
-                return await _apiService.GetFileList(folder, user);
+                if (!string.IsNullOrEmpty(_apiService.ProjectUploadCode))
+                {
+                    return await GetProjectFileList(project, user);
+                }
+
+                return await GetFileList(folder, user);
             }
             catch (Exception ex)
             {
@@ -102,12 +110,57 @@ namespace NRCan.Datahub.Portal.Services
             return folder;
         }
 
+        private async Task<Folder> GetProjectFileList(string project, Microsoft.Graph.User user)
+        {
+            try
+            {
+
+                string cxnstring = await _apiCallService.GetProjectConnectionString(project);
+                BlobServiceClient blobServiceClient = new BlobServiceClient(cxnstring);
+                BlobContainerClient containerClient = blobServiceClient.GetBlobContainerClient("datahub");
+
+                Folder folder = new Folder();
+                var resultSegment = containerClient.GetBlobsAsync(BlobTraits.Metadata)
+                .AsPages(default, 30);
+
+                // Enumerate the blobs returned for each page.
+                await foreach (Azure.Page<BlobItem> blobPage in resultSegment)
+                {
+                    foreach (BlobItem blobItem in blobPage.Values)
+                    {
+                        
+                        Console.WriteLine("Blob name: {0}", blobItem.Name);
+                        var file = new FileMetaData()
+                        {
+                            id = blobItem.Metadata["fileid"],
+                            filename = blobItem.Name,
+                            ownedby = blobItem.Metadata["ownedby"],
+                            createdby = blobItem.Metadata["createdby"],
+                            lastmodifiedby = blobItem.Metadata["lastmodifiedby"],
+                            lastmodifiedts = DateTime.Now
+                        };
+                        folder.Add(file, false);
+                    }
+
+
+                }
+
+                return folder;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Get file list for project: {project} for user: {user.DisplayName} FAILED.");
+                throw;
+            }
+        }
+
+
         public async Task<Uri> DownloadFile(FileMetaData file)
         {
             try
             {
                 return await _apiService.DownloadFile(file);
-                
+
             }
             catch (Exception ex)
             {
@@ -198,6 +251,77 @@ namespace NRCan.Datahub.Portal.Services
         {
             string filter = $"search.ismatch('{searchText}*', 'filename', 'full', 'any') and ownedby eq '{user.Id}'";
             return await _apiService.SearchIndex(folder, filter, user);
+        }
+
+        public async Task<Folder> GetFileList(Folder folder, Microsoft.Graph.User user, bool onlyFolders = false, bool recursive = false)
+        {
+            try
+            {
+                var fileSystemClient = await _dataLakeClientService.GetDataLakeFileSystemClient();
+                var directoryClient = fileSystemClient.GetDirectoryClient(folder.fullPathFromRoot);
+                var subdirectories = directoryClient.GetPathsAsync().AsPages(default, 20);
+
+                await foreach (Azure.Page<PathItem> directoryPage in subdirectories)
+                {
+                    // The directoryPage.Values will contain both files and folders
+                    // We will ALWAYS add subfolders
+                    // ONLY add files IFF onlyFolders is false!
+                    foreach (var item in directoryPage.Values.Where(i => i.IsDirectory.Value || !onlyFolders))
+                    {
+                        dynamic child = Map(item, directoryClient);
+                        folder.Add(child, false);
+
+                        // If directrory and recursive, go down the tree
+                        // THIS IS USUALLY ONLY FOR Folder lists!
+                        if (item.IsDirectory.Value && recursive)
+                        {
+                            child = await GetFileList(child, user, onlyFolders, recursive);
+                        }
+                    }
+                }
+
+                folder.Sort();
+                _logger.LogDebug($"Get file list for folder: {folder.fullPathFromRoot} for user: {user.DisplayName} results: {folder.children.Count} SUCCEEDED.");
+
+                return folder;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Get file list for folder: {folder.fullPathFromRoot} for user: {user.DisplayName} FAILED.");
+                throw;
+            }
+        }
+
+
+        protected BaseMetadata Map(PathItem item, DataLakeDirectoryClient directoryClient)
+        {
+            var itemName = System.IO.Path.GetFileName(item.Name);
+            if (item.IsDirectory == true)
+            {
+                return new Folder()
+                {
+                    name = itemName,
+                    id = itemName,
+                    createdby = item.Owner,
+                    lastmodifiedby = item.Owner,
+                    lastmodifiedts = item.LastModified.DateTime
+                };
+            }
+
+            DataLakeFileClient fileClient = directoryClient.GetFileClient(itemName);
+            PathProperties properties = fileClient.GetProperties();
+            var file = new FileMetaData()
+            {
+                filename = itemName,
+                ownedby = item.Owner,
+                createdby = item.Owner,
+                lastmodifiedby = item.Owner,
+                lastmodifiedts = item.LastModified.DateTime
+            };
+
+            file.ParseDictionary(properties.Metadata);
+
+            return file;
         }
     }
 }

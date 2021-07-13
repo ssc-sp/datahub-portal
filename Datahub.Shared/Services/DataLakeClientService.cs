@@ -18,6 +18,7 @@ namespace NRCan.Datahub.Shared.Services
         private IKeyVaultService _keyVaultService;
         private IOptions<APITarget> _targets;
         private StorageSharedKeyCredential _sharedKeyCredential;
+        private Dictionary<string, DataLakeServiceClient> _projectServiceClients;
 
         public DataLakeClientService(ILogger<DataLakeClientService> logger,
                     IKeyVaultService keyVaultService,
@@ -43,6 +44,16 @@ namespace NRCan.Datahub.Shared.Services
             dataLakeFileSystemClient = dataLakeServiceClient.GetFileSystemClient(_targets.Value.FileSystemName);
         }
 
+        public async Task<StorageSharedKeyCredential> GetSharedKeyCredential(string project)
+        {
+            var key = $"datahub-blob-key-{project}";
+            var storageAccountName = $"dh{project}dev";
+            var datalakeSecret = await _keyVaultService.GetSecret(key);
+            return new StorageSharedKeyCredential(storageAccountName, datalakeSecret);
+                        
+        }
+
+        
 
         public async Task<StorageSharedKeyCredential> GetSharedKeyCredential()
         {
@@ -59,7 +70,7 @@ namespace NRCan.Datahub.Shared.Services
         public async Task<DataLakeFileSystemClient> GetDataLakeFileSystemClient()
         {
             await CheckClients();
-            return dataLakeFileSystemClient;
+            return dataLakeFileSystemClient;            
         }
 
         public async Task<bool> AssignOwnerPermissionsToFile(FileMetaData file, string userId, string permissions)
@@ -151,6 +162,13 @@ namespace NRCan.Datahub.Shared.Services
             {
                 await SetDataLakeServiceClient();
             }
+
+            if (_projectServiceClients == null)
+            {
+                _projectServiceClients = new Dictionary<string, DataLakeServiceClient>();
+            }
+
         }
+        
     }
 }

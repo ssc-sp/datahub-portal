@@ -1,8 +1,9 @@
 @using Microsoft.Extensions.Logging
 @using System.IO
 
+@inject NotifierService NotifierService
 @inject NavigationManager NavigationManager
-@inject ILogger<AddDataPage> logger
+@inject ILogger<AddDataBar> logger
 @inject IApiService ApiService
 @inject IJSRuntime JSRuntime
 @inject UIControlsService UI
@@ -13,9 +14,6 @@
     <DataAnnotationsValidator />
     <div>
         <div class="header-wrapper">
-            <div class="roundbutton" style="margin-right: 1rem" @onclick="@(() => NavigationManager.NavigateTo("data"))">
-                <i class="fal fa-arrow-left"></i>
-            </div>
             <div class="header">
                 <h4 class="nrcan-typography h4">@Localizer["ADD-DATA-PAGE.AddData"]</h4>
             </div>
@@ -34,32 +32,11 @@
             <div class="formlabel">
                 @Localizer["ADD-DATA-PAGE.File-Label"]
             </div>
-            @*<div class="drag-drop-zone">
-                    <InputFile OnChange="HandleFileSelected" />
-                </div>*@
-            @*<div>
-                    <input type="file" @ref=inputTypeFileElement />
-                </div>*@
-            @*<div class="drag-drop-zone">
-                <input type="file" class="clickable" @ref=dropTargetInput @onchange="OnInputChange" />
-                @status
-            </div>*@
             <div class="drag-drop-zone">
                 <label>
-                    Upload files:
+                    @status
                     <Microsoft.AspNetCore.Components.Forms.InputFile OnChange="@OnInputFileChange" multiple />
                 </label>
-            </div>
-        </div>
-            
-                
-
-        <div class="bodytext">
-            <div class="formlabel">
-                @Localizer["ADD-DATA-PAGE.Format-Label"]
-            </div>
-            <div>
-                @_fileMetadata.fileformat
             </div>
         </div>
         <div class="bodytext">
@@ -81,7 +58,7 @@
             <CustomFields Field="@field" CustomFieldChanged="CustomFieldChanged" DeleteRow="DeleteRow" IncludeHeader="showHeader" />
         }
 
-        <div class="bodytext">
+@*        <div class="bodytext">
             <div class="formlabel">
                 @if (_fileMetadata.customfields.Count == 0)
                 {
@@ -103,10 +80,17 @@
                 <div class="bluetext" @onclick="NavigateToPrivacyStatement">@Localizer["PrivacyPolicy"]</div>&nbsp;
                 @Localizer["ADD-DATA-PAGE.Disclaimer-3"]
             </div>
-        </div>
-        <div class="submitrow">
+        </div>*@
+
+        @if(isLoading)
+        {
+            <div class="bodytext">
+                <UploadProgress File="@_fileMetadata" />
+            </div>
+        }
+        <div class="bodytext">
             <button class="submitbutton cancel" type="reset" @onclick="@(() => NavigationManager.NavigateTo("data"))">@Localizer["BUTTONS.Cancel"]</button>
-            <button class="submitbutton finish" disabled="@isSubmitDisabled" type="submit">@Localizer["BUTTONS.Finish"]</button>
+            <button class="submitbutton finish" disabled="@isSubmitDisabled" type="submit">@Localizer["BUTTONS.Upload"]</button>
         </div>
     </div>
 </EditForm>
@@ -129,12 +113,41 @@
     private IFileReference fileReference;
     //private IBrowserFile browserFile;
 
+    
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        NotifierService.Notify += OnNotify;
+        
+    }
+
+    public async Task OnNotify(string key, bool reloadData)
+    {
+        if (key == "adddata")
+        {            
+            await InvokeAsync(() => {StateHasChanged();});
+        }
+    }
+
     private async Task OnInputFileChange(InputFileChangeEventArgs e)
     {
-         foreach (var file in e.GetMultipleFiles(10))
+        foreach (var file in e.GetMultipleFiles(10))
         {
+            
             ApiService.browserFile = file;
+            status = file.Name;
         }
+        StateHasChanged();
+    }
+
+    private async Task ResetControls()
+    {
+        ApiService.browserFile = null;
+        status = Localizer.GetString("ADD-DATA-PAGE.DefaultStatusText");
+        _fileMetadata = new FileMetaData();
+        isLoading = false;
+        StateHasChanged();
     }
 
     public bool isSubmitDisabled
@@ -256,7 +269,9 @@
             }
             else
             {
+                isLoading = true;
                 HandleUpload(true);
+                
             }
         }
     }
@@ -270,30 +285,26 @@
             CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 
 
-            isLoading = true;
-
+            
 
             if (_fileMetadata != null && !string.IsNullOrWhiteSpace(_fileMetadata.filename))
             {
                 // We have file in browser, add to list of files downloaded!
                 ApiService.UploadedFiles.Add($"{_fileMetadata.folderpath}/{_fileMetadata.filename}", _fileMetadata);
 
-                isLoading = false;
-
-                //need cancellation token for this.
                 InvokeAsync(async () =>
                 {
                     await ApiService.UploadGen2File(_fileMetadata);
+                    await NotifierService.Update("filegrid", true);
+                    await ResetControls();
                 });
-                // Return to grid view
-                NavigationManager.NavigateTo("data");
 
+                
                 
             }
             else
             {
                 _fileMetadata.FinishUploadInfo(FileUploadStatus.FileUploadError);
-                isLoading = false;
 
                 await UI.ToggleModal();
                 StateHasChanged();
