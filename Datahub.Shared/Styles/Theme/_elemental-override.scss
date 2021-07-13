@@ -1,8 +1,17 @@
-﻿@import '_button.scss';
-@import '_input.scss';
-@import '_dropdown.scss';
-@import '_progress.scss';
-@import '_colors.scss';
+﻿@use 'button';
+@use 'input';
+@use 'dropdown';
+@use 'progress';
+
+@use '../elemental-theme/theme';
 
 
-@import '../elemental-theme/theme.scss';
+$overrides: (
+  'button': button.$buttonOptions,
+  'dropdown': dropdown.$dropdownOptions,
+  'input': input.$inputOptions,
+  'progress': progress.$progressOptions,
+);
+
+
+@include theme.custom($overrides);

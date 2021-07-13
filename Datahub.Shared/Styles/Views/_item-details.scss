@@ -1,6 +1,4 @@
-﻿@import '../_colors.scss';
-@import '../_constants.scss';
-
+﻿@use '../Common' as c;
 
 
 .item-details-container {
@@ -16,7 +14,7 @@
     .tab {
         display: flex;
         justify-content: space-around;
-        border-bottom: 1px solid $gray-200;
+        border-bottom: 1px solid c.$gray-200;
 
         .h4 {
             margin-bottom: 0;
@@ -28,17 +26,17 @@
             padding-top: 1rem;
             flex-grow: 1;
             cursor: pointer;
-            transition: all 0.3s $cubic-bezier;
+            transition: all 0.3s c.$cubic-bezier;
 
             &:hover {
-                background-color: $nrcangray;
+                background-color: c.$nrcangray;
             }
 
             &.active:after {
                 content: '';
                 display: block;
                 width: 80%;
-                border-bottom: 4px solid $borderblue;
+                border-bottom: 4px solid c.$borderblue;
                 padding-top: 1rem;
                 left: 10%;
                 position: relative;
@@ -77,16 +75,16 @@
             flex-direction: column;
 
             .bluetext {
-                color: $borderblue;
+                color: c.$borderblue;
                 cursor: pointer;
 
                 &:hover {
-                    border-bottom: 1px solid $borderblue;
+                    border-bottom: 1px solid c.$borderblue;
                 }
             }
 
             &:hover {
-                background-color: $nrcangray;
+                background-color: c.$nrcangray;
             }
 
             .mini-timestamp {

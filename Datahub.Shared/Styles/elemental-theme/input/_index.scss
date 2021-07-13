@@ -1,0 +1,32 @@
+@use 'input';
+@use 'input-wrapper';
+@use 'search-wrapper';
+@use 'sass:map';
+
+@mixin configure($options) {
+  @if ($options) {
+    $tempInput: input.$inputOptions;
+    $tempWrapper: input-wrapper.$inputWrapperOptions;
+    $tempSearch: search-wrapper.$searchInputOptions;
+
+    @if (map.get($options, 'input')) {
+      $tempInput: map.get($options, 'input');
+    }
+    @if (map.get($options, 'search-wrapper')) {
+      $tempSearch: map.get($options, 'search-wrapper');
+    }
+    @if (map.get($options, 'input-wrapper')) {
+      $tempWrapper: map.get($options, 'input-wrapper');
+    }
+
+    @include input.configure($tempInput);
+    @include search-wrapper.configure($tempSearch);
+    @include input-wrapper.configure($tempWrapper);
+  }
+}
+
+@mixin styles {
+  @include input.styles;
+  @include search-wrapper.styles;
+  @include input-wrapper.styles;
+}

@@ -1,37 +1,37 @@
-﻿@import '../../_colors.scss';
+﻿@use '../../Common/colors' as c;
 
 $icon-colors: (
   "blue": (
-    "primary": $blue-300,
-    "secondary": $blue-400,
+    "primary": c.$blue-300,
+    "secondary": c.$blue-400,
   ),
   "indigo": (
-    "primary": $indigo-500,
-    "secondary": $indigo-600,
+    "primary": c.$indigo-500,
+    "secondary": c.$indigo-600,
   ),
   "purple": (
-    "primary": $purple-500,
-    "secondary": $purple-600,
+    "primary": c.$purple-500,
+    "secondary": c.$purple-600,
   ),
   "pink": (
-    "primary": $pink-500,
-    "secondary": $pink-600,
+    "primary": c.$pink-500,
+    "secondary": c.$pink-600,
   ),
   "yellow": (
-    "primary": $yellow-500,
-    "secondary": $yellow-700,
+    "primary": c.$yellow-500,
+    "secondary": c.$yellow-700,
   ),
   "green": (
-    "primary": $green-500,
-    "secondary": $green-600,
+    "primary": c.$green-500,
+    "secondary": c.$green-600,
   ),
   "grey": (
-    "primary": $gray-700,
-    "secondary": $gray-700,
+    "primary": c.$gray-700,
+    "secondary": c.$gray-700,
   ),
   "base": (
-    "primary": $gray-500,
-    "secondary": $gray-500,
+    "primary": c.$gray-500,
+    "secondary": c.$gray-500,
   )
 );
 

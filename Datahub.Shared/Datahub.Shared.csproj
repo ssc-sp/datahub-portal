@@ -11,6 +11,7 @@
     <Content Remove="package-lock.json" />
   </ItemGroup>
   <ItemGroup>
+    <None Remove="Styles\Common\NewFile1.txt" />
     <None Remove="Styles\_spinner.scss" />
   </ItemGroup>
   <ItemGroup>
@@ -23,8 +24,8 @@
     <None Include="compilerconfig.json" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="AElemental.Blazor" Version="1.1.21145.1-beta" />
-    <PackageReference Include="AElemental.Blazor.Theme" Version="1.1.21145.1-beta" />
+    <PackageReference Include="AElemental.Blazor" Version="1.1.21190.2-beta" />
+    <PackageReference Include="AElemental.Blazor.Theme" Version="1.1.21190.2-beta" />
     <PackageReference Include="AngleSharp" Version="1.0.0-alpha-844" />
     <PackageReference Include="Askmethat.Aspnet.JsonLocalizer" Version="3.1.0" />
     <PackageReference Include="Azure.Identity" Version="1.4.0-beta.1" />
@@ -88,12 +89,16 @@
     <NpmInstallStampFile>node_modules/.install-stamp</NpmInstallStampFile>
   </PropertyGroup>
   <Target Name="NpmInstall" BeforeTargets="BeforeBuild" Inputs="package.json" Outputs="$(NpmInstallStampFile)">
-    <Exec Command="npm i node-sass --save-dev" />
+    <Exec Command="npm i sass --save-dev" />
     <Touch Files="$(NpmInstallStampFile)" AlwaysCreate="true" />
   </Target>
 
   <ItemGroup>
     <UpToDateCheckInput Include="Styles/**/*.scss" Set="Css" />
     <UpToDateCheckBuilt Include="wwwroot/css/*.css" Set="Css" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Styles\elemental-theme\" />
   </ItemGroup>
 </Project>
