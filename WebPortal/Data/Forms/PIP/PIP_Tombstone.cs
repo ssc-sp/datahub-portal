@@ -1,4 +1,6 @@
-﻿using Elemental.Components.Forms;
+﻿using AngleSharp;
+using Elemental.Components.Forms;
+using Microsoft.AspNetCore.Components;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -10,6 +12,7 @@ namespace NRCan.Datahub.ProjectForms.Data.PIP
 {
     public class PIP_Tombstone
     {
+        
         [Key]
         [AeFormIgnore]
         public int Tombstone_ID { get; set; }
@@ -175,6 +178,9 @@ namespace NRCan.Datahub.ProjectForms.Data.PIP
         [AeFormCategory("Latest Update Information", 60)]
         [Required] public DateTime Date_Updated_DT { get; set; }
         
+        [NotMapped]
+        [AeFormIgnore]
+        public RenderFragment PowerBiUrl { get; set; }
 
 
         [AeFormIgnore]
@@ -183,5 +189,11 @@ namespace NRCan.Datahub.ProjectForms.Data.PIP
         [AeFormIgnore]
         [Timestamp]
         public byte[] Timestamp { get; set; }
+
+
+        private string GeneratePowerBiUrl()
+        {
+            return string.Empty;
+        }
     }
 }

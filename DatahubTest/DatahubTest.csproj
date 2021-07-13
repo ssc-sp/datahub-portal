@@ -3,6 +3,9 @@
     <TargetFramework>net5.0</TargetFramework>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <Optimize>false</Optimize>
+  </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Azure.Search.Documents" Version="11.2.0-beta.2" />
     <PackageReference Include="Azure.Storage.Files.DataLake" Version="12.5.0" />
