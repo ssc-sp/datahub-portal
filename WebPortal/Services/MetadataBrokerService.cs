@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using NRCan.Datahub.Metadata;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace NRCan.Datahub.Portal.Services
 {
@@ -19,8 +20,29 @@ namespace NRCan.Datahub.Portal.Services
         public async Task<MetadataDefinition> GetMetadataDefinition()
         {
             var definitions = new MetadataDefinition();
-            definitions.Add(await _metadataDbContext.FieldDefinitions.Include(e => e.Choices).ToListAsync());
+
+            var latestVersion = await _metadataDbContext
+                .MetadataVersions
+                .Where(e => e.Source == MetadataSource.OpenData)
+                .OrderByDescending(e => e.LastUpdate)
+                .FirstOrDefaultAsync();
+
+            if (latestVersion != null)
+            {
+                var latestDefinitions = await _metadataDbContext.FieldDefinitions
+                    .Include(e => e.Choices)
+                    .Where(e => e.VersionId == latestVersion.Id)
+                    .ToListAsync();
+
+                definitions.Add(latestDefinitions.Where(IsValidDefinition));
+            }
+
             return definitions;
+        }
+
+        static bool IsValidDefinition(FieldDefinition field)
+        {
+            return !string.IsNullOrWhiteSpace(field.FieldName) && !string.IsNullOrWhiteSpace(field.NameEnglish);
         }
     }
 }
