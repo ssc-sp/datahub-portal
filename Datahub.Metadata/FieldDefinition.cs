@@ -21,6 +21,7 @@ namespace NRCan.Datahub.Metadata
         public string DescriptionEnglish { get; set; }
         public string DescriptionFrench { get; set; }
         public bool Required { get; set; }
+        public bool MultiSelect { get; set; }
         public virtual ICollection<FieldChoice> Choices { get; set; }
 
         #region Entity extensions
