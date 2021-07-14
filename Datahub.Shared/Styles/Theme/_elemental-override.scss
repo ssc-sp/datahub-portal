@@ -2,7 +2,7 @@
 @use 'input';
 @use 'dropdown';
 @use 'progress';
-
+@use 'pagination';
 
 @use '../elemental-theme/theme';
 
@@ -12,6 +12,11 @@ $overrides: (
   'dropdown': dropdown.$dropdownOptions,
   'input': input.$inputOptions,
   'progress': progress.$progressOptions,
+  'pagination': (
+    'tableHeaderOptions': pagination.$tableHeaderOptions,
+    'tableRowOptions': pagination.$tableRowOptions,
+  ),
+
 );
 
 

@@ -24,8 +24,8 @@
     <None Include="compilerconfig.json" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="AElemental.Blazor" Version="1.1.21190.2-beta" />
-    <PackageReference Include="AElemental.Blazor.Theme" Version="1.1.21190.2-beta" />
+    <PackageReference Include="AElemental.Blazor" Version="1.1.21195.1-beta" />
+    <PackageReference Include="AElemental.Blazor.Theme" Version="1.1.21195.1-beta" />
     <PackageReference Include="AngleSharp" Version="1.0.0-alpha-844" />
     <PackageReference Include="Askmethat.Aspnet.JsonLocalizer" Version="3.1.0" />
     <PackageReference Include="Azure.Identity" Version="1.4.0-beta.1" />
@@ -99,7 +99,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <UpToDateCheckInput Remove="Styles\Theme\_table.scss" />
+    <UpToDateCheckInput Remove="Styles\Theme\_pagination.scss" />
   </ItemGroup>
 
   <ItemGroup>

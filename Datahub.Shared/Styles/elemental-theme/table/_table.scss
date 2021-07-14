@@ -41,6 +41,10 @@ $tableScrollOptions: (
   'overflow-y': auto,
   'position': relative,
   '&': c.$scrollbarOptions,
+  '.ae.table-row': (
+    'position': absolute,
+    'width': 100%,
+  ),
 );
 
 $tableRowContainerOptions: (
@@ -51,8 +55,6 @@ $tableRowContainerOptions: (
 $tableRowOptions: (
   'default': (
     'display': grid,
-    'position': absolute,
-    'width': 100%,
     '&:focus': (
       'outline': none,
       'font-weight': bold,
