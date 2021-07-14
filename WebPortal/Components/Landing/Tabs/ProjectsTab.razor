@@ -17,7 +17,7 @@
         Headers="headers"
         style="Width:100%"
         GridTemplateColumns="0.5fr 2fr 3fr"
-        RowHeight="55"
+        RowHeight="40"
         />
     }               
 </div>
@@ -44,7 +44,7 @@
         await FillAccessorFunctions();
         
         renderFunctions = new List<Func<Datahub_Project, RenderFragment>>() {            
-            new Func<Datahub_Project, RenderFragment>(Datahub_Project => @<i class="@($"fas fa-{Datahub_Project.Project_Icon}")"></i>),
+            new Func<Datahub_Project, RenderFragment>(Datahub_Project => @<i class="@($"fas fa-{Datahub_Project.Project_Icon} fa-lg")"></i>),
             new Func<Datahub_Project, RenderFragment>(Datahub_Project => @<NavLink href="@($"/project/{Datahub_Project?.Project_Acronym_CD}")">@Datahub_Project?.ProjectName</NavLink> ),
             null,
         };
