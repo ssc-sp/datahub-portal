@@ -17,7 +17,7 @@
         Headers="headers"
         style="Width:100%"
         GridTemplateColumns="0.5fr 2fr 3fr"
-        RowHeight="40"
+        RowHeight="55"
         />
     }               
 </div>
@@ -34,19 +34,14 @@
     protected override async Task OnInitializedAsync()
     {
         Context = DbFactory.CreateDbContext();
-        _projects = Context.Projects.Where(p => !p.Is_Private && !string.IsNullOrWhiteSpace(p.Project_Acronym_CD) && !string.IsNullOrWhiteSpace(p.Project_Name)).Include(p => p.Users).ToList();
-        
-        Console.WriteLine(_projects.Count(p => p == null));
-        Console.WriteLine(_projects.Count(p => p.Project_Icon == null));
-        Console.WriteLine(_projects.Count(p => p.ProjectName == null));
-        Console.WriteLine(_projects.Count(p => p.ProjectDescription == null));
+        _projects = Context.Projects.Where(p => !p.Is_Private && !string.IsNullOrWhiteSpace(p.Project_Acronym_CD) && !string.IsNullOrWhiteSpace(p.Project_Name)).Include(p => p.Users).ToList();               
 
         await FillAccessorFunctions();
         
         renderFunctions = new List<Func<Datahub_Project, RenderFragment>>() {            
             new Func<Datahub_Project, RenderFragment>(Datahub_Project => @<i class="@($"fas fa-{Datahub_Project.Project_Icon} fa-lg")"></i>),
             new Func<Datahub_Project, RenderFragment>(Datahub_Project => @<NavLink href="@($"/project/{Datahub_Project?.Project_Acronym_CD}")">@Datahub_Project?.ProjectName</NavLink> ),
-            null,
+            new Func<Datahub_Project, RenderFragment>(Datahub_Project => @<AeMarkdown Content="@($"- {Datahub_Project.ProjectDescription}")"></AeMarkdown>),
         };
         
         
