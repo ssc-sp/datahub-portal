@@ -30,10 +30,15 @@
         else
         {
             <div class="customuserinput">
-
                 @if (Preview)
                 {
-                    <span>@BoundValue</span>
+                    if (!FieldDefinition.HasChoices)
+                    {
+                        <span>@BoundValue</span>
+                    }
+                    {
+                        <span>@ChoiceDisplay</span>                
+                    }
                 }
                 else
                 {
@@ -47,7 +52,7 @@
                     }
                     else
                     {
-                        <select style="@FieldStyle" 
+                        <select style="@FieldStyle"
                                 @bind="BoundValue"
                                 @ref="FieldValueInput">
 
@@ -116,6 +121,8 @@
             }
         }
     }
+
+    private string ChoiceDisplay => FieldDefinition.Choices.FirstOrDefault(c => c.Value == FieldValue.Value)?.Label;
 
     const string MandatoryField = "border: 0; width: 100%; background-color: rgb(255, 235, 230);";
     const string OptionalField = "border: 0; width: 100%;";
