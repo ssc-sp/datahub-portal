@@ -99,6 +99,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <UpToDateCheckInput Remove="Styles\Theme\_table.scss" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="Styles\elemental-theme\" />
   </ItemGroup>
 </Project>

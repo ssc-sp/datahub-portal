@@ -1,0 +1,76 @@
+@using Microsoft.EntityFrameworkCore.Query
+@using Microsoft.EntityFrameworkCore;
+@inject IStringLocalizer<DataLabels> DataLocalizer
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JsInterop
+@implements IDisposable
+@inject IDbContextFactory<DatahubProjectDBContext> DbFactory
+
+<div class="ae flex wrap">
+
+@if (_projects.Any())
+    {
+        <AeTable Accessors="accessorFunctions"     
+        Renderers="renderFunctions"
+        T="Datahub_Project"
+        Dataset="_projects"
+        Headers="headers"
+        style="Width:100%"
+        GridTemplateColumns="0.5fr 2fr 3fr"
+        RowHeight="55"
+        />
+    }               
+</div>
+
+
+
+@code {
+
+    private List<Func<Datahub_Project, string>> accessorFunctions;
+    private List<Func<Datahub_Project, RenderFragment>> renderFunctions;    
+
+    private List<Datahub_Project> _projects;
+    DatahubProjectDBContext Context;
+    protected override async Task OnInitializedAsync()
+    {
+        Context = DbFactory.CreateDbContext();
+        _projects = Context.Projects.Where(p => !p.Is_Private && !string.IsNullOrWhiteSpace(p.Project_Acronym_CD) && !string.IsNullOrWhiteSpace(p.Project_Name)).Include(p => p.Users).ToList();
+        
+        Console.WriteLine(_projects.Count(p => p == null));
+        Console.WriteLine(_projects.Count(p => p.Project_Icon == null));
+        Console.WriteLine(_projects.Count(p => p.ProjectName == null));
+        Console.WriteLine(_projects.Count(p => p.ProjectDescription == null));
+
+        await FillAccessorFunctions();
+        
+        renderFunctions = new List<Func<Datahub_Project, RenderFragment>>() {            
+            new Func<Datahub_Project, RenderFragment>(Datahub_Project => @<i class="@($"fas fa-{Datahub_Project.Project_Icon}")"></i>),
+            new Func<Datahub_Project, RenderFragment>(Datahub_Project => @<NavLink href="@($"/project/{Datahub_Project?.Project_Acronym_CD}")">@Datahub_Project?.ProjectName</NavLink> ),
+            null,
+        };
+        
+        
+        
+        //await FillRenderFunctions();
+    }
+
+    private List<string> headers = new List<string>
+    {
+        "","", ""
+    };
+
+
+    public async Task FillAccessorFunctions()
+    {
+        accessorFunctions = new List<Func<Datahub_Project, string>>() {
+            new Func<Datahub_Project, string>(Datahub_Project => { return Datahub_Project?.Project_Icon; }),
+            new Func<Datahub_Project, string>(Datahub_Project => { return Datahub_Project?.ProjectName; }),
+            new Func<Datahub_Project, string>(Datahub_Project => { return Datahub_Project?.ProjectDescription; }),
+        };
+    }
+    
+     public void Dispose() 
+    { 
+        Context.Dispose();         
+    }
+}
