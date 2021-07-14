@@ -9,6 +9,7 @@ presets:
         en: "The collection (domain specific) to which the metadata record belongs, Example: Non-Spatial"
         fr: "Collection (propre au domaine) à laquelle appartient le dossier de métadonnées, par exemple : données non spatiales"
       required: true
+      validators: scheming_multiple_choice
       choices:
       - label:
           en: Consultations

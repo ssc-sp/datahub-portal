@@ -23,6 +23,8 @@ class Test_MetadataLoader(unittest.TestCase):
         assert(target.nameEnglish, "Collection Type")
         assert(target.nameFrench, "Type de collection")
 
+        assert(target.multiselect, True)
+
 
 def _loadTestData(path):
     with open("./test_data/%s"%(path), 'r') as f:
