@@ -42,13 +42,14 @@ namespace DatahubTest.PowerBI
                 );
 
             var serviceCredentials = new TokenCredentials(token.Token, "Bearer");
+            var allDataSets = new List<Dataset>();
             using (var client = new PowerBIClient(serviceCredentials))
             {
                 // Get a list of workspaces.
                 var workspaces = (await client.Groups.GetGroupsAsync()).Value;
                 foreach (var workspace in workspaces)
                 {
-                    var cDataSets = (await client.Datasets.GetDatasetsInGroupAsync(workspace.Id)).Value;
+                    allDataSets.AddRange((await client.Datasets.GetDatasetsInGroupAsync(workspace.Id)).Value);
                     var cReports = (await client.Reports.GetReportsInGroupAsync(workspace.Id)).Value;
                 }
                 // my workspace
@@ -56,9 +57,10 @@ namespace DatahubTest.PowerBI
                 //var datasets = datasetsRef.Value.ToList();
                 //var reportsRef = await client.Reports.GetReportsAsync();
                 //var reports = reportsRef.Value.ToList();
-                var groupRequest = new GroupCreationRequest() {  Name = "Test-APICreate"};
-                var newWorkspace = await client.Groups.CreateGroupAsync(groupRequest, true);
+                //var groupRequest = new GroupCreationRequest() {  Name = "Test-APICreate"};
+                //var newWorkspace = await client.Groups.CreateGroupAsync(groupRequest, true);
             }
+            Assert.True(allDataSets.Count > 0);
         }
     }
 }

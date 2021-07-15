@@ -10,7 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace NRCan.Datahub.Portal.Services.Api
+namespace NRCan.Datahub.Portal.Services
 {
     public class WorkspaceViewModel
     {
@@ -43,20 +43,53 @@ namespace NRCan.Datahub.Portal.Services.Api
     "https://analysis.windows.net/powerbi/api/Workspace.ReadWrite.All"
   };
 
-        public string GetAccessToken()
+
+        public static readonly string[] RequiredReadScopes = new string[] {
+    //"https://analysis.windows.net/powerbi/api/Group.Read.All",
+    "https://analysis.windows.net/powerbi/api/Dashboard.Read.All",
+    //"https://analysis.windows.net/powerbi/api/Report.Read.All",
+    "https://analysis.windows.net/powerbi/api/Dataset.Read.All",
+    //"https://analysis.windows.net/powerbi/api/Dataflow.Read.All",   
+    "https://analysis.windows.net/powerbi/api/Workspace.Read.All"
+  };
+
+        public async Task<string> GetAccessTokenAsync()
         {
-            return this.tokenAcquisition.GetAccessTokenForUserAsync(RequiredScopes).Result;
+            return await this.tokenAcquisition.GetAccessTokenForUserAsync(RequiredReadScopes);
         }
 
-        public PowerBIClient GetPowerBiClient()
+        public async Task<PowerBIClient> GetPowerBiClientAsync()
         {
-            var tokenCredentials = new TokenCredentials(GetAccessToken(), "Bearer");
+            var tokenCredentials = new TokenCredentials((await GetAccessTokenAsync()), "Bearer");
             return new PowerBIClient(new Uri(urlPowerBiServiceApiRoot), tokenCredentials);
+        }
+
+        public async Task<List<Dataset>> GetAllDatasetsAsync(string appWorkspaceId = "")
+        {
+            var allDataSets = new List<Dataset>();
+            using (var client = await GetPowerBiClientAsync())
+            {
+                // Get a list of workspaces.
+                var workspaces = (await client.Groups.GetGroupsAsync()).Value;
+                foreach (var workspace in workspaces)
+                {
+                    allDataSets.AddRange((await client.Datasets.GetDatasetsInGroupAsync(workspace.Id)).Value);
+                    var cReports = (await client.Reports.GetReportsInGroupAsync(workspace.Id)).Value;
+                }
+                // my workspace
+                //var datasetsRef = await client.Datasets.GetDatasetsAsync();
+                //var datasets = datasetsRef.Value.ToList();
+                //var reportsRef = await client.Reports.GetReportsAsync();
+                //var reports = reportsRef.Value.ToList();
+                //var groupRequest = new GroupCreationRequest() {  Name = "Test-APICreate"};
+                //var newWorkspace = await client.Groups.CreateGroupAsync(groupRequest, true);
+            }
+            return allDataSets;
         }
 
         public async Task<string> GetEmbeddedViewModel(string appWorkspaceId = "")
         {
-            using PowerBIClient pbiClient = GetPowerBiClient();
+            using PowerBIClient pbiClient = await GetPowerBiClientAsync();
             
             Object viewModel;
             if (string.IsNullOrEmpty(appWorkspaceId))
@@ -89,7 +122,7 @@ namespace NRCan.Datahub.Portal.Services.Api
 
         public async Task<IList<Group>> GetWorkspaces()
         {
-            PowerBIClient pbiClient = this.GetPowerBiClient();
+            using PowerBIClient pbiClient = await GetPowerBiClientAsync();
             var workspaces = (await pbiClient.Groups.GetGroupsAsync()).Value;
             return workspaces;
         }
@@ -97,7 +130,7 @@ namespace NRCan.Datahub.Portal.Services.Api
         public async Task<WorkspaceViewModel> GetWorkspaceDetails(string workspaceId)
         {
 
-            PowerBIClient pbiClient = this.GetPowerBiClient();
+            using PowerBIClient pbiClient = await GetPowerBiClientAsync();
 
             string filter = $"id eq '{workspaceId}'";
 
@@ -114,9 +147,9 @@ namespace NRCan.Datahub.Portal.Services.Api
 
         }
 
-        public string CreateAppWorkspace(string Name)
+        public async Task<string> CreateAppWorkspace(string Name)
         {
-            PowerBIClient pbiClient = this.GetPowerBiClient();
+            using PowerBIClient pbiClient = await GetPowerBiClientAsync();
             // create new app workspace
             GroupCreationRequest request = new GroupCreationRequest(Name);
             Group aws = pbiClient.Groups.CreateGroup(request);
@@ -124,16 +157,16 @@ namespace NRCan.Datahub.Portal.Services.Api
             return aws.Id.ToString();
         }
 
-        public void DeleteAppWorkspace(string WorkspaceId)
+        public async Task DeleteAppWorkspace(string WorkspaceId)
         {
-            PowerBIClient pbiClient = this.GetPowerBiClient();
+            using PowerBIClient pbiClient = await GetPowerBiClientAsync();
             Guid workspaceIdGuid = new Guid(WorkspaceId);
             pbiClient.Groups.DeleteGroup(workspaceIdGuid);
         }
 
-        public void PublishPBIX(string appWorkspaceId, string PbixFilePath, string ImportName)
+        public async Task PublishPBIX(string appWorkspaceId, string PbixFilePath, string ImportName)
         {
-            var pbiClient = this.GetPowerBiClient();
+            using PowerBIClient pbiClient = await GetPowerBiClientAsync();
             var stream = new FileStream(PbixFilePath, FileMode.Open, FileAccess.Read);
             var import = pbiClient.Imports.PostImportWithFileInGroup(new Guid(appWorkspaceId), stream, ImportName);
             Console.WriteLine("Publishing process completed");

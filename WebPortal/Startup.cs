@@ -101,7 +101,7 @@ namespace NRCan.Datahub.Portal
             }).AddHubOptions(o =>
             {
                 o.MaximumReceiveMessageSize = 10 * 1024 * 1024; // 10MB
-            });
+            }).AddMicrosoftIdentityConsentHandler(); 
 
             services.AddControllers();
 
@@ -190,9 +190,19 @@ namespace NRCan.Datahub.Portal
 
             if (!Offline)
             {
-                // todo: review suggestions!
-                services.AddAuthentication(AzureADDefaults.AuthenticationScheme)
-                        .AddAzureAD(options => Configuration.Bind("AzureAd", options));
+
+
+                //services.AddAuthentication(AzureADDefaults.AuthenticationScheme)               
+                //        .AddAzureAD(options => Configuration.Bind("AzureAd", options));
+                var scopes = new List<string>();
+                //scopes.AddRange(PowerBiServiceApi.RequiredReadScopes);
+                scopes.Add("user.read");
+                //scopes.Add("PowerBI.Read.All");
+
+                services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
+                    .AddMicrosoftIdentityWebApp(Configuration, "AzureAd")
+                    .EnableTokenAcquisitionToCallDownstreamApi(scopes)
+                    .AddInMemoryTokenCaches();
 
                 services.AddControllersWithViews(options =>
                 {
@@ -247,7 +257,7 @@ namespace NRCan.Datahub.Portal
 
                 services.AddSingleton<CommonAzureServices>();
                 services.AddScoped<DataLakeClientService>();
-                
+
                 services.AddScoped<IUserInformationService, UserInformationService>();
                 services.AddSingleton<IMSGraphService, MSGraphService>();
 
@@ -261,6 +271,8 @@ namespace NRCan.Datahub.Portal
                 services.AddScoped<IDataRemovalService, DataRemovalService>();
 
                 services.AddSingleton<ICognitiveSearchService, CognitiveSearchService>();
+
+                services.AddScoped<PowerBiServiceApi>();
             }
             else
             {
@@ -336,6 +348,6 @@ namespace NRCan.Datahub.Portal
                 options.UseSqlServer(Configuration.GetConnectionString("datahub-mssql-etldb") ?? throw new ArgumentNullException("ASPNETCORE_CONNECTION STRING")));
             services.AddDbContextPool<SqlCiosbDatahubEtldbContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("datahub-mssql-etldb") ?? throw new ArgumentNullException("ASPNETCORE_CONNECTION STRING")));
-        }          
+        }
     }
 }
