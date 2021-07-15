@@ -11,13 +11,13 @@
     <_ContentIncludedByDefault Remove="efpt.config.json" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="AElemental.Blazor" Version="1.1.21195.1-beta" />
+    <PackageReference Include="AElemental.Blazor" Version="1.1.21195.3-beta" />
     <PackageReference Include="Askmethat.Aspnet.JsonLocalizer" Version="3.1.0" />
     <PackageReference Include="Azure.Identity" Version="1.4.0-beta.1" />
     <PackageReference Include="Azure.Search.Documents" Version="11.2.0-beta.2" />
     <PackageReference Include="Azure.Storage.Blobs" Version="12.7.0" />
     <PackageReference Include="Azure.Storage.Files.DataLake" Version="12.5.0" />
-    <PackageReference Include="BlazorDownloadFile" Version="2.1.2" />
+    <PackageReference Include="BlazorDownloadFile" Version="2.1.6" />
     <PackageReference Include="BlazorInputFile" Version="0.2.0" />
     <PackageReference Include="Localization.AspNetCore.TagHelpers" Version="0.6.0" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.16.0" />
@@ -47,7 +47,7 @@
     <PackageReference Include="Microsoft.Extensions.Logging.ApplicationInsights" Version="2.16.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.AzureAppServices" Version="5.0.3" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Core" Version="1.1.0" />
-    <PackageReference Include="BlazorApplicationInsights" Version="1.0.1" />
+    <PackageReference Include="BlazorApplicationInsights" Version="1.2.0" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="5.0.2">
