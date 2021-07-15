@@ -11,6 +11,7 @@
     <Content Remove="package-lock.json" />
   </ItemGroup>
   <ItemGroup>
+    <None Remove="Styles\Common\NewFile1.txt" />
     <None Remove="Styles\_spinner.scss" />
   </ItemGroup>
   <ItemGroup>
@@ -23,8 +24,8 @@
     <None Include="compilerconfig.json" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="AElemental.Blazor" Version="1.1.21145.1-beta" />
-    <PackageReference Include="AElemental.Blazor.Theme" Version="1.1.21145.1-beta" />
+    <PackageReference Include="AElemental.Blazor" Version="1.1.21195.1-beta" />
+    <PackageReference Include="AElemental.Blazor.Theme" Version="1.1.21195.1-beta" />
     <PackageReference Include="AngleSharp" Version="1.0.0-alpha-844" />
     <PackageReference Include="Askmethat.Aspnet.JsonLocalizer" Version="3.1.0" />
     <PackageReference Include="Azure.Identity" Version="1.4.0-beta.1" />
@@ -35,6 +36,7 @@
     <PackageReference Include="BlazorInputFile" Version="0.2.0" />
     <PackageReference Include="Localization.AspNetCore.TagHelpers" Version="0.6.0" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.16.0" />
+    <PackageReference Include="Microsoft.AspNetCore.ApplicationInsights.HostingStartup" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.AzureAD.UI" Version="5.0.2" />
     <PackageReference Include="Microsoft.AspNetCore.DataProtection.Abstractions" Version="5.0.2" />
     <PackageReference Include="Microsoft.Azure.KeyVault" Version="3.0.5" />
@@ -87,12 +89,20 @@
     <NpmInstallStampFile>node_modules/.install-stamp</NpmInstallStampFile>
   </PropertyGroup>
   <Target Name="NpmInstall" BeforeTargets="BeforeBuild" Inputs="package.json" Outputs="$(NpmInstallStampFile)">
-    <Exec Command="npm i node-sass --save-dev" />
+    <Exec Command="npm i sass --save-dev" />
     <Touch Files="$(NpmInstallStampFile)" AlwaysCreate="true" />
   </Target>
 
   <ItemGroup>
     <UpToDateCheckInput Include="Styles/**/*.scss" Set="Css" />
     <UpToDateCheckBuilt Include="wwwroot/css/*.css" Set="Css" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <UpToDateCheckInput Remove="Styles\Theme\_pagination.scss" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Styles\elemental-theme\" />
   </ItemGroup>
 </Project>

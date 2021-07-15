@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
@@ -46,6 +47,7 @@ namespace NRCan.Datahub.Shared.Services
 
         public string GetUserName(string userId)
         {
+            
             if (!string.IsNullOrWhiteSpace(userId))
             {
                 var user = GetUser(userId);

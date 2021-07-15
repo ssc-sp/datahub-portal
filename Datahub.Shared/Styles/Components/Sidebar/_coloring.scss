@@ -1,8 +1,7 @@
-﻿@import '../../_colors.scss';
-@import '../Icons/_icon-colors.scss';
+﻿@use '../Icons/icon-colors';
 
 @mixin sidebar-border-colors {
-  @each $color, $colors in $icon-colors {
+  @each $color, $colors in icon-colors.$icon-colors {
     &.#{$color} {
       border-left-color: #{map-get($colors, "primary")};
     }

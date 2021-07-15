@@ -1,0 +1,30 @@
+@mixin BoxShadow ($dp) {
+  @if $dp==-1 {
+      box-shadow: inset 4px 8px 8px -8px rgba(0,0,0,0.16) !important;
+  }
+  @else if $dp==0 {
+      box-shadow: none
+  }
+  @else if $dp==1 {
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02), 0 1px 2px rgba(0,0,0,0.14);
+  }
+  @else if $dp==2 {
+      box-shadow: 0 3px 6px rgba(0,0,0,0.06), 0 3px 6px rgba(0,0,0,0.13);
+  }
+  @else if $dp==3 {
+      box-shadow: 0 10px 20px rgba(0,0,0,0.09), 0 6px 6px rgba(0,0,0,0.13);
+  }
+  @else if $dp==4 {
+      box-shadow: 0 14px 28px rgba(0,0,0,0.15), 0 10px 10px rgba(0,0,0,0.12);
+  }
+  @else {
+      box-shadow: 0 19px 38px rgba(0,0,0,0.20), 0 15px 12px rgba(0,0,0,0.12);
+  }
+}
+
+$box-shadow-inset-1: inset 4px 8px 8px -8px rgba(0,0,0,0.16);
+$box-shadow-1: 0 1px 3px rgba(0,0,0,0.02), 0 1px 2px rgba(0,0,0,0.14);
+$box-shadow-2: 0 3px 6px rgba(0,0,0,0.06), 0 3px 6px rgba(0,0,0,0.13);
+$box-shadow-3: 0 10px 20px rgba(0,0,0,0.09), 0 6px 6px rgba(0,0,0,0.13);
+$box-shadow-4: 0 14px 28px rgba(0,0,0,0.15), 0 10px 10px rgba(0,0,0,0.12);
+$box-shadow-5: 0 19px 38px rgba(0,0,0,0.20), 0 15px 12px rgba(0,0,0,0.12);

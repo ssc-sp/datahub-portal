@@ -6,6 +6,8 @@ namespace NRCan.Datahub.Shared.EFCore
         public EFCoreDatahubContext(DbContextOptions<EFCoreDatahubContext> options) : base(options)
         { }
         public DbSet<UserSettings> UserSettings { get; set; }
+
+        public DbSet<UserRecent> UserRecent { get; set; }
         
     }
 }

@@ -1,5 +1,4 @@
-﻿@import 'colors';
-@import 'box-shadow';
+﻿@use 'Common/colors';
 
 .tacdivbox {
     width: 50rem; /* or whatever width you want. */
@@ -20,11 +19,11 @@
 }
 
 .tacdivbox::-webkit-scrollbar-track {
-    background: $white;
+    background: colors.$white;
 }
 
 .tacdivbox::-webkit-scrollbar-thumb {
-    background-color: $borderblue;
+    background-color: colors.$borderblue;
 }
 
 

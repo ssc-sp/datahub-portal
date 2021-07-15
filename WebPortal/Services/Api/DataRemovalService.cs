@@ -1,4 +1,6 @@
-﻿using Azure.Storage.Files.DataLake;
+﻿using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
+using Azure.Storage.Files.DataLake;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Azure.Storage;
 using Microsoft.Azure.Storage.Blob;
@@ -21,6 +23,7 @@ namespace NRCan.Datahub.Portal.Services
         private ICognitiveSearchService _cognitiveSearchService;
         private DataLakeClientService _dataLakeClientService;
         private IDataRetrievalService _dataRetrievalService;
+        private IApiCallService _apiCallService;
 
         public DataRemovalService(ILogger<DataRemovalService> logger,
                                   DataLakeClientService dataLakeClientService,
@@ -28,13 +31,15 @@ namespace NRCan.Datahub.Portal.Services
                                   ICognitiveSearchService cognitiveSearchService,
                                   IApiService apiService,
                                   NavigationManager navigationManager,
-                                  UIControlsService uiService)
+                                  UIControlsService uiService,
+                                  IApiCallService apiCallService)
             : base(navigationManager, apiService, uiService)
         {
             _logger = logger;
             _cognitiveSearchService = cognitiveSearchService;
             _dataLakeClientService = dataLakeClientService;
             _dataRetrievalService = dataRetrievalService;
+            _apiCallService = apiCallService;            
         }
 
         public async Task<bool> Delete(Folder folder, Microsoft.Graph.User currentUser)
@@ -171,6 +176,44 @@ namespace NRCan.Datahub.Portal.Services
             {
                 // Eat this excpetion, parent will handle!
                 _logger.LogError(ex, $"Delete file: {file.folderpath}/{file.filename} user: {currentUser.DisplayName} FAILED.");
+                throw;
+            }
+        }
+
+        public async Task<bool> DeleteStorageBlob(FileMetaData file, string project, Microsoft.Graph.User currentUser)
+        {
+            try
+            {
+                //var uri = await _apiService.GetUserDelegationSasBlob(file, project);
+
+
+                //BlobClient blobClient = new BlobClient(uri);
+                //var response = await blobClient.DeleteIfExistsAsync(Azure.Storage.Blobs.Models.DeleteSnapshotsOption.IncludeSnapshots);
+
+                //return response.Value;
+
+                string cxnstring = await _apiCallService.GetProjectConnectionString(project);
+                CloudStorageAccount storageAccount = CloudStorageAccount.Parse(cxnstring);
+
+                // Create the blob client.
+                CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
+
+                // Retrieve reference to a previously created container.
+                CloudBlobContainer container = blobClient.GetContainerReference("datahub");
+
+                // Retrieve reference to a blob named "myblob.csv".
+                CloudBlockBlob blockBlob = container.GetBlockBlobReference(file.name);
+
+                // Delete the blob.
+                blockBlob.Delete();
+
+                return true;
+
+
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Delete blob : {file.filename} owned by: {currentUser.DisplayName} FAILED.");
                 throw;
             }
         }

@@ -1,8 +1,23 @@
-﻿@import '_button.scss';
-@import '_input.scss';
-@import '_dropdown.scss';
-@import '_progress.scss';
-@import '_colors.scss';
+﻿@use 'button';
+@use 'input';
+@use 'dropdown';
+@use 'progress';
+@use 'pagination';
+
+@use '../elemental-theme/theme';
 
 
-@import '../elemental-theme/theme.scss';
+$overrides: (
+  'button': button.$buttonOptions,
+  'dropdown': dropdown.$dropdownOptions,
+  'input': input.$inputOptions,
+  'progress': progress.$progressOptions,
+  'pagination': (
+    'tableHeaderOptions': pagination.$tableHeaderOptions,
+    'tableRowOptions': pagination.$tableRowOptions,
+  ),
+
+);
+
+
+@include theme.custom($overrides);

@@ -1,8 +1,4 @@
-﻿@import '../elemental-theme/colors';
-@import '../elemental-theme/constants';
-@import '../elemental-theme/box-shadow';
-@import '../elemental-theme/utils';
-
+﻿@use '../Common/colors' as c;
 
 $progressOptions: ( 
   "default": (
@@ -16,7 +12,6 @@ $progressOptions: (
      overflow: hidden,
      background-color: #e9ecef,
      border-radius: .25rem,
- 
 
     ".outer": ( 
       width: 100%,
@@ -24,15 +19,15 @@ $progressOptions: (
       height: 100%,
       "min-height": 1rem,
       "display": inline-block, 
-      "background-color": $grey-600, 
-      "border-color": $grey-600,
+      "background-color": c.$grey-600, 
+      "border-color": c.$grey-600,
     ),
 
     ".fill": (
       height: 100%,
       "min-height": 1rem,
       "vertical-align": middle,
-      "background-color": $blue-500,
+      "background-color": c.$blue-500,
     ),
 
     ".full": (
@@ -40,8 +35,8 @@ $progressOptions: (
       "width": 100%,
       "vertical-align": middle,
       "text-align": center,
-      "color": $white,
-      "background-color": $green-500,
+      "color": c.$white,
+      "background-color": c.$green-500,
     ),
 
     ".text": (
@@ -51,4 +46,4 @@ $progressOptions: (
     ),
 
   )
-)  !default;
+);

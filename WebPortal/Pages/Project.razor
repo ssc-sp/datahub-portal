@@ -169,8 +169,25 @@
         <AeFlex>
             <AeIcon class="fas fa-hdd big-icon" />
             <AeFlex Vertical>
-                <NavLink href=@($"/project/{projectAcronym}/filelist")><AeTypography Variant="h3">Storage Explorer</AeTypography></NavLink>
-                <AeTypography>Storage Explorer for @_project.ProjectName</AeTypography>
+
+                @if (_serviceRequests.Any(r => r.ServiceType == "storage" && r.Is_Completed != null))
+                {
+                    <NavLink href=@($"/project/{projectAcronym}/filelist")><AeTypography Variant="h3">Storage Explorer</AeTypography></NavLink>
+                    <AeTypography>Storage Explorer for @_project.ProjectName</AeTypography>
+                }
+                else if (_serviceRequests.Any(r => r.ServiceType == "storage" && r.Is_Completed == null))
+                {
+                    <AeTypography Variant="h3">Storage Explorer</AeTypography>
+                    <AeTypography>Storage Explorer for @_project.ProjectName</AeTypography>
+                    <AeTypography class="warning">Service Request is being reviewed</AeTypography> 
+                }
+                else
+                {
+                    <AeTypography Variant="h3">Storage Explorer</AeTypography>
+                    <AeTypography>Storage Explorer for @_project.ProjectName</AeTypography>
+                    <AeButton @onclick="@(async () => await RequestServiceAccess("storage"))">Request Service Creation</AeButton>
+                }
+                
             </AeFlex>
         </AeFlex>
     </AeCard>

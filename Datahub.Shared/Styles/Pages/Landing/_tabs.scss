@@ -1,5 +1,4 @@
-﻿@import '../../_colors.scss';
-@import '../../_constants.scss';
+﻿@use '../../Common/' as c;
 
 .tab-control {
     .tab-selection {
@@ -11,16 +10,16 @@
         .tab {
             padding: .5rem 1rem;
 
-            border-bottom: 2px solid $transparent;
-            transition: all .2s $cubic-bezier;
+            border-bottom: 2px solid c.$transparent;
+            transition: all .2s c.$cubic-bezier;
             cursor: pointer;
 
             &:hover {
-                background-color: $gray-100;
+                background-color: c.$gray-100;
             }
             
             &.active {
-                border-color: $borderblue;
+                border-color: c.$borderblue;
             }
         }
     }

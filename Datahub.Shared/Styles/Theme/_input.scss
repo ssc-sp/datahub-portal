@@ -1,6 +1,6 @@
-﻿@import '../elemental-theme/colors.scss';
-@import '../elemental-theme/constants.scss';
-$borderblue: #57C4EC;
+﻿@use '../Common' as c;
+
+
 $inputOptions: (
     "default" : (
         "margin": 0,
@@ -8,28 +8,28 @@ $inputOptions: (
         "width": 100%,
         "min-width": 0,
         "padding": 0.5rem 0.75rem,
-        "color": $text-hint,
+        "color": c.$text-hint,
         "font-size": 0.9rem,
         "line-height": 1.5,
-        "background-color": $grey-100,
-        "border": 1px solid $grey-200,
+        "background-color": c.$gray-100,
+        "border": 1px solid c.$gray-200,
         "border-radius": 4px,
         "transition": all .3s,
         "&:hover":(
-            "border-color": $borderblue,
+            "border-color": c.$borderblue,
         ),
         "&:focus": (
-            "border-color": $borderblue,
+            "border-color": c.$borderblue,
             "outline": 0,
-            "color": $text-primary,
-            "box-shadow": 0 0 0 2px rgba($borderblue, 0.2),
+            "color": c.$textPrimary,
+            "box-shadow": 0 0 0 2px rgba(c.$borderblue, 0.2),
         ),
     ),
      "disabled": (
-        "background-color": $grey-300,
-        "border": 1px solid $grey-400,
+        "background-color": c.$gray-300,
+        "border": 1px solid c.$gray-400,
         "&:hover": (
-            "border-color": $grey-500,
+            "border-color": c.$gray-500,
         ),
     )
 ) !default;
@@ -44,20 +44,20 @@ $searchInputOptions: (
         "width": 1rem,
         "margin": 0 -1.5rem 0 0.5rem,
         "z-index": 1,
-        "color": $text-hint,
+        "color": c.$text-hint,
     ),
     ".ae.clear-icon": (
         "padding": 0.5rem,
         "margin-left": -2rem,
-        "color": $text-hint,
+        "color": c.$text-hint,
         "opacity": 0,
-        "transition": all .3s $cubic-bezier,
+        "transition": all .3s c.$cubic-bezier,
         "&:hover": (
             "cursor": pointer,
-            "color": $text-primary,
+            "color": c.$textPrimary,
         ),
         "&.visible": (
             "opacity": 1,
         ),
     ),
-) !default;
+);

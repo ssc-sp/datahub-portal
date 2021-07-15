@@ -76,14 +76,14 @@ namespace FormTests
             Assert.Equal("The program '[40312]...", Projects.ShortenString(longString, 20));
         }
 
-        [Fact]
-        public void TestListCategoriesForPIPTombstone()
-        {
-            var s1 = typeof(PIP_Tombstone).GetAeModelFormCategories();
-            Assert.Equal(7, s1.Count);
-            //Assert.Collection(s1, e => Assert.Null(e.category), e => Assert.Equal("Identification", e.category), e => Assert.Equal("Details", e.category));
-            //var (c1, l1) = s1[0];
-        }
+        //[Fact]
+        //public void TestListCategoriesForPIPTombstone()
+        //{
+        //    var s1 = typeof(PIP_Tombstone).GetAeModelFormCategories();
+        //    Assert.Equal(7, s1.Count);
+        //    //Assert.Collection(s1, e => Assert.Null(e.category), e => Assert.Equal("Identification", e.category), e => Assert.Equal("Details", e.category));
+        //    //var (c1, l1) = s1[0];
+        //}
 
         
     }
