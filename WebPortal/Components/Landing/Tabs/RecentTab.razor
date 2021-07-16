@@ -1,5 +1,5 @@
 ﻿@inject IUserInformationService UserInformationService
-@*@inject UserLocationManagerService UserLocationManagerService *@
+@inject UserLocationManagerService UserLocationManagerService 
 
 <AeFlex class="recent-card-container">
   @foreach (var card in GetCards())
@@ -18,12 +18,12 @@
 @code {
     
     
-    //private UserRecent _userRecent;
+    private UserRecent _userRecent;
 
     protected override async Task OnInitializedAsync()
     {
-        //var currentUser = await UserInformationService.GetCurrentUserAsync();
-        //var _userRecent = await UserLocationManagerService.ReadRecentNavigations(currentUser.Id); 
+        var currentUser = await UserInformationService.GetCurrentUserAsync();
+        var _userRecent = await UserLocationManagerService.ReadRecentNavigations(currentUser.Id); 
     }
 
   private List<(Icon Icon, string Title, string Subtitle)> GetCards()

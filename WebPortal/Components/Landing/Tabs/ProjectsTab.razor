@@ -6,21 +6,22 @@
 @implements IDisposable
 @inject IDbContextFactory<DatahubProjectDBContext> DbFactory
 
-<div class="ae flex wrap">
+<div class="ae table-container">
 
-@if (_projects.Any())
-    {
-        <AeTable Accessors="accessorFunctions"     
+        <AePaginatedTable Accessors="accessorFunctions"     
         Renderers="renderFunctions"
         T="Datahub_Project"
         Dataset="_projects"
         Headers="headers"
         style="Width:100%"
-        GridTemplateColumns="0.5fr 2fr 3fr"
-        RowHeight="55"
-        PageSize="999999"
+        GridTemplateColumns="0.5fr 2fr 3fr"    
+        Page="@_lastClicked"
+        PageSize="4"
+        @ref=_myTable
         />
-    }               
+
+        <AePagination Pageable="@_myTable" OnPageClick="OnPageClick" />
+                  
 </div>
 
 
@@ -30,8 +31,25 @@
     private List<Func<Datahub_Project, string>> accessorFunctions;
     private List<Func<Datahub_Project, RenderFragment>> renderFunctions;    
 
+    private IPageableComponent _myTable;
+
     private List<Datahub_Project> _projects;
     DatahubProjectDBContext Context;
+
+    private int _lastClicked = 0;
+
+
+    private void OnPageClick(int pageIndex)
+    {
+    _lastClicked = pageIndex;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+            StateHasChanged();
+    }
+
     protected override async Task OnInitializedAsync()
     {
         Context = DbFactory.CreateDbContext();
@@ -40,9 +58,10 @@
         await FillAccessorFunctions();
         
         renderFunctions = new List<Func<Datahub_Project, RenderFragment>>() {            
-            new Func<Datahub_Project, RenderFragment>(Datahub_Project => @<i class="@($"fas fa-{Datahub_Project.Project_Icon} fa-lg")"></i>),
+            new Func<Datahub_Project, RenderFragment>(Datahub_Project => 
+    @<i class="@($"fas fa-{Datahub_Project.Project_Icon} fa-lg")"></i>),
             new Func<Datahub_Project, RenderFragment>(Datahub_Project => @<NavLink href="@($"/project/{Datahub_Project?.Project_Acronym_CD}")">@Datahub_Project?.ProjectName</NavLink> ),
-            new Func<Datahub_Project, RenderFragment>(Datahub_Project => @<AeMarkdown Content="@($"- {Datahub_Project.ProjectDescription}")"></AeMarkdown>),
+            new Func<Datahub_Project, RenderFragment>(Datahub_Project => @<AeMarkdown Content="@($"- {Datahub_Project.ProjectDescription}")"></AeMarkdown> ),
         };
         
         
@@ -50,10 +69,7 @@
         //await FillRenderFunctions();
     }
 
-    private List<string> headers = new List<string>
-    {
-        "","", ""
-    };
+    private List<string> headers = new List<string>();
 
 
     public async Task FillAccessorFunctions()

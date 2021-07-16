@@ -11,7 +11,7 @@
     <_ContentIncludedByDefault Remove="efpt.config.json" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="AElemental.Blazor" Version="1.1.21195.3-beta" />
+    <PackageReference Include="AElemental.Blazor" Version="1.1.21196.2-beta" />
     <PackageReference Include="Askmethat.Aspnet.JsonLocalizer" Version="3.1.0" />
     <PackageReference Include="Azure.Identity" Version="1.4.0-beta.1" />
     <PackageReference Include="Azure.Search.Documents" Version="11.2.0-beta.2" />
