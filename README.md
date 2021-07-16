@@ -13,6 +13,8 @@ The DataHub aims to provide the following features:
 - Data Projects empower users to tell data stories, work with massive datasets, conduct analyses and experiment with new technologies.
 - Connect Data Scientists & Analytics Users in Sectors & Collaborating with other platforms
 
+_This project is presently internal to NRCan and more details can be obtained by contacting on DataHub mailbox for any collaboration opportunities nrcan.datahub.rncan@canada.ca_
+
 ![image](https://user-images.githubusercontent.com/82101285/122599381-48a01d00-d03c-11eb-9bb8-a20d76646258.png)
 
 ## Data Projects
@@ -40,6 +42,10 @@ This project includes multiple repositories
 
 ## How to get started with the portal
 
-1. Checkout this project and open the folder in VSC
-2. Ensure you have contributor role in NRCan's Azure resource group "ciosb-dev-datahub-ca-central"
-3. Open a new terminal and run: ```./initLocalDev.ps1```
+1. Checkout this project and open the folder in Visual Studio Code or Visual Studio Community/Pro/Enterprise
+2. Configure required values in appsettings.json or start the portal in offline mode
+
+## Offline mode
+
+The offline configuration mode lets you start the project without the Azure environment - this mode only requires a local sql server database.
+
