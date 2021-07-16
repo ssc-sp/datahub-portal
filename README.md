@@ -37,15 +37,8 @@ The diagram below shows the key components of the platform
 
 This project includes multiple repositories
 - **DataHub Web Portal:** This repository contains the code for all the portal and Azure Functions used to automate PowerBI & Databricks tasks
-- **DataHub Terraform:** The terraform infrastructure for the project is stored in this repository and elements of the terraform script are dynamically generated from the Data Project database. 
+- **DataHub Terraform:** The terraform infrastructure for the project is stored in this repository and elements of the terraform script are dynamically generated from the Data Project database. Please contact us for details on the terraform infrastructure.
 - **DataHub Databricks:** Databricks is used in this project for ETL, Data Science and other data transformations. Examples from this repository can be used as template for setting up new tasks.
 
-## How to get started with the portal
 
-1. Checkout this project and open the folder in Visual Studio Code or Visual Studio Community/Pro/Enterprise
-2. Configure required values in appsettings.json or start the portal in offline mode
-
-## Offline mode
-
-The offline configuration mode lets you start the project without the Azure environment - this mode only requires a local sql server database.
 
