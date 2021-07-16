@@ -3,15 +3,18 @@
 @use 'dropdown';
 @use 'progress';
 @use 'pagination';
+@use 'paginated-table-light';
+@use 'card';
 
 @use '../elemental-theme/theme';
-
+@use '../elemental-theme/table/table';
 
 $overrides: (
   'button': button.$buttonOptions,
   'dropdown': dropdown.$dropdownOptions,
   'input': input.$inputOptions,
   'progress': progress.$progressOptions,
+   'card': card.$cardOptions,
   'pagination': (
     'tableHeaderOptions': pagination.$tableHeaderOptions,
     'tableRowOptions': pagination.$tableRowOptions,
@@ -21,3 +24,12 @@ $overrides: (
 
 
 @include theme.custom($overrides);
+
+.light-table {
+    $light: (
+            'tableHeaderOptions': paginated-table-light.$tableHeaderOptions,
+            'tableRowOptions': paginated-table-light.$tableRowOptions,
+        );
+    @include table.configure($light);
+    @include table.styles;
+}

@@ -2,6 +2,8 @@
 
 <AeFlex class="landing-content-wrapper">
   <AeFlex class="landing-content">
+<AeCard>
+    <ChildContent>
     <TabControl>
         @foreach(var tab in GetTabs()){
             <TabPage>
@@ -14,6 +16,8 @@
             </TabPage>  
         }
     </TabControl>
+</ChildContent>
+</AeCard>
   </AeFlex>
 </AeFlex>
 

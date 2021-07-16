@@ -13,6 +13,7 @@
         T="Datahub_Project"
         Dataset="_projects"
         Headers="headers"
+        class="light-table"
         style="Width:100%"
         GridTemplateColumns="0.5fr 2fr 3fr"    
         Page="@_lastClicked"
@@ -20,8 +21,7 @@
         @ref=_myTable
         />
 
-        <AePagination Pageable="@_myTable" OnPageClick="OnPageClick" />
-                  
+        <AePagination Pageable="@_myTable" OnPageClick="OnPageClick" />                 
 </div>
 
 
@@ -53,14 +53,14 @@
     protected override async Task OnInitializedAsync()
     {
         Context = DbFactory.CreateDbContext();
-        _projects = Context.Projects.Where(p => !p.Is_Private && !string.IsNullOrWhiteSpace(p.Project_Acronym_CD) && !string.IsNullOrWhiteSpace(p.Project_Name)).Include(p => p.Users).ToList();               
+        _projects = Context.Projects.Where(p => !p.Is_Private && !string.IsNullOrWhiteSpace(p.Project_Acronym_CD) && !string.IsNullOrWhiteSpace(p.Project_Icon) && !string.IsNullOrWhiteSpace(p.Project_Name)).Include(p => p.Users).ToList();               
 
         await FillAccessorFunctions();
         
         renderFunctions = new List<Func<Datahub_Project, RenderFragment>>() {            
             new Func<Datahub_Project, RenderFragment>(Datahub_Project => 
-    @<i class="@($"fas fa-{Datahub_Project.Project_Icon} fa-lg")"></i>),
-            new Func<Datahub_Project, RenderFragment>(Datahub_Project => @<NavLink href="@($"/project/{Datahub_Project?.Project_Acronym_CD}")">@Datahub_Project?.ProjectName</NavLink> ),
+                @<div class="recent-card-container"><AeFlex class="@($"recent-card grey")"><i class="@($"fas fa-{Datahub_Project.Project_Icon} fa-lg")"></i></AeFlex></div>),
+            new Func<Datahub_Project, RenderFragment>(Datahub_Project => @<AeTypography Variant="h3"><NavLink href="@($"/project/{Datahub_Project?.Project_Acronym_CD}")">@Datahub_Project?.ProjectName</NavLink></AeTypography> ),
             new Func<Datahub_Project, RenderFragment>(Datahub_Project => @<AeMarkdown Content="@($"- {Datahub_Project.ProjectDescription}")"></AeMarkdown> ),
         };
         

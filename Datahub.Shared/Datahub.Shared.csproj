@@ -99,6 +99,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <UpToDateCheckInput Remove="Styles\Theme\_paginated-table-light.scss" />
     <UpToDateCheckInput Remove="Styles\Theme\_pagination.scss" />
   </ItemGroup>
 

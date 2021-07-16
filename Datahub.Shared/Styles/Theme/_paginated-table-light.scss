@@ -1,6 +1,7 @@
-﻿@use '../common' as c;
+@use '../common/' as c;
 
 $cell-padding: 1rem 0.75rem;
+
 $tableHeaderOptions: (
   'default': (
     'display': grid,
@@ -9,9 +10,9 @@ $tableHeaderOptions: (
       'user-select': none,
       'padding': $cell-padding,
       'background-color': c.$transparent,
-      'color': c.$transparent,
+      'color': c.$textPrimary,
       'font-weight': bold,
-//      'word-wrap': break-word,
+      'word-wrap': break-word,
       'transition': 0.2s c.$cubic-bezier,
       '&:hover': (
         'background-color': c.$grey-100,
@@ -19,6 +20,7 @@ $tableHeaderOptions: (
     ),
   ),
 );
+
 $tableRowOptions: (
   'default': (
     'display': grid,
@@ -40,11 +42,11 @@ $tableRowOptions: (
     ),
     '.ae.table-cell': (
       'background-color': c.$transparent,
-//      'word-wrap': break-word,
+      'word-wrap': break-word,
       'overflow': hidden,
       'text-overflow': ellipsis,
       'padding': $cell-padding,
-      '&': c.$grey-100,
+      //'&': c.$scrollbarOptions,
       '&:nth-child(1)': (
         'padding-left': 0.5rem,
         'border-left': 0.25rem solid c.$transparent,

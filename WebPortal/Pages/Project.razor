@@ -13,7 +13,16 @@
 @page "/project/{projectAcronym}"
 
 <div style="padding-left: 2rem;padding-right: 2rem">
-<h1>@_project.ProjectName</h1>
+<h2>Data Project @(_project.Project_Acronym_CD.ToUpperInvariant())</h2>
+<AeCard CardPosition="AeCard.CardStyle.Horizontal" style="max-width: 700px;">
+    <Header>
+        <i class="@($"fas fa-{_project.Project_Icon} fa-lg")"/>
+    </Header>
+    <ChildContent>
+        <AeTypography Variant="h1">@_project.ProjectName</AeTypography>
+        <AeMarkdown Content="@($"{_project.ProjectDescription}")"></AeMarkdown>
+    </ChildContent>
+</AeCard>
 
 @if (_pipelineStatus?.Count > 0)
 {
@@ -41,7 +50,7 @@
                     {
                         <AeTypography Variant="h3">Azure Databricks</AeTypography>
                     }
-                    <AeTypography>Azure Databricks Workspace for @_project.ProjectName</AeTypography>
+                    <AeTypography>Azure Databricks Workspace</AeTypography>
                     @if (!_databricksAuthorized)
                     {
                     @if (!string.IsNullOrWhiteSpace(_project.Databricks_URL))
@@ -87,7 +96,7 @@
                     {
                         <AeTypography Variant="h3">PowerBI</AeTypography>
                     }                    
-                    <AeTypography>PowerBI Workspace for @_project.ProjectName</AeTypography>
+                    <AeTypography>PowerBI Workspace</AeTypography>
                     @if (!_powerBIAuthorized)
                     {
                     @if (!string.IsNullOrWhiteSpace(_project.PowerBI_URL))
@@ -135,7 +144,7 @@
                         {
                             <AeTypography Variant="h3">Data Entry</AeTypography>
                         }
-                        <AeTypography>Data Entry for @_project.ProjectName</AeTypography>
+                        <AeTypography>Data Entry</AeTypography>
                         @if (!_webFormsAuthorized)
                         {
                         @if (_webFormsRequested)
