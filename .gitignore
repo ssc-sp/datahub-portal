@@ -24,6 +24,7 @@ WebPortal/appsettings.Development.json
 WebPortal/appsettings.json
 WebPortal/appsettings.prd.json
 WebPortal/appsettings.Tst.json
+WebPortal/appsettings.Offline.json
 WebPortal/Properties/launchSettings.json
 /Datahub.Metadata/Python/.connectionstring
 /Datahub.Metadata/Python/__pycache__
