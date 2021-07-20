@@ -15,9 +15,6 @@
     @include icon-colors.icon-colors;
     transition: all 0.2s c.$cubic-bezier;
     border-left: 0px solid c.$transparent;
-    --fa-primary-color: '#{c.$gray-800}';
-    --fa-secondary-color: '#{c.$borderblue}';
-
 
     &:hover {
         cursor: pointer;
@@ -26,8 +23,6 @@
 
         i {
             opacity: 1;
-            --fa-primary-color: '#{c.$gray-800}';
-            --fa-secondary-color: '#{c.$borderblue}';
         }
     }
 
