@@ -140,7 +140,7 @@
 
     private bool SearchingOpenData { get; set; } = false;
     private bool MoreOpenDataResultsAvailable { get; set; } = true;
-    private int MinOpenDataResult { get; set; } = 1;
+    private int MinOpenDataResult { get; set; } = 0;
   
     protected override async Task OnInitializedAsync()
     {
@@ -175,11 +175,10 @@
         SearchingOpenData = true;
         StateHasChanged();
 
-        var maxResult = MinOpenDataResult + RESULTS_PER_PAGE - 1;
-        var loadTask = ExternalSearchService.SearchOpenDataByKeyword(searchtext);
-        MinOpenDataResult = maxResult + 1;
+        var loadTask = ExternalSearchService.SearchOpenDataByKeyword(searchtext, min: MinOpenDataResult, rows: RESULTS_PER_PAGE);
+        MinOpenDataResult += RESULTS_PER_PAGE;
         var result = await loadTask;
-        // TODO more results available
+        MoreOpenDataResultsAvailable = result.Results.Count >= RESULTS_PER_PAGE;
         SearchingOpenData = false;
         
         return result.Results;
@@ -208,10 +207,11 @@
         return $"{description.Substring(0, lastIndex)} ...";
     }
 
-    protected override async Task OnParametersSetAsync()
+    // TODO: figure out how to make it work properly (i.e. without double searching on initial load)
+    @* protected override async Task OnParametersSetAsync()
     {
         FgpItems = new List<GeoCoreItem>();
         OpenDataItems = new List<OpenDataItem>();
         await OnInitializedAsync();
-    }
+    } *@
 }
