@@ -4177,6 +4177,15 @@ body {
   text-align: left;
   font-weight: bold;
 }
+.search-list-container .additional-results {
+  margin: 1em;
+}
+.search-list-container .additional-results .additional-result-label::before {
+  content: ", ";
+}
+.search-list-container .additional-results .additional-result-label:first-child::before {
+  content: " ";
+}
 .search-list-container .search-grid-row {
   display: grid;
   grid-template-columns: 0.125fr 60% auto;
@@ -4213,6 +4222,30 @@ body {
 .search-list-container .grid-item .break {
   flex-basis: 100%;
   height: 0;
+}
+
+.search-results {
+  list-style: none;
+  margin: 0 2em;
+  padding: 0;
+}
+.search-results li {
+  margin-bottom: 1rem;
+}
+.search-results .search-result-title {
+  font-weight: bold;
+}
+.search-results .search-result-subtitle {
+  font-style: italic;
+  font-size: 0.7rem;
+}
+.search-results .search-result-description p {
+  margin: 0;
+}
+
+.search-page .ae.card {
+  margin: 2rem 3rem;
+  padding-bottom: 2rem;
 }
 
 .versionContainer .fileGrid {
