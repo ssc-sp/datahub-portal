@@ -9,6 +9,7 @@
   <ItemGroup>
     <PackageReference Include="Azure.Search.Documents" Version="11.2.0-beta.2" />
     <PackageReference Include="Azure.Storage.Files.DataLake" Version="12.5.0" />
+    <PackageReference Include="Divergic.Logging.Xunit" Version="3.6.0" />
     <PackageReference Include="Microsoft.Azure.Management.ResourceManager.Fluent" Version="1.37.1" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.9.0-preview-20201020-06" />
     <PackageReference Include="Microsoft.PowerBI.Api" Version="3.26.0" />
