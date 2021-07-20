@@ -4,6 +4,8 @@
 @inject IApiService ApiService
 @inject NavigationManager NavigationManager
 @inject UserLocationManagerService UserLocationManagerService
+@using Microsoft.Identity.Web
+@inject MicrosoftIdentityConsentAndConditionalAccessHandler ConsentHandler
 
 <AuthorizeView>
     <Authorized>        
@@ -82,7 +84,12 @@
     protected override async Task OnInitializedAsync()
     {
         NavigationManager.LocationChanged += LocationChanged;
-        await MSGraphService.LoadUsersAsync();
+        try {
+            await MSGraphService.LoadUsersAsync();
+        } catch (Exception ex)
+        {
+            ConsentHandler.HandleException(ex);
+        }
         await ApiService.LoadApplicationData();
     }
 

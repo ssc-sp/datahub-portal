@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
 using Microsoft.Graph.Auth;
 using Microsoft.Identity.Client;
+using Microsoft.Identity.Web;
 using NRCan.Datahub.Shared.EFCore;
 
 namespace NRCan.Datahub.Shared.Services
@@ -88,6 +89,8 @@ namespace NRCan.Datahub.Shared.Services
             }
             catch (ServiceException e)
             {
+                if (e.InnerException is MsalUiRequiredException || e.InnerException is MicrosoftIdentityWebChallengeUserException)
+                    throw;
                 _logger.LogError(e, "Error Loading User");
                 throw new InvalidOperationException("Cannot retrieve user", e);
             }

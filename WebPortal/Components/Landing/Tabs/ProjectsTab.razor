@@ -13,7 +13,7 @@
         T="Datahub_Project"
         Dataset="_projects"
         Headers="headers"
-        class="light-table"
+        class="custom light"
         style="Width:100%"
         GridTemplateColumns="0.5fr 2fr 3fr"    
         Page="@_lastClicked"
@@ -60,7 +60,7 @@
         renderFunctions = new List<Func<Datahub_Project, RenderFragment>>() {            
             new Func<Datahub_Project, RenderFragment>(Datahub_Project => 
                 @<div class="recent-card-container"><AeFlex class="@($"recent-card grey")"><i class="@($"fas fa-{Datahub_Project.Project_Icon} fa-lg")"></i></AeFlex></div>),
-            new Func<Datahub_Project, RenderFragment>(Datahub_Project => @<AeTypography Variant="h3"><NavLink href="@($"/project/{Datahub_Project?.Project_Acronym_CD}")">@Datahub_Project?.ProjectName</NavLink></AeTypography> ),
+            new Func<Datahub_Project, RenderFragment>(Datahub_Project => @<AeTypography><NavLink href="@($"/project/{Datahub_Project?.Project_Acronym_CD}")">@Datahub_Project?.ProjectName</NavLink></AeTypography> ),
             new Func<Datahub_Project, RenderFragment>(Datahub_Project => @<AeMarkdown Content="@($"- {Datahub_Project.ProjectDescription}")"></AeMarkdown> ),
         };
         

@@ -2,7 +2,8 @@
 @inject IUserInformationService UserInformationService
 @inject NavigationManager NavigationManager
 @inject IApiService ApiService
-
+@using Microsoft.Identity.Web
+@inject MicrosoftIdentityConsentAndConditionalAccessHandler ConsentHandler
 
 @using System.Timers;
 
@@ -137,7 +138,12 @@
 
     protected override async Task OnInitializedAsync()
     {
-        User = await UserInformationService.GetCurrentUserAsync();
+        try {
+            User = await UserInformationService.GetCurrentUserAsync();
+        } catch (Exception ex)
+        {
+            ConsentHandler.HandleException(ex);
+        }
      }
 
     private void ToggleHelp()
