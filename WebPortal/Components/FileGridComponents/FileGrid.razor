@@ -13,30 +13,40 @@
 
 @using NRCan.Datahub.Shared.Data
 
-<div class="header-wrapper" @onclick="UnSelectFiles" @onclick:preventDefault="true" @oncontextmenu="UnSelectFiles" @oncontextmenu:preventDefault="true">
-    <h3 class="nrcan-typography h3">@CurrentFolder.name</h3>
-    @if (CurrentFolder.parent != null)
-    {
-        <div class="roundbutton" style="margin-right: 1rem" @onclick="() => GetParentFolder()">
-            <i class="fal fa-arrow-left"></i>
-        </div>
-    }
+@if (!IsSearchResult || CanAddData)
+{
+    <div class="header-wrapper" style="margin-left: 2rem" @onclick="UnSelectFiles" @onclick:preventDefault="true" @oncontextmenu="UnSelectFiles" @oncontextmenu:preventDefault="true">
+    <h3 class="nrcan-typography h3">@($"{CurrentFolder.parent?.name??""}/{CurrentFolder.name}/")</h3>
 
-    @if (CanAddData)
-    {        
-        <div class="pillbutton" @onclick="@(() => ToggleAddData())">
-            <i class="fas fa-plus"></i>@Localizer["FILE-GRID-PAGE.AddData"]
-        </div>
-    }
-</div>
+        @if (CurrentFolder.parent != null)
+        {
+            <div class="roundbutton" style="margin-right: 1rem" @onclick="() => GetParentFolder()">
+                <i class="fal fa-arrow-left"></i>
+            </div>
+        }
+
+        @if (CanAddData)
+        {        
+            <div class="pillbutton" @onclick="@(() => ToggleAddData())">
+                <i class="fas fa-plus"></i>@Localizer["FILE-GRID-PAGE.AddData"]
+            </div>
+        }
+    </div>
+}
 
 @if (isLoading)
 {
     <Elemental.Components.Spinner />
 }
+else if (@IsSearchResult && @CurrentFolder.children.Count < 1)
+{
+    <div class="search-results">
+        <p>@Localizer["No results found"]</p>
+    </div>
+}
 else
 {
-    <div class="fileListContainer" @onfocusout="UnSelectFiles">
+    <div class="fileListContainer" style="margin: 2rem" @onfocusout="UnSelectFiles">
         <div class="file-grid-menu">
             <FileGridMenu SelectedItem="selectedMetaData" PerformMenuAction="(MenuActions m) => PerformMenuAction(m, selectedMetaData)" IsSearchedData="@IsSearchResults" CurrentUser="@CurrentUserId" Project="@Project"/>
         </div>
@@ -77,6 +87,9 @@ else
 
     [Parameter]
     public string Project { get; set; }
+
+    [Parameter]
+    public bool IsSearchResult { get; set; } = false;
 
 
     //user and file tracking

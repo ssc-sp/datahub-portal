@@ -8,7 +8,15 @@
     <DockerfileContext>.</DockerfileContext>
   </PropertyGroup>
   <ItemGroup>
+    <None Remove="Wiki\Index.md" />
+  </ItemGroup>
+  <ItemGroup>
     <_ContentIncludedByDefault Remove="efpt.config.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Wiki\Index.md">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="AElemental.Blazor" Version="1.1.21201.1-beta" />

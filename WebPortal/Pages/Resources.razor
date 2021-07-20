@@ -1,0 +1,60 @@
+﻿@using Microsoft.EntityFrameworkCore.Query
+@using Microsoft.EntityFrameworkCore;
+@using NRCan.Datahub.Portal.Data;
+@using System.Web
+@using System.IO
+@using System.Reflection
+@inject IStringLocalizer<DataLabels> DataLocalizer
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JsInterop
+
+@page "/resources/"
+@page "/resources/{PageName}"
+
+<div style="padding: 2rem">
+    <AeCard>
+        <ChildContent>
+    <AeMarkdown Content="@Markdown_Content"
+                LinkRewriter="@RewriteLink" />
+                </ChildContent>
+                </AeCard>
+</div>
+
+
+
+@code {
+
+    [Parameter]
+    public string PageName { get; set; } 
+
+    public const string DefaultPage = "Index.md";
+
+    public const string Namespace = "NRCan.Datahub.Portal";
+
+    private string Markdown_Content;
+
+    private Func<string, string> RewriteLink;
+
+    public const string BaseURL = "/resources";
+
+    protected override async Task OnInitializedAsync()
+    {
+        RewriteLink = s => BaseURL + "/" + HttpUtility.UrlEncode(s);
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        Markdown_Content = LoadPage(PageName?? DefaultPage);
+    }
+
+    private string LoadPage(string name)
+    {
+        var assembly = typeof(Startup).Assembly;
+        var resourceName = Namespace + ".Wiki." + name;
+
+        using Stream stream = assembly.GetManifestResourceStream(resourceName);
+        using StreamReader reader = new StreamReader(stream);
+        return reader.ReadToEnd();
+    }
+
+}
