@@ -1,6 +1,6 @@
 @use '../common/' as c;
 
-$cell-padding: 1rem 0.75rem;
+$cell-padding: 0.25rem 0.75rem;
 
 $tableHeaderOptions: (
   'default': (
@@ -8,7 +8,7 @@ $tableHeaderOptions: (
     '.ae.table-cell': (
       'cursor': pointer,
       'user-select': none,
-      //'padding': $cell-padding,
+      'padding': $cell-padding,
       'padding-left': 0.75rem,
       'background-color': c.$transparent,
       'color': c.$textPrimary,
@@ -26,6 +26,8 @@ $tableRowOptions: (
   'default': (
     'display': grid,
 //    'width': 100%,
+    'padding': $cell-padding,
+
     'border-top': 1px solid c.$grey-100,
     '&:focus': (
       'outline': none,

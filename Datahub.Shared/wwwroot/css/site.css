@@ -2917,6 +2917,7 @@ body {
 .custom.light.ae.table .ae.table-header .ae.table-cell {
   cursor: pointer;
   user-select: none;
+  padding: 0.25rem 0.75rem;
   padding-left: 0.75rem;
   background-color: transparent;
   color: #4a5568;
@@ -2941,6 +2942,7 @@ body {
 }
 .custom.light.ae.table .ae.table-rows .ae.table-row {
   display: grid;
+  padding: 0.25rem 0.75rem;
   border-top: 1px solid #f7fafc;
 }
 .custom.light.ae.table .ae.table-rows .ae.table-row:focus {
@@ -2960,7 +2962,7 @@ body {
   word-wrap: break-word;
   overflow: hidden;
   text-overflow: ellipsis;
-  padding: 1rem 0.75rem;
+  padding: 0.25rem 0.75rem;
 }
 .custom.light.ae.table .ae.table-rows .ae.table-row .ae.table-cell:nth-child(1) {
   padding-left: 0.5rem;
@@ -4727,6 +4729,8 @@ body {
   --fa-secondary-color: #a0aec0;
   transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
   border-left: 0px solid transparent;
+  --fa-primary-color: "#2d3748";
+  --fa-secondary-color: "#57C4EC";
 }
 .table-icon:hover {
   --fa-primary-color: #4a5568;
@@ -4770,6 +4774,8 @@ body {
 }
 .table-icon:hover i {
   opacity: 1;
+  --fa-primary-color: "#2d3748";
+  --fa-secondary-color: "#57C4EC";
 }
 .table-icon i {
   font-size: 1.5rem;

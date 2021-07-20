@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
 using Microsoft.Graph.Auth;
@@ -21,6 +22,7 @@ namespace NRCan.Datahub.Shared.Services
         private GraphServiceClient graphServiceClient;
         private AuthenticationStateProvider _authenticationStateProvider;
         private NavigationManager _navigationManager;
+        private IConfiguration _configuration;
         private EFCoreDatahubContext _eFCoreDatahubContext;
         //private GraphServiceClient _graphServiceClient;
         public string imageHtml;
@@ -30,6 +32,7 @@ namespace NRCan.Datahub.Shared.Services
             ILogger<UserInformationService> logger,
             AuthenticationStateProvider authenticationStateProvider,
             NavigationManager navigationManager,
+            IConfiguration configureOptions,
             EFCoreDatahubContext eFCoreDatahubContext,
             GraphServiceClient graphServiceClient
             )
@@ -37,6 +40,7 @@ namespace NRCan.Datahub.Shared.Services
             _logger = logger;
             _authenticationStateProvider = authenticationStateProvider;
             _navigationManager = navigationManager;
+            _configuration = configureOptions;
             _eFCoreDatahubContext = eFCoreDatahubContext;
             this.graphServiceClient = graphServiceClient;
         }
@@ -82,7 +86,7 @@ namespace NRCan.Datahub.Shared.Services
                     throw new InvalidOperationException("Cannot resolve user email");
                 }
 
-                //PrepareAuthenticatedClient();
+                PrepareAuthenticatedClient();
                 CurrentUser = await graphServiceClient.Users[email].Request().GetAsync();
 
                 return CurrentUser;
@@ -179,14 +183,14 @@ namespace NRCan.Datahub.Shared.Services
 
         private void PrepareAuthenticatedClient()
         {
-            if (graphServiceClient != null) return;
+            //if (graphServiceClient != null) return;
             try
             {
                 IConfidentialClientApplication confidentialClientApplication = ConfidentialClientApplicationBuilder
-                                                                                    .Create(Environment.GetEnvironmentVariable("AZURE_CLIENT_ID"))
-                                                                                    .WithTenantId(Environment.GetEnvironmentVariable("AZURE_TENANT_ID"))
-                                                                                    .WithClientSecret(Environment.GetEnvironmentVariable("AZURE_CLIENT_SECRET"))
-                                                                                    .Build();
+                                .Create(_configuration.GetSection("AzureAd").GetValue<string>("ClientId"))
+                                .WithTenantId(_configuration.GetSection("AzureAd").GetValue<string>("TenantId"))
+                                .WithClientSecret(_configuration.GetSection("AzureAd").GetValue<string>("ClientSecret"))
+                                .Build();
                 ClientCredentialProvider authProvider = new ClientCredentialProvider(confidentialClientApplication);
                 graphServiceClient = new GraphServiceClient(authProvider);
             }
