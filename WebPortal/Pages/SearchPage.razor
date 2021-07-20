@@ -1,15 +1,137 @@
 ﻿@inject IApiService ApiService
 @inject NavigationManager NavigationManager
+@inject IExternalSearchService ExternalSearchService
+@using Shared.Data.External.FGP
+@using Shared.Data.External.OpenData
 
 @page "/search/"
 @page "/search/{searchtext}"
 
-<FileGrid SearchText=@searchtext CurrentFolder="ApiService.SearchDataFolder" CanAddData="false"/>
+
+<div class="header-wrapper">
+    @* TODO: localization *@
+    <h2 class="nrcan-typography h2">@Localizer["File Results"]</h2>
+</div>
+
+<div class="search-page-file-grid">
+    <FileGrid SearchText=@searchtext CurrentFolder="ApiService.SearchDataFolder" CanAddData="false" IsSearchResult="true"/>
+</div>
+
+<hr/>
+<div class="header-wrapper">
+    <h2 class="nrcan-typography h2">@Localizer["FGP Results"]</h2>
+</div>
+
+
+@if (FgpItems.Count > 0)
+{
+    <ul class="search-results">
+        @foreach (var item in FgpItems)
+        {
+            <li>
+                <div class="search-result-title">
+                    <a href=@(item.GetGeoCaUrl())>@item.Title</a>
+                </div>
+                <div class="search-result-subtitle">
+                    @item.Organisation
+                </div>
+                <div class="search-result-description">
+                    @* <p>@item.Description</p> *@
+                    <p>@CutDescriptionShort(item.Description)</p>
+                </div>
+            </li>
+        }
+
+        @if(SearchingFGP)
+        {
+            <li>
+                <Spinner />
+            </li>
+        }
+        else if (MoreFGPResultsAvailable)
+        {
+            <li>
+                <AeButton OnClickEvent="@LoadMoreFGPResults" class="blue">@Localizer["More Results ..."]</AeButton>
+            </li>
+        }
+
+    </ul>
+}
+else if (SearchingFGP)
+{
+    <Spinner />
+}
+else
+{
+    <h4>@Localizer["No results found"]</h4>
+}
+
+<hr />
+<div class="header-wrapper">
+    <h2 class="nrcan-typography h2">@Localizer["Open Data Results"]</h2>
+</div>
+
+@if (OpenDataItems.Count > 0)
+{
+    <ul class="search-results">
+        @foreach (var item in OpenDataItems)
+        {
+            <li>
+                <div class="search-result-title">
+                    <a href="http://example.com">@item.Title</a>
+                </div>
+                <div class="search-result-subtitle">
+                    @item.Organization.Title
+                </div>
+                <div class="search-result-description">
+                    <p>@CutDescriptionShort(@item.Notes)</p>
+                </div>
+            </li>
+        }
+
+        @if(SearchingOpenData)
+        {
+            <li>
+                <Spinner />
+            </li>
+        }
+        else if (MoreOpenDataResultsAvailable)
+        {
+            <li>
+                <AeButton OnClickEvent="@LoadMoreOpenDataResults" class="blue">@Localizer["More Results ..."]</AeButton>
+            </li>
+        }
+
+    </ul>
+}
+else if (SearchingOpenData)
+{
+    <Spinner />
+}
+else
+{
+    <h4>@Localizer["No results found"]</h4>
+}
+
 
 @code
 {
+    private const int RESULTS_PER_PAGE = 5;
+    private const int DESCRIPTION_CHARACTER_LIMIT = 500;
+    
     [Parameter]
     public string searchtext { get; set; }
+
+    private List<GeoCoreItem> FgpItems { get; set; } = new List<GeoCoreItem>();
+    private List<OpenDataItem> OpenDataItems { get; set; } = new List<OpenDataItem>();
+
+    private bool SearchingFGP { get; set; } = false;
+    private bool MoreFGPResultsAvailable { get; set; } = true;
+    private int MinFGPResult { get; set; } = 1;
+
+    private bool SearchingOpenData { get; set; } = false;
+    private bool MoreOpenDataResultsAvailable { get; set; } = true;
+    private int MinOpenDataResult { get; set; } = 1;
   
     protected override async Task OnInitializedAsync()
     {
@@ -19,5 +141,61 @@
         {
             NavigationManager.NavigateTo("data");
         }
+        else
+        {
+            LoadMoreFGPResults();
+            LoadMoreOpenDataResults();
+        }
+    }
+
+    private async Task<GeoCoreSearchResult> LoadFGPResults()
+    {
+        SearchingFGP = true;
+        StateHasChanged();
+        var maxResult = MinFGPResult + RESULTS_PER_PAGE - 1;
+        var loadTask = ExternalSearchService.SearchFGPByKeyword(searchtext, min: MinFGPResult, max: maxResult);
+        MinFGPResult = maxResult + 1;
+        var result = await loadTask;
+        MoreFGPResultsAvailable = result.Count >= RESULTS_PER_PAGE;
+        SearchingFGP = false;
+        return result;
+    }
+
+    private async Task<IList<OpenDataItem>> LoadOpenDataResults()
+    {
+        SearchingOpenData = true;
+        StateHasChanged();
+
+        var maxResult = MinOpenDataResult + RESULTS_PER_PAGE - 1;
+        var loadTask = ExternalSearchService.SearchOpenDataByKeyword(searchtext);
+        MinOpenDataResult = maxResult + 1;
+        var result = await loadTask;
+        // TODO more results available
+        SearchingOpenData = false;
+        
+        return result.Results;
+    }
+
+    protected async Task LoadMoreFGPResults()
+    {
+        var moreResults = await LoadFGPResults();
+        FgpItems.AddRange(moreResults.Items);
+        StateHasChanged();
+    }
+
+    protected async Task LoadMoreOpenDataResults()
+    {
+        var moreResults = await LoadOpenDataResults();
+        OpenDataItems.AddRange(moreResults);
+        StateHasChanged();
+    }
+
+    private string CutDescriptionShort(string description)
+    {
+        if (description.Length <= DESCRIPTION_CHARACTER_LIMIT) 
+            return description;
+
+        var lastIndex = description.LastIndexOf(' ', DESCRIPTION_CHARACTER_LIMIT);
+        return $"{description.Substring(0, lastIndex)} ...";
     }
 }

@@ -38,6 +38,16 @@
         font-weight: bold;
     }
 
+    .additional-results {
+        margin: 1em;
+        .additional-result-label::before {
+            content: ', ';
+        }
+        .additional-result-label:first-child::before {
+            content: ' ';
+        }
+    }
+
     .search-grid-row {
         display: grid;
         grid-template-columns: .125fr 60% auto;
@@ -81,6 +91,31 @@
         .break {
             flex-basis: 100%;
             height: 0;
+        }
+    }
+}
+
+.search-results {
+    list-style: none;
+    margin: 0 2em;
+    padding: 0;
+
+    li {
+        margin-bottom: 1rem;
+    }
+
+    .search-result-title {
+        font-weight: bold;
+    }
+    
+    .search-result-subtitle {
+        font-style: italic;
+        font-size: 0.7rem;
+    }
+    
+    .search-result-description {
+        p {
+            margin: 0;
         }
     }
 }

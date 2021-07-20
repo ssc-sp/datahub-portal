@@ -5,6 +5,7 @@
 @inject IUserInformationService UserInformationService
 @using Microsoft.Identity.Web
 @inject MicrosoftIdentityConsentAndConditionalAccessHandler ConsentHandler
+@inject IExternalSearchService ExternalSearchService
 
 <AeSearchInput id="topSearch" Placeholder="@Localizer.GetString("Search...")" OnInputChangeWithLastKey="(v, e) => HandleSearch(v, e)" ClearIconFAClass="null"/>
 
@@ -44,6 +45,26 @@
                         </div>
                     </div>
                 }
+
+                if (isSearchingAdditional || hasAdditionalResults)
+                {
+                    <hr />
+                    if (hasAdditionalResults)
+                    {
+                        <p class="additional-results">
+                            <span>@Localizer["Additional results available on search page:"] </span>
+                            <span>
+                                @if (hasFGPResults) { <span class="additional-result-label">@Localizer["FGP"]</span> }
+                                @if (hasOpenDataResults) { <span class="additional-result-label">@Localizer["Open Data"]</span> }
+                            </span>
+                        </p>
+                    }
+
+                    if (isSearchingAdditional)
+                    {
+                        <Spinner Small="true" />
+                    }
+                }
             }
             else
             {
@@ -59,7 +80,6 @@
    
 @code
 {
-
     // Have we searched already since init control.
     // If so any change to search text will cause a search to occur
     public bool searchedAlready { get; set; }
@@ -70,6 +90,15 @@
     public bool isSearching { get; set; }
     public string isDownloadingFileId { get; set; }
 
+    private bool isSearchingFGP { get; set; }
+    private bool hasFGPResults { get; set; }
+
+    private bool isSearchingOpenData { get; set; }
+    private bool hasOpenDataResults { get; set; }
+
+    private bool hasAdditionalResults { get => hasFGPResults || hasOpenDataResults; }
+    private bool isSearchingAdditional { get => isSearchingFGP || isSearchingOpenData; }
+
     private Microsoft.Graph.User _currentUser;
 
     protected string GetFileTypeIcon(FileMetaData file)
@@ -79,9 +108,12 @@
 
     protected override async Task OnInitializedAsync()
     {
-        try {
+        await base.OnInitializedAsync();
+        try
+        {
             _currentUser = await UserInformationService.GetCurrentUserAsync();
-        } catch (Exception ex)
+        }
+        catch (Exception ex)
         {
             ConsentHandler.HandleException(ex);
         }
@@ -131,6 +163,30 @@
         NavigationManager.NavigateTo($"/search/{searchText}");
     }
 
+    private async Task SearchFGP(string keyword)
+    {
+        hasFGPResults = false;
+        isSearchingFGP = true;
+        StateHasChanged();
+
+        var result = await ExternalSearchService.SearchFGPByKeyword(searchText);
+        hasFGPResults = result.Count > 0;
+        isSearchingFGP = false;
+        StateHasChanged();
+    }
+
+    private async Task SearchOpenDate(string keyword)
+    {
+        hasOpenDataResults = false;
+        isSearchingOpenData = true;
+        StateHasChanged();
+
+        var result = await ExternalSearchService.SearchOpenDataByKeyword(searchText);
+        hasOpenDataResults = result.Results.Count > 0;
+        isSearchingOpenData = false;
+        StateHasChanged();
+    }
+
     private async Task HandleSearch(string newValue, KeyboardEventArgs ev)
     {
         searchText = newValue;
@@ -143,6 +199,8 @@
             StateHasChanged();
 
             string filter = $"search.ismatch('{newValue}*', 'filename', 'full', 'any') and ownedby eq '{_currentUser.Id}'";
+            var fgpTask = SearchFGP(searchText);
+            var openDataTask = SearchOpenDate(searchText);
             await ApiService.SearchIndex(ApiService.SearchDataFolder, filter, _currentUser);
             isSearching = false;
             hasResults = true;
