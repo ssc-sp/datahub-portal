@@ -10,23 +10,23 @@
 <AeFlex Vertical class="search-page">
 
 <AeCard>
-    <div class="header-wrapper">
-        @* TODO: localization *@
-        <h2 class="nrcan-typography h2">@Localizer["File Results"]</h2>
-    </div>
-
+    <Header>
+    <AeTypography Variant="h2">@Localizer["File Results"]</AeTypography>
+    </Header>
+    <ChildContent>
     <div class="search-page-file-grid">
         <FileGrid SearchText=@searchtext CurrentFolder="ApiService.SearchDataFolder" CanAddData="false" IsSearchResult="true"/>
     </div>
+    </ChildContent>
 </AeCard>
 
 
 <AeCard>
-    <div class="header-wrapper">
-        <h2 class="nrcan-typography h2">@Localizer["FGP Results"]</h2>
-    </div>
+    <Header>
+    <AeTypography Variant="h2">@Localizer["Geo Canada Results"]</AeTypography>
+    </Header>
 
-
+    <ChildContent>
     @if (FgpItems.Count > 0)
     {
         <ul class="search-results">
@@ -69,13 +69,16 @@
     {
         <h4>@Localizer["No results found"]</h4>
     }
+    </ChildContent>
 </AeCard>
 
 
 <AeCard>
-    <div class="header-wrapper">
-        <h2 class="nrcan-typography h2">@Localizer["Open Data Results"]</h2>
-    </div>
+    <Header>
+    <AeTypography Variant="h2">@Localizer["Open Data Results"]</AeTypography>    
+    </Header>
+
+    <ChildContent>
 
     @if (OpenDataItems.Count > 0)
     {
@@ -118,6 +121,7 @@
     {
         <h4>@Localizer["No results found"]</h4>
     }
+    </ChildContent>
 </AeCard>
 
 </AeFlex>
@@ -144,7 +148,6 @@
   
     protected override async Task OnInitializedAsync()
     {
-        await base.OnInitializedAsync();
 
         if (string.IsNullOrWhiteSpace(searchtext))
         {
@@ -152,8 +155,8 @@
         }
         else
         {
-            LoadMoreFGPResults();
-            LoadMoreOpenDataResults();
+            Task.Factory.StartNew(async () => await LoadMoreFGPResults());        
+            Task.Factory.StartNew(async () => await LoadMoreOpenDataResults());                    
         }
     }
 
@@ -189,14 +192,14 @@
     {
         var moreResults = await LoadFGPResults();
         FgpItems.AddRange(moreResults.Items);
-        StateHasChanged();
+        this.InvokeAsync(async () => StateHasChanged());
     }
 
     protected async Task LoadMoreOpenDataResults()
     {
         var moreResults = await LoadOpenDataResults();
         OpenDataItems.AddRange(moreResults);
-        StateHasChanged();
+        this.InvokeAsync(async () => StateHasChanged());
     }
 
     private string CutDescriptionShort(string description)

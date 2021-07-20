@@ -27,7 +27,8 @@ $tableRowOptions: (
     'display': grid,
 //    'width': 100%,
     'padding': $cell-padding,
-
+    '--fa-primary-color': c.$gray-700,
+    '--fa-secondary-color': c.$gray-900,
     'border-top': 1px solid c.$grey-100,
     '&:focus': (
       'outline': none,
@@ -35,6 +36,8 @@ $tableRowOptions: (
       'background-color': c.$grey-100,
     ),
     '&:hover': (
+       '--fa-primary-color': c.$gray-500,
+       '--fa-secondary-color': c.$borderblue,
       '.ae.table-cell': (
         'background-color': c.$grey-100,
         'transition': 0.2s c.$cubic-bezier,
