@@ -3,7 +3,7 @@
 @if (FieldValue != null && FieldDefinition != null)
 {
     <div>
-        <select multiple style="width: 100%">
+        <select class="ae input" multiple style="width: 100%">
             @foreach (var c in FieldDefinition.Choices)
             {
                 <option value="@c.Value" @onclick="(e) => OnClick(e, c.Value)" selected="@IsSelected(c.Value)">
