@@ -11,7 +11,7 @@ $tableHeaderOptions: (
       'background-color': c.$transparent,
       'color': c.$transparent,
       'font-weight': bold,
-//      'word-wrap': break-word,
+      'word-wrap': break-word,
       'transition': 0.2s c.$cubic-bezier,
       '&:hover': (
         'background-color': c.$grey-100,

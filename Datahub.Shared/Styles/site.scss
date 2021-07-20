@@ -28,6 +28,8 @@
 @use 'Views/_item-details.scss';
 @use 'Pages/Landing';
 
+@use 'Tables/_table-elements.scss';
+
 
 body {
     font-family: 'Roboto','RobotoDraft',Helvetica,Arial,sans-serif;

@@ -27,9 +27,12 @@ namespace NRCan.Datahub.Portal.Services
         private ITokenAcquisition tokenAcquisition { get; }
         private string urlPowerBiServiceApiRoot { get; }
 
-        public PowerBiServiceApi(IConfiguration configuration, ITokenAcquisition tokenAcquisition)
+        public const string POWERBI_ROOT_URL = "https://api.powerbi.com/";
+
+        public PowerBiServiceApi(ITokenAcquisition tokenAcquisition)
         {
-            this.urlPowerBiServiceApiRoot = configuration["PowerBi:ServiceRootUrl"];
+            //IConfiguration configuration, 
+            this.urlPowerBiServiceApiRoot = POWERBI_ROOT_URL;
             this.tokenAcquisition = tokenAcquisition;
         }
 

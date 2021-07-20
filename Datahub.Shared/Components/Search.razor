@@ -3,6 +3,8 @@
 @inject NavigationManager NavigationManager
 @inject IMSGraphService MSGraphService
 @inject IUserInformationService UserInformationService
+@using Microsoft.Identity.Web
+@inject MicrosoftIdentityConsentAndConditionalAccessHandler ConsentHandler
 
 <AeSearchInput id="topSearch" Placeholder="@Localizer.GetString("Search...")" OnInputChangeWithLastKey="(v, e) => HandleSearch(v, e)" ClearIconFAClass="null"/>
 
@@ -77,8 +79,12 @@
 
     protected override async Task OnInitializedAsync()
     {
-        await base.OnInitializedAsync();
-        _currentUser = await UserInformationService.GetCurrentUserAsync();
+        try {
+            _currentUser = await UserInformationService.GetCurrentUserAsync();
+        } catch (Exception ex)
+        {
+            ConsentHandler.HandleException(ex);
+        }
     }
 
     private async void CloseSearch()

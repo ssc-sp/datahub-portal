@@ -5,8 +5,6 @@
     <RootNamespace>NRCan.Datahub.Shared</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Content Remove="C:\Users\nbader\.nuget\packages\apption.elemental.theme\1.0.21083.1-beta\contentFiles\any\net5.0\package-lock.json" />
-    <Content Remove="C:\Users\nbader\.nuget\packages\apption.elemental.theme\1.0.21083.1-beta\contentFiles\any\net5.0\package.json" />
     <Content Remove="compilerconfig.json" />
     <Content Remove="package-lock.json" />
   </ItemGroup>
@@ -24,8 +22,8 @@
     <None Include="compilerconfig.json" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="AElemental.Blazor" Version="1.1.21196.2-beta" />
-    <PackageReference Include="AElemental.Blazor.Theme" Version="1.1.21196.2-beta" />
+    <PackageReference Include="AElemental.Blazor" Version="1.1.21201.1-beta" />
+    <PackageReference Include="AElemental.Blazor.Theme" Version="1.1.21201.1-beta" />
     <PackageReference Include="AngleSharp" Version="1.0.0-alpha-844" />
     <PackageReference Include="Askmethat.Aspnet.JsonLocalizer" Version="3.1.0" />
     <PackageReference Include="Azure.Identity" Version="1.4.0-beta.1" />

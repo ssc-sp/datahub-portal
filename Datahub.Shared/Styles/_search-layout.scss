@@ -26,6 +26,18 @@
     border: 1px solid c.$gray-200;
     overflow-y: auto;
 
+    &.full-width-search-list {
+        width: 100%;
+        padding: 1rem;
+    }
+
+    .search-table-header {
+        background-color: c.$gray-200;
+        padding: 10px 20px;
+        text-align: left;
+        font-weight: bold;
+    }
+
     .search-grid-row {
         display: grid;
         grid-template-columns: .125fr 60% auto;
@@ -46,7 +58,7 @@
         .textcontent {
             justify-content: left;
             flex-grow: 1;
-            
+
             > a {
                 color: #212529;
             }
@@ -55,7 +67,7 @@
                 margin-left: 0.25rem;
                 width: 1rem;
                 padding-top: 0.175rem;
-            }   
+            }
 
             &.small-text {
                 font-size: 0.6rem;

@@ -7,6 +7,10 @@
     min-width: 600px;
     padding: 1rem 2rem;
 
+    .search-page-file-grid > & {
+        min-height: auto;
+    }
+
     .file-grid-menu {
         display: flex;
         flex-direction: row-reverse;

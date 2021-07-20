@@ -8,7 +8,8 @@ $tableHeaderOptions: (
     '.ae.table-cell': (
       'cursor': pointer,
       'user-select': none,
-      'padding': $cell-padding,
+      //'padding': $cell-padding,
+      'padding-left': 0.75rem,
       'background-color': c.$transparent,
       'color': c.$textPrimary,
       'font-weight': bold,
@@ -24,7 +25,7 @@ $tableHeaderOptions: (
 $tableRowOptions: (
   'default': (
     'display': grid,
-    'width': 100%,
+//    'width': 100%,
     'border-top': 1px solid c.$grey-100,
     '&:focus': (
       'outline': none,
@@ -58,4 +59,19 @@ $tableRowOptions: (
       ),
     ),
   ),
+);
+
+$tableScrollOptions: (
+  'overflow-y': auto,
+  'position': relative,
+  //'&': c.$scrollbarOptions,
+  '.ae.table-row': (
+    'position': absolute,
+    'width': 100%,
+  ),
+);
+
+$tableRowContainerOptions: (
+  'display': grid,
+  'overflow': overlay,
 );

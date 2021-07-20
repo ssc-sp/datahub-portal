@@ -21,7 +21,7 @@ namespace NRCan.Datahub.Shared.Services
         private AuthenticationStateProvider _authenticationStateProvider;
         private NavigationManager _navigationManager;
         private EFCoreDatahubContext _eFCoreDatahubContext;
-
+        //private GraphServiceClient _graphServiceClient;
         public string imageHtml;
         
         public User CurrentUser { get; set; }
@@ -29,13 +29,15 @@ namespace NRCan.Datahub.Shared.Services
             ILogger<UserInformationService> logger,
             AuthenticationStateProvider authenticationStateProvider,
             NavigationManager navigationManager,
-            EFCoreDatahubContext eFCoreDatahubContext
+            EFCoreDatahubContext eFCoreDatahubContext,
+            GraphServiceClient graphServiceClient
             )
         {
             _logger = logger;
             _authenticationStateProvider = authenticationStateProvider;
             _navigationManager = navigationManager;
             _eFCoreDatahubContext = eFCoreDatahubContext;
+            this.graphServiceClient = graphServiceClient;
         }
 
         public string UserLanguage { get; set; }
@@ -79,7 +81,7 @@ namespace NRCan.Datahub.Shared.Services
                     throw new InvalidOperationException("Cannot resolve user email");
                 }
 
-                PrepareAuthenticatedClient();
+                //PrepareAuthenticatedClient();
                 CurrentUser = await graphServiceClient.Users[email].Request().GetAsync();
 
                 return CurrentUser;
@@ -174,6 +176,7 @@ namespace NRCan.Datahub.Shared.Services
 
         private void PrepareAuthenticatedClient()
         {
+            if (graphServiceClient != null) return;
             try
             {
                 IConfidentialClientApplication confidentialClientApplication = ConfidentialClientApplicationBuilder

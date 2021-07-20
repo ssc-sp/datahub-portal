@@ -202,6 +202,7 @@ namespace NRCan.Datahub.Portal
                 services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
                     .AddMicrosoftIdentityWebApp(Configuration, "AzureAd")
                     .EnableTokenAcquisitionToCallDownstreamApi(scopes)
+                    .AddMicrosoftGraph(Configuration.GetSection("Graph"))
                     .AddInMemoryTokenCaches();
 
                 services.AddControllersWithViews(options =>
