@@ -576,14 +576,14 @@ body {
   display: flex;
 }
 .ae.card.horizontal .ae.card-header {
-  width: 40%;
+  width: 20%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 5rem;
 }
 .ae.card.horizontal .ae.card-content-wrapper {
-  width: 60%;
+  width: 80%;
 }
 
 .ae.checkbox {
