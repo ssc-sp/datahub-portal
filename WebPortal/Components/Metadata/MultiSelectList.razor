@@ -1,0 +1,68 @@
+﻿@using NRCan.Datahub.Metadata
+
+@if (FieldValue != null && FieldDefinition != null)
+{
+    <div>
+        <select multiple style="width: 100%">
+            @foreach (var c in FieldDefinition.Choices)
+            {
+                <option value="@c.Value" @onclick="(e) => OnClick(e, c.Value)" selected="@IsSelected(c.Value)">
+                    @c.Label
+                </option>
+            }
+        </select>
+    </div>
+}
+
+@code {
+
+    [Parameter]
+    public FieldValue FieldValue { get; set; }
+
+    [Parameter]
+    public FieldDefinition FieldDefinition { get; set; }
+
+    [Parameter]
+    public EventCallback<FieldValue> OnFieldChanged { get; set; }
+
+    private HashSet<string> _selection;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        _selection = new HashSet<string>(GetSelectedValues());
+    }
+
+    const char splitChar = '|';
+
+    private void OnClick(MouseEventArgs e, string optionValue)
+    {
+        if (e.CtrlKey)
+        {
+            if (_selection.Contains(optionValue))
+            {
+                _selection.Remove(optionValue);
+            }
+            else
+            {
+                _selection.Add(optionValue);
+            }
+        }
+        else
+        {
+            _selection.Clear();
+            _selection.Add(optionValue);
+        }
+
+        FieldValue.Value = string.Join(splitChar.ToString(), _selection);
+
+        OnFieldChanged.InvokeAsync(FieldValue);
+    }
+
+    private bool IsSelected(string option) => _selection.Contains(option);
+
+    private IEnumerable<string> GetSelectedValues()
+    {
+        return (FieldValue.Value ?? string.Empty).Split(splitChar).Where(v => !string.IsNullOrEmpty(v));
+    }
+}

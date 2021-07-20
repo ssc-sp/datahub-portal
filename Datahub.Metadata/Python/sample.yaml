@@ -1,0 +1,18 @@
+scheming_version: 1
+dataset_type: dataset
+
+about: 'open.canada.ca: raw open data metadata definition'
+about_url: http://github.com/open-data/ckanext-canada
+catalog_type_label:
+  en: Raw/Geo Data
+  fr: Données/géo
+
+form_languages:
+- en
+- fr
+# machine translated metadata:
+alternate_languages:
+  en:
+    - en-t-fr
+  fr:
+    - fr-t-en
