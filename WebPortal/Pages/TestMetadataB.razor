@@ -1,6 +1,8 @@
 ﻿@page "/metadata"
+@page "/metadata/{FileId}"
 @using NRCan.Datahub.Metadata;
 
+<div style="margin: 2rem">
 <AeCard>
     <Header>
         <h2>Metadata</h2>
@@ -31,6 +33,7 @@
         <AeButton @onclick="TogglePreview">Toggle Preview</AeButton>
     </Footer>
 </AeCard>
+</div>
 
 @code {
 
@@ -40,6 +43,9 @@
     private MetadataDefinition _definitions { get; set; }
 
     private FieldValues _fieldValues { get; set; }
+
+    [Parameter]
+    public string FileId { get; set; }
 
     private bool _preview = false;
 

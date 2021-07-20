@@ -4598,6 +4598,7 @@ body {
 }
 .item-details-container .item-details .item-row .item-label {
   flex-basis: 120px;
+  font-weight: bold;
 }
 .item-details-container .item-activity {
   display: flex;
