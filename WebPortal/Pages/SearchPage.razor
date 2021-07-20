@@ -7,111 +7,120 @@
 @page "/search/"
 @page "/search/{searchtext}"
 
+<AeFlex Vertical class="search-page">
 
-<div class="header-wrapper">
-    @* TODO: localization *@
-    <h2 class="nrcan-typography h2">@Localizer["File Results"]</h2>
-</div>
+<AeCard>
+    <div class="header-wrapper">
+        @* TODO: localization *@
+        <h2 class="nrcan-typography h2">@Localizer["File Results"]</h2>
+    </div>
 
-<div class="search-page-file-grid">
-    <FileGrid SearchText=@searchtext CurrentFolder="ApiService.SearchDataFolder" CanAddData="false" IsSearchResult="true"/>
-</div>
-
-<hr/>
-<div class="header-wrapper">
-    <h2 class="nrcan-typography h2">@Localizer["FGP Results"]</h2>
-</div>
+    <div class="search-page-file-grid">
+        <FileGrid SearchText=@searchtext CurrentFolder="ApiService.SearchDataFolder" CanAddData="false" IsSearchResult="true"/>
+    </div>
+</AeCard>
 
 
-@if (FgpItems.Count > 0)
-{
-    <ul class="search-results">
-        @foreach (var item in FgpItems)
-        {
-            <li>
-                <div class="search-result-title">
-                    <a href=@(item.GetGeoCaUrl())>@item.Title</a>
-                </div>
-                <div class="search-result-subtitle">
-                    @item.Organisation
-                </div>
-                <div class="search-result-description">
-                    @* <p>@item.Description</p> *@
-                    <p>@CutDescriptionShort(item.Description)</p>
-                </div>
-            </li>
-        }
+<AeCard>
+    <div class="header-wrapper">
+        <h2 class="nrcan-typography h2">@Localizer["FGP Results"]</h2>
+    </div>
 
-        @if(SearchingFGP)
-        {
-            <li>
-                <Spinner />
-            </li>
-        }
-        else if (MoreFGPResultsAvailable)
-        {
-            <li>
-                <AeButton OnClickEvent="@LoadMoreFGPResults" class="blue">@Localizer["More Results ..."]</AeButton>
-            </li>
-        }
 
-    </ul>
-}
-else if (SearchingFGP)
-{
-    <Spinner />
-}
-else
-{
-    <h4>@Localizer["No results found"]</h4>
-}
+    @if (FgpItems.Count > 0)
+    {
+        <ul class="search-results">
+            @foreach (var item in FgpItems)
+            {
+                <li>
+                    <div class="search-result-title">
+                        <a href=@(item.GetGeoCaUrl())>@item.Title</a>
+                    </div>
+                    <div class="search-result-subtitle">
+                        @item.Organisation
+                    </div>
+                    <div class="search-result-description">
+                        @* <p>@item.Description</p> *@
+                        <p>@CutDescriptionShort(item.Description)</p>
+                    </div>
+                </li>
+            }
 
-<hr />
-<div class="header-wrapper">
-    <h2 class="nrcan-typography h2">@Localizer["Open Data Results"]</h2>
-</div>
+            @if(SearchingFGP)
+            {
+                <li>
+                    <Spinner />
+                </li>
+            }
+            else if (MoreFGPResultsAvailable)
+            {
+                <li>
+                    <AeButton OnClickEvent="@LoadMoreFGPResults" class="blue">@Localizer["More Results ..."]</AeButton>
+                </li>
+            }
 
-@if (OpenDataItems.Count > 0)
-{
-    <ul class="search-results">
-        @foreach (var item in OpenDataItems)
-        {
-            <li>
-                <div class="search-result-title">
-                    <a href="http://example.com">@item.Title</a>
-                </div>
-                <div class="search-result-subtitle">
-                    @item.Organization.Title
-                </div>
-                <div class="search-result-description">
-                    <p>@CutDescriptionShort(@item.Notes)</p>
-                </div>
-            </li>
-        }
+        </ul>
+    }
+    else if (SearchingFGP)
+    {
+        <Spinner />
+    }
+    else
+    {
+        <h4>@Localizer["No results found"]</h4>
+    }
+</AeCard>
 
-        @if(SearchingOpenData)
-        {
-            <li>
-                <Spinner />
-            </li>
-        }
-        else if (MoreOpenDataResultsAvailable)
-        {
-            <li>
-                <AeButton OnClickEvent="@LoadMoreOpenDataResults" class="blue">@Localizer["More Results ..."]</AeButton>
-            </li>
-        }
 
-    </ul>
-}
-else if (SearchingOpenData)
-{
-    <Spinner />
-}
-else
-{
-    <h4>@Localizer["No results found"]</h4>
-}
+<AeCard>
+    <div class="header-wrapper">
+        <h2 class="nrcan-typography h2">@Localizer["Open Data Results"]</h2>
+    </div>
+
+    @if (OpenDataItems.Count > 0)
+    {
+        <ul class="search-results">
+            @foreach (var item in OpenDataItems)
+            {
+                <li>
+                    <div class="search-result-title">
+                        <a href="http://example.com">@item.Title</a>
+                    </div>
+                    <div class="search-result-subtitle">
+                        @item.Organization.Title
+                    </div>
+                    <div class="search-result-description">
+                        <p>@CutDescriptionShort(@item.Notes)</p>
+                    </div>
+                </li>
+            }
+
+            @if(SearchingOpenData)
+            {
+                <li>
+                    <Spinner />
+                </li>
+            }
+            else if (MoreOpenDataResultsAvailable)
+            {
+                <li>
+                    <AeButton OnClickEvent="@LoadMoreOpenDataResults" class="blue">@Localizer["More Results ..."]</AeButton>
+                </li>
+            }
+
+        </ul>
+    }
+    else if (SearchingOpenData)
+    {
+        <Spinner />
+    }
+    else
+    {
+        <h4>@Localizer["No results found"]</h4>
+    }
+</AeCard>
+
+</AeFlex>
 
 
 @code
@@ -197,5 +206,12 @@ else
 
         var lastIndex = description.LastIndexOf(' ', DESCRIPTION_CHARACTER_LIMIT);
         return $"{description.Substring(0, lastIndex)} ...";
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        FgpItems = new List<GeoCoreItem>();
+        OpenDataItems = new List<OpenDataItem>();
+        await OnInitializedAsync();
     }
 }
