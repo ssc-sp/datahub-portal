@@ -1,27 +1,25 @@
-﻿@import '../_colors.scss';
-@import '../_constants.scss';
-@import '../_box-shadow.scss';
+﻿@use '../Common' as c;
 
 
 .nrcan-tag {
     border-radius: 100px;
-    border: 1px solid $gray-400;
+    border: 1px solid c.$gray-400;
     display: flex;
     padding: .25rem .5rem;
     font-size: 0.7rem;
     align-items: baseline;
     cursor: pointer;
-    transition: all 0.2s $cubic-bezier;
+    transition: all 0.2s c.$cubic-bezier;
 
     &:hover {
-        background-color: $nrcangray;
+        background-color: c.$nrcangray;
     }
 
     i {
         margin: 0 .25rem;
 
         &:hover {
-            color: $red-500;
+            color: c.$red-500;
         }
     }
 

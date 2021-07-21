@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using Elemental.Components.Forms;
+using Elemental.Components;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Graph;
 

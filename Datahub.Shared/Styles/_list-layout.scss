@@ -1,12 +1,15 @@
-@import 'colors';
-@import 'box-shadow';
+@use 'Common' as c;
 
 .fileListContainer {
-    background-color: $white;
+    background-color: c.$white;
     min-height: 50vh;
     max-width: 90vw;
     min-width: 600px;
     padding: 1rem 2rem;
+
+    .search-page-file-grid > & {
+        min-height: auto;
+    }
 
     .file-grid-menu {
         display: flex;
@@ -26,7 +29,7 @@
     }
 
     .grid-item-header {
-        background-color: $nrcangray;
+        background-color: c.$nrcangray;
         padding: 10px 20px;
         text-align: left;
         font-weight: bold;
@@ -49,7 +52,7 @@
         background-color: rgba(255, 255, 255, 0.8);
         padding: 15px 20px;
         text-align: left;
-        border: solid $gray-200;
+        border: solid c.$gray-200;
         border-width: 0 0 1px 0;
         display: flex;
         justify-content: space-between;
@@ -66,7 +69,7 @@
 
                 &:hover {
                     cursor: pointer;
-                    background-color: $nrcangray;
+                    background-color: c.$nrcangray;
                 }
             }
 
@@ -98,7 +101,7 @@
 .context-menu.dropdown-content {
     display: none;
     position: fixed;
-    background-color: $nrcangray;
+    background-color: c.$nrcangray;
     min-width: 160px;
     box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
     z-index: 1;
@@ -107,7 +110,7 @@
 
     .bottomborder {
         color: #212529;
-        border: solid $gray-400;
+        border: solid c.$gray-400;
         border-width: 0 0 1px 0;
     }
 
@@ -117,7 +120,7 @@
     }
 
     a:hover {
-        background-color: $gray-200;
+        background-color: c.$gray-200;
         cursor: pointer;
         color: #212529;
         text-decoration: none;
@@ -125,7 +128,7 @@
 }
 
 .folder-list {
-    background-color: $white;
+    background-color: c.$white;
     width: 100%;
 
     .folder-item {
@@ -133,11 +136,11 @@
         display: grid;
         grid-template-columns: 0.02fr auto 0.02fr;
         font-size: 11px;
-        border: solid $gray-200;
+        border: solid c.$gray-200;
         border-width: 1px;
 
         &.selected {
-            background-color: $borderblue;
+            background-color: c.$borderblue;
         }
     }
 
@@ -155,7 +158,7 @@
 
             &:hover {
                 cursor: pointer;
-                background-color: $nrcangray;
+                background-color: c.$nrcangray;
             }
         }
 

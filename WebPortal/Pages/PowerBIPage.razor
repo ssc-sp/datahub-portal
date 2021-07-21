@@ -1,0 +1,71 @@
+﻿@page "/powerbi"
+
+@using Microsoft.EntityFrameworkCore.Query
+@using Microsoft.EntityFrameworkCore;
+@using Microsoft.PowerBI.Api.Models
+@inject IStringLocalizer<DataLabels> DataLocalizer
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JsInterop
+@inject IDbContextFactory<DatahubProjectDBContext> DbFactory
+@inject PowerBiServiceApi PowerBiServiceApi
+@using Microsoft.Identity.Web
+@inject MicrosoftIdentityConsentAndConditionalAccessHandler ConsentHandler
+
+<h1>@Localizer["PowerBI"]</h1>
+
+<h2>@Localizer["Featured Data Sets"]</h2>
+@if (!isDatasetsLoaded)
+{
+    <Elemental.Components.Spinner />
+}
+else
+{
+<div class="ae flex wrap">
+@foreach (var ds in dataSets)
+{
+<AeCard style="width: 300px" class="small">
+    <Header>
+        <AeTypography style="flex-grow: 1">@ds.Name</AeTypography>
+        <AeTypography Variant="a" href="#">More</AeTypography>
+    </Header>
+    <ChildContent>
+        <AeTypography>@ds.Description</AeTypography>
+        <AeTypography>@ds.EndorsementDetails.Endorsement</AeTypography>
+        <AeTypography>Card content</AeTypography>
+    </ChildContent>
+    <Footer>
+        <AeTypography>This is a smaller card</AeTypography>
+    </Footer>
+</AeCard>}
+
+</div>
+}
+<h2>@Localizer["My Workspaces"]</h2>
+@if (!isWorkspacesLoaded)
+{
+    <Elemental.Components.Spinner />
+}
+else
+{
+
+}
+
+
+@code {
+    private bool isDatasetsLoaded = false;
+    private bool isWorkspacesLoaded = false;
+
+    private List<Dataset> dataSets;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try {
+            dataSets = await PowerBiServiceApi.GetAllDatasetsAsync();
+            isWorkspacesLoaded = true;
+        } catch (Exception ex)
+        {
+            ConsentHandler.HandleException(ex);
+        }
+    }
+
+}

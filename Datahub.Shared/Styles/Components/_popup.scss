@@ -1,6 +1,4 @@
-﻿@import '../_colors.scss';
-@import '../_constants.scss';
-@import '../_box-shadow.scss';
+﻿@use '../Common' as c;
 
 
 .nrcan-popup {
@@ -8,17 +6,17 @@
     top: 0;
     max-width: 500px;
     margin-left: -500px;
-    background-color: $white;
+    background-color: c.$white;
     padding: 1rem;
 
-    @include BoxShadow(2);
+    @include c.BoxShadow(2);
 
 
     &.top-nav-popup {
-        top: $topbarHeight;
+        top: c.$topbarHeight;
     }
 
     .footer {
-        border-top: 1px solid $gray-200;
+        border-top: 1px solid c.$gray-200;
     }
 }

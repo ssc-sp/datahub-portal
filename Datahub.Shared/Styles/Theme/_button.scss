@@ -1,64 +1,69 @@
-﻿@import '../elemental-theme/colors.scss';
-@import '../elemental-theme/constants.scss';
+﻿@use '../common' as c;
 
 $buttonOptions: ( 
     "default": (
+
+        "background-color": c.$borderblue,
+        "color": c.$white,
+        "border-radius": 5rem,
+        //width: 1.5rem;
+        //height: 1.5rem;
+        //margin: 0rem 1rem;
         "position": relative,
         "display": inline-block,
         "padding": .25rem 1rem,
-        "border-radius": 2px,
+        //"border-radius": 2px,
         "line-height": 1.5,
         "font-size": 0.8rem,
         "font-weight": 400,
         "white-space": nowrap,
         "text-align": center,
         "border": none,
-        "transition": all .3s $cubic-bezier,
+        "transition": all .3s c.$cubic-bezier,
         "cursor": pointer,
-        "color": $white,
-        "background-color": $grey-600,
-        "border-color": $grey-600,
+        //"background-color": c.$gray-600,
+        "border-color": c.$gray-600,
         "&:hover": (
-            "background-color": $grey-700,
-            "border-color": $grey-700,
+            "background-color": c.$gray-700,
+            "border-color": c.$gray-700,
         ),
     ),
     "dark": (
-        "background-color": $grey-800,
-        "border-color": $grey-800,
+        "background-color": c.$gray-800,
+        "border-color": c.$gray-800,
         "&:hover": (
-            "background-color": $grey-700,
-            "border-color": $grey-700,
+            "background-color": c.$gray-700,
+            "border-color": c.$gray-700,
         ),
     ),
     "light": (
-        "color": $grey-600,
-        "background-color": $grey-100,
-        "border-color": $grey-100,
+        "color": c.$gray-600,
+        "background-color": c.$gray-100,
+        "border-color": c.$gray-100,
         "&:hover": (
-            "background-color": $grey-300,
-            "border-color": $grey-300,
+            "background-color": c.$gray-300,
+            "border-color": c.$gray-300,
         ),
     ),
     "blue": (
-        "background-color": $blue-600,
-        "border-color": $blue-600,
+        "background-color": c.$blue-600,
+        "border-color": c.$blue-600,
         "&:hover": (
-            "background-color": $blue-700,
-            "border-color": $blue-700,
+            "background-color": c.$blue-700,
+            "border-color": c.$blue-700,
         ),
     ),
     "red": (
-        "background-color": $red-600,
-        "border-color": $red-600,
+        "background-color": c.$red-600,
+        "border-color": c.$red-600,
         "&:hover": (
-            "background-color": $red-700,
-            "border-color": $red-700,
+            "background-color": c.$red-700,
+            "border-color": c.$red-700,
         ),
     ),
     "submitbutton": (
-        "background-color": $borderblue,
-        "border-color": $borderblue,
+        "background-color": c.$borderblue,
+        "border-color": c.$borderblue,
         "border": none,
         "padding": 10px 20px,
         "text-align": center,
@@ -70,9 +75,9 @@ $buttonOptions: (
         "font-size": smaller,
     ),
     "cancelbutton": (
-        "background-color": $white,
-        "border-color": $white,
-        "color": $baseBlack,
+        "background-color": c.$white,
+        "border-color": c.$white,
+        "color": c.$baseBlack,
         "border": none,
         "padding": 10px 20px,
         "text-align": center,
@@ -87,6 +92,6 @@ $buttonOptions: (
         "opacity": .5,
         "cursor": not-allowed
     )
-) !default;
+);
 
 
