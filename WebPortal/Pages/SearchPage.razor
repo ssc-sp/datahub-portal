@@ -150,11 +150,6 @@
         {
             NavigationManager.NavigateTo("data");
         }
-        else
-        {
-            LoadMoreFGPResults();
-            LoadMoreOpenDataResults();
-        }
     }
 
     private async Task<GeoCoreSearchResult> LoadFGPResults()
@@ -207,11 +202,27 @@
         return $"{description.Substring(0, lastIndex)} ...";
     }
 
-    // TODO: figure out how to make it work properly (i.e. without double searching on initial load)
-    @* protected override async Task OnParametersSetAsync()
+    private void ResetExternalSearch()
     {
+        SearchingFGP = false;
+        MoreFGPResultsAvailable = true;
+        MinFGPResult = 1;
         FgpItems = new List<GeoCoreItem>();
+
+        SearchingOpenData = false;
+        MoreOpenDataResultsAvailable = true;
+        MinOpenDataResult = 0;
         OpenDataItems = new List<OpenDataItem>();
-        await OnInitializedAsync();
-    } *@
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!string.IsNullOrWhiteSpace(searchtext))
+        {
+            ResetExternalSearch();
+
+            LoadMoreFGPResults();
+            LoadMoreOpenDataResults();
+        }
+    }
 }
