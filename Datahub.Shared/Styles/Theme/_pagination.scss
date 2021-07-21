@@ -1,0 +1,59 @@
+﻿@use '../common' as c;
+
+$cell-padding: 1rem 0.75rem;
+$tableHeaderOptions: (
+  'default': (
+    'display': grid,
+    '.ae.table-cell': (
+      'cursor': pointer,
+      'user-select': none,
+      'padding': $cell-padding,
+      'background-color': c.$transparent,
+      'color': c.$transparent,
+      'font-weight': bold,
+      'word-wrap': break-word,
+      'transition': 0.2s c.$cubic-bezier,
+      '&:hover': (
+        'background-color': c.$grey-100,
+      ),
+    ),
+  ),
+);
+$tableRowOptions: (
+  'default': (
+    'display': grid,
+    'width': 100%,
+    'border-top': 1px solid c.$grey-100,
+    '&:focus': (
+      'outline': none,
+      'font-weight': bold,
+      'background-color': c.$grey-100,
+    ),
+    '&:hover': (
+      '.ae.table-cell': (
+        'background-color': c.$grey-100,
+        'transition': 0.2s c.$cubic-bezier,
+        '&:nth-child(1)': (
+          'border-left': 0.25rem solid c.$transparent,
+        ),
+      ),
+    ),
+    '.ae.table-cell': (
+      'background-color': c.$transparent,
+//      'word-wrap': break-word,
+      'overflow': hidden,
+      'text-overflow': ellipsis,
+      'padding': $cell-padding,
+      '&': c.$grey-100,
+      '&:nth-child(1)': (
+        'padding-left': 0.5rem,
+        'border-left': 0.25rem solid c.$transparent,
+      ),
+      '& a': (
+        '&:hover': (
+          'text-decoration': underline,
+        ),
+      ),
+    ),
+  ),
+);

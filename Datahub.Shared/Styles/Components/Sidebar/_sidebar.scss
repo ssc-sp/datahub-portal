@@ -1,0 +1,83 @@
+@use '../../Common' as c;
+
+@import '../Icons/_icon-colors.scss';
+@import '_coloring.scss';
+
+
+#sidebar {
+  z-index: 2;
+  position: sticky;
+  top: 0;
+  width: c.$sidebarWidth;
+  min-width: c.$sidebarWidth;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: c.$white;
+
+  .links {
+    height: 100%;
+    border-right: 1px solid c.$gray-200;
+
+    > a, > div {
+      padding: .75rem 0;
+    }
+
+    > a {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      border-left: 4px solid c.$transparent;
+      border-right: 4px solid c.$transparent;
+      font-size: 0.5rem;
+      text-transform: uppercase;
+      text-decoration: none;
+      transition: all .2s c.$cubic-bezier;
+      color: c.$gray-700;
+
+      @include base-icon-color;
+
+
+      i {
+        height: 36px;
+        font-size: 2rem;
+        margin-bottom: 2px;
+      }
+
+      .powerbi-svg {
+        background-color: red;
+        width: 32px;
+        height: 32px;
+        -webkit-mask: url('icons/svg/power-bi.svg') no-repeat center;
+        mask: url('icons/svg/power-bi.svg') no-repeat center;
+      }
+
+      &:hover {
+        background-color: c.$gray-100;
+        @include base-icon-hover;
+        @include sidebar-icon-colors;
+      }
+
+
+      &.active {
+        background-color: #F7F7F7;
+        color: c.$gray-900;
+
+        @include sidebar-border-colors;
+        @include sidebar-icon-colors;
+      }
+    }
+  }
+
+  .logo {
+    background-color: c.$white;
+    border-bottom: 1px solid transparent;
+    height: c.$topbarHeight;
+    margin: 0 auto;
+
+    img {
+      padding: .5rem;
+    }
+  }
+}
+

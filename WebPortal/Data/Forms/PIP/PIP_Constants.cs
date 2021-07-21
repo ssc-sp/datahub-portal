@@ -1,4 +1,4 @@
-﻿using Elemental.Components.FormsInternal;
+﻿using Elemental.Components;
 using System;
 using System.Collections.Generic;
 using System.Linq;

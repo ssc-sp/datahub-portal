@@ -1,0 +1,41 @@
+@use '../common/' as c;
+
+$searchInputOptions: (
+  'display': flex,
+  'align-items': baseline,
+  '.ae.input': (
+    'padding-left': 2rem,
+  ),
+  '.ae.search-icon': (
+    'width': 1rem,
+    'margin': 0 -1.5rem 0 0.5rem,
+    'z-index': 1,
+    'color': c.$text-hint,
+  ),
+  '.ae.clear-icon': (
+    'width': 1.5rem,
+    'margin-left': -1.5rem,
+    'color': c.$text-hint,
+    'opacity': 0,
+    'transition': all 0.3s c.$cubic-bezier,
+    '&:hover': (
+      'cursor': pointer,
+      'color': c.$text-primary,
+    ),
+    '&.visible': (
+      'opacity': 1,
+    ),
+  ),
+);
+
+@mixin configure($options) {
+  @if ($options) {
+    $searchInputOptions: $options !global;
+  }
+}
+
+@mixin styles {
+  .ae.search-wrapper {
+    @include c.set-values($searchInputOptions);
+  }
+}

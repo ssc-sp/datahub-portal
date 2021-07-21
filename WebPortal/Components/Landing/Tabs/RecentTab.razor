@@ -1,0 +1,42 @@
+﻿@inject IUserInformationService UserInformationService
+@inject UserLocationManagerService UserLocationManagerService 
+
+<AeFlex class="recent-card-container">
+  @foreach (var card in GetCards())
+  {
+    <AeFlex class="@($"recent-card {card.Icon.Color}")">
+      <i class="@card.Icon.Name" />
+      <AeFlex class="text">
+        <AeTypography class="title">@card.Title</AeTypography>
+        <AeTypography class="subtitle">@card.Subtitle</AeTypography>
+      </AeFlex>
+    </AeFlex>
+  }
+</AeFlex>
+
+
+@code {
+    
+    
+    private UserRecent _userRecent;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var currentUser = await UserInformationService.GetCurrentUserAsync();
+        var _userRecent = await UserLocationManagerService.ReadRecentNavigations(currentUser.Id); 
+    }
+
+  private List<(Icon Icon, string Title, string Subtitle)> GetCards()
+  {    
+
+
+
+    return new List<(Icon, string, string)>()
+    {
+      (Icon.DATAENTRY, "PIP Web Form", "SPI Performance Measurement >> Data Entry"),
+      (Icon.POWERBI, "PIP Dashboard", "SPI Performance Measurement >> PowerBI"),
+      (Icon.DATASETS, "DRF 2 Pipeline Workspace", "SPI Performance Measurement >> Databricks"),
+      (Icon.STORAGE, "BioSIM Storage Explorer", "BioSIM Project >> Storage")
+    };
+  }
+}

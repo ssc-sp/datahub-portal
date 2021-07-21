@@ -1,6 +1,7 @@
 ﻿@using NRCan.Datahub.Portal.Components;
 @inject IMSGraphService MSGraphService
 @inject CommonAzureServices CommonAzureServices;
+@inject NavigationManager NavigationManager
 
 <div class="item-details-container">
     <h4 class="nrcan-typography title h4">
@@ -38,6 +39,8 @@
                 </div>
             }
         }
+        <AeButton @onclick="OpenMetadata">Edit Metadata</AeButton>
+
         <div class="item-row">
             <AeInput disabled DefaultValue="@PowerBIPasteText" class="formuserinput" id="powerbi-connectionstring" />
             <a onclick="copyToClipboard('powerbi-connectionstring')">
@@ -103,6 +106,11 @@
     {
         _detailsActive = tabName == "details";
         StateHasChanged();
+    }
+
+    public void OpenMetadata()
+    {        
+        NavigationManager.NavigateTo($"/metadata/{SelectedFile.fileid}");
     }
 
     private string GetPropertyDisplayValue(string propertyName)

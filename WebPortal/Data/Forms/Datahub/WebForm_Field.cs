@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text;
 using System.Text.RegularExpressions;
-using Elemental.Components.Forms;
+using Elemental.Components;
 
 namespace NRCan.Datahub.Data.Projects
 {

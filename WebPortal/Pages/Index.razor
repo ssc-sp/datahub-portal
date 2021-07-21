@@ -3,18 +3,19 @@
 @inject IDataCreatorService DataCreatorService
 @inject UIControlsService UI
 @inject NavigationManager NavigationManager
+
     
 @page "/"
 
-    @if (!isLoaded)
-    {
-        <Spinner />
-    }
-    else
-    {
-        <Banner />
-        <MainPageContent />
-    }
+@if (!isLoaded)
+{
+    <Elemental.Components.Spinner />
+}
+else
+{
+    <WelcomeBanner />
+    <LandingContent />
+}
 
 @code
 {

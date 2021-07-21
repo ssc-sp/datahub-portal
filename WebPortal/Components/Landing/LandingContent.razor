@@ -1,0 +1,41 @@
+﻿@namespace NRCan.Datahub.Portal.Components
+
+<AeFlex class="landing-content-wrapper">
+  <AeFlex class="landing-content">
+<AeCard>
+    <ChildContent>
+    <TabControl>
+        @foreach(var tab in GetTabs()){
+            <TabPage>
+              <Control>
+                  <AeTypography>@tab.Control</AeTypography>
+              </Control>
+              <ChildContent>
+                @tab.Content
+              </ChildContent>
+            </TabPage>  
+        }
+    </TabControl>
+</ChildContent>
+</AeCard>
+  </AeFlex>
+</AeFlex>
+
+@code {
+
+
+  private List<(string Control, RenderFragment Content)> GetTabs()
+  {
+    return new List<(string, RenderFragment)> 
+    {
+        ("Recent", @<NRCan.Datahub.Portal.Components.Landing.Tabs.RecentTab />),
+        //("My Projects", @<AeTypography>My Projects frag</AeTypography>),
+        //("Shared with Me", @<AeTypography>Shared with Me frag</AeTypography>),
+        ("Featured Projects", @<NRCan.Datahub.Portal.Components.Landing.Tabs.ProjectsTab />),
+        ("My Databricks Workbooks", @<NRCan.Datahub.Portal.Components.Landing.Tabs.DatabricksTab />),
+        ("My PowerBI Reports", @<NRCan.Datahub.Portal.Components.Landing.Tabs.DatabricksTab />),
+        
+    };
+  }
+
+}
