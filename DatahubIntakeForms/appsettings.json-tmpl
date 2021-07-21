@@ -1,0 +1,33 @@
+{
+  "ConnectionStrings": {
+    "Development": "Server=(local);Database=DatahubProjects;Integrated Security=true"
+  },
+  "AzureAd": {
+    "Instance": "https://login.microsoftonline.com/",
+    "Domain": "",
+    "TenantId": "",
+    "ClientId": "",
+    "CallbackPath": "/signin-oidc",
+    "SignedOutCallbackPath ": "/signout-callback-oidc",
+    "AppIDURL": ""
+  },
+  "APITargets": {
+    "StorageURL": "",
+    "SearchServiceName": "",
+    "DeleteURL": "",
+    "ShareURL": "",
+    "SearchURL": "",
+    "AllocationURL": ""
+  },
+  "ApplicationInsights": {
+    "InstrumentationKey": ""
+  },
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft": "Warning",
+      "Microsoft.Hosting.Lifetime": "Information"
+    }
+  },
+  "AllowedHosts": "*"
+}

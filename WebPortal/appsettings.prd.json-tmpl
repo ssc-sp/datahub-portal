@@ -1,0 +1,47 @@
+{
+  "AzureAd": {
+    "Instance": "https://login.microsoftonline.com/",
+    "Domain": "",
+    "TenantId": "",
+    "ClientId": "",
+    "CallbackPath": "/signin-oidc",
+    "SignedOutCallbackPath ": "/signout-callback-oidc",
+    "AppIDURL": ""
+  },
+  "APITargets": {
+    "StorageURL": "",
+    "SearchServiceName": "",
+    "StorageAccountName": "",
+    "KeyVaultName": "",
+    "FileSystemName": "datahub",
+    "FileIndexName": "filemetadata-index",
+    "FileIndexerName": "datahub-file-indexer",
+    "LogoutURL": ""
+  },
+  "ApplicationInsights": {
+    "InstrumentationKey": ""
+  },
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft": "Warning",
+      "Microsoft.Hosting.Lifetime": "Information"
+    },
+    "ApplicationInsights": {
+      "LogLevel": {
+        "Default": "Information",
+        "Microsoft": "Warning",
+        "Microsoft.Hosting.Lifetime": "Information"
+      }
+    }
+  },
+  "Azure:SignalR:StickyServerMode": "Required",  
+  "AllowedHosts": "*"
+}
+
+
+
+
+
+
+
