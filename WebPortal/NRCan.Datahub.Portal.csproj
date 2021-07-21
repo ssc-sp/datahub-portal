@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <RootNamespace>NRCan.Datahub.Portal</RootNamespace>
@@ -8,17 +8,26 @@
     <DockerfileContext>.</DockerfileContext>
   </PropertyGroup>
   <ItemGroup>
-    <_ContentIncludedByDefault Remove="efpt.config.json" />
-    <_ContentIncludedByDefault Remove="wwwroot\css\site.css" />
+    <None Remove="Wiki\BIOSIM.md" />
+    <None Remove="Wiki\Datahub-Artifacts-Naming-Standards.md" />
+    <None Remove="Wiki\Index.md" />
+    <None Remove="Wiki\Scientific-Data-Repository.md" />
+    <None Remove="Wiki\Scopus-Dataset.md" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="AElemental.Blazor" Version="1.1.21145.1-beta" />
-    <PackageReference Include="Askmethat.Aspnet.JsonLocalizer" Version="3.1.0" />
+    <_ContentIncludedByDefault Remove="efpt.config.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Wiki\*" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="AElemental.Blazor" Version="1.1.21201.1-beta" />
+    <PackageReference Include="Askmethat.Aspnet.JsonLocalizer" Version="3.1.1" />
     <PackageReference Include="Azure.Identity" Version="1.4.0-beta.1" />
     <PackageReference Include="Azure.Search.Documents" Version="11.2.0-beta.2" />
     <PackageReference Include="Azure.Storage.Blobs" Version="12.7.0" />
     <PackageReference Include="Azure.Storage.Files.DataLake" Version="12.5.0" />
-    <PackageReference Include="BlazorDownloadFile" Version="2.1.2" />
+    <PackageReference Include="BlazorDownloadFile" Version="2.1.6" />
     <PackageReference Include="BlazorInputFile" Version="0.2.0" />
     <PackageReference Include="Localization.AspNetCore.TagHelpers" Version="0.6.0" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.16.0" />
@@ -36,18 +45,20 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Http.Polly" Version="6.0.0-preview.5.21301.17" />
-    <PackageReference Include="Microsoft.Graph" Version="3.20.0" />
+    <PackageReference Include="Microsoft.Graph" Version="3.35.0" />
     <PackageReference Include="Microsoft.Graph.Auth" Version="1.0.0-preview.5" />
-    <PackageReference Include="Microsoft.Identity.Web" Version="1.3.0" />
-    <PackageReference Include="Microsoft.Identity.Web.UI" Version="1.3.0" />
+    <PackageReference Include="Microsoft.Identity.Web" Version="1.14.1" />
+    <PackageReference Include="Microsoft.Identity.Web.MicrosoftGraph" Version="1.14.1" />
+    <PackageReference Include="Microsoft.Identity.Web.UI" Version="1.14.1" />
+    <PackageReference Include="Microsoft.PowerBI.Api" Version="3.26.0" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.10.9" />
     <PackageReference Include="Microsoft.Azure.Search.Data" Version="10.1.0" />
     <PackageReference Include="Microsoft.Azure.Search" Version="10.1.0" />
-    <PackageReference Include="Markdig" Version="0.22.1" />
+    <PackageReference Include="Markdig" Version="0.25.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.ApplicationInsights" Version="2.16.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.AzureAppServices" Version="5.0.3" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Core" Version="1.1.0" />
-    <PackageReference Include="BlazorApplicationInsights" Version="1.0.1" />
+    <PackageReference Include="BlazorApplicationInsights" Version="1.2.0" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="5.0.2">
@@ -58,9 +69,6 @@
     <PackageReference Include="Tewr.Blazor.FileReader" Version="3.0.0.20340" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="wwwroot\css\" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\Datahub.Metadata\Datahub.Metadata.csproj" />
     <ProjectReference Include="..\Datahub.Shared\Datahub.Shared.csproj" />
   </ItemGroup>
@@ -68,5 +76,9 @@
     <Content Update="i18n\localization.fr.json">
       <CustomToolNamespace>Resources</CustomToolNamespace>
     </Content>
+    <Content Update="wwwroot\img\landing\earth-background.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
+  <ProjectExtensions><VisualStudio><UserProperties /></VisualStudio></ProjectExtensions>
 </Project>

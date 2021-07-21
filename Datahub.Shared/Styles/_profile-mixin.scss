@@ -1,7 +1,9 @@
-﻿@mixin pictureproperties() {
+﻿@use 'Common/colors';
+
+@mixin pictureproperties() {
     margin-left: 1rem;
     height: 2rem;
     width: 2rem;
     border-radius: 4rem;
-    background-color: $gray-800;
+    background-color: colors.$gray-800;
 }

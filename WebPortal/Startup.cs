@@ -48,6 +48,7 @@ using Microsoft.Graph;
 using Polly;
 using System.Net.Http;
 using Polly.Extensions.Http;
+using NRCan.Datahub.Metadata;
 
 namespace NRCan.Datahub.Portal
 {
@@ -102,7 +103,7 @@ namespace NRCan.Datahub.Portal
             }).AddHubOptions(o =>
             {
                 o.MaximumReceiveMessageSize = 10 * 1024 * 1024; // 10MB
-            });
+            }).AddMicrosoftIdentityConsentHandler(); 
 
             services.AddControllers();
 
@@ -138,8 +139,6 @@ namespace NRCan.Datahub.Portal
                 .WaitAndRetryAsync(6, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2,
                                                                             retryAttempt)));
         }
-
-
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -191,9 +190,20 @@ namespace NRCan.Datahub.Portal
 
             if (!Offline)
             {
-                // todo: review suggestions!
-                services.AddAuthentication(AzureADDefaults.AuthenticationScheme)
-                        .AddAzureAD(options => Configuration.Bind("AzureAd", options));
+
+
+                //services.AddAuthentication(AzureADDefaults.AuthenticationScheme)               
+                //        .AddAzureAD(options => Configuration.Bind("AzureAd", options));
+                var scopes = new List<string>();
+                //scopes.AddRange(PowerBiServiceApi.RequiredReadScopes);
+                scopes.Add("user.read");
+                //scopes.Add("PowerBI.Read.All");
+
+                services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
+                    .AddMicrosoftIdentityWebApp(Configuration, "AzureAd")
+                    .EnableTokenAcquisitionToCallDownstreamApi(scopes)
+                    .AddMicrosoftGraph(Configuration.GetSection("Graph"))
+                    .AddInMemoryTokenCaches();
 
                 services.AddControllersWithViews(options =>
                 {
@@ -248,12 +258,15 @@ namespace NRCan.Datahub.Portal
                 services.AddScoped<UserLocationManagerService>();
                 services.AddSingleton<CommonAzureServices>();
                 services.AddScoped<DataLakeClientService>();
-                
+
                 services.AddScoped<IUserInformationService, UserInformationService>();
                 services.AddSingleton<IMSGraphService, MSGraphService>();
 
                 services.AddScoped<IApiService, ApiService>();
                 services.AddScoped<IApiCallService, ApiCallService>();
+
+                services.AddSingleton<IExternalSearchService, ExternalSearchService>();
+                services.AddHttpClient<IExternalSearchService, ExternalSearchService>();
 
                 services.AddScoped<IDataUpdatingService, DataUpdatingService>();
                 services.AddScoped<IDataSharingService, DataSharingService>();
@@ -262,6 +275,8 @@ namespace NRCan.Datahub.Portal
                 services.AddScoped<IDataRemovalService, DataRemovalService>();
 
                 services.AddSingleton<ICognitiveSearchService, CognitiveSearchService>();
+
+                services.AddScoped<PowerBiServiceApi>();
             }
             else
             {

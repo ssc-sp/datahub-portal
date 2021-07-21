@@ -1,4 +1,4 @@
-﻿using Elemental.Components.Forms;
+﻿using Elemental.Components;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -111,6 +111,13 @@ namespace NRCan.Datahub.Data.Projects
 
         public int? Number_Of_Users_Involved { get; set; }
         public bool Is_Private { get; set; }
+
+        //TODO add these columns
+        //public bool Is_Featured { get; set; }
+
+        //[Required]
+        //[AeLabel(validValues: new[] { "Unclassified", "Protected A", "Protected B" })]
+        //public string Data_Sensitivity { get; set; }
 
         public string Stage_Desc { get; set; }
 

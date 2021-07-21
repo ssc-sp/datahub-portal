@@ -1,17 +1,16 @@
-@import 'colors';
-@import 'box-shadow';
+@use 'Common' as c;
 
 .search-popup {
     position: fixed;
     overflow-y: auto;
     max-width: 600px;
-    background-color: $white;
-    border: 1pz solid $gray-200;
+    background-color: c.$white;
+    border: 1pz solid c.$gray-200;
 
-    @include BoxShadow(2);
+    @include c.BoxShadow(2);
 
     .footer {
-        border-top: 1px solid $gray-200;
+        border-top: 1px solid c.$gray-200;
     }
 
     .nrcan-close-button {
@@ -20,12 +19,34 @@
 }
 
 .search-list-container {
-    background-color: $white;
+    background-color: c.$white;
     max-height: 275px;
     width: 480px;
     min-width: 500px;
-    border: 1px solid $gray-200;
+    border: 1px solid c.$gray-200;
     overflow-y: auto;
+
+    &.full-width-search-list {
+        width: 100%;
+        padding: 1rem;
+    }
+
+    .search-table-header {
+        background-color: c.$gray-200;
+        padding: 10px 20px;
+        text-align: left;
+        font-weight: bold;
+    }
+
+    .additional-results {
+        margin: 1em;
+        .additional-result-label::before {
+            content: ', ';
+        }
+        .additional-result-label:first-child::before {
+            content: ' ';
+        }
+    }
 
     .search-grid-row {
         display: grid;
@@ -47,7 +68,7 @@
         .textcontent {
             justify-content: left;
             flex-grow: 1;
-            
+
             > a {
                 color: #212529;
             }
@@ -56,7 +77,7 @@
                 margin-left: 0.25rem;
                 width: 1rem;
                 padding-top: 0.175rem;
-            }   
+            }
 
             &.small-text {
                 font-size: 0.6rem;
@@ -71,5 +92,37 @@
             flex-basis: 100%;
             height: 0;
         }
+    }
+}
+
+.search-results {
+    list-style: none;
+    margin: 0 2em;
+    padding: 0;
+
+    li {
+        margin-bottom: 1rem;
+    }
+
+    .search-result-title {
+        font-weight: bold;
+    }
+    
+    .search-result-subtitle {
+        font-style: italic;
+        font-size: 0.7rem;
+    }
+    
+    .search-result-description {
+        p {
+            margin: 0;
+        }
+    }
+}
+
+.search-page {
+    .ae.card {
+        margin: 2rem 3rem;
+        padding-bottom: 2rem;
     }
 }
