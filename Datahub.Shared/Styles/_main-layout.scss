@@ -1,6 +1,4 @@
-@import '_colors.scss';
-@import '_constants.scss';
-@import '_box-shadow.scss';
+@use 'Common' as c;
 
 
 .application-wrapper {
@@ -11,7 +9,7 @@
         flex-grow: 1;
         overflow: hidden;
         position: relative;
-        padding-top: 47px;
+        margin-top: c.$topbarHeight;
 
         .ui-control {
             display: flex;
@@ -23,18 +21,19 @@
 
             .right-sidebar {
                 position: absolute;
-                top: $topbarHeight;
+                top: c.$topbarHeight;
                 right: 0;
                 width: 400px;
                 height: 100%;
                 overflow-y: auto;
-                background-color: $white;
-                border-left: 1px solid $gray-200;
-                border-top: 1px solid $gray-200;
-                transition: all .3s $cubic-bezier;
+                background-color: c.$white;
+                border-left: 1px solid c.$gray-200;
+                border-top: 1px solid c.$gray-200;
+                transition: all .3s c.$cubic-bezier;
 
                 &.hidden {
                     width: 0px;
+                    border: none;
 
                     .nrcan-close-button {
                         display: none;
@@ -59,7 +58,7 @@
                 }
 
                 .modal-content-large {
-                    background-color: $white;
+                    background-color: c.$white;
                     margin: 5% auto;
                     padding: 20px;
                     border: 1px solid #888;
@@ -67,7 +66,7 @@
                 }
 
                 .modal-content {
-                    background-color: $white;
+                    background-color: c.$white;
                     margin: 5% auto; /* 15% from the top and centered */
                     padding: 20px;
                     border: 1px solid #888;
@@ -88,7 +87,7 @@
                 .modal-header {
                     padding: 2px 16px;
                     border: 0px;
-                    background-color: $white;
+                    background-color: c.$white;
                 }
                 /* Modal Body */
                 .modal-body {
@@ -97,7 +96,7 @@
                 /* Modal Footer */
                 .modal-footer {
                     padding: 2px 16px;
-                    background-color: $white;
+                    background-color: c.$white;
                     border: 0px;
                     display: flex;
                     flex-direction: row-reverse;

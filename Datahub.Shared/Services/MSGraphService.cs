@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
@@ -8,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
 using Microsoft.Graph.Auth;
 using Microsoft.Identity.Client;
+using Microsoft.Identity.Web;
 using NRCan.Datahub.Shared.Data;
 
 namespace NRCan.Datahub.Shared.Services
@@ -22,7 +24,10 @@ namespace NRCan.Datahub.Shared.Services
 
         public Dictionary<string, GraphUser> UsersDict { get; set; }
 
-        public MSGraphService(IWebHostEnvironment webHostEnvironment, IConfiguration configureOptions, ILogger<MSGraphService> logger, IHttpClientFactory clientFactory)
+        public MSGraphService(IWebHostEnvironment webHostEnvironment,
+            IConfiguration configureOptions, 
+            ILogger<MSGraphService> logger,
+            IHttpClientFactory clientFactory)
         {
             //clientSecret = configuration["ClientAppSecret"];            
             _webHostEnvironment = webHostEnvironment;
@@ -46,6 +51,7 @@ namespace NRCan.Datahub.Shared.Services
 
         public string GetUserName(string userId)
         {
+            
             if (!string.IsNullOrWhiteSpace(userId))
             {
                 var user = GetUser(userId);
@@ -71,7 +77,7 @@ namespace NRCan.Datahub.Shared.Services
                     PrepareAuthenticatedClient();
 
                     IGraphServiceUsersCollectionPage usersPage = await graphServiceClient.Users.Request().GetAsync();
-    
+
                     // Add the first page of results to the user list                    
                     if (usersPage?.CurrentPage.Count > 0)
                     {
@@ -94,6 +100,11 @@ namespace NRCan.Datahub.Shared.Services
                     }
                     _logger.LogInformation("Exiting Log Users");
                 }
+            }
+            catch (ServiceException e)
+            {
+                if (e.InnerException is MsalUiRequiredException || e.InnerException is MicrosoftIdentityWebChallengeUserException)
+                    throw;
             }
             catch (Exception e)
             {
@@ -126,10 +137,11 @@ namespace NRCan.Datahub.Shared.Services
         {
             try
             {
+                //var graphService = _configuration.GetValue<MicrosoftIdentityOptions>("AzureAd");
                 IConfidentialClientApplication confidentialClientApplication = ConfidentialClientApplicationBuilder
-                                .Create(Environment.GetEnvironmentVariable("AZURE_CLIENT_ID"))
-                                .WithTenantId(Environment.GetEnvironmentVariable("AZURE_TENANT_ID"))
-                                .WithClientSecret(Environment.GetEnvironmentVariable("AZURE_CLIENT_SECRET"))
+                                .Create(_configuration.GetSection("AzureAd").GetValue<string>("ClientId"))
+                                .WithTenantId(_configuration.GetSection("AzureAd").GetValue<string>("TenantId"))
+                                .WithClientSecret(_configuration.GetSection("AzureAd").GetValue<string>("ClientSecret"))
                                 .Build();
                 ClientCredentialProvider authProvider = new ClientCredentialProvider(confidentialClientApplication);
 

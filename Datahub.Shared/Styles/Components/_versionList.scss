@@ -1,23 +1,21 @@
-﻿@import '../_colors.scss';
-@import '../_constants.scss';
-@import '../_box-shadow.scss';
+﻿@use '../Common/colors';
 
 .versionContainer {
 
-    .fileGrid {
-        display: grid;
-        grid-template-columns: 0.25fr 2.5fr 2.5fr 2.5fr 0.25fr;
-        font-size: 11px;
+  .fileGrid {
+    display: grid;
+    grid-template-columns: 0.25fr 2.5fr 2.5fr 2.5fr 0.25fr;
+    font-size: 11px;
 
-        .grid-item {
-            background-color: rgba(255, 255, 255, 0.8);
-            padding: 15px 20px;
-            text-align: left;
-            border: solid $gray-200;
-            border-width: 0 0 1px 0;
-            display: flex;
-            flex-direction: row;
-            justify-content: flex-start;
-        }
+    .grid-item {
+      background-color: rgba(255, 255, 255, 0.8);
+      padding: 15px 20px;
+      text-align: left;
+      border: solid colors.$gray-200;
+      border-width: 0 0 1px 0;
+      display: flex;
+      flex-direction: row;
+      justify-content: flex-start;
     }
+  }
 }

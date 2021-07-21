@@ -1,6 +1,6 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
-using Elemental.Components.Forms;
+using Elemental.Components;
 
 namespace NRCan.Datahub.Portal.Data.WebAnalytics
 {

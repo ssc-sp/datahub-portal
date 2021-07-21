@@ -6,10 +6,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
 using Microsoft.Graph.Auth;
 using Microsoft.Identity.Client;
+using Microsoft.Identity.Web;
 using NRCan.Datahub.Shared.EFCore;
 
 namespace NRCan.Datahub.Shared.Services
@@ -20,8 +22,9 @@ namespace NRCan.Datahub.Shared.Services
         private GraphServiceClient graphServiceClient;
         private AuthenticationStateProvider _authenticationStateProvider;
         private NavigationManager _navigationManager;
+        private IConfiguration _configuration;
         private EFCoreDatahubContext _eFCoreDatahubContext;
-
+        //private GraphServiceClient _graphServiceClient;
         public string imageHtml;
         
         public User CurrentUser { get; set; }
@@ -29,13 +32,17 @@ namespace NRCan.Datahub.Shared.Services
             ILogger<UserInformationService> logger,
             AuthenticationStateProvider authenticationStateProvider,
             NavigationManager navigationManager,
-            EFCoreDatahubContext eFCoreDatahubContext
+            IConfiguration configureOptions,
+            EFCoreDatahubContext eFCoreDatahubContext,
+            GraphServiceClient graphServiceClient
             )
         {
             _logger = logger;
             _authenticationStateProvider = authenticationStateProvider;
             _navigationManager = navigationManager;
+            _configuration = configureOptions;
             _eFCoreDatahubContext = eFCoreDatahubContext;
+            this.graphServiceClient = graphServiceClient;
         }
 
         public string UserLanguage { get; set; }
@@ -86,6 +93,8 @@ namespace NRCan.Datahub.Shared.Services
             }
             catch (ServiceException e)
             {
+                if (e.InnerException is MsalUiRequiredException || e.InnerException is MicrosoftIdentityWebChallengeUserException)
+                    throw;
                 _logger.LogError(e, "Error Loading User");
                 throw new InvalidOperationException("Cannot retrieve user", e);
             }
@@ -174,13 +183,14 @@ namespace NRCan.Datahub.Shared.Services
 
         private void PrepareAuthenticatedClient()
         {
+            //if (graphServiceClient != null) return;
             try
             {
                 IConfidentialClientApplication confidentialClientApplication = ConfidentialClientApplicationBuilder
-                                                                                    .Create(Environment.GetEnvironmentVariable("AZURE_CLIENT_ID"))
-                                                                                    .WithTenantId(Environment.GetEnvironmentVariable("AZURE_TENANT_ID"))
-                                                                                    .WithClientSecret(Environment.GetEnvironmentVariable("AZURE_CLIENT_SECRET"))
-                                                                                    .Build();
+                                .Create(_configuration.GetSection("AzureAd").GetValue<string>("ClientId"))
+                                .WithTenantId(_configuration.GetSection("AzureAd").GetValue<string>("TenantId"))
+                                .WithClientSecret(_configuration.GetSection("AzureAd").GetValue<string>("ClientSecret"))
+                                .Build();
                 ClientCredentialProvider authProvider = new ClientCredentialProvider(confidentialClientApplication);
                 graphServiceClient = new GraphServiceClient(authProvider);
             }

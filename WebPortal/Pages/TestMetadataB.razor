@@ -1,36 +1,39 @@
 ﻿@page "/metadata"
+@page "/metadata/{FileId}"
 @using NRCan.Datahub.Metadata;
 
-<div>
-    <AeButton @onclick="TogglePreview">Toggle Preview</AeButton>
+<div style="margin: 2rem">
+<AeCard>
+    <Header>
+        <h2>Metadata</h2>
+    </Header>
+    <ChildContent>
+        <AeFlex>
+            <div style="width: 200px; flex-grow: 0.5">
+                <MetadataEditorB Preview="false"
+                                 Definitions="@_definitions"
+                                 FieldValues="@_fieldValues"
+                                 OnFieldChanged="FieldChanged" />
+
+            </div>
+
+            <div style="width: 200px; flex-grow: 0.5">
+                @if (_preview)
+                {
+                    <MetadataEditorB Preview="_preview"
+                                     Definitions="@_definitions"
+                                     FieldValues="@_fieldValues"
+                                     OnFieldChanged="FieldChanged" />
+                }
+
+            </div>
+        </AeFlex>
+    </ChildContent>
+    <Footer>
+        <AeButton @onclick="TogglePreview">Toggle Preview</AeButton>
+    </Footer>
+</AeCard>
 </div>
-
-<AeFlex>
-
-    <div style="width: 200px; flex-grow: 0.5">
-        <div>
-            <h2>Metadata</h2>
-        </div>
-
-        <MetadataEditorB Preview="false" 
-                         Definitions="@_definitions" 
-                         FieldValues="@_fieldValues" 
-                         OnFieldChanged="FieldChanged" />
-
-    </div>
-
-    <div style="width: 200px; flex-grow: 0.5">
-        <div>
-            <h2>Metadata Preview</h2>
-        </div>
-        <MetadataEditorB Preview="_preview"
-                         Definitions="@_definitions" 
-                         FieldValues="@_fieldValues" 
-                         OnFieldChanged="FieldChanged"
-                         />
-    </div>
-
-</AeFlex>
 
 @code {
 
@@ -41,7 +44,10 @@
 
     private FieldValues _fieldValues { get; set; }
 
-    private bool _preview = true;
+    [Parameter]
+    public string FileId { get; set; }
+
+    private bool _preview = false;
 
     protected override async Task OnInitializedAsync()
     {

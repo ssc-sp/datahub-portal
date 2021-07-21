@@ -34,7 +34,7 @@ namespace NRCan.Datahub.Shared.Data
         {
             get
             {
-                return mailAddress?.Address.ToLower() ?? string.Empty;
+                return mailAddress?.Address?.ToLower() ?? string.Empty;
             }
         }
 
@@ -46,7 +46,7 @@ namespace NRCan.Datahub.Shared.Data
         {
             get
             {
-                return mailAddress?.User.ToLower() ?? string.Empty;
+                return mailAddress?.User?.ToLower() ?? string.Empty;
             }
         }
 
@@ -58,7 +58,7 @@ namespace NRCan.Datahub.Shared.Data
         {
             get
             {
-                return mailAddress?.Host.ToLower() ?? string.Empty;
+                return mailAddress?.Host?.ToLower() ?? string.Empty;
             }
         }
 
@@ -78,10 +78,11 @@ namespace NRCan.Datahub.Shared.Data
         /// <returns></returns>
         public static GraphUser Create(User user)
         {
+            var email = user.Mail ?? "unknown@unknown.com";
             var instance = new GraphUser() {
                 Id = user.Id,
                 DisplayName = user.DisplayName,
-                mailAddress = new MailAddress(user.Mail)
+                mailAddress = new MailAddress(email)
             };
 
             return instance;

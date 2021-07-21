@@ -1,12 +1,10 @@
-@import 'colors';
-@import 'box-shadow';
-@import '_constants.scss';
+@use 'Common' as c;
 
 #add-data-wrapper {
     position: absolute;
-    top: $topbarHeight;
+    top: c.$topbarHeight;
     left: 0px;
-    background-color: $white;
+    background-color: c.$white;
     width: 100%;
     height: 100vh;
 
@@ -17,7 +15,7 @@
 }
 
 .icon-color {
-    color: $borderblue;
+    color: c.$borderblue;
 
     &.sm-icon {
         width: 16px;
@@ -25,9 +23,9 @@
 }
 
 .roundbutton {
-    background-color: $borderblue;
+    background-color: c.$borderblue;
     border: none;
-    color: $white;
+    color: c.$white;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -41,7 +39,7 @@
 
 
 .errortext {
-    color: $red-300;
+    color: c.$red-300;
     text-decoration: none;
     font-size: 0.8rem;
     padding: 0rem 3rem;
@@ -52,7 +50,7 @@
 }
 
 .bodytext {
-    color: $textPrimary;
+    color: c.$textPrimary;
     text-decoration: none;
     font-size: 0.8rem;
     padding: 1rem;
@@ -65,12 +63,12 @@
     }
 
     .drag-drop-zone {
-        border: 3px $borderblue;
+        border: 3px c.$borderblue;
         width: 30rem;
         height: 4rem;
         display: flex;
         align-items: center;
-        background-color: $nrcangray;
+        background-color: c.$nrcangray;
         box-shadow: inset 0 0 8px rgba(0,0,0,0.2);
         color: #aeaeae;
         cursor: pointer;
@@ -80,7 +78,7 @@
     }
 
     .drag-drop-zone:hover {
-        background-color: $gray-200;
+        background-color: c.$gray-200;
     }
 
     .drag-drop-zone input[type=file] {
@@ -95,7 +93,7 @@
     .dropdown-content {
         display: none;
         position: absolute;
-        background-color: $nrcangray;
+        background-color: c.$nrcangray;
         width: 30rem;
         box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
         z-index: 1;
@@ -106,7 +104,7 @@
 
 
         .bottomborder {
-            border: solid $gray-400;
+            border: solid c.$gray-400;
             border-width: 0 0 1px 0;
         }
 
@@ -116,8 +114,8 @@
         }
 
         > a:hover {
-            background-color: $gray-200;
-            color: $gray-600;
+            background-color: c.$gray-200;
+            color: c.$gray-600;
         }
     }
 
@@ -155,10 +153,10 @@
         align-items: center;
 
         input {
-            border-color: $borderblue;
+            border-color: c.$borderblue;
             border-width: 1px;
             border-style: solid;
-            background-color: $transparent;
+            background-color: c.$transparent;
             font-size: 0.9rem;
             width: 100%;
             padding: 0.25rem 0.5rem;
@@ -166,7 +164,7 @@
 
             &:focus {
                 outline: none;
-                border-color: $blue-500;
+                border-color: c.$blue-500;
             }
         }
     }
@@ -175,17 +173,17 @@
         width: 29rem;
         display: flex;
         flex-direction: row;
-        border-color: $borderblue;
+        border-color: c.$borderblue;
         border-width: 0px 0px 1px 0px;
         border-style: solid;
-        background-color: $transparent;
+        background-color: c.$transparent;
         font-size: 0.8rem;
         padding: 0.25rem 0.25rem 0.25rem 0.5rem;
     }
 
     .chevronborder {
         width: 1rem;
-        border-color: $borderblue;
+        border-color: c.$borderblue;
         border-width: 0px 0px 1px 0px;
         border-style: solid;
         margin-top: auto;
@@ -196,16 +194,16 @@
         width: 30rem;
         display: flex;
         flex-direction: row;
-        border-color: $borderblue;
+        border-color: c.$borderblue;
         border-width: 0px 0px 1px 0px;
         border-style: solid;
-        background-color: $transparent;
+        background-color: c.$transparent;
         font-size: 0.8rem;
         padding: 0.25rem 0.25rem 0.25rem 0.5rem;
 
         &:focus {
             outline: none;
-            border-color: $blue-500;
+            border-color: c.$blue-500;
         }
     }
 
@@ -213,23 +211,23 @@
         width: 30rem;
         display: flex;
         flex-direction: row;
-        border-color: $borderblue;
+        border-color: c.$borderblue;
         border-width: 1px 1px 1px 1px;
         border-style: solid;
-        background-color: $transparent;
+        background-color: c.$transparent;
         font-size: 0.8rem;
-        border-color: $borderblue;
+        border-color: c.$borderblue;
         resize: none;
         padding: 0.3rem;
 
         &:focus {
             outline: none;
-            border-color: $blue-500;
+            border-color: c.$blue-500;
         }
     }
 
     .bluetext {
-        color: $borderblue;
+        color: c.$borderblue;
 
         &:hover {
             cursor: pointer;
@@ -237,7 +235,7 @@
     }
 
     .redtext {
-        color: $red-500;
+        color: c.$red-500;
 
         &:hover {
             cursor: pointer;
@@ -272,16 +270,16 @@
 }
 
 .finish {
-    background-color: $borderblue;
-    color: $white;
+    background-color: c.$borderblue;
+    color: c.$white;
 
     &:disabled {
-        background-color: $black;
-        color: $nrcangray;
+        background-color: c.$black;
+        color: c.$nrcangray;
     }
 }
 
 .cancel {
-    background-color: $white;
-    color: $black;
+    background-color: c.$white;
+    color: c.$black;
 }

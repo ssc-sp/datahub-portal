@@ -1,87 +1,43 @@
-@import 'colors';
-@import 'box-shadow';
-@import 'constants';
+@use 'Common' as c;
+
+@import 'Components/Icons/_icon-colors.scss';
 
 #topbar {
-    background-color: $white;
-    z-index: 1;
+    background-color: c.$white;
     position: fixed;
-    left: 200px;
+    z-index: 999;
     top: 0;
-    width: calc( 100% - 200px );
+    width: calc(100% - #{c.$sidebarWidth});
     display: flex;
     align-items: center;
-    //border-bottom: 1px solid $gray-200;
-    flex-wrap: nowrap;
-    height: $topbarHeight;
-    //margin-top: $marginTop;
-    padding-top: 8px;
+    height: c.$topbarHeight;
+    box-shadow: 0 1px 0 c.$gray-200;
 
-    .spacer {
-        flex-grow: 1;
-    }
-
-    #topSearch {
-        min-width: 500px;
-    }
-    //.search {
-    //    display: flex;
-    //    align-items: center;
-    //    margin: 0 2rem;
-    //    max-width: 500px;
-    //    min-width: 500px;
-    //    padding: 0.5rem 1rem;
-    //    border-radius: 8px;
-    //    flex-grow: 2;
-    //    background-color: $gray-100;
-    //    input {
-    //        border: none;
-    //        background-color: $transparent;
-    //        color: $textPrimary;
-    //        font-size: 0.8rem;
-    //        width: 100%;
-    //        padding: 0.25rem 0.5rem;
-    //        &:focus {
-    //            outline: none;
-    //        }
-    //    }
-    //}
-    .icon {
+    .search-spacer {
         display: flex;
-        align-items: center;
-        height: 100%;
+        justify-content: center;
+        flex-grow: 1;
 
-        .topbar-icon {
-            padding: 0 1rem;
-            cursor: pointer;
-            height: 100%;
-            display: flex;
-            align-items: center;
-
-            &:hover {
-                background-color: $nrcangray;
-            }
+        #topSearch {
+            min-width: 500px;
         }
     }
 
-    .notifications {
-        position: relative;
+    .icon-container {
+        width: c.$topbarHeight;
+        height: c.$topbarHeight;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        font-size: 1.25rem;
 
-        .count {
-            position: absolute;
-            top: 1rem;
-            right: 0.5rem;
-            background-color: $red-600;
-            color: $white;
-            border-radius: 5rem;
-            width: 1rem;
-            height: 1rem;
-            font-weight: bold;
-            font-size: 0.6rem;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+        &:hover {
+          background-color: c.$gray-100;
         }
+
+        @include base-icon-color;
+        @include base-icon-hover;
     }
 
 
@@ -96,15 +52,15 @@
 
         .email-wrapper {
             margin: 2rem 0;
-            color: $borderblue;
+            color: c.$borderblue;
             text-align: center;
 
             a {
-                color: $borderblue;
+                color: c.$borderblue;
                 text-decoration: none;
 
                 &:hover {
-                    border-bottom: 1px solid $borderblue;
+                    border-bottom: 1px solid c.$borderblue;
                 }
             }
         }
@@ -118,12 +74,12 @@
 
                 a {
                     display: block;
-                    color: $borderblue;
+                    color: c.$borderblue;
                     text-decoration: none;
-                    border-bottom: 1px solid $transparent;
+                    border-bottom: 1px solid c.$transparent;
 
                     &:hover {
-                        border-color: $borderblue;
+                        border-color: c.$borderblue;
                         cursor: pointer;
                     }
                 }
@@ -143,7 +99,7 @@
             margin-top: 0px;
 
             &:hover {
-                background-color: $nrcangray;
+                background-color: c.$gray-100;
                 cursor: pointer;
             }
         }
@@ -153,7 +109,7 @@
             height: 2rem;
             width: 2rem;
             border-radius: 4rem;
-            background-color: $gray-800;
+            background-color: c.$gray-800;
         }
 
         .user-popup {
