@@ -43,6 +43,7 @@ using NRCan.Datahub.Portal.Data.Finance;
 using NRCan.Datahub.Portal.Data.WebAnalytics;
 using BlazorApplicationInsights;
 using NRCan.Datahub.Portal.RoleManagement;
+using NRCan.Datahub.Metadata;
 using Microsoft.Graph;
 using Polly;
 using System.Net.Http;
