@@ -13,6 +13,8 @@ The DataHub aims to provide the following features:
 - Data Projects empower users to tell data stories, work with massive datasets, conduct analyses and experiment with new technologies.
 - Connect Data Scientists & Analytics Users in Sectors & Collaborating with other platforms
 
+_This project is presently internal to NRCan and more details can be obtained by contacting on DataHub mailbox for any collaboration opportunities nrcan.datahub.rncan@canada.ca_
+
 ![image](https://user-images.githubusercontent.com/82101285/122599381-48a01d00-d03c-11eb-9bb8-a20d76646258.png)
 
 ## Data Projects
@@ -35,11 +37,8 @@ The diagram below shows the key components of the platform
 
 This project includes multiple repositories
 - **DataHub Web Portal:** This repository contains the code for all the portal and Azure Functions used to automate PowerBI & Databricks tasks
-- **DataHub Terraform:** The terraform infrastructure for the project is stored in this repository and elements of the terraform script are dynamically generated from the Data Project database. 
+- **DataHub Terraform:** The terraform infrastructure for the project is stored in this repository and elements of the terraform script are dynamically generated from the Data Project database. Please contact us for details on the terraform infrastructure.
 - **DataHub Databricks:** Databricks is used in this project for ETL, Data Science and other data transformations. Examples from this repository can be used as template for setting up new tasks.
 
-## How to get started with the portal
 
-1. Checkout this project and open the folder in VSC
-2. Ensure you have contributor role in NRCan's Azure resource group "ciosb-dev-datahub-ca-central"
-3. Open a new terminal and run: ```./initLocalDev.ps1```
+
