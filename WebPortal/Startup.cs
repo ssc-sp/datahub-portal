@@ -265,9 +265,6 @@ namespace NRCan.Datahub.Portal
                 services.AddScoped<IApiService, ApiService>();
                 services.AddScoped<IApiCallService, ApiCallService>();
 
-                services.AddSingleton<IExternalSearchService, ExternalSearchService>();
-                services.AddHttpClient<IExternalSearchService, ExternalSearchService>();
-
                 services.AddScoped<IDataUpdatingService, DataUpdatingService>();
                 services.AddScoped<IDataSharingService, DataSharingService>();
                 services.AddScoped<IDataCreatorService, DataCreatorService>();
@@ -309,6 +306,9 @@ namespace NRCan.Datahub.Portal
             services.AddScoped<NotifierService>();
 
             services.AddSingleton<ServiceAuthManager>();
+
+            services.AddSingleton<IExternalSearchService, ExternalSearchService>();
+            services.AddHttpClient<IExternalSearchService, ExternalSearchService>();
         }
 
         private void ConfigureDbContexts(IServiceCollection services)
