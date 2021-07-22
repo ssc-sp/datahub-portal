@@ -5,6 +5,7 @@
 @inject IJSRuntime JsInterop
 @inject DatahubProjectDBContext projectContext
 @inject IDbContextFactory<DatahubProjectDBContext> dbFactory
+@inject IEmailNotificationService EmailService
 @page "/admin"
 
 
@@ -24,7 +25,33 @@
             <div>Loading data...</div>
         }
 
-
+        @if (EmailService.IsDevTestMode())
+        {
+            <div style="width:600px">
+                <AeCard>
+                    <h1>@Localizer["Test Email Notification"]</h1>
+                    
+                    <label>
+                        <input @bind=@EmailSelf type="checkbox"/>
+                        @Localizer["Send to self"]
+                    </label>
+                    
+                    <input @bind=@TestRecipientName type="text" disabled=@EmailSelf style="width:100%"/>
+                
+                    <input @bind=@TestRecipientEmail type="text" disabled=@EmailSelf style="width:100%" />
+                    
+                    <AeButton class="blue" @onclick="async () => await SendNamedTestEmail()" Disabled=@IsSendingTestEmail >
+                        @if (IsSendingTestEmail) {
+                            <NRCan.Datahub.Shared.Components.Spinner Small="true" />
+                        }
+                        else
+                        {
+                            @Localizer["Send test email"]
+                        }
+                    </AeButton>
+                </AeCard>
+            </div>
+        }
     </Authorized>
     <NotAuthorized>
         <h1>This page is limited for datahub administrators</h1>
@@ -41,6 +68,47 @@
 {
         "Project", "User", "Service", "Date","Actions"
     };
+
+    private bool _emailSelf = true;
+    private bool EmailSelf
+    {
+        get => _emailSelf;
+        set 
+        {
+            if (value)
+            {
+                ResetTestRecipient();
+            }
+            _emailSelf = value;
+        }
+    }
+    private string TestRecipientName { get; set; }
+    private string TestRecipientEmail { get; set; }
+    private bool IsSendingTestEmail { get; set; }
+
+    private async Task ResetTestRecipient()
+    {
+        var user = (await authenticationStateTask).User;
+        var email = user.Identity.Name;
+        var name = user.Claims.Where(c => c.Type == "name").FirstOrDefault()?.Value;
+        
+        TestRecipientName = name;
+        TestRecipientEmail = email;
+        StateHasChanged();
+    }
+
+    private async Task SendNamedTestEmail()
+    {
+        IsSendingTestEmail = true;
+        StateHasChanged();
+
+        var html = await EmailService
+            .RenderTemplate<NRCan.Datahub.Shared.Templates.TestEmailTemplate>(new Dictionary<string, object>(){{ "Name", TestRecipientName }});
+        await EmailService.SendEmailMessage("Test", html, TestRecipientName, TestRecipientEmail);
+
+        IsSendingTestEmail = false;
+        StateHasChanged();
+    }
 
     // Accessor functions to retrieve cell value
     private List<Func<Datahub_Project_Access_Request, string>> accessorFunctions = new List<Func<Datahub_Project_Access_Request, string>>
@@ -86,9 +154,11 @@
 
     protected override async Task OnInitializedAsync()
     {
+        ResetTestRecipient();
+
         await RefreshData();
         renderFunctions = new List<Func<Datahub_Project_Access_Request, RenderFragment>>
-{
+        {
                 null,
                 null,
                 null,
@@ -106,6 +176,6 @@
                 })
 
         };
-                                }
+    }
 
 }
