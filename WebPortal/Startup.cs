@@ -310,6 +310,8 @@ namespace NRCan.Datahub.Portal
             services.AddScoped<UIControlsService>();
             services.AddScoped<NotifierService>();
 
+            services.AddScoped<IEmailNotificationService, EmailNotificationService>();
+
             services.AddSingleton<ServiceAuthManager>();
         }
 
