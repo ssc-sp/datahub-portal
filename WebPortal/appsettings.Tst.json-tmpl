@@ -4,9 +4,14 @@
     "Domain": "",
     "TenantId": "",
     "ClientId": "",
+    "ClientSecret": "",
     "CallbackPath": "/signin-oidc",
     "SignedOutCallbackPath ": "/signout-callback-oidc",
     "AppIDURL": ""
+  },
+  "Graph": {
+    "BaseUrl": "https://graph.microsoft.com/v1.0",
+    "Scopes": "user.read"
   },
   "APITargets": {
     "StorageURL": "",
@@ -23,13 +28,14 @@
   },
   "Logging": {
     "LogLevel": {
-      "Default": "Information",
+      "Default": "Warning",
       "Microsoft": "Warning",
       "Microsoft.Hosting.Lifetime": "Information"
     },
     "ApplicationInsights": {
       "LogLevel": {
-        "Default": "Information",
+        "Default": "Warning",
+        "NRCan": "Information",
         "Microsoft": "Warning",
         "Microsoft.Hosting.Lifetime": "Information"
       }
