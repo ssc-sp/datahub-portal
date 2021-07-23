@@ -1,0 +1,21 @@
+﻿@namespace NRCan.Datahub.Shared.Templates
+
+<h3>@Service Service Access Request Approved</h3>
+
+<p>Your request for the access to service <b>@Service</b> in data project <b>@DataProject</b> has been approved. The service links in the data project page will now be active.</p>
+
+<hr />
+
+<h3>Demande D’accès au Service Approuvée</h3>
+
+<p>Votre demande d'accès au service <b>@Service</b> dans le projet de données <b>@DataProject</b> a été approuvée. Les liens menant au service dans la page du projet de données seront maintenant actifs.</p>
+
+@code {
+
+    [Parameter]
+    public string Service { get; set; }
+
+    [Parameter]
+    public string DataProject { get; set; }
+
+}
