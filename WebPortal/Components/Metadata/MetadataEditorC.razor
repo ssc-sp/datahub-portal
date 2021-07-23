@@ -1,4 +1,5 @@
 ﻿@using NRCan.Datahub.Metadata
+@using NRCan.Datahub.Metadata.Model
 
 @if (Definitions != null && FieldValues != null)
 {
@@ -31,7 +32,7 @@
     private List<string> Headers => new List<string> { "Field", "Value" };
 
     private List<Func<RowData, string>> accessorFunctions = new List<Func<RowData, string>>
-    {
+{
         new Func<RowData, string>(r => { return r.Label; }),
         new Func<RowData, string>(r => { return r.FieldId; }),
     };
@@ -41,41 +42,41 @@
         return Definitions.Fields.Select(f => new RowData()
         {
             Label = f.Name,
-            FieldId = f.FieldName
+            FieldId = f.Field_Name_TXT
         }).ToList();
     }
 
     private List<Func<RowData, RenderFragment>> renderFunctions = new List<Func<RowData, RenderFragment>>
-    {
+{
         null,
         new Func<RowData, RenderFragment>(dummyData =>
         {
-            return @<input style="width: 100%" />; 
+            return @<input style="width: 100%" />;
         })
     };
 
-    class RowData
-    {
-        public string Label { get; set; }
-        public string FieldId { get; set; }
-    }
-
-
-    private async Task FieldChanged(FieldValue field)
-    {
-        if (!FieldValues.Contains(field))
+        class RowData
         {
-            FieldValues.Add(field);
+            public string Label { get; set; }
+            public string FieldId { get; set; }
         }
-        await OnFieldChanged.InvokeAsync(field);
-    }
 
-    private FieldValue GetFieldValue(string definitionId, bool preview)
-    {
-        var field = FieldValues.FirstOrDefault(f => f.DefinitionId == definitionId);
-        if (!preview)
-            return field ?? new FieldValue() { DefinitionId = definitionId };
-        else
-            return field;
-    }
+
+        private async Task FieldChanged(FieldValue field)
+        {
+            if (!FieldValues.Contains(field))
+            {
+                FieldValues.Add(field);
+            }
+            await OnFieldChanged.InvokeAsync(field);
+        }
+
+        private FieldValue GetFieldValue(string definitionId, bool preview)
+        {
+            var field = FieldValues.FirstOrDefault(f => f.DefinitionId == definitionId);
+            if (!preview)
+                return field ?? new FieldValue() { DefinitionId = definitionId };
+            else
+                return field;
+        }
 }

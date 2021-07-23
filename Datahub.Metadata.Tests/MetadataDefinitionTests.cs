@@ -1,3 +1,4 @@
+using NRCan.Datahub.Metadata.Model;
 using System;
 using System.Linq;
 using Xunit;
@@ -27,10 +28,10 @@ namespace NRCan.Datahub.Metadata.Tests
         {
             MetadataDefinition definitions = new(ignoreDuplicates: true);
 
-            FieldDefinition field1 = new() { FieldName = "field_one" };
+            FieldDefinition field1 = new() { Field_Name_TXT = "field_one" };
             definitions.Add(field1);
 
-            FieldDefinition field2 = new() { FieldName = "field_one" };
+            FieldDefinition field2 = new() { Field_Name_TXT = "field_one" };
             definitions.Add(field2);
         }
 
@@ -39,10 +40,10 @@ namespace NRCan.Datahub.Metadata.Tests
         {
             MetadataDefinition definitions = new(ignoreDuplicates: false);
 
-            FieldDefinition field1 = new() { FieldName = "field_one" };
+            FieldDefinition field1 = new() { Field_Name_TXT = "field_one" };
             definitions.Add(field1);
 
-            FieldDefinition field2 = new() { FieldName = "field_one" };
+            FieldDefinition field2 = new() { Field_Name_TXT = "field_one" };
             Assert.Throws<ArgumentException>(() => definitions.Add(field2));
         }
 
@@ -51,7 +52,7 @@ namespace NRCan.Datahub.Metadata.Tests
         {
             MetadataDefinition definitions = new();
             var fieldId = "known_id";
-            FieldDefinition field = new() { FieldName = fieldId };
+            FieldDefinition field = new() { Field_Name_TXT = fieldId };
             definitions.Add(field);
 
             var expected = field;
@@ -65,7 +66,7 @@ namespace NRCan.Datahub.Metadata.Tests
         {
             MetadataDefinition definitions = new();
             var fieldId = "known_id";
-            FieldDefinition field = new() { FieldName = fieldId };
+            FieldDefinition field = new() { Field_Name_TXT = fieldId };
             definitions.Add(field);
 
             var actual = definitions.Get("unknow_id");
@@ -77,9 +78,9 @@ namespace NRCan.Datahub.Metadata.Tests
         public void GetField_WithWithMultipleFields_ShouldReturnExpectedCountAndOrder()
         {
             MetadataDefinition definitions = new();
-            FieldDefinition field1 = new() { FieldName = "F1", SortOrder = 2 };
-            FieldDefinition field2 = new() { FieldName = "F2", SortOrder = 3 };
-            FieldDefinition field3 = new() { FieldName = "F3", SortOrder = 1 };
+            FieldDefinition field1 = new() { Field_Name_TXT = "F1", Sort_Order_NUM = 2 };
+            FieldDefinition field2 = new() { Field_Name_TXT = "F2", Sort_Order_NUM = 3 };
+            FieldDefinition field3 = new() { Field_Name_TXT = "F3", Sort_Order_NUM = 1 };
             definitions.Add(field1);
             definitions.Add(field2);
             definitions.Add(field3);
