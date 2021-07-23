@@ -1,0 +1,69 @@
+{
+  "ConnectionStrings": {
+    "datahub-mssql-project": "",
+    "datahub-mssql-pip": "",
+    "datahub-mssql-etldb": "",
+    "datahub-mssql-finance": "",
+    "datahub-mssql-webanalytics": "",
+    "datahub-cosmosdb": "",
+    "datahub-mssql-metadata-bak": "",
+    "datahub-mssql-metadata": ""
+  },
+  "AzureAd": {
+    "Instance": "https://login.microsoftonline.com/",
+    "Domain": "",
+    "TenantId": "",
+    "ClientId": "",
+    "CallbackPath": "/signin-oidc",
+    "SignedOutCallbackPath ": "/signout-callback-oidc",
+    "AppIDURL": ""
+  },
+  "APITargets": {
+    "StorageURL": "",
+    "SearchServiceName": "",
+    "StorageAccountName": "",
+    "KeyVaultName": "",
+    "FileSystemName": "datahub",
+    "FileIndexName": "filemetadata-index",
+    "FileIndexerName": "filemetadata-indexer",
+    "LogoutURL": "",
+    "LoginUrl": ""
+  },
+  "ApplicationInsights": {
+    "InstrumentationKey": ""
+  },
+  "DetailedErrors": true,
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft": "Warning",
+      "Microsoft.Hosting.Lifetime": "Information"
+    },
+    "ApplicationInsights": {
+      "LogLevel": {
+        "Default": "Information",
+        "Microsoft": "Warning",
+        "Microsoft.Hosting.Lifetime": "Information"
+      }
+    }
+  },
+  "KeyVault": {
+    "UserName": ""
+  },
+  "Azure:SignalR:StickyServerMode": "Required",
+  "AllowedHosts": "*"
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+

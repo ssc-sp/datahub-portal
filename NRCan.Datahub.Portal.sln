@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.0.31423.177
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31410.357
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NRCan.Datahub.Portal", "WebPortal\NRCan.Datahub.Portal.csproj", "{7C55A80E-F420-45A7-A85E-BBF054533EE3}"
 EndProject
@@ -22,6 +22,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Devops", "Devops", "{FA743C
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FormTests", "FormTests\FormTests.csproj", "{C74EAD65-0161-425B-B121-30C69BED59A3}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Metadata", "Datahub.Metadata\Datahub.Metadata.csproj", "{11A4651C-6BC9-45E2-847D-025F466B8345}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Metadata.Tests", "Datahub.Metadata.Tests\Datahub.Metadata.Tests.csproj", "{E54B7DC6-8084-45B0-8FB6-54790D83588B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,13 +49,21 @@ Global
 		{C74EAD65-0161-425B-B121-30C69BED59A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C74EAD65-0161-425B-B121-30C69BED59A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C74EAD65-0161-425B-B121-30C69BED59A3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{11A4651C-6BC9-45E2-847D-025F466B8345}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{11A4651C-6BC9-45E2-847D-025F466B8345}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{11A4651C-6BC9-45E2-847D-025F466B8345}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{11A4651C-6BC9-45E2-847D-025F466B8345}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E54B7DC6-8084-45B0-8FB6-54790D83588B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E54B7DC6-8084-45B0-8FB6-54790D83588B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E54B7DC6-8084-45B0-8FB6-54790D83588B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E54B7DC6-8084-45B0-8FB6-54790D83588B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		RESX_ConfirmAddLanguageFile = True
-		RESX_AutoCreateNewLanguageFiles = True
 		SolutionGuid = {9DC4B901-16FF-4FF2-9ED6-B286EA17048E}
+		RESX_AutoCreateNewLanguageFiles = True
+		RESX_ConfirmAddLanguageFile = True
 	EndGlobalSection
 EndGlobal
