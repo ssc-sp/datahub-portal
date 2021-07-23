@@ -1,0 +1,55 @@
+{
+  "iisSettings": {
+    "windowsAuthentication": false,
+    "anonymousAuthentication": true,
+    "iisExpress": {
+      "applicationUrl": "http://localhost:10130",
+      "sslPort": 44381
+    }
+  },
+  "profiles": {
+    "IIS Express": {
+      "commandName": "IISExpress",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "AZURE_CLIENT_SECRET": "",
+        "AZURE_CLIENT_ID": "",
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "AZURE_TENANT_ID": ""
+      }
+    },
+    "IIS Express (Offline)": {
+      "commandName": "IISExpress",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Offline"
+      }
+    },
+    "Datahub": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "AZURE_CLIENT_SECRET": "",
+        "AZURE_CLIENT_ID": "",
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "AZURE_TENANT_ID": ""
+      },
+      "applicationUrl": "https://localhost:5001;http://localhost:5000"
+    },
+    "Datahub (Offline)": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Offline"
+      },
+      "applicationUrl": "https://localhost:5001;http://localhost:5000"
+    },
+    "Docker": {
+      "commandName": "Docker",
+      "launchBrowser": true,
+      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}",
+      "publishAllPorts": true,
+      "useSSL": true
+    }
+  }
+}

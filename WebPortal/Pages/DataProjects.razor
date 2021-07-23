@@ -8,26 +8,115 @@
 @page "/projects"
 
 
+<div style="padding: 2rem;padding-right: 2rem">
 
-<h1>@Localizer["My Projects"]</h1>
+    <AeFlex Vertical>
+        <h1>@Localizer["Featured Projects"]</h1>
+    </AeFlex>    
 <div class="ae flex wrap">
-@foreach (var p in _projects)
+@foreach (var p in _featured)
 {
-    <FACard Text="@p.ProjectDescription" NavLink="@("/project/" + p.Project_Acronym_CD)" Title="@p.ProjectName" Icon="@p.Project_Icon" />
+    <AeCard style="width: 450px;margin-bottom:16px" class="small">
+        <Header>
+            <AeFlex>
+            <div style="font-size: 1.5rem;padding-right: 0.5em;">
+                <i class="@($"fad fa-{p.Project_Icon}")" />
+            </div>
+            <NavLink href="@("/project/" + p.Project_Acronym_CD)"> <AeTypography>@p.ProjectName</AeTypography></NavLink>
+            </AeFlex>
+        </Header>
+        <ChildContent>
+            
+            <AeMarkdown Content="@($"{p.ProjectDescription}")"></AeMarkdown>
+        </ChildContent>
+    </AeCard>
 }
+
+</div>
+    <AeFlex Vertical>
+        <h1>@Localizer["All Projects"]</h1>
+    </AeFlex> 
+<AeCard>
+    <ChildContent>
+<div class="ae table-container">
+
+        <AePaginatedTable Accessors="accessorFunctions"     
+        Renderers="renderFunctions"
+        T="Datahub_Project"
+        Dataset="_projects"
+        Headers="headers"
+        class="custom light"
+        style="Width:100%"
+        GridTemplateColumns="0.5fr 2fr 3fr"    
+        Page="@_lastClicked"
+        PageSize="4"
+        @ref=_myTable
+        />
+
+        <AePagination Pageable="@_myTable" OnPageClick="OnPageClick" />                 
+</div>
+</ChildContent>
+</AeCard>
+
 
 </div>
 
 @code {
+
+    private List<Func<Datahub_Project, string>> accessorFunctions;
+    private List<Func<Datahub_Project, RenderFragment>> renderFunctions;    
+
+    private IPageableComponent _myTable;
+
     private List<Datahub_Project> _projects;
-    DatahubProjectDBContext Context;
+    private List<Datahub_Project> _featured;
+    private DatahubProjectDBContext Context;
+
+    private int _lastClicked = 0;
+
+
+    private void OnPageClick(int pageIndex)
+    {
+    _lastClicked = pageIndex;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+            StateHasChanged();
+    }
+
     protected override async Task OnInitializedAsync()
     {
         Context = DbFactory.CreateDbContext();
-        _projects = Context.Projects.Where(p => !p.Is_Private && !string.IsNullOrWhiteSpace(p.Project_Acronym_CD) && !string.IsNullOrWhiteSpace(p.Project_Name)).Include(p => p.Users).ToList();
+        _projects = Context.Projects.Where(p => !p.Is_Private && !string.IsNullOrWhiteSpace(p.Project_Acronym_CD) && !string.IsNullOrWhiteSpace(p.Project_Icon) && !string.IsNullOrWhiteSpace(p.Project_Name)).Include(p => p.Users).ToList();
+        _featured = _projects.Take(5).ToList();
+        await FillAccessorFunctions();
+        
+        renderFunctions = new List<Func<Datahub_Project, RenderFragment>>() {            
+            new Func<Datahub_Project, RenderFragment>(Datahub_Project => 
+                @<AeFlex class="table-icon"><i class="@($"fad fa-{Datahub_Project.Project_Icon}")"></i></AeFlex>),
+            new Func<Datahub_Project, RenderFragment>(Datahub_Project => @<AeFlex style="padding-top: 1rem"><AeTypography><NavLink href="@($"/project/{Datahub_Project?.Project_Acronym_CD}")">@Datahub_Project?.ProjectName</NavLink></AeTypography></AeFlex> ),
+            new Func<Datahub_Project, RenderFragment>(Datahub_Project => @<AeMarkdown Content="@($"{Datahub_Project.ProjectDescription}")"></AeMarkdown> ),
+        };
+        
+        
+        
+        //await FillRenderFunctions();
     }
 
+    private List<string> headers = new List<string>();
 
+
+    public async Task FillAccessorFunctions()
+    {
+        accessorFunctions = new List<Func<Datahub_Project, string>>() {
+            new Func<Datahub_Project, string>(Datahub_Project => { return Datahub_Project?.Project_Icon; }),
+            new Func<Datahub_Project, string>(Datahub_Project => { return Datahub_Project?.ProjectName; }),
+            new Func<Datahub_Project, string>(Datahub_Project => { return Datahub_Project?.ProjectDescription; }),
+        };
+    }
+    
      public void Dispose() 
     { 
         Context.Dispose();         
