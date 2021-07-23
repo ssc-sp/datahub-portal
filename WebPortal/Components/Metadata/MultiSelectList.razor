@@ -1,4 +1,5 @@
 ﻿@using NRCan.Datahub.Metadata
+@using NRCan.Datahub.Metadata.Model
 
 @if (FieldValue != null && FieldDefinition != null)
 {
@@ -6,7 +7,7 @@
         <select class="ae input" multiple style="width: 100%">
             @foreach (var c in FieldDefinition.Choices)
             {
-                <option value="@c.Value" @onclick="(e) => OnClick(e, c.Value)" selected="@IsSelected(c.Value)">
+                <option value="@c.Value_TXT" @onclick="(e) => OnClick(e, c.Value_TXT)" selected="@IsSelected(c.Value_TXT)">
                     @c.Label
                 </option>
             }

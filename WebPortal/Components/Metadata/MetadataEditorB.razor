@@ -8,7 +8,7 @@
 
         @foreach (var definition in Definitions.Fields)
         {
-            var fieldValue = GetFieldValue(definition.FieldName, Preview);
+            var fieldValue = GetFieldValue(definition.Field_Name_TXT, Preview);
 
             if (fieldValue != null)
             {
@@ -17,7 +17,7 @@
                                       FieldValue="fieldValue"
                                       FieldDefinition="definition"
                                       FieldLabel="@definition.Name"
-                                      Mandatory="definition.Required"
+                                      Mandatory="definition.Required_FLAG"
                                       OnFieldChanged="FieldChanged" />
             }
         }

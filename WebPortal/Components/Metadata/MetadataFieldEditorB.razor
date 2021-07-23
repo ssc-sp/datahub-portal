@@ -1,4 +1,5 @@
 ﻿@using NRCan.Datahub.Metadata
+@using NRCan.Datahub.Metadata.Model
 
 <AeFlex Vertical="false" style="margin-top: 10px;">
     <!-- key -->
@@ -11,7 +12,7 @@
         {
             <div class="_customuserinput" @onclick="SelectField">
                 <AeTypography style="cursor: pointer;">
-                    @if (!Preview && FieldDefinition.Required && FieldValueEmpty)
+                    @if (!Preview && FieldDefinition.Required_FLAG && FieldValueEmpty)
                     {
                         <strong style="color: red">*&nbsp;</strong>
                     }
@@ -53,7 +54,7 @@
                     }
                     else
                     {
-                        if (!FieldDefinition.MultiSelect)
+                        if (!FieldDefinition.MultiSelect_FLAG)
                         {
                             <select class="ae input"
                                     style="@FieldStyle"
@@ -64,7 +65,7 @@
 
                                 @foreach (var choice in FieldDefinition.Choices)
                                 {
-                                    <option value="@choice.Value">@choice.Label</option>
+                                    <option value="@choice.Value_TXT">@choice.Label</option>
                                 }
                             </select>
                         }
@@ -80,17 +81,17 @@
 
     <!-- button -->
     @*<div class="metadata-button" style="width: 30px; margin: 2px; flex-grow: 0;">
-        @if (HeaderRole || Preview)
-        {
-            // leave empty
-        }
-        else
-        {
-            <div class="roundbutton" @onclick="ClearField">
-                <i class="fal fa-trash-alt"></i>
-            </div>
-        }
-    </div>*@
+            @if (HeaderRole || Preview)
+            {
+                // leave empty
+            }
+            else
+            {
+                <div class="roundbutton" @onclick="ClearField">
+                    <i class="fal fa-trash-alt"></i>
+                </div>
+            }
+        </div>*@
 
 </AeFlex>
 
@@ -132,7 +133,7 @@
         }
     }
 
-    private string ChoiceDisplay => !FieldDefinition.MultiSelect ? GetChoiceLabel(FieldValue.Value) : GetMultiChoiceLabels(FieldValue.Value);
+    private string ChoiceDisplay => !FieldDefinition.MultiSelect_FLAG ? GetChoiceLabel(FieldValue.Value) : GetMultiChoiceLabels(FieldValue.Value);
 
     const string MandatoryField = "border: 0; width: 100%; background-color: rgb(255, 235, 230);";
     const string OptionalField = "border: 0; width: 100%;";
@@ -144,7 +145,7 @@
 
     private string GetChoiceLabel(string name)
     {
-        return FieldDefinition.Choices.FirstOrDefault(c => c.Value == name)?.Label;
+        return FieldDefinition.Choices.FirstOrDefault(c => c.Value_TXT == name)?.Label;
     }
 
     private string GetMultiChoiceLabels(string values)

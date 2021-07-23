@@ -48,7 +48,7 @@ using Microsoft.Graph;
 using Polly;
 using System.Net.Http;
 using Polly.Extensions.Http;
-using NRCan.Datahub.Metadata;
+using NRCan.Datahub.Metadata.Model;
 
 namespace NRCan.Datahub.Portal
 {
@@ -265,9 +265,6 @@ namespace NRCan.Datahub.Portal
                 services.AddScoped<IApiService, ApiService>();
                 services.AddScoped<IApiCallService, ApiCallService>();
 
-                services.AddSingleton<IExternalSearchService, ExternalSearchService>();
-                services.AddHttpClient<IExternalSearchService, ExternalSearchService>();
-
                 services.AddScoped<IDataUpdatingService, DataUpdatingService>();
                 services.AddScoped<IDataSharingService, DataSharingService>();
                 services.AddScoped<IDataCreatorService, DataCreatorService>();
@@ -300,6 +297,9 @@ namespace NRCan.Datahub.Portal
 
                 services.AddSingleton<ICognitiveSearchService, OfflineCognitiveSearchService>();
             }
+
+            services.AddSingleton<IExternalSearchService, ExternalSearchService>();
+            services.AddHttpClient<IExternalSearchService, ExternalSearchService>();
 
             services.AddScoped<IMetadataBrokerService, MetadataBrokerService>();
 
@@ -347,7 +347,7 @@ namespace NRCan.Datahub.Portal
 
         private string GetConnectionString(string name)
         {
-            return Configuration.GetConnectionString(name) ?? throw new ArgumentNullException($"ASPNETCORE_CONNECTION STRING ({name})");
+            return Configuration.GetConnectionString(name) ?? throw new ArgumentNullException($"ASPNETCORE_CONNECTION STRING ({name}) in Enviroment ({_currentEnvironment.EnvironmentName}).");
         }
     }
 }
