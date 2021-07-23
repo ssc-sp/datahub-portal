@@ -18,6 +18,5 @@ namespace NRCan.Datahub.Metadata
         public string ObligationEnglish { get; set; }
         [Index(16)]
         public string ObligationFrench { get; set; }
-
     }
 }

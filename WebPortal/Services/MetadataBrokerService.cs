@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using NRCan.Datahub.Metadata;
+using NRCan.Datahub.Metadata.Model;
 using System.Threading.Tasks;
 using System.Linq;
 
@@ -23,15 +24,15 @@ namespace NRCan.Datahub.Portal.Services
 
             var latestVersion = await _metadataDbContext
                 .MetadataVersions
-                .Where(e => e.Source == MetadataSource.OpenData)
-                .OrderByDescending(e => e.LastUpdate)
+                .Where(e => e.Source_TXT == "OpenData")
+                .OrderByDescending(e => e.Last_Update_DT)
                 .FirstOrDefaultAsync();
 
             if (latestVersion != null)
             {
                 var latestDefinitions = await _metadataDbContext.FieldDefinitions
                     .Include(e => e.Choices)
-                    .Where(e => e.VersionId == latestVersion.Id)
+                    .Where(e => e.MetadataVersionId == latestVersion.MetadataVersionId)
                     .ToListAsync();
 
                 definitions.Add(latestDefinitions.Where(IsValidDefinition));
@@ -42,7 +43,7 @@ namespace NRCan.Datahub.Portal.Services
 
         static bool IsValidDefinition(FieldDefinition field)
         {
-            return !string.IsNullOrWhiteSpace(field.FieldName) && !string.IsNullOrWhiteSpace(field.NameEnglish);
+            return !string.IsNullOrWhiteSpace(field.Field_Name_TXT) && !string.IsNullOrWhiteSpace(field.Name_English_TXT);
         }
     }
 }
