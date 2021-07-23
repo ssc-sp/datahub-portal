@@ -8,7 +8,17 @@
     <DockerfileContext>.</DockerfileContext>
   </PropertyGroup>
   <ItemGroup>
+    <None Remove="Wiki\BIOSIM.md" />
+    <None Remove="Wiki\Datahub-Artifacts-Naming-Standards.md" />
+    <None Remove="Wiki\Index.md" />
+    <None Remove="Wiki\Scientific-Data-Repository.md" />
+    <None Remove="Wiki\Scopus-Dataset.md" />
+  </ItemGroup>
+  <ItemGroup>
     <_ContentIncludedByDefault Remove="efpt.config.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Wiki\*" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="AElemental.Blazor" Version="1.1.21201.1-beta" />
@@ -59,6 +69,7 @@
     <PackageReference Include="Tewr.Blazor.FileReader" Version="3.0.0.20340" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Datahub.Metadata\Datahub.Metadata.csproj" />
     <ProjectReference Include="..\Datahub.Shared\Datahub.Shared.csproj" />
   </ItemGroup>
   <ItemGroup>
