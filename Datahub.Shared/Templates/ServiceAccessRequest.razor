@@ -1,0 +1,28 @@
+﻿@namespace NRCan.Datahub.Shared.Templates
+
+<h3>@Service Access Request for Project @DataProject</h3>
+
+<p>User <b>@Username</b> has requested access to service <b>@Service</b> in data project <b>@DataProject</b>. Please visit the admin page with proper credentials to approve or deny the request.</p>
+
+<p>To revoke the access, please contact the DataHub team with the DataHub Data Project code and user name.</p>
+
+<hr />
+
+<h3>Demande D’accès pour le Projet @DataProject</h3>
+
+<p>L’utilisateur <b>@Username</b> a demandé l’accès au service <b>@Service</b> dans le projet de données <b>@DataProject</b>. Veuillez visiter la page de l’administrateur en saisissant les identifiants appropriés pour approuver ou refuser la demande.</p>
+
+<p>Pour révoquer l’accès, veuillez communiquer avec l’équipe du DataHub et assurez-vous d’avoir en main le code de projet de données du DataHub et le nom d’utilisateur.</p>
+
+@code {
+
+    [Parameter]
+    public string Service { get; set; }
+
+    [Parameter]
+    public string DataProject { get; set; }
+
+    [Parameter]
+    public string Username { get; set; }
+
+}
