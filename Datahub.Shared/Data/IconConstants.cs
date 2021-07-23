@@ -25,7 +25,7 @@ namespace NRCan.Datahub.Shared.Data
 
     public static readonly Icon RESOURCES = new()
     {
-      Name = "fad fa-project-diagram",
+      Name = "fad fa-books",
       Color = "purple",
     };
 
@@ -52,5 +52,11 @@ namespace NRCan.Datahub.Shared.Data
       Name = "fad fa-keyboard",
       Color = "grey",
     };
-  }
+
+        public static readonly Icon PROJECT = new()
+        {
+            Name = "fad fa-project-diagram",
+            Color = "yellow",
+        };
+    }
 }

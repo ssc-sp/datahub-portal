@@ -4,42 +4,41 @@
 @use '../Components/Sidebar/coloring' as sidebar-coloring;
 
 .table-icon {
-  display: inline-block;
+    display: inline-block;
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    //margin: 1rem 0;
 
-  display: flex;
-  align-items: center;
-  padding: 1rem;
-  //margin: 1rem 0;
+    @include icon-colors.base-icon-color;
+    @include icon-colors.base-icon-hover;
+    @include icon-colors.icon-colors;
+    transition: all 0.2s c.$cubic-bezier;
+    border-left: 0px solid c.$transparent;
 
-  @include icon-colors.base-icon-color;
-  @include icon-colors.base-icon-hover;
-  @include icon-colors.icon-colors;
-  transition: all 0.2s c.$cubic-bezier;
-  border-left: 0px solid c.$transparent;
+    &:hover {
+        cursor: pointer;
+        border-left: 4px solid c.$transparent;
+        //@include sidebar-coloring.sidebar-border-colors;
 
-  &:hover {
-    cursor: pointer;
-    border-left: 4px solid c.$transparent;
-    //@include sidebar-coloring.sidebar-border-colors;
+        i {
+            opacity: 1;
+        }
+    }
 
     i {
-      opacity: 1;
-    }
-  }
-
-  i {
-    font-size: 1.5rem;
-    width: 40px;
-    opacity: 0.5;
-  }
-
-  .text {
-    .title {
+        font-size: 1.5rem;
+        width: 40px;
+        opacity: 0.5;
     }
 
-    .subtitle {
-      font-size: 0.6rem;
-      color: c.$gray-500;
+    .text {
+        .title {
+        }
+
+        .subtitle {
+            font-size: 0.6rem;
+            color: c.$gray-500;
+        }
     }
-  }
 }

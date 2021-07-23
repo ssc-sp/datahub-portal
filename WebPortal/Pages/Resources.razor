@@ -1,0 +1,72 @@
+﻿@using Microsoft.EntityFrameworkCore.Query
+@using Microsoft.EntityFrameworkCore;
+@using Microsoft.Extensions.Logging
+@using NRCan.Datahub.Portal.Data;
+@using System.Web
+@using System.IO
+@using System.Reflection
+@inject IStringLocalizer<DataLabels> DataLocalizer
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JsInterop
+@inject ILogger<Resources> logger
+
+@page "/resources/"
+@page "/resources/{PageName}"
+
+<div style="padding: 2rem">
+    <AeCard>
+        <ChildContent>
+    <AeMarkdown Content="@Markdown_Content"
+                LinkRewriter="@RewriteLink" />
+                </ChildContent>
+                </AeCard>
+</div>
+
+
+
+@code {
+
+    [Parameter]
+    public string PageName { get; set; } 
+
+    public const string DefaultPage = "Index";
+
+    public const string Namespace = "NRCan.Datahub.Portal";
+
+    private string Markdown_Content;
+
+    private Func<string, string> RewriteLink;
+
+    
+
+    public const string BaseURL = "/resources";
+
+    protected override async Task OnInitializedAsync()
+    {
+        RewriteLink = s => BaseURL + "/" + HttpUtility.UrlEncode(s);
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        Markdown_Content = LoadPage(PageName?? DefaultPage)?? Localizer["Invalid link"];
+    }
+
+    private string? LoadPage(string name)
+    {
+        if (name.StartsWith("/")) name = name.Substring(1);
+        try
+        {
+            var assembly = typeof(Startup).Assembly;
+            var resourceName = Namespace + ".Wiki." + name + ".md";
+
+            using Stream stream = assembly.GetManifestResourceStream(resourceName);
+            using StreamReader reader = new StreamReader(stream);
+            return reader.ReadToEnd();
+        } catch (Exception ex)
+        {
+            logger.LogError(ex, $"Cannot load page {name}");
+            return null;
+        }
+    }
+
+}

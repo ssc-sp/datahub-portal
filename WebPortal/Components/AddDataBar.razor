@@ -57,6 +57,7 @@
             showHeader = _fileMetadata.customfields.First() == field;
             <CustomFields Field="@field" CustomFieldChanged="CustomFieldChanged" DeleteRow="DeleteRow" IncludeHeader="showHeader" />
         }
+        <AeButton @onclick="OpenMetadata">Edit Metadata</AeButton>
 
 @*        <div class="bodytext">
             <div class="formlabel">
@@ -120,6 +121,11 @@
         base.OnInitialized();
         NotifierService.Notify += OnNotify;
         
+    }
+
+    public void OpenMetadata()
+    {        
+        NavigationManager.NavigateTo($"/metadata/");
     }
 
     public async Task OnNotify(string key, bool reloadData)

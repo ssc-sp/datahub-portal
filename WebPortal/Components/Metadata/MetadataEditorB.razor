@@ -1,0 +1,68 @@
+﻿@using NRCan.Datahub.Metadata
+
+@if (Definitions != null && FieldValues != null)
+{
+    <div class="metadata-grid" style="margin: 10px">
+
+        <MetadataFieldEditorB HeaderRole="true" />
+
+        @foreach (var definition in Definitions.Fields)
+        {
+            var fieldValue = GetFieldValue(definition.FieldName, Preview);
+
+            if (fieldValue != null)
+            {
+                @*<hr />*@
+                <MetadataFieldEditorB Preview="Preview"
+                                      FieldValue="fieldValue"
+                                      FieldDefinition="definition"
+                                      FieldLabel="@definition.Name"
+                                      Mandatory="definition.Required"
+                                      OnFieldChanged="FieldChanged" />
+            }
+        }
+
+    </div>
+}
+
+@code {
+
+    [Parameter]
+    public bool Preview { get; set; }
+
+    [Parameter]
+    public MetadataDefinition Definitions { get; set; }
+
+    [Parameter]
+    public FieldValues FieldValues { get; set; }
+
+    [Parameter]
+    public EventCallback<FieldValue> OnFieldChanged { get; set; }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+    }
+
+    private async Task FieldChanged(FieldValue field)
+    {
+        if (string.IsNullOrEmpty(field.Value))
+        {
+            FieldValues.Remove(field);
+        }
+        else if (!FieldValues.Contains(field))
+        {
+            FieldValues.Add(field);
+        }
+        await OnFieldChanged.InvokeAsync(field);
+    }
+
+    private FieldValue GetFieldValue(string definitionId, bool preview)
+    {
+        var field = FieldValues.FirstOrDefault(f => f.DefinitionId == definitionId);
+        if (!preview)
+            return field ?? new FieldValue() { DefinitionId = definitionId };
+        else
+            return field;
+    }
+}
