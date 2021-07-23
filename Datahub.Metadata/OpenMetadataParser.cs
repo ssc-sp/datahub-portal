@@ -3,6 +3,7 @@ using CsvHelper;
 using CsvHelper.Configuration;
 using System.Globalization;
 using System;
+using NRCan.Datahub.Metadata.Model;
 
 namespace NRCan.Datahub.Metadata
 {
@@ -24,13 +25,13 @@ namespace NRCan.Datahub.Metadata
             {
                 var fieldDefinition = new FieldDefinition()
                 {
-                    FieldName = row.FieldId,
-                    NameEnglish = row.NameEnglish,
-                    NameFrench = row.NameFrench,
-                    DescriptionEnglish = row.DescriptionEnglish,
-                    DescriptionFrench = row.DescriptionFrench,
-                    Required = "Mandatory".Equals(row.ObligationEnglish, StringComparison.InvariantCultureIgnoreCase),
-                    SortOrder = sortOrder++
+                    Field_Name_TXT = row.FieldId,
+                    Name_English_TXT = row.NameEnglish,
+                    Name_French_TXT = row.NameFrench,
+                    English_DESC = row.DescriptionEnglish,
+                    French_DESC = row.DescriptionFrench,
+                    Required_FLAG = "Mandatory".Equals(row.ObligationEnglish, StringComparison.InvariantCultureIgnoreCase),
+                    Sort_Order_NUM = sortOrder++
                 };
                 definitions.Add(fieldDefinition);
             }

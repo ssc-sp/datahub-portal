@@ -1,38 +1,37 @@
 ﻿@page "/metadata"
-@page "/metadata/{FileId}"
 @using NRCan.Datahub.Metadata;
 
 <div style="margin: 2rem">
-<AeCard>
-    <Header>
-        <h2>Metadata</h2>
-    </Header>
-    <ChildContent>
-        <AeFlex>
-            <div style="width: 200px; flex-grow: 0.5">
-                <MetadataEditorB Preview="false"
-                                 Definitions="@_definitions"
-                                 FieldValues="@_fieldValues"
-                                 OnFieldChanged="FieldChanged" />
-
-            </div>
-
-            <div style="width: 200px; flex-grow: 0.5">
-                @if (_preview)
-                {
-                    <MetadataEditorB Preview="_preview"
+    <AeCard>
+        <Header>
+            <h2>Metadata</h2>
+        </Header>
+        <ChildContent>
+            <AeFlex>
+                <div style="width: 200px; flex-grow: 0.5">
+                    <MetadataEditorB Preview="false"
                                      Definitions="@_definitions"
                                      FieldValues="@_fieldValues"
                                      OnFieldChanged="FieldChanged" />
-                }
 
-            </div>
-        </AeFlex>
-    </ChildContent>
-    <Footer>
-        <AeButton @onclick="TogglePreview">Toggle Preview</AeButton>
-    </Footer>
-</AeCard>
+                </div>
+
+                <div style="width: 200px; flex-grow: 0.5">
+                    @if (_preview)
+                    {
+                        <MetadataEditorB Preview="_preview"
+                                         Definitions="@_definitions"
+                                         FieldValues="@_fieldValues"
+                                         OnFieldChanged="FieldChanged" />
+                    }
+
+                </div>
+            </AeFlex>
+        </ChildContent>
+        <Footer>
+            <AeButton @onclick="TogglePreview">Toggle Preview</AeButton>
+        </Footer>
+    </AeCard>
 </div>
 
 @code {
@@ -54,7 +53,7 @@
         _definitions = await MetadataBrokerService.GetMetadataDefinition();
 
         _fieldValues = new FieldValues()
-        {
+    {
             new FieldValue()
             {
                 DefinitionId = "notes_fr",
@@ -76,20 +75,5 @@
     private void TogglePreview()
     {
         _preview = !_preview;
-    }
-
-    private void AppendTestChoices()
-    {
-        var choices = "Non-Spatial|Open code|API|Application"
-            .Split('|')
-            .Select(choice => new FieldChoice()
-            {
-                Value = choice,
-                LabelEnglish = choice,
-                LabelFrench = choice
-            })
-            .ToList();
-
-        _definitions.Get("Collection").Choices = choices;
     }
 }

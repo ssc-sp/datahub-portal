@@ -43,11 +43,11 @@ def _executeQueryAndGetIdentity(cursor, query):
 def _addVersionData(cursor, versionData):
     '''add the version record for this load'''
     
-    source = 0 #Open Metadata source
+    source = 'OpenData' #Open Metadata source
     lastUpdate = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S.%f")
 
     query = '''
-        INSERT INTO MetadataVersion (Source, LastUpdate, VersionData) 
+        INSERT INTO MetadataVersions (Source_TXT, Last_Update_DT, Version_Info_TXT) 
         VALUES (%s, '%s', '%s')'''%(source, lastUpdate, versionData)
 
     return _executeQueryAndGetIdentity(cursor, query)
@@ -57,7 +57,7 @@ def _addDefinitionToDatabase(cursor, definition, versionId, order):
     '''add a field definition and return the new row id'''
 
     query = '''
-        INSERT INTO FieldDefinition (VersionId, FieldName, SortOrder, NameEnglish, NameFrench, DescriptionEnglish, DescriptionFrench, Required, MultiSelect) 
+        INSERT INTO FieldDefinitions (MetadataVersionId, Field_Name_TXT, Sort_Order_NUM, Name_English_TXT, Name_French_TXT, English_DESC, French_DESC, Required_FLAG, MultiSelect_FLAG) 
         VALUES (%s, '%s', %s, '%s', '%s', '%s', '%s', %s, %s)'''%(
             versionId,
             _escape(definition.fieldName), 
@@ -75,7 +75,7 @@ def _addDefinitionToDatabase(cursor, definition, versionId, order):
 def _addFieldChoice(cursor, fieldId, choice):
     '''adds a choice record to the db'''
 
-    query = '''INSERT INTO FieldChoice (FieldDefinitionId, Value, LabelEnglish, LabelFrench) VALUES (%s, '%s', '%s', '%s')'''%(
+    query = '''INSERT INTO FieldChoices (FieldDefinitionId, Value_TXT, Label_English_TXT, Label_French_TXT) VALUES (%s, '%s', '%s', '%s')'''%(
         fieldId, 
         _escape(choice.value),
         _escape(choice.labelEnglish),
@@ -130,7 +130,7 @@ checksum = _calcCheckSum(_calcCheckSum(datasetData) + _calcCheckSum(presetsData)
 
 definitions = loadMetadata(_parseYamlData(datasetData), _parseYamlData(presetsData))
 
-connectionString = _readConnectionString('.connectionstring')
+connectionString = _readConnectionString('/temp/.connectionstring')
 
 _seedDatabase(connectionString, checksum, definitions)
 
