@@ -1,4 +1,5 @@
 ﻿using Elemental.Components;
+using NRCan.Datahub.Shared.Services;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -198,6 +199,20 @@ namespace NRCan.Datahub.Data.Projects
             }
         }
 
+        [AeFormIgnore]
+        [NotMapped]
+        public DatahubProjectInfo ProjectInfo
+        {
+            get
+            {
+                return new DatahubProjectInfo()
+                {
+                    ProjectNameEn = Project_Name,
+                    ProjectNameFr = Project_Name_Fr
+                };
+            }
+        }
+
     }
 
     public class Datahub_ProjectComment
@@ -219,6 +234,8 @@ namespace NRCan.Datahub.Data.Projects
 
     public class Datahub_ProjectServiceRequests
     {
+        // TODO add requesting user to data model
+
         [Key]
         [AeFormIgnore]
 
