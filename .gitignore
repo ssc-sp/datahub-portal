@@ -31,3 +31,4 @@ WebPortal/appsettings.Offline.json
 /WebPortal/pip.db
 /WebPortal/metadata.db
 /WebPortal/finance.db
+/WebPortal/etl.db
