@@ -7,6 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Localization;
 using MimeKit;
 using NRCan.Datahub.Shared.Templates;
+using System.Linq;
 
 namespace NRCan.Datahub.Shared.Services
 {
@@ -21,10 +22,20 @@ namespace NRCan.Datahub.Shared.Services
         public bool DevTestMode { get; set; }
     }
 
+    public class DatahubProjectInfo
+    {
+        public string ProjectNameEn { get; set; }
+        public string ProjectNameFr { get; set; }
+    }
+
     public class EmailNotificationService: IEmailNotificationService
     {
 
         public static readonly string EMAIL_CONFIGURATION_ROOT_KEY = "EmailNotification";
+
+        public static readonly string USERNAME_TEMPLATE_KEY = "Username";
+        public static readonly string SERVICE_TEMPLATE_KEY = "Service";
+        public static readonly string DATA_PROJECT_TEMPLATE_KEY = "DataProject";
 
         private EmailConfiguration _config;
 
@@ -56,11 +67,29 @@ namespace NRCan.Datahub.Shared.Services
             return html;
         }
 
-        public async Task SendEmailMessage(string subject, string body, string recipientName, string recipientAddress, bool isHtml = true)
+        public async Task SendEmailMessage(string subject, string body, string recipientAddress, string recipientName = null, bool isHtml = true)
+        {
+            var recipient = new MailboxAddress(recipientName, recipientAddress);
+            var recipients = new List<MailboxAddress>() { recipient };
+            await SendEmailMessage(subject, body, recipients, isHtml);
+        }
+
+        public async Task SendEmailMessage(string subject, string body, IList<string> recipientAddresses, bool isHtml = true)
+        {
+            var recipients = recipientAddresses.Select(addr => 
+            {
+                //TODO lookup username
+                var name = (string) null;
+                return new MailboxAddress(name, addr);
+            }).ToList();
+            await SendEmailMessage(subject, body, recipients, isHtml);
+        }
+
+        private async Task SendEmailMessage(string subject, string body, IList<MailboxAddress> recipients, bool isHtml)
         {
             var msg = new MimeMessage();
             msg.From.Add(new MailboxAddress(_config.SenderName, _config.SenderAddress));
-            msg.To.Add(new MailboxAddress(recipientName, recipientAddress));
+            msg.To.AddRange(recipients);
             msg.Subject = subject;
             var bodyPart = new TextPart(isHtml? "html": "plain") 
             {
@@ -81,6 +110,55 @@ namespace NRCan.Datahub.Shared.Services
         public bool IsDevTestMode()
         {
             return _config.DevTestMode;
+        }
+
+        private Dictionary<string, object> BuildNotificationParameters(DatahubProjectInfo projectInfo, string serviceName, string username = null)
+        {
+            var parameters = new Dictionary<string, object>()
+            {
+                { SERVICE_TEMPLATE_KEY, serviceName },
+                { DATA_PROJECT_TEMPLATE_KEY, projectInfo }
+            };
+
+            if (username != null)
+            {
+                parameters.Add(USERNAME_TEMPLATE_KEY, username);
+            }
+
+            return parameters;
+        }
+
+        public async Task SendServiceCreationRequestNotification(string username, string serviceName, DatahubProjectInfo projectInfo, IList<string> recipients)
+        {
+            var parameters = BuildNotificationParameters(projectInfo, serviceName, username);
+
+            var subject = $"[DataHub] New {serviceName} service request";
+
+            var html = await RenderTemplate<ServiceCreationRequest>(parameters);
+
+            await SendEmailMessage(subject, html, recipients);
+        }
+
+        public async Task SendServiceAccessRequestNotification(string username, string serviceName, DatahubProjectInfo projectInfo, IList<string> recipients)
+        {
+            var parameters = BuildNotificationParameters(projectInfo, serviceName, username);
+
+            var subject = $"[DataHub] {serviceName} access request for project {projectInfo.ProjectNameEn} / demande d’accès pour le projet {projectInfo.ProjectNameFr}";
+
+            var html = await RenderTemplate<ServiceAccessRequest>(parameters);
+
+            await SendEmailMessage(subject, html, recipients);
+        }
+
+        public async Task SendServiceAccessGrantedNotification(string serviceName, DatahubProjectInfo projectInfo, string recipientAddress, string recipientName = null)
+        {
+            var parameters = BuildNotificationParameters(projectInfo, serviceName);
+
+            var subject = $"[DataHub] {serviceName} service access request approved / demande d’accès au service approuvée";
+
+            var html = await RenderTemplate<ServiceAccessRequestApproved>(parameters);
+
+            await SendEmailMessage(subject, html, recipientAddress, recipientName);
         }
     }
 }

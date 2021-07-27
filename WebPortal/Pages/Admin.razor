@@ -104,7 +104,7 @@
 
         var html = await EmailService
             .RenderTemplate<NRCan.Datahub.Shared.Templates.TestEmailTemplate>(new Dictionary<string, object>(){{ "Name", TestRecipientName }});
-        await EmailService.SendEmailMessage("Test", html, TestRecipientName, TestRecipientEmail);
+        await EmailService.SendEmailMessage("Test", html, TestRecipientEmail, TestRecipientName);
 
         IsSendingTestEmail = false;
         StateHasChanged();
@@ -131,6 +131,12 @@
     {
         r.Completion_DT = DateTime.UtcNow;
         await projectContext.SaveChangesAsync();
+
+        //TODO better detection
+        var serviceName = r.Databricks? "databricks": r.PowerBI? "powerbi": "webforms";
+
+        await EmailService.SendServiceAccessGrantedNotification(serviceName, r.Project.ProjectInfo, r.User_Name);
+
         await RefreshData();
     }
 

@@ -2,13 +2,13 @@
 
 <h3>@Service Service Request Approved</h3>
 
-<p>Your request for the creation of service <b>@Service</b> in data project <b>@DataProject</b> has been approved. The service links in the data project page will now be active.</p>
+<p>Your request for the creation of service <b>@Service</b> in data project <b>@DataProject.ProjectNameEn</b> has been approved. The service links in the data project page will now be active.</p>
 
 <hr />
 
 <h3>Demande de Service Approuvée</h3>
 
-<p>Votre demande pour la création du service <b>@Service</b> dans le projet de données <b>@DataProject</b> a été approuvée. Les liens menant au service dans la page du projet de données seront maintenant actifs.</p>
+<p>Votre demande pour la création du service <b>@Service</b> dans le projet de données <b>@DataProject.ProjectNameFr</b> a été approuvée. Les liens menant au service dans la page du projet de données seront maintenant actifs.</p>
 
 @code {
 
@@ -16,6 +16,6 @@
     public string Service { get; set; }
 
     [Parameter]
-    public string DataProject { get; set; }
+    public DatahubProjectInfo DataProject { get; set; }
 
 }
