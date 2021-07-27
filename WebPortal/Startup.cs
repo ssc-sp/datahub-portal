@@ -152,12 +152,14 @@ namespace NRCan.Datahub.Portal
             IDbContextFactory<EFCoreDatahubContext> cosmosFactory,
             IDbContextFactory<FinanceDBContext> financeFactory,
             IDbContextFactory<PIPDBContext> pipFactory,
-            IDbContextFactory<MetadataDbContext> metadataFactory)
+            IDbContextFactory<MetadataDbContext> metadataFactory,
+            IDbContextFactory<DatahubETLStatusContext> etlFactory)
         {
 
 
             InitializeDatabase(logger, cosmosFactory, false);
             InitializeDatabase(logger, datahubFactory);
+            InitializeDatabase(logger, etlFactory);
             InitializeDatabase(logger, financeFactory);
             InitializeDatabase(logger, pipFactory);
             InitializeDatabase(logger, metadataFactory);
@@ -200,7 +202,7 @@ namespace NRCan.Datahub.Portal
                 if (Offline)
                 {
                     context.Database.EnsureDeleted();
-                    context.Database.EnsureCreated();
+                    context.Database.EnsureCreated();                    
                 }
                 else
                 {
@@ -308,9 +310,6 @@ namespace NRCan.Datahub.Portal
                 services.AddScoped<IApiService, ApiService>();
                 services.AddScoped<IApiCallService, ApiCallService>();
 
-                services.AddSingleton<IExternalSearchService, ExternalSearchService>();
-                services.AddHttpClient<IExternalSearchService, ExternalSearchService>();
-
                 services.AddScoped<IDataUpdatingService, DataUpdatingService>();
                 services.AddScoped<IDataSharingService, DataSharingService>();
                 services.AddScoped<IDataCreatorService, DataCreatorService>();
@@ -344,6 +343,9 @@ namespace NRCan.Datahub.Portal
                 services.AddSingleton<ICognitiveSearchService, OfflineCognitiveSearchService>();
             }
 
+            services.AddSingleton<IExternalSearchService, ExternalSearchService>();
+            services.AddHttpClient<IExternalSearchService, ExternalSearchService>();
+
             services.AddScoped<IMetadataBrokerService, MetadataBrokerService>();
 
             services.AddScoped<DataImportingService>();
@@ -371,7 +373,7 @@ namespace NRCan.Datahub.Portal
                 ConfigureDbContext<EFCoreDatahubContext>(services, "datahub-cosmosdb", driver);
             }
             ConfigureDbContext<WebAnalyticsContext>(services, "datahub-mssql-webanalytics", driver);
-            ConfigureDbContext<SqlCiosbDatahubEtldbContext>(services, "datahub-mssql-etldb", driver);
+            ConfigureDbContext<DatahubETLStatusContext>(services, "datahub-mssql-etldb", driver);
             ConfigureDbContext<MetadataDbContext>(services, "datahub-mssql-metadata", driver);
         }
 

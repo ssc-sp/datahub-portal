@@ -8,7 +8,7 @@
 @inject IJSRuntime JsInterop
 @implements IDisposable
 @inject IDbContextFactory<DatahubProjectDBContext> DbFactoryProject
-@inject IDbContextFactory<SqlCiosbDatahubEtldbContext> DbFactoryEtl
+@inject IDbContextFactory<DatahubETLStatusContext> DbFactoryEtl
 
 @page "/project/{projectAcronym}"
 
@@ -235,7 +235,7 @@
     //Service Status - 0 = pending creation, 1 = created
 
     private DatahubProjectDBContext projectContext;
-    private SqlCiosbDatahubEtldbContext etlContext;
+    private DatahubETLStatusContext etlContext;
 
 
     // Define the headers at the top of the table
