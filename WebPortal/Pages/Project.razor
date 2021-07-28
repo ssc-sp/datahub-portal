@@ -340,15 +340,9 @@
         projectContext.Access_Requests.Add(request);
         await projectContext.SaveChangesAsync();
 
-        //TODO better service detection
-        var serviceName = databricks? "databricks" : powerbi? "powerbi" : "webforms";
+        var serviceName = request.RequestServiceType;
 
-        // TODO lookup appropriate admins
-        var adminEmails = new List<string>()
-        {
-            "alexander.khavich@nrcan-rncan.gc.ca"
-        };
-
+        var adminEmails = ServiceAuthManager.ExtractEmails(_project.Project_Admin);
         await EmailNotificationService.SendServiceAccessRequestNotification(request.User_Name, serviceName, _project.ProjectInfo, adminEmails);
 
         await RefreshComponents(true);
@@ -368,12 +362,8 @@
         projectContext.Project_Requests.Add(serviceRequest);
         await projectContext.SaveChangesAsync();
 
-        // TODO lookup appropriate admins
-        var adminEmails = new List<string>()
-        {
-            "alexander.khavich@nrcan-rncan.gc.ca"
-        };
-        await EmailNotificationService.SendServiceCreationRequestNotification("joe", serviceType, _project.ProjectInfo, adminEmails);
+        var adminEmails = ServiceAuthManager.ExtractEmails(_project.Project_Admin);
+        await EmailNotificationService.SendServiceCreationRequestNotification(_user.UserPrincipalName, serviceType, _project.ProjectInfo, adminEmails);
 
         await RefreshComponents(true);
     }
