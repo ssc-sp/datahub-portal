@@ -27,14 +27,18 @@
 
 
 
-        <AeTable Accessors="accessorFunctions"
+        <AePaginatedTable Accessors="accessorFunctions"
                  T="PIP_Risks"
                  Dataset="_risks"
                  ColorAccessor="getColor"
                  Headers="headers"
                  GridTemplateColumns="2fr 2fr 2fr 2fr 2fr 2fr"
-                 MaxHeight="400"
-                 OnRowClick="@SetFormEdit" />
+                 OnRowClick="@SetFormEdit"
+                 Page="@_lastClicked"
+                 PageSize="10"
+                 @ref=_myTable />
+
+                 <AePagination Pageable="@_myTable" OnPageClick="OnPageClick" /> 
 
 
     </AeFlex>
@@ -94,6 +98,15 @@
     private Microsoft.Graph.User CurrentUser;
     private string navigationUrl = string.Empty;
     private PIPDBContext Context;  
+
+    private int _lastClicked = 0;
+    private IPageableComponent _myTable;
+
+
+    private void OnPageClick(int pageIndex)
+    {
+        _lastClicked = pageIndex;
+    }
 
     protected override async Task OnInitializedAsync()
     {
