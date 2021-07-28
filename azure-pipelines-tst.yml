@@ -13,22 +13,43 @@ variables:
 
 steps:
 
+
 - task: UseDotNet@2
   displayName: 'Install .NET Core SDK'
   inputs:
     version: 5.0.x
     performMultiLevelLookup: true
     includePreviewVersions: true # Required for preview versions
+
 - task: NodeTool@0
   displayName: 'install node'
   inputs:
     versionSpec: '15.11.0'
+
+- task: DotNetCoreCLI@2
+  displayName: dotnet restore
+  inputs:
+    command: restore
+    projects: 'WebPortal/*.csproj'
+    includeNuGetOrg: true
     
+- task: PowerShell@2
+  inputs:
+    targetType: 'inline'
+    script: |
+      $files=Get-Childitem -Path WebPortal,DatahubIntakeForms,.vscode -Include  appsettings*json-tmpl,launch*json-tmpl -File -Recurse -ErrorAction SilentlyContinue  | Where {$_.FullName -notlike "*\Debug\*"}
+      foreach ($file in $files){
+        $fileRendered=$file.FullName.trim("-tmpl")
+        Write-Host "Processing file: ${file} > $fileRendered"
+        Copy-Item $file.FullName -Force -Destination $fileRendered
+      }
+      cd WebPortal; mv appsettings.Development.json appsettings.dev.json
 - task: DotNetCoreCLI@2
   inputs:
     command: 'publish'
-    projects: '$(solution)'
-    arguments: '-r win-x64 --self-contained true'
+    projects: 'WebPortal/*.csproj'
+    arguments: ' -r win-x64 --self-contained true '
+    zipAfterPublish: true
 
 - task: AzureRmWebAppDeployment@4
   inputs:
@@ -36,6 +57,6 @@ steps:
     azureSubscription: 'datahub-test-service-connection'
     appType: 'webApp'
     WebAppName: 'dh-portal-app-tst'
-    packageForLinux: '$(System.DefaultWorkingDirectory)/WebPortal/**/*.zip'
+    package: '$(System.DefaultWorkingDirectory)/WebPortal/**/*.zip'
     enableCustomDeployment: true
     DeploymentType: 'webDeploy'

@@ -26,3 +26,9 @@ WebPortal/appsettings.prd.json
 WebPortal/appsettings.Tst.json
 WebPortal/Properties/launchSettings.json
 WebPortal/appsettings.Offline.json
+/WebPortal/user-tracking.db
+/WebPortal/projects.db
+/WebPortal/pip.db
+/WebPortal/metadata.db
+/WebPortal/finance.db
+/WebPortal/etl.db
