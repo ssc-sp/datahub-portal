@@ -254,6 +254,14 @@ namespace NRCan.Datahub.Data.Projects
 
         public string ServiceType { get; set; }
         public DateTime? Is_Completed { get; set; }
+        
+        [StringLength(200)]
+        public string User_Name { get; set; }
+
+        [StringLength(200)]
+        public string User_ID { get; set; }
+
+        public DateTime? Notification_Sent { get; set; }
 
         [AeFormIgnore]
         [Timestamp]
