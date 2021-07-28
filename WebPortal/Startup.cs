@@ -49,9 +49,15 @@ using Polly;
 using System.Net.Http;
 using Polly.Extensions.Http;
 using NRCan.Datahub.Metadata;
+using Microsoft.Extensions.Logging;
 
 namespace NRCan.Datahub.Portal
 {
+
+    public enum DbDriver
+    {
+        SqlServer, Sqlite
+    }
     public class Startup
     {
         public Startup(IConfiguration configuration, IWebHostEnvironment env)
@@ -103,7 +109,7 @@ namespace NRCan.Datahub.Portal
             }).AddHubOptions(o =>
             {
                 o.MaximumReceiveMessageSize = 10 * 1024 * 1024; // 10MB
-            }).AddMicrosoftIdentityConsentHandler(); 
+            }).AddMicrosoftIdentityConsentHandler();
 
             services.AddControllers();
 
@@ -141,8 +147,23 @@ namespace NRCan.Datahub.Portal
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILogger<Startup> logger,
+            IDbContextFactory<DatahubProjectDBContext> datahubFactory,
+            IDbContextFactory<EFCoreDatahubContext> cosmosFactory,
+            IDbContextFactory<FinanceDBContext> financeFactory,
+            IDbContextFactory<PIPDBContext> pipFactory,
+            IDbContextFactory<MetadataDbContext> metadataFactory,
+            IDbContextFactory<DatahubETLStatusContext> etlFactory)
         {
+
+
+            InitializeDatabase(logger, cosmosFactory, false);
+            InitializeDatabase(logger, datahubFactory);
+            InitializeDatabase(logger, etlFactory);
+            InitializeDatabase(logger, financeFactory);
+            InitializeDatabase(logger, pipFactory);
+            InitializeDatabase(logger, metadataFactory);
+
             app.UseRequestLocalization(app.ApplicationServices.GetService<IOptions<RequestLocalizationOptions>>().Value);
 
             if (env.IsDevelopment())
@@ -171,6 +192,30 @@ namespace NRCan.Datahub.Portal
                 endpoints.MapFallbackToPage("/_Host");
             });
 
+        }
+
+        private void InitializeDatabase<T>(ILogger<Startup> logger, IDbContextFactory<T> factory, bool migrate = true) where T:DbContext
+        {
+            using var context = factory.CreateDbContext();
+            try
+            {
+                if (Offline)
+                {
+                    context.Database.EnsureDeleted();
+                    context.Database.EnsureCreated();                    
+                }
+                else
+                {
+                    context.Database.EnsureCreated();
+                    if (migrate)
+                        context.Database.Migrate();
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogCritical(ex, $"Error initializing database {context.Database.GetDbConnection().Database}-{typeof(T).Name}");
+            }
+            
         }
 
         private void ConfigureAuthentication(IServiceCollection services)
@@ -298,6 +343,9 @@ namespace NRCan.Datahub.Portal
                 services.AddSingleton<ICognitiveSearchService, OfflineCognitiveSearchService>();
             }
 
+            services.AddSingleton<IExternalSearchService, ExternalSearchService>();
+            services.AddHttpClient<IExternalSearchService, ExternalSearchService>();
+
             services.AddScoped<IMetadataBrokerService, MetadataBrokerService>();
 
             services.AddScoped<DataImportingService>();
@@ -315,27 +363,37 @@ namespace NRCan.Datahub.Portal
 
         private void ConfigureDbContexts(IServiceCollection services)
         {
-            ConfigureDbContext<DatahubProjectDBContext>(services, "datahub-mssql-project");
-            ConfigureDbContext<PIPDBContext>(services, "datahub-mssql-pip");
-            ConfigureDbContext<FinanceDBContext>(services, "datahub-mssql-finance");
+            var driver = Offline? DbDriver.Sqlite: DbDriver.SqlServer;
+            ConfigureDbContext<DatahubProjectDBContext>(services, "datahub-mssql-project", driver);
+            ConfigureDbContext<PIPDBContext>(services, "datahub-mssql-pip", driver);
+            ConfigureDbContext<FinanceDBContext>(services, "datahub-mssql-finance", driver);
             if (!Offline)
             {
                 ConfigureCosmosDbContext<EFCoreDatahubContext>(services, "datahub-cosmosdb", "datahub-catalog-db");
             }
             else
             {
-                ConfigureDbContext<EFCoreDatahubContext>(services, "datahub-cosmosdb");
+                ConfigureDbContext<EFCoreDatahubContext>(services, "datahub-cosmosdb", driver);
             }
-            ConfigureDbContext<WebAnalyticsContext>(services, "datahub-mssql-webanalytics");
-            ConfigureDbContext<SqlCiosbDatahubEtldbContext>(services, "datahub-mssql-etldb");
-            ConfigureDbContext<MetadataDbContext>(services, "datahub-mssql-metadata");
+            ConfigureDbContext<WebAnalyticsContext>(services, "datahub-mssql-webanalytics", driver);
+            ConfigureDbContext<DatahubETLStatusContext>(services, "datahub-mssql-etldb", driver);
+            ConfigureDbContext<MetadataDbContext>(services, "datahub-mssql-metadata", driver);
         }
 
-        private void ConfigureDbContext<T>(IServiceCollection services, string connectionStringName) where T : DbContext
+        private void ConfigureDbContext<T>(IServiceCollection services, string connectionStringName, DbDriver dbDriver) where T : DbContext
         {
             var connectionString = GetConnectionString(connectionStringName);
-            services.AddPooledDbContextFactory<T>(options => options.UseSqlServer(connectionString));
-            services.AddDbContextPool<T>(options => options.UseSqlServer(connectionString));
+            switch (dbDriver)
+            {
+                case DbDriver.SqlServer:
+                    services.AddPooledDbContextFactory<T>(options => options.UseSqlServer(connectionString));
+                    services.AddDbContextPool<T>(options => options.UseSqlServer(connectionString));
+                    break;
+                case DbDriver.Sqlite:
+                    services.AddPooledDbContextFactory<T>(options => options.UseSqlite(connectionString));
+                    services.AddDbContextPool<T>(options => options.UseSqlite(connectionString));
+                    break;
+            }
         }
 
         private void ConfigureCosmosDbContext<T>(IServiceCollection services, string connectionStringName, string catalogName) where T : DbContext

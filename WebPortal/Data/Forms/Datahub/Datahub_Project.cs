@@ -73,6 +73,9 @@ namespace NRCan.Datahub.Data.Projects
 
     public class Datahub_Project
     {
+        public const string ONGOING = "Ongoing";
+        public const string CLOSED = "Closed";
+        public const string ON_HOLD = "On Hold";
 
         [AeFormIgnore]
         [Key]
@@ -121,8 +124,10 @@ namespace NRCan.Datahub.Data.Projects
 
         public string Stage_Desc { get; set; }
 
+        
+
         [Required]
-        [AeLabel(validValues: new[] { "Ongoing", "Closed", "On Hold" })]
+        [AeLabel(validValues: new[] { ONGOING, CLOSED, ON_HOLD })]
         public string Project_Status_Desc { get; set; }
 
         [AeLabel(isDropDown: true)]
