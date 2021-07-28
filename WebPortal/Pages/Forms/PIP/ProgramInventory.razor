@@ -25,7 +25,6 @@
              Headers="headers"
              ColorAccessor="getColor"
              GridTemplateColumns="4fr 4fr 4fr"
-             MaxHeight="400"
              OnRowClick="@SetFormEdit"
              Page="@_lastClicked"
              PageSize="10"
@@ -70,7 +69,6 @@
     [Parameter]
     public string tombstone { get; set; }
     
-    private IPageableComponent _myTable;
     private List<PIP_Tombstone> _projects;
     private PIP_Tombstone _tombstone;// = new PIP_Tombstone();
     private string SubmitLabel = "Save";
@@ -85,6 +83,7 @@
     };
 
     private int _lastClicked = 0;
+    private IPageableComponent _myTable;
 
 
     private void OnPageClick(int pageIndex)

@@ -12,14 +12,19 @@
 
 <div>
     <AeFlex Vertical id="indexFlex">
-        <AeTable Accessors="accessorFunctions"
+        <AePaginatedTable Accessors="accessorFunctions"
                  T="NRCan.Datahub.Portal.Data.Finance.Budget"
                  Dataset="_budgets"
                  ColorAccessor="getColor"
                  Headers="headers"
                  GridTemplateColumns="2fr 2fr 2fr"
                  MaxHeight="400"
-                 OnRowClick="@SetFormEdit" />
+                 OnRowClick="@SetFormEdit" 
+                 Page="@_lastClicked"
+                 PageSize="10"
+                 @ref=_myTable
+              />
+             <AePagination Pageable="@_myTable" OnPageClick="OnPageClick" /> 
     </AeFlex>
     
     
@@ -69,6 +74,15 @@
     private string SubmitLabel = "Add new";
     private SectorAndBranch _sector;
     private FinanceDBContext Context;
+
+    private int _lastClicked = 0;
+    private IPageableComponent _myTable;
+
+
+    private void OnPageClick(int pageIndex)
+    {
+        _lastClicked = pageIndex;
+    }
 
     private List<Func<NRCan.Datahub.Portal.Data.Finance.Budget, string>> accessorFunctions = new List<Func<NRCan.Datahub.Portal.Data.Finance.Budget, string>>
 {
