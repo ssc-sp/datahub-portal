@@ -115,7 +115,7 @@
 {
         new Func<Datahub_Project_Access_Request, string>(p => { return p.Project.Project_Name; }),
         new Func<Datahub_Project_Access_Request, string>(p => { return p.User_Name; }),
-        new Func<Datahub_Project_Access_Request, string>(p => { return (p.Databricks ? "Databricks" : (p.PowerBI ? "PowerBI" : "Web Forms")); }),
+        new Func<Datahub_Project_Access_Request, string>(p => { return p.RequestServiceType; }),
         new Func<Datahub_Project_Access_Request, string>(p => { return p.Request_DT.ToShortDateString(); }),
         new Func<Datahub_Project_Access_Request, string>(p => { return ".."; }),
     };
@@ -132,8 +132,7 @@
         r.Completion_DT = DateTime.UtcNow;
         await projectContext.SaveChangesAsync();
 
-        //TODO better detection
-        var serviceName = r.Databricks? "databricks": r.PowerBI? "powerbi": "webforms";
+        var serviceName = r.RequestServiceType;
 
         await EmailService.SendServiceAccessGrantedNotification(serviceName, r.Project.ProjectInfo, r.User_Name);
 
