@@ -34,25 +34,7 @@ namespace NRCan.Datahub.Portal
                  //    serviceCollection.AddSingleton(new ResourceManager("NRCan.Datahub.Portal.Resources", typeof(Startup).GetTypeInfo().Assembly));
                  //})  
                  .Build();
-
-            using (var scope = host.Services.CreateScope())
-            {
-                var cosmos = scope.ServiceProvider.GetRequiredService<EFCoreDatahubContext>();
-                cosmos.Database.EnsureCreated(); 
-                
-                var db = scope.ServiceProvider.GetRequiredService<DatahubProjectDBContext>();
-                db.Database.Migrate();
-
-                var finance = scope.ServiceProvider.GetRequiredService<FinanceDBContext>();
-                finance.Database.Migrate();
-
-                var pipdb = scope.ServiceProvider.GetRequiredService<PIPDBContext>();
-                pipdb.Database.Migrate();
-
-                var metadataDb = scope.ServiceProvider.GetRequiredService<MetadataDbContext>();
-                metadataDb.Database.Migrate();
-            }
-            
+           
             host.Run();
 
         }
