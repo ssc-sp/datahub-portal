@@ -27,6 +27,10 @@ namespace NRCan.Datahub.Data.Projects
         public bool PowerBI { get; set; }
         public bool WebForms { get; set; }
 
+        [NotMapped]
+        [AeFormIgnore]
+        public string RequestServiceType => (Databricks ? "Databricks" : (PowerBI ? "PowerBI" : "Web Forms"));
+
         public DateTime Request_DT { get; set; }
 
         public DateTime? Completion_DT { get; set; }
