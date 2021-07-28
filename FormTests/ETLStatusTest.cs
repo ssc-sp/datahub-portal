@@ -14,10 +14,10 @@ namespace FormTests
         [Fact]
         public async Task TestLoadETLStatus()
         {
-            var contextOptions = new DbContextOptionsBuilder<SqlCiosbDatahubEtldbContext>()
+            var contextOptions = new DbContextOptionsBuilder<DatahubETLStatusContext>()
                 .UseSqlServer(@"Server=sqlserver-ciosb-datahub.database.windows.net;Database=sql-ciosb-datahub-etldb;Integrated Authentication=true;applicationintent=readonly")
                 .Options;
-            using var etlctx = new SqlCiosbDatahubEtldbContext(contextOptions);
+            using var etlctx = new DatahubETLStatusContext(contextOptions);
             var results = await etlctx.ETL_CONTROL_TBL.Where(p => p.PROCESS_NM == "CITSM - Elsevier Publications and Citations").OrderByDescending(t => t.END_TS).ToListAsync();
             Assert.Equal(2, results.Count);
             
