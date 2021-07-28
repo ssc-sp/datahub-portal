@@ -343,9 +343,6 @@ namespace NRCan.Datahub.Portal
                 services.AddSingleton<ICognitiveSearchService, OfflineCognitiveSearchService>();
             }
 
-            services.AddSingleton<IExternalSearchService, ExternalSearchService>();
-            services.AddHttpClient<IExternalSearchService, ExternalSearchService>();
-
             services.AddScoped<IMetadataBrokerService, MetadataBrokerService>();
 
             services.AddScoped<DataImportingService>();
