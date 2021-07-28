@@ -5,6 +5,7 @@ namespace NRCan.Datahub.Portal.Services
 {
     public interface IMetadataBrokerService
     {
-        Task<MetadataDefinition> GetMetadataDefinition();
+        Task<MetadataDefinition> GetMetadataDefinition(string objectId);
+        Task<ObjectMetadataContext> GetMetadataContext(string objectId);
     }
 }
