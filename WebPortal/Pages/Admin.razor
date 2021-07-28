@@ -25,6 +25,22 @@
             <div>Loading data...</div>
         }
 
+        <h1>@Localizer["Service Requests"]</h1>
+
+        @if (_serviceRequests != null)
+        {
+            <AeTable 
+                Accessors=@serviceRequestAccessors
+                Dataset=@_serviceRequests
+                Renderers=@serviceRenderers
+                Headers=@serviceReqHeaders
+            />
+        }
+        else
+        {
+            <div>@Localizer["Loading data..."]</div>
+        }
+
         @if (EmailService.IsDevTestMode())
         {
             <div style="width:600px">
@@ -64,9 +80,16 @@
 
     private List<Datahub_Project_Access_Request> _usersAuthorization;
 
+    private List<Datahub_ProjectServiceRequests> _serviceRequests;
+
     private List<string> headers = new List<string>
 {
         "Project", "User", "Service", "Date","Actions"
+    };
+
+    private List<string> serviceReqHeaders = new List<string>()
+    {
+        "Project", "Requesting User", "Service", "Created", "Notified"
     };
 
     private bool _emailSelf = true;
@@ -120,9 +143,19 @@
         new Func<Datahub_Project_Access_Request, string>(p => { return ".."; }),
     };
 
+    private List<Func<Datahub_ProjectServiceRequests, string>> serviceRequestAccessors = new List<Func<Datahub_ProjectServiceRequests, string>>()
+        {
+            p => p.Project.Project_Name,
+            p => p.User_Name ?? "N/A",
+            p => p.ServiceType,
+            p => p.Is_Completed?.ToShortDateString() ?? "N/A",
+            p => ".."
+        };
+
     // [Optional] Can define custom rendering for columns, order matters
     private List<Func<Datahub_Project_Access_Request, RenderFragment>> renderFunctions;
 
+    private List<Func<Datahub_ProjectServiceRequests, RenderFragment>> serviceRenderers;
     private void GetServiceType(Datahub_Project_Access_Request request)
     { 
     
@@ -137,6 +170,11 @@
         await EmailService.SendServiceAccessGrantedNotification(serviceName, r.Project.ProjectInfo, r.User_Name);
 
         await RefreshData();
+    }
+
+    private async Task NotifyServiceCreation(Datahub_ProjectServiceRequests r)
+    {
+        //TODO
     }
 
     private async Task RefreshData()
@@ -154,6 +192,8 @@
             var validProjects = allProjectAdminsList.Where(tp => (ServiceAuthManager.ExtractEmails(tp.Project_Admin)?.Contains(email.ToLowerInvariant()) ?? false)).Select(p => p.Project_ID).ToHashSet();
             var allAuths = await projectContext.Access_Requests.Include(a => a.Project).OrderByDescending(a => a.Request_DT).ToListAsync();
             _usersAuthorization = allAuths.Where(a => validProjects.Contains(a.Project.Project_ID)).ToList();
+            var allServiceCreationRequests = await projectContext.Project_Requests.Include(a => a.Project).OrderByDescending(a => a.ServiceRequests_Date_DT).ToListAsync();
+            _serviceRequests = allServiceCreationRequests.Where(a => validProjects.Contains(a.Project.Project_ID)).ToList();
         }
     }
 
@@ -181,6 +221,30 @@
                 })
 
         };
+
+        serviceRenderers = new List<Func<Datahub_ProjectServiceRequests, RenderFragment>>()
+        {
+            null,
+            null,
+            null,
+            null,
+            p => 
+            {
+                if (!p.Is_Completed.HasValue)
+                {
+                    return @<span>@Localizer["N/A"]</span>;
+                }
+                else if (!p.Notification_Sent.HasValue)
+                {
+                    return @<AeButton @onclick="async () => await NotifyServiceCreation(p)">@Localizer["Send Notification"]</AeButton>;
+                }
+                else
+                {
+                    return @<div>@p.Notification_Sent.Value.ToShortDateString()</div>;
+                }
+            }
+        };
+
     }
 
 }
