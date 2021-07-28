@@ -6,17 +6,18 @@
 @inject IStringLocalizer<DataLabels> DataLocalizer
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JsInterop
-@inject IDbContextFactory<DatahubProjectDBContext> DbFactory
 @inject PowerBiServiceApi PowerBiServiceApi
 @using Microsoft.Identity.Web
 @inject MicrosoftIdentityConsentAndConditionalAccessHandler ConsentHandler
 
-<h1>@Localizer["PowerBI"]</h1>
+<div style="padding-left: 2rem;padding-right: 2rem">
 
-<h2>@Localizer["Featured Data Sets"]</h2>
+<AeTypography Variant="h1">@Localizer["PowerBI"]</AeTypography>
+<AeTypography Variant="h2">@Localizer["Featured Data Sets"]</AeTypography>
+
 @if (!isDatasetsLoaded)
 {
-    <Elemental.Components.Spinner />
+    <Spinner />
 }
 else
 {
@@ -26,31 +27,30 @@ else
 <AeCard style="width: 300px" class="small">
     <Header>
         <AeTypography style="flex-grow: 1">@ds.Name</AeTypography>
-        <AeTypography Variant="a" href="#">More</AeTypography>
+        <AeTypography Variant="a" href="@($"https://app.powerbi.com/datahub/datasets/{ds.Id}")">More</AeTypography>
     </Header>
     <ChildContent>
         <AeTypography>@ds.Description</AeTypography>
-        <AeTypography>@ds.EndorsementDetails.Endorsement</AeTypography>
-        <AeTypography>Card content</AeTypography>
     </ChildContent>
     <Footer>
-        <AeTypography>This is a smaller card</AeTypography>
+        <AeTypography>@(ds.EndorsementDetails?.Endorsement)</AeTypography>
     </Footer>
-</AeCard>}
-
+</AeCard>
+}
 </div>
 }
-<h2>@Localizer["My Workspaces"]</h2>
+<AeTypography Variant="h2">@Localizer["My Workspaces"]</AeTypography>
+
 @if (!isWorkspacesLoaded)
 {
-    <Elemental.Components.Spinner />
+    <Spinner />
 }
 else
 {
 
 }
 
-
+</div>
 @code {
     private bool isDatasetsLoaded = false;
     private bool isWorkspacesLoaded = false;
@@ -59,13 +59,21 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        try {
-            dataSets = await PowerBiServiceApi.GetAllDatasetsAsync();
-            isWorkspacesLoaded = true;
-        } catch (Exception ex)
+        Task.Run(async () =>
         {
-            ConsentHandler.HandleException(ex);
-        }
+            try
+            {
+                dataSets = await PowerBiServiceApi.GetAllDatasetsAsync();
+                isWorkspacesLoaded = true;
+                isDatasetsLoaded = true;
+                InvokeAsync(StateHasChanged);
+                //            StateHasChanged();
+            }
+            catch (Exception ex)
+            {
+                ConsentHandler.HandleException(ex);
+            }
+        });
     }
 
 }
