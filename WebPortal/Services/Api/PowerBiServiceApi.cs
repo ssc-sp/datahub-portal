@@ -76,7 +76,7 @@ namespace NRCan.Datahub.Portal.Services
                 var workspaces = (await client.Groups.GetGroupsAsync()).Value;
                 foreach (var workspace in workspaces)
                 {
-                    allDataSets.AddRange((await client.Datasets.GetDatasetsInGroupAsync(workspace.Id)).Value);
+                    allDataSets.AddRange((await client.Datasets.GetDatasetsInGroupAsync(workspace.Id)).Value);                    
                     var cReports = (await client.Reports.GetReportsInGroupAsync(workspace.Id)).Value;
                 }
                 // my workspace
