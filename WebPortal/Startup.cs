@@ -343,9 +343,6 @@ namespace NRCan.Datahub.Portal
                 services.AddSingleton<ICognitiveSearchService, OfflineCognitiveSearchService>();
             }
 
-            services.AddSingleton<IExternalSearchService, ExternalSearchService>();
-            services.AddHttpClient<IExternalSearchService, ExternalSearchService>();
-
             services.AddScoped<IMetadataBrokerService, MetadataBrokerService>();
 
             services.AddScoped<DataImportingService>();
@@ -354,6 +351,8 @@ namespace NRCan.Datahub.Portal
             services.AddScoped<NotificationsService>();
             services.AddScoped<UIControlsService>();
             services.AddScoped<NotifierService>();
+
+            services.AddScoped<IEmailNotificationService, EmailNotificationService>();
 
             services.AddSingleton<ServiceAuthManager>();
 
