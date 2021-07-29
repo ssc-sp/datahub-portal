@@ -7,7 +7,7 @@ namespace NRCan.Datahub.Metadata.Model
         /// <summary>
         /// Object metadata PK
         /// </summary>
-        public ulong ObjectMetadataId { get; set; }
+        public long ObjectMetadataId { get; set; }
         /// <summary>
         /// Metadata Version FK
         /// </summary>
