@@ -18,13 +18,13 @@
 @code {
 
     [Parameter]
-    public FieldValue FieldValue { get; set; }
+    public ObjectFieldValue FieldValue { get; set; }
 
     [Parameter]
     public FieldDefinition FieldDefinition { get; set; }
 
     [Parameter]
-    public EventCallback<FieldValue> OnFieldChanged { get; set; }
+    public EventCallback<ObjectFieldValue> OnFieldChanged { get; set; }
 
     private HashSet<string> _selection;
 
@@ -55,7 +55,7 @@
             _selection.Add(optionValue);
         }
 
-        FieldValue.Value = string.Join(splitChar.ToString(), _selection);
+        FieldValue.Value_TXT = string.Join(splitChar.ToString(), _selection);
 
         OnFieldChanged.InvokeAsync(FieldValue);
     }
@@ -64,6 +64,6 @@
 
     private IEnumerable<string> GetSelectedValues()
     {
-        return (FieldValue.Value ?? string.Empty).Split(splitChar).Where(v => !string.IsNullOrEmpty(v));
+        return (FieldValue.Value_TXT ?? string.Empty).Split(splitChar).Where(v => !string.IsNullOrEmpty(v));
     }
 }

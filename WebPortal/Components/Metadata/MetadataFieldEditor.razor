@@ -1,5 +1,4 @@
-﻿@using NRCan.Datahub.Metadata
-@using NRCan.Datahub.Metadata.Model
+﻿@using NRCan.Datahub.Metadata.Model
 
 <AeFlex Vertical="false" style="margin-top: 10px;">
     <!-- key -->
@@ -104,7 +103,7 @@
     public bool Preview { get; set; }
 
     [Parameter]
-    public FieldValue FieldValue { get; set; }
+    public ObjectFieldValue FieldValue { get; set; }
 
     [Parameter]
     public FieldDefinition FieldDefinition { get; set; }
@@ -116,24 +115,24 @@
     public bool Mandatory { get; set; }
 
     [Parameter]
-    public EventCallback<FieldValue> OnFieldChanged { get; set; }
+    public EventCallback<ObjectFieldValue> OnFieldChanged { get; set; }
 
     private ElementReference FieldValueInput;
 
     private string BoundValue
     {
-        get => FieldValue.Value;
+        get => FieldValue.Value_TXT;
         set
         {
-            if (value != FieldValue.Value)
+            if (value != FieldValue.Value_TXT)
             {
-                FieldValue.Value = value;
+                FieldValue.Value_TXT = value;
                 OnFieldChanged.InvokeAsync(FieldValue);
             }
         }
     }
 
-    private string ChoiceDisplay => !FieldDefinition.MultiSelect_FLAG ? GetChoiceLabel(FieldValue.Value) : GetMultiChoiceLabels(FieldValue.Value);
+    private string ChoiceDisplay => !FieldDefinition.MultiSelect_FLAG ? GetChoiceLabel(FieldValue.Value_TXT) : GetMultiChoiceLabels(FieldValue.Value_TXT);
 
     const string MandatoryField = "border: 0; width: 100%; background-color: rgb(255, 235, 230);";
     const string OptionalField = "border: 0; width: 100%;";

@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NRCan.Datahub.Metadata.Model;
 
 namespace NRCan.Datahub.Metadata.Migrations
 {
     [DbContext(typeof(MetadataDbContext))]
-    partial class MetadataDbContextModelSnapshot : ModelSnapshot
+    [Migration("20210728182132_ObjectMetadataKeyChangedStep1")]
+    partial class ObjectMetadataKeyChangedStep1
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -118,8 +120,8 @@ namespace NRCan.Datahub.Metadata.Migrations
 
             modelBuilder.Entity("NRCan.Datahub.Metadata.Model.ObjectFieldValue", b =>
                 {
-                    b.Property<long>("ObjectMetadataId")
-                        .HasColumnType("bigint");
+                    b.Property<int>("TempObjectMetadataId")
+                        .HasColumnType("int");
 
                     b.Property<int>("FieldDefinitionId")
                         .HasColumnType("int");
@@ -127,7 +129,7 @@ namespace NRCan.Datahub.Metadata.Migrations
                     b.Property<string>("Value_TXT")
                         .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("ObjectMetadataId", "FieldDefinitionId");
+                    b.HasKey("TempObjectMetadataId", "FieldDefinitionId");
 
                     b.HasIndex("FieldDefinitionId");
 
@@ -136,9 +138,9 @@ namespace NRCan.Datahub.Metadata.Migrations
 
             modelBuilder.Entity("NRCan.Datahub.Metadata.Model.ObjectMetadata", b =>
                 {
-                    b.Property<long>("ObjectMetadataId")
+                    b.Property<int>("TempObjectMetadataId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
+                        .HasColumnType("int")
                         .UseIdentityColumn();
 
                     b.Property<int>("MetadataVersionId")
@@ -149,7 +151,7 @@ namespace NRCan.Datahub.Metadata.Migrations
                         .HasMaxLength(128)
                         .HasColumnType("nvarchar(128)");
 
-                    b.HasKey("ObjectMetadataId");
+                    b.HasKey("TempObjectMetadataId");
 
                     b.HasIndex("MetadataVersionId");
 
@@ -191,7 +193,7 @@ namespace NRCan.Datahub.Metadata.Migrations
 
                     b.HasOne("NRCan.Datahub.Metadata.Model.ObjectMetadata", "ObjectMetadata")
                         .WithMany("FieldValues")
-                        .HasForeignKey("ObjectMetadataId")
+                        .HasForeignKey("TempObjectMetadataId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
