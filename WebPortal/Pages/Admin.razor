@@ -174,7 +174,30 @@
 
     private async Task NotifyServiceCreation(Datahub_ProjectServiceRequests r)
     {
-        //TODO
+        var requestingUserEmail = r.User_Name?.ToLowerInvariant();
+        var project = r.Project;
+        await projectContext.Entry(project).Collection(p => p.Users).LoadAsync();
+        var userEmails = project.Users.Select(u => u.User_Name.ToLowerInvariant()).ToHashSet();
+        
+        Task individualEmailTask = null;
+
+        if (!string.IsNullOrEmpty(requestingUserEmail))
+        {
+            userEmails.Remove(requestingUserEmail);
+            individualEmailTask = EmailService.SendServiceCreationRequestApprovedIndividual(r.ServiceType, r.Project.ProjectInfo, requestingUserEmail);
+        }
+
+        await EmailService.SendServiceCreationGroupNotification(r.ServiceType, r.Project.ProjectInfo, userEmails.ToList());
+
+        if (individualEmailTask != null)
+        {
+            await individualEmailTask;
+        }
+
+        r.Notification_Sent = DateTime.UtcNow;
+        await projectContext.SaveChangesAsync();
+
+        await RefreshData();
     }
 
     private async Task RefreshData()
