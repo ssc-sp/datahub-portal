@@ -1,0 +1,18 @@
+﻿@namespace NRCan.Datahub.Shared.Templates
+
+<h3>New @Service Service Request</h3>
+
+<p>User <b>@Username</b> has requested the creation of service <b>@Service</b> in data project <b>@DataProject.ProjectNameEn</b>. Please visit the admin page with proper credentials to approve or deny the request.</p>
+
+@code {
+
+    [Parameter]
+    public string Username { get; set; }
+
+    [Parameter]
+    public string Service { get; set; }
+
+    [Parameter]
+    public DatahubProjectInfo DataProject { get; set; }
+
+}

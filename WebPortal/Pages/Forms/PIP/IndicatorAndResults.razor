@@ -19,15 +19,18 @@
 
 
 
-        <AeTable Accessors="accessorFunctions"
+        <AePaginatedTable Accessors="accessorFunctions"
                  T="PIP_IndicatorAndResults"
                  Dataset="_indicators"
                  ColorAccessor="getColor"
                  Headers="headers"
                  GridTemplateColumns="1fr 4fr 4fr"
-                 MaxHeight="400"
-                 OnRowClick="@SetFormEdit" />
+                 OnRowClick="@SetFormEdit" 
+                 Page="@_lastClicked"
+                 PageSize="10"
+                 @ref=_myTable />
 
+                 <AePagination Pageable="@_myTable" OnPageClick="OnPageClick" />  
 
     </AeFlex>
     @if (_indicator == null)
@@ -92,6 +95,15 @@
     private Microsoft.Graph.User CurrentUser;
     private string navigationUrl = string.Empty;
     private string SubmitLabel = "Save";
+
+    private int _lastClicked = 0;
+    private IPageableComponent _myTable;
+
+
+    private void OnPageClick(int pageIndex)
+    {
+        _lastClicked = pageIndex;
+    }
 
     protected override async Task OnInitializedAsync()
     {

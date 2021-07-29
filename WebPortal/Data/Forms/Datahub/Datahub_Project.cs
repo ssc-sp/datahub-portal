@@ -1,4 +1,5 @@
 ﻿using Elemental.Components;
+using NRCan.Datahub.Shared.Services;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -25,6 +26,10 @@ namespace NRCan.Datahub.Data.Projects
         public bool Databricks { get; set; }
         public bool PowerBI { get; set; }
         public bool WebForms { get; set; }
+
+        [NotMapped]
+        [AeFormIgnore]
+        public string RequestServiceType => (Databricks ? "Databricks" : (PowerBI ? "PowerBI" : "Web Forms"));
 
         public DateTime Request_DT { get; set; }
 
@@ -73,6 +78,9 @@ namespace NRCan.Datahub.Data.Projects
 
     public class Datahub_Project
     {
+        public const string ONGOING = "Ongoing";
+        public const string CLOSED = "Closed";
+        public const string ON_HOLD = "On Hold";
 
         [AeFormIgnore]
         [Key]
@@ -121,8 +129,10 @@ namespace NRCan.Datahub.Data.Projects
 
         public string Stage_Desc { get; set; }
 
+        
+
         [Required]
-        [AeLabel(validValues: new[] { "Ongoing", "Closed", "On Hold" })]
+        [AeLabel(validValues: new[] { ONGOING, CLOSED, ON_HOLD })]
         public string Project_Status_Desc { get; set; }
 
         [AeLabel(isDropDown: true)]
@@ -198,6 +208,20 @@ namespace NRCan.Datahub.Data.Projects
             }
         }
 
+        [AeFormIgnore]
+        [NotMapped]
+        public DatahubProjectInfo ProjectInfo
+        {
+            get
+            {
+                return new DatahubProjectInfo()
+                {
+                    ProjectNameEn = Project_Name,
+                    ProjectNameFr = Project_Name_Fr
+                };
+            }
+        }
+
     }
 
     public class Datahub_ProjectComment
@@ -219,6 +243,8 @@ namespace NRCan.Datahub.Data.Projects
 
     public class Datahub_ProjectServiceRequests
     {
+        // TODO add requesting user to data model
+
         [Key]
         [AeFormIgnore]
 
@@ -228,6 +254,14 @@ namespace NRCan.Datahub.Data.Projects
 
         public string ServiceType { get; set; }
         public DateTime? Is_Completed { get; set; }
+        
+        [StringLength(200)]
+        public string User_Name { get; set; }
+
+        [StringLength(200)]
+        public string User_ID { get; set; }
+
+        public DateTime? Notification_Sent { get; set; }
 
         [AeFormIgnore]
         [Timestamp]
