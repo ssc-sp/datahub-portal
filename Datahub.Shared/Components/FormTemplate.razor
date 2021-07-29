@@ -1,0 +1,17 @@
+﻿@using NRCan.Datahub.Shared.Data
+@typeparam T
+
+<h1>@FormMetadata.Header</h1>
+<h2>@FormMetadata.SubHeader</h2>
+
+
+
+@code {
+    
+    [Parameter]
+    public T FormModel { get; set; }
+    [Parameter]
+    public FormMetadata FormMetadata { get; set; }
+
+
+}
