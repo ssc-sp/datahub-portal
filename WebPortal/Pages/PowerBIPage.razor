@@ -14,30 +14,51 @@
 
 <AeTypography Variant="h1">@Localizer["PowerBI"]</AeTypography>
 <AeTypography Variant="h2">@Localizer["Featured Data Sets"]</AeTypography>
-
 @if (!isDatasetsLoaded)
 {
     <Spinner />
 }
 else
 {
-<div class="ae flex wrap">
-@foreach (var ds in dataSets)
+
+@foreach (var workspace in dataSets.GroupBy(g => g.workspace))
 {
-<AeCard style="width: 300px" class="small">
+<AeCard>
     <Header>
-        <AeTypography style="flex-grow: 1">@ds.Name</AeTypography>
-        <AeTypography Variant="a" href="@($"https://app.powerbi.com/datahub/datasets/{ds.Id}")">More</AeTypography>
+        @workspace.Key.Name
     </Header>
     <ChildContent>
-        <AeTypography>@ds.Description</AeTypography>
+    <div class="ae flex wrap">
+    @foreach (var ds in workspace)
+    {
+    <AeCard style="width: 300px" class="small">
+        <Header>
+            <AeTypography Variant="a" href="@($"https://app.powerbi.com/datahub/datasets/{ds.dataset.Id}")">@ds.dataset.Name</AeTypography>
+        </Header>
+        <ChildContent>
+            <AeFlex Vertical> 
+            <AeTypography>@ds.dataset.Description</AeTypography>
+            <AeTypography>Related reports</AeTypography>
+            @foreach (var report in ds.reports)
+            {
+                <AeTypography Variant="a" href="@($"https://app.powerbi.com/groups/{ds.workspace.Id}/reports/{report.Id}")">@report.Name</AeTypography>
+            }
+            </AeFlex>
+        </ChildContent>
+        @*<Footer>
+            <AeFlex Vertical> 
+            <AeTypography><b>Workspace</b></AeTypography>
+            <AeTypography Variant="a" href="@($"https://app.powerbi.com/groups/{ds.workspace.Id}/list")">@ds.workspace.Name</AeTypography>
+            <AeTypography><b>Endorsement:</b> @(ds.dataset.EndorsementDetails?.Endorsement)</AeTypography>
+            </AeFlex>
+        </Footer>*@
+    </AeCard>
+    }
+    </div>
+    
     </ChildContent>
-    <Footer>
-        <AeTypography>@(ds.EndorsementDetails?.Endorsement)</AeTypography>
-    </Footer>
 </AeCard>
 }
-</div>
 }
 <AeTypography Variant="h2">@Localizer["My Workspaces"]</AeTypography>
 
@@ -55,7 +76,7 @@ else
     private bool isDatasetsLoaded = false;
     private bool isWorkspacesLoaded = false;
 
-    private List<Dataset> dataSets;
+    private List<(Group workspace,Dataset dataset, List<Report> reports)> dataSets;
 
     protected override async Task OnInitializedAsync()
     {
