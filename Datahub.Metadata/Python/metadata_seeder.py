@@ -48,7 +48,7 @@ def _addVersionData(cursor, versionData):
 
     query = '''
         INSERT INTO MetadataVersions (Source_TXT, Last_Update_DT, Version_Info_TXT) 
-        VALUES (%s, '%s', '%s')'''%(source, lastUpdate, versionData)
+        VALUES ('%s', '%s', '%s')'''%(source, lastUpdate, versionData)
 
     return _executeQueryAndGetIdentity(cursor, query)
 

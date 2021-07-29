@@ -10,8 +10,8 @@ using NRCan.Datahub.Metadata.Model;
 namespace NRCan.Datahub.Metadata.Migrations
 {
     [DbContext(typeof(MetadataDbContext))]
-    [Migration("20210723165952_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20210729151853_Initial")]
+    partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -120,8 +120,8 @@ namespace NRCan.Datahub.Metadata.Migrations
 
             modelBuilder.Entity("NRCan.Datahub.Metadata.Model.ObjectFieldValue", b =>
                 {
-                    b.Property<decimal>("ObjectMetadataId")
-                        .HasColumnType("decimal(20,0)");
+                    b.Property<long>("ObjectMetadataId")
+                        .HasColumnType("bigint");
 
                     b.Property<int>("FieldDefinitionId")
                         .HasColumnType("int");
@@ -138,10 +138,10 @@ namespace NRCan.Datahub.Metadata.Migrations
 
             modelBuilder.Entity("NRCan.Datahub.Metadata.Model.ObjectMetadata", b =>
                 {
-                    b.Property<decimal>("ObjectMetadataId")
+                    b.Property<long>("ObjectMetadataId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("decimal(20,0)")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.None);
+                        .HasColumnType("bigint")
+                        .UseIdentityColumn();
 
                     b.Property<int>("MetadataVersionId")
                         .HasColumnType("int");
