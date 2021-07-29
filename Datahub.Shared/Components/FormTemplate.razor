@@ -1,17 +1,54 @@
 ﻿@using NRCan.Datahub.Shared.Data
 @typeparam T
+@inherits HtmlElement
+@using System.Reflection
 
-<h1>@FormMetadata.Header</h1>
-<h2>@FormMetadata.SubHeader</h2>
 
+<h1>@Metadata.Header</h1>
+<h2>@Metadata.SubHeader</h2>
+
+<AePaginatedTable 
+         T="@T"
+         Accessors="Metadata.AccessorFunctions.ToList()"
+         Dataset="Metadata.DataSet.ToList()"
+         ColorAccessor="getColor"
+         Headers="Metadata.Headers.ToList()"
+         GridTemplateColumns="Metadata.GridTemplateColumns"
+         MaxHeight="400"
+         OnRowClick="@SetFormEdit" 
+         Page="@_lastClicked"
+         PageSize="10"
+         @ref=_myTable />
+
+        <AePagination Pageable="@_myTable" OnPageClick="OnPageClick" /> 
 
 
 @code {
-    
+
     [Parameter]
     public T FormModel { get; set; }
     [Parameter]
-    public FormMetadata FormMetadata { get; set; }
+    public FormMetadata<T> Metadata { get; set; }
 
+    private int _lastClicked = 0;
+    private IPageableComponent _myTable;
+    private Type _formType;
+
+    protected override async Task OnInitializedAsync()
+    {
+        
+    }
+
+    private void OnPageClick(int pageIndex)
+    {
+        _lastClicked = pageIndex;
+    }
+
+    private void SetFormEdit(T project)
+    {
+        //_sector = project;
+        StateHasChanged();
+        //_navToEdit = true;
+    }
 
 }
