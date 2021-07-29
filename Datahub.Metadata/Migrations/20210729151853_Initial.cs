@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace NRCan.Datahub.Metadata.Migrations
 {
-    public partial class InitialCreate : Migration
+    public partial class Initial : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -53,7 +53,8 @@ namespace NRCan.Datahub.Metadata.Migrations
                 name: "ObjectMetadata",
                 columns: table => new
                 {
-                    ObjectMetadataId = table.Column<decimal>(type: "decimal(20,0)", nullable: false),
+                    ObjectMetadataId = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
                     MetadataVersionId = table.Column<int>(type: "int", nullable: false),
                     ObjectId_TXT = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false)
                 },
@@ -94,7 +95,7 @@ namespace NRCan.Datahub.Metadata.Migrations
                 name: "ObjectFieldValues",
                 columns: table => new
                 {
-                    ObjectMetadataId = table.Column<decimal>(type: "decimal(20,0)", nullable: false),
+                    ObjectMetadataId = table.Column<long>(type: "bigint", nullable: false),
                     FieldDefinitionId = table.Column<int>(type: "int", nullable: false),
                     Value_TXT = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
