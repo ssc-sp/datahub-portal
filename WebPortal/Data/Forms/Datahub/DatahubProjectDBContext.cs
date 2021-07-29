@@ -61,6 +61,15 @@ namespace NRCan.Datahub.Data.Projects
                 .HasOne(p => p.LicenseRequest)
                 .WithMany(b => b.User_License_Requests)
                 .HasForeignKey(p => p.RequestID);
-        }
+
+            modelBuilder.Entity<Datahub_Project>().HasData(new Datahub_Project() { Project_ID = 1, 
+                Project_Acronym_CD = "DHTRK", 
+                Project_Status_Desc = Datahub_Project.ONGOING, 
+                Project_Name = "Datahub Projects", 
+                Is_Private = false,
+                Project_Icon = "database",
+                Project_Summary_Desc = "Datahub Project Tracker",
+                Sector_Name = "CIOSB"});
+            }
     }
 }

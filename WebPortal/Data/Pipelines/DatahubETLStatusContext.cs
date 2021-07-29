@@ -5,10 +5,10 @@ using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace NRCan.Datahub.Portal.Data
 {
-    public class SqlCiosbDatahubEtldbContext : DbContext
+    public class DatahubETLStatusContext : DbContext
     {
         
-        public SqlCiosbDatahubEtldbContext(DbContextOptions<SqlCiosbDatahubEtldbContext> options)
+        public DatahubETLStatusContext(DbContextOptions<DatahubETLStatusContext> options)
             : base(options)
         {
         }
@@ -23,11 +23,11 @@ namespace NRCan.Datahub.Portal.Data
             {
                 entity.HasNoKey();
 
-                entity.Property(e => e.END_TS).HasColumnType("datetime");
+                //entity.Property(e => e.END_TS).HasColumnType("datetime");
 
                 entity.Property(e => e.PROCESS_NM).HasMaxLength(100);
 
-                entity.Property(e => e.START_TS).HasColumnType("datetime");
+                //entity.Property(e => e.START_TS).HasColumnType("datetime");
 
                 entity.Property(e => e.STATUS_FLAG)
                     .HasMaxLength(1)
@@ -35,7 +35,7 @@ namespace NRCan.Datahub.Portal.Data
                     .IsFixedLength(true);
             });
 
-            modelBuilder.HasSequence<int>("run_id_seq");
+            //modelBuilder.HasSequence<int>("run_id_seq");
 
             
         }
