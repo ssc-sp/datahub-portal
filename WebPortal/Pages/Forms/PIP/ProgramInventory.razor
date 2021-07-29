@@ -5,6 +5,7 @@
 @inject IUserInformationService UserInformationService
 @inject IMSGraphService MSGraphService
 @inject UIControlsService UI
+@inject IConfiguration Configuration
 
 @implements IDisposable
 @inject IDbContextFactory<PIPDBContext> DbFactory
@@ -23,7 +24,7 @@
              Renderers="GetRenderers()"
              ColorAccessor="getColor"
              Headers="headers"
-             GridTemplateColumns="4fr 8fr"
+             GridTemplateColumns="4fr 4fr 4fr"
              MaxHeight="400"
              OnRowClick="@SetFormEdit" />
 
@@ -72,17 +73,17 @@
     private string navigationUrl = string.Empty;
     private bool _navToEdit = false;
     private Microsoft.Graph.User CurrentUser;
-    private PIPDBContext Context;  
+    private PIPDBContext Context;
     private List<string> headers = new List<string>
-{
-        "Title","Lead Sector"
+    {
+	    "Title","Lead Sector", "Report"
     };
 
-    private async Task<PIP_Tombstone> ClearForm()
-    {
+    private Task<PIP_Tombstone> ClearForm()
+    {        
         _tombstone = null;
         StateHasChanged();
-        return null;
+        return Task.FromResult<PIP_Tombstone>(null);
     }
 
     public string GetDataLabel(string propName)
@@ -110,13 +111,36 @@
 {
         new Func<PIP_Tombstone, string>(p => { return p.Program_Title; }),
         new Func<PIP_Tombstone, string>(p => { return p.Lead_Sector; }),
+        null,
     };
+
+    private List<Func<PIP_Tombstone, RenderFragment>> GetRenderers()
+    {
+        var powerBiTargets = Configuration["PowerBiTargets:SPI"];
+        foreach(var project in _projects)
+        {
+            if (!string.IsNullOrEmpty(powerBiTargets))
+            {
+                var powerBiUrl = $"{powerBiTargets}rp:p_program_title={project.Program_Title.Replace(" ", "+")}";
+                project.PowerBiUrl = @<a href="@powerBiUrl" target="blank">Open PowerBI Report</a>
+    ;
+            }
+        }
+
+        return new List<Func<PIP_Tombstone, RenderFragment>>() {
+            null,
+            null,
+            new Func< PIP_Tombstone, RenderFragment>(pt => { return pt.PowerBiUrl; }),    
+        };
+    }
 
 
     private void SetFormEdit(PIP_Tombstone project)
     {
+        var powerBiTargets = Configuration["PowerBiTargets:SPI"];
         _tombstone = project;
         _tombstone.Last_Updated_UserId = MSGraphService.GetUserName(_tombstone.Last_Updated_UserId);
+        
         SubmitLabel = "Save";
         StateHasChanged();
         _navToEdit = true;
@@ -124,22 +148,27 @@
 
 
     protected override async Task OnInitializedAsync()
-    {
-        // load projects
+    {        
         Context = DbFactory.CreateDbContext();
         _projects = Context.Tombstones.ToList();
+
+        
+
         if (!string.IsNullOrEmpty(tombstone))
         {
             _tombstone = _projects.Where(p => p.Tombstone_ID == Convert.ToInt32(tombstone)).FirstOrDefault();
+            
         }
         CurrentUser = await UserInformationService.GetCurrentUserAsync();
     }
 
-    private async Task CreateNewProject()
+
+    private Task CreateNewProject()
     {
         _tombstone = new PIP_Tombstone() { Last_Updated_DT = DateTime.Now, Date_Updated_DT = DateTime.Now };
         StateHasChanged();
         _navToEdit = true;
+        return Task.FromResult(0);
     }
 
     private string getColor(PIP_Tombstone current)
@@ -263,30 +292,20 @@
     {
         var messages = new List<string>() { "Would you like to save PIP data?" };
         await UI.ToggleModal(
-        @<UserChoiceModal HeaderText="Save Data" ChoiceTextList=@messages OnDecision="(a) => OnConfirmSave(a, null)" ConfirmText="Yes" CancelText="No" />);
+        @<UserChoiceModal HeaderText="Save Data" ChoiceTextList=@messages OnDecision="(a) => OnConfirmSave(a, null)" ConfirmText="Yes" CancelText="No" />
+    );
     }
 
-    private List<Func<PIP_Tombstone, RenderFragment>> GetRenderers()
-    {
-        return new List<Func<PIP_Tombstone, RenderFragment>>
-    {
-@*            new Func<PIP_Tombstone, RenderFragment>(q =>
-    {
-        return
-        @<i class="fas fa-edit" @onclick="() =>  SetFormEdit(q)"></i>;
-    }),*@
-            null, null
-        };
-        }
+    
 
-        protected override async Task OnAfterRenderAsync(bool firstRender)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_navToEdit)
         {
-            if (_navToEdit)
-            {
-                _navToEdit = false;
-                await this.JsInterop.InvokeVoidAsync("anchorLink.scrollIntoView", "edit");
-            }
+            _navToEdit = false;
+            await this.JsInterop.InvokeVoidAsync("anchorLink.scrollIntoView", "edit");
         }
+    }
 
-        public void Dispose() { Context.Dispose(); }
+    public void Dispose() { Context.Dispose(); }
 }

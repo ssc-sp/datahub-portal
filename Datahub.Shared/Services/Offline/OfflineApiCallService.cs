@@ -27,6 +27,11 @@ namespace NRCan.Datahub.Shared.Services
             return "offline-blob-name";
         }
 
+        public Task<string> GetProjectConnectionString(string accountName)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<string> getStorageConnString()
         {
             return Task.FromResult(string.Empty);
