@@ -1,10 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using NRCan.Datahub.Metadata;
 using NRCan.Datahub.Metadata.Model;
 using System.Threading.Tasks;
 using System.Linq;
 using System.Collections.Generic;
+using System;
+using NRCan.Datahub.Metadata.DTO;
 
 namespace NRCan.Datahub.Portal.Services
 {
@@ -19,54 +20,83 @@ namespace NRCan.Datahub.Portal.Services
             _metadataDbContext = metadataDbContext;
         }
 
-        public async Task<MetadataDefinition> GetMetadataDefinition(string objectId)
-        {
-            var objectMetadata = await _metadataDbContext.ObjectMetadataSet.FirstOrDefaultAsync(e => e.ObjectId_TXT == objectId);
-            return await (objectMetadata == null ? GetLatestMetadataDefinition() : GetMetadataDefinition(objectMetadata.MetadataVersionId));
-        }
-
         public async Task<ObjectMetadataContext> GetMetadataContext(string objectId)
         {
-            var objectMetadata = await _metadataDbContext.ObjectMetadataSet.Include(e => e.FieldValues).FirstOrDefaultAsync(e => e.ObjectId_TXT == objectId);
+            // retrieve the object metadata
+            var objectMetadata = await _metadataDbContext.ObjectMetadataSet
+                .Include(e => e.FieldValues)
+                .FirstOrDefaultAsync(e => e.ObjectId_TXT == objectId);
 
-            var metadataDefinition = await (objectMetadata == null ? GetLatestMetadataDefinition() : GetMetadataDefinition(objectMetadata.MetadataVersionId));
+            // retrieve the field definitions
+            var metadataDefinitions = await (objectMetadata == null ? GetLatestMetadataDefinition() : GetMetadataDefinition(objectMetadata.MetadataVersionId));
 
-            var fieldValues = objectMetadata?.FieldValues ?? new List<ObjectFieldValue>();
+            // retrieve and clone the field values
+            var fieldValues = CloneFieldValues(objectMetadata?.FieldValues ?? new List<ObjectFieldValue>());
 
-            return new ObjectMetadataContext(objectId, metadataDefinition, fieldValues);
+            return new ObjectMetadataContext(objectId, metadataDefinitions, fieldValues);
         }
 
-        public async Task SaveMetadata(string objectId, IEnumerable<ObjectFieldValue> fieldValues)
+        public async Task SaveMetadata(string objectId, int metadataVersionId, FieldValueContainer fieldValues)
         {
-            var current = await FetchObjectMetadata(objectId) ?? CreateNewObjectMetadata(objectId);
-
-            if (current.ObjectMetadataId == 0)
+            var transation = _metadataDbContext.Database.BeginTransaction();
+            try
             {
+                // fetch the existing metadata object or create a new one
+                var current = await FetchObjectMetadata(objectId) ?? await CreateNewObjectMetadata(objectId, metadataVersionId);
+                
+                // hash the new values by FieldDefinitionId
+                var newValues = fieldValues.ToDictionary(v => v.FieldDefinitionId);
+                
+                // hash the existing values by FieldDefinitionId
+                var currentValues = current.FieldValues.ToDictionary(v => v.FieldDefinitionId);
+
+                foreach (var editedValue in fieldValues)
+                {
+                    // add, update or delete values
+                    if (currentValues.TryGetValue(editedValue.FieldDefinitionId, out ObjectFieldValue currentValue))
+                    {
+                        if (currentValue.Value_TXT != editedValue.Value_TXT)
+                        {
+                            if (string.IsNullOrEmpty(editedValue.Value_TXT))
+                            {
+                                // delete if cleared
+                                _metadataDbContext.ObjectFieldValues.Remove(currentValue);
+                            }
+                            else
+                            {
+                                // update value
+                                currentValue.Value_TXT = editedValue.Value_TXT;
+                                _metadataDbContext.ObjectFieldValues.Update(currentValue);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // add new value
+                        editedValue.ObjectMetadataId = current.ObjectMetadataId;
+                        _metadataDbContext.ObjectFieldValues.Add(editedValue);
+                    }
+                }
+
+                // delete removed values
+                foreach (var currentValue in current.FieldValues)
+                {
+                    if (!newValues.ContainsKey(currentValue.FieldDefinitionId))
+                    {
+                        _metadataDbContext.ObjectFieldValues.Remove(currentValue);
+                    }
+                }
+
+                // save the changes
                 await _metadataDbContext.SaveChangesAsync();
+
+                transation.Commit();
             }
-
-            var newValues = fieldValues.ToDictionary(v => v.FieldDefinitionId, v => v);
-            var currentValues = current.FieldValues.ToDictionary(v => v.FieldDefinitionId, v => v);
-
-            foreach (var fv in fieldValues)
+            catch (Exception)
             {
-                if (currentValues.TryGetValue(fv.FieldDefinitionId, out ObjectFieldValue value))
-                {
-                    value.Value_TXT = fv.Value_TXT;
-                    _metadataDbContext.ObjectFieldValues.Update(fv);
-                }
-                else
-                {
-                    fv.ObjectMetadataId = current.ObjectMetadataId;
-                    _metadataDbContext.ObjectFieldValues.Add(fv);
-                }
+                transation.Rollback();
+                throw;
             }
-
-
-            // for each existing value 
-
-
-            throw new System.NotFiniteNumberException();
         }
 
         private async Task<ObjectMetadata> FetchObjectMetadata(string objectId)
@@ -74,18 +104,24 @@ namespace NRCan.Datahub.Portal.Services
             return await _metadataDbContext.ObjectMetadataSet.FirstOrDefaultAsync(e => e.ObjectId_TXT == objectId);
         }
 
-        private ObjectMetadata CreateNewObjectMetadata(string objectId)
+        private async Task<ObjectMetadata> CreateNewObjectMetadata(string objectId, int metadataVersionId)
         {
-            return new ObjectMetadata()
+            var objectMetadata =  new ObjectMetadata()
             {
+                MetadataVersionId = metadataVersionId,
                 ObjectId_TXT = objectId,
                 FieldValues = new List<ObjectFieldValue>()
             };
+
+            _metadataDbContext.ObjectMetadataSet.Add(objectMetadata);
+            await _metadataDbContext.SaveChangesAsync();
+
+            return objectMetadata;
         }
 
         const string OpenDataId = "OpenData";
 
-        private async Task<MetadataDefinition> GetLatestMetadataDefinition()
+        private async Task<FieldDefinitions> GetLatestMetadataDefinition()
         {
             var latestVersion = await _metadataDbContext
                 .MetadataVersions
@@ -94,14 +130,14 @@ namespace NRCan.Datahub.Portal.Services
                 .FirstOrDefaultAsync();
 
             if (latestVersion == null)
-                return new MetadataDefinition();
+                return new FieldDefinitions();
 
             return await GetMetadataDefinition(latestVersion.MetadataVersionId);
         }
 
-        private async Task<MetadataDefinition> GetMetadataDefinition(int versionId)
+        private async Task<FieldDefinitions> GetMetadataDefinition(int versionId)
         {
-            var definitions = new MetadataDefinition();
+            var definitions = new FieldDefinitions();
 
             var latestDefinitions = await _metadataDbContext.FieldDefinitions
                     .Include(e => e.Choices)
@@ -116,6 +152,11 @@ namespace NRCan.Datahub.Portal.Services
         static bool IsValidDefinition(FieldDefinition field)
         {
             return !string.IsNullOrWhiteSpace(field.Field_Name_TXT) && !string.IsNullOrWhiteSpace(field.Name_English_TXT);
+        }
+
+        static IEnumerable<ObjectFieldValue> CloneFieldValues(IEnumerable<ObjectFieldValue> values)
+        {
+            return values.Select(v => v.Clone());
         }
     }
 }
