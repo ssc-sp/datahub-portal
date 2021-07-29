@@ -30,7 +30,7 @@
 
 
 
-<AeTable Accessors="accessorFunctions"
+<AePaginatedTable Accessors="accessorFunctions"
        T="Datahub_Project"
        Dataset="_projects"
        ColorAccessor="getColor"
@@ -38,8 +38,11 @@
        GridTemplateColumns="2fr 2fr 2fr 8fr 2fr 8fr"
        MaxHeight="400"
        OnRowClick="@SetFormEdit"
-       />
-
+       Page="@_lastClicked"
+                 PageSize="10"
+                 @ref=_myTable />
+    
+    <AePagination Pageable="@_myTable" OnPageClick="OnPageClick" /> 
 
 </AeFlex>
 
@@ -106,6 +109,16 @@ if (_project.Project_ID > 0)
     private bool _navToEdit = false;
     private DatahubProjectDBContext Context;
     
+    private int _lastClicked = 0;
+    private IPageableComponent _myTable;
+
+
+    private void OnPageClick(int pageIndex)
+    {
+        _lastClicked = pageIndex;
+    }
+
+
     private List<string> headers = new List<string>
     {
         "Status", "Sector","Project", "Name", "Last Contact", "Contacts"
