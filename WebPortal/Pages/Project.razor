@@ -8,7 +8,8 @@
 @inject IJSRuntime JsInterop
 @implements IDisposable
 @inject IDbContextFactory<DatahubProjectDBContext> DbFactoryProject
-@inject IDbContextFactory<SqlCiosbDatahubEtldbContext> DbFactoryEtl
+@inject IDbContextFactory<DatahubETLStatusContext> DbFactoryEtl
+@inject IEmailNotificationService EmailNotificationService
 
 @page "/project/{projectAcronym}"
 
@@ -235,7 +236,7 @@
     //Service Status - 0 = pending creation, 1 = created
 
     private DatahubProjectDBContext projectContext;
-    private SqlCiosbDatahubEtldbContext etlContext;
+    private DatahubETLStatusContext etlContext;
 
 
     // Define the headers at the top of the table
@@ -339,11 +340,17 @@
         projectContext.Access_Requests.Add(request);
         await projectContext.SaveChangesAsync();
 
+        var serviceName = request.RequestServiceType;
+
+        var adminEmails = ServiceAuthManager.ExtractEmails(_project.Project_Admin);
+        await EmailNotificationService.SendServiceAccessRequestNotification(request.User_Name, serviceName, _project.ProjectInfo, adminEmails);
+
         await RefreshComponents(true);
     }
 
     private async Task RequestServiceAccess(string serviceType)
     {
+        // TODO add requesting user to data model
         var serviceRequest = new Datahub_ProjectServiceRequests()
         {
             ServiceType = serviceType,
@@ -354,6 +361,9 @@
 
         projectContext.Project_Requests.Add(serviceRequest);
         await projectContext.SaveChangesAsync();
+
+        var adminEmails = ServiceAuthManager.ExtractEmails(_project.Project_Admin);
+        await EmailNotificationService.SendServiceCreationRequestNotification(_user.UserPrincipalName, serviceType, _project.ProjectInfo, adminEmails);
 
         await RefreshComponents(true);
     }
