@@ -48,9 +48,7 @@ using Microsoft.Graph;
 using Polly;
 using System.Net.Http;
 using Polly.Extensions.Http;
-using NRCan.Datahub.Metadata;
 using NRCan.Datahub.Metadata.Model;
-using NRCan.Datahub.Metadata;
 using Microsoft.Extensions.Logging;
 
 namespace NRCan.Datahub.Portal
@@ -217,7 +215,6 @@ namespace NRCan.Datahub.Portal
             {
                 logger.LogCritical(ex, $"Error initializing database {context.Database.GetDbConnection().Database}-{typeof(T).Name}");
             }
-            
         }
 
         private void ConfigureAuthentication(IServiceCollection services)
