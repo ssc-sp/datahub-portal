@@ -160,5 +160,27 @@ namespace NRCan.Datahub.Shared.Services
 
             await SendEmailMessage(subject, html, recipientAddress, recipientName);
         }
+
+        public async Task SendServiceCreationRequestApprovedIndividual(string serviceName, DatahubProjectInfo projectInfo, string recipientAddress, string recipientName = null)
+        {
+            var parameters = BuildNotificationParameters(projectInfo, serviceName);
+
+            var subject = $"[DataHub] {serviceName} service request approved / demande de service approuvée";
+
+            var html = await RenderTemplate<ServiceRequestApproved>(parameters);
+
+            await SendEmailMessage(subject, html, recipientAddress, recipientName);
+        }
+
+        public async Task SendServiceCreationGroupNotification(string serviceName, DatahubProjectInfo projectInfo, IList<string> recipients)
+        {
+            var parameters = BuildNotificationParameters(projectInfo, serviceName);
+
+            var subject = $"[DataHub] {serviceName} service created";
+
+            var html = await RenderTemplate<ServiceCreatedGroupNotification>(parameters);
+
+            await SendEmailMessage(subject, html, recipients);
+        }
     }
 }
