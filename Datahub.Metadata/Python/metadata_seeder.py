@@ -57,8 +57,8 @@ def _addDefinitionToDatabase(cursor, definition, versionId, order):
     '''add a field definition and return the new row id'''
 
     query = '''
-        INSERT INTO FieldDefinitions (MetadataVersionId, Field_Name_TXT, Sort_Order_NUM, Name_English_TXT, Name_French_TXT, English_DESC, French_DESC, Required_FLAG, MultiSelect_FLAG) 
-        VALUES (%s, '%s', %s, '%s', '%s', '%s', '%s', %s, %s)'''%(
+        INSERT INTO FieldDefinitions (MetadataVersionId, Field_Name_TXT, Sort_Order_NUM, Name_English_TXT, Name_French_TXT, English_DESC, French_DESC, Required_FLAG, MultiSelect_FLAG, Validators_TXT) 
+        VALUES (%s, '%s', %s, '%s', '%s', '%s', '%s', %s, %s, '%s')'''%(
             versionId,
             _escape(definition.fieldName), 
             order, 
@@ -67,7 +67,8 @@ def _addDefinitionToDatabase(cursor, definition, versionId, order):
             _escape(definition.descriptionEnglish), 
             _escape(definition.descriptionFrench), 
             _boolToInt(definition.required),
-            _boolToInt(definition.multiselect))
+            _boolToInt(definition.multiselect),
+            _escape(definition.validators))
 
     return _executeQueryAndGetIdentity(cursor, query)
 
