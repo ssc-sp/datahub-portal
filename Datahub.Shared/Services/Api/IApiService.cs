@@ -29,5 +29,7 @@ namespace NRCan.Datahub.Shared.Services
         Task<Uri> DownloadFile(FileMetaData file);
         Task UploadGen2File(FileMetaData fileMetadata);
         string ProjectUploadCode { get; set; }
+
+        Task<Uri> GetUserDelegationSasBlob(FileMetaData file, string project = null);
     }    
 }

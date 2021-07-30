@@ -156,7 +156,12 @@ namespace NRCan.Datahub.Portal.Services.Offline
 
         public Task UploadGen2File(FileMetaData fileMetadata)
         {
-            throw new NotImplementedException();
+            return Task.FromResult(0);
+        }
+
+        public Task<Uri> GetUserDelegationSasBlob(FileMetaData file, string project = null)
+        {
+            return Task.FromResult(new Uri(""));
         }
     }
 }

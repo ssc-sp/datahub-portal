@@ -172,10 +172,11 @@ namespace NRCan.Datahub.Shared.Services
             }
         }
 
-        public async Task<Uri> GetUserDelegationSasBlob(FileMetaData file)
+        public async Task<Uri> GetUserDelegationSasBlob(FileMetaData file, string project = null)   
         {
-         
-            string cxnstring = await _apiCallService.GetProjectConnectionString(ProjectUploadCode);
+
+            var projectStr = project ?? ProjectUploadCode;
+            string cxnstring = await _apiCallService.GetProjectConnectionString(projectStr);
             BlobServiceClient blobServiceClient = new BlobServiceClient(cxnstring);
             BlobContainerClient containerClient = blobServiceClient.GetBlobContainerClient("datahub");
 
@@ -184,7 +185,7 @@ namespace NRCan.Datahub.Shared.Services
             BlobClient blobClient = containerClient.GetBlobClient(file.filename);
             
             
-            var sharedKeyCred = await _dataLakeClientService.GetSharedKeyCredential(ProjectUploadCode);
+            var sharedKeyCred = await _dataLakeClientService.GetSharedKeyCredential(projectStr);
 
             // Create a SAS token that's also valid for 7 days.
             BlobSasBuilder sasBuilder = new BlobSasBuilder()
@@ -202,11 +203,7 @@ namespace NRCan.Datahub.Shared.Services
 
             // Add the SAS token to the blob URI.
             BlobUriBuilder blobUriBuilder = new BlobUriBuilder(blobClient.Uri)
-            {
-                // Specify the user delegation key.
-                //Sas = sasBuilder.ToSasQueryParameters(userDelegationKey,
-                //                                      blobServiceClient.AccountName)
-
+            {                
                 Sas = sasBuilder.ToSasQueryParameters(sharedKeyCred)
             };
 
@@ -214,6 +211,7 @@ namespace NRCan.Datahub.Shared.Services
             return blobUriBuilder.ToUri();
         }
 
+        
         public async Task<Uri> DownloadFile(FileMetaData file)
         {
             try

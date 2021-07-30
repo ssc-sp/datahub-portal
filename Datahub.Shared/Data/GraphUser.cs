@@ -78,10 +78,11 @@ namespace NRCan.Datahub.Shared.Data
         /// <returns></returns>
         public static GraphUser Create(User user)
         {
+            var email = user.Mail ?? "unknown@unknown.com";
             var instance = new GraphUser() {
                 Id = user.Id,
                 DisplayName = user.DisplayName,
-                mailAddress = new MailAddress(user.Mail)
+                mailAddress = new MailAddress(email)
             };
 
             return instance;
