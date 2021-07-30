@@ -51,7 +51,7 @@
             <ChildContent>
                 @if (_databricksAuthorized && !string.IsNullOrWhiteSpace(_project.Databricks_URL))
                 {
-                    <a href="@_project.Databricks_URL"><AeTypography Variant="h3">Azure Databricks</AeTypography></a>
+                    <DatahubLink Variant="h3" DataProject="@projectAcronym" DatabricksURL="@_project.Databricks_URL">Azure Databricks</DatahubLink>                    
                 }
                 else
                 {
@@ -101,7 +101,7 @@
             <ChildContent>
                 @if (_powerBIAuthorized && !string.IsNullOrWhiteSpace(_project.PowerBI_URL))
                 {
-                    <a href="@_project.PowerBI_URL"><AeTypography Variant="h3">PowerBI</AeTypography></a>
+                    <DatahubLink Variant="h3" DataProject="@projectAcronym" PowerBIURL="@_project.PowerBI_URL">PowerBI Workspace</DatahubLink>                    
                 }
                 else
                 {
@@ -151,7 +151,7 @@
                 <ChildContent>
                     @if (!string.IsNullOrWhiteSpace(_project.WebForms_URL) && _webFormsAuthorized)
                     {
-                        <NavLink href="@_project.WebForms_URL"><AeTypography Variant="h3">Data Entry</AeTypography></NavLink>
+                        <DatahubLink Variant="h3" DataProject="@projectAcronym" WebFormsURL="@_project.WebForms_URL">Data Entry</DatahubLink>                    
                     }
                     else
                     {
@@ -185,7 +185,7 @@
                 </Header>
                 <ChildContent>                            
                 <AeFlex Vertical>
-                    <NavLink href=@($"/project/{projectAcronym}/forms")><AeTypography Variant="h3">Form Builder</AeTypography></NavLink>
+                    <DatahubLink Variant="h3" DataProject="@projectAcronym" LinkType="DatahubLinkType.FormBuilder">Form Builder</DatahubLink>                    
                     <AeTypography>Design custom data entry forms</AeTypography>
                 </AeFlex>
             </ChildContent>
@@ -202,7 +202,7 @@
 
                     @if (_serviceRequests.Any(r => r.ServiceType == "storage" && r.Is_Completed != null))
                     {
-                        <NavLink href=@($"/project/{projectAcronym}/filelist")><AeTypography Variant="h3">Storage Explorer</AeTypography></NavLink>
+                        <DatahubLink Variant="h3" DataProject="@projectAcronym" LinkType="DatahubLinkType.Storage">Storage Explorer</DatahubLink>                                           
                     } else
                     {
                         <AeTypography Variant="h3">Storage Explorer</AeTypography>
