@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Components;
+using Microsoft.EntityFrameworkCore;
+using NRCan.Datahub.Portal.Components;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -12,17 +14,26 @@ namespace NRCan.Datahub.Shared.EFCore
     {
         [Key]
         public string UserId { get; set; }
-        public ICollection<UserRecentActions> UserRecentActions{ get; set; } = new List<UserRecentActions>();
+        public ICollection<UserRecentLink> UserRecentActions{ get; set; } = new List<UserRecentLink>();
         
     }
     [Owned]
-    public class UserRecentActions
+    public record UserRecentLink
     { 
         [Key]
         public Guid UserRecentActionId { get; set; }
-        public string title { get; set; }
-        public string url { get; set; }
-        public string icon { get; set; }
+
+        public DatahubLinkType LinkType { get; set; }
+
+        public string PowerBIURL { get; set; }
+
+        public string Variant { get; set; }
+
+        public string DatabricksURL { get; set; }
+
+        public string WebFormsURL { get; set; }
+
+        public string DataProject { get; set; }
         public DateTimeOffset accessedTime{ get; set; }
     }
 }
