@@ -10,6 +10,7 @@ class FieldDefinition:
         self.descriptionFrench = ""
         self.required = False
         self.multiselect = False
+        self.validators = ""
         self.choices = []
 
 
@@ -101,6 +102,8 @@ def _readFluentFieldDefinition(preset, choices, lang):
     d.required = _getValue(preset, 'values/required')
     d.multiselect = _checkMultiselect(preset)
 
+    d.validators = _getValue(preset, 'values/validators')
+
     d.choices = _convertFieldChoices(_getValue(preset, 'values/choices', []), choices)
 
     return d
@@ -122,6 +125,8 @@ def _readNonFluentFieldDefinition(preset, choices):
 
     d.required = _getValue(preset, 'values/required')
     d.multiselect = _checkMultiselect(preset)
+
+    d.validators = _getValue(preset, 'values/validators')
 
     d.choices = _convertFieldChoices(_getValue(preset, 'values/choices', []), choices)
     
