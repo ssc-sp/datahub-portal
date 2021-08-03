@@ -172,6 +172,18 @@
         await RefreshData();
     }
 
+    private async Task RevokeAccess(Datahub_Project_Access_Request r)
+    {
+        r.Completion_DT = null;
+        await projectContext.SaveChangesAsync();
+
+        var serviceName = r.RequestServiceType;
+
+        await EmailService.SendAccessRevokedNotification(serviceName, r.Project.ProjectInfo, r.User_Name);
+
+        await RefreshData();
+    }
+
     private async Task NotifyServiceCreation(Datahub_ProjectServiceRequests r)
     {
         var requestingUserEmail = r.User_Name?.ToLowerInvariant();
@@ -234,7 +246,7 @@
                 new Func<Datahub_Project_Access_Request, RenderFragment>(a => {
                     if (a.Completion_DT != null)
                     {
-                        return @<div>@Localizer["Authorized"]</div>;
+                        return @<div>@Localizer["Authorized"] <AeButton @onclick="async () => await RevokeAccess(a)">@Localizer["Revoke"]</AeButton> </div>;
                     }
                    else
       
