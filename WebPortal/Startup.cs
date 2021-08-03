@@ -48,7 +48,7 @@ using Microsoft.Graph;
 using Polly;
 using System.Net.Http;
 using Polly.Extensions.Http;
-using NRCan.Datahub.Metadata;
+using NRCan.Datahub.Metadata.Model;
 using Microsoft.Extensions.Logging;
 
 namespace NRCan.Datahub.Portal
@@ -162,7 +162,7 @@ namespace NRCan.Datahub.Portal
             InitializeDatabase(logger, etlFactory);
             InitializeDatabase(logger, financeFactory);
             InitializeDatabase(logger, pipFactory);
-            InitializeDatabase(logger, metadataFactory);
+            InitializeDatabase(logger, metadataFactory, false, false);
 
             app.UseRequestLocalization(app.ApplicationServices.GetService<IOptions<RequestLocalizationOptions>>().Value);
 
@@ -194,14 +194,15 @@ namespace NRCan.Datahub.Portal
 
         }
 
-        private void InitializeDatabase<T>(ILogger<Startup> logger, IDbContextFactory<T> factory, bool migrate = true) where T:DbContext
+        private void InitializeDatabase<T>(ILogger<Startup> logger, IDbContextFactory<T> factory, bool migrate = true, bool ensureDelete = true) where T : DbContext
         {
             using var context = factory.CreateDbContext();
             try
             {
                 if (Offline)
                 {
-                    context.Database.EnsureDeleted();
+                    if (ensureDelete)
+                        context.Database.EnsureDeleted();
                     context.Database.EnsureCreated();                    
                 }
                 else
@@ -215,7 +216,6 @@ namespace NRCan.Datahub.Portal
             {
                 logger.LogCritical(ex, $"Error initializing database {context.Database.GetDbConnection().Database}-{typeof(T).Name}");
             }
-            
         }
 
         private void ConfigureAuthentication(IServiceCollection services)
@@ -343,6 +343,9 @@ namespace NRCan.Datahub.Portal
                 services.AddSingleton<ICognitiveSearchService, OfflineCognitiveSearchService>();
             }
 
+            services.AddSingleton<IExternalSearchService, ExternalSearchService>();
+            services.AddHttpClient<IExternalSearchService, ExternalSearchService>();
+
             services.AddScoped<IMetadataBrokerService, MetadataBrokerService>();
 
             services.AddScoped<DataImportingService>();
@@ -404,7 +407,7 @@ namespace NRCan.Datahub.Portal
 
         private string GetConnectionString(string name)
         {
-            return Configuration.GetConnectionString(name) ?? throw new ArgumentNullException($"ASPNETCORE_CONNECTION STRING ({name})");
+            return Configuration.GetConnectionString(name) ?? throw new ArgumentNullException($"ASPNETCORE_CONNECTION STRING ({name}) in Enviroment ({_currentEnvironment.EnvironmentName}).");
         }
     }
 }
