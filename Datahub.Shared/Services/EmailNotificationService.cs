@@ -176,11 +176,22 @@ namespace NRCan.Datahub.Shared.Services
         {
             var parameters = BuildNotificationParameters(projectInfo, serviceName);
 
-            var subject = $"[DataHub] {serviceName} service created";
+            var subject = $"[DataHub] {serviceName} service created / {serviceName} service créé ";
 
             var html = await RenderTemplate<ServiceCreatedGroupNotification>(parameters);
 
             await SendEmailMessage(subject, html, recipients);
+        }
+
+        public async Task SendAccessRevokedNotification(string serviceName, DatahubProjectInfo projectInfo, string recipientAddress, string recipientName = null)
+        {
+            var parameters = BuildNotificationParameters(projectInfo, serviceName);
+
+            var subject = $"[DataHub] {serviceName} service access revoked / accès au service révoqué";
+
+            var html = await RenderTemplate<ServiceAccessRevoked>(parameters);
+
+            await SendEmailMessage(subject, html, recipientAddress, recipientName);
         }
     }
 }
