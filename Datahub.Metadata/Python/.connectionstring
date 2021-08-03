@@ -1,1 +1,0 @@
-Driver={SQL Server Native Client 11.0};Server=tcp:dh-portal-sql-dev.database.windows.net,1433;Database=dh-portal-metadata;Uid=dh-portal-sqladmin;Pwd=M20Sare%M9AK7opX;Encrypt=yes;TrustServerCertificate=no;Connection Timeout=30;
