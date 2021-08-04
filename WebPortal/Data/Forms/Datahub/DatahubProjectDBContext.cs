@@ -28,7 +28,7 @@ namespace NRCan.Datahub.Data.Projects
         public DbSet<WebForm_DBCodes> DBCodes { get; set; }
 
         public DbSet<Datahub_Project_User> Project_Users { get; set; }
-
+        public DbSet<Datahub_Project_User_Request> Project_Users_Requests { get; set; }
         public DbSet<Datahub_ProjectServiceRequests> Project_Requests { get; set; }
 
         public DbSet<Datahub_Project_Pipeline_Lnk> Project_Pipeline_Links { get; set; }
