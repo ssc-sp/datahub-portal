@@ -165,30 +165,32 @@
         </AeFlex>
     </AeCard>
 
-    <AeCard class="facard1">
-        <AeFlex>
-            <AeIcon class="fas fa-hdd big-icon" />
-            <AeFlex Vertical>
-                 @if (_serviceRequests.Any(r => r.ServiceType == "storage" && r.Is_Completed != null && r.Project.Project_Acronym_CD == projectAcronym))
-                {
-                    <NavLink href=@($"/project/{projectAcronym}/filelist")><AeTypography Variant="h3">Storage Explorer</AeTypography></NavLink>
-                    <AeTypography>Storage Explorer for @_project.ProjectName</AeTypography>
-                }
-                else if (_serviceRequests.Any(r => r.ServiceType == "storage" && r.Is_Completed == null && r.Project.Project_Acronym_CD == projectAcronym))
-                {
-                    <AeTypography Variant="h3">Storage Explorer</AeTypography>
-                    <AeTypography>Storage Explorer for @_project.ProjectName</AeTypography>
-                    <AeTypography class="warning">Service Request is being reviewed</AeTypography> 
-                }
-                else
-                {
-                    <AeTypography Variant="h3">Storage Explorer</AeTypography>
-                    <AeTypography>Storage Explorer for @_project.ProjectName</AeTypography>
-                    <AeButton @onclick="@(async () => await RequestServiceAccess("storage"))">Request Service Creation</AeButton>
-                }
+    <AuthorizeView Roles="@($"{projectAcronym}")">
+        <AeCard class="facard1">
+            <AeFlex>
+                <AeIcon class="fas fa-hdd big-icon" />
+                <AeFlex Vertical>
+                     @if (_serviceRequests.Any(r => r.ServiceType == "storage" && r.Is_Completed != null && r.Project.Project_Acronym_CD == projectAcronym))
+                    {
+                        <NavLink href=@($"/project/{projectAcronym}/filelist")><AeTypography Variant="h3">Storage Explorer</AeTypography></NavLink>
+                        <AeTypography>Storage Explorer for @_project.ProjectName</AeTypography>
+                    }
+                    else if (_serviceRequests.Any(r => r.ServiceType == "storage" && r.Is_Completed == null && r.Project.Project_Acronym_CD == projectAcronym))
+                    {
+                        <AeTypography Variant="h3">Storage Explorer</AeTypography>
+                        <AeTypography>Storage Explorer for @_project.ProjectName</AeTypography>
+                        <AeTypography class="warning">Service Request is being reviewed</AeTypography> 
+                    }
+                    else
+                    {
+                        <AeTypography Variant="h3">Storage Explorer</AeTypography>
+                        <AeTypography>Storage Explorer for @_project.ProjectName</AeTypography>
+                        <AeButton @onclick="@(async () => await RequestServiceAccess("storage"))">Request Service Creation</AeButton>
+                    }
+                </AeFlex>
             </AeFlex>
-        </AeFlex>
-    </AeCard>
+        </AeCard>
+    </AuthorizeView>
 </div>
 </div>
 
