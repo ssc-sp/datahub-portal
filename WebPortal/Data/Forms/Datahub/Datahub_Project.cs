@@ -48,17 +48,34 @@ namespace NRCan.Datahub.Data.Projects
 
         public int ProjectUser_ID { get; set; }
 
-        [Required]
         [StringLength(200)]
-        public string User_Name { get; set; }
+        public string User_ID { get; set; }
+        public DateTime? Approved_DT { get; set; }
 
+        public string ApprovedUser { get; set; }
+
+        public bool IsAdmin { get; set; }
+        public Datahub_Project Project { get; set; }
+
+        [Timestamp]
+        public byte[] Timestamp { get; set; }
+
+    }
+
+    public class Datahub_Project_User_Request
+    {
+
+        [Key]
+
+        public int ProjectUserRequest_ID { get; set; }
+        
         [StringLength(200)]
         public string User_ID { get; set; }
 
-        public bool? Databricks { get; set; }
-        public bool? PowerBI { get; set; }
-        public bool? WebForms { get; set; }
-
+        public DateTime? Approved_DT { get; set;  }
+        
+        public string ApprovedUser { get; set; }
+        public bool IsAdmin { get; set; }
         public Datahub_Project Project { get; set; }
 
         [Timestamp]
