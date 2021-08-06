@@ -44,12 +44,19 @@
                 {
                     if (!FieldDefinition.HasChoices)
                     {
-                        <input class="ae input"
-                               type="@InputFieldType"
-                               @bind="BoundValue"
-                               @ref="FieldValueInput"
-                               disabled="@Preview"
-                               style="@FieldStyle" />
+                        if (FieldDefinition.Field_Name_TXT.StartsWith("keywords_"))
+                        {
+                            <KeywordInput FieldValue="FieldValue" OnFieldChanged="OnFieldChanged" />
+                        }
+                        else
+                        {
+                            <input class="ae input"
+                                   type="@InputFieldType"
+                                   @bind="BoundValue"
+                                   @ref="FieldValueInput"
+                                   disabled="@Preview"
+                                   style="@FieldStyle" />
+                        }
                     }
                     else
                     {
