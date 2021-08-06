@@ -93,6 +93,22 @@ namespace NRCan.Datahub.Metadata.Model
                       .WithMany(e => e.FieldValues)
                       .OnDelete(DeleteBehavior.Restrict);
             });
+
+            modelBuilder.Entity<Keyword>(entity =>
+            {
+                entity.ToTable("Keywords");
+
+                entity.HasKey(e => e.KeywordId);
+                entity.Property(e => e.KeywordId).ValueGeneratedOnAdd();
+
+                entity.Property(e => e.English_TXT).HasMaxLength(128);
+                entity.HasIndex(e => e.English_TXT)
+                      .IsUnique();
+
+                entity.Property(e => e.French_TXT).HasMaxLength(128);
+                entity.HasIndex(e => e.French_TXT)
+                      .IsUnique();
+            });
         }
     }
 }
