@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NRCan.Datahub.Data.Projects;
 
 namespace NRCan.Datahub.Portal.Migrations.Forms.DatahubProjectDB
 {
     [DbContext(typeof(DatahubProjectDBContext))]
-    partial class DatahubProjectDBContextModelSnapshot : ModelSnapshot
+    [Migration("20210804174228_userrequesttable")]
+    partial class userrequesttable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -36,10 +38,6 @@ namespace NRCan.Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.Property<string>("Contact_List")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Data_Sensitivity")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("Databricks_URL")
                         .HasMaxLength(400)
                         .HasColumnType("nvarchar(400)");
@@ -55,9 +53,6 @@ namespace NRCan.Datahub.Portal.Migrations.Forms.DatahubProjectDB
 
                     b.Property<DateTime>("Initial_Meeting_DT")
                         .HasColumnType("datetime2");
-
-                    b.Property<bool>("Is_Featured")
-                        .HasColumnType("bit");
 
                     b.Property<bool>("Is_Private")
                         .HasColumnType("bit");
@@ -138,9 +133,7 @@ namespace NRCan.Datahub.Portal.Migrations.Forms.DatahubProjectDB
                         new
                         {
                             Project_ID = 1,
-                            Data_Sensitivity = "Unclassified",
                             Initial_Meeting_DT = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Is_Featured = false,
                             Is_Private = false,
                             Last_Updated_DT = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Project_Acronym_CD = "DHTRK",
@@ -297,9 +290,6 @@ namespace NRCan.Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.Property<bool>("IsAdmin")
                         .HasColumnType("bit");
 
-                    b.Property<bool>("IsDataApprover")
-                        .HasColumnType("bit");
-
                     b.Property<int?>("Project_ID")
                         .HasColumnType("int");
 
@@ -331,6 +321,9 @@ namespace NRCan.Datahub.Portal.Migrations.Forms.DatahubProjectDB
 
                     b.Property<DateTime?>("Approved_DT")
                         .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsAdmin")
+                        .HasColumnType("bit");
 
                     b.Property<int?>("Project_ID")
                         .HasColumnType("int");
