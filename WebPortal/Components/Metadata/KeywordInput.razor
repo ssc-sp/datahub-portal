@@ -4,7 +4,10 @@
     @if (!Preview)
     {
         <div>
-            <input class="ae input" autocomplete="off" style="width: 100%;" @bind="InputKeyword" @bind:event="oninput" placeholder="Enter keyword..." />
+            <input class="ae input" 
+                   autocomplete="off" 
+                   @ref="_fieldValueInput"
+                   style="width: 100%;" @bind="InputKeyword" @bind:event="oninput" placeholder="Enter keyword..." />
         </div>
     }
 
@@ -37,6 +40,8 @@
 
     public List<string> KeywordList { get; set; }
     public string _inputKeyword;
+
+    private ElementReference _fieldValueInput;
 
     protected override void OnInitialized()
     {
@@ -72,6 +77,12 @@
                 }
             }
         }
+    }
+
+    public async Task FocusAsync()
+    {
+        if (!Preview)
+            await _fieldValueInput.FocusAsync();
     }
 
     private void DeleteKeyword(string keyword)

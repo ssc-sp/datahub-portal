@@ -1,88 +1,84 @@
 ﻿@using NRCan.Datahub.Metadata.Model
 
 <AeFlex Vertical="false" style="margin-top: 10px;">
-    <!-- key -->
-    <div class="metadata-key" style="width: 200px; margin: 2px; flex-grow: 1;">
-        @if (HeaderRole)
-        {
-            <AeTypography><strong>Field</strong></AeTypography>
-        }
-        else
-        {
-            <div class="_customuserinput" @onclick="SelectField">
-                <AeTypography style="cursor: pointer;">
-                    @if (!Preview && FieldDefinition.Required_FLAG && FieldValueEmpty)
-                    {
-                        <strong style="color: red">*&nbsp;</strong>
-                    }
-                    @FieldDefinition.Name
-                </AeTypography>
-            </div>
-        }
+    
+    <!-- field name -->
+    <div style="width: 200px; margin: 2px; flex-grow: 1;">
+        <div @onclick="SelectField">
+            <AeTypography style="cursor: pointer;">
+                @if (!Preview && Required && FieldValueEmpty)
+                {
+                    <strong style="color: red">*&nbsp;</strong>
+                }
+                @FieldDefinition.Name
+            </AeTypography>
+        </div>
     </div>
 
     <!-- value -->
-    <div class="metadata-value" style="width: 300px; margin: 2px; flex-grow: 1;">
-        @if (HeaderRole)
-        {
-            <AeTypography><strong>Value</strong></AeTypography>
-        }
-        else
-        {
-            <div class="customuserinput">
-                @if (Preview)
+    <div style="width: 300px; margin: 2px; flex-grow: 1;">
+        <div class="customuserinput">
+            @if (Preview)
+            {
+                _fieldType = FieldType.Preview;
+                if (!FieldDefinition.HasChoices)
                 {
-                    if (!FieldDefinition.HasChoices)
+                    <span>@BoundValue</span>
+                }
+                {
+                    <span>@ChoiceDisplay</span>
+                }
+            }
+            else
+            {
+                if (!FieldDefinition.HasChoices)
+                {
+                    if (IsKeywordField())
                     {
-                        <span>@BoundValue</span>
+                        _fieldType = FieldType.Keyword;
+                        <KeywordInput @ref="_keywordInputRef" 
+                                      FieldValue="FieldValue" 
+                                      OnFieldChanged="OnFieldChanged" />
                     }
+                    else
                     {
-                        <span>@ChoiceDisplay</span>
+                        _fieldType = FieldType.Input;
+                        <input class="ae input"
+                               type="@InputFieldType"
+                               @bind="BoundValue"
+                               @ref="_fieldValueInput"
+                               disabled="@Preview"
+                               style="@FieldStyle" />
                     }
                 }
                 else
                 {
-                    if (!FieldDefinition.HasChoices)
+                    if (!FieldDefinition.MultiSelect_FLAG)
                     {
-                        if (FieldDefinition.Field_Name_TXT.StartsWith("keywords_"))
-                        {
-                            <KeywordInput FieldValue="FieldValue" OnFieldChanged="OnFieldChanged" />
-                        }
-                        else
-                        {
-                            <input class="ae input"
-                                   type="@InputFieldType"
-                                   @bind="BoundValue"
-                                   @ref="FieldValueInput"
-                                   disabled="@Preview"
-                                   style="@FieldStyle" />
-                        }
+                        _fieldType = FieldType.SingleChoice;
+                        <select class="ae input"
+                                style="@FieldStyle"
+                                @bind="BoundValue"
+                                @ref="_fieldValueInput">
+
+                            <option value=""></option>
+
+                            @foreach (var choice in FieldDefinition.Choices)
+                            {
+                                <option value="@choice.Value_TXT">@choice.Label</option>
+                            }
+                        </select>
                     }
                     else
                     {
-                        if (!FieldDefinition.MultiSelect_FLAG)
-                        {
-                            <select class="ae input"
-                                    style="@FieldStyle"
-                                    @bind="BoundValue"
-                                    @ref="FieldValueInput">
-
-                                <option value=""></option>
-
-                                @foreach (var choice in FieldDefinition.Choices)
-                                {
-                                    <option value="@choice.Value_TXT">@choice.Label</option>
-                                }
-                            </select>
-                        }
-                        else
-                        {
-                            <MultiSelectList FieldDefinition="FieldDefinition" FieldValue="FieldValue" OnFieldChanged="OnFieldChanged" />
-                        }
+                        _fieldType = FieldType.MultipleChoice;
+                        <MultiSelectList FieldDefinition="FieldDefinition" 
+                                         FieldValue="FieldValue" 
+                                         OnFieldChanged="OnFieldChanged" />
                     }
                 }
-            </div>
-        }
+            }
+        </div>
     </div>
 
 </AeFlex>
@@ -90,7 +86,7 @@
 @code {
 
     [Parameter]
-    public bool HeaderRole { get; set; }
+    public bool Required { get; set; }
 
     [Parameter]
     public bool Preview { get; set; }
@@ -105,12 +101,7 @@
     public string FieldLabel { get; set; }
 
     [Parameter]
-    public bool Mandatory { get; set; }
-
-    [Parameter]
     public EventCallback<ObjectFieldValue> OnFieldChanged { get; set; }
-
-    private ElementReference FieldValueInput;
 
     private string BoundValue
     {
@@ -132,6 +123,19 @@
 
     private bool FieldValueEmpty => string.IsNullOrEmpty(BoundValue);
 
+    enum FieldType
+    {
+        Preview,
+        Input,
+        Keyword,
+        SingleChoice,
+        MultipleChoice
+    }
+
+    private FieldType _fieldType;
+    private KeywordInput _keywordInputRef;
+    private ElementReference _fieldValueInput;
+
     private string GetChoiceLabel(string name)
     {
         return FieldDefinition.Choices.FirstOrDefault(c => c.Value_TXT == name)?.Label;
@@ -151,8 +155,15 @@
 
     private async void SelectField()
     {
-        if (!Preview && !FieldDefinition.HasChoices)
-            await FieldValueInput.FocusAsync();
+        if (_fieldType == FieldType.Input)
+            await _fieldValueInput.FocusAsync();
+
+        if (_fieldType == FieldType.Keyword)
+            await _keywordInputRef.FocusAsync();
+    }
+
+    private bool IsKeywordField()
+    {
+        return FieldDefinition.Field_Name_TXT.StartsWith("keywords_");
     }
 }
-
