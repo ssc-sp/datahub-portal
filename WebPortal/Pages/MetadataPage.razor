@@ -9,26 +9,22 @@
             <h2>Metadata</h2>
         </Header>
         <ChildContent>
-            <AeFlex>
-                <div style="width: 200px; flex-grow: 0.5">
-                    <MetadataEditor Preview="false"
-                                    Definitions="@_definitions"
-                                    FieldValues="@_fieldValues"
-                                    OnFieldChanged="FieldChanged" />
+            <MetadataEditor Preview="false"
+                            Definitions="@_definitions"
+                            FieldValues="@_fieldValues"
+                            OnFieldChanged="FieldChanged" />
 
-                </div>
+            @if (_preview)
+            {
+                <hr />
 
-                <div style="width: 200px; flex-grow: 0.5">
-                    @if (_preview)
-                    {
-                        <MetadataEditor Preview="_preview"
-                                        Definitions="@_definitions"
-                                        FieldValues="@_fieldValues"
-                                        OnFieldChanged="FieldChanged" />
-                    }
+                <MetadataEditor Preview="_preview"
+                                Definitions="@_definitions"
+                                FieldValues="@_fieldValues"
+                                OnFieldChanged="FieldChanged" />
+                <hr />
+            }
 
-                </div>
-            </AeFlex>
         </ChildContent>
         <Footer>
             @if (!_saved)
