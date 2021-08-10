@@ -18,16 +18,19 @@
 <h2>Select Program Inventory Program</h2>
 <div>
 
-    <AeTable Accessors="accessorFunctions"
+    <AePaginatedTable Accessors="accessorFunctions"
+             Renderers="GetRenderers()"
              T="PIP_Tombstone"
              Dataset="_projects"
-             Renderers="GetRenderers()"
-             ColorAccessor="getColor"
              Headers="headers"
+             ColorAccessor="getColor"
              GridTemplateColumns="4fr 4fr 4fr"
-             MaxHeight="400"
-             OnRowClick="@SetFormEdit" />
+             OnRowClick="@SetFormEdit"
+             Page="@_lastClicked"
+             PageSize="10"
+             @ref=_myTable />
 
+    <AePagination Pageable="@_myTable" OnPageClick="OnPageClick" />  
 
 </div>
 
@@ -65,7 +68,7 @@
 @code {
     [Parameter]
     public string tombstone { get; set; }
-
+    
     private List<PIP_Tombstone> _projects;
     private PIP_Tombstone _tombstone;// = new PIP_Tombstone();
     private string SubmitLabel = "Save";
@@ -78,6 +81,15 @@
     {
 	    "Title","Lead Sector", "Report"
     };
+
+    private int _lastClicked = 0;
+    private IPageableComponent _myTable;
+
+
+    private void OnPageClick(int pageIndex)
+    {
+        _lastClicked = pageIndex;
+    }
 
     private Task<PIP_Tombstone> ClearForm()
     {        
