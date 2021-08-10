@@ -33,6 +33,8 @@ namespace NRCan.Datahub.Data.Projects
 
         public DbSet<Datahub_Project_Pipeline_Lnk> Project_Pipeline_Links { get; set; }
 
+        public DbSet<PublicDataFile> PublicDataFiles { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<WebForm_Field>()
@@ -61,6 +63,10 @@ namespace NRCan.Datahub.Data.Projects
                 .HasOne(p => p.LicenseRequest)
                 .WithMany(b => b.User_License_Requests)
                 .HasForeignKey(p => p.RequestID);
+
+            modelBuilder.Entity<PublicDataFile>()
+                .HasIndex(e => e.File_ID)
+                .IsUnique();
 
             modelBuilder.Entity<Datahub_Project>().HasData(new Datahub_Project() { Project_ID = 1, 
                 Project_Acronym_CD = "DHTRK", 
