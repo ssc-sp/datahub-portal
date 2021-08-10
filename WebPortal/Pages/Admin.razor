@@ -6,6 +6,7 @@
 @inject DatahubProjectDBContext projectContext
 @inject IDbContextFactory<DatahubProjectDBContext> dbFactory
 @inject IEmailNotificationService EmailService
+@inject IMSGraphService GraphService
 @page "/admin"
 
 
@@ -189,7 +190,9 @@
         var requestingUserEmail = r.User_Name?.ToLowerInvariant();
         var project = r.Project;
         await projectContext.Entry(project).Collection(p => p.Users).LoadAsync();
-        var userEmails = project.Users.Select(u => u.User_Name.ToLowerInvariant()).ToHashSet();
+        var userEmails = project.Users
+            .Select(u => GraphService.GetUserEmail(u.User_ID).ToLowerInvariant())
+            .ToHashSet();
         
         Task individualEmailTask = null;
 
