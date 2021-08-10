@@ -3,23 +3,46 @@
 
 @if (Definitions != null && FieldValues != null)
 {
+    var fields = Definitions.Fields.ToList();
+    var leftCount = (fields.Count % 2 == 0) ? (fields.Count / 2) : (1 + fields.Count / 2);
+    var leftFields = fields.Take(leftCount).ToList();
+    var rightFields = fields.Skip(leftCount).Take(leftCount).ToList();
+
     <div style="margin: 10px">
+        <AeFlex>
+            <div style="width: 200px; margin: 2px; flex-grow: 1;">
+                @foreach (var definition in leftFields)
+                {
+                    var fieldValue = GetFieldValue(definition.FieldDefinitionId, Preview);
 
-        @foreach (var definition in Definitions.Fields)
-        {
-            var fieldValue = GetFieldValue(definition.FieldDefinitionId, Preview);
+                    if (fieldValue != null)
+                    {
+                        <MetadataFieldEditor Preview="Preview"
+                                             Required="IsFieldRequired(definition)"
+                                             FieldValue="fieldValue"
+                                             FieldDefinition="definition"
+                                             FieldLabel="@definition.Name"
+                                             OnFieldChanged="FieldChanged" />
+                    }
+                }
+            </div>
+            <div style="width: 200px; margin: 2px; flex-grow: 1;">
+                @foreach (var definition in rightFields)
+                {
+                    var fieldValue = GetFieldValue(definition.FieldDefinitionId, Preview);
 
-            if (fieldValue != null)
-            {
-                <MetadataFieldEditor Preview="Preview"
-                                     Required="IsFieldRequired(definition)"
-                                     FieldValue="fieldValue"
-                                     FieldDefinition="definition"
-                                     FieldLabel="@definition.Name"
-                                     OnFieldChanged="FieldChanged" />
-            }
-        }
-
+                    if (fieldValue != null)
+                    {
+                        <MetadataFieldEditor Preview="Preview"
+                                             Required="IsFieldRequired(definition)"
+                                             FieldValue="fieldValue"
+                                             FieldDefinition="definition"
+                                             FieldLabel="@definition.Name"
+                                             OnFieldChanged="FieldChanged" />
+                    }
+                }
+            </div>
+        </AeFlex>
     </div>
 }
 
