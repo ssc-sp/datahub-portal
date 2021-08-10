@@ -1,3 +1,27 @@
+import sqlite3
+
+# source = 'OpenData'
+# lastUpdate = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S.%f")
+# versionData = 'TEST_DATA'
+
+# query = '''
+#         INSERT INTO MetadataVersions (Source_TXT, Last_Update_DT, Version_Info_TXT) 
+#         VALUES ('%s', '%s', '%s')'''%(source, lastUpdate, versionData)
+
+# res = conn.execute(query)
+
+# print(res)
+
+# res = conn.execute('select last_insert_rowid()')
+# v = res.fetchone()[0]
+
+# print(v)
+
+# print('OK!')
+
+# conn.close()
+
+
 from io import StringIO
 from metadata_loader import loadMetadata
 import pyodbc
@@ -10,11 +34,10 @@ import hashlib
 
 from datetime import datetime
 
-def _seedDatabase(connectionString, chechsum, definitions, commit = True):
+def _seedDatabase(connectionString, checksum, definitions, commit = True):
     '''seed the database with the schema definitions'''
 
-    db = pyodbc.connect(connectionString)
-    cursor = db.cursor()
+    cursor = sqlite3.connect(connectionString)
 
     versionId = _addVersionData(cursor, checksum)
 
@@ -28,17 +51,17 @@ def _seedDatabase(connectionString, chechsum, definitions, commit = True):
                 _addFieldChoice(cursor, fieldId, c)
 
     if commit:
-            db.commit()
+            cursor.commit()
 
-    db.close()
+    cursor.close()
 
 def _executeQueryAndGetIdentity(cursor, query):
     '''executes a query and returns the new row identity'''
     
     cursor.execute(query)
-    cursor.execute('SELECT @@IDENTITY')
+    res = cursor.execute('select last_insert_rowid()')
 
-    return cursor.fetchone()[0]
+    return res.fetchone()[0]
 
 def _addVersionData(cursor, versionData):
     '''add the version record for this load'''
@@ -131,7 +154,7 @@ checksum = _calcCheckSum(_calcCheckSum(datasetData) + _calcCheckSum(presetsData)
 
 definitions = loadMetadata(_parseYamlData(datasetData), _parseYamlData(presetsData))
 
-connectionString = _readConnectionString('/temp/.connectionstring')
+connectionString = "metadata.db" #_readConnectionString('/temp/.connectionstring')
 
 _seedDatabase(connectionString, checksum, definitions)
 
