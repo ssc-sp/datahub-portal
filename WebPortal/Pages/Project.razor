@@ -386,7 +386,7 @@
 
         var serviceName = request.RequestServiceType;
 
-        var adminEmails = ServiceAuthManager.ExtractEmails(_project.Project_Admin);
+        var adminEmails = ServiceAuthManager.ExtractEmails(_project.Project_Admin ?? string.Empty);
         await EmailNotificationService.SendServiceAccessRequestNotification(request.User_Name, serviceName, _project.ProjectInfo, adminEmails);
 
         await RefreshComponents(true);
@@ -407,7 +407,7 @@
         projectContext.Project_Requests.Add(serviceRequest);
         await projectContext.SaveChangesAsync();
 
-        var adminEmails = ServiceAuthManager.ExtractEmails(_project.Project_Admin);
+        var adminEmails = ServiceAuthManager.ExtractEmails(_project.Project_Admin ?? string.Empty);
         await EmailNotificationService.SendServiceCreationRequestNotification(serviceRequest.User_Name, serviceType, _project.ProjectInfo, adminEmails);
 
         await RefreshComponents(true);
