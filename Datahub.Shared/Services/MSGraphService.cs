@@ -98,6 +98,10 @@ namespace NRCan.Datahub.Shared.Services
                             UsersDict.Add(newUser.Id, newUser);
                         }
                     }
+
+                    //var user1 = UsersDict.Values.Where(u => u.Mail.ToLower() == "natasha.lestage@nrcan-rncan.gc.ca").FirstOrDefault().Id;
+                    
+                    
                     _logger.LogInformation("Exiting Log Users");
                 }
             }
