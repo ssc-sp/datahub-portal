@@ -10,6 +10,7 @@ using Moq;
 using NRCan.Datahub.Shared;
 using NRCan.Datahub.Shared.Services;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace DatahubTest
 {
@@ -17,24 +18,27 @@ namespace DatahubTest
     {
         public EmailConfiguration EmailConfig { get; private set; }
         public EmailNotificationService EmailNotificationService { get; private set; }
+        
+        private ITestOutputHelper _output = null;
+        private Mock<IStringLocalizer<SharedResources>> _localizerMock;
+        private IConfigurationRoot _config;
 
         public IDictionary<string, object> EmailNotificationParameters { get; private set; }
         public IDictionary<string, object> EmailNotificationParametersNoUsername { get; private set; }
 
         public EmailNotificationTestFixture()
         {
-            var config = new ConfigurationBuilder()
+            _config = new ConfigurationBuilder()
                 .SetBasePath(AppContext.BaseDirectory)
                 .AddJsonFile("appsettings.json", false, true)
                 .AddJsonFile("appsettings.Development.json", false, true)
                 .Build();
 
             EmailConfig = new EmailConfiguration();
-            config.Bind(EmailNotificationService.EMAIL_CONFIGURATION_ROOT_KEY, EmailConfig);
+            _config.Bind(EmailNotificationService.EMAIL_CONFIGURATION_ROOT_KEY, EmailConfig);
 
-            var localizerMock = new Mock<IStringLocalizer<SharedResources>>();
+            _localizerMock = new Mock<IStringLocalizer<SharedResources>>();
 
-            EmailNotificationService = new EmailNotificationService(localizerMock.Object, config);
 
             var testProject = new DatahubProjectInfo() { ProjectNameEn = "PIP", ProjectNameFr = "PIP (FR)" };
 
@@ -52,6 +56,15 @@ namespace DatahubTest
             };
         }
 
+        public void InitOutput(ITestOutputHelper output)
+        {
+            if (_output == null)
+            {
+                _output = output;
+                EmailNotificationService = new EmailNotificationService(_localizerMock.Object, _config, _output.BuildLoggerFor<EmailNotificationService>());
+            }
+        }
+
         public void Dispose() { }
     }
 
@@ -59,8 +72,9 @@ namespace DatahubTest
     {
         private EmailNotificationTestFixture _fixture;
 
-        public EmailNotificationTest(EmailNotificationTestFixture fixture)
+        public EmailNotificationTest(EmailNotificationTestFixture fixture, ITestOutputHelper outputHelper)
         {
+            fixture.InitOutput(outputHelper);
             _fixture = fixture;
         }
 
@@ -148,7 +162,7 @@ namespace DatahubTest
         [Fact]
         public async void TestServiceCreationRequestTemplate()
         {
-            var expectedRender = "<h3>New Form Builder Service Request</h3>\r\n\r\n<p>User <b>Peter Parker</b> has requested the creation of service <b>Form Builder</b> in data project <b>PIP</b>. Please visit the admin page with proper credentials to approve or deny the request.</p>";
+            var expectedRender = "<h3>New Form Builder Service Request</h3>\r\n\r\n<p>User <b>Peter Parker</b> has requested the creation of service <b>Form Builder</b> in data project <b>PIP</b>. Please visit the admin page with proper credentials to notify project users when it has been created.</p>";
 
             var html = await _fixture.EmailNotificationService
                 .RenderTemplate<NRCan.Datahub.Shared.Templates.ServiceCreationRequest>(_fixture.EmailNotificationParameters);
