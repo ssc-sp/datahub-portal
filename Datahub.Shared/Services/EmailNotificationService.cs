@@ -8,6 +8,7 @@ using Microsoft.Extensions.Localization;
 using MimeKit;
 using NRCan.Datahub.Shared.Templates;
 using System.Linq;
+using Microsoft.Extensions.Logging;
 
 namespace NRCan.Datahub.Shared.Services
 {
@@ -41,14 +42,18 @@ namespace NRCan.Datahub.Shared.Services
 
         private IStringLocalizer<SharedResources> _localizer;
 
+        private ILogger<EmailNotificationService> _logger;
+
         public EmailNotificationService(
             IStringLocalizer<SharedResources> localizer,
-            IConfiguration config
+            IConfiguration config,
+            ILogger<EmailNotificationService> logger
             )
         {
             _localizer = localizer;
             _config = new EmailConfiguration();
             config.Bind(EMAIL_CONFIGURATION_ROOT_KEY, _config);
+            _logger = logger;
         }
 
         public async Task<string> RenderTestTemplate()
@@ -87,9 +92,17 @@ namespace NRCan.Datahub.Shared.Services
 
         private async Task SendEmailMessage(string subject, string body, IList<MailboxAddress> recipients, bool isHtml)
         {
+            var validRecipients = recipients.Where(a => !string.IsNullOrWhiteSpace(a.Address)).ToHashSet();
+
+            if (validRecipients.Count < 1)
+            {
+                _logger.LogWarning($"Cannot send '{subject}' - no valid recipients");
+                return;
+            }
+
             var msg = new MimeMessage();
             msg.From.Add(new MailboxAddress(_config.SenderName, _config.SenderAddress));
-            msg.To.AddRange(recipients);
+            msg.To.AddRange(validRecipients);
             msg.Subject = subject;
             var bodyPart = new TextPart(isHtml? "html": "plain") 
             {
@@ -157,6 +170,39 @@ namespace NRCan.Datahub.Shared.Services
             var subject = $"[DataHub] {serviceName} service access request approved / demande d’accès au service approuvée";
 
             var html = await RenderTemplate<ServiceAccessRequestApproved>(parameters);
+
+            await SendEmailMessage(subject, html, recipientAddress, recipientName);
+        }
+
+        public async Task SendServiceCreationRequestApprovedIndividual(string serviceName, DatahubProjectInfo projectInfo, string recipientAddress, string recipientName = null)
+        {
+            var parameters = BuildNotificationParameters(projectInfo, serviceName);
+
+            var subject = $"[DataHub] {serviceName} service request approved / demande de service approuvée";
+
+            var html = await RenderTemplate<ServiceRequestApproved>(parameters);
+
+            await SendEmailMessage(subject, html, recipientAddress, recipientName);
+        }
+
+        public async Task SendServiceCreationGroupNotification(string serviceName, DatahubProjectInfo projectInfo, IList<string> recipients)
+        {
+            var parameters = BuildNotificationParameters(projectInfo, serviceName);
+
+            var subject = $"[DataHub] {serviceName} service created / {serviceName} service créé ";
+
+            var html = await RenderTemplate<ServiceCreatedGroupNotification>(parameters);
+
+            await SendEmailMessage(subject, html, recipients);
+        }
+
+        public async Task SendAccessRevokedNotification(string serviceName, DatahubProjectInfo projectInfo, string recipientAddress, string recipientName = null)
+        {
+            var parameters = BuildNotificationParameters(projectInfo, serviceName);
+
+            var subject = $"[DataHub] {serviceName} service access revoked / accès au service révoqué";
+
+            var html = await RenderTemplate<ServiceAccessRevoked>(parameters);
 
             await SendEmailMessage(subject, html, recipientAddress, recipientName);
         }

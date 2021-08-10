@@ -386,7 +386,7 @@
 
         var serviceName = request.RequestServiceType;
 
-        var adminEmails = ServiceAuthManager.ExtractEmails(_project.Project_Admin);
+        var adminEmails = ServiceAuthManager.ExtractEmails(_project.Project_Admin ?? string.Empty);
         await EmailNotificationService.SendServiceAccessRequestNotification(request.User_Name, serviceName, _project.ProjectInfo, adminEmails);
 
         await RefreshComponents(true);
@@ -394,20 +394,21 @@
 
     private async Task RequestServiceAccess(string serviceType)
     {
-        // TODO add requesting user to data model
         var serviceRequest = new Datahub_ProjectServiceRequests()
         {
             ServiceType = serviceType,
             ServiceRequests_Date_DT = DateTime.Now,
             Is_Completed = null,
-            Project = _project
+            Project = _project,
+            User_ID = _user.Id,
+            User_Name = _user.UserPrincipalName
         };
 
         projectContext.Project_Requests.Add(serviceRequest);
         await projectContext.SaveChangesAsync();
 
-        var adminEmails = ServiceAuthManager.ExtractEmails(_project.Project_Admin);
-        await EmailNotificationService.SendServiceCreationRequestNotification(_user.UserPrincipalName, serviceType, _project.ProjectInfo, adminEmails);
+        var adminEmails = ServiceAuthManager.ExtractEmails(_project.Project_Admin ?? string.Empty);
+        await EmailNotificationService.SendServiceCreationRequestNotification(serviceRequest.User_Name, serviceType, _project.ProjectInfo, adminEmails);
 
         await RefreshComponents(true);
     }
