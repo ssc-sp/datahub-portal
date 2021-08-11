@@ -1,0 +1,24 @@
+﻿@use 'tabs';
+@use 'document-tabs';
+
+@mixin configure($options) {
+  @if ($options) {
+    $temptabs: input.$inputOptions;
+    $tempdocument-tabs: input-wrapper.$inputWrapperOptions;
+
+    @if (map.get($options, 'input-wrapper')) {
+      $temptabs: map.get($options, 'input-wrapper');
+    } @else {
+      $tempdocument-tabs: map.get($options, 'input');
+    }
+
+    @include tabs.configure($temptabs);
+    @include document-tabs.configure($tempdocument-tabs);
+  }
+}
+
+@mixin styles {
+  @include tabs.styles;
+  /*    @include document-tabs.styles;
+*/
+}

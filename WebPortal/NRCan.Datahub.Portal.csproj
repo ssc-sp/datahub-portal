@@ -21,7 +21,7 @@
     <EmbeddedResource Include="Wiki\*" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="AElemental.Blazor" Version="1.1.21208.5" />
+    <PackageReference Include="AElemental.Blazor" Version="1.2.21222.3-beta" />
     <PackageReference Include="Askmethat.Aspnet.JsonLocalizer" Version="3.1.1" />
     <PackageReference Include="Azure.Identity" Version="1.4.0-beta.1" />
     <PackageReference Include="Azure.Search.Documents" Version="11.2.0-beta.2" />
