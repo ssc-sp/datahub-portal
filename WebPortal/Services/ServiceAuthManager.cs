@@ -27,6 +27,12 @@ namespace NRCan.Datahub.Portal.Services
             this.dbFactory = dbFactory;
         }
 
+        internal async Task<List<string>> GetAllProjects()
+        {
+            using var ctx = dbFactory.CreateDbContext();
+            return await ctx.Projects.Where(p => p.Project_Acronym_CD != null).Select(p => p.Project_Acronym_CD).ToListAsync();
+        }
+
         private static CancellationTokenSource _resetCacheToken = new CancellationTokenSource();
 
         public static readonly Regex Email_Extractor = new Regex(".*<(.*@.*)>", RegexOptions.Compiled);
@@ -67,30 +73,34 @@ namespace NRCan.Datahub.Portal.Services
             });
         }
 
-        public async Task<bool> IsProjectAdmin(string email)
+        public async Task<bool> IsProjectAdmin(string email, string projectAcronym)
         {
             
             bool isProjectAdmin = false;
             var normEmail = email.ToLowerInvariant();
 
-            if (!projectAdminCache.TryGetValue(normEmail, out isProjectAdmin))
+                //ImmutableHashSet<string> allProjectAdmins;
+            Dictionary<string, List<string>> allProjectAdmins;
+            if (!serviceAuthCache.TryGetValue(PROJECT_ADMIN_KEY, out allProjectAdmins))
             {
-                ImmutableHashSet<string> allProjectAdmins;
-                if (!serviceAuthCache.TryGetValue(PROJECT_ADMIN_KEY, out allProjectAdmins))
+                allProjectAdmins = new Dictionary<string, List<string>>();
+                using var ctx = dbFactory.CreateDbContext();
+                var allProjectAdminsList = await ctx.Projects.Where(p => p.Project_Admin != null).Select(p => new { p.Project_Admin, p.Project_Acronym_CD }).ToListAsync();
+
+                foreach (var item in allProjectAdminsList)
                 {
-                    using var ctx = dbFactory.CreateDbContext();
-                    var allProjectAdminsList = await ctx.Projects.Select(p => p.Project_Admin).Where(p => p != null).ToListAsync();
-                    allProjectAdmins = allProjectAdminsList.SelectMany(ExtractEmails).ToImmutableHashSet();
-
-                    serviceAuthCache.Set(PROJECT_ADMIN_KEY, allProjectAdmins, TimeSpan.FromHours(1));
+                    var admins = ExtractEmails(item.Project_Admin);
+                    allProjectAdmins.Add(item.Project_Acronym_CD, admins);
                 }
-                isProjectAdmin = allProjectAdmins.Contains(normEmail);
-                /* some other code removed for brevity */
-                var options = new MemoryCacheEntryOptions().SetPriority(CacheItemPriority.Normal).SetAbsoluteExpiration(TimeSpan.FromHours(1));
-                options.AddExpirationToken(new CancellationChangeToken(_resetCacheToken.Token));
 
-                projectAdminCache.Set(normEmail, isProjectAdmin, options);
+                serviceAuthCache.Set(PROJECT_ADMIN_KEY, allProjectAdmins, TimeSpan.FromHours(1));
+                    
             }
+            isProjectAdmin = allProjectAdmins.ContainsKey(projectAcronym) ? allProjectAdmins[projectAcronym].Contains(normEmail) : false;
+            /* some other code removed for brevity */
+            var options = new MemoryCacheEntryOptions().SetPriority(CacheItemPriority.Normal).SetAbsoluteExpiration(TimeSpan.FromHours(1));
+            options.AddExpirationToken(new CancellationChangeToken(_resetCacheToken.Token));
+
             return isProjectAdmin;
         }
 
