@@ -30,7 +30,7 @@
         </ChildContent>
     </AeCard>
 
-    @if (!_isApprovedProjectUser)
+    @if (_isApprovedProjectUser)
     {
         @if (_pipelineStatus?.Count > 0)
         {
