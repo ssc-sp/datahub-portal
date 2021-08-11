@@ -22,10 +22,15 @@ namespace NRCan.Datahub.Portal.RoleManagement
         public async Task<ClaimsPrincipal> TransformAsync(ClaimsPrincipal principal)
         {
             var userName = principal.Identity.Name;
+            var allProjects = await serviceAuthManager.GetAllProjects();
             var authorizedProjects = await serviceAuthManager.GetUserAuthorizations(userName);
-            if (await serviceAuthManager.IsProjectAdmin(userName))
+
+            foreach (var project in allProjects)
             {
-                ((ClaimsIdentity)principal.Identity).AddClaim(new Claim(ClaimTypes.Role, "project-admin"));
+                if (await serviceAuthManager.IsProjectAdmin(userName, project))
+                {
+                    ((ClaimsIdentity)principal.Identity).AddClaim(new Claim(ClaimTypes.Role, $"{project}-admin"));
+                }
             }
             foreach (var project in authorizedProjects)
             {
