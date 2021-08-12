@@ -30,6 +30,8 @@ namespace NRCan.Datahub.Shared.Services
         {
             var user = await _userInformationService.GetCurrentUserAsync();
             var userId = user.Id;
+
+            //var userRecentActions = new UserRecentLink() { url = eventArgs.Location, title = "my title", accessedTime = DateTimeOffset.Now, icon = "myicon" };
             
             var recentNavigations = await ReadRecentNavigations(userId);
 
@@ -78,7 +80,7 @@ namespace NRCan.Datahub.Shared.Services
         {
             using (var _efCoreDatahubContext = _contextFactory.CreateDbContext())
             {
-                var userRecentActions = _efCoreDatahubContext.UserRecent.Where(u => u.UserId == userId).Include(e => e.UserRecentActions).FirstOrDefault();
+                var userRecentActions = await _efCoreDatahubContext.UserRecent.FirstOrDefaultAsync(u => u.UserId == userId);
                 return userRecentActions;
             }
         }

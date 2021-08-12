@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace NRCan.Datahub.Shared.EFCore
 {
-    public class UserRecent
+    public record UserRecent
     {
         [Key]
         public string UserId { get; set; }
