@@ -1,0 +1,69 @@
+﻿@page "/share/public/{FileId}"
+<h3>SharePublicUrlWizard</h3>
+
+<AeSteps T=@int CurrentStepState=@GetState StepItems=@steps StepTitle=@StepTitle StepMessage=@StepMessage PassedIcon=@checkIcon ></AeSteps>
+
+<p>
+    <AeButton OnClickEvent=@PrevStep >Previous</AeButton>
+    <AeButton OnClickEvent=@NextStep >Next</AeButton>
+</p>
+
+@code {
+
+    [Parameter]
+    public string FileId { get; set; }
+
+
+    private List<int> steps = new List<int>() { 1, 2, 3 };
+    private int currentStep = 1;
+    private readonly (int, int) stepLimits = (1,3);
+
+    private RenderFragment checkIcon = @<i class="fa fa-check"></i>;
+
+    private Dictionary<int, (string, string)?> _stepInfo = new Dictionary<int, (string, string)?>();
+    private string StepTitle(int i) => _stepInfo.GetValueOrDefault(i)?.Item1;
+    private string StepMessage(int i) => _stepInfo.GetValueOrDefault(i)?.Item2;
+    private AeSteps<int>.StepState GetState(int i)
+    {
+        if (i == currentStep)
+        {
+            return AeSteps<int>.StepState.Running;
+        }
+        else if (i < currentStep)
+        {
+            return AeSteps<int>.StepState.Passed;
+        }
+        else
+        {
+            return AeSteps<int>.StepState.Queued;
+        }
+    }
+
+    private void IncStep(int i)
+    {
+        currentStep += i;
+        if (currentStep < stepLimits.Item1)
+        {
+            currentStep = stepLimits.Item1;
+        }
+        else if (currentStep > stepLimits.Item2)
+        {
+            currentStep = stepLimits.Item2;
+        }
+    }
+
+    private void NextStep() => IncStep(1);
+    private void PrevStep() => IncStep(-1);
+
+    protected override async Task OnInitializedAsync()
+    {
+        _stepInfo = new Dictionary<int, (string, string)?>()
+            {
+                {1, (Localizer["Fill Metadata"], Localizer["Enter the required metadata to share this data file, and optionally any additional metadata."])},
+                {2, (Localizer["Request Approval"], Localizer["Submit the request for approval."])},
+                {3, (Localizer["Access Public URL"], Localizer["The file will be publicly accessible once the request is approved and the publication date has been reached."])},
+            };
+    }
+
+
+}
