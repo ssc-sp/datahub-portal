@@ -13,7 +13,6 @@
 
     protected override async Task OnInitializedAsync()
     {
-        await base.OnInitializedAsync();
         ApiService.ProjectUploadCode = string.Empty;
         // If we came from file upload, just reload the current folder
         if (string.IsNullOrWhiteSpace(uploaded) || !uploaded.Equals("true", StringComparison.OrdinalIgnoreCase))

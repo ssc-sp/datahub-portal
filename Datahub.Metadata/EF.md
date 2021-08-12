@@ -4,4 +4,8 @@
 
 Add-Migration InitialCreate -Context MetadataDbContext
 
+## Update Database
+
+Update-Database -Context MetadataDbContext
+
 

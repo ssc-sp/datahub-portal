@@ -1,4 +1,4 @@
-﻿@page "/metadata"
+﻿@page "/metadatab"
 
 @using NRCan.Datahub.Metadata.Model
 @using NRCan.Datahub.Metadata.DTO
@@ -9,22 +9,27 @@
             <h2>Metadata</h2>
         </Header>
         <ChildContent>
-            <MetadataEditor Preview="false"
-                            Definitions="@_definitions"
-                            FieldValues="@_fieldValues"
-                            OnFieldChanged="FieldChanged" />
+            <AeFlex>
+                <div style="width: 200px; flex-grow: 0.5">
+                    <MetadataEditor Preview="false"
+                                    Definitions="@_definitions"
+                                    FieldValues="@_fieldValues"
+                                    RequiredFields="@_requiredFields"
+                                    OnFieldChanged="FieldChanged" />
 
-            @if (_preview)
-            {
-                <hr />
+                </div>
 
-                <MetadataEditor Preview="_preview"
-                                Definitions="@_definitions"
-                                FieldValues="@_fieldValues"
-                                OnFieldChanged="FieldChanged" />
-                <hr />
-            }
+                <div style="width: 200px; flex-grow: 0.5">
+                    @if (_preview)
+                    {
+                        <MetadataEditor Preview="_preview"
+                                        Definitions="@_definitions"
+                                        FieldValues="@_fieldValues"
+                                        OnFieldChanged="FieldChanged" />
+                    }
 
+                </div>
+            </AeFlex>
         </ChildContent>
         <Footer>
             @if (!_saved)
@@ -53,6 +58,8 @@
 
     private bool _preview = false;
     private bool _saved = false;
+
+    private HashSet<string> _requiredFields = new HashSet<string>(new string[] { "owner_org", "keywords_en", "keywords_fr" });
 
     protected override async Task OnInitializedAsync()
     {
