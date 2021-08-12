@@ -25,7 +25,7 @@ namespace NRCan.Datahub.Shared.RoleManagement
             var userName = principal.Identity.Name;
             var userId = principal.Claims.ToList()[9].Value;
             
-            var allProjects = await serviceAuthManager.GetAllProjects();
+            var allProjects = serviceAuthManager.GetAllProjects();
             var authorizedProjects = await serviceAuthManager.GetUserAuthorizations(userId);
 
             foreach (var project in allProjects)

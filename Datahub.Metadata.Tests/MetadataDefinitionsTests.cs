@@ -1,6 +1,7 @@
 using NRCan.Datahub.Metadata.DTO;
 using NRCan.Datahub.Metadata.Model;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 
@@ -131,6 +132,20 @@ namespace NRCan.Datahub.Metadata.Tests
                 definitions.Add(field2);
                 definitions.Add(field3);
             });
+        }
+
+
+        [Fact]
+        public void ListTest()
+        {
+            List<string> list = new List<string>();
+            list.Add("TEST");
+
+
+            list = list.Select(x => $"{x}-admin").ToList();
+            
+
+            Assert.True(list[0] == "TEST-admin");
         }
 
     }

@@ -8,10 +8,11 @@
 @inject IEmailNotificationService EmailService
 @inject IMSGraphService MSGraphService
 @inject IUserInformationService UserInformationService
+@inject ServiceAuthManager ServiceAuthManager
 @page "/admin"
 
 
-<AuthorizeView Roles="project-admin">
+<AuthorizeView Roles="@string.Join(',', _authorizedRoles)">
     <Authorized>
 
         <h1>@Localizer["Project User Requests"]</h1>
@@ -94,6 +95,8 @@
 @code {
     [CascadingParameter]
     private Task<AuthenticationState> authenticationStateTask { get; set; }
+
+    private List<string> _authorizedRoles;
 
     private List<Datahub_Project_Access_Request> _usersAuthorization;
 
@@ -262,9 +265,14 @@
 
     protected override async Task OnInitializedAsync()
     {
+        
+        _authorizedRoles = ServiceAuthManager.GetAdminProjectRoles();
+            
+
         ResetTestRecipient();
 
         await RefreshData();
+
 
 
         projectReqRenderFunctions = new List<Func<Datahub_Project_User_Request, RenderFragment>>
