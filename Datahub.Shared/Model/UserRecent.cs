@@ -34,6 +34,7 @@ namespace NRCan.Datahub.Shared.EFCore
         public string WebFormsURL { get; set; }
 
         public string DataProject { get; set; }
+
         public DateTimeOffset accessedTime{ get; set; }
     }
 }
