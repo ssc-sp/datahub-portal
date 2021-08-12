@@ -37,11 +37,11 @@ namespace DatahubTest
                 userRecentActions = await myDataService.ReadRecentNavigations(_userId);
                 Assert.True(userRecentActions == null);
 
-                var userRecentActions1 = new UserRecentLink() { UserRecentActionId = Guid.NewGuid(), url = "url1", title = "my title", accessedTime = DateTimeOffset.Now, icon = "myicon" };
-                var userRecentActions2 = new UserRecentLink() { UserRecentActionId = Guid.NewGuid(), url = "url2", title = "my title", accessedTime = DateTimeOffset.Now, icon = "myicon" };
-                var userRecentActions3 = new UserRecentLink() { UserRecentActionId = Guid.NewGuid(), url = "url3", title = "my title", accessedTime = DateTimeOffset.Now, icon = "myicon" };
-                var userRecentActions4 = new UserRecentLink() { UserRecentActionId = Guid.NewGuid(), url = "url4", title = "my title", accessedTime = DateTimeOffset.Now, icon = "myicon" };
-                var userRecentActions5 = new UserRecentLink() { UserRecentActionId = Guid.NewGuid(), url = "url5", title = "my title", accessedTime = DateTimeOffset.Now, icon = "myicon" };
+                var userRecentActions1 = new UserRecentLink() { UserRecentActionId = Guid.NewGuid(), DataProject = "ABC", DatabricksURL = "https://databricks", accessedTime = DateTimeOffset.Now };
+                var userRecentActions2 = new UserRecentLink() { UserRecentActionId = Guid.NewGuid(), DataProject = "ABC", DatabricksURL = "https://databricks", accessedTime = DateTimeOffset.Now };
+                var userRecentActions3 = new UserRecentLink() { UserRecentActionId = Guid.NewGuid(), DataProject = "ABC", DatabricksURL = "https://databricks", accessedTime = DateTimeOffset.Now };
+                var userRecentActions4 = new UserRecentLink() { UserRecentActionId = Guid.NewGuid(), DataProject = "ABC", DatabricksURL = "https://databricks", accessedTime = DateTimeOffset.Now };
+                var userRecentActions5 = new UserRecentLink() { UserRecentActionId = Guid.NewGuid(), DataProject = "ABC", DatabricksURL = "https://databricks", accessedTime = DateTimeOffset.Now };
                 var userRecent = new UserRecent() { UserId = _userId };
                 userRecent.UserRecentActions.Add(userRecentActions1);
                 userRecent.UserRecentActions.Add(userRecentActions2);
