@@ -135,18 +135,7 @@ namespace NRCan.Datahub.Metadata.Tests
         }
 
 
-        [Fact]
-        public void ListTest()
-        {
-            List<string> list = new List<string>();
-            list.Add("TEST");
-
-
-            list = list.Select(x => $"{x}-admin").ToList();
-            
-
-            Assert.True(list[0] == "TEST-admin");
-        }
+        
 
     }
 }
