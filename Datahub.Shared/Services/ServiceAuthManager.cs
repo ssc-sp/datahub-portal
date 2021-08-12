@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Primitives;
-using NRCan.Datahub.Data.Projects;
+using NRCan.Datahub.Shared.EFCore;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -10,7 +10,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace NRCan.Datahub.Portal.Services
+namespace NRCan.Datahub.Shared.Services
 {
     public class ServiceAuthManager
     {
@@ -75,11 +75,34 @@ namespace NRCan.Datahub.Portal.Services
 
         public async Task<bool> IsProjectAdmin(string email, string projectAcronym)
         {
-            
+
             bool isProjectAdmin = false;
             var normEmail = email.ToLowerInvariant();
 
-                //ImmutableHashSet<string> allProjectAdmins;
+            //ImmutableHashSet<string> allProjectAdmins;
+            Dictionary<string, List<string>> allProjectAdmins;
+            allProjectAdmins = await checkCacheForAdmins();
+            isProjectAdmin = allProjectAdmins.ContainsKey(projectAcronym) ? allProjectAdmins[projectAcronym].Contains(normEmail) : false;
+            /* some other code removed for brevity */
+            var options = new MemoryCacheEntryOptions().SetPriority(CacheItemPriority.Normal).SetAbsoluteExpiration(TimeSpan.FromHours(1));
+            options.AddExpirationToken(new CancellationChangeToken(_resetCacheToken.Token));
+
+            return isProjectAdmin;
+        }
+
+        private async Task<List<string>> GetProjectRoles()
+        { 
+            var allProjectAdmins = await checkCacheForAdmins();
+            List<string> projectRoles = new();
+            foreach (var item in allProjectAdmins)
+            {
+                projectRoles.Add($"{item.Key}-admin");
+            }
+            return projectRoles;
+        }
+
+        private async Task<Dictionary<string, List<string>>> checkCacheForAdmins()
+        {
             Dictionary<string, List<string>> allProjectAdmins;
             if (!serviceAuthCache.TryGetValue(PROJECT_ADMIN_KEY, out allProjectAdmins))
             {
@@ -94,23 +117,21 @@ namespace NRCan.Datahub.Portal.Services
                 }
 
                 serviceAuthCache.Set(PROJECT_ADMIN_KEY, allProjectAdmins, TimeSpan.FromHours(1));
-                    
-            }
-            isProjectAdmin = allProjectAdmins.ContainsKey(projectAcronym) ? allProjectAdmins[projectAcronym].Contains(normEmail) : false;
-            /* some other code removed for brevity */
-            var options = new MemoryCacheEntryOptions().SetPriority(CacheItemPriority.Normal).SetAbsoluteExpiration(TimeSpan.FromHours(1));
-            options.AddExpirationToken(new CancellationChangeToken(_resetCacheToken.Token));
 
-            return isProjectAdmin;
+            }
+
+            return allProjectAdmins;
         }
 
-        public async Task<ImmutableList<Datahub_Project>> GetUserAuthorizations(string email)
+        public async Task<ImmutableList<Datahub_Project>> GetUserAuthorizations(string userId)
         {            
-            List<Datahub_Project_Access_Request> usersAuthorization;
+            List<Datahub_Project_User> usersAuthorization;
             if (!serviceAuthCache.TryGetValue(AUTH_KEY, out usersAuthorization))
             {
                 using var ctx = dbFactory.CreateDbContext();
-                usersAuthorization = await ctx.Access_Requests.Include(a => a.Project).ToListAsync();
+                
+
+                usersAuthorization = await ctx.Project_Users.Include(a => a.Project).ToListAsync();
                 //var cacheEntryOptions = new MemoryCacheEntryOptions()
                 //                // Set cache entry size by extension method.
                 //                .SetSize(1)
@@ -118,9 +139,11 @@ namespace NRCan.Datahub.Portal.Services
                 //                .SetSlidingExpiration(TimeSpan.FromHours(1));
                 serviceAuthCache.Set(AUTH_KEY, usersAuthorization, TimeSpan.FromHours(1));
             }
-            return usersAuthorization.Where(a => a.Completion_DT != null && a.User_Name.Equals(email,StringComparison.InvariantCultureIgnoreCase))
+            return usersAuthorization.Where(a => a.User_ID == userId)
                 .Select(a => a.Project)
+                .Distinct()
                 .ToImmutableList();
+            
         }
 
 
