@@ -26,19 +26,19 @@ namespace NRCan.Datahub.Shared.Services
             _contextFactory = contextFactory;
         }
 
-        public async Task RegisterNavigation(LocationChangedEventArgs eventArgs)
+        public async Task RegisterNavigation(UserRecentLink link)
         {
             var user = await _userInformationService.GetCurrentUserAsync();
             var userId = user.Id;
 
-            var userRecentActions = new UserRecentActions() { url = eventArgs.Location, title = "my title", accessedTime = DateTimeOffset.Now, icon = "myicon" };
+            //var userRecentActions = new UserRecentLink() { url = eventArgs.Location, title = "my title", accessedTime = DateTimeOffset.Now, icon = "myicon" };
             
             var recentNavigations = await ReadRecentNavigations(userId);
 
             if (recentNavigations == null)
             {
                 recentNavigations = new UserRecent() { UserId = userId };
-                recentNavigations.UserRecentActions.Add(userRecentActions);                
+                recentNavigations.UserRecentActions.Add(link);                
                 await RegisterNavigation(recentNavigations);
             }
             else
@@ -47,7 +47,7 @@ namespace NRCan.Datahub.Shared.Services
                 {
                     await RemoveOldestNavigation(recentNavigations);
                 }
-                recentNavigations.UserRecentActions.Add(userRecentActions);
+                recentNavigations.UserRecentActions.Add(link);
                 using (var _efCoreDatahubContext = _contextFactory.CreateDbContext())
                 {
                     _efCoreDatahubContext.UserRecent.Update(recentNavigations);
@@ -80,7 +80,7 @@ namespace NRCan.Datahub.Shared.Services
         {
             using (var _efCoreDatahubContext = _contextFactory.CreateDbContext())
             {
-                var userRecentActions = _efCoreDatahubContext.UserRecent.Where(u => u.UserId == userId).FirstOrDefault();
+                var userRecentActions = await _efCoreDatahubContext.UserRecent.FirstOrDefaultAsync(u => u.UserId == userId);
                 return userRecentActions;
             }
         }

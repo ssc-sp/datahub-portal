@@ -34,13 +34,13 @@
     {
         @if (_pipelineStatus?.Count > 0)
         {
-            <AeFlex Vertical>
-                <h2>Data Pipeline Status</h2>
-                <AeTable Accessors="accessorFunctions" Renderers="renderFunctions"
+                    <AeFlex Vertical>
+                        <h2>Data Pipeline Status</h2>
+                        <AeTable Accessors="accessorFunctions" Renderers="renderFunctions"
                      GridTemplateColumns="4fr 4fr 3fr 3fr"
                      Dataset="_pipelineStatus"
                      Headers="pipelineHeaders" />
-            </AeFlex>
+                    </AeFlex>
         }
 
         <h2>Project Tools</h2>
@@ -48,17 +48,17 @@
             <AeCard class="facard1" CardPosition="AeCard.CardStyle.Horizontal">
                 <Header>
                     <div style="width:180px">
-                        <img src="/icons/svg/databricks.svg" alt="Power Virtual Agents powerbi">
+                        <img src="/icons/svg/databricks.svg" alt="Databricks">
                     </div>
                 </Header>
                 <ChildContent>
                     @if (_databricksAuthorized && !string.IsNullOrWhiteSpace(_project.Databricks_URL))
                     {
-                        <a href="@_project.Databricks_URL"><AeTypography Variant="h3">Azure Databricks</AeTypography></a>
+                            <DatahubLink Variant="h3" DataProject="@projectAcronym" DatabricksURL="@_project.Databricks_URL">Azure Databricks</DatahubLink>
                     }
                     else
                     {
-                        <AeTypography Variant="h3">Azure Databricks</AeTypography>
+                            <AeTypography Variant="h3">Azure Databricks</AeTypography>
                     }
                     <AeTypography>Azure Databricks Workspace</AeTypography>
                 </ChildContent>
@@ -70,24 +70,24 @@
                             {
                                 @if (_databricksRequested)
                                 {
-                                    <AeTypography class="warning">Access Request is being reviewed</AeTypography>
+                                                <AeTypography class="warning">Access Request is being reviewed</AeTypography>
                                 }
                                 else
                                 {
-                                    <AeTypography class="warning">Access not authorized</AeTypography>
-                                    <AeButton @onclick="@(async () => await RequestAccess(true, false, false))">Request Access</AeButton>
+                                                <AeTypography class="warning">Access not authorized</AeTypography>
+                                                <AeButton @onclick="@(async () => await RequestAccess(true, false, false))">Request Access</AeButton>
                                 }
                             }
                             else
                             {
                                 @if (_serviceRequests.Any(r => r.ServiceType == "databricks" && r.Is_Completed == null))
                                 {
-                                    <AeTypography class="warning">Service Request is being reviewed</AeTypography>
+                                                <AeTypography class="warning">Service Request is being reviewed</AeTypography>
                                 }
                                 else
                                 {
                                     @* <AeTypography class="warning">Service not available</AeTypography> *@
-                                    <AeButton @onclick="@(async () => await RequestServiceAccess("databricks"))">Request Service Creation</AeButton>
+                                                <AeButton @onclick="@(async () => await RequestServiceAccess("databricks"))">Request Service Creation</AeButton>
                                 }
                             }
                         }
@@ -104,11 +104,11 @@
                 <ChildContent>
                     @if (_powerBIAuthorized && !string.IsNullOrWhiteSpace(_project.PowerBI_URL))
                     {
-                        <a href="@_project.PowerBI_URL"><AeTypography Variant="h3">PowerBI</AeTypography></a>
+                            <DatahubLink Variant="h3" DataProject="@projectAcronym" PowerBIURL="@_project.PowerBI_URL">PowerBI Workspace</DatahubLink>
                     }
                     else
                     {
-                        <AeTypography Variant="h3">PowerBI</AeTypography>
+                            <AeTypography Variant="h3">PowerBI</AeTypography>
                     }
                     <AeTypography>PowerBI Workspace</AeTypography>
                 </ChildContent>
@@ -119,24 +119,24 @@
                         {
                             @if (_powerBIRequested)
                             {
-                                <AeTypography class="warning">Access Request is being reviewed</AeTypography>
+                                            <AeTypography class="warning">Access Request is being reviewed</AeTypography>
                             }
                             else
                             {
-                                <AeTypography class="warning">Access not authorized</AeTypography>
-                                <AeButton @onclick="@(async () => await RequestAccess(false, true, false))">Request Access</AeButton>
+                                            <AeTypography class="warning">Access not authorized</AeTypography>
+                                            <AeButton @onclick="@(async () => await RequestAccess(false, true, false))">Request Access</AeButton>
                             }
                         }
                         else
                         {
                             @if (_serviceRequests.Any(r => r.ServiceType == "powerbi" && r.Is_Completed == null))
                             {
-                                <AeTypography class="warning">Service Request is being reviewed</AeTypography>
+                                            <AeTypography class="warning">Service Request is being reviewed</AeTypography>
                             }
                             else
                             {
                                 @*<AeTypography class="warning">Service not available</AeTypography>*@
-                                <AeButton @onclick="@(async () => await RequestServiceAccess("powerbi"))">Request Service Creation</AeButton>
+                                            <AeButton @onclick="@(async () => await RequestServiceAccess("powerbi"))">Request Service Creation</AeButton>
                             }
                         }
                     }
@@ -145,38 +145,38 @@
 
             @if (!string.IsNullOrEmpty(_project.WebForms_URL))
             {
-                <AeCard class="facard1" CardPosition="AeCard.CardStyle.Horizontal">
-                    <Header>
-                        <div class="purple" style="width:180px">
-                            <AeIcon class="fad fa-keyboard card-icon" />
-                        </div>
-                    </Header>
-                    <ChildContent>
+                    <AeCard class="facard1" CardPosition="AeCard.CardStyle.Horizontal">
+                        <Header>
+                            <div class="purple" style="width:180px">
+                                <AeIcon class="fad fa-keyboard card-icon" />
+                            </div>
+                        </Header>
+                        <ChildContent>
                         @if (!string.IsNullOrWhiteSpace(_project.WebForms_URL) && _webFormsAuthorized)
                         {
-                            <NavLink href="@_project.WebForms_URL"><AeTypography Variant="h3">Data Entry</AeTypography></NavLink>
+                                    <DatahubLink Variant="h3" DataProject="@projectAcronym" WebFormsURL="@_project.WebForms_URL">Data Entry</DatahubLink>
                         }
                         else
                         {
-                            <AeTypography Variant="h3">Data Entry</AeTypography>
+                                    <AeTypography Variant="h3">Data Entry</AeTypography>
                         }
-                        <AeTypography>Start the Data Entry application enabled for this project</AeTypography>
-                    </ChildContent>
-                    <Footer>
+                            <AeTypography>Start the Data Entry application enabled for this project</AeTypography>
+                        </ChildContent>
+                        <Footer>
                         @if (!_webFormsAuthorized)
                         {
                             @if (_webFormsRequested)
                             {
-                                <AeTypography class="warning">Access Request is being reviewed</AeTypography>
+                                            <AeTypography class="warning">Access Request is being reviewed</AeTypography>
                             }
                             else
                             {
-                                <AeTypography class="warning">Access not authorized</AeTypography>
-                                <AeButton @onclick="@(async () => await RequestAccess(false, false, true))">Request Access</AeButton>
+                                            <AeTypography class="warning">Access not authorized</AeTypography>
+                                            <AeButton @onclick="@(async () => await RequestAccess(false, false, true))">Request Access</AeButton>
                             }
                         }
-                    </Footer>
-                </AeCard>
+                        </Footer>
+                    </AeCard>
             }
 
 
@@ -188,72 +188,73 @@
                     </Header>
                     <ChildContent>                            
                     <AeFlex Vertical>
-                        <NavLink href=@($"/project/{projectAcronym}/forms")><AeTypography Variant="h3">Form Builder</AeTypography></NavLink>
+                        <DatahubLink Variant="h3" DataProject="@projectAcronym" LinkType="DatahubLinkType.FormBuilder">Form Builder</DatahubLink>                    
                         <AeTypography>Design custom data entry forms</AeTypography>
                     </AeFlex>
                 </ChildContent>
             </AeCard>
 
-            <AeCard class="facard1" CardPosition="AeCard.CardStyle.Horizontal">
-                    <Header>
-                        <div class="indigo" style="width:180px">
-                            <AeIcon class="fad fa-hdd card-icon" />
-                        </div>
-                    </Header>
-                    <ChildContent>                            
-                    <AeFlex Vertical>
+                <AeCard class="facard1" CardPosition="AeCard.CardStyle.Horizontal">
+                        <Header>
+                            <div class="indigo" style="width:180px">
+                                <AeIcon class="fad fa-hdd card-icon" />
+                            </div>
+                        </Header>
+                        <ChildContent>                            
+                        <AeFlex Vertical>
 
                         @if (_serviceRequests.Any(r => r.ServiceType == "storage" && r.Is_Completed != null))
                         {
-                            <NavLink href=@($"/project/{projectAcronym}/filelist")><AeTypography Variant="h3">Storage Explorer</AeTypography></NavLink>
-                        } else
-                        {
-                            <AeTypography Variant="h3">Storage Explorer</AeTypography>
-                        }
-                        <AeTypography>Upload and download files from Azure storage</AeTypography>
-
-                    </AeFlex>
-                    </ChildContent>
-                    <Footer>
-                        @if (_serviceRequests.Any(r => r.ServiceType == "storage" && r.Is_Completed != null))
-                        {
-                        }
-                        else if (_serviceRequests.Any(r => r.ServiceType == "storage" && r.Is_Completed == null))
-                        {
-                            <AeTypography class="warning">Service Request is being reviewed</AeTypography>
+                                <DatahubLink Variant="h3" DataProject="@projectAcronym" LinkType="DatahubLinkType.Storage">Storage Explorer</DatahubLink>
                         }
                         else
                         {
-                            <AeButton @onclick="@(async () => await RequestServiceAccess("storage"))">Request Service Creation</AeButton>
+                                <AeTypography Variant="h3">Storage Explorer</AeTypography>
                         }
-                    </Footer>
-            </AeCard>
-        </div>
+                        <AeTypography>Upload and download files from Azure storage</AeTypography>
+
+                        </AeFlex>
+                        </ChildContent>
+                        <Footer>
+                    @if (_serviceRequests.Any(r => r.ServiceType == "storage" && r.Is_Completed != null))
+                    {
+                    }
+                    else if (_serviceRequests.Any(r => r.ServiceType == "storage" && r.Is_Completed == null))
+                    {
+                                    <AeTypography class="warning">Service Request is being reviewed</AeTypography>
+                    }
+                    else
+                    {
+                                    <AeButton @onclick="@(async () => await RequestServiceAccess("storage"))">Request Service Creation</AeButton>
+                    }
+                        </Footer>
+                </AeCard>
+            </div>
     }
     else
     {
-        <AeCard class="facard1" CardPosition="AeCard.CardStyle.Horizontal">
-                    <Header>
-                        <div class="purple" style="width:180px">
-                            <AeIcon class="fad fa-keyboard card-icon" />
-                        </div>
-                    </Header>
-                    <ChildContent>                       
-                        <AeTypography Variant="h3">Access Denied</AeTypography>                        
-                        <AeTypography>You currently do not have access to this project. Click 'Request Access' to get authorized</AeTypography>
-                    </ChildContent>
-                    <Footer>                        
-                            @if (_projectRequested)
-                            {
-                                <AeTypography class="warning">Access Request is being reviewed</AeTypography>
-                            }
-                            else
-                            {
-                                <AeTypography class="warning">Access not authorized</AeTypography>
-                                <AeButton @onclick="@(async () => await RequestProjectAccess())">Request Access</AeButton>
-                            }                        
-                    </Footer>
-                </AeCard>
+            <AeCard class="facard1" CardPosition="AeCard.CardStyle.Horizontal">
+                        <Header>
+                            <div class="purple" style="width:180px">
+                                <AeIcon class="fad fa-keyboard card-icon" />
+                            </div>
+                        </Header>
+                        <ChildContent>                       
+                            <AeTypography Variant="h3">Access Denied</AeTypography>                        
+                            <AeTypography>You currently do not have access to this project. Click 'Request Access' to get authorized</AeTypography>
+                        </ChildContent>
+                        <Footer>                        
+                @if (_projectRequested)
+                {
+                                        <AeTypography class="warning">Access Request is being reviewed</AeTypography>
+                }
+                else
+                {
+                                        <AeTypography class="warning">Access not authorized</AeTypography>
+                                        <AeButton @onclick="@(async () => await RequestProjectAccess())">Request Access</AeButton>
+                }                        
+                        </Footer>
+                    </AeCard>
 
     }
 
@@ -291,11 +292,11 @@
     null,
     null,
     new Func<ETL_CONTROL_TBL, RenderFragment>(etl =>  { if (etl.STATUS_FLAG == "S")
-                                                            return 
+                                                        return 
     @<div><i class="fad fa-check"></i> OK</div>
     ;
-                                                        else
-                                                            return 
+                                                    else
+                                                        return 
     @<div><i class="fad fa-exclamation-triangle"></i> Error</div>
     ;}),
     new Func<ETL_CONTROL_TBL, RenderFragment>(etl => { return 
@@ -330,7 +331,7 @@
         _user = await UserInformationService.GetCurrentUserAsync();
 
         _isApprovedProjectUser = projectContext.Project_Users.Any(u => u.User_ID == _user.Id && _project == u.Project);
-        
+
 
 
 
@@ -363,7 +364,7 @@
 
     private async Task RequestProjectAccess()
     {
-        
+
     }
 
     private async Task RequestAccess(bool databricks, bool powerbi, bool webforms)
