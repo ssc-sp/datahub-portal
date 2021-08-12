@@ -1,0 +1,70 @@
+﻿@using NRCan.Datahub.Metadata
+@using NRCan.Datahub.Metadata.Model
+@using NRCan.Datahub.Metadata.DTO
+
+@if (Definitions != null && FieldValues != null)
+{
+    <div class="metadata-grid" style="margin: 10px">
+
+        <MetadataFieldEditor HeaderRole="true" />
+
+        @foreach (var definition in Definitions.Fields)
+        {
+            var fieldValue = GetFieldValue(definition.FieldDefinitionId, Preview);
+
+            if (fieldValue != null)
+            {
+                @*<hr />*@
+                <MetadataFieldEditor Preview="Preview"
+                                     FieldValue="fieldValue"
+                                     FieldDefinition="definition"
+                                     FieldLabel="@definition.Name"
+                                     Mandatory="definition.Required_FLAG"
+                                     OnFieldChanged="FieldChanged" />
+            }
+        }
+
+    </div>
+}
+
+@code {
+
+    [Parameter]
+    public bool Preview { get; set; }
+
+    [Parameter]
+    public FieldDefinitions Definitions { get; set; }
+
+    [Parameter]
+    public FieldValueContainer FieldValues { get; set; }
+
+    [Parameter]
+    public EventCallback<ObjectFieldValue> OnFieldChanged { get; set; }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+    }
+
+    private async Task FieldChanged(ObjectFieldValue field)
+    {
+        if (string.IsNullOrEmpty(field.Value_TXT))
+        {
+            FieldValues.Remove(field);
+        }
+        else if (!FieldValues.Contains(field))
+        {
+            FieldValues.Add(field);
+        }
+        await OnFieldChanged.InvokeAsync(field);
+    }
+
+    private ObjectFieldValue GetFieldValue(int definitionId, bool preview)
+    {
+        var field = FieldValues.FirstOrDefault(f => f.FieldDefinitionId == definitionId);
+        if (!preview)
+            return field ?? new ObjectFieldValue() { FieldDefinitionId = definitionId };
+        else
+            return field;
+    }
+}

@@ -1,6 +1,7 @@
 ﻿@inject IApiService ApiService
 @inject NavigationManager NavigationManager
 @inject IExternalSearchService ExternalSearchService
+@inject IUserInformationService UserInfoService
 @using Shared.Data.External.FGP
 @using Shared.Data.External.OpenData
 
@@ -87,7 +88,14 @@
             {
                 <li>
                     <div class="search-result-title">
-                        <a href="http://example.com">@item.Title</a>
+                        @if(item.UrlDecoded != null) 
+                        {
+                            <a href=@item.UrlDecoded.GetString(IsFrench)>@item.Title</a>
+                        }
+                        else 
+                        {
+                            <b>@item.Title</b>
+                        }
                     </div>
                     <div class="search-result-subtitle">
                         @item.Organization.Title
@@ -135,6 +143,8 @@
     [Parameter]
     public string searchtext { get; set; }
 
+    private bool IsFrench { get; set; }
+
     private List<GeoCoreItem> FgpItems { get; set; } = new List<GeoCoreItem>();
     private List<OpenDataItem> OpenDataItems { get; set; } = new List<OpenDataItem>();
 
@@ -144,19 +154,15 @@
 
     private bool SearchingOpenData { get; set; } = false;
     private bool MoreOpenDataResultsAvailable { get; set; } = true;
-    private int MinOpenDataResult { get; set; } = 1;
+    private int MinOpenDataResult { get; set; } = 0;
   
     protected override async Task OnInitializedAsync()
     {
+        IsFrench = await UserInfoService.IsFrench();
 
         if (string.IsNullOrWhiteSpace(searchtext))
         {
             NavigationManager.NavigateTo("data");
-        }
-        else
-        {
-            Task.Factory.StartNew(async () => await LoadMoreFGPResults());        
-            Task.Factory.StartNew(async () => await LoadMoreOpenDataResults());                    
         }
     }
 
@@ -178,11 +184,10 @@
         SearchingOpenData = true;
         StateHasChanged();
 
-        var maxResult = MinOpenDataResult + RESULTS_PER_PAGE - 1;
-        var loadTask = ExternalSearchService.SearchOpenDataByKeyword(searchtext);
-        MinOpenDataResult = maxResult + 1;
+        var loadTask = ExternalSearchService.SearchOpenDataByKeyword(searchtext, min: MinOpenDataResult, rows: RESULTS_PER_PAGE);
+        MinOpenDataResult += RESULTS_PER_PAGE;
         var result = await loadTask;
-        // TODO more results available
+        MoreOpenDataResultsAvailable = result.Results.Count >= RESULTS_PER_PAGE;
         SearchingOpenData = false;
         
         return result.Results;
@@ -211,10 +216,27 @@
         return $"{description.Substring(0, lastIndex)} ...";
     }
 
+    private void ResetExternalSearch()
+    {
+        SearchingFGP = false;
+        MoreFGPResultsAvailable = true;
+        MinFGPResult = 1;
+        FgpItems = new List<GeoCoreItem>();
+
+        SearchingOpenData = false;
+        MoreOpenDataResultsAvailable = true;
+        MinOpenDataResult = 0;
+        OpenDataItems = new List<OpenDataItem>();
+    }
+
     protected override async Task OnParametersSetAsync()
     {
-        FgpItems = new List<GeoCoreItem>();
-        OpenDataItems = new List<OpenDataItem>();
-        await OnInitializedAsync();
+        if (!string.IsNullOrWhiteSpace(searchtext))
+        {
+            ResetExternalSearch();
+
+            LoadMoreFGPResults();
+            LoadMoreOpenDataResults();
+        }
     }
 }

@@ -36,6 +36,10 @@ namespace NRCan.Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.Property<string>("Contact_List")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Data_Sensitivity")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Databricks_URL")
                         .HasMaxLength(400)
                         .HasColumnType("nvarchar(400)");
@@ -51,6 +55,9 @@ namespace NRCan.Datahub.Portal.Migrations.Forms.DatahubProjectDB
 
                     b.Property<DateTime>("Initial_Meeting_DT")
                         .HasColumnType("datetime2");
+
+                    b.Property<bool>("Is_Featured")
+                        .HasColumnType("bit");
 
                     b.Property<bool>("Is_Private")
                         .HasColumnType("bit");
@@ -126,6 +133,23 @@ namespace NRCan.Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.HasKey("Project_ID");
 
                     b.ToTable("Projects");
+
+                    b.HasData(
+                        new
+                        {
+                            Project_ID = 1,
+                            Data_Sensitivity = "Unclassified",
+                            Initial_Meeting_DT = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Is_Featured = false,
+                            Is_Private = false,
+                            Last_Updated_DT = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Project_Acronym_CD = "DHTRK",
+                            Project_Icon = "database",
+                            Project_Name = "Datahub Projects",
+                            Project_Status_Desc = "Ongoing",
+                            Project_Summary_Desc = "Datahub Project Tracker",
+                            Sector_Name = "CIOSB"
+                        });
                 });
 
             modelBuilder.Entity("NRCan.Datahub.Data.Projects.Datahub_ProjectComment", b =>
@@ -166,6 +190,9 @@ namespace NRCan.Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.Property<DateTime?>("Is_Completed")
                         .HasColumnType("datetime2");
 
+                    b.Property<DateTime?>("Notification_Sent")
+                        .HasColumnType("datetime2");
+
                     b.Property<int?>("Project_ID")
                         .HasColumnType("int");
 
@@ -179,6 +206,14 @@ namespace NRCan.Datahub.Portal.Migrations.Forms.DatahubProjectDB
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("rowversion");
+
+                    b.Property<string>("User_ID")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("User_Name")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.HasKey("ServiceRequests_ID");
 
@@ -253,10 +288,16 @@ namespace NRCan.Datahub.Portal.Migrations.Forms.DatahubProjectDB
                         .HasColumnType("int")
                         .UseIdentityColumn();
 
-                    b.Property<bool?>("Databricks")
+                    b.Property<string>("ApprovedUser")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("Approved_DT")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsAdmin")
                         .HasColumnType("bit");
 
-                    b.Property<bool?>("PowerBI")
+                    b.Property<bool>("IsDataApprover")
                         .HasColumnType("bit");
 
                     b.Property<int?>("Project_ID")
@@ -271,19 +312,43 @@ namespace NRCan.Datahub.Portal.Migrations.Forms.DatahubProjectDB
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
-                    b.Property<string>("User_Name")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<bool?>("WebForms")
-                        .HasColumnType("bit");
-
                     b.HasKey("ProjectUser_ID");
 
                     b.HasIndex("Project_ID");
 
                     b.ToTable("Project_Users");
+                });
+
+            modelBuilder.Entity("NRCan.Datahub.Data.Projects.Datahub_Project_User_Request", b =>
+                {
+                    b.Property<int>("ProjectUserRequest_ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .UseIdentityColumn();
+
+                    b.Property<string>("ApprovedUser")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("Approved_DT")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("Project_ID")
+                        .HasColumnType("int");
+
+                    b.Property<byte[]>("Timestamp")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<string>("User_ID")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.HasKey("ProjectUserRequest_ID");
+
+                    b.HasIndex("Project_ID");
+
+                    b.ToTable("Project_Users_Requests");
                 });
 
             modelBuilder.Entity("NRCan.Datahub.Data.Projects.PBI_License_Request", b =>
@@ -498,6 +563,15 @@ namespace NRCan.Datahub.Portal.Migrations.Forms.DatahubProjectDB
                 {
                     b.HasOne("NRCan.Datahub.Data.Projects.Datahub_Project", "Project")
                         .WithMany("Users")
+                        .HasForeignKey("Project_ID");
+
+                    b.Navigation("Project");
+                });
+
+            modelBuilder.Entity("NRCan.Datahub.Data.Projects.Datahub_Project_User_Request", b =>
+                {
+                    b.HasOne("NRCan.Datahub.Data.Projects.Datahub_Project", "Project")
+                        .WithMany()
                         .HasForeignKey("Project_ID");
 
                     b.Navigation("Project");
