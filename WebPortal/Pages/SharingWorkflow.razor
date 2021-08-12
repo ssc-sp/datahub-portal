@@ -1,0 +1,56 @@
+﻿@page "/sharingworkflow/{FileId}"
+@using Microsoft.AspNetCore.WebUtilities
+@inject NavigationManager _navManager
+
+<h3>Sharing Workflow</h3>
+
+<p>
+    <AeButton OnClickEvent=@OpenDataClicked >@Localizer["Open Data"]</AeButton>
+
+    <AeButton OnClickEvent=@PublicUrlClicked>@Localizer["Public URL"]</AeButton>
+</p>
+
+@code {
+
+    [Parameter]
+    public string FileId { get; set; }
+
+    private string Filename { get; set; }
+    private string Folderpath { get; set; }
+    private string ProjectCode { get; set; }
+
+    public async Task OpenDataClicked()
+    {
+        // perform setup steps if necessary
+        _navManager.NavigateTo($"/share/opendata/{FileId}");
+    }
+
+    public async Task PublicUrlClicked()
+    {
+        // setup provisional data record
+        _navManager.NavigateTo($"/share/public/{FileId}");
+    }
+
+    private string GetFirstQueryValue(IDictionary<string, Microsoft.Extensions.Primitives.StringValues> query, string paramKey)
+    {
+        if (query.TryGetValue(paramKey, out var param))
+        {
+            return param.First();
+        }
+        else
+        {
+            return null;
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var uri = _navManager.ToAbsoluteUri(_navManager.Uri);
+        var query = QueryHelpers.ParseQuery(uri.Query);
+
+        Filename = GetFirstQueryValue(query, "filename");
+        Folderpath = GetFirstQueryValue(query, "folderpath");
+        ProjectCode = GetFirstQueryValue(query, "project");
+    }
+
+}
