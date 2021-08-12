@@ -64,9 +64,9 @@ namespace NRCan.Datahub.Shared.Services
             }
         }
 
-        public async Task<OpenDataResult> SearchOpenDataByKeyword(string keyword)
+        public async Task<OpenDataResult> SearchOpenDataByKeyword(string keyword, int min = 0, int rows = 10)
         {
-            _logger.LogDebug($"Searching Open Data with keyword {keyword}");
+            _logger.LogDebug($"Searching Open Data with keyword '{keyword}' (min: {min} , rows: {rows})");
             var encKeyword = HttpUtility.UrlEncode(keyword);
 
             try 
@@ -74,7 +74,7 @@ namespace NRCan.Datahub.Shared.Services
                 using (var request = new HttpRequestMessage())
                 {
                     request.Method = HttpMethod.Get;
-                    request.RequestUri = new Uri($"{OPEN_DATA_SEARCH_API_URL}?q={keyword}");
+                    request.RequestUri = new Uri($"{OPEN_DATA_SEARCH_API_URL}?q={keyword}&start={min}&rows={rows}");
 
                     _logger.LogTrace($"Uri: {request.RequestUri}");
 
