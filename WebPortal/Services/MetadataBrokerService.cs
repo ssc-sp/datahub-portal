@@ -6,29 +6,33 @@ using System.Linq;
 using System.Collections.Generic;
 using System;
 using NRCan.Datahub.Metadata.DTO;
+using ShareWorkflow = NRCan.Datahub.Portal.Data.Forms.ShareWorkflow;
+using NRCan.Datahub.Shared.Utils;
 
 namespace NRCan.Datahub.Portal.Services
 {
     public class MetadataBrokerService : IMetadataBrokerService
     {
         readonly ILogger<MetadataBrokerService> _logger;
-        readonly MetadataDbContext _metadataDbContext;
+        readonly IDbContextFactory<MetadataDbContext> _contextFactory;
 
-        public MetadataBrokerService(MetadataDbContext metadataDbContext, ILogger<MetadataBrokerService> logger)
+        public MetadataBrokerService(IDbContextFactory<MetadataDbContext> contextFactory, ILogger<MetadataBrokerService> logger)
         {
             _logger = logger;
-            _metadataDbContext = metadataDbContext;
+            _contextFactory = contextFactory;
         }
 
         public async Task<ObjectMetadataContext> GetMetadataContext(string objectId)
         {
+            using var ctx = _contextFactory.CreateDbContext();
+
             // retrieve the object metadata
-            var objectMetadata = await _metadataDbContext.ObjectMetadataSet
+            var objectMetadata = await ctx.ObjectMetadataSet
                 .Include(e => e.FieldValues)
                 .FirstOrDefaultAsync(e => e.ObjectId_TXT == objectId);
 
             // retrieve the field definitions
-            var metadataDefinitions = await (objectMetadata == null ? GetLatestMetadataDefinition() : GetMetadataDefinition(objectMetadata.MetadataVersionId));
+            var metadataDefinitions = await (objectMetadata == null ? GetLatestMetadataDefinition(ctx) : GetMetadataDefinition(ctx, objectMetadata.MetadataVersionId));
 
             // retrieve and clone the field values
             var fieldValues = CloneFieldValues(objectMetadata?.FieldValues ?? new List<ObjectFieldValue>());
@@ -38,11 +42,13 @@ namespace NRCan.Datahub.Portal.Services
 
         public async Task SaveMetadata(string objectId, int metadataVersionId, FieldValueContainer fieldValues)
         {
-            var transation = _metadataDbContext.Database.BeginTransaction();
+            using var ctx = _contextFactory.CreateDbContext();
+
+            var transation = ctx.Database.BeginTransaction();
             try
             {
                 // fetch the existing metadata object or create a new one
-                var current = await FetchObjectMetadata(objectId) ?? await CreateNewObjectMetadata(objectId, metadataVersionId);
+                var current = await FetchObjectMetadata(ctx, objectId) ?? await CreateNewObjectMetadata(ctx, objectId, metadataVersionId);
                 
                 // hash the new values by FieldDefinitionId
                 var newValues = fieldValues.ToDictionary(v => v.FieldDefinitionId);
@@ -60,13 +66,13 @@ namespace NRCan.Datahub.Portal.Services
                             if (string.IsNullOrEmpty(editedValue.Value_TXT))
                             {
                                 // delete if cleared
-                                _metadataDbContext.ObjectFieldValues.Remove(currentValue);
+                                ctx.ObjectFieldValues.Remove(currentValue);
                             }
                             else
                             {
                                 // update value
                                 currentValue.Value_TXT = editedValue.Value_TXT;
-                                _metadataDbContext.ObjectFieldValues.Update(currentValue);
+                                ctx.ObjectFieldValues.Update(currentValue);
                             }
                         }
                     }
@@ -74,7 +80,7 @@ namespace NRCan.Datahub.Portal.Services
                     {
                         // add new value
                         editedValue.ObjectMetadataId = current.ObjectMetadataId;
-                        _metadataDbContext.ObjectFieldValues.Add(editedValue);
+                        ctx.ObjectFieldValues.Add(editedValue);
                     }
                 }
 
@@ -83,12 +89,12 @@ namespace NRCan.Datahub.Portal.Services
                 {
                     if (!newValues.ContainsKey(currentValue.FieldDefinitionId))
                     {
-                        _metadataDbContext.ObjectFieldValues.Remove(currentValue);
+                        ctx.ObjectFieldValues.Remove(currentValue);
                     }
                 }
 
                 // save the changes
-                await _metadataDbContext.SaveChangesAsync();
+                await ctx.SaveChangesAsync();
 
                 transation.Commit();
             }
@@ -99,12 +105,54 @@ namespace NRCan.Datahub.Portal.Services
             }
         }
 
-        private async Task<ObjectMetadata> FetchObjectMetadata(string objectId)
+        public async Task<ShareWorkflow.ApprovalForm> GetApprovalForm(int approvalFormId)
         {
-            return await _metadataDbContext.ObjectMetadataSet.FirstOrDefaultAsync(e => e.ObjectId_TXT == objectId);
+            using var ctx = _contextFactory.CreateDbContext();
+            
+            var approvalFormEntity = await GetApprovalFormEntity(ctx, approvalFormId);
+            if (approvalFormEntity != null)
+            {
+                var approvalForm = new ShareWorkflow.ApprovalForm();
+                approvalFormEntity.CopyPublicPropertiesTo(approvalForm, true);
+                return approvalForm;
+            }
+
+            return null;
         }
 
-        private async Task<ObjectMetadata> CreateNewObjectMetadata(string objectId, int metadataVersionId)
+        public async Task<int> SaveApprovalForm(ShareWorkflow.ApprovalForm form)
+        {
+            using var ctx = _contextFactory.CreateDbContext();
+
+            var approvalFormEntity = new ApprovalForm();
+            form.CopyPublicPropertiesTo(approvalFormEntity, true);
+
+            if (approvalFormEntity.ApprovalFormId == 0)
+            {
+                ctx.ApprovalForms.Add(approvalFormEntity);
+            }
+            else
+            {
+                ctx.Attach(approvalFormEntity);
+                ctx.ApprovalForms.Update(approvalFormEntity);
+            }
+
+            await ctx.SaveChangesAsync();
+
+            return approvalFormEntity.ApprovalFormId;
+        }
+
+        private async Task<ApprovalForm> GetApprovalFormEntity(MetadataDbContext ctx, int approvalFormId)
+        {
+            return await ctx.ApprovalForms.FirstOrDefaultAsync(e => e.ApprovalFormId == approvalFormId);
+        }
+
+        private async Task<ObjectMetadata> FetchObjectMetadata(MetadataDbContext ctx, string objectId)
+        {
+            return await ctx.ObjectMetadataSet.Include(e => e.FieldValues).FirstOrDefaultAsync(e => e.ObjectId_TXT == objectId);
+        }
+
+        private async Task<ObjectMetadata> CreateNewObjectMetadata(MetadataDbContext ctx, string objectId, int metadataVersionId)
         {
             var objectMetadata =  new ObjectMetadata()
             {
@@ -113,17 +161,17 @@ namespace NRCan.Datahub.Portal.Services
                 FieldValues = new List<ObjectFieldValue>()
             };
 
-            _metadataDbContext.ObjectMetadataSet.Add(objectMetadata);
-            await _metadataDbContext.SaveChangesAsync();
+            ctx.ObjectMetadataSet.Add(objectMetadata);
+            await ctx.SaveChangesAsync();
 
             return objectMetadata;
         }
 
         const string OpenDataId = "OpenData";
 
-        private async Task<FieldDefinitions> GetLatestMetadataDefinition()
+        private async Task<FieldDefinitions> GetLatestMetadataDefinition(MetadataDbContext ctx)
         {
-            var latestVersion = await _metadataDbContext
+            var latestVersion = await ctx
                 .MetadataVersions
                 .Where(e => e.Source_TXT == OpenDataId)
                 .OrderByDescending(e => e.Last_Update_DT)
@@ -132,14 +180,14 @@ namespace NRCan.Datahub.Portal.Services
             if (latestVersion == null)
                 return new FieldDefinitions();
 
-            return await GetMetadataDefinition(latestVersion.MetadataVersionId);
+            return await GetMetadataDefinition(ctx, latestVersion.MetadataVersionId);
         }
 
-        private async Task<FieldDefinitions> GetMetadataDefinition(int versionId)
+        private async Task<FieldDefinitions> GetMetadataDefinition(MetadataDbContext ctx, int versionId)
         {
             var definitions = new FieldDefinitions();
 
-            var latestDefinitions = await _metadataDbContext.FieldDefinitions
+            var latestDefinitions = await ctx.FieldDefinitions
                     .Include(e => e.Choices)
                     .Where(e => e.MetadataVersionId == versionId)
                     .ToListAsync();
