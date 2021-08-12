@@ -1,4 +1,5 @@
 ﻿using Elemental.Components;
+using NRCan.Datahub.Shared.Services;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -26,6 +27,10 @@ namespace NRCan.Datahub.Data.Projects
         public bool PowerBI { get; set; }
         public bool WebForms { get; set; }
 
+        [NotMapped]
+        [AeFormIgnore]
+        public string RequestServiceType => (Databricks ? "Databricks" : (PowerBI ? "PowerBI" : "Web Forms"));
+
         public DateTime Request_DT { get; set; }
 
         public DateTime? Completion_DT { get; set; }
@@ -43,17 +48,36 @@ namespace NRCan.Datahub.Data.Projects
 
         public int ProjectUser_ID { get; set; }
 
-        [Required]
         [StringLength(200)]
-        public string User_Name { get; set; }
+        public string User_ID { get; set; }
+        public DateTime? Approved_DT { get; set; }
 
+        public string ApprovedUser { get; set; }
+
+        public bool IsAdmin { get; set; }
+
+        public bool IsDataApprover { get; set; }
+        public Datahub_Project Project { get; set; }
+
+        [Timestamp]
+        public byte[] Timestamp { get; set; }
+
+    }
+
+    public class Datahub_Project_User_Request
+    {
+
+        [Key]
+
+        public int ProjectUserRequest_ID { get; set; }
+        
         [StringLength(200)]
         public string User_ID { get; set; }
 
-        public bool? Databricks { get; set; }
-        public bool? PowerBI { get; set; }
-        public bool? WebForms { get; set; }
-
+        public DateTime? Approved_DT { get; set;  }
+        
+        public string ApprovedUser { get; set; }
+        
         public Datahub_Project Project { get; set; }
 
         [Timestamp]
@@ -115,12 +139,12 @@ namespace NRCan.Datahub.Data.Projects
         public int? Number_Of_Users_Involved { get; set; }
         public bool Is_Private { get; set; }
 
-        //TODO add these columns
-        //public bool Is_Featured { get; set; }
+        
+        public bool Is_Featured { get; set; }
 
-        //[Required]
-        //[AeLabel(validValues: new[] { "Unclassified", "Protected A", "Protected B" })]
-        //public string Data_Sensitivity { get; set; }
+        [Required]
+        [AeLabel(validValues: new[] { "Unclassified", "Protected A", "Protected B" })]
+        public string Data_Sensitivity { get; set; } = "Unclassified";
 
         public string Stage_Desc { get; set; }
 
@@ -203,6 +227,20 @@ namespace NRCan.Datahub.Data.Projects
             }
         }
 
+        [AeFormIgnore]
+        [NotMapped]
+        public DatahubProjectInfo ProjectInfo
+        {
+            get
+            {
+                return new DatahubProjectInfo()
+                {
+                    ProjectNameEn = Project_Name,
+                    ProjectNameFr = Project_Name_Fr
+                };
+            }
+        }
+
     }
 
     public class Datahub_ProjectComment
@@ -224,6 +262,8 @@ namespace NRCan.Datahub.Data.Projects
 
     public class Datahub_ProjectServiceRequests
     {
+        // TODO add requesting user to data model
+
         [Key]
         [AeFormIgnore]
 
@@ -233,6 +273,14 @@ namespace NRCan.Datahub.Data.Projects
 
         public string ServiceType { get; set; }
         public DateTime? Is_Completed { get; set; }
+        
+        [StringLength(200)]
+        public string User_Name { get; set; }
+
+        [StringLength(200)]
+        public string User_ID { get; set; }
+
+        public DateTime? Notification_Sent { get; set; }
 
         [AeFormIgnore]
         [Timestamp]

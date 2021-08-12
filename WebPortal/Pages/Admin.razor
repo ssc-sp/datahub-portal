@@ -5,6 +5,8 @@
 @inject IJSRuntime JsInterop
 @inject DatahubProjectDBContext projectContext
 @inject IDbContextFactory<DatahubProjectDBContext> dbFactory
+@inject IEmailNotificationService EmailService
+@inject IMSGraphService GraphService
 @page "/admin"
 
 
@@ -24,7 +26,49 @@
             <div>Loading data...</div>
         }
 
+        <h1>@Localizer["Service Requests"]</h1>
 
+        @if (_serviceRequests != null)
+        {
+            <AeTable 
+                Accessors=@serviceRequestAccessors
+                Dataset=@_serviceRequests
+                Renderers=@serviceRenderers
+                Headers=@serviceReqHeaders
+            />
+        }
+        else
+        {
+            <div>@Localizer["Loading data..."]</div>
+        }
+
+        @if (EmailService.IsDevTestMode())
+        {
+            <div style="width:600px">
+                <AeCard>
+                    <h1>@Localizer["Test Email Notification"]</h1>
+                    
+                    <label>
+                        <input @bind=@EmailSelf type="checkbox"/>
+                        @Localizer["Send to self"]
+                    </label>
+                    
+                    <input @bind=@TestRecipientName type="text" disabled=@EmailSelf style="width:100%"/>
+                
+                    <input @bind=@TestRecipientEmail type="text" disabled=@EmailSelf style="width:100%" />
+                    
+                    <AeButton class="blue" @onclick="async () => await SendNamedTestEmail()" Disabled=@IsSendingTestEmail >
+                        @if (IsSendingTestEmail) {
+                            <NRCan.Datahub.Shared.Components.Spinner Small="true" />
+                        }
+                        else
+                        {
+                            @Localizer["Send test email"]
+                        }
+                    </AeButton>
+                </AeCard>
+            </div>
+        }
     </Authorized>
     <NotAuthorized>
         <h1>This page is limited for datahub administrators</h1>
@@ -37,24 +81,82 @@
 
     private List<Datahub_Project_Access_Request> _usersAuthorization;
 
+    private List<Datahub_ProjectServiceRequests> _serviceRequests;
+
     private List<string> headers = new List<string>
 {
         "Project", "User", "Service", "Date","Actions"
     };
+
+    private List<string> serviceReqHeaders = new List<string>()
+    {
+        "Project", "Requesting User", "Service", "Created", "Notified"
+    };
+
+    private bool _emailSelf = true;
+    private bool EmailSelf
+    {
+        get => _emailSelf;
+        set 
+        {
+            if (value)
+            {
+                ResetTestRecipient();
+            }
+            _emailSelf = value;
+        }
+    }
+    private string TestRecipientName { get; set; }
+    private string TestRecipientEmail { get; set; }
+    private bool IsSendingTestEmail { get; set; }
+
+    private async Task ResetTestRecipient()
+    {
+        var user = (await authenticationStateTask).User;
+        var email = user.Identity.Name;
+        var name = user.Claims.Where(c => c.Type == "name").FirstOrDefault()?.Value;
+        
+        TestRecipientName = name;
+        TestRecipientEmail = email;
+        StateHasChanged();
+    }
+
+    private async Task SendNamedTestEmail()
+    {
+        IsSendingTestEmail = true;
+        StateHasChanged();
+
+        var html = await EmailService
+            .RenderTemplate<NRCan.Datahub.Shared.Templates.TestEmailTemplate>(new Dictionary<string, object>(){{ "Name", TestRecipientName }});
+        await EmailService.SendEmailMessage("Test", html, TestRecipientEmail, TestRecipientName);
+
+        IsSendingTestEmail = false;
+        StateHasChanged();
+    }
 
     // Accessor functions to retrieve cell value
     private List<Func<Datahub_Project_Access_Request, string>> accessorFunctions = new List<Func<Datahub_Project_Access_Request, string>>
 {
         new Func<Datahub_Project_Access_Request, string>(p => { return p.Project.Project_Name; }),
         new Func<Datahub_Project_Access_Request, string>(p => { return p.User_Name; }),
-        new Func<Datahub_Project_Access_Request, string>(p => { return (p.Databricks ? "Databricks" : (p.PowerBI ? "PowerBI" : "Web Forms")); }),
+        new Func<Datahub_Project_Access_Request, string>(p => { return p.RequestServiceType; }),
         new Func<Datahub_Project_Access_Request, string>(p => { return p.Request_DT.ToShortDateString(); }),
         new Func<Datahub_Project_Access_Request, string>(p => { return ".."; }),
     };
 
+    private List<Func<Datahub_ProjectServiceRequests, string>> serviceRequestAccessors = new List<Func<Datahub_ProjectServiceRequests, string>>()
+        {
+            p => p.Project.Project_Name,
+            p => p.User_Name ?? "N/A",
+            p => p.ServiceType,
+            p => p.Is_Completed?.ToShortDateString() ?? "N/A",
+            p => ".."
+        };
+
     // [Optional] Can define custom rendering for columns, order matters
     private List<Func<Datahub_Project_Access_Request, RenderFragment>> renderFunctions;
 
+    private List<Func<Datahub_ProjectServiceRequests, RenderFragment>> serviceRenderers;
     private void GetServiceType(Datahub_Project_Access_Request request)
     { 
     
@@ -63,6 +165,53 @@
     {
         r.Completion_DT = DateTime.UtcNow;
         await projectContext.SaveChangesAsync();
+
+        var serviceName = r.RequestServiceType;
+
+        await EmailService.SendServiceAccessGrantedNotification(serviceName, r.Project.ProjectInfo, r.User_Name);
+
+        await RefreshData();
+    }
+
+    private async Task RevokeAccess(Datahub_Project_Access_Request r)
+    {
+        r.Completion_DT = null;
+        await projectContext.SaveChangesAsync();
+
+        var serviceName = r.RequestServiceType;
+
+        await EmailService.SendAccessRevokedNotification(serviceName, r.Project.ProjectInfo, r.User_Name);
+
+        await RefreshData();
+    }
+
+    private async Task NotifyServiceCreation(Datahub_ProjectServiceRequests r)
+    {
+        var requestingUserEmail = r.User_Name?.ToLowerInvariant();
+        var project = r.Project;
+        await projectContext.Entry(project).Collection(p => p.Users).LoadAsync();
+        var userEmails = project.Users
+            .Select(u => GraphService.GetUserEmail(u.User_ID).ToLowerInvariant())
+            .ToHashSet();
+        
+        Task individualEmailTask = null;
+
+        if (!string.IsNullOrEmpty(requestingUserEmail))
+        {
+            userEmails.Remove(requestingUserEmail);
+            individualEmailTask = EmailService.SendServiceCreationRequestApprovedIndividual(r.ServiceType, r.Project.ProjectInfo, requestingUserEmail);
+        }
+
+        await EmailService.SendServiceCreationGroupNotification(r.ServiceType, r.Project.ProjectInfo, userEmails.ToList());
+
+        if (individualEmailTask != null)
+        {
+            await individualEmailTask;
+        }
+
+        r.Notification_Sent = DateTime.UtcNow;
+        await projectContext.SaveChangesAsync();
+
         await RefreshData();
     }
 
@@ -81,14 +230,18 @@
             var validProjects = allProjectAdminsList.Where(tp => (ServiceAuthManager.ExtractEmails(tp.Project_Admin)?.Contains(email.ToLowerInvariant()) ?? false)).Select(p => p.Project_ID).ToHashSet();
             var allAuths = await projectContext.Access_Requests.Include(a => a.Project).OrderByDescending(a => a.Request_DT).ToListAsync();
             _usersAuthorization = allAuths.Where(a => validProjects.Contains(a.Project.Project_ID)).ToList();
+            var allServiceCreationRequests = await projectContext.Project_Requests.Include(a => a.Project).OrderByDescending(a => a.ServiceRequests_Date_DT).ToListAsync();
+            _serviceRequests = allServiceCreationRequests.Where(a => validProjects.Contains(a.Project.Project_ID)).ToList();
         }
     }
 
     protected override async Task OnInitializedAsync()
     {
+        ResetTestRecipient();
+
         await RefreshData();
         renderFunctions = new List<Func<Datahub_Project_Access_Request, RenderFragment>>
-{
+        {
                 null,
                 null,
                 null,
@@ -96,7 +249,7 @@
                 new Func<Datahub_Project_Access_Request, RenderFragment>(a => {
                     if (a.Completion_DT != null)
                     {
-                        return @<div>@Localizer["Authorized"]</div>;
+                        return @<div>@Localizer["Authorized"] <AeButton @onclick="async () => await RevokeAccess(a)">@Localizer["Revoke"]</AeButton> </div>;
                     }
                    else
       
@@ -106,6 +259,30 @@
                 })
 
         };
-                                }
+
+        serviceRenderers = new List<Func<Datahub_ProjectServiceRequests, RenderFragment>>()
+        {
+            null,
+            null,
+            null,
+            null,
+            p => 
+            {
+                if (!p.Is_Completed.HasValue)
+                {
+                    return @<span>@Localizer["N/A"]</span>;
+                }
+                else if (!p.Notification_Sent.HasValue)
+                {
+                    return @<AeButton @onclick="async () => await NotifyServiceCreation(p)">@Localizer["Send Notification"]</AeButton>;
+                }
+                else
+                {
+                    return @<div>@p.Notification_Sent.Value.ToShortDateString()</div>;
+                }
+            }
+        };
+
+    }
 
 }
