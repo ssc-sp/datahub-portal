@@ -9,6 +9,7 @@
 @implements IDisposable
 @inject IDbContextFactory<DatahubProjectDBContext> DbFactoryProject
 @inject IDbContextFactory<DatahubETLStatusContext> DbFactoryEtl
+@inject IEmailNotificationService EmailNotificationService
 
 @page "/project/{projectAcronym}"
 
@@ -29,23 +30,25 @@
         </ChildContent>
     </AeCard>
 
-    @if (_pipelineStatus?.Count > 0)
+    @if (!_isApprovedProjectUser)
     {
-        <AeFlex Vertical>
-            <h2>Data Pipeline Status</h2>
-            <AeTable Accessors="accessorFunctions" Renderers="renderFunctions"
-                 GridTemplateColumns="4fr 4fr 3fr 3fr"
-                 Dataset="_pipelineStatus"
-                 Headers="pipelineHeaders" />
-        </AeFlex>
-    }
+        @if (_pipelineStatus?.Count > 0)
+        {
+            <AeFlex Vertical>
+                <h2>Data Pipeline Status</h2>
+                <AeTable Accessors="accessorFunctions" Renderers="renderFunctions"
+                     GridTemplateColumns="4fr 4fr 3fr 3fr"
+                     Dataset="_pipelineStatus"
+                     Headers="pipelineHeaders" />
+            </AeFlex>
+        }
 
     <h2>Project Tools</h2>
     <div class="ae flex wrap">
         <AeCard class="facard1" CardPosition="AeCard.CardStyle.Horizontal">
             <Header>
                 <div style="width:180px">
-                    <img src="/icons/svg/databricks.svg" alt="Power Virtual Agents powerbi">
+                    <img src="/icons/svg/databricks.svg" alt="Databricks">
                 </div>
             </Header>
             <ChildContent>
@@ -191,14 +194,14 @@
             </ChildContent>
         </AeCard>
 
-        <AeCard class="facard1" CardPosition="AeCard.CardStyle.Horizontal">
-                <Header>
-                    <div class="indigo" style="width:180px">
-                        <AeIcon class="fad fa-hdd card-icon" />
-                    </div>
-                </Header>
-                <ChildContent>                            
-                <AeFlex Vertical>
+            <AeCard class="facard1" CardPosition="AeCard.CardStyle.Horizontal">
+                    <Header>
+                        <div class="indigo" style="width:180px">
+                            <AeIcon class="fad fa-hdd card-icon" />
+                        </div>
+                    </Header>
+                    <ChildContent>                            
+                    <AeFlex Vertical>
 
                     @if (_serviceRequests.Any(r => r.ServiceType == "storage" && r.Is_Completed != null))
                     {
@@ -209,23 +212,52 @@
                     }
                     <AeTypography>Upload and download files from Azure storage</AeTypography>
 
-                </AeFlex>
-                </ChildContent>
-                <Footer>
-                    @if (_serviceRequests.Any(r => r.ServiceType == "storage" && r.Is_Completed != null))
-                    {
-                    }
-                    else if (_serviceRequests.Any(r => r.ServiceType == "storage" && r.Is_Completed == null))
-                    {
-                        <AeTypography class="warning">Service Request is being reviewed</AeTypography>
-                    }
-                    else
-                    {
-                        <AeButton @onclick="@(async () => await RequestServiceAccess("storage"))">Request Service Creation</AeButton>
-                    }
-                </Footer>
-        </AeCard>
-    </div>
+                    </AeFlex>
+                    </ChildContent>
+                    <Footer>
+                        @if (_serviceRequests.Any(r => r.ServiceType == "storage" && r.Is_Completed != null))
+                        {
+                        }
+                        else if (_serviceRequests.Any(r => r.ServiceType == "storage" && r.Is_Completed == null))
+                        {
+                            <AeTypography class="warning">Service Request is being reviewed</AeTypography>
+                        }
+                        else
+                        {
+                            <AeButton @onclick="@(async () => await RequestServiceAccess("storage"))">Request Service Creation</AeButton>
+                        }
+                    </Footer>
+            </AeCard>
+        </div>
+    }
+    else
+    {
+        <AeCard class="facard1" CardPosition="AeCard.CardStyle.Horizontal">
+                    <Header>
+                        <div class="purple" style="width:180px">
+                            <AeIcon class="fad fa-keyboard card-icon" />
+                        </div>
+                    </Header>
+                    <ChildContent>                       
+                        <AeTypography Variant="h3">Access Denied</AeTypography>                        
+                        <AeTypography>You currently do not have access to this project. Click 'Request Access' to get authorized</AeTypography>
+                    </ChildContent>
+                    <Footer>                        
+                            @if (_projectRequested)
+                            {
+                                <AeTypography class="warning">Access Request is being reviewed</AeTypography>
+                            }
+                            else
+                            {
+                                <AeTypography class="warning">Access not authorized</AeTypography>
+                                <AeButton @onclick="@(async () => await RequestProjectAccess())">Request Access</AeButton>
+                            }                        
+                    </Footer>
+                </AeCard>
+
+    }
+
+
 </div>
 
 
@@ -237,6 +269,7 @@
     private DatahubProjectDBContext projectContext;
     private DatahubETLStatusContext etlContext;
 
+    private bool _isApprovedProjectUser;
 
     // Define the headers at the top of the table
     private List<string> pipelineHeaders = new List<string>
@@ -285,6 +318,7 @@
     private bool _databricksAuthorized = false;
     private bool _powerBIAuthorized = false;
     private bool _webFormsAuthorized = false;
+    private bool _projectRequested = false;
 
     private List<ETL_CONTROL_TBL> _pipelineStatus = new List<ETL_CONTROL_TBL>();
 
@@ -293,13 +327,19 @@
         projectContext = DbFactoryProject.CreateDbContext();
         etlContext = DbFactoryEtl.CreateDbContext();
         await RefreshComponents(false);
+        _user = await UserInformationService.GetCurrentUserAsync();
+
+        _isApprovedProjectUser = projectContext.Project_Users.Any(u => u.User_ID == _user.Id && _project == u.Project);
+        
+
+
+
         var allPipelines = _project.Pipelines?.Select(p => p.Process_Nm).ToList();
         if (allPipelines != null)
         {
             _pipelineStatus = await etlContext.ETL_CONTROL_TBL.Where(t => allPipelines.Contains(t.PROCESS_NM)).ToListAsync();
             _pipelineStatus = _pipelineStatus.Where(t => t.STATUS_FLAG != "T").GroupBy(t => t.PROCESS_NM).Select(gp => gp.OrderByDescending(g => g.END_TS).First()).OrderBy(s => s.PROCESS_NM).ToList();
         }
-        _user = await UserInformationService.GetCurrentUserAsync();
 
         if (_user != null)
         {
@@ -321,6 +361,11 @@
 
     }
 
+    private async Task RequestProjectAccess()
+    {
+        
+    }
+
     private async Task RequestAccess(bool databricks, bool powerbi, bool webforms)
     {
         _databricksRequested = databricks || _databricksRequested;
@@ -339,6 +384,11 @@
         projectContext.Access_Requests.Add(request);
         await projectContext.SaveChangesAsync();
 
+        var serviceName = request.RequestServiceType;
+
+        var adminEmails = ServiceAuthManager.ExtractEmails(_project.Project_Admin ?? string.Empty);
+        await EmailNotificationService.SendServiceAccessRequestNotification(request.User_Name, serviceName, _project.ProjectInfo, adminEmails);
+
         await RefreshComponents(true);
     }
 
@@ -349,11 +399,16 @@
             ServiceType = serviceType,
             ServiceRequests_Date_DT = DateTime.Now,
             Is_Completed = null,
-            Project = _project
+            Project = _project,
+            User_ID = _user.Id,
+            User_Name = _user.UserPrincipalName
         };
 
         projectContext.Project_Requests.Add(serviceRequest);
         await projectContext.SaveChangesAsync();
+
+        var adminEmails = ServiceAuthManager.ExtractEmails(_project.Project_Admin ?? string.Empty);
+        await EmailNotificationService.SendServiceCreationRequestNotification(serviceRequest.User_Name, serviceType, _project.ProjectInfo, adminEmails);
 
         await RefreshComponents(true);
     }

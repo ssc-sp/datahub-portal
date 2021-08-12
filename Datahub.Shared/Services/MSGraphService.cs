@@ -61,6 +61,12 @@ namespace NRCan.Datahub.Shared.Services
             return "...";
         }
 
+        public string GetUserEmail(string userId)
+        {
+            var user = GetUser(userId);
+            return user?.Mail;
+        }
+
         public Dictionary<string, GraphUser> GetUsersList()
         {
             return UsersDict;
@@ -98,6 +104,10 @@ namespace NRCan.Datahub.Shared.Services
                             UsersDict.Add(newUser.Id, newUser);
                         }
                     }
+
+                    //var user1 = UsersDict.Values.Where(u => u.Mail.ToLower() == "natasha.lestage@nrcan-rncan.gc.ca").FirstOrDefault().Id;
+                    
+                    
                     _logger.LogInformation("Exiting Log Users");
                 }
             }

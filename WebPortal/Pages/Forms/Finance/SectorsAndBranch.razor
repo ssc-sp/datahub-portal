@@ -16,14 +16,19 @@
 </AeFlex>
 
 
-<AeTable Accessors="accessorFunctions"
+<AePaginatedTable Accessors="accessorFunctions"
          T="SectorAndBranch"
          Dataset="_sectors"
          ColorAccessor="getColor"
          Headers="headers"
          GridTemplateColumns="4fr 8fr"
          MaxHeight="400"
-         OnRowClick="@SetFormEdit" />
+         OnRowClick="@SetFormEdit" 
+         Page="@_lastClicked"
+         PageSize="10"
+         @ref=_myTable />
+
+        <AePagination Pageable="@_myTable" OnPageClick="OnPageClick" /> 
 
 @if (_sector != null)
 {
@@ -63,6 +68,15 @@
     private string SubmitLabel = "Add New";
     private bool _navToEdit;
     private FinanceDBContext Context;
+
+    private int _lastClicked = 0;
+    private IPageableComponent _myTable;
+
+
+    private void OnPageClick(int pageIndex)
+    {
+        _lastClicked = pageIndex;
+    }
 
     protected override async Task OnInitializedAsync()
     {
