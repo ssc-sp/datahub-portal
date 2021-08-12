@@ -1,8 +1,10 @@
 @using NRCan.Datahub.Shared.Data
+@using NRCan.Datahub.Portal.Services
+
 
 <div id="sidebar">
   <div class="logo">
-    <img src="_content/Datahub.Shared/img/datahub-logo-v2.png" />
+    <img src="_content/Datahub.Core/img/datahub-logo-v2.png" />
   </div>
   <div class="links">
     @foreach(var link in GetLinks())
@@ -26,6 +28,7 @@
 
 @code {
 
+  
   private List<(string Href, Icon Icon, string Label)> GetLinks()
   {
     return new List<(string, Icon, string)>()

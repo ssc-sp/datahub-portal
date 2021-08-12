@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
@@ -20,10 +21,10 @@ namespace NRCan.Datahub.Shared.Services
     {
         private ILogger<UserInformationService> _logger;
         private GraphServiceClient graphServiceClient;
+        private readonly IDbContextFactory<EFCoreDatahubContext> contextFactory;
         private AuthenticationStateProvider _authenticationStateProvider;
         private NavigationManager _navigationManager;
         private IConfiguration _configuration;
-        private EFCoreDatahubContext _eFCoreDatahubContext;
         //private GraphServiceClient _graphServiceClient;
         public string imageHtml;
         
@@ -34,15 +35,17 @@ namespace NRCan.Datahub.Shared.Services
             NavigationManager navigationManager,
             IConfiguration configureOptions,
             EFCoreDatahubContext eFCoreDatahubContext,
-            GraphServiceClient graphServiceClient
+            GraphServiceClient graphServiceClient,
+            IDbContextFactory<EFCoreDatahubContext> contextFactory
             )
         {
             _logger = logger;
             _authenticationStateProvider = authenticationStateProvider;
             _navigationManager = navigationManager;
             _configuration = configureOptions;
-            _eFCoreDatahubContext = eFCoreDatahubContext;
+            
             this.graphServiceClient = graphServiceClient;
+            this.contextFactory = contextFactory;
         }
 
         public string UserLanguage { get; set; }
@@ -209,7 +212,8 @@ namespace NRCan.Datahub.Shared.Services
 
             try
             {
-                var userSetting = _eFCoreDatahubContext.UserSettings.FirstOrDefault(u => u.UserId == userId);
+                using var eFCoreDatahubContext = contextFactory.CreateDbContext();
+                var userSetting = eFCoreDatahubContext.UserSettings.FirstOrDefault(u => u.UserId == userId);
                 if (userSetting == null)
                 {
                     _logger.LogError($"User: {CurrentUser.DisplayName} with user id: {userId} is not in DB to register TAC.");
@@ -219,7 +223,7 @@ namespace NRCan.Datahub.Shared.Services
                 userSetting.UserName = CurrentUser.DisplayName;
                 userSetting.AcceptedDate = DateTime.UtcNow;
                 
-                if (await _eFCoreDatahubContext.SaveChangesAsync() <= 0)
+                if (await eFCoreDatahubContext.SaveChangesAsync() <= 0)
                 {
                     _logger.LogInformation($"User: {CurrentUser.DisplayName} has accepted Terms and Conditions. Changes NOT saved");
                     return false;
@@ -242,16 +246,17 @@ namespace NRCan.Datahub.Shared.Services
 
             try
             {
-                var userSetting = _eFCoreDatahubContext.UserSettings.FirstOrDefault(u => u.UserId == userId);
+                using var eFCoreDatahubContext = contextFactory.CreateDbContext();
+                var userSetting = eFCoreDatahubContext.UserSettings.FirstOrDefault(u => u.UserId == userId);
                 if (userSetting == null)
                 {
                     userSetting = new EFCore.UserSettings() { UserId = userId };
-                    _eFCoreDatahubContext.UserSettings.Add(userSetting);
+                    eFCoreDatahubContext.UserSettings.Add(userSetting);
                 }
 
                 userSetting.UserName = CurrentUser.DisplayName;
                 userSetting.Language = language;
-                if (await _eFCoreDatahubContext.SaveChangesAsync() <= 0)
+                if (await eFCoreDatahubContext.SaveChangesAsync() <= 0)
                 {
                     _logger.LogInformation($"User: {CurrentUser.DisplayName} has selected language: {language}. Changes NOT saved");
                     return false;
@@ -270,7 +275,8 @@ namespace NRCan.Datahub.Shared.Services
         public async Task<string> GetUserLanguage()
         {
             var userId = await GetUserIdString();
-            var userSetting = _eFCoreDatahubContext.UserSettings.FirstOrDefault(u => u.UserId == userId);
+            using var eFCoreDatahubContext = contextFactory.CreateDbContext();
+            var userSetting = eFCoreDatahubContext.UserSettings.FirstOrDefault(u => u.UserId == userId);
             return userSetting != null ? userSetting.Language : string.Empty;
         }
 
@@ -299,7 +305,8 @@ namespace NRCan.Datahub.Shared.Services
         public async Task<bool> HasUserAcceptedTAC()
         {
             var userId = await GetUserIdString();
-            var userSetting = _eFCoreDatahubContext.UserSettings.FirstOrDefault(u => u.UserId == userId);
+            using var eFCoreDatahubContext = contextFactory.CreateDbContext();
+            var userSetting = eFCoreDatahubContext.UserSettings.FirstOrDefault(u => u.UserId == userId);
 
             return userSetting != null ? userSetting.AcceptedDate.HasValue : false;
         }
