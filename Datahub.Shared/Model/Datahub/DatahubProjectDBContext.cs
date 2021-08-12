@@ -1,10 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using NRCan.Datahub.Shared.EFCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace NRCan.Datahub.Data.Projects
+namespace NRCan.Datahub.Shared.EFCore
 {
     public class DatahubProjectDBContext : DbContext
     {
