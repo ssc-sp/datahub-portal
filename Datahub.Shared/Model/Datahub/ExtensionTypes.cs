@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace NRCan.Datahub.Data.Projects
+namespace NRCan.Datahub.Shared.EFCore
 {
     public static class ExtensionTypeReference
     {
