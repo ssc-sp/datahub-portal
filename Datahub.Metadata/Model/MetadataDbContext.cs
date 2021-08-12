@@ -13,6 +13,7 @@ namespace NRCan.Datahub.Metadata.Model
         public DbSet<FieldChoice> FieldChoices { get; set; }
         public DbSet<ObjectMetadata> ObjectMetadataSet { get; set; }
         public DbSet<ObjectFieldValue> ObjectFieldValues { get; set; }
+        public DbSet<ApprovalForm> ApprovalForms { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -108,6 +109,17 @@ namespace NRCan.Datahub.Metadata.Model
                 entity.Property(e => e.French_TXT).HasMaxLength(128);
                 entity.HasIndex(e => e.French_TXT)
                       .IsUnique();
+            });
+
+            modelBuilder.Entity<ApprovalForm>(entity =>
+            {
+                entity.ToTable("ApprovalForms");
+
+                entity.HasKey(e => e.ApprovalFormId);
+                entity.Property(e => e.ApprovalFormId).ValueGeneratedOnAdd();
+
+                entity.Property(e => e.Dataset_Title_TXT).HasMaxLength(256).IsRequired();
+                entity.Property(e => e.Type_Of_Data_TXT).HasMaxLength(16).IsRequired();
             });
         }
     }
