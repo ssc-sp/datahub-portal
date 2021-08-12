@@ -3,82 +3,23 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NRCan.Datahub.Metadata.Model;
 
 namespace NRCan.Datahub.Metadata.Migrations
 {
     [DbContext(typeof(MetadataDbContext))]
-    partial class MetadataDbContextModelSnapshot : ModelSnapshot
+    [Migration("20210803193637_AddingKeywords")]
+    partial class AddingKeywords
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
                 .UseIdentityColumns()
                 .HasAnnotation("Relational:MaxIdentifierLength", 128)
                 .HasAnnotation("ProductVersion", "5.0.2");
-
-            modelBuilder.Entity("NRCan.Datahub.Metadata.Model.ApprovalForm", b =>
-                {
-                    b.Property<int>("ApprovalFormId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .UseIdentityColumn();
-
-                    b.Property<bool>("Approval_InSitu_FLAG")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Approval_Other_TXT")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("Authority_To_Release_FLAG")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("Can_Be_Released_For_Free_FLAG")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("Collection_Of_Datasets_FLAG")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("Copyright_Restrictions_FLAG")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Dataset_Title_TXT")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
-
-                    b.Property<bool>("Localized_Metadata_FLAG")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("Machine_Readable_FLAG")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("Non_Propietary_Format_FLAG")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("Not_Clasified_Or_Protected_FLAG")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("Private_Personal_Information_FLAG")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("Subject_To_Exceptions_Or_Eclusions_FLAG")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Type_Of_Data_TXT")
-                        .IsRequired()
-                        .HasMaxLength(16)
-                        .HasColumnType("nvarchar(16)");
-
-                    b.Property<bool>("Updated_On_Going_Basis_FLAG")
-                        .HasColumnType("bit");
-
-                    b.HasKey("ApprovalFormId");
-
-                    b.ToTable("ApprovalForms");
-                });
 
             modelBuilder.Entity("NRCan.Datahub.Metadata.Model.FieldChoice", b =>
                 {

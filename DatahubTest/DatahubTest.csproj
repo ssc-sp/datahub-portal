@@ -11,6 +11,7 @@
     <PackageReference Include="Azure.Storage.Files.DataLake" Version="12.5.0" />
     <PackageReference Include="Divergic.Logging.Xunit" Version="3.6.0" />
     <PackageReference Include="Microsoft.Azure.Management.ResourceManager.Fluent" Version="1.37.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="5.0.2" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.9.0-preview-20201020-06" />
     <PackageReference Include="Microsoft.PowerBI.Api" Version="3.26.0" />
     <PackageReference Include="Moq" Version="4.16.1" />
@@ -28,6 +29,7 @@
     <PackageReference Include="Microsoft.Azure.Search" Version="10.1.0" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Datahub.Metadata\Datahub.Metadata.csproj" />
     <ProjectReference Include="..\Datahub.Shared\Datahub.Shared.csproj" />
     <ProjectReference Include="..\WebPortal\NRCan.Datahub.Portal.csproj" />
   </ItemGroup>
