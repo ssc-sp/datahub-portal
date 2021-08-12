@@ -1,0 +1,99 @@
+﻿@using NRCan.Datahub.Metadata.Model
+
+<div>
+    @if (!Preview)
+    {
+        <div>
+            <input class="ae input" 
+                   autocomplete="off" 
+                   @ref="_fieldValueInput"
+                   style="width: 100%;" @bind="InputKeyword" @bind:event="oninput" placeholder="Enter keyword..." />
+        </div>
+    }
+
+    <ul class="ae" style="margin: 0; padding: 0; list-style-type: none; list-style-image: none;">
+        @foreach (var keyword in KeywordList)
+        {
+            <li style="float: left; margin: 5px 5px 0px 0px; padding: 4px 8px 4px 4px; border-width: 1px; border: 1px solid grey; border-radius: 5px; ">
+                @if (!Preview)
+                {
+                    <a style="text-decoration: none; cursor: pointer;"
+                       @onclick="() => DeleteKeyword(keyword)"
+                       @onclick:preventDefault>&nbsp;x&nbsp;</a>
+                }
+                <span><b>@keyword</b></span>
+            </li>
+        }
+    </ul>
+</div>
+
+@code {
+
+    [Parameter]
+    public ObjectFieldValue FieldValue { get; set; }
+
+    [Parameter]
+    public bool Preview { get; set; }
+
+    [Parameter]
+    public EventCallback<ObjectFieldValue> OnFieldChanged { get; set; }
+
+    public List<string> KeywordList { get; set; }
+    public string _inputKeyword;
+
+    private ElementReference _fieldValueInput;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        KeywordList = new List<string>(ParseKeywords(FieldValue?.Value_TXT));
+    }
+
+    private IEnumerable<string> ParseKeywords(string keywords) => (keywords ?? "").Split(',').Where(v => !string.IsNullOrWhiteSpace(v));
+    private string JoinKeywords(IEnumerable<string> keywords) => string.Join(",", keywords);
+
+
+    public string InputKeyword
+    {
+        get
+        {
+            return _inputKeyword;
+        }
+        set
+        {
+            if (value != _inputKeyword)
+            {
+                if (value != null && value.EndsWith(','))
+                {
+                    // add the keyword to the list and uodate the field
+                    KeywordList.Add(_inputKeyword);
+                    _inputKeyword = string.Empty;
+                    UpdateField();
+                }
+                else
+                {
+                    // just update the input value
+                    _inputKeyword = value;
+                }
+            }
+        }
+    }
+
+    public async Task FocusAsync()
+    {
+        if (!Preview)
+            await _fieldValueInput.FocusAsync();
+    }
+
+    private void DeleteKeyword(string keyword)
+    {
+        KeywordList.Remove(keyword);
+        UpdateField();
+    }
+
+    private void UpdateField()
+    {
+        FieldValue.Value_TXT = JoinKeywords(KeywordList);
+        OnFieldChanged.InvokeAsync(FieldValue);
+    }
+}
