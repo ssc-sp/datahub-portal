@@ -21,6 +21,12 @@
     <EmbeddedResource Include="Wiki\*" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Remove="Components\Data\**" />
+    <Content Remove="Components\Data\**" />
+    <EmbeddedResource Remove="Components\Data\**" />
+    <None Remove="Components\Data\**" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="AElemental.Blazor" Version="1.1.21208.5" />
     <PackageReference Include="Askmethat.Aspnet.JsonLocalizer" Version="3.1.1" />
     <PackageReference Include="Azure.Identity" Version="1.4.0-beta.1" />
@@ -80,9 +86,6 @@
     <Content Update="wwwroot\img\landing\earth-background.jpg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Components\Data\" />
   </ItemGroup>
   <ProjectExtensions><VisualStudio><UserProperties /></VisualStudio></ProjectExtensions>
 </Project>
