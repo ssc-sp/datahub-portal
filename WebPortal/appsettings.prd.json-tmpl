@@ -41,6 +41,15 @@
       }
     }
   },
+  "EmailNotification": {
+    "SmtpHost": "",
+    "SmtpPort": 587,
+    "SmtpUsername": "",
+    "SmtpPassword": "",
+    "SenderName": "NRCan DataHub RNCan",
+    "SenderAddress": "",
+    "DevTestMode": false
+  },
   "Azure:SignalR:StickyServerMode": "Required",  
   "AllowedHosts": "*"
 }

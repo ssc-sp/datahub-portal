@@ -1,27 +1,5 @@
 import sqlite3
 
-# source = 'OpenData'
-# lastUpdate = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S.%f")
-# versionData = 'TEST_DATA'
-
-# query = '''
-#         INSERT INTO MetadataVersions (Source_TXT, Last_Update_DT, Version_Info_TXT) 
-#         VALUES ('%s', '%s', '%s')'''%(source, lastUpdate, versionData)
-
-# res = conn.execute(query)
-
-# print(res)
-
-# res = conn.execute('select last_insert_rowid()')
-# v = res.fetchone()[0]
-
-# print(v)
-
-# print('OK!')
-
-# conn.close()
-
-
 from io import StringIO
 from metadata_loader import loadMetadata
 import pyodbc

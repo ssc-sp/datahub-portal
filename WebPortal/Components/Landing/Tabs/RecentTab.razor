@@ -1,14 +1,15 @@
 ﻿@inject IUserInformationService UserInformationService
 @inject UserLocationManagerService UserLocationManagerService 
+@inject IDbContextFactory<DatahubProjectDBContext> DbFactoryProject
 
 <AeFlex class="recent-card-container">
-  @foreach (var card in GetCards())
+  @foreach (var item in recentLinks)
   {
-    <AeFlex class="@($"recent-card {card.Icon.Color}")">
-      <i class="@card.Icon.Name" />
+    <AeFlex class="@($"recent-card {GetIcon(item.link).Color}")">
+      <i class="@GetIcon(item.link)" />
       <AeFlex class="text">
-        <AeTypography class="title">@card.Title</AeTypography>
-        <AeTypography class="subtitle">@card.Subtitle</AeTypography>
+        <AeTypography class="title">@(item.project?.ProjectName ?? "-")</AeTypography>
+        <AeTypography class="subtitle">@GetDescription(item.link, item.project)</AeTypography>
       </AeFlex>
     </AeFlex>
   }
@@ -16,14 +17,66 @@
 
 
 @code {
+    private List<(UserRecentLink link,Datahub_Project? project)> recentLinks;
     
-    
-    private UserRecent _userRecent;
+
 
     protected override async Task OnInitializedAsync()
     {
         var currentUser = await UserInformationService.GetCurrentUserAsync();
-        var _userRecent = await UserLocationManagerService.ReadRecentNavigations(currentUser.Id); 
+        var links = (await UserLocationManagerService.ReadRecentNavigations(currentUser.Id))?.UserRecentActions?.ToList()?? new ();
+        links = links.GroupBy(l => (l.LinkType, l.DataProject))
+                    .Select(e => e.OrderByDescending(k => k.accessedTime)
+                    .FirstOrDefault()).ToList();
+        using var ctx = DbFactoryProject.CreateDbContext();
+        recentLinks = links.Select(async l => (l, await GetProject(ctx,l))).Select(t=> t.Result).ToList();
+    }
+
+    private async Task<Datahub_Project?> GetProject(DatahubProjectDBContext ctx, UserRecentLink link)
+    {
+        if (link.DataProject == null)
+            return null;
+        return await ctx.Projects.FirstOrDefaultAsync(p => p.Project_Acronym_CD == link.DataProject);
+    }
+
+    private Icon GetIcon(UserRecentLink link)
+    {
+        switch (link.LinkType)
+        {
+            case DatahubLinkType.PowerBI:
+                return Icon.POWERBI;
+            case DatahubLinkType.Databricks:
+                return Icon.DATASETS;
+            case DatahubLinkType.WebForm:
+                return Icon.DATAENTRY;
+            case DatahubLinkType.DataProject:
+                return Icon.PROJECT;
+            case DatahubLinkType.Storage:
+                return Icon.STORAGE;
+            case DatahubLinkType.FormBuilder:
+                return Icon.PROJECT;
+        }
+        return Icon.HOME;
+    }
+
+    private string GetDescription(UserRecentLink link, Datahub_Project project)
+    {
+        switch (link.LinkType)
+        {
+            case DatahubLinkType.PowerBI:
+                return $"{project.ProjectName} >> PowerBI";
+            case DatahubLinkType.Databricks:
+                return $"{project.ProjectName} >> Databricks";
+            case DatahubLinkType.WebForm:
+                return $"{project.ProjectName} >> Data Entry";
+            case DatahubLinkType.DataProject:
+                return $"{project.ProjectName} >> Home";
+            case DatahubLinkType.Storage:
+                return $"{project.ProjectName} >> Storage";
+            case DatahubLinkType.FormBuilder:
+                return $"{project.ProjectName} >> Form Builder";
+        }
+        return "N/A";
     }
 
   private List<(Icon Icon, string Title, string Subtitle)> GetCards()
