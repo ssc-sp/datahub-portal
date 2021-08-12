@@ -27,12 +27,18 @@ namespace NRCan.Datahub.Shared.Services
             this.dbFactory = dbFactory;
         }
 
-        internal async Task<List<string>> GetAllProjects()
+        internal List<string> GetAllProjects()
         {
             using var ctx = dbFactory.CreateDbContext();
-            return await ctx.Projects.Where(p => p.Project_Acronym_CD != null).Select(p => p.Project_Acronym_CD).ToListAsync();
+            return ctx.Projects.Where(p => p.Project_Acronym_CD != null).Select(p => p.Project_Acronym_CD).ToList();
         }
 
+        public List<string> GetAdminProjectRoles()
+        {
+            var projects = GetAllProjects();            
+            projects = projects.Select(x => $"{x}-admin").ToList();
+            return projects;
+        }
         private static CancellationTokenSource _resetCacheToken = new CancellationTokenSource();
 
         public static readonly Regex Email_Extractor = new Regex(".*<(.*@.*)>", RegexOptions.Compiled);

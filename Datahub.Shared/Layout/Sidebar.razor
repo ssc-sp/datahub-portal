@@ -1,6 +1,6 @@
 @using NRCan.Datahub.Shared.Data
 @using NRCan.Datahub.Portal.Services
-
+@inject ServiceAuthManager ServiceAuthManager
 
 <div id="sidebar">
   <div class="logo">
@@ -13,7 +13,7 @@
         <i class="@link.Icon.Name"></i>
         @Localizer[@link.Label]
       </NavLink>
-    }
+    }    
     @foreach(var link in GetAuthorizedLinks())
     {
       <AuthorizeView Roles="@string.Join(',', link.Roles)">
@@ -28,8 +28,8 @@
 
 @code {
 
-  
-  private List<(string Href, Icon Icon, string Label)> GetLinks()
+
+    private List<(string Href, Icon Icon, string Label)> GetLinks()
   {
     return new List<(string, Icon, string)>()
     {
@@ -44,15 +44,10 @@
 
   private List<(string Href, Icon Icon, string Label, List<string> Roles)> GetAuthorizedLinks()
   {
-    return new List<(string, Icon, string, List<string>)>()
+        var projects = ServiceAuthManager.GetAdminProjectRoles();
+        return new List<(string, Icon, string, List<string>)>()
     {
-      ("/admin", Icon.ADMIN, "SIDEBAR.Admin",
-        new List<string>()
-        {
-          "datahub-admin",
-          "project-admin"
-        }
-      )
+      ("/admin", Icon.ADMIN, "SIDEBAR.Admin", projects)
     };
   }
 }
