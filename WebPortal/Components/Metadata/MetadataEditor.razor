@@ -1,29 +1,25 @@
-﻿@using NRCan.Datahub.Metadata
-@using NRCan.Datahub.Metadata.Model
+﻿@using NRCan.Datahub.Metadata.Model
 @using NRCan.Datahub.Metadata.DTO
 
 @if (Definitions != null && FieldValues != null)
 {
-    <div class="metadata-grid" style="margin: 10px">
+    var fields = Definitions.Fields.ToList();
 
-        <MetadataFieldEditor HeaderRole="true" />
-
-        @foreach (var definition in Definitions.Fields)
+    <div style="margin: 10px">
+        @foreach (var definition in fields)
         {
             var fieldValue = GetFieldValue(definition.FieldDefinitionId, Preview);
 
             if (fieldValue != null)
             {
-                @*<hr />*@
                 <MetadataFieldEditor Preview="Preview"
+                                     Required="IsFieldRequired(definition)"
                                      FieldValue="fieldValue"
                                      FieldDefinition="definition"
                                      FieldLabel="@definition.Name"
-                                     Mandatory="definition.Required_FLAG"
                                      OnFieldChanged="FieldChanged" />
             }
         }
-
     </div>
 }
 
@@ -34,6 +30,9 @@
 
     [Parameter]
     public FieldDefinitions Definitions { get; set; }
+
+    [Parameter]
+    public HashSet<string> RequiredFields { get; set; }
 
     [Parameter]
     public FieldValueContainer FieldValues { get; set; }
@@ -66,5 +65,11 @@
             return field ?? new ObjectFieldValue() { FieldDefinitionId = definitionId };
         else
             return field;
+    }
+
+    private bool IsFieldRequired(FieldDefinition definition)
+    {
+        var required = RequiredFields?.Contains(definition.Field_Name_TXT);
+        return required.HasValue ? required.Value : definition.Required_FLAG;
     }
 }
