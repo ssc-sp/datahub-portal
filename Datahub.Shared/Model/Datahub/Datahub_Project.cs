@@ -200,6 +200,16 @@ namespace NRCan.Datahub.Shared.EFCore
 
         public List<Datahub_Project_Pipeline_Lnk> Pipelines { get; set; }
 
+        public List<Project_Storage> StorageAccounts { get; set; }
+
+        public List<Project_Database> Databases { get; set; }
+
+        public List<Project_PBI_Report> PBI_Reports { get; set; }
+
+        public List<Project_PBI_DataSet> PBI_DataSets { get; set; }
+
+        public List<Project_PBI_Workspace> PBI_Workspaces { get; set; }
+
         [AeFormIgnore]
         [NotMapped]
         public string ProjectName
