@@ -8,17 +8,7 @@
     <DockerfileContext>.</DockerfileContext>
   </PropertyGroup>
   <ItemGroup>
-    <None Remove="Wiki\BIOSIM.md" />
-    <None Remove="Wiki\Datahub-Artifacts-Naming-Standards.md" />
-    <None Remove="Wiki\Index.md" />
-    <None Remove="Wiki\Scientific-Data-Repository.md" />
-    <None Remove="Wiki\Scopus-Dataset.md" />
-  </ItemGroup>
-  <ItemGroup>
     <_ContentIncludedByDefault Remove="efpt.config.json" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Wiki\*" />
   </ItemGroup>
   <ItemGroup>
     <Compile Remove="Components\Data\**" />
