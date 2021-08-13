@@ -19,17 +19,13 @@
 @code {
     private List<(UserRecentLink link,Datahub_Project? project)> recentLinks;
     
-
+    [Parameter]
+    public List<UserRecentLink> RecentLinks { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        var currentUser = await UserInformationService.GetCurrentUserAsync();
-        var links = (await UserLocationManagerService.ReadRecentNavigations(currentUser.Id))?.UserRecentActions?.ToList()?? new ();
-        links = links.GroupBy(l => (l.LinkType, l.DataProject))
-                    .Select(e => e.OrderByDescending(k => k.accessedTime)
-                    .FirstOrDefault()).ToList();
         using var ctx = DbFactoryProject.CreateDbContext();
-        recentLinks = links.Select(async l => (l, await GetProject(ctx,l))).Select(t=> t.Result).ToList();
+        recentLinks = RecentLinks.Select(async l => (l, await GetProject(ctx,l))).Select(t=> t.Result).ToList();
     }
 
     private async Task<Datahub_Project?> GetProject(DatahubProjectDBContext ctx, UserRecentLink link)
@@ -78,18 +74,4 @@
         }
         return "N/A";
     }
-
-  private List<(Icon Icon, string Title, string Subtitle)> GetCards()
-  {    
-
-
-
-    return new List<(Icon, string, string)>()
-    {
-      (Icon.DATAENTRY, "PIP Web Form", "SPI Performance Measurement >> Data Entry"),
-      (Icon.POWERBI, "PIP Dashboard", "SPI Performance Measurement >> PowerBI"),
-      (Icon.DATASETS, "DRF 2 Pipeline Workspace", "SPI Performance Measurement >> Databricks"),
-      (Icon.STORAGE, "BioSIM Storage Explorer", "BioSIM Project >> Storage")
-    };
-  }
 }
