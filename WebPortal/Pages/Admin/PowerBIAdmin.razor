@@ -1,0 +1,140 @@
+﻿@page "/admin/powerbi"
+
+@using Microsoft.EntityFrameworkCore.Query
+@using Microsoft.EntityFrameworkCore;
+@using Microsoft.PowerBI.Api.Models
+@inject IStringLocalizer<DataLabels> DataLocalizer
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JsInterop
+@inject PowerBiServiceApi PowerBiServiceApi
+@using Microsoft.Identity.Web
+@inject MicrosoftIdentityConsentAndConditionalAccessHandler ConsentHandler
+@inject IDbContextFactory<DatahubProjectDBContext> DbFactoryProject
+
+<div style="padding-left: 2rem;padding-right: 2rem">
+
+    <AeTypography Variant="h1">@Localizer["PowerBI Admin"]</AeTypography>
+    <AeCard>
+        <Header>
+            Link Workspaces
+        </Header>
+        <ChildContent>
+            @if (!isWorkspacesLoaded)
+            {
+                <Spinner />
+            }
+            else
+            {
+
+                <AePaginatedTable Accessors="accessorFunctions"
+                              Dataset="dataSets"
+                              Headers="headers"
+                              T="PowerBIDatasetElements"
+                              @ref="_myTable"
+                              Page="@_lastClicked"
+                              Renderers="renderFunctions"
+                              OnRowClick="@RowSelected" />
+
+                <AePagination Pageable="@_myTable" OnPageClick="OnPageClick" />
+            }
+        </ChildContent>
+    </AeCard>
+</div>
+@code {
+    private bool isWorkspacesLoaded = false;
+
+    private List<PowerBIDatasetElements> dataSets;
+
+
+    private int _lastClicked = 0;
+    private AePaginatedTable<PowerBIDatasetElements> _myTable;
+    private PowerBIDatasetElements? _selected;
+    protected override void OnAfterRender(bool firstRender)
+    {
+        // You must re-render after the components are initialized in order for the
+        // component reference to not be null
+        if (firstRender)
+        {
+            StateHasChanged();
+        }
+    }
+
+    // Define the headers at the top of the table
+    private List<string> headers = new List<string>
+  {
+    "Dataset", "Workspace", "Data Project"
+  };
+
+    // Accessor functions to retrieve cell value
+    private List<Func<PowerBIDatasetElements, string>> accessorFunctions = new List<Func<PowerBIDatasetElements, string>>
+  {
+    dummyData => { return dummyData.Dataset.Name; },
+    dummyData => { return dummyData.Group.Name; },
+    null
+  };
+
+    private List<Func<PowerBIDatasetElements, RenderFragment>> renderFunctions;
+
+    public string GetAssociatedProject(PowerBIDatasetElements el)
+    {
+        return datasetLinks.FirstOrDefault(d => d.Id == Guid.Parse(el.Dataset.Id))?.Project.ProjectName ?? "Select Project";
+    }
+
+    private void HandleDropDownChange(PowerBIDatasetElements row, Datahub_Project project)
+    {
+        
+
+    }
+
+    private void RowSelected(PowerBIDatasetElements selected)
+    {
+        _selected = selected;
+    }
+
+    private void OnPageClick(int pageIndex)
+    {
+        _lastClicked = pageIndex;
+    }
+
+    private List<Datahub_Project> allProjects;
+
+    private List<Project_PBI_DataSet> datasetLinks;
+
+    private RenderFragment CustomRenderer(Datahub_Project item)
+    {
+        return @<AeTypography>
+                    @item.ProjectName
+                    (@item.Project_Acronym_CD)                    
+                </AeTypography> ;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Task.Run(async () =>
+        {
+            try
+            {
+                dataSets = await PowerBiServiceApi.GetAllDatasetsAsync();
+                isWorkspacesLoaded = true;
+                InvokeAsync(StateHasChanged);
+                //            StateHasChanged();
+            }
+            catch (Exception ex)
+            {
+                ConsentHandler.HandleException(ex);
+            }
+        });
+        using var ctx = DbFactoryProject.CreateDbContext();
+        allProjects = await ctx.Projects.ToListAsync();
+        datasetLinks = await ctx.Project_PBI_DataSets.Include(e => e.Project).ToListAsync();
+        renderFunctions = new List<Func<PowerBIDatasetElements, RenderFragment>>
+    {
+            null,
+            null,
+            el =>  { return 
+    @<AeDropdown Label="@(GetAssociatedProject(el))" Renderer="CustomRenderer" Items="allProjects" OnChange="t => HandleDropDownChange(el,t)"/> ; }
+
+        };
+    }
+
+}
