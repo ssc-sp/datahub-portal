@@ -22,7 +22,7 @@
             <div style="font-size: 1.5rem;padding-right: 0.5em;">
                 <i class="@($"fad fa-{p.Project_Icon}")" />
             </div>
-            <NavLink href="@("/project/" + p.Project_Acronym_CD)"> <AeTypography>@p.ProjectName</AeTypography></NavLink>
+            <DatahubLink DataProject="@p.Project_Acronym_CD">@p.ProjectName</DatahubLink>
             </AeFlex>
         </Header>
         <ChildContent>
@@ -77,7 +77,7 @@
 
     private void OnPageClick(int pageIndex)
     {
-    _lastClicked = pageIndex;
+        _lastClicked = pageIndex;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -96,7 +96,7 @@
         renderFunctions = new List<Func<Datahub_Project, RenderFragment>>() {            
             new Func<Datahub_Project, RenderFragment>(Datahub_Project => 
                 @<AeFlex class="table-icon"><i class="@($"fad fa-{Datahub_Project.Project_Icon}")"></i></AeFlex>),
-            new Func<Datahub_Project, RenderFragment>(Datahub_Project => @<AeFlex style="padding-top: 1rem"><AeTypography><NavLink href="@($"/project/{Datahub_Project?.Project_Acronym_CD}")">@Datahub_Project?.ProjectName</NavLink></AeTypography></AeFlex> ),
+            new Func<Datahub_Project, RenderFragment>(Datahub_Project => @<AeFlex style="padding-top: 1rem"><AeTypography><DatahubLink DataProject="@Datahub_Project?.Project_Acronym_CD">@Datahub_Project?.ProjectName</DatahubLink></AeTypography></AeFlex> ),
             new Func<Datahub_Project, RenderFragment>(Datahub_Project => @<AeMarkdown Content="@($"{Datahub_Project.ProjectDescription}")"></AeMarkdown> ),
         };
         

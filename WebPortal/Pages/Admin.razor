@@ -236,9 +236,46 @@
         await RefreshData();
     }
 
+    private async Task RevokeAccess(Datahub_Project_Access_Request r)
+    {
+        r.Completion_DT = null;
+        await projectContext.SaveChangesAsync();
+
+        var serviceName = r.RequestServiceType;
+
+        await EmailService.SendAccessRevokedNotification(serviceName, r.Project.ProjectInfo, r.User_Name);
+
+        await RefreshData();
+    }
+
     private async Task NotifyServiceCreation(Datahub_ProjectServiceRequests r)
     {
-        //TODO
+        var requestingUserEmail = r.User_Name?.ToLowerInvariant();
+        var project = r.Project;
+        await projectContext.Entry(project).Collection(p => p.Users).LoadAsync();
+        var userEmails = project.Users
+            .Select(u => MSGraphService.GetUserEmail(u.User_ID).ToLowerInvariant())
+            .ToHashSet();
+        
+        Task individualEmailTask = null;
+
+        if (!string.IsNullOrEmpty(requestingUserEmail))
+        {
+            userEmails.Remove(requestingUserEmail);
+            individualEmailTask = EmailService.SendServiceCreationRequestApprovedIndividual(r.ServiceType, r.Project.ProjectInfo, requestingUserEmail);
+        }
+
+        await EmailService.SendServiceCreationGroupNotification(r.ServiceType, r.Project.ProjectInfo, userEmails.ToList());
+
+        if (individualEmailTask != null)
+        {
+            await individualEmailTask;
+        }
+
+        r.Notification_Sent = DateTime.UtcNow;
+        await projectContext.SaveChangesAsync();
+
+        await RefreshData();
     }
 
     private async Task RefreshData()
@@ -304,8 +341,7 @@
                 new Func<Datahub_Project_Access_Request, RenderFragment>(a => {
                     if (a.Completion_DT != null)
                     {
-                        return 
-    @<div>@Localizer["Authorized"]</div>;
+                        return @<div>@Localizer["Authorized"] <AeButton @onclick="async () => await RevokeAccess(a)">@Localizer["Revoke"]</AeButton> </div>;
                     }
                    else
       
