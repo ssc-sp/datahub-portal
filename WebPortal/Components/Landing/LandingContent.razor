@@ -1,4 +1,6 @@
 ﻿@namespace NRCan.Datahub.Portal.Components
+@inject IUserInformationService UserInformationService
+@inject UserLocationManagerService UserLocationManagerService 
 
 <AeFlex class="landing-content-wrapper">
   <AeFlex class="landing-content">
@@ -22,20 +24,34 @@
 </AeFlex>
 
 @code {
+    List<UserRecentLink> links = null;
 
-
-  private List<(string Control, RenderFragment Content)> GetTabs()
-  {
-    return new List<(string, RenderFragment)> 
+    protected override async Task OnInitializedAsync()
     {
-        ("Recent", @<NRCan.Datahub.Portal.Components.Landing.Tabs.RecentTab />),
-        //("My Projects", @<AeTypography>My Projects frag</AeTypography>),
-        //("Shared with Me", @<AeTypography>Shared with Me frag</AeTypography>),
-        ("My Projects", @<NRCan.Datahub.Portal.Components.Landing.Tabs.ProjectsTab />),
-        ("My Databricks Workbooks", @<NRCan.Datahub.Portal.Components.Landing.Tabs.DatabricksTab />),
-        ("My PowerBI Reports", @<NRCan.Datahub.Portal.Components.Landing.Tabs.DatabricksTab />),
+        var currentUser = await UserInformationService.GetCurrentUserAsync();
+        links = (await UserLocationManagerService.ReadRecentNavigations(currentUser.Id))?.UserRecentActions?.ToList()?? new ();
+        links = links.GroupBy(l => (l.LinkType, l.DataProject))
+                    .Select(e => e.OrderByDescending(k => k.accessedTime)
+                    .FirstOrDefault()).ToList();
+    }
+
+
+    private List<(string Control, RenderFragment Content)> GetTabs()
+    {
+        var res = new List<(string, RenderFragment)> 
+        {        
+            //("My Projects", @<AeTypography>My Projects frag</AeTypography>),
+            //("Shared with Me", @<AeTypography>Shared with Me frag</AeTypography>),
+            ("My Projects", @<NRCan.Datahub.Portal.Components.Landing.Tabs.ProjectsTab />),
+            ("My Databricks Workbooks", @<NRCan.Datahub.Portal.Components.Landing.Tabs.DatabricksTab />),
+            ("My PowerBI Reports", @<NRCan.Datahub.Portal.Components.Landing.Tabs.DatabricksTab /> ),
         
-    };
-  }
+        };
+        if (links?.Count > 0)
+        {
+            res.Insert(0, ("Recent", @<NRCan.Datahub.Portal.Components.Landing.Tabs.RecentTab RecentLinks="links"/> ));
+        }
+        return res;
+    }
 
 }
