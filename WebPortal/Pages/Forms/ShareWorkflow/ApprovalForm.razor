@@ -33,8 +33,7 @@
     [Parameter]
     public string SubmitLabel { get; set; } = "Submit";
 
-    [Parameter]
-    public string CancelLabel { get; set; } = "Cancel";
+    public string CancelLabel => DataLocalizer["CancelLabel"];
 
     public Data.Forms.ShareWorkflow.ApprovalForm _approvalForm { get; set; }
 
