@@ -26,7 +26,7 @@ namespace NRCan.Datahub.Portal.Services
             _logger = logger;
         }
 
-        public async Task CreateFileShareRequest(FileMetaData fileMetaData, string projcetCode, User requestingUser)
+        public async Task CreateFileShareRequest(FileMetaData fileMetaData, string projectCode, User requestingUser)
         {
             if (fileMetaData == null || requestingUser == null) 
             {
@@ -53,9 +53,8 @@ namespace NRCan.Datahub.Portal.Services
                 File_ID = fileId,
                 Filename_TXT = fileMetaData.filename,
                 FolderPath_TXT = fileMetaData.folderpath,
-                ProjectCode_CD = projcetCode,
+                ProjectCode_CD = projectCode?.ToLowerInvariant(),
                 RequestingUser_ID = requestingUser.Id,
-                RequestingUserEmail_TXT = requestingUser.UserPrincipalName,
                 RequestedDate_DT = DateTime.UtcNow
             };
 
@@ -67,7 +66,9 @@ namespace NRCan.Datahub.Portal.Services
 
         public async Task<Uri> DownloadSharedFile(Guid fileId)
         {
-            var publicFile = await _projectDbContext.PublicDataFiles.FirstOrDefaultAsync(e => e.File_ID == fileId);
+            //var publicFile = await _projectDbContext.PublicDataFiles.FirstOrDefaultAsync(e => e.File_ID == fileId);
+            var publicFile = await LoadPublicDataFileInfo(fileId);
+            
             if (publicFile == null) 
             {
                 _logger.LogError($"File not found: {fileId}");
@@ -89,12 +90,17 @@ namespace NRCan.Datahub.Portal.Services
 
             if (publicFile.IsProjectBased)
             {
-                return await _apiService.GetUserDelegationSasBlob(fileMetadata, publicFile.ProjectCode_CD);
+                return await _apiService.GetUserDelegationSasBlob(fileMetadata, publicFile.ProjectCode_CD.ToLowerInvariant());
             }
             else
             {
                 return await _apiService.DownloadFile(fileMetadata);
             }
+        }
+
+        public async Task<PublicDataFile> LoadPublicDataFileInfo(Guid fileId)
+        {
+            return await _projectDbContext.PublicDataFiles.FirstOrDefaultAsync(e => e.File_ID == fileId);
         }
     }
 }
