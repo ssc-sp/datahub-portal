@@ -239,38 +239,12 @@
                     }
                     else
                     {
-                                    <AeButton @onclick="@(async () => await RequestServiceAccess("storage"))">Request Service Creation</AeButton>
+                    <AeButton @onclick="@(async () => await RequestServiceAccess("storage"))">Request Service Creation</AeButton>
                     }
-                        </Footer>
+                    </Footer>
                 </AeCard>
             </div>
-    }
-    else
-    {
-            <AeCard class="facard1" CardPosition="AeCard.CardStyle.Horizontal">
-                        <Header>
-                            <div class="purple" style="width:180px">
-                                <AeIcon class="fad fa-keyboard card-icon" />
-                            </div>
-                        </Header>
-                        <ChildContent>                       
-                            <AeTypography Variant="h3">Access Denied</AeTypography>                        
-                            <AeTypography>You currently do not have access to this project. Click 'Request Access' to get authorized</AeTypography>
-                        </ChildContent>
-                        <Footer>                        
-                @if (_projectRequested)
-                {
-                                        <AeTypography class="warning">Access Request is being reviewed</AeTypography>
-                }
-                else
-                {
-                                        <AeTypography class="warning">Access not authorized</AeTypography>
-                                        <AeButton @onclick="@(async () => await RequestProjectAccess())">Request Access</AeButton>
-                }                        
-                        </Footer>
-                    </AeCard>
-
-    }
+        
     </AuthorizeView>
 
 </div>
