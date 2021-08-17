@@ -194,14 +194,14 @@ namespace NRCan.Datahub.Portal
 
         }
 
-        private void InitializeDatabase<T>(ILogger<Startup> logger, IDbContextFactory<T> factory, bool migrate = true, bool ensureDelete = true) where T : DbContext
+        private void InitializeDatabase<T>(ILogger<Startup> logger, IDbContextFactory<T> factory, bool migrate = true, bool ensureDeleteinOffline = true) where T : DbContext
         {
             using var context = factory.CreateDbContext();
             try
             {
                 if (Offline)
                 {
-                    if (ensureDelete)
+                    if (ensureDeleteinOffline)
                         context.Database.EnsureDeleted();
                     context.Database.EnsureCreated();                    
                 }
