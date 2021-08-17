@@ -66,7 +66,6 @@ namespace NRCan.Datahub.Portal.Services
 
         public async Task<Uri> DownloadSharedFile(Guid fileId)
         {
-            //var publicFile = await _projectDbContext.PublicDataFiles.FirstOrDefaultAsync(e => e.File_ID == fileId);
             var publicFile = await LoadPublicDataFileInfo(fileId);
             
             if (publicFile == null) 
@@ -101,6 +100,27 @@ namespace NRCan.Datahub.Portal.Services
         public async Task<PublicDataFile> LoadPublicDataFileInfo(Guid fileId)
         {
             return await _projectDbContext.PublicDataFiles.FirstOrDefaultAsync(e => e.File_ID == fileId);
+        }
+
+        public async Task<bool> SubmitPublicUrlShareForApproval(Guid fileId)
+        {
+            var submission = await LoadPublicDataFileInfo(fileId);
+            if (submission != null)
+            {
+                submission.SubmittedDate_DT = DateTime.UtcNow;
+                var result = await _projectDbContext.SaveChangesAsync();
+                if (result < 1)
+                {
+                    _logger.LogError($"Error submitting file {fileId}");
+                    return false;
+                }
+                
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
     }
 }

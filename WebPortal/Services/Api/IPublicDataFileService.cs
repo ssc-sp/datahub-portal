@@ -11,5 +11,6 @@ namespace NRCan.Datahub.Portal.Services
         Task<Uri> DownloadSharedFile(Guid fileId);
         Task CreateFileShareRequest(FileMetaData fileMetaData, string projectCode, User requestingUser);
         Task<PublicDataFile> LoadPublicDataFileInfo(Guid fileId);
+        Task<bool> SubmitPublicUrlShareForApproval(Guid fileId);
     }
 }
