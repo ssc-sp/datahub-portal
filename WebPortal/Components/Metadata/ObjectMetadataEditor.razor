@@ -33,7 +33,7 @@
         _preview = !_preview;
     }
 
-    public async void SaveChanges()
+    public async Task SaveChanges()
     {
         await MetadataBrokerService.SaveMetadata(ObjectId, _definitions.MetadataVersion, _fieldValues);
         _saved = true;
