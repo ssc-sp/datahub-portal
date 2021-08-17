@@ -17,14 +17,16 @@ namespace NRCan.Datahub.Shared.Services
         private IMemoryCache serviceAuthCache;
         private readonly IMemoryCache projectAdminCache;
         private readonly IDbContextFactory<DatahubProjectDBContext> dbFactory;
+        private readonly IMSGraphService mSGraphService;
         private const int AUTH_KEY = 1;
         private const int PROJECT_ADMIN_KEY = 2;
 
-        public ServiceAuthManager(IMemoryCache serviceAuthCache, IMemoryCache projectAdminCache, IDbContextFactory<DatahubProjectDBContext> dbFactory)
+        public ServiceAuthManager(IMemoryCache serviceAuthCache, IMemoryCache projectAdminCache, IDbContextFactory<DatahubProjectDBContext> dbFactory, IMSGraphService mSGraphService)
         {
             this.serviceAuthCache = serviceAuthCache;
             this.projectAdminCache = projectAdminCache;
             this.dbFactory = dbFactory;
+            this.mSGraphService = mSGraphService;
         }
 
         internal List<string> GetAllProjects()
@@ -96,6 +98,54 @@ namespace NRCan.Datahub.Shared.Services
             return isProjectAdmin;
         }
 
+        public async Task RegisterProjectAdmin(Datahub_Project project, string currentUserId)
+        {
+            using var ctx = dbFactory.CreateDbContext();
+            var users = ctx.Project_Users.Where(u => u.Project == project).ToList();
+
+            //clean admins not in list            
+            var extractedEmails = ExtractEmails(project.Project_Admin);
+
+            foreach (var user in users.Where(u => u.IsAdmin))
+            {
+                var email = mSGraphService.GetUserEmail(user.User_ID).ToLower();
+                if (!extractedEmails.Contains(email))
+                {
+                    ctx.Remove(user);
+                }
+            }
+
+
+            foreach (var email in extractedEmails)
+            {
+                var adminUserid = mSGraphService.GetUserIdFromEmail(email);
+
+                //if user exists but is not admin
+                if (users.Any(u => u.User_ID == adminUserid && !u.IsAdmin))
+                {
+                    var user = users.Where(u => u.User_ID == adminUserid).First();
+                    user.IsAdmin = true;
+                }
+                //else if user doesnt exist
+                else if (!users.Any(u => u.User_ID == adminUserid))
+                {
+                    var user = new Datahub_Project_User()
+                    {
+                        User_ID = adminUserid,
+                        Project = project,
+                        ApprovedUser = currentUserId,
+                        Approved_DT = DateTime.Now,
+                        IsAdmin = true,
+                        IsDataApprover = false
+                    };
+
+                    ctx.Project_Users.Add(user);
+                }
+            }
+
+            await ctx.SaveChangesAsync();
+            ctx.Dispose();            
+        }
         private async Task<List<string>> GetProjectRoles()
         { 
             var allProjectAdmins = await checkCacheForAdmins();
