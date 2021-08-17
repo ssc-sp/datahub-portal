@@ -24,16 +24,12 @@
     [Inject]
     public IMetadataBrokerService MetadataBrokerService { get; set; }
 
-    [Inject]
-    public IStringLocalizer DataLocalizer { get; set; }
-
     [Parameter]
     public int ApprovalFormId { get; set; } = 0;
 
-    [Parameter]
-    public string SubmitLabel { get; set; } = "Submit";
+    public string SubmitLabel => Localizer[MakeLabel("Submit")];
 
-    public string CancelLabel => DataLocalizer["CancelLabel"];
+    public string CancelLabel => Localizer[MakeLabel("Cancel")];
 
     public Data.Forms.ShareWorkflow.ApprovalForm _approvalForm { get; set; }
 
@@ -49,15 +45,18 @@
         // todo: navigate
     }
 
-    private Task<Data.Forms.ShareWorkflow.ApprovalForm> ClearForm()
+    private async Task<Data.Forms.ShareWorkflow.ApprovalForm> ClearForm()
     {
-        _approvalForm = new Data.Forms.ShareWorkflow.ApprovalForm() { ApprovalFormId = _approvalForm.ApprovalFormId };
-        return Task.FromResult(_approvalForm);
+        _approvalForm = new Data.Forms.ShareWorkflow.ApprovalForm() 
+        { 
+            ApprovalFormId = _approvalForm.ApprovalFormId 
+        };
+        return await Task.FromResult(_approvalForm);
     }
 
     private IEnumerable<string> LocalizeOptions(params string[] labels)
     {
-        return labels.Select(o => DataLocalizer[o].ToString());
+        return labels.Select(o => Localizer[o].ToString());
     }
 
     private IEnumerable<string> GetTypeOfDataOptions() => LocalizeOptions("Type_Of_Data_Choice_Data_TXT", "Type_Of_Data_Choice_Info_TXT");
@@ -69,6 +68,8 @@
 
     private string GetDataLabel(string propName)
     {
-        return DataLocalizer[propName];
+        return Localizer[MakeLabel(propName)];
     }
+
+    static string MakeLabel(string label) => $"APPROVAL-FORM.{label}";
 }
