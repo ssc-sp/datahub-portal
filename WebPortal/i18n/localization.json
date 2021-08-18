@@ -435,8 +435,8 @@
   "APPROVAL-FORM": {
     "Dataset_Title_TXT": "Title of Dataset(s) or Information Resource(s)",
     "Type_Of_Data_TXT": "Type of data",
-    "Type_Of_Data_Choice_Data_TXT": "Data",
-    "Type_Of_Data_Choice_Info_TXT": "Info",
+    "Data": "Data",
+    "Info": "Info",
     "Copyright_Restrictions_FLAG": "There are no known legal, licensing, or copyright restrictions to prevent the data or information from being released by the department or agency under the terms of the Open Government Licence – Canada.",
     "Authority_To_Release_FLAG": "The department or agency has the departmental mandate, legislative authority or permission from a third party provider to publish the data or information resource under the Open Government Licence – Canada.",
     "Private_Personal_Information_FLAG": "The data or information resource does not contain any personal information as defined in section 3 of the Privacy Act, R.S.C. 1985, c. P-21 as confirmed by the ATIP Secretariat.",

@@ -35,7 +35,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _approvalForm = await MetadataBrokerService.GetApprovalForm(ApprovalFormId) ?? 
+        _approvalForm = await MetadataBrokerService.GetApprovalForm(ApprovalFormId) ??
             new Data.Forms.ShareWorkflow.ApprovalForm() { Type_Of_Data_TXT = "Data" };
     }
 
@@ -47,23 +47,16 @@
 
     private async Task<Data.Forms.ShareWorkflow.ApprovalForm> ClearForm()
     {
-        _approvalForm = new Data.Forms.ShareWorkflow.ApprovalForm() 
-        { 
-            ApprovalFormId = _approvalForm.ApprovalFormId 
+        _approvalForm = new Data.Forms.ShareWorkflow.ApprovalForm()
+        {
+            ApprovalFormId = _approvalForm.ApprovalFormId
         };
         return await Task.FromResult(_approvalForm);
     }
 
-    private IEnumerable<string> LocalizeOptions(params string[] labels)
-    {
-        return labels.Select(o => Localizer[o].ToString());
-    }
-
-    private IEnumerable<string> GetTypeOfDataOptions() => LocalizeOptions("Type_Of_Data_Choice_Data_TXT", "Type_Of_Data_Choice_Info_TXT");
-
     private async Task OnConfigure(ModelFormContext<Data.Forms.ShareWorkflow.ApprovalForm> context)
     {
-        await context.UpdateValidValues("Type_Of_Data_TXT", GetTypeOfDataOptions()); 
+        await context.UpdateValidValues("Type_Of_Data_TXT", new string[] { "Data", "Info" });
     }
 
     private string GetDataLabel(string propName)
