@@ -24,23 +24,19 @@
     [Inject]
     public IMetadataBrokerService MetadataBrokerService { get; set; }
 
-    [Inject]
-    public IStringLocalizer DataLocalizer { get; set; }
-
     [Parameter]
     public int ApprovalFormId { get; set; } = 0;
 
-    [Parameter]
-    public string SubmitLabel { get; set; } = "Submit";
+    public string SubmitLabel => Localizer[MakeLabel("Submit")];
 
-    [Parameter]
-    public string CancelLabel { get; set; } = "Cancel";
+    public string CancelLabel => Localizer[MakeLabel("Cancel")];
 
     public Data.Forms.ShareWorkflow.ApprovalForm _approvalForm { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        _approvalForm = await MetadataBrokerService.GetApprovalForm(ApprovalFormId) ?? new Data.Forms.ShareWorkflow.ApprovalForm();
+        _approvalForm = await MetadataBrokerService.GetApprovalForm(ApprovalFormId) ??
+            new Data.Forms.ShareWorkflow.ApprovalForm() { Type_Of_Data_TXT = "Data" };
     }
 
     private async Task HandleValidSubmit()
@@ -49,49 +45,24 @@
         // todo: navigate
     }
 
-    private Task<Data.Forms.ShareWorkflow.ApprovalForm> ClearForm()
+    private async Task<Data.Forms.ShareWorkflow.ApprovalForm> ClearForm()
     {
-        _approvalForm = new Data.Forms.ShareWorkflow.ApprovalForm() { ApprovalFormId = _approvalForm.ApprovalFormId };
-        return Task.FromResult(_approvalForm);
-    }
-
-    private IEnumerable<string> LocalizeOptions(params string[] labels)
-    {
-        return labels.Select(o => DataLocalizer[o].ToString());
-    }
-
-    private IEnumerable<string> GetTypeOfDataOptions() => LocalizeOptions("Type_Of_Data_Choice_Data_TXT", "Type_Of_Data_Choice_Info_TXT");
-
-    private IEnumerable<string> GetYesNoOptions() => LocalizeOptions("Approval_YES_TXT", "Approval_NO_TXT");
-
-    private async Task ConfigureYesNoOptions(ModelFormContext<Data.Forms.ShareWorkflow.ApprovalForm> context, params string[] fieldNames)
-    {
-        foreach (var field in fieldNames)
+        _approvalForm = new Data.Forms.ShareWorkflow.ApprovalForm()
         {
-            await context.UpdateValidValues(field, GetYesNoOptions());
-        }
+            ApprovalFormId = _approvalForm.ApprovalFormId
+        };
+        return await Task.FromResult(_approvalForm);
     }
 
     private async Task OnConfigure(ModelFormContext<Data.Forms.ShareWorkflow.ApprovalForm> context)
     {
-        await context.UpdateValidValues("Type_Of_Data_TXT", GetTypeOfDataOptions());
-        await ConfigureYesNoOptions(context,
-            "Copyright_Restrictions_FLAG",
-            "Authority_To_Release_FLAG",
-            "Private_Personal_Information_FLAG",
-            "Subject_To_Exceptions_Or_Eclusions_FLAG",
-            "Not_Clasified_Or_Protected_FLAG",
-            "Can_Be_Released_For_Free_FLAG",
-            "Machine_Readable_FLAG",
-            "Non_Propietary_Format_FLAG",
-            "Localized_Metadata_FLAG",
-            "Updated_On_Going_Basis_FLAG",
-            "Collection_Of_Datasets_FLAG",
-            "Approval_InSitu_FLAG");
+        await context.UpdateValidValues("Type_Of_Data_TXT", new string[] { "Data", "Info" });
     }
 
     private string GetDataLabel(string propName)
     {
-        return DataLocalizer[propName];
+        return Localizer[MakeLabel(propName)];
     }
+
+    static string MakeLabel(string label) => $"APPROVAL-FORM.{label}";
 }

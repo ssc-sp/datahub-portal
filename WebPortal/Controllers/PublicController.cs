@@ -1,7 +1,9 @@
+using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using NRCan.Datahub.Portal.Services;
 using NRCan.Datahub.Shared.Data;
 using NRCan.Datahub.Shared.Services;
 
@@ -13,11 +15,17 @@ namespace NRCan.Datahub.Portal.Controllers
     {
         private ILogger<PublicController> _logger { get; set; }
         private IApiService _apiService { get; set; }
+        private IPublicDataFileService _pubFileService { get; set; }
 
-        public PublicController(ILogger<PublicController> logger, IApiService apiService)
+        public PublicController(
+            ILogger<PublicController> logger, 
+            IApiService apiService,
+            IPublicDataFileService pubFileService
+            )
         {
             _logger = logger;
             _apiService = apiService;
+            _pubFileService = pubFileService;
         }
 
         public IActionResult HelloWorld()
@@ -55,6 +63,30 @@ namespace NRCan.Datahub.Portal.Controllers
 
             var uri = await _apiService.DownloadFile(filemd);
             return Redirect(uri.ToString());
+        }
+
+        [Route("{fileId}")]
+        public async Task<IActionResult> DownloadFile(string fileId)
+        {
+            try
+            {
+                var fileIdGuid = Guid.Parse(fileId);
+                var result = await _pubFileService.DownloadSharedFile(fileIdGuid);
+                if (result == null)
+                {
+                    _logger.LogError($"File not found: {fileId}");
+                    return NotFound();
+                }
+                else
+                {
+                    return Redirect(result.ToString());
+                }
+            }
+            catch (FormatException)
+            {
+                _logger.LogError($"Invalid file id (not a guid): {fileId}");
+                return NotFound();
+            }
         }
     }
 }
