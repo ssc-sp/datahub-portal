@@ -78,6 +78,7 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Data\Forms\Datahub\" />
     <Folder Include="Migrations\Forms\DatahubProjectDB\" />
   </ItemGroup>
   <ProjectExtensions><VisualStudio><UserProperties /></VisualStudio></ProjectExtensions>
