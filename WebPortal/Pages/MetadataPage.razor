@@ -9,21 +9,7 @@
             <h2>Metadata</h2>
         </Header>
         <ChildContent>
-            <MetadataEditor Preview="false"
-                            Definitions="@_definitions"
-                            FieldValues="@_fieldValues"
-                            OnFieldChanged="FieldChanged" />
-
-            @if (_preview)
-            {
-                <hr />
-
-                <MetadataEditor Preview="_preview"
-                                Definitions="@_definitions"
-                                FieldValues="@_fieldValues"
-                                OnFieldChanged="FieldChanged" />
-                <hr />
-            }
+            <ObjectMetadataEditor @ref="_objectMetadataEditor" ObjectId=@ObjectId />
 
         </ChildContent>
         <Footer>
@@ -41,9 +27,7 @@
     [Inject]
     public IMetadataBrokerService MetadataBrokerService { get; set; }
 
-    private FieldDefinitions _definitions { get; set; }
-
-    private FieldValueContainer _fieldValues { get; set; }
+    private ObjectMetadataEditor _objectMetadataEditor;
 
     /// <summary>
     /// Object ID to edit or add metadata
@@ -54,28 +38,16 @@
     private bool _preview = false;
     private bool _saved = false;
 
-    protected override async Task OnInitializedAsync()
-    {
-        var context = await MetadataBrokerService.GetMetadataContext(ObjectId);
-        _definitions = context.FieldDefinitions;
-        _fieldValues = context.FieldValues;
-    }
-
-    private void FieldChanged(ObjectFieldValue field)
-    {
-        _saved = false;
-        StateHasChanged();
-    }
-
     private void TogglePreview()
     {
         _preview = !_preview;
+        _objectMetadataEditor.TogglePreview();
+        StateHasChanged();
     }
 
     private async void SaveChanges()
     {
-        await MetadataBrokerService.SaveMetadata(ObjectId, _definitions.MetadataVersion, _fieldValues);
-        _saved = true;
+        await _objectMetadataEditor.SaveChanges();
         StateHasChanged();
     }
 }

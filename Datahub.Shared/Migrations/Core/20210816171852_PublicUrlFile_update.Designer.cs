@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NRCan.Datahub.Data.Projects;
 
 namespace NRCan.Datahub.Portal.Migrations.Forms.DatahubProjectDB
 {
     [DbContext(typeof(DatahubProjectDBContext))]
-    partial class DatahubProjectDBContextModelSnapshot : ModelSnapshot
+    [Migration("20210816171852_PublicUrlFile_update")]
+    partial class PublicUrlFile_update
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -134,22 +136,22 @@ namespace NRCan.Datahub.Portal.Migrations.Forms.DatahubProjectDB
 
                     b.ToTable("Projects");
 
-                    b.HasData(
-                        new
-                        {
-                            Project_ID = 1,
-                            Data_Sensitivity = "Unclassified",
-                            Initial_Meeting_DT = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Is_Featured = false,
-                            Is_Private = false,
-                            Last_Updated_DT = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Project_Acronym_CD = "DHTRK",
-                            Project_Icon = "database",
-                            Project_Name = "Datahub Projects",
-                            Project_Status_Desc = "Ongoing",
-                            Project_Summary_Desc = "Datahub Project Tracker",
-                            Sector_Name = "CIOSB"
-                        });
+                    // b.HasData(
+                    //     new
+                    //     {
+                    //         Project_ID = 1,
+                    //         Data_Sensitivity = "Unclassified",
+                    //         Initial_Meeting_DT = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                    //         Is_Featured = false,
+                    //         Is_Private = false,
+                    //         Last_Updated_DT = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                    //         Project_Acronym_CD = "DHTRK",
+                    //         Project_Icon = "database",
+                    //         Project_Name = "Datahub Projects",
+                    //         Project_Status_Desc = "Ongoing",
+                    //         Project_Summary_Desc = "Datahub Project Tracker",
+                    //         Sector_Name = "CIOSB"
+                    //     });
                 });
 
             modelBuilder.Entity("NRCan.Datahub.Data.Projects.Datahub_ProjectComment", b =>
