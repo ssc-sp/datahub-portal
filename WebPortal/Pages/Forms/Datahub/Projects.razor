@@ -202,8 +202,7 @@ if (_project.Project_ID > 0)
     private void SetFormEdit(Datahub_Project project)
     {
         _project = project;
-        Context.Entry(_project).State = EntityState.Detached;
-        Context.Entry(_project).Reload();
+        //Context.Entry(_project).Reload();
         _comment = null;
         SubmitLabel = "Save Changes";
         StateHasChanged();
