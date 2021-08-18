@@ -17,7 +17,6 @@ namespace NRCan.Datahub.Portal.Data.Forms.ShareWorkflow
 
         /** Section: Source Information **/
         [Required]
-        [MaxLength(16)]
         [AeLabel(isDropDown: true)]
         public string Type_Of_Data_TXT { get; set; }
 
