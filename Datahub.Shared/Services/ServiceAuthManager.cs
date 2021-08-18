@@ -81,22 +81,37 @@ namespace NRCan.Datahub.Shared.Services
             });
         }
 
-        public async Task<bool> IsProjectAdmin(string email, string projectAcronym)
+        public async Task<bool> IsProjectAdmin(string userid, string projectAcronym)
         {
 
-            bool isProjectAdmin = false;
-            var normEmail = email.ToLowerInvariant();
-
-            //ImmutableHashSet<string> allProjectAdmins;
             Dictionary<string, List<string>> allProjectAdmins;
             allProjectAdmins = await checkCacheForAdmins();
-            isProjectAdmin = allProjectAdmins.ContainsKey(projectAcronym) ? allProjectAdmins[projectAcronym].Contains(normEmail) : false;
-            /* some other code removed for brevity */
+            bool isProjectAdmin = allProjectAdmins.ContainsKey(projectAcronym) ? allProjectAdmins[projectAcronym].Contains(userid) : false;
+
+
             var options = new MemoryCacheEntryOptions().SetPriority(CacheItemPriority.Normal).SetAbsoluteExpiration(TimeSpan.FromHours(1));
             options.AddExpirationToken(new CancellationChangeToken(_resetCacheToken.Token));
 
             return isProjectAdmin;
         }
+
+        //public async Task<bool> IsProjectAdmin(string email, string projectAcronym)
+        //{
+
+        //    bool isProjectAdmin = false;
+        //    var normEmail = email.ToLowerInvariant();
+
+        //    //ImmutableHashSet<string> allProjectAdmins;
+        //    Dictionary<string, List<string>> allProjectAdmins;
+        //    allProjectAdmins = await checkCacheForAdmins();
+        //    isProjectAdmin = allProjectAdmins.ContainsKey(projectAcronym) ? allProjectAdmins[projectAcronym].Contains(normEmail) : false;
+            
+
+        //    var options = new MemoryCacheEntryOptions().SetPriority(CacheItemPriority.Normal).SetAbsoluteExpiration(TimeSpan.FromHours(1));
+        //    options.AddExpirationToken(new CancellationChangeToken(_resetCacheToken.Token));
+
+        //    return isProjectAdmin;
+        //}
 
         public async Task RegisterProjectAdmin(Datahub_Project project, string currentUserId)
         {
@@ -164,13 +179,20 @@ namespace NRCan.Datahub.Shared.Services
             {
                 allProjectAdmins = new Dictionary<string, List<string>>();
                 using var ctx = dbFactory.CreateDbContext();
-                var allProjectAdminsList = await ctx.Projects.Where(p => p.Project_Admin != null).Select(p => new { p.Project_Admin, p.Project_Acronym_CD }).ToListAsync();
+                
+                var adminsFromProjectUsersTable = await ctx.Project_Users.Include(a => a.Project).Where(u => u.IsAdmin).ToListAsync();
 
-                foreach (var item in allProjectAdminsList)
+                foreach (var admin in adminsFromProjectUsersTable)
                 {
-                    var admins = ExtractEmails(item.Project_Admin);
-                    allProjectAdmins.Add(item.Project_Acronym_CD, admins);
-                }
+                    if (allProjectAdmins.ContainsKey(admin.Project.Project_Acronym_CD))
+                    {
+                        allProjectAdmins[admin.Project.Project_Acronym_CD].Add(admin.User_ID);
+                    }
+                    else
+                    { 
+                        allProjectAdmins.Add(admin.Project.Project_Acronym_CD, new List<string>() { admin.User_ID });
+                    }
+                }                
 
                 serviceAuthCache.Set(PROJECT_ADMIN_KEY, allProjectAdmins, TimeSpan.FromHours(1));
 

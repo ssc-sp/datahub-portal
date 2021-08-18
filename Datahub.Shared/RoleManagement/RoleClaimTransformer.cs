@@ -26,11 +26,12 @@ namespace NRCan.Datahub.Shared.RoleManagement
             var userId = principal.Claims.ToList()[9].Value;
             
             var allProjects = serviceAuthManager.GetAllProjects();
+            
             var authorizedProjects = await serviceAuthManager.GetUserAuthorizations(userId);
 
             foreach (var project in allProjects)
             {
-                if (await serviceAuthManager.IsProjectAdmin(userName, project))
+                if (await serviceAuthManager.IsProjectAdmin(userId, project))
                 {
                     ((ClaimsIdentity)principal.Identity).AddClaim(new Claim(ClaimTypes.Role, $"{project}-admin"));
                 }
