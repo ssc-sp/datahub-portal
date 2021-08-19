@@ -3,6 +3,9 @@
 
 The NRCan DataHub project is an enterprise platform for storing, working with and collaborating on data initiatives.  It is a central location for NRCan users to store any kind of data with a unified portal to facilitate data discovery and management, performing collaborative analysis, manipulating data using advanced analytics tools, and conducting data science experiments.
 
+![image](https://user-images.githubusercontent.com/82101285/129956914-9ebe7b07-25dd-4c2c-9da0-d8e8a2499c78.png)
+
+
 ## Scope and Objectives
 
 The DataHub aims to provide the following features:
