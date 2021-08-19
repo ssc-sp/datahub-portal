@@ -15,6 +15,12 @@
             <i class="far fa-cloud-download icon-color sm-icon"></i>
             @Localizer["Download"]
         </div>
+
+        <div class="file-grid-item" @onclick=@Share>
+            <i class="far fa-share-square icon-color sm-icon"></i>
+            @Localizer["Share"]
+        </div>
+
 <!-- To be added when we support it
         <div class="file-grid-item" @onclick="OpenVersions">
             <i class="fas fa-code-branch icon-color sm-icon"></i>
@@ -114,5 +120,9 @@ else
     private Task Rename()
     {
         return PerformMenuAction.InvokeAsync(MenuActions.Rename);
+    }
+    private Task Share()
+    {
+        return PerformMenuAction.InvokeAsync(MenuActions.ShareFile);
     }
 }

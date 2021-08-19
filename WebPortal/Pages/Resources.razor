@@ -5,6 +5,7 @@
 @using System.Web
 @using System.IO
 @using System.Reflection
+@using System.Net
 @inject IStringLocalizer<DataLabels> DataLocalizer
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JsInterop
@@ -16,10 +17,10 @@
 <div style="padding: 2rem">
     <AeCard>
         <ChildContent>
-    <AeMarkdown Content="@Markdown_Content"
-                LinkRewriter="@RewriteLink" />
-                </ChildContent>
-                </AeCard>
+            <AeMarkdown Content="@Markdown_Content"
+                        LinkRewriter="@RewriteLink" />
+        </ChildContent>
+    </AeCard>
 </div>
 
 
@@ -27,9 +28,9 @@
 @code {
 
     [Parameter]
-    public string PageName { get; set; } 
+    public string PageName { get; set; }
 
-    public const string DefaultPage = "Index";
+    public const string DefaultPage = "Home";
 
     public const string Namespace = "NRCan.Datahub.Portal";
 
@@ -37,7 +38,7 @@
 
     private Func<string, string> RewriteLink;
 
-    
+
 
     public const string BaseURL = "/resources";
 
@@ -48,25 +49,41 @@
 
     protected override async Task OnParametersSetAsync()
     {
-        Markdown_Content = LoadPage(PageName?? DefaultPage)?? Localizer["Invalid link"];
+        Markdown_Content = LoadPage(PageName ?? DefaultPage) ?? Localizer["Invalid link"];
     }
+
+    public static string Wiki_Url = "https://raw.githubusercontent.com/wiki/NRCan/datahub-portal/";
 
     private string? LoadPage(string name)
     {
-        if (name.StartsWith("/")) name = name.Substring(1);
-        try
-        {
-            var assembly = typeof(Startup).Assembly;
-            var resourceName = Namespace + ".Wiki." + name + ".md";
 
-            using Stream stream = assembly.GetManifestResourceStream(resourceName);
-            using StreamReader reader = new StreamReader(stream);
-            return reader.ReadToEnd();
-        } catch (Exception ex)
+        if (name.StartsWith("/")) name = name.Substring(1);
+        var fullUrl = $"{Wiki_Url}{name}.md";
+        using (var client = new WebClient())
         {
-            logger.LogError(ex, $"Cannot load page {name}");
-            return null;
+            try
+            {
+                return client.DownloadString(fullUrl);               
+            } catch (Exception ex)
+            {
+                logger.LogError(ex, $"Cannot load page {fullUrl}");
+                return null;
+            }
         }
+        //try
+        //{
+        //    var assembly = typeof(Startup).Assembly;
+        //    var resourceName = Namespace + ".Wiki." + name + ".md";
+
+        //    using Stream stream = assembly.GetManifestResourceStream(resourceName);
+        //    using StreamReader reader = new StreamReader(stream);
+        //    return reader.ReadToEnd();
+        //}
+        //catch (Exception ex)
+        //{
+        //    logger.LogError(ex, $"Cannot load page {name}");
+        //    return null;
+        //}
     }
 
 }

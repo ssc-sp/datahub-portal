@@ -9,33 +9,15 @@
             <h2>Metadata</h2>
         </Header>
         <ChildContent>
-            <AeFlex>
-                <div style="width: 200px; flex-grow: 0.5">
-                    <MetadataEditor Preview="false"
-                                    Definitions="@_definitions"
-                                    FieldValues="@_fieldValues"
-                                    OnFieldChanged="FieldChanged" />
+            <ObjectMetadataEditor @ref="_objectMetadataEditor" ObjectId=@ObjectId />
 
-                </div>
-
-                <div style="width: 200px; flex-grow: 0.5">
-                    @if (_preview)
-                    {
-                        <MetadataEditor Preview="_preview"
-                                        Definitions="@_definitions"
-                                        FieldValues="@_fieldValues"
-                                        OnFieldChanged="FieldChanged" />
-                    }
-
-                </div>
-            </AeFlex>
         </ChildContent>
         <Footer>
             @if (!_saved)
             {
-                <AeButton @onclick="SaveChanges">Save</AeButton>
+                <AeButton @onclick="SaveChanges" style="margin: 5px;">Save</AeButton>
             }
-            <AeButton @onclick="TogglePreview">Toggle Preview</AeButton>
+            <AeButton @onclick="TogglePreview" style="margin: 5px;">Toggle Preview</AeButton>
         </Footer>
     </AeCard>
 </div>
@@ -45,9 +27,7 @@
     [Inject]
     public IMetadataBrokerService MetadataBrokerService { get; set; }
 
-    private FieldDefinitions _definitions { get; set; }
-
-    private FieldValueContainer _fieldValues { get; set; }
+    private ObjectMetadataEditor _objectMetadataEditor;
 
     /// <summary>
     /// Object ID to edit or add metadata
@@ -58,28 +38,16 @@
     private bool _preview = false;
     private bool _saved = false;
 
-    protected override async Task OnInitializedAsync()
-    {
-        var context = await MetadataBrokerService.GetMetadataContext(ObjectId);
-        _definitions = context.FieldDefinitions;
-        _fieldValues = context.FieldValues;
-    }
-
-    private void FieldChanged(ObjectFieldValue field)
-    {
-        _saved = false;
-        StateHasChanged();
-    }
-
     private void TogglePreview()
     {
         _preview = !_preview;
+        _objectMetadataEditor.TogglePreview();
+        StateHasChanged();
     }
 
     private async void SaveChanges()
     {
-        await MetadataBrokerService.SaveMetadata(ObjectId, _definitions.MetadataVersion, _fieldValues);
-        _saved = true;
+        await _objectMetadataEditor.SaveChanges();
         StateHasChanged();
     }
 }

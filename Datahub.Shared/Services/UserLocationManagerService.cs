@@ -15,9 +15,9 @@ namespace NRCan.Datahub.Shared.Services
         private ILogger<UserLocationManagerService> _logger;
         private IUserInformationService _userInformationService;
         private IDbContextFactory<EFCoreDatahubContext> _contextFactory;
-        
 
-        public UserLocationManagerService(ILogger<UserLocationManagerService> logger, 
+
+        public UserLocationManagerService(ILogger<UserLocationManagerService> logger,
                                         IUserInformationService userInformationService,
                                         IDbContextFactory<EFCoreDatahubContext> contextFactory)
         {
@@ -26,19 +26,19 @@ namespace NRCan.Datahub.Shared.Services
             _contextFactory = contextFactory;
         }
 
-        public async Task RegisterNavigation(LocationChangedEventArgs eventArgs)
+        public async Task RegisterNavigation(UserRecentLink link)
         {
             var user = await _userInformationService.GetCurrentUserAsync();
             var userId = user.Id;
 
-            var userRecentActions = new UserRecentActions() { url = eventArgs.Location, title = "my title", accessedTime = DateTimeOffset.Now, icon = "myicon" };
-            
+            //var userRecentActions = new UserRecentLink() { url = eventArgs.Location, title = "my title", accessedTime = DateTimeOffset.Now, icon = "myicon" };
+
             var recentNavigations = await ReadRecentNavigations(userId);
 
             if (recentNavigations == null)
             {
                 recentNavigations = new UserRecent() { UserId = userId };
-                recentNavigations.UserRecentActions.Add(userRecentActions);                
+                recentNavigations.UserRecentActions.Add(link);
                 await RegisterNavigation(recentNavigations);
             }
             else
@@ -47,13 +47,13 @@ namespace NRCan.Datahub.Shared.Services
                 {
                     await RemoveOldestNavigation(recentNavigations);
                 }
-                recentNavigations.UserRecentActions.Add(userRecentActions);
-                using (var _efCoreDatahubContext = _contextFactory.CreateDbContext())
+                recentNavigations.UserRecentActions.Add(link);
+                using (var efCoreDatahubContext = _contextFactory.CreateDbContext())
                 {
-                    _efCoreDatahubContext.UserRecent.Update(recentNavigations);
-                    await _efCoreDatahubContext.SaveChangesAsync();
+                    efCoreDatahubContext.UserRecent.Update(recentNavigations);
+                    await efCoreDatahubContext.SaveChangesAsync();
                 }
-            }            
+            }
         }
 
         private async Task RemoveOldestNavigation(UserRecent recentNavigations)
@@ -65,32 +65,32 @@ namespace NRCan.Datahub.Shared.Services
 
         public async Task DeleteUserRecent(string userId)
         {
-            using (var _efCoreDatahubContext = _contextFactory.CreateDbContext())
+            using (var efCoreDatahubContext = _contextFactory.CreateDbContext())
             {
-                var userRecentActions = _efCoreDatahubContext.UserRecent.Where(u => u.UserId == userId).FirstOrDefault();
+                var userRecentActions = efCoreDatahubContext.UserRecent.Where(u => u.UserId == userId).FirstOrDefault();
                 if (userRecentActions != null)
                 {
-                    _efCoreDatahubContext.UserRecent.Remove(userRecentActions);
-                    await _efCoreDatahubContext.SaveChangesAsync();
+                    efCoreDatahubContext.UserRecent.Remove(userRecentActions);
+                    await efCoreDatahubContext.SaveChangesAsync();
                 }
             }
         }
-        
+
         public async Task<UserRecent> ReadRecentNavigations(string userId)
         {
-            using (var _efCoreDatahubContext = _contextFactory.CreateDbContext())
+            using (var efCoreDatahubContext = _contextFactory.CreateDbContext())
             {
-                var userRecentActions = _efCoreDatahubContext.UserRecent.Where(u => u.UserId == userId).FirstOrDefault();
+                var userRecentActions = await efCoreDatahubContext.UserRecent.FirstOrDefaultAsync(u => u.UserId == userId);
                 return userRecentActions;
             }
         }
 
         public async Task RegisterNavigation(UserRecent recent)
         {
-            using (var _efCoreDatahubContext = _contextFactory.CreateDbContext())
+            using (var efCoreDatahubContext = _contextFactory.CreateDbContext())
             {
-                _efCoreDatahubContext.UserRecent.Add(recent);
-                await _efCoreDatahubContext.SaveChangesAsync();
+                efCoreDatahubContext.UserRecent.Add(recent);
+                await efCoreDatahubContext.SaveChangesAsync();
             }
         }
     }
