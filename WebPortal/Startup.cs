@@ -34,7 +34,6 @@ using Askmethat.Aspnet.JsonLocalizer.Extensions;
 using System.Text;
 using NRCan.Datahub.Shared.Data;
 using Microsoft.EntityFrameworkCore;
-using NRCan.Datahub.Data.Projects;
 using NRCan.Datahub.ProjectForms.Data.PIP;
 using NRCan.Datahub.Portal.EFCore;
 using NRCan.Datahub.Shared.EFCore;
@@ -42,7 +41,6 @@ using NRCan.Datahub.Portal.Data;
 using NRCan.Datahub.Portal.Data.Finance;
 using NRCan.Datahub.Portal.Data.WebAnalytics;
 using BlazorApplicationInsights;
-using NRCan.Datahub.Portal.RoleManagement;
 using NRCan.Datahub.Metadata;
 using Microsoft.Graph;
 using Polly;
@@ -50,6 +48,7 @@ using System.Net.Http;
 using Polly.Extensions.Http;
 using NRCan.Datahub.Metadata.Model;
 using Microsoft.Extensions.Logging;
+using NRCan.Datahub.Shared.RoleManagement;
 
 namespace NRCan.Datahub.Portal
 {
@@ -194,14 +193,14 @@ namespace NRCan.Datahub.Portal
 
         }
 
-        private void InitializeDatabase<T>(ILogger<Startup> logger, IDbContextFactory<T> factory, bool migrate = true, bool ensureDelete = true) where T : DbContext
+        private void InitializeDatabase<T>(ILogger<Startup> logger, IDbContextFactory<T> factory, bool migrate = true, bool ensureDeleteinOffline = true) where T : DbContext
         {
             using var context = factory.CreateDbContext();
             try
             {
                 if (Offline)
                 {
-                    if (ensureDelete)
+                    if (ensureDeleteinOffline)
                         context.Database.EnsureDeleted();
                     context.Database.EnsureCreated();                    
                 }
@@ -309,6 +308,8 @@ namespace NRCan.Datahub.Portal
 
                 services.AddScoped<IApiService, ApiService>();
                 services.AddScoped<IApiCallService, ApiCallService>();
+
+                services.AddScoped<IPublicDataFileService, PublicDataFileService>();
 
                 services.AddScoped<IDataUpdatingService, DataUpdatingService>();
                 services.AddScoped<IDataSharingService, DataSharingService>();

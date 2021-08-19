@@ -1,0 +1,49 @@
+﻿@using NRCan.Datahub.Metadata.Model
+@using NRCan.Datahub.Metadata.DTO
+
+<MetadataEditor Preview="_preview"
+                Definitions="@_definitions"
+                FieldValues="@_fieldValues"
+                OnFieldChanged="FieldChanged" />
+@code {
+
+    [Inject]
+    public IMetadataBrokerService MetadataBrokerService { get; set; }
+
+    /// <summary>
+    /// Object ID to edit or add metadata
+    /// </summary>
+    [Parameter]
+    public string ObjectId { get; set; } = "7aa33e32-44a1-4ca4-b76c-ccb98c7b8e0b";
+
+    private FieldDefinitions _definitions { get; set; }
+    private FieldValueContainer _fieldValues { get; set; }
+    private bool _preview = false;
+    private bool _saved = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var context = await MetadataBrokerService.GetMetadataContext(ObjectId);
+        _definitions = context.FieldDefinitions;
+        _fieldValues = context.FieldValues;
+    }
+
+    public void TogglePreview()
+    {
+        _preview = !_preview;
+        StateHasChanged();
+    }
+
+    public async Task SaveChanges()
+    {
+        await MetadataBrokerService.SaveMetadata(ObjectId, _definitions.MetadataVersion, _fieldValues);
+        _saved = true;
+        StateHasChanged();
+    }
+
+    private void FieldChanged(ObjectFieldValue field)
+    {
+        _saved = false;
+        StateHasChanged();
+    }
+}
