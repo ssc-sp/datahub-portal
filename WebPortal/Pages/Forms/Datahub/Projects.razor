@@ -325,9 +325,9 @@ if (_project.Project_ID > 0)
         }
     }
 
-    private async Task OnConfigure(ModelFormContext<Datahub_Project> context)
+    private async Task OnConfigure(IModelFormContext context)
     {
-        await context.UpdateValidValues("Project_Category", new[] { "Guidance & Recommendations",
+        context.RegisterOptionValueProperty<Datahub_Project>(s => s.Project_Category, () => new[] { "Guidance & Recommendations",
                                                                 "Presentations",
                                                                 "Data Sci. & Machine Learn.",
                                                                 "Data Pipelines",
@@ -336,7 +336,7 @@ if (_project.Project_ID > 0)
                                                                 "Dashboards",
                                                                 "Web Forms"
                                                                  });
-        await context.UpdateValidValues("Project_Phase", new[] {"Initiation",
+        context.RegisterOptionValueProperty<Datahub_Project>(s => s.Project_Phase, () => new[] {"Initiation",
                                                                 "Requirements",
                                                                 "Development/Design",
                                                                 "Implementation",
