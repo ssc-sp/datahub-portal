@@ -102,5 +102,9 @@ namespace NRCan.Datahub.Shared.Services
             return user?.Mail;
         }
 
+        public string GetUserIdFromEmail(string email)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
