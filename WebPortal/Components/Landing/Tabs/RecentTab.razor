@@ -25,14 +25,14 @@
     protected override async Task OnInitializedAsync()
     {
         using var ctx = DbFactoryProject.CreateDbContext();
-        recentLinks = RecentLinks.Select(async l => (l, await GetProject(ctx,l))).Select(t=> t.Result).ToList();
+        recentLinks = RecentLinks.Select(l => (l, GetProject(ctx,l))).ToList();
     }
 
-    private async Task<Datahub_Project?> GetProject(DatahubProjectDBContext ctx, UserRecentLink link)
+    private Datahub_Project? GetProject(DatahubProjectDBContext ctx, UserRecentLink link)
     {
         if (link.DataProject == null)
             return null;
-        return await ctx.Projects.FirstOrDefaultAsync(p => p.Project_Acronym_CD == link.DataProject);
+        return ctx.Projects.FirstOrDefault(p => p.Project_Acronym_CD == link.DataProject);
     }
 
     private Icon GetIcon(UserRecentLink link)

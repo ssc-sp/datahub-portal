@@ -67,7 +67,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Datahub.Metadata\Datahub.Metadata.csproj" />
-    <ProjectReference Include="..\Datahub.Shared\Datahub.Shared.csproj" />
+    <ProjectReference Include="..\Datahub.Shared\Datahub.Core.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Content Update="i18n\localization.fr.json">
@@ -76,6 +76,10 @@
     <Content Update="wwwroot\img\landing\earth-background.jpg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Data\Forms\Datahub\" />
+    <Folder Include="Migrations\Forms\DatahubProjectDB\" />
   </ItemGroup>
   <ProjectExtensions><VisualStudio><UserProperties /></VisualStudio></ProjectExtensions>
 </Project>

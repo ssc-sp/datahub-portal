@@ -1,13 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.31410.357
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31410.414
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NRCan.Datahub.Portal", "WebPortal\NRCan.Datahub.Portal.csproj", "{7C55A80E-F420-45A7-A85E-BBF054533EE3}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DatahubTest", "DatahubTest\DatahubTest.csproj", "{9437DD2A-0322-47ED-8FA2-96B8B87928CB}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Shared", "Datahub.Shared\Datahub.Shared.csproj", "{E536F8EC-31D3-4C07-AEB2-C2A8D8634480}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Core", "Datahub.Shared\Datahub.Core.csproj", "{E536F8EC-31D3-4C07-AEB2-C2A8D8634480}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{B6CC5ED1-A990-4AC7-89C7-B0F62FFEEC26}"
 	ProjectSection(SolutionItems) = preProject
@@ -62,8 +62,8 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {9DC4B901-16FF-4FF2-9ED6-B286EA17048E}
-		RESX_AutoCreateNewLanguageFiles = True
 		RESX_ConfirmAddLanguageFile = True
+		RESX_AutoCreateNewLanguageFiles = True
+		SolutionGuid = {9DC4B901-16FF-4FF2-9ED6-B286EA17048E}
 	EndGlobalSection
 EndGlobal
