@@ -2,7 +2,8 @@
 @inject IStringLocalizer DataLocalizer
 @implements IDisposable
 @inject IDbContextFactory<DatahubProjectDBContext> DbFactory
-
+@inject ServiceAuthManager ServiceAuthManager
+@inject IUserInformationService UserInformationService
 @inject NavigationManager NavigationManager
 @inject Elemental.Services.UIControlsService UIControlService
 @inject IJSRuntime JsInterop
@@ -201,7 +202,7 @@ if (_project.Project_ID > 0)
     private void SetFormEdit(Datahub_Project project)
     {
         _project = project;
-        Context.Entry(_project).Reload();
+        //Context.Entry(_project).Reload();
         _comment = null;
         SubmitLabel = "Save Changes";
         StateHasChanged();
@@ -284,9 +285,23 @@ if (_project.Project_ID > 0)
                 _project = Context.Projects.Add(_project).Entity;
             }
             _project.Last_Updated_DT = DateTime.Now;
+
+            //update admins here
+
+            await UpdateAdmins();
+
             await Context.SaveChangesAsync();
             await OnInitializedAsync();
             _project = null;
+        }
+    }
+
+    private async Task UpdateAdmins()
+    {
+        if (_project.Project_Admin != null)
+        {
+            var currentUserId = await UserInformationService.GetUserIdString();
+            await ServiceAuthManager.RegisterProjectAdmin(_project, currentUserId);
         }
     }
 
