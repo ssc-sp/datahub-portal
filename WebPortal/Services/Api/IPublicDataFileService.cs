@@ -2,7 +2,7 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.Graph;
 using NRCan.Datahub.Shared.Data;
-using NRCan.Datahub.Data.Projects;
+using NRCan.Datahub.Shared.EFCore;
 
 namespace NRCan.Datahub.Portal.Services
 {
