@@ -457,8 +457,8 @@
   },
 
   "METADATA-PAGE": {
-    "ShowMore": "Show more...",
-    "ShowLess": "Show less..."
+    "ShowMore": "Show optional fields",
+    "ShowLess": "Hide optional fields"
   }  
 }
 
