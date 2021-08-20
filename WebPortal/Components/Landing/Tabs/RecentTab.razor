@@ -51,6 +51,8 @@
                 return Icon.STORAGE;
             case DatahubLinkType.FormBuilder:
                 return Icon.PROJECT;
+            case DatahubLinkType.DataSharingDashboard:
+                return Icon.PROJECT;
         }
         return Icon.HOME;
     }
@@ -71,6 +73,8 @@
                 return $"{project.ProjectName} >> Storage";
             case DatahubLinkType.FormBuilder:
                 return $"{project.ProjectName} >> Form Builder";
+            case DatahubLinkType.DataSharingDashboard:
+                return $"{project.ProjectName} >> Data Sharing Dashboard";
         }
         return "N/A";
     }
