@@ -47,6 +47,10 @@ namespace NRCan.Datahub.Portal.Data.Forms.ShareWorkflow
         /** Section: Format **/
         public bool Localized_Metadata_FLAG { get; set; }
 
+        /** Section: Format **/
+        [AeFormIgnore]
+        public bool Requires_Blanket_Approval_FLAG { get; set; }
+
         /** Section: Blanket Approval **/
         public bool Updated_On_Going_Basis_FLAG { get; set; }
 
@@ -55,6 +59,10 @@ namespace NRCan.Datahub.Portal.Data.Forms.ShareWorkflow
 
         /** Section: Blanket Approval **/
         public bool Approval_InSitu_FLAG { get; set; }
+
+        /** Section: Blanket Approval **/
+        [AeFormIgnore]
+        public bool Approval_Other_FLAG { get; set; }
 
         /** Section: Blanket Approval **/
         public string Approval_Other_TXT { get; set; }
