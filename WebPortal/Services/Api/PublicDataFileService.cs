@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -74,12 +76,25 @@ namespace NRCan.Datahub.Portal.Services
                 //TODO an exception instead of returning null
                 return await Task.FromResult<Uri>(null);
             }
-            else if (!publicFile.ApprovedDate_DT.HasValue)
+
+            if (!publicFile.ApprovedDate_DT.HasValue || publicFile.ApprovedDate_DT > DateTime.UtcNow)
             {
                 _logger.LogError($"File not approved for public: {fileId}");
                 return await Task.FromResult<Uri>(null);
             }
 
+            if (!publicFile.PublicationDate_DT.HasValue || publicFile.PublicationDate_DT > DateTime.UtcNow)
+            {
+                _logger.LogError($"File {fileId} is not yet published (publication: {publicFile.PublicationDate_DT?.ToShortDateString()})");
+                return await Task.FromResult<Uri>(null);
+            }
+
+            return await DoDownloadFile(publicFile);
+
+        }
+
+        public async Task<Uri> DoDownloadFile(PublicDataFile publicFile)
+        {
             var fileMetadata = new FileMetaData()
             {
                 filename = publicFile.Filename_TXT,
@@ -95,6 +110,26 @@ namespace NRCan.Datahub.Portal.Services
             {
                 return await _apiService.DownloadFile(fileMetadata);
             }
+        }
+
+        private System.Linq.Expressions.Expression<Func<PublicDataFile, bool>> GenerateSharingRequestCondition(string projectCode)
+        {
+            return f => f.ProjectCode_CD != null && f.ProjectCode_CD.ToLower() == projectCode.ToLower() 
+                && f.SubmittedDate_DT.HasValue 
+                && !f.ApprovedDate_DT.HasValue;
+        } 
+
+        public async Task<List<PublicDataFile>> GetProjectSharingRequests(string projectCode)
+        {
+            return await _projectDbContext.PublicDataFiles
+                .Where(GenerateSharingRequestCondition(projectCode))
+                .ToListAsync();
+        }
+
+        public async Task<int> GetPublicUrlSharingRequestCount(string projectCode)
+        {
+            return await _projectDbContext.PublicDataFiles
+                .CountAsync(GenerateSharingRequestCondition(projectCode));
         }
 
         public async Task<PublicDataFile> LoadPublicDataFileInfo(Guid fileId)
@@ -121,6 +156,23 @@ namespace NRCan.Datahub.Portal.Services
             {
                 return false;
             }
+        }
+
+        public async Task ApprovePublicUrlShare(Guid fileId, DateTime? publicationDate = null)
+        {
+            var shareInfo = await LoadPublicDataFileInfo(fileId);
+            
+            shareInfo.ApprovedDate_DT = DateTime.UtcNow;
+            shareInfo.PublicationDate_DT = publicationDate ?? shareInfo.ApprovedDate_DT;
+
+            await _projectDbContext.SaveChangesAsync();
+        }
+
+        public async Task DenyPublicUrlShare(Guid fileId)
+        {
+            var shareInfo = await LoadPublicDataFileInfo(fileId);
+            _projectDbContext.PublicDataFiles.Remove(shareInfo);
+            await _projectDbContext.SaveChangesAsync();
         }
     }
 }
