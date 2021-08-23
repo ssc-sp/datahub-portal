@@ -8,7 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace NRCan.Datahub.Data.Projects
+namespace NRCan.Datahub.Shared.EFCore
 {
 
     public class Datahub_Project_Access_Request
@@ -68,11 +68,12 @@ namespace NRCan.Datahub.Data.Projects
     {
 
         [Key]
-
         public int ProjectUserRequest_ID { get; set; }
         
         [StringLength(200)]
         public string User_ID { get; set; }
+
+        public DateTime Requested_DT { get; set; }
 
         public DateTime? Approved_DT { get; set;  }
         

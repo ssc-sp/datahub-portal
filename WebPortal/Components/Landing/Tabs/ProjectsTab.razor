@@ -1,6 +1,7 @@
 @using Microsoft.EntityFrameworkCore.Query
 @using Microsoft.EntityFrameworkCore;
 @inject IStringLocalizer<DataLabels> DataLocalizer
+@inject IUserInformationService UserInformationService
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JsInterop
 @implements IDisposable
@@ -32,6 +33,7 @@
     private List<Func<Datahub_Project, RenderFragment>> renderFunctions;    
 
     private IPageableComponent _myTable;
+    private string _currentUserId;
 
     private List<Datahub_Project> _projects;
     DatahubProjectDBContext Context;
@@ -52,8 +54,10 @@
 
     protected override async Task OnInitializedAsync()
     {
+        _currentUserId = await UserInformationService.GetUserIdString();
         Context = DbFactory.CreateDbContext();
-        _projects = Context.Projects.Where(p => !p.Is_Private && !string.IsNullOrWhiteSpace(p.Project_Acronym_CD) && !string.IsNullOrWhiteSpace(p.Project_Icon) && !string.IsNullOrWhiteSpace(p.Project_Name)).Include(p => p.Users).ToList();               
+        
+        _projects = Context.Project_Users.Include(u => u.Project).Where(u => u.User_ID == _currentUserId).Select(u => u.Project).ToList();
 
         await FillAccessorFunctions();
         
