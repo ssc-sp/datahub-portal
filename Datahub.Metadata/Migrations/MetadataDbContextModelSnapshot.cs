@@ -29,6 +29,9 @@ namespace NRCan.Datahub.Metadata.Migrations
                     b.Property<bool>("Approval_InSitu_FLAG")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("Approval_Other_FLAG")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Approval_Other_TXT")
                         .HasColumnType("nvarchar(max)");
 
@@ -62,6 +65,9 @@ namespace NRCan.Datahub.Metadata.Migrations
                         .HasColumnType("bit");
 
                     b.Property<bool>("Private_Personal_Information_FLAG")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("Requires_Blanket_Approval_FLAG")
                         .HasColumnType("bit");
 
                     b.Property<bool>("Subject_To_Exceptions_Or_Eclusions_FLAG")

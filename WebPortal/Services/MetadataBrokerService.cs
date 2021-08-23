@@ -127,6 +127,9 @@ namespace NRCan.Datahub.Portal.Services
             var approvalFormEntity = new ApprovalForm();
             form.CopyPublicPropertiesTo(approvalFormEntity, true);
 
+            // this is calculated field to simplify the PBI PDF generation
+            UpdateRequiresBlanketApproval(approvalFormEntity);
+
             if (approvalFormEntity.ApprovalFormId == 0)
             {
                 ctx.ApprovalForms.Add(approvalFormEntity);
@@ -140,6 +143,12 @@ namespace NRCan.Datahub.Portal.Services
             await ctx.SaveChangesAsync();
 
             return approvalFormEntity.ApprovalFormId;
+        }
+
+        private void UpdateRequiresBlanketApproval(ApprovalForm form)
+        {
+            form.Requires_Blanket_Approval_FLAG = form.Updated_On_Going_Basis_FLAG || form.Collection_Of_Datasets_FLAG || form.Approval_InSitu_FLAG || !string.IsNullOrEmpty(form.Approval_Other_TXT);
+            form.Approval_Other_FLAG = !string.IsNullOrEmpty(form.Approval_Other_TXT);
         }
 
         private async Task<ApprovalForm> GetApprovalFormEntity(MetadataDbContext ctx, int approvalFormId)

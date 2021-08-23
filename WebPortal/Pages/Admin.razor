@@ -6,12 +6,29 @@
 @inject DatahubProjectDBContext projectContext
 @inject IDbContextFactory<DatahubProjectDBContext> dbFactory
 @inject IEmailNotificationService EmailService
-@inject IMSGraphService GraphService
+@inject IMSGraphService MSGraphService
+@inject IUserInformationService UserInformationService
+@inject ServiceAuthManager ServiceAuthManager
 @page "/admin"
 
 
-<AuthorizeView Roles="project-admin">
+<AuthorizeView Roles="@string.Join(',', _authorizedRoles)">
     <Authorized>
+
+        <h1>@Localizer["Project User Requests"]</h1>
+
+        @if (_userProjectAuthorization != null)
+        {
+            <AeTable Accessors="GetProjectRequestAccessorFunctions()"
+                     Dataset="_userProjectAuthorization"
+                     Renderers="projectReqRenderFunctions"
+                     Headers="projectReqheaders" />
+        }
+        else
+        {
+            <div>Loading data...</div>
+        }
+
         <h1>@Localizer["Authorize Users"]</h1>
 
         @if (_usersAuthorization != null)
@@ -79,9 +96,18 @@
     [CascadingParameter]
     private Task<AuthenticationState> authenticationStateTask { get; set; }
 
+    private List<string> _authorizedRoles;
+
     private List<Datahub_Project_Access_Request> _usersAuthorization;
 
+    private List<Datahub_Project_User_Request> _userProjectAuthorization;
+
     private List<Datahub_ProjectServiceRequests> _serviceRequests;
+
+    private List<string> projectReqheaders = new List<string>
+{
+        "Project", "User", "Date","Actions"
+    };
 
     private List<string> headers = new List<string>
 {
@@ -144,6 +170,20 @@
         new Func<Datahub_Project_Access_Request, string>(p => { return ".."; }),
     };
 
+    private List<Func<Datahub_Project_User_Request, string>> GetProjectRequestAccessorFunctions()
+    {
+        return new List<Func<Datahub_Project_User_Request, string>>
+        {
+            new Func<Datahub_Project_User_Request, string>(p => { return p.Project.Project_Name; }),
+            new Func<Datahub_Project_User_Request, string>(p => { return MSGraphService.GetUserName(p.User_ID); }),
+            new Func<Datahub_Project_User_Request, string>(p => { return p.Requested_DT.ToShortDateString(); }),
+            new Func<Datahub_Project_User_Request, string>(p => { return ".."; }),
+        };
+    }
+    //private string GetUserName(string userId)
+    //{
+    //    return MSGraphService.GetUserName(userId);
+    //}
     private List<Func<Datahub_ProjectServiceRequests, string>> serviceRequestAccessors = new List<Func<Datahub_ProjectServiceRequests, string>>()
         {
             p => p.Project.Project_Name,
@@ -155,7 +195,7 @@
 
     // [Optional] Can define custom rendering for columns, order matters
     private List<Func<Datahub_Project_Access_Request, RenderFragment>> renderFunctions;
-
+    private List<Func<Datahub_Project_User_Request, RenderFragment>> projectReqRenderFunctions;
     private List<Func<Datahub_ProjectServiceRequests, RenderFragment>> serviceRenderers;
     private void GetServiceType(Datahub_Project_Access_Request request)
     { 
@@ -169,6 +209,29 @@
         var serviceName = r.RequestServiceType;
 
         await EmailService.SendServiceAccessGrantedNotification(serviceName, r.Project.ProjectInfo, r.User_Name);
+
+        await RefreshData();
+    }
+
+    private async Task AuthorizeProjectUser(Datahub_Project_User_Request r)
+    {
+        var approvedDate = DateTime.Now;
+
+        r.ApprovedUser = await UserInformationService.GetUserIdString();
+        r.Approved_DT = approvedDate;
+
+        var request = new Datahub_Project_User()
+        {
+            User_ID = r.User_ID,
+            Project = r.Project,
+            ApprovedUser = await UserInformationService.GetUserIdString(),
+            Approved_DT = approvedDate,
+            IsAdmin = false,
+            IsDataApprover = false
+        };
+
+        projectContext.Project_Users.Add(request);
+        await projectContext.SaveChangesAsync();
 
         await RefreshData();
     }
@@ -191,7 +254,7 @@
         var project = r.Project;
         await projectContext.Entry(project).Collection(p => p.Users).LoadAsync();
         var userEmails = project.Users
-            .Select(u => GraphService.GetUserEmail(u.User_ID).ToLowerInvariant())
+            .Select(u => MSGraphService.GetUserEmail(u.User_ID).ToLowerInvariant())
             .ToHashSet();
         
         Task individualEmailTask = null;
@@ -217,29 +280,53 @@
 
     private async Task RefreshData()
     {
-        var user = (await authenticationStateTask).User;
-        if (user.IsInRole("datahub-admin"))
-        {
-            _usersAuthorization = await projectContext.Access_Requests.Include(a => a.Project).OrderByDescending(a => a.Request_DT).ToListAsync();
-        }
-        else
-        {
-            var email = user.Identity.Name;
-            using var ctx = dbFactory.CreateDbContext();
-            var allProjectAdminsList = (await ctx.Projects.Where(p => p.Project_Admin != null).ToListAsync()).Select(p => (p.Project_ID, p.Project_Admin)).ToList();
-            var validProjects = allProjectAdminsList.Where(tp => (ServiceAuthManager.ExtractEmails(tp.Project_Admin)?.Contains(email.ToLowerInvariant()) ?? false)).Select(p => p.Project_ID).ToHashSet();
-            var allAuths = await projectContext.Access_Requests.Include(a => a.Project).OrderByDescending(a => a.Request_DT).ToListAsync();
-            _usersAuthorization = allAuths.Where(a => validProjects.Contains(a.Project.Project_ID)).ToList();
-            var allServiceCreationRequests = await projectContext.Project_Requests.Include(a => a.Project).OrderByDescending(a => a.ServiceRequests_Date_DT).ToListAsync();
-            _serviceRequests = allServiceCreationRequests.Where(a => validProjects.Contains(a.Project.Project_ID)).ToList();
-        }
+       
+        var userId = await UserInformationService.GetUserIdString();        
+        using var ctx = dbFactory.CreateDbContext();  
+
+        var validProjects = ctx.Project_Users.Where(u => u.IsAdmin && u.User_ID == userId).Select(p => p.Project.Project_ID).ToHashSet();
+
+        var allAuths = await projectContext.Access_Requests.Include(a => a.Project).OrderByDescending(a => a.Request_DT).ToListAsync();
+        _usersAuthorization = allAuths.Where(a => validProjects.Contains(a.Project.Project_ID)).ToList();
+        var allServiceCreationRequests = await projectContext.Project_Requests.Include(a => a.Project).OrderByDescending(a => a.ServiceRequests_Date_DT).ToListAsync();
+        _serviceRequests = allServiceCreationRequests.Where(a => validProjects.Contains(a.Project.Project_ID)).ToList();
+        var allProjectAuthorization = await projectContext.Project_Users_Requests.Include(a => a.Project).OrderByDescending(a => a.Requested_DT).ToListAsync();
+        _userProjectAuthorization = allProjectAuthorization.Where(a => validProjects.Contains(a.Project.Project_ID)).ToList();
+        
     }
 
     protected override async Task OnInitializedAsync()
     {
+        
+        _authorizedRoles = ServiceAuthManager.GetAdminProjectRoles();
+            
+
         ResetTestRecipient();
 
         await RefreshData();
+
+
+
+        projectReqRenderFunctions = new List<Func<Datahub_Project_User_Request, RenderFragment>>
+        {
+                null,
+                null,                
+                null,
+                new Func<Datahub_Project_User_Request, RenderFragment>(a => {
+                    if (a.Approved_DT != null)
+                    {
+                        return 
+    @<div>@Localizer["Authorized"]</div>;
+                    }
+                   else
+      
+                 {
+                       return @<AeButton @onclick="async () => await AuthorizeProjectUser(a)">Authorize user</AeButton>;
+                   }
+                })
+
+        };
+
         renderFunctions = new List<Func<Datahub_Project_Access_Request, RenderFragment>>
         {
                 null,
