@@ -15,7 +15,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using NRCan.Datahub.Data.Projects;
 using NRCan.Datahub.Metadata.Model;
 using NRCan.Datahub.Portal.Data.Finance;
 using NRCan.Datahub.Portal.EFCore;

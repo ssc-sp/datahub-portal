@@ -1,6 +1,6 @@
 ﻿@using Microsoft.EntityFrameworkCore.Query
 @using Microsoft.EntityFrameworkCore;
-@using NRCan.Datahub.Portal.Data;
+@using NRCan.Datahub.Portal.Data
 @inject IStringLocalizer<DataLabels> DataLocalizer
 @inject NavigationManager NavigationManager
 @inject Elemental.Services.UIControlsService UIControlService
@@ -16,8 +16,7 @@
 
 <div style="padding-left: 2rem;padding-right: 2rem">
     <AeFlex Vertical>
-        <h2>Data Project</h2>
-        <div>@(_project.Project_Acronym_CD.ToUpperInvariant())</div>
+        <h2>Data Project</h2>        
     </AeFlex>
     <AeCard CardPosition="AeCard.CardStyle.Horizontal">
         <Header>
@@ -28,11 +27,26 @@
         <ChildContent>
             <AeTypography Variant="h1">@_project.ProjectName</AeTypography>
             <AeMarkdown Content="@($"{_project.ProjectDescription}")"></AeMarkdown>
+            <AuthorizeView Roles="@($"{projectAcronym}, {projectAcronym}-admin")">
+            <NotAuthorized>
+                <AeTypography Variant="h3">Access Denied</AeTypography>                        
+                <AeTypography class="warning">You currently do not have access to this project.</AeTypography>
+                @if (!_isProjectUserPendingApproval)
+                {
+                    <AeButton @onclick="@(async () => await RequestProjectAccess())">Request Access</AeButton>
+                }
+                else
+                {
+                    <AeTypography class="warning">Access Request is being reviewed</AeTypography>  
+                }
+            </NotAuthorized>
+            </AuthorizeView>
         </ChildContent>
     </AeCard>
 
-    @if (!_isApprovedProjectUser)
-    {
+    <AuthorizeView Roles="@($"{projectAcronym}, {projectAcronym}-admin")">
+
+    
         @if (_pipelineStatus?.Count > 0)
         {
                     <AeFlex Vertical>
@@ -226,9 +240,9 @@
                     }
                     else
                     {
-                                    <AeButton @onclick="@(async () => await RequestServiceAccess("storage"))">Request Service Creation</AeButton>
+                    <AeButton @onclick="@(async () => await RequestServiceAccess("storage"))">Request Service Creation</AeButton>
                     }
-                        </Footer>
+                    </Footer>
                 </AeCard>
             
                 <AeCard class="facard1" CardPosition="AeCard.CardStyle.Horizontal">
@@ -245,34 +259,8 @@
                 </AeCard>
             
             </div>
-    }
-    else
-    {
-            <AeCard class="facard1" CardPosition="AeCard.CardStyle.Horizontal">
-                        <Header>
-                            <div class="purple" style="width:180px">
-                                <AeIcon class="fad fa-keyboard card-icon" />
-                            </div>
-                        </Header>
-                        <ChildContent>                       
-                            <AeTypography Variant="h3">Access Denied</AeTypography>                        
-                            <AeTypography>You currently do not have access to this project. Click 'Request Access' to get authorized</AeTypography>
-                        </ChildContent>
-                        <Footer>                        
-                @if (_projectRequested)
-                {
-                                        <AeTypography class="warning">Access Request is being reviewed</AeTypography>
-                }
-                else
-                {
-                                        <AeTypography class="warning">Access not authorized</AeTypography>
-                                        <AeButton @onclick="@(async () => await RequestProjectAccess())">Request Access</AeButton>
-                }                        
-                        </Footer>
-                    </AeCard>
-
-    }
-
+        
+    </AuthorizeView>
 
 </div>
 
@@ -285,7 +273,8 @@
     private DatahubProjectDBContext projectContext;
     private DatahubETLStatusContext etlContext;
 
-    private bool _isApprovedProjectUser;
+    
+    private bool _isProjectUserPendingApproval;
 
     private bool _isDataApprover;
     private int _sharingRequestCount;
@@ -346,13 +335,13 @@
     {
         projectContext = DbFactoryProject.CreateDbContext();
         etlContext = DbFactoryEtl.CreateDbContext();
-        await RefreshComponents(false);
         _user = await UserInformationService.GetCurrentUserAsync();
+        await RefreshComponents(false);
 
         var projectUsers = await projectContext.Project_Users.Where(u => u.User_ID == _user.Id && _project == u.Project).ToListAsync();
         if (projectUsers != null && projectUsers.Count > 0)
         {
-            _isApprovedProjectUser = true;
+            //_isApprovedProjectUser = true;
             _isDataApprover = projectUsers.Any(u => u.IsDataApprover);
         }
 
@@ -360,6 +349,7 @@
 
         //_isApprovedProjectUser = projectContext.Project_Users.Any(u => u.User_ID == _user.Id && _project == u.Project);
         
+        //_isProjectUserPendingApproval = projectContext.Project_Users_Requests.Any(u => u.User_ID == _user.Id && _project == u.Project && u.Approved_DT == null);
 
 
 
@@ -392,8 +382,17 @@
 
     private async Task RequestProjectAccess()
     {
+        var request = new Datahub_Project_User_Request()
+        {
+            User_ID = _user.Id,
+            Project = _project,
+            Requested_DT = DateTime.Now
+        };
 
-    }
+        projectContext.Project_Users_Requests.Add(request);
+        await projectContext.SaveChangesAsync();
+        await RefreshComponents(true);
+   }
 
     private async Task RequestAccess(bool databricks, bool powerbi, bool webforms)
     {
@@ -446,6 +445,7 @@
     {
         _project = projectContext.Projects.Include(p => p.Requests).Include(p => p.Pipelines).Single(p => p.Project_Acronym_CD == projectAcronym);
         _serviceRequests = projectContext.Project_Requests.Where(p => p.Project == _project).ToList();
+        _isProjectUserPendingApproval = projectContext.Project_Users_Requests.Any(u => u.User_ID == _user.Id && _project == u.Project && u.Approved_DT == null);
         StateHasChanged();
     }
 
