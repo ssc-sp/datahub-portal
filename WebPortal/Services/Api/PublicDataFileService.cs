@@ -5,8 +5,8 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
-using NRCan.Datahub.Data.Projects;
 using NRCan.Datahub.Shared.Data;
+using NRCan.Datahub.Shared.EFCore;
 using NRCan.Datahub.Shared.Services;
 
 namespace NRCan.Datahub.Portal.Services
