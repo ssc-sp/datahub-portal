@@ -41,7 +41,7 @@
             </NotAuthorized>
             </AuthorizeView>
         </ChildContent>
-    </AeCard>
+   </AeCard>
 
     <AuthorizeView Roles="@($"{projectAcronym}, {projectAcronym}-admin")">
 
@@ -243,6 +243,27 @@
                     }
                     </Footer>
                 </AeCard>
+
+                <AeCard class="facard1" CardPosition="AeCard.CardStyle.Horizontal">
+                    <Header>
+                        <div class="indigo" style="width:180px">
+                            <AeIcon class="fad fa-dollar-sign card-icon" />                            
+                        </div>
+                    </Header>
+                    <ChildContent>
+                        <AeFlex Vertical>
+                            <AeTypography Variant="h3">
+                                @DataLocalizer["Project_Cost"]
+                            </AeTypography>
+                            <AeTypography>
+                                @_projectCostFormatted
+                            </AeTypography> 
+                        </AeFlex>                        
+                    </ChildContent>
+                    <Footer>
+                        <AeButton>@DataLocalizer["Project_Cost_Button"]</AeButton>
+                    </Footer>
+                </AeCard>
             </div>
         
     </AuthorizeView>
@@ -312,6 +333,8 @@
 
     private List<ETL_CONTROL_TBL> _pipelineStatus = new List<ETL_CONTROL_TBL>();
 
+    private string _projectCostFormatted;
+
     protected override async Task OnInitializedAsync()
     {
         projectContext = DbFactoryProject.CreateDbContext();
@@ -349,6 +372,31 @@
             }
         }
 
+        _projectCostFormatted = await GetProjectCostFormatted();
+
+    }
+
+    private async Task<string> GetProjectCostFormatted()
+    {
+        using var ctx = DbFactoryProject.CreateDbContext();
+
+        var acronym = projectAcronym; // "CITSM"
+
+        var prjCost = await ctx.Project_Costs
+            .Where(pc => pc.Project_Acronym_CD == acronym)
+            .OrderByDescending(pc => pc.Usage_DT)
+            .FirstOrDefaultAsync();
+
+        if (prjCost == null)
+            return DataLocalizer["Project_Cost_NotFound"];
+
+        var cost = Convert.ToDecimal(prjCost.Cost_AMT).ToString("C2");
+        var fromDate = prjCost.Usage_DT.AddMonths(-1).ToShortDateString();
+        var toDate = prjCost.Usage_DT.ToShortDateString();
+        var asofDate = prjCost.Updated_DT.ToShortDateString();
+        var template = DataLocalizer["Project_Cost_Template"];
+
+        return string.Format(template, asofDate, cost, toDate, asofDate);
     }
 
     private async Task RequestProjectAccess()
@@ -363,7 +411,7 @@
         projectContext.Project_Users_Requests.Add(request);
         await projectContext.SaveChangesAsync();
         await RefreshComponents(true);
-   }
+    }
 
     private async Task RequestAccess(bool databricks, bool powerbi, bool webforms)
     {
