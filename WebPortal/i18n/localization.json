@@ -430,7 +430,35 @@
   "Download_Measurement": "Download Measurement",
   "Clickout_Measurement": "Clickout Measurement",
   "Clickout_URL": "Clickout URL",
-  "HTTP_Status": "HTTP Status"
+  "HTTP_Status": "HTTP Status",
 
+  "APPROVAL-FORM": {
+    "Dataset_Title_TXT": "Title of Dataset(s) or Information Resource(s)",
+    "Type_Of_Data_TXT": "Type of data",
+    "Data": "Data",
+    "Info": "Info",
+    "Copyright_Restrictions_FLAG": "There are no known legal, licensing, or copyright restrictions to prevent the data or information from being released by the department or agency under the terms of the Open Government Licence – Canada.",
+    "Authority_To_Release_FLAG": "The department or agency has the departmental mandate, legislative authority or permission from a third party provider to publish the data or information resource under the Open Government Licence – Canada.",
+    "Private_Personal_Information_FLAG": "The data or information resource does not contain any personal information as defined in section 3 of the Privacy Act, R.S.C. 1985, c. P-21 as confirmed by the ATIP Secretariat.",
+    "Subject_To_Exceptions_Or_Eclusions_FLAG": "The data or information resource is not subject to any exemptions or exclusions under Section 13 “Exemptions” or Section 68 “Exclusions” of the Access to Information Act, R.S.C 1985 as confirmed by the ATIP Secretariat.",
+    "Not_Clasified_Or_Protected_FLAG": "The data or information resource is not Classified or Protected and its release complies with the Government of Canada Policy on Government Security.",
+    "Can_Be_Released_For_Free_FLAG": "The data or information resource can be released to the public without fee.",
+    "Machine_Readable_FLAG": "A) Datasets are provided in machine-readable / machine-processable format. ",
+    "Non_Propietary_Format_FLAG": "B) Information resources are provided in open, non-proprietary formats.",
+    "Localized_Metadata_FLAG": "Metadata in both official languages conforming to the applicable Government of Canada metadata standard is provided for each dataset or information resource.",
+    "Updated_On_Going_Basis_FLAG": "Blanket Approval - Existing dataset will be updated on an on-going basis.",
+    "Collection_Of_Datasets_FLAG": "Blanket Approval - Represents a collection of datasets or data products with a consistently applied specification or model.",
+    "Approval_InSitu_FLAG": "Blanket Approval - Represents a series of observation data, such as data collected from in-situ sensors.",
+    "Approval_Other_TXT": "Blanket Approval - Other, please state:",
+    "Approval_YES_TXT": "Yes",
+    "Approval_NO_TXT": "No",
+    "Cancel": "Clear",
+    "Submit": "Submit"
+  },
+
+  "METADATA-PAGE": {
+    "ShowMore": "Show optional fields",
+    "ShowLess": "Hide optional fields"
+  }  
 }
 

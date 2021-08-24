@@ -8,20 +8,16 @@
     <DockerfileContext>.</DockerfileContext>
   </PropertyGroup>
   <ItemGroup>
-    <None Remove="Wiki\BIOSIM.md" />
-    <None Remove="Wiki\Datahub-Artifacts-Naming-Standards.md" />
-    <None Remove="Wiki\Index.md" />
-    <None Remove="Wiki\Scientific-Data-Repository.md" />
-    <None Remove="Wiki\Scopus-Dataset.md" />
-  </ItemGroup>
-  <ItemGroup>
     <_ContentIncludedByDefault Remove="efpt.config.json" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Wiki\*" />
+    <Compile Remove="Components\Data\**" />
+    <Content Remove="Components\Data\**" />
+    <EmbeddedResource Remove="Components\Data\**" />
+    <None Remove="Components\Data\**" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="AElemental.Blazor" Version="1.1.21208.5" />
+    <PackageReference Include="AElemental.Blazor" Version="1.2.21222.3-beta" />
     <PackageReference Include="Askmethat.Aspnet.JsonLocalizer" Version="3.1.1" />
     <PackageReference Include="Azure.Identity" Version="1.4.0-beta.1" />
     <PackageReference Include="Azure.Search.Documents" Version="11.2.0-beta.2" />
@@ -71,7 +67,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Datahub.Metadata\Datahub.Metadata.csproj" />
-    <ProjectReference Include="..\Datahub.Shared\Datahub.Shared.csproj" />
+    <ProjectReference Include="..\Datahub.Shared\Datahub.Core.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Content Update="i18n\localization.fr.json">
@@ -80,6 +76,10 @@
     <Content Update="wwwroot\img\landing\earth-background.jpg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Data\Forms\Datahub\" />
+    <Folder Include="Migrations\Forms\DatahubProjectDB\" />
   </ItemGroup>
   <ProjectExtensions><VisualStudio><UserProperties /></VisualStudio></ProjectExtensions>
 </Project>
