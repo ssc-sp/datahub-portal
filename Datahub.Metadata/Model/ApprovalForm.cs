@@ -14,9 +14,11 @@
         public bool Machine_Readable_FLAG { get; set; }
         public bool Non_Propietary_Format_FLAG { get; set; }
         public bool Localized_Metadata_FLAG { get; set; }
+        public bool Requires_Blanket_Approval_FLAG { get; set; }
         public bool Updated_On_Going_Basis_FLAG { get; set; }
         public bool Collection_Of_Datasets_FLAG { get; set; }
         public bool Approval_InSitu_FLAG { get; set; }
+        public bool Approval_Other_FLAG { get; set; }
         public string Approval_Other_TXT { get; set; }
     }
 }

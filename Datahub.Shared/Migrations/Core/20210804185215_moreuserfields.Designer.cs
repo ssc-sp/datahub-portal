@@ -5,13 +5,13 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using NRCan.Datahub.Data.Projects;
+using NRCan.Datahub.Shared.EFCore;
 
 namespace NRCan.Datahub.Portal.Migrations.Forms.DatahubProjectDB
 {
     [DbContext(typeof(DatahubProjectDBContext))]
-    [Migration("20210804174228_userrequesttable")]
-    partial class userrequesttable
+    [Migration("20210804185215_moreuserfields")]
+    partial class moreuserfields
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -21,7 +21,7 @@ namespace NRCan.Datahub.Portal.Migrations.Forms.DatahubProjectDB
                 .HasAnnotation("Relational:MaxIdentifierLength", 128)
                 .HasAnnotation("ProductVersion", "5.0.2");
 
-            modelBuilder.Entity("NRCan.Datahub.Data.Projects.Datahub_Project", b =>
+            modelBuilder.Entity("NRCan.Datahub.Shared.EFCore.Datahub_Project", b =>
                 {
                     b.Property<int>("Project_ID")
                         .ValueGeneratedOnAdd()
@@ -36,6 +36,10 @@ namespace NRCan.Datahub.Portal.Migrations.Forms.DatahubProjectDB
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Contact_List")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Data_Sensitivity")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Databricks_URL")
@@ -53,6 +57,9 @@ namespace NRCan.Datahub.Portal.Migrations.Forms.DatahubProjectDB
 
                     b.Property<DateTime>("Initial_Meeting_DT")
                         .HasColumnType("datetime2");
+
+                    b.Property<bool>("Is_Featured")
+                        .HasColumnType("bit");
 
                     b.Property<bool>("Is_Private")
                         .HasColumnType("bit");
@@ -133,7 +140,9 @@ namespace NRCan.Datahub.Portal.Migrations.Forms.DatahubProjectDB
                         new
                         {
                             Project_ID = 1,
+                            Data_Sensitivity = "Unclassified",
                             Initial_Meeting_DT = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Is_Featured = false,
                             Is_Private = false,
                             Last_Updated_DT = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Project_Acronym_CD = "DHTRK",
@@ -145,7 +154,7 @@ namespace NRCan.Datahub.Portal.Migrations.Forms.DatahubProjectDB
                         });
                 });
 
-            modelBuilder.Entity("NRCan.Datahub.Data.Projects.Datahub_ProjectComment", b =>
+            modelBuilder.Entity("NRCan.Datahub.Shared.EFCore.Datahub_ProjectComment", b =>
                 {
                     b.Property<int>("Comment_ID")
                         .ValueGeneratedOnAdd()
@@ -173,7 +182,7 @@ namespace NRCan.Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.ToTable("Project_Comments");
                 });
 
-            modelBuilder.Entity("NRCan.Datahub.Data.Projects.Datahub_ProjectServiceRequests", b =>
+            modelBuilder.Entity("NRCan.Datahub.Shared.EFCore.Datahub_ProjectServiceRequests", b =>
                 {
                     b.Property<int>("ServiceRequests_ID")
                         .ValueGeneratedOnAdd()
@@ -215,7 +224,7 @@ namespace NRCan.Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.ToTable("Project_Requests");
                 });
 
-            modelBuilder.Entity("NRCan.Datahub.Data.Projects.Datahub_Project_Access_Request", b =>
+            modelBuilder.Entity("NRCan.Datahub.Shared.EFCore.Datahub_Project_Access_Request", b =>
                 {
                     b.Property<int>("Request_ID")
                         .ValueGeneratedOnAdd()
@@ -261,7 +270,7 @@ namespace NRCan.Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.ToTable("Access_Requests");
                 });
 
-            modelBuilder.Entity("NRCan.Datahub.Data.Projects.Datahub_Project_Pipeline_Lnk", b =>
+            modelBuilder.Entity("NRCan.Datahub.Shared.EFCore.Datahub_Project_Pipeline_Lnk", b =>
                 {
                     b.Property<int>("Project_ID")
                         .HasColumnType("int");
@@ -274,7 +283,7 @@ namespace NRCan.Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.ToTable("Project_Pipeline_Links");
                 });
 
-            modelBuilder.Entity("NRCan.Datahub.Data.Projects.Datahub_Project_User", b =>
+            modelBuilder.Entity("NRCan.Datahub.Shared.EFCore.Datahub_Project_User", b =>
                 {
                     b.Property<int>("ProjectUser_ID")
                         .ValueGeneratedOnAdd()
@@ -288,6 +297,9 @@ namespace NRCan.Datahub.Portal.Migrations.Forms.DatahubProjectDB
                         .HasColumnType("datetime2");
 
                     b.Property<bool>("IsAdmin")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDataApprover")
                         .HasColumnType("bit");
 
                     b.Property<int?>("Project_ID")
@@ -309,7 +321,7 @@ namespace NRCan.Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.ToTable("Project_Users");
                 });
 
-            modelBuilder.Entity("NRCan.Datahub.Data.Projects.Datahub_Project_User_Request", b =>
+            modelBuilder.Entity("NRCan.Datahub.Shared.EFCore.Datahub_Project_User_Request", b =>
                 {
                     b.Property<int>("ProjectUserRequest_ID")
                         .ValueGeneratedOnAdd()
@@ -321,9 +333,6 @@ namespace NRCan.Datahub.Portal.Migrations.Forms.DatahubProjectDB
 
                     b.Property<DateTime?>("Approved_DT")
                         .HasColumnType("datetime2");
-
-                    b.Property<bool>("IsAdmin")
-                        .HasColumnType("bit");
 
                     b.Property<int?>("Project_ID")
                         .HasColumnType("int");
@@ -344,7 +353,7 @@ namespace NRCan.Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.ToTable("Project_Users_Requests");
                 });
 
-            modelBuilder.Entity("NRCan.Datahub.Data.Projects.PBI_License_Request", b =>
+            modelBuilder.Entity("NRCan.Datahub.Shared.EFCore.PBI_License_Request", b =>
                 {
                     b.Property<int>("Request_ID")
                         .ValueGeneratedOnAdd()
@@ -387,7 +396,7 @@ namespace NRCan.Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.ToTable("PowerBI_License_Requests");
                 });
 
-            modelBuilder.Entity("NRCan.Datahub.Data.Projects.PBI_User_License_Request", b =>
+            modelBuilder.Entity("NRCan.Datahub.Shared.EFCore.PBI_User_License_Request", b =>
                 {
                     b.Property<int>("ID")
                         .ValueGeneratedOnAdd()
@@ -414,7 +423,7 @@ namespace NRCan.Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.ToTable("PowerBI_License_User_Requests");
                 });
 
-            modelBuilder.Entity("NRCan.Datahub.Data.Projects.WebForm", b =>
+            modelBuilder.Entity("NRCan.Datahub.Shared.EFCore.WebForm", b =>
                 {
                     b.Property<int>("WebForm_ID")
                         .ValueGeneratedOnAdd()
@@ -439,7 +448,7 @@ namespace NRCan.Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.ToTable("WebForms");
                 });
 
-            modelBuilder.Entity("NRCan.Datahub.Data.Projects.WebForm_DBCodes", b =>
+            modelBuilder.Entity("NRCan.Datahub.Shared.EFCore.WebForm_DBCodes", b =>
                 {
                     b.Property<string>("DBCode")
                         .HasMaxLength(10)
@@ -459,7 +468,7 @@ namespace NRCan.Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.ToTable("DBCodes");
                 });
 
-            modelBuilder.Entity("NRCan.Datahub.Data.Projects.WebForm_Field", b =>
+            modelBuilder.Entity("NRCan.Datahub.Shared.EFCore.WebForm_Field", b =>
                 {
                     b.Property<int>("FieldID")
                         .ValueGeneratedOnAdd()
@@ -514,36 +523,36 @@ namespace NRCan.Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.ToTable("Fields");
                 });
 
-            modelBuilder.Entity("NRCan.Datahub.Data.Projects.Datahub_ProjectComment", b =>
+            modelBuilder.Entity("NRCan.Datahub.Shared.EFCore.Datahub_ProjectComment", b =>
                 {
-                    b.HasOne("NRCan.Datahub.Data.Projects.Datahub_Project", "Project")
+                    b.HasOne("NRCan.Datahub.Shared.EFCore.Datahub_Project", "Project")
                         .WithMany("Comments")
                         .HasForeignKey("Project_ID");
 
                     b.Navigation("Project");
                 });
 
-            modelBuilder.Entity("NRCan.Datahub.Data.Projects.Datahub_ProjectServiceRequests", b =>
+            modelBuilder.Entity("NRCan.Datahub.Shared.EFCore.Datahub_ProjectServiceRequests", b =>
                 {
-                    b.HasOne("NRCan.Datahub.Data.Projects.Datahub_Project", "Project")
+                    b.HasOne("NRCan.Datahub.Shared.EFCore.Datahub_Project", "Project")
                         .WithMany()
                         .HasForeignKey("Project_ID");
 
                     b.Navigation("Project");
                 });
 
-            modelBuilder.Entity("NRCan.Datahub.Data.Projects.Datahub_Project_Access_Request", b =>
+            modelBuilder.Entity("NRCan.Datahub.Shared.EFCore.Datahub_Project_Access_Request", b =>
                 {
-                    b.HasOne("NRCan.Datahub.Data.Projects.Datahub_Project", "Project")
+                    b.HasOne("NRCan.Datahub.Shared.EFCore.Datahub_Project", "Project")
                         .WithMany("Requests")
                         .HasForeignKey("Project_ID");
 
                     b.Navigation("Project");
                 });
 
-            modelBuilder.Entity("NRCan.Datahub.Data.Projects.Datahub_Project_Pipeline_Lnk", b =>
+            modelBuilder.Entity("NRCan.Datahub.Shared.EFCore.Datahub_Project_Pipeline_Lnk", b =>
                 {
-                    b.HasOne("NRCan.Datahub.Data.Projects.Datahub_Project", "Project")
+                    b.HasOne("NRCan.Datahub.Shared.EFCore.Datahub_Project", "Project")
                         .WithMany("Pipelines")
                         .HasForeignKey("Project_ID")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -552,38 +561,38 @@ namespace NRCan.Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.Navigation("Project");
                 });
 
-            modelBuilder.Entity("NRCan.Datahub.Data.Projects.Datahub_Project_User", b =>
+            modelBuilder.Entity("NRCan.Datahub.Shared.EFCore.Datahub_Project_User", b =>
                 {
-                    b.HasOne("NRCan.Datahub.Data.Projects.Datahub_Project", "Project")
+                    b.HasOne("NRCan.Datahub.Shared.EFCore.Datahub_Project", "Project")
                         .WithMany("Users")
                         .HasForeignKey("Project_ID");
 
                     b.Navigation("Project");
                 });
 
-            modelBuilder.Entity("NRCan.Datahub.Data.Projects.Datahub_Project_User_Request", b =>
+            modelBuilder.Entity("NRCan.Datahub.Shared.EFCore.Datahub_Project_User_Request", b =>
                 {
-                    b.HasOne("NRCan.Datahub.Data.Projects.Datahub_Project", "Project")
+                    b.HasOne("NRCan.Datahub.Shared.EFCore.Datahub_Project", "Project")
                         .WithMany()
                         .HasForeignKey("Project_ID");
 
                     b.Navigation("Project");
                 });
 
-            modelBuilder.Entity("NRCan.Datahub.Data.Projects.PBI_License_Request", b =>
+            modelBuilder.Entity("NRCan.Datahub.Shared.EFCore.PBI_License_Request", b =>
                 {
-                    b.HasOne("NRCan.Datahub.Data.Projects.Datahub_Project", "Project")
+                    b.HasOne("NRCan.Datahub.Shared.EFCore.Datahub_Project", "Project")
                         .WithOne("PBI_License_Request")
-                        .HasForeignKey("NRCan.Datahub.Data.Projects.PBI_License_Request", "Project_ID")
+                        .HasForeignKey("NRCan.Datahub.Shared.EFCore.PBI_License_Request", "Project_ID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Project");
                 });
 
-            modelBuilder.Entity("NRCan.Datahub.Data.Projects.PBI_User_License_Request", b =>
+            modelBuilder.Entity("NRCan.Datahub.Shared.EFCore.PBI_User_License_Request", b =>
                 {
-                    b.HasOne("NRCan.Datahub.Data.Projects.PBI_License_Request", "LicenseRequest")
+                    b.HasOne("NRCan.Datahub.Shared.EFCore.PBI_License_Request", "LicenseRequest")
                         .WithMany("User_License_Requests")
                         .HasForeignKey("RequestID")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -592,9 +601,9 @@ namespace NRCan.Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.Navigation("LicenseRequest");
                 });
 
-            modelBuilder.Entity("NRCan.Datahub.Data.Projects.WebForm", b =>
+            modelBuilder.Entity("NRCan.Datahub.Shared.EFCore.WebForm", b =>
                 {
-                    b.HasOne("NRCan.Datahub.Data.Projects.Datahub_Project", "Project")
+                    b.HasOne("NRCan.Datahub.Shared.EFCore.Datahub_Project", "Project")
                         .WithMany("WebForms")
                         .HasForeignKey("Project_ID")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -603,9 +612,9 @@ namespace NRCan.Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.Navigation("Project");
                 });
 
-            modelBuilder.Entity("NRCan.Datahub.Data.Projects.WebForm_Field", b =>
+            modelBuilder.Entity("NRCan.Datahub.Shared.EFCore.WebForm_Field", b =>
                 {
-                    b.HasOne("NRCan.Datahub.Data.Projects.WebForm", "WebForm")
+                    b.HasOne("NRCan.Datahub.Shared.EFCore.WebForm", "WebForm")
                         .WithMany("Fields")
                         .HasForeignKey("WebForm_ID")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -614,7 +623,7 @@ namespace NRCan.Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.Navigation("WebForm");
                 });
 
-            modelBuilder.Entity("NRCan.Datahub.Data.Projects.Datahub_Project", b =>
+            modelBuilder.Entity("NRCan.Datahub.Shared.EFCore.Datahub_Project", b =>
                 {
                     b.Navigation("Comments");
 
@@ -629,12 +638,12 @@ namespace NRCan.Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.Navigation("WebForms");
                 });
 
-            modelBuilder.Entity("NRCan.Datahub.Data.Projects.PBI_License_Request", b =>
+            modelBuilder.Entity("NRCan.Datahub.Shared.EFCore.PBI_License_Request", b =>
                 {
                     b.Navigation("User_License_Requests");
                 });
 
-            modelBuilder.Entity("NRCan.Datahub.Data.Projects.WebForm", b =>
+            modelBuilder.Entity("NRCan.Datahub.Shared.EFCore.WebForm", b =>
                 {
                     b.Navigation("Fields");
                 });
