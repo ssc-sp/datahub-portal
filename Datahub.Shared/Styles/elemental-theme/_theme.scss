@@ -21,11 +21,13 @@
 @use 'row/row';
 @use 'spinner/spinner';
 @use 'steps/steps';
+@use 'tabs/tabs';
 @use 'table/table';
 @use 'toggle/toggle';
 @use 'tooltip/tooltip';
 @use 'treeview/treeview';
 @use 'typography/typography';
+@use 'outline/pageoutline';
 
 // Third-party
 @use 'normalize';
@@ -54,6 +56,7 @@
   @include row.configure(map-get($overrides, 'row'));
   @include spinner.configure(map-get($overrides, 'spinner'));
   @include steps.configure(map-get($overrides, 'steps'));
+  @include tabs.configure(map-get($overrides, 'tabs'));
   @include table.configure(map-get($overrides, 'table'));
   @include toggle.configure(map-get($overrides, 'toggle'));
   @include tooltip.configure(map-get($overrides, 'tooltip'));
@@ -87,6 +90,7 @@
   @include row.styles;
   @include spinner.styles;
   @include steps.styles;
+  @include tabs.styles;
   @include table.styles;
   @include toggle.styles;
   @include tooltip.styles;

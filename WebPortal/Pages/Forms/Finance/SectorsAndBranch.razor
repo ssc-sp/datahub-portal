@@ -172,9 +172,9 @@
         return DataLocalizer[propName];
     }
 
-    private async Task OnConfigure(ModelFormContext<SectorAndBranch> context)
+    private async Task OnConfigure(IModelFormContext context)
     {
-        await context.UpdateValidValues("Sector_TXT", _sectorLookup.Select(s => s.SectorNameEn));
+        context.RegisterOptionValueProperty<SectorAndBranch>(s => s.Sector_TXT, () => _sectorLookup.Select(s => s.SectorNameEn));
 
         List<Branch> branchesList = new();
         _sectorLookup.ForEach(s => branchesList.AddRange(s.Branches));
@@ -183,19 +183,19 @@
         //branchesList.AddRange()
 
         //(s => branchesList.AddRange(s.Branches));
-        await context.UpdateValidValues("Branch_TXT", branchesList.Select(bn => bn.BranchNameEn));
+        context.RegisterOptionValueProperty<SectorAndBranch>(s => s.Branch_TXT, () => branchesList.Select(bn => bn.BranchNameEn));
 
     }
 
-    private async Task OnChange(ModelFormChangeArgs<SectorAndBranch> args)
+    private async Task OnChange(ModelFormChangeArgs args)
     {
         var context = args.Context;
-        if (args.HasPropertyChanged(s => s.Sector_TXT))
+        if (args.HasPropertyChanged<SectorAndBranch>(s => s.Sector_TXT))
         {
             // _sector = _sectorLookup.Where(s => s.SectorNameEn == args.EditContext.)
 
             var branchesList = _sectorLookup.Where(s => s.SectorId == _sector.Sector.SectorId).FirstOrDefault().Branches;
-            await context.UpdateValidValues("Branch_TXT", branchesList.Select(bn => bn.BranchNameEn));
+            context.RegisterOptionValueProperty<SectorAndBranch>(s => s.Branch_TXT, () => branchesList.Select(bn => bn.BranchNameEn));
         }
     }
 

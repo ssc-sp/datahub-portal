@@ -1,0 +1,23 @@
+﻿@namespace NRCan.Datahub.Shared.Templates
+
+<h3>@Service Service Created</h3>
+
+<p>Service <b>@Service</b> has been created in data project <b>@DataProject.ProjectNameEn</b>. The service links in the data project page will now be active.</p>
+
+<hr />
+
+
+<h3>@Service Service Créé</h3>
+
+<p>Le service <b>@Service</b> a été créé dans le projet de données <b>@DataProject.ProjectNameFr</b>. Les liens du service dans la page du projet de données seront désormais actifs.</p> 
+
+
+@code {
+
+    [Parameter]
+    public string Service { get; set; }
+
+    [Parameter]
+    public DatahubProjectInfo DataProject { get; set; }
+
+}

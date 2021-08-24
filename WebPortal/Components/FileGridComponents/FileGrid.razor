@@ -310,9 +310,32 @@ else
     );
             }
             break;
+
+            case MenuActions.ShareFile:
+            {
+                var fileMetadata = selectedMetaData as FileMetaData;
+
+                var sb = new System.Text.StringBuilder();
+                sb.Append("/sharingworkflow/");
+                sb.Append(fileMetadata.fileid);
+                sb.Append("?filename=");
+                sb.Append(fileMetadata.filename);
+                if (!string.IsNullOrWhiteSpace(Project))
+                {
+                    sb.Append("&project=");
+                    sb.Append(Project);
+                }
+                else
+                {
+                    sb.Append("&folderpath=");
+                    sb.Append(fileMetadata.folderpath);
+                }
+
+                NavigationManager.NavigateTo(sb.ToString());
+            }
+            break;
         }
     }
-        
     private async void OnConfirmCreateFolder((bool, string) isContinue)
     {
         if (isContinue.Item1)

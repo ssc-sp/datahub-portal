@@ -67,17 +67,19 @@ namespace NRCan.Datahub.Portal.Services
             return new PowerBIClient(new Uri(urlPowerBiServiceApiRoot), tokenCredentials);
         }
 
-        public async Task<List<Dataset>> GetAllDatasetsAsync(string appWorkspaceId = "")
+        public async Task<List<(Group,Dataset, List<Report>)>> GetAllDatasetsAsync(string appWorkspaceId = "")
         {
-            var allDataSets = new List<Dataset>();
+            var allDataSets = new List<(Group, Dataset, List<Report>)>();
             using (var client = await GetPowerBiClientAsync())
             {
                 // Get a list of workspaces.
                 var workspaces = (await client.Groups.GetGroupsAsync()).Value;
                 foreach (var workspace in workspaces)
                 {
-                    allDataSets.AddRange((await client.Datasets.GetDatasetsInGroupAsync(workspace.Id)).Value);                    
+                    var datasets = (await client.Datasets.GetDatasetsInGroupAsync(workspace.Id)).Value;
                     var cReports = (await client.Reports.GetReportsInGroupAsync(workspace.Id)).Value;
+                    allDataSets.AddRange(datasets.Select(e => (workspace, e, cReports.Where(r => r.DatasetId == e.Id).ToList())));
+                    
                 }
                 // my workspace
                 //var datasetsRef = await client.Datasets.GetDatasetsAsync();
