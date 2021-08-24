@@ -80,6 +80,8 @@
         return datasetLinks.FirstOrDefault(d => d.Id == Guid.Parse(el.Dataset.Id))?.Project.ProjectName ?? "Select Project";
     }
 
+    private Dictionary<Guid,Datahub_Project> associations = new Dictionary<Guid,Datahub_Project>();
+
     private void HandleDropDownChange(PowerBIDatasetElements row, Datahub_Project project)
     {
         
