@@ -5,7 +5,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using Elemental.Components;
 
-namespace NRCan.Datahub.Data.Projects
+namespace NRCan.Datahub.Shared.EFCore
 {
     public class WebForm_Field
     {
