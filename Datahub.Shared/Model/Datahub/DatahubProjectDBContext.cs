@@ -36,6 +36,8 @@ namespace NRCan.Datahub.Shared.EFCore
 
         public DbSet<PublicDataFile> PublicDataFiles { get; set; }
 
+        public DbSet<Datahub_Project_Costs> Project_Costs { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<WebForm_Field>()
