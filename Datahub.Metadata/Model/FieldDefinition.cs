@@ -29,12 +29,14 @@ namespace NRCan.Datahub.Metadata.Model
 
         #region Entity extensions
 
-        public string Name => IsFrenchCulture() ? Name_French_TXT : Name_English_TXT;
+        public string Name => IsFrenchCulture() ? SelectLabel(Name_French_TXT, Name_English_TXT) : SelectLabel(Name_English_TXT, Name_French_TXT);
         public string Description => IsFrenchCulture() ? French_DESC : English_DESC;
         public bool HasChoices => Choices?.Count > 0;
         public bool IsDateField => (Validators_TXT ?? "").Split(' ').Contains("isodate");
         static bool IsFrenchCulture() => CultureInfo.CurrentCulture.Name.StartsWith("fr", StringComparison.InvariantCulture);
         
+        static string SelectLabel(string value, string alt) => !string.IsNullOrWhiteSpace(value) ? value : alt;
+
         #endregion
     }
 }
