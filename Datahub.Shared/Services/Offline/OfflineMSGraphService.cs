@@ -96,5 +96,15 @@ namespace NRCan.Datahub.Shared.Services
             return "...";
         }
 
+        public string GetUserEmail(string userId)
+        {
+            var user = GetUser(userId);
+            return user?.Mail;
+        }
+
+        public string GetUserIdFromEmail(string email)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

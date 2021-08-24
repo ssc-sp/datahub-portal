@@ -54,14 +54,16 @@
         <h2>Create new Budget record</h2>
     }
 
-    <AeModelForm Model="_budget"
+    <AeModelForm Model="@_budget"
                  T="NRCan.Datahub.Portal.Data.Finance.Budget"
                  OnValidSubmit="HandleValidSubmit"
                  OnCancel="ClearForm"
                  CancelLabel="Cancel"
                  SubmitLabel="@SubmitLabel"
-                 LabelForPropertyFunc="@GetDataLabel"
-                 OnConfigure="OnConfigure" />
+                 OnConfigure="OnConfigure" 
+                 LabelForPropertyFunc="@GetDataLabel" />
+
+    <DebugObject Object="@_budget"/>
 }
 
 @code {
@@ -175,11 +177,12 @@
         _budgets = Context.Budgets.Where(p => p.SectorAndBranch.SectorBranch_ID == _sector.SectorBranch_ID).ToList();
     }
 
-    private async Task OnConfigure(ModelFormContext<NRCan.Datahub.Portal.Data.Finance.Budget> context)
-    {
-        await context.UpdateValidValues("Departmental_Priorities_TXT", new[] { "DepPriority 1", "DepPriority 2", "DepPriority 3", "DepPriority 4", "DepPriority 5", "DepPriority 6" });
-        await context.UpdateValidValues("Sector_Priorities_TXT", new[] { "SectPriority 1", "SectPriority 2", "SectPriority 3", "SectPriority 4", "SectPriority 5", "SectPriority 6", "SectPriority 7", "SectPriority 8" });
-        await context.UpdateValidValues("Key_Activity_TXT", new[] { "Activity 1", "Activity 2", "Activity 3", "Activity 4", "Activity 5", "Activity 6", "Activity 7", "Activity 8", "Activity 9", "Activity 10" });
+    private async Task OnConfigure(IModelFormContext context)
+    {       
+        context.RegisterOptionValueProperty<NRCan.Datahub.Portal.Data.Finance.Budget>(s => s.Departmental_Priorities_TXT, () => new[] { "DepPriority 1", "DepPriority 2", "DepPriority 3", "DepPriority 4", "DepPriority 5", "DepPriority 6" });
+        context.RegisterOptionValueProperty<NRCan.Datahub.Portal.Data.Finance.Budget>(s => s.Sector_Priorities_TXT, () => new[] { "SectPriority 1", "SectPriority 2", "SectPriority 3", "SectPriority 4", "SectPriority 5", "SectPriority 6", "SectPriority 7", "SectPriority 8" });
+        context.RegisterOptionValueProperty<NRCan.Datahub.Portal.Data.Finance.Budget>(s => s.Key_Activity_TXT, () => new[] { "Activity 1", "Activity 2", "Activity 3", "Activity 4", "Activity 5", "Activity 6", "Activity 7", "Activity 8", "Activity 9", "Activity 10" });
+
     }
 
     private async Task GoBack()
