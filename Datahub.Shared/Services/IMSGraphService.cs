@@ -14,5 +14,7 @@ namespace NRCan.Datahub.Shared.Services
         
         GraphUser GetUser(string userId);
         string GetUserName(string userId);
+        string GetUserEmail(string userId);
+        string GetUserIdFromEmail(string email);
     }
 }

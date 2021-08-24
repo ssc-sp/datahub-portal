@@ -1,0 +1,169 @@
+﻿@using NRCan.Datahub.Metadata.Model
+
+<AeFlex Vertical="false" style="margin-top: 10px;">
+    
+    <!-- field name -->
+    <div style="width: 200px; margin: 2px; flex-grow: 1;">
+        <div @onclick="SelectField">
+            <AeTypography style="cursor: pointer;">
+                @if (!Preview && Required && FieldValueEmpty)
+                {
+                    <strong style="color: red">*&nbsp;</strong>
+                }
+                @FieldDefinition.Name
+            </AeTypography>
+        </div>
+    </div>
+
+    <!-- value -->
+    <div style="width: 300px; margin: 2px; flex-grow: 1;">
+        <div class="customuserinput">
+            @if (Preview)
+            {
+                _fieldType = FieldType.Preview;
+                if (!FieldDefinition.HasChoices)
+                {
+                    <span>@BoundValue</span>
+                }
+                {
+                    <span>@ChoiceDisplay</span>
+                }
+            }
+            else
+            {
+                if (!FieldDefinition.HasChoices)
+                {
+                    if (IsKeywordField())
+                    {
+                        _fieldType = FieldType.Keyword;
+                        <KeywordInput @ref="_keywordInputRef" 
+                                      FieldValue="FieldValue" 
+                                      OnFieldChanged="OnFieldChanged" />
+                    }
+                    else
+                    {
+                        _fieldType = FieldType.Input;
+                        <input class="ae input"
+                               type="@InputFieldType"
+                               @bind="BoundValue"
+                               @ref="_fieldValueInput"
+                               disabled="@Preview"
+                               style="@FieldStyle" />
+                    }
+                }
+                else
+                {
+                    if (!FieldDefinition.MultiSelect_FLAG)
+                    {
+                        _fieldType = FieldType.SingleChoice;
+                        <select class="ae input"
+                                style="@FieldStyle"
+                                @bind="BoundValue"
+                                @ref="_fieldValueInput">
+
+                            <option value=""></option>
+
+                            @foreach (var choice in FieldDefinition.Choices)
+                            {
+                                <option value="@choice.Value_TXT">@choice.Label</option>
+                            }
+                        </select>
+                    }
+                    else
+                    {
+                        _fieldType = FieldType.MultipleChoice;
+                        <MultiSelectList FieldDefinition="FieldDefinition" 
+                                         FieldValue="FieldValue" 
+                                         OnFieldChanged="OnFieldChanged" />
+                    }
+                }
+            }
+        </div>
+    </div>
+
+</AeFlex>
+
+@code {
+
+    [Parameter]
+    public bool Required { get; set; }
+
+    [Parameter]
+    public bool Preview { get; set; }
+
+    [Parameter]
+    public ObjectFieldValue FieldValue { get; set; }
+
+    [Parameter]
+    public FieldDefinition FieldDefinition { get; set; }
+
+    [Parameter]
+    public string FieldLabel { get; set; }
+
+    [Parameter]
+    public EventCallback<ObjectFieldValue> OnFieldChanged { get; set; }
+
+    private string BoundValue
+    {
+        get => FieldValue.Value_TXT;
+        set
+        {
+            if (value != FieldValue.Value_TXT)
+            {
+                FieldValue.Value_TXT = value;
+                OnFieldChanged.InvokeAsync(FieldValue);
+            }
+        }
+    }
+
+    private string ChoiceDisplay => !FieldDefinition.MultiSelect_FLAG ? GetChoiceLabel(FieldValue.Value_TXT) : GetMultiChoiceLabels(FieldValue.Value_TXT);
+
+    private string FieldStyle => "width: 100%;";
+    private string InputFieldType => FieldDefinition.IsDateField ? "date" : "text";
+
+    private bool FieldValueEmpty => string.IsNullOrEmpty(BoundValue);
+
+    enum FieldType
+    {
+        Preview,
+        Input,
+        Keyword,
+        SingleChoice,
+        MultipleChoice
+    }
+
+    private FieldType _fieldType;
+    private KeywordInput _keywordInputRef;
+    private ElementReference _fieldValueInput;
+
+    private string GetChoiceLabel(string name)
+    {
+        return FieldDefinition.Choices.FirstOrDefault(c => c.Value_TXT == name)?.Label;
+    }
+
+    private string GetMultiChoiceLabels(string values)
+    {
+        var labels = (values ?? string.Empty).Split('|').Select(GetChoiceLabel);
+        return string.Join("|", labels);
+    }
+
+    private void ClearField()
+    {
+        BoundValue = string.Empty;
+        SelectField();
+    }
+
+    private async void SelectField()
+    {
+        if (_fieldType == FieldType.Input)
+            await _fieldValueInput.FocusAsync();
+
+        if (_fieldType == FieldType.Keyword)
+            await _keywordInputRef.FocusAsync();
+    }
+
+    private bool IsKeywordField()
+    {
+        return FieldDefinition.Field_Name_TXT.StartsWith("keywords_");
+    }
+}
