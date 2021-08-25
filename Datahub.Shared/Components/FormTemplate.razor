@@ -1,4 +1,5 @@
-﻿@using NRCan.Datahub.Shared.Data
+﻿@inject IStringLocalizer DataLocalizer
+@using NRCan.Datahub.Shared.Data
 @typeparam T
 @inherits HtmlElement
 @using System.Reflection
@@ -13,7 +14,7 @@
          Dataset="Metadata.DataSet.ToList()"
          ColorAccessor="getColor"
          Headers="Metadata.Headers.ToList()"
-         GridTemplateColumns="Metadata.GridTemplateColumns"
+         GridTemplateColumns="4fr 8fr"
          MaxHeight="400"
          OnRowClick="@SetFormEdit" 
          Page="@_lastClicked"
@@ -23,16 +24,38 @@
         <AePagination Pageable="@_myTable" OnPageClick="OnPageClick" /> 
 
 
+@if (_selectedRecord != null)
+{    
+    <AeModelForm Model="_selectedRecord"
+                 T="@T"
+                 OnValidSubmit="HandleValidSubmit"
+                 OnCancel="ClearForm"
+                 OnConfigure="OnConfigure"
+                 CancelLabel="Cancel"
+                 SubmitLabel="Save"
+                 LabelForPropertyFunc="@GetDataLabel" />
+
+
+
+@*    <AeFlex id="buttonBar">
+        <div class="icon-container" style="margin-bottom: 10px; margin-left: 5px;">
+            <FAButton Text="Budgets" Icon="fal fa-arrow-right" IconLocation="right" onclick="e => GoToNextSheet()" />
+        </div>
+    </AeFlex>*@
+}
+
 @code {
 
     [Parameter]
-    public T FormModel { get; set; }
-    [Parameter]
     public FormMetadata<T> Metadata { get; set; }
+    [Parameter]
+    public EventCallback<T> HandleSubmit { get; set; }
+    [Parameter]
+    public EventCallback<IModelFormContext> OnConfigureForms { get; set; }
 
     private int _lastClicked = 0;
     private IPageableComponent _myTable;
-    private Type _formType;
+    private T _selectedRecord;
 
     protected override async Task OnInitializedAsync()
     {
@@ -44,11 +67,40 @@
         _lastClicked = pageIndex;
     }
 
-    private void SetFormEdit(T project)
+    private void SetFormEdit(T selectedRecord)
     {
-        //_sector = project;
+        _selectedRecord = selectedRecord;
         StateHasChanged();
-        //_navToEdit = true;
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (_selectedRecord != null)
+        {
+            await HandleSubmit.InvokeAsync(_selectedRecord);
+            _selectedRecord = default(T);
+        }
+        StateHasChanged();
+    }
+
+    private async Task OnConfigure(IModelFormContext context)
+    {        
+        if (context != null)
+        {
+            await OnConfigureForms.InvokeAsync(context);            
+        }        
+    }
+
+    private async Task<T> ClearForm()
+    {
+        _selectedRecord = default(T);
+        StateHasChanged();    
+        return default(T);
+    }
+
+    private string GetDataLabel(string propName)
+    {
+        return DataLocalizer[propName];
     }
 
 }
