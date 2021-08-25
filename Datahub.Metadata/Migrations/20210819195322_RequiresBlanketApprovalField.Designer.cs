@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NRCan.Datahub.Metadata.Model;
 
 namespace NRCan.Datahub.Metadata.Migrations
 {
     [DbContext(typeof(MetadataDbContext))]
-    partial class MetadataDbContextModelSnapshot : ModelSnapshot
+    [Migration("20210819195322_RequiresBlanketApprovalField")]
+    partial class RequiresBlanketApprovalField
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -27,9 +29,6 @@ namespace NRCan.Datahub.Metadata.Migrations
                         .UseIdentityColumn();
 
                     b.Property<bool>("Approval_InSitu_FLAG")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("Approval_Other_FLAG")
                         .HasColumnType("bit");
 
                     b.Property<string>("Approval_Other_TXT")

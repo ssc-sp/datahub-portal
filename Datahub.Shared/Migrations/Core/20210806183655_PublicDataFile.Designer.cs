@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NRCan.Datahub.Shared.EFCore;
 
 namespace NRCan.Datahub.Portal.Migrations.Forms.DatahubProjectDB
 {
     [DbContext(typeof(DatahubProjectDBContext))]
-    partial class DatahubProjectDBContextModelSnapshot : ModelSnapshot
+    [Migration("20210806183655_PublicDataFile")]
+    partial class PublicDataFile
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -268,34 +270,6 @@ namespace NRCan.Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.ToTable("Access_Requests");
                 });
 
-            modelBuilder.Entity("NRCan.Datahub.Shared.EFCore.Datahub_Project_Costs", b =>
-                {
-                    b.Property<int>("ProjectCosts_ID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .UseIdentityColumn();
-
-                    b.Property<double>("Cost_AMT")
-                        .HasColumnType("float");
-
-                    b.Property<string>("Project_Acronym_CD")
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)");
-
-                    b.Property<int>("Project_ID")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("Updated_DT")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("Usage_DT")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("ProjectCosts_ID");
-
-                    b.ToTable("Project_Costs");
-                });
-
             modelBuilder.Entity("NRCan.Datahub.Shared.EFCore.Datahub_Project_Pipeline_Lnk", b =>
                 {
                     b.Property<int>("Project_ID")
@@ -362,9 +336,6 @@ namespace NRCan.Datahub.Portal.Migrations.Forms.DatahubProjectDB
 
                     b.Property<int?>("Project_ID")
                         .HasColumnType("int");
-
-                    b.Property<DateTime>("Requested_DT")
-                        .HasColumnType("datetime2");
 
                     b.Property<byte[]>("Timestamp")
                         .IsConcurrencyToken()
@@ -478,19 +449,18 @@ namespace NRCan.Datahub.Portal.Migrations.Forms.DatahubProjectDB
                         .HasMaxLength(10)
                         .HasColumnType("nvarchar(10)");
 
-                    b.Property<DateTime?>("PublicationDate_DT")
-                        .HasColumnType("datetime2");
-
                     b.Property<DateTime>("RequestedDate_DT")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("RequestingUserEmail_TXT")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("RequestingUser_ID")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
-
-                    b.Property<DateTime?>("SubmittedDate_DT")
-                        .HasColumnType("datetime2");
 
                     b.HasKey("PublicDataFile_ID");
 
