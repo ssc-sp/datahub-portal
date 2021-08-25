@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "SyncDBUsersConsole": {
+      "commandName": "Project",
+      "commandLineArgs": "PIP"
+    }
+  }
+}
