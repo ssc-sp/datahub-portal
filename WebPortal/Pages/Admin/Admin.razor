@@ -280,24 +280,19 @@
 
     private async Task RefreshData()
     {
-        var user = (await authenticationStateTask).User;
-        if (user.IsInRole("datahub-admin"))
-        {
-            _usersAuthorization = await projectContext.Access_Requests.Include(a => a.Project).OrderByDescending(a => a.Request_DT).ToListAsync();
-        }
-        else
-        {
-            var email = user.Identity.Name;
-            using var ctx = dbFactory.CreateDbContext();
-            var allProjectAdminsList = (await ctx.Projects.Where(p => p.Project_Admin != null).ToListAsync()).Select(p => (p.Project_ID, p.Project_Admin)).ToList();
-            var validProjects = allProjectAdminsList.Where(tp => (ServiceAuthManager.ExtractEmails(tp.Project_Admin)?.Contains(email.ToLowerInvariant()) ?? false)).Select(p => p.Project_ID).ToHashSet();
-            var allAuths = await projectContext.Access_Requests.Include(a => a.Project).OrderByDescending(a => a.Request_DT).ToListAsync();
-            _usersAuthorization = allAuths.Where(a => validProjects.Contains(a.Project.Project_ID)).ToList();
-            var allServiceCreationRequests = await projectContext.Project_Requests.Include(a => a.Project).OrderByDescending(a => a.ServiceRequests_Date_DT).ToListAsync();
-            _serviceRequests = allServiceCreationRequests.Where(a => validProjects.Contains(a.Project.Project_ID)).ToList();
-            var allProjectAuthorization = await projectContext.Project_Users_Requests.Include(a => a.Project).OrderByDescending(a => a.Requested_DT).ToListAsync();
-            _userProjectAuthorization = allProjectAuthorization.Where(a => validProjects.Contains(a.Project.Project_ID)).ToList();
-        }
+       
+        var userId = await UserInformationService.GetUserIdString();        
+        using var ctx = dbFactory.CreateDbContext();  
+
+        var validProjects = ctx.Project_Users.Where(u => u.IsAdmin && u.User_ID == userId).Select(p => p.Project.Project_ID).ToHashSet();
+
+        var allAuths = await projectContext.Access_Requests.Include(a => a.Project).OrderByDescending(a => a.Request_DT).ToListAsync();
+        _usersAuthorization = allAuths.Where(a => validProjects.Contains(a.Project.Project_ID)).ToList();
+        var allServiceCreationRequests = await projectContext.Project_Requests.Include(a => a.Project).OrderByDescending(a => a.ServiceRequests_Date_DT).ToListAsync();
+        _serviceRequests = allServiceCreationRequests.Where(a => validProjects.Contains(a.Project.Project_ID)).ToList();
+        var allProjectAuthorization = await projectContext.Project_Users_Requests.Include(a => a.Project).OrderByDescending(a => a.Requested_DT).ToListAsync();
+        _userProjectAuthorization = allProjectAuthorization.Where(a => validProjects.Contains(a.Project.Project_ID)).ToList();
+        
     }
 
     protected override async Task OnInitializedAsync()
