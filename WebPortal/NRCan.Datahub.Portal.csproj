@@ -12,9 +12,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Remove="Components\Data\**" />
+    <Compile Remove="Data\Forms\Datahub\**" />
     <Content Remove="Components\Data\**" />
+    <Content Remove="Data\Forms\Datahub\**" />
     <EmbeddedResource Remove="Components\Data\**" />
+    <EmbeddedResource Remove="Data\Forms\Datahub\**" />
     <None Remove="Components\Data\**" />
+    <None Remove="Data\Forms\Datahub\**" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="AElemental.Blazor" Version="1.2.21236.9-beta" />
