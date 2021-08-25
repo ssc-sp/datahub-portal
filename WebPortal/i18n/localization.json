@@ -459,6 +459,11 @@
   "METADATA-PAGE": {
     "ShowMore": "Show optional fields",
     "ShowLess": "Hide optional fields"
-  }  
+  },
+
+  "Project_Cost": "Cost",
+  "Project_Cost_NotFound": "No cost data found.",
+  "Project_Cost_Template": "As of {0}, total resource cost is {1} for the period from {2} to {3}.",
+  "Project_Cost_Button": "More details"
 }
 
