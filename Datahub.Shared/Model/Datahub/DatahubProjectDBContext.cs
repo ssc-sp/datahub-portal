@@ -39,6 +39,10 @@ namespace NRCan.Datahub.Shared.EFCore
         public DbSet<Project_PBI_Report> Project_PBI_Reports { get; set; }
         public DbSet<Project_PBI_Workspace> Project_PBI_Workspaces { get; set; }
 
+        public DbSet<PublicDataFile> PublicDataFiles { get; set; }
+
+        public DbSet<Datahub_Project_Costs> Project_Costs { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<WebForm_Field>()
@@ -67,6 +71,10 @@ namespace NRCan.Datahub.Shared.EFCore
                 .HasOne(p => p.LicenseRequest)
                 .WithMany(b => b.User_License_Requests)
                 .HasForeignKey(p => p.RequestID);
+
+            modelBuilder.Entity<PublicDataFile>()
+                .HasIndex(e => e.File_ID)
+                .IsUnique();
 
             modelBuilder.Entity<Datahub_Project>().HasData(new Datahub_Project() { Project_ID = 1, 
                 Project_Acronym_CD = "DHTRK", 
