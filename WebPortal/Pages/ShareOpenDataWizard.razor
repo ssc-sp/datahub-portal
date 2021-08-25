@@ -1,6 +1,49 @@
 ﻿@page "/share/opendata/{FileId}"
+@inject NavigationManager NavManager
+@inject IPublicDataFileService PublicFileService
 
-<h3>ShareOpenDataWizard</h3>
+<AeTypography Variant="h1">@Localizer["Share on Open Data"]</AeTypography>
+
+<AeFlex>
+    <AeFlex Vertical  style="margin-left: 2rem; width: 48%">
+
+    <AeCard>
+        <AeTypography Variant="h2">@Localizer["Metadata"]</AeTypography>
+        <ObjectMetadataEditor ObjectId=@FileId @ref=@_metadataEditor />
+        <AeFlex>
+            <AeButton OnClickEvent=@SaveMetadata Disabled=@savingData>@Localizer["Save"]</AeButton>
+            <div>
+                @if (savingData)
+                {
+                    <Spinner Small=@true/>
+                }
+            </div>
+        </AeFlex>
+        <div>&nbsp;</div>
+    </AeCard>
+
+    <AeCard>
+
+        <NRCan.Datahub.Portal.Pages.Forms.ShareWorkflow.ApprovalForm OnSubmitForm=@UpdateApprovalFormId />
+
+    </AeCard>
+    </AeFlex>
+
+    <div id="stepsDiv">
+        <AeSteps T=@OpenDataSteps
+            CurrentStepState=@GetState
+            StepItems=@steps
+            StepTitle=@StepTitle
+            StepMessage=@StepMessage
+            PassedIcon=@checkIcon
+            />
+
+    </div>
+
+</AeFlex>
+
+<div>&nbsp;</div>
+
 
 <p>@FileId</p>
 
@@ -8,5 +51,106 @@
 
     [Parameter]
     public string FileId { get; set; }
+
+    private Guid fileIdGuid;
+
+    private ObjectMetadataEditor _metadataEditor;
+    private bool savingData = false;
+
+    public enum OpenDataSteps
+    {
+        EnterMetadata,
+        OpenGovApprovalForm,
+        SubmitSignedPDF,
+        PendingApproval,
+        PendingPublication,
+        AccessOpenData
+    }
+
+    private List<OpenDataSteps> steps = Enum.GetValues<OpenDataSteps>().ToList();
+    private OpenDataSteps currentStep = OpenDataSteps.EnterMetadata;
+    private RenderFragment checkIcon = @<i class="fa fa-check"></i>;
+
+    private Dictionary<OpenDataSteps, (string, string)?> _stepInfo = new Dictionary<OpenDataSteps, (string, string)?>();
+    private Dictionary<OpenDataSteps, AeSteps<OpenDataSteps>.StepState> _stepStates = new Dictionary<OpenDataSteps, AeSteps<OpenDataSteps>.StepState>()
+    {
+        { OpenDataSteps.EnterMetadata, AeSteps<OpenDataSteps>.StepState.Queued },
+        { OpenDataSteps.OpenGovApprovalForm, AeSteps<OpenDataSteps>.StepState.Queued },
+        { OpenDataSteps.SubmitSignedPDF, AeSteps<OpenDataSteps>.StepState.Queued },
+        { OpenDataSteps.PendingApproval, AeSteps<OpenDataSteps>.StepState.Queued },
+        { OpenDataSteps.PendingPublication, AeSteps<OpenDataSteps>.StepState.Queued },
+        { OpenDataSteps.AccessOpenData, AeSteps<OpenDataSteps>.StepState.Queued }            
+    };
+
+    private string StepTitle(OpenDataSteps i) => _stepInfo.GetValueOrDefault(i)?.Item1;
+    private string StepMessage(OpenDataSteps i) => _stepInfo.GetValueOrDefault(i)?.Item2;
+    private AeSteps<OpenDataSteps>.StepState GetState(OpenDataSteps i) => _stepStates[i];
+
+    //TODO show/hide element booleans
+
+    private string PublicationDateStr = string.Empty;
+
+    private void UpdateCurrentStatus(OpenDataSteps step, bool passed = false)
+    {
+        currentStep = step;
+        _stepStates[step] = passed? AeSteps<OpenDataSteps>.StepState.Passed : AeSteps<OpenDataSteps>.StepState.Running;
+
+        foreach (var stepv in Enum.GetValues<OpenDataSteps>())
+        {
+            if (stepv < step)
+            {
+                _stepStates[stepv] = AeSteps<OpenDataSteps>.StepState.Passed;
+            }
+            else if (stepv > step)
+            {
+                _stepStates[stepv] = AeSteps<OpenDataSteps>.StepState.Queued;
+            }
+        }
+    }
+
+    private async Task UpdateApprovalFormId(int id)
+    {
+        Console.WriteLine($"Hello {id}");
+    }
+
+    private async Task SaveMetadata()
+    {
+        savingData = true;
+
+        // save changes
+        var t = Task.Delay(1500);
+
+        var uri = NavManager.Uri;
+        if (uri.IndexOf('#') >= 0)
+        {
+            uri = uri.Substring(0, uri.IndexOf('#'));
+        }
+
+        await t;
+        savingData = false;
+        NavManager.NavigateTo($"{uri}#stepsDiv");
+        UpdateCurrentStatus(OpenDataSteps.OpenGovApprovalForm);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!Guid.TryParse(FileId, out fileIdGuid))
+        {
+            NavManager.NavigateTo("/");
+        }
+
+        _stepInfo = new Dictionary<OpenDataSteps, (string, string)?>()
+        {
+            { OpenDataSteps.EnterMetadata, (Localizer["Enter Metadata"], Localizer["Fill in the required metadata to share this data file, and optionally any additional metadata."]) },
+            { OpenDataSteps.OpenGovApprovalForm, (Localizer["Open Government Approval Form"], Localizer["Complete the online form and request a digital signature from the Director General."]) },
+            { OpenDataSteps.SubmitSignedPDF, (Localizer["Submit Signed PDF"], Localizer["Upload the signed PDF to GCDocs and paste the link in Datahub."]) },
+            { OpenDataSteps.PendingApproval, (Localizer["Pending Approval"], Localizer["The request has been submitted for approval. Once the request is approved, the file will be uploaded to Open Data."]) },
+            { OpenDataSteps.PendingPublication, (Localizer["Pending Publication"], Localizer["The request has been approved, but the publication date has not yet been reached."]) },
+            { OpenDataSteps.AccessOpenData, (Localizer["Access Open Data Record"], Localizer["The data is now available in the Open Data Portal."]) }
+        };
+
+        UpdateCurrentStatus(OpenDataSteps.EnterMetadata);
+
+    }
 
 }

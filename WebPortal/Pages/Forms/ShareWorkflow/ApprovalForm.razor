@@ -27,6 +27,9 @@
     [Parameter]
     public int ApprovalFormId { get; set; } = 0;
 
+    [Parameter]
+    public EventCallback<int> OnSubmitForm { get; set; }
+
     public string SubmitLabel => Localizer[MakeLabel("Submit")];
 
     public string CancelLabel => Localizer[MakeLabel("Cancel")];
@@ -42,6 +45,7 @@
     private async Task HandleValidSubmit()
     {
         _approvalForm.ApprovalFormId = await MetadataBrokerService.SaveApprovalForm(_approvalForm);
+        await OnSubmitForm.InvokeAsync(_approvalForm.ApprovalFormId);
         // todo: navigate
     }
 
