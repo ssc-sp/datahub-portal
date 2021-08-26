@@ -11,12 +11,14 @@
 @inject MicrosoftIdentityConsentAndConditionalAccessHandler ConsentHandler
 @inject IDbContextFactory<DatahubProjectDBContext> DbFactoryProject
 
+@implements IDisposable
+
 <div style="padding-left: 2rem;padding-right: 2rem">
 
     <AeTypography Variant="h1">@Localizer["PowerBI Admin"]</AeTypography>
     <AeCard>
         <Header>
-            Link Workspaces
+            Link PowerBI Datasets to Projects
         </Header>
         <ChildContent>
             @if (!isWorkspacesLoaded)
@@ -38,6 +40,39 @@
                 <AePagination Pageable="@_myTable" OnPageClick="OnPageClick" />
             }
         </ChildContent>
+        <Footer>
+            <AeButton @onclick="ReloadData">Cancel</AeButton>
+            <AeButton @onclick="SaveChanges">Save Changes</AeButton>
+		</Footer>
+    </AeCard>
+    <AeCard>
+        <Header>
+            Link PowerBI Report to Projects
+        </Header>
+        <ChildContent>
+            @if (!isWorkspacesLoaded)
+            {
+                <Spinner />
+            }
+            else
+            {
+
+                <AePaginatedTable Accessors="reportAccessorFunctions"
+                              Dataset="reports"
+                              Headers="reportHeaders"
+                              T="(Report report, Group group)"
+                              @ref="_myTable2"
+                              Page="@_lastClicked"
+                              Renderers="reportRenderFunctions"
+                              OnRowClick="@RowSelected" />
+
+                <AePagination Pageable="@_myTable2" OnPageClick="OnPageClick" />
+            }
+        </ChildContent>
+        <Footer>
+            <AeButton @onclick="ReloadData">Cancel</AeButton>
+            <AeButton @onclick="SaveChanges">Save Changes</AeButton>
+		</Footer>
     </AeCard>
 </div>
 @code {
@@ -48,6 +83,7 @@
 
     private int _lastClicked = 0;
     private AePaginatedTable<PowerBIDatasetElements> _myTable;
+    private AePaginatedTable<(Report report, Group group)> _myTable2;
     private PowerBIDatasetElements? _selected;
     protected override void OnAfterRender(bool firstRender)
     {
@@ -65,32 +101,69 @@
     "Dataset", "Workspace", "Data Project"
   };
 
-    // Accessor functions to retrieve cell value
-    private List<Func<PowerBIDatasetElements, string>> accessorFunctions = new List<Func<PowerBIDatasetElements, string>>
+    private List<string> reportHeaders = new List<string>
   {
-    dummyData => { return dummyData.Dataset.Name; },
-    dummyData => { return dummyData.Group.Name; },
-    null
+    "Report", "Workspace", "Data Project"
   };
 
-    private List<Func<PowerBIDatasetElements, RenderFragment>> renderFunctions;
-
-    public string GetAssociatedProject(PowerBIDatasetElements el)
+    // Accessor functions to retrieve cell value
+    private List<Func<PowerBIDatasetElements, string>> accessorFunctions = new List<Func<PowerBIDatasetElements, string>>
     {
-        return datasetLinks.FirstOrDefault(d => d.Id == Guid.Parse(el.Dataset.Id))?.Project.ProjectName ?? "Select Project";
+        dummyData => { return dummyData.Dataset.Name; },
+        dummyData => { return dummyData.Group.Name; },
+        null
+    };
+
+  //(Report report, Group group)
+    private List<Func<(Report report, Group group), string>> reportAccessorFunctions = new List<Func<(Report report, Group group), string>>
+    {
+        dummyData => { return dummyData.report.Name; },
+        dummyData => { return dummyData.group.Name; },
+        null
+    };
+
+    private List<Func<PowerBIDatasetElements, RenderFragment>> renderFunctions;
+    private List<Func<(Report report, Group group), RenderFragment>> reportRenderFunctions;
+
+    public Datahub_Project GetAssociatedProject(PowerBIDatasetElements el)
+    {
+        return datasetLinks.FirstOrDefault(d => d.Id == Guid.Parse(el.Dataset.Id))?.Project;
+    }
+
+    public Datahub_Project GetAssociatedProject((Report report, Group group) el)
+    {
+        return reportLinks.FirstOrDefault(d => d.Id == el.report.Id)?.Project;
     }
 
     private Dictionary<Guid,Datahub_Project> associations = new Dictionary<Guid,Datahub_Project>();
 
-    private void HandleDropDownChange(PowerBIDatasetElements row, Datahub_Project project)
+    private void HandleDropDownChange(PowerBIDatasetElements el, Datahub_Project project)
     {
-        
+        var toRem = datasetLinks.Where(r => r.Id == Guid.Parse(el.Dataset.Id)).ToList();
+        ctx.Project_PBI_DataSets.RemoveRange(toRem);
+        var e = new Project_PBI_DataSet() {Id = Guid.Parse(el.Dataset.Id), Workspace = el.Group.Id, Project = project  };
+        ctx.Project_PBI_DataSets.Add(e);
+        datasetLinks.Add(e);
+    }
+
+    private void HandleDropDownChange((Report report, Group group) el, Datahub_Project project)
+    {
+        var toRem = reportLinks.Where(r => r.Id == el.report.Id).ToList();
+        ctx.Project_PBI_Reports.RemoveRange(toRem);
+        var e = new Project_PBI_Report() { Id = el.report.Id, Workspace = el.group.Id, Project = project };
+        ctx.Project_PBI_Reports.Add(e);
+        reportLinks.Add(e);
 
     }
 
     private void RowSelected(PowerBIDatasetElements selected)
     {
         _selected = selected;
+    }
+
+    private void RowSelected((Report report, Group group) selected)
+    {
+        //_selected = selected;
     }
 
     private void OnPageClick(int pageIndex)
@@ -100,23 +173,52 @@
 
     private List<Datahub_Project> allProjects;
 
-    private List<Project_PBI_DataSet> datasetLinks;
+    private List<Project_PBI_DataSet> datasetLinks;    
+    private List<Project_PBI_Report> reportLinks;    
 
-    private RenderFragment CustomRenderer(Datahub_Project item)
+    private string CustomRenderer(Datahub_Project item)
     {
-        return @<AeTypography>
-                    @item.ProjectName
-                    (@item.Project_Acronym_CD)                    
-                </AeTypography> ;
+        return $"{item.ProjectName} {item.Project_Acronym_CD}";          
+
     }
+
+    private async Task LoadData()
+    {        
+        allProjects = await ctx.Projects.ToListAsync();
+        datasetLinks = await ctx.Project_PBI_DataSets.Include(e => e.Project).ToListAsync();
+        reportLinks = await ctx.Project_PBI_Reports.Include(e => e.Project).ToListAsync();
+    }
+
+    private async Task SaveChanges()
+    {        
+        await ctx.SaveChangesAsync();
+    }
+
+    private async Task ReloadData()
+    {
+        ctx.ChangeTracker.Clear();
+        await LoadData();
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        ctx.Dispose();
+    }
+
+    private DatahubProjectDBContext ctx;
+
+    private List<(Report report, Group group)> reports;
 
     protected override async Task OnInitializedAsync()
     {
+        ctx = DbFactoryProject.CreateDbContext();
         Task.Run(async () =>
         {
             try
             {
                 dataSets = await PowerBiServiceApi.GetAllDatasetsAsync();
+                reports = dataSets.SelectMany(r => r.Reports.Select(rp => (rp, r.Group))).ToList();
                 isWorkspacesLoaded = true;
                 InvokeAsync(StateHasChanged);
                 //            StateHasChanged();
@@ -126,15 +228,25 @@
                 ConsentHandler.HandleException(ex);
             }
         });
-        using var ctx = DbFactoryProject.CreateDbContext();
-        allProjects = await ctx.Projects.ToListAsync();
-        datasetLinks = await ctx.Project_PBI_DataSets.Include(e => e.Project).ToListAsync();
+        await LoadData();
         renderFunctions = new List<Func<PowerBIDatasetElements, RenderFragment>>
-    {
+        {
             null,
             null,
             el =>  { return 
-    @<AeDropdown Label="@(GetAssociatedProject(el))" Renderer="CustomRenderer" Items="allProjects" OnChange="t => HandleDropDownChange(el,t)"/> ; }
+                @<AeMultiSelect @key=el T="Datahub_Project" DefaultLabel="Select Project"
+                        SelectedItem="GetAssociatedProject(el)" SelectedItemChanged="e => HandleDropDownChange(el,e)"
+                        Renderer="CustomRenderer" Items="allProjects"/> ; }
+
+        };
+        reportRenderFunctions = new List<Func<(Report report, Group group), RenderFragment>>
+        {
+            null,
+            null,
+            el =>  { return 
+                @<AeMultiSelect @key=el T="Datahub_Project" DefaultLabel="Select Project"
+                        SelectedItem="GetAssociatedProject(el)" SelectedItemChanged="e => HandleDropDownChange(el,e)"
+                        Renderer="CustomRenderer" Items="allProjects"/> ; }
 
         };
     }
