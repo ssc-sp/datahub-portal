@@ -1,0 +1,99 @@
+﻿@inject IStringLocalizer DataLocalizer
+@implements IDisposable
+@inject IDbContextFactory<LanguageTrainingDBContext> DbFactory
+
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JsInterop
+@page "/languagetraining/applications"
+
+<NRCan.Datahub.Shared.Components.FormTemplate 
+        T="LanguageTrainingApplication" 
+        Metadata="@_formMetadata" 
+        HandleSubmit="HandleValidSubmit"
+        OnConfigureForms="OnConfigure"
+        CreateNewRecord="CreateNewApplication"
+        SelectedRecord="@_languageTrainingApplication"
+        SetFormEditRecord="SetFormEdit"/>
+
+@code {
+
+    private FormMetadata<LanguageTrainingApplication> _formMetadata = new();
+    private List<LanguageTrainingApplication> _languageTrainingApplications;
+    private LanguageTrainingApplication _languageTrainingApplication;
+    private LanguageTrainingDBContext Context;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // load projects
+        Context = DbFactory.CreateDbContext();
+
+        _languageTrainingApplications = Context.LanguageTrainingApplications.ToList();
+
+        _formMetadata.Header = "Finance Forms";
+        _formMetadata.SubHeader = "Step 1: Select/Enter Sector and Branch Information";
+        _formMetadata.DataSet = _languageTrainingApplications;
+        _formMetadata.AccessorFunctions = accessorFunctions;
+        _formMetadata.Headers = headers;
+        _formMetadata.GridTemplateColumns = "4fr 8fr";
+    }
+
+    private List<Func<LanguageTrainingApplication, string>> accessorFunctions = new List<Func<LanguageTrainingApplication, string>>
+    {
+        new Func<LanguageTrainingApplication, string>(p => { return p.NRCan_Username; }),
+        new Func<LanguageTrainingApplication, string>(p => { return p.Sector_Branch; }),
+    };
+
+    private List<string> headers = new List<string>
+    {
+        "User","Sector"
+    };
+
+    private async Task HandleValidSubmit()
+    {
+        if (_languageTrainingApplication != null)
+        {
+            if (_languageTrainingApplication.Application_ID == 0)
+            {
+                _languageTrainingApplication = Context.LanguageTrainingApplications.Add(_languageTrainingApplication).Entity;
+            }
+            _languageTrainingApplication.Last_Updated_DT = DateTime.Now;
+            await Context.SaveChangesAsync();
+            
+        }
+
+        _languageTrainingApplication = null;
+        StateHasChanged();
+    }
+
+    private async Task OnConfigure(IModelFormContext context)
+    {
+        context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Sector_Branch, () => PIP_Constants.YESNO);
+        context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Province_Territory, () => PIP_Constants.YESNO);
+        context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Employment_Status, () => PIP_Constants.YESNO);
+        context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.I_am_seeking, () => PIP_Constants.YESNO);
+        context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Language_Training_Provided_By, () => PIP_Constants.YESNO);
+        context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Last_Course_Successfully_Completed, () => PIP_Constants.YESNO);
+        context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.SLE_Results_Reading, () => PIP_Constants.YESNO);
+        context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.SLE_Results_Writing, () => PIP_Constants.YESNO);
+        context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.SLE_Results_Oral, () => PIP_Constants.YESNO);
+        context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Session_For_Language_Training, () => PIP_Constants.YESNO);
+        context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Class_For_Language_Training, () => PIP_Constants.YESNO);
+        context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Training_Type, () => PIP_Constants.YESNO);
+        
+        //context.RegisterOptionValueProperty<SectorAndBranch>(s => s.Sector_TXT, () => _sectorLookup.Select(s => s.SectorNameEn));        
+    }
+    
+    private async Task CreateNewApplication()
+    {
+        _languageTrainingApplication = new LanguageTrainingApplication() { Last_Updated_DT = DateTime.Now };
+        StateHasChanged();
+    }
+
+    private void SetFormEdit(LanguageTrainingApplication application)
+    {
+        _languageTrainingApplication = application;
+        StateHasChanged();
+    }
+
+    public void Dispose() { Context.Dispose(); }
+}
