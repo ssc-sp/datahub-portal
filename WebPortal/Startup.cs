@@ -49,6 +49,7 @@ using Polly.Extensions.Http;
 using NRCan.Datahub.Metadata.Model;
 using Microsoft.Extensions.Logging;
 using NRCan.Datahub.Shared.RoleManagement;
+using NRCan.Datahub.Portal.Data.LanguageTraining;
 
 namespace NRCan.Datahub.Portal
 {
@@ -152,7 +153,8 @@ namespace NRCan.Datahub.Portal
             IDbContextFactory<FinanceDBContext> financeFactory,
             IDbContextFactory<PIPDBContext> pipFactory,
             IDbContextFactory<MetadataDbContext> metadataFactory,
-            IDbContextFactory<DatahubETLStatusContext> etlFactory)
+            IDbContextFactory<DatahubETLStatusContext> etlFactory,
+            IDbContextFactory<LanguageTrainingDBContext> languageFactory)
         {
 
 
@@ -161,6 +163,7 @@ namespace NRCan.Datahub.Portal
             InitializeDatabase(logger, etlFactory);
             InitializeDatabase(logger, financeFactory);
             InitializeDatabase(logger, pipFactory);
+            InitializeDatabase(logger, languageFactory);
             InitializeDatabase(logger, metadataFactory, false, false);
 
             app.UseRequestLocalization(app.ApplicationServices.GetService<IOptions<RequestLocalizationOptions>>().Value);
@@ -370,6 +373,7 @@ namespace NRCan.Datahub.Portal
             ConfigureDbContext<DatahubProjectDBContext>(services, "datahub-mssql-project", driver);
             ConfigureDbContext<PIPDBContext>(services, "datahub-mssql-pip", driver);
             ConfigureDbContext<FinanceDBContext>(services, "datahub-mssql-finance", driver);
+            ConfigureDbContext<LanguageTrainingDBContext>(services, "datahub-mssql-languagetraining", driver);
             if (!Offline)
             {
                 ConfigureCosmosDbContext<EFCoreDatahubContext>(services, "datahub-cosmosdb", "datahub-catalog-db");
