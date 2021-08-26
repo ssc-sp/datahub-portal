@@ -47,11 +47,9 @@ namespace NRCan.Datahub.Portal.Data.LanguageTraining
         [Required]
         public string I_am_seeking { get; set; }
         [AeFormCategory("Language Assessment", 20)]
-        [AeLabel(isDropDown: true, placeholder: "Please Select")]
         [Required]
         public bool Completed_LETP_Assessment { get; set; }
         [AeFormCategory("Language Assessment", 20)]
-        [AeLabel(isDropDown: true, placeholder: "Please Select")]
         [Required]
         public bool Language_Training_Since_LETP_Assessment { get; set; }
         [AeFormCategory("Language Assessment", 20)]
@@ -69,14 +67,12 @@ namespace NRCan.Datahub.Portal.Data.LanguageTraining
         [Required]
         public string Completed_Training_Session { get; set; }
         [AeFormCategory("Language Assessment", 20)]
-        [AeLabel(isDropDown: true, placeholder: "Please Select")]
         [Required]
         public bool Report_Sent_To_NRCan_Language_School { get; set; }
 
         //TODO MultiSelect items here
 
         [AeFormCategory("Language Assessment", 20)]
-        [AeLabel(isDropDown: true, placeholder: "Please Select")]
         [Required]
         public bool Second_Language_Evaluation_Results { get; set; }
         [AeFormCategory("Language Assessment", 20)]
