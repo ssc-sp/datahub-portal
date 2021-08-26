@@ -120,7 +120,7 @@ namespace NRCan.Datahub.Portal
             ConfigureDatahubServices(services);
 
             services.AddHttpClient();
-            services.AddHttpClient<IGraphServiceClient, GraphServiceClient>().AddPolicyHandler(GetRetryPolicy());
+            services.AddHttpClient<GraphServiceClient>().AddPolicyHandler(GetRetryPolicy());
             services.AddFileReaderService();
             services.AddBlazorDownloadFile();
             services.AddScoped<ApiTelemetryService>();
