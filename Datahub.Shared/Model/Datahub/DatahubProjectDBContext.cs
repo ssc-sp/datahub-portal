@@ -79,11 +79,33 @@ namespace NRCan.Datahub.Shared.EFCore
             modelBuilder.Entity<Datahub_Project>().HasData(new Datahub_Project() { Project_ID = 1, 
                 Project_Acronym_CD = "DHTRK", 
                 Project_Status_Desc = Datahub_Project.ONGOING, 
-                Project_Name = "Datahub Projects", 
+                Project_Name = "Datahub Tracker", 
                 Is_Private = false,
                 Project_Icon = "database",
                 Project_Summary_Desc = "Datahub Project Tracker",
                 Sector_Name = "CIOSB"});
-            }
+            modelBuilder.Entity<Datahub_Project>().HasData(new Datahub_Project()
+            {
+                Project_ID = 2,
+                Project_Acronym_CD = "TEST1",
+                Project_Status_Desc = Datahub_Project.ONGOING,
+                Project_Name = "Test Project 1",
+                Is_Private = false,
+                Project_Icon = "database",
+                Project_Summary_Desc = "Test Project 1 for CFS",
+                Sector_Name = "CFS"
+            });
+            modelBuilder.Entity<Datahub_Project>().HasData(new Datahub_Project()
+            {
+                Project_ID = 3,
+                Project_Acronym_CD = "TEST2",
+                Project_Status_Desc = Datahub_Project.ONGOING,
+                Project_Name = "Test Project 2",
+                Is_Private = false,
+                Project_Icon = "database",
+                Project_Summary_Desc = "Test Project 2 for CFS",
+                Sector_Name = "CFS"
+            });
+        }
     }
 }

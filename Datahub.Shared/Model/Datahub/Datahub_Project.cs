@@ -96,7 +96,7 @@ namespace NRCan.Datahub.Shared.EFCore
 
     }
 
-    public class Datahub_Project
+    public class Datahub_Project: IComparable<Datahub_Project>
     {
         public const string ONGOING = "Ongoing";
         public const string CLOSED = "Closed";
@@ -252,6 +252,12 @@ namespace NRCan.Datahub.Shared.EFCore
             }
         }
 
+        public int CompareTo(Datahub_Project other)
+        {
+            if (Project_Acronym_CD is null || other.Project_Acronym_CD is null)
+                return Project_ID.CompareTo(other.Project_ID);
+            return Project_Acronym_CD.CompareTo(other.Project_Acronym_CD);
+        }
     }
 
     public class Datahub_ProjectComment
