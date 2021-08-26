@@ -6,21 +6,14 @@
 @inject IJSRuntime JsInterop
 @page "/finance/programs"
 
-<h1>Finance Forms</h1>
-<h2>Step 1: Select/Enter Sector and Branch Information</h2>
-
-
-<AeFlex id="buttonBar">
-    <div class="icon-container" style="margin-bottom: 10px; margin-left: 5px;">
-        <FAButton Text="Add New" Icon="far fa-plus-square" onclick="e => CreateNewProject()" />
-    </div>
-</AeFlex>
-
 <NRCan.Datahub.Shared.Components.FormTemplate 
         T="SectorAndBranch" 
         Metadata="@_formMetadata" 
-        HandleSubmit="HandleSubmit"
-        OnConfigureForms="OnConfigure"/>
+        HandleSubmit="HandleValidSubmit"
+        OnConfigureForms="OnConfigure"
+        CreateNewRecord="CreateNewProject"
+        SelectedRecord="@_sector"
+        SetFormEditRecord="SetFormEdit"/>
 
 
 
@@ -90,7 +83,6 @@
     {
         _sector = project;
         StateHasChanged();
-        _navToEdit = true;
     }
 
     private async Task CreateNewProject()
@@ -98,37 +90,8 @@
         var defaultBranch = _sectorLookup.Where(s => s.SectorId == 1).First().Branches.Where(b => b.BranchId == 1).First();
         _sector = new SectorAndBranch() { Last_Updated_DT = DateTime.Now, Sector = _sectorLookup.Where(s => s.SectorId == 1).First(), Branch = defaultBranch };
         StateHasChanged();
-        _navToEdit = true;
     }
 
-
-    private async Task HandleSubmit(SectorAndBranch sectorAndBranch)
-    {
-        if (sectorAndBranch != null)
-        {
-
-            //this is temporary, it loads ALL the branches. will need to change when on change is working. 
-            List<Branch> branchesList = new();
-            _sectorLookup.ForEach(s => branchesList.AddRange(s.Branches));
-            var sector = _sectorLookup.Where(s => s.SectorNameEn == sectorAndBranch.Sector_TXT).FirstOrDefault();
-            var branch = branchesList.Where(b => b.BranchNameEn == sectorAndBranch.Branch_TXT).FirstOrDefault();
-
-
-            sectorAndBranch.Sector = sector ?? null;
-            sectorAndBranch.Branch = branch ?? null;
-
-            if (sectorAndBranch.SectorBranch_ID == 0)
-            {
-                sectorAndBranch = Context.SectorAndBranches.Add(sectorAndBranch).Entity;
-            }
-            sectorAndBranch.Last_Updated_DT = DateTime.Now;
-            await Context.SaveChangesAsync();
-            _sectors = Context.SectorAndBranches.ToList();
-            //_tombstone = null;
-        }
-        
-        StateHasChanged();
-    }
 
     private async Task HandleValidSubmit()
     {
