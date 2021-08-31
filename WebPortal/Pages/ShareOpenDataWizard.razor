@@ -2,31 +2,57 @@
 @inject NavigationManager NavManager
 @inject IPublicDataFileService PublicFileService
 
-<AeTypography Variant="h1">@Localizer["Share on Open Data"]</AeTypography>
+<AeTypography Variant="h1">@Localizer["OPENDATA-WIZARD.Page_Title"]</AeTypography>
 
 <AeFlex>
     <AeFlex Vertical  style="margin-left: 2rem; width: 48%">
 
-    <AeCard>
-        <AeTypography Variant="h2">@Localizer["Metadata"]</AeTypography>
-        <ObjectMetadataEditor ObjectId=@FileId @ref=@_metadataEditor />
-        <AeFlex>
-            <AeButton OnClickEvent=@SaveMetadata Disabled=@savingData>@Localizer["Save"]</AeButton>
-            <div>
-                @if (savingData)
-                {
-                    <Spinner Small=@true/>
-                }
-            </div>
-        </AeFlex>
-        <div>&nbsp;</div>
-    </AeCard>
+        @if (ShowMetadataEditor)
+        {
+            <AeCard>
+                <AeTypography Variant="h2">@Localizer["OPENDATA-WIZARD.Metadata"]</AeTypography>
+                <ObjectMetadataEditor ObjectId=@FileId @ref=@_metadataEditor />
+                <AeFlex>
+                    <AeButton OnClickEvent=@SaveMetadata Disabled=@savingData>@Localizer["OPENDATA-WIZARD.Save_button"]</AeButton>
+                    <div>
+                        @if (savingData)
+                        {
+                            <Spinner Small=@true/>
+                        }
+                    </div>
+                </AeFlex>
+                <div>&nbsp;</div>
+            </AeCard>
+        }
+        else
+        {
+            <AeCard>
+                <AeTypography Variant="h2">@Localizer["OPENDATA-WIZARD.Metadata"]</AeTypography>
+                <AeButton OnClickEvent=@ManuallyShowMetadataEditor >@Localizer["OPENDATA-WIZARD.Edit_button"]</AeButton>
+                <div>&nbsp;</div>
+            </AeCard>
+        }
 
-    <AeCard>
+        @if (ShowApprovalForm)
+        {
+            <AeCard>
 
-        <NRCan.Datahub.Portal.Pages.Forms.ShareWorkflow.ApprovalForm OnSubmitForm=@UpdateApprovalFormId />
+                <NRCan.Datahub.Portal.Pages.Forms.ShareWorkflow.ApprovalForm ApprovalFormId=@approvalFormId OnSubmitForm=@UpdateApprovalFormId />
 
-    </AeCard>
+                <div>&nbsp;</div>
+            </AeCard>
+        }
+        else if (ApprovalFormSubmitted)
+        {
+            <AeCard>
+                <AeTypography Variant="p">@Localizer["OPENDATA-WIZARD.Approval_filled_out"]</AeTypography>
+                <AeFlex>
+                    <a href=@GenerateApprovalFormPdfUrl class="ae button" target="_blank">@Localizer["OPENDATA-WIZARD.GeneratePDF_button"]</a>
+                    <AeButton OnClickEvent=@ManuallyShowApprovalForm >@Localizer["OPENDATA-WIZARD.AmendApprovalForm_button"]</AeButton>
+                </AeFlex>
+            <div>&nbsp;</div>
+            </AeCard>
+        }
     </AeFlex>
 
     <div id="stepsDiv">
@@ -38,14 +64,60 @@
             PassedIcon=@checkIcon
             />
 
+    @if (ShowSkipMetadata)
+    {
+        <AeCard>
+            <AeTypography Variant="h3">@Localizer["OPENDATA-WIZARD.AcceptMetadata"]</AeTypography>
+            <AeButton OnClickEvent=@AcceptMetadata Disabled=@savingData>@Localizer["OPENDATA-WIZARD.Continue_button"]</AeButton>
+            <div>&nbsp;</div>
+        </AeCard>
+    }
+
+    @if (ShowPublicationDatePanel)
+    {
+        <AeCard>
+            <AeTypography Variant="h3">@Localizer["OPENDATA-WIZARD.PublicationDate"]</AeTypography>
+            <p>@PublicationDateStr</p>
+        </AeCard>
+    }
+
+    @if(ShowPublicUrl)
+    {
+        <AeCard>
+            <AeTypography Variant="h3">@Localizer["OPENDATA-WIZARD.PublicUrl"]</AeTypography>
+            <p><a href=@PublicUrl target="_blank">@PublicUrl</a></p>
+        </AeCard>
+    }
+
+
+    @if (ShowSignedPdfPanel)
+    {
+        <AeCard>
+            <AeTypography Variant="h3">@Localizer["OPENDATA-WIZARD.SubmitSignedPdf"]</AeTypography>
+            <label>
+                @Localizer["OPENDATA-WIZARD.EnterGcDocsUrl"]:
+                @* <Microsoft.AspNetCore.Components.Forms.InputFile multiple></Microsoft.AspNetCore.Components.Forms.InputFile> *@
+                <input @bind-value=@signedApprovalFormUrl />
+            </label>
+                <AeFlex>
+                    <AeButton OnClickEvent=@UploadSignedPDF Disabled=@savingData >@Localizer["BUTTONS.Submit"]</AeButton>
+                    <div>
+                        @if (savingData)
+                        {
+                            <Spinner Small=@true/>
+                        }
+                    </div>
+                </AeFlex>
+            <div>&nbsp;</div>
+        </AeCard>
+    }
+
     </div>
 
 </AeFlex>
 
 <div>&nbsp;</div>
 
-
-<p>@FileId</p>
 
 @code {
 
@@ -67,6 +139,7 @@
         AccessOpenData
     }
 
+
     private List<OpenDataSteps> steps = Enum.GetValues<OpenDataSteps>().ToList();
     private OpenDataSteps currentStep = OpenDataSteps.EnterMetadata;
     private RenderFragment checkIcon = @<i class="fa fa-check"></i>;
@@ -86,12 +159,31 @@
     private string StepMessage(OpenDataSteps i) => _stepInfo.GetValueOrDefault(i)?.Item2;
     private AeSteps<OpenDataSteps>.StepState GetState(OpenDataSteps i) => _stepStates[i];
 
-    //TODO show/hide element booleans
+    private bool ShowMetadataEditor => currentStep == OpenDataSteps.EnterMetadata || editSavedMetadata;
+    private bool ShowSkipMetadata => currentStep == OpenDataSteps.EnterMetadata;
+    private bool ShowApprovalForm => currentStep == OpenDataSteps.OpenGovApprovalForm || editSubmittedApproval;
+    private bool ApprovalFormSubmitted => _stepStates[OpenDataSteps.OpenGovApprovalForm] == AeSteps<OpenDataSteps>.StepState.Passed;
+    private bool ShowSignedPdfPanel => currentStep == OpenDataSteps.SubmitSignedPDF;
+    private bool ShowPublicationDatePanel => currentStep == OpenDataSteps.PendingPublication;
+    private bool ShowPublicUrl => currentStep == OpenDataSteps.AccessOpenData;
+
+    private bool editSavedMetadata = false;
+    private bool editSubmittedApproval = false;
+
 
     private string PublicationDateStr = string.Empty;
+    private int approvalFormId = 0;
+    private string GenerateApprovalFormPdfUrl => $"http://example.com/{approvalFormId}";
+    private string signedApprovalFormUrl;
+    
+    //TODO add domain
+    private string PublicUrl => $"/Public/DownloadFile/{FileId}";
 
     private void UpdateCurrentStatus(OpenDataSteps step, bool passed = false)
     {
+        editSavedMetadata = false;
+        editSubmittedApproval = false;
+
         currentStep = step;
         _stepStates[step] = passed? AeSteps<OpenDataSteps>.StepState.Passed : AeSteps<OpenDataSteps>.StepState.Running;
 
@@ -108,17 +200,49 @@
         }
     }
 
+    private async Task ManuallyShowMetadataEditor()
+    {
+        editSavedMetadata = true;
+    }
+
+    private async Task ManuallyShowApprovalForm()
+    {
+        editSubmittedApproval = true;
+    }
+
     private async Task UpdateApprovalFormId(int id)
     {
-        Console.WriteLine($"Hello {id}");
+        savingData = true;
+        approvalFormId = id;
+        await PublicFileService.UpdateOpenDataApprovalFormId(fileIdGuid, id);
+        savingData = false;
+        if (currentStep == OpenDataSteps.OpenGovApprovalForm)
+        {
+            UpdateCurrentStatus(OpenDataSteps.SubmitSignedPDF);
+        }
+        else
+        {
+            editSubmittedApproval = false;
+        }
+    }
+
+    private async Task UploadSignedPDF()
+    {
+        savingData = true;
+
+        var sdfdsf = signedApprovalFormUrl;
+
+        await PublicFileService.UpdateOpenDataSignedApprovalFormUrl(fileIdGuid, signedApprovalFormUrl);
+
+        savingData = false;
+        UpdateCurrentStatus(OpenDataSteps.PendingApproval);
     }
 
     private async Task SaveMetadata()
     {
         savingData = true;
 
-        // save changes
-        var t = Task.Delay(1500);
+        var t = _metadataEditor.SaveChanges();
 
         var uri = NavManager.Uri;
         if (uri.IndexOf('#') >= 0)
@@ -129,6 +253,18 @@
         await t;
         savingData = false;
         NavManager.NavigateTo($"{uri}#stepsDiv");
+        if (currentStep == OpenDataSteps.EnterMetadata)
+        {
+            UpdateCurrentStatus(OpenDataSteps.OpenGovApprovalForm);
+        }
+        else
+        {
+            editSavedMetadata = false;
+        }
+    }
+
+    private async Task AcceptMetadata()
+    {
         UpdateCurrentStatus(OpenDataSteps.OpenGovApprovalForm);
     }
 
@@ -139,17 +275,42 @@
             NavManager.NavigateTo("/");
         }
 
-        _stepInfo = new Dictionary<OpenDataSteps, (string, string)?>()
-        {
-            { OpenDataSteps.EnterMetadata, (Localizer["Enter Metadata"], Localizer["Fill in the required metadata to share this data file, and optionally any additional metadata."]) },
-            { OpenDataSteps.OpenGovApprovalForm, (Localizer["Open Government Approval Form"], Localizer["Complete the online form and request a digital signature from the Director General."]) },
-            { OpenDataSteps.SubmitSignedPDF, (Localizer["Submit Signed PDF"], Localizer["Upload the signed PDF to GCDocs and paste the link in Datahub."]) },
-            { OpenDataSteps.PendingApproval, (Localizer["Pending Approval"], Localizer["The request has been submitted for approval. Once the request is approved, the file will be uploaded to Open Data."]) },
-            { OpenDataSteps.PendingPublication, (Localizer["Pending Publication"], Localizer["The request has been approved, but the publication date has not yet been reached."]) },
-            { OpenDataSteps.AccessOpenData, (Localizer["Access Open Data Record"], Localizer["The data is now available in the Open Data Portal."]) }
-        };
+        var loadTask = PublicFileService.LoadOpenDataSharedFileInfo(fileIdGuid);
 
-        UpdateCurrentStatus(OpenDataSteps.EnterMetadata);
+        _stepInfo = new();
+        foreach(var step in steps)
+        {
+            var stepName = step.ToString();
+            var keys = ($"OPENDATA-WIZARD.{stepName}.Title", $"OPENDATA-WIZARD.{stepName}.Description");
+            _stepInfo.Add(step, (Localizer[keys.Item1], Localizer[keys.Item2]));
+        }
+
+        var sharedFileInfo = await loadTask;
+
+        approvalFormId = sharedFileInfo.ApprovalForm_ID ?? 0;
+        signedApprovalFormUrl = sharedFileInfo.SignedApprovalForm_URL;
+        PublicationDateStr = sharedFileInfo.PublicationDate_DT?.ToShortDateString();
+
+        if (sharedFileInfo.PublicationDate_DT.HasValue && sharedFileInfo.PublicationDate_DT <= DateTime.UtcNow)
+        {
+            UpdateCurrentStatus(OpenDataSteps.AccessOpenData, true);
+        }
+        else if (sharedFileInfo.ApprovedDate_DT.HasValue && sharedFileInfo.ApprovedDate_DT <= DateTime.UtcNow)
+        {
+            UpdateCurrentStatus(OpenDataSteps.PendingPublication);
+        }
+        else if (!string.IsNullOrEmpty(sharedFileInfo.SignedApprovalForm_URL))
+        {
+            UpdateCurrentStatus(OpenDataSteps.PendingApproval);
+        }
+        else if (sharedFileInfo.ApprovalForm_ID.HasValue && sharedFileInfo.ApprovalForm_ID > 0)
+        {
+            UpdateCurrentStatus(OpenDataSteps.SubmitSignedPDF);
+        }
+        else 
+        {
+            UpdateCurrentStatus(OpenDataSteps.EnterMetadata);
+        }
 
     }
 
