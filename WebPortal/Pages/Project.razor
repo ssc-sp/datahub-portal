@@ -28,17 +28,22 @@
             <AeMarkdown Content="@($"{_project.ProjectDescription}")"></AeMarkdown>
             <AuthorizeView Roles="@($"{projectAcronym}, {projectAcronym}-admin")">
                 <NotAuthorized>
-                    <AeTypography Variant="h3">Access Denied</AeTypography>
-                    <AeTypography class="warning">You currently do not have access to this project.</AeTypography>
+                    <AeTypography Variant="h3">@DataLocalizer["Access Denied"]</AeTypography>
+                    <AeTypography class="warning">@DataLocalizer["You currently do not have access to this project."]</AeTypography>
                     @if (!_isProjectUserPendingApproval)
                     {
-                        <AeButton @onclick="@(async () => await RequestProjectAccess())">Request Access</AeButton>
+                        <AeButton @onclick="@(async () => await RequestProjectAccess())">@DataLocalizer["Request Access"]</AeButton>
                     }
                     else
                     {
-                        <AeTypography class="warning">Access Request is being reviewed</AeTypography>
+                        <AeTypography class="warning">@DataLocalizer["Access Request is being reviewed"]</AeTypography>
                     }
                 </NotAuthorized>
+            </AuthorizeView>
+            <AuthorizeView Roles="@RoleConstants.DATAHUB_ROLE_ADMIN">
+                <Authorized>
+                    <AeToggle class="round" checked="@_project.Is_Featured" @onchange="UpdateFeatured"/> Featured Project
+                </Authorized>
             </AuthorizeView>
         </ChildContent>
     </AeCard>
@@ -49,7 +54,7 @@
         @if (_pipelineStatus?.Count > 0)
         {
             <AeFlex Vertical>
-                <h2>Data Pipeline Status</h2>
+                <h2>@DataLocalizer["Data Pipeline Status"]</h2>
                 <AeTable Accessors="accessorFunctions" Renderers="renderFunctions"
                          GridTemplateColumns="4fr 4fr 3fr 3fr"
                          Dataset="_pipelineStatus"
@@ -74,7 +79,7 @@
                     {
                         <AeTypography Variant="h3">Azure Databricks</AeTypography>
                     }
-                    <AeTypography>Azure Databricks Workspace</AeTypography>
+                    <AeTypography>@DataLocalizer["Azure Databricks Workspace"]</AeTypography>
                 </ChildContent>
                 <Footer>
                     <AeFlex Vertical>
@@ -84,7 +89,7 @@
                             {
                                 @if (_databricksRequested)
                                 {
-                                    <AeTypography class="warning">Access Request is being reviewed</AeTypography>
+                                    <AeTypography class="warning">@DataLocalizer["Access Request is being reviewed"]</AeTypography>
                                 }
                                 else
                                 {
@@ -133,24 +138,24 @@
                         {
                             @if (_powerBIRequested)
                             {
-                                <AeTypography class="warning">Access Request is being reviewed</AeTypography>
+                                <AeTypography class="warning">@DataLocalizer["Access Request is being reviewed"]</AeTypography>
                             }
                             else
                             {
-                                <AeTypography class="warning">Access not authorized</AeTypography>
-                                <AeButton @onclick="@(async () => await RequestAccess(false, true, false))">Request Access</AeButton>
+                                <AeTypography class="warning">@DataLocalizer["Access not authorized"]</AeTypography>
+                                <AeButton @onclick="@(async () => await RequestAccess(false, true, false))">@DataLocalizer["Request Access"]</AeButton>
                             }
                         }
                         else
                         {
                             @if (_serviceRequests.Any(r => r.ServiceType == "powerbi" && r.Is_Completed == null))
                             {
-                                <AeTypography class="warning">Service Request is being reviewed</AeTypography>
+                                <AeTypography class="warning">@DataLocalizer["Service Request is being reviewed"]</AeTypography>
                             }
                             else
                             {
                                 @*<AeTypography class="warning">Service not available</AeTypography>*@
-                                <AeButton @onclick="@(async () => await RequestServiceAccess("powerbi"))">Request Service Creation</AeButton>
+                                <AeButton @onclick="@(async () => await RequestServiceAccess("powerbi"))">@DataLocalizer["Request Service Creation"]</AeButton>
                             }
                         }
                     }
@@ -168,25 +173,25 @@
                     <ChildContent>
                         @if (!string.IsNullOrWhiteSpace(_project.WebForms_URL) && _webFormsAuthorized)
                         {
-                            <DatahubLink Variant="h3" DataProject="@projectAcronym" WebFormsURL="@_project.WebForms_URL">Data Entry</DatahubLink>
+                            <DatahubLink Variant="h3" DataProject="@projectAcronym" WebFormsURL="@_project.WebForms_URL">@DataLocalizer["Data Entry"]</DatahubLink>
                         }
                         else
                         {
-                            <AeTypography Variant="h3">Data Entry</AeTypography>
+                            <AeTypography Variant="h3">@DataLocalizer["Data Entry"]</AeTypography>
                         }
-                        <AeTypography>Start the Data Entry application enabled for this project</AeTypography>
+                        <AeTypography>@DataLocalizer["Start the Data Entry application enabled for this project"]</AeTypography>
                     </ChildContent>
                     <Footer>
                         @if (!_webFormsAuthorized)
                         {
                             @if (_webFormsRequested)
                             {
-                                <AeTypography class="warning">Access Request is being reviewed</AeTypography>
+                                <AeTypography class="warning">@DataLocalizer["Access Request is being reviewed"]</AeTypography>
                             }
                             else
                             {
-                                <AeTypography class="warning">Access not authorized</AeTypography>
-                                <AeButton @onclick="@(async () => await RequestAccess(false, false, true))">Request Access</AeButton>
+                                <AeTypography class="warning">@DataLocalizer["Access not authorized"]</AeTypography>
+                                <AeButton @onclick="@(async () => await RequestAccess(false, false, true))">@DataLocalizer["Request Access"]</AeButton>
                             }
                         }
                     </Footer>
@@ -202,8 +207,8 @@
                 </Header>
                 <ChildContent>
                     <AeFlex Vertical>
-                        <DatahubLink Variant="h3" DataProject="@projectAcronym" LinkType="DatahubLinkType.FormBuilder">Form Builder</DatahubLink>
-                        <AeTypography>Design custom data entry forms</AeTypography>
+                        <DatahubLink Variant="h3" DataProject="@projectAcronym" LinkType="DatahubLinkType.FormBuilder">@DataLocalizer["Form Builder"]</DatahubLink>
+                        <AeTypography>@DataLocalizer["Design custom data entry forms"]</AeTypography>
                     </AeFlex>
                 </ChildContent>
             </AeCard>
@@ -219,13 +224,13 @@
 
                         @if (_serviceRequests.Any(r => r.ServiceType == "storage" && r.Is_Completed != null))
                         {
-                            <DatahubLink Variant="h3" DataProject="@projectAcronym" LinkType="DatahubLinkType.Storage">Storage Explorer</DatahubLink>
+                            <DatahubLink Variant="h3" DataProject="@projectAcronym" LinkType="DatahubLinkType.Storage">@DataLocalizer["Storage Explorer"]</DatahubLink>
                         }
                         else
                         {
-                            <AeTypography Variant="h3">Storage Explorer</AeTypography>
+                            <AeTypography Variant="h3">@DataLocalizer["Storage Explorer"]</AeTypography>
                         }
-                        <AeTypography>Upload and download files from Azure storage</AeTypography>
+                        <AeTypography>@DataLocalizer["Upload and download files from Azure storage"]</AeTypography>
 
                     </AeFlex>
                 </ChildContent>
@@ -235,11 +240,11 @@
                     }
                     else if (_serviceRequests.Any(r => r.ServiceType == "storage" && r.Is_Completed == null))
                     {
-                        <AeTypography class="warning">Service Request is being reviewed</AeTypography>
+                        <AeTypography class="warning">@DataLocalizer["Service Request is being reviewed"]</AeTypography>
                     }
                     else
                     {
-                        <AeButton @onclick="@(async () => await RequestServiceAccess("storage"))">Request Service Creation</AeButton>
+                        <AeButton @onclick="@(async () => await RequestServiceAccess("storage"))">@DataLocalizer["Request Service Creation"]</AeButton>
                     }
                 </Footer>
             </AeCard>
@@ -335,6 +340,13 @@
     private List<ETL_CONTROL_TBL> _pipelineStatus = new List<ETL_CONTROL_TBL>();
 
     private string _projectCostFormatted;
+
+    private async Task UpdateFeatured(ChangeEventArgs args)
+    {
+        _project.Is_Featured = (bool)args.Value;
+        await projectContext.SaveChangesAsync();
+
+    }
 
     protected override async Task OnInitializedAsync()
     {
