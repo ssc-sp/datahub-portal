@@ -49,6 +49,7 @@ using Polly.Extensions.Http;
 using NRCan.Datahub.Metadata.Model;
 using Microsoft.Extensions.Logging;
 using NRCan.Datahub.Shared.RoleManagement;
+using NRCan.Datahub.Shared;
 
 namespace NRCan.Datahub.Portal
 {
@@ -348,6 +349,7 @@ namespace NRCan.Datahub.Portal
             services.AddHttpClient<IExternalSearchService, ExternalSearchService>();
 
             services.AddScoped<IMetadataBrokerService, MetadataBrokerService>();
+            services.AddScoped<IDatahubAuditingService, DatahubAuditingService>();
 
             services.AddScoped<DataImportingService>();
             services.AddSingleton<DatahubTools>();

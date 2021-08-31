@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using NRCan.Datahub.Metadata.Model;
 using System.Threading.Tasks;
 using System.Linq;
@@ -8,18 +7,19 @@ using System;
 using NRCan.Datahub.Metadata.DTO;
 using ShareWorkflow = NRCan.Datahub.Portal.Data.Forms.ShareWorkflow;
 using NRCan.Datahub.Shared.Utils;
+using NRCan.Datahub.Shared.Services;
 
 namespace NRCan.Datahub.Portal.Services
 {
     public class MetadataBrokerService : IMetadataBrokerService
     {
-        readonly ILogger<MetadataBrokerService> _logger;
         readonly IDbContextFactory<MetadataDbContext> _contextFactory;
+        readonly IDatahubAuditingService _auditingService;
 
-        public MetadataBrokerService(IDbContextFactory<MetadataDbContext> contextFactory, ILogger<MetadataBrokerService> logger)
+        public MetadataBrokerService(IDbContextFactory<MetadataDbContext> contextFactory, IDatahubAuditingService auditingService)
         {
-            _logger = logger;
             _contextFactory = contextFactory;
+            _auditingService = auditingService;
         }
 
         public async Task<ObjectMetadataContext> GetMetadataContext(string objectId)
@@ -47,6 +47,8 @@ namespace NRCan.Datahub.Portal.Services
             var transation = ctx.Database.BeginTransaction();
             try
             {
+                _auditingService.TrackEvent("MetadataSaved-started");
+
                 // fetch the existing metadata object or create a new one
                 var current = await FetchObjectMetadata(ctx, objectId) ?? await CreateNewObjectMetadata(ctx, objectId, metadataVersionId);
                 
@@ -97,10 +99,20 @@ namespace NRCan.Datahub.Portal.Services
                 await ctx.SaveChangesAsync();
 
                 transation.Commit();
+
+                _auditingService.TrackEvent("MetadataSaved-completed", 
+                    ("ObjectId", objectId), 
+                    ("Version", metadataVersionId.ToString()));
+
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 transation.Rollback();
+
+                _auditingService.TrackException(ex,
+                    ("ObjectId", objectId),
+                    ("Version", metadataVersionId.ToString()));
+
                 throw;
             }
         }
