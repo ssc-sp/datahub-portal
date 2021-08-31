@@ -81,7 +81,7 @@
 
     private Guid fileIdGuid;
 
-    private PublicDataFile sharingRequest;
+    private SharedDataFile sharingRequest;
     private DateHolder dateHolder = new DateHolder();
 
 
@@ -116,7 +116,7 @@
 
     private async Task ReloadPublicDataSharingRequest()
     {
-        sharingRequest = await PublicFileService.LoadPublicDataFileInfo(fileIdGuid);
+        sharingRequest = await PublicFileService.LoadPublicUrlSharedFileInfo(fileIdGuid);
         if (sharingRequest == null)
         {
             NavManager.NavigateTo(DataSharingDashboardUrl);
