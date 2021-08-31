@@ -67,20 +67,20 @@
 
     private async Task OnConfigure(IModelFormContext context)
     {
-        context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Sector_Branch, () => PIP_Constants.YESNO);
-        context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Province_Territory, () => PIP_Constants.YESNO);
-        context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Employment_Status, () => PIP_Constants.YESNO);
-        context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.I_am_seeking, () => PIP_Constants.YESNO);
-        context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Language_Training_Provided_By, () => PIP_Constants.YESNO);
-        context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Last_Course_Successfully_Completed, () => PIP_Constants.YESNO);
-        context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.SLE_Results_Reading, () => PIP_Constants.YESNO);
-        context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.SLE_Results_Writing, () => PIP_Constants.YESNO);
-        context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.SLE_Results_Oral, () => PIP_Constants.YESNO);
-        context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Session_For_Language_Training, () => PIP_Constants.YESNO);
-        context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Class_For_Language_Training, () => PIP_Constants.YESNO);
-        context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Training_Type, () => PIP_Constants.YESNO);
+        context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Sector_Branch, () => Language_Constants.SECTORSANDBRANCHES);
+        context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Province_Territory, () => Language_Constants.PROVINCES);
+        context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Employment_Status, () => Language_Constants.EMPLOYMENT_STATUS);
+        context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.I_am_seeking, () => Language_Constants.LANGUAGE_TRAINING);        
+        context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Language_Training_Provided_By, () => Language_Constants.LANGUAGE_TRAINING_PROVIDERS);
+        context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Last_Course_Successfully_Completed, () => Language_Constants.QUARTERS);
+        context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.SLE_Results_Reading, () => Language_Constants.SLESTATUS);
+        context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.SLE_Results_Writing, () => Language_Constants.SLESTATUS);
+        context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.SLE_Results_Oral, () => Language_Constants.SLESTATUS);
+        context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Session_For_Language_Training, () => Language_Constants.QUARTERS);
+        context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Class_For_Language_Training, () => Language_Constants.CLASSES_E);
+        context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Training_Type, () => Language_Constants.TRAININGTYPE);
         
-        //context.RegisterOptionValueProperty<SectorAndBranch>(s => s.Sector_TXT, () => _sectorLookup.Select(s => s.SectorNameEn));        
+        
     }
     
     private async Task CreateNewApplication()
