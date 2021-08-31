@@ -567,6 +567,7 @@ body {
 }
 .ae.card .ae.card-content {
   padding-left: 1.25rem;
+  margin-bottom: 1.25rem;
 }
 .ae.card .ae.card-footer {
   display: flex;

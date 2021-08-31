@@ -16,64 +16,72 @@
 <div style="padding-left: 2rem;padding-right: 2rem">
 
     <AeTypography Variant="h1">@Localizer["PowerBI Admin"]</AeTypography>
-    <AeCard>
-        <Header>
-            Link PowerBI Datasets to Projects
-        </Header>
-        <ChildContent>
-            @if (!isWorkspacesLoaded)
-            {
-                <Spinner />
-            }
-            else
-            {
 
-                <AePaginatedTable Accessors="accessorFunctions"
-                              Dataset="dataSets"
-                              Headers="headers"
-                              T="PowerBIDatasetElements"
-                              @ref="_myTable"
-                              Page="@_lastClicked"
-                              Renderers="renderFunctions"
-                              OnRowClick="@RowSelected" />
+    <AuthorizeView Roles="@RoleConstants.DATAHUB_ROLE_ADMIN">
+        <Authorized>
+            <AeCard>
+                <Header>
+                    Link PowerBI Datasets to Projects
+                </Header>
+                <ChildContent>
+                    @if (!isWorkspacesLoaded)
+                    {
+                        <Spinner />
+                    }
+                    else
+                    {
 
-                <AePagination Pageable="@_myTable" OnPageClick="OnPageClick" />
-            }
-        </ChildContent>
-        <Footer>
-            <AeButton @onclick="ReloadData">Cancel</AeButton>
-            <AeButton @onclick="SaveChanges">Save Changes</AeButton>
-		</Footer>
-    </AeCard>
-    <AeCard>
-        <Header>
-            Link PowerBI Report to Projects
-        </Header>
-        <ChildContent>
-            @if (!isWorkspacesLoaded)
-            {
-                <Spinner />
-            }
-            else
-            {
+                        <AePaginatedTable Accessors="accessorFunctions"
+                                      Dataset="dataSets"
+                                      Headers="headers"
+                                      T="PowerBIDatasetElements"
+                                      @ref="_myTable"
+                                      Page="@_lastClicked"
+                                      Renderers="renderFunctions"
+                                      OnRowClick="@RowSelected" />
 
-                <AePaginatedTable Accessors="reportAccessorFunctions"
-                              Dataset="reports"
-                              Headers="reportHeaders"
-                              T="(Report report, Group group)"
-                              @ref="_myTable2"
-                              Page="@_lastClicked"
-                              Renderers="reportRenderFunctions"
-                              OnRowClick="@RowSelected" />
+                        <AePagination Pageable="@_myTable" OnPageClick="OnPageClick" />
+                    }
+                </ChildContent>
+                <Footer>
+                    <AeButton @onclick="ReloadData">Cancel</AeButton>
+                    <AeButton @onclick="SaveChanges">Save Changes</AeButton>
+		        </Footer>
+            </AeCard>
+            <AeCard>
+                <Header>
+                    Link PowerBI Report to Projects
+                </Header>
+                <ChildContent>
+                    @if (!isWorkspacesLoaded)
+                    {
+                        <Spinner />
+                    }
+                    else
+                    {
 
-                <AePagination Pageable="@_myTable2" OnPageClick="OnPageClick" />
-            }
-        </ChildContent>
-        <Footer>
-            <AeButton @onclick="ReloadData">Cancel</AeButton>
-            <AeButton @onclick="SaveChanges">Save Changes</AeButton>
-		</Footer>
-    </AeCard>
+                        <AePaginatedTable Accessors="reportAccessorFunctions"
+                                      Dataset="reports"
+                                      Headers="reportHeaders"
+                                      T="(Report report, Group group)"
+                                      @ref="_myTable2"
+                                      Page="@_lastClicked"
+                                      Renderers="reportRenderFunctions"
+                                      OnRowClick="@RowSelected" />
+
+                        <AePagination Pageable="@_myTable2" OnPageClick="OnPageClick" />
+                    }
+                </ChildContent>
+                <Footer>
+                    <AeButton @onclick="ReloadData">Cancel</AeButton>
+                    <AeButton @onclick="SaveChanges">Save Changes</AeButton>
+		        </Footer>
+            </AeCard>
+        </Authorized>
+        <NotAuthorized>
+            <AeTypography>This view is only available for administrators.</AeTypography>
+		</NotAuthorized>
+    </AuthorizeView>
 </div>
 @code {
     private bool isWorkspacesLoaded = false;
@@ -153,7 +161,6 @@
         var e = new Project_PBI_Report() { Id = el.report.Id, Workspace = el.group.Id, Project = project };
         ctx.Project_PBI_Reports.Add(e);
         reportLinks.Add(e);
-
     }
 
     private void RowSelected(PowerBIDatasetElements selected)

@@ -461,9 +461,13 @@
     "ShowLess": "Hide optional fields"
   },
 
-  "Project_Cost": "Cost",
-  "Project_Cost_NotFound": "No cost data found.",
-  "Project_Cost_Template": "As of {0}, total resource cost is {1} for the period from {2} to {3}.",
-  "Project_Cost_Button": "More details"
+  "PROJECT-PAGE": {
+    "Project_Cost": "Cost",
+    "Project_Cost_NotFound": "No cost data found.",
+    "Project_Cost_Template": "As of {0}, total resource cost is {1} for the period from {2} to {3}.",
+    "Project_Cost_Button": "More details",
+    "No_Access_Message": "You currently do not have access to this project.",
+    "Request_Access_Reviewed":"Access Request is being reviewed"
+  }
 }
 

@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using NRCan.Datahub.Shared.Data;
 using NRCan.Datahub.Shared.EFCore;
 using System;
 using System.Collections.Generic;
@@ -76,15 +77,15 @@ namespace NRCan.Datahub.Shared.EFCore
                 .HasIndex(e => e.File_ID)
                 .IsUnique();
 
-            modelBuilder.Entity<Datahub_Project>().HasData(new Datahub_Project() { Project_ID = 1, 
-                Project_Acronym_CD = "DHTRK", 
+            var p1 = modelBuilder.Entity<Datahub_Project>().HasData(new Datahub_Project() { Project_ID = 1, 
+                Project_Acronym_CD = RoleConstants.DATAHUB_ADMIN_PROJECT, 
                 Project_Status_Desc = Datahub_Project.ONGOING, 
                 Project_Name = "Datahub Tracker", 
                 Is_Private = false,
                 Project_Icon = "database",
                 Project_Summary_Desc = "Datahub Project Tracker",
-                Sector_Name = "CIOSB"});
-            modelBuilder.Entity<Datahub_Project>().HasData(new Datahub_Project()
+                Sector_Name = "CIOSB"},
+                new Datahub_Project()
             {
                 Project_ID = 2,
                 Project_Acronym_CD = "TEST1",
@@ -94,8 +95,7 @@ namespace NRCan.Datahub.Shared.EFCore
                 Project_Icon = "database",
                 Project_Summary_Desc = "Test Project 1 for CFS",
                 Sector_Name = "CFS"
-            });
-            modelBuilder.Entity<Datahub_Project>().HasData(new Datahub_Project()
+            },new Datahub_Project()
             {
                 Project_ID = 3,
                 Project_Acronym_CD = "TEST2",
@@ -106,6 +106,7 @@ namespace NRCan.Datahub.Shared.EFCore
                 Project_Summary_Desc = "Test Project 2 for CFS",
                 Sector_Name = "CFS"
             });
+            modelBuilder.Entity<Datahub_Project_User>().HasData(new Datahub_Project_User() {  User_ID = "b1cd84d4-f57f-4b64-9db6-52ca7ec55cc6", IsAdmin = true, ProjectUser_ID = 1, ProjectId = 1});
         }
     }
 }
