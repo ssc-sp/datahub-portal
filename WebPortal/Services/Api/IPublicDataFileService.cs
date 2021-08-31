@@ -9,14 +9,17 @@ namespace NRCan.Datahub.Portal.Services
 {
     public interface IPublicDataFileService
     {
-        Task<Uri> DownloadSharedFile(Guid fileId);
-        Task<Uri> DoDownloadFile(PublicDataFile publicFile);
-        Task CreateFileShareRequest(FileMetaData fileMetaData, string projectCode, User requestingUser);
-        Task<PublicDataFile> LoadPublicDataFileInfo(Guid fileId);
+        Task<Uri> DownloadPublicUrlSharedFile(Guid fileId);
+        Task<Uri> DoDownloadFile(SharedDataFile publicFile);
+        Task CreateDataSharingRequest(FileMetaData fileMetaData, string projectCode, User requestingUser, bool openDataRequest = false);
+        Task<SharedDataFile> LoadPublicUrlSharedFileInfo(Guid fileId);
+        Task<OpenDataSharedFile> LoadOpenDataSharedFileInfo(Guid fileId);
         Task<bool> SubmitPublicUrlShareForApproval(Guid fileId);
-        Task<int> GetPublicUrlSharingRequestCount(string projectCode);
-        Task<List<PublicDataFile>> GetProjectSharingRequests(string projectCode);
+        Task<int> GetDataSharingRequestCount(string projectCode);
+        Task<List<SharedDataFile>> GetProjectSharingRequests(string projectCode);
         Task ApprovePublicUrlShare(Guid fileId, DateTime? publicationDate = null);
         Task DenyPublicUrlShare(Guid fileId);
+        Task UpdateOpenDataApprovalFormId(Guid fileId, int approvalFormId);
+        Task UpdateOpenDataSignedApprovalFormUrl(Guid fileId, string url);
     }
 }
