@@ -3,29 +3,32 @@
 @inject IDbContextFactory<DatahubProjectDBContext> DbFactoryProject
 
 <AeFlex class="recent-card-container">
-  @foreach (var item in recentLinks)
-  {
-    <AeFlex class="@($"recent-card {GetIcon(item.link).Color}")">
-      <i class="@GetIcon(item.link)" />
-      <AeFlex class="text">
-        <AeTypography class="title">@(item.project?.ProjectName ?? "-")</AeTypography>
-        <AeTypography class="subtitle">@GetDescription(item.link, item.project)</AeTypography>
-      </AeFlex>
-    </AeFlex>
-  }
+    @if (recentLinks != null)
+    {
+        foreach (var item in recentLinks)
+        {
+            <AeFlex class="@($"recent-card {GetIcon(item.link).Color}")">
+                <i class="@GetIcon(item.link)" />
+                <AeFlex class="text">
+                    <AeTypography class="title">@(item.project?.ProjectName ?? "-")</AeTypography>
+                    <AeTypography class="subtitle">@GetDescription(item.link, item.project)</AeTypography>
+                </AeFlex>
+            </AeFlex>
+        }
+    }
 </AeFlex>
 
 
 @code {
     private List<(UserRecentLink link,Datahub_Project? project)> recentLinks;
-    
+
     [Parameter]
     public List<UserRecentLink> RecentLinks { get; set; }
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
         using var ctx = DbFactoryProject.CreateDbContext();
-        recentLinks = RecentLinks.Select(l => (l, GetProject(ctx,l))).ToList();
+        recentLinks = RecentLinks.Select(l => (l, GetProject(ctx, l))).ToList();
     }
 
     private Datahub_Project? GetProject(DatahubProjectDBContext ctx, UserRecentLink link)
@@ -57,20 +60,21 @@
 
     private string GetDescription(UserRecentLink link, Datahub_Project project)
     {
+        var projectName = project?.ProjectName ?? "-";
         switch (link.LinkType)
         {
             case DatahubLinkType.PowerBI:
-                return $"{project.ProjectName} >> PowerBI";
+                return $"{projectName} >> PowerBI";
             case DatahubLinkType.Databricks:
-                return $"{project.ProjectName} >> Databricks";
+                return $"{projectName} >> Databricks";
             case DatahubLinkType.WebForm:
-                return $"{project.ProjectName} >> Data Entry";
+                return $"{projectName} >> Data Entry";
             case DatahubLinkType.DataProject:
-                return $"{project.ProjectName} >> Home";
+                return $"{projectName} >> Home";
             case DatahubLinkType.Storage:
-                return $"{project.ProjectName} >> Storage";
+                return $"{projectName} >> Storage";
             case DatahubLinkType.FormBuilder:
-                return $"{project.ProjectName} >> Form Builder";
+                return $"{projectName} >> Form Builder";
         }
         return "N/A";
     }
