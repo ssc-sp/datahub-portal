@@ -158,8 +158,8 @@ namespace NRCan.Datahub.Portal
         {
 
 
-            InitializeDatabase(logger, cosmosFactory, false);
             InitializeDatabase(logger, datahubFactory);
+            InitializeDatabase(logger, cosmosFactory, false);
             InitializeDatabase(logger, etlFactory);
             InitializeDatabase(logger, financeFactory);
             InitializeDatabase(logger, pipFactory);

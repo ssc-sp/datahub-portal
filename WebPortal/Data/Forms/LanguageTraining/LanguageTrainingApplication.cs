@@ -46,7 +46,7 @@ namespace NRCan.Datahub.Portal.Data.LanguageTraining
         [AeLabel(isDropDown: true, placeholder: "Please Select")]
         [Required]
         public string I_am_seeking { get; set; }
-        [AeFormCategory("Language Assessment", 20)]
+        [AeFormCategory("Language Assessment", 20)]        
         [Required]
         public bool Completed_LETP_Assessment { get; set; }
         [AeFormCategory("Language Assessment", 20)]
