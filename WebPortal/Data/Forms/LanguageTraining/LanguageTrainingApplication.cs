@@ -132,7 +132,7 @@ namespace NRCan.Datahub.Portal.Data.LanguageTraining
         public string Manager_Email_Address { get; set; }
 
 
-        /** Section: Language School Selection **/
+        [AeFormCategory("", 60)]
         public string Decision { get; set; }
 
 

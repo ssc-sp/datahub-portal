@@ -98,16 +98,16 @@
       "Title": "Merci de nous essayer"
     },
     "SECTION-2": {
-        "Line1": "Comme vous faites partie de l’équipe de diffusion limitée, nous vous donnons un accès précoce à notre version Alpha. Nous espérons que vous prendrez le temps d’utiliser la plateforme le plus souvent possible pour vous familiariser avec ses fonctionnalités. Cela nous permettra d’en savoir plus sur les efficacités et les problèmes du système.",
-        "Line2": "Au cours des prochaines semaines, nous mettrons la plateforme à l’essai en « simulant » quelques scénarios réalistes pendant que vous continuez d’utiliser la plateforme. Ces simulations comprendront notamment des situations d’interruption de service et de reprise des activités, la présence de centaines d’utilisateurs à la fois et d’autres essais palpitants. Nous espérons que vous ne remarquerez pas ces activités, mais dans le cas contraire, veuillez prendre une capture d’écran ou nous envoyer un courriel pour nous faire part de votre expérience. Nous aimerions beaucoup recevoir vos commentaires sur ce qui a fonctionné et ce qui n’a pas fonctionné. Nous pourrions également vous demander des commentaires par l’entremise d’un court sondage ou d’une discussion de groupe. Cela nous aidera à cibler davantage tout problème qui pourrait survenir.",
-        "Line3": "Encore une fois, merci de participer à cet essai. Nous sommes impatients de nous entretenir bientôt avec vous!",
-        "Title": "À quoi pouvez-vous vous attendre?"
+      "Line1": "Comme vous faites partie de l’équipe de diffusion limitée, nous vous donnons un accès précoce à notre version Alpha. Nous espérons que vous prendrez le temps d’utiliser la plateforme le plus souvent possible pour vous familiariser avec ses fonctionnalités. Cela nous permettra d’en savoir plus sur les efficacités et les problèmes du système.",
+      "Line2": "Au cours des prochaines semaines, nous mettrons la plateforme à l’essai en « simulant » quelques scénarios réalistes pendant que vous continuez d’utiliser la plateforme. Ces simulations comprendront notamment des situations d’interruption de service et de reprise des activités, la présence de centaines d’utilisateurs à la fois et d’autres essais palpitants. Nous espérons que vous ne remarquerez pas ces activités, mais dans le cas contraire, veuillez prendre une capture d’écran ou nous envoyer un courriel pour nous faire part de votre expérience. Nous aimerions beaucoup recevoir vos commentaires sur ce qui a fonctionné et ce qui n’a pas fonctionné. Nous pourrions également vous demander des commentaires par l’entremise d’un court sondage ou d’une discussion de groupe. Cela nous aidera à cibler davantage tout problème qui pourrait survenir.",
+      "Line3": "Encore une fois, merci de participer à cet essai. Nous sommes impatients de nous entretenir bientôt avec vous!",
+      "Title": "À quoi pouvez-vous vous attendre?"
     },
     "SECTION-3": {
-        "Line1": "Il s’agit de votre propre espace de stockage personnel!  N’hésitez pas à l’utiliser et à en profiter.",
-        "Line2": "Téléversez-y des fichiers et partagez des fichiers avec vos collègues faisant partie de l’équipe de diffusion limitée ou avec les développeurs. Vous disposez d’un espace de stockage de 100 Go que vous pouvez utiliser comme bon vous semble. Nous vous encourageons à essayer de téléverser, de partager et de rechercher des fichiers de divers formats. Il pourrait même y avoir des œufs de Pâques (ensembles de données). Restez donc à l’affût!",
-        "Line3": "Lancez-vous et n’hésitez pas à communiquer avec nous si vous avez des questions!",
-        "Title": "Sauvegardez toutes vos données en toute sécurité"
+      "Line1": "Il s’agit de votre propre espace de stockage personnel!  N’hésitez pas à l’utiliser et à en profiter.",
+      "Line2": "Téléversez-y des fichiers et partagez des fichiers avec vos collègues faisant partie de l’équipe de diffusion limitée ou avec les développeurs. Vous disposez d’un espace de stockage de 100 Go que vous pouvez utiliser comme bon vous semble. Nous vous encourageons à essayer de téléverser, de partager et de rechercher des fichiers de divers formats. Il pourrait même y avoir des œufs de Pâques (ensembles de données). Restez donc à l’affût!",
+      "Line3": "Lancez-vous et n’hésitez pas à communiquer avec nous si vous avez des questions!",
+      "Title": "Sauvegardez toutes vos données en toute sécurité"
     }
   },
   "MANAGE-ACCESS-PAGE": {
@@ -772,6 +772,44 @@
 
   "{0} created {1} in {2}": "{0} a créé {1} dans {2}",
 
-  "© Natural Resources Canada, 2020.  All rights reserved.": "© Ressources naturelles Canada, 2020.  Tous droits réservés."
+  "© Natural Resources Canada, 2020.  All rights reserved.": "© Ressources naturelles Canada, 2020.  Tous droits réservés.",
+
+  "NRCan_Username": "Nom d’utilisateur de RNCan",
+  "First_Name": "Prénom",
+  "Last_Name": "Nom de famille",
+  "Email_Address_EMAIL": "Courriel",
+  "Sector_Branch": "Secteur/Direction générale",
+  "City": "Ville",
+  "Province_Territory": "Province/Territoire",
+  "Employment_Status": "Statut d’emploi",
+  "I_am_seeking": "Je recherche",
+  "Completed_LETP_Assessment": "Avez-vous effectué une évaluation PEFL auprès de l’École de langues de RNCan au cours des deux (2) dernières années",
+  "Language_Training_Since_LETP_Assessment": "Avez-vous suivi une formation linguistique depuis votre évaluation PEFL",
+  "Language_Training_Provided_By": "La formation linguistique a été dispensée par",
+  "Last_Course_Successfully_Completed": "Quel est le dernier cours que vous avez terminé avec succès",
+  "Completed_Training_Year": "Année",
+  "Completed_Training_Session": "Session",
+  "Report_Sent_To_NRCan_Language_School": "Votre rapport d’étape du fournisseur externe a-t-il été envoyé à l’École de langues de RNCan",
+  "Second_Language_Evaluation_Results": "Avez-vous des résultats d’évaluation de langue seconde (ELS) valides auprès de la Commission de la fonction publique",
+  "SLE_Results_Reading": "Veuillez confirmer vos résultats actuels à l’ELS - Lecture",
+  "SLE_Results_Writing": "Veuillez confirmer vos résultats actuels à l’ELS - Écriture",
+  "SLE_Results_Oral": "Veuillez confirmer vos résultats actuels à l’ELS - Interaction orale",
+  "Training_Type": "Je fais une demande pour (sélectionnez une option)",
+  "SLE_Test_Date": "Veuillez confirmer la date de votre d’évaluation",
+  "Session_For_Language_Training": "Session de formation linguistique",
+  "Class_For_Language_Training": "Classe de formation linguistique",
+  "Delegate_Manager_First_Name": "Prénom",
+  "Delegated_Manager_Last_Name": "Nom de famille",
+  "Delegated_Manager_Email": "Courriel",
+  "Employee_Appointed_NonImperative_Basis": "Employé nommé sur une base non impérative",
+  "Employee_language_profile_raised": "Employé occupant un poste où le profil linguistique a été relevé",
+  "Employee_professional_dev_program": "Employé participant à un programme de perfectionnement professionnel",
+  "Employee_talent_management_exercise": "Employé identifié dans le cadre d’un exercice de gestion des talents",
+  "Employee_equity_group": "Employé qui s’est identifié comme membre d’un groupe visé par l’équité en matière d’emploi",
+  "Manager_First_Name": "Prénom",
+  "Manager_Last_Name": "Nom de famille",
+  "Manager_Email_Address": "Courriel",
+  "Decision": "Decision",
+  "Employee Information": "French EMployee Info"
 
 }
