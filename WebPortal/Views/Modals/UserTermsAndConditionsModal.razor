@@ -7,7 +7,7 @@
         @LocalizerRes("TAC-PAGE.Introduction")
     </div>
 
-    <div id="termsandconditions" class="tacdivbox" @onscroll="() => checkScroll()">
+    <div id="termsandconditions" class="tacdivbox">
     @if (Language == "en-CA")
     {
         <TACComponent />
@@ -23,7 +23,7 @@
     </div>
 
     <div class="tacfooter">
-        <input id="acceptterms" type="checkbox" @onclick="ToggleCheck" disabled />&nbsp;
+        <input id="acceptterms" type="checkbox" @onclick="ToggleCheck" />&nbsp;
         <label for="acceptterms">@LocalizerRes("TAC-PAGE.AgreeToTAC")</label>
     </div>
 
@@ -73,8 +73,5 @@
 
         return langDict[resId];
     }
-    public async void checkScroll()
-    {
-        await JSRuntime.InvokeAsync<object>("enableOnScroll", "termsandconditions", "acceptterms");
-    }
+
 }
