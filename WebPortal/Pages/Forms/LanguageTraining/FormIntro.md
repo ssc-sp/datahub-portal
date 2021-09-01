@@ -11,3 +11,12 @@ _Group training will be scheduled on a quarterly basis; whereas coaching is avai
 **_NOTE – Language training is based on demand and availability of the teachers. Submitting an application for language training does not guarantee a place in a session. Courses will only be offered if there is sufficient demand to fill a class (4-6 students)._**
 
 _Should the NRCan Language School be unable to fulfill your training needs, an external provider may be considered. For external provider options, please_ [_contact your procurement advisor_](https://gcdocs.gc.ca/nrcan-rncan/llisapi.dll/link/19125621) _for confirmation of the procurement options available to you._
+
+
+### Language Assessment
+
+_A Language Training and Evaluation Plan (LETP) assessment is pre-requisite to language training. If you have not completed an LETP assessment, please submit a request [hyperlink to LETP request form] to the NRCan Language School._
+
+### Commitment and Approvals
+
+_Approval from your delegated manager is required to submit an application for language training, in addition to confirming your commitment to participate in the language-training program. Please review the below commitment requirements and provide the requested manager information._

@@ -85,6 +85,9 @@
     <Folder Include="Migrations\Forms\DatahubProjectDB\" />
   </ItemGroup>
   <ItemGroup>
+    <None Update="Pages\Forms\LanguageTraining\FormFooter.md">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Pages\Forms\LanguageTraining\FormIntro.md">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
