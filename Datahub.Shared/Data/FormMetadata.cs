@@ -19,9 +19,8 @@ namespace NRCan.Datahub.Shared.Data
 
         public string GridTemplateColumns { get; set; }
 
-        //public Type GetClassType()
-        //{
-        //    return typeof(T);
-        //}
+        public IList<string> MarkDownContent { get; set; }
+
+        
     }
 }

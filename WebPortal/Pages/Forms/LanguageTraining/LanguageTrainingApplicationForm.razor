@@ -14,7 +14,8 @@
         OnConfigureForms="OnConfigure"
         CreateNewRecord="CreateNewApplication"
         SelectedRecord="@_languageTrainingApplication"
-        SetFormEditRecord="SetFormEdit"/>
+        SetFormEditRecord="SetFormEdit"
+        MarkDownContent="@MarkDownContent" />
 
 @code {
 
@@ -23,6 +24,7 @@
     private List<LanguageTrainingApplication> _languageTrainingApplications;
     private LanguageTrainingApplication _languageTrainingApplication;
     private LanguageTrainingDBContext Context;
+    private List<string> MarkDownContent = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -37,6 +39,9 @@
         _formMetadata.AccessorFunctions = accessorFunctions;
         _formMetadata.Headers = headers;
         _formMetadata.GridTemplateColumns = "4fr 8fr";
+
+        MarkDownContent = File.ReadAllLines(@"Pages\Forms\LanguageTraining\FormIntro.md").ToList();
+        
     }
 
     private List<Func<LanguageTrainingApplication, string>> accessorFunctions = new List<Func<LanguageTrainingApplication, string>>

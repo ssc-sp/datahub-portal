@@ -34,7 +34,16 @@
 
 
 @if (SelectedRecord != null)
-{    
+{
+    @if (MarkDownContent.Any())
+    {
+        <AeCard class="facardForms" CardPosition="AeCard.CardStyle.Horizontal">
+            @foreach (var content in MarkDownContent)
+            {
+                <AeMarkdown Content="@($"{content}")"></AeMarkdown>
+            }
+        </AeCard>
+    }
     <AeCard class="facardForms" CardPosition="AeCard.CardStyle.Horizontal">
     <AeModelForm Model="SelectedRecord"
                  T="@T"
@@ -49,12 +58,6 @@
                  LocalizerFunction="@GetDataLabel"/>
     </AeCard>
 
-
-@*    <AeFlex id="buttonBar">
-        <div class="icon-container" style="margin-bottom: 10px; margin-left: 5px;">
-            <FAButton Text="Budgets" Icon="fal fa-arrow-right" IconLocation="right" onclick="e => GoToNextSheet()" />
-        </div>
-    </AeFlex>*@
 }
 
 @code {
@@ -73,6 +76,8 @@
     public T SelectedRecord { get; set; }
     [Parameter]
     public EventCallback<T> SetFormEditRecord { get; set; }
+    [Parameter]
+    public List<string> MarkDownContent { get; set; }
 
     private int _lastClicked = 0;
     private IPageableComponent _myTable;
