@@ -40,10 +40,12 @@
                     <i class="far fa-info-circle icon-color sm-icon"></i>
                     @Localizer["ViewDetails"]
                 </a>
-                <a @onclick=@ShareFile>
-                    <i class="far fa-share-square icon-color sm-icon"></i>
-                    @Localizer["Share"]
-                </a>
+                <AuthorizeView Roles="DHPGLIST-admin">
+                    <a @onclick=@ShareFile>
+                        <i class="far fa-share-square icon-color sm-icon"></i>
+                        @Localizer["Share"]
+                    </a>
+                </AuthorizeView>
 <!-- To be added when we support it
                 <a @onclick="OpenVersions">
                     <i class="fas fa-code-branch icon-color sm-icon"></i>
