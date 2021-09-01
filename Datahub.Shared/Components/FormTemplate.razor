@@ -43,7 +43,9 @@
                  OnConfigure="OnConfigure"
                  CancelLabel="Cancel"
                  SubmitLabel="Save"
-                 LabelForPropertyFunc="@GetDataLabel" />
+                 OnChange="OnChange"
+                 LabelForPropertyFunc="@GetDataLabel"
+                 LabelsOnTop="true"/>
     </AeCard>
 
 
@@ -62,6 +64,8 @@
     public EventCallback HandleSubmit { get; set; }
     [Parameter]
     public EventCallback<IModelFormContext> OnConfigureForms { get; set; }
+    [Parameter]
+    public EventCallback<ModelFormChangeArgs> OnChangeForms { get; set; }
     [Parameter]
     public EventCallback CreateNewRecord { get; set; }
     [Parameter]
@@ -89,6 +93,14 @@
         if (context != null)
         {
             await OnConfigureForms.InvokeAsync(context);            
+        }        
+    }
+
+    private async Task OnChange(ModelFormChangeArgs args)
+    {        
+        if (args != null)
+        {
+            await OnChangeForms.InvokeAsync(args);            
         }        
     }
 

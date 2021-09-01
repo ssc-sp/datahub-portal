@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NRCan.Datahub.Portal.Data.LanguageTraining;
 
 namespace NRCan.Datahub.Portal.Migrations
 {
     [DbContext(typeof(LanguageTrainingDBContext))]
-    partial class LanguageTrainingDBContextModelSnapshot : ModelSnapshot
+    [Migration("20210901032504_addedManagerFields")]
+    partial class addedManagerFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
