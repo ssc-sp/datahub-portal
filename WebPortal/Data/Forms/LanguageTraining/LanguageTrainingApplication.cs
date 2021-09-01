@@ -46,47 +46,56 @@ namespace NRCan.Datahub.Portal.Data.LanguageTraining
         [AeLabel(isDropDown: true, placeholder: "Please Select")]
         [Required]
         public string I_am_seeking { get; set; }
-        [AeFormCategory("Language Assessment", 20)]        
-        [Required]
+        [AeFormCategory("Language Assessment", 20)]                
         public bool Completed_LETP_Assessment { get; set; }
-        [AeFormCategory("Language Assessment", 20)]
-        [Required]
+        [AeFormCategory("Language Assessment", 20)]        
         public bool Language_Training_Since_LETP_Assessment { get; set; }
         [AeFormCategory("Language Assessment", 20)]
-        [AeLabel(isDropDown: true, placeholder: "Please Select")]
-        [Required]
+        [AeLabel(isDropDown: true, placeholder: "Please Select")]        
         public string Language_Training_Provided_By { get; set; }
+
         [AeFormCategory("Language Assessment", 20)]
-        [AeLabel(isDropDown: true, placeholder: "Please Select")]
-        [Required]
+        [AeLabel(isDropDown: true, placeholder: "Please Select")]        
         public string Last_Course_Successfully_Completed { get; set; }
-        [AeFormCategory("Language Assessment", 20)]
-        [Required]
+        
+        [AeFormCategory("Language Assessment", 20)]        
         public int Completed_Training_Year { get; set; }
+        
         [AeFormCategory("Language Assessment", 20)]
-        [Required]
         public string Completed_Training_Session { get; set; }
-        [AeFormCategory("Language Assessment", 20)]
-        [Required]
+        
+        [AeFormCategory("Language Assessment", 20)]        
         public bool Report_Sent_To_NRCan_Language_School { get; set; }
+        
+        [AeFormCategory("Language Assessment", 20)]
+        public bool Employee_Appointed_NonImperative_Basis { get; set; }
+        [AeFormCategory("Language Assessment", 20)]
+        public bool Employee_language_profile_raised { get; set; }
+        [AeFormCategory("Language Assessment", 20)]
+        public bool Employee_professional_dev_program { get; set; }
+        [AeFormCategory("Language Assessment", 20)]
+        public bool Employee_talent_management_exercise { get; set; }
+        [AeFormCategory("Language Assessment", 20)]
+        public bool Employee_equity_group { get; set; }
 
-        //TODO MultiSelect items here
+
 
         [AeFormCategory("Language Assessment", 20)]
-        [Required]
+        
         public bool Second_Language_Evaluation_Results { get; set; }
         [AeFormCategory("Language Assessment", 20)]
         [AeLabel(isDropDown: true, placeholder: "Please Select")]
-        [Required]
+        
         public string SLE_Results_Reading { get; set; }
         [AeFormCategory("Language Assessment", 20)]
         [AeLabel(isDropDown: true, placeholder: "Please Select")]
-        [Required]
+        
         public string SLE_Results_Writing { get; set; }
         [AeFormCategory("Language Assessment", 20)]
         [AeLabel(isDropDown: true, placeholder: "Please Select")]
-        [Required]
+        
         public string SLE_Results_Oral { get; set; }
+        
         [AeFormCategory("Language Training Application", 30)]
         [AeLabel(isDropDown: true, placeholder: "Please Select")]
         [Required]
@@ -99,6 +108,7 @@ namespace NRCan.Datahub.Portal.Data.LanguageTraining
         [AeFormCategory("Language Training Application", 30)]
         [AeLabel(isDropDown: true, placeholder: "Please Select")]
         public string Class_For_Language_Training { get; set; }
+
         [AeFormCategory("Commitment and Approval", 40)]
         [Required]
         public string Delegate_Manager_First_Name { get; set; }
@@ -108,6 +118,22 @@ namespace NRCan.Datahub.Portal.Data.LanguageTraining
         [AeFormCategory("Commitment and Approval", 40)]
         [Required]
         public string Delegated_Manager_Email { get; set; }
+
+
+
+
+        [AeFormCategory("Manager Section", 50)]
+        public string Manager_First_Name { get; set; }
+
+        [AeFormCategory("Manager Section", 50)]
+        public string Manager_Last_Name { get; set; }
+
+        [AeFormCategory("Manager Section", 50)]
+        public string Manager_Email_Address { get; set; }
+
+
+        /** Section: Language School Selection **/
+        public string Decision { get; set; }
 
 
 
