@@ -464,6 +464,46 @@
   "Project_Cost": "Cost",
   "Project_Cost_NotFound": "No cost data found.",
   "Project_Cost_Template": "As of {0}, total resource cost is {1} for the period from {2} to {3}.",
-  "Project_Cost_Button": "More details"
+  "Project_Cost_Button": "More details",
+
+  "NRCan_Username": "NRCan Username",
+  "First_Name": "First Name",
+  "Last_Name": "Last Name",
+  "Email_Address_EMAIL": "Email Address",
+  "Sector_Branch": "Sector/Branch",
+  "City": "City",
+  "Province_Territory": "Province/Territory",
+  "Employment_Status": "Employment Status",
+  "I_am_seeking": "I am seeking",
+  "Completed_LETP_Assessment": "Completed LETP Assessment",
+  "Language_Training_Since_LETP_Assessment": "Language Training Since LETP Assessment",
+  "Language_Training_Provided_By": "Language Training Provided By",
+  "Last_Course_Successfully_Completed": "Last Course Successfully Completed",
+  "Completed_Training_Year": "Completed Training Year",
+  "Completed_Training_Session": "Completed Training Session",
+  "Report_Sent_To_NRCan_Language_School": "Report Sent To NRCan Language School",
+  "Second_Language_Evaluation_Results": "Second_Language_Evaluation_Results",
+  "SLE_Results_Reading": "SLE Results Reading",
+  "SLE_Results_Writing": "SLE Results Writing",
+  "SLE_Results_Oral": "SLE Results Oral",
+  "Training_Type": "Training Type",
+  "SLE_Test_Date": "SLE Test Date",
+  "Session_For_Language_Training": "Session For Language Training",
+  "Class_For_Language_Training": "Class For Language Training",
+  "Delegate_Manager_First_Name": "Delegate Manager First Name",
+  "Delegated_Manager_Last_Name": "Delegated Manager Last Name",
+  "Delegated_Manager_Email": "Delegated Manager Email",
+  "Employee_Appointed_NonImperative_Basis": "Employee Appointed NonImperative Basis",
+  "Employee_language_profile_raised": "Employee language profile raised",
+  "Employee_professional_dev_program": "Employee professional dev program",
+  "Employee_talent_management_exercise": "Employee talent management exercise",
+  "Employee_equity_group": "Employee equity group",
+  "Manager_First_Name": "Manager First Name",
+  "Manager_Last_Name": "Manager Last Name",
+  "Manager_Email_Address": "Manager Email Address",
+  "Decision": "Decision"
+
+
+
 }
 

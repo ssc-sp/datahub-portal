@@ -31,7 +31,7 @@
 
         _languageTrainingApplications = Context.LanguageTrainingApplications.ToList();
 
-        _formMetadata.Header = "Finance Forms";
+        _formMetadata.Header = "Language Training Forms";
         _formMetadata.SubHeader = "Step 1: Select/Enter Sector and Branch Information";
         _formMetadata.DataSet = _languageTrainingApplications;
         _formMetadata.AccessorFunctions = accessorFunctions;
@@ -86,12 +86,12 @@
             
         }
 
-        ToggleFieldsAfterLETPAssessment(context);
+        ToggleVisibility(context);
 
         
     }
     
-    private void ToggleFieldsAfterLETPAssessment(IModelFormContext context)
+    private void ToggleVisibility(IModelFormContext context)
     {
         context.SetVisible<LanguageTrainingApplication>(p => p.Language_Training_Since_LETP_Assessment, _languageTrainingApplication.Completed_LETP_Assessment);
         context.SetVisible<LanguageTrainingApplication>(p => p.Language_Training_Provided_By, _languageTrainingApplication.Completed_LETP_Assessment && _languageTrainingApplication.Language_Training_Since_LETP_Assessment);
