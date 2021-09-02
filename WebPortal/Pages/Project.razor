@@ -361,7 +361,7 @@
     {
         projectContext = DbFactoryProject.CreateDbContext();
         etlContext = DbFactoryEtl.CreateDbContext();
-        _user = await UserInformationService.GetCurrentUserAsync();
+        _user = await UserInformationService.GetUserAsync();
         await RefreshComponents(false);
 
         var projectUsers = await projectContext.Project_Users.Where(u => u.User_ID == _user.Id && _project == u.Project).ToListAsync();
