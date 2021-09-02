@@ -29,9 +29,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Metadata.Tests", "D
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.LanguageTraining", "LanguageTraining\Datahub.LanguageTraining.csproj", "{94F1AACD-69F3-4B14-A0B5-9E2676C017C7}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SyncDbUsers", "..\..\Users\nbader\Downloads\SyncProjectDBUsers\SyncProjectDBUsers\source\function\SyncDbUsers.csproj", "{1850C180-B0CC-4DE6-A52F-3A58E03EB6E1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SyncDbUsers", "Datahub.Functions\SyncDbUsers.csproj", "{AEB7AF13-E06C-4650-ADBD-5EF1BD5F645B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SyncDBUsersConsole", "..\..\Users\nbader\Downloads\SyncProjectDBUsers\SyncProjectDBUsers\source\console\SyncDBUsersConsole.csproj", "{315F0199-060C-470C-A388-65E479D4FBCC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SyncDBUsersConsole", "Datahub.FunctionConsole\SyncDBUsersConsole.csproj", "{FA17FE2D-2E5E-4992-92E0-A3F7B7E295DE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -67,21 +67,21 @@ Global
 		{94F1AACD-69F3-4B14-A0B5-9E2676C017C7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{94F1AACD-69F3-4B14-A0B5-9E2676C017C7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{94F1AACD-69F3-4B14-A0B5-9E2676C017C7}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1850C180-B0CC-4DE6-A52F-3A58E03EB6E1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1850C180-B0CC-4DE6-A52F-3A58E03EB6E1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1850C180-B0CC-4DE6-A52F-3A58E03EB6E1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1850C180-B0CC-4DE6-A52F-3A58E03EB6E1}.Release|Any CPU.Build.0 = Release|Any CPU
-		{315F0199-060C-470C-A388-65E479D4FBCC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{315F0199-060C-470C-A388-65E479D4FBCC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{315F0199-060C-470C-A388-65E479D4FBCC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{315F0199-060C-470C-A388-65E479D4FBCC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AEB7AF13-E06C-4650-ADBD-5EF1BD5F645B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AEB7AF13-E06C-4650-ADBD-5EF1BD5F645B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AEB7AF13-E06C-4650-ADBD-5EF1BD5F645B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AEB7AF13-E06C-4650-ADBD-5EF1BD5F645B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FA17FE2D-2E5E-4992-92E0-A3F7B7E295DE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FA17FE2D-2E5E-4992-92E0-A3F7B7E295DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FA17FE2D-2E5E-4992-92E0-A3F7B7E295DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FA17FE2D-2E5E-4992-92E0-A3F7B7E295DE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {9DC4B901-16FF-4FF2-9ED6-B286EA17048E}
-		RESX_AutoCreateNewLanguageFiles = True
 		RESX_ConfirmAddLanguageFile = True
+		RESX_AutoCreateNewLanguageFiles = True
+		SolutionGuid = {9DC4B901-16FF-4FF2-9ED6-B286EA17048E}
 	EndGlobalSection
 EndGlobal
