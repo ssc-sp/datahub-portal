@@ -21,7 +21,7 @@ else
          Dataset="Metadata.DataSet.ToList()"
          ColorAccessor="getColor"
          Headers="Metadata.Headers.ToList()"
-         GridTemplateColumns="4fr 8fr"
+         GridTemplateColumns="4fr 4fr 4fr 4fr"
          MaxHeight="400"
          OnRowClick="@SetFormEdit" 
          Page="@_lastClicked"
@@ -60,7 +60,8 @@ else
                  OnChange="OnChange"
                  LabelForPropertyFunc="@GetDataLabel"
                  LabelsOnTop="true"
-                 LocalizerFunction="@GetDataLabel"/>
+                 LocalizerFunction="@GetDataLabel"
+                 IsSubmitEnabled="Metadata.IsSubmitEnabled" />
     </AeCard>
 
     @if (Metadata.MarkDownContentFooter.Any())
