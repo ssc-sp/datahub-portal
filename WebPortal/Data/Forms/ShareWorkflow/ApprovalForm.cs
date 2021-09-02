@@ -10,6 +10,40 @@ namespace NRCan.Datahub.Portal.Data.Forms.ShareWorkflow
         [AeFormIgnore]
         public int ApprovalFormId { get; set; }
 
+        /** Section: Business Partner **/
+        [StringLength(32)]
+        public string Department_NAME { get; set; }
+
+        /** Section: Business Partner **/
+        [StringLength(32)]
+        public string Sector_NAME { get; set; }
+
+        /** Section: Business Partner **/
+        [StringLength(32)]
+        public string Branch_NAME { get; set; }
+
+        /** Section: Business Partner **/
+        [StringLength(32)]
+        public string Division_NAME { get; set; }
+
+        /** Section: Business Partner **/
+        [StringLength(32)]
+        public string Section_NAME { get; set; }
+
+        /** Section: Business Partner **/
+        [StringLength(200)]
+        [Required]
+        public string Name_NAME { get; set; }
+
+        /** Section: Business Partner **/
+        [StringLength(32)]
+        public string Phone_TXT { get; set; }
+
+        /** Section: Business Partner **/
+        [StringLength(200)]
+        [Required]
+        public string Email_EMAIL { get; set; }
+
         /** Section: Source Information **/
         [Required]
         [MaxLength(256)]

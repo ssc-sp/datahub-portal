@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using NRCan.Datahub.Metadata.Model;
 using System.Threading.Tasks;
 using System.Linq;
@@ -8,18 +7,19 @@ using System;
 using NRCan.Datahub.Metadata.DTO;
 using ShareWorkflow = NRCan.Datahub.Portal.Data.Forms.ShareWorkflow;
 using NRCan.Datahub.Shared.Utils;
+using NRCan.Datahub.Shared.Services;
 
 namespace NRCan.Datahub.Portal.Services
 {
     public class MetadataBrokerService : IMetadataBrokerService
     {
-        readonly ILogger<MetadataBrokerService> _logger;
         readonly IDbContextFactory<MetadataDbContext> _contextFactory;
+        readonly IDatahubAuditingService _auditingService;
 
-        public MetadataBrokerService(IDbContextFactory<MetadataDbContext> contextFactory, ILogger<MetadataBrokerService> logger)
+        public MetadataBrokerService(IDbContextFactory<MetadataDbContext> contextFactory, IDatahubAuditingService auditingService)
         {
-            _logger = logger;
             _contextFactory = contextFactory;
+            _auditingService = auditingService;
         }
 
         public async Task<ObjectMetadataContext> GetMetadataContext(string objectId)
@@ -47,6 +47,8 @@ namespace NRCan.Datahub.Portal.Services
             var transation = ctx.Database.BeginTransaction();
             try
             {
+                await _auditingService.TrackDataEvent(objectId, "Metadata", AuditChangeType.Edit);
+
                 // fetch the existing metadata object or create a new one
                 var current = await FetchObjectMetadata(ctx, objectId) ?? await CreateNewObjectMetadata(ctx, objectId, metadataVersionId);
                 
