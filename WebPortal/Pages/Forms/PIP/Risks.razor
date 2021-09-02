@@ -111,7 +111,7 @@
     protected override async Task OnInitializedAsync()
     {
         Context = DbFactory.CreateDbContext();
-        CurrentUser = await UserInformationService.GetCurrentUserAsync();
+        CurrentUser = await UserInformationService.GetUserAsync();
         // load projects
         _tombstones = Context.Tombstones.Where(p => p.Tombstone_ID == Convert.ToInt32(tombstone)).ToList();
         _tombstone = _tombstones[0];
