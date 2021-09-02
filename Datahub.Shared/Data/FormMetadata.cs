@@ -23,6 +23,8 @@ namespace NRCan.Datahub.Shared.Data
 
         public IList<string> MarkDownContentFooter { get; set; }
 
+        public bool IsSubmitEnabled { get; set; }
+
 
     }
 }
