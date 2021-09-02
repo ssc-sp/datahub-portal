@@ -4416,6 +4416,37 @@ body {
   right: 1rem;
 }
 
+.facardForms {
+  width: 98%;
+  background-color: #edf2f7;
+  margin: 0.25rem;
+}
+.facardForms:hover {
+  background-color: #cbd5e0;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.09), 0 6px 6px rgba(0, 0, 0, 0.13);
+}
+.facardForms h3 {
+  margin-top: 0;
+  color: #000;
+}
+.facardForms .ae.icon {
+  color: #a0aec0;
+}
+.facardForms .ae.typography {
+  color: #2d3748;
+}
+.facardForms .big-icon {
+  font-size: 2.5rem;
+  align-self: center;
+  margin: 0 1.5rem 0 0.25rem;
+}
+.facardForms .top-right {
+  font-size: 1.5rem;
+  position: absolute;
+  top: 0.5rem;
+  right: 1rem;
+}
+
 /** Transparent **/
 /** Black **/
 /** White **/
