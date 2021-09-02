@@ -170,7 +170,7 @@ namespace NRCan.Datahub.Shared.Services
 
                 foreach (var admin in adminsFromProjectUsersTable)
                 {
-                    if (allProjectAdmins.ContainsKey(admin.Project.Project_Acronym_CD))
+                    if (allProjectAdmins.ContainsKey(admin.Project?.Project_Acronym_CD))
                     {
                         allProjectAdmins[admin.Project.Project_Acronym_CD].Add(admin.User_ID);
                     }
