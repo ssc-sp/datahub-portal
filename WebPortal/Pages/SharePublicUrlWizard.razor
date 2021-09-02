@@ -2,16 +2,16 @@
 @inject NavigationManager NavManager
 @inject IPublicDataFileService PublicFileService
 
-<h1>@Localizer["Share Public URL"]</h1>
+<h1>@Localizer["PUBLIC-URL-WIZARD.Page_Title"]</h1>
 
 <AeFlex>
     <ChildContent>
         <AeCard style="margin-left: 2rem; width: 48%">
             <ChildContent>
-                <AeTypography Variant="h2">Metadata</AeTypography>
+                <AeTypography Variant="h2">@Localizer["PUBLIC-URL-WIZARD.Metadata"]</AeTypography>
                 <ObjectMetadataEditor ObjectId=@FileId @ref=@_metadataEditor ></ObjectMetadataEditor>
                 <AeFlex>
-                    <AeButton OnClickEvent=@SaveMetadata Disabled=@savingData >@Localizer["Save"]</AeButton>
+                    <AeButton OnClickEvent=@SaveMetadata Disabled=@savingData >@Localizer["PUBLIC-URL-WIZARD.Save_button"]</AeButton>
                     <div>
                         @if(savingData)
                         {
@@ -34,9 +34,9 @@
             @if(ShowSubmitApproval)
             {
                 <AeCard>
-                    <AeTypography Variant="h3">@Localizer["Submit for Approval"]</AeTypography>
+                    <AeTypography Variant="h3">@Localizer["PUBLIC-URL-WIZARD.SubmitForApproval"]</AeTypography>
                     <AeFlex>
-                        <AeButton OnClickEvent=@SubmitForApproval Disabled=@savingData>@Localizer["Submit"]</AeButton>
+                        <AeButton OnClickEvent=@SubmitForApproval Disabled=@savingData>@Localizer["BUTTONS.Submit"]</AeButton>
                         @if(savingData)
                         {
                             <Spinner Small=@true/>
@@ -49,8 +49,8 @@
             @if(ShowSkipMetadata)
             {
                 <AeCard>
-                    <AeTypography Variant="h3">@Localizer["Accept Metadata As-is"]</AeTypography>
-                    <AeButton OnClickEvent=@AcceptMetadata Disabled=@savingData>@Localizer["Continue"]</AeButton>
+                    <AeTypography Variant="h3">@Localizer["PUBLIC-URL-WIZARD.AcceptMetadata"]</AeTypography>
+                    <AeButton OnClickEvent=@AcceptMetadata Disabled=@savingData>@Localizer["PUBLIC-URL-WIZARD.Continue_button"]</AeButton>
                     <div>&nbsp;</div>
                 </AeCard>
             }
@@ -58,7 +58,7 @@
             @if(ShowPublicationDate)
             {
                 <AeCard>
-                    <AeTypography Variant="h3">@Localizer["Publication Date"]</AeTypography>
+                    <AeTypography Variant="h3">@Localizer["PUBLIC-URL-WIZARD.PublicationDate"]</AeTypography>
                     <p>@PublicationDateStr</p>
                 </AeCard>
             }
@@ -66,7 +66,7 @@
             @if(ShowPublicUrl)
             {
                 <AeCard>
-                    <AeTypography Variant="h3">@Localizer["Public URL"]</AeTypography>
+                    <AeTypography Variant="h3">@Localizer["PUBLIC-URL-WIZARD.PublicUrl"]</AeTypography>
                     <p><a href=@PublicUrl target="_blank">@PublicUrl</a></p>
                 </AeCard>
             }
@@ -188,16 +188,25 @@
             NavManager.NavigateTo("/");
         }
 
-        var loadTask = PublicFileService.LoadPublicDataFileInfo(fileIdGuid);
+        var loadTask = PublicFileService.LoadPublicUrlSharedFileInfo(fileIdGuid);
 
-        _stepInfo = new Dictionary<PubUrlSteps, (string, string)?>()
+        _stepInfo = new();
+        foreach(var step in steps)
+        {
+            var stepName = step.ToString();
+            var keys = ($"PUBLIC-URL-WIZARD.{stepName}.Title", $"PUBLIC-URL-WIZARD.{stepName}.Description");
+            _stepInfo.Add(step, (Localizer[keys.Item1], Localizer[keys.Item2]));
+        }
+
+
+        @* _stepInfo = new Dictionary<PubUrlSteps, (string, string)?>()
             {
                 { PubUrlSteps.EnterMetadata, (Localizer["Enter Metadata"], Localizer["Fill in the required metadata to share this data file, and optionally any additional metadata."])},
                 { PubUrlSteps.RequestApproval, (Localizer["Request Approval"], Localizer["Submit the request for approval."])},
                 { PubUrlSteps.PendingApproval, (Localizer["Pending Approval"], Localizer["The request has been submitted for approval. Once the request is approved, the file will be publicly accessible after the publication date."])},
                 { PubUrlSteps.PendingPublication, (Localizer["Pending Publication"], Localizer["The request has been approved, but the publication date has not yet been reached."])},
                 { PubUrlSteps.AccessPublicUrl, (Localizer["Access Public URL"], Localizer["The file is now publicly accessible."])},
-            };
+            }; *@
 
         var sharedFileInfo = await loadTask;
 
