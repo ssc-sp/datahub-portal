@@ -30,17 +30,20 @@
         // load projects
         Context = DbFactory.CreateDbContext();
         var user = await UserInformationService.GetUserAsync();
-        _languageTrainingApplications = Context.LanguageTrainingApplications.ToList().Where(r => r.Email_Address_EMAIL.ToLower() == user.Mail.ToLower()).ToList();
+        _languageTrainingApplications = Context.LanguageTrainingApplications.ToList().Where(r => (r.Email_Address_EMAIL.ToLower() == user.Mail.ToLower()) ||(r.Delegated_Manager_Email.ToLower() == user.Mail.ToLower()) ).ToList();
 
         _formMetadata.Header = "NRCan Language Training Application Form";
         
         _formMetadata.DataSet = _languageTrainingApplications;
         _formMetadata.AccessorFunctions = accessorFunctions;
         _formMetadata.Headers = headers;
-        _formMetadata.GridTemplateColumns = "4fr 8fr";
+        _formMetadata.GridTemplateColumns = "4fr 4fr 4fr 4fr";
 
-        _formMetadata.MarkDownContent = File.ReadAllLines(@"Pages\Forms\LanguageTraining\FormIntro.md").ToList();
-        _formMetadata.MarkDownContentFooter = File.ReadAllLines(@"Pages\Forms\LanguageTraining\FormFooter.md").ToList();
+        var isFrench = CultureInfo.CurrentCulture.Name.StartsWith("fr", StringComparison.InvariantCulture);
+        var introfile = isFrench ? "FormIntroFr.md" : "FormIntro.md";
+        var footerfile = isFrench ? "FormFooterFr.md" : "FormFooter.md";
+        _formMetadata.MarkDownContent = File.ReadAllLines($@"Pages\Forms\LanguageTraining\{introfile}").ToList();
+        _formMetadata.MarkDownContentFooter = File.ReadAllLines($@"Pages\Forms\LanguageTraining\{footerfile}").ToList();
         
     }
 
@@ -48,11 +51,13 @@
     {
         new Func<LanguageTrainingApplication, string>(p => { return p.NRCan_Username; }),
         new Func<LanguageTrainingApplication, string>(p => { return p.Sector_Branch; }),
+        new Func<LanguageTrainingApplication, string>(p => { return (p.Delegate_Manager_First_Name + " " + p.Delegated_Manager_Last_Name); }),
+        new Func<LanguageTrainingApplication, string>(p => { return p.I_am_seeking; }),
     };
 
     private List<string> headers = new List<string>
     {
-        "User","Sector"
+        "User","Sector","Manager", "Request"
     };
 
     private async Task HandleValidSubmit()
