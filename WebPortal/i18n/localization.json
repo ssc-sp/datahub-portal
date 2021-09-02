@@ -450,6 +450,14 @@
     "Collection_Of_Datasets_FLAG": "Blanket Approval - Represents a collection of datasets or data products with a consistently applied specification or model.",
     "Approval_InSitu_FLAG": "Blanket Approval - Represents a series of observation data, such as data collected from in-situ sensors.",
     "Approval_Other_TXT": "Blanket Approval - Other, please state:",
+    "Department_NAME": "Department",
+    "Sector_NAME": "Sector",
+    "Branch_NAME": "Branch",
+    "Division_NAME": "Division",
+    "Section_NAME": "Section",
+    "Name_NAME": "Name",
+    "Phone_TXT": "Phone",
+    "Email_EMAIL": "Email",
     "Approval_YES_TXT": "Yes",
     "Approval_NO_TXT": "No",
     "Cancel": "Clear",
@@ -461,6 +469,78 @@
     "ShowLess": "Hide optional fields"
   },
 
+  "OPENDATA-WIZARD": {
+    "Page_Title": "Share on Open Data",
+    "Metadata": "Metadata",
+    "Edit_button": "Edit",
+    "Save_button": "Save",
+    "GeneratePDF_button": "Generate PDF",
+    "AmendApprovalForm_button": "Amend approval form",
+    "Continue_button": "Continue",
+    "AcceptMetadata": "Accept Metadata As-is",
+    "PublicationDate": "Publication Date",
+    "PublicUrl": "Public URL",
+    "SubmitSignedPdf": "Submit signed PDF document",
+    "EnterGcDocsUrl": "Enter GCDocs URL",
+    "Approval_filled_out": "Approval form has been filled out.",
+    "EnterMetadata": {
+      "Description": "Fill in the required metadata to share this data file, and optionally any additional metadata.",
+      "Title": "Enter Metadata"
+    },
+    "OpenGovApprovalForm": {
+      "Description": "Complete the online form and request a digital signature from the Director General.",
+      "Title": "Open Government Approval Form"
+    },
+    "SubmitSignedPDF": {
+      "Description": "Upload the signed PDF to GCDocs and paste the link in Datahub.",
+      "Title": "Submit Signed PDF"
+    },
+    "PendingApproval": {
+      "Description": "The request has been submitted for approval. Once the request is approved, the file will be uploaded to Open Data.",
+      "Title": "Pending Approval"
+    },
+    "PendingPublication": {
+      "Description": "The request has been approved, but the publication date has not yet been reached.",
+      "Title": "Pending Publication"
+    },
+    "AccessOpenData": {
+      "Description": "The data is now available in the Open Data Portal.",
+      "Title": "Access Open Data Record"
+    }
+  },
+  
+  "PUBLIC-URL-WIZARD": {
+    "Page_Title": "Share Public URL",
+    "Metadata": "Metadata",
+    "SubmitForApproval": "Submit for Approval",
+    "AcceptMetadata": "Accept Metadata As-is",
+    "PublicationDate": "Publication Date",
+    "PublicUrl": "Public URL",
+    "Save_button": "Save",
+    "Continue_button": "Continue",
+    "AccessPublicUrl": {
+      "Description": "The file is now publicly accessible.",
+      "Title": "Access Public URL"
+    },
+    "EnterMetadata": {
+      "Description": "Fill in the required metadata to share this data file, and optionally any additional metadata.",
+      "Title": "Enter Metadata"
+    },
+    "RequestApproval": {
+      "Description": "Submit the request for approval.",
+      "Title": "Request Approval"
+    },
+    "PendingPublication": {
+      "Description": "The request has been approved, but the publication date has not yet been reached.",
+      "Title": "Pending Publication"
+    },
+    "PendingApproval": {
+      "Description": "The request has been submitted for approval. Once the request is approved, the file will be publicly accessible after the publication date.",
+      "Title": "Pending Approval"
+    }
+  },
+  
+  
   "Project_Cost": "Cost",
   "Project_Cost_NotFound": "No cost data found.",
   "Project_Cost_Template": "As of {0}, total resource cost is {1} for the period from {2} to {3}.",
