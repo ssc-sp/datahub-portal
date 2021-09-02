@@ -4,10 +4,15 @@
 @inherits HtmlElement
 @using System.Reflection
 
-
-<h1>@Metadata.Header</h1>
-<h2>@Metadata.SubHeader</h2>
-
+@if(Metadata is null)
+{
+    <Spinner></Spinner>
+}
+else
+    {
+<AeCard class="facardForms" CardPosition="AeCard.CardStyle.Horizontal">
+<AeTypography Variant="h3">@Metadata.Header</AeTypography>
+</AeCard>
 
 <AeCard class="facardForms" CardPosition="AeCard.CardStyle.Horizontal">
 <AePaginatedTable 
@@ -35,10 +40,10 @@
 
 @if (SelectedRecord != null)
 {
-    @if (MarkDownContent.Any())
+    @if (Metadata.MarkDownContent.Any())
     {
         <AeCard class="facardForms" CardPosition="AeCard.CardStyle.Horizontal">
-            @foreach (var content in MarkDownContent)
+            @foreach (var content in Metadata.MarkDownContent)
             {
                 <AeMarkdown Content="@($"{content}")"></AeMarkdown>
             }
@@ -58,8 +63,18 @@
                  LocalizerFunction="@GetDataLabel"/>
     </AeCard>
 
-}
+    @if (Metadata.MarkDownContentFooter.Any())
+    {
+        <AeCard class="facardForms" CardPosition="AeCard.CardStyle.Horizontal">
+            @foreach (var content in Metadata.MarkDownContentFooter)
+            {
+                <AeMarkdown Content="@($"{content}")"></AeMarkdown>
+            }
+        </AeCard>
+    }
 
+}
+}
 @code {
 
     [Parameter]
@@ -76,8 +91,7 @@
     public T SelectedRecord { get; set; }
     [Parameter]
     public EventCallback<T> SetFormEditRecord { get; set; }
-    [Parameter]
-    public List<string> MarkDownContent { get; set; }
+    
 
     private int _lastClicked = 0;
     private IPageableComponent _myTable;

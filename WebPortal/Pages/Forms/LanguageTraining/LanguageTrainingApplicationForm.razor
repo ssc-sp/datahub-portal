@@ -1,7 +1,7 @@
 ﻿@inject IStringLocalizer DataLocalizer
 @implements IDisposable
 @inject IDbContextFactory<LanguageTrainingDBContext> DbFactory
-
+@inject IUserInformationService UserInformationService
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JsInterop
 @page "/languagetraining/applications"
@@ -14,8 +14,7 @@
         OnConfigureForms="OnConfigure"
         CreateNewRecord="CreateNewApplication"
         SelectedRecord="@_languageTrainingApplication"
-        SetFormEditRecord="SetFormEdit"
-        MarkDownContent="@MarkDownContent" />
+        SetFormEditRecord="SetFormEdit" />
 
 @code {
 
@@ -30,17 +29,18 @@
     {
         // load projects
         Context = DbFactory.CreateDbContext();
+        var user = await UserInformationService.GetUserAsync();
+        _languageTrainingApplications = Context.LanguageTrainingApplications.ToList().Where(r => r.Email_Address_EMAIL.ToLower() == user.Mail.ToLower()).ToList();
 
-        _languageTrainingApplications = Context.LanguageTrainingApplications.ToList();
-
-        _formMetadata.Header = "Language Training Forms";
-        _formMetadata.SubHeader = "Step 1: Select/Enter Sector and Branch Information";
+        _formMetadata.Header = "NRCan Language Training Application Form";
+        
         _formMetadata.DataSet = _languageTrainingApplications;
         _formMetadata.AccessorFunctions = accessorFunctions;
         _formMetadata.Headers = headers;
         _formMetadata.GridTemplateColumns = "4fr 8fr";
 
-        MarkDownContent = File.ReadAllLines(@"Pages\Forms\LanguageTraining\FormIntro.md").ToList();
+        _formMetadata.MarkDownContent = File.ReadAllLines(@"Pages\Forms\LanguageTraining\FormIntro.md").ToList();
+        _formMetadata.MarkDownContentFooter = File.ReadAllLines(@"Pages\Forms\LanguageTraining\FormFooter.md").ToList();
         
     }
 
@@ -119,6 +119,7 @@
         context.SetVisible<LanguageTrainingApplication>(p => p.Manager_First_Name, _languageTrainingApplication.Completed_LETP_Assessment);
         context.SetVisible<LanguageTrainingApplication>(p => p.Manager_Last_Name, _languageTrainingApplication.Completed_LETP_Assessment);
         context.SetVisible<LanguageTrainingApplication>(p => p.Manager_Email_Address, _languageTrainingApplication.Completed_LETP_Assessment);
+        context.SetVisible<LanguageTrainingApplication>(p => p.Decision, _languageTrainingApplication.Completed_LETP_Assessment);
         context.SetVisible<LanguageTrainingApplication>(p => p.Employee_Appointed_NonImperative_Basis, _languageTrainingApplication.Completed_LETP_Assessment);
         context.SetVisible<LanguageTrainingApplication>(p => p.Employee_equity_group, _languageTrainingApplication.Completed_LETP_Assessment);
         context.SetVisible<LanguageTrainingApplication>(p => p.Employee_language_profile_raised, _languageTrainingApplication.Completed_LETP_Assessment);
@@ -136,6 +137,11 @@
     private async Task CreateNewApplication()
     {
         _languageTrainingApplication = new LanguageTrainingApplication() { Last_Updated_DT = DateTime.Now };
+        var user = await UserInformationService.GetUserAsync();
+        _languageTrainingApplication.Email_Address_EMAIL = user.Mail;
+        _languageTrainingApplication.First_Name = user.GivenName;
+        _languageTrainingApplication.Last_Name = user.Surname;
+
         StateHasChanged();
     }
 
