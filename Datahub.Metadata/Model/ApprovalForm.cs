@@ -1,8 +1,28 @@
-﻿namespace NRCan.Datahub.Metadata.Model
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace NRCan.Datahub.Metadata.Model
 {
     public class ApprovalForm
     {
         public int ApprovalFormId { get; set; }
+        [StringLength(32)]
+        public string Department_NAME { get; set; }
+        [StringLength(32)]
+        public string Sector_NAME { get; set; }
+        [StringLength(32)]
+        public string Branch_NAME { get; set; }
+        [StringLength(32)]
+        public string Division_NAME { get; set; }
+        [StringLength(32)]
+        public string Section_NAME { get; set; }
+        [StringLength(200)]
+        [Required]
+        public string Name_NAME { get; set; }
+        [StringLength(32)]
+        public string Phone_TXT { get; set; }
+        [StringLength(200)]
+        [Required]
+        public string Email_EMAIL { get; set; }
         public string Dataset_Title_TXT { get; set; }
         public string Type_Of_Data_TXT { get; set; }
         public bool Copyright_Restrictions_FLAG { get; set; }
