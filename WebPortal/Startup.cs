@@ -49,6 +49,7 @@ using Polly.Extensions.Http;
 using NRCan.Datahub.Metadata.Model;
 using Microsoft.Extensions.Logging;
 using NRCan.Datahub.Shared.RoleManagement;
+using NRCan.Datahub.Shared;
 using NRCan.Datahub.Portal.Data.LanguageTraining;
 
 namespace NRCan.Datahub.Portal
@@ -105,7 +106,7 @@ namespace NRCan.Datahub.Portal
             services.AddRazorPages();
             services.AddServerSideBlazor().AddCircuitOptions(o =>
             {
-                o.DetailedErrors = true;
+                o.DetailedErrors = true; // todo: to make it 'true' only in development
             }).AddHubOptions(o =>
             {
                 o.MaximumReceiveMessageSize = 10 * 1024 * 1024; // 10MB
@@ -351,6 +352,7 @@ namespace NRCan.Datahub.Portal
             services.AddHttpClient<IExternalSearchService, ExternalSearchService>();
 
             services.AddScoped<IMetadataBrokerService, MetadataBrokerService>();
+            services.AddScoped<IDatahubAuditingService, DatahubTelemetryAuditingService>();
 
             services.AddScoped<DataImportingService>();
             services.AddSingleton<DatahubTools>();

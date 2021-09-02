@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -26,7 +28,7 @@ namespace NRCan.Datahub.Portal.Services
             _logger = logger;
         }
 
-        public async Task CreateFileShareRequest(FileMetaData fileMetaData, string projectCode, User requestingUser)
+        public async Task CreateDataSharingRequest(FileMetaData fileMetaData, string projectCode, User requestingUser, bool openDataRequest = false)
         {
             if (fileMetaData == null || requestingUser == null) 
             {
@@ -48,25 +50,44 @@ namespace NRCan.Datahub.Portal.Services
                 return;
             }
 
-            var shareRequest = new PublicDataFile()
+            if (openDataRequest)
             {
-                File_ID = fileId,
-                Filename_TXT = fileMetaData.filename,
-                FolderPath_TXT = fileMetaData.folderpath,
-                ProjectCode_CD = projectCode?.ToLowerInvariant(),
-                RequestingUser_ID = requestingUser.Id,
-                RequestedDate_DT = DateTime.UtcNow
-            };
+                var shareRequest = new OpenDataSharedFile
+                {
+                    IsOpenDataRequest_FLAG = true,
+                    File_ID = fileId,
+                    Filename_TXT = fileMetaData.filename,
+                    FolderPath_TXT = fileMetaData.folderpath,
+                    ProjectCode_CD = projectCode?.ToLowerInvariant(),
+                    RequestingUser_ID = requestingUser.Id,
+                    RequestedDate_DT = DateTime.UtcNow
+                };
 
-            var dbResult = await _projectDbContext.PublicDataFiles.AddAsync(shareRequest);
+                var dbResult = await _projectDbContext.OpenDataSharedFiles.AddAsync(shareRequest);
+            }
+            else 
+            {
+                var shareRequest = new SharedDataFile()
+                {
+                    File_ID = fileId,
+                    Filename_TXT = fileMetaData.filename,
+                    FolderPath_TXT = fileMetaData.folderpath,
+                    ProjectCode_CD = projectCode?.ToLowerInvariant(),
+                    RequestingUser_ID = requestingUser.Id,
+                    RequestedDate_DT = DateTime.UtcNow
+                };
+
+                var dbResult = await _projectDbContext.SharedDataFiles.AddAsync(shareRequest);
+            }
+
             var numSaved = await _projectDbContext.SaveChangesAsync();
 
             _logger.LogInformation($"Wrote file share record for {fileId} - {numSaved} records written to database");
         }
 
-        public async Task<Uri> DownloadSharedFile(Guid fileId)
+        public async Task<Uri> DownloadPublicUrlSharedFile(Guid fileId)
         {
-            var publicFile = await LoadPublicDataFileInfo(fileId);
+            var publicFile = await LoadPublicUrlSharedFileInfo(fileId);
             
             if (publicFile == null) 
             {
@@ -74,12 +95,25 @@ namespace NRCan.Datahub.Portal.Services
                 //TODO an exception instead of returning null
                 return await Task.FromResult<Uri>(null);
             }
-            else if (!publicFile.ApprovedDate_DT.HasValue)
+
+            if (!publicFile.ApprovedDate_DT.HasValue || publicFile.ApprovedDate_DT > DateTime.UtcNow)
             {
                 _logger.LogError($"File not approved for public: {fileId}");
                 return await Task.FromResult<Uri>(null);
             }
 
+            if (!publicFile.PublicationDate_DT.HasValue || publicFile.PublicationDate_DT > DateTime.UtcNow)
+            {
+                _logger.LogError($"File {fileId} is not yet published (publication: {publicFile.PublicationDate_DT?.ToShortDateString()})");
+                return await Task.FromResult<Uri>(null);
+            }
+
+            return await DoDownloadFile(publicFile);
+
+        }
+
+        public async Task<Uri> DoDownloadFile(SharedDataFile publicFile)
+        {
             var fileMetadata = new FileMetaData()
             {
                 filename = publicFile.Filename_TXT,
@@ -97,14 +131,38 @@ namespace NRCan.Datahub.Portal.Services
             }
         }
 
-        public async Task<PublicDataFile> LoadPublicDataFileInfo(Guid fileId)
+        private System.Linq.Expressions.Expression<Func<SharedDataFile, bool>> GenerateSharingRequestCondition(string projectCode)
         {
-            return await _projectDbContext.PublicDataFiles.FirstOrDefaultAsync(e => e.File_ID == fileId);
+            return f => f.ProjectCode_CD != null && f.ProjectCode_CD.ToLower() == projectCode.ToLower() 
+                && f.SubmittedDate_DT.HasValue 
+                && !f.ApprovedDate_DT.HasValue;
+        } 
+
+        public async Task<List<SharedDataFile>> GetProjectSharingRequests(string projectCode)
+        {
+            return await _projectDbContext.SharedDataFiles
+                .Where(GenerateSharingRequestCondition(projectCode))
+                .ToListAsync();
+        }
+
+        public async Task<int> GetDataSharingRequestCount(string projectCode)
+        {
+            return await _projectDbContext.SharedDataFiles
+                .CountAsync(GenerateSharingRequestCondition(projectCode));
+        }
+
+        public async Task<SharedDataFile> LoadPublicUrlSharedFileInfo(Guid fileId)
+        {
+            return await _projectDbContext.SharedDataFiles.FirstOrDefaultAsync(e => e.File_ID == fileId);
+        }
+        public async Task<OpenDataSharedFile> LoadOpenDataSharedFileInfo(Guid fileId)
+        {
+            return await _projectDbContext.OpenDataSharedFiles.FirstOrDefaultAsync(e => e.File_ID == fileId);
         }
 
         public async Task<bool> SubmitPublicUrlShareForApproval(Guid fileId)
         {
-            var submission = await LoadPublicDataFileInfo(fileId);
+            var submission = await LoadPublicUrlSharedFileInfo(fileId);
             if (submission != null)
             {
                 submission.SubmittedDate_DT = DateTime.UtcNow;
@@ -121,6 +179,43 @@ namespace NRCan.Datahub.Portal.Services
             {
                 return false;
             }
+        }
+
+        public async Task ApprovePublicUrlShare(Guid fileId, DateTime? publicationDate = null)
+        {
+            var shareInfo = await LoadPublicUrlSharedFileInfo(fileId);
+            
+            shareInfo.ApprovedDate_DT = DateTime.UtcNow;
+            shareInfo.PublicationDate_DT = publicationDate ?? shareInfo.ApprovedDate_DT;
+
+            await _projectDbContext.SaveChangesAsync();
+        }
+
+        public async Task DenyPublicUrlShare(Guid fileId)
+        {
+            var shareInfo = await LoadPublicUrlSharedFileInfo(fileId);
+            _projectDbContext.SharedDataFiles.Remove(shareInfo);
+            // _projectDbContext.PublicDataFiles.Remove(shareInfo);
+            await _projectDbContext.SaveChangesAsync();
+        }
+
+        public async Task UpdateOpenDataApprovalFormId(Guid fileId, int approvalFormId)
+        {
+            var shareInfo = await LoadOpenDataSharedFileInfo(fileId);
+
+            shareInfo.ApprovalForm_ID = approvalFormId;
+
+            await _projectDbContext.SaveChangesAsync();
+        }
+
+        public async Task UpdateOpenDataSignedApprovalFormUrl(Guid fileId, string url)
+        {
+            var shareInfo = await LoadOpenDataSharedFileInfo(fileId);
+
+            shareInfo.SignedApprovalForm_URL = url;
+            shareInfo.SubmittedDate_DT = DateTime.UtcNow;
+
+            await _projectDbContext.SaveChangesAsync();
         }
     }
 }
