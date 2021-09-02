@@ -18,7 +18,7 @@
 
 @code {
 
-    private FormMetadata<LanguageTrainingApplication> _formMetadata = new();
+    private FormMetadata<LanguageTrainingApplication> _formMetadata;
     private bool _onchange;
     private List<LanguageTrainingApplication> _languageTrainingApplications;
     private LanguageTrainingApplication _languageTrainingApplication;
@@ -31,7 +31,7 @@
         Context = DbFactory.CreateDbContext();
         var user = await UserInformationService.GetUserAsync();
         _languageTrainingApplications = Context.LanguageTrainingApplications.ToList().Where(r => (r.Email_Address_EMAIL.ToLower() == user.Mail.ToLower()) ||(r.Delegated_Manager_Email.ToLower() == user.Mail.ToLower()) ).ToList();
-
+        _formMetadata = new();
         _formMetadata.Header = "NRCan Language Training Application Form";
         
         _formMetadata.DataSet = _languageTrainingApplications;
