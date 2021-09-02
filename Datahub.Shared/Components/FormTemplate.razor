@@ -1,0 +1,140 @@
+﻿@inject IStringLocalizer DataLocalizer
+@using NRCan.Datahub.Shared.Data
+@typeparam T
+@inherits HtmlElement
+@using System.Reflection
+
+@if(Metadata is null)
+{
+    <Spinner></Spinner>
+}
+else
+    {
+<AeCard class="facardForms" CardPosition="AeCard.CardStyle.Horizontal">
+<AeTypography Variant="h3">@Metadata.Header</AeTypography>
+</AeCard>
+
+<AeCard class="facardForms" CardPosition="AeCard.CardStyle.Horizontal">
+<AePaginatedTable 
+         T="@T"
+         Accessors="Metadata.AccessorFunctions.ToList()"
+         Dataset="Metadata.DataSet.ToList()"
+         ColorAccessor="getColor"
+         Headers="Metadata.Headers.ToList()"
+         GridTemplateColumns="4fr 4fr 4fr 4fr"
+         MaxHeight="400"
+         OnRowClick="@SetFormEdit" 
+         Page="@_lastClicked"
+         PageSize="10"
+         @ref=_myTable />
+
+        <AePagination Pageable="@_myTable" OnPageClick="OnPageClick" /> 
+
+        <AeFlex id="buttonBar">
+        <div class="icon-container" style="margin-bottom: 10px; margin-left: 5px;">
+            <FAButton Text="Add New" Icon="far fa-plus-square" onclick="CreateNewRecord" />
+        </div>
+    </AeFlex>
+</AeCard>
+
+
+@if (SelectedRecord != null)
+{
+    @if (Metadata.MarkDownContent.Any())
+    {
+        <AeCard class="facardForms" CardPosition="AeCard.CardStyle.Horizontal">
+            @foreach (var content in Metadata.MarkDownContent)
+            {
+                <AeMarkdown Content="@($"{content}")"></AeMarkdown>
+            }
+        </AeCard>
+    }
+    <AeCard class="facardForms" CardPosition="AeCard.CardStyle.Horizontal">
+    <AeModelForm Model="SelectedRecord"
+                 T="@T"
+                 OnValidSubmit="HandleSubmit"
+                 OnCancel="ClearForm"
+                 OnConfigure="OnConfigure"
+                 CancelLabel="Cancel"
+                 SubmitLabel="Save"
+                 OnChange="OnChange"
+                 LabelForPropertyFunc="@GetDataLabel"
+                 LabelsOnTop="true"
+                 LocalizerFunction="@GetDataLabel"
+                 IsSubmitEnabled="Metadata.IsSubmitEnabled" />
+    </AeCard>
+
+    @if (Metadata.MarkDownContentFooter.Any())
+    {
+        <AeCard class="facardForms" CardPosition="AeCard.CardStyle.Horizontal">
+            @foreach (var content in Metadata.MarkDownContentFooter)
+            {
+                <AeMarkdown Content="@($"{content}")"></AeMarkdown>
+            }
+        </AeCard>
+    }
+
+}
+}
+@code {
+
+    [Parameter]
+    public FormMetadata<T> Metadata { get; set; }
+    [Parameter]
+    public EventCallback HandleSubmit { get; set; }
+    [Parameter]
+    public EventCallback<IModelFormContext> OnConfigureForms { get; set; }
+    [Parameter]
+    public EventCallback<ModelFormChangeArgs> OnChangeForms { get; set; }
+    [Parameter]
+    public EventCallback CreateNewRecord { get; set; }
+    [Parameter]
+    public T SelectedRecord { get; set; }
+    [Parameter]
+    public EventCallback<T> SetFormEditRecord { get; set; }
+    
+
+    private int _lastClicked = 0;
+    private IPageableComponent _myTable;
+
+    private void OnPageClick(int pageIndex)
+    {
+        _lastClicked = pageIndex;
+    }
+
+    private async Task SetFormEdit(T selectedRecord)
+    {
+
+        await SetFormEditRecord.InvokeAsync(selectedRecord);
+
+    }
+    
+    private async Task OnConfigure(IModelFormContext context)
+    {        
+        if (context != null)
+        {
+            await OnConfigureForms.InvokeAsync(context);            
+        }        
+    }
+
+    private async Task OnChange(ModelFormChangeArgs args)
+    {        
+        if (args != null)
+        {
+            await OnChangeForms.InvokeAsync(args);            
+        }        
+    }
+
+    private async Task<T> ClearForm()
+    {
+        SelectedRecord = default(T);
+        StateHasChanged();    
+        return default(T);
+    }
+
+    private string GetDataLabel(string propName)
+    {
+        return DataLocalizer[propName];
+    }
+
+}
