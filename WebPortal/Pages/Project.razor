@@ -1,7 +1,7 @@
 ﻿@using Microsoft.EntityFrameworkCore.Query
 @using Microsoft.EntityFrameworkCore;
 @using NRCan.Datahub.Portal.Data
-@inject IStringLocalizer<DataLabels> DataLocalizer
+@inject IStringLocalizer<Project> DataLocalizer
 @inject NavigationManager NavigationManager
 @inject Elemental.Services.UIControlsService UIControlService
 @inject IUserInformationService UserInformationService
@@ -40,9 +40,13 @@
                     }
                 </NotAuthorized>
             </AuthorizeView>
+            <AeTypography>@DataLocalizer["Data Sensitivity"]</AeTypography>
+            @*<AeTypography Variant="h2">@DataLocalizer[_project.Data_Sensitivity]</AeTypography>*@
             <AuthorizeView Roles="@RoleConstants.DATAHUB_ROLE_ADMIN">
                 <Authorized>
-                    <AeToggle class="round" checked="@_project.Is_Featured" @onchange="UpdateFeatured"/> Featured Project
+                    <AeFlex>
+                    <AeTypography><AeCheckbox IsChecked="_project.Is_Featured" CheckedIcon="fad fa-check" IsCheckedChanged="UpdateFeatured"/>Featured Project </AeTypography>
+                    </AeFlex>
                 </Authorized>
             </AuthorizeView>
         </ChildContent>
@@ -341,10 +345,11 @@
 
     private string _projectCostFormatted;
 
-    private async Task UpdateFeatured(ChangeEventArgs args)
+    private async Task UpdateFeatured(bool changed)
     {
-        _project.Is_Featured = (bool)args.Value;
+        _project.Is_Featured = changed;
         await projectContext.SaveChangesAsync();
+        StateHasChanged();
 
     }
 
