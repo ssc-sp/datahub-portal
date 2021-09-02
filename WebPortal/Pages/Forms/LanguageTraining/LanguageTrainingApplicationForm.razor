@@ -38,10 +38,10 @@
         _formMetadata.AccessorFunctions = accessorFunctions;
         _formMetadata.Headers = headers;
         _formMetadata.GridTemplateColumns = "4fr 4fr 4fr 4fr";
-
+        _formMetadata.IsSubmitEnabled = false;
         var isFrench = CultureInfo.CurrentCulture.Name.StartsWith("fr", StringComparison.InvariantCulture);
         var introfile = isFrench ? "FormIntroFr.md" : "FormIntro.md";
-        var footerfile = isFrench ? "FormFooterFr.md" : "FormFooter.md";
+        var footerfile = isFrench ? "FormFooterWarningFr.md" : "FormFooterWarning.md";
         _formMetadata.MarkDownContent = File.ReadAllLines($@"Pages\Forms\LanguageTraining\{introfile}").ToList();
         _formMetadata.MarkDownContentFooter = File.ReadAllLines($@"Pages\Forms\LanguageTraining\{footerfile}").ToList();
         
@@ -130,6 +130,13 @@
         context.SetVisible<LanguageTrainingApplication>(p => p.Employee_language_profile_raised, _languageTrainingApplication.Completed_LETP_Assessment);
         context.SetVisible<LanguageTrainingApplication>(p => p.Employee_professional_dev_program, _languageTrainingApplication.Completed_LETP_Assessment);
         context.SetVisible<LanguageTrainingApplication>(p => p.Employee_talent_management_exercise, _languageTrainingApplication.Completed_LETP_Assessment);
+
+        var isFrench = CultureInfo.CurrentCulture.Name.StartsWith("fr", StringComparison.InvariantCulture);        
+        
+        _formMetadata.IsSubmitEnabled = _languageTrainingApplication.Completed_LETP_Assessment;
+        var footerfile = _formMetadata.IsSubmitEnabled ? (isFrench ? "FormFooterFr.md" : "FormFooter.md") : (isFrench ? "FormFooterWarningFr.md" : "FormFooterWarning.md");
+
+        _formMetadata.MarkDownContentFooter = File.ReadAllLines($@"Pages\Forms\LanguageTraining\{footerfile}").ToList();
         _onchange = false;
     }
 

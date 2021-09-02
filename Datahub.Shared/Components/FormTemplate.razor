@@ -60,7 +60,8 @@ else
                  OnChange="OnChange"
                  LabelForPropertyFunc="@GetDataLabel"
                  LabelsOnTop="true"
-                 LocalizerFunction="@GetDataLabel"/>
+                 LocalizerFunction="@GetDataLabel"
+                 IsSubmitEnabled="Metadata.IsSubmitEnabled" />
     </AeCard>
 
     @if (Metadata.MarkDownContentFooter.Any())
