@@ -21,6 +21,8 @@ namespace NRCan.Datahub.Shared.Data
 
         public IList<string> MarkDownContent { get; set; }
 
-        
+        public IList<string> MarkDownContentFooter { get; set; }
+
+
     }
 }

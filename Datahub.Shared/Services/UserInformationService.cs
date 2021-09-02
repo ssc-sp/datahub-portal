@@ -77,7 +77,7 @@ namespace NRCan.Datahub.Shared.Services
             return $"{domain}/{prefix}";
         }
 
-        public async Task<User> GetUserAsync()
+        private async Task<User> GetUserAsyncInternal()
         {
             try
             {               
@@ -109,7 +109,7 @@ namespace NRCan.Datahub.Shared.Services
             }
         }
 
-        public async Task<User> GetCurrentUserAsync()
+        public async Task<User> GetUserAsync()
         {
             await CheckUser();
             return CurrentUser;
@@ -315,7 +315,7 @@ namespace NRCan.Datahub.Shared.Services
         {
             if (CurrentUser == null)
             {
-                await GetUserAsync();
+                await GetUserAsyncInternal();
             }
         }
     }    
