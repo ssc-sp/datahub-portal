@@ -1,6 +1,7 @@
 ﻿@inject IUserInformationService UserInformationService
 @inject UserLocationManagerService UserLocationManagerService 
 @inject IDbContextFactory<DatahubProjectDBContext> DbFactoryProject
+@inject IStringLocalizer<RecentTab> Localizer
 
 <AeFlex class="recent-card-container">
   @foreach (var item in recentLinks)
@@ -25,7 +26,7 @@
     protected override async Task OnInitializedAsync()
     {
         using var ctx = DbFactoryProject.CreateDbContext();
-        recentLinks = RecentLinks.Select(l => (l, GetProject(ctx,l))).ToList();
+        recentLinks = RecentLinks.Select(l => (l, project:GetProject(ctx,l))).Where(tp => tp.project != null).ToList();
     }
 
     private Datahub_Project? GetProject(DatahubProjectDBContext ctx, UserRecentLink link)
@@ -60,17 +61,17 @@
         switch (link.LinkType)
         {
             case DatahubLinkType.PowerBI:
-                return $"{project.ProjectName} >> PowerBI";
+                return $"{project.ProjectName} >> {Localizer["PowerBI"]}";
             case DatahubLinkType.Databricks:
-                return $"{project.ProjectName} >> Databricks";
+                return $"{project.ProjectName} >> {Localizer["Databricks"]}";
             case DatahubLinkType.WebForm:
-                return $"{project.ProjectName} >> Data Entry";
+                return $"{project.ProjectName} >> {Localizer["Data Entry"]}";
             case DatahubLinkType.DataProject:
-                return $"{project.ProjectName} >> Home";
+                return $"{project.ProjectName} >> {Localizer["Home"]}";
             case DatahubLinkType.Storage:
-                return $"{project.ProjectName} >> Storage";
+                return $"{project.ProjectName} >> {Localizer["Storage"]}";
             case DatahubLinkType.FormBuilder:
-                return $"{project.ProjectName} >> Form Builder";
+                return $"{project.ProjectName} >> {Localizer["Form Builder"]}";
         }
         return "N/A";
     }
