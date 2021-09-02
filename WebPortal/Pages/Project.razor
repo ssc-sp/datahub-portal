@@ -244,19 +244,21 @@
                     }
                     </Footer>
                 </AeCard>
-            
-                <AeCard class="facard1" CardPosition="AeCard.CardStyle.Horizontal">
-                    <Header>
-                        <div>
-                            <AeIcon class="fad fa-share-square card-icon"/>
-                        </div>
-                    </Header>
-                    <ChildContent>
-                        <DatahubLink Variant="h3" DataProject="@projectAcronym" LinkType="DatahubLinkType.DataSharingDashboard">@Localizer["Public Data Sharing"]</DatahubLink>
-                        @* <AeTypography Variant="h3" >@Localizer["Public Data Sharing"]</AeTypography> *@
-                        <AeTypography>@Localizer["Sharing requests awaiting approval:"] @_sharingRequestCount</AeTypography>
-                    </ChildContent>
-                </AeCard>
+
+                <AuthorizeView Roles="DHPGLIST-admin" Context="hidden_in_dev">
+                    <AeCard class="facard1" CardPosition="AeCard.CardStyle.Horizontal">
+                        <Header>
+                            <div>
+                                <AeIcon class="fad fa-share-square card-icon"/>
+                            </div>
+                        </Header>
+                        <ChildContent>
+                            <DatahubLink Variant="h3" DataProject="@projectAcronym" LinkType="DatahubLinkType.DataSharingDashboard">@Localizer["Public Data Sharing"]</DatahubLink>
+                            @* <AeTypography Variant="h3" >@Localizer["Public Data Sharing"]</AeTypography> *@
+                            <AeTypography>@Localizer["Sharing requests awaiting approval:"] @_sharingRequestCount</AeTypography>
+                        </ChildContent>
+                    </AeCard>
+                </AuthorizeView>
             
             </div>
         
