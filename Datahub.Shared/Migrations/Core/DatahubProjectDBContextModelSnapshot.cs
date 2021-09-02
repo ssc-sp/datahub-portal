@@ -500,6 +500,57 @@ namespace NRCan.Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.ToTable("PublicDataFiles");
                 });
 
+            modelBuilder.Entity("NRCan.Datahub.Shared.EFCore.SharedDataFile", b =>
+                {
+                    b.Property<long>("SharedDataFile_ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .UseIdentityColumn();
+
+                    b.Property<DateTime?>("ApprovedDate_DT")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ApprovingUser_ID")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<Guid>("File_ID")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Filename_TXT")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FolderPath_TXT")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsOpenDataRequest_FLAG")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("ProjectCode_CD")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("PublicationDate_DT")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("RequestedDate_DT")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("RequestingUser_ID")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime?>("SubmittedDate_DT")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("SharedDataFile_ID");
+
+                    b.HasIndex("File_ID")
+                        .IsUnique();
+
+                    b.ToTable("SharedDataFiles");
+                });
+
             modelBuilder.Entity("NRCan.Datahub.Shared.EFCore.WebForm", b =>
                 {
                     b.Property<int>("WebForm_ID")
@@ -600,6 +651,19 @@ namespace NRCan.Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.ToTable("Fields");
                 });
 
+            modelBuilder.Entity("NRCan.Datahub.Shared.EFCore.OpenDataSharedFile", b =>
+                {
+                    b.HasBaseType("NRCan.Datahub.Shared.EFCore.SharedDataFile");
+
+                    b.Property<int?>("ApprovalForm_ID")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SignedApprovalForm_URL")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.ToTable("OpenDataSharedFile");
+                });
+
             modelBuilder.Entity("NRCan.Datahub.Shared.EFCore.Datahub_ProjectComment", b =>
                 {
                     b.HasOne("NRCan.Datahub.Shared.EFCore.Datahub_Project", "Project")
@@ -698,6 +762,15 @@ namespace NRCan.Datahub.Portal.Migrations.Forms.DatahubProjectDB
                         .IsRequired();
 
                     b.Navigation("WebForm");
+                });
+
+            modelBuilder.Entity("NRCan.Datahub.Shared.EFCore.OpenDataSharedFile", b =>
+                {
+                    b.HasOne("NRCan.Datahub.Shared.EFCore.SharedDataFile", null)
+                        .WithOne()
+                        .HasForeignKey("NRCan.Datahub.Shared.EFCore.OpenDataSharedFile", "SharedDataFile_ID")
+                        .OnDelete(DeleteBehavior.ClientCascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("NRCan.Datahub.Shared.EFCore.Datahub_Project", b =>

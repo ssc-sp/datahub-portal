@@ -71,7 +71,7 @@ namespace NRCan.Datahub.Portal.Controllers
             try
             {
                 var fileIdGuid = Guid.Parse(fileId);
-                var result = await _pubFileService.DownloadSharedFile(fileIdGuid);
+                var result = await _pubFileService.DownloadPublicUrlSharedFile(fileIdGuid);
                 if (result == null)
                 {
                     _logger.LogError($"File not found: {fileId}");
