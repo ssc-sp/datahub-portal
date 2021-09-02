@@ -139,7 +139,7 @@
     protected override async Task OnInitializedAsync()
     {
         try {
-            User = await UserInformationService.GetCurrentUserAsync();
+            User = await UserInformationService.GetUserAsync();
         } catch (Exception ex)
         {
             ConsentHandler.HandleException(ex);
