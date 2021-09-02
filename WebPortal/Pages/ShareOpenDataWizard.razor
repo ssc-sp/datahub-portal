@@ -1,6 +1,7 @@
 ﻿@page "/share/opendata/{FileId}"
 @inject NavigationManager NavManager
 @inject IPublicDataFileService PublicFileService
+@inject IMSGraphService GraphService
 
 <AeTypography Variant="h1">@Localizer["OPENDATA-WIZARD.Page_Title"]</AeTypography>
 
@@ -37,7 +38,10 @@
         {
             <AeCard>
 
-                <NRCan.Datahub.Portal.Pages.Forms.ShareWorkflow.ApprovalForm ApprovalFormId=@approvalFormId OnSubmitForm=@UpdateApprovalFormId />
+                <NRCan.Datahub.Portal.Pages.Forms.ShareWorkflow.ApprovalForm 
+                    ApprovalFormId=@approvalFormId 
+                    OnSubmitForm=@UpdateApprovalFormId 
+                    User=@RequestingUser/>
 
                 <div>&nbsp;</div>
             </AeCard>
@@ -175,6 +179,8 @@
     private int approvalFormId = 0;
     private string GenerateApprovalFormPdfUrl => $"http://example.com/{approvalFormId}";
     private string signedApprovalFormUrl;
+
+    private GraphUser RequestingUser;
     
     //TODO add domain
     private string PublicUrl => $"/Public/DownloadFile/{FileId}";
@@ -290,6 +296,7 @@
         approvalFormId = sharedFileInfo.ApprovalForm_ID ?? 0;
         signedApprovalFormUrl = sharedFileInfo.SignedApprovalForm_URL;
         PublicationDateStr = sharedFileInfo.PublicationDate_DT?.ToShortDateString();
+        RequestingUser = GraphService.GetUser(sharedFileInfo.RequestingUser_ID);
 
         if (sharedFileInfo.PublicationDate_DT.HasValue && sharedFileInfo.PublicationDate_DT <= DateTime.UtcNow)
         {
