@@ -340,7 +340,7 @@
     {
         projectContext = DbFactoryProject.CreateDbContext();
         etlContext = DbFactoryEtl.CreateDbContext();
-        _user = await UserInformationService.GetCurrentUserAsync();
+        _user = await UserInformationService.GetUserAsync();
         await RefreshComponents(false);
 
         //_isApprovedProjectUser = projectContext.Project_Users.Any(u => u.User_ID == _user.Id && _project == u.Project);

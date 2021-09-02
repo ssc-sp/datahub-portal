@@ -54,7 +54,7 @@ else
         await base.OnInitializedAsync();
 
         isLoading = true;
-        var user = await UserInformationService.GetCurrentUserAsync();
+        var user = await UserInformationService.GetUserAsync();
 
         RootFolder = new Folder()
         {

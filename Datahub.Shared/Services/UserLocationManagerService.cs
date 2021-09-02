@@ -28,7 +28,7 @@ namespace NRCan.Datahub.Shared.Services
 
         public async Task RegisterNavigation(UserRecentLink link)
         {
-            var user = await _userInformationService.GetCurrentUserAsync();
+            var user = await _userInformationService.GetUserAsync();
             var userId = user.Id;
 
             //var userRecentActions = new UserRecentLink() { url = eventArgs.Location, title = "my title", accessedTime = DateTimeOffset.Now, icon = "myicon" };
