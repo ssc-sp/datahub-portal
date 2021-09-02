@@ -13,10 +13,7 @@ namespace NRCan.Datahub.Shared.Services
             _logger = logger;
         }
 
-        public Task<User> GetCurrentUserAsync()
-        {
-            return GetUserAsync();
-        }
+     
 
         public Task<User> GetUserAsync()
         {

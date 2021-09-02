@@ -63,7 +63,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var userTask = _userInfoService.GetCurrentUserAsync();
+        var userTask = _userInfoService.GetUserAsync();
         
         Guid fileIdGuid;
         if (!Guid.TryParse(FileId, out fileIdGuid))
