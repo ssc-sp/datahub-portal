@@ -10,6 +10,7 @@
 @inject IDbContextFactory<DatahubProjectDBContext> DbFactoryProject
 @inject IDbContextFactory<DatahubETLStatusContext> DbFactoryEtl
 @inject IEmailNotificationService EmailNotificationService
+@inject IPublicDataFileService PublicDataFileService
 
 @page "/project/{projectAcronym}"
 
@@ -241,10 +242,26 @@
                     {
                         <AeButton @onclick="@(async () => await RequestServiceAccess("storage"))">Request Service Creation</AeButton>
                     }
-                </Footer>
-            </AeCard>
-        </div>
+                    </Footer>
+                </AeCard>
 
+                <AuthorizeView Roles="DHPGLIST-admin" Context="hidden_in_dev">
+                    <AeCard class="facard1" CardPosition="AeCard.CardStyle.Horizontal">
+                        <Header>
+                            <div>
+                                <AeIcon class="fad fa-share-square card-icon"/>
+                            </div>
+                        </Header>
+                        <ChildContent>
+                            <DatahubLink Variant="h3" DataProject="@projectAcronym" LinkType="DatahubLinkType.DataSharingDashboard">@Localizer["Public Data Sharing"]</DatahubLink>
+                            @* <AeTypography Variant="h3" >@Localizer["Public Data Sharing"]</AeTypography> *@
+                            <AeTypography>@Localizer["Sharing requests awaiting approval:"] @_sharingRequestCount</AeTypography>
+                        </ChildContent>
+                    </AeCard>
+                </AuthorizeView>
+            
+            </div>
+        
     </AuthorizeView>
 
     <AuthorizeView Roles="@($"{projectAcronym}-admin")">
@@ -282,6 +299,10 @@
 
     
     private bool _isProjectUserPendingApproval;
+
+    private bool _isDataApprover;
+    private int _sharingRequestCount;
+    private bool _showSharingRequestCard => _isDataApprover && _sharingRequestCount > 0;
 
     // Define the headers at the top of the table
     private List<string> pipelineHeaders = new List<string>
@@ -343,7 +364,17 @@
         _user = await UserInformationService.GetCurrentUserAsync();
         await RefreshComponents(false);
 
+        var projectUsers = await projectContext.Project_Users.Where(u => u.User_ID == _user.Id && _project == u.Project).ToListAsync();
+        if (projectUsers != null && projectUsers.Count > 0)
+        {
+            //_isApprovedProjectUser = true;
+            _isDataApprover = projectUsers.Any(u => u.IsDataApprover);
+        }
+
+        _sharingRequestCount = await PublicDataFileService.GetDataSharingRequestCount(projectAcronym);
+
         //_isApprovedProjectUser = projectContext.Project_Users.Any(u => u.User_ID == _user.Id && _project == u.Project);
+        
         //_isProjectUserPendingApproval = projectContext.Project_Users_Requests.Any(u => u.User_ID == _user.Id && _project == u.Project && u.Approved_DT == null);
 
 
