@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NRCan.Datahub.Metadata.Model;
 
 namespace NRCan.Datahub.Metadata.Migrations
 {
     [DbContext(typeof(MetadataDbContext))]
-    partial class MetadataDbContextModelSnapshot : ModelSnapshot
+    [Migration("20210901180330_AddingKeywordSourceAndFrequency")]
+    partial class AddingKeywordSourceAndFrequency
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -38,10 +40,6 @@ namespace NRCan.Datahub.Metadata.Migrations
                     b.Property<bool>("Authority_To_Release_FLAG")
                         .HasColumnType("bit");
 
-                    b.Property<string>("Branch_NAME")
-                        .HasMaxLength(32)
-                        .HasColumnType("nvarchar(32)");
-
                     b.Property<bool>("Can_Be_Released_For_Free_FLAG")
                         .HasColumnType("bit");
 
@@ -56,29 +54,11 @@ namespace NRCan.Datahub.Metadata.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
-                    b.Property<string>("Department_NAME")
-                        .HasMaxLength(32)
-                        .HasColumnType("nvarchar(32)");
-
-                    b.Property<string>("Division_NAME")
-                        .HasMaxLength(32)
-                        .HasColumnType("nvarchar(32)");
-
-                    b.Property<string>("Email_EMAIL")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
                     b.Property<bool>("Localized_Metadata_FLAG")
                         .HasColumnType("bit");
 
                     b.Property<bool>("Machine_Readable_FLAG")
                         .HasColumnType("bit");
-
-                    b.Property<string>("Name_NAME")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
 
                     b.Property<bool>("Non_Propietary_Format_FLAG")
                         .HasColumnType("bit");
@@ -86,23 +66,11 @@ namespace NRCan.Datahub.Metadata.Migrations
                     b.Property<bool>("Not_Clasified_Or_Protected_FLAG")
                         .HasColumnType("bit");
 
-                    b.Property<string>("Phone_TXT")
-                        .HasMaxLength(32)
-                        .HasColumnType("nvarchar(32)");
-
                     b.Property<bool>("Private_Personal_Information_FLAG")
                         .HasColumnType("bit");
 
                     b.Property<bool>("Requires_Blanket_Approval_FLAG")
                         .HasColumnType("bit");
-
-                    b.Property<string>("Section_NAME")
-                        .HasMaxLength(32)
-                        .HasColumnType("nvarchar(32)");
-
-                    b.Property<string>("Sector_NAME")
-                        .HasMaxLength(32)
-                        .HasColumnType("nvarchar(32)");
 
                     b.Property<bool>("Subject_To_Exceptions_Or_Eclusions_FLAG")
                         .HasColumnType("bit");
@@ -216,8 +184,7 @@ namespace NRCan.Datahub.Metadata.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("Source")
-                        .HasMaxLength(64)
-                        .HasColumnType("nvarchar(64)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("KeywordId");
 
