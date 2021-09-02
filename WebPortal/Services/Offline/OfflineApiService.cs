@@ -99,7 +99,7 @@ namespace NRCan.Datahub.Portal.Services.Offline
 
         public async Task PopulateOtherMetadata(FileMetaData fileMetadata)
         {
-            var authState = await _userInformationService.GetCurrentUserAsync();
+            var authState = await _userInformationService.GetUserAsync();
             fileMetadata.createdby = authState.Id;
             fileMetadata.lastmodifiedby = authState.Id; //TODO this will need to change edit functionality
             fileMetadata.ownedby = authState.Id; //TODO this will need to change edit functionality
