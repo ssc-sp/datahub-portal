@@ -17,5 +17,6 @@ namespace NRCan.Datahub.Shared.Services
         Task SendServiceCreationRequestApprovedIndividual(string serviceName, DatahubProjectInfo projectInfo, string recipientAddress, string recipientName = null);
         Task SendServiceCreationGroupNotification(string serviceName, DatahubProjectInfo projectInfo, IList<string> recipients);
         Task SendAccessRevokedNotification(string serviceName, DatahubProjectInfo projectInfo, string recipientAddress, string recipientName = null);
+        Task SendApplicationCompleteNotification(LanguageTrainingParameters parameters);
     }
 }
