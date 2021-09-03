@@ -11,7 +11,7 @@
 else
     {
 <AeCard class="facardForms" CardPosition="AeCard.CardStyle.Horizontal">
-<AeTypography Variant="h3">@Metadata.Header</AeTypography>
+<AeTypography Variant="h3">@DataLocalizer[Metadata.Header]</AeTypography>
 </AeCard>
 
 <AeCard class="facardForms" CardPosition="AeCard.CardStyle.Horizontal">
@@ -21,7 +21,7 @@ else
          Dataset="Metadata.DataSet.ToList()"
          ColorAccessor="getColor"
          Headers="Metadata.Headers.ToList()"
-         GridTemplateColumns="Metadata.GridTemplateColumns"
+         GridTemplateColumns="@Metadata.GridTemplateColumns"
          MaxHeight="400"
          OnRowClick="@SetFormEdit" 
          Page="@_lastClicked"
