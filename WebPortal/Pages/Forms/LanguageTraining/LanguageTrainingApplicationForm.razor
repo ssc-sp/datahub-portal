@@ -29,9 +29,8 @@
     {
         // load projects
         Context = DbFactory.CreateDbContext();
-        var user = await UserInformationService.GetUserAsync();
-        _languageTrainingApplications = Context.LanguageTrainingApplications.ToList().Where(r => (r.Email_Address_EMAIL.ToLower() == user.Mail.ToLower()) ||(r.Delegated_Manager_Email.ToLower() == user.Mail.ToLower()) ).ToList();
         _formMetadata = new();
+        await LoadApps();
         _formMetadata.Header = "NRCan Language Training Application Form";
         
         _formMetadata.DataSet = _languageTrainingApplications;
@@ -73,8 +72,17 @@
             
         }
 
+        await LoadApps();
         _languageTrainingApplication = null;
         StateHasChanged();
+    }
+
+    private async Task LoadApps()
+    {
+        var user = await UserInformationService.GetUserAsync();
+        _languageTrainingApplications = Context.LanguageTrainingApplications.ToList().Where(r => (r.Email_Address_EMAIL.ToLower() == user.Mail.ToLower()) ||(r.Delegated_Manager_Email.ToLower() == user.Mail.ToLower()) ).ToList();
+        _formMetadata.DataSet = _languageTrainingApplications;
+
     }
 
     private void OnConfigure(IModelFormContext context)
