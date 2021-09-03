@@ -25,6 +25,9 @@ namespace NRCan.Datahub.Shared.Data
 
         public bool IsSubmitEnabled { get; set; }
 
-
+        public bool IsLoaded()
+        {
+            return Header != null && DataSet != null && AccessorFunctions != null && Headers != null && GridTemplateColumns != null;
+        }
     }
 }
