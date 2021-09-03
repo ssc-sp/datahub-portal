@@ -4,7 +4,7 @@
 @inherits HtmlElement
 @using System.Reflection
 
-@if(!Metadata.IsLoaded())
+@if(Metadata is null || !Metadata.IsLoaded())
 {
     <Spinner></Spinner>
 }
