@@ -21,7 +21,7 @@
     <None Remove="Data\Forms\Datahub\**" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="AElemental.Blazor" Version="1.2.21244.1-beta" />
+    <PackageReference Include="AElemental.Blazor" Version="1.2.21245.1-beta" />
     <PackageReference Include="Askmethat.Aspnet.JsonLocalizer" Version="3.1.1" />
     <PackageReference Include="Azure.Identity" Version="1.4.0-beta.1" />
     <PackageReference Include="Azure.Search.Documents" Version="11.2.0-beta.2" />

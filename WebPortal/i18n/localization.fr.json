@@ -938,6 +938,18 @@
   "Insufficient interest at level": "Intérêt insuffisant au niveau demandé ",
   "Demand exceeds capacity": "La demande dépasse la capacité ",
   "Late application": "Demande tardive ",
-  "NRCan Language Training Application Form": "Formulaire de demande de formation linguistique de RNCan"
+  "NRCan Language Training Application Form": "Formulaire de demande de formation linguistique de RNCan",
+  "Language School Section": "Section de l’École de langues",
+  "Indeterminate Employee": "Employé à durée indéterminée",
+  "Term Employee": "Employé à durée déterminée",
+  "French Language Training": "Une formation en français",
+  "English Language Training": "Une formation en anglais",
+  "NRCan Language School": "École de langues de RNCan",
+  "External Provider": "Fournisseur externe",
+  "Group Training - Full-Time Training": "Formation en groupe – Formation à temps plein",
+  "Group Training - Part-Time Training": "Formation en groupe – Formation à temps partiel",
+  "Individual - Coaching": "Encadrement individuel"
+
+
 
 }
