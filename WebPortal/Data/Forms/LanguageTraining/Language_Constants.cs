@@ -32,7 +32,7 @@ namespace NRCan.Datahub.Portal.Data.LanguageTraining
 
         public static readonly string[] SLESTATUS = { "X", "A", "B", "C", "E", "Not Applicable" };
 
-        public static readonly string[] QUARTERS = { "Q1 - April to June", "Q2 - July to September", "Q3 - October - December", "Q4 - January to March" };
+        public static readonly string[] QUARTERS = { "Q1 - April to June", "Q2 - July to September", "Q3 – October to December", "Q4 – January to March" };
 
         public static readonly string[] TRAININGTYPE = { "Group Training - Full-Time Training", "Group Training - Part-Time Training", "Individual - Coaching" };
 
