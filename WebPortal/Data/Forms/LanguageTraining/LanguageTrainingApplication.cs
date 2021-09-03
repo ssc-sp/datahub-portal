@@ -132,12 +132,25 @@ namespace NRCan.Datahub.Portal.Data.LanguageTraining
         [AeFormCategory("Manager Section", 50)]
         public string Manager_Email_Address { get; set; }
 
+        [AeFormCategory("Manager Section", 50)]
+        [AeLabel(isDropDown: true, placeholder: "Please Select")]
+        public string Manager_Decision { get; set; }
+
 
         [AeFormCategory("Language School Section", 60)]
         [AeLabel(isDropDown: true, placeholder: "Please Select")]
         public string Decision { get; set; }
 
 
+
+        [AeFormIgnore]
+        public bool ApplicationCompleteEmailSent { get; set; }
+
+        [AeFormIgnore]
+        public bool ManagerDecisionSent { get; set; }
+
+        [AeFormIgnore]
+        public bool LSUDecisionSent { get; set; }
 
         [AeFormIgnore]
         public string Last_Updated_UserId { get; set; }
