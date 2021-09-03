@@ -62,6 +62,7 @@ namespace NRCan.Datahub.Portal.Data.LanguageTraining
         public int Completed_Training_Year { get; set; }
         
         [AeFormCategory("Language Assessment", 20)]
+        [AeLabel(isDropDown: true, placeholder: "Please Select")]
         public string Completed_Training_Session { get; set; }
         
         [AeFormCategory("Language Assessment", 20)]        
@@ -132,7 +133,7 @@ namespace NRCan.Datahub.Portal.Data.LanguageTraining
         public string Manager_Email_Address { get; set; }
 
 
-        [AeFormCategory("Language School Section ", 60)]
+        [AeFormCategory("Language School Section", 60)]
         [AeLabel(isDropDown: true, placeholder: "Please Select")]
         public string Decision { get; set; }
 
