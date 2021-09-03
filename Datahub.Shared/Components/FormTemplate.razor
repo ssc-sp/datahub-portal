@@ -4,17 +4,15 @@
 @inherits HtmlElement
 @using System.Reflection
 
-@if(Metadata is null)
+@if(!Metadata.IsLoaded())
 {
     <Spinner></Spinner>
 }
 else
-    {
-<AeCard class="facardForms" CardPosition="AeCard.CardStyle.Horizontal">
-<AeTypography Variant="h3">@DataLocalizer[Metadata.Header]</AeTypography>
-</AeCard>
+{
 
 <AeCard class="facardForms" CardPosition="AeCard.CardStyle.Horizontal">
+<AeTypography Variant="h3">@DataLocalizer[Metadata.Header]</AeTypography>
 <AePaginatedTable 
          T="@T"
          Accessors="Metadata.AccessorFunctions.ToList()"
