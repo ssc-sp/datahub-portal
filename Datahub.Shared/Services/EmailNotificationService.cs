@@ -255,10 +255,6 @@ namespace NRCan.Datahub.Shared.Services
                 await SendEmailMessage(subject, html, parameters.EmployeeEmailAddress, parameters.EmployeeName);
             }
 
-
-
-
-
         }
 
         private Dictionary<string, object> BuildLanguageNotificationParameters(LanguageTrainingParameters parameters)
