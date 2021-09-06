@@ -9,6 +9,7 @@ using MimeKit;
 using NRCan.Datahub.Shared.Templates;
 using System.Linq;
 using Microsoft.Extensions.Logging;
+using System;
 
 namespace NRCan.Datahub.Shared.Services
 {
@@ -29,7 +30,7 @@ namespace NRCan.Datahub.Shared.Services
         public string ProjectNameFr { get; set; }
     }
 
-    public class EmailNotificationService: IEmailNotificationService
+    public class EmailNotificationService : IEmailNotificationService
     {
 
         public static readonly string EMAIL_CONFIGURATION_ROOT_KEY = "EmailNotification";
@@ -64,7 +65,7 @@ namespace NRCan.Datahub.Shared.Services
             return html;
         }
 
-        public async Task<string> RenderTemplate<T>(IDictionary<string, object> parameters = null) where T: Microsoft.AspNetCore.Components.IComponent
+        public async Task<string> RenderTemplate<T>(IDictionary<string, object> parameters = null) where T : Microsoft.AspNetCore.Components.IComponent
         {
             var templater = new Templater();
             templater.AddService<IStringLocalizer<SharedResources>>(_localizer);
@@ -81,10 +82,10 @@ namespace NRCan.Datahub.Shared.Services
 
         public async Task SendEmailMessage(string subject, string body, IList<string> recipientAddresses, bool isHtml = true)
         {
-            var recipients = recipientAddresses.Select(addr => 
+            var recipients = recipientAddresses.Select(addr =>
             {
                 //TODO lookup username
-                var name = (string) null;
+                var name = (string)null;
                 return new MailboxAddress(name, addr);
             }).ToList();
             await SendEmailMessage(subject, body, recipients, isHtml);
@@ -92,31 +93,42 @@ namespace NRCan.Datahub.Shared.Services
 
         private async Task SendEmailMessage(string subject, string body, IList<MailboxAddress> recipients, bool isHtml)
         {
-            var validRecipients = recipients.Where(a => !string.IsNullOrWhiteSpace(a.Address)).ToHashSet();
-
-            if (validRecipients.Count < 1)
+            try
             {
-                _logger.LogWarning($"Cannot send '{subject}' - no valid recipients");
-                return;
+                var validRecipients = recipients.Where(a => !string.IsNullOrWhiteSpace(a.Address)).ToHashSet();
+
+                if (validRecipients.Count < 1)
+                {
+                    _logger.LogWarning($"Cannot send '{subject}' - no valid recipients");
+                    return;
+                }
+
+                var msg = new MimeMessage();
+                msg.From.Add(new MailboxAddress(_config.SenderName, _config.SenderAddress));
+                msg.To.AddRange(validRecipients);
+                msg.Subject = subject;
+                var bodyPart = new TextPart(isHtml ? "html" : "plain")
+                {
+                    Text = body
+                };
+                msg.Body = bodyPart;
+
+                using (var smtpClient = new SmtpClient())
+                {
+                    await smtpClient.ConnectAsync(_config.SmtpHost, _config.SmtpPort, MailKit.Security.SecureSocketOptions.StartTls);
+                    await smtpClient.AuthenticateAsync(new NetworkCredential(_config.SmtpUsername, _config.SmtpPassword));
+
+                    await smtpClient.SendAsync(msg);
+                    await smtpClient.DisconnectAsync(true);
+                }
             }
-
-            var msg = new MimeMessage();
-            msg.From.Add(new MailboxAddress(_config.SenderName, _config.SenderAddress));
-            msg.To.AddRange(validRecipients);
-            msg.Subject = subject;
-            var bodyPart = new TextPart(isHtml? "html": "plain") 
+            catch (Exception ex)
             {
-                Text = body
-            };
-            msg.Body = bodyPart;
-
-            using (var smtpClient = new SmtpClient())
-            {
-                await smtpClient.ConnectAsync(_config.SmtpHost, _config.SmtpPort, MailKit.Security.SecureSocketOptions.StartTls);
-                await smtpClient.AuthenticateAsync(new NetworkCredential(_config.SmtpUsername, _config.SmtpPassword));
-
-                await smtpClient.SendAsync(msg);
-                await smtpClient.DisconnectAsync(true);
+                foreach (var item in recipients)
+                {
+                    _logger.LogError(ex, $"Unable to send email to: {item.Name} with subject: {subject}.");
+                }
+                throw;
             }
         }
 
@@ -206,5 +218,66 @@ namespace NRCan.Datahub.Shared.Services
 
             await SendEmailMessage(subject, html, recipientAddress, recipientName);
         }
+
+
+        public async Task SendApplicationCompleteNotification(LanguageTrainingParameters parameters)
+        {
+            var parametersDict = BuildLanguageNotificationParameters(parameters);
+
+            var subject = $"Language Training Request / Demande de formation linguistique - {parameters.EmployeeName} – {parameters.TrainingType} - {parameters.ApplicationId} ";
+
+            var html = await RenderTemplate<ConfirmEmployeeRequest>(parametersDict);
+
+            await SendEmailMessage(subject, html, parameters.EmployeeEmailAddress, parameters.EmployeeName);
+
+            html = await RenderTemplate<RequestManagerApproval>(parametersDict);
+
+            await SendEmailMessage(subject, html, parameters.ManagerEmailAddress, parameters.ManagerName);
+
+        }
+
+
+        public async Task SendManagerDecisionEmail(LanguageTrainingParameters parameters)
+        {
+            var parametersDict = BuildLanguageNotificationParameters(parameters);
+
+            if (parameters.ManagerDecision == "Approved")
+            {
+                var subject = $"Language Training Request – MANAGER APPROVED / Demande de formation linguistique – APPROUVÉE PAR LA GESTION - {parameters.EmployeeName} – {parameters.TrainingType} - {parameters.ApplicationId} ";
+                var html = await RenderTemplate<ManagerRequestApproved>(parametersDict);
+                await SendEmailMessage(subject, html, parameters.EmployeeEmailAddress, parameters.EmployeeName);
+                await SendEmailMessage(subject, html, parameters.ManagerEmailAddress, parameters.ManagerName);
+            }
+            else
+            {
+                var subject = $"Language Training Request / Demande de formation linguistique  - {parameters.EmployeeName} – {parameters.TrainingType} - {parameters.ApplicationId} ";
+                var html = await RenderTemplate<ManagerRequestDenied>(parametersDict);
+                await SendEmailMessage(subject, html, parameters.EmployeeEmailAddress, parameters.EmployeeName);
+            }
+
+        }
+
+        private Dictionary<string, object> BuildLanguageNotificationParameters(LanguageTrainingParameters parameters)
+        {
+            var parametersDict = new Dictionary<string, object>()
+            {
+                { "ApplicationParameters", parameters }
+
+            };
+
+            return parametersDict;
+        }
+    }
+
+    public class LanguageTrainingParameters
+    {
+        public string ApplicationId;
+        public string EmployeeName;
+        public string EmployeeEmailAddress;
+        public string TrainingType;
+        public string ManagerEmailAddress;
+        public string ManagerName;
+        public string LanguageSchoolEmailAddress;
+        public string ManagerDecision;
     }
 }

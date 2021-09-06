@@ -1,4 +1,5 @@
 ﻿@inject IStringLocalizer DataLocalizer
+@inject IEmailNotificationService EmailService
 @implements IDisposable
 @inject IDbContextFactory<LanguageTrainingDBContext> DbFactory
 @inject IUserInformationService UserInformationService
@@ -70,13 +71,56 @@
                 _languageTrainingApplication = Context.LanguageTrainingApplications.Add(_languageTrainingApplication).Entity;
             }
             _languageTrainingApplication.Last_Updated_DT = DateTime.Now;
+            
             await Context.SaveChangesAsync();
             
+            if (!_languageTrainingApplication.ApplicationCompleteEmailSent)
+            {                
+                await SendApplicationCompletedEmails();
+                _languageTrainingApplication.ApplicationCompleteEmailSent = true;
+                await Context.SaveChangesAsync();
+            }
+
+            if (_languageTrainingApplication.ApplicationCompleteEmailSent && !_languageTrainingApplication.ManagerDecisionSent)
+            {
+                await SendManagerDecisionEmails();                
+            }
+
         }
 
         await LoadApps();
         _languageTrainingApplication = null;
         StateHasChanged();
+    }
+
+    private async Task SendManagerDecisionEmails()
+    {
+        var param = await GetLanguageTrainingParameters();
+        if (_languageTrainingApplication.Manager_Decision == "Approved" || _languageTrainingApplication.Manager_Decision == "Declined")
+        { 
+            await EmailService.SendApplicationCompleteNotification(param);
+            _languageTrainingApplication.ManagerDecisionSent = true;
+            await Context.SaveChangesAsync();
+        }  
+    }
+
+    private async Task SendApplicationCompletedEmails()
+    {
+        var param = await GetLanguageTrainingParameters();
+        await EmailService.SendApplicationCompleteNotification(param);    
+    }
+
+    private async Task<LanguageTrainingParameters> GetLanguageTrainingParameters()
+    {
+        LanguageTrainingParameters param = new();
+        param.ApplicationId = _languageTrainingApplication.Application_ID.ToString();
+        param.EmployeeEmailAddress = _languageTrainingApplication.Email_Address_EMAIL;
+        param.EmployeeName = _languageTrainingApplication.NRCan_Username;
+        param.TrainingType = _languageTrainingApplication.Training_Type;
+        param.ManagerEmailAddress = _languageTrainingApplication.Delegated_Manager_Email;
+        param.ManagerName = _languageTrainingApplication.Delegate_Manager_First_Name + " " + _languageTrainingApplication.Delegated_Manager_Last_Name;
+        param.ManagerDecision = _languageTrainingApplication.Manager_Decision;
+        return param;
     }
 
     private async Task LoadApps()
@@ -105,7 +149,8 @@
             context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Training_Type, () => Language_Constants.TRAININGTYPE);
             context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Decision, () => Language_Constants.LANGUAGE_SCHOOL_SELECTION);
             context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Completed_Training_Session, () => Language_Constants.QUARTERS);
-            
+            context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Manager_Decision, () => new[] { "Approved", "Declined"});
+
         }
 
         ToggleVisibility(context);
@@ -141,6 +186,7 @@
         context.SetVisible<LanguageTrainingApplication>(p => p.Manager_First_Name, _languageTrainingApplication.Delegated_Manager_Email?.ToLower() == _user.Mail.ToLower());
         context.SetVisible<LanguageTrainingApplication>(p => p.Manager_Last_Name, _languageTrainingApplication.Delegated_Manager_Email?.ToLower() == _user.Mail.ToLower());
         context.SetVisible<LanguageTrainingApplication>(p => p.Manager_Email_Address, _languageTrainingApplication.Delegated_Manager_Email?.ToLower() == _user.Mail.ToLower());
+        context.SetVisible<LanguageTrainingApplication>(p => p.Manager_Decision, _languageTrainingApplication.Delegated_Manager_Email?.ToLower() == _user.Mail.ToLower());
         context.SetVisible<LanguageTrainingApplication>(p => p.Decision, _languageTrainingApplication.Delegated_Manager_Email?.ToLower() == _user.Mail.ToLower());
 
         var isFrench = CultureInfo.CurrentCulture.Name.StartsWith("fr", StringComparison.InvariantCulture);        
