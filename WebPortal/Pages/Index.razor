@@ -65,7 +65,7 @@ else
 
         // We need to load user and check they have root folder
         var rootFolder = await UserInformationService.GetUserRootFolder();
-        var currentUser = await UserInformationService.GetCurrentUserAsync();
+        var currentUser = await UserInformationService.GetUserAsync();
         await DataCreatorService.CreateRootFolderIfNotExist(currentUser.Id, rootFolder);
 
         // Set the user folder ID!
