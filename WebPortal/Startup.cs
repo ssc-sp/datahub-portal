@@ -49,6 +49,8 @@ using Polly.Extensions.Http;
 using NRCan.Datahub.Metadata.Model;
 using Microsoft.Extensions.Logging;
 using NRCan.Datahub.Shared.RoleManagement;
+using NRCan.Datahub.Shared;
+using NRCan.Datahub.Portal.Data.LanguageTraining;
 
 namespace NRCan.Datahub.Portal
 {
@@ -106,7 +108,7 @@ namespace NRCan.Datahub.Portal
             services.AddRazorPages();
             services.AddServerSideBlazor().AddCircuitOptions(o =>
             {
-                o.DetailedErrors = true;
+                o.DetailedErrors = true; // todo: to make it 'true' only in development
             }).AddHubOptions(o =>
             {
                 o.MaximumReceiveMessageSize = 10 * 1024 * 1024; // 10MB
@@ -154,15 +156,17 @@ namespace NRCan.Datahub.Portal
             IDbContextFactory<FinanceDBContext> financeFactory,
             IDbContextFactory<PIPDBContext> pipFactory,
             IDbContextFactory<MetadataDbContext> metadataFactory,
-            IDbContextFactory<DatahubETLStatusContext> etlFactory)
+            IDbContextFactory<DatahubETLStatusContext> etlFactory,
+            IDbContextFactory<LanguageTrainingDBContext> languageFactory)
         {
 
 
-            InitializeDatabase(logger, cosmosFactory, false);
             InitializeDatabase(logger, datahubFactory);
+            InitializeDatabase(logger, cosmosFactory, false);
             InitializeDatabase(logger, etlFactory);
             InitializeDatabase(logger, financeFactory);
             InitializeDatabase(logger, pipFactory);
+            InitializeDatabase(logger, languageFactory);
             InitializeDatabase(logger, metadataFactory, false, false);
 
             app.UseRequestLocalization(app.ApplicationServices.GetService<IOptions<RequestLocalizationOptions>>().Value);
@@ -350,6 +354,7 @@ namespace NRCan.Datahub.Portal
             services.AddHttpClient<IExternalSearchService, ExternalSearchService>();
 
             services.AddScoped<IMetadataBrokerService, MetadataBrokerService>();
+            services.AddScoped<IDatahubAuditingService, DatahubTelemetryAuditingService>();
 
             services.AddScoped<DataImportingService>();
             services.AddSingleton<DatahubTools>();
@@ -374,6 +379,12 @@ namespace NRCan.Datahub.Portal
 
         private void ConfigureDbContexts(IServiceCollection services)
         {
+            var driver = Offline? DbDriver.Sqlite: DbDriver.SqlServer;
+            ConfigureDbContext<DatahubProjectDBContext>(services, "datahub-mssql-project", driver);
+            ConfigureDbContext<PIPDBContext>(services, "datahub-mssql-pip", driver);
+            ConfigureDbContext<FinanceDBContext>(services, "datahub-mssql-finance", driver);
+            ConfigureDbContext<LanguageTrainingDBContext>(services, "datahub-mssql-languagetraining", driver);
+            if (!Offline)
 
             ConfigureDbContext<DatahubProjectDBContext>(services, "datahub-mssql-project", GetDriver());
             ConfigureDbContext<PIPDBContext>(services, "datahub-mssql-pip", GetDriver());

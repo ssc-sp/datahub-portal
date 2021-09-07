@@ -1,0 +1,80 @@
+﻿@page "/project/{ProjectAcronym}/datasharing"
+@inject IPublicDataFileService PublicDataFileService
+@inject IMSGraphService GraphService
+
+
+<AeFlex Vertical>
+
+    <AeTypography Variant="h2">@Localizer["Data Sharing Dashboard"]</AeTypography>
+
+    <AeCard style="margin-left: 2rem; width: 48%">
+
+        <AeTypography Variant="h3">@Localizer["Pending Public URL Sharing Requests"]</AeTypography>
+
+        <AeTable
+            Accessors=@accessors
+            Renderers=@renderers
+            T=@SharedDataFile
+            Dataset=@publicDataFiles
+            Headers=@headers
+            />
+
+        <div>&nbsp;</div>
+    </AeCard>
+
+    <div>&nbsp;</div>
+</AeFlex>
+
+@code {
+    [Parameter]
+    public string ProjectAcronym { get; set; }
+
+    private List<SharedDataFile> publicDataFiles = new();
+
+    private Dictionary<string, string> _usernames = new Dictionary<string, string>();
+    
+    private string GetUserDisplayName(string userid)
+    {
+        if (!_usernames.ContainsKey(userid))
+        {
+            var userName = GraphService.GetUserName(userid);
+            _usernames.Add(userid, userName);
+        }
+
+        return _usernames.GetValueOrDefault(userid);
+    }
+    
+    private List<string> headers = new List<string>()
+    {
+        "Filename", "Requesting User", "Submission Date"
+    };
+
+    private List<Func<SharedDataFile, string>> accessors = new();
+
+    private List<Func<SharedDataFile, RenderFragment>> renderers = new();
+
+    private string GetApprovalUrl(SharedDataFile f) 
+    {
+        return $"/project/{ProjectAcronym}/approveshare/{f.File_ID}";
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        accessors = new List<Func<SharedDataFile, string>>()
+        {
+            f => f.Filename_TXT,
+            f => GetUserDisplayName(f.RequestingUser_ID),
+            f => f.SubmittedDate_DT?.ToShortDateString()
+        };
+
+        renderers = new List<Func<SharedDataFile, RenderFragment>>()
+        {
+            f => @<a href=@GetApprovalUrl(f)>@f.Filename_TXT</a>,
+            null,
+            null
+        };
+
+        publicDataFiles = await PublicDataFileService.GetProjectSharingRequests(ProjectAcronym);
+    }
+
+}

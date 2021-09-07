@@ -42,6 +42,9 @@ namespace NRCan.Datahub.Shared.EFCore
 
         public DbSet<PublicDataFile> PublicDataFiles { get; set; }
 
+        public DbSet<SharedDataFile> SharedDataFiles { get; set; }
+        public DbSet<OpenDataSharedFile> OpenDataSharedFiles { get; set; }
+
         public DbSet<Datahub_Project_Costs> Project_Costs { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -74,6 +77,10 @@ namespace NRCan.Datahub.Shared.EFCore
                 .HasForeignKey(p => p.RequestID);
 
             modelBuilder.Entity<PublicDataFile>()
+                .HasIndex(e => e.File_ID)
+                .IsUnique();
+            
+            modelBuilder.Entity<SharedDataFile>()
                 .HasIndex(e => e.File_ID)
                 .IsUnique();
 
