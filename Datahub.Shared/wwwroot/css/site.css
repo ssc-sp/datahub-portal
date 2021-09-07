@@ -4422,10 +4422,6 @@ body {
   background-color: #edf2f7;
   margin: 0.25rem;
 }
-.facardForms:hover {
-  background-color: #cbd5e0;
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.09), 0 6px 6px rgba(0, 0, 0, 0.13);
-}
 .facardForms h3 {
   margin-top: 0;
   color: #000;
