@@ -11,12 +11,18 @@
 @inject ServiceAuthManager ServiceAuthManager
 @page "/admin"
 
+<div style="padding-left: 2rem;padding-right: 2rem">
+
+    <AeTypography Variant="h1">@Localizer["Datahub Administration"]</AeTypography>
 
 <AuthorizeView Roles="@string.Join(',', _authorizedRoles)">
     <Authorized>
 
-        <h1>@Localizer["Project User Requests"]</h1>
-
+        <AeCard>
+            <Header>
+        <AeTypography Variant="h1">@Localizer["Project User Requests"]</AeTypography>
+        </Header>
+        <ChildContent>
         @if (_userProjectAuthorization != null)
         {
             <AeTable Accessors="GetProjectRequestAccessorFunctions()"
@@ -28,8 +34,12 @@
         {
             <div>Loading data...</div>
         }
-
-        <h1>@Localizer["Authorize Users"]</h1>
+        </ChildContent>
+        </AeCard>    
+        <div>&nbsp;</div>
+        <AeCard>
+            <Header>        <AeTypography Variant="h1">@Localizer["Authorize Users"]</AeTypography> </Header>
+        <ChildContent>
 
         @if (_usersAuthorization != null)
         {
@@ -42,8 +52,12 @@
         {
             <div>Loading data...</div>
         }
-
-        <h1>@Localizer["Service Requests"]</h1>
+        </ChildContent>
+        </AeCard>
+        <div>&nbsp;</div>
+        <AeCard>
+            <Header>        <AeTypography Variant="h1">@Localizer["Service Requests"]</AeTypography></Header>
+                    <ChildContent>
 
         @if (_serviceRequests != null)
         {
@@ -58,12 +72,14 @@
         {
             <div>@Localizer["Loading data..."]</div>
         }
-
+        </ChildContent>
+        </AeCard>
+        <div>&nbsp;</div>
         @if (EmailService.IsDevTestMode())
         {
             <div style="width:600px">
                 <AeCard>
-                    <h1>@Localizer["Test Email Notification"]</h1>
+                    <AeTypography Variant="h1">@Localizer["Test Email Notification"]</AeTypography>
                     
                     <label>
                         <input @bind=@EmailSelf type="checkbox"/>
@@ -84,14 +100,30 @@
                         }
                     </AeButton>
                 </AeCard>
+        <div>&nbsp;</div>
+
             </div>
         }
     </Authorized>
     <NotAuthorized>
-        <h1>This page is limited for datahub administrators</h1>
+        <AeTypography Variant="h1">This page is limited for datahub administrators</AeTypography>
     </NotAuthorized>
 </AuthorizeView>
 
+<AuthorizeView Roles="@RoleConstants.DATAHUB_ROLE_ADMIN">
+    <Authorized>
+
+        <AeCard>
+            <Header>
+        <AeTypography Variant="h1">@Localizer["PowerBI Workspaces and Datasets"]</AeTypography>
+        </Header>
+        <ChildContent>
+            <NavLink href="/admin/powerbi" >Open PowerBI Admin Page</NavLink>
+        </ChildContent>
+        </AeCard>
+        </Authorized>
+        </AuthorizeView>
+        </div>
 @code {
     [CascadingParameter]
     private Task<AuthenticationState> authenticationStateTask { get; set; }

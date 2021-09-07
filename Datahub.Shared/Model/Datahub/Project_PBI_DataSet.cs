@@ -10,5 +10,7 @@ namespace NRCan.Datahub.Shared.EFCore
 
         public Guid Workspace { get; set; }
         public Datahub_Project Project { get; set; }
+
+        public string DatasetName { get; set; }
     }
 }
