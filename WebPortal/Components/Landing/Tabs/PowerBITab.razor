@@ -9,10 +9,10 @@
 
 <div class="ae table-container">
 
-        <AePaginatedTable 
+        <AePaginatedTable Accessors="accessorFunctions"
         Renderers="renderFunctions"
         T="Project_PBI_Report"
-        Dataset="_projects"
+        Dataset="_reports"
         Headers="headers"
         class="custom light"
         style="Width:100%"
@@ -34,7 +34,6 @@
 
     private IPageableComponent _myTable;
 
-    private List<Project_PBI_Report> _projects;
     DatahubProjectDBContext Context;
 
     private int _lastClicked = 0;
@@ -58,7 +57,7 @@
         var currentUserId = await UserInformationService.GetUserIdString();
         Context = DbFactory.CreateDbContext();
         _reports = Context.Project_Users.Include(u => u.Project)
-            .ThenInclude(p => p.PBI_Reports)
+            .ThenInclude(p => p.PBI_Reports).ThenInclude(p => p.Project)
             .Where(u => u.User_ID == currentUserId).SelectMany(u => u.Project.PBI_Reports).ToList();
 
         accessorFunctions = new List<Func<Project_PBI_Report, string>>() {
@@ -67,9 +66,9 @@
         };
         
         renderFunctions = new List<Func<Project_PBI_Report, RenderFragment>>() {            
-            new Func<Project_PBI_Report, RenderFragment>(report => 
-                @<AeFlex class="table-icon"><i class="@($"fad fa-{report?.Project?.Project_Icon}")"></i></AeFlex>),
-            new Func<Project_PBI_Report, RenderFragment>(report => @<AeFlex style="padding-top: 1rem"><AeTypography><DatahubLink>@report?.ReportName</DatahubLink></AeTypography></AeFlex> )            
+            report => 
+                @<AeFlex class="table-icon"><i class="@($"fad fa-{report?.Project?.Project_Icon}")"></i></AeFlex>,
+            report => @<AeFlex style="padding-top: 1rem"><AeTypography><DatahubLink>@report?.ReportName</DatahubLink></AeTypography></AeFlex>             
         };
         
         
