@@ -32,7 +32,14 @@
 
     public async Task OpenDataClicked()
     {
-        // perform setup steps if necessary
+        var filemd = new FileMetaData()
+        {
+            fileid = FileId,
+            filename = Filename,
+            folderpath = Folderpath
+        };
+
+        await _publicDataService.CreateDataSharingRequest(filemd, ProjectCode, _user, true);
         _navManager.NavigateTo(OpenDataSharingUrl);
     }
 
@@ -45,7 +52,7 @@
             folderpath = Folderpath
         };
 
-        await _publicDataService.CreateFileShareRequest(filemd, ProjectCode, _user);
+        await _publicDataService.CreateDataSharingRequest(filemd, ProjectCode, _user);
         _navManager.NavigateTo(PublicUrlSharingUrl);
     }
 
@@ -63,7 +70,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var userTask = _userInfoService.GetCurrentUserAsync();
+        var userTask = _userInfoService.GetUserAsync();
         
         Guid fileIdGuid;
         if (!Guid.TryParse(FileId, out fileIdGuid))
@@ -72,7 +79,7 @@
             _navManager.NavigateTo("/");
         }
 
-        var fileInfoTask = _publicDataService.LoadPublicDataFileInfo(fileIdGuid);
+        var fileInfoTask = _publicDataService.LoadPublicUrlSharedFileInfo(fileIdGuid);
 
         var uri = _navManager.ToAbsoluteUri(_navManager.Uri);
         var query = QueryHelpers.ParseQuery(uri.Query);
@@ -84,7 +91,14 @@
         var existingPublicFile = await fileInfoTask;
         if (existingPublicFile != null)
         {
-            _navManager.NavigateTo(PublicUrlSharingUrl);
+            if (existingPublicFile.IsOpenDataRequest_FLAG)
+            {
+                _navManager.NavigateTo(OpenDataSharingUrl);
+            }
+            else
+            {
+                _navManager.NavigateTo(PublicUrlSharingUrl);
+            }
         }
 
         _user = await userTask;

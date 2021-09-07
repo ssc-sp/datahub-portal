@@ -109,6 +109,8 @@ namespace NRCan.Datahub.Metadata.Model
                 entity.Property(e => e.French_TXT).HasMaxLength(128);
                 entity.HasIndex(e => e.French_TXT)
                       .IsUnique();
+
+                entity.Property(e => e.Source).HasMaxLength(64);
             });
 
             modelBuilder.Entity<ApprovalForm>(entity =>

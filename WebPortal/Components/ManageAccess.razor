@@ -141,7 +141,7 @@
     {
         chosenUser = null;
         selectedPermission = string.Empty;
-        _currentUser = await UserInformationService.GetCurrentUserAsync();
+        _currentUser = await UserInformationService.GetUserAsync();
 
         await DataSharingService.LoadSharedUsers(SelectedFile);
     }
