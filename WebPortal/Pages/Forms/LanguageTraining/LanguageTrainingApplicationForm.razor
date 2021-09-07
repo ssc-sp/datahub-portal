@@ -74,17 +74,17 @@
             
             await Context.SaveChangesAsync();
             
-            if (!_languageTrainingApplication.ApplicationCompleteEmailSent)
-            {                
-                await SendApplicationCompletedEmails();
-                _languageTrainingApplication.ApplicationCompleteEmailSent = true;
-                await Context.SaveChangesAsync();
-            }
+            //if (!_languageTrainingApplication.ApplicationCompleteEmailSent)
+            //{                
+            //    await SendApplicationCompletedEmails();
+            //    _languageTrainingApplication.ApplicationCompleteEmailSent = true;
+            //    await Context.SaveChangesAsync();
+            //}
 
-            if (_languageTrainingApplication.ApplicationCompleteEmailSent && !_languageTrainingApplication.ManagerDecisionSent)
-            {
-                await SendManagerDecisionEmails();                
-            }
+            //if (_languageTrainingApplication.ApplicationCompleteEmailSent && !_languageTrainingApplication.ManagerDecisionSent)
+            //{
+            //    await SendManagerDecisionEmails();                
+            //}
 
         }
 
