@@ -5,17 +5,18 @@
 @inject IJSRuntime JsInterop
 @implements IDisposable
 @inject IDbContextFactory<DatahubProjectDBContext> DbFactory
+@inject IUserInformationService UserInformationService
 
 <div class="ae table-container">
 
-        <AePaginatedTable Accessors="accessorFunctions"     
+        <AePaginatedTable 
         Renderers="renderFunctions"
-        T="Datahub_Project"
+        T="Project_PBI_Report"
         Dataset="_projects"
         Headers="headers"
         class="custom light"
         style="Width:100%"
-        GridTemplateColumns="0.5fr 2fr 3fr"    
+        GridTemplateColumns="0.5fr 3fr"    
         Page="@_lastClicked"
         PageSize="4"
         @ref=_myTable
@@ -28,12 +29,12 @@
 
 @code {
 
-    private List<Func<Datahub_Project, string>> accessorFunctions;
-    private List<Func<Datahub_Project, RenderFragment>> renderFunctions;    
+    private List<Func<Project_PBI_Report, string>> accessorFunctions;
+    private List<Func<Project_PBI_Report, RenderFragment>> renderFunctions;    
 
     private IPageableComponent _myTable;
 
-    private List<Datahub_Project> _projects;
+    private List<Project_PBI_Report> _projects;
     DatahubProjectDBContext Context;
 
     private int _lastClicked = 0;
@@ -50,18 +51,25 @@
             StateHasChanged();
     }
 
+    private List<Project_PBI_Report> _reports;
+
     protected override async Task OnInitializedAsync()
     {
+        var currentUserId = await UserInformationService.GetUserIdString();
         Context = DbFactory.CreateDbContext();
-        _projects = Context.Projects.Where(p => !p.Is_Private && !string.IsNullOrWhiteSpace(p.Project_Acronym_CD) && !string.IsNullOrWhiteSpace(p.Project_Icon) && !string.IsNullOrWhiteSpace(p.Project_Name)).Include(p => p.Users).ToList();               
+        _reports = Context.Project_Users.Include(u => u.Project)
+            .ThenInclude(p => p.PBI_Reports)
+            .Where(u => u.User_ID == currentUserId).SelectMany(u => u.Project.PBI_Reports).ToList();
 
-        await FillAccessorFunctions();
+        accessorFunctions = new List<Func<Project_PBI_Report, string>>() {
+            (report => { return report?.Id.ToString(); }),
+            (report => { return report?.Id.ToString(); })
+        };
         
-        renderFunctions = new List<Func<Datahub_Project, RenderFragment>>() {            
-            new Func<Datahub_Project, RenderFragment>(Datahub_Project => 
-                @<AeFlex class="table-icon"><i class="@($"fad fa-{Datahub_Project.Project_Icon}")"></i></AeFlex>),
-            new Func<Datahub_Project, RenderFragment>(Datahub_Project => @<AeFlex style="padding-top: 1rem"><AeTypography><NavLink href="@($"/project/{Datahub_Project?.Project_Acronym_CD}")">@Datahub_Project?.ProjectName</NavLink></AeTypography></AeFlex> ),
-            new Func<Datahub_Project, RenderFragment>(Datahub_Project => @<AeMarkdown Content="@($"{Datahub_Project.ProjectDescription}")"></AeMarkdown> ),
+        renderFunctions = new List<Func<Project_PBI_Report, RenderFragment>>() {            
+            new Func<Project_PBI_Report, RenderFragment>(report => 
+                @<AeFlex class="table-icon"><i class="@($"fad fa-{report?.Project?.Project_Icon}")"></i></AeFlex>),
+            new Func<Project_PBI_Report, RenderFragment>(report => @<AeFlex style="padding-top: 1rem"><AeTypography><DatahubLink>@report?.ReportName</DatahubLink></AeTypography></AeFlex> )            
         };
         
         
@@ -72,14 +80,6 @@
     private List<string> headers = new List<string>();
 
 
-    public async Task FillAccessorFunctions()
-    {
-        accessorFunctions = new List<Func<Datahub_Project, string>>() {
-            new Func<Datahub_Project, string>(Datahub_Project => { return Datahub_Project?.Project_Icon; }),
-            new Func<Datahub_Project, string>(Datahub_Project => { return Datahub_Project?.ProjectName; }),
-            new Func<Datahub_Project, string>(Datahub_Project => { return Datahub_Project?.ProjectDescription; }),
-        };
-    }
     
      public void Dispose() 
     { 

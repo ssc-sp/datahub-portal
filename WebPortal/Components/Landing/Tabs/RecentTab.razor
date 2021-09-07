@@ -9,7 +9,7 @@
         foreach (var item in recentLinks)
         {
             <AeFlex class="@($"recent-card {GetIcon(item.link).Color}")">
-                <i class="@GetIcon(item.link)" />
+                <i class="@GetIcon(item.link).Name" />
                 <AeFlex class="text">
                     <AeTypography class="title">@(item.project?.ProjectName ?? "-")</AeTypography>
                     <AeTypography class="subtitle">@GetDescription(item.link, item.project)</AeTypography>
