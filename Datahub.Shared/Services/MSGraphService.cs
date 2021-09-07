@@ -143,8 +143,7 @@ namespace NRCan.Datahub.Shared.Services
             }
             catch (Exception e)
             {
-                Console.WriteLine($"Could not get users. Err: {e}");
-                _logger.LogError($"Could not get users. Err: {e}");
+                _logger.LogError(e,"Could not get users");
             }
 
             return new Dictionary<string, GraphUser>();

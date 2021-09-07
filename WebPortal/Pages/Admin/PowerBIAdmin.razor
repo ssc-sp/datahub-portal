@@ -48,6 +48,7 @@
                     <AeButton @onclick="SaveChanges">Save Changes</AeButton>
 		        </Footer>
             </AeCard>
+            <div>&nbsp;</div>
             <AeCard>
                 <Header>
                     Link PowerBI Report to Projects
@@ -82,6 +83,8 @@
             <AeTypography>This view is only available for administrators.</AeTypography>
 		</NotAuthorized>
     </AuthorizeView>
+    <div>&nbsp;</div>
+
 </div>
 @code {
     private bool isWorkspacesLoaded = false;
@@ -110,9 +113,9 @@
   };
 
     private List<string> reportHeaders = new List<string>
-  {
+    {
     "Report", "Workspace", "Data Project"
-  };
+    };
 
     // Accessor functions to retrieve cell value
     private List<Func<PowerBIDatasetElements, string>> accessorFunctions = new List<Func<PowerBIDatasetElements, string>>
@@ -149,7 +152,7 @@
     {
         var toRem = datasetLinks.Where(r => r.Id == Guid.Parse(el.Dataset.Id)).ToList();
         ctx.Project_PBI_DataSets.RemoveRange(toRem);
-        var e = new Project_PBI_DataSet() {Id = Guid.Parse(el.Dataset.Id), Workspace = el.Group.Id, Project = project  };
+        var e = new Project_PBI_DataSet() {Id = Guid.Parse(el.Dataset.Id), Workspace = el.Group.Id, Project = project, DatasetName = el.Dataset.Name };
         ctx.Project_PBI_DataSets.Add(e);
         datasetLinks.Add(e);
     }
@@ -158,7 +161,7 @@
     {
         var toRem = reportLinks.Where(r => r.Id == el.report.Id).ToList();
         ctx.Project_PBI_Reports.RemoveRange(toRem);
-        var e = new Project_PBI_Report() { Id = el.report.Id, Workspace = el.group.Id, Project = project };
+        var e = new Project_PBI_Report() { Id = el.report.Id, Workspace = el.group.Id, Project = project, ReportName = el.report.Name };
         ctx.Project_PBI_Reports.Add(e);
         reportLinks.Add(e);
     }
@@ -185,6 +188,7 @@
 
     private string CustomRenderer(Datahub_Project item)
     {
+        if (item is null) return "-";
         return $"{item.ProjectName} {item.Project_Acronym_CD}";          
 
     }

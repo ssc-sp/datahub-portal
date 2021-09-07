@@ -208,11 +208,11 @@ namespace NRCan.Datahub.Portal
                 {
                     if (ensureDeleteinOffline)
                         context.Database.EnsureDeleted();
-                    context.Database.EnsureCreated();
+                    SeedDatabaseIfNew(context);
                 }
                 else
                 {
-                    context.Database.EnsureCreated();
+                    SeedDatabaseIfNew(context);
                     if (migrate)
                         context.Database.Migrate();
                 }
@@ -220,6 +220,19 @@ namespace NRCan.Datahub.Portal
             catch (Exception ex)
             {
                 logger.LogCritical(ex, $"Error initializing database {context.Database.GetDbConnection().Database}-{typeof(T).Name}");
+            }
+        }
+
+        private void SeedDatabaseIfNew<T>(T context) where T : DbContext
+        {
+            if (context.Database.EnsureCreated())
+            {
+                var seedable = context as ISeedable<T>;
+                if (seedable != null)
+                {
+                    seedable.Seed(context, Configuration);
+                    context.SaveChanges();
+                }
             }
         }
 
@@ -379,16 +392,10 @@ namespace NRCan.Datahub.Portal
 
         private void ConfigureDbContexts(IServiceCollection services)
         {
-            var driver = Offline? DbDriver.Sqlite: DbDriver.SqlServer;
-            ConfigureDbContext<DatahubProjectDBContext>(services, "datahub-mssql-project", driver);
-            ConfigureDbContext<PIPDBContext>(services, "datahub-mssql-pip", driver);
-            ConfigureDbContext<FinanceDBContext>(services, "datahub-mssql-finance", driver);
-            ConfigureDbContext<LanguageTrainingDBContext>(services, "datahub-mssql-languagetraining", driver);
-            if (!Offline)
-
             ConfigureDbContext<DatahubProjectDBContext>(services, "datahub-mssql-project", GetDriver());
             ConfigureDbContext<PIPDBContext>(services, "datahub-mssql-pip", GetDriver());
             ConfigureDbContext<FinanceDBContext>(services, "datahub-mssql-finance", GetDriver());
+            ConfigureDbContext<LanguageTrainingDBContext>(services, "datahub-mssql-languagetraining", GetDriver());
             if (GetDriver() == DbDriver.SqlServer)
             {
                 ConfigureCosmosDbContext<EFCoreDatahubContext>(services, "datahub-cosmosdb", "datahub-catalog-db");
