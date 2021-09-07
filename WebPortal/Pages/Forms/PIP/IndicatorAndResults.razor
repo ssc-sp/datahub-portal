@@ -114,7 +114,7 @@
         null,
         null,
     };
-        CurrentUser = await UserInformationService.GetCurrentUserAsync();
+        CurrentUser = await UserInformationService.GetUserAsync();
         // load projects
         _tombstone = Context.Tombstones.Where(p => p.Tombstone_ID == Convert.ToInt32(tombstone)).FirstOrDefault();
         _indicators = Context.IndicatorAndResults.Where(p => p.PIP_Tombstone.Tombstone_ID == _tombstone.Tombstone_ID).ToList();

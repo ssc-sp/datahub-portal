@@ -111,7 +111,7 @@
         await base.OnInitializedAsync();
         try
         {
-            _currentUser = await UserInformationService.GetCurrentUserAsync();
+            _currentUser = await UserInformationService.GetUserAsync();
         }
         catch (Exception ex)
         {

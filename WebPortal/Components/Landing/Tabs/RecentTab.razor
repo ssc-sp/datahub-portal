@@ -4,26 +4,29 @@
 @inject IStringLocalizer<RecentTab> Localizer
 
 <AeFlex class="recent-card-container">
-  @foreach (var item in recentLinks)
-  {
-    <AeFlex class="@($"recent-card {GetIcon(item.link).Color}")">
-      <i class="@GetIcon(item.link)" />
-      <AeFlex class="text">
-        <AeTypography class="title">@(item.project?.ProjectName ?? "-")</AeTypography>
-        <AeTypography class="subtitle">@GetDescription(item.link, item.project)</AeTypography>
-      </AeFlex>
-    </AeFlex>
-  }
+    @if (recentLinks != null)
+    {
+        foreach (var item in recentLinks)
+        {
+            <AeFlex class="@($"recent-card {GetIcon(item.link).Color}")">
+                <i class="@GetIcon(item.link)" />
+                <AeFlex class="text">
+                    <AeTypography class="title">@(item.project?.ProjectName ?? "-")</AeTypography>
+                    <AeTypography class="subtitle">@GetDescription(item.link, item.project)</AeTypography>
+                </AeFlex>
+            </AeFlex>
+        }
+    }
 </AeFlex>
 
 
 @code {
     private List<(UserRecentLink link,Datahub_Project? project)> recentLinks;
-    
+
     [Parameter]
     public List<UserRecentLink> RecentLinks { get; set; }
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
         using var ctx = DbFactoryProject.CreateDbContext();
         recentLinks = RecentLinks.Select(l => (l, project:GetProject(ctx,l))).Where(tp => tp.project != null).ToList();
@@ -52,12 +55,15 @@
                 return Icon.STORAGE;
             case DatahubLinkType.FormBuilder:
                 return Icon.PROJECT;
+            case DatahubLinkType.DataSharingDashboard:
+                return Icon.PROJECT;
         }
         return Icon.HOME;
     }
 
     private string GetDescription(UserRecentLink link, Datahub_Project project)
     {
+        var projectName = project?.ProjectName ?? "-";
         switch (link.LinkType)
         {
             case DatahubLinkType.PowerBI:
@@ -72,6 +78,8 @@
                 return $"{project.ProjectName} >> {Localizer["Storage"]}";
             case DatahubLinkType.FormBuilder:
                 return $"{project.ProjectName} >> {Localizer["Form Builder"]}";
+            case DatahubLinkType.DataSharingDashboard:
+                return $"{project.ProjectName} >> Data Sharing Dashboard";
         }
         return "N/A";
     }
