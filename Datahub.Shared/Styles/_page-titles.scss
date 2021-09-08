@@ -1,13 +1,11 @@
-﻿@import '_colors.scss';
-@import '_box-shadow.scss';
-@import '_constants.scss';
+﻿@use 'Common' as c;
 
 
 
 .header-wrapper {
     .pillbutton {
-        background-color: $borderblue;
-        color: $white;
+        background-color: c.$borderblue;
+        color: c.$white;
         text-align: center;
         cursor: pointer;
         border-radius: 1rem;
@@ -17,7 +15,7 @@
         transition: all 0.2s ease-in-out;
 
         &:hover {
-            background-color: rgba($borderblue, 0.8);
+            background-color: rgba(c.$borderblue, 0.8);
         }
 
         i {

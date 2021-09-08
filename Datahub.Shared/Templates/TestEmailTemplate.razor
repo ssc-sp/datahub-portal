@@ -1,0 +1,21 @@
+﻿@namespace NRCan.Datahub.Shared.Templates
+
+<h3>NRCan DataHub Notification Test</h3>
+
+@if(string.IsNullOrEmpty(Name))
+{
+    <p>Hello,</p>
+}
+else
+{
+    <p>Hello @Name,</p>
+}
+
+<p>This is a test of the NRCan DataHub email notification.</p>
+
+@code {
+
+    [Parameter]
+    public string Name { get; set; }
+
+}

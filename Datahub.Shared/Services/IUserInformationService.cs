@@ -11,11 +11,10 @@ namespace NRCan.Datahub.Shared.Services
         Task<bool> RegisterUserTAC();
         Task<bool> RegisterUserLanguage(string language);
         Task<string> GetUserLanguage();
-        Task<bool> IsFrench();
-        Task<User> GetCurrentUserAsync();
+        Task<bool> IsFrench();        
         Task<string> GetUserEmailDomain();
         Task<string> GetUserEmailPrefix();
         bool SetLanguage(string language);
-        Task<string> GetUserRootFolder();
+        Task<string> GetUserRootFolder();        
     }
 }

@@ -1,0 +1,94 @@
+﻿@page "/approvalform"
+
+<div style="margin: 2rem">
+    <AeCard>
+        <Header>
+            <h2>Approval Form</h2>
+        </Header>
+        <ChildContent>
+            <AeModelForm Model="_approvalForm"
+                         T="Data.Forms.ShareWorkflow.ApprovalForm"
+                         OnValidSubmit="HandleValidSubmit"
+                         OnCancel="ClearForm"
+                         OnConfigure="OnConfigure"
+                         CancelLabel="@CancelLabel"
+                         SubmitLabel="@SubmitLabel"
+                         LabelForPropertyFunc="@GetDataLabel"
+                         LabelsOnTop />
+        </ChildContent>
+    </AeCard>        
+</div>
+
+@code {
+
+    [Inject]
+    public IMetadataBrokerService MetadataBrokerService { get; set; }
+
+    [Parameter]
+    public int ApprovalFormId { get; set; } = 0;
+
+    [Parameter]
+    public EventCallback<int> OnSubmitForm { get; set; }
+
+    private GraphUser _user;
+    [Parameter]
+    public GraphUser User
+    {
+        get => _user;
+        set
+        {
+            _user = value;
+            if (_user != null && _approvalForm != null)
+            {
+                // don't overwrite values if they're already there
+                _approvalForm.Name_NAME = _approvalForm.Name_NAME ?? _user.DisplayName;
+                _approvalForm.Email_EMAIL = _approvalForm.Email_EMAIL ?? _user.Mail;
+            }
+        }
+    }
+
+    public string SubmitLabel => Localizer[MakeLabel("Submit")];
+
+    public string CancelLabel => Localizer[MakeLabel("Cancel")];
+
+    public Data.Forms.ShareWorkflow.ApprovalForm _approvalForm { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _approvalForm = await MetadataBrokerService.GetApprovalForm(ApprovalFormId) ??
+            new Data.Forms.ShareWorkflow.ApprovalForm() 
+            { 
+                Type_Of_Data_TXT = "Data",
+                Name_NAME = _user?.DisplayName,
+                Email_EMAIL = _user?.Mail
+            };
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        _approvalForm.ApprovalFormId = await MetadataBrokerService.SaveApprovalForm(_approvalForm);
+        await OnSubmitForm.InvokeAsync(_approvalForm.ApprovalFormId);
+        // todo: navigate
+    }
+
+    private async Task<Data.Forms.ShareWorkflow.ApprovalForm> ClearForm()
+    {
+        _approvalForm = new Data.Forms.ShareWorkflow.ApprovalForm()
+        {
+            ApprovalFormId = _approvalForm.ApprovalFormId
+        };
+        return await Task.FromResult(_approvalForm);
+    }
+
+    private async Task OnConfigure(IModelFormContext context)
+    {
+        context.RegisterOptionValueProperty<Data.Forms.ShareWorkflow.ApprovalForm>(p => p.Type_Of_Data_TXT, () => new string[] { "Data", "Info" });
+    }
+
+    private string GetDataLabel(string propName)
+    {
+        return Localizer[MakeLabel(propName)];
+    }
+
+    static string MakeLabel(string label) => $"APPROVAL-FORM.{label}";
+}

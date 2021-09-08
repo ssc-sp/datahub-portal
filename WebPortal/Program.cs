@@ -15,7 +15,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using NRCan.Datahub.Data.Projects;
+using NRCan.Datahub.Metadata.Model;
 using NRCan.Datahub.Portal.Data.Finance;
 using NRCan.Datahub.Portal.EFCore;
 using NRCan.Datahub.ProjectForms.Data.PIP;
@@ -33,23 +33,7 @@ namespace NRCan.Datahub.Portal
                  //    serviceCollection.AddSingleton(new ResourceManager("NRCan.Datahub.Portal.Resources", typeof(Startup).GetTypeInfo().Assembly));
                  //})  
                  .Build();
-
-            using (var scope = host.Services.CreateScope())
-            {
-                var cosmos = scope.ServiceProvider.GetRequiredService<EFCoreDatahubContext>();
-                cosmos.Database.EnsureCreated(); 
-                
-                var db = scope.ServiceProvider.GetRequiredService<DatahubProjectDBContext>();
-                db.Database.Migrate();
-
-                var finance = scope.ServiceProvider.GetRequiredService<FinanceDBContext>();
-                finance.Database.Migrate();
-
-                var pipdb = scope.ServiceProvider.GetRequiredService<PIPDBContext>();
-                pipdb.Database.Migrate();
-
-            }
-            
+           
             host.Run();
 
         }
