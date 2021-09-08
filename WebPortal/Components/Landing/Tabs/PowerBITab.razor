@@ -16,7 +16,7 @@
         Headers="headers"
         class="custom light"
         style="Width:100%"
-        GridTemplateColumns="0.5fr 3fr"    
+        GridTemplateColumns="0.5fr 3fr 2fr"    
         Page="@_lastClicked"
         PageSize="4"
         @ref=_myTable
@@ -62,13 +62,14 @@
 
         accessorFunctions = new List<Func<Project_PBI_Report, string>>() {
             (report => { return report?.Id.ToString(); }),
+            (report => { return report?.Id.ToString(); }),
             (report => { return report?.Id.ToString(); })
         };
         
         renderFunctions = new List<Func<Project_PBI_Report, RenderFragment>>() {            
-            report => 
-                @<AeFlex class="table-icon"><i class="@($"fad fa-{report?.Project?.Project_Icon}")"></i></AeFlex>,
-            report => @<AeFlex style="padding-top: 1rem"><AeTypography><DatahubLink>@report?.ReportName</DatahubLink></AeTypography></AeFlex>             
+            report => @<AeFlex class="table-icon"><i class="@($"fad fa-{report?.Project?.Project_Icon}")"></i></AeFlex>,
+            report => @<AeFlex style="padding-top: 1rem"><AeTypography><DatahubLink DataProject="@(report.Project.Project_Acronym_CD)" PowerBIURL="@(report.GetLink())" Name="@(report?.ReportName)">@report?.ReportName</DatahubLink></AeTypography></AeFlex>, 
+            report => @<AeFlex style="padding-top: 1rem"><AeTypography><DatahubLink DataProject="@(report.Project.Project_Acronym_CD)">@report?.Project.ProjectName</DatahubLink></AeTypography></AeFlex>             
         };
         
         

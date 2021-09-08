@@ -27,6 +27,8 @@ namespace NRCan.Datahub.Shared.EFCore
 
         public string PowerBIURL { get; set; }
 
+        public string Name { get; set; }
+
         public string Variant { get; set; }
 
         public string DatabricksURL { get; set; }

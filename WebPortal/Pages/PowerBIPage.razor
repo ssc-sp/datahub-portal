@@ -33,7 +33,7 @@ else
     {
     <AeCard style="width: 300px" class="small">
         <Header>
-            <DatahubLink PowerBIURL="@($"https://app.powerbi.com/datahub/datasets/{ds.Dataset.Id}")">@ds.Dataset.Name</DatahubLink>
+            <DatahubLink PowerBIURL="@($"https://app.powerbi.com/datahub/datasets/{ds.Dataset.Id}")" Name="@(ds.Dataset.Name)">@ds.Dataset.Name</DatahubLink>
         </Header>
         <ChildContent>
             <AeFlex Vertical> 
@@ -41,7 +41,7 @@ else
             <AeTypography>Related reports</AeTypography>
             @foreach (var report in ds.Reports)
             {
-                <DatahubLink PowerBIURL="@($"https://app.powerbi.com/groups/{ds.Group.Id}/reports/{report.Id}")">@report.Name</DatahubLink>
+                <DatahubLink PowerBIURL="@($"https://app.powerbi.com/groups/{ds.Group.Id}/reports/{report.Id}")" Name="@(report.Name)">@report.Name</DatahubLink>
             }
             </AeFlex>
         </ChildContent>

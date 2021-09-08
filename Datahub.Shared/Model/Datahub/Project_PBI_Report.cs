@@ -14,5 +14,7 @@ namespace NRCan.Datahub.Shared.EFCore
 
         public string ReportName { get; set; }
 
+        public string GetLink() => $"https://app.powerbi.com/groups/{Workspace}/reports/{Id}";
+
     }
 }
