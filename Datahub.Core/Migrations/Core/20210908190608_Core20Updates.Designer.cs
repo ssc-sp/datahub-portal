@@ -10,7 +10,7 @@ using NRCan.Datahub.Shared.EFCore;
 namespace NRCan.Datahub.Shared.Migrations.Core
 {
     [DbContext(typeof(DatahubProjectDBContext))]
-    [Migration("20210908151000_Core20Updates")]
+    [Migration("20210908190608_Core20Updates")]
     partial class Core20Updates
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -313,7 +313,7 @@ namespace NRCan.Datahub.Shared.Migrations.Core
                     b.Property<bool>("IsDataApprover")
                         .HasColumnType("bit");
 
-                    b.Property<int>("ProjectId")
+                    b.Property<int?>("Project_ID")
                         .HasColumnType("int");
 
                     b.Property<byte[]>("Timestamp")
@@ -327,7 +327,7 @@ namespace NRCan.Datahub.Shared.Migrations.Core
 
                     b.HasKey("ProjectUser_ID");
 
-                    b.HasIndex("ProjectId");
+                    b.HasIndex("Project_ID");
 
                     b.ToTable("Project_Users");
                 });
@@ -790,9 +790,7 @@ namespace NRCan.Datahub.Shared.Migrations.Core
                 {
                     b.HasOne("NRCan.Datahub.Shared.EFCore.Datahub_Project", "Project")
                         .WithMany("Users")
-                        .HasForeignKey("ProjectId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("Project_ID");
 
                     b.Navigation("Project");
                 });

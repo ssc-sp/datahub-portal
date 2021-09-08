@@ -311,7 +311,7 @@ namespace NRCan.Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.Property<bool>("IsDataApprover")
                         .HasColumnType("bit");
 
-                    b.Property<int>("ProjectId")
+                    b.Property<int?>("Project_ID")
                         .HasColumnType("int");
 
                     b.Property<byte[]>("Timestamp")
@@ -325,7 +325,7 @@ namespace NRCan.Datahub.Portal.Migrations.Forms.DatahubProjectDB
 
                     b.HasKey("ProjectUser_ID");
 
-                    b.HasIndex("ProjectId");
+                    b.HasIndex("Project_ID");
 
                     b.ToTable("Project_Users");
                 });
@@ -788,9 +788,7 @@ namespace NRCan.Datahub.Portal.Migrations.Forms.DatahubProjectDB
                 {
                     b.HasOne("NRCan.Datahub.Shared.EFCore.Datahub_Project", "Project")
                         .WithMany("Users")
-                        .HasForeignKey("ProjectId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("Project_ID");
 
                     b.Navigation("Project");
                 });
