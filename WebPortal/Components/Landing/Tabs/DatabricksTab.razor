@@ -56,7 +56,7 @@
         var currentUserId = await UserInformationService.GetUserIdString();
         Context = DbFactory.CreateDbContext();
         _projects = Context.Project_Users.Include(u => u.Project)            
-            .Where(u => u.User_ID == currentUserId).Select(u => u.Project).Where(p => p.Databricks_URL != null).ToList();
+            .Where(u => u.User_ID == currentUserId).Select(u => u.Project).Where(p => p.Databricks_URL != null).Distinct().ToList();
 
         await FillAccessorFunctions();
         
