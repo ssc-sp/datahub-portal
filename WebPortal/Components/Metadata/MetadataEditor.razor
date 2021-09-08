@@ -1,0 +1,125 @@
+﻿@using NRCan.Datahub.Metadata.Model
+@using NRCan.Datahub.Metadata.DTO
+
+@if (Definitions != null && FieldValues != null)
+{
+    var displayFields = Preview ? Definitions.Fields : EnumerateFields(!_showAll);
+    <div style="margin: 10px">
+        @foreach (var definition in displayFields)
+        {
+            var fieldValue = GetFieldValue(definition.FieldDefinitionId, Preview);
+
+            if (fieldValue != null)
+            {
+                <MetadataFieldEditor Preview="Preview"
+                                     Required="IsFieldRequired(definition)"
+                                     FieldValue="fieldValue"
+                                     FieldDefinition="definition"
+                                     FieldLabel="@definition.Name"
+                                     OnFieldChanged="FieldChanged" />
+            }
+        }
+
+        @if (!Preview)
+        {
+            @if (!_showAll)
+            {
+                <AeButton class="light" @onclick=@ToggleShowAll>@Localizer["METADATA-PAGE.ShowMore"]</AeButton>
+            }
+            else
+            {
+                <AeButton class="light" @onclick=@ToggleShowAll>@Localizer["METADATA-PAGE.ShowLess"]</AeButton>
+            }
+        }
+    </div>
+}
+
+@code {
+
+    [Parameter]
+    public bool Preview { get; set; }
+
+    [Parameter]
+    public FieldDefinitions Definitions { get; set; }
+
+    [Parameter]
+    public HashSet<string> RequiredFields { get; set; }
+
+    [Parameter]
+    public FieldValueContainer FieldValues { get; set; }
+
+    [Parameter]
+    public EventCallback<ObjectFieldValue> OnFieldChanged { get; set; }
+
+    private bool _showAll;
+    private HashSet<int> _modifedFieldIds = new HashSet<int>();
+
+    private async Task FieldChanged(ObjectFieldValue field)
+    {
+        _modifedFieldIds.Add(field.FieldDefinitionId);
+        if (string.IsNullOrEmpty(field.Value_TXT))
+        {
+            FieldValues.Remove(field);
+        }
+        else if (!FieldValues.Contains(field))
+        {
+            FieldValues.Add(field);
+        }
+        await OnFieldChanged.InvokeAsync(field);
+    }
+
+    private ObjectFieldValue GetFieldValue(int definitionId, bool preview)
+    {
+        var field = FieldValues.FirstOrDefault(f => f.FieldDefinitionId == definitionId);
+        if (!preview)
+            return field ?? new ObjectFieldValue() { FieldDefinitionId = definitionId };
+        else
+            return field;
+    }
+
+    private void ToggleShowAll()
+    {
+        _showAll = !_showAll;
+        StateHasChanged();
+    }
+
+    private IEnumerable<FieldDefinition> EnumerateFields(bool required)
+    {
+        var fields = Definitions.Fields.ToList();
+        var selected = new HashSet<FieldDefinition>();
+
+        // required fields
+        foreach (var field in fields.Where(IsFieldRequired))
+        {
+            selected.Add(field);
+            yield return field;
+        }
+
+        // non-required but modifed fields
+        if (required)
+        {
+            foreach (var field in fields.Where(f => !selected.Contains(f) && IsFieldModified(f)))
+            {
+                yield return field;
+            }
+        }
+        else
+        {
+            foreach (var field in fields.Where(f => !selected.Contains(f)))
+            {
+                yield return field;
+            }
+        }
+    }
+
+    private bool IsFieldRequired(FieldDefinition definition)
+    {
+        var required = RequiredFields?.Contains(definition.Field_Name_TXT);
+        return required.HasValue ? required.Value : definition.Required_FLAG;
+    }
+
+    private bool IsFieldModified(FieldDefinition definition)
+    {
+        return _modifedFieldIds.Contains(definition.FieldDefinitionId) || FieldValues.Any(f => definition.FieldDefinitionId == f.FieldDefinitionId);
+    }
+}

@@ -1,0 +1,82 @@
+﻿@using Microsoft.Extensions.Logging 
+@inject ILogger<DatahubLink> Logger
+@inject NavigationManager NavigationManager
+@inject UserLocationManagerService UserLocationManagerService
+
+@inherits HtmlElement
+
+<a class="@_classname" @onclick="Navigate" @attributes="@InputAttributesWithoutClass">@ChildContent</a>
+
+@code {
+
+    private string _classname => $"ae typography {Variant} a {_inputClass}";
+
+    [Parameter]
+    public DatahubLinkType LinkType { get; set; } = DatahubLinkType.Undefined;
+
+    [Parameter]
+    public string PowerBIURL { get; set; }
+
+    [Parameter]
+    public string Variant { get; set; }
+
+    [Parameter]
+    public string DatabricksURL { get; set; }
+
+    [Parameter]
+    public string WebFormsURL { get; set; }
+
+    [Parameter]
+    public string DataProject { get; set; }
+    //            <NavLink href="@("/project/" + p.Project_Acronym_CD)"> <AeTypography></AeTypography></NavLink>
+
+    private string url;
+
+    private async Task Navigate()
+    {
+        var link = new UserRecentLink();
+        if (LinkType == DatahubLinkType.Undefined)
+        {
+            if (PowerBIURL != null)
+                LinkType = DatahubLinkType.PowerBI;
+            else if (DatabricksURL != null)
+                LinkType = DatahubLinkType.Databricks;
+            else if (WebFormsURL != null)
+                LinkType = DatahubLinkType.WebForm;
+            else if (DataProject != null)
+                LinkType = DatahubLinkType.DataProject;
+        }
+        link.LinkType = LinkType;
+        link.PowerBIURL = PowerBIURL;
+        link.Variant = Variant;
+        link.DatabricksURL = DatabricksURL;
+        link.WebFormsURL = WebFormsURL;
+        link.DataProject = DataProject;
+
+        await UserLocationManagerService.RegisterNavigation(link);
+        switch (LinkType)
+        {
+            case DatahubLinkType.PowerBI:
+                NavigationManager.NavigateTo(PowerBIURL);
+                break;
+            case DatahubLinkType.DataProject:
+                NavigationManager.NavigateTo($"/project/{DataProject}");
+                break;
+            case DatahubLinkType.Databricks:
+                NavigationManager.NavigateTo(DatabricksURL);
+                break;
+            case DatahubLinkType.WebForm:
+                NavigationManager.NavigateTo(WebFormsURL);
+                break;
+            case DatahubLinkType.FormBuilder:
+                NavigationManager.NavigateTo($"/project/{DataProject}/forms");
+                break;
+            case DatahubLinkType.Storage:
+                NavigationManager.NavigateTo($"/project/{DataProject}/filelist");
+                break;
+            case DatahubLinkType.DataSharingDashboard:
+                NavigationManager.NavigateTo($"/project/{DataProject}/datasharing");
+                break;
+        }
+    }
+}

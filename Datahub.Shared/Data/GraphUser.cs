@@ -34,7 +34,7 @@ namespace NRCan.Datahub.Shared.Data
         {
             get
             {
-                return mailAddress?.Address.ToLower() ?? string.Empty;
+                return mailAddress?.Address?.ToLower() ?? string.Empty;
             }
         }
 
@@ -46,7 +46,7 @@ namespace NRCan.Datahub.Shared.Data
         {
             get
             {
-                return mailAddress?.User.ToLower() ?? string.Empty;
+                return mailAddress?.User?.ToLower() ?? string.Empty;
             }
         }
 
@@ -58,7 +58,7 @@ namespace NRCan.Datahub.Shared.Data
         {
             get
             {
-                return mailAddress?.Host.ToLower() ?? string.Empty;
+                return mailAddress?.Host?.ToLower() ?? string.Empty;
             }
         }
 

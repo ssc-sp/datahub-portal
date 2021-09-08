@@ -1,0 +1,22 @@
+﻿@namespace NRCan.Datahub.Portal.Components
+
+<AeFlex class="welcome-banner">
+  <AeTypography Variant="h2" class="greeting">Good @GetGreeting()</AeTypography>
+</AeFlex>
+
+
+@code {
+
+    private string GetGreeting(){
+      var hour = DateTime.Now.Hour;
+
+      if(hour < 12){
+        return "Morning";
+      }
+      else if(hour < 16){
+        return "Afternoon";
+      }
+      return "Evening";
+    }
+}
+

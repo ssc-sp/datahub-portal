@@ -2,7 +2,8 @@
 @inject IStringLocalizer DataLocalizer
 @implements IDisposable
 @inject IDbContextFactory<DatahubProjectDBContext> DbFactory
-
+@inject ServiceAuthManager ServiceAuthManager
+@inject IUserInformationService UserInformationService
 @inject NavigationManager NavigationManager
 @inject Elemental.Services.UIControlsService UIControlService
 @inject IJSRuntime JsInterop
@@ -30,7 +31,7 @@
 
 
 
-<AeTable Accessors="accessorFunctions"
+<AePaginatedTable Accessors="accessorFunctions"
        T="Datahub_Project"
        Dataset="_projects"
        ColorAccessor="getColor"
@@ -38,8 +39,11 @@
        GridTemplateColumns="2fr 2fr 2fr 8fr 2fr 8fr"
        MaxHeight="400"
        OnRowClick="@SetFormEdit"
-       />
-
+       Page="@_lastClicked"
+                 PageSize="10"
+                 @ref=_myTable />
+    
+    <AePagination Pageable="@_myTable" OnPageClick="OnPageClick" /> 
 
 </AeFlex>
 
@@ -106,6 +110,16 @@ if (_project.Project_ID > 0)
     private bool _navToEdit = false;
     private DatahubProjectDBContext Context;
     
+    private int _lastClicked = 0;
+    private IPageableComponent _myTable;
+
+
+    private void OnPageClick(int pageIndex)
+    {
+        _lastClicked = pageIndex;
+    }
+
+
     private List<string> headers = new List<string>
     {
         "Status", "Sector","Project", "Name", "Last Contact", "Contacts"
@@ -188,7 +202,7 @@ if (_project.Project_ID > 0)
     private void SetFormEdit(Datahub_Project project)
     {
         _project = project;
-        Context.Entry(_project).Reload();
+        //Context.Entry(_project).Reload();
         _comment = null;
         SubmitLabel = "Save Changes";
         StateHasChanged();
@@ -271,9 +285,23 @@ if (_project.Project_ID > 0)
                 _project = Context.Projects.Add(_project).Entity;
             }
             _project.Last_Updated_DT = DateTime.Now;
+
+            //update admins here
+
+            await UpdateAdmins();
+
             await Context.SaveChangesAsync();
             await OnInitializedAsync();
             _project = null;
+        }
+    }
+
+    private async Task UpdateAdmins()
+    {
+        if (_project.Project_Admin != null)
+        {
+            var currentUserId = await UserInformationService.GetUserIdString();
+            await ServiceAuthManager.RegisterProjectAdmin(_project, currentUserId);
         }
     }
 
@@ -297,9 +325,9 @@ if (_project.Project_ID > 0)
         }
     }
 
-    private async Task OnConfigure(ModelFormContext<Datahub_Project> context)
+    private async Task OnConfigure(IModelFormContext context)
     {
-        await context.UpdateValidValues("Project_Category", new[] { "Guidance & Recommendations",
+        context.RegisterOptionValueProperty<Datahub_Project>(s => s.Project_Category, () => new[] { "Guidance & Recommendations",
                                                                 "Presentations",
                                                                 "Data Sci. & Machine Learn.",
                                                                 "Data Pipelines",
@@ -308,7 +336,7 @@ if (_project.Project_ID > 0)
                                                                 "Dashboards",
                                                                 "Web Forms"
                                                                  });
-        await context.UpdateValidValues("Project_Phase", new[] {"Initiation",
+        context.RegisterOptionValueProperty<Datahub_Project>(s => s.Project_Phase, () => new[] {"Initiation",
                                                                 "Requirements",
                                                                 "Development/Design",
                                                                 "Implementation",

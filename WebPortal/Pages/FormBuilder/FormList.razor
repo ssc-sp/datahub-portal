@@ -13,11 +13,6 @@ else
 
 
 
-<AeButton To=@($"/project/{ProjectAcronym}/forms/new") class="blue">
-    <AeIcon Icon="add-circle" IconStyle="Elemental.Code.RXIcon.RXStyle.Fill" />
-    Create New Form
-</AeButton>
-
 @if (_forms != null && _forms.Count > 0)
 {
     <AeTable
@@ -27,12 +22,16 @@ else
         Headers=@headers
     />
 }
-
+<AeFlex> 
+<AeButton To=@($"/project/{ProjectAcronym}/forms/new") class="blue">
+    <AeIcon Icon="add-circle" IconStyle="Elemental.Code.RXIcon.RXStyle.Fill" />
+    Create New Form
+</AeButton>
 @if(_project != null)
 {
     <AeButton To=@($"/project/{ProjectAcronym}")>Back to @_project.ProjectName</AeButton>
 }
-
+</AeFlex>
 
 @code {
 

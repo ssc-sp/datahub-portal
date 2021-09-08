@@ -1,0 +1,234 @@
+﻿@page "/share/public/{FileId}"
+@inject NavigationManager NavManager
+@inject IPublicDataFileService PublicFileService
+
+<h1>@Localizer["PUBLIC-URL-WIZARD.Page_Title"]</h1>
+
+<AeFlex>
+    <ChildContent>
+        <AeCard style="margin-left: 2rem; width: 48%">
+            <ChildContent>
+                <AeTypography Variant="h2">@Localizer["PUBLIC-URL-WIZARD.Metadata"]</AeTypography>
+                <ObjectMetadataEditor ObjectId=@FileId @ref=@_metadataEditor ></ObjectMetadataEditor>
+                <AeFlex>
+                    <AeButton OnClickEvent=@SaveMetadata Disabled=@savingData >@Localizer["PUBLIC-URL-WIZARD.Save_button"]</AeButton>
+                    <div>
+                        @if(savingData)
+                        {
+                            <Spinner Small=@true/>
+                        }
+                    </div>
+                </AeFlex>
+                <div>&nbsp;</div>
+            </ChildContent>
+        </AeCard>
+
+        <div id="stepsDiv">
+            <AeSteps T=@PubUrlSteps 
+                CurrentStepState=@GetState 
+                StepItems=@steps 
+                StepTitle=@StepTitle 
+                StepMessage=@StepMessage 
+                PassedIcon=@checkIcon ></AeSteps>
+            
+            @if(ShowSubmitApproval)
+            {
+                <AeCard>
+                    <AeTypography Variant="h3">@Localizer["PUBLIC-URL-WIZARD.SubmitForApproval"]</AeTypography>
+                    <AeFlex>
+                        <AeButton OnClickEvent=@SubmitForApproval Disabled=@savingData>@Localizer["BUTTONS.Submit"]</AeButton>
+                        @if(savingData)
+                        {
+                            <Spinner Small=@true/>
+                        }                
+                    </AeFlex>
+                    <div>&nbsp;</div>
+                </AeCard>
+            }
+
+            @if(ShowSkipMetadata)
+            {
+                <AeCard>
+                    <AeTypography Variant="h3">@Localizer["PUBLIC-URL-WIZARD.AcceptMetadata"]</AeTypography>
+                    <AeButton OnClickEvent=@AcceptMetadata Disabled=@savingData>@Localizer["PUBLIC-URL-WIZARD.Continue_button"]</AeButton>
+                    <div>&nbsp;</div>
+                </AeCard>
+            }
+            
+            @if(ShowPublicationDate)
+            {
+                <AeCard>
+                    <AeTypography Variant="h3">@Localizer["PUBLIC-URL-WIZARD.PublicationDate"]</AeTypography>
+                    <p>@PublicationDateStr</p>
+                </AeCard>
+            }
+
+            @if(ShowPublicUrl)
+            {
+                <AeCard>
+                    <AeTypography Variant="h3">@Localizer["PUBLIC-URL-WIZARD.PublicUrl"]</AeTypography>
+                    <p><a href=@PublicUrl target="_blank">@PublicUrl</a></p>
+                </AeCard>
+            }
+        </div>
+    </ChildContent>
+</AeFlex>
+
+<div>&nbsp;</div>
+
+
+
+@code {
+
+    [Parameter]
+    public string FileId { get; set; }
+
+    private Guid fileIdGuid;
+
+    private ObjectMetadataEditor _metadataEditor;
+
+    private RenderFragment checkIcon = @<i class="fa fa-check"></i>;
+
+    public enum PubUrlSteps
+    {
+        EnterMetadata,
+        RequestApproval,
+        PendingApproval,
+        PendingPublication,
+        AccessPublicUrl
+    }
+
+    private List<PubUrlSteps> steps = Enum.GetValues<PubUrlSteps>().ToList();
+    private PubUrlSteps currentStep = PubUrlSteps.EnterMetadata;
+
+    private Dictionary<PubUrlSteps, (string, string)?> _stepInfo = new Dictionary<PubUrlSteps, (string, string)?>();
+    private Dictionary<PubUrlSteps, AeSteps<PubUrlSteps>.StepState> _stepStates = new Dictionary<PubUrlSteps, AeSteps<PubUrlSteps>.StepState>()
+        {
+            { PubUrlSteps.EnterMetadata, AeSteps<PubUrlSteps>.StepState.Queued },
+            { PubUrlSteps.RequestApproval, AeSteps<PubUrlSteps>.StepState.Queued },
+            { PubUrlSteps.PendingApproval, AeSteps<PubUrlSteps>.StepState.Queued },
+            { PubUrlSteps.PendingPublication, AeSteps<PubUrlSteps>.StepState.Queued },
+            { PubUrlSteps.AccessPublicUrl, AeSteps<PubUrlSteps>.StepState.Queued }
+        };
+
+    private string StepTitle(PubUrlSteps i) => _stepInfo.GetValueOrDefault(i)?.Item1;
+    private string StepMessage(PubUrlSteps i) => _stepInfo.GetValueOrDefault(i)?.Item2;
+    private AeSteps<PubUrlSteps>.StepState GetState(PubUrlSteps i) => _stepStates[i];
+
+    private bool savingData = false;
+
+    private bool ShowSubmitApproval => currentStep == PubUrlSteps.RequestApproval;
+    private bool ShowPublicationDate => currentStep == PubUrlSteps.PendingPublication && !string.IsNullOrEmpty(PublicationDateStr);
+    private bool ShowPublicUrl => currentStep == PubUrlSteps.AccessPublicUrl;
+    private bool ShowSkipMetadata => currentStep == PubUrlSteps.EnterMetadata;
+    private string PublicationDateStr = string.Empty;
+
+    //TODO add domain
+    private string PublicUrl => $"/Public/DownloadFile/{FileId}";
+
+
+    private async Task SaveMetadata()
+    {
+        savingData = true;
+
+        var t = _metadataEditor.SaveChanges();
+
+        var uri = NavManager.Uri;
+        if (uri.IndexOf('#') >= 0)
+        {
+            uri = uri.Substring(0, uri.IndexOf('#'));
+        }
+        
+        await t; 
+        savingData = false;
+        NavManager.NavigateTo($"{uri}#stepsDiv");
+        UpdateCurrentStatus(PubUrlSteps.RequestApproval);
+    }
+
+    private async Task AcceptMetadata()
+    {
+        UpdateCurrentStatus(PubUrlSteps.RequestApproval);
+    }
+
+    private async Task SubmitForApproval()
+    {
+        savingData = true;
+        
+        var t = PublicFileService.SubmitPublicUrlShareForApproval(fileIdGuid);
+
+        await t;
+        UpdateCurrentStatus(PubUrlSteps.PendingApproval);
+
+        savingData = false;
+    }
+
+    private void UpdateCurrentStatus(PubUrlSteps step, bool passed = false)
+    {
+        currentStep = step;
+        _stepStates[step] = passed? AeSteps<PubUrlSteps>.StepState.Passed : AeSteps<PubUrlSteps>.StepState.Running;
+
+        foreach (var stepv in Enum.GetValues<PubUrlSteps>())
+        {
+            if (stepv < step)
+            {
+                _stepStates[stepv] = AeSteps<PubUrlSteps>.StepState.Passed;
+            }
+            else if (stepv > step)
+            {
+                _stepStates[stepv] = AeSteps<PubUrlSteps>.StepState.Queued;
+            }
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        
+        if (!Guid.TryParse(FileId, out fileIdGuid))
+        {
+            NavManager.NavigateTo("/");
+        }
+
+        var loadTask = PublicFileService.LoadPublicUrlSharedFileInfo(fileIdGuid);
+
+        _stepInfo = new();
+        foreach(var step in steps)
+        {
+            var stepName = step.ToString();
+            var keys = ($"PUBLIC-URL-WIZARD.{stepName}.Title", $"PUBLIC-URL-WIZARD.{stepName}.Description");
+            _stepInfo.Add(step, (Localizer[keys.Item1], Localizer[keys.Item2]));
+        }
+
+
+        @* _stepInfo = new Dictionary<PubUrlSteps, (string, string)?>()
+            {
+                { PubUrlSteps.EnterMetadata, (Localizer["Enter Metadata"], Localizer["Fill in the required metadata to share this data file, and optionally any additional metadata."])},
+                { PubUrlSteps.RequestApproval, (Localizer["Request Approval"], Localizer["Submit the request for approval."])},
+                { PubUrlSteps.PendingApproval, (Localizer["Pending Approval"], Localizer["The request has been submitted for approval. Once the request is approved, the file will be publicly accessible after the publication date."])},
+                { PubUrlSteps.PendingPublication, (Localizer["Pending Publication"], Localizer["The request has been approved, but the publication date has not yet been reached."])},
+                { PubUrlSteps.AccessPublicUrl, (Localizer["Access Public URL"], Localizer["The file is now publicly accessible."])},
+            }; *@
+
+        var sharedFileInfo = await loadTask;
+
+        if (sharedFileInfo.PublicationDate_DT.HasValue && sharedFileInfo.PublicationDate_DT.Value <= DateTime.UtcNow)
+        {
+            UpdateCurrentStatus(PubUrlSteps.AccessPublicUrl, true);
+        }
+        else if (sharedFileInfo.ApprovedDate_DT.HasValue && sharedFileInfo.ApprovedDate_DT <= DateTime.UtcNow)
+        {
+            UpdateCurrentStatus(PubUrlSteps.PendingPublication);
+            PublicationDateStr = sharedFileInfo.PublicationDate_DT?.ToShortDateString();
+        }
+        else if (sharedFileInfo.SubmittedDate_DT.HasValue && sharedFileInfo.SubmittedDate_DT <= DateTime.UtcNow)
+        {
+            UpdateCurrentStatus(PubUrlSteps.PendingApproval);
+        }
+        else
+        {
+            UpdateCurrentStatus(PubUrlSteps.EnterMetadata);
+        }
+        
+    }
+
+
+}

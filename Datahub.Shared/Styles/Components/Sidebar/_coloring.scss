@@ -1,0 +1,21 @@
+﻿@use '../Icons/icon-colors';
+
+@mixin sidebar-border-colors {
+  @each $color, $colors in icon-colors.$icon-colors {
+    &.#{$color} {
+      border-left-color: #{map-get($colors, "primary")};
+    }
+  }
+}
+
+@mixin sidebar-icon-colors {
+  @include icon-colors;
+}
+
+
+
+
+
+
+
+

@@ -1,0 +1,100 @@
+﻿@page "/powerbi"
+
+@using Microsoft.EntityFrameworkCore.Query
+@using Microsoft.EntityFrameworkCore;
+@using Microsoft.PowerBI.Api.Models
+@inject IStringLocalizer<DataLabels> DataLocalizer
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JsInterop
+@inject PowerBiServiceApi PowerBiServiceApi
+@using Microsoft.Identity.Web
+@inject MicrosoftIdentityConsentAndConditionalAccessHandler ConsentHandler
+
+<div style="padding-left: 2rem;padding-right: 2rem">
+
+<AeTypography Variant="h1">@Localizer["PowerBI"]</AeTypography>
+<AeTypography Variant="h2">@Localizer["Featured Data Sets"]</AeTypography>
+@if (!isDatasetsLoaded)
+{
+    <Spinner />
+}
+else
+{
+
+@foreach (var workspace in dataSets.GroupBy(g => g.workspace))
+{
+<AeCard>
+    <Header>
+        @workspace.Key.Name
+    </Header>
+    <ChildContent>
+    <div class="ae flex wrap">
+    @foreach (var ds in workspace)
+    {
+    <AeCard style="width: 300px" class="small">
+        <Header>
+            <DatahubLink PowerBIURL="@($"https://app.powerbi.com/datahub/datasets/{ds.dataset.Id}")">@ds.dataset.Name</DatahubLink>
+        </Header>
+        <ChildContent>
+            <AeFlex Vertical> 
+            <AeTypography>@ds.dataset.Description</AeTypography>
+            <AeTypography>Related reports</AeTypography>
+            @foreach (var report in ds.reports)
+            {
+                <DatahubLink PowerBIURL="@($"https://app.powerbi.com/groups/{ds.workspace.Id}/reports/{report.Id}")">@report.Name</DatahubLink>
+            }
+            </AeFlex>
+        </ChildContent>
+        @*<Footer>
+            <AeFlex Vertical> 
+            <AeTypography><b>Workspace</b></AeTypography>
+            <AeTypography Variant="a" href="@($"https://app.powerbi.com/groups/{ds.workspace.Id}/list")">@ds.workspace.Name</AeTypography>
+            <AeTypography><b>Endorsement:</b> @(ds.dataset.EndorsementDetails?.Endorsement)</AeTypography>
+            </AeFlex>
+        </Footer>*@
+    </AeCard>
+    }
+    </div>
+    
+    </ChildContent>
+</AeCard>
+}
+}
+<AeTypography Variant="h2">@Localizer["My Workspaces"]</AeTypography>
+
+@if (!isWorkspacesLoaded)
+{
+    <Spinner />
+}
+else
+{
+
+}
+
+</div>
+@code {
+    private bool isDatasetsLoaded = false;
+    private bool isWorkspacesLoaded = false;
+
+    private List<(Group workspace,Dataset dataset, List<Report> reports)> dataSets;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Task.Run(async () =>
+        {
+            try
+            {
+                dataSets = await PowerBiServiceApi.GetAllDatasetsAsync();
+                isWorkspacesLoaded = true;
+                isDatasetsLoaded = true;
+                InvokeAsync(StateHasChanged);
+                //            StateHasChanged();
+            }
+            catch (Exception ex)
+            {
+                ConsentHandler.HandleException(ex);
+            }
+        });
+    }
+
+}
