@@ -72,6 +72,8 @@ namespace NRCan.Datahub.Portal
 
         private bool Offline => _currentEnvironment.IsEnvironment("Offline");
 
+        private bool Debug => (bool)Configuration.GetValue(typeof(bool), "DebugMode", false);
+
         // This method gets called by the runtime. Use this method to add services to the container.
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
@@ -120,7 +122,7 @@ namespace NRCan.Datahub.Portal
             ConfigureDatahubServices(services);
 
             services.AddHttpClient();
-            services.AddHttpClient<IGraphServiceClient, GraphServiceClient>().AddPolicyHandler(GetRetryPolicy());
+            services.AddHttpClient<GraphServiceClient>().AddPolicyHandler(GetRetryPolicy());
             services.AddFileReaderService();
             services.AddBlazorDownloadFile();
             services.AddScoped<ApiTelemetryService>();
@@ -169,7 +171,7 @@ namespace NRCan.Datahub.Portal
 
             app.UseRequestLocalization(app.ApplicationServices.GetService<IOptions<RequestLocalizationOptions>>().Value);
 
-            if (env.IsDevelopment())
+            if (Debug)
             {
                 app.UseDeveloperExceptionPage();
             }
@@ -206,11 +208,11 @@ namespace NRCan.Datahub.Portal
                 {
                     if (ensureDeleteinOffline)
                         context.Database.EnsureDeleted();
-                    context.Database.EnsureCreated();                    
+                    SeedDatabaseIfNew(context);
                 }
                 else
                 {
-                    context.Database.EnsureCreated();
+                    SeedDatabaseIfNew(context);
                     if (migrate)
                         context.Database.Migrate();
                 }
@@ -218,6 +220,19 @@ namespace NRCan.Datahub.Portal
             catch (Exception ex)
             {
                 logger.LogCritical(ex, $"Error initializing database {context.Database.GetDbConnection().Database}-{typeof(T).Name}");
+            }
+        }
+
+        private void SeedDatabaseIfNew<T>(T context) where T : DbContext
+        {
+            if (context.Database.EnsureCreated())
+            {
+                var seedable = context as ISeedable<T>;
+                if (seedable != null)
+                {
+                    seedable.Seed(context, Configuration);
+                    context.SaveChanges();
+                }
             }
         }
 
@@ -369,24 +384,29 @@ namespace NRCan.Datahub.Portal
             services.AddHttpClient<IExternalSearchService, ExternalSearchService>();
         }
 
+        private DbDriver GetDriver() => (Configuration.GetValue(typeof(string), "DbDriver", "SqlServer").ToString().ToLowerInvariant()) switch
+        {
+            "sqlite" => DbDriver.Sqlite,
+            _ => DbDriver.SqlServer
+        };
+
         private void ConfigureDbContexts(IServiceCollection services)
         {
-            var driver = Offline? DbDriver.Sqlite: DbDriver.SqlServer;
-            ConfigureDbContext<DatahubProjectDBContext>(services, "datahub-mssql-project", driver);
-            ConfigureDbContext<PIPDBContext>(services, "datahub-mssql-pip", driver);
-            ConfigureDbContext<FinanceDBContext>(services, "datahub-mssql-finance", driver);
-            ConfigureDbContext<LanguageTrainingDBContext>(services, "datahub-mssql-languagetraining", driver);
-            if (!Offline)
+            ConfigureDbContext<DatahubProjectDBContext>(services, "datahub-mssql-project", GetDriver());
+            ConfigureDbContext<PIPDBContext>(services, "datahub-mssql-pip", GetDriver());
+            ConfigureDbContext<FinanceDBContext>(services, "datahub-mssql-finance", GetDriver());
+            ConfigureDbContext<LanguageTrainingDBContext>(services, "datahub-mssql-languagetraining", GetDriver());
+            if (GetDriver() == DbDriver.SqlServer)
             {
                 ConfigureCosmosDbContext<EFCoreDatahubContext>(services, "datahub-cosmosdb", "datahub-catalog-db");
             }
             else
             {
-                ConfigureDbContext<EFCoreDatahubContext>(services, "datahub-cosmosdb", driver);
+                ConfigureDbContext<EFCoreDatahubContext>(services, "datahub-cosmosdb", GetDriver());
             }
-            ConfigureDbContext<WebAnalyticsContext>(services, "datahub-mssql-webanalytics", driver);
-            ConfigureDbContext<DatahubETLStatusContext>(services, "datahub-mssql-etldb", driver);
-            ConfigureDbContext<MetadataDbContext>(services, "datahub-mssql-metadata", driver);
+            ConfigureDbContext<WebAnalyticsContext>(services, "datahub-mssql-webanalytics", GetDriver());
+            ConfigureDbContext<DatahubETLStatusContext>(services, "datahub-mssql-etldb", GetDriver());
+            ConfigureDbContext<MetadataDbContext>(services, "datahub-mssql-metadata", GetDriver());
         }
 
         private void ConfigureDbContext<T>(IServiceCollection services, string connectionStringName, DbDriver dbDriver) where T : DbContext
