@@ -545,7 +545,6 @@
   "Project_Cost_NotFound": "No cost data found.",
   "Project_Cost_Template": "As of {0}, total resource cost is {1} for the period from {2} to {3}.",
   "Project_Cost_Button": "More details",
-
   "NRCan_Username": "NRCan Username",
   "First_Name": "First Name",
   "Last_Name": "Last Name",
@@ -581,6 +580,14 @@
   "Manager_First_Name": "Finance Officer First Name",
   "Manager_Last_Name": "Finance Officer Last Name",
   "Manager_Email_Address": "Finance Officer Email Address",
-  "Decision": "Decision"
+  "Decision": "Decision",
+  "PROJECT-PAGE": {
+    "Project_Cost": "Cost",
+    "Project_Cost_NotFound": "No cost data found.",
+    "Project_Cost_Template": "As of {0}, total resource cost is {1} for the period from {2} to {3}.",
+    "Project_Cost_Button": "More details",
+    "No_Access_Message": "You currently do not have access to this project.",
+    "Request_Access_Reviewed":"Access Request is being reviewed"
+  }
 }
 
