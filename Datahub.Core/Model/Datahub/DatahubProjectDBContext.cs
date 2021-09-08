@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace NRCan.Datahub.Shared.EFCore
 {
-    public class DatahubProjectDBContext : DbContext, ISeedable<DatahubProjectDBContext>
+    public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBContext>
     {
         public DatahubProjectDBContext(DbContextOptions<DatahubProjectDBContext> options) : base(options)
         {
