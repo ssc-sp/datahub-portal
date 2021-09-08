@@ -21,6 +21,9 @@ namespace NRCan.Datahub.Portal.Services
         public IList<Dataflow> Dataflows;
     }
 
+    public record PowerBIDatasetElements(Group Group, Dataset Dataset, List<Report> Reports);
+
+
     public class PowerBiServiceApi
     {
 
@@ -67,7 +70,7 @@ namespace NRCan.Datahub.Portal.Services
             return new PowerBIClient(new Uri(urlPowerBiServiceApiRoot), tokenCredentials);
         }
 
-        public async Task<List<(Group,Dataset, List<Report>)>> GetAllDatasetsAsync(string appWorkspaceId = "")
+        public async Task<List<PowerBIDatasetElements>> GetAllDatasetsAsync(string appWorkspaceId = "")
         {
             var allDataSets = new List<(Group, Dataset, List<Report>)>();
             using (var client = await GetPowerBiClientAsync())
@@ -89,7 +92,7 @@ namespace NRCan.Datahub.Portal.Services
                 //var groupRequest = new GroupCreationRequest() {  Name = "Test-APICreate"};
                 //var newWorkspace = await client.Groups.CreateGroupAsync(groupRequest, true);
             }
-            return allDataSets;
+            return allDataSets.Select(tp => new PowerBIDatasetElements(tp.Item1,tp.Item2,tp.Item3)).ToList();
         }
 
         public async Task<string> GetEmbeddedViewModel(string appWorkspaceId = "")
