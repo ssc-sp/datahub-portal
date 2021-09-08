@@ -53,7 +53,7 @@ namespace NRCan.Datahub.Shared.EFCore
 
         public void Seed(DatahubProjectDBContext context, IConfiguration configuration)
         {
-            context.Projects.Add(new Datahub_Project()
+            var p1 = context.Projects.Add(new Datahub_Project()
             {
                 Project_ID = 1,
                 Project_Acronym_CD = RoleConstants.DATAHUB_ADMIN_PROJECT,
@@ -63,7 +63,7 @@ namespace NRCan.Datahub.Shared.EFCore
                 Project_Icon = "database",
                 Project_Summary_Desc = "Datahub Project Tracker",
                 Sector_Name = "CIOSB"
-            });
+            }).Entity;
             context.Projects.Add(
                 new Datahub_Project()
                 {
@@ -89,7 +89,7 @@ namespace NRCan.Datahub.Shared.EFCore
                 });
             var initialSetup = configuration.GetSection("InitialSetup");
             if (initialSetup?.GetValue<string>("AdminGUID") != null)
-                context.Project_Users.Add(new Datahub_Project_User() { User_ID = initialSetup.GetValue<string>("AdminGUID"), IsAdmin = true, ProjectUser_ID = 1, ProjectId = 1 });
+                context.Project_Users.Add(new Datahub_Project_User() { User_ID = initialSetup.GetValue<string>("AdminGUID"), IsAdmin = true, ProjectUser_ID = 1, Project = p1 });
 
         }
 
