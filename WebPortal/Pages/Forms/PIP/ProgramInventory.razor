@@ -79,7 +79,7 @@
     private PIPDBContext Context;
     private List<string> headers = new List<string>
     {
-	    "Title","Lead Sector", "Report"
+	    "Title","Lead Sector"
     };
 
     private int _lastClicked = 0;
@@ -123,28 +123,28 @@
 {
         new Func<PIP_Tombstone, string>(p => { return p.Program_Title; }),
         new Func<PIP_Tombstone, string>(p => { return p.Lead_Sector; }),
-        null,
+        //null,
     };
 
-    private List<Func<PIP_Tombstone, RenderFragment>> GetRenderers()
-    {
-        var powerBiTargets = Configuration["PowerBiTargets:SPI"];
-        foreach(var project in _projects)
-        {
-            if (!string.IsNullOrEmpty(powerBiTargets))
-            {
-                var powerBiUrl = $"{powerBiTargets}rp:p_program_title={project.Program_Title.Replace(" ", "+")}";
-                project.PowerBiUrl = @<a href="@powerBiUrl" target="blank">Open PowerBI Report</a>
-    ;
-            }
-        }
+    //private List<Func<PIP_Tombstone, RenderFragment>> GetRenderers()
+    //{
+    //    var powerBiTargets = Configuration["PowerBiTargets:SPI"];
+    //    foreach(var project in _projects)
+    //    {
+    //        if (!string.IsNullOrEmpty(powerBiTargets))
+    //        {
+    //            var powerBiUrl = $"{powerBiTargets}rp:p_program_title={project.Program_Title.Replace(" ", "+")}";
+    //            project.PowerBiUrl = @<a href="@powerBiUrl" target="blank">Open PowerBI Report</a>
+    //;
+    //        }
+    //    }
 
-        return new List<Func<PIP_Tombstone, RenderFragment>>() {
-            null,
-            null,
-            new Func< PIP_Tombstone, RenderFragment>(pt => { return pt.PowerBiUrl; }),    
-        };
-    }
+    //    return new List<Func<PIP_Tombstone, RenderFragment>>() {
+    //        null,
+    //        null,
+    //        new Func< PIP_Tombstone, RenderFragment>(pt => { return pt.PowerBiUrl; }),    
+    //    };
+    //}
 
 
     private void SetFormEdit(PIP_Tombstone project)
