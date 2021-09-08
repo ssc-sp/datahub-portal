@@ -1,43 +1,53 @@
+@using NRCan.Datahub.Shared.Data
+@using NRCan.Datahub.Portal.Services
+@inject ServiceAuthManager ServiceAuthManager
 
 <div id="sidebar">
-    <div class="logo">
-        <div class="img">
-            <img src="_content/Datahub.Shared/img/datahub-logo-v2.png" />
-        </div>
-        <div class="text">
-            <div class="subtitle">@Localizer["SIDEBAR.NR-Title"]</div>
-            <div class="title">@Localizer["SIDEBAR.DataHub"]</div>
-        </div>
-    </div>
-    <NavLink href="/" Match="NavLinkMatch.All" ActiveClass="active">
-        <i class="fas fa-home"></i>
-        @Localizer["SIDEBAR.Home"]
-    </NavLink>
-    <NavLink href="/data" Match="NavLinkMatch.Prefix" ActiveClass="active">
-        <i class="fal fa-database"></i>
-        @Localizer["MyData"]
-    </NavLink>
-    <NavLink href="/shared" Match="NavLinkMatch.Prefix" ActiveClass="active">
-        <i class="fal fa-user-friends"></i>
-        @Localizer["SharedWithYou"]
-    </NavLink>
-    <NavLink href="/projects" Match="NavLinkMatch.Prefix" ActiveClass="active">
-        <i class="fas fa-project-diagram"></i>
-        @Localizer["Data Projects"]
-    </NavLink>
-    <AuthorizeView Roles="datahub-admin, project-admin">
-        <NavLink href="/admin" Match="NavLinkMatch.Prefix" ActiveClass="active">
-            <i class="fad fa-user-lock"></i>
-            @Localizer["Admin"]
+  <div class="logo">
+    <img src="_content/Datahub.Core/img/datahub-logo-v2.png" />
+  </div>
+  <div class="links">
+    @foreach(var link in GetLinks())
+    {
+      <NavLink class="@link.Icon.Color" href="@link.Href" Match="NavLinkMatch.All" ActiveClass="active">
+        <i class="@link.Icon.Name"></i>
+        @Localizer[@link.Label]
+      </NavLink>
+    }    
+    @foreach(var link in GetAuthorizedLinks())
+    {
+      <AuthorizeView Roles="@string.Join(',', link.Roles)">
+        <NavLink class="@link.Icon.Color" href="@link.Href" Match="NavLinkMatch.All" ActiveClass="active">
+          <i class="@link.Icon.Name"></i>
+          @Localizer[@link.Label]
         </NavLink>
-    </AuthorizeView>
-    @* <NavLink href="/forms" Match="NavLinkMatch.Prefix" ActiveClass="active">
-        <i class="fad fa-file-alt"></i>
-        Forms
-    </NavLink> *@
-    <div class="divider"></div>
-    @*<NavLink href="/reports" Match="NavLinkMatch.Prefix" ActiveClass="active">
-          <i class="fal fa-chart-pie"></i>
-          Dashboard & Reports
-        </NavLink>*@
+      </AuthorizeView>
+    }
+  </div>
 </div>
+
+@code {
+
+
+    private List<(string Href, Icon Icon, string Label)> GetLinks()
+  {
+    return new List<(string, Icon, string)>()
+    {
+      ("/", Icon.HOME, "SIDEBAR.Home"),
+      ("/data", Icon.STORAGE, "SIDEBAR.Storage"),
+      ("/projects", Icon.PROJECT, "SIDEBAR.DataProjects"),
+      ("/resources", Icon.RESOURCES, "SIDEBAR.Resources"),
+      ("/datasets", Icon.DATASETS, "SIDEBAR.Datasets"),
+      ("/powerbi", Icon.POWERBI, "SIDEBAR.PowerBI"),      
+    };
+  }
+
+  private List<(string Href, Icon Icon, string Label, List<string> Roles)> GetAuthorizedLinks()
+  {
+        var projects = ServiceAuthManager.GetAdminProjectRoles();
+        return new List<(string, Icon, string, List<string>)>()
+    {
+      ("/admin", Icon.ADMIN, "SIDEBAR.Admin", projects)
+    };
+  }
+}

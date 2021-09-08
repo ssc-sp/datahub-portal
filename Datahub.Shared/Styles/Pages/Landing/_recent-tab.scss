@@ -1,0 +1,49 @@
+﻿@use '../../Common/' as c;
+
+@use '../../Components/Icons/icon-colors';
+@use '../../Components/Sidebar/coloring' as sidebar-coloring;
+
+
+.recent-card-container {
+  display: inline-block;
+
+
+  .recent-card {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    margin: 1rem 0;
+
+    @include icon-colors.base-icon-color;
+    @include icon-colors.base-icon-hover;
+    @include icon-colors.icon-colors;
+    transition: all .2s c.$cubic-bezier;
+    border-left: 0px solid c.$transparent;
+
+    &:hover {
+      cursor: pointer;
+      border-left: 4px solid c.$transparent;
+      @include sidebar-coloring.sidebar-border-colors;
+
+      i {
+        opacity: 1;
+      }
+    }
+
+    i {
+      font-size: 2rem;
+      width: 50px;
+      opacity: .5;
+    }
+
+    .text {
+      .title {
+      }
+
+      .subtitle {
+        font-size: .6rem;
+        color: c.$gray-500;
+      }
+    }
+  }
+}

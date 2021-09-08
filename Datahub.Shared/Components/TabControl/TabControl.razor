@@ -1,0 +1,50 @@
+﻿@namespace NRCan.Datahub.Portal.Components
+
+
+<div class="tab-control">
+    <div class="tab-selection">
+    @foreach(TabPage tabpage in _pages)
+    {
+        <div class="tab @GetTabClass(tabpage)" @onclick=@(() => ActivatePage(tabpage))>
+            @tabpage.Control
+        </div>
+    }
+    </div>
+    <div class="tab-content">
+      <CascadingValue Value="this">
+        @ChildContent
+      </CascadingValue>
+    </div>
+</div>
+
+
+@code {
+
+  [Parameter]
+  public RenderFragment ChildContent { get; set; }
+
+  public TabPage ActivePage {get; set;}
+  
+  private List<TabPage> _pages = new List<TabPage>();
+
+  private string GetTabClass(TabPage tabpage)
+  {
+    return tabpage == ActivePage ? "active" : "";
+  }
+
+  void ActivatePage(TabPage tabPage)
+  {
+    ActivePage = tabPage;
+  }
+
+  internal void AddPage(TabPage tabPage)
+  {
+    _pages.Add(tabPage);
+    if(_pages.Count == 1)
+    {
+      ActivePage = tabPage;
+    }
+    StateHasChanged();
+  }
+}
+

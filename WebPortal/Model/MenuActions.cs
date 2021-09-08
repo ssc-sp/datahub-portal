@@ -8,5 +8,6 @@ public enum MenuActions
     CreateFolder = 5,
     Rename = 6,
     MoveTo = 7,
-    OpenVersions = 8
+    OpenVersions = 8,
+    ShareFile = 9
 }

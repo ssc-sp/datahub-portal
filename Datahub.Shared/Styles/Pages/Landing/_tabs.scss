@@ -1,0 +1,30 @@
+﻿@use '../../Common/' as c;
+
+.tab-control {
+    .tab-selection {
+        display: flex;
+        flex-wrap: wrap;
+
+        margin: 1rem 0;
+
+        .tab {
+            padding: .5rem 1rem;
+
+            border-bottom: 2px solid c.$transparent;
+            transition: all .2s c.$cubic-bezier;
+            cursor: pointer;
+
+            &:hover {
+                background-color: c.$gray-100;
+            }
+            
+            &.active {
+                border-color: c.$borderblue;
+            }
+        }
+    }
+
+    .tab-content {
+        
+    }
+}

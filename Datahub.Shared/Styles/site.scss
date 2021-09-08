@@ -1,34 +1,40 @@
-@import 'colors';
-@import 'sidebar';
-@import 'topbar';
-@import 'banner';
-@import 'main-layout';
-@import 'list-layout';
-@import 'sharedcontrols';
-@import 'spinner';
-@import 'overlay';
-@import 'page-titles';
-@import '_typography.scss';
-@import '_progressbar.scss';
-@import '_tacmodal.scss';
-@import 'search-layout';
+@use 'Common' as c;
 
-@import 'Components/versionList';
-@import 'Components/_tag.scss';
-@import 'Components/_profileCircle.scss';
-@import 'Components/_popup.scss';
-@import 'Components/_closeButton.scss';
-@import 'Components/_faButton.scss';
-@import 'Components/_facard1.scss';
+@use 'Theme/_elemental-override';
 
-@import 'Views/_item-details.scss';
-@import 'Theme/_elemental-override.scss';
+@use 'topbar';
+@use 'banner';
+@use 'main-layout';
+@use 'list-layout';
+@use 'sharedcontrols';
+@use 'spinner';
+@use 'overlay';
+@use 'page-titles';
+@use '_typography.scss';
+@use '_progressbar.scss';
+@use '_tacmodal.scss';
+@use 'search-layout';
+
+@use 'Components/versionList';
+@use 'Components/_tag.scss';
+@use 'Components/_profileCircle.scss';
+@use 'Components/_popup.scss';
+@use 'Components/_closeButton.scss';
+@use 'Components/_faButton.scss';
+@use 'Components/_facard1.scss';
+
+@use 'Components/Sidebar';
+
+@use 'Views/_item-details.scss';
+@use 'Pages/Landing';
+
+@use 'Tables/_table-elements.scss';
 
 
 body {
     font-family: 'Roboto','RobotoDraft',Helvetica,Arial,sans-serif;
     font-size: 0.8rem;
-    background-color: $white;
+    background-color: c.$grey-200;
 }
 
 .add-data-wrapper {
@@ -37,10 +43,10 @@ body {
 
 /* Add Data page dropdown styling */
 #securityDropdown .ae.button {
-    color: $black;
+    color: c.$black;
     background-color: transparent;
     min-width: 13rem;
-    border-color: $borderblue;
+    border-color: c.$borderblue;
     border-width: 0px 0px 1px 0px;
     border-style: solid;
     padding: 4px 4px 4px 8px;
@@ -48,7 +54,7 @@ body {
 
     &:hover {
         background-color: transparent;
-        border-color: $borderblue;
+        border-color: c.$borderblue;
     }
 }
 
@@ -158,7 +164,7 @@ img {
 .flexItem p {
     max-width: 600px;
     margin-bottom: 30px;
-    color: $black;
+    color: c.$black;
     font-size: 1rem;
 }
 
@@ -173,8 +179,8 @@ img {
 }
 
 .alert-danger {
-    background-color: $red-200;
-    color: $red-900;
-    border-color: $red-900;
-    border-left: 8px solid $red-900;
+    background-color: c.$red-200;
+    color: c.$red-900;
+    border-color: c.$red-900;
+    border-left: 8px solid c.$red-900;
 }

@@ -1,5 +1,4 @@
-@import 'colors';
-@import 'box-shadow';
+@use 'Common' as c;
 
 $bannerHeight: 15rem;
 
@@ -124,7 +123,7 @@ $bannerHeight: 15rem;
     background: #fff !important;
     opacity: 0.5 !important;
     filter: alpha(opacity=50) !important;
-    border: 1px solid $gray-300;
+    border: 1px solid c.$gray-300;
     -webkit-border-radius: 0 !important;
     -moz-border-radius: 0 !important;
     border-radius: 0 !important;

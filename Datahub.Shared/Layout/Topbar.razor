@@ -2,19 +2,24 @@
 @inject IUserInformationService UserInformationService
 @inject NavigationManager NavigationManager
 @inject IApiService ApiService
-
+@using Microsoft.Identity.Web
+@inject MicrosoftIdentityConsentAndConditionalAccessHandler ConsentHandler
 
 @using System.Timers;
 
 <div id="topbar">
-    <div class="spacer" />
-    <div>
+    <div class="search-spacer">
         <Search />
     </div>
-    <div class="spacer" />
+
+    <div class="inbox icon-container">
+      <i class="fad fa-inbox"></i>
+    </div>
    
-    <div class="help icon">
-        <i class="fal fa-question-circle topbar-icon" @onclick="ToggleHelp"></i>
+    <div class="help-wrapper">
+        <div class="help icon-container" @onclick="ToggleHelp">
+            <i class="fad fa-question-circle"></i>
+        </div>      
         <Popup Show="_showHelp" class="nrcan-popup top-nav-popup help-popup" OnCloseClick="ToggleHelp">
             <ChildContent>
                 <Typography Variant="h3">@Localizer["Help"]</Typography>
@@ -133,7 +138,12 @@
 
     protected override async Task OnInitializedAsync()
     {
-        User = await UserInformationService.GetCurrentUserAsync();
+        try {
+            User = await UserInformationService.GetUserAsync();
+        } catch (Exception ex)
+        {
+            ConsentHandler.HandleException(ex);
+        }
      }
 
     private void ToggleHelp()

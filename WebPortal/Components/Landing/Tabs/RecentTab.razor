@@ -1,0 +1,85 @@
+﻿@inject IUserInformationService UserInformationService
+@inject UserLocationManagerService UserLocationManagerService 
+@inject IDbContextFactory<DatahubProjectDBContext> DbFactoryProject
+
+<AeFlex class="recent-card-container">
+    @if (recentLinks != null)
+    {
+        foreach (var item in recentLinks)
+        {
+            <AeFlex class="@($"recent-card {GetIcon(item.link).Color}")">
+                <i class="@GetIcon(item.link)" />
+                <AeFlex class="text">
+                    <AeTypography class="title">@(item.project?.ProjectName ?? "-")</AeTypography>
+                    <AeTypography class="subtitle">@GetDescription(item.link, item.project)</AeTypography>
+                </AeFlex>
+            </AeFlex>
+        }
+    }
+</AeFlex>
+
+
+@code {
+    private List<(UserRecentLink link,Datahub_Project? project)> recentLinks;
+
+    [Parameter]
+    public List<UserRecentLink> RecentLinks { get; set; }
+
+    protected override void OnInitialized()
+    {
+        using var ctx = DbFactoryProject.CreateDbContext();
+        recentLinks = RecentLinks.Select(l => (l, GetProject(ctx, l))).ToList();
+    }
+
+    private Datahub_Project? GetProject(DatahubProjectDBContext ctx, UserRecentLink link)
+    {
+        if (link.DataProject == null)
+            return null;
+        return ctx.Projects.FirstOrDefault(p => p.Project_Acronym_CD == link.DataProject);
+    }
+
+    private Icon GetIcon(UserRecentLink link)
+    {
+        switch (link.LinkType)
+        {
+            case DatahubLinkType.PowerBI:
+                return Icon.POWERBI;
+            case DatahubLinkType.Databricks:
+                return Icon.DATASETS;
+            case DatahubLinkType.WebForm:
+                return Icon.DATAENTRY;
+            case DatahubLinkType.DataProject:
+                return Icon.PROJECT;
+            case DatahubLinkType.Storage:
+                return Icon.STORAGE;
+            case DatahubLinkType.FormBuilder:
+                return Icon.PROJECT;
+            case DatahubLinkType.DataSharingDashboard:
+                return Icon.PROJECT;
+        }
+        return Icon.HOME;
+    }
+
+    private string GetDescription(UserRecentLink link, Datahub_Project project)
+    {
+        var projectName = project?.ProjectName ?? "-";
+        switch (link.LinkType)
+        {
+            case DatahubLinkType.PowerBI:
+                return $"{projectName} >> PowerBI";
+            case DatahubLinkType.Databricks:
+                return $"{projectName} >> Databricks";
+            case DatahubLinkType.WebForm:
+                return $"{projectName} >> Data Entry";
+            case DatahubLinkType.DataProject:
+                return $"{projectName} >> Home";
+            case DatahubLinkType.Storage:
+                return $"{projectName} >> Storage";
+            case DatahubLinkType.FormBuilder:
+                return $"{project.ProjectName} >> Form Builder";
+            case DatahubLinkType.DataSharingDashboard:
+                return $"{project.ProjectName} >> Data Sharing Dashboard";
+        }
+        return "N/A";
+    }
+}
