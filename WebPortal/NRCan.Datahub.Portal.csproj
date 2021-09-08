@@ -71,7 +71,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Datahub.Metadata\Datahub.Metadata.csproj" />
-    <ProjectReference Include="..\Datahub.Shared\Datahub.Core.csproj" />
+    <ProjectReference Include="..\Datahub.Core\Datahub.Core.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Content Update="i18n\localization.fr.json">
