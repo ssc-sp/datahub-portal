@@ -128,7 +128,6 @@ namespace NRCan.Datahub.Shared.Services
                 {
                     _logger.LogError(ex, $"Unable to send email to: {item.Name} with subject: {subject}.");
                 }
-                throw;
             }
         }
 
