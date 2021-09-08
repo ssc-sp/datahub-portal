@@ -3,7 +3,6 @@
 @inject IStringLocalizer<DataLabels> DataLocalizer
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JsInterop
-@inject DatahubProjectDBContext projectContext
 @inject IDbContextFactory<DatahubProjectDBContext> dbFactory
 @inject IEmailNotificationService EmailService
 @inject IMSGraphService MSGraphService
@@ -135,6 +134,8 @@
     private List<Datahub_Project_User_Request> _userProjectAuthorization;
 
     private List<Datahub_ProjectServiceRequests> _serviceRequests;
+
+    private DatahubProjectDBContext projectContext;
 
     private List<string> projectReqheaders = new List<string>
 {
@@ -329,7 +330,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        
+        projectContext = dbFactory.CreateDbContext();
         _authorizedRoles = ServiceAuthManager.GetAdminProjectRoles();
             
 
