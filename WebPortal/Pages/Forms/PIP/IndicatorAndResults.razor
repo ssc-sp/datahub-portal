@@ -9,8 +9,6 @@
 
 @page "/pip/indicators/{tombstone}"
 
-@using Elemental.Components.Forms
-
 <h1>Indicator And Results</h1>
 
 <ProgramTable tombstone="@tombstone"></ProgramTable>
@@ -21,15 +19,18 @@
 
 
 
-        <AeTable Accessors="accessorFunctions"
+        <AePaginatedTable Accessors="accessorFunctions"
                  T="PIP_IndicatorAndResults"
                  Dataset="_indicators"
                  ColorAccessor="getColor"
                  Headers="headers"
                  GridTemplateColumns="1fr 4fr 4fr"
-                 MaxHeight="400"
-                 OnRowClick="@SetFormEdit" />
+                 OnRowClick="@SetFormEdit" 
+                 Page="@_lastClicked"
+                 PageSize="10"
+                 @ref=_myTable />
 
+                 <AePagination Pageable="@_myTable" OnPageClick="OnPageClick" />  
 
     </AeFlex>
     @if (_indicator == null)
@@ -95,6 +96,15 @@
     private string navigationUrl = string.Empty;
     private string SubmitLabel = "Save";
 
+    private int _lastClicked = 0;
+    private IPageableComponent _myTable;
+
+
+    private void OnPageClick(int pageIndex)
+    {
+        _lastClicked = pageIndex;
+    }
+
     protected override async Task OnInitializedAsync()
     {
         Context = DbFactory.CreateDbContext();
@@ -104,7 +114,7 @@
         null,
         null,
     };
-        CurrentUser = await UserInformationService.GetCurrentUserAsync();
+        CurrentUser = await UserInformationService.GetUserAsync();
         // load projects
         _tombstone = Context.Tombstones.Where(p => p.Tombstone_ID == Convert.ToInt32(tombstone)).FirstOrDefault();
         _indicators = Context.IndicatorAndResults.Where(p => p.PIP_Tombstone.Tombstone_ID == _tombstone.Tombstone_ID).ToList();
@@ -117,22 +127,25 @@
         _navToEdit = true;
     }
 
-    private async Task OnConfigure(ModelFormContext<PIP_IndicatorAndResults> context)
+    private async Task OnConfigure(IModelFormContext context)
     {
-        await context.UpdateValidValues("Outcome_Level_DESC", new[] { "Immediate", "Intermediate", "Ultimate", "Output" });
-        await context.UpdateValidValues("Source_Of_Indicator_DESC", new[] { "Horizontal Intiative", "DRF indicator", "GC InfoBase Indicator", "TB Sub indicator", "DSDS indicator", "SDG indicator", "TPP indicator", "Internal program indicator only" }); await context.UpdateValidValues("Frequency_DESC", new[] { "Monthly", "Bi-Monthly", "Quarterly", "Semi-Anually", "Annually", "2 Years", "3 Years", "5 Years", "Other" });
-        await context.UpdateValidValues("Source_Of_Indicator2_DESC", new[] { "Horizontal Intiative", "DRF indicator", "GC InfoBase Indicator", "TB Sub indicator", "DSDS indicator", "SDG indicator", "TPP indicator", "Internal program indicator only" }); await context.UpdateValidValues("Frequency_DESC", new[] { "Monthly", "Bi-Monthly", "Quarterly", "Semi-Anually", "Annually", "2 Years", "3 Years", "5 Years", "Other" });
-        await context.UpdateValidValues("Source_Of_Indicator3_DESC", new[] { "Horizontal Intiative", "DRF indicator", "GC InfoBase Indicator", "TB Sub indicator", "DSDS indicator", "SDG indicator", "TPP indicator", "Internal program indicator only" }); await context.UpdateValidValues("Frequency_DESC", new[] { "Monthly", "Bi-Monthly", "Quarterly", "Semi-Anually", "Annually", "2 Years", "3 Years", "5 Years", "Other" });
-        await context.UpdateValidValues("Indicator__Progressive_Or_Aggregate_DESC", new[] { "Progressive", "Aggregate" });
-        await context.UpdateValidValues("Indicator_Category_DESC", new[] { "Quantitative", "Qualitative" });
-        await context.UpdateValidValues("Indicator_Direction_DESC", new[] { "Increase", "Decrease", "Maintain" });
-        await context.UpdateValidValues("Data_Type_DESC", new[] { "Number", "Non numeric", "Dollar", "Percent" });
-        await context.UpdateValidValues("Target_Type_DESC", new[] { "Minimum value(at least)", "Maximum value(at most)", "Closed range", "Exact(single) value" });
-        await context.UpdateValidValues("Target_Met", new[] { "On Track", "Met", "Not Met", "Not on track to meet target" });        
+        context.RegisterOptionValueProperty<PIP_IndicatorAndResults>(s => s.Outcome_Level_DESC, () => new[] { "Immediate", "Intermediate", "Ultimate", "Output" });
+        context.RegisterOptionValueProperty<PIP_IndicatorAndResults>(s => s.Source_Of_Indicator_DESC,() => new[] { "Horizontal Intiative", "DRF indicator", "GC InfoBase Indicator", "TB Sub indicator", "DSDS indicator", "SDG indicator", "TPP indicator", "Internal program indicator only" }); 
+        context.RegisterOptionValueProperty<PIP_IndicatorAndResults>(s => s.Frequency_DESC, () => new[] { "Monthly", "Bi-Monthly", "Quarterly", "Semi-Anually", "Annually", "2 Years", "3 Years", "5 Years", "Other" });
+        context.RegisterOptionValueProperty<PIP_IndicatorAndResults>(s => s.Source_Of_Indicator2_DESC, () => new[] { "Horizontal Intiative", "DRF indicator", "GC InfoBase Indicator", "TB Sub indicator", "DSDS indicator", "SDG indicator", "TPP indicator", "Internal program indicator only" }); 
+        context.RegisterOptionValueProperty<PIP_IndicatorAndResults>(s => s.Frequency_DESC, () => new[] { "Monthly", "Bi-Monthly", "Quarterly", "Semi-Anually", "Annually", "2 Years", "3 Years", "5 Years", "Other" });
+        context.RegisterOptionValueProperty<PIP_IndicatorAndResults>(s => s.Source_Of_Indicator3_DESC, () => new[] { "Horizontal Intiative", "DRF indicator", "GC InfoBase Indicator", "TB Sub indicator", "DSDS indicator", "SDG indicator", "TPP indicator", "Internal program indicator only" }); 
+        context.RegisterOptionValueProperty<PIP_IndicatorAndResults>(s => s.Frequency_DESC, () => new[] { "Monthly", "Bi-Monthly", "Quarterly", "Semi-Anually", "Annually", "2 Years", "3 Years", "5 Years", "Other" });
+        context.RegisterOptionValueProperty<PIP_IndicatorAndResults>(s => s.Indicator__Progressive_Or_Aggregate_DESC, () => new[] { "Progressive", "Aggregate" });
+        context.RegisterOptionValueProperty<PIP_IndicatorAndResults>(s => s.Indicator_Category_DESC, () => new[] { "Quantitative", "Qualitative" });
+        context.RegisterOptionValueProperty<PIP_IndicatorAndResults>(s => s.Indicator_Direction_DESC, () => new[] { "Increase", "Decrease", "Maintain" });
+        context.RegisterOptionValueProperty<PIP_IndicatorAndResults>(s => s.Data_Type_DESC, () => new[] { "Number", "Non numeric", "Dollar", "Percent" });
+        context.RegisterOptionValueProperty<PIP_IndicatorAndResults>(s => s.Target_Type_DESC, () => new[] { "Minimum value(at least)", "Maximum value(at most)", "Closed range", "Exact(single) value" });
+        context.RegisterOptionValueProperty<PIP_IndicatorAndResults>(s => s.Target_Met, () => new[] { "On Track", "Met", "Not Met", "Not on track to meet target" });        
 
         
-        await context.UpdateValidValues(p => p.Cannot_Report_On_Indicator, PIP_Constants.NOT_REPORTABLE_INDICATOR);
-        await context.UpdateValidValues(p => p.Can_Report_On_Indicator, PIP_Constants.YESNO);
+        context.RegisterOptionValueProperty<PIP_IndicatorAndResults>(p => p.Cannot_Report_On_Indicator, () => PIP_Constants.NOT_REPORTABLE_INDICATOR);
+        context.RegisterOptionValueProperty<PIP_IndicatorAndResults>(s => s.Can_Report_On_Indicator, () => PIP_Constants.YESNO);
     }
 
 

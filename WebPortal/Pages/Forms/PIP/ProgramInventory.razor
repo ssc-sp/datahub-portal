@@ -12,21 +12,25 @@
 
 @page "/pip/programs"
 @page "/pip/programs/{tombstone}"
-@using Elemental.Components.Forms
+
 
 <h1>2020-21 Performance Information Profile (PIP) Forms</h1>
 <h2>Select Program Inventory Program</h2>
 <div>
 
-    <AeTable Accessors="accessorFunctions"
+    <AePaginatedTable Accessors="accessorFunctions"
+             Renderers="GetRenderers()"
              T="PIP_Tombstone"
              Dataset="_projects"
-             ColorAccessor="getColor"
              Headers="headers"
-             GridTemplateColumns="4fr 4fr"
-             MaxHeight="400"
-             OnRowClick="@SetFormEdit" />
+             ColorAccessor="getColor"
+             GridTemplateColumns="4fr 4fr 4fr"
+             OnRowClick="@SetFormEdit"
+             Page="@_lastClicked"
+             PageSize="10"
+             @ref=_myTable />
 
+    <AePagination Pageable="@_myTable" OnPageClick="OnPageClick" />  
 
 </div>
 
@@ -64,7 +68,7 @@
 @code {
     [Parameter]
     public string tombstone { get; set; }
-
+    
     private List<PIP_Tombstone> _projects;
     private PIP_Tombstone _tombstone;// = new PIP_Tombstone();
     private string SubmitLabel = "Save";
@@ -77,6 +81,15 @@
     {
 	    "Title","Lead Sector"
     };
+
+    private int _lastClicked = 0;
+    private IPageableComponent _myTable;
+
+
+    private void OnPageClick(int pageIndex)
+    {
+        _lastClicked = pageIndex;
+    }
 
     private Task<PIP_Tombstone> ClearForm()
     {        
@@ -113,26 +126,25 @@
         //null,
     };
 
-    //private List<Func<PIP_Tombstone, RenderFragment>> GetRenderers()
-    //{
-    //    var powerBiTargets = Configuration["PowerBiTargets:SPI"];
-    //    foreach(var project in _projects)
-    //    {
-    //        if (!string.IsNullOrEmpty(powerBiTargets))
-    //        {
-    //            var powerBiUrl = $"{powerBiTargets}rp:p_program_title={project.Program_Title.Replace(" ", "+")}";
-    //            project.PowerBiUrl = @<a href="@powerBiUrl" target="blank">Open PowerBI Report</a>
-    //;
-    //        }
-    //    }
+    private List<Func<PIP_Tombstone, RenderFragment>> GetRenderers()
+    {
+        var powerBiTargets = Configuration["PowerBiTargets:SPI"];
+        foreach(var project in _projects)
+        {
+            if (!string.IsNullOrEmpty(powerBiTargets))
+            {
+                var powerBiUrl = $"{powerBiTargets}rp:p_program_title={project.Program_Title.Replace(" ", "+")}";
+                project.PowerBiUrl = @<a href="@powerBiUrl" target="blank">Open PowerBI Report</a>
+    ;
+            }
+        }
 
-    //    return new List<Func<PIP_Tombstone, RenderFragment>>() {
-    //        null,
-    //        null,
-    //        new Func< PIP_Tombstone, RenderFragment>(pt => { return pt.PowerBiUrl; }),    
-    //    };
-    //}
-
+        return new List<Func<PIP_Tombstone, RenderFragment>>() {
+            null,
+            null,
+            new Func< PIP_Tombstone, RenderFragment>(pt => { return pt.PowerBiUrl; }),    
+        };
+    }
 
     private void SetFormEdit(PIP_Tombstone project)
     {
@@ -158,7 +170,7 @@
             _tombstone = _projects.Where(p => p.Tombstone_ID == Convert.ToInt32(tombstone)).FirstOrDefault();
             
         }
-        CurrentUser = await UserInformationService.GetCurrentUserAsync();
+        CurrentUser = await UserInformationService.GetUserAsync();
     }
 
 
@@ -179,76 +191,76 @@
         return "";
     }
 
-    private async Task OnConfigure(ModelFormContext<PIP_Tombstone> context)
+    private async Task OnConfigure(IModelFormContext context)
     {
-        await context.UpdateValidValues(p => p.Core_Responsbility_DESC, PIP_Constants.CORE_RESPONSIBILITIES);
-        await context.UpdateValidValues(p => p.Mandate_Letter_Commitment_1_DESC, PIP_Constants.COMMITMENTS);
-        await context.UpdateValidValues(p => p.Mandate_Letter_Commitment_2_DESC, PIP_Constants.COMMITMENTS);
-        await context.UpdateValidValues(p => p.Mandate_Letter_Commitment_3_DESC, PIP_Constants.COMMITMENTS);
-        await context.UpdateValidValues(p => p.Mandate_Letter_Commitment_4_DESC, PIP_Constants.COMMITMENTS);
-        await context.UpdateValidValues(p => p.Transfer_Payment_Programs_1_DESC, PIP_Constants.TRANSFER_PROGRAMS);
-        await context.UpdateValidValues(p => p.Transfer_Payment_Programs_2_DESC, PIP_Constants.TRANSFER_PROGRAMS);
-        await context.UpdateValidValues(p => p.Transfer_Payment_Programs_3_DESC, PIP_Constants.TRANSFER_PROGRAMS);
-        await context.UpdateValidValues(p => p.Transfer_Payment_Programs_4_DESC, PIP_Constants.TRANSFER_PROGRAMS);
-        await context.UpdateValidValues(p => p.Transfer_Payment_Programs_5_DESC, PIP_Constants.TRANSFER_PROGRAMS);
-        await context.UpdateValidValues(p => p.Transfer_Payment_Programs_6_DESC, PIP_Constants.TRANSFER_PROGRAMS);
-        await context.UpdateValidValues(p => p.Transfer_Payment_Programs_7_DESC, PIP_Constants.TRANSFER_PROGRAMS);
-        await context.UpdateValidValues(p => p.Transfer_Payment_Programs_Less5_1_DESC, PIP_Constants.TRANSFER_PROGRAMS_LESS5);
-        await context.UpdateValidValues(p => p.Transfer_Payment_Programs_Less5_2_DESC, PIP_Constants.TRANSFER_PROGRAMS_LESS5);
-        await context.UpdateValidValues(p => p.Transfer_Payment_Programs_Less5_3_DESC, PIP_Constants.TRANSFER_PROGRAMS_LESS5);
-        await context.UpdateValidValues(p => p.Horizontal_Initiative_1_DESC, PIP_Constants.HORIZONTAL_INITIATIVES);
-        await context.UpdateValidValues(p => p.Horizontal_Initiative_2_DESC, PIP_Constants.HORIZONTAL_INITIATIVES);
-        await context.UpdateValidValues(p => p.Horizontal_Initiative_3_DESC, PIP_Constants.HORIZONTAL_INITIATIVES);
-        await context.UpdateValidValues(p => p.Method_Of_Intervention_1_DESC, PIP_Constants.INTERVENTION);
-        await context.UpdateValidValues(p => p.Method_Of_Intervention_2_DESC, PIP_Constants.INTERVENTION);
-        await context.UpdateValidValues(p => p.Target_Group_1_DESC, PIP_Constants.TARGET_GROUPS);
-        await context.UpdateValidValues(p => p.Target_Group_2_DESC, PIP_Constants.TARGET_GROUPS);
-        await context.UpdateValidValues(p => p.Target_Group_3_DESC, PIP_Constants.TARGET_GROUPS);
-        await context.UpdateValidValues(p => p.Target_Group_4_DESC, PIP_Constants.TARGET_GROUPS);
-        await context.UpdateValidValues(p => p.Target_Group_5_DESC, PIP_Constants.TARGET_GROUPS);
-        await context.UpdateValidValues(p => p.Government_Of_Canada_Activity_Tags_DESC, PIP_Constants.GOC_TAGS1);
-        await context.UpdateValidValues(p => p.Canadian_Classification_Of_Functions_Of_Government_DESC, PIP_Constants.GOC_CLASSIFICATION);
-        await context.UpdateValidValues(p => p.Strategic_Priorities_1_DESC, PIP_Constants.STRATEGIC);
-        await context.UpdateValidValues(p => p.Strategic_Priorities_2_DESC, PIP_Constants.STRATEGIC);
-        await context.UpdateValidValues(p => p.Is_Equity_Seeking_Group, PIP_Constants.EQUITY_SEEKING_GROUPS);
-        await context.UpdateValidValues(p => p.Is_Equity_Seeking_Group2, PIP_Constants.EQUITY_SEEKING_GROUPS);
-        await context.UpdateValidValues(p => p.Does_Indicator_Enable_Program_Measure_Equity_Option, PIP_Constants.YESNO);
+        context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Core_Responsbility_DESC, () => PIP_Constants.CORE_RESPONSIBILITIES);
+        context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Mandate_Letter_Commitment_1_DESC, () => PIP_Constants.COMMITMENTS);
+        context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Mandate_Letter_Commitment_3_DESC, () => PIP_Constants.COMMITMENTS);
+        context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Mandate_Letter_Commitment_4_DESC, () => PIP_Constants.COMMITMENTS);
+        context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Transfer_Payment_Programs_1_DESC, () => PIP_Constants.TRANSFER_PROGRAMS);
+        context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Transfer_Payment_Programs_2_DESC, () => PIP_Constants.TRANSFER_PROGRAMS);
+        context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Transfer_Payment_Programs_3_DESC, () => PIP_Constants.TRANSFER_PROGRAMS);
+        context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Transfer_Payment_Programs_4_DESC, () => PIP_Constants.TRANSFER_PROGRAMS);
+        context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Transfer_Payment_Programs_5_DESC, () => PIP_Constants.TRANSFER_PROGRAMS);
+        context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Transfer_Payment_Programs_6_DESC, () => PIP_Constants.TRANSFER_PROGRAMS);
+        context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Transfer_Payment_Programs_7_DESC, () => PIP_Constants.TRANSFER_PROGRAMS);
+        context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Mandate_Letter_Commitment_2_DESC, () => PIP_Constants.COMMITMENTS);
+        context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Transfer_Payment_Programs_Less5_1_DESC, () => PIP_Constants.TRANSFER_PROGRAMS_LESS5);
+        context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Transfer_Payment_Programs_Less5_2_DESC, () => PIP_Constants.TRANSFER_PROGRAMS_LESS5);
+        context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Transfer_Payment_Programs_Less5_3_DESC, () => PIP_Constants.TRANSFER_PROGRAMS_LESS5);
+        context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Horizontal_Initiative_1_DESC, () => PIP_Constants.HORIZONTAL_INITIATIVES);
+        context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Horizontal_Initiative_2_DESC, () => PIP_Constants.HORIZONTAL_INITIATIVES);
+        context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Horizontal_Initiative_3_DESC, () => PIP_Constants.HORIZONTAL_INITIATIVES);
+        context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Method_Of_Intervention_1_DESC, () => PIP_Constants.INTERVENTION);
+        context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Method_Of_Intervention_2_DESC, () => PIP_Constants.INTERVENTION);
+        context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Target_Group_1_DESC, () => PIP_Constants.TARGET_GROUPS);
+        context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Target_Group_2_DESC, () => PIP_Constants.TARGET_GROUPS);
+        context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Target_Group_3_DESC, () => PIP_Constants.TARGET_GROUPS);
+        context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Target_Group_4_DESC, () => PIP_Constants.TARGET_GROUPS);
+        context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Target_Group_5_DESC, () => PIP_Constants.TARGET_GROUPS);
+        context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Government_Of_Canada_Activity_Tags_DESC, () => PIP_Constants.GOC_TAGS1);
+        context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Canadian_Classification_Of_Functions_Of_Government_DESC, () => PIP_Constants.GOC_CLASSIFICATION);
+        context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Strategic_Priorities_1_DESC, () => PIP_Constants.STRATEGIC);
+        context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Strategic_Priorities_2_DESC, () => PIP_Constants.STRATEGIC);
+        context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Is_Equity_Seeking_Group, () => PIP_Constants.EQUITY_SEEKING_GROUPS);
+        context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Is_Equity_Seeking_Group2, () => PIP_Constants.EQUITY_SEEKING_GROUPS);
+        context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Does_Indicator_Enable_Program_Measure_Equity_Option, () => PIP_Constants.YESNO);
     }
 
-    private async Task OnChange(ModelFormChangeArgs<PIP_Tombstone> args)
+    private async Task OnChange(ModelFormChangeArgs args)
     {
         var context = args.Context;
-        if (args.HasPropertyChanged(s => s.Core_Responsbility_DESC))
+        if (args.HasPropertyChanged<PIP_Tombstone>(s => s.Core_Responsbility_DESC))
         {
             if (_tombstone?.Core_Responsbility_DESC?.StartsWith("Natural") ?? false)
             {
-                await context.UpdateValidValues(p => p.Departmental_Result_1_CD, PIP_Constants.CORE_RESPONSIBILITY1);
-                await context.UpdateValidValues(p => p.Departmental_Result_2_CD, PIP_Constants.CORE_RESPONSIBILITY1);
-                await context.UpdateValidValues(p => p.Departmental_Result_3_CD, PIP_Constants.CORE_RESPONSIBILITY1);
-                await context.UpdateValidValues(p => p.Strategic_Priorities_1_DESC, PIP_Constants.STRATEGIC);
-                await context.UpdateValidValues(p => p.Strategic_Priorities_2_DESC, PIP_Constants.STRATEGIC);
+                context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Departmental_Result_1_CD, () => PIP_Constants.CORE_RESPONSIBILITY1);
+                context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Departmental_Result_2_CD, () => PIP_Constants.CORE_RESPONSIBILITY1);
+                context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Departmental_Result_3_CD, () => PIP_Constants.CORE_RESPONSIBILITY1);
+                context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Strategic_Priorities_1_DESC, () => PIP_Constants.STRATEGIC);
+                context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Strategic_Priorities_2_DESC, () => PIP_Constants.STRATEGIC);
 
             }
             if (_tombstone?.Core_Responsbility_DESC?.StartsWith("Innovative") ?? false)
             {
-                await context.UpdateValidValues(p => p.Departmental_Result_1_CD, PIP_Constants.CORE_RESPONSIBILITY2);
-                await context.UpdateValidValues(p => p.Departmental_Result_2_CD, PIP_Constants.CORE_RESPONSIBILITY2);
-                await context.UpdateValidValues(p => p.Departmental_Result_3_CD, PIP_Constants.CORE_RESPONSIBILITY2);
-                await context.UpdateValidValues(p => p.Strategic_Priorities_1_DESC, PIP_Constants.STRATEGIC);
-                await context.UpdateValidValues(p => p.Strategic_Priorities_2_DESC, PIP_Constants.STRATEGIC);
+                context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Departmental_Result_1_CD, () => PIP_Constants.CORE_RESPONSIBILITY2);
+                context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Departmental_Result_2_CD, () => PIP_Constants.CORE_RESPONSIBILITY2);
+                context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Departmental_Result_3_CD, () => PIP_Constants.CORE_RESPONSIBILITY2);
+                context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Strategic_Priorities_1_DESC, () => PIP_Constants.STRATEGIC);
+                context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Strategic_Priorities_2_DESC, () => PIP_Constants.STRATEGIC);
             }
             if (_tombstone?.Core_Responsbility_DESC?.StartsWith("Globally") ?? false)
             {
-                await context.UpdateValidValues(p => p.Departmental_Result_1_CD, PIP_Constants.CORE_RESPONSIBILITY3);
-                await context.UpdateValidValues(p => p.Departmental_Result_2_CD, PIP_Constants.CORE_RESPONSIBILITY3);
-                await context.UpdateValidValues(p => p.Departmental_Result_3_CD, PIP_Constants.CORE_RESPONSIBILITY3);
-                await context.UpdateValidValues(p => p.Strategic_Priorities_1_DESC, PIP_Constants.STRATEGIC);
-                await context.UpdateValidValues(p => p.Strategic_Priorities_2_DESC, PIP_Constants.STRATEGIC);
+                context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Departmental_Result_1_CD, () => PIP_Constants.CORE_RESPONSIBILITY3);
+                context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Departmental_Result_2_CD, () => PIP_Constants.CORE_RESPONSIBILITY3);
+                context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Departmental_Result_3_CD, () => PIP_Constants.CORE_RESPONSIBILITY3);
+                context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Strategic_Priorities_1_DESC, () => PIP_Constants.STRATEGIC);
+                context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Strategic_Priorities_2_DESC, () => PIP_Constants.STRATEGIC);
             }
             if (_tombstone?.Core_Responsbility_DESC?.StartsWith("Internal") ?? false)
             {
-                await context.UpdateValidValues(p => p.Strategic_Priorities_1_DESC, PIP_Constants.NA);
-                await context.UpdateValidValues(p => p.Strategic_Priorities_2_DESC, PIP_Constants.NA);
+                context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Strategic_Priorities_1_DESC, () => PIP_Constants.NA);
+                context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Strategic_Priorities_2_DESC, () => PIP_Constants.NA);
             }
 
         }

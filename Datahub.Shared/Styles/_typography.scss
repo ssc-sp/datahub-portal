@@ -1,9 +1,9 @@
-﻿@import '_colors.scss';
+﻿@use 'Common/colors';
 
 
 .nrcan-typography {
     font-family: 'Roboto','RobotoDraft',Helvetica,Arial,sans-serif;
-    color: $gray-800;
+    color: colors.$gray-800;
 
     &.h1 {
         font-weight: 500;

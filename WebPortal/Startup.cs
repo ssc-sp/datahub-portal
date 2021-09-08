@@ -34,7 +34,6 @@ using Askmethat.Aspnet.JsonLocalizer.Extensions;
 using System.Text;
 using NRCan.Datahub.Shared.Data;
 using Microsoft.EntityFrameworkCore;
-using NRCan.Datahub.Data.Projects;
 using NRCan.Datahub.ProjectForms.Data.PIP;
 using NRCan.Datahub.Portal.EFCore;
 using NRCan.Datahub.Shared.EFCore;
@@ -42,14 +41,24 @@ using NRCan.Datahub.Portal.Data;
 using NRCan.Datahub.Portal.Data.Finance;
 using NRCan.Datahub.Portal.Data.WebAnalytics;
 using BlazorApplicationInsights;
-using NRCan.Datahub.Portal.RoleManagement;
+using NRCan.Datahub.Metadata;
 using Microsoft.Graph;
 using Polly;
 using System.Net.Http;
 using Polly.Extensions.Http;
+using NRCan.Datahub.Metadata.Model;
+using Microsoft.Extensions.Logging;
+using NRCan.Datahub.Shared.RoleManagement;
+using NRCan.Datahub.Shared;
+using NRCan.Datahub.Portal.Data.LanguageTraining;
 
 namespace NRCan.Datahub.Portal
 {
+
+    public enum DbDriver
+    {
+        SqlServer, Sqlite
+    }
     public class Startup
     {
         public Startup(IConfiguration configuration, IWebHostEnvironment env)
@@ -97,11 +106,11 @@ namespace NRCan.Datahub.Portal
             services.AddRazorPages();
             services.AddServerSideBlazor().AddCircuitOptions(o =>
             {
-                o.DetailedErrors = true;
+                o.DetailedErrors = true; // todo: to make it 'true' only in development
             }).AddHubOptions(o =>
             {
                 o.MaximumReceiveMessageSize = 10 * 1024 * 1024; // 10MB
-            });
+            }).AddMicrosoftIdentityConsentHandler();
 
             services.AddControllers();
 
@@ -138,11 +147,26 @@ namespace NRCan.Datahub.Portal
                                                                             retryAttempt)));
         }
 
-
-
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILogger<Startup> logger,
+            IDbContextFactory<DatahubProjectDBContext> datahubFactory,
+            IDbContextFactory<EFCoreDatahubContext> cosmosFactory,
+            IDbContextFactory<FinanceDBContext> financeFactory,
+            IDbContextFactory<PIPDBContext> pipFactory,
+            IDbContextFactory<MetadataDbContext> metadataFactory,
+            IDbContextFactory<DatahubETLStatusContext> etlFactory,
+            IDbContextFactory<LanguageTrainingDBContext> languageFactory)
         {
+
+
+            InitializeDatabase(logger, datahubFactory);
+            InitializeDatabase(logger, cosmosFactory, false);
+            InitializeDatabase(logger, etlFactory);
+            InitializeDatabase(logger, financeFactory);
+            InitializeDatabase(logger, pipFactory);
+            InitializeDatabase(logger, languageFactory);
+            InitializeDatabase(logger, metadataFactory, false, false);
+
             app.UseRequestLocalization(app.ApplicationServices.GetService<IOptions<RequestLocalizationOptions>>().Value);
 
             if (env.IsDevelopment())
@@ -173,6 +197,30 @@ namespace NRCan.Datahub.Portal
 
         }
 
+        private void InitializeDatabase<T>(ILogger<Startup> logger, IDbContextFactory<T> factory, bool migrate = true, bool ensureDeleteinOffline = true) where T : DbContext
+        {
+            using var context = factory.CreateDbContext();
+            try
+            {
+                if (Offline)
+                {
+                    if (ensureDeleteinOffline)
+                        context.Database.EnsureDeleted();
+                    context.Database.EnsureCreated();                    
+                }
+                else
+                {
+                    context.Database.EnsureCreated();
+                    if (migrate)
+                        context.Database.Migrate();
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogCritical(ex, $"Error initializing database {context.Database.GetDbConnection().Database}-{typeof(T).Name}");
+            }
+        }
+
         private void ConfigureAuthentication(IServiceCollection services)
         {
             //https://docs.microsoft.com/en-us/azure/active-directory/develop/scenario-web-app-call-api-app-configuration?tabs=aspnetcore
@@ -190,9 +238,20 @@ namespace NRCan.Datahub.Portal
 
             if (!Offline)
             {
-                // todo: review suggestions!
-                services.AddAuthentication(AzureADDefaults.AuthenticationScheme)
-                        .AddAzureAD(options => Configuration.Bind("AzureAd", options));
+
+
+                //services.AddAuthentication(AzureADDefaults.AuthenticationScheme)               
+                //        .AddAzureAD(options => Configuration.Bind("AzureAd", options));
+                var scopes = new List<string>();
+                //scopes.AddRange(PowerBiServiceApi.RequiredReadScopes);
+                scopes.Add("user.read");
+                //scopes.Add("PowerBI.Read.All");
+
+                services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
+                    .AddMicrosoftIdentityWebApp(Configuration, "AzureAd")
+                    .EnableTokenAcquisitionToCallDownstreamApi(scopes)
+                    .AddMicrosoftGraph(Configuration.GetSection("Graph"))
+                    .AddInMemoryTokenCaches();
 
                 services.AddControllersWithViews(options =>
                 {
@@ -244,15 +303,17 @@ namespace NRCan.Datahub.Portal
             if (!Offline)
             {
                 services.AddSingleton<IKeyVaultService, KeyVaultService>();
-
+                services.AddScoped<UserLocationManagerService>();
                 services.AddSingleton<CommonAzureServices>();
                 services.AddScoped<DataLakeClientService>();
-                
+
                 services.AddScoped<IUserInformationService, UserInformationService>();
                 services.AddSingleton<IMSGraphService, MSGraphService>();
 
                 services.AddScoped<IApiService, ApiService>();
                 services.AddScoped<IApiCallService, ApiCallService>();
+
+                services.AddScoped<IPublicDataFileService, PublicDataFileService>();
 
                 services.AddScoped<IDataUpdatingService, DataUpdatingService>();
                 services.AddScoped<IDataSharingService, DataSharingService>();
@@ -261,11 +322,13 @@ namespace NRCan.Datahub.Portal
                 services.AddScoped<IDataRemovalService, DataRemovalService>();
 
                 services.AddSingleton<ICognitiveSearchService, CognitiveSearchService>();
+
+                services.AddScoped<PowerBiServiceApi>();
             }
             else
             {
                 services.AddSingleton<IKeyVaultService, OfflineKeyVaultService>();
-
+                services.AddScoped<UserLocationManagerService>();
                 services.AddSingleton<CommonAzureServices>();
                 //services.AddScoped<DataLakeClientService>();
 
@@ -285,6 +348,12 @@ namespace NRCan.Datahub.Portal
                 services.AddSingleton<ICognitiveSearchService, OfflineCognitiveSearchService>();
             }
 
+            services.AddSingleton<IExternalSearchService, ExternalSearchService>();
+            services.AddHttpClient<IExternalSearchService, ExternalSearchService>();
+
+            services.AddScoped<IMetadataBrokerService, MetadataBrokerService>();
+            services.AddScoped<IDatahubAuditingService, DatahubTelemetryAuditingService>();
+
             services.AddScoped<DataImportingService>();
             services.AddSingleton<DatahubTools>();
 
@@ -292,50 +361,60 @@ namespace NRCan.Datahub.Portal
             services.AddScoped<UIControlsService>();
             services.AddScoped<NotifierService>();
 
+            services.AddScoped<IEmailNotificationService, EmailNotificationService>();
+
             services.AddSingleton<ServiceAuthManager>();
+
+            services.AddSingleton<IExternalSearchService, ExternalSearchService>();
+            services.AddHttpClient<IExternalSearchService, ExternalSearchService>();
         }
 
         private void ConfigureDbContexts(IServiceCollection services)
         {
-            services.AddPooledDbContextFactory<DatahubProjectDBContext>(options =>
-                            options.UseSqlServer(Configuration.GetConnectionString("datahub-mssql-project") ?? throw new ArgumentNullException("ASPNETCORE_CONNECTION STRING")));
-            services.AddDbContextPool<DatahubProjectDBContext>(options =>
-                options.UseSqlServer(Configuration.GetConnectionString("datahub-mssql-project") ?? throw new ArgumentNullException("ASPNETCORE_CONNECTION STRING")));
-
-            services.AddPooledDbContextFactory<PIPDBContext>(options =>
-                options.UseSqlServer(Configuration.GetConnectionString("datahub-mssql-pip") ?? throw new ArgumentNullException("ASPNETCORE_CONNECTION STRING")));
-            services.AddDbContextPool<PIPDBContext>(options =>
-                options.UseSqlServer(Configuration.GetConnectionString("datahub-mssql-pip") ?? throw new ArgumentNullException("ASPNETCORE_CONNECTION STRING")));
-
-            services.AddPooledDbContextFactory<FinanceDBContext>(options =>
-                options.UseSqlServer(Configuration.GetConnectionString("datahub-mssql-finance") ?? throw new ArgumentNullException("ASPNETCORE_CONNECTION STRING")));
-            services.AddDbContextPool<FinanceDBContext>(options =>
-                options.UseSqlServer(Configuration.GetConnectionString("datahub-mssql-finance") ?? throw new ArgumentNullException("ASPNETCORE_CONNECTION STRING")));
-
+            var driver = Offline? DbDriver.Sqlite: DbDriver.SqlServer;
+            ConfigureDbContext<DatahubProjectDBContext>(services, "datahub-mssql-project", driver);
+            ConfigureDbContext<PIPDBContext>(services, "datahub-mssql-pip", driver);
+            ConfigureDbContext<FinanceDBContext>(services, "datahub-mssql-finance", driver);
+            ConfigureDbContext<LanguageTrainingDBContext>(services, "datahub-mssql-languagetraining", driver);
             if (!Offline)
             {
-                services.AddPooledDbContextFactory<EFCoreDatahubContext>(options =>
-                options.UseCosmos(Configuration.GetConnectionString("datahub-cosmosdb") ?? throw new ArgumentNullException("ASPNETCORE_CONNECTION STRING"), databaseName: "datahub-catalog-db"));
-                services.AddDbContextPool<EFCoreDatahubContext>(options =>
-                    options.UseCosmos(Configuration.GetConnectionString("datahub-cosmosdb") ?? throw new ArgumentNullException("ASPNETCORE_CONNECTION STRING"), databaseName: "datahub-catalog-db"));
+                ConfigureCosmosDbContext<EFCoreDatahubContext>(services, "datahub-cosmosdb", "datahub-catalog-db");
             }
             else
             {
-                services.AddPooledDbContextFactory<EFCoreDatahubContext>(options =>
-                options.UseSqlServer(Configuration.GetConnectionString("datahub-cosmosdb") ?? throw new ArgumentNullException("ASPNETCORE_CONNECTION STRING")));
-                services.AddDbContextPool<EFCoreDatahubContext>(options =>
-                    options.UseSqlServer(Configuration.GetConnectionString("datahub-cosmosdb") ?? throw new ArgumentNullException("ASPNETCORE_CONNECTION STRING")));
+                ConfigureDbContext<EFCoreDatahubContext>(services, "datahub-cosmosdb", driver);
             }
+            ConfigureDbContext<WebAnalyticsContext>(services, "datahub-mssql-webanalytics", driver);
+            ConfigureDbContext<DatahubETLStatusContext>(services, "datahub-mssql-etldb", driver);
+            ConfigureDbContext<MetadataDbContext>(services, "datahub-mssql-metadata", driver);
+        }
 
-            services.AddPooledDbContextFactory<WebAnalyticsContext>(options =>
-                options.UseSqlServer(Configuration.GetConnectionString("datahub-mssql-webanalytics") ?? throw new ArgumentNullException("ASPNETCORE_CONNECTION STRING")));
-            services.AddDbContextPool<WebAnalyticsContext>(options =>
-                options.UseSqlServer(Configuration.GetConnectionString("datahub-mssql-webanalytics") ?? throw new ArgumentNullException("ASPNETCORE_CONNECTION STRING")));
+        private void ConfigureDbContext<T>(IServiceCollection services, string connectionStringName, DbDriver dbDriver) where T : DbContext
+        {
+            var connectionString = GetConnectionString(connectionStringName);
+            switch (dbDriver)
+            {
+                case DbDriver.SqlServer:
+                    services.AddPooledDbContextFactory<T>(options => options.UseSqlServer(connectionString));
+                    services.AddDbContextPool<T>(options => options.UseSqlServer(connectionString));
+                    break;
+                case DbDriver.Sqlite:
+                    services.AddPooledDbContextFactory<T>(options => options.UseSqlite(connectionString));
+                    services.AddDbContextPool<T>(options => options.UseSqlite(connectionString));
+                    break;
+            }
+        }
 
-            services.AddPooledDbContextFactory<SqlCiosbDatahubEtldbContext>(options =>
-                options.UseSqlServer(Configuration.GetConnectionString("datahub-mssql-etldb") ?? throw new ArgumentNullException("ASPNETCORE_CONNECTION STRING")));
-            services.AddDbContextPool<SqlCiosbDatahubEtldbContext>(options =>
-                options.UseSqlServer(Configuration.GetConnectionString("datahub-mssql-etldb") ?? throw new ArgumentNullException("ASPNETCORE_CONNECTION STRING")));
-        }          
+        private void ConfigureCosmosDbContext<T>(IServiceCollection services, string connectionStringName, string catalogName) where T : DbContext
+        {
+            var connectionString = GetConnectionString(connectionStringName);
+            services.AddPooledDbContextFactory<T>(options => options.UseCosmos(connectionString, databaseName: catalogName));
+            services.AddDbContextPool<T>(options => options.UseCosmos(connectionString, databaseName: catalogName));
+        }
+
+        private string GetConnectionString(string name)
+        {
+            return Configuration.GetConnectionString(name) ?? throw new ArgumentNullException($"ASPNETCORE_CONNECTION STRING ({name}) in Enviroment ({_currentEnvironment.EnvironmentName}).");
+        }
     }
 }

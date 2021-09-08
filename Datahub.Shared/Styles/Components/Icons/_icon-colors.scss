@@ -1,0 +1,57 @@
+﻿@use '../../Common/colors' as c;
+
+$icon-colors: (
+  "blue": (
+    "primary": c.$blue-300,
+    "secondary": c.$blue-400,
+  ),
+  "indigo": (
+    "primary": c.$indigo-500,
+    "secondary": c.$indigo-600,
+  ),
+  "purple": (
+    "primary": c.$purple-500,
+    "secondary": c.$purple-600,
+  ),
+  "pink": (
+    "primary": c.$pink-500,
+    "secondary": c.$pink-600,
+  ),
+  "yellow": (
+    "primary": c.$yellow-500,
+    "secondary": c.$yellow-700,
+  ),
+  "green": (
+    "primary": c.$green-500,
+    "secondary": c.$green-600,
+  ),
+  "grey": (
+    "primary": c.$gray-700,
+    "secondary": c.$gray-700,
+  ),
+  "base": (
+    "primary": c.$gray-500,
+    "secondary": c.$gray-500,
+  )
+);
+
+@mixin icon-colors {
+  @each $color, $palette in $icon-colors {
+    &.#{$color} {
+      --fa-primary-color: #{map-get($palette, "primary")};
+      --fa-secondary-color: #{map-get($palette, "secondary")};
+    }
+  }
+}
+
+@mixin base-icon-color {
+  --fa-primary-color: #{map-get(map-get($icon-colors, "base"), "primary")};
+  --fa-secondary-color: #{map-get(map-get($icon-colors, "base"), "secondary")};
+}
+
+@mixin base-icon-hover {
+  &:hover {
+    --fa-primary-color: #{map-get(map-get($icon-colors, "grey"), "primary")};
+    --fa-secondary-color: #{map-get(map-get($icon-colors, "grey"), "secondary")};
+  }
+}
