@@ -1,0 +1,265 @@
+﻿@page "/admin/powerbi"
+
+@using Microsoft.EntityFrameworkCore.Query
+@using Microsoft.EntityFrameworkCore;
+@using Microsoft.PowerBI.Api.Models
+@inject IStringLocalizer<DataLabels> DataLocalizer
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JsInterop
+@inject PowerBiServiceApi PowerBiServiceApi
+@using Microsoft.Identity.Web
+@inject MicrosoftIdentityConsentAndConditionalAccessHandler ConsentHandler
+@inject IDbContextFactory<DatahubProjectDBContext> DbFactoryProject
+
+@implements IDisposable
+
+<div style="padding-left: 2rem;padding-right: 2rem">
+
+    <AeTypography Variant="h1">@Localizer["PowerBI Admin"]</AeTypography>
+
+    <AuthorizeView Roles="@RoleConstants.DATAHUB_ROLE_ADMIN">
+        <Authorized>
+            <AeCard>
+                <Header>
+                    Link PowerBI Datasets to Projects
+                </Header>
+                <ChildContent>
+                    @if (!isWorkspacesLoaded)
+                    {
+                        <Spinner />
+                    }
+                    else
+                    {
+
+                        <AePaginatedTable Accessors="accessorFunctions"
+                                      Dataset="dataSets"
+                                      Headers="headers"
+                                      T="PowerBIDatasetElements"
+                                      @ref="_myTable"
+                                      Page="@_lastClicked"
+                                      Renderers="renderFunctions"
+                                      OnRowClick="@RowSelected" />
+
+                        <AePagination Pageable="@_myTable" OnPageClick="OnPageClick" />
+                    }
+                </ChildContent>
+                <Footer>
+                    <AeButton @onclick="ReloadData">Cancel</AeButton>
+                    <AeButton @onclick="SaveChanges">Save Changes</AeButton>
+		        </Footer>
+            </AeCard>
+            <div>&nbsp;</div>
+            <AeCard>
+                <Header>
+                    Link PowerBI Report to Projects
+                </Header>
+                <ChildContent>
+                    @if (!isWorkspacesLoaded)
+                    {
+                        <Spinner />
+                    }
+                    else
+                    {
+
+                        <AePaginatedTable Accessors="reportAccessorFunctions"
+                                      Dataset="reports"
+                                      Headers="reportHeaders"
+                                      T="(Report report, Group group)"
+                                      @ref="_myTable2"
+                                      Page="@_lastClicked"
+                                      Renderers="reportRenderFunctions"
+                                      OnRowClick="@RowSelected" />
+
+                        <AePagination Pageable="@_myTable2" OnPageClick="OnPageClick" />
+                    }
+                </ChildContent>
+                <Footer>
+                    <AeButton @onclick="ReloadData">Cancel</AeButton>
+                    <AeButton @onclick="SaveChanges">Save Changes</AeButton>
+		        </Footer>
+            </AeCard>
+        </Authorized>
+        <NotAuthorized>
+            <AeTypography>This view is only available for administrators.</AeTypography>
+		</NotAuthorized>
+    </AuthorizeView>
+    <div>&nbsp;</div>
+
+</div>
+@code {
+    private bool isWorkspacesLoaded = false;
+
+    private List<PowerBIDatasetElements> dataSets;
+
+
+    private int _lastClicked = 0;
+    private AePaginatedTable<PowerBIDatasetElements> _myTable;
+    private AePaginatedTable<(Report report, Group group)> _myTable2;
+    private PowerBIDatasetElements? _selected;
+    protected override void OnAfterRender(bool firstRender)
+    {
+        // You must re-render after the components are initialized in order for the
+        // component reference to not be null
+        if (firstRender)
+        {
+            StateHasChanged();
+        }
+    }
+
+    // Define the headers at the top of the table
+    private List<string> headers = new List<string>
+  {
+    "Dataset", "Workspace", "Data Project"
+  };
+
+    private List<string> reportHeaders = new List<string>
+    {
+    "Report", "Workspace", "Data Project"
+    };
+
+    // Accessor functions to retrieve cell value
+    private List<Func<PowerBIDatasetElements, string>> accessorFunctions = new List<Func<PowerBIDatasetElements, string>>
+    {
+        dummyData => { return dummyData.Dataset.Name; },
+        dummyData => { return dummyData.Group.Name; },
+        null
+    };
+
+  //(Report report, Group group)
+    private List<Func<(Report report, Group group), string>> reportAccessorFunctions = new List<Func<(Report report, Group group), string>>
+    {
+        dummyData => { return dummyData.report.Name; },
+        dummyData => { return dummyData.group.Name; },
+        null
+    };
+
+    private List<Func<PowerBIDatasetElements, RenderFragment>> renderFunctions;
+    private List<Func<(Report report, Group group), RenderFragment>> reportRenderFunctions;
+
+    public Datahub_Project GetAssociatedProject(PowerBIDatasetElements el)
+    {
+        return datasetLinks.FirstOrDefault(d => d.Id == Guid.Parse(el.Dataset.Id))?.Project;
+    }
+
+    public Datahub_Project GetAssociatedProject((Report report, Group group) el)
+    {
+        return reportLinks.FirstOrDefault(d => d.Id == el.report.Id)?.Project;
+    }
+
+    private Dictionary<Guid,Datahub_Project> associations = new Dictionary<Guid,Datahub_Project>();
+
+    private void HandleDropDownChange(PowerBIDatasetElements el, Datahub_Project project)
+    {
+        var toRem = datasetLinks.Where(r => r.Id == Guid.Parse(el.Dataset.Id)).ToList();
+        ctx.Project_PBI_DataSets.RemoveRange(toRem);
+        var e = new Project_PBI_DataSet() {Id = Guid.Parse(el.Dataset.Id), Workspace = el.Group.Id, Project = project, DatasetName = el.Dataset.Name };
+        ctx.Project_PBI_DataSets.Add(e);
+        datasetLinks.Add(e);
+    }
+
+    private void HandleDropDownChange((Report report, Group group) el, Datahub_Project project)
+    {
+        var toRem = reportLinks.Where(r => r.Id == el.report.Id).ToList();
+        ctx.Project_PBI_Reports.RemoveRange(toRem);
+        var e = new Project_PBI_Report() { Id = el.report.Id, Workspace = el.group.Id, Project = project, ReportName = el.report.Name };
+        ctx.Project_PBI_Reports.Add(e);
+        reportLinks.Add(e);
+    }
+
+    private void RowSelected(PowerBIDatasetElements selected)
+    {
+        _selected = selected;
+    }
+
+    private void RowSelected((Report report, Group group) selected)
+    {
+        //_selected = selected;
+    }
+
+    private void OnPageClick(int pageIndex)
+    {
+        _lastClicked = pageIndex;
+    }
+
+    private List<Datahub_Project> allProjects;
+
+    private List<Project_PBI_DataSet> datasetLinks;    
+    private List<Project_PBI_Report> reportLinks;    
+
+    private string CustomRenderer(Datahub_Project item)
+    {
+        if (item is null) return "-";
+        return $"{item.ProjectName} {item.Project_Acronym_CD}";          
+
+    }
+
+    private async Task LoadData()
+    {        
+        allProjects = await ctx.Projects.ToListAsync();
+        datasetLinks = await ctx.Project_PBI_DataSets.Include(e => e.Project).ToListAsync();
+        reportLinks = await ctx.Project_PBI_Reports.Include(e => e.Project).ToListAsync();
+    }
+
+    private async Task SaveChanges()
+    {        
+        await ctx.SaveChangesAsync();
+    }
+
+    private async Task ReloadData()
+    {
+        ctx.ChangeTracker.Clear();
+        await LoadData();
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        ctx.Dispose();
+    }
+
+    private DatahubProjectDBContext ctx;
+
+    private List<(Report report, Group group)> reports;
+
+    protected override async Task OnInitializedAsync()
+    {
+        ctx = DbFactoryProject.CreateDbContext();
+        Task.Run(async () =>
+        {
+            try
+            {
+                dataSets = await PowerBiServiceApi.GetAllDatasetsAsync();
+                reports = dataSets.SelectMany(r => r.Reports.Select(rp => (rp, r.Group))).ToList();
+                isWorkspacesLoaded = true;
+                InvokeAsync(StateHasChanged);
+                //            StateHasChanged();
+            }
+            catch (Exception ex)
+            {
+                ConsentHandler.HandleException(ex);
+            }
+        });
+        await LoadData();
+        renderFunctions = new List<Func<PowerBIDatasetElements, RenderFragment>>
+        {
+            null,
+            null,
+            el =>  { return 
+                @<AeMultiSelect @key=el T="Datahub_Project" DefaultLabel="Select Project"
+                        SelectedItem="GetAssociatedProject(el)" SelectedItemChanged="e => HandleDropDownChange(el,e)"
+                        Renderer="CustomRenderer" Items="allProjects"/> ; }
+
+        };
+        reportRenderFunctions = new List<Func<(Report report, Group group), RenderFragment>>
+        {
+            null,
+            null,
+            el =>  { return 
+                @<AeMultiSelect @key=el T="Datahub_Project" DefaultLabel="Select Project"
+                        SelectedItem="GetAssociatedProject(el)" SelectedItemChanged="e => HandleDropDownChange(el,e)"
+                        Renderer="CustomRenderer" Items="allProjects"/> ; }
+
+        };
+    }
+
+}
