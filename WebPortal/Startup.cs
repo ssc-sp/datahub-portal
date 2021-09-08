@@ -167,7 +167,7 @@ namespace NRCan.Datahub.Portal
             InitializeDatabase(logger, financeFactory);
             InitializeDatabase(logger, pipFactory);
             InitializeDatabase(logger, languageFactory);
-            InitializeDatabase(logger, metadataFactory, false, false);
+            InitializeDatabase(logger, metadataFactory, true, false);
 
             app.UseRequestLocalization(app.ApplicationServices.GetService<IOptions<RequestLocalizationOptions>>().Value);
 
@@ -212,9 +212,11 @@ namespace NRCan.Datahub.Portal
                 }
                 else
                 {
-                    SeedDatabaseIfNew(context);
+                    
                     if (migrate)
                         context.Database.Migrate();
+                    else
+                        SeedDatabaseIfNew(context);
                 }
             }
             catch (Exception ex)
