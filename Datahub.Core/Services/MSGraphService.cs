@@ -108,7 +108,6 @@ namespace NRCan.Datahub.Shared.Services
                         {
                             var newUser = GraphUser.Create(user);
                             UsersDict.Add(newUser.Id, newUser);
-                            _logger.LogInformation(newUser.DisplayName);
                         }
                     }
 
