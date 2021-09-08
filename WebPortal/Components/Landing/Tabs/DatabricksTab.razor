@@ -5,6 +5,7 @@
 @inject IJSRuntime JsInterop
 @implements IDisposable
 @inject IDbContextFactory<DatahubProjectDBContext> DbFactory
+@inject IUserInformationService UserInformationService
 
 <div class="ae table-container">
 
@@ -52,8 +53,10 @@
 
     protected override async Task OnInitializedAsync()
     {
+        var currentUserId = await UserInformationService.GetUserIdString();
         Context = DbFactory.CreateDbContext();
-        _projects = Context.Projects.Where(p => !p.Is_Private && !string.IsNullOrWhiteSpace(p.Project_Acronym_CD) && !string.IsNullOrWhiteSpace(p.Project_Icon) && !string.IsNullOrWhiteSpace(p.Project_Name)).Include(p => p.Users).ToList();               
+        _projects = Context.Project_Users.Include(u => u.Project)            
+            .Where(u => u.User_ID == currentUserId).Select(u => u.Project).Where(p => p.Databricks_URL != null).ToList();
 
         await FillAccessorFunctions();
         
@@ -64,6 +67,12 @@
             new Func<Datahub_Project, RenderFragment>(Datahub_Project => @<AeMarkdown Content="@($"{Datahub_Project.ProjectDescription}")"></AeMarkdown> ),
         };
         
+        renderFunctions = new List<Func<Datahub_Project, RenderFragment>>() {            
+            Datahub_Project => @<AeFlex class="table-icon"><i class="@($"fad fa-{Datahub_Project.Project_Icon}")"></i></AeFlex>,
+            Datahub_Project => @<AeFlex style="padding-top: 1rem"><AeTypography><DatahubLink DataProject="@(Datahub_Project.Project_Acronym_CD)" DatabricksURL="@(Datahub_Project.Databricks_URL)" Name="Databricks Workspace">Databricks Workspace</DatahubLink></AeTypography></AeFlex>, 
+            Datahub_Project => @<AeFlex style="padding-top: 1rem"><AeTypography><DatahubLink DataProject="@(Datahub_Project.Project_Acronym_CD)">@Datahub_Project.ProjectName</DatahubLink></AeTypography></AeFlex>             
+        };
+
         
         
         //await FillRenderFunctions();
