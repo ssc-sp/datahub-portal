@@ -74,25 +74,25 @@
         switch (LinkType)
         {
             case DatahubLinkType.PowerBI:
-                NavigationManager.NavigateTo(PowerBIURL);
+                NavigationManager.NavigateTo(link.PowerBIURL);
                 break;
             case DatahubLinkType.DataProject:
-                NavigationManager.NavigateTo($"/project/{DataProject}");
+                NavigationManager.NavigateTo($"/project/{link.DataProject}");
                 break;
             case DatahubLinkType.Databricks:
-                NavigationManager.NavigateTo(DatabricksURL);
+                NavigationManager.NavigateTo(link.DatabricksURL);
                 break;
             case DatahubLinkType.WebForm:
-                NavigationManager.NavigateTo(WebFormsURL);
+                NavigationManager.NavigateTo(link.WebFormsURL);
                 break;
             case DatahubLinkType.FormBuilder:
-                NavigationManager.NavigateTo($"/project/{DataProject}/forms");
+                NavigationManager.NavigateTo($"/project/{link.DataProject}/forms");
                 break;
             case DatahubLinkType.Storage:
-                NavigationManager.NavigateTo($"/project/{DataProject}/filelist");
+                NavigationManager.NavigateTo($"/project/{link.DataProject}/filelist");
                 break;
             case DatahubLinkType.DataSharingDashboard:
-                NavigationManager.NavigateTo($"/project/{DataProject}/datasharing");
+                NavigationManager.NavigateTo($"/project/{link.DataProject}/datasharing");
                 break;
         }
     }
