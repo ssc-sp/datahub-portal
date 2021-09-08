@@ -5,7 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AElemental.Blazor" Version="1.2.21245.1-beta" />
+    <PackageReference Include="AElemental.Blazor" Version="1.2.21246.1-beta" />
   </ItemGroup>
 
 </Project>
