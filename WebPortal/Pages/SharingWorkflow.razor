@@ -1,17 +1,44 @@
 ﻿@page "/sharingworkflow/{FileId}"
 @using Microsoft.AspNetCore.WebUtilities
 @using Microsoft.Graph
+@inject IStringLocalizer<SharingWorkflow> Localizer
 @inject NavigationManager _navManager
 @inject IPublicDataFileService _publicDataService
 @inject IUserInformationService _userInfoService
 
-<h3>Sharing Workflow</h3>
+<div style="padding-left: 2rem;padding-right: 2rem">
+    <AeFlex Vertical>
+        <h3>Data Sharing</h3>
+    </AeFlex>
+    <AeCard>
+        <Header>
+        <h3>@Localizer["Share Data in Canada Open Data Portal"]</h3>
+        </Header>
+        <ChildContent>
+            <p>
+                This workflow will enable to upload your data to the Canada Open Data Portal. It includes the metadata management and approvals.
+            </p>
+        </ChildContent>
+        <Footer>
+            <AeButton OnClickEvent=@OpenDataClicked Disabled=@_openDataDisabled >@Localizer["Start Workflow"]</AeButton>
+		</Footer>
+    </AeCard>
+    <AeCard>
+        <Header>
+        <h3>@Localizer["Share Data using DataHub public URLs"]</h3>
+        </Header>
+        <ChildContent>
+            <p>
+                This workflow will generate public links (data-nrcan.canada.ca, donnees-rncan.canada.ca) from your files to reference them on external sites or publications.
+            </p>
+        </ChildContent>
+        <Footer>
+            <AeButton OnClickEvent=@PublicUrlClicked Disabled=@_openDataDisabled >@Localizer["Start Workflow"]</AeButton>
+		</Footer>
+    </AeCard>
+</div>
 
-<p>
-    <AeButton OnClickEvent=@OpenDataClicked Disabled=@_openDataDisabled >@Localizer["Open Data"]</AeButton>
 
-    <AeButton OnClickEvent=@PublicUrlClicked Disabled=@_publicUrlDisabled >@Localizer["Public URL"]</AeButton>
-</p>
 
 @code {
 
