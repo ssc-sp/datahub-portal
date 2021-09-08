@@ -103,6 +103,8 @@
 
     private List<Datahub_ProjectServiceRequests> _serviceRequests;
 
+    private DatahubProjectDBContext projectContext;
+
     private List<string> projectReqheaders = new List<string>
 {
         "Project", "User", "Date","Actions"
@@ -296,7 +298,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        
+        projectContext = dbFactory.CreateDbContext();
         _authorizedRoles = ServiceAuthManager.GetAdminProjectRoles();
             
 
