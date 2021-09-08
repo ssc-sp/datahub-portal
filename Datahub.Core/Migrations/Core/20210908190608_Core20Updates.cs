@@ -7,29 +7,10 @@ namespace NRCan.Datahub.Shared.Migrations.Core
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
-                name: "FK_Project_Users_Projects_Project_ID",
-                table: "Project_Users");
-
-            migrationBuilder.DropIndex(
-                name: "IX_Project_Users_Project_ID",
-                table: "Project_Users");
-
             migrationBuilder.DeleteData(
                 table: "Projects",
                 keyColumn: "Project_ID",
                 keyValue: 1);
-
-            migrationBuilder.DropColumn(
-                name: "Project_ID",
-                table: "Project_Users");
-
-            migrationBuilder.AddColumn<int>(
-                name: "ProjectId",
-                table: "Project_Users",
-                type: "int",
-                nullable: false,
-                defaultValue: 0);
 
             migrationBuilder.CreateTable(
                 name: "Project_Databases",
@@ -128,11 +109,6 @@ namespace NRCan.Datahub.Shared.Migrations.Core
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Project_Users_ProjectId",
-                table: "Project_Users",
-                column: "ProjectId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Project_Databases_Project_ID",
                 table: "Project_Databases",
                 column: "Project_ID");
@@ -156,22 +132,10 @@ namespace NRCan.Datahub.Shared.Migrations.Core
                 name: "IX_Project_Storage_Datahub_ProjectProject_ID",
                 table: "Project_Storage",
                 column: "Datahub_ProjectProject_ID");
-
-            migrationBuilder.AddForeignKey(
-                name: "FK_Project_Users_Projects_ProjectId",
-                table: "Project_Users",
-                column: "ProjectId",
-                principalTable: "Projects",
-                principalColumn: "Project_ID",
-                onDelete: ReferentialAction.Cascade);
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
-                name: "FK_Project_Users_Projects_ProjectId",
-                table: "Project_Users");
-
             migrationBuilder.DropTable(
                 name: "Project_Databases");
 
@@ -187,37 +151,10 @@ namespace NRCan.Datahub.Shared.Migrations.Core
             migrationBuilder.DropTable(
                 name: "Project_Storage");
 
-            migrationBuilder.DropIndex(
-                name: "IX_Project_Users_ProjectId",
-                table: "Project_Users");
-
-            migrationBuilder.DropColumn(
-                name: "ProjectId",
-                table: "Project_Users");
-
-            migrationBuilder.AddColumn<int>(
-                name: "Project_ID",
-                table: "Project_Users",
-                type: "int",
-                nullable: true);
-
             migrationBuilder.InsertData(
                 table: "Projects",
                 columns: new[] { "Project_ID", "Branch_Name", "Comments_NT", "Contact_List", "Data_Sensitivity", "Databricks_URL", "Deleted_DT", "Division_Name", "GC_Docs_URL", "Initial_Meeting_DT", "Is_Featured", "Is_Private", "Last_Contact_DT", "Last_Updated_DT", "Next_Meeting_DT", "Number_Of_Users_Involved", "PowerBI_URL", "Project_Acronym_CD", "Project_Admin", "Project_Category", "Project_Icon", "Project_Name", "Project_Name_Fr", "Project_Phase", "Project_Status_Desc", "Project_Summary_Desc", "Project_Summary_Desc_Fr", "Sector_Name", "Stage_Desc", "WebForms_URL" },
                 values: new object[] { 1, null, null, null, "Unclassified", null, null, null, null, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), false, false, null, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, null, null, "DHTRK", null, null, "database", "Datahub Projects", null, null, "Ongoing", "Datahub Project Tracker", null, "CIOSB", null, null });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Project_Users_Project_ID",
-                table: "Project_Users",
-                column: "Project_ID");
-
-            migrationBuilder.AddForeignKey(
-                name: "FK_Project_Users_Projects_Project_ID",
-                table: "Project_Users",
-                column: "Project_ID",
-                principalTable: "Projects",
-                principalColumn: "Project_ID",
-                onDelete: ReferentialAction.Restrict);
         }
     }
 }

@@ -59,9 +59,6 @@ namespace NRCan.Datahub.Shared.EFCore
         public bool IsDataApprover { get; set; }
         public Datahub_Project Project { get; set; }
 
-        //foreign key
-        public int ProjectId { get; set; }
-
         [Timestamp]
         public byte[] Timestamp { get; set; }
 
