@@ -993,5 +993,7 @@
   "Data Entry": "Entrée de données",
   "Start the Data Entry application enabled for this project": "Démarrer l’application de saisie de données activée pour ce projet",
   "Access Denied": "Accès Refusé",
-  "You currently do not have access to this project": "Vous n’avez actuellement pas accès à ce projet"
+  "You currently do not have access to this project": "Vous n’avez actuellement pas accès à ce projet",
+  "Access Request is being reviewed": "La demande d’accès est en cours d’examen"
+  
 }
