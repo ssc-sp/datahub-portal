@@ -297,7 +297,6 @@ namespace NRCan.Datahub.Portal
             var defaultCulture = cultureSection.GetValue<string>("Default");
             var supportedCultures = cultureSection.GetValue<string>("SupportedCultures");
             var supportedCultureInfos = new HashSet<CultureInfo>(ParseCultures(supportedCultures));
-
             services.AddJsonLocalization(options =>
             {
                 options.CacheDuration = TimeSpan.FromMinutes(15);
@@ -305,7 +304,7 @@ namespace NRCan.Datahub.Portal
                 options.UseBaseName = false;
                 options.IsAbsolutePath = true;
                 options.LocalizationMode = Askmethat.Aspnet.JsonLocalizer.JsonOptions.LocalizationMode.I18n;
-                options.MissingTranslationLogBehavior = MissingTranslationLogBehavior.LogConsoleError;
+                options.MissingTranslationLogBehavior = _currentEnvironment.EnvironmentName == "Development" ? MissingTranslationLogBehavior.LogConsoleError : MissingTranslationLogBehavior.Ignore;
                 options.FileEncoding = Encoding.GetEncoding("UTF-8");
                 options.SupportedCultureInfos = supportedCultureInfos;
             });
