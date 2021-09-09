@@ -128,6 +128,8 @@ namespace NRCan.Datahub.Portal
             services.AddBlazorDownloadFile();
             services.AddScoped<ApiTelemetryService>();
             services.AddScoped<GetDimensionsService>();
+            //TimeZoneService provides the user time zone to the server using JS Interop
+            services.AddScoped<TimeZoneService>();
             services.AddElemental();
 
             // configure db contexts in this method
@@ -381,6 +383,7 @@ namespace NRCan.Datahub.Portal
 
             services.AddScoped<DataImportingService>();
             services.AddSingleton<DatahubTools>();
+            services.AddSingleton<TranslationService>();
 
             services.AddScoped<NotificationsService>();
             services.AddScoped<UIControlsService>();

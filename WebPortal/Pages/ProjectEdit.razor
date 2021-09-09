@@ -11,6 +11,7 @@
 @inject IDbContextFactory<DatahubETLStatusContext> DbFactoryEtl
 @inject IEmailNotificationService EmailNotificationService
 @inject IPublicDataFileService PublicDataFileService
+@inject TranslationService TranslationService
 
 @page "/edit-project/{projectAcronym}"
 
@@ -33,6 +34,7 @@
     </AeCard>
 
     <AeCard>
+        <AeButton @onclick="SuggestTranslation">@DataLocalizer["Suggest French Translation"]</AeButton>
         <AeModelForm Model="_project"
             T="Datahub_Project"
             OnValidSubmit="HandleValidSubmit"
@@ -93,6 +95,13 @@
 
     [Parameter]
     public string projectAcronym { get; set; }
+
+    public async Task SuggestTranslation()
+    {
+        _project.Project_Name_Fr = await TranslationService.GetFrenchTranslation(_project.Project_Name);
+        _project.Project_Summary_Desc_Fr = await TranslationService.GetFrenchTranslation(_project.Project_Summary_Desc);
+        //TranslationService
+    }
 
     public string Localize(string propName)
     {

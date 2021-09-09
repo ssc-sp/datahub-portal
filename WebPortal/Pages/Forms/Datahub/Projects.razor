@@ -7,6 +7,7 @@
 @inject NavigationManager NavigationManager
 @inject Elemental.Services.UIControlsService UIControlService
 @inject IJSRuntime JsInterop
+@inject TranslationService TranslationService
 @using Microsoft.EntityFrameworkCore.Query
 @using Microsoft.EntityFrameworkCore;
 @page "/datahub/projects"
@@ -60,6 +61,8 @@
         <h2>Create new project</h2>
     }
 
+    <AeButton @onclick="SuggestTranslation">@DataLocalizer["Suggest French Translation"]</AeButton>
+
     <AeModelForm Model="_project"
         T="Datahub_Project"
         OnValidSubmit="HandleValidSubmit"
@@ -112,6 +115,13 @@ if (_project.Project_ID > 0)
     
     private int _lastClicked = 0;
     private IPageableComponent _myTable;
+
+    public async Task SuggestTranslation()
+    {
+        _project.Project_Name_Fr = await TranslationService.GetFrenchTranslation(_project.Project_Name);
+        _project.Project_Summary_Desc_Fr = await TranslationService.GetFrenchTranslation(_project.Project_Summary_Desc);
+        //TranslationService
+    }
 
 
     private void OnPageClick(int pageIndex)
