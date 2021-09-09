@@ -457,6 +457,10 @@
 
         projectContext.Project_Users_Requests.Add(request);
         await projectContext.SaveChangesAsync();
+
+        var adminEmails = ServiceAuthManager.ExtractEmails(_project.Project_Admin ?? string.Empty);
+        await EmailNotificationService.SendServiceAccessRequestNotification(_user.DisplayName, "project", _project.ProjectInfo, adminEmails);
+
         await RefreshComponents(true);
     }
 
@@ -473,7 +477,7 @@
             Project = _project,
             PowerBI = powerbi,
             WebForms = webforms,
-            Databricks = databricks
+            Databricks = databricks           
         };
         projectContext.Access_Requests.Add(request);
         await projectContext.SaveChangesAsync();

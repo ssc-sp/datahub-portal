@@ -51,6 +51,7 @@ using Microsoft.Extensions.Logging;
 using NRCan.Datahub.Shared.RoleManagement;
 using NRCan.Datahub.Shared;
 using NRCan.Datahub.Portal.Data.LanguageTraining;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace NRCan.Datahub.Portal
 {
@@ -208,7 +209,7 @@ namespace NRCan.Datahub.Portal
                 {
                     if (ensureDeleteinOffline)
                         context.Database.EnsureDeleted();
-                    SeedDatabaseIfNew(context);
+                    CreateAndSeedDB(context);
                 }
                 else
                 {
@@ -216,16 +217,24 @@ namespace NRCan.Datahub.Portal
                     if (migrate)
                         context.Database.Migrate();
                     else
-                        SeedDatabaseIfNew(context);
+                        CreateAndSeedDB(context);
                 }
+                logger.LogInformation($"Successfully initialized database {GetInfo(context.Database)}-{typeof(T).Name}");
             }
             catch (Exception ex)
             {
-                logger.LogCritical(ex, $"Error initializing database {context.Database.GetDbConnection().Database}-{typeof(T).Name}");
+                logger.LogCritical(ex, $"Error initializing database {GetInfo(context.Database)}-{typeof(T).Name}");
             }
         }
 
-        private void SeedDatabaseIfNew<T>(T context) where T : DbContext
+        private string GetInfo(DatabaseFacade db)
+		{
+            if (db.IsCosmos()) return db.GetCosmosClient()?.ToString() ?? "CosmosDB - no client";
+            if (db.IsRelational()) return $"{db.GetDbConnection().Database}";
+            return "NA";
+        }
+
+        private void CreateAndSeedDB<T>(T context) where T : DbContext
         {
             if (context.Database.EnsureCreated())
             {
@@ -288,7 +297,6 @@ namespace NRCan.Datahub.Portal
             var defaultCulture = cultureSection.GetValue<string>("Default");
             var supportedCultures = cultureSection.GetValue<string>("SupportedCultures");
             var supportedCultureInfos = new HashSet<CultureInfo>(ParseCultures(supportedCultures));
-
             services.AddJsonLocalization(options =>
             {
                 options.CacheDuration = TimeSpan.FromMinutes(15);
@@ -296,7 +304,7 @@ namespace NRCan.Datahub.Portal
                 options.UseBaseName = false;
                 options.IsAbsolutePath = true;
                 options.LocalizationMode = Askmethat.Aspnet.JsonLocalizer.JsonOptions.LocalizationMode.I18n;
-                options.MissingTranslationLogBehavior = MissingTranslationLogBehavior.Ignore;
+                options.MissingTranslationLogBehavior = _currentEnvironment.EnvironmentName == "Development" ? MissingTranslationLogBehavior.LogConsoleError : MissingTranslationLogBehavior.Ignore;
                 options.FileEncoding = Encoding.GetEncoding("UTF-8");
                 options.SupportedCultureInfos = supportedCultureInfos;
             });
