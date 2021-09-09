@@ -63,7 +63,7 @@
         {
             try
             {
-                return client.DownloadString(fullUrl);               
+                return client.DownloadString(fullUrl);
             } catch (Exception ex)
             {
                 logger.LogError(ex, $"Cannot load page {fullUrl}");

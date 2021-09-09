@@ -1,0 +1,735 @@
+﻿{
+  "Connection lost, please refresh this page": "Connexion perdue, veuillez actualiser cette page",
+  "Connection to server...": "Connexion au serveur...",
+  "Attempting to re-connect with server, please wait...": "Tentative de connexion au serveur, veuillez patienter...",
+  "Failed to connect, please try again later": "Échec de la connexion, veuillez réessayer plus tard",
+  "Connection refused, please try again later": "Connexion refusée, veuillez réessayer plus tard",
+  "Reload": "Recharger",
+
+  "Something went wrong. Please try again later.": "Il y a eu un problème. Veuillez réessayer plus tard.",
+  "TECHNICAL DETAILS": "DÉTAILS TECHNIQUES",
+  "An error has happened on the DataHub server. The team has been notified and the error has been recorded. The correlation ID for this error is <>. To avoid network issues, if you are currently on the VPN, please try to disconnect the VPN and retry your actions.": "Une erreur est survenue sur le serveur DataHub. L’équipe a été avisée et l’erreur a été enregistrée. L’identificateur de corrélation pour cette erreur est <>. Pour éviter des problèmes de réseau, si vous utilisez actuellement le RPV, veuillez le déconnecter avant d’essayer à nouveau.",
+
+  "(e.g., John copied cats.ppt to Folder)": "(p. ex., John a copié cats.ppt dans Répertoire)",
+
+  "(e.g., John created cats.ppt in Folder)": "(p. ex., John a créé cats.ppt dans Répertoire)",
+
+  "(e.g., John deleted cats.ppt from Folder)": "(p. ex., John a supprimé cats.ppt de Répertoire)",
+
+  "(e.g., John moved cats.ppt to Folder)": "(p. ex., John a déplacé cats.ppt à Répertoire)",
+
+  "580 Booth Street": "580, rue Booth",
+
+  "&lt;h1&gt;hello {0}&lt;/h1&gt;": "&lt;h1&gt;bonjour {0}&lt;/h1&gt;",
+
+  // "&lt;Typography&gt;{0} created &lt;span class=&quot;bluetext&quot;&gt;{1}&lt;/span&gt; in &lt;span class=&quot;bluetext&quot;&gt;{2}&lt;/span&gt;&lt;/Typography&gt;": "&lt;Typography&gt;{0} a créé &lt;span class="
+  //bluetext"&gt;{1}&lt;/span&gt; dans &lt;span class="bluetext"&gt;{2}&lt;/span&gt;&lt;/Typography&gt;",
+
+  "a": "à",
+
+  "A fully curated, scalable and high-performing business intelligence system designed to expedite data discovery, reports and dashboards for evidence-based decision making.": "Un système d’intelligence d’affaires entièrement organisé, évolutif et très performant, conçu pour accélérer la recherche de données, les rapports et les tableaux de bord pour un processus décisionnel fondé sur des données probantes.",
+
+  "A trusted Enterprise platform at NRCAN for storing, working with and collaborating on data initiatives.": "Une plateforme d’entreprise de confiance à RNCan pour stocker et utiliser des données ainsi que pour collaborer à des initiatives.",
+
+  "About": "À propos ",
+
+  "About Us": "À propos de nous",
+
+  "Access Control": "Contrôle d'accès",
+
+  "Access to high-performance, massively parallel and specialized GPU compute instances for speeding up your algorithms and model training.": "Accès à des instances de calcul avec unité de traitement graphique spécialisé, massivement parallèles et hautement performantes pour accélérer la formation sur les algorithmes et vos modèles.",
+
+  "Activity": "Activité",
+
+  "Add Data": "Ajouter des données",
+
+  "Add people and groups": "Ajouter des personnes et des groupes",
+
+  "Administrative Console": "Console administrative",
+
+  "Administrator": "Administrateur",
+
+  "Administrators Only": "Administrateurs uniquement",
+
+  "Advanced Search": "Recherche avancée",
+
+  "AI &amp; Machine Learning": "IA et apprentissage machine",
+
+  "All Reports": "Tous les rapports",
+
+  "API Manager": "Gestionnaire d'API",
+
+  "App": "App",
+
+  "April": "Avril",
+
+  "As a part of the Limited Release Team, we are giving you early access to our Alpha release.  We hope that you will take the time to use the platform as much as possible to become familiar with its features.  This will enable us to get some insight into what works and what does not.": "Comme vous faites partie de l’équipe de diffusion limitée, nous vous donnons un accès précoce à notre version Alpha. Nous espérons que vous prendrez le temps d’utiliser la plateforme le plus souvent possible pour vous familiariser avec ses fonctionnalités. Cela nous permettra d’en savoir plus sur les efficacités et les problèmes du système.",
+
+  "Ask How": "Demandez comment",
+
+  "At its core, DataHub provides a range of services that can be combined to solve almost any analytics problem.": "DataHub offre essentiellement une gamme de services pouvant être combinés pour résoudre presque tous les problèmes d’analyse.",
+
+  "August": "Août",
+
+  "Automated cataloging for your data and the ability to manage the metadata around your dataset to make it more discoverable.": "Catalogage automatisé de vos données et possibilité de gérer les métadonnées autour de votre ensemble de données afin de les rendre plus accessibles.",
+
+  "Backed by the power of the cloud, we deliver Business Intelligence (BI) and Analytics solutions that would be challenging and costly to provide with traditional approaches.": "Avec la puissance du nuage, nous procurons des solutions d’intelligence d’affaires et d’analyse qui seraient difficiles et coûteuses à offrir avec les approches classiques.",
+
+  "Based on your needs we will allocate an appropriate space based on the type of work you intend to do (e.g., Reporting, Algorithm Development, Experiments).": "Selon vos besoins, nous vous attribuerons un espace approprié au type de travail que vous avez l’intention d’effectuer (p. ex., préparation de rapports, développement d’algorithmes, expériences).",
+
+  "Bring all your team’s content together along with tools you love.": "Rassemblez tout le contenu de votre équipe avec des outils que vous aimez.",
+
+  "Built for teams": "Conçu pour les équipes",
+
+  "Business Intelligence": "Intelligence d’affaires",
+
+  "Business Professionals": "Professionnels des affaires",
+
+  "By using our Services, you’re agreeing to be bound by these Terms and our Privacy Policy (“Privacy”).": "En utilisant nos services, vous acceptez d’être lié par les présentes conditions générales et par notre politique de confidentialité (« Confidentialité »).",
+
+  "Can I bring my massive datasets to DataHub?": "Puis-je apporter mes ensembles de données massifs dans DataHub?",
+
+  "Can I connect build reports and dashboards within DataHub?": "Puis-je connecter des rapports et des tableaux de bord préparés dans DataHub?",
+
+  "Can we get shared team storage as well?": "Pouvons-nous également obtenir un espace de stockage partagé pour l’équipe?",
+
+  "Cancel": "Annuler",
+
+  "Centralized and curated repository for storing structured and unstructured data at scale. Works seamlessly with automated cataloging, versioning, organizing, archiving, replication and backup of data.": "Dépôt centralisé et organisé pour stocker des données structurées et non structurées à l’échelle. Fonctionne de manière harmonieuse avec le catalogage, le versionnage, l’organisation, l’archivage, la réplication et la sauvegarde automatisés des données.",
+
+  "Change Owner": "Changer de propriétaire",
+
+  "Check back here any time to get current status information for each individual service.": "Revenez ici à tout moment pour obtenir de l’information sur l'état actuel de chaque service particulier.",
+
+  "Choose how you want to work. Access your data and tools from anywhere.": "Choisissez votre façon de travailler. Accédez à vos données et à vos outils de n’importe où.",
+
+  "Collaborate with teams across NRCAN": "Collaborer avec des équipes de RNCan",
+
+  "Considering an analytics project?": "Vous envisagez un projet d’analyse?",
+
+  "Contact": "Contact",
+
+  "Contact us and we will get you started as soon as possible.": "Communiquez avec nous, et nous vous aiderons à démarrer le plus rapidement possible.",
+
+  "Contact us for your complimentary consultation.": "Communiquez avec nous pour une consultation gratuite.",
+
+  "Contact us to find out how we can help.": "Contactez-nous pour savoir comment nous pouvons vous aider.",
+
+  "Contact us to get an account set up.": "Communiquez avec nous pour créer un compte.",
+
+  "Container Service": "Service des conteneurs",
+
+  "Copy To": "Copier à",
+
+  "Cost Management": "Gestion des coûts",
+
+  "Create": "Créer",
+
+  "Create and share content with your team in minutes.": "Créez et partagez du contenu avec votre équipe en quelques minutes.",
+
+  "Create and share content with your team within minutes.": "Créez et partagez du contenu avec votre équipe en quelques minutes.",
+
+  "Create, collaborate and share": "Créez, collaborez et partagez",
+
+  "Created": "Créé",
+
+  "Created By": "Créé par",
+
+  "Created Date": "Date de création",
+
+  "created this": "créé ceci",
+
+  "created this on": "créé ceci sur",
+
+  "Custom Fields": "Champs personnalisés",
+
+  "Dashboards &amp; Reports": "Tableaux de bord et rapports",
+
+  "Data Catalog": "Catalogue de données",
+
+  "Data Catalog &amp;": "Catalogue de données et recherche fédérée",
+
+  "Data Discovery &amp; Management Capabilities": "Capacités de recherche et de gestion des données",
+
+  "Data Lake": "Lac de données",
+
+  "Data Pipelines": "Pipelines de données",
+
+  "Data Science &amp; Analytics": "Science des données et analyse",
+
+  "Data Scientists": "Scientifiques des données",
+
+  "Data Stewardship Tools": "Outils d’intendance des données",
+
+  "Database": "Base de données",
+
+  "DataHub gives you a simple way to store all of your data while ensuring it is secure, properly managed and easily discoverable.": "DataHub vous offre un moyen simple de stocker toutes vos données tout en garantissant leur sécurité, leur bonne gestion et leur facilité d’accès.",
+
+  "DataHub gives you a simple way to store all of your data while ensuring it is secure, properly managed and easily discoverable.1": "DataHub vous offre un moyen simple de stocker toutes vos données tout en garantissant leur sécurité, leur bonne gestion et leur facilité d’accès.",
+
+  "DataHub is more than secure storage - it is a smart and seamless way of working with data.": "DataHub est plus qu’un simple espace de stockage sécurisé – c’est une façon intelligente et harmonieuse de travailler avec les données.",
+
+  "DataHub is not simply file storage but a solution capable of ingesting, managing and analyzing data in any form.": "DataHub n’offre pas seulement le stockage de fichiers mais aussi une solution capable d’ingérer, de gérer et d’analyser des données sous n’importe quelle forme.",
+
+  "DataHub is the collaborative solution for your team.": "DataHub est la solution de collaboration pour votre équipe.",
+
+  "DataHub will be undergoing maintenance and will be temporarily unavailable from 12am – 2pm on July 4, 2020.": "DataHub sera en maintenance et temporairement non disponible entre 12 h et 14 h, le 4 juillet 2020.",
+
+  "December": "Décembre",
+
+  "Delete": "Supprimer",
+
+  "Describe your data": "Décrivez vos données",
+
+  "Description": "Description",
+
+  "Designed for Professionals": "Conçu pour les professionnels",
+
+  "Designed for rapid": "Conçu pour les innovations rapides",
+
+  "Details": "Renseignements",
+
+  "Didn’t find your Profession?": "Vous n’avez pas trouvé votre profession?",
+
+  "Dismiss all": "Rejeter tout",
+
+  "donnees": "données",
+
+  "Don’t worry! Head over to our Contact Page and our team will show you how DataHub can be tailored to your needs.": "Ne vous inquiétez pas! Allez à notre page de contact, et notre équipe vous montrera comment adapter DataHub à vos besoins.",
+
+  "Download": "Télécharger",
+
+  "Drop or click here to add file": "Glissez vos fichiers ou cliquez ici pour ajouter des fichiers",
+
+  "E-mail Address": "Adresse électronique",
+
+  "e.g. financial, CIOSB, FY2020-21": "p. ex. données financières, SGSI, EF2020-2021",
+
+  "Easy and secure access to all your data": "Un accès facile et sécuritaire à toutes vos données",
+
+  "Editor": "Éditeur",
+
+  "Empowering users to tell data stories, work with massive datasets, conduct analyses and experiment with new technologies.": "Permettre aux utilisateurs de raconter des histoires de données, de travailler avec de volumineux ensembles de données, d’effectuer des analyses et d’essayer de nouvelles technologies.",
+
+  "Enjoy and let us know if you have any questions!": "Lancez-vous et n’hésitez pas à communiquer avec nous si vous avez des questions!",
+
+  "Enter a name for your dataset": "Saisissez le nom de votre ensemble de données",
+
+  "Enterprise Data Warehouse": "Dépôt de données d’entreprise",
+
+  "Executives": "Cadres supérieurs",
+
+  "Explore new technologies and experiment without limits": "Explorez de nouvelles technologies et osez expérimenter sans limites",
+
+  "Failed": "Échec",
+
+  "February": "Février",
+
+  "Federated Search": "Recherche fédérée",
+
+  "File": "Dossier",
+
+  "File Size": "Taille du fichier",
+
+  "File Type": "Type de fichier",
+
+  "Files on Demand": "Dossiers sur demande",
+
+  "Finish": "Terminer",
+
+  "Focus on your work not": "Concentrez-vous sur votre travail et non sur la gestion de vos données.",
+
+  "Focused on solving complex business problems using analytics, you need new and emerging technologies to get the job done.": "Pour résoudre des problèmes commerciaux complexes à l’aide de l’analyse, vous avez besoin de technologies nouvelles et émergentes pour effectuer le travail.",
+
+  "Folder": "Répertoire",
+
+  "Format": "Format",
+
+  "Frequently Asked Questions": "Foire aux questions",
+
+  "Friday": "Vendredi",
+
+  "Full Name": "Nom et prénom",
+
+  "functionality": "fonctionnalité",
+
+  "Furthermore, we believe that to do this effectively, we need to eliminate barriers that prevent users from working easily with data.": "De plus, nous pensons que pour le faire efficacement, nous devons éliminer les obstacles qui empêchent les utilisateurs de travailler facilement avec les données.",
+
+  "Gain rapid insights into your data and demonstrate the art of the possible.": "Obtenez rapidement de l’information sur vos données et montrez l’art du possible.",
+
+  "Gain rapid insights into your data for better decisions": "Obtenez un aperçu de vos données pour vous aider à prendre des décisions",
+
+  "Get started": "Pour commencer",
+
+  "Get started quickly using pre-built virtual machines (VMs) and Docker containers with pre-configured frameworks. Support for BYOA (“bring your own algorithm”) and custom machine learning VMs will soon be available.": "Démarrez rapidement en utilisant des machines virtuelles (MV) et des conteneurs Docker avec cadres préconfigurés. La compatibilité pour le recours à votre propre algorithme et aux MV d’apprentissage machine personnalisées sera bientôt offerte.",
+
+  "Get started today": "Commencez dès aujourd’hui",
+
+  "Give it a try": "Essayez-le",
+
+  "Goto search page": "Aller à la page de recherche",
+
+  "Help": "Aide",
+
+  "High Performance Compute": "Calcul de haute performance",
+
+  "Home": "Accueil",
+
+  "How can I use analytics and machine learning within DataHub?": "Comment puis-je utiliser l’analyse et l’apprentissage automatique dans DataHub?",
+
+  "How does DataHub differ from other storage solutions?": "En quoi DataHub diffère-t-il des autres solutions de stockage?",
+
+  "How long before I can start using DataHub?": "Quand pourrais-je commencer à utiliser DataHub ?",
+
+  "If you are experiencing a real-time, operational issue with one of our services that is not described below, please inform us by clicking on the “Contact Us” link to submit a service issue report.": "Si vous éprouvez un problème opérationnel en temps réel avec l'un de nos services qui n'est pas décrit ci-dessous, veuillez nous en informer en cliquant sur le lien « Contactez-nous » pour soumettre un rapport de problème de service.",
+
+  "If you need anything at all, please do not hesitate to reach out to us.  Your feedback drives our development of new features and allows us to squash any annoying little bugs that you may find along the way.  So please do not hesitate to send us an email to our support mailbox.  We promise we will read and respond to everyone!": "N’hésitez pas à communiquer avec nous si vous avez besoin de quoi que ce soit. Vos commentaires nous aident à développer de nouvelles fonctionnalités et nous permettent de corriger les petits problèmes que vous éprouvez. N’hésitez donc pas à envoyer un courriel à l’équipe de soutien. Nous nous engageons à lire tous les courriels que nous recevons et à répondre à tout le monde!",
+
+  "Improve ROI (Return on Investment) while Reducing TCO (Total Cost of Ownership)": "Améliorez le rendement des investissements (RI) tout en réduisant le coût total de possession (CTP).",
+
+  "Improve the productivity of your team by letting DataHub manage your data.": "Améliorez la productivité de votre équipe en laissant DataHub gérer vos données.",
+
+  "Information": "Information",
+
+  "Innovate Faster": "Innovez plus rapidement",
+
+  "innovation": "innovation",
+
+  "Integrated Development Environments (IDEs)": "Environnements de développement intégré (EDI)",
+
+  "January": "Janvier",
+
+  "July": "Juillet",
+
+  "Jumpstart your team’s project with all of your data in one place": "Démarrez le projet de votre équipe avec toutes vos données en un seul endroit.",
+
+  "June": "Juin",
+
+  "Key Capabilities": "Capacités clés",
+
+  "Last Check-In": "Dernier enregistrement",
+
+  "Last Update:": "Dernière mise à jour :",
+
+  "Learn More": "En savoir plus",
+
+  "Let’s Go!": "Allons-y!",
+
+  "Loading": "Chargement",
+
+  "Location": "Endroit",
+
+  "Making use of data to make business decisions and realize outcomes is not always an easy task.": "Il n’est pas toujours facile d’utiliser des données pour prendre des décisions commerciales et obtenir des résultats.",
+
+  "Manage Access": "Gérer l'accès",
+
+  "managing your data": "<value",
+  "/>": null,
+
+  "March": "Mars",
+
+  "May": "Mai",
+
+  "Message": "Message",
+
+  "Microsoft Power BI": "Microsoft Power BI",
+
+  "Mobility &amp; Flexibility": "Mobilité et souplesse",
+
+  "Model Management": "Gestion des modèles",
+
+  "Modified": "Modifié",
+
+  "Modified By": "Modifié par",
+
+  "Modified Date": "Date modifiée",
+
+  "Monday": "Lundi",
+
+  "Monday - Friday:         9am - 5pm EST": "Lundi – vendredi : 9 h – 17 h HNE",
+
+  "Move To": "Déplacer à",
+
+  "My Data": "Mes données",
+
+  "Name": "Nom",
+
+  "Natural Resources Canada (NRCAN) is committed to creating a more enlightened way of working by providing an intuitive, unified platform to keep your content safe and accessible while helping you and those you work with stay coordinated and in sync.": "Ressources naturelles Canada (RNCan) s’engage à créer une façon de travailler plus éclairée en procurant une plateforme intuitive et unifiée pour garder votre contenu sécuritaire et accessible tout en vous aidant, vous et vos collègues, à rester coordonnés et synchronisés.",
+
+  "Need a hand? We've got you covered.": "Besoin d'un coup de main? On s'occupe de vous.",
+
+  "No results found": "Aucun résultat trouvé",
+
+  "Notebooks": "Notebooks",
+
+  "Notifications": "Avis",
+
+  "November": "Novembre",
+
+  "NRCAN": "RNCan",
+
+  "NRCAN DataHub is designed to make your data readily available and give you rapid insights for decision-making.": "Le RNCan DataHub est conçu de façon à rendre vos données facilement accessibles et vous donner rapidement de l’information pour la prise de décisions.",
+
+  "NRCAN DataHub is designed to reduce barriers to entry to Business Intelligence (BI) and Analytics.": "Le RNCan DataHub est conçu de façon à réduire les obstacles au recours à l’intelligence d’affaires et à l’analyse.",
+
+  "NRCAN DataHub publishes up-to-minute information about service availability.": "Le RNCan DataHub publie de l’information de dernière minute sur la disponibilité des services.  ",
+
+  "NRCAN DataHub will allow you to conduct experiments, use sophisticated tools and track all the changes to your data.": "Le RNCan DataHub vous permettra d’effectuer des expériences, d’utiliser des outils de pointe et de suivre toutes les modifications apportées à vos données.",
+
+  "NRCAN DataHub will host and optimize your data while giving you access to popular business intelligence tools like Microsoft Power BI and Tableau.": "Le RNCan DataHub hébergera et optimisera vos données tout en vous donnant accès à des outils prisés d’intelligence d’affaires comme Microsoft Power BI et Tableau.",
+
+  "NRCAN DataHub will let you bring your own algorithms, machine images and data to use with popular analytics tools and technologies.": "Le RNCan DataHub vous permettra d’apporter vos propres algorithmes, images machines et données à utiliser avec les outils et les technologies d’analyse les plus prisés.",
+
+  "October": "Octobre",
+
+  "of your data": "données en toute sécurité",
+
+  "Offline": "Hors ligne",
+
+  "Ok": "Ok",
+
+  "Only You": "Vous seul",
+
+  "Ottawa, Ontario K1A 0E4": "Ottawa (Ontario) K1A 0E4",
+
+  "Our Services also provide you with features like commenting, sharing, searching, image thumbnails, document previews, optical character recognition (OCR), easy sorting and organization, and personalization to help reduce busywork.": "Nos services incluent également des fonctions comme les commentaires, le partage, la recherche, les vignettes d’images, les aperçus de documents, la reconnaissance optique de caractères (ROC), le tri et l’organisation faciles, et la personnalisation pour vous aider à réduire votre charge de travail.",
+
+  "Our team will help you get on the right track by giving you a place to store your data and showing you tools that will help get the most out of your data.": "Notre équipe vous aidera à être sur la bonne voie en vous donnant un endroit où stocker vos données et en vous montrant les outils qui vous aideront à bénéficier le plus possible de vos données.",
+
+  "Over the next few weeks, we will be putting the platform through the ringer by &quot;simulating&quot; a few real-world scenarios while you continue to use the platform.  These simulations will include things like service failure and recovery, hundreds of simultaneous users, and other exciting tests.  We hope that you will not notice any of these activities but, if you do, please grab a screenshot or shoot us an email to tell us about your experience.  We would very much appreciate some insight into what worked and what did not.  We may also ask you for feedback in the form of a short survey or group discussion.  This will help us to further narrow down any issues that may arise.": "Au cours des prochaines semaines, nous mettrons la plateforme à l’essai en « simulant » quelques scénarios réalistes pendant que vous continuez d’utiliser la plateforme. Ces simulations comprendront notamment des situations d’interruption de service et de reprise des activités, la présence de centaines d’utilisateurs à la fois et d’autres essais palpitants. Nous espérons que vous ne remarquerez pas ces activités, mais dans le cas contraire, veuillez prendre une capture d’écran ou nous envoyer un courriel pour nous faire part de votre expérience. Nous aimerions beaucoup recevoir vos commentaires sur ce qui a fonctionné et ce qui n’a pas fonctionné. Nous pourrions également vous demander des commentaires par l’entremise d’un court sondage ou d’une discussion de groupe. Cela nous aidera à cibler davantage tout problème qui pourrait survenir.",
+
+  "Overview": "Vue d'ensemble",
+
+  "Owned By": "Appartenant à",
+
+  "Owner": "Propriétaire",
+
+  "Personal Vault": "Coffre-fort personnel",
+
+  "Phone": "Téléphone",
+
+  "Platform": "Plate-forme",
+
+  "Platform Service Type": "Type de service de la plate-forme",
+
+  "Please feel free to upload and share files with your colleagues on the Limited Release Team or the Developers.  You have 100GB of storage space that you can use in whatever way you like.  We encourage you to try uploading, sharing and searching for files of various types.  There may even be some Easter Eggs (datasets) so keep an eye out for those.": "Téléversez-y des fichiers et partagez des fichiers avec vos collègues faisant partie de l’équipe de diffusion limitée ou avec les développeurs. Vous disposez d’un espace de stockage de 100 Go que vous pouvez utiliser comme bon vous semble. Nous vous encourageons à essayer de téléverser, de partager et de rechercher des fichiers de divers formats. Il pourrait même y avoir des œufs de Pâques (ensembles de données). Restez donc à l’affût!",
+
+  "Portal App": "App de portail",
+
+  "Powerful analytics": "Analyses puissantes",
+
+  "Powerful Dashboards &amp; Reports": "De solides tableaux de bord et rapports ",
+
+  "Privacy": "Confidentialité",
+
+  "Privacy Policy": "Politique de confidentialité",
+
+  "Problem": "Problème",
+
+  "Protected A": "Protégé A",
+
+  "Protected B": "Protégé B",
+
+  "Providing a common and integrated environment for working with data including an intuitive interface and features designed for usability, collaboration and mobility.": "Procurer un environnement commun et intégré pour travailler avec les données, y compris une interface intuitive et des fonctions conçues pour la convivialité, la collaboration et la mobilité.",
+
+  "Providing secure end-to-end data management, including automatic cataloguing and federated search, to allow users to protect sensitive assets while continuing to collaborate on data initiatives.": "Procurer une gestion sécurisée des données de bout en bout, y compris le catalogage automatique et la recherche fédérée, pour permettre aux utilisateurs de protéger les biens sensibles tout en continuant à collaborer à des initiatives en matière de données.",
+
+  "Public Service Group": "Groupe de la fonction publique",
+
+  "Rapidly develop solutions while realizing the benefits of economies-of-scale.": "Trouvez rapidement des solutions tout en bénéficiant d’économies d’échelle.",
+
+  "Read more": "En savoir plus",
+
+  "Recent": "Récent",
+
+  "Reducing barriers to entry for using the latest business intelligence and analytics tools, frameworks and technologies.": "Réduire les obstacles au recours aux derniers outils, cadres et technologies de pointe en matière d’intelligence d’affaires et d’analyse.",
+
+  "Relational Storage": "Stockage relationnel",
+
+  "Rename": "Renommer",
+
+  "Responsible for delivering value to the organization, you rely on using IM/IT services to accomplish your daily tasks.": "Afin d’offrir une valeur à l’organisation, vous comptez sur l’utilisation des services de GI/TI pour accomplir vos tâches quotidiennes.",
+
+  "Saturday": "Samedi",
+
+  "Saturday &amp; Sunday:   Closed": "Samedi et dimanche :   Fermé",
+
+  "Save": "Sauvegarder",
+
+  "Scientists &amp; Technicians": "Scientifiques et techniciens",
+
+  "Search": "Recherche",
+
+  "Search Results": "Résultats de la recherche",
+
+  "Search...": "Recherche...",
+
+  "Securely store all": "Sauvegardez toutes vos ",
+
+  "Security Classification": "Classification de sécurité",
+
+  "See all": "Tout voir",
+
+  "See how": "Voir comment",
+
+  "See it in action": "Voyez-le à l’œuvre ",
+
+  "Select your data to upload to your personal account. Fill out the information below to describe your dataset.": "Sélectionnez les données à téléverser dans votre compte personnel. Remplissez le formulaire ci-dessous pour décrire votre ensemble de données.",
+
+  "Self-Serve BI Tools": "Outils d’intelligence d’affaires en libre-service",
+
+  "Send": "Envoyer",
+
+  "September": "Septembre",
+
+  "Service Health": "Santé des services",
+
+  "Service is operating normally": "Le service fonctionne normalement.",
+
+  "Service is undergoing routine maintenance by the DataHub Team.": "Le service fait l'objet d'une maintenance de routine par l'équipe DataHub.",
+
+  "Service Name": "Nom du service",
+
+  "Service quality is degraded due to issues with the cloud provider.  The DataHub Team is investigating.": "La qualité du service est dégradée en raison de problèmes avec le fournisseur du nuage en ligne. L'équipe DataHub enquête.",
+
+  "Set up your team to work collaboratively on projects and with partners.": "Formez votre équipe pour collaborer à des projets et avec des partenaires.",
+
+  "Setting the direction for the organization and supporting decisions with evidence is no easy task.": "Il n’est pas facile d’établir l’orientation de l’organisation et d’appuyer les décisions avec des données probantes.",
+
+  "Share documents, files and data at a moment’s notice with your teams or other leaders in the organization.": "Partagez des documents, des fichiers et des données à tout moment avec vos équipes ou autres dirigeants de l’organisation.",
+
+  "Share files, projects, and data with specific colleagues or users across the organization.": "Partagez des fichiers, des projets et des données avec certains collègues ou utilisateurs de l’organisation.",
+
+  "Share with people and groups": "Partager avec des personnes et des groupes",
+
+  "Shared": "Partagé",
+
+  "Shared With You": "Partagées avec vous",
+
+  "Sharing": "Partage",
+
+  "Sign In": "Se connecter",
+
+  "Sign Out": "Déconnexion",
+
+  "Simplified model and algorithm management including point-in-time versioning, data set and model attribute tracking, hyper-parameter optimization, and rapid end-point deployment.": "Gestion simplifiée des modèles et des algorithmes, y compris le versionnage ponctuel, le suivi des ensembles de données et des attributs des modèles, l’optimisation des hyperparamètres et le déploiement rapide des points finaux.",
+
+  "Solutions": "Solutions",
+
+  "Sometimes you just want to spin up an environment and test something out. We get it!": "Parfois, vous souhaitez simplement activer un environnement et tester quelque chose. Nous avons compris!",
+
+  "Soon you will be able to deploy analytics models to custom workflows within DataHub too.": "Vous pourrez bientôt déployer des modèles d’analyse pour également personnaliser les flux de travail dans DataHub.",
+
+  "Starting Up": "Démarrage",
+
+  "Status": "État",
+
+  "Stay organized and focused on your work while we automatically cleanse, transform and catalog your data behind the scenes.": "Restez organisé et concentré sur votre travail pendant que nous nettoyons, transformons et cataloguons automatiquement vos données en coulisses.",
+
+  "Store important data and have control over who can view and use your data.": "Conservez les données importantes et contrôlez qui peut consulter et utiliser vos données.",
+
+  "Streamlined Solutions": "Solutions simplifiées",
+
+  "Subject": "Objet",
+
+  "Success": "Succès",
+
+  "Sunday": "Dimanche",
+
+  "Support for popular data science development environments (e.g., Knime, Jupyter Notebook, Spyder) to collaborate and work with your favourite languages (e.g., R, Python, SQL) and technologies (e.g., TensorFlow, Mxnet, PyTorch).": "Compatible avec des environnements prisés de développement de science des données (p. ex., Knime, Jupyter Notebook, Spyder) pour collaborer et travailler avec vos langages (p. ex., R, Python, SQL) et technologies (p. ex., TensorFlow, Mxnet, PyTorch) préférés.",
+
+  "Support Hours": "Heures de soutien",
+
+  "Tags": "Balises",
+
+  "Take your files with you anywhere you go": "Ayez accès à vos dossiers où que vous alliez",
+
+  "Terms &amp; Conditions": "Conditions générales",
+
+  "Terms and Conditions": "Conditions générales",
+
+  "Terms of Use": "Modalités d’utilisation",
+
+  "Thank you again for participating and we look forward to speaking with you in the near future!": "Encore une fois, merci de participer à cet essai. Nous sommes impatients de nous entretenir bientôt avec vous!",
+
+  "Thanks for giving us a try": "Merci de nous essayer",
+
+  "Thanks for using NRCAN DataHub!": "Merci d’utiliser le RNCan DataHub!",
+
+  "That’s why we created DataHub - for professionals like you!": "C’est pourquoi nous avons créé DataHub – pour des professionnels comme vous!",
+
+  "The DataHub Team": "L’équipe DataHub",
+
+  "The lifeblood of the organization, your research and partnerships drive the business of NRCAN.": "L’élément vital de l’organisation, vos recherches et vos partenariats sont le moteur des activités de RNCan.",
+
+  "The NRCAN DataHub Team is a hard working team with a straight-forward vision.": "L’équipe du RNCan DataHub est composée de personnes qui travaillent fort et qui ont une vision claire.",
+
+  "The Security Classification field is required.": "Le champ Classification de sécurité est obligatoire.",
+
+  "The title field is required.": "Le champ Titre est obligatoire.",
+
+  "These Terms don’t give us any rights to Your Stuff except for the limited rights that enable us to offer the Services.": "Les présentes conditions ne nous donnent aucun droit sur votre matériel, à l’exception des droits limités qui nous permettent d’offrir les services.",
+
+  "These terms of service (“Terms”) cover your use and access to the NRCAN DataHub services, client software and websites (&quot;Services&quot;).": "Les présentes conditions de service (« Conditions ») couvrent votre utilisation et votre accès aux services RNCan DataHub, aux logiciels clients et aux sites Web (« Services »).",
+
+  "This includes making business intelligence and analytics tools integrated within DataHub, easy to use and available for everyone.": "Cela consiste notamment à intégrer des outils d’intelligence d’affaires et d’analyse à DataHub, les rendant faciles à utiliser et accessible à tous.",
+
+  "This includes working with any combination of text, tables/databases, documents, maps, images, videos, etc.": "Cela inclut le travail avec n’importe quelle combinaison de textes, de tableaux/bases de données, de documents, de cartes, d’images, de vidéos, etc.",
+
+  "This includes:": "Cela inclut :",
+
+  "This is where DataHub can help.": "DataHub peut vous aider à cet égard.",
+
+  "This is your own personal storage space!  It is intended for your use and enjoyment.": "Il s’agit de votre propre espace de stockage personnel!  N’hésitez pas à l’utiliser et à en profiter.",
+
+  "Thursday": "Jeudi",
+
+  "Title": "Titre",
+
+  "To do this, we feel that you need the ability to upload, store, and share data while being able to collaborate with anyone in the organization.": "Pour ce faire, nous estimons que vous devez pouvoir télécharger, stocker et partager des données tout en étant capable de collaborer avec n’importe qui au sein de l’organisation.",
+
+  "To provide these and other features, NRCAN DataHub accesses, stores, and scans Your Stuff.": "Afin de vous offrir ces fonctions et autres, le RNCan DataHub accède à votre matériel, le stocke et le numérise.",
+
+  "Today": "Aujourd'hui",
+
+  "Tools for exploring, modeling, building dashboards and reporting on data.": "Des outils pour explorer, modéliser, construire des tableaux de bord et rendre compte des données.",
+
+  "Tools to help you manage, maintain and document your data for improved quality, usability and discoverability.": "Des outils pour vous aider à gérer, maintenir et documenter vos données afin d’en améliorer la qualité, la convivialité et la facilité d’accès.",
+
+  "Try DataHub": "Essayez DataHub",
+
+  "Try it today": "Essayez-le dès aujourd’hui",
+
+  "Tuesday": "Mardi",
+
+  "Type": "Type",
+
+  "Unclassified": "Non classifié",
+
+  "Unified Portal": "Portail unifié",
+
+  "Unless you are a full-time Data Wrangler you might wonder where to start.": "À moins que vous ne soyez un technicien en gestion de données numérique, vous pourriez vous demander par où commencer.",
+
+  "Upload, share, create": "Téléverser, partager, créer",
+
+  "Use artificial intelligence and machine learning frameworks and tools.": "Utilisez l’intelligence artificielle et les cadres et outils d’apprentissage machine.",
+
+  "Use of this functionality is subject to the NRCAN Datahub Terms of Use and Privacy Policy": "L’utilisation de cette fonctionnalité est assujettie aux Modalités d’utilisation et à la Politique de confidentialité du Carrefour de données de RNCan",
+
+  "users": "utilisateurs",
+
+  "Version Control": "Contrôle des versions",
+
+  "Versions": "Versions",
+
+  "View Details": "Voir les renseignements",
+
+  "Viewer": "Visualiseur",
+
+  "Viewers": "Visualiseurs",
+
+  "Want to start building today?": "Vous souhaitez commencer à bâtir aujourd’hui?",
+
+  "Want to try it out?": "Vous souhaitez l’essayer?",
+
+  "Warning": "Avertissement",
+
+  "We are here to answer all of your questions.": "Nous sommes là pour répondre à toutes vos questions.",
+
+  "We believe that data is the lifeblood of NRCAN and that there is an amazing opportunity for us to help you use that data better.": "Nous croyons que les données sont l’élément vital de RNCan et que nous avons une occasion extraordinaire de vous aider à mieux utiliser ces données.",
+
+  "We build end-to-end workflows to automatically ingest, transform and prepare your data.": "Nous établissons des flux de travail de bout en bout pour ingérer, transformer et préparer automatiquement vos données.",
+
+  "We have a lot of clients and every client differs in their needs from basic reporting needs to sophisticated analytics environments.": "Nous avons beaucoup de clients et chaque client a des besoins différents, depuis des rapports de base jusqu’à des environnements d’analyse de pointe.",
+
+  "We hope that you will enjoy the DataHub experience and will reach out to us with any cool or new ideas.": "Nous espérons que vous apprécierez l’expérience DataHub et que vous nous ferez part de toute idée nouvelle ou intéressante.",
+
+  "We manage the complexity on your behalf so that you can stay focused on the work.": "Nous gérons la complexité en votre nom afin que vous puissiez rester concentré sur le travail.",
+
+  "We need your permission to do things like hosting Your Stuff, backing it up, and sharing it when you ask us to.": "Nous avons besoin de votre autorisation pour faire certaines choses comme héberger votre matériel, le sauvegarder et le partager lorsque vous nous le demandez.",
+
+  "We provide the foundation for gaining insights and you do the rest!": "Nous procurons la base pour obtenir des informations et vous faites le reste!",
+
+  "We recognize that you are busy and don’t necessarily have the time or desire to create and configure a solution based on best practices.": "Nous savons que vous êtes occupé et que vous n’avez pas nécessairement le temps ou le goût de créer et de configurer une solution axée sur les pratiques exemplaires.",
+
+  "We started putting together the team in early 2020 and have been working diligently to bring you the best possible environment for data.": "Nous avons commencé à former l’équipe au début de l’année 2020 et nous avons travaillé avec diligence pour vous apporter le meilleur environnement possible pour les données.",
+
+  "We want to empower users to tell data stories, work with massive datasets, conduct analyses and experiment with new technologies.": "Nous souhaitons donner aux utilisateurs les moyens de raconter des histoires avec les données, de travailler avec des ensembles de données massifs, d’effectuer des analyses et d’expérimenter de nouvelles technologies.",
+
+  "We want you to be able to use self-serve BI tools with any data that you upload.": "Nous voulons que vous puissiez utiliser les outils d’intelligence d’affaires en libre-service avec toutes les données que vous téléchargez.",
+
+  "We will try our best to get your on-boarded quickly.": "Nous ferons de notre mieux pour que vous puissiez rapidement commencer.",
+
+  "Wednesday": "Mercredi",
+
+  "Welcome to NRCAN DataHub - we hope your experience is a great one!": "Bienvenue sur le Carrefour de données de RNCan! Nous espérons que vous vivrez une expérience positive.",
+
+  "What can you expect?": "À quoi pouvez-vous vous attendre?",
+
+  "What is DataHub?": "Qu’est-ce que DataHub?",
+
+  "When creating strategy, delivering on priorities or developing plans, you need business intelligence tools to help you make decisions based on evidence.": "Lorsque vous créez une stratégie, travaillez aux priorités ou élaborez des plans, vous avez besoin d’outils d’intelligence d’affaires pour vous aider à prendre des décisions reposant sur des données probantes.",
+
+  "When you use our Services, you provide us with things like your files, content, messages, contacts, and so on (“Your Stuff”).": "Lorsque vous utilisez nos services, vous nous procurez des éléments comme vos fichiers, votre contenu, vos messages, vos personnes-ressources, etc. (« Votre matériel »).",
+
+  "Whether it is Terabytes or Petabytes, we can handle it!": "Qu’il s’agisse de téraoctets ou de pétaoctets, nous pouvons le faire!",
+
+  "Whether you need to report an issue or just want some guidance on setting up and using your account, send us an email at:": "Que vous souhaitiez signaler un problème ou simplement obtenir des conseils sur la façon de créer et d’utiliser votre compte, envoyez-nous un courriel à :",
+
+  "Who are we?": "Qui sommes-nous?",
+
+  "Why choose DataHub?": "Pourquoi choisir DataHub?",
+
+  "Will I have my own personal storage on DataHub?": "Est-ce que j’aurai mon propre espace de stockage personnel dans DataHub?",
+
+  "With your data and tools in a single environment, your team will be able to get up and running rapidly.": "Avec vos données et vos outils dans un même environnement, votre équipe sera en mesure de se mettre rapidement au travail.",
+
+  "Workflows for moving data between locations and formats. Includes the ability to create custom paths and fully automated processes for extracting, cleansing, transforming, and integrating data from any source.": "Flux de travail pour le déplacement des données entre les lieux et les formats. Permet de créer des chemins personnalisés et des processus entièrement automatisés pour extraire, nettoyer, transformer et intégrer des données de n’importe quelle source.",
+
+  "XX days ago (e.g., 3 days ago)": "il y a XX jours (p. ex., il y a 3 jours)",
+
+  "xxxx deleted xxxx from xxxx": "xxxx a supprimé xxxx de xxxx",
+
+  "xxxx moved xxxx to xxxx": "xxxx a déplacé xxxx à xxxx",
+
+  "Yes. As a user you will be given a personal storage space in which you can store data in any format.": "Oui. En tant qu’utilisateur, vous disposerez d’un espace de stockage personnel où vous pourrez stocker des données dans n’importe quel format.",
+
+  "Yes. DataHub is designed to handle big data. We will build custom pipelines to migrate your larger datasets to DataHub.": "Oui. DataHub est conçu pour traiter des données volumineuses. Nous construirons des pipelines personnalisés pour migrer vos grands ensembles de données dans DataHub.",
+
+  "Yes. Depending on your needs, we will customize a team environment that works for you.": "Oui. Selon vos besoins, nous personnaliserons un environnement d’équipe qui vous conviendra.",
+
+  "Yes. Tools like Microsoft Power BI and Tableau are being integrated with DataHub as we speak.": "Oui, des outils comme Microsoft Power BI et Tableau sont actuellement en cours d’intégration dans DataHub.",
+
+  "Yesterday": "Hier",
+
+  "You do not have a lot of time to create and configure environments if you are to remain flexible and focused on the task at hand.": "Vous n’avez pas beaucoup de temps pour créer et configurer des environnements si vous souhaitez rester souple et concentré sur la tâche à accomplir.",
+
+  "You have used {0} of your allocated {1}": "Vous avez utilisé {0} des {1} qui vous sont attribués.",
+
+  "You may bring-your-own-algorithm (BYOA) or develop one in DataHub using your own data.": "Vous pouvez apporter votre propre algorithme ou en élaborer un dans DataHub avec vos propres données.",
+
+  "You need a reliable and flexible environment that compliments your research, manages your data for you and includes the tools required to deliver high-quality and reproducible results.": "Vous avez besoin d’un environnement fiable et souple qui appuie vos recherches, gère vos données pour vous et offre les outils nécessaires pour procurer des résultats de haute qualité et reproductibles.",
+
+  "You need reliable and trustworthy data and tools at your fingertips to keep up with the pace of business.": "Vous avez besoin de données et d’outils fiables et sûrs à portée de main pour évoluer avec les affaires.",
+
+  "Your account has 100 GB storage.": "Votre compte dispose d'une capacité de stockage de 100 Go.",
+
+  "Your Stuff &amp; Your Permissions": "Votre matériel et vos autorisations",
+
+  "Your upload of “Text_Extraction_2002-04-18.exe” failed because a virus was detected.  Please check your file and try again.": "Votre téléchargement de « Text_Extraction_2002-04-18.exe » a échoué parce qu'un virus a été détecté.  Veuillez vérifier votre fichier et réessayer.",
+
+  "Your upload of “Text_Extraction_2002-04-18.exe” shows that the file type is incorrect.  The file is of type “.doc”.": "Votre téléchargement de « Text_Extraction_2002-04-18.exe » montre que le type de fichier est incorrect. Le fichier est de type « .doc ».",
+
+  "Your upload of “Text_Extraction_2002-04-18.exe” was successful.": "Votre téléchargement de « Text_Extraction_2002-04-18.exe » a réussi.",
+
+  "Your upload of “Text_Extraction_2002-04-18.exe” will take approximately 3 days.": "Votre téléchargement de « Text_Extraction_2002-04-18.exe » prendra environ 3 jours.",
+
+  "{0} copied {1} to {2}": "xxxx a copié xxxx dans xxxx ",
+
+  "{0} created {1} in {2}": "{0} a créé {1} dans {2}",
+
+  "© Natural Resources Canada, 2020.  All rights reserved.": "© Ressources naturelles Canada, 2020.  Tous droits réservés.",
+
+  
+
+}
