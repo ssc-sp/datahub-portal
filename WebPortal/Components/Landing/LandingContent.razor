@@ -42,14 +42,14 @@
         {        
             //("My Projects", @<AeTypography>My Projects frag</AeTypography>),
             //("Shared with Me", @<AeTypography>Shared with Me frag</AeTypography>),
-            ("My Projects", @<NRCan.Datahub.Portal.Components.Landing.Tabs.ProjectsTab />),
-            ("My Databricks Workbooks", @<NRCan.Datahub.Portal.Components.Landing.Tabs.DatabricksTab />),
-            ("My PowerBI Reports", @<NRCan.Datahub.Portal.Components.Landing.Tabs.PowerBITab /> ),
+            (@Localizer["My Projects"], @<NRCan.Datahub.Portal.Components.Landing.Tabs.ProjectsTab />),
+            (@Localizer["My Databricks Workbooks"], @<NRCan.Datahub.Portal.Components.Landing.Tabs.DatabricksTab />),
+            (@Localizer["My Power BI Reports"], @<NRCan.Datahub.Portal.Components.Landing.Tabs.PowerBITab /> ),
         
         };
         if (links?.Count > 0)
         {
-            res.Insert(0, ("Recent", @<NRCan.Datahub.Portal.Components.Landing.Tabs.RecentTab RecentLinks="links"/> ));
+            res.Insert(0, (@Localizer["Recent"], @<NRCan.Datahub.Portal.Components.Landing.Tabs.RecentTab RecentLinks="links"/> ));
         }
         return res;
     }
