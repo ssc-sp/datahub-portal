@@ -1,22 +1,30 @@
 ﻿@namespace NRCan.Datahub.Portal.Components
+@inject TimeZoneService TimeZoneService
 
 <AeFlex class="welcome-banner" style=@($"background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, black 100%), url('{GetBackground()}') no-repeat center center fixed;background-size: cover;")>
-  <AeTypography Variant="h2" class="greeting">Good @GetGreeting()</AeTypography>
+  <AeTypography Variant="h2" class="greeting">@GetGreeting()</AeTypography>
 </AeFlex>
 
 
 @code {
 
+    private DateTimeOffset now;
+
+    protected override async Task OnInitializedAsync()
+    {
+        now = await TimeZoneService.GetLocalDateTime(DateTimeOffset.UtcNow);
+    }
+
     private string GetGreeting(){
-      var hour = DateTime.Now.Hour;
+      var hour = now.Hour;
 
       if(hour < 12){
-        return "Morning";
+        return @Localizer["Good Morning"];
       }
       else if(hour < 16){
-        return "Afternoon";
+        return @Localizer["Good Afternoon"];
       }
-      return "Evening";
+      return @Localizer["Good Evening"];
     }
 
     private string GetBackground()
