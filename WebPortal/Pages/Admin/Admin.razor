@@ -12,7 +12,7 @@
 
 <div style="padding-left: 2rem;padding-right: 2rem">
 
-    <AeTypography Variant="h1">@Localizer["Datahub Administration"]</AeTypography>
+    <AeTypography Variant="h1">@Localizer["DataHub Administration"]</AeTypography>
 
 <AuthorizeView Roles="@string.Join(',', _authorizedRoles)">
     <Authorized>
@@ -27,11 +27,11 @@
             <AeTable Accessors="GetProjectRequestAccessorFunctions()"
                      Dataset="_userProjectAuthorization"
                      Renderers="projectReqRenderFunctions"
-                     Headers="projectReqheaders" />
+                     Headers="LocalizeHeaders(projectReqheaders)" />
         }
         else
         {
-            <div>Loading data...</div>
+            <div>@Localizer["Loading data..."]</div>
         }
         </ChildContent>
         </AeCard>    
@@ -45,11 +45,11 @@
             <AeTable Accessors="accessorFunctions"
                      Dataset="_usersAuthorization"
                      Renderers="renderFunctions"
-                     Headers="headers" />
+                     Headers="LocalizeHeaders(headers)" />
         }
         else
         {
-            <div>Loading data...</div>
+            <div>@Localizer["Loading data..."]</div>
         }
         </ChildContent>
         </AeCard>
@@ -64,7 +64,7 @@
                 Accessors=@serviceRequestAccessors
                 Dataset=@_serviceRequests
                 Renderers=@serviceRenderers
-                Headers=@serviceReqHeaders
+                Headers=@LocalizeHeaders(serviceReqHeaders)
             />
         }
         else
@@ -105,7 +105,7 @@
         }
     </Authorized>
     <NotAuthorized>
-        <AeTypography Variant="h1">This page is limited for datahub administrators</AeTypography>
+        <AeTypography Variant="h1">@Localizer["This page is limited for DataHub administrators"]</AeTypography>
     </NotAuthorized>
 </AuthorizeView>
 
@@ -164,6 +164,11 @@
             }
             _emailSelf = value;
         }
+    }
+
+    private List<string> LocalizeHeaders(List<string> input)
+    {
+        return input.Select(s => Localizer[s].ToString()).ToList();
     }
     private string TestRecipientName { get; set; }
     private string TestRecipientEmail { get; set; }
