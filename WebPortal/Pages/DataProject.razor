@@ -16,7 +16,7 @@
 
 <div style="padding-left: 2rem;padding-right: 2rem">
     <AeFlex Vertical>
-        <h2>Data Project</h2>
+        <h2>@DataLocalizer["Data Project"]</h2>
     </AeFlex>
     <AeCard CardPosition="AeCard.CardStyle.Horizontal">
         <Header>
@@ -41,11 +41,11 @@
                     }
                 </NotAuthorized>
             </AuthorizeView>
-            <AeTypography>@DataLocalizer["Data Sensitivity"]: @DataLocalizer[_project.Data_Sensitivity]</AeTypography>
+            <AeTypography>@DataLocalizer["Data Sensitivity:"] @DataLocalizer[_project.Data_Sensitivity]</AeTypography>
             <AuthorizeView Roles="@RoleConstants.DATAHUB_ROLE_ADMIN">
                 <Authorized>
                     <AeFlex>
-                    <AeButton @onclick="EditProject">Edit Project</AeButton>
+                    <AeButton @onclick="EditProject">@DataLocalizer["Edit Project"]</AeButton>
                     </AeFlex>
                 </Authorized>
             </AuthorizeView>
@@ -66,7 +66,7 @@
             </AeFlex>
         }
 
-        <h2>Project Tools</h2>
+        <h2>@DataLocalizer["Data Project Tools"]</h2>
         <div class="ae flex wrap">
             <AeCard class="facard1" CardPosition="AeCard.CardStyle.Horizontal">
                 <Header>
@@ -81,7 +81,7 @@
                     }
                     else
                     {
-                        <AeTypography Variant="h3">Azure Databricks</AeTypography>
+                        <AeTypography Variant="h3">@DataLocalizer["Azure Databricks"]</AeTypography>
                     }
                     <AeTypography>@DataLocalizer["Azure Databricks Workspace"]</AeTypography>
                 </ChildContent>
@@ -97,20 +97,20 @@
                                 }
                                 else
                                 {
-                                    <AeTypography class="warning">Access not authorized</AeTypography>
-                                    <AeButton @onclick="@(async () => await RequestAccess(true, false, false))">Request Access</AeButton>
+                                    <AeTypography class="warning">@DataLocalizer["Access not authorized"]</AeTypography>
+                                    <AeButton @onclick="@(async () => await RequestAccess(true, false, false))">@DataLocalizer["Request Access"]</AeButton>
                                 }
                             }
                             else
                             {
                                 @if (_serviceRequests.Any(r => r.ServiceType == "databricks" && r.Is_Completed == null))
                                 {
-                                    <AeTypography class="warning">Service Request is being reviewed</AeTypography>
+                                    <AeTypography class="warning">@DataLocalizer["Service Request is being reviewed"]</AeTypography>
                                 }
                                 else
                                 {
                                     @* <AeTypography class="warning">Service not available</AeTypography> *@
-                                    <AeButton @onclick="@(async () => await RequestServiceAccess("databricks"))">Request Service Creation</AeButton>
+                                    <AeButton @onclick="@(async () => await RequestServiceAccess("databricks"))">@DataLocalizer["Request Service Creation"]</AeButton>
                                 }
                             }
                         }
@@ -121,7 +121,7 @@
             <AeCard class="facard1" CardPosition="AeCard.CardStyle.Horizontal">
                 <Header>
                     <div style="width:180px">
-                        <img src="/icons/svg/powerbi.svg" alt="Power Virtual Agents powerbi">
+                        <img src="/icons/svg/powerbi.svg" alt="Power Virtual Agents power bi">
                     </div>
                 </Header>
                 <ChildContent>
@@ -131,9 +131,9 @@
                     }
                     else
                     {
-                        <AeTypography Variant="h3">PowerBI</AeTypography>
+                        <AeTypography Variant="h3">@Localizer["Power BI"]</AeTypography>
                     }
-                    <AeTypography>PowerBI Workspace</AeTypography>
+                    <AeTypography>@Localizer["Power BI Workspace"]</AeTypography>
                 </ChildContent>
                 <Footer>
                     @if (!_powerBIAuthorized)

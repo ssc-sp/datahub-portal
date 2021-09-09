@@ -28,31 +28,40 @@ namespace NRCan.Datahub.Shared.Services
 
         public async Task RegisterNavigation(UserRecentLink link)
         {
-            var user = await _userInformationService.GetUserAsync();
-            var userId = user.Id;
-
-            //var userRecentActions = new UserRecentLink() { url = eventArgs.Location, title = "my title", accessedTime = DateTimeOffset.Now, icon = "myicon" };
-
-            var recentNavigations = await ReadRecentNavigations(userId);
-
-            if (recentNavigations == null)
+            try
             {
-                recentNavigations = new UserRecent() { UserId = userId };
-                recentNavigations.UserRecentActions.Add(link);
-                await RegisterNavigation(recentNavigations);
-            }
-            else
-            {
-                if (recentNavigations.UserRecentActions.Count >= 5)
-                {
-                    await RemoveOldestNavigation(recentNavigations);
-                }
-                recentNavigations.UserRecentActions.Add(link);
+                var user = await _userInformationService.GetUserAsync();
+                var userId = user.Id;
+
+                //var userRecentActions = new UserRecentLink() { url = eventArgs.Location, title = "my title", accessedTime = DateTimeOffset.Now, icon = "myicon" };
                 using (var efCoreDatahubContext = _contextFactory.CreateDbContext())
                 {
-                    efCoreDatahubContext.UserRecent.Update(recentNavigations);
+                    efCoreDatahubContext.Attach(link);
+                    var recentNavigations = await efCoreDatahubContext.UserRecent.FirstOrDefaultAsync(u => u.UserId == userId);
+
+
+                    if (recentNavigations == null)
+                    {
+                        recentNavigations = new UserRecent() { UserId = userId };
+                        recentNavigations.UserRecentActions.Add(link);
+                        efCoreDatahubContext.UserRecent.Add(recentNavigations);
+                    }
+                    else
+                    {
+                        if (recentNavigations.UserRecentActions.Count >= 5)
+                        {
+                            await RemoveOldestNavigation(recentNavigations);
+                        }
+                        recentNavigations.UserRecentActions.Add(link);
+                        efCoreDatahubContext.UserRecent.Update(recentNavigations);
+                    }
                     await efCoreDatahubContext.SaveChangesAsync();
+
                 }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Cannot update navigation");
             }
         }
 
