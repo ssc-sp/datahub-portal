@@ -42,12 +42,19 @@
     };
   }
 
-  private List<(string Href, Icon Icon, string Label, List<string> Roles)> GetAuthorizedLinks()
-  {
-        var projects = ServiceAuthManager.GetAdminProjectRoles();
-        return new List<(string, Icon, string, List<string>)>()
+    private List<(string Href, Icon Icon, string Label, List<string> Roles)> GetAuthorizedLinks()
     {
-      ("/admin", Icon.ADMIN, "SIDEBAR.Admin", projects)
-    };
-  }
+        var projects = ServiceAuthManager.GetAdminProjectRoles();
+        if (projects.Any())
+        {
+            return new List<(string, Icon, string, List<string>)>()
+            {
+              ("/admin", Icon.ADMIN, "SIDEBAR.Admin", projects)
+            };
+        }
+        else
+        {
+            return new List<(string, Icon, string, List<string>)>();
+        }
+    }
 }
