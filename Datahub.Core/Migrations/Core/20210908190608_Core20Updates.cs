@@ -7,11 +7,6 @@ namespace NRCan.Datahub.Shared.Migrations.Core
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DeleteData(
-                table: "Projects",
-                keyColumn: "Project_ID",
-                keyValue: 1);
-
             migrationBuilder.CreateTable(
                 name: "Project_Databases",
                 columns: table => new
