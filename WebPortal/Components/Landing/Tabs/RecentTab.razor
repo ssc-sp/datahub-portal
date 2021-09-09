@@ -1,7 +1,7 @@
 ﻿@inject IUserInformationService UserInformationService
 @inject UserLocationManagerService UserLocationManagerService 
 @inject IDbContextFactory<DatahubProjectDBContext> DbFactoryProject
-@inject IStringLocalizer<RecentTab> Localizer
+@inject IStringLocalizer Localizer
 
 @if ((recentLinks?.Count ?? 0) > 0)
 {
@@ -81,7 +81,7 @@
         switch (link.LinkType)
         {
             case DatahubLinkType.PowerBI:
-                return $"{projectName} >> {Localizer["PowerBI"]}";
+                return $"{projectName} >> {Localizer["Power BI"]}";
             case DatahubLinkType.Databricks:
                 return $"{projectName} >> {Localizer["Databricks"]}";
             case DatahubLinkType.WebForm:

@@ -20,7 +20,7 @@ namespace DatahubTest
         public EmailNotificationService EmailNotificationService { get; private set; }
         
         private ITestOutputHelper _output = null;
-        private Mock<IStringLocalizer<SharedResources>> _localizerMock;
+        private Mock<IStringLocalizer> _localizerMock;
         private IConfigurationRoot _config;
 
         public IDictionary<string, object> EmailNotificationParameters { get; private set; }
@@ -37,7 +37,7 @@ namespace DatahubTest
             EmailConfig = new EmailConfiguration();
             _config.Bind(EmailNotificationService.EMAIL_CONFIGURATION_ROOT_KEY, EmailConfig);
 
-            _localizerMock = new Mock<IStringLocalizer<SharedResources>>();
+            _localizerMock = new Mock<IStringLocalizer>();
 
 
             var testProject = new DatahubProjectInfo() { ProjectNameEn = "PIP", ProjectNameFr = "PIP (FR)" };
