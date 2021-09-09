@@ -263,8 +263,12 @@
             IsDataApprover = false
         };
 
+        var user = await UserInformationService.GetUserAsync();
+
         projectContext.Project_Users.Add(request);
         await projectContext.SaveChangesAsync();
+        var serviceName = r.Project.ProjectName;
+        await EmailService.SendServiceAccessGrantedNotification(serviceName, r.Project.ProjectInfo, user.Mail, user.DisplayName);
 
         await RefreshData();
     }

@@ -57,7 +57,7 @@
         _currentUserId = await UserInformationService.GetUserIdString();
         Context = DbFactory.CreateDbContext();
         
-        _projects = Context.Project_Users.Include(u => u.Project).Where(u => u.User_ID == _currentUserId).Select(u => u.Project).ToList();
+        _projects = Context.Project_Users.Include(u => u.Project).Where(u => u.User_ID == _currentUserId).Select(u => u.Project).Distinct().ToList();
 
         await FillAccessorFunctions();
         

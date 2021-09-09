@@ -58,7 +58,7 @@
         Context = DbFactory.CreateDbContext();
         _reports = Context.Project_Users.Include(u => u.Project)
             .ThenInclude(p => p.PBI_Reports).ThenInclude(p => p.Project)
-            .Where(u => u.User_ID == currentUserId).SelectMany(u => u.Project.PBI_Reports).ToList();
+            .Where(u => u.User_ID == currentUserId).SelectMany(u => u.Project.PBI_Reports).Distinct().ToList();
 
         accessorFunctions = new List<Func<Project_PBI_Report, string>>() {
             (report => { return report?.Id.ToString(); }),
