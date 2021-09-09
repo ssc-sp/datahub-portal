@@ -305,7 +305,7 @@ namespace NRCan.Datahub.Portal
                 options.UseBaseName = false;
                 options.IsAbsolutePath = true;
                 options.LocalizationMode = Askmethat.Aspnet.JsonLocalizer.JsonOptions.LocalizationMode.I18n;
-                options.MissingTranslationLogBehavior = MissingTranslationLogBehavior.Ignore;
+                options.MissingTranslationLogBehavior = MissingTranslationLogBehavior.LogConsoleError;
                 options.FileEncoding = Encoding.GetEncoding("UTF-8");
                 options.SupportedCultureInfos = supportedCultureInfos;
             });

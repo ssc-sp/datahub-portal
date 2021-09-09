@@ -1,7 +1,7 @@
 ﻿@namespace NRCan.Datahub.Portal.Components
 
 <AeFlex class="welcome-banner" style=@($"background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, black 100%), url('{GetBackground()}') no-repeat center center fixed;background-size: cover;")>
-  <AeTypography Variant="h2" class="greeting">Good @GetGreeting()</AeTypography>
+  <AeTypography Variant="h2" class="greeting">@GetGreeting()</AeTypography>
 </AeFlex>
 
 
@@ -11,12 +11,12 @@
       var hour = DateTime.Now.Hour;
 
       if(hour < 12){
-        return "Morning";
+        return @Localizer["Good Morning"];
       }
       else if(hour < 16){
-        return "Afternoon";
+        return @Localizer["Good Afternoon"];
       }
-      return "Evening";
+      return @Localizer["Good Evening"];
     }
 
     private string GetBackground()
