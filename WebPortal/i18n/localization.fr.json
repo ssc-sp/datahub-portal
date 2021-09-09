@@ -981,7 +981,8 @@
   "Sharing requests awaiting approval:": "Demandes de partage en attente d'approbation :",
   "Data Project": "Projet de données",
   "Azure Databricks": "Azure Databricks",
-  "Power BI Workspace": "Power BI Workspace",
+  "Databricks Workspace": "Espace de travail Databricks",
+  "Power BI Workspace": "Espace de travail Power BI",
   "Form Builder": "Créateur de formulaires",
   "Design custom data entry forms": "Concevoir des formulaires de saisie de données personnalisés",
   "Storage Explorer": "Explorateur de données",
@@ -990,5 +991,7 @@
   "Data Pipeline Status": "Statut du pipeline de données",
   "Suggest French Translation": "Suggérer une traduction en Français",
   "Data Entry": "Entrée de données",
-  "Start the Data Entry application enabled for this project": "Démarrer l’application de saisie de données activée pour ce projet"
+  "Start the Data Entry application enabled for this project": "Démarrer l’application de saisie de données activée pour ce projet",
+  "Access Denied": "Accès Refusé",
+  "You currently do not have access to this project": "Vous n’avez actuellement pas accès à ce projet"
 }
