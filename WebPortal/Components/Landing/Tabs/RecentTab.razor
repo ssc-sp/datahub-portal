@@ -1,26 +1,41 @@
 ﻿@inject IUserInformationService UserInformationService
 @inject UserLocationManagerService UserLocationManagerService 
 @inject IDbContextFactory<DatahubProjectDBContext> DbFactoryProject
+@inject IStringLocalizer<RecentTab> Localizer
 
-<AeFlex class="recent-card-container">
-    @if (recentLinks != null)
-    {
-        foreach (var item in recentLinks)
+@if ((recentLinks?.Count ?? 0) > 0)
+{
+    <AeFlex class="recent-card-container">
+        @if (recentLinks != null)
         {
-            <AeFlex class="@($"recent-card {GetIcon(item.link).Color}")">
-                <i class="@GetIcon(item.link)" />
-                <AeFlex class="text">
-                    <AeTypography class="title">@(item.project?.ProjectName ?? "-")</AeTypography>
-                    <AeTypography class="subtitle">@GetDescription(item.link, item.project)</AeTypography>
+            foreach (var item in recentLinks)
+            {
+                <AeFlex class="@($"recent-card {GetIcon(item.link).Color}")">
+                    <i class="@GetIcon(item.link).Name" />
+                    <AeFlex class="text">
+                        <DatahubLink UserRecentLink="@(item.link)"><AeTypography class="title">@GetLinkDescription(item.link,item.project)</AeTypography></DatahubLink>
+                        <AeTypography class="subtitle">@GetDescription(item.link, item.project)</AeTypography>
+                    </AeFlex>
                 </AeFlex>
-            </AeFlex>
+            }
         }
-    }
-</AeFlex>
+    </AeFlex>
+}
 
 
 @code {
     private List<(UserRecentLink link,Datahub_Project? project)> recentLinks;
+
+    public string GetLinkDescription(UserRecentLink link, Datahub_Project project)
+    {
+        switch (link.LinkType)
+        {
+            case DatahubLinkType.DataProject:
+                return project?.ProjectName ?? "-";
+            default:
+                return string.IsNullOrWhiteSpace(link.Name)?"PowerBI":link.Name;
+        }
+    }
 
     [Parameter]
     public List<UserRecentLink> RecentLinks { get; set; }
@@ -28,7 +43,7 @@
     protected override void OnInitialized()
     {
         using var ctx = DbFactoryProject.CreateDbContext();
-        recentLinks = RecentLinks.Select(l => (l, GetProject(ctx, l))).ToList();
+        recentLinks = RecentLinks.Select(l => (l, project:GetProject(ctx,l))).ToList();        
     }
 
     private Datahub_Project? GetProject(DatahubProjectDBContext ctx, UserRecentLink link)
@@ -62,23 +77,23 @@
 
     private string GetDescription(UserRecentLink link, Datahub_Project project)
     {
-        var projectName = project?.ProjectName ?? "-";
+        var projectName = project?.ProjectName ?? Localizer["Home"];
         switch (link.LinkType)
         {
             case DatahubLinkType.PowerBI:
-                return $"{projectName} >> PowerBI";
+                return $"{projectName} >> {Localizer["PowerBI"]}";
             case DatahubLinkType.Databricks:
-                return $"{projectName} >> Databricks";
+                return $"{projectName} >> {Localizer["Databricks"]}";
             case DatahubLinkType.WebForm:
-                return $"{projectName} >> Data Entry";
+                return $"{projectName} >> {Localizer["Data Entry"]}";
             case DatahubLinkType.DataProject:
-                return $"{projectName} >> Home";
+                return $"{projectName} >> {Localizer["Home"]}";
             case DatahubLinkType.Storage:
-                return $"{projectName} >> Storage";
+                return $"{projectName} >> {Localizer["Storage"]}";
             case DatahubLinkType.FormBuilder:
-                return $"{project.ProjectName} >> Form Builder";
+                return $"{projectName} >> {Localizer["Form Builder"]}";
             case DatahubLinkType.DataSharingDashboard:
-                return $"{project.ProjectName} >> Data Sharing Dashboard";
+                return $"{projectName} >> Data Sharing Dashboard";
         }
         return "N/A";
     }

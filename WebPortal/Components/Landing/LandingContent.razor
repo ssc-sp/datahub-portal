@@ -28,7 +28,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var currentUser = await UserInformationService.GetCurrentUserAsync();
+        var currentUser = await UserInformationService.GetUserAsync();
         links = (await UserLocationManagerService.ReadRecentNavigations(currentUser.Id))?.UserRecentActions?.ToList()?? new ();
         links = links.GroupBy(l => (l.LinkType, l.DataProject))
                     .Select(e => e.OrderByDescending(k => k.accessedTime)
@@ -44,7 +44,7 @@
             //("Shared with Me", @<AeTypography>Shared with Me frag</AeTypography>),
             ("My Projects", @<NRCan.Datahub.Portal.Components.Landing.Tabs.ProjectsTab />),
             ("My Databricks Workbooks", @<NRCan.Datahub.Portal.Components.Landing.Tabs.DatabricksTab />),
-            ("My PowerBI Reports", @<NRCan.Datahub.Portal.Components.Landing.Tabs.DatabricksTab /> ),
+            ("My PowerBI Reports", @<NRCan.Datahub.Portal.Components.Landing.Tabs.PowerBITab /> ),
         
         };
         if (links?.Count > 0)

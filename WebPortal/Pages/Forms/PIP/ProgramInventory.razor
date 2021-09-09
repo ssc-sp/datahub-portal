@@ -79,7 +79,7 @@
     private PIPDBContext Context;
     private List<string> headers = new List<string>
     {
-	    "Title","Lead Sector", "Report"
+	    "Title","Lead Sector"
     };
 
     private int _lastClicked = 0;
@@ -123,7 +123,7 @@
 {
         new Func<PIP_Tombstone, string>(p => { return p.Program_Title; }),
         new Func<PIP_Tombstone, string>(p => { return p.Lead_Sector; }),
-        null,
+        //null,
     };
 
     private List<Func<PIP_Tombstone, RenderFragment>> GetRenderers()
@@ -145,7 +145,6 @@
             new Func< PIP_Tombstone, RenderFragment>(pt => { return pt.PowerBiUrl; }),    
         };
     }
-
 
     private void SetFormEdit(PIP_Tombstone project)
     {
@@ -171,7 +170,7 @@
             _tombstone = _projects.Where(p => p.Tombstone_ID == Convert.ToInt32(tombstone)).FirstOrDefault();
             
         }
-        CurrentUser = await UserInformationService.GetCurrentUserAsync();
+        CurrentUser = await UserInformationService.GetUserAsync();
     }
 
 
