@@ -1,0 +1,94 @@
+﻿@inject NavigationManager NavManager
+@inject IPublicDataFileService PublicFileService
+@inject IMSGraphService GraphService
+@inject NotifierService NotifierService
+
+
+<AeFlex Vertical style="padding-left: 1rem; padding-right: 1rem;">
+
+    <AeTypography Variant="h4">@Localizer["Public URL Sharing Request"]</AeTypography>
+
+    <div>@Localizer["Filename"]: @SharedFile.Filename_TXT</div>
+    <div>@Localizer["Requesting user"]: @GetUserDisplayName(SharedFile.RequestingUser_ID)</div>
+    <div>@Localizer["Submission date"]: @SharedFile.SubmittedDate_DT?.ToShortDateString()</div>
+
+    <AeButton OnClickEvent=@DownloadFile>@Localizer["Download File"]</AeButton>
+
+    <AeTypography Variant="p">@Localizer["You may approve or deny this file sharing request, and optionally specify a publication date after which the file will be publicly accessible."]</AeTypography>
+
+    <EditForm Model=@dateHolder>
+        <label for="publicationDateInput">@Localizer["Publication Date"]:</label>
+        @if (!approved)
+        {
+            @* TODO: limit dates *@
+            <InputDate id="publicationDateInput" @bind-Value=@dateHolder.Date />
+        }
+        else
+        {
+            <div>@dateHolder.Date?.ToShortDateString()</div>
+        }
+    </EditForm>
+
+    <div>
+        <AeButton OnClickEvent=@ApproveRequest Disabled=@ButtonsDisabled >@Localizer["Approve"]</AeButton>
+        <AeButton OnClickEvent=@DenyRequest Disabled=@ButtonsDisabled >@Localizer["Deny"]</AeButton>
+        @if (processing)
+        {
+            <Spinner Small=@true />
+        }
+    </div>
+
+
+
+</AeFlex>
+
+@code {
+
+    [Parameter]
+    public SharedDataFile SharedFile { get; set; }
+
+    public class DateHolder
+    {
+        public DateTime? Date { get; set; }
+    }
+
+    private DateHolder dateHolder = new();
+
+    private bool processing = false;
+    private bool approved = false;
+    private bool ButtonsDisabled => processing || approved;
+
+
+    private string GetUserDisplayName(string userid) => GraphService.GetUserName(userid);
+
+    private async Task DownloadFile()
+    {
+        var uri = await PublicFileService.DoDownloadFile(SharedFile);
+        NavManager.NavigateTo(uri.ToString());
+    }
+
+    private async Task DenyRequest()
+    {
+        processing = true;
+        await PublicFileService.DenyPublicUrlShare(SharedFile.File_ID);
+        @* await Task.Delay(1500); *@
+        await NotifierService.Update(DataSharingDashboard.NOTIFICATION_UPDATE_KEY, true);
+        processing = false;
+        //NavManager.NavigateTo(DataSharingDashboardUrl);
+    }
+
+    private async Task ApproveRequest()
+    {
+        processing = true;
+        await PublicFileService.ApprovePublicUrlShare(SharedFile.File_ID, dateHolder.Date);
+        @* await Task.Delay(1500); *@
+        approved = true;
+        //await ReloadPublicDataSharingRequest();
+        await NotifierService.Update(DataSharingDashboard.NOTIFICATION_UPDATE_KEY, true);
+        processing = false;
+    }
+
+
+    
+
+}
