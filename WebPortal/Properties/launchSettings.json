@@ -15,6 +15,13 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
+    "IIS Express (Sqlite)": {
+      "commandName": "IISExpress",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Sqlite"
+      }
+    },
     "Console Portal (Development)": {
       "commandName": "Project",
       "launchBrowser": true,

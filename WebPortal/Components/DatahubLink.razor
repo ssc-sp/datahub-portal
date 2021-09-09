@@ -28,54 +28,71 @@
 
     [Parameter]
     public string DataProject { get; set; }
+
+    [Parameter]
+    public string Name { get; set; }
+
+    [Parameter]
+    public UserRecentLink? UserRecentLink { get; set; }
+
     //            <NavLink href="@("/project/" + p.Project_Acronym_CD)"> <AeTypography></AeTypography></NavLink>
 
     private string url;
 
     private async Task Navigate()
     {
-        var link = new UserRecentLink();
-        if (LinkType == DatahubLinkType.Undefined)
+        UserRecentLink link;
+        if (UserRecentLink != null)
         {
-            if (PowerBIURL != null)
-                LinkType = DatahubLinkType.PowerBI;
-            else if (DatabricksURL != null)
-                LinkType = DatahubLinkType.Databricks;
-            else if (WebFormsURL != null)
-                LinkType = DatahubLinkType.WebForm;
-            else if (DataProject != null)
-                LinkType = DatahubLinkType.DataProject;
+            LinkType = UserRecentLink.LinkType;
+            link = UserRecentLink;
+            await UserLocationManagerService.RegisterNavigation(link);
         }
-        link.LinkType = LinkType;
-        link.PowerBIURL = PowerBIURL;
-        link.Variant = Variant;
-        link.DatabricksURL = DatabricksURL;
-        link.WebFormsURL = WebFormsURL;
-        link.DataProject = DataProject;
-
-        await UserLocationManagerService.RegisterNavigation(link);
+        else
+        {
+            link = new UserRecentLink();
+            if (LinkType == DatahubLinkType.Undefined)
+            {
+                if (PowerBIURL != null)
+                    LinkType = DatahubLinkType.PowerBI;
+                else if (DatabricksURL != null)
+                    LinkType = DatahubLinkType.Databricks;
+                else if (WebFormsURL != null)
+                    LinkType = DatahubLinkType.WebForm;
+                else if (DataProject != null)
+                    LinkType = DatahubLinkType.DataProject;
+            }
+            link.LinkType = LinkType;
+            link.PowerBIURL = PowerBIURL;
+            link.Variant = Variant;
+            link.DatabricksURL = DatabricksURL;
+            link.WebFormsURL = WebFormsURL;
+            link.DataProject = DataProject;
+            link.Name = Name;
+            await UserLocationManagerService.RegisterNavigation(link);
+        }
         switch (LinkType)
         {
             case DatahubLinkType.PowerBI:
-                NavigationManager.NavigateTo(PowerBIURL);
+                NavigationManager.NavigateTo(link.PowerBIURL);
                 break;
             case DatahubLinkType.DataProject:
-                NavigationManager.NavigateTo($"/project/{DataProject}");
+                NavigationManager.NavigateTo($"/project/{link.DataProject}");
                 break;
             case DatahubLinkType.Databricks:
-                NavigationManager.NavigateTo(DatabricksURL);
+                NavigationManager.NavigateTo(link.DatabricksURL);
                 break;
             case DatahubLinkType.WebForm:
-                NavigationManager.NavigateTo(WebFormsURL);
+                NavigationManager.NavigateTo(link.WebFormsURL);
                 break;
             case DatahubLinkType.FormBuilder:
-                NavigationManager.NavigateTo($"/project/{DataProject}/forms");
+                NavigationManager.NavigateTo($"/project/{link.DataProject}/forms");
                 break;
             case DatahubLinkType.Storage:
-                NavigationManager.NavigateTo($"/project/{DataProject}/filelist");
+                NavigationManager.NavigateTo($"/project/{link.DataProject}/filelist");
                 break;
             case DatahubLinkType.DataSharingDashboard:
-                NavigationManager.NavigateTo($"/project/{DataProject}/datasharing");
+                NavigationManager.NavigateTo($"/project/{link.DataProject}/datasharing");
                 break;
         }
     }
