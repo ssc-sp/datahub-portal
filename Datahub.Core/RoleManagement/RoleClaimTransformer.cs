@@ -40,6 +40,7 @@ namespace NRCan.Datahub.Shared.RoleManagement
             {
                 ((ClaimsIdentity)principal.Identity).AddClaim(new Claim(ClaimTypes.Role, project.Project_Acronym_CD));
             }
+
             return principal;
         }
 
