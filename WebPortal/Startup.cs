@@ -383,6 +383,7 @@ namespace NRCan.Datahub.Portal
 
             services.AddScoped<DataImportingService>();
             services.AddSingleton<DatahubTools>();
+            services.AddSingleton<TranslationService>();
 
             services.AddScoped<NotificationsService>();
             services.AddScoped<UIControlsService>();
