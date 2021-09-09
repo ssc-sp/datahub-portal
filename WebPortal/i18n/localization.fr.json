@@ -128,9 +128,10 @@
     "MyData": "Mes données",
     "MyProjects": "Mes projets",
     "SharedWithYou": "Partagées avec vous",
-    "Storage": "Mémoire",
+    "Storage": "Stockage",
     "Resources": "Resources",
     "Datasets": "Données",
+    "DataProjects": "Projects de Données",
     "PowerBI": "PowerBI",
     "Admin": "Admin"
   },
@@ -948,8 +949,16 @@
   "External Provider": "Fournisseur externe",
   "Group Training - Full-Time Training": "Formation en groupe – Formation à temps plein",
   "Group Training - Part-Time Training": "Formation en groupe – Formation à temps partiel",
-  "Individual - Coaching": "Encadrement individuel"
-
-
-
+  "Individual - Coaching": "Encadrement individuel",
+  "NRCAN DataHub": "DataHub RNCAN",
+  "Something went wrong. Please try again later.": "Quelque chose a mal tourné. Veuillez réessayer plus tard.",
+  "TECHNICAL DETAILS": "DÉTAILS TECHNIQUES",
+  "An error has happened on the DataHub server. The team has been notified and the error has been recorded. The correlation ID for this error is <>. To avoid network issues, if you are currently on the VPN, please try to disconnect the VPN and retry your actions.": "Une erreur s’est produite sur le serveur DataHub. L’équipe a été avertie et l’erreur a été enregistrée. L’identificateur de corrélation de cette erreur est <>. Pour éviter les problèmes de réseau, si vous êtes actuellement sur le VPN, essayez de déconnecter le VPN et réessayez vos actions.",
+  "Home": "Acceuil",
+  "Power BI": "Power BI",
+  "My Databricks Workbooks": "Mes Classeurs Databricks",
+  "My Power BI Reports": "Mes Rapports Power BI",
+  "Good Morning": "Bonjour",
+  "Good Afternoon": "Bon après-midi",
+  "Good Evening": "Bonne soirée"
 }
