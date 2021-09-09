@@ -129,10 +129,10 @@
     "MyProjects": "Mes projets",
     "SharedWithYou": "Partagées avec vous",
     "Storage": "Stockage",
-    "Resources": "Resources",
+    "Resources": "Ressources",
     "Datasets": "Données",
     "DataProjects": "Projects de Données",
-    "PowerBI": "PowerBI",
+    "PowerBI": "Power BI",
     "Admin": "Admin"
   },
   "TAC-PAGE": {
@@ -960,5 +960,34 @@
   "My Power BI Reports": "Mes Rapports Power BI",
   "Good Morning": "Bonjour",
   "Good Afternoon": "Bon après-midi",
-  "Good Evening": "Bonne soirée"
+  "Good Evening": "Bonne soirée",
+  "Featured Projects": "Projets à l'affiche",
+  "All Projects": "Tous les projets",
+  "DataHub Administration": "Administration DataHub",
+  "Project User Requests": "Demandes d'utilisateurs du projet",
+  "Authorize Users": "Authoriser les utilisateurs",
+  "Service Requests": "Demandes de services",
+  "This page is limited for DataHub administrators": "Cette page est limitée aux administrateurs DataHub",
+  "Open Power BI Admin Page": "Ouvrir la page d'administration Power BI",
+  "Data Sensitivity:": "Sensibilité des données :",
+  "Share": "Partager",
+  "Data Project Tools": "Outils pour les projets de données",
+  "Edit Project": "Éditer le Projet",
+  "Azure Databricks Workspace": "Classeur Azure Databricks",
+  "Access not authorized": "Accès non autorisé",
+  "Request Access": "Demander l'accès",
+  "Service Request is being reviewed": "La demande de service est en cours d'examen",
+  "Request Service Creation": "Demande de création de service",
+  "Sharing requests awaiting approval:": "Demandes de partage en attente d'approbation :",
+  "Data Project": "Projet de données",
+  "Azure Databricks": "Azure Databricks",
+  "Power BI Workspace": "Power BI Workspace",
+  "Form Builder": "Créateur de formulaires",
+  "Design custom data entry forms": "Concevoir des formulaires de saisie de données personnalisés",
+  "Storage Explorer": "Explorateur de données",
+  "Upload and download files from Azure storage": "Chargement et téléchargement de fichiers à partir du stockage Azure",
+  "Public Data Sharing": "Partage public de données",
+  "Data Pipeline Status": "Statut du pipeline de données"
+
+
 }
