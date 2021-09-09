@@ -535,7 +535,7 @@
     "EnterGcDocsUrl": "Enter GCDocs URL",
     "Approval_filled_out": "Approval form has been filled out."
   },
-  
+
   "PUBLIC-URL-WIZARD": {
     "Page_Title": "Share Public URL",
     "Metadata": "Metadata",
@@ -546,11 +546,55 @@
     "Save_button": "Save",
     "Continue_button": "Continue"
   },
-  
-  
+
+
   "Project_Cost": "Cost",
   "Project_Cost_NotFound": "No cost data found.",
   "Project_Cost_Template": "As of {0}, total resource cost is {1} for the period from {2} to {3}.",
-  "Project_Cost_Button": "More details"
+  "Project_Cost_Button": "More details",
+  "NRCan_Username": "NRCan Username",
+  "First_Name": "First Name",
+  "Last_Name": "Last Name",
+  "Email_Address_EMAIL": "Email Address",
+  "Sector_Branch": "Sector/Branch",
+  "City": "City",
+  "Province_Territory": "Province/Territory",
+  "Employment_Status": "Employment Status",
+  "I_am_seeking": "I am seeking",
+  "Completed_LETP_Assessment": "Have your completed a LETP assessment with the NRCan Language School in the last two (2) year",
+  "Language_Training_Since_LETP_Assessment": "Have you taken language training since your LETP assessment",
+  "Language_Training_Provided_By": "The language training was provided by",
+  "Last_Course_Successfully_Completed": "What was the last course you successfully completed",
+  "Completed_Training_Year": "Year",
+  "Completed_Training_Session": "Session",
+  "Report_Sent_To_NRCan_Language_School": "Was your progress report from the external provider sent to the NRCan Language School",
+  "Second_Language_Evaluation_Results": "Do you have valid Second Language Evaluation (SLE) results with the Public Service Commission",
+  "SLE_Results_Reading": "SLE Results Reading",
+  "SLE_Results_Writing": "SLE Results Writing",
+  "SLE_Results_Oral": "SLE Results Oral",
+  "Training_Type": "I am applying for (select one)",
+  "SLE_Test_Date": "Please confirm your date of assessment",
+  "Session_For_Language_Training": "Session For Language Training",
+  "Class_For_Language_Training": "Class For Language Training",
+  "Delegate_Manager_First_Name": "Delegated Manager First Name",
+  "Delegated_Manager_Last_Name": "Delegated Manager Last Name",
+  "Delegated_Manager_Email": "Delegated Manager Email",
+  "Employee_Appointed_NonImperative_Basis": "Employee appointed on a non-imperative basis",
+  "Employee_language_profile_raised": "Employee occupying a position where the language profile was raised",
+  "Employee_professional_dev_program": "Employee in a professional development program",
+  "Employee_talent_management_exercise": "Employee identified through a talent management exercise",
+  "Employee_equity_group": "Employee who has self-identified as a member of an employment equity group",
+  "Manager_First_Name": "Finance Officer First Name",
+  "Manager_Last_Name": "Finance Officer Last Name",
+  "Manager_Email_Address": "Finance Officer Email Address",
+  "Decision": "Decision",
+  "PROJECT-PAGE": {
+    "Project_Cost": "Cost",
+    "Project_Cost_NotFound": "No cost data found.",
+    "Project_Cost_Template": "As of {0}, total resource cost is {1} for the period from {2} to {3}.",
+    "Project_Cost_Button": "More details",
+    "No_Access_Message": "You currently do not have access to this project.",
+    "Request_Access_Reviewed":"Access Request is being reviewed"
+  }
 }
 

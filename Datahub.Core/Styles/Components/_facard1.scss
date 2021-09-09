@@ -1,0 +1,78 @@
+﻿@use '../Common' as c;
+
+.ae.flex {
+
+    &.wrap {
+        flex-wrap: wrap
+    }
+}
+
+.facard1 {
+    width: 400px;
+    background-color: c.$gray-200;
+    margin: .25rem;
+
+    &:hover {
+        background-color: c.$gray-400;
+        @include c.BoxShadow(3);
+    }
+
+    h3 {
+        margin-top: 0;
+        color: c.$black;
+    }
+
+    .ae.icon {
+        color: c.$gray-500;
+    }
+
+    .ae.typography {
+        color: c.$gray-800;
+    }
+
+    .big-icon {
+        font-size: 2.5rem;
+        align-self: center;
+        margin: 0 1.5rem 0 .25rem;
+    }
+
+    .top-right {
+        font-size: 1.5rem;
+        position: absolute;
+        top: .5rem;
+        right: 1rem;
+    }
+}
+
+.facardForms {
+    width: 98%;
+    background-color: c.$gray-200;
+    margin: .25rem;    
+
+    h3 {
+        margin-top: 0;
+        color: c.$black;
+    }
+
+    .ae.icon {
+        color: c.$gray-500;
+    }
+
+    .ae.typography {
+        color: c.$gray-800;
+    }
+
+    .big-icon {
+        font-size: 2.5rem;
+        align-self: center;
+        margin: 0 1.5rem 0 .25rem;
+    }
+
+    .top-right {
+        font-size: 1.5rem;
+        position: absolute;
+        top: .5rem;
+        right: 1rem;
+    }
+}
+
