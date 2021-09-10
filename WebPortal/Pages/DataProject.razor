@@ -15,6 +15,12 @@
 @page "/project/{projectAcronym}"
 
 <div style="padding-left: 2rem;padding-right: 2rem">
+    @if (_project is null)
+    {
+        <Spinner Small=@true />
+    }
+    else
+    {
     <AeFlex Vertical>
         <h2>@DataLocalizer["Data Project"]</h2>
     </AeFlex>
@@ -293,7 +299,7 @@
             </div>
         
     </AuthorizeView>
-
+    }
 
 </div>
 
