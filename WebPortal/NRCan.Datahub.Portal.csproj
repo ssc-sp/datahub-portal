@@ -72,6 +72,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Datahub.Metadata\Datahub.Metadata.csproj" />
     <ProjectReference Include="..\Datahub.Core\Datahub.Core.csproj" />
+    <ProjectReference Include="..\LanguageTraining\Datahub.LanguageTraining.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Content Update="i18n\localization.fr.json">
