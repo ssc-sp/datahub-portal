@@ -277,7 +277,7 @@
                         <ChildContent>
                             <AeFlex Vertical>
                                 <AeTypography Variant="h3">
-                                    @DataLocalizer["Project_Cost"]
+                                    @DataLocalizer["Cost"]
                                 </AeTypography>
                                 <AeTypography>
                                     @_projectCostFormatted
@@ -435,13 +435,13 @@
             .FirstOrDefaultAsync();
 
         if (prjCost == null)
-            return DataLocalizer["Project_Cost_NotFound"];
+            return DataLocalizer["No cost data found."];
 
         var cost = Convert.ToDecimal(prjCost.Cost_AMT).ToString("C2");
         var fromDate = prjCost.Usage_DT.AddMonths(-1).ToShortDateString();
         var toDate = prjCost.Usage_DT.ToShortDateString();
         var asofDate = prjCost.Updated_DT.ToShortDateString();
-        var template = DataLocalizer["Project_Cost_Template"];
+        var template = DataLocalizer["As of {0}, total resource cost is {1} for the period from {2} to {3}."];
 
         return string.Format(template, asofDate, cost, toDate, asofDate);
     }
