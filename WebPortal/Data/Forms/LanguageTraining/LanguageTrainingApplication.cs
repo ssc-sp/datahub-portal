@@ -28,22 +28,22 @@ namespace NRCan.Datahub.Portal.Data.LanguageTraining
         [Required]
         public string Email_Address_EMAIL { get; set; }
         [AeFormCategory("Employee Information", 10)]
-        [AeLabel(isDropDown: true, placeholder: "Please Select")]
+        [AeLabel(isDropDown: true)]
         [Required]
         public string Sector_Branch { get; set; }
         [AeFormCategory("Employee Information", 10)]
         [Required]
         public string City { get; set; }
         [AeFormCategory("Employee Information", 10)]
-        [AeLabel(isDropDown: true, placeholder: "Please Select")]
+        [AeLabel(isDropDown: true)]
         [Required]
         public string Province_Territory { get; set; }
         [AeFormCategory("Employee Information", 10)]
-        [AeLabel(isDropDown: true, placeholder: "Please Select")]
+        [AeLabel(isDropDown: true)]
         [Required]
         public string Employment_Status { get; set; }
         [AeFormCategory("Employee Information", 10)]
-        [AeLabel(isDropDown: true, placeholder: "Please Select")]
+        [AeLabel(isDropDown: true)]
         [Required]
         public string I_am_seeking { get; set; }
         [AeFormCategory("Language Assessment", 20)]                
@@ -51,18 +51,18 @@ namespace NRCan.Datahub.Portal.Data.LanguageTraining
         [AeFormCategory("Language Assessment", 20)]        
         public bool Language_Training_Since_LETP_Assessment { get; set; }
         [AeFormCategory("Language Assessment", 20)]
-        [AeLabel(isDropDown: true, placeholder: "Please Select")]        
+        [AeLabel(isDropDown: true)]        
         public string Language_Training_Provided_By { get; set; }
 
         [AeFormCategory("Language Assessment", 20)]
-        [AeLabel(isDropDown: true, placeholder: "Please Select")]        
+        [AeLabel(isDropDown: true)]        
         public string Last_Course_Successfully_Completed { get; set; }
         
         [AeFormCategory("Language Assessment", 20)]        
         public int Completed_Training_Year { get; set; }
         
         [AeFormCategory("Language Assessment", 20)]
-        [AeLabel(isDropDown: true, placeholder: "Please Select")]
+        [AeLabel(isDropDown: true)]
         public string Completed_Training_Session { get; set; }
         
         [AeFormCategory("Language Assessment", 20)]        
@@ -85,29 +85,29 @@ namespace NRCan.Datahub.Portal.Data.LanguageTraining
         
         public bool Second_Language_Evaluation_Results { get; set; }
         [AeFormCategory("Language Assessment", 20)]
-        [AeLabel(isDropDown: true, placeholder: "Please Select")]
+        [AeLabel(isDropDown: true)]
         
         public string SLE_Results_Reading { get; set; }
         [AeFormCategory("Language Assessment", 20)]
-        [AeLabel(isDropDown: true, placeholder: "Please Select")]
+        [AeLabel(isDropDown: true)]
         
         public string SLE_Results_Writing { get; set; }
         [AeFormCategory("Language Assessment", 20)]
-        [AeLabel(isDropDown: true, placeholder: "Please Select")]
+        [AeLabel(isDropDown: true)]
         
         public string SLE_Results_Oral { get; set; }
         
         [AeFormCategory("Language Training Application", 30)]
-        [AeLabel(isDropDown: true, placeholder: "Please Select")]
+        [AeLabel(isDropDown: true)]
         [Required]
         public string Training_Type { get; set; }
         [AeFormCategory("Language Training Application", 30)]
         public DateTime SLE_Test_Date { get; set; }
         [AeFormCategory("Language Training Application", 30)]
-        [AeLabel(isDropDown: true, placeholder: "Please Select")]
+        [AeLabel(isDropDown: true)]
         public string Session_For_Language_Training { get; set; }
         [AeFormCategory("Language Training Application", 30)]
-        [AeLabel(isDropDown: true, placeholder: "Please Select")]
+        [AeLabel(isDropDown: true)]
         public string Class_For_Language_Training { get; set; }
 
         [AeFormCategory("Commitment and Approval", 40)]
@@ -133,12 +133,12 @@ namespace NRCan.Datahub.Portal.Data.LanguageTraining
         public string Manager_Email_Address { get; set; }
 
         [AeFormCategory("Manager Section", 50)]
-        [AeLabel(isDropDown: true, placeholder: "Please Select")]
+        [AeLabel(isDropDown: true)]
         public string Manager_Decision { get; set; }
 
 
         [AeFormCategory("Language School Section", 60)]
-        [AeLabel(isDropDown: true, placeholder: "Please Select")]
+        [AeLabel(isDropDown: true)]
         public string Decision { get; set; }
 
 
