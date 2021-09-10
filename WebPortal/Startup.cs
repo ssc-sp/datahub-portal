@@ -40,7 +40,6 @@ using NRCan.Datahub.Shared.EFCore;
 using NRCan.Datahub.Portal.Data;
 using NRCan.Datahub.Portal.Data.Finance;
 using NRCan.Datahub.Portal.Data.WebAnalytics;
-using BlazorApplicationInsights;
 using NRCan.Datahub.Metadata;
 using Microsoft.Graph;
 using Polly;
@@ -76,7 +75,6 @@ namespace NRCan.Datahub.Portal
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddApplicationInsightsTelemetry();
-            services.AddBlazorApplicationInsights();
 
             services.AddDistributedMemoryCache();
 
