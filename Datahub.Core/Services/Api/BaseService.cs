@@ -17,7 +17,9 @@ public class BaseService
 
     public void DisplayErrorUI(Exception ex)
     {
-        this._apiService.LastException = ex;
-        this._uiService.ShowErrorModal();
+        var correlationId = Guid.NewGuid().ToString();
+        ex.Data["CorrelationID"] = correlationId;
+        _apiService.LastException = ex;
+        _uiService.ShowErrorModal();
     }
 }
