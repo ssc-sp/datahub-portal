@@ -230,7 +230,12 @@ if (_project.Project_ID > 0)
     {
         // load projects        
         Context = DbFactory.CreateDbContext();
-        _projects = Context.Projects.Include(r => r.Comments).Where(p => p.Deleted_DT == null).ToList();
+        await LoadProjects(); 
+    }
+
+    private async Task LoadProjects()
+    {
+        _projects = Context.Projects.Include(r => r.Comments).Where(p => p.Deleted_DT == null).ToList();        
     }
 
     private async Task CreateNewProject()
@@ -283,7 +288,7 @@ if (_project.Project_ID > 0)
     {
         project.Deleted_DT = DateTime.Now;
         await Context.SaveChangesAsync();
-        await OnInitializedAsync();
+        await LoadProjects(); 
     }
 
     private async Task HandleValidSubmit()
@@ -301,7 +306,7 @@ if (_project.Project_ID > 0)
             await UpdateAdmins();
 
             await Context.SaveChangesAsync();
-            await OnInitializedAsync();
+            await LoadProjects(); 
             _project = null;
         }
     }
