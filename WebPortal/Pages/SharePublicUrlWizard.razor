@@ -1,14 +1,26 @@
 ﻿@page "/share/public/{FileId}"
 @inject NavigationManager NavManager
 @inject IPublicDataFileService PublicFileService
+@inject UIControlsService UI
+@inject IMSGraphService GraphService
+@inject IUserInformationService UserInformationService
+
 
 <h1>@Localizer["PUBLIC-URL-WIZARD.Page_Title"]</h1>
 
 <AeFlex>
-    <ChildContent>
-        <AeCard style="margin-left: 2rem; width: 48%">
-            <ChildContent>
-                <AeTypography Variant="h2">@Localizer["PUBLIC-URL-WIZARD.Metadata"]</AeTypography>
+    <AeFlex Vertical style="margin-left: 2rem; width: 48%">
+
+        <AeCard>
+            <AeTypography Variant="h2">@Localizer["PUBLIC-URL-WIZARD.Metadata"]</AeTypography>
+
+            @if (!string.IsNullOrEmpty(requestFilename))
+            {
+                <div>@Localizer["Filename"]: @requestFilename</div>
+            }
+
+            @if (ShowMetadataEditor && IsOwnRequest)
+            {
                 <ObjectMetadataEditor ObjectId=@FileId @ref=@_metadataEditor ></ObjectMetadataEditor>
                 <AeFlex>
                     <AeButton OnClickEvent=@SaveMetadata Disabled=@savingData >@Localizer["PUBLIC-URL-WIZARD.Save_button"]</AeButton>
@@ -19,59 +31,78 @@
                         }
                     </div>
                 </AeFlex>
-                <div>&nbsp;</div>
-            </ChildContent>
+            }
+            else if (IsOwnRequest)
+            {
+                <AeButton OnClickEvent=@ManuallyShowMetadataEditor >@Localizer["PUBLIC-URL-WIZARD.Edit_button"]</AeButton>
+            }
+            else
+            {
+                @if (RequestingUser != null) {
+                    <div>@Localizer["Requesting User"]: @RequestingUser.DisplayName</div>
+                }
+            }
+            <div>&nbsp;</div>
         </AeCard>
+    </AeFlex>
 
-        <div id="stepsDiv">
-            <AeSteps T=@PublicUrlSharingStatus 
-                CurrentStepState=@GetState 
-                StepItems=@steps 
-                StepTitle=@StepTitle 
-                StepMessage=@StepMessage 
-                PassedIcon=@checkIcon ></AeSteps>
-            
-            @if(ShowSubmitApproval)
-            {
-                <AeCard>
-                    <AeTypography Variant="h3">@Localizer["PUBLIC-URL-WIZARD.SubmitForApproval"]</AeTypography>
-                    <AeFlex>
-                        <AeButton OnClickEvent=@SubmitForApproval Disabled=@savingData>@Localizer["BUTTONS.Submit"]</AeButton>
-                        @if(savingData)
-                        {
-                            <Spinner Small=@true/>
-                        }                
-                    </AeFlex>
-                    <div>&nbsp;</div>
-                </AeCard>
-            }
+    <div id="stepsDiv">
+        <AeSteps T=@PublicUrlSharingStatus 
+            CurrentStepState=@GetState 
+            StepItems=@steps 
+            StepTitle=@StepTitle 
+            StepMessage=@StepMessage 
+            PassedIcon=@checkIcon ></AeSteps>
+        
+        @if(ShowSubmitApproval && IsOwnRequest)
+        {
+            <AeCard>
+                <AeTypography Variant="h3">@Localizer["PUBLIC-URL-WIZARD.SubmitForApproval"]</AeTypography>
+                <AeFlex>
+                    <AeButton OnClickEvent=@SubmitForApproval Disabled=@savingData>@Localizer["BUTTONS.Submit"]</AeButton>
+                    @if(savingData)
+                    {
+                        <Spinner Small=@true/>
+                    }                
+                </AeFlex>
+                <div>&nbsp;</div>
+            </AeCard>
+        }
 
-            @if(ShowSkipMetadata)
-            {
-                <AeCard>
-                    <AeTypography Variant="h3">@Localizer["PUBLIC-URL-WIZARD.AcceptMetadata"]</AeTypography>
-                    <AeButton OnClickEvent=@AcceptMetadata Disabled=@savingData>@Localizer["PUBLIC-URL-WIZARD.Continue_button"]</AeButton>
-                    <div>&nbsp;</div>
-                </AeCard>
-            }
-            
-            @if(ShowPublicationDate)
-            {
-                <AeCard>
-                    <AeTypography Variant="h3">@Localizer["PUBLIC-URL-WIZARD.PublicationDate"]</AeTypography>
-                    <p>@PublicationDateStr</p>
-                </AeCard>
-            }
+        @if(ShowSkipMetadata && IsOwnRequest)
+        {
+            <AeCard>
+                <AeTypography Variant="h3">@Localizer["PUBLIC-URL-WIZARD.AcceptMetadata"]</AeTypography>
+                <AeButton OnClickEvent=@AcceptMetadata Disabled=@savingData>@Localizer["PUBLIC-URL-WIZARD.Continue_button"]</AeButton>
+                <div>&nbsp;</div>
+            </AeCard>
+        }
+        
+        @if(ShowPublicationDate)
+        {
+            <AeCard>
+                <AeTypography Variant="h3">@Localizer["PUBLIC-URL-WIZARD.PublicationDate"]</AeTypography>
+                <p>@PublicationDateStr</p>
+            </AeCard>
+        }
 
-            @if(ShowPublicUrl)
-            {
-                <AeCard>
-                    <AeTypography Variant="h3">@Localizer["PUBLIC-URL-WIZARD.PublicUrl"]</AeTypography>
-                    <p><a href=@PublicUrl target="_blank">@PublicUrl</a></p>
-                </AeCard>
-            }
-        </div>
-    </ChildContent>
+        @if(ShowPublicUrl)
+        {
+            <AeCard>
+                <AeTypography Variant="h3">@Localizer["PUBLIC-URL-WIZARD.PublicUrl"]</AeTypography>
+                <p><a href=@PublicUrl target="_blank">@PublicUrl</a></p>
+            </AeCard>
+        }
+
+        @if (ShowCancelPanel && IsOwnRequest)
+        {
+            <AeCard>
+                <Typography Variant="h3">@Localizer["PUBLIC-URL-WIZARD.CancelSharing"]</Typography>
+                <p>@Localizer["PUBLIC-URL-WIZARD.CancelSharingDescription"]</p>
+                <AeButton OnClickEvent=@ShowCancelRequestDialog>@Localizer["BUTTONS.Cancel"]</AeButton>
+            </AeCard>
+        }
+    </div>
 </AeFlex>
 
 <div>&nbsp;</div>
@@ -112,7 +143,17 @@
     private bool ShowPublicationDate => currentStep == PublicUrlSharingStatus.PendingPublication && !string.IsNullOrEmpty(PublicationDateStr);
     private bool ShowPublicUrl => currentStep == PublicUrlSharingStatus.AccessPublicUrl;
     private bool ShowSkipMetadata => currentStep == PublicUrlSharingStatus.EnterMetadata;
+    private bool ShowMetadataEditor => currentStep == PublicUrlSharingStatus.EnterMetadata || editSavedMetadata;
+    private bool ShowCancelPanel => currentStep <= PublicUrlSharingStatus.PendingApproval;
+
+    private bool IsOwnRequest = false;
+
+    private bool editSavedMetadata = false;
+
     private string PublicationDateStr = string.Empty;
+
+    private GraphUser RequestingUser;
+    private string requestFilename;
 
     //TODO add domain
     private string PublicUrl => $"/Public/DownloadFile/{FileId}";
@@ -155,6 +196,7 @@
 
     private void UpdateCurrentStatus(PublicUrlSharingStatus step, bool passed = false)
     {
+        editSavedMetadata = false;
         currentStep = step;
         _stepStates[step] = passed? AeSteps<PublicUrlSharingStatus>.StepState.Passed : AeSteps<PublicUrlSharingStatus>.StepState.Running;
 
@@ -171,6 +213,36 @@
         }
     }
 
+    private async Task ManuallyShowMetadataEditor()
+    {
+        editSavedMetadata = true;
+    }
+
+    private async Task ShowCancelRequestDialog()
+    {
+        var promptText = new List<string>() { Localizer["PUBLIC-URL-WIZARD.CancelSharingPrompt"] };
+        RenderFragment cancelDialog = @<UserChoiceModal
+            HeaderText=@Localizer["PUBLIC-URL-WIZARD.CancelSharing"]
+            ChoiceTextList=@promptText
+            OnDecision="HandleCancel"
+            ConfirmText=@Localizer["COMMON.Yes"]
+            CancelText=@Localizer["COMMON.No"]
+            />;
+        await UI.ToggleModal(cancelDialog);
+    }
+
+    private async void HandleCancel(bool isCancelled)
+    {
+        if (isCancelled)
+        {
+            savingData = true;
+            await PublicFileService.CancelPublicDataShare(fileIdGuid);
+            savingData = false;
+            NavManager.NavigateTo("/");
+        }
+        await UI.ToggleModal();
+    }
+
     protected override async Task OnInitializedAsync()
     {
         
@@ -180,6 +252,7 @@
         }
 
         var loadTask = PublicFileService.LoadPublicUrlSharedFileInfo(fileIdGuid);
+        var currentUserTask = UserInformationService.GetUserAsync();
 
         _stepInfo = new();
         foreach(var step in steps)
@@ -191,6 +264,12 @@
         }
 
         var sharedFileInfo = await loadTask;
+                
+        requestFilename = sharedFileInfo.Filename_TXT;
+
+        RequestingUser = GraphService.GetUser(sharedFileInfo.RequestingUser_ID);
+        var currentUser = await currentUserTask;
+        IsOwnRequest = currentUser.Id == RequestingUser.Id;
 
         PublicationDateStr = sharedFileInfo.PublicationDate_DT?.ToShortDateString();
         var status = sharedFileInfo.GetPublicUrlSharingStatus();

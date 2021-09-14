@@ -71,19 +71,15 @@
     {
         processing = true;
         await PublicFileService.DenyPublicUrlShare(SharedFile.File_ID);
-        @* await Task.Delay(1500); *@
         await NotifierService.Update(DataSharingDashboard.NOTIFICATION_UPDATE_KEY, true);
         processing = false;
-        //NavManager.NavigateTo(DataSharingDashboardUrl);
     }
 
     private async Task ApproveRequest()
     {
         processing = true;
         await PublicFileService.ApprovePublicUrlShare(SharedFile.File_ID, dateHolder.Date);
-        @* await Task.Delay(1500); *@
         approved = true;
-        //await ReloadPublicDataSharingRequest();
         await NotifierService.Update(DataSharingDashboard.NOTIFICATION_UPDATE_KEY, true);
         processing = false;
     }
