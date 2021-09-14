@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 
 namespace NRCan.Datahub.Shared.Services
 {
@@ -37,5 +38,13 @@ namespace NRCan.Datahub.Shared.Services
         /// <param name="changeType">Change type: New, Edit or Delete</param>
         /// <param name="details">Extra details (optional)</param>
         Task TrackAdminEvent(string scope, string source, AuditChangeType changeType, params (string key, string value)[] details);
+
+        /// <summary>
+        /// Tracks and exception
+        /// </summary>
+        /// <param name="exception"></param>
+        /// <param name="details"></param>
+        /// <returns></returns>
+        Task TrackException(Exception exception, params (string key, string value)[] details);
     }
 }
