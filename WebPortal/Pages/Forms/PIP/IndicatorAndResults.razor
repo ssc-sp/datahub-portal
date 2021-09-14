@@ -130,12 +130,10 @@
     private async Task OnConfigure(IModelFormContext context)
     {
         context.RegisterOptionValueProperty<PIP_IndicatorAndResults>(s => s.Outcome_Level_DESC, () => new[] { "Immediate", "Intermediate", "Ultimate", "Output" });
+        context.RegisterOptionValueProperty<PIP_IndicatorAndResults>(s => s.Frequency_DESC, () => new[] { "Monthly", "Bi-Monthly", "Quarterly", "Semi-Anually", "Annually", "2 Years", "3 Years", "5 Years", "Other" });
         context.RegisterOptionValueProperty<PIP_IndicatorAndResults>(s => s.Source_Of_Indicator_DESC,() => new[] { "Horizontal Intiative", "DRF indicator", "GC InfoBase Indicator", "TB Sub indicator", "DSDS indicator", "SDG indicator", "TPP indicator", "Internal program indicator only" }); 
-        context.RegisterOptionValueProperty<PIP_IndicatorAndResults>(s => s.Frequency_DESC, () => new[] { "Monthly", "Bi-Monthly", "Quarterly", "Semi-Anually", "Annually", "2 Years", "3 Years", "5 Years", "Other" });
         context.RegisterOptionValueProperty<PIP_IndicatorAndResults>(s => s.Source_Of_Indicator2_DESC, () => new[] { "Horizontal Intiative", "DRF indicator", "GC InfoBase Indicator", "TB Sub indicator", "DSDS indicator", "SDG indicator", "TPP indicator", "Internal program indicator only" }); 
-        context.RegisterOptionValueProperty<PIP_IndicatorAndResults>(s => s.Frequency_DESC, () => new[] { "Monthly", "Bi-Monthly", "Quarterly", "Semi-Anually", "Annually", "2 Years", "3 Years", "5 Years", "Other" });
         context.RegisterOptionValueProperty<PIP_IndicatorAndResults>(s => s.Source_Of_Indicator3_DESC, () => new[] { "Horizontal Intiative", "DRF indicator", "GC InfoBase Indicator", "TB Sub indicator", "DSDS indicator", "SDG indicator", "TPP indicator", "Internal program indicator only" }); 
-        context.RegisterOptionValueProperty<PIP_IndicatorAndResults>(s => s.Frequency_DESC, () => new[] { "Monthly", "Bi-Monthly", "Quarterly", "Semi-Anually", "Annually", "2 Years", "3 Years", "5 Years", "Other" });
         context.RegisterOptionValueProperty<PIP_IndicatorAndResults>(s => s.Indicator__Progressive_Or_Aggregate_DESC, () => new[] { "Progressive", "Aggregate" });
         context.RegisterOptionValueProperty<PIP_IndicatorAndResults>(s => s.Indicator_Category_DESC, () => new[] { "Quantitative", "Qualitative" });
         context.RegisterOptionValueProperty<PIP_IndicatorAndResults>(s => s.Indicator_Direction_DESC, () => new[] { "Increase", "Decrease", "Maintain" });
@@ -148,6 +146,12 @@
         context.RegisterOptionValueProperty<PIP_IndicatorAndResults>(s => s.Can_Report_On_Indicator, () => PIP_Constants.YESNO);
     }
 
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if(firstRender){
+            StateHasChanged();
+        }
+    }
 
 
     private List<Func<PIP_IndicatorAndResults, string>> accessorFunctions = new List<Func<PIP_IndicatorAndResults, string>>
