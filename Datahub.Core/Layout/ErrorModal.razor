@@ -6,36 +6,39 @@
 @inject IJSRuntime JSRuntime
 @inject NavigationManager navigationManager
 
-<div class="@ClassName" >
-    <div id="escapearea" class="modal-background"></div>
-    <div class="modal-content">
-        <h4 class="nrcan-typography h4 modal-header">@Localizer["Something went wrong. Please try again later."]</h4>
+if (!Hide)
+{
+    <div class="@ClassName">
+        <div id="escapearea" class="modal-background"></div>
+        <div class="modal-content">
+            <h4 class="nrcan-typography h4 modal-header">@Localizer["Something went wrong. Please try again later."]</h4>
 
-        <div class="modal-body" style="overflow: auto; max-height: 400px;">
-            <h3>@Localizer["TECHNICAL DETAILS"]</h3>
-            <p>@Localizer["An error has happened on the DataHub server. The team has been notified and the error has been recorded. The correlation ID for this error is <>. To avoid network issues, if you are currently on the VPN, please try to disconnect the VPN and retry your actions."]</p>
-            <environment include="Development">
-                @if (ApiService.LastException != null)
-                {   
-                    <div class="alert-danger">
-                        @GenerateExceptionMessage(ApiService.LastException)
-                    </div>
-                }
-            </environment>
-        </div>
+            <div class="modal-body" style="overflow: auto; max-height: 400px;">
+                <h3>@Localizer["TECHNICAL DETAILS"]</h3>
+                <p>@GetGeneralErrorText()</p>
+                <environment include="Development">
+                    @if (ApiService.LastException != null)
+                    {
+                        <div class="alert-danger">
+                            @GenerateExceptionMessage(ApiService.LastException)
+                        </div>
+                    }
+                </environment>
+            </div>
 
-        <div class="modal-footer">
-            <a href="#" type="button" class="submitbutton finish" @onclick="() => Reload()">@Localizer["Ok"]</a>
+            <div class="modal-footer">
+                <a href="#" type="button" class="submitbutton finish" @onclick="() => Reload()">@Localizer["Ok"]</a>
+            </div>
         </div>
     </div>
-</div>
+}
 
 @code
 {
     [Parameter]
     public bool Hide { get; set; } = true;
 
-    private string ClassName 
+    private string ClassName
     {
         get
         {
@@ -56,7 +59,7 @@
         ApiService.LastException = null;
         Hide = true;
         navigationManager.NavigateTo("/");
-    }  
+    }
 
     public RenderFragment GenerateExceptionMessage(Exception ex, int level = 1)
     {
@@ -71,6 +74,14 @@
             b.OpenElement(level, "p");
             b.AddContent(level+1, ex.Message);
             b.CloseElement();
+
+            //var correlationId = GetCorrelationId(ex);
+            //if (!string.IsNullOrEmpty(correlationId))
+            //{
+            //    b.OpenElement(level, "p");
+            //    b.AddContent(level + 1, Localizer["ERROR-PAGE.CorrelationID-Label"] + $"({correlationId})");
+            //    b.CloseElement();
+            //}
 
             b.OpenElement(level, "p");
             b.OpenElement(level+1, "b");
@@ -103,6 +114,24 @@
         };
 
         return displaFragment;
+    }
+
+    private string GetGeneralErrorText()
+    {
+        var errorLabel = Localizer["An error has happened on the DataHub server. The team has been notified and the error has been recorded. The correlation ID for this error is <>. To avoid network issues, if you are currently on the VPN, please try to disconnect the VPN and retry your actions."].ToString();
+        var placeholder = "<>";
+        var correlationId = GetCorrelationId(ApiService.LastException, placeholder);
+        return errorLabel.Replace(placeholder, correlationId);
+    }
+
+    static string GetCorrelationId(Exception ex, string defaultValue)
+    {
+        var key = "correlationid";
+        if (ex?.Data?.Contains(key) == true)
+        {
+            return ex.Data[key] as string;
+        }
+        return defaultValue;
     }
 
     public void Show()
