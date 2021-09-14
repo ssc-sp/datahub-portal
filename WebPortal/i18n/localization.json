@@ -39,6 +39,10 @@
     "Submit": "Submit",
     "Upload": "Upload"
   },
+  "COMMON": {
+    "Yes": "Yes",
+    "No": "No"
+  },
   "ERROR-PAGE": {
     "Title": "Error has occured",
     "Prompt": "A fatal error has occured, please contact system admin for clarification.",
@@ -531,6 +535,9 @@
     "AcceptMetadata": "Accept Metadata As-is",
     "PublicationDate": "Publication Date",
     "PublicUrl": "Public URL",
+    "CancelSharing": "Cancel Open Data Sharing Request",
+    "CancelSharingDescription": "You may cancel the sharing request at any time before approval. This will completely remove the sharing request from the system. However, the file will still remain in storage and may be shared in the future.",
+    "CancelSharingPrompt": "Do you want to cancel this sharing request? To share this file in the future, the process will have to be restarted from the beginning.",
     "SubmitSignedPdf": "Submit signed PDF document",
     "EnterGcDocsUrl": "Enter GCDocs URL",
     "Approval_filled_out": "Approval form has been filled out."
@@ -542,7 +549,11 @@
     "SubmitForApproval": "Submit for Approval",
     "AcceptMetadata": "Accept Metadata As-is",
     "PublicationDate": "Publication Date",
+    "CancelSharing": "Cancel Public URL Sharing Request",
+    "CancelSharingDescription": "You may cancel the sharing request at any time before approval. This will completely remove the sharing request from the system. However, the file will still remain in storage and may be shared in the future.",
+    "CancelSharingPrompt": "Do you want to cancel this sharing request? To share this file in the future, the process will have to be restarted from the beginning.",
     "PublicUrl": "Public URL",
+    "Edit_button": "Edit",
     "Save_button": "Save",
     "Continue_button": "Continue"
   },
