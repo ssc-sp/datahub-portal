@@ -14,6 +14,7 @@ namespace NRCan.Datahub.Metadata.Model
         public DbSet<ObjectMetadata> ObjectMetadataSet { get; set; }
         public DbSet<ObjectFieldValue> ObjectFieldValues { get; set; }
         public DbSet<ApprovalForm> ApprovalForms { get; set; }
+        public DbSet<Keyword> Keywords { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
