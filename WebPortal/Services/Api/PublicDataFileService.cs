@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
 using NRCan.Datahub.Shared.Data;
@@ -11,21 +12,36 @@ using NRCan.Datahub.Shared.Services;
 
 namespace NRCan.Datahub.Portal.Services
 {
+    public class PublicFileSharingConfiguration
+    {
+        public string OpenDataApprovalPdfBaseUrl { get; set; }
+        public string OpenDataApprovalPdfFormIdParam { get; set; }
+    }
+
     public class PublicDataFileService : IPublicDataFileService
     {
         private DatahubProjectDBContext _projectDbContext;
         private IApiService _apiService;
         private ILogger<IPublicDataFileService> _logger;
+        private IMetadataBrokerService _metadataService;
+
+        public static readonly string PUBLIC_FILE_SHARING_CONFIG_ROOT_KEY = "PublicFileSharing";
+        private PublicFileSharingConfiguration _config;
 
         public PublicDataFileService(
             IApiService apiService,
             DatahubProjectDBContext projectDbContext,
-            ILogger<IPublicDataFileService> logger
+            ILogger<IPublicDataFileService> logger,
+            IMetadataBrokerService metadataService,
+            IConfiguration config
         )
         {
             _apiService = apiService;
             _projectDbContext = projectDbContext;
             _logger = logger;
+            _metadataService = metadataService;
+            _config = new();
+            config.Bind(PUBLIC_FILE_SHARING_CONFIG_ROOT_KEY, _config);
         }
 
         public async Task CreateDataSharingRequest(FileMetaData fileMetaData, string projectCode, User requestingUser, bool openDataRequest = false)
@@ -133,9 +149,11 @@ namespace NRCan.Datahub.Portal.Services
 
         private System.Linq.Expressions.Expression<Func<SharedDataFile, bool>> GenerateSharingRequestsAwaitingApprovalCondition(string projectCode)
         {
-            return f => f.ProjectCode_CD != null && f.ProjectCode_CD.ToLower() == projectCode.ToLower() 
+            return f => f.ProjectCode_CD != null 
+                && f.ProjectCode_CD.ToLower() == projectCode.ToLower() 
                 && f.SubmittedDate_DT.HasValue 
-                && !f.ApprovedDate_DT.HasValue;
+                && !f.ApprovedDate_DT.HasValue
+                && !f.IsOpenDataRequest_FLAG;
         } 
 
         public async Task<List<SharedDataFile>> GetProjectSharingRequestsAwaitingApproval(string projectCode)
@@ -191,13 +209,7 @@ namespace NRCan.Datahub.Portal.Services
             await _projectDbContext.SaveChangesAsync();
         }
 
-        public async Task DenyPublicUrlShare(Guid fileId)
-        {
-            var shareInfo = await LoadPublicUrlSharedFileInfo(fileId);
-            _projectDbContext.SharedDataFiles.Remove(shareInfo);
-            // _projectDbContext.PublicDataFiles.Remove(shareInfo);
-            await _projectDbContext.SaveChangesAsync();
-        }
+        public async Task DenyPublicUrlShare(Guid fileId) => await DoDeletePublicUrlShare(fileId);
 
         public async Task UpdateOpenDataApprovalFormId(Guid fileId, int approvalFormId)
         {
@@ -231,6 +243,43 @@ namespace NRCan.Datahub.Portal.Services
                 .Where(p => p.Project.Project_Acronym_CD == projectCode && p.User_ID == userId)
                 .ToListAsync();
             return projectUserEntries.Any(p => p.IsDataApprover);
+        }
+
+        private async Task DoDeletePublicUrlShare(Guid fileId)
+        {
+            var shareInfo = await LoadPublicUrlSharedFileInfo(fileId);
+            _projectDbContext.SharedDataFiles.Remove(shareInfo);
+            await _projectDbContext.SaveChangesAsync();
+        }
+
+        private async Task DoDeleteOpenDataShare(Guid fileId)
+        {
+            var shareInfo = await LoadOpenDataSharedFileInfo(fileId);
+            if (shareInfo.ApprovalForm_ID.HasValue)
+            {
+                await _metadataService.DeleteApprovalForm(shareInfo.ApprovalForm_ID.Value);
+            }
+            _projectDbContext.OpenDataSharedFiles.Remove(shareInfo);
+            await _projectDbContext.SaveChangesAsync();
+        }
+
+        public async Task CancelPublicDataShare(Guid fileId)
+        {
+            var shareInfo = await LoadPublicUrlSharedFileInfo(fileId);
+            if (shareInfo.IsOpenDataRequest_FLAG)
+            {
+                await DoDeleteOpenDataShare(fileId);
+            }
+            else
+            {
+                await DoDeletePublicUrlShare(fileId);
+            }
+        }
+
+        public string GetOpenDataApprovalFormPdfUrl(int approvalFormId)
+        {
+            //https://app.powerbi.com/groups/6ca76417-b205-43c2-be1b-6aeeedcb84ae/rdlreports/04b8625f-f532-43fe-89d5-5911bbabd79b?rp:p_approval_form_id=9&rdl:format=pdf
+            return $"{_config.OpenDataApprovalPdfBaseUrl}?{_config.OpenDataApprovalPdfFormIdParam}={approvalFormId}&rdl:format=pdf";
         }
     }
 }

@@ -10,5 +10,6 @@ namespace NRCan.Datahub.Portal.Services
         Task SaveMetadata(string objectId, int metadataVersionId, FieldValueContainer fieldValues);
         Task<ApprovalForm> GetApprovalForm(int ApprovalFormId);
         Task<int> SaveApprovalForm(ApprovalForm form);
+        Task DeleteApprovalForm(int approvalFormId);
     }
 }
