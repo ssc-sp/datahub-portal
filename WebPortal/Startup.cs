@@ -40,7 +40,6 @@ using NRCan.Datahub.Shared.EFCore;
 using NRCan.Datahub.Portal.Data;
 using NRCan.Datahub.Portal.Data.Finance;
 using NRCan.Datahub.Portal.Data.WebAnalytics;
-using BlazorApplicationInsights;
 using NRCan.Datahub.Metadata;
 using Microsoft.Graph;
 using Polly;
@@ -81,7 +80,6 @@ namespace NRCan.Datahub.Portal
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddApplicationInsightsTelemetry();
-            services.AddBlazorApplicationInsights();
 
             services.AddDistributedMemoryCache();
 
@@ -129,6 +127,8 @@ namespace NRCan.Datahub.Portal
             services.AddBlazorDownloadFile();
             services.AddScoped<ApiTelemetryService>();
             services.AddScoped<GetDimensionsService>();
+            //TimeZoneService provides the user time zone to the server using JS Interop
+            services.AddScoped<TimeZoneService>();
             services.AddElemental();
 
             // configure db contexts in this method
@@ -384,6 +384,7 @@ namespace NRCan.Datahub.Portal
 
             services.AddScoped<DataImportingService>();
             services.AddSingleton<DatahubTools>();
+            services.AddSingleton<TranslationService>();
 
             services.AddScoped<NotificationsService>();
             services.AddScoped<UIControlsService>();

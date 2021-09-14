@@ -102,7 +102,12 @@
     private int _lastClicked = 0;
     private IPageableComponent _myTable;
 
-
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if(firstRender){
+            StateHasChanged();
+        }
+    }
     private void OnPageClick(int pageIndex)
     {
         _lastClicked = pageIndex;

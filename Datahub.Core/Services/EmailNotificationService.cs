@@ -41,12 +41,12 @@ namespace NRCan.Datahub.Shared.Services
 
         private EmailConfiguration _config;
 
-        private IStringLocalizer<SharedResources> _localizer;
+        private IStringLocalizer _localizer;
 
         private ILogger<EmailNotificationService> _logger;
 
         public EmailNotificationService(
-            IStringLocalizer<SharedResources> localizer,
+            IStringLocalizer localizer,
             IConfiguration config,
             ILogger<EmailNotificationService> logger
             )
@@ -60,7 +60,7 @@ namespace NRCan.Datahub.Shared.Services
         public async Task<string> RenderTestTemplate()
         {
             string html = new ComponentRenderer<TestEmailTemplate>()
-                .AddService<IStringLocalizer<SharedResources>>(_localizer)
+                .AddService<IStringLocalizer>(_localizer)
                 .Render();
             return html;
         }
@@ -68,7 +68,7 @@ namespace NRCan.Datahub.Shared.Services
         public async Task<string> RenderTemplate<T>(IDictionary<string, object> parameters = null) where T : Microsoft.AspNetCore.Components.IComponent
         {
             var templater = new Templater();
-            templater.AddService<IStringLocalizer<SharedResources>>(_localizer);
+            templater.AddService<IStringLocalizer>(_localizer);
             var html = templater.RenderComponent<T>(parameters);
             return html;
         }
