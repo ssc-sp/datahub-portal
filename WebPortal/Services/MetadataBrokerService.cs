@@ -147,6 +147,42 @@ namespace NRCan.Datahub.Portal.Services
             return approvalFormEntity.ApprovalFormId;
         }
 
+        public async Task<List<string>> GetSuggestedEnglishKeywords(string text, int max)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                return new List<string>();
+            }
+            else
+            {
+                using var ctx = _contextFactory.CreateDbContext();
+                return await ctx.Keywords
+                    .Where(e => e.English_TXT.StartsWith(text))
+                    .OrderByDescending(e => e.Frequency)
+                    .Select(e => e.English_TXT)
+                    .Take(max)
+                    .ToListAsync();
+            }
+        }
+
+        public async Task<List<string>> GetSuggestedFrenchKeywords(string text, int max)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                return new List<string>();
+            }
+            else
+            {
+                using var ctx = _contextFactory.CreateDbContext();
+                return await ctx.Keywords
+                    .Where(e => e.French_TXT.StartsWith(text))
+                    .OrderByDescending(e => e.Frequency)
+                    .Select(e => e.French_TXT)
+                    .Take(max)
+                    .ToListAsync();
+            }
+        }
+
         private void UpdateRequiresBlanketApproval(ApprovalForm form)
         {
             form.Requires_Blanket_Approval_FLAG = form.Updated_On_Going_Basis_FLAG || form.Collection_Of_Datasets_FLAG || form.Approval_InSitu_FLAG || !string.IsNullOrEmpty(form.Approval_Other_TXT);
