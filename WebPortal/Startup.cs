@@ -40,7 +40,6 @@ using NRCan.Datahub.Shared.EFCore;
 using NRCan.Datahub.Portal.Data;
 using NRCan.Datahub.Portal.Data.Finance;
 using NRCan.Datahub.Portal.Data.WebAnalytics;
-using BlazorApplicationInsights;
 using NRCan.Datahub.Metadata;
 using Microsoft.Graph;
 using Polly;
@@ -80,7 +79,6 @@ namespace NRCan.Datahub.Portal
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddApplicationInsightsTelemetry();
-            services.AddBlazorApplicationInsights();
 
             services.AddDistributedMemoryCache();
 
@@ -128,6 +126,8 @@ namespace NRCan.Datahub.Portal
             services.AddBlazorDownloadFile();
             services.AddScoped<ApiTelemetryService>();
             services.AddScoped<GetDimensionsService>();
+            //TimeZoneService provides the user time zone to the server using JS Interop
+            services.AddScoped<TimeZoneService>();
             services.AddElemental();
 
             // configure db contexts in this method
@@ -297,7 +297,6 @@ namespace NRCan.Datahub.Portal
             var defaultCulture = cultureSection.GetValue<string>("Default");
             var supportedCultures = cultureSection.GetValue<string>("SupportedCultures");
             var supportedCultureInfos = new HashSet<CultureInfo>(ParseCultures(supportedCultures));
-
             services.AddJsonLocalization(options =>
             {
                 options.CacheDuration = TimeSpan.FromMinutes(15);
@@ -305,7 +304,7 @@ namespace NRCan.Datahub.Portal
                 options.UseBaseName = false;
                 options.IsAbsolutePath = true;
                 options.LocalizationMode = Askmethat.Aspnet.JsonLocalizer.JsonOptions.LocalizationMode.I18n;
-                options.MissingTranslationLogBehavior = MissingTranslationLogBehavior.Ignore;
+                options.MissingTranslationLogBehavior = _currentEnvironment.EnvironmentName == "Development" ? MissingTranslationLogBehavior.LogConsoleError : MissingTranslationLogBehavior.Ignore;
                 options.FileEncoding = Encoding.GetEncoding("UTF-8");
                 options.SupportedCultureInfos = supportedCultureInfos;
             });
@@ -382,6 +381,7 @@ namespace NRCan.Datahub.Portal
 
             services.AddScoped<DataImportingService>();
             services.AddSingleton<DatahubTools>();
+            services.AddSingleton<TranslationService>();
 
             services.AddScoped<NotificationsService>();
             services.AddScoped<UIControlsService>();

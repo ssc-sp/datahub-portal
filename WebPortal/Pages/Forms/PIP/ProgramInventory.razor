@@ -79,7 +79,7 @@
     private PIPDBContext Context;
     private List<string> headers = new List<string>
     {
-	    "Title","Lead Sector"
+	    "Title","Lead Sector", "Report"
     };
 
     private int _lastClicked = 0;
@@ -118,12 +118,12 @@
         return string.Join(" ", final) + "...";
     }
 
-    // Accessor functions to retrieve cell value
+  // Accessor functions to retrieve cell value
     private List<Func<PIP_Tombstone, string>> accessorFunctions = new List<Func<PIP_Tombstone, string>>
 {
         new Func<PIP_Tombstone, string>(p => { return p.Program_Title; }),
         new Func<PIP_Tombstone, string>(p => { return p.Lead_Sector; }),
-        //null,
+        null,
     };
 
     private List<Func<PIP_Tombstone, RenderFragment>> GetRenderers()
@@ -145,6 +145,7 @@
             new Func< PIP_Tombstone, RenderFragment>(pt => { return pt.PowerBiUrl; }),    
         };
     }
+
 
     private void SetFormEdit(PIP_Tombstone project)
     {

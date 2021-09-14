@@ -46,7 +46,7 @@
         {
             LinkType = UserRecentLink.LinkType;
             link = UserRecentLink;
-            await UserLocationManagerService.RegisterNavigation(link);
+            await UserLocationManagerService.RegisterNavigation(link, false);
         }
         else
         {
@@ -69,7 +69,7 @@
             link.WebFormsURL = WebFormsURL;
             link.DataProject = DataProject;
             link.Name = Name;
-            await UserLocationManagerService.RegisterNavigation(link);
+            await UserLocationManagerService.RegisterNavigation(link, true);
         }
         switch (LinkType)
         {
