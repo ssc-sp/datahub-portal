@@ -6,16 +6,18 @@
 @inject IJSRuntime JSRuntime
 @inject NavigationManager navigationManager
 
-if (!Hide)
+@if (!Hide)
 {
     <div class="@ClassName">
         <div id="escapearea" class="modal-background"></div>
         <div class="modal-content">
-            <h4 class="nrcan-typography h4 modal-header">@Localizer["Something went wrong. Please try again later."]</h4>
+            <h4 class="nrcan-typography h4 modal-header">@Localizer["ERROR-PAGE.SomethingWentWrong-Label"]</h4>
 
             <div class="modal-body" style="overflow: auto; max-height: 400px;">
-                <h3>@Localizer["TECHNICAL DETAILS"]</h3>
+                <h3>@Localizer["ERROR-PAGE.TechnicalDetails-Label"]</h3>
+                
                 <p>@GetGeneralErrorText()</p>
+
                 <environment include="Development">
                     @if (ApiService.LastException != null)
                     {
@@ -66,34 +68,26 @@ if (!Hide)
         RenderFragment displaFragment = b =>
         {
             b.OpenElement(level, "p");
-            b.OpenElement(level+1, "b");
-            b.AddContent(level+2, Localizer["ERROR-PAGE.Message-Label"]);
+            b.OpenElement(level + 1, "b");
+            b.AddContent(level + 2, Localizer["ERROR-PAGE.Message-Label"]);
             b.CloseElement();
             b.CloseElement();
 
             b.OpenElement(level, "p");
-            b.AddContent(level+1, ex.Message);
+            b.AddContent(level + 1, ex.Message);
             b.CloseElement();
 
-            //var correlationId = GetCorrelationId(ex);
-            //if (!string.IsNullOrEmpty(correlationId))
-            //{
-            //    b.OpenElement(level, "p");
-            //    b.AddContent(level + 1, Localizer["ERROR-PAGE.CorrelationID-Label"] + $"({correlationId})");
-            //    b.CloseElement();
-            //}
-
             b.OpenElement(level, "p");
-            b.OpenElement(level+1, "b");
-            b.AddContent(level+2, Localizer["ERROR-PAGE.StackTrace-Label"]);
+            b.OpenElement(level + 1, "b");
+            b.AddContent(level + 2, Localizer["ERROR-PAGE.StackTrace-Label"]);
             b.CloseElement();
             b.CloseElement();
 
             b.OpenElement(level, "ul");
             ex.StackTrace.Split("\r\n").ToList().ForEach(line =>
             {
-                b.OpenElement(level+1, "li");
-                b.AddContent(level+2, $"{line}");
+                b.OpenElement(level + 1, "li");
+                b.AddContent(level + 2, $"{line}");
                 b.CloseElement();
             });
             b.CloseElement();
@@ -101,14 +95,14 @@ if (!Hide)
             if (ex.InnerException != null)
             {
                 b.OpenElement(level, "p");
-                b.OpenElement(level+1, "b");
-                b.AddContent(level+2, Localizer["ERROR-PAGE.InnerException-Label"]);
+                b.OpenElement(level + 1, "b");
+                b.AddContent(level + 2, Localizer["ERROR-PAGE.InnerException-Label"]);
                 b.CloseElement();
                 b.CloseElement();
 
                 b.OpenElement(level, "ul");
                 b.AddAttribute(level, "style", "list-style-type: none;");
-                b.AddContent(level+1, GenerateExceptionMessage(ex.InnerException, level+2));
+                b.AddContent(level + 1, GenerateExceptionMessage(ex.InnerException, level + 2));
                 b.CloseElement();
             }
         };
@@ -118,7 +112,7 @@ if (!Hide)
 
     private string GetGeneralErrorText()
     {
-        var errorLabel = Localizer["An error has happened on the DataHub server. The team has been notified and the error has been recorded. The correlation ID for this error is <>. To avoid network issues, if you are currently on the VPN, please try to disconnect the VPN and retry your actions."].ToString();
+        var errorLabel = Localizer["ERROR-PAGE.ErrorExplanation-Text"].ToString();
         var placeholder = "<>";
         var correlationId = GetCorrelationId(ApiService.LastException, placeholder);
         return errorLabel.Replace(placeholder, correlationId);
