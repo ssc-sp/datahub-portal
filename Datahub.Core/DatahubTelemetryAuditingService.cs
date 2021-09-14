@@ -1,6 +1,8 @@
 ﻿using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.Extensibility;
+using Microsoft.Extensions.Options;
 using NRCan.Datahub.Shared.Services;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -11,9 +13,9 @@ namespace NRCan.Datahub.Shared
         private readonly TelemetryClient _telemetryClient;
         private readonly IUserInformationService _userInformationService;
 
-        public DatahubTelemetryAuditingService(IUserInformationService userInformationService)
+        public DatahubTelemetryAuditingService(IUserInformationService userInformationService, IOptions<TelemetryConfiguration> telemetryConfig)
         {
-            _telemetryClient = new TelemetryClient(TelemetryConfiguration.CreateDefault());
+            _telemetryClient = new TelemetryClient(telemetryConfig.Value);
             _userInformationService = userInformationService;
         }
         
@@ -28,6 +30,7 @@ namespace NRCan.Datahub.Shared
             };
             await AppendIdentity(properties);
             _telemetryClient.TrackEvent("DataEvent", AppendDetails(properties, details));
+            _telemetryClient.Flush();
         }
 
         /// <inheritdoc>
@@ -41,6 +44,7 @@ namespace NRCan.Datahub.Shared
             };
             await AppendIdentity(properties);
             _telemetryClient.TrackEvent("SecurityEvent", AppendDetails(properties, details));
+            _telemetryClient.Flush();
         }
 
         /// <inheritdoc>
@@ -54,6 +58,16 @@ namespace NRCan.Datahub.Shared
             };
             await AppendIdentity(properties);
             _telemetryClient.TrackEvent("SecurityEvent", AppendDetails(properties, details));
+            _telemetryClient.Flush();
+        }
+
+        /// <inheritdoc>
+        public async Task TrackException(Exception exception, params (string key, string value)[] details)
+        {
+            var properties = new Dictionary<string, string>();
+            await AppendIdentity(properties);
+            _telemetryClient.TrackException(exception, AppendDetails(properties, details));
+            _telemetryClient.Flush();
         }
 
         private async Task AppendIdentity(Dictionary<string, string> dictionary)
