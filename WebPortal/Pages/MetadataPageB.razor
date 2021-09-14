@@ -74,15 +74,15 @@
         StateHasChanged();
     }
 
-    private void TogglePreview()
-    {
-        _preview = !_preview;
-    }
-
     private async void SaveChanges()
     {
         await MetadataBrokerService.SaveMetadata(ObjectId, _definitions.MetadataVersion, _fieldValues);
         _saved = true;
         StateHasChanged();
+    }
+
+    private void TogglePreview()
+    {
+        _preview = !_preview;
     }
 }
