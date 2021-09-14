@@ -33,7 +33,7 @@
             case DatahubLinkType.DataProject:
                 return project?.ProjectName ?? "-";
             default:
-                return string.IsNullOrWhiteSpace(link.Name)?"PowerBI":link.Name;
+                return string.IsNullOrWhiteSpace(link.Name)?"Power BI":Localizer[link.Name];
         }
     }
 
