@@ -146,6 +146,12 @@
         context.RegisterOptionValueProperty<PIP_IndicatorAndResults>(s => s.Can_Report_On_Indicator, () => PIP_Constants.YESNO);
     }
 
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if(firstRender){
+            StateHasChanged();
+        }
+    }
 
 
     private List<Func<PIP_IndicatorAndResults, string>> accessorFunctions = new List<Func<PIP_IndicatorAndResults, string>>
