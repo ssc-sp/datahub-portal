@@ -20,6 +20,7 @@ namespace NRCan.Datahub.Shared.Services
         string LogoutURL { get; }
         Dictionary<string, FileMetaData> UploadedFiles { get; set; }
 
+        Task AuditException(Exception ex, string correlationId);
         Task LoadApplicationData();
         Task PopulateOtherMetadata(FileMetaData fileMetadata);        
         Task<long> GetUserUsedDataTotal(Microsoft.Graph.User user);
