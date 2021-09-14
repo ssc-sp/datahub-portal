@@ -17,6 +17,7 @@ namespace NRCan.Datahub.Shared.EFCore
         public ICollection<UserRecentLink> UserRecentActions{ get; set; } = new List<UserRecentLink>();
         
     }
+
     [Owned]
     public record UserRecentLink
     { 

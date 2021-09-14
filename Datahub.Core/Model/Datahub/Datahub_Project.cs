@@ -218,7 +218,7 @@ namespace NRCan.Datahub.Shared.EFCore
             {
                 if (Thread.CurrentThread.CurrentCulture.Name.Equals("fr-ca", StringComparison.OrdinalIgnoreCase))
                 {
-                    return !string.IsNullOrWhiteSpace(Project_Name_Fr) ? Project_Name_Fr : Project_Name;
+                    return !string.IsNullOrWhiteSpace(Project_Name_Fr) ? Project_Name_Fr : Project_Name + " (*)";
                 }
                 return Project_Name;
             }
