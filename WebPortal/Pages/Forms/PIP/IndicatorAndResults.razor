@@ -166,6 +166,7 @@
         if (isConfirmed && _indicator != null)
         {
             _indicator.Last_Updated_DT = DateTime.Now;
+            _indicator.Date_Updated_DT = DateTime.Now;
             _indicator.Last_Updated_UserId = CurrentUser.Id;
             if (_indicator.IndicatorAndResult_ID == 0)
             {
@@ -212,7 +213,7 @@
     private void SetFormEdit(PIP_IndicatorAndResults indicator)
     {
         _indicator = indicator;
-        _indicator.Last_Updated_UserId = MSGraphService.GetUserName(_indicator.Last_Updated_UserId);
+        _indicator.Last_Updated_UserName = MSGraphService.GetUserName(_indicator.Last_Updated_UserId);
         UpdateRisks();
         StateHasChanged();
         _navToEdit = true;
