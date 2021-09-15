@@ -2,6 +2,7 @@
 
 @using NRCan.Datahub.Metadata.Model
 @using NRCan.Datahub.Metadata.DTO
+@using NRCan.Datahub.Shared.Utils 
 
 <div style="margin: 2rem">
     <AeCard>
@@ -9,35 +10,26 @@
             <h2>Metadata</h2>
         </Header>
         <ChildContent>
-            <AeFlex>
-                <div style="width: 200px; flex-grow: 0.5">
-                    <MetadataEditor Preview="false"
-                                    Definitions="@_definitions"
-                                    FieldValues="@_fieldValues"
-                                    RequiredFields="@_requiredFields"
-                                    OnFieldChanged="FieldChanged" />
+            <input class="ae input"
+                   type="text"
+                   @bind="BoundValue"
+                   @bind:event="oninput"
+                   style="width: 100%;" />
 
-                </div>
-
-                <div style="width: 200px; flex-grow: 0.5">
-                    @if (_preview)
+            <div>
+                <ul>
+                    @foreach (var kw in _keywords)
                     {
-                        <MetadataEditor Preview="_preview"
-                                        Definitions="@_definitions"
-                                        FieldValues="@_fieldValues"
-                                        OnFieldChanged="FieldChanged" />
+                        <li>@kw</li>
                     }
+                </ul>
+            </div>
 
-                </div>
-            </AeFlex>
+            <div>
+                <AeTypography>Queries: @_queryCount</AeTypography>
+            </div>
+
         </ChildContent>
-        <Footer>
-            @if (!_saved)
-            {
-                <AeButton @onclick="SaveChanges" style="margin: 5px;">Save</AeButton>
-            }
-            <AeButton @onclick="TogglePreview" style="margin: 5px;">Toggle Preview</AeButton>
-        </Footer>
     </AeCard>
 </div>
 
@@ -46,43 +38,34 @@
     [Inject]
     public IMetadataBrokerService MetadataBrokerService { get; set; }
 
-    private FieldDefinitions _definitions { get; set; }
 
-    private FieldValueContainer _fieldValues { get; set; }
-
-    /// <summary>
-    /// Object ID to edit or add metadata
-    /// </summary>
-    [Parameter]
-    public string ObjectId { get; set; } = "7aa33e32-44a1-4ca4-b76c-ccb98c7b8e0b";
-
-    private bool _preview = false;
-    private bool _saved = false;
-
-    private HashSet<string> _requiredFields = new HashSet<string>(new string[] { "owner_org", "keywords_en", "keywords_fr" });
-
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
-        var context = await MetadataBrokerService.GetMetadataContext(ObjectId);
-        _definitions = context.FieldDefinitions;
-        _fieldValues = context.FieldValues;
+        _suggestionThrottler = new QueryThrottler<string>(TimeSpan.FromSeconds(0.5), TriggerAutoCompleteAsync);
     }
 
-    private void FieldChanged(ObjectFieldValue field)
+    private string _keyword;
+    private List<string> _keywords = new();
+    private QueryThrottler<string> _suggestionThrottler;
+    private int _queryCount;
+
+    private string BoundValue
     {
-        _saved = false;
-        StateHasChanged();
+        get => _keyword;
+        set
+        {
+            if (value != _keyword)
+            {
+                _keyword = value;
+                _ = _suggestionThrottler.SetQuery(value);
+            }
+        }
     }
 
-    private async void SaveChanges()
+    private async Task TriggerAutoCompleteAsync(string text)
     {
-        await MetadataBrokerService.SaveMetadata(ObjectId, _definitions.MetadataVersion, _fieldValues);
-        _saved = true;
-        StateHasChanged();
-    }
-
-    private void TogglePreview()
-    {
-        _preview = !_preview;
+        _keywords = await MetadataBrokerService.GetSuggestedEnglishKeywords(text, 10);
+        _queryCount++;
+        await InvokeAsync(StateHasChanged);
     }
 }
