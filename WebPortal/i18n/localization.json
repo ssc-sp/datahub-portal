@@ -473,12 +473,11 @@
     "Cancel": "Clear",
     "Submit": "Submit"
   },
-
   "METADATA-PAGE": {
     "ShowMore": "Show optional fields",
-    "ShowLess": "Hide optional fields"
+    "ShowLess": "Hide optional fields",
+    "EnterKeyword-Placeholder": "Enter keyword..."
   },
-
   "OPENDATA-WIZARD": {
     "Page_Title": "Share on Open Data",
     "Metadata": "Metadata",
