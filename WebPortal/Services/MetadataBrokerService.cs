@@ -236,7 +236,7 @@ namespace NRCan.Datahub.Portal.Services
 
             var latestDefinitions = await ctx.FieldDefinitions
                     .Include(e => e.Choices)
-                    .Where(e => e.MetadataVersionId == versionId)
+                    .Where(e => e.MetadataVersionId == versionId || e.Custom_Field_FLAG)
                     .ToListAsync();
 
             definitions.Add(latestDefinitions.Where(IsValidDefinition));
