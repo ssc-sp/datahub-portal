@@ -587,7 +587,17 @@
     "Project_Cost_Template": "As of {0}, total resource cost is {1} for the period from {2} to {3}.",
     "Project_Cost_Button": "More details",
     "No_Access_Message": "You currently do not have access to this project.",
-    "Request_Access_Reviewed":"Access Request is being reviewed"
+    "Request_Access_Reviewed":"Access Request is being reviewed",
+    "DATABASE-CARD": {
+      "CardTitle": "Database Information",
+      "MoreInfo_button": "More Information",
+      "GetToken_button": "Get Access Token",
+      "DatabaseName": "Database Name",
+      "DatabaseType": "Database Type",
+      "DatabaseServer": "Database Server",
+      "AccessToken": "Access Token",
+      "Expires": "Expires"
+    }
   }
 }
 

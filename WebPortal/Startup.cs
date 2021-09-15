@@ -340,6 +340,8 @@ namespace NRCan.Datahub.Portal
 
                 services.AddScoped<IPublicDataFileService, PublicDataFileService>();
 
+                services.AddScoped<IProjectDatabaseService, ProjectDatabaseService>();
+
                 services.AddScoped<IDataUpdatingService, DataUpdatingService>();
                 services.AddScoped<IDataSharingService, DataSharingService>();
                 services.AddScoped<IDataCreatorService, DataCreatorService>();
