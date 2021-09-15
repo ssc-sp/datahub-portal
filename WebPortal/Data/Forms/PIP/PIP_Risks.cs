@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -170,10 +171,18 @@ namespace NRCan.Datahub.ProjectForms.Data.PIP
         [AeLabel(placeholder: "Please provide comments here as necessray to supplement any of the information requested", row: "22", column: "1")]        
         [MaxLength(7500)] public string Comments_TXT { get; set; }
         
-
+        
+        
+        [AeFormIgnore]
+        [Editable(false)] public string Last_Updated_UserId { get; set; }
         [AeLabel(row: "23", column: "1")]
         [AeFormCategory("Latest Update Information", 60)]
-        [Editable(false)] public string Last_Updated_UserId { get; set; }
+        [NotMapped]
+        [Editable(false)] public string Last_Updated_UserName { get; set; }
+
+
+
+
         [AeLabel(row: "23", column: "2")]
         [AeFormCategory("Latest Update Information", 60)]
         [Required] public DateTime Date_Updated_DT { get; set; }
