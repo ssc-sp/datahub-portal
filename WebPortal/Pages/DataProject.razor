@@ -3,7 +3,7 @@
 @using NRCan.Datahub.Portal.Data
 @inject IStringLocalizer<DataProject> DataLocalizer
 @inject NavigationManager NavigationManager
-@inject Elemental.Services.UIControlsService UIControlService
+@inject UIControlsService UIControlService
 @inject IUserInformationService UserInformationService
 @inject IJSRuntime JsInterop
 @implements IDisposable
@@ -11,6 +11,7 @@
 @inject IDbContextFactory<DatahubETLStatusContext> DbFactoryEtl
 @inject IEmailNotificationService EmailNotificationService
 @inject IPublicDataFileService PublicDataFileService
+@inject IProjectDatabaseService ProjectDatabaseService
 
 @page "/project/{projectAcronym}"
 
@@ -256,47 +257,76 @@
                     {
                         <AeButton @onclick="@(async () => await RequestServiceAccess("storage"))">@DataLocalizer["Request Service Creation"]</AeButton>
                     }
+                </Footer>
+            </AeCard>
+
+            <AuthorizeView Roles="DHPGLIST-admin" Context="hidden_in_dev">
+                <AeCard class="facard1" CardPosition="AeCard.CardStyle.Horizontal">
+                    <Header>
+                        <div>
+                            <AeIcon class="fad fa-share-square card-icon"/>
+                        </div>
+                    </Header>
+                    <ChildContent>
+                        <DatahubLink Variant="h3" DataProject="@projectAcronym" LinkType="DatahubLinkType.DataSharingDashboard">@Localizer["Public Data Sharing"]</DatahubLink>
+                        @* <AeTypography Variant="h3" >@Localizer["Public Data Sharing"]</AeTypography> *@
+                        <AeTypography>@Localizer["Sharing requests awaiting approval:"] @_sharingRequestCount</AeTypography>
+                    </ChildContent>
+                </AeCard>
+            </AuthorizeView>
+
+            <AuthorizeView Roles="@($"{projectAcronym}-admin")" Context="Project_Cost">
+                <AeCard class="facard1" CardPosition="AeCard.CardStyle.Horizontal">
+                    <Header>
+                        <div class="indigo" style="width:180px">
+                            <AeIcon class="fad fa-dollar-sign card-icon" />
+                        </div>
+                    </Header>
+                    <ChildContent>
+                        <AeFlex Vertical>
+                            <AeTypography Variant="h3">
+                                @DataLocalizer["Cost"]
+                            </AeTypography>
+                            <AeTypography>
+                                @_projectCostFormatted
+                            </AeTypography>
+                        </AeFlex>
+                    </ChildContent>
+                    <Footer>
+                        <AeButton>@DataLocalizer["Project_Cost_Button"]</AeButton>
                     </Footer>
                 </AeCard>
+            </AuthorizeView>
 
-                <AuthorizeView Roles="DHPGLIST-admin" Context="hidden_in_dev">
-                    <AeCard class="facard1" CardPosition="AeCard.CardStyle.Horizontal">
-                        <Header>
+            @if(ShowDatabaseCard)
+            {
+                <AeCard class="facard1" CardPosition="AeCard.CardStyle.Horizontal">
+                    <Header>
+                        <div>
+                            <AeIcon class="fad fa-database card-icon"/>
+                        </div>
+                    </Header>
+                    <ChildContent>
+                        <AeFlex Vertical>
+                            <AeTypography Variant="h3">
+                                @Localizer["PROJECT-PAGE.DATABASE-CARD.CardTitle"]
+                            </AeTypography>
+                            <div>@Localizer["PROJECT-PAGE.DATABASE-CARD.DatabaseName"]: @_project.DB_Name</div>
                             <div>
-                                <AeIcon class="fad fa-share-square card-icon"/>
+                                <AeButton OnClickEvent=@ShowDatabaseInformationPopupWithoutToken>@Localizer["PROJECT-PAGE.DATABASE-CARD.MoreInfo_button"]</AeButton>
                             </div>
-                        </Header>
-                        <ChildContent>
-                            <DatahubLink Variant="h3" DataProject="@projectAcronym" LinkType="DatahubLinkType.DataSharingDashboard">@Localizer["Public Data Sharing"]</DatahubLink>
-                            @* <AeTypography Variant="h3" >@Localizer["Public Data Sharing"]</AeTypography> *@
-                            <AeTypography>@Localizer["Sharing requests awaiting approval:"] @_sharingRequestCount</AeTypography>
-                        </ChildContent>
-                    </AeCard>
-                </AuthorizeView>
-                <AuthorizeView Roles="@($"{projectAcronym}-admin")" Context="Project_Cost">
-                    <AeCard class="facard1" CardPosition="AeCard.CardStyle.Horizontal">
-                        <Header>
-                            <div class="indigo" style="width:180px">
-                                <AeIcon class="fad fa-dollar-sign card-icon" />
-                            </div>
-                        </Header>
-                        <ChildContent>
-                            <AeFlex Vertical>
-                                <AeTypography Variant="h3">
-                                    @DataLocalizer["Cost"]
-                                </AeTypography>
-                                <AeTypography>
-                                    @_projectCostFormatted
-                                </AeTypography>
-                            </AeFlex>
-                        </ChildContent>
-                        <Footer>
-                            <AeButton>@DataLocalizer["Project_Cost_Button"]</AeButton>
-                        </Footer>
-                    </AeCard>
-                </AuthorizeView>
+                            @if (_project.IsDatabasePostgres)
+                            {
+                                <div>
+                                    <AeButton OnClickEvent=@ShowDatabaseInformationPopupWithToken>@Localizer["PROJECT-PAGE.DATABASE-CARD.GetToken_button"]</AeButton>
+                                </div>
+                            }
+                        </AeFlex>
+                    </ChildContent>
+                </AeCard>
+            }
             
-            </div>
+        </div>
         
     </AuthorizeView>
     }
@@ -371,6 +401,8 @@
     private List<ETL_CONTROL_TBL> _pipelineStatus = new List<ETL_CONTROL_TBL>();
 
     private string _projectCostFormatted;
+
+    private bool ShowDatabaseCard => _project != null && _project.HasAssociatedDatabase;
 
     private void EditProject()
     {
@@ -524,6 +556,15 @@
         _isProjectUserPendingApproval = projectContext.Project_Users_Requests.Any(u => u.User_ID == _user.Id && _project == u.Project && u.Approved_DT == null);
         StateHasChanged();
     }
+
+    private async Task ShowDatabaseInformationPopup(bool getToken = false)
+    {
+        RenderFragment popupHtml = @<DataProjectDbInformation DataProject=@_project GetAccessTokenImmediately=@getToken />;
+        await UIControlService.ToggleModal(@<RenderFragmentModal Fragment=@popupHtml />);
+    }
+
+    private async Task ShowDatabaseInformationPopupWithToken() => ShowDatabaseInformationPopup(true);
+    private async Task ShowDatabaseInformationPopupWithoutToken() => ShowDatabaseInformationPopup(false);
 
     public void Dispose()
     {
