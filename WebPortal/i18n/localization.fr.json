@@ -44,7 +44,17 @@
     "Prompt": "Une erreur fatale s'est produite, veuillez contacter l'administrateur système pour clarification.",
     "Message-Label": "Message: ",
     "StackTrace-Label": "Trace de la pile:",
-    "InnerException-Label": "Exception intérieure: "
+    "InnerException-Label": "Exception intérieure: ",
+    "SomethingWentWrong-Label": "Une erreur s'est produite. Veuillez réessayer plus tard.",
+    "TechnicalDetails-Label": "DÉTAILS TECHNIQUES",
+    "ErrorExplanation-Text": "Une erreur s'est produite sur le serveur DataHub. L'équipe a été notifiée et l'erreur a été enregistrée. L'ID de corrélation pour cette erreur est <>. Pour éviter les problèmes de réseau, si vous êtes actuellement sur le VPN, essayez de déconnecter le VPN et réessayez vos actions.",
+    "ConnectionToServer-Label": "Connexion au serveur...",
+    "AttemptingToReConnect-Label": "Tentative de reconnexion au serveur, veuillez patienter...",
+    "FailedToConnect-Label": "La connexion a échoué, veuillez réessayer plus tard",
+    "ConnectionRefused-Label": "La connexion a été refusée, veuillez réessayer plus tard",
+    "ConnectionLost-Label": "La connexion a été perdue, veuillez actualiser cette page",
+    "Ok": "OK",
+    "Reload": "Recharger"
   },
   "FILE-GRID-HEADER-PAGE": {
     "CreatedBy": "Créé par",
@@ -152,6 +162,11 @@
     "EditedBy": "Modifié par: {0}",
     "Unknown": "Inconnu",
     "Version": "Version {0}"
+  },
+  "METADATA-PAGE": {
+    "ShowMore": "Afficher les champs optionnels",
+    "ShowLess": "Masquer les champs optionnels",
+    "EnterKeyword-Placeholder": "Entrez un mot-clef..."
   },
   "Connection lost, please refresh this page": "Connexion perdue, veuillez actualiser cette page",
   "Connection to server...": "Connexion au serveur...",
@@ -999,6 +1014,4 @@
   "No cost data found.": "Aucune donnée de coût trouvée.",
   "As of {0}, total resource cost is {1} for the period from {2} to {3}.": "Le {0}, le coût total des ressources est {1} pour la période allant de {2} à {3}.",
   "You currently do not have access to this project.": "Vous n’avez actuellement pas accès à ce projet."
-
-
 }
