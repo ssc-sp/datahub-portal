@@ -213,6 +213,7 @@ namespace NRCan.Datahub.Shared.EFCore
 
         public bool IsDatabasePostgres => DB_Type == POSTGRES_DB_TYPE;
         public bool IsDatabaseSqlServer => DB_Type == SQL_SERVER_DB_TYPE;
+        public bool HasAssociatedDatabase => IsDatabasePostgres || IsDatabaseSqlServer;
 
         public List<Datahub_Project_Pipeline_Lnk> Pipelines { get; set; }
 
