@@ -111,6 +111,9 @@ namespace NRCan.Datahub.Shared.EFCore
 
             modelBuilder.Entity<Datahub_Project>().HasOne(p => p.PBI_License_Request).WithOne(p => p.Project).HasForeignKey<PBI_License_Request>(l => l.Project_ID);
 
+            modelBuilder.Entity<Datahub_Project>()
+                .HasCheckConstraint("CHK_DB_Type", "DB_Type in ('SQL Server', 'Postgres')");
+
             modelBuilder.Entity<Datahub_ProjectComment>().HasOne(c => c.Project).WithMany(p => p.Comments);
 
             modelBuilder.Entity<Datahub_Project_Pipeline_Lnk>().HasKey(t => new { t.Project_ID, t.Process_Nm });
