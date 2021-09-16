@@ -56,18 +56,25 @@ namespace NRCan.Datahub.Shared.Services
         /// </summary>
         public static async Task TrackSaveChangesAsync(this DbContext dbContext, IDatahubAuditingService auditService)
         {
-            dbContext.ChangeTracker.DetectChanges();
-
-            foreach (var entry in dbContext.ChangeTracker.Entries())
+            try
             {
-                if (entry.State == EntityState.Added)
-                    await auditService.TrackDataEvent(entry.DebugView.ShortView, entry.Entity.GetType().Name, AuditChangeType.New);
+                dbContext.ChangeTracker.DetectChanges();
 
-                if (entry.State == EntityState.Modified)
-                    await auditService.TrackDataEvent(entry.DebugView.ShortView, entry.Entity.GetType().Name, AuditChangeType.Edit);
+                foreach (var entry in dbContext.ChangeTracker.Entries())
+                {
+                    if (entry.State == EntityState.Added)
+                        await auditService.TrackDataEvent(entry.DebugView.ShortView, entry.Entity.GetType().Name, AuditChangeType.New);
 
-                if (entry.State == EntityState.Deleted)
-                    await auditService.TrackDataEvent(entry.DebugView.ShortView, entry.Entity.GetType().Name, AuditChangeType.Delete);
+                    if (entry.State == EntityState.Modified)
+                        await auditService.TrackDataEvent(entry.DebugView.ShortView, entry.Entity.GetType().Name, AuditChangeType.Edit);
+
+                    if (entry.State == EntityState.Deleted)
+                        await auditService.TrackDataEvent(entry.DebugView.ShortView, entry.Entity.GetType().Name, AuditChangeType.Delete);
+                }
+            }
+            catch (Exception ex)
+            {
+                await auditService.TrackException(ex);
             }
 
             await dbContext.SaveChangesAsync();
