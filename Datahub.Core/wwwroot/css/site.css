@@ -2354,7 +2354,9 @@ body {
 }
 .ae.steps .ae.step .ae.step-tail {
   position: absolute;
-  top: calc( 32px + 4px + 2 * 2px + 16px );
+  top: calc(
+            32px + 4px + 2 * 2px + 16px
+          );
   left: calc((32px + 2px) / 2);
   background-image: linear-gradient(to bottom, #a0aec0 50%, #a0aec0 50%);
   width: 1px;
@@ -2363,7 +2365,9 @@ body {
   -o-transition: background-position 1.5s;
   transition: background-position 1.5s;
   background-size: 100% 200%;
-  height: calc( 100% - 32px - (4px * 2) - (2px * 2) );
+  height: calc(
+            100% - 32px - (4px * 2) - (2px * 2)
+          );
 }
 .ae.steps .ae.step .ae.step-icon {
   width: 32px;
