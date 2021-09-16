@@ -51,6 +51,7 @@ using NRCan.Datahub.Shared.RoleManagement;
 using NRCan.Datahub.Shared;
 using NRCan.Datahub.Portal.Data.LanguageTraining;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.ApplicationInsights.Extensibility;
 
 namespace NRCan.Datahub.Portal
 {
@@ -135,6 +136,8 @@ namespace NRCan.Datahub.Portal
 
             IConfigurationSection sec = Configuration.GetSection("APITargets");
             services.Configure<APITarget>(sec);
+
+            services.Configure<TelemetryConfiguration>(Configuration.GetSection("ApplicationInsights"));
 
             services.AddScoped<IClaimsTransformation, RoleClaimTransformer>();
 
@@ -339,6 +342,8 @@ namespace NRCan.Datahub.Portal
                 services.AddScoped<IApiCallService, ApiCallService>();
 
                 services.AddScoped<IPublicDataFileService, PublicDataFileService>();
+
+                services.AddScoped<IProjectDatabaseService, ProjectDatabaseService>();
 
                 services.AddScoped<IDataUpdatingService, DataUpdatingService>();
                 services.AddScoped<IDataSharingService, DataSharingService>();
