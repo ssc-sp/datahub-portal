@@ -20,5 +20,10 @@ namespace NRCan.Datahub.Shared.Services
             var token = await tokenProvider.GetAuthenticationResultAsync(POSTGRES_AZ_RESOURCE);
             return token;
         }
+
+        public bool IsServiceAvailable()
+        {
+            return true;
+        }
     }
 }

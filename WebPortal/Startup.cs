@@ -368,6 +368,8 @@ namespace NRCan.Datahub.Portal
 
                 services.AddScoped<IApiService, OfflineApiService>();
                 services.AddScoped<IApiCallService, OfflineApiCallService>();
+                
+                services.AddScoped<IProjectDatabaseService, OfflineProjectDatabaseService>();
 
                 services.AddScoped<IDataUpdatingService, OfflineDataUpdatingService>();
                 services.AddScoped<IDataSharingService, OfflineDataSharingService>();

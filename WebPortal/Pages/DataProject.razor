@@ -315,7 +315,7 @@
                             <div>
                                 <AeButton OnClickEvent=@ShowDatabaseInformationPopupWithoutToken>@Localizer["PROJECT-PAGE.DATABASE-CARD.MoreInfo_button"]</AeButton>
                             </div>
-                            @if (_project.IsDatabasePostgres)
+                            @if (_project.IsDatabasePostgres && ProjectDatabaseService.IsServiceAvailable())
                             {
                                 <div>
                                     <AeButton OnClickEvent=@ShowDatabaseInformationPopupWithToken>@Localizer["PROJECT-PAGE.DATABASE-CARD.GetToken_button"]</AeButton>
