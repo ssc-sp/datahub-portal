@@ -170,10 +170,16 @@ namespace NRCan.Datahub.ProjectForms.Data.PIP
 
 
 
+        [AeFormIgnore]
+        public string Last_Updated_UserId { get; set; }
 
         [AeLabel(row: "40", column: "1")]
         [AeFormCategory("Latest Update Information", 60)]
-        [Editable(false)] public string Last_Updated_UserId { get; set; }
+        [NotMapped]
+        [Editable(false)] public string Last_Updated_UserName { get; set; }
+
+
+
         [AeLabel(row: "40", column: "2")]        
         [AeFormCategory("Latest Update Information", 60)]
         [Required] public DateTime Date_Updated_DT { get; set; }
