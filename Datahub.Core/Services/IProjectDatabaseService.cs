@@ -7,5 +7,6 @@ namespace NRCan.Datahub.Shared.Services
     {
         Task<string> GetPostgresToken();
         Task<AppAuthenticationResult> GetPostgresAuthenticationObject();
+        bool IsServiceAvailable();
     }
 }
