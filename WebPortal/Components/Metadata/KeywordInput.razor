@@ -1,18 +1,19 @@
 ﻿@using NRCan.Datahub.Metadata.Model
+@using NRCan.Datahub.Shared.Utils
 
 <div>
     @if (!Preview)
     {
         <div>
-            <input class="ae input" 
-                   autocomplete="off" 
+            <input class="ae input"
+                   autocomplete="off"
                    @ref="_fieldValueInput"
-                   style="width: 100%;" @bind="InputKeyword" @bind:event="oninput" placeholder="Enter keyword..." />
+                   style="width: 100%;" @bind="InputKeyword" @bind:event="oninput" placeholder=@Localizer["METADATA-PAGE.EnterKeyword-Placeholder"] />
         </div>
     }
 
     <ul class="ae" style="margin: 0; padding: 0; list-style-type: none; list-style-image: none;">
-        @foreach (var keyword in KeywordList)
+        @foreach (var keyword in _keywordList)
         {
             <li style="float: left; margin: 5px 5px 0px 0px; padding: 4px 8px 4px 4px; border-width: 1px; border: 1px solid grey; border-radius: 5px; ">
                 @if (!Preview)
@@ -24,10 +25,24 @@
                 <span><b>@keyword</b></span>
             </li>
         }
+        @if (!Preview)
+        {
+            foreach (var word in _suggestions)
+            {
+                <li style="float: left; margin: 5px 5px 0px 0px; padding: 4px 8px 4px 4px; border-width: 1px; border: 1px dotted grey; border-radius: 5px; background-color: #f2f2f2;">
+                    <a style="text-decoration: none; cursor: pointer;"
+                       @onclick="() => PickKeyword(word)"
+                       @onclick:preventDefault>&nbsp;<b>@word</b>&nbsp;</a>
+                </li>
+            }
+        }
     </ul>
 </div>
 
 @code {
+
+    [Inject]
+    public IMetadataBrokerService MetadataBrokerService { get; set; }
 
     [Parameter]
     public ObjectFieldValue FieldValue { get; set; }
@@ -36,22 +51,30 @@
     public bool Preview { get; set; }
 
     [Parameter]
+    public int SuggestionCount { get; set; } = 5;
+
+    [Parameter]
+    public bool English { get; set; } = true;
+
+    [Parameter]
     public EventCallback<ObjectFieldValue> OnFieldChanged { get; set; }
 
-    public List<string> KeywordList { get; set; }
-    public string _inputKeyword;
-
+    private List<string> _keywordList { get; set; }
+    private string _inputKeyword;
+    private List<string> _suggestions { get; set; }
     private ElementReference _fieldValueInput;
+    private QueryThrottler<string> _suggestionThrottler;
 
     protected override void OnInitialized()
     {
         base.OnInitialized();
-        KeywordList = new List<string>(ParseKeywords(FieldValue?.Value_TXT));
+        _keywordList = new List<string>(ParseKeywords(FieldValue?.Value_TXT));
+        _suggestions = new List<string>();
+        _suggestionThrottler = new QueryThrottler<string>(TimeSpan.FromSeconds(0.5), TriggerAutoCompleteAsync);
     }
 
     private IEnumerable<string> ParseKeywords(string keywords) => (keywords ?? "").Split(',').Where(v => !string.IsNullOrWhiteSpace(v));
     private string JoinKeywords(IEnumerable<string> keywords) => string.Join(",", keywords);
-
 
     public string InputKeyword
     {
@@ -65,15 +88,12 @@
             {
                 if (value != null && value.EndsWith(','))
                 {
-                    // add the keyword to the list and uodate the field
-                    KeywordList.Add(_inputKeyword);
-                    _inputKeyword = string.Empty;
-                    UpdateField();
+                    PickKeyword(_inputKeyword);
                 }
                 else
                 {
-                    // just update the input value
                     _inputKeyword = value;
+                    TriggerSuggestion(value);
                 }
             }
         }
@@ -85,15 +105,65 @@
             await _fieldValueInput.FocusAsync();
     }
 
+    private void TriggerSuggestion(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            _suggestions.Clear();
+        }
+        else
+        {
+            _ = _suggestionThrottler.SetQuery(text);
+        }
+    }
+
     private void DeleteKeyword(string keyword)
     {
-        KeywordList.Remove(keyword);
+        _keywordList.Remove(keyword);
         UpdateField();
     }
 
+    private void PickKeyword(string keyword)
+    {
+        _keywordList.Add(keyword);
+        _inputKeyword = string.Empty;
+
+        UpdateField();
+
+        _suggestions.Clear();
+        _ = FocusAsync();
+    }
+
+    private async Task TriggerAutoCompleteAsync(string text)
+    {
+        if (string.IsNullOrWhiteSpace(_inputKeyword))
+        {
+            _suggestions.Clear();
+        }
+        else
+        {
+            if (English)
+            {
+                ApplySuggestions(await MetadataBrokerService.GetSuggestedEnglishKeywords(text, SuggestionCount));
+            }
+            else
+            {
+                ApplySuggestions(await MetadataBrokerService.GetSuggestedFrenchKeywords(text, SuggestionCount));
+            }
+        }
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void ApplySuggestions(List<string> suggestions)
+    {
+        _suggestions = suggestions.Where(s => NotAKeyword(s)).ToList();
+    }
+
+    private bool NotAKeyword(string text) => !_keywordList.Any(k => k.Equals(text, StringComparison.OrdinalIgnoreCase));
+
     private void UpdateField()
     {
-        FieldValue.Value_TXT = JoinKeywords(KeywordList);
+        FieldValue.Value_TXT = JoinKeywords(_keywordList);
         OnFieldChanged.InvokeAsync(FieldValue);
     }
 }
