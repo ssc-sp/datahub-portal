@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Threading.Tasks;
 
 namespace NRCan.Datahub.Shared.Services
@@ -46,5 +47,30 @@ namespace NRCan.Datahub.Shared.Services
         /// <param name="details"></param>
         /// <returns></returns>
         Task TrackException(Exception exception, params (string key, string value)[] details);
+    }
+
+    public static class IDatahubAuditingServiceExtensions
+    {
+        /// <summary>
+        /// Saves the changes async and tracks the changes as data change events
+        /// </summary>
+        public static async Task TrackSaveChangesAsync(this DbContext dbContext, IDatahubAuditingService auditService)
+        {
+            dbContext.ChangeTracker.DetectChanges();
+
+            foreach (var entry in dbContext.ChangeTracker.Entries())
+            {
+                if (entry.State == EntityState.Added)
+                    await auditService.TrackDataEvent(entry.DebugView.ShortView, entry.Entity.GetType().Name, AuditChangeType.New);
+
+                if (entry.State == EntityState.Modified)
+                    await auditService.TrackDataEvent(entry.DebugView.ShortView, entry.Entity.GetType().Name, AuditChangeType.Edit);
+
+                if (entry.State == EntityState.Deleted)
+                    await auditService.TrackDataEvent(entry.DebugView.ShortView, entry.Entity.GetType().Name, AuditChangeType.Delete);
+            }
+
+            await dbContext.SaveChangesAsync();
+        }
     }
 }
