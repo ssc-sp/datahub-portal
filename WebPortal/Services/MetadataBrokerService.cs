@@ -47,8 +47,6 @@ namespace NRCan.Datahub.Portal.Services
             var transation = ctx.Database.BeginTransaction();
             try
             {
-                await _auditingService.TrackDataEvent(objectId, "Metadata", AuditChangeType.Edit);
-
                 // fetch the existing metadata object or create a new one
                 var current = await FetchObjectMetadata(ctx, objectId) ?? await CreateNewObjectMetadata(ctx, objectId, metadataVersionId);
                 
@@ -96,7 +94,7 @@ namespace NRCan.Datahub.Portal.Services
                 }
 
                 // save the changes
-                await ctx.SaveChangesAsync();
+                await ctx.TrackSaveChangesAsync(_auditingService);
 
                 transation.Commit();
             }
