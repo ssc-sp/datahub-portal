@@ -11,12 +11,13 @@
 
             if (fieldValue != null)
             {
-                <MetadataFieldEditor Preview="Preview"
+                <MetadataFieldEditor Preview=@Preview
                                      Required="IsFieldRequired(definition)"
-                                     FieldValue="fieldValue"
-                                     FieldDefinition="definition"
-                                     FieldLabel="@definition.Name"
-                                     OnFieldChanged="FieldChanged" />
+                                     FieldValue=@fieldValue
+                                     FieldDefinition=@definition
+                                     FieldLabel=@definition.Name
+                                     Subject=@_subject
+                                     OnFieldChanged=@FieldChanged />
             }
         }
 
@@ -54,9 +55,19 @@
     private bool _showAll;
     private HashSet<int> _modifedFieldIds = new HashSet<int>();
 
+    private int? _subjectFieldId;
+    private string _subject { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        _subjectFieldId = Definitions?.Get("subject")?.FieldDefinitionId;
+        _subject = FieldValues?.FirstOrDefault(f => f.FieldDefinitionId == _subjectFieldId)?.Value_TXT;
+    }
+
     private async Task FieldChanged(ObjectFieldValue field)
     {
         _modifedFieldIds.Add(field.FieldDefinitionId);
+        
         if (string.IsNullOrEmpty(field.Value_TXT))
         {
             FieldValues.Remove(field);
@@ -65,7 +76,19 @@
         {
             FieldValues.Add(field);
         }
+
+        UpdateIfSubject(field);
+
         await OnFieldChanged.InvokeAsync(field);
+    }
+
+    private void UpdateIfSubject(ObjectFieldValue value)
+    {
+        if (_subjectFieldId.HasValue && _subjectFieldId.Value == value.FieldDefinitionId)
+        {
+            _subject = value.Value_TXT;
+            StateHasChanged();
+        }
     }
 
     private ObjectFieldValue GetFieldValue(int definitionId, bool preview)
