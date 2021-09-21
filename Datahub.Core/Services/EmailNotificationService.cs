@@ -22,6 +22,7 @@ namespace NRCan.Datahub.Shared.Services
         public string SenderName { get; set; }
         public string SenderAddress { get; set; }
         public bool DevTestMode { get; set; }
+        public string DevTestEmail { get; set; }
     }
 
     public class DatahubProjectInfo
@@ -45,16 +46,20 @@ namespace NRCan.Datahub.Shared.Services
 
         private ILogger<EmailNotificationService> _logger;
 
+        private IMSGraphService _graphService;
+
         public EmailNotificationService(
             IStringLocalizer localizer,
             IConfiguration config,
-            ILogger<EmailNotificationService> logger
+            ILogger<EmailNotificationService> logger,
+            IMSGraphService graphService
             )
         {
             _localizer = localizer;
             _config = new EmailConfiguration();
             config.Bind(EMAIL_CONFIGURATION_ROOT_KEY, _config);
             _logger = logger;
+            _graphService = graphService;
         }
 
         public async Task<string> RenderTestTemplate()
@@ -65,6 +70,48 @@ namespace NRCan.Datahub.Shared.Services
             return html;
         }
 
+        
+        private MailboxAddress BuildRecipient(string userIdOrAddress, string recipientName = null)
+        {
+            if (Guid.TryParse(userIdOrAddress, out var parsedGuid))
+            {
+                // for a valid guid, try to get the corresponding user and use that info
+                var user = _graphService.GetUser(userIdOrAddress);
+                if (user != null)
+                {
+                    return new MailboxAddress(user.DisplayName, user.Mail);
+                }
+            }
+            else if (userIdOrAddress.Contains('@'))
+            {
+                // if recipientName is provided, just use that along with the email address
+                if (!string.IsNullOrEmpty(recipientName))
+                {
+                    return new MailboxAddress(recipientName, userIdOrAddress);
+                }
+                else
+                {
+                    // otherwise, try to lookup the user to get the name
+                    var userId = _graphService.GetUserIdFromEmail(userIdOrAddress);
+                    // no need to null check userId, as GetUser has its own null check
+                    var user = _graphService.GetUser(userId);
+
+                    // even if we don't get a user object, we can still try to send to the address
+                    return new MailboxAddress(user?.DisplayName, userIdOrAddress);
+                }
+            }
+
+            return null;
+        }
+
+        private IList<MailboxAddress> BuildRecipientList(IList<string> userIdsOrAddresses)
+        {
+            return userIdsOrAddresses
+                .Select(s => BuildRecipient(s))
+                .Where(r => r != null)
+                .ToList();
+        }
+
         public async Task<string> RenderTemplate<T>(IDictionary<string, object> parameters = null) where T : Microsoft.AspNetCore.Components.IComponent
         {
             var templater = new Templater();
@@ -73,21 +120,16 @@ namespace NRCan.Datahub.Shared.Services
             return html;
         }
 
-        public async Task SendEmailMessage(string subject, string body, string recipientAddress, string recipientName = null, bool isHtml = true)
+        public async Task SendEmailMessage(string subject, string body, string userIdOrAddress, string recipientName = null, bool isHtml = true)
         {
-            var recipient = new MailboxAddress(recipientName, recipientAddress);
+            var recipient = BuildRecipient(userIdOrAddress, recipientName);
             var recipients = new List<MailboxAddress>() { recipient };
             await SendEmailMessage(subject, body, recipients, isHtml);
         }
 
-        public async Task SendEmailMessage(string subject, string body, IList<string> recipientAddresses, bool isHtml = true)
+        public async Task SendEmailMessage(string subject, string body, IList<string> userIdsOrAddresses, bool isHtml = true)
         {
-            var recipients = recipientAddresses.Select(addr =>
-            {
-                //TODO lookup username
-                var name = (string)null;
-                return new MailboxAddress(name, addr);
-            }).ToList();
+            var recipients = BuildRecipientList(userIdsOrAddresses);
             await SendEmailMessage(subject, body, recipients, isHtml);
         }
 
@@ -105,7 +147,17 @@ namespace NRCan.Datahub.Shared.Services
 
                 var msg = new MimeMessage();
                 msg.From.Add(new MailboxAddress(_config.SenderName, _config.SenderAddress));
-                msg.To.AddRange(validRecipients);
+
+                if (IsDevTestMode())
+                {
+                    var devEmail = BuildRecipient(_config.DevTestEmail);
+                    msg.To.Add(devEmail);
+                }
+                else
+                {
+                    msg.To.AddRange(validRecipients);
+                }
+
                 msg.Subject = subject;
                 var bodyPart = new TextPart(isHtml ? "html" : "plain")
                 {
@@ -265,6 +317,34 @@ namespace NRCan.Datahub.Shared.Services
             };
 
             return parametersDict;
+        }
+
+        public IList<MailboxAddress> TestUsernameEmailConversion(IList<(string address, string name)> recipients)
+        {
+            if (recipients == null)
+            {
+                _logger.LogError("List is null");
+                return null;
+            }
+            else if (recipients.Count < 1)
+            {
+                _logger.LogWarning("List is empty");
+                return new List<MailboxAddress>();
+            }
+            else if (recipients.Count == 1)
+            {
+                _logger.LogInformation("List has 1 item: single recipient method");
+                var item = recipients.First();
+                var recipient = BuildRecipient(item.address, item.name);
+                return new List<MailboxAddress>() { recipient }; 
+            }
+            else
+            {
+                _logger.LogInformation("List has more than one item: bulk conversion");
+                var identifiers = recipients.Select(t => t.address).ToList();
+                var result = BuildRecipientList(identifiers);
+                return result;
+            }
         }
     }
 
