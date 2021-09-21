@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <RootNamespace>NRCan.Datahub.Portal</RootNamespace>
     <AddRazorSupportForMvc>true</AddRazorSupportForMvc>
     <UserSecretsId>6c9f0107-a066-45ca-9449-dd1f55641b99</UserSecretsId>
@@ -21,7 +21,7 @@
     <None Remove="Data\Forms\Datahub\**" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="AElemental.Blazor" Version="1.2.21246.1-beta" />
+    <PackageReference Include="AElemental.Blazor" Version="1.2.21263.2-beta" />
     <PackageReference Include="Askmethat.Aspnet.JsonLocalizer" Version="3.1.1" />
     <PackageReference Include="Azure.Identity" Version="1.4.1" />
     <PackageReference Include="Azure.Search.Documents" Version="11.3.0" />
@@ -55,7 +55,7 @@
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.11.1" />
     <PackageReference Include="Microsoft.Azure.Search.Data" Version="10.1.0" />
     <PackageReference Include="Microsoft.Azure.Search" Version="10.1.0" />
-    <PackageReference Include="Markdig" Version="0.25.0" />
+    <PackageReference Include="Markdig" Version="0.26.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.ApplicationInsights" Version="2.18.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.AzureAppServices" Version="5.0.9" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Core" Version="1.1.0" />

@@ -47,8 +47,6 @@ namespace NRCan.Datahub.Portal.Services
             var transation = ctx.Database.BeginTransaction();
             try
             {
-                await _auditingService.TrackDataEvent(objectId, "Metadata", AuditChangeType.Edit);
-
                 // fetch the existing metadata object or create a new one
                 var current = await FetchObjectMetadata(ctx, objectId) ?? await CreateNewObjectMetadata(ctx, objectId, metadataVersionId);
                 
@@ -96,7 +94,7 @@ namespace NRCan.Datahub.Portal.Services
                 }
 
                 // save the changes
-                await ctx.SaveChangesAsync();
+                await ctx.TrackSaveChangesAsync(_auditingService);
 
                 transation.Commit();
             }
@@ -145,6 +143,42 @@ namespace NRCan.Datahub.Portal.Services
             await ctx.SaveChangesAsync();
 
             return approvalFormEntity.ApprovalFormId;
+        }
+
+        public async Task<List<string>> GetSuggestedEnglishKeywords(string text, int max)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                return new List<string>();
+            }
+            else
+            {
+                using var ctx = _contextFactory.CreateDbContext();
+                return await ctx.Keywords
+                    .Where(e => e.English_TXT.StartsWith(text))
+                    .OrderByDescending(e => e.Frequency)
+                    .Select(e => e.English_TXT)
+                    .Take(max)
+                    .ToListAsync();
+            }
+        }
+
+        public async Task<List<string>> GetSuggestedFrenchKeywords(string text, int max)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                return new List<string>();
+            }
+            else
+            {
+                using var ctx = _contextFactory.CreateDbContext();
+                return await ctx.Keywords
+                    .Where(e => e.French_TXT.StartsWith(text))
+                    .OrderByDescending(e => e.Frequency)
+                    .Select(e => e.French_TXT)
+                    .Take(max)
+                    .ToListAsync();
+            }
         }
 
         private void UpdateRequiresBlanketApproval(ApprovalForm form)
@@ -200,7 +234,7 @@ namespace NRCan.Datahub.Portal.Services
 
             var latestDefinitions = await ctx.FieldDefinitions
                     .Include(e => e.Choices)
-                    .Where(e => e.MetadataVersionId == versionId)
+                    .Where(e => e.MetadataVersionId == versionId || e.Custom_Field_FLAG)
                     .ToListAsync();
 
             definitions.Add(latestDefinitions.Where(IsValidDefinition));
