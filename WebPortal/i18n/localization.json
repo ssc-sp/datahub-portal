@@ -44,7 +44,17 @@
     "Prompt": "A fatal error has occured, please contact system admin for clarification.",
     "Message-Label": "Message: ",
     "StackTrace-Label": "Stack Trace:",
-    "InnerException-Label": "Inner Exception: "
+    "InnerException-Label": "Inner Exception: ",
+    "SomethingWentWrong-Label": "Something went wrong. Please try again later.",
+    "TechnicalDetails-Label": "TECHNICAL DETAILS",
+    "ErrorExplanation-Text": "An error has happened on the DataHub server. The team has been notified and the error has been recorded. The correlation ID for this error is <>. To avoid network issues, if you are currently on the VPN, please try to disconnect the VPN and retry your actions.",
+    "ConnectionToServer-Label": "Connection to server...",
+    "AttemptingToReConnect-Label": "Attempting to re-connect with server, please wait...",
+    "FailedToConnect-Label": "Failed to connect, please try again later",
+    "ConnectionRefused-Label": "Connection refused, please try again later",
+    "ConnectionLost-Label": "Connection lost, please refresh this page",
+    "Ok": "OK",
+    "Reload": "Reload"
   },
   "FILE-GRID-HEADER-PAGE": {
     "CreatedBy": "Created By",
@@ -463,10 +473,10 @@
     "Cancel": "Clear",
     "Submit": "Submit"
   },
-
   "METADATA-PAGE": {
     "ShowMore": "Show optional fields",
-    "ShowLess": "Hide optional fields"
+    "ShowLess": "Hide optional fields",
+    "EnterKeyword-Placeholder": "Enter keyword..."
   },
 
   "SHARING-STATUS": {
@@ -594,7 +604,17 @@
     "Project_Cost_Template": "As of {0}, total resource cost is {1} for the period from {2} to {3}.",
     "Project_Cost_Button": "More details",
     "No_Access_Message": "You currently do not have access to this project.",
-    "Request_Access_Reviewed":"Access Request is being reviewed"
+    "Request_Access_Reviewed":"Access Request is being reviewed",
+    "DATABASE-CARD": {
+      "CardTitle": "Database Information",
+      "MoreInfo_button": "More Information",
+      "GetToken_button": "Get Access Token",
+      "DatabaseName": "Database Name",
+      "DatabaseType": "Database Type",
+      "DatabaseServer": "Database Server",
+      "AccessToken": "Access Token",
+      "Expires": "Expires"
+    }
   }
 }
 

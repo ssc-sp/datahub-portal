@@ -44,6 +44,8 @@ namespace NRCan.Datahub.Shared.Services
 
         private CommonAzureServices _commonAzureServices;
         private ApiTelemetryService _telemetryService;
+        private IDatahubAuditingService _auditingService;
+
         public ApiService(ILogger<ApiService> logger,
                     IHttpClientFactory clientFactory,
                     IUserInformationService userInformationService,
@@ -55,6 +57,7 @@ namespace NRCan.Datahub.Shared.Services
                     ICognitiveSearchService cognitiveSearchService,
                     DataLakeClientService dataLakeClientService,
                     ApiTelemetryService telemetryService,
+                    IDatahubAuditingService auditingService,
                     CommonAzureServices commonAzureServices)
         {
             _logger = logger;
@@ -70,6 +73,7 @@ namespace NRCan.Datahub.Shared.Services
             LastException = null;
             _commonAzureServices = commonAzureServices;
             _telemetryService = telemetryService;
+            _auditingService = auditingService;
         }
 
         public Exception LastException { get; set; }
@@ -120,6 +124,12 @@ namespace NRCan.Datahub.Shared.Services
         public string ProjectUploadCode { get; set; }
 
         public Dictionary<string, FileMetaData> UploadedFiles { get; set; } = new Dictionary<string, FileMetaData>();
+
+        public async Task AuditException(Exception ex, string correlationId)
+        {
+            LastException = ex;
+            await _auditingService.TrackException(ex, (nameof(correlationId), correlationId));
+        }
 
         public async Task LoadApplicationData()
         {

@@ -163,5 +163,10 @@ namespace NRCan.Datahub.Portal.Services.Offline
         {
             return Task.FromResult(new Uri(""));
         }
+
+        public Task AuditException(Exception ex, string correlationId)
+        {
+            return Task.FromResult(0);
+        }
     }
 }
