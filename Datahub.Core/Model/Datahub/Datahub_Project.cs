@@ -59,6 +59,9 @@ namespace NRCan.Datahub.Shared.EFCore
         public bool IsDataApprover { get; set; }
         public Datahub_Project Project { get; set; }
 
+        [StringLength(200)]
+        public string User_Name {  get; set; }
+
         [Timestamp]
         public byte[] Timestamp { get; set; }
 
