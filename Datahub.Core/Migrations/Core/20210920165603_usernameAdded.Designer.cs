@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NRCan.Datahub.Shared.EFCore;
 
-namespace NRCan.Datahub.Portal.Migrations.Forms.DatahubProjectDB
+namespace NRCan.Datahub.Shared.Migrations.Core
 {
     [DbContext(typeof(DatahubProjectDBContext))]
-    partial class DatahubProjectDBContextModelSnapshot : ModelSnapshot
+    [Migration("20210920165603_usernameAdded")]
+    partial class usernameAdded
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -529,41 +531,6 @@ namespace NRCan.Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.ToTable("Project_PBI_Workspaces");
                 });
 
-            modelBuilder.Entity("NRCan.Datahub.Shared.EFCore.Project_Resources", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
-                    b.Property<string>("Attributes")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<int?>("Project_ID")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ResourceName")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<string>("ResourceType")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<DateTime>("TimeCreated")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("TimeRequested")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Project_ID");
-
-                    b.ToTable("Project_Resources");
-                });
-
             modelBuilder.Entity("NRCan.Datahub.Shared.EFCore.Project_Storage", b =>
                 {
                     b.Property<Guid>("Id")
@@ -908,15 +875,6 @@ namespace NRCan.Datahub.Portal.Migrations.Forms.DatahubProjectDB
                 {
                     b.HasOne("NRCan.Datahub.Shared.EFCore.Datahub_Project", "Project")
                         .WithMany("PBI_Workspaces")
-                        .HasForeignKey("Project_ID");
-
-                    b.Navigation("Project");
-                });
-
-            modelBuilder.Entity("NRCan.Datahub.Shared.EFCore.Project_Resources", b =>
-                {
-                    b.HasOne("NRCan.Datahub.Shared.EFCore.Datahub_Project", "Project")
-                        .WithMany()
                         .HasForeignKey("Project_ID");
 
                     b.Navigation("Project");
