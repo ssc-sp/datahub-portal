@@ -102,6 +102,9 @@ namespace NRCan.Datahub.Shared.EFCore
         public const string CLOSED = "Closed";
         public const string ON_HOLD = "On Hold";
 
+        public const string SQL_SERVER_DB_TYPE = "SQL Server";
+        public const string POSTGRES_DB_TYPE = "Postgres";
+
         [AeFormIgnore]
         [Key]
 
@@ -197,6 +200,20 @@ namespace NRCan.Datahub.Shared.EFCore
         [AeFormIgnore]
         [Timestamp]
         public byte[] Timestamp { get; set; }
+
+        [StringLength(128)]
+        public string DB_Name { get; set; }
+
+        [StringLength(128)]
+        public string DB_Server { get; set; }
+
+        [StringLength(100)]
+        [AeLabel(validValues: new [] {SQL_SERVER_DB_TYPE, POSTGRES_DB_TYPE})]
+        public string DB_Type { get; set; }
+
+        public bool IsDatabasePostgres => DB_Type == POSTGRES_DB_TYPE;
+        public bool IsDatabaseSqlServer => DB_Type == SQL_SERVER_DB_TYPE;
+        public bool HasAssociatedDatabase => IsDatabasePostgres || IsDatabaseSqlServer;
 
         public List<Datahub_Project_Pipeline_Lnk> Pipelines { get; set; }
 
