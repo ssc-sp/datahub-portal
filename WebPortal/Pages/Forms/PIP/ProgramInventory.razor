@@ -86,6 +86,15 @@
     private IPageableComponent _myTable;
 
 
+    protected override void OnAfterRender(bool firstRender)
+    {
+    // You must re-render after the components are initialized in order for the 
+    // component reference to not be null
+        if(firstRender){
+            StateHasChanged();
+        }
+    }
+
     private void OnPageClick(int pageIndex)
     {
         _lastClicked = pageIndex;
@@ -151,7 +160,7 @@
     {
         var powerBiTargets = Configuration["PowerBiTargets:SPI"];
         _tombstone = project;
-        _tombstone.Last_Updated_UserId = MSGraphService.GetUserName(_tombstone.Last_Updated_UserId);
+        _tombstone.Last_Updated_UserName = MSGraphService.GetUserName(_tombstone.Last_Updated_UserId);
         
         SubmitLabel = "Save";
         StateHasChanged();
@@ -281,6 +290,7 @@
         if (isConfirmed && _tombstone != null )
         {            
             _tombstone.Last_Updated_DT = DateTime.Now;
+            _tombstone.Date_Updated_DT = DateTime.Now;
             _tombstone.Last_Updated_UserId = CurrentUser.Id;
             //_tombstone.
             if (_tombstone.Tombstone_ID == 0)
