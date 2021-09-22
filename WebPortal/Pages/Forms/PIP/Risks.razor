@@ -102,7 +102,12 @@
     private int _lastClicked = 0;
     private IPageableComponent _myTable;
 
-
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if(firstRender){
+            StateHasChanged();
+        }
+    }
     private void OnPageClick(int pageIndex)
     {
         _lastClicked = pageIndex;
@@ -124,6 +129,7 @@
         if (isConfirmed && _risk != null)
         {
             _risk.Last_Updated_DT = DateTime.Now;
+            _risk.Date_Updated_DT = DateTime.Now;
             _risk.Last_Updated_UserId = CurrentUser.Id;
             if (_risk.Risks_ID == 0)
             {
@@ -169,7 +175,7 @@
     private void SetFormEdit(PIP_Risks risk)
     {
         _risk = risk;
-        _risk.Last_Updated_UserId = MSGraphService.GetUserName(_risk.Last_Updated_UserId);
+        _risk.Last_Updated_UserName = MSGraphService.GetUserName(_risk.Last_Updated_UserId);
         StateHasChanged();
         _navToEdit = true;
     }
