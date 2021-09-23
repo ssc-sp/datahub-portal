@@ -251,7 +251,7 @@
 
         var serviceName = r.RequestServiceType;
 
-        await EmailService.SendServiceAccessGrantedNotification(serviceName, r.Project.ProjectInfo, r.User_Name);
+        await EmailService.SendServiceAccessGrantedNotification(serviceName, r.Project.ProjectInfo, r.User_ID);
 
         await RefreshData();
     }
@@ -273,12 +273,10 @@
             IsDataApprover = false
         };
 
-        var user = await UserInformationService.GetUserAsync();
-
         projectContext.Project_Users.Add(request);
         await projectContext.SaveChangesAsync();
         var serviceName = r.Project.ProjectName;
-        await EmailService.SendServiceAccessGrantedNotification(serviceName, r.Project.ProjectInfo, user.Mail, user.DisplayName);
+        await EmailService.SendServiceAccessGrantedNotification(serviceName, r.Project.ProjectInfo, r.User_ID);
 
         await RefreshData();
     }
@@ -290,29 +288,29 @@
 
         var serviceName = r.RequestServiceType;
 
-        await EmailService.SendAccessRevokedNotification(serviceName, r.Project.ProjectInfo, r.User_Name);
+        await EmailService.SendAccessRevokedNotification(serviceName, r.Project.ProjectInfo, r.User_ID);
 
         await RefreshData();
     }
 
     private async Task NotifyServiceCreation(Datahub_ProjectServiceRequests r)
     {
-        var requestingUserEmail = r.User_Name?.ToLowerInvariant();
+        var requestingUserId = r.User_ID;
         var project = r.Project;
         await projectContext.Entry(project).Collection(p => p.Users).LoadAsync();
-        var userEmails = project.Users
-            .Select(u => MSGraphService.GetUserEmail(u.User_ID).ToLowerInvariant())
+        var projectUserIds = project.Users
+            .Select(u => u.User_ID)
             .ToHashSet();
         
         Task individualEmailTask = null;
 
-        if (!string.IsNullOrEmpty(requestingUserEmail))
+        if (!string.IsNullOrEmpty(requestingUserId))
         {
-            userEmails.Remove(requestingUserEmail);
-            individualEmailTask = EmailService.SendServiceCreationRequestApprovedIndividual(r.ServiceType, r.Project.ProjectInfo, requestingUserEmail);
+            projectUserIds.Remove(requestingUserId);
+            individualEmailTask = EmailService.SendServiceCreationRequestApprovedIndividual(r.ServiceType, r.Project.ProjectInfo, requestingUserId);
         }
 
-        await EmailService.SendServiceCreationGroupNotification(r.ServiceType, r.Project.ProjectInfo, userEmails.ToList());
+        await EmailService.SendServiceCreationGroupNotification(r.ServiceType, r.Project.ProjectInfo, projectUserIds.ToList());
 
         if (individualEmailTask != null)
         {
