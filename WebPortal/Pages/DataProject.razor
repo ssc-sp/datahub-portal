@@ -563,8 +563,8 @@
         await UIControlService.ToggleModal(@<RenderFragmentModal Fragment=@popupHtml />);
     }
 
-    private async Task ShowDatabaseInformationPopupWithToken() => ShowDatabaseInformationPopup(true);
-    private async Task ShowDatabaseInformationPopupWithoutToken() => ShowDatabaseInformationPopup(false);
+    private async Task ShowDatabaseInformationPopupWithToken() => await ShowDatabaseInformationPopup(true);
+    private async Task ShowDatabaseInformationPopupWithoutToken() => await ShowDatabaseInformationPopup(false);
 
     public void Dispose()
     {
