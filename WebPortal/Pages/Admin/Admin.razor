@@ -24,10 +24,16 @@
         <ChildContent>
         @if (_userProjectAuthorization != null)
         {
-            <AeTable Accessors="GetProjectRequestAccessorFunctions()"
-                     Dataset="_userProjectAuthorization"
-                     Renderers="projectReqRenderFunctions"
-                     Headers="LocalizeHeaders(projectReqheaders)" />
+            <AeFlex Vertical>
+                <AePaginatedTable Accessors="GetProjectRequestAccessorFunctions()"
+                         Dataset="_userProjectAuthorization"
+                         @ref="_table1"
+                         Page="@_lastClicked1"
+                         Renderers="projectReqRenderFunctions"
+                         Headers="LocalizeHeaders(projectReqheaders)" />
+
+                <AePagination Pageable="@_table1" OnPageClick="OnTableClick1" />
+            </AeFlex>
         }
         else
         {
@@ -42,10 +48,14 @@
 
         @if (_usersAuthorization != null)
         {
-            <AeTable Accessors="accessorFunctions"
+            <AePaginatedTable Accessors="accessorFunctions"
                      Dataset="_usersAuthorization"
                      Renderers="renderFunctions"
+                     @ref="@_table2"
+                     Page="@_lastClicked2"
                      Headers="LocalizeHeaders(headers)" />
+
+            <AePagination Pageable="@_table2" OnPageClick="OnTableClick2" />
         }
         else
         {
@@ -129,10 +139,17 @@
         </AuthorizeView>
         </div>
 @code {
+
+    private int _lastClicked1;
+    private int _lastClicked2;
+
     [CascadingParameter]
     private Task<AuthenticationState> authenticationStateTask { get; set; }
 
     private List<string> _authorizedRoles;
+
+    private IPageableComponent _table1;
+    private IPageableComponent _table2;
 
     private List<Datahub_Project_Access_Request> _usersAuthorization;
 
@@ -156,6 +173,16 @@
     {
         "Project", "Requesting User", "Service", "Created", "Notified"
     };
+
+    private void OnTableClick1(int pageIndex)
+    {
+        _lastClicked1 = pageIndex;
+    }
+
+    private void OnTableClick2(int pageIndex)
+    {
+        _lastClicked2 = pageIndex;
+    }
 
     private bool _emailSelf = true;
     private bool EmailSelf
@@ -256,6 +283,15 @@
         await RefreshData();
     }
 
+    protected override void OnAfterRender(bool firstRender)
+    {
+      // You must re-render after the components are initialized in order for the 
+      // component reference to not be null
+      if (firstRender) {
+        StateHasChanged();
+      }
+    }
+
     private async Task AuthorizeProjectUser(Datahub_Project_User_Request r)
     {
         var approvedDate = DateTime.Now;
@@ -351,8 +387,6 @@
         ResetTestRecipient();
 
         await RefreshData();
-
-
 
         projectReqRenderFunctions = new List<Func<Datahub_Project_User_Request, RenderFragment>>
         {
