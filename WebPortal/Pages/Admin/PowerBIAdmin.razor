@@ -224,21 +224,22 @@
     protected override async Task OnInitializedAsync()
     {
         ctx = DbFactoryProject.CreateDbContext();
-        Task.Run(async () =>
+        //Task.Run(async () =>
+        //{
+        try
         {
-            try
-            {
-                dataSets = await PowerBiServiceApi.GetAllDatasetsAsync();
-                reports = dataSets.SelectMany(r => r.Reports.Select(rp => (rp, r.Group))).ToList();
-                isWorkspacesLoaded = true;
-                InvokeAsync(StateHasChanged);
-                //            StateHasChanged();
-            }
-            catch (Exception ex)
-            {
-                ConsentHandler.HandleException(ex);
-            }
-        });
+            dataSets = await PowerBiServiceApi.GetAllDatasetsAsync();
+            reports = dataSets.SelectMany(r => r.Reports.Select(rp => (rp, r.Group))).ToList();
+            isWorkspacesLoaded = true;
+            StateHasChanged();
+            // StateHasChanged();
+
+        }
+        catch (Exception ex)
+        {
+            ConsentHandler.HandleException(ex);
+        }
+       //});
         await LoadData();
         renderFunctions = new List<Func<PowerBIDatasetElements, RenderFragment>>
         {
