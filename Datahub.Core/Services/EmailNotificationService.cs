@@ -10,6 +10,7 @@ using NRCan.Datahub.Shared.Templates;
 using System.Linq;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Text;
 
 namespace NRCan.Datahub.Shared.Services
 {
@@ -133,6 +134,37 @@ namespace NRCan.Datahub.Shared.Services
             await SendEmailMessage(subject, body, recipients, isHtml);
         }
 
+        private static string BuildTestEmailOriginalRecipientsList(IEnumerable<MailboxAddress> recipients, bool isHtml)
+        {
+            var sb = new StringBuilder();
+            if (isHtml)
+            {
+                sb.Append("<hr />");
+                sb.Append("<b>Original Recipients:</b>");
+                sb.Append("<ul>");
+                foreach(var recipient in recipients)
+                {
+                    sb.Append($"<li>{recipient.Name} - {recipient.Address}</li>");
+                }
+                sb.Append("</ul>");
+            }
+            else
+            {
+                const string nl = "\r\n";
+                sb.Append(nl);
+                sb.Append("-----");
+                sb.Append(nl);
+                sb.Append("Original recipients:");
+                foreach(var recipient in recipients)
+                {
+                    sb.Append(nl);
+                    sb.Append($"{recipient.Name} - {recipient.Address}");
+                }
+            }
+
+            return sb.ToString();
+        }
+
         private async Task SendEmailMessage(string subject, string body, IList<MailboxAddress> recipients, bool isHtml)
         {
             try
@@ -152,6 +184,8 @@ namespace NRCan.Datahub.Shared.Services
                 {
                     var devEmail = BuildRecipient(_config.DevTestEmail);
                     msg.To.Add(devEmail);
+
+                    body += BuildTestEmailOriginalRecipientsList(validRecipients, isHtml);
                 }
                 else
                 {
