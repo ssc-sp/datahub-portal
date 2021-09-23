@@ -51,9 +51,9 @@ namespace NRCan.Datahub.Portal.Services
 
 
         public static readonly string[] RequiredReadScopes = new string[] {
-    "https://analysis.windows.net/powerbi/api/Group.Read.All",
+    //"https://analysis.windows.net/powerbi/api/Group.Read.All",
     "https://analysis.windows.net/powerbi/api/Dashboard.Read.All",
-    "https://analysis.windows.net/powerbi/api/Report.Read.All",
+    //"https://analysis.windows.net/powerbi/api/Report.Read.All",
     "https://analysis.windows.net/powerbi/api/Dataset.Read.All",
     //"https://analysis.windows.net/powerbi/api/Dataflow.Read.All",   
     "https://analysis.windows.net/powerbi/api/Workspace.Read.All"
