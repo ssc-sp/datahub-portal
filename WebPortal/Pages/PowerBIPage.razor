@@ -80,21 +80,19 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        Task.Run(async () =>
+
+        try
         {
-            try
-            {
-                dataSets = await PowerBiServiceApi.GetAllDatasetsAsync();
-                isWorkspacesLoaded = true;
-                isDatasetsLoaded = true;
-                InvokeAsync(StateHasChanged);
-                //            StateHasChanged();
-            }
-            catch (Exception ex)
-            {
-                ConsentHandler.HandleException(ex);
-            }
-        });
+            dataSets = await PowerBiServiceApi.GetAllDatasetsAsync();
+            isWorkspacesLoaded = true;
+            isDatasetsLoaded = true;
+            InvokeAsync(StateHasChanged);
+            //            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            ConsentHandler.HandleException(ex);
+        }
     }
 
 }
