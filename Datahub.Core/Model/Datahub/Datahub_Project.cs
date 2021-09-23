@@ -363,7 +363,6 @@ namespace NRCan.Datahub.Shared.EFCore
         public string Org_Name_F { get; set; }
         [StringLength(1)]
         public string Org_Level { get; set; }
-        [StringLength(4000)]
-        public string Superior_OrgId { get; set; }
+        public int? Superior_OrgId { get; set; }
     }
 }
