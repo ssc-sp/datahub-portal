@@ -1,12 +1,15 @@
 ﻿@using Microsoft.Azure.Services.AppAuthentication
 @inject IProjectDatabaseService ProjectDbService
+@inject IUserInformationService UserInformationService
 
 @if (DataProject != null)
 {
     <AeTypography Variant="h3">@DataProject.ProjectName</AeTypography>
-    <div>@Localizer["PROJECT-PAGE.DATABASE-CARD.DatabaseName"]: @DataProject.DB_Name</div>
-    <div>@Localizer["PROJECT-PAGE.DATABASE-CARD.DatabaseType"]: @DataProject.DB_Type</div>
-    <div>@Localizer["PROJECT-PAGE.DATABASE-CARD.DatabaseServer"]: @DataProject.DB_Server</div>
+    <AeTable
+        Dataset=@DbAttrDataSet
+        Headers=@LocalizedHeaders
+        Accessors=@accessors
+        />
     <hr />
     @if (DataProject.IsDatabasePostgres)
     {
@@ -37,6 +40,7 @@
 
 
 @code {
+    private readonly string LOCALIZATION_PREFIX = "PROJECT-PAGE.DATABASE-CARD";
 
     [Parameter]
     public Datahub_Project DataProject { get; set; }
@@ -47,6 +51,18 @@
     private AppAuthenticationResult _authResult { get; set; }
     private bool awaitingToken = false;
 
+    private Dictionary<string, string> _dbAttributes;
+    private List<KeyValuePair<string, string>> DbAttrDataSet => _dbAttributes.ToList();
+
+    private List<string> LocalizeHeaders(List<string> headerKeys)
+    {
+        return headerKeys.Select(k => Localizer[$"{LOCALIZATION_PREFIX}.{k}"].ToString()).ToList();
+    }
+    private List<string> headerKeys = new List<string>() { "Attribute", "Value" };
+    private List<string> LocalizedHeaders => LocalizeHeaders(headerKeys);
+
+    private List<Func<KeyValuePair<string, string>, string>> accessors = new();
+
     private async Task GetPostgresToken()
     {
         awaitingToken = true;
@@ -56,6 +72,30 @@
 
     protected override async Task OnInitializedAsync()
     {
+        var loadUserTask = UserInformationService.GetUserAsync();
+
+        accessors = new List<Func<KeyValuePair<string, string>, string>>()
+        {
+            p => Localizer[$"{LOCALIZATION_PREFIX}.{p.Key}"].ToString(),
+            p => p.Value
+        };
+
+        if (DataProject != null)
+        {
+            _dbAttributes = new Dictionary<string, string>()
+            {
+                {"DatabaseName", DataProject.DB_Name},
+                {"DatabaseServer", DataProject.DB_Server},
+                {"DatabaseType", DataProject.DB_Type}
+            };
+
+            var user = await loadUserTask;
+            if (DataProject.IsDatabasePostgres)
+            {
+                _dbAttributes.Add("DbUsername", $"{user.Mail}@{DataProject.DB_Server}");
+            }
+        }
+
         if (GetAccessTokenImmediately)
         {
             await GetPostgresToken();
