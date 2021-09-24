@@ -43,6 +43,9 @@ namespace NRCan.Datahub.Shared.Model.Onboarding
         public string Additional_Contact_Email_EMAIL { get; set; }
 
 
+        [AeFormCategory("Project Information", 20)]
+        public string Project_Name { get; set; }
+
 
         [AeFormCategory("Project Information", 20)]
         public string Project_Summary_Description { get; set; }
