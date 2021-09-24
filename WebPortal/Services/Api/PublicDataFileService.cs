@@ -43,7 +43,7 @@ namespace NRCan.Datahub.Portal.Services
                 return;
             }
 
-            var existingFile = await _projectDbContext.PublicDataFiles.FirstOrDefaultAsync(e => e.File_ID == fileId);
+            var existingFile = await _projectDbContext.SharedDataFiles.FirstOrDefaultAsync(e => e.File_ID == fileId);
             if (existingFile != null)
             {
                 _logger.LogError($"File {fileId} already has a sharing record");
@@ -131,24 +131,24 @@ namespace NRCan.Datahub.Portal.Services
             }
         }
 
-        private System.Linq.Expressions.Expression<Func<SharedDataFile, bool>> GenerateSharingRequestCondition(string projectCode)
+        private System.Linq.Expressions.Expression<Func<SharedDataFile, bool>> GenerateSharingRequestsAwaitingApprovalCondition(string projectCode)
         {
             return f => f.ProjectCode_CD != null && f.ProjectCode_CD.ToLower() == projectCode.ToLower() 
                 && f.SubmittedDate_DT.HasValue 
                 && !f.ApprovedDate_DT.HasValue;
         } 
 
-        public async Task<List<SharedDataFile>> GetProjectSharingRequests(string projectCode)
+        public async Task<List<SharedDataFile>> GetProjectSharingRequestsAwaitingApproval(string projectCode)
         {
             return await _projectDbContext.SharedDataFiles
-                .Where(GenerateSharingRequestCondition(projectCode))
+                .Where(GenerateSharingRequestsAwaitingApprovalCondition(projectCode))
                 .ToListAsync();
         }
 
-        public async Task<int> GetDataSharingRequestCount(string projectCode)
+        public async Task<int> GetDataSharingRequestsAwaitingApprovalCount(string projectCode)
         {
             return await _projectDbContext.SharedDataFiles
-                .CountAsync(GenerateSharingRequestCondition(projectCode));
+                .CountAsync(GenerateSharingRequestsAwaitingApprovalCondition(projectCode));
         }
 
         public async Task<SharedDataFile> LoadPublicUrlSharedFileInfo(Guid fileId)
@@ -216,6 +216,21 @@ namespace NRCan.Datahub.Portal.Services
             shareInfo.SubmittedDate_DT = DateTime.UtcNow;
 
             await _projectDbContext.SaveChangesAsync();
+        }
+
+        public async Task<List<SharedDataFile>> GetAllSharedDataForProject(string projectCode)
+        {
+            return await _projectDbContext.SharedDataFiles
+                .Where(f => f.ProjectCode_CD != null && f.ProjectCode_CD.ToLower() == projectCode.ToLower())
+                .ToListAsync();
+        }
+
+        public async Task<bool> IsUserProjectDataApprover(string projectCode, string userId)
+        {
+            var projectUserEntries = await _projectDbContext.Project_Users
+                .Where(p => p.Project.Project_Acronym_CD == projectCode && p.User_ID == userId)
+                .ToListAsync();
+            return projectUserEntries.Any(p => p.IsDataApprover);
         }
     }
 }
