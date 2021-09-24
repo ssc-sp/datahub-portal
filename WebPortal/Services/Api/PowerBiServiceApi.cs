@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Microsoft.Identity.Web;
 using Microsoft.PowerBI.Api;
 using Microsoft.PowerBI.Api.Models;
@@ -28,15 +29,19 @@ namespace NRCan.Datahub.Portal.Services
     {
 
         private ITokenAcquisition tokenAcquisition { get; }
+
+        private readonly ILogger<PowerBiServiceApi> logger;
+
         private string urlPowerBiServiceApiRoot { get; }
 
         public const string POWERBI_ROOT_URL = "https://api.powerbi.com/";
 
-        public PowerBiServiceApi(ITokenAcquisition tokenAcquisition)
+        public PowerBiServiceApi(ITokenAcquisition tokenAcquisition, ILogger<PowerBiServiceApi> logger)
         {
             //IConfiguration configuration, 
             this.urlPowerBiServiceApiRoot = POWERBI_ROOT_URL;
             this.tokenAcquisition = tokenAcquisition;
+            this.logger = logger;
         }
 
         public static readonly string[] RequiredScopes = new string[] {
@@ -79,9 +84,15 @@ namespace NRCan.Datahub.Portal.Services
                 var workspaces = (await client.Groups.GetGroupsAsync()).Value;
                 foreach (var workspace in workspaces)
                 {
-                    var datasets = (await client.Datasets.GetDatasetsInGroupAsync(workspace.Id)).Value;
-                    var cReports = (await client.Reports.GetReportsInGroupAsync(workspace.Id)).Value;
-                    allDataSets.AddRange(datasets.Select(e => (workspace, e, cReports.Where(r => r.DatasetId == e.Id).ToList())));
+                    try
+                    {
+                        var datasets = (await client.Datasets.GetDatasetsInGroupAsync(workspace.Id)).Value;
+                        var cReports = (await client.Reports.GetReportsInGroupAsync(workspace.Id)).Value;
+                        allDataSets.AddRange(datasets.Select(e => (workspace, e, cReports.Where(r => r.DatasetId == e.Id).ToList())));
+                    } catch (Exception ex)
+                    {
+                        logger.LogWarning(ex, $"Cannot read datasets and reports in workspace {workspace.Id}");
+                    }
                     
                 }
                 // my workspace

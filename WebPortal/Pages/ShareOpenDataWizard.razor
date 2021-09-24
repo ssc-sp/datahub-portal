@@ -60,7 +60,7 @@
     </AeFlex>
 
     <div id="stepsDiv">
-        <AeSteps T=@OpenDataSteps
+        <AeSteps T=@OpenDataSharingStatus
             CurrentStepState=@GetState
             StepItems=@steps
             StepTitle=@StepTitle
@@ -133,43 +133,34 @@
     private ObjectMetadataEditor _metadataEditor;
     private bool savingData = false;
 
-    public enum OpenDataSteps
-    {
-        EnterMetadata,
-        OpenGovApprovalForm,
-        SubmitSignedPDF,
-        PendingApproval,
-        PendingPublication,
-        AccessOpenData
-    }
 
 
-    private List<OpenDataSteps> steps = Enum.GetValues<OpenDataSteps>().ToList();
-    private OpenDataSteps currentStep = OpenDataSteps.EnterMetadata;
+    private List<OpenDataSharingStatus> steps = Enum.GetValues<OpenDataSharingStatus>().ToList();
+    private OpenDataSharingStatus currentStep = OpenDataSharingStatus.EnterMetadata;
     private RenderFragment checkIcon = @<i class="fa fa-check"></i>;
 
-    private Dictionary<OpenDataSteps, (string, string)?> _stepInfo = new Dictionary<OpenDataSteps, (string, string)?>();
-    private Dictionary<OpenDataSteps, AeSteps<OpenDataSteps>.StepState> _stepStates = new Dictionary<OpenDataSteps, AeSteps<OpenDataSteps>.StepState>()
+    private Dictionary<OpenDataSharingStatus, (string, string)?> _stepInfo = new Dictionary<OpenDataSharingStatus, (string, string)?>();
+    private Dictionary<OpenDataSharingStatus, AeSteps<OpenDataSharingStatus>.StepState> _stepStates = new Dictionary<OpenDataSharingStatus, AeSteps<OpenDataSharingStatus>.StepState>()
     {
-        { OpenDataSteps.EnterMetadata, AeSteps<OpenDataSteps>.StepState.Queued },
-        { OpenDataSteps.OpenGovApprovalForm, AeSteps<OpenDataSteps>.StepState.Queued },
-        { OpenDataSteps.SubmitSignedPDF, AeSteps<OpenDataSteps>.StepState.Queued },
-        { OpenDataSteps.PendingApproval, AeSteps<OpenDataSteps>.StepState.Queued },
-        { OpenDataSteps.PendingPublication, AeSteps<OpenDataSteps>.StepState.Queued },
-        { OpenDataSteps.AccessOpenData, AeSteps<OpenDataSteps>.StepState.Queued }            
+        { OpenDataSharingStatus.EnterMetadata, AeSteps<OpenDataSharingStatus>.StepState.Queued },
+        { OpenDataSharingStatus.OpenGovApprovalForm, AeSteps<OpenDataSharingStatus>.StepState.Queued },
+        { OpenDataSharingStatus.SubmitSignedPDF, AeSteps<OpenDataSharingStatus>.StepState.Queued },
+        { OpenDataSharingStatus.PendingApproval, AeSteps<OpenDataSharingStatus>.StepState.Queued },
+        { OpenDataSharingStatus.PendingPublication, AeSteps<OpenDataSharingStatus>.StepState.Queued },
+        { OpenDataSharingStatus.AccessOpenData, AeSteps<OpenDataSharingStatus>.StepState.Queued }            
     };
 
-    private string StepTitle(OpenDataSteps i) => _stepInfo.GetValueOrDefault(i)?.Item1;
-    private string StepMessage(OpenDataSteps i) => _stepInfo.GetValueOrDefault(i)?.Item2;
-    private AeSteps<OpenDataSteps>.StepState GetState(OpenDataSteps i) => _stepStates[i];
+    private string StepTitle(OpenDataSharingStatus i) => _stepInfo.GetValueOrDefault(i)?.Item1;
+    private string StepMessage(OpenDataSharingStatus i) => _stepInfo.GetValueOrDefault(i)?.Item2;
+    private AeSteps<OpenDataSharingStatus>.StepState GetState(OpenDataSharingStatus i) => _stepStates[i];
 
-    private bool ShowMetadataEditor => currentStep == OpenDataSteps.EnterMetadata || editSavedMetadata;
-    private bool ShowSkipMetadata => currentStep == OpenDataSteps.EnterMetadata;
-    private bool ShowApprovalForm => currentStep == OpenDataSteps.OpenGovApprovalForm || editSubmittedApproval;
-    private bool ApprovalFormSubmitted => _stepStates[OpenDataSteps.OpenGovApprovalForm] == AeSteps<OpenDataSteps>.StepState.Passed;
-    private bool ShowSignedPdfPanel => currentStep == OpenDataSteps.SubmitSignedPDF;
-    private bool ShowPublicationDatePanel => currentStep == OpenDataSteps.PendingPublication;
-    private bool ShowPublicUrl => currentStep == OpenDataSteps.AccessOpenData;
+    private bool ShowMetadataEditor => currentStep == OpenDataSharingStatus.EnterMetadata || editSavedMetadata;
+    private bool ShowSkipMetadata => currentStep == OpenDataSharingStatus.EnterMetadata;
+    private bool ShowApprovalForm => currentStep == OpenDataSharingStatus.OpenGovApprovalForm || editSubmittedApproval;
+    private bool ApprovalFormSubmitted => _stepStates[OpenDataSharingStatus.OpenGovApprovalForm] == AeSteps<OpenDataSharingStatus>.StepState.Passed;
+    private bool ShowSignedPdfPanel => currentStep == OpenDataSharingStatus.SubmitSignedPDF;
+    private bool ShowPublicationDatePanel => currentStep == OpenDataSharingStatus.PendingPublication;
+    private bool ShowPublicUrl => currentStep == OpenDataSharingStatus.AccessOpenData;
 
     private bool editSavedMetadata = false;
     private bool editSubmittedApproval = false;
@@ -185,23 +176,23 @@
     //TODO add domain
     private string PublicUrl => $"/Public/DownloadFile/{FileId}";
 
-    private void UpdateCurrentStatus(OpenDataSteps step, bool passed = false)
+    private void UpdateCurrentStatus(OpenDataSharingStatus step, bool passed = false)
     {
         editSavedMetadata = false;
         editSubmittedApproval = false;
 
         currentStep = step;
-        _stepStates[step] = passed? AeSteps<OpenDataSteps>.StepState.Passed : AeSteps<OpenDataSteps>.StepState.Running;
+        _stepStates[step] = passed? AeSteps<OpenDataSharingStatus>.StepState.Passed : AeSteps<OpenDataSharingStatus>.StepState.Running;
 
-        foreach (var stepv in Enum.GetValues<OpenDataSteps>())
+        foreach (var stepv in Enum.GetValues<OpenDataSharingStatus>())
         {
             if (stepv < step)
             {
-                _stepStates[stepv] = AeSteps<OpenDataSteps>.StepState.Passed;
+                _stepStates[stepv] = AeSteps<OpenDataSharingStatus>.StepState.Passed;
             }
             else if (stepv > step)
             {
-                _stepStates[stepv] = AeSteps<OpenDataSteps>.StepState.Queued;
+                _stepStates[stepv] = AeSteps<OpenDataSharingStatus>.StepState.Queued;
             }
         }
     }
@@ -222,9 +213,9 @@
         approvalFormId = id;
         await PublicFileService.UpdateOpenDataApprovalFormId(fileIdGuid, id);
         savingData = false;
-        if (currentStep == OpenDataSteps.OpenGovApprovalForm)
+        if (currentStep == OpenDataSharingStatus.OpenGovApprovalForm)
         {
-            UpdateCurrentStatus(OpenDataSteps.SubmitSignedPDF);
+            UpdateCurrentStatus(OpenDataSharingStatus.SubmitSignedPDF);
         }
         else
         {
@@ -241,7 +232,7 @@
         await PublicFileService.UpdateOpenDataSignedApprovalFormUrl(fileIdGuid, signedApprovalFormUrl);
 
         savingData = false;
-        UpdateCurrentStatus(OpenDataSteps.PendingApproval);
+        UpdateCurrentStatus(OpenDataSharingStatus.PendingApproval);
     }
 
     private async Task SaveMetadata()
@@ -259,9 +250,9 @@
         await t;
         savingData = false;
         NavManager.NavigateTo($"{uri}#stepsDiv");
-        if (currentStep == OpenDataSteps.EnterMetadata)
+        if (currentStep == OpenDataSharingStatus.EnterMetadata)
         {
-            UpdateCurrentStatus(OpenDataSteps.OpenGovApprovalForm);
+            UpdateCurrentStatus(OpenDataSharingStatus.OpenGovApprovalForm);
         }
         else
         {
@@ -271,7 +262,7 @@
 
     private async Task AcceptMetadata()
     {
-        UpdateCurrentStatus(OpenDataSteps.OpenGovApprovalForm);
+        UpdateCurrentStatus(OpenDataSharingStatus.OpenGovApprovalForm);
     }
 
     protected override async Task OnInitializedAsync()
@@ -287,7 +278,8 @@
         foreach(var step in steps)
         {
             var stepName = step.ToString();
-            var keys = ($"OPENDATA-WIZARD.{stepName}.Title", $"OPENDATA-WIZARD.{stepName}.Description");
+            var prefix = SharedDataFile.OPEN_DATA_SHARING_STATUS_LOCALIZATION_PREFIX;
+            var keys = ($"{prefix}.{stepName}.Title", $"{prefix}.{stepName}.Description");
             _stepInfo.Add(step, (Localizer[keys.Item1], Localizer[keys.Item2]));
         }
 
@@ -298,27 +290,8 @@
         PublicationDateStr = sharedFileInfo.PublicationDate_DT?.ToShortDateString();
         RequestingUser = GraphService.GetUser(sharedFileInfo.RequestingUser_ID);
 
-        if (sharedFileInfo.PublicationDate_DT.HasValue && sharedFileInfo.PublicationDate_DT <= DateTime.UtcNow)
-        {
-            UpdateCurrentStatus(OpenDataSteps.AccessOpenData, true);
-        }
-        else if (sharedFileInfo.ApprovedDate_DT.HasValue && sharedFileInfo.ApprovedDate_DT <= DateTime.UtcNow)
-        {
-            UpdateCurrentStatus(OpenDataSteps.PendingPublication);
-        }
-        else if (!string.IsNullOrEmpty(sharedFileInfo.SignedApprovalForm_URL))
-        {
-            UpdateCurrentStatus(OpenDataSteps.PendingApproval);
-        }
-        else if (sharedFileInfo.ApprovalForm_ID.HasValue && sharedFileInfo.ApprovalForm_ID > 0)
-        {
-            UpdateCurrentStatus(OpenDataSteps.SubmitSignedPDF);
-        }
-        else 
-        {
-            UpdateCurrentStatus(OpenDataSteps.EnterMetadata);
-        }
-
+        var status = sharedFileInfo.GetOpenDataSharingStatus();
+        UpdateCurrentStatus(status, status == OpenDataSharingStatus.AccessOpenData);
     }
 
 }
