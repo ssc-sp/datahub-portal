@@ -9,17 +9,27 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Data\GCopenmetadata-GCmetadonneesouvertes.csv" />
+    <None Remove="Data\field_values.json" />
+    <None Remove="Data\open_data_definitions.json" />
+    <None Remove="Data\open_data_definition_choices.json" />
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="Data\GCopenmetadata-GCmetadonneesouvertes.csv">
+    <Content Include="Data\field_values.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Data\open_data_definitions.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Data\open_data_definition_choices.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="CsvHelper" Version="27.1.1" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.11.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

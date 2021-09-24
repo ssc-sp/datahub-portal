@@ -133,9 +133,5 @@ namespace NRCan.Datahub.Metadata.Tests
                 definitions.Add(field3);
             });
         }
-
-
-        
-
     }
 }
