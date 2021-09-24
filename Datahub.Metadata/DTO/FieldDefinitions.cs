@@ -54,7 +54,11 @@ namespace NRCan.Datahub.Metadata.DTO
         }
 
         public FieldDefinition Get(string fieldName) => _fields.TryGetValue(GetKey(fieldName), out FieldDefinition value) ? value : null;
-        
+
+        public FieldDefinition Get(int definitionId) => _fields.Values.FirstOrDefault(d => d.FieldDefinitionId == definitionId);
+
+        public int? MapId(string fieldName) => Get(fieldName)?.FieldDefinitionId;
+
         public IEnumerable<FieldDefinition> Fields => _fields.Values.OrderBy(f => f.Sort_Order_NUM);
 
         public int MetadataVersion => _metadataVersionId;
