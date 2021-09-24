@@ -4,8 +4,32 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace NRCan.Datahub.Shared.EFCore
 {
+    public enum PublicUrlSharingStatus
+    {
+        EnterMetadata,
+        RequestApproval,
+        PendingApproval,
+        PendingPublication,
+        AccessPublicUrl
+    }
+
+    public enum OpenDataSharingStatus
+    {
+        EnterMetadata,
+        OpenGovApprovalForm,
+        SubmitSignedPDF,
+        PendingApproval,
+        PendingPublication,
+        AccessOpenData
+    }
+
     public class SharedDataFile
     {
+        private static readonly string SHARING_STATUS_LOCALIZATION_PREFIX = "SHARING-STATUS";
+        public static readonly string PUBLIC_URL_SHARING_STATUS_LOCALIZATION_PREFIX = SHARING_STATUS_LOCALIZATION_PREFIX + ".PublicUrl";
+        public static readonly string OPEN_DATA_SHARING_STATUS_LOCALIZATION_PREFIX = SHARING_STATUS_LOCALIZATION_PREFIX + ".OpenData";
+
+
         [Key]
         public long SharedDataFile_ID { get; set; }
 
@@ -30,6 +54,48 @@ namespace NRCan.Datahub.Shared.EFCore
         public DateTime? SubmittedDate_DT { get; set; }
         public DateTime? ApprovedDate_DT { get; set; }
         public DateTime? PublicationDate_DT { get; set; }
+
+        public PublicUrlSharingStatus GetPublicUrlSharingStatus()
+        {
+            if (PublicationDate_DT.HasValue && PublicationDate_DT.Value <= DateTime.UtcNow)
+            {
+                return PublicUrlSharingStatus.AccessPublicUrl;
+            }
+            else if (ApprovedDate_DT.HasValue && ApprovedDate_DT.Value <= DateTime.UtcNow)
+            {
+                return PublicUrlSharingStatus.PendingPublication;
+            }
+            else if (SubmittedDate_DT.HasValue && SubmittedDate_DT.Value <= DateTime.UtcNow)
+            {
+                return PublicUrlSharingStatus.PendingApproval;
+            }
+            //TODO metadata complete
+            else
+            {
+                return PublicUrlSharingStatus.EnterMetadata;
+            }
+        }
+
+        public string GetStatusKey()
+        {
+            string prefix;
+            string statusCode;
+
+            if (IsOpenDataRequest_FLAG && this is OpenDataSharedFile)
+            {
+                prefix = OPEN_DATA_SHARING_STATUS_LOCALIZATION_PREFIX;
+                var status = ((OpenDataSharedFile)this).GetOpenDataSharingStatus();
+                statusCode = status.ToString();
+            }
+            else
+            {
+                prefix = PUBLIC_URL_SHARING_STATUS_LOCALIZATION_PREFIX;
+                var status = GetPublicUrlSharingStatus();
+                statusCode = status.ToString();
+            }
+
+            return $"{prefix}.{statusCode}.Title";
+        }
     }
 
     [Table("OpenDataSharedFile")]
@@ -37,5 +103,30 @@ namespace NRCan.Datahub.Shared.EFCore
     {
         public int? ApprovalForm_ID { get; set; }
         public string SignedApprovalForm_URL { get; set; }
+
+        public OpenDataSharingStatus GetOpenDataSharingStatus()
+        {
+            if (PublicationDate_DT.HasValue && PublicationDate_DT.Value <= DateTime.UtcNow)
+            {
+                return OpenDataSharingStatus.AccessOpenData;
+            }
+            else if (ApprovedDate_DT.HasValue && ApprovedDate_DT.Value <= DateTime.UtcNow)
+            {
+                return OpenDataSharingStatus.PendingPublication;
+            }
+            else if (!string.IsNullOrEmpty(SignedApprovalForm_URL))
+            {
+                return OpenDataSharingStatus.PendingApproval;
+            }
+            else if (ApprovalForm_ID.HasValue && ApprovalForm_ID > 0)
+            {
+                return OpenDataSharingStatus.SubmitSignedPDF;
+            }
+            //TODO metadata complete
+            else
+            {
+                return OpenDataSharingStatus.EnterMetadata;
+            }
+        }
     }
 }
