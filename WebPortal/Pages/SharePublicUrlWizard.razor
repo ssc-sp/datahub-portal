@@ -24,7 +24,7 @@
         </AeCard>
 
         <div id="stepsDiv">
-            <AeSteps T=@PubUrlSteps 
+            <AeSteps T=@PublicUrlSharingStatus 
                 CurrentStepState=@GetState 
                 StepItems=@steps 
                 StepTitle=@StepTitle 
@@ -89,38 +89,29 @@
 
     private RenderFragment checkIcon = @<i class="fa fa-check"></i>;
 
-    public enum PubUrlSteps
-    {
-        EnterMetadata,
-        RequestApproval,
-        PendingApproval,
-        PendingPublication,
-        AccessPublicUrl
-    }
+    private List<PublicUrlSharingStatus> steps = Enum.GetValues<PublicUrlSharingStatus>().ToList();
+    private PublicUrlSharingStatus currentStep = PublicUrlSharingStatus.EnterMetadata;
 
-    private List<PubUrlSteps> steps = Enum.GetValues<PubUrlSteps>().ToList();
-    private PubUrlSteps currentStep = PubUrlSteps.EnterMetadata;
-
-    private Dictionary<PubUrlSteps, (string, string)?> _stepInfo = new Dictionary<PubUrlSteps, (string, string)?>();
-    private Dictionary<PubUrlSteps, AeSteps<PubUrlSteps>.StepState> _stepStates = new Dictionary<PubUrlSteps, AeSteps<PubUrlSteps>.StepState>()
+    private Dictionary<PublicUrlSharingStatus, (string, string)?> _stepInfo = new Dictionary<PublicUrlSharingStatus, (string, string)?>();
+    private Dictionary<PublicUrlSharingStatus, AeSteps<PublicUrlSharingStatus>.StepState> _stepStates = new Dictionary<PublicUrlSharingStatus, AeSteps<PublicUrlSharingStatus>.StepState>()
         {
-            { PubUrlSteps.EnterMetadata, AeSteps<PubUrlSteps>.StepState.Queued },
-            { PubUrlSteps.RequestApproval, AeSteps<PubUrlSteps>.StepState.Queued },
-            { PubUrlSteps.PendingApproval, AeSteps<PubUrlSteps>.StepState.Queued },
-            { PubUrlSteps.PendingPublication, AeSteps<PubUrlSteps>.StepState.Queued },
-            { PubUrlSteps.AccessPublicUrl, AeSteps<PubUrlSteps>.StepState.Queued }
+            { PublicUrlSharingStatus.EnterMetadata, AeSteps<PublicUrlSharingStatus>.StepState.Queued },
+            { PublicUrlSharingStatus.RequestApproval, AeSteps<PublicUrlSharingStatus>.StepState.Queued },
+            { PublicUrlSharingStatus.PendingApproval, AeSteps<PublicUrlSharingStatus>.StepState.Queued },
+            { PublicUrlSharingStatus.PendingPublication, AeSteps<PublicUrlSharingStatus>.StepState.Queued },
+            { PublicUrlSharingStatus.AccessPublicUrl, AeSteps<PublicUrlSharingStatus>.StepState.Queued }
         };
 
-    private string StepTitle(PubUrlSteps i) => _stepInfo.GetValueOrDefault(i)?.Item1;
-    private string StepMessage(PubUrlSteps i) => _stepInfo.GetValueOrDefault(i)?.Item2;
-    private AeSteps<PubUrlSteps>.StepState GetState(PubUrlSteps i) => _stepStates[i];
+    private string StepTitle(PublicUrlSharingStatus i) => _stepInfo.GetValueOrDefault(i)?.Item1;
+    private string StepMessage(PublicUrlSharingStatus i) => _stepInfo.GetValueOrDefault(i)?.Item2;
+    private AeSteps<PublicUrlSharingStatus>.StepState GetState(PublicUrlSharingStatus i) => _stepStates[i];
 
     private bool savingData = false;
 
-    private bool ShowSubmitApproval => currentStep == PubUrlSteps.RequestApproval;
-    private bool ShowPublicationDate => currentStep == PubUrlSteps.PendingPublication && !string.IsNullOrEmpty(PublicationDateStr);
-    private bool ShowPublicUrl => currentStep == PubUrlSteps.AccessPublicUrl;
-    private bool ShowSkipMetadata => currentStep == PubUrlSteps.EnterMetadata;
+    private bool ShowSubmitApproval => currentStep == PublicUrlSharingStatus.RequestApproval;
+    private bool ShowPublicationDate => currentStep == PublicUrlSharingStatus.PendingPublication && !string.IsNullOrEmpty(PublicationDateStr);
+    private bool ShowPublicUrl => currentStep == PublicUrlSharingStatus.AccessPublicUrl;
+    private bool ShowSkipMetadata => currentStep == PublicUrlSharingStatus.EnterMetadata;
     private string PublicationDateStr = string.Empty;
 
     //TODO add domain
@@ -142,12 +133,12 @@
         await t; 
         savingData = false;
         NavManager.NavigateTo($"{uri}#stepsDiv");
-        UpdateCurrentStatus(PubUrlSteps.RequestApproval);
+        UpdateCurrentStatus(PublicUrlSharingStatus.RequestApproval);
     }
 
     private async Task AcceptMetadata()
     {
-        UpdateCurrentStatus(PubUrlSteps.RequestApproval);
+        UpdateCurrentStatus(PublicUrlSharingStatus.RequestApproval);
     }
 
     private async Task SubmitForApproval()
@@ -157,25 +148,25 @@
         var t = PublicFileService.SubmitPublicUrlShareForApproval(fileIdGuid);
 
         await t;
-        UpdateCurrentStatus(PubUrlSteps.PendingApproval);
+        UpdateCurrentStatus(PublicUrlSharingStatus.PendingApproval);
 
         savingData = false;
     }
 
-    private void UpdateCurrentStatus(PubUrlSteps step, bool passed = false)
+    private void UpdateCurrentStatus(PublicUrlSharingStatus step, bool passed = false)
     {
         currentStep = step;
-        _stepStates[step] = passed? AeSteps<PubUrlSteps>.StepState.Passed : AeSteps<PubUrlSteps>.StepState.Running;
+        _stepStates[step] = passed? AeSteps<PublicUrlSharingStatus>.StepState.Passed : AeSteps<PublicUrlSharingStatus>.StepState.Running;
 
-        foreach (var stepv in Enum.GetValues<PubUrlSteps>())
+        foreach (var stepv in Enum.GetValues<PublicUrlSharingStatus>())
         {
             if (stepv < step)
             {
-                _stepStates[stepv] = AeSteps<PubUrlSteps>.StepState.Passed;
+                _stepStates[stepv] = AeSteps<PublicUrlSharingStatus>.StepState.Passed;
             }
             else if (stepv > step)
             {
-                _stepStates[stepv] = AeSteps<PubUrlSteps>.StepState.Queued;
+                _stepStates[stepv] = AeSteps<PublicUrlSharingStatus>.StepState.Queued;
             }
         }
     }
@@ -194,40 +185,16 @@
         foreach(var step in steps)
         {
             var stepName = step.ToString();
-            var keys = ($"PUBLIC-URL-WIZARD.{stepName}.Title", $"PUBLIC-URL-WIZARD.{stepName}.Description");
+            var prefix = SharedDataFile.PUBLIC_URL_SHARING_STATUS_LOCALIZATION_PREFIX;
+            var keys = ($"{prefix}.{stepName}.Title", $"{prefix}.{stepName}.Description");
             _stepInfo.Add(step, (Localizer[keys.Item1], Localizer[keys.Item2]));
         }
 
-
-        @* _stepInfo = new Dictionary<PubUrlSteps, (string, string)?>()
-            {
-                { PubUrlSteps.EnterMetadata, (Localizer["Enter Metadata"], Localizer["Fill in the required metadata to share this data file, and optionally any additional metadata."])},
-                { PubUrlSteps.RequestApproval, (Localizer["Request Approval"], Localizer["Submit the request for approval."])},
-                { PubUrlSteps.PendingApproval, (Localizer["Pending Approval"], Localizer["The request has been submitted for approval. Once the request is approved, the file will be publicly accessible after the publication date."])},
-                { PubUrlSteps.PendingPublication, (Localizer["Pending Publication"], Localizer["The request has been approved, but the publication date has not yet been reached."])},
-                { PubUrlSteps.AccessPublicUrl, (Localizer["Access Public URL"], Localizer["The file is now publicly accessible."])},
-            }; *@
-
         var sharedFileInfo = await loadTask;
 
-        if (sharedFileInfo.PublicationDate_DT.HasValue && sharedFileInfo.PublicationDate_DT.Value <= DateTime.UtcNow)
-        {
-            UpdateCurrentStatus(PubUrlSteps.AccessPublicUrl, true);
-        }
-        else if (sharedFileInfo.ApprovedDate_DT.HasValue && sharedFileInfo.ApprovedDate_DT <= DateTime.UtcNow)
-        {
-            UpdateCurrentStatus(PubUrlSteps.PendingPublication);
-            PublicationDateStr = sharedFileInfo.PublicationDate_DT?.ToShortDateString();
-        }
-        else if (sharedFileInfo.SubmittedDate_DT.HasValue && sharedFileInfo.SubmittedDate_DT <= DateTime.UtcNow)
-        {
-            UpdateCurrentStatus(PubUrlSteps.PendingApproval);
-        }
-        else
-        {
-            UpdateCurrentStatus(PubUrlSteps.EnterMetadata);
-        }
-        
+        PublicationDateStr = sharedFileInfo.PublicationDate_DT?.ToShortDateString();
+        var status = sharedFileInfo.GetPublicUrlSharingStatus();
+        UpdateCurrentStatus(status, status == PublicUrlSharingStatus.AccessPublicUrl);
     }
 
 
