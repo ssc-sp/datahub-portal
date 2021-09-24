@@ -430,7 +430,7 @@
             _isDataApprover = projectUsers.Any(u => u.IsDataApprover);
         }
 
-        _sharingRequestCount = await PublicDataFileService.GetDataSharingRequestCount(projectAcronym);
+        _sharingRequestCount = await PublicDataFileService.GetDataSharingRequestsAwaitingApprovalCount(projectAcronym);
 
         var allPipelines = _project.Pipelines?.Select(p => p.Process_Nm).ToList();
         if (allPipelines != null)
