@@ -69,6 +69,8 @@ namespace NRCan.Datahub.Portal
 
                     //  logBuilder.AddFilter("Microsoft.AspNetCore.SignalR", LogLevel.Debug);
                     //  logBuilder.AddFilter("Microsoft.AspNetCore.Http.Connections", LogLevel.Debug);
+                    logBuilder.AddFilter("Microsoft.AspNetCore.HttpLogging.HttpLoggingMiddleware", LogLevel.Information);
+                    logBuilder.AddFilter<Microsoft.Extensions.Logging.ApplicationInsights.ApplicationInsightsLoggerProvider>("Microsoft.AspNetCore.HttpLogging.HttpLoggingMiddleware", LogLevel.Information);
                 })
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
