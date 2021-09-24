@@ -20,7 +20,7 @@
             </div>
             <div>@Localizer["PROJECT-PAGE.DATABASE-CARD.Expires"]: @_authResult.ExpiresOn.ToLocalTime()</div>
         }
-        else
+        else if (ProjectDbService.IsServiceAvailable())
         {
             <div>
                 <AeButton OnClickEvent=@GetPostgresToken Disabled=@awaitingToken>@Localizer["PROJECT-PAGE.DATABASE-CARD.GetToken_button"]</AeButton>
