@@ -15,11 +15,13 @@ namespace NRCan.Datahub.Portal.Services
         Task<SharedDataFile> LoadPublicUrlSharedFileInfo(Guid fileId);
         Task<OpenDataSharedFile> LoadOpenDataSharedFileInfo(Guid fileId);
         Task<bool> SubmitPublicUrlShareForApproval(Guid fileId);
-        Task<int> GetDataSharingRequestCount(string projectCode);
-        Task<List<SharedDataFile>> GetProjectSharingRequests(string projectCode);
+        Task<int> GetDataSharingRequestsAwaitingApprovalCount(string projectCode);
+        Task<List<SharedDataFile>> GetProjectSharingRequestsAwaitingApproval(string projectCode);
         Task ApprovePublicUrlShare(Guid fileId, DateTime? publicationDate = null);
         Task DenyPublicUrlShare(Guid fileId);
         Task UpdateOpenDataApprovalFormId(Guid fileId, int approvalFormId);
         Task UpdateOpenDataSignedApprovalFormUrl(Guid fileId, string url);
+        Task<List<SharedDataFile>> GetAllSharedDataForProject(string projectCode);
+        Task<bool> IsUserProjectDataApprover(string projectCode, string userId);
     }
 }
