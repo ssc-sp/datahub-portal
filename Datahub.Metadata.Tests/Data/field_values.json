@@ -1,0 +1,97 @@
+[
+  {
+    "ObjectMetadataId": 2,
+    "FieldDefinitionId": 59,
+    "Value_TXT": "86d0d9d9-ddfc-49e3-af4b-89f94c176d1d"
+  },
+  {
+    "ObjectMetadataId": 2,
+    "FieldDefinitionId": 60,
+    "Value_TXT": "86d0d9d9-ddfc-49e3-af4b-89f94c176d1d"
+  },
+  {
+    "ObjectMetadataId": 2,
+    "FieldDefinitionId": 61,
+    "Value_TXT": "api"
+  },
+  {
+    "ObjectMetadataId": 2,
+    "FieldDefinitionId": 67,
+    "Value_TXT": "New title english"
+  },
+  {
+    "ObjectMetadataId": 2,
+    "FieldDefinitionId": 68,
+    "Value_TXT": "Titre nouvelle"
+  },
+  {
+    "ObjectMetadataId": 2,
+    "FieldDefinitionId": 69,
+    "Value_TXT": "NRCAN"
+  },
+  {
+    "ObjectMetadataId": 2,
+    "FieldDefinitionId": 84,
+    "Value_TXT": "Canada,agricultural,Ontario"
+  },
+  {
+    "ObjectMetadataId": 2,
+    "FieldDefinitionId": 85,
+    "Value_TXT": "Canada,agricole,Ontario"
+  },
+  {
+    "ObjectMetadataId": 2,
+    "FieldDefinitionId": 86,
+    "Value_TXT": "agriculture|form_descriptors"
+  },
+  {
+    "ObjectMetadataId": 2,
+    "FieldDefinitionId": 90,
+    "Value_TXT": "2021-09-10"
+  },
+  {
+    "ObjectMetadataId": 2,
+    "FieldDefinitionId": 91,
+    "Value_TXT": "2021-08-18"
+  },
+  {
+    "ObjectMetadataId": 2,
+    "FieldDefinitionId": 93,
+    "Value_TXT": "2021-08-18"
+  },
+  {
+    "ObjectMetadataId": 2,
+    "FieldDefinitionId": 97,
+    "Value_TXT": "2021-08-17"
+  },
+  {
+    "ObjectMetadataId": 2,
+    "FieldDefinitionId": 108,
+    "Value_TXT": "vector|text_table|video"
+  },
+  {
+    "ObjectMetadataId": 2,
+    "FieldDefinitionId": 111,
+    "Value_TXT": "unrestricted"
+  },
+  {
+    "ObjectMetadataId": 2,
+    "FieldDefinitionId": 112,
+    "Value_TXT": "true"
+  },
+  {
+    "ObjectMetadataId": 2,
+    "FieldDefinitionId": 113,
+    "Value_TXT": "true"
+  },
+  {
+    "ObjectMetadataId": 2,
+    "FieldDefinitionId": 114,
+    "Value_TXT": "2021-07-30"
+  },
+  {
+    "ObjectMetadataId": 2,
+    "FieldDefinitionId": 115,
+    "Value_TXT": "table_digital"
+  }
+]
