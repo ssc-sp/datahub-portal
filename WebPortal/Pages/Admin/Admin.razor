@@ -26,9 +26,12 @@
         {
             <AeFlex Vertical>
                 <AePaginatedTable Accessors="GetProjectRequestAccessorFunctions()"
+                        T="Datahub_Project_User_Request"
                          Dataset="_userProjectAuthorization"
                          @ref="_table1"
                          Page="@_lastClicked1"
+                         GridTemplateColumns="3fr 3fr 3fr 3fr"
+                         PageSize="10"
                          Renderers="projectReqRenderFunctions"
                          Headers="LocalizeHeaders(projectReqheaders)" />
 
@@ -49,11 +52,14 @@
         @if (_usersAuthorization != null)
         {
             <AePaginatedTable Accessors="accessorFunctions"
+            T="Datahub_Project_Access_Request"
                      Dataset="_usersAuthorization"
                      Renderers="renderFunctions"
-                     @ref="@_table2"
+                     @ref="@_table2"                     
+                     GridTemplateColumns="2fr 3fr 2fr 3fr 2fr" 
                      Page="@_lastClicked2"
-                     Headers="LocalizeHeaders(headers)" />
+                     Headers="LocalizeHeaders(headers)"
+                     PageSize="10"/>
 
             <AePagination Pageable="@_table2" OnPageClick="OnTableClick2" />
         }
@@ -140,8 +146,8 @@
         </div>
 @code {
 
-    private int _lastClicked1;
-    private int _lastClicked2;
+    private int _lastClicked1 = 0;
+    private int _lastClicked2 = 0;
 
     [CascadingParameter]
     private Task<AuthenticationState> authenticationStateTask { get; set; }
