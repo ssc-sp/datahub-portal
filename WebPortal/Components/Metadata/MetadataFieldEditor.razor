@@ -38,6 +38,7 @@
                         _fieldType = FieldType.Keyword;
                         <KeywordInput @ref="_keywordInputRef" 
                                       FieldValue="FieldValue" 
+                                      English="@IsEnglishKeywords()"
                                       OnFieldChanged="OnFieldChanged" />
                     }
                     else
@@ -165,5 +166,10 @@
     private bool IsKeywordField()
     {
         return FieldDefinition.Field_Name_TXT.StartsWith("keywords_");
+    }
+
+    private bool IsEnglishKeywords()
+    {
+        return FieldDefinition.Field_Name_TXT.EndsWith("_en");
     }
 }
