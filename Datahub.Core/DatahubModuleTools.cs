@@ -20,10 +20,9 @@ namespace NRCan.Datahub.Shared
 
         public static void ConfigureModule<T>(this IApplicationBuilder builder) where T : IDatahubModule
         {
-            var offline = false;            
             var module = (T) Activator.CreateInstance(typeof(T));
             var settings = builder.ApplicationServices.GetService(typeof(IConfiguration));
-            var context = new DatahubModuleContext(builder.ApplicationServices, offline);
+            var context = new DatahubModuleContext(builder.ApplicationServices);
             module.InitializeDatabases(context);
         }
     }
