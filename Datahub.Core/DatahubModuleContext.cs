@@ -22,7 +22,7 @@ namespace NRCan.Datahub.Shared
 
         private ILogger<DatahubModuleContext> logger;
 
-        public DatahubModuleContext(IServiceProvider serviceProvider, bool offline)
+        public DatahubModuleContext(IServiceProvider serviceProvider)
         {
             this.serviceProvider = serviceProvider;
             var environment = serviceProvider.GetService(typeof(IWebHostEnvironment)) as IWebHostEnvironment;
@@ -32,7 +32,7 @@ namespace NRCan.Datahub.Shared
 
         public void InitializeDatabase<T>(bool migrate = true, bool ensureDeleteinOffline = true) where T : DbContext
         {
-            EFTools.InitializeDatabase<T>(logger, serviceProvider, migrate, ensureDeleteinOffline);
+            EFTools.InitializeDatabase<T>(logger, serviceProvider, offline, migrate, ensureDeleteinOffline);
         }
 
 
