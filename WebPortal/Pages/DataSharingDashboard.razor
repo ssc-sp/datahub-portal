@@ -161,7 +161,7 @@
         {
             f => f.Filename_TXT,
             f => GetUserDisplayName(f.RequestingUser_ID),
-            f => f.SubmittedDate_DT?.ToShortDateString()
+            f => f.SubmittedDate_DT?.ToShortDateString() ?? "--"
         };
 
         usersOwnFilesAccessors = new List<Func<SharedDataFile, string>>()
@@ -170,7 +170,7 @@
             f => f.SubmittedDate_DT?.ToShortDateString(),
             f => f.IsOpenDataRequest_FLAG? Localizer["Open Data"]: Localizer["Public URL"],
             f => Localizer[f.GetStatusKey()],
-            f => f.PublicationDate_DT?.ToShortDateString()
+            f => f.PublicationDate_DT?.ToShortDateString() ?? "--"
         };
 
         otherUsersFilesAccessors = new List<Func<SharedDataFile, string>>()
