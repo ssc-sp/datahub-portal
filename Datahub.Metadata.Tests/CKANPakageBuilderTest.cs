@@ -1,32 +1,48 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Xunit;
-using CsvHelper.Configuration;
-using System.Globalization;
 using NRCan.Datahub.Metadata.Model;
 using Newtonsoft.Json;
 using NRCan.Datahub.Metadata.DTO;
+using NRCan.Datahub.Metadata.CKAN;
 
 namespace NRCan.Datahub.Metadata.Tests
 {
     public class CKANPakageBuilderTest
     {
-        [Fact]
-        public void CKANPakageBuilder_GivenMetadata_MustConvertToExpectedJson()
-        {
-            var definitions = LoadDefinitions();
-            Assert.NotNull(definitions);
+        private FieldDefinitions _fieldDefinitions;
 
-            var fieldValues = LoadFields(definitions);
+        public CKANPakageBuilderTest()
+        {
+            _fieldDefinitions = LoadDefinitions();
+        }
+
+        [Fact]
+        public void PakageBuilder_GivenMetadata_MustConvertToExpectedJson()
+        {
+            var fieldValues = LoadFields(_fieldDefinitions);
             Assert.NotNull(fieldValues);
 
-            CKanPackageGenerator generator = new();
+            PackageGenerator generator = new();
 
             var dict = generator.GeneratePackage(fieldValues);
+
+            // simple field
+            var expected = "NRCAN";
+            Assert.Equal(dict["owner_org"].ToString(), expected);
+
+            // keyword field exists and contains the en & fr entries
+            Assert.NotNull(dict["keywords"]);
+            var keywords = (Dictionary<string, string[]>)dict["keywords"];
+            Assert.NotNull(keywords["en"]);
+            Assert.NotNull(keywords["fr"]);
+
+            // title translated exists and contains the en & fr entries
+            Assert.NotNull(dict["title_translated"]);
+            var title_translated = (Dictionary<string, string>)dict["title_translated"];
+            Assert.NotNull(title_translated["en"]);
+            Assert.NotNull(title_translated["fr"]);
 
             var json = JsonConvert.SerializeObject(dict);
 
@@ -61,152 +77,9 @@ namespace NRCan.Datahub.Metadata.Tests
                 fvalue.FieldDefinition = definitions.Get(fvalue.FieldDefinitionId);
             }
 
-            return new FieldValueContainer(fieldValues);
+            return new FieldValueContainer(definitions, fieldValues);
         }
 
         static string GetFileContent(string fileName) => File.ReadAllText($"./Data/{fileName}");
-    }
-
-    class CKanPackageGenerator
-    {
-        readonly List<FieldAgent> _fieldAgents;
-
-        public CKanPackageGenerator()
-        {
-            _fieldAgents = new()
-            {
-                new KeywordFieldAgent(),
-                new TranslatedFieldAgent(),
-                new CatchAllFieldAgent(true),
-                new CatchAllFieldAgent(false)
-            }; 
-        }
-
-        public Dictionary<string, object> GeneratePackage(FieldValueContainer fieldValues)
-        {
-            Dictionary<string, object> dict = new();
-
-            var agents = InstanciateAgents(fieldValues).ToList();
-            foreach (var agent in agents)
-            {
-                agent.RenderField(dict);
-            }
-
-            return dict;
-        }
-
-        private IEnumerable<FieldAgent> InstanciateAgents(IEnumerable<ObjectFieldValue> fieldValues)
-        {
-            foreach (var fv in fieldValues)
-            {
-                var definition = fv.FieldDefinition;
-                var matchingAgent = _fieldAgents.FirstOrDefault(a => a.Matches(definition));
-
-                var tuple = matchingAgent.Instanciate(definition.Field_Name_TXT, fv.Value_TXT);
-                if (tuple.append)
-                {
-                    yield return tuple.agent;
-                }
-            }
-        }
-    }
-
-    abstract class FieldAgent
-    {
-        public abstract bool Matches(FieldDefinition definition);
-        public abstract (bool append, FieldAgent agent) Instanciate(string fieldName, string fieldValue);
-        public abstract void RenderField(IDictionary<string, object> data);
-    }
-
-    class CatchAllFieldAgent : FieldAgent
-    {
-        readonly string _fieldName;
-        readonly string _fieldValue;
-        readonly bool _multiselect;
-
-        public CatchAllFieldAgent(bool multiselect)
-        {
-            _multiselect = multiselect;
-        }
-
-        private CatchAllFieldAgent(string fieldName, string fieldValue, bool multiselect)
-        {
-            _fieldName = fieldName;
-            _fieldValue = fieldValue;
-            _multiselect = multiselect;
-        }
-
-        public override bool Matches(FieldDefinition definition) => _multiselect == definition.MultiSelect_FLAG; 
-
-        public override (bool append, FieldAgent agent) Instanciate(string fieldName, string fieldValue)
-        {
-            return (append: true, agent: new CatchAllFieldAgent(fieldName, fieldValue, _multiselect));
-        }
-
-        public override void RenderField(IDictionary<string, object> data)
-        {
-            data[_fieldName] = _multiselect ? _fieldValue.Split('|') : _fieldValue;
-        }
-    }
-
-    class KeywordFieldAgent : FieldAgent
-    {
-        const string KeywordPrefix = "keywords_";
-
-        readonly Dictionary<string, string[]> _languages = new();
-
-        public override bool Matches(FieldDefinition definition) => definition.Field_Name_TXT.StartsWith(KeywordPrefix, StringComparison.InvariantCulture);
-
-        public override (bool append, FieldAgent agent) Instanciate(string fieldName, string fieldValue)
-        {
-            var append = _languages.Count == 0;
-
-            var language = fieldName.Substring(KeywordPrefix.Length);
-            _languages[language] = fieldValue.Split(',', StringSplitOptions.RemoveEmptyEntries);
-
-            return (append, this);
-        }
-
-        public override void RenderField(IDictionary<string, object> data)
-        {
-            data["keywords"] = _languages;
-        }
-    }
-
-    class TranslatedFieldAgent : FieldAgent
-    {
-        readonly Dictionary<string, Dictionary<string, string>> _fields = new();
-        
-        public override bool Matches(FieldDefinition definition)
-        {
-            var fieldName = definition.Field_Name_TXT;
-            return fieldName.EndsWith("_en") || fieldName.EndsWith("_fr");
-        }
-
-        public override (bool append, FieldAgent agent) Instanciate(string fieldName, string fieldValue)
-        {
-            var append = _fields.Count == 0;
-            var fieldNameRoot = fieldName.Substring(0, fieldName.Length - 3);
-            var fieldLanguage = fieldName.Substring(fieldName.Length - 2);
-
-            if (_fields.ContainsKey(fieldNameRoot))
-            {
-                _fields[fieldNameRoot][fieldLanguage] = fieldValue;
-            }
-            else
-            {
-                _fields[fieldNameRoot] = new() { [fieldLanguage] = fieldValue };
-            }
-
-            return (append, this);
-        }
-
-        public override void RenderField(IDictionary<string, object> data)
-        {
-            foreach (var kv in _fields)
-            {
-                data[kv.Key] = kv.Value;
-            }
-        }
     }
 }
