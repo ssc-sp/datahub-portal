@@ -34,9 +34,16 @@
         StateHasChanged();
     }
 
+    public bool IsRequiredMetadataValid => _fieldValues.ValidateRequired();
+
     public async Task SaveChanges()
     {
+        // update hidden fields
+        _fieldValues.AddOrUpdate("id", ObjectId);
+        _fieldValues.AddOrUpdate("name", ObjectId);
+
         await MetadataBrokerService.SaveMetadata(ObjectId, _definitions.MetadataVersion, _fieldValues);
+
         _saved = true;
         StateHasChanged();
     }
