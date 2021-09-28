@@ -616,7 +616,11 @@
       "Expires": "Expires",
       "Attribute": "Attribute",
       "Value": "Value",
-      "DbUsername": "Database Username"
+      "DbUsername": "Database Username",
+      "DbHostname": "Database Host Name",
+      "PostgresResources": "PostgreSQL Resources",
+      "ClickToExpand": "(click to expand)",
+      "ErrorLoadingPostgresInfo": "There was an error loading the Postgres Resources"
     }
   }
 }
