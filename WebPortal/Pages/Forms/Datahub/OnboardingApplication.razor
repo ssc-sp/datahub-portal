@@ -1,0 +1,212 @@
+﻿@inject IStringLocalizer DataLocalizer
+@inject IEmailNotificationService EmailService
+@implements IDisposable
+@inject IDbContextFactory<DatahubProjectDBContext> DbFactory
+@inject IUserInformationService UserInformationService
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JsInterop
+@inject IDatahubAuditingService AuditingService
+@page "/onboarding/applications"
+@using NRCan.Datahub.Shared.Model.Onboarding
+
+<NRCan.Datahub.Shared.Components.FormTemplate 
+        T="OnboardingApp" 
+        Metadata="@_formMetadata" 
+        HandleSubmit="HandleValidSubmit"
+        OnChangeForms="OnChange"
+        OnConfigureForms="OnConfigure"
+        CreateNewRecord="CreateNewApplication"
+        SelectedRecord="@_onboardingApplication"
+        SetFormEditRecord="SetFormEdit" />
+
+@code {
+
+    private FormMetadata<OnboardingApp> _formMetadata;
+    private bool _onchange;
+    private List<OnboardingApp> _onboardingApplications;
+    private OnboardingApp _onboardingApplication;
+    private DatahubProjectDBContext Context;
+    private List<string> MarkDownContent = new();
+    private Microsoft.Graph.User _user;
+    private List<Datahub_Project_Sectors_And_Branches> _sectors;
+    private List<Datahub_Project_Sectors_And_Branches> _branches;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // load projects
+        Context = DbFactory.CreateDbContext();
+        _user = await UserInformationService.GetUserAsync();
+        _formMetadata = new();
+
+        _sectors = Context.Organization_Levels.Where(l => l.Org_Level == "3").ToList();
+        _branches = Context.Organization_Levels.Where(l => l.Org_Level == "4").ToList();
+
+        await LoadApps();
+        _formMetadata.Header = "Datahub Project Onboarding Application Form";
+        
+        _formMetadata.DataSet = _onboardingApplications;
+        _formMetadata.AccessorFunctions = accessorFunctions;
+        _formMetadata.Headers = headers;
+        _formMetadata.GridTemplateColumns = "4fr 4fr 4fr 4fr";
+        _formMetadata.IsSubmitEnabled = true;
+        var isFrench = CultureInfo.CurrentCulture.Name.StartsWith("fr", StringComparison.InvariantCulture);
+        //var introfile = isFrench ? "FormIntroFr.md" : "FormIntro.md";
+        //var footerfile = isFrench ? "FormFooterWarningFr.md" : "FormFooterWarning.md";
+        _formMetadata.MarkDownContent = new List<string>();
+        _formMetadata.MarkDownContentFooter = new List<string>();
+        
+    }
+
+    private List<Func<OnboardingApp, string>> accessorFunctions = new List<Func<OnboardingApp, string>>
+    {
+        new Func<OnboardingApp, string>(p => { return p.Client_Sector; }),
+        new Func<OnboardingApp, string>(p => { return p.Client_Branch; }),
+        new Func<OnboardingApp, string>(p => { return p.Client_Division; }),
+        new Func<OnboardingApp, string>(p => { return p.Client_Contact_Name; }),
+    };
+
+    private List<string> headers = new List<string>
+    {
+        "Sector","Branch","Division", "Contact"
+    };
+
+    private async Task HandleValidSubmit()
+    {
+        if (_onboardingApplication != null)
+        {
+            if (_onboardingApplication.Application_ID == 0)
+            {
+                _onboardingApplication = Context.OnboardingApps.Add(_onboardingApplication).Entity;
+            }
+            _onboardingApplication.Last_Updated_DT = DateTime.Now;
+            
+            await Context.TrackSaveChangesAsync(AuditingService);
+        }
+
+        await LoadApps();
+        _onboardingApplication = null;
+        StateHasChanged();
+    }
+
+    //private async Task SendManagerDecisionEmails()
+    //{
+    //    var param = await GetLanguageTrainingParameters();
+    //    if (_onboardingApplication.Manager_Decision == "Approved" || _onboardingApplication.Manager_Decision == "Declined")
+    //    { 
+    //        await EmailService.SendApplicationCompleteNotification(param);
+    //        _onboardingApplication.ManagerDecisionSent = true;
+    //        await Context.SaveChangesAsync();
+    //    }  
+    //}
+
+    //private async Task SendApplicationCompletedEmails()
+    //{
+    //    var param = await GetLanguageTrainingParameters();
+    //    await EmailService.SendApplicationCompleteNotification(param);    
+    //}
+
+    //private async Task<LanguageTrainingParameters> GetLanguageTrainingParameters()
+    //{
+    //    LanguageTrainingParameters param = new();
+    //    param.ApplicationId = _onboardingApplication.Application_ID.ToString();
+    //    param.EmployeeEmailAddress = _onboardingApplication.Email_Address_EMAIL;
+    //    param.EmployeeName = _onboardingApplication.NRCan_Username;
+    //    param.TrainingType = _onboardingApplication.Training_Type;
+    //    param.ManagerEmailAddress = _onboardingApplication.Delegated_Manager_Email;
+    //    param.ManagerName = _onboardingApplication.Delegate_Manager_First_Name + " " + _onboardingApplication.Delegated_Manager_Last_Name;
+    //    param.ManagerDecision = _onboardingApplication.Manager_Decision;
+    //    return param;
+    //}
+
+    private async Task LoadApps()
+    {
+
+        _onboardingApplications = Context.OnboardingApps.ToList();
+        _formMetadata.DataSet = _onboardingApplications;
+
+    }
+
+
+    private List<string> LoadBranches()
+    {
+        if (string.IsNullOrEmpty(_onboardingApplication.Client_Sector))
+        {
+            return new List<string>();
+        }
+        var sectorId = _sectors.Where(s => s.Org_Name_E == _onboardingApplication.Client_Sector).First().Organization_ID;
+        var branches = _branches.Where(r => r.Superior_OrgId == sectorId).Select(r=> r.Org_Name_E).ToList();
+        return branches;
+    }
+
+    private void OnConfigure(IModelFormContext context)
+    {
+        var sectors = _sectors.Select(l => l.Org_Name_E).ToList();
+        var branches = _branches.Select(b => b.Org_Name_E).ToList();
+        context.RegisterOptionValueProperty<OnboardingApp>(p => p.Client_Sector, () => sectors, _ => context.RefreshOptions<OnboardingApp>(s => s.Client_Branch));
+        context.RegisterOptionValueProperty<OnboardingApp>(p => p.Client_Branch, LoadBranches);
+    }
+    
+    private void ToggleVisibility(IModelFormContext context)
+    {
+        //context.SetVisible<LanguageTrainingApplication>(p => p.Language_Training_Since_LETP_Assessment, _onboardingApplication.Completed_LETP_Assessment);
+        //context.SetVisible<LanguageTrainingApplication>(p => p.Language_Training_Provided_By, _onboardingApplication.Completed_LETP_Assessment && _onboardingApplication.Language_Training_Since_LETP_Assessment);
+        //context.SetVisible<LanguageTrainingApplication>(p => p.Last_Course_Successfully_Completed, _onboardingApplication.Completed_LETP_Assessment && (_onboardingApplication.Language_Training_Provided_By == "NRCan Language School" || _onboardingApplication.Language_Training_Provided_By == "École de langues de RNCan"));
+        //context.SetVisible<LanguageTrainingApplication>(p => p.Completed_Training_Year, _onboardingApplication.Completed_LETP_Assessment && (_onboardingApplication.Language_Training_Provided_By == "NRCan Language School" || _onboardingApplication.Language_Training_Provided_By == "École de langues de RNCan"));
+        //context.SetVisible<LanguageTrainingApplication>(p => p.Completed_Training_Session, _onboardingApplication.Completed_LETP_Assessment && (_onboardingApplication.Language_Training_Provided_By == "NRCan Language School" || _onboardingApplication.Language_Training_Provided_By == "École de langues de RNCan"));
+        //context.SetVisible<LanguageTrainingApplication>(p => p.Report_Sent_To_NRCan_Language_School, _onboardingApplication.Completed_LETP_Assessment  && (_onboardingApplication.Language_Training_Provided_By == "External Provider" || _onboardingApplication.Language_Training_Provided_By == "Fournisseur externe"));
+        //context.SetVisible<LanguageTrainingApplication>(p => p.Second_Language_Evaluation_Results, _onboardingApplication.Completed_LETP_Assessment);
+        //context.SetVisible<LanguageTrainingApplication>(p => p.SLE_Results_Reading, _onboardingApplication.Completed_LETP_Assessment && _onboardingApplication.Second_Language_Evaluation_Results);
+        //context.SetVisible<LanguageTrainingApplication>(p => p.SLE_Results_Writing, _onboardingApplication.Completed_LETP_Assessment && _onboardingApplication.Second_Language_Evaluation_Results);
+        //context.SetVisible<LanguageTrainingApplication>(p => p.SLE_Results_Oral, _onboardingApplication.Completed_LETP_Assessment && _onboardingApplication.Second_Language_Evaluation_Results);
+        //context.SetVisible<LanguageTrainingApplication>(p => p.Training_Type, _onboardingApplication.Completed_LETP_Assessment);
+        //context.SetVisible<LanguageTrainingApplication>(p => p.SLE_Test_Date, _onboardingApplication.Completed_LETP_Assessment && (_onboardingApplication.Training_Type == "Individual - Coaching" || _onboardingApplication.Training_Type == "Encadrement individuel"));
+        //context.SetVisible<LanguageTrainingApplication>(p => p.Session_For_Language_Training, _onboardingApplication.Completed_LETP_Assessment && (_onboardingApplication.Training_Type == "Group Training - Part-Time Training" || _onboardingApplication.Training_Type == "Group Training - Full-Time Training" || _onboardingApplication.Training_Type == "Formation en groupe – Formation à temps plein" || _onboardingApplication.Training_Type == "Formation en groupe – Formation à temps partiel"));
+        //context.SetVisible<LanguageTrainingApplication>(p => p.Class_For_Language_Training, _onboardingApplication.Completed_LETP_Assessment && (_onboardingApplication.Training_Type == "Group Training - Part-Time Training" || _onboardingApplication.Training_Type == "Group Training - Full-Time Training" || _onboardingApplication.Training_Type == "Formation en groupe – Formation à temps plein" || _onboardingApplication.Training_Type == "Formation en groupe – Formation à temps partiel"));
+        //context.SetVisible<LanguageTrainingApplication>(p => p.Delegate_Manager_First_Name, _onboardingApplication.Completed_LETP_Assessment);
+        //context.SetVisible<LanguageTrainingApplication>(p => p.Delegated_Manager_Last_Name, _onboardingApplication.Completed_LETP_Assessment);
+        //context.SetVisible<LanguageTrainingApplication>(p => p.Delegated_Manager_Email, _onboardingApplication.Completed_LETP_Assessment);
+        //context.SetVisible<LanguageTrainingApplication>(p => p.Employee_Appointed_NonImperative_Basis, _onboardingApplication.Completed_LETP_Assessment);
+        //context.SetVisible<LanguageTrainingApplication>(p => p.Employee_equity_group, _onboardingApplication.Completed_LETP_Assessment);
+        //context.SetVisible<LanguageTrainingApplication>(p => p.Employee_language_profile_raised, _onboardingApplication.Completed_LETP_Assessment);
+        //context.SetVisible<LanguageTrainingApplication>(p => p.Employee_professional_dev_program, _onboardingApplication.Completed_LETP_Assessment);
+        //context.SetVisible<LanguageTrainingApplication>(p => p.Employee_talent_management_exercise, _onboardingApplication.Completed_LETP_Assessment);
+
+        //context.SetVisible<LanguageTrainingApplication>(p => p.Manager_First_Name, _onboardingApplication.Delegated_Manager_Email?.ToLower() == _user.Mail.ToLower());
+        //context.SetVisible<LanguageTrainingApplication>(p => p.Manager_Last_Name, _onboardingApplication.Delegated_Manager_Email?.ToLower() == _user.Mail.ToLower());
+        //context.SetVisible<LanguageTrainingApplication>(p => p.Manager_Email_Address, _onboardingApplication.Delegated_Manager_Email?.ToLower() == _user.Mail.ToLower());
+        //context.SetVisible<LanguageTrainingApplication>(p => p.Manager_Decision, _onboardingApplication.Delegated_Manager_Email?.ToLower() == _user.Mail.ToLower());
+        //context.SetVisible<LanguageTrainingApplication>(p => p.Decision, _onboardingApplication.Delegated_Manager_Email?.ToLower() == _user.Mail.ToLower());
+
+        //var isFrench = CultureInfo.CurrentCulture.Name.StartsWith("fr", StringComparison.InvariantCulture);        
+        
+        //_formMetadata.IsSubmitEnabled = _onboardingApplication.Completed_LETP_Assessment;
+        //var footerfile = _formMetadata.IsSubmitEnabled ? (isFrench ? "FormFooterFr.md" : "FormFooter.md") : (isFrench ? "FormFooterWarningFr.md" : "FormFooterWarning.md");
+
+        //_formMetadata.MarkDownContentFooter = File.ReadAllLines($@"Pages\Forms\LanguageTraining\{footerfile}").ToList();
+        //_onchange = false;
+    }
+
+    private void OnChange(ModelFormChangeArgs args)
+    {
+        _onchange = true;
+        //OnConfigure(args.Context);
+    }
+
+    private async Task CreateNewApplication()
+    {
+        _onboardingApplication = new OnboardingApp() { Last_Updated_DT = DateTime.Now };
+        //var user = await UserInformationService.GetUserAsync();
+        _onboardingApplication.Client_Email = _user.Mail;
+        _onboardingApplication.Client_Contact_Name = _user.DisplayName;
+
+        StateHasChanged();
+    }
+
+    private void SetFormEdit(OnboardingApp application)
+    {
+        _onboardingApplication = application;
+        StateHasChanged();
+    }
+
+    public void Dispose() { Context.Dispose(); }
+}

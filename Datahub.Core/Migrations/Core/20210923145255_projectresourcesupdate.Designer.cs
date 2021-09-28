@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NRCan.Datahub.Shared.EFCore;
 
-namespace NRCan.Datahub.Portal.Migrations.Forms.DatahubProjectDB
+namespace NRCan.Datahub.Shared.Migrations.Core
 {
     [DbContext(typeof(DatahubProjectDBContext))]
-    partial class DatahubProjectDBContextModelSnapshot : ModelSnapshot
+    [Migration("20210923145255_projectresourcesupdate")]
+    partial class projectresourcesupdate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -344,8 +346,9 @@ namespace NRCan.Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.Property<int>("Organization_ID")
                         .HasColumnType("int");
 
-                    b.Property<int?>("Superior_OrgId")
-                        .HasColumnType("int");
+                    b.Property<string>("Superior_OrgId")
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
 
                     b.HasKey("SectorAndBranchS_ID");
 
@@ -940,9 +943,6 @@ namespace NRCan.Datahub.Portal.Migrations.Forms.DatahubProjectDB
                         .HasColumnType("bit");
 
                     b.Property<string>("Project_Goal")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Project_Name")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Project_Summary_Description")
