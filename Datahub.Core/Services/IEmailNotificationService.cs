@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using MimeKit;
 
 namespace NRCan.Datahub.Shared.Services
 {
@@ -7,9 +8,10 @@ namespace NRCan.Datahub.Shared.Services
     {
         Task<string> RenderTestTemplate();
         Task<string> RenderTemplate<T>(IDictionary<string, object> parameters = null) where T: Microsoft.AspNetCore.Components.IComponent;
-        Task SendEmailMessage(string subject, string body, string recipientAddress, string recipientName = null, bool isHtml = true);
-        Task SendEmailMessage(string subject, string body, IList<string> recipientAddresses, bool isHtml = true);
+        Task SendEmailMessage(string subject, string body, string userIdOrAddress, string recipientName = null, bool isHtml = true);
+        Task SendEmailMessage(string subject, string body, IList<string> userIdsOrAddresses, bool isHtml = true);
         bool IsDevTestMode();
+        IList<MailboxAddress> TestUsernameEmailConversion(IList<(string address, string name)> recipients);
 
         Task SendServiceCreationRequestNotification(string username, string serviceName, DatahubProjectInfo projectInfo, IList<string> recipients);
         Task SendServiceAccessRequestNotification(string username, string serviceName, DatahubProjectInfo projectInfo, IList<string> recipients);

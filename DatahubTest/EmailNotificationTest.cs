@@ -8,6 +8,7 @@ using Microsoft.Extensions.Localization;
 using MimeKit;
 using Moq;
 using NRCan.Datahub.Shared;
+using NRCan.Datahub.Shared.Data;
 using NRCan.Datahub.Shared.Services;
 using Xunit;
 using Xunit.Abstractions;
@@ -16,11 +17,19 @@ namespace DatahubTest
 {
     public class EmailNotificationTestFixture: IDisposable
     {
+        public static readonly string USER_1_ID = "753c8790-a3ab-4b7e-a0d6-69e228853994";
+        public static readonly string USER_1_NAME = "Fred Flintstone";
+        public static readonly string USER_1_ADDR = "fred@bedrock.com";
+        public static readonly string USER_2_ID = "ff47397d-fe84-414d-8029-4ec8eacbbb2b";
+        public static readonly string USER_2_NAME = "Barney Rubble";
+        public static readonly string USER_2_ADDR = "barney@bedrock.com";
+
         public EmailConfiguration EmailConfig { get; private set; }
         public EmailNotificationService EmailNotificationService { get; private set; }
         
         private ITestOutputHelper _output = null;
         private Mock<IStringLocalizer> _localizerMock;
+        private Mock<IMSGraphService> _graphServiceMock;
         private IConfigurationRoot _config;
 
         public IDictionary<string, object> EmailNotificationParameters { get; private set; }
@@ -39,6 +48,14 @@ namespace DatahubTest
 
             _localizerMock = new Mock<IStringLocalizer>();
 
+            var fakeUser1 = GenerateTestUser(USER_1_ID, USER_1_NAME, USER_1_ADDR);
+            var fakeUser2 = GenerateTestUser(USER_2_ID, USER_2_NAME, USER_2_ADDR);
+
+            _graphServiceMock = new Mock<IMSGraphService>();
+            _graphServiceMock.Setup(g => g.GetUser(USER_1_ID)).Returns(fakeUser1);
+            _graphServiceMock.Setup(g => g.GetUser(USER_2_ID)).Returns(fakeUser2);
+            _graphServiceMock.Setup(g => g.GetUserIdFromEmail(USER_1_ADDR)).Returns(USER_1_ID);
+            _graphServiceMock.Setup(g => g.GetUserIdFromEmail(USER_2_ADDR)).Returns(USER_2_ID);
 
             var testProject = new DatahubProjectInfo() { ProjectNameEn = "PIP", ProjectNameFr = "PIP (FR)" };
 
@@ -56,12 +73,39 @@ namespace DatahubTest
             };
         }
 
+        private GraphUser GenerateTestUser(string id, string name, string email)
+        {
+            var user = new GraphUser()
+            {
+                Id = id,
+                DisplayName = name
+            };
+            var mailAddress = new System.Net.Mail.MailAddress(email);
+
+            // this is horrible
+            var bindingFlags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
+            var mailAddressProp = user.GetType().GetProperty("mailAddress", bindingFlags);
+            mailAddressProp.SetValue(user, mailAddress);
+
+            return user;
+
+
+            /*
+            var I = foo.GetType().GetProperty(nameof(Foo.I), BindFlags.Public | BindingFlag.Instance);
+I.SetValue(foo, 8675309);
+            */
+        }
+
         public void InitOutput(ITestOutputHelper output)
         {
             if (_output == null)
             {
                 _output = output;
-                EmailNotificationService = new EmailNotificationService(_localizerMock.Object, _config, _output.BuildLoggerFor<EmailNotificationService>());
+                EmailNotificationService = new EmailNotificationService(
+                    _localizerMock.Object, 
+                    _config, 
+                    _output.BuildLoggerFor<EmailNotificationService>(),
+                    _graphServiceMock.Object);
             }
         }
 
@@ -169,5 +213,46 @@ namespace DatahubTest
 
             Assert.Equal(expectedRender, html);
         }
+
+        [Fact]
+        public void TestLookupOneRecipientById()
+        {
+            var recipients = new List<(string address, string name)>() { (EmailNotificationTestFixture.USER_1_ID, null) };
+            var result = _fixture.EmailNotificationService.TestUsernameEmailConversion(recipients);
+
+            Assert.Single(result);
+            
+            var singleResult = result[0];
+            Assert.Equal(EmailNotificationTestFixture.USER_1_ADDR, singleResult.Address);
+            Assert.Equal(EmailNotificationTestFixture.USER_1_NAME, singleResult.Name);
+        }
+
+        [Fact]
+        public void TestLookupOneRecipientByEmail()
+        {
+            var recipients = new List<(string address, string name)>() { (EmailNotificationTestFixture.USER_1_ADDR, null) };
+            var result = _fixture.EmailNotificationService.TestUsernameEmailConversion(recipients);
+
+            Assert.Single(result);
+
+            var singleResult = result[0];
+            Assert.Equal(EmailNotificationTestFixture.USER_1_ADDR, singleResult.Address);
+            Assert.Equal(EmailNotificationTestFixture.USER_1_NAME, singleResult.Name);
+        }
+
+        [Fact]
+        public void TestMakeRecipientUsingAddressAndName()
+        {
+            var fakeName = "Hank Hill";
+            var recipients = new List<(string address, string name)>() { (EmailNotificationTestFixture.USER_1_ADDR, fakeName) };
+            var result = _fixture.EmailNotificationService.TestUsernameEmailConversion(recipients);
+
+            Assert.Single(result);
+
+            var singleResult = result[0];
+            Assert.Equal(EmailNotificationTestFixture.USER_1_ADDR, singleResult.Address);
+            Assert.Equal(fakeName, singleResult.Name);
+        }
+
     }
 }
