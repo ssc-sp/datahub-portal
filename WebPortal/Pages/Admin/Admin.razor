@@ -24,10 +24,19 @@
         <ChildContent>
         @if (_userProjectAuthorization != null)
         {
-            <AeTable Accessors="GetProjectRequestAccessorFunctions()"
-                     Dataset="_userProjectAuthorization"
-                     Renderers="projectReqRenderFunctions"
-                     Headers="LocalizeHeaders(projectReqheaders)" />
+            <AeFlex Vertical>
+                <AePaginatedTable Accessors="GetProjectRequestAccessorFunctions()"
+                        T="Datahub_Project_User_Request"
+                         Dataset="_userProjectAuthorization"
+                         @ref="_table1"
+                         Page="@_lastClicked1"
+                         GridTemplateColumns="3fr 3fr 3fr 3fr"
+                         PageSize="10"
+                         Renderers="projectReqRenderFunctions"
+                         Headers="LocalizeHeaders(projectReqheaders)" />
+
+                <AePagination Pageable="@_table1" OnPageClick="OnTableClick1" />
+            </AeFlex>
         }
         else
         {
@@ -42,10 +51,17 @@
 
         @if (_usersAuthorization != null)
         {
-            <AeTable Accessors="accessorFunctions"
+            <AePaginatedTable Accessors="accessorFunctions"
+            T="Datahub_Project_Access_Request"
                      Dataset="_usersAuthorization"
                      Renderers="renderFunctions"
-                     Headers="LocalizeHeaders(headers)" />
+                     @ref="@_table2"                     
+                     GridTemplateColumns="2fr 3fr 2fr 3fr 2fr" 
+                     Page="@_lastClicked2"
+                     Headers="LocalizeHeaders(headers)"
+                     PageSize="10"/>
+
+            <AePagination Pageable="@_table2" OnPageClick="OnTableClick2" />
         }
         else
         {
@@ -129,10 +145,17 @@
         </AuthorizeView>
         </div>
 @code {
+
+    private int _lastClicked1 = 0;
+    private int _lastClicked2 = 0;
+
     [CascadingParameter]
     private Task<AuthenticationState> authenticationStateTask { get; set; }
 
     private List<string> _authorizedRoles;
+
+    private IPageableComponent _table1;
+    private IPageableComponent _table2;
 
     private List<Datahub_Project_Access_Request> _usersAuthorization;
 
@@ -156,6 +179,16 @@
     {
         "Project", "Requesting User", "Service", "Created", "Notified"
     };
+
+    private void OnTableClick1(int pageIndex)
+    {
+        _lastClicked1 = pageIndex;
+    }
+
+    private void OnTableClick2(int pageIndex)
+    {
+        _lastClicked2 = pageIndex;
+    }
 
     private bool _emailSelf = true;
     private bool EmailSelf
@@ -251,9 +284,18 @@
 
         var serviceName = r.RequestServiceType;
 
-        await EmailService.SendServiceAccessGrantedNotification(serviceName, r.Project.ProjectInfo, r.User_Name);
+        await EmailService.SendServiceAccessGrantedNotification(serviceName, r.Project.ProjectInfo, r.User_ID);
 
         await RefreshData();
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+      // You must re-render after the components are initialized in order for the 
+      // component reference to not be null
+      if (firstRender) {
+        StateHasChanged();
+      }
     }
 
     private async Task AuthorizeProjectUser(Datahub_Project_User_Request r)
@@ -273,12 +315,10 @@
             IsDataApprover = false
         };
 
-        var user = await UserInformationService.GetUserAsync();
-
         projectContext.Project_Users.Add(request);
         await projectContext.SaveChangesAsync();
         var serviceName = r.Project.ProjectName;
-        await EmailService.SendServiceAccessGrantedNotification(serviceName, r.Project.ProjectInfo, user.Mail, user.DisplayName);
+        await EmailService.SendServiceAccessGrantedNotification(serviceName, r.Project.ProjectInfo, r.User_ID);
 
         await RefreshData();
     }
@@ -290,29 +330,29 @@
 
         var serviceName = r.RequestServiceType;
 
-        await EmailService.SendAccessRevokedNotification(serviceName, r.Project.ProjectInfo, r.User_Name);
+        await EmailService.SendAccessRevokedNotification(serviceName, r.Project.ProjectInfo, r.User_ID);
 
         await RefreshData();
     }
 
     private async Task NotifyServiceCreation(Datahub_ProjectServiceRequests r)
     {
-        var requestingUserEmail = r.User_Name?.ToLowerInvariant();
+        var requestingUserId = r.User_ID;
         var project = r.Project;
         await projectContext.Entry(project).Collection(p => p.Users).LoadAsync();
-        var userEmails = project.Users
-            .Select(u => MSGraphService.GetUserEmail(u.User_ID).ToLowerInvariant())
+        var projectUserIds = project.Users
+            .Select(u => u.User_ID)
             .ToHashSet();
         
         Task individualEmailTask = null;
 
-        if (!string.IsNullOrEmpty(requestingUserEmail))
+        if (!string.IsNullOrEmpty(requestingUserId))
         {
-            userEmails.Remove(requestingUserEmail);
-            individualEmailTask = EmailService.SendServiceCreationRequestApprovedIndividual(r.ServiceType, r.Project.ProjectInfo, requestingUserEmail);
+            projectUserIds.Remove(requestingUserId);
+            individualEmailTask = EmailService.SendServiceCreationRequestApprovedIndividual(r.ServiceType, r.Project.ProjectInfo, requestingUserId);
         }
 
-        await EmailService.SendServiceCreationGroupNotification(r.ServiceType, r.Project.ProjectInfo, userEmails.ToList());
+        await EmailService.SendServiceCreationGroupNotification(r.ServiceType, r.Project.ProjectInfo, projectUserIds.ToList());
 
         if (individualEmailTask != null)
         {
@@ -351,8 +391,6 @@
         ResetTestRecipient();
 
         await RefreshData();
-
-
 
         projectReqRenderFunctions = new List<Func<Datahub_Project_User_Request, RenderFragment>>
         {
