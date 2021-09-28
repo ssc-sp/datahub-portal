@@ -5,7 +5,7 @@
 @inject UIControlsService UI
 @inject IMSGraphService MSGraphService
 @page "/pip/risks/{tombstone}"
-
+@inject IDatahubAuditingService AuditingService
 
 @implements IDisposable
 @inject IDbContextFactory<PIPDBContext> DbFactory
@@ -135,7 +135,7 @@
             {
                 _risk = Context.Risks.Add(_risk).Entity;
             }
-            await Context.SaveChangesAsync();
+            await Context.TrackSaveChangesAsync(AuditingService);
             await OnInitializedAsync();
             _risk = null;
         }
