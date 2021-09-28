@@ -28,8 +28,14 @@
 
     </div>
 </AeFlex>
-<AeFlex Vertical id="indexFlex">
 
+<AeFlex id="filterBar">
+    @*<AeDropdown Items="securityClassOptions" Renderer="GetOption" OnChange="HandleDropdownChange" LabelRenderFragment="getIcon" id="securityDropdown" />*@
+</AeFlex>
+
+
+
+<AeFlex Vertical id="indexFlex">
 
 
 <AePaginatedTable Accessors="accessorFunctions"
@@ -115,6 +121,15 @@ if (_project.Project_ID > 0)
     
     private int _lastClicked = 0;
     private IPageableComponent _myTable;
+
+    private List<(Delegate Label, Delegate choices)> filterProperties = new List<(Delegate Label, Delegate choices)>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        // load projects        
+        Context = DbFactory.CreateDbContext();
+        await LoadProjects(); 
+    }
 
     public async Task SuggestTranslation()
     {
@@ -225,13 +240,6 @@ if (_project.Project_ID > 0)
         StateHasChanged();
     }
 
-
-    protected override async Task OnInitializedAsync()
-    {
-        // load projects        
-        Context = DbFactory.CreateDbContext();
-        await LoadProjects(); 
-    }
 
     private async Task LoadProjects()
     {
