@@ -13,7 +13,7 @@ namespace NRCan.Datahub.Metadata.DTO
         {
             _objectId = objectId;
             _definitions = definitions;
-            _fieldValues = new FieldValueContainer(fieldValues);
+            _fieldValues = new FieldValueContainer(definitions, fieldValues);
         }
 
         public string ObjectId => _objectId;
