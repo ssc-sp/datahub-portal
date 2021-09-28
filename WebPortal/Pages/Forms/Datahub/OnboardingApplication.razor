@@ -5,6 +5,7 @@
 @inject IUserInformationService UserInformationService
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JsInterop
+@inject IDatahubAuditingService AuditingService
 @page "/onboarding/applications"
 @using NRCan.Datahub.Shared.Model.Onboarding
 
@@ -79,7 +80,7 @@
             }
             _onboardingApplication.Last_Updated_DT = DateTime.Now;
             
-            await Context.SaveChangesAsync();            
+            await Context.TrackSaveChangesAsync(AuditingService);
         }
 
         await LoadApps();
