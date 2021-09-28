@@ -6,6 +6,7 @@
 @inject IMSGraphService MSGraphService
 @implements IDisposable
 @inject IDbContextFactory<PIPDBContext> DbFactory
+@inject IDatahubAuditingService AuditingService
 
 @page "/pip/indicators/{tombstone}"
 
@@ -110,7 +111,8 @@
         Context = DbFactory.CreateDbContext();
         renderFunctions = new List<Func<PIP_Risks, RenderFragment>>
 {
-        new Func<PIP_Risks, RenderFragment>(p => { return p.PIP_IndicatorRisks.Any(q => q.Pip_Indicator == _indicator) ? @<i class="fal fa-check-square"></i> : @<i class="fal fa-square"></i>; }),
+        new Func<PIP_Risks, RenderFragment>(p => { return p.PIP_IndicatorRisks.Any(q => q.Pip_Indicator == _indicator) ? @<i class="fal fa-check-square"></i> : @<i class="fal fa-square"></i>
+    ; }),
         null,
         null,
     };
@@ -172,7 +174,7 @@
             {
                 _indicator = Context.IndicatorAndResults.Add(_indicator).Entity;
             }
-            await Context.SaveChangesAsync();
+            await Context.TrackSaveChangesAsync(AuditingService);
             await OnInitializedAsync();
             _indicator = null;
         }
@@ -268,7 +270,7 @@
             var indicatorRisk = new PIP_IndicatorRisks() { Pip_Indicator = pipIndicator, Pip_Risk = risk };
             Context.IndicatorRisks.Add(indicatorRisk);
         }
-        Context.SaveChanges();
+        Context.TrackSaveChangesAsync(AuditingService);
 
         UpdateRisks();
         StateHasChanged();
