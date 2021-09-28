@@ -6,6 +6,7 @@
 @inject IMSGraphService MSGraphService
 @inject UIControlsService UI
 @inject IConfiguration Configuration
+@inject IDatahubAuditingService AuditingService
 
 @implements IDisposable
 @inject IDbContextFactory<PIPDBContext> DbFactory
@@ -297,7 +298,7 @@
             {
                 _tombstone = Context.Tombstones.Add(_tombstone).Entity;
             }
-            await Context.SaveChangesAsync();
+            await Context.TrackSaveChangesAsync(AuditingService);
             _projects = Context.Tombstones.ToList();
             _tombstone = null;        
         }
