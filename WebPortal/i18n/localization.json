@@ -649,7 +649,8 @@
       "DbHostname": "Database Host Name",
       "PostgresResources": "PostgreSQL Resources",
       "ClickToExpand": "(click to expand)",
-      "ErrorLoadingPostgresInfo": "There was an error loading the Postgres Resources"
+      "ErrorLoadingPostgresInfo": "There was an error loading the Postgres Resources",
+      "Copy": "Copy"
     }
   }
 }
