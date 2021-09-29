@@ -21,7 +21,7 @@
             <div>
                 @Localizer[$"{LOCALIZATION_PREFIX}.AccessToken"]:
                 <a href="#" onclick="copyToClipboard('dbAccessToken')" @onclick:preventDefault=@true>
-                    <i class="fas fa-copy" >&nbsp;</i>
+                    <i class="fas fa-copy" title=@Localizer[$"{LOCALIZATION_PREFIX}.Copy"] >&nbsp;</i>
                 </a>
                 <AeInput disabled DefaultValue=@_authResult.AccessToken class="formuserinput" id="dbAccessToken" />
             </div>
