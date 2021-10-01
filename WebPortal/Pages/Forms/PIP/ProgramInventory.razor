@@ -157,15 +157,23 @@
     }
 
 
-    private void SetFormEdit(PIP_Tombstone project)
+    private async Task SetFormEdit(PIP_Tombstone project)
     {
-        var powerBiTargets = Configuration["PowerBiTargets:SPI"];
-        _tombstone = project;
-        _tombstone.Last_Updated_UserName = MSGraphService.GetUserName(_tombstone.Last_Updated_UserId);
-        
-        SubmitLabel = "Save";
-        StateHasChanged();
-        _navToEdit = true;
+        if (Context.ChangeTracker.HasChanges())
+        {
+            var messages = new List<string>() { "Data has been edited, would you like to save?" };
+            await UI.ToggleModal(@<UserChoiceModal HeaderText="Save Data" ChoiceTextList=@messages OnDecision="(a) => OnConfirmSave(a, project)" ConfirmText="Yes" CancelText="No" />
+    );
+        }
+        else
+        {
+            _tombstone = project;
+            _tombstone.Last_Updated_UserName = MSGraphService.GetUserName(_tombstone.Last_Updated_UserId);
+
+            SubmitLabel = "Save";
+            StateHasChanged();
+            _navToEdit = true;
+        }
     }
 
 
@@ -282,14 +290,16 @@
     {
         var id = _tombstone.Tombstone_ID;
         navigationUrl = $"/pip/indicators/{id}";
-        await HandleValidSubmit();
-        
+        if (_tombstone == null || !Context.ChangeTracker.HasChanges())
+            NavigationManager.NavigateTo(navigationUrl);
+        else
+            await HandleValidSubmit();           
     }
 
     private async void OnConfirmSave(bool isConfirmed, dynamic item)
     {
-        if (isConfirmed && _tombstone != null )
-        {            
+        if (isConfirmed && _tombstone != null)
+        {
             _tombstone.Last_Updated_DT = DateTime.Now;
             _tombstone.Date_Updated_DT = DateTime.Now;
             _tombstone.Last_Updated_UserId = CurrentUser.Id;
@@ -300,8 +310,16 @@
             }
             await Context.TrackSaveChangesAsync(AuditingService);
             _projects = Context.Tombstones.ToList();
-            _tombstone = null;        
+            
         }
+        else if (!isConfirmed && _tombstone != null)
+        {
+            var entry = Context.Entry(_tombstone);
+            entry.CurrentValues.SetValues(entry.OriginalValues);
+            entry.State = EntityState.Unchanged;
+            
+        }
+        _tombstone = item;
         await UI.ToggleModal();
 
         if (!string.IsNullOrEmpty(navigationUrl))        
