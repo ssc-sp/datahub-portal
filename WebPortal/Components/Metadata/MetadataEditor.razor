@@ -7,6 +7,10 @@
     <div style="margin: 10px">
         @foreach (var definition in displayFields)
         {
+            // skip id & name fields (hidden fields)
+            if (!IsValidDefinition(definition))
+                continue;
+
             var fieldValue = GetFieldValue(definition.FieldDefinitionId, Preview);
 
             if (fieldValue != null)
@@ -144,5 +148,10 @@
     private bool IsFieldModified(FieldDefinition definition)
     {
         return _modifedFieldIds.Contains(definition.FieldDefinitionId) || FieldValues.Any(f => definition.FieldDefinitionId == f.FieldDefinitionId);
+    }
+
+    static bool IsValidDefinition(FieldDefinition field)
+    {
+        return !string.IsNullOrWhiteSpace(field.Field_Name_TXT) && !string.IsNullOrWhiteSpace(field.Name_English_TXT);
     }
 }

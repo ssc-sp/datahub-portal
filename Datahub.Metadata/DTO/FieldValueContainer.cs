@@ -9,35 +9,16 @@ namespace NRCan.Datahub.Metadata.DTO
     /// </summary>
     public class FieldValueContainer : List<ObjectFieldValue>
     {
-        public FieldValueContainer(FieldDefinitions definitions, IEnumerable<ObjectFieldValue> values) : base()
+        public FieldValueContainer(string objectId, FieldDefinitions definitions, IEnumerable<ObjectFieldValue> values) : base()
         {
+            ObjectId = objectId;
             Definitions = definitions;
             AddRange(values);
         }
 
+        public string ObjectId { get; init; }
         public FieldDefinitions Definitions { get; init; }
-
         public ObjectFieldValue this[string fieldName] => GetFieldValueByName(fieldName);
-
-        public bool AddOrUpdate(string fieldName, string value)
-        {
-            var fieldValue = GetFieldValueByName(fieldName);
-            if (fieldValue == null)
-            {
-                var definition = Definitions.Get(fieldName);
-                if (definition != null)
-                {
-                    var newValue = new ObjectFieldValue() { FieldDefinitionId = definition.FieldDefinitionId, Value_TXT = value };
-                    Add(newValue);
-                    return true;
-                }
-            }
-            else
-            {
-                fieldValue.Value_TXT = value;
-            }
-            return false;
-        }
 
         public bool ValidateRequired()
         {
