@@ -5,6 +5,7 @@
 @inject IUserInformationService UserInformationService
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JsInterop
+@inject UIControlsService UI
 @inject IDatahubAuditingService AuditingService
 @page "/onboarding/applications"
 @using NRCan.Datahub.Shared.Model.Onboarding
@@ -202,11 +203,61 @@
         StateHasChanged();
     }
 
-    private void SetFormEdit(OnboardingApp application)
+    private async Task SetFormEdit(OnboardingApp application)
     {
-        _onboardingApplication = application;
+    //    if (_onboardingApplication != null)
+    //    {
+    //        var entry = Context.Entry(_onboardingApplication);
+    //    }
+    //    if (Context.ChangeTracker.HasChanges())
+    //    {
+    //        var messages = new List<string>() { "Would you like to save the current record?" };
+    //        await UI.ToggleModal(
+    //        @<UserChoiceModal HeaderText="Save Data" ChoiceTextList=@messages OnDecision="(a) => OnConfirmSave(a, application)" ConfirmText="Yes" CancelText="No" />
+    //);
+    //    }
+    //    else
+    //    {
+    //        if(_onboardingApplication != null)
+    //            Context.Entry(_onboardingApplication).State = EntityState.Detached;
+    //        _onboardingApplication = application;
+    //        StateHasChanged();
+    //    }
+
+            _onboardingApplication = application;
+            StateHasChanged();
+
+    }
+
+
+    private async void OnConfirmSave(bool isConfirmed, dynamic item)
+    {
+        if (isConfirmed && _onboardingApplication != null)
+        {
+            _onboardingApplication.Last_Updated_DT = DateTime.Now;
+            _onboardingApplication.Last_Updated_UserId = _user.Id;
+            if (_onboardingApplication.Application_ID == 0)
+            {
+                _onboardingApplication = Context.OnboardingApps.Add(_onboardingApplication).Entity;
+            }
+            await Context.TrackSaveChangesAsync(AuditingService);
+            
+        }
+        else
+        {
+            var entry = Context.Entry(_onboardingApplication);
+            foreach (var property in entry.OriginalValues.Properties)  
+            {
+                var propertyName = property.Name;
+                entry.Property(propertyName).CurrentValue = entry.Property(propertyName).OriginalValue;   
+            }              
+        }
+        await UI.ToggleModal();
+        _onboardingApplication = item;
         StateHasChanged();
     }
+
+
 
     public void Dispose() { Context.Dispose(); }
 }
