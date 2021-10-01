@@ -1,16 +1,15 @@
 ﻿using NRCan.Datahub.Metadata.DTO;
 using NRCan.Datahub.Metadata.Model;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace NRCan.Datahub.Metadata.CKAN
 {
-    public class PackageGenerator
+    public static class PackageGenerator
     {
-        readonly List<FieldAgent> _fieldAgents;
+        static List<FieldAgent> _fieldAgents;
 
-        public PackageGenerator()
+        static PackageGenerator()
         {
             _fieldAgents = new()
             {
@@ -21,15 +20,15 @@ namespace NRCan.Datahub.Metadata.CKAN
             };
         }
 
-        public Dictionary<string, object> GeneratePackage(FieldValueContainer fieldValues, bool @private = false)
+        public static Dictionary<string, object> GeneratePackage(FieldValueContainer fieldValues, bool @private = false)
         {
             Dictionary<string, object> dict = new();
 
             // package id
-            dict["id"] = fieldValues["id"]?.Value_TXT;
+            dict["id"] = fieldValues.ObjectId;
 
             // package name
-            dict["name"] = fieldValues["name"]?.Value_TXT;
+            dict["name"] = fieldValues.ObjectId;
 
             // take title english for general title
             dict["title"] = fieldValues["title_translated_en"]?.Value_TXT;
@@ -58,7 +57,7 @@ namespace NRCan.Datahub.Metadata.CKAN
             return dict;
         }
 
-        private IEnumerable<FieldAgent> InstanciateAgents(IEnumerable<ObjectFieldValue> fieldValues)
+        static IEnumerable<FieldAgent> InstanciateAgents(IEnumerable<ObjectFieldValue> fieldValues)
         {
             foreach (var fv in fieldValues)
             {

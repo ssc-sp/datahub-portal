@@ -1,16 +1,6 @@
 [
   {
     "ObjectMetadataId": 2,
-    "FieldDefinitionId": 59,
-    "Value_TXT": "86d0d9d9-ddfc-49e3-af4b-89f94c176d1d"
-  },
-  {
-    "ObjectMetadataId": 2,
-    "FieldDefinitionId": 60,
-    "Value_TXT": "86d0d9d9-ddfc-49e3-af4b-89f94c176d1d"
-  },
-  {
-    "ObjectMetadataId": 2,
     "FieldDefinitionId": 61,
     "Value_TXT": "api"
   },

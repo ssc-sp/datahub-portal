@@ -7,8 +7,8 @@ namespace NRCan.Datahub.Portal.Services
 {
     public interface IMetadataBrokerService
     {
-        Task<ObjectMetadataContext> GetMetadataContext(string objectId);
-        Task SaveMetadata(string objectId, int metadataVersionId, FieldValueContainer fieldValues);
+        Task<FieldValueContainer> GetMetadataContext(string objectId);
+        Task SaveMetadata(FieldValueContainer fieldValues);
         Task<ApprovalForm> GetApprovalForm(int ApprovalFormId);
         Task<int> SaveApprovalForm(ApprovalForm form);
         Task<List<string>> GetSuggestedEnglishKeywords(string text, int max);

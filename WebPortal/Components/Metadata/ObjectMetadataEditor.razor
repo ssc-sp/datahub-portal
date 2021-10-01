@@ -1,10 +1,15 @@
 ﻿@using NRCan.Datahub.Metadata.Model
 @using NRCan.Datahub.Metadata.DTO
+@using NRCan.Datahub.Metadata.CKAN
 
-<MetadataEditor Preview="_preview"
-                Definitions="@_definitions"
-                FieldValues="@_fieldValues"
-                OnFieldChanged="FieldChanged" />
+@if (_fieldValues != null)
+{
+    <MetadataEditor Preview="_preview"
+                    Definitions="@_definitions"
+                    FieldValues="@_fieldValues"
+                    OnFieldChanged="FieldChanged" />
+}
+
 @code {
 
     [Inject]
@@ -16,16 +21,14 @@
     [Parameter]
     public string ObjectId { get; set; } = "7aa33e32-44a1-4ca4-b76c-ccb98c7b8e0b";
 
-    private FieldDefinitions _definitions { get; set; }
-    private FieldValueContainer _fieldValues { get; set; }
+    private FieldDefinitions _definitions;
+    private FieldValueContainer _fieldValues;
     private bool _preview = false;
-    private bool _saved = false;
 
     protected override async Task OnInitializedAsync()
     {
-        var context = await MetadataBrokerService.GetMetadataContext(ObjectId);
-        _definitions = context.FieldDefinitions;
-        _fieldValues = context.FieldValues;
+        _fieldValues = await MetadataBrokerService.GetMetadataContext(ObjectId);
+        _definitions = _fieldValues.Definitions;
     }
 
     public void TogglePreview()
@@ -34,23 +37,26 @@
         StateHasChanged();
     }
 
-    public bool IsRequiredMetadataValid => _fieldValues.ValidateRequired();
+    public bool IsRequiredMetadataValid => _fieldValues?.ValidateRequired() == true;
 
     public async Task SaveChanges()
     {
-        // update hidden fields
-        _fieldValues.AddOrUpdate("id", ObjectId);
-        _fieldValues.AddOrUpdate("name", ObjectId);
-
-        await MetadataBrokerService.SaveMetadata(ObjectId, _definitions.MetadataVersion, _fieldValues);
-
-        _saved = true;
+        await MetadataBrokerService.SaveMetadata(_fieldValues);
         StateHasChanged();
+    }
+
+    [Inject]
+    public ICKANService CKANService { get; set; }
+    
+    public async Task SavePackage()
+    {
+        var data = PackageGenerator.GeneratePackage(_fieldValues);
+        var result = await CKANService.CreatePackage(data);
+        // ...
     }
 
     private void FieldChanged(ObjectFieldValue field)
     {
-        _saved = false;
         StateHasChanged();
     }
 }

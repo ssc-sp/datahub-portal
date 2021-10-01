@@ -24,12 +24,16 @@ namespace NRCan.Datahub.Metadata.Tests
             var fieldValues = LoadFields(_fieldDefinitions);
             Assert.NotNull(fieldValues);
 
-            PackageGenerator generator = new();
+            var dict = PackageGenerator.GeneratePackage(fieldValues);
 
-            var dict = generator.GeneratePackage(fieldValues);
+            var expected = fieldValues.ObjectId;
+
+            // id and name
+            Assert.Equal(dict["id"].ToString(), expected);
+            Assert.Equal(dict["name"].ToString(), expected);
 
             // simple field
-            var expected = "NRCAN";
+            expected = "NRCAN";
             Assert.Equal(dict["owner_org"].ToString(), expected);
 
             // keyword field exists and contains the en & fr entries
@@ -77,7 +81,7 @@ namespace NRCan.Datahub.Metadata.Tests
                 fvalue.FieldDefinition = definitions.Get(fvalue.FieldDefinitionId);
             }
 
-            return new FieldValueContainer(definitions, fieldValues);
+            return new FieldValueContainer("86d0d9d9-ddfc-49e3-af4b-89f94c176d1d", definitions, fieldValues);
         }
 
         static string GetFileContent(string fileName) => File.ReadAllText($"./Data/{fileName}");
