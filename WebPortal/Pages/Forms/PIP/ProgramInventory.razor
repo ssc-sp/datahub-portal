@@ -290,8 +290,10 @@
     {
         var id = _tombstone.Tombstone_ID;
         navigationUrl = $"/pip/indicators/{id}";
-        await HandleValidSubmit();
-        
+        if (_tombstone == null || !Context.ChangeTracker.HasChanges())
+            NavigationManager.NavigateTo(navigationUrl);
+        else
+            await HandleValidSubmit();           
     }
 
     private async void OnConfirmSave(bool isConfirmed, dynamic item)
