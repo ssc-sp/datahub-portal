@@ -123,6 +123,7 @@
         _risks = Context.Risks.Where(p => p.PIP_Tombstone.Tombstone_ID == _tombstone.Tombstone_ID).ToList();
     }
 
+    
 
     private async void OnConfirmSave(bool isConfirmed, dynamic item)
     {
@@ -137,9 +138,17 @@
             }
             await Context.TrackSaveChangesAsync(AuditingService);
             await OnInitializedAsync();
-            _risk = null;
         }
-        
+         else if (!isConfirmed && _risk != null)
+        {
+            var entry = Context.Entry(_risk);
+            entry.CurrentValues.SetValues(entry.OriginalValues);
+            entry.State = EntityState.Unchanged;
+            
+        }
+
+        _risk = item;
+
         await UI.ToggleModal();
 
         if (!string.IsNullOrEmpty(navigationUrl))        
@@ -172,12 +181,25 @@
         return null;
     }
 
-    private void SetFormEdit(PIP_Risks risk)
+  
+
+    private async Task SetFormEdit(PIP_Risks risk)
     {
-        _risk = risk;
-        _risk.Last_Updated_UserName = MSGraphService.GetUserName(_risk.Last_Updated_UserId);
-        StateHasChanged();
-        _navToEdit = true;
+        if (Context.ChangeTracker.HasChanges())
+        {
+            var messages = new List<string>() { "Data has been edited, would you like to save?" };
+            await UI.ToggleModal(@<UserChoiceModal HeaderText="Save Data" ChoiceTextList=@messages OnDecision="(a) => OnConfirmSave(a, risk)" ConfirmText="Yes" CancelText="No" />
+    );
+        }
+        else
+        {
+            _risk = risk;
+            _risk.Last_Updated_UserName = MSGraphService.GetUserName(_risk.Last_Updated_UserId);
+
+            SubmitLabel = "Save";
+            StateHasChanged();
+            _navToEdit = true;
+        }
     }
 
     private string getColor(PIP_Risks current)
