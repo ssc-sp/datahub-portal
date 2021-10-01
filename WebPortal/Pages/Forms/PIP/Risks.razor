@@ -168,7 +168,7 @@
     private async Task GoToPreviousSheet()
     {
         navigationUrl = $"/pip/indicators/{_tombstone.Tombstone_ID}";
-        if (_risk == null)
+        if (_risk == null || !Context.ChangeTracker.HasChanges())
             NavigationManager.NavigateTo(navigationUrl);
         else
             await HandleValidSubmit();           
