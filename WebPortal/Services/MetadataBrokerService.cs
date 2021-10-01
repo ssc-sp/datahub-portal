@@ -22,7 +22,7 @@ namespace NRCan.Datahub.Portal.Services
             _auditingService = auditingService;
         }
 
-        public async Task<ObjectMetadataContext> GetMetadataContext(string objectId)
+        public async Task<FieldValueContainer> GetMetadataContext(string objectId)
         {
             using var ctx = _contextFactory.CreateDbContext();
 
@@ -37,11 +37,20 @@ namespace NRCan.Datahub.Portal.Services
             // retrieve and clone the field values
             var fieldValues = CloneFieldValues(objectMetadata?.FieldValues ?? new List<ObjectFieldValue>());
 
-            return new ObjectMetadataContext(objectId, metadataDefinitions, fieldValues);
+            return new FieldValueContainer(objectId, metadataDefinitions, fieldValues);
         }
 
-        public async Task SaveMetadata(string objectId, int metadataVersionId, FieldValueContainer fieldValues)
+        public async Task SaveMetadata(FieldValueContainer fieldValues)
         {
+            if (fieldValues.ObjectId == null)
+                throw new ArgumentException("Expected 'ObjectId' in parameter fieldValues.");
+
+            if (fieldValues.Definitions == null)
+                throw new ArgumentException("Expected 'Definitions' in parameter fieldValues.");
+
+            var objectId = fieldValues.ObjectId;
+            var metadataVersionId = fieldValues.Definitions.MetadataVersion;
+
             using var ctx = _contextFactory.CreateDbContext();
 
             var transation = ctx.Database.BeginTransaction();
@@ -271,14 +280,9 @@ namespace NRCan.Datahub.Portal.Services
                     .Where(e => e.MetadataVersionId == versionId || e.Custom_Field_FLAG)
                     .ToListAsync();
 
-            definitions.Add(latestDefinitions.Where(IsValidDefinition));
+            definitions.Add(latestDefinitions);
 
             return definitions;
-        }
-
-        static bool IsValidDefinition(FieldDefinition field)
-        {
-            return !string.IsNullOrWhiteSpace(field.Field_Name_TXT) && !string.IsNullOrWhiteSpace(field.Name_English_TXT);
         }
 
         static IEnumerable<ObjectFieldValue> CloneFieldValues(IEnumerable<ObjectFieldValue> values)

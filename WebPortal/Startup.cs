@@ -140,6 +140,8 @@ namespace NRCan.Datahub.Portal
 
             services.Configure<TelemetryConfiguration>(Configuration.GetSection("ApplicationInsights"));
 
+            services.Configure<CKANConfiguration>(Configuration.GetSection("CKAN"));
+
             services.AddScoped<IClaimsTransformation, RoleClaimTransformer>();
 
             services.AddSignalRCore();
@@ -462,6 +464,8 @@ namespace NRCan.Datahub.Portal
 
             services.AddScoped<IMetadataBrokerService, MetadataBrokerService>();
             services.AddScoped<IDatahubAuditingService, DatahubTelemetryAuditingService>();
+
+            services.AddSingleton<ICKANService, CKANService>();
 
             services.AddScoped<DataImportingService>();
             services.AddSingleton<DatahubTools>();
