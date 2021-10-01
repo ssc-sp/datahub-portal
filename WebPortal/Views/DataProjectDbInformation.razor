@@ -8,11 +8,13 @@
 @if (DataProject != null)
 {
     <AeTypography Variant="h3">@DataProject.ProjectName</AeTypography>
-    <AeTable
-        Dataset=@DbAttrDataSet
+
+    <PropertyList 
+        PropertyDict=@_dbAttributes
         Headers=@LocalizedHeaders
-        Accessors=@accessors
+        KeyTransformer=@dbInfoKeyTransformer
         />
+
     <hr />
     @if (DataProject.IsDatabasePostgres)
     {
@@ -81,7 +83,6 @@
     private bool loadedPostgresInfo = false;
 
     private Dictionary<string, string> _dbAttributes;
-    private List<KeyValuePair<string, string>> DbAttrDataSet => _dbAttributes.ToList();
 
     private List<string> LocalizeHeaders(List<string> headerKeys)
     {
@@ -90,7 +91,7 @@
     private List<string> headerKeys = new List<string>() { "Attribute", "Value" };
     private List<string> LocalizedHeaders => LocalizeHeaders(headerKeys);
 
-    private List<Func<KeyValuePair<string, string>, string>> accessors = new();
+    private Func<string, string> dbInfoKeyTransformer = k => k;
 
     private string PostgresResourcesContent;
 
@@ -128,11 +129,7 @@
         var loadUserTask = UserInformationService.GetUserAsync();
         var postgresContentTask = LoadPostgresResourcesContent();
 
-        accessors = new List<Func<KeyValuePair<string, string>, string>>()
-        {
-            p => Localizer[$"{LOCALIZATION_PREFIX}.{p.Key}"].ToString(),
-            p => p.Value
-        };
+        dbInfoKeyTransformer = k => Localizer[$"{LOCALIZATION_PREFIX}.{k}"].ToString();
 
         if (DataProject != null)
         {
