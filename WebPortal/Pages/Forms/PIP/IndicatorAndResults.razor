@@ -6,6 +6,7 @@
 @inject IMSGraphService MSGraphService
 @implements IDisposable
 @inject IDbContextFactory<PIPDBContext> DbFactory
+@inject IDatahubAuditingService AuditingService
 
 @page "/pip/indicators/{tombstone}"
 
@@ -110,7 +111,8 @@
         Context = DbFactory.CreateDbContext();
         renderFunctions = new List<Func<PIP_Risks, RenderFragment>>
 {
-        new Func<PIP_Risks, RenderFragment>(p => { return p.PIP_IndicatorRisks.Any(q => q.Pip_Indicator == _indicator) ? @<i class="fal fa-check-square"></i> : @<i class="fal fa-square"></i>; }),
+        new Func<PIP_Risks, RenderFragment>(p => { return p.PIP_IndicatorRisks.Any(q => q.Pip_Indicator == _indicator) ? @<i class="fal fa-check-square"></i> : @<i class="fal fa-square"></i>
+    ; }),
         null,
         null,
     };
@@ -161,6 +163,8 @@
         new Func<PIP_IndicatorAndResults, string>(p => { return p.Indicator_DESC; }),
     };
 
+    
+
     private async void OnConfirmSave(bool isConfirmed, dynamic item)
     {
         if (isConfirmed && _indicator != null)
@@ -172,10 +176,17 @@
             {
                 _indicator = Context.IndicatorAndResults.Add(_indicator).Entity;
             }
-            await Context.SaveChangesAsync();
+            await Context.TrackSaveChangesAsync(AuditingService);
             await OnInitializedAsync();
-            _indicator = null;
         }
+        else if (!isConfirmed && _indicator != null)
+        {
+            var entry = Context.Entry(_indicator);
+            entry.CurrentValues.SetValues(entry.OriginalValues);
+            entry.State = EntityState.Unchanged;
+            
+        }
+        _indicator = item;
         
         await UI.ToggleModal();
 
@@ -195,7 +206,7 @@
     private async Task GoToNextSheet()
     {
         navigationUrl = $"/pip/risks/{_tombstone.Tombstone_ID}";
-        if (_indicator == null)
+        if (_indicator == null || !Context.ChangeTracker.HasChanges())
             NavigationManager.NavigateTo(navigationUrl);
         else
             await HandleValidSubmit();
@@ -204,20 +215,34 @@
     private async Task GoToPreviousSheet()
     {
         navigationUrl = $"/pip/programs/{_tombstone.Tombstone_ID}";
-        if (_indicator == null)
+        if (_indicator == null || !Context.ChangeTracker.HasChanges())
             NavigationManager.NavigateTo(navigationUrl);
         else
             await HandleValidSubmit();        
     }
 
-    private void SetFormEdit(PIP_IndicatorAndResults indicator)
+
+    private async Task SetFormEdit(PIP_IndicatorAndResults indicator)
     {
-        _indicator = indicator;
-        _indicator.Last_Updated_UserName = MSGraphService.GetUserName(_indicator.Last_Updated_UserId);
-        UpdateRisks();
-        StateHasChanged();
-        _navToEdit = true;
+        if (Context.ChangeTracker.HasChanges())
+        {
+            var messages = new List<string>() { "Data has been edited, would you like to save?" };
+            await UI.ToggleModal(@<UserChoiceModal HeaderText="Save Data" ChoiceTextList=@messages OnDecision="(a) => OnConfirmSave(a, indicator)" ConfirmText="Yes" CancelText="No" />
+    );
+        }
+        else
+        {
+            _indicator = indicator;
+            _indicator.Last_Updated_UserName = MSGraphService.GetUserName(_indicator.Last_Updated_UserId);
+
+            
+            UpdateRisks();
+            StateHasChanged();
+            _navToEdit = true;
+        }
     }
+
+
 
     private void UpdateRisks()
     {
@@ -268,7 +293,7 @@
             var indicatorRisk = new PIP_IndicatorRisks() { Pip_Indicator = pipIndicator, Pip_Risk = risk };
             Context.IndicatorRisks.Add(indicatorRisk);
         }
-        Context.SaveChanges();
+        Context.TrackSaveChangesAsync(AuditingService);
 
         UpdateRisks();
         StateHasChanged();

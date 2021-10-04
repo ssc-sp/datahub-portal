@@ -8,6 +8,8 @@
 @inject Elemental.Services.UIControlsService UIControlService
 @inject IJSRuntime JsInterop
 @inject TranslationService TranslationService
+@inject IDatahubAuditingService AuditingService
+
 @using Microsoft.EntityFrameworkCore.Query
 @using Microsoft.EntityFrameworkCore;
 @page "/datahub/projects"
@@ -295,7 +297,7 @@ if (_project.Project_ID > 0)
     private async Task DeleteConfirmed(Datahub_Project project)
     {
         project.Deleted_DT = DateTime.Now;
-        await Context.SaveChangesAsync();
+        await Context.TrackSaveChangesAsync(AuditingService);
         await LoadProjects(); 
     }
 
@@ -313,7 +315,7 @@ if (_project.Project_ID > 0)
 
             await UpdateAdmins();
 
-            await Context.SaveChangesAsync();
+            await Context.TrackSaveChangesAsync(AuditingService);
             await LoadProjects(); 
             _project = null;
         }
@@ -336,7 +338,7 @@ if (_project.Project_ID > 0)
             {
                 _comment = Context.Project_Comments.Add(_comment).Entity;
             }
-            await Context.SaveChangesAsync();
+            await Context.TrackSaveChangesAsync(AuditingService);
         }
     }
 
