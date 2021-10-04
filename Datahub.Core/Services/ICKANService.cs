@@ -8,9 +8,5 @@ namespace NRCan.Datahub.Shared.Services
         Task<CKANApiResult> CreatePackage(IDictionary<string, object> packageData);
     }
 
-    public struct CKANApiResult
-    {
-        public bool Succeeded { get; set; }
-        public string Error {  get; set; }
-    }
+    public record CKANApiResult(bool Succeeded, string ErrorMessage);
 }
