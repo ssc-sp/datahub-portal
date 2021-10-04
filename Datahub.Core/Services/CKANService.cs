@@ -30,7 +30,6 @@ namespace NRCan.Datahub.Shared.Services
             var apiKey = _ckanConfiguration.Value.ApiKey;
 
             content.Headers.Add("X-CKAN-API-Key", apiKey);
-            //content.Headers.Add("Authorization", apiKey);
 
             try
             {
@@ -41,15 +40,11 @@ namespace NRCan.Datahub.Shared.Services
                 var jsonResponse = await response.Content.ReadAsStringAsync();
                 var ckanResult = JsonConvert.DeserializeObject<CKANResult>(jsonResponse);
 
-                return new CKANApiResult()
-                {
-                    Succeeded = ckanResult.Success,
-                    Error = ckanResult.Error?.Message
-                };
+                return new CKANApiResult(ckanResult.Success, ckanResult.Error?.Message);
             }
             catch (HttpRequestException ex)
             {
-                return new CKANApiResult() { Error = ex.Message };
+                return new CKANApiResult(false, ex.Message);
             }
         }
     }
