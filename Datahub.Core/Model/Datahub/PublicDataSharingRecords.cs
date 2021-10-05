@@ -10,7 +10,8 @@ namespace NRCan.Datahub.Shared.EFCore
         RequestApproval,
         PendingApproval,
         PendingPublication,
-        AccessPublicUrl
+        AccessPublicUrl,
+        Expired
     }
 
     public enum OpenDataSharingStatus
@@ -54,9 +55,16 @@ namespace NRCan.Datahub.Shared.EFCore
         public DateTime? SubmittedDate_DT { get; set; }
         public DateTime? ApprovedDate_DT { get; set; }
         public DateTime? PublicationDate_DT { get; set; }
+        public DateTime? ExpirationDate_DT { get; set; }
+
+        public bool MetadataCompleted_FLAG { get; set; }
 
         public PublicUrlSharingStatus GetPublicUrlSharingStatus()
         {
+            if (ApprovedDate_DT.HasValue && ExpirationDate_DT.HasValue && ExpirationDate_DT.Value <= DateTime.UtcNow)
+            {
+                return PublicUrlSharingStatus.Expired;
+            }
             if (PublicationDate_DT.HasValue && PublicationDate_DT.Value <= DateTime.UtcNow)
             {
                 return PublicUrlSharingStatus.AccessPublicUrl;
@@ -69,7 +77,10 @@ namespace NRCan.Datahub.Shared.EFCore
             {
                 return PublicUrlSharingStatus.PendingApproval;
             }
-            //TODO metadata complete
+            else if (MetadataCompleted_FLAG)
+            {
+                return PublicUrlSharingStatus.RequestApproval;
+            }
             else
             {
                 return PublicUrlSharingStatus.EnterMetadata;
@@ -81,10 +92,10 @@ namespace NRCan.Datahub.Shared.EFCore
             string prefix;
             string statusCode;
 
-            if (IsOpenDataRequest_FLAG && this is OpenDataSharedFile)
+            if (IsOpenDataRequest_FLAG && this is OpenDataSharedFile file)
             {
                 prefix = OPEN_DATA_SHARING_STATUS_LOCALIZATION_PREFIX;
-                var status = ((OpenDataSharedFile)this).GetOpenDataSharingStatus();
+                var status = file.GetOpenDataSharingStatus();
                 statusCode = status.ToString();
             }
             else
@@ -122,7 +133,10 @@ namespace NRCan.Datahub.Shared.EFCore
             {
                 return OpenDataSharingStatus.SubmitSignedPDF;
             }
-            //TODO metadata complete
+            else if (MetadataCompleted_FLAG)
+            {
+                return OpenDataSharingStatus.OpenGovApprovalForm;
+            }
             else
             {
                 return OpenDataSharingStatus.EnterMetadata;
