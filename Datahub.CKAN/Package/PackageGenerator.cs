@@ -1,9 +1,10 @@
 ﻿using NRCan.Datahub.Metadata.DTO;
 using NRCan.Datahub.Metadata.Model;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace NRCan.Datahub.Metadata.CKAN
+namespace NRCan.Datahub.CKAN.Package
 {
     public static class PackageGenerator
     {
@@ -15,13 +16,16 @@ namespace NRCan.Datahub.Metadata.CKAN
             {
                 new KeywordFieldAgent(),
                 new TranslatedFieldAgent(),
-                new CatchAllFieldAgent(true),
-                new CatchAllFieldAgent(false)
+                new CatchAllFieldAgent(string.Empty, string.Empty, true),
+                new CatchAllFieldAgent(string.Empty, string.Empty, false)
             };
         }
 
         public static Dictionary<string, object> GeneratePackage(FieldValueContainer fieldValues, bool @private = false)
         {
+            if (fieldValues == null)
+                throw new ArgumentNullException(nameof(fieldValues));
+
             Dictionary<string, object> dict = new();
 
             // package id
@@ -31,22 +35,16 @@ namespace NRCan.Datahub.Metadata.CKAN
             dict["name"] = fieldValues.ObjectId;
 
             // take title english for general title
-            dict["title"] = fieldValues["title_translated_en"]?.Value_TXT;
+            dict["title"] = fieldValues["title_translated_en"]?.Value_TXT ?? string.Empty;
 
             // private
             dict["private"] = @private;
-
-            // version
-            //dict["version"] = null;
 
             // state is active
             dict["state"] = "active";
 
             // type is dataset
             dict["type"] = "dataset";
-
-            // no groups
-            //dict["groups"] = Array.Empty<object>();
 
             var agents = InstanciateAgents(fieldValues).ToList();
             foreach (var agent in agents)
@@ -63,12 +61,14 @@ namespace NRCan.Datahub.Metadata.CKAN
             {
                 var definition = fv.FieldDefinition;
                 var matchingAgent = _fieldAgents.FirstOrDefault(a => a.Matches(definition));
-
-                var tuple = matchingAgent.Instanciate(definition.Field_Name_TXT, fv.Value_TXT);
-                if (tuple.append)
+                if (matchingAgent != null)
                 {
-                    yield return tuple.agent;
-                }
+                    var (append, agent) = matchingAgent.Instanciate(definition.Field_Name_TXT, fv.Value_TXT);
+                    if (append)
+                    {
+                        yield return agent;
+                    }
+                }                
             }
         }
     }
