@@ -7,7 +7,7 @@ using Newtonsoft.Json;
 using NRCan.Datahub.Metadata.DTO;
 using NRCan.Datahub.CKAN.Package;
 
-namespace DatahubTest.CKAN
+namespace Datahub.Tests.CKAN
 {
     public class CKANPakageBuilderTest
     {

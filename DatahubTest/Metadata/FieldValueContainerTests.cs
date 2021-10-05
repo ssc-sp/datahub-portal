@@ -3,7 +3,10 @@ using NRCan.Datahub.Metadata.Model;
 using System.Linq;
 using Xunit;
 
-namespace DatahubTest
+/// <summary>
+/// Cannot name it 'Datahub.Tests.Metadata' or will conflict with an existing class
+/// </summary>
+namespace Datahub.Tests.Meta_Data
 {
     public class FieldValueContainerTests
     {
