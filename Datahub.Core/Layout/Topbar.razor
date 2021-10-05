@@ -12,9 +12,9 @@
         <Search />
     </div>
 
-    <div class="inbox icon-container">
+    @*<div class="inbox icon-container">
       <i class="fad fa-inbox"></i>
-    </div>
+    </div>*@
    
     <div class="help-wrapper">
         <div class="help icon-container" @onclick="ToggleHelp">
@@ -65,7 +65,7 @@
                     <Typography class="description">@Localizer.GetString("You have used {0} of your allocated {1}", DatahubTools.BytesToString(TotalSpaceUsed), MaxAllocatedSpace)</Typography>
                 </ChildContent>
                 <Footer>
-                    <Typography class="signout"><b>@Localizer["Sign Out"]</b></Typography>
+                    <Typography class="signout"><a href="MicrosoftIdentity/Account/SignOut"><b>@Localizer["Sign Out"]</b></a></Typography>
                 </Footer>
             </Popup>
         </AuthorizeView>

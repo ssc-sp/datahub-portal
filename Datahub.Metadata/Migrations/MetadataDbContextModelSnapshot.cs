@@ -15,16 +15,16 @@ namespace NRCan.Datahub.Metadata.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .UseIdentityColumns()
                 .HasAnnotation("Relational:MaxIdentifierLength", 128)
-                .HasAnnotation("ProductVersion", "5.0.2");
+                .HasAnnotation("ProductVersion", "5.0.9")
+                .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
             modelBuilder.Entity("NRCan.Datahub.Metadata.Model.ApprovalForm", b =>
                 {
                     b.Property<int>("ApprovalFormId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
-                        .UseIdentityColumn();
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<bool>("Approval_InSitu_FLAG")
                         .HasColumnType("bit");
@@ -125,7 +125,7 @@ namespace NRCan.Datahub.Metadata.Migrations
                     b.Property<int>("FieldChoiceId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
-                        .UseIdentityColumn();
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<int>("FieldDefinitionId")
                         .HasColumnType("int");
@@ -153,7 +153,10 @@ namespace NRCan.Datahub.Metadata.Migrations
                     b.Property<int>("FieldDefinitionId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
-                        .UseIdentityColumn();
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<bool>("Custom_Field_FLAG")
+                        .HasColumnType("bit");
 
                     b.Property<string>("English_DESC")
                         .HasColumnType("nvarchar(max)");
@@ -202,7 +205,7 @@ namespace NRCan.Datahub.Metadata.Migrations
                     b.Property<int>("KeywordId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
-                        .UseIdentityColumn();
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<string>("English_TXT")
                         .HasMaxLength(128)
@@ -237,7 +240,7 @@ namespace NRCan.Datahub.Metadata.Migrations
                     b.Property<int>("MetadataVersionId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
-                        .UseIdentityColumn();
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<DateTime>("Last_Update_DT")
                         .HasColumnType("datetime2");
@@ -278,7 +281,7 @@ namespace NRCan.Datahub.Metadata.Migrations
                     b.Property<long>("ObjectMetadataId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint")
-                        .UseIdentityColumn();
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<int>("MetadataVersionId")
                         .HasColumnType("int");
