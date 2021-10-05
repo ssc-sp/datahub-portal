@@ -3,7 +3,7 @@ using NRCan.Datahub.Metadata.Model;
 using System.Linq;
 using Xunit;
 
-namespace NRCan.Datahub.Metadata.Tests
+namespace DatahubTest
 {
     public class FieldValueContainerTests
     {

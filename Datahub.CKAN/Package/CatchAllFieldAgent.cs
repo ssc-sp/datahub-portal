@@ -1,7 +1,7 @@
 ﻿using NRCan.Datahub.Metadata.Model;
 using System.Collections.Generic;
 
-namespace NRCan.Datahub.Metadata.CKAN
+namespace NRCan.Datahub.CKAN.Package
 {
     class CatchAllFieldAgent : FieldAgent
     {
@@ -9,12 +9,7 @@ namespace NRCan.Datahub.Metadata.CKAN
         readonly string _fieldValue;
         readonly bool _multiselect;
 
-        public CatchAllFieldAgent(bool multiselect)
-        {
-            _multiselect = multiselect;
-        }
-
-        private CatchAllFieldAgent(string fieldName, string fieldValue, bool multiselect)
+        public CatchAllFieldAgent(string fieldName, string fieldValue, bool multiselect)
         {
             _fieldName = fieldName;
             _fieldValue = fieldValue;

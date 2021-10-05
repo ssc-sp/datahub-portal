@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace NRCan.Datahub.Metadata.CKAN
+namespace NRCan.Datahub.CKAN.Package
 {
     class KeywordFieldAgent : FieldAgent
     {

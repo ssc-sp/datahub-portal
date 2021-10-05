@@ -69,6 +69,7 @@
     <PackageReference Include="Tewr.Blazor.FileReader" Version="3.2.0.21211" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Datahub.CKAN\Datahub.CKAN.csproj" />
     <ProjectReference Include="..\Datahub.Metadata\Datahub.Metadata.csproj" />
     <ProjectReference Include="..\Datahub.Core\Datahub.Core.csproj" />
   </ItemGroup>

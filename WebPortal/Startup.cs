@@ -2,11 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -15,19 +12,14 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.Identity.Web;
-using Microsoft.Identity.Web.TokenCacheProviders.InMemory;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.Identity.Web.UI;
-using Microsoft.AspNetCore.Authentication.AzureAD.UI;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.Identity.Client;
 using Tewr.Blazor.FileReader;
 using BlazorDownloadFile;
 using NRCan.Datahub.Portal.Services.Offline;
 using Microsoft.AspNetCore.Localization;
-using Microsoft.AspNetCore.Mvc.Razor;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using NRCan.Datahub.Shared.Services;
 using Askmethat.Aspnet.JsonLocalizer.Extensions;
@@ -35,12 +27,10 @@ using System.Text;
 using NRCan.Datahub.Shared.Data;
 using Microsoft.EntityFrameworkCore;
 using NRCan.Datahub.ProjectForms.Data.PIP;
-using NRCan.Datahub.Portal.EFCore;
 using NRCan.Datahub.Shared.EFCore;
 using NRCan.Datahub.Portal.Data;
 using NRCan.Datahub.Portal.Data.Finance;
 using NRCan.Datahub.Portal.Data.WebAnalytics;
-using NRCan.Datahub.Metadata;
 using Microsoft.Graph;
 using Polly;
 using System.Net.Http;
@@ -48,19 +38,19 @@ using Polly.Extensions.Http;
 using NRCan.Datahub.Metadata.Model;
 using Microsoft.Extensions.Logging;
 using NRCan.Datahub.Shared.RoleManagement;
-using NRCan.Datahub.Shared;
 using NRCan.Datahub.Portal.Data.LanguageTraining;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.HttpLogging;
+using NRCan.Datahub.CKAN.Service;
 
 namespace NRCan.Datahub.Portal
 {
-
     public enum DbDriver
     {
         SqlServer, Sqlite
     }
+
     public class Startup
     {
         public Startup(IConfiguration configuration, IWebHostEnvironment env)
@@ -145,7 +135,6 @@ namespace NRCan.Datahub.Portal
             services.AddScoped<IClaimsTransformation, RoleClaimTransformer>();
 
             services.AddSignalRCore();
-
 
             var httpLoggingConfig = Configuration.GetSection("HttpLogging");
             var httpLoggingEnabled = httpLoggingConfig != null && httpLoggingConfig.GetValue<bool>("Enabled");
@@ -465,8 +454,6 @@ namespace NRCan.Datahub.Portal
             services.AddScoped<IMetadataBrokerService, MetadataBrokerService>();
             services.AddScoped<IDatahubAuditingService, DatahubTelemetryAuditingService>();
 
-            services.AddSingleton<ICKANService, CKANService>();
-
             services.AddScoped<DataImportingService>();
             services.AddSingleton<DatahubTools>();
             services.AddSingleton<TranslationService>();
@@ -479,8 +466,7 @@ namespace NRCan.Datahub.Portal
 
             services.AddSingleton<ServiceAuthManager>();
 
-            services.AddSingleton<IExternalSearchService, ExternalSearchService>();
-            services.AddHttpClient<IExternalSearchService, ExternalSearchService>();
+            services.AddCKANService();
         }
 
         private DbDriver GetDriver() => (Configuration.GetValue(typeof(string), "DbDriver", "SqlServer").ToString().ToLowerInvariant()) switch
