@@ -31,10 +31,16 @@
     </div>
 </AeFlex>
 
-<AeFlex id="filterBar">
-    @*<AeDropdown Items="securityClassOptions" Renderer="GetOption" OnChange="HandleDropdownChange" LabelRenderFragment="getIcon" id="securityDropdown" />*@
-</AeFlex>
+@if (filterProperties != null)
+    {
+        <AeFlex id="filterBar">            
+            @foreach (var filter in filterProperties)
+            {                
+                <AeDropdown Items="ValidDisplayValues" OnChange="HandleDropdownChange" Label="@filterLabel" class="filterDropdown"/>                
+            }
 
+        </AeFlex>
+    }
 
 
 <AeFlex Vertical id="indexFlex">
@@ -124,13 +130,27 @@ if (_project.Project_ID > 0)
     private int _lastClicked = 0;
     private IPageableComponent _myTable;
 
-    private List<(Delegate Label, Delegate choices)> filterProperties = new List<(Delegate Label, Delegate choices)>();
+    private List<(Delegate Label, Delegate Choices)> filterProperties = new List<(Delegate Label, Delegate choices)>();
+    private int InputSelectIndex = 0;
+    private List<string> ValidDisplayValues { get; set; }
+    private string filterLabel;
 
     protected override async Task OnInitializedAsync()
     {
         // load projects        
         Context = DbFactory.CreateDbContext();
-        await LoadProjects(); 
+        await LoadProjects();
+
+        filterProperties.Add((() => "Status", () => new List<string> { "None", "New", "Closed", "Active" }));
+
+        ValidDisplayValues = new();
+        ValidDisplayValues = filterProperties[0].Choices.DynamicInvoke() as List<string>;
+        filterLabel = filterProperties[0].Label.DynamicInvoke() as string;
+    }
+    
+    private void HandleDropdownChange(string selectedItem)
+    {
+        
     }
 
     public async Task SuggestTranslation()
