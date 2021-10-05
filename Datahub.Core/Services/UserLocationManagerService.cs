@@ -26,37 +26,50 @@ namespace NRCan.Datahub.Shared.Services
             _contextFactory = contextFactory;
         }
 
-        public async Task RegisterNavigation(UserRecentLink link)
+        public async Task RegisterNavigation(UserRecentLink link, bool isNew)
         {
-            var user = await _userInformationService.GetUserAsync();
-            var userId = user.Id;
-
-            //var userRecentActions = new UserRecentLink() { url = eventArgs.Location, title = "my title", accessedTime = DateTimeOffset.Now, icon = "myicon" };
-
-            var recentNavigations = await ReadRecentNavigations(userId);
-
-            if (recentNavigations == null)
+            try
             {
-                recentNavigations = new UserRecent() { UserId = userId };
-                recentNavigations.UserRecentActions.Add(link);
-                await RegisterNavigation(recentNavigations);
-            }
-            else
-            {
-                if (recentNavigations.UserRecentActions.Count >= 5)
-                {
-                    await RemoveOldestNavigation(recentNavigations);
-                }
-                recentNavigations.UserRecentActions.Add(link);
+                var user = await _userInformationService.GetUserAsync();
+                var userId = user.Id;
+
+                //var userRecentActions = new UserRecentLink() { url = eventArgs.Location, title = "my title", accessedTime = DateTimeOffset.Now, icon = "myicon" };
                 using (var efCoreDatahubContext = _contextFactory.CreateDbContext())
                 {
-                    efCoreDatahubContext.UserRecent.Update(recentNavigations);
+                    if (!isNew)
+                        efCoreDatahubContext.Attach(link);
+                    else
+                    {
+                        var userRecent = await efCoreDatahubContext.UserRecent.FirstOrDefaultAsync(u => u.UserId == userId);
+
+
+                        if (userRecent == null)
+                        {
+                            userRecent = new UserRecent() { UserId = userId };
+                            userRecent.UserRecentActions.Add(link);
+                            efCoreDatahubContext.UserRecent.Add(userRecent);
+                        }
+                        else
+                        {
+                            if (userRecent.UserRecentActions.Count >= 5)
+                            {
+                                RemoveOldestNavigation(userRecent);
+                            }
+                            userRecent.UserRecentActions.Add(link);
+                            //efCoreDatahubContext.UserRecent.Update(userRecent);
+                        }
+                    }
                     await efCoreDatahubContext.SaveChangesAsync();
+
                 }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Cannot update navigation");
             }
         }
 
-        private async Task RemoveOldestNavigation(UserRecent recentNavigations)
+        private void RemoveOldestNavigation(UserRecent recentNavigations)
         {
             var date = recentNavigations.UserRecentActions.Min(x => x.accessedTime);
             var record = recentNavigations.UserRecentActions.Where(x => x.accessedTime == date).First();

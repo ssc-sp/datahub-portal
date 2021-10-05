@@ -5,7 +5,7 @@
 @inject UIControlsService UI
 @inject IMSGraphService MSGraphService
 @page "/pip/risks/{tombstone}"
-
+@inject IDatahubAuditingService AuditingService
 
 @implements IDisposable
 @inject IDbContextFactory<PIPDBContext> DbFactory
@@ -102,7 +102,12 @@
     private int _lastClicked = 0;
     private IPageableComponent _myTable;
 
-
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if(firstRender){
+            StateHasChanged();
+        }
+    }
     private void OnPageClick(int pageIndex)
     {
         _lastClicked = pageIndex;
@@ -118,22 +123,32 @@
         _risks = Context.Risks.Where(p => p.PIP_Tombstone.Tombstone_ID == _tombstone.Tombstone_ID).ToList();
     }
 
+    
 
     private async void OnConfirmSave(bool isConfirmed, dynamic item)
     {
         if (isConfirmed && _risk != null)
         {
             _risk.Last_Updated_DT = DateTime.Now;
+            _risk.Date_Updated_DT = DateTime.Now;
             _risk.Last_Updated_UserId = CurrentUser.Id;
             if (_risk.Risks_ID == 0)
             {
                 _risk = Context.Risks.Add(_risk).Entity;
             }
-            await Context.SaveChangesAsync();
+            await Context.TrackSaveChangesAsync(AuditingService);
             await OnInitializedAsync();
-            _risk = null;
         }
-        
+         else if (!isConfirmed && _risk != null)
+        {
+            var entry = Context.Entry(_risk);
+            entry.CurrentValues.SetValues(entry.OriginalValues);
+            entry.State = EntityState.Unchanged;
+            
+        }
+
+        _risk = item;
+
         await UI.ToggleModal();
 
         if (!string.IsNullOrEmpty(navigationUrl))        
@@ -153,7 +168,7 @@
     private async Task GoToPreviousSheet()
     {
         navigationUrl = $"/pip/indicators/{_tombstone.Tombstone_ID}";
-        if (_risk == null)
+        if (_risk == null || !Context.ChangeTracker.HasChanges())
             NavigationManager.NavigateTo(navigationUrl);
         else
             await HandleValidSubmit();           
@@ -166,12 +181,25 @@
         return null;
     }
 
-    private void SetFormEdit(PIP_Risks risk)
+  
+
+    private async Task SetFormEdit(PIP_Risks risk)
     {
-        _risk = risk;
-        _risk.Last_Updated_UserId = MSGraphService.GetUserName(_risk.Last_Updated_UserId);
-        StateHasChanged();
-        _navToEdit = true;
+        if (Context.ChangeTracker.HasChanges())
+        {
+            var messages = new List<string>() { "Data has been edited, would you like to save?" };
+            await UI.ToggleModal(@<UserChoiceModal HeaderText="Save Data" ChoiceTextList=@messages OnDecision="(a) => OnConfirmSave(a, risk)" ConfirmText="Yes" CancelText="No" />
+    );
+        }
+        else
+        {
+            _risk = risk;
+            _risk.Last_Updated_UserName = MSGraphService.GetUserName(_risk.Last_Updated_UserId);
+
+            SubmitLabel = "Save";
+            StateHasChanged();
+            _navToEdit = true;
+        }
     }
 
     private string getColor(PIP_Risks current)

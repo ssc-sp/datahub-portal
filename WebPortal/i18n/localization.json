@@ -48,7 +48,17 @@
     "Prompt": "A fatal error has occured, please contact system admin for clarification.",
     "Message-Label": "Message: ",
     "StackTrace-Label": "Stack Trace:",
-    "InnerException-Label": "Inner Exception: "
+    "InnerException-Label": "Inner Exception: ",
+    "SomethingWentWrong-Label": "Something went wrong. Please try again later.",
+    "TechnicalDetails-Label": "TECHNICAL DETAILS",
+    "ErrorExplanation-Text": "An error has happened on the DataHub server. The team has been notified and the error has been recorded. The correlation ID for this error is <>. To avoid network issues, if you are currently on the VPN, please try to disconnect the VPN and retry your actions.",
+    "ConnectionToServer-Label": "Connection to server...",
+    "AttemptingToReConnect-Label": "Attempting to re-connect with server, please wait...",
+    "FailedToConnect-Label": "Failed to connect, please try again later",
+    "ConnectionRefused-Label": "Connection refused, please try again later",
+    "ConnectionLost-Label": "Connection lost, please refresh this page",
+    "Ok": "OK",
+    "Reload": "Reload"
   },
   "FILE-GRID-HEADER-PAGE": {
     "CreatedBy": "Created By",
@@ -135,7 +145,7 @@
     "Storage": "Storage",
     "Resources": "Resources",
     "Datasets": "Datasets",
-    "PowerBI": "PowerBI",
+    "PowerBI": "Power BI",
     "Admin": "Admin"
   },
   "TAC-PAGE": {
@@ -330,7 +340,7 @@
   "Risk_Category": "Risk Category",
   "Risk_Title": "Risk Title",
   "Risk_Id_TXT": "Risk Area",
-  "Risk_Description_TXT": "Risk Statement",
+  "Risk_Description_TXT": "Risk Description",
   "Risk_Drivers_TXT": "Risk drivers",
   "Risk_Drivers_TXT2": "Risk drivers 2",
   "Risk_Drivers_TXT3": "Risk drivers 3",
@@ -467,10 +477,10 @@
     "Cancel": "Clear",
     "Submit": "Submit"
   },
-
   "METADATA-PAGE": {
     "ShowMore": "Show optional fields",
-    "ShowLess": "Hide optional fields"
+    "ShowLess": "Hide optional fields",
+    "EnterKeyword-Placeholder": "Enter keyword..."
   },
 
   "SHARING-STATUS": {
@@ -593,6 +603,35 @@
     }
   },
 
+  "Client_Sector": "Client Sector",
+  "Client_Branch": "Client Branch",
+  "Client_Division": "Client Division",
+  "Client_Contact_Name": "Client Contact Name",
+  "Client_Email": "Client Email",
+  "Additional_Contact_Name": "Additional Contact Name",
+  "Additional_Contact_Email_EMAIL": "Additional Contact Email",
+  "Project_Name": "Project Name",
+  "Project_Summary_Description": "Project Summary Description",
+  "Project_Goal": "Project Goal",
+  "Onboarding_Timeline": "Onboarding Timeline",
+  "Project_Engagement_Category_DataPipeline": "Project Engagement Category Data Pipeline",
+  "Project_Engagement_Category_DataScience": "Project Engagement Category Data Science",
+  "Project_Engagement_Category_FullStack": "Project Engagement Category Full Stack",
+  "Project_Engagement_Category_Guidance": "Project Engagement Category Guidance",
+  "Project_Engagement_Category_PowerBIReports": "Project Engagement Category Power Bi Reports",
+  "Project_Engagement_Category_Storage": "Project Engagement Category Storage",
+  "Project_Engagement_Category_WebForms": "Project Engagement Category Web Forms",
+  "Project_Engagement_Category_Unknown": "Project Engagement Category Unknown",
+  "Project_Engagement_Category_Other": "Project Engagement Category Other",
+  "Project_Engagement_Category_OtherText": "",
+  "Data_Set_Security_Level_Classified": "Data Set Security Classified",
+  "Data_Set_Security_Level_ProtectedA": "Data Set Security Protected A",
+  "Data_Set_Security_Level_ProtectedB": "Data Set Security Protected B",
+  "Data_Set_Security_Level_ProtectedC": "Data Set Security Protected C",
+  "Data_Set_Security_Level_UnClassified": "Data Set Security Unclassified",
+  "Questions_for_the_DataHub_Team": "Questions for the DataHub Team",
+  "AttachmentS": "Attachements",
+
 
   "Project_Cost": "Cost",
   "Project_Cost_NotFound": "No cost data found.",
@@ -640,7 +679,17 @@
     "Project_Cost_Template": "As of {0}, total resource cost is {1} for the period from {2} to {3}.",
     "Project_Cost_Button": "More details",
     "No_Access_Message": "You currently do not have access to this project.",
-    "Request_Access_Reviewed":"Access Request is being reviewed"
+    "Request_Access_Reviewed": "Access Request is being reviewed",
+    "DATABASE-CARD": {
+      "CardTitle": "Database Information",
+      "MoreInfo_button": "More Information",
+      "GetToken_button": "Get Access Token",
+      "DatabaseName": "Database Name",
+      "DatabaseType": "Database Type",
+      "DatabaseServer": "Database Server",
+      "AccessToken": "Access Token",
+      "Expires": "Expires"
+    }
   }
 }
 
