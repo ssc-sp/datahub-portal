@@ -5,9 +5,9 @@ using Xunit;
 using NRCan.Datahub.Metadata.Model;
 using Newtonsoft.Json;
 using NRCan.Datahub.Metadata.DTO;
-using NRCan.Datahub.Metadata.CKAN;
+using NRCan.Datahub.CKAN.Package;
 
-namespace NRCan.Datahub.Metadata.Tests
+namespace DatahubTest.CKAN
 {
     public class CKANPakageBuilderTest
     {

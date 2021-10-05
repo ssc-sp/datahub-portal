@@ -1,6 +1,6 @@
 ﻿@using NRCan.Datahub.Metadata.Model
 @using NRCan.Datahub.Metadata.DTO
-@using NRCan.Datahub.Metadata.CKAN
+@using NRCan.Datahub.CKAN.Package
 
 @if (_fieldValues != null)
 {
@@ -50,8 +50,7 @@
     
     public async Task SavePackage()
     {
-        var data = PackageGenerator.GeneratePackage(_fieldValues);
-        var result = await CKANService.CreatePackage(data);
+        var result = await CKANService.CreatePackage(_fieldValues);
         // ...
     }
 
