@@ -124,6 +124,12 @@ namespace NRCan.Datahub.Portal.Services
                 return await Task.FromResult<Uri>(null);
             }
 
+            if (publicFile.ExpirationDate_DT.HasValue && publicFile.ExpirationDate_DT < DateTime.UtcNow)
+            {
+                _logger.LogError($"File {fileId} is no longer available (expiration date: {publicFile.ExpirationDate_DT?.ToShortDateString()})");
+                return await Task.FromResult<Uri>(null);
+            }
+
             return await DoDownloadFile(publicFile);
 
         }
@@ -178,6 +184,27 @@ namespace NRCan.Datahub.Portal.Services
             return await _projectDbContext.OpenDataSharedFiles.FirstOrDefaultAsync(e => e.File_ID == fileId);
         }
 
+        public async Task<bool> MarkMetadataComplete(Guid fileId)
+        {
+            var submission = await LoadPublicUrlSharedFileInfo(fileId);
+            if (submission != null)
+            {
+                submission.MetadataCompleted_FLAG = true;
+                var result = await _projectDbContext.SaveChangesAsync();
+                if (result < 1)
+                {
+                    _logger.LogError($"Error marking metadata complete for file {fileId}");
+                    return false;
+                }
+
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
         public async Task<bool> SubmitPublicUrlShareForApproval(Guid fileId)
         {
             var submission = await LoadPublicUrlSharedFileInfo(fileId);
@@ -191,6 +218,27 @@ namespace NRCan.Datahub.Portal.Services
                     return false;
                 }
                 
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        public async Task<bool> SaveTempSharingExpiryDate(Guid fileId, DateTime? expiryDate)
+        {
+            var submission = await LoadPublicUrlSharedFileInfo(fileId);
+            if (submission != null)
+            {
+                submission.ExpirationDate_DT = expiryDate;
+                var result = await _projectDbContext.SaveChangesAsync();
+                if (result < 1)
+                {
+                    _logger.LogError($"Error saving expiration date for {fileId}");
+                    return false;
+                }
+
                 return true;
             }
             else
@@ -281,5 +329,6 @@ namespace NRCan.Datahub.Portal.Services
             //https://app.powerbi.com/groups/6ca76417-b205-43c2-be1b-6aeeedcb84ae/rdlreports/04b8625f-f532-43fe-89d5-5911bbabd79b?rp:p_approval_form_id=9&rdl:format=pdf
             return $"{_config.OpenDataApprovalPdfBaseUrl}?{_config.OpenDataApprovalPdfFormIdParam}={approvalFormId}&rdl:format=pdf";
         }
+
     }
 }

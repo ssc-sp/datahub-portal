@@ -14,6 +14,8 @@ namespace NRCan.Datahub.Portal.Services
         Task CreateDataSharingRequest(FileMetaData fileMetaData, string projectCode, User requestingUser, bool openDataRequest = false);
         Task<SharedDataFile> LoadPublicUrlSharedFileInfo(Guid fileId);
         Task<OpenDataSharedFile> LoadOpenDataSharedFileInfo(Guid fileId);
+        Task<bool> MarkMetadataComplete(Guid fileId);
+        Task<bool> SaveTempSharingExpiryDate(Guid fileId, DateTime? expiryDate);
         Task<bool> SubmitPublicUrlShareForApproval(Guid fileId);
         Task<int> GetDataSharingRequestsAwaitingApprovalCount(string projectCode);
         Task<List<SharedDataFile>> GetProjectSharingRequestsAwaitingApproval(string projectCode);

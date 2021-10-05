@@ -6,13 +6,13 @@
 @inject IUserInformationService UserInformationService
 
 
-<h1>@Localizer["PUBLIC-URL-WIZARD.Page_Title"]</h1>
+<h1>@Localizer[$"{LOCALIZATION_PREFIX}.Page_Title"]</h1>
 
 <AeFlex>
     <AeFlex Vertical style="margin-left: 2rem; width: 48%">
 
         <AeCard>
-            <AeTypography Variant="h2">@Localizer["PUBLIC-URL-WIZARD.Metadata"]</AeTypography>
+            <AeTypography Variant="h2">@Localizer[$"{LOCALIZATION_PREFIX}.Metadata"]</AeTypography>
 
             @if (!string.IsNullOrEmpty(requestFilename))
             {
@@ -23,7 +23,7 @@
             {
                 <ObjectMetadataEditor ObjectId=@FileId @ref=@_metadataEditor ></ObjectMetadataEditor>
                 <AeFlex>
-                    <AeButton OnClickEvent=@SaveMetadata Disabled=@savingData >@Localizer["PUBLIC-URL-WIZARD.Save_button"]</AeButton>
+                    <AeButton OnClickEvent=@SaveMetadata Disabled=@savingData >@Localizer[$"{LOCALIZATION_PREFIX}.Save_button"]</AeButton>
                     <div>
                         @if(savingData)
                         {
@@ -34,12 +34,12 @@
             }
             else if (IsOwnRequest)
             {
-                <AeButton OnClickEvent=@ManuallyShowMetadataEditor >@Localizer["PUBLIC-URL-WIZARD.Edit_button"]</AeButton>
+                <AeButton OnClickEvent=@ManuallyShowMetadataEditor >@Localizer[$"{LOCALIZATION_PREFIX}.Edit_button"]</AeButton>
             }
             else
             {
                 @if (RequestingUser != null) {
-                    <div>@Localizer["Requesting User"]: @RequestingUser.DisplayName</div>
+                    <div>@Localizer[$"{LOCALIZATION_PREFIX}.RequestingUser"]: @RequestingUser.DisplayName</div>
                 }
             }
             <div>&nbsp;</div>
@@ -57,7 +57,7 @@
         @if(ShowSubmitApproval && IsOwnRequest)
         {
             <AeCard>
-                <AeTypography Variant="h3">@Localizer["PUBLIC-URL-WIZARD.SubmitForApproval"]</AeTypography>
+                <AeTypography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.SubmitForApproval"]</AeTypography>
                 <AeFlex>
                     <AeButton OnClickEvent=@SubmitForApproval Disabled=@savingData>@Localizer["BUTTONS.Submit"]</AeButton>
                     @if(savingData)
@@ -72,8 +72,8 @@
         @if(ShowSkipMetadata && IsOwnRequest)
         {
             <AeCard>
-                <AeTypography Variant="h3">@Localizer["PUBLIC-URL-WIZARD.AcceptMetadata"]</AeTypography>
-                <AeButton OnClickEvent=@AcceptMetadata Disabled=@savingData>@Localizer["PUBLIC-URL-WIZARD.Continue_button"]</AeButton>
+                <AeTypography Variant="h3">@Localizer[$"${LOCALIZATION_PREFIX}.AcceptMetadata"]</AeTypography>
+                <AeButton OnClickEvent=@AcceptMetadata Disabled=@savingData>@Localizer[$"{LOCALIZATION_PREFIX}.Continue_button"]</AeButton>
                 <div>&nbsp;</div>
             </AeCard>
         }
@@ -81,7 +81,7 @@
         @if(ShowPublicationDate)
         {
             <AeCard>
-                <AeTypography Variant="h3">@Localizer["PUBLIC-URL-WIZARD.PublicationDate"]</AeTypography>
+                <AeTypography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.PublicationDate"]</AeTypography>
                 <p>@PublicationDateStr</p>
             </AeCard>
         }
@@ -89,19 +89,56 @@
         @if(ShowPublicUrl)
         {
             <AeCard>
-                <AeTypography Variant="h3">@Localizer["PUBLIC-URL-WIZARD.PublicUrl"]</AeTypography>
+                <AeTypography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.PublicUrl"]</AeTypography>
                 <p><a href=@PublicUrl target="_blank">@PublicUrl</a></p>
+            </AeCard>
+        }
+
+        @if (ShowExpiryDatePanel && IsOwnRequest)
+        {
+            <AeCard>
+                <AeTypography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.TempSharingTitle"]</AeTypography>
+                <p>@Localizer[$"{LOCALIZATION_PREFIX}.TempSharingDesc"]</p>
+                <EditForm EditContext=@editContext >
+                    <div>
+                        <label>
+                            <InputCheckbox id="tempSharingToggle" @bind-Value=@dateHolder.EnableTempSharing />
+                            @Localizer[$"{LOCALIZATION_PREFIX}.EnableTempSharing"]
+                        </label>
+                    </div>
+                    @if (dateHolder.EnableTempSharing)
+                    {
+                        <div>
+                            <label for="expiryDateInput">
+                                @Localizer[$"{LOCALIZATION_PREFIX}.ExpirationDate"]
+                            </label>
+                            <InputDate id="expiryDateInput" @bind-Value=@dateHolder.Date class="ae input"/>
+                        </div>
+                        <ValidationMessage For="()=>dateHolder.Date" />
+                    }
+                </EditForm>
+                <AeButton OnClickEvent=@SaveExpiryDate Disabled=@savingData>@Localizer[$"{LOCALIZATION_PREFIX}.Save_button"]</AeButton>
             </AeCard>
         }
 
         @if (ShowCancelPanel && IsOwnRequest)
         {
             <AeCard>
-                <Typography Variant="h3">@Localizer["PUBLIC-URL-WIZARD.CancelSharing"]</Typography>
-                <p>@Localizer["PUBLIC-URL-WIZARD.CancelSharingDescription"]</p>
+                <AeTypography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.CancelSharing"]</AeTypography>
+                <p>@Localizer[$"{LOCALIZATION_PREFIX}.CancelSharingDescription"]</p>
                 <AeButton OnClickEvent=@ShowCancelRequestDialog>@Localizer["BUTTONS.Cancel"]</AeButton>
             </AeCard>
         }
+
+        @if (ShowDeletePanel && IsOwnRequest)
+        {
+            <AeCard>
+                <Typography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.DeleteExpired"]</Typography>
+                <p>@Localizer[$"{LOCALIZATION_PREFIX}.DeleteExpiredDescription"]</p>
+                <AeButton OnClickEvent=@ShowDeleteExpiredDialog>@Localizer[$"{LOCALIZATION_PREFIX}.Delete_button"]</AeButton>
+            </AeCard>
+        }
+
     </div>
 </AeFlex>
 
@@ -111,6 +148,9 @@
 
 @code {
 
+    private static readonly string LOCALIZATION_PREFIX = "PUBLIC-URL-WIZARD";
+    private static readonly string VALIDATION_ERROR_PREFIX = $"{LOCALIZATION_PREFIX}.ValidationErrors";
+
     [Parameter]
     public string FileId { get; set; }
 
@@ -118,7 +158,9 @@
 
     private ObjectMetadataEditor _metadataEditor;
 
-    private RenderFragment checkIcon = @<i class="fa fa-check"></i>;
+    private RenderFragment checkIcon = 
+    @<i class="fa fa-check"></i>
+    ;
 
     private List<PublicUrlSharingStatus> steps = Enum.GetValues<PublicUrlSharingStatus>().ToList();
     private PublicUrlSharingStatus currentStep = PublicUrlSharingStatus.EnterMetadata;
@@ -145,6 +187,8 @@
     private bool ShowSkipMetadata => currentStep == PublicUrlSharingStatus.EnterMetadata;
     private bool ShowMetadataEditor => currentStep == PublicUrlSharingStatus.EnterMetadata || editSavedMetadata;
     private bool ShowCancelPanel => currentStep <= PublicUrlSharingStatus.PendingApproval;
+    private bool ShowExpiryDatePanel => currentStep <= PublicUrlSharingStatus.PendingApproval;
+    private bool ShowDeletePanel => currentStep == PublicUrlSharingStatus.Expired;
 
     private bool IsOwnRequest = false;
 
@@ -158,6 +202,14 @@
     //TODO add domain
     private string PublicUrl => $"/Public/DownloadFile/{FileId}";
 
+    public class ExpirationDateHolder
+    {
+        public DateTime? Date { get; set; }
+        public bool EnableTempSharing { get; set; } = false;
+    }
+    private ExpirationDateHolder dateHolder = new();
+    private EditContext editContext;
+    private ValidationMessageStore validationMessageStore;
 
     private async Task SaveMetadata()
     {
@@ -171,14 +223,19 @@
             uri = uri.Substring(0, uri.IndexOf('#'));
         }
         
-        await t; 
+        await t;
+        await PublicFileService.MarkMetadataComplete(fileIdGuid);
         savingData = false;
         NavManager.NavigateTo($"{uri}#stepsDiv");
-        UpdateCurrentStatus(PublicUrlSharingStatus.RequestApproval);
+        if (currentStep == PublicUrlSharingStatus.EnterMetadata)
+        {
+            UpdateCurrentStatus(PublicUrlSharingStatus.RequestApproval);
+        }
     }
 
     private async Task AcceptMetadata()
     {
+        await PublicFileService.MarkMetadataComplete(fileIdGuid);
         UpdateCurrentStatus(PublicUrlSharingStatus.RequestApproval);
     }
 
@@ -192,6 +249,18 @@
         UpdateCurrentStatus(PublicUrlSharingStatus.PendingApproval);
 
         savingData = false;
+    }
+
+    private async Task SaveExpiryDate()
+    {
+        if (editContext.Validate())
+        {
+            savingData = true;
+            var expirationDate = dateHolder.EnableTempSharing ? dateHolder.Date : null;
+            var t = PublicFileService.SaveTempSharingExpiryDate(fileIdGuid, expirationDate);
+            await t;
+            savingData = false;
+        }
     }
 
     private void UpdateCurrentStatus(PublicUrlSharingStatus step, bool passed = false)
@@ -220,16 +289,29 @@
 
     private async Task ShowCancelRequestDialog()
     {
-        var promptText = new List<string>() { Localizer["PUBLIC-URL-WIZARD.CancelSharingPrompt"] };
-        RenderFragment cancelDialog = @<UserChoiceModal
-            HeaderText=@Localizer["PUBLIC-URL-WIZARD.CancelSharing"]
+        await ShowCancelOrDeleteRequestDialog("CancelSharing");
+    }
+
+    private async Task ShowDeleteExpiredDialog()
+    {
+        await ShowCancelOrDeleteRequestDialog("DeleteExpired");
+    }
+
+    private async Task ShowCancelOrDeleteRequestDialog(string operation)
+    {
+        var promptText = new List<string>() { Localizer[$"{LOCALIZATION_PREFIX}.{operation}Prompt"] };
+        RenderFragment cancelDialog =  
+    @<UserChoiceModal
+            HeaderText=@Localizer[$"{LOCALIZATION_PREFIX}.{operation}"]
             ChoiceTextList=@promptText
             OnDecision="HandleCancel"
             ConfirmText=@Localizer["COMMON.Yes"]
             CancelText=@Localizer["COMMON.No"]
-            />;
+            />
+    ;
         await UI.ToggleModal(cancelDialog);
     }
+
 
     private async void HandleCancel(bool isCancelled)
     {
@@ -243,9 +325,30 @@
         await UI.ToggleModal();
     }
 
+    private void HandleValiadationRequested(object sender, ValidationRequestedEventArgs args)
+    {
+        validationMessageStore.Clear();
+
+        if (dateHolder.EnableTempSharing && !dateHolder.Date.HasValue)
+        {
+            validationMessageStore.Add(() => dateHolder.Date, Localizer[$"{VALIDATION_ERROR_PREFIX}.TempWithNoExpiry"]);
+        }
+
+        if (dateHolder.Date.HasValue && dateHolder.Date <= DateTime.UtcNow)
+        {
+            validationMessageStore.Add(() => dateHolder.Date, Localizer[$"{VALIDATION_ERROR_PREFIX}.ExpiryDateInPast"]);
+        }
+    }
+
     protected override async Task OnInitializedAsync()
     {
-        
+        // don't show a step for Expired status
+        steps.Remove(PublicUrlSharingStatus.Expired);
+
+        editContext = new(dateHolder);
+        editContext.OnValidationRequested += HandleValiadationRequested;
+        validationMessageStore = new(editContext);
+
         if (!Guid.TryParse(FileId, out fileIdGuid))
         {
             NavManager.NavigateTo("/");
@@ -272,8 +375,17 @@
         IsOwnRequest = currentUser.Id == RequestingUser.Id;
 
         PublicationDateStr = sharedFileInfo.PublicationDate_DT?.ToShortDateString();
+
+        dateHolder.Date = sharedFileInfo.ExpirationDate_DT;
+        dateHolder.EnableTempSharing = dateHolder.Date.HasValue;
+
         var status = sharedFileInfo.GetPublicUrlSharingStatus();
         UpdateCurrentStatus(status, status == PublicUrlSharingStatus.AccessPublicUrl);
+    }
+
+    public void Dispose()
+    {
+        editContext.OnValidationRequested -= HandleValiadationRequested;
     }
 
 

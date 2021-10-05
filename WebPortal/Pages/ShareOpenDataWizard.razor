@@ -253,8 +253,6 @@
     {
         savingData = true;
 
-        var sdfdsf = signedApprovalFormUrl;
-
         await PublicFileService.UpdateOpenDataSignedApprovalFormUrl(fileIdGuid, signedApprovalFormUrl);
 
         savingData = false;
@@ -274,6 +272,7 @@
         }
 
         await t;
+        await PublicFileService.MarkMetadataComplete(fileIdGuid);
         savingData = false;
         NavManager.NavigateTo($"{uri}#stepsDiv");
         if (currentStep == OpenDataSharingStatus.EnterMetadata)
@@ -288,6 +287,7 @@
 
     private async Task AcceptMetadata()
     {
+        await PublicFileService.MarkMetadataComplete(fileIdGuid);
         UpdateCurrentStatus(OpenDataSharingStatus.OpenGovApprovalForm);
     }
 
