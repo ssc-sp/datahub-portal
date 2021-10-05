@@ -11,7 +11,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace DatahubTest.Components
+namespace Datahub.Tests.Components
 {
     public class EFListEditorToolsTests
     {
