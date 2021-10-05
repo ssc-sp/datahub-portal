@@ -4952,6 +4952,15 @@ body {
   justify-content: flex-end;
 }
 
+.filterDropdown .ae.button {
+  height: 32px;
+  background-color: #F7F7F7;
+  color: inherit;
+  display: flex;
+  padding-top: 6px;
+  justify-content: flex-end;
+}
+
 #manageButton {
   display: flex;
   justify-content: space-between;
