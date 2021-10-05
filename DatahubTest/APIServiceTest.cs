@@ -108,13 +108,11 @@ namespace DatahubTest
     }
     public class APIServiceTest
     {
-
-        private readonly IApiService _apiService;
+        //private readonly IApiService _apiService;
         //public APIServiceTest(IApiService ApiService)
         //{
         //    _apiService = ApiService;
         //}
-
 
         [Fact]
         public void ParseCustomFieldsToJson()

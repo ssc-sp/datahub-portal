@@ -25,13 +25,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FormTests", "FormTests\Form
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Metadata", "Datahub.Metadata\Datahub.Metadata.csproj", "{11A4651C-6BC9-45E2-847D-025F466B8345}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Metadata.Tests", "Datahub.Metadata.Tests\Datahub.Metadata.Tests.csproj", "{E54B7DC6-8084-45B0-8FB6-54790D83588B}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.LanguageTraining", "LanguageTraining\Datahub.LanguageTraining.csproj", "{94F1AACD-69F3-4B14-A0B5-9E2676C017C7}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SyncDbUsers", "Datahub.Functions\SyncDbUsers.csproj", "{AEB7AF13-E06C-4650-ADBD-5EF1BD5F645B}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SyncDBUsersConsole", "Datahub.FunctionConsole\SyncDBUsersConsole.csproj", "{FA17FE2D-2E5E-4992-92E0-A3F7B7E295DE}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.CKAN", "Datahub.CKAN\Datahub.CKAN.csproj", "{32A1AB80-7426-48E9-BBC2-14B6FE6FBABD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -59,10 +59,6 @@ Global
 		{11A4651C-6BC9-45E2-847D-025F466B8345}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{11A4651C-6BC9-45E2-847D-025F466B8345}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{11A4651C-6BC9-45E2-847D-025F466B8345}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E54B7DC6-8084-45B0-8FB6-54790D83588B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E54B7DC6-8084-45B0-8FB6-54790D83588B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E54B7DC6-8084-45B0-8FB6-54790D83588B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E54B7DC6-8084-45B0-8FB6-54790D83588B}.Release|Any CPU.Build.0 = Release|Any CPU
 		{94F1AACD-69F3-4B14-A0B5-9E2676C017C7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{94F1AACD-69F3-4B14-A0B5-9E2676C017C7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{94F1AACD-69F3-4B14-A0B5-9E2676C017C7}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -75,13 +71,17 @@ Global
 		{FA17FE2D-2E5E-4992-92E0-A3F7B7E295DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FA17FE2D-2E5E-4992-92E0-A3F7B7E295DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FA17FE2D-2E5E-4992-92E0-A3F7B7E295DE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{32A1AB80-7426-48E9-BBC2-14B6FE6FBABD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{32A1AB80-7426-48E9-BBC2-14B6FE6FBABD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{32A1AB80-7426-48E9-BBC2-14B6FE6FBABD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{32A1AB80-7426-48E9-BBC2-14B6FE6FBABD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {9DC4B901-16FF-4FF2-9ED6-B286EA17048E}
-		RESX_AutoCreateNewLanguageFiles = True
 		RESX_ConfirmAddLanguageFile = True
+		RESX_AutoCreateNewLanguageFiles = True
+		SolutionGuid = {9DC4B901-16FF-4FF2-9ED6-B286EA17048E}
 	EndGlobalSection
 EndGlobal

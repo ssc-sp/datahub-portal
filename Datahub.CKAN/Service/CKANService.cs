@@ -1,12 +1,12 @@
 ﻿using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
-using NRCan.Datahub.Shared.Data;
-using System.Collections.Generic;
+using NRCan.Datahub.CKAN.Package;
+using NRCan.Datahub.Metadata.DTO;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NRCan.Datahub.Shared.Services
+namespace NRCan.Datahub.CKAN.Service
 {
     public class CKANService : ICKANService
     {
@@ -19,8 +19,11 @@ namespace NRCan.Datahub.Shared.Services
             _ckanConfiguration = ckanConfiguration;
         }
 
-        public async Task<CKANApiResult> CreatePackage(IDictionary<string, object> packageData)
+        public async Task<CKANApiResult> CreatePackage(FieldValueContainer fieldValues)
         {
+            // generate the dictionary
+            var packageData = PackageGenerator.GeneratePackage(fieldValues);
+
             // generate json from package
             var jsonData = JsonConvert.SerializeObject(packageData);
 
