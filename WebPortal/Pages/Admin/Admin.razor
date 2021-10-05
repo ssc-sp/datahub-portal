@@ -12,7 +12,7 @@
 
 <div style="padding-left: 2rem;padding-right: 2rem">
 
-    <AeTypography Variant="h1">@Localizer["Datahub Administration"]</AeTypography>
+    <AeTypography Variant="h1">@Localizer["DataHub Administration"]</AeTypography>
 
 <AuthorizeView Roles="@string.Join(',', _authorizedRoles)">
     <Authorized>
@@ -24,14 +24,23 @@
         <ChildContent>
         @if (_userProjectAuthorization != null)
         {
-            <AeTable Accessors="GetProjectRequestAccessorFunctions()"
-                     Dataset="_userProjectAuthorization"
-                     Renderers="projectReqRenderFunctions"
-                     Headers="projectReqheaders" />
+            <AeFlex Vertical>
+                <AePaginatedTable Accessors="GetProjectRequestAccessorFunctions()"
+                        T="Datahub_Project_User_Request"
+                         Dataset="_userProjectAuthorization"
+                         @ref="_table1"
+                         Page="@_lastClicked1"
+                         GridTemplateColumns="3fr 3fr 3fr 3fr"
+                         PageSize="10"
+                         Renderers="projectReqRenderFunctions"
+                         Headers="LocalizeHeaders(projectReqheaders)" />
+
+                <AePagination Pageable="@_table1" OnPageClick="OnTableClick1" />
+            </AeFlex>
         }
         else
         {
-            <div>Loading data...</div>
+            <div>@Localizer["Loading data..."]</div>
         }
         </ChildContent>
         </AeCard>    
@@ -42,14 +51,21 @@
 
         @if (_usersAuthorization != null)
         {
-            <AeTable Accessors="accessorFunctions"
+            <AePaginatedTable Accessors="accessorFunctions"
+            T="Datahub_Project_Access_Request"
                      Dataset="_usersAuthorization"
                      Renderers="renderFunctions"
-                     Headers="headers" />
+                     @ref="@_table2"                     
+                     GridTemplateColumns="2fr 3fr 2fr 3fr 2fr" 
+                     Page="@_lastClicked2"
+                     Headers="LocalizeHeaders(headers)"
+                     PageSize="10"/>
+
+            <AePagination Pageable="@_table2" OnPageClick="OnTableClick2" />
         }
         else
         {
-            <div>Loading data...</div>
+            <div>@Localizer["Loading data..."]</div>
         }
         </ChildContent>
         </AeCard>
@@ -64,7 +80,7 @@
                 Accessors=@serviceRequestAccessors
                 Dataset=@_serviceRequests
                 Renderers=@serviceRenderers
-                Headers=@serviceReqHeaders
+                Headers=@LocalizeHeaders(serviceReqHeaders)
             />
         }
         else
@@ -105,7 +121,7 @@
         }
     </Authorized>
     <NotAuthorized>
-        <AeTypography Variant="h1">This page is limited for datahub administrators</AeTypography>
+        <AeTypography Variant="h1">@Localizer["This page is limited for DataHub administrators"]</AeTypography>
     </NotAuthorized>
 </AuthorizeView>
 
@@ -114,20 +130,32 @@
 
         <AeCard>
             <Header>
-        <AeTypography Variant="h1">@Localizer["PowerBI Workspaces and Datasets"]</AeTypography>
+        <AeTypography Variant="h1">@Localizer["Datahub Tools"]</AeTypography>
         </Header>
         <ChildContent>
-            <NavLink href="/admin/powerbi" >Open PowerBI Admin Page</NavLink>
+            <p>
+            <NavLink href="/admin/powerbi">@Localizer["Power BI Admin Page"]</NavLink>
+            </p>
+            <p>
+            <NavLink href="/datahub/projects">@Localizer["DataHub Project Tracker"]</NavLink>
+            </p>
         </ChildContent>
         </AeCard>
         </Authorized>
         </AuthorizeView>
         </div>
 @code {
+
+    private int _lastClicked1 = 0;
+    private int _lastClicked2 = 0;
+
     [CascadingParameter]
     private Task<AuthenticationState> authenticationStateTask { get; set; }
 
     private List<string> _authorizedRoles;
+
+    private IPageableComponent _table1;
+    private IPageableComponent _table2;
 
     private List<Datahub_Project_Access_Request> _usersAuthorization;
 
@@ -152,6 +180,16 @@
         "Project", "Requesting User", "Service", "Created", "Notified"
     };
 
+    private void OnTableClick1(int pageIndex)
+    {
+        _lastClicked1 = pageIndex;
+    }
+
+    private void OnTableClick2(int pageIndex)
+    {
+        _lastClicked2 = pageIndex;
+    }
+
     private bool _emailSelf = true;
     private bool EmailSelf
     {
@@ -164,6 +202,11 @@
             }
             _emailSelf = value;
         }
+    }
+
+    private List<string> LocalizeHeaders(List<string> input)
+    {
+        return input.Select(s => Localizer[s].ToString()).ToList();
     }
     private string TestRecipientName { get; set; }
     private string TestRecipientEmail { get; set; }
@@ -241,9 +284,18 @@
 
         var serviceName = r.RequestServiceType;
 
-        await EmailService.SendServiceAccessGrantedNotification(serviceName, r.Project.ProjectInfo, r.User_Name);
+        await EmailService.SendServiceAccessGrantedNotification(serviceName, r.Project.ProjectInfo, r.User_ID);
 
         await RefreshData();
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+      // You must re-render after the components are initialized in order for the 
+      // component reference to not be null
+      if (firstRender) {
+        StateHasChanged();
+      }
     }
 
     private async Task AuthorizeProjectUser(Datahub_Project_User_Request r)
@@ -265,6 +317,8 @@
 
         projectContext.Project_Users.Add(request);
         await projectContext.SaveChangesAsync();
+        var serviceName = r.Project.ProjectName;
+        await EmailService.SendServiceAccessGrantedNotification(serviceName, r.Project.ProjectInfo, r.User_ID);
 
         await RefreshData();
     }
@@ -276,29 +330,29 @@
 
         var serviceName = r.RequestServiceType;
 
-        await EmailService.SendAccessRevokedNotification(serviceName, r.Project.ProjectInfo, r.User_Name);
+        await EmailService.SendAccessRevokedNotification(serviceName, r.Project.ProjectInfo, r.User_ID);
 
         await RefreshData();
     }
 
     private async Task NotifyServiceCreation(Datahub_ProjectServiceRequests r)
     {
-        var requestingUserEmail = r.User_Name?.ToLowerInvariant();
+        var requestingUserId = r.User_ID;
         var project = r.Project;
         await projectContext.Entry(project).Collection(p => p.Users).LoadAsync();
-        var userEmails = project.Users
-            .Select(u => MSGraphService.GetUserEmail(u.User_ID).ToLowerInvariant())
+        var projectUserIds = project.Users
+            .Select(u => u.User_ID)
             .ToHashSet();
         
         Task individualEmailTask = null;
 
-        if (!string.IsNullOrEmpty(requestingUserEmail))
+        if (!string.IsNullOrEmpty(requestingUserId))
         {
-            userEmails.Remove(requestingUserEmail);
-            individualEmailTask = EmailService.SendServiceCreationRequestApprovedIndividual(r.ServiceType, r.Project.ProjectInfo, requestingUserEmail);
+            projectUserIds.Remove(requestingUserId);
+            individualEmailTask = EmailService.SendServiceCreationRequestApprovedIndividual(r.ServiceType, r.Project.ProjectInfo, requestingUserId);
         }
 
-        await EmailService.SendServiceCreationGroupNotification(r.ServiceType, r.Project.ProjectInfo, userEmails.ToList());
+        await EmailService.SendServiceCreationGroupNotification(r.ServiceType, r.Project.ProjectInfo, projectUserIds.ToList());
 
         if (individualEmailTask != null)
         {
@@ -337,8 +391,6 @@
         ResetTestRecipient();
 
         await RefreshData();
-
-
 
         projectReqRenderFunctions = new List<Func<Datahub_Project_User_Request, RenderFragment>>
         {

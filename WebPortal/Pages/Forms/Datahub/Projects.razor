@@ -7,6 +7,9 @@
 @inject NavigationManager NavigationManager
 @inject Elemental.Services.UIControlsService UIControlService
 @inject IJSRuntime JsInterop
+@inject TranslationService TranslationService
+@inject IDatahubAuditingService AuditingService
+
 @using Microsoft.EntityFrameworkCore.Query
 @using Microsoft.EntityFrameworkCore;
 @page "/datahub/projects"
@@ -60,6 +63,8 @@
         <h2>Create new project</h2>
     }
 
+    <AeButton @onclick="SuggestTranslation">@DataLocalizer["Suggest French Translation"]</AeButton>
+
     <AeModelForm Model="_project"
         T="Datahub_Project"
         OnValidSubmit="HandleValidSubmit"
@@ -112,6 +117,13 @@ if (_project.Project_ID > 0)
     
     private int _lastClicked = 0;
     private IPageableComponent _myTable;
+
+    public async Task SuggestTranslation()
+    {
+        _project.Project_Name_Fr = await TranslationService.GetFrenchTranslation(_project.Project_Name);
+        _project.Project_Summary_Desc_Fr = await TranslationService.GetFrenchTranslation(_project.Project_Summary_Desc);
+        //TranslationService
+    }
 
 
     private void OnPageClick(int pageIndex)
@@ -220,7 +232,12 @@ if (_project.Project_ID > 0)
     {
         // load projects        
         Context = DbFactory.CreateDbContext();
-        _projects = Context.Projects.Include(r => r.Comments).Where(p => p.Deleted_DT == null).ToList();
+        await LoadProjects(); 
+    }
+
+    private async Task LoadProjects()
+    {
+        _projects = Context.Projects.Include(r => r.Comments).Where(p => p.Deleted_DT == null).ToList();        
     }
 
     private async Task CreateNewProject()
@@ -272,8 +289,8 @@ if (_project.Project_ID > 0)
     private async Task DeleteConfirmed(Datahub_Project project)
     {
         project.Deleted_DT = DateTime.Now;
-        await Context.SaveChangesAsync();
-        await OnInitializedAsync();
+        await Context.TrackSaveChangesAsync(AuditingService);
+        await LoadProjects(); 
     }
 
     private async Task HandleValidSubmit()
@@ -290,8 +307,8 @@ if (_project.Project_ID > 0)
 
             await UpdateAdmins();
 
-            await Context.SaveChangesAsync();
-            await OnInitializedAsync();
+            await Context.TrackSaveChangesAsync(AuditingService);
+            await LoadProjects(); 
             _project = null;
         }
     }
@@ -313,7 +330,7 @@ if (_project.Project_ID > 0)
             {
                 _comment = Context.Project_Comments.Add(_comment).Entity;
             }
-            await Context.SaveChangesAsync();
+            await Context.TrackSaveChangesAsync(AuditingService);
         }
     }
 

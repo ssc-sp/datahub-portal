@@ -1,0 +1,64 @@
+﻿@using Microsoft.Azure.Services.AppAuthentication
+@inject IProjectDatabaseService ProjectDbService
+
+@if (DataProject != null)
+{
+    <AeTypography Variant="h3">@DataProject.ProjectName</AeTypography>
+    <div>@Localizer["PROJECT-PAGE.DATABASE-CARD.DatabaseName"]: @DataProject.DB_Name</div>
+    <div>@Localizer["PROJECT-PAGE.DATABASE-CARD.DatabaseType"]: @DataProject.DB_Type</div>
+    <div>@Localizer["PROJECT-PAGE.DATABASE-CARD.DatabaseServer"]: @DataProject.DB_Server</div>
+    <hr />
+    @if (DataProject.IsDatabasePostgres)
+    {
+        @if (_authResult != null)
+        {
+            <div>
+                @Localizer["PROJECT-PAGE.DATABASE-CARD.AccessToken"]:
+                <code style="display: block; padding: 2px 10px; word-break: break-all;">
+                    @_authResult.AccessToken
+                </code>
+            </div>
+            <div>@Localizer["PROJECT-PAGE.DATABASE-CARD.Expires"]: @_authResult.ExpiresOn.ToLocalTime()</div>
+        }
+        else if (ProjectDbService.IsServiceAvailable())
+        {
+            <div>
+                <AeButton OnClickEvent=@GetPostgresToken Disabled=@awaitingToken>@Localizer["PROJECT-PAGE.DATABASE-CARD.GetToken_button"]</AeButton>
+                @if (awaitingToken)
+                {
+                    <div style="display: inline-block;">
+                        <Spinner Small/>
+                    </div>
+                }
+            </div>
+        }
+    }
+}
+
+
+@code {
+
+    [Parameter]
+    public Datahub_Project DataProject { get; set; }
+
+    [Parameter]
+    public bool GetAccessTokenImmediately { get; set; } = false;
+
+    private AppAuthenticationResult _authResult { get; set; }
+    private bool awaitingToken = false;
+
+    private async Task GetPostgresToken()
+    {
+        awaitingToken = true;
+        _authResult = await ProjectDbService.GetPostgresAuthenticationObject();
+        awaitingToken = false;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (GetAccessTokenImmediately)
+        {
+            await GetPostgresToken();
+        }
+    }
+}

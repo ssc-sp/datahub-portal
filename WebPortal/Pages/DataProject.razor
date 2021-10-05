@@ -3,7 +3,7 @@
 @using NRCan.Datahub.Portal.Data
 @inject IStringLocalizer<DataProject> DataLocalizer
 @inject NavigationManager NavigationManager
-@inject Elemental.Services.UIControlsService UIControlService
+@inject UIControlsService UIControlService
 @inject IUserInformationService UserInformationService
 @inject IJSRuntime JsInterop
 @implements IDisposable
@@ -11,12 +11,19 @@
 @inject IDbContextFactory<DatahubETLStatusContext> DbFactoryEtl
 @inject IEmailNotificationService EmailNotificationService
 @inject IPublicDataFileService PublicDataFileService
+@inject IProjectDatabaseService ProjectDatabaseService
 
 @page "/project/{projectAcronym}"
 
 <div style="padding-left: 2rem;padding-right: 2rem">
+    @if (_project is null)
+    {
+        <Spinner Small=@true />
+    }
+    else
+    {
     <AeFlex Vertical>
-        <h2>Data Project</h2>
+        <h2>@DataLocalizer["Data Project"]</h2>
     </AeFlex>
     <AeCard CardPosition="AeCard.CardStyle.Horizontal">
         <Header>
@@ -41,11 +48,11 @@
                     }
                 </NotAuthorized>
             </AuthorizeView>
-            <AeTypography>@DataLocalizer["Data Sensitivity"]: @DataLocalizer[_project.Data_Sensitivity]</AeTypography>
+            <AeTypography>@DataLocalizer["Data Sensitivity:"] @DataLocalizer[_project.Data_Sensitivity]</AeTypography>
             <AuthorizeView Roles="@RoleConstants.DATAHUB_ROLE_ADMIN">
                 <Authorized>
                     <AeFlex>
-                    <AeButton @onclick="EditProject">Edit Project</AeButton>
+                    <AeButton @onclick="EditProject">@DataLocalizer["Edit Project"]</AeButton>
                     </AeFlex>
                 </Authorized>
             </AuthorizeView>
@@ -66,7 +73,7 @@
             </AeFlex>
         }
 
-        <h2>Project Tools</h2>
+        <h2>@DataLocalizer["Data Project Tools"]</h2>
         <div class="ae flex wrap">
             <AeCard class="facard1" CardPosition="AeCard.CardStyle.Horizontal">
                 <Header>
@@ -81,7 +88,7 @@
                     }
                     else
                     {
-                        <AeTypography Variant="h3">Azure Databricks</AeTypography>
+                        <AeTypography Variant="h3">@DataLocalizer["Azure Databricks"]</AeTypography>
                     }
                     <AeTypography>@DataLocalizer["Azure Databricks Workspace"]</AeTypography>
                 </ChildContent>
@@ -97,20 +104,20 @@
                                 }
                                 else
                                 {
-                                    <AeTypography class="warning">Access not authorized</AeTypography>
-                                    <AeButton @onclick="@(async () => await RequestAccess(true, false, false))">Request Access</AeButton>
+                                    <AeTypography class="warning">@DataLocalizer["Access not authorized"]</AeTypography>
+                                    <AeButton @onclick="@(async () => await RequestAccess(true, false, false))">@DataLocalizer["Request Access"]</AeButton>
                                 }
                             }
                             else
                             {
                                 @if (_serviceRequests.Any(r => r.ServiceType == "databricks" && r.Is_Completed == null))
                                 {
-                                    <AeTypography class="warning">Service Request is being reviewed</AeTypography>
+                                    <AeTypography class="warning">@DataLocalizer["Service Request is being reviewed"]</AeTypography>
                                 }
                                 else
                                 {
                                     @* <AeTypography class="warning">Service not available</AeTypography> *@
-                                    <AeButton @onclick="@(async () => await RequestServiceAccess("databricks"))">Request Service Creation</AeButton>
+                                    <AeButton @onclick="@(async () => await RequestServiceAccess("databricks"))">@DataLocalizer["Request Service Creation"]</AeButton>
                                 }
                             }
                         }
@@ -121,7 +128,7 @@
             <AeCard class="facard1" CardPosition="AeCard.CardStyle.Horizontal">
                 <Header>
                     <div style="width:180px">
-                        <img src="/icons/svg/powerbi.svg" alt="Power Virtual Agents powerbi">
+                        <img src="/icons/svg/powerbi.svg" alt="Power Virtual Agents power bi">
                     </div>
                 </Header>
                 <ChildContent>
@@ -131,9 +138,9 @@
                     }
                     else
                     {
-                        <AeTypography Variant="h3">PowerBI</AeTypography>
+                        <AeTypography Variant="h3">@Localizer["Power BI"]</AeTypography>
                     }
-                    <AeTypography>PowerBI Workspace</AeTypography>
+                    <AeTypography>@Localizer["Power BI Workspace"]</AeTypography>
                 </ChildContent>
                 <Footer>
                     @if (!_powerBIAuthorized)
@@ -250,50 +257,79 @@
                     {
                         <AeButton @onclick="@(async () => await RequestServiceAccess("storage"))">@DataLocalizer["Request Service Creation"]</AeButton>
                     }
+                </Footer>
+            </AeCard>
+
+            <AuthorizeView Roles="DHPGLIST-admin" Context="hidden_in_dev">
+                <AeCard class="facard1" CardPosition="AeCard.CardStyle.Horizontal">
+                    <Header>
+                        <div>
+                            <AeIcon class="fad fa-share-square card-icon"/>
+                        </div>
+                    </Header>
+                    <ChildContent>
+                        <DatahubLink Variant="h3" DataProject="@projectAcronym" LinkType="DatahubLinkType.DataSharingDashboard">@Localizer["Public Data Sharing"]</DatahubLink>
+                        @* <AeTypography Variant="h3" >@Localizer["Public Data Sharing"]</AeTypography> *@
+                        <AeTypography>@Localizer["Sharing requests awaiting approval:"] @_sharingRequestCount</AeTypography>
+                    </ChildContent>
+                </AeCard>
+            </AuthorizeView>
+
+            <AuthorizeView Roles="@($"{projectAcronym}-admin")" Context="Project_Cost">
+                <AeCard class="facard1" CardPosition="AeCard.CardStyle.Horizontal">
+                    <Header>
+                        <div class="indigo" style="width:180px">
+                            <AeIcon class="fad fa-dollar-sign card-icon" />
+                        </div>
+                    </Header>
+                    <ChildContent>
+                        <AeFlex Vertical>
+                            <AeTypography Variant="h3">
+                                @DataLocalizer["Cost"]
+                            </AeTypography>
+                            <AeTypography>
+                                @_projectCostFormatted
+                            </AeTypography>
+                        </AeFlex>
+                    </ChildContent>
+                    <Footer>
+                        <AeButton>@DataLocalizer["Project_Cost_Button"]</AeButton>
                     </Footer>
                 </AeCard>
+            </AuthorizeView>
 
-                <AuthorizeView Roles="DHPGLIST-admin" Context="hidden_in_dev">
-                    <AeCard class="facard1" CardPosition="AeCard.CardStyle.Horizontal">
-                        <Header>
+            @if(ShowDatabaseCard)
+            {
+                <AeCard class="facard1" CardPosition="AeCard.CardStyle.Horizontal">
+                    <Header>
+                        <div>
+                            <AeIcon class="fad fa-database card-icon"/>
+                        </div>
+                    </Header>
+                    <ChildContent>
+                        <AeFlex Vertical>
+                            <AeTypography Variant="h3">
+                                @Localizer["PROJECT-PAGE.DATABASE-CARD.CardTitle"]
+                            </AeTypography>
+                            <div>@Localizer["PROJECT-PAGE.DATABASE-CARD.DatabaseName"]: @_project.DB_Name</div>
                             <div>
-                                <AeIcon class="fad fa-share-square card-icon"/>
+                                <AeButton OnClickEvent=@ShowDatabaseInformationPopupWithoutToken>@Localizer["PROJECT-PAGE.DATABASE-CARD.MoreInfo_button"]</AeButton>
                             </div>
-                        </Header>
-                        <ChildContent>
-                            <DatahubLink Variant="h3" DataProject="@projectAcronym" LinkType="DatahubLinkType.DataSharingDashboard">@Localizer["Public Data Sharing"]</DatahubLink>
-                            @* <AeTypography Variant="h3" >@Localizer["Public Data Sharing"]</AeTypography> *@
-                            <AeTypography>@Localizer["Sharing requests awaiting approval:"] @_sharingRequestCount</AeTypography>
-                        </ChildContent>
-                    </AeCard>
-                </AuthorizeView>
-                <AuthorizeView Roles="@($"{projectAcronym}-admin")" Context="Project_Cost">
-                    <AeCard class="facard1" CardPosition="AeCard.CardStyle.Horizontal">
-                        <Header>
-                            <div class="indigo" style="width:180px">
-                                <AeIcon class="fad fa-dollar-sign card-icon" />
-                            </div>
-                        </Header>
-                        <ChildContent>
-                            <AeFlex Vertical>
-                                <AeTypography Variant="h3">
-                                    @DataLocalizer["Project_Cost"]
-                                </AeTypography>
-                                <AeTypography>
-                                    @_projectCostFormatted
-                                </AeTypography>
-                            </AeFlex>
-                        </ChildContent>
-                        <Footer>
-                            <AeButton>@DataLocalizer["Project_Cost_Button"]</AeButton>
-                        </Footer>
-                    </AeCard>
-                </AuthorizeView>
+                            @if (_project.IsDatabasePostgres && ProjectDatabaseService.IsServiceAvailable())
+                            {
+                                <div>
+                                    <AeButton OnClickEvent=@ShowDatabaseInformationPopupWithToken>@Localizer["PROJECT-PAGE.DATABASE-CARD.GetToken_button"]</AeButton>
+                                </div>
+                            }
+                        </AeFlex>
+                    </ChildContent>
+                </AeCard>
+            }
             
-            </div>
+        </div>
         
     </AuthorizeView>
-
+    }
 
 </div>
 
@@ -366,6 +402,8 @@
 
     private string _projectCostFormatted;
 
+    private bool ShowDatabaseCard => _project != null && _project.HasAssociatedDatabase;
+
     private void EditProject()
     {
         NavigationManager.NavigateTo($"/edit-project/{projectAcronym}");
@@ -435,15 +473,24 @@
             .FirstOrDefaultAsync();
 
         if (prjCost == null)
-            return DataLocalizer["Project_Cost_NotFound"];
+            return DataLocalizer["No cost data found."];
 
         var cost = Convert.ToDecimal(prjCost.Cost_AMT).ToString("C2");
         var fromDate = prjCost.Usage_DT.AddMonths(-1).ToShortDateString();
         var toDate = prjCost.Usage_DT.ToShortDateString();
         var asofDate = prjCost.Updated_DT.ToShortDateString();
-        var template = DataLocalizer["Project_Cost_Template"];
+        var template = DataLocalizer["As of {0}, total resource cost is {1} for the period from {2} to {3}."];
 
         return string.Format(template, asofDate, cost, toDate, asofDate);
+    }
+
+    private async Task<List<string>> GetProjectAdministratorEmailsAndIds()
+    {
+        var loadUsersTask = projectContext.Entry(_project).Collection(p => p.Users).LoadAsync();
+        var adminEmails = ServiceAuthManager.ExtractEmails(_project.Project_Admin ?? string.Empty);
+        await loadUsersTask;
+        var adminUsers = _project.Users.Where(u => u.IsAdmin).Select(u => u.User_ID);
+        return adminEmails.Concat(adminUsers).ToList();
     }
 
     private async Task RequestProjectAccess()
@@ -457,6 +504,10 @@
 
         projectContext.Project_Users_Requests.Add(request);
         await projectContext.SaveChangesAsync();
+
+        var admins = await GetProjectAdministratorEmailsAndIds();
+        await EmailNotificationService.SendServiceAccessRequestNotification(_user.DisplayName, "project", _project.ProjectInfo, admins);
+
         await RefreshComponents(true);
     }
 
@@ -473,15 +524,15 @@
             Project = _project,
             PowerBI = powerbi,
             WebForms = webforms,
-            Databricks = databricks
+            Databricks = databricks           
         };
         projectContext.Access_Requests.Add(request);
         await projectContext.SaveChangesAsync();
 
         var serviceName = request.RequestServiceType;
 
-        var adminEmails = ServiceAuthManager.ExtractEmails(_project.Project_Admin ?? string.Empty);
-        await EmailNotificationService.SendServiceAccessRequestNotification(request.User_Name, serviceName, _project.ProjectInfo, adminEmails);
+        var admins = await GetProjectAdministratorEmailsAndIds();
+        await EmailNotificationService.SendServiceAccessRequestNotification(request.User_Name, serviceName, _project.ProjectInfo, admins);
 
         await RefreshComponents(true);
     }
@@ -501,8 +552,8 @@
         projectContext.Project_Requests.Add(serviceRequest);
         await projectContext.SaveChangesAsync();
 
-        var adminEmails = ServiceAuthManager.ExtractEmails(_project.Project_Admin ?? string.Empty);
-        await EmailNotificationService.SendServiceCreationRequestNotification(serviceRequest.User_Name, serviceType, _project.ProjectInfo, adminEmails);
+        var admins = await GetProjectAdministratorEmailsAndIds();
+        await EmailNotificationService.SendServiceCreationRequestNotification(serviceRequest.User_Name, serviceType, _project.ProjectInfo, admins);
 
         await RefreshComponents(true);
     }
@@ -514,6 +565,15 @@
         _isProjectUserPendingApproval = projectContext.Project_Users_Requests.Any(u => u.User_ID == _user.Id && _project == u.Project && u.Approved_DT == null);
         StateHasChanged();
     }
+
+    private async Task ShowDatabaseInformationPopup(bool getToken = false)
+    {
+        RenderFragment popupHtml = @<DataProjectDbInformation DataProject=@_project GetAccessTokenImmediately=@getToken />;
+        await UIControlService.ToggleModal(@<RenderFragmentModal Fragment=@popupHtml />);
+    }
+
+    private async Task ShowDatabaseInformationPopupWithToken() => ShowDatabaseInformationPopup(true);
+    private async Task ShowDatabaseInformationPopupWithoutToken() => ShowDatabaseInformationPopup(false);
 
     public void Dispose()
     {

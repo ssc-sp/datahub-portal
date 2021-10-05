@@ -72,7 +72,7 @@
         @if(ShowSkipMetadata && IsOwnRequest)
         {
             <AeCard>
-                <AeTypography Variant="h3">@Localizer[$"${LOCALIZATION_PREFIX}.AcceptMetadata"]</AeTypography>
+                <AeTypography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.AcceptMetadata"]</AeTypography>
                 <AeButton OnClickEvent=@AcceptMetadata Disabled=@savingData>@Localizer[$"{LOCALIZATION_PREFIX}.Continue_button"]</AeButton>
                 <div>&nbsp;</div>
             </AeCard>
