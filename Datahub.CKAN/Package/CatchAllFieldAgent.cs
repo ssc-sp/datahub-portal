@@ -18,7 +18,7 @@ namespace NRCan.Datahub.CKAN.Package
 
         public override bool Matches(FieldDefinition definition) => _multiselect == definition.MultiSelect_FLAG;
 
-        public override (bool append, FieldAgent agent) Instanciate(string fieldName, string fieldValue)
+        public override (bool append, FieldAgent agent) Instantiate(string fieldName, string fieldValue)
         {
             return (append: true, agent: new CatchAllFieldAgent(fieldName, fieldValue, _multiselect));
         }

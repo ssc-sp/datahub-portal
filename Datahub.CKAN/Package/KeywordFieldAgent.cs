@@ -15,7 +15,7 @@ namespace NRCan.Datahub.CKAN.Package
             return definition.Field_Name_TXT.StartsWith(KeywordPrefix, StringComparison.InvariantCulture);
         }
 
-        public override (bool append, FieldAgent agent) Instanciate(string fieldName, string fieldValue)
+        public override (bool append, FieldAgent agent) Instantiate(string fieldName, string fieldValue)
         {
             var append = _languages.Count == 0;
 
