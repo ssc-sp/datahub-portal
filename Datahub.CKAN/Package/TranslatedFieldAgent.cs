@@ -13,7 +13,7 @@ namespace NRCan.Datahub.CKAN.Package
             return fieldName.EndsWith("_en") || fieldName.EndsWith("_fr");
         }
 
-        public override (bool append, FieldAgent agent) Instanciate(string fieldName, string fieldValue)
+        public override (bool append, FieldAgent agent) Instantiate(string fieldName, string fieldValue)
         {
             var append = _fields.Count == 0;
             var fieldNameRoot = fieldName.Substring(0, fieldName.Length - 3);
