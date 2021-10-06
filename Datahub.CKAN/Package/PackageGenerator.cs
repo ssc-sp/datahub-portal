@@ -63,7 +63,7 @@ namespace NRCan.Datahub.CKAN.Package
                 var matchingAgent = _fieldAgents.FirstOrDefault(a => a.Matches(definition));
                 if (matchingAgent != null)
                 {
-                    var (append, agent) = matchingAgent.Instanciate(definition.Field_Name_TXT, fv.Value_TXT);
+                    var (append, agent) = matchingAgent.Instantiate(definition.Field_Name_TXT, fv.Value_TXT);
                     if (append)
                     {
                         yield return agent;
