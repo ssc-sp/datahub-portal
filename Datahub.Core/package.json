@@ -10,7 +10,6 @@
   },
   "author": "Apption",
   "license": "Apache-2.0",
-  "dependencies": {},
   "devDependencies": {
     "sass": "^1.42.1"
   }
