@@ -46,7 +46,7 @@ namespace NRCan.Datahub.CKAN.Package
             // type is dataset
             dict["type"] = "dataset";
 
-            var agents = InstanciateAgents(fieldValues).ToList();
+            var agents = InstantiateAgents(fieldValues).ToList();
             foreach (var agent in agents)
             {
                 agent.RenderField(dict);
@@ -55,7 +55,7 @@ namespace NRCan.Datahub.CKAN.Package
             return dict;
         }
 
-        static IEnumerable<FieldAgent> InstanciateAgents(IEnumerable<ObjectFieldValue> fieldValues)
+        static IEnumerable<FieldAgent> InstantiateAgents(IEnumerable<ObjectFieldValue> fieldValues)
         {
             foreach (var fv in fieldValues)
             {
