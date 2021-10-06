@@ -29,12 +29,12 @@ namespace NRCan.Datahub.Shared.Services
 
         public async Task<string> GetProjectConnectionString(string accountName)
         {
-            return "";
+            return await Task.FromResult("");
         }
 
         public async Task<string> getStorageConnString()
         {
-            return "";
+            return await Task.FromResult("");
         }
     }
 }
