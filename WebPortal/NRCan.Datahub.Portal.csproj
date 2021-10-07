@@ -21,7 +21,7 @@
     <None Remove="Data\Forms\Datahub\**" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="AElemental.Blazor" Version="1.2.21265.1-beta" />
+    <PackageReference Include="AElemental.Blazor" Version="1.2.21273.6-beta" />
     <PackageReference Include="Askmethat.Aspnet.JsonLocalizer" Version="3.1.1" />
     <PackageReference Include="Azure.Identity" Version="1.4.1" />
     <PackageReference Include="Azure.Search.Documents" Version="11.3.0" />
@@ -69,6 +69,7 @@
     <PackageReference Include="Tewr.Blazor.FileReader" Version="3.2.0.21211" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Datahub.CKAN\Datahub.CKAN.csproj" />
     <ProjectReference Include="..\Datahub.Metadata\Datahub.Metadata.csproj" />
     <ProjectReference Include="..\Datahub.Core\Datahub.Core.csproj" />
   </ItemGroup>
