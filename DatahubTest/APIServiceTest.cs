@@ -34,7 +34,7 @@ using NRCan.Datahub.Shared.EFCore;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 
-namespace DatahubTest
+namespace Datahub.Tests
 {
     public class Metadata
     {
@@ -55,66 +55,13 @@ namespace DatahubTest
         public string timestamp { get; set; }
     }
 
-    public class FakeWebHostEnvironment : IWebHostEnvironment
-    {
-        public string WebRootPath { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        public IFileProvider WebRootFileProvider { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        public string ApplicationName { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        public IFileProvider ContentRootFileProvider { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        public string ContentRootPath { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        public string EnvironmentName { get => "Development"; set => throw new NotImplementedException(); }
-    }
-
-    public class FakeJSRuntime : IJSRuntime
-    {
-        public ValueTask<TValue> InvokeAsync<TValue>(string identifier, object[] args)
-        {
-            throw new NotImplementedException();
-        }
-
-        public ValueTask<TValue> InvokeAsync<TValue>(string identifier, CancellationToken cancellationToken, object[] args)
-        {
-            throw new NotImplementedException();
-        }
-    }
-    public class Startup
-    {
-        public void ConfigureServices(IServiceCollection services)
-        {
-            services.AddScoped<IUserInformationService, OfflineUserInformationService>();
-            services.AddSingleton<IMSGraphService, MSGraphService>();
-            services.AddSingleton<IKeyVaultService, KeyVaultService>();
-            services.AddScoped<DataLakeClientService>();
-            services.AddSingleton<CognitiveSearchService>();
-            services.AddScoped<IApiService, ApiService>();
-            services.AddScoped<ApiCallService>();
-            services.AddScoped<IWebHostEnvironment, FakeWebHostEnvironment>();
-            services.AddScoped<IJSRuntime, FakeJSRuntime>();
-            //services.AddScoped<DataUpdatingService>();
-            //services.AddScoped<DataSharingService>();
-            services.AddScoped<DataCreatorService>();
-            //services.AddScoped<DataRetrievalService>();
-            //services.AddScoped<DataRemovalService>();
-            services.AddSingleton<DatahubTools>();
-            services.AddScoped<NotificationsService>();
-            services.AddScoped<UIControlsService>();
-            services.AddHttpClient();
-            services.AddFileReaderService();
-            services.AddBlazorDownloadFile();
-            services.AddScoped<NotifierService>();
-
-        }
-
-    }
     public class APIServiceTest
     {
-
-        private readonly IApiService _apiService;
+        //private readonly IApiService _apiService;
         //public APIServiceTest(IApiService ApiService)
         //{
         //    _apiService = ApiService;
         //}
-
 
         [Fact]
         public void ParseCustomFieldsToJson()
