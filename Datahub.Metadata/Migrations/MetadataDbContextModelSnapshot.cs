@@ -301,6 +301,59 @@ namespace NRCan.Datahub.Metadata.Migrations
                     b.ToTable("ObjectMetadata");
                 });
 
+            modelBuilder.Entity("NRCan.Datahub.Metadata.Model.SubSubject", b =>
+                {
+                    b.Property<int>("SubSubjectId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<string>("Name_English_TXT")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name_French_TXT")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("SubSubjectId");
+
+                    b.ToTable("SubSubjects");
+                });
+
+            modelBuilder.Entity("NRCan.Datahub.Metadata.Model.Subject", b =>
+                {
+                    b.Property<int>("SubjectId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<string>("Subject_TXT")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.HasKey("SubjectId");
+
+                    b.HasIndex("Subject_TXT")
+                        .IsUnique()
+                        .HasFilter("[Subject_TXT] IS NOT NULL");
+
+                    b.ToTable("Subjects");
+                });
+
+            modelBuilder.Entity("SubSubjectSubject", b =>
+                {
+                    b.Property<int>("SubSubjectsSubSubjectId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SubjectsSubjectId")
+                        .HasColumnType("int");
+
+                    b.HasKey("SubSubjectsSubSubjectId", "SubjectsSubjectId");
+
+                    b.HasIndex("SubjectsSubjectId");
+
+                    b.ToTable("SubSubjectSubject");
+                });
+
             modelBuilder.Entity("NRCan.Datahub.Metadata.Model.FieldChoice", b =>
                 {
                     b.HasOne("NRCan.Datahub.Metadata.Model.FieldDefinition", "FieldDefinition")
@@ -351,6 +404,21 @@ namespace NRCan.Datahub.Metadata.Migrations
                         .IsRequired();
 
                     b.Navigation("MetadataVersion");
+                });
+
+            modelBuilder.Entity("SubSubjectSubject", b =>
+                {
+                    b.HasOne("NRCan.Datahub.Metadata.Model.SubSubject", null)
+                        .WithMany()
+                        .HasForeignKey("SubSubjectsSubSubjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("NRCan.Datahub.Metadata.Model.Subject", null)
+                        .WithMany()
+                        .HasForeignKey("SubjectsSubjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("NRCan.Datahub.Metadata.Model.FieldDefinition", b =>
