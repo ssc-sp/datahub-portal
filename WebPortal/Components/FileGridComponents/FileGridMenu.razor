@@ -17,10 +17,13 @@
         </div>
         
         <AuthorizeView Roles="DHPGLIST-admin">
-            <div class="file-grid-item" @onclick=@Share>
-                <i class="far fa-share-square icon-color sm-icon"></i>
-                @Localizer["Share"]
-            </div>
+            @if (!string.IsNullOrEmpty(Project))
+            {
+                <div class="file-grid-item" @onclick=@Share>
+                    <i class="far fa-share-square icon-color sm-icon"></i>
+                    @Localizer["Share"]
+                </div>
+            }
         </AuthorizeView>
 
 <!-- To be added when we support it
