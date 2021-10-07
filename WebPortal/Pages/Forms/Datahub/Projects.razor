@@ -379,11 +379,15 @@ if (_project.Project_ID > 0)
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if(firstRender){
+            StateHasChanged();
+        }
         if (_navToEdit){
             _navToEdit = false;
             await this.JsInterop.InvokeVoidAsync("anchorLink.scrollIntoView", "edit");
         }
     }
+
 
     private async Task OnConfigure(IModelFormContext context)
     {
