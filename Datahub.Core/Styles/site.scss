@@ -91,10 +91,14 @@ body {
 .filterDropdown .ae.button {
     height: 32px;
     background-color: #F7F7F7;
-    color: inherit;    
+    color: inherit;
     display: flex;
     padding-top: 6px;
     justify-content: flex-end;
+
+    .filterOn {
+        background-color: c.$yellow-400;
+    }
 }
 
 #manageButton {
