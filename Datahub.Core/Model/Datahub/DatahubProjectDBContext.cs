@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NRCan.Datahub.Shared.Data;
 using NRCan.Datahub.Shared.EFCore;
+using NRCan.Datahub.Shared.Model.Onboarding;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,6 +31,9 @@ namespace NRCan.Datahub.Shared.EFCore
         public DbSet<Datahub_ProjectServiceRequests> Project_Requests { get; set; }
         public DbSet<Datahub_Project_Pipeline_Lnk> Project_Pipeline_Links { get; set; }
         public DbSet<Project_Database> Project_Databases { get; set; }
+        public DbSet<Datahub_Project_Sectors_And_Branches> Organization_Levels { get; set; }
+        public DbSet<OnboardingApp> OnboardingApps {  get; set; }
+        public DbSet<Project_Resources> Project_Resources { get; set; }
         public DbSet<Project_PBI_DataSet> Project_PBI_DataSets { get; set; }
         public DbSet<Project_PBI_Report> Project_PBI_Reports { get; set; }
         public DbSet<Project_PBI_Workspace> Project_PBI_Workspaces { get; set; }
