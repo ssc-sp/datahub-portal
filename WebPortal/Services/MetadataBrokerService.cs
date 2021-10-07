@@ -289,5 +289,13 @@ namespace NRCan.Datahub.Portal.Services
         {
             return values.Select(v => v.Clone());
         }
+
+        public async Task DeleteApprovalForm(int approvalFormId)
+        {
+            using var ctx = _contextFactory.CreateDbContext();
+            var approvalForm = await GetApprovalFormEntity(ctx, approvalFormId);
+            ctx.ApprovalForms.Remove(approvalForm);
+            await ctx.SaveChangesAsync();
+        }
     }
 }
