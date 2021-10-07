@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NRCan.Datahub.Shared.EFCore;
 
-namespace NRCan.Datahub.Portal.Migrations.Forms.DatahubProjectDB
+namespace NRCan.Datahub.Shared.Migrations.Core
 {
     [DbContext(typeof(DatahubProjectDBContext))]
-    partial class DatahubProjectDBContextModelSnapshot : ModelSnapshot
+    [Migration("20210921154902_projectresources")]
+    partial class projectresources
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -306,52 +308,6 @@ namespace NRCan.Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.ToTable("Project_Pipeline_Links");
                 });
 
-            modelBuilder.Entity("NRCan.Datahub.Shared.EFCore.Datahub_Project_Sectors_And_Branches", b =>
-                {
-                    b.Property<int>("SectorAndBranchS_ID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
-                    b.Property<string>("Full_Acronym_E")
-                        .HasMaxLength(4000)
-                        .HasColumnType("nvarchar(4000)");
-
-                    b.Property<string>("Full_Acronym_F")
-                        .HasMaxLength(4000)
-                        .HasColumnType("nvarchar(4000)");
-
-                    b.Property<string>("Org_Acronym_E")
-                        .HasMaxLength(4000)
-                        .HasColumnType("nvarchar(4000)");
-
-                    b.Property<string>("Org_Acronym_F")
-                        .HasMaxLength(4000)
-                        .HasColumnType("nvarchar(4000)");
-
-                    b.Property<string>("Org_Level")
-                        .HasMaxLength(1)
-                        .HasColumnType("nvarchar(1)");
-
-                    b.Property<string>("Org_Name_E")
-                        .HasMaxLength(4000)
-                        .HasColumnType("nvarchar(4000)");
-
-                    b.Property<string>("Org_Name_F")
-                        .HasMaxLength(4000)
-                        .HasColumnType("nvarchar(4000)");
-
-                    b.Property<int>("Organization_ID")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("Superior_OrgId")
-                        .HasColumnType("int");
-
-                    b.HasKey("SectorAndBranchS_ID");
-
-                    b.ToTable("Organization_Levels");
-                });
-
             modelBuilder.Entity("NRCan.Datahub.Shared.EFCore.Datahub_Project_User", b =>
                 {
                     b.Property<int>("ProjectUser_ID")
@@ -586,15 +542,6 @@ namespace NRCan.Datahub.Portal.Migrations.Forms.DatahubProjectDB
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
-                    b.Property<string>("Param1")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Param2")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Param3")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<int?>("Project_ID")
                         .HasColumnType("int");
 
@@ -606,7 +553,7 @@ namespace NRCan.Datahub.Portal.Migrations.Forms.DatahubProjectDB
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
-                    b.Property<DateTime?>("TimeCreated")
+                    b.Property<DateTime>("TimeCreated")
                         .HasColumnType("datetime2");
 
                     b.Property<DateTime>("TimeRequested")
@@ -839,126 +786,6 @@ namespace NRCan.Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.HasIndex("WebForm_ID");
 
                     b.ToTable("Fields");
-                });
-
-            modelBuilder.Entity("NRCan.Datahub.Shared.Model.Onboarding.OnboardingApp", b =>
-                {
-                    b.Property<int>("Application_ID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
-                    b.Property<string>("Additional_Contact_Email_EMAIL")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<string>("Additional_Contact_Name")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<string>("Attachments")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Client_Branch")
-                        .IsRequired()
-                        .HasMaxLength(2000)
-                        .HasColumnType("nvarchar(2000)");
-
-                    b.Property<string>("Client_Contact_Name")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<string>("Client_Division")
-                        .IsRequired()
-                        .HasMaxLength(2000)
-                        .HasColumnType("nvarchar(2000)");
-
-                    b.Property<string>("Client_Email")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<string>("Client_Sector")
-                        .IsRequired()
-                        .HasMaxLength(2000)
-                        .HasColumnType("nvarchar(2000)");
-
-                    b.Property<bool>("Data_Set_Security_Level_Classified")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("Data_Set_Security_Level_ProtectedA")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("Data_Set_Security_Level_ProtectedB")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("Data_Set_Security_Level_ProtectedC")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("Data_Set_Security_Level_UnClassified")
-                        .HasColumnType("bit");
-
-                    b.Property<DateTime>("Last_Updated_DT")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Last_Updated_UserId")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Onboarding_Timeline")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("Project_Engagement_Category_DataPipeline")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("Project_Engagement_Category_DataScience")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("Project_Engagement_Category_FullStack")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("Project_Engagement_Category_Guidance")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("Project_Engagement_Category_Other")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Project_Engagement_Category_OtherText")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<bool>("Project_Engagement_Category_PowerBIReports")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("Project_Engagement_Category_Storage")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("Project_Engagement_Category_Unknown")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("Project_Engagement_Category_WebForms")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Project_Goal")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Project_Name")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Project_Summary_Description")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Questions_for_the_DataHub_Team")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<byte[]>("Timestamp")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("rowversion");
-
-                    b.HasKey("Application_ID");
-
-                    b.ToTable("OnboardingApps");
                 });
 
             modelBuilder.Entity("NRCan.Datahub.Shared.EFCore.OpenDataSharedFile", b =>

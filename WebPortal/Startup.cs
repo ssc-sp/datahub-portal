@@ -53,6 +53,7 @@ using NRCan.Datahub.Portal.Data.LanguageTraining;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.ApplicationInsights.Extensibility;
 using Datahub.LanguageTraining;
+using Microsoft.AspNetCore.HttpLogging;
 
 namespace NRCan.Datahub.Portal
 {
@@ -138,6 +139,37 @@ namespace NRCan.Datahub.Portal
             services.AddScoped<IClaimsTransformation, RoleClaimTransformer>();
 
             services.AddSignalRCore();
+
+
+            var httpLoggingConfig = Configuration.GetSection("HttpLogging");
+            var httpLoggingEnabled = httpLoggingConfig != null && httpLoggingConfig.GetValue<bool>("Enabled");
+
+            if (httpLoggingEnabled)
+            {
+                var requestHeaders = httpLoggingConfig["RequestHeaders"]?.Split(",");
+                var responseHeaders = httpLoggingConfig["ResponseHeaders"]?.Split(",");
+
+                services.AddHttpLogging(logging =>
+                {
+                    logging.LoggingFields = HttpLoggingFields.RequestPropertiesAndHeaders | HttpLoggingFields.ResponsePropertiesAndHeaders;
+                    
+                    if (requestHeaders != null && requestHeaders.Length > 0)
+                    {
+                        foreach (var h in requestHeaders)
+                        {
+                            logging.RequestHeaders.Add(h);
+                        }
+                    }
+
+                    if (responseHeaders != null && responseHeaders.Length > 0)
+                    {
+                        foreach (var h in responseHeaders)
+                        {
+                            logging.ResponseHeaders.Add(h);
+                        }
+                    }
+                });
+            }
         }
 
         static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
@@ -163,7 +195,14 @@ namespace NRCan.Datahub.Portal
             IDbContextFactory<MetadataDbContext> metadataFactory,
             IDbContextFactory<DatahubETLStatusContext> etlFactory)
         {
+
+            if (Configuration.GetValue<bool>("HttpLogging:Enabled"))
+            {
+                app.UseHttpLogging();
+            }
+
             app.ConfigureModule<LanguageTrainingModule>();
+
             InitializeDatabase(logger, datahubFactory);
             InitializeDatabase(logger, cosmosFactory, false);
             InitializeDatabase(logger, etlFactory);
@@ -237,25 +276,25 @@ namespace NRCan.Datahub.Portal
 
 
 
-                var isCustomRedirectUriRequired = true;
-                if (isCustomRedirectUriRequired)
-                {
-                    services
-                        .Configure<OpenIdConnectOptions>(
-                            AzureADDefaults.OpenIdScheme,
-                            options =>
-                            {
-                                options.Events =
-                                    new OpenIdConnectEvents
-                                    {
-                                        OnRedirectToIdentityProvider = async ctx =>
-                                        {
-                                            ctx.ProtocolMessage.RedirectUri = "https://datahub-dev.nrcan-rncan.gc.ca/signin-oidc";
-                                            await Task.Yield();
-                                        }
-                                    };
-                            });
-                }
+                // var isCustomRedirectUriRequired = true;
+                // if (isCustomRedirectUriRequired)
+                // {
+                //     services
+                //         .Configure<OpenIdConnectOptions>(
+                //             AzureADDefaults.OpenIdScheme,
+                //             options =>
+                //             {
+                //                 options.Events =
+                //                     new OpenIdConnectEvents
+                //                     {
+                //                         OnRedirectToIdentityProvider = async ctx =>
+                //                         {
+                //                             ctx.ProtocolMessage.RedirectUri = "https://datahub-dev.nrcan-rncan.gc.ca/signin-oidc";
+                //                             await Task.Yield();
+                //                         }
+                //                     };
+                //             });
+                // }
 
                 //services
                 //    .AddAuthorization(
