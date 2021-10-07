@@ -7,6 +7,22 @@
     <Optimize>false</Optimize>
   </PropertyGroup>
   <ItemGroup>
+    <None Remove="Data\field_values.json" />
+    <None Remove="Data\open_data_definitions.json" />
+    <None Remove="Data\open_data_definition_choices.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Data\field_values.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Data\open_data_definitions.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Data\open_data_definition_choices.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="Azure.Search.Documents" Version="11.3.0" />
     <PackageReference Include="Azure.Storage.Files.DataLake" Version="12.7.0" />
     <PackageReference Include="Divergic.Logging.Xunit" Version="3.6.0" />
@@ -29,6 +45,7 @@
     <PackageReference Include="Microsoft.Azure.Search" Version="10.1.0" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Datahub.CKAN\Datahub.CKAN.csproj" />
     <ProjectReference Include="..\Datahub.Metadata\Datahub.Metadata.csproj" />
     <ProjectReference Include="..\Datahub.Core\Datahub.Core.csproj" />
     <ProjectReference Include="..\WebPortal\NRCan.Datahub.Portal.csproj" />

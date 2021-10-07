@@ -11,7 +11,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace DatahubTest.PowerBI
+namespace Datahub.Tests.PowerBI
 {
     public class PowerBIAPITests
     {
