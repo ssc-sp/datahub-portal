@@ -4,7 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace DatahubTest
+namespace Datahub.Tests
 {
     public class QueryThrottlerTest
     {

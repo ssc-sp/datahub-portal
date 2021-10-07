@@ -3,7 +3,7 @@ using NRCan.Datahub.Shared.Utils;
 using Xunit;
 using MetadataModel = NRCan.Datahub.Metadata.Model;
 
-namespace DatahubTest
+namespace Datahub.Tests
 {
     public class ApprovalFormTests
     {
