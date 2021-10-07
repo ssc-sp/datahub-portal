@@ -68,9 +68,8 @@ namespace NRCan.Datahub.Shared.Services
             string html = new ComponentRenderer<TestEmailTemplate>()
                 .AddService<IStringLocalizer>(_localizer)
                 .Render();
-            return html;
+            return await Task.FromResult(html);
         }
-
         
         private MailboxAddress BuildRecipient(string userIdOrAddress, string recipientName = null)
         {
@@ -118,7 +117,7 @@ namespace NRCan.Datahub.Shared.Services
             var templater = new Templater();
             templater.AddService<IStringLocalizer>(_localizer);
             var html = templater.RenderComponent<T>(parameters);
-            return html;
+            return await Task.FromResult("");
         }
 
         public async Task SendEmailMessage(string subject, string body, string userIdOrAddress, string recipientName = null, bool isHtml = true)

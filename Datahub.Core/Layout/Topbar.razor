@@ -172,13 +172,6 @@
         StateHasChanged();
     }
 
-    private void ToggleNotifications()
-    {
-        _showUserPopup = false;
-        _showHelp = false;
-        UI.ToggleRightSidebar(@<NRCan.Datahub.Portal.Views.Notifications />);
-    }
-
     private void NavigateToTermsOfUse()
     {
         NavigationManager.NavigateTo("termsandconditions");

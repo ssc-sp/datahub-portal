@@ -128,7 +128,7 @@ else
     {
         SelectedRecord = default(T);
         StateHasChanged();    
-        return default(T);
+        return await Task.FromResult(default(T));
     }
 
     private string GetDataLabel(string propName)

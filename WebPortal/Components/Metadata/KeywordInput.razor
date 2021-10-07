@@ -57,24 +57,47 @@
     public bool English { get; set; } = true;
 
     [Parameter]
+    public string Subject { get; set; } = "economics_and_industry";
+
+    [Parameter]
     public EventCallback<ObjectFieldValue> OnFieldChanged { get; set; }
 
     private List<string> _keywordList { get; set; }
     private string _inputKeyword;
-    private List<string> _suggestions { get; set; }
+    private List<string> _suggestions { get; set; } = new List<string>();
+    private List<string> _subjectKeywords { get; set; } = new List<string>();
     private ElementReference _fieldValueInput;
     private QueryThrottler<string> _suggestionThrottler;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        base.OnInitialized();
         _keywordList = new List<string>(ParseKeywords(FieldValue?.Value_TXT));
-        _suggestions = new List<string>();
         _suggestionThrottler = new QueryThrottler<string>(TimeSpan.FromSeconds(0.5), TriggerAutoCompleteAsync);
+        
+        await UpdateSubjectKeywords();
+    }
+
+    private string _lastSubject;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (_lastSubject != Subject)
+        {
+            await UpdateSubjectKeywords();
+            _lastSubject = Subject;
+        }
     }
 
     private IEnumerable<string> ParseKeywords(string keywords) => (keywords ?? "").Split(',').Where(v => !string.IsNullOrWhiteSpace(v));
     private string JoinKeywords(IEnumerable<string> keywords) => string.Join(",", keywords);
+
+    private async Task UpdateSubjectKeywords()
+    {
+        var subjectIds = (Subject ?? "").Split('|');
+        _subjectKeywords = English ? await MetadataBrokerService.GetSubjectEnglishKeywords(subjectIds)
+                                   : await MetadataBrokerService.GetSubjectFrenchKeywords(subjectIds);
+        ApplySubjectSuggestions();
+    }
 
     public string InputKeyword
     {
@@ -109,7 +132,7 @@
     {
         if (string.IsNullOrWhiteSpace(text))
         {
-            _suggestions.Clear();
+            ApplySubjectSuggestions();
         }
         else
         {
@@ -121,16 +144,21 @@
     {
         _keywordList.Remove(keyword);
         UpdateField();
+        ApplySubjectSuggestions();
     }
 
     private void PickKeyword(string keyword)
     {
-        _keywordList.Add(keyword);
+        if (NotAKeyword(keyword))
+        {
+            _keywordList.Add(keyword);
+        }
         _inputKeyword = string.Empty;
 
         UpdateField();
 
-        _suggestions.Clear();
+        ApplySubjectSuggestions();
+
         _ = FocusAsync();
     }
 
@@ -138,7 +166,7 @@
     {
         if (string.IsNullOrWhiteSpace(_inputKeyword))
         {
-            _suggestions.Clear();
+            ApplySubjectSuggestions();
         }
         else
         {
@@ -153,6 +181,8 @@
         }
         await InvokeAsync(StateHasChanged);
     }
+
+    private void ApplySubjectSuggestions() => ApplySuggestions(_subjectKeywords);
 
     private void ApplySuggestions(List<string> suggestions)
     {
