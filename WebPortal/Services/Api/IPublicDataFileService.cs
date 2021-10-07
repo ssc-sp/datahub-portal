@@ -18,6 +18,7 @@ namespace NRCan.Datahub.Portal.Services
         Task<bool> SaveTempSharingExpiryDate(Guid fileId, DateTime? expiryDate);
         Task<bool> SubmitPublicUrlShareForApproval(Guid fileId);
         Task<int> GetDataSharingRequestsAwaitingApprovalCount(string projectCode);
+        Task<int> GetUsersOwnDataSharingRequestsCount(string projectCode, string requestingUserId);
         Task<List<SharedDataFile>> GetProjectSharingRequestsAwaitingApproval(string projectCode);
         Task ApprovePublicUrlShare(Guid fileId, DateTime? publicationDate = null);
         Task DenyPublicUrlShare(Guid fileId);

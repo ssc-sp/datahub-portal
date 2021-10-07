@@ -175,6 +175,14 @@ namespace NRCan.Datahub.Portal.Services
                 .CountAsync(GenerateSharingRequestsAwaitingApprovalCondition(projectCode));
         }
 
+        public async Task<int> GetUsersOwnDataSharingRequestsCount(string projectCode, string requestingUserId)
+        {
+            return await _projectDbContext.SharedDataFiles
+                .CountAsync(f => f.ProjectCode_CD != null
+                    && f.ProjectCode_CD.ToLower() == projectCode.ToLower()
+                    && f.RequestingUser_ID.ToLower() == requestingUserId.ToLower());
+        }
+
         public async Task<SharedDataFile> LoadPublicUrlSharedFileInfo(Guid fileId)
         {
             return await _projectDbContext.SharedDataFiles.FirstOrDefaultAsync(e => e.File_ID == fileId);

@@ -689,6 +689,11 @@
       "DatabaseServer": "Database Server",
       "AccessToken": "Access Token",
       "Expires": "Expires"
+    },
+    "PUBLIC-SHARING-CARD": {
+      "Title": "Public Data Sharing",
+      "UsersOwnSharedFiles": "Your publicly shared files",
+      "SharedFilesAwaitingApproval": "Sharing requests awaiting approval"
     }
   }
 }
