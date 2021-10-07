@@ -38,7 +38,12 @@
                  PageSize="10"
                  @ref=_myTable />
 
-                 <AePagination Pageable="@_myTable" OnPageClick="OnPageClick" /> 
+                 <AePagination 
+            Pageable="@_myTable" 
+            OnPageClick="OnPageClick"> 
+            <LeftIcon><i class='fad fa-chevron-double-left'></i></LeftIcon> 
+            <RightIcon><i class='fad fa-chevron-double-right'></i></RightIcon>
+            </AePagination> 
 
 
     </AeFlex>

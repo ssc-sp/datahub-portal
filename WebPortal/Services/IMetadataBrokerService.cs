@@ -15,5 +15,6 @@ namespace NRCan.Datahub.Portal.Services
         Task<List<string>> GetSuggestedFrenchKeywords(string text, int max);
         Task<List<string>> GetSubjectEnglishKeywords(IEnumerable<string> subject);
         Task<List<string>> GetSubjectFrenchKeywords(IEnumerable<string> subject);
+        Task DeleteApprovalForm(int approvalFormId);
     }
 }
