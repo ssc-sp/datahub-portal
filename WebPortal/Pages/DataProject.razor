@@ -430,7 +430,7 @@
             _isDataApprover = projectUsers.Any(u => u.IsDataApprover);
         }
 
-        _sharingRequestCount = await PublicDataFileService.GetDataSharingRequestCount(projectAcronym);
+        _sharingRequestCount = await PublicDataFileService.GetDataSharingRequestsAwaitingApprovalCount(projectAcronym);
 
         var allPipelines = _project.Pipelines?.Select(p => p.Process_Nm).ToList();
         if (allPipelines != null)
@@ -484,6 +484,15 @@
         return string.Format(template, asofDate, cost, toDate, asofDate);
     }
 
+    private async Task<List<string>> GetProjectAdministratorEmailsAndIds()
+    {
+        var loadUsersTask = projectContext.Entry(_project).Collection(p => p.Users).LoadAsync();
+        var adminEmails = ServiceAuthManager.ExtractEmails(_project.Project_Admin ?? string.Empty);
+        await loadUsersTask;
+        var adminUsers = _project.Users.Where(u => u.IsAdmin).Select(u => u.User_ID);
+        return adminEmails.Concat(adminUsers).ToList();
+    }
+
     private async Task RequestProjectAccess()
     {
         var request = new Datahub_Project_User_Request()
@@ -496,8 +505,8 @@
         projectContext.Project_Users_Requests.Add(request);
         await projectContext.SaveChangesAsync();
 
-        var adminEmails = ServiceAuthManager.ExtractEmails(_project.Project_Admin ?? string.Empty);
-        await EmailNotificationService.SendServiceAccessRequestNotification(_user.DisplayName, "project", _project.ProjectInfo, adminEmails);
+        var admins = await GetProjectAdministratorEmailsAndIds();
+        await EmailNotificationService.SendServiceAccessRequestNotification(_user.DisplayName, "project", _project.ProjectInfo, admins);
 
         await RefreshComponents(true);
     }
@@ -522,8 +531,8 @@
 
         var serviceName = request.RequestServiceType;
 
-        var adminEmails = ServiceAuthManager.ExtractEmails(_project.Project_Admin ?? string.Empty);
-        await EmailNotificationService.SendServiceAccessRequestNotification(request.User_Name, serviceName, _project.ProjectInfo, adminEmails);
+        var admins = await GetProjectAdministratorEmailsAndIds();
+        await EmailNotificationService.SendServiceAccessRequestNotification(request.User_Name, serviceName, _project.ProjectInfo, admins);
 
         await RefreshComponents(true);
     }
@@ -543,8 +552,8 @@
         projectContext.Project_Requests.Add(serviceRequest);
         await projectContext.SaveChangesAsync();
 
-        var adminEmails = ServiceAuthManager.ExtractEmails(_project.Project_Admin ?? string.Empty);
-        await EmailNotificationService.SendServiceCreationRequestNotification(serviceRequest.User_Name, serviceType, _project.ProjectInfo, adminEmails);
+        var admins = await GetProjectAdministratorEmailsAndIds();
+        await EmailNotificationService.SendServiceCreationRequestNotification(serviceRequest.User_Name, serviceType, _project.ProjectInfo, admins);
 
         await RefreshComponents(true);
     }
