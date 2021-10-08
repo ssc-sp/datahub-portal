@@ -704,6 +704,9 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
+                    b.Property<DateTime?>("ExpirationDate_DT")
+                        .HasColumnType("datetime2");
+
                     b.Property<Guid>("File_ID")
                         .HasColumnType("uniqueidentifier");
 
@@ -714,6 +717,9 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsOpenDataRequest_FLAG")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("MetadataCompleted_FLAG")
                         .HasColumnType("bit");
 
                     b.Property<string>("ProjectCode_CD")

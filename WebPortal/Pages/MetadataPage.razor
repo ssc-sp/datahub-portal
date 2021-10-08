@@ -18,6 +18,7 @@
                 <AeButton @onclick="SaveChanges" style="margin: 5px;">Save</AeButton>
             }
             <AeButton @onclick="TogglePreview" style="margin: 5px;">Toggle Preview</AeButton>
+            <AeButton @onclick="CreateCKANPackage" style="margin: 5px;">Create CKAN Package</AeButton>
         </Footer>
     </AeCard>
 </div>
@@ -49,5 +50,10 @@
     {
         await _objectMetadataEditor.SaveChanges();
         StateHasChanged();
+    }
+
+    private async void CreateCKANPackage()
+    {
+        await _objectMetadataEditor.SavePackage();
     }
 }

@@ -3,7 +3,7 @@ using Datahub.Core.Utils;
 using Xunit;
 using MetadataModel = Datahub.Metadata.Model;
 
-namespace DatahubTest
+namespace Datahub.Tests
 {
     public class ApprovalFormTests
     {

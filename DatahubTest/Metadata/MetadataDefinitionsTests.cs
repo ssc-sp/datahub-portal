@@ -1,11 +1,13 @@
 using Datahub.Metadata.DTO;
 using Datahub.Metadata.Model;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 
-namespace Datahub.Metadata.Tests
+/// <summary>
+/// Cannot name it 'Datahub.Tests.Metadata' or will conflict with an existing class
+/// </summary>
+namespace Datahub.Tests.Meta_Data 
 {
     public class MetadataDefinitionsTests
     {
@@ -133,9 +135,5 @@ namespace Datahub.Metadata.Tests
                 definitions.Add(field3);
             });
         }
-
-
-        
-
     }
 }
