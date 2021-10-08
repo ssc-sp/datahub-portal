@@ -264,11 +264,7 @@ namespace NRCan.Datahub.Shared.EFCore
         {
             get
             {
-                return new DatahubProjectInfo()
-                {
-                    ProjectNameEn = Project_Name,
-                    ProjectNameFr = Project_Name_Fr
-                };
+                return new DatahubProjectInfo(Project_Name, Project_Name_Fr, Project_Acronym_CD);
             }
         }
 
