@@ -57,7 +57,7 @@ namespace Datahub.Tests
             _graphServiceMock.Setup(g => g.GetUserIdFromEmail(USER_1_ADDR)).Returns(USER_1_ID);
             _graphServiceMock.Setup(g => g.GetUserIdFromEmail(USER_2_ADDR)).Returns(USER_2_ID);
 
-            var testProject = new DatahubProjectInfo() { ProjectNameEn = "PIP", ProjectNameFr = "PIP (FR)" };
+            var testProject = new DatahubProjectInfo("PIP", "PIP (FR)","PIP");
 
             EmailNotificationParameters = new Dictionary<string, object>() 
             {

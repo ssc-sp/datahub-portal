@@ -33,13 +33,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SyncDBUsersConsole", "Datah
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Modules", "Modules", "{2B936783-B7E9-401F-9AB4-2D60D9F1E95E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Datahub.PIP", "Datahub.PIP\Datahub.PIP.csproj", "{806B4AB9-428B-45FC-A6BD-F314E56A85DA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.PIP", "Datahub.PIP\Datahub.PIP.csproj", "{806B4AB9-428B-45FC-A6BD-F314E56A85DA}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Finance", "Datahub.Finance\Datahub.Finance.csproj", "{C305FB95-C2BD-49D7-95F5-4AEEA39306C3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Datahub.LanguageTraining.Tests", "Datahub.LanguageTraining.Tests\Datahub.LanguageTraining.Tests.csproj", "{13C0760C-F9A3-4582-94F6-B34FDF871EAD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.LanguageTraining.Tests", "Datahub.LanguageTraining.Tests\Datahub.LanguageTraining.Tests.csproj", "{13C0760C-F9A3-4582-94F6-B34FDF871EAD}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.CKAN", "Datahub.CKAN\Datahub.CKAN.csproj", "{32A1AB80-7426-48E9-BBC2-14B6FE6FBABD}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DbSync", "DbSync", "{D678C794-D1AE-4372-9097-A8C8E0469613}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -101,13 +103,15 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{94F1AACD-69F3-4B14-A0B5-9E2676C017C7} = {2B936783-B7E9-401F-9AB4-2D60D9F1E95E}
+		{AEB7AF13-E06C-4650-ADBD-5EF1BD5F645B} = {D678C794-D1AE-4372-9097-A8C8E0469613}
+		{FA17FE2D-2E5E-4992-92E0-A3F7B7E295DE} = {D678C794-D1AE-4372-9097-A8C8E0469613}
 		{806B4AB9-428B-45FC-A6BD-F314E56A85DA} = {2B936783-B7E9-401F-9AB4-2D60D9F1E95E}
 		{C305FB95-C2BD-49D7-95F5-4AEEA39306C3} = {2B936783-B7E9-401F-9AB4-2D60D9F1E95E}
 		{13C0760C-F9A3-4582-94F6-B34FDF871EAD} = {2B936783-B7E9-401F-9AB4-2D60D9F1E95E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {9DC4B901-16FF-4FF2-9ED6-B286EA17048E}
-		RESX_AutoCreateNewLanguageFiles = True
 		RESX_ConfirmAddLanguageFile = True
+		RESX_AutoCreateNewLanguageFiles = True
+		SolutionGuid = {9DC4B901-16FF-4FF2-9ED6-B286EA17048E}
 	EndGlobalSection
 EndGlobal

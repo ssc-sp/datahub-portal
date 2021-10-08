@@ -408,13 +408,13 @@ namespace Datahub.Metadata.Migrations
 
             modelBuilder.Entity("SubSubjectSubject", b =>
                 {
-                    b.HasOne("NRCan.Datahub.Metadata.Model.SubSubject", null)
+                    b.HasOne("Datahub.Metadata.Model.SubSubject", null)
                         .WithMany()
                         .HasForeignKey("SubSubjectsSubSubjectId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("NRCan.Datahub.Metadata.Model.Subject", null)
+                    b.HasOne("Datahub.Metadata.Model.Subject", null)
                         .WithMany()
                         .HasForeignKey("SubjectsSubjectId")
                         .OnDelete(DeleteBehavior.Cascade)
