@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Datahub.Shared.EFCore
+namespace Datahub.Core.EFCore
 {
     public record UserRecent
     {

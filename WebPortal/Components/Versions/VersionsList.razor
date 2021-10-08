@@ -27,13 +27,13 @@
 @code {
 
     [Parameter]
-    public List<Datahub.Shared.Data.Version> Versions { get; set; }
+    public List<Datahub.Core.Data.Version> Versions { get; set; }
     [Parameter]
     public EventCallback<string> SelectedItem { get; set; }
 
     string _selectedItem;
 
-    public string iconClass(Datahub.Shared.Data.Version item)
+    public string iconClass(Datahub.Core.Data.Version item)
     {
         if (_selectedItem == item.versionid)
         {
@@ -49,7 +49,7 @@
         return SelectedItem.InvokeAsync(versionid);
     }
 
-    private string GetStatus(Datahub.Shared.Data.Version version)
+    private string GetStatus(Datahub.Core.Data.Version version)
     {
         string createdUser = MSGraphService.GetUserName(version.metadata.createdby); 
         if (string.IsNullOrWhiteSpace(createdUser))

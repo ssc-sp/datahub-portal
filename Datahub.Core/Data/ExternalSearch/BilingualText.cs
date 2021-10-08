@@ -1,4 +1,4 @@
-namespace Datahub.Shared.Data.External
+namespace Datahub.Core.Data.External
 {
     public class BilingualText
     {

@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Datahub.Shared.EFCore;
-using Datahub.Shared.Services;
+using Datahub.Core.EFCore;
+using Datahub.Core.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;

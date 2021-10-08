@@ -2,15 +2,15 @@
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Datahub.Shared.Data;
-using Datahub.Shared.EFCore;
-using Datahub.Shared.Model.Onboarding;
+using Datahub.Core.Data;
+using Datahub.Core.EFCore;
+using Datahub.Core.Model.Onboarding;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Datahub.Shared.EFCore
+namespace Datahub.Core.EFCore
 {
     public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBContext>
     {

@@ -2,7 +2,7 @@
 using System;
 using System.Threading.Tasks;
 
-namespace Datahub.Shared.Services
+namespace Datahub.Core.Services
 {
     public enum AuditChangeType : int
     {

@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Datahub.Shared
+namespace Datahub.Core
 {
     public static class DatahubModuleTools
     {

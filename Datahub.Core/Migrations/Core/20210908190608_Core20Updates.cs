@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace Datahub.Shared.Migrations.Core
+namespace Datahub.Core.Migrations.Core
 {
     public partial class Core20Updates : Migration
     {

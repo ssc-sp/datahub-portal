@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-namespace Datahub.Shared.EFCore
+namespace Datahub.Core.EFCore
 {
     public class EFCoreDatahubContext : DbContext
     {

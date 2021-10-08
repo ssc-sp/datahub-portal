@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Reflection;
 
-namespace Datahub.Shared.Utils
+namespace Datahub.Core.Utils
 {
     public static class ClassMapperExtension
     {

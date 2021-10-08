@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.Graph;
-using Datahub.Shared.Data;
-using Datahub.Shared.Services;
+using Datahub.Core.Data;
+using Datahub.Core.Services;
 
 namespace Datahub.Portal.Services.Offline
 {
@@ -21,7 +21,7 @@ namespace Datahub.Portal.Services.Offline
             return Task.FromResult(true);
         }
 
-        public Task<bool> RenameFolder(Shared.Data.Folder folder, string newFolderName, User currentUser)
+        public Task<bool> RenameFolder(Core.Data.Folder folder, string newFolderName, User currentUser)
         {
             return Task.FromResult(true);
         }

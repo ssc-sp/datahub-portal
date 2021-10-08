@@ -1,8 +1,8 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using NRCan.Datahub.Portal.Data.LanguageTraining;
-using NRCan.Datahub.Shared;
-using NRCan.Datahub.Shared.Data;
+using Datahub.Portal.Data.LanguageTraining;
+using Datahub.Core;
+using Datahub.Core.Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;

@@ -1,11 +1,11 @@
 ﻿using Azure.Search.Documents.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Datahub.Shared.Data;
+using Datahub.Core.Data;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Datahub.Shared.Services
+namespace Datahub.Core.Services
 {
     public class CognitiveSearchService : ICognitiveSearchService
     {

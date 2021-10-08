@@ -6,13 +6,13 @@ using MailKit.Net.Smtp;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Localization;
 using MimeKit;
-using Datahub.Shared.Templates;
+using Datahub.Core.Templates;
 using System.Linq;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Text;
 
-namespace Datahub.Shared.Services
+namespace Datahub.Core.Services
 {
     public class EmailConfiguration
     {

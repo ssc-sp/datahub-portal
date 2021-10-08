@@ -1,5 +1,5 @@
 ﻿using System.Threading.Tasks;
-using Datahub.Shared.Data;
+using Datahub.Core.Data;
 
 namespace Datahub.Portal.Services
 {

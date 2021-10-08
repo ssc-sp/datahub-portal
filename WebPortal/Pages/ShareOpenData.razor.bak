@@ -12,7 +12,7 @@
         {
             <AeCard>
                 <AeTypography Variant="h2">@Localizer["OPENDATA-WIZARD.Metadata"]</AeTypography>
-                <ObjectMetadataEditor ObjectId=@FileId @ref=@_metadataEditor />
+                <ObjectMetadataEditor ObjectId=@FileId @ref="_metadataEditor" />
                 <AeFlex>
                     <AeButton OnClickEvent=@SaveMetadata Disabled=@savingData>@Localizer["OPENDATA-WIZARD.Save_button"]</AeButton>
                     <div>

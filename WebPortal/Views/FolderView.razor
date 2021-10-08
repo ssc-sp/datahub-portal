@@ -1,3 +1,4 @@
+@using Datahub.Core.Data
 
     <div id="@($"{FileMetaDataExtensions.GetFolderIdForJS(Folder.item.id)}Div")" class="folder-item @(IsSelected ? "selected" : "")" >
         <div class="grid-item" style="cursor: pointer; @IndentStyleCss" @onclick="() => SelectFolderEmit()">

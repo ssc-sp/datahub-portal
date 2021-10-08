@@ -9,7 +9,7 @@ using Microsoft.Extensions.Options;
 using System.Linq;
 using System.Threading;
 using Tewr.Blazor.FileReader;
-using Datahub.Shared.Data;
+using Datahub.Core.Data;
 using Azure;
 using Azure.Storage.Blobs;
 using Microsoft.JSInterop;
@@ -27,7 +27,7 @@ using Azure.Storage;
 using Microsoft.AspNetCore.Components.Forms;
 using Azure.Storage.Blobs.Models;
 
-namespace Datahub.Shared.Services
+namespace Datahub.Core.Services
 {
     public class ApiService : IApiService
     {
