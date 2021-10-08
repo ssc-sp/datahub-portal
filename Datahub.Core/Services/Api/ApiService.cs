@@ -3,12 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
-using System.Web;
-using System.IO;
 using Microsoft.Extensions.Options;
 using System.Linq;
-using System.Threading;
-using Tewr.Blazor.FileReader;
 using Datahub.Core.Data;
 using Azure;
 using Azure.Search.Documents;
@@ -20,16 +16,8 @@ using Azure.Storage.Files.DataLake;
 using Azure.Storage.Files.DataLake.Models;
 using Azure.Storage.Sas;
 using Microsoft.AspNetCore.Components.Forms;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Microsoft.JSInterop;
-using NRCan.Datahub.Shared.Data;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Net.Http;
-using System.Threading.Tasks;
 
 namespace Datahub.Core.Services
 {
