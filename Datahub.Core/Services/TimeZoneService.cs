@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NRCan.Datahub.Shared.Services
+namespace Datahub.Core.Services
 {
     /// <summary>
     /// https://www.meziantou.net/convert-datetime-to-user-s-time-zone-with-server-side-blazor.htm

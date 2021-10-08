@@ -6,11 +6,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
-using NRCan.Datahub.Shared.Data;
-using NRCan.Datahub.Shared.EFCore;
-using NRCan.Datahub.Shared.Services;
+using Datahub.Core.Data;
+using Datahub.Core.EFCore;
+using Datahub.Core.Services;
 
-namespace NRCan.Datahub.Portal.Services
+namespace Datahub.Portal.Services
 {
     public class PublicFileSharingConfiguration
     {

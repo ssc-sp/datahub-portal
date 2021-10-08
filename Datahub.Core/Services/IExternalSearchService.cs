@@ -1,8 +1,8 @@
 using System.Threading.Tasks;
-using NRCan.Datahub.Shared.Data.External.FGP;
-using NRCan.Datahub.Shared.Data.External.OpenData;
+using Datahub.Core.Data.External.FGP;
+using Datahub.Core.Data.External.OpenData;
 
-namespace NRCan.Datahub.Shared.Services
+namespace Datahub.Core.Services
 {
     public interface IExternalSearchService
     {

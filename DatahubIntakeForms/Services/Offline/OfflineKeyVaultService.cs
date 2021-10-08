@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace NRCan.Datahub.Portal.Services.Offline
+namespace Datahub.Portal.Services.Offline
 {
     public class OfflineKeyVaultService : IKeyVaultService
     {

@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 
-namespace NRCan.Datahub.CKAN.Service
+namespace Datahub.CKAN.Service
 {
     public static class CKANSeviceCollectionExtensions
     {

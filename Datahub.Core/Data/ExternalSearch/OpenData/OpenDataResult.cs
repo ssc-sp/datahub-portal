@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace NRCan.Datahub.Shared.Data.External.OpenData
+namespace Datahub.Core.Data.External.OpenData
 {
     public class OpenDataResultWrapper
     {
