@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 
 
-namespace NRCan.Datahub.Portal.Data
+namespace Datahub.Portal.Data
 {
     public class DatahubETLStatusContext : DbContext
     {

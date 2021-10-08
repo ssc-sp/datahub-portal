@@ -1,12 +1,12 @@
 ﻿using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
-using NRCan.Datahub.CKAN.Package;
-using NRCan.Datahub.Metadata.DTO;
+using Datahub.CKAN.Package;
+using Datahub.Metadata.DTO;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NRCan.Datahub.CKAN.Service
+namespace Datahub.CKAN.Service
 {
     public class CKANService : ICKANService
     {

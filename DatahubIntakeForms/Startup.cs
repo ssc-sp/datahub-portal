@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using NRCan.Datahub.Portal.Services;
+using Datahub.Portal.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Authorization;
@@ -24,16 +24,16 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Identity.Client;
 using Tewr.Blazor.FileReader;
 using BlazorDownloadFile;
-using NRCan.Datahub.Portal.Services.Offline;
+using Datahub.Portal.Services.Offline;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-using NRCan.Datahub.Portal.Data;
+using Datahub.Portal.Data;
 using Microsoft.EntityFrameworkCore;
-using NRCan.Datahub.Shared.Services;
+using Datahub.Core.Services;
 
-namespace NRCan.Datahub.Portal
+namespace Datahub.Portal
 {
     public class Startup
     {

@@ -10,7 +10,7 @@ using System.IO.Pipelines;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace NRCan.Datahub.Portal.Services
+namespace Datahub.Portal.Services
 {
     public class StaticStorageReader
     {
