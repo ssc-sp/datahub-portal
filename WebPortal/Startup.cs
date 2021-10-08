@@ -46,7 +46,7 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.ApplicationInsights.Extensibility;
 using Datahub.LanguageTraining;
 using Microsoft.AspNetCore.HttpLogging;
-using NRCan.Datahub.CKAN.Service;
+using Datahub.CKAN.Service;
 
 namespace Datahub.Portal
 {
