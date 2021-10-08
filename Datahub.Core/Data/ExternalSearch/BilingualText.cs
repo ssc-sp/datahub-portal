@@ -1,4 +1,4 @@
-namespace NRCan.Datahub.Shared.Data.External
+namespace Datahub.Shared.Data.External
 {
     public class BilingualText
     {

@@ -13,9 +13,9 @@ using Microsoft.Graph;
 using Microsoft.Graph.Auth;
 using Microsoft.Identity.Client;
 using Microsoft.Identity.Web;
-using NRCan.Datahub.Shared.EFCore;
+using Datahub.Shared.EFCore;
 
-namespace NRCan.Datahub.Shared.Services
+namespace Datahub.Shared.Services
 {
     public class UserInformationService : IUserInformationService
     {

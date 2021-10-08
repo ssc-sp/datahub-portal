@@ -31,6 +31,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Datahub.Metadata\Datahub.Metadata.csproj" />
     <ProjectReference Include="..\Datahub.Core\Datahub.Core.csproj" />
-    <ProjectReference Include="..\WebPortal\NRCan.Datahub.Portal.csproj" />
+    <ProjectReference Include="..\WebPortal\Datahub.Portal.csproj" />
   </ItemGroup>
 </Project>

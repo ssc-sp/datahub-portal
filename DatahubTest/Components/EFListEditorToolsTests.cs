@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using NRCan.Datahub.Shared.EFCore;
+using Datahub.Shared.EFCore;
 using System;
 using System.Collections;
 using System.Collections.Generic;

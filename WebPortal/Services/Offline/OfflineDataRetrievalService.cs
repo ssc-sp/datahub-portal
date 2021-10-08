@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Graph;
-using NRCan.Datahub.Shared.Data;
-using NRCan.Datahub.Shared.Services;
+using Datahub.Shared.Data;
+using Datahub.Shared.Services;
 
-namespace NRCan.Datahub.Portal.Services.Offline
+namespace Datahub.Portal.Services.Offline
 {
     public class OfflineDataRetrievalService : IDataRetrievalService
     {

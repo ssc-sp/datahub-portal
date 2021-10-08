@@ -2,9 +2,9 @@ using BlazorDownloadFile;
 
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
-using NRCan.Datahub.Portal.Services;
-using NRCan.Datahub.Shared.Data;
-using NRCan.Datahub.Shared.Services;
+using Datahub.Portal.Services;
+using Datahub.Shared.Data;
+using Datahub.Shared.Services;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -29,8 +29,8 @@ using Azure.Search.Documents.Indexes;
 using Azure;
 using Azure.Search.Documents;
 using Azure.Search.Documents.Models;
-using NRCan.Datahub.Portal.EFCore;
-using NRCan.Datahub.Shared.EFCore;
+using Datahub.Portal.EFCore;
+using Datahub.Shared.EFCore;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 
@@ -135,7 +135,7 @@ namespace DatahubTest
         public void GivenVersionJSONresponse_ThenParseCorrectlyToClass()
         {
             string json = @"[{""versionid"":""2020 - 11 - 16T17: 45:43.9741390Z"",""metadata"":{ ""folderowner"":""0403528c - 5abc - 423f - 9201 - 9c945f628595"",""folderid"":""ownedroot - 0403528c - 5abc - 423f - 9201 - 9c945f628595"",""createdby"":""0403528c - 5abc - 423f - 9201 - 9c945f628595"",""lastmodifiedby"":""0403528c - 5abc - 423f - 9201 - 9c945f628595"",""filename"":""ResXManager.VSIX.vsix"",""fileformat"":""vsix"",""securityclass"":""Unclassified"",""ownedby"":""0403528c - 5abc - 423f - 9201 - 9c945f628595""},""timestamp"":""2020 - 11 - 16T17: 45:43 + 00:00""},{""versionid"":""2020 - 11 - 16T17: 46:14.6966275Z"",""metadata"":{ ""folderowner"":""0403528c - 5abc - 423f - 9201 - 9c945f628595"",""folderid"":""ownedroot - 0403528c - 5abc - 423f - 9201 - 9c945f628595"",""createdby"":""0403528c - 5abc - 423f - 9201 - 9c945f628595"",""lastmodifiedby"":""0403528c - 5abc - 423f - 9201 - 9c945f628595"",""filename"":""ResXManager.VSIX.vsix"",""fileformat"":""vsix"",""securityclass"":""Protected A"",""ownedby"":""0403528c - 5abc - 423f - 9201 - 9c945f628595""},""timestamp"":""2020 - 11 - 16T17: 46:14 + 00:00""},{""versionid"":""2020 - 11 - 16T20: 16:56.4849377Z"",""metadata"":{ ""folderowner"":""0403528c - 5abc - 423f - 9201 - 9c945f628595"",""folderid"":""ownedroot - 0403528c - 5abc - 423f - 9201 - 9c945f628595"",""createdby"":""0403528c - 5abc - 423f - 9201 - 9c945f628595"",""lastmodifiedby"":""0403528c - 5abc - 423f - 9201 - 9c945f628595"",""filename"":""ResXManager.VSIX.vsix"",""fileformat"":""vsix"",""securityclass"":""Unclassified"",""ownedby"":""0403528c - 5abc - 423f - 9201 - 9c945f628595""},""timestamp"":""2020 - 11 - 16T20: 16:56 + 00:00""},{""versionid"":""2020 - 11 - 17T18: 51:07.7526279Z"",""metadata"":{ ""folderowner"":""0403528c - 5abc - 423f - 9201 - 9c945f628595"",""folderid"":""ownedroot - 0403528c - 5abc - 423f - 9201 - 9c945f628595"",""createdby"":""0403528c - 5abc - 423f - 9201 - 9c945f628595"",""lastmodifiedby"":""0403528c - 5abc - 423f - 9201 - 9c945f628595"",""filename"":""ResXManager.VSIX.vsix"",""fileformat"":""vsix"",""securityclass"":""Unclassified"",""ownedby"":""0403528c - 5abc - 423f - 9201 - 9c945f628595""},""timestamp"":""2020 - 11 - 17T18: 51:07 + 00:00""}]";
-            var versions = JsonConvert.DeserializeObject<List<NRCan.Datahub.Shared.Data.Version>>(json);
+            var versions = JsonConvert.DeserializeObject<List<Datahub.Shared.Data.Version>>(json);
 
             Assert.True(versions.Count > 0);
         }

@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\WebPortal\NRCan.Datahub.Portal.csproj" />
+    <ProjectReference Include="..\WebPortal\Datahub.Portal.csproj" />
   </ItemGroup>
 
 </Project>

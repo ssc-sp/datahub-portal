@@ -2,8 +2,8 @@ using System;
 using System.Net.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using NRCan.Datahub.Shared.Data.External.FGP;
-using NRCan.Datahub.Shared.Services;
+using Datahub.Shared.Data.External.FGP;
+using Datahub.Shared.Services;
 using Xunit;
 using Xunit.Abstractions;
 

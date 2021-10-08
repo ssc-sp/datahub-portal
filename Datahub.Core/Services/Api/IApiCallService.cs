@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
 
-namespace NRCan.Datahub.Shared.Services
+namespace Datahub.Shared.Services
 {
     public interface IApiCallService
     {

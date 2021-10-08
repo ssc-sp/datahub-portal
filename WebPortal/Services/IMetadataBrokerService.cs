@@ -1,9 +1,9 @@
-﻿using NRCan.Datahub.Metadata.DTO;
-using NRCan.Datahub.Portal.Data.Forms.ShareWorkflow;
+﻿using Datahub.Metadata.DTO;
+using Datahub.Portal.Data.Forms.ShareWorkflow;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace NRCan.Datahub.Portal.Services
+namespace Datahub.Portal.Services
 {
     public interface IMetadataBrokerService
     {

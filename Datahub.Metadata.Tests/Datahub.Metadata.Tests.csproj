@@ -5,7 +5,7 @@
 
     <IsPackable>false</IsPackable>
 
-    <RootNamespace>NRCan.Datahub.Metadata.Tests</RootNamespace>
+    <RootNamespace>Datahub.Metadata.Tests</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace NRCan.Datahub.Shared.EFCore
+namespace Datahub.Shared.EFCore
 {
     public interface ISeedable<T>
     {

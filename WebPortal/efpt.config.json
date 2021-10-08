@@ -7,7 +7,7 @@
    "ModelNamespace": null,
    "OutputContextPath": null,
    "OutputPath": null,
-   "ProjectRootNamespace": "NRCan.Datahub.Portal.Data",
+   "ProjectRootNamespace": "Datahub.Portal.Data",
    "Schemas": null,
    "SelectedHandlebarsLanguage": 0,
    "SelectedToBeGenerated": 0,
