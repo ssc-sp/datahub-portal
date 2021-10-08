@@ -5,9 +5,9 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Datahub.Shared.EFCore;
+using Datahub.Core.EFCore;
 
-namespace Datahub.Shared.Migrations.Core
+namespace Datahub.Core.Migrations.Core
 {
     [DbContext(typeof(DatahubProjectDBContext))]
     [Migration("20210826183340_SharedDataFile2")]
@@ -21,7 +21,7 @@ namespace Datahub.Shared.Migrations.Core
                 .HasAnnotation("Relational:MaxIdentifierLength", 128)
                 .HasAnnotation("ProductVersion", "5.0.2");
 
-            modelBuilder.Entity("Datahub.Shared.EFCore.Datahub_Project", b =>
+            modelBuilder.Entity("Datahub.Core.EFCore.Datahub_Project", b =>
                 {
                     b.Property<int>("Project_ID")
                         .ValueGeneratedOnAdd()
@@ -154,7 +154,7 @@ namespace Datahub.Shared.Migrations.Core
                         });
                 });
 
-            modelBuilder.Entity("Datahub.Shared.EFCore.Datahub_ProjectComment", b =>
+            modelBuilder.Entity("Datahub.Core.EFCore.Datahub_ProjectComment", b =>
                 {
                     b.Property<int>("Comment_ID")
                         .ValueGeneratedOnAdd()
@@ -182,7 +182,7 @@ namespace Datahub.Shared.Migrations.Core
                     b.ToTable("Project_Comments");
                 });
 
-            modelBuilder.Entity("Datahub.Shared.EFCore.Datahub_ProjectServiceRequests", b =>
+            modelBuilder.Entity("Datahub.Core.EFCore.Datahub_ProjectServiceRequests", b =>
                 {
                     b.Property<int>("ServiceRequests_ID")
                         .ValueGeneratedOnAdd()
@@ -224,7 +224,7 @@ namespace Datahub.Shared.Migrations.Core
                     b.ToTable("Project_Requests");
                 });
 
-            modelBuilder.Entity("Datahub.Shared.EFCore.Datahub_Project_Access_Request", b =>
+            modelBuilder.Entity("Datahub.Core.EFCore.Datahub_Project_Access_Request", b =>
                 {
                     b.Property<int>("Request_ID")
                         .ValueGeneratedOnAdd()
@@ -270,7 +270,7 @@ namespace Datahub.Shared.Migrations.Core
                     b.ToTable("Access_Requests");
                 });
 
-            modelBuilder.Entity("Datahub.Shared.EFCore.Datahub_Project_Costs", b =>
+            modelBuilder.Entity("Datahub.Core.EFCore.Datahub_Project_Costs", b =>
                 {
                     b.Property<int>("ProjectCosts_ID")
                         .ValueGeneratedOnAdd()
@@ -298,7 +298,7 @@ namespace Datahub.Shared.Migrations.Core
                     b.ToTable("Project_Costs");
                 });
 
-            modelBuilder.Entity("Datahub.Shared.EFCore.Datahub_Project_Pipeline_Lnk", b =>
+            modelBuilder.Entity("Datahub.Core.EFCore.Datahub_Project_Pipeline_Lnk", b =>
                 {
                     b.Property<int>("Project_ID")
                         .HasColumnType("int");
@@ -311,7 +311,7 @@ namespace Datahub.Shared.Migrations.Core
                     b.ToTable("Project_Pipeline_Links");
                 });
 
-            modelBuilder.Entity("Datahub.Shared.EFCore.Datahub_Project_User", b =>
+            modelBuilder.Entity("Datahub.Core.EFCore.Datahub_Project_User", b =>
                 {
                     b.Property<int>("ProjectUser_ID")
                         .ValueGeneratedOnAdd()
@@ -349,7 +349,7 @@ namespace Datahub.Shared.Migrations.Core
                     b.ToTable("Project_Users");
                 });
 
-            modelBuilder.Entity("Datahub.Shared.EFCore.Datahub_Project_User_Request", b =>
+            modelBuilder.Entity("Datahub.Core.EFCore.Datahub_Project_User_Request", b =>
                 {
                     b.Property<int>("ProjectUserRequest_ID")
                         .ValueGeneratedOnAdd()
@@ -384,7 +384,7 @@ namespace Datahub.Shared.Migrations.Core
                     b.ToTable("Project_Users_Requests");
                 });
 
-            modelBuilder.Entity("Datahub.Shared.EFCore.PBI_License_Request", b =>
+            modelBuilder.Entity("Datahub.Core.EFCore.PBI_License_Request", b =>
                 {
                     b.Property<int>("Request_ID")
                         .ValueGeneratedOnAdd()
@@ -427,7 +427,7 @@ namespace Datahub.Shared.Migrations.Core
                     b.ToTable("PowerBI_License_Requests");
                 });
 
-            modelBuilder.Entity("Datahub.Shared.EFCore.PBI_User_License_Request", b =>
+            modelBuilder.Entity("Datahub.Core.EFCore.PBI_User_License_Request", b =>
                 {
                     b.Property<int>("ID")
                         .ValueGeneratedOnAdd()
@@ -454,7 +454,7 @@ namespace Datahub.Shared.Migrations.Core
                     b.ToTable("PowerBI_License_User_Requests");
                 });
 
-            modelBuilder.Entity("Datahub.Shared.EFCore.PublicDataFile", b =>
+            modelBuilder.Entity("Datahub.Core.EFCore.PublicDataFile", b =>
                 {
                     b.Property<long>("PublicDataFile_ID")
                         .ValueGeneratedOnAdd()
@@ -502,7 +502,7 @@ namespace Datahub.Shared.Migrations.Core
                     b.ToTable("PublicDataFiles");
                 });
 
-            modelBuilder.Entity("Datahub.Shared.EFCore.SharedDataFile", b =>
+            modelBuilder.Entity("Datahub.Core.EFCore.SharedDataFile", b =>
                 {
                     b.Property<long>("SharedDataFile_ID")
                         .ValueGeneratedOnAdd()
@@ -553,7 +553,7 @@ namespace Datahub.Shared.Migrations.Core
                     b.ToTable("SharedDataFiles");
                 });
 
-            modelBuilder.Entity("Datahub.Shared.EFCore.WebForm", b =>
+            modelBuilder.Entity("Datahub.Core.EFCore.WebForm", b =>
                 {
                     b.Property<int>("WebForm_ID")
                         .ValueGeneratedOnAdd()
@@ -578,7 +578,7 @@ namespace Datahub.Shared.Migrations.Core
                     b.ToTable("WebForms");
                 });
 
-            modelBuilder.Entity("Datahub.Shared.EFCore.WebForm_DBCodes", b =>
+            modelBuilder.Entity("Datahub.Core.EFCore.WebForm_DBCodes", b =>
                 {
                     b.Property<string>("DBCode")
                         .HasMaxLength(10)
@@ -598,7 +598,7 @@ namespace Datahub.Shared.Migrations.Core
                     b.ToTable("DBCodes");
                 });
 
-            modelBuilder.Entity("Datahub.Shared.EFCore.WebForm_Field", b =>
+            modelBuilder.Entity("Datahub.Core.EFCore.WebForm_Field", b =>
                 {
                     b.Property<int>("FieldID")
                         .ValueGeneratedOnAdd()
@@ -653,9 +653,9 @@ namespace Datahub.Shared.Migrations.Core
                     b.ToTable("Fields");
                 });
 
-            modelBuilder.Entity("Datahub.Shared.EFCore.OpenDataSharedFile", b =>
+            modelBuilder.Entity("Datahub.Core.EFCore.OpenDataSharedFile", b =>
                 {
-                    b.HasBaseType("Datahub.Shared.EFCore.SharedDataFile");
+                    b.HasBaseType("Datahub.Core.EFCore.SharedDataFile");
 
                     b.Property<int?>("ApprovalForm_ID")
                         .HasColumnType("int");
@@ -666,36 +666,36 @@ namespace Datahub.Shared.Migrations.Core
                     b.ToTable("OpenDataSharedFile");
                 });
 
-            modelBuilder.Entity("Datahub.Shared.EFCore.Datahub_ProjectComment", b =>
+            modelBuilder.Entity("Datahub.Core.EFCore.Datahub_ProjectComment", b =>
                 {
-                    b.HasOne("Datahub.Shared.EFCore.Datahub_Project", "Project")
+                    b.HasOne("Datahub.Core.EFCore.Datahub_Project", "Project")
                         .WithMany("Comments")
                         .HasForeignKey("Project_ID");
 
                     b.Navigation("Project");
                 });
 
-            modelBuilder.Entity("Datahub.Shared.EFCore.Datahub_ProjectServiceRequests", b =>
+            modelBuilder.Entity("Datahub.Core.EFCore.Datahub_ProjectServiceRequests", b =>
                 {
-                    b.HasOne("Datahub.Shared.EFCore.Datahub_Project", "Project")
+                    b.HasOne("Datahub.Core.EFCore.Datahub_Project", "Project")
                         .WithMany()
                         .HasForeignKey("Project_ID");
 
                     b.Navigation("Project");
                 });
 
-            modelBuilder.Entity("Datahub.Shared.EFCore.Datahub_Project_Access_Request", b =>
+            modelBuilder.Entity("Datahub.Core.EFCore.Datahub_Project_Access_Request", b =>
                 {
-                    b.HasOne("Datahub.Shared.EFCore.Datahub_Project", "Project")
+                    b.HasOne("Datahub.Core.EFCore.Datahub_Project", "Project")
                         .WithMany("Requests")
                         .HasForeignKey("Project_ID");
 
                     b.Navigation("Project");
                 });
 
-            modelBuilder.Entity("Datahub.Shared.EFCore.Datahub_Project_Pipeline_Lnk", b =>
+            modelBuilder.Entity("Datahub.Core.EFCore.Datahub_Project_Pipeline_Lnk", b =>
                 {
-                    b.HasOne("Datahub.Shared.EFCore.Datahub_Project", "Project")
+                    b.HasOne("Datahub.Core.EFCore.Datahub_Project", "Project")
                         .WithMany("Pipelines")
                         .HasForeignKey("Project_ID")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -704,38 +704,38 @@ namespace Datahub.Shared.Migrations.Core
                     b.Navigation("Project");
                 });
 
-            modelBuilder.Entity("Datahub.Shared.EFCore.Datahub_Project_User", b =>
+            modelBuilder.Entity("Datahub.Core.EFCore.Datahub_Project_User", b =>
                 {
-                    b.HasOne("Datahub.Shared.EFCore.Datahub_Project", "Project")
+                    b.HasOne("Datahub.Core.EFCore.Datahub_Project", "Project")
                         .WithMany("Users")
                         .HasForeignKey("Project_ID");
 
                     b.Navigation("Project");
                 });
 
-            modelBuilder.Entity("Datahub.Shared.EFCore.Datahub_Project_User_Request", b =>
+            modelBuilder.Entity("Datahub.Core.EFCore.Datahub_Project_User_Request", b =>
                 {
-                    b.HasOne("Datahub.Shared.EFCore.Datahub_Project", "Project")
+                    b.HasOne("Datahub.Core.EFCore.Datahub_Project", "Project")
                         .WithMany()
                         .HasForeignKey("Project_ID");
 
                     b.Navigation("Project");
                 });
 
-            modelBuilder.Entity("Datahub.Shared.EFCore.PBI_License_Request", b =>
+            modelBuilder.Entity("Datahub.Core.EFCore.PBI_License_Request", b =>
                 {
-                    b.HasOne("Datahub.Shared.EFCore.Datahub_Project", "Project")
+                    b.HasOne("Datahub.Core.EFCore.Datahub_Project", "Project")
                         .WithOne("PBI_License_Request")
-                        .HasForeignKey("Datahub.Shared.EFCore.PBI_License_Request", "Project_ID")
+                        .HasForeignKey("Datahub.Core.EFCore.PBI_License_Request", "Project_ID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Project");
                 });
 
-            modelBuilder.Entity("Datahub.Shared.EFCore.PBI_User_License_Request", b =>
+            modelBuilder.Entity("Datahub.Core.EFCore.PBI_User_License_Request", b =>
                 {
-                    b.HasOne("Datahub.Shared.EFCore.PBI_License_Request", "LicenseRequest")
+                    b.HasOne("Datahub.Core.EFCore.PBI_License_Request", "LicenseRequest")
                         .WithMany("User_License_Requests")
                         .HasForeignKey("RequestID")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -744,9 +744,9 @@ namespace Datahub.Shared.Migrations.Core
                     b.Navigation("LicenseRequest");
                 });
 
-            modelBuilder.Entity("Datahub.Shared.EFCore.WebForm", b =>
+            modelBuilder.Entity("Datahub.Core.EFCore.WebForm", b =>
                 {
-                    b.HasOne("Datahub.Shared.EFCore.Datahub_Project", "Project")
+                    b.HasOne("Datahub.Core.EFCore.Datahub_Project", "Project")
                         .WithMany("WebForms")
                         .HasForeignKey("Project_ID")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -755,9 +755,9 @@ namespace Datahub.Shared.Migrations.Core
                     b.Navigation("Project");
                 });
 
-            modelBuilder.Entity("Datahub.Shared.EFCore.WebForm_Field", b =>
+            modelBuilder.Entity("Datahub.Core.EFCore.WebForm_Field", b =>
                 {
-                    b.HasOne("Datahub.Shared.EFCore.WebForm", "WebForm")
+                    b.HasOne("Datahub.Core.EFCore.WebForm", "WebForm")
                         .WithMany("Fields")
                         .HasForeignKey("WebForm_ID")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -766,16 +766,16 @@ namespace Datahub.Shared.Migrations.Core
                     b.Navigation("WebForm");
                 });
 
-            modelBuilder.Entity("Datahub.Shared.EFCore.OpenDataSharedFile", b =>
+            modelBuilder.Entity("Datahub.Core.EFCore.OpenDataSharedFile", b =>
                 {
-                    b.HasOne("Datahub.Shared.EFCore.SharedDataFile", null)
+                    b.HasOne("Datahub.Core.EFCore.SharedDataFile", null)
                         .WithOne()
-                        .HasForeignKey("Datahub.Shared.EFCore.OpenDataSharedFile", "SharedDataFile_ID")
+                        .HasForeignKey("Datahub.Core.EFCore.OpenDataSharedFile", "SharedDataFile_ID")
                         .OnDelete(DeleteBehavior.ClientCascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Datahub.Shared.EFCore.Datahub_Project", b =>
+            modelBuilder.Entity("Datahub.Core.EFCore.Datahub_Project", b =>
                 {
                     b.Navigation("Comments");
 
@@ -790,12 +790,12 @@ namespace Datahub.Shared.Migrations.Core
                     b.Navigation("WebForms");
                 });
 
-            modelBuilder.Entity("Datahub.Shared.EFCore.PBI_License_Request", b =>
+            modelBuilder.Entity("Datahub.Core.EFCore.PBI_License_Request", b =>
                 {
                     b.Navigation("User_License_Requests");
                 });
 
-            modelBuilder.Entity("Datahub.Shared.EFCore.WebForm", b =>
+            modelBuilder.Entity("Datahub.Core.EFCore.WebForm", b =>
                 {
                     b.Navigation("Fields");
                 });

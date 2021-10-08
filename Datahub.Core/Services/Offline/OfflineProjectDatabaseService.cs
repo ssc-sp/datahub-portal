@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using Microsoft.Azure.Services.AppAuthentication;
 
-namespace Datahub.Shared.Services
+namespace Datahub.Core.Services
 {
     public class OfflineProjectDatabaseService : IProjectDatabaseService
     {

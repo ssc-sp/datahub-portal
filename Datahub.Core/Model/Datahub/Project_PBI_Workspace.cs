@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System;
 
-namespace Datahub.Shared.EFCore
+namespace Datahub.Core.EFCore
 {
     public class Project_PBI_Workspace
     {

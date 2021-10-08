@@ -4,10 +4,10 @@ using System.Threading.Tasks;
 using System.Web;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using Datahub.Shared.Data.External.FGP;
-using Datahub.Shared.Data.External.OpenData;
+using Datahub.Core.Data.External.FGP;
+using Datahub.Core.Data.External.OpenData;
 
-namespace Datahub.Shared.Services
+namespace Datahub.Core.Services
 {
     public class ExternalSearchService : IExternalSearchService
     {

@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace NRCan.Datahub.Portal.Migrations
+namespace Datahub.Portal.Migrations
 {
     public partial class addedManagerFields : Migration
     {

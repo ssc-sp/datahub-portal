@@ -10,7 +10,7 @@ parameters:
   default: true
 
 variables:
-  solution: '**/NRCan.Datahub.Portal.sln'
+  solution: '**/Datahub.Portal.sln'
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
   version.MajorMinor: '1.0' # Manually adjust the version number as needed for semantic versioning. Revision is auto-incremented.

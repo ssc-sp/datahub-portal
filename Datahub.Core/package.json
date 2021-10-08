@@ -1,5 +1,5 @@
 {
-  "name": "datahub.shared",
+  "name": "Datahub.Core",
   "version": "1.0.0",
   "description": "Datahub Shared SCSS Scripts",
   "main": "index.js",

@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Datahub.Shared.Model.Onboarding
+namespace Datahub.Core.Model.Onboarding
 {
     public class OnboardingApp
     {

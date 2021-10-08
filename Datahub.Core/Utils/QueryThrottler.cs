@@ -2,7 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Datahub.Shared.Utils
+namespace Datahub.Core.Utils
 {
     /// <summary>
     /// Query throttler utility class

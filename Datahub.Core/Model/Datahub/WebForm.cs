@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Datahub.Shared.EFCore
+namespace Datahub.Core.EFCore
 {
     public class WebForm
     {
