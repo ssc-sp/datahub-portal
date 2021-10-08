@@ -10,14 +10,14 @@ using Microsoft.Extensions.Options;
 using Microsoft.Identity.Client;
 using Microsoft.IdentityModel.Clients.ActiveDirectory;
 using Microsoft.Rest;
-using Datahub.Shared.Data;
+using Datahub.Core.Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 
-namespace Datahub.Shared.Services
+namespace Datahub.Core.Services
 {
     public class KeyVaultService : IKeyVaultService
     {

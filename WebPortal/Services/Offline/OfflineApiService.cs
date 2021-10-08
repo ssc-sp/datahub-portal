@@ -5,8 +5,8 @@ using System.Threading.Tasks;
 using BlazorInputFile;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.Extensions.Logging;
-using Datahub.Shared.Data;
-using Datahub.Shared.Services;
+using Datahub.Core.Data;
+using Datahub.Core.Services;
 
 namespace Datahub.Portal.Services.Offline
 {

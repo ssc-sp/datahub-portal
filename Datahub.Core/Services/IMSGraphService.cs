@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using Datahub.Shared.Data;
+using Datahub.Core.Data;
 
-namespace Datahub.Shared.Services
+namespace Datahub.Core.Services
 {
     public interface IMSGraphService
     {

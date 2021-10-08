@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text.Json.Serialization;
 using Tewr.Blazor.FileReader;
 
-namespace Datahub.Shared.Data
+namespace Datahub.Core.Data
 {
 
     public class VersionMetadata

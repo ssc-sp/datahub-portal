@@ -8,9 +8,10 @@
 @inject UIControlsService UI
 @inject IDatahubAuditingService AuditingService
 @page "/onboarding/applications"
-@using Datahub.Shared.Model.Onboarding
 
-<Datahub.Shared.Components.FormTemplate 
+@using Datahub.Core.Model.Onboarding
+
+<Datahub.Core.Components.FormTemplate 
         T="OnboardingApp" 
         Metadata="@_formMetadata" 
         HandleSubmit="HandleValidSubmit"

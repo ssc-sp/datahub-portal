@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace NRCan.Datahub.Portal.Migrations
+namespace Datahub.Portal.Migrations
 {
     public partial class initialmigration : Migration
     {

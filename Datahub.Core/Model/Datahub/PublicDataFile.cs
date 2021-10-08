@@ -1,7 +1,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 
-namespace Datahub.Shared.EFCore
+namespace Datahub.Core.EFCore
 {
     public class PublicDataFile
     {

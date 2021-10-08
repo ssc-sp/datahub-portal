@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Graph;
-using Datahub.Shared.Data;
-using Datahub.Shared.Services;
+using Datahub.Core.Data;
+using Datahub.Core.Services;
 
 namespace Datahub.Portal.Services.Offline
 {
@@ -22,19 +22,19 @@ namespace Datahub.Portal.Services.Offline
             return Task.FromResult(new List<string>());
         }
 
-        public Task<List<Shared.Data.Version>> GetFileVersions(string fileId)
+        public Task<List<Core.Data.Version>> GetFileVersions(string fileId)
         {
-            return Task.FromResult(new List<Shared.Data.Version>());
+            return Task.FromResult(new List<Core.Data.Version>());
         }
 
-        public Task<Shared.Data.Folder> GetFolderContents(dynamic folder, string filterSearch, User user, string project)
+        public Task<Core.Data.Folder> GetFolderContents(dynamic folder, string filterSearch, User user, string project)
         {
-            return Task.FromResult(new Shared.Data.Folder());
+            return Task.FromResult(new Core.Data.Folder());
         }
 
-        public Task<Shared.Data.Folder> GetFolderStructure(Shared.Data.Folder folder, User user, bool onlyFolders = true)
+        public Task<Core.Data.Folder> GetFolderStructure(Core.Data.Folder folder, User user, bool onlyFolders = true)
         {
-            return Task.FromResult(new Shared.Data.Folder());
+            return Task.FromResult(new Core.Data.Folder());
         }
     }
 }

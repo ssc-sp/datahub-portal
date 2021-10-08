@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Datahub.Shared
+namespace Datahub.Core
 {
     public class SharedResources
     {

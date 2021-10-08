@@ -1,13 +1,13 @@
 ﻿using Microsoft.Extensions.Localization;
 using Newtonsoft.Json;
-using Datahub.Shared.Services;
+using Datahub.Core.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 
-namespace Datahub.Shared.Data
+namespace Datahub.Core.Data
 {
     public static class FileMetaDataExtensions
     {

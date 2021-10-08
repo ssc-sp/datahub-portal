@@ -5,9 +5,9 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using NRCan.Datahub.Portal.Data;
+using Datahub.Portal.Data;
 
-namespace NRCan.Datahub.Portal.Migrations
+namespace Datahub.Portal.Migrations
 {
     [DbContext(typeof(DatahubTrackingDBContext))]
     [Migration("20201007222427_InitialCreate")]
@@ -21,7 +21,7 @@ namespace NRCan.Datahub.Portal.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128)
                 .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-            modelBuilder.Entity("NRCan.Datahub.Portal.Data.DatahubProject", b =>
+            modelBuilder.Entity("Datahub.Portal.Data.DatahubProject", b =>
                 {
                     b.Property<int>("ProjectID")
                         .ValueGeneratedOnAdd()

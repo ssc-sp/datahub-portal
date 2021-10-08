@@ -8,7 +8,8 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Xunit;
 using Xunit.Sdk;
-using Datahub.Portal.Pages.Forms.Datahub;
+using Datahub.Portal.Pages.Forms;
+using Datahub.Portal.Pages.Forms.Internal;
 
 namespace FormTests
 {

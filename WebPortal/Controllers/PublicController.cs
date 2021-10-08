@@ -4,8 +4,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Datahub.Portal.Services;
-using Datahub.Shared.Data;
-using Datahub.Shared.Services;
+using Datahub.Core.Data;
+using Datahub.Core.Services;
 
 namespace Datahub.Portal.Controllers
 {

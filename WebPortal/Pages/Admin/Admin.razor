@@ -107,7 +107,7 @@
                     
                     <AeButton class="blue" @onclick="async () => await SendNamedTestEmail()" Disabled=@IsSendingTestEmail >
                         @if (IsSendingTestEmail) {
-                            <Datahub.Shared.Components.Spinner Small="true" />
+                            <Datahub.Core.Components.Spinner Small="true" />
                         }
                         else
                         {
@@ -229,7 +229,7 @@
         StateHasChanged();
 
         var html = await EmailService
-            .RenderTemplate<Datahub.Shared.Templates.TestEmailTemplate>(new Dictionary<string, object>(){{ "Name", TestRecipientName }});
+            .RenderTemplate<Datahub.Core.Templates.TestEmailTemplate>(new Dictionary<string, object>(){{ "Name", TestRecipientName }});
         await EmailService.SendEmailMessage("Test", html, TestRecipientEmail, TestRecipientName);
 
         IsSendingTestEmail = false;

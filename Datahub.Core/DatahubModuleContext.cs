@@ -3,15 +3,15 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Datahub.Shared.Data;
-using Datahub.Shared.EFCore;
+using Datahub.Core.Data;
+using Datahub.Core.EFCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Datahub.Shared
+namespace Datahub.Core
 {
     public class DatahubModuleContext
     {

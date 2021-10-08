@@ -7,9 +7,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
 using MimeKit;
 using Moq;
-using Datahub.Shared;
-using Datahub.Shared.Data;
-using Datahub.Shared.Services;
+using Datahub.Core;
+using Datahub.Core.Data;
+using Datahub.Core.Services;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -143,7 +143,7 @@ I.SetValue(foo, 8675309);
         {
             var expectedRender = "<h3>NRCan DataHub Notification Test</h3><p>Hello,</p><p>This is a test of the NRCan DataHub email notification.</p>";
 
-            var html = await _fixture.EmailNotificationService.RenderTemplate<Datahub.Shared.Templates.TestEmailTemplate>();
+            var html = await _fixture.EmailNotificationService.RenderTemplate<Datahub.Core.Templates.TestEmailTemplate>();
 
             Assert.Equal(expectedRender, html);
         }
@@ -154,7 +154,7 @@ I.SetValue(foo, 8675309);
             var expectedRender = "<h3>NRCan DataHub Notification Test</h3><p>Hello Test,</p><p>This is a test of the NRCan DataHub email notification.</p>";
 
             var html = await _fixture.EmailNotificationService
-                .RenderTemplate<Datahub.Shared.Templates.TestEmailTemplate>(new Dictionary<string,object>(){{"Name", "Test"}});
+                .RenderTemplate<Datahub.Core.Templates.TestEmailTemplate>(new Dictionary<string,object>(){{"Name", "Test"}});
 
             Assert.Equal(expectedRender, html);
         }
@@ -165,7 +165,7 @@ I.SetValue(foo, 8675309);
             var expectedRender = "<h3>Form Builder Service Access Revoked</h3>\r\n\r\n<p>Your access to service <b>Form Builder</b> in data project <b>PIP</b> has been revoked. The service links in the data project page will no longer be available.</p>\r\n\r\n<hr>\r\n\r\n<h3>Accès au Service Révoqué</h3>\r\n\r\n<p>Votre accès au service <b>Form Builder</b> dans le projet de données <b>PIP (FR)</b> a été révoqué. Les liens menant au service dans la page du projet de données ne seront plus accessibles.</p>";
 
             var html = await _fixture.EmailNotificationService
-                .RenderTemplate<Datahub.Shared.Templates.ServiceAccessRevoked>(_fixture.EmailNotificationParametersNoUsername);
+                .RenderTemplate<Datahub.Core.Templates.ServiceAccessRevoked>(_fixture.EmailNotificationParametersNoUsername);
 
             Assert.Equal(expectedRender, html);
         }
@@ -176,7 +176,7 @@ I.SetValue(foo, 8675309);
             var expectedRender = "<h3>Form Builder Access Request for Project PIP</h3>\r\n\r\n<p>User <b>Peter Parker</b> has requested access to service <b>Form Builder</b> in data project <b>PIP</b>. Please visit the admin page with proper credentials to approve or deny the request.</p>\r\n\r\n<p>To revoke the access, please contact the DataHub team with the DataHub Data Project code and user name.</p>\r\n\r\n<hr>\r\n\r\n<h3>Demande D’accès pour le Projet PIP (FR)</h3>\r\n\r\n<p>L’utilisateur <b>Peter Parker</b> a demandé l’accès au service <b>Form Builder</b> dans le projet de données <b>PIP (FR)</b>. Veuillez visiter la page de l’administrateur en saisissant les identifiants appropriés pour approuver ou refuser la demande.</p>\r\n\r\n<p>Pour révoquer l’accès, veuillez communiquer avec l’équipe du DataHub et assurez-vous d’avoir en main le code de projet de données du DataHub et le nom d’utilisateur.</p>";
 
             var html = await _fixture.EmailNotificationService
-                .RenderTemplate<Datahub.Shared.Templates.ServiceAccessRequest>(_fixture.EmailNotificationParameters);
+                .RenderTemplate<Datahub.Core.Templates.ServiceAccessRequest>(_fixture.EmailNotificationParameters);
 
             Assert.Equal(expectedRender, html);
         }
@@ -187,7 +187,7 @@ I.SetValue(foo, 8675309);
             var expectedRender = "<h3>Form Builder Service Access Request Approved</h3>\r\n\r\n<p>Your request for the access to service <b>Form Builder</b> in data project <b>PIP</b> has been approved. The service links in the data project page will now be active.</p>\r\n\r\n<hr>\r\n\r\n<h3>Demande D’accès au Service Approuvée</h3>\r\n\r\n<p>Votre demande d'accès au service <b>Form Builder</b> dans le projet de données <b>PIP (FR)</b> a été approuvée. Les liens menant au service dans la page du projet de données seront maintenant actifs.</p>";
 
             var html = await _fixture.EmailNotificationService
-                .RenderTemplate<Datahub.Shared.Templates.ServiceAccessRequestApproved>(_fixture.EmailNotificationParametersNoUsername);
+                .RenderTemplate<Datahub.Core.Templates.ServiceAccessRequestApproved>(_fixture.EmailNotificationParametersNoUsername);
 
             Assert.Equal(expectedRender, html);
         }
@@ -198,7 +198,7 @@ I.SetValue(foo, 8675309);
             var expectedRender = "<h3>Form Builder Service Request Approved</h3>\r\n\r\n<p>Your request for the creation of service <b>Form Builder</b> in data project <b>PIP</b> has been approved. The service links in the data project page will now be active.</p>\r\n\r\n<hr>\r\n\r\n<h3>Demande de Service Approuvée</h3>\r\n\r\n<p>Votre demande pour la création du service <b>Form Builder</b> dans le projet de données <b>PIP (FR)</b> a été approuvée. Les liens menant au service dans la page du projet de données seront maintenant actifs.</p>";
 
             var html = await _fixture.EmailNotificationService
-                .RenderTemplate<Datahub.Shared.Templates.ServiceRequestApproved>(_fixture.EmailNotificationParametersNoUsername);
+                .RenderTemplate<Datahub.Core.Templates.ServiceRequestApproved>(_fixture.EmailNotificationParametersNoUsername);
 
             Assert.Equal(expectedRender, html);
         }
@@ -209,7 +209,7 @@ I.SetValue(foo, 8675309);
             var expectedRender = "<h3>New Form Builder Service Request</h3>\r\n\r\n<p>User <b>Peter Parker</b> has requested the creation of service <b>Form Builder</b> in data project <b>PIP</b>. Please visit the admin page with proper credentials to notify project users when it has been created.</p>";
 
             var html = await _fixture.EmailNotificationService
-                .RenderTemplate<Datahub.Shared.Templates.ServiceCreationRequest>(_fixture.EmailNotificationParameters);
+                .RenderTemplate<Datahub.Core.Templates.ServiceCreationRequest>(_fixture.EmailNotificationParameters);
 
             Assert.Equal(expectedRender, html);
         }
