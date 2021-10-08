@@ -1,7 +1,7 @@
 using System;
 using Newtonsoft.Json;
 
-namespace NRCan.Datahub.Shared.Data.External.FGP
+namespace Datahub.Core.Data.External.FGP
 {
     public class GeoCoreItem
     {

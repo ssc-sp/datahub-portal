@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
-using NRCan.Datahub.Shared.Data;
+using Datahub.Core.Data;
 
-namespace NRCan.Datahub.Portal.Services
+namespace Datahub.Portal.Services
 {
     public interface IDataSharingService
     {

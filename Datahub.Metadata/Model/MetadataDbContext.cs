@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-namespace NRCan.Datahub.Metadata.Model
+namespace Datahub.Metadata.Model
 {
     public class MetadataDbContext : DbContext
     {

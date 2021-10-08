@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Globalization;
 
-namespace NRCan.Datahub.Metadata.Model
+namespace Datahub.Metadata.Model
 {
     public class FieldChoice
     {
