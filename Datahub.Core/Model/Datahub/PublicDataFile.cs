@@ -1,7 +1,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 
-namespace NRCan.Datahub.Shared.EFCore
+namespace Datahub.Shared.EFCore
 {
     public class PublicDataFile
     {

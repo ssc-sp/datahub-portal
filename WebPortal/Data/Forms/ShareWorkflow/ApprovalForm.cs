@@ -1,7 +1,7 @@
 ﻿using Elemental.Components;
 using System.ComponentModel.DataAnnotations;
 
-namespace NRCan.Datahub.Portal.Data.Forms.ShareWorkflow
+namespace Datahub.Portal.Data.Forms.ShareWorkflow
 {
     public class ApprovalForm
     {

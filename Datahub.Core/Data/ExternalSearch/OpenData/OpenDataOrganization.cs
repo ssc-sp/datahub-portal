@@ -1,6 +1,6 @@
 using System;
 
-namespace NRCan.Datahub.Shared.Data.External.OpenData
+namespace Datahub.Shared.Data.External.OpenData
 {
     public class OpenDataOrganization
     {

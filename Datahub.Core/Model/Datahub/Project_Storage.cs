@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System;
 
-namespace NRCan.Datahub.Shared.EFCore
+namespace Datahub.Shared.EFCore
 {
 
     public enum Storage_Type

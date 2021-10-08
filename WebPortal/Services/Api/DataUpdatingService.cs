@@ -4,10 +4,10 @@ using System.Threading.Tasks;
 using Azure.Storage.Files.DataLake;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Logging;
-using NRCan.Datahub.Shared.Data;
-using NRCan.Datahub.Shared.Services;
+using Datahub.Shared.Data;
+using Datahub.Shared.Services;
 
-namespace NRCan.Datahub.Portal.Services
+namespace Datahub.Portal.Services
 {
     public class DataUpdatingService : BaseService, IDataUpdatingService
     {

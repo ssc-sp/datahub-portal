@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Reflection;
 
-namespace NRCan.Datahub.Shared.Utils
+namespace Datahub.Shared.Utils
 {
     public static class ClassMapperExtension
     {
