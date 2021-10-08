@@ -1,11 +1,11 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.Graph;
-using NRCan.Datahub.Shared.Data;
+using Datahub.Shared.Data;
 using System.Collections.Generic;
-using NRCan.Datahub.Shared.EFCore;
+using Datahub.Shared.EFCore;
 
-namespace NRCan.Datahub.Portal.Services
+namespace Datahub.Portal.Services
 {
     public interface IPublicDataFileService
     {

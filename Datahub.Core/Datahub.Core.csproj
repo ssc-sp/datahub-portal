@@ -2,7 +2,7 @@
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <AddRazorSupportForMvc>true</AddRazorSupportForMvc>
-    <RootNamespace>NRCan.Datahub.Shared</RootNamespace>
+    <RootNamespace>Datahub.Shared</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <Content Remove="compilerconfig.json" />

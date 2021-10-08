@@ -107,7 +107,7 @@
                     
                     <AeButton class="blue" @onclick="async () => await SendNamedTestEmail()" Disabled=@IsSendingTestEmail >
                         @if (IsSendingTestEmail) {
-                            <NRCan.Datahub.Shared.Components.Spinner Small="true" />
+                            <Datahub.Shared.Components.Spinner Small="true" />
                         }
                         else
                         {
@@ -229,7 +229,7 @@
         StateHasChanged();
 
         var html = await EmailService
-            .RenderTemplate<NRCan.Datahub.Shared.Templates.TestEmailTemplate>(new Dictionary<string, object>(){{ "Name", TestRecipientName }});
+            .RenderTemplate<Datahub.Shared.Templates.TestEmailTemplate>(new Dictionary<string, object>(){{ "Name", TestRecipientName }});
         await EmailService.SendEmailMessage("Test", html, TestRecipientEmail, TestRecipientName);
 
         IsSendingTestEmail = false;

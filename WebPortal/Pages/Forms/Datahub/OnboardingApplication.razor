@@ -8,9 +8,9 @@
 @inject UIControlsService UI
 @inject IDatahubAuditingService AuditingService
 @page "/onboarding/applications"
-@using NRCan.Datahub.Shared.Model.Onboarding
+@using Datahub.Shared.Model.Onboarding
 
-<NRCan.Datahub.Shared.Components.FormTemplate 
+<Datahub.Shared.Components.FormTemplate 
         T="OnboardingApp" 
         Metadata="@_formMetadata" 
         HandleSubmit="HandleValidSubmit"

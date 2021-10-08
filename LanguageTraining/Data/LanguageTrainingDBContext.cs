@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace NRCan.Datahub.Portal.Data.LanguageTraining
+namespace Datahub.Portal.Data.LanguageTraining
 {
     public class LanguageTrainingDBContext : DbContext
     {

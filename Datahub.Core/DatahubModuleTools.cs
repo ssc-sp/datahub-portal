@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NRCan.Datahub.Shared
+namespace Datahub.Shared
 {
     public static class DatahubModuleTools
     {

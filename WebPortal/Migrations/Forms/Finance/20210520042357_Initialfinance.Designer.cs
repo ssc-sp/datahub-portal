@@ -5,9 +5,9 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using NRCan.Datahub.Portal.Data.Finance;
+using Datahub.Portal.Data.Finance;
 
-namespace NRCan.Datahub.Portal.Migrations.Forms.Finance
+namespace Datahub.Portal.Migrations.Forms.Finance
 {
     [DbContext(typeof(FinanceDBContext))]
     [Migration("20210520042357_Initialfinance")]
@@ -21,7 +21,7 @@ namespace NRCan.Datahub.Portal.Migrations.Forms.Finance
                 .HasAnnotation("Relational:MaxIdentifierLength", 128)
                 .HasAnnotation("ProductVersion", "5.0.2");
 
-            modelBuilder.Entity("NRCan.Datahub.Portal.Data.Finance.Branch", b =>
+            modelBuilder.Entity("Datahub.Portal.Data.Finance.Branch", b =>
                 {
                     b.Property<int>("BranchId")
                         .ValueGeneratedOnAdd()
@@ -873,7 +873,7 @@ namespace NRCan.Datahub.Portal.Migrations.Forms.Finance
                         });
                 });
 
-            modelBuilder.Entity("NRCan.Datahub.Portal.Data.Finance.Budget", b =>
+            modelBuilder.Entity("Datahub.Portal.Data.Finance.Budget", b =>
                 {
                     b.Property<int>("Budget_ID")
                         .ValueGeneratedOnAdd()
@@ -1046,7 +1046,7 @@ namespace NRCan.Datahub.Portal.Migrations.Forms.Finance
                     b.ToTable("Budgets");
                 });
 
-            modelBuilder.Entity("NRCan.Datahub.Portal.Data.Finance.Sector", b =>
+            modelBuilder.Entity("Datahub.Portal.Data.Finance.Sector", b =>
                 {
                     b.Property<int>("SectorId")
                         .ValueGeneratedOnAdd()
@@ -1181,7 +1181,7 @@ namespace NRCan.Datahub.Portal.Migrations.Forms.Finance
                         });
                 });
 
-            modelBuilder.Entity("NRCan.Datahub.Portal.Data.Finance.SectorAndBranch", b =>
+            modelBuilder.Entity("Datahub.Portal.Data.Finance.SectorAndBranch", b =>
                 {
                     b.Property<int>("SectorBranch_ID")
                         .ValueGeneratedOnAdd()
@@ -1231,9 +1231,9 @@ namespace NRCan.Datahub.Portal.Migrations.Forms.Finance
                     b.ToTable("SectorAndBranches");
                 });
 
-            modelBuilder.Entity("NRCan.Datahub.Portal.Data.Finance.Branch", b =>
+            modelBuilder.Entity("Datahub.Portal.Data.Finance.Branch", b =>
                 {
-                    b.HasOne("NRCan.Datahub.Portal.Data.Finance.Sector", "Sector")
+                    b.HasOne("Datahub.Portal.Data.Finance.Sector", "Sector")
                         .WithMany("Branches")
                         .HasForeignKey("SectorId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1242,22 +1242,22 @@ namespace NRCan.Datahub.Portal.Migrations.Forms.Finance
                     b.Navigation("Sector");
                 });
 
-            modelBuilder.Entity("NRCan.Datahub.Portal.Data.Finance.Budget", b =>
+            modelBuilder.Entity("Datahub.Portal.Data.Finance.Budget", b =>
                 {
-                    b.HasOne("NRCan.Datahub.Portal.Data.Finance.SectorAndBranch", "SectorAndBranch")
+                    b.HasOne("Datahub.Portal.Data.Finance.SectorAndBranch", "SectorAndBranch")
                         .WithMany()
                         .HasForeignKey("SectorAndBranchSectorBranch_ID");
 
                     b.Navigation("SectorAndBranch");
                 });
 
-            modelBuilder.Entity("NRCan.Datahub.Portal.Data.Finance.SectorAndBranch", b =>
+            modelBuilder.Entity("Datahub.Portal.Data.Finance.SectorAndBranch", b =>
                 {
-                    b.HasOne("NRCan.Datahub.Portal.Data.Finance.Branch", "Branch")
+                    b.HasOne("Datahub.Portal.Data.Finance.Branch", "Branch")
                         .WithMany("SectorAndBranch")
                         .HasForeignKey("BranchId");
 
-                    b.HasOne("NRCan.Datahub.Portal.Data.Finance.Sector", "Sector")
+                    b.HasOne("Datahub.Portal.Data.Finance.Sector", "Sector")
                         .WithMany("SectorAndBranch")
                         .HasForeignKey("SectorId");
 
@@ -1266,12 +1266,12 @@ namespace NRCan.Datahub.Portal.Migrations.Forms.Finance
                     b.Navigation("Sector");
                 });
 
-            modelBuilder.Entity("NRCan.Datahub.Portal.Data.Finance.Branch", b =>
+            modelBuilder.Entity("Datahub.Portal.Data.Finance.Branch", b =>
                 {
                     b.Navigation("SectorAndBranch");
                 });
 
-            modelBuilder.Entity("NRCan.Datahub.Portal.Data.Finance.Sector", b =>
+            modelBuilder.Entity("Datahub.Portal.Data.Finance.Sector", b =>
                 {
                     b.Navigation("Branches");
 

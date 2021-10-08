@@ -5,9 +5,9 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using NRCan.Datahub.Portal.Data.LanguageTraining;
+using Datahub.Portal.Data.LanguageTraining;
 
-namespace NRCan.Datahub.Portal.Migrations
+namespace Datahub.Portal.Migrations
 {
     [DbContext(typeof(LanguageTrainingDBContext))]
     [Migration("20210901032504_addedManagerFields")]
@@ -21,7 +21,7 @@ namespace NRCan.Datahub.Portal.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128)
                 .HasAnnotation("ProductVersion", "5.0.2");
 
-            modelBuilder.Entity("NRCan.Datahub.Portal.Data.LanguageTraining.LanguageTrainingApplication", b =>
+            modelBuilder.Entity("Datahub.Portal.Data.LanguageTraining.LanguageTrainingApplication", b =>
                 {
                     b.Property<int>("Application_ID")
                         .ValueGeneratedOnAdd()

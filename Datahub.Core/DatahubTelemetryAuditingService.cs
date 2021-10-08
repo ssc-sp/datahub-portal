@@ -1,12 +1,12 @@
 ﻿using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.Options;
-using NRCan.Datahub.Shared.Services;
+using Datahub.Shared.Services;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace NRCan.Datahub.Shared
+namespace Datahub.Shared
 {
     public class DatahubTelemetryAuditingService : IDatahubAuditingService
     {

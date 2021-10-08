@@ -5,6 +5,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Pages\LanguageTrainingApplicationForm.razor" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Pages\LanguageTrainingApplicationForm.razor">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="AElemental.Blazor" Version="1.2.21265.1-beta" />
   </ItemGroup>
 

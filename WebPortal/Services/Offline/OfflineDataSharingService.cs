@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
-using NRCan.Datahub.Shared.Data;
+using Datahub.Shared.Data;
 
-namespace NRCan.Datahub.Portal.Services.Offline
+namespace Datahub.Portal.Services.Offline
 {
     public class OfflineDataSharingService : IDataSharingService
     {
