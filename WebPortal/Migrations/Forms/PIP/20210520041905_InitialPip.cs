@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace NRCan.Datahub.Portal.Migrations.Forms.PIP
+namespace Datahub.Portal.Migrations.Forms.PIP
 {
     public partial class InitialPip : Migration
     {

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NRCan.Datahub.Shared.Data
+namespace Datahub.Shared.Data
 {
     public class FormMetadata<T>
     {

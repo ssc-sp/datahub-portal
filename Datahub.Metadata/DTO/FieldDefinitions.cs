@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using NRCan.Datahub.Metadata.Model;
+using Datahub.Metadata.Model;
 
-namespace NRCan.Datahub.Metadata.DTO
+namespace Datahub.Metadata.DTO
 {
     public class FieldDefinitions
     {

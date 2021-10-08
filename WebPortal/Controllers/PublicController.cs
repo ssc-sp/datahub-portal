@@ -3,11 +3,11 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using NRCan.Datahub.Portal.Services;
-using NRCan.Datahub.Shared.Data;
-using NRCan.Datahub.Shared.Services;
+using Datahub.Portal.Services;
+using Datahub.Shared.Data;
+using Datahub.Shared.Services;
 
-namespace NRCan.Datahub.Portal.Controllers
+namespace Datahub.Portal.Controllers
 {
     [Route("[controller]/[action]")]
     [AllowAnonymous]

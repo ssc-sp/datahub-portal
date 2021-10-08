@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text.Json.Serialization;
 using Tewr.Blazor.FileReader;
 
-namespace NRCan.Datahub.Shared.Data
+namespace Datahub.Shared.Data
 {
 
     public class VersionMetadata

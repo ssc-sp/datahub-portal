@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Graph;
-using NRCan.Datahub.Shared.Data;
+using Datahub.Shared.Data;
 
-namespace NRCan.Datahub.Shared.Services
+namespace Datahub.Shared.Services
 {
     public interface IDataRetrievalService
     {

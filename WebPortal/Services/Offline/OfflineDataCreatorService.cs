@@ -1,8 +1,8 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.Graph;
-using NRCan.Datahub.Shared.Services;
+using Datahub.Shared.Services;
 
-namespace NRCan.Datahub.Portal.Services
+namespace Datahub.Portal.Services
 {
     public class OfflineDataCreatorService : IDataCreatorService
     {

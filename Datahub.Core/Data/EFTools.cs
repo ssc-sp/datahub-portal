@@ -4,14 +4,14 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using NRCan.Datahub.Shared.EFCore;
+using Datahub.Shared.EFCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NRCan.Datahub.Shared.Data
+namespace Datahub.Shared.Data
 {
 
     public enum DbDriver
@@ -81,6 +81,8 @@ namespace NRCan.Datahub.Shared.Data
                     services.AddPooledDbContextFactory<T>(options => options.UseSqlite(connectionString));
                     services.AddDbContextPool<T>(options => options.UseSqlite(connectionString));
                     break;
+                default:
+                    throw new ArgumentException("Invalid DB driver");
             }
         }
 

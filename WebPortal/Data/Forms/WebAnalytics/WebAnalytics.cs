@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using Elemental.Components;
 
-namespace NRCan.Datahub.Portal.Data.WebAnalytics
+namespace Datahub.Portal.Data.WebAnalytics
 {
     public class WebAnalytics
     {

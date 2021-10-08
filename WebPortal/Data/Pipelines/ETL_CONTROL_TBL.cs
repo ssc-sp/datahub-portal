@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace NRCan.Datahub.Portal.Data
+namespace Datahub.Portal.Data
 {
     public class ETL_CONTROL_TBL
     {

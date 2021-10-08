@@ -1,11 +1,11 @@
-using NRCan.Datahub.Metadata.DTO;
-using NRCan.Datahub.Metadata.Model;
+using Datahub.Metadata.DTO;
+using Datahub.Metadata.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 
-namespace NRCan.Datahub.Metadata.Tests
+namespace Datahub.Metadata.Tests
 {
     public class MetadataDefinitionsTests
     {

@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace NRCan.Datahub.Portal.Migrations.Forms.WebAnalytics
+namespace Datahub.Portal.Migrations.Forms.WebAnalytics
 {
     public partial class Initialwebanalytics : Migration
     {

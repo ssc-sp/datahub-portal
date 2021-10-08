@@ -2,7 +2,7 @@ using System;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 
-namespace NRCan.Datahub.Shared.Data.External.OpenData
+namespace Datahub.Shared.Data.External.OpenData
 {
     public class OpenDataItem
     {

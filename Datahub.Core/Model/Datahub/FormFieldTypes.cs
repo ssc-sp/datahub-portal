@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace NRCan.Datahub.Shared.EFCore
+namespace Datahub.Shared.EFCore
 {
     public static class FormFieldTypeReference
     {

@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace NRCan.Datahub.Shared.Migrations.Core
+namespace Datahub.Shared.Migrations.Core
 {
     public partial class addedorganizationlevel : Migration
     {

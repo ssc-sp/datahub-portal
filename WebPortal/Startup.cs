@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using NRCan.Datahub.Portal.Services;
+using Datahub.Portal.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Authorization;
@@ -24,38 +24,38 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Identity.Client;
 using Tewr.Blazor.FileReader;
 using BlazorDownloadFile;
-using NRCan.Datahub.Portal.Services.Offline;
+using Datahub.Portal.Services.Offline;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-using NRCan.Datahub.Shared.Services;
+using Datahub.Shared.Services;
 using Askmethat.Aspnet.JsonLocalizer.Extensions;
 using System.Text;
-using NRCan.Datahub.Shared.Data;
+using Datahub.Shared.Data;
 using Microsoft.EntityFrameworkCore;
-using NRCan.Datahub.ProjectForms.Data.PIP;
-using NRCan.Datahub.Portal.EFCore;
-using NRCan.Datahub.Shared.EFCore;
-using NRCan.Datahub.Portal.Data;
-using NRCan.Datahub.Portal.Data.Finance;
-using NRCan.Datahub.Portal.Data.WebAnalytics;
-using NRCan.Datahub.Metadata;
+using Datahub.ProjectForms.Data.PIP;
+using Datahub.Portal.EFCore;
+using Datahub.Shared.EFCore;
+using Datahub.Portal.Data;
+using Datahub.Portal.Data.Finance;
+using Datahub.Portal.Data.WebAnalytics;
+using Datahub.Metadata;
 using Microsoft.Graph;
 using Polly;
 using System.Net.Http;
 using Polly.Extensions.Http;
-using NRCan.Datahub.Metadata.Model;
+using Datahub.Metadata.Model;
 using Microsoft.Extensions.Logging;
-using NRCan.Datahub.Shared.RoleManagement;
-using NRCan.Datahub.Shared;
-using NRCan.Datahub.Portal.Data.LanguageTraining;
+using Datahub.Shared.RoleManagement;
+using Datahub.Shared;
+using Datahub.Portal.Data.LanguageTraining;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.ApplicationInsights.Extensibility;
 using Datahub.LanguageTraining;
 using Microsoft.AspNetCore.HttpLogging;
 
-namespace NRCan.Datahub.Portal
+namespace Datahub.Portal
 {
     public class Startup
     {

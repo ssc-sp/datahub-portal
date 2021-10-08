@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace NRCan.Datahub.Shared.Migrations.Core
+namespace Datahub.Shared.Migrations.Core
 {
     public partial class addedprojectname : Migration
     {
