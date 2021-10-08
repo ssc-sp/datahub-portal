@@ -2,17 +2,25 @@
 @inject NavigationManager NavManager
 @inject IPublicDataFileService PublicFileService
 @inject IMSGraphService GraphService
+@inject UIControlsService UI
+@inject IUserInformationService UserInformationService
 
 <AeTypography Variant="h1">@Localizer["OPENDATA-WIZARD.Page_Title"]</AeTypography>
 
 <AeFlex>
     <AeFlex Vertical  style="margin-left: 2rem; width: 48%">
 
-        @if (ShowMetadataEditor)
-        {
-            <AeCard>
-                <AeTypography Variant="h2">@Localizer["OPENDATA-WIZARD.Metadata"]</AeTypography>
-                <ObjectMetadataEditor ObjectId=@FileId @ref="_metadataEditor" />
+        <AeCard>
+            <AeTypography Variant="h2">@Localizer["OPENDATA-WIZARD.Metadata"]</AeTypography>
+
+            @if (!string.IsNullOrEmpty(requestFilename))
+            {
+                <div>@Localizer["Filename"]: @requestFilename</div>
+            }
+
+            @if (ShowMetadataEditor && IsOwnRequest)
+            {
+                <ObjectMetadataEditor ObjectId=@FileId @ref=@_metadataEditor />
                 <AeFlex>
                     <AeButton OnClickEvent=@SaveMetadata Disabled=@savingData>@Localizer["OPENDATA-WIZARD.Save_button"]</AeButton>
                     <div>
@@ -22,40 +30,46 @@
                         }
                     </div>
                 </AeFlex>
-                <div>&nbsp;</div>
-            </AeCard>
-        }
-        else
-        {
-            <AeCard>
-                <AeTypography Variant="h2">@Localizer["OPENDATA-WIZARD.Metadata"]</AeTypography>
+            }
+            else if (IsOwnRequest)
+            {
                 <AeButton OnClickEvent=@ManuallyShowMetadataEditor >@Localizer["OPENDATA-WIZARD.Edit_button"]</AeButton>
-                <div>&nbsp;</div>
-            </AeCard>
-        }
+            }
+            else 
+            {
+                @if (RequestingUser != null) {
+                    <div>@Localizer["Requesting User"]: @RequestingUser.DisplayName</div>
+                }
+            }
 
-        @if (ShowApprovalForm)
+            <div>&nbsp;</div>
+        </AeCard>
+
+        @if (IsOwnRequest)
         {
-            <AeCard>
+            @if (ShowApprovalForm)
+            {
+                <AeCard>
 
                 <Datahub.Portal.Pages.Forms.ShareWorkflow.ApprovalForm 
                     ApprovalFormId=@approvalFormId 
                     OnSubmitForm=@UpdateApprovalFormId 
                     User=@RequestingUser/>
 
+                    <div>&nbsp;</div>
+                </AeCard>
+            }
+            else if (ApprovalFormSubmitted)
+            {
+                <AeCard>
+                    <AeTypography Variant="p">@Localizer["OPENDATA-WIZARD.Approval_filled_out"]</AeTypography>
+                    <AeFlex>
+                        <a href=@GenerateApprovalFormPdfUrl class="ae button" target="_blank">@Localizer["OPENDATA-WIZARD.GeneratePDF_button"]</a>
+                        <AeButton OnClickEvent=@ManuallyShowApprovalForm >@Localizer["OPENDATA-WIZARD.AmendApprovalForm_button"]</AeButton>
+                    </AeFlex>
                 <div>&nbsp;</div>
-            </AeCard>
-        }
-        else if (ApprovalFormSubmitted)
-        {
-            <AeCard>
-                <AeTypography Variant="p">@Localizer["OPENDATA-WIZARD.Approval_filled_out"]</AeTypography>
-                <AeFlex>
-                    <a href=@GenerateApprovalFormPdfUrl class="ae button" target="_blank">@Localizer["OPENDATA-WIZARD.GeneratePDF_button"]</a>
-                    <AeButton OnClickEvent=@ManuallyShowApprovalForm >@Localizer["OPENDATA-WIZARD.AmendApprovalForm_button"]</AeButton>
-                </AeFlex>
-            <div>&nbsp;</div>
-            </AeCard>
+                </AeCard>
+            }
         }
     </AeFlex>
 
@@ -68,7 +82,7 @@
             PassedIcon=@checkIcon
             />
 
-    @if (ShowSkipMetadata)
+    @if (ShowSkipMetadata && IsOwnRequest)
     {
         <AeCard>
             <AeTypography Variant="h3">@Localizer["OPENDATA-WIZARD.AcceptMetadata"]</AeTypography>
@@ -94,13 +108,12 @@
     }
 
 
-    @if (ShowSignedPdfPanel)
+    @if (ShowSignedPdfPanel && IsOwnRequest)
     {
         <AeCard>
             <AeTypography Variant="h3">@Localizer["OPENDATA-WIZARD.SubmitSignedPdf"]</AeTypography>
             <label>
                 @Localizer["OPENDATA-WIZARD.EnterGcDocsUrl"]:
-                @* <Microsoft.AspNetCore.Components.Forms.InputFile multiple></Microsoft.AspNetCore.Components.Forms.InputFile> *@
                 <input @bind-value=@signedApprovalFormUrl />
             </label>
                 <AeFlex>
@@ -113,6 +126,15 @@
                     </div>
                 </AeFlex>
             <div>&nbsp;</div>
+        </AeCard>
+    }
+
+    @if (ShowCancelPanel && IsOwnRequest)
+    {
+        <AeCard>
+            <Typography Variant="h3">@Localizer["OPENDATA-WIZARD.CancelSharing"]</Typography>
+            <p>@Localizer["OPENDATA-WIZARD.CancelSharingDescription"]</p>
+            <AeButton OnClickEvent=@ShowCancelRequestDialog>@Localizer["BUTTONS.Cancel"]</AeButton>
         </AeCard>
     }
 
@@ -164,6 +186,9 @@
     private bool ShowSignedPdfPanel => currentStep == OpenDataSharingStatus.SubmitSignedPDF;
     private bool ShowPublicationDatePanel => currentStep == OpenDataSharingStatus.PendingPublication;
     private bool ShowPublicUrl => currentStep == OpenDataSharingStatus.AccessOpenData;
+    private bool ShowCancelPanel => currentStep <= OpenDataSharingStatus.PendingApproval;
+
+    private bool IsOwnRequest = false;
 
     private bool editSavedMetadata = false;
     private bool editSubmittedApproval = false;
@@ -171,10 +196,11 @@
 
     private string PublicationDateStr = string.Empty;
     private int approvalFormId = 0;
-    private string GenerateApprovalFormPdfUrl => $"http://example.com/{approvalFormId}";
+    private string GenerateApprovalFormPdfUrl => PublicFileService.GetOpenDataApprovalFormPdfUrl(approvalFormId);
     private string signedApprovalFormUrl;
 
     private GraphUser RequestingUser;
+    private string requestFilename;
     
     //TODO add domain
     private string PublicUrl => $"/Public/DownloadFile/{FileId}";
@@ -230,8 +256,6 @@
     {
         savingData = true;
 
-        var sdfdsf = signedApprovalFormUrl;
-
         await PublicFileService.UpdateOpenDataSignedApprovalFormUrl(fileIdGuid, signedApprovalFormUrl);
 
         savingData = false;
@@ -251,6 +275,7 @@
         }
 
         await t;
+        await PublicFileService.MarkMetadataComplete(fileIdGuid);
         savingData = false;
         NavManager.NavigateTo($"{uri}#stepsDiv");
         if (currentStep == OpenDataSharingStatus.EnterMetadata)
@@ -265,7 +290,33 @@
 
     private async Task AcceptMetadata()
     {
+        await PublicFileService.MarkMetadataComplete(fileIdGuid);
         UpdateCurrentStatus(OpenDataSharingStatus.OpenGovApprovalForm);
+    }
+
+    private async Task ShowCancelRequestDialog()
+    {
+        var promptText = new List<string>() { Localizer["OPENDATA-WIZARD.CancelSharingPrompt"] };
+        RenderFragment cancelDialog = @<UserChoiceModal
+            HeaderText=@Localizer["OPENDATA-WIZARD.CancelSharing"]
+            ChoiceTextList=@promptText
+            OnDecision="HandleCancel"
+            ConfirmText=@Localizer["COMMON.Yes"]
+            CancelText=@Localizer["COMMON.No"]
+            />;
+        await UI.ToggleModal(cancelDialog);
+    }
+
+    private async void HandleCancel(bool isCancelled)
+    {
+        if (isCancelled)
+        {
+            savingData = true;
+            await PublicFileService.CancelPublicDataShare(fileIdGuid);
+            savingData = false;
+            NavManager.NavigateTo("/");
+        }
+        await UI.ToggleModal();
     }
 
     protected override async Task OnInitializedAsync()
@@ -276,6 +327,7 @@
         }
 
         var loadTask = PublicFileService.LoadOpenDataSharedFileInfo(fileIdGuid);
+        var currentUserTask = UserInformationService.GetUserAsync();
 
         _stepInfo = new();
         foreach(var step in steps)
@@ -290,8 +342,12 @@
 
         approvalFormId = sharedFileInfo.ApprovalForm_ID ?? 0;
         signedApprovalFormUrl = sharedFileInfo.SignedApprovalForm_URL;
+        requestFilename = sharedFileInfo.Filename_TXT;
         PublicationDateStr = sharedFileInfo.PublicationDate_DT?.ToShortDateString();
+        
         RequestingUser = GraphService.GetUser(sharedFileInfo.RequestingUser_ID);
+        var currentUser = await currentUserTask;
+        IsOwnRequest = currentUser.Id == RequestingUser.Id;
 
         var status = sharedFileInfo.GetOpenDataSharingStatus();
         UpdateCurrentStatus(status, status == OpenDataSharingStatus.AccessOpenData);

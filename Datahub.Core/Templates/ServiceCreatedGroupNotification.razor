@@ -2,22 +2,28 @@
 
 <h3>@Service Service Created</h3>
 
-<p>Service <b>@Service</b> has been created in data project <b>@DataProject.ProjectNameEn</b>. The service links in the data project page will now be active.</p>
+<p>Service <b>@Service</b> has been created in data project <b>@DataProject.ProjectNameEn</b>. 
+    The service links in the <a href=@ProjectPageUrl >data project</a> page will now be active.</p>
 
 <hr />
 
 
 <h3>@Service Service Créé</h3>
 
-<p>Le service <b>@Service</b> a été créé dans le projet de données <b>@DataProject.ProjectNameFr</b>. Les liens du service dans la page du projet de données seront désormais actifs.</p> 
+<p>Le service <b>@Service</b> a été créé dans le projet de données <b>@DataProject.ProjectNameFr</b>. 
+    Les liens du service dans la page du <a href=@ProjectPageUrl >projet de données</a> seront désormais actifs.</p> 
 
 
 @code {
+    public static readonly string PROJECT_PAGE_PREFIX = "/project";
 
     [Parameter]
     public string Service { get; set; }
 
     [Parameter]
     public DatahubProjectInfo DataProject { get; set; }
+
+    [Parameter]
+    public string ProjectPageUrl { get; set; }
 
 }
