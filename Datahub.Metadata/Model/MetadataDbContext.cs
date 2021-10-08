@@ -15,6 +15,8 @@ namespace Datahub.Metadata.Model
         public DbSet<ObjectFieldValue> ObjectFieldValues { get; set; }
         public DbSet<ApprovalForm> ApprovalForms { get; set; }
         public DbSet<Keyword> Keywords { get; set; }
+        public DbSet<Subject> Subjects { get; set; }
+        public DbSet<SubSubject> SubSubjects { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -123,6 +125,21 @@ namespace Datahub.Metadata.Model
 
                 entity.Property(e => e.Dataset_Title_TXT).HasMaxLength(256).IsRequired();
                 entity.Property(e => e.Type_Of_Data_TXT).HasMaxLength(16).IsRequired();
+            });
+
+            modelBuilder.Entity<Subject>(entity =>
+            {
+                entity.ToTable("Subjects");
+                entity.HasKey(e => e.SubjectId);
+
+                entity.Property(e => e.Subject_TXT).HasMaxLength(64);
+                entity.HasIndex(e => e.Subject_TXT).IsUnique();
+            });
+
+            modelBuilder.Entity<SubSubject>(entity =>
+            {
+                entity.ToTable("SubSubjects");
+                entity.HasKey(e => e.SubSubjectId);
             });
         }
     }

@@ -268,9 +268,16 @@
                         </div>
                     </Header>
                     <ChildContent>
-                        <DatahubLink Variant="h3" DataProject="@projectAcronym" LinkType="DatahubLinkType.DataSharingDashboard">@Localizer["Public Data Sharing"]</DatahubLink>
-                        @* <AeTypography Variant="h3" >@Localizer["Public Data Sharing"]</AeTypography> *@
-                        <AeTypography>@Localizer["Sharing requests awaiting approval:"] @_sharingRequestCount</AeTypography>
+                        <DatahubLink Variant="h3" DataProject="@projectAcronym" LinkType="DatahubLinkType.DataSharingDashboard">
+                            @Localizer["PROJECT-PAGE.PUBLIC-SHARING-CARD.Title"]
+                        </DatahubLink>
+                        <AeTypography>@Localizer["PROJECT-PAGE.PUBLIC-SHARING-CARD.UsersOwnSharedFiles"]: @_ownSharingRequestCount</AeTypography>
+                            @if(_isDataApprover)
+                            {
+                                <AeTypography>
+                                    @Localizer["PROJECT-PAGE.PUBLIC-SHARING-CARD.SharedFilesAwaitingApproval"]: @_sharingRequestAwaitingApprovalCount
+                                </AeTypography>
+                            }
                     </ChildContent>
                 </AeCard>
             </AuthorizeView>
@@ -346,8 +353,9 @@
     private bool _isProjectUserPendingApproval;
 
     private bool _isDataApprover;
-    private int _sharingRequestCount;
-    private bool _showSharingRequestCard => _isDataApprover && _sharingRequestCount > 0;
+    private int _sharingRequestAwaitingApprovalCount;
+    private int _ownSharingRequestCount;
+    //private bool _showSharingRequestCard => _isDataApprover && _sharingRequestAwaitingApprovalCount > 0;
 
     // Define the headers at the top of the table
     private List<string> pipelineHeaders = new List<string>
@@ -430,7 +438,8 @@
             _isDataApprover = projectUsers.Any(u => u.IsDataApprover);
         }
 
-        _sharingRequestCount = await PublicDataFileService.GetDataSharingRequestsAwaitingApprovalCount(projectAcronym);
+        _sharingRequestAwaitingApprovalCount = await PublicDataFileService.GetDataSharingRequestsAwaitingApprovalCount(projectAcronym);
+        _ownSharingRequestCount = await PublicDataFileService.GetUsersOwnDataSharingRequestsCount(projectAcronym, _user.Id);
 
         var allPipelines = _project.Pipelines?.Select(p => p.Process_Nm).ToList();
         if (allPipelines != null)
@@ -568,7 +577,8 @@
 
     private async Task ShowDatabaseInformationPopup(bool getToken = false)
     {
-        RenderFragment popupHtml = @<DataProjectDbInformation DataProject=@_project GetAccessTokenImmediately=@getToken />;
+        RenderFragment popupHtml = 
+    @<DataProjectDbInformation DataProject=@_project GetAccessTokenImmediately=@getToken />;
         await UIControlService.ToggleModal(@<RenderFragmentModal Fragment=@popupHtml />);
     }
 

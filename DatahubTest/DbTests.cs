@@ -10,7 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace DatahubTest
+namespace Datahub.Tests
 {
     public class DbTests
     {

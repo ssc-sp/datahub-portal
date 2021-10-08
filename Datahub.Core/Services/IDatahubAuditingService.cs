@@ -63,13 +63,23 @@ namespace Datahub.Core.Services
                 foreach (var entry in dbContext.ChangeTracker.Entries())
                 {
                     if (entry.State == EntityState.Added)
-                        await auditService.TrackDataEvent(entry.DebugView.ShortView, entry.Entity.GetType().Name, AuditChangeType.New);
+                        await auditService.TrackDataEvent(
+                            entry.DebugView.ShortView, 
+                            entry.Entity.GetType().Name, 
+                            AuditChangeType.New);
 
                     if (entry.State == EntityState.Modified)
-                        await auditService.TrackDataEvent(entry.DebugView.ShortView, entry.Entity.GetType().Name, AuditChangeType.Edit);
+                        await auditService.TrackDataEvent(
+                            entry.DebugView.ShortView, 
+                            entry.Entity.GetType().Name, 
+                            AuditChangeType.Edit, 
+                            ("changeDetails", entry.DebugView.LongView));
 
                     if (entry.State == EntityState.Deleted)
-                        await auditService.TrackDataEvent(entry.DebugView.ShortView, entry.Entity.GetType().Name, AuditChangeType.Delete);
+                        await auditService.TrackDataEvent(
+                            entry.DebugView.ShortView, 
+                            entry.Entity.GetType().Name, 
+                            AuditChangeType.Delete);
                 }
             }
             catch (Exception ex)
