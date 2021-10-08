@@ -1,0 +1,65 @@
+﻿@page "/project/{ProjectAcronym}/forms/{FormId}/edit"
+@implements IDisposable
+@inject IDbContextFactory<DatahubProjectDBContext> DbFactory
+@inject NavigationManager NavManager
+
+<div style="margin: 2rem">
+    <AeCard>
+        <Header>
+            <h2>@Localizer["Edit Form"]</h2>
+        </Header>
+        <ChildContent>
+            @if (_webForm != null)
+            {
+                <div style="margin: 1rem;">
+                    <AeModelForm Model=@_webForm
+                                     SubmitLabel="@Localizer["Save Changes"]"
+                                     OnValidSubmit=@HandleValidSubmit
+                                     OnCancel="@HandleCancel"
+                                     CancelLabel="@Localizer["Cancel"]"
+                                     />
+                </div>
+            }
+        </ChildContent>
+    </AeCard>
+</div>
+
+@code {
+
+    [Parameter]
+    public string ProjectAcronym { get; set; }
+    
+    [Parameter]
+    public string FormId { get; set; }
+
+    private DatahubProjectDBContext _context;
+    private WebForm _webForm;
+
+    protected override void OnInitialized()
+    {
+        if (int.TryParse(FormId, out int parsedId))
+        {
+            _context = DbFactory.CreateDbContext();
+            _webForm = _context.WebForms.FirstOrDefault(f => f.WebForm_ID == parsedId);
+        }
+    }
+
+    private async void HandleValidSubmit()
+    {
+        await _context.SaveChangesAsync();
+        NavManager.NavigateTo(BackUrl);
+    }
+
+    private async Task<WebForm> HandleCancel()
+    {
+        NavManager.NavigateTo(BackUrl);
+        return await Task.FromResult(_webForm);
+    }
+
+    private string BackUrl => $"/project/{ProjectAcronym}/forms/{FormId}";
+
+    public void Dispose() 
+    { 
+        _context?.Dispose(); 
+    }
+}
