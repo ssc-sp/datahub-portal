@@ -1,6 +1,9 @@
 ﻿@inject IStringLocalizer DataLocalizer
+@using Microsoft.EntityFrameworkCore
 @using NRCan.Datahub.Shared.Data
 @typeparam T
+@typeparam U where U : DbContext
+
 @inherits HtmlElement
 @using System.Reflection
 
@@ -12,6 +15,19 @@ else
 {
 
 <AeCard class="facardForms" CardPosition="AeCard.CardStyle.Horizontal">
+
+@if (Metadata.FilterProperties != null)
+{
+    <AeFlex id="filterBar">            
+        @foreach (var filter in Metadata.FilterProperties)
+        {   
+            var validDisplayValues = filter.Choices.DynamicInvoke() as List<string>;
+            <AeDropdown Items="validDisplayValues" OnChange="HandleFilterChange" Label="@filterLabelValue" class="@filterClass"/>                
+        }
+
+    </AeFlex>
+}
+
 <AeTypography Variant="h3">@DataLocalizer[Metadata.Header]</AeTypography>
         @if (Metadata.DataSet.Any())
         {
@@ -98,10 +114,21 @@ else
     public T SelectedRecord { get; set; }
     [Parameter]
     public EventCallback<T> SetFormEditRecord { get; set; }
-    
+    [Parameter]
+    public Action<string> HandleFilterChange { get; set; }
+    [Parameter]
+    public U Context { get; set; }
+
 
     private int _lastClicked = 0;
     private IPageableComponent _myTable;
+    
+
+    private string filterLabel;
+    private string filterLabelValue;
+    private string filterClass;
+
+    
 
     private void OnPageClick(int pageIndex)
     {
