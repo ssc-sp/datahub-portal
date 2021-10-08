@@ -33,6 +33,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SyncDbUsers", "Datahub.Func
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SyncDBUsersConsole", "Datahub.FunctionConsole\SyncDBUsersConsole.csproj", "{FA17FE2D-2E5E-4992-92E0-A3F7B7E295DE}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Modules", "Modules", "{2B936783-B7E9-401F-9AB4-2D60D9F1E95E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Datahub.PIP", "Datahub.PIP\Datahub.PIP.csproj", "{806B4AB9-428B-45FC-A6BD-F314E56A85DA}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Finance", "Datahub.Finance\Datahub.Finance.csproj", "{C305FB95-C2BD-49D7-95F5-4AEEA39306C3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -75,9 +81,22 @@ Global
 		{FA17FE2D-2E5E-4992-92E0-A3F7B7E295DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FA17FE2D-2E5E-4992-92E0-A3F7B7E295DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FA17FE2D-2E5E-4992-92E0-A3F7B7E295DE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{806B4AB9-428B-45FC-A6BD-F314E56A85DA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{806B4AB9-428B-45FC-A6BD-F314E56A85DA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{806B4AB9-428B-45FC-A6BD-F314E56A85DA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{806B4AB9-428B-45FC-A6BD-F314E56A85DA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C305FB95-C2BD-49D7-95F5-4AEEA39306C3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C305FB95-C2BD-49D7-95F5-4AEEA39306C3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C305FB95-C2BD-49D7-95F5-4AEEA39306C3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C305FB95-C2BD-49D7-95F5-4AEEA39306C3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{94F1AACD-69F3-4B14-A0B5-9E2676C017C7} = {2B936783-B7E9-401F-9AB4-2D60D9F1E95E}
+		{806B4AB9-428B-45FC-A6BD-F314E56A85DA} = {2B936783-B7E9-401F-9AB4-2D60D9F1E95E}
+		{C305FB95-C2BD-49D7-95F5-4AEEA39306C3} = {2B936783-B7E9-401F-9AB4-2D60D9F1E95E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {9DC4B901-16FF-4FF2-9ED6-B286EA17048E}
