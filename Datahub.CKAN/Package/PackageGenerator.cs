@@ -1,10 +1,10 @@
-﻿using NRCan.Datahub.Metadata.DTO;
-using NRCan.Datahub.Metadata.Model;
+﻿using Datahub.Metadata.DTO;
+using Datahub.Metadata.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace NRCan.Datahub.CKAN.Package
+namespace Datahub.CKAN.Package
 {
     public static class PackageGenerator
     {
