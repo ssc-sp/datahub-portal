@@ -119,7 +119,7 @@
         }
     }
 
-    private async void CloseSearch()
+    private void CloseSearch()
     {
         isSearching = false;
         hasResults = false;
@@ -187,7 +187,7 @@
         StateHasChanged();
     }
 
-    private async Task HandleSearch(string newValue, KeyboardEventArgs ev)
+    private async void HandleSearch(string newValue, KeyboardEventArgs ev)
     {
         searchText = newValue;
         if (ev?.Code == "Enter" || searchedAlready || (!string.IsNullOrWhiteSpace(newValue) && newValue.Length >= 4))

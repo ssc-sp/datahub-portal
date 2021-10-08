@@ -7,7 +7,7 @@ using Datahub.Core.Services;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace DatahubTest
+namespace Datahub.Tests
 {
     public class ExternalSearchFixture: IDisposable
     {

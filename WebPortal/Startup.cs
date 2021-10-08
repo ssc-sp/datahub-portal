@@ -2,11 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -15,19 +12,14 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.Identity.Web;
-using Microsoft.Identity.Web.TokenCacheProviders.InMemory;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.Identity.Web.UI;
-using Microsoft.AspNetCore.Authentication.AzureAD.UI;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.Identity.Client;
 using Tewr.Blazor.FileReader;
 using BlazorDownloadFile;
 using Datahub.Portal.Services.Offline;
 using Microsoft.AspNetCore.Localization;
-using Microsoft.AspNetCore.Mvc.Razor;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Datahub.Core.Services;
 using Askmethat.Aspnet.JsonLocalizer.Extensions;
@@ -54,6 +46,7 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.ApplicationInsights.Extensibility;
 using Datahub.LanguageTraining;
 using Microsoft.AspNetCore.HttpLogging;
+using NRCan.Datahub.CKAN.Service;
 
 namespace Datahub.Portal
 {
@@ -136,10 +129,11 @@ namespace Datahub.Portal
 
             services.Configure<TelemetryConfiguration>(Configuration.GetSection("ApplicationInsights"));
 
+            services.Configure<CKANConfiguration>(Configuration.GetSection("CKAN"));
+
             services.AddScoped<IClaimsTransformation, RoleClaimTransformer>();
 
             services.AddSignalRCore();
-
 
             var httpLoggingConfig = Configuration.GetSection("HttpLogging");
             var httpLoggingEnabled = httpLoggingConfig != null && httpLoggingConfig.GetValue<bool>("Enabled");
@@ -429,8 +423,7 @@ namespace Datahub.Portal
 
             services.AddSingleton<ServiceAuthManager>();
 
-            services.AddSingleton<IExternalSearchService, ExternalSearchService>();
-            services.AddHttpClient<IExternalSearchService, ExternalSearchService>();
+            services.AddCKANService();
         }
 
         private void ConfigureDbContexts(IServiceCollection services)

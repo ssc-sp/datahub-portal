@@ -26,9 +26,16 @@ else
              OnRowClick="@SetFormEdit" 
              Page="@_lastClicked"
              PageSize="10"
-             @ref=_myTable />
+             @ref=_myTable
+             />
 
-            <AePagination Pageable="@_myTable" OnPageClick="OnPageClick" /> }
+            <AePagination 
+            Pageable="@_myTable" 
+            OnPageClick="OnPageClick"> 
+            <LeftIcon><i class='fad fa-chevron-double-left'></i></LeftIcon> 
+            <RightIcon><i class='fad fa-chevron-double-right'></i></RightIcon>
+            </AePagination> 
+        }
         <AeFlex id="buttonBar">
         <div class="icon-container" style="margin-bottom: 10px; margin-left: 5px;">
             <FAButton Text="Add New" Icon="far fa-plus-square" onclick="CreateNewRecord" />
@@ -107,6 +114,15 @@ else
         await SetFormEditRecord.InvokeAsync(selectedRecord);
 
     }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+    // You must re-render after the components are initialized in order for the 
+    // component reference to not be null
+        if(firstRender){
+            StateHasChanged();
+        }
+    }
     
     private async Task OnConfigure(IModelFormContext context)
     {        
@@ -128,7 +144,7 @@ else
     {
         SelectedRecord = default(T);
         StateHasChanged();    
-        return default(T);
+        return await Task.FromResult(default(T));
     }
 
     private string GetDataLabel(string propName)

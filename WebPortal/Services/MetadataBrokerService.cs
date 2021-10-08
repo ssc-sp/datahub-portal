@@ -22,7 +22,7 @@ namespace Datahub.Portal.Services
             _auditingService = auditingService;
         }
 
-        public async Task<ObjectMetadataContext> GetMetadataContext(string objectId)
+        public async Task<FieldValueContainer> GetMetadataContext(string objectId)
         {
             using var ctx = _contextFactory.CreateDbContext();
 
@@ -37,11 +37,20 @@ namespace Datahub.Portal.Services
             // retrieve and clone the field values
             var fieldValues = CloneFieldValues(objectMetadata?.FieldValues ?? new List<ObjectFieldValue>());
 
-            return new ObjectMetadataContext(objectId, metadataDefinitions, fieldValues);
+            return new FieldValueContainer(objectId, metadataDefinitions, fieldValues);
         }
 
-        public async Task SaveMetadata(string objectId, int metadataVersionId, FieldValueContainer fieldValues)
+        public async Task SaveMetadata(FieldValueContainer fieldValues)
         {
+            if (fieldValues.ObjectId == null)
+                throw new ArgumentException("Expected 'ObjectId' in parameter fieldValues.");
+
+            if (fieldValues.Definitions == null)
+                throw new ArgumentException("Expected 'Definitions' in parameter fieldValues.");
+
+            var objectId = fieldValues.ObjectId;
+            var metadataVersionId = fieldValues.Definitions.MetadataVersion;
+
             using var ctx = _contextFactory.CreateDbContext();
 
             var transation = ctx.Database.BeginTransaction();
@@ -181,6 +190,40 @@ namespace Datahub.Portal.Services
             }
         }
 
+        public async Task<List<string>> GetSubjectEnglishKeywords(IEnumerable<string> subjectIds)
+        {
+            return await GetSubjectKeywords(subjectIds, ss => ss.Name_English_TXT);
+        }
+
+        public async Task<List<string>> GetSubjectFrenchKeywords(IEnumerable<string> subjectIds)
+        {
+            return await GetSubjectKeywords(subjectIds, ss => ss.Name_French_TXT);
+        }
+
+        public async Task<List<string>> GetSubjectKeywords(IEnumerable<string> subjectIds, Func<SubSubject, string> selectKeyword)
+        {
+            var keywords = new List<string>();
+            foreach (var subjectId in subjectIds)
+            {
+                var subject = await GetSubject(subjectId);
+                if (subject != null)
+                {
+                    keywords.AddRange(subject.SubSubjects.Select(selectKeyword));
+                }
+            }
+            return keywords;
+        }
+
+        private async Task<Subject> GetSubject(string subjectId)
+        {
+            using var ctx = _contextFactory.CreateDbContext();
+
+            return await ctx.Subjects
+                .Include(e => e.SubSubjects)
+                .Where(e => e.Subject_TXT == subjectId)
+                .FirstOrDefaultAsync();
+        }
+
         private void UpdateRequiresBlanketApproval(ApprovalForm form)
         {
             form.Requires_Blanket_Approval_FLAG = form.Updated_On_Going_Basis_FLAG || form.Collection_Of_Datasets_FLAG || form.Approval_InSitu_FLAG || !string.IsNullOrEmpty(form.Approval_Other_TXT);
@@ -237,19 +280,22 @@ namespace Datahub.Portal.Services
                     .Where(e => e.MetadataVersionId == versionId || e.Custom_Field_FLAG)
                     .ToListAsync();
 
-            definitions.Add(latestDefinitions.Where(IsValidDefinition));
+            definitions.Add(latestDefinitions);
 
             return definitions;
-        }
-
-        static bool IsValidDefinition(FieldDefinition field)
-        {
-            return !string.IsNullOrWhiteSpace(field.Field_Name_TXT) && !string.IsNullOrWhiteSpace(field.Name_English_TXT);
         }
 
         static IEnumerable<ObjectFieldValue> CloneFieldValues(IEnumerable<ObjectFieldValue> values)
         {
             return values.Select(v => v.Clone());
+        }
+
+        public async Task DeleteApprovalForm(int approvalFormId)
+        {
+            using var ctx = _contextFactory.CreateDbContext();
+            var approvalForm = await GetApprovalFormEntity(ctx, approvalFormId);
+            ctx.ApprovalForms.Remove(approvalForm);
+            await ctx.SaveChangesAsync();
         }
     }
 }

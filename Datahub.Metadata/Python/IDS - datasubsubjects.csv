@@ -1,0 +1,167 @@
+id,acronym,name_en,name_fr
+1,,Aboriginal programs,Programme pour autochtones
+2,,Acts,Legislation
+3,,Administrative data,Données administratives
+4,,Advisory committees,Comité consultatif
+5,,Aerial photography,Photographie aérienne
+6,,Afforestation,Boisement
+7,,Agreements,Accord
+8,,Analysis,Analyse
+9,,Analytics,Analytiques
+10,,Annual reports,Rapport annuel
+11,,Applied research,Recherche appliquée
+12,,Archives,Archives
+13,,Assessment,Évaluation
+14,,Basic research,Recherche
+15,,Benchmarks,Repère
+16,,Bibliographies,Bibliographie
+17,,Biochemistry,Biochimie
+18,biodiv,Biodiversity,Biodiversité
+19,,Bioenergy,Bioénergie
+20,,Biological products,Produit biologique
+21,,Biomass,Biomasse
+22,biotec,Biotechnology,Biotechnologie
+23,boreco,Boreal ecosystems,Écosystème boréal
+24,,Business development,Développement de l'entreprise
+25,,Businesses,Entreprise
+26,,Canadian-American relations,Relations canado-americaines
+27,,Cartography,Cartographie
+28,,Case studies,Étude de cas
+29,,Catalogues,Catalogue
+30,certif,Certification,Accréditation
+31,,Clean technology,Technologie propre
+32,,Climate change,Changement climatique
+33,,Collaborative research,Recherche coopérative
+34,,Collections,Collection
+35,,Commercialization,Commercialisation
+36,committee,Committees,Comité
+37,proare,Conservation areas,Aire de conservation
+38,,Construction materials,Matériau de construction
+39,pubfor,Crown lands,Terres de la Couronne
+40,defor,Deforestation,Déboisement
+41,,Digital collections,Collection numérique
+42,,Digital elevation data,Données numériques d'élévation
+43,,Directories,Repertoire
+44,,Ecology,Écologie
+45,,Economic analysis,Analyse économique
+46,,Economic development,Développement économique
+47,foreco,Economics,Science économique
+48,,Ecosystems,Écosystème
+49,emerprep,Emergency preparedeness,Protection civile
+50,,Endangered species,Espèce menacée
+51,entom,Entomology,Entomologie
+52,envem,Environmental emergencies,Urgence environnementale
+53,,Environmental impact,Impact sur l'environnement
+54,,Exports,Exportation
+55,,Feasibility studies,Étude de faisabilité
+56,,Federal programs,Programme fédéral
+57,foraff,Foreign affairs,Affaires étrangères
+58,ff,Forest fires,Incendie de forêt
+59,forheal,Forest health,Santé des forêts
+60,forinv,Forest inventory,Inventaire forestier
+61,,Forest management,Gestion forestière
+62,patho,Forest Pathology,Pathologie des forêts
+63,fortyp,Forest type,Types de forêts
+64,silvi,Forestry,Foresterie
+65,forind,Forestry industry,Industrie forestière
+66,forpol,Forestry policy,Politique forestière
+67,forprod,Forestry products,Produit forestier
+68,fortec,Forestry technology,Technologie forestière
+69,fungi,Fungi,Champignon
+70,,Genetics,Génétique
+71,,Genomics,Génomique
+72,,Geographic data,Données géographiques
+73,,Geographic information systems,Système d'information géographique
+74,,Green products,Produit écologique
+75,,Herbaria,Herbier
+76,,High technology,Technologie de pointe
+77,,Impact studies,Étude d'impact
+78,,Indicators,Indicateur
+79,,Information management,Gestion de l'information
+80,,Information systems,Système d'information
+81,,Information technology,Technologie de l'information
+82,,Innovation,Innovation
+83,,Intellectual property,Propriété intellectuelle
+84,,International trade,Commerce extérieur
+85,,Invasive species,Espèce envahissante
+86,,Land management,Gestion des terres
+87,learorg,Learning organizations,Organisation apprenante
+88,logind,Logging industry,Industrie de l'exploitation forestière
+89,,Lumber industry,Industrie du bois d'oeuvre
+90,,Management informations systems,Système d'information de gestion
+91,,Market analysis,Analyse de marché
+92,,Market development,Développement des marchés
+93,,Metadata,Métadonnées
+94,,Microbiology,Microbiologie
+95,modfor,Model forests,Forêt modèle
+96,,Modelling,Modélisation
+97,,Nanotechnology,Nanotechnologie
+98,nathaz,Natural disasters,Catastrophe naturelle
+99,,Office equipment,Équipement de bureau
+100,,Office management,Gestion administrative
+101,,Oil sands,Sables bitumineux
+102,,Open data,Données ouvertes
+103,opreq,Operations,Fonctionnement
+104,ornith,Ornithology,Ornithologie
+105,paras,Parasites,Parasite
+106,,Performance assessment,Évaluation du rendement
+107,,Pesticides,Pesticide
+108,rava,Pests,Ravageurs
+109,,Photographs,Photographie (Image)
+110,treebio,Physiology,Physiologie
+111,,Product development,Développement de produit
+112,,Protected species,Espèce protégée
+113,indpp,Pulp and paper industry,Industrie des pâtes et papiers
+114,,Quality Standards,Norme de qualité
+115,,Quarantine,Quarantaine
+116,refor,Reforestation,Reboisement
+117,,Regional development,Développement régional
+118,,Regions,Région
+119,,Remote sensing,Télédétection
+120,,Renewable energy,Énergie renouvelable
+121,,Research,Recherche
+122,,Research and development,Recherche et développement
+123,,Research grants,Subvention de recherche
+124,,Research institutes,Institut de recherche
+125,,Resource development,Exploitation des ressources
+126,,Resources management,Gestion des ressources
+127,,Rural communities,Communauté rurale
+128,,Science policy,Politique scientifique
+129,,Scientific information,Information scientifique
+130,,Scientific research,Recherche scientifique
+131,,Scientists,Scientifique
+132,,Sector analysis,Analyse sectorielle
+133,,Service industry,Industrie des services
+134,,Site management,Gestion de site
+135,,Social sciences,Sciences sociales
+136,,Socioeconomic data,Données socio-économiques
+137,,Soil,Sol
+138,,Standards,Norme
+139,,Statistical analysis,Analyse statistique
+140,,Statistics,Statistiques
+141,,Strategic management,Gestion stratégique
+142,,Suppliers,Fournisseur
+143,,Surveys,Sondage
+144,sustforman,Sustainable development,Développement durable
+145,,Tariff barriers,Barrière tarifaire
+146,,Taxonomy,Taxonomie
+147,,Technological innovation,Innovation technologique
+148,,Technology,Technologie
+149,,Technology transfer,Transfert technologique
+150,,Terminology,Terminologie
+151,,Terrestrial ecosystems,Écosystème terrestre
+152,,Tools,Outil
+153,,Trade,Commerce
+154,,Trade policy,Politique commerciale
+155,,Trees,Arbre
+156,,Trends,Tendances
+157,,Universities,Université
+158,,Urban communities,Communauté urbaine
+159,,Urban planning,Urbanisme
+160,,Videorecordings,Enregistrement vidéo
+161,,Water quality,Qualité de l'eau
+162,,Watersheds,Bassin hydrologique
+163,,Websites,Site Web
+164,,Wetlands,Zone humide
+165,,Wildlife,Faune
+166,softlumb,Wood,Bois

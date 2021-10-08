@@ -35,7 +35,13 @@
                          Renderers="projectReqRenderFunctions"
                          Headers="LocalizeHeaders(projectReqheaders)" />
 
-                <AePagination Pageable="@_table1" OnPageClick="OnTableClick1" />
+                
+                <AePagination 
+            Pageable="@_table1" 
+            OnPageClick="OnTableClick1"> 
+            <LeftIcon><i class='fad fa-chevron-double-left'></i></LeftIcon> 
+            <RightIcon><i class='fad fa-chevron-double-right'></i></RightIcon>
+            </AePagination>
             </AeFlex>
         }
         else
@@ -61,7 +67,13 @@
                      Headers="LocalizeHeaders(headers)"
                      PageSize="10"/>
 
-            <AePagination Pageable="@_table2" OnPageClick="OnTableClick2" />
+            
+            <AePagination 
+            Pageable="@_table2" 
+            OnPageClick="OnTableClick2"> 
+            <LeftIcon><i class='fad fa-chevron-double-left'></i></LeftIcon> 
+            <RightIcon><i class='fad fa-chevron-double-right'></i></RightIcon>
+            </AePagination>
         }
         else
         {

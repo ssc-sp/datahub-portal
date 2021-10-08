@@ -39,6 +39,10 @@
     "Submit": "Submit",
     "Upload": "Upload"
   },
+  "COMMON": {
+    "Yes": "Yes",
+    "No": "No"
+  },
   "ERROR-PAGE": {
     "Title": "Error has occured",
     "Prompt": "A fatal error has occured, please contact system admin for clarification.",
@@ -526,6 +530,9 @@
       "PendingApproval": {
         "Description": "The request has been submitted for approval. Once the request is approved, the file will be publicly accessible after the publication date.",
         "Title": "Pending Approval"
+      },
+      "Expired": {
+        "Title": "Expired"
       }
     }
   },
@@ -541,6 +548,9 @@
     "AcceptMetadata": "Accept Metadata As-is",
     "PublicationDate": "Publication Date",
     "PublicUrl": "Public URL",
+    "CancelSharing": "Cancel Open Data Sharing Request",
+    "CancelSharingDescription": "You may cancel the sharing request at any time before approval. This will completely remove the sharing request from the system. However, the file will still remain in storage and may be shared in the future.",
+    "CancelSharingPrompt": "Do you want to cancel this sharing request? To share this file in the future, the process will have to be restarted from the beginning.",
     "SubmitSignedPdf": "Submit signed PDF document",
     "EnterGcDocsUrl": "Enter GCDocs URL",
     "Approval_filled_out": "Approval form has been filled out."
@@ -552,9 +562,45 @@
     "SubmitForApproval": "Submit for Approval",
     "AcceptMetadata": "Accept Metadata As-is",
     "PublicationDate": "Publication Date",
+    "CancelSharing": "Cancel Public URL Sharing Request",
+    "CancelSharingDescription": "You may cancel the sharing request at any time before approval. This will completely remove the sharing request from the system. However, the file will still remain in storage and may be shared in the future.",
+    "CancelSharingPrompt": "Do you want to cancel this sharing request? To share this file in the future, the process will have to be restarted from the beginning.",
+    "DeleteExpired": "Delete Expired Public URL Share",
+    "DeleteExpiredDescription": "This file is no longer publicly available, and the public sharing record may be deleted. The file itself will stay in storage.",
+    "DeleteExpiredPrompt": "Delete the sharing request? After it's deleted, the file can be shared again by starting a new sharing request.",
     "PublicUrl": "Public URL",
+    "TempSharingTitle": "Temporary Sharing",
+    "TempSharingDesc": "You may optionally specify an expiration date, after which your file will no longer be publicly available.",
+    "EnableTempSharing": "Enable temporary sharing",
+    "ExpirationDate": "Expiration Date",
+    "RequestingUser": "Requesting user",
+    "Edit_button": "Edit",
     "Save_button": "Save",
-    "Continue_button": "Continue"
+    "Continue_button": "Continue",
+    "Delete_button": "Delete",
+    "ValidationErrors": {
+      "ExpiryDateInPast": "Expiration date cannot be in the past.",
+      "TempWithNoExpiry": "Expiration date must be specified when temporary sharing is enabled."
+    }
+  },
+
+  "PUBLIC-URL-APPROVAL": {
+    "Title": "Public URL Sharing Request",
+    "Filename": "Filename",
+    "RequestingUser": "Requesting user",
+    "SubmissionDate": "Submission date",
+    "DownloadFile": "Download File",
+    "Description": "You may approve or deny this file sharing request, and optionally specify a publication date after which the file will be publicly accessible. Additionally, you may specify or change the expiration date after which the public link will no longer be active.",
+    "PublicationDate": "Publication date",
+    "EnableTempSharing": "Enable temporary sharing",
+    "ExpirationDate": "Expiration date",
+    "Approve": "Approve",
+    "Deny": "Deny",
+    "ValidationErrors": {
+      "PubDateInPast": "Publication date cannot be in the past.",
+      "PubDateAfterExpiry": "Expiration date must be after publication date.",
+      "TempWithNoExpiry": "Expiration date must be specified when temporary sharing is enabled."
+    }
   },
 
   "Client_Sector": "Client Sector",
@@ -643,6 +689,11 @@
       "DatabaseServer": "Database Server",
       "AccessToken": "Access Token",
       "Expires": "Expires"
+    },
+    "PUBLIC-SHARING-CARD": {
+      "Title": "Public Data Sharing",
+      "UsersOwnSharedFiles": "Your publicly shared files",
+      "SharedFilesAwaitingApproval": "Sharing requests awaiting approval"
     }
   }
 }

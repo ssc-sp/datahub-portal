@@ -39,6 +39,7 @@
                         <KeywordInput @ref="_keywordInputRef" 
                                       FieldValue="FieldValue" 
                                       English="@IsEnglishKeywords()"
+                                      Subject="@Subject"
                                       OnFieldChanged="OnFieldChanged" />
                     }
                     else
@@ -100,6 +101,9 @@
 
     [Parameter]
     public string FieldLabel { get; set; }
+
+    [Parameter]
+    public string Subject { get; set; }
 
     [Parameter]
     public EventCallback<ObjectFieldValue> OnFieldChanged { get; set; }
