@@ -5,9 +5,9 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
-using Datahub.Shared.Data;
-using Datahub.Shared.EFCore;
-using Datahub.Shared.Services;
+using Datahub.Core.Data;
+using Datahub.Core.EFCore;
+using Datahub.Core.Services;
 
 namespace Datahub.Portal.Services
 {

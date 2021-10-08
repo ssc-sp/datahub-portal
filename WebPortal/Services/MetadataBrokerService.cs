@@ -6,8 +6,8 @@ using System.Collections.Generic;
 using System;
 using Datahub.Metadata.DTO;
 using ShareWorkflow = Datahub.Portal.Data.Forms.ShareWorkflow;
-using Datahub.Shared.Utils;
-using Datahub.Shared.Services;
+using Datahub.Core.Utils;
+using Datahub.Core.Services;
 
 namespace Datahub.Portal.Services
 {

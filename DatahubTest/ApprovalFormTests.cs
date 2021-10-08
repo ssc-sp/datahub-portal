@@ -1,5 +1,5 @@
 ﻿using Datahub.Portal.Data.Forms.ShareWorkflow;
-using Datahub.Shared.Utils;
+using Datahub.Core.Utils;
 using Xunit;
 using MetadataModel = Datahub.Metadata.Model;
 

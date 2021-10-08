@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Datahub.Shared.EFCore
+namespace Datahub.Core.EFCore
 {
     public static class ExtensionTypeReference
     {

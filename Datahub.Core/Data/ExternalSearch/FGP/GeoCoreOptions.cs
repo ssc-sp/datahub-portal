@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-namespace Datahub.Shared.Data.External.FGP
+namespace Datahub.Core.Data.External.FGP
 {
     public class GeoCoreOption
     {

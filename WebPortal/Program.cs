@@ -15,11 +15,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Datahub.Metadata.Model;
-using Datahub.Portal.Data.Finance;
-using Datahub.Portal.EFCore;
-using Datahub.ProjectForms.Data.PIP;
-using Datahub.Shared.EFCore;
 
 namespace Datahub.Portal
 {

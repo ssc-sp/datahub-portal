@@ -7,16 +7,16 @@ EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/core/sdk:3.1-buster AS build
 WORKDIR /src
-COPY ["NRCan.Datahub.Portal.csproj", ""]
-RUN dotnet restore "./NRCan.Datahub.Portal.csproj"
+COPY ["Datahub.Portal.csproj", ""]
+RUN dotnet restore "./Datahub.Portal.csproj"
 COPY . .
 WORKDIR "/src/."
-RUN dotnet build "NRCan.Datahub.Portal.csproj" -c Release -o /app/build
+RUN dotnet build "Datahub.Portal.csproj" -c Release -o /app/build
 
 FROM build AS publish
-RUN dotnet publish "NRCan.Datahub.Portal.csproj" -c Release -o /app/publish
+RUN dotnet publish "Datahub.Portal.csproj" -c Release -o /app/publish
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "NRCan.Datahub.Portal.dll"]
+ENTRYPOINT ["dotnet", "Datahub.Portal.dll"]

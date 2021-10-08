@@ -1,5 +1,5 @@
 ﻿using Elemental.Components;
-using Datahub.Shared.Services;
+using Datahub.Core.Services;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -8,7 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Datahub.Shared.EFCore
+namespace Datahub.Core.EFCore
 {
 
     public class Datahub_Project_Access_Request

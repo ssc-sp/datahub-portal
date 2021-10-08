@@ -1,9 +1,9 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.Graph;
-using Datahub.Shared.Data;
+using Datahub.Core.Data;
 using System.Collections.Generic;
-using Datahub.Shared.EFCore;
+using Datahub.Core.EFCore;
 
 namespace Datahub.Portal.Services
 {

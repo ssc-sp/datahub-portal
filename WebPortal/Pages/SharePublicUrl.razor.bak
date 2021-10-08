@@ -9,7 +9,7 @@
         <AeCard style="margin-left: 2rem; width: 48%">
             <ChildContent>
                 <AeTypography Variant="h2">@Localizer["PUBLIC-URL-WIZARD.Metadata"]</AeTypography>
-                <ObjectMetadataEditor ObjectId=@FileId @ref=@_metadataEditor ></ObjectMetadataEditor>
+                <ObjectMetadataEditor ObjectId=@FileId @ref="_metadataEditor"/>
                 <AeFlex>
                     <AeButton OnClickEvent=@SaveMetadata Disabled=@savingData >@Localizer["PUBLIC-URL-WIZARD.Save_button"]</AeButton>
                     <div>
