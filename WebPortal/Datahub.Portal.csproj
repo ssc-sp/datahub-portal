@@ -10,26 +10,6 @@
     <_ContentIncludedByDefault Remove="efpt.config.json" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Remove="Components\Data\**" />
-    <Compile Remove="Data\Forms\Datahub\**" />
-    <Content Remove="Components\Data\**" />
-    <Content Remove="Data\Forms\Datahub\**" />
-    <EmbeddedResource Remove="Components\Data\**" />
-    <EmbeddedResource Remove="Data\Forms\Datahub\**" />
-    <None Remove="Components\Data\**" />
-    <None Remove="Data\Forms\Datahub\**" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Remove="Pages\MetadataPage.razor.bak" />
-    <None Remove="Pages\ShareOpenData.razor.bak" />
-    <None Remove="Pages\SharePublicUrl.razor.bak" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Pages\MetadataPage.razor.bak" />
-    <Content Include="Pages\ShareOpenData.razor.bak" />
-    <Content Include="Pages\SharePublicUrl.razor.bak" />
-  </ItemGroup>
-  <ItemGroup>
     <PackageReference Include="AElemental.Blazor" Version="1.2.21265.1-beta" />
     <PackageReference Include="Askmethat.Aspnet.JsonLocalizer" Version="3.1.1" />
     <PackageReference Include="Azure.Identity" Version="1.4.1" />
@@ -86,9 +66,6 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Migrations\Forms\DatahubProjectDB\" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\Datahub.Core\Datahub.Core.csproj" />
     <ProjectReference Include="..\Datahub.Metadata\Datahub.Metadata.csproj" />
     <ProjectReference Include="..\LanguageTraining\Datahub.LanguageTraining.csproj" />
@@ -113,5 +90,4 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-  <ProjectExtensions><VisualStudio><UserProperties /></VisualStudio></ProjectExtensions>
 </Project>
