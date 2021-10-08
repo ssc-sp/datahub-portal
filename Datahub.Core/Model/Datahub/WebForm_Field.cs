@@ -140,35 +140,6 @@ namespace NRCan.Datahub.Shared.EFCore
             }
         }
 
-        [AeFormIgnore]
-        public string JSON
-        {
-            get
-            {
-                return $"\"{SQLName}\": \"{System.Web.HttpUtility.JavaScriptStringEncode(Field_DESC)}\"";
-            }
-        }
-
-        [AeFormIgnore]
-        public string CSCode
-        {
-            get
-            {
-                // /** Section: Outcome Level **/ [Required][MaxLength(100)]public string Outcome_Level_DESC {get;set;}
-                // =CONCATENATE("/** Section: ",[@Section], " **/ ",
-                //          [@[EF Core Annotation1]],[@[EF Core Annotation2]],[@[EF Core Annotation3]],
-                //          "public ",[@[EF Type]]," ",[@[SQL Name]]," {get;set;}")
-                var sb = new StringBuilder();
-
-                sb.AppendLine($"/** Section: {Section_DESC} **/");
-                // EFCoreAnnotations already has a line break at the end
-                sb.Append(EFCoreAnnotations);
-                sb.AppendLine($"public {EFType} {SQLName} {{ get; set; }}");
-
-                return sb.ToString();
-            }
-        }
-
         public WebForm_Field Clone()
         {
             return new WebForm_Field()
