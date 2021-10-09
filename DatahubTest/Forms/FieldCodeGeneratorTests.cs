@@ -7,6 +7,67 @@ namespace Datahub.Tests.Forms
     public class FieldCodeGeneratorTests
     {
         [Fact]
+        public void GetFormattedFieldName_FieldWithValidChars_ProducesExpectedName()
+        {
+            var expected = "CleanName";
+            WebForm_Field field = new()
+            {
+                Field_DESC = "CleanName",
+            };
+
+            var generator = new FieldCodeGenerator(DummyMap);
+            var actual = generator.GetFormattedFieldName(field);
+
+            Assert.Equal(actual, expected);
+        }
+
+        [Fact]
+        public void GetFormattedFieldName_FieldWithInvalidChars_ProducesExpectedName()
+        {
+            var expected = "Clean_Name";
+            WebForm_Field field = new()
+            {
+                Field_DESC = "Clean !@#$%^&*()-Name",
+            };
+
+            var generator = new FieldCodeGenerator(DummyMap);
+            var actual = generator.GetFormattedFieldName(field);
+
+            Assert.Equal(actual, expected);
+        }
+
+        [Fact]
+        public void GenerateSQLName_ForFieldWithExtension_ProducesExpectedSqlName()
+        {
+            var expected = "Name_EXT";
+            WebForm_Field field = new()
+            {
+                Field_DESC = "Name",
+                Extension_CD = "EXT"
+            };
+
+            var generator = new FieldCodeGenerator(DummyMap);
+            var actual = generator.GenerateSQLName(field);
+
+            Assert.Equal(actual, expected);
+        }
+
+        [Fact]
+        public void GenerateSQLName_ForFieldWithNoExtension_ProducesExpectedJSON()
+        {
+            var expected = "Name";
+            WebForm_Field field = new()
+            {
+                Field_DESC = "Name",
+            };
+
+            var generator = new FieldCodeGenerator(DummyMap);
+            var actual = generator.GenerateSQLName(field);
+
+            Assert.Equal(actual, expected);
+        }
+
+        [Fact]
         public void GenerateJSON_ForFieldWithNoSpaces_ProducesExpectedJSON()
         {
             var fieldName = "ExpectedName";
