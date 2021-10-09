@@ -1,6 +1,7 @@
 ﻿using NRCan.Datahub.Shared.EFCore;
 using System;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace NRCan.Datahub.Shared.Utils
 {
@@ -13,9 +14,24 @@ namespace NRCan.Datahub.Shared.Utils
             _sectionMapper = sectionMapper;
         }
 
+        public string GetFormattedFieldName(WebForm_Field field)
+        {
+            if (string.IsNullOrEmpty(field.Field_DESC)) 
+                return string.Empty;
+
+            var deDashed = field.Field_DESC.Replace("-", "");
+            return Regex.Replace(deDashed, "[^A-Za-z0-9_]+", "_", RegexOptions.Compiled);
+        }
+
+        public string GenerateSQLName(WebForm_Field field)
+        {
+            var formatted = GetFormattedFieldName(field);
+            return "NONE".Equals(field.Extension_CD) ? formatted : $"{ formatted }_{ field.Extension_CD }";
+        }
+
         public string GenerateJSON(WebForm_Field field)
         {
-            return $"{Quote(field.SQLName)}: {Quote(System.Web.HttpUtility.JavaScriptStringEncode(field.Field_DESC))}";
+            return $"{Quote(GenerateSQLName(field))}: {Quote(System.Web.HttpUtility.JavaScriptStringEncode(field.Field_DESC))}";
         }
 
         public string GenerateCSharp(WebForm_Field field)
@@ -50,7 +66,8 @@ namespace NRCan.Datahub.Shared.Utils
                 sb.AppendLine(FormFieldTypeReference.Annotations[field.Type_CD]);
             }
 
-            sb.AppendLine($"public {field.EFType} {field.SQLName} {{ get; set; }}");
+            var fieldType = FormFieldTypeReference.EFTypes[field.Type_CD];
+            sb.AppendLine($"public { fieldType } { GenerateSQLName(field) } {{ get; set; }}");
 
             return sb.ToString();
         }

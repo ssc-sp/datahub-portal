@@ -45,15 +45,15 @@ else
                 </tr>
                 <tr>
                     <td>Formatted</td>
-                    <td>@_formField.Formatted</td>
+                    <td>@_fieldCodeGenerator.GetFormattedFieldName(_formField)</td>
                 </tr>
                 <tr>
                     <td>Code</td>
-                    <td>@_formField.Code</td>
+                    <td>@_formField.Extension_CD</td>
                 </tr>
                 <tr>
                     <td>SQL Name</td>
-                    <td>@_formField.SQLName</td>
+                    <td>@_fieldCodeGenerator.GenerateSQLName(_formField)</td>
                 </tr>
                 <tr>
                     <td>JSON</td>
