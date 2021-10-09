@@ -35,13 +35,7 @@ namespace NRCan.Datahub.Shared.EFCore
         public string Extension_CD { get; set; } = "NONE";
 
         [AeFormIgnore]
-        public string ExtensionLabel
-        {
-            get
-            {
-                return ExtensionTypeReference.ClassWords[Extension_CD];
-            }
-        }
+        public string ExtensionLabel => ExtensionTypeReference.ClassWords[Extension_CD];
 
         [Required]
         [StringLength(8)]
@@ -70,75 +64,6 @@ namespace NRCan.Datahub.Shared.EFCore
         [ForeignKey("WebForm")]
         [AeFormIgnore]
         public int WebForm_ID { get; set; }
-
-        [AeFormIgnore]
-        public string Formatted
-        {
-            get
-            {
-                if (Field_DESC == null) return string.Empty;
-
-                var deDashed = Field_DESC.Replace("-","");
-                return Regex.Replace(deDashed, "[^A-Za-z0-9_]+", "_", RegexOptions.Compiled);
-            }
-        }
-
-        [AeFormIgnore]
-        public string Code
-        {
-            get 
-            {
-                return Extension_CD;
-            }
-        }
-
-        [AeFormIgnore]
-        public string SQLName
-        {
-            get
-            {
-                return Extension_CD == "NONE" ?
-                    Formatted :
-                    Formatted + "_" + Code;
-            }
-        }
-
-        [AeFormIgnore]
-        public string EFType
-        {
-            get
-            {
-                return FormFieldTypeReference.EFTypes[Type_CD];
-            }
-        }
-
-        [AeFormIgnore]
-        public string EFCoreAnnotations
-        {
-            get
-            {
-                var sb = new StringBuilder();
-                // EFCoreAnnotation1: field type
-                if (FormFieldTypeReference.Annotations.ContainsKey(Type_CD))
-                {
-                    sb.AppendLine(FormFieldTypeReference.Annotations[Type_CD]);
-                }
-
-                // EFCoreAnnotation2: required
-                if (Mandatory_FLAG)
-                {
-                    sb.AppendLine("[Required]");
-                }
-
-                // EFCoreAnnotation3: MaxLength
-                if (Max_Length_NUM.HasValue)
-                {
-                    sb.AppendLine($"[MaxLength({Max_Length_NUM.Value})]");
-                }
-
-                return sb.ToString();
-            }
-        }
 
         public WebForm_Field Clone()
         {
