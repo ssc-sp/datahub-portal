@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace NRCan.Datahub.Portal.Migrations.Forms.DatahubProjectDB
+namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
 {
     public partial class moreuserfields : Migration
     {

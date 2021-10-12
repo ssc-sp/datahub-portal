@@ -1,8 +1,9 @@
-﻿@namespace NRCan.Datahub.Shared.Templates
+﻿@namespace Datahub.Core.Templates
 
 <h3>@Service Access Request for Project @DataProject.ProjectNameEn</h3>
 
-<p>User <b>@Username</b> has requested access to service <b>@Service</b> in data project <b>@DataProject.ProjectNameEn</b>. Please visit the admin page with proper credentials to approve or deny the request.</p>
+<p>User <b>@Username</b> has requested access to service <b>@Service</b> in data project <b>@DataProject.ProjectNameEn</b>. 
+    Please visit the <a href=@AdminPageLink >admin page</a> with proper credentials to approve or deny the request.</p>
 
 <p>To revoke the access, please contact the DataHub team with the DataHub Data Project code and user name.</p>
 
@@ -10,11 +11,14 @@
 
 <h3>Demande D’accès pour le Projet @DataProject.ProjectNameFr</h3>
 
-<p>L’utilisateur <b>@Username</b> a demandé l’accès au service <b>@Service</b> dans le projet de données <b>@DataProject.ProjectNameFr</b>. Veuillez visiter la page de l’administrateur en saisissant les identifiants appropriés pour approuver ou refuser la demande.</p>
+<p>L’utilisateur <b>@Username</b> a demandé l’accès au service <b>@Service</b> dans le projet de données <b>@DataProject.ProjectNameFr</b>. 
+    Veuillez visiter la <a href=@AdminPageLink >page de l’administrateur</a> en saisissant les identifiants appropriés pour approuver ou refuser la demande.</p>
 
 <p>Pour révoquer l’accès, veuillez communiquer avec l’équipe du DataHub et assurez-vous d’avoir en main le code de projet de données du DataHub et le nom d’utilisateur.</p>
 
 @code {
+
+    public static readonly string ADMIN_URL = "/admin";
 
     [Parameter]
     public string Service { get; set; }
@@ -24,5 +28,8 @@
 
     [Parameter]
     public string Username { get; set; }
+
+    [Parameter]
+    public string AdminPageLink { get; set; }
 
 }

@@ -4,9 +4,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using NRCan.Datahub.Portal.Data.WebAnalytics;
+using Datahub.Portal.Data.WebAnalytics;
 
-namespace NRCan.Datahub.Portal.Migrations.Forms.WebAnalytics
+namespace Datahub.Portal.Migrations.Forms.WebAnalytics
 {
     [DbContext(typeof(WebAnalyticsContext))]
     partial class WebAnalyticsContextModelSnapshot : ModelSnapshot
@@ -19,7 +19,7 @@ namespace NRCan.Datahub.Portal.Migrations.Forms.WebAnalytics
                 .HasAnnotation("Relational:MaxIdentifierLength", 128)
                 .HasAnnotation("ProductVersion", "5.0.2");
 
-            modelBuilder.Entity("NRCan.Datahub.Portal.Data.WebAnalytics.WebAnalytics", b =>
+            modelBuilder.Entity("Datahub.Portal.Data.WebAnalytics.WebAnalytics", b =>
                 {
                     b.Property<int>("WebAnalytics_ID")
                         .ValueGeneratedOnAdd()

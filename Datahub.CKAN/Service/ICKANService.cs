@@ -1,7 +1,7 @@
-﻿using NRCan.Datahub.Metadata.DTO;
+﻿using Datahub.Metadata.DTO;
 using System.Threading.Tasks;
 
-namespace NRCan.Datahub.CKAN.Service
+namespace Datahub.CKAN.Service
 {
     public interface ICKANService
     {

@@ -2,7 +2,7 @@
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <AddRazorSupportForMvc>true</AddRazorSupportForMvc>
-    <RootNamespace>NRCan.Datahub.Shared</RootNamespace>
+    <RootNamespace>Datahub.Core</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <Content Remove="compilerconfig.json" />
@@ -22,8 +22,8 @@
     <None Include="compilerconfig.json" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="AElemental.Blazor" Version="1.2.21265.1-beta" />
-    <PackageReference Include="AElemental.Blazor.Theme" Version="1.2.21265.1-beta" />
+    <PackageReference Include="AElemental.Blazor" Version="1.2.21281.2-beta" />
+    <PackageReference Include="AElemental.Blazor.Theme" Version="1.2.21281.2-beta" />
     <PackageReference Include="AngleSharp" Version="1.0.0-alpha-844" />
     <PackageReference Include="Askmethat.Aspnet.JsonLocalizer" Version="3.1.1" />
     <PackageReference Include="Azure.Identity" Version="1.4.1" />
@@ -47,7 +47,8 @@
     <PackageReference Include="Microsoft.Data.SqlClient" Version="3.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Cosmos" Version="5.0.9" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="5.0.9" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="5.0.9">
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="5.0.9" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="5.0.9">		
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>

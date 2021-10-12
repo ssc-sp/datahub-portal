@@ -12,8 +12,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.JSInterop;
 using Newtonsoft.Json;
-using NRCan.Datahub.Shared.Data;
-using NRCan.Datahub.Shared.Services;
+using Datahub.Core.Data;
+using Datahub.Core.Services;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -23,7 +23,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using System.Web;
 
-namespace NRCan.Datahub.Portal.Services
+namespace Datahub.Portal.Services
 {
     public class DataRetrievalService : BaseService, IDataRetrievalService
     {
@@ -169,7 +169,7 @@ namespace NRCan.Datahub.Portal.Services
             return null;
         }
 
-        public Task<List<Shared.Data.Version>> GetFileVersions(string fileId)
+        public Task<List<Core.Data.Version>> GetFileVersions(string fileId)
         {
             try
             {
@@ -181,7 +181,7 @@ namespace NRCan.Datahub.Portal.Services
                 base.DisplayErrorUI(ex);
             }
 
-            return Task.FromResult(new List<Shared.Data.Version>());
+            return Task.FromResult(new List<Core.Data.Version>());
         }
 
         public async Task<List<string>> GetSubFolders(DataLakeFileSystemClient fileSystemClient, string folderName)

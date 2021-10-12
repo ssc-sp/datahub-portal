@@ -1,8 +1,8 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.Graph;
-using NRCan.Datahub.Shared.Services;
+using Datahub.Core.Services;
 
-namespace NRCan.Datahub.Portal.Services
+namespace Datahub.Portal.Services
 {
     public class OfflineDataCreatorService : IDataCreatorService
     {
@@ -10,7 +10,7 @@ namespace NRCan.Datahub.Portal.Services
         {
         }
 
-        public Task<bool> CreateFolder(Shared.Data.Folder folder, Shared.Data.Folder parent, User user)
+        public Task<bool> CreateFolder(Core.Data.Folder folder, Core.Data.Folder parent, User user)
         {
             return Task.FromResult(true);
         }

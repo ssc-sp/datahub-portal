@@ -5,8 +5,8 @@ using Azure.Search.Documents;
 using Azure.Search.Documents.Indexes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using NRCan.Datahub.Shared.Data;
-using NRCan.Datahub.Shared.Services;
+using Datahub.Core.Data;
+using Datahub.Core.Services;
 
 public class CommonAzureServices
 {    

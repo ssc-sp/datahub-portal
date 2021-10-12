@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-namespace NRCan.Datahub.Portal.EFCore
+namespace Datahub.Portal.EFCore
 { 
     public class Notification
     {

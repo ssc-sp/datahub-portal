@@ -5,10 +5,10 @@ using System.Threading.Tasks;
 using BlazorInputFile;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.Extensions.Logging;
-using NRCan.Datahub.Shared.Data;
-using NRCan.Datahub.Shared.Services;
+using Datahub.Core.Data;
+using Datahub.Core.Services;
 
-namespace NRCan.Datahub.Portal.Services.Offline
+namespace Datahub.Portal.Services.Offline
 {
 
     public class OfflineApiService : IApiService

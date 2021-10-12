@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Graph;
-using NRCan.Datahub.Shared.Data;
+using Datahub.Core.Data;
 
-namespace NRCan.Datahub.Shared.Services
+namespace Datahub.Core.Services
 {
     public interface IDataRetrievalService
     {
@@ -11,6 +11,6 @@ namespace NRCan.Datahub.Shared.Services
         Task<List<string>> GetAllFolders(string rootFolderName, User user);
         Task<List<Version>> GetFileVersions(string fileId);
         Task<Data.Folder> GetFolderContents(dynamic folder, string filterSearch, User user, string project);
-        Task<Data.Folder> GetFolderStructure(Shared.Data.Folder folder, User user, bool onlyFolders = true);
+        Task<Data.Folder> GetFolderStructure(Data.Folder folder, User user, bool onlyFolders = true);
     }
 }
