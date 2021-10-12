@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace NRCan.Datahub.Portal.Migrations.Forms.Finance
+namespace Datahub.Portal.Migrations.Forms.Finance
 {
     public partial class Initialfinance : Migration
     {

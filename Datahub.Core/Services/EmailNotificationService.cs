@@ -6,13 +6,13 @@ using MailKit.Net.Smtp;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Localization;
 using MimeKit;
-using NRCan.Datahub.Shared.Templates;
+using Datahub.Core.Templates;
 using System.Linq;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Text;
 
-namespace NRCan.Datahub.Shared.Services
+namespace Datahub.Core.Services
 {
     public class EmailConfiguration
     {
@@ -22,14 +22,9 @@ namespace NRCan.Datahub.Shared.Services
         public string SmtpPassword { get; set; }
         public string SenderName { get; set; }
         public string SenderAddress { get; set; }
+        public string AppDomain { get; set; }
         public bool DevTestMode { get; set; }
         public string DevTestEmail { get; set; }
-    }
-
-    public class DatahubProjectInfo
-    {
-        public string ProjectNameEn { get; set; }
-        public string ProjectNameFr { get; set; }
     }
 
     public class EmailNotificationService : IEmailNotificationService
@@ -117,7 +112,7 @@ namespace NRCan.Datahub.Shared.Services
             var templater = new Templater();
             templater.AddService<IStringLocalizer>(_localizer);
             var html = templater.RenderComponent<T>(parameters);
-            return await Task.FromResult("");
+            return await Task.FromResult(html);
         }
 
         public async Task SendEmailMessage(string subject, string body, string userIdOrAddress, string recipientName = null, bool isHtml = true)
@@ -243,6 +238,9 @@ namespace NRCan.Datahub.Shared.Services
 
             var subject = $"[DataHub] New {serviceName} service request";
 
+            var adminLink = BuildAppLink(ServiceCreationRequest.ADMIN_URL);
+            parameters.Add(nameof(ServiceCreationRequest.AdminPageUrl), adminLink);
+
             var html = await RenderTemplate<ServiceCreationRequest>(parameters);
 
             await SendEmailMessage(subject, html, recipients);
@@ -253,6 +251,9 @@ namespace NRCan.Datahub.Shared.Services
             var parameters = BuildNotificationParameters(projectInfo, serviceName, username);
 
             var subject = $"[DataHub] {serviceName} access request for project {projectInfo.ProjectNameEn} / demande d’accès pour le projet {projectInfo.ProjectNameFr}";
+
+            var adminLink = BuildAppLink(ServiceAccessRequest.ADMIN_URL);
+            parameters.Add(nameof(ServiceAccessRequest.AdminPageLink), adminLink);
 
             var html = await RenderTemplate<ServiceAccessRequest>(parameters);
 
@@ -265,6 +266,10 @@ namespace NRCan.Datahub.Shared.Services
 
             var subject = $"[DataHub] {serviceName} service access request approved / demande d’accès au service approuvée";
 
+            var projectPagePath = $"{ServiceAccessRequestApproved.PROJECT_PAGE_PREFIX}/{projectInfo.ProjectCode}";
+            var projectPageLink = BuildAppLink(projectPagePath);
+            parameters.Add(nameof(ServiceAccessRequestApproved.ProjectPageUrl), projectPageLink);
+
             var html = await RenderTemplate<ServiceAccessRequestApproved>(parameters);
 
             await SendEmailMessage(subject, html, recipientAddress, recipientName);
@@ -276,6 +281,10 @@ namespace NRCan.Datahub.Shared.Services
 
             var subject = $"[DataHub] {serviceName} service request approved / demande de service approuvée";
 
+            var projectPagePath = $"{ServiceRequestApproved.PROJECT_PAGE_PREFIX}/{projectInfo.ProjectCode}";
+            var projectPageLink = BuildAppLink(projectPagePath);
+            parameters.Add(nameof(ServiceRequestApproved.ProjectPageUrl), projectPageLink);
+
             var html = await RenderTemplate<ServiceRequestApproved>(parameters);
 
             await SendEmailMessage(subject, html, recipientAddress, recipientName);
@@ -286,6 +295,10 @@ namespace NRCan.Datahub.Shared.Services
             var parameters = BuildNotificationParameters(projectInfo, serviceName);
 
             var subject = $"[DataHub] {serviceName} service created / {serviceName} service créé ";
+
+            var projectPagePath = $"{ServiceCreatedGroupNotification.PROJECT_PAGE_PREFIX}/{projectInfo.ProjectCode}";
+            var projectPageLink = BuildAppLink(projectPagePath);
+            parameters.Add(nameof(ServiceCreatedGroupNotification.ProjectPageUrl), projectPageLink);
 
             var html = await RenderTemplate<ServiceCreatedGroupNotification>(parameters);
 
@@ -378,6 +391,13 @@ namespace NRCan.Datahub.Shared.Services
                 var result = BuildRecipientList(identifiers);
                 return result;
             }
+        }
+
+        public string BuildAppLink(string contextUrl)
+        {
+            var ub = new UriBuilder(_config.AppDomain);
+            ub.Path = contextUrl;
+            return ub.ToString();
         }
     }
 

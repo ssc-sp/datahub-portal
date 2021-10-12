@@ -1,7 +1,7 @@
-﻿using NRCan.Datahub.Portal.Data.Forms.ShareWorkflow;
-using NRCan.Datahub.Shared.Utils;
+﻿using Datahub.Portal.Data.Forms.ShareWorkflow;
+using Datahub.Core.Utils;
 using Xunit;
-using MetadataModel = NRCan.Datahub.Metadata.Model;
+using MetadataModel = Datahub.Metadata.Model;
 
 namespace Datahub.Tests
 {

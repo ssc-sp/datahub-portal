@@ -2,10 +2,10 @@
 using System.IO;
 using System.Linq;
 using Xunit;
-using NRCan.Datahub.Metadata.Model;
+using Datahub.Metadata.Model;
 using Newtonsoft.Json;
-using NRCan.Datahub.Metadata.DTO;
-using NRCan.Datahub.CKAN.Package;
+using Datahub.Metadata.DTO;
+using Datahub.CKAN.Package;
 
 namespace Datahub.Tests.CKAN
 {
