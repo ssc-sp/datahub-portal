@@ -131,7 +131,7 @@
     };
 
     private List<WebForm_Field> _formFields = new List<WebForm_Field>();
-    private FieldCodeGenerator _fieldCodeGenerator = new FieldCodeGenerator(s => 0);
+    private FieldCodeGenerator _fieldCodeGenerator = new(s => 0);
     private List<string> _sections = new List<string>();
 
     protected override async Task OnInitializedAsync()
