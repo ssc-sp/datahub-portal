@@ -1,9 +1,9 @@
-﻿using NRCan.Datahub.Shared.EFCore;
+﻿using Datahub.Core.EFCore;
 using System;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace NRCan.Datahub.Shared.Utils
+namespace Datahub.Core.Utils
 {
     public class FieldCodeGenerator
     {
