@@ -1,15 +1,15 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using NRCan.Datahub.Metadata.Model;
+using Datahub.Metadata.Model;
 using System.Threading.Tasks;
 using System.Linq;
 using System.Collections.Generic;
 using System;
-using NRCan.Datahub.Metadata.DTO;
-using ShareWorkflow = NRCan.Datahub.Portal.Data.Forms.ShareWorkflow;
-using NRCan.Datahub.Shared.Utils;
-using NRCan.Datahub.Shared.Services;
+using Datahub.Metadata.DTO;
+using ShareWorkflow = Datahub.Portal.Data.Forms.ShareWorkflow;
+using Datahub.Core.Utils;
+using Datahub.Core.Services;
 
-namespace NRCan.Datahub.Portal.Services
+namespace Datahub.Portal.Services
 {
     public class MetadataBrokerService : IMetadataBrokerService
     {
@@ -288,6 +288,14 @@ namespace NRCan.Datahub.Portal.Services
         static IEnumerable<ObjectFieldValue> CloneFieldValues(IEnumerable<ObjectFieldValue> values)
         {
             return values.Select(v => v.Clone());
+        }
+
+        public async Task DeleteApprovalForm(int approvalFormId)
+        {
+            using var ctx = _contextFactory.CreateDbContext();
+            var approvalForm = await GetApprovalFormEntity(ctx, approvalFormId);
+            ctx.ApprovalForms.Remove(approvalForm);
+            await ctx.SaveChangesAsync();
         }
     }
 }

@@ -1,5 +1,5 @@
 ﻿using Elemental.Components;
-using NRCan.Datahub.Shared.Services;
+using Datahub.Core.Services;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -8,7 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace NRCan.Datahub.Shared.EFCore
+namespace Datahub.Core.EFCore
 {
 
     public class Datahub_Project_Access_Request
@@ -264,11 +264,7 @@ namespace NRCan.Datahub.Shared.EFCore
         {
             get
             {
-                return new DatahubProjectInfo()
-                {
-                    ProjectNameEn = Project_Name,
-                    ProjectNameFr = Project_Name_Fr
-                };
+                return new DatahubProjectInfo(Project_Name, Project_Name_Fr, Project_Acronym_CD);
             }
         }
 
