@@ -1,7 +1,7 @@
 using System.Net.Mail;
 using Microsoft.Graph;
 
-namespace NRCan.Datahub.Shared.Data
+namespace Datahub.Core.Data
 {
     /// <summary>
     /// Use class to hold info on the MSGraph user list (keep it minimal as this could kill memory)

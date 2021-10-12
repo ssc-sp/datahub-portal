@@ -41,10 +41,13 @@
                     @Localizer["ViewDetails"]
                 </a>
                 <AuthorizeView Roles="DHPGLIST-admin">
-                    <a @onclick=@ShareFile>
-                        <i class="far fa-share-square icon-color sm-icon"></i>
-                        @Localizer["Share"]
-                    </a>
+                    @if (!string.IsNullOrEmpty(Project))
+                    {
+                        <a @onclick=@ShareFile>
+                            <i class="far fa-share-square icon-color sm-icon"></i>
+                            @Localizer["Share"]
+                        </a>
+                    }
                 </AuthorizeView>
 <!-- To be added when we support it
                 <a @onclick="OpenVersions">

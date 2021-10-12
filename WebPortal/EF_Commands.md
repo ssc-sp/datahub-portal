@@ -21,11 +21,11 @@
 
 ### Datahub Projects
 
-- Context class is NRCan.Datahub.Data.Projects.DatahubProjectDBContext
+- Context class is Datahub.Data.Projects.DatahubProjectDBContext
 
 ### PIP Form
 
-- Context class is NRCan.Datahub.ProjectForms.Data.PIP.PIPDBContext
+- Context class is Datahub.ProjectForms.Data.PIP.PIPDBContext
 - Add-Migration -name InitialPip -context pipdbcontext -o Migrations/Forms/PIP
 
 
