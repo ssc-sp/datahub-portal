@@ -1,10 +1,18 @@
 ﻿@using Datahub.Metadata.Model
 @using Datahub.Metadata.DTO
+@inject UIControlsService UI
 
 @if (Definitions != null && FieldValues != null)
 {
+    var translationNote = new MarkupString(Localizer["METADATA-PAGE.TranslationNote"]);
+    
     var displayFields = Preview ? Definitions.Fields : EnumerateFields(!_showAll);
+
     <div style="margin: 10px">
+        <div>
+           <i class="fa fa-language" aria-hidden="true"></i>&nbsp;@translationNote
+        </div>
+
         @foreach (var definition in displayFields)
         {
             // skip id & name fields (hidden fields)
@@ -12,6 +20,7 @@
                 continue;
 
             var fieldValue = GetFieldValue(definition.FieldDefinitionId, Preview);
+            var fieldPair = _fieldPairs.BindField(definition.Field_Name_TXT, fieldValue);
 
             if (fieldValue != null)
             {
@@ -21,7 +30,10 @@
                                      FieldDefinition=@definition
                                      FieldLabel=@definition.Name
                                      Subject=@_subject
-                                     OnFieldChanged=@FieldChanged />
+                                     FieldPair=@fieldPair
+                                     OnFieldChanged=@FieldChanged 
+                                     TranslationConfirmed=@_translationConfirmed
+                                     OnTranslationConfirmed=@ConfirmTranslation />
             }
         }
 
@@ -36,7 +48,7 @@
                 <AeButton class="light" @onclick=@ToggleShowAll>@Localizer["METADATA-PAGE.ShowLess"]</AeButton>
             }
         }
-    </div>
+    </div>       
 }
 
 @code {
@@ -62,6 +74,14 @@
     private int? _subjectFieldId;
     private string _subject { get; set; }
 
+    private TranslatedFieldPairs _fieldPairs;
+    private bool _translationConfirmed;
+
+    protected override void OnInitialized()
+    {
+        _fieldPairs = new TranslatedFieldPairs();
+    }
+
     protected override void OnParametersSet()
     {
         _subjectFieldId = Definitions?.Get("subject")?.FieldDefinitionId;
@@ -71,7 +91,7 @@
     private async Task FieldChanged(ObjectFieldValue field)
     {
         _modifedFieldIds.Add(field.FieldDefinitionId);
-        
+
         if (string.IsNullOrEmpty(field.Value_TXT))
         {
             FieldValues.Remove(field);
@@ -84,6 +104,11 @@
         UpdateIfSubject(field);
 
         await OnFieldChanged.InvokeAsync(field);
+    }
+
+    private void ConfirmTranslation()
+    {
+        _translationConfirmed = true;
     }
 
     private void UpdateIfSubject(ObjectFieldValue value)
