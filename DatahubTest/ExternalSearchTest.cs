@@ -173,7 +173,7 @@ namespace Datahub.Tests
             var optionsList = item.OptionsList;
             var graphicsList = item.GraphicOverviewList;
 
-            Assert.Equal(1, contactList.Count);
+            Assert.Single(contactList);
             var contact = item.FirstContact;
             Assert.Equal("580 Booth Street", contact.Address.En);
             _fixture.Logger.LogInformation("Contact address matches");
@@ -187,7 +187,7 @@ namespace Datahub.Tests
             Assert.Equal("Vector dataset of the 900A map", option.Name.En);
             _fixture.Logger.LogInformation("Expected option matches");
 
-            Assert.Equal(1, graphicsList.Count);
+            Assert.Single(graphicsList);
             var graphicOverview = item.FirstGraphicOverview;
             Assert.Equal(
                 "http://ftp.maps.canada.ca/pub/nrcan_rncan/Mining-industry_Industrie-miniere/900A_and_top_100/Thumbnail/900A.png", 
