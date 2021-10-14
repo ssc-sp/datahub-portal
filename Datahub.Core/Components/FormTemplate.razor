@@ -3,8 +3,9 @@
 @using NRCan.Datahub.Shared.Data
 @typeparam T
 @typeparam U where U : DbContext
-
+@inject UIControlsService UI
 @inherits HtmlElement
+@inject IDatahubAuditingService AuditingService
 @using System.Reflection
 
 @if(Metadata is null || !Metadata.IsLoaded())
@@ -137,9 +138,49 @@ else
 
     private async Task SetFormEdit(T selectedRecord)
     {
+        //if (Context.ChangeTracker.HasChanges())
+        //{
+        //    var messages = new List<string>() { "Would you like to save the current record?" };
+        //    await UI.ToggleModal(
+        //    @<UserChoiceModal HeaderText="Save Data" ChoiceTextList=@messages OnDecision="(a) => OnConfirmSave(a, application)" ConfirmText="Yes" CancelText="No" />
+        //)
+
+        if (Context.ChangeTracker.HasChanges())
+        {
+            var messages = new List<string>() { "Would you like to save the current record?" };
+            await UI.ToggleModal(@<UserChoiceModal HeaderText="Save Data" ChoiceTextList=@messages OnDecision="(a) => OnConfirmSave(a, selectedRecord)" ConfirmText="Yes" CancelText="No" />);
+        }
 
         await SetFormEditRecord.InvokeAsync(selectedRecord);
 
+    }
+
+    private async void OnConfirmSave(bool isConfirmed, dynamic item)
+    {
+        var changedEntries = Context.ChangeTracker.Entries();
+        if (isConfirmed)
+        {
+
+            foreach (var entry in changedEntries)
+            {
+                entry.Property("Last_Updated_DT").CurrentValue = DateTime.Now;
+                entry.Property("Last_Updated_UserId").CurrentValue = Metadata.UserId;                
+            }
+            await Context.TrackSaveChangesAsync(AuditingService);
+            
+        }
+        else
+        {
+            foreach (var entry in changedEntries)
+            {
+                foreach (var property in entry.OriginalValues.Properties)  
+                {
+                    var propertyName = property.Name;
+                    entry.Property(propertyName).CurrentValue = entry.Property(propertyName).OriginalValue;   
+                }
+            }                          
+        }
+        await UI.ToggleModal();                
     }
 
     protected override void OnAfterRender(bool firstRender)

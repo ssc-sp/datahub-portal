@@ -10,6 +10,7 @@
 <NRCan.Datahub.Shared.Components.FormTemplate 
         T="LanguageTrainingApplication"
         U="LanguageTrainingDBContext"
+        Context="@Context"
         Metadata="@_formMetadata" 
         HandleSubmit="HandleValidSubmit"
         OnChangeForms="OnChange"
@@ -38,6 +39,7 @@
         _formMetadata.Header = "NRCan Language Training Application Form";
         
         _formMetadata.DataSet = _languageTrainingApplications;
+        _formMetadata.UserId = _user.Id;
         _formMetadata.AccessorFunctions = accessorFunctions;
         _formMetadata.Headers = headers;
         _formMetadata.GridTemplateColumns = "4fr 4fr 4fr 4fr";
