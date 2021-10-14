@@ -91,36 +91,7 @@
         StateHasChanged();
     }
 
-    //private async Task SendManagerDecisionEmails()
-    //{
-    //    var param = await GetLanguageTrainingParameters();
-    //    if (_onboardingApplication.Manager_Decision == "Approved" || _onboardingApplication.Manager_Decision == "Declined")
-    //    { 
-    //        await EmailService.SendApplicationCompleteNotification(param);
-    //        _onboardingApplication.ManagerDecisionSent = true;
-    //        await Context.SaveChangesAsync();
-    //    }  
-    //}
-
-    //private async Task SendApplicationCompletedEmails()
-    //{
-    //    var param = await GetLanguageTrainingParameters();
-    //    await EmailService.SendApplicationCompleteNotification(param);    
-    //}
-
-    //private async Task<LanguageTrainingParameters> GetLanguageTrainingParameters()
-    //{
-    //    LanguageTrainingParameters param = new();
-    //    param.ApplicationId = _onboardingApplication.Application_ID.ToString();
-    //    param.EmployeeEmailAddress = _onboardingApplication.Email_Address_EMAIL;
-    //    param.EmployeeName = _onboardingApplication.NRCan_Username;
-    //    param.TrainingType = _onboardingApplication.Training_Type;
-    //    param.ManagerEmailAddress = _onboardingApplication.Delegated_Manager_Email;
-    //    param.ManagerName = _onboardingApplication.Delegate_Manager_First_Name + " " + _onboardingApplication.Delegated_Manager_Last_Name;
-    //    param.ManagerDecision = _onboardingApplication.Manager_Decision;
-    //    return param;
-    //}
-
+   
     private async Task LoadApps()
     {
 

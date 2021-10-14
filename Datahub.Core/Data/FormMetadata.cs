@@ -10,6 +10,7 @@ namespace NRCan.Datahub.Shared.Data
     {
         public string Header { get; set; }
         public string SubHeader { get; set; }
+        public string UserId { get; set; }
 
         public IList<T> DataSet { get; set; }
 
