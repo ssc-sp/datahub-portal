@@ -1,5 +1,4 @@
 ﻿@using Datahub.Metadata.Model
-@inject UIControlsService UI
 
 <AeFlex Vertical="false" style="margin-top: 10px;">
     
@@ -11,7 +10,7 @@
                 {
                     <strong style="color: red">*&nbsp;</strong>
                 }
-                <span @onclick="SelectField">@FieldDefinition.Name</span>
+                <span @onclick="SelectField" title=@FieldDefinition.Description>@FieldDefinition.Name</span>
 
                 @if (CanAcceptTranslation())
                 {
@@ -49,6 +48,7 @@
                                       FieldValue="FieldValue" 
                                       English="@IsEnglishField()"
                                       Subject="@Subject"
+                                      FieldPair=@FieldPair
                                       OnFieldChanged="OnFieldChanged" />
                     }
                     else
@@ -123,12 +123,6 @@
     [Parameter]
     public EventCallback<ObjectFieldValue> OnFieldChanged { get; set; }
 
-    [Parameter]
-    public EventCallback OnTranslationConfirmed { get; set; }
-
-    [Parameter]
-    public bool TranslationConfirmed { get; set; }
-
     private string BoundValue
     {
         get => FieldValue.Value_TXT;
@@ -200,9 +194,6 @@
 
     private bool CanAcceptTranslation()
     {
-        //if (!string.IsNullOrEmpty(FieldValue.Value_TXT))
-        //    return false;
-
         if (IsKeywordField())
             return false;
 
@@ -222,33 +213,8 @@
 
     private async void HandleTranslateField()
     {
-        await TranslateField();
-        //if (TranslationConfirmed)
-        //{
-        //    await TranslateField();
-        //}
-        //else
-        //{
-        //    var warningHeader = Localizer["METADATA-PAGE.TranslationWarningHeader"];
-        //    var messages = new List<string>() { Localizer["METADATA-PAGE.TranslationWarningMessage"] };
-        //    await UI.ToggleModal();
-        //    await UI.ToggleModal(@<WarningModal Header=@warningHeader OnDecision="AcceptTranslateWarning" WarningTextString=@messages />);
-        //}
-    }
-
-    private async void AcceptTranslateWarning(bool value)
-    {
-        await UI.ToggleModal();
-        await TranslateField();
-    }
-
-    private async Task TranslateField()
-    {
         try
         {
-            if (OnTranslationConfirmed.HasDelegate)
-                await OnTranslationConfirmed.InvokeAsync();
-
             var pairedText = FieldPair?.GetPaired(FieldValue)?.Value_TXT;
             if (!string.IsNullOrEmpty(pairedText))
             {
