@@ -1,14 +1,19 @@
 ﻿using Datahub.Metadata.Model;
+using Microsoft.AspNetCore.Components;
 using System;
 using System.Collections.Generic;
 
 namespace Datahub.Portal.Components.Metadata
 {
+    public record KeywordArgs(ObjectFieldValue Source, string Keyword);
+    
     public class TranslatedFieldPair
     {
         public string RootName { get; init; }
         public ObjectFieldValue FieldEnglish {  get; set; }
         public ObjectFieldValue FieldFrench { get; set; }
+        public EventHandler<KeywordArgs> OnKeywordPicked { get; set; }
+        public EventHandler<KeywordArgs> OnKeywordDeleted { get; set; }
 
         public ObjectFieldValue GetPaired(ObjectFieldValue value)
         {
