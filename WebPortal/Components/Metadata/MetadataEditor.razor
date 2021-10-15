@@ -1,6 +1,5 @@
 ﻿@using Datahub.Metadata.Model
 @using Datahub.Metadata.DTO
-@inject UIControlsService UI
 
 @if (Definitions != null && FieldValues != null)
 {
@@ -31,9 +30,7 @@
                                      FieldLabel=@definition.Name
                                      Subject=@_subject
                                      FieldPair=@fieldPair
-                                     OnFieldChanged=@FieldChanged 
-                                     TranslationConfirmed=@_translationConfirmed
-                                     OnTranslationConfirmed=@ConfirmTranslation />
+                                     OnFieldChanged=@FieldChanged />
             }
         }
 
@@ -75,7 +72,6 @@
     private string _subject { get; set; }
 
     private TranslatedFieldPairs _fieldPairs;
-    private bool _translationConfirmed;
 
     protected override void OnInitialized()
     {
@@ -104,11 +100,6 @@
         UpdateIfSubject(field);
 
         await OnFieldChanged.InvokeAsync(field);
-    }
-
-    private void ConfirmTranslation()
-    {
-        _translationConfirmed = true;
     }
 
     private void UpdateIfSubject(ObjectFieldValue value)

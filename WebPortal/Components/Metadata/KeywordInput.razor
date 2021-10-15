@@ -1,5 +1,6 @@
 ﻿@using Datahub.Metadata.Model
 @using Datahub.Core.Utils
+@implements IDisposable
 
 <div>
     @if (!Preview)
@@ -19,7 +20,7 @@
                 @if (!Preview)
                 {
                     <a style="text-decoration: none; cursor: pointer;"
-                       @onclick="() => DeleteKeyword(keyword)"
+                       @onclick="() => DeleteKeyword(keyword, false)"
                        @onclick:preventDefault>&nbsp;x&nbsp;</a>
                 }
                 <span><b>@keyword</b></span>
@@ -31,7 +32,7 @@
             {
                 <li style="float: left; margin: 5px 5px 0px 0px; padding: 4px 8px 4px 4px; border-width: 1px; border: 1px dotted grey; border-radius: 5px; background-color: #f2f2f2;">
                     <a style="text-decoration: none; cursor: pointer;"
-                       @onclick="() => PickKeyword(word)"
+                       @onclick="() => PickKeyword(word, false)"
                        @onclick:preventDefault>&nbsp;<b>@word</b>&nbsp;</a>
                 </li>
             }
@@ -57,7 +58,10 @@
     public bool English { get; set; } = true;
 
     [Parameter]
-    public string Subject { get; set; } = "economics_and_industry";
+    public string Subject { get; set; }
+
+    [Parameter]
+    public TranslatedFieldPair FieldPair { get; set; }
 
     [Parameter]
     public EventCallback<ObjectFieldValue> OnFieldChanged { get; set; }
@@ -65,19 +69,33 @@
     private List<string> _keywordList { get; set; }
     private string _inputKeyword;
     private List<string> _suggestions { get; set; } = new List<string>();
-    private List<string> _subjectKeywords { get; set; } = new List<string>();
+    private List<SubjectKeyword> _subjectKeywords { get; set; } = new List<SubjectKeyword>();
+    private string _lastSubject;
     private ElementReference _fieldValueInput;
     private QueryThrottler<string> _suggestionThrottler;
+
+    public async Task FocusAsync()
+    {
+        if (!Preview)
+            await _fieldValueInput.FocusAsync();
+    }
 
     protected override async Task OnInitializedAsync()
     {
         _keywordList = new List<string>(ParseKeywords(FieldValue?.Value_TXT));
         _suggestionThrottler = new QueryThrottler<string>(TimeSpan.FromSeconds(0.5), TriggerAutoCompleteAsync);
-        
+
+        FieldPair.OnKeywordPicked += OnKeywordPicked;
+        FieldPair.OnKeywordDeleted += OnKeywordDeleted;
+
         await UpdateSubjectKeywords();
     }
 
-    private string _lastSubject;
+    void IDisposable.Dispose()
+    {
+        FieldPair.OnKeywordPicked -= OnKeywordPicked;
+        FieldPair.OnKeywordDeleted -= OnKeywordDeleted;
+    }
 
     protected override async Task OnParametersSetAsync()
     {
@@ -88,18 +106,21 @@
         }
     }
 
-    private IEnumerable<string> ParseKeywords(string keywords) => (keywords ?? "").Split(',').Where(v => !string.IsNullOrWhiteSpace(v));
+    private IEnumerable<string> ParseKeywords(string keywords)
+    {
+        return (keywords ?? "").Split(',').Where(v => !string.IsNullOrWhiteSpace(v));
+    }
+
     private string JoinKeywords(IEnumerable<string> keywords) => string.Join(",", keywords);
 
     private async Task UpdateSubjectKeywords()
     {
         var subjectIds = (Subject ?? "").Split('|');
-        _subjectKeywords = English ? await MetadataBrokerService.GetSubjectEnglishKeywords(subjectIds)
-                                   : await MetadataBrokerService.GetSubjectFrenchKeywords(subjectIds);
+        _subjectKeywords = await MetadataBrokerService.GetSubjectKeywords(subjectIds);
         ApplySubjectSuggestions();
     }
 
-    public string InputKeyword
+    private string InputKeyword
     {
         get
         {
@@ -111,7 +132,7 @@
             {
                 if (value != null && value.EndsWith(','))
                 {
-                    PickKeyword(_inputKeyword);
+                    PickKeyword(_inputKeyword, false);
                 }
                 else
                 {
@@ -120,12 +141,6 @@
                 }
             }
         }
-    }
-
-    public async Task FocusAsync()
-    {
-        if (!Preview)
-            await _fieldValueInput.FocusAsync();
     }
 
     private void TriggerSuggestion(string text)
@@ -140,26 +155,56 @@
         }
     }
 
-    private void DeleteKeyword(string keyword)
+    private void OnKeywordPicked(object sender, KeywordArgs args)
     {
-        _keywordList.Remove(keyword);
-        UpdateField();
-        ApplySubjectSuggestions();
+        if (args.Source != FieldValue)
+        {
+            PickKeyword(args.Keyword, true);
+        }
     }
 
-    private void PickKeyword(string keyword)
+    private void OnKeywordDeleted(object sender, KeywordArgs args)
+    {
+        if (args.Source != FieldValue)
+        {
+            DeleteKeyword(args.Keyword, true);
+        }
+    }
+
+    private void PickKeyword(string keyword, bool isCallback)
     {
         if (NotAKeyword(keyword))
         {
             _keywordList.Add(keyword);
+            UpdateField();
+            ApplySubjectSuggestions();
         }
-        _inputKeyword = string.Empty;
+        if (!isCallback)
+        {
+            TriggerPairFieldEvent(keyword, FieldPair.OnKeywordPicked);
+            _inputKeyword = string.Empty;
+            _ = FocusAsync();
+        }
+    }
 
+    private void DeleteKeyword(string keyword, bool isCallback)
+    {
+        _keywordList.Remove(keyword);
         UpdateField();
-
         ApplySubjectSuggestions();
+        if (!isCallback)
+        {
+            TriggerPairFieldEvent(keyword, FieldPair.OnKeywordDeleted);
+        }
+    }
 
-        _ = FocusAsync();
+    private void TriggerPairFieldEvent(string keyword, EventHandler<KeywordArgs> handler)
+    {
+        var translKeyword = _subjectKeywords.FirstOrDefault(kw => keyword.Equals(SelectLanguageKeyword(kw)));
+        if (translKeyword is not null)
+        {
+            handler.Invoke(this, new KeywordArgs(FieldValue, SelectAlternateKeyword(translKeyword)));    
+        }
     }
 
     private async Task TriggerAutoCompleteAsync(string text)
@@ -182,9 +227,9 @@
         await InvokeAsync(StateHasChanged);
     }
 
-    private void ApplySubjectSuggestions() => ApplySuggestions(_subjectKeywords);
+    private void ApplySubjectSuggestions() => ApplySuggestions(_subjectKeywords.Select(SelectLanguageKeyword));
 
-    private void ApplySuggestions(List<string> suggestions)
+    private void ApplySuggestions(IEnumerable<string> suggestions)
     {
         _suggestions = suggestions.Where(s => NotAKeyword(s)).ToList();
     }
@@ -196,4 +241,8 @@
         FieldValue.Value_TXT = JoinKeywords(_keywordList);
         OnFieldChanged.InvokeAsync(FieldValue);
     }
+    
+    private string SelectLanguageKeyword(SubjectKeyword kw) => English ? kw.English : kw.French;
+
+    private string SelectAlternateKeyword(SubjectKeyword kw) => !English ? kw.English : kw.French;
 }
