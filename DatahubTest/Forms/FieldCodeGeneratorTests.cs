@@ -1,5 +1,5 @@
-﻿using NRCan.Datahub.Shared.EFCore;
-using NRCan.Datahub.Shared.Utils;
+﻿using Datahub.Core.EFCore;
+using Datahub.Core.Utils;
 using Xunit;
 
 namespace Datahub.Tests.Forms
