@@ -4,14 +4,22 @@
     
     <!-- field name -->
     <div style="width: 200px; margin: 2px; flex-grow: 1;">
-        <div @onclick="SelectField">
+        <div>
             <AeTypography style="cursor: pointer;">
                 @if (!Preview && Required && FieldValueEmpty)
                 {
                     <strong style="color: red">*&nbsp;</strong>
                 }
-                @FieldDefinition.Name
+                <span @onclick="SelectField" title=@FieldDefinition.Description>@FieldDefinition.Name</span>
+
+                @if (CanAcceptTranslation())
+                {
+                    <AeButton style="float: right" title=@GetTranslationHint() @onclick=@HandleTranslateField>
+                        <i class="fa fa-language" aria-hidden="true"></i>
+                    </AeButton>
+                }
             </AeTypography>
+            
         </div>
     </div>
 
@@ -38,8 +46,9 @@
                         _fieldType = FieldType.Keyword;
                         <KeywordInput @ref="_keywordInputRef" 
                                       FieldValue="FieldValue" 
-                                      English="@IsEnglishKeywords()"
+                                      English="@IsEnglishField()"
                                       Subject="@Subject"
+                                      FieldPair=@FieldPair
                                       OnFieldChanged="OnFieldChanged" />
                     }
                     else
@@ -87,6 +96,9 @@
 
 @code {
 
+    [Inject]
+    public TranslationService _translationService { get; set; }
+
     [Parameter]
     public bool Required { get; set; }
 
@@ -104,6 +116,9 @@
 
     [Parameter]
     public string Subject { get; set; }
+
+    [Parameter]
+    public TranslatedFieldPair FieldPair { get; set; }
 
     [Parameter]
     public EventCallback<ObjectFieldValue> OnFieldChanged { get; set; }
@@ -172,8 +187,49 @@
         return FieldDefinition.Field_Name_TXT.StartsWith("keywords_");
     }
 
-    private bool IsEnglishKeywords()
+    private bool IsEnglishField()
     {
         return FieldDefinition.Field_Name_TXT.EndsWith("_en");
+    }
+
+    private bool CanAcceptTranslation()
+    {
+        if (IsKeywordField())
+            return false;
+
+        var otherField = FieldPair?.GetPaired(FieldValue);
+        if (otherField is null)
+            return false;
+
+        return !string.IsNullOrEmpty(otherField.Value_TXT);
+    }
+
+    private string GetTranslationHint()
+    {
+        var otherField = FieldPair?.GetPaired(FieldValue);
+        var message = Localizer["Suggest translation for:"];
+        return $"{message} \"{otherField?.Value_TXT}\"";
+    }
+
+    private async void HandleTranslateField()
+    {
+        try
+        {
+            var pairedText = FieldPair?.GetPaired(FieldValue)?.Value_TXT;
+            if (!string.IsNullOrEmpty(pairedText))
+            {
+                var translation = IsEnglishField() 
+                    ? await _translationService.GetEnglishTranslation(pairedText)
+                    : await _translationService.GetFrenchTranslation(pairedText);
+
+                FieldValue.Value_TXT = translation ?? FieldValue.Value_TXT;
+
+                await OnFieldChanged.InvokeAsync(FieldValue);
+                await InvokeAsync(SelectField);
+            }
+        }
+        catch (Exception)
+        {
+        }
     }
 }

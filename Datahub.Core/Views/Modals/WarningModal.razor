@@ -1,7 +1,9 @@
 ﻿@inject UIControlsService UI
 
 <div class="modal-content">
-    <h4 class="nrcan-typography h4 modal-header">@Localizer["Warning"]</h4>
+    <h4 class="nrcan-typography h4 modal-header">
+        @(Header ?? Localizer["Warning"])
+    </h4>
 
     @foreach (var text in WarningTextString)
     {
@@ -9,13 +11,22 @@
     }
 
     <div class="modal-footer">
-        <button class="submitbutton finish" @onclick="() => OnDecision?.Invoke(true)">@Localizer["Ok"]</button>
+        <button class="submitbutton finish" @onclick="() => OnDecision?.Invoke(true)">
+            @(AcceptLabel ?? Localizer["Ok"])
+        </button>
     </div>
 </div>
 
 @code{
     [Parameter]
+    public string Header { get; set; }
+
+    [Parameter]
+    public string AcceptLabel { get; set; }
+
+    [Parameter]
     public Action<bool> OnDecision { get; set; }
+
     [Parameter]
     public List<string> WarningTextString { get; set; }
 }
