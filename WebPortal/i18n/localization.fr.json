@@ -167,7 +167,7 @@
     "ShowMore": "Afficher les champs optionnels",
     "ShowLess": "Masquer les champs optionnels",
     "EnterKeyword-Placeholder": "Entrez un mot-clef...",
-    "TranslationNote": "Veuillez prendre note que tout le texte est traduit à l'aide d'un outil tiers et qu'il ne s'agit <b>que d'une suggestion de traduction.</b>  Il est de la responsabilité de l'utilisateur de valider la traduction avant de soumettre les métadonnées."
+    "TranslationNote": "Veuillez prendre note que tout le texte est traduit à l'aide d'un outil externe et qu'il ne s'agit <b>que d'une suggestion pour la traduction.</b> Il est de la responsabilité de l'utilisateur de valider la traduction avant de soumettre les métadonnées."
   },
   "Connection lost, please refresh this page": "Connexion perdue, veuillez actualiser cette page",
   "Connection to server...": "Connexion au serveur...",
