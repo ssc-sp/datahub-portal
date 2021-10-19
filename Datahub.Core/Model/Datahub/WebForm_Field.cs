@@ -25,6 +25,9 @@ namespace Datahub.Core.EFCore
         [AeLabel("Description")]
         public string Description_DESC { get; set; }
 
+        [AeLabel("Choices")]
+        public string Choices_TXT { get; set; }
+
         [Required]
         [StringLength(8)]
         [AeLabel(label:"Extension", isDropDown:true, validValues: new [] 
@@ -76,7 +79,8 @@ namespace Datahub.Core.EFCore
                 Max_Length_NUM = this.Max_Length_NUM,
                 Type_CD = this.Type_CD,
                 Notes_TXT = this.Notes_TXT,
-                Mandatory_FLAG = this.Mandatory_FLAG
+                Mandatory_FLAG = this.Mandatory_FLAG,
+                Choices_TXT = this.Choices_TXT
             };
         }
 
@@ -90,6 +94,7 @@ namespace Datahub.Core.EFCore
             this.Type_CD = other.Type_CD;
             this.Notes_TXT = other.Notes_TXT;
             this.Mandatory_FLAG = other.Mandatory_FLAG;
+            this.Choices_TXT = other.Choices_TXT;
         }
     }
 }
