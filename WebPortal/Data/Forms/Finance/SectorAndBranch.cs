@@ -6,7 +6,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace NRCan.Datahub.Portal.Data.Finance
+namespace Datahub.Portal.Data.Finance
 {
     public class SectorAndBranch
     {

@@ -1,10 +1,12 @@
-﻿@namespace NRCan.Datahub.Shared.Templates
+﻿@namespace Datahub.Core.Templates
 
 <h3>New @Service Service Request</h3>
 
-<p>User <b>@Username</b> has requested the creation of service <b>@Service</b> in data project <b>@DataProject.ProjectNameEn</b>. Please visit the admin page with proper credentials to notify project users when it has been created.</p>
+<p>User <b>@Username</b> has requested the creation of service <b>@Service</b> in data project <b>@DataProject.ProjectNameEn</b>. 
+    Please visit the <a href=@AdminPageUrl >admin page</a> with proper credentials to notify project users when it has been created.</p>
 
 @code {
+    public static readonly string ADMIN_URL = "/admin";
 
     [Parameter]
     public string Username { get; set; }
@@ -14,5 +16,8 @@
 
     [Parameter]
     public DatahubProjectInfo DataProject { get; set; }
+
+    [Parameter]
+    public string AdminPageUrl { get; set; }
 
 }
