@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using MimeKit;
 
-namespace NRCan.Datahub.Shared.Services
+namespace Datahub.Core.Services
 {
     public interface IEmailNotificationService
     {
@@ -12,6 +12,7 @@ namespace NRCan.Datahub.Shared.Services
         Task SendEmailMessage(string subject, string body, IList<string> userIdsOrAddresses, bool isHtml = true);
         bool IsDevTestMode();
         IList<MailboxAddress> TestUsernameEmailConversion(IList<(string address, string name)> recipients);
+        string BuildAppLink(string contextUrl);
 
         Task SendServiceCreationRequestNotification(string username, string serviceName, DatahubProjectInfo projectInfo, IList<string> recipients);
         Task SendServiceAccessRequestNotification(string username, string serviceName, DatahubProjectInfo projectInfo, IList<string> recipients);
@@ -21,4 +22,6 @@ namespace NRCan.Datahub.Shared.Services
         Task SendAccessRevokedNotification(string serviceName, DatahubProjectInfo projectInfo, string recipientAddress, string recipientName = null);
         Task SendApplicationCompleteNotification(LanguageTrainingParameters parameters);
     }
+
+    public record class DatahubProjectInfo(string ProjectNameEn, string ProjectNameFr, string ProjectCode);
 }

@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components.Forms;
-using NRCan.Datahub.Shared.Data;
+using Datahub.Core.Data;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -7,7 +7,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Tewr.Blazor.FileReader;
 
-namespace NRCan.Datahub.Shared.Services
+namespace Datahub.Core.Services
 {
     public interface IApiService
     {

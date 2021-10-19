@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace NRCan.Datahub.Metadata.Migrations
+namespace Datahub.Metadata.Migrations
 {
     public partial class AddingKeywordSourceLengthModified : Migration
     {

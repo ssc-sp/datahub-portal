@@ -45,7 +45,7 @@ window.onclick = (e) => {
     //$("div[id$='Div']").each(function (index, item) {
     //    if (item.classList.contains('selected-item')) {
     //        item.removeClass('selected-item');
-    //        DotNet.invokeMethodAsync('NRCan.Datahub.Portal', 'UnselectAll');
+    //        DotNet.invokeMethodAsync('Datahub.Portal', 'UnselectAll');
     //    }
     //});
 }
@@ -89,6 +89,6 @@ window.saveAsFile = (filename, bytesBase64) => {
 function uncheckList(item, index) {
     if (item.classList.contains('selected-item')) {
         item.removeClass('selected-item');
-        DotNet.invokeMethodAsync('NRCan.Datahub.Portal', 'UnselectAll');
+        DotNet.invokeMethodAsync('Datahub.Portal', 'UnselectAll');
     }
 }

@@ -5,58 +5,78 @@
 @implements IDisposable
 @inject IDbContextFactory<DatahubProjectDBContext> DbFactory
 
-
 @if(_form != null)
 {
-    <h2>@_form.Title_DESC</h2>
-    <p>@_form.Description_DESC</p>
+    <div style="margin: 2rem">
+        <AeCard>
+            <ChildContent>
+                <div style="margin: 1rem">
+                    <h2>@_form.Title_DESC</h2>
+
+                    <p>@_form.Description_DESC</p>
+
+                    <h3>Form Fields</h3>
+
+                    @if (HasFields)
+                    {
+                        <AeTable 
+                            Accessors="accessorFunctions"
+                            Renderers="renderFunctions"
+                            Dataset="@_formFields"
+                            Headers="@headers"
+                        />
+                    }
+                
+                    @if (_formId.HasValue)
+                    {
+                        <div style="margin-top: 8px;">
+                            <AeButton To=@($"/project/{ProjectAcronym}/forms/{_formId.Value}/edit") class="blue float-right">
+                                <AeIcon Icon="add-circle" IconStyle="Elemental.Code.RXIcon.RXStyle.Fill" />
+                                Edit Form
+                            </AeButton>
+
+                            <AeButton To=@($"/project/{ProjectAcronym}/forms/{_formId.Value}/newfield") class="blue float-right">
+                                <AeIcon Icon="add-circle" IconStyle="Elemental.Code.RXIcon.RXStyle.Fill" />
+                                Create New Form Field
+                            </AeButton>
+                        </div>
+                    }
+
+                    @if (HasFields)
+                    {
+                        <div>
+                            <h4>JSON</h4>
+                            <pre>
+                                <code>
+                                    @foreach (var field in _formFields)
+                                    {
+                                        @_fieldCodeGenerator.GenerateJSON(field)
+                                        <br />
+                                    }
+                                </code>
+                            </pre>
+
+                            <h4>C#</h4>
+                            <pre>
+                                <code>
+                                    @foreach (var field in _formFields)
+                                    {
+                                        @_fieldCodeGenerator.GenerateCSharp(field)
+                                        <br />
+                                    }
+                                </code>
+                            </pre>
+                        </div>
+                    }
+
+                    <AeButton To=@($"/project/{ProjectAcronym}/forms")>Back to Form List</AeButton>
+
+                </div>
+            </ChildContent>
+        </AeCard>
+
+    </div>
 }
-
-<h3>Form Fields</h3>
-
-@if(_formId.HasValue)
-{
-    <AeButton To=@($"/project/{ProjectAcronym}/forms/{_formId.Value}/newfield") class="blue">
-        <AeIcon Icon="add-circle" IconStyle="Elemental.Code.RXIcon.RXStyle.Fill" />
-        Create New Form Field
-    </AeButton>
-}
-
-@if (_formFields != null && _formFields.Count() > 0)
-{
-    <AeTable 
-        Accessors="accessorFunctions"
-        Renderers="renderFunctions"
-        Dataset="@_formFields"
-        Headers="@headers"
-    />
-
-
-    <h4>JSON</h4>
-    <pre>
-        <code>
-            @foreach (var field in _formFields)
-            {
-                @field.JSON
-                <br />
-            }
-        </code>
-    </pre>
-
-    <h4>C#</h4>
-    <pre>
-        <code>
-            @foreach (var field in _formFields)
-            {
-                @field.CSCode
-                <br />
-            }
-        </code>
-    </pre>
-    
-}
-
-<AeButton To=@($"/project/{ProjectAcronym}/forms")>Back to Form List</AeButton>
 
 @code 
 {
@@ -111,6 +131,8 @@
     };
 
     private List<WebForm_Field> _formFields = new List<WebForm_Field>();
+    private FieldCodeGenerator _fieldCodeGenerator = new(s => 0);
+    private List<string> _sections = new List<string>();
 
     protected override async Task OnInitializedAsync()
     {
@@ -125,11 +147,21 @@
             if (_form != null)
             {
                 _formFields = _form.Fields;
+                _sections = _formFields.Select(f => f.Section_DESC)
+                                       .Where(s => !string.IsNullOrEmpty(s))
+                                       .Distinct()
+                                       .ToList();
             }
         }
+        _fieldCodeGenerator = new FieldCodeGenerator(MapSection);
     }
 
+    private int MapSection(string name)
+    {
+        return (1 + _sections.IndexOf(name)) * 10; // make it in ten increments
+    }
+
+    private bool HasFields => _formFields?.Count > 0;
 
     public void Dispose() { projectContext.Dispose(); }
 }
-
