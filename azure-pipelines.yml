@@ -7,7 +7,7 @@ pool:
   vmImage: 'windows-latest'
 
 variables:
-  solution: '**/NRCan.Datahub.Portal.sln'
+  solution: '**/Datahub.Portal.sln'
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
 

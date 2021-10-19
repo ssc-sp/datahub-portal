@@ -1,42 +1,55 @@
 ﻿@using System.Net.Http
 @using System.IO
+@using System.Threading
+@using System.Globalization
+
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.AspNetCore.Components.Forms
 @using Microsoft.AspNetCore.Components.Routing
 @using Microsoft.AspNetCore.Components.Web
 @using Microsoft.JSInterop
-@using NRCan.Datahub.Portal
-@using NRCan.Datahub.Shared
-@using NRCan.Datahub.Shared.Data
-@using NRCan.Datahub.Shared.Services
-@using NRCan.Datahub.Shared.Components
-@using NRCan.Datahub.Shared.Views
-@using NRCan.Datahub.Shared.Views.Modals
-@using Askmethat.Aspnet.JsonLocalizer.Localizer
-@using NRCan.Datahub.Portal.Services
-@using NRCan.Datahub.Portal.Components
-@using NRCan.Datahub.Portal.Components.FileGridComponents
-@using NRCan.Datahub.Portal.Views
-@using NRCan.Datahub.Portal.Views.Modals
-@using NRCan.Datahub.Portal.Components.Versions
-@using NRCan.Datahub.Portal.Components.Forms
+
 @using Microsoft.Extensions.Localization
 @using Microsoft.AspNetCore.Mvc.Localization
+
+@using Microsoft.EntityFrameworkCore;
+@using Microsoft.Extensions.Configuration
+
+
 @using BlazorInputFile
 @using Tewr.Blazor.FileReader
 @using Microsoft.Extensions.Hosting
+
+
+@using Askmethat.Aspnet.JsonLocalizer.Localizer
+
+@using Datahub.Core.EFCore
+@using Datahub.Core.Data
+@using Datahub.Core.Services
+@using Datahub.Core.Components
+@using Datahub.Core.Views
+@using Datahub.Core.Views.Modals
+@using Datahub.Core.Utils
+
+@using Datahub.Portal.Services
+@using Datahub.Portal.Components
+@using Datahub.Portal.Components.FileGridComponents
+@using Datahub.Portal.Components.Metadata
+@using Datahub.Portal.Views
+@using Datahub.Portal.Views.Modals
+@using Datahub.Portal.Components.Versions
+@using Datahub.Portal.Components.Forms
+@using Datahub.ProjectForms.Data.PIP
+@using Datahub.ProjectForms.Data
+@using Datahub.Portal.Data.Finance;
+@using Datahub.Portal.Data;
+@using Datahub.Portal.Data.LanguageTraining;
+@using Datahub.Portal.Data.WebAnalytics;
+
+@using Datahub.LanguageTraining;
+
 @using Elemental.Components
-@using System.Threading
-@using System.Globalization
-@using NRCan.Datahub.ProjectForms.Data.PIP
-@using NRCan.Datahub.ProjectForms.Data
-@using Microsoft.EntityFrameworkCore;
-@using NRCan.Datahub.Portal.Data.Finance;
-@using NRCan.Datahub.Portal.Data.LanguageTraining;
-@using NRCan.Datahub.Portal.Data.WebAnalytics;
+
+
 @inject IStringLocalizer Localizer
-@using Microsoft.Extensions.Configuration
-@using NRCan.Datahub.Shared.EFCore
-@using NRCan.Datahub.Portal.Components.Metadata;
-@using NRCan.Datahub.CKAN.Service;

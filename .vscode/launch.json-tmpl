@@ -9,7 +9,7 @@
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
-            "program": "${workspaceFolder}/WebPortal/bin/Debug/net5.0/NRCan.Datahub.Portal.dll",
+            "program": "${workspaceFolder}/WebPortal/bin/Debug/net5.0/Datahub.Portal.dll",
             "args": [],
             "cwd": "${workspaceFolder}/WebPortal/",
             "stopAtEntry": false,
@@ -38,7 +38,7 @@
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/WebPortal/bin/Debug/net5.0/NRCan.Datahub.Portal.dll",
+            "program": "${workspaceFolder}/WebPortal/bin/Debug/net5.0/Datahub.Portal.dll",
             "args": [],
             "cwd": "${workspaceFolder}/WebPortal",
             "stopAtEntry": false,
@@ -68,7 +68,7 @@
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/WebPortal/bin/Debug/net5.0/NRCan.Datahub.Portal.dll",
+            "program": "${workspaceFolder}/WebPortal/bin/Debug/net5.0/Datahub.Portal.dll",
             "args": [],
             "cwd": "${workspaceFolder}/WebPortal",
             "stopAtEntry": false,

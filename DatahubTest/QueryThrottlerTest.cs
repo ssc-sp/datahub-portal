@@ -1,4 +1,4 @@
-﻿using NRCan.Datahub.Shared.Utils;
+﻿using Datahub.Core.Utils;
 using System;
 using System.Threading;
 using System.Threading.Tasks;

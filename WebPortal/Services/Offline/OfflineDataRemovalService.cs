@@ -1,9 +1,9 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.Graph;
-using NRCan.Datahub.Shared.Data;
-using NRCan.Datahub.Shared.Services;
+using Datahub.Core.Data;
+using Datahub.Core.Services;
 
-namespace NRCan.Datahub.Portal.Services.Offline
+namespace Datahub.Portal.Services.Offline
 {
     public class OfflineDataRemovalService : IDataRemovalService
     {
@@ -11,7 +11,7 @@ namespace NRCan.Datahub.Portal.Services.Offline
         {
         }
 
-        public Task<bool> Delete(Shared.Data.Folder folder, User currentUser)
+        public Task<bool> Delete(Core.Data.Folder folder, User currentUser)
         {
             return Task.FromResult(true);
         }

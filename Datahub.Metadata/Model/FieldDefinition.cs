@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 
-namespace NRCan.Datahub.Metadata.Model
+namespace Datahub.Metadata.Model
 {
     public class FieldDefinition
     {
