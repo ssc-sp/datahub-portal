@@ -182,13 +182,13 @@ namespace Datahub.Tests.Forms
             {
                 Field_DESC = "AnyField",
                 Type_CD = "Dropdown",
-                Choices_TXT = "Red Green Blue"
+                Choices_TXT = "Red | Green | Blue | Light brown"
             };
 
             var generator = new FieldCodeGenerator(DummyMap);
             var csharp = generator.GenerateCSharp(field);
 
-            Assert.Contains("[AeLabel(isDropDown: true, validValues: new [] { \"Red\", \"Green\", \"Blue\" }]", csharp);
+            Assert.Contains("[AeLabel(isDropDown: true, validValues: new [] { \"Red\", \"Green\", \"Blue\", \"Light brown\" }]", csharp);
         }
 
         [Fact]
