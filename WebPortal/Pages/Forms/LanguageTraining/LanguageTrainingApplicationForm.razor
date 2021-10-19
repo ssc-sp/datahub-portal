@@ -2,6 +2,7 @@
 @inject IEmailNotificationService EmailService
 @implements IDisposable
 @inject IDbContextFactory<LanguageTrainingDBContext> DbFactory
+@inject ServiceAuthManager ServiceAuthManager
 @inject IUserInformationService UserInformationService
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JsInterop
@@ -21,6 +22,7 @@
 
 @code {
 
+    private const string PROJECTACRONYM = "HRLTP";
     private FormMetadata<LanguageTrainingApplication> _formMetadata;
     private bool _onchange;
     private List<LanguageTrainingApplication> _languageTrainingApplications;
@@ -28,12 +30,16 @@
     private LanguageTrainingDBContext Context;
     private List<string> MarkDownContent = new();
     private Microsoft.Graph.User _user;
+    private bool _isUserAdmin;
 
     protected override async Task OnInitializedAsync()
     {
-        // load projects
+        
+        
+
         Context = DbFactory.CreateDbContext();
         _user = await UserInformationService.GetUserAsync();
+        _isUserAdmin = await ServiceAuthManager.IsProjectAdmin(_user.Id, PROJECTACRONYM);
         _formMetadata = new();
         await LoadApps();
         _formMetadata.Header = "NRCan Language Training Application Form";
@@ -77,16 +83,23 @@
             
             await Context.SaveChangesAsync();
             
+            var param = await GetLanguageTrainingParameters();
+
             if (!_languageTrainingApplication.ApplicationCompleteEmailSent)
             {                
-                await SendApplicationCompletedEmails();
+                await SendApplicationCompletedEmails(param);
                 _languageTrainingApplication.ApplicationCompleteEmailSent = true;
                 await Context.SaveChangesAsync();
             }
 
             if (_languageTrainingApplication.ApplicationCompleteEmailSent && !_languageTrainingApplication.ManagerDecisionSent)
             {
-                await SendManagerDecisionEmails();                
+                await SendManagerDecisionEmails(param);                
+            }
+
+            if (_isUserAdmin && !string.IsNullOrEmpty(_languageTrainingApplication.Decision))
+            {
+                await SendLanguageSchoolDecisionEmails(param);                    
             }
 
         }
@@ -96,9 +109,12 @@
         StateHasChanged();
     }
 
-    private async Task SendManagerDecisionEmails()
+    private async Task SendLanguageSchoolDecisionEmails(LanguageTrainingParameters param)
     {
-        var param = await GetLanguageTrainingParameters();
+    }
+
+    private async Task SendManagerDecisionEmails(LanguageTrainingParameters param)
+    {
         if (_languageTrainingApplication.Manager_Decision == "Approved" || _languageTrainingApplication.Manager_Decision == "Declined")
         { 
             await EmailService.SendApplicationCompleteNotification(param);
@@ -107,9 +123,8 @@
         }  
     }
 
-    private async Task SendApplicationCompletedEmails()
+    private async Task SendApplicationCompletedEmails(LanguageTrainingParameters param)
     {
-        var param = await GetLanguageTrainingParameters();
         await EmailService.SendApplicationCompleteNotification(param);    
     }
 
@@ -123,6 +138,7 @@
         param.ManagerEmailAddress = _languageTrainingApplication.Delegated_Manager_Email;
         param.ManagerName = _languageTrainingApplication.Delegate_Manager_First_Name + " " + _languageTrainingApplication.Delegated_Manager_Last_Name;
         param.ManagerDecision = _languageTrainingApplication.Manager_Decision;
+        param.AdminEmailAddresses = ServiceAuthManager.GetProjectAdminsEmails(PROJECTACRONYM);
         return param;
     }
 
@@ -186,11 +202,11 @@
         context.SetVisible<LanguageTrainingApplication>(p => p.Employee_professional_dev_program, _languageTrainingApplication.Completed_LETP_Assessment);
         context.SetVisible<LanguageTrainingApplication>(p => p.Employee_talent_management_exercise, _languageTrainingApplication.Completed_LETP_Assessment);
 
-        context.SetVisible<LanguageTrainingApplication>(p => p.Manager_First_Name, _languageTrainingApplication.Delegated_Manager_Email?.ToLower() == _user.Mail.ToLower());
-        context.SetVisible<LanguageTrainingApplication>(p => p.Manager_Last_Name, _languageTrainingApplication.Delegated_Manager_Email?.ToLower() == _user.Mail.ToLower());
-        context.SetVisible<LanguageTrainingApplication>(p => p.Manager_Email_Address, _languageTrainingApplication.Delegated_Manager_Email?.ToLower() == _user.Mail.ToLower());
-        context.SetVisible<LanguageTrainingApplication>(p => p.Manager_Decision, _languageTrainingApplication.Delegated_Manager_Email?.ToLower() == _user.Mail.ToLower());
-        context.SetVisible<LanguageTrainingApplication>(p => p.Decision, _languageTrainingApplication.Delegated_Manager_Email?.ToLower() == _user.Mail.ToLower());
+        context.SetVisible<LanguageTrainingApplication>(p => p.Manager_First_Name, _isUserAdmin || _languageTrainingApplication.Delegated_Manager_Email?.ToLower() == _user.Mail.ToLower());
+        context.SetVisible<LanguageTrainingApplication>(p => p.Manager_Last_Name, _isUserAdmin || _languageTrainingApplication.Delegated_Manager_Email?.ToLower() == _user.Mail.ToLower());
+        context.SetVisible<LanguageTrainingApplication>(p => p.Manager_Email_Address, _isUserAdmin || _languageTrainingApplication.Delegated_Manager_Email?.ToLower() == _user.Mail.ToLower());
+        context.SetVisible<LanguageTrainingApplication>(p => p.Manager_Decision, _isUserAdmin || _languageTrainingApplication.Delegated_Manager_Email?.ToLower() == _user.Mail.ToLower());
+        context.SetVisible<LanguageTrainingApplication>(p => p.Decision, _isUserAdmin);
 
         var isFrench = CultureInfo.CurrentCulture.Name.StartsWith("fr", StringComparison.InvariantCulture);        
         

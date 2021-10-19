@@ -391,5 +391,6 @@ namespace NRCan.Datahub.Shared.Services
         public string ManagerName;
         public string LanguageSchoolEmailAddress;
         public string ManagerDecision;
+        public List<string> AdminEmailAddresses;
     }
 }
