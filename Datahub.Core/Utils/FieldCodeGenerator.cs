@@ -10,6 +10,8 @@ namespace Datahub.Core.Utils
     {
         readonly Func<string, int> _sectionMapper;
 
+        const char ChoiceSeparator = '|';
+
         public FieldCodeGenerator(Func<string, int> sectionMapper)
         {
             _sectionMapper = sectionMapper;
@@ -108,9 +110,14 @@ namespace Datahub.Core.Utils
             if (string.IsNullOrEmpty(choices))
                 return string.Empty;
 
-            var splitChoices = string.Join(", ", choices.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(Quote));
+            var splitChoices = choices
+                .Split(ChoiceSeparator, StringSplitOptions.RemoveEmptyEntries)
+                .Select(c => c.Trim())
+                .Where(c => !string.IsNullOrEmpty(c));
 
-            return $"validValues: new [] {{ { splitChoices } }}";
+            var validValues = string.Join(", ", splitChoices.Select(Quote));
+
+            return $"validValues: new [] {{ { validValues } }}";
         }
 
         static string Quote(string value) => $"\"{ value.Replace("\"", "\"") }\"";
