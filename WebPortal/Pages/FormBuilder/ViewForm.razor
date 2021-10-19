@@ -48,7 +48,7 @@
                             <h4>JSON</h4>
                             <pre>
                                 <code>
-                                    @foreach (var field in _formFields)
+                                    @foreach (var field in GetFieldsBySection())
                                     {
                                         @_fieldCodeGenerator.GenerateJSON(field)
                                         <br />
@@ -59,7 +59,7 @@
                             <h4>C#</h4>
                             <pre>
                                 <code>
-                                    @foreach (var field in _formFields)
+                                    @foreach (var field in GetFieldsBySection())
                                     {
                                         @_fieldCodeGenerator.GenerateCSharp(field)
                                         <br />
@@ -162,6 +162,8 @@
     }
 
     private bool HasFields => _formFields?.Count > 0;
+
+    private IEnumerable<WebForm_Field> GetFieldsBySection() => _formFields.OrderBy(f => f.Section_DESC ?? "A");
 
     public void Dispose() { projectContext.Dispose(); }
 }
