@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 
-namespace NRCan.Datahub.Portal.Services
+namespace Datahub.Portal.Services
 {
     public class NotificationsService
     {

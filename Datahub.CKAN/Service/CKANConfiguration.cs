@@ -1,4 +1,4 @@
-﻿namespace NRCan.Datahub.CKAN.Service
+﻿namespace Datahub.CKAN.Service
 {
     public class CKANConfiguration
     {

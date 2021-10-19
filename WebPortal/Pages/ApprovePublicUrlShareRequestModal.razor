@@ -6,32 +6,57 @@
 
 <AeFlex Vertical style="padding-left: 1rem; padding-right: 1rem;">
 
-    <AeTypography Variant="h4">@Localizer["Public URL Sharing Request"]</AeTypography>
+    <AeTypography Variant="h4">@Localizer[$"{LOCALIZATION_PREFIX}.Title"]</AeTypography>
 
-    <div>@Localizer["Filename"]: @SharedFile.Filename_TXT</div>
-    <div>@Localizer["Requesting user"]: @GetUserDisplayName(SharedFile.RequestingUser_ID)</div>
-    <div>@Localizer["Submission date"]: @SharedFile.SubmittedDate_DT?.ToShortDateString()</div>
+    <div>@Localizer[$"{LOCALIZATION_PREFIX}.Filename"]: @SharedFile.Filename_TXT</div>
+    <div>@Localizer[$"{LOCALIZATION_PREFIX}.RequestingUser"]: @GetUserDisplayName(SharedFile.RequestingUser_ID)</div>
+    <div>@Localizer[$"{LOCALIZATION_PREFIX}.SubmissionDate"]: @SharedFile.SubmittedDate_DT?.ToShortDateString()</div>
 
-    <AeButton OnClickEvent=@DownloadFile>@Localizer["Download File"]</AeButton>
+    <AeButton OnClickEvent=@DownloadFile>@Localizer[$"{LOCALIZATION_PREFIX}.DownloadFile"]</AeButton>
 
-    <AeTypography Variant="p">@Localizer["You may approve or deny this file sharing request, and optionally specify a publication date after which the file will be publicly accessible."]</AeTypography>
+    <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.Description"]</AeTypography>
 
-    <EditForm Model=@dateHolder>
-        <label for="publicationDateInput">@Localizer["Publication Date"]:</label>
+    <EditForm EditContext=@editContext>
+        <label for="publicationDateInput">@Localizer[$"{LOCALIZATION_PREFIX}.PublicationDate"]:</label>
         @if (!approved)
         {
             @* TODO: limit dates *@
-            <InputDate id="publicationDateInput" @bind-Value=@dateHolder.Date />
+            <InputDate id="publicationDateInput" @bind-Value=@formData.PublicationDate class="ae input" />
+            <ValidationMessage For="() => formData.PublicationDate" />
         }
         else
         {
-            <div>@dateHolder.Date?.ToShortDateString()</div>
+            <div>@formData.PublicationDate?.ToShortDateString()</div>
+        }
+        @if (!approved)
+        {
+            <div>
+                <label>
+                    <InputCheckbox id="enableTempSharingCheck" @bind-Value=@formData.EnableTempSharing/>
+                    @Localizer[$"{LOCALIZATION_PREFIX}.EnableTempSharing"]
+                </label>
+            </div>
+            @if (formData.EnableTempSharing)
+            {
+                <div>
+                    <label for="expiryDateInput">
+                        @Localizer[$"{LOCALIZATION_PREFIX}.ExpirationDate"]
+                    </label>
+                    <InputDate id="expiryDateInput" @bind-Value=@formData.ExpirationDate class="ae input"/>
+                </div>
+                <ValidationMessage For="() => formData.ExpirationDate" />
+            }
+        }
+        else if (SharedFile.ExpirationDate_DT.HasValue)
+        {
+            <label>@Localizer[$"{LOCALIZATION_PREFIX}.ExpirationDate"]</label>
+            <div>@SharedFile.ExpirationDate_DT?.ToShortDateString()</div>
         }
     </EditForm>
 
     <div>
-        <AeButton OnClickEvent=@ApproveRequest Disabled=@ButtonsDisabled >@Localizer["Approve"]</AeButton>
-        <AeButton OnClickEvent=@DenyRequest Disabled=@ButtonsDisabled >@Localizer["Deny"]</AeButton>
+        <AeButton OnClickEvent=@ApproveRequest Disabled=@ButtonsDisabled >@Localizer[$"{LOCALIZATION_PREFIX}.Approve"]</AeButton>
+        <AeButton OnClickEvent=@DenyRequest Disabled=@ButtonsDisabled >@Localizer[$"{LOCALIZATION_PREFIX}.Deny"]</AeButton>
         @if (processing)
         {
             <Spinner Small=@true />
@@ -43,16 +68,23 @@
 </AeFlex>
 
 @code {
+    private static readonly string LOCALIZATION_PREFIX = "PUBLIC-URL-APPROVAL";
+    private static readonly string VALIDATION_ERROR_LOCALIZATION_PREFIX = $"{LOCALIZATION_PREFIX}.ValidationErrors";
+
 
     [Parameter]
     public SharedDataFile SharedFile { get; set; }
 
-    public class DateHolder
+    public class ApprovalFormDataHolder
     {
-        public DateTime? Date { get; set; }
+        public DateTime? PublicationDate { get; set; }
+        public bool EnableTempSharing { get; set; } = false;
+        public DateTime? ExpirationDate { get; set; }
     }
 
-    private DateHolder dateHolder = new();
+    private ApprovalFormDataHolder formData = new();
+    private EditContext editContext;
+    private ValidationMessageStore validationMessageStore;
 
     private bool processing = false;
     private bool approved = false;
@@ -71,24 +103,59 @@
     {
         processing = true;
         await PublicFileService.DenyPublicUrlShare(SharedFile.File_ID);
-        @* await Task.Delay(1500); *@
         await NotifierService.Update(DataSharingDashboard.NOTIFICATION_UPDATE_KEY, true);
         processing = false;
-        //NavManager.NavigateTo(DataSharingDashboardUrl);
     }
 
     private async Task ApproveRequest()
     {
-        processing = true;
-        await PublicFileService.ApprovePublicUrlShare(SharedFile.File_ID, dateHolder.Date);
-        @* await Task.Delay(1500); *@
-        approved = true;
-        //await ReloadPublicDataSharingRequest();
-        await NotifierService.Update(DataSharingDashboard.NOTIFICATION_UPDATE_KEY, true);
-        processing = false;
+        if (editContext.Validate())
+        {
+            processing = true;
+            var expirationDate = formData.EnableTempSharing ? formData.ExpirationDate : null;
+            await PublicFileService.SaveTempSharingExpiryDate(SharedFile.File_ID, expirationDate);
+            await PublicFileService.ApprovePublicUrlShare(SharedFile.File_ID, formData.PublicationDate);
+            approved = true;
+            await NotifierService.Update(DataSharingDashboard.NOTIFICATION_UPDATE_KEY, true);
+            processing = false;
+        }
     }
 
+    protected override async Task OnInitializedAsync()
+    {
+        editContext = new(formData);
+        editContext.OnValidationRequested += HandleValiadationRequested;
+        validationMessageStore = new(editContext);
 
-    
+        formData.ExpirationDate = SharedFile.ExpirationDate_DT;
+        formData.EnableTempSharing = formData.ExpirationDate.HasValue;
+    }
+
+    private void HandleValiadationRequested(object sender, ValidationRequestedEventArgs args)
+    {
+        validationMessageStore.Clear();
+
+        var pubDate = formData.PublicationDate ?? DateTime.UtcNow;
+
+        if (formData.PublicationDate.HasValue && formData.PublicationDate.Value < DateTime.UtcNow)
+        {
+            validationMessageStore.Add(() => formData.PublicationDate, Localizer[$"{VALIDATION_ERROR_LOCALIZATION_PREFIX}.PubDateInPast"]);
+        }
+
+        if (formData.EnableTempSharing && !formData.ExpirationDate.HasValue)
+        {
+            validationMessageStore.Add(() => formData.ExpirationDate, Localizer[$"{VALIDATION_ERROR_LOCALIZATION_PREFIX}.TempWithNoExpiry"]);
+        }
+
+        if (formData.ExpirationDate.HasValue && formData.ExpirationDate.Value <= pubDate)
+        {
+            validationMessageStore.Add(() => formData.ExpirationDate, Localizer[$"{VALIDATION_ERROR_LOCALIZATION_PREFIX}.PubDateAfterExpiry"]);
+        }
+    }
+
+    public void Dispose()
+    {
+        editContext.OnValidationRequested -= HandleValiadationRequested;
+    }
 
 }

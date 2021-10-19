@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace NRCan.Datahub.ProjectForms.Data.PIP
+namespace Datahub.ProjectForms.Data.PIP
 {
     public class PIPDBContext : DbContext
     {

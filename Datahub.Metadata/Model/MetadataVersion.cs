@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace NRCan.Datahub.Metadata.Model
+namespace Datahub.Metadata.Model
 {
     public class MetadataVersion
     {

@@ -14,7 +14,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace NRCan.Datahub.Portal
+namespace Datahub.Portal
 {
     public class Program
     {
@@ -25,7 +25,7 @@ namespace NRCan.Datahub.Portal
             CreateHostBuilder(args)
                 //.ConfigureServices(serviceCollection =>
                 //{
-                //    serviceCollection.AddSingleton(new ResourceManager("NRCan.Datahub.Portal.Resources", typeof(Startup).GetTypeInfo().Assembly));
+                //    serviceCollection.AddSingleton(new ResourceManager("Datahub.Portal.Resources", typeof(Startup).GetTypeInfo().Assembly));
                 //})  
                 .Build()
                 .Run();

@@ -1,13 +1,13 @@
 ﻿using Microsoft.AspNetCore.Authentication;
-using NRCan.Datahub.Portal.Services;
-using NRCan.Datahub.Shared.Services;
+using Datahub.Portal.Services;
+using Datahub.Core.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
-namespace NRCan.Datahub.Shared.RoleManagement
+namespace Datahub.Core.RoleManagement
 {
 
     //https://stackoverflow.com/questions/58483620/net-core-3-0-claimstransformation
