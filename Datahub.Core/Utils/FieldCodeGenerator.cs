@@ -1,5 +1,6 @@
 ﻿using Datahub.Core.EFCore;
 using System;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -91,8 +92,25 @@ namespace Datahub.Core.Utils
                     var placeholder = Quote($"[{field.Description_DESC}]");
                     sb.Append($"placeholder: { placeholder }");
                 }
+
+                var validValues = GetValidValues(field.Choices_TXT);
+                if (!string.IsNullOrEmpty(validValues))
+                {
+                    sb.Append(", ").Append(validValues);
+                }
+
                 sb.Append("]\n");
             }            
+        }
+
+        static string GetValidValues(string choices)
+        {
+            if (string.IsNullOrEmpty(choices))
+                return string.Empty;
+
+            var splitChoices = string.Join(", ", choices.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(Quote));
+
+            return $"validValues: new [] {{ { splitChoices } }}";
         }
 
         static string Quote(string value) => $"\"{ value.Replace("\"", "\"") }\"";
