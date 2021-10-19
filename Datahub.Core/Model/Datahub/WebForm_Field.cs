@@ -22,15 +22,15 @@ namespace Datahub.Core.EFCore
         [AeLabel("Field")]
         public string Field_DESC { get; set; }
 
-        [AeLabel("Description")]
+        [AeLabel(label: "Description", placeholder: "Type a description to be used as a field placeholder.")]
         public string Description_DESC { get; set; }
 
-        [AeLabel("Choices")]
+        [AeLabel(label: "Choices", placeholder: "Type field choices separated by a pipe | character.")]
         public string Choices_TXT { get; set; }
 
         [Required]
         [StringLength(8)]
-        [AeLabel(label:"Extension", isDropDown:true, validValues: new [] 
+        [AeLabel(label: "Extension", isDropDown:true, validValues: new [] 
             {
                 "NONE", "AMT", "AMTL", "AMTR", "CD", "CNT", "DT", "DESC", "DUR", "URL", "EMAIL", "NT", "FCTR", "ID", "FLAG", 
                 "MULT", "NAME", "NUM", "PCT", "QTY", "RT", "RTO", "SID", "TXT", "IND", "TIME", "TS", "VAL"
