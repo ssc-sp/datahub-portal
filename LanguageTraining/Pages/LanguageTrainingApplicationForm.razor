@@ -8,7 +8,7 @@
 @inject IJSRuntime JsInterop
 @page "/languagetraining/applications"
 
-<NRCan.Datahub.Shared.Components.FormTemplate 
+<Datahub.Core.Components.FormTemplate 
         T="LanguageTrainingApplication"
         U="LanguageTrainingDBContext"
         Context="@Context"
@@ -145,7 +145,8 @@
     private async Task LoadApps()
     {
 
-        _languageTrainingApplications = Context.LanguageTrainingApplications.ToList().Where(r => (r.Email_Address_EMAIL.ToLower() == _user.Mail.ToLower()) ||(r.Delegated_Manager_Email.ToLower() == _user.Mail.ToLower()) ).ToList();
+        var _languageTrainingApplicationsContext = Context.LanguageTrainingApplications.Where(e => true);//.Where(r => (r.Email_Address_EMAIL.ToLower() == _user.Mail.ToLower()) ||(r.Delegated_Manager_Email.ToLower() == _user.Mail.ToLower()) ).ToList();
+        _languageTrainingApplications = _languageTrainingApplicationsContext.ToList();
         _formMetadata.DataSet = _languageTrainingApplications;
 
     }
