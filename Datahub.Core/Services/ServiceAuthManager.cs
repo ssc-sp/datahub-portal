@@ -95,6 +95,14 @@ namespace NRCan.Datahub.Shared.Services
             return isProjectAdmin;
         }
 
+        public List<string> GetProjectAdminsEmails(string projectAcronym)
+        { 
+            using var ctx = dbFactory.CreateDbContext();
+            var project = ctx.Projects.Where(p => p.Project_Acronym_CD.ToLower() == projectAcronym.ToLower()).First();
+
+            return ctx.Project_Users.Where(a => a.Project == project).Select(f => f.User_Name).ToList();
+
+        }
 
         public async Task RegisterProjectAdmin(Datahub_Project project, string currentUserId)
         {
@@ -136,7 +144,8 @@ namespace NRCan.Datahub.Shared.Services
                             ApprovedUser = currentUserId,
                             Approved_DT = DateTime.Now,
                             IsAdmin = true,
-                            IsDataApprover = false
+                            IsDataApprover = false,
+                            User_Name = email
                         };
 
                         ctx.Project_Users.Add(user);

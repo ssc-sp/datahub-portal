@@ -145,11 +145,13 @@ else
         //    @<UserChoiceModal HeaderText="Save Data" ChoiceTextList=@messages OnDecision="(a) => OnConfirmSave(a, application)" ConfirmText="Yes" CancelText="No" />
         //)
 
-        if (Context.ChangeTracker.HasChanges())
-        {
-            var messages = new List<string>() { "Would you like to save the current record?" };
-            await UI.ToggleModal(@<UserChoiceModal HeaderText="Save Data" ChoiceTextList=@messages OnDecision="(a) => OnConfirmSave(a, selectedRecord)" ConfirmText="Yes" CancelText="No" />);
-        }
+    //    if (Context.ChangeTracker.HasChanges())
+    //    {
+    //        var messages = new List<string>() { "Would you like to save the current record?" };
+    //        await UI.ToggleModal(
+    //@<UserChoiceModal HeaderText="Save Data" ChoiceTextList=@messages OnDecision="(a) => OnConfirmSave(a, selectedRecord)" ConfirmText="Yes" CancelText="No" />
+    //);
+    //    }
 
         await SetFormEditRecord.InvokeAsync(selectedRecord);
 
