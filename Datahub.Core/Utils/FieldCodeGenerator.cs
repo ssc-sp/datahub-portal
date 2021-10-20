@@ -1,5 +1,6 @@
 ﻿using Datahub.Core.EFCore;
 using System;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -8,6 +9,8 @@ namespace Datahub.Core.Utils
     public class FieldCodeGenerator
     {
         readonly Func<string, int> _sectionMapper;
+
+        const char ChoiceSeparator = '|';
 
         public FieldCodeGenerator(Func<string, int> sectionMapper)
         {
@@ -91,8 +94,30 @@ namespace Datahub.Core.Utils
                     var placeholder = Quote($"[{field.Description_DESC}]");
                     sb.Append($"placeholder: { placeholder }");
                 }
+
+                var validValues = GetValidValues(field.Choices_TXT);
+                if (!string.IsNullOrEmpty(validValues))
+                {
+                    sb.Append(", ").Append(validValues);
+                }
+
                 sb.Append("]\n");
             }            
+        }
+
+        static string GetValidValues(string choices)
+        {
+            if (string.IsNullOrEmpty(choices))
+                return string.Empty;
+
+            var splitChoices = choices
+                .Split(ChoiceSeparator, StringSplitOptions.RemoveEmptyEntries)
+                .Select(c => c.Trim())
+                .Where(c => !string.IsNullOrEmpty(c));
+
+            var validValues = string.Join(", ", splitChoices.Select(Quote));
+
+            return $"validValues: new [] {{ { validValues } }}";
         }
 
         static string Quote(string value) => $"\"{ value.Replace("\"", "\"") }\"";
