@@ -17,19 +17,25 @@ else
 
 <AeCard class="facardForms" CardPosition="AeCard.CardStyle.Horizontal">
 
-@if (Metadata.FilterProperties != null)
-{
-    <AeFlex id="filterBar">            
-        @foreach (var filter in Metadata.FilterProperties)
-        {   
-            var validDisplayValues = filter.Choices.DynamicInvoke() as List<string>;
-            <AeDropdown Items="validDisplayValues" OnChange="HandleFilterChange" Label="@filterLabelValue" class="@filterClass"/>                
-        }
-
-    </AeFlex>
-}
 
 <AeTypography Variant="h3">@DataLocalizer[Metadata.Header]</AeTypography>
+
+
+        @if (Metadata.FilterProperties != null)
+        {
+            <AeFlex id="filterBar">            
+                @foreach (var filter in Metadata.FilterProperties)
+                {   
+                    var validDisplayValues = filter.Choices.DynamicInvoke() as List<string>;
+                    var filterLabel = filter.Label.DynamicInvoke() as string;
+                    var filterClass = "filterDropdown";
+                    <AeDropdown Items="validDisplayValues" OnChange="HandleFilterChange" Label="@filterLabel" class="@filterClass"/>                
+                }
+
+            </AeFlex>
+        }
+
+
         @if (Metadata.DataSet.Any())
         {
             <AePaginatedTable 
