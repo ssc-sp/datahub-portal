@@ -1,4 +1,6 @@
-﻿using Elemental.Components;
+﻿#nullable disable
+
+using Elemental.Components;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
