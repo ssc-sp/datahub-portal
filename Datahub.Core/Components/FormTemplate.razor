@@ -27,9 +27,9 @@ else
                 @foreach (var filter in Metadata.FilterProperties)
                 {   
                     var validDisplayValues = filter.Choices.DynamicInvoke() as List<string>;
-                    var filterLabel = filter.Label.DynamicInvoke() as string;
+                    var filterLabel = $"{filter.Label.DynamicInvoke() as string}: {_selectedFilter}";                    
                     var filterClass = "filterDropdown";
-                    <AeDropdown Items="validDisplayValues" OnChange="HandleFilterChange" Label="@filterLabel" class="@filterClass"/>                
+                    <AeDropdown Items="validDisplayValues" OnChange="HandleFilterChanges" Label="@filterLabel" class="@filterClass"/>                
                 }
 
             </AeFlex>
@@ -129,13 +129,16 @@ else
 
     private int _lastClicked = 0;
     private IPageableComponent _myTable;
-    
 
-    private string filterLabel;
-    private string filterLabelValue;
-    private string filterClass;
+
+    private string _selectedFilter = "All";
 
     
+    private void HandleFilterChanges(string selectedValue)
+    {
+        _selectedFilter = selectedValue;
+        HandleFilterChange.Invoke(selectedValue);
+    }
 
     private void OnPageClick(int pageIndex)
     {
