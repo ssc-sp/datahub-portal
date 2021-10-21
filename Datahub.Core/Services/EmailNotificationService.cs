@@ -354,6 +354,40 @@ namespace Datahub.Core.Services
 
         }
 
+        public async Task SendLanguageSchoolDecision(LanguageTrainingParameters parameters)
+        {
+            var parametersDict = BuildLanguageNotificationParameters(parameters);
+
+            if (parameters.LanguageSchoolDecision == "Training Accepted")
+            {
+                var subject = $"Language Training Request – PLACEMENT ACCEPTED / Demande de formation linguistique APPROUVÉE - STAGE ACCEPTÉ - {parameters.EmployeeName} – {parameters.TrainingType} - {parameters.ApplicationId} ";
+                var html = await RenderTemplate<LSUApproved>(parametersDict);
+                await SendEmailMessage(subject, html, parameters.EmployeeEmailAddress, parameters.EmployeeName);
+                await SendEmailMessage(subject, html, parameters.ManagerEmailAddress, parameters.ManagerName);
+            }
+            else if (parameters.LanguageSchoolDecision == "Requires LETP assessment")
+            {
+                var subject = $"Language Training Request – NEW LETP REQUIRED / Demande de formation linguistique - NOUVEAU ELFP REQUIS - {parameters.EmployeeName} – {parameters.TrainingType} - {parameters.ApplicationId} ";
+                var html = await RenderTemplate<LSUNewLTPReq>(parametersDict);
+                await SendEmailMessage(subject, html, parameters.EmployeeEmailAddress, parameters.EmployeeName);
+                await SendEmailMessage(subject, html, parameters.ManagerEmailAddress, parameters.ManagerName);
+            }
+            else if (parameters.LanguageSchoolDecision == "Insufficient interest at level")
+            {
+                var subject = $"Language Training Request – INSUFFICIENT INTEREST / Demande de formation linguistique - INTÉRÊT INSUFFISANT - {parameters.EmployeeName} – {parameters.TrainingType} - {parameters.ApplicationId} ";
+                var html = await RenderTemplate<LSUInsufficientInterest>(parametersDict);
+                await SendEmailMessage(subject, html, parameters.EmployeeEmailAddress, parameters.EmployeeName);
+                await SendEmailMessage(subject, html, parameters.ManagerEmailAddress, parameters.ManagerName);
+            }
+            else if (parameters.LanguageSchoolDecision == "Demand exceeds capacity")
+            {
+                var subject = $"Language Training Request – EXCESS IN DEMAND / Demande de formation linguistique - SURPLUS DE DEMANDE - {parameters.EmployeeName} – {parameters.TrainingType} - {parameters.ApplicationId} ";
+                var html = await RenderTemplate<LSUExcessInDemand>(parametersDict);
+                await SendEmailMessage(subject, html, parameters.EmployeeEmailAddress, parameters.EmployeeName);
+                await SendEmailMessage(subject, html, parameters.ManagerEmailAddress, parameters.ManagerName);
+            }
+
+        }
         private Dictionary<string, object> BuildLanguageNotificationParameters(LanguageTrainingParameters parameters)
         {
             var parametersDict = new Dictionary<string, object>()
@@ -411,6 +445,7 @@ namespace Datahub.Core.Services
         public string ManagerName;
         public string LanguageSchoolEmailAddress;
         public string ManagerDecision;
+        public string LanguageSchoolDecision;
         public List<string> AdminEmailAddresses;
     }
 }
