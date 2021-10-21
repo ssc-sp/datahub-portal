@@ -30,8 +30,20 @@
 
     </div>
 </AeFlex>
-<AeFlex Vertical id="indexFlex">
 
+@if (filterProperties != null)
+    {
+        <AeFlex id="filterBar">            
+            @foreach (var filter in filterProperties)
+            {                
+                <AeDropdown Items="ValidDisplayValues" OnChange="HandleDropdownChange" Label="@filterLabelValue" class="@filterClass"/>                
+            }
+
+        </AeFlex>
+    }
+
+
+<AeFlex Vertical id="indexFlex">
 
 
 <AePaginatedTable Accessors="accessorFunctions"
@@ -122,6 +134,44 @@ if (_project.Project_ID > 0)
     
     private int _lastClicked = 0;
     private IPageableComponent _myTable;
+
+    private List<(Delegate Label, Delegate Choices)> filterProperties = new List<(Delegate Label, Delegate choices)>();
+    private int InputSelectIndex = 0;
+    private List<string> ValidDisplayValues { get; set; }
+    private string filterLabel;
+    private string filterLabelValue;
+    private string filterClass;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // load projects        
+        Context = DbFactory.CreateDbContext();
+        LoadProjects();
+
+        filterProperties.Add((() => "Status", () => new List<string> { "All", "Closed", "On Hold", "Ongoing" }));
+
+        ValidDisplayValues = new();
+        ValidDisplayValues = filterProperties[0].Choices.DynamicInvoke() as List<string>;
+        filterLabel = filterProperties[0].Label.DynamicInvoke() as string;
+        filterLabelValue = $"{filterLabel}: {ValidDisplayValues[0]}";
+        filterClass = "filterDropdown";
+    }
+    
+    private void HandleDropdownChange(string selectedItem)
+    {
+        if(selectedItem == "All")
+        {
+            LoadProjects();
+            filterClass = "filterDropdown";
+        }
+        else
+        {
+            _projects = Context.Projects.Include(r => r.Comments).Where(p => p.Project_Status_Desc == selectedItem).ToList();
+            filterClass = "filterOn";
+        }
+        filterLabelValue = $"{filterLabel}: {selectedItem}";
+        StateHasChanged();
+    }
 
     public async Task SuggestTranslation()
     {
@@ -233,14 +283,7 @@ if (_project.Project_ID > 0)
     }
 
 
-    protected override async Task OnInitializedAsync()
-    {
-        // load projects        
-        Context = DbFactory.CreateDbContext();
-        await LoadProjects(); 
-    }
-
-    private async Task LoadProjects()
+    private void LoadProjects()
     {
         _projects = Context.Projects.Include(r => r.Comments).Where(p => p.Deleted_DT == null).ToList();        
     }
@@ -295,7 +338,7 @@ if (_project.Project_ID > 0)
     {
         project.Deleted_DT = DateTime.Now;
         await Context.TrackSaveChangesAsync(AuditingService);
-        await LoadProjects(); 
+        LoadProjects(); 
     }
 
     private async Task HandleValidSubmit()
@@ -313,7 +356,7 @@ if (_project.Project_ID > 0)
             await UpdateAdmins();
 
             await Context.TrackSaveChangesAsync(AuditingService);
-            await LoadProjects(); 
+            LoadProjects(); 
             _project = null;
         }
     }
@@ -341,11 +384,15 @@ if (_project.Project_ID > 0)
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if(firstRender){
+            StateHasChanged();
+        }
         if (_navToEdit){
             _navToEdit = false;
             await this.JsInterop.InvokeVoidAsync("anchorLink.scrollIntoView", "edit");
         }
     }
+
 
     private async Task OnConfigure(IModelFormContext context)
     {

@@ -411,5 +411,6 @@ namespace Datahub.Core.Services
         public string ManagerName;
         public string LanguageSchoolEmailAddress;
         public string ManagerDecision;
+        public List<string> AdminEmailAddresses;
     }
 }
