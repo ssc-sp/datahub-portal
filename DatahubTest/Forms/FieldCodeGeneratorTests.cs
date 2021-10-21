@@ -176,6 +176,22 @@ namespace Datahub.Tests.Forms
         }
 
         [Fact]
+        public void GenerateCSharp_ForFieldTypeDropdawnWithChoices_ProducesExpectedCode()
+        {
+            WebForm_Field field = new()
+            {
+                Field_DESC = "AnyField",
+                Type_CD = "Dropdown",
+                Choices_TXT = "Red | Green | Blue | Light brown"
+            };
+
+            var generator = new FieldCodeGenerator(DummyMap);
+            var csharp = generator.GenerateCSharp(field);
+
+            Assert.Contains("[AeLabel(isDropDown: true, validValues: new [] { \"Red\", \"Green\", \"Blue\", \"Light brown\" }]", csharp);
+        }
+
+        [Fact]
         public void GenerateCSharp_ForFieldTypeMoney_ProducesExpectedAnotationCode()
         {
             WebForm_Field field = new()
