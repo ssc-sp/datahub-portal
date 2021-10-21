@@ -34,31 +34,32 @@
     private bool _isUserAdmin;
 
     protected override async Task OnInitializedAsync()
-    {
-        
-        
-
+    {        
         Context = DbFactory.CreateDbContext();
         _user = await UserInformationService.GetUserAsync();
         _isUserAdmin = await ServiceAuthManager.IsProjectAdmin(_user.Id, PROJECTACRONYM);
         _formMetadata = new();
         await LoadApps(string.Empty);
-        _formMetadata.Header = "NRCan Language Training Application Form";
-        
+        PrepareMetadata();
+
+    }
+
+    private void PrepareMetadata()
+    {
+        _formMetadata.Header = "NRCan Language Training Application Form";        
         _formMetadata.DataSet = _languageTrainingApplications;
         _formMetadata.UserId = _user.Id;
         _formMetadata.AccessorFunctions = accessorFunctions;
         _formMetadata.Headers = headers;
         _formMetadata.GridTemplateColumns = "3fr 3fr 3fr 4fr 3fr";
         _formMetadata.IsSubmitEnabled = false;
-        var filters = new List<(Delegate Label, Delegate Choices)>() { (() => "Status", () => new List<string> { "None", "Pending", "Approved", "Declined" }) };
+        var filters = new List<(Delegate Label, Delegate Choices)>() { (() => "Status", () => new List<string> { "All", "Pending", "Approved", "Declined" }) };
         _formMetadata.FilterProperties = filters;
         var isFrench = CultureInfo.CurrentCulture.Name.StartsWith("fr", StringComparison.InvariantCulture);
         var introfile = isFrench ? "FormIntroFr.md" : "FormIntro.md";
         var footerfile = isFrench ? "FormFooterWarningFr.md" : "FormFooterWarning.md";
         _formMetadata.MarkDownContent = File.ReadAllLines($@"Pages\Forms\LanguageTraining\{introfile}").ToList();
-        _formMetadata.MarkDownContentFooter = File.ReadAllLines($@"Pages\Forms\LanguageTraining\{footerfile}").ToList();
-        
+        _formMetadata.MarkDownContentFooter = File.ReadAllLines($@"Pages\Forms\LanguageTraining\{footerfile}").ToList();    
     }
 
     private List<Func<LanguageTrainingApplication, string>> accessorFunctions = new List<Func<LanguageTrainingApplication, string>>
@@ -77,7 +78,6 @@
 
     private async void HandleFilterChange(string selection)
     {
-
         await LoadApps(selection);
         StateHasChanged();
     }
@@ -167,7 +167,7 @@
 
         _languageTrainingApplications = Context.LanguageTrainingApplications.Where(r => (r.Email_Address_EMAIL.ToLower() == _user.Mail.ToLower()) ||(r.Delegated_Manager_Email.ToLower() == _user.Mail.ToLower()) ).ToList();
 
-        if (filter == "None" || string.IsNullOrEmpty(filter))
+        if (filter == "All" || string.IsNullOrEmpty(filter))
         {
             _formMetadata.DataSet = _languageTrainingApplications;
         }
@@ -188,7 +188,7 @@
             context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Employment_Status, () => Language_Constants.EMPLOYMENT_STATUS);
             context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.I_am_seeking, () => Language_Constants.LANGUAGE_TRAINING);
             context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Language_Training_Provided_By, () => Language_Constants.LANGUAGE_TRAINING_PROVIDERS);
-            context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Last_Course_Successfully_Completed, () => Language_Constants.QUARTERS);
+            context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Last_Course_Successfully_Completed, () => Language_Constants.CLASSES_E);
             context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.SLE_Results_Reading, () => Language_Constants.SLESTATUS);
             context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.SLE_Results_Writing, () => Language_Constants.SLESTATUS);
             context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.SLE_Results_Oral, () => Language_Constants.SLESTATUS);
