@@ -10,6 +10,7 @@ namespace Datahub.Core.Data
     {
         public string Header { get; set; }
         public string SubHeader { get; set; }
+        public string UserId { get; set; }
 
         public IList<T> DataSet { get; set; }
 
@@ -22,6 +23,8 @@ namespace Datahub.Core.Data
         public IList<string> MarkDownContent { get; set; }
 
         public IList<string> MarkDownContentFooter { get; set; }
+
+        public IList<(Delegate Label, Delegate Choices)> FilterProperties { get; set; }
 
         public bool IsSubmitEnabled { get; set; }
 
