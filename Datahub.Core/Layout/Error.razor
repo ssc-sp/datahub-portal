@@ -21,6 +21,7 @@
 </AeCard>
 
 @code {
+
     [Parameter]
     public string CorrelationId { get; set; }
 
@@ -32,10 +33,4 @@
     }    
 
     private string AppInsightsQuery => $"exceptions\n| where customDimensions.correlationId == '{CorrelationId}'";
-
-    //private async void CopyError()
-    //{
-    //    var errorQuery = $"exceptions\n| where customDimensions.correlationId == '{CorrelationId}'";
-    //    await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", errorQuery);
-    //}
 }
