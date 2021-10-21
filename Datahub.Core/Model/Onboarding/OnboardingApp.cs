@@ -120,5 +120,7 @@ namespace Datahub.Core.Model.Onboarding
         [Timestamp]
         public byte[] Timestamp { get; set; }
 
+
+
     }
 }
