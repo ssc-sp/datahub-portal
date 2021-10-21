@@ -21,6 +21,7 @@ namespace Datahub.Core.Services
         Task SendServiceCreationGroupNotification(string serviceName, DatahubProjectInfo projectInfo, IList<string> recipients);
         Task SendAccessRevokedNotification(string serviceName, DatahubProjectInfo projectInfo, string recipientAddress, string recipientName = null);
         Task SendApplicationCompleteNotification(LanguageTrainingParameters parameters);
+        Task SendLanguageSchoolDecision(LanguageTrainingParameters parameters);
     }
 
     public record class DatahubProjectInfo(string ProjectNameEn, string ProjectNameFr, string ProjectCode);
