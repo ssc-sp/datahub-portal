@@ -458,6 +458,7 @@ body {
   background-color: #57C4EC;
   color: #fff;
   border-radius: 5rem;
+  margin-bottom: 0.25rem;
   position: relative;
   display: inline-block;
   padding: 0.25rem 1rem;
@@ -4950,6 +4951,18 @@ body {
   padding-top: 6px;
   /* text-align: right; */
   justify-content: flex-end;
+}
+
+.filterDropdown .ae.button {
+  height: 32px;
+  background-color: #F7F7F7;
+  color: inherit;
+  display: flex;
+  padding-top: 6px;
+  justify-content: flex-end;
+}
+.filterDropdown .ae.button .filterOn {
+  background-color: #f6e05e;
 }
 
 #manageButton {
