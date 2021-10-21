@@ -42,10 +42,8 @@ namespace Datahub.Portal.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"CreateFolder: {folderName} user: {user.DisplayName} FAILED.");
-                base.DisplayErrorUI(ex);
+                throw;
             }
-
-            return false;          
         }
 
         public async Task<bool> CreateRootFolderIfNotExist(string userId, string rootFolder)
@@ -64,10 +62,8 @@ namespace Datahub.Portal.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"CreateRootFolderIfNotExist: {rootFolder}  user: {userId} FAILED.");
-                base.DisplayErrorUI(ex);
+                throw;
             }
-
-            return false;          
         }
 
         protected async Task SetDefaultFolderPermissions(DataLakeDirectoryClient directoryClient, string folderName, string userId)

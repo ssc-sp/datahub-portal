@@ -72,10 +72,8 @@ namespace Datahub.Portal.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Changed File Owner for file: {file.folderpath}/{file.filename} from user: {currentUserId} to user: {newOwner.DisplayName} FAILED.");
-                base.DisplayErrorUI(ex);
+                throw;
             }
-
-            return false;
         }
 
         public async Task<bool> AddSharedUsers(FileMetaData file, string sharedUserId, string role)
@@ -93,10 +91,8 @@ namespace Datahub.Portal.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Added shared user for file: {file.folderpath}/{file.filename} for user: {sharedUserId} with role: {role} FAILED.");
-                base.DisplayErrorUI(ex);
+                throw;
             }
-
-            return false;
         }
 
         public async Task<bool> RemoveSharedUsers(FileMetaData file, string sharedUserId)
@@ -112,10 +108,8 @@ namespace Datahub.Portal.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Removed shared user for file: {file.folderpath}/{file.filename} for user: {sharedUserId} FAILED.");
-                base.DisplayErrorUI(ex);
+                throw;
             }
-
-            return false;
         }
 
         public async Task LoadSharedUsers(FileMetaData file)
@@ -128,7 +122,7 @@ namespace Datahub.Portal.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Loaded shared users for file: {file.folderpath}/{file.filename} FAILED.");
-                base.DisplayErrorUI(ex);
+                throw;
             }
         }
     }
