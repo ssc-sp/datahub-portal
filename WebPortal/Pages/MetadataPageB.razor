@@ -29,6 +29,10 @@
                 <AeTypography>Queries: @_queryCount</AeTypography>
             </div>
 
+            <div>
+                <AeButton @onclick="ErrorClick" >Error Now!</AeButton>
+            </div>
+
         </ChildContent>
     </AeCard>
 </div>
@@ -67,5 +71,10 @@
         _keywords = await MetadataBrokerService.GetSuggestedEnglishKeywords(text, 10);
         _queryCount++;
         await InvokeAsync(StateHasChanged);
+    }
+
+    private void ErrorClick()
+    {
+        throw new Exception("Click Error!!");
     }
 }
