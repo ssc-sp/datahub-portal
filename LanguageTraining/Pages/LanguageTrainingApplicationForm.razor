@@ -18,7 +18,8 @@
         OnConfigureForms="OnConfigure"
         CreateNewRecord="CreateNewApplication"
         SelectedRecord="@_languageTrainingApplication"
-        SetFormEditRecord="SetFormEdit" />
+        SetFormEditRecord="SetFormEdit" 
+        HandleFilterChange="HandleFilterChange" />
 
 @code {
 
@@ -41,7 +42,7 @@
         _user = await UserInformationService.GetUserAsync();
         _isUserAdmin = await ServiceAuthManager.IsProjectAdmin(_user.Id, PROJECTACRONYM);
         _formMetadata = new();
-        await LoadApps();
+        await LoadApps(string.Empty);
         _formMetadata.Header = "NRCan Language Training Application Form";
         
         _formMetadata.DataSet = _languageTrainingApplications;
@@ -50,6 +51,8 @@
         _formMetadata.Headers = headers;
         _formMetadata.GridTemplateColumns = "3fr 3fr 3fr 4fr 3fr";
         _formMetadata.IsSubmitEnabled = false;
+        var filters = new List<(Delegate Label, Delegate Choices)>() { (() => "Status", () => new List<string> { "None", "Pending", "Approved", "Declined" }) };
+        _formMetadata.FilterProperties = filters;
         var isFrench = CultureInfo.CurrentCulture.Name.StartsWith("fr", StringComparison.InvariantCulture);
         var introfile = isFrench ? "FormIntroFr.md" : "FormIntro.md";
         var footerfile = isFrench ? "FormFooterWarningFr.md" : "FormFooterWarning.md";
@@ -71,6 +74,13 @@
     {
         "User","Sector","Manager", "Request", "Manager Decision"
     };
+
+    private async void HandleFilterChange(string selection)
+    {
+
+        await LoadApps(selection);
+        StateHasChanged();
+    }
 
     private async Task HandleValidSubmit()
     {
@@ -105,7 +115,7 @@
 
         }
 
-        await LoadApps();
+        await LoadApps(string.Empty);
         _languageTrainingApplication = null;
         StateHasChanged();
     }
@@ -152,12 +162,20 @@
         return param;
     }
 
-    private async Task LoadApps()
+    private async Task LoadApps(string filter)
     {
 
-        var _languageTrainingApplicationsContext = Context.LanguageTrainingApplications.Where(r => (r.Email_Address_EMAIL.ToLower() == _user.Mail.ToLower()) ||(r.Delegated_Manager_Email.ToLower() == _user.Mail.ToLower()) ).ToList();
-        _languageTrainingApplications = _languageTrainingApplicationsContext.ToList();
-        _formMetadata.DataSet = _languageTrainingApplications;
+        _languageTrainingApplications = Context.LanguageTrainingApplications.Where(r => (r.Email_Address_EMAIL.ToLower() == _user.Mail.ToLower()) ||(r.Delegated_Manager_Email.ToLower() == _user.Mail.ToLower()) ).ToList();
+
+        if (filter == "None" || string.IsNullOrEmpty(filter))
+        {
+            _formMetadata.DataSet = _languageTrainingApplications;
+        }
+        else
+        {
+            _formMetadata.DataSet = _languageTrainingApplications.Where(r => r.Manager_Decision == filter).ToList();
+        }
+
 
     }
 
