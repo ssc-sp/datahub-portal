@@ -8,7 +8,8 @@ namespace Datahub.Core.Services
     {
         New,
         Edit,
-        Delete
+        Delete,
+        Download
     }
 
     public interface IDatahubAuditingService
@@ -54,7 +55,7 @@ namespace Datahub.Core.Services
         /// <summary>
         /// Saves the changes async and tracks the changes as data change events
         /// </summary>
-        public static async Task TrackSaveChangesAsync(this DbContext dbContext, IDatahubAuditingService auditService)
+        public static async Task<int> TrackSaveChangesAsync(this DbContext dbContext, IDatahubAuditingService auditService)
         {
             try
             {
@@ -87,7 +88,7 @@ namespace Datahub.Core.Services
                 await auditService.TrackException(ex);
             }
 
-            await dbContext.SaveChangesAsync();
+            return await dbContext.SaveChangesAsync();
         }
     }
 }
