@@ -72,10 +72,8 @@ namespace Datahub.Portal.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"GetFolderStructure folder: {folder.fullPathFromRoot} user: {user.DisplayName} FAILED.");
-                base.DisplayErrorUI(ex);
+                throw;
             }
-
-            return folder;
         }
 
         public async Task<Folder> GetFolderContents(dynamic folder, string filterSearch, Microsoft.Graph.User user, string project = null)
@@ -104,10 +102,8 @@ namespace Datahub.Portal.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"GetFileList folder: {folder.fullPathFromRoot} filter search: {filterSearch} user: {user.DisplayName} FAILED.");
-                base.DisplayErrorUI(ex);
+                throw;
             }
-
-            return folder;
         }
 
         private async Task<Folder> GetProjectFileList(string project, Microsoft.Graph.User user)
@@ -157,16 +153,7 @@ namespace Datahub.Portal.Services
 
         public async Task<Uri> DownloadFile(FileMetaData file)
         {
-            try
-            {
-                return await _apiService.DownloadFile(file);
-
-            }
-            catch (Exception ex)
-            {
-                base.DisplayErrorUI(ex);
-            }
-            return null;
+            return await _apiService.DownloadFile(file);
         }
 
         public Task<List<Core.Data.Version>> GetFileVersions(string fileId)
@@ -178,7 +165,7 @@ namespace Datahub.Portal.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Get versions for file: {fileId} FAILED.");
-                base.DisplayErrorUI(ex);
+                throw;
             }
 
             return Task.FromResult(new List<Core.Data.Version>());
@@ -213,10 +200,8 @@ namespace Datahub.Portal.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Get all sub folders under folder: {folderName} FAILED.");
-                base.DisplayErrorUI(ex);
+                throw;
             }
-
-            return new List<string>();
         }
 
         public async Task<List<string>> GetAllFolders(string rootFolderName, Microsoft.Graph.User user)
@@ -235,10 +220,8 @@ namespace Datahub.Portal.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Get all folders under folder: {rootFolderName} for user: {user.DisplayName} FAILED.");
-                base.DisplayErrorUI(ex);
+                throw;
             }
-
-            return new List<string>();
         }
 
         protected async Task<Folder> getSharedFileList(dynamic folder, Microsoft.Graph.User user)

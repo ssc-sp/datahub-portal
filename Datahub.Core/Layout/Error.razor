@@ -1,0 +1,36 @@
+﻿@inject IJSRuntime JSRuntime
+
+<AeCard>
+        <Header>
+            <h3>@Localizer["ERROR-PAGE.SomethingWentWrong-Label"]</h3>
+        </Header>
+        <ChildContent>
+            <div>
+                <h4>@Localizer["ERROR-PAGE.TechnicalDetails-Label"]</h4>
+                <p>@GetGeneralErrorText()</p>
+            </div>
+            <environment include="Development">
+                <div>
+                    <h4>AppInsights Query</h4>
+                    <pre>
+                        @AppInsightsQuery
+                    </pre>
+                </div>
+            </environment>
+        </ChildContent>
+</AeCard>
+
+@code {
+
+    [Parameter]
+    public string CorrelationId { get; set; }
+
+    private MarkupString GetGeneralErrorText()
+    {
+        var errorLabel = Localizer["ERROR-PAGE.ErrorExplanation-Text"].ToString();
+        var placeholder = "<>";
+        return new MarkupString(errorLabel.Replace(placeholder, $"<strong>{CorrelationId}</strong>"));
+    }    
+
+    private string AppInsightsQuery => $"exceptions\n| where customDimensions.correlationId == '{CorrelationId}'";
+}
