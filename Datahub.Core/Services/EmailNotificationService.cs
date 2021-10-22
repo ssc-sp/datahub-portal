@@ -396,7 +396,7 @@ namespace Datahub.Core.Services
 
             var subject = $"Onboarding Request – {parameters.App.Project_Name}";
             var html = await RenderTemplate<OnboardingAdmin>(parametersDict);
-            //await SendEmailMessage(subject, html, parameters.AdminEmailAddresses);
+            await SendEmailMessage(subject, html, parameters.AdminEmailAddresses);
             html = await RenderTemplate<OnboardingClient>(parametersDict);
             await SendEmailMessage(subject, html, parameters.App.Client_Email, parameters.App.Client_Contact_Name);
             if (!string.IsNullOrEmpty(parameters.App.Additional_Contact_Email_EMAIL))
