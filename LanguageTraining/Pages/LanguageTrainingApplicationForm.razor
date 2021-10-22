@@ -46,7 +46,8 @@
 
     private void PrepareMetadata()
     {
-        _formMetadata.Header = "NRCan Language Training Application Form";        
+        _formMetadata.Header = "NRCan Language Training Application Form";
+        _formMetadata.TableRoles = "default";
         _formMetadata.DataSet = _languageTrainingApplications;
         _formMetadata.UserId = _user.Id;
         _formMetadata.AccessorFunctions = accessorFunctions;

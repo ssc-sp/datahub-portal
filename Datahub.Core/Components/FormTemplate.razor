@@ -15,57 +15,60 @@
 else
 {
 
+
+
 <AeCard class="facardForms" CardPosition="AeCard.CardStyle.Horizontal">
+    <AeTypography Variant="h3">@DataLocalizer[Metadata.Header]</AeTypography>
+
+            
+        <AuthorizeView Roles="@Metadata.TableRoles">
+            
+
+            @if (Metadata.FilterProperties != null)
+            {
+                <AeFlex id="filterBar">            
+                    @foreach (var filter in Metadata.FilterProperties)
+                    {   
+                        var validDisplayValues = filter.Choices.DynamicInvoke() as List<string>;
+                        var filterLabel = $"{filter.Label.DynamicInvoke() as string}: {_selectedFilter}";                    
+                        var filterClass = "filterDropdown";
+                        <AeDropdown Items="validDisplayValues" OnChange="HandleFilterChanges" Label="@filterLabel" class="@filterClass"/>                
+                    }
+
+                </AeFlex>
+            }
 
 
-<AeTypography Variant="h3">@DataLocalizer[Metadata.Header]</AeTypography>
+            @if (Metadata.DataSet.Any())
+            {
+                <AePaginatedTable 
+                    T="@T"
+                    Accessors="Metadata.AccessorFunctions.ToList()"
+                    Dataset="Metadata.DataSet.ToList()"
+                    ColorAccessor="getColor"
+                    Headers="Metadata.Headers.ToList()"
+                    GridTemplateColumns="@Metadata.GridTemplateColumns"
+                    MaxHeight="400"
+                    OnRowClick="@SetFormEdit" 
+                    Page="@_lastClicked"
+                    PageSize="10"
+                    @ref=_myTable
+                    />
 
-
-        @if (Metadata.FilterProperties != null)
-        {
-            <AeFlex id="filterBar">            
-                @foreach (var filter in Metadata.FilterProperties)
-                {   
-                    var validDisplayValues = filter.Choices.DynamicInvoke() as List<string>;
-                    var filterLabel = $"{filter.Label.DynamicInvoke() as string}: {_selectedFilter}";                    
-                    var filterClass = "filterDropdown";
-                    <AeDropdown Items="validDisplayValues" OnChange="HandleFilterChanges" Label="@filterLabel" class="@filterClass"/>                
-                }
-
-            </AeFlex>
-        }
-
-
-        @if (Metadata.DataSet.Any())
-        {
-            <AePaginatedTable 
-             T="@T"
-             Accessors="Metadata.AccessorFunctions.ToList()"
-             Dataset="Metadata.DataSet.ToList()"
-             ColorAccessor="getColor"
-             Headers="Metadata.Headers.ToList()"
-             GridTemplateColumns="@Metadata.GridTemplateColumns"
-             MaxHeight="400"
-             OnRowClick="@SetFormEdit" 
-             Page="@_lastClicked"
-             PageSize="10"
-             @ref=_myTable
-             />
-
-            <AePagination 
-            Pageable="@_myTable" 
-            OnPageClick="OnPageClick"> 
-            <LeftIcon><i class='fad fa-chevron-double-left'></i></LeftIcon> 
-            <RightIcon><i class='fad fa-chevron-double-right'></i></RightIcon>
-            </AePagination> 
-        }
+                <AePagination 
+                Pageable="@_myTable" 
+                OnPageClick="OnPageClick"> 
+                <LeftIcon><i class='fad fa-chevron-double-left'></i></LeftIcon> 
+                <RightIcon><i class='fad fa-chevron-double-right'></i></RightIcon>
+                </AePagination> 
+            }
+        </AuthorizeView>
         <AeFlex id="buttonBar">
         <div class="icon-container" style="margin-bottom: 10px; margin-left: 5px;">
             <FAButton Text="Add New" Icon="far fa-plus-square" onclick="CreateNewRecord" />
         </div>
     </AeFlex>
 </AeCard>
-
 
 @if (SelectedRecord != null)
 {
