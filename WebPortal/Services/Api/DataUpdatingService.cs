@@ -65,10 +65,8 @@ namespace Datahub.Portal.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Renamed folder: {folder.fullPathFromRoot} to {folder.parent.fullPathFromRoot}/{newFolderName} for user: {currentUser.DisplayName} FAILED.");
-                base.DisplayErrorUI(ex);
+                throw;
             }
-
-            return false;
         }
 
         public async Task<bool> RenameFile(FileMetaData file, string newFileName, Microsoft.Graph.User currentUser)
@@ -82,16 +80,13 @@ namespace Datahub.Portal.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Rename file from: {oldFile} to: {file.folderpath}/{newFileName} User: {currentUser.DisplayName} FAILED.");
-                base.DisplayErrorUI(ex);
+                throw;
             }
-
-            return false;
         }
 
         public async Task<bool> MoveFile(FileMetaData file, string newParentFolder, Microsoft.Graph.User currentUser)
         {
             var oldFile = $"{file.folderpath}/{file.filename}";
-
             try
             {
                 // new folder path, same filename
@@ -100,10 +95,8 @@ namespace Datahub.Portal.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Move file from: {oldFile} to: {newParentFolder}/{file.filename} User: {currentUser.DisplayName} FAILED.");
-                base.DisplayErrorUI(ex);
+                throw;
             }
-
-            return false;
         }
 
         protected async Task UpdateFilesWithNewFolderPath(DataLakeFileSystemClient fileSystemClient, Folder folder, Microsoft.Graph.User currentUser)
