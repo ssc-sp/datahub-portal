@@ -11,6 +11,7 @@ using System.Linq;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Text;
+using Datahub.Core.Model.Onboarding;
 
 namespace Datahub.Core.Services
 {
@@ -388,7 +389,33 @@ namespace Datahub.Core.Services
             }
 
         }
+
+        public async Task SendOnboardingConfirmations(OnboardingParameters parameters)
+        {
+            var parametersDict = BuildOnboardingParameters(parameters);
+
+            var subject = $"Onboarding Request – {parameters.App.Project_Name}";
+            var html = await RenderTemplate<OnboardingAdmin>(parametersDict);
+            //await SendEmailMessage(subject, html, parameters.AdminEmailAddresses);
+            html = await RenderTemplate<OnboardingClient>(parametersDict);
+            await SendEmailMessage(subject, html, parameters.App.Client_Email, parameters.App.Client_Contact_Name);
+            if (!string.IsNullOrEmpty(parameters.App.Additional_Contact_Email_EMAIL))
+                await SendEmailMessage(subject, html, parameters.App.Additional_Contact_Email_EMAIL, parameters.App.Additional_Contact_Email_EMAIL);
+
+        }
+
         private Dictionary<string, object> BuildLanguageNotificationParameters(LanguageTrainingParameters parameters)
+        {
+            var parametersDict = new Dictionary<string, object>()
+            {
+                { "ApplicationParameters", parameters }
+
+            };
+
+            return parametersDict;
+        }
+
+        private Dictionary<string, object> BuildOnboardingParameters(OnboardingParameters parameters)
         {
             var parametersDict = new Dictionary<string, object>()
             {
@@ -446,6 +473,12 @@ namespace Datahub.Core.Services
         public string LanguageSchoolEmailAddress;
         public string ManagerDecision;
         public string LanguageSchoolDecision;
+        public List<string> AdminEmailAddresses;
+    }
+
+    public class OnboardingParameters
+    {
+        public OnboardingApp App;        
         public List<string> AdminEmailAddresses;
     }
 }

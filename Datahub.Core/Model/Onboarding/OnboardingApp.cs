@@ -110,6 +110,10 @@ namespace Datahub.Core.Model.Onboarding
         [AeFormCategory("Additional Information", 30)]
         public string Attachments { get; set; }
 
+
+        [AeFormIgnore]
+        public bool NotificationsSent { get; set; }
+
         [AeFormIgnore]
         public string Last_Updated_UserId { get; set; }
 
