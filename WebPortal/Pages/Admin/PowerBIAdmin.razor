@@ -170,8 +170,8 @@
     {
         //if (doRemove)
         //{
-            var toRem = datasetLinks.Where(r => r.Id == Guid.Parse(el.Dataset.Id)).ToList();
-            ctx.Project_PBI_DataSets.RemoveRange(toRem);
+        var toRem = datasetLinks.Where(r => r.Id == Guid.Parse(el.Dataset.Id)).ToList();
+        ctx.Project_PBI_DataSets.RemoveRange(toRem);
         //}
         var e = new Project_PBI_DataSet() {Id = Guid.Parse(el.Dataset.Id), Workspace = el.Group.Id, Project = project, DatasetName = el.Dataset.Name };
         ctx.Project_PBI_DataSets.Add(e);
@@ -182,8 +182,8 @@
     {
         //if (doRemove)
         //{
-            var toRem = reportLinks.Where(r => r.Id == el.report.Id).ToList();
-            ctx.Project_PBI_Reports.RemoveRange(toRem);
+        var toRem = reportLinks.Where(r => r.Id == el.report.Id).ToList();
+        ctx.Project_PBI_Reports.RemoveRange(toRem);
         //}
         var e = new Project_PBI_Report() { Id = el.report.Id, Workspace = el.group.Id, Project = project, ReportName = el.report.Name };
         ctx.Project_PBI_Reports.Add(e);
@@ -223,8 +223,11 @@
     }
 
     private async Task LoadData()
-    {        
-        allProjects = await ctx.Projects.ToListAsync();
+    {
+        if (selectedProject is null)
+        {
+            allProjects = await ctx.Projects.ToListAsync();
+        }
         datasetLinks = await ctx.Project_PBI_DataSets.Include(e => e.Project).ToListAsync();
         reportLinks = await ctx.Project_PBI_Reports.Include(e => e.Project).ToListAsync();
     }
