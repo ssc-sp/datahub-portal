@@ -34,7 +34,7 @@
         <ChildContent>
             <AeTypography Variant="h1">@_project.ProjectName</AeTypography>
             <AeMarkdown Content="@($"{_project.ProjectDescription}")"></AeMarkdown>
-            <AuthorizeView Roles="@($"{projectAcronym}, {projectAcronym}-admin")">
+            <AuthorizeView Roles="@($"{projectAcronym}, {projectAcronym}-admin, {RoleConstants.DATAHUB_ROLE_ADMIN}")">
                 <NotAuthorized>
                     <AeTypography Variant="h3">@DataLocalizer["Access Denied"]</AeTypography>
                     <AeTypography class="warning">@DataLocalizer["You currently do not have access to this project."]</AeTypography>
@@ -49,17 +49,15 @@
                 </NotAuthorized>
             </AuthorizeView>
             <AeTypography>@DataLocalizer["Data Sensitivity:"] @DataLocalizer[_project.Data_Sensitivity]</AeTypography>
-            <AuthorizeView Roles="@RoleConstants.DATAHUB_ROLE_ADMIN">
-                <Authorized>
-                    <AeFlex>
-                    <AeButton @onclick="EditProject">@DataLocalizer["Edit Project"]</AeButton>
-                    </AeFlex>
-                </Authorized>
-            </AuthorizeView>
+            <DHAdminActions>                
+                <NavLink href="@($"/edit-project/{projectAcronym}")"><AeButton>@DataLocalizer["Edit Project"]</AeButton></NavLink>
+                <NavLink href="@($"/tracker/{projectAcronym}")"><AeButton>@DataLocalizer["Project Tracker"]</AeButton></NavLink>
+            </DHAdminActions>
         </ChildContent>
     </AeCard>
+   
 
-    <AuthorizeView Roles="@($"{projectAcronym}, {projectAcronym}-admin")">
+    <AuthorizeView Roles="@($"{projectAcronym}, {projectAcronym}-admin, {RoleConstants.DATAHUB_ROLE_ADMIN}")">
 
 
         @if (_pipelineStatus?.Count > 0)
@@ -128,7 +126,7 @@
             <AeCard class="facard1" CardPosition="AeCard.CardStyle.Horizontal">
                 <Header>
                     <div style="width:180px">
-                        <img src="/icons/svg/powerbi.svg" alt="Power Virtual Agents power bi">
+                        <img src="/icons/svg/powerbi.svg" alt="Power bi">
                     </div>
                 </Header>
                 <ChildContent>
@@ -143,6 +141,9 @@
                     <AeTypography>@Localizer["Power BI Workspace"]</AeTypography>
                 </ChildContent>
                 <Footer>
+                    <DHAdminActions>
+                        <NavLink href="@($"/admin/powerbi/{projectAcronym}")"><AeButton>@DataLocalizer["Manage Links"]</AeButton></NavLink>
+                    </DHAdminActions>
                     @if (!_powerBIAuthorized)
                     {
                         @if (!string.IsNullOrWhiteSpace(_project.PowerBI_URL))
@@ -411,11 +412,6 @@
     private string _projectCostFormatted;
 
     private bool ShowDatabaseCard => _project != null && _project.HasAssociatedDatabase;
-
-    private void EditProject()
-    {
-        NavigationManager.NavigateTo($"/edit-project/{projectAcronym}");
-    }
 
     private async Task UpdateFeatured(bool changed)
     {
