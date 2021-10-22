@@ -47,12 +47,12 @@ using System.Net.Http;
 using Polly.Extensions.Http;
 using NRCan.Datahub.Metadata.Model;
 using Microsoft.Extensions.Logging;
-using NRCan.Datahub.Shared.RoleManagement;
 using NRCan.Datahub.Shared;
 using NRCan.Datahub.Portal.Data.LanguageTraining;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.HttpLogging;
+using Datahub.Core.RoleManagement;
 
 namespace NRCan.Datahub.Portal
 {
