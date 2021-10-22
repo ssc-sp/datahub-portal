@@ -1,4 +1,5 @@
 ﻿@inject IStringLocalizer DataLocalizer
+@using Datahub.Core.Views.Modals
 @using Microsoft.EntityFrameworkCore
 @using Datahub.Core.Data
 @typeparam T
@@ -157,13 +158,13 @@ else
         //    @<UserChoiceModal HeaderText="Save Data" ChoiceTextList=@messages OnDecision="(a) => OnConfirmSave(a, application)" ConfirmText="Yes" CancelText="No" />
         //)
 
-        //    if (Context.ChangeTracker.HasChanges())
-        //    {
-        //        var messages = new List<string>() { "Would you like to save the current record?" };
-        //        await UI.ToggleModal(
-        //@<UserChoiceModal HeaderText="Save Data" ChoiceTextList=@messages OnDecision="(a) => OnConfirmSave(a, selectedRecord)" ConfirmText="Yes" CancelText="No" />
-        //);
-        //    }
+        if (Context.ChangeTracker.HasChanges())
+        {
+            var messages = new List<string>() { "Would you like to save the current record?" };
+            await UI.ToggleModal(
+            @<UserChoiceModal HeaderText="Save Data" ChoiceTextList=@messages OnDecision="(a) => OnConfirmSave(a, selectedRecord)" ConfirmText="Yes" CancelText="No" />
+            );
+        }
         await ClearForm();
         await SetFormEditRecord.InvokeAsync(selectedRecord);
 
@@ -190,7 +191,8 @@ else
                 foreach (var property in entry.OriginalValues.Properties)  
                 {
                     var propertyName = property.Name;
-                    entry.Property(propertyName).CurrentValue = entry.Property(propertyName).OriginalValue;   
+                    entry.Property(propertyName).CurrentValue = entry.Property(propertyName).OriginalValue;
+                    entry.State = EntityState.Unchanged;
                 }
             }                          
         }
