@@ -1,4 +1,5 @@
 ﻿@page "/admin/powerbi"
+@page "/admin/powerbi/{projectAcronym}"
 
 @using Microsoft.EntityFrameworkCore.Query
 @using Microsoft.EntityFrameworkCore;
@@ -21,7 +22,44 @@
         <Authorized>
             <AeCard>
                 <Header>
-                    Link PowerBI Datasets to Projects
+                    @($"Link PowerBI Reports to {((selectedProject is null)?"Projects":selectedProject.ProjectName)}")
+                </Header>
+                <ChildContent>
+                    @if (!isWorkspacesLoaded)
+                    {
+                        <Spinner />
+                    }
+                    else
+                    {
+
+                        <AePaginatedTable Accessors="reportAccessorFunctions"
+                                      Dataset="reports"
+                                      Headers="reportHeaders"
+                                      T="(Report report, Group group)"
+                                      @ref="_myTable2"
+                                      Page="@_lastClicked2"
+                                      PageSize="20"
+                                      Renderers="reportRenderFunctions"
+                                      OnRowClick="@RowSelected" />
+                        
+                        <AePagination 
+                        Pageable="@_myTable2" 
+                        OnPageClick="OnPageClick2"> 
+                        <LeftIcon><i class='fad fa-chevron-double-left'></i></LeftIcon> 
+                        <RightIcon><i class='fad fa-chevron-double-right'></i></RightIcon>
+                        </AePagination>
+                    }
+                </ChildContent>
+                <Footer>
+                    <AeButton @onclick="ReloadData">Cancel</AeButton>
+                    <AeButton @onclick="SaveChanges">Save Changes</AeButton>
+		        </Footer>
+            </AeCard>
+            <div>&nbsp;</div>
+
+            <AeCard>
+                <Header>
+                    @($"Link PowerBI Datasets to {((selectedProject is null)?"Projects":selectedProject.ProjectName)}")
                 </Header>
                 <ChildContent>
                     @if (!isWorkspacesLoaded)
@@ -37,46 +75,12 @@
                                       T="PowerBIDatasetElements"
                                       @ref="_myTable"
                                       Page="@_lastClicked"
+                                      PageSize="20"
                                       Renderers="renderFunctions"
                                       OnRowClick="@RowSelected" />
 
                         <AePagination 
                         Pageable="@_myTable" 
-                        OnPageClick="OnPageClick"> 
-                        <LeftIcon><i class='fad fa-chevron-double-left'></i></LeftIcon> 
-                        <RightIcon><i class='fad fa-chevron-double-right'></i></RightIcon>
-                        </AePagination>
-                    }
-                </ChildContent>
-                <Footer>
-                    <AeButton @onclick="ReloadData">Cancel</AeButton>
-                    <AeButton @onclick="SaveChanges">Save Changes</AeButton>
-		        </Footer>
-            </AeCard>
-            <div>&nbsp;</div>
-            <AeCard>
-                <Header>
-                    Link PowerBI Report to Projects
-                </Header>
-                <ChildContent>
-                    @if (!isWorkspacesLoaded)
-                    {
-                        <Spinner />
-                    }
-                    else
-                    {
-
-                        <AePaginatedTable Accessors="reportAccessorFunctions"
-                                      Dataset="reports"
-                                      Headers="reportHeaders"
-                                      T="(Report report, Group group)"
-                                      @ref="_myTable2"
-                                      Page="@_lastClicked"
-                                      Renderers="reportRenderFunctions"
-                                      OnRowClick="@RowSelected" />
-                        
-                        <AePagination 
-                        Pageable="@_myTable2" 
                         OnPageClick="OnPageClick"> 
                         <LeftIcon><i class='fad fa-chevron-double-left'></i></LeftIcon> 
                         <RightIcon><i class='fad fa-chevron-double-right'></i></RightIcon>
@@ -101,8 +105,12 @@
 
     private List<PowerBIDatasetElements> dataSets;
 
+    [Parameter]
+    public string projectAcronym { get; set; }
+
 
     private int _lastClicked = 0;
+    private int _lastClicked2 = 0;
     private AePaginatedTable<PowerBIDatasetElements> _myTable;
     private AePaginatedTable<(Report report, Group group)> _myTable2;
     private PowerBIDatasetElements? _selected;
@@ -135,7 +143,7 @@
         null
     };
 
-  //(Report report, Group group)
+    //(Report report, Group group)
     private List<Func<(Report report, Group group), string>> reportAccessorFunctions = new List<Func<(Report report, Group group), string>>
     {
         dummyData => { return dummyData.report.Name; },
@@ -158,19 +166,25 @@
 
     private Dictionary<Guid,Datahub_Project> associations = new Dictionary<Guid,Datahub_Project>();
 
-    private void HandleDropDownChange(PowerBIDatasetElements el, Datahub_Project project)
+    private void HandleDropDownChange(PowerBIDatasetElements el, Datahub_Project project, bool doRemove)
     {
-        var toRem = datasetLinks.Where(r => r.Id == Guid.Parse(el.Dataset.Id)).ToList();
-        ctx.Project_PBI_DataSets.RemoveRange(toRem);
+        //if (doRemove)
+        //{
+            var toRem = datasetLinks.Where(r => r.Id == Guid.Parse(el.Dataset.Id)).ToList();
+            ctx.Project_PBI_DataSets.RemoveRange(toRem);
+        //}
         var e = new Project_PBI_DataSet() {Id = Guid.Parse(el.Dataset.Id), Workspace = el.Group.Id, Project = project, DatasetName = el.Dataset.Name };
         ctx.Project_PBI_DataSets.Add(e);
         datasetLinks.Add(e);
     }
 
-    private void HandleDropDownChange((Report report, Group group) el, Datahub_Project project)
+    private void HandleDropDownChange((Report report, Group group) el, Datahub_Project project, bool doRemove)
     {
-        var toRem = reportLinks.Where(r => r.Id == el.report.Id).ToList();
-        ctx.Project_PBI_Reports.RemoveRange(toRem);
+        //if (doRemove)
+        //{
+            var toRem = reportLinks.Where(r => r.Id == el.report.Id).ToList();
+            ctx.Project_PBI_Reports.RemoveRange(toRem);
+        //}
         var e = new Project_PBI_Report() { Id = el.report.Id, Workspace = el.group.Id, Project = project, ReportName = el.report.Name };
         ctx.Project_PBI_Reports.Add(e);
         reportLinks.Add(e);
@@ -189,6 +203,11 @@
     private void OnPageClick(int pageIndex)
     {
         _lastClicked = pageIndex;
+    }
+
+    private void OnPageClick2(int pageIndex)
+    {
+        _lastClicked2 = pageIndex;
     }
 
     private List<Datahub_Project> allProjects;
@@ -231,9 +250,15 @@
 
     private List<(Report report, Group group)> reports;
 
+    private Datahub_Project? selectedProject = null;
+
     protected override async Task OnInitializedAsync()
     {
         ctx = DbFactoryProject.CreateDbContext();
+        if (projectAcronym != null)
+        {
+            selectedProject = await ctx.Projects.FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronym);
+        }
         //Task.Run(async () =>
         //{
         try
@@ -249,28 +274,56 @@
         {
             ConsentHandler.HandleException(ex);
         }
-       //});
+        //});
         await LoadData();
-        renderFunctions = new List<Func<PowerBIDatasetElements, RenderFragment>>
+        if (selectedProject is null)
+        {
+            renderFunctions = new List<Func<PowerBIDatasetElements, RenderFragment>>
         {
             null,
             null,
             el =>  { return 
                 @<AeMultiSelect @key=el T="Datahub_Project" DefaultLabel="Select Project"
-                        SelectedItem="GetAssociatedProject(el)" SelectedItemChanged="e => HandleDropDownChange(el,e)"
-                        Renderer="CustomRenderer" Items="allProjects"/> ; }
+                        SelectedItem="GetAssociatedProject(el)" SelectedItemChanged="e => HandleDropDownChange(el,e,true)"
+                        Renderer="CustomRenderer" Items="allProjects"/>
+    ; }
 
         };
-        reportRenderFunctions = new List<Func<(Report report, Group group), RenderFragment>>
+            reportRenderFunctions = new List<Func<(Report report, Group group), RenderFragment>>
         {
             null,
             null,
             el =>  { return 
                 @<AeMultiSelect @key=el T="Datahub_Project" DefaultLabel="Select Project"
-                        SelectedItem="GetAssociatedProject(el)" SelectedItemChanged="e => HandleDropDownChange(el,e)"
-                        Renderer="CustomRenderer" Items="allProjects"/> ; }
+                        SelectedItem="GetAssociatedProject(el)" SelectedItemChanged="e => HandleDropDownChange(el,e,true)"
+                        Renderer="CustomRenderer" Items="allProjects"/>
+    ; }
 
         };
+        } else
+        {
+            renderFunctions = new List<Func<PowerBIDatasetElements, RenderFragment>>
+        {
+            null,
+            null,
+            el =>  { return 
+                @<DHCheckbox IsChecked="@(selectedProject == GetAssociatedProject(el))"
+                             IsCheckedChanged="e => HandleDropDownChange(el,selectedProject,false)"
+                 />;
+                   }
+
+        };
+            reportRenderFunctions = new List<Func<(Report report, Group group), RenderFragment>>
+        {
+            null,
+            null,
+            el =>  { return 
+                @<DHCheckbox IsChecked="@(selectedProject == GetAssociatedProject(el))"
+                             IsCheckedChanged="e => HandleDropDownChange(el,selectedProject,false)"                
+                />;
+                   }
+        };            
+        }
     }
 
 }
