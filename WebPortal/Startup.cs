@@ -231,9 +231,7 @@ namespace Datahub.Portal
                 endpoints.MapControllers();
                 endpoints.MapFallbackToPage("/_Host");
             });
-
         }
-
 
         private void ConfigureAuthentication(IServiceCollection services)
         {
