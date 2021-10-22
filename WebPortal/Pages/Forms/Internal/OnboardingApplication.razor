@@ -47,15 +47,13 @@
 
         await LoadApps();
         _formMetadata.Header = "Datahub Project Onboarding Application Form";
-        
+        _formMetadata.TableRoles = RoleConstants.DATAHUB_ROLE_ADMIN;
         _formMetadata.DataSet = _onboardingApplications;
         _formMetadata.AccessorFunctions = accessorFunctions;
         _formMetadata.Headers = headers;
         _formMetadata.GridTemplateColumns = "4fr 4fr 4fr 4fr";
         _formMetadata.IsSubmitEnabled = true;
         var isFrench = CultureInfo.CurrentCulture.Name.StartsWith("fr", StringComparison.InvariantCulture);
-        //var introfile = isFrench ? "FormIntroFr.md" : "FormIntro.md";
-        //var footerfile = isFrench ? "FormFooterWarningFr.md" : "FormFooterWarning.md";
         _formMetadata.MarkDownContent = new List<string>();
         _formMetadata.MarkDownContentFooter = new List<string>();
         
@@ -122,45 +120,7 @@
         context.RegisterOptionValueProperty<OnboardingApp>(p => p.Client_Branch, LoadBranches);
     }
     
-    private void ToggleVisibility(IModelFormContext context)
-    {
-        //context.SetVisible<LanguageTrainingApplication>(p => p.Language_Training_Since_LETP_Assessment, _onboardingApplication.Completed_LETP_Assessment);
-        //context.SetVisible<LanguageTrainingApplication>(p => p.Language_Training_Provided_By, _onboardingApplication.Completed_LETP_Assessment && _onboardingApplication.Language_Training_Since_LETP_Assessment);
-        //context.SetVisible<LanguageTrainingApplication>(p => p.Last_Course_Successfully_Completed, _onboardingApplication.Completed_LETP_Assessment && (_onboardingApplication.Language_Training_Provided_By == "NRCan Language School" || _onboardingApplication.Language_Training_Provided_By == "École de langues de RNCan"));
-        //context.SetVisible<LanguageTrainingApplication>(p => p.Completed_Training_Year, _onboardingApplication.Completed_LETP_Assessment && (_onboardingApplication.Language_Training_Provided_By == "NRCan Language School" || _onboardingApplication.Language_Training_Provided_By == "École de langues de RNCan"));
-        //context.SetVisible<LanguageTrainingApplication>(p => p.Completed_Training_Session, _onboardingApplication.Completed_LETP_Assessment && (_onboardingApplication.Language_Training_Provided_By == "NRCan Language School" || _onboardingApplication.Language_Training_Provided_By == "École de langues de RNCan"));
-        //context.SetVisible<LanguageTrainingApplication>(p => p.Report_Sent_To_NRCan_Language_School, _onboardingApplication.Completed_LETP_Assessment  && (_onboardingApplication.Language_Training_Provided_By == "External Provider" || _onboardingApplication.Language_Training_Provided_By == "Fournisseur externe"));
-        //context.SetVisible<LanguageTrainingApplication>(p => p.Second_Language_Evaluation_Results, _onboardingApplication.Completed_LETP_Assessment);
-        //context.SetVisible<LanguageTrainingApplication>(p => p.SLE_Results_Reading, _onboardingApplication.Completed_LETP_Assessment && _onboardingApplication.Second_Language_Evaluation_Results);
-        //context.SetVisible<LanguageTrainingApplication>(p => p.SLE_Results_Writing, _onboardingApplication.Completed_LETP_Assessment && _onboardingApplication.Second_Language_Evaluation_Results);
-        //context.SetVisible<LanguageTrainingApplication>(p => p.SLE_Results_Oral, _onboardingApplication.Completed_LETP_Assessment && _onboardingApplication.Second_Language_Evaluation_Results);
-        //context.SetVisible<LanguageTrainingApplication>(p => p.Training_Type, _onboardingApplication.Completed_LETP_Assessment);
-        //context.SetVisible<LanguageTrainingApplication>(p => p.SLE_Test_Date, _onboardingApplication.Completed_LETP_Assessment && (_onboardingApplication.Training_Type == "Individual - Coaching" || _onboardingApplication.Training_Type == "Encadrement individuel"));
-        //context.SetVisible<LanguageTrainingApplication>(p => p.Session_For_Language_Training, _onboardingApplication.Completed_LETP_Assessment && (_onboardingApplication.Training_Type == "Group Training - Part-Time Training" || _onboardingApplication.Training_Type == "Group Training - Full-Time Training" || _onboardingApplication.Training_Type == "Formation en groupe – Formation à temps plein" || _onboardingApplication.Training_Type == "Formation en groupe – Formation à temps partiel"));
-        //context.SetVisible<LanguageTrainingApplication>(p => p.Class_For_Language_Training, _onboardingApplication.Completed_LETP_Assessment && (_onboardingApplication.Training_Type == "Group Training - Part-Time Training" || _onboardingApplication.Training_Type == "Group Training - Full-Time Training" || _onboardingApplication.Training_Type == "Formation en groupe – Formation à temps plein" || _onboardingApplication.Training_Type == "Formation en groupe – Formation à temps partiel"));
-        //context.SetVisible<LanguageTrainingApplication>(p => p.Delegate_Manager_First_Name, _onboardingApplication.Completed_LETP_Assessment);
-        //context.SetVisible<LanguageTrainingApplication>(p => p.Delegated_Manager_Last_Name, _onboardingApplication.Completed_LETP_Assessment);
-        //context.SetVisible<LanguageTrainingApplication>(p => p.Delegated_Manager_Email, _onboardingApplication.Completed_LETP_Assessment);
-        //context.SetVisible<LanguageTrainingApplication>(p => p.Employee_Appointed_NonImperative_Basis, _onboardingApplication.Completed_LETP_Assessment);
-        //context.SetVisible<LanguageTrainingApplication>(p => p.Employee_equity_group, _onboardingApplication.Completed_LETP_Assessment);
-        //context.SetVisible<LanguageTrainingApplication>(p => p.Employee_language_profile_raised, _onboardingApplication.Completed_LETP_Assessment);
-        //context.SetVisible<LanguageTrainingApplication>(p => p.Employee_professional_dev_program, _onboardingApplication.Completed_LETP_Assessment);
-        //context.SetVisible<LanguageTrainingApplication>(p => p.Employee_talent_management_exercise, _onboardingApplication.Completed_LETP_Assessment);
-
-        //context.SetVisible<LanguageTrainingApplication>(p => p.Manager_First_Name, _onboardingApplication.Delegated_Manager_Email?.ToLower() == _user.Mail.ToLower());
-        //context.SetVisible<LanguageTrainingApplication>(p => p.Manager_Last_Name, _onboardingApplication.Delegated_Manager_Email?.ToLower() == _user.Mail.ToLower());
-        //context.SetVisible<LanguageTrainingApplication>(p => p.Manager_Email_Address, _onboardingApplication.Delegated_Manager_Email?.ToLower() == _user.Mail.ToLower());
-        //context.SetVisible<LanguageTrainingApplication>(p => p.Manager_Decision, _onboardingApplication.Delegated_Manager_Email?.ToLower() == _user.Mail.ToLower());
-        //context.SetVisible<LanguageTrainingApplication>(p => p.Decision, _onboardingApplication.Delegated_Manager_Email?.ToLower() == _user.Mail.ToLower());
-
-        //var isFrench = CultureInfo.CurrentCulture.Name.StartsWith("fr", StringComparison.InvariantCulture);        
-        
-        //_formMetadata.IsSubmitEnabled = _onboardingApplication.Completed_LETP_Assessment;
-        //var footerfile = _formMetadata.IsSubmitEnabled ? (isFrench ? "FormFooterFr.md" : "FormFooter.md") : (isFrench ? "FormFooterWarningFr.md" : "FormFooterWarning.md");
-
-        //_formMetadata.MarkDownContentFooter = File.ReadAllLines($@"Pages\Forms\LanguageTraining\{footerfile}").ToList();
-        //_onchange = false;
-    }
+   
 
     private void OnChange(ModelFormChangeArgs args)
     {
@@ -180,26 +140,6 @@
 
     private async Task SetFormEdit(OnboardingApp application)
     {
-    //    if (_onboardingApplication != null)
-    //    {
-    //        var entry = Context.Entry(_onboardingApplication);
-    //    }
-    //    if (Context.ChangeTracker.HasChanges())
-    //    {
-    //        var messages = new List<string>() { "Would you like to save the current record?" };
-    //        await UI.ToggleModal(
-    //        @<UserChoiceModal HeaderText="Save Data" ChoiceTextList=@messages OnDecision="(a) => OnConfirmSave(a, application)" ConfirmText="Yes" CancelText="No" />
-    //);
-    //    }
-    //    else
-    //    {
-    //        if(_onboardingApplication != null)
-    //            Context.Entry(_onboardingApplication).State = EntityState.Detached;
-    //        _onboardingApplication = application;
-    //        StateHasChanged();
-    //    }
-
-    
     
         _onboardingApplication = application;
         StateHasChanged();
