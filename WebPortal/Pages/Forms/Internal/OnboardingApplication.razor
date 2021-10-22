@@ -8,6 +8,7 @@
 @inject IJSRuntime JsInterop
 @inject UIControlsService UI
 @inject IDatahubAuditingService AuditingService
+@inject NavigationManager NavigationManager
 @page "/onboarding/applications"
 
 @using Datahub.Core.Model.Onboarding
@@ -89,12 +90,9 @@
             _onboardingApplication.NotificationsSent = true;
 
             await Context.TrackSaveChangesAsync(AuditingService);
+            NavigationManager.NavigateTo("/onboarding/confirmation");
         }
 
-        //var adminEmails = ServiceAuthManager.GetProjectAdminsEmails(PROJECTACRONYM);
-        await LoadApps();
-        _onboardingApplication = null;
-        StateHasChanged();
     }
 
    
