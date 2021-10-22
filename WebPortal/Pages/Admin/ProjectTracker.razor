@@ -1,0 +1,139 @@
+﻿@using Microsoft.EntityFrameworkCore.Query
+@using Microsoft.EntityFrameworkCore;
+@using Datahub.Portal.Data
+@using Datahub.Core.Data
+
+@inject IStringLocalizer<ProjectTracker> DataLocalizer
+@inject NavigationManager NavigationManager
+@implements IDisposable
+@inject IDbContextFactory<DatahubProjectDBContext> DbFactoryProject
+@inject IDatahubAuditingService AuditingService
+
+@page "/tracker/{projectAcronym}"
+<AuthorizeView Roles="@RoleConstants.DATAHUB_ROLE_ADMIN">
+    <Authorized>
+<div style="padding-left: 2rem;padding-right: 2rem">
+    <AeFlex Vertical>
+        <h2>Project Tracker</h2>
+    </AeFlex>
+    <AeCard CardPosition="AeCard.CardStyle.Horizontal">
+        <Header>
+            <div style="width:180px;">
+                <i class="@($"fad fa-{_project.Project_Icon}")" />
+            </div>
+        </Header>
+        <ChildContent>
+            <AeTypography Variant="h1">@_project.ProjectName</AeTypography>
+            <AeMarkdown Content="@($"{_project.ProjectDescription}")"></AeMarkdown>
+            <AeTypography>@DataLocalizer["Data Sensitivity"]</AeTypography>
+            <AeTypography Variant="h2">@DataLocalizer[_project.Data_Sensitivity]</AeTypography>
+        </ChildContent>
+    </AeCard>
+
+    <AeCard>
+    <AeFlex id="buttonBar">
+        <div class="icon-container" style="margin-bottom: 10px; margin-left: 5px;">
+           <FAButton Text="Add New Comment" Icon="far fa-plus-square" onclick="e => AddNewComment()"/>        
+        </div>
+    </AeFlex>
+        <AeTable Accessors="commentAccessorFunctions"
+               T="Datahub_ProjectComment"
+               Dataset="_project.Comments"       
+               Headers="commentsHeaders" 
+               GridTemplateColumns="1fr 8fr"
+               MaxHeight="400"
+               OnRowClick="@SetCommentEdit"
+               />
+
+        <AeModelForm Model="_comment"
+            OnValidSubmit="HandleValidCommentSubmit"
+            CancelLabel="Cancel"
+            SubmitLabel="Save Comment"        
+            LabelForPropertyFunc="@GetDataLabel" />
+    </AeCard>
+
+</div>
+
+    </Authorized>
+</AuthorizeView>
+
+@code {
+
+    [Parameter]
+    public string projectAcronym { get; set; }
+
+    private Datahub_Project _project;
+
+    private Datahub_ProjectComment _comment;
+
+    private List<string> commentsHeaders = new List<string>
+    {
+        "Date","Comment"
+    };
+
+    private async Task AddNewComment()
+    {
+        _comment = new Datahub_ProjectComment() { Comment_Date_DT = DateTime.Now, Project = _project };
+        StateHasChanged();
+    }
+
+    // Accessor functions to retrieve cell value
+    private List<Func<Datahub_ProjectComment, string>> commentAccessorFunctions = new List<Func<Datahub_ProjectComment, string>>
+    {
+        new Func<Datahub_ProjectComment, string>(p => { return p.Comment_Date_DT.ToShortDateString(); }),
+        new Func<Datahub_ProjectComment, string>(p => { return ShortenString(p.Comment_NT,50); })
+    };
+
+    private DatahubProjectDBContext projectContext;
+    //Service Types - 1 = DataBricks, 2 = PowerBi
+    //Service Status - 0 = pending creation, 1 = created
+    protected override async Task OnInitializedAsync()
+    {
+        projectContext = DbFactoryProject.CreateDbContext();   
+        _project = projectContext.Projects.Include(p => p.Comments)
+                        .Single(p => p.Project_Acronym_CD == projectAcronym);        
+    }
+
+    public static string ShortenString(string input, int maxLength)
+    {
+
+        if (input is null || input.Length <= maxLength)
+            return input;
+        var words = input.Split(" ", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        var final = new List<string>();
+        int wPos = 0;
+        while (final.Sum(l => l.Length+1) <= maxLength)
+        {
+            final.Add(words[wPos++]);
+        }
+        return string.Join(" ", final) + "...";
+    }
+
+    private async Task HandleValidCommentSubmit()
+    {
+        if (_comment != null)
+        {
+            if (_comment.Comment_ID == 0)
+            {
+                _comment = projectContext.Project_Comments.Add(_comment).Entity;
+            }
+            await projectContext.TrackSaveChangesAsync(AuditingService);
+        }
+    }
+
+    private void SetCommentEdit(Datahub_ProjectComment comment)
+    {
+        _comment = comment;
+        StateHasChanged();
+    }
+
+    public string GetDataLabel(string propName)
+    {
+        return DataLocalizer[propName];
+    }
+
+    public void Dispose()
+    {
+        projectContext.Dispose();
+    }
+}
