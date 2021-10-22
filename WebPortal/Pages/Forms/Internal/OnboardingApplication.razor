@@ -1,6 +1,7 @@
 ﻿@inject IStringLocalizer DataLocalizer
 @inject IEmailNotificationService EmailService
 @implements IDisposable
+@inject ServiceAuthManager ServiceAuthManager
 @inject IDbContextFactory<DatahubProjectDBContext> DbFactory
 @inject IUserInformationService UserInformationService
 @inject NavigationManager NavigationManager
@@ -24,7 +25,7 @@
         SetFormEditRecord="SetFormEdit" />
 
 @code {
-
+    private const string PROJECTACRONYM = "DHPGLIST";
     private FormMetadata<OnboardingApp> _formMetadata;
     private bool _onchange;
     private List<OnboardingApp> _onboardingApplications;
@@ -82,9 +83,15 @@
             }
             _onboardingApplication.Last_Updated_DT = DateTime.Now;
             
+            OnboardingParameters onboardingParameters = new() { App = _onboardingApplication, AdminEmailAddresses =  ServiceAuthManager.GetProjectAdminsEmails(PROJECTACRONYM)};
+        
+            await EmailService.SendOnboardingConfirmations(onboardingParameters);
+            _onboardingApplication.NotificationsSent = true;
+
             await Context.TrackSaveChangesAsync(AuditingService);
         }
 
+        //var adminEmails = ServiceAuthManager.GetProjectAdminsEmails(PROJECTACRONYM);
         await LoadApps();
         _onboardingApplication = null;
         StateHasChanged();
@@ -134,7 +141,7 @@
         //var user = await UserInformationService.GetUserAsync();
         _onboardingApplication.Client_Email = _user.Mail;
         _onboardingApplication.Client_Contact_Name = _user.DisplayName;
-
+        _formMetadata.IsSubmitEnabled = true;
         StateHasChanged();
     }
 
@@ -142,6 +149,9 @@
     {
     
         _onboardingApplication = application;
+        if (_onboardingApplication.NotificationsSent)
+            _formMetadata.IsSubmitEnabled = false;
+
         StateHasChanged();
 
     }
