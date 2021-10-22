@@ -11,6 +11,6 @@
   "author": "Apption",
   "license": "Apache-2.0",
   "devDependencies": {
-    "sass": "^1.43.2"
+    "sass": "^1.43.3"
   }
 }
