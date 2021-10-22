@@ -16,12 +16,22 @@
                 <Topbar />
                 <div class="ui-control">
                     <div class="page">
-                        @Body
+                        <ErrorBoundary @ref="_errorBoundary">
+                            <ChildContent>
+                                @Body
+                            </ChildContent>
+                            <ErrorContent Context="ex">
+                                @if (HandleException(@ex)) 
+                                {
+                                    <Error CorrelationId=@_correlationId />    
+                                }
+                            </ErrorContent>
+                        </ErrorBoundary>
                     </div>
                     <RightSidebar />
                     <Modal />
 
-                    <ErrorModal />
+                    @*<ErrorModal />
                     <div id="blazor-error-ui">
                         <div class="page-modal modal-content-large">
                             <div id="escapearea" class="modal-background"></div>
@@ -38,7 +48,7 @@
                                 </div>
                             </div>
                         </div> 
-                   </div>
+                    </div>
 
                     <div id="components-reconnect-modal" class="components-reconnect-hide">
                         <div class="page-modal">
@@ -68,7 +78,7 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </div>*@
 
                 </div>
             </div>
@@ -81,10 +91,22 @@
 
 @code
 {
+    [Inject]
+    public IDatahubAuditingService AuditingService { get; set; }
+
+    private ErrorBoundary _errorBoundary;
+    private string _correlationId;
+    private Exception _lastException;
+
+    protected override void OnParametersSet()
+    {
+        _errorBoundary?.Recover();
+    }
 
     protected override async Task OnInitializedAsync()
     {
-        try {
+        try 
+        {
             await MSGraphService.LoadUsersAsync();
         } catch (Exception ex)
         {
@@ -93,7 +115,28 @@
         await ApiService.LoadApplicationData();
     }
 
+    private bool HandleException(Exception ex)
+    {
+        if (ex != _lastException)
+        {
+            _lastException = ex;
+            _ = AuditExceptionAsync(ex);
+        }
+        return true;
+    }
 
-
+    private async Task AuditExceptionAsync(Exception ex)
+    {
+        try
+        {
+            var correlationId = Guid.NewGuid().ToString();
+            await AuditingService.TrackException(ex, (nameof(correlationId), correlationId));
+            _correlationId = correlationId;
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception)
+        {
+        }
+    }
 }
 
