@@ -22,6 +22,7 @@ namespace Datahub.Core.Services
         Task SendAccessRevokedNotification(string serviceName, DatahubProjectInfo projectInfo, string recipientAddress, string recipientName = null);
         Task SendApplicationCompleteNotification(LanguageTrainingParameters parameters);
         Task SendLanguageSchoolDecision(LanguageTrainingParameters parameters);
+        Task SendOnboardingConfirmations(OnboardingParameters parameters);
     }
 
     public record class DatahubProjectInfo(string ProjectNameEn, string ProjectNameFr, string ProjectCode);
