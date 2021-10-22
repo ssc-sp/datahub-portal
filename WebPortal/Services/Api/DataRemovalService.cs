@@ -58,10 +58,8 @@ namespace Datahub.Portal.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Delete folder: {folder.fullPathFromRoot} user: {currentUser.DisplayName} FAILED.");
-                base.DisplayErrorUI(ex);
+                throw;
             }
-
-            return false;
         }
 
         public async Task<bool> Delete(FileMetaData file, Microsoft.Graph.User currentUser)
@@ -81,10 +79,8 @@ namespace Datahub.Portal.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Delete file: {file.folderpath}/{file.filename} user: {currentUser.DisplayName} FAILED.");
-                base.DisplayErrorUI(ex);
+                throw;
             }
-
-            return false;
         }
 
         protected async Task<DataLakeDirectoryClient> DeleteAllFilesUnderneath(Folder folder, Microsoft.Graph.User currentUser)
