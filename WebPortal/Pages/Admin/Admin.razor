@@ -331,6 +331,7 @@
         await projectContext.SaveChangesAsync();
         var serviceName = r.Project.ProjectName;
         await EmailService.SendServiceAccessGrantedNotification(serviceName, r.Project.ProjectInfo, r.User_ID);
+        await ServiceAuthManager.ClearProjectAdminCache();
 
         await RefreshData();
     }
