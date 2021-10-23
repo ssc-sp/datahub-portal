@@ -353,9 +353,10 @@ if (_project.Project_ID > 0)
 
             //update admins here
 
-            await UpdateAdmins();
 
             await Context.TrackSaveChangesAsync(AuditingService);
+            
+            await UpdateAdmins();
             LoadProjects(); 
             _project = null;
         }
