@@ -1,29 +1,38 @@
 ﻿@using Microsoft.Azure.Services.AppAuthentication
+@using Microsoft.Extensions.Logging
 @inject IProjectDatabaseService ProjectDbService
+@inject IUserInformationService UserInformationService
+@inject HttpClient HttpClient
+@inject ILogger<DataProjectDbInformation> Logger
 
 @if (DataProject != null)
 {
     <AeTypography Variant="h3">@DataProject.ProjectName</AeTypography>
-    <div>@Localizer["PROJECT-PAGE.DATABASE-CARD.DatabaseName"]: @DataProject.DB_Name</div>
-    <div>@Localizer["PROJECT-PAGE.DATABASE-CARD.DatabaseType"]: @DataProject.DB_Type</div>
-    <div>@Localizer["PROJECT-PAGE.DATABASE-CARD.DatabaseServer"]: @DataProject.DB_Server</div>
+
+    <PropertyList 
+        PropertyDict=@_dbAttributes
+        Headers=@LocalizedHeaders
+        KeyTransformer=@dbInfoKeyTransformer
+        />
+
     <hr />
     @if (DataProject.IsDatabasePostgres)
     {
         @if (_authResult != null)
         {
             <div>
-                @Localizer["PROJECT-PAGE.DATABASE-CARD.AccessToken"]:
-                <code style="display: block; padding: 2px 10px; word-break: break-all;">
-                    @_authResult.AccessToken
-                </code>
+                @Localizer[$"{LOCALIZATION_PREFIX}.AccessToken"]:
+                <a href="#" onclick="copyToClipboard('dbAccessToken')" @onclick:preventDefault=@true>
+                    <i class="fas fa-copy" title=@Localizer[$"{LOCALIZATION_PREFIX}.Copy"] >&nbsp;</i>
+                </a>
+                <AeInput disabled DefaultValue=@_authResult.AccessToken class="formuserinput" id="dbAccessToken" />
             </div>
-            <div>@Localizer["PROJECT-PAGE.DATABASE-CARD.Expires"]: @_authResult.ExpiresOn.ToLocalTime()</div>
+            <div>@Localizer[$"{LOCALIZATION_PREFIX}.Expires"]: @_authResult.ExpiresOn.ToLocalTime()</div>
         }
         else if (ProjectDbService.IsServiceAvailable())
         {
             <div>
-                <AeButton OnClickEvent=@GetPostgresToken Disabled=@awaitingToken>@Localizer["PROJECT-PAGE.DATABASE-CARD.GetToken_button"]</AeButton>
+                <AeButton OnClickEvent=@GetPostgresToken Disabled=@awaitingToken>@Localizer[$"{LOCALIZATION_PREFIX}.GetToken_button"]</AeButton>
                 @if (awaitingToken)
                 {
                     <div style="display: inline-block;">
@@ -33,10 +42,34 @@
             </div>
         }
     }
+
+    @if (loadedPostgresInfo)
+    {
+        <hr />
+        <AeCollapse>
+            <AeCollapseSection>
+                <Header>
+                    <AeTypography Variant="h4">@Localizer[$"{LOCALIZATION_PREFIX}.PostgresResources"]</AeTypography>
+                    @Localizer[$"{LOCALIZATION_PREFIX}.ClickToExpand"]
+                </Header>
+                <ChildContent>
+                    <div class="modal-short">
+                        <AeMarkdown Content=@PostgresResourcesContent />
+                    </div>
+                </ChildContent>
+            </AeCollapseSection>
+        </AeCollapse>
+    }
 }
 
 
 @code {
+    private readonly string LOCALIZATION_PREFIX = "PROJECT-PAGE.DATABASE-CARD";
+
+    // TODO make this configurable, and/or store the whole hostname in the db record
+    private readonly string POSTGRES_HOST_SUFFIX = "postgres.database.azure.com";
+
+    private readonly string POSTGRES_RESOURCES_URL = "https://raw.githubusercontent.com/wiki/NRCan/datahub-portal/Postgresql-Resources.md";
 
     [Parameter]
     public Datahub_Project DataProject { get; set; }
@@ -47,6 +80,21 @@
     private AppAuthenticationResult _authResult { get; set; }
     private bool awaitingToken = false;
 
+    private bool loadedPostgresInfo = false;
+
+    private Dictionary<string, string> _dbAttributes;
+
+    private List<string> LocalizeHeaders(List<string> headerKeys)
+    {
+        return headerKeys.Select(k => Localizer[$"{LOCALIZATION_PREFIX}.{k}"].ToString()).ToList();
+    }
+    private List<string> headerKeys = new List<string>() { "Attribute", "Value" };
+    private List<string> LocalizedHeaders => LocalizeHeaders(headerKeys);
+
+    private Func<string, string> dbInfoKeyTransformer = k => k;
+
+    private string PostgresResourcesContent;
+
     private async Task GetPostgresToken()
     {
         awaitingToken = true;
@@ -54,11 +102,57 @@
         awaitingToken = false;
     }
 
+    private async Task<string> LoadPostgresResourcesContent()
+    {
+        loadedPostgresInfo = false;
+
+        using (var res = await HttpClient.GetAsync(POSTGRES_RESOURCES_URL))
+        {
+            try
+            {
+                res.EnsureSuccessStatusCode();
+
+                var content = await res.Content.ReadAsStringAsync();
+                loadedPostgresInfo = true;
+                return content;
+            }
+            catch (HttpRequestException ex)
+            {
+                Logger.LogError(ex, $"Error loading Postgres information from {POSTGRES_RESOURCES_URL}");
+                return Localizer[$"{LOCALIZATION_PREFIX}.ErrorLoadingPostgresInfo"];
+            }
+        }
+    }
+
     protected override async Task OnInitializedAsync()
     {
+        var loadUserTask = UserInformationService.GetUserAsync();
+        var postgresContentTask = LoadPostgresResourcesContent();
+
+        dbInfoKeyTransformer = k => Localizer[$"{LOCALIZATION_PREFIX}.{k}"].ToString();
+
+        if (DataProject != null)
+        {
+            _dbAttributes = new Dictionary<string, string>()
+            {
+                {"DatabaseName", DataProject.DB_Name},
+                {"DatabaseServer", DataProject.DB_Server},
+                {"DatabaseType", DataProject.DB_Type}
+            };
+
+            var user = await loadUserTask;
+            if (DataProject.IsDatabasePostgres)
+            {
+                _dbAttributes.Add("DbUsername", $"{user.Mail.ToLowerInvariant()}@{DataProject.DB_Server}");
+                _dbAttributes.Add("DbHostname", $"{DataProject.DB_Server}.{POSTGRES_HOST_SUFFIX}");
+            }
+        }
+
         if (GetAccessTokenImmediately)
         {
             await GetPostgresToken();
         }
+
+        PostgresResourcesContent = await postgresContentTask;
     }
 }
