@@ -689,7 +689,15 @@
       "DatabaseType": "Database Type",
       "DatabaseServer": "Database Server",
       "AccessToken": "Access Token",
-      "Expires": "Expires"
+      "Expires": "Expires",
+      "Attribute": "Attribute",
+      "Value": "Value",
+      "DbUsername": "Database Username",
+      "DbHostname": "Database Host Name",
+      "PostgresResources": "PostgreSQL Resources",
+      "ClickToExpand": "(click to expand)",
+      "ErrorLoadingPostgresInfo": "There was an error loading the Postgres Resources",
+      "Copy": "Copy"
     },
     "PUBLIC-SHARING-CARD": {
       "Title": "Public Data Sharing",
