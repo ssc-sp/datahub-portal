@@ -199,8 +199,7 @@
     private GraphUser RequestingUser;
     private string requestFilename;
 
-    //TODO add domain
-    private string PublicUrl => $"/Public/DownloadFile/{FileId}";
+    private string PublicUrl => PublicFileService.GetPublicSharedFileUrl(FileId);
 
     public class ExpirationDateHolder
     {
