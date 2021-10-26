@@ -1,4 +1,5 @@
-﻿
+﻿@inject UIControlsService UI
+
 @if (SelectedItem != null)
 {
     @if (SelectedItem.ownedby == CurrentUser)
@@ -26,12 +27,6 @@
             }
         </AuthorizeView>
 
-<!-- To be added when we support it
-        <div class="file-grid-item" @onclick="OpenVersions">
-            <i class="fas fa-code-branch icon-color sm-icon"></i>
-            @Localizer["Versions"]
-        </div>
--->
         <div class="file-grid-item" @onclick="OpenDetails">
             <i class="far fa-info-circle icon-color sm-icon"></i>
             @Localizer["ViewDetails"]
@@ -81,18 +76,34 @@ else
         &nbsp;
     </div>
 }
+
+@if (CanAddData)
+{
+    <div class="file-grid-item-right" @onclick="ToggleAddData">
+        <i class="far fa-cloud-upload icon-color sm-icon"></i>
+        <strong>&nbsp;@Localizer["FILE-GRID-PAGE.AddData"]</strong>        
+    </div>
+}
+
 @code {
 
     [Parameter]
     public EventCallback<MenuActions> PerformMenuAction { get; set; }
+
     [Parameter]
     public BaseMetadata SelectedItem { get; set; } = null;
+
     [Parameter]
     public bool IsSearchedData { get; set; } = false;
+
     [Parameter]
     public string CurrentUser { get; set; }
+
     [Parameter]
     public string Project { get; set; }
+
+    [Parameter]
+    public bool CanAddData { get; set; }
 
     private Task DeleteRow()
     {
@@ -129,5 +140,11 @@ else
     private Task Share()
     {
         return PerformMenuAction.InvokeAsync(MenuActions.ShareFile);
+    }
+
+    private void ToggleAddData()
+    {
+        RenderFragment fragment = @<AddDataBar />;
+        UI.ToggleRightSidebar(fragment);
     }
 }
