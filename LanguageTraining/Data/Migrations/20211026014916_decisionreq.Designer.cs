@@ -4,14 +4,16 @@ using Datahub.Portal.Data.LanguageTraining;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Datahub.Portal.Migrations
 {
     [DbContext(typeof(LanguageTrainingDBContext))]
-    partial class LanguageTrainingDBContextModelSnapshot : ModelSnapshot
+    [Migration("20211026014916_decisionreq")]
+    partial class decisionreq
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -46,6 +48,7 @@ namespace Datahub.Portal.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("Decision")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Delegate_Manager_First_Name")
@@ -117,7 +120,6 @@ namespace Datahub.Portal.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("Manager_Decision")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Manager_Email_Address")
