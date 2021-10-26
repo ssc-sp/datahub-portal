@@ -585,6 +585,22 @@
     }
   },
 
+  "DATA-SHARING-DASHBOARD": {
+    "Title": "Data Sharing Dashboard",
+    "RequestsPendingApproval": "Public URL Sharing Requests Pending Approval",
+    "YourSharedFiles": "Your Shared Files",
+    "OthersSharedFiles": "Other Users' Shared Files",
+    "Filename": "Filename",
+    "RequestingUser": "Requesting User",
+    "SubmissionDate": "Submission Date",
+    "Type": "Type",
+    "Status": "Status",
+    "PublicationDate": "Publication Date",
+    "Owner": "Owner",
+    "OpenData": "Open Data",
+    "PublicUrl": "Public URL"
+  },
+
   "PUBLIC-URL-APPROVAL": {
     "Title": "Public URL Sharing Request",
     "Filename": "Filename",

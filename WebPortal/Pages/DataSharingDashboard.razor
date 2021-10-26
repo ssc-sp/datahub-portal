@@ -9,13 +9,13 @@
 
 <AeFlex Vertical>
 
-    <AeTypography Variant="h2">@Localizer["Data Sharing Dashboard"]</AeTypography>
+    <AeTypography Variant="h2">@Localizer[$"{LOCALIZATION_PREFIX}.Title"]</AeTypography>
 
     @if (ShouldShowRequestsAwaitingApproval)
     {
         <AeCard style="margin-left: 2rem; width: 48%; margin-bottom: 2rem;">
 
-            <AeTypography Variant="h3">@Localizer["Public URL Sharing Requests Pending Approval"]</AeTypography>
+            <AeTypography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.RequestsPendingApproval"]</AeTypography>
 
             <AeTable
                 Accessors=@awaitingApprovalAccessors
@@ -31,7 +31,7 @@
 
     <AeCard style="margin-left: 2rem; width: 48%; margin-bottom: 2rem;">
 
-        <AeTypography Variant="h3">@Localizer["Your Shared Files"]</AeTypography>
+        <AeTypography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.YourSharedFiles"]</AeTypography>
 
         <AeTable
             Accessors=@usersOwnFilesAccessors
@@ -48,7 +48,7 @@
     {
         <AeCard style="margin-left: 2rem; width: 48%; margin-bottom: 2rem;">
 
-            <AeTypography Variant="h3">@Localizer["Other Users' Shared Files"]</AeTypography>
+            <AeTypography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.OthersSharedFiles"]</AeTypography>
 
             <AeTable
                 Accessors=@otherUsersFilesAccessors
@@ -71,6 +71,7 @@
     public string ProjectAcronym { get; set; }
 
     public static readonly string NOTIFICATION_UPDATE_KEY = "datasharing";
+    public static readonly string LOCALIZATION_PREFIX = "DATA-SHARING-DASHBOARD";
 
     private List<SharedDataFile> publicDataFilesAwaitingApproval = new();
     private List<SharedDataFile> usersOwnSharedFiles = new();
@@ -85,21 +86,29 @@
     
     
     private string GetUserDisplayName(string userId) => GraphService.GetUserName(userId);
+
+    private List<string> LocalizeHeaders(List<string> headerKeys)
+    {
+        return headerKeys.Select(k => Localizer[$"{LOCALIZATION_PREFIX}.{k}"].ToString()).ToList();
+    }
     
-    private List<string> awaitingApprovalHeaders = new List<string>()
+    private List<string> awaitingApprovalHeaderKeys = new List<string>()
     {
-        "Filename", "Requesting User", "Submission Date"
+        "Filename", "RequestingUser", "SubmissionDate"
     };
+    private List<string> awaitingApprovalHeaders => LocalizeHeaders(awaitingApprovalHeaderKeys);
 
-    private List<string> usersOwnFilesHeaders = new List<string>()
+    private List<string> usersOwnFilesHeaderKeys = new List<string>()
     {
-        "Filename", "Submission Date", "Type", "Status", "Publication Date"
+        "Filename", "SubmissionDate", "Type", "Status", "PublicationDate"
     };
+    private List<string> usersOwnFilesHeaders => LocalizeHeaders(usersOwnFilesHeaderKeys);
 
-    private List<string> otherUsersFilesHeaders = new List<string>()
+    private List<string> otherUsersFilesHeaderKeys = new List<string>()
     {
         "Filename", "Owner", "Type", "Status"
     };
+    private List<string> otherUsersFilesHeaders => LocalizeHeaders(otherUsersFilesHeaderKeys);
 
     private List<Func<SharedDataFile, string>> awaitingApprovalAccessors = new();
     private List<Func<SharedDataFile, string>> usersOwnFilesAccessors = new();
@@ -129,7 +138,8 @@
 
     private void PopupApprovalModal(SharedDataFile f)
     {
-        UI.ToggleRightSidebar(@<ApprovePublicUrlShareRequestModal SharedFile=@f />);
+        UI.ToggleRightSidebar(
+    @<ApprovePublicUrlShareRequestModal SharedFile=@f />);
     }
 
     private async Task LoadSharingRequests()
@@ -168,7 +178,7 @@
         {
             f => f.Filename_TXT,
             f => f.SubmittedDate_DT?.ToShortDateString() ?? "--",
-            f => f.IsOpenDataRequest_FLAG? Localizer["Open Data"]: Localizer["Public URL"],
+            f => f.IsOpenDataRequest_FLAG? Localizer[$"{LOCALIZATION_PREFIX}.OpenData"]: Localizer[$"{LOCALIZATION_PREFIX}.PublicUrl"],
             f => Localizer[f.GetStatusKey()],
             f => f.PublicationDate_DT?.ToShortDateString() ?? "--"
         };
@@ -177,7 +187,7 @@
         {
             f => f.Filename_TXT,
             f => GetUserDisplayName(f.RequestingUser_ID),
-            f => f.IsOpenDataRequest_FLAG? Localizer["Open Data"]: Localizer["Public URL"],
+            f => f.IsOpenDataRequest_FLAG? Localizer[$"{LOCALIZATION_PREFIX}.OpenData"]: Localizer[$"{LOCALIZATION_PREFIX}.PublicUrl"],
             f => Localizer[f.GetStatusKey()]
         };
 
