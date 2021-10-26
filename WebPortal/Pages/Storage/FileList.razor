@@ -1,8 +1,6 @@
 ﻿@page "/project/{ProjectAcronym}/filelist"
 @inject IStringLocalizer<FileList> Localizer
 @inject IDbContextFactory<DatahubProjectDBContext> DbFactoryProject
-@*@implements IDisposable
-@inject IDbContextFactory<DatahubProjectDBContext> DbFactory*@
 
 <div style="padding-left: 2rem;padding-right: 2rem">
     <AeFlex Vertical>
@@ -13,11 +11,12 @@
             <AeTypography>@_project.ProjectName</AeTypography>
         </Header>
         <ChildContent>
-            <FileGrid CurrentFolder="null" CanAddData="true" Project="@ProjectAcronym"/>
+            <FileGrid CurrentFolder="null" CanAddData="true" Project="@ProjectAcronym" />
             <AeMarkdown Content=""/>
         </ChildContent>
-</AeCard>
+    </AeCard>
 </div>
+
 @code {
 
     [Parameter]
@@ -25,10 +24,9 @@
 
     private Datahub_Project _project;
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
         using var projectContext = DbFactoryProject.CreateDbContext();
         _project = projectContext.Projects.Single(p => p.Project_Acronym_CD == ProjectAcronym);        
     }
-
 }
