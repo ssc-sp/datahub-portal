@@ -4,12 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NRCan.Datahub.Shared.Data
+namespace Datahub.Core.Data
 {
     public class FormMetadata<T>
     {
         public string Header { get; set; }
         public string SubHeader { get; set; }
+        public string UserId { get; set; }
 
         public IList<T> DataSet { get; set; }
 
@@ -23,8 +24,11 @@ namespace NRCan.Datahub.Shared.Data
 
         public IList<string> MarkDownContentFooter { get; set; }
 
+        public IList<(Delegate Label, Delegate Choices)> FilterProperties { get; set; }
+
         public bool IsSubmitEnabled { get; set; }
 
+        public string TableRoles { get; set; }
         public bool IsLoaded()
         {
             return Header != null && DataSet != null && AccessorFunctions != null && Headers != null && GridTemplateColumns != null;

@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace NRCan.Datahub.Metadata.Model
+namespace Datahub.Metadata.Model
 {
     public class ApprovalForm
     {

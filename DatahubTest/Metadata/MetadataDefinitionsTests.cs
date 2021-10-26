@@ -1,5 +1,5 @@
-using NRCan.Datahub.Metadata.DTO;
-using NRCan.Datahub.Metadata.Model;
+using Datahub.Metadata.DTO;
+using Datahub.Metadata.Model;
 using System;
 using System.Linq;
 using Xunit;

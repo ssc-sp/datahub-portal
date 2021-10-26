@@ -1,3 +1,11 @@
+using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Generic;
+using System.Net.Http;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
+using System.Linq;
+using Datahub.Core.Data;
 using Azure;
 using Azure.Search.Documents;
 using Azure.Search.Documents.Models;
@@ -8,18 +16,10 @@ using Azure.Storage.Files.DataLake;
 using Azure.Storage.Files.DataLake.Models;
 using Azure.Storage.Sas;
 using Microsoft.AspNetCore.Components.Forms;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Microsoft.JSInterop;
-using NRCan.Datahub.Shared.Data;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Net.Http;
-using System.Threading.Tasks;
 
-namespace NRCan.Datahub.Shared.Services
+namespace Datahub.Core.Services
 {
     public class ApiService : IApiService
     {

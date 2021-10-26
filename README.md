@@ -16,7 +16,7 @@ The DataHub aims to provide the following features:
 - Data Projects empower users to tell data stories, work with massive datasets, conduct analyses and experiment with new technologies.
 - Connect Data Scientists & Analytics Users in Sectors & Collaborating with other platforms
 
-_This project is presently internal to NRCan and more details can be obtained by contacting on DataHub mailbox for any collaboration opportunities nrcan.datahub.rncan@canada.ca_
+_This project is presently internal to NRCan and more details can be obtained by contacting on DataHub mailbox for any collaboration opportunities Datahub.rncan@canada.ca_
 
 ![image](https://user-images.githubusercontent.com/82101285/122599381-48a01d00-d03c-11eb-9bb8-a20d76646258.png)
 
