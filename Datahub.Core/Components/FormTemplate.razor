@@ -25,7 +25,7 @@ else
         <AuthorizeView Roles="@Metadata.TableRoles">
             
 
-            @if (Metadata.FilterProperties != null)
+            @if ((Metadata.DataSet.Any() && Metadata.FilterProperties != null) || _selectedFilter != "All")
             {
                 <AeFlex id="filterBar">            
                     @foreach (var filter in Metadata.FilterProperties)
