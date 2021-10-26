@@ -1,8 +1,8 @@
 ﻿@page "/metadatab"
 
-@using NRCan.Datahub.Metadata.Model
-@using NRCan.Datahub.Metadata.DTO
-@using NRCan.Datahub.Shared.Utils 
+@using Datahub.Metadata.Model
+@using Datahub.Metadata.DTO
+@using Datahub.Core.Utils 
 
 <div style="margin: 2rem">
     <AeCard>
@@ -27,6 +27,10 @@
 
             <div>
                 <AeTypography>Queries: @_queryCount</AeTypography>
+            </div>
+
+            <div>
+                <AeButton @onclick="ErrorClick" >Error Now!</AeButton>
             </div>
 
         </ChildContent>
@@ -67,5 +71,10 @@
         _keywords = await MetadataBrokerService.GetSuggestedEnglishKeywords(text, 10);
         _queryCount++;
         await InvokeAsync(StateHasChanged);
+    }
+
+    private void ErrorClick()
+    {
+        throw new Exception("Click Error!!");
     }
 }

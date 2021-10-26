@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace NRCan.Datahub.Shared.Data.External.FGP
+namespace Datahub.Core.Data.External.FGP
 {
     public class GeoCoreSearchResult
     {

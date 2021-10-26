@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using MimeKit;
 
-namespace NRCan.Datahub.Shared.Services
+namespace Datahub.Core.Services
 {
     public interface IEmailNotificationService
     {
@@ -21,6 +21,8 @@ namespace NRCan.Datahub.Shared.Services
         Task SendServiceCreationGroupNotification(string serviceName, DatahubProjectInfo projectInfo, IList<string> recipients);
         Task SendAccessRevokedNotification(string serviceName, DatahubProjectInfo projectInfo, string recipientAddress, string recipientName = null);
         Task SendApplicationCompleteNotification(LanguageTrainingParameters parameters);
+        Task SendLanguageSchoolDecision(LanguageTrainingParameters parameters);
+        Task SendOnboardingConfirmations(OnboardingParameters parameters);
     }
 
     public record class DatahubProjectInfo(string ProjectNameEn, string ProjectNameFr, string ProjectCode);

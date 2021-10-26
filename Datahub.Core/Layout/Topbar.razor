@@ -27,7 +27,7 @@
                 <Typography>@Localizer["Whether you need to report an issue or just want some guidance on setting up and using your account, send us an email at:"]</Typography>
                 <div class="email-wrapper">
                     <i class="fal fa-envelope"></i>
-                    <a href="mailto:nrcan.datahub.mcan@canada.ca">nrcan.datahub.mcan@canada.ca</a>
+                    <a href="mailto:Datahub.mcan@canada.ca">Datahub.mcan@canada.ca</a>
                 </div>
             </ChildContent>
             <Footer>
@@ -172,6 +172,13 @@
         StateHasChanged();
     }
 
+    private void ToggleNotifications()
+    {
+        _showUserPopup = false;
+        _showHelp = false;
+        UI.ToggleRightSidebar(@<Datahub.Core.Views.Notifications />);
+    }
+
     private void NavigateToTermsOfUse()
     {
         NavigationManager.NavigateTo("termsandconditions");
@@ -181,5 +188,4 @@
     {
         NavigationManager.NavigateTo("privacystatement");
     }
-
 }

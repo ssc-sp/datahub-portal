@@ -1,15 +1,15 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using NRCan.Datahub.Metadata.Model;
+using Datahub.Metadata.Model;
 using System.Threading.Tasks;
 using System.Linq;
 using System.Collections.Generic;
 using System;
-using NRCan.Datahub.Metadata.DTO;
-using ShareWorkflow = NRCan.Datahub.Portal.Data.Forms.ShareWorkflow;
-using NRCan.Datahub.Shared.Utils;
-using NRCan.Datahub.Shared.Services;
+using Datahub.Metadata.DTO;
+using ShareWorkflow = Datahub.Portal.Data.Forms.ShareWorkflow;
+using Datahub.Core.Utils;
+using Datahub.Core.Services;
 
-namespace NRCan.Datahub.Portal.Services
+namespace Datahub.Portal.Services
 {
     public class MetadataBrokerService : IMetadataBrokerService
     {
@@ -190,25 +190,15 @@ namespace NRCan.Datahub.Portal.Services
             }
         }
 
-        public async Task<List<string>> GetSubjectEnglishKeywords(IEnumerable<string> subjectIds)
+        public async Task<List<SubjectKeyword>> GetSubjectKeywords(IEnumerable<string> subjectIds)
         {
-            return await GetSubjectKeywords(subjectIds, ss => ss.Name_English_TXT);
-        }
-
-        public async Task<List<string>> GetSubjectFrenchKeywords(IEnumerable<string> subjectIds)
-        {
-            return await GetSubjectKeywords(subjectIds, ss => ss.Name_French_TXT);
-        }
-
-        public async Task<List<string>> GetSubjectKeywords(IEnumerable<string> subjectIds, Func<SubSubject, string> selectKeyword)
-        {
-            var keywords = new List<string>();
+            var keywords = new List<SubjectKeyword>();
             foreach (var subjectId in subjectIds)
             {
                 var subject = await GetSubject(subjectId);
                 if (subject != null)
                 {
-                    keywords.AddRange(subject.SubSubjects.Select(selectKeyword));
+                    keywords.AddRange(subject.SubSubjects.Select(s => new SubjectKeyword(s.Name_English_TXT, s.Name_French_TXT)));
                 }
             }
             return keywords;

@@ -6,11 +6,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
-using NRCan.Datahub.Shared.Data;
-using NRCan.Datahub.Shared.EFCore;
-using NRCan.Datahub.Shared.Services;
+using Datahub.Core.Data;
+using Datahub.Core.EFCore;
+using Datahub.Core.Services;
 
-namespace NRCan.Datahub.Portal.Services
+namespace Datahub.Portal.Services
 {
     public class PublicFileSharingConfiguration
     {
@@ -20,18 +20,20 @@ namespace NRCan.Datahub.Portal.Services
 
     public class PublicDataFileService : IPublicDataFileService
     {
-        private DatahubProjectDBContext _projectDbContext;
-        private IApiService _apiService;
-        private ILogger<IPublicDataFileService> _logger;
-        private IMetadataBrokerService _metadataService;
+        private readonly DatahubProjectDBContext _projectDbContext;
+        private readonly IApiService _apiService;
+        private readonly ILogger<IPublicDataFileService> _logger;
+        private readonly IMetadataBrokerService _metadataService;
+        private readonly IDatahubAuditingService _datahubAuditingService;
+        private readonly PublicFileSharingConfiguration _config;
 
         public static readonly string PUBLIC_FILE_SHARING_CONFIG_ROOT_KEY = "PublicFileSharing";
-        private PublicFileSharingConfiguration _config;
 
         public PublicDataFileService(
             IApiService apiService,
             DatahubProjectDBContext projectDbContext,
             ILogger<IPublicDataFileService> logger,
+            IDatahubAuditingService datahubAuditingService,
             IMetadataBrokerService metadataService,
             IConfiguration config
         )
@@ -39,6 +41,7 @@ namespace NRCan.Datahub.Portal.Services
             _apiService = apiService;
             _projectDbContext = projectDbContext;
             _logger = logger;
+            _datahubAuditingService = datahubAuditingService;
             _metadataService = metadataService;
             _config = new();
             config.Bind(PUBLIC_FILE_SHARING_CONFIG_ROOT_KEY, _config);
@@ -52,8 +55,7 @@ namespace NRCan.Datahub.Portal.Services
                 return;
             }
 
-            Guid fileId;
-            if (!Guid.TryParse(fileMetaData.fileid, out fileId))
+            if (!Guid.TryParse(fileMetaData.fileid, out Guid fileId))
             {
                 _logger.LogError($"Invalid file id: {fileMetaData.fileid}");
                 return;
@@ -96,7 +98,7 @@ namespace NRCan.Datahub.Portal.Services
                 var dbResult = await _projectDbContext.SharedDataFiles.AddAsync(shareRequest);
             }
 
-            var numSaved = await _projectDbContext.SaveChangesAsync();
+            var numSaved = await _projectDbContext.TrackSaveChangesAsync(_datahubAuditingService);
 
             _logger.LogInformation($"Wrote file share record for {fileId} - {numSaved} records written to database");
         }
@@ -130,11 +132,10 @@ namespace NRCan.Datahub.Portal.Services
                 return await Task.FromResult<Uri>(null);
             }
 
-            return await DoDownloadFile(publicFile);
-
+            return await DoDownloadFile(publicFile, anonymous: true);
         }
 
-        public async Task<Uri> DoDownloadFile(SharedDataFile publicFile)
+        public async Task<Uri> DoDownloadFile(SharedDataFile publicFile, bool anonymous = false)
         {
             var fileMetadata = new FileMetaData()
             {
@@ -142,6 +143,12 @@ namespace NRCan.Datahub.Portal.Services
                 name = publicFile.Filename_TXT,
                 folderpath = publicFile.FolderPath_TXT
             };
+
+            if (!anonymous)
+            {
+                // audit download file
+                await _datahubAuditingService.TrackDataEvent(publicFile.Filename_TXT, publicFile.GetType().Name, AuditChangeType.Download);
+            }
 
             if (publicFile.IsProjectBased)
             {
@@ -198,7 +205,7 @@ namespace NRCan.Datahub.Portal.Services
             if (submission != null)
             {
                 submission.MetadataCompleted_FLAG = true;
-                var result = await _projectDbContext.SaveChangesAsync();
+                var result = await _projectDbContext.TrackSaveChangesAsync(_datahubAuditingService);
                 if (result < 1)
                 {
                     _logger.LogError($"Error marking metadata complete for file {fileId}");
@@ -219,7 +226,7 @@ namespace NRCan.Datahub.Portal.Services
             if (submission != null)
             {
                 submission.SubmittedDate_DT = DateTime.UtcNow;
-                var result = await _projectDbContext.SaveChangesAsync();
+                var result = await _projectDbContext.TrackSaveChangesAsync(_datahubAuditingService);
                 if (result < 1)
                 {
                     _logger.LogError($"Error submitting file {fileId}");
@@ -240,7 +247,7 @@ namespace NRCan.Datahub.Portal.Services
             if (submission != null)
             {
                 submission.ExpirationDate_DT = expiryDate;
-                var result = await _projectDbContext.SaveChangesAsync();
+                var result = await _projectDbContext.TrackSaveChangesAsync(_datahubAuditingService);
                 if (result < 1)
                 {
                     _logger.LogError($"Error saving expiration date for {fileId}");
@@ -262,7 +269,7 @@ namespace NRCan.Datahub.Portal.Services
             shareInfo.ApprovedDate_DT = DateTime.UtcNow;
             shareInfo.PublicationDate_DT = publicationDate ?? shareInfo.ApprovedDate_DT;
 
-            await _projectDbContext.SaveChangesAsync();
+            await _projectDbContext.TrackSaveChangesAsync(_datahubAuditingService);
         }
 
         public async Task DenyPublicUrlShare(Guid fileId) => await DoDeletePublicUrlShare(fileId);
@@ -273,7 +280,7 @@ namespace NRCan.Datahub.Portal.Services
 
             shareInfo.ApprovalForm_ID = approvalFormId;
 
-            await _projectDbContext.SaveChangesAsync();
+            await _projectDbContext.TrackSaveChangesAsync(_datahubAuditingService);
         }
 
         public async Task UpdateOpenDataSignedApprovalFormUrl(Guid fileId, string url)
@@ -283,7 +290,7 @@ namespace NRCan.Datahub.Portal.Services
             shareInfo.SignedApprovalForm_URL = url;
             shareInfo.SubmittedDate_DT = DateTime.UtcNow;
 
-            await _projectDbContext.SaveChangesAsync();
+            await _projectDbContext.TrackSaveChangesAsync(_datahubAuditingService);
         }
 
         public async Task<List<SharedDataFile>> GetAllSharedDataForProject(string projectCode)
@@ -305,7 +312,7 @@ namespace NRCan.Datahub.Portal.Services
         {
             var shareInfo = await LoadPublicUrlSharedFileInfo(fileId);
             _projectDbContext.SharedDataFiles.Remove(shareInfo);
-            await _projectDbContext.SaveChangesAsync();
+            await _projectDbContext.TrackSaveChangesAsync(_datahubAuditingService);
         }
 
         private async Task DoDeleteOpenDataShare(Guid fileId)
@@ -316,7 +323,7 @@ namespace NRCan.Datahub.Portal.Services
                 await _metadataService.DeleteApprovalForm(shareInfo.ApprovalForm_ID.Value);
             }
             _projectDbContext.OpenDataSharedFiles.Remove(shareInfo);
-            await _projectDbContext.SaveChangesAsync();
+            await _projectDbContext.TrackSaveChangesAsync(_datahubAuditingService);
         }
 
         public async Task CancelPublicDataShare(Guid fileId)

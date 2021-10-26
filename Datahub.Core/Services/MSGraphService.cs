@@ -10,9 +10,9 @@ using Microsoft.Graph;
 using Microsoft.Graph.Auth;
 using Microsoft.Identity.Client;
 using Microsoft.Identity.Web;
-using NRCan.Datahub.Shared.Data;
+using Datahub.Core.Data;
 
-namespace NRCan.Datahub.Shared.Services
+namespace Datahub.Core.Services
 {
     public class MSGraphService : IMSGraphService
     {
