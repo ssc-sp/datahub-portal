@@ -132,10 +132,10 @@ namespace Datahub.Portal.Services
                 return await Task.FromResult<Uri>(null);
             }
 
-            return await DoDownloadFile(publicFile);
+            return await DoDownloadFile(publicFile, anonymous: true);
         }
 
-        public async Task<Uri> DoDownloadFile(SharedDataFile publicFile)
+        public async Task<Uri> DoDownloadFile(SharedDataFile publicFile, bool anonymous = false)
         {
             var fileMetadata = new FileMetaData()
             {
@@ -144,8 +144,11 @@ namespace Datahub.Portal.Services
                 folderpath = publicFile.FolderPath_TXT
             };
 
-            // audit download file
-            await _datahubAuditingService.TrackDataEvent(publicFile.Filename_TXT, publicFile.GetType().Name, AuditChangeType.Download);
+            if (!anonymous)
+            {
+                // audit download file
+                await _datahubAuditingService.TrackDataEvent(publicFile.Filename_TXT, publicFile.GetType().Name, AuditChangeType.Download);
+            }
 
             if (publicFile.IsProjectBased)
             {
