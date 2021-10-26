@@ -1,0 +1,420 @@
+﻿
+@inject IStringLocalizer DataLocalizer
+@implements IDisposable
+@inject IDbContextFactory<DatahubProjectDBContext> DbFactory
+@inject ServiceAuthManager ServiceAuthManager
+@inject IUserInformationService UserInformationService
+@inject NavigationManager NavigationManager
+@inject Elemental.Services.UIControlsService UIControlService
+@inject IJSRuntime JsInterop
+@inject TranslationService TranslationService
+@inject IDatahubAuditingService AuditingService
+
+@using Microsoft.EntityFrameworkCore.Query
+@using Microsoft.EntityFrameworkCore;
+@page "/datahub/projects"
+
+<h1>DataHub Project List</h1>
+
+<div>
+<AeFlex id="buttonBar">
+    <div class="icon-container" style="margin-bottom: 10px; margin-left: 5px;">
+
+        <FAButton Text="Add New" Icon="far fa-plus-square" onclick="e => CreateNewProject()"/>
+@if(_project?.Project_ID > 0)
+{
+       @* <FAButton Text="Edit" Icon="fad fa-edit" onclick="async () => await SetFormEdit(q)"/>  *@
+        <FAButton Text="Delete" Icon="fad fa-trash-alt" onclick="async () => DeleteShowModal(_project)"/>                    
+        <FAButton Text="Power BI License Request Form" To="@($"/licenses/{_project.Project_ID}")" Icon="fas fa-chart-pie"/>                    
+}
+
+    </div>
+</AeFlex>
+
+@if (filterProperties != null)
+    {
+        <AeFlex id="filterBar">            
+            @foreach (var filter in filterProperties)
+            {                
+                <AeDropdown Items="ValidDisplayValues" OnChange="HandleDropdownChange" Label="@filterLabelValue" class="@filterClass"/>                
+            }
+
+        </AeFlex>
+    }
+
+
+<AeFlex Vertical id="indexFlex">
+
+
+<AePaginatedTable Accessors="accessorFunctions"
+       T="Datahub_Project"
+       Dataset="_projects"
+       ColorAccessor="getColor"
+       Headers="headers" 
+       GridTemplateColumns="2fr 2fr 2fr 8fr 2fr 8fr"
+       MaxHeight="400"
+       OnRowClick="@SetFormEdit"
+       Page="@_lastClicked"
+                 PageSize="10"
+                 @ref=_myTable />
+    
+    <AePagination 
+            Pageable="@_myTable" 
+            OnPageClick="OnPageClick"> 
+            <LeftIcon><i class='fad fa-chevron-double-left'></i></LeftIcon> 
+            <RightIcon><i class='fad fa-chevron-double-right'></i></RightIcon>
+            </AePagination>
+
+</AeFlex>
+
+</div>
+
+@if (_project != null)
+{
+    if(_project.Project_ID > 0)
+    {
+        <h2>Editing Project @_project.Project_ID (@(_project.Project_Acronym_CD))</h2>
+    }
+    else
+    {
+        <h2>Create new project</h2>
+    }
+
+    <AeButton @onclick="SuggestTranslation">@DataLocalizer["Suggest French Translation"]</AeButton>
+
+    <AeModelForm Model="_project"
+        T="Datahub_Project"
+        OnValidSubmit="HandleValidSubmit"
+        OnCancel="ClearForm"
+        CancelLabel="Cancel"
+        SubmitLabel="@SubmitLabel"        
+        LabelForPropertyFunc="@GetDataLabel"
+        OnConfigure="OnConfigure"/>
+
+if (_project.Project_ID > 0)
+    {
+    <AeFlex id="buttonBar">
+        <div class="icon-container" style="margin-bottom: 10px; margin-left: 5px;">
+
+                <FAButton Text="Add New Comment" Icon="far fa-plus-square" onclick="e => AddNewComment()"/>
+                @if (_comment?.Comment_ID > 0)
+            {
+                @* <FAButton Text="Edit" Icon="fad fa-edit" onclick="async () => await SetFormEdit(q)"/>  *@
+                @* <FAButton Text="Delete" Icon="fad fa-trash-alt" onclick="async () => DeleteShowModal(_project)"/> *@
+        
+        }
+
+        </div>
+    </AeFlex>
+    <AeTable Accessors="commentAccessorFunctions"
+           T="Datahub_ProjectComment"
+           Dataset="_project.Comments"       
+           Headers="commentsHeaders" 
+           GridTemplateColumns="1fr 8fr"
+           MaxHeight="400"
+           OnRowClick="@SetCommentEdit"
+           />
+
+    <AeModelForm Model="_comment"
+        OnValidSubmit="HandleValidCommentSubmit"
+        CancelLabel="Cancel"
+        SubmitLabel="Save Comment"        
+        LabelForPropertyFunc="@GetDataLabel" />
+        }
+}
+
+@code {
+    private List<Datahub_Project> _projects;
+    private Datahub_Project _project;// = new Datahub_Project();
+    private Datahub_ProjectComment _comment;
+    private string SubmitLabel = "Add new";
+    private const string EMAIL = "offline@nrcan-cnrcan.gc.ca";
+    private bool _navToEdit = false;
+    private DatahubProjectDBContext Context;
+    
+    private int _lastClicked = 0;
+    private IPageableComponent _myTable;
+
+    private List<(Delegate Label, Delegate Choices)> filterProperties = new List<(Delegate Label, Delegate choices)>();
+    private int InputSelectIndex = 0;
+    private List<string> ValidDisplayValues { get; set; }
+    private string filterLabel;
+    private string filterLabelValue;
+    private string filterClass;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // load projects        
+        Context = DbFactory.CreateDbContext();
+        LoadProjects();
+
+        filterProperties.Add((() => "Status", () => new List<string> { "All", "Closed", "On Hold", "Ongoing" }));
+
+        ValidDisplayValues = new();
+        ValidDisplayValues = filterProperties[0].Choices.DynamicInvoke() as List<string>;
+        filterLabel = filterProperties[0].Label.DynamicInvoke() as string;
+        filterLabelValue = $"{filterLabel}: {ValidDisplayValues[0]}";
+        filterClass = "filterDropdown";
+    }
+    
+    private void HandleDropdownChange(string selectedItem)
+    {
+        if(selectedItem == "All")
+        {
+            LoadProjects();
+            filterClass = "filterDropdown";
+        }
+        else
+        {
+            _projects = Context.Projects.Include(r => r.Comments).Where(p => p.Project_Status_Desc == selectedItem).ToList();
+            filterClass = "filterOn";
+        }
+        filterLabelValue = $"{filterLabel}: {selectedItem}";
+        StateHasChanged();
+    }
+
+    public async Task SuggestTranslation()
+    {
+        _project.Project_Name_Fr = await TranslationService.GetFrenchTranslation(_project.Project_Name);
+        _project.Project_Summary_Desc_Fr = await TranslationService.GetFrenchTranslation(_project.Project_Summary_Desc);
+        //TranslationService
+    }
+
+
+    private void OnPageClick(int pageIndex)
+    {
+        _lastClicked = pageIndex;
+    }
+
+
+    private List<string> headers = new List<string>
+    {
+        "Status", "Sector","Project", "Name", "Last Contact", "Contacts"
+    };
+
+    private List<string> commentsHeaders = new List<string>
+    {
+        "Date","Comment"
+    };
+
+    private async Task<Datahub_Project> ClearForm()
+    {
+        _project = null;
+        StateHasChanged();
+        return null;
+    }
+
+    public string GetDataLabel(string propName)
+    {
+        return DataLocalizer[propName];
+    }
+
+    private static string ShortenEntry(string entry)
+    {
+        var leqPos = entry.IndexOf('<');
+        if (leqPos == -1) return entry;
+        return entry.Substring(0, leqPos-1).Trim();
+    }
+
+    public static string ShortenContactList(string contacts)
+    {
+        if (contacts is null) return null;
+        var list = contacts.Split(";", StringSplitOptions.RemoveEmptyEntries);
+        return string.Join(", ", list.Select(el => ShortenEntry(el)).ToList());
+    }
+
+    public static string ShortenString(string input, int maxLength)
+    {
+
+        if (input is null || input.Length <= maxLength)
+            return input;
+        var words = input.Split(" ", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        var final = new List<string>();
+        int wPos = 0;
+        while (final.Sum(l => l.Length+1) <= maxLength)
+        {
+            final.Add(words[wPos++]);
+        }
+        return string.Join(" ", final) + "...";
+    }
+
+    // Accessor functions to retrieve cell value
+    private List<Func<Datahub_Project, string>> accessorFunctions = new List<Func<Datahub_Project, string>>
+    {
+        new Func<Datahub_Project, string>(p => { return p?.Project_Status_Desc; }),
+        new Func<Datahub_Project, string>(p => { return p?.Sector_Name; }),
+        new Func<Datahub_Project, string>(p => { return p?.Project_Acronym_CD; }),
+        new Func<Datahub_Project, string>(p => { return p?.ProjectName; }),
+        new Func<Datahub_Project, string>(p => { return p?.Last_Contact_DT?.ToShortDateString(); }),
+        new Func<Datahub_Project, string>(p => { return ShortenContactList(p?.Contact_List); })
+//        new Func<Datahub_Project, string>(p => { return ShortenString(p?.Project_Summary_Desc,50); })
+    };
+
+    // Accessor functions to retrieve cell value
+    private List<Func<Datahub_ProjectComment, string>> commentAccessorFunctions = new List<Func<Datahub_ProjectComment, string>>
+    {
+        new Func<Datahub_ProjectComment, string>(p => { return p.Comment_Date_DT.ToShortDateString(); }),
+        new Func<Datahub_ProjectComment, string>(p => { return ShortenString(p.Comment_NT,50); })
+    };
+
+    private async Task SetFormEditAsync(Datahub_Project project)
+    {
+        _project = project;
+        _comment = null;
+        SubmitLabel = "Save Changes";
+        StateHasChanged();
+        _navToEdit = true;
+    }
+
+    private void SetFormEdit(Datahub_Project project)
+    {
+        _project = project;
+        //Context.Entry(_project).Reload();
+        _comment = null;
+        SubmitLabel = "Save Changes";
+        StateHasChanged();
+        _navToEdit = true;
+    }
+
+    private void SetCommentEdit(Datahub_ProjectComment comment)
+    {
+        _comment = comment;
+        StateHasChanged();
+    }
+
+
+    private void LoadProjects()
+    {
+        _projects = Context.Projects.Include(r => r.Comments).Where(p => p.Deleted_DT == null).ToList();        
+    }
+
+    private async Task CreateNewProject()
+    {
+        _project = new Datahub_Project() { Last_Updated_DT = DateTime.Now, Project_ID = 0 } ;
+        StateHasChanged();
+        _navToEdit = true;
+    }
+
+    private async Task AddNewComment()
+    {
+        _comment = new Datahub_ProjectComment() { Comment_Date_DT = DateTime.Now, Project = _project };
+        StateHasChanged();
+    }
+
+    private string getColor(Datahub_Project current)
+    {
+        if (current == _project)
+        {
+            return "yellow";
+        }
+        return "";        
+    }
+
+
+
+    private void DeleteShowModal(Datahub_Project project)
+    {
+        InvokeAsync(async () =>
+        {
+            RenderFragment modalBody = 
+    @<div>
+                                            <p>Do you confirm the deletion of Project @(project.Project_ID)?</p>
+                                            <p>Acronym: @project.Project_Acronym_CD</p>
+                                            <p>Summary: @project.ProjectDescription</p>
+                                        </div>;
+            RenderFragment modalFooter = @<div style="display:flex;justify-content:space-between;">
+                                            <AeButton class="red" @onclick="async () => { UIControlService.ToggleModal(); StateHasChanged(); await DeleteConfirmed(project);  }">Delete</AeButton>  
+                                            <AeButton class="blue" @onclick="async () => { UIControlService.ToggleModal(); StateHasChanged(); }">Cancel</AeButton> 
+                                          </div>
+    ;
+            var modalParameter = new Elemental.Code.ModalParameter() { Class = "modal", Body = modalBody, DisableBackgroundCancel = true, Title = "Delete Project", Footer = modalFooter };
+            UIControlService.ToggleModal(modalParameter);
+            StateHasChanged();
+        });
+    }
+
+
+    private async Task DeleteConfirmed(Datahub_Project project)
+    {
+        project.Deleted_DT = DateTime.Now;
+        await Context.TrackSaveChangesAsync(AuditingService);
+        LoadProjects(); 
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (_project != null)
+        {
+            if (_project.Project_ID == 0)
+            {
+                _project = Context.Projects.Add(_project).Entity;
+            }
+            _project.Last_Updated_DT = DateTime.Now;
+
+            //update admins here
+
+
+            await Context.TrackSaveChangesAsync(AuditingService);
+            
+            await UpdateAdmins();
+            LoadProjects(); 
+            _project = null;
+        }
+    }
+
+    private async Task UpdateAdmins()
+    {
+        if (_project.Project_Admin != null)
+        {
+            var currentUserId = await UserInformationService.GetUserIdString();
+            await ServiceAuthManager.RegisterProjectAdmin(_project, currentUserId);
+        }
+    }
+
+    private async Task HandleValidCommentSubmit()
+    {
+        if (_comment != null)
+        {
+            if (_comment.Comment_ID == 0)
+            {
+                _comment = Context.Project_Comments.Add(_comment).Entity;
+            }
+            await Context.TrackSaveChangesAsync(AuditingService);
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if(firstRender){
+            StateHasChanged();
+        }
+        if (_navToEdit){
+            _navToEdit = false;
+            await this.JsInterop.InvokeVoidAsync("anchorLink.scrollIntoView", "edit");
+        }
+    }
+
+
+    private async Task OnConfigure(IModelFormContext context)
+    {
+        context.RegisterOptionValueProperty<Datahub_Project>(s => s.Project_Category, () => new[] { "Guidance & Recommendations",
+                                                                "Presentations",
+                                                                "Data Sci. & Machine Learn.",
+                                                                "Data Pipelines",
+                                                                "Full Stack",
+                                                                "Storage",
+                                                                "Dashboards",
+                                                                "Web Forms"
+                                                                 });
+        context.RegisterOptionValueProperty<Datahub_Project>(s => s.Project_Phase, () => new[] {"Initiation",
+                                                                "Requirements",
+                                                                "Development/Design",
+                                                                "Implementation",
+                                                                "Testing",
+                                                                "Deployment",
+                                                                "Ongoing Maintenance and Support"
+                                                                 });
+    }
+
+    public void Dispose() { Context.Dispose(); }
+}

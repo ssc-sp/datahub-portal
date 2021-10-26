@@ -480,7 +480,8 @@
   "METADATA-PAGE": {
     "ShowMore": "Show optional fields",
     "ShowLess": "Hide optional fields",
-    "EnterKeyword-Placeholder": "Enter keyword..."
+    "EnterKeyword-Placeholder": "Type keyword...",
+    "TranslationNote": "Note that all text is translated using a third party tool and <b>is only a suggested translation.</b>  It is the responsibility of the user to validate the translation before submitting the metadata."
   },
 
   "SHARING-STATUS": {

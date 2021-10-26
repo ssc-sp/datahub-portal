@@ -4,7 +4,7 @@ using Elemental.Components;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Graph;
 
-namespace NRCan.Datahub.Shared.EFCore
+namespace Datahub.Core.EFCore
 {
 
     public enum DataSourceProtection

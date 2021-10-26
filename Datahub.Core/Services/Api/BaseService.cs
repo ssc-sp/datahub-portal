@@ -1,6 +1,6 @@
 using System;
 using Microsoft.AspNetCore.Components;
-using NRCan.Datahub.Shared.Services;
+using Datahub.Core.Services;
 
 public class BaseService
 {
@@ -13,13 +13,5 @@ public class BaseService
         _navigationManager = navigationManager;
         _apiService = apiService;
         _uiService = uiService;
-    }
-
-    public void DisplayErrorUI(Exception ex)
-    {
-        var correlationId = Guid.NewGuid().ToString();
-        ex.Data["correlationid"] = correlationId;
-        _ = _apiService.AuditException(ex, correlationId);
-        _uiService.ShowErrorModal();
     }
 }

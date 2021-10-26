@@ -5,9 +5,9 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using NRCan.Datahub.ProjectForms.Data.PIP;
+using Datahub.ProjectForms.Data.PIP;
 
-namespace NRCan.Datahub.Portal.Migrations.Forms.PIP
+namespace Datahub.Portal.Migrations.Forms.PIP
 {
     [DbContext(typeof(PIPDBContext))]
     [Migration("20210521034141_NewFieldsForIndicator")]
@@ -21,7 +21,7 @@ namespace NRCan.Datahub.Portal.Migrations.Forms.PIP
                 .HasAnnotation("Relational:MaxIdentifierLength", 128)
                 .HasAnnotation("ProductVersion", "5.0.2");
 
-            modelBuilder.Entity("NRCan.Datahub.ProjectForms.Data.PIP.PIP_IndicatorAndResults", b =>
+            modelBuilder.Entity("Datahub.ProjectForms.Data.PIP.PIP_IndicatorAndResults", b =>
                 {
                     b.Property<int>("IndicatorAndResult_ID")
                         .ValueGeneratedOnAdd()
@@ -215,7 +215,7 @@ namespace NRCan.Datahub.Portal.Migrations.Forms.PIP
                     b.ToTable("IndicatorAndResults");
                 });
 
-            modelBuilder.Entity("NRCan.Datahub.ProjectForms.Data.PIP.PIP_IndicatorRisks", b =>
+            modelBuilder.Entity("Datahub.ProjectForms.Data.PIP.PIP_IndicatorRisks", b =>
                 {
                     b.Property<int>("IndicatorRisk_ID")
                         .ValueGeneratedOnAdd()
@@ -237,7 +237,7 @@ namespace NRCan.Datahub.Portal.Migrations.Forms.PIP
                     b.ToTable("IndicatorRisks");
                 });
 
-            modelBuilder.Entity("NRCan.Datahub.ProjectForms.Data.PIP.PIP_Risks", b =>
+            modelBuilder.Entity("Datahub.ProjectForms.Data.PIP.PIP_Risks", b =>
                 {
                     b.Property<int>("Risks_ID")
                         .ValueGeneratedOnAdd()
@@ -405,7 +405,7 @@ namespace NRCan.Datahub.Portal.Migrations.Forms.PIP
                     b.ToTable("Risks");
                 });
 
-            modelBuilder.Entity("NRCan.Datahub.ProjectForms.Data.PIP.PIP_Tombstone", b =>
+            modelBuilder.Entity("Datahub.ProjectForms.Data.PIP.PIP_Tombstone", b =>
                 {
                     b.Property<int>("Tombstone_ID")
                         .ValueGeneratedOnAdd()
@@ -606,7 +606,7 @@ namespace NRCan.Datahub.Portal.Migrations.Forms.PIP
                     b.ToTable("Tombstones");
                 });
 
-            modelBuilder.Entity("NRCan.Datahub.ProjectForms.Data.PIP.PIP_TombstoneRisks", b =>
+            modelBuilder.Entity("Datahub.ProjectForms.Data.PIP.PIP_TombstoneRisks", b =>
                 {
                     b.Property<int>("TombstoneRisk_ID")
                         .ValueGeneratedOnAdd()
@@ -628,22 +628,22 @@ namespace NRCan.Datahub.Portal.Migrations.Forms.PIP
                     b.ToTable("TombstoneRisks");
                 });
 
-            modelBuilder.Entity("NRCan.Datahub.ProjectForms.Data.PIP.PIP_IndicatorAndResults", b =>
+            modelBuilder.Entity("Datahub.ProjectForms.Data.PIP.PIP_IndicatorAndResults", b =>
                 {
-                    b.HasOne("NRCan.Datahub.ProjectForms.Data.PIP.PIP_Tombstone", "PIP_Tombstone")
+                    b.HasOne("Datahub.ProjectForms.Data.PIP.PIP_Tombstone", "PIP_Tombstone")
                         .WithMany()
                         .HasForeignKey("PIP_TombstoneTombstone_ID");
 
                     b.Navigation("PIP_Tombstone");
                 });
 
-            modelBuilder.Entity("NRCan.Datahub.ProjectForms.Data.PIP.PIP_IndicatorRisks", b =>
+            modelBuilder.Entity("Datahub.ProjectForms.Data.PIP.PIP_IndicatorRisks", b =>
                 {
-                    b.HasOne("NRCan.Datahub.ProjectForms.Data.PIP.PIP_IndicatorAndResults", "Pip_Indicator")
+                    b.HasOne("Datahub.ProjectForms.Data.PIP.PIP_IndicatorAndResults", "Pip_Indicator")
                         .WithMany()
                         .HasForeignKey("Pip_IndicatorIndicatorAndResult_ID");
 
-                    b.HasOne("NRCan.Datahub.ProjectForms.Data.PIP.PIP_Risks", "Pip_Risk")
+                    b.HasOne("Datahub.ProjectForms.Data.PIP.PIP_Risks", "Pip_Risk")
                         .WithMany("PIP_IndicatorRisks")
                         .HasForeignKey("Pip_RiskRisks_ID");
 
@@ -652,22 +652,22 @@ namespace NRCan.Datahub.Portal.Migrations.Forms.PIP
                     b.Navigation("Pip_Risk");
                 });
 
-            modelBuilder.Entity("NRCan.Datahub.ProjectForms.Data.PIP.PIP_Risks", b =>
+            modelBuilder.Entity("Datahub.ProjectForms.Data.PIP.PIP_Risks", b =>
                 {
-                    b.HasOne("NRCan.Datahub.ProjectForms.Data.PIP.PIP_Tombstone", "PIP_Tombstone")
+                    b.HasOne("Datahub.ProjectForms.Data.PIP.PIP_Tombstone", "PIP_Tombstone")
                         .WithMany()
                         .HasForeignKey("PIP_TombstoneTombstone_ID");
 
                     b.Navigation("PIP_Tombstone");
                 });
 
-            modelBuilder.Entity("NRCan.Datahub.ProjectForms.Data.PIP.PIP_TombstoneRisks", b =>
+            modelBuilder.Entity("Datahub.ProjectForms.Data.PIP.PIP_TombstoneRisks", b =>
                 {
-                    b.HasOne("NRCan.Datahub.ProjectForms.Data.PIP.PIP_Risks", "Pip_Risk")
+                    b.HasOne("Datahub.ProjectForms.Data.PIP.PIP_Risks", "Pip_Risk")
                         .WithMany()
                         .HasForeignKey("Pip_RiskRisks_ID");
 
-                    b.HasOne("NRCan.Datahub.ProjectForms.Data.PIP.PIP_Tombstone", "Pip_Tombstone")
+                    b.HasOne("Datahub.ProjectForms.Data.PIP.PIP_Tombstone", "Pip_Tombstone")
                         .WithMany()
                         .HasForeignKey("Pip_TombstoneTombstone_ID");
 
@@ -676,7 +676,7 @@ namespace NRCan.Datahub.Portal.Migrations.Forms.PIP
                     b.Navigation("Pip_Tombstone");
                 });
 
-            modelBuilder.Entity("NRCan.Datahub.ProjectForms.Data.PIP.PIP_Risks", b =>
+            modelBuilder.Entity("Datahub.ProjectForms.Data.PIP.PIP_Risks", b =>
                 {
                     b.Navigation("PIP_IndicatorRisks");
                 });

@@ -1,7 +1,7 @@
-﻿using NRCan.Datahub.Metadata.Model;
+﻿using Datahub.Metadata.Model;
 using System.Collections.Generic;
 
-namespace NRCan.Datahub.CKAN.Package
+namespace Datahub.CKAN.Package
 {
     class CatchAllFieldAgent : FieldAgent
     {

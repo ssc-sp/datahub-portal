@@ -2,13 +2,14 @@
 using System;
 using System.Threading.Tasks;
 
-namespace NRCan.Datahub.Shared.Services
+namespace Datahub.Core.Services
 {
     public enum AuditChangeType : int
     {
         New,
         Edit,
-        Delete
+        Delete,
+        Download
     }
 
     public interface IDatahubAuditingService
@@ -54,7 +55,7 @@ namespace NRCan.Datahub.Shared.Services
         /// <summary>
         /// Saves the changes async and tracks the changes as data change events
         /// </summary>
-        public static async Task TrackSaveChangesAsync(this DbContext dbContext, IDatahubAuditingService auditService)
+        public static async Task<int> TrackSaveChangesAsync(this DbContext dbContext, IDatahubAuditingService auditService)
         {
             try
             {
@@ -87,7 +88,7 @@ namespace NRCan.Datahub.Shared.Services
                 await auditService.TrackException(ex);
             }
 
-            await dbContext.SaveChangesAsync();
+            return await dbContext.SaveChangesAsync();
         }
     }
 }

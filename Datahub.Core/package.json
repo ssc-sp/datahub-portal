@@ -1,5 +1,5 @@
 {
-  "name": "datahub.shared",
+  "name": "Datahub.Core",
   "version": "1.0.0",
   "description": "Datahub Shared SCSS Scripts",
   "main": "index.js",
@@ -11,6 +11,6 @@
   "author": "Apption",
   "license": "Apache-2.0",
   "devDependencies": {
-    "sass": "^1.42.1"
+    "sass": "^1.43.3"
   }
 }

@@ -1,14 +1,15 @@
 using Elemental.Code;
 using Microsoft.Graph;
-using NRCan.Datahub.ProjectForms.Data.PIP;
-using NRCan.Datahub.Portal.Pages;
+using Datahub.ProjectForms.Data.PIP;
+using Datahub.Portal.Pages;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Xunit;
 using Xunit.Sdk;
-using NRCan.Datahub.Portal.Pages.Forms.Datahub;
+using Datahub.Portal.Pages.Forms;
+using Datahub.Portal.Pages.Forms.Internal;
 
 namespace FormTests
 {
@@ -72,7 +73,7 @@ namespace FormTests
         [Fact]
         public void TestShortenString()
         {
-            var longString = "The program '[40312] NRCan.Datahub.ProjectForms.exe: Program Trace' has exited with code 0 (0x0).";
+            var longString = "The program '[40312] Datahub.ProjectForms.exe: Program Trace' has exited with code 0 (0x0).";
             Assert.Equal("The program '[40312]...", Projects.ShortenString(longString, 20));
         }
 

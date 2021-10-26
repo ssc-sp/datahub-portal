@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
-    <RootNamespace>NRCan.Datahub.Portal</RootNamespace>
+    <RootNamespace>Datahub.Portal</RootNamespace>
     <UserSecretsId>6c9f0107-a066-45ca-9449-dd1f55641b99</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <DockerfileContext>.</DockerfileContext>
@@ -55,6 +55,6 @@
     <Folder Include="wwwroot\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Datahub.Shared\Datahub.Shared.csproj" />
+    <ProjectReference Include="..\Datahub.Core\Datahub.Core.csproj" />
   </ItemGroup>
 </Project>
