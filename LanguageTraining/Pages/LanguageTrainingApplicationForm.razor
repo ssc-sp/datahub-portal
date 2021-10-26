@@ -137,7 +137,7 @@
     {
         if (_languageTrainingApplication.Manager_Decision == "Approved" || _languageTrainingApplication.Manager_Decision == "Declined")
         { 
-            await EmailService.SendApplicationCompleteNotification(param);
+            await EmailService.SendManagerDecisionEmail(param);
             _languageTrainingApplication.ManagerDecisionSent = true;
             await Context.SaveChangesAsync();
         }  
@@ -160,6 +160,8 @@
         param.ManagerDecision = _languageTrainingApplication.Manager_Decision;
         param.AdminEmailAddresses = ServiceAuthManager.GetProjectAdminsEmails(PROJECTACRONYM);
         param.LanguageSchoolDecision = _languageTrainingApplication.Decision;
+        param.Session = _languageTrainingApplication.Session_For_Language_Training;
+        param.Class = _languageTrainingApplication.Class_For_Language_Training;
         return param;
     }
 
