@@ -15,7 +15,7 @@ artifacts/
 *.binlog
 .DS_Store
 dh-code.bat
-Datahub.Shared/node_modules
+Datahub.Core/node_modules
 DatahubIntakeForms/appsettings.Development.json
 DatahubIntakeForms/appsettings.json
 DatahubIntakeForms/appsettings.Tst.json

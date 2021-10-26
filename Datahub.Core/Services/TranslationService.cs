@@ -1,31 +1,35 @@
 ﻿using DeepL;
 using Microsoft.Extensions.Configuration;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
-namespace NRCan.Datahub.Shared.Services
+namespace Datahub.Core.Services
 {
     public class TranslationService
     {
-
-        DeepLClient client;
+        private readonly DeepLClient _client;
 
         public TranslationService(IConfiguration configuration)
         {
             var useFreeApi = configuration.GetSection("DeepL").GetValue<bool>("UseFreeApi");
             var authKey = configuration.GetSection("DeepL").GetValue<string>("AuthKey");
-            client = new DeepLClient(authKey, useFreeApi);
+            _client = new DeepLClient(authKey, useFreeApi);
         }
+
         public async Task<string> GetFrenchTranslation(string englishText)
         {
-            var translation = await client.TranslateAsync(
-                        englishText,
-                        Language.French
-                    );
-            return translation.Text;
+            return await TranslateTo(englishText, Language.French);
+        }
+
+        public async Task<string> GetEnglishTranslation(string frenchText)
+        {
+            return await TranslateTo(frenchText, Language.English);
+        }
+
+        public async Task<string> TranslateTo(string text, Language language)
+        {
+            var translation = await _client.TranslateAsync(text, language);
+            return translation?.Text ?? String.Empty;
         }
     }
 }

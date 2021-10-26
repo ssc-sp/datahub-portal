@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Primitives;
-using NRCan.Datahub.Shared.EFCore;
+using Datahub.Core.EFCore;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -10,7 +10,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace NRCan.Datahub.Shared.Services
+namespace Datahub.Core.Services
 {
     public class ServiceAuthManager
     {
@@ -95,6 +95,14 @@ namespace NRCan.Datahub.Shared.Services
             return isProjectAdmin;
         }
 
+        public List<string> GetProjectAdminsEmails(string projectAcronym)
+        { 
+            using var ctx = dbFactory.CreateDbContext();
+            var project = ctx.Projects.Where(p => p.Project_Acronym_CD.ToLower() == projectAcronym.ToLower()).First();
+
+            return ctx.Project_Users.Where(a => a.Project == project && a.IsAdmin && !string.IsNullOrEmpty(a.User_Name)).Select(f => f.User_Name).ToList();
+
+        }
 
         public async Task RegisterProjectAdmin(Datahub_Project project, string currentUserId)
         {
@@ -136,7 +144,8 @@ namespace NRCan.Datahub.Shared.Services
                             ApprovedUser = currentUserId,
                             Approved_DT = DateTime.Now,
                             IsAdmin = true,
-                            IsDataApprover = false
+                            IsDataApprover = false,
+                            User_Name = email
                         };
 
                         ctx.Project_Users.Add(user);

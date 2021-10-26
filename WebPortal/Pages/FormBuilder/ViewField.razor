@@ -36,6 +36,10 @@ else
                     <td>@_formField.ExtensionLabel</td>
                 </tr>
                 <tr>
+                    <td>Choices</td>
+                    <td>@_formField.Choices_TXT</td>
+                </tr>
+                <tr>
                     <td>MaxLength</td>
                     <td>@_formField.Max_Length_NUM</td>
                 </tr>
@@ -45,24 +49,24 @@ else
                 </tr>
                 <tr>
                     <td>Formatted</td>
-                    <td>@_formField.Formatted</td>
+                    <td>@_fieldCodeGenerator.GetFormattedFieldName(_formField)</td>
                 </tr>
                 <tr>
                     <td>Code</td>
-                    <td>@_formField.Code</td>
+                    <td>@_formField.Extension_CD</td>
                 </tr>
                 <tr>
                     <td>SQL Name</td>
-                    <td>@_formField.SQLName</td>
+                    <td>@_fieldCodeGenerator.GenerateSQLName(_formField)</td>
                 </tr>
                 <tr>
                     <td>JSON</td>
-                    <td><pre><code>@_formField.JSON</code></pre></td>
+                    <td><pre><code>@_fieldCodeGenerator.GenerateJSON(_formField)</code></pre></td>
                 </tr>
                 <tr>
                     <td>C# Code</td>
                     <td>
-                        <pre><code>@_formField.CSCode</code></pre>
+                        <pre><code>@_fieldCodeGenerator.GenerateCSharp(_formField)</code></pre>
                     </td>
                 </tr>
             </tbody>
@@ -79,7 +83,6 @@ else
             CancelLabel="Cancel"
             OnCancel="@HandleCancel"
         />
-
     }
 }
 
@@ -109,6 +112,7 @@ else
 
     private WebForm_Field _formField;
     private WebForm_Field _originalFormField;
+    private FieldCodeGenerator _fieldCodeGenerator = new(s => 0);
 
     private void ChangeViewMode(ViewMode mode)
     {

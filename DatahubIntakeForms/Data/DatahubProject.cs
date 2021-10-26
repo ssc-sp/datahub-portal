@@ -2,7 +2,7 @@
 using Elemental.Components.Forms;
 using Microsoft.AspNetCore.Mvc;
 
-namespace NRCan.Datahub.Portal.Data
+namespace Datahub.Portal.Data
 {
     public class DatahubProject
     {

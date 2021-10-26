@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NRCan.Datahub.Shared.Model.Onboarding
+namespace Datahub.Core.Model.Onboarding
 {
     public class OnboardingApp
     {
@@ -110,6 +110,10 @@ namespace NRCan.Datahub.Shared.Model.Onboarding
         [AeFormCategory("Additional Information", 30)]
         public string Attachments { get; set; }
 
+
+        [AeFormIgnore]
+        public bool NotificationsSent { get; set; }
+
         [AeFormIgnore]
         public string Last_Updated_UserId { get; set; }
 
@@ -119,6 +123,8 @@ namespace NRCan.Datahub.Shared.Model.Onboarding
         [AeFormIgnore]
         [Timestamp]
         public byte[] Timestamp { get; set; }
+
+
 
     }
 }

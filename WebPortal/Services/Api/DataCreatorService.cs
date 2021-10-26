@@ -2,12 +2,12 @@
 using Azure.Storage.Files.DataLake.Models;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Logging;
-using NRCan.Datahub.Shared.Data;
-using NRCan.Datahub.Shared.Services;
+using Datahub.Core.Data;
+using Datahub.Core.Services;
 using System;
 using System.Threading.Tasks;
 
-namespace NRCan.Datahub.Portal.Services
+namespace Datahub.Portal.Services
 {
     public class DataCreatorService : BaseService, IDataCreatorService
     {        
@@ -42,10 +42,8 @@ namespace NRCan.Datahub.Portal.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"CreateFolder: {folderName} user: {user.DisplayName} FAILED.");
-                base.DisplayErrorUI(ex);
+                throw;
             }
-
-            return false;          
         }
 
         public async Task<bool> CreateRootFolderIfNotExist(string userId, string rootFolder)
@@ -64,10 +62,8 @@ namespace NRCan.Datahub.Portal.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"CreateRootFolderIfNotExist: {rootFolder}  user: {userId} FAILED.");
-                base.DisplayErrorUI(ex);
+                throw;
             }
-
-            return false;          
         }
 
         protected async Task SetDefaultFolderPermissions(DataLakeDirectoryClient directoryClient, string folderName, string userId)

@@ -6,8 +6,8 @@ using Microsoft.Azure.Storage;
 using Microsoft.Azure.Storage.Blob;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using NRCan.Datahub.Shared.Data;
-using NRCan.Datahub.Shared.Services;
+using Datahub.Core.Data;
+using Datahub.Core.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,7 +15,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web;
 
-namespace NRCan.Datahub.Portal.Services
+namespace Datahub.Portal.Services
 {
     public class DataRemovalService : BaseService, IDataRemovalService
     {
@@ -58,10 +58,8 @@ namespace NRCan.Datahub.Portal.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Delete folder: {folder.fullPathFromRoot} user: {currentUser.DisplayName} FAILED.");
-                base.DisplayErrorUI(ex);
+                throw;
             }
-
-            return false;
         }
 
         public async Task<bool> Delete(FileMetaData file, Microsoft.Graph.User currentUser)
@@ -81,10 +79,8 @@ namespace NRCan.Datahub.Portal.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Delete file: {file.folderpath}/{file.filename} user: {currentUser.DisplayName} FAILED.");
-                base.DisplayErrorUI(ex);
+                throw;
             }
-
-            return false;
         }
 
         protected async Task<DataLakeDirectoryClient> DeleteAllFilesUnderneath(Folder folder, Microsoft.Graph.User currentUser)

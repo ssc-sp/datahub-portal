@@ -5,9 +5,9 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using NRCan.Datahub.Metadata.Model;
+using Datahub.Metadata.Model;
 
-namespace NRCan.Datahub.Metadata.Migrations
+namespace Datahub.Metadata.Migrations
 {
     [DbContext(typeof(MetadataDbContext))]
     [Migration("20210729172013_AddingValidatorsField")]
@@ -21,7 +21,7 @@ namespace NRCan.Datahub.Metadata.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128)
                 .HasAnnotation("ProductVersion", "5.0.2");
 
-            modelBuilder.Entity("NRCan.Datahub.Metadata.Model.FieldChoice", b =>
+            modelBuilder.Entity("Datahub.Metadata.Model.FieldChoice", b =>
                 {
                     b.Property<int>("FieldChoiceId")
                         .ValueGeneratedOnAdd()
@@ -49,7 +49,7 @@ namespace NRCan.Datahub.Metadata.Migrations
                     b.ToTable("FieldChoices");
                 });
 
-            modelBuilder.Entity("NRCan.Datahub.Metadata.Model.FieldDefinition", b =>
+            modelBuilder.Entity("Datahub.Metadata.Model.FieldDefinition", b =>
                 {
                     b.Property<int>("FieldDefinitionId")
                         .ValueGeneratedOnAdd()
@@ -98,7 +98,7 @@ namespace NRCan.Datahub.Metadata.Migrations
                     b.ToTable("FieldDefinitions");
                 });
 
-            modelBuilder.Entity("NRCan.Datahub.Metadata.Model.MetadataVersion", b =>
+            modelBuilder.Entity("Datahub.Metadata.Model.MetadataVersion", b =>
                 {
                     b.Property<int>("MetadataVersionId")
                         .ValueGeneratedOnAdd()
@@ -121,7 +121,7 @@ namespace NRCan.Datahub.Metadata.Migrations
                     b.ToTable("MetadataVersions");
                 });
 
-            modelBuilder.Entity("NRCan.Datahub.Metadata.Model.ObjectFieldValue", b =>
+            modelBuilder.Entity("Datahub.Metadata.Model.ObjectFieldValue", b =>
                 {
                     b.Property<long>("ObjectMetadataId")
                         .HasColumnType("bigint");
@@ -139,7 +139,7 @@ namespace NRCan.Datahub.Metadata.Migrations
                     b.ToTable("ObjectFieldValues");
                 });
 
-            modelBuilder.Entity("NRCan.Datahub.Metadata.Model.ObjectMetadata", b =>
+            modelBuilder.Entity("Datahub.Metadata.Model.ObjectMetadata", b =>
                 {
                     b.Property<long>("ObjectMetadataId")
                         .ValueGeneratedOnAdd()
@@ -164,9 +164,9 @@ namespace NRCan.Datahub.Metadata.Migrations
                     b.ToTable("ObjectMetadata");
                 });
 
-            modelBuilder.Entity("NRCan.Datahub.Metadata.Model.FieldChoice", b =>
+            modelBuilder.Entity("Datahub.Metadata.Model.FieldChoice", b =>
                 {
-                    b.HasOne("NRCan.Datahub.Metadata.Model.FieldDefinition", "FieldDefinition")
+                    b.HasOne("Datahub.Metadata.Model.FieldDefinition", "FieldDefinition")
                         .WithMany("Choices")
                         .HasForeignKey("FieldDefinitionId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -175,9 +175,9 @@ namespace NRCan.Datahub.Metadata.Migrations
                     b.Navigation("FieldDefinition");
                 });
 
-            modelBuilder.Entity("NRCan.Datahub.Metadata.Model.FieldDefinition", b =>
+            modelBuilder.Entity("Datahub.Metadata.Model.FieldDefinition", b =>
                 {
-                    b.HasOne("NRCan.Datahub.Metadata.Model.MetadataVersion", "MetadataVersion")
+                    b.HasOne("Datahub.Metadata.Model.MetadataVersion", "MetadataVersion")
                         .WithMany("Definitions")
                         .HasForeignKey("MetadataVersionId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -186,15 +186,15 @@ namespace NRCan.Datahub.Metadata.Migrations
                     b.Navigation("MetadataVersion");
                 });
 
-            modelBuilder.Entity("NRCan.Datahub.Metadata.Model.ObjectFieldValue", b =>
+            modelBuilder.Entity("Datahub.Metadata.Model.ObjectFieldValue", b =>
                 {
-                    b.HasOne("NRCan.Datahub.Metadata.Model.FieldDefinition", "FieldDefinition")
+                    b.HasOne("Datahub.Metadata.Model.FieldDefinition", "FieldDefinition")
                         .WithMany("FieldValues")
                         .HasForeignKey("FieldDefinitionId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("NRCan.Datahub.Metadata.Model.ObjectMetadata", "ObjectMetadata")
+                    b.HasOne("Datahub.Metadata.Model.ObjectMetadata", "ObjectMetadata")
                         .WithMany("FieldValues")
                         .HasForeignKey("ObjectMetadataId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -205,9 +205,9 @@ namespace NRCan.Datahub.Metadata.Migrations
                     b.Navigation("ObjectMetadata");
                 });
 
-            modelBuilder.Entity("NRCan.Datahub.Metadata.Model.ObjectMetadata", b =>
+            modelBuilder.Entity("Datahub.Metadata.Model.ObjectMetadata", b =>
                 {
-                    b.HasOne("NRCan.Datahub.Metadata.Model.MetadataVersion", "MetadataVersion")
+                    b.HasOne("Datahub.Metadata.Model.MetadataVersion", "MetadataVersion")
                         .WithMany("Objects")
                         .HasForeignKey("MetadataVersionId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -216,21 +216,21 @@ namespace NRCan.Datahub.Metadata.Migrations
                     b.Navigation("MetadataVersion");
                 });
 
-            modelBuilder.Entity("NRCan.Datahub.Metadata.Model.FieldDefinition", b =>
+            modelBuilder.Entity("Datahub.Metadata.Model.FieldDefinition", b =>
                 {
                     b.Navigation("Choices");
 
                     b.Navigation("FieldValues");
                 });
 
-            modelBuilder.Entity("NRCan.Datahub.Metadata.Model.MetadataVersion", b =>
+            modelBuilder.Entity("Datahub.Metadata.Model.MetadataVersion", b =>
                 {
                     b.Navigation("Definitions");
 
                     b.Navigation("Objects");
                 });
 
-            modelBuilder.Entity("NRCan.Datahub.Metadata.Model.ObjectMetadata", b =>
+            modelBuilder.Entity("Datahub.Metadata.Model.ObjectMetadata", b =>
                 {
                     b.Navigation("FieldValues");
                 });
