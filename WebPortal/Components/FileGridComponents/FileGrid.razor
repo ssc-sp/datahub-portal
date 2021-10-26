@@ -35,7 +35,7 @@
 
 @if (isLoading)
 {
-    <Elemental.Components.Spinner />
+    <Spinner />
 }
 else if (@IsSearchResult && @CurrentFolder.children.Count < 1)
 {
@@ -244,10 +244,9 @@ else
         UnSelectFiles();
     }
 
-    private async void ToggleAddData()
+    private void ToggleAddData()
     {
-        RenderFragment fragment = 
-    @<AddDataBar />;
+        RenderFragment fragment = @<AddDataBar />;
         UI.ToggleRightSidebar(fragment);
     }
 
