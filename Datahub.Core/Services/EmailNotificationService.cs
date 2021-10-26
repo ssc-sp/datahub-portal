@@ -345,6 +345,9 @@ namespace Datahub.Core.Services
                 var html = await RenderTemplate<ManagerRequestApproved>(parametersDict);
                 await SendEmailMessage(subject, html, parameters.EmployeeEmailAddress, parameters.EmployeeName);
                 await SendEmailMessage(subject, html, parameters.ManagerEmailAddress, parameters.ManagerName);
+                html = await RenderTemplate<LSUNotification>(parametersDict);
+                await SendEmailMessage(subject, html, parameters.AdminEmailAddresses);
+
             }
             else
             {
@@ -468,6 +471,8 @@ namespace Datahub.Core.Services
         public string EmployeeName;
         public string EmployeeEmailAddress;
         public string TrainingType;
+        public string Session;
+        public string Class;
         public string ManagerEmailAddress;
         public string ManagerName;
         public string LanguageSchoolEmailAddress;
