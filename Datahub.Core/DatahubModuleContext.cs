@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Datahub.Core.Data;
-using Datahub.Core.UserTracking;
+using Datahub.Core.EFCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;

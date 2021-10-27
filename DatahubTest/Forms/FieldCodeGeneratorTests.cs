@@ -1,4 +1,4 @@
-﻿using Datahub.Core.UserTracking;
+﻿using Datahub.Core.EFCore;
 using Datahub.Core.Utils;
 using Xunit;
 

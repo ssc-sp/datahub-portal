@@ -28,7 +28,7 @@ using Datahub.Core.Data;
 using Microsoft.EntityFrameworkCore;
 using Datahub.ProjectForms.Data.PIP;
 using Datahub.Portal.EFCore;
-using Datahub.Core.UserTracking;
+using Datahub.Core.EFCore;
 using Datahub.Portal.Data;
 using Datahub.Portal.Data.Finance;
 using Datahub.Portal.Data.WebAnalytics;
@@ -47,6 +47,7 @@ using Microsoft.ApplicationInsights.Extensibility;
 using Datahub.LanguageTraining;
 using Microsoft.AspNetCore.HttpLogging;
 using Datahub.CKAN.Service;
+using Datahub.Core.UserTracking;
 
 namespace Datahub.Portal
 {

@@ -30,7 +30,7 @@ using Azure;
 using Azure.Search.Documents;
 using Azure.Search.Documents.Models;
 using Datahub.Portal.EFCore;
-using Datahub.Core.UserTracking;
+using Datahub.Core.EFCore;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 
