@@ -3,7 +3,7 @@
 
 <p>Good day, </p>
 <p>Thank you for your interest in participating in language training with the NRCan Language School.</p>
-<p>Unfortunately, due to an excess in demand at the [CLASS] level, the NRCan Language School will not be offering the class requested for the [SESSION] session. </p>
+<p>Unfortunately, due to an excess in demand at the @ApplicationParameters.Class level, the NRCan Language School will not be offering the class requested for the [SESSION] session. </p>
 <p>We encourage your to resubmit your interest in language training for the next session. </p>
 <p>Alternatively, should you wish to explore language-training opportunities with external providers, please contact your procurement advisor for advice on how to proceed. NOTE – should you wish to explore options with an external provider, support from the NRCan Language School is required. Once you have created your Purchase Requestion via connexus, please send a request for support to: </p>
 <p>nrcan.languagetraining-formationlinguistique.rncan@canada.ca</p>
@@ -18,7 +18,7 @@
 
 <p>Bonjour, </p>
 <p>Nous vous remercions de votre intérêt à participer à une formation linguistique avec l'École de langues de RNCan.  </p>
-<p>Malheureusement, en raison d'une demande excessive au niveau de la [CLASSE], l’École de langues de RNCan n’offrira pas la classe demandée pour la session [SESSION]. </p>
+<p>Malheureusement, en raison d'une demande excessive au niveau de la @ApplicationParameters.Class, l’École de langues de RNCan n’offrira pas la classe demandée pour la session [SESSION]. </p>
 <p>Nous vous encourageons à communiquer à nouveau votre intérêt pour la formation linguistique pour la prochaine session. </p>
 <p>Par ailleurs, si vous souhaitez explorer les possibilités de formation linguistique auprès de fournisseurs externes, veuillez communiquer avec votre conseiller en approvisionnement pour obtenir des conseils sur la manière de procéder. REMARQUE – si vous souhaitez explorer les possibilités avec un fournisseur externe, l'appui de l'École de langues de RNCan est nécessaire. Une fois que vous avez créé votre demande d'achat par l’entremise de Connexus, veuillez envoyer une demande d'assistance à l'adresse suivante : </p>
 <p>nrcan.languagetraining-formationlinguistique.rncan@canada.ca</p>
@@ -32,6 +32,6 @@
 @code {
 
     [Parameter]
-    public string Service { get; set; }
+    public LanguageTrainingParameters ApplicationParameters { get; set; }
 
 }

@@ -133,12 +133,12 @@ namespace Datahub.Portal.Data.LanguageTraining
 
         [AeFormCategory("Manager Section", 50)]
         public string Manager_Email_Address { get; set; }
-
+        [Required]
         [AeFormCategory("Manager Section", 50)]
         [AeLabel(isDropDown: true)]
         public string Manager_Decision { get; set; }
 
-
+        
         [AeFormCategory("Language School Section", 60)]
         [AeLabel(isDropDown: true)]
         public string Decision { get; set; }
