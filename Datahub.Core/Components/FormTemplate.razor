@@ -1,4 +1,5 @@
 ﻿@inject IStringLocalizer DataLocalizer
+@using Datahub.Core.Views.Modals
 @using Microsoft.EntityFrameworkCore
 @using Datahub.Core.Data
 @typeparam T
@@ -15,51 +16,60 @@
 else
 {
 
+
+
 <AeCard class="facardForms" CardPosition="AeCard.CardStyle.Horizontal">
+    <AeTypography Variant="h3">@DataLocalizer[Metadata.Header]</AeTypography>
 
-@if (Metadata.FilterProperties != null)
-{
-    <AeFlex id="filterBar">            
-        @foreach (var filter in Metadata.FilterProperties)
-        {   
-            var validDisplayValues = filter.Choices.DynamicInvoke() as List<string>;
-            <AeDropdown Items="validDisplayValues" OnChange="HandleFilterChange" Label="@filterLabelValue" class="@filterClass"/>                
-        }
+            
+        <AuthorizeView Roles="@Metadata.TableRoles">
+            
 
-    </AeFlex>
-}
+            @if ((Metadata.DataSet.Any() && Metadata.FilterProperties != null) || _selectedFilter != "All")
+            {
+                <AeFlex id="filterBar">            
+                    @foreach (var filter in Metadata.FilterProperties)
+                    {   
+                        var validDisplayValues = filter.Choices.DynamicInvoke() as List<string>;
+                        var filterLabel = $"{filter.Label.DynamicInvoke() as string}: {_selectedFilter}";                    
+                        var filterClass = "filterDropdown";
+                        <AeDropdown Items="validDisplayValues" OnChange="HandleFilterChanges" Label="@filterLabel" class="@filterClass"/>                
+                    }
 
-<AeTypography Variant="h3">@DataLocalizer[Metadata.Header]</AeTypography>
-        @if (Metadata.DataSet.Any())
-        {
-            <AePaginatedTable 
-             T="@T"
-             Accessors="Metadata.AccessorFunctions.ToList()"
-             Dataset="Metadata.DataSet.ToList()"
-             ColorAccessor="getColor"
-             Headers="Metadata.Headers.ToList()"
-             GridTemplateColumns="@Metadata.GridTemplateColumns"
-             MaxHeight="400"
-             OnRowClick="@SetFormEdit" 
-             Page="@_lastClicked"
-             PageSize="10"
-             @ref=_myTable
-             />
+                </AeFlex>
+            }
 
-            <AePagination 
-            Pageable="@_myTable" 
-            OnPageClick="OnPageClick"> 
-            <LeftIcon><i class='fad fa-chevron-double-left'></i></LeftIcon> 
-            <RightIcon><i class='fad fa-chevron-double-right'></i></RightIcon>
-            </AePagination> 
-        }
+
+            @if (Metadata.DataSet.Any())
+            {
+                <AePaginatedTable 
+                    T="@T"
+                    Accessors="Metadata.AccessorFunctions.ToList()"
+                    Dataset="Metadata.DataSet.ToList()"
+                    ColorAccessor="getColor"
+                    Headers="Metadata.Headers.ToList()"
+                    GridTemplateColumns="@Metadata.GridTemplateColumns"
+                    MaxHeight="400"
+                    OnRowClick="@SetFormEdit" 
+                    Page="@_lastClicked"
+                    PageSize="10"
+                    @ref=_myTable
+                    />
+
+                <AePagination 
+                Pageable="@_myTable" 
+                OnPageClick="OnPageClick"> 
+                <LeftIcon><i class='fad fa-chevron-double-left'></i></LeftIcon> 
+                <RightIcon><i class='fad fa-chevron-double-right'></i></RightIcon>
+                </AePagination> 
+            }
+        </AuthorizeView>
         <AeFlex id="buttonBar">
         <div class="icon-container" style="margin-bottom: 10px; margin-left: 5px;">
             <FAButton Text="Add New" Icon="far fa-plus-square" onclick="CreateNewRecord" />
         </div>
     </AeFlex>
 </AeCard>
-
 
 @if (SelectedRecord != null)
 {
@@ -123,13 +133,16 @@ else
 
     private int _lastClicked = 0;
     private IPageableComponent _myTable;
-    
 
-    private string filterLabel;
-    private string filterLabelValue;
-    private string filterClass;
+
+    private string _selectedFilter = "All";
 
     
+    private void HandleFilterChanges(string selectedValue)
+    {
+        _selectedFilter = selectedValue;
+        HandleFilterChange.Invoke(selectedValue);
+    }
 
     private void OnPageClick(int pageIndex)
     {
@@ -145,13 +158,13 @@ else
         //    @<UserChoiceModal HeaderText="Save Data" ChoiceTextList=@messages OnDecision="(a) => OnConfirmSave(a, application)" ConfirmText="Yes" CancelText="No" />
         //)
 
-        //    if (Context.ChangeTracker.HasChanges())
-        //    {
-        //        var messages = new List<string>() { "Would you like to save the current record?" };
-        //        await UI.ToggleModal(
-        //@<UserChoiceModal HeaderText="Save Data" ChoiceTextList=@messages OnDecision="(a) => OnConfirmSave(a, selectedRecord)" ConfirmText="Yes" CancelText="No" />
-        //);
-        //    }
+        if (Context.ChangeTracker.HasChanges())
+        {
+            var messages = new List<string>() { "Would you like to save the current record?" };
+            await UI.ToggleModal(
+            @<UserChoiceModal HeaderText="Save Data" ChoiceTextList=@messages OnDecision="(a) => OnConfirmSave(a, selectedRecord)" ConfirmText="Yes" CancelText="No" />
+            );
+        }
         await ClearForm();
         await SetFormEditRecord.InvokeAsync(selectedRecord);
 
@@ -178,7 +191,8 @@ else
                 foreach (var property in entry.OriginalValues.Properties)  
                 {
                     var propertyName = property.Name;
-                    entry.Property(propertyName).CurrentValue = entry.Property(propertyName).OriginalValue;   
+                    entry.Property(propertyName).CurrentValue = entry.Property(propertyName).OriginalValue;
+                    entry.State = EntityState.Unchanged;
                 }
             }                          
         }
