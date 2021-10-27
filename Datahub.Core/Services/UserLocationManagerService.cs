@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Components.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Datahub.Core.EFCore;
+using Datahub.Core.UserTracking;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,12 +14,12 @@ namespace Datahub.Core.Services
     {
         private ILogger<UserLocationManagerService> _logger;
         private IUserInformationService _userInformationService;
-        private IDbContextFactory<EFCoreDatahubContext> _contextFactory;
+        private IDbContextFactory<UserTrackingContext> _contextFactory;
 
 
         public UserLocationManagerService(ILogger<UserLocationManagerService> logger,
                                         IUserInformationService userInformationService,
-                                        IDbContextFactory<EFCoreDatahubContext> contextFactory)
+                                        IDbContextFactory<UserTrackingContext> contextFactory)
         {
             _logger = logger;
             _userInformationService = userInformationService;

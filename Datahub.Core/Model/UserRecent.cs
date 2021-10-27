@@ -9,7 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Datahub.Core.Components;
 
-namespace Datahub.Core.EFCore
+namespace Datahub.Core.UserTracking
 {
     public record UserRecent
     {
