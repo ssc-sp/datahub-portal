@@ -598,7 +598,10 @@
     "PublicationDate": "Publication Date",
     "Owner": "Owner",
     "OpenData": "Open Data",
-    "PublicUrl": "Public URL"
+    "PublicUrl": "Public URL",
+    "NoFilesAwaitingApproval": "This project has no sharing requests awaiting approval.",
+    "NoOwnSharedFiles": "You have not shared any files in this project.",
+    "NoOtherSharedFiles": "There are no files shared by other users in this project."
   },
 
   "PUBLIC-URL-APPROVAL": {
