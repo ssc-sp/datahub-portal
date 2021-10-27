@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Datahub.Core.UserTracking;
+using Datahub.Core.EFCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -98,12 +98,12 @@ namespace Datahub.Core.Data
         {
             if (context.Database.EnsureCreated())
             {
-                var seedable = context as ISeedable<T>;
-                if (seedable != null)
-                {
-                    //seedable.Seed(context, Configuration);
-                    context.SaveChanges();
-                }
+                //var seedable = context as ISeedable<T>;
+                //if (seedable != null)
+                //{
+                //    //seedable.Seed(context, Configuration);
+                //    context.SaveChanges();
+                //}
             }
         }
 

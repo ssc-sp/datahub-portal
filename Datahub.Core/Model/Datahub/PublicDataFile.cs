@@ -1,7 +1,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 
-namespace Datahub.Core.UserTracking
+namespace Datahub.Core.EFCore
 {
     public class PublicDataFile
     {
