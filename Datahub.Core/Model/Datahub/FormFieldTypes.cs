@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Datahub.Core.EFCore
+namespace Datahub.Core.UserTracking
 {
     public static class FormFieldTypeReference
     {

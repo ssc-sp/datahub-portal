@@ -5,7 +5,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using Elemental.Components;
 
-namespace Datahub.Core.EFCore
+namespace Datahub.Core.UserTracking
 {
     public class WebForm_Field
     {
