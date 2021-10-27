@@ -6,57 +6,86 @@
 @inject NotifierService NotifierService
 @implements IDisposable
 
+<style>
+    .table-card {
+        margin-left: 2rem;
+        margin-bottom: 2rem;
+        padding-right: 2rem;
+        width: 60vw;
+    }
+</style>
 
 <AeFlex Vertical>
 
-    <AeTypography Variant="h2">@Localizer[$"{LOCALIZATION_PREFIX}.Title"]</AeTypography>
+    <AeTypography Variant="h2" style="margin-left: 2rem;">@Localizer[$"{LOCALIZATION_PREFIX}.Title"]</AeTypography>
 
     @if (ShouldShowRequestsAwaitingApproval)
     {
-        <AeCard style="margin-left: 2rem; width: 48%; margin-bottom: 2rem;">
+        <AeCard class="table-card">
 
             <AeTypography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.RequestsPendingApproval"]</AeTypography>
 
-            <AeTable
-                Accessors=@awaitingApprovalAccessors
-                Renderers=@awaitingApprovalRenderers
-                T=@SharedDataFile
-                Dataset=@publicDataFilesAwaitingApproval
-                Headers=@awaitingApprovalHeaders
-                />
+            @if(hasFilesAwaitingApproval)
+            {
+                <AeTable
+                    Accessors=@awaitingApprovalAccessors
+                    Renderers=@awaitingApprovalRenderers
+                    T=@SharedDataFile
+                    Dataset=@publicDataFilesAwaitingApproval
+                    Headers=@awaitingApprovalHeaders
+                    />
+            }
+            else
+            {
+                <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.NoFilesAwaitingApproval"]</AeTypography>
+            }
 
             <div>&nbsp;</div>
         </AeCard>
     }
 
-    <AeCard style="margin-left: 2rem; width: 48%; margin-bottom: 2rem;">
+    <AeCard class="table-card">
 
         <AeTypography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.YourSharedFiles"]</AeTypography>
 
-        <AeTable
-            Accessors=@usersOwnFilesAccessors
-            Renderers=@usersOwnFilesRenderers
-            T=@SharedDataFile
-            Dataset=@usersOwnSharedFiles
-            Headers=@usersOwnFilesHeaders
-            />
+        @if (hasOwnSharedFiles)
+        {
+            <AeTable
+                Accessors=@usersOwnFilesAccessors
+                Renderers=@usersOwnFilesRenderers
+                T=@SharedDataFile
+                Dataset=@usersOwnSharedFiles
+                Headers=@usersOwnFilesHeaders
+                />
+        }
+        else
+        {
+            <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.NoOwnSharedFiles"]</AeTypography>
+        }
 
         <div>&nbsp;</div>
     </AeCard>
 
     @if (ShouldShowAllSharingRequests)
     {
-        <AeCard style="margin-left: 2rem; width: 48%; margin-bottom: 2rem;">
+        <AeCard class="table-card">
 
             <AeTypography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.OthersSharedFiles"]</AeTypography>
 
-            <AeTable
-                Accessors=@otherUsersFilesAccessors
-                Renderers=@otherUsersFilesRenderers
-                T=@SharedDataFile
-                Dataset=@otherUsersSharedFiles
-                Headers=@otherUsersFilesHeaders
-                />
+            @if (hasOtherUsersFiles)
+            {
+                <AeTable
+                    Accessors=@otherUsersFilesAccessors
+                    Renderers=@otherUsersFilesRenderers
+                    T=@SharedDataFile
+                    Dataset=@otherUsersSharedFiles
+                    Headers=@otherUsersFilesHeaders
+                    />
+            }
+            else
+            {
+                <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.NoOtherSharedFiles"]</AeTypography>
+            }
 
             <div>&nbsp;</div>
         </AeCard>
@@ -76,6 +105,10 @@
     private List<SharedDataFile> publicDataFilesAwaitingApproval = new();
     private List<SharedDataFile> usersOwnSharedFiles = new();
     private List<SharedDataFile> otherUsersSharedFiles = new();
+    private bool hasFilesAwaitingApproval => publicDataFilesAwaitingApproval.Count > 0;
+    private bool hasOwnSharedFiles => usersOwnSharedFiles.Count > 0;
+    private bool hasOtherUsersFiles => otherUsersSharedFiles.Count > 0;
+
 
     private string currentUserId;
     private bool isDataApprover = false;
