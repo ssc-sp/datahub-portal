@@ -198,7 +198,7 @@ namespace Datahub.Portal
 
             app.ConfigureModule<LanguageTrainingModule>();
 
-            InitializeDatabase(logger, datahubFactory, false);
+            InitializeDatabase(logger, datahubFactory);
             InitializeDatabase(logger, userTrackingFactory, false);
             InitializeDatabase(logger, etlFactory);
             InitializeDatabase(logger, financeFactory);
