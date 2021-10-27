@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.Graph;
 using Datahub.Core.Data;
 using System.Collections.Generic;
-using Datahub.Core.UserTracking;
+using Datahub.Core.EFCore;
 
 namespace Datahub.Portal.Services
 {

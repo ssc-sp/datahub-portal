@@ -8,7 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Datahub.Core.UserTracking
+namespace Datahub.Core.EFCore
 {
 
     public class Datahub_Project_Access_Request
