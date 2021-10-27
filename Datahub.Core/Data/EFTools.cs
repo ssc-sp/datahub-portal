@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Datahub.Core.EFCore;
+using Datahub.Core.UserTracking;
 using System;
 using System.Collections.Generic;
 using System.Linq;

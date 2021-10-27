@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Primitives;
-using Datahub.Core.EFCore;
+using Datahub.Core.UserTracking;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;

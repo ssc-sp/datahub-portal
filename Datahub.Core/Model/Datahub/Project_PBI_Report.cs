@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System;
 
-namespace Datahub.Core.EFCore
+namespace Datahub.Core.UserTracking
 {
     public class Project_PBI_Report
     {

@@ -7,7 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
 using Datahub.Core.Data;
-using Datahub.Core.EFCore;
+using Datahub.Core.UserTracking;
 using Datahub.Core.Services;
 
 namespace Datahub.Portal.Services

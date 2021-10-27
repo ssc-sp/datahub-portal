@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Datahub.Core.EFCore;
+using Datahub.Core.UserTracking;
 using Datahub.Core.Services;
 using System;
 using System.Collections.Generic;
@@ -63,7 +63,7 @@ namespace Datahub.Tests
         private void LoadServices()
         {
             var serviceCollection = new ServiceCollection();
-            serviceCollection.AddDbContext<EFCoreDatahubContext>(options =>
+            serviceCollection.AddDbContext<UserTrackingContext>(options =>
             {
 
                 options.UseCosmos(
