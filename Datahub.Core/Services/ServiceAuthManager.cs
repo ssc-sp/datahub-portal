@@ -115,7 +115,7 @@ namespace Datahub.Core.Services
             using var ctx = dbFactory.CreateDbContext();
             var project = ctx.Projects.Where(p => p.Project_Acronym_CD.ToLower() == projectAcronym.ToLower()).First();
 
-            return ctx.Project_Users.Where(a => a.Project == project).Select(f => f.User_Name).ToList();
+            return ctx.Project_Users.Where(a => a.Project == project && a.IsAdmin && !string.IsNullOrEmpty(a.User_Name)).Select(f => f.User_Name).ToList();
 
         }
 
