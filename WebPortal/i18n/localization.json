@@ -682,7 +682,8 @@
     "No_Access_Message": "You currently do not have access to this project.",
     "Request_Access_Reviewed": "Access Request is being reviewed",
     "DATABASE-CARD": {
-      "CardTitle": "Database Information",
+      "CardTitlePG": "Postgres SQL",
+      "CardTitleSQL": "SQL Server",
       "MoreInfo_button": "More Information",
       "GetToken_button": "Get Access Token",
       "DatabaseName": "Database Name",
