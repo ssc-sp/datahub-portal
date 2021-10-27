@@ -82,7 +82,7 @@
                 <ChildContent>
                     @if (_databricksAuthorized && !string.IsNullOrWhiteSpace(_project.Databricks_URL))
                     {
-                        <DatahubLink Variant="h3" DataProject="@projectAcronym" DatabricksURL="@_project.Databricks_URL">Azure Databricks</DatahubLink>
+                        <DHLink Variant="h3" DataProject="@projectAcronym" DatabricksURL="@_project.Databricks_URL">Azure Databricks</DHLink>
                     }
                     else
                     {
@@ -132,7 +132,7 @@
                 <ChildContent>
                     @if (_powerBIAuthorized && !string.IsNullOrWhiteSpace(_project.PowerBI_URL))
                     {
-                        <DatahubLink Variant="h3" DataProject="@projectAcronym" PowerBIURL="@_project.PowerBI_URL">PowerBI Workspace</DatahubLink>
+                        <DHLink Variant="h3" DataProject="@projectAcronym" PowerBIURL="@_project.PowerBI_URL">PowerBI Workspace</DHLink>
                     }
                     else
                     {
@@ -185,7 +185,7 @@
                     <ChildContent>
                         @if (!string.IsNullOrWhiteSpace(_project.WebForms_URL) && _webFormsAuthorized)
                         {
-                            <DatahubLink Variant="h3" DataProject="@projectAcronym" WebFormsURL="@_project.WebForms_URL">@DataLocalizer["Data Entry"]</DatahubLink>
+                            <DHLink Variant="h3" DataProject="@projectAcronym" WebFormsURL="@_project.WebForms_URL">@DataLocalizer["Data Entry"]</DHLink>
                         }
                         else
                         {
@@ -219,7 +219,7 @@
                 </Header>
                 <ChildContent>
                     <AeFlex Vertical>
-                        <DatahubLink Variant="h3" DataProject="@projectAcronym" LinkType="DatahubLinkType.FormBuilder">@DataLocalizer["Form Builder"]</DatahubLink>
+                        <DHLink Variant="h3" DataProject="@projectAcronym" LinkType="DatahubLinkType.FormBuilder">@DataLocalizer["Form Builder"]</DHLink>
                         <AeTypography>@DataLocalizer["Design custom data entry forms"]</AeTypography>
                     </AeFlex>
                 </ChildContent>
@@ -236,7 +236,7 @@
 
                         @if (_serviceRequests.Any(r => r.ServiceType == "storage" && r.Is_Completed != null))
                         {
-                            <DatahubLink Variant="h3" DataProject="@projectAcronym" LinkType="DatahubLinkType.Storage">@DataLocalizer["Storage Explorer"]</DatahubLink>
+                            <DHLink Variant="h3" DataProject="@projectAcronym" LinkType="DatahubLinkType.Storage">@DataLocalizer["Storage Explorer"]</DHLink>
                         }
                         else
                         {
@@ -269,9 +269,9 @@
                         </div>
                     </Header>
                     <ChildContent>
-                        <DatahubLink Variant="h3" DataProject="@projectAcronym" LinkType="DatahubLinkType.DataSharingDashboard">
+                        <DHLink Variant="h3" DataProject="@projectAcronym" LinkType="DatahubLinkType.DataSharingDashboard">
                             @Localizer["PROJECT-PAGE.PUBLIC-SHARING-CARD.Title"]
-                        </DatahubLink>
+                        </DHLink>
                         <AeTypography>@Localizer["PROJECT-PAGE.PUBLIC-SHARING-CARD.UsersOwnSharedFiles"]: @_ownSharingRequestCount</AeTypography>
                             @if(_isDataApprover)
                             {

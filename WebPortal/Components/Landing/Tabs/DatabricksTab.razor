@@ -74,8 +74,8 @@
         
         renderFunctions = new List<Func<Datahub_Project, RenderFragment>>() {            
             Datahub_Project => @<AeFlex class="table-icon"><i class="@($"fad fa-{Datahub_Project.Project_Icon}")"></i></AeFlex>,
-            Datahub_Project => @<AeFlex style="padding-top: 1rem"><AeTypography><DatahubLink DataProject="@(Datahub_Project.Project_Acronym_CD)" DatabricksURL="@(Datahub_Project.Databricks_URL)" Name="Databricks Workspace">Databricks Workspace</DatahubLink></AeTypography></AeFlex>, 
-            Datahub_Project => @<AeFlex style="padding-top: 1rem"><AeTypography><DatahubLink DataProject="@(Datahub_Project.Project_Acronym_CD)">@Datahub_Project.ProjectName</DatahubLink></AeTypography></AeFlex>             
+            Datahub_Project => @<AeFlex style="padding-top: 1rem"><AeTypography><DHLink DataProject="@(Datahub_Project.Project_Acronym_CD)" DatabricksURL="@(Datahub_Project.Databricks_URL)" Name="Databricks Workspace">Databricks Workspace</DHLink></AeTypography></AeFlex>, 
+            Datahub_Project => @<AeFlex style="padding-top: 1rem"><AeTypography><DHLink DataProject="@(Datahub_Project.Project_Acronym_CD)">@Datahub_Project.ProjectName</DHLink></AeTypography></AeFlex>             
         };
 
         
