@@ -1,0 +1,33 @@
+﻿<AeTable 
+    Dataset=@_propertyDataSet
+    Headers=@Headers
+    Accessors=@_accessors
+/>
+
+@code {
+
+    [Parameter]
+    public Dictionary<string, string> PropertyDict { get; set; }
+
+    [Parameter]
+    public Func<string, string> KeyTransformer { get; set; } = k => k;
+
+    [Parameter]
+    public Func<string, string> ValueTransformer { get; set; } = v => v;
+
+    [Parameter]
+    public List<string> Headers { get; set; } = new() {"Key", "Value"};
+
+    private List<KeyValuePair<string, string>> _propertyDataSet => PropertyDict.ToList();
+    private List<Func<KeyValuePair<string, string>, string>> _accessors = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _accessors = new()
+            {
+                p => KeyTransformer(p.Key),
+                p => ValueTransformer(p.Value)
+            };
+
+    }
+}

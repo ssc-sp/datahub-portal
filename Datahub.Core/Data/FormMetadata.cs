@@ -28,6 +28,7 @@ namespace Datahub.Core.Data
 
         public bool IsSubmitEnabled { get; set; }
 
+        public string TableRoles { get; set; }
         public bool IsLoaded()
         {
             return Header != null && DataSet != null && AccessorFunctions != null && Headers != null && GridTemplateColumns != null;
