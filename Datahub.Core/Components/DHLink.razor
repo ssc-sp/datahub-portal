@@ -1,5 +1,7 @@
-﻿@using Microsoft.Extensions.Logging 
-@inject ILogger<DatahubLink> Logger
+﻿@using Datahub.Core.EFCore
+@using Microsoft.Extensions.Logging 
+@using System.Text.RegularExpressions
+@inject ILogger<DHLink> Logger
 @inject NavigationManager NavigationManager
 @inject UserLocationManagerService UserLocationManagerService
 
@@ -33,7 +35,12 @@
     public string Name { get; set; }
 
     [Parameter]
+    public string? PBIReportId { get; set; } = null;
+
+    [Parameter]
     public UserRecentLink? UserRecentLink { get; set; }
+
+    public static readonly Regex PBIUrl = new Regex("https://app.powerbi.com/groups/(.+)/reports/(.+)/(.+)", RegexOptions.IgnoreCase);
 
     //            <NavLink href="@("/project/" + p.Project_Acronym_CD)"> <AeTypography></AeTypography></NavLink>
 
@@ -64,6 +71,7 @@
             }
             link.LinkType = LinkType;
             link.PowerBIURL = PowerBIURL;
+            link.PBIReportId = PBIReportId;
             link.Variant = Variant;
             link.DatabricksURL = DatabricksURL;
             link.WebFormsURL = WebFormsURL;
@@ -74,7 +82,10 @@
         switch (LinkType)
         {
             case DatahubLinkType.PowerBI:
-                NavigationManager.NavigateTo(link.PowerBIURL);
+                //NavigationManager.NavigateTo(link.PowerBIURL);
+                //https://app.powerbi.com/groups/6ca76417-b205-43c2-be1b-6aeeedcb84ae/reports/0923fe18-c795-4c88-b7cf-ed8cf2ceacc6/ReportSection
+
+                NavigationManager.NavigateTo($"/powerbi-report/{link.PBIReportId}");
                 break;
             case DatahubLinkType.DataProject:
                 NavigationManager.NavigateTo($"/project/{link.DataProject}");
