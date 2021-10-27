@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Datahub.Core.EFCore;
+using Datahub.Core.UserTracking;
 
 namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
 {
