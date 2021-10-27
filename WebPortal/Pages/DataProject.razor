@@ -317,9 +317,9 @@
                     <ChildContent>
                         <AeFlex Vertical>
                             <AeTypography Variant="h3">
-                                @Localizer["PROJECT-PAGE.DATABASE-CARD.CardTitle"]
+                                @Localizer["PROJECT-PAGE.DATABASE-CARD.CardTitlePG"]
                             </AeTypography>
-                            <div>@Localizer["PROJECT-PAGE.DATABASE-CARD.DatabaseName"]: @_project.DB_Name</div>
+                            <AeTypography>@Localizer["PROJECT-PAGE.DATABASE-CARD.DatabaseName"]: @_project.DB_Name</AeTypography>
                             <div>
                                 <AeButton OnClickEvent=@ShowDatabaseInformationPopupWithoutToken>@Localizer["PROJECT-PAGE.DATABASE-CARD.MoreInfo_button"]</AeButton>
                             </div>
@@ -334,6 +334,25 @@
                 </AeCard>
             }
             
+            <AeCard class="facard1" CardPosition="AeCard.CardStyle.Horizontal">
+                    <Header>
+                        <div>
+                            <AeIcon class="fad fa-database card-icon"/>
+                        </div>
+                    </Header>
+                    <ChildContent>
+                        <AeFlex Vertical>
+                            <AeTypography Variant="h3">
+                                @Localizer["PROJECT-PAGE.DATABASE-CARD.CardTitleSQL"]
+                            </AeTypography>                            
+                            
+                        </AeFlex>
+                    </ChildContent>
+                    <Footer>
+                        <AeButton @onclick="@(async () => await RequestServiceAccess(""))">@DataLocalizer["Request Service Creation"]</AeButton>
+                        </Footer>
+                </AeCard>
+
         </div>
         
     </AuthorizeView>
