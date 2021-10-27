@@ -178,7 +178,7 @@ namespace Datahub.Portal
 
         private void InitializeDatabase<T>(ILogger logger, IDbContextFactory<T> dbContextFactory, bool migrate = true, bool ensureDeleteinOffline = true) where T : DbContext
         {
-            EFTools.InitializeDatabase<T>(logger, dbContextFactory, Offline, migrate, ensureDeleteinOffline);
+            EFTools.InitializeDatabase<T>(logger, Configuration, dbContextFactory, Offline, migrate, ensureDeleteinOffline);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

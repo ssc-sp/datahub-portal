@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
 
 namespace Datahub.Core
 {
@@ -30,9 +31,9 @@ namespace Datahub.Core
             logger = serviceProvider.GetService(typeof(ILogger<DatahubModuleContext>)) as ILogger<DatahubModuleContext>;
         }
 
-        public void InitializeDatabase<T>(bool migrate = true, bool ensureDeleteinOffline = true) where T : DbContext
+        public void InitializeDatabase<T>(IConfiguration configuration, bool migrate = true, bool ensureDeleteinOffline = true) where T : DbContext
         {
-            EFTools.InitializeDatabase<T>(logger, serviceProvider, offline, migrate, ensureDeleteinOffline);
+            EFTools.InitializeDatabase<T>(logger, configuration, serviceProvider, offline, migrate, ensureDeleteinOffline);
         }
 
 
