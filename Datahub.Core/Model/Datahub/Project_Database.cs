@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System;
 
-namespace Datahub.Core.UserTracking
+namespace Datahub.Core.EFCore
 {
     public class Project_Database
     {
