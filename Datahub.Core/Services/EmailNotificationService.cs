@@ -11,6 +11,7 @@ using System.Linq;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Text;
+using Datahub.Core.Model.Onboarding;
 
 namespace Datahub.Core.Services
 {
@@ -344,6 +345,9 @@ namespace Datahub.Core.Services
                 var html = await RenderTemplate<ManagerRequestApproved>(parametersDict);
                 await SendEmailMessage(subject, html, parameters.EmployeeEmailAddress, parameters.EmployeeName);
                 await SendEmailMessage(subject, html, parameters.ManagerEmailAddress, parameters.ManagerName);
+                html = await RenderTemplate<LSUNotification>(parametersDict);
+                await SendEmailMessage(subject, html, parameters.AdminEmailAddresses);
+
             }
             else
             {
@@ -354,7 +358,67 @@ namespace Datahub.Core.Services
 
         }
 
+        public async Task SendLanguageSchoolDecision(LanguageTrainingParameters parameters)
+        {
+            var parametersDict = BuildLanguageNotificationParameters(parameters);
+
+            if (parameters.LanguageSchoolDecision == "Training Accepted")
+            {
+                var subject = $"Language Training Request – PLACEMENT ACCEPTED / Demande de formation linguistique APPROUVÉE - STAGE ACCEPTÉ - {parameters.EmployeeName} – {parameters.TrainingType} - {parameters.ApplicationId} ";
+                var html = await RenderTemplate<LSUApproved>(parametersDict);
+                await SendEmailMessage(subject, html, parameters.EmployeeEmailAddress, parameters.EmployeeName);
+                await SendEmailMessage(subject, html, parameters.ManagerEmailAddress, parameters.ManagerName);
+            }
+            else if (parameters.LanguageSchoolDecision == "Requires LETP assessment")
+            {
+                var subject = $"Language Training Request – NEW LETP REQUIRED / Demande de formation linguistique - NOUVEAU ELFP REQUIS - {parameters.EmployeeName} – {parameters.TrainingType} - {parameters.ApplicationId} ";
+                var html = await RenderTemplate<LSUNewLTPReq>(parametersDict);
+                await SendEmailMessage(subject, html, parameters.EmployeeEmailAddress, parameters.EmployeeName);
+                await SendEmailMessage(subject, html, parameters.ManagerEmailAddress, parameters.ManagerName);
+            }
+            else if (parameters.LanguageSchoolDecision == "Insufficient interest at level")
+            {
+                var subject = $"Language Training Request – INSUFFICIENT INTEREST / Demande de formation linguistique - INTÉRÊT INSUFFISANT - {parameters.EmployeeName} – {parameters.TrainingType} - {parameters.ApplicationId} ";
+                var html = await RenderTemplate<LSUInsufficientInterest>(parametersDict);
+                await SendEmailMessage(subject, html, parameters.EmployeeEmailAddress, parameters.EmployeeName);
+                await SendEmailMessage(subject, html, parameters.ManagerEmailAddress, parameters.ManagerName);
+            }
+            else if (parameters.LanguageSchoolDecision == "Demand exceeds capacity")
+            {
+                var subject = $"Language Training Request – EXCESS IN DEMAND / Demande de formation linguistique - SURPLUS DE DEMANDE - {parameters.EmployeeName} – {parameters.TrainingType} - {parameters.ApplicationId} ";
+                var html = await RenderTemplate<LSUExcessInDemand>(parametersDict);
+                await SendEmailMessage(subject, html, parameters.EmployeeEmailAddress, parameters.EmployeeName);
+                await SendEmailMessage(subject, html, parameters.ManagerEmailAddress, parameters.ManagerName);
+            }
+
+        }
+
+        public async Task SendOnboardingConfirmations(OnboardingParameters parameters)
+        {
+            var parametersDict = BuildOnboardingParameters(parameters);
+
+            var subject = $"Onboarding Request – {parameters.App.Project_Name}";
+            var html = await RenderTemplate<OnboardingAdmin>(parametersDict);
+            await SendEmailMessage(subject, html, parameters.AdminEmailAddresses);
+            html = await RenderTemplate<OnboardingClient>(parametersDict);
+            await SendEmailMessage(subject, html, parameters.App.Client_Email, parameters.App.Client_Contact_Name);
+            if (!string.IsNullOrEmpty(parameters.App.Additional_Contact_Email_EMAIL))
+                await SendEmailMessage(subject, html, parameters.App.Additional_Contact_Email_EMAIL, parameters.App.Additional_Contact_Email_EMAIL);
+
+        }
+
         private Dictionary<string, object> BuildLanguageNotificationParameters(LanguageTrainingParameters parameters)
+        {
+            var parametersDict = new Dictionary<string, object>()
+            {
+                { "ApplicationParameters", parameters }
+
+            };
+
+            return parametersDict;
+        }
+
+        private Dictionary<string, object> BuildOnboardingParameters(OnboardingParameters parameters)
         {
             var parametersDict = new Dictionary<string, object>()
             {
@@ -407,10 +471,19 @@ namespace Datahub.Core.Services
         public string EmployeeName;
         public string EmployeeEmailAddress;
         public string TrainingType;
+        public string Session;
+        public string Class;
         public string ManagerEmailAddress;
         public string ManagerName;
         public string LanguageSchoolEmailAddress;
         public string ManagerDecision;
+        public string LanguageSchoolDecision;
+        public List<string> AdminEmailAddresses;
+    }
+
+    public class OnboardingParameters
+    {
+        public OnboardingApp App;        
         public List<string> AdminEmailAddresses;
     }
 }
