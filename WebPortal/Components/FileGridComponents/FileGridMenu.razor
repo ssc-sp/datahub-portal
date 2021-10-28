@@ -1,89 +1,48 @@
 ﻿@inject UIControlsService UI
 
-@if (SelectedItem != null)
+<FileGridMenuButton IconClass="far fa-trash-alt" Enabled="ItemOwned" OnClick="DeleteRow">
+    @Localizer["Delete"]
+</FileGridMenuButton>
+
+<FileGridMenuButton IconClass="far fa-cloud-download" Enabled="IsFile" OnClick="DownloadFile">
+    @Localizer["Download"]
+</FileGridMenuButton>
+
+@if (IsProject)
 {
-    @if (SelectedItem.ownedby == CurrentUser)
-    {
-        <div class="file-grid-item" @onclick="DeleteRow">
-            <i class="far fa-trash-alt icon-color sm-icon"></i>
-            @Localizer["Delete"]
-        </div>
-    }
-
-    @if (SelectedItem.dataType == MetadataType.File)
-    {
-        <div class="file-grid-item" @onclick="DownloadFile">
-            <i class="far fa-cloud-download icon-color sm-icon"></i>
-            @Localizer["Download"]
-        </div>
-        
-        <AuthorizeView Roles="DHPGLIST-admin">
-            @if (!string.IsNullOrEmpty(Project))
-            {
-                <div class="file-grid-item" @onclick=@Share>
-                    <i class="far fa-share-square icon-color sm-icon"></i>
-                    @Localizer["Share"]
-                </div>
-            }
-        </AuthorizeView>
-
-        <div class="file-grid-item" @onclick="OpenDetails">
-            <i class="far fa-info-circle icon-color sm-icon"></i>
-            @Localizer["ViewDetails"]
-        </div>
-    }
-    
-    @if (SelectedItem.ownedby == CurrentUser && string.IsNullOrEmpty(Project))
-    {
-        if (SelectedItem.dataType == MetadataType.File)
-        {
-            <div class="file-grid-item" @onclick="MoveTo">
-                <i class="fal fa-arrow-to-right icon-color sm-icon"></i>
-                @Localizer["MoveTo"]
-            </div>
-        }
-        <div class="file-grid-item" @onclick="Rename">
-            <i class="fal fa-pencil icon-color sm-icon"></i>
-            @Localizer["Rename"]
-        </div>
-        if (SelectedItem.dataType == MetadataType.File)
-        {
-            <div class="file-grid-item" @onclick="OpenManageAccess">
-                <i class="far fa-link icon-color sm-icon"></i>
-                @Localizer["ManageAccess"]
-            </div>
-        }
-    }
-    
-    // If current item is a folder which we do not own, guarantee we show a blank entry
-    @if (SelectedItem.ownedby != CurrentUser && SelectedItem.dataType == MetadataType.Folder)
-    {
-        <div class="file-grid-item">
-            &nbsp;
-        </div>
-    }
+    <AuthorizeView Roles="DHPGLIST-admin">
+        <FileGridMenuButton IconClass="far fa-share-square" Enabled="IsFile" OnClick="Share">
+            @Localizer["Share"]
+        </FileGridMenuButton>
+    </AuthorizeView>
 }
-else if (!IsSearchedData && string.IsNullOrEmpty(Project))
+
+<FileGridMenuButton IconClass="far fa-info-circle" Enabled="IsFile" OnClick="OpenDetails">
+    @Localizer["ViewDetails"]
+</FileGridMenuButton>
+
+@if (!IsProject)
 {
-    <div class="file-grid-item" @onclick="CreateFolder">
-        <i class="far fa-folder-plus icon-color sm-icon"></i>
+    <FileGridMenuButton IconClass="fal fa-arrow-to-right" Enabled=@(ItemOwned && IsFile) OnClick="MoveTo">
+        @Localizer["MoveTo"]
+    </FileGridMenuButton>
+
+    <FileGridMenuButton IconClass="fal fa-pencil" Enabled="ItemOwned" OnClick="Rename">
+        @Localizer["Rename"]
+    </FileGridMenuButton>
+
+    <FileGridMenuButton IconClass="far fa-link" Enabled=@(ItemOwned && IsFile) OnClick="OpenManageAccess">
+        @Localizer["ManageAccess"]
+    </FileGridMenuButton>
+
+    <FileGridMenuButton IconClass="far fa-folder-plus" Enabled=@(!IsSearchedData) OnClick="CreateFolder">
         @Localizer["CreateFolder"]
-    </div>
-}
-else
-{
-    <div class="file-grid-item">
-        &nbsp;
-    </div>
+    </FileGridMenuButton>
 }
 
-@if (CanAddData)
-{
-    <div class="file-grid-item-right" @onclick="ToggleAddData">
-        <i class="far fa-cloud-upload icon-color sm-icon"></i>
-        <strong>&nbsp;@Localizer["FILE-GRID-PAGE.AddData"]</strong>        
-    </div>
-}
+<FileGridMenuButton IconClass="far fa-cloud-upload" Enabled="CanAddData" OnClick="ToggleAddData">
+    <strong>@Localizer["FILE-GRID-PAGE.AddData"]</strong>
+</FileGridMenuButton>
 
 @code {
 
@@ -105,46 +64,29 @@ else
     [Parameter]
     public bool CanAddData { get; set; }
 
-    private Task DeleteRow()
-    {
-        return PerformMenuAction.InvokeAsync(MenuActions.DeleteRow);
-    }
-    private Task DownloadFile()
-    {
-        return PerformMenuAction.InvokeAsync(MenuActions.DownloadFile);
-    }
-    private Task OpenDetails()
-    {
-        return PerformMenuAction.InvokeAsync(MenuActions.OpenDetails);
-    }
-    private Task OpenVersions()
-    {
-        return PerformMenuAction.InvokeAsync(MenuActions.OpenVersions);
-    }
-    private Task OpenManageAccess()
-    {
-        return PerformMenuAction.InvokeAsync(MenuActions.OpenManageAccess);
-    }
-    private Task CreateFolder()
-    {
-        return PerformMenuAction.InvokeAsync(MenuActions.CreateFolder);
-    }
-    private Task MoveTo()
-    {
-        return PerformMenuAction.InvokeAsync(MenuActions.MoveTo);
-    }
-    private Task Rename()
-    {
-        return PerformMenuAction.InvokeAsync(MenuActions.Rename);
-    }
-    private Task Share()
-    {
-        return PerformMenuAction.InvokeAsync(MenuActions.ShareFile);
-    }
+    private Task DeleteRow() => PerformMenuAction.InvokeAsync(MenuActions.DeleteRow);
+    
+    private Task DownloadFile() => PerformMenuAction.InvokeAsync(MenuActions.DownloadFile);
+    
+    private Task OpenDetails() => PerformMenuAction.InvokeAsync(MenuActions.OpenDetails);
+    
+    private Task OpenVersions() => PerformMenuAction.InvokeAsync(MenuActions.OpenVersions);
+    
+    private Task OpenManageAccess() => PerformMenuAction.InvokeAsync(MenuActions.OpenManageAccess);
+    
+    private Task CreateFolder() => PerformMenuAction.InvokeAsync(MenuActions.CreateFolder);
+    
+    private Task MoveTo() => PerformMenuAction.InvokeAsync(MenuActions.MoveTo);
+    
+    private Task Rename() => PerformMenuAction.InvokeAsync(MenuActions.Rename);
+    
+    private Task Share() => PerformMenuAction.InvokeAsync(MenuActions.ShareFile);
 
-    private void ToggleAddData()
-    {
-        RenderFragment fragment = @<AddDataBar />;
-        UI.ToggleRightSidebar(fragment);
-    }
+    private void ToggleAddData() => UI.ToggleRightSidebar(@<AddDataBar />);
+
+    private bool ItemOwned => SelectedItem != null && SelectedItem.ownedby == CurrentUser;
+
+    private bool IsFile => SelectedItem?.dataType == MetadataType.File;
+
+    private bool IsProject => !string.IsNullOrEmpty(Project);
 }
