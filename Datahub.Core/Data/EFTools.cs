@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.CSharp.RuntimeBinder;
 
 namespace Datahub.Core.Data
 {
@@ -19,15 +20,15 @@ namespace Datahub.Core.Data
         SqlServer, Sqlite
     }
     public static class EFTools
-    {
+    {        
 
-        public static void InitializeDatabase<T>(ILogger logger, IServiceProvider serviceProvider, bool offline, bool migrate = true, bool ensureDeleteinOffline = true) where T : DbContext
+        public static void InitializeDatabase<T>(ILogger logger, IConfiguration configuration, IServiceProvider serviceProvider, bool offline, bool migrate = true, bool ensureDeleteinOffline = true) where T : DbContext
         {
             var factory = serviceProvider.GetService(typeof(IDbContextFactory<T>)) as IDbContextFactory<T>;
-            InitializeDatabase<T>(logger, factory, offline, migrate, ensureDeleteinOffline);
+            InitializeDatabase<T>(logger, configuration, factory, offline, migrate, ensureDeleteinOffline);
         }
 
-        public static void InitializeDatabase<T>(ILogger logger, IDbContextFactory<T> factory, bool offline, bool migrate = true, bool ensureDeleteinOffline = true) where T : DbContext
+        public static void InitializeDatabase<T>(ILogger logger, IConfiguration configuration, IDbContextFactory<T> factory, bool offline, bool migrate = true, bool ensureDeleteinOffline = true) where T : DbContext
         {
             //bool offline, ILogger logger, IDbContextFactory<T> factory, 
             using var context = factory.CreateDbContext();
@@ -37,7 +38,7 @@ namespace Datahub.Core.Data
                 {
                     if (ensureDeleteinOffline)
                         context.Database.EnsureDeleted();
-                    CreateAndSeedDB(context);
+                    CreateAndSeedDB(logger, context, configuration);
                 }
                 else
                 {
@@ -45,7 +46,7 @@ namespace Datahub.Core.Data
                     if (migrate)
                         context.Database.Migrate();
                     else
-                        CreateAndSeedDB(context);
+                        CreateAndSeedDB(logger, context, configuration);
                 }
                 logger.LogInformation($"Successfully initialized database {GetInfo(context.Database)}-{typeof(T).Name}");
             }
@@ -94,16 +95,27 @@ namespace Datahub.Core.Data
             return "NA";
         }
 
-        private static void CreateAndSeedDB<T>(T context) where T : DbContext
+        private static void CreateAndSeedDB<T>(ILogger logger, T context, IConfiguration configuration) where T : DbContext
         {
             if (context.Database.EnsureCreated())
             {
-                var seedable = context as ISeedable<T>;
-                if (seedable != null)
+                dynamic d = context;
+                try
                 {
-                    //seedable.Seed(context, Configuration);
+                    d.Seed(context, configuration);
                     context.SaveChanges();
                 }
+                catch (RuntimeBinderException ex)
+                {
+                    logger.LogCritical(ex, "Method doesn't exist");
+                }
+
+                //var seedable = context as ISeedable<T>;
+                //if (seedable != null)
+                //{
+                //    //seedable.Seed(context, Configuration);
+                //    context.SaveChanges();
+                //}
             }
         }
 

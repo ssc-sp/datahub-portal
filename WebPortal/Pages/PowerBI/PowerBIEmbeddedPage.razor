@@ -1,0 +1,26 @@
+﻿@page "/powerbi-report/{ReportId}"
+
+@using Microsoft.EntityFrameworkCore.Query
+@using Microsoft.EntityFrameworkCore;
+@using Microsoft.PowerBI.Api.Models
+@inject IStringLocalizer<DataLabels> DataLocalizer
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JsInterop
+@inject PowerBiServiceApi PowerBiServiceApi
+@using Microsoft.Identity.Web
+@inject MicrosoftIdentityConsentAndConditionalAccessHandler ConsentHandler
+
+<iframe width="800" height="800" id="powerbi-iframe" src="https://app.powerbi.com/reportEmbed?reportId=@(ReportId)&autoAuth=true" frameborder="0" allowFullScreen="true"></iframe>
+
+@code {
+
+    [Parameter]
+    public string ReportId {  get;  set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await JsInterop.InvokeVoidAsync("ResizeIFrame","#powerbi-iframe");
+    }
+
+
+}
