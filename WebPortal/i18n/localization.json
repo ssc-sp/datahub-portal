@@ -723,6 +723,9 @@
       "Title": "Public Data Sharing",
       "UsersOwnSharedFiles": "Your publicly shared files",
       "SharedFilesAwaitingApproval": "Sharing requests awaiting approval"
+    },
+    "ADMIN-CARD": {
+      "Title": "Admin Actions"
     }
   }
 }

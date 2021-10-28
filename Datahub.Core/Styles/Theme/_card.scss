@@ -29,6 +29,7 @@ $cardOptions: (
     ),
     '.ae.card-footer': (
       'display': flex,
+      'flex-direction': column,  
       'border-top': 1px solid,
       'border-color': c.$grey-200,
       'padding': 1.25rem,
