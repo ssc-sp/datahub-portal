@@ -35,6 +35,21 @@ namespace Datahub.Core.Services
             return ctx.Projects.Where(p => p.Project_Acronym_CD != null).Select(p => p.Project_Acronym_CD).ToList();
         }
 
+        public bool InvalidateAuthCache()
+        {
+            var cache = serviceAuthCache as MemoryCache;
+            if (cache != null)
+            {
+                var percentage = 1.0;//100%
+                cache.Compact(percentage);
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
         public List<string> GetAdminProjectRoles()
         {
             var projects = GetAllProjects();
