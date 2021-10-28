@@ -49,10 +49,7 @@
                 </NotAuthorized>
             </AuthorizeView>
             <AeTypography>@DataLocalizer["Data Sensitivity:"] @DataLocalizer[_project.Data_Sensitivity]</AeTypography>
-            <DHAdminActions>                
-                <NavLink href="@($"/edit-project/{projectAcronym}")"><AeButton>@DataLocalizer["Edit Project"]</AeButton></NavLink>
-                <NavLink href="@($"/tracker/{projectAcronym}")"><AeButton>@DataLocalizer["Project Tracker"]</AeButton></NavLink>
-            </DHAdminActions>
+            
         </ChildContent>
     </AeCard>
    
@@ -140,10 +137,7 @@
                     }
                     <AeTypography>@Localizer["Power BI Workspace"]</AeTypography>
                 </ChildContent>
-                <Footer>
-                    <DHAdminActions>
-                        <NavLink href="@($"/admin/powerbi/{projectAcronym}")"><AeButton>@DataLocalizer["Manage Links"]</AeButton></NavLink>
-                    </DHAdminActions>
+                <Footer>                    
                     @if (!_powerBIAuthorized)
                     {
                         @if (!string.IsNullOrWhiteSpace(_project.PowerBI_URL))
@@ -320,7 +314,11 @@
                                 @Localizer["PROJECT-PAGE.DATABASE-CARD.CardTitlePG"]
                             </AeTypography>
                             <AeTypography>@Localizer["PROJECT-PAGE.DATABASE-CARD.DatabaseName"]: @_project.DB_Name</AeTypography>
-                            <div>
+                            
+                        </AeFlex>
+                    </ChildContent>
+                    <Footer>
+                        <div>
                                 <AeButton OnClickEvent=@ShowDatabaseInformationPopupWithoutToken>@Localizer["PROJECT-PAGE.DATABASE-CARD.MoreInfo_button"]</AeButton>
                             </div>
                             @if (_project.IsDatabasePostgres && ProjectDatabaseService.IsServiceAvailable())
@@ -329,8 +327,7 @@
                                     <AeButton OnClickEvent=@ShowDatabaseInformationPopupWithToken>@Localizer["PROJECT-PAGE.DATABASE-CARD.GetToken_button"]</AeButton>
                                 </div>
                             }
-                        </AeFlex>
-                    </ChildContent>
+                    </Footer>
                 </AeCard>
             }
             
@@ -344,14 +341,36 @@
                         <AeFlex Vertical>
                             <AeTypography Variant="h3">
                                 @Localizer["PROJECT-PAGE.DATABASE-CARD.CardTitleSQL"]
-                            </AeTypography>                            
-                            
+                            </AeTypography>                                                        
                         </AeFlex>
                     </ChildContent>
                     <Footer>
                         <AeButton @onclick="@(async () => await RequestServiceAccess(""))">@DataLocalizer["Request Service Creation"]</AeButton>
                         </Footer>
                 </AeCard>
+
+
+
+            <AuthorizeView Roles="DHPGLIST-admin" Context="Admin_Card">
+                <AeCard class="facard1" CardPosition="AeCard.CardStyle.Horizontal">
+                    <Header>
+                        <div>
+                            <AeIcon class="fad fa-user-crown"/>                            
+                        </div>
+                    </Header>
+                    <ChildContent>
+                        <AeTypography Variant="h3">
+                            @Localizer["PROJECT-PAGE.ADMIN-CARD.Title"]
+                        </AeTypography>
+                    </ChildContent>
+                    <Footer>                           
+                        <NavLink href="@($"/edit-project/{projectAcronym}")"><AeButton>@DataLocalizer["Edit Project"]</AeButton></NavLink>
+                        <NavLink href="@($"/tracker/{projectAcronym}")"><AeButton>@DataLocalizer["Project Tracker"]</AeButton></NavLink>
+                        <NavLink href="@($"/admin/powerbi/{projectAcronym}")"><AeButton>@DataLocalizer["Manage Links"]</AeButton></NavLink>
+                    </Footer>
+
+                </AeCard>
+            </AuthorizeView>
 
         </div>
         
