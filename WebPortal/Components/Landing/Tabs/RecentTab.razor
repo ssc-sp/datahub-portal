@@ -13,7 +13,7 @@
                 <AeFlex class="@($"recent-card {GetIcon(item.link).Color}")">
                     <i class="@GetIcon(item.link).Name" />
                     <AeFlex class="text">
-                        <DatahubLink UserRecentLink="@(item.link)"><AeTypography class="title">@GetLinkDescription(item.link,item.project)</AeTypography></DatahubLink>
+                        <DHLink UserRecentLink="@(item.link)"><AeTypography class="title">@GetLinkDescription(item.link,item.project)</AeTypography></DHLink>
                         <AeTypography class="subtitle">@GetDescription(item.link, item.project)</AeTypography>
                     </AeFlex>
                 </AeFlex>

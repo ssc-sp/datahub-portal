@@ -7,8 +7,9 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Datahub.Core.Components;
 
-namespace Datahub.Core.EFCore
+namespace Datahub.Core.UserTracking
 {
     public record UserRecent
     {
@@ -37,6 +38,8 @@ namespace Datahub.Core.EFCore
         public string WebFormsURL { get; set; }
 
         public string DataProject { get; set; }
+
+        public string PBIReportId { get; set; }
 
         public DateTimeOffset accessedTime{ get; set; }
     }
