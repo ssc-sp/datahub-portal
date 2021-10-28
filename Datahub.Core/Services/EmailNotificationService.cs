@@ -75,7 +75,7 @@ namespace Datahub.Core.Services
                 var user = _graphService.GetUser(userIdOrAddress);
                 if (user != null)
                 {
-                    return new MailboxAddress(user.DisplayName, user.Mail);
+                    return CreateMailboxAddress(user.DisplayName, user.Mail);
                 }
             }
             else if (userIdOrAddress.Contains('@'))
@@ -83,7 +83,7 @@ namespace Datahub.Core.Services
                 // if recipientName is provided, just use that along with the email address
                 if (!string.IsNullOrEmpty(recipientName))
                 {
-                    return new MailboxAddress(recipientName, userIdOrAddress);
+                    return CreateMailboxAddress(recipientName, userIdOrAddress);
                 }
                 else
                 {
@@ -93,12 +93,14 @@ namespace Datahub.Core.Services
                     var user = _graphService.GetUser(userId);
 
                     // even if we don't get a user object, we can still try to send to the address
-                    return new MailboxAddress(user?.DisplayName, userIdOrAddress);
+                    return CreateMailboxAddress(user?.DisplayName, userIdOrAddress);
                 }
             }
 
             return null;
         }
+
+        static MailboxAddress CreateMailboxAddress(string name, string address) => new(name, address?.ToLower());
 
         private IList<MailboxAddress> BuildRecipientList(IList<string> userIdsOrAddresses)
         {
@@ -173,7 +175,7 @@ namespace Datahub.Core.Services
                 }
 
                 var msg = new MimeMessage();
-                msg.From.Add(new MailboxAddress(_config.SenderName, _config.SenderAddress));
+                msg.From.Add(CreateMailboxAddress(_config.SenderName, _config.SenderAddress));
 
                 if (IsDevTestMode())
                 {
