@@ -478,6 +478,7 @@ namespace Datahub.Core.Services
         public string LanguageSchoolEmailAddress;
         public string ManagerDecision;
         public string LanguageSchoolDecision;
+        public string FormUrl;
         public List<string> AdminEmailAddresses;
     }
 

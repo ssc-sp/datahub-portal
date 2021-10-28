@@ -16,6 +16,7 @@ namespace Datahub.Portal.Services
     {
         public string OpenDataApprovalPdfBaseUrl { get; set; }
         public string OpenDataApprovalPdfFormIdParam { get; set; }
+        public string PublicFileSharingDomain { get; set; }
     }
 
     public class PublicDataFileService : IPublicDataFileService
@@ -345,5 +346,11 @@ namespace Datahub.Portal.Services
             return $"{_config.OpenDataApprovalPdfBaseUrl}?{_config.OpenDataApprovalPdfFormIdParam}={approvalFormId}&rdl:format=pdf";
         }
 
+        public string GetPublicSharedFileUrl(string fileId)
+        {
+            var ub = new UriBuilder(_config.PublicFileSharingDomain);
+            ub.Path = $"/Public/DownloadFile/{fileId}";
+            return ub.ToString();
+        }
     }
 }

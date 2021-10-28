@@ -88,7 +88,7 @@ namespace Datahub.Portal.Services
                     {
                         var datasets = (await client.Datasets.GetDatasetsInGroupAsync(workspace.Id)).Value;
                         var cReports = (await client.Reports.GetReportsInGroupAsync(workspace.Id)).Value;
-                        allDataSets.AddRange(datasets.Select(e => (workspace, e, cReports.Where(r => r.DatasetId == e.Id).ToList())));
+                        allDataSets.AddRange(datasets.Select(e => (workspace, e, cReports.Where(r => r.DatasetId == e.Id || r.ReportType == "PaginatedReport").ToList())));
                     } catch (Exception ex)
                     {
                         logger.LogWarning(ex, $"Cannot read datasets and reports in workspace {workspace.Id}");
