@@ -18,9 +18,9 @@ namespace Datahub.LanguageTraining
              serviceProvider.ConfigureDbContext<LanguageTrainingDBContext>(configuration, "datahub-mssql-languagetraining", configuration.GetDriver());
         }
 
-        public void InitializeDatabases(DatahubModuleContext ctx)
+        public void InitializeDatabases(DatahubModuleContext ctx, IConfiguration configuration)
         {
-            ctx.InitializeDatabase<LanguageTrainingDBContext>();
+            ctx.InitializeDatabase<LanguageTrainingDBContext>(configuration);
         }
     }
 }

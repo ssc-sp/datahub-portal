@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Xunit;
+using Datahub.Core.UserTracking;
 
 namespace Datahub.Tests
 {
@@ -17,6 +18,7 @@ namespace Datahub.Tests
         private ServiceProvider _serviceProvider;
         private string _cosmosCxnStr = @"AccountEndpoint=https://dh-portal-cosmosdb-dev.documents.azure.com:443/;AccountKey=QAwclaaNFK2G5foH4g9NqGa2xBJfLS46n53LW3LKOqYMiGxBI4J9H3sOSSAwx9ZI7YHqPQzc5w3QZD29vSZBDg==;";
         private string _userId = "myuserid";
+
         [Fact]
         public async void GivenCosmosCxnStr_ValidateConnection()
         {
@@ -63,7 +65,7 @@ namespace Datahub.Tests
         private void LoadServices()
         {
             var serviceCollection = new ServiceCollection();
-            serviceCollection.AddDbContext<EFCoreDatahubContext>(options =>
+            serviceCollection.AddDbContext<UserTrackingContext>(options =>
             {
 
                 options.UseCosmos(

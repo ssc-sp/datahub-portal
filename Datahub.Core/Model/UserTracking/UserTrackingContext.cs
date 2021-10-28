@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore;
-namespace Datahub.Core.EFCore
+namespace Datahub.Core.UserTracking
 {
-    public class EFCoreDatahubContext : DbContext
+    public class UserTrackingContext : DbContext
     {
-        public EFCoreDatahubContext(DbContextOptions<EFCoreDatahubContext> options) : base(options)
+        public UserTrackingContext(DbContextOptions<UserTrackingContext> options) : base(options)
         { }
         public DbSet<UserSettings> UserSettings { get; set; }
 
