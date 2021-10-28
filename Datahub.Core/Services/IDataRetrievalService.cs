@@ -12,5 +12,6 @@ namespace Datahub.Core.Services
         Task<List<Version>> GetFileVersions(string fileId);
         Task<Data.Folder> GetFolderContents(dynamic folder, string filterSearch, User user, string project);
         Task<Data.Folder> GetFolderStructure(Data.Folder folder, User user, bool onlyFolders = true);
+        Task<StorageMetadata> GetStorageMetadata(string project);
     }
 }
