@@ -24,6 +24,7 @@
 @code {
 
     private const string PROJECTACRONYM = "HRLTP";
+    private const string FORMLOCATION = "languagetraining/applications";
     private FormMetadata<LanguageTrainingApplication> _formMetadata;
     private bool _onchange;
     private List<LanguageTrainingApplication> _languageTrainingApplications;
@@ -46,6 +47,7 @@
 
     private void PrepareMetadata()
     {
+        var baseuri = NavigationManager.BaseUri;
         _formMetadata.Header = "NRCan Language Training Application Form";
         _formMetadata.TableRoles = "default";
         _formMetadata.DataSet = _languageTrainingApplications;
@@ -162,6 +164,7 @@
         param.LanguageSchoolDecision = _languageTrainingApplication.Decision;
         param.Session = _languageTrainingApplication.Session_For_Language_Training;
         param.Class = _languageTrainingApplication.Class_For_Language_Training;
+        param.FormUrl =  $"{NavigationManager.BaseUri}{FORMLOCATION}";
         return param;
     }
 

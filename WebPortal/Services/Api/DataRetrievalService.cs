@@ -306,5 +306,27 @@ namespace Datahub.Portal.Services
 
             return file;
         }
+
+        public async Task<StorageMetadata> GetStorageMetadata(string project)
+        {
+            string cxnstring = await _apiCallService.GetProjectConnectionString(project);
+            BlobServiceClient blobServiceClient = new(cxnstring);
+            BlobContainerClient containerClient = blobServiceClient.GetBlobContainerClient("datahub");
+
+            var accountInfo = blobServiceClient.GetAccountInfo().Value;
+            //var accountype = accountInfo.Value
+            //var skuName = accountInfo.SkuName;
+
+            StorageMetadata storeageMetadata = new() 
+            {
+                Container = "datahub",
+                Url = containerClient.Uri.ToString(),
+                Versioning = "True",
+                GeoRedundancy = accountInfo.SkuName.ToString(),
+                StorageAccountType = accountInfo.AccountKind.ToString()
+            };
+
+            return storeageMetadata;
+        }
     }
 }
