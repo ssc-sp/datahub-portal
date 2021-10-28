@@ -9,7 +9,7 @@
 <div id="@($"{File.fileid}Div")" class="fileGrid" style="@FileStatusCssStyle" @onclick="() => SelectFile()" @ondblclick="DownloadFile"
      @oncontextmenu="HandleRightClick" @oncontextmenu:preventDefault="true" @onclick:preventDefault="true">
     <div class="grid-item" style="@CurrentlySelectedStyle">
-        <i class="@(!IsSelected ? "": "far fa-check-circle icon-color ")">&nbsp;</i>
+        <i class="@(!IsSelected ? "far fa-circle icon-color ": "far fa-check-circle icon-color ")">&nbsp;</i>
     </div>
     <div class="grid-item" >
         <div class="textcontent">
@@ -146,11 +146,10 @@
     {
         get
         {
-            if (!IsSelected)
-            {
-                return "padding: 0px 1.6rem;";
-            }
-
+            //if (!IsSelected)
+            //{
+            //    return "padding: 0px 1.6rem;";
+            //}
             return string.Empty;
         }
     }
@@ -173,8 +172,7 @@
                 {
                     return "Shared";
                 }
-
-                return "OnlyYou";
+                return "-";
             }
 
             return string.Empty;

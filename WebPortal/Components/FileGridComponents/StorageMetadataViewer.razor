@@ -1,0 +1,29 @@
+﻿@using Datahub.Core.Data
+
+<PropertyList PropertyDict=@GetPropertyDict() Headers=@NoHeaders() />
+
+@code {
+
+    [Parameter]
+    public StorageMetadata Metadata { get; set; }
+
+    private Dictionary<string, string> GetPropertyDict()
+    {
+        var props = new Dictionary<string, string>();
+        TryAdd(props, Localizer["Container Name"], Metadata.Container);
+        TryAdd(props, Localizer["AccountName"], Metadata.AccountName);
+        TryAdd(props, Localizer["Account Kind"], Metadata.StorageAccountType);
+        TryAdd(props, Localizer["Replication"], Metadata.GeoRedundancy);
+        TryAdd(props, Localizer["Versioning"], Metadata.Versioning);
+        TryAdd(props, Localizer["Url"], Metadata.Url);
+        return props;
+    }
+
+    private List<string> NoHeaders() => new();
+
+    private void TryAdd(Dictionary<string, string> dict, string prop, string value)
+    {
+        if (!string.IsNullOrEmpty(value))
+            dict[prop] = value;        
+    }
+}
