@@ -23,8 +23,6 @@
     </AeCard>
 </div>
 
-
-
 @code {
 
     [Parameter]
@@ -42,12 +40,12 @@
 
     public const string BaseURL = "/resources";
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
         RewriteLink = s => BaseURL + "/" + HttpUtility.UrlEncode(s);
     }
 
-    protected override async Task OnParametersSetAsync()
+    protected override void OnParametersSet()
     {
         Markdown_Content = LoadPage(PageName ?? DefaultPage) ?? Localizer["Invalid link"];
     }

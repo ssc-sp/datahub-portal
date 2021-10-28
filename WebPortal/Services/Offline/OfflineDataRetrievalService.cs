@@ -36,5 +36,10 @@ namespace Datahub.Portal.Services.Offline
         {
             return Task.FromResult(new Core.Data.Folder());
         }
+
+        public Task<StorageMetadata> GetStorageMetadata(string project)
+        {
+            return Task.FromResult(new StorageMetadata());
+        }
     }
 }
