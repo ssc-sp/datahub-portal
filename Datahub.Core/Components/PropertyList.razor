@@ -21,13 +21,12 @@
     private List<KeyValuePair<string, string>> _propertyDataSet => PropertyDict.ToList();
     private List<Func<KeyValuePair<string, string>, string>> _accessors = new();
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
         _accessors = new()
             {
                 p => KeyTransformer(p.Key),
                 p => ValueTransformer(p.Value)
             };
-
     }
 }
