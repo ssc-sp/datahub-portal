@@ -40,7 +40,8 @@
     <PackageReference Include="Microsoft.Identity.Web" Version="1.16.0" />
     <PackageReference Include="Microsoft.Identity.Web.MicrosoftGraph" Version="1.16.0" />
     <PackageReference Include="Microsoft.Identity.Web.UI" Version="1.16.0" />
-    <PackageReference Include="Microsoft.PowerBI.Api" Version="3.27.0" />
+    <PackageReference Include="Microsoft.PowerBI.Api" Version="3.30.1" />
+    <PackageReference Include="Microsoft.PowerBI.JavaScript" Version="2.18.6" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.11.1" />
     <PackageReference Include="Microsoft.Azure.Search.Data" Version="10.1.0" />
     <PackageReference Include="Microsoft.Azure.Search" Version="10.1.0" />
@@ -91,4 +92,18 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
+	<!-- from https://jacobdixon.uk/2020/10/compile-scss-at-build-time-visual-studio/ -->
+<!--	<Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+		<Exec Command="npm run build-css" />
+	</Target>-->
+
+	<!-- from https://stackoverflow.com/questions/35435041/run-npm-install-only-when-needed-and-or-partially -->
+	<PropertyGroup>
+		<!-- File with mtime of last successful npm install -->
+		<NpmInstallStampFile>node_modules/.install-stamp</NpmInstallStampFile>
+	</PropertyGroup>
+	<Target Name="NpmInstall" BeforeTargets="BeforeBuild" Inputs="package.json" Outputs="$(NpmInstallStampFile)">
+		<Exec Command="npm install --save-dev" />
+		<Touch Files="$(NpmInstallStampFile)" AlwaysCreate="true" />
+	</Target>	
 </Project>
