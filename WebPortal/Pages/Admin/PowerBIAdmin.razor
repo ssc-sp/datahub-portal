@@ -51,8 +51,10 @@
                     }
                 </ChildContent>
                 <Footer>
-                    <AeButton @onclick="ReloadData">Cancel</AeButton>
-                    <AeButton @onclick="SaveChanges">Save Changes</AeButton>
+                    <div style='flex-direction: row'>
+                        <AeButton @onclick="ReloadData">Cancel</AeButton>
+                        <AeButton @onclick="SaveChanges">Save Changes</AeButton>
+                    </div>
 		        </Footer>
             </AeCard>
             <div>&nbsp;</div>
