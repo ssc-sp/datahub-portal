@@ -4,7 +4,7 @@
   "description": "Datahub Portal",
   "main": "index.js",
   "scripts": {
-    "build": "webpack --config webpack.config.js"
+    "build": "gulp --gulpfile gulpfile.js"
   },
   "author": "",
   "license": "ISC",
@@ -12,6 +12,7 @@
     "powerbi-client": "^2.18.6"
   },
   "devDependencies": {
-    "gulp": "^4.0.2"
+    "gulp": "^4.0.2",
+    "gulp-cached": "^1.1.1"
   }
 }
