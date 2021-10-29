@@ -7,7 +7,15 @@
     <DockerfileContext>.</DockerfileContext>
   </PropertyGroup>
   <ItemGroup>
+    <Content Remove="package.json" />
+  </ItemGroup>
+  <ItemGroup>
     <_ContentIncludedByDefault Remove="efpt.config.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="package.json">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="AElemental.Blazor" Version="1.2.21281.2-beta" />
@@ -61,9 +69,6 @@
   <ItemGroup>
     <Content Update="i18n\localization.fr.json">
       <CustomToolNamespace>Resources</CustomToolNamespace>
-    </Content>
-    <Content Update="package.json">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Content>
     <Content Update="wwwroot\img\landing\landing12.jpg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
