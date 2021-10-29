@@ -7,6 +7,7 @@
   <ItemGroup>
     <Content Remove="compilerconfig.json" />
     <Content Remove="package-lock.json" />
+    <Content Remove="package.json" />
   </ItemGroup>
   <ItemGroup>
     <None Remove="Styles\Common\NewFile1.txt" />
@@ -20,6 +21,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="compilerconfig.json" />
+    <None Include="package.json">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="AElemental.Blazor" Version="1.2.21281.2-beta" />
@@ -74,9 +78,6 @@
     <PackageReference Include="Tewr.Blazor.FileReader" Version="3.2.0.21211" />
   </ItemGroup>
   <ItemGroup>
-    <Content Update="package.json">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Content>
     <Content Update="Resources\SharedResources.json">
       <CustomToolNamespace>Resources</CustomToolNamespace>
     </Content>
