@@ -62,6 +62,9 @@
     <Content Update="i18n\localization.fr.json">
       <CustomToolNamespace>Resources</CustomToolNamespace>
     </Content>
+    <Content Update="package.json">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Content>
     <Content Update="wwwroot\img\landing\landing12.jpg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
