@@ -74,6 +74,9 @@
     <PackageReference Include="Tewr.Blazor.FileReader" Version="3.2.0.21211" />
   </ItemGroup>
   <ItemGroup>
+    <Content Update="package.json">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Content>
     <Content Update="Resources\SharedResources.json">
       <CustomToolNamespace>Resources</CustomToolNamespace>
     </Content>
