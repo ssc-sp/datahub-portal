@@ -93,9 +93,9 @@
     </None>
   </ItemGroup>
 	<!-- from https://jacobdixon.uk/2020/10/compile-scss-at-build-time-visual-studio/ -->
-<!--	<Target Name="PreBuild" BeforeTargets="PreBuildEvent">
-		<Exec Command="npm run build-css" />
-	</Target>-->
+	<Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+		<Exec Command="npm run build" />
+	</Target>
 
 	<!-- from https://stackoverflow.com/questions/35435041/run-npm-install-only-when-needed-and-or-partially -->
 	<PropertyGroup>

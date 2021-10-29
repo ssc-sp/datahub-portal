@@ -39,7 +39,9 @@ namespace Datahub.Core.UserTracking
 
         public string DataProject { get; set; }
 
-        public string PBIReportId { get; set; }
+        public string? PBIReportId { get; set; }
+
+        public string? PBIWorkspaceId { get; set; }
 
         public DateTimeOffset accessedTime{ get; set; }
     }
