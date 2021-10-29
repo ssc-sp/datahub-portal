@@ -75,6 +75,37 @@ namespace Datahub.Portal.Services
             return new PowerBIClient(new Uri(urlPowerBiServiceApiRoot), tokenCredentials);
         }
 
+        public async Task<Report> GetReport(string report, string workspace)
+        {
+            using (var client = await GetPowerBiClientAsync())
+            {
+                return await client.Reports.GetReportInGroupAsync(
+                        new Guid(workspace),
+                        new Guid(report));
+            }
+        }
+
+        public async Task<Report> GetReport(string report)
+        {
+            using (var client = await GetPowerBiClientAsync())
+            {
+                return await client.Reports.GetReportAsync(new Guid(report));
+            }
+        }
+
+        public async Task<string> GetReportToken(string report, string workspace)
+        {
+            var generateTokenRequestParameters =
+                new GenerateTokenRequest(accessLevel: "view");
+            using (var client = await GetPowerBiClientAsync())
+            {
+                return (await client.Reports.GenerateTokenInGroupAsync(
+                        new Guid(workspace),
+                        new Guid(report),
+                        generateTokenRequestParameters)).Token;
+            }
+        }
+
         public async Task<List<PowerBIDatasetElements>> GetAllDatasetsAsync(string appWorkspaceId = "")
         {
             var allDataSets = new List<(Group, Dataset, List<Report>)>();

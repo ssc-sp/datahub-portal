@@ -41,7 +41,7 @@ else
             <AeTypography>Related reports</AeTypography>
             @foreach (var report in ds.Reports)
             {
-                <DHLink PBIReportId="@(report.Id.ToString())" PowerBIURL="@($"https://app.powerbi.com/groups/{ds.Group.Id}/reports/{report.Id}")" Name="@(report.Name)">@report.Name</DHLink>
+                <DHLink PBIReportId="@(report.Id.ToString())" PBIWorkspaceId="@(ds.Group.Id.ToString())" PowerBIURL="@($"https://app.powerbi.com/groups/{ds.Group.Id}/reports/{report.Id}")" Name="@(report.Name)">@report.Name</DHLink>
             }
             </AeFlex>
         </ChildContent>
