@@ -39,6 +39,9 @@
     public string? PBIReportId { get; set; } = null;
 
     [Parameter]
+    public string? PBIWorkspaceId { get; set; } = null;
+
+    [Parameter]
     public UserRecentLink? UserRecentLink { get; set; }
 
     public static readonly Regex PBIUrl = new Regex("https://app.powerbi.com/groups/(.+)/reports/(.+)/(.+)", RegexOptions.IgnoreCase);
@@ -73,6 +76,7 @@
             link.LinkType = LinkType;
             link.PowerBIURL = PowerBIURL;
             link.PBIReportId = PBIReportId;
+            link.PBIWorkspaceId = PBIWorkspaceId;
             link.Variant = Variant;
             link.DatabricksURL = DatabricksURL;
             link.WebFormsURL = WebFormsURL;
@@ -86,7 +90,7 @@
                 //NavigationManager.NavigateTo(link.PowerBIURL);
                 //https://app.powerbi.com/groups/6ca76417-b205-43c2-be1b-6aeeedcb84ae/reports/0923fe18-c795-4c88-b7cf-ed8cf2ceacc6/ReportSection
 
-                NavigationManager.NavigateTo($"/powerbi-report/{link.PBIReportId}");
+                NavigationManager.NavigateTo($"/powerbi-report/{link.PBIWorkspaceId}/{link.PBIReportId}");
                 break;
             case DatahubLinkType.DataProject:
                 NavigationManager.NavigateTo($"/project/{link.DataProject}");
