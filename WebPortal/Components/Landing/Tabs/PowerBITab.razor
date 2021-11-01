@@ -73,7 +73,7 @@
         
         renderFunctions = new List<Func<Project_PBI_Report, RenderFragment>>() {            
             report => @<AeFlex class="table-icon"><i class="@($"fad fa-{report?.Project?.Project_Icon}")"></i></AeFlex>,
-            report => @<AeFlex style="padding-top: 1rem"><AeTypography><DHLink DataProject="@(report.Project.Project_Acronym_CD)" PBIReportId=@(report.Id.ToString()) PowerBIURL="@(report.GetLink())" Name="@(report?.ReportName)">@report?.ReportName</DHLink></AeTypography></AeFlex>, 
+            report => @<AeFlex style="padding-top: 1rem"><AeTypography><DHLink DataProject="@(report.Project.Project_Acronym_CD)" PBIWorkspaceId=@(report.Workspace.ToString()) PBIReportId=@(report.Id.ToString()) PowerBIURL="@(report.GetLink())" Name="@(report?.ReportName)">@report?.ReportName</DHLink></AeTypography></AeFlex>, 
             report => @<AeFlex style="padding-top: 1rem"><AeTypography><DHLink DataProject="@(report.Project.Project_Acronym_CD)">@report?.Project.ProjectName</DHLink></AeTypography></AeFlex>             
         };
         
