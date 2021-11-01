@@ -132,6 +132,8 @@ namespace Datahub.Portal
 
             services.Configure<CKANConfiguration>(Configuration.GetSection("CKAN"));
 
+            services.Configure<SessionsConfig>(Configuration.GetSection("Sessions"));
+
             services.AddScoped<IClaimsTransformation, RoleClaimTransformer>();
 
             services.AddSignalRCore();
@@ -423,6 +425,9 @@ namespace Datahub.Portal
             services.AddSingleton<ServiceAuthManager>();
 
             services.AddCKANService();
+
+            services.AddSingleton<IGlobalSessionManager, GlobalSessionManager>();
+            services.AddScoped<IUserCircuitCounterService, UserCircuitCounterService>();
         }
 
         private void ConfigureDbContexts(IServiceCollection services)
