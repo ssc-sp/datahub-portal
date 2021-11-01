@@ -255,27 +255,25 @@
                 </Footer>
             </AeCard>
 
-            <AuthorizeView Roles="DHPGLIST-admin" Context="hidden_in_dev">
-                <AeCard class="facard1" CardPosition="AeCard.CardStyle.Horizontal">
-                    <Header>
-                        <div>
-                            <AeIcon class="fad fa-share-square card-icon"/>
-                        </div>
-                    </Header>
-                    <ChildContent>
-                        <DHLink Variant="h3" DataProject="@projectAcronym" LinkType="DatahubLinkType.DataSharingDashboard">
-                            @Localizer["PROJECT-PAGE.PUBLIC-SHARING-CARD.Title"]
-                        </DHLink>
-                        <AeTypography>@Localizer["PROJECT-PAGE.PUBLIC-SHARING-CARD.UsersOwnSharedFiles"]: @_ownSharingRequestCount</AeTypography>
-                            @if(_isDataApprover)
-                            {
-                                <AeTypography>
-                                    @Localizer["PROJECT-PAGE.PUBLIC-SHARING-CARD.SharedFilesAwaitingApproval"]: @_sharingRequestAwaitingApprovalCount
-                                </AeTypography>
-                            }
-                    </ChildContent>
-                </AeCard>
-            </AuthorizeView>
+            <AeCard class="facard1" CardPosition="AeCard.CardStyle.Horizontal">
+                <Header>
+                    <div>
+                        <AeIcon class="fad fa-share-square card-icon"/>
+                    </div>
+                </Header>
+                <ChildContent>
+                    <DHLink Variant="h3" DataProject="@projectAcronym" LinkType="DatahubLinkType.DataSharingDashboard">
+                        @Localizer["PROJECT-PAGE.PUBLIC-SHARING-CARD.Title"]
+                    </DHLink>
+                    <AeTypography>@Localizer["PROJECT-PAGE.PUBLIC-SHARING-CARD.UsersOwnSharedFiles"]: @_ownSharingRequestCount</AeTypography>
+                        @if(_isDataApprover)
+                        {
+                            <AeTypography>
+                                @Localizer["PROJECT-PAGE.PUBLIC-SHARING-CARD.SharedFilesAwaitingApproval"]: @_sharingRequestAwaitingApprovalCount
+                            </AeTypography>
+                        }
+                </ChildContent>
+            </AeCard>
 
             <AuthorizeView Roles="@($"{projectAcronym}-admin")" Context="Project_Cost">
                 <AeCard class="facard1" CardPosition="AeCard.CardStyle.Horizontal">

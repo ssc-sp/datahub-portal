@@ -10,11 +10,9 @@
 
 @if (IsProject)
 {
-    <AuthorizeView Roles="DHPGLIST-admin">
-        <FileGridMenuButton IconClass="far fa-share-square" Enabled="IsFile" OnClick="Share">
-            @Localizer["Share"]
-        </FileGridMenuButton>
-    </AuthorizeView>
+    <FileGridMenuButton IconClass="far fa-share-square" Enabled="IsFile" OnClick="Share">
+        @Localizer["Share"]
+    </FileGridMenuButton>
 }
 
 <FileGridMenuButton IconClass="far fa-info-circle" Enabled="IsFile" OnClick="OpenDetails">
