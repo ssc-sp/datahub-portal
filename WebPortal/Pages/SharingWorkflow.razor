@@ -8,36 +8,36 @@
 
 <div style="padding-left: 2rem;padding-right: 2rem">
     <AeFlex Vertical>
-        <AeTypography Variant="h1">Data Sharing</AeTypography>
+        <AeTypography Variant="h1">@Localizer[$"{LOCALIZATION_PREFIX}.Title"]</AeTypography>
     </AeFlex>
     
     <AuthorizeView Roles="DHPGLIST-admin" Context="hidden_in_dev">
     <AeCard>
         <Header>
-        <AeTypography Variant="h1">@Localizer["Share Data in Canada Open Data Portal"]</AeTypography>
+        <AeTypography Variant="h1">@Localizer[$"{LOCALIZATION_PREFIX}.OpenDataTitle"]</AeTypography>
         </Header>
         <ChildContent>
             <p>
-                This workflow will enable to upload your data to the Canada Open Data Portal. It includes the metadata management and approvals.
+                @Localizer[$"{LOCALIZATION_PREFIX}.OpenDataDesc"]
             </p>
         </ChildContent>
         <Footer>
-            <AeButton OnClickEvent=@OpenDataClicked Disabled=@_openDataDisabled >@Localizer["Start Workflow"]</AeButton>
+            <AeButton OnClickEvent=@OpenDataClicked Disabled=@_openDataDisabled >@Localizer[$"{LOCALIZATION_PREFIX}.StartWorkflowButton"]</AeButton>
 		</Footer>
     </AeCard>
     </AuthorizeView>
     
     <AeCard>
         <Header>
-        <AeTypography Variant="h1">@Localizer["Share Data using DataHub public URLs"]</AeTypography>
+        <AeTypography Variant="h1">@Localizer[$"{LOCALIZATION_PREFIX}.PublicUrlTitle"]</AeTypography>
         </Header>
         <ChildContent>
             <p>
-                This workflow will generate public links (data-nrcan.canada.ca, donnees-rncan.canada.ca) from your files to reference them on external sites or publications.
+                @Localizer[$"{LOCALIZATION_PREFIX}.PublicUrlDesc"]
             </p>
         </ChildContent>
         <Footer>
-            <AeButton OnClickEvent=@PublicUrlClicked Disabled=@_publicUrlDisabled >@Localizer["Start Workflow"]</AeButton>
+            <AeButton OnClickEvent=@PublicUrlClicked Disabled=@_publicUrlDisabled >@Localizer[$"{LOCALIZATION_PREFIX}.StartWorkflowButton"]</AeButton>
 		</Footer>
     </AeCard>
 </div>
@@ -45,6 +45,8 @@
 
 
 @code {
+
+    private static readonly string LOCALIZATION_PREFIX = "PUBLIC-SHARING-WORKFLOW";
 
     [Parameter]
     public string FileId { get; set; }
