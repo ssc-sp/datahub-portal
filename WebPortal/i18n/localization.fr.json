@@ -1014,5 +1014,7 @@
   "Cost": "Coût",
   "No cost data found.": "Aucune donnée de coût trouvée.",
   "As of {0}, total resource cost is {1} for the period from {2} to {3}.": "Le {0}, le coût total des ressources est {1} pour la période allant de {2} à {3}.",
-  "You currently do not have access to this project.": "Vous n’avez actuellement pas accès à ce projet."
+  "You currently do not have access to this project.": "Vous n’avez actuellement pas accès à ce projet.",
+  "TooManyTabs": "Trop d’onglets",
+  "TooManyTabsMessage": "Vous avez plus de {} onglets actuellement ouverts. Fermez certains onglets et actualisez cette page."
 }
