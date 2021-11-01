@@ -986,6 +986,8 @@
   "This page is limited for DataHub administrators": "Cette page est limitée aux administrateurs DataHub",
   "Open Power BI Admin Page": "Ouvrir la page d'administration Power BI",
   "Data Sensitivity:": "Sensibilité des données :",
+  "Project Admins:": "Sensibilité des données :",
+  "Project Users:": "Sensibilité des données :",
   "Share": "Partager",
   "Data Project Tools": "Outils pour les projets de données",
   "Edit Project": "Éditer le Projet",
