@@ -10,6 +10,8 @@
     <AeFlex Vertical>
         <AeTypography Variant="h1">Data Sharing</AeTypography>
     </AeFlex>
+    
+    <AuthorizeView Roles="DHPGLIST-admin" Context="hidden_in_dev">
     <AeCard>
         <Header>
         <AeTypography Variant="h1">@Localizer["Share Data in Canada Open Data Portal"]</AeTypography>
@@ -23,6 +25,8 @@
             <AeButton OnClickEvent=@OpenDataClicked Disabled=@_openDataDisabled >@Localizer["Start Workflow"]</AeButton>
 		</Footer>
     </AeCard>
+    </AuthorizeView>
+    
     <AeCard>
         <Header>
         <AeTypography Variant="h1">@Localizer["Share Data using DataHub public URLs"]</AeTypography>
@@ -33,7 +37,7 @@
             </p>
         </ChildContent>
         <Footer>
-            <AeButton OnClickEvent=@PublicUrlClicked Disabled=@_openDataDisabled >@Localizer["Start Workflow"]</AeButton>
+            <AeButton OnClickEvent=@PublicUrlClicked Disabled=@_publicUrlDisabled >@Localizer["Start Workflow"]</AeButton>
 		</Footer>
     </AeCard>
 </div>
