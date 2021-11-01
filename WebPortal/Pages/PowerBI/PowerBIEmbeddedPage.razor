@@ -1,26 +1,74 @@
-﻿@page "/powerbi-report/{ReportId}"
-
-@using Microsoft.EntityFrameworkCore.Query
-@using Microsoft.EntityFrameworkCore;
+﻿@page "/powerbi-report/{GroupId}/{ReportId}"
+@page "/powerbi-report/{ReportId}"
+@using System.Net.Http
+@using System.Threading.Tasks
+@using Microsoft.Identity.Client
+@using Microsoft.PowerBI.Api
 @using Microsoft.PowerBI.Api.Models
+@using Microsoft.Rest
+@using Newtonsoft.Json.Linq
+@using Microsoft.Extensions.Configuration
+@inject IJSRuntime JSRuntime
+@inject IConfiguration _configuration
+
 @inject IStringLocalizer<DataLabels> DataLocalizer
 @inject NavigationManager NavigationManager
-@inject IJSRuntime JsInterop
 @inject PowerBiServiceApi PowerBiServiceApi
 @using Microsoft.Identity.Web
 @inject MicrosoftIdentityConsentAndConditionalAccessHandler ConsentHandler
 
-<iframe width="800" height="800" id="powerbi-iframe" src="https://app.powerbi.com/reportEmbed?reportId=@(ReportId)&autoAuth=true" frameborder="0" allowFullScreen="true"></iframe>
+<div @ref="@PowerBIElement" style="width:100%;height:600px;max-width: 2000px" />
 
 @code {
 
     [Parameter]
     public string ReportId {  get;  set; }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    [Parameter]
+    public string GroupId {  get;  set; }
+
+    //protected override async Task OnAfterRenderAsync(bool firstRender)
+    //{
+    //    await JSRuntime.InvokeVoidAsync("ResizeIFrame","#powerbi-iframe");
+    //}
+
+    private ElementReference PowerBIElement;
+
+    private Report report;
+    private string reportToken;
+
+    protected override async Task OnInitializedAsync()
     {
-        await JsInterop.InvokeVoidAsync("ResizeIFrame","#powerbi-iframe");
+        try
+        {
+            if (GroupId is null)
+                report = await PowerBiServiceApi.GetReport(ReportId);                
+            else
+                report = await PowerBiServiceApi.GetReport(ReportId, GroupId);                
+            reportToken = await PowerBiServiceApi.GetAccessTokenAsync();
+        } catch (Exception ex)
+        {
+            ConsentHandler.HandleException(ex);
+        }
+
+        if (report != null)
+        {
+            await JSRuntime.InvokeAsync<object>(
+                "ShowMyPowerBI.showReport",
+                PowerBIElement, reportToken, report.EmbedUrl,
+                report.Id.ToString());
+        }
     }
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+
+            
+        }
+    }
+    private const string AuthorityFormat = "https://login.microsoftonline.com/{0}/v2.0";
+    private const string MSGraphScope = "https://analysis.windows.net/powerbi/api/.default";
 
 }
