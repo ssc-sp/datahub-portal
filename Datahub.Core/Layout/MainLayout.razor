@@ -5,6 +5,9 @@
 @inject NavigationManager NavigationManager
 @inject UserLocationManagerService UserLocationManagerService
 
+@inject IDatahubAuditingService AuditingService
+@inject IUserCircuitCounterService UserCircuitCounterService
+
 @using Microsoft.Identity.Web
 @inject MicrosoftIdentityConsentAndConditionalAccessHandler ConsentHandler
 
@@ -18,7 +21,14 @@
                     <div class="page">
                         <ErrorBoundary @ref="_errorBoundary">
                             <ChildContent>
-                                @Body
+                                @if (_isSessionEnabled == true)
+                                {
+                                    @Body
+                                }
+                                @if (_isSessionEnabled == false)
+                                {
+                                    <TooManyTabs />
+                                }                                
                             </ChildContent>
                             <ErrorContent Context="ex">
                                 @if (HandleException(@ex)) 
@@ -30,56 +40,6 @@
                     </div>
                     <RightSidebar />
                     <Modal />
-
-                    @*<ErrorModal />
-                    <div id="blazor-error-ui">
-                        <div class="page-modal modal-content-large">
-                            <div id="escapearea" class="modal-background"></div>
-                            <div class="modal-content">
-                                <h4 class="nrcan-typography h4 modal-header">@Localizer["ERROR-PAGE.SomethingWentWrong-Label"]</h4>
-
-                                <div class="modal-body">
-                                    <h3>@Localizer["ERROR-PAGE.TechnicalDetails-Label"]</h3>
-                                    <p>@Localizer["ERROR-PAGE.ErrorExplanation-Text"]</p>
-                                </div>
-
-                                <div class="modal-footer">
-                                    <a href="javascript:location.reload(true)" type="button" class="submitbutton finish">@Localizer["ERROR-PAGE.Ok"]</a>
-                                </div>
-                            </div>
-                        </div> 
-                    </div>
-
-                    <div id="components-reconnect-modal" class="components-reconnect-hide">
-                        <div class="page-modal">
-                            <div class="modal-background"></div>
-                            <div class="modal-content">
-                                <h4 class="nrcan-typography h4 modal-header">@Localizer["ERROR-PAGE.ConnectionToServer-Label"]</h4>
-
-                                <div class="show">
-                                    <p>@Localizer["ERROR-PAGE.AttemptingToReConnect-Label"]</p>
-                                    <div class="spinner-row"><div class="lds-ring"><div></div><div></div><div></div><div></div></div></div>
-                                </div>
-
-                                <div class="failed">
-                                    <p>@Localizer["ERROR-PAGE.FailedToConnect-Label"]</p>
-
-                                    <div class="modal-footer">  
-                                        <button onClick="window.location.reload();" class="submitbutton finish">@Localizer["ERROR-PAGE.Reload"]</button>
-                                    </div>
-                                </div>
-
-                                <div class="rejected">
-                                    <p>@Localizer["ERROR-PAGE.ConnectionRefused-Label"]</p>
-
-                                    <div class="modal-footer">  
-                                        <button onClick="window.location.reload();" class="submitbutton finish">@Localizer["ERROR-PAGE.Reload"]</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>*@
-
                 </div>
             </div>
         </div>
@@ -91,12 +51,10 @@
 
 @code
 {
-    [Inject]
-    public IDatahubAuditingService AuditingService { get; set; }
-
     private ErrorBoundary _errorBoundary;
     private string _correlationId;
     private Exception _lastException;
+    private bool? _isSessionEnabled = null;
 
     protected override void OnParametersSet()
     {
@@ -108,7 +66,9 @@
         try 
         {
             await MSGraphService.LoadUsersAsync();
-        } catch (Exception ex)
+            _isSessionEnabled = await UserCircuitCounterService.IsSessionEnabled();
+        } 
+        catch (Exception ex)
         {
             ConsentHandler.HandleException(ex);
         }
@@ -139,4 +99,3 @@
         }
     }
 }
-
