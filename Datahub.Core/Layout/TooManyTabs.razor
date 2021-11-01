@@ -1,0 +1,23 @@
+﻿@inject IUserCircuitCounterService UserCircuitCounterService
+@inject IStringLocalizer Localizer
+
+<AeCard style="margin: 2rem;">
+    <Header>
+        <h3>@Localizer["TooManyTabs"]</h3>
+    </Header>
+    <ChildContent>
+        <div style="margin: 1rem;">
+            <AeTypography>@ContentMessage()</AeTypography>
+        </div>            
+    </ChildContent>
+</AeCard>
+
+@code {
+
+    private string ContentMessage()
+    {
+        var template = Localizer["TooManyTabsMessage"] ?? "";
+        return template.Replace("{}", UserCircuitCounterService.GetSessionCount().ToString());
+    }
+
+}
