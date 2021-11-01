@@ -1,6 +1,7 @@
 ﻿@using Microsoft.EntityFrameworkCore.Query
 @using Microsoft.EntityFrameworkCore;
 @using Datahub.Portal.Data
+@using System.Text
 @inject IStringLocalizer<DataProject> DataLocalizer
 @inject NavigationManager NavigationManager
 @inject UIControlsService UIControlService
@@ -12,6 +13,8 @@
 @inject IEmailNotificationService EmailNotificationService
 @inject IPublicDataFileService PublicDataFileService
 @inject IProjectDatabaseService ProjectDatabaseService
+@inject ServiceAuthManager ServiceAuthManager
+@inject IMSGraphService MSGraphService
 
 @page "/project/{projectAcronym}"
 
@@ -47,6 +50,10 @@
                         <AeTypography class="warning">@DataLocalizer["Access Request is being reviewed"]</AeTypography>
                     }
                 </NotAuthorized>
+                <Authorized>
+                    <AeTypography>@DataLocalizer["Project Admins:"] @_admins</AeTypography>
+                    <AeTypography>@DataLocalizer["Project Users:"] @_users</AeTypography>
+                </Authorized>
             </AuthorizeView>
             <AeTypography>@DataLocalizer["Data Sensitivity:"] @DataLocalizer[_project.Data_Sensitivity]</AeTypography>
             
@@ -388,7 +395,8 @@
 
     
     private bool _isProjectUserPendingApproval;
-
+    private string _admins;
+    private string _users;
     private bool _isDataApprover;
     private int _sharingRequestAwaitingApprovalCount;
     private int _ownSharingRequestCount;
@@ -470,6 +478,13 @@
             _isDataApprover = projectUsers.Any(u => u.IsDataApprover);
         }
 
+        _admins = ServiceAuthManager.GetAdminUserString(projectAcronym);
+        GetUserList();
+
+        
+
+
+
         _sharingRequestAwaitingApprovalCount = await PublicDataFileService.GetDataSharingRequestsAwaitingApprovalCount(projectAcronym);
         _ownSharingRequestCount = await PublicDataFileService.GetUsersOwnDataSharingRequestsCount(projectAcronym, _user.Id);
 
@@ -500,6 +515,14 @@
 
         _projectCostFormatted = await GetProjectCostFormatted();
 
+    }
+
+    private void GetUserList()
+    {
+        var userList = projectContext.Project_Users.Where(u => !u.IsAdmin && _project == u.Project).ToList();
+        StringBuilder sbUsers = new();
+        userList.ForEach(e => sbUsers.Append($"{MSGraphService.GetUserName(e.User_ID)}; "));
+        _users =  sbUsers.ToString().Trim().TrimEnd(';');
     }
 
     private async Task<string> GetProjectCostFormatted()
