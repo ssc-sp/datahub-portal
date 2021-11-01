@@ -585,6 +585,15 @@
     }
   },
 
+  "PUBLIC-SHARING-WORKFLOW": {
+    "Title": "Data Sharing",
+    "OpenDataTitle": "Share Data in Canada Open Data Portal",
+    "OpenDataDesc": "This workflow will enable to upload your data to the Canada Open Data Portal. It includes the metadata management and approvals.",
+    "StartWorkflowButton": "Start Workflow",
+    "PublicUrlTitle": "Share Data using DataHub public URLs",
+    "PublicUrlDesc": "This workflow will generate public links (data-nrcan.canada.ca, donnees-rncan.canada.ca) from your files to reference them on external sites or publications."
+  },
+
   "DATA-SHARING-DASHBOARD": {
     "Title": "Data Sharing Dashboard",
     "RequestsPendingApproval": "Public URL Sharing Requests Pending Approval",
