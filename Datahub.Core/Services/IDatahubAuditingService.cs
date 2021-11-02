@@ -20,8 +20,20 @@ namespace Datahub.Core.Services
         /// <param name="objectId">Changed object identifier (ID)</param>
         /// <param name="table">Data table where the the change occurred</param>
         /// <param name="changeType">Change type: New, Edit or Delete</param>
+        /// <param name="anonymous">Log an anonymous operation (e.g. public download) instead of detecting a logged-in user</param>
         /// <param name="details">Extra details (optional)</param>
-        Task TrackDataEvent(string objectId, string table, AuditChangeType changeType, params (string key, string value)[] details);
+        Task TrackDataEvent(string objectId, string table, AuditChangeType changeType, bool anonymous, params (string key, string value)[] details);
+
+        /// <summary>
+        /// Track data change event.
+        /// </summary>
+        /// <param name="objectId">Changed object identifier (ID)</param>
+        /// <param name="table">Data table where the the change occurred</param>
+        /// <param name="changeType">Change type: New, Edit or Delete</param>
+        /// <param name="details">Extra details (optional)</param>
+        Task TrackDataEvent(string objectId, string table, AuditChangeType changeType, params (string key, string value)[] details) => 
+            TrackDataEvent(objectId, table, changeType, false, details);
+
 
         /// <summary>
         /// Track security related change event.
