@@ -8,6 +8,26 @@ namespace Datahub.Core.Services
     {
         readonly ILogger<IUserInformationService> _logger;
 
+        private User _anonymousUser;
+        private User AnonymousUser
+        {
+            get
+            {
+                if (_anonymousUser == null)
+                {
+                    _anonymousUser = new User()
+                    {
+                        Id = UserInformationServiceConstants.ANONYMOUS_USER_ID,
+                        Mail = UserInformationServiceConstants.ANONYMOUS_USER_EMAIL,
+                        DisplayName = UserInformationServiceConstants.ANONYMOUS_USER_NAME,
+                        UserPrincipalName = UserInformationServiceConstants.ANONYMOUS_USER_EMAIL
+                    };
+                }
+
+                return _anonymousUser;
+            }
+        }
+
         public OfflineUserInformationService(ILogger<IUserInformationService> logger)
         {
             _logger = logger;
@@ -73,6 +93,11 @@ namespace Datahub.Core.Services
         public bool SetLanguage(string language)
         {
             return true;
+        }
+
+        public Task<User> GetAnonymousUserAsync()
+        {
+            return Task.FromResult(AnonymousUser);
         }
     }
 }
