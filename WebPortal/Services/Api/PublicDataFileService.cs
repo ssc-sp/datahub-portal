@@ -144,11 +144,8 @@ namespace Datahub.Portal.Services
                 folderpath = publicFile.FolderPath_TXT
             };
 
-            if (!anonymous)
-            {
-                // audit download file
-                await _datahubAuditingService.TrackDataEvent(publicFile.Filename_TXT, publicFile.GetType().Name, AuditChangeType.Download);
-            }
+            // audit download file
+            await _datahubAuditingService.TrackDataEvent(publicFile.Filename_TXT, publicFile.GetType().Name, AuditChangeType.Download, anonymous);
 
             if (publicFile.IsProjectBased)
             {
