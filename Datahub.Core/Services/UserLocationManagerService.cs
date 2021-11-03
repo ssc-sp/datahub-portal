@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Datahub.Core.UserTracking;
 
 namespace Datahub.Core.Services
 {
@@ -14,12 +15,12 @@ namespace Datahub.Core.Services
     {
         private ILogger<UserLocationManagerService> _logger;
         private IUserInformationService _userInformationService;
-        private IDbContextFactory<EFCoreDatahubContext> _contextFactory;
+        private IDbContextFactory<UserTrackingContext> _contextFactory;
 
 
         public UserLocationManagerService(ILogger<UserLocationManagerService> logger,
                                         IUserInformationService userInformationService,
-                                        IDbContextFactory<EFCoreDatahubContext> contextFactory)
+                                        IDbContextFactory<UserTrackingContext> contextFactory)
         {
             _logger = logger;
             _userInformationService = userInformationService;

@@ -985,7 +985,9 @@
   "Service Requests": "Demandes de services",
   "This page is limited for DataHub administrators": "Cette page est limitée aux administrateurs DataHub",
   "Open Power BI Admin Page": "Ouvrir la page d'administration Power BI",
-  "Data Sensitivity:": "Sensibilité des données :",
+  "Data Sensitivity:": "Sensibilité des données:",
+  "Project Administrators:": "Administrateurs du projet:",
+  "Project Users:": "Utilisateurs du projet:",
   "Share": "Partager",
   "Data Project Tools": "Outils pour les projets de données",
   "Edit Project": "Éditer le Projet",
@@ -1014,5 +1016,7 @@
   "Cost": "Coût",
   "No cost data found.": "Aucune donnée de coût trouvée.",
   "As of {0}, total resource cost is {1} for the period from {2} to {3}.": "Le {0}, le coût total des ressources est {1} pour la période allant de {2} à {3}.",
-  "You currently do not have access to this project.": "Vous n’avez actuellement pas accès à ce projet."
+  "You currently do not have access to this project.": "Vous n’avez actuellement pas accès à ce projet.",
+  "TooManyTabs": "Trop d’onglets",
+  "TooManyTabsMessage": "Vous avez plus de {} onglets actuellement ouverts. Fermez certains onglets et actualisez cette page."
 }
