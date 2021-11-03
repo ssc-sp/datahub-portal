@@ -585,6 +585,34 @@
     }
   },
 
+  "PUBLIC-SHARING-WORKFLOW": {
+    "Title": "Data Sharing",
+    "OpenDataTitle": "Share Data in Canada Open Data Portal",
+    "OpenDataDesc": "This workflow will enable to upload your data to the Canada Open Data Portal. It includes the metadata management and approvals.",
+    "StartWorkflowButton": "Start Workflow",
+    "PublicUrlTitle": "Share Data using DataHub public URLs",
+    "PublicUrlDesc": "This workflow will generate public links (data-nrcan.canada.ca, donnees-rncan.canada.ca) from your files to reference them on external sites or publications."
+  },
+
+  "DATA-SHARING-DASHBOARD": {
+    "Title": "Data Sharing Dashboard",
+    "RequestsPendingApproval": "Public URL Sharing Requests Pending Approval",
+    "YourSharedFiles": "Your Shared Files",
+    "OthersSharedFiles": "Other Users' Shared Files",
+    "Filename": "Filename",
+    "RequestingUser": "Requesting User",
+    "SubmissionDate": "Submission Date",
+    "Type": "Type",
+    "Status": "Status",
+    "PublicationDate": "Publication Date",
+    "Owner": "Owner",
+    "OpenData": "Open Data",
+    "PublicUrl": "Public URL",
+    "NoFilesAwaitingApproval": "This project has no sharing requests awaiting approval.",
+    "NoOwnSharedFiles": "You have not shared any files in this project.",
+    "NoOtherSharedFiles": "There are no files shared by other users in this project."
+  },
+
   "PUBLIC-URL-APPROVAL": {
     "Title": "Public URL Sharing Request",
     "Filename": "Filename",
@@ -682,7 +710,8 @@
     "No_Access_Message": "You currently do not have access to this project.",
     "Request_Access_Reviewed": "Access Request is being reviewed",
     "DATABASE-CARD": {
-      "CardTitle": "Database Information",
+      "CardTitlePG": "Postgres SQL",
+      "CardTitleSQL": "SQL Server",
       "MoreInfo_button": "More Information",
       "GetToken_button": "Get Access Token",
       "DatabaseName": "Database Name",
@@ -703,7 +732,12 @@
       "Title": "Public Data Sharing",
       "UsersOwnSharedFiles": "Your publicly shared files",
       "SharedFilesAwaitingApproval": "Sharing requests awaiting approval"
+    },
+    "ADMIN-CARD": {
+      "Title": "Admin Actions"
     }
-  }
+  },
+  "TooManyTabs": "Too many tabs",
+  "TooManyTabsMessage": "You have more than {} tabs currently opened. Close some tabs and refresh this page."
 }
 

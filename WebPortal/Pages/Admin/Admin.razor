@@ -153,9 +153,10 @@
             </p>
         </ChildContent>
         </AeCard>
-        </Authorized>
-        </AuthorizeView>
-        </div>
+    </Authorized>
+</AuthorizeView>
+
+</div>
 @code {
 
     private int _lastClicked1 = 0;
@@ -401,7 +402,7 @@
         _authorizedRoles = ServiceAuthManager.GetAdminProjectRoles();
             
 
-        ResetTestRecipient();
+        await ResetTestRecipient();
 
         await RefreshData();
 

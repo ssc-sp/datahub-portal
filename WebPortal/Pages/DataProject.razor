@@ -1,6 +1,7 @@
 ﻿@using Microsoft.EntityFrameworkCore.Query
 @using Microsoft.EntityFrameworkCore;
 @using Datahub.Portal.Data
+@using System.Text
 @inject IStringLocalizer<DataProject> DataLocalizer
 @inject NavigationManager NavigationManager
 @inject UIControlsService UIControlService
@@ -12,6 +13,8 @@
 @inject IEmailNotificationService EmailNotificationService
 @inject IPublicDataFileService PublicDataFileService
 @inject IProjectDatabaseService ProjectDatabaseService
+@inject ServiceAuthManager ServiceAuthManager
+@inject IMSGraphService MSGraphService
 
 @page "/project/{projectAcronym}"
 
@@ -47,12 +50,13 @@
                         <AeTypography class="warning">@DataLocalizer["Access Request is being reviewed"]</AeTypography>
                     }
                 </NotAuthorized>
+                <Authorized>
+                    <AeTypography>@DataLocalizer["Project Administrators:"] @_admins</AeTypography>
+                    <AeTypography>@DataLocalizer["Project Users:"] @_users</AeTypography>
+                </Authorized>
             </AuthorizeView>
             <AeTypography>@DataLocalizer["Data Sensitivity:"] @DataLocalizer[_project.Data_Sensitivity]</AeTypography>
-            <DHAdminActions>                
-                <NavLink href="@($"/edit-project/{projectAcronym}")"><AeButton>@DataLocalizer["Edit Project"]</AeButton></NavLink>
-                <NavLink href="@($"/tracker/{projectAcronym}")"><AeButton>@DataLocalizer["Project Tracker"]</AeButton></NavLink>
-            </DHAdminActions>
+            
         </ChildContent>
     </AeCard>
    
@@ -82,7 +86,7 @@
                 <ChildContent>
                     @if (_databricksAuthorized && !string.IsNullOrWhiteSpace(_project.Databricks_URL))
                     {
-                        <DatahubLink Variant="h3" DataProject="@projectAcronym" DatabricksURL="@_project.Databricks_URL">Azure Databricks</DatahubLink>
+                        <DHLink Variant="h3" DataProject="@projectAcronym" DatabricksURL="@_project.Databricks_URL">Azure Databricks</DHLink>
                     }
                     else
                     {
@@ -132,7 +136,7 @@
                 <ChildContent>
                     @if (_powerBIAuthorized && !string.IsNullOrWhiteSpace(_project.PowerBI_URL))
                     {
-                        <DatahubLink Variant="h3" DataProject="@projectAcronym" PowerBIURL="@_project.PowerBI_URL">PowerBI Workspace</DatahubLink>
+                        <DHLink Variant="h3" DataProject="@projectAcronym" PowerBIURL="@_project.PowerBI_URL">PowerBI Workspace</DHLink>
                     }
                     else
                     {
@@ -140,10 +144,7 @@
                     }
                     <AeTypography>@Localizer["Power BI Workspace"]</AeTypography>
                 </ChildContent>
-                <Footer>
-                    <DHAdminActions>
-                        <NavLink href="@($"/admin/powerbi/{projectAcronym}")"><AeButton>@DataLocalizer["Manage Links"]</AeButton></NavLink>
-                    </DHAdminActions>
+                <Footer>                    
                     @if (!_powerBIAuthorized)
                     {
                         @if (!string.IsNullOrWhiteSpace(_project.PowerBI_URL))
@@ -185,7 +186,7 @@
                     <ChildContent>
                         @if (!string.IsNullOrWhiteSpace(_project.WebForms_URL) && _webFormsAuthorized)
                         {
-                            <DatahubLink Variant="h3" DataProject="@projectAcronym" WebFormsURL="@_project.WebForms_URL">@DataLocalizer["Data Entry"]</DatahubLink>
+                            <DHLink Variant="h3" DataProject="@projectAcronym" WebFormsURL="@_project.WebForms_URL">@DataLocalizer["Data Entry"]</DHLink>
                         }
                         else
                         {
@@ -219,7 +220,7 @@
                 </Header>
                 <ChildContent>
                     <AeFlex Vertical>
-                        <DatahubLink Variant="h3" DataProject="@projectAcronym" LinkType="DatahubLinkType.FormBuilder">@DataLocalizer["Form Builder"]</DatahubLink>
+                        <DHLink Variant="h3" DataProject="@projectAcronym" LinkType="DatahubLinkType.FormBuilder">@DataLocalizer["Form Builder"]</DHLink>
                         <AeTypography>@DataLocalizer["Design custom data entry forms"]</AeTypography>
                     </AeFlex>
                 </ChildContent>
@@ -236,7 +237,7 @@
 
                         @if (_serviceRequests.Any(r => r.ServiceType == "storage" && r.Is_Completed != null))
                         {
-                            <DatahubLink Variant="h3" DataProject="@projectAcronym" LinkType="DatahubLinkType.Storage">@DataLocalizer["Storage Explorer"]</DatahubLink>
+                            <DHLink Variant="h3" DataProject="@projectAcronym" LinkType="DatahubLinkType.Storage">@DataLocalizer["Storage Explorer"]</DHLink>
                         }
                         else
                         {
@@ -261,27 +262,25 @@
                 </Footer>
             </AeCard>
 
-            <AuthorizeView Roles="DHPGLIST-admin" Context="hidden_in_dev">
-                <AeCard class="facard1" CardPosition="AeCard.CardStyle.Horizontal">
-                    <Header>
-                        <div>
-                            <AeIcon class="fad fa-share-square card-icon"/>
-                        </div>
-                    </Header>
-                    <ChildContent>
-                        <DatahubLink Variant="h3" DataProject="@projectAcronym" LinkType="DatahubLinkType.DataSharingDashboard">
-                            @Localizer["PROJECT-PAGE.PUBLIC-SHARING-CARD.Title"]
-                        </DatahubLink>
-                        <AeTypography>@Localizer["PROJECT-PAGE.PUBLIC-SHARING-CARD.UsersOwnSharedFiles"]: @_ownSharingRequestCount</AeTypography>
-                            @if(_isDataApprover)
-                            {
-                                <AeTypography>
-                                    @Localizer["PROJECT-PAGE.PUBLIC-SHARING-CARD.SharedFilesAwaitingApproval"]: @_sharingRequestAwaitingApprovalCount
-                                </AeTypography>
-                            }
-                    </ChildContent>
-                </AeCard>
-            </AuthorizeView>
+            <AeCard class="facard1" CardPosition="AeCard.CardStyle.Horizontal">
+                <Header>
+                    <div>
+                        <AeIcon class="fad fa-share-square card-icon"/>
+                    </div>
+                </Header>
+                <ChildContent>
+                    <DHLink Variant="h3" DataProject="@projectAcronym" LinkType="DatahubLinkType.DataSharingDashboard">
+                        @Localizer["PROJECT-PAGE.PUBLIC-SHARING-CARD.Title"]
+                    </DHLink>
+                    <AeTypography>@Localizer["PROJECT-PAGE.PUBLIC-SHARING-CARD.UsersOwnSharedFiles"]: @_ownSharingRequestCount</AeTypography>
+                        @if(_isDataApprover)
+                        {
+                            <AeTypography>
+                                @Localizer["PROJECT-PAGE.PUBLIC-SHARING-CARD.SharedFilesAwaitingApproval"]: @_sharingRequestAwaitingApprovalCount
+                            </AeTypography>
+                        }
+                </ChildContent>
+            </AeCard>
 
             <AuthorizeView Roles="@($"{projectAcronym}-admin")" Context="Project_Cost">
                 <AeCard class="facard1" CardPosition="AeCard.CardStyle.Horizontal">
@@ -317,10 +316,14 @@
                     <ChildContent>
                         <AeFlex Vertical>
                             <AeTypography Variant="h3">
-                                @Localizer["PROJECT-PAGE.DATABASE-CARD.CardTitle"]
+                                @Localizer["PROJECT-PAGE.DATABASE-CARD.CardTitlePG"]
                             </AeTypography>
-                            <div>@Localizer["PROJECT-PAGE.DATABASE-CARD.DatabaseName"]: @_project.DB_Name</div>
-                            <div>
+                            <AeTypography>@Localizer["PROJECT-PAGE.DATABASE-CARD.DatabaseName"]: @_project.DB_Name</AeTypography>
+                            
+                        </AeFlex>
+                    </ChildContent>
+                    <Footer>
+                        <div>
                                 <AeButton OnClickEvent=@ShowDatabaseInformationPopupWithoutToken>@Localizer["PROJECT-PAGE.DATABASE-CARD.MoreInfo_button"]</AeButton>
                             </div>
                             @if (_project.IsDatabasePostgres && ProjectDatabaseService.IsServiceAvailable())
@@ -329,11 +332,51 @@
                                     <AeButton OnClickEvent=@ShowDatabaseInformationPopupWithToken>@Localizer["PROJECT-PAGE.DATABASE-CARD.GetToken_button"]</AeButton>
                                 </div>
                             }
-                        </AeFlex>
-                    </ChildContent>
+                    </Footer>
                 </AeCard>
             }
             
+            <AeCard class="facard1" CardPosition="AeCard.CardStyle.Horizontal">
+                    <Header>
+                        <div>
+                            <AeIcon class="fad fa-database card-icon"/>
+                        </div>
+                    </Header>
+                    <ChildContent>
+                        <AeFlex Vertical>
+                            <AeTypography Variant="h3">
+                                @Localizer["PROJECT-PAGE.DATABASE-CARD.CardTitleSQL"]
+                            </AeTypography>                                                        
+                        </AeFlex>
+                    </ChildContent>
+                    <Footer>
+                        <AeButton @onclick="@(async () => await RequestServiceAccess(""))">@DataLocalizer["Request Service Creation"]</AeButton>
+                        </Footer>
+                </AeCard>
+
+
+
+            <AuthorizeView Roles="DHPGLIST-admin" Context="Admin_Card">
+                <AeCard class="facard1" CardPosition="AeCard.CardStyle.Horizontal">
+                    <Header>
+                        <div>
+                            <AeIcon class="fad fa-user-crown"/>                            
+                        </div>
+                    </Header>
+                    <ChildContent>
+                        <AeTypography Variant="h3">
+                            @Localizer["PROJECT-PAGE.ADMIN-CARD.Title"]
+                        </AeTypography>
+                    </ChildContent>
+                    <Footer>                           
+                        <NavLink href="@($"/edit-project/{projectAcronym}")"><AeButton>@DataLocalizer["Edit Project"]</AeButton></NavLink>
+                        <NavLink href="@($"/tracker/{projectAcronym}")"><AeButton>@DataLocalizer["Project Tracker"]</AeButton></NavLink>
+                        <NavLink href="@($"/admin/powerbi/{projectAcronym}")"><AeButton>@DataLocalizer["Manage Links"]</AeButton></NavLink>
+                    </Footer>
+
+                </AeCard>
+            </AuthorizeView>
+
         </div>
         
     </AuthorizeView>
@@ -352,7 +395,8 @@
 
     
     private bool _isProjectUserPendingApproval;
-
+    private string _admins;
+    private string _users;
     private bool _isDataApprover;
     private int _sharingRequestAwaitingApprovalCount;
     private int _ownSharingRequestCount;
@@ -434,6 +478,13 @@
             _isDataApprover = projectUsers.Any(u => u.IsDataApprover);
         }
 
+        _admins = ServiceAuthManager.GetAdminUserString(projectAcronym);
+        GetUserList();
+
+        
+
+
+
         _sharingRequestAwaitingApprovalCount = await PublicDataFileService.GetDataSharingRequestsAwaitingApprovalCount(projectAcronym);
         _ownSharingRequestCount = await PublicDataFileService.GetUsersOwnDataSharingRequestsCount(projectAcronym, _user.Id);
 
@@ -464,6 +515,14 @@
 
         _projectCostFormatted = await GetProjectCostFormatted();
 
+    }
+
+    private void GetUserList()
+    {
+        var userList = projectContext.Project_Users.Where(u => !u.IsAdmin && _project == u.Project).ToList();
+        StringBuilder sbUsers = new();
+        userList.ForEach(e => sbUsers.Append($"{MSGraphService.GetUserName(e.User_ID)}; "));
+        _users =  sbUsers.ToString().Trim().TrimEnd(';');
     }
 
     private async Task<string> GetProjectCostFormatted()

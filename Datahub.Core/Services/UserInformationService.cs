@@ -13,7 +13,7 @@ using Microsoft.Graph;
 using Microsoft.Graph.Auth;
 using Microsoft.Identity.Client;
 using Microsoft.Identity.Web;
-using Datahub.Core.EFCore;
+using Datahub.Core.UserTracking;
 
 namespace Datahub.Core.Services
 {
@@ -21,7 +21,7 @@ namespace Datahub.Core.Services
     {
         private ILogger<UserInformationService> _logger;
         private GraphServiceClient graphServiceClient;
-        private readonly IDbContextFactory<EFCoreDatahubContext> contextFactory;
+        private readonly IDbContextFactory<UserTrackingContext> contextFactory;
         private AuthenticationStateProvider _authenticationStateProvider;
         private NavigationManager _navigationManager;
         private IConfiguration _configuration;
@@ -56,9 +56,9 @@ namespace Datahub.Core.Services
             AuthenticationStateProvider authenticationStateProvider,
             NavigationManager navigationManager,
             IConfiguration configureOptions,
-            EFCoreDatahubContext eFCoreDatahubContext,
+            UserTrackingContext eFCoreDatahubContext,
             GraphServiceClient graphServiceClient,
-            IDbContextFactory<EFCoreDatahubContext> contextFactory
+            IDbContextFactory<UserTrackingContext> contextFactory
             )
         {
             _logger = logger;
@@ -272,7 +272,7 @@ namespace Datahub.Core.Services
                 var userSetting = eFCoreDatahubContext.UserSettings.FirstOrDefault(u => u.UserId == userId);
                 if (userSetting == null)
                 {
-                    userSetting = new EFCore.UserSettings() { UserId = userId };
+                    userSetting = new UserTracking.UserSettings() { UserId = userId };
                     eFCoreDatahubContext.UserSettings.Add(userSetting);
                 }
 

@@ -57,31 +57,8 @@
             showHeader = _fileMetadata.customfields.First() == field;
             <CustomFields Field="@field" CustomFieldChanged="CustomFieldChanged" DeleteRow="DeleteRow" IncludeHeader="showHeader" />
         }
-        <AeButton @onclick="OpenMetadata">Edit Metadata</AeButton>
-
-@*        <div class="bodytext">
-            <div class="formlabel">
-                @if (_fileMetadata.customfields.Count == 0)
-                {
-                    <a>@Localizer["ADD-DATA-PAGE.CustomFields-Label"]</a>
-                }
-            </div>
-            @if (showAddRow)
-            {
-                <div class="roundbutton" style="margin-right: 1rem" @onclick="AddRow">
-                    <i class="fal fa-plus"></i>
-                </div>
-            }
-        </div>
-        <div class="bodytext">
-            <div class="privacytext">
-                @Localizer["ADD-DATA-PAGE.Disclaimer-1"]&nbsp;
-                <div class="bluetext" @onclick="NavigateToTermsOfUse">@Localizer["TermsOfUse"]</div>&nbsp;
-                @Localizer["ADD-DATA-PAGE.Disclaimer-2"]&nbsp;
-                <div class="bluetext" @onclick="NavigateToPrivacyStatement">@Localizer["PrivacyPolicy"]</div>&nbsp;
-                @Localizer["ADD-DATA-PAGE.Disclaimer-3"]
-            </div>
-        </div>*@
+        
+        @*<AeButton @onclick="OpenMetadata">Edit Metadata</AeButton>*@
 
         @if(isLoading)
         {
@@ -90,7 +67,7 @@
             </div>
         }
         <div class="bodytext">
-            <button class="submitbutton cancel" type="reset" @onclick="@(() => NavigationManager.NavigateTo("data"))">@Localizer["BUTTONS.Cancel"]</button>
+            <button class="submitbutton cancel" type="reset" @onclick="HandleCancel">@Localizer["BUTTONS.Cancel"]</button>
             <button class="submitbutton finish" disabled="@isSubmitDisabled" type="submit">@Localizer["BUTTONS.Upload"]</button>
         </div>
     </div>
@@ -112,9 +89,6 @@
     private ElementReference inputTypeFileElement;
     private ElementReference dropTargetInput;
     private IFileReference fileReference;
-    //private IBrowserFile browserFile;
-
-    
 
     protected override void OnInitialized()
     {
@@ -136,7 +110,7 @@
         }
     }
 
-    private async Task OnInputFileChange(InputFileChangeEventArgs e)
+    private void OnInputFileChange(InputFileChangeEventArgs e)
     {
         foreach (var file in e.GetMultipleFiles(10))
         {
@@ -147,7 +121,7 @@
         StateHasChanged();
     }
 
-    private async Task ResetControls()
+    private void ResetControls()
     {
         ApiService.browserFile = null;
         status = Localizer.GetString("ADD-DATA-PAGE.DefaultStatusText");
@@ -290,23 +264,17 @@
 
             CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 
-
-            
-
             if (_fileMetadata != null && !string.IsNullOrWhiteSpace(_fileMetadata.filename))
             {
                 // We have file in browser, add to list of files downloaded!
                 ApiService.UploadedFiles.Add($"{_fileMetadata.folderpath}/{_fileMetadata.filename}", _fileMetadata);
 
-                InvokeAsync(async () =>
+                _ = InvokeAsync(async () =>
                 {
                     await ApiService.UploadGen2File(_fileMetadata);
                     await NotifierService.Update("filegrid", true);
-                    await ResetControls();
-                });
-
-                
-                
+                    ResetControls();
+                }); 
             }
             else
             {
@@ -351,13 +319,18 @@
 
     private async Task<RenderFragment> getIcon()
     {
-        return 
-    @<div id="securityClassButton" class="ae button"> <div>@_fileMetadata.securityclass</div> <i class="fal fa-chevron-down chevronborder"></i></div>;
+        RenderFragment fragment = @<div id="securityClassButton" class="ae button"> <div>@_fileMetadata.securityclass</div> <i class="fal fa-chevron-down chevronborder"></i></div>;
+        return await Task.FromResult(fragment);
     }
-
 
     private RenderFragment GetOption(string option)
     {
-        return @<span>@Localizer[option]</span>;
+        return @<span>@Localizer[option]</span>
+    ;
+    }
+
+    private void HandleCancel()
+    {
+        UI.ToggleRightSidebar(null);
     }
 }

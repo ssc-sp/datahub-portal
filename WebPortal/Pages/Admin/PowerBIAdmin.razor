@@ -51,8 +51,10 @@
                     }
                 </ChildContent>
                 <Footer>
-                    <AeButton @onclick="ReloadData">Cancel</AeButton>
-                    <AeButton @onclick="SaveChanges">Save Changes</AeButton>
+                    <div style='flex-direction: row'>
+                        <AeButton @onclick="ReloadData">Cancel</AeButton>
+                        <AeButton @onclick="SaveChanges">Save Changes</AeButton>
+                    </div>
 		        </Footer>
             </AeCard>
             <div>&nbsp;</div>
@@ -87,10 +89,10 @@
                         </AePagination>
                     }
                 </ChildContent>
-                <Footer>
+@*                <Footer>
                     <AeButton @onclick="ReloadData">Cancel</AeButton>
                     <AeButton @onclick="SaveChanges">Save Changes</AeButton>
-		        </Footer>
+		        </Footer>*@
             </AeCard>
         </Authorized>
         <NotAuthorized>
@@ -166,28 +168,42 @@
 
     private Dictionary<Guid,Datahub_Project> associations = new Dictionary<Guid,Datahub_Project>();
 
-    private void HandleDropDownChange(PowerBIDatasetElements el, Datahub_Project project, bool doRemove)
+    private void HandleDropDownChange(PowerBIDatasetElements el, Datahub_Project project, bool? isChecked = null)
     {
-        //if (doRemove)
-        //{
-        var toRem = datasetLinks.Where(r => r.Id == Guid.Parse(el.Dataset.Id)).ToList();
-        ctx.Project_PBI_DataSets.RemoveRange(toRem);
-        //}
-        var e = new Project_PBI_DataSet() {Id = Guid.Parse(el.Dataset.Id), Workspace = el.Group.Id, Project = project, DatasetName = el.Dataset.Name };
-        ctx.Project_PBI_DataSets.Add(e);
-        datasetLinks.Add(e);
+        if (isChecked is null || isChecked == false)
+        {
+            var toRem = ctx.Project_PBI_DataSets.Where(r => r.Id == Guid.Parse(el.Dataset.Id)).ToList();
+            ctx.Project_PBI_DataSets.RemoveRange(toRem);
+            datasetLinks.RemoveAll(r => r.Id == Guid.Parse(el.Dataset.Id));
+            ctx.SaveChanges();
+        }
+
+        if (isChecked is null || isChecked == true)
+        {
+            var e = new Project_PBI_DataSet() { Id = Guid.Parse(el.Dataset.Id), Workspace = el.Group.Id, Project = project, DatasetName = el.Dataset.Name };
+            ctx.Project_PBI_DataSets.Add(e);
+            datasetLinks.Add(e);
+            ctx.SaveChanges();
+        }
     }
 
-    private void HandleDropDownChange((Report report, Group group) el, Datahub_Project project, bool doRemove)
+    private void HandleDropDownChange((Report report, Group group) el, Datahub_Project project, bool? isChecked = null)
     {
-        //if (doRemove)
-        //{
-        var toRem = reportLinks.Where(r => r.Id == el.report.Id).ToList();
-        ctx.Project_PBI_Reports.RemoveRange(toRem);
-        //}
-        var e = new Project_PBI_Report() { Id = el.report.Id, Workspace = el.group.Id, Project = project, ReportName = el.report.Name };
-        ctx.Project_PBI_Reports.Add(e);
-        reportLinks.Add(e);
+        if (isChecked is null || isChecked == false)
+        {
+            var toRem = ctx.Project_PBI_Reports.Where(r => r.Id == el.report.Id).ToList();
+            ctx.Project_PBI_Reports.RemoveRange(toRem);
+            reportLinks.RemoveAll(d => d.Id == el.report.Id);
+            ctx.SaveChanges();
+        }
+
+        if (isChecked is null || isChecked == true)
+        {
+            var e = new Project_PBI_Report() { Id = el.report.Id, Workspace = el.group.Id, Project = project, ReportName = el.report.Name };
+            ctx.Project_PBI_Reports.Add(e);
+            reportLinks.Add(e);
+            ctx.SaveChanges();
+        }
     }
 
     private void RowSelected(PowerBIDatasetElements selected)
@@ -287,7 +303,7 @@
             null,
             el =>  { return 
                 @<AeMultiSelect @key=el T="Datahub_Project" DefaultLabel="Select Project"
-                        SelectedItem="GetAssociatedProject(el)" SelectedItemChanged="e => HandleDropDownChange(el,e,true)"
+                        SelectedItem="GetAssociatedProject(el)" SelectedItemChanged="e => HandleDropDownChange(el,e)"
                         Renderer="CustomRenderer" Items="allProjects"/>
     ; }
 
@@ -298,7 +314,7 @@
             null,
             el =>  { return 
                 @<AeMultiSelect @key=el T="Datahub_Project" DefaultLabel="Select Project"
-                        SelectedItem="GetAssociatedProject(el)" SelectedItemChanged="e => HandleDropDownChange(el,e,true)"
+                        SelectedItem="GetAssociatedProject(el)" SelectedItemChanged="e => HandleDropDownChange(el,e)"
                         Renderer="CustomRenderer" Items="allProjects"/>
     ; }
 
@@ -311,7 +327,7 @@
             null,
             el =>  { return 
                 @<DHCheckbox IsChecked="@(selectedProject == GetAssociatedProject(el))"
-                             IsCheckedChanged="e => HandleDropDownChange(el,selectedProject,false)"
+                             IsCheckedChanged="e => HandleDropDownChange(el,selectedProject,e)"
                  />;
                    }
 
@@ -322,7 +338,7 @@
             null,
             el =>  { return 
                 @<DHCheckbox IsChecked="@(selectedProject == GetAssociatedProject(el))"
-                             IsCheckedChanged="e => HandleDropDownChange(el,selectedProject,false)"                
+                             IsCheckedChanged="e => HandleDropDownChange(el,selectedProject,e)"                
                 />;
                    }
         };            
