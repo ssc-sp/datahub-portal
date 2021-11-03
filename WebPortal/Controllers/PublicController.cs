@@ -68,10 +68,12 @@ namespace Datahub.Portal.Controllers
         [Route("{fileId}")]
         public async Task<IActionResult> DownloadFile(string fileId)
         {
+            var remoteIp = HttpContext.Connection.RemoteIpAddress;
+
             try
             {
                 var fileIdGuid = Guid.Parse(fileId);
-                var result = await _pubFileService.DownloadPublicUrlSharedFile(fileIdGuid);
+                var result = await _pubFileService.DownloadPublicUrlSharedFile(fileIdGuid, remoteIp);
                 if (result == null)
                 {
                     _logger.LogError($"File not found: {fileId}");
