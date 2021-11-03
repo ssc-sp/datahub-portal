@@ -4,13 +4,14 @@ using Microsoft.Graph;
 using Datahub.Core.Data;
 using System.Collections.Generic;
 using Datahub.Core.EFCore;
+using System.Net;
 
 namespace Datahub.Portal.Services
 {
     public interface IPublicDataFileService
     {
-        Task<Uri> DownloadPublicUrlSharedFile(Guid fileId);
-        Task<Uri> DoDownloadFile(SharedDataFile publicFile, bool anonymous = false);
+        Task<Uri> DownloadPublicUrlSharedFile(Guid fileId, IPAddress ipAddress = null);
+        Task<Uri> DoDownloadFile(SharedDataFile publicFile, bool anonymous = false, IPAddress ipAddress = null);
         Task CreateDataSharingRequest(FileMetaData fileMetaData, string projectCode, User requestingUser, bool openDataRequest = false);
         Task<SharedDataFile> LoadPublicUrlSharedFileInfo(Guid fileId);
         Task<OpenDataSharedFile> LoadOpenDataSharedFileInfo(Guid fileId);
