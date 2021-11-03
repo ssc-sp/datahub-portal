@@ -110,6 +110,9 @@
             case DatahubLinkType.DataSharingDashboard:
                 NavigationManager.NavigateTo($"/project/{link.DataProject}/datasharing");
                 break;
+            case DatahubLinkType.PowerBIReport:
+                NavigationManager.NavigateTo($"/powerbi/{link.DataProject}");
+                break;
         }
     }
 }
