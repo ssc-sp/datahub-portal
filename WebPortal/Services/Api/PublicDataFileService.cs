@@ -9,6 +9,7 @@ using Microsoft.Graph;
 using Datahub.Core.Data;
 using Datahub.Core.EFCore;
 using Datahub.Core.Services;
+using System.Net;
 
 namespace Datahub.Portal.Services
 {
@@ -103,7 +104,7 @@ namespace Datahub.Portal.Services
             _logger.LogInformation($"Wrote file share record for {fileId} - {numSaved} records written to database");
         }
 
-        public async Task<Uri> DownloadPublicUrlSharedFile(Guid fileId)
+        public async Task<Uri> DownloadPublicUrlSharedFile(Guid fileId, IPAddress ipAddress = null)
         {
             var publicFile = await LoadPublicUrlSharedFileInfo(fileId);
             
@@ -132,10 +133,10 @@ namespace Datahub.Portal.Services
                 return await Task.FromResult<Uri>(null);
             }
 
-            return await DoDownloadFile(publicFile, anonymous: true);
+            return await DoDownloadFile(publicFile, anonymous: true, ipAddress: ipAddress);
         }
 
-        public async Task<Uri> DoDownloadFile(SharedDataFile publicFile, bool anonymous = false)
+        public async Task<Uri> DoDownloadFile(SharedDataFile publicFile, bool anonymous = false, IPAddress ipAddress = null)
         {
             var fileMetadata = new FileMetaData()
             {
@@ -145,7 +146,14 @@ namespace Datahub.Portal.Services
             };
 
             // audit download file
-            await _datahubAuditingService.TrackDataEvent(publicFile.Filename_TXT, publicFile.GetType().Name, AuditChangeType.Download, anonymous);
+            if (ipAddress != null)
+            {
+                await _datahubAuditingService.TrackDataEvent(publicFile.Filename_TXT, publicFile.GetType().Name, AuditChangeType.Download, anonymous, ("ipAddress", ipAddress.ToString()));
+            }
+            else
+            {
+                await _datahubAuditingService.TrackDataEvent(publicFile.Filename_TXT, publicFile.GetType().Name, AuditChangeType.Download, anonymous);
+            }
 
             if (publicFile.IsProjectBased)
             {
