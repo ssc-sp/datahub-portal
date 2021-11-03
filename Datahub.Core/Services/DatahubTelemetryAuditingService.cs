@@ -20,7 +20,7 @@ namespace Datahub.Core
         }
         
         /// <inheritdoc>
-        public async Task TrackDataEvent(string objectId, string table, AuditChangeType changeType, params (string key, string value)[] details)
+        public async Task TrackDataEvent(string objectId, string table, AuditChangeType changeType, bool anonymous, params (string key, string value)[] details)
         {
             var properties = new Dictionary<string, string>
             {
@@ -28,7 +28,7 @@ namespace Datahub.Core
                 [nameof(table)] = table,
                 [nameof(changeType)] = changeType.ToString(),
             };
-            await AppendIdentity(properties);
+            await AppendIdentity(properties, anonymous);
             _telemetryClient.TrackEvent("DataEvent", AppendDetails(properties, details));
             _telemetryClient.Flush();
         }
@@ -70,9 +70,9 @@ namespace Datahub.Core
             _telemetryClient.Flush();
         }
 
-        private async Task AppendIdentity(Dictionary<string, string> dictionary)
+        private async Task AppendIdentity(Dictionary<string, string> dictionary, bool anonymous = false)
         {
-            var user = await _userInformationService.GetUserAsync();
+            var user = anonymous ? await _userInformationService.GetAnonymousUserAsync() : await _userInformationService.GetUserAsync();
             if (user != null)
             {
                 dictionary["userId"] = user.Id;
