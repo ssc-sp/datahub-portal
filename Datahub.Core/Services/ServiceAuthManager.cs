@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Text;
 
 namespace Datahub.Core.Services
 {
@@ -33,6 +34,21 @@ namespace Datahub.Core.Services
         {
             using var ctx = dbFactory.CreateDbContext();
             return ctx.Projects.Where(p => p.Project_Acronym_CD != null).Select(p => p.Project_Acronym_CD).ToList();
+        }
+
+        public bool InvalidateAuthCache()
+        {
+            var cache = serviceAuthCache as MemoryCache;
+            if (cache != null)
+            {
+                var percentage = 1.0;//100%
+                cache.Compact(percentage);
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
 
         public List<string> GetAdminProjectRoles()
@@ -67,6 +83,22 @@ namespace Datahub.Core.Services
             return split.Select(b => ExtractEmail(b)?.ToLowerInvariant()).Where(b => b != null).ToList();
         }
 
+
+        public List<string> GetAdminUserList(string projectAcronym)
+        {
+            var adminEmailList = GetProjectAdminsEmails(projectAcronym);
+            List<string> adminsList = new();
+            adminEmailList.ForEach(e => adminsList.Add(mSGraphService.GetUserName(e)));            
+            return adminsList;
+        }
+
+        public string GetAdminUserString(string projectAcronym)
+        {
+            var adminEmailList = GetProjectAdminsEmails(projectAcronym);
+            StringBuilder admins = new();
+            adminEmailList.ForEach(e => admins.Append($"{mSGraphService.GetUserName(mSGraphService.GetUserIdFromEmail(e))}; "));
+            return admins.ToString().Trim().TrimEnd(';');
+        }
         public async Task ClearProjectAdminCache()
         {
             await Task.Run(() =>

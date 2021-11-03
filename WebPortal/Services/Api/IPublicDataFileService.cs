@@ -29,5 +29,6 @@ namespace Datahub.Portal.Services
         Task<bool> IsUserProjectDataApprover(string projectCode, string userId);
         Task CancelPublicDataShare(Guid fileId);
         string GetOpenDataApprovalFormPdfUrl(int approvalFormId);
+        string GetPublicSharedFileUrl(string fileId);
     }
 }

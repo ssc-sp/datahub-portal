@@ -9,7 +9,7 @@
 <div id="@($"{File.fileid}Div")" class="fileGrid" style="@FileStatusCssStyle" @onclick="() => SelectFile()" @ondblclick="DownloadFile"
      @oncontextmenu="HandleRightClick" @oncontextmenu:preventDefault="true" @onclick:preventDefault="true">
     <div class="grid-item" style="@CurrentlySelectedStyle">
-        <i class="@(!IsSelected ? "": "far fa-check-circle icon-color ")">&nbsp;</i>
+        <i class="@(!IsSelected ? "far fa-circle icon-color ": "far fa-check-circle icon-color ")">&nbsp;</i>
     </div>
     <div class="grid-item" >
         <div class="textcontent">
@@ -40,15 +40,15 @@
                     <i class="far fa-info-circle icon-color sm-icon"></i>
                     @Localizer["ViewDetails"]
                 </a>
-                <AuthorizeView Roles="DHPGLIST-admin">
-                    @if (!string.IsNullOrEmpty(Project))
-                    {
-                        <a @onclick=@ShareFile>
-                            <i class="far fa-share-square icon-color sm-icon"></i>
-                            @Localizer["Share"]
-                        </a>
-                    }
-                </AuthorizeView>
+                
+                @if (!string.IsNullOrEmpty(Project))
+                {
+                    <a @onclick=@ShareFile>
+                        <i class="far fa-share-square icon-color sm-icon"></i>
+                        @Localizer["Share"]
+                    </a>
+                }
+
 <!-- To be added when we support it
                 <a @onclick="OpenVersions">
                     <i class="fas fa-code-branch icon-color sm-icon"></i>
@@ -146,11 +146,10 @@
     {
         get
         {
-            if (!IsSelected)
-            {
-                return "padding: 0px 1.6rem;";
-            }
-
+            //if (!IsSelected)
+            //{
+            //    return "padding: 0px 1.6rem;";
+            //}
             return string.Empty;
         }
     }
@@ -173,8 +172,7 @@
                 {
                     return "Shared";
                 }
-
-                return "OnlyYou";
+                return "-";
             }
 
             return string.Empty;
