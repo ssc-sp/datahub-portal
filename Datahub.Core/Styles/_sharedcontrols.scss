@@ -22,6 +22,14 @@
     }
 }
 
+.icon-nocolor {
+    color: c.$grey-500;
+
+    &.sm-icon {
+        width: 16px;
+    }
+}
+
 .roundbutton {
     background-color: c.$borderblue;
     border: none;

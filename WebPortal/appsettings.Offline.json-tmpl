@@ -65,6 +65,11 @@
     "SenderAddress": "",
     "DevTestMode": false
   },
+  "PublicFileSharing": {
+    "OpenDataApprovalPdfBaseUrl": "",
+    "OpenDataApprovalPdfFormIdParam": "rp:p_approval_form_id",
+    "PublicFileSharingDomain": "https://localhost:44347"
+  },  
   "Azure:SignalR:StickyServerMode": "Required",
   "AllowedHosts": "*"
 }

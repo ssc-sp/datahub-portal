@@ -47,6 +47,7 @@ using Microsoft.ApplicationInsights.Extensibility;
 using Datahub.LanguageTraining;
 using Microsoft.AspNetCore.HttpLogging;
 using Datahub.CKAN.Service;
+using Datahub.Core.UserTracking;
 
 namespace Datahub.Portal
 {
@@ -131,6 +132,8 @@ namespace Datahub.Portal
 
             services.Configure<CKANConfiguration>(Configuration.GetSection("CKAN"));
 
+            services.Configure<SessionsConfig>(Configuration.GetSection("Sessions"));
+
             services.AddScoped<IClaimsTransformation, RoleClaimTransformer>();
 
             services.AddSignalRCore();
@@ -177,13 +180,13 @@ namespace Datahub.Portal
 
         private void InitializeDatabase<T>(ILogger logger, IDbContextFactory<T> dbContextFactory, bool migrate = true, bool ensureDeleteinOffline = true) where T : DbContext
         {
-            EFTools.InitializeDatabase<T>(logger, dbContextFactory, Offline, migrate, ensureDeleteinOffline);
+            EFTools.InitializeDatabase<T>(logger, Configuration, dbContextFactory, Offline, migrate, ensureDeleteinOffline);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILogger<Startup> logger,
             IDbContextFactory<DatahubProjectDBContext> datahubFactory,
-            IDbContextFactory<EFCoreDatahubContext> cosmosFactory,
+            IDbContextFactory<UserTrackingContext> userTrackingFactory,
             IDbContextFactory<FinanceDBContext> financeFactory,
             IDbContextFactory<PIPDBContext> pipFactory,
             IDbContextFactory<MetadataDbContext> metadataFactory,
@@ -198,7 +201,7 @@ namespace Datahub.Portal
             app.ConfigureModule<LanguageTrainingModule>();
 
             InitializeDatabase(logger, datahubFactory);
-            InitializeDatabase(logger, cosmosFactory, false);
+            InitializeDatabase(logger, userTrackingFactory, false);
             InitializeDatabase(logger, etlFactory);
             InitializeDatabase(logger, financeFactory);
             InitializeDatabase(logger, pipFactory);
@@ -422,6 +425,9 @@ namespace Datahub.Portal
             services.AddSingleton<ServiceAuthManager>();
 
             services.AddCKANService();
+
+            services.AddSingleton<IGlobalSessionManager, GlobalSessionManager>();
+            services.AddScoped<IUserCircuitCounterService, UserCircuitCounterService>();
         }
 
         private void ConfigureDbContexts(IServiceCollection services)
@@ -431,11 +437,11 @@ namespace Datahub.Portal
             ConfigureDbContext<FinanceDBContext>(services, "datahub-mssql-finance", Configuration.GetDriver());
             if (Configuration.GetDriver() == DbDriver.SqlServer)
             {
-                ConfigureCosmosDbContext<EFCoreDatahubContext>(services, "datahub-cosmosdb", "datahub-catalog-db");
+                ConfigureCosmosDbContext<UserTrackingContext>(services, "datahub-cosmosdb", "datahub-catalog-db");
             }
             else
             {
-                ConfigureDbContext<EFCoreDatahubContext>(services, "datahub-cosmosdb", Configuration.GetDriver());
+                ConfigureDbContext<UserTrackingContext>(services, "datahub-cosmosdb", Configuration.GetDriver());
             }
             ConfigureDbContext<WebAnalyticsContext>(services, "datahub-mssql-webanalytics", Configuration.GetDriver());
             ConfigureDbContext<DatahubETLStatusContext>(services, "datahub-mssql-etldb", Configuration.GetDriver());

@@ -572,6 +572,7 @@ body {
 }
 .ae.card .ae.card-footer {
   display: flex;
+  flex-direction: column;
   border-top: 1px solid;
   border-color: #edf2f7;
   padding: 1.25rem;
@@ -3589,6 +3590,13 @@ body {
   color: #57C4EC;
 }
 .icon-color.sm-icon {
+  width: 16px;
+}
+
+.icon-nocolor {
+  color: #a0aec0;
+}
+.icon-nocolor.sm-icon {
   width: 16px;
 }
 
