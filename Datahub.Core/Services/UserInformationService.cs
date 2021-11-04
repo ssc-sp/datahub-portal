@@ -30,26 +30,7 @@ namespace Datahub.Core.Services
         
         public User CurrentUser { get; set; }
 
-        private User _anonymousUser;
-        private User AnonymousUser
-        {
-            get
-            {
-                if (_anonymousUser == null)
-                {
-                    _anonymousUser = new User()
-                    {
-                        Id = UserInformationServiceConstants.ANONYMOUS_USER_ID,
-                        Mail = UserInformationServiceConstants.ANONYMOUS_USER_EMAIL,
-                        DisplayName = UserInformationServiceConstants.ANONYMOUS_USER_NAME,
-                        UserPrincipalName = UserInformationServiceConstants.ANONYMOUS_USER_EMAIL
-                    };
-                }
-
-                return _anonymousUser;
-            }
-        }
-
+        private User AnonymousUser => UserInformationServiceConstants.GetAnonymousUser();
 
         public UserInformationService(
             ILogger<UserInformationService> logger,
