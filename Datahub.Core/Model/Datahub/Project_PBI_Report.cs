@@ -16,5 +16,7 @@ namespace Datahub.Core.EFCore
 
         public string GetLink() => $"https://app.powerbi.com/groups/{Workspace}/reports/{Id}";
 
+        public string GetWorkspaceLink() => $"https://app.powerbi.com/groups/{Workspace}";
+
     }
 }
