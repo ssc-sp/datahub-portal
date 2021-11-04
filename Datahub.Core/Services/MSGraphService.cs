@@ -111,6 +111,14 @@ namespace Datahub.Core.Services
                         }
                     }
 
+                    // add anonymous user
+                    var anonUser = UserInformationServiceConstants.GetAnonymousUser();
+                    if (anonUser != null)
+                    {
+                        var newUser = GraphUser.Create(anonUser);
+                        UsersDict.Add(newUser.Id, newUser);
+                    }
+
                     //var user1 = UsersDict.Values.Where(u => u.Mail.ToLower() == "natasha.lestage@nrcan-rncan.gc.ca").FirstOrDefault().Id;
                     
                     
