@@ -111,6 +111,9 @@ namespace Datahub.Core.Services
                 }
                 _resetCacheToken = new CancellationTokenSource();
             });
+
+            await checkCacheForAdmins();
+
         }
 
         public async Task<bool> IsProjectAdmin(string userid, string projectAcronym)
@@ -149,7 +152,7 @@ namespace Datahub.Core.Services
                 var email = mSGraphService.GetUserEmail(user.User_ID)?.ToLower();
                 if (!extractedEmails.Contains(email))
                 {
-                    ctx.Remove(user);
+                    user.IsAdmin = false;                    
                 }
             }
 
@@ -186,6 +189,7 @@ namespace Datahub.Core.Services
             }
 
             await ctx.SaveChangesAsync();
+            await ClearProjectAdminCache();
             ctx.Dispose();
         }
         private async Task<List<string>> GetProjectRoles()
