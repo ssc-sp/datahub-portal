@@ -25,6 +25,7 @@ namespace Datahub.Metadata.Model
         public bool MultiSelect_FLAG { get; set; }
         public string Validators_TXT { get; set; }
         public bool Custom_Field_FLAG { get; set; }
+        public string Default_Value_TXT { get; set; }
         public virtual ICollection<FieldChoice> Choices { get; set; }
         public virtual ICollection<ObjectFieldValue> FieldValues { get; set; }
 

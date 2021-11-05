@@ -19,7 +19,7 @@
     /// Object ID to edit or add metadata
     /// </summary>
     [Parameter]
-    public string ObjectId { get; set; } = "7aa33e32-44a1-4ca4-b76c-ccb98c7b8e0b";
+    public string ObjectId { get; set; }
 
     private FieldDefinitions _definitions;
     private FieldValueContainer _fieldValues;
@@ -47,11 +47,14 @@
 
     [Inject]
     public ICKANService CKANService { get; set; }
-    
+
     public async Task SavePackage()
     {
-        var result = await CKANService.CreatePackage(_fieldValues);
-        // ...
+        var result = await CKANService.CreatePackage(_fieldValues.GetReadonlyCopy(), "http://url_goes_here");
+        if (!result.Succeeded)
+        {
+            // >>
+        }
     }
 
     private void FieldChanged(ObjectFieldValue field)
