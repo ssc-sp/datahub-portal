@@ -325,7 +325,8 @@
             ApprovedUser = await UserInformationService.GetUserIdString(),
             Approved_DT = approvedDate,
             IsAdmin = false,
-            IsDataApprover = false
+            IsDataApprover = false,
+            User_Name = MSGraphService.GetUserEmail(r.User_ID)?.ToLower() 
         };
 
         projectContext.Project_Users.Add(request);
