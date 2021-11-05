@@ -72,9 +72,10 @@
   .logo {
     background-color: c.$white;
     border-bottom: 1px solid transparent;
-    height: c.$topbarHeight;
+    height: (c.$topbarHeight - 10);
     margin: 0 auto;
-
+    margin-top: 5px;
+    margin-bottom: 5px;
     img {
       padding: .5rem;
     }
