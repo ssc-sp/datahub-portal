@@ -29,6 +29,9 @@ namespace Datahub.Core.Services
         public string imageHtml;
         
         public User CurrentUser { get; set; }
+
+        private User AnonymousUser => UserInformationServiceConstants.GetAnonymousUser();
+
         public UserInformationService(
             ILogger<UserInformationService> logger,
             AuthenticationStateProvider authenticationStateProvider,
@@ -317,6 +320,11 @@ namespace Datahub.Core.Services
             {
                 await GetUserAsyncInternal();
             }
+        }
+
+        public Task<User> GetAnonymousUserAsync()
+        {
+            return Task.FromResult(AnonymousUser);
         }
     }    
 }

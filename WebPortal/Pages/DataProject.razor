@@ -51,11 +51,11 @@
                     }
                 </NotAuthorized>
                 <Authorized>
-                    <AeTypography>@DataLocalizer["Project Administrators:"] @_admins</AeTypography>
-                    <AeTypography>@DataLocalizer["Project Users:"] @_users</AeTypography>
+                    <AeTypography><b>@DataLocalizer["Project Administrators:"]</b> @_admins</AeTypography>
+                    <AeTypography><b>@DataLocalizer["Project Users:"]</b> @_users</AeTypography>
                 </Authorized>
             </AuthorizeView>
-            <AeTypography>@DataLocalizer["Data Sensitivity:"] @DataLocalizer[_project.Data_Sensitivity]</AeTypography>
+            <AeTypography><b>@DataLocalizer["Data Sensitivity:"]</b> @DataLocalizer[_project.Data_Sensitivity]</AeTypography>
             
         </ChildContent>
     </AeCard>
@@ -136,7 +136,7 @@
                 <ChildContent>
                     @if (_powerBIAuthorized && !string.IsNullOrWhiteSpace(_project.PowerBI_URL))
                     {
-                        <DHLink Variant="h3" DataProject="@projectAcronym" PowerBIURL="@_project.PowerBI_URL">PowerBI Workspace</DHLink>
+                        <DHLink Variant="h3" DataProject="@projectAcronym" LinkType="DatahubLinkType.PowerBIReport">PowerBI</DHLink>
                     }
                     else
                     {
@@ -521,7 +521,7 @@
     {
         var userList = projectContext.Project_Users.Where(u => !u.IsAdmin && _project == u.Project).ToList();
         StringBuilder sbUsers = new();
-        userList.ForEach(e => sbUsers.Append($"{MSGraphService.GetUserName(e.User_ID)}; "));
+        userList.ForEach(e => sbUsers.Append(MSGraphService.GetUserName(e.User_ID) != "..." ? $"{MSGraphService.GetUserName(e.User_ID)}; " : string.Empty));
         _users =  sbUsers.ToString().Trim().TrimEnd(';');
     }
 

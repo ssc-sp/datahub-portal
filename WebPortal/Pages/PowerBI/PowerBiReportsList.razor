@@ -1,0 +1,114 @@
+﻿@page "/powerbi/{projectAcronym}"
+@inject IDbContextFactory<DatahubProjectDBContext> DbFactoryProject
+@using Microsoft.EntityFrameworkCore.Query
+@using Microsoft.EntityFrameworkCore;
+@using Microsoft.PowerBI.Api.Models
+
+
+<div style="padding-left: 2rem;padding-right: 2rem">
+
+    <AeTypography Variant="h1">@Localizer["Power BI Reports"]</AeTypography>
+
+            <AeCard>
+                <Header>
+                    
+                </Header>
+                <ChildContent>
+                    @if (false)
+                    {
+                        <Spinner />
+                    }
+                    else
+                    {
+
+                        <AePaginatedTable Accessors="accessorFunctions"
+                                      Renderers="GetRenderers()"
+                                      Dataset="_project_PBI_Reports"
+                                      Headers="headers"
+                                      T="Project_PBI_Report"
+                                      @ref="_myTable"
+                                      Page="@_lastClicked"
+                                      PageSize="20" />
+                        
+                        <AePagination 
+                        Pageable="@_myTable" 
+                        OnPageClick="OnPageClick"> 
+                        <LeftIcon><i class='fad fa-chevron-double-left'></i></LeftIcon> 
+                        <RightIcon><i class='fad fa-chevron-double-right'></i></RightIcon>
+                        </AePagination>
+                    }
+                </ChildContent>
+                    
+                
+            </AeCard>        
+    
+</div>
+
+
+@code {
+
+    [Parameter]
+    public string projectAcronym { get; set; }
+    private List<Project_PBI_Report> _project_PBI_Reports;
+    private DatahubProjectDBContext ctx;
+    private int _lastClicked = 0;
+    private IPageableComponent _myTable;
+    
+
+    private void OnPageClick(int pageIndex)
+    {
+        _lastClicked = pageIndex;
+    }
+
+    private List<string> headers = new List<string>
+    {
+        "Report Name", "Workspace", "Report"
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        ctx = DbFactoryProject.CreateDbContext();
+        _project_PBI_Reports = new();
+        if (projectAcronym != null)
+        {
+            _project_PBI_Reports = ctx.Project_PBI_Reports.Include(u => u.Project).Where(r => r.Project.Project_Acronym_CD.ToLower() == projectAcronym.ToLower()).ToList();
+        }
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        // You must re-render after the components are initialized in order for the
+        // component reference to not be null
+        if (firstRender)
+        {
+            StateHasChanged();
+            
+        }
+    }
+
+
+    private List<Func<Project_PBI_Report, string>> accessorFunctions = new List<Func<Project_PBI_Report, string>>
+    {        
+        new Func< Project_PBI_Report, string>(pt => { return pt.ReportName; }),
+        null,
+        null,
+    };
+
+    private List<Func<Project_PBI_Report, RenderFragment>> GetRenderers()
+    {             
+        return new List<Func<Project_PBI_Report, RenderFragment>>() {            
+            null,
+            workspace => @<AeTypography><DHLink LinkType="DatahubLinkType.PowerBIWorkspace" PBIWorkspaceId=@(workspace.Workspace.ToString())>Workspace</DHLink></AeTypography>,
+            report => @<AeTypography><DHLink DataProject="@(report.Project.Project_Acronym_CD)" PBIWorkspaceId=@(report.Workspace.ToString()) PBIReportId=@(report.Id.ToString()) PowerBIURL="@(report.GetLink())" Name="@(report?.ReportName)">@report?.ReportName</DHLink></AeTypography>,     
+        };
+    }
+
+
+
+    public void Dispose()
+    {
+        ctx.Dispose();
+    }
+
+
+}
