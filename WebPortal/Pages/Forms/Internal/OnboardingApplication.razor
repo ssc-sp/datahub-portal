@@ -37,6 +37,10 @@
     private List<Datahub_Project_Sectors_And_Branches> _sectors;
     private List<Datahub_Project_Sectors_And_Branches> _branches;
 
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public bool New { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
         // load projects
@@ -58,7 +62,10 @@
         var isFrench = CultureInfo.CurrentCulture.Name.StartsWith("fr", StringComparison.InvariantCulture);
         _formMetadata.MarkDownContent = new List<string>();
         _formMetadata.MarkDownContentFooter = new List<string>();
-        
+
+        if (New)
+            await CreateNewApplication();
+
     }
 
     private List<Func<OnboardingApp, string>> accessorFunctions = new List<Func<OnboardingApp, string>>
