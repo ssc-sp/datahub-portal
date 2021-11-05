@@ -19,10 +19,10 @@ namespace Datahub.CKAN.Service
             _ckanConfiguration = ckanConfiguration;
         }
 
-        public async Task<CKANApiResult> CreatePackage(FieldValueContainer fieldValues)
+        public async Task<CKANApiResult> CreatePackage(FieldValueContainer fieldValues, string url)
         {
             // generate the dictionary
-            var packageData = PackageGenerator.GeneratePackage(fieldValues);
+            var packageData = (new PackageGenerator()).GeneratePackage(fieldValues, url);
 
             // generate json from package
             var jsonData = JsonConvert.SerializeObject(packageData);
