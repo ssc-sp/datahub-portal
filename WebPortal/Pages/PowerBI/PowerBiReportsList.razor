@@ -71,7 +71,7 @@
         _project_PBI_Reports = new();
         if (projectAcronym != null)
         {
-            _project_PBI_Reports = ctx.Project_PBI_Reports.Where(r => r.Project.Project_Acronym_CD.ToLower() == projectAcronym.ToLower()).ToList();
+            _project_PBI_Reports = ctx.Project_PBI_Reports.Include(u => u.Project).Where(r => r.Project.Project_Acronym_CD.ToLower() == projectAcronym.ToLower()).ToList();
         }
     }
 
@@ -98,8 +98,8 @@
     {             
         return new List<Func<Project_PBI_Report, RenderFragment>>() {            
             null,
-            new Func< Project_PBI_Report, RenderFragment>(pt => { return @<a href="@pt.GetWorkspaceLink()" target="blank">Report Workspace</a>; }),
-            new Func< Project_PBI_Report, RenderFragment>(pt => { return @<a href="@pt.GetLink()" target="blank">View Report</a>; }),    
+            workspace => @<AeTypography><DHLink LinkType="DatahubLinkType.PowerBIWorkspace" PBIWorkspaceId=@(workspace.Workspace.ToString())>Workspace</DHLink></AeTypography>,
+            report => @<AeTypography><DHLink DataProject="@(report.Project.Project_Acronym_CD)" PBIWorkspaceId=@(report.Workspace.ToString()) PBIReportId=@(report.Id.ToString()) PowerBIURL="@(report.GetLink())" Name="@(report?.ReportName)">@report?.ReportName</DHLink></AeTypography>,     
         };
     }
 
