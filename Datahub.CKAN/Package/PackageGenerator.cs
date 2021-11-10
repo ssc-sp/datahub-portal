@@ -6,11 +6,11 @@ using System.Linq;
 
 namespace Datahub.CKAN.Package
 {
-    public static class PackageGenerator
+    public class PackageGenerator
     {
-        static List<FieldAgent> _fieldAgents;
+        readonly List<FieldAgent> _fieldAgents;
 
-        static PackageGenerator()
+        public PackageGenerator()
         {
             _fieldAgents = new()
             {
@@ -21,7 +21,7 @@ namespace Datahub.CKAN.Package
             };
         }
 
-        public static Dictionary<string, object> GeneratePackage(FieldValueContainer fieldValues, bool @private = false)
+        public Dictionary<string, object> GeneratePackage(FieldValueContainer fieldValues, string url, bool @private = false)
         {
             if (fieldValues == null)
                 throw new ArgumentNullException(nameof(fieldValues));
@@ -46,16 +46,30 @@ namespace Datahub.CKAN.Package
             // type is dataset
             dict["type"] = "dataset";
 
-            var agents = InstantiateAgents(fieldValues).ToList();
+            var requiredFields = fieldValues.Where(f => f.FieldDefinition?.Required_FLAG == true);
+            var agents = InstantiateAgents(requiredFields).ToList();
             foreach (var agent in agents)
             {
                 agent.RenderField(dict);
             }
 
+            // resources
+            dict["resources"] = new object[] 
+            { 
+                new Dictionary<string, object>()
+                {
+                    { "name_translated", dict["title_translated"] },
+                    { "resource_type", "dataset" },
+                    { "url", url },
+                    { "language", new string[] { "en", "fr" } },
+                    { "format", "other" }
+                }
+            };
+
             return dict;
         }
 
-        static IEnumerable<FieldAgent> InstantiateAgents(IEnumerable<ObjectFieldValue> fieldValues)
+        private IEnumerable<FieldAgent> InstantiateAgents(IEnumerable<ObjectFieldValue> fieldValues)
         {
             foreach (var fv in fieldValues)
             {
