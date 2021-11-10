@@ -72,7 +72,11 @@
                                 @bind="BoundValue"
                                 @ref="_fieldValueInput">
 
-                            <option value=""></option>
+
+                            @if (FieldDefinition.Choices.Count > 1)
+                            {
+                                <option value=""></option>
+                            }
 
                             @foreach (var choice in FieldDefinition.Choices)
                             {
