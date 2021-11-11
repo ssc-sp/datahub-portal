@@ -169,6 +169,9 @@
     "EnterKeyword-Placeholder": "Entrez un mot-clef...",
     "TranslationNote": "Veuillez prendre note que tout le texte est traduit à l'aide d'un outil externe et qu'il ne s'agit <b>que d'une suggestion pour la traduction.</b> Il est de la responsabilité de l'utilisateur de valider la traduction avant de soumettre les métadonnées."
   },
+  "SYSTEM-NOTIFICATION": {
+    "TestStringThreeArgs": "Voici trois choses: {0}, {1}, et {2}"
+  },
   "Connection lost, please refresh this page": "Connexion perdue, veuillez actualiser cette page",
   "Connection to server...": "Connexion au serveur...",
   "Attempting to re-connect with server, please wait...": "Tentative de connexion au serveur, veuillez patienter...",
