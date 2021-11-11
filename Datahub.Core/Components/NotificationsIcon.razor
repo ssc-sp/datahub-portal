@@ -1,0 +1,158 @@
+﻿@using System.Linq
+@using Datahub.Core.EFCore
+@using System.Globalization
+@implements IDisposable
+@inject ISystemNotificationService systemNotificationService
+@inject IUserInformationService userInfoService
+
+<style>
+    .notification-count {
+        background-color: cyan;
+        padding-left: 0.4rem;
+        padding-right: 0.4rem;
+        border-radius: 1rem;
+        font-size: small;
+        position: relative;
+        float: right;
+        top: -0.5rem;
+    }
+
+    .notification-header {
+        background-color: #dff;
+        margin-top: 1rem;
+    }
+
+    .notification-header:first-child {
+        margin-top: unset;
+    }
+
+    .notification-item {
+        color: gray;
+        clear: both;
+    }
+
+    .notification-item.unread {
+        color: black;
+        background-color: #dff;
+    }
+
+    .notification-readmarker {
+        float: right;
+        margin-right: 2rem;
+        padding: 0.2rem;
+        cursor: pointer;
+    }
+</style>
+
+<div class="notifications-wrapper">
+    <div class="icon-container" @onclick=@ToggleNotifications>
+        <i class="fa-bell @(HasNotifications? "fas":"fad")"></i>
+        @if(HasNotifications)
+        {
+            <span class="notification-count">@NotificationCount</span>
+        }
+    </div>
+    <Popup 
+        class="nrcan-popup top-nav-popup"
+        Show=@ShowNotifications 
+        OnCloseClick=@ToggleNotifications>
+        <ChildContent>
+            @foreach(var n in Notifications)
+            {
+                <div class="notification-item @(n.Read_FLAG? "": "unread")">
+                    <div class="notification-header">
+                        <span class="notification-timestamp">@n.Generated_TS</span>
+                        <span class="notification-readmarker" title="@(n.Read_FLAG? @Localizer[$"{LOCALIZATION_PREFIX}.MarkUnread"]: @Localizer[$"{LOCALIZATION_PREFIX}.MarkRead"])" >
+                            <i class="@(GetUnreadCssClass(n))" @onclick=@(() => ToggleUnread(n))></i>
+                        </span>
+                    </div>
+                    
+                    @if (!n.Read_FLAG)
+                    {
+                        <p>@(UserLanguageIsFrench? n.NotificationTextFr_TXT: n.NotificationTextEn_TXT)</p>
+                    }
+
+                </div>
+            }
+
+            <!-- stretch the notification panel to max width even when there are no long notifications -->
+            <div style="width:100vw;"></div>
+
+            <AeButton OnClickEvent=@DoTheThing>Do it</AeButton>
+        </ChildContent>
+    </Popup>
+</div>
+
+
+@code {
+    private static readonly string LOCALIZATION_PREFIX = "SYSTEM-NOTIFICATION";
+
+    private List<SystemNotification> Notifications = new();
+
+    private int NotificationCount => Notifications.Count(n => !n.Read_FLAG);
+    private bool HasNotifications => NotificationCount > 0;
+
+    private string CurrentUserId;
+
+    private bool ShowNotifications { get; set; }
+
+    private void ToggleNotifications() => ShowNotifications = !ShowNotifications;
+
+    private async Task DoTheThing()
+    {
+        var userId = await userInfoService.GetUserIdString();
+        await systemNotificationService.CreateSystemNotification(userId, "SYSTEM-NOTIFICATION.TestStringThreeArgs", "cat", "dog", "horse");
+    }
+
+    private bool UserLanguageIsFrench => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName.ToLowerInvariant() == "fr";
+
+    private async Task ToggleUnread(SystemNotification notification)
+    {
+        await systemNotificationService.SetReadStatus(notification.Notification_ID, !notification.Read_FLAG);
+    }
+
+    private string GetUnreadCssClass(SystemNotification notification)
+    {
+        return notification.Read_FLAG ? "far fa-envelope" : "fas fa-envelope-open";
+    }
+
+    private SystemNotification GenerateFakeNotification(DateTime ts, string text)
+    {
+        return new SystemNotification()
+            {
+                NotificationTextEn_TXT = text,
+                NotificationTextFr_TXT = "tabarnak",
+                Generated_TS = ts,
+                Read_FLAG = false
+            };
+    }
+
+    private async Task RefreshNotifications()
+    {
+        Notifications = await systemNotificationService.GetNotificationsForUser(CurrentUserId);
+        StateHasChanged();
+    }
+
+    public async Task OnNotify(string userId)
+    {
+        if (userId == CurrentUserId)
+        {
+            await InvokeAsync(() => RefreshNotifications());
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        CurrentUserId = await userInfoService.GetUserIdString();
+
+        await RefreshNotifications();
+
+        systemNotificationService.Notify += OnNotify;
+    }
+
+    public void Dispose()
+    {
+        systemNotificationService.Notify -= OnNotify;
+    }
+
+}
