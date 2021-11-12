@@ -4,6 +4,7 @@
 @implements IDisposable
 @inject ISystemNotificationService systemNotificationService
 @inject IUserInformationService userInfoService
+@inject TimeZoneService timezoneService
 
 <style>
     .notification-count {
@@ -61,7 +62,7 @@
             {
                 <div class="notification-item @(n.Read_FLAG? "": "unread")">
                     <div class="notification-header">
-                        <span class="notification-timestamp">@n.Generated_TS</span>
+                        <span class="notification-timestamp">@(GetLocalTime(n))</span>
                         <span class="notification-readmarker" title="@(n.Read_FLAG? @Localizer[$"{LOCALIZATION_PREFIX}.MarkUnread"]: @Localizer[$"{LOCALIZATION_PREFIX}.MarkRead"])" >
                             <i class="@(GetUnreadCssClass(n))" @onclick=@(() => ToggleUnread(n))></i>
                         </span>
@@ -82,7 +83,6 @@
         </ChildContent>
     </Popup>
 </div>
-
 
 @code {
     private static readonly string LOCALIZATION_PREFIX = "SYSTEM-NOTIFICATION";
@@ -109,6 +109,12 @@
     private async Task ToggleUnread(SystemNotification notification)
     {
         await systemNotificationService.SetReadStatus(notification.Notification_ID, !notification.Read_FLAG);
+    }
+
+    private async ValueTask<DateTimeOffset> GetLocalTime(SystemNotification notification)
+    {
+        var timestampUtc = DateTime.SpecifyKind(notification.Generated_TS, DateTimeKind.Utc);
+        return await timezoneService.GetLocalDateTime(timestampUtc);
     }
 
     private string GetUnreadCssClass(SystemNotification notification)
