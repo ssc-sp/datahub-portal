@@ -1,0 +1,67 @@
+﻿@page "/opendata/approval/{FileId}"
+@using Datahub.CKAN.Service
+@using Datahub.Metadata.DTO
+@inject NavigationManager NavManager
+@inject IPublicDataFileService PublicFileService
+@inject IMetadataBrokerService MetadataBrokerService
+@inject ICKANService CKANService
+@inject IDatahubAuditingService AuditingService
+
+@code {
+    // todo: add role that is allowed to execute this operation
+
+    [Parameter]
+    public string FileId { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await ApproveFile(FileId);
+    }
+
+    private async Task ApproveFile(string fileId)
+    {
+        try
+        {
+            var fileGuid = Guid.Parse(fileId);
+
+            // get the file sharing state
+            var fileInfo = await PublicFileService.LoadOpenDataSharedFileInfo(fileGuid);
+
+            var status = fileInfo.GetOpenDataSharingStatus();
+            if (status == OpenDataSharingStatus.PendingApproval)
+            {
+                // get the metadata
+                var fieldValues = await MetadataBrokerService.GetMetadataContext(fileId);
+
+                var url = PublicFileService.GetPublicSharedFileUrl(fileId);
+                var result = await CKANService.CreatePackage(fieldValues, url);
+
+                if (result?.Succeeded == true)
+                {
+                    await PublicFileService.ApprovePublicUrlShare(fileGuid, GetPublicationDate(fieldValues));
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            await AuditingService.TrackException(ex);
+        }
+
+        NavManager.NavigateTo($"/share/opendata/{fileId}");
+    }
+
+    private DateTime GetPublicationDate(FieldValueContainer fields)
+    {
+        var date = DateTime.UtcNow;
+        var definition = fields.Definitions.Get("date_published");
+        if (definition is not null)
+        {
+            var fieldValue = fields.FirstOrDefault(fv => fv.FieldDefinitionId == definition.FieldDefinitionId);
+            if (fieldValue != null)
+            {
+                DateTime.TryParse(fieldValue.Value_TXT, out date);
+            }
+        }
+        return date;
+    }
+}

@@ -1,0 +1,59 @@
+﻿@page "/opendata/dashboard"
+@inject IPublicDataFileService PublicFileService
+
+<div style="padding-left: 2rem; padding-right: 2rem">
+
+    <AeTypography Variant="h2">Open Data Pending Approvals</AeTypography>
+
+    <AeTypography>Validation of Open Data (open.canada.ca) submission by the Data Approver on behalf of the CIO.</AeTypography>
+
+    <AeCard style="margin-top: 2rem;">
+        <ChildContent>
+            <AePaginatedTable Accessors=@accessorFunctions
+                              Renderers="GetRenderers()"
+                              Dataset=@_sharedFiles
+                              Headers=@Headers
+                              T="OpenDataSharedFile"
+                              @ref=@_myTable
+                              Page=@_lastClicked
+                              PageSize="20" />
+                        
+                <AePagination Pageable="@_myTable" OnPageClick="OnPageClick"> 
+                    <LeftIcon><i class='fad fa-chevron-double-left'></i></LeftIcon> 
+                    <RightIcon><i class='fad fa-chevron-double-right'></i></RightIcon>
+                </AePagination>
+        </ChildContent>
+    </AeCard>    
+    
+</div>
+
+@code {
+
+    private List<OpenDataSharedFile> _sharedFiles { get; set; } = new();
+
+    private List<Func<OpenDataSharedFile, string>> accessorFunctions = new() { GetFileName, null, null };
+
+    private List<Func<OpenDataSharedFile, RenderFragment>> GetRenderers() => new() { GetFileLink, GetPDFLink, GetApproveLink };
+
+    private List<string> Headers => new() { GetLabel("FileName"), GetLabel("Read"), GetLabel("Approve") };
+
+    private IPageableComponent _myTable;
+    private int _lastClicked = 0;
+
+    static string GetFileName(OpenDataSharedFile entry) => entry.Filename_TXT;
+    static RenderFragment GetFileLink(OpenDataSharedFile entry) => @<OpenDataFileLink File=@entry />;
+    static RenderFragment GetPDFLink(OpenDataSharedFile entry) => @<OpenDataApprovalLink File=@entry><i class="far fa-file-pdf"></i></OpenDataApprovalLink>;
+    static RenderFragment GetApproveLink(OpenDataSharedFile entry) => @<OpenDataApprovalButton File=@entry>Approve</OpenDataApprovalButton>;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _sharedFiles = await PublicFileService.GetPendingApprovalOpenDataFiles();    
+    }
+
+    private void OnPageClick(int pageIndex)
+    {
+        _lastClicked = pageIndex;
+    }    
+
+    private string GetLabel(string label) => Localizer[$"OPENDATA-DASHBOARD.{label}"];
+}
