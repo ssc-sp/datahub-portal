@@ -21,6 +21,8 @@ namespace Datahub.Core.Services
         private readonly CultureInfo enCulture;
         private readonly CultureInfo frCulture;
 
+        private int _notificationPageSize;
+
         public event Func<string, Task> Notify;
 
         public SystemNotificationService(
@@ -35,6 +37,8 @@ namespace Datahub.Core.Services
 
             enCulture = new CultureInfo("en-ca");
             frCulture = new CultureInfo("fr-ca");
+
+            _notificationPageSize = 3;
         }
 
         private string GetLocalizedString(CultureInfo culture, string textKey, string[] arguments)
@@ -107,7 +111,7 @@ namespace Datahub.Core.Services
             return await ctx.SystemNotifications.CountAsync(condition);
         }
 
-        public async Task<List<SystemNotification>> GetNotificationsForUser(string userId, bool unreadOnly = false)
+        public async Task<List<SystemNotification>> GetNotificationsForUser(string userId, bool unreadOnly = false, int pageNumber = 0)
         {
             var condition = CreateUserNotificationCondition(userId, unreadOnly);
 
@@ -115,6 +119,8 @@ namespace Datahub.Core.Services
             return await ctx.SystemNotifications
                 .Where(condition)
                 .OrderByDescending(n => n.Generated_TS)
+                .Skip(pageNumber * _notificationPageSize)
+                .Take(_notificationPageSize)
                 .ToListAsync();
         }
 
@@ -128,6 +134,11 @@ namespace Datahub.Core.Services
                 await ctx.SaveChangesAsync();
                 await NotifyUsers(new List<string>() { notification.ReceivingUser_ID });
             }
+        }
+
+        public int GetNotificationPageSize()
+        {
+            return _notificationPageSize;
         }
     }
 }
