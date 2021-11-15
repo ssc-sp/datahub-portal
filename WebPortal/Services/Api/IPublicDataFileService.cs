@@ -30,5 +30,8 @@ namespace Datahub.Portal.Services
         Task CancelPublicDataShare(Guid fileId);
         string GetOpenDataApprovalFormPdfUrl(int approvalFormId);
         string GetPublicSharedFileUrl(string fileId);
+        Task<List<OpenDataSharedFile>> GetPendingApprovalOpenDataFiles();
+        Task SetPendingApprovalOpenDataAsRead(OpenDataSharedFile file);
+        Task SetPendingApprovalOpenDataAsApproved(OpenDataSharedFile file);
     }
 }

@@ -21,6 +21,9 @@
     [Parameter]
     public string ObjectId { get; set; }
 
+    [Parameter]
+    public EventCallback<ObjectFieldValue> OnFieldChanged { get; set; }
+
     private FieldDefinitions _definitions;
     private FieldValueContainer _fieldValues;
     private bool _preview = false;
@@ -57,8 +60,8 @@
         }
     }
 
-    private void FieldChanged(ObjectFieldValue field)
+    private async void FieldChanged(ObjectFieldValue field)
     {
-        StateHasChanged();
+        await OnFieldChanged.InvokeAsync();
     }
 }
