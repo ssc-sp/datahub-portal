@@ -69,6 +69,12 @@ namespace Datahub.Core.Model.Onboarding
         [AeFormCategory("Project Information", 20)]
         [AeLabel(isDropDown: true)]
         public string Project_Engagement_Category { get; set; }
+
+        [AeFormCategory("Project Information", 20)]        
+        public string Project_Engagement_Category_Other { get; set; }
+
+
+
         [AeFormCategory("Project Information", 20)]
         [AeLabel(isDropDown: true)]
         public string Data_Security_Level { get; set; }
