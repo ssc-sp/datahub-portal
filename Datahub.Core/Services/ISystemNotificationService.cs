@@ -18,9 +18,11 @@ namespace Datahub.Core.Services
             CreateSystemNotificationsWithLink(new List<string>() {  userId }, actionLink, textKey, arguments);
 
         Task<int> GetNotificationCountForUser(string userId, bool unreadOnly = false);
-        Task<List<SystemNotification>> GetNotificationsForUser(string userId, bool unreadOnly = false);
+        Task<List<SystemNotification>> GetNotificationsForUser(string userId, bool unreadOnly = false, int pageNumber = 0);
 
         Task SetReadStatus(long notificationId, bool readStatus);
+
+        int GetNotificationPageSize();
 
         event Func<string, Task> Notify;
     }
