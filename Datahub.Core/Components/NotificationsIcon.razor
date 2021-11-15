@@ -47,10 +47,16 @@
 
 <div class="notifications-wrapper">
     <div class="icon-container" @onclick=@ToggleNotifications>
-        <i class="fa-bell @(HasNotifications? "fas":"fad")"></i>
-        @if(HasNotifications)
+        <i class="fa-bell @(HasUnreadNotifications? "fas":"fad")"></i>
+        @if (IsLoading)
         {
-            <span class="notification-count">@NotificationCount</span>
+            <span class="notification-count">
+                <i class="fad fa-spinner fa-spin"></i>
+            </span>
+        }
+        else if(HasUnreadNotifications)
+        {
+            <span class="notification-count">@UnreadNotificationCount</span>
         }
     </div>
     <Popup 
@@ -79,8 +85,30 @@
             <!-- stretch the notification panel to max width even when there are no long notifications -->
             <div style="width:100vw;"></div>
 
-            <AeButton OnClickEvent=@DoTheThing>Do it</AeButton>
         </ChildContent>
+        <Footer>
+            <div>
+                @if (ShowLatestPageButton)
+                {
+                    <AeButton Disabled=@IsLoading OnClickEvent=@FirstPage>Back to Latest</AeButton>
+                }
+                @if (ShowPreviousPageButton)
+                {
+                    <AeButton Disabled=@IsLoading OnClickEvent=@PrevPage>Newer</AeButton>
+                }
+                @if (ShowNextPageButton)
+                {
+                    <AeButton Disabled=@IsLoading OnClickEvent=@NextPage>Older</AeButton>
+                }
+
+                <label>
+                    <input type="checkbox" @bind=@UnreadOnly @onclick=@ToggleShowUnreadOnly disabled=@IsLoading />
+                    Show Unread Only
+                </label>
+            </div>
+
+            <AeButton OnClickEvent=@DoTheThing>Generate notification</AeButton>
+        </Footer>
     </Popup>
 </div>
 
@@ -89,12 +117,24 @@
 
     private List<SystemNotification> Notifications = new();
 
-    private int NotificationCount => Notifications.Count(n => !n.Read_FLAG);
-    private bool HasNotifications => NotificationCount > 0;
+    private int UnreadNotificationCount { get; set; }
+    private bool HasUnreadNotifications => UnreadNotificationCount > 0;
 
     private string CurrentUserId;
 
-    private bool ShowNotifications { get; set; }
+    private bool UnreadOnly { get; set; }
+
+    private bool ShowNotifications { get; set; } = false;
+    private bool IsLoading { get; set; } = false;
+
+    private int PageSize { get; set; } = 1;
+    private int CurrentPage { get; set; }
+    private int TotalNotificationCount { get; set; }
+    private int MaxPage => (TotalNotificationCount - 1) / PageSize;
+
+    private bool ShowLatestPageButton => CurrentPage > 0;
+    private bool ShowPreviousPageButton => CurrentPage > 1;
+    private bool ShowNextPageButton => CurrentPage < MaxPage;
 
     private void ToggleNotifications() => ShowNotifications = !ShowNotifications;
 
@@ -122,21 +162,43 @@
         return notification.Read_FLAG ? "far fa-envelope" : "fas fa-envelope-open";
     }
 
-    private SystemNotification GenerateFakeNotification(DateTime ts, string text)
-    {
-        return new SystemNotification()
-            {
-                NotificationTextEn_TXT = text,
-                NotificationTextFr_TXT = "tabarnak",
-                Generated_TS = ts,
-                Read_FLAG = false
-            };
-    }
-
     private async Task RefreshNotifications()
     {
-        Notifications = await systemNotificationService.GetNotificationsForUser(CurrentUserId);
+        IsLoading = true;
         StateHasChanged();
+        TotalNotificationCount = await systemNotificationService.GetNotificationCountForUser(CurrentUserId, UnreadOnly);
+        
+        UnreadNotificationCount = UnreadOnly ? 
+            TotalNotificationCount : 
+            await systemNotificationService.GetNotificationCountForUser(CurrentUserId, true);
+        
+        Notifications = await systemNotificationService.GetNotificationsForUser(CurrentUserId, UnreadOnly, CurrentPage);
+        IsLoading = false;
+        StateHasChanged();
+    }
+
+    private async Task ToggleShowUnreadOnly()
+    {
+        UnreadOnly = !UnreadOnly;
+        await RefreshNotifications();
+    }
+
+    private async Task FirstPage()
+    {
+        CurrentPage = 0;
+        await RefreshNotifications();
+    }
+
+    private async Task NextPage()
+    {
+        CurrentPage = Math.Min(CurrentPage + 1, MaxPage);
+        await RefreshNotifications();
+    }
+
+    private async Task PrevPage()
+    {
+        CurrentPage = Math.Max(CurrentPage - 1, 0);
+        await RefreshNotifications();
     }
 
     public async Task OnNotify(string userId)
@@ -149,6 +211,8 @@
 
     protected override async Task OnInitializedAsync()
     {
+        PageSize = systemNotificationService.GetNotificationPageSize();
+
         CurrentUserId = await userInfoService.GetUserIdString();
 
         await RefreshNotifications();
