@@ -200,6 +200,7 @@ namespace Datahub.Portal.Services
         {
             return await _projectDbContext.SharedDataFiles.FirstOrDefaultAsync(e => e.File_ID == fileId);
         }
+
         public async Task<OpenDataSharedFile> LoadOpenDataSharedFileInfo(Guid fileId)
         {
             return await _projectDbContext.OpenDataSharedFiles.FirstOrDefaultAsync(e => e.File_ID == fileId);
@@ -356,6 +357,25 @@ namespace Datahub.Portal.Services
             var ub = new UriBuilder(_config.PublicFileSharingDomain);
             ub.Path = $"/Public/DownloadFile/{fileId}";
             return ub.ToString();
+        }
+
+        public async Task<List<OpenDataSharedFile>> GetPendingApprovalOpenDataFiles()
+        {
+            return await _projectDbContext.OpenDataSharedFiles
+                .Where(e => e.IsOpenDataRequest_FLAG && !e.ApprovedDate_DT.HasValue && !string.IsNullOrEmpty(e.SignedApprovalForm_URL))
+                .ToListAsync();
+        }
+
+        public async Task SetPendingApprovalOpenDataAsRead(OpenDataSharedFile file)
+        {
+            file.Read_FLAG = true;
+            await _projectDbContext.TrackSaveChangesAsync(_datahubAuditingService);
+        }
+
+        public async Task SetPendingApprovalOpenDataAsApproved(OpenDataSharedFile file)
+        {
+            file.ApprovedDate_DT = DateTime.UtcNow;
+            await _projectDbContext.TrackSaveChangesAsync(_datahubAuditingService);
         }
     }
 }

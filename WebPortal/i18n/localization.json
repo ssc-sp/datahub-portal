@@ -737,7 +737,13 @@
       "Title": "Admin Actions"
     }
   },
+  "OPENDATA-DASHBOARD": {
+    "FileName": "File Name",
+    "Read": "Read",
+    "Approve": "Approve",
+    "ClickToReadPDF": "Click to read PDF",
+    "ClickToApprove": "Click to Approve publication"
+  },
   "TooManyTabs": "Too many tabs",
   "TooManyTabsMessage": "You have more than {} tabs currently opened. Close some tabs and refresh this page."
 }
-

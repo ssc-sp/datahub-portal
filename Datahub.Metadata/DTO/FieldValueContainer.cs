@@ -23,8 +23,10 @@ namespace Datahub.Metadata.DTO
         public bool ValidateRequired()
         {
             var map = this.ToDictionary(fv => fv.FieldDefinitionId);
-            var findValue = (int id) => map.ContainsKey(id) ? map[id].Value_TXT : null;
-            var passRequired = (FieldDefinition f) => !f.Required_FLAG || !string.IsNullOrEmpty(findValue(f.FieldDefinitionId));
+
+            var findValidValue = (int id) => map.TryGetValue(id, out ObjectFieldValue value) && !string.IsNullOrEmpty(value.Value_TXT);
+            var passRequired = (FieldDefinition f) => !f.Required_FLAG || findValidValue(f.FieldDefinitionId);
+
             return Definitions.Fields.All(passRequired);
         }
 
