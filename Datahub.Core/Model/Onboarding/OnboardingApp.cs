@@ -26,7 +26,7 @@ namespace Datahub.Core.Model.Onboarding
         [StringLength(2000)]
         [AeFormCategory("Client Information", 10)]
         [Required]
-        [AeLabel(placeholder: "[Enter your Division acronym and/or name]")]
+        [AeLabel(isDropDown: true, placeholder: "[Enter your Division acronym and/or name]")]
         public string Client_Division { get; set; }
         [StringLength(200)]
         [AeFormCategory("Client Information", 10)]
@@ -64,52 +64,21 @@ namespace Datahub.Core.Model.Onboarding
         [AeFormCategory("Project Information", 20)]
         [AeLabel(placeholder: "[Provide any anticipated timelines or deadlines for onboarding to DataHub]")]
         public string Onboarding_Timeline { get; set; }
-        
+
 
         [AeFormCategory("Project Information", 20)]
-        public bool Project_Engagement_Category_DataPipeline { get; set; }
+        [AeLabel(isDropDown: true)]
+        public string Project_Engagement_Category { get; set; }
         [AeFormCategory("Project Information", 20)]
-        public bool Project_Engagement_Category_DataScience { get; set; }
-        [AeFormCategory("Project Information", 20)]
-        public bool Project_Engagement_Category_FullStack { get; set; }
-        [AeFormCategory("Project Information", 20)]
-        public bool Project_Engagement_Category_Guidance { get; set; }
-        [AeFormCategory("Project Information", 20)]
-        public bool Project_Engagement_Category_PowerBIReports { get; set; }
-        [AeFormCategory("Project Information", 20)]
-        public bool Project_Engagement_Category_Storage { get; set; }
-        [AeFormCategory("Project Information", 20)]
-        public bool Project_Engagement_Category_WebForms { get; set; }
-        [AeFormCategory("Project Information", 20)]
-        public bool Project_Engagement_Category_Unknown { get; set; }
-        [AeFormCategory("Project Information", 20)]
-        public bool Project_Engagement_Category_Other { get; set; }
-
-        [AeFormCategory("Project Information", 20)]
-        [StringLength(200)]
-        public string Project_Engagement_Category_OtherText { get; set; }
-
-        [AeFormCategory("Project Information", 20)]
-        public bool Data_Set_Security_Level_Classified { get; set; }
-        [AeFormCategory("Project Information", 20)]
-        public bool Data_Set_Security_Level_ProtectedA { get; set; }
-        [AeFormCategory("Project Information", 20)]
-        public bool Data_Set_Security_Level_ProtectedB { get; set; }
-        [AeFormCategory("Project Information", 20)]
-        public bool Data_Set_Security_Level_ProtectedC { get; set; }
-        [AeFormCategory("Project Information", 20)]
-        public bool Data_Set_Security_Level_UnClassified { get; set; }
+        [AeLabel(isDropDown: true)]
+        public string Data_Security_Level { get; set; }
 
 
 
         [AeFormCategory("Additional Information", 30)]
         [AeLabel(placeholder: "[Enter any additional information/comments regarding your project or questions for the DataHub team]")]
         public string Questions_for_the_DataHub_Team { get; set; }
-
-        [AeLabel(placeholder: "[Insert any attachments and/or links to any folders or documentation or sample data or artifacts related to your project]")]
-        [AeFormCategory("Additional Information", 30)]
-        public string Attachments { get; set; }
-
+        
 
         [AeFormIgnore]
         public bool NotificationsSent { get; set; }

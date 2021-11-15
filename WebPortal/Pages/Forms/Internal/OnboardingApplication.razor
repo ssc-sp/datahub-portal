@@ -36,6 +36,7 @@
     private Microsoft.Graph.User _user;
     private List<Datahub_Project_Sectors_And_Branches> _sectors;
     private List<Datahub_Project_Sectors_And_Branches> _branches;
+    private List<Datahub_Project_Sectors_And_Branches> _divisions;
 
     protected override async Task OnInitializedAsync()
     {
@@ -46,6 +47,7 @@
 
         _sectors = Context.Organization_Levels.Where(l => l.Org_Level == "3").ToList();
         _branches = Context.Organization_Levels.Where(l => l.Org_Level == "4").ToList();
+        _divisions = Context.Organization_Levels.Where(l => l.Org_Level == "5").ToList();
 
         await LoadApps();
         _formMetadata.Header = "Datahub Project Onboarding Application Form";
@@ -117,12 +119,29 @@
         return branches;
     }
 
+    private List<string> LoadDivisions()
+    {
+        if (string.IsNullOrEmpty(_onboardingApplication.Client_Branch))
+        {
+            return new List<string>();
+        }
+        
+        var branchId = _branches.Where(s => s.Org_Name_E == _onboardingApplication.Client_Branch).First().Organization_ID;
+        var divisions = _divisions.Where(r => r.Superior_OrgId == branchId).Select(r=> r.Org_Name_E).ToList();
+
+        return divisions;
+    }
+
     private void OnConfigure(IModelFormContext context)
     {
         var sectors = _sectors.Select(l => l.Org_Name_E).ToList();
         var branches = _branches.Select(b => b.Org_Name_E).ToList();
+        var divisions = _divisions.Select(b => b.Org_Name_E).ToList();
         context.RegisterOptionValueProperty<OnboardingApp>(p => p.Client_Sector, () => sectors, _ => context.RefreshOptions<OnboardingApp>(s => s.Client_Branch));
         context.RegisterOptionValueProperty<OnboardingApp>(p => p.Client_Branch, LoadBranches);
+        context.RegisterOptionValueProperty<OnboardingApp>(p => p.Client_Division, LoadDivisions);
+        context.RegisterOptionValueProperty<OnboardingApp>(p => p.Project_Engagement_Category, () => Onboarding_Constants.CATEGORY);
+        context.RegisterOptionValueProperty<OnboardingApp>(p => p.Data_Security_Level, () =>  Onboarding_Constants.SECURITYLEVEL);
     }
     
    
