@@ -134,22 +134,31 @@
 
     private void OnConfigure(IModelFormContext context)
     {
-        var sectors = _sectors.Select(l => l.Org_Name_E).ToList();
-        var branches = _branches.Select(b => b.Org_Name_E).ToList();
-        var divisions = _divisions.Select(b => b.Org_Name_E).ToList();
-        context.RegisterOptionValueProperty<OnboardingApp>(p => p.Client_Sector, () => sectors, _ => context.RefreshOptions<OnboardingApp>(s => s.Client_Branch));
-        context.RegisterOptionValueProperty<OnboardingApp>(p => p.Client_Branch, LoadBranches);
-        context.RegisterOptionValueProperty<OnboardingApp>(p => p.Client_Division, LoadDivisions);
-        context.RegisterOptionValueProperty<OnboardingApp>(p => p.Project_Engagement_Category, () => Onboarding_Constants.CATEGORY);
-        context.RegisterOptionValueProperty<OnboardingApp>(p => p.Data_Security_Level, () =>  Onboarding_Constants.SECURITYLEVEL);
+        if (!_onchange)
+        {
+            var sectors = _sectors.Select(l => l.Org_Name_E).ToList();
+            var branches = _branches.Select(b => b.Org_Name_E).ToList();
+            var divisions = _divisions.Select(b => b.Org_Name_E).ToList();
+            context.RegisterOptionValueProperty<OnboardingApp>(p => p.Client_Sector, () => sectors, _ => context.RefreshOptions<OnboardingApp>(s => s.Client_Branch));
+            context.RegisterOptionValueProperty<OnboardingApp>(p => p.Client_Branch, LoadBranches);
+            context.RegisterOptionValueProperty<OnboardingApp>(p => p.Client_Division, LoadDivisions);
+            context.RegisterOptionValueProperty<OnboardingApp>(p => p.Project_Engagement_Category, () => Onboarding_Constants.CATEGORY);
+            context.RegisterOptionValueProperty<OnboardingApp>(p => p.Data_Security_Level, () => Onboarding_Constants.SECURITYLEVEL);
+        }
+
+        ToggleVisibility(context);
     }
     
-   
+     private void ToggleVisibility(IModelFormContext context)
+    {
+        context.SetVisible<OnboardingApp>(p => p.Project_Engagement_Category_Other, _onboardingApplication.Project_Engagement_Category == "Other");
+        _onchange = false;
+    }
 
     private void OnChange(ModelFormChangeArgs args)
     {
         _onchange = true;
-        //OnConfigure(args.Context);
+        OnConfigure(args.Context);
     }
 
     private async Task CreateNewApplication()
