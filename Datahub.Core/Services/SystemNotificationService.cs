@@ -41,26 +41,53 @@ namespace Datahub.Core.Services
             _notificationPageSize = 3;
         }
 
-        private string GetLocalizedString(CultureInfo culture, string textKey, string[] arguments)
+        private string GetLocalizedString(CultureInfo culture, string textKey, object[] arguments)
         {
             var currentThread = System.Threading.Thread.CurrentThread;
             var oldCulture = currentThread.CurrentUICulture;
             currentThread.CurrentUICulture = culture;
-            var localizedText = _localizer[textKey, arguments];
+            
+            var localizedArguments = arguments.Select(a => ConvertLocalizableArgument(a)).ToArray();
+            var localizedText = _localizer[textKey, localizedArguments];
+
             currentThread.CurrentUICulture = oldCulture;
             return localizedText;
         }
 
-        public async Task<int> CreateSystemNotifications(List<string> userIds, string textKey, params string[] arguments)
+        public async Task<int> CreateSystemNotifications(List<string> userIds, string textKey, params object[] arguments)
         {
             return await DoCreateSystemNotifications(userIds, textKey, arguments);
         }
-        public async Task<int> CreateSystemNotificationsWithLink(List<string> userIds, string actionLink, string textKey, params string[] arguments)
+        public async Task<int> CreateSystemNotificationsWithLink(List<string> userIds, string actionLink, string textKey, params object[] arguments)
         {
             return await DoCreateSystemNotifications(userIds, textKey, arguments, actionLink);
         }
 
-        private async Task<int> DoCreateSystemNotifications(List<string> userIds, string textKey, string[] arguments, string actionLink = null)
+        private string ConvertLocalizableArgument(object argument)
+        {
+            if (argument is string)
+            {
+                return argument as string;
+            }
+            else if (argument is BilingualStringArgument)
+            {
+                var bilingualArg = argument as BilingualStringArgument;
+                var culture = System.Threading.Thread.CurrentThread.CurrentUICulture;
+                var isFrench = culture == frCulture;
+                return isFrench ? bilingualArg.French : bilingualArg.English;
+            }
+            else if (argument is LocalizedKeyStringArgument)
+            {
+                var keyArg = argument as LocalizedKeyStringArgument;
+                return _localizer[keyArg.Key];
+            }
+            else 
+            {
+                return argument?.ToString();
+            }
+        }
+
+        private async Task<int> DoCreateSystemNotifications(List<string> userIds, string textKey, object[] arguments, string actionLink = null)
         {
             var textEn = GetLocalizedString(enCulture, textKey, arguments);
             var textFr = GetLocalizedString(frCulture, textKey, arguments);
