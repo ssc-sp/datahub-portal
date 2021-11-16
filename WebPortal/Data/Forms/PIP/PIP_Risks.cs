@@ -189,6 +189,15 @@ namespace Datahub.ProjectForms.Data.PIP
 
 
         public PIP_Tombstone PIP_Tombstone { get; set; }
+
+
+        [AeFormIgnore]
+        public bool IsDeleted { get; set; }
+
+        [AeFormIgnore]
+        public string UserIdWhoDeleted { get; set; }
+
+
         [AeFormIgnore]
         public DateTime Last_Updated_DT { get; set; }
 
