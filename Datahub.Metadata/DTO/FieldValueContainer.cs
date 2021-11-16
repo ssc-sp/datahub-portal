@@ -28,6 +28,21 @@ namespace Datahub.Metadata.DTO
             return Definitions.Fields.All(passRequired);
         }
 
+        public FieldValueContainer GetReadonlyCopy()
+        {
+            return new FieldValueContainer(ObjectId, Definitions, CloneFieldsReadonly());
+        }
+
+        private IEnumerable<ObjectFieldValue> CloneFieldsReadonly()
+        {
+            foreach (var fieldValue in this)
+            {
+                var cloned = fieldValue.Clone();
+                cloned.FieldDefinition ??= Definitions.Get(fieldValue.FieldDefinitionId);
+                yield return cloned;
+            }
+        }
+
         private ObjectFieldValue GetFieldValueByName(string fieldName)
         {
             var definitionId = Definitions?.Get(fieldName)?.FieldDefinitionId;

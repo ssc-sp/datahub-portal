@@ -3079,13 +3079,13 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  cursor: pointer;
   font-size: 1.25rem;
   --fa-primary-color: #a0aec0;
   --fa-secondary-color: #a0aec0;
 }
 #topbar .icon-container:hover {
   background-color: #f7fafc;
+  cursor: pointer;
 }
 #topbar .icon-container:hover {
   --fa-primary-color: #4a5568;

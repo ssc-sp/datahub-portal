@@ -24,5 +24,21 @@ namespace Datahub.Core.Services
         public static readonly string ANONYMOUS_USER_ID = "c90acba3-26e4-471d-bbdf-544906e6a980";
         public static readonly string ANONYMOUS_USER_NAME = "Anonymous User";
         public static readonly string ANONYMOUS_USER_EMAIL = "anyone@example.com";
+
+        private static User _anonymousUser;
+        public static User GetAnonymousUser()
+        {
+            if (_anonymousUser == null)
+            {
+                _anonymousUser = new User()
+                {
+                    Id = ANONYMOUS_USER_ID,
+                    Mail = ANONYMOUS_USER_EMAIL,
+                    DisplayName = ANONYMOUS_USER_NAME,
+                    UserPrincipalName = ANONYMOUS_USER_EMAIL
+                };
+            }
+            return _anonymousUser;
+        }
     }
 }
