@@ -1,20 +1,21 @@
 ﻿@inject IPublicDataFileService PublicFileService
 
-<AeButton @onclick=@Approve disabled="@Disabled" title=@Localizer["OPENDATA-DASHBOARD.ClickToApprove"]>@ChildContent</AeButton>
+@if (File is not null)
+{
+    <AeButton @onclick=@Approve disabled="@Disabled" title=@Localizer["OPENDATA-DASHBOARD.ClickToApprove"]>
+        @Localizer["OPENDATA-DASHBOARD.Approve"]
+    </AeButton>
+}
 
 @code {
 
     [Parameter]
-    public RenderFragment ChildContent { get; set; }
+    public OpenDataSharedFile File { get; set; }
 
     [Parameter]
-    public OpenDataSharedFile File { get; set; }
+    public EventCallback<OpenDataSharedFile> OnApprove { get;  set; }
 
     private bool Disabled => !File.Read_FLAG || File.ApprovedDate_DT.HasValue;
 
-    private async void Approve()
-    {
-        await PublicFileService.SetPendingApprovalOpenDataAsApproved(File);
-        await InvokeAsync(StateHasChanged);
-    }
+    private async void Approve() => await OnApprove.InvokeAsync(File);
 }
