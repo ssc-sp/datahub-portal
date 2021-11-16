@@ -748,6 +748,11 @@
   "SYSTEM-NOTIFICATION": {
     "MarkRead": "Mark as read",
     "MarkUnread": "Mark unread",
+    "DefaultActionLinkText": "Go",
+    "BackToLatest": "Back to latest",
+    "Older": "Older",
+    "Newer": "Newer",
+    "ShowUnreadOnly": "Show Unread Only",
     "TestStringThreeArgs": "Here are three things: {0}, {1}, and {2}"
   },
   "TooManyTabs": "Too many tabs",
