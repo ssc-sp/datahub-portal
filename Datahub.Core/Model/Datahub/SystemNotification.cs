@@ -30,5 +30,8 @@ namespace Datahub.Core.EFCore
         [StringLength(512)]
         public string ActionLink_URL { get; set; }
 
+        [StringLength(128)]
+        public string ActionLink_Key {  get; set; }
+
     }
 }
