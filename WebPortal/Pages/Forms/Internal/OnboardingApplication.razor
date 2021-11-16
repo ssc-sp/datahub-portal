@@ -116,19 +116,28 @@
         }
         var sectorId = _sectors.Where(s => s.Org_Name_E == _onboardingApplication.Client_Sector).First().Organization_ID;
         var branches = _branches.Where(r => r.Superior_OrgId == sectorId).Select(r=> r.Org_Name_E).ToList();
+        if (!branches.Any())
+        {
+            branches.Add("N/A");
+        }
+
         return branches;
     }
 
     private List<string> LoadDivisions()
     {
-        if (string.IsNullOrEmpty(_onboardingApplication.Client_Branch))
+        if (string.IsNullOrEmpty(_onboardingApplication.Client_Branch) || _onboardingApplication.Client_Branch == "N/A")
         {
-            return new List<string>();
+            return new List<string>() { "N/A" };
         }
         
         var branchId = _branches.Where(s => s.Org_Name_E == _onboardingApplication.Client_Branch).First().Organization_ID;
         var divisions = _divisions.Where(r => r.Superior_OrgId == branchId).Select(r=> r.Org_Name_E).ToList();
 
+        if (!divisions.Any())
+        {
+            divisions.Add("N/A");
+        }
         return divisions;
     }
 
@@ -140,7 +149,7 @@
             var branches = _branches.Select(b => b.Org_Name_E).ToList();
             var divisions = _divisions.Select(b => b.Org_Name_E).ToList();
             context.RegisterOptionValueProperty<OnboardingApp>(p => p.Client_Sector, () => sectors, _ => context.RefreshOptions<OnboardingApp>(s => s.Client_Branch));
-            context.RegisterOptionValueProperty<OnboardingApp>(p => p.Client_Branch, LoadBranches);
+            context.RegisterOptionValueProperty<OnboardingApp>(p => p.Client_Branch, LoadBranches, _ => context.RefreshOptions<OnboardingApp>(s => s.Client_Division));
             context.RegisterOptionValueProperty<OnboardingApp>(p => p.Client_Division, LoadDivisions);
             context.RegisterOptionValueProperty<OnboardingApp>(p => p.Project_Engagement_Category, () => Onboarding_Constants.CATEGORY);
             context.RegisterOptionValueProperty<OnboardingApp>(p => p.Data_Security_Level, () => Onboarding_Constants.SECURITYLEVEL);
