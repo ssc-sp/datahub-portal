@@ -29,11 +29,11 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        cursor: pointer;
         font-size: 1.25rem;
 
         &:hover {
-          background-color: c.$gray-100;
+            background-color: c.$gray-100;
+            cursor: pointer;
         }
 
         @include base-icon-color;

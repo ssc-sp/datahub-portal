@@ -106,14 +106,29 @@ if (_project.Project_ID > 0)
 
         </div>
     </AeFlex>
-    <AeTable Accessors="commentAccessorFunctions"
-           T="Datahub_ProjectComment"
-           Dataset="_project.Comments"       
-           Headers="commentsHeaders" 
-           GridTemplateColumns="1fr 8fr"
-           MaxHeight="400"
-           OnRowClick="@SetCommentEdit"
-           />
+    
+
+    
+       <AePaginatedTable Accessors="commentAccessorFunctions"
+       T="Datahub_ProjectComment"
+       Dataset="_project.Comments"
+       ColorAccessor="getColor"
+       Headers="commentsHeaders" 
+       GridTemplateColumns="1fr 8fr"
+       MaxHeight="400"
+       OnRowClick="@SetCommentEdit"
+       Page="@_lastClickedComment"
+                 PageSize="10"
+                 @ref=_myTableComment />
+    
+    <AePagination 
+            Pageable="@_myTableComment" 
+            OnPageClick="OnPageClickComment"> 
+            <LeftIcon><i class='fad fa-chevron-double-left'></i></LeftIcon> 
+            <RightIcon><i class='fad fa-chevron-double-right'></i></RightIcon>
+            </AePagination>
+
+
 
     <AeModelForm Model="_comment"
         OnValidSubmit="HandleValidCommentSubmit"
@@ -134,6 +149,8 @@ if (_project.Project_ID > 0)
     
     private int _lastClicked = 0;
     private IPageableComponent _myTable;
+    private int _lastClickedComment = 0;
+    private IPageableComponent _myTableComment;
 
     private List<(Delegate Label, Delegate Choices)> filterProperties = new List<(Delegate Label, Delegate choices)>();
     private int InputSelectIndex = 0;
@@ -186,6 +203,10 @@ if (_project.Project_ID > 0)
         _lastClicked = pageIndex;
     }
 
+    private void OnPageClickComment(int pageIndex)
+    {
+        _lastClickedComment = pageIndex;
+    }
 
     private List<string> headers = new List<string>
     {
