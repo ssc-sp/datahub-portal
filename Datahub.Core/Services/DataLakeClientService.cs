@@ -46,8 +46,15 @@ namespace Datahub.Core.Services
 
         public async Task<StorageSharedKeyCredential> GetSharedKeyCredential(string project)
         {
+            var envName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+            envName = (envName != null ? envName.ToLower() : "dev");
+            if (envName.Equals("development"))
+            {
+                envName = "dev";
+            }
+
             var key = $"datahub-blob-key-{project}";
-            var storageAccountName = $"dh{project}dev";
+            var storageAccountName = $"dh{project}{envName}";
             var datalakeSecret = await _keyVaultService.GetSecret(key);
             return new StorageSharedKeyCredential(storageAccountName, datalakeSecret);
                         
