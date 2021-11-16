@@ -141,7 +141,10 @@
     private async Task DoTheThing()
     {
         var userId = await userInfoService.GetUserIdString();
-        await systemNotificationService.CreateSystemNotification(userId, "SYSTEM-NOTIFICATION.TestStringThreeArgs", "cat", "dog", "horse");
+        await systemNotificationService.CreateSystemNotification(userId, "SYSTEM-NOTIFICATION.TestStringThreeArgs", 
+            "Ryan Reynolds", 
+            new BilingualStringArgument("cow", "vache"), 
+            new LocalizedKeyStringArgument("Download"));
     }
 
     private bool UserLanguageIsFrench => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName.ToLowerInvariant() == "fr";
@@ -180,6 +183,7 @@
     private async Task ToggleShowUnreadOnly()
     {
         UnreadOnly = !UnreadOnly;
+        CurrentPage = 0;
         await RefreshNotifications();
     }
 
@@ -218,6 +222,8 @@
         await RefreshNotifications();
 
         systemNotificationService.Notify += OnNotify;
+
+        StateHasChanged();
     }
 
     public void Dispose()
