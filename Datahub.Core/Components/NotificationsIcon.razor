@@ -5,6 +5,7 @@
 @inject ISystemNotificationService systemNotificationService
 @inject IUserInformationService userInfoService
 @inject TimeZoneService timezoneService
+@inject NavigationManager navManager
 
 <style>
     .notification-count {
@@ -77,6 +78,12 @@
                     @if (!n.Read_FLAG)
                     {
                         <p>@(UserLanguageIsFrench? n.NotificationTextFr_TXT: n.NotificationTextEn_TXT)</p>
+                        @if (!string.IsNullOrEmpty(n.ActionLink_URL))
+                        {
+                            <AeButton OnClickEvent=@(async () => await GoToActionLink(n))>
+                                @Localizer[n.ActionLink_Key ?? $"{LOCALIZATION_PREFIX}.DefaultActionLinkText"]
+                            </AeButton>
+                        }
                     }
 
                 </div>
@@ -90,20 +97,20 @@
             <div>
                 @if (ShowLatestPageButton)
                 {
-                    <AeButton Disabled=@IsLoading OnClickEvent=@FirstPage>Back to Latest</AeButton>
+                    <AeButton Disabled=@IsLoading OnClickEvent=@FirstPage>@Localizer[$"{LOCALIZATION_PREFIX}.BackToLatest"]</AeButton>
                 }
                 @if (ShowPreviousPageButton)
                 {
-                    <AeButton Disabled=@IsLoading OnClickEvent=@PrevPage>Newer</AeButton>
+                    <AeButton Disabled=@IsLoading OnClickEvent=@PrevPage>@Localizer[$"{LOCALIZATION_PREFIX}.Newer"]</AeButton>
                 }
                 @if (ShowNextPageButton)
                 {
-                    <AeButton Disabled=@IsLoading OnClickEvent=@NextPage>Older</AeButton>
+                    <AeButton Disabled=@IsLoading OnClickEvent=@NextPage>@Localizer[$"{LOCALIZATION_PREFIX}.Older"]</AeButton>
                 }
 
                 <label>
                     <input type="checkbox" @bind=@UnreadOnly @onclick=@ToggleShowUnreadOnly disabled=@IsLoading />
-                    Show Unread Only
+                    @Localizer[$"{LOCALIZATION_PREFIX}.ShowUnreadOnly"]
                 </label>
             </div>
 
@@ -152,6 +159,16 @@
     private async Task ToggleUnread(SystemNotification notification)
     {
         await systemNotificationService.SetReadStatus(notification.Notification_ID, !notification.Read_FLAG);
+    }
+
+    private async Task GoToActionLink(SystemNotification notification)
+    {
+        var t = ToggleUnread(notification);
+        if (!string.IsNullOrEmpty(notification.ActionLink_URL))
+        {
+            navManager.NavigateTo(notification.ActionLink_URL);
+        }
+        await t;
     }
 
     private async ValueTask<DateTimeOffset> GetLocalTime(SystemNotification notification)
