@@ -58,9 +58,9 @@ namespace Datahub.Core.Services
         {
             return await DoCreateSystemNotifications(userIds, textKey, arguments);
         }
-        public async Task<int> CreateSystemNotificationsWithLink(List<string> userIds, string actionLink, string textKey, params object[] arguments)
+        public async Task<int> CreateSystemNotificationsWithLink(List<string> userIds, string actionLink,  string linkKey, string textKey, params object[] arguments)
         {
-            return await DoCreateSystemNotifications(userIds, textKey, arguments, actionLink);
+            return await DoCreateSystemNotifications(userIds, textKey, arguments, actionLink, linkKey);
         }
 
         private string ConvertLocalizableArgument(object argument)
@@ -87,7 +87,7 @@ namespace Datahub.Core.Services
             }
         }
 
-        private async Task<int> DoCreateSystemNotifications(List<string> userIds, string textKey, object[] arguments, string actionLink = null)
+        private async Task<int> DoCreateSystemNotifications(List<string> userIds, string textKey, object[] arguments, string actionLink = null, string linkKey = null)
         {
             var textEn = GetLocalizedString(enCulture, textKey, arguments);
             var textFr = GetLocalizedString(frCulture, textKey, arguments);
@@ -101,7 +101,8 @@ namespace Datahub.Core.Services
                     NotificationTextFr_TXT = textFr,
                     ReceivingUser_ID = userId,
                     Read_FLAG = false,
-                    ActionLink_URL = actionLink
+                    ActionLink_URL = actionLink,
+                    ActionLink_Key = linkKey
                 });
 
             using var ctx = _dbContextFactory.CreateDbContext();

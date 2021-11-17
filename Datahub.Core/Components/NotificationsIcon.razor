@@ -234,13 +234,14 @@
     {
         PageSize = systemNotificationService.GetNotificationPageSize();
 
+        // prepare the timezone service so timestamps get rendered properly on the first try
+        await timezoneService.GetLocalDateTime(DateTime.UtcNow);
+
         CurrentUserId = await userInfoService.GetUserIdString();
 
         await RefreshNotifications();
 
         systemNotificationService.Notify += OnNotify;
-
-        StateHasChanged();
     }
 
     public void Dispose()
