@@ -170,7 +170,14 @@
     "TranslationNote": "Veuillez prendre note que tout le texte est traduit à l'aide d'un outil externe et qu'il ne s'agit <b>que d'une suggestion pour la traduction.</b> Il est de la responsabilité de l'utilisateur de valider la traduction avant de soumettre les métadonnées."
   },
   "SYSTEM-NOTIFICATION": {
-    "TestStringThreeArgs": "Voici trois choses: {0}, {1}, et {2}"
+    "TestStringThreeArgs": "Voici trois choses: {0}, {1}, et {2}",
+    "NOTIFICATION-TEXT": {
+      "ServiceAccessRequested": "L’utilisateur {0} a demandé l’accès au service {1} dans le projet de données {2}.",
+      "ServiceAccessRequestApproved": "Votre demande d'accès au service {0} dans le projet de données {1} a été approuvée.",
+      "ServiceAccessRevoked": "Votre accès au service {0} dans le projet de données {1} a été révoqué. Les liens menant au service dans la page du projet de données ne seront plus accessibles.",
+      "ServiceCreatedIndividual": "Votre demande pour la création du service {0} dans le projet de données {1} a été approuvée.",
+      "ServiceCreatedGroup": "Le service {0} a été créé dans le projet de données {1}."
+    }
   },
   "Connection lost, please refresh this page": "Connexion perdue, veuillez actualiser cette page",
   "Connection to server...": "Connexion au serveur...",
