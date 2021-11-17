@@ -160,8 +160,11 @@ namespace Datahub.ProjectForms.Data.PIP
 
 
         
+        [AeFormIgnore]
+        public bool IsDeleted { get; set; }
 
-
+        [AeFormIgnore]
+        public string UserIdWhoDeleted { get; set; }
 
 
         [AeFormIgnore]
