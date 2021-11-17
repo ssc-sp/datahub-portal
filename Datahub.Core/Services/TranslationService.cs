@@ -18,17 +18,17 @@ namespace Datahub.Core.Services
 
         public async Task<string> GetFrenchTranslation(string englishText)
         {
-            return await TranslateTo(englishText, Language.French);
+            return await TranslateTo(englishText, Language.English, Language.French);
         }
 
         public async Task<string> GetEnglishTranslation(string frenchText)
         {
-            return await TranslateTo(frenchText, Language.English);
+            return await TranslateTo(frenchText, Language.French, Language.English);
         }
 
-        public async Task<string> TranslateTo(string text, Language language)
+        public async Task<string> TranslateTo(string text, Language sourceLanguage, Language targetLanguage)
         {
-            var translation = await _client.TranslateAsync(text, language);
+            var translation = await _client.TranslateAsync(text, sourceLanguage, targetLanguage);
             return translation?.Text ?? String.Empty;
         }
     }
