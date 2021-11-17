@@ -1,102 +1,113 @@
 ﻿@using Datahub.Metadata.Model
 
-<AeFlex Vertical="false" style="margin-top: 10px;">
+<div style="margin: 1rem 0rem;">
+
+    <AeFlex Vertical="false">
     
-    <!-- field name -->
-    <div style="width: 200px; margin: 2px; flex-grow: 1;">
-        <div>
-            <AeTypography style="cursor: pointer;">
-                @if (!Preview && Required && FieldValueEmpty)
-                {
-                    <strong style="color: red">*&nbsp;</strong>
-                }
-                <span @onclick="SelectField" title=@FieldDefinition.Description>@FieldDefinition.Name</span>
-
-                @if (CanAcceptTranslation())
-                {
-                    <AeButton style="float: right" title=@GetTranslationHint() @onclick=@HandleTranslateField>
-                        <i class="fa fa-language" aria-hidden="true"></i>
-                    </AeButton>
-                }
-            </AeTypography>
-            
-        </div>
-    </div>
-
-    <!-- value -->
-    <div style="width: 300px; margin: 2px; flex-grow: 1;">
-        <div class="customuserinput">
-            @if (Preview)
-            {
-                _fieldType = FieldType.Preview;
-                if (!FieldDefinition.HasChoices)
-                {
-                    <span>@BoundValue</span>
-                }
-                {
-                    <span>@ChoiceDisplay</span>
-                }
-            }
-            else
-            {
-                if (!FieldDefinition.HasChoices)
-                {
-                    if (IsKeywordField())
+        <!-- field name -->
+        <div style="width: 200px; margin: 2px; flex-grow: 1;">
+            <div>
+                <AeTypography style="cursor: pointer;">
+                    @if (!Preview && Required && FieldValueEmpty)
                     {
-                        _fieldType = FieldType.Keyword;
-                        <KeywordInput @ref="_keywordInputRef" 
-                                      FieldValue="FieldValue" 
-                                      English="@IsEnglishField()"
-                                      Subject="@Subject"
-                                      FieldPair=@FieldPair
-                                      OnFieldChanged="OnFieldChanged" />
+                        <strong style="color: red">*&nbsp;</strong>
                     }
-                    else
+                    <strong><span @onclick="SelectField" title=@FieldDefinition.Description>@FieldDefinition.Name</span></strong>
+                    
+
+                    @if (CanAcceptTranslation())
                     {
-                        _fieldType = FieldType.Input;
-                        <input class="ae input"
-                               type="@InputFieldType"
-                               @bind="BoundValue"
-                               @ref="_fieldValueInput"
-                               disabled="@Preview"
-                               style="@FieldStyle" />
+                        <AeButton style="float: right" title=@GetTranslationHint() @onclick=@HandleTranslateField>
+                            <i class="fa fa-language" aria-hidden="true"></i>
+                        </AeButton>
+                    }
+                </AeTypography>
+            
+            </div>
+        </div>
+
+        <!-- value -->
+        <div style="width: 300px; margin: 2px; flex-grow: 1;">
+            <div class="customuserinput">
+                @if (Preview)
+                {
+                    _fieldType = FieldType.Preview;
+                    if (!FieldDefinition.HasChoices)
+                    {
+                        <span>@BoundValue</span>
+                    }
+                    {
+                        <span>@ChoiceDisplay</span>
                     }
                 }
                 else
                 {
-                    if (!FieldDefinition.MultiSelect_FLAG)
+                    if (!FieldDefinition.HasChoices)
                     {
-                        _fieldType = FieldType.SingleChoice;
-                        <select class="ae input"
-                                style="@FieldStyle"
-                                @bind="BoundValue"
-                                @ref="_fieldValueInput">
-
-
-                            @if (FieldDefinition.Choices.Count > 1)
-                            {
-                                <option value=""></option>
-                            }
-
-                            @foreach (var choice in FieldDefinition.Choices)
-                            {
-                                <option value="@choice.Value_TXT">@choice.Label</option>
-                            }
-                        </select>
+                        if (IsKeywordField())
+                        {
+                            _fieldType = FieldType.Keyword;
+                            <KeywordInput @ref="_keywordInputRef" 
+                                          FieldValue="FieldValue" 
+                                          English="@IsEnglishField()"
+                                          Subject="@Subject"
+                                          FieldPair=@FieldPair
+                                          OnFieldChanged="OnFieldChanged" />
+                        }
+                        else
+                        {
+                            _fieldType = FieldType.Input;
+                            <input class="ae input"
+                                   type="@InputFieldType"
+                                   @bind="BoundValue"
+                                   @ref="_fieldValueInput"
+                                   disabled="@Preview"
+                                   style="@FieldStyle" />
+                        }
                     }
                     else
                     {
-                        _fieldType = FieldType.MultipleChoice;
-                        <MultiSelectList FieldDefinition="FieldDefinition" 
-                                         FieldValue="FieldValue" 
-                                         OnFieldChanged="OnFieldChanged" />
+                        if (!FieldDefinition.MultiSelect_FLAG)
+                        {
+                            _fieldType = FieldType.SingleChoice;
+
+                            var oneChoice = FieldDefinition.Choices.Count == 1;
+                            var allowEmptyOption = !oneChoice && string.IsNullOrEmpty(FieldDefinition.Default_Value_TXT);
+                            
+                            <select class="ae input"
+                                    style="@FieldStyle"
+                                    disabled=@oneChoice
+                                    @bind="BoundValue"
+                                    @ref="_fieldValueInput">
+
+                                @if (allowEmptyOption)
+                                {
+                                    <option value=""></option>
+                                }
+
+                                @foreach (var choice in FieldDefinition.Choices)
+                                {
+                                    <option value="@choice.Value_TXT">@choice.Label</option>
+                                }
+                            </select>
+                        }
+                        else
+                        {
+                            _fieldType = FieldType.MultipleChoice;
+                            <MultiSelectList FieldDefinition="FieldDefinition" 
+                                             FieldValue="FieldValue" 
+                                             OnFieldChanged="OnFieldChanged" />
+                        }
                     }
                 }
-            }
+            </div>
         </div>
-    </div>
 
-</AeFlex>
+    </AeFlex>
+
+    <AeFlex style="font-size: 0.8em;">@FieldDefinition.Description</AeFlex>
+
+</div>
 
 @code {
 
