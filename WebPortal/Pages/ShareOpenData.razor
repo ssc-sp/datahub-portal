@@ -8,7 +8,7 @@
 <AeTypography style="margin-left: 2rem;" Variant="h1">@Localizer["OPENDATA-WIZARD.Page_Title"]</AeTypography>
 
 <AeFlex>
-    <AeFlex Vertical  style="margin-left: 2rem; width: 48%">
+    <AeFlex Vertical style="margin-left: 2rem; width: 50%;">
 
         <AeCard>
             <AeTypography Variant="h2">@Localizer["OPENDATA-WIZARD.Metadata"]</AeTypography>
@@ -73,7 +73,7 @@
         }
     </AeFlex>
 
-    <div id="stepsDiv">
+    <div id="stepsDiv" style="width: 50%;">
         <AeSteps T=@OpenDataSharingStatus
             CurrentStepState=@GetState
             StepItems=@steps
