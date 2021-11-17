@@ -15,6 +15,7 @@
 @inject IProjectDatabaseService ProjectDatabaseService
 @inject ServiceAuthManager ServiceAuthManager
 @inject IMSGraphService MSGraphService
+@inject ISystemNotificationService SystemNotificationService
 
 @page "/project/{projectAcronym}"
 
@@ -597,6 +598,10 @@
 
         var admins = await GetProjectAdministratorEmailsAndIds();
         await EmailNotificationService.SendServiceAccessRequestNotification(request.User_Name, serviceName, _project.ProjectInfo, admins);
+        var adminUserIds = admins.Where(a => Guid.TryParse(a, out _)).ToList();
+        await SystemNotificationService.CreateSystemNotificationsWithLink(adminUserIds, $"/admin", "SYSTEM-NOTIFICATION.GoToAdminPage",
+            "SYSTEM-NOTIFICATION.NOTIFICATION-TEXT.ServiceAccessRequested",
+            _user.UserPrincipalName, serviceName, new BilingualStringArgument(_project.ProjectInfo.ProjectNameEn, _project.ProjectInfo.ProjectNameFr));
 
         await RefreshComponents(true);
     }
@@ -618,6 +623,10 @@
 
         var admins = await GetProjectAdministratorEmailsAndIds();
         await EmailNotificationService.SendServiceCreationRequestNotification(serviceRequest.User_Name, serviceType, _project.ProjectInfo, admins);
+        var adminUserIds = admins.Where(a => Guid.TryParse(a, out _)).ToList();
+        await SystemNotificationService.CreateSystemNotificationsWithLink(adminUserIds, $"/admin", "SYSTEM-NOTIFICATION.GoToAdminPage",
+            "SYSTEM-NOTIFICATION.NOTIFICATION-TEXT.ServiceCreationRequested",
+            _user.UserPrincipalName, serviceType, new BilingualStringArgument(_project.ProjectInfo.ProjectNameEn, _project.ProjectInfo.ProjectNameFr));
 
         await RefreshComponents(true);
     }
