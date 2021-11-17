@@ -68,6 +68,12 @@ namespace Datahub.Tests.CKAN
             Assert.NotNull(name_translated["en"]);
             Assert.NotNull(name_translated["fr"]);
 
+            expected = "ca-ogl-lgo";
+            Assert.Equal(dict["license_id"].ToString(), expected);
+
+            expected = "true";
+            Assert.Equal(dict["ready_to_publish"].ToString(), expected);
+
             var json = JsonConvert.SerializeObject(dict);
 
             Assert.NotNull(dict);
