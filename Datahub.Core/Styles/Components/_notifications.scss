@@ -1,0 +1,36 @@
+﻿@use '../Common' as c;
+
+$highlight-color: #dff;
+
+.notification-count {
+    background-color: cyan;
+    padding-left: 0.4rem;
+    padding-right: 0.4rem;
+    border-radius: 1rem;
+    font-size: small;
+    position: relative;
+    float: right;
+    top: -0.5rem;
+}
+
+.notification-item {
+    color: c.$text-hint;
+    clear: both;
+    padding-right: 1rem;
+}
+
+.notification-item.unread {
+    color: c.$textPrimary;
+    background-color: $highlight-color;
+}
+
+.notification-readmarker {
+    float: right;
+    padding: 0.2rem;
+    cursor: pointer;
+}
+
+.notification-scrollpane {
+    max-height: 60vh;
+    overflow-y: auto;
+}
