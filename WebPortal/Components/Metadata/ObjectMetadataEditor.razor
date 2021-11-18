@@ -76,6 +76,11 @@
         StateHasChanged();
     }
 
+    public string GetTitle()
+    {
+        return _fieldValues["title_translated_en"]?.Value_TXT ?? string.Empty;
+    }
+
     // -- temp test area --
     [Inject]
     public ICKANService CKANService { get; set; }
