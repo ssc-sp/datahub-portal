@@ -350,7 +350,7 @@
                         </AeFlex>
                     </ChildContent>
                     <Footer>
-                        <AeButton @onclick="@(async () => await RequestServiceAccess(""))">@DataLocalizer["Request Service Creation"]</AeButton>
+                        <AeButton @onclick="@(async () => await RequestServiceAccess("sql"))">@DataLocalizer["Request Service Creation"]</AeButton>
                         </Footer>
                 </AeCard>
 
@@ -613,6 +613,10 @@
             User_Name = _user.UserPrincipalName
         };
 
+        if (serviceType == "sql" || serviceType == "storage")
+        {    
+            CreateProjectResource(serviceType);
+        }
         projectContext.Project_Requests.Add(serviceRequest);
         await projectContext.SaveChangesAsync();
 
@@ -620,6 +624,21 @@
         await EmailNotificationService.SendServiceCreationRequestNotification(serviceRequest.User_Name, serviceType, _project.ProjectInfo, admins);
 
         await RefreshComponents(true);
+    }
+
+    private void CreateProjectResource(string serviceType)
+    {
+        var attributes = serviceType == "sql" ? "\"type\":\"sql\"" : "\"type\":\"gen2\"";
+        var resource = new Project_Resources
+        {
+            ResourceType = serviceType,
+            ResourceName = projectAcronym,
+            TimeRequested = DateTime.Now,
+            Attributes = attributes,
+            Project = _project
+        };
+             
+        projectContext.Project_Resources.Add(resource);
     }
 
     private async Task RefreshComponents(bool refreshState)
