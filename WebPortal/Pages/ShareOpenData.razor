@@ -4,6 +4,7 @@
 @inject IMSGraphService GraphService
 @inject UIControlsService UI
 @inject IUserInformationService UserInformationService
+@inject IJSRuntime jsRuntime
 
 <AeTypography style="margin-left: 2rem;" Variant="h1">@Localizer["OPENDATA-WIZARD.Page_Title"]</AeTypography>
 
@@ -54,6 +55,7 @@
                 <Datahub.Portal.Pages.Forms.ShareWorkflow.ApprovalForm 
                     ApprovalFormId=@approvalFormId 
                     OnSubmitForm=@UpdateApprovalFormId 
+                    DatasetTitle=@_datasetTitle
                     User=@RequestingUser/>
 
                     <div>&nbsp;</div>
@@ -62,13 +64,35 @@
             else if (ApprovalFormSubmitted)
             {
                 <AeCard>
+                    <AeTypography Variant="h3">@Localizer["OPENDATA-WIZARD.Approval_Form"]</AeTypography>
                     <AeTypography Variant="p">@Localizer["OPENDATA-WIZARD.Approval_filled_out"]</AeTypography>
                     <AeFlex>
-                        <a href=@GenerateApprovalFormPdfUrl class="ae button" target="_blank">@Localizer["OPENDATA-WIZARD.GeneratePDF_button"]</a>
-                        <AeButton OnClickEvent=@ManuallyShowApprovalForm >@Localizer["OPENDATA-WIZARD.AmendApprovalForm_button"]</AeButton>
+                        <AeButton OnClickEvent=@GenerateApprovalPDF>@Localizer["OPENDATA-WIZARD.GeneratePDF_button"]</AeButton>
+                        <div>&nbsp;</div>
+                        <AeButton OnClickEvent=@ManuallyShowApprovalForm>@Localizer["OPENDATA-WIZARD.AmendApprovalForm_button"]</AeButton>
                     </AeFlex>
-                <div>&nbsp;</div>
                 </AeCard>
+
+                @if (ShowSignedPdfPanel && IsOwnRequest)
+                {
+                    <AeCard>
+                        <AeTypography Variant="h3">@Localizer["OPENDATA-WIZARD.SubmitSignedPdf"]</AeTypography>
+                        <AeFlex Vertical="true" style="margin: 1rem 1rem 1rem 0rem;">
+                            <AeTypography>@Localizer["OPENDATA-WIZARD.EnterGcDocsUrl"]:</AeTypography>
+                            <input @bind-value=@signedApprovalFormUrl class="ae input" style="width: 100%" />
+                        </AeFlex>
+                        <AeFlex>
+                            <AeButton OnClickEvent=@UploadSignedPDF Disabled=@savingData >@Localizer["BUTTONS.Submit"]</AeButton>
+                            <div>
+                                @if (savingData)
+                                {
+                                    <Spinner Small=@true/>
+                                }
+                            </div>
+                        </AeFlex>
+                        <div>&nbsp;</div>
+                    </AeCard>
+                }
             }
         }
     </AeFlex>
@@ -95,27 +119,6 @@
         <AeCard>
             <AeTypography Variant="h3">@Localizer["OPENDATA-WIZARD.PublicUrl"]</AeTypography>
             <p><a href=@PublicUrl target="_blank">@PublicUrl</a></p>
-        </AeCard>
-    }
-
-    @if (ShowSignedPdfPanel && IsOwnRequest)
-    {
-        <AeCard>
-            <AeTypography Variant="h3">@Localizer["OPENDATA-WIZARD.SubmitSignedPdf"]</AeTypography>
-            <label>
-                @Localizer["OPENDATA-WIZARD.EnterGcDocsUrl"]:
-                <input @bind-value=@signedApprovalFormUrl />
-            </label>
-                <AeFlex>
-                    <AeButton OnClickEvent=@UploadSignedPDF Disabled=@savingData >@Localizer["BUTTONS.Submit"]</AeButton>
-                    <div>
-                        @if (savingData)
-                        {
-                            <Spinner Small=@true/>
-                        }
-                    </div>
-                </AeFlex>
-            <div>&nbsp;</div>
         </AeCard>
     }
 
@@ -181,7 +184,6 @@
     private bool editSavedMetadata = false;
     private bool editSubmittedApproval = false;
 
-
     private string PublicationDateStr = string.Empty;
     private int approvalFormId = 0;
     private string GenerateApprovalFormPdfUrl => PublicFileService.GetOpenDataApprovalFormPdfUrl(approvalFormId);
@@ -189,7 +191,9 @@
 
     private GraphUser RequestingUser;
     private string requestFilename;
-    
+
+    private string _datasetTitle;
+
     //TODO add domain
     private string PublicUrl => $"/Public/DownloadFile/{FileId}";
 
@@ -224,6 +228,17 @@
         editSubmittedApproval = true;
     }
 
+    private async void GenerateApprovalPDF()
+    {
+        try
+        {
+            await jsRuntime.InvokeAsync<object>("open", GenerateApprovalFormPdfUrl, "_blank");
+        }
+        catch (Exception)
+        {
+        }
+    }
+
     private async Task UpdateApprovalFormId(int id)
     {
         savingData = true;
@@ -242,30 +257,35 @@
 
     private async Task UploadSignedPDF()
     {
-        savingData = true;
+        if (!string.IsNullOrEmpty(signedApprovalFormUrl))
+        {
+            savingData = true;
 
-        await PublicFileService.UpdateOpenDataSignedApprovalFormUrl(fileIdGuid, signedApprovalFormUrl);
+            await PublicFileService.UpdateOpenDataSignedApprovalFormUrl(fileIdGuid, signedApprovalFormUrl);
+            await PublicFileService.NotifySignedPDFUploaded();
 
-        savingData = false;
-        UpdateCurrentStatus(OpenDataSharingStatus.PendingApproval);
+            savingData = false;
+            UpdateCurrentStatus(OpenDataSharingStatus.PendingApproval);   
+        }
     }
 
     private async Task SaveMetadata()
     {
         savingData = true;
-
-        var t = _metadataEditor.SaveChanges();
-
-        var uri = NavManager.Uri;
-        if (uri.IndexOf('#') >= 0)
+        try
         {
-            uri = uri.Substring(0, uri.IndexOf('#'));
+            _datasetTitle = _metadataEditor.GetTitle();
+            await _metadataEditor.SaveChanges();
+            await PublicFileService.MarkMetadataComplete(fileIdGuid);
+        }
+        finally
+        {
+            savingData = false;
         }
 
-        await t;
-        await PublicFileService.MarkMetadataComplete(fileIdGuid);
-        savingData = false;
+        var uri = GetBaseUrl(NavManager.Uri);
         NavManager.NavigateTo($"{uri}#stepsDiv");
+
         if (currentStep == OpenDataSharingStatus.EnterMetadata)
         {
             UpdateCurrentStatus(OpenDataSharingStatus.OpenGovApprovalForm);
@@ -274,6 +294,12 @@
         {
             editSavedMetadata = false;
         }
+    }
+
+    static string GetBaseUrl(string url)
+    {
+        var hashIndex = url.IndexOf('#');
+        return hashIndex > 0 ? url.Substring(0, hashIndex) : url;
     }
 
     private async Task AcceptMetadata()
@@ -286,13 +312,12 @@
     {
         var promptText = new List<string>() { Localizer["OPENDATA-WIZARD.CancelSharingPrompt"] };
         RenderFragment cancelDialog = @<UserChoiceModal
-            HeaderText=@Localizer["OPENDATA-WIZARD.CancelSharing"]
-            ChoiceTextList=@promptText
-            OnDecision="HandleCancel"
-            ConfirmText=@Localizer["COMMON.Yes"]
-            CancelText=@Localizer["COMMON.No"]
-            />
-    ;
+                                            HeaderText=@Localizer["OPENDATA-WIZARD.CancelSharing"]
+                                            ChoiceTextList=@promptText
+                                            OnDecision="HandleCancel"
+                                            ConfirmText=@Localizer["COMMON.Yes"]
+                                            CancelText=@Localizer["COMMON.No"]
+                                            />;
         await UI.ToggleModal(cancelDialog);
     }
 
