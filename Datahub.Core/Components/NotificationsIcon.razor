@@ -195,6 +195,10 @@
     protected override async Task OnInitializedAsync()
     {
         PageSize = systemNotificationService.GetNotificationPageSize();
+        if (PageSize < 1)
+        {
+            PageSize = ISystemNotificationService.DEFAULT_PAGE_SIZE;
+        }
 
         // prepare the timezone service so timestamps get rendered properly right away
         await timezoneService.GetLocalDateTime(DateTime.UtcNow);
