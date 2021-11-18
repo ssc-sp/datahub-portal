@@ -42,6 +42,8 @@ namespace Datahub.Core.EFCore
         public DbSet<SharedDataFile> SharedDataFiles { get; set; }
         public DbSet<OpenDataSharedFile> OpenDataSharedFiles { get; set; }
 
+        public DbSet<SystemNotification> SystemNotifications { get; set; }
+
         public DbSet<Datahub_Project_Costs> Project_Costs { get; set; }
 
         public void Seed(DatahubProjectDBContext context, IConfiguration configuration)

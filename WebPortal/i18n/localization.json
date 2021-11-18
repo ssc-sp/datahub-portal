@@ -745,6 +745,26 @@
       "Title": "Admin Actions"
     }
   },
+  "SYSTEM-NOTIFICATION": {
+    "MarkRead": "Mark as read",
+    "MarkUnread": "Mark unread",
+    "DefaultActionLinkText": "Go",
+    "BackToLatest": "Back to latest",
+    "Older": "Older",
+    "Newer": "Newer",
+    "ShowUnreadOnly": "Show Unread Only",
+    "GoToProject": "Go to project",
+    "GoToAdminPage": "Go to admin page",
+    "NOTIFICATION-TEXT": {
+      "ServiceAccessRequested": "User {0} has requested access to service {1} in data project {2}.",
+      "ServiceAccessRequestApproved": "Your request for the access to service {0} in data project {1} has been approved.",
+      "ServiceAccessRevoked": "Your access to service {0} in data project {1} has been revoked. The service links in the data project page will no longer be available.",
+      "ServiceCreationRequested": "User {0} has requested the creation of service {1} in data project {2}. Please visit the admin page to notify project users when it has been created.",
+      "ServiceCreatedIndividual": "Your request for the creation of service {0} in data project {1} has been approved.",
+      "ServiceCreatedGroup": "Service {0} has been created in data project {1}."
+    },
+    "TestStringThreeArgs": "Here are three things: {0}, {1}, and {2}"
+  },
   "TooManyTabs": "Too many tabs",
   "TooManyTabsMessage": "You have more than {} tabs currently opened. Close some tabs and refresh this page."
 }
