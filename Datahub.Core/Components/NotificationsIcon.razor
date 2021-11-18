@@ -1,0 +1,218 @@
+﻿@using System.Linq
+@using Datahub.Core.EFCore
+@using System.Globalization
+@implements IDisposable
+@inject ISystemNotificationService systemNotificationService
+@inject IUserInformationService userInfoService
+@inject TimeZoneService timezoneService
+@inject NavigationManager navManager
+
+
+<div class="notifications-wrapper">
+    <div class="icon-container" @onclick=@ToggleNotifications>
+        <i class="fa-bell @(HasUnreadNotifications? "fas":"fad")"></i>
+        @if (IsLoading)
+        {
+            <span class="notification-count">
+                <i class="fad fa-spinner fa-spin"></i>
+            </span>
+        }
+        else if(HasUnreadNotifications)
+        {
+            <span class="notification-count">@UnreadNotificationCount</span>
+        }
+    </div>
+    <Popup 
+        class="nrcan-popup top-nav-popup"
+        Show=@ShowNotifications 
+        OnCloseClick=@ToggleNotifications>
+        <ChildContent>
+            <div class="notification-scrollpane">
+            @foreach(var n in Notifications)
+            {
+                <AeCard class=@GetNotificationCardCssClass(n)>
+                    <ChildContent>
+                        <div class="notification-header">
+                            <span class="notification-timestamp">@(GetLocalTime(n))</span>
+                            <span class="notification-readmarker" 
+                                    title="@(n.Read_FLAG? @Localizer[$"{LOCALIZATION_PREFIX}.MarkUnread"]: @Localizer[$"{LOCALIZATION_PREFIX}.MarkRead"])" >
+                                <i class="@(GetUnreadCssClass(n))" @onclick=@(() => ToggleUnread(n))></i>
+                            </span>
+                        </div>
+                        @if(!n.Read_FLAG)
+                        {
+                            <p>@(UserLanguageIsFrench? n.NotificationTextFr_TXT: n.NotificationTextEn_TXT)</p>
+                            @if (!string.IsNullOrEmpty(n.ActionLink_URL))
+                            {
+                                <AeButton OnClickEvent=@(async () => await GoToActionLink(n))>
+                                    @Localizer[n.ActionLink_Key ?? $"{LOCALIZATION_PREFIX}.DefaultActionLinkText"]
+                                </AeButton>
+                            }
+                        }
+                    </ChildContent>
+                </AeCard>
+            }
+            </div>
+
+            <!-- stretch the notification panel to max width even when there are no long notifications -->
+            <div style="width:100vw;"></div>
+
+        </ChildContent>
+        <Footer>
+            <div class="notification-buttonbar">
+                @if (ShowPreviousPageButton)
+                {
+                    <AeButton Disabled=@IsLoading class="newer-button" OnClickEvent=@PrevPage>@Localizer[$"{LOCALIZATION_PREFIX}.Newer"]</AeButton>
+                }
+                @if (ShowLatestPageButton)
+                {
+                    <AeButton Disabled=@IsLoading class="latest-button" OnClickEvent=@FirstPage>@Localizer[$"{LOCALIZATION_PREFIX}.BackToLatest"]</AeButton>
+                }
+                @if (ShowNextPageButton)
+                {
+                    <AeButton Disabled=@IsLoading class="older-button" OnClickEvent=@NextPage>@Localizer[$"{LOCALIZATION_PREFIX}.Older"]</AeButton>
+                }
+                &nbsp;
+            </div>
+            <div>
+                <label>
+                    <input type="checkbox" @bind=@UnreadOnly @onclick=@ToggleShowUnreadOnly disabled=@IsLoading />
+                    @Localizer[$"{LOCALIZATION_PREFIX}.ShowUnreadOnly"]
+                </label>
+            </div>
+        </Footer>
+    </Popup>
+</div>
+
+@code {
+    private static readonly string LOCALIZATION_PREFIX = "SYSTEM-NOTIFICATION";
+
+    private List<SystemNotification> Notifications = new();
+
+    private int UnreadNotificationCount { get; set; }
+    private bool HasUnreadNotifications => UnreadNotificationCount > 0;
+
+    private string CurrentUserId;
+
+    private bool UnreadOnly { get; set; }
+
+    private bool ShowNotifications { get; set; } = false;
+    private bool IsLoading { get; set; } = false;
+
+    private int PageSize { get; set; } = 1;
+    private int CurrentPage { get; set; }
+    private int TotalNotificationCount { get; set; }
+    private int MaxPage => (TotalNotificationCount - 1) / PageSize;
+
+    private bool ShowLatestPageButton => CurrentPage > 0;
+    private bool ShowPreviousPageButton => CurrentPage > 1;
+    private bool ShowNextPageButton => CurrentPage < MaxPage;
+
+    private void ToggleNotifications() => ShowNotifications = !ShowNotifications;
+
+    private bool UserLanguageIsFrench => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName.ToLowerInvariant() == "fr";
+
+    private async Task ToggleUnread(SystemNotification notification)
+    {
+        await systemNotificationService.SetReadStatus(notification.Notification_ID, !notification.Read_FLAG);
+    }
+
+    private async Task GoToActionLink(SystemNotification notification)
+    {
+        var t = ToggleUnread(notification);
+        if (!string.IsNullOrEmpty(notification.ActionLink_URL))
+        {
+            navManager.NavigateTo(notification.ActionLink_URL);
+        }
+        await t;
+    }
+
+    private async ValueTask<DateTimeOffset> GetLocalTime(SystemNotification notification)
+    {
+        var timestampUtc = DateTime.SpecifyKind(notification.Generated_TS, DateTimeKind.Utc);
+        return await timezoneService.GetLocalDateTime(timestampUtc);
+    }
+
+    private string GetUnreadCssClass(SystemNotification notification)
+    {
+        return notification.Read_FLAG ? "far fa-envelope" : "fas fa-envelope-open";
+    }
+
+    private string GetNotificationCardCssClass(SystemNotification notification)
+    {
+        var unread = notification.Read_FLAG ? "" : "unread";
+        return $"notification-item {unread}";
+    }
+
+    private async Task RefreshNotifications()
+    {
+        IsLoading = true;
+        StateHasChanged();
+        TotalNotificationCount = await systemNotificationService.GetNotificationCountForUser(CurrentUserId, UnreadOnly);
+        
+        UnreadNotificationCount = UnreadOnly ? 
+            TotalNotificationCount : 
+            await systemNotificationService.GetNotificationCountForUser(CurrentUserId, true);
+        
+        Notifications = await systemNotificationService.GetNotificationsForUser(CurrentUserId, UnreadOnly, CurrentPage);
+        IsLoading = false;
+        StateHasChanged();
+    }
+
+    private async Task ToggleShowUnreadOnly()
+    {
+        UnreadOnly = !UnreadOnly;
+        CurrentPage = 0;
+        await RefreshNotifications();
+    }
+
+    private async Task FirstPage()
+    {
+        CurrentPage = 0;
+        await RefreshNotifications();
+    }
+
+    private async Task NextPage()
+    {
+        CurrentPage = Math.Min(CurrentPage + 1, MaxPage);
+        await RefreshNotifications();
+    }
+
+    private async Task PrevPage()
+    {
+        CurrentPage = Math.Max(CurrentPage - 1, 0);
+        await RefreshNotifications();
+    }
+
+    public async Task OnNotify(string userId)
+    {
+        if (userId == CurrentUserId)
+        {
+            await InvokeAsync(() => RefreshNotifications());
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        PageSize = systemNotificationService.GetNotificationPageSize();
+        if (PageSize < 1)
+        {
+            PageSize = ISystemNotificationService.DEFAULT_PAGE_SIZE;
+        }
+
+        // prepare the timezone service so timestamps get rendered properly right away
+        await timezoneService.GetLocalDateTime(DateTime.UtcNow);
+
+        CurrentUserId = await userInfoService.GetUserIdString();
+
+        await RefreshNotifications();
+
+        systemNotificationService.Notify += OnNotify;
+    }
+
+    public void Dispose()
+    {
+        systemNotificationService.Notify -= OnNotify;
+    }
+
+}
