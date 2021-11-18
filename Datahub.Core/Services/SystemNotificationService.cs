@@ -38,7 +38,7 @@ namespace Datahub.Core.Services
             enCulture = new CultureInfo("en-ca");
             frCulture = new CultureInfo("fr-ca");
 
-            _notificationPageSize = 3;
+            _notificationPageSize = 5;
         }
 
         private string GetLocalizedString(CultureInfo culture, string textKey, object[] arguments)
