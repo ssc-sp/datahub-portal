@@ -34,3 +34,19 @@ $highlight-color: #dff;
     max-height: 60vh;
     overflow-y: auto;
 }
+
+.notification-buttonbar {
+    margin-top: 0.5rem;
+    position: relative;
+
+    .older-button {
+        position: absolute;
+        right: 0px;
+    }
+
+    .latest-button {
+        position: absolute;
+        left: 50%;
+        transform: translate(-50%);
+    }
+}
