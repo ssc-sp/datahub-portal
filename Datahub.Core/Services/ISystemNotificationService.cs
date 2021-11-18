@@ -9,6 +9,7 @@ namespace Datahub.Core.Services
 {
     public interface ISystemNotificationService
     {
+        public const int DEFAULT_PAGE_SIZE = 5;
         Task<int> CreateSystemNotifications(List<string> userIds, string textKey, params object[] arguments);
         Task<int> CreateSystemNotification(string userId, string textKey, params object[] arguments) =>
             CreateSystemNotifications(new List<string>() { userId }, textKey, arguments);
