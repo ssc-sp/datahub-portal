@@ -10,6 +10,7 @@ using Datahub.Core.Data;
 using Datahub.Core.EFCore;
 using Datahub.Core.Services;
 using System.Net;
+using Datahub.Portal.Components;
 
 namespace Datahub.Portal.Services
 {
@@ -18,6 +19,9 @@ namespace Datahub.Portal.Services
         public string OpenDataApprovalPdfBaseUrl { get; set; }
         public string OpenDataApprovalPdfFormIdParam { get; set; }
         public string PublicFileSharingDomain { get; set; }
+        public string OpenDataApproverName { get; set; }
+        public string OpenDataApproverEmail { get; set; }
+        public string OpenDataApproverEmailSubject { get; set; } = "New Approval Requested / Nouvelle approbation demandée";
     }
 
     public class PublicDataFileService : IPublicDataFileService
@@ -27,6 +31,7 @@ namespace Datahub.Portal.Services
         private readonly ILogger<IPublicDataFileService> _logger;
         private readonly IMetadataBrokerService _metadataService;
         private readonly IDatahubAuditingService _datahubAuditingService;
+        private readonly IEmailNotificationService _emailNotificationService;
         private readonly PublicFileSharingConfiguration _config;
 
         public static readonly string PUBLIC_FILE_SHARING_CONFIG_ROOT_KEY = "PublicFileSharing";
@@ -37,6 +42,7 @@ namespace Datahub.Portal.Services
             ILogger<IPublicDataFileService> logger,
             IDatahubAuditingService datahubAuditingService,
             IMetadataBrokerService metadataService,
+            IEmailNotificationService emailNotificationService,
             IConfiguration config
         )
         {
@@ -45,6 +51,7 @@ namespace Datahub.Portal.Services
             _logger = logger;
             _datahubAuditingService = datahubAuditingService;
             _metadataService = metadataService;
+            _emailNotificationService = emailNotificationService;
             _config = new();
             config.Bind(PUBLIC_FILE_SHARING_CONFIG_ROOT_KEY, _config);
         }
@@ -376,6 +383,20 @@ namespace Datahub.Portal.Services
         {
             file.ApprovedDate_DT = DateTime.UtcNow;
             await _projectDbContext.TrackSaveChangesAsync(_datahubAuditingService);
+        }
+
+        public async Task NotifySignedPDFUploaded()
+        {
+            Dictionary<string, object> parameters = new()
+            {
+                { "UserName", _config.OpenDataApproverName },
+                { "Url", _emailNotificationService.BuildAppLink("/opendata/dashboard") }
+            };
+            
+            var emailBody = await _emailNotificationService.RenderTemplate<OpenDataApprovalNotificationEmail>(parameters);
+            var emailRecipients = new List<string>() { _config.OpenDataApproverEmail };
+
+            await _emailNotificationService.SendEmailMessage(_config.OpenDataApproverEmailSubject, emailBody, emailRecipients, true);
         }
     }
 }

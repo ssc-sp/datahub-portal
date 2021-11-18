@@ -33,5 +33,6 @@ namespace Datahub.Portal.Services
         Task<List<OpenDataSharedFile>> GetPendingApprovalOpenDataFiles();
         Task SetPendingApprovalOpenDataAsRead(OpenDataSharedFile file);
         Task SetPendingApprovalOpenDataAsApproved(OpenDataSharedFile file);
+        Task NotifySignedPDFUploaded();
     }
 }
