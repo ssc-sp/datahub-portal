@@ -59,20 +59,22 @@
 
         </ChildContent>
         <Footer>
-            <div>
-                @if (ShowLatestPageButton)
-                {
-                    <AeButton Disabled=@IsLoading OnClickEvent=@FirstPage>@Localizer[$"{LOCALIZATION_PREFIX}.BackToLatest"]</AeButton>
-                }
+            <div class="notification-buttonbar">
                 @if (ShowPreviousPageButton)
                 {
-                    <AeButton Disabled=@IsLoading OnClickEvent=@PrevPage>@Localizer[$"{LOCALIZATION_PREFIX}.Newer"]</AeButton>
+                    <AeButton Disabled=@IsLoading class="newer-button" OnClickEvent=@PrevPage>@Localizer[$"{LOCALIZATION_PREFIX}.Newer"]</AeButton>
+                }
+                @if (ShowLatestPageButton)
+                {
+                    <AeButton Disabled=@IsLoading class="latest-button" OnClickEvent=@FirstPage>@Localizer[$"{LOCALIZATION_PREFIX}.BackToLatest"]</AeButton>
                 }
                 @if (ShowNextPageButton)
                 {
-                    <AeButton Disabled=@IsLoading OnClickEvent=@NextPage>@Localizer[$"{LOCALIZATION_PREFIX}.Older"]</AeButton>
+                    <AeButton Disabled=@IsLoading class="older-button" OnClickEvent=@NextPage>@Localizer[$"{LOCALIZATION_PREFIX}.Older"]</AeButton>
                 }
-
+                &nbsp;
+            </div>
+            <div>
                 <label>
                     <input type="checkbox" @bind=@UnreadOnly @onclick=@ToggleShowUnreadOnly disabled=@IsLoading />
                     @Localizer[$"{LOCALIZATION_PREFIX}.ShowUnreadOnly"]
