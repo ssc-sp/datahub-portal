@@ -7,44 +7,6 @@
 @inject TimeZoneService timezoneService
 @inject NavigationManager navManager
 
-<style>
-    .notification-count {
-        background-color: cyan;
-        padding-left: 0.4rem;
-        padding-right: 0.4rem;
-        border-radius: 1rem;
-        font-size: small;
-        position: relative;
-        float: right;
-        top: -0.5rem;
-    }
-
-    .notification-header {
-        background-color: #dff;
-        margin-top: 1rem;
-    }
-
-    .notification-header:first-child {
-        margin-top: unset;
-    }
-
-    .notification-item {
-        color: gray;
-        clear: both;
-    }
-
-    .notification-item.unread {
-        color: black;
-        background-color: #dff;
-    }
-
-    .notification-readmarker {
-        float: right;
-        margin-right: 2rem;
-        padding: 0.2rem;
-        cursor: pointer;
-    }
-</style>
 
 <div class="notifications-wrapper">
     <div class="icon-container" @onclick=@ToggleNotifications>
@@ -65,29 +27,32 @@
         Show=@ShowNotifications 
         OnCloseClick=@ToggleNotifications>
         <ChildContent>
+            <div class="notification-scrollpane">
             @foreach(var n in Notifications)
             {
-                <div class="notification-item @(n.Read_FLAG? "": "unread")">
-                    <div class="notification-header">
-                        <span class="notification-timestamp">@(GetLocalTime(n))</span>
-                        <span class="notification-readmarker" title="@(n.Read_FLAG? @Localizer[$"{LOCALIZATION_PREFIX}.MarkUnread"]: @Localizer[$"{LOCALIZATION_PREFIX}.MarkRead"])" >
-                            <i class="@(GetUnreadCssClass(n))" @onclick=@(() => ToggleUnread(n))></i>
-                        </span>
-                    </div>
-                    
-                    @if (!n.Read_FLAG)
-                    {
-                        <p>@(UserLanguageIsFrench? n.NotificationTextFr_TXT: n.NotificationTextEn_TXT)</p>
-                        @if (!string.IsNullOrEmpty(n.ActionLink_URL))
+                <AeCard class=@GetNotificationCardCssClass(n)>
+                    <ChildContent>
+                        <div class="notification-header">
+                            <span class="notification-timestamp">@(GetLocalTime(n))</span>
+                            <span class="notification-readmarker" 
+                                    title="@(n.Read_FLAG? @Localizer[$"{LOCALIZATION_PREFIX}.MarkUnread"]: @Localizer[$"{LOCALIZATION_PREFIX}.MarkRead"])" >
+                                <i class="@(GetUnreadCssClass(n))" @onclick=@(() => ToggleUnread(n))></i>
+                            </span>
+                        </div>
+                        @if(!n.Read_FLAG)
                         {
-                            <AeButton OnClickEvent=@(async () => await GoToActionLink(n))>
-                                @Localizer[n.ActionLink_Key ?? $"{LOCALIZATION_PREFIX}.DefaultActionLinkText"]
-                            </AeButton>
+                            <p>@(UserLanguageIsFrench? n.NotificationTextFr_TXT: n.NotificationTextEn_TXT)</p>
+                            @if (!string.IsNullOrEmpty(n.ActionLink_URL))
+                            {
+                                <AeButton OnClickEvent=@(async () => await GoToActionLink(n))>
+                                    @Localizer[n.ActionLink_Key ?? $"{LOCALIZATION_PREFIX}.DefaultActionLinkText"]
+                                </AeButton>
+                            }
                         }
-                    }
-
-                </div>
+                    </ChildContent>
+                </AeCard>
             }
+            </div>
 
             <!-- stretch the notification panel to max width even when there are no long notifications -->
             <div style="width:100vw;"></div>
@@ -113,8 +78,6 @@
                     @Localizer[$"{LOCALIZATION_PREFIX}.ShowUnreadOnly"]
                 </label>
             </div>
-
-            <AeButton OnClickEvent=@DoTheThing>Generate notification</AeButton>
         </Footer>
     </Popup>
 </div>
@@ -145,15 +108,6 @@
 
     private void ToggleNotifications() => ShowNotifications = !ShowNotifications;
 
-    private async Task DoTheThing()
-    {
-        var userId = await userInfoService.GetUserIdString();
-        await systemNotificationService.CreateSystemNotification(userId, "SYSTEM-NOTIFICATION.TestStringThreeArgs", 
-            "Ryan Reynolds", 
-            new BilingualStringArgument("cow", "vache"), 
-            new LocalizedKeyStringArgument("Download"));
-    }
-
     private bool UserLanguageIsFrench => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName.ToLowerInvariant() == "fr";
 
     private async Task ToggleUnread(SystemNotification notification)
@@ -180,6 +134,12 @@
     private string GetUnreadCssClass(SystemNotification notification)
     {
         return notification.Read_FLAG ? "far fa-envelope" : "fas fa-envelope-open";
+    }
+
+    private string GetNotificationCardCssClass(SystemNotification notification)
+    {
+        var unread = notification.Read_FLAG ? "" : "unread";
+        return $"notification-item {unread}";
     }
 
     private async Task RefreshNotifications()
@@ -234,7 +194,7 @@
     {
         PageSize = systemNotificationService.GetNotificationPageSize();
 
-        // prepare the timezone service so timestamps get rendered properly on the first try
+        // prepare the timezone service so timestamps get rendered properly right away
         await timezoneService.GetLocalDateTime(DateTime.UtcNow);
 
         CurrentUserId = await userInfoService.GetUserIdString();
