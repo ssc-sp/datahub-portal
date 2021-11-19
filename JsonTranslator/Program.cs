@@ -26,7 +26,9 @@ foreach (var item in data)
     }
     else
     {
-        newDic[item.Key] = "????";
+        var translated = await translator.GetFrenchTranslation(item.Key);
+        Console.WriteLine($"Translated {item.Key} to {translated}");
+        newDic[item.Key] = translated;
     }
 }
 using var outFile = File.OpenWrite(tgt);
