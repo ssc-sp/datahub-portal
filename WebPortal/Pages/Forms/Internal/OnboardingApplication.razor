@@ -1,5 +1,4 @@
-﻿@inject IStringLocalizer DataLocalizer
-@inject IEmailNotificationService EmailService
+﻿@inject IEmailNotificationService EmailService
 @implements IDisposable
 @inject ServiceAuthManager ServiceAuthManager
 @inject IDbContextFactory<DatahubProjectDBContext> DbFactory
@@ -27,8 +26,10 @@
 
 @code {
     private const string PROJECTACRONYM = "DHPGLIST";
+    private const string NOTAPPLICABLE = "N/A";
     private FormMetadata<OnboardingApp> _formMetadata;
     private bool _onchange;
+    private bool _isFrench;
     private List<OnboardingApp> _onboardingApplications;
     private OnboardingApp _onboardingApplication;
     private DatahubProjectDBContext Context;
@@ -37,6 +38,7 @@
     private List<Datahub_Project_Sectors_And_Branches> _sectors;
     private List<Datahub_Project_Sectors_And_Branches> _branches;
     private List<Datahub_Project_Sectors_And_Branches> _divisions;
+    
 
     protected override async Task OnInitializedAsync()
     {
@@ -50,14 +52,14 @@
         _divisions = Context.Organization_Levels.Where(l => l.Org_Level == "5").ToList();
 
         await LoadApps();
-        _formMetadata.Header = "Datahub Project Onboarding Application Form";
+        _formMetadata.Header = Localizer["Datahub Project Onboarding Application Form"];
         _formMetadata.TableRoles = RoleConstants.DATAHUB_ROLE_ADMIN;
         _formMetadata.DataSet = _onboardingApplications;
         _formMetadata.AccessorFunctions = accessorFunctions;
         _formMetadata.Headers = headers;
         _formMetadata.GridTemplateColumns = "4fr 4fr 4fr 4fr";
         _formMetadata.IsSubmitEnabled = true;
-        var isFrench = CultureInfo.CurrentCulture.Name.StartsWith("fr", StringComparison.InvariantCulture);
+        _isFrench = CultureInfo.CurrentCulture.Name.StartsWith("fr", StringComparison.InvariantCulture);
         _formMetadata.MarkDownContent = new List<string>();
         _formMetadata.MarkDownContentFooter = new List<string>();
         
@@ -71,9 +73,10 @@
         new Func<OnboardingApp, string>(p => { return p.Client_Contact_Name; }),
     };
 
-    private List<string> headers = new List<string>
+    
+    private List<string> headers => new List<string>
     {
-        "Sector","Branch","Division", "Contact"
+        Localizer["Sector"], Localizer["Branch"], Localizer["Division"], Localizer["Contact"]        
     };
 
     private async Task HandleValidSubmit()
@@ -114,11 +117,11 @@
         {
             return new List<string>();
         }
-        var sectorId = _sectors.Where(s => s.Org_Name_E == _onboardingApplication.Client_Sector).First().Organization_ID;
-        var branches = _branches.Where(r => r.Superior_OrgId == sectorId).Select(r=> r.Org_Name_E).ToList();
+        var sectorId = _sectors.Where(s => (s.Org_Name_E == _onboardingApplication.Client_Sector || s.Org_Name_F == _onboardingApplication.Client_Sector)).First().Organization_ID;
+        var branches = _branches.Where(r => r.Superior_OrgId == sectorId).Select(r=> _isFrench ? r.Org_Name_F : r.Org_Name_E).ToList();
         if (!branches.Any())
         {
-            branches.Add("N/A");
+            branches.Add(NOTAPPLICABLE);
         }
 
         return branches;
@@ -126,17 +129,17 @@
 
     private List<string> LoadDivisions()
     {
-        if (string.IsNullOrEmpty(_onboardingApplication.Client_Branch) || _onboardingApplication.Client_Branch == "N/A")
+        if (string.IsNullOrEmpty(_onboardingApplication.Client_Branch) || _onboardingApplication.Client_Branch == NOTAPPLICABLE)
         {
-            return new List<string>() { "N/A" };
+            return new List<string>() { NOTAPPLICABLE };
         }
         
-        var branchId = _branches.Where(s => s.Org_Name_E == _onboardingApplication.Client_Branch).First().Organization_ID;
-        var divisions = _divisions.Where(r => r.Superior_OrgId == branchId).Select(r=> r.Org_Name_E).ToList();
+        var branchId = _branches.Where(s => (s.Org_Name_E == _onboardingApplication.Client_Branch  || s.Org_Name_F == _onboardingApplication.Client_Branch)).First().Organization_ID;
+        var divisions = _divisions.Where(r => r.Superior_OrgId == branchId).Select(r=> _isFrench ? r.Org_Name_F : r.Org_Name_E).ToList();
 
         if (!divisions.Any())
         {
-            divisions.Add("N/A");
+            divisions.Add(NOTAPPLICABLE);
         }
         return divisions;
     }
@@ -145,9 +148,7 @@
     {
         if (!_onchange)
         {
-            var sectors = _sectors.Select(l => l.Org_Name_E).ToList();
-            var branches = _branches.Select(b => b.Org_Name_E).ToList();
-            var divisions = _divisions.Select(b => b.Org_Name_E).ToList();
+            var sectors = _sectors.Select(r=> _isFrench ? r.Org_Name_F : r.Org_Name_E).ToList();
             context.RegisterOptionValueProperty<OnboardingApp>(p => p.Client_Sector, () => sectors, _ => context.RefreshOptions<OnboardingApp>(s => s.Client_Branch));
             context.RegisterOptionValueProperty<OnboardingApp>(p => p.Client_Branch, LoadBranches, _ => context.RefreshOptions<OnboardingApp>(s => s.Client_Division));
             context.RegisterOptionValueProperty<OnboardingApp>(p => p.Client_Division, LoadDivisions);
