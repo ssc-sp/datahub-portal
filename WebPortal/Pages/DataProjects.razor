@@ -22,7 +22,12 @@
             <div style="font-size: 1.5rem;padding-right: 0.5em;">
                 <i class="@($"fad fa-{p.Project_Icon}")" />
             </div>
+            <AeFlex>
+            <AeFlex Vertical>
             <DHLink DataProject="@p.Project_Acronym_CD">@p.ProjectName</DHLink>
+            <AeTypography Variant="h4" style="margin-block-start: 0;">@p.Sector_Name</AeTypography>
+            </AeFlex>
+            </AeFlex>
             </AeFlex>
         </Header>
         <ChildContent>
