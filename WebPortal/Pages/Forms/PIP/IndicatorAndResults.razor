@@ -7,6 +7,7 @@
 @implements IDisposable
 @inject IDbContextFactory<PIPDBContext> DbFactory
 @inject IDatahubAuditingService AuditingService
+@inject ServiceAuthManager ServiceAuthManager
 
 @page "/pip/indicators/{tombstone}"
 
@@ -23,9 +24,10 @@
         <AePaginatedTable Accessors="accessorFunctions"
                  T="PIP_IndicatorAndResults"
                  Dataset="_indicators"
+                 Renderers="GetRenderers()"
                  ColorAccessor="getColor"
                  Headers="headers"
-                 GridTemplateColumns="1fr 4fr 4fr"
+                 GridTemplateColumns="1fr 4fr 4fr 1fr"
                  OnRowClick="@SetFormEdit" 
                  Page="@_lastClicked"
                  PageSize="10"
@@ -90,7 +92,7 @@
     [Parameter]
     public string tombstone { get; set; }
 
-
+    private const string PROJECTACRONYM = "PIP";
     private List<PIP_IndicatorAndResults> _indicators;
     private PIP_IndicatorAndResults _indicator;
     private List<PIP_Tombstone> _tombstones;
@@ -101,7 +103,7 @@
     private Microsoft.Graph.User CurrentUser;
     private string navigationUrl = string.Empty;
     private string SubmitLabel = "Save";
-
+    private bool _isUserAdmin;
     private int _lastClicked = 0;
     private IPageableComponent _myTable;
 
@@ -116,15 +118,18 @@
         Context = DbFactory.CreateDbContext();
         renderFunctions = new List<Func<PIP_Risks, RenderFragment>>
 {
-        new Func<PIP_Risks, RenderFragment>(p => { return p.PIP_IndicatorRisks.Any(q => q.Pip_Indicator == _indicator) ? @<i class="fal fa-check-square"></i> : @<i class="fal fa-square"></i>
+        new Func<PIP_Risks, RenderFragment>(p => { return p.PIP_IndicatorRisks.Any(q => q.Pip_Indicator == _indicator) ? 
+    @<i class="fal fa-check-square"></i> : @<i class="fal fa-square"></i>
     ; }),
+        null,
         null,
         null,
     };
         CurrentUser = await UserInformationService.GetUserAsync();
+        _isUserAdmin = await ServiceAuthManager.IsProjectAdmin(CurrentUser.Id, PROJECTACRONYM);
         // load projects
         _tombstone = Context.Tombstones.Where(p => p.Tombstone_ID == Convert.ToInt32(tombstone)).FirstOrDefault();
-        _indicators = Context.IndicatorAndResults.Where(p => p.PIP_Tombstone.Tombstone_ID == _tombstone.Tombstone_ID).ToList();
+        _indicators = Context.IndicatorAndResults.Where(p => p.PIP_Tombstone.Tombstone_ID == _tombstone.Tombstone_ID && !p.IsDeleted).ToList();
     }
 
     private async Task CreateNewIndicator()
@@ -161,11 +166,61 @@
     }
 
 
+    private List<Func<PIP_IndicatorAndResults, RenderFragment>> GetRenderers()
+    {
+
+        if (_isUserAdmin)
+        {
+        return new List<Func<PIP_IndicatorAndResults, RenderFragment>>
+            {
+                null,
+                null,
+                null,
+                indicator => 
+            @<div class="help icon-container" @onclick="() => DeleteRecord(indicator.IndicatorAndResult_ID)"><i class="far fa-trash-alt"></i></div>
+            };
+        }
+       
+        return new List<Func<PIP_IndicatorAndResults, RenderFragment>>
+            {
+                null,
+                null,
+                null,
+                null
+            };
+    }
+
+
+    private async void OnConfirmDelete(bool isConfirmed, dynamic item)
+    {
+        if (isConfirmed && _indicator != null)
+        {
+            _indicator.IsDeleted = true;
+            _indicator.UserIdWhoDeleted = CurrentUser.Id;
+            await Context.TrackSaveChangesAsync(AuditingService);
+        }
+
+        _indicator = null;
+        _indicators = Context.IndicatorAndResults.Where(p => p.PIP_Tombstone.Tombstone_ID == _tombstone.Tombstone_ID && !p.IsDeleted).ToList();
+        await UI.ToggleModal();        
+
+        StateHasChanged();
+    }
+
+
+    private async void DeleteRecord(int recordId)
+    {
+        var messages = new List<string>() { "Would you like to delete this record?" };
+        await UI.ToggleModal(
+        @<UserChoiceModal HeaderText="Save Data" ChoiceTextList=@messages OnDecision="(a) => OnConfirmDelete(a, recordId)" ConfirmText="Yes" CancelText="No"  />);
+    }
+
     private List<Func<PIP_IndicatorAndResults, string>> accessorFunctions = new List<Func<PIP_IndicatorAndResults, string>>
 {
         new Func<PIP_IndicatorAndResults, string>(p => { return p.Outcome_Level_DESC; }),
         new Func<PIP_IndicatorAndResults, string>(p => { return p.Program_Output_Or_Outcome_DESC; }),
         new Func<PIP_IndicatorAndResults, string>(p => { return p.Indicator_DESC; }),
+        null
     };
 
     
@@ -278,7 +333,7 @@
 
     private List<string> headers = new List<string>
 {
-        "Outcome Level","Program Output or Outcome", "Indicator"
+        "Outcome Level","Program Output or Outcome", "Indicator", "Admin Actions"
     };
 
     private List<Func<PIP_Risks, RenderFragment>> renderFunctions = null;
