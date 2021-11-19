@@ -4,14 +4,16 @@ using Datahub.Core.EFCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
-namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
+namespace Datahub.Core.Migrations.Core
 {
     [DbContext(typeof(DatahubProjectDBContext))]
-    partial class DatahubProjectDBContextModelSnapshot : ModelSnapshot
+    [Migration("20211111195647_onboardingupdates")]
+    partial class onboardingupdates
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -747,45 +749,6 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.ToTable("SharedDataFiles");
                 });
 
-            modelBuilder.Entity("Datahub.Core.EFCore.SystemNotification", b =>
-                {
-                    b.Property<long>("Notification_ID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
-                    b.Property<string>("ActionLink_Key")
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
-
-                    b.Property<string>("ActionLink_URL")
-                        .HasMaxLength(512)
-                        .HasColumnType("nvarchar(512)");
-
-                    b.Property<DateTime>("Generated_TS")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("NotificationTextEn_TXT")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("NotificationTextFr_TXT")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("Read_FLAG")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("ReceivingUser_ID")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.HasKey("Notification_ID");
-
-                    b.ToTable("SystemNotifications");
-                });
-
             modelBuilder.Entity("Datahub.Core.EFCore.WebForm", b =>
                 {
                     b.Property<int>("WebForm_ID")
@@ -945,9 +908,6 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Project_Engagement_Category")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Project_Engagement_Category_Other")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Project_Goal")

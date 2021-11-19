@@ -8,6 +8,7 @@
 @inject IMSGraphService MSGraphService
 @inject IUserInformationService UserInformationService
 @inject ServiceAuthManager ServiceAuthManager
+@inject ISystemNotificationService SystemNotificationService
 @page "/admin"
 
 <div style="padding-left: 2rem;padding-right: 2rem">
@@ -298,6 +299,9 @@
         var serviceName = r.RequestServiceType;
 
         await EmailService.SendServiceAccessGrantedNotification(serviceName, r.Project.ProjectInfo, r.User_ID);
+        await SystemNotificationService.CreateSystemNotificationWithLink(r.User_ID, $"/project/{r.Project.Project_Acronym_CD}", "SYSTEM-NOTIFICATION.GoToProject",
+            "SYSTEM-NOTIFICATION.NOTIFICATION-TEXT.ServiceAccessRequestApproved", serviceName,
+            new BilingualStringArgument(r.Project.ProjectInfo.ProjectNameEn, r.Project.ProjectInfo.ProjectNameFr));
 
         await RefreshData();
     }
@@ -346,6 +350,8 @@
         var serviceName = r.RequestServiceType;
 
         await EmailService.SendAccessRevokedNotification(serviceName, r.Project.ProjectInfo, r.User_ID);
+        await SystemNotificationService.CreateSystemNotification(r.User_ID, "SYSTEM-NOTIFICATION.NOTIFICATION-TEXT.ServiceAccessRevoked",
+            serviceName, new BilingualStringArgument(r.Project.ProjectInfo.ProjectNameEn, r.Project.ProjectInfo.ProjectNameFr));
 
         await RefreshData();
     }
@@ -365,9 +371,15 @@
         {
             projectUserIds.Remove(requestingUserId);
             individualEmailTask = EmailService.SendServiceCreationRequestApprovedIndividual(r.ServiceType, r.Project.ProjectInfo, requestingUserId);
+            await SystemNotificationService.CreateSystemNotificationWithLink(requestingUserId, $"/project/{r.Project.Project_Acronym_CD}", "SYSTEM-NOTIFICATION.GoToProject",
+                "SYSTEM-NOTIFICATION.NOTIFICATION-TEXT.ServiceCreatedIndividual",
+                r.ServiceType, new BilingualStringArgument(r.Project.ProjectInfo.ProjectNameEn, r.Project.ProjectInfo.ProjectNameFr));
         }
 
         await EmailService.SendServiceCreationGroupNotification(r.ServiceType, r.Project.ProjectInfo, projectUserIds.ToList());
+        await SystemNotificationService.CreateSystemNotificationsWithLink(projectUserIds.ToList(), $"/project/{r.Project.Project_Acronym_CD}", "SYSTEM-NOTIFICATION.GoToProject",
+            "SYSTEM-NOTIFICATION.NOTIFICATION-TEXT.ServiceCreatedGroup",
+            r.ServiceType, new BilingualStringArgument(r.Project.ProjectInfo.ProjectNameEn, r.Project.ProjectInfo.ProjectNameFr));
 
         if (individualEmailTask != null)
         {
