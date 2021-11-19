@@ -1,0 +1,110 @@
+﻿@page "/opendata/dashboard"
+@using Datahub.CKAN.Service
+@using Datahub.Metadata.DTO
+@inject IPublicDataFileService PublicFileService
+@inject IMetadataBrokerService MetadataBrokerService
+@inject ICKANService CKANService
+@inject IDatahubAuditingService AuditingService
+
+<div style="padding-left: 2rem; padding-right: 2rem">
+
+    <AeTypography Variant="h2">Open Data Pending Approvals</AeTypography>
+
+    <AeTypography>Validation of Open Data (open.canada.ca) submission by the Data Approver on behalf of the CIO.</AeTypography>
+
+    <AeCard style="margin-top: 2rem;">
+        <ChildContent>
+            <AePaginatedTable Accessors=@accessorFunctions
+                              Renderers="GetRenderers()"
+                              Dataset=@_sharedFiles
+                              Headers=@Headers
+                              T="OpenDataSharedFile"
+                              @ref=@_myTable
+                              Page=@_lastClicked
+                              PageSize="20" />
+                        
+                <AePagination Pageable="@_myTable" OnPageClick="OnPageClick"> 
+                    <LeftIcon><i class='fad fa-chevron-double-left'></i></LeftIcon> 
+                    <RightIcon><i class='fad fa-chevron-double-right'></i></RightIcon>
+                </AePagination>
+        </ChildContent>
+    </AeCard>    
+    
+</div>
+
+@code {
+
+    private List<OpenDataSharedFile> _sharedFiles { get; set; } = new();
+
+    private List<Func<OpenDataSharedFile, string>> accessorFunctions = new() { GetFileName, null, null };
+
+    private List<Func<OpenDataSharedFile, RenderFragment>> GetRenderers() => new() { GetFileLink, GetPDFLink, GetApproveLink };
+
+    private List<string> Headers => new() { GetLabel("FileName"), GetLabel("Read"), GetLabel("Approve") };
+
+    private IPageableComponent _myTable;
+    private int _lastClicked = 0;
+
+    static string GetFileName(OpenDataSharedFile entry) => entry.Filename_TXT;
+    private RenderFragment GetFileLink(OpenDataSharedFile entry) => @<OpenDataFileLink File=@entry />;
+    private RenderFragment GetPDFLink(OpenDataSharedFile entry) => @<OpenDataApprovalLink File=@entry><i class="far fa-file-pdf"></i></OpenDataApprovalLink>;
+    private RenderFragment GetApproveLink(OpenDataSharedFile entry) => @<OpenDataApprovalButton File=@entry OnApprove=@OnApproveFile />;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _sharedFiles = await PublicFileService.GetPendingApprovalOpenDataFiles();    
+    }
+
+    private void OnPageClick(int pageIndex)
+    {
+        _lastClicked = pageIndex;
+    }    
+
+    private string GetLabel(string label) => Localizer[$"OPENDATA-DASHBOARD.{label}"];
+
+    private async Task OnApproveFile(OpenDataSharedFile file)
+    {
+        try
+        {
+            var fileId = file.File_ID.ToString();
+
+            var status = file.GetOpenDataSharingStatus();
+            if (status == OpenDataSharingStatus.PendingApproval)
+            {
+                // get the metadata
+                var fieldValues = await MetadataBrokerService.GetMetadataContext(fileId);
+
+                // get the file url
+                var url = PublicFileService.GetPublicSharedFileUrl(fileId);
+
+                // publish to open data
+                var result = await CKANService.CreatePackage(fieldValues, url);
+
+                if (result?.Succeeded == true)
+                {
+                    await PublicFileService.ApprovePublicUrlShare(file.File_ID, GetPublicationDate(fieldValues));
+                    await InvokeAsync(StateHasChanged);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            await AuditingService.TrackException(ex);
+        }
+    }
+
+    private DateTime GetPublicationDate(FieldValueContainer fields)
+    {
+        var date = DateTime.UtcNow;
+        var definition = fields.Definitions.Get("date_published");
+        if (definition is not null)
+        {
+            var fieldValue = fields.FirstOrDefault(fv => fv.FieldDefinitionId == definition.FieldDefinitionId);
+            if (fieldValue != null)
+            {
+                DateTime.TryParse(fieldValue.Value_TXT, out date);
+            }
+        }
+        return date;
+    }
+}

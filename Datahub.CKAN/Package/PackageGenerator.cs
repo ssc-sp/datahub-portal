@@ -53,7 +53,7 @@ namespace Datahub.CKAN.Package
                 agent.RenderField(dict);
             }
 
-            // resources
+            // resources (just the url)
             dict["resources"] = new object[] 
             { 
                 new Dictionary<string, object>()
@@ -65,6 +65,12 @@ namespace Datahub.CKAN.Package
                     { "format", "other" }
                 }
             };
+
+            // open government licence - canada
+            dict["license_id"] = "ca-ogl-lgo";
+
+            // ready to publish
+            dict["ready_to_publish"] = "true";
 
             return dict;
         }
