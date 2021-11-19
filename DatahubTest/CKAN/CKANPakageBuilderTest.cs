@@ -74,6 +74,9 @@ namespace Datahub.Tests.CKAN
             expected = "true";
             Assert.Equal(dict["ready_to_publish"].ToString(), expected);
 
+            expected = "false";
+            Assert.Equal(dict["imso_approval"].ToString(), expected);
+
             var json = JsonConvert.SerializeObject(dict);
 
             Assert.NotNull(dict);
