@@ -47,7 +47,7 @@
         Headers="headers"
         class="custom light"
         style="Width:100%"
-        GridTemplateColumns="0.5fr 2fr 3fr"    
+        GridTemplateColumns="0.5fr 0.5fr 2fr 3fr"    
         Page="@_lastClicked"
         PageSize="4"
         @ref=_myTable
@@ -102,10 +102,11 @@
         await FillAccessorFunctions();
         
         renderFunctions = new List<Func<Datahub_Project, RenderFragment>>() {            
-            new Func<Datahub_Project, RenderFragment>(Datahub_Project => 
-                @<AeFlex class="table-icon"><i class="@($"fad fa-{Datahub_Project.Project_Icon}")"></i></AeFlex>),
-            new Func<Datahub_Project, RenderFragment>(Datahub_Project => @<AeFlex style="padding-top: 1rem"><AeTypography><DHLink DataProject="@Datahub_Project?.Project_Acronym_CD">@Datahub_Project?.ProjectName</DHLink></AeTypography></AeFlex> ),
-            new Func<Datahub_Project, RenderFragment>(Datahub_Project => @<AeMarkdown Content="@($"{Datahub_Project.ProjectDescription}")"></AeMarkdown> ),
+            Datahub_Project => 
+                @<AeFlex class="table-icon"><i class="@($"fad fa-{Datahub_Project.Project_Icon}")"></i></AeFlex>,
+            Datahub_Project => @<AeFlex style="padding-top: 1rem"><AeTypography>@Datahub_Project?.Sector_Name</AeTypography></AeFlex>,
+            Datahub_Project => @<AeFlex style="padding-top: 1rem"><AeTypography><DHLink DataProject="@Datahub_Project?.Project_Acronym_CD">@Datahub_Project?.ProjectName</DHLink></AeTypography></AeFlex>,
+            Datahub_Project => @<AeMarkdown Content="@($"{Datahub_Project.ProjectDescription}")"></AeMarkdown> ,
         };
         
         
@@ -119,9 +120,10 @@
     public async Task FillAccessorFunctions()
     {
         accessorFunctions = new List<Func<Datahub_Project, string>>() {
-            new Func<Datahub_Project, string>(Datahub_Project => { return Datahub_Project?.Project_Icon; }),
-            new Func<Datahub_Project, string>(Datahub_Project => { return Datahub_Project?.ProjectName; }),
-            new Func<Datahub_Project, string>(Datahub_Project => { return Datahub_Project?.ProjectDescription; }),
+            Datahub_Project => { return Datahub_Project?.Project_Icon; },
+            Datahub_Project => { return Datahub_Project?.Sector_Name; },
+            Datahub_Project => { return Datahub_Project?.ProjectName; },
+            Datahub_Project => { return Datahub_Project?.ProjectDescription; },
         };
     }
     
