@@ -18,7 +18,7 @@
             if (!IsValidDefinition(definition))
                 continue;
 
-            var fieldValue = GetFieldValue(definition.FieldDefinitionId, Preview);
+            var fieldValue = GetFieldValue(definition, Preview);
             var fieldPair = _fieldPairs.BindField(definition.Field_Name_TXT, fieldValue);
 
             if (fieldValue != null)
@@ -111,13 +111,32 @@
         }
     }
 
-    private ObjectFieldValue GetFieldValue(int definitionId, bool preview)
+    private ObjectFieldValue GetFieldValue(FieldDefinition definition, bool preview)
     {
-        var field = FieldValues.FirstOrDefault(f => f.FieldDefinitionId == definitionId);
-        if (!preview)
-            return field ?? new ObjectFieldValue() { FieldDefinitionId = definitionId };
-        else
-            return field;
+        var field = FieldValues.FirstOrDefault(f => f.FieldDefinitionId == definition.FieldDefinitionId);
+        if (!preview && field is null)
+        {
+            var value = !string.IsNullOrEmpty(definition.Default_Value_TXT) ? definition.Default_Value_TXT : GetSingleChoiceValue(definition);
+
+            field = new ObjectFieldValue() 
+            { 
+                FieldDefinitionId = definition.FieldDefinitionId, 
+                Value_TXT = value
+            };
+
+            if (!string.IsNullOrEmpty(value))
+            {
+                FieldValues.Add(field);
+            }
+        }
+        return field;
+    }
+
+    private string GetSingleChoiceValue(FieldDefinition definition)
+    {
+        return definition.HasChoices && !definition.MultiSelect_FLAG && definition.Choices.Count == 1 
+            ? definition.Choices.First().Value_TXT 
+            : null;
     }
 
     private void ToggleShowAll()
