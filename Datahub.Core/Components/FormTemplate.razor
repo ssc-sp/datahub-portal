@@ -66,7 +66,7 @@ else
         </AuthorizeView>
         <AeFlex id="buttonBar">
         <div class="icon-container" style="margin-bottom: 10px; margin-left: 5px;">
-            <FAButton Text="Add New" Icon="far fa-plus-square" onclick="CreateNewRecord" />
+            <FAButton Text="@_addButton" Icon="far fa-plus-square" onclick="CreateNewRecord" />
         </div>
     </AeFlex>
 </AeCard>
@@ -136,7 +136,7 @@ else
 
 
     private string _selectedFilter = "All";
-
+    private string _addButton => Localizer["Add New"];
     
     private void HandleFilterChanges(string selectedValue)
     {
