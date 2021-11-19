@@ -12,6 +12,8 @@
 
 @using Datahub.Core.Model.Onboarding
 
+@if (_isLoaded)
+{
 <Datahub.Core.Components.FormTemplate 
         T="OnboardingApp" 
         U="DatahubProjectDBContext"
@@ -23,7 +25,7 @@
         CreateNewRecord="CreateNewApplication"
         SelectedRecord="@_onboardingApplication"
         SetFormEditRecord="SetFormEdit" />
-
+}
 @code {
     private const string PROJECTACRONYM = "DHPGLIST";
     private const string NOTAPPLICABLE = "N/A";
@@ -38,7 +40,8 @@
     private List<Datahub_Project_Sectors_And_Branches> _sectors;
     private List<Datahub_Project_Sectors_And_Branches> _branches;
     private List<Datahub_Project_Sectors_And_Branches> _divisions;
-    
+    private bool _isLoaded;
+
 
     protected override async Task OnInitializedAsync()
     {
@@ -62,7 +65,8 @@
         _isFrench = CultureInfo.CurrentCulture.Name.StartsWith("fr", StringComparison.InvariantCulture);
         _formMetadata.MarkDownContent = new List<string>();
         _formMetadata.MarkDownContentFooter = new List<string>();
-        
+        _isLoaded = true;
+        StateHasChanged();
     }
 
     private List<Func<OnboardingApp, string>> accessorFunctions = new List<Func<OnboardingApp, string>>
@@ -115,7 +119,7 @@
     {
         if (string.IsNullOrEmpty(_onboardingApplication.Client_Sector))
         {
-            return new List<string>();
+            return new List<string>() { NOTAPPLICABLE };
         }
         var sectorId = _sectors.Where(s => (s.Org_Name_E == _onboardingApplication.Client_Sector || s.Org_Name_F == _onboardingApplication.Client_Sector)).First().Organization_ID;
         var branches = _branches.Where(r => r.Superior_OrgId == sectorId).Select(r=> _isFrench ? r.Org_Name_F : r.Org_Name_E).ToList();
