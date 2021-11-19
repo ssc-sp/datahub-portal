@@ -1067,4 +1067,11 @@
   "[Enter_any_additional_information/comments_regarding_your_project_or_questions_for_the_DataHub_team]": "[Saisissez toute information/commentaire supplémentaire concernant votre projet ou toute question destinée à l'équipe de DataHub.]"
 
 
+  "OPENDATA-DASHBOARD": {
+    "FileName": "Nom de fichier",
+    "Read": "Lire",
+    "Approve": "Approuver",
+    "ClickToReadPDF": "Cliquez pour lire le PDF",
+    "ClickToApprove": "Cliquez pour approuver la publication"
+  }
 }

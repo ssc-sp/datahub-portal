@@ -1,0 +1,15 @@
+﻿<p>Hi @UserName, a new request is waiting for approval at the <a href="@Url">Datahub Approval Dashboard</a>.</p> 
+<p>Thank you!</p>
+<p></p>
+<p>Bonjour @UserName, une nouvelle demande est en attente d’approbation sur le <a href="@Url">tableau de bord d’approbation Datahub</a>.</p>
+<p>Merci !</p>
+
+@code {
+
+    [Parameter]
+    public string UserName { get; set; }        
+
+    [Parameter]
+    public string Url { get; set; }        
+
+}
