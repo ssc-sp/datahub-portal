@@ -71,6 +71,7 @@ namespace Datahub.CKAN.Package
 
             // ready to publish
             dict["ready_to_publish"] = "true";
+            dict["imso_approval"] = "false";
 
             return dict;
         }
