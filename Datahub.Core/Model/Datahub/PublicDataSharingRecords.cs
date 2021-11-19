@@ -114,6 +114,7 @@ namespace Datahub.Core.EFCore
     {
         public int? ApprovalForm_ID { get; set; }
         public string SignedApprovalForm_URL { get; set; }
+        public bool Read_FLAG { get; set; }
 
         public OpenDataSharingStatus GetOpenDataSharingStatus()
         {

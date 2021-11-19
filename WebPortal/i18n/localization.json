@@ -554,6 +554,7 @@
     "CancelSharingPrompt": "Do you want to cancel this sharing request? To share this file in the future, the process will have to be restarted from the beginning.",
     "SubmitSignedPdf": "Submit signed PDF document",
     "EnterGcDocsUrl": "Enter GCDocs URL",
+    "Approval_Form": "Approval Form",
     "Approval_filled_out": "Approval form has been filled out."
   },
 
@@ -765,7 +766,13 @@
     },
     "TestStringThreeArgs": "Here are three things: {0}, {1}, and {2}"
   },
+  "OPENDATA-DASHBOARD": {
+    "FileName": "File Name",
+    "Read": "Read",
+    "Approve": "Approve",
+    "ClickToReadPDF": "Click to read PDF",
+    "ClickToApprove": "Click to Approve publication"
+  },
   "TooManyTabs": "Too many tabs",
   "TooManyTabsMessage": "You have more than {} tabs currently opened. Close some tabs and refresh this page."
 }
-
