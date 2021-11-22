@@ -1,0 +1,31 @@
+﻿@inject IJSRuntime jsRuntime
+@inject IPublicDataFileService PublicFileService
+
+<AeButton @onclick=@NavigateToUrl disabled="@Disabled" title=@Localizer["OPENDATA-DASHBOARD.ClickToReadPDF"]>@ChildContent</AeButton>
+
+@code {
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    [Parameter]
+    public OpenDataSharedFile File { get; set; }
+
+    private bool Disabled => File.Read_FLAG;
+
+    private async void NavigateToUrl()
+    {
+        if (!File.Read_FLAG)
+        {
+            await PublicFileService.SetPendingApprovalOpenDataAsRead(File);
+            await InvokeAsync(StateHasChanged);
+            try
+            {
+                await jsRuntime.InvokeAsync<object>("open", File.SignedApprovalForm_URL, "_blank");
+            }
+            catch (Exception)
+            {
+            }
+        }
+    }
+}
