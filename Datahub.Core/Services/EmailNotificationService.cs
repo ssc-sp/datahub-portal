@@ -12,6 +12,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Text;
 using Datahub.Core.Model.Onboarding;
+using Datahub.Core.EFCore;
 
 namespace Datahub.Core.Services
 {
@@ -464,6 +465,50 @@ namespace Datahub.Core.Services
             var ub = new UriBuilder(_config.AppDomain);
             ub.Path = contextUrl;
             return ub.ToString();
+        }
+
+        public async Task SendFileSharingApprovalRequest(string username, string filename, DatahubProjectInfo projectInfo, IList<string> recipients)
+        {
+            var subject = "[DataHub] Public file sharing request";
+
+            var sharingDashboardLink = $"/project/{projectInfo.ProjectCode}/datasharing";
+
+            var parameters = new Dictionary<string, object>
+            {
+                { nameof(PublicUrlApprovalRequest.DataProject), projectInfo },
+                { nameof(PublicUrlApprovalRequest.Username), username },
+                { nameof(PublicUrlApprovalRequest.Filename), filename },
+                { nameof(PublicUrlApprovalRequest.SharingDashboardLink), BuildAppLink(sharingDashboardLink) }
+            };
+
+            var html = await RenderTemplate<PublicUrlApprovalRequest>(parameters);
+
+            await SendEmailMessage(subject, html, recipients);
+        }
+
+        public async Task SendFileSharingApproved(SharedDataFile sharedFileInfo, DatahubProjectInfo projectInfo, string publicUrlLink, string recipient)
+        {
+            var subject = "[DataHub] Public file sharing request approved";
+
+            var sharingStatusLink = $"/share/public/{sharedFileInfo.File_ID}";
+
+            var parameters = new Dictionary<string, object>()
+            {
+                { nameof(PublicUrlShareApproved.Filename), sharedFileInfo.Filename_TXT },
+                { nameof(PublicUrlShareApproved.DataProject), projectInfo },
+                { nameof(PublicUrlShareApproved.FileSharingStatusLink), BuildAppLink(sharingStatusLink) },
+                { nameof(PublicUrlShareApproved.PublicUrlLink), publicUrlLink }
+            };
+
+            var now = DateTime.UtcNow;
+            if (sharedFileInfo.PublicationDate_DT > now)
+            {
+                parameters.Add(nameof(PublicUrlShareApproved.PublicationDate), sharedFileInfo.PublicationDate_DT);
+            }
+
+            var html = await RenderTemplate<PublicUrlShareApproved>(parameters);
+
+            await SendEmailMessage(subject, html, recipient);
         }
     }
 

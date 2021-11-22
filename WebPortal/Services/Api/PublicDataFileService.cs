@@ -314,6 +314,15 @@ namespace Datahub.Portal.Services
             return projectUserEntries.Any(p => p.IsDataApprover);
         }
 
+        public async Task<Datahub_Project> GetProjectWithUsers(string projectCode)
+        {
+            var project = await _projectDbContext.Projects
+                .Where(p => p.Project_Acronym_CD == projectCode)
+                .Include(p => p.Users)
+                .SingleOrDefaultAsync();
+            return project;
+        }
+
         private async Task DoDeletePublicUrlShare(Guid fileId)
         {
             var shareInfo = await LoadPublicUrlSharedFileInfo(fileId);
