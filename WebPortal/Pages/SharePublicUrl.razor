@@ -4,6 +4,8 @@
 @inject UIControlsService UI
 @inject IMSGraphService GraphService
 @inject IUserInformationService UserInformationService
+@inject IEmailNotificationService EmailNotificationService
+@inject ISystemNotificationService SystemNotificationService
 
 
 <h1>@Localizer[$"{LOCALIZATION_PREFIX}.Page_Title"]</h1>
@@ -198,6 +200,7 @@
 
     private GraphUser RequestingUser;
     private string requestFilename;
+    private string projectCode;
 
     private string PublicUrl => PublicFileService.GetPublicSharedFileUrl(FileId);
 
@@ -241,10 +244,21 @@
     private async Task SubmitForApproval()
     {
         savingData = true;
-        
-        var t = PublicFileService.SubmitPublicUrlShareForApproval(fileIdGuid);
 
-        await t;
+        var project = await PublicFileService.GetProjectWithUsers(projectCode);
+        var approvers = project.Users.Where(pu => pu.IsDataApprover).Select(pu => pu.User_ID).ToList();
+
+        var tasks = new List<Task>()
+        {
+            PublicFileService.SubmitPublicUrlShareForApproval(fileIdGuid),
+            EmailNotificationService.SendFileSharingApprovalRequest(RequestingUser.Mail, requestFilename, project.ProjectInfo, approvers),
+            SystemNotificationService.CreateSystemNotificationsWithLink(approvers, 
+                $"/project/{project.ProjectInfo.ProjectCode}/datasharing", "SYSTEM-NOTIFICATION.GoToSharingDashboard", 
+                "SYSTEM-NOTIFICATION.NOTIFICATION-TEXT.PublicUrlShareRequested", RequestingUser.Mail, requestFilename, 
+                new BilingualStringArgument(project.ProjectInfo.ProjectNameEn, project.ProjectInfo.ProjectNameFr))
+        };
+
+        await Task.WhenAll(tasks);
         UpdateCurrentStatus(PublicUrlSharingStatus.PendingApproval);
 
         savingData = false;
@@ -368,6 +382,7 @@
         var sharedFileInfo = await loadTask;
                 
         requestFilename = sharedFileInfo.Filename_TXT;
+        projectCode = sharedFileInfo.ProjectCode_CD;
 
         RequestingUser = GraphService.GetUser(sharedFileInfo.RequestingUser_ID);
         var currentUser = await currentUserTask;
