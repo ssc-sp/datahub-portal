@@ -2,6 +2,8 @@
 @inject IPublicDataFileService PublicFileService
 @inject IMSGraphService GraphService
 @inject NotifierService NotifierService
+@inject IEmailNotificationService EmailNotificationService
+@inject ISystemNotificationService SystemNotificationService
 
 
 <AeFlex Vertical style="padding-left: 1rem; padding-right: 1rem;">
@@ -113,8 +115,22 @@
         {
             processing = true;
             var expirationDate = formData.EnableTempSharing ? formData.ExpirationDate : null;
+            var project = await PublicFileService.GetProjectWithUsers(SharedFile.ProjectCode_CD);
+            var publicUrl = PublicFileService.GetPublicSharedFileUrl(SharedFile.File_ID.ToString());
             await PublicFileService.SaveTempSharingExpiryDate(SharedFile.File_ID, expirationDate);
+            var notificationKey = formData.PublicationDate.HasValue ? 
+                "SYSTEM-NOTIFICATION.NOTIFICATION-TEXT.PublicUrlShareApprovedLater" : 
+                "SYSTEM-NOTIFICATION.NOTIFICATION-TEXT.PublicUrlShareApproved";
             await PublicFileService.ApprovePublicUrlShare(SharedFile.File_ID, formData.PublicationDate);
+            var tasks = new List<Task>()
+                {
+                    EmailNotificationService.SendFileSharingApproved(SharedFile, project.ProjectInfo, publicUrl, SharedFile.RequestingUser_ID),
+                    SystemNotificationService.CreateSystemNotificationWithLink(SharedFile.RequestingUser_ID,
+                        $"/share/public/{SharedFile.File_ID}", "SYSTEM-NOTIFICATION.ViewSharingStatus",
+                        notificationKey, SharedFile.Filename_TXT, new BilingualStringArgument(project.ProjectInfo.ProjectNameEn, project.ProjectInfo.ProjectNameFr),
+                        formData.PublicationDate?.ToShortDateString())
+                };
+            await Task.WhenAll(tasks);
             approved = true;
             await NotifierService.Update(DataSharingDashboard.NOTIFICATION_UPDATE_KEY, true);
             processing = false;

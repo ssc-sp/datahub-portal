@@ -756,13 +756,18 @@
     "ShowUnreadOnly": "Show Unread Only",
     "GoToProject": "Go to project",
     "GoToAdminPage": "Go to admin page",
+    "GoToSharingDashboard": "Go to sharing dashboard",
+    "ViewSharingStatus": "View sharing status",
     "NOTIFICATION-TEXT": {
       "ServiceAccessRequested": "User {0} has requested access to service {1} in data project {2}.",
       "ServiceAccessRequestApproved": "Your request for the access to service {0} in data project {1} has been approved.",
       "ServiceAccessRevoked": "Your access to service {0} in data project {1} has been revoked. The service links in the data project page will no longer be available.",
       "ServiceCreationRequested": "User {0} has requested the creation of service {1} in data project {2}. Please visit the admin page to notify project users when it has been created.",
       "ServiceCreatedIndividual": "Your request for the creation of service {0} in data project {1} has been approved.",
-      "ServiceCreatedGroup": "Service {0} has been created in data project {1}."
+      "ServiceCreatedGroup": "Service {0} has been created in data project {1}.",
+      "PublicUrlShareRequested": "User {0} has requested approval to share {1} in project {2} via public URL.",
+      "PublicUrlShareApproved": "Your request to share {0} in project {1} has been approved.",
+      "PublicUrlShareApprovedLater": "Your request to share {0} in project {1} has been approved. The file will be publicly available on {2}."
     },
     "TestStringThreeArgs": "Here are three things: {0}, {1}, and {2}"
   },
