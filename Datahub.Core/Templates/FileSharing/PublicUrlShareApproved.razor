@@ -1,0 +1,36 @@
+﻿@namespace Datahub.Core.Templates
+
+<h3>Public File Sharing Approved</h3>
+
+<p>Your request to share <b>@Filename</b> in project <b>@DataProject.ProjectNameEn</b> has been approved.</p>
+
+@if(PublicationDate != null)
+{
+    <p>The file will be publicly available on @PublicationDate?.ToShortDateString().</p>
+}
+else
+{
+    <p>The file can be accessed using <a href=@PublicUrlLink>this link</a>.</p>
+}
+
+<p>You can check the <a href=@FileSharingStatusLink>file sharing status</a> for more information.</p>
+
+
+@code {
+
+    [Parameter]
+    public string Filename { get; set; }
+
+    [Parameter]
+    public DatahubProjectInfo DataProject { get; set; }
+
+    [Parameter]
+    public string FileSharingStatusLink { get; set; }
+
+    [Parameter]
+    public string PublicUrlLink { get; set; }
+
+    [Parameter]
+    public DateTime? PublicationDate { get; set; }
+
+}
