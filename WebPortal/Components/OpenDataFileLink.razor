@@ -1,0 +1,15 @@
+﻿@inject NavigationManager NavigationManager
+
+@if (File is not null)
+{
+    <span @onclick=@Navigate style="cursor: pointer;">
+        @File.Filename_TXT
+    </span>    
+}
+
+@code {
+    [Parameter]
+    public OpenDataSharedFile File { get; set; }
+
+    private void Navigate() => NavigationManager.NavigateTo($@"/share/opendata/{File?.File_ID}");
+}
