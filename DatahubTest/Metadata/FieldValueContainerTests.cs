@@ -16,7 +16,7 @@ namespace Datahub.Tests.Meta_Data
             var definitions = GetDefinitions(("name", true), ("ignored", false), ("expected", true));
             var container = GetFieldValueContainer(definitions, ("name", "any name"), ("expected", "any value"));
 
-            var actual = container.ValidateRequired();
+            var actual = container.ValidateRequired(f => f.Required_FLAG);
 
             Assert.True(actual);
         }
@@ -27,7 +27,7 @@ namespace Datahub.Tests.Meta_Data
             var definitions = GetDefinitions(("name", true), ("not_ignored", true), ("expected", true));
             var container = GetFieldValueContainer(definitions, ("name", "any name"), ("expected", "any value"));
 
-            var actual = container.ValidateRequired();
+            var actual = container.ValidateRequired(f => f.Required_FLAG);
 
             Assert.False(actual);
         }

@@ -4457,6 +4457,53 @@ body {
   right: 1rem;
 }
 
+.notification-count {
+  background-color: cyan;
+  padding-left: 0.4rem;
+  padding-right: 0.4rem;
+  border-radius: 1rem;
+  font-size: small;
+  position: relative;
+  float: right;
+  top: -0.5rem;
+}
+
+.notification-item {
+  color: #a0aec0;
+  clear: both;
+  padding-right: 1rem;
+}
+
+.notification-item.unread {
+  color: #4a5568;
+  background-color: #dff;
+}
+
+.notification-readmarker {
+  float: right;
+  padding: 0.2rem;
+  cursor: pointer;
+}
+
+.notification-scrollpane {
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.notification-buttonbar {
+  margin-top: 0.5rem;
+  position: relative;
+}
+.notification-buttonbar .older-button {
+  position: absolute;
+  right: 0px;
+}
+.notification-buttonbar .latest-button {
+  position: absolute;
+  left: 50%;
+  transform: translate(-50%);
+}
+
 /** Transparent **/
 /** Black **/
 /** White **/
