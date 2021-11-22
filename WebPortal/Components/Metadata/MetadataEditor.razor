@@ -7,8 +7,8 @@
     
     var displayFields = Preview ? Definitions.Fields : EnumerateFields(!_showAll);
 
-    <div style="margin: 10px">
-        <div>
+    <div>
+        <div style="margin: 1rem 1rem 0rem 0rem">
            <i class="fa fa-language" aria-hidden="true"></i>&nbsp;@translationNote
         </div>
 
@@ -58,6 +58,9 @@
 
     [Parameter]
     public HashSet<string> RequiredFields { get; set; }
+
+    [Parameter]
+    public HashSet<string> HiddenFields { get; set; }
 
     [Parameter]
     public FieldValueContainer FieldValues { get; set; }
@@ -147,7 +150,8 @@
 
     private IEnumerable<FieldDefinition> EnumerateFields(bool required)
     {
-        var fields = Definitions.Fields.ToList();
+        // filter the hidden fields
+        var fields = Definitions.Fields.Where(IsNotHiddenField).ToList();
         var selected = new HashSet<FieldDefinition>();
 
         // required fields
@@ -158,14 +162,7 @@
         }
 
         // non-required but modifed fields
-        if (required)
-        {
-            foreach (var field in fields.Where(f => !selected.Contains(f) && IsFieldModified(f)))
-            {
-                yield return field;
-            }
-        }
-        else
+        if (!required)
         {
             foreach (var field in fields.Where(f => !selected.Contains(f)))
             {
@@ -173,6 +170,8 @@
             }
         }
     }
+
+    private bool IsNotHiddenField(FieldDefinition definition) => HiddenFields?.Contains(definition.Field_Name_TXT) != true; 
 
     private bool IsFieldRequired(FieldDefinition definition)
     {

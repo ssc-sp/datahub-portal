@@ -15,7 +15,7 @@
         <Footer>
             @if (!_saved)
             {
-                <AeButton @onclick="SaveChanges" style="margin: 5px;">Save</AeButton>
+                <AeButton @onclick="SaveChanges" style="margin: 5px;" disabled=@DisableSave()>Save</AeButton>
             }
             <AeButton @onclick="TogglePreview" style="margin: 5px;">Toggle Preview</AeButton>
             <AeButton @onclick="CreateCKANPackage" style="margin: 5px;">Create CKAN Package</AeButton>
@@ -34,7 +34,7 @@
     /// Object ID to edit or add metadata
     /// </summary>
     [Parameter]
-    public string ObjectId { get; set; } = "1e31f091-f182-49d1-97a9-fdb38645a1b6";
+    public string ObjectId { get; set; } = "6a1a65b9-6cc9-4d12-810c-038f8add752c";
 
     private bool _preview = false;
     private bool _saved = false;
@@ -56,4 +56,6 @@
     {
         await _objectMetadataEditor.SavePackage();
     }
+
+    private bool DisableSave() => _objectMetadataEditor?.IsRequiredMetadataValid != true;
 }
