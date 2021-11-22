@@ -27,6 +27,10 @@
     [Parameter]
     public string GroupId {  get;  set; }
 
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public bool ReadOnly { get; set; }
+
     //protected override async Task OnAfterRenderAsync(bool firstRender)
     //{
     //    await JSRuntime.InvokeVoidAsync("ResizeIFrame","#powerbi-iframe");
@@ -50,13 +54,19 @@
         {
             ConsentHandler.HandleException(ex);
         }
+        var pbiSettings = new PowerBISettings();
+        if (ReadOnly)
+        {
+            pbiSettings.bars.actionBar.visible = false;
+            pbiSettings.navContentPaneEnabled = false;            
+        }
 
         if (report != null)
         {
             await JSRuntime.InvokeAsync<object>(
                 "ShowMyPowerBI.showReport",
                 PowerBIElement, reportToken, report.EmbedUrl,
-                report.Id.ToString());
+                report.Id.ToString(), pbiSettings);
         }
     }
 
