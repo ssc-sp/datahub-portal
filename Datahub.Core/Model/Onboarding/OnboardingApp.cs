@@ -19,13 +19,11 @@ namespace Datahub.Core.Model.Onboarding
         [StringLength(2000)]
         public string Client_Sector { get; set; }
         [StringLength(2000)]
-        [AeFormCategory("Client Information", 10)]
-        [Required]
+        [AeFormCategory("Client Information", 10)]        
         [AeLabel(isDropDown: true, placeholder: "[Enter your Branch acronym and/or name]")]
         public string Client_Branch { get; set; }
         [StringLength(2000)]
-        [AeFormCategory("Client Information", 10)]
-        [Required]
+        [AeFormCategory("Client Information", 10)]        
         [AeLabel(isDropDown: true, placeholder: "[Enter your Division acronym and/or name]")]
         public string Client_Division { get; set; }
         [StringLength(200)]
