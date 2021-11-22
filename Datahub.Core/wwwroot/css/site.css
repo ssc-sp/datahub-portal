@@ -4607,6 +4607,10 @@ body {
   --fa-primary-color: #48bb78;
   --fa-secondary-color: #38a169;
 }
+#sidebar .links > a:hover.orange {
+  --fa-primary-color: #ed8936;
+  --fa-secondary-color: #dd6b20;
+}
 #sidebar .links > a:hover.grey {
   --fa-primary-color: #4a5568;
   --fa-secondary-color: #4a5568;
@@ -4637,6 +4641,9 @@ body {
 #sidebar .links > a.active.green {
   border-left-color: #48bb78;
 }
+#sidebar .links > a.active.orange {
+  border-left-color: #ed8936;
+}
 #sidebar .links > a.active.grey {
   border-left-color: #4a5568;
 }
@@ -4666,6 +4673,10 @@ body {
 #sidebar .links > a.active.green {
   --fa-primary-color: #48bb78;
   --fa-secondary-color: #38a169;
+}
+#sidebar .links > a.active.orange {
+  --fa-primary-color: #ed8936;
+  --fa-secondary-color: #dd6b20;
 }
 #sidebar .links > a.active.grey {
   --fa-primary-color: #4a5568;
@@ -4840,6 +4851,10 @@ body {
   --fa-primary-color: #48bb78;
   --fa-secondary-color: #38a169;
 }
+.recent-card-container .recent-card.orange {
+  --fa-primary-color: #ed8936;
+  --fa-secondary-color: #dd6b20;
+}
 .recent-card-container .recent-card.grey {
   --fa-primary-color: #4a5568;
   --fa-secondary-color: #4a5568;
@@ -4869,6 +4884,9 @@ body {
 }
 .recent-card-container .recent-card:hover.green {
   border-left-color: #48bb78;
+}
+.recent-card-container .recent-card:hover.orange {
+  border-left-color: #ed8936;
 }
 .recent-card-container .recent-card:hover.grey {
   border-left-color: #4a5568;
@@ -4926,6 +4944,10 @@ body {
 .table-icon.green {
   --fa-primary-color: #48bb78;
   --fa-secondary-color: #38a169;
+}
+.table-icon.orange {
+  --fa-primary-color: #ed8936;
+  --fa-secondary-color: #dd6b20;
 }
 .table-icon.grey {
   --fa-primary-color: #4a5568;

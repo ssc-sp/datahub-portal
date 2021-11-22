@@ -1,0 +1,47 @@
+﻿@page "/tools"
+
+<div style="padding: 2rem;padding-right: 2rem">
+
+    <AeFlex Vertical>
+        <h1>@Localizer["DataHub Tools"]</h1>
+    </AeFlex>    
+<div class="ae flex wrap">
+
+    <AeCard class="facard1" CardPosition="AeCard.CardStyle.Horizontal">
+                <Header>
+                    <div style="width:180px">                        
+                        <AeIcon class="fad fa-truck-loading fa-xs"></AeIcon>
+                    </div>
+                </Header>
+                <ChildContent>                   
+                        <DHLink Variant="h3" LinkType="DatahubLinkType.Onboarding">@Localizer["Onboarding Form"]</DHLink>
+                </ChildContent>
+                <Footer>
+                    <AeFlex Vertical>
+                        <AeTypography Variant="warning">@Localizer["Have a new project? Fill out an onboarding application now!"]</AeTypography>                   
+                    </AeFlex>
+                </Footer>
+            </AeCard>
+
+            <AeCard class="facard1" CardPosition="AeCard.CardStyle.Horizontal">
+                <Header>
+                     <div class="indigo" style="width:120px">
+                        <AeIcon class="fad fa-hdd card-icon fa-xs" />
+                    </div>
+                </Header>
+                <ChildContent>                   
+                        <AeTypography Variant="h3">@Localizer["Storage Cost Estimator"]</AeTypography>                   
+                </ChildContent>
+                <Footer>
+                    <AeFlex Vertical>
+                        <AeTypography Variant="warning">@Localizer["Looking of an estimate for your storage needs?"]</AeTypography>                   
+                    </AeFlex>
+                </Footer>
+            </AeCard>
+
+    </div>
+</div>
+
+@code {
+
+}
