@@ -43,6 +43,10 @@
     private bool _isLoaded;
 
 
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public bool New { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
         // load projects
@@ -65,8 +69,13 @@
         _isFrench = CultureInfo.CurrentCulture.Name.StartsWith("fr", StringComparison.InvariantCulture);
         _formMetadata.MarkDownContent = new List<string>();
         _formMetadata.MarkDownContentFooter = new List<string>();
+
+        if (New)
+            await CreateNewApplication();
+
         _isLoaded = true;
         StateHasChanged();
+
     }
 
     private List<Func<OnboardingApp, string>> accessorFunctions = new List<Func<OnboardingApp, string>>
