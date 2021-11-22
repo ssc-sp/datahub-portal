@@ -4,10 +4,12 @@
 
 @if (_fieldValues != null)
 {
-    <MetadataEditor Preview="_preview"
-                    Definitions="@_definitions"
-                    FieldValues="@_fieldValues"
-                    OnFieldChanged="FieldChanged" />
+    <MetadataEditor Preview=@_preview
+                    Definitions=@_definitions
+                    FieldValues=@_fieldValues
+                    RequiredFields=@_requiredFields
+                    HiddenFields=@_hiddenFields
+                    OnFieldChanged=@FieldChanged />
 }
 
 @code {
@@ -21,9 +23,36 @@
     [Parameter]
     public string ObjectId { get; set; }
 
+    [Parameter]
+    public EventCallback<ObjectFieldValue> OnFieldChanged { get; set; }
+
     private FieldDefinitions _definitions;
     private FieldValueContainer _fieldValues;
     private bool _preview = false;
+
+    private HashSet<string> _requiredFields = new() 
+    {
+        "collection",
+        "title_translated_en",
+        "title_translated_fr",
+        "owner_org",
+        "notes_translated_en",
+        "notes_translated_fr",
+        "keywords_en",
+        "keywords_fr",
+        "subject",
+        "frequency",
+        "date_published",
+        "jurisdiction",
+        //"license_id",
+        "restrictions"
+    };
+
+    private HashSet<string> _hiddenFields = new() 
+    { 
+        "imso_approval", 
+        "ready_to_publish" 
+    };
 
     protected override async Task OnInitializedAsync()
     {
@@ -37,7 +66,9 @@
         StateHasChanged();
     }
 
-    public bool IsRequiredMetadataValid => _fieldValues?.ValidateRequired() == true;
+    public bool? IsRequiredMetadataValid => _fieldValues?.ValidateRequired(IsFieldRequired);
+
+    private bool IsFieldRequired(FieldDefinition field) => _requiredFields.Contains(field.Field_Name_TXT);
 
     public async Task SaveChanges()
     {
@@ -45,6 +76,12 @@
         StateHasChanged();
     }
 
+    public string GetTitle()
+    {
+        return _fieldValues["title_translated_en"]?.Value_TXT ?? string.Empty;
+    }
+
+    // -- temp test area --
     [Inject]
     public ICKANService CKANService { get; set; }
 
@@ -56,9 +93,10 @@
             // >>
         }
     }
+    // -- end temp area --
 
-    private void FieldChanged(ObjectFieldValue field)
+    private async void FieldChanged(ObjectFieldValue field)
     {
-        StateHasChanged();
+        await OnFieldChanged.InvokeAsync();
     }
 }

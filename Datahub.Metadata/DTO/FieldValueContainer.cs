@@ -1,4 +1,5 @@
 ﻿using Datahub.Metadata.Model;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -20,11 +21,13 @@ namespace Datahub.Metadata.DTO
         public FieldDefinitions Definitions { get; init; }
         public ObjectFieldValue this[string fieldName] => GetFieldValueByName(fieldName);
 
-        public bool ValidateRequired()
+        public bool ValidateRequired(Func<FieldDefinition, bool> isRequired)
         {
             var map = this.ToDictionary(fv => fv.FieldDefinitionId);
-            var findValue = (int id) => map.ContainsKey(id) ? map[id].Value_TXT : null;
-            var passRequired = (FieldDefinition f) => !f.Required_FLAG || !string.IsNullOrEmpty(findValue(f.FieldDefinitionId));
+
+            var findValidValue = (int id) => map.TryGetValue(id, out ObjectFieldValue value) && !string.IsNullOrEmpty(value.Value_TXT);
+            var passRequired = (FieldDefinition f) => !isRequired.Invoke(f) || findValidValue(f.FieldDefinitionId);
+
             return Definitions.Fields.All(passRequired);
         }
 
