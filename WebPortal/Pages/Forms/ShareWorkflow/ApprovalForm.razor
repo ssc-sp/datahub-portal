@@ -28,6 +28,9 @@
     public int ApprovalFormId { get; set; } = 0;
 
     [Parameter]
+    public string DatasetTitle { get; set; }
+
+    [Parameter]
     public EventCallback<int> OnSubmitForm { get; set; }
 
     private GraphUser _user;
@@ -60,7 +63,8 @@
             { 
                 Type_Of_Data_TXT = "Data",
                 Name_NAME = _user?.DisplayName,
-                Email_EMAIL = _user?.Mail
+                Email_EMAIL = _user?.Mail,
+                Dataset_Title_TXT = DatasetTitle ?? string.Empty
             };
     }
 
