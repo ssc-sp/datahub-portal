@@ -116,6 +116,9 @@
             case DatahubLinkType.PowerBIWorkspace:
                 NavigationManager.NavigateTo($"https://app.powerbi.com/groups/{link.PBIWorkspaceId}");
                 break;
+            case DatahubLinkType.Onboarding:
+                NavigationManager.NavigateTo($"/onboarding/applications");
+                break;
         }
     }
 }
