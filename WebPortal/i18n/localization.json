@@ -146,7 +146,8 @@
     "Resources": "Resources",
     "Datasets": "Datasets",
     "PowerBI": "Power BI",
-    "Admin": "Admin"
+    "Admin": "Admin",
+    "Tools": "Tools"
   },
   "TAC-PAGE": {
     "AcceptTerms": "Accept Terms",
