@@ -25,7 +25,7 @@
             <AeFlex>
             <AeFlex Vertical>
             <DHLink DataProject="@p.Project_Acronym_CD">@p.ProjectName</DHLink>
-            <AeTypography Variant="h4" style="margin-block-start: 0;">@p.Sector_Name</AeTypography>
+            <AeTypography Variant="h4" style="margin-block-start: 0;">@Localizer[@p.Sector_Name]</AeTypography>
             </AeFlex>
             </AeFlex>
             </AeFlex>
@@ -109,7 +109,7 @@
         renderFunctions = new List<Func<Datahub_Project, RenderFragment>>() {            
             Datahub_Project => 
                 @<AeFlex class="table-icon"><i class="@($"fad fa-{Datahub_Project.Project_Icon}")"></i></AeFlex>,
-            Datahub_Project => @<AeFlex style="padding-top: 1rem"><AeTypography>@Datahub_Project?.Sector_Name</AeTypography></AeFlex>,
+            Datahub_Project => @<AeFlex style="padding-top: 1rem"><AeTypography>@Localizer[@Datahub_Project?.Sector_Name]</AeTypography></AeFlex>,
             Datahub_Project => @<AeFlex style="padding-top: 1rem"><AeTypography><DHLink DataProject="@Datahub_Project?.Project_Acronym_CD">@Datahub_Project?.ProjectName</DHLink></AeTypography></AeFlex>,
             Datahub_Project => @<AeMarkdown Content="@($"{Datahub_Project.ProjectDescription}")"></AeMarkdown> ,
         };
