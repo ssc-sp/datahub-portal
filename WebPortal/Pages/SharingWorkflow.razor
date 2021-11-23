@@ -6,40 +6,48 @@
 @inject IPublicDataFileService _publicDataService
 @inject IUserInformationService _userInfoService
 
-<div style="padding-left: 2rem;padding-right: 2rem">
+<div style="padding: 2rem">
     <AeFlex Vertical>
         <AeTypography Variant="h1">@Localizer[$"{LOCALIZATION_PREFIX}.Title"]</AeTypography>
     </AeFlex>
+
+    <AeFlex>
+
+        <AuthorizeView Roles="DHPGLIST-admin" Context="hidden_in_dev">
+            <AeCard class="facard1">
+                <Header>
+                    <AeTypography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.OpenDataTitle"]</AeTypography>
+                </Header>
+                <ChildContent>
+                    <p>
+                        @Localizer[$"{LOCALIZATION_PREFIX}.OpenDataDesc"]
+                    </p>
+                </ChildContent>
+                <Footer>
+                    <div>
+                        <AeButton OnClickEvent=@OpenDataClicked Disabled=@_openDataDisabled >@Localizer[$"{LOCALIZATION_PREFIX}.StartWorkflowButton"]</AeButton>
+                    </div>
+		        </Footer>
+            </AeCard>
+        </AuthorizeView>
     
-    <AuthorizeView Roles="DHPGLIST-admin" Context="hidden_in_dev">
-    <AeCard>
-        <Header>
-        <AeTypography Variant="h1">@Localizer[$"{LOCALIZATION_PREFIX}.OpenDataTitle"]</AeTypography>
-        </Header>
-        <ChildContent>
-            <p>
-                @Localizer[$"{LOCALIZATION_PREFIX}.OpenDataDesc"]
-            </p>
-        </ChildContent>
-        <Footer>
-            <AeButton OnClickEvent=@OpenDataClicked Disabled=@_openDataDisabled >@Localizer[$"{LOCALIZATION_PREFIX}.StartWorkflowButton"]</AeButton>
-		</Footer>
-    </AeCard>
-    </AuthorizeView>
-    
-    <AeCard>
-        <Header>
-        <AeTypography Variant="h1">@Localizer[$"{LOCALIZATION_PREFIX}.PublicUrlTitle"]</AeTypography>
-        </Header>
-        <ChildContent>
-            <p>
-                @Localizer[$"{LOCALIZATION_PREFIX}.PublicUrlDesc"]
-            </p>
-        </ChildContent>
-        <Footer>
-            <AeButton OnClickEvent=@PublicUrlClicked Disabled=@_publicUrlDisabled >@Localizer[$"{LOCALIZATION_PREFIX}.StartWorkflowButton"]</AeButton>
-		</Footer>
-    </AeCard>
+        <AeCard class="facard1">
+            <Header>
+                <AeTypography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.PublicUrlTitle"]</AeTypography>
+            </Header>
+            <ChildContent>
+                <p>
+                    @Localizer[$"{LOCALIZATION_PREFIX}.PublicUrlDesc"]
+                </p>
+            </ChildContent>
+            <Footer>
+                <div>
+                    <AeButton OnClickEvent=@PublicUrlClicked Disabled=@_publicUrlDisabled >@Localizer[$"{LOCALIZATION_PREFIX}.StartWorkflowButton"]</AeButton>
+                </div>
+		    </Footer>
+        </AeCard>
+
+    </AeFlex>
 </div>
 
 
