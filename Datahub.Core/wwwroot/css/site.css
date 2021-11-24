@@ -4689,8 +4689,10 @@ body {
 #sidebar .logo {
   background-color: #fff;
   border-bottom: 1px solid transparent;
-  height: 60px;
+  height: 50px;
   margin: 0 auto;
+  margin-top: 5px;
+  margin-bottom: 5px;
 }
 #sidebar .logo img {
   padding: 0.5rem;
@@ -4805,7 +4807,7 @@ body {
   border-color: #57C4EC;
 }
 .landing-content-wrapper .landing-content {
-  margin: 0 5rem;
+  margin: 0 0.5rem;
   max-width: 1200px;
   padding: 1.5em;
 }
