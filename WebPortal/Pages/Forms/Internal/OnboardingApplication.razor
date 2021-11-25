@@ -28,7 +28,6 @@
 }
 @code {
     private const string PROJECTACRONYM = "DHPGLIST";
-    private const string NOTAPPLICABLE = "N/A";
     private FormMetadata<OnboardingApp> _formMetadata;
     private bool _onchange;
     private bool _isFrench;
@@ -135,32 +134,26 @@
     {
         if (string.IsNullOrEmpty(_onboardingApplication.Client_Sector))
         {
-            return new List<string>() { NOTAPPLICABLE };
+            return new List<string>();
         }
         var sectorId = _sectors.Where(s => (s.Org_Name_E == _onboardingApplication.Client_Sector || s.Org_Name_F == _onboardingApplication.Client_Sector)).First().Organization_ID;
         var branches = _branches.Where(r => r.Superior_OrgId == sectorId).Select(r=> _isFrench ? r.Org_Name_F : r.Org_Name_E).ToList();
-        if (!branches.Any())
-        {
-            branches.Add(NOTAPPLICABLE);
-        }
+        
 
         return branches;
     }
 
     private List<string> LoadDivisions()
     {
-        if (string.IsNullOrEmpty(_onboardingApplication.Client_Branch) || _onboardingApplication.Client_Branch == NOTAPPLICABLE)
+        if (string.IsNullOrEmpty(_onboardingApplication.Client_Branch))
         {
-            return new List<string>() { NOTAPPLICABLE };
+            return new List<string>();
         }
         
         var branchId = _branches.Where(s => (s.Org_Name_E == _onboardingApplication.Client_Branch  || s.Org_Name_F == _onboardingApplication.Client_Branch)).First().Organization_ID;
         var divisions = _divisions.Where(r => r.Superior_OrgId == branchId).Select(r=> _isFrench ? r.Org_Name_F : r.Org_Name_E).ToList();
 
-        if (!divisions.Any())
-        {
-            divisions.Add(NOTAPPLICABLE);
-        }
+        
         return divisions;
     }
 
