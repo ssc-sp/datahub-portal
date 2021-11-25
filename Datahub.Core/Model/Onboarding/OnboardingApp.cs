@@ -97,7 +97,24 @@ namespace Datahub.Core.Model.Onboarding
         [Timestamp]
         public byte[] Timestamp { get; set; }
 
+        [AeFormIgnore]
+        [StringLength(2000)]
+        public string Client_Sector_EN { get; set; }
+        [AeFormIgnore]
+        [StringLength(2000)]
+        public string Client_Branch_EN { get; set; }
+        [AeFormIgnore]
+        [StringLength(2000)]
+        public string Client_Division_EN { get; set; }
 
-
+        [AeFormIgnore]
+        [StringLength(2000)]
+        public string Client_Sector_FR { get; set; }
+        [AeFormIgnore]
+        [StringLength(2000)]
+        public string Client_Branch_FR { get; set; }
+        [AeFormIgnore]
+        [StringLength(2000)]
+        public string Client_Division_FR { get; set; }
     }
 }
