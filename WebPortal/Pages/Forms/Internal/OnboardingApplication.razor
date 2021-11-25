@@ -57,16 +57,16 @@
         _sectors = Context.Organization_Levels.Where(l => l.Org_Level == "3").ToList();
         _branches = Context.Organization_Levels.Where(l => l.Org_Level == "4").ToList();
         _divisions = Context.Organization_Levels.Where(l => l.Org_Level == "5").ToList();
+        _isFrench = CultureInfo.CurrentCulture.Name.StartsWith("fr", StringComparison.InvariantCulture);
 
         await LoadApps();
         _formMetadata.Header = Localizer["Datahub Project Onboarding Application Form"];
         _formMetadata.TableRoles = RoleConstants.DATAHUB_ROLE_ADMIN;
         _formMetadata.DataSet = _onboardingApplications;
-        _formMetadata.AccessorFunctions = accessorFunctions;
+        _formMetadata.AccessorFunctions = _isFrench ? accessorFunctionsFr : accessorFunctions;
         _formMetadata.Headers = headers;
         _formMetadata.GridTemplateColumns = "4fr 4fr 4fr 4fr";
         _formMetadata.IsSubmitEnabled = true;
-        _isFrench = CultureInfo.CurrentCulture.Name.StartsWith("fr", StringComparison.InvariantCulture);
         _formMetadata.MarkDownContent = new List<string>();
         _formMetadata.MarkDownContentFooter = new List<string>();
 
@@ -80,13 +80,20 @@
 
     private List<Func<OnboardingApp, string>> accessorFunctions = new List<Func<OnboardingApp, string>>
     {
-        new Func<OnboardingApp, string>(p => { return p.Client_Sector; }),
-        new Func<OnboardingApp, string>(p => { return p.Client_Branch; }),
-        new Func<OnboardingApp, string>(p => { return p.Client_Division; }),
+        new Func<OnboardingApp, string>(p => { return p.Client_Sector_EN; }),
+        new Func<OnboardingApp, string>(p => { return p.Client_Branch_EN; }),
+        new Func<OnboardingApp, string>(p => { return p.Client_Division_EN; }),
         new Func<OnboardingApp, string>(p => { return p.Client_Contact_Name; }),
     };
 
-    
+    private List<Func<OnboardingApp, string>> accessorFunctionsFr = new List<Func<OnboardingApp, string>>
+    {
+        new Func<OnboardingApp, string>(p => { return p.Client_Sector_FR; }),
+        new Func<OnboardingApp, string>(p => { return p.Client_Branch_FR; }),
+        new Func<OnboardingApp, string>(p => { return p.Client_Division_FR; }),
+        new Func<OnboardingApp, string>(p => { return p.Client_Contact_Name; }),
+    };
+
     private List<string> headers => new List<string>
     {
         Localizer["Sector"], Localizer["Branch"], Localizer["Division"], Localizer["Contact"]        
@@ -180,8 +187,33 @@
 
     private void OnChange(ModelFormChangeArgs args)
     {
+        HandleTranslationFields();
         _onchange = true;
         OnConfigure(args.Context);
+    }
+
+    private void HandleTranslationFields()
+    {
+        if (!string.IsNullOrEmpty(_onboardingApplication.Client_Sector))
+        {
+            var sectorOrganization_ID = _sectors.Where(s => (s.Org_Name_E == _onboardingApplication.Client_Sector || s.Org_Name_F == _onboardingApplication.Client_Sector)).Select(i => i.Organization_ID).First();
+            _onboardingApplication.Client_Sector_EN = _sectors.Where(s => s.Organization_ID == sectorOrganization_ID).First().Org_Name_E;
+            _onboardingApplication.Client_Sector_FR = _sectors.Where(s => s.Organization_ID == sectorOrganization_ID).First().Org_Name_F;
+        }
+
+        if (!string.IsNullOrEmpty(_onboardingApplication.Client_Branch))
+        {
+            var branchOrganization_ID = _branches.Where(s => (s.Org_Name_E == _onboardingApplication.Client_Branch || s.Org_Name_F == _onboardingApplication.Client_Branch)).Select(i => i.Organization_ID).First();
+            _onboardingApplication.Client_Branch_EN = _branches.Where(s => s.Organization_ID == branchOrganization_ID).First().Org_Name_E;
+            _onboardingApplication.Client_Branch_FR = _branches.Where(s => s.Organization_ID == branchOrganization_ID).First().Org_Name_F;
+        }
+
+        if (!string.IsNullOrEmpty(_onboardingApplication.Client_Division))
+        {
+            var divisionOrganization_ID = _divisions.Where(s => (s.Org_Name_E == _onboardingApplication.Client_Division || s.Org_Name_F == _onboardingApplication.Client_Division)).Select(i => i.Organization_ID).First();
+            _onboardingApplication.Client_Division_EN = _divisions.Where(s => s.Organization_ID == divisionOrganization_ID).First().Org_Name_E;
+            _onboardingApplication.Client_Division_FR = _divisions.Where(s => s.Organization_ID == divisionOrganization_ID).First().Org_Name_F;
+        }
     }
 
     private async Task CreateNewApplication()
