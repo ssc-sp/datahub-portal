@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Datahub.Core.EFCore;
 using MimeKit;
 
 namespace Datahub.Core.Services
@@ -24,6 +25,8 @@ namespace Datahub.Core.Services
         Task SendLanguageSchoolDecision(LanguageTrainingParameters parameters);
         Task SendManagerDecisionEmail(LanguageTrainingParameters parameters);
         Task SendOnboardingConfirmations(OnboardingParameters parameters);
+        Task SendFileSharingApprovalRequest(string username, string filename, DatahubProjectInfo projectInfo, IList<string> recipients);
+        Task SendFileSharingApproved(SharedDataFile sharedFileInfo, DatahubProjectInfo projectInfo, string publicUrlLink, string recipient);
     }
 
     public record class DatahubProjectInfo(string ProjectNameEn, string ProjectNameFr, string ProjectCode);
