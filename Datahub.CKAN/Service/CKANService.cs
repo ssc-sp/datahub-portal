@@ -50,6 +50,8 @@ namespace Datahub.CKAN.Service
                 return new CKANApiResult(false, ex.Message);
             }
         }
+
+        public bool IsStaging() => (_ckanConfiguration.Value.BaseUrl ?? "").Contains("staging");
     }
 
     class CKANResult
