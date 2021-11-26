@@ -22,6 +22,7 @@ namespace Datahub.Portal.Services
         Task<int> GetUsersOwnDataSharingRequestsCount(string projectCode, string requestingUserId);
         Task<List<SharedDataFile>> GetProjectSharingRequestsAwaitingApproval(string projectCode);
         Task ApprovePublicUrlShare(Guid fileId, DateTime? publicationDate = null);
+        Task ApproveOpenDataShare(Guid fileId, DateTime publicationDate);
         Task DenyPublicUrlShare(Guid fileId);
         Task UpdateOpenDataApprovalFormId(Guid fileId, int approvalFormId);
         Task UpdateOpenDataSignedApprovalFormUrl(Guid fileId, string url);
@@ -34,5 +35,6 @@ namespace Datahub.Portal.Services
         Task SetPendingApprovalOpenDataAsRead(OpenDataSharedFile file);
         Task SetPendingApprovalOpenDataAsApproved(OpenDataSharedFile file);
         Task NotifySignedPDFUploaded();
+        Task<OpenDataSharedFile> UpdateOpenDataPublication(Guid fileId, bool urlSharing, DateTime? publicationDate);
     }
 }

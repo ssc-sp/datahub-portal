@@ -279,11 +279,35 @@ namespace Datahub.Portal.Services
         public async Task ApprovePublicUrlShare(Guid fileId, DateTime? publicationDate = null)
         {
             var shareInfo = await LoadPublicUrlSharedFileInfo(fileId);
-            
-            shareInfo.ApprovedDate_DT = DateTime.UtcNow;
-            shareInfo.PublicationDate_DT = publicationDate ?? shareInfo.ApprovedDate_DT;
+            if (shareInfo is not null)
+            {
+                shareInfo.ApprovedDate_DT = DateTime.UtcNow;
+                shareInfo.PublicationDate_DT = publicationDate ?? shareInfo.ApprovedDate_DT;
+                await _projectDbContext.TrackSaveChangesAsync(_datahubAuditingService);
+            }
+        }
 
-            await _projectDbContext.TrackSaveChangesAsync(_datahubAuditingService);
+        public async Task ApproveOpenDataShare(Guid fileId, DateTime publicationDate)
+        {
+            var shareInfo = await LoadPublicUrlSharedFileInfo(fileId);
+            if (shareInfo is not null)
+            {
+                shareInfo.ApprovedDate_DT = DateTime.UtcNow;
+                shareInfo.PublicationDate_DT = publicationDate;
+                await _projectDbContext.TrackSaveChangesAsync(_datahubAuditingService);
+            }
+        }
+
+        public async Task<OpenDataSharedFile> UpdateOpenDataPublication(Guid fileId, bool urlSharing, DateTime? publicationDate)
+        {
+            var shareInfo = await LoadOpenDataSharedFileInfo(fileId);
+            if (shareInfo is not null)
+            {
+                shareInfo.FileStorage_CD = urlSharing ? FileStorageType.Datahub : FileStorageType.OpenData;
+                shareInfo.PublicationDate_DT = publicationDate ?? DateTime.UtcNow;
+                await _projectDbContext.TrackSaveChangesAsync(_datahubAuditingService);
+            }
+            return shareInfo;
         }
 
         public async Task DenyPublicUrlShare(Guid fileId) => await DoDeletePublicUrlShare(fileId);
