@@ -4,14 +4,16 @@ using Datahub.Core.EFCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
-namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
+namespace Datahub.Core.Migrations.Core
 {
     [DbContext(typeof(DatahubProjectDBContext))]
-    partial class DatahubProjectDBContextModelSnapshot : ModelSnapshot
+    [Migration("20211125175020_languagefields")]
+    partial class languagefields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -999,9 +1001,6 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.HasBaseType("Datahub.Core.EFCore.SharedDataFile");
 
                     b.Property<int?>("ApprovalForm_ID")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("FileStorage_CD")
                         .HasColumnType("int");
 
                     b.Property<bool>("Read_FLAG")
