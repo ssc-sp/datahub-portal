@@ -73,18 +73,7 @@
             {
                 // get the metadata
                 var fieldValues = await MetadataBrokerService.GetMetadataContext(fileId);
-
-                // get the file url
-                var url = PublicFileService.GetPublicSharedFileUrl(fileId);
-
-                // publish to open data
-                var result = await CKANService.CreatePackage(fieldValues, url);
-
-                if (result?.Succeeded == true)
-                {
-                    await PublicFileService.ApprovePublicUrlShare(file.File_ID, GetPublicationDate(fieldValues));
-                    await InvokeAsync(StateHasChanged);
-                }
+                await PublicFileService.ApproveOpenDataShare(file.File_ID, GetPublicationDate(fieldValues));
             }
         }
         catch (Exception ex)
