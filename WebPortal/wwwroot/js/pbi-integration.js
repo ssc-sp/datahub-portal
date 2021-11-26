@@ -1,5 +1,5 @@
 ﻿window.ShowMyPowerBI = {
-    showReport: function (reportContainer, accessToken, embedUrl, embedReportId) {
+    showReport: function (reportContainer, accessToken, embedUrl, embedReportId, settings) {
         // Get models. models contains enums that can be used.
         var models = window['powerbi-client'].models;
         var config = {
@@ -9,15 +9,7 @@
             embedUrl: embedUrl,
             id: embedReportId,
             permissions: models.Permissions.All,
-            settings: {
-                filterPaneEnabled: true,
-                navContentPaneEnabled: true,
-                bars: {
-                    actionBar: {
-                        visible: true
-                    }
-                }
-            }
+            settings: settings
         };
         // Embed the report and display it within the div container.
         powerbi.embed(reportContainer, config);
