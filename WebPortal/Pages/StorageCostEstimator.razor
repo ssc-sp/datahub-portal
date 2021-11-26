@@ -1,0 +1,365 @@
+﻿@page "/tools/storagecost"
+<div style="padding: 2rem;">
+
+    <AeFlex Vertical>
+        <AeTypography Variant="h1">Storage Cost Estimator</AeTypography>
+
+        <AeCard class="facard1">
+            <div>
+                Initial data (GB): <input type="number" @bind-value=@InitialDataGB />
+            </div>
+            <div>
+                Average file size (MB): <input type="number" @bind-value=@AverageFileSizeMB />
+            </div>
+            <div>
+                Expected monthly growth (GB): <input type="number" @bind-value=@ExpectedMonthlyGrowth />
+            </div>
+            <div>
+                Expected monthly read (GB): <input type="number" @bind-value=@ExpectedMonthlyRead />
+            </div>
+
+            <div>
+                Data access tier:
+                <select @bind=@CurrentPriceListType>
+                    <option value=@PriceListType.Hot>Hot</option>
+                    <option value=@PriceListType.Cool>Cool</option>
+                    <option value=@PriceListType.Archive>Archive</option>
+                </select>
+            </div>
+
+            <div>
+                Data redundancy requirement:
+                <select @bind=@CurrentDataRedundancyType>
+                    <option value=@DataRedundancyType.LRS>LRS</option>
+                    <option value=@DataRedundancyType.ZRS>ZRS</option>
+                    <option value=@DataRedundancyType.GRS>GRS</option>
+                </select>
+            </div>
+
+            <div>
+                <AeButton OnClickEvent=@CalculateResults Disabled=@(!CanCalculate)>Calculate</AeButton>
+            </div>
+        </AeCard>
+
+        <AeFlex>
+
+            <AeFlex Vertical>
+                @foreach(var whichEstimate in new List<(string Title, EstimatorResult CostEstimate)>() 
+                {
+                    ("Initial Cost", InitialCost), 
+                    ("Monthly Cost", MonthlyCost)
+                })
+                {
+                    <AeCard class="facard1">
+                        <Header>
+                            <AeTypography Variant="h3">@whichEstimate.Title</AeTypography>
+                        </Header>
+                        <ChildContent>
+                            @{
+                                EstimatorResult costEstimate = whichEstimate.CostEstimate;
+                                @if(costEstimate.HasValues)
+                                {
+                                    <table>
+                                        <thead>
+                                            <tr>
+                                                <th>Operation</th>
+                                                <th>Number of Operations</th>
+                                                <th>Cost</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach(var line in new List<(string Label, EstimatorResultLine Estimate)>()
+                                            {
+                                                ("Write Operations", costEstimate.WriteOperations),
+                                                ("List Create Operations", costEstimate.ListCreateOperations),
+                                                ("Read Operations", costEstimate.ReadOperations),
+                                                ("Other Operations", costEstimate.OtherOperations),
+                                                ("Data Retrieval", costEstimate.DataRetrieval),
+                                                ("Data Write", costEstimate.DataWrite),
+                                                ("Geo Replication", costEstimate.GeoReplication)
+                                            })
+                                            {
+                                                @if(line.Estimate != null)
+                                                {
+                                                    <tr>
+                                                        <td>@line.Label</td>
+                                                        <td>@line.Estimate.NumberOfOperations</td>
+                                                        <td>@line.Estimate.Cost.ToString("C4")</td>
+                                                    </tr>
+                                                }
+                                            }
+                                        </tbody>
+                                        <tfoot>
+                                            <tr>
+                                                <td>Total</td>
+                                                <td></td>
+                                                <td>@costEstimate.TotalCost.ToString("C4")</td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                }
+                            }
+                        </ChildContent>
+                    </AeCard>
+                }
+            
+            </AeFlex>
+
+            <AeCard>
+                <Header>
+                    <AeTypography Variant="h3">First Year Total</AeTypography>
+                </Header>
+                <ChildContent>
+                    @if (StorageCostsByMonth.Count > 0)
+                    {
+                        
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Month</th>
+                                <th>Storage Used</th>
+                                <th>Storage Cost</th>
+                                <th>Operational Cost</th>
+                                <th>Total Cost</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach(var indexedItem in StorageCostsByMonth.Select((item, i) => (Index: i + 1, Item: item)))
+                            {
+                                <tr>
+                                    <td>Month @indexedItem.Index</td>
+                                    <td>@indexedItem.Item.NumberOfOperations GB</td>
+                                    <td>@indexedItem.Item.Cost.ToString("C")</td>
+                                    <td>@MonthlyCost.TotalCost.ToString("C")</td>
+                                    <td>@((MonthlyCost.TotalCost + indexedItem.Item.Cost).ToString("C"))</td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td>Total</td>
+                                <td>@StorageCostsByMonth.Last().NumberOfOperations GB</td>
+                                @{
+                                    var totalStorageCost = StorageCostsByMonth.Select(s => s.Cost).Sum();
+                                    var totalOperationalCost = MonthlyCost.TotalCost * 12;
+                                    var grandTotal = totalStorageCost + totalOperationalCost;
+                                    <td>@totalStorageCost.ToString("C")</td>
+                                    <td>@totalOperationalCost.ToString("C")</td>
+                                    <td>@grandTotal.ToString("C")</td>
+                                }
+                            </tr>
+                        </tfoot>
+                    </table>
+                    }
+                </ChildContent>
+            </AeCard>
+        </AeFlex>
+
+    </AeFlex>
+</div>
+
+@code {
+
+    private const int MB_PER_GB = 1000;
+    private const int MB_PER_BLOCK = 4;
+
+    private int InitialDataGB { get; set; }
+    private int AverageFileSizeMB { get; set; }
+    private int ExpectedMonthlyGrowth { get; set; }
+    private int ExpectedMonthlyRead { get; set; }
+
+    private record class EstimatorResultLine(int NumberOfOperations, decimal Cost);
+    private class EstimatorResult
+    {
+        public EstimatorResultLine WriteOperations { get; set; }
+        public EstimatorResultLine ListCreateOperations { get; set; }
+        public EstimatorResultLine ReadOperations { get; set; }
+        public EstimatorResultLine OtherOperations { get; set; }
+        public EstimatorResultLine DataRetrieval { get; set; }
+        public EstimatorResultLine DataWrite { get; set; }
+        public EstimatorResultLine GeoReplication { get; set; }
+
+        private decimal Cost(EstimatorResultLine l) => l?.Cost ?? 0.0000M;
+        public bool HasValues => (WriteOperations ?? ListCreateOperations ?? ReadOperations ?? OtherOperations ?? DataRetrieval ?? DataWrite ?? GeoReplication) != null;
+        public decimal TotalCost => Cost(WriteOperations) + Cost(ListCreateOperations) + Cost(ReadOperations) + 
+            Cost(OtherOperations) + Cost(DataRetrieval) + Cost(DataWrite) + Cost(GeoReplication);
+    }
+
+    private record class UnitPrice(decimal BasePrice, int Units);
+    private class EstimatorPriceList
+    {
+        public UnitPrice Capacity { get; set; }
+        public UnitPrice WriteOperations { get; set; }
+        public UnitPrice ListCreateOperations { get; set; }
+        public UnitPrice ReadOperations { get; set; }
+        public UnitPrice ArchiveHPRead { get; set; }
+        public UnitPrice DataRetrieval { get; set; }
+        public UnitPrice DataWrite { get; set; }
+        public UnitPrice OtherOperations { get; set; }
+        public UnitPrice GeoReplication { get; set; }
+    }
+
+    private enum PriceListType
+    {
+        Hot,
+        Cool,
+        Archive
+    }
+
+    private enum DataRedundancyType
+    {
+        LRS,
+        ZRS,
+        GRS
+    }
+
+    private DataRedundancyType CurrentDataRedundancyType = DataRedundancyType.LRS;
+
+    private PriceListType CurrentPriceListType = PriceListType.Hot;
+
+    private Dictionary<PriceListType, EstimatorPriceList> PriceLists = new();
+
+    private EstimatorPriceList CurrentPriceList => PriceListsReady ? PriceLists[CurrentPriceListType] : null;
+
+    private EstimatorResult InitialCost { get; set; } = new();
+    private EstimatorResult MonthlyCost { get; set; } = new();
+    private List<EstimatorResultLine> StorageCostsByMonth = new();
+
+    private bool IsCalculating { get; set; } = false;
+    private bool PriceListsReady { get; set; } = false;
+    private bool CanCalculate => PriceListsReady && !IsCalculating && AverageFileSizeMB > 0;
+
+    private EstimatorResultLine MakeSomethingUp()
+    {
+        var rand = new Random();
+        return new(rand.Next(100, 30000), rand.Next(1, 100) * 0.0123M);
+    }
+
+    private EstimatorResultLine CalculatePrice(int ops, decimal price, int opsFactor = 1)
+    {
+        var pricePerOp = price / opsFactor;
+        return new(ops, ops * pricePerOp);
+    }
+
+    private EstimatorResultLine CalculatePrice(int ops, UnitPrice unitPrice) => CalculatePrice(ops, unitPrice.BasePrice, unitPrice.Units);
+
+    private async ValueTask<EstimatorResult> CalculateInitialCost()
+    {
+        var initDataMb = InitialDataGB * MB_PER_GB;
+        
+        var writeOps = initDataMb / MB_PER_BLOCK + (initDataMb / AverageFileSizeMB);
+        var listOps = initDataMb / AverageFileSizeMB;
+        var dataWriteOps = InitialDataGB;
+
+        return await Task.FromResult(new EstimatorResult()
+        {
+            WriteOperations = CalculatePrice(writeOps, CurrentPriceList.WriteOperations),
+            ListCreateOperations = CalculatePrice(listOps, CurrentPriceList.ListCreateOperations),
+            DataWrite = CalculatePrice(dataWriteOps, CurrentPriceList.DataWrite)
+        });
+    }
+
+    private async ValueTask<EstimatorResult> CalculateMonthlyCost()
+    {
+        var monthlyGrowthMb = ExpectedMonthlyGrowth * MB_PER_GB;
+
+        var writeOps = monthlyGrowthMb / MB_PER_BLOCK + (monthlyGrowthMb / AverageFileSizeMB);
+        var listOps = monthlyGrowthMb / AverageFileSizeMB;
+        var readOps = ExpectedMonthlyRead * MB_PER_GB / MB_PER_BLOCK;
+        var otherOps = monthlyGrowthMb / AverageFileSizeMB; // ?
+        var dataRetrievalOps = ExpectedMonthlyRead;
+        var dataWriteOps = ExpectedMonthlyGrowth;
+        var geoRepOps = CurrentDataRedundancyType == DataRedundancyType.GRS ? ExpectedMonthlyGrowth : 0;
+
+        return await Task.FromResult(new EstimatorResult()
+            {
+                WriteOperations = CalculatePrice(writeOps, CurrentPriceList.WriteOperations),
+                ListCreateOperations = CalculatePrice(listOps, CurrentPriceList.ListCreateOperations),
+                ReadOperations = CalculatePrice(readOps, CurrentPriceList.ReadOperations),
+                OtherOperations = CalculatePrice(otherOps, CurrentPriceList.OtherOperations),
+                DataRetrieval = CalculatePrice(dataRetrievalOps, CurrentPriceList.DataRetrieval),
+                DataWrite = CalculatePrice(dataWriteOps, CurrentPriceList.DataWrite),
+                GeoReplication = CalculatePrice(geoRepOps, CurrentPriceList.GeoReplication)
+            });
+    }
+
+    private async Task CalculateStorageCostsByMonth()
+    {
+        //storage costs by month
+        // first month: initial capacity + monthlygrowth*1
+        // next: init + growth*2
+        // etc
+        StorageCostsByMonth = new();
+        for (var i = 0; i < 12; i++)
+        {
+            var usedSpace = InitialDataGB + (ExpectedMonthlyGrowth * (i + 1));
+            StorageCostsByMonth.Add(CalculatePrice(usedSpace, CurrentPriceList.Capacity));
+        }
+
+        await Task.CompletedTask;
+    }
+
+    private async Task CalculateResults()
+    {
+        if (!CanCalculate)
+        {
+            return;
+        }
+
+        IsCalculating = true;
+
+        var tasks = new List<Task>()
+        {
+            Task.Run(async () => InitialCost = await CalculateInitialCost()),
+            Task.Run(async () => MonthlyCost = await CalculateMonthlyCost()),
+            CalculateStorageCostsByMonth()
+        };
+        
+        await Task.WhenAll(tasks);
+        
+        IsCalculating = false;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        PriceLists.Add(PriceListType.Hot, new()
+        {
+            Capacity = new(20.48M, 1000),
+            WriteOperations = new(0.055M, 10000),
+            ListCreateOperations = new(0.055M, 10000),
+            ReadOperations = new(0.004M, 10000),
+            ArchiveHPRead = new(0.0M, 10000),
+            DataRetrieval = new(0.0M, 1000),
+            DataWrite = new(0.0M, 1000),
+            OtherOperations = new(0.004M, 10000),
+            GeoReplication = new(0.022M, 1000)
+        });
+        PriceLists.Add(PriceListType.Cool, new()
+        {
+            Capacity = new(11.26M, 1000),
+            WriteOperations = new(0.1M, 10000),
+            ListCreateOperations = new(0.055M, 10000),
+            ReadOperations = new(0.01M, 10000),
+            ArchiveHPRead = new(0.0M, 10000),
+            DataRetrieval = new(10.0M, 1000),
+            DataWrite = new(0.0M, 1000),
+            OtherOperations = new(0.004M, 10000),
+            GeoReplication = new(0.022M, 1000)
+        });
+        PriceLists.Add(PriceListType.Archive, new()
+        {
+            Capacity = new(1.84M, 1000),
+            WriteOperations = new(0.11M, 10000),
+            ListCreateOperations = new(0.055M, 10000),
+            ReadOperations = new(5.5M, 10000),
+            ArchiveHPRead = new(60.0M, 10000),
+            DataRetrieval = new(22.0M, 1000),
+            DataWrite = new(0.0M, 1000),
+            OtherOperations = new(0.004M, 10000),
+            GeoReplication = new(0.022M, 1000)
+        });
+
+        PriceListsReady = true;
+    }
+
+}
