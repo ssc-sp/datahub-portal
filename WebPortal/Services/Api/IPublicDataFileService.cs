@@ -28,6 +28,7 @@ namespace Datahub.Portal.Services
         Task UpdateOpenDataSignedApprovalFormUrl(Guid fileId, string url);
         Task<List<SharedDataFile>> GetAllSharedDataForProject(string projectCode);
         Task<bool> IsUserProjectDataApprover(string projectCode, string userId);
+        Task<Datahub_Project> GetProjectWithUsers(string projectCode);
         Task CancelPublicDataShare(Guid fileId);
         string GetOpenDataApprovalFormPdfUrl(int approvalFormId);
         string GetPublicSharedFileUrl(string fileId);
