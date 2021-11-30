@@ -1,0 +1,172 @@
+﻿@namespace Datahub.Core.Templates
+@using Datahub.Core.Data.StorageCostEstimator
+
+<p>@UserDisplayName,</p>
+
+<p>Here is the storage cost estimate for the first year, using the specified parameters.</p>
+
+<table>
+    <tbody>
+        <tr>
+            <td>Initial Data</td>
+            <td>@InitialDataGB GB</td>
+        </tr>
+        <tr>
+            <td>Average File Size</td>
+            <td>@AverageFileSizeMB MB</td>
+        </tr>
+        <tr>
+            <td>Expected Monthly Growth</td>
+            <td>@ExpectedMonthlyGrowth GB</td>
+        </tr>
+        <tr>
+            <td>Expected Monthly Read</td>
+            <td>@ExpectedMonthlyRead GB</td>
+        </tr>
+        <tr>
+            <td>Storage Tier</td>
+            <td>@StorageTier</td>
+        </tr>
+        <tr>
+            <td>Data Redundancy</td>
+            <td>@DataRedundancy</td>
+        </tr>
+    </tbody>
+</table>
+
+<div>
+    @foreach(var whichEstimate in new List<(string Title, EstimatorResult CostEstimate)>() 
+    {
+        ("Initial Cost", InitialCost), 
+        ("Monthly Cost", MonthlyCost)
+    })
+    {
+        <h3>@whichEstimate.Title</h3>
+        
+        EstimatorResult costEstimate = whichEstimate.CostEstimate;
+        @if(costEstimate.HasValues)
+        {
+            <table>
+                <thead>
+                    <tr>
+                        <th>Operation</th>
+                        <th>Number of Operations</th>
+                        <th>Cost</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach(var line in new List<(string Label, EstimatorResultLine Estimate)>()
+                    {
+                        ("Write Operations", costEstimate.WriteOperations),
+                        ("List Create Operations", costEstimate.ListCreateOperations),
+                        ("Read Operations", costEstimate.ReadOperations),
+                        ("Other Operations", costEstimate.OtherOperations),
+                        ("Data Retrieval", costEstimate.DataRetrieval),
+                        ("Data Write", costEstimate.DataWrite),
+                        ("Geo Replication", costEstimate.GeoReplication)
+                    })
+                    {
+                        @if(line.Estimate != null)
+                        {
+                            <tr>
+                                <td>@line.Label</td>
+                                <td>@line.Estimate.NumberOfOperations</td>
+                                <td>@line.Estimate.Cost.ToString("C4")</td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td>Total</td>
+                        <td></td>
+                        <td>@costEstimate.TotalCost.ToString("C4")</td>
+                    </tr>
+                </tfoot>
+            </table>
+        }
+        
+    }
+    @if (StorageCostsByMonth.Count > 0)
+    {
+        <h3>First Year Total</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Month</th>
+                    <th>Storage Used</th>
+                    <th>Storage Cost</th>
+                    <th>Operational Cost</th>
+                    <th>Total Cost</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach(var lineItem in StorageCostsByMonth.Select((item, i) => (Month: i + 1, Item: item)))
+                {
+                    var monthlyOperationalCost = (lineItem.Month == 1) ?
+                        MonthlyCost.TotalCost + InitialCost.TotalCost :
+                        MonthlyCost.TotalCost;
+
+                    <tr>
+                        <td>Month @lineItem.Month</td>
+                        <td>@lineItem.Item.NumberOfOperations GB</td>
+                        <td>@lineItem.Item.Cost.ToString("C")</td>
+                        <td>@monthlyOperationalCost.ToString("C")</td>
+                        <td>@((monthlyOperationalCost + lineItem.Item.Cost).ToString("C"))</td>
+                    </tr>
+                }
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td>Total</td>
+                    <td>@StorageCostsByMonth.Last().NumberOfOperations GB</td>
+                    @{
+                        var totalStorageCost = StorageCostsByMonth.Select(s => s.Cost).Sum();
+                        var totalOperationalCost = MonthlyCost.TotalCost * 12;
+                        var grandTotal = totalStorageCost + totalOperationalCost;
+                        <td>@totalStorageCost.ToString("C")</td>
+                        <td>@totalOperationalCost.ToString("C")</td>
+                        <td>@grandTotal.ToString("C")</td>
+                    }
+                </tr>
+            </tfoot>
+        </table>
+    }
+
+</div>
+
+@code {
+
+    [Parameter]
+    public EstimatorResult InitialCost { get; set; }
+
+    [Parameter]
+    public EstimatorResult MonthlyCost { get; set; }
+
+    [Parameter]
+    public IList<EstimatorResultLine> StorageCostsByMonth { get; set; }
+
+    [Parameter]
+    public string UserDisplayName { get; set; }
+
+    [Parameter]
+    public int InitialDataGB { get; set; }
+
+    [Parameter]
+    public int AverageFileSizeMB { get; set; }
+
+    [Parameter]
+    public int ExpectedMonthlyGrowth { get; set; }
+
+    [Parameter]
+    public int ExpectedMonthlyRead { get; set; }
+
+    [Parameter]
+    public string StorageTier { get; set; }
+
+    [Parameter]
+    public string DataRedundancy { get; set; }
+
+    
+
+}
