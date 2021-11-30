@@ -17,7 +17,7 @@ namespace Datahub.Core.Model.Onboarding
         [Required]
         [AeLabel(isDropDown: true, placeholder: "[Enter your Sector acronym and/or name]")]
         [StringLength(2000)]
-        public string Client_Sector { get; set; }
+        public string? Client_Sector { get; set; }
         [StringLength(2000)]
         [AeFormCategory("Client Information", 10)]        
         [AeLabel(isDropDown: true, placeholder: "[Enter your Branch acronym and/or name]")]
@@ -97,7 +97,6 @@ namespace Datahub.Core.Model.Onboarding
         [Timestamp]
         public byte[] Timestamp { get; set; }
 
-
-
+       
     }
 }
