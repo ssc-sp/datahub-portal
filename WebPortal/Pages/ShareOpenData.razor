@@ -354,12 +354,12 @@
                 var fileId = fileIdGuid.ToString();
                 var fieldValues = await MetadataBrokerService.GetObjectMetadataValues(fileId);
 
-                // publish to open data record
-                var result = await CKANService.CreatePackage(fieldValues);
+            // publish to open data record
+            var result = await CKANService.CreatePackage(fieldValues);
                 if (result.Succeeded)
                 {
-                    // publish to open data resource
-                    result = await CKANService.AddResourcePackage(fileId, requestFilename, stream);
+                // publish to open data resource
+                result = await CKANService.AddResourcePackage(fileId, requestFilename, stream);
                     if (result.Succeeded)
                     {
                         var updatedFile = await PublicFileService.UpdateOpenDataPublication(fileIdGuid, false);
@@ -368,13 +368,13 @@
                     }
                     else
                     {
-                        // todo: toast error!
-                    }
+                    // todo: toast error!
+                }
                 }
                 else
                 {
-                    // todo: toast error!
-                }
+                // todo: toast error!
+            }
             });
         }
         finally
@@ -389,13 +389,13 @@
         {
             var fileUri = await  PublicFileService.DownloadPublicUrlSharedFile(fileIdGuid);
 
-            var response = await httpClient.GetAsync(fileUri.ToString());
-            response.EnsureSuccessStatusCode();
-
-            await using (var fileData = await response.Content.ReadAsStreamAsync())
+            using (var response = await httpClient.GetAsync(fileUri.ToString(), HttpCompletionOption.ResponseHeadersRead))
             {
-                fileData.Seek(0, SeekOrigin.Begin);
-                await processFile.Invoke(fileData);
+                response.EnsureSuccessStatusCode();
+                await using (var fileData = await response.Content.ReadAsStreamAsync())
+                {
+                    await processFile.Invoke(fileData);
+                }
             }
         }
     }
