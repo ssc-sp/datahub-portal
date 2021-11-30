@@ -13,6 +13,7 @@ using System;
 using System.Text;
 using Datahub.Core.Model.Onboarding;
 using Datahub.Core.EFCore;
+using Microsoft.Graph;
 
 namespace Datahub.Core.Services
 {
@@ -509,6 +510,13 @@ namespace Datahub.Core.Services
             var html = await RenderTemplate<PublicUrlShareApproved>(parameters);
 
             await SendEmailMessage(subject, html, recipient);
+        }
+
+        public async Task SendStorageCostEstimate(User estimatingUser, Dictionary<string, object> parameters)
+        {
+            var subject = "[DataHub] Storage Cost Estimate Test";
+            var html = await RenderTemplate<StorageCostEstimate>(parameters);
+            await SendEmailMessage(subject, html, estimatingUser.Mail);
         }
     }
 

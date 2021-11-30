@@ -1,4 +1,9 @@
 ﻿@page "/tools/storagecost"
+@using Datahub.Core.Data.StorageCostEstimator
+@using Datahub.Core.Templates
+@inject IEmailNotificationService emailService
+@inject IUserInformationService userService
+
 <div style="padding: 2rem;">
 
     <AeFlex Vertical>
@@ -38,6 +43,7 @@
 
             <div>
                 <AeButton OnClickEvent=@CalculateResults Disabled=@(!CanCalculate)>Calculate</AeButton>
+                <AeButton OnClickEvent=@SendEmail>Send</AeButton>
             </div>
         </AeCard>
 
@@ -124,14 +130,18 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach(var indexedItem in StorageCostsByMonth.Select((item, i) => (Index: i + 1, Item: item)))
+                            @foreach(var lineItem in StorageCostsByMonth.Select((item, i) => (Month: i + 1, Item: item)))
                             {
+                                var monthlyOperationalCost = (lineItem.Month == 1) ?
+                                    MonthlyCost.TotalCost + InitialCost.TotalCost :
+                                    MonthlyCost.TotalCost;
+
                                 <tr>
-                                    <td>Month @indexedItem.Index</td>
-                                    <td>@indexedItem.Item.NumberOfOperations GB</td>
-                                    <td>@indexedItem.Item.Cost.ToString("C")</td>
-                                    <td>@MonthlyCost.TotalCost.ToString("C")</td>
-                                    <td>@((MonthlyCost.TotalCost + indexedItem.Item.Cost).ToString("C"))</td>
+                                    <td>Month @lineItem.Month</td>
+                                    <td>@lineItem.Item.NumberOfOperations GB</td>
+                                    <td>@lineItem.Item.Cost.ToString("C")</td>
+                                    <td>@monthlyOperationalCost.ToString("C")</td>
+                                    <td>@((monthlyOperationalCost + lineItem.Item.Cost).ToString("C"))</td>
                                 </tr>
                             }
                         </tbody>
@@ -168,22 +178,6 @@
     private int ExpectedMonthlyGrowth { get; set; }
     private int ExpectedMonthlyRead { get; set; }
 
-    private record class EstimatorResultLine(int NumberOfOperations, decimal Cost);
-    private class EstimatorResult
-    {
-        public EstimatorResultLine WriteOperations { get; set; }
-        public EstimatorResultLine ListCreateOperations { get; set; }
-        public EstimatorResultLine ReadOperations { get; set; }
-        public EstimatorResultLine OtherOperations { get; set; }
-        public EstimatorResultLine DataRetrieval { get; set; }
-        public EstimatorResultLine DataWrite { get; set; }
-        public EstimatorResultLine GeoReplication { get; set; }
-
-        private decimal Cost(EstimatorResultLine l) => l?.Cost ?? 0.0000M;
-        public bool HasValues => (WriteOperations ?? ListCreateOperations ?? ReadOperations ?? OtherOperations ?? DataRetrieval ?? DataWrite ?? GeoReplication) != null;
-        public decimal TotalCost => Cost(WriteOperations) + Cost(ListCreateOperations) + Cost(ReadOperations) + 
-            Cost(OtherOperations) + Cost(DataRetrieval) + Cost(DataWrite) + Cost(GeoReplication);
-    }
 
     private record class UnitPrice(decimal BasePrice, int Units);
     private class EstimatorPriceList
@@ -285,10 +279,6 @@
 
     private async Task CalculateStorageCostsByMonth()
     {
-        //storage costs by month
-        // first month: initial capacity + monthlygrowth*1
-        // next: init + growth*2
-        // etc
         StorageCostsByMonth = new();
         for (var i = 0; i < 12; i++)
         {
@@ -318,6 +308,26 @@
         await Task.WhenAll(tasks);
         
         IsCalculating = false;
+    }
+
+    private async Task SendEmail()
+    {
+        var user = await userService.GetUserAsync();
+
+        var parameters = new Dictionary<string, object>()
+            {
+                { nameof(StorageCostEstimate.InitialCost), InitialCost },
+                { nameof(StorageCostEstimate.MonthlyCost), MonthlyCost },
+                { nameof(StorageCostEstimate.StorageCostsByMonth), StorageCostsByMonth },
+                { nameof(StorageCostEstimate.UserDisplayName), user.DisplayName },
+                { nameof(StorageCostEstimate.InitialDataGB), InitialDataGB },
+                { nameof(StorageCostEstimate.AverageFileSizeMB), AverageFileSizeMB },
+                { nameof(StorageCostEstimate.ExpectedMonthlyGrowth), ExpectedMonthlyGrowth },
+                { nameof(StorageCostEstimate.ExpectedMonthlyRead), ExpectedMonthlyRead },
+                { nameof(StorageCostEstimate.StorageTier), CurrentPriceListType.ToString() },
+                { nameof(StorageCostEstimate.DataRedundancy), CurrentDataRedundancyType.ToString() }
+            };
+        await emailService.SendStorageCostEstimate(user, parameters);
     }
 
     protected override async Task OnInitializedAsync()
