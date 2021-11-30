@@ -4,14 +4,16 @@ using Datahub.Core.EFCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
-namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
+namespace Datahub.Core.Migrations.Core
 {
     [DbContext(typeof(DatahubProjectDBContext))]
-    partial class DatahubProjectDBContextModelSnapshot : ModelSnapshot
+    [Migration("20211129200848_AddingSharedFileSizeField")]
+    partial class AddingSharedFileSizeField
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1004,17 +1006,17 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.Property<int?>("ApprovalForm_ID")
                         .HasColumnType("int");
 
+                    b.Property<long>("FileSize_VAL")
+                        .HasColumnType("bigint");
+
                     b.Property<int?>("FileStorage_CD")
                         .HasColumnType("int");
 
+                    b.Property<bool>("Read_FLAG")
+                        .HasColumnType("bit");
+
                     b.Property<string>("SignedApprovalForm_URL")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("UploadError_TXT")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("UploadStatus_CD")
-                        .HasColumnType("int");
 
                     b.ToTable("OpenDataSharedFile");
                 });

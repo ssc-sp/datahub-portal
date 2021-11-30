@@ -56,7 +56,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _fieldValues = await MetadataBrokerService.GetMetadataContext(ObjectId);
+        _fieldValues = await MetadataBrokerService.GetObjectMetadataValues(ObjectId);
         _definitions = _fieldValues.Definitions;
     }
 
