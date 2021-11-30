@@ -21,7 +21,7 @@ namespace Datahub.CKAN.Package
             };
         }
 
-        public Dictionary<string, object> GeneratePackage(FieldValueContainer fieldValues, string url, bool @private = false)
+        public Dictionary<string, object> GeneratePackage(FieldValueContainer fieldValues, string url = null, bool @private = false)
         {
             if (fieldValues == null)
                 throw new ArgumentNullException(nameof(fieldValues));
@@ -53,18 +53,21 @@ namespace Datahub.CKAN.Package
                 agent.RenderField(dict);
             }
 
-            // resources (just the url)
-            dict["resources"] = new object[] 
-            { 
-                new Dictionary<string, object>()
+            if (!string.IsNullOrEmpty(url))
+            {
+                // resources (just the url)
+                dict["resources"] = new object[]
                 {
-                    { "name_translated", dict["title_translated"] },
-                    { "resource_type", "dataset" },
-                    { "url", url },
-                    { "language", new string[] { "en", "fr" } },
-                    { "format", "other" }
-                }
-            };
+                    new Dictionary<string, object>()
+                    {
+                        { "name_translated", dict["title_translated"] },
+                        { "resource_type", "dataset" },
+                        { "url", url },
+                        { "language", new string[] { "en", "fr" } },
+                        { "format", "other" }
+                    }
+                };
+            }
 
             // open government licence - canada
             dict["license_id"] = "ca-ogl-lgo";
