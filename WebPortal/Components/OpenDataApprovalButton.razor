@@ -15,7 +15,7 @@
     [Parameter]
     public EventCallback<OpenDataSharedFile> OnApprove { get;  set; }
 
-    private bool Disabled => !File.Read_FLAG || File.ApprovedDate_DT.HasValue;
+    private bool Disabled => !File.ApprovalFormRead_FLAG || File.ApprovedDate_DT.HasValue;
 
     private async void Approve() => await OnApprove.InvokeAsync(File);
 }
