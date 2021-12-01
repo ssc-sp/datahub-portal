@@ -39,6 +39,8 @@ namespace Datahub.Core.Services
         public static readonly string SERVICE_TEMPLATE_KEY = "Service";
         public static readonly string DATA_PROJECT_TEMPLATE_KEY = "DataProject";
 
+        private static readonly string DATAHUB_ADMIN_PROJECT_CODE = "DHPGLIST";
+
         private EmailConfiguration _config;
 
         private IStringLocalizer _localizer;
@@ -47,11 +49,14 @@ namespace Datahub.Core.Services
 
         private IMSGraphService _graphService;
 
+        private ServiceAuthManager _serviceAuthManager;
+
         public EmailNotificationService(
             IStringLocalizer localizer,
             IConfiguration config,
             ILogger<EmailNotificationService> logger,
-            IMSGraphService graphService
+            IMSGraphService graphService,
+            ServiceAuthManager serviceAuthManager
             )
         {
             _localizer = localizer;
@@ -59,6 +64,7 @@ namespace Datahub.Core.Services
             config.Bind(EMAIL_CONFIGURATION_ROOT_KEY, _config);
             _logger = logger;
             _graphService = graphService;
+            _serviceAuthManager = serviceAuthManager;
         }
 
         public async Task<string> RenderTestTemplate()
@@ -514,9 +520,22 @@ namespace Datahub.Core.Services
 
         public async Task SendStorageCostEstimate(User estimatingUser, Dictionary<string, object> parameters)
         {
-            var subject = "[DataHub] Storage Cost Estimate Test";
+            var subject = "[DataHub] Your Storage Cost Estimate";
+            var adminSubject = "[DataHub] New Storage Cost Estimate";
+
             var html = await RenderTemplate<StorageCostEstimate>(parameters);
-            await SendEmailMessage(subject, html, estimatingUser.Mail);
+            parameters.Add(nameof(StorageCostEstimateAdmin.UserEmail), estimatingUser.Mail);
+            var adminHtml = await RenderTemplate<StorageCostEstimateAdmin>(parameters);
+
+            var adminEmails = _serviceAuthManager.GetProjectAdminsEmails(DATAHUB_ADMIN_PROJECT_CODE);
+
+            var tasks = new List<Task>()
+            {
+                SendEmailMessage(subject, html, estimatingUser.Mail),
+                SendEmailMessage(adminSubject, adminHtml, adminEmails)
+            };
+
+            await Task.WhenAll(tasks);
         }
     }
 
