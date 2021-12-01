@@ -1,35 +1,44 @@
 ﻿@namespace Datahub.Core.Templates
 @using Datahub.Core.Data.StorageCostEstimator
 
+<style>
+    .numbercol {
+        text-align: right;
+    }
+    .totalrow td {
+        font-weight: bold;
+    }
+</style>
+
 <p>@UserDisplayName,</p>
 
-<p>Here is the storage cost estimate for the first year, using the specified parameters.</p>
+<p>@Localizer[$"{LOCALIZATION_PREFIX}.EstimateEmailIntro"]</p>
 
 <table>
     <tbody>
         <tr>
-            <td>Initial Data</td>
-            <td>@InitialDataGB GB</td>
+            <td>@Localizer[$"{LOCALIZATION_PREFIX}.InitDataLabelEmail"]</td>
+            <td class="numbercol">@Localizer[$"{LOCALIZATION_PREFIX}.XGB", InitialDataGB]</td>
         </tr>
         <tr>
-            <td>Average File Size</td>
-            <td>@AverageFileSizeMB MB</td>
+            <td>@Localizer[$"{LOCALIZATION_PREFIX}.AverageSizeLabelEmail"]</td>
+            <td class="numbercol">@Localizer[$"{LOCALIZATION_PREFIX}.XMB", AverageFileSizeMB]</td>
         </tr>
         <tr>
-            <td>Expected Monthly Growth</td>
-            <td>@ExpectedMonthlyGrowth GB</td>
+            <td>@Localizer[$"{LOCALIZATION_PREFIX}.ExpGrowthLabelEmail"]</td>
+            <td class="numbercol">@Localizer[$"{LOCALIZATION_PREFIX}.XGB", ExpectedMonthlyGrowth]</td>
         </tr>
         <tr>
-            <td>Expected Monthly Read</td>
-            <td>@ExpectedMonthlyRead GB</td>
+            <td>@Localizer[$"{LOCALIZATION_PREFIX}.ExpReadLabelEmail"]</td>
+            <td class="numbercol">@Localizer[$"{LOCALIZATION_PREFIX}.XGB", ExpectedMonthlyRead]</td>
         </tr>
         <tr>
-            <td>Storage Tier</td>
-            <td>@StorageTier</td>
+            <td>@Localizer[$"{LOCALIZATION_PREFIX}.DataTierLabelEmail"]</td>
+            <td class="numbercol">@GetAccessTierLabel(AccessTier)</td>
         </tr>
         <tr>
-            <td>Data Redundancy</td>
-            <td>@DataRedundancy</td>
+            <td>@Localizer[$"{LOCALIZATION_PREFIX}.DataRedundancyLabelEmail"]</td>
+            <td class="numbercol">@GetRedundancyLabel(DataRedundancy)</td>
         </tr>
     </tbody>
 </table>
@@ -37,8 +46,8 @@
 <div>
     @foreach(var whichEstimate in new List<(string Title, EstimatorResult CostEstimate)>() 
     {
-        ("Initial Cost", InitialCost), 
-        ("Monthly Cost", MonthlyCost)
+        (Localizer[$"{LOCALIZATION_PREFIX}.InitialCostSection"], InitialCost), 
+        (Localizer[$"{LOCALIZATION_PREFIX}.MonthlyCostSection"], MonthlyCost)
     })
     {
         <h3>@whichEstimate.Title</h3>
@@ -49,38 +58,38 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Operation</th>
-                        <th>Number of Operations</th>
-                        <th>Cost</th>
+                        <th>@Localizer[$"{LOCALIZATION_PREFIX}.OperationLabel"]</th>
+                        <th>@Localizer[$"{LOCALIZATION_PREFIX}.NumOperationsLabel"]</th>
+                        <th>@Localizer[$"{LOCALIZATION_PREFIX}.CostLabel"]</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach(var line in new List<(string Label, EstimatorResultLine Estimate)>()
                     {
-                        ("Write Operations", costEstimate.WriteOperations),
-                        ("List Create Operations", costEstimate.ListCreateOperations),
-                        ("Read Operations", costEstimate.ReadOperations),
-                        ("Other Operations", costEstimate.OtherOperations),
-                        ("Data Retrieval", costEstimate.DataRetrieval),
-                        ("Data Write", costEstimate.DataWrite),
-                        ("Geo Replication", costEstimate.GeoReplication)
+                        (Localizer[$"{LOCALIZATION_PREFIX}.WriteOperations"], costEstimate.WriteOperations),
+                        (Localizer[$"{LOCALIZATION_PREFIX}.ListCreateOperations"], costEstimate.ListCreateOperations),
+                        (Localizer[$"{LOCALIZATION_PREFIX}.ReadOperations"], costEstimate.ReadOperations),
+                        (Localizer[$"{LOCALIZATION_PREFIX}.OtherOperations"], costEstimate.OtherOperations),
+                        (Localizer[$"{LOCALIZATION_PREFIX}.DataRetrieval"], costEstimate.DataRetrieval),
+                        (Localizer[$"{LOCALIZATION_PREFIX}.DataWrite"], costEstimate.DataWrite),
+                        (Localizer[$"{LOCALIZATION_PREFIX}.GeoReplication"], costEstimate.GeoReplication)
                     })
                     {
                         @if(line.Estimate != null)
                         {
                             <tr>
                                 <td>@line.Label</td>
-                                <td>@line.Estimate.NumberOfOperations</td>
-                                <td>@line.Estimate.Cost.ToString("C4")</td>
+                                <td class="numbercol">@line.Estimate.NumberOfOperations</td>
+                                <td class="numbercol">@line.Estimate.Cost.ToString("C4")</td>
                             </tr>
                         }
                     }
                 </tbody>
                 <tfoot>
-                    <tr>
-                        <td>Total</td>
+                    <tr class="totalrow">
+                        <td>@Localizer[$"{LOCALIZATION_PREFIX}.Total"]</td>
                         <td></td>
-                        <td>@costEstimate.TotalCost.ToString("C4")</td>
+                        <td class="numbercol">@costEstimate.TotalCost.ToString("C4")</td>
                     </tr>
                 </tfoot>
             </table>
@@ -89,15 +98,15 @@
     }
     @if (StorageCostsByMonth.Count > 0)
     {
-        <h3>First Year Total</h3>
+        <h3>@Localizer[$"{LOCALIZATION_PREFIX}.FirstYearTotal"]</h3>
         <table>
             <thead>
                 <tr>
-                    <th>Month</th>
-                    <th>Storage Used</th>
-                    <th>Storage Cost</th>
-                    <th>Operational Cost</th>
-                    <th>Total Cost</th>
+                    <th>@Localizer[$"{LOCALIZATION_PREFIX}.MonthLabel"]</th>
+                    <th>@Localizer[$"{LOCALIZATION_PREFIX}.StorageUsedLabel"]</th>
+                    <th>@Localizer[$"{LOCALIZATION_PREFIX}.StorageCostLabel"]</th>
+                    <th>@Localizer[$"{LOCALIZATION_PREFIX}.OperationalCostLabel"]</th>
+                    <th>@Localizer[$"{LOCALIZATION_PREFIX}.TotalCostLabel"]</th>
                 </tr>
             </thead>
             <tbody>
@@ -108,25 +117,25 @@
                         MonthlyCost.TotalCost;
 
                     <tr>
-                        <td>Month @lineItem.Month</td>
-                        <td>@lineItem.Item.NumberOfOperations GB</td>
-                        <td>@lineItem.Item.Cost.ToString("C")</td>
-                        <td>@monthlyOperationalCost.ToString("C")</td>
-                        <td>@((monthlyOperationalCost + lineItem.Item.Cost).ToString("C"))</td>
+                        <td>@Localizer[$"{LOCALIZATION_PREFIX}.MonthNumber", lineItem.Month]</td>
+                        <td class="numbercol">@Localizer[$"{LOCALIZATION_PREFIX}.XGB", lineItem.Item.NumberOfOperations]</td>
+                        <td class="numbercol">@lineItem.Item.Cost.ToString("C")</td>
+                        <td class="numbercol">@monthlyOperationalCost.ToString("C")</td>
+                        <td class="numbercol">@((monthlyOperationalCost + lineItem.Item.Cost).ToString("C"))</td>
                     </tr>
                 }
             </tbody>
             <tfoot>
-                <tr>
-                    <td>Total</td>
-                    <td>@StorageCostsByMonth.Last().NumberOfOperations GB</td>
+                <tr class="totalrow">
+                    <td>@Localizer[$"{LOCALIZATION_PREFIX}.Total"]</td>
+                    <td class="numbercol">@Localizer[$"{LOCALIZATION_PREFIX}.XGB", StorageCostsByMonth.Last().NumberOfOperations]</td>
                     @{
                         var totalStorageCost = StorageCostsByMonth.Select(s => s.Cost).Sum();
                         var totalOperationalCost = MonthlyCost.TotalCost * 12;
                         var grandTotal = totalStorageCost + totalOperationalCost;
-                        <td>@totalStorageCost.ToString("C")</td>
-                        <td>@totalOperationalCost.ToString("C")</td>
-                        <td>@grandTotal.ToString("C")</td>
+                        <td class="numbercol">@totalStorageCost.ToString("C")</td>
+                        <td class="numbercol">@totalOperationalCost.ToString("C")</td>
+                        <td class="numbercol">@grandTotal.ToString("C")</td>
                     }
                 </tr>
             </tfoot>
@@ -136,6 +145,10 @@
 </div>
 
 @code {
+    private static readonly string LOCALIZATION_PREFIX = "STORAGE-COST-ESTIMATOR";
+
+    private string GetAccessTierLabel(AccessTierType t) => Localizer[$"{LOCALIZATION_PREFIX}.DataTier{t.ToString()}"];
+    private string GetRedundancyLabel(DataRedundancyType t) => Localizer[$"{LOCALIZATION_PREFIX}.DataRed{t.ToString()}"];
 
     [Parameter]
     public EstimatorResult InitialCost { get; set; }
@@ -162,10 +175,10 @@
     public int ExpectedMonthlyRead { get; set; }
 
     [Parameter]
-    public string StorageTier { get; set; }
+    public AccessTierType AccessTier { get; set; }
 
     [Parameter]
-    public string DataRedundancy { get; set; }
+    public DataRedundancyType DataRedundancy { get; set; }
 
     
 
