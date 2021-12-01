@@ -1,0 +1,90 @@
+﻿@page "/admin/onboardusers/{projectAcronym}"
+
+@using Microsoft.EntityFrameworkCore.Query
+@using Microsoft.EntityFrameworkCore;
+@inject NavigationManager NavigationManager
+@inject IMSGraphService MSGraphService
+@inject IJSRuntime JSRuntime
+@using Microsoft.Identity.Web
+@inject IDbContextFactory<DatahubProjectDBContext> DbFactory
+@inject IUserInformationService UserInformationService
+@inject IDatahubAuditingService AuditingService
+
+
+<div class="manage-access">
+    <h4 class="nrcan-typography h4 title">@Localizer["Select User"]</h4>
+    <input type="text" id="inputSearch" class="selectedText" @onclick="() => OnSearchUserClick()" @onkeyup="() => OnSearchUserClick()" @bind-value="_inputValue" @bind-value:event="oninput" />
+    <div class="nrcan-typography dropdown-content ddsearch" id="usermenu">
+        @foreach (var item in filteredUsersList.Take(10))
+        {
+            <a @onclick="() => OnUserClick(item.Value)">@item.Value.DisplayName</a>
+        }
+    </div>
+
+    @if (chosenUser != null)
+    {
+        <div class="selectedDisplay">
+            <div class="selectedText">
+                <a>@chosenUser.DisplayName</a>
+                <AeButton @onclick="@(async () => await AddUserToProject())">@Localizer["Add User"]</AeButton>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+
+    [Parameter]
+    public string projectAcronym { get; set; }
+
+    private GraphUser chosenUser = null;
+    private Dictionary<string, GraphUser> filteredUsersList { get; set; } = new Dictionary<string, GraphUser>();
+    private string _inputValue = string.Empty;    
+    private DatahubProjectDBContext Context;
+    private Datahub_Project _project;
+
+    protected override async Task OnInitializedAsync()
+    {
+        //var currentUserId = await UserInformationService.GetUserIdString();
+        Context = DbFactory.CreateDbContext();
+        _project = Context.Projects.Single(p => p.Project_Acronym_CD == projectAcronym);
+    }
+
+    private async Task AddUserToProject()
+    {
+        var request = new Datahub_Project_User()
+        {
+            User_ID = chosenUser.Id,
+            Project = _project,
+            ApprovedUser = await UserInformationService.GetUserIdString(),
+            Approved_DT = DateTime.Now,
+            IsAdmin = false,
+            IsDataApprover = false,
+            User_Name = MSGraphService.GetUserEmail(chosenUser.Id)?.ToLower() 
+        };
+
+        Context.Project_Users.Add(request);
+        await Context.TrackSaveChangesAsync(AuditingService);
+        chosenUser = null;
+        StateHasChanged();
+    }
+
+    private async Task OnSearchUserClick()
+    {
+        var toggleMenu = "false";
+
+        if (_inputValue.Length > 3)
+        {
+            filteredUsersList = MSGraphService.UsersDict.Where(gu => gu.Value.DisplayName.Contains(_inputValue, StringComparison.OrdinalIgnoreCase)).ToDictionary(v => v.Key, v => v.Value);
+            toggleMenu = "true";
+        }
+
+        await JSRuntime.InvokeAsync<object>("toggleMenuWithBool", $"usermenu", toggleMenu);
+    }
+
+    private void OnUserClick(GraphUser user)
+    {
+        chosenUser = user;
+        StateHasChanged();
+    }
+}
