@@ -23,4 +23,19 @@ namespace Datahub.Core.Data.StorageCostEstimator
             Cost(OtherOperations) + Cost(DataRetrieval) + Cost(DataWrite) + Cost(GeoReplication);
     }
 
+    public enum AccessTierType
+    {
+        Hot,
+        Cool,
+        Archive
+    }
+
+    public enum DataRedundancyType
+    {
+        LRS,
+        ZRS,
+        GRS
+    }
+
+
 }
