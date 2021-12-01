@@ -8,6 +8,7 @@
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JsInterop
 @inject PowerBiServiceApi PowerBiServiceApi
+@inject PowerBiSyncService PowerBiSyncService
 @using Microsoft.Identity.Web
 @inject MicrosoftIdentityConsentAndConditionalAccessHandler ConsentHandler
 @inject IDbContextFactory<DatahubProjectDBContext> DbFactoryProject
@@ -199,7 +200,7 @@
 
         if (isChecked is null || isChecked == true)
         {
-            var e = new Project_PBI_Report() { Id = el.report.Id, Workspace = el.group.Id, Project = project, ReportName = el.report.Name };
+            var e = PowerBiSyncService.GetReport(el.group);
             ctx.Project_PBI_Reports.Add(e);
             reportLinks.Add(e);
             ctx.SaveChanges();
