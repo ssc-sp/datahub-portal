@@ -8,7 +8,6 @@ namespace Datahub.CKAN.Service
     {
         Task<CKANApiResult> CreatePackage(FieldValueContainer fieldValues, string url = null);
         Task<CKANApiResult> AddResourcePackage(string packageId, string fileName, Stream fileContent);
-        bool IsStaging();
     }
 
     public record CKANApiResult(bool Succeeded, string ErrorMessage);

@@ -25,6 +25,21 @@ namespace Datahub.Core.EFCore
         AccessOpenData
     }
 
+    public enum FileStorageType
+    {
+        Datahub,
+        OpenData
+    }
+
+    public enum OpenDataUploadStatus
+    {
+        NotStarted,
+        UploadingFile,
+        RecordCreated,        
+        UploadCompleted,
+        Failed
+    }
+
     public class SharedDataFile
     {
         private static readonly string SHARING_STATUS_LOCALIZATION_PREFIX = "SHARING-STATUS";
@@ -151,19 +166,5 @@ namespace Datahub.Core.EFCore
                 return OpenDataSharingStatus.EnterMetadata;
             }
         }
-    }
-
-    public enum FileStorageType
-    {
-        Datahub,
-        OpenData
-    }
-
-    public enum OpenDataUploadStatus
-    {
-        NotStarted,
-        Uploading,
-        Completed,
-        Failed
     }
 }
