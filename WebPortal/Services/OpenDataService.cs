@@ -88,6 +88,7 @@ namespace Datahub.Portal.Services
             {
                 sharedFile.UploadStatus_CD = status;
                 sharedFile.UploadError_TXT = errorMessage;
+                // todo: use auditing service here
                 ctx.SaveChanges();
             }
         }
@@ -101,6 +102,7 @@ namespace Datahub.Portal.Services
                 sharedFile.UploadStatus_CD = OpenDataUploadStatus.UploadCompleted;
                 sharedFile.UploadError_TXT = string.Empty;
                 sharedFile.FileStorage_CD = FileStorageType.OpenData;
+                // todo: use auditing service here
                 ctx.SaveChanges();
             }
         }
