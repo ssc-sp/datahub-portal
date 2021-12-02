@@ -503,6 +503,10 @@
         "Description": "The request has been submitted for approval. Once the request is approved, the file will be uploaded to Open Data.",
         "Title": "Pending Approval"
       },
+      "PendingUpload": {
+        "Description": "The request has been approved, pending decision on file publishing location.",
+        "Title": "Pending Upload"
+      },
       "PendingPublication": {
         "Description": "The request has been approved, but the publication date has not yet been reached.",
         "Title": "Pending Publication"
@@ -556,7 +560,12 @@
     "SubmitSignedPdf": "Submit signed PDF document",
     "EnterGcDocsUrl": "Enter GCDocs URL",
     "Approval_Form": "Approval Form",
-    "Approval_filled_out": "Approval form has been filled out."
+    "Approval_filled_out": "Approval form has been filled out.",
+    "Publish_File": "Publish File",
+    "Publish_As_URL_Desc": "Publish to Open Data as URL and keep the file in Datahub.",
+    "Publish_As_URL": "Publish as URL",
+    "Upload_And_Publish_Desc": "Upload the file to Open Data storage and publish it.",
+    "Upload_And_Publish": "Upload and Publish"
   },
 
   "PUBLIC-URL-WIZARD": {
