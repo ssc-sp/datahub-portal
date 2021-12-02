@@ -17,6 +17,10 @@
         @include c.BoxShadow(3);
     }
 
+    &.doublewide {
+        width: 800px;
+    }
+
     h3 {
         margin-top: 0;
         color: c.$black;
