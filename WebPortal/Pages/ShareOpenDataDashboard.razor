@@ -14,19 +14,29 @@
 
     <AeCard style="margin-top: 2rem;">
         <ChildContent>
-            <AePaginatedTable Accessors=@accessorFunctions
+            @if (_sharedFiles is not null)
+            {
+                <AePaginatedTable Accessors=@accessorFunctions
                               Renderers="GetRenderers()"
                               Dataset=@_sharedFiles
                               Headers=@Headers
                               T="OpenDataSharedFile"
                               @ref=@_myTable
                               Page=@_lastClicked
-                              PageSize="20" />
-                        
-                <AePagination Pageable="@_myTable" OnPageClick="OnPageClick"> 
-                    <LeftIcon><i class='fad fa-chevron-double-left'></i></LeftIcon> 
-                    <RightIcon><i class='fad fa-chevron-double-right'></i></RightIcon>
-                </AePagination>
+                              PageSize=@_pageSize />
+                
+                @if (_sharedFiles.Count > _pageSize)
+                {
+                    <AePagination Pageable="@_myTable" OnPageClick="OnPageClick"> 
+                        <LeftIcon><i class='fad fa-chevron-double-left'></i></LeftIcon> 
+                        <RightIcon><i class='fad fa-chevron-double-right'></i></RightIcon>
+                    </AePagination>    
+                }
+            }
+            else
+            {
+                <Spinner Small=@true/>
+            }
         </ChildContent>
     </AeCard>    
     
@@ -42,6 +52,7 @@
 
     private List<string> Headers => new() { GetLabel("FileName"), GetLabel("Read"), GetLabel("Approve") };
 
+    private readonly int _pageSize = 20;
     private IPageableComponent _myTable;
     private int _lastClicked = 0;
 
@@ -72,19 +83,8 @@
             if (status == OpenDataSharingStatus.PendingApproval)
             {
                 // get the metadata
-                var fieldValues = await MetadataBrokerService.GetMetadataContext(fileId);
-
-                // get the file url
-                var url = PublicFileService.GetPublicSharedFileUrl(fileId);
-
-                // publish to open data
-                var result = await CKANService.CreatePackage(fieldValues, url);
-
-                if (result?.Succeeded == true)
-                {
-                    await PublicFileService.ApprovePublicUrlShare(file.File_ID, GetPublicationDate(fieldValues));
-                    await InvokeAsync(StateHasChanged);
-                }
+                var fieldValues = await MetadataBrokerService.GetObjectMetadataValues(fileId);
+                await PublicFileService.ApproveOpenDataShare(file.File_ID, GetPublicationDate(fieldValues));
             }
         }
         catch (Exception ex)
@@ -106,5 +106,15 @@
             }
         }
         return date;
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        // You must re-render after the components are initialized in order for the
+        // component reference to not be null
+        if (firstRender) 
+        {   
+            StateHasChanged();
+        }
     }
 }

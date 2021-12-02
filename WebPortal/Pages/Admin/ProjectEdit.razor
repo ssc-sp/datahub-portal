@@ -107,7 +107,7 @@
 
     public string Localize(string propName)
     {
-        return DataLocalizer[propName];
+        return propName is null?null:DataLocalizer[propName];
     }
 
     private Datahub_Project _project;

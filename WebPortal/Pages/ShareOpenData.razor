@@ -1,9 +1,14 @@
 ﻿@page "/share/opendata/{FileId}"
+@using Datahub.CKAN.Service
+@using Datahub.Metadata.DTO;
+@using System.Net.Http.Headers
 @inject NavigationManager NavManager
 @inject IPublicDataFileService PublicFileService
 @inject IMSGraphService GraphService
 @inject UIControlsService UI
 @inject IUserInformationService UserInformationService
+@inject IMetadataBrokerService MetadataBrokerService
+@inject ICKANService CKANService
 @inject IJSRuntime jsRuntime
 
 <AeTypography style="margin-left: 2rem;" Variant="h1">@Localizer["OPENDATA-WIZARD.Page_Title"]</AeTypography>
@@ -12,18 +17,20 @@
     <AeFlex Vertical style="margin-left: 2rem; width: 50%;">
 
         <AeCard>
-            <AeTypography Variant="h2">@Localizer["OPENDATA-WIZARD.Metadata"]</AeTypography>
+            <AeTypography Variant="h3">@Localizer["OPENDATA-WIZARD.Metadata"]</AeTypography>
 
             @if (!string.IsNullOrEmpty(requestFilename))
             {
-                <div>@Localizer["Filename"]: @requestFilename</div>
+                <AeTypography Variant="p">@Localizer["Filename"]: @requestFilename</AeTypography>
             }
 
             @if (ShowMetadataEditor && IsOwnRequest)
             {
                 <ObjectMetadataEditor ObjectId=@FileId @ref=@_metadataEditor OnFieldChanged="OnMetadataFieldChanged" />
                 <AeFlex>
-                    <AeButton OnClickEvent=@SaveMetadata Disabled=@SaveMetadataDisabled()>@Localizer["OPENDATA-WIZARD.Save_button"]</AeButton>
+                    <AeButton OnClickEvent=@SaveMetadata Disabled=@SaveMetadataDisabled()>
+                        @Localizer["OPENDATA-WIZARD.Save_button"]
+                    </AeButton>
                     <div>
                         @if (savingData)
                         {
@@ -34,19 +41,19 @@
             }
             else if (IsOwnRequest)
             {
-                <AeButton OnClickEvent=@ManuallyShowMetadataEditor >@Localizer["OPENDATA-WIZARD.Edit_button"]</AeButton>
+                <AeButton OnClickEvent=@ManuallyShowMetadataEditor Disabled=@savingData>
+                    @Localizer["OPENDATA-WIZARD.Edit_button"]
+                </AeButton>
             }
             else 
             {
                 @if (RequestingUser != null) {
-                    <div>@Localizer["Requesting User"]: @RequestingUser.DisplayName</div>
+                    <AeTypography Variant="p">@Localizer["Requesting User"]: @RequestingUser.DisplayName</AeTypography>
                 }
             }
-
-            <div>&nbsp;</div>
         </AeCard>
 
-        @if (IsOwnRequest)
+        @if (ShowApprovalCards)
         {
             @if (ShowApprovalForm)
             {
@@ -73,7 +80,7 @@
                     </AeFlex>
                 </AeCard>
 
-                @if (ShowSignedPdfPanel && IsOwnRequest)
+                @if (ShowSignedPdfPanel)
                 {
                     <AeCard>
                         <AeTypography Variant="h3">@Localizer["OPENDATA-WIZARD.SubmitSignedPdf"]</AeTypography>
@@ -90,11 +97,48 @@
                                 }
                             </div>
                         </AeFlex>
-                        <div>&nbsp;</div>
                     </AeCard>
                 }
             }
         }
+
+        @if (ShowUploadCard)
+        {
+            <AeCard>
+                <ChildContent>
+                    <AeTypography Variant="h3">@Localizer["OPENDATA-WIZARD.Publish_File"]</AeTypography>
+                    <AeFlex Vertical="true">
+                        <AeTypography Variant="p">@Localizer["OPENDATA-WIZARD.Publish_As_URL_Desc"]</AeTypography>
+                        <div>
+                            <AeButton OnClickEvent=@PublishAsUrl Disabled=@savingData>@Localizer["OPENDATA-WIZARD.Publish_As_URL"]</AeButton>
+                        </div>
+                    </AeFlex>
+
+                    <AeFlex Vertical="true">
+                        <AeTypography Variant="p">@Localizer["OPENDATA-WIZARD.Upload_And_Publish_Desc"]</AeTypography>
+                        <div>
+                            <AeButton OnClickEvent=@UploadAndPublish Disabled=@savingData>@Localizer["OPENDATA-WIZARD.Upload_And_Publish"]</AeButton>
+                        </div>
+                    </AeFlex>
+
+                    <div>
+                        @if (savingData)
+                        {
+                            <Spinner Small=@true/>
+                        }
+                    </div>
+                </ChildContent>
+            </AeCard>
+        }
+
+        @if (ShowPublicationDatePanel)
+        {
+            <AeCard>
+                <AeTypography Variant="h3">@Localizer["OPENDATA-WIZARD.PublicationDate"]</AeTypography>
+                <p>@PublicationDateStr</p>
+            </AeCard>
+        }
+
     </AeFlex>
 
     <div id="stepsDiv" style="width: 50%;">
@@ -106,19 +150,12 @@
             PassedIcon=@checkIcon
             />
 
-    @if (ShowPublicationDatePanel)
+    @if (ShowPublicUrl)
     {
-        <AeCard>
-            <AeTypography Variant="h3">@Localizer["OPENDATA-WIZARD.PublicationDate"]</AeTypography>
-            <p>@PublicationDateStr</p>
-        </AeCard>
-    }
-
-    @if(ShowPublicUrl)
-    {
+        var publicUrl = GetOpenDataFileUrl();
         <AeCard>
             <AeTypography Variant="h3">@Localizer["OPENDATA-WIZARD.PublicUrl"]</AeTypography>
-            <p><a href=@PublicUrl target="_blank">@PublicUrl</a></p>
+            <p><a href=@publicUrl target="_blank">@publicUrl</a></p>
         </AeCard>
     }
 
@@ -137,7 +174,6 @@
 
 <div>&nbsp;</div>
 
-
 @code {
 
     [Parameter]
@@ -153,7 +189,8 @@
 
     private List<OpenDataSharingStatus> steps = Enum.GetValues<OpenDataSharingStatus>().ToList();
     private OpenDataSharingStatus currentStep = OpenDataSharingStatus.EnterMetadata;
-    private RenderFragment checkIcon = @<i class="fa fa-check"></i>;
+    private RenderFragment checkIcon = @<i class="fa fa-check"></i>
+    ;
 
     private Dictionary<OpenDataSharingStatus, (string, string)?> _stepInfo = new Dictionary<OpenDataSharingStatus, (string, string)?>();
     private Dictionary<OpenDataSharingStatus, AeSteps<OpenDataSharingStatus>.StepState> _stepStates = new Dictionary<OpenDataSharingStatus, AeSteps<OpenDataSharingStatus>.StepState>()
@@ -163,6 +200,7 @@
         { OpenDataSharingStatus.SubmitSignedPDF, AeSteps<OpenDataSharingStatus>.StepState.Queued },
         { OpenDataSharingStatus.PendingApproval, AeSteps<OpenDataSharingStatus>.StepState.Queued },
         { OpenDataSharingStatus.PendingPublication, AeSteps<OpenDataSharingStatus>.StepState.Queued },
+        { OpenDataSharingStatus.PendingUpload, AeSteps<OpenDataSharingStatus>.StepState.Queued },
         { OpenDataSharingStatus.AccessOpenData, AeSteps<OpenDataSharingStatus>.StepState.Queued }            
     };
 
@@ -172,12 +210,14 @@
 
     private bool ShowMetadataEditor => currentStep == OpenDataSharingStatus.EnterMetadata || editSavedMetadata;
     private bool ShowSkipMetadata => currentStep == OpenDataSharingStatus.EnterMetadata;
+    private bool ShowApprovalCards => IsOwnRequest && currentStep < OpenDataSharingStatus.PendingApproval; 
     private bool ShowApprovalForm => currentStep == OpenDataSharingStatus.OpenGovApprovalForm || editSubmittedApproval;
     private bool ApprovalFormSubmitted => _stepStates[OpenDataSharingStatus.OpenGovApprovalForm] == AeSteps<OpenDataSharingStatus>.StepState.Passed;
     private bool ShowSignedPdfPanel => currentStep == OpenDataSharingStatus.SubmitSignedPDF;
     private bool ShowPublicationDatePanel => currentStep == OpenDataSharingStatus.PendingPublication;
     private bool ShowPublicUrl => currentStep == OpenDataSharingStatus.AccessOpenData;
-    private bool ShowCancelPanel => currentStep <= OpenDataSharingStatus.PendingApproval;
+    private bool ShowCancelPanel => currentStep <= OpenDataSharingStatus.PendingUpload;
+    private bool ShowUploadCard => currentStep == OpenDataSharingStatus.PendingUpload && IsOwnRequest;
 
     private bool IsOwnRequest = false;
 
@@ -194,8 +234,12 @@
 
     private string _datasetTitle;
 
-    //TODO add domain
-    private string PublicUrl => $"/Public/DownloadFile/{FileId}";
+    private string GetOpenDataFileUrl()
+    {
+        var language = Thread.CurrentThread.CurrentCulture.Name.ToLower().Contains("fr") ? "fr" : "en";
+        var subdomain = CKANService.IsStaging() ? "registry-staging" : "registry";
+        return $"https://{subdomain}.open.canada.ca/{language}/dataset/{FileId}";
+    }
 
     private void UpdateCurrentStatus(OpenDataSharingStatus step, bool passed = false)
     {
@@ -269,6 +313,93 @@
         }
     }
 
+    private async Task PublishAsUrl()
+    {
+        savingData = true;
+        try
+        {
+            var fileId = fileIdGuid.ToString();
+            var fieldValues = await MetadataBrokerService.GetObjectMetadataValues(fileId);
+
+            // get the file url
+            var url = PublicFileService.GetPublicSharedFileUrl(fileId);
+
+            // publish to open data
+            var result = await CKANService.CreatePackage(fieldValues, url);
+
+            if (result.Succeeded)
+            {
+                var updatedFile = await PublicFileService.UpdateOpenDataPublication(fileIdGuid, true);
+                UpdateShareFileStatus(updatedFile);
+                await InvokeAsync(StateHasChanged);
+            }
+            else
+            {
+                // todo: toast error!
+            }
+        }
+        finally
+        {
+            savingData = false;
+        }
+    }
+
+    private async Task UploadAndPublish()
+    {
+        try
+        {
+            savingData = true;
+            await TryDownloadFileContent(async stream =>
+            {
+                var fileId = fileIdGuid.ToString();
+                var fieldValues = await MetadataBrokerService.GetObjectMetadataValues(fileId);
+
+            // publish to open data record
+            var result = await CKANService.CreatePackage(fieldValues);
+                if (result.Succeeded)
+                {
+                // publish to open data resource
+                result = await CKANService.AddResourcePackage(fileId, requestFilename, stream);
+                    if (result.Succeeded)
+                    {
+                        var updatedFile = await PublicFileService.UpdateOpenDataPublication(fileIdGuid, false);
+                        UpdateShareFileStatus(updatedFile);
+                        await InvokeAsync(StateHasChanged);                  
+                    }
+                    else
+                    {
+                    // todo: toast error!
+                }
+                }
+                else
+                {
+                // todo: toast error!
+            }
+            });
+        }
+        finally
+        {
+            savingData = false;
+        }
+    }
+
+    private async Task TryDownloadFileContent(Func<Stream, Task> processFile)
+    {
+        using (var httpClient = new HttpClient())
+        {
+            var fileUri = await  PublicFileService.DownloadPublicUrlSharedFile(fileIdGuid);
+
+            using (var response = await httpClient.GetAsync(fileUri.ToString(), HttpCompletionOption.ResponseHeadersRead))
+            {
+                response.EnsureSuccessStatusCode();
+                await using (var fileData = await response.Content.ReadAsStreamAsync())
+                {
+                    await processFile.Invoke(fileData);
+                }
+            }
+        }
+    }
+
     private async Task SaveMetadata()
     {
         savingData = true;
@@ -311,13 +442,12 @@
     private async Task ShowCancelRequestDialog()
     {
         var promptText = new List<string>() { Localizer["OPENDATA-WIZARD.CancelSharingPrompt"] };
-        RenderFragment cancelDialog = @<UserChoiceModal
-                                            HeaderText=@Localizer["OPENDATA-WIZARD.CancelSharing"]
-                                            ChoiceTextList=@promptText
-                                            OnDecision="HandleCancel"
-                                            ConfirmText=@Localizer["COMMON.Yes"]
-                                            CancelText=@Localizer["COMMON.No"]
-                                            />;
+        RenderFragment cancelDialog = 
+            @<UserChoiceModal HeaderText=@Localizer["OPENDATA-WIZARD.CancelSharing"]
+                              ChoiceTextList=@promptText
+                              OnDecision="HandleCancel"
+                              ConfirmText=@Localizer["COMMON.Yes"]
+                              CancelText=@Localizer["COMMON.No"]/>;
         await UI.ToggleModal(cancelDialog);
     }
 
@@ -363,7 +493,12 @@
         var currentUser = await currentUserTask;
         IsOwnRequest = currentUser.Id == RequestingUser.Id;
 
-        var status = sharedFileInfo.GetOpenDataSharingStatus();
+        UpdateShareFileStatus(sharedFileInfo);
+    }
+
+    private void UpdateShareFileStatus(OpenDataSharedFile file)
+    {
+        var status = file.GetOpenDataSharingStatus();
         UpdateCurrentStatus(status, status == OpenDataSharingStatus.AccessOpenData);
     }
 
