@@ -12,7 +12,11 @@
 
 
 <div class="manage-access">
-    <h4 class="nrcan-typography h4 title">@Localizer["Select User"]</h4>
+    <AeFlex Vertical>
+        <h1>@Localizer["Project Users"]</h1>
+    </AeFlex>    
+    <AeCard class="facardForms" CardPosition="AeCard.CardStyle.Horizontal">
+    <AeTypography>@Localizer["Search Users"]</AeTypography>
     <input type="text" id="inputSearch" class="selectedText" @onclick="() => OnSearchUserClick()" @onkeyup="() => OnSearchUserClick()" @bind-value="_inputValue" @bind-value:event="oninput" />
     <div class="nrcan-typography dropdown-content ddsearch" id="usermenu">
         @foreach (var item in filteredUsersList.Take(10))
@@ -31,10 +35,10 @@
                 Dataset="_chosenUsers"
                 Headers="headers"
                 class="custom light"
-                style="Width:100%"
-                GridTemplateColumns="3fr 3fr 1fr"    
+                style="Width:65%"
+                GridTemplateColumns="4fr 4fr 0.5fr"    
                 Page="@_lastClicked"
-                PageSize="4"
+                PageSize="15"
                 @ref=_myTable
             />
 
@@ -51,7 +55,7 @@
 
         <AeButton @onclick="@(async () => await AddUsersToProject())">@Localizer["Add Users"]</AeButton>
     }
-
+    </AeCard>
 </div>
 
 @code {
@@ -61,12 +65,12 @@
 
     private List<Func<GraphUser, string>> accessorFunctions;
     private List<Func<GraphUser, RenderFragment>> renderFunctions;
-    
+
     private Dictionary<string, GraphUser> filteredUsersList { get; set; } = new Dictionary<string, GraphUser>();
     private string _inputValue = string.Empty;    
     private DatahubProjectDBContext Context;
     private Datahub_Project _project;
-    private List<string> headers = new List<string>();
+    private List<string> headers = new List<string>() { "Name", "Email", ""};
     private int _lastClicked = 0;
     private IPageableComponent _myTable;
 
@@ -88,14 +92,17 @@
         renderFunctions = new List<Func<GraphUser, RenderFragment>>() {            
             null,
             null,
-            user => @<div class="help icon-container" @onclick="() => DeleteRecord(user.Id)"><i class="far fa-trash-alt"></i></div>
+            user => 
+    @<div class="help icon-container" @onclick="() => DeleteRecord(user.Id)"><i class="far fa-trash-alt"></i></div>
     ,
         };
     }
 
     private async void DeleteRecord(string recordId)
     {
+        var count = _chosenUsers.Where(u => u.Id == recordId).ToList().Count;
         _chosenUsers.RemoveAll(u => u.Id == recordId);
+        _myTable.Total = _myTable.Total - count;
         StateHasChanged();
     }
 
