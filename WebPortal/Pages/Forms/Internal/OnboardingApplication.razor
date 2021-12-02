@@ -28,7 +28,6 @@
 }
 @code {
     private const string PROJECTACRONYM = "DHPGLIST";
-    private const string NOTAPPLICABLE = "N/A";
     private FormMetadata<OnboardingApp> _formMetadata;
     private bool _onchange;
     private bool _isFrench;
@@ -40,6 +39,7 @@
     private List<Datahub_Project_Sectors_And_Branches> _sectors;
     private List<Datahub_Project_Sectors_And_Branches> _branches;
     private List<Datahub_Project_Sectors_And_Branches> _divisions;
+    private List<Func<OnboardingApp, string>> AccessorFunctions = new List<Func<OnboardingApp, string>>();
     private bool _isLoaded;
 
 
@@ -57,16 +57,24 @@
         _sectors = Context.Organization_Levels.Where(l => l.Org_Level == "3").ToList();
         _branches = Context.Organization_Levels.Where(l => l.Org_Level == "4").ToList();
         _divisions = Context.Organization_Levels.Where(l => l.Org_Level == "5").ToList();
+        _isFrench = CultureInfo.CurrentCulture.Name.StartsWith("fr", StringComparison.InvariantCulture);
+
+        AccessorFunctions = new List<Func<OnboardingApp, string>>
+        {
+            new Func<OnboardingApp, string>(p => { return Localizer[p.Client_Sector]; }),
+            new Func<OnboardingApp, string>(p => { return Localizer[p.Client_Branch]; }),
+            new Func<OnboardingApp, string>(p => { return Localizer[p.Client_Division]; }),
+            new Func<OnboardingApp, string>(p => { return p.Client_Contact_Name; }),
+        };
 
         await LoadApps();
         _formMetadata.Header = Localizer["Datahub Project Onboarding Application Form"];
         _formMetadata.TableRoles = RoleConstants.DATAHUB_ROLE_ADMIN;
         _formMetadata.DataSet = _onboardingApplications;
-        _formMetadata.AccessorFunctions = accessorFunctions;
+        _formMetadata.AccessorFunctions = AccessorFunctions;
         _formMetadata.Headers = headers;
         _formMetadata.GridTemplateColumns = "4fr 4fr 4fr 4fr";
         _formMetadata.IsSubmitEnabled = true;
-        _isFrench = CultureInfo.CurrentCulture.Name.StartsWith("fr", StringComparison.InvariantCulture);
         _formMetadata.MarkDownContent = new List<string>();
         _formMetadata.MarkDownContentFooter = new List<string>();
 
@@ -78,15 +86,6 @@
 
     }
 
-    private List<Func<OnboardingApp, string>> accessorFunctions = new List<Func<OnboardingApp, string>>
-    {
-        new Func<OnboardingApp, string>(p => { return p.Client_Sector; }),
-        new Func<OnboardingApp, string>(p => { return p.Client_Branch; }),
-        new Func<OnboardingApp, string>(p => { return p.Client_Division; }),
-        new Func<OnboardingApp, string>(p => { return p.Client_Contact_Name; }),
-    };
-
-    
     private List<string> headers => new List<string>
     {
         Localizer["Sector"], Localizer["Branch"], Localizer["Division"], Localizer["Contact"]        
@@ -101,9 +100,9 @@
                 _onboardingApplication = Context.OnboardingApps.Add(_onboardingApplication).Entity;
             }
             _onboardingApplication.Last_Updated_DT = DateTime.Now;
-            
+
             OnboardingParameters onboardingParameters = new() { App = _onboardingApplication, AdminEmailAddresses =  ServiceAuthManager.GetProjectAdminsEmails(PROJECTACRONYM)};
-        
+
             await EmailService.SendOnboardingConfirmations(onboardingParameters);
             _onboardingApplication.NotificationsSent = true;
 
@@ -113,7 +112,7 @@
 
     }
 
-   
+
     private async Task LoadApps()
     {
 
@@ -128,32 +127,26 @@
     {
         if (string.IsNullOrEmpty(_onboardingApplication.Client_Sector))
         {
-            return new List<string>() { NOTAPPLICABLE };
+            return new List<string>();
         }
-        var sectorId = _sectors.Where(s => (s.Org_Name_E == _onboardingApplication.Client_Sector || s.Org_Name_F == _onboardingApplication.Client_Sector)).First().Organization_ID;
-        var branches = _branches.Where(r => r.Superior_OrgId == sectorId).Select(r=> _isFrench ? r.Org_Name_F : r.Org_Name_E).ToList();
-        if (!branches.Any())
-        {
-            branches.Add(NOTAPPLICABLE);
-        }
+        var sectorId = _sectors.Where(s => (s.Org_Name_E == _onboardingApplication.Client_Sector)).First().Organization_ID;
+        var branches = _branches.Where(r => r.Superior_OrgId == sectorId).OrderBy(r=> r.Org_Name_E).Select(r=> r.Org_Name_E).ToList();
 
+        
         return branches;
     }
 
     private List<string> LoadDivisions()
     {
-        if (string.IsNullOrEmpty(_onboardingApplication.Client_Branch) || _onboardingApplication.Client_Branch == NOTAPPLICABLE)
+        if (string.IsNullOrEmpty(_onboardingApplication.Client_Branch))
         {
-            return new List<string>() { NOTAPPLICABLE };
+            return new List<string>();
         }
-        
-        var branchId = _branches.Where(s => (s.Org_Name_E == _onboardingApplication.Client_Branch  || s.Org_Name_F == _onboardingApplication.Client_Branch)).First().Organization_ID;
-        var divisions = _divisions.Where(r => r.Superior_OrgId == branchId).Select(r=> _isFrench ? r.Org_Name_F : r.Org_Name_E).ToList();
 
-        if (!divisions.Any())
-        {
-            divisions.Add(NOTAPPLICABLE);
-        }
+        var branchId = _branches.Where(s => (s.Org_Name_E == _onboardingApplication.Client_Branch)).First().Organization_ID;
+        var divisions = _divisions.Where(r => r.Superior_OrgId == branchId).OrderBy(r=> r.Org_Name_E).Select(r=> r.Org_Name_E).ToList();
+
+
         return divisions;
     }
 
@@ -161,8 +154,8 @@
     {
         if (!_onchange)
         {
-            var sectors = _sectors.Select(r=> _isFrench ? r.Org_Name_F : r.Org_Name_E).ToList();
-            context.RegisterOptionValueProperty<OnboardingApp>(p => p.Client_Sector, () => sectors, _ => context.RefreshOptions<OnboardingApp>(s => s.Client_Branch));
+            var sectors = _sectors.OrderBy(r=> r.Org_Name_E).Select(r=> r.Org_Name_E).ToList();
+            context.RegisterOptionValueProperty<OnboardingApp,string>(p => p.Client_Sector, p => p, () => sectors, _ => context.RefreshOptions<OnboardingApp>(s => s.Client_Branch));
             context.RegisterOptionValueProperty<OnboardingApp>(p => p.Client_Branch, LoadBranches, _ => context.RefreshOptions<OnboardingApp>(s => s.Client_Division));
             context.RegisterOptionValueProperty<OnboardingApp>(p => p.Client_Division, LoadDivisions);
             context.RegisterOptionValueProperty<OnboardingApp>(p => p.Project_Engagement_Category, () => Onboarding_Constants.CATEGORY);
@@ -171,8 +164,8 @@
 
         ToggleVisibility(context);
     }
-    
-     private void ToggleVisibility(IModelFormContext context)
+
+    private void ToggleVisibility(IModelFormContext context)
     {
         context.SetVisible<OnboardingApp>(p => p.Project_Engagement_Category_Other, _onboardingApplication.Project_Engagement_Category == "Other");
         _onchange = false;
@@ -180,9 +173,12 @@
 
     private void OnChange(ModelFormChangeArgs args)
     {
+        //HandleTranslationFields();
         _onchange = true;
         OnConfigure(args.Context);
     }
+
+    
 
     private async Task CreateNewApplication()
     {

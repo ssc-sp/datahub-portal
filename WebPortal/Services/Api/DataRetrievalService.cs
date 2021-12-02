@@ -133,7 +133,8 @@ namespace Datahub.Portal.Services
                             ownedby = blobItem.Metadata["ownedby"],
                             createdby = blobItem.Metadata["createdby"],
                             lastmodifiedby = blobItem.Metadata["lastmodifiedby"],
-                            lastmodifiedts = DateTime.Now
+                            lastmodifiedts = DateTime.Now,
+                            filesize = blobItem.Properties?.ContentLength?.ToString()
                         };
                         folder.Add(file, false);
                     }
