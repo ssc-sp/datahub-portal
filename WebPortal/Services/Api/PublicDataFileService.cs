@@ -79,6 +79,8 @@ namespace Datahub.Portal.Services
 
             if (openDataRequest)
             {
+                _ = Int64.TryParse(fileMetaData.filesize, out Int64 fileSize);
+
                 var shareRequest = new OpenDataSharedFile
                 {
                     IsOpenDataRequest_FLAG = true,
@@ -298,13 +300,12 @@ namespace Datahub.Portal.Services
             }
         }
 
-        public async Task<OpenDataSharedFile> UpdateOpenDataPublication(Guid fileId, bool urlSharing, DateTime? publicationDate)
+        public async Task<OpenDataSharedFile> UpdateOpenDataPublication(Guid fileId, bool urlSharing)
         {
             var shareInfo = await LoadOpenDataSharedFileInfo(fileId);
             if (shareInfo is not null)
             {
                 shareInfo.FileStorage_CD = urlSharing ? FileStorageType.Datahub : FileStorageType.OpenData;
-                shareInfo.PublicationDate_DT = publicationDate ?? DateTime.UtcNow;
                 await _projectDbContext.TrackSaveChangesAsync(_datahubAuditingService);
             }
             return shareInfo;
@@ -408,7 +409,7 @@ namespace Datahub.Portal.Services
 
         public async Task SetPendingApprovalOpenDataAsRead(OpenDataSharedFile file)
         {
-            file.Read_FLAG = true;
+            file.ApprovalFormRead_FLAG = true;
             await _projectDbContext.TrackSaveChangesAsync(_datahubAuditingService);
         }
 
