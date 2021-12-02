@@ -22,7 +22,7 @@ namespace Datahub.Portal.Services
             _auditingService = auditingService;
         }
 
-        public async Task<FieldValueContainer> GetMetadataContext(string objectId)
+        public async Task<FieldValueContainer> GetObjectMetadataValues(string objectId)
         {
             using var ctx = _contextFactory.CreateDbContext();
 

@@ -13,11 +13,10 @@
                         <strong style="color: red">*&nbsp;</strong>
                     }
                     <strong><span @onclick="SelectField" title=@FieldDefinition.Description>@FieldDefinition.Name</span></strong>
-                    
 
                     @if (CanAcceptTranslation())
                     {
-                        <AeButton style="float: right" title=@GetTranslationHint() @onclick=@HandleTranslateField>
+                        <AeButton style="float: right" title=@GetTranslationHint() @onclick=@HandleTranslateField Disabled=@TranslatePairDisabled()>
                             <i class="fa fa-language" aria-hidden="true"></i>
                         </AeButton>
                     }
@@ -214,11 +213,13 @@
         if (IsKeywordField())
             return false;
 
-        var otherField = FieldPair?.GetPaired(FieldValue);
-        if (otherField is null)
-            return false;
+        return FieldPair?.GetPaired(FieldValue) is not null;
+    }
 
-        return !string.IsNullOrEmpty(otherField.Value_TXT);
+    private bool TranslatePairDisabled()
+    {
+        var otherField = FieldPair?.GetPaired(FieldValue);
+        return string.IsNullOrEmpty(otherField?.Value_TXT);
     }
 
     private string GetTranslationHint()
