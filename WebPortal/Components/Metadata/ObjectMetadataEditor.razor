@@ -81,19 +81,10 @@
         return _fieldValues["title_translated_en"]?.Value_TXT ?? string.Empty;
     }
 
-    // -- temp test area --
-    [Inject]
-    public ICKANService CKANService { get; set; }
-
     public async Task SavePackage()
     {
-        var result = await CKANService.CreatePackage(_fieldValues.GetReadonlyCopy(), "http://url_goes_here");
-        if (!result.Succeeded)
-        {
-            // >>
-        }
+        await Task.Delay(100);
     }
-    // -- end temp area --
 
     private async void FieldChanged(ObjectFieldValue field)
     {

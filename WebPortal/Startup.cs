@@ -426,6 +426,7 @@ namespace Datahub.Portal
             services.AddSingleton<ServiceAuthManager>();
 
             services.AddCKANService();
+            services.AddSingleton<IOpenDataService, OpenDataService>();
 
             services.AddSingleton<IGlobalSessionManager, GlobalSessionManager>();
             services.AddScoped<IUserCircuitCounterService, UserCircuitCounterService>();
@@ -460,7 +461,5 @@ namespace Datahub.Portal
             services.AddPooledDbContextFactory<T>(options => options.UseCosmos(connectionString, databaseName: catalogName));
             services.AddDbContextPool<T>(options => options.UseCosmos(connectionString, databaseName: catalogName));
         }
-
-
     }
 }
