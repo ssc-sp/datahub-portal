@@ -11,11 +11,11 @@
     [Parameter]
     public OpenDataSharedFile File { get; set; }
 
-    private bool Disabled => File.Read_FLAG;
+    private bool Disabled => File.ApprovalFormRead_FLAG;
 
     private async void NavigateToUrl()
     {
-        if (!File.Read_FLAG)
+        if (!File.ApprovalFormRead_FLAG)
         {
             await PublicFileService.SetPendingApprovalOpenDataAsRead(File);
             await InvokeAsync(StateHasChanged);
