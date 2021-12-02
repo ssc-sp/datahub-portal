@@ -6,7 +6,7 @@ namespace Datahub.CKAN.Service
     {
         public static void AddCKANService(this IServiceCollection services)
         {
-            services.AddScoped<ICKANService, CKANService>();
+            services.AddSingleton<ICKANServiceFactory, CKANServiceFactory>();
         }
     }
 }
