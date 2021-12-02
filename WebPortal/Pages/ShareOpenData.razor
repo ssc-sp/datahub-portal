@@ -4,11 +4,12 @@
 @using System.Net.Http.Headers
 @inject NavigationManager NavManager
 @inject IPublicDataFileService PublicFileService
+@inject IDbContextFactory<DatahubProjectDBContext> dbContextFactory
 @inject IMSGraphService GraphService
 @inject UIControlsService UI
 @inject IUserInformationService UserInformationService
 @inject IMetadataBrokerService MetadataBrokerService
-@inject ICKANService CKANService
+@inject IOpenDataService OpenDataService
 @inject IJSRuntime jsRuntime
 
 <AeTypography style="margin-left: 2rem;" Variant="h1">@Localizer["OPENDATA-WIZARD.Page_Title"]</AeTypography>
@@ -107,19 +108,33 @@
             <AeCard>
                 <ChildContent>
                     <AeTypography Variant="h3">@Localizer["OPENDATA-WIZARD.Publish_File"]</AeTypography>
-                    <AeFlex Vertical="true">
-                        <AeTypography Variant="p">@Localizer["OPENDATA-WIZARD.Publish_As_URL_Desc"]</AeTypography>
-                        <div>
-                            <AeButton OnClickEvent=@PublishAsUrl Disabled=@savingData>@Localizer["OPENDATA-WIZARD.Publish_As_URL"]</AeButton>
-                        </div>
-                    </AeFlex>
 
-                    <AeFlex Vertical="true">
-                        <AeTypography Variant="p">@Localizer["OPENDATA-WIZARD.Upload_And_Publish_Desc"]</AeTypography>
-                        <div>
-                            <AeButton OnClickEvent=@UploadAndPublish Disabled=@savingData>@Localizer["OPENDATA-WIZARD.Upload_And_Publish"]</AeButton>
-                        </div>
-                    </AeFlex>
+                    @if (!OpenDataFileUploading)
+                    {
+                        <AeFlex Vertical="true">
+                            <AeTypography Variant="p">@Localizer["OPENDATA-WIZARD.Publish_As_URL_Desc"]</AeTypography>
+                            <div>
+                                <AeButton OnClickEvent=@PublishAsUrl Disabled=@savingData>@Localizer["OPENDATA-WIZARD.Publish_As_URL"]</AeButton>
+                            </div>
+                        </AeFlex>
+
+                        <AeFlex Vertical="true">
+                            <AeTypography Variant="p">@Localizer["OPENDATA-WIZARD.Upload_And_Publish_Desc"]</AeTypography>
+                            <div>
+                                <AeButton OnClickEvent=@UploadAndPublish Disabled=@savingData>@Localizer["OPENDATA-WIZARD.Upload_And_Publish"]</AeButton>
+                            </div>
+                            @if (uploadStatus == OpenDataUploadStatus.Failed)
+                            {
+                                <AeTypography Variant="p" style="font-size: 0.8em">
+                                    @Localizer["OPENDATA-WIZARD.Upload_Last_Error"] @uploadFileErrorMessage
+                                </AeTypography>
+                            }
+                        </AeFlex>
+                    }
+                    else
+                    {
+                        <AeTypography Variant="p">@Localizer["OPENDATA-WIZARD.Uploading_file_in_progress"]</AeTypography>
+                    }
 
                     <div>
                         @if (savingData)
@@ -225,6 +240,9 @@
     private bool editSubmittedApproval = false;
 
     private string PublicationDateStr = string.Empty;
+    private long sharedDataFileId;
+    private OpenDataUploadStatus uploadStatus = OpenDataUploadStatus.NotStarted;
+    private string uploadFileErrorMessage;
     private int approvalFormId = 0;
     private string GenerateApprovalFormPdfUrl => PublicFileService.GetOpenDataApprovalFormPdfUrl(approvalFormId);
     private string signedApprovalFormUrl;
@@ -237,7 +255,7 @@
     private string GetOpenDataFileUrl()
     {
         var language = Thread.CurrentThread.CurrentCulture.Name.ToLower().Contains("fr") ? "fr" : "en";
-        var subdomain = CKANService.IsStaging() ? "registry-staging" : "registry";
+        var subdomain = OpenDataService.IsStaging() ? "registry-staging" : "registry";
         return $"https://{subdomain}.open.canada.ca/{language}/dataset/{FileId}";
     }
 
@@ -325,7 +343,7 @@
             var url = PublicFileService.GetPublicSharedFileUrl(fileId);
 
             // publish to open data
-            var result = await CKANService.CreatePackage(fieldValues, url);
+            var result = await OpenDataService.PublishFileAsUrl(fieldValues, url);
 
             if (result.Succeeded)
             {
@@ -349,33 +367,17 @@
         try
         {
             savingData = true;
-            await TryDownloadFileContent(async stream =>
-            {
-                var fileId = fileIdGuid.ToString();
-                var fieldValues = await MetadataBrokerService.GetObjectMetadataValues(fileId);
 
-            // publish to open data record
-            var result = await CKANService.CreatePackage(fieldValues);
-                if (result.Succeeded)
-                {
-                // publish to open data resource
-                result = await CKANService.AddResourcePackage(fileId, requestFilename, stream);
-                    if (result.Succeeded)
-                    {
-                        var updatedFile = await PublicFileService.UpdateOpenDataPublication(fileIdGuid, false);
-                        UpdateShareFileStatus(updatedFile);
-                        await InvokeAsync(StateHasChanged);                  
-                    }
-                    else
-                    {
-                    // todo: toast error!
-                }
-                }
-                else
-                {
-                // todo: toast error!
-            }
-            });
+            var fileId = fileIdGuid.ToString();
+            var fieldValues = await MetadataBrokerService.GetObjectMetadataValues(fileId);
+            var fileUri = await  PublicFileService.DownloadPublicUrlSharedFile(fileIdGuid);
+
+            _ = OpenDataService.PublishFile(fieldValues, sharedDataFileId, fileId, requestFilename, fileUri.ToString());
+
+            uploadStatus = OpenDataUploadStatus.UploadingFile;
+            StartOpenDataUploadTimer();
+
+            await InvokeAsync(StateHasChanged);
         }
         finally
         {
@@ -383,19 +385,44 @@
         }
     }
 
-    private async Task TryDownloadFileContent(Func<Stream, Task> processFile)
-    {
-        using (var httpClient = new HttpClient())
-        {
-            var fileUri = await  PublicFileService.DownloadPublicUrlSharedFile(fileIdGuid);
+    private bool OpenDataFileUploading => uploadStatus == OpenDataUploadStatus.UploadingFile;
 
-            using (var response = await httpClient.GetAsync(fileUri.ToString(), HttpCompletionOption.ResponseHeadersRead))
+    private System.Timers.Timer _openDataUploadTimer;
+
+    private void StartOpenDataUploadTimer()
+    {
+        if (_openDataUploadTimer is null)
+        {
+            _openDataUploadTimer = new(5000);
+            _openDataUploadTimer.Elapsed += CheckOpenDataUploadStatus;
+        }
+        _openDataUploadTimer.Enabled = true;
+    }
+
+    private async void CheckOpenDataUploadStatus(object source, System.Timers.ElapsedEventArgs e)
+    {
+        using (var ctx = dbContextFactory.CreateDbContext())
+        {
+            var mustRefresh = false;
+            var sharedFile = ctx.OpenDataSharedFiles.FirstOrDefault(e => e.SharedDataFile_ID == sharedDataFileId);
+
+            if (sharedFile.UploadStatus_CD != uploadStatus)
             {
-                response.EnsureSuccessStatusCode();
-                await using (var fileData = await response.Content.ReadAsStreamAsync())
-                {
-                    await processFile.Invoke(fileData);
-                }
+                uploadStatus = sharedFile.UploadStatus_CD;
+                uploadFileErrorMessage = sharedFile.UploadError_TXT;
+                mustRefresh = true;
+            }
+
+            if (uploadStatus == OpenDataUploadStatus.UploadCompleted)
+            {
+                _openDataUploadTimer.Enabled = false;
+                UpdateShareFileStatus(sharedFile);
+                mustRefresh = true;
+            }        
+
+            if (mustRefresh)
+            {
+                await InvokeAsync(StateHasChanged);    
             }
         }
     }
@@ -484,6 +511,10 @@
 
         var sharedFileInfo = await loadTask;
 
+        sharedDataFileId = sharedFileInfo.SharedDataFile_ID;
+        uploadStatus = sharedFileInfo.UploadStatus_CD;
+        uploadFileErrorMessage = sharedFileInfo.UploadError_TXT;
+
         approvalFormId = sharedFileInfo.ApprovalForm_ID ?? 0;
         signedApprovalFormUrl = sharedFileInfo.SignedApprovalForm_URL;
         requestFilename = sharedFileInfo.Filename_TXT;
@@ -500,6 +531,15 @@
     {
         var status = file.GetOpenDataSharingStatus();
         UpdateCurrentStatus(status, status == OpenDataSharingStatus.AccessOpenData);
+        UpdateOpenDataUploadStatus(status);
+    }
+
+    private void UpdateOpenDataUploadStatus(OpenDataSharingStatus status)
+    {
+        if (status == OpenDataSharingStatus.PendingUpload && uploadStatus == OpenDataUploadStatus.UploadingFile)
+        {
+            StartOpenDataUploadTimer();
+        }
     }
 
     private void OnMetadataFieldChanged() => StateHasChanged();
