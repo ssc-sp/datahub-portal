@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Datahub.Core.EFCore;
+using Microsoft.Graph;
 using MimeKit;
 
 namespace Datahub.Core.Services
@@ -27,6 +28,7 @@ namespace Datahub.Core.Services
         Task SendOnboardingConfirmations(OnboardingParameters parameters);
         Task SendFileSharingApprovalRequest(string username, string filename, DatahubProjectInfo projectInfo, IList<string> recipients);
         Task SendFileSharingApproved(SharedDataFile sharedFileInfo, DatahubProjectInfo projectInfo, string publicUrlLink, string recipient);
+        Task SendStorageCostEstimate(User estimatingUser, Dictionary<string,object> parameters);
     }
 
     public record class DatahubProjectInfo(string ProjectNameEn, string ProjectNameFr, string ProjectCode);
