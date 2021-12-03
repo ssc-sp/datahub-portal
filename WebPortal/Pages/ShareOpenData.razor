@@ -116,6 +116,12 @@
                             <div>
                                 <AeButton OnClickEvent=@PublishAsUrl Disabled=@savingData>@Localizer["OPENDATA-WIZARD.Publish_As_URL"]</AeButton>
                             </div>
+                            @if (!string.IsNullOrEmpty(urlPublishError))
+                            {
+                                <AeTypography Variant="p" style="font-size: 0.8em">
+                                    @Localizer["OPENDATA-WIZARD.Upload_Last_Error"] @urlPublishError
+                                </AeTypography>
+                            }
                         </AeFlex>
 
                         <AeFlex Vertical="true">
@@ -240,6 +246,7 @@
     private bool editSubmittedApproval = false;
 
     private string PublicationDateStr = string.Empty;
+    private string urlPublishError;
     private long sharedDataFileId;
     private OpenDataUploadStatus uploadStatus = OpenDataUploadStatus.NotStarted;
     private string uploadFileErrorMessage;
@@ -336,6 +343,8 @@
         savingData = true;
         try
         {
+            urlPublishError = string.Empty;
+
             var fileId = fileIdGuid.ToString();
             var fieldValues = await MetadataBrokerService.GetObjectMetadataValues(fileId);
 
@@ -353,7 +362,7 @@
             }
             else
             {
-                // todo: toast error!
+                urlPublishError = result.ErrorMessage;
             }
         }
         finally
