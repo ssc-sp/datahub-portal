@@ -200,7 +200,7 @@
 
         if (isChecked is null || isChecked == true)
         {
-            var e = PowerBiSyncService.GetReport(el.group);
+            var e = PowerBiSyncService.GetReport(el.report, project, el.group,ctx);
             ctx.Project_PBI_Reports.Add(e);
             reportLinks.Add(e);
             ctx.SaveChanges();
@@ -284,7 +284,7 @@
         try
         {
             dataSets = await PowerBiServiceApi.GetAllDatasetsAsync();
-            reports = dataSets.SelectMany(r => r.Reports.Select(rp => (rp, r.Group))).ToList();
+            reports = dataSets.SelectMany(r => r.Reports.Select(rp => (rp, r.Group))).Distinct().ToList();
             isWorkspacesLoaded = true;
             StateHasChanged();
             // StateHasChanged();
