@@ -1,6 +1,7 @@
 ﻿@page "/share/opendata/{FileId}"
 @using Datahub.CKAN.Service
 @using Datahub.Metadata.DTO;
+@using System.Net.Http.Headers
 @inject NavigationManager NavManager
 @inject IPublicDataFileService PublicFileService
 @inject IMSGraphService GraphService
@@ -112,12 +113,14 @@
                             <AeButton OnClickEvent=@PublishAsUrl Disabled=@savingData>@Localizer["OPENDATA-WIZARD.Publish_As_URL"]</AeButton>
                         </div>
                     </AeFlex>
+
                     <AeFlex Vertical="true">
                         <AeTypography Variant="p">@Localizer["OPENDATA-WIZARD.Upload_And_Publish_Desc"]</AeTypography>
                         <div>
                             <AeButton OnClickEvent=@UploadAndPublish Disabled=@savingData>@Localizer["OPENDATA-WIZARD.Upload_And_Publish"]</AeButton>
                         </div>
                     </AeFlex>
+
                     <div>
                         @if (savingData)
                         {
@@ -316,7 +319,7 @@
         try
         {
             var fileId = fileIdGuid.ToString();
-            var fieldValues = await MetadataBrokerService.GetMetadataContext(fileId);
+            var fieldValues = await MetadataBrokerService.GetObjectMetadataValues(fileId);
 
             // get the file url
             var url = PublicFileService.GetPublicSharedFileUrl(fileId);
@@ -324,9 +327,9 @@
             // publish to open data
             var result = await CKANService.CreatePackage(fieldValues, url);
 
-            if (result?.Succeeded == true)
+            if (result.Succeeded)
             {
-                var updatedFile = await PublicFileService.UpdateOpenDataPublication(fileIdGuid, true, GetPublicationDate(fieldValues));
+                var updatedFile = await PublicFileService.UpdateOpenDataPublication(fileIdGuid, true);
                 UpdateShareFileStatus(updatedFile);
                 await InvokeAsync(StateHasChanged);
             }
@@ -343,11 +346,36 @@
 
     private async Task UploadAndPublish()
     {
-        savingData = true;
         try
         {
-            // todo!!
-            await Task.Delay(TimeSpan.FromSeconds(10));
+            savingData = true;
+            await TryDownloadFileContent(async stream =>
+            {
+                var fileId = fileIdGuid.ToString();
+                var fieldValues = await MetadataBrokerService.GetObjectMetadataValues(fileId);
+
+            // publish to open data record
+            var result = await CKANService.CreatePackage(fieldValues);
+                if (result.Succeeded)
+                {
+                // publish to open data resource
+                result = await CKANService.AddResourcePackage(fileId, requestFilename, stream);
+                    if (result.Succeeded)
+                    {
+                        var updatedFile = await PublicFileService.UpdateOpenDataPublication(fileIdGuid, false);
+                        UpdateShareFileStatus(updatedFile);
+                        await InvokeAsync(StateHasChanged);                  
+                    }
+                    else
+                    {
+                    // todo: toast error!
+                }
+                }
+                else
+                {
+                // todo: toast error!
+            }
+            });
         }
         finally
         {
@@ -355,19 +383,21 @@
         }
     }
 
-    private DateTime GetPublicationDate(FieldValueContainer fields)
+    private async Task TryDownloadFileContent(Func<Stream, Task> processFile)
     {
-        var date = DateTime.UtcNow;
-        var definition = fields.Definitions.Get("date_published");
-        if (definition is not null)
+        using (var httpClient = new HttpClient())
         {
-            var fieldValue = fields.FirstOrDefault(fv => fv.FieldDefinitionId == definition.FieldDefinitionId);
-            if (fieldValue != null)
+            var fileUri = await  PublicFileService.DownloadPublicUrlSharedFile(fileIdGuid);
+
+            using (var response = await httpClient.GetAsync(fileUri.ToString(), HttpCompletionOption.ResponseHeadersRead))
             {
-                DateTime.TryParse(fieldValue.Value_TXT, out date);
+                response.EnsureSuccessStatusCode();
+                await using (var fileData = await response.Content.ReadAsStreamAsync())
+                {
+                    await processFile.Invoke(fileData);
+                }
             }
         }
-        return date;
     }
 
     private async Task SaveMetadata()
@@ -413,14 +443,11 @@
     {
         var promptText = new List<string>() { Localizer["OPENDATA-WIZARD.CancelSharingPrompt"] };
         RenderFragment cancelDialog = 
-    @<UserChoiceModal
-                                            HeaderText=@Localizer["OPENDATA-WIZARD.CancelSharing"]
-                                            ChoiceTextList=@promptText
-                                            OnDecision="HandleCancel"
-                                            ConfirmText=@Localizer["COMMON.Yes"]
-                                            CancelText=@Localizer["COMMON.No"]
-                                            />
-    ;
+            @<UserChoiceModal HeaderText=@Localizer["OPENDATA-WIZARD.CancelSharing"]
+                              ChoiceTextList=@promptText
+                              OnDecision="HandleCancel"
+                              ConfirmText=@Localizer["COMMON.Yes"]
+                              CancelText=@Localizer["COMMON.No"]/>;
         await UI.ToggleModal(cancelDialog);
     }
 
