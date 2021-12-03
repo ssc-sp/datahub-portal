@@ -87,7 +87,8 @@ namespace Datahub.CKAN.Service
                 var jsonResponse = await response.Content.ReadAsStringAsync();
                 var ckanResult = JsonConvert.DeserializeObject<CKANResult>(jsonResponse);
 
-                return new CKANApiResult(ckanResult.Success, ckanResult.Error?.Message);
+                var errorMessage = ckanResult.Success ? string.Empty : ckanResult.Error?.__type;
+                return new CKANApiResult(ckanResult.Success, errorMessage);
             }
             catch (HttpRequestException ex)
             {
