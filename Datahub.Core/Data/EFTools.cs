@@ -28,13 +28,13 @@ namespace Datahub.Core.Data
             InitializeDatabase<T>(logger, configuration, factory, offline, migrate, ensureDeleteinOffline);
         }
 
-        public static void InitializeDatabase<T>(ILogger logger, IConfiguration configuration, IDbContextFactory<T> factory, bool offline, bool migrate = true, bool ensureDeleteinOffline = true) where T : DbContext
+        public static void InitializeDatabase<T>(ILogger logger, IConfiguration configuration, IDbContextFactory<T> factory, bool resetDB, bool migrate = true, bool ensureDeleteinOffline = true) where T : DbContext
         {
             //bool offline, ILogger logger, IDbContextFactory<T> factory, 
             using var context = factory.CreateDbContext();
             try
             {
-                if (offline)
+                if (resetDB)
                 {
                     if (ensureDeleteinOffline)
                         context.Database.EnsureDeleted();
