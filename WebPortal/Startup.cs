@@ -62,7 +62,8 @@ namespace Datahub.Portal
         private readonly IConfiguration Configuration;
         private readonly IWebHostEnvironment _currentEnvironment;
 
-        private bool Offline => _currentEnvironment.IsEnvironment("Offline");
+        private bool ResetDB => (bool)(Configuration.GetSection("InitialSetup")?.GetValue(typeof(bool), "ResetDB", false) ?? false);
+        private bool Offline => (bool)(Configuration.GetValue(typeof(bool), "Offline", false) ?? false);
 
         private bool Debug => (bool)Configuration.GetValue(typeof(bool), "DebugMode", false);
 
@@ -180,7 +181,7 @@ namespace Datahub.Portal
 
         private void InitializeDatabase<T>(ILogger logger, IDbContextFactory<T> dbContextFactory, bool migrate = true, bool ensureDeleteinOffline = true) where T : DbContext
         {
-            EFTools.InitializeDatabase<T>(logger, Configuration, dbContextFactory, Offline, migrate, ensureDeleteinOffline);
+            EFTools.InitializeDatabase<T>(logger, Configuration, dbContextFactory, ResetDB, migrate, ensureDeleteinOffline);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -380,6 +381,8 @@ namespace Datahub.Portal
                 services.AddSingleton<ICognitiveSearchService, CognitiveSearchService>();
 
                 services.AddScoped<PowerBiServiceApi>();
+                services.AddScoped<PowerBiSyncService>();
+                
             }
             else
             {
