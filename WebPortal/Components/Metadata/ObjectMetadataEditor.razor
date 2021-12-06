@@ -1,7 +1,8 @@
-﻿@using Datahub.CKAN.Service
+﻿@*ObjectMetadataEditor.razor*@
 @using Datahub.Metadata.Model
 @using Datahub.Metadata.DTO
 
+<div>
 @if (_fieldValues != null)
 {
     <MetadataEditor Preview=@_preview
@@ -10,7 +11,19 @@
                     RequiredFields=@_requiredFields
                     HiddenFields=@_hiddenFields
                     OnFieldChanged=@FieldChanged />
+    <AeFlex>
+        <AeButton OnClickEvent=@SaveChanges Disabled=@_disableSave>
+            @SaveButtonLabel
+        </AeButton>
+        <div>
+            @if (_savingData)
+            {
+                <Spinner Small=@true/>
+            }
+        </div>
+    </AeFlex>
 }
+</div>
 
 @code {
 
@@ -24,11 +37,16 @@
     public string ObjectId { get; set; }
 
     [Parameter]
-    public EventCallback<ObjectFieldValue> OnFieldChanged { get; set; }
+    public string SaveButtonLabel { get; set; } = "Save";
+
+    [Parameter]
+    public EventCallback<FieldValueContainer> OnSave{ get; set; }
 
     private FieldDefinitions _definitions;
     private FieldValueContainer _fieldValues;
-    private bool _preview = false;
+    private bool _preview;
+    private bool _savingData;
+    private bool _disableSave = true;
 
     private HashSet<string> _requiredFields = new() 
     {
@@ -58,6 +76,12 @@
     {
         _fieldValues = await MetadataBrokerService.GetObjectMetadataValues(ObjectId);
         _definitions = _fieldValues.Definitions;
+        _disableSave = !CheckRequiredFieldValues();
+    }
+
+    public string GetTitle()
+    {
+        return _fieldValues["title_translated_en"]?.Value_TXT ?? string.Empty;
     }
 
     public void TogglePreview()
@@ -66,28 +90,33 @@
         StateHasChanged();
     }
 
-    public bool? IsRequiredMetadataValid => _fieldValues?.ValidateRequired(IsFieldRequired);
-
-    private bool IsFieldRequired(FieldDefinition field) => _requiredFields.Contains(field.Field_Name_TXT);
-
-    public async Task SaveChanges()
+    private bool CheckRequiredFieldValues()
     {
-        await MetadataBrokerService.SaveMetadata(_fieldValues);
-        StateHasChanged();
+        return _fieldValues?.ValidateRequired(IsFieldRequired) == true;
     }
 
-    public string GetTitle()
+    private bool IsFieldRequired(FieldDefinition field)
     {
-        return _fieldValues["title_translated_en"]?.Value_TXT ?? string.Empty;
+        return _requiredFields.Contains(field.Field_Name_TXT);
     }
 
-    public async Task SavePackage()
+    private async Task SaveChanges()
     {
-        await Task.Delay(100);
+        _savingData = true;
+        try
+        {
+            await MetadataBrokerService.SaveMetadata(_fieldValues);
+            await OnSave.InvokeAsync(_fieldValues);
+        }
+        finally
+        {
+            _savingData = false;
+        }
+        await InvokeAsync(StateHasChanged);
     }
 
-    private async void FieldChanged(ObjectFieldValue field)
+    private void FieldChanged()
     {
-        await OnFieldChanged.InvokeAsync();
+        _disableSave = !CheckRequiredFieldValues();
     }
 }
