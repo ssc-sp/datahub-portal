@@ -7,8 +7,7 @@
 @inject IEmailNotificationService EmailNotificationService
 @inject ISystemNotificationService SystemNotificationService
 
-
-<h1>@Localizer[$"{LOCALIZATION_PREFIX}.Page_Title"]</h1>
+<AeTypography style="margin-left: 2rem;" Variant="h2">@Localizer[$"{LOCALIZATION_PREFIX}.Page_Title"]</AeTypography>
 
 <AeFlex>
     <AeFlex Vertical style="margin-left: 2rem; width: 48%">
@@ -23,16 +22,10 @@
 
             @if (ShowMetadataEditor && IsOwnRequest)
             {
-                <ObjectMetadataEditor ObjectId=@FileId @ref=@_metadataEditor ></ObjectMetadataEditor>
-                <AeFlex>
-                    <AeButton OnClickEvent=@SaveMetadata Disabled=@savingData >@Localizer[$"{LOCALIZATION_PREFIX}.Save_button"]</AeButton>
-                    <div>
-                        @if(savingData)
-                        {
-                            <Spinner Small=@true/>
-                        }
-                    </div>
-                </AeFlex>
+                <ObjectMetadataEditor @ref=@_metadataEditor 
+                                      ObjectId=@FileId 
+                                      SaveButtonLabel=@Localizer[$"{LOCALIZATION_PREFIX}.Save_button"]
+                                      OnSave=@HandleSave />
             }
             else if (IsOwnRequest)
             {
@@ -213,19 +206,14 @@
     private EditContext editContext;
     private ValidationMessageStore validationMessageStore;
 
-    private async Task SaveMetadata()
+    private async Task HandleSave()
     {
-        savingData = true;
-
-        var t = _metadataEditor.SaveChanges();
-
         var uri = NavManager.Uri;
         if (uri.IndexOf('#') >= 0)
         {
             uri = uri.Substring(0, uri.IndexOf('#'));
         }
-        
-        await t;
+
         await PublicFileService.MarkMetadataComplete(fileIdGuid);
         savingData = false;
         NavManager.NavigateTo($"{uri}#stepsDiv");
