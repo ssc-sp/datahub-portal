@@ -70,18 +70,18 @@ namespace Datahub.Core.Services
             }
         }
 
-        public GraphUser GetUser(string userId)
-        {
-            if (!string.IsNullOrWhiteSpace(userId))
-            {
-                if (UsersDict != null && UsersDict.ContainsKey(userId))
-                {
-                    return UsersDict[userId];
-                }
-            }
+        //public GraphUser GetUser(string userId)
+        //{
+        //    if (!string.IsNullOrWhiteSpace(userId))
+        //    {
+        //        if (UsersDict != null && UsersDict.ContainsKey(userId))
+        //        {
+        //            return UsersDict[userId];
+        //        }
+        //    }
 
-            return null;
-        }
+        //    return null;
+        //}
 
         public string GetUserName(string userId)
         {
@@ -96,13 +96,18 @@ namespace Datahub.Core.Services
             return "...";
         }
 
-        public string GetUserEmail(string userId)
+        public async Task<string> GetUserEmail(string userId)
         {
-            var user = GetUser(userId);
+            var user = await GetUserAsync(userId);
             return user?.Mail;
         }
+      
+        public Task<string> GetUserIdFromEmailAsync(string email)
+        {
+            throw new NotImplementedException();
+        }
 
-        public string GetUserIdFromEmail(string email)
+        public Task<GraphUser> GetUserAsync(string userId)
         {
             throw new NotImplementedException();
         }

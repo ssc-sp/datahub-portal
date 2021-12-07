@@ -92,11 +92,16 @@ namespace Datahub.Core.Services
             return adminsList;
         }
 
-        public string GetAdminUserString(string projectAcronym)
+        public async Task<string> GetAdminUserString(string projectAcronym)
         {
             var adminEmailList = GetProjectAdminsEmails(projectAcronym);
             StringBuilder admins = new();
-            adminEmailList.ForEach(e => admins.Append($"{mSGraphService.GetUserName(mSGraphService.GetUserIdFromEmail(e))}; "));
+           
+            foreach (var admin in adminEmailList)
+            {
+                var userId = await mSGraphService.GetUserIdFromEmailAsync(admin);
+                admins.Append($"{mSGraphService.GetUserName(userId)}; ");
+            }
             return admins.ToString().Trim().TrimEnd(';');
         }
         public async Task ClearProjectAdminCache()
@@ -149,8 +154,8 @@ namespace Datahub.Core.Services
 
             foreach (var user in users.Where(u => u.IsAdmin))
             {
-                var email = mSGraphService.GetUserEmail(user.User_ID)?.ToLower();
-                if (!extractedEmails.Contains(email))
+                var email = await mSGraphService.GetUserEmail(user.User_ID);
+                if (!extractedEmails.Contains(email.ToLower()))
                 {
                     user.IsAdmin = false;                    
                 }
@@ -159,7 +164,7 @@ namespace Datahub.Core.Services
 
             foreach (var email in extractedEmails)
             {
-                var adminUserid = mSGraphService.GetUserIdFromEmail(email);
+                var adminUserid = await mSGraphService.GetUserIdFromEmailAsync(email);
                 if (!string.IsNullOrEmpty(adminUserid))
                 {
                     //if user exists but is not admin
