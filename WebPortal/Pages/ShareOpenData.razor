@@ -51,13 +51,11 @@
             @if (ShowApprovalForm)
             {
                 <AeCard>
-
-                <Datahub.Portal.Pages.Forms.ShareWorkflow.ApprovalForm 
-                    _approvalFormId=@_approvalFormId 
-                    OnSubmitForm=@Update_approvalFormId 
-                    DatasetTitle=@_datasetTitle
-                    User=@_requestingUser/>
-
+                    <Datahub.Portal.Pages.Forms.ShareWorkflow.ApprovalForm 
+                        ApprovalFormId=@_approvalFormId 
+                        OnSubmitForm=@UpdateApprovalFormId 
+                        DatasetTitle=@_datasetTitle
+                        User=@_requestingUser/>
                     <div>&nbsp;</div>
                 </AeCard>
             }
@@ -290,7 +288,7 @@
         }
     }
 
-    private async Task Update_approvalFormId(int id)
+    private async Task UpdateApprovalFormId(int id)
     {
         _savingData = true;
         try
