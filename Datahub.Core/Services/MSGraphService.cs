@@ -18,35 +18,43 @@ namespace Datahub.Core.Services
     {
         private GraphServiceClient graphServiceClient;
         private IConfiguration _configuration;
-        private IWebHostEnvironment _webHostEnvironment;
         private ILogger<MSGraphService> _logger;
         private IHttpClientFactory _httpClientFactory;
 
         public Dictionary<string, GraphUser> UsersDict { get; set; }
 
-        public MSGraphService(IWebHostEnvironment webHostEnvironment,
-            IConfiguration configureOptions, 
+        public MSGraphService(IConfiguration configureOptions, 
             ILogger<MSGraphService> logger,
             IHttpClientFactory clientFactory)
         {
             //clientSecret = configuration["ClientAppSecret"];            
-            _webHostEnvironment = webHostEnvironment;
             _configuration = configureOptions;
             _logger = logger;
             _httpClientFactory = clientFactory;
         }
 
-        public GraphUser GetUser(string userId)
-        {
-            if (!string.IsNullOrWhiteSpace(userId))
-            {
-                if (UsersDict != null && UsersDict.ContainsKey(userId))
-                {
-                    return UsersDict[userId];
-                }
-            }
+        //public GraphUser GetUser(string userId)
+        //{
+        //    if (!string.IsNullOrWhiteSpace(userId))
+        //    {
+        //        if (UsersDict != null && UsersDict.ContainsKey(userId))
+        //        {
+        //            var user = UsersDict[userId];
+                    
+        //            return UsersDict[userId];
+        //        }
+        //    }
 
-            return null;
+        //    return null;
+        //}
+
+        public async Task<GraphUser> GetUserAsync(string userId)
+        {
+            PrepareAuthenticatedClient();
+            var user = await graphServiceClient.Users.Request()
+                .Filter($"id eq '{userId}'")
+                .GetAsync();
+            return user == null ? null : GraphUser.Create(user[0]);
         }
 
         public string GetUserName(string userId)
@@ -54,25 +62,32 @@ namespace Datahub.Core.Services
             
             if (!string.IsNullOrWhiteSpace(userId))
             {
-                var user = GetUser(userId);
-                return user?.DisplayName ?? "...";
+                return "...";
+                //var user = GetUser(userId);
+                //return user?.DisplayName ?? "...";
             }
 
             return "...";
         }
 
-        public string GetUserEmail(string userId)
+
+
+        public async Task<string> GetUserEmail(string userId)
         {
-            var user = GetUser(userId);
+            var user = await GetUserAsync(userId);
             return user?.Mail;
         }
 
-        public string GetUserIdFromEmail(string email)
-        {
-            var user = UsersDict.FirstOrDefault(u => u.Value.Mail.ToLower() == email.ToLower());
-            return user.Key ?? string.Empty;
-        }
 
+
+        public async Task<string> GetUserIdFromEmailAsync(string email)
+        {
+            PrepareAuthenticatedClient();
+            var user = await graphServiceClient.Users.Request()
+                .Filter($"mail eq '{email}'")
+                .GetAsync();
+            return user[0].Id ?? string.Empty;
+        }
         public Dictionary<string, GraphUser> GetUsersList()
         {
             return UsersDict;
@@ -84,45 +99,46 @@ namespace Datahub.Core.Services
             {
                 if (UsersDict == null)
                 {
-                    _logger.LogInformation("Entering Log Users");
-                    UsersDict = new Dictionary<string, GraphUser>();
-                    PrepareAuthenticatedClient();
+                    UsersDict = new();
+                    //_logger.LogInformation("Entering Log Users");
+                    //UsersDict = new Dictionary<string, GraphUser>();
+                    //PrepareAuthenticatedClient();
 
-                    IGraphServiceUsersCollectionPage usersPage = await graphServiceClient.Users.Request().GetAsync();
+                    //IGraphServiceUsersCollectionPage usersPage = await graphServiceClient.Users.Request().GetAsync();
 
-                    // Add the first page of results to the user list                    
-                    if (usersPage?.CurrentPage.Count > 0)
-                    {
-                        foreach (User user in usersPage)
-                        {
-                            var newUser = GraphUser.Create(user);
-                            UsersDict.Add(newUser.Id, newUser);
-                        }
-                    }
+                    //// Add the first page of results to the user list                    
+                    //if (usersPage?.CurrentPage.Count > 0)
+                    //{
+                    //    foreach (User user in usersPage)
+                    //    {
+                    //        var newUser = GraphUser.Create(user);
+                    //        UsersDict.Add(newUser.Id, newUser);
+                    //    }
+                    //}
 
-                    // Fetch each page and add those results to the list
-                    while (usersPage.NextPageRequest != null)
-                    {
-                        usersPage = await usersPage.NextPageRequest.GetAsync();
-                        foreach (User user in usersPage)
-                        {
-                            var newUser = GraphUser.Create(user);
-                            UsersDict.Add(newUser.Id, newUser);
-                        }
-                    }
+                    //// Fetch each page and add those results to the list
+                    //while (usersPage.NextPageRequest != null)
+                    //{
+                    //    usersPage = await usersPage.NextPageRequest.GetAsync();
+                    //    foreach (User user in usersPage)
+                    //    {
+                    //        var newUser = GraphUser.Create(user);
+                    //        UsersDict.Add(newUser.Id, newUser);
+                    //    }
+                    //}
 
-                    // add anonymous user
-                    var anonUser = UserInformationServiceConstants.GetAnonymousUser();
-                    if (anonUser != null)
-                    {
-                        var newUser = GraphUser.Create(anonUser);
-                        UsersDict.Add(newUser.Id, newUser);
-                    }
+                    //// add anonymous user
+                    //var anonUser = UserInformationServiceConstants.GetAnonymousUser();
+                    //if (anonUser != null)
+                    //{
+                    //    var newUser = GraphUser.Create(anonUser);
+                    //    UsersDict.Add(newUser.Id, newUser);
+                    //}
 
-                    //var user1 = UsersDict.Values.Where(u => u.Mail.ToLower() == "natasha.lestage@nrcan-rncan.gc.ca").FirstOrDefault().Id;
+                    ////var user1 = UsersDict.Values.Where(u => u.Mail.ToLower() == "natasha.lestage@nrcan-rncan.gc.ca").FirstOrDefault().Id;
                     
                     
-                    _logger.LogInformation("Exiting Log Users");
+                    //_logger.LogInformation("Exiting Log Users");
                 }
             }
             catch (ServiceException e)
