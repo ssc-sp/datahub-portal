@@ -2,7 +2,7 @@
 @using Datahub.CKAN.Service
 @using Datahub.Metadata.DTO;
 @using System.Net.Http.Headers
-@inject NavigationManager NavManager
+@inject CustomNavigation NavManager
 @inject IPublicDataFileService PublicFileService
 @inject IDbContextFactory<DatahubProjectDBContext> dbContextFactory
 @inject IMSGraphService GraphService
@@ -429,7 +429,7 @@
         await PublicFileService.MarkMetadataComplete(_fileIdGuid);
 
         var uri = GetBaseUrl(NavManager.Uri);
-        NavManager.NavigateTo($"{uri}#stepsDiv");
+        await NavManager.NavigateTo($"{uri}#stepsDiv", true);
 
         if (_currentStep == OpenDataSharingStatus.EnterMetadata)
         {
@@ -473,7 +473,7 @@
             _savingData = true;
             await PublicFileService.CancelPublicDataShare(_fileIdGuid);
             _savingData = false;
-            NavManager.NavigateTo("/");
+            await NavManager.NavigateTo("/", true);
         }
         await UI.ToggleModal();
     }
@@ -489,6 +489,11 @@
             _stepStates = _steps.ToDictionary(s => s, s => AeSteps<OpenDataSharingStatus>.StepState.Queued);
 
             var sharedFileInfo = await loadTask;
+            if (sharedFileInfo is null)
+            {
+                await NavManager.NavigateTo("/", true);
+                return;
+            }
 
             _sharedDataFileId = sharedFileInfo.SharedDataFile_ID;
             _uploadStatus = sharedFileInfo.UploadStatus_CD;
@@ -507,7 +512,7 @@
         }
         else
         {
-            NavManager.NavigateTo("/");
+            await NavManager.NavigateTo("/", true);
         }
     }
 
