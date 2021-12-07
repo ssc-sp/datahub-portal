@@ -1,50 +1,65 @@
 ﻿@namespace Datahub.Portal.Components
 
-
 <div class="tab-control">
     <div class="tab-selection">
-    @foreach(TabPage tabpage in _pages)
-    {
-        <div class="tab @GetTabClass(tabpage)" @onclick=@(() => ActivatePage(tabpage))>
-            @tabpage.Control
-        </div>
-    }
+        @foreach (TabPage tabpage in _pages)
+        {
+            <div class="tab @GetTabClass(tabpage)" @onclick=@(() => ActivatePage(tabpage))>
+                @tabpage.Control
+            </div>
+        }
     </div>
     <div class="tab-content">
-      <CascadingValue Value="this">
-        @ChildContent
-      </CascadingValue>
+        <CascadingValue Value="this">
+            @ChildContent
+        </CascadingValue>
     </div>
 </div>
 
 
 @code {
 
-  [Parameter]
-  public RenderFragment ChildContent { get; set; }
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
 
-  public TabPage ActivePage {get; set;}
-  
-  private List<TabPage> _pages = new List<TabPage>();
+    [Parameter]
+    public int TabIndex { get; set; } = -1;
 
-  private string GetTabClass(TabPage tabpage)
-  {
-    return tabpage == ActivePage ? "active" : "";
-  }
+    [Parameter]
+    public EventCallback<int> OnChangeTab{ get; set; }
 
-  void ActivatePage(TabPage tabPage)
-  {
-    ActivePage = tabPage;
-  }
+    public TabPage ActivePage { get; set; }
 
-  internal void AddPage(TabPage tabPage)
-  {
-    _pages.Add(tabPage);
-    if(_pages.Count == 1)
+    private List<TabPage> _pages = new List<TabPage>();
+
+    protected override void OnParametersSet()
     {
-      ActivePage = tabPage;
+        base.OnParametersSet();
+        if (TabIndex >= 0 && TabIndex < _pages.Count)
+        {
+            ActivePage = _pages[TabIndex];
+        }
     }
-    StateHasChanged();
-  }
+
+    private string GetTabClass(TabPage tabpage)
+    {
+        return tabpage == ActivePage ? "active" : "";
+    }
+
+    private async void ActivatePage(TabPage tabPage)
+    {
+        ActivePage = tabPage;
+        await OnChangeTab.InvokeAsync(_pages.IndexOf(tabPage));
+    }
+
+    internal void AddPage(TabPage tabPage)
+    {
+        _pages.Add(tabPage);
+        if (_pages.Count == 1)
+        {
+            ActivePage = tabPage;
+        }
+        StateHasChanged();
+    }
 }
 
