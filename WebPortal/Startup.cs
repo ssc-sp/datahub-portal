@@ -27,12 +27,10 @@ using System.Text;
 using Datahub.Core.Data;
 using Microsoft.EntityFrameworkCore;
 using Datahub.ProjectForms.Data.PIP;
-using Datahub.Portal.EFCore;
 using Datahub.Core.EFCore;
 using Datahub.Portal.Data;
 using Datahub.Portal.Data.Finance;
 using Datahub.Portal.Data.WebAnalytics;
-using Datahub.Metadata;
 using Microsoft.Graph;
 using Polly;
 using System.Net.Http;
@@ -41,7 +39,6 @@ using Datahub.Metadata.Model;
 using Microsoft.Extensions.Logging;
 using Datahub.Core.RoleManagement;
 using Datahub.Core;
-using Datahub.Portal.Data.LanguageTraining;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.ApplicationInsights.Extensibility;
 using Datahub.LanguageTraining;
@@ -430,6 +427,8 @@ namespace Datahub.Portal
 
             services.AddSingleton<IGlobalSessionManager, GlobalSessionManager>();
             services.AddScoped<IUserCircuitCounterService, UserCircuitCounterService>();
+
+            services.AddScoped<CustomNavigation>();
         }
 
         private void ConfigureDbContexts(IServiceCollection services)
