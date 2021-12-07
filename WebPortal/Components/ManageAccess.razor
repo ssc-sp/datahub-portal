@@ -247,7 +247,7 @@
         if (IsContinue)
         {
             // Save a lookup (ONLY when this is on the chosen user, which is already in memory)
-            var newOwner = (chosenUser?.Id == waitingOn.userid) ? chosenUser : MSGraphService.GetUser(waitingOn.userid);
+            var newOwner = (chosenUser?.Id == waitingOn.userid) ? chosenUser : await MSGraphService.GetUserAsync(waitingOn.userid);
             // Check if the user has a root folder (i.e. have they logged in)
             if (await ApiService.DoesFolderExist(newOwner.RootFolder))
             {

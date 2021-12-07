@@ -231,7 +231,7 @@
         var user = (await authenticationStateTask).User;
         var email = user.Identity.Name;
         var name = user.Claims.Where(c => c.Type == "name").FirstOrDefault()?.Value;
-        
+
         TestRecipientName = name;
         TestRecipientEmail = email;
         StateHasChanged();
@@ -289,9 +289,9 @@
     private List<Func<Datahub_ProjectServiceRequests, RenderFragment>> serviceRenderers;
     private void GetServiceType(Datahub_Project_Access_Request request)
     { 
-    
+
     }
-  private async Task AuthorizeUser(Datahub_Project_Access_Request r)
+    private async Task AuthorizeUser(Datahub_Project_Access_Request r)
     {
         r.Completion_DT = DateTime.UtcNow;
         await projectContext.SaveChangesAsync();
@@ -308,11 +308,11 @@
 
     protected override void OnAfterRender(bool firstRender)
     {
-      // You must re-render after the components are initialized in order for the 
-      // component reference to not be null
-      if (firstRender) {
-        StateHasChanged();
-      }
+        // You must re-render after the components are initialized in order for the 
+        // component reference to not be null
+        if (firstRender) {
+            StateHasChanged();
+        }
     }
 
     private async Task AuthorizeProjectUser(Datahub_Project_User_Request r)
@@ -321,7 +321,7 @@
 
         r.ApprovedUser = await UserInformationService.GetUserIdString();
         r.Approved_DT = approvedDate;
-
+        var userId = await MSGraphService.GetUserEmail(r.User_ID);
         var request = new Datahub_Project_User()
         {
             User_ID = r.User_ID,
@@ -330,7 +330,7 @@
             Approved_DT = approvedDate,
             IsAdmin = false,
             IsDataApprover = false,
-            User_Name = MSGraphService.GetUserEmail(r.User_ID)?.ToLower() 
+            User_Name = userId.ToLower() 
         };
 
         projectContext.Project_Users.Add(request);

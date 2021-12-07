@@ -12,7 +12,7 @@ namespace Datahub.Core.Services
         Task SendEmailMessage(string subject, string body, string userIdOrAddress, string recipientName = null, bool isHtml = true);
         Task SendEmailMessage(string subject, string body, IList<string> userIdsOrAddresses, bool isHtml = true);
         bool IsDevTestMode();
-        IList<MailboxAddress> TestUsernameEmailConversion(IList<(string address, string name)> recipients);
+        Task<IList<MailboxAddress>> TestUsernameEmailConversion(IList<(string address, string name)> recipients);
         string BuildAppLink(string contextUrl);
 
         Task SendServiceCreationRequestNotification(string username, string serviceName, DatahubProjectInfo projectInfo, IList<string> recipients);
