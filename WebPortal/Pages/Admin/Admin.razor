@@ -265,15 +265,12 @@
         return new List<Func<Datahub_Project_User_Request, string>>
         {
             new Func<Datahub_Project_User_Request, string>(p => { return p.Project.Project_Name; }),
-            new Func<Datahub_Project_User_Request, string>(p => { return MSGraphService.GetUserName(p.User_ID); }),
+            new Func<Datahub_Project_User_Request, string>(p => { return ".."; }),
             new Func<Datahub_Project_User_Request, string>(p => { return p.Requested_DT.ToShortDateString(); }),
             new Func<Datahub_Project_User_Request, string>(p => { return ".."; }),
         };
     }
-    //private string GetUserName(string userId)
-    //{
-    //    return MSGraphService.GetUserName(userId);
-    //}
+    
     private List<Func<Datahub_ProjectServiceRequests, string>> serviceRequestAccessors = new List<Func<Datahub_ProjectServiceRequests, string>>()
         {
             p => p.Project.Project_Name,
@@ -422,7 +419,7 @@
         projectReqRenderFunctions = new List<Func<Datahub_Project_User_Request, RenderFragment>>
         {
                 null,
-                null,                
+                user => @<div class="help icon-container">@(async () => await MSGraphService.GetUserName(user.User_ID))  </div>,                
                 null,
                 new Func<Datahub_Project_User_Request, RenderFragment>(a => {
                     if (a.Approved_DT != null)

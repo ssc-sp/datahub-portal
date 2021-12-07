@@ -10,11 +10,11 @@
     <h4 class="nrcan-typography h4 title">@Localizer["MANAGE-ACCESS-PAGE.Title"]</h4>
     <div class="textrows">
         <div class="nrcan-typography">@Localizer["Owner"]</div>
-        <ProfileCircle FullName="@MSGraphService.GetUserName(SelectedFile.ownedby)" style="margin-left: 1rem" />
+        <ProfileCircle FullName="@_ownedBy" style="margin-left: 1rem" />
         <AuthorizeView>
             <div class="nrcan-typography">
                 <div class="name">
-                    @MSGraphService.GetUserName(SelectedFile.ownedby)
+                    @(async () => await MSGraphService.GetUserName(SelectedFile.ownedby))
                 </div>
             </div>
         </AuthorizeView>
@@ -68,7 +68,8 @@
 
     @foreach (var person in SelectedFile.sharedwith)
     {
-        var userName = MSGraphService.GetUserName(person.userid);
+        Task<string> usernameTask = Task<string>.Run(async () => { return await MSGraphService.GetUserName(person.userid); });
+        var userName = usernameTask.Result;
 
         <div class="textrows">
             <ProfileCircle FullName="@userName" style="margin-left: 1rem" />
@@ -130,7 +131,7 @@
     }
 
     private Microsoft.Graph.User _currentUser;
-
+    private string _ownedBy;
     public GraphUser chosenUser = null;
     public static string selectedPermission { get; set; } = string.Empty;
 
@@ -142,7 +143,7 @@
         chosenUser = null;
         selectedPermission = string.Empty;
         _currentUser = await UserInformationService.GetUserAsync();
-
+        _ownedBy = await MSGraphService.GetUserName(SelectedFile.ownedby);
         await DataSharingService.LoadSharedUsers(SelectedFile);
     }
 
@@ -239,7 +240,8 @@
     private async Task OnConfirmChangeOwner(string userName, Sharedwith waitingOn)
     {
         List<string> choiceTextList = new List<string>() {  Localizer["MANAGE-ACCESS-PAGE.ChangeOwnerPrompt", SelectedFile.filename, userName] };
-        await UI.ToggleModal(@<UserChoiceModal HeaderText="@Localizer["MANAGE-ACCESS-PAGE.ChangeOwnerTitle"]" OnDecision="(b) => HandleAlertDecision(b, waitingOn)" ChoiceTextList=choiceTextList />);
+        await UI.ToggleModal(
+    @<UserChoiceModal HeaderText="@Localizer["MANAGE-ACCESS-PAGE.ChangeOwnerTitle"]" OnDecision="(b) => HandleAlertDecision(b, waitingOn)" ChoiceTextList=choiceTextList />);
     }
 
     private async void HandleAlertDecision(bool IsContinue, Sharedwith waitingOn)
