@@ -14,7 +14,7 @@ namespace Datahub.Core.Services
         Task LoadUsersAsync();
                 
         Task<GraphUser> GetUserAsync(string userId);
-        string GetUserName(string userId);
+        Task<string> GetUserName(string userId);
         Task<string> GetUserEmail(string userId);
         Task<string> GetUserIdFromEmailAsync(string email);
     }

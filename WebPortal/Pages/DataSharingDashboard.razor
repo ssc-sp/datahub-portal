@@ -118,7 +118,7 @@
     private bool ShouldShowAllSharingRequests => true;
     
     
-    private string GetUserDisplayName(string userId) => GraphService.GetUserName(userId);
+    private string GetUserDisplayName(string userId) => GraphService.GetUserName(userId).Result;
 
     private List<string> LocalizeHeaders(List<string> headerKeys)
     {

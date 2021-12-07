@@ -173,7 +173,7 @@
         else
         {
             _tombstone = project;
-            _tombstone.Last_Updated_UserName = MSGraphService.GetUserName(_tombstone.Last_Updated_UserId);
+            _tombstone.Last_Updated_UserName = await MSGraphService.GetUserName(_tombstone.Last_Updated_UserId);
 
             SubmitLabel = "Save";
             StateHasChanged();

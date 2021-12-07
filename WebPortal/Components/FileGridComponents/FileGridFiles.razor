@@ -70,8 +70,8 @@
         </div>
     </div>
     <div class="grid-item">@File.lastmodifiedts.ToShortDateString()</div>
-    <div class="grid-item">@MSGraphService.GetUserName(File.lastmodifiedby)</div>
-    <div class="grid-item">@OwnedOrCreatedByValue</div>
+    <div class="grid-item">@(async () => await MSGraphService.GetUserName(File.lastmodifiedby))</div>
+    <div class="grid-item">@(async () => await GetOwnedCreatedUsersName())</div>
     <div class="grid-item">
         @switch (File.uploadStatus)
         {
@@ -153,15 +153,14 @@
             return string.Empty;
         }
     }
-    public string OwnedOrCreatedByValue
-    {
-        get
-        {
-            var key = (File.isShared || IsSearchedData) ? File.ownedby : File.createdby;
 
-            return MSGraphService.GetUserName(key);
-        }
+    public async Task<string> GetOwnedCreatedUsersName()
+    {             
+            var key = (File.isShared || IsSearchedData) ? File.ownedby : File.createdby;
+            //var userName = 
+            return await MSGraphService.GetUserName(key);
     }
+
     public string SharingOrRoleValue
     {
         get

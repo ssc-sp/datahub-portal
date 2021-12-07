@@ -83,7 +83,7 @@ namespace Datahub.Core.Services
         //    return null;
         //}
 
-        public string GetUserName(string userId)
+        public async Task<string> GetUserName(string userId)
         {
             if (!string.IsNullOrWhiteSpace(userId))
             {
