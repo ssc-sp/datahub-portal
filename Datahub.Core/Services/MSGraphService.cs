@@ -57,14 +57,12 @@ namespace Datahub.Core.Services
             return user == null ? null : GraphUser.Create(user[0]);
         }
 
-        public string GetUserName(string userId)
+        public async Task<string> GetUserName(string userId)
         {
-            
             if (!string.IsNullOrWhiteSpace(userId))
-            {
-                return "...";
-                //var user = GetUser(userId);
-                //return user?.DisplayName ?? "...";
+            {             
+                var user = await GetUserAsync(userId);
+                return user?.DisplayName ?? "...";
             }
 
             return "...";

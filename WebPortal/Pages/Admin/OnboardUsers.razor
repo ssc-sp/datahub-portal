@@ -90,7 +90,7 @@
         await FillAccessorFunctions();
 
         renderFunctions = new List<Func<GraphUser, RenderFragment>>() {            
-            null,
+            user => @<div class="help icon-container">@(async () => await MSGraphService.GetUserName(user.Id))  </div>,
             user => @<div class="help icon-container">@(async () => await MSGraphService.GetUserEmail(user.Id))  </div>,
             user => 
     @<div class="help icon-container" @onclick="() => DeleteRecord(user.Id)"><i class="far fa-trash-alt"></i></div>
@@ -109,7 +109,7 @@
     private async Task FillAccessorFunctions()
     {
         accessorFunctions = new List<Func<GraphUser, string>>() {
-            (user => { return MSGraphService.GetUserName(user.Id); }),
+            (user => { return user.Id; }),
             null,
             null,
         };

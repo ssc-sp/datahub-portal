@@ -140,9 +140,9 @@
         StateHasChanged();
     }
 
-    public string displayInfo(FileMetaData file)
+    public async Task<string> displayInfo(FileMetaData file)
     {
-        return $"{MSGraphService.GetUserName(file.ownedby)} {Localizer["created this on"]} {displayDate(file.createdts)}";
+        return $"{await MSGraphService.GetUserName(file.ownedby)} {Localizer["created this on"]} {displayDate(file.createdts)}";
     }
 
     public string displayDate(DateTime date)

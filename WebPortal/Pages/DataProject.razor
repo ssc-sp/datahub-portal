@@ -481,9 +481,9 @@
         }
 
         _admins = await ServiceAuthManager.GetAdminUserString(projectAcronym);
-        GetUserList();
+        await GetUserList();
 
-        
+
 
 
 
@@ -519,11 +519,19 @@
 
     }
 
-    private void GetUserList()
+    private async Task GetUserList()
     {
         var userList = projectContext.Project_Users.Where(u => !u.IsAdmin && _project == u.Project).ToList();
         StringBuilder sbUsers = new();
-        userList.ForEach(e => sbUsers.Append(MSGraphService.GetUserName(e.User_ID) != "..." ? $"{MSGraphService.GetUserName(e.User_ID)}; " : string.Empty));
+        foreach (var user in userList)
+        {
+            var username = await MSGraphService.GetUserName(user.User_ID);
+            if (username == "...")
+            {
+                username = string.Empty;
+            }
+            sbUsers.Append($"{username}; ");
+        }        
         _users =  sbUsers.ToString().Trim().TrimEnd(';');
     }
 
