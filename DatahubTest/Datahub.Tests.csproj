@@ -50,4 +50,9 @@
     <ProjectReference Include="..\Datahub.Core\Datahub.Core.csproj" />
     <ProjectReference Include="..\WebPortal\Datahub.Portal.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <None Update="testsettings.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>

@@ -91,7 +91,7 @@
 
         renderFunctions = new List<Func<GraphUser, RenderFragment>>() {            
             null,
-            null,
+            user => @<div class="help icon-container">@(async () => await MSGraphService.GetUserEmail(user.Id))  </div>,
             user => 
     @<div class="help icon-container" @onclick="() => DeleteRecord(user.Id)"><i class="far fa-trash-alt"></i></div>
     ,
@@ -110,8 +110,8 @@
     {
         accessorFunctions = new List<Func<GraphUser, string>>() {
             (user => { return MSGraphService.GetUserName(user.Id); }),
-            (user => { return MSGraphService.GetUserEmail(user.Id); }),
-            (user => { return MSGraphService.GetUserEmail(user.Id); }),
+            null,
+            null,
         };
 
     }
@@ -120,6 +120,8 @@
     {
         foreach (var chosenUser in _chosenUsers)
         {
+            var userName = await MSGraphService.GetUserEmail(chosenUser.Id);
+
             var request = new Datahub_Project_User()
                 {
                     User_ID = chosenUser.Id,
@@ -128,7 +130,7 @@
                     Approved_DT = DateTime.Now,
                     IsAdmin = false,
                     IsDataApprover = false,
-                    User_Name = MSGraphService.GetUserEmail(chosenUser.Id)?.ToLower()
+                    User_Name = userName.ToLower()
                 };
 
             Context.Project_Users.Add(request);

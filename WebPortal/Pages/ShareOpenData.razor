@@ -462,7 +462,7 @@
         requestFilename = sharedFileInfo.Filename_TXT;
         PublicationDateStr = sharedFileInfo.PublicationDate_DT?.ToShortDateString();
 
-        RequestingUser = GraphService.GetUser(sharedFileInfo.RequestingUser_ID);
+        RequestingUser = await GraphService.GetUserAsync(sharedFileInfo.RequestingUser_ID);
         var currentUser = await currentUserTask;
         IsOwnRequest = currentUser.Id == RequestingUser.Id;
 
