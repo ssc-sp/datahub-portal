@@ -1,5 +1,5 @@
 ﻿@page "/share/public/{FileId}"
-@inject NavigationManager NavManager
+@inject CustomNavigation NavManager
 @inject IPublicDataFileService PublicFileService
 @inject UIControlsService UI
 @inject IMSGraphService GraphService
@@ -140,7 +140,6 @@
 <div>&nbsp;</div>
 
 
-
 @code {
 
     private static readonly string LOCALIZATION_PREFIX = "PUBLIC-URL-WIZARD";
@@ -216,7 +215,7 @@
 
         await PublicFileService.MarkMetadataComplete(fileIdGuid);
         savingData = false;
-        NavManager.NavigateTo($"{uri}#stepsDiv");
+        await NavManager.NavigateTo($"{uri}#stepsDiv", true);
         if (currentStep == PublicUrlSharingStatus.EnterMetadata)
         {
             UpdateCurrentStatus(PublicUrlSharingStatus.RequestApproval);
@@ -321,7 +320,7 @@
             savingData = true;
             await PublicFileService.CancelPublicDataShare(fileIdGuid);
             savingData = false;
-            NavManager.NavigateTo("/");
+            await NavManager.NavigateTo("/", true);
         }
         await UI.ToggleModal();
     }
@@ -352,7 +351,8 @@
 
         if (!Guid.TryParse(FileId, out fileIdGuid))
         {
-            NavManager.NavigateTo("/");
+            await NavigateHome();
+            return;
         }
 
         var loadTask = PublicFileService.LoadPublicUrlSharedFileInfo(fileIdGuid);
@@ -368,7 +368,12 @@
         }
 
         var sharedFileInfo = await loadTask;
-                
+        if (sharedFileInfo is null)
+        {
+            await NavigateHome();
+            return;
+        }
+
         requestFilename = sharedFileInfo.Filename_TXT;
         projectCode = sharedFileInfo.ProjectCode_CD;
 
@@ -390,5 +395,8 @@
         editContext.OnValidationRequested -= HandleValiadationRequested;
     }
 
-
+    private async Task NavigateHome() 
+    {
+        await NavManager.NavigateTo("/", true);
+    }
 }
