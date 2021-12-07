@@ -93,7 +93,7 @@
     private bool ButtonsDisabled => processing || approved;
 
 
-    private string GetUserDisplayName(string userid) => GraphService.GetUserName(userid);
+    private string GetUserDisplayName(string userid) => GraphService.GetUserName(userid).Result;
 
     private async Task DownloadFile()
     {

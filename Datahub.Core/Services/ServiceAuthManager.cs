@@ -84,14 +84,6 @@ namespace Datahub.Core.Services
         }
 
 
-        public List<string> GetAdminUserList(string projectAcronym)
-        {
-            var adminEmailList = GetProjectAdminsEmails(projectAcronym);
-            List<string> adminsList = new();
-            adminEmailList.ForEach(e => adminsList.Add(mSGraphService.GetUserName(e)));            
-            return adminsList;
-        }
-
         public async Task<string> GetAdminUserString(string projectAcronym)
         {
             var adminEmailList = GetProjectAdminsEmails(projectAcronym);
@@ -100,7 +92,8 @@ namespace Datahub.Core.Services
             foreach (var admin in adminEmailList)
             {
                 var userId = await mSGraphService.GetUserIdFromEmailAsync(admin);
-                admins.Append($"{mSGraphService.GetUserName(userId)}; ");
+                var userName = await mSGraphService.GetUserName(userId);
+                admins.Append($"{userName}; ");
             }
             return admins.ToString().Trim().TrimEnd(';');
         }
