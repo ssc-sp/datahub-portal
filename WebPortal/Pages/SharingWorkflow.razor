@@ -2,7 +2,7 @@
 @using Microsoft.AspNetCore.WebUtilities
 @using Microsoft.Graph
 @inject IStringLocalizer<SharingWorkflow> Localizer
-@inject NavigationManager _navManager
+@inject CustomNavigation NavManager
 @inject IPublicDataFileService _publicDataService
 @inject IUserInformationService _userInfoService
 
@@ -81,7 +81,7 @@
         };
 
         await _publicDataService.CreateDataSharingRequest(filemd, ProjectCode, _user, true);
-        _navManager.NavigateTo(OpenDataSharingUrl);
+        await NavManager.NavigateTo(OpenDataSharingUrl, true);
     }
 
     public async Task PublicUrlClicked()
@@ -94,7 +94,7 @@
         };
 
         await _publicDataService.CreateDataSharingRequest(filemd, ProjectCode, _user);
-        _navManager.NavigateTo(PublicUrlSharingUrl);
+        await NavManager.NavigateTo(PublicUrlSharingUrl, true);
     }
 
     private string GetFirstQueryValue(IDictionary<string, Microsoft.Extensions.Primitives.StringValues> query, string paramKey)
@@ -117,12 +117,12 @@
         if (!Guid.TryParse(FileId, out fileIdGuid))
         {
             // return to homepage if guid is invalid
-            _navManager.NavigateTo("/");
+            NavManager.NavigateTo("/", true);
         }
 
         var fileInfoTask = _publicDataService.LoadPublicUrlSharedFileInfo(fileIdGuid);
 
-        var uri = _navManager.ToAbsoluteUri(_navManager.Uri);
+        var uri = NavManager.GetAbsoluteUri();
         var query = QueryHelpers.ParseQuery(uri.Query);
 
         Filename = GetFirstQueryValue(query, "filename");
@@ -134,11 +134,11 @@
         {
             if (existingPublicFile.IsOpenDataRequest_FLAG)
             {
-                _navManager.NavigateTo(OpenDataSharingUrl);
+                await NavManager.NavigateTo(OpenDataSharingUrl, true);
             }
             else
             {
-                _navManager.NavigateTo(PublicUrlSharingUrl);
+                await NavManager.NavigateTo(PublicUrlSharingUrl, true);
             }
         }
 
