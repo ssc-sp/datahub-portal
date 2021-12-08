@@ -48,8 +48,11 @@
 
     private async void ActivatePage(TabPage tabPage)
     {
-        ActivePage = tabPage;
-        await OnChangeTab.InvokeAsync(_pages.IndexOf(tabPage));
+        if (ActivePage != tabPage)
+        {
+            ActivePage = tabPage;
+            await OnChangeTab.InvokeAsync(_pages.IndexOf(tabPage));
+        }
     }
 
     internal void AddPage(TabPage tabPage)
