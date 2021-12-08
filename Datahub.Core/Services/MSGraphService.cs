@@ -86,113 +86,149 @@ namespace Datahub.Core.Services
                 .GetAsync();
             return user[0].Id ?? string.Empty;
         }
-        public Dictionary<string, GraphUser> GetUsersList()
-        {
-            return UsersDict;
-        }
-
-        public async Task LoadUsersAsync()
-        {
-            try
-            {
-                if (UsersDict == null)
-                {
-                    UsersDict = new();
-                    //_logger.LogInformation("Entering Log Users");
-                    //UsersDict = new Dictionary<string, GraphUser>();
-                    //PrepareAuthenticatedClient();
-
-                    //IGraphServiceUsersCollectionPage usersPage = await graphServiceClient.Users.Request().GetAsync();
-
-                    //// Add the first page of results to the user list                    
-                    //if (usersPage?.CurrentPage.Count > 0)
-                    //{
-                    //    foreach (User user in usersPage)
-                    //    {
-                    //        var newUser = GraphUser.Create(user);
-                    //        UsersDict.Add(newUser.Id, newUser);
-                    //    }
-                    //}
-
-                    //// Fetch each page and add those results to the list
-                    //while (usersPage.NextPageRequest != null)
-                    //{
-                    //    usersPage = await usersPage.NextPageRequest.GetAsync();
-                    //    foreach (User user in usersPage)
-                    //    {
-                    //        var newUser = GraphUser.Create(user);
-                    //        UsersDict.Add(newUser.Id, newUser);
-                    //    }
-                    //}
-
-                    //// add anonymous user
-                    //var anonUser = UserInformationServiceConstants.GetAnonymousUser();
-                    //if (anonUser != null)
-                    //{
-                    //    var newUser = GraphUser.Create(anonUser);
-                    //    UsersDict.Add(newUser.Id, newUser);
-                    //}
-
-                    ////var user1 = UsersDict.Values.Where(u => u.Mail.ToLower() == "natasha.lestage@nrcan-rncan.gc.ca").FirstOrDefault().Id;
-                    
-                    
-                    //_logger.LogInformation("Exiting Log Users");
-                }
-            }
-            catch (ServiceException e)
-            {
-                if (e.InnerException is MsalUiRequiredException || e.InnerException is MicrosoftIdentityWebChallengeUserException)
-                    throw;
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, $"Error Loading Users Async");
-            }
-
-        }
         
-        public async Task<Dictionary<string, GraphUser>> GetUsersAsync()
+
+        public async Task<Dictionary<string, GraphUser>> GetUsersListAsync(string filterText)
         {
-            try
+            Dictionary<string, GraphUser> users = new();
+            PrepareAuthenticatedClient();
+
+            var options = new List<Option>();
+            options.Add(new QueryOption("$filter",$"startswith(mail,'{filterText}')"));
+            options.Add(new HeaderOption("ConsistencyLevel", "eventual"));
+            options.Add(new QueryOption("$count", "true"));
+
+
+            var usersPage = await graphServiceClient.Users.Request(options)                
+                .GetAsync();
+
+            if (usersPage?.CurrentPage.Count > 0)
             {
-                if (UsersDict == null)
+                foreach (User user in usersPage)
                 {
-                    await LoadUsersAsync();
+                    var newUser = GraphUser.Create(user);
+                    users.Add(newUser.Id, newUser);
                 }
-
-                return UsersDict;
             }
-            catch (Exception e)
+
+            // Fetch each page and add those results to the list
+            while (usersPage.NextPageRequest != null)
             {
-                _logger.LogError(e,"Could not get users");
+                usersPage = await usersPage.NextPageRequest.GetAsync();
+                foreach (User user in usersPage)
+                {
+                    var newUser = GraphUser.Create(user);
+                    users.Add(newUser.Id, newUser);
+                }
             }
 
-            return new Dictionary<string, GraphUser>();
+            return users;
         }
+        //public async Task LoadUsersAsync()
+        //{
+        //    try
+        //    {
+        //        if (UsersDict == null)
+        //        {
+        //            UsersDict = new();
+        //            //_logger.LogInformation("Entering Log Users");
+        //            //UsersDict = new Dictionary<string, GraphUser>();
+        //            //PrepareAuthenticatedClient();
+
+        //            //IGraphServiceUsersCollectionPage usersPage = await graphServiceClient.Users.Request().GetAsync();
+
+        //            //// Add the first page of results to the user list                    
+        //            //if (usersPage?.CurrentPage.Count > 0)
+        //            //{
+        //            //    foreach (User user in usersPage)
+        //            //    {
+        //            //        var newUser = GraphUser.Create(user);
+        //            //        UsersDict.Add(newUser.Id, newUser);
+        //            //    }
+        //            //}
+
+        //            //// Fetch each page and add those results to the list
+        //            //while (usersPage.NextPageRequest != null)
+        //            //{
+        //            //    usersPage = await usersPage.NextPageRequest.GetAsync();
+        //            //    foreach (User user in usersPage)
+        //            //    {
+        //            //        var newUser = GraphUser.Create(user);
+        //            //        UsersDict.Add(newUser.Id, newUser);
+        //            //    }
+        //            //}
+
+        //            //// add anonymous user
+        //            //var anonUser = UserInformationServiceConstants.GetAnonymousUser();
+        //            //if (anonUser != null)
+        //            //{
+        //            //    var newUser = GraphUser.Create(anonUser);
+        //            //    UsersDict.Add(newUser.Id, newUser);
+        //            //}
+
+        //            ////var user1 = UsersDict.Values.Where(u => u.Mail.ToLower() == "natasha.lestage@nrcan-rncan.gc.ca").FirstOrDefault().Id;
+                    
+                    
+        //            //_logger.LogInformation("Exiting Log Users");
+        //        }
+        //    }
+        //    catch (ServiceException e)
+        //    {
+        //        if (e.InnerException is MsalUiRequiredException || e.InnerException is MicrosoftIdentityWebChallengeUserException)
+        //            throw;
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        _logger.LogError(e, $"Error Loading Users Async");
+        //    }
+
+        //}
+        
+        //public async Task<Dictionary<string, GraphUser>> GetUsersAsync()
+        //{
+        //    try
+        //    {
+        //        if (UsersDict == null)
+        //        {
+        //            await LoadUsersAsync();
+        //        }
+
+        //        return UsersDict;
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        _logger.LogError(e,"Could not get users");
+        //    }
+
+        //    return new Dictionary<string, GraphUser>();
+        //}
 
         private void PrepareAuthenticatedClient()
         {
-            try
+            if (graphServiceClient == null)
             {
-                //var graphService = _configuration.GetValue<MicrosoftIdentityOptions>("AzureAd");
-                IConfidentialClientApplication confidentialClientApplication = ConfidentialClientApplicationBuilder
-                                .Create(_configuration.GetSection("AzureAd").GetValue<string>("ClientId"))
-                                .WithTenantId(_configuration.GetSection("AzureAd").GetValue<string>("TenantId"))
-                                .WithClientSecret(_configuration.GetSection("AzureAd").GetValue<string>("ClientSecret"))
-                                .Build();
-                ClientCredentialProvider authProvider = new ClientCredentialProvider(confidentialClientApplication);
+                try
+                {
+                    //var graphService = _configuration.GetValue<MicrosoftIdentityOptions>("AzureAd");
+                    IConfidentialClientApplication confidentialClientApplication = ConfidentialClientApplicationBuilder
+                                    .Create(_configuration.GetSection("AzureAd").GetValue<string>("ClientId"))
+                                    .WithTenantId(_configuration.GetSection("AzureAd").GetValue<string>("TenantId"))
+                                    .WithClientSecret(_configuration.GetSection("AzureAd").GetValue<string>("ClientSecret"))
+                                    .Build();
+                    ClientCredentialProvider authProvider = new ClientCredentialProvider(confidentialClientApplication);
 
-                var httpClient = _httpClientFactory.CreateClient();
-                graphServiceClient = new GraphServiceClient(httpClient);
+                    var httpClient = _httpClientFactory.CreateClient();
+                    graphServiceClient = new GraphServiceClient(httpClient);
 
-                graphServiceClient.AuthenticationProvider = authProvider;
+                    graphServiceClient.AuthenticationProvider = authProvider;
 
-            }
-            catch (Exception e)
-            {
-                _logger.LogError($"Error preparing authentication client: {e.Message}");
-                Console.WriteLine($"Error preparing authentication client: {e.Message}");
-                throw;
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError($"Error preparing authentication client: {e.Message}");
+                    Console.WriteLine($"Error preparing authentication client: {e.Message}");
+                    throw;
+                }
             }
         }
     }

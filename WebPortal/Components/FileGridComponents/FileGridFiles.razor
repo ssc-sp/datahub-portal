@@ -70,8 +70,8 @@
         </div>
     </div>
     <div class="grid-item">@File.lastmodifiedts.ToShortDateString()</div>
-    <div class="grid-item">@(async () => await MSGraphService.GetUserName(File.lastmodifiedby))</div>
-    <div class="grid-item">@(async () => await GetOwnedCreatedUsersName())</div>
+    <div class="grid-item">@_modifiedBy</div>
+    <div class="grid-item">@_ownedBy</div>
     <div class="grid-item">
         @switch (File.uploadStatus)
         {
@@ -125,6 +125,10 @@
     [Parameter]
     public string Project { get; set; }
 
+    private string _modifiedBy;
+    private string _ownedBy;
+
+
     public string FileStatusCssStyle
     {
         get
@@ -156,9 +160,9 @@
 
     public async Task<string> GetOwnedCreatedUsersName()
     {             
-            var key = (File.isShared || IsSearchedData) ? File.ownedby : File.createdby;
-            //var userName = 
-            return await MSGraphService.GetUserName(key);
+        var key = (File.isShared || IsSearchedData) ? File.ownedby : File.createdby;
+        //var userName = 
+        return await MSGraphService.GetUserName(key);
     }
 
     public string SharingOrRoleValue
@@ -181,6 +185,9 @@
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
+        var key = (File.isShared || IsSearchedData) ? File.ownedby : File.createdby;
+        _ownedBy = await MSGraphService.GetUserName(key);
+        _modifiedBy = await MSGraphService.GetUserName(File.lastmodifiedby);
         NotifierService.Notify += OnNotify;
     }
 
