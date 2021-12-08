@@ -14,7 +14,7 @@
         <AuthorizeView>
             <div class="nrcan-typography">
                 <div class="name">
-                    @(async () => await MSGraphService.GetUserName(SelectedFile.ownedby))
+                    @_ownedBy
                 </div>
             </div>
         </AuthorizeView>
@@ -270,7 +270,8 @@
                 };
 
                 await UI.ToggleModal();
-                await UI.ToggleModal(@<WarningModal OnDecision="HandleWarningDecision" WarningTextString=@textList />);
+                await UI.ToggleModal(@<WarningModal OnDecision="HandleWarningDecision" WarningTextString=@textList />
+    );
                 return;
             }
         }
@@ -294,7 +295,7 @@
 
         if (_inputValue.Length > 3)
         {
-            filteredUsersList = MSGraphService.UsersDict.Where(gu => gu.Value.DisplayName.Contains(_inputValue, StringComparison.OrdinalIgnoreCase)).ToDictionary(v => v.Key, v => v.Value);
+            filteredUsersList = await MSGraphService.GetUsersListAsync(_inputValue);
             toggleMenu = "true";
         }
 
@@ -314,7 +315,8 @@
 
     private RenderFragment GetOption(string option)
     {
-        return @<span>@Localizer[option]</span>;
+        return 
+    @<span>@Localizer[option]</span>;
     }
 
     private async Task<RenderFragment> GetLabel(string role) => @<div class="ae button"> <div>@Localizer[role]</div> <i class="fal fa-chevron-down chevronborder"></i></div>;

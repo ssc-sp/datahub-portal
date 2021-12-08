@@ -56,6 +56,22 @@ namespace Datahub.Tests
 
 
         [Fact]
+        public async void GraphServiceTest_GetUsers()
+        {
+            LoadServices();
+
+            using (var scope = _serviceProvider.CreateScope())
+            {
+
+                var myGraphService = scope.ServiceProvider.GetRequiredService<IMSGraphService>();
+                
+                var user = await myGraphService.GetUsersListAsync("erik");
+
+                Assert.True(user != null);
+            }
+        }
+
+        [Fact]
         public async void GivenCosmosCxnStr_ValidateConnection()
         {
             LoadServices();

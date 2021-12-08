@@ -23,10 +23,7 @@ namespace Datahub.Core.Services
         }
 
 
-        public Dictionary<string, GraphUser> GetUsersList()
-        {
-            return UsersDict;
-        }
+    
 
         public async Task LoadUsersAsync()
         {
@@ -46,16 +43,16 @@ namespace Datahub.Core.Services
               });
         }
 
-        public async Task<Dictionary<string, GraphUser>> GetUsersAsync()
-        {
-            if (UsersDict != null)
-            {
-                return UsersDict;
-            }
+        //public async Task<Dictionary<string, GraphUser>> GetUsersAsync()
+        //{
+        //    if (UsersDict != null)
+        //    {
+        //        return UsersDict;
+        //    }
 
-            await LoadUsersAsync();
-            return UsersDict;
-        }
+        //    await LoadUsersAsync();
+        //    return UsersDict;
+        //}
 
         private void PrepareAuthenticatedClient()
         {
@@ -110,6 +107,12 @@ namespace Datahub.Core.Services
         public Task<GraphUser> GetUserAsync(string userId)
         {
             throw new NotImplementedException();
+        }
+
+
+        public async Task<Dictionary<string, GraphUser>> GetUsersListAsync(string filterText)
+        {
+            return UsersDict;
         }
     }
 }
