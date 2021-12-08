@@ -146,7 +146,7 @@
 
         if (_inputValue.Length > 3)
         {
-            filteredUsersList = MSGraphService.UsersDict.Where(gu => gu.Value.DisplayName.Contains(_inputValue, StringComparison.OrdinalIgnoreCase)).ToDictionary(v => v.Key, v => v.Value);
+            filteredUsersList = await MSGraphService.GetUsersListAsync(_inputValue);            
             toggleMenu = "true";
         }
 
