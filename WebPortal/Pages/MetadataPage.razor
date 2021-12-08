@@ -10,15 +10,9 @@
         </Header>
         <ChildContent>
             <ObjectMetadataEditor @ref="_objectMetadataEditor" ObjectId=@ObjectId />
-
         </ChildContent>
         <Footer>
-            @if (!_saved)
-            {
-                <AeButton @onclick="SaveChanges" style="margin: 5px;" disabled=@DisableSave()>Save</AeButton>
-            }
             <AeButton @onclick="TogglePreview" style="margin: 5px;">Toggle Preview</AeButton>
-            <AeButton @onclick="CreateCKANPackage" style="margin: 5px;">Create CKAN Package</AeButton>
         </Footer>
     </AeCard>
 </div>
@@ -45,17 +39,4 @@
         _objectMetadataEditor.TogglePreview();
         StateHasChanged();
     }
-
-    private async void SaveChanges()
-    {
-        await _objectMetadataEditor.SaveChanges();
-        StateHasChanged();
-    }
-
-    private async void CreateCKANPackage()
-    {
-        await _objectMetadataEditor.SavePackage();
-    }
-
-    private bool DisableSave() => _objectMetadataEditor?.IsRequiredMetadataValid != true;
 }
