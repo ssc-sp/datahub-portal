@@ -7,7 +7,7 @@ namespace Datahub.Portal.Services
 {
     public interface IMetadataBrokerService
     {
-        Task<FieldValueContainer> GetMetadataContext(string objectId);
+        Task<FieldValueContainer> GetObjectMetadataValues(string objectId);
         Task SaveMetadata(FieldValueContainer fieldValues);
         Task<ApprovalForm> GetApprovalForm(int ApprovalFormId);
         Task DeleteApprovalForm(int approvalFormId);
