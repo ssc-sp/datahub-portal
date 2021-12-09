@@ -2,16 +2,17 @@
 @using Datahub.CKAN.Service
 @using Datahub.Metadata.DTO;
 @using System.Net.Http.Headers
-@inject NavigationManager NavManager
+@inject CustomNavigation NavManager
 @inject IPublicDataFileService PublicFileService
+@inject IDbContextFactory<DatahubProjectDBContext> dbContextFactory
 @inject IMSGraphService GraphService
 @inject UIControlsService UI
 @inject IUserInformationService UserInformationService
 @inject IMetadataBrokerService MetadataBrokerService
-@inject ICKANService CKANService
+@inject IOpenDataService OpenDataService
 @inject IJSRuntime jsRuntime
 
-<AeTypography style="margin-left: 2rem;" Variant="h1">@Localizer["OPENDATA-WIZARD.Page_Title"]</AeTypography>
+<AeTypography style="margin-left: 2rem;" Variant="h2">@Localizer["OPENDATA-WIZARD.Page_Title"]</AeTypography>
 
 <AeFlex>
     <AeFlex Vertical style="margin-left: 2rem; width: 50%;">
@@ -19,36 +20,28 @@
         <AeCard>
             <AeTypography Variant="h3">@Localizer["OPENDATA-WIZARD.Metadata"]</AeTypography>
 
-            @if (!string.IsNullOrEmpty(requestFilename))
+            @if (!string.IsNullOrEmpty(_requestFilename))
             {
-                <AeTypography Variant="p">@Localizer["Filename"]: @requestFilename</AeTypography>
+                <AeTypography Variant="p">@Localizer["Filename"]: @_requestFilename</AeTypography>
             }
 
-            @if (ShowMetadataEditor && IsOwnRequest)
+            @if (ShowMetadataEditor && _isOwnRequest)
             {
-                <ObjectMetadataEditor ObjectId=@FileId @ref=@_metadataEditor OnFieldChanged="OnMetadataFieldChanged" />
-                <AeFlex>
-                    <AeButton OnClickEvent=@SaveMetadata Disabled=@SaveMetadataDisabled()>
-                        @Localizer["OPENDATA-WIZARD.Save_button"]
-                    </AeButton>
-                    <div>
-                        @if (savingData)
-                        {
-                            <Spinner Small=@true/>
-                        }
-                    </div>
-                </AeFlex>
+                <ObjectMetadataEditor @ref=@_metadataEditor 
+                                      ObjectId=@FileId 
+                                      SaveButtonLabel=@Localizer["OPENDATA-WIZARD.Save_button"] 
+                                      OnSave=@HandleSaveMetadata />
             }
-            else if (IsOwnRequest)
+            else if (_isOwnRequest)
             {
-                <AeButton OnClickEvent=@ManuallyShowMetadataEditor Disabled=@savingData>
+                <AeButton OnClickEvent=@ManuallyShowMetadataEditor Disabled=@_savingData>
                     @Localizer["OPENDATA-WIZARD.Edit_button"]
                 </AeButton>
             }
             else 
             {
-                @if (RequestingUser != null) {
-                    <AeTypography Variant="p">@Localizer["Requesting User"]: @RequestingUser.DisplayName</AeTypography>
+                @if (_requestingUser != null) {
+                    <AeTypography Variant="p">@Localizer["Requesting User"]: @_requestingUser.DisplayName</AeTypography>
                 }
             }
         </AeCard>
@@ -58,13 +51,11 @@
             @if (ShowApprovalForm)
             {
                 <AeCard>
-
-                <Datahub.Portal.Pages.Forms.ShareWorkflow.ApprovalForm 
-                    ApprovalFormId=@approvalFormId 
-                    OnSubmitForm=@UpdateApprovalFormId 
-                    DatasetTitle=@_datasetTitle
-                    User=@RequestingUser/>
-
+                    <Datahub.Portal.Pages.Forms.ShareWorkflow.ApprovalForm 
+                        ApprovalFormId=@_approvalFormId 
+                        OnSubmitForm=@UpdateApprovalFormId 
+                        DatasetTitle=@_datasetTitle
+                        User=@_requestingUser/>
                     <div>&nbsp;</div>
                 </AeCard>
             }
@@ -86,12 +77,12 @@
                         <AeTypography Variant="h3">@Localizer["OPENDATA-WIZARD.SubmitSignedPdf"]</AeTypography>
                         <AeFlex Vertical="true" style="margin: 1rem 1rem 1rem 0rem;">
                             <AeTypography>@Localizer["OPENDATA-WIZARD.EnterGcDocsUrl"]:</AeTypography>
-                            <input @bind-value=@signedApprovalFormUrl class="ae input" style="width: 100%" />
+                            <input @bind-value=@_signedApprovalFormUrl class="ae input" style="width: 100%" />
                         </AeFlex>
                         <AeFlex>
-                            <AeButton OnClickEvent=@UploadSignedPDF Disabled=@savingData >@Localizer["BUTTONS.Submit"]</AeButton>
+                            <AeButton OnClickEvent=@UploadSignedPDF Disabled=@_savingData >@Localizer["BUTTONS.Submit"]</AeButton>
                             <div>
-                                @if (savingData)
+                                @if (_savingData)
                                 {
                                     <Spinner Small=@true/>
                                 }
@@ -107,22 +98,42 @@
             <AeCard>
                 <ChildContent>
                     <AeTypography Variant="h3">@Localizer["OPENDATA-WIZARD.Publish_File"]</AeTypography>
-                    <AeFlex Vertical="true">
-                        <AeTypography Variant="p">@Localizer["OPENDATA-WIZARD.Publish_As_URL_Desc"]</AeTypography>
-                        <div>
-                            <AeButton OnClickEvent=@PublishAsUrl Disabled=@savingData>@Localizer["OPENDATA-WIZARD.Publish_As_URL"]</AeButton>
-                        </div>
-                    </AeFlex>
 
-                    <AeFlex Vertical="true">
-                        <AeTypography Variant="p">@Localizer["OPENDATA-WIZARD.Upload_And_Publish_Desc"]</AeTypography>
-                        <div>
-                            <AeButton OnClickEvent=@UploadAndPublish Disabled=@savingData>@Localizer["OPENDATA-WIZARD.Upload_And_Publish"]</AeButton>
-                        </div>
-                    </AeFlex>
+                    @if (!OpenDataFileUploading)
+                    {
+                        <AeFlex Vertical="true">
+                            <AeTypography Variant="p">@Localizer["OPENDATA-WIZARD.Publish_As_URL_Desc"]</AeTypography>
+                            <div>
+                                <AeButton OnClickEvent=@PublishAsUrl Disabled=@_savingData>@Localizer["OPENDATA-WIZARD.Publish_As_URL"]</AeButton>
+                            </div>
+                            @if (!string.IsNullOrEmpty(_urlPublishError))
+                            {
+                                <AeTypography Variant="p" style="font-size: 0.8em">
+                                    @Localizer["OPENDATA-WIZARD.Upload_Last_Error"] @_urlPublishError
+                                </AeTypography>
+                            }
+                        </AeFlex>
+
+                        <AeFlex Vertical="true">
+                            <AeTypography Variant="p">@Localizer["OPENDATA-WIZARD.Upload_And_Publish_Desc"]</AeTypography>
+                            <div>
+                                <AeButton OnClickEvent=@UploadAndPublish Disabled=@_savingData>@Localizer["OPENDATA-WIZARD.Upload_And_Publish"]</AeButton>
+                            </div>
+                            @if (_uploadStatus == OpenDataUploadStatus.Failed)
+                            {
+                                <AeTypography Variant="p" style="font-size: 0.8em">
+                                    @Localizer["OPENDATA-WIZARD.Upload_Last_Error"] @_uploadFileErrorMessage
+                                </AeTypography>
+                            }
+                        </AeFlex>
+                    }
+                    else
+                    {
+                        <AeTypography Variant="p">@Localizer["OPENDATA-WIZARD.Uploading_file_in_progress"]</AeTypography>
+                    }
 
                     <div>
-                        @if (savingData)
+                        @if (_savingData)
                         {
                             <Spinner Small=@true/>
                         }
@@ -135,7 +146,7 @@
         {
             <AeCard>
                 <AeTypography Variant="h3">@Localizer["OPENDATA-WIZARD.PublicationDate"]</AeTypography>
-                <p>@PublicationDateStr</p>
+                <p>@_publicationDateText</p>
             </AeCard>
         }
 
@@ -144,10 +155,10 @@
     <div id="stepsDiv" style="width: 50%;">
         <AeSteps T=@OpenDataSharingStatus
             CurrentStepState=@GetState
-            StepItems=@steps
+            StepItems=@_steps
             StepTitle=@StepTitle
             StepMessage=@StepMessage
-            PassedIcon=@checkIcon
+            PassedIcon=@_checkIcon
             />
 
     @if (ShowPublicUrl)
@@ -159,7 +170,7 @@
         </AeCard>
     }
 
-    @if (ShowCancelPanel && IsOwnRequest)
+    @if (ShowCancelPanel && _isOwnRequest)
     {
         <AeCard>
             <Typography Variant="h3">@Localizer["OPENDATA-WIZARD.CancelSharing"]</Typography>
@@ -179,74 +190,68 @@
     [Parameter]
     public string FileId { get; set; }
 
-    private Guid fileIdGuid;
+    private Guid _fileIdGuid;
 
     private ObjectMetadataEditor _metadataEditor;
 
-    private ElementReference _metadataEditor2;
+    private bool _savingData = false;
 
-    private bool savingData = false;
+    private List<OpenDataSharingStatus> _steps = Enum.GetValues<OpenDataSharingStatus>().ToList();
+    private OpenDataSharingStatus _currentStep = OpenDataSharingStatus.EnterMetadata;
+    private RenderFragment _checkIcon = @<i class="fa fa-check"></i>;
 
-    private List<OpenDataSharingStatus> steps = Enum.GetValues<OpenDataSharingStatus>().ToList();
-    private OpenDataSharingStatus currentStep = OpenDataSharingStatus.EnterMetadata;
-    private RenderFragment checkIcon = @<i class="fa fa-check"></i>
-    ;
-
-    private Dictionary<OpenDataSharingStatus, (string, string)?> _stepInfo = new Dictionary<OpenDataSharingStatus, (string, string)?>();
-    private Dictionary<OpenDataSharingStatus, AeSteps<OpenDataSharingStatus>.StepState> _stepStates = new Dictionary<OpenDataSharingStatus, AeSteps<OpenDataSharingStatus>.StepState>()
-    {
-        { OpenDataSharingStatus.EnterMetadata, AeSteps<OpenDataSharingStatus>.StepState.Queued },
-        { OpenDataSharingStatus.OpenGovApprovalForm, AeSteps<OpenDataSharingStatus>.StepState.Queued },
-        { OpenDataSharingStatus.SubmitSignedPDF, AeSteps<OpenDataSharingStatus>.StepState.Queued },
-        { OpenDataSharingStatus.PendingApproval, AeSteps<OpenDataSharingStatus>.StepState.Queued },
-        { OpenDataSharingStatus.PendingPublication, AeSteps<OpenDataSharingStatus>.StepState.Queued },
-        { OpenDataSharingStatus.PendingUpload, AeSteps<OpenDataSharingStatus>.StepState.Queued },
-        { OpenDataSharingStatus.AccessOpenData, AeSteps<OpenDataSharingStatus>.StepState.Queued }            
-    };
+    private Dictionary<OpenDataSharingStatus, (string, string)?> _stepInfo = new();
+    private Dictionary<OpenDataSharingStatus, AeSteps<OpenDataSharingStatus>.StepState> _stepStates = new();
 
     private string StepTitle(OpenDataSharingStatus i) => _stepInfo.GetValueOrDefault(i)?.Item1;
     private string StepMessage(OpenDataSharingStatus i) => _stepInfo.GetValueOrDefault(i)?.Item2;
     private AeSteps<OpenDataSharingStatus>.StepState GetState(OpenDataSharingStatus i) => _stepStates[i];
 
-    private bool ShowMetadataEditor => currentStep == OpenDataSharingStatus.EnterMetadata || editSavedMetadata;
-    private bool ShowSkipMetadata => currentStep == OpenDataSharingStatus.EnterMetadata;
-    private bool ShowApprovalCards => IsOwnRequest && currentStep < OpenDataSharingStatus.PendingApproval; 
-    private bool ShowApprovalForm => currentStep == OpenDataSharingStatus.OpenGovApprovalForm || editSubmittedApproval;
+    private bool ShowMetadataEditor => _currentStep == OpenDataSharingStatus.EnterMetadata || _editSavedMetadata;
+    private bool ShowSkipMetadata => _currentStep == OpenDataSharingStatus.EnterMetadata;
+    private bool ShowApprovalCards => _isOwnRequest && _currentStep < OpenDataSharingStatus.PendingApproval; 
+    private bool ShowApprovalForm => _currentStep == OpenDataSharingStatus.OpenGovApprovalForm || _editSubmittedApproval;
     private bool ApprovalFormSubmitted => _stepStates[OpenDataSharingStatus.OpenGovApprovalForm] == AeSteps<OpenDataSharingStatus>.StepState.Passed;
-    private bool ShowSignedPdfPanel => currentStep == OpenDataSharingStatus.SubmitSignedPDF;
-    private bool ShowPublicationDatePanel => currentStep == OpenDataSharingStatus.PendingPublication;
-    private bool ShowPublicUrl => currentStep == OpenDataSharingStatus.AccessOpenData;
-    private bool ShowCancelPanel => currentStep <= OpenDataSharingStatus.PendingUpload;
-    private bool ShowUploadCard => currentStep == OpenDataSharingStatus.PendingUpload && IsOwnRequest;
+    private bool ShowSignedPdfPanel => _currentStep == OpenDataSharingStatus.SubmitSignedPDF;
+    private bool ShowPublicationDatePanel => _currentStep == OpenDataSharingStatus.PendingPublication;
+    private bool ShowPublicUrl => _currentStep == OpenDataSharingStatus.AccessOpenData;
+    private bool ShowCancelPanel => _currentStep <= OpenDataSharingStatus.PendingUpload;
+    private bool ShowUploadCard => _currentStep == OpenDataSharingStatus.PendingUpload && _isOwnRequest;
 
-    private bool IsOwnRequest = false;
+    private bool _isOwnRequest = false;
 
-    private bool editSavedMetadata = false;
-    private bool editSubmittedApproval = false;
+    private bool _editSavedMetadata = false;
+    private bool _editSubmittedApproval = false;
 
-    private string PublicationDateStr = string.Empty;
-    private int approvalFormId = 0;
-    private string GenerateApprovalFormPdfUrl => PublicFileService.GetOpenDataApprovalFormPdfUrl(approvalFormId);
-    private string signedApprovalFormUrl;
+    private string _publicationDateText = string.Empty;
+    private string _urlPublishError;
 
-    private GraphUser RequestingUser;
-    private string requestFilename;
+    private long _sharedDataFileId;
+    private OpenDataUploadStatus _uploadStatus = OpenDataUploadStatus.NotStarted;
+    private string _uploadFileErrorMessage;
+
+    private int _approvalFormId = 0;
+    private string _generateApprovalFormPdfUrl => PublicFileService.GetOpenDataApprovalFormPdfUrl(_approvalFormId);
+    private string _signedApprovalFormUrl;
+
+    private GraphUser _requestingUser;
+    private string _requestFilename;
 
     private string _datasetTitle;
 
     private string GetOpenDataFileUrl()
     {
         var language = Thread.CurrentThread.CurrentCulture.Name.ToLower().Contains("fr") ? "fr" : "en";
-        var subdomain = CKANService.IsStaging() ? "registry-staging" : "registry";
+        var subdomain = OpenDataService.IsStaging() ? "registry-staging" : "registry";
         return $"https://{subdomain}.open.canada.ca/{language}/dataset/{FileId}";
     }
 
     private void UpdateCurrentStatus(OpenDataSharingStatus step, bool passed = false)
     {
-        editSavedMetadata = false;
-        editSubmittedApproval = false;
+        _editSavedMetadata = false;
+        _editSubmittedApproval = false;
 
-        currentStep = step;
+        _currentStep = step;
         _stepStates[step] = passed? AeSteps<OpenDataSharingStatus>.StepState.Passed : AeSteps<OpenDataSharingStatus>.StepState.Running;
 
         foreach (var stepv in Enum.GetValues<OpenDataSharingStatus>())
@@ -264,19 +269,19 @@
 
     private void ManuallyShowMetadataEditor()
     {
-        editSavedMetadata = true;
+        _editSavedMetadata = true;
     }
 
     private void ManuallyShowApprovalForm()
     {
-        editSubmittedApproval = true;
+        _editSubmittedApproval = true;
     }
 
     private async void GenerateApprovalPDF()
     {
         try
         {
-            await jsRuntime.InvokeAsync<object>("open", GenerateApprovalFormPdfUrl, "_blank");
+            await jsRuntime.InvokeAsync<object>("open", _generateApprovalFormPdfUrl, "_blank");
         }
         catch (Exception)
         {
@@ -285,62 +290,69 @@
 
     private async Task UpdateApprovalFormId(int id)
     {
-        savingData = true;
-        approvalFormId = id;
-        await PublicFileService.UpdateOpenDataApprovalFormId(fileIdGuid, id);
-        savingData = false;
-        if (currentStep == OpenDataSharingStatus.OpenGovApprovalForm)
+        _savingData = true;
+        try
+        {
+            _approvalFormId = id;
+            await PublicFileService.UpdateOpenDataApprovalFormId(_fileIdGuid, id);        
+        }
+        finally
+        {
+            _savingData = false;
+        }
+        if (_currentStep == OpenDataSharingStatus.OpenGovApprovalForm)
         {
             UpdateCurrentStatus(OpenDataSharingStatus.SubmitSignedPDF);
         }
         else
         {
-            editSubmittedApproval = false;
+            _editSubmittedApproval = false;
         }
     }
 
     private async Task UploadSignedPDF()
     {
-        if (!string.IsNullOrEmpty(signedApprovalFormUrl))
+        if (!string.IsNullOrEmpty(_signedApprovalFormUrl))
         {
-            savingData = true;
+            _savingData = true;
 
-            await PublicFileService.UpdateOpenDataSignedApprovalFormUrl(fileIdGuid, signedApprovalFormUrl);
+            await PublicFileService.UpdateOpenDataSignedApprovalFormUrl(_fileIdGuid, _signedApprovalFormUrl);
             await PublicFileService.NotifySignedPDFUploaded();
 
-            savingData = false;
+            _savingData = false;
             UpdateCurrentStatus(OpenDataSharingStatus.PendingApproval);   
         }
     }
 
     private async Task PublishAsUrl()
     {
-        savingData = true;
+        _savingData = true;
         try
         {
-            var fileId = fileIdGuid.ToString();
-            var fieldValues = await MetadataBrokerService.GetObjectMetadataValues(fileId);
+            _urlPublishError = string.Empty;
+
+            var fieldValues = await MetadataBrokerService.GetObjectMetadataValues(FileId);
 
             // get the file url
-            var url = PublicFileService.GetPublicSharedFileUrl(fileId);
+            var url = PublicFileService.GetPublicSharedFileUrl(FileId);
 
             // publish to open data
-            var result = await CKANService.CreatePackage(fieldValues, url);
+            var result = await OpenDataService.PublishFileAsUrl(fieldValues, url);
 
             if (result.Succeeded)
             {
-                var updatedFile = await PublicFileService.UpdateOpenDataPublication(fileIdGuid, true);
+                var updatedFile = await PublicFileService.UpdateOpenDataPublication(_fileIdGuid, true);
                 UpdateShareFileStatus(updatedFile);
                 await InvokeAsync(StateHasChanged);
             }
             else
             {
-                // todo: toast error!
+                _urlPublishError = result.ErrorMessage;
             }
         }
         finally
         {
-            savingData = false;
+            _savingData = false;
         }
     }
 
@@ -348,82 +360,82 @@
     {
         try
         {
-            savingData = true;
-            await TryDownloadFileContent(async stream =>
-            {
-                var fileId = fileIdGuid.ToString();
-                var fieldValues = await MetadataBrokerService.GetObjectMetadataValues(fileId);
+            _savingData = true;
 
-            // publish to open data record
-            var result = await CKANService.CreatePackage(fieldValues);
-                if (result.Succeeded)
-                {
-                // publish to open data resource
-                result = await CKANService.AddResourcePackage(fileId, requestFilename, stream);
-                    if (result.Succeeded)
-                    {
-                        var updatedFile = await PublicFileService.UpdateOpenDataPublication(fileIdGuid, false);
-                        UpdateShareFileStatus(updatedFile);
-                        await InvokeAsync(StateHasChanged);                  
-                    }
-                    else
-                    {
-                    // todo: toast error!
-                }
-                }
-                else
-                {
-                // todo: toast error!
-            }
-            });
+            var fieldValues = await MetadataBrokerService.GetObjectMetadataValues(FileId);
+            var fileUri = await  PublicFileService.DownloadPublicUrlSharedFile(_fileIdGuid);
+
+            _ = OpenDataService.PublishFile(fieldValues, _sharedDataFileId, FileId, _requestFilename, fileUri.ToString());
+
+            _uploadStatus = OpenDataUploadStatus.UploadingFile;
+            StartOpenDataUploadTimer();
+
+            await InvokeAsync(StateHasChanged);
         }
         finally
         {
-            savingData = false;
+            _savingData = false;
         }
     }
 
-    private async Task TryDownloadFileContent(Func<Stream, Task> processFile)
-    {
-        using (var httpClient = new HttpClient())
-        {
-            var fileUri = await  PublicFileService.DownloadPublicUrlSharedFile(fileIdGuid);
+    private bool OpenDataFileUploading => _uploadStatus == OpenDataUploadStatus.UploadingFile;
 
-            using (var response = await httpClient.GetAsync(fileUri.ToString(), HttpCompletionOption.ResponseHeadersRead))
+    private System.Timers.Timer _openDataUploadTimer;
+
+    private void StartOpenDataUploadTimer()
+    {
+        if (_openDataUploadTimer is null)
+        {
+            _openDataUploadTimer = new(5000);
+            _openDataUploadTimer.Elapsed += CheckOpenDataUploadStatus;
+        }
+        _openDataUploadTimer.Enabled = true;
+    }
+
+    private async void CheckOpenDataUploadStatus(object source, System.Timers.ElapsedEventArgs e)
+    {
+        using (var ctx = dbContextFactory.CreateDbContext())
+        {
+            var mustRefresh = false;
+            var sharedFile = ctx.OpenDataSharedFiles.FirstOrDefault(e => e.SharedDataFile_ID == _sharedDataFileId);
+
+            if (sharedFile.UploadStatus_CD != _uploadStatus)
             {
-                response.EnsureSuccessStatusCode();
-                await using (var fileData = await response.Content.ReadAsStreamAsync())
-                {
-                    await processFile.Invoke(fileData);
-                }
+                _uploadStatus = sharedFile.UploadStatus_CD;
+                _uploadFileErrorMessage = sharedFile.UploadError_TXT;
+                mustRefresh = true;
+            }
+
+            if (_uploadStatus == OpenDataUploadStatus.UploadCompleted)
+            {
+                _openDataUploadTimer.Enabled = false;
+                UpdateShareFileStatus(sharedFile);
+                mustRefresh = true;
+            }        
+
+            if (mustRefresh)
+            {
+                await InvokeAsync(StateHasChanged);    
             }
         }
     }
 
-    private async Task SaveMetadata()
+    private async Task HandleSaveMetadata()
     {
-        savingData = true;
-        try
-        {
-            _datasetTitle = _metadataEditor.GetTitle();
-            await _metadataEditor.SaveChanges();
-            await PublicFileService.MarkMetadataComplete(fileIdGuid);
-        }
-        finally
-        {
-            savingData = false;
-        }
+        _datasetTitle = _metadataEditor.GetTitle();
+
+        await PublicFileService.MarkMetadataComplete(_fileIdGuid);
 
         var uri = GetBaseUrl(NavManager.Uri);
-        NavManager.NavigateTo($"{uri}#stepsDiv");
+        await NavManager.NavigateTo($"{uri}#stepsDiv", true);
 
-        if (currentStep == OpenDataSharingStatus.EnterMetadata)
+        if (_currentStep == OpenDataSharingStatus.EnterMetadata)
         {
             UpdateCurrentStatus(OpenDataSharingStatus.OpenGovApprovalForm);
         }
         else
         {
-            editSavedMetadata = false;
+            _editSavedMetadata = false;
         }
     }
 
@@ -435,7 +447,7 @@
 
     private async Task AcceptMetadata()
     {
-        await PublicFileService.MarkMetadataComplete(fileIdGuid);
+        await PublicFileService.MarkMetadataComplete(_fileIdGuid);
         UpdateCurrentStatus(OpenDataSharingStatus.OpenGovApprovalForm);
     }
 
@@ -447,7 +459,8 @@
                               ChoiceTextList=@promptText
                               OnDecision="HandleCancel"
                               ConfirmText=@Localizer["COMMON.Yes"]
-                              CancelText=@Localizer["COMMON.No"]/>;
+                              CancelText=@Localizer["COMMON.No"]/>
+    ;
         await UI.ToggleModal(cancelDialog);
     }
 
@@ -455,54 +468,72 @@
     {
         if (isCancelled)
         {
-            savingData = true;
-            await PublicFileService.CancelPublicDataShare(fileIdGuid);
-            savingData = false;
-            NavManager.NavigateTo("/");
+            _savingData = true;
+            await PublicFileService.CancelPublicDataShare(_fileIdGuid);
+            _savingData = false;
+            await NavManager.NavigateTo("/", true);
         }
         await UI.ToggleModal();
     }
 
     protected override async Task OnInitializedAsync()
     {
-        if (!Guid.TryParse(FileId, out fileIdGuid))
+        if (Guid.TryParse(FileId, out _fileIdGuid))
         {
-            NavManager.NavigateTo("/");
+            var loadTask = PublicFileService.LoadOpenDataSharedFileInfo(_fileIdGuid);
+            var currentUserTask = UserInformationService.GetUserAsync();
+
+            _stepInfo = _steps.ToDictionary(s => s, s => GetStepPair(s));
+            _stepStates = _steps.ToDictionary(s => s, s => AeSteps<OpenDataSharingStatus>.StepState.Queued);
+
+            var sharedFileInfo = await loadTask;
+            if (sharedFileInfo is null)
+            {
+                await NavManager.NavigateTo("/", true);
+                return;
+            }
+
+            _sharedDataFileId = sharedFileInfo.SharedDataFile_ID;
+            _uploadStatus = sharedFileInfo.UploadStatus_CD;
+            _uploadFileErrorMessage = sharedFileInfo.UploadError_TXT;
+
+            _approvalFormId = sharedFileInfo.ApprovalForm_ID ?? 0;
+            _signedApprovalFormUrl = sharedFileInfo.SignedApprovalForm_URL;
+            _requestFilename = sharedFileInfo.Filename_TXT;
+            _publicationDateText = sharedFileInfo.PublicationDate_DT?.ToShortDateString();
+
+            _requestingUser = GraphService.GetUser(sharedFileInfo.RequestingUser_ID);
+            var currentUser = await currentUserTask;
+            _isOwnRequest = currentUser.Id == _requestingUser.Id;
+
+            UpdateShareFileStatus(sharedFileInfo);
         }
-
-        var loadTask = PublicFileService.LoadOpenDataSharedFileInfo(fileIdGuid);
-        var currentUserTask = UserInformationService.GetUserAsync();
-
-        _stepInfo = new();
-        foreach(var step in steps)
+        else
         {
-            var stepName = step.ToString();
-            var prefix = SharedDataFile.OPEN_DATA_SHARING_STATUS_LOCALIZATION_PREFIX;
-            var keys = ($"{prefix}.{stepName}.Title", $"{prefix}.{stepName}.Description");
-            _stepInfo.Add(step, (Localizer[keys.Item1], Localizer[keys.Item2]));
+            await NavManager.NavigateTo("/", true);
         }
+    }
 
-        var sharedFileInfo = await loadTask;
-
-        approvalFormId = sharedFileInfo.ApprovalForm_ID ?? 0;
-        signedApprovalFormUrl = sharedFileInfo.SignedApprovalForm_URL;
-        requestFilename = sharedFileInfo.Filename_TXT;
-        PublicationDateStr = sharedFileInfo.PublicationDate_DT?.ToShortDateString();
-
-        RequestingUser = GraphService.GetUser(sharedFileInfo.RequestingUser_ID);
-        var currentUser = await currentUserTask;
-        IsOwnRequest = currentUser.Id == RequestingUser.Id;
-
-        UpdateShareFileStatus(sharedFileInfo);
+    private (string, string)? GetStepPair(OpenDataSharingStatus status)
+    {
+        var prefix = SharedDataFile.OPEN_DATA_SHARING_STATUS_LOCALIZATION_PREFIX;
+        var title = $"{prefix}.{status}.Title";
+        var desc = $"{prefix}.{status}.Description";
+        return (Localizer[title], Localizer[desc]);
     }
 
     private void UpdateShareFileStatus(OpenDataSharedFile file)
     {
         var status = file.GetOpenDataSharingStatus();
         UpdateCurrentStatus(status, status == OpenDataSharingStatus.AccessOpenData);
+        UpdateOpenDataUploadStatus(status);
     }
 
-    private void OnMetadataFieldChanged() => StateHasChanged();
-
-    private bool SaveMetadataDisabled() => savingData || _metadataEditor?.IsRequiredMetadataValid == false;
+    private void UpdateOpenDataUploadStatus(OpenDataSharingStatus status)
+    {
+        if (status == OpenDataSharingStatus.PendingUpload && _uploadStatus == OpenDataUploadStatus.UploadingFile)
+        {
+            StartOpenDataUploadTimer();
+        }
+    }
 }
