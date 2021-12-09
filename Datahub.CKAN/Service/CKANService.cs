@@ -33,12 +33,12 @@ namespace Datahub.CKAN.Service
         #endregion
 
         readonly HttpClient _httpClient;
-        readonly IOptions<CKANConfiguration> _ckanConfiguration;
+        readonly CKANConfiguration _ckanConfiguration;
 
         public CKANService(HttpClient httpClient, IOptions<CKANConfiguration> ckanConfiguration)
         {
             _httpClient = httpClient;
-            _ckanConfiguration = ckanConfiguration;
+            _ckanConfiguration = ckanConfiguration.Value;
         }
 
         public async Task<CKANApiResult> CreatePackage(FieldValueContainer fieldValues, string url)
@@ -72,24 +72,23 @@ namespace Datahub.CKAN.Service
             return await PostRequestAsync("resource_create", content);
         }
 
-        public bool IsStaging() => (_ckanConfiguration.Value.BaseUrl ?? "").Contains("staging");
-
         private async Task<CKANApiResult> PostRequestAsync(string action, HttpContent content)
         {
             try
             {
-                var baseUrl = _ckanConfiguration.Value.BaseUrl;
-                var apiKey = _ckanConfiguration.Value.ApiKey;
+                var baseUrl = _ckanConfiguration.BaseUrl;
+                var apiKey = _ckanConfiguration.ApiKey;
 
                 content.Headers.Add("X-CKAN-API-Key", apiKey);
 
                 var response = await _httpClient.PostAsync($"{baseUrl}/{action}", content);
-                response.EnsureSuccessStatusCode();
+                //response.EnsureSuccessStatusCode();
 
                 var jsonResponse = await response.Content.ReadAsStringAsync();
                 var ckanResult = JsonConvert.DeserializeObject<CKANResult>(jsonResponse);
 
-                return new CKANApiResult(ckanResult.Success, ckanResult.Error?.Message);
+                var errorMessage = ckanResult.Success ? string.Empty : ckanResult.Error?.__type;
+                return new CKANApiResult(ckanResult.Success, errorMessage);
             }
             catch (HttpRequestException ex)
             {
