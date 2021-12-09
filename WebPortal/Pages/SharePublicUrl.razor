@@ -1,5 +1,5 @@
 ﻿@page "/share/public/{FileId}"
-@inject NavigationManager NavManager
+@inject CustomNavigation NavManager
 @inject IPublicDataFileService PublicFileService
 @inject UIControlsService UI
 @inject IMSGraphService GraphService
@@ -7,8 +7,7 @@
 @inject IEmailNotificationService EmailNotificationService
 @inject ISystemNotificationService SystemNotificationService
 
-
-<h1>@Localizer[$"{LOCALIZATION_PREFIX}.Page_Title"]</h1>
+<AeTypography style="margin-left: 2rem;" Variant="h2">@Localizer[$"{LOCALIZATION_PREFIX}.Page_Title"]</AeTypography>
 
 <AeFlex>
     <AeFlex Vertical style="margin-left: 2rem; width: 48%">
@@ -23,16 +22,10 @@
 
             @if (ShowMetadataEditor && IsOwnRequest)
             {
-                <ObjectMetadataEditor ObjectId=@FileId @ref=@_metadataEditor ></ObjectMetadataEditor>
-                <AeFlex>
-                    <AeButton OnClickEvent=@SaveMetadata Disabled=@savingData >@Localizer[$"{LOCALIZATION_PREFIX}.Save_button"]</AeButton>
-                    <div>
-                        @if(savingData)
-                        {
-                            <Spinner Small=@true/>
-                        }
-                    </div>
-                </AeFlex>
+                <ObjectMetadataEditor @ref=@_metadataEditor 
+                                      ObjectId=@FileId 
+                                      SaveButtonLabel=@Localizer[$"{LOCALIZATION_PREFIX}.Save_button"]
+                                      OnSave=@HandleSave />
             }
             else if (IsOwnRequest)
             {
@@ -147,7 +140,6 @@
 <div>&nbsp;</div>
 
 
-
 @code {
 
     private static readonly string LOCALIZATION_PREFIX = "PUBLIC-URL-WIZARD";
@@ -213,22 +205,17 @@
     private EditContext editContext;
     private ValidationMessageStore validationMessageStore;
 
-    private async Task SaveMetadata()
+    private async Task HandleSave()
     {
-        savingData = true;
-
-        var t = _metadataEditor.SaveChanges();
-
         var uri = NavManager.Uri;
         if (uri.IndexOf('#') >= 0)
         {
             uri = uri.Substring(0, uri.IndexOf('#'));
         }
-        
-        await t;
+
         await PublicFileService.MarkMetadataComplete(fileIdGuid);
         savingData = false;
-        NavManager.NavigateTo($"{uri}#stepsDiv");
+        await NavManager.NavigateTo($"{uri}#stepsDiv", true);
         if (currentStep == PublicUrlSharingStatus.EnterMetadata)
         {
             UpdateCurrentStatus(PublicUrlSharingStatus.RequestApproval);
@@ -333,7 +320,7 @@
             savingData = true;
             await PublicFileService.CancelPublicDataShare(fileIdGuid);
             savingData = false;
-            NavManager.NavigateTo("/");
+            await NavManager.NavigateTo("/", true);
         }
         await UI.ToggleModal();
     }
@@ -364,7 +351,8 @@
 
         if (!Guid.TryParse(FileId, out fileIdGuid))
         {
-            NavManager.NavigateTo("/");
+            await NavigateHome();
+            return;
         }
 
         var loadTask = PublicFileService.LoadPublicUrlSharedFileInfo(fileIdGuid);
@@ -380,7 +368,12 @@
         }
 
         var sharedFileInfo = await loadTask;
-                
+        if (sharedFileInfo is null)
+        {
+            await NavigateHome();
+            return;
+        }
+
         requestFilename = sharedFileInfo.Filename_TXT;
         projectCode = sharedFileInfo.ProjectCode_CD;
 
@@ -402,5 +395,8 @@
         editContext.OnValidationRequested -= HandleValiadationRequested;
     }
 
-
+    private async Task NavigateHome() 
+    {
+        await NavManager.NavigateTo("/", true);
+    }
 }
