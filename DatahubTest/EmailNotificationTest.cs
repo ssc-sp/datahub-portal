@@ -105,7 +105,8 @@ I.SetValue(foo, 8675309);
                     _localizerMock.Object, 
                     _config, 
                     _output.BuildLoggerFor<EmailNotificationService>(),
-                    _graphServiceMock.Object);
+                    _graphServiceMock.Object,
+                    null); //XXX: To be proper, this should be an actual object (ServiceAuthManager) but making a mock/dummy version will require updating a lot of code in the app
             }
         }
 
