@@ -3,6 +3,7 @@
 @using Datahub.Core.Templates
 @inject IEmailNotificationService emailService
 @inject IUserInformationService userService
+@inject IAzurePriceListService azurePriceService
 
 <style>
     .ae.card .ae.card-content {
@@ -27,7 +28,6 @@
 
 
 <div style="padding: 2rem;">
-
     <AeFlex Vertical>
         <AeTypography Variant="h1">@Localizer[$"{LOCALIZATION_PREFIX}.Title"]</AeTypography>
 
@@ -311,19 +311,6 @@
     }
 
 
-    private record class UnitPrice(decimal BasePrice, int Units);
-    private class EstimatorPriceList
-    {
-        public UnitPrice Capacity { get; set; }
-        public UnitPrice WriteOperations { get; set; }
-        public UnitPrice ListCreateOperations { get; set; }
-        public UnitPrice ReadOperations { get; set; }
-        public UnitPrice ArchiveHPRead { get; set; }
-        public UnitPrice DataRetrieval { get; set; }
-        public UnitPrice DataWrite { get; set; }
-        public UnitPrice OtherOperations { get; set; }
-        public UnitPrice GeoReplication { get; set; }
-    }
 
     private DataRedundancyType _currentDataRedundancy = DataRedundancyType.LRS;
     private DataRedundancyType CurrentDataRedundancyType
@@ -347,9 +334,12 @@
         }
     }
 
-    private Dictionary<AccessTierType, EstimatorPriceList> PriceLists = new();
+    private (AccessTierType, DataRedundancyType) CurrentPriceKey => (CurrentAccessTierType, CurrentDataRedundancyType);
+    private bool IsCurrentPriceKeyValid => PriceListsReady && PriceLists.ContainsKey(CurrentPriceKey);
 
-    private EstimatorPriceList CurrentPriceList => PriceListsReady ? PriceLists[CurrentAccessTierType] : null;
+    private Dictionary<(AccessTierType, DataRedundancyType), EstimatorPriceList> PriceLists = new();
+
+    private EstimatorPriceList CurrentPriceList => IsCurrentPriceKeyValid ? PriceLists[CurrentPriceKey] : null;
 
     private EstimatorResult InitialCost { get; set; } = new();
     private EstimatorResult MonthlyCost { get; set; } = new();
@@ -357,7 +347,7 @@
 
     private bool IsCalculating { get; set; } = false;
     private bool PriceListsReady { get; set; } = false;
-    private bool CanCalculate => PriceListsReady && !IsCalculating && AverageFileSizeMB > 0;
+    private bool CanCalculate => IsCurrentPriceKeyValid && !IsCalculating && AverageFileSizeMB > 0;
     private bool NeedsRecalculation { get; set; } = true;
     private bool IsSending { get; set; } = false;
 
@@ -478,9 +468,18 @@
         IsSending = false;
     }
 
+    private async Task TestApi()
+    {
+        await azurePriceService.TestApiResponse();
+    }
+
     protected override async Task OnInitializedAsync()
     {
-        PriceLists.Add(AccessTierType.Hot, new()
+        PriceLists = await azurePriceService.GetAzureStoragePriceLists();
+        
+        /*
+         
+        EstimatorPriceList hotPrices = new()
         {
             Capacity = new(20.48M, 1000),
             WriteOperations = new(0.055M, 10000),
@@ -491,8 +490,9 @@
             DataWrite = new(0.0M, 1000),
             OtherOperations = new(0.004M, 10000),
             GeoReplication = new(0.022M, 1000)
-        });
-        PriceLists.Add(AccessTierType.Cool, new()
+        };
+
+        EstimatorPriceList coolPrices = new()
         {
             Capacity = new(11.26M, 1000),
             WriteOperations = new(0.1M, 10000),
@@ -503,8 +503,9 @@
             DataWrite = new(0.0M, 1000),
             OtherOperations = new(0.004M, 10000),
             GeoReplication = new(0.022M, 1000)
-        });
-        PriceLists.Add(AccessTierType.Archive, new()
+        };
+
+        EstimatorPriceList archivePrices = new()
         {
             Capacity = new(1.84M, 1000),
             WriteOperations = new(0.11M, 10000),
@@ -515,7 +516,58 @@
             DataWrite = new(0.0M, 1000),
             OtherOperations = new(0.004M, 10000),
             GeoReplication = new(0.022M, 1000)
-        });
+        };
+
+        PriceLists = new Dictionary<(AccessTierType, DataRedundancyType), EstimatorPriceList>()
+        {
+            {(AccessTierType.Hot, DataRedundancyType.LRS), hotPrices },
+            {(AccessTierType.Hot, DataRedundancyType.ZRS), hotPrices },
+            {(AccessTierType.Hot, DataRedundancyType.GRS), hotPrices },
+            {(AccessTierType.Cool, DataRedundancyType.LRS), coolPrices },
+            {(AccessTierType.Cool, DataRedundancyType.ZRS), coolPrices },
+            {(AccessTierType.Cool, DataRedundancyType.GRS), coolPrices },
+            {(AccessTierType.Archive, DataRedundancyType.LRS), archivePrices },
+            {(AccessTierType.Archive, DataRedundancyType.GRS), archivePrices }
+        };
+
+        */
+
+        //PriceLists.Add(AccessTierType.Hot, new()
+        //{
+        //    Capacity = new(20.48M, 1000),
+        //    WriteOperations = new(0.055M, 10000),
+        //    ListCreateOperations = new(0.055M, 10000),
+        //    ReadOperations = new(0.004M, 10000),
+        //    ArchiveHPRead = new(0.0M, 10000),
+        //    DataRetrieval = new(0.0M, 1000),
+        //    DataWrite = new(0.0M, 1000),
+        //    OtherOperations = new(0.004M, 10000),
+        //    GeoReplication = new(0.022M, 1000)
+        //});
+        //PriceLists.Add(AccessTierType.Cool, new()
+        //{
+        //    Capacity = new(11.26M, 1000),
+        //    WriteOperations = new(0.1M, 10000),
+        //    ListCreateOperations = new(0.055M, 10000),
+        //    ReadOperations = new(0.01M, 10000),
+        //    ArchiveHPRead = new(0.0M, 10000),
+        //    DataRetrieval = new(10.0M, 1000),
+        //    DataWrite = new(0.0M, 1000),
+        //    OtherOperations = new(0.004M, 10000),
+        //    GeoReplication = new(0.022M, 1000)
+        //});
+        //PriceLists.Add(AccessTierType.Archive, new()
+        //{
+        //    Capacity = new(1.84M, 1000),
+        //    WriteOperations = new(0.11M, 10000),
+        //    ListCreateOperations = new(0.055M, 10000),
+        //    ReadOperations = new(5.5M, 10000),
+        //    ArchiveHPRead = new(60.0M, 10000),
+        //    DataRetrieval = new(22.0M, 1000),
+        //    DataWrite = new(0.0M, 1000),
+        //    OtherOperations = new(0.004M, 10000),
+        //    GeoReplication = new(0.022M, 1000)
+        //});
 
         PriceListsReady = true;
     }
