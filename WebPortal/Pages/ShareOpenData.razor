@@ -1,7 +1,4 @@
 ﻿@page "/share/opendata/{FileId}"
-@using Datahub.CKAN.Service
-@using Datahub.Metadata.DTO;
-@using System.Net.Http.Headers
 @inject CustomNavigation NavManager
 @inject IPublicDataFileService PublicFileService
 @inject IDbContextFactory<DatahubProjectDBContext> dbContextFactory
@@ -18,7 +15,7 @@
     <AeFlex Vertical style="margin-left: 2rem; width: 50%;">
 
         <AeCard>
-            <AeTypography Variant="h3">@Localizer["OPENDATA-WIZARD.Metadata"]</AeTypography>
+            <AeTypography Variant="h3">@GetStepTitle(OpenDataSharingStatus.EnterMetadata)</AeTypography>
 
             @if (!string.IsNullOrEmpty(_requestFilename))
             {
@@ -62,8 +59,11 @@
             else if (ApprovalFormSubmitted)
             {
                 <AeCard>
-                    <AeTypography Variant="h3">@Localizer["OPENDATA-WIZARD.Approval_Form"]</AeTypography>
-                    <AeTypography Variant="p">@Localizer["OPENDATA-WIZARD.Approval_filled_out"]</AeTypography>
+                    <AeTypography Variant="h3">@GetStepTitle(OpenDataSharingStatus.OpenGovApprovalForm)</AeTypography>
+                    <AeFlex Vertical="true" style="margin: 1rem 1rem 1rem 0rem;">
+                        <AeTypography Variant="p">@Localizer["OPENDATA-WIZARD.Approval_filled_out"]</AeTypography>
+                        <AeTypography Variant="p">@Localizer["OPENDATA-WIZARD.GeneratePDF_explanation"]</AeTypography>
+                    </AeFlex>
                     <AeFlex>
                         <AeButton OnClickEvent=@GenerateApprovalPDF>@Localizer["OPENDATA-WIZARD.GeneratePDF_button"]</AeButton>
                         <div>&nbsp;</div>
@@ -74,13 +74,13 @@
                 @if (ShowSignedPdfPanel)
                 {
                     <AeCard>
-                        <AeTypography Variant="h3">@Localizer["OPENDATA-WIZARD.SubmitSignedPdf"]</AeTypography>
+                        <AeTypography Variant="h3">@GetStepTitle(OpenDataSharingStatus.SubmitSignedPDF)</AeTypography>
                         <AeFlex Vertical="true" style="margin: 1rem 1rem 1rem 0rem;">
                             <AeTypography>@Localizer["OPENDATA-WIZARD.EnterGcDocsUrl"]:</AeTypography>
-                            <input @bind-value=@_signedApprovalFormUrl class="ae input" style="width: 100%" />
+                            <input @bind=@_signedApprovalFormUrl class="ae input" style="width: 100%" @bind:event="oninput"/>
                         </AeFlex>
                         <AeFlex>
-                            <AeButton OnClickEvent=@UploadSignedPDF Disabled=@_savingData >@Localizer["BUTTONS.Submit"]</AeButton>
+                            <AeButton OnClickEvent=@UploadSignedPDF Disabled=@UploadSignedPDFDisabled()>@Localizer["BUTTONS.Submit"]</AeButton>
                             <div>
                                 @if (_savingData)
                                 {
@@ -209,14 +209,14 @@
 
     private bool ShowMetadataEditor => _currentStep == OpenDataSharingStatus.EnterMetadata || _editSavedMetadata;
     private bool ShowSkipMetadata => _currentStep == OpenDataSharingStatus.EnterMetadata;
-    private bool ShowApprovalCards => _isOwnRequest && _currentStep < OpenDataSharingStatus.PendingApproval; 
+    private bool ShowApprovalCards => _isOwnRequest && _currentStep < OpenDataSharingStatus.PendingApproval && !_editSavedMetadata; 
     private bool ShowApprovalForm => _currentStep == OpenDataSharingStatus.OpenGovApprovalForm || _editSubmittedApproval;
     private bool ApprovalFormSubmitted => _stepStates[OpenDataSharingStatus.OpenGovApprovalForm] == AeSteps<OpenDataSharingStatus>.StepState.Passed;
     private bool ShowSignedPdfPanel => _currentStep == OpenDataSharingStatus.SubmitSignedPDF;
     private bool ShowPublicationDatePanel => _currentStep == OpenDataSharingStatus.PendingPublication;
     private bool ShowPublicUrl => _currentStep == OpenDataSharingStatus.AccessOpenData;
     private bool ShowCancelPanel => _currentStep <= OpenDataSharingStatus.PendingUpload;
-    private bool ShowUploadCard => _currentStep == OpenDataSharingStatus.PendingUpload && _isOwnRequest;
+    private bool ShowUploadCard => _currentStep == OpenDataSharingStatus.PendingUpload && _isOwnRequest && !_editSavedMetadata;
 
     private bool _isOwnRequest = false;
 
@@ -312,7 +312,7 @@
 
     private async Task UploadSignedPDF()
     {
-        if (!string.IsNullOrEmpty(_signedApprovalFormUrl))
+        if (IsPDFUrlValid())
         {
             _savingData = true;
 
@@ -522,6 +522,8 @@
         return (Localizer[title], Localizer[desc]);
     }
 
+    private string GetStepTitle(OpenDataSharingStatus status) => GetStepPair(status).Value.Item1;
+
     private void UpdateShareFileStatus(OpenDataSharedFile file)
     {
         var status = file.GetOpenDataSharingStatus();
@@ -536,4 +538,13 @@
             StartOpenDataUploadTimer();
         }
     }
+
+    const string GcDocURLBase = "https://gcdocs.gc.ca/nrcan-rncan/llisapi.dll/link/";
+
+    private bool IsPDFUrlValid()
+    {
+        return (_signedApprovalFormUrl ?? string.Empty).StartsWith(GcDocURLBase, StringComparison.InvariantCultureIgnoreCase);
+    }
+
+    private bool UploadSignedPDFDisabled() => _savingData || !IsPDFUrlValid();
 }
