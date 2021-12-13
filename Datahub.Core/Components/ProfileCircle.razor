@@ -1,4 +1,5 @@
 ﻿@inherits HtmlElement
+@inject IMSGraphService GraphService
 
 <div class="@_classname" @attributes="InputAttributesWithoutClass">
     <Typography class="profile-letters">@Letters()</Typography>
@@ -9,8 +10,21 @@
     [Parameter]
     public string FullName { get; set; }
 
+    [Parameter]
+    public string UserId { get; set; }
+
+    private CancellationTokenSource _cts = new();
+
     private string _classname => $"profile-circle {_inputClass}";
 
+    protected override async Task OnInitializedAsync()
+    {
+        if (!string.IsNullOrEmpty(UserId))
+        {
+            var user = await GraphService.GetUserAsync(UserId, _cts.Token);
+            FullName = user.DisplayName;
+        }
+    }
 
     private string Letters()
     {
