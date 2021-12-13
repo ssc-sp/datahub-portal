@@ -66,9 +66,8 @@ namespace Datahub.Core.Services
                 Console.WriteLine($"Could not retrieve secret: {secretName}");
                 _logger.LogError($"Could not retrieve secret: {secretName}");
                 _logger.LogError($"The following error occured: {e.Message}");
+                throw;
             }
-
-            return string.Empty;
         }
 
         private void SetKeyVaultClient()

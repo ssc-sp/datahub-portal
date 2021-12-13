@@ -11,6 +11,7 @@ using Microsoft.Graph.Auth;
 using Microsoft.Identity.Client;
 using Microsoft.Identity.Web;
 using Datahub.Core.Data;
+using System.Threading;
 
 namespace Datahub.Core.Services
 {
@@ -33,35 +34,21 @@ namespace Datahub.Core.Services
             _httpClientFactory = clientFactory;
         }
 
-        //public GraphUser GetUser(string userId)
-        //{
-        //    if (!string.IsNullOrWhiteSpace(userId))
-        //    {
-        //        if (UsersDict != null && UsersDict.ContainsKey(userId))
-        //        {
-        //            var user = UsersDict[userId];
-                    
-        //            return UsersDict[userId];
-        //        }
-        //    }
-
-        //    return null;
-        //}
-
-        public async Task<GraphUser> GetUserAsync(string userId)
+    
+        public async Task<GraphUser> GetUserAsync(string userId, CancellationToken tkn)
         {
             PrepareAuthenticatedClient();
             var user = await graphServiceClient.Users.Request()
                 .Filter($"id eq '{userId}'")
-                .GetAsync();
+                .GetAsync(tkn);
             return user == null ? null : GraphUser.Create(user[0]);
         }
 
-        public async Task<string> GetUserName(string userId)
+        public async Task<string> GetUserName(string userId, CancellationToken tkn)
         {
             if (!string.IsNullOrWhiteSpace(userId))
             {             
-                var user = await GetUserAsync(userId);
+                var user = await GetUserAsync(userId, tkn);
                 return user?.DisplayName ?? "...";
             }
 
@@ -70,25 +57,25 @@ namespace Datahub.Core.Services
 
 
 
-        public async Task<string> GetUserEmail(string userId)
+        public async Task<string> GetUserEmail(string userId, CancellationToken tkn)
         {
-            var user = await GetUserAsync(userId);
+            var user = await GetUserAsync(userId, tkn);
             return user?.Mail;
         }
 
 
 
-        public async Task<string> GetUserIdFromEmailAsync(string email)
+        public async Task<string> GetUserIdFromEmailAsync(string email, CancellationToken tkn)
         {
             PrepareAuthenticatedClient();
             var user = await graphServiceClient.Users.Request()
                 .Filter($"mail eq '{email}'")
-                .GetAsync();
+                .GetAsync(tkn);
             return user[0].Id ?? string.Empty;
         }
         
 
-        public async Task<Dictionary<string, GraphUser>> GetUsersListAsync(string filterText)
+        public async Task<Dictionary<string, GraphUser>> GetUsersListAsync(string filterText, CancellationToken tkn)
         {
             Dictionary<string, GraphUser> users = new();
             PrepareAuthenticatedClient();
@@ -100,7 +87,7 @@ namespace Datahub.Core.Services
 
 
             var usersPage = await graphServiceClient.Users.Request(options)                
-                .GetAsync();
+                .GetAsync(tkn);
 
             if (usersPage?.CurrentPage.Count > 0)
             {
@@ -124,85 +111,7 @@ namespace Datahub.Core.Services
 
             return users;
         }
-        //public async Task LoadUsersAsync()
-        //{
-        //    try
-        //    {
-        //        if (UsersDict == null)
-        //        {
-        //            UsersDict = new();
-        //            //_logger.LogInformation("Entering Log Users");
-        //            //UsersDict = new Dictionary<string, GraphUser>();
-        //            //PrepareAuthenticatedClient();
-
-        //            //IGraphServiceUsersCollectionPage usersPage = await graphServiceClient.Users.Request().GetAsync();
-
-        //            //// Add the first page of results to the user list                    
-        //            //if (usersPage?.CurrentPage.Count > 0)
-        //            //{
-        //            //    foreach (User user in usersPage)
-        //            //    {
-        //            //        var newUser = GraphUser.Create(user);
-        //            //        UsersDict.Add(newUser.Id, newUser);
-        //            //    }
-        //            //}
-
-        //            //// Fetch each page and add those results to the list
-        //            //while (usersPage.NextPageRequest != null)
-        //            //{
-        //            //    usersPage = await usersPage.NextPageRequest.GetAsync();
-        //            //    foreach (User user in usersPage)
-        //            //    {
-        //            //        var newUser = GraphUser.Create(user);
-        //            //        UsersDict.Add(newUser.Id, newUser);
-        //            //    }
-        //            //}
-
-        //            //// add anonymous user
-        //            //var anonUser = UserInformationServiceConstants.GetAnonymousUser();
-        //            //if (anonUser != null)
-        //            //{
-        //            //    var newUser = GraphUser.Create(anonUser);
-        //            //    UsersDict.Add(newUser.Id, newUser);
-        //            //}
-
-        //            ////var user1 = UsersDict.Values.Where(u => u.Mail.ToLower() == "natasha.lestage@nrcan-rncan.gc.ca").FirstOrDefault().Id;
-                    
-                    
-        //            //_logger.LogInformation("Exiting Log Users");
-        //        }
-        //    }
-        //    catch (ServiceException e)
-        //    {
-        //        if (e.InnerException is MsalUiRequiredException || e.InnerException is MicrosoftIdentityWebChallengeUserException)
-        //            throw;
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        _logger.LogError(e, $"Error Loading Users Async");
-        //    }
-
-        //}
-        
-        //public async Task<Dictionary<string, GraphUser>> GetUsersAsync()
-        //{
-        //    try
-        //    {
-        //        if (UsersDict == null)
-        //        {
-        //            await LoadUsersAsync();
-        //        }
-
-        //        return UsersDict;
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        _logger.LogError(e,"Could not get users");
-        //    }
-
-        //    return new Dictionary<string, GraphUser>();
-        //}
-
+ 
         private void PrepareAuthenticatedClient()
         {
             if (graphServiceClient == null)
