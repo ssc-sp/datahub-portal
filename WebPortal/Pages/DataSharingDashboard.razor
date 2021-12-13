@@ -118,8 +118,6 @@
     private bool ShouldShowAllSharingRequests => true;
     
     
-    private string GetUserDisplayName(string userId) => GraphService.GetUserName(userId);
-
     private List<string> LocalizeHeaders(List<string> headerKeys)
     {
         return headerKeys.Select(k => Localizer[$"{LOCALIZATION_PREFIX}.{k}"].ToString()).ToList();
@@ -203,7 +201,7 @@
         awaitingApprovalAccessors = new List<Func<SharedDataFile, string>>()
         {
             f => f.Filename_TXT,
-            f => GetUserDisplayName(f.RequestingUser_ID),
+            null,
             f => f.SubmittedDate_DT?.ToShortDateString() ?? "--"
         };
 
@@ -219,7 +217,7 @@
         otherUsersFilesAccessors = new List<Func<SharedDataFile, string>>()
         {
             f => f.Filename_TXT,
-            f => GetUserDisplayName(f.RequestingUser_ID),
+            null,
             f => f.IsOpenDataRequest_FLAG? Localizer[$"{LOCALIZATION_PREFIX}.OpenData"]: Localizer[$"{LOCALIZATION_PREFIX}.PublicUrl"],
             f => Localizer[f.GetStatusKey()]
         };
@@ -227,7 +225,7 @@
         awaitingApprovalRenderers = new List<Func<SharedDataFile, RenderFragment>>()
         {
             f => @<a href="#" @onclick="() => PopupApprovalModal(f)" @onclick:preventDefault="true">@f.Filename_TXT</a>,
-            null,
+            f => @<div class="help icon-container"><GraphUserInformation UserId=@f.RequestingUser_ID IsUserNameRequested="true"></GraphUserInformation> </div>,
             null
         };
 
@@ -243,7 +241,7 @@
         otherUsersFilesRenderers = new List<Func<SharedDataFile, RenderFragment>>()
         {
             f => @<a href=@GetSharingWorkflowUrl(f)>@f.Filename_TXT</a>,
-            null,
+            f => @<div class="help icon-container"><GraphUserInformation UserId=@f.RequestingUser_ID IsUserNameRequested="true"></GraphUserInformation> </div>,    
             null,
             null
         };

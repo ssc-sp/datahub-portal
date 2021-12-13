@@ -20,6 +20,9 @@
     <div class="@_detailsContentClassname">
         @foreach(string propertyName in FileMetaDataExtensions.GetMetadataProperties(null).Where(p => p.isVisible).Select(p => p.key))
         {
+            Task<string> displayValueTask = Task<string>.Run(async () => { return await GetPropertyDisplayValue(propertyName); });
+            var displayValue = displayValueTask.Result;
+
             @if (propertyName == "customfields")
             {
                 @for (int i = 0; i < SelectedFile.customfields.Count; i++)
@@ -27,14 +30,14 @@
                     <CustomFieldsView Field="@SelectedFile.customfields[i]" IncludeHeader="@(i == 0)" />
                 }
             }
-            else if (!string.IsNullOrWhiteSpace(GetPropertyDisplayValue(propertyName)))
+            else if (!string.IsNullOrWhiteSpace(displayValue))
             {
                 <div class="item-row">
                     <div class="nrcan-typography item-label">
                         @Localizer["ITEM-DETAILS-PAGE." + propertyName]
                     </div>
                     <div class="nrcan-typography item-text">
-                        @GetPropertyDisplayValue(propertyName)
+                        @displayValue
                     </div>
                 </div>
             }
@@ -113,7 +116,7 @@
         NavigationManager.NavigateTo($"/metadata/{SelectedFile.fileid}");
     }
 
-    private string GetPropertyDisplayValue(string propertyName)
+    private async Task<string> GetPropertyDisplayValue(string propertyName)
     {
         var value = SelectedFile.GetMetadataPropertyValue(propertyName);
         switch (propertyName)
@@ -122,7 +125,7 @@
             case "lastmodifiedby":
             case "createdby":
             {
-                return MSGraphService.GetUserName(value);
+                return await MSGraphService.GetUserName(value, CancellationToken.None);
             }
 
             case "tags":
