@@ -12,6 +12,7 @@ using Datahub.Core.Data;
 using Datahub.Core.Services;
 using Xunit;
 using Xunit.Abstractions;
+using System.Threading;
 
 namespace Datahub.Tests
 {
@@ -52,10 +53,10 @@ namespace Datahub.Tests
             var fakeUser2 = GenerateTestUser(USER_2_ID, USER_2_NAME, USER_2_ADDR);
 
             _graphServiceMock = new Mock<IMSGraphService>();
-            _graphServiceMock.Setup(g => g.GetUserAsync(USER_1_ID).Result).Returns(fakeUser1);
-            _graphServiceMock.Setup(g => g.GetUserAsync(USER_2_ID).Result).Returns(fakeUser2);
-            _graphServiceMock.Setup(g => g.GetUserIdFromEmailAsync(USER_1_ADDR).Result).Returns(USER_1_ID);
-            _graphServiceMock.Setup(g => g.GetUserIdFromEmailAsync(USER_2_ADDR).Result).Returns(USER_2_ID);
+            _graphServiceMock.Setup(g => g.GetUserAsync(USER_1_ID, CancellationToken.None).Result).Returns(fakeUser1);
+            _graphServiceMock.Setup(g => g.GetUserAsync(USER_2_ID, CancellationToken.None).Result).Returns(fakeUser2);
+            _graphServiceMock.Setup(g => g.GetUserIdFromEmailAsync(USER_1_ADDR, CancellationToken.None).Result).Returns(USER_1_ID);
+            _graphServiceMock.Setup(g => g.GetUserIdFromEmailAsync(USER_2_ADDR, CancellationToken.None).Result).Returns(USER_2_ID);
 
             var testProject = new DatahubProjectInfo("PIP", "PIP (FR)","PIP");
 

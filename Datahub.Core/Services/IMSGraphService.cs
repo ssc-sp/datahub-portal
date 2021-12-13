@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Datahub.Core.Data;
 using Microsoft.Graph;
@@ -9,10 +10,10 @@ namespace Datahub.Core.Services
     {
         Dictionary<string, GraphUser> UsersDict { get; set; }
 
-        Task<GraphUser> GetUserAsync(string userId);
-        Task<Dictionary<string, GraphUser>> GetUsersListAsync(string filterText);
-        Task<string> GetUserName(string userId);
-        Task<string> GetUserEmail(string userId);
-        Task<string> GetUserIdFromEmailAsync(string email);
+        Task<GraphUser> GetUserAsync(string userId, CancellationToken tkn);
+        Task<Dictionary<string, GraphUser>> GetUsersListAsync(string filterText, CancellationToken tkn);
+        Task<string> GetUserName(string userId, CancellationToken tkn);
+        Task<string> GetUserEmail(string userId, CancellationToken tkn);
+        Task<string> GetUserIdFromEmailAsync(string email, CancellationToken tkn);
     }
 }

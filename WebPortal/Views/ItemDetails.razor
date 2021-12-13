@@ -125,7 +125,7 @@
             case "lastmodifiedby":
             case "createdby":
             {
-                return await MSGraphService.GetUserName(value);
+                return await MSGraphService.GetUserName(value, CancellationToken.None);
             }
 
             case "tags":

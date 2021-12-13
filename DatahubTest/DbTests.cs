@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Xunit;
 using Datahub.Core.UserTracking;
 using Microsoft.Extensions.Configuration;
+using System.Threading;
 
 namespace Datahub.Tests
 {
@@ -32,7 +33,7 @@ namespace Datahub.Tests
                 
                 var myGraphService = scope.ServiceProvider.GetRequiredService<IMSGraphService>();
                 //var graphService = scope.ServiceProvider.
-                var user = await myGraphService.GetUserIdFromEmailAsync("alexander.khavich@nrcan-rncan.gc.ca");
+                var user = await myGraphService.GetUserIdFromEmailAsync("alexander.khavich@nrcan-rncan.gc.ca", CancellationToken.None);
 
                 Assert.True(user != null);
             }
@@ -48,7 +49,7 @@ namespace Datahub.Tests
 
                 var myGraphService = scope.ServiceProvider.GetRequiredService<IMSGraphService>();
                 //var graphService = scope.ServiceProvider.
-                var user = await myGraphService.GetUserAsync("0403528c-5abc-423f-9201-9c945f628595");
+                var user = await myGraphService.GetUserAsync("0403528c-5abc-423f-9201-9c945f628595", CancellationToken.None);
                 
                 Assert.True(user != null);
             }
@@ -65,7 +66,7 @@ namespace Datahub.Tests
 
                 var myGraphService = scope.ServiceProvider.GetRequiredService<IMSGraphService>();
                 
-                var user = await myGraphService.GetUsersListAsync("erik");
+                var user = await myGraphService.GetUsersListAsync("erik", CancellationToken.None);
 
                 Assert.True(user != null);
             }

@@ -90,13 +90,27 @@
         await FillAccessorFunctions();
 
         renderFunctions = new List<Func<GraphUser, RenderFragment>>() {            
-            user => @<div class="help icon-container">@(async () => await MSGraphService.GetUserName(user.Id))  </div>,
-            user => @<div class="help icon-container">@(async () => await MSGraphService.GetUserEmail(user.Id))  </div>,
+            user => 
+    @<div class="help icon-container">@GetUserName(user)</div>,
+            user => @<div class="help icon-container">@GetUserEmail(user)  </div>,
             user => 
     @<div class="help icon-container" @onclick="() => DeleteRecord(user.Id)"><i class="far fa-trash-alt"></i></div>
     ,
         };
     }
+
+    private string GetUserName(GraphUser graphuser)
+    {
+        var user = _chosenUsers.Where(u => u.Id == graphuser.Id).First();
+        return user.DisplayName;
+    }
+
+    private string GetUserEmail(GraphUser graphuser)
+    {
+        var user = _chosenUsers.Where(u => u.Id == graphuser.Id).First();
+        return user.Mail;
+    }
+
 
     private async void DeleteRecord(string recordId)
     {
@@ -120,7 +134,7 @@
     {
         foreach (var chosenUser in _chosenUsers)
         {
-            var userName = await MSGraphService.GetUserEmail(chosenUser.Id);
+            var userName = await MSGraphService.GetUserEmail(chosenUser.Id, CancellationToken.None);
 
             var request = new Datahub_Project_User()
                 {
@@ -146,7 +160,7 @@
 
         if (_inputValue.Length > 3)
         {
-            filteredUsersList = await MSGraphService.GetUsersListAsync(_inputValue);            
+            filteredUsersList = await MSGraphService.GetUsersListAsync(_inputValue, CancellationToken.None);            
             toggleMenu = "true";
         }
 

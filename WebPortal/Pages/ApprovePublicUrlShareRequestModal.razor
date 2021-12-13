@@ -11,7 +11,7 @@
     <AeTypography Variant="h4">@Localizer[$"{LOCALIZATION_PREFIX}.Title"]</AeTypography>
 
     <div>@Localizer[$"{LOCALIZATION_PREFIX}.Filename"]: @SharedFile.Filename_TXT</div>
-    <div>@Localizer[$"{LOCALIZATION_PREFIX}.RequestingUser"]: @GetUserDisplayName(SharedFile.RequestingUser_ID)</div>
+    <div>@Localizer[$"{LOCALIZATION_PREFIX}.RequestingUser"]: @_userDisplayName</div>
     <div>@Localizer[$"{LOCALIZATION_PREFIX}.SubmissionDate"]: @SharedFile.SubmittedDate_DT?.ToShortDateString()</div>
 
     <AeButton OnClickEvent=@DownloadFile>@Localizer[$"{LOCALIZATION_PREFIX}.DownloadFile"]</AeButton>
@@ -91,9 +91,8 @@
     private bool processing = false;
     private bool approved = false;
     private bool ButtonsDisabled => processing || approved;
-
-
-    private string GetUserDisplayName(string userid) => GraphService.GetUserName(userid).Result;
+    private string _userDisplayName;
+    
 
     private async Task DownloadFile()
     {
@@ -142,7 +141,7 @@
         editContext = new(formData);
         editContext.OnValidationRequested += HandleValiadationRequested;
         validationMessageStore = new(editContext);
-
+        _userDisplayName = await GraphService.GetUserName(SharedFile.RequestingUser_ID, CancellationToken.None);
         formData.ExpirationDate = SharedFile.ExpirationDate_DT;
         formData.EnableTempSharing = formData.ExpirationDate.HasValue;
     }

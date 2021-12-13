@@ -67,14 +67,11 @@
     <div class="line"></div>
 
     @foreach (var person in SelectedFile.sharedwith)
-    {
-        Task<string> usernameTask = Task<string>.Run(async () => { return await MSGraphService.GetUserName(person.userid); });
-        var userName = usernameTask.Result;
-
+    {        
         <div class="textrows">
-            <ProfileCircle FullName="@userName" style="margin-left: 1rem" />
+            <ProfileCircle UserId="@person.userid" style="margin-left: 1rem" />
             <div class="nrcan-typography">
-                @userName
+                <GraphUserInformation UserId="@person.userid" IsUserNameRequested="true"></GraphUserInformation>
             </div>
             <div class="nrcan-typography">
                 @if (waitingOnUserOp.ContainsKey(person.userid))
@@ -84,7 +81,7 @@
                 else
                 {
                    <AeDropdown LabelRenderFragment="@(() => GetLabel(person.role))" Items="permissionOptions.Where(s => s != person.role)" class="manageAccessDropdown" 
-                            Renderer="GetOption" OnChange="(selectedItem) => OnPermissionSwitch(person, userName, selectedItem)" />      
+                            Renderer="GetOption" OnChange="(selectedItem) => OnPermissionSwitch(person, selectedItem)" />      
                 }
             </div>
             <div class="nrcan-typography">
@@ -143,7 +140,7 @@
         chosenUser = null;
         selectedPermission = string.Empty;
         _currentUser = await UserInformationService.GetUserAsync();
-        _ownedBy = await MSGraphService.GetUserName(SelectedFile.ownedby);
+        _ownedBy = await MSGraphService.GetUserName(SelectedFile.ownedby, CancellationToken.None);
         await DataSharingService.LoadSharedUsers(SelectedFile);
     }
 
@@ -219,8 +216,9 @@
         StateHasChanged();
     }
 
-    private async Task OnPermissionSwitch(Sharedwith person, string userName, string selectedItem)
-    {        
+    private async Task OnPermissionSwitch(Sharedwith person, string selectedItem)
+    {
+        var userName = await MSGraphService.GetUserName(person.userid, CancellationToken.None);
         if (selectedItem != AccessPermissions.ChangeOwner)
         {
             toggleWaitOnUser(person.userid);
@@ -249,7 +247,7 @@
         if (IsContinue)
         {
             // Save a lookup (ONLY when this is on the chosen user, which is already in memory)
-            var newOwner = (chosenUser?.Id == waitingOn.userid) ? chosenUser : await MSGraphService.GetUserAsync(waitingOn.userid);
+            var newOwner = (chosenUser?.Id == waitingOn.userid) ? chosenUser : await MSGraphService.GetUserAsync(waitingOn.userid, CancellationToken.None);
             // Check if the user has a root folder (i.e. have they logged in)
             if (await ApiService.DoesFolderExist(newOwner.RootFolder))
             {
@@ -295,7 +293,7 @@
 
         if (_inputValue.Length > 3)
         {
-            filteredUsersList = await MSGraphService.GetUsersListAsync(_inputValue);
+            filteredUsersList = await MSGraphService.GetUsersListAsync(_inputValue, CancellationToken.None);
             toggleMenu = "true";
         }
 

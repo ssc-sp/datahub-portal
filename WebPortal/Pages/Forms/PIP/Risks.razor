@@ -257,7 +257,7 @@
         else
         {
             _risk = risk;
-            _risk.Last_Updated_UserName = await MSGraphService.GetUserName(_risk.Last_Updated_UserId);
+            _risk.Last_Updated_UserName = await MSGraphService.GetUserName(_risk.Last_Updated_UserId, CancellationToken.None);
 
             SubmitLabel = "Save";
             StateHasChanged();

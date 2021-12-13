@@ -158,13 +158,6 @@
         }
     }
 
-    public async Task<string> GetOwnedCreatedUsersName()
-    {             
-        var key = (File.isShared || IsSearchedData) ? File.ownedby : File.createdby;
-        //var userName = 
-        return await MSGraphService.GetUserName(key);
-    }
-
     public string SharingOrRoleValue
     {
         get
@@ -186,8 +179,8 @@
     {
         await base.OnInitializedAsync();
         var key = (File.isShared || IsSearchedData) ? File.ownedby : File.createdby;
-        _ownedBy = await MSGraphService.GetUserName(key);
-        _modifiedBy = await MSGraphService.GetUserName(File.lastmodifiedby);
+        _ownedBy = await MSGraphService.GetUserName(key, CancellationToken.None);
+        _modifiedBy = await MSGraphService.GetUserName(File.lastmodifiedby, CancellationToken.None);
         NotifierService.Notify += OnNotify;
     }
 
