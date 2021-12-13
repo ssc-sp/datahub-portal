@@ -525,7 +525,7 @@
         StringBuilder sbUsers = new();
         foreach (var user in userList)
         {
-            var username = await MSGraphService.GetUserName(user.User_ID);
+            var username = await MSGraphService.GetUserName(user.User_ID, CancellationToken.None);
             if (username == "...")
             {
                 username = string.Empty;

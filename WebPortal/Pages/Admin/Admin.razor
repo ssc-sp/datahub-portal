@@ -318,7 +318,7 @@
 
         r.ApprovedUser = await UserInformationService.GetUserIdString();
         r.Approved_DT = approvedDate;
-        var userId = await MSGraphService.GetUserEmail(r.User_ID);
+        var userId = await MSGraphService.GetUserEmail(r.User_ID, CancellationToken.None);
         var request = new Datahub_Project_User()
         {
             User_ID = r.User_ID,
@@ -419,7 +419,7 @@
         projectReqRenderFunctions = new List<Func<Datahub_Project_User_Request, RenderFragment>>
         {
                 null,
-                user => @<div class="help icon-container">@(async () => await MSGraphService.GetUserName(user.User_ID))  </div>,                
+                user => @<div class="help icon-container"><GraphUserInformation UserId="@user.User_ID" IsUserNameRequested="true"></GraphUserInformation>  </div>,                
                 null,
                 new Func<Datahub_Project_User_Request, RenderFragment>(a => {
                     if (a.Approved_DT != null)

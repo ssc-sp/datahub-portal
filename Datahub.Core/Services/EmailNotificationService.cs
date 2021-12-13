@@ -14,6 +14,7 @@ using System.Text;
 using Datahub.Core.Model.Onboarding;
 using Datahub.Core.EFCore;
 using Microsoft.Graph;
+using System.Threading;
 
 namespace Datahub.Core.Services
 {
@@ -80,7 +81,7 @@ namespace Datahub.Core.Services
             if (Guid.TryParse(userIdOrAddress, out var parsedGuid))
             {
                 // for a valid guid, try to get the corresponding user and use that info
-                var user = await _graphService.GetUserAsync(userIdOrAddress);
+                var user = await _graphService.GetUserAsync(userIdOrAddress, CancellationToken.None);
                 if (user != null)
                 {
                     return CreateMailboxAddress(user.DisplayName, user.Mail);
@@ -96,9 +97,9 @@ namespace Datahub.Core.Services
                 else
                 {
                     // otherwise, try to lookup the user to get the name
-                    var userId = await _graphService.GetUserIdFromEmailAsync(userIdOrAddress);
+                    var userId = await _graphService.GetUserIdFromEmailAsync(userIdOrAddress, CancellationToken.None);
                     // no need to null check userId, as GetUser has its own null check
-                    var user = await _graphService.GetUserAsync(userId);
+                    var user = await _graphService.GetUserAsync(userId, CancellationToken.None);
 
                     // even if we don't get a user object, we can still try to send to the address
                     return CreateMailboxAddress(user?.DisplayName, userIdOrAddress);

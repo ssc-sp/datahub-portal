@@ -91,8 +91,8 @@ namespace Datahub.Core.Services
            
             foreach (var admin in adminEmailList)
             {
-                var userId = await mSGraphService.GetUserIdFromEmailAsync(admin);
-                var userName = await mSGraphService.GetUserName(userId);
+                var userId = await mSGraphService.GetUserIdFromEmailAsync(admin, CancellationToken.None);
+                var userName = await mSGraphService.GetUserName(userId, CancellationToken.None);
                 admins.Append($"{userName}; ");
             }
             return admins.ToString().Trim().TrimEnd(';');
@@ -147,7 +147,7 @@ namespace Datahub.Core.Services
 
             foreach (var user in users.Where(u => u.IsAdmin))
             {
-                var email = await mSGraphService.GetUserEmail(user.User_ID);
+                var email = await mSGraphService.GetUserEmail(user.User_ID, CancellationToken.None);
                 if (!extractedEmails.Contains(email.ToLower()))
                 {
                     user.IsAdmin = false;                    
@@ -157,7 +157,7 @@ namespace Datahub.Core.Services
 
             foreach (var email in extractedEmails)
             {
-                var adminUserid = await mSGraphService.GetUserIdFromEmailAsync(email);
+                var adminUserid = await mSGraphService.GetUserIdFromEmailAsync(email, CancellationToken.None);
                 if (!string.IsNullOrEmpty(adminUserid))
                 {
                     //if user exists but is not admin
