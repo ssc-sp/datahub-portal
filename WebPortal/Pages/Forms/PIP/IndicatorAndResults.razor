@@ -293,7 +293,7 @@
         else
         {
             _indicator = indicator;
-            _indicator.Last_Updated_UserName = MSGraphService.GetUserName(_indicator.Last_Updated_UserId);
+            _indicator.Last_Updated_UserName = await MSGraphService.GetUserName(_indicator.Last_Updated_UserId, CancellationToken.None);
 
             
             UpdateRisks();
