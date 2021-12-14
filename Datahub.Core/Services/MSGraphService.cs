@@ -38,10 +38,18 @@ namespace Datahub.Core.Services
         public async Task<GraphUser> GetUserAsync(string userId, CancellationToken tkn)
         {
             PrepareAuthenticatedClient();
-            var user = await graphServiceClient.Users.Request()
-                .Filter($"id eq '{userId}'")
-                .GetAsync(tkn);
-            return user == null ? null : GraphUser.Create(user[0]);
+            try
+            {
+                var user = await graphServiceClient.Users.Request()
+                    .Filter($"id eq '{userId}'")
+                    .GetAsync(tkn);
+                return user == null ? null : GraphUser.Create(user[0]);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error fetching user: {userId}: {ex.Message}");
+            }
+            return new GraphUser();
         }
 
         public async Task<string> GetUserName(string userId, CancellationToken tkn)
@@ -68,10 +76,19 @@ namespace Datahub.Core.Services
         public async Task<string> GetUserIdFromEmailAsync(string email, CancellationToken tkn)
         {
             PrepareAuthenticatedClient();
-            var user = await graphServiceClient.Users.Request()
-                .Filter($"mail eq '{email}'")
-                .GetAsync(tkn);
-            return user[0].Id ?? string.Empty;
+            try
+            {
+                var user = await graphServiceClient.Users.Request()
+                    .Filter($"mail eq '{email}'")
+                    .GetAsync(tkn);
+                return user[0].Id ?? string.Empty;
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError($"Error fetching user id for email: {email}: {ex.Message}");
+            }
+
+            return string.Empty;
         }
         
 
