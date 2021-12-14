@@ -1,0 +1,187 @@
+﻿@page "/admin/onboardusers/{projectAcronym}"
+
+@using Microsoft.EntityFrameworkCore.Query
+@using Microsoft.EntityFrameworkCore;
+@inject NavigationManager NavigationManager
+@inject IMSGraphService MSGraphService
+@inject IJSRuntime JSRuntime
+@using Microsoft.Identity.Web
+@inject IDbContextFactory<DatahubProjectDBContext> DbFactory
+@inject IUserInformationService UserInformationService
+@inject IDatahubAuditingService AuditingService
+
+
+<div class="manage-access">
+    <AeFlex Vertical>
+        <h1>@Localizer["Project Users"]</h1>
+    </AeFlex>    
+    <AeCard class="facardForms" CardPosition="AeCard.CardStyle.Horizontal">
+    <AeTypography>@Localizer["Search Users"]</AeTypography>
+    <input type="text" id="inputSearch" class="selectedText" @onclick="() => OnSearchUserClick()" @onkeyup="() => OnSearchUserClick()" @bind-value="_inputValue" @bind-value:event="oninput" />
+    <div class="nrcan-typography dropdown-content ddsearch" id="usermenu">
+        @foreach (var item in filteredUsersList.Take(10))
+        {
+            <a @onclick="() => OnUserClick(item.Value)">@item.Value.DisplayName</a>
+        }
+    </div>
+
+    @if (_chosenUsers.Any())
+    {
+        <div class="ae table-container">
+
+            <AePaginatedTable Accessors="accessorFunctions"
+                Renderers="renderFunctions"
+                T="GraphUser"
+                Dataset="_chosenUsers"
+                Headers="headers"
+                class="custom light"
+                style="Width:65%"
+                GridTemplateColumns="4fr 4fr 0.5fr"    
+                Page="@_lastClicked"
+                PageSize="15"
+                @ref=_myTable
+            />
+
+            @if (_myTable != null)
+            {
+                <AePagination 
+                    Pageable="@_myTable" 
+                    OnPageClick="OnPageClick"> 
+                    <LeftIcon><i class='fad fa-chevron-double-left'></i></LeftIcon> 
+                    <RightIcon><i class='fad fa-chevron-double-right'></i></RightIcon>
+                </AePagination>                 
+            }
+        </div>
+
+        <AeButton @onclick="@(async () => await AddUsersToProject())">@Localizer["Add Users"]</AeButton>
+    }
+    </AeCard>
+</div>
+
+@code {
+
+    [Parameter]
+    public string projectAcronym { get; set; }
+
+    private List<Func<GraphUser, string>> accessorFunctions;
+    private List<Func<GraphUser, RenderFragment>> renderFunctions;
+
+    private Dictionary<string, GraphUser> filteredUsersList { get; set; } = new Dictionary<string, GraphUser>();
+    private string _inputValue = string.Empty;    
+    private DatahubProjectDBContext Context;
+    private Datahub_Project _project;
+    private List<string> headers = new List<string>() { "Name", "Email", ""};
+    private int _lastClicked = 0;
+    private IPageableComponent _myTable;
+
+    private void OnPageClick(int pageIndex)
+    {
+        _lastClicked = pageIndex;
+    }
+
+    private List<GraphUser> _chosenUsers;
+
+    protected override async Task OnInitializedAsync()
+    {
+        //var currentUserId = await UserInformationService.GetUserIdString();
+        _chosenUsers = new();
+        Context = DbFactory.CreateDbContext();
+        _project = Context.Projects.Single(p => p.Project_Acronym_CD == projectAcronym);
+        await FillAccessorFunctions();
+
+        renderFunctions = new List<Func<GraphUser, RenderFragment>>() {            
+            user => 
+    @<div class="help icon-container">@GetUserName(user)</div>,
+            user => @<div class="help icon-container">@GetUserEmail(user)  </div>,
+            user => 
+    @<div class="help icon-container" @onclick="() => DeleteRecord(user.Id)"><i class="far fa-trash-alt"></i></div>
+    ,
+        };
+    }
+
+    private string GetUserName(GraphUser graphuser)
+    {
+        var user = _chosenUsers.Where(u => u.Id == graphuser.Id).First();
+        return user.DisplayName;
+    }
+
+    private string GetUserEmail(GraphUser graphuser)
+    {
+        var user = _chosenUsers.Where(u => u.Id == graphuser.Id).First();
+        return user.Mail;
+    }
+
+
+    private async void DeleteRecord(string recordId)
+    {
+        var count = _chosenUsers.Where(u => u.Id == recordId).ToList().Count;
+        _chosenUsers.RemoveAll(u => u.Id == recordId);
+        _myTable.Total = _myTable.Total - count;
+        StateHasChanged();
+    }
+
+    private async Task FillAccessorFunctions()
+    {
+        accessorFunctions = new List<Func<GraphUser, string>>() {
+            (user => { return user.Id; }),
+            null,
+            null,
+        };
+
+    }
+
+    private async Task AddUsersToProject()
+    {
+        foreach (var chosenUser in _chosenUsers)
+        {
+            var userName = await MSGraphService.GetUserEmail(chosenUser.Id, CancellationToken.None);
+
+            var request = new Datahub_Project_User()
+                {
+                    User_ID = chosenUser.Id,
+                    Project = _project,
+                    ApprovedUser = await UserInformationService.GetUserIdString(),
+                    Approved_DT = DateTime.Now,
+                    IsAdmin = false,
+                    IsDataApprover = false,
+                    User_Name = userName.ToLower()
+                };
+
+            Context.Project_Users.Add(request);
+        }
+        await Context.TrackSaveChangesAsync(AuditingService);
+        _chosenUsers.Clear();
+        StateHasChanged();
+    }
+
+    private async Task OnSearchUserClick()
+    {
+        var toggleMenu = "false";
+
+        if (_inputValue.Length > 3)
+        {
+            filteredUsersList = await MSGraphService.GetUsersListAsync(_inputValue, CancellationToken.None);            
+            toggleMenu = "true";
+        }
+
+        await JSRuntime.InvokeAsync<object>("toggleMenuWithBool", $"usermenu", toggleMenu);
+    }
+
+    private void OnUserClick(GraphUser user)
+    {
+        _chosenUsers.Add(user);
+        _inputValue = string.Empty;        
+        StateHasChanged();
+    }
+
+    
+    protected override void OnAfterRender(bool firstRender)
+    {
+    // You must re-render after the components are initialized in order for the 
+    // component reference to not be null
+        if(firstRender){
+            StateHasChanged();
+        }
+    }
+    
+}
