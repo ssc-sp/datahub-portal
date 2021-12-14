@@ -113,14 +113,14 @@
                             }
                             else
                             {
-                                @if (_serviceRequests.Any(r => r.ServiceType == "databricks" && r.Is_Completed == null))
+                                @if (_serviceRequests.Any(r => r.ServiceType == RequestManagementService.DATABRICKS && r.Is_Completed == null))
                                 {
                                     <AeTypography class="warning">@DataLocalizer["Service Request is being reviewed"]</AeTypography>
                                 }
                                 else
                                 {
                                     @* <AeTypography class="warning">Service not available</AeTypography> *@
-                                    <AeButton @onclick="@(async () => await RequestServiceAccess("databricks"))">@DataLocalizer["Request Service Creation"]</AeButton>
+                                    <AeButton @onclick="@(async () => await RequestServiceAccess(RequestManagementService.POWERBI))">@DataLocalizer["Request Service Creation"]</AeButton>
                                 }
                             }
                         }
@@ -162,14 +162,14 @@
                         }
                         else
                         {
-                            @if (_serviceRequests.Any(r => r.ServiceType == "powerbi" && r.Is_Completed == null))
+                            @if (_serviceRequests.Any(r => r.ServiceType == RequestManagementService.POWERBI && r.Is_Completed == null))
                             {
                                 <AeTypography class="warning">@DataLocalizer["Service Request is being reviewed"]</AeTypography>
                             }
                             else
                             {
                                 @*<AeTypography class="warning">Service not available</AeTypography>*@
-                                <AeButton @onclick="@(async () => await RequestServiceAccess("powerbi"))">@DataLocalizer["Request Service Creation"]</AeButton>
+                                <AeButton @onclick="@(async () => await RequestServiceAccess(RequestManagementService.POWERBI))">@DataLocalizer["Request Service Creation"]</AeButton>
                             }
                         }
                     }
@@ -236,7 +236,7 @@
                 <ChildContent>
                     <AeFlex Vertical>
 
-                        @if (_serviceRequests.Any(r => r.ServiceType == "storage" && r.Is_Completed != null))
+                        @if (_serviceRequests.Any(r => r.ServiceType == RequestManagementService.STORAGE && r.Is_Completed != null))
                         {
                             <DHLink Variant="h3" DataProject="@projectAcronym" LinkType="DatahubLinkType.Storage">@DataLocalizer["Storage Explorer"]</DHLink>
                         }
