@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace Datahub.Core.Services
 {
@@ -23,10 +24,7 @@ namespace Datahub.Core.Services
         }
 
 
-        public Dictionary<string, GraphUser> GetUsersList()
-        {
-            return UsersDict;
-        }
+    
 
         public async Task LoadUsersAsync()
         {
@@ -46,16 +44,16 @@ namespace Datahub.Core.Services
               });
         }
 
-        public async Task<Dictionary<string, GraphUser>> GetUsersAsync()
-        {
-            if (UsersDict != null)
-            {
-                return UsersDict;
-            }
+        //public async Task<Dictionary<string, GraphUser>> GetUsersAsync()
+        //{
+        //    if (UsersDict != null)
+        //    {
+        //        return UsersDict;
+        //    }
 
-            await LoadUsersAsync();
-            return UsersDict;
-        }
+        //    await LoadUsersAsync();
+        //    return UsersDict;
+        //}
 
         private void PrepareAuthenticatedClient()
         {
@@ -70,20 +68,20 @@ namespace Datahub.Core.Services
             }
         }
 
-        public GraphUser GetUser(string userId)
-        {
-            if (!string.IsNullOrWhiteSpace(userId))
-            {
-                if (UsersDict != null && UsersDict.ContainsKey(userId))
-                {
-                    return UsersDict[userId];
-                }
-            }
+        //public GraphUser GetUser(string userId)
+        //{
+        //    if (!string.IsNullOrWhiteSpace(userId))
+        //    {
+        //        if (UsersDict != null && UsersDict.ContainsKey(userId))
+        //        {
+        //            return UsersDict[userId];
+        //        }
+        //    }
 
-            return null;
-        }
+        //    return null;
+        //}
 
-        public string GetUserName(string userId)
+        public async Task<string> GetUserName(string userId, CancellationToken tkn)
         {
             if (!string.IsNullOrWhiteSpace(userId))
             {
@@ -96,15 +94,26 @@ namespace Datahub.Core.Services
             return "...";
         }
 
-        public string GetUserEmail(string userId)
+        public async Task<string> GetUserEmail(string userId, CancellationToken tkn)
         {
-            var user = GetUser(userId);
+            var user = await GetUserAsync(userId, CancellationToken.None);
             return user?.Mail;
         }
-
-        public string GetUserIdFromEmail(string email)
+      
+        public Task<string> GetUserIdFromEmailAsync(string email, CancellationToken tkn)
         {
             throw new NotImplementedException();
+        }
+
+        public Task<GraphUser> GetUserAsync(string userId, CancellationToken tkn)
+        {
+            throw new NotImplementedException();
+        }
+
+
+        public async Task<Dictionary<string, GraphUser>> GetUsersListAsync(string filterText, CancellationToken tkn)
+        {
+            return UsersDict;
         }
     }
 }
