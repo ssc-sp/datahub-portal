@@ -15,6 +15,11 @@ namespace Datahub.ProjectForms.Data.PIP
         [AeFormIgnore]
         public int Risks_ID { get; set; }
 
+        [AeFormIgnore]
+        public int Year { get; set; }
+        [AeFormIgnore]
+        [MaxLength(20)]
+        public string RiskCode { get; set; }
 
         [AeLabel(row: "1", column: "1")]
         [Required] [MaxLength(200)] public string Risk_Title { get; set; }
