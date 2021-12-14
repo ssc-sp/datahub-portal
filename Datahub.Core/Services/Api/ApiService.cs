@@ -469,6 +469,8 @@ namespace Datahub.Core.Services
 
         public async Task<long> GetUserUsedDataTotal(Microsoft.Graph.User user)
         {
+            
+
             Folder rootFolder = new Folder()
             {
                 id = MyDataFolder.id,
