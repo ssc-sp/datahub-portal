@@ -108,7 +108,7 @@ namespace Datahub.Portal
             ConfigureLocalization(services);
 
             // add custom app services in this method
-            ConfigureDatahubServices(services);
+            ConfigureCoreDatahubServices(services);
 
             services.AddHttpClient();
             services.AddHttpClient<GraphServiceClient>().AddPolicyHandler(GetRetryPolicy());
@@ -349,7 +349,7 @@ namespace Datahub.Portal
             return (values ?? "").Split('|').Select(c => new CultureInfo($"{c.Substring(0, 2).ToLower()}-CA"));
         }
 
-        private void ConfigureDatahubServices(IServiceCollection services)
+        private void ConfigureCoreDatahubServices(IServiceCollection services)
         {
             // configure online/offline services
             if (!Offline)
@@ -430,6 +430,8 @@ namespace Datahub.Portal
 
             services.AddSingleton<IGlobalSessionManager, GlobalSessionManager>();
             services.AddScoped<IUserCircuitCounterService, UserCircuitCounterService>();
+
+            services.AddScoped<RequestManagementService>();
 
             services.AddScoped<CustomNavigation>();
         }
