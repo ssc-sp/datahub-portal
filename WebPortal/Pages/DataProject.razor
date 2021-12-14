@@ -373,6 +373,7 @@
                         <NavLink href="@($"/edit-project/{projectAcronym}")"><AeButton>@DataLocalizer["Edit Project"]</AeButton></NavLink>
                         <NavLink href="@($"/tracker/{projectAcronym}")"><AeButton>@DataLocalizer["Project Tracker"]</AeButton></NavLink>
                         <NavLink href="@($"/admin/powerbi/{projectAcronym}")"><AeButton>@DataLocalizer["Manage Links"]</AeButton></NavLink>
+                        <NavLink href="@($"/admin/onboardusers/{projectAcronym}")"><AeButton>@DataLocalizer["Onboard Users"]</AeButton></NavLink>
                     </Footer>
 
                 </AeCard>
@@ -479,10 +480,10 @@
             _isDataApprover = projectUsers.Any(u => u.IsDataApprover);
         }
 
-        _admins = ServiceAuthManager.GetAdminUserString(projectAcronym);
-        GetUserList();
+        _admins = await ServiceAuthManager.GetAdminUserString(projectAcronym);
+        await GetUserList();
 
-        
+
 
 
 
@@ -518,11 +519,19 @@
 
     }
 
-    private void GetUserList()
+    private async Task GetUserList()
     {
         var userList = projectContext.Project_Users.Where(u => !u.IsAdmin && _project == u.Project).ToList();
         StringBuilder sbUsers = new();
-        userList.ForEach(e => sbUsers.Append(MSGraphService.GetUserName(e.User_ID) != "..." ? $"{MSGraphService.GetUserName(e.User_ID)}; " : string.Empty));
+        foreach (var user in userList)
+        {
+            var username = await MSGraphService.GetUserName(user.User_ID, CancellationToken.None);
+            if (username == "...")
+            {
+                username = string.Empty;
+            }
+            sbUsers.Append($"{username}; ");
+        }        
         _users =  sbUsers.ToString().Trim().TrimEnd(';');
     }
 
