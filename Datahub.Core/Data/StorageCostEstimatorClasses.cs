@@ -1,5 +1,7 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -24,6 +26,7 @@ namespace Datahub.Core.Data.StorageCostEstimator
     }
 
     public record class UnitPrice(decimal BasePrice, int Units);
+    
     public class EstimatorPriceList
     {
         public UnitPrice Capacity { get; set; }
@@ -98,6 +101,20 @@ namespace Datahub.Core.Data.StorageCostEstimator
         {
             Items = items;
         }
+    }
+
+    public class SavedStorageCostPriceGrid
+    {
+        public DateTime LastUpdatedUtc { get; set; }
+        
+        public Dictionary<string, EstimatorPriceList> PriceLists { get; set; }
+    }
+
+    public class MiscStoredObject
+    {
+        public string Id { get; set; }
+        public string TypeName { get; set; }
+        public string JsonContent { get; set; }
     }
 
 

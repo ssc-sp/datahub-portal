@@ -334,10 +334,10 @@
         }
     }
 
-    private (AccessTierType, DataRedundancyType) CurrentPriceKey => (CurrentAccessTierType, CurrentDataRedundancyType);
+    private string CurrentPriceKey => IAzurePriceListService.GenerateAzurePriceListKey(CurrentAccessTierType, CurrentDataRedundancyType);
     private bool IsCurrentPriceKeyValid => PriceListsReady && PriceLists.ContainsKey(CurrentPriceKey);
 
-    private Dictionary<(AccessTierType, DataRedundancyType), EstimatorPriceList> PriceLists = new();
+    private Dictionary<string, EstimatorPriceList> PriceLists = new();
 
     private EstimatorPriceList CurrentPriceList => IsCurrentPriceKeyValid ? PriceLists[CurrentPriceKey] : null;
 

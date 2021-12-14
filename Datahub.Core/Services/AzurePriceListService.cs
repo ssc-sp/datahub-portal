@@ -216,6 +216,8 @@ namespace Datahub.Core.Services
 
         private IHttpClientFactory _httpClientFactory;
 
+        private MiscStoredObject _savedGrid = null;
+
         public AzurePriceListService(IHttpClientFactory httpClientFactory)
         {
             _httpClientFactory = httpClientFactory;
@@ -275,7 +277,26 @@ namespace Datahub.Core.Services
             return new(result.Items.Where(i => i.SkuId == skuId).ToList());
         }
 
-        public async Task<Dictionary<(AccessTierType, DataRedundancyType), EstimatorPriceList>> GetAzureStoragePriceLists()
+        private async Task<SavedStorageCostPriceGrid> FetchSavedPriceGrid()
+        {
+            //TODO
+            var jsonContent = _savedGrid?.JsonContent;
+            if (jsonContent == null)
+            {
+                return null;
+            }
+
+            var priceGrid = JsonConvert.DeserializeObject<SavedStorageCostPriceGrid>(jsonContent);
+            return await Task.FromResult(priceGrid);
+        }
+
+        private async Task SavePriceGrid(SavedStorageCostPriceGrid priceGrid)
+        {
+            //TODO
+            await Task.Run(() => _savedGrid = TestOneWay(priceGrid, "test"));
+        }
+
+        private async Task<Dictionary<string, EstimatorPriceList>> GeneratePriceListFromApi()
         {
             var geoRepUrl = BuildApiUrl(AzureSkuIds.GEO_REPLICATION_SKU_ID);
             var geoRepResult = await GetAzureApiResult(geoRepUrl);
@@ -300,11 +321,68 @@ namespace Datahub.Core.Services
                         ReadOperations = GetUnitPriceFromApiResult(rawSkuPrices, AzureMeterIds.ReadOperations),
                         WriteOperations = GetUnitPriceFromApiResult(rawSkuPrices, AzureMeterIds.WriteOperations)
                     };
-                    return (kvp.Key, skuPriceList);
+                    return (IAzurePriceListService.GenerateAzurePriceListKey(kvp.Key.Item1, kvp.Key.Item2), skuPriceList);
                 })
-                .ToDictionary(tuple => tuple.Key, tuple => tuple.skuPriceList);
+                .ToDictionary(tuple => tuple.Item1, tuple => tuple.skuPriceList);
 
             return finalResult;
+        }
+
+        private MiscStoredObject TestOneWay<T>(T item, string id)
+        {
+            var typeName = typeof(T).FullName;
+            var storedObject = new MiscStoredObject()
+            {
+                Id = id,
+                TypeName = typeName,
+                JsonContent = JsonConvert.SerializeObject(item)
+            };
+            return storedObject;
+        }
+
+        private SavedStorageCostPriceGrid TestTheOtherWay(MiscStoredObject t)
+        {
+            return JsonConvert.DeserializeObject<SavedStorageCostPriceGrid>(t.JsonContent);
+        }
+
+        public async Task<Dictionary<string, EstimatorPriceList>> GetAzureStoragePriceLists()
+        {
+            var yesterday = DateTime.UtcNow - TimeSpan.FromDays(1);
+
+            var priceGrid = await FetchSavedPriceGrid();
+            
+            if (priceGrid == null || priceGrid.LastUpdatedUtc <= yesterday)
+            {
+                var apiPriceList = await GeneratePriceListFromApi();
+                var utcNow = DateTime.UtcNow;
+
+                priceGrid = new SavedStorageCostPriceGrid()
+                {
+                    LastUpdatedUtc = utcNow,
+                    PriceLists = apiPriceList
+                };
+
+                await SavePriceGrid(priceGrid);
+            }
+
+            
+
+            
+            //var priceListsToSave = apiPriceList
+            //    .Select(kvp => new SavedStorageCostPriceList()
+            //    {
+            //        Id = GenerateSavedPriceListId(kvp.Key),
+            //        LastUpdatedUtc = utcNow,
+            //        PriceList = kvp.Value
+            //    })
+            //    .ToList();
+
+
+            var t = TestOneWay(priceGrid, "test");
+            var q = TestTheOtherWay(t);
+
+
+            return priceGrid.PriceLists;
 
             //var priceLists = new Dictionary<AccessTierType, EstimatorPriceList>
             //{
