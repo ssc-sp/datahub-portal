@@ -34,8 +34,8 @@
         </div>
     </div>
     <div class="grid-item">@Folder.lastmodifiedts.ToShortDateString()</div>
-    <div class="grid-item">@MSGraphService.GetUserName(Folder.lastmodifiedby)</div>
-    <div class="grid-item">@MSGraphService.GetUserName(Folder.createdby)</div>
+    <div class="grid-item">@_modifiedby</div>
+    <div class="grid-item">@_createdby</div>
     <div class="grid-item"></div>
     <div class="grid-item"></div>
 </div>
@@ -56,6 +56,17 @@
     public bool IsSelected { get; set; } = false;
     [Parameter]
     public string CurrentUser { get; set; }
+
+    private string _modifiedby;
+    private string _createdby;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        _modifiedby = await MSGraphService.GetUserName(Folder.lastmodifiedby, CancellationToken.None);
+        _createdby = await MSGraphService.GetUserName(Folder.createdby, CancellationToken.None);
+        
+    }
 
     public string CurrentlySelectedStyle
     {
