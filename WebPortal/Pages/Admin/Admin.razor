@@ -264,7 +264,7 @@
         return new List<Func<Datahub_Project_User_Request, string>>
         {
             p => { return p.Project.Project_Name; },
-            p => { return MSGraphService.GetUserName(p.User_ID); },
+            p => { return p.User_ID; },
             p => { return p.Requested_DT.ToShortDateString(); },
             p => { return ".."; },
         };
