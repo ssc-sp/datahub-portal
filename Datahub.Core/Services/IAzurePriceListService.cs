@@ -9,7 +9,8 @@ namespace Datahub.Core.Services
 {
     public interface IAzurePriceListService
     {
-        Task<Dictionary<(AccessTierType, DataRedundancyType), EstimatorPriceList>> GetAzureStoragePriceLists();
+        Task<Dictionary<string, EstimatorPriceList>> GetAzureStoragePriceLists();
+        static string GenerateAzurePriceListKey(AccessTierType accessTierType, DataRedundancyType dataRedundancy) => $"{accessTierType}.{dataRedundancy}";
         Task TestApiResponse();
     }
 }

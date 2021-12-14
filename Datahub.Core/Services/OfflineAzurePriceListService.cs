@@ -9,7 +9,7 @@ namespace Datahub.Core.Services
 {
     public class OfflineAzurePriceListService : IAzurePriceListService
     {
-        public Task<Dictionary<(AccessTierType, DataRedundancyType), EstimatorPriceList>> GetAzureStoragePriceLists()
+        public Task<Dictionary<string, EstimatorPriceList>> GetAzureStoragePriceLists()
         {
             EstimatorPriceList hotPrices = new()
             {
@@ -49,17 +49,17 @@ namespace Datahub.Core.Services
                 OtherOperations = new(0.004M, 10000),
                 GeoReplication = new(0.022M, 1000)
             };
-
-            var priceLists = new Dictionary<(AccessTierType, DataRedundancyType), EstimatorPriceList>()
+            
+            var priceLists = new Dictionary<string, EstimatorPriceList>()
             {
-                {(AccessTierType.Hot, DataRedundancyType.LRS), hotPrices },
-                {(AccessTierType.Hot, DataRedundancyType.ZRS), hotPrices },
-                {(AccessTierType.Hot, DataRedundancyType.GRS), hotPrices },
-                {(AccessTierType.Cool, DataRedundancyType.LRS), coolPrices },
-                {(AccessTierType.Cool, DataRedundancyType.ZRS), coolPrices },
-                {(AccessTierType.Cool, DataRedundancyType.GRS), coolPrices },
-                {(AccessTierType.Archive, DataRedundancyType.LRS), archivePrices },
-                {(AccessTierType.Archive, DataRedundancyType.GRS), archivePrices }
+                {IAzurePriceListService.GenerateAzurePriceListKey(AccessTierType.Hot, DataRedundancyType.LRS), hotPrices },
+                {IAzurePriceListService.GenerateAzurePriceListKey(AccessTierType.Hot, DataRedundancyType.ZRS), hotPrices },
+                {IAzurePriceListService.GenerateAzurePriceListKey(AccessTierType.Hot, DataRedundancyType.GRS), hotPrices },
+                {IAzurePriceListService.GenerateAzurePriceListKey(AccessTierType.Cool, DataRedundancyType.LRS), coolPrices },
+                {IAzurePriceListService.GenerateAzurePriceListKey(AccessTierType.Cool, DataRedundancyType.ZRS), coolPrices },
+                {IAzurePriceListService.GenerateAzurePriceListKey(AccessTierType.Cool, DataRedundancyType.GRS), coolPrices },
+                {IAzurePriceListService.GenerateAzurePriceListKey(AccessTierType.Archive, DataRedundancyType.LRS), archivePrices },
+                {IAzurePriceListService.GenerateAzurePriceListKey(AccessTierType.Archive, DataRedundancyType.GRS), archivePrices }
             };
 
             return Task.FromResult(priceLists);
