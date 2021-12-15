@@ -18,8 +18,7 @@ namespace Datahub.Core.UserTracking
         public ICollection<UserRecentLink> UserRecentActions{ get; set; } = new List<UserRecentLink>();
         
     }
-
-    [Owned]
+    
     public record UserRecentLink
     { 
         [Key]
