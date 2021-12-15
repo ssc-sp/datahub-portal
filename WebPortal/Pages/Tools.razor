@@ -30,11 +30,27 @@
                     </div>
                 </Header>
                 <ChildContent>
-                    <DHLink Variant="h3" LinkType="DatahubLinkType.StorageCostEstimator">@Localizer["STORAGE-COST-ESTIMATOR.Title"]</DHLink>
+                    <DHLink Variant="h3" LinkType="DatahubLinkType.StorageCostEstimator">@Localizer["Storage Cost Estimator"]</DHLink>
                 </ChildContent>
                 <Footer>
                     <AeFlex Vertical>
-                        <AeTypography Variant="warning">@Localizer["Looking of an estimate for your storage needs?"]</AeTypography>                   
+                        <AeTypography Variant="warning">@Localizer["Looking of an estimate for your storage needs?"]</AeTypography>
+                    </AeFlex>
+                </Footer>
+            </AeCard>
+
+            <AeCard class="facard1" CardPosition="AeCard.CardStyle.Horizontal">
+                <Header>
+                     <div class="purple" style="width:120px">
+                        <AeIcon class="fad fa-folder-plus card-icon fa-xs" />
+                    </div>
+                </Header>
+                <ChildContent>                   
+                        <NavLink class="ae typography h3 a" href="/data">@Localizer["My Files"]</NavLink>
+                </ChildContent>
+                <Footer>
+                    <AeFlex Vertical>
+                        <AeTypography Variant="warning">@Localizer["User area for file storage and sharing"]</AeTypography>     
                     </AeFlex>
                 </Footer>
             </AeCard>
