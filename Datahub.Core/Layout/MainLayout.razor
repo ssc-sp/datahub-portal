@@ -65,7 +65,6 @@
     {
         try 
         {
-            await MSGraphService.LoadUsersAsync();
             _isSessionEnabled = await UserCircuitCounterService.IsSessionEnabled();
         } 
         catch (Exception ex)
