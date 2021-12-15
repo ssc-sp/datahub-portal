@@ -408,6 +408,7 @@ namespace Datahub.Portal
 
             services.AddScoped<IMetadataBrokerService, MetadataBrokerService>();
             services.AddScoped<IDatahubAuditingService, DatahubTelemetryAuditingService>();
+            services.AddScoped<IMiscStorageService, MiscStorageService>();
 
             services.AddScoped<DataImportingService>();
             services.AddSingleton<DatahubTools>();
