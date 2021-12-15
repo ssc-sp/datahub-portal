@@ -36,7 +36,7 @@
                         <div class="grid-item">
                             <div class="textcontent large-text">@file.filename</div>
                             <div class="break"></div>
-                            <div class="textcontent small-text">@displayInfo(file)</div>
+                            <div class="textcontent small-text"><GraphUserInformation UserId="@file.ownedby" IsUserNameRequested="true" PostText="@($"{Localizer["created this on"]} {displayDate(file.createdts)}")"></GraphUserInformation></div>
                         </div>
                         <div class="grid-item">
                             <div class="textcontent" style="justify-content: flex-end;">
@@ -138,11 +138,6 @@
 
         isDownloadingFileId = "";
         StateHasChanged();
-    }
-
-    public string displayInfo(FileMetaData file)
-    {
-        return $"{MSGraphService.GetUserName(file.ownedby)} {Localizer["created this on"]} {displayDate(file.createdts)}";
     }
 
     public string displayDate(DateTime date)

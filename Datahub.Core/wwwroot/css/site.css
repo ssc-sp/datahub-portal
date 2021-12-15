@@ -552,6 +552,7 @@ body {
   box-shadow: 0px 1.6px 3.6px rgba(0, 0, 0, 0.132), 0px 0.3px 0.9px rgba(0, 0, 0, 0.108);
   padding-top: 12px;
   padding-left: 12px;
+  padding-right: 12px;
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   background-color: #fff;
   border-color: #edf2f7;
