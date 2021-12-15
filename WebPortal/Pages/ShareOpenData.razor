@@ -37,7 +37,8 @@
             }
             else 
             {
-                @if (_requestingUser != null) {
+                @if (_requestingUser != null) 
+                {
                     <AeTypography Variant="p">@Localizer["Requesting User"]: @_requestingUser.DisplayName</AeTypography>
                 }
             }
@@ -48,6 +49,7 @@
             @if (ShowApprovalForm)
             {
                 <AeCard>
+                    <AeTypography Variant="h3">@GetStepTitle(OpenDataSharingStatus.OpenGovApprovalForm)</AeTypography>
                     <Datahub.Portal.Pages.Forms.ShareWorkflow.ApprovalForm 
                         ApprovalFormId=@_approvalFormId 
                         OnSubmitForm=@UpdateApprovalFormId 
@@ -97,7 +99,7 @@
         {
             <AeCard>
                 <ChildContent>
-                    <AeTypography Variant="h3">@Localizer["OPENDATA-WIZARD.Publish_File"]</AeTypography>
+                    <AeTypography Variant="h3">@GetStepTitle(OpenDataSharingStatus.PendingUpload)</AeTypography>
 
                     @if (!OpenDataFileUploading)
                     {
@@ -150,6 +152,15 @@
             </AeCard>
         }
 
+        @if (ShowCancelPanel)
+        {
+            <AeCard style="margin-top: 1rem;">
+                <Typography Variant="h3">@Localizer["OPENDATA-WIZARD.CancelSharing"]</Typography>
+                <p>@Localizer["OPENDATA-WIZARD.CancelSharingDescription"]</p>
+                <AeButton OnClickEvent=@ShowCancelRequestDialog>@Localizer["BUTTONS.Cancel"]</AeButton>
+            </AeCard>
+        }
+
     </AeFlex>
 
     <div id="stepsDiv" style="width: 50%;">
@@ -167,15 +178,6 @@
         <AeCard>
             <AeTypography Variant="h3">@Localizer["OPENDATA-WIZARD.PublicUrl"]</AeTypography>
             <p><a href=@publicUrl target="_blank">@publicUrl</a></p>
-        </AeCard>
-    }
-
-    @if (ShowCancelPanel && _isOwnRequest)
-    {
-        <AeCard>
-            <Typography Variant="h3">@Localizer["OPENDATA-WIZARD.CancelSharing"]</Typography>
-            <p>@Localizer["OPENDATA-WIZARD.CancelSharingDescription"]</p>
-            <AeButton OnClickEvent=@ShowCancelRequestDialog>@Localizer["BUTTONS.Cancel"]</AeButton>
         </AeCard>
     }
 
@@ -215,7 +217,7 @@
     private bool ShowSignedPdfPanel => _currentStep == OpenDataSharingStatus.SubmitSignedPDF;
     private bool ShowPublicationDatePanel => _currentStep == OpenDataSharingStatus.PendingPublication;
     private bool ShowPublicUrl => _currentStep == OpenDataSharingStatus.AccessOpenData;
-    private bool ShowCancelPanel => _currentStep <= OpenDataSharingStatus.PendingUpload;
+    private bool ShowCancelPanel => _currentStep <= OpenDataSharingStatus.PendingApproval  && _isOwnRequest && !_editSavedMetadata;
     private bool ShowUploadCard => _currentStep == OpenDataSharingStatus.PendingUpload && _isOwnRequest && !_editSavedMetadata;
 
     private bool _isOwnRequest = false;
