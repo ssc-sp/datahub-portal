@@ -14,6 +14,12 @@ namespace Datahub.ProjectForms.Data.PIP
         [AeFormIgnore]
         public int IndicatorAndResult_ID { get; set; }
 
+        [AeFormIgnore]
+        public int Year { get; set; }
+        [AeFormIgnore]
+        [MaxLength(20)]
+        public string IndicatorCode { get; set; }
+
         [AeLabel(row: "1", column: "1", isDropDown: true, placeholder: "Please Select")] 
         [MaxLength(400)] 
         public string Outcome_Level_DESC { get; set; }
