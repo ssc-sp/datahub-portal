@@ -13,6 +13,7 @@
 - Project DB: `dotnet ef migrations add "ProjectUser" --context DatahubProjectDBContext`
 - Option 1: Generate SQL Script `dotnet ef migrations script --context DatahubProjectDBContext`
 - Option 2: Apply Migration Directly `dotnet ef database update --context DatahubProjectDBContext`
+- Option 3: Package Manager: `Add-Migration -Name "PBIWorkspaces" -Context DatahubProjectDBContext -OutputDir Migrations/Core`
 
 1. Remove Migration
 `dotnet ef migrations remove --context DatahubProjectDBContext --force`
