@@ -47,6 +47,8 @@
     [SupplyParameterFromQuery]
     public bool New { get; set; }
 
+    private string? Localize(string? input) => input == null ? null : Localizer[input];
+
     protected override async Task OnInitializedAsync()
     {
         // load projects
@@ -61,10 +63,10 @@
 
         AccessorFunctions = new List<Func<OnboardingApp, string>>
         {
-            new Func<OnboardingApp, string>(p => { return Localizer[p.Client_Sector]; }),
-            new Func<OnboardingApp, string>(p => { return Localizer[p.Client_Branch]; }),
-            new Func<OnboardingApp, string>(p => { return Localizer[p.Client_Division]; }),
-            new Func<OnboardingApp, string>(p => { return p.Client_Contact_Name; }),
+            p => { return Localize(p.Client_Sector); },
+            p => { return Localize(p.Client_Branch); },
+            p => { return Localize(p.Client_Division); },
+            p => { return p.Client_Contact_Name; },
         };
 
         await LoadApps();
