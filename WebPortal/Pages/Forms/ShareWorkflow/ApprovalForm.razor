@@ -1,22 +1,13 @@
-﻿@page "/approvalform"
-
-<div style="margin: 2rem">
-    <AeCard>
-        <Header>
-            <h2>Approval Form</h2>
-        </Header>
-        <ChildContent>
-            <AeModelForm Model="_approvalForm"
-                         T="Data.Forms.ShareWorkflow.ApprovalForm"
-                         OnValidSubmit="HandleValidSubmit"
-                         OnCancel="ClearForm"
-                         OnConfigure="OnConfigure"
-                         CancelLabel="@CancelLabel"
-                         SubmitLabel="@SubmitLabel"
-                         LabelForPropertyFunc="@GetDataLabel"
-                         LabelsOnTop />
-        </ChildContent>
-    </AeCard>        
+﻿<div style="margin-right: 1rem;">
+    <AeModelForm Model="_approvalForm"
+                 T="Data.Forms.ShareWorkflow.ApprovalForm"
+                 OnValidSubmit="HandleValidSubmit"
+                 OnCancel="ClearForm"
+                 OnConfigure="OnConfigure"
+                 CancelLabel="@CancelLabel"
+                 SubmitLabel="@SubmitLabel"
+                 LabelForPropertyFunc="@GetDataLabel"
+                 LabelsOnTop />
 </div>
 
 @code {

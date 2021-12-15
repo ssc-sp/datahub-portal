@@ -10,78 +10,122 @@
 <AeTypography style="margin-left: 2rem;" Variant="h2">@Localizer[$"{LOCALIZATION_PREFIX}.Page_Title"]</AeTypography>
 
 <AeFlex>
-    <AeFlex Vertical style="margin-left: 2rem; width: 48%">
+    <AeFlex Vertical style="margin-left: 2rem; width: 50%">
 
         <AeCard>
-            <AeTypography Variant="h2">@Localizer[$"{LOCALIZATION_PREFIX}.Metadata"]</AeTypography>
+            <AeTypography Variant="h3">@GetStepTitle(PublicUrlSharingStatus.EnterMetadata)</AeTypography>
 
-            @if (!string.IsNullOrEmpty(requestFilename))
+            @if (!string.IsNullOrEmpty(_requestFilename))
             {
-                <div>@Localizer["Filename"]: @requestFilename</div>
+                <AeTypography Variant="p">@Localizer["Filename"]: @_requestFilename</AeTypography>
             }
 
-            @if (ShowMetadataEditor && IsOwnRequest)
+            @if (_isOwnRequest)
             {
-                <ObjectMetadataEditor @ref=@_metadataEditor 
-                                      ObjectId=@FileId 
-                                      SaveButtonLabel=@Localizer[$"{LOCALIZATION_PREFIX}.Save_button"]
-                                      OnSave=@HandleSave />
-            }
-            else if (IsOwnRequest)
-            {
-                <AeButton OnClickEvent=@ManuallyShowMetadataEditor >@Localizer[$"{LOCALIZATION_PREFIX}.Edit_button"]</AeButton>
+                if (ShowMetadataEditor)
+                {
+                    <ObjectMetadataEditor @ref=@_metadataEditor
+                                      ObjectId=@FileId
+                                      SaveButtonLabel=@Localizer[$"{LOCALIZATION_PREFIX}.Save_Metadata_button"]
+                                      ValidateRequired=false
+                                      OnSave=@HandleSaveMetadata />
+                }
+                else
+                {
+                    <AeButton OnClickEvent=@ManuallyShowMetadataEditor>@Localizer[$"{LOCALIZATION_PREFIX}.Edit_button"]</AeButton>    
+                }
             }
             else
             {
-                @if (RequestingUser != null) {
-                    <div>@Localizer[$"{LOCALIZATION_PREFIX}.RequestingUser"]: @RequestingUser.DisplayName</div>
+                @if (_requestingUser != null)
+                {
+                    <div>@Localizer[$"{LOCALIZATION_PREFIX}.RequestingUser"]: @_requestingUser.DisplayName</div>
                 }
             }
-            <div>&nbsp;</div>
-        </AeCard>
-    </AeFlex>
 
-    <div id="stepsDiv">
-        <AeSteps T=@PublicUrlSharingStatus 
-            CurrentStepState=@GetState 
-            StepItems=@steps 
-            StepTitle=@StepTitle 
-            StepMessage=@StepMessage 
-            PassedIcon=@checkIcon ></AeSteps>
-        
-        @if(ShowSubmitApproval && IsOwnRequest)
+        </AeCard>
+
+        @if (ShowSubmitApproval && _isOwnRequest)
         {
             <AeCard>
-                <AeTypography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.SubmitForApproval"]</AeTypography>
+                <AeTypography Variant="h3">@GetStepTitle(PublicUrlSharingStatus.RequestApproval)</AeTypography>
                 <AeFlex>
-                    <AeButton OnClickEvent=@SubmitForApproval Disabled=@savingData>@Localizer["BUTTONS.Submit"]</AeButton>
-                    @if(savingData)
+                    <AeButton OnClickEvent=@SubmitForApproval Disabled=@_savingData>@Localizer["BUTTONS.Submit"]</AeButton>
+                    @if (_savingData)
                     {
-                        <Spinner Small=@true/>
-                    }                
+                        <Spinner Small=@true />
+                    }
                 </AeFlex>
                 <div>&nbsp;</div>
             </AeCard>
         }
 
-        @if(ShowSkipMetadata && IsOwnRequest)
+        @if (ShowPublicationDate)
         {
             <AeCard>
-                <AeTypography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.AcceptMetadata"]</AeTypography>
-                <AeButton OnClickEvent=@AcceptMetadata Disabled=@savingData>@Localizer[$"{LOCALIZATION_PREFIX}.Continue_button"]</AeButton>
-                <div>&nbsp;</div>
-            </AeCard>
-        }
-        
-        @if(ShowPublicationDate)
-        {
-            <AeCard>
-                <AeTypography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.PublicationDate"]</AeTypography>
-                <p>@PublicationDateStr</p>
+                <AeTypography Variant="h3">@GetStepTitle(PublicUrlSharingStatus.PendingPublication)</AeTypography>
+                <p>@_publicationDateStr</p>
             </AeCard>
         }
 
-        @if(ShowPublicUrl)
+        @if (ShowExpiryDatePanel && _isOwnRequest)
+        {
+            <AeCard>
+                <AeTypography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.TempSharingTitle"]</AeTypography>
+                <p>@Localizer[$"{LOCALIZATION_PREFIX}.TempSharingDesc"]</p>
+                <EditForm EditContext=@_editContext>
+                    <div>
+                        <label>
+                            <InputCheckbox id="tempSharingToggle" @bind-Value=@_dateHolder.EnableTempSharing />
+                            @Localizer[$"{LOCALIZATION_PREFIX}.EnableTempSharing"]
+                        </label>
+                    </div>
+                    @if (_dateHolder.EnableTempSharing)
+                    {
+                        <div>
+                            <label for="expiryDateInput">
+                                @Localizer[$"{LOCALIZATION_PREFIX}.ExpirationDate"]
+                            </label>
+                            <InputDate id="expiryDateInput" @bind-Value=@_dateHolder.Date class="ae input" />
+                        </div>
+                        <ValidationMessage For="()=>_dateHolder.Date" />
+                    }
+                </EditForm>
+                <AeButton OnClickEvent=@SaveExpiryDate Disabled=@_savingData>@Localizer[$"{LOCALIZATION_PREFIX}.Save_button"]</AeButton>
+            </AeCard>
+        }
+
+        @if (ShowCancelPanel)
+        {
+            <AeCard style="margin-top: 1rem;">
+                <AeTypography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.CancelSharing"]</AeTypography>
+                <p>@Localizer[$"{LOCALIZATION_PREFIX}.CancelSharingDescription"]</p>
+                <AeButton OnClickEvent=@ShowCancelRequestDialog>@Localizer["BUTTONS.Cancel"]</AeButton>
+            </AeCard>
+        }
+
+        @if (ShowDeletePanel)
+        {
+            <AeCard style="margin-top: 1rem;">
+                <Typography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.DeleteExpired"]</Typography>
+                <p>@Localizer[$"{LOCALIZATION_PREFIX}.DeleteExpiredDescription"]</p>
+                <AeButton OnClickEvent=@ShowDeleteExpiredDialog>@Localizer[$"{LOCALIZATION_PREFIX}.Delete_button"]</AeButton>
+            </AeCard>
+        }
+
+        <div>&nbsp;</div>
+
+    </AeFlex>
+
+    <div id="stepsDiv" style="width: 50%;">
+        <AeSteps T=@PublicUrlSharingStatus
+                 CurrentStepState=@GetState
+                 StepItems=@_steps
+                 StepTitle=@StepTitle
+                 StepMessage=@StepMessage
+                 PassedIcon=@_checkIcon></AeSteps>
+
+        @if (ShowPublicUrl)
         {
             <AeCard>
                 <AeTypography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.PublicUrl"]</AeTypography>
@@ -89,52 +133,8 @@
             </AeCard>
         }
 
-        @if (ShowExpiryDatePanel && IsOwnRequest)
-        {
-            <AeCard>
-                <AeTypography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.TempSharingTitle"]</AeTypography>
-                <p>@Localizer[$"{LOCALIZATION_PREFIX}.TempSharingDesc"]</p>
-                <EditForm EditContext=@editContext >
-                    <div>
-                        <label>
-                            <InputCheckbox id="tempSharingToggle" @bind-Value=@dateHolder.EnableTempSharing />
-                            @Localizer[$"{LOCALIZATION_PREFIX}.EnableTempSharing"]
-                        </label>
-                    </div>
-                    @if (dateHolder.EnableTempSharing)
-                    {
-                        <div>
-                            <label for="expiryDateInput">
-                                @Localizer[$"{LOCALIZATION_PREFIX}.ExpirationDate"]
-                            </label>
-                            <InputDate id="expiryDateInput" @bind-Value=@dateHolder.Date class="ae input"/>
-                        </div>
-                        <ValidationMessage For="()=>dateHolder.Date" />
-                    }
-                </EditForm>
-                <AeButton OnClickEvent=@SaveExpiryDate Disabled=@savingData>@Localizer[$"{LOCALIZATION_PREFIX}.Save_button"]</AeButton>
-            </AeCard>
-        }
-
-        @if (ShowCancelPanel && IsOwnRequest)
-        {
-            <AeCard>
-                <AeTypography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.CancelSharing"]</AeTypography>
-                <p>@Localizer[$"{LOCALIZATION_PREFIX}.CancelSharingDescription"]</p>
-                <AeButton OnClickEvent=@ShowCancelRequestDialog>@Localizer["BUTTONS.Cancel"]</AeButton>
-            </AeCard>
-        }
-
-        @if (ShowDeletePanel && IsOwnRequest)
-        {
-            <AeCard>
-                <Typography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.DeleteExpired"]</Typography>
-                <p>@Localizer[$"{LOCALIZATION_PREFIX}.DeleteExpiredDescription"]</p>
-                <AeButton OnClickEvent=@ShowDeleteExpiredDialog>@Localizer[$"{LOCALIZATION_PREFIX}.Delete_button"]</AeButton>
-            </AeCard>
-        }
-
     </div>
+
 </AeFlex>
 
 <div>&nbsp;</div>
@@ -148,51 +148,41 @@
     [Parameter]
     public string FileId { get; set; }
 
-    private Guid fileIdGuid;
+    private Guid _fileIdGuid;
 
     private ObjectMetadataEditor _metadataEditor;
 
-    private RenderFragment checkIcon = 
-    @<i class="fa fa-check"></i>
-    ;
+    private RenderFragment _checkIcon = @<i class="fa fa-check"></i>;
 
-    private List<PublicUrlSharingStatus> steps = Enum.GetValues<PublicUrlSharingStatus>().ToList();
+    private List<PublicUrlSharingStatus> _steps = Enum.GetValues<PublicUrlSharingStatus>().ToList();
     private PublicUrlSharingStatus currentStep = PublicUrlSharingStatus.EnterMetadata;
 
-    private Dictionary<PublicUrlSharingStatus, (string, string)?> _stepInfo = new Dictionary<PublicUrlSharingStatus, (string, string)?>();
-    private Dictionary<PublicUrlSharingStatus, AeSteps<PublicUrlSharingStatus>.StepState> _stepStates = new Dictionary<PublicUrlSharingStatus, AeSteps<PublicUrlSharingStatus>.StepState>()
-        {
-            { PublicUrlSharingStatus.EnterMetadata, AeSteps<PublicUrlSharingStatus>.StepState.Queued },
-            { PublicUrlSharingStatus.RequestApproval, AeSteps<PublicUrlSharingStatus>.StepState.Queued },
-            { PublicUrlSharingStatus.PendingApproval, AeSteps<PublicUrlSharingStatus>.StepState.Queued },
-            { PublicUrlSharingStatus.PendingPublication, AeSteps<PublicUrlSharingStatus>.StepState.Queued },
-            { PublicUrlSharingStatus.AccessPublicUrl, AeSteps<PublicUrlSharingStatus>.StepState.Queued }
-        };
+    private Dictionary<PublicUrlSharingStatus, (string, string)?> _stepInfo = new();
+    private Dictionary<PublicUrlSharingStatus, AeSteps<PublicUrlSharingStatus>.StepState> _stepStates = new();
 
     private string StepTitle(PublicUrlSharingStatus i) => _stepInfo.GetValueOrDefault(i)?.Item1;
     private string StepMessage(PublicUrlSharingStatus i) => _stepInfo.GetValueOrDefault(i)?.Item2;
     private AeSteps<PublicUrlSharingStatus>.StepState GetState(PublicUrlSharingStatus i) => _stepStates[i];
 
-    private bool savingData = false;
+    private bool _savingData = false;
 
-    private bool ShowSubmitApproval => currentStep == PublicUrlSharingStatus.RequestApproval;
-    private bool ShowPublicationDate => currentStep == PublicUrlSharingStatus.PendingPublication && !string.IsNullOrEmpty(PublicationDateStr);
+    private bool ShowSubmitApproval => currentStep == PublicUrlSharingStatus.RequestApproval && _isOwnRequest && !_editSavedMetadata;
+    private bool ShowPublicationDate => currentStep == PublicUrlSharingStatus.PendingPublication && !string.IsNullOrEmpty(_publicationDateStr) && !_editSavedMetadata;
     private bool ShowPublicUrl => currentStep == PublicUrlSharingStatus.AccessPublicUrl;
-    private bool ShowSkipMetadata => currentStep == PublicUrlSharingStatus.EnterMetadata;
-    private bool ShowMetadataEditor => currentStep == PublicUrlSharingStatus.EnterMetadata || editSavedMetadata;
-    private bool ShowCancelPanel => currentStep <= PublicUrlSharingStatus.PendingApproval;
-    private bool ShowExpiryDatePanel => currentStep <= PublicUrlSharingStatus.PendingApproval;
-    private bool ShowDeletePanel => currentStep == PublicUrlSharingStatus.Expired;
+    private bool ShowMetadataEditor => (currentStep == PublicUrlSharingStatus.EnterMetadata || _editSavedMetadata) && _isOwnRequest;
+    private bool ShowCancelPanel => currentStep <= PublicUrlSharingStatus.PendingApproval && _isOwnRequest;
+    private bool ShowExpiryDatePanel => currentStep <= PublicUrlSharingStatus.PendingApproval && !ShowMetadataEditor;
+    private bool ShowDeletePanel => currentStep == PublicUrlSharingStatus.Expired && _isOwnRequest;
 
-    private bool IsOwnRequest = false;
+    private bool _isOwnRequest = false;
 
-    private bool editSavedMetadata = false;
+    private bool _editSavedMetadata = false;
 
-    private string PublicationDateStr = string.Empty;
+    private string _publicationDateStr = string.Empty;
 
-    private GraphUser RequestingUser;
-    private string requestFilename;
-    private string projectCode;
+    private GraphUser _requestingUser;
+    private string _requestFilename;
+    private string _projectCode;
 
     private string PublicUrl => PublicFileService.GetPublicSharedFileUrl(FileId);
 
@@ -201,73 +191,67 @@
         public DateTime? Date { get; set; }
         public bool EnableTempSharing { get; set; } = false;
     }
-    private ExpirationDateHolder dateHolder = new();
-    private EditContext editContext;
-    private ValidationMessageStore validationMessageStore;
+    private ExpirationDateHolder _dateHolder = new();
+    private EditContext _editContext;
+    private ValidationMessageStore _validationMessageStore;
 
-    private async Task HandleSave()
+    private async Task HandleSaveMetadata()
     {
+        _editSavedMetadata = false;
+
+        await PublicFileService.MarkMetadataComplete(_fileIdGuid);
+
         var uri = NavManager.Uri;
         if (uri.IndexOf('#') >= 0)
         {
             uri = uri.Substring(0, uri.IndexOf('#'));
         }
-
-        await PublicFileService.MarkMetadataComplete(fileIdGuid);
-        savingData = false;
         await NavManager.NavigateTo($"{uri}#stepsDiv", true);
+
         if (currentStep == PublicUrlSharingStatus.EnterMetadata)
         {
             UpdateCurrentStatus(PublicUrlSharingStatus.RequestApproval);
         }
     }
 
-    private async Task AcceptMetadata()
-    {
-        await PublicFileService.MarkMetadataComplete(fileIdGuid);
-        UpdateCurrentStatus(PublicUrlSharingStatus.RequestApproval);
-    }
-
     private async Task SubmitForApproval()
     {
-        savingData = true;
+        _savingData = true;
 
-        var project = await PublicFileService.GetProjectWithUsers(projectCode);
+        var project = await PublicFileService.GetProjectWithUsers(_projectCode);
         var approvers = project.Users.Where(pu => pu.IsDataApprover).Select(pu => pu.User_ID).ToList();
 
         var tasks = new List<Task>()
         {
-            PublicFileService.SubmitPublicUrlShareForApproval(fileIdGuid),
-            EmailNotificationService.SendFileSharingApprovalRequest(RequestingUser.Mail, requestFilename, project.ProjectInfo, approvers),
-            SystemNotificationService.CreateSystemNotificationsWithLink(approvers, 
-                $"/project/{project.ProjectInfo.ProjectCode}/datasharing", "SYSTEM-NOTIFICATION.GoToSharingDashboard", 
-                "SYSTEM-NOTIFICATION.NOTIFICATION-TEXT.PublicUrlShareRequested", RequestingUser.Mail, requestFilename, 
+            PublicFileService.SubmitPublicUrlShareForApproval(_fileIdGuid),
+            EmailNotificationService.SendFileSharingApprovalRequest(_requestingUser.Mail, _requestFilename, project.ProjectInfo, approvers),
+            SystemNotificationService.CreateSystemNotificationsWithLink(approvers,
+                $"/project/{project.ProjectInfo.ProjectCode}/datasharing", "SYSTEM-NOTIFICATION.GoToSharingDashboard",
+                "SYSTEM-NOTIFICATION.NOTIFICATION-TEXT.PublicUrlShareRequested", _requestingUser.Mail, _requestFilename,
                 new BilingualStringArgument(project.ProjectInfo.ProjectNameEn, project.ProjectInfo.ProjectNameFr))
         };
 
         await Task.WhenAll(tasks);
         UpdateCurrentStatus(PublicUrlSharingStatus.PendingApproval);
 
-        savingData = false;
+        _savingData = false;
     }
 
     private async Task SaveExpiryDate()
     {
-        if (editContext.Validate())
+        if (_editContext.Validate())
         {
-            savingData = true;
-            var expirationDate = dateHolder.EnableTempSharing ? dateHolder.Date : null;
-            var t = PublicFileService.SaveTempSharingExpiryDate(fileIdGuid, expirationDate);
-            await t;
-            savingData = false;
+            _savingData = true;
+            var expirationDate = _dateHolder.EnableTempSharing ? _dateHolder.Date : null;
+            await PublicFileService.SaveTempSharingExpiryDate(_fileIdGuid, expirationDate);
+            _savingData = false;
         }
     }
 
     private void UpdateCurrentStatus(PublicUrlSharingStatus step, bool passed = false)
     {
-        editSavedMetadata = false;
         currentStep = step;
-        _stepStates[step] = passed? AeSteps<PublicUrlSharingStatus>.StepState.Passed : AeSteps<PublicUrlSharingStatus>.StepState.Running;
+        _stepStates[step] = passed ? AeSteps<PublicUrlSharingStatus>.StepState.Passed : AeSteps<PublicUrlSharingStatus>.StepState.Running;
 
         foreach (var stepv in Enum.GetValues<PublicUrlSharingStatus>())
         {
@@ -282,9 +266,9 @@
         }
     }
 
-    private async Task ManuallyShowMetadataEditor()
+    private void ManuallyShowMetadataEditor()
     {
-        editSavedMetadata = true;
+        _editSavedMetadata = true;
     }
 
     private async Task ShowCancelRequestDialog()
@@ -300,15 +284,11 @@
     private async Task ShowCancelOrDeleteRequestDialog(string operation)
     {
         var promptText = new List<string>() { Localizer[$"{LOCALIZATION_PREFIX}.{operation}Prompt"] };
-        RenderFragment cancelDialog =  
-    @<UserChoiceModal
-            HeaderText=@Localizer[$"{LOCALIZATION_PREFIX}.{operation}"]
-            ChoiceTextList=@promptText
-            OnDecision="HandleCancel"
-            ConfirmText=@Localizer["COMMON.Yes"]
-            CancelText=@Localizer["COMMON.No"]
-            />
-    ;
+        RenderFragment cancelDialog = @<UserChoiceModal HeaderText=@Localizer[$"{LOCALIZATION_PREFIX}.{operation}"]
+                                                        ChoiceTextList=@promptText
+                                                        OnDecision="HandleCancel"
+                                                        ConfirmText=@Localizer["COMMON.Yes"]
+                                                        CancelText=@Localizer["COMMON.No"] />;
         await UI.ToggleModal(cancelDialog);
     }
 
@@ -317,9 +297,9 @@
     {
         if (isCancelled)
         {
-            savingData = true;
-            await PublicFileService.CancelPublicDataShare(fileIdGuid);
-            savingData = false;
+            _savingData = true;
+            await PublicFileService.CancelPublicDataShare(_fileIdGuid);
+            _savingData = false;
             await NavManager.NavigateTo("/", true);
         }
         await UI.ToggleModal();
@@ -327,45 +307,39 @@
 
     private void HandleValiadationRequested(object sender, ValidationRequestedEventArgs args)
     {
-        validationMessageStore.Clear();
+        _validationMessageStore.Clear();
 
-        if (dateHolder.EnableTempSharing && !dateHolder.Date.HasValue)
+        if (_dateHolder.EnableTempSharing && !_dateHolder.Date.HasValue)
         {
-            validationMessageStore.Add(() => dateHolder.Date, Localizer[$"{VALIDATION_ERROR_PREFIX}.TempWithNoExpiry"]);
+            _validationMessageStore.Add(() => _dateHolder.Date, Localizer[$"{VALIDATION_ERROR_PREFIX}.TempWithNoExpiry"]);
         }
 
-        if (dateHolder.Date.HasValue && dateHolder.Date <= DateTime.UtcNow)
+        if (_dateHolder.Date.HasValue && _dateHolder.Date <= DateTime.UtcNow)
         {
-            validationMessageStore.Add(() => dateHolder.Date, Localizer[$"{VALIDATION_ERROR_PREFIX}.ExpiryDateInPast"]);
+            _validationMessageStore.Add(() => _dateHolder.Date, Localizer[$"{VALIDATION_ERROR_PREFIX}.ExpiryDateInPast"]);
         }
     }
 
     protected override async Task OnInitializedAsync()
     {
         // don't show a step for Expired status
-        steps.Remove(PublicUrlSharingStatus.Expired);
+        _steps.Remove(PublicUrlSharingStatus.Expired);
 
-        editContext = new(dateHolder);
-        editContext.OnValidationRequested += HandleValiadationRequested;
-        validationMessageStore = new(editContext);
+        _editContext = new(_dateHolder);
+        _editContext.OnValidationRequested += HandleValiadationRequested;
+        _validationMessageStore = new(_editContext);
 
-        if (!Guid.TryParse(FileId, out fileIdGuid))
+        if (!Guid.TryParse(FileId, out _fileIdGuid))
         {
             await NavigateHome();
             return;
         }
 
-        var loadTask = PublicFileService.LoadPublicUrlSharedFileInfo(fileIdGuid);
+        var loadTask = PublicFileService.LoadPublicUrlSharedFileInfo(_fileIdGuid);
         var currentUserTask = UserInformationService.GetUserAsync();
 
-        _stepInfo = new();
-        foreach(var step in steps)
-        {
-            var stepName = step.ToString();
-            var prefix = SharedDataFile.PUBLIC_URL_SHARING_STATUS_LOCALIZATION_PREFIX;
-            var keys = ($"{prefix}.{stepName}.Title", $"{prefix}.{stepName}.Description");
-            _stepInfo.Add(step, (Localizer[keys.Item1], Localizer[keys.Item2]));
-        }
+        _stepInfo = _steps.ToDictionary(s => s, s => GetStepPair(s));
+        _stepStates = _steps.ToDictionary(s => s, s => AeSteps<PublicUrlSharingStatus>.StepState.Queued);
 
         var sharedFileInfo = await loadTask;
         if (sharedFileInfo is null)
@@ -374,17 +348,17 @@
             return;
         }
 
-        requestFilename = sharedFileInfo.Filename_TXT;
-        projectCode = sharedFileInfo.ProjectCode_CD;
+        _requestFilename = sharedFileInfo.Filename_TXT;
+        _projectCode = sharedFileInfo.ProjectCode_CD;
 
-        RequestingUser = GraphService.GetUser(sharedFileInfo.RequestingUser_ID);
+        _requestingUser = GraphService.GetUser(sharedFileInfo.RequestingUser_ID);
         var currentUser = await currentUserTask;
-        IsOwnRequest = currentUser.Id == RequestingUser.Id;
+        _isOwnRequest = currentUser.Id == _requestingUser.Id;
 
-        PublicationDateStr = sharedFileInfo.PublicationDate_DT?.ToShortDateString();
+        _publicationDateStr = sharedFileInfo.PublicationDate_DT?.ToShortDateString();
 
-        dateHolder.Date = sharedFileInfo.ExpirationDate_DT;
-        dateHolder.EnableTempSharing = dateHolder.Date.HasValue;
+        _dateHolder.Date = sharedFileInfo.ExpirationDate_DT;
+        _dateHolder.EnableTempSharing = _dateHolder.Date.HasValue;
 
         var status = sharedFileInfo.GetPublicUrlSharingStatus();
         UpdateCurrentStatus(status, status == PublicUrlSharingStatus.AccessPublicUrl);
@@ -392,11 +366,21 @@
 
     public void Dispose()
     {
-        editContext.OnValidationRequested -= HandleValiadationRequested;
+        _editContext.OnValidationRequested -= HandleValiadationRequested;
     }
 
-    private async Task NavigateHome() 
+    private async Task NavigateHome()
     {
         await NavManager.NavigateTo("/", true);
     }
+
+    private (string, string)? GetStepPair(PublicUrlSharingStatus status)
+    {
+        var prefix = SharedDataFile.PUBLIC_URL_SHARING_STATUS_LOCALIZATION_PREFIX;
+        var title = $"{prefix}.{status}.Title";
+        var desc = $"{prefix}.{status}.Description";
+        return (Localizer[title], Localizer[desc]);
+    }
+
+    private string GetStepTitle(PublicUrlSharingStatus status) => GetStepPair(status).Value.Item1;
 }
