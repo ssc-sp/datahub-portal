@@ -40,6 +40,10 @@
                     <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.IntroPara1"]</AeTypography>
                     <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.IntroPara2"]</AeTypography>
                     <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.IntroPara3"]</AeTypography>
+                    <label>
+                        <input type="checkbox" @bind-value=@DisclaimerAcknowledged/>
+                        @Localizer[$"{LOCALIZATION_PREFIX}.EstimateDisclaimer"]
+                    </label>
                 
                     <AeTypography Variant="h5">@Localizer[$"{LOCALIZATION_PREFIX}.ImpactHeading"]</AeTypography>
                     <ol>
@@ -345,9 +349,10 @@
     private EstimatorResult MonthlyCost { get; set; } = new();
     private List<EstimatorResultLine> StorageCostsByMonth = new();
 
+    private bool DisclaimerAcknowledged { get; set; } = false;
     private bool IsCalculating { get; set; } = false;
     private bool PriceListsReady { get; set; } = false;
-    private bool CanCalculate => IsCurrentPriceKeyValid && !IsCalculating && AverageFileSizeMB > 0;
+    private bool CanCalculate => DisclaimerAcknowledged && IsCurrentPriceKeyValid && !IsCalculating && AverageFileSizeMB > 0;
     private bool NeedsRecalculation { get; set; } = true;
     private bool IsSending { get; set; } = false;
 
