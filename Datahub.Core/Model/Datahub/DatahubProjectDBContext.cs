@@ -84,7 +84,10 @@ namespace Datahub.Core.EFCore
                 });
             var initialSetup = configuration.GetSection("InitialSetup");
             if (initialSetup?.GetValue<string>("AdminGUID") != null)
-                context.Project_Users.Add(new Datahub_Project_User() { User_ID = initialSetup.GetValue<string>("AdminGUID"), IsAdmin = true, ProjectUser_ID = 1, Project = p1 });
+            {
+                var user = context.Project_Users.Add(new Datahub_Project_User() { User_ID = initialSetup.GetValue<string>("AdminGUID"), IsAdmin = true, ProjectUser_ID = 1, Project = p1 });
+                //var permissions = context.Project_Users_Requests.Add(new Datahub_)
+            }
 
         }
 
