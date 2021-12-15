@@ -10,7 +10,7 @@ namespace Datahub.Core.EFCore
 
         public Datahub_Project Project { get; set; }
 
-        public Guid Workspace { get; set; }
+        public Project_PBI_Workspace Workspace { get; set; }
 
         public string ReportName { get; set; }
 

@@ -62,15 +62,32 @@ namespace Datahub.Core.Services
         public async Task<string> GetUserEmailDomain()
         {
             await CheckUser();
-            MailAddress email = new MailAddress(CurrentUser.Mail);
-            return email.Host.ToLower();
+            try
+            {
+                MailAddress email = new MailAddress(CurrentUser.Mail);
+                return email.Host.ToLower();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Cannot parse email from {CurrentUser?.Mail}");
+                return "?";
+            }
         }
 
         public async Task<string> GetUserEmailPrefix()
         {
             await CheckUser();
-            MailAddress email = new MailAddress(CurrentUser.Mail);
-            return email.User.ToLower();
+            try
+            {
+                MailAddress email = new MailAddress(CurrentUser.Mail);
+                return email.User.ToLower();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Cannot parse email from {CurrentUser?.Mail}");
+                return "?";
+            }
+
         }
 
         public async Task<string> GetUserRootFolder()
