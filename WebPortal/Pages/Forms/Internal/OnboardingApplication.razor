@@ -47,6 +47,8 @@
     [SupplyParameterFromQuery]
     public bool New { get; set; }
 
+    private string? Localize(string? input) => input == null ? null : Localizer[input];
+
     protected override async Task OnInitializedAsync()
     {
         // load projects

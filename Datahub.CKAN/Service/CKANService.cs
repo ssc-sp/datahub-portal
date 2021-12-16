@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
 using Datahub.CKAN.Package;
 using Datahub.Metadata.DTO;
 using System.Net.Http;
@@ -8,6 +7,7 @@ using System.Threading.Tasks;
 using System.IO;
 using System.Net.Http.Headers;
 using System.Collections.Generic;
+using System.Text.Json;
 
 namespace Datahub.CKAN.Service
 {
@@ -47,7 +47,7 @@ namespace Datahub.CKAN.Service
             var packageData = (new PackageGenerator()).GeneratePackage(fieldValues, url);
 
             // generate json from package
-            var jsonData = JsonConvert.SerializeObject(packageData);
+            var jsonData = JsonSerializer.Serialize(packageData);
 
             var content = new StringContent(jsonData, Encoding.UTF8, "application/json");
 
@@ -85,7 +85,7 @@ namespace Datahub.CKAN.Service
                 //response.EnsureSuccessStatusCode();
 
                 var jsonResponse = await response.Content.ReadAsStringAsync();
-                var ckanResult = JsonConvert.DeserializeObject<CKANResult>(jsonResponse);
+                var ckanResult = JsonSerializer.Deserialize<CKANResult>(jsonResponse);
 
                 var errorMessage = ckanResult.Success ? string.Empty : ckanResult.Error?.__type;
                 return new CKANApiResult(ckanResult.Success, errorMessage);
