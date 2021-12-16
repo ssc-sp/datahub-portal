@@ -11,6 +11,5 @@ namespace Datahub.Core.Services
     {
         Task<Dictionary<string, EstimatorPriceList>> GetAzureStoragePriceLists();
         static string GenerateAzurePriceListKey(AccessTierType accessTierType, DataRedundancyType dataRedundancy) => $"{accessTierType}.{dataRedundancy}";
-        Task TestApiResponse();
     }
 }

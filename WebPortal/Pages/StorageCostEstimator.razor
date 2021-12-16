@@ -24,6 +24,12 @@
     .faded {
         opacity: 0.5;
     }
+    .float-right {
+        float: right;
+    }
+    .number-input {
+        width: 4rem;
+    }
 </style>
 
 
@@ -94,32 +100,32 @@
                     <div class="clear-both">
                         <label>
                             @Localizer[$"{LOCALIZATION_PREFIX}.InitDataLabel"]
-                            <input type="number" style="float:right" @bind-value=@InitialDataGB />
+                            <input type="number" class="float-right number-input" @bind-value=@InitialDataGB />
                         </label>
                     </div>
                     <div class="clear-both">
                         <label>
                             @Localizer[$"{LOCALIZATION_PREFIX}.AverageSizeLabel"]
-                            <input type="number" style="float:right" @bind-value=@AverageFileSizeMB />
+                            <input type="number" class="float-right number-input" @bind-value=@AverageFileSizeMB />
                         </label>
                     </div>
                     <div class="clear-both">
                         <label>
                             @Localizer[$"{LOCALIZATION_PREFIX}.ExpGrowthLabel"]
-                            <input type="number" style="float:right" @bind-value=@ExpectedMonthlyGrowth />
+                            <input type="number" class="float-right number-input" @bind-value=@ExpectedMonthlyGrowth />
                         </label>
                     </div>
                     <div class="clear-both">
                         <label>
                             @Localizer[$"{LOCALIZATION_PREFIX}.ExpReadLabel"]
-                            <input type="number" style="float:right" @bind-value=@ExpectedMonthlyRead />
+                            <input type="number" class="float-right number-input" @bind-value=@ExpectedMonthlyRead />
                         </label>
                     </div>
 
                     <div class="clear-both">
                         <label>
                             @Localizer[$"{LOCALIZATION_PREFIX}.DataTierLabel"]
-                            <select style="float:right" @bind=@CurrentAccessTierType>
+                            <select class="float-right" @bind=@CurrentAccessTierType>
                                 <option value=@AccessTierType.Hot>@Localizer[$"{LOCALIZATION_PREFIX}.DataTierHot"]</option>
                                 <option value=@AccessTierType.Cool>@Localizer[$"{LOCALIZATION_PREFIX}.DataTierCool"]</option>
                                 <option value=@AccessTierType.Archive>@Localizer[$"{LOCALIZATION_PREFIX}.DataTierArchive"]</option>
@@ -130,7 +136,7 @@
                     <div class="clear-both">
                         <label>
                             @Localizer[$"{LOCALIZATION_PREFIX}.DataRedundancyLabel"]
-                            <select style="float:right" @bind=@CurrentDataRedundancyType>
+                            <select class="float-right" @bind=@CurrentDataRedundancyType>
                                 <option value=@DataRedundancyType.LRS>@Localizer[$"{LOCALIZATION_PREFIX}.DataRedLRS"]</option>
                                 <option value=@DataRedundancyType.ZRS>@Localizer[$"{LOCALIZATION_PREFIX}.DataRedZRS"]</option>
                                 <option value=@DataRedundancyType.GRS>@Localizer[$"{LOCALIZATION_PREFIX}.DataRedGRS"]</option>
@@ -502,11 +508,6 @@
         await emailService.SendStorageCostEstimate(user, parameters);
 
         IsSending = false;
-    }
-
-    private async Task TestApi()
-    {
-        await azurePriceService.TestApiResponse();
     }
 
     protected override async Task OnInitializedAsync()

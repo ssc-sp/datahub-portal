@@ -377,7 +377,7 @@ namespace Datahub.Portal
 
                 services.AddSingleton<ICognitiveSearchService, CognitiveSearchService>();
                 
-                services.AddSingleton<IAzurePriceListService, AzurePriceListService>();
+                services.AddScoped<IAzurePriceListService, AzurePriceListService>();
 
                 services.AddScoped<PowerBiServiceApi>();
                 services.AddScoped<PowerBiSyncService>();
@@ -405,7 +405,7 @@ namespace Datahub.Portal
                 services.AddScoped<IDataRetrievalService, OfflineDataRetrievalService>();
                 services.AddScoped<IDataRemovalService, OfflineDataRemovalService>();
 
-                services.AddSingleton<IAzurePriceListService, OfflineAzurePriceListService>();
+                services.AddScoped<IAzurePriceListService, OfflineAzurePriceListService>();
 
                 services.AddSingleton<ICognitiveSearchService, OfflineCognitiveSearchService>();
             }
