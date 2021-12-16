@@ -13,31 +13,38 @@
         </div>
     }
 
-    <ul class="ae" style="margin: 0; padding: 0; list-style-type: none; list-style-image: none;">
-        @foreach (var keyword in _keywordList)
-        {
-            <li style="float: left; margin: 5px 5px 0px 0px; padding: 4px 8px 4px 4px; border-width: 1px; border: 1px solid grey; border-radius: 5px; ">
-                @if (!Preview)
-                {
-                    <a style="text-decoration: none; cursor: pointer;"
-                       @onclick="() => DeleteKeyword(keyword, false)"
-                       @onclick:preventDefault>&nbsp;x&nbsp;</a>
-                }
-                <span><b>@keyword</b></span>
-            </li>
-        }
-        @if (!Preview)
-        {
-            foreach (var word in _suggestions)
+    <AeFlex Vertical="true">
+        <ul class="ae" style="margin: 0; padding: 0; list-style-type: none; list-style-image: none;">
+            @foreach (var keyword in _keywordList)
             {
-                <li style="float: left; margin: 5px 5px 0px 0px; padding: 4px 8px 4px 4px; border-width: 1px; border: 1px dotted grey; border-radius: 5px; background-color: #f2f2f2;">
-                    <a style="text-decoration: none; cursor: pointer;"
-                       @onclick="() => PickKeyword(word, false)"
-                       @onclick:preventDefault>&nbsp;<b>@word</b>&nbsp;</a>
+                <li style="float: left; margin: 5px 5px 0px 0px; padding: 4px 8px 4px 4px; border-width: 1px; border: 1px solid grey; border-radius: 5px; ">
+                    @if (!Preview)
+                    {
+                        <a style="text-decoration: none; cursor: pointer;"
+                           @onclick="() => DeleteKeyword(keyword, false)"
+                           @onclick:preventDefault>&nbsp;x&nbsp;</a>
+                    }
+                    <span><b>@keyword</b></span>
                 </li>
             }
+        </ul>
+
+        @if (!Preview)
+        {
+            <ul class="ae" style="margin: 0; padding: 0; list-style-type: none; list-style-image: none;">
+                @foreach (var word in _suggestions)
+                {
+                    <li style="float: left; margin: 5px 5px 0px 0px; padding: 4px 8px 4px 4px; border-width: 1px; border: 1px dotted grey; border-radius: 5px; background-color: #f2f2f2;">
+                        <a style="text-decoration: none; cursor: pointer;"
+                           @onclick="() => PickKeyword(word, false)"
+                           @onclick:preventDefault 
+                           title=@GetKeywordHint(word)>&nbsp;<span>@word</span>&nbsp;</a>
+                    </li>
+                }
+            </ul>
         }
-    </ul>
+    </AeFlex>
+
 </div>
 
 @code {
@@ -241,8 +248,10 @@
         FieldValue.Value_TXT = JoinKeywords(_keywordList);
         OnFieldChanged.InvokeAsync(FieldValue);
     }
-    
+
     private string SelectLanguageKeyword(SubjectKeyword kw) => English ? kw.English : kw.French;
 
     private string SelectAlternateKeyword(SubjectKeyword kw) => !English ? kw.English : kw.French;
+
+    private string GetKeywordHint(string keyword) => $"{Localizer["METADATA-PAGE.KeywordHint"]} '{keyword}'";
 }

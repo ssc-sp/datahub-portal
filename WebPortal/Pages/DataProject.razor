@@ -113,14 +113,14 @@
                             }
                             else
                             {
-                                @if (_serviceRequests.Any(r => r.ServiceType == "databricks" && r.Is_Completed == null))
+                                @if (_serviceRequests.Any(r => r.ServiceType == RequestManagementService.DATABRICKS && r.Is_Completed == null))
                                 {
                                     <AeTypography class="warning">@DataLocalizer["Service Request is being reviewed"]</AeTypography>
                                 }
                                 else
                                 {
                                     @* <AeTypography class="warning">Service not available</AeTypography> *@
-                                    <AeButton @onclick="@(async () => await RequestServiceAccess("databricks"))">@DataLocalizer["Request Service Creation"]</AeButton>
+                                    <AeButton @onclick="@(async () => await RequestServiceAccess(RequestManagementService.POWERBI))">@DataLocalizer["Request Service Creation"]</AeButton>
                                 }
                             }
                         }
@@ -162,14 +162,14 @@
                         }
                         else
                         {
-                            @if (_serviceRequests.Any(r => r.ServiceType == "powerbi" && r.Is_Completed == null))
+                            @if (_serviceRequests.Any(r => r.ServiceType == RequestManagementService.POWERBI && r.Is_Completed == null))
                             {
                                 <AeTypography class="warning">@DataLocalizer["Service Request is being reviewed"]</AeTypography>
                             }
                             else
                             {
                                 @*<AeTypography class="warning">Service not available</AeTypography>*@
-                                <AeButton @onclick="@(async () => await RequestServiceAccess("powerbi"))">@DataLocalizer["Request Service Creation"]</AeButton>
+                                <AeButton @onclick="@(async () => await RequestServiceAccess(RequestManagementService.POWERBI))">@DataLocalizer["Request Service Creation"]</AeButton>
                             }
                         }
                     }
@@ -236,7 +236,7 @@
                 <ChildContent>
                     <AeFlex Vertical>
 
-                        @if (_serviceRequests.Any(r => r.ServiceType == "storage" && r.Is_Completed != null))
+                        @if (_serviceRequests.Any(r => r.ServiceType == RequestManagementService.STORAGE && r.Is_Completed != null))
                         {
                             <DHLink Variant="h3" DataProject="@projectAcronym" LinkType="DatahubLinkType.Storage">@DataLocalizer["Storage Explorer"]</DHLink>
                         }
@@ -333,7 +333,11 @@
                                     <AeButton OnClickEvent=@ShowDatabaseInformationPopupWithToken>@Localizer["PROJECT-PAGE.DATABASE-CARD.GetToken_button"]</AeButton>
                                 </div>
                             }
-                    </Footer>
+                            else
+                            {
+                            <AeButton @onclick="@(async () => await RequestServiceAccess("psql"))">@DataLocalizer["Request Service Creation"]</AeButton>
+                            }
+                        </Footer>
                 </AeCard>
             }
             
@@ -372,7 +376,7 @@
                     <Footer>                           
                         <NavLink href="@($"/edit-project/{projectAcronym}")"><AeButton>@DataLocalizer["Edit Project"]</AeButton></NavLink>
                         <NavLink href="@($"/tracker/{projectAcronym}")"><AeButton>@DataLocalizer["Project Tracker"]</AeButton></NavLink>
-                        <NavLink href="@($"/admin/powerbi/{projectAcronym}")"><AeButton>@DataLocalizer["Manage Links"]</AeButton></NavLink>
+                        <NavLink href="@($"/admin/powerbi/{projectAcronym}")"><AeButton>@DataLocalizer["Power BI Links"]</AeButton></NavLink>
                         <NavLink href="@($"/admin/onboardusers/{projectAcronym}")"><AeButton>@DataLocalizer["Onboard Users"]</AeButton></NavLink>
                     </Footer>
 
@@ -627,7 +631,7 @@
             User_Name = _user.UserPrincipalName
         };
 
-        if (serviceType == "sql" || serviceType == "storage")
+        if (serviceType == "sql" || serviceType == "storage"  || serviceType == "psql")
         {    
             CreateProjectResource(serviceType);
         }
@@ -646,7 +650,23 @@
 
     private void CreateProjectResource(string serviceType)
     {
-        var attributes = serviceType == "sql" ? "\"type\":\"sql\"" : "\"type\":\"gen2\"";
+        string attributes = serviceType == "sql" ? "\"type\":\"sql\"" : "\"type\":\"gen2\"";
+
+        switch (serviceType)
+        { 
+            case "sql":
+                attributes = "\"type\":\"sql\"";
+                break;
+            case "psql":
+                attributes = "\"type\":\"psql\"";
+                break;
+            case "storage":
+                attributes = "\"type\":\"gen2\"";
+                break;
+            default:
+                attributes = $"\"type\":\"{serviceType}\"";
+                break;
+        }
         var resource = new Project_Resources
         {
             ResourceType = serviceType,
