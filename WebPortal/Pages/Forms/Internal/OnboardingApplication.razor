@@ -61,15 +61,13 @@
         _divisions = Context.Organization_Levels.Where(l => l.Org_Level == "5").ToList();
         _isFrench = CultureInfo.CurrentCulture.Name.StartsWith("fr", StringComparison.InvariantCulture);
 
-        if (New)
-            await CreateNewApplication();
-
+       
         AccessorFunctions = new List<Func<OnboardingApp, string>>
         {
-            new Func<OnboardingApp, string>(p => { return Localizer[p.Client_Sector]; }),
-            new Func<OnboardingApp, string>(p => { return Localizer[p.Client_Branch ?? string.Empty]; }),
-            new Func<OnboardingApp, string>(p => { return Localizer[p.Client_Division ?? string.Empty]; }),
-            new Func<OnboardingApp, string>(p => { return p.Client_Contact_Name; }),
+            p => { return Localizer[p.Client_Sector]; },
+            p => { return Localizer[p.Client_Branch ?? string.Empty]; },
+            p => { return Localizer[p.Client_Division ?? string.Empty]; },
+            p => { return p.Client_Contact_Name; },
         };
 
         await LoadApps();
@@ -82,6 +80,9 @@
         _formMetadata.IsSubmitEnabled = true;
         _formMetadata.MarkDownContent = new List<string>();
         _formMetadata.MarkDownContentFooter = new List<string>();
+        
+        if (New)
+            await CreateNewApplication();
 
         _isLoaded = true;
         StateHasChanged();
