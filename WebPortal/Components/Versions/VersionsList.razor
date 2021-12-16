@@ -11,7 +11,7 @@
                 <b>@Localizer["VERSION-LIST-PAGE.Version", version.index]&nbsp;</b> @version.index == Versions.Count ? Localizer["VERSION-LIST-PAGE.Current"] : string.Empty
             </div>
             <div class="grid-item">
-                @GetStatus(version)
+                <a>not in use</a>
             </div>
             <div class="grid-item">
                 @version.metadata.uploadeddate.ToString("f", CultureInfo.CreateSpecificCulture("en-CA"))
@@ -49,9 +49,9 @@
         return SelectedItem.InvokeAsync(versionid);
     }
 
-    private string GetStatus(Datahub.Core.Data.Version version)
+    private async Task<string> GetStatus(Datahub.Core.Data.Version version)
     {
-        string createdUser = MSGraphService.GetUserName(version.metadata.createdby); 
+        string createdUser = await MSGraphService.GetUserName(version.metadata.createdby, CancellationToken.None); 
         if (string.IsNullOrWhiteSpace(createdUser))
         {
             createdUser = Localizer["VERSION-LIST-PAGE.Unknown"];

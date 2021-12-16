@@ -12,6 +12,7 @@ using Datahub.Core.Data;
 using Datahub.Core.Services;
 using Xunit;
 using Xunit.Abstractions;
+using System.Threading;
 
 namespace Datahub.Tests
 {
@@ -52,10 +53,10 @@ namespace Datahub.Tests
             var fakeUser2 = GenerateTestUser(USER_2_ID, USER_2_NAME, USER_2_ADDR);
 
             _graphServiceMock = new Mock<IMSGraphService>();
-            _graphServiceMock.Setup(g => g.GetUser(USER_1_ID)).Returns(fakeUser1);
-            _graphServiceMock.Setup(g => g.GetUser(USER_2_ID)).Returns(fakeUser2);
-            _graphServiceMock.Setup(g => g.GetUserIdFromEmail(USER_1_ADDR)).Returns(USER_1_ID);
-            _graphServiceMock.Setup(g => g.GetUserIdFromEmail(USER_2_ADDR)).Returns(USER_2_ID);
+            _graphServiceMock.Setup(g => g.GetUserAsync(USER_1_ID, CancellationToken.None).Result).Returns(fakeUser1);
+            _graphServiceMock.Setup(g => g.GetUserAsync(USER_2_ID, CancellationToken.None).Result).Returns(fakeUser2);
+            _graphServiceMock.Setup(g => g.GetUserIdFromEmailAsync(USER_1_ADDR, CancellationToken.None).Result).Returns(USER_1_ID);
+            _graphServiceMock.Setup(g => g.GetUserIdFromEmailAsync(USER_2_ADDR, CancellationToken.None).Result).Returns(USER_2_ID);
 
             var testProject = new DatahubProjectInfo("PIP", "PIP (FR)","PIP");
 
@@ -105,7 +106,8 @@ I.SetValue(foo, 8675309);
                     _localizerMock.Object, 
                     _config, 
                     _output.BuildLoggerFor<EmailNotificationService>(),
-                    _graphServiceMock.Object);
+                    _graphServiceMock.Object,
+                    null); //XXX: To be proper, this should be an actual object (ServiceAuthManager) but making a mock/dummy version will require updating a lot of code in the app
             }
         }
 
@@ -215,10 +217,10 @@ I.SetValue(foo, 8675309);
         }
 
         [Fact]
-        public void TestLookupOneRecipientById()
+        public async void TestLookupOneRecipientById()
         {
             var recipients = new List<(string address, string name)>() { (EmailNotificationTestFixture.USER_1_ID, null) };
-            var result = _fixture.EmailNotificationService.TestUsernameEmailConversion(recipients);
+            var result = await _fixture.EmailNotificationService.TestUsernameEmailConversion(recipients);
 
             Assert.Single(result);
             
@@ -228,10 +230,10 @@ I.SetValue(foo, 8675309);
         }
 
         [Fact]
-        public void TestLookupOneRecipientByEmail()
+        public async void TestLookupOneRecipientByEmail()
         {
             var recipients = new List<(string address, string name)>() { (EmailNotificationTestFixture.USER_1_ADDR, null) };
-            var result = _fixture.EmailNotificationService.TestUsernameEmailConversion(recipients);
+            var result = await _fixture.EmailNotificationService.TestUsernameEmailConversion(recipients);
 
             Assert.Single(result);
 
@@ -241,11 +243,11 @@ I.SetValue(foo, 8675309);
         }
 
         [Fact]
-        public void TestMakeRecipientUsingAddressAndName()
+        public async void TestMakeRecipientUsingAddressAndName()
         {
             var fakeName = "Hank Hill";
             var recipients = new List<(string address, string name)>() { (EmailNotificationTestFixture.USER_1_ADDR, fakeName) };
-            var result = _fixture.EmailNotificationService.TestUsernameEmailConversion(recipients);
+            var result = await _fixture.EmailNotificationService.TestUsernameEmailConversion(recipients);
 
             Assert.Single(result);
 

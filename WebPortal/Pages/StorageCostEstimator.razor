@@ -1,0 +1,523 @@
+﻿@page "/tools/storagecost"
+@using Datahub.Core.Data.StorageCostEstimator
+@using Datahub.Core.Templates
+@inject IEmailNotificationService emailService
+@inject IUserInformationService userService
+
+<style>
+    .ae.card .ae.card-content {
+        padding-right: 1.25rem;
+    }
+    .clear-both {
+        clear: both;
+    }
+    .widetable {
+        min-width: 42rem;
+    }
+    .numbercol {
+        text-align: right;
+    }
+    .totalrow td {
+        font-weight: bold;
+    }
+    .faded {
+        opacity: 0.5;
+    }
+</style>
+
+
+<div style="padding: 2rem;">
+
+    <AeFlex Vertical>
+        <AeTypography Variant="h1">@Localizer[$"{LOCALIZATION_PREFIX}.Title"]</AeTypography>
+
+        <AeFlex>
+            <AeCard class="facard1 doublewide">
+                <Header>
+                    <AeTypography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.IntroTitle"]</AeTypography>
+                </Header>
+                <ChildContent>
+                    <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.IntroPara1"]</AeTypography>
+                    <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.IntroPara2"]</AeTypography>
+                    <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.IntroPara3"]</AeTypography>
+                
+                    <AeTypography Variant="h5">@Localizer[$"{LOCALIZATION_PREFIX}.ImpactHeading"]</AeTypography>
+                    <ol>
+                        @for(var i = 1; i <= 7; i++)
+                        {
+                            <li>@Localizer[$"{LOCALIZATION_PREFIX}.ImpactFactor{i}"]</li>
+                        }
+                    </ol>
+                </ChildContent>
+            </AeCard>
+
+            <AeCard class="facard1">
+                <Header>
+                    <AeTypography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.ParametersTitle"]</AeTypography>
+                </Header>
+                <ChildContent>
+                    <div class="clear-both">
+                        <label>
+                            @Localizer[$"{LOCALIZATION_PREFIX}.InitDataLabel"]
+                            <input type="number" style="float:right" @bind-value=@InitialDataGB />
+                        </label>
+                    </div>
+                    <div class="clear-both">
+                        <label>
+                            @Localizer[$"{LOCALIZATION_PREFIX}.AverageSizeLabel"]
+                            <input type="number" style="float:right" @bind-value=@AverageFileSizeMB />
+                        </label>
+                    </div>
+                    <div class="clear-both">
+                        <label>
+                            @Localizer[$"{LOCALIZATION_PREFIX}.ExpGrowthLabel"]
+                            <input type="number" style="float:right" @bind-value=@ExpectedMonthlyGrowth />
+                        </label>
+                    </div>
+                    <div class="clear-both">
+                        <label>
+                            @Localizer[$"{LOCALIZATION_PREFIX}.ExpReadLabel"]
+                            <input type="number" style="float:right" @bind-value=@ExpectedMonthlyRead />
+                        </label>
+                    </div>
+
+                    <div class="clear-both">
+                        <label>
+                            @Localizer[$"{LOCALIZATION_PREFIX}.DataTierLabel"]
+                            <select style="float:right" @bind=@CurrentAccessTierType>
+                                <option value=@AccessTierType.Hot>@Localizer[$"{LOCALIZATION_PREFIX}.DataTierHot"]</option>
+                                <option value=@AccessTierType.Cool>@Localizer[$"{LOCALIZATION_PREFIX}.DataTierCool"]</option>
+                                <option value=@AccessTierType.Archive>@Localizer[$"{LOCALIZATION_PREFIX}.DataTierArchive"]</option>
+                            </select>
+                        </label>
+                    </div>
+
+                    <div class="clear-both">
+                        <label>
+                            @Localizer[$"{LOCALIZATION_PREFIX}.DataRedundancyLabel"]
+                            <select style="float:right" @bind=@CurrentDataRedundancyType>
+                                <option value=@DataRedundancyType.LRS>@Localizer[$"{LOCALIZATION_PREFIX}.DataRedLRS"]</option>
+                                <option value=@DataRedundancyType.ZRS>@Localizer[$"{LOCALIZATION_PREFIX}.DataRedZRS"]</option>
+                                <option value=@DataRedundancyType.GRS>@Localizer[$"{LOCALIZATION_PREFIX}.DataRedGRS"]</option>
+                            </select>
+                        </label>
+                    </div>
+
+                    <div>
+                        <AeButton OnClickEvent=@CalculateResults Disabled=@CalcButtonDisabled>
+                            @if(IsCalculating)
+                            {
+                                <Spinner Small/>
+                            }
+                            else
+                            {
+                                @Localizer[$"{LOCALIZATION_PREFIX}.CalculateButton"]
+                            }
+                        </AeButton>
+                        <AeButton OnClickEvent=@SendEmail Disabled=@SendButtonDisabled>
+                            @if (IsSending)
+                            {
+                                <Spinner Small/>
+                            }
+                            else
+                            {
+                                @Localizer[$"{LOCALIZATION_PREFIX}.SendButton"]
+                            }
+                        </AeButton>
+                    </div>
+                </ChildContent>
+            </AeCard>
+        </AeFlex>
+
+
+        <AeFlex>
+
+            <AeFlex Vertical>
+
+                
+                @foreach(var whichEstimate in new List<(string Title, EstimatorResult CostEstimate)>() 
+                {
+                    (Localizer[$"{LOCALIZATION_PREFIX}.InitialCostSection"], InitialCost), 
+                    (Localizer[$"{LOCALIZATION_PREFIX}.MonthlyCostSection"], MonthlyCost)
+                })
+                {
+                    <div class=@ResultsCSSClass>
+
+                        <AeCard class="facard1">
+                            <Header>
+                                <AeTypography Variant="h3">@whichEstimate.Title</AeTypography>
+                            </Header>
+                            <ChildContent>
+                                @{
+                                    EstimatorResult costEstimate = whichEstimate.CostEstimate;
+                                    @if(costEstimate.HasValues)
+                                    {
+                                        <table>
+                                            <thead>
+                                                <tr>
+                                                    <th>@Localizer[$"{LOCALIZATION_PREFIX}.OperationLabel"]</th>
+                                                    <th>@Localizer[$"{LOCALIZATION_PREFIX}.NumOperationsLabel"]</th>
+                                                    <th>@Localizer[$"{LOCALIZATION_PREFIX}.CostLabel"]</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach(var line in new List<(string Label, EstimatorResultLine Estimate)>()
+                                                {
+                                                    (Localizer[$"{LOCALIZATION_PREFIX}.WriteOperations"], costEstimate.WriteOperations),
+                                                    (Localizer[$"{LOCALIZATION_PREFIX}.ListCreateOperations"], costEstimate.ListCreateOperations),
+                                                    (Localizer[$"{LOCALIZATION_PREFIX}.ReadOperations"], costEstimate.ReadOperations),
+                                                    (Localizer[$"{LOCALIZATION_PREFIX}.OtherOperations"], costEstimate.OtherOperations),
+                                                    (Localizer[$"{LOCALIZATION_PREFIX}.DataRetrieval"], costEstimate.DataRetrieval),
+                                                    (Localizer[$"{LOCALIZATION_PREFIX}.DataWrite"], costEstimate.DataWrite),
+                                                    (Localizer[$"{LOCALIZATION_PREFIX}.GeoReplication"], costEstimate.GeoReplication)
+                                                })
+                                                {
+                                                    @if(line.Estimate != null)
+                                                    {
+                                                        <tr>
+                                                            <td>@line.Label</td>
+                                                            <td class="numbercol">@line.Estimate.NumberOfOperations</td>
+                                                            <td class="numbercol">@line.Estimate.Cost.ToString("C4")</td>
+                                                        </tr>
+                                                    }
+                                                }
+                                            </tbody>
+                                            <tfoot>
+                                                <tr class="totalrow">
+                                                    <td>@Localizer[$"{LOCALIZATION_PREFIX}.Total"]</td>
+                                                    <td></td>
+                                                    <td class="numbercol">@costEstimate.TotalCost.ToString("C4")</td>
+                                                </tr>
+                                            </tfoot>
+                                        </table>
+                                    }
+                                }
+                            </ChildContent>
+                        </AeCard>
+                    </div>
+                }
+            
+            </AeFlex>
+
+            <div class=@ResultsCSSClass>
+
+                <AeCard class="facard1 doublewide">
+                    <Header>
+                        <AeTypography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.FirstYearTotal"]</AeTypography>
+                    </Header>
+                    <ChildContent>
+                        @if (StorageCostsByMonth.Count > 0)
+                        {
+                        
+                        <table class="widetable">
+                            <thead>
+                                <tr>
+                                    <th>@Localizer[$"{LOCALIZATION_PREFIX}.MonthLabel"]</th>
+                                    <th>@Localizer[$"{LOCALIZATION_PREFIX}.StorageUsedLabel"]</th>
+                                    <th>@Localizer[$"{LOCALIZATION_PREFIX}.StorageCostLabel"]</th>
+                                    <th>@Localizer[$"{LOCALIZATION_PREFIX}.OperationalCostLabel"]</th>
+                                    <th>@Localizer[$"{LOCALIZATION_PREFIX}.TotalCostLabel"]</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach(var lineItem in StorageCostsByMonth.Select((item, i) => (Month: i + 1, Item: item)))
+                                {
+                                    var monthlyOperationalCost = (lineItem.Month == 1) ?
+                                        MonthlyCost.TotalCost + InitialCost.TotalCost :
+                                        MonthlyCost.TotalCost;
+
+                                    <tr>
+                                        <td>@Localizer[$"{LOCALIZATION_PREFIX}.MonthNumber", lineItem.Month]</td>
+                                        <td class="numbercol">@Localizer[$"{LOCALIZATION_PREFIX}.XGB", lineItem.Item.NumberOfOperations]</td>
+                                        <td class="numbercol">@lineItem.Item.Cost.ToString("C")</td>
+                                        <td class="numbercol">@monthlyOperationalCost.ToString("C")</td>
+                                        <td class="numbercol">@((monthlyOperationalCost + lineItem.Item.Cost).ToString("C"))</td>
+                                    </tr>
+                                }
+                            </tbody>
+                            <tfoot>
+                                <tr class="totalrow">
+                                    <td>@Localizer[$"{LOCALIZATION_PREFIX}.Total"]</td>
+                                    <td class="numbercol">@Localizer[$"{LOCALIZATION_PREFIX}.XGB", StorageCostsByMonth.Last().NumberOfOperations]</td>
+                                    @{
+                                        var totalStorageCost = StorageCostsByMonth.Select(s => s.Cost).Sum();
+                                        var totalOperationalCost = MonthlyCost.TotalCost * 12;
+                                        var grandTotal = totalStorageCost + totalOperationalCost;
+                                        <td class="numbercol">@totalStorageCost.ToString("C")</td>
+                                        <td class="numbercol">@totalOperationalCost.ToString("C")</td>
+                                        <td class="numbercol">@grandTotal.ToString("C")</td>
+                                    }
+                                </tr>
+                            </tfoot>
+                        </table>
+                        }
+                    </ChildContent>
+                </AeCard>
+            </div>
+        </AeFlex>
+
+    </AeFlex>
+</div>
+
+@code {
+    private static readonly string LOCALIZATION_PREFIX = "STORAGE-COST-ESTIMATOR";
+
+    private const int MB_PER_GB = 1000;
+    private const int MB_PER_BLOCK = 4;
+
+    private int _initDataGb;
+    private int _avgFileSizeMb;
+    private int _expGrowth;
+    private int _expRead;
+
+    private int InitialDataGB
+    {
+        get => _initDataGb;
+        set
+        {
+            _initDataGb = value;
+            NeedsRecalculation = true;
+        }
+    }
+
+    private int AverageFileSizeMB 
+    {
+        get => _avgFileSizeMb;
+        set
+        {
+            _avgFileSizeMb = value;
+            NeedsRecalculation = true;
+        }
+    }
+
+    private int ExpectedMonthlyGrowth
+    {
+        get => _expGrowth;
+        set
+        {
+            _expGrowth = value;
+            NeedsRecalculation = true;
+        }
+    }
+
+    private int ExpectedMonthlyRead
+    {
+        get => _expRead;
+        set
+        {
+            _expRead = value;
+            NeedsRecalculation = true;
+        }
+    }
+
+
+    private record class UnitPrice(decimal BasePrice, int Units);
+    private class EstimatorPriceList
+    {
+        public UnitPrice Capacity { get; set; }
+        public UnitPrice WriteOperations { get; set; }
+        public UnitPrice ListCreateOperations { get; set; }
+        public UnitPrice ReadOperations { get; set; }
+        public UnitPrice ArchiveHPRead { get; set; }
+        public UnitPrice DataRetrieval { get; set; }
+        public UnitPrice DataWrite { get; set; }
+        public UnitPrice OtherOperations { get; set; }
+        public UnitPrice GeoReplication { get; set; }
+    }
+
+    private DataRedundancyType _currentDataRedundancy = DataRedundancyType.LRS;
+    private DataRedundancyType CurrentDataRedundancyType
+    {
+        get => _currentDataRedundancy;
+        set
+        {
+            _currentDataRedundancy = value;
+            NeedsRecalculation = true;
+        }
+    }
+
+    private AccessTierType _currentAccessTier = AccessTierType.Hot;
+    private AccessTierType CurrentAccessTierType
+    {
+        get => _currentAccessTier;
+        set
+        {
+            _currentAccessTier = value;
+            NeedsRecalculation = true;
+        }
+    }
+
+    private Dictionary<AccessTierType, EstimatorPriceList> PriceLists = new();
+
+    private EstimatorPriceList CurrentPriceList => PriceListsReady ? PriceLists[CurrentAccessTierType] : null;
+
+    private EstimatorResult InitialCost { get; set; } = new();
+    private EstimatorResult MonthlyCost { get; set; } = new();
+    private List<EstimatorResultLine> StorageCostsByMonth = new();
+
+    private bool IsCalculating { get; set; } = false;
+    private bool PriceListsReady { get; set; } = false;
+    private bool CanCalculate => PriceListsReady && !IsCalculating && AverageFileSizeMB > 0;
+    private bool NeedsRecalculation { get; set; } = true;
+    private bool IsSending { get; set; } = false;
+
+    private bool CalcButtonDisabled => !CanCalculate;
+    private bool SendButtonDisabled => NeedsRecalculation || IsCalculating || IsSending;
+
+    private string ResultsCSSClass => NeedsRecalculation ? "faded" : string.Empty;
+
+    private EstimatorResultLine MakeSomethingUp()
+    {
+        var rand = new Random();
+        return new(rand.Next(100, 30000), rand.Next(1, 100) * 0.0123M);
+    }
+
+    private EstimatorResultLine CalculatePrice(int ops, decimal price, int opsFactor = 1)
+    {
+        var pricePerOp = price / opsFactor;
+        return new(ops, ops * pricePerOp);
+    }
+
+    private EstimatorResultLine CalculatePrice(int ops, UnitPrice unitPrice) => CalculatePrice(ops, unitPrice.BasePrice, unitPrice.Units);
+
+    private async ValueTask<EstimatorResult> CalculateInitialCost()
+    {
+        var initDataMb = InitialDataGB * MB_PER_GB;
+        
+        var writeOps = initDataMb / MB_PER_BLOCK + (initDataMb / AverageFileSizeMB);
+        var listOps = initDataMb / AverageFileSizeMB;
+        var dataWriteOps = InitialDataGB;
+
+        return await Task.FromResult(new EstimatorResult()
+        {
+            WriteOperations = CalculatePrice(writeOps, CurrentPriceList.WriteOperations),
+            ListCreateOperations = CalculatePrice(listOps, CurrentPriceList.ListCreateOperations),
+            DataWrite = CalculatePrice(dataWriteOps, CurrentPriceList.DataWrite)
+        });
+    }
+
+    private async ValueTask<EstimatorResult> CalculateMonthlyCost()
+    {
+        var monthlyGrowthMb = ExpectedMonthlyGrowth * MB_PER_GB;
+
+        var writeOps = monthlyGrowthMb / MB_PER_BLOCK + (monthlyGrowthMb / AverageFileSizeMB);
+        var listOps = monthlyGrowthMb / AverageFileSizeMB;
+        var readOps = ExpectedMonthlyRead * MB_PER_GB / MB_PER_BLOCK;
+        var otherOps = monthlyGrowthMb / AverageFileSizeMB; // ?
+        var dataRetrievalOps = ExpectedMonthlyRead;
+        var dataWriteOps = ExpectedMonthlyGrowth;
+        var geoRepOps = CurrentDataRedundancyType == DataRedundancyType.GRS ? ExpectedMonthlyGrowth : 0;
+
+        return await Task.FromResult(new EstimatorResult()
+            {
+                WriteOperations = CalculatePrice(writeOps, CurrentPriceList.WriteOperations),
+                ListCreateOperations = CalculatePrice(listOps, CurrentPriceList.ListCreateOperations),
+                ReadOperations = CalculatePrice(readOps, CurrentPriceList.ReadOperations),
+                OtherOperations = CalculatePrice(otherOps, CurrentPriceList.OtherOperations),
+                DataRetrieval = CalculatePrice(dataRetrievalOps, CurrentPriceList.DataRetrieval),
+                DataWrite = CalculatePrice(dataWriteOps, CurrentPriceList.DataWrite),
+                GeoReplication = CalculatePrice(geoRepOps, CurrentPriceList.GeoReplication)
+            });
+    }
+
+    private async Task CalculateStorageCostsByMonth()
+    {
+        StorageCostsByMonth = new();
+        for (var i = 0; i < 12; i++)
+        {
+            var usedSpace = InitialDataGB + (ExpectedMonthlyGrowth * (i + 1));
+            StorageCostsByMonth.Add(CalculatePrice(usedSpace, CurrentPriceList.Capacity));
+        }
+
+        await Task.CompletedTask;
+    }
+
+    private async Task CalculateResults()
+    {
+        if (!CanCalculate)
+        {
+            return;
+        }
+
+        IsCalculating = true;
+
+        var tasks = new List<Task>()
+        {
+            Task.Run(async () => InitialCost = await CalculateInitialCost()),
+            Task.Run(async () => MonthlyCost = await CalculateMonthlyCost()),
+            CalculateStorageCostsByMonth()
+        };
+        
+        await Task.WhenAll(tasks);
+        
+        IsCalculating = false;
+        NeedsRecalculation = false;
+    }
+
+    private async Task SendEmail()
+    {
+        IsSending = true;
+
+        var user = await userService.GetUserAsync();
+
+        var parameters = new Dictionary<string, object>()
+            {
+                { nameof(StorageCostEstimate.InitialCost), InitialCost },
+                { nameof(StorageCostEstimate.MonthlyCost), MonthlyCost },
+                { nameof(StorageCostEstimate.StorageCostsByMonth), StorageCostsByMonth },
+                { nameof(StorageCostEstimate.UserDisplayName), user.DisplayName },
+                { nameof(StorageCostEstimate.InitialDataGB), InitialDataGB },
+                { nameof(StorageCostEstimate.AverageFileSizeMB), AverageFileSizeMB },
+                { nameof(StorageCostEstimate.ExpectedMonthlyGrowth), ExpectedMonthlyGrowth },
+                { nameof(StorageCostEstimate.ExpectedMonthlyRead), ExpectedMonthlyRead },
+                { nameof(StorageCostEstimate.AccessTier), CurrentAccessTierType },
+                { nameof(StorageCostEstimate.DataRedundancy), CurrentDataRedundancyType }
+            };
+        await emailService.SendStorageCostEstimate(user, parameters);
+
+        IsSending = false;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        PriceLists.Add(AccessTierType.Hot, new()
+        {
+            Capacity = new(20.48M, 1000),
+            WriteOperations = new(0.055M, 10000),
+            ListCreateOperations = new(0.055M, 10000),
+            ReadOperations = new(0.004M, 10000),
+            ArchiveHPRead = new(0.0M, 10000),
+            DataRetrieval = new(0.0M, 1000),
+            DataWrite = new(0.0M, 1000),
+            OtherOperations = new(0.004M, 10000),
+            GeoReplication = new(0.022M, 1000)
+        });
+        PriceLists.Add(AccessTierType.Cool, new()
+        {
+            Capacity = new(11.26M, 1000),
+            WriteOperations = new(0.1M, 10000),
+            ListCreateOperations = new(0.055M, 10000),
+            ReadOperations = new(0.01M, 10000),
+            ArchiveHPRead = new(0.0M, 10000),
+            DataRetrieval = new(10.0M, 1000),
+            DataWrite = new(0.0M, 1000),
+            OtherOperations = new(0.004M, 10000),
+            GeoReplication = new(0.022M, 1000)
+        });
+        PriceLists.Add(AccessTierType.Archive, new()
+        {
+            Capacity = new(1.84M, 1000),
+            WriteOperations = new(0.11M, 10000),
+            ListCreateOperations = new(0.055M, 10000),
+            ReadOperations = new(5.5M, 10000),
+            ArchiveHPRead = new(60.0M, 10000),
+            DataRetrieval = new(22.0M, 1000),
+            DataWrite = new(0.0M, 1000),
+            OtherOperations = new(0.004M, 10000),
+            GeoReplication = new(0.022M, 1000)
+        });
+
+        PriceListsReady = true;
+    }
+
+}

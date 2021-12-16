@@ -21,7 +21,23 @@ namespace Datahub.Core.EFCore
         SubmitSignedPDF,
         PendingApproval,
         PendingPublication,
+        PendingUpload,
         AccessOpenData
+    }
+
+    public enum FileStorageType
+    {
+        Datahub,
+        OpenData
+    }
+
+    public enum OpenDataUploadStatus
+    {
+        NotStarted,
+        UploadingFile,
+        RecordCreated,        
+        UploadCompleted,
+        Failed
     }
 
     public class SharedDataFile
@@ -114,13 +130,20 @@ namespace Datahub.Core.EFCore
     {
         public int? ApprovalForm_ID { get; set; }
         public string SignedApprovalForm_URL { get; set; }
-        public bool Read_FLAG { get; set; }
+        public bool ApprovalFormRead_FLAG { get; set; }
+        public FileStorageType? FileStorage_CD { get; set; }
+        public OpenDataUploadStatus UploadStatus_CD { get; set; }
+        public string UploadError_TXT { get; set; }
 
         public OpenDataSharingStatus GetOpenDataSharingStatus()
         {
-            if (PublicationDate_DT.HasValue && PublicationDate_DT.Value <= DateTime.UtcNow)
+            if (FileStorage_CD.HasValue)
             {
                 return OpenDataSharingStatus.AccessOpenData;
+            }
+            if (PublicationDate_DT.HasValue && PublicationDate_DT.Value <= DateTime.UtcNow)
+            {
+                return OpenDataSharingStatus.PendingUpload;
             }
             else if (ApprovedDate_DT.HasValue && ApprovedDate_DT.Value <= DateTime.UtcNow)
             {
