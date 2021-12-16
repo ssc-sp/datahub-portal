@@ -39,30 +39,6 @@ namespace Datahub.Core.Services
             // geo replication v2, canada central
             public static readonly string GEO_REPLICATION_SKU_ID = "DZH318Z0BZ26/0021";
 
-            // blob storage, canada east
-            /*
-            public static readonly string HOT_LRS_BLOB_SKU_ID = "DZH318Z0BNZJ/006D";
-            public static readonly string HOT_GRS_BLOB_SKU_ID = "DZH318Z0BNZJ/0069";
-            public static readonly string COOL_LRS_BLOB_SKU_ID = "DZH318Z0BNZJ/005J";
-            public static readonly string COOL_GRS_BLOB_SKU_ID = "DZH318Z0BNZJ/005C";
-            public static readonly string ARCHIVE_LRS_BLOB_SKU_ID = "DZH318Z0BNZJ/0062";
-            public static readonly string ARCHIVE_GRS_BLOB_SKU_ID = "DZH318Z0BNZJ/005V";
-            */
-
-            // block blob v2 hierarchical, canada east
-            /*
-            public static readonly string HOT_LRS_BLOCKV2_SKU_ID = "DZH318Z0C120/000N";
-            public static readonly string HOT_ZRS_BLOCKV2_SKU_ID = "DZH318Z0C120/001H";
-            public static readonly string HOT_GRS_BLOCKV2_SKU_ID = "DZH318Z0C120/0007";
-            public static readonly string COOL_LRS_BLOCKV2_SKU_ID = "DZH318Z0C120/0060";
-            public static readonly string COOL_ZRS_BLOCKV2_SKU_ID = "DZH318Z0C120/005Z";
-            public static readonly string COOL_GRS_BLOCKV2_SKU_ID = "DZH318Z0C120/0067";
-            public static readonly string ARCHIVE_LRS_BLOCKV2_SKU_ID = "DZH318Z0C120/006B";
-            public static readonly string ARCHIVE_ZRS_BLOCKV2_SKU_ID = "DZH318Z0C120/00L6";
-            public static readonly string ARCHIVE_GRS_BLOCKV2_SKU_ID = "DZH318Z0C120/006C";
-            */
-
-
             public static readonly Dictionary<(AccessTierType, DataRedundancyType), string> SkuMaps = new()
             {
                 { (AccessTierType.Hot, DataRedundancyType.LRS), HOT_LRS_BLOCK_SKU_ID },
@@ -210,21 +186,25 @@ namespace Datahub.Core.Services
             { "1M", 1000000 }
         };
 
-        private readonly string API_BASE_URL = "https://prices.azure.com/api/retail/prices";
+        private static readonly string API_BASE_URL = "https://prices.azure.com/api/retail/prices";
+        private static readonly string SAVED_PRICE_LIST_ID = "StoragePriceList";
 
         private static readonly UnitPrice zeroPrice = new(0.0M, 1);
 
-        private IHttpClientFactory _httpClientFactory;
+        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IMiscStorageService _miscStorageService;
 
-        private MiscStoredObject _savedGrid = null;
-
-        public AzurePriceListService(IHttpClientFactory httpClientFactory)
+        public AzurePriceListService(
+            IHttpClientFactory httpClientFactory, 
+            IMiscStorageService miscStorageService
+            )
         {
             _httpClientFactory = httpClientFactory;
+            _miscStorageService = miscStorageService;
         }
 
-        private string BuildApiUrl(string skuId) => $"{API_BASE_URL}?currencyCode='CAD'&$filter=skuId eq '{skuId}'";
-        private string BuildMultiSkuApiUrl(IEnumerable<string> skuIds)
+        private static string BuildApiUrl(string skuId) => $"{API_BASE_URL}?currencyCode='CAD'&$filter=skuId eq '{skuId}'";
+        private static string BuildMultiSkuApiUrl(IEnumerable<string> skuIds)
         {
             StringBuilder sb = new();
 
@@ -260,41 +240,24 @@ namespace Datahub.Core.Services
 
         private async Task<AzurePriceAPIResult> GetAzureApiResult(string url)
         {
-            using (var httpClient = _httpClientFactory.CreateClient())
-            {
-                using (var response = await httpClient.GetAsync(url))
-                {
-                    response.EnsureSuccessStatusCode();
-                    var content = await response.Content.ReadAsStringAsync();
-                    var result = JsonConvert.DeserializeObject<AzurePriceAPIResult>(content);
-                    return result;
-                }
-            }
+            using var httpClient = _httpClientFactory.CreateClient();
+
+            using var response = await httpClient.GetAsync(url);
+
+            response.EnsureSuccessStatusCode();
+            var content = await response.Content.ReadAsStringAsync();
+            var result = JsonConvert.DeserializeObject<AzurePriceAPIResult>(content);
+            return result;
         }
 
-        private AzurePriceAPIItemList GetPricesForSku(AzurePriceAPIResult result, string skuId)
+        private static AzurePriceAPIItemList GetPricesForSku(AzurePriceAPIResult result, string skuId)
         {
             return new(result.Items.Where(i => i.SkuId == skuId).ToList());
         }
 
-        private async Task<SavedStorageCostPriceGrid> FetchSavedPriceGrid()
-        {
-            //TODO
-            var jsonContent = _savedGrid?.JsonContent;
-            if (jsonContent == null)
-            {
-                return null;
-            }
+        private async Task<SavedStorageCostPriceGrid> FetchSavedPriceGrid() => await _miscStorageService.GetObject<SavedStorageCostPriceGrid>(SAVED_PRICE_LIST_ID);
 
-            var priceGrid = JsonConvert.DeserializeObject<SavedStorageCostPriceGrid>(jsonContent);
-            return await Task.FromResult(priceGrid);
-        }
-
-        private async Task SavePriceGrid(SavedStorageCostPriceGrid priceGrid)
-        {
-            //TODO
-            await Task.Run(() => _savedGrid = TestOneWay(priceGrid, "test"));
-        }
+        private async Task SavePriceGrid(SavedStorageCostPriceGrid priceGrid) => await _miscStorageService.SaveObject(priceGrid, SAVED_PRICE_LIST_ID);
 
         private async Task<Dictionary<string, EstimatorPriceList>> GeneratePriceListFromApi()
         {
@@ -328,23 +291,6 @@ namespace Datahub.Core.Services
             return finalResult;
         }
 
-        private MiscStoredObject TestOneWay<T>(T item, string id)
-        {
-            var typeName = typeof(T).FullName;
-            var storedObject = new MiscStoredObject()
-            {
-                Id = id,
-                TypeName = typeName,
-                JsonContent = JsonConvert.SerializeObject(item)
-            };
-            return storedObject;
-        }
-
-        private SavedStorageCostPriceGrid TestTheOtherWay(MiscStoredObject t)
-        {
-            return JsonConvert.DeserializeObject<SavedStorageCostPriceGrid>(t.JsonContent);
-        }
-
         public async Task<Dictionary<string, EstimatorPriceList>> GetAzureStoragePriceLists()
         {
             var yesterday = DateTime.UtcNow - TimeSpan.FromDays(1);
@@ -365,118 +311,7 @@ namespace Datahub.Core.Services
                 await SavePriceGrid(priceGrid);
             }
 
-            
-
-            
-            //var priceListsToSave = apiPriceList
-            //    .Select(kvp => new SavedStorageCostPriceList()
-            //    {
-            //        Id = GenerateSavedPriceListId(kvp.Key),
-            //        LastUpdatedUtc = utcNow,
-            //        PriceList = kvp.Value
-            //    })
-            //    .ToList();
-
-
-            var t = TestOneWay(priceGrid, "test");
-            var q = TestTheOtherWay(t);
-
-
             return priceGrid.PriceLists;
-
-            //var priceLists = new Dictionary<AccessTierType, EstimatorPriceList>
-            //{
-            //    {
-            //        AccessTierType.Hot,
-            //        new()
-            //        {
-            //            Capacity = new(20.48M, 1000),
-            //            WriteOperations = new(0.055M, 10000),
-            //            ListCreateOperations = new(0.055M, 10000),
-            //            ReadOperations = new(0.004M, 10000),
-            //            ArchiveHPRead = new(0.0M, 10000),
-            //            DataRetrieval = new(0.0M, 1000),
-            //            DataWrite = new(0.0M, 1000),
-            //            OtherOperations = new(0.004M, 10000),
-            //            GeoReplication = new(0.022M, 1000)
-            //        }
-            //    },
-            //    {
-            //        AccessTierType.Cool,
-            //        new()
-            //        {
-            //            Capacity = new(11.26M, 1000),
-            //            WriteOperations = new(0.1M, 10000),
-            //            ListCreateOperations = new(0.055M, 10000),
-            //            ReadOperations = new(0.01M, 10000),
-            //            ArchiveHPRead = new(0.0M, 10000),
-            //            DataRetrieval = new(10.0M, 1000),
-            //            DataWrite = new(0.0M, 1000),
-            //            OtherOperations = new(0.004M, 10000),
-            //            GeoReplication = new(0.022M, 1000)
-            //        }
-            //    },
-            //    {
-            //        AccessTierType.Archive,
-            //        new()
-            //        {
-            //            Capacity = new(1.84M, 1000),
-            //            WriteOperations = new(0.11M, 10000),
-            //            ListCreateOperations = new(0.055M, 10000),
-            //            ReadOperations = new(5.5M, 10000),
-            //            ArchiveHPRead = new(60.0M, 10000),
-            //            DataRetrieval = new(22.0M, 1000),
-            //            DataWrite = new(0.0M, 1000),
-            //            OtherOperations = new(0.004M, 10000),
-            //            GeoReplication = new(0.022M, 1000)
-            //        }
-            //    }
-            //};
-            // fetch by skuId (they are unique to each region and product)
-            // each one will be e.g. Hot LRS
-            // have a list of meterIds corresponding to each operation
-            // e.g. WriteOpsMeterIds = [ARCHIVE_GRS_WRITE_OPS, ARCHIVE_LRS_WRITE_OPS, HOT_GRS_WRITE_OPS, ...]
-
-            //var url = BuildApiUrl("DZH318Z0BPH7/007C");
-            //using (var client = new HttpClient())
-            //{
-            //    using (var response = await client.GetAsync(url))
-            //    {
-            //        response.EnsureSuccessStatusCode();
-            //        var content = await response.Content.ReadAsStringAsync();
-            //        var result = JsonConvert.DeserializeObject<AzurePriceAPIResult>(content);
-
-            //        priceLists[AccessTierType.Hot] = new()
-            //        {
-            //            Capacity = GetUnitPriceFromApiResult(result, AzureMeterIds.DataStored),
-            //            OtherOperations = GetUnitPriceFromApiResult(result, AzureMeterIds.OtherOperations),
-            //            ListCreateOperations = GetUnitPriceFromApiResult(result, AzureMeterIds.ListAndCreateContainer),
-            //            ArchiveHPRead = new(1.0M, 1000),
-            //            DataRetrieval = new(1.0M, 1000),
-            //            DataWrite = new(1.0M, 1000),
-            //            GeoReplication = new(1.0M, 1000),
-            //            ReadOperations = new(1.0M, 1000),
-            //            WriteOperations = new(1.0M, 1000)
-            //        };
-            //    }
-            //}
-
-            //return priceLists;
-        }
-
-        public async Task TestApiResponse()
-        {
-            var url = "https://prices.azure.com/api/retail/prices?currencyCode=%27CAD%27&$filter=(armRegionName%20eq%20%27canadaeast%27%20or%20armRegionName%20eq%20%27canadacentral%27)%20and%20meterId%20eq%20%2702412bad-ff1d-47bd-890c-88a66fe5e445%27";
-            using (var httpClient = new HttpClient())
-            {
-                using (var response = await httpClient.GetAsync(url))
-                {
-                    response.EnsureSuccessStatusCode();
-                    var content = await response.Content.ReadAsStringAsync();
-                    var result = JsonConvert.DeserializeObject<AzurePriceAPIResult>(content);
-                    var _ = 1 + 1;
-                }
-            }
         }
     }
 }
