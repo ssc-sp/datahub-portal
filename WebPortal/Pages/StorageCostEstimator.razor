@@ -45,13 +45,44 @@
                         @Localizer[$"{LOCALIZATION_PREFIX}.EstimateDisclaimer"]
                     </label>
                 
-                    <AeTypography Variant="h5">@Localizer[$"{LOCALIZATION_PREFIX}.ImpactHeading"]</AeTypography>
-                    <ol>
-                        @for(var i = 1; i <= 7; i++)
-                        {
-                            <li>@Localizer[$"{LOCALIZATION_PREFIX}.ImpactFactor{i}"]</li>
-                        }
-                    </ol>
+                    <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.MoreInfoIntro"]</AeTypography>
+
+                    <AeCollapse>
+                        <AeCollapseSection>
+                            <Header>
+                                <AeTypography Variant="h4">@Localizer[$"{LOCALIZATION_PREFIX}.ImpactHeading"]</AeTypography>
+                            </Header>
+                            <ChildContent>
+                                <ol>
+                                    @for(var i = 1; i <= 7; i++)
+                                    {
+                                        <li>@Localizer[$"{LOCALIZATION_PREFIX}.ImpactFactor{i}"]</li>
+                                    }
+                                </ol>
+
+                            </ChildContent>
+                        </AeCollapseSection>
+                        <AeCollapseSection>
+                            <Header>
+                                <AeTypography Variant="h4">@Localizer[$"{LOCALIZATION_PREFIX}.TierInfoHeading"]</AeTypography>
+                            </Header>
+                            <ChildContent>
+                                <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.MicrosoftDocNote"]</AeTypography>
+                                <AeTypography Variant="h5">@Localizer[$"{LOCALIZATION_PREFIX}.AccessTiersHeading"]</AeTypography>
+                                <ul>
+                                    <li>@Localizer[$"{LOCALIZATION_PREFIX}.HotTierExplanation"]</li>
+                                    <li>@Localizer[$"{LOCALIZATION_PREFIX}.CoolTierExplanation"]</li>
+                                    <li>@Localizer[$"{LOCALIZATION_PREFIX}.ArchiveTierExplanation"]</li>
+                                </ul>
+                                <AeTypography Variant="h5">@Localizer[$"{LOCALIZATION_PREFIX}.RedundancyHeading"]</AeTypography>
+                                <ul>
+                                    <li>@Localizer[$"{LOCALIZATION_PREFIX}.LRSExplanation"]</li>
+                                    <li>@Localizer[$"{LOCALIZATION_PREFIX}.ZRSExplanation"]</li>
+                                    <li>@Localizer[$"{LOCALIZATION_PREFIX}.GRSExplanation"]</li>
+                                </ul>
+                            </ChildContent>
+                        </AeCollapseSection>
+                    </AeCollapse>
                 </ChildContent>
             </AeCard>
 
