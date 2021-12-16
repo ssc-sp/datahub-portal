@@ -64,10 +64,5 @@ namespace Datahub.Core.Services
 
             return Task.FromResult(priceLists);
         }
-
-        public Task TestApiResponse()
-        {
-            throw new NotImplementedException();
-        }
     }
 }
