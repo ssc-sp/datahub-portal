@@ -33,9 +33,8 @@ namespace Datahub.Core.Services
             _logger = logger;
             _httpClientFactory = clientFactory;
         }
-
     
-        public async Task<GraphUser> GetUserAsync(string userId, CancellationToken tkn)
+        public async Task<GraphUser> GetUserAsync(string userId, CancellationToken tkn = default)
         {
             PrepareAuthenticatedClient();
             try

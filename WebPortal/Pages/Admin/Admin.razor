@@ -36,14 +36,14 @@
                          Renderers="projectReqRenderFunctions"
                          Headers="LocalizeHeaders(projectReqheaders)" />
 
-                
-                <AePagination 
-            Pageable="@_table1" 
-            OnPageClick="OnTableClick1"> 
-            <LeftIcon><i class='fad fa-chevron-double-left'></i></LeftIcon> 
-            <RightIcon><i class='fad fa-chevron-double-right'></i></RightIcon>
-            </AePagination>
-            </AeFlex>
+                @if (_table1 != null)
+                            {
+                                <AePagination Pageable="@_table1" OnPageClick="OnTableClick1"> 
+                                    <LeftIcon><i class='fad fa-chevron-double-left'></i></LeftIcon> 
+                                    <RightIcon><i class='fad fa-chevron-double-right'></i></RightIcon>
+                                </AePagination>
+                            }
+                        </AeFlex>
         }
         else
         {
@@ -68,13 +68,13 @@
                      Headers="LocalizeHeaders(headers)"
                      PageSize="10"/>
 
-            
-            <AePagination 
-            Pageable="@_table2" 
-            OnPageClick="OnTableClick2"> 
+                @if (_table2 != null)
+                            {            
+            <AePagination Pageable="@_table2" OnPageClick="OnTableClick2"> 
             <LeftIcon><i class='fad fa-chevron-double-left'></i></LeftIcon> 
             <RightIcon><i class='fad fa-chevron-double-right'></i></RightIcon>
             </AePagination>
+                            }
         }
         else
         {
@@ -228,9 +228,8 @@
 
     private async Task ResetTestRecipient()
     {
-        var user = (await authenticationStateTask).User;
-        var email = user.Identity.Name;
-        var name = user.Claims.Where(c => c.Type == "name").FirstOrDefault()?.Value;
+        var email = _user.Identity.Name;
+        var name = _user.Claims.Where(c => c.Type == "name").FirstOrDefault()?.Value;
 
         TestRecipientName = name;
         TestRecipientEmail = email;
@@ -253,21 +252,21 @@
     // Accessor functions to retrieve cell value
     private List<Func<Datahub_Project_Access_Request, string>> accessorFunctions = new List<Func<Datahub_Project_Access_Request, string>>
 {
-        new Func<Datahub_Project_Access_Request, string>(p => { return p.Project.Project_Name; }),
-        new Func<Datahub_Project_Access_Request, string>(p => { return p.User_Name; }),
-        new Func<Datahub_Project_Access_Request, string>(p => { return p.RequestServiceType; }),
-        new Func<Datahub_Project_Access_Request, string>(p => { return p.Request_DT.ToShortDateString(); }),
-        new Func<Datahub_Project_Access_Request, string>(p => { return ".."; }),
+        p => { return p.Project.Project_Name; },
+        p => { return p.User_Name; },
+        p => { return p.RequestServiceType; },
+        p => { return p.Request_DT.ToShortDateString(); },
+        p => { return ".."; },
     };
 
     private List<Func<Datahub_Project_User_Request, string>> GetProjectRequestAccessorFunctions()
     {
         return new List<Func<Datahub_Project_User_Request, string>>
         {
-            new Func<Datahub_Project_User_Request, string>(p => { return p.Project.Project_Name; }),
-            new Func<Datahub_Project_User_Request, string>(p => { return ".."; }),
-            new Func<Datahub_Project_User_Request, string>(p => { return p.Requested_DT.ToShortDateString(); }),
-            new Func<Datahub_Project_User_Request, string>(p => { return ".."; }),
+            p => { return p.Project.Project_Name; },
+            p => { return p.User_ID; },
+            p => { return p.Requested_DT.ToShortDateString(); },
+            p => { return ".."; },
         };
     }
     
@@ -310,6 +309,14 @@
         if (firstRender) {
             StateHasChanged();
         }
+    }
+
+    private async Task DeleteProjectUser(Datahub_Project_User_Request r)
+    {
+        projectContext.Project_Users_Requests.Remove(r);
+        await projectContext.SaveChangesAsync();  
+
+        await RefreshData();        
     }
 
     private async Task AuthorizeProjectUser(Datahub_Project_User_Request r)
@@ -361,7 +368,7 @@
         var projectUserIds = project.Users
             .Select(u => u.User_ID)
             .ToHashSet();
-        
+
         Task individualEmailTask = null;
 
         if (!string.IsNullOrEmpty(requestingUserId))
@@ -389,28 +396,43 @@
         await RefreshData();
     }
 
+    private bool IsDataHubAdmin()
+    {
+        return _user.IsInRole(RoleConstants.DATAHUB_ROLE_ADMIN);
+    }
+
     private async Task RefreshData()
     {
-       
+
         var userId = await UserInformationService.GetUserIdString();        
         using var ctx = dbFactory.CreateDbContext();  
 
-        var validProjects = ctx.Project_Users.Where(u => u.IsAdmin && u.User_ID == userId).Select(p => p.Project.Project_ID).ToHashSet();
+        var validProjects = (IsDataHubAdmin() ? ctx.Project_Users : ctx.Project_Users.Where(u => u.IsAdmin && u.User_ID == userId)).Select(p => p.Project.Project_ID).ToHashSet();
 
         var allAuths = await projectContext.Access_Requests.Include(a => a.Project).OrderByDescending(a => a.Request_DT).ToListAsync();
         _usersAuthorization = allAuths.Where(a => validProjects.Contains(a.Project.Project_ID)).ToList();
-        var allServiceCreationRequests = await projectContext.Project_Requests.Include(a => a.Project).OrderByDescending(a => a.ServiceRequests_Date_DT).ToListAsync();
+        var allServiceCreationRequests = await projectContext.Project_Requests.Include(a => a.Project).OrderBy(a => a.Is_Completed).ThenByDescending(a => a.ServiceRequests_Date_DT).ToListAsync();
         _serviceRequests = allServiceCreationRequests.Where(a => validProjects.Contains(a.Project.Project_ID)).ToList();
         var allProjectAuthorization = await projectContext.Project_Users_Requests.Include(a => a.Project).OrderByDescending(a => a.Requested_DT).ToListAsync();
         _userProjectAuthorization = allProjectAuthorization.Where(a => validProjects.Contains(a.Project.Project_ID)).ToList();
-        
+
     }
+
+    private async Task ValidateRequests()
+    {
+        using var ctx = dbFactory.CreateDbContext();
+        var projectsWithDataBricks = await ctx.Projects.Where(t => !string.IsNullOrEmpty(t.Databricks_URL)).ToListAsync();
+        var databricksRequests = ctx.Project_Requests.Where(r => r.ServiceType == RequestManagementService.DATABRICKS).ToList();
+    }
+
+
+    private System.Security.Claims.ClaimsPrincipal _user;
 
     protected override async Task OnInitializedAsync()
     {
         projectContext = dbFactory.CreateDbContext();
         _authorizedRoles = ServiceAuthManager.GetAdminProjectRoles();
-            
+        _user = (await authenticationStateTask).User;
 
         await ResetTestRecipient();
 
@@ -430,7 +452,8 @@
                    else
       
                  {
-                       return @<AeButton @onclick="async () => await AuthorizeProjectUser(a)">Authorize user</AeButton>;
+                       return @<div><AeButton @onclick="async () => await AuthorizeProjectUser(a)">Authorize user</AeButton>;
+                       <AeButton @onclick="async () => await DeleteProjectUser(a)">Delete Request</AeButton></div>;
                    }
                 })
 
