@@ -46,6 +46,8 @@ namespace Datahub.Core.EFCore
 
         public DbSet<Datahub_Project_Costs> Project_Costs { get; set; }
 
+        public DbSet<MiscStoredObject> MiscStoredObjects { get; set; }
+
         public void Seed(DatahubProjectDBContext context, IConfiguration configuration)
         {
             var p1 = context.Projects.Add(new Datahub_Project()
@@ -84,7 +86,10 @@ namespace Datahub.Core.EFCore
                 });
             var initialSetup = configuration.GetSection("InitialSetup");
             if (initialSetup?.GetValue<string>("AdminGUID") != null)
-                context.Project_Users.Add(new Datahub_Project_User() { User_ID = initialSetup.GetValue<string>("AdminGUID"), IsAdmin = true, ProjectUser_ID = 1, Project = p1 });
+            {
+                var user = context.Project_Users.Add(new Datahub_Project_User() { User_ID = initialSetup.GetValue<string>("AdminGUID"), IsAdmin = true, ProjectUser_ID = 1, Project = p1 });
+                //var permissions = context.Project_Users_Requests.Add(new Datahub_)
+            }
 
         }
 
@@ -127,7 +132,10 @@ namespace Datahub.Core.EFCore
             modelBuilder.Entity<SharedDataFile>()
                 .HasIndex(e => e.File_ID)
                 .IsUnique();
-            
+
+            modelBuilder.Entity<MiscStoredObject>()
+                .HasAlternateKey(e => new { e.TypeName, e.Id });
+
         }
     }
 }

@@ -482,7 +482,8 @@
     "ShowMore": "Show optional fields",
     "ShowLess": "Hide optional fields",
     "EnterKeyword-Placeholder": "Type keyword...",
-    "TranslationNote": "Note that all text is translated using a third party tool and <b>is only a suggested translation.</b>  It is the responsibility of the user to validate the translation before submitting the metadata."
+    "TranslationNote": "Note that all text is translated using a third party tool and <b>is only a suggested translation.</b>  It is the responsibility of the user to validate the translation before submitting the metadata.",
+    "KeywordHint": "Click to add"
   },
 
   "SHARING-STATUS": {
@@ -547,7 +548,7 @@
     "Page_Title": "Share on Open Data",
     "Metadata": "Metadata",
     "Edit_button": "Edit",
-    "Save_button": "Save",
+    "Save_button": "Save Metadata",
     "GeneratePDF_button": "Generate PDF",
     "AmendApprovalForm_button": "Amend approval form",
     "Continue_button": "Continue",
@@ -560,7 +561,8 @@
     "SubmitSignedPdf": "Submit signed PDF document",
     "EnterGcDocsUrl": "Enter GCDocs URL",
     "Approval_Form": "Approval Form",
-    "Approval_filled_out": "Approval form has been filled out.",
+    "Approval_filled_out": "- Approval form has been filled out, now you can generate the approval PDF.",
+    "GeneratePDF_explanation": "- Once you generate the approval PDF, please upload it to GcDocs and paste the URL of this file in the section below.",
     "Publish_File": "Publish File",
     "Publish_As_URL_Desc": "Publish to Open Data as URL and keep the file in Datahub.",
     "Publish_As_URL": "Publish as URL",
