@@ -9,5 +9,7 @@ namespace Datahub.Core.EFCore
         public Guid Id { get; set; }
 
         public Datahub_Project Project { get; set; }
+
+        public string WorkspaceName { get; set; }
     }
 }

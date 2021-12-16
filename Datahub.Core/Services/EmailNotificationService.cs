@@ -13,6 +13,8 @@ using System;
 using System.Text;
 using Datahub.Core.Model.Onboarding;
 using Datahub.Core.EFCore;
+using Microsoft.Graph;
+using System.Threading;
 
 namespace Datahub.Core.Services
 {
@@ -38,6 +40,8 @@ namespace Datahub.Core.Services
         public static readonly string SERVICE_TEMPLATE_KEY = "Service";
         public static readonly string DATA_PROJECT_TEMPLATE_KEY = "DataProject";
 
+        private static readonly string DATAHUB_ADMIN_PROJECT_CODE = "DHPGLIST";
+
         private EmailConfiguration _config;
 
         private IStringLocalizer _localizer;
@@ -46,11 +50,14 @@ namespace Datahub.Core.Services
 
         private IMSGraphService _graphService;
 
+        private ServiceAuthManager _serviceAuthManager;
+
         public EmailNotificationService(
             IStringLocalizer localizer,
             IConfiguration config,
             ILogger<EmailNotificationService> logger,
-            IMSGraphService graphService
+            IMSGraphService graphService,
+            ServiceAuthManager serviceAuthManager
             )
         {
             _localizer = localizer;
@@ -58,6 +65,7 @@ namespace Datahub.Core.Services
             config.Bind(EMAIL_CONFIGURATION_ROOT_KEY, _config);
             _logger = logger;
             _graphService = graphService;
+            _serviceAuthManager = serviceAuthManager;
         }
 
         public async Task<string> RenderTestTemplate()
@@ -68,12 +76,12 @@ namespace Datahub.Core.Services
             return await Task.FromResult(html);
         }
         
-        private MailboxAddress BuildRecipient(string userIdOrAddress, string recipientName = null)
+        private async Task<MailboxAddress> BuildRecipient(string userIdOrAddress, string recipientName = null)
         {
             if (Guid.TryParse(userIdOrAddress, out var parsedGuid))
             {
                 // for a valid guid, try to get the corresponding user and use that info
-                var user = _graphService.GetUser(userIdOrAddress);
+                var user = await _graphService.GetUserAsync(userIdOrAddress, CancellationToken.None);
                 if (user != null)
                 {
                     return CreateMailboxAddress(user.DisplayName, user.Mail);
@@ -89,9 +97,9 @@ namespace Datahub.Core.Services
                 else
                 {
                     // otherwise, try to lookup the user to get the name
-                    var userId = _graphService.GetUserIdFromEmail(userIdOrAddress);
+                    var userId = await _graphService.GetUserIdFromEmailAsync(userIdOrAddress, CancellationToken.None);
                     // no need to null check userId, as GetUser has its own null check
-                    var user = _graphService.GetUser(userId);
+                    var user = await _graphService.GetUserAsync(userId, CancellationToken.None);
 
                     // even if we don't get a user object, we can still try to send to the address
                     return CreateMailboxAddress(user?.DisplayName, userIdOrAddress);
@@ -103,12 +111,18 @@ namespace Datahub.Core.Services
 
         static MailboxAddress CreateMailboxAddress(string name, string address) => new(name, address?.ToLower());
 
-        private IList<MailboxAddress> BuildRecipientList(IList<string> userIdsOrAddresses)
+        private async Task<IList<MailboxAddress>> BuildRecipientList(IList<string> userIdsOrAddresses)
         {
-            return userIdsOrAddresses
-                .Select(s => BuildRecipient(s))
-                .Where(r => r != null)
-                .ToList();
+
+            List<MailboxAddress> mailList = new();
+            foreach (var item in userIdsOrAddresses)
+            {
+                var s = await BuildRecipient(item);
+                mailList.Add(s);
+            }
+
+            return mailList;
+
         }
 
         public async Task<string> RenderTemplate<T>(IDictionary<string, object> parameters = null) where T : Microsoft.AspNetCore.Components.IComponent
@@ -121,14 +135,14 @@ namespace Datahub.Core.Services
 
         public async Task SendEmailMessage(string subject, string body, string userIdOrAddress, string recipientName = null, bool isHtml = true)
         {
-            var recipient = BuildRecipient(userIdOrAddress, recipientName);
+            var recipient = await BuildRecipient(userIdOrAddress, recipientName);
             var recipients = new List<MailboxAddress>() { recipient };
             await SendEmailMessage(subject, body, recipients, isHtml);
         }
 
         public async Task SendEmailMessage(string subject, string body, IList<string> userIdsOrAddresses, bool isHtml = true)
         {
-            var recipients = BuildRecipientList(userIdsOrAddresses);
+            var recipients = await BuildRecipientList(userIdsOrAddresses);
             await SendEmailMessage(subject, body, recipients, isHtml);
         }
 
@@ -180,7 +194,7 @@ namespace Datahub.Core.Services
 
                 if (IsDevTestMode())
                 {
-                    var devEmail = BuildRecipient(_config.DevTestEmail);
+                    var devEmail = await BuildRecipient(_config.DevTestEmail);
                     msg.To.Add(devEmail);
 
                     body += BuildTestEmailOriginalRecipientsList(validRecipients, isHtml);
@@ -432,7 +446,7 @@ namespace Datahub.Core.Services
             return parametersDict;
         }
 
-        public IList<MailboxAddress> TestUsernameEmailConversion(IList<(string address, string name)> recipients)
+        public async Task<IList<MailboxAddress>> TestUsernameEmailConversion(IList<(string address, string name)> recipients)
         {
             if (recipients == null)
             {
@@ -448,14 +462,14 @@ namespace Datahub.Core.Services
             {
                 _logger.LogInformation("List has 1 item: single recipient method");
                 var item = recipients.First();
-                var recipient = BuildRecipient(item.address, item.name);
+                var recipient = await BuildRecipient(item.address, item.name);
                 return new List<MailboxAddress>() { recipient }; 
             }
             else
             {
                 _logger.LogInformation("List has more than one item: bulk conversion");
                 var identifiers = recipients.Select(t => t.address).ToList();
-                var result = BuildRecipientList(identifiers);
+                var result = await BuildRecipientList(identifiers);
                 return result;
             }
         }
@@ -509,6 +523,26 @@ namespace Datahub.Core.Services
             var html = await RenderTemplate<PublicUrlShareApproved>(parameters);
 
             await SendEmailMessage(subject, html, recipient);
+        }
+
+        public async Task SendStorageCostEstimate(User estimatingUser, Dictionary<string, object> parameters)
+        {
+            var subject = "[DataHub] Your Storage Cost Estimate";
+            var adminSubject = "[DataHub] New Storage Cost Estimate";
+
+            var html = await RenderTemplate<StorageCostEstimate>(parameters);
+            parameters.Add(nameof(StorageCostEstimateAdmin.UserEmail), estimatingUser.Mail);
+            var adminHtml = await RenderTemplate<StorageCostEstimateAdmin>(parameters);
+
+            var adminEmails = _serviceAuthManager.GetProjectAdminsEmails(DATAHUB_ADMIN_PROJECT_CODE);
+
+            var tasks = new List<Task>()
+            {
+                SendEmailMessage(subject, html, estimatingUser.Mail),
+                SendEmailMessage(adminSubject, adminHtml, adminEmails)
+            };
+
+            await Task.WhenAll(tasks);
         }
     }
 

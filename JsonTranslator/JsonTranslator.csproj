@@ -8,6 +8,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Include="..\ps-translator\data.json" Link="data.json" />
+    <Content Include="..\ps-translator\output-fr.json" Link="output-fr.json" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Datahub.Core\Datahub.Core.csproj" />
   </ItemGroup>
 
