@@ -549,12 +549,14 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.Property<string>("ReportName")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid>("Workspace")
+                    b.Property<Guid?>("WorkspaceId")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
                     b.HasIndex("Project_ID");
+
+                    b.HasIndex("WorkspaceId");
 
                     b.ToTable("Project_PBI_Reports");
                 });
@@ -567,6 +569,9 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
 
                     b.Property<int?>("Project_ID")
                         .HasColumnType("int");
+
+                    b.Property<string>("WorkspaceName")
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -974,14 +979,23 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                 {
                     b.HasBaseType("Datahub.Core.EFCore.SharedDataFile");
 
+                    b.Property<bool>("ApprovalFormRead_FLAG")
+                        .HasColumnType("bit");
+
                     b.Property<int?>("ApprovalForm_ID")
                         .HasColumnType("int");
 
-                    b.Property<bool>("Read_FLAG")
-                        .HasColumnType("bit");
+                    b.Property<int?>("FileStorage_CD")
+                        .HasColumnType("int");
 
                     b.Property<string>("SignedApprovalForm_URL")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UploadError_TXT")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("UploadStatus_CD")
+                        .HasColumnType("int");
 
                     b.ToTable("OpenDataSharedFile");
                 });
@@ -1088,7 +1102,13 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                         .WithMany("PBI_Reports")
                         .HasForeignKey("Project_ID");
 
+                    b.HasOne("Datahub.Core.EFCore.Project_PBI_Workspace", "Workspace")
+                        .WithMany()
+                        .HasForeignKey("WorkspaceId");
+
                     b.Navigation("Project");
+
+                    b.Navigation("Workspace");
                 });
 
             modelBuilder.Entity("Datahub.Core.EFCore.Project_PBI_Workspace", b =>

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Datahub.Core.EFCore;
+using Microsoft.Graph;
 using MimeKit;
 
 namespace Datahub.Core.Services
@@ -12,7 +13,7 @@ namespace Datahub.Core.Services
         Task SendEmailMessage(string subject, string body, string userIdOrAddress, string recipientName = null, bool isHtml = true);
         Task SendEmailMessage(string subject, string body, IList<string> userIdsOrAddresses, bool isHtml = true);
         bool IsDevTestMode();
-        IList<MailboxAddress> TestUsernameEmailConversion(IList<(string address, string name)> recipients);
+        Task<IList<MailboxAddress>> TestUsernameEmailConversion(IList<(string address, string name)> recipients);
         string BuildAppLink(string contextUrl);
 
         Task SendServiceCreationRequestNotification(string username, string serviceName, DatahubProjectInfo projectInfo, IList<string> recipients);
@@ -27,6 +28,7 @@ namespace Datahub.Core.Services
         Task SendOnboardingConfirmations(OnboardingParameters parameters);
         Task SendFileSharingApprovalRequest(string username, string filename, DatahubProjectInfo projectInfo, IList<string> recipients);
         Task SendFileSharingApproved(SharedDataFile sharedFileInfo, DatahubProjectInfo projectInfo, string publicUrlLink, string recipient);
+        Task SendStorageCostEstimate(User estimatingUser, Dictionary<string,object> parameters);
     }
 
     public record class DatahubProjectInfo(string ProjectNameEn, string ProjectNameFr, string ProjectCode);

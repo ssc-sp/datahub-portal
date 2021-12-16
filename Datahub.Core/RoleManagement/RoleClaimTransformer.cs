@@ -28,22 +28,28 @@ namespace Datahub.Core.RoleManagement
             try
             {
                 var userName = principal.Identity.Name;
-                var userId = principal.Claims.ToList()[9].Value;
-
-                var allProjects = serviceAuthManager.GetAllProjects();
-
-                var authorizedProjects = await serviceAuthManager.GetUserAuthorizations(userId);
-                ((ClaimsIdentity)principal.Identity).AddClaim(new Claim(ClaimTypes.Role, $"default"));
-                foreach (var project in allProjects)
+                var userId = principal.Claims.FirstOrDefault(c => c.Type == "uid")?.Value;
+                if (userId is null)
                 {
-                    if (await serviceAuthManager.IsProjectAdmin(userId, project))
-                    {
-                        ((ClaimsIdentity)principal.Identity).AddClaim(new Claim(ClaimTypes.Role, $"{project}-admin"));
-                    }
+                    logger.LogCritical("user uid not available in claims");
                 }
-                foreach (var project in authorizedProjects)
+                else
                 {
-                    ((ClaimsIdentity)principal.Identity).AddClaim(new Claim(ClaimTypes.Role, project.Project_Acronym_CD));
+                    var allProjects = serviceAuthManager.GetAllProjects();
+
+                    var authorizedProjects = await serviceAuthManager.GetUserAuthorizations(userId);
+                    ((ClaimsIdentity)principal.Identity).AddClaim(new Claim(ClaimTypes.Role, $"default"));
+                    foreach (var project in allProjects)
+                    {
+                        if (await serviceAuthManager.IsProjectAdmin(userId, project))
+                        {
+                            ((ClaimsIdentity)principal.Identity).AddClaim(new Claim(ClaimTypes.Role, $"{project}-admin"));
+                        }
+                    }
+                    foreach (var project in authorizedProjects)
+                    {
+                        ((ClaimsIdentity)principal.Identity).AddClaim(new Claim(ClaimTypes.Role, project.Project_Acronym_CD));
+                    }
                 }
 
             }

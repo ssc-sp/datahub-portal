@@ -6,19 +6,25 @@
 
     
 @page "/"
+@page "/home/{TabIndex}"
 
 @if (!isLoaded)
 {
-    <Elemental.Components.Spinner />
+    <Spinner />
 }
 else
 {
     <WelcomeBanner />
-    <LandingContent />
+    <LandingContent TabIndex=@TabIndexParsed />
 }
 
 @code
 {
+    [Parameter]
+    public string TabIndex { get; set; }
+
+    private int TabIndexParsed => int.TryParse(TabIndex, out int tabIndex) ? tabIndex : 0;
+
     protected async Task InvalidUser()
     {
         UI.AllowEscape = false;
