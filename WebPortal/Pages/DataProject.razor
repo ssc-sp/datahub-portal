@@ -333,7 +333,11 @@
                                     <AeButton OnClickEvent=@ShowDatabaseInformationPopupWithToken>@Localizer["PROJECT-PAGE.DATABASE-CARD.GetToken_button"]</AeButton>
                                 </div>
                             }
-                    </Footer>
+                            else
+                            {
+                            <AeButton @onclick="@(async () => await RequestServiceAccess("psql"))">@DataLocalizer["Request Service Creation"]</AeButton>
+                            }
+                        </Footer>
                 </AeCard>
             }
             
@@ -627,7 +631,7 @@
             User_Name = _user.UserPrincipalName
         };
 
-        if (serviceType == "sql" || serviceType == "storage")
+        if (serviceType == "sql" || serviceType == "storage"  || serviceType == "psql")
         {    
             CreateProjectResource(serviceType);
         }
@@ -646,7 +650,23 @@
 
     private void CreateProjectResource(string serviceType)
     {
-        var attributes = serviceType == "sql" ? "\"type\":\"sql\"" : "\"type\":\"gen2\"";
+        string attributes = serviceType == "sql" ? "\"type\":\"sql\"" : "\"type\":\"gen2\"";
+
+        switch (serviceType)
+        { 
+            case "sql":
+                attributes = "\"type\":\"sql\"";
+                break;
+            case "psql":
+                attributes = "\"type\":\"psql\"";
+                break;
+            case "storage":
+                attributes = "\"type\":\"gen2\"";
+                break;
+            default:
+                attributes = $"\"type\":\"{serviceType}\"";
+                break;
+        }
         var resource = new Project_Resources
         {
             ResourceType = serviceType,
