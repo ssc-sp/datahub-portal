@@ -11,6 +11,7 @@ using Microsoft.Graph.Auth;
 using Microsoft.Identity.Client;
 using Microsoft.Identity.Web;
 using Datahub.Core.Data;
+using System.Threading;
 
 namespace Datahub.Core.Services
 {
@@ -18,167 +19,141 @@ namespace Datahub.Core.Services
     {
         private GraphServiceClient graphServiceClient;
         private IConfiguration _configuration;
-        private IWebHostEnvironment _webHostEnvironment;
         private ILogger<MSGraphService> _logger;
         private IHttpClientFactory _httpClientFactory;
 
         public Dictionary<string, GraphUser> UsersDict { get; set; }
 
-        public MSGraphService(IWebHostEnvironment webHostEnvironment,
-            IConfiguration configureOptions, 
+        public MSGraphService(IConfiguration configureOptions, 
             ILogger<MSGraphService> logger,
             IHttpClientFactory clientFactory)
         {
             //clientSecret = configuration["ClientAppSecret"];            
-            _webHostEnvironment = webHostEnvironment;
             _configuration = configureOptions;
             _logger = logger;
             _httpClientFactory = clientFactory;
         }
-
-        public GraphUser GetUser(string userId)
+    
+        public async Task<GraphUser> GetUserAsync(string userId, CancellationToken tkn = default)
         {
-            if (!string.IsNullOrWhiteSpace(userId))
+            PrepareAuthenticatedClient();
+            try
             {
-                if (UsersDict != null && UsersDict.ContainsKey(userId))
-                {
-                    return UsersDict[userId];
-                }
+                var user = await graphServiceClient.Users.Request()
+                    .Filter($"id eq '{userId}'")
+                    .GetAsync(tkn);
+                return user == null ? null : GraphUser.Create(user[0]);
             }
-
-            return null;
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error fetching user: {userId}: {ex.Message}");
+            }
+            return new GraphUser();
         }
 
-        public string GetUserName(string userId)
+        public async Task<string> GetUserName(string userId, CancellationToken tkn)
         {
-            
             if (!string.IsNullOrWhiteSpace(userId))
-            {
-                var user = GetUser(userId);
+            {             
+                var user = await GetUserAsync(userId, tkn);
                 return user?.DisplayName ?? "...";
             }
 
             return "...";
         }
 
-        public string GetUserEmail(string userId)
+
+
+        public async Task<string> GetUserEmail(string userId, CancellationToken tkn)
         {
-            var user = GetUser(userId);
+            var user = await GetUserAsync(userId, tkn);
             return user?.Mail;
         }
 
-        public string GetUserIdFromEmail(string email)
-        {
-            var user = UsersDict.FirstOrDefault(u => u.Value.Mail.ToLower() == email.ToLower());
-            return user.Key ?? string.Empty;
-        }
 
-        public Dictionary<string, GraphUser> GetUsersList()
-        {
-            return UsersDict;
-        }
 
-        public async Task LoadUsersAsync()
+        public async Task<string> GetUserIdFromEmailAsync(string email, CancellationToken tkn)
         {
+            PrepareAuthenticatedClient();
             try
             {
-                if (UsersDict == null)
-                {
-                    _logger.LogInformation("Entering Log Users");
-                    UsersDict = new Dictionary<string, GraphUser>();
-                    PrepareAuthenticatedClient();
-
-                    IGraphServiceUsersCollectionPage usersPage = await graphServiceClient.Users.Request().GetAsync();
-
-                    // Add the first page of results to the user list                    
-                    if (usersPage?.CurrentPage.Count > 0)
-                    {
-                        foreach (User user in usersPage)
-                        {
-                            var newUser = GraphUser.Create(user);
-                            UsersDict.Add(newUser.Id, newUser);
-                        }
-                    }
-
-                    // Fetch each page and add those results to the list
-                    while (usersPage.NextPageRequest != null)
-                    {
-                        usersPage = await usersPage.NextPageRequest.GetAsync();
-                        foreach (User user in usersPage)
-                        {
-                            var newUser = GraphUser.Create(user);
-                            UsersDict.Add(newUser.Id, newUser);
-                        }
-                    }
-
-                    // add anonymous user
-                    var anonUser = UserInformationServiceConstants.GetAnonymousUser();
-                    if (anonUser != null)
-                    {
-                        var newUser = GraphUser.Create(anonUser);
-                        UsersDict.Add(newUser.Id, newUser);
-                    }
-
-                    //var user1 = UsersDict.Values.Where(u => u.Mail.ToLower() == "natasha.lestage@nrcan-rncan.gc.ca").FirstOrDefault().Id;
-                    
-                    
-                    _logger.LogInformation("Exiting Log Users");
-                }
+                var user = await graphServiceClient.Users.Request()
+                    .Filter($"mail eq '{email}'")
+                    .GetAsync(tkn);
+                return user[0].Id ?? string.Empty;
             }
-            catch (ServiceException e)
+            catch(Exception ex)
             {
-                if (e.InnerException is MsalUiRequiredException || e.InnerException is MicrosoftIdentityWebChallengeUserException)
-                    throw;
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, $"Error Loading Users Async");
+                _logger.LogError($"Error fetching user id for email: {email}: {ex.Message}");
             }
 
+            return string.Empty;
         }
         
-        public async Task<Dictionary<string, GraphUser>> GetUsersAsync()
+
+        public async Task<Dictionary<string, GraphUser>> GetUsersListAsync(string filterText, CancellationToken tkn)
         {
-            try
+            Dictionary<string, GraphUser> users = new();
+            PrepareAuthenticatedClient();
+
+            var options = new List<Option>();
+            options.Add(new QueryOption("$filter",$"startswith(mail,'{filterText}')"));
+            options.Add(new HeaderOption("ConsistencyLevel", "eventual"));
+            options.Add(new QueryOption("$count", "true"));
+
+
+            var usersPage = await graphServiceClient.Users.Request(options)                
+                .GetAsync(tkn);
+
+            if (usersPage?.CurrentPage.Count > 0)
             {
-                if (UsersDict == null)
+                foreach (User user in usersPage)
                 {
-                    await LoadUsersAsync();
+                    var newUser = GraphUser.Create(user);
+                    users.Add(newUser.Id, newUser);
                 }
-
-                return UsersDict;
             }
-            catch (Exception e)
+
+            // Fetch each page and add those results to the list
+            while (usersPage.NextPageRequest != null)
             {
-                _logger.LogError(e,"Could not get users");
+                usersPage = await usersPage.NextPageRequest.GetAsync();
+                foreach (User user in usersPage)
+                {
+                    var newUser = GraphUser.Create(user);
+                    users.Add(newUser.Id, newUser);
+                }
             }
 
-            return new Dictionary<string, GraphUser>();
+            return users;
         }
-
+ 
         private void PrepareAuthenticatedClient()
         {
-            try
+            if (graphServiceClient == null)
             {
-                //var graphService = _configuration.GetValue<MicrosoftIdentityOptions>("AzureAd");
-                IConfidentialClientApplication confidentialClientApplication = ConfidentialClientApplicationBuilder
-                                .Create(_configuration.GetSection("AzureAd").GetValue<string>("ClientId"))
-                                .WithTenantId(_configuration.GetSection("AzureAd").GetValue<string>("TenantId"))
-                                .WithClientSecret(_configuration.GetSection("AzureAd").GetValue<string>("ClientSecret"))
-                                .Build();
-                ClientCredentialProvider authProvider = new ClientCredentialProvider(confidentialClientApplication);
+                try
+                {
+                    //var graphService = _configuration.GetValue<MicrosoftIdentityOptions>("AzureAd");
+                    IConfidentialClientApplication confidentialClientApplication = ConfidentialClientApplicationBuilder
+                                    .Create(_configuration.GetSection("AzureAd").GetValue<string>("ClientId"))
+                                    .WithTenantId(_configuration.GetSection("AzureAd").GetValue<string>("TenantId"))
+                                    .WithClientSecret(_configuration.GetSection("AzureAd").GetValue<string>("ClientSecret"))
+                                    .Build();
+                    ClientCredentialProvider authProvider = new ClientCredentialProvider(confidentialClientApplication);
 
-                var httpClient = _httpClientFactory.CreateClient();
-                graphServiceClient = new GraphServiceClient(httpClient);
+                    var httpClient = _httpClientFactory.CreateClient();
+                    graphServiceClient = new GraphServiceClient(httpClient);
 
-                graphServiceClient.AuthenticationProvider = authProvider;
+                    graphServiceClient.AuthenticationProvider = authProvider;
 
-            }
-            catch (Exception e)
-            {
-                _logger.LogError($"Error preparing authentication client: {e.Message}");
-                Console.WriteLine($"Error preparing authentication client: {e.Message}");
-                throw;
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError($"Error preparing authentication client: {e.Message}");
+                    Console.WriteLine($"Error preparing authentication client: {e.Message}");
+                    throw;
+                }
             }
         }
     }

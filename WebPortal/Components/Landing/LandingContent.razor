@@ -1,13 +1,15 @@
 ﻿@namespace Datahub.Portal.Components
 @inject IUserInformationService UserInformationService
 @inject UserLocationManagerService UserLocationManagerService 
+@inject NavigationManager NavigationManager
 
 <AeFlex class="landing-content-wrapper">
   <AeFlex class="landing-content">
 <AeCard>
     <ChildContent>
-    <TabControl>
-        @foreach(var tab in GetTabs()){
+    <TabControl TabIndex=@TabIndex OnChangeTab=@OnChangeTab>
+        @foreach(var tab in GetTabs())
+        {
             <TabPage>
               <Control>
                   <AeTypography>@tab.Control</AeTypography>
@@ -24,6 +26,10 @@
 </AeFlex>
 
 @code {
+
+    [Parameter]
+    public int TabIndex { get; set; }
+
     List<UserRecentLink> links = null;
 
     protected override async Task OnInitializedAsync()
@@ -34,7 +40,6 @@
                     .Select(e => e.OrderByDescending(k => k.accessedTime)
                     .FirstOrDefault()).ToList();
     }
-
 
     private List<(string Control, RenderFragment Content)> GetTabs()
     {
@@ -50,9 +55,16 @@
         };
         if (links?.Count > 0)
         {
-            res.Insert(0, (@Localizer["Recent"], @<Datahub.Portal.Components.Landing.Tabs.RecentTab RecentLinks="links"/> ));
+            res.Insert(0, (@Localizer["Recent"], @<Datahub.Portal.Components.Landing.Tabs.RecentTab RecentLinks="links"/>));
         }
         return res;
     }
 
+    private void OnChangeTab(int tabIndex)
+    {
+        if (tabIndex != this.TabIndex)
+        {
+            NavigationManager.NavigateTo($"/home/{tabIndex}");
+        }
+    }
 }

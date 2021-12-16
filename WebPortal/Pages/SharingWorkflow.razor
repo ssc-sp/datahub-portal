@@ -1,56 +1,60 @@
 ﻿@page "/sharingworkflow/{FileId}"
 @using Microsoft.AspNetCore.WebUtilities
 @using Microsoft.Graph
-@inject IStringLocalizer<SharingWorkflow> Localizer
-@inject NavigationManager _navManager
+@inject CustomNavigation NavManager
 @inject IPublicDataFileService _publicDataService
 @inject IUserInformationService _userInfoService
 
-<div style="padding: 2rem">
-    <AeFlex Vertical>
-        <AeTypography Variant="h1">@Localizer[$"{LOCALIZATION_PREFIX}.Title"]</AeTypography>
-    </AeFlex>
+@if (!_awaitingRedirect)
+{
+    <div style="padding: 2rem">
+        <AeFlex Vertical>
+            <AeTypography Variant="h1">@Localizer[$"{LOCALIZATION_PREFIX}.Title"]</AeTypography>
+        </AeFlex>
 
-    <AeFlex>
+        <AeFlex>
 
-        <AuthorizeView Roles="DHPGLIST-admin" Context="hidden_in_dev">
+            <AuthorizeView Roles="DHPGLIST-admin" Context="hidden_in_dev">
+                <AeCard class="facard1">
+                    <Header>
+                        <AeTypography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.OpenDataTitle"]</AeTypography>
+                    </Header>
+                    <ChildContent>
+                        <p>
+                            @Localizer[$"{LOCALIZATION_PREFIX}.OpenDataDesc"]
+                        </p>
+                    </ChildContent>
+                    <Footer>
+                        <div>
+                            <AeButton OnClickEvent=@OpenDataClicked Disabled=@_openDataDisabled>@Localizer[$"{LOCALIZATION_PREFIX}.StartWorkflowButton"]</AeButton>
+                        </div>
+                    </Footer>
+                </AeCard>
+            </AuthorizeView>
+
             <AeCard class="facard1">
                 <Header>
-                    <AeTypography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.OpenDataTitle"]</AeTypography>
+                    <AeTypography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.PublicUrlTitle"]</AeTypography>
                 </Header>
                 <ChildContent>
                     <p>
-                        @Localizer[$"{LOCALIZATION_PREFIX}.OpenDataDesc"]
+                        @Localizer[$"{LOCALIZATION_PREFIX}.PublicUrlDesc"]
                     </p>
                 </ChildContent>
                 <Footer>
                     <div>
-                        <AeButton OnClickEvent=@OpenDataClicked Disabled=@_openDataDisabled >@Localizer[$"{LOCALIZATION_PREFIX}.StartWorkflowButton"]</AeButton>
+                        <AeButton OnClickEvent=@PublicUrlClicked Disabled=@_publicUrlDisabled>@Localizer[$"{LOCALIZATION_PREFIX}.StartWorkflowButton"]</AeButton>
                     </div>
-		        </Footer>
+                </Footer>
             </AeCard>
-        </AuthorizeView>
-    
-        <AeCard class="facard1">
-            <Header>
-                <AeTypography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.PublicUrlTitle"]</AeTypography>
-            </Header>
-            <ChildContent>
-                <p>
-                    @Localizer[$"{LOCALIZATION_PREFIX}.PublicUrlDesc"]
-                </p>
-            </ChildContent>
-            <Footer>
-                <div>
-                    <AeButton OnClickEvent=@PublicUrlClicked Disabled=@_publicUrlDisabled >@Localizer[$"{LOCALIZATION_PREFIX}.StartWorkflowButton"]</AeButton>
-                </div>
-		    </Footer>
-        </AeCard>
 
-    </AeFlex>
-</div>
-
-
+        </AeFlex>
+    </div>
+}
+else
+{
+    <Spinner />
+}
 
 @code {
 
@@ -67,6 +71,7 @@
     private bool _userLoaded => _user != null;
     private bool _publicUrlDisabled => !_userLoaded;
     private bool _openDataDisabled => !_userLoaded;
+    private bool _awaitingRedirect = true;
 
     private string PublicUrlSharingUrl => $"/share/public/{FileId}";
     private string OpenDataSharingUrl => $"/share/opendata/{FileId}";
@@ -74,27 +79,27 @@
     public async Task OpenDataClicked()
     {
         var filemd = new FileMetaData()
-        {
-            fileid = FileId,
-            filename = Filename,
-            folderpath = Folderpath
-        };
+            {
+                fileid = FileId,
+                filename = Filename,
+                folderpath = Folderpath
+            };
 
         await _publicDataService.CreateDataSharingRequest(filemd, ProjectCode, _user, true);
-        _navManager.NavigateTo(OpenDataSharingUrl);
+        await NavManager.NavigateTo(OpenDataSharingUrl, true);
     }
 
     public async Task PublicUrlClicked()
-    {   
+    {
         var filemd = new FileMetaData()
-        {
-            fileid = FileId,
-            filename = Filename,
-            folderpath = Folderpath
-        };
+            {
+                fileid = FileId,
+                filename = Filename,
+                folderpath = Folderpath
+            };
 
         await _publicDataService.CreateDataSharingRequest(filemd, ProjectCode, _user);
-        _navManager.NavigateTo(PublicUrlSharingUrl);
+        await NavManager.NavigateTo(PublicUrlSharingUrl, true);
     }
 
     private string GetFirstQueryValue(IDictionary<string, Microsoft.Extensions.Primitives.StringValues> query, string paramKey)
@@ -112,17 +117,17 @@
     protected override async Task OnInitializedAsync()
     {
         var userTask = _userInfoService.GetUserAsync();
-        
+
         Guid fileIdGuid;
         if (!Guid.TryParse(FileId, out fileIdGuid))
         {
             // return to homepage if guid is invalid
-            _navManager.NavigateTo("/");
+            await NavManager.NavigateTo("/", true);
         }
 
         var fileInfoTask = _publicDataService.LoadPublicUrlSharedFileInfo(fileIdGuid);
 
-        var uri = _navManager.ToAbsoluteUri(_navManager.Uri);
+        var uri = NavManager.GetAbsoluteUri();
         var query = QueryHelpers.ParseQuery(uri.Query);
 
         Filename = GetFirstQueryValue(query, "filename");
@@ -134,15 +139,18 @@
         {
             if (existingPublicFile.IsOpenDataRequest_FLAG)
             {
-                _navManager.NavigateTo(OpenDataSharingUrl);
+                await NavManager.NavigateTo(OpenDataSharingUrl, true);
             }
             else
             {
-                _navManager.NavigateTo(PublicUrlSharingUrl);
+                await NavManager.NavigateTo(PublicUrlSharingUrl, true);
             }
+        }
+        else
+        {
+            _awaitingRedirect = false;
         }
 
         _user = await userTask;
     }
-
 }

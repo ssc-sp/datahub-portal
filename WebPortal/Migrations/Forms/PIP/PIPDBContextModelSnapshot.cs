@@ -79,6 +79,10 @@ namespace Datahub.Portal.Migrations.Forms.PIP
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
+                    b.Property<string>("IndicatorCode")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
                     b.Property<string>("Indicator_Calculation_Formula_NUM")
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)");
@@ -190,6 +194,9 @@ namespace Datahub.Portal.Migrations.Forms.PIP
 
                     b.Property<string>("UserIdWhoDeleted")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Year")
+                        .HasColumnType("int");
 
                     b.HasKey("IndicatorAndResult_ID");
 
@@ -325,6 +332,10 @@ namespace Datahub.Portal.Migrations.Forms.PIP
                         .HasMaxLength(7500)
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("RiskCode")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
                     b.Property<string>("Risk_Category")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -389,6 +400,9 @@ namespace Datahub.Portal.Migrations.Forms.PIP
 
                     b.Property<string>("UserIdWhoDeleted")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Year")
+                        .HasColumnType("int");
 
                     b.HasKey("Risks_ID");
 
@@ -522,6 +536,10 @@ namespace Datahub.Portal.Migrations.Forms.PIP
                     b.Property<decimal?>("Planned_Spending_AMTL")
                         .HasColumnType("Money");
 
+                    b.Property<string>("ProgramCode")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
                     b.Property<string>("Program_Inventory_Program_Description_URL")
                         .HasColumnType("nvarchar(max)");
 
@@ -616,6 +634,9 @@ namespace Datahub.Portal.Migrations.Forms.PIP
                     b.Property<string>("Transfer_Payment_Programs_Less5_3_DESC")
                         .HasMaxLength(400)
                         .HasColumnType("nvarchar(400)");
+
+                    b.Property<int>("Year")
+                        .HasColumnType("int");
 
                     b.HasKey("Tombstone_ID");
 

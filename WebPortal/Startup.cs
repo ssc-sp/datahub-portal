@@ -27,12 +27,10 @@ using System.Text;
 using Datahub.Core.Data;
 using Microsoft.EntityFrameworkCore;
 using Datahub.ProjectForms.Data.PIP;
-using Datahub.Portal.EFCore;
 using Datahub.Core.EFCore;
 using Datahub.Portal.Data;
 using Datahub.Portal.Data.Finance;
 using Datahub.Portal.Data.WebAnalytics;
-using Datahub.Metadata;
 using Microsoft.Graph;
 using Polly;
 using System.Net.Http;
@@ -41,7 +39,6 @@ using Datahub.Metadata.Model;
 using Microsoft.Extensions.Logging;
 using Datahub.Core.RoleManagement;
 using Datahub.Core;
-using Datahub.Portal.Data.LanguageTraining;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.ApplicationInsights.Extensibility;
 using Datahub.LanguageTraining;
@@ -62,7 +59,8 @@ namespace Datahub.Portal
         private readonly IConfiguration Configuration;
         private readonly IWebHostEnvironment _currentEnvironment;
 
-        private bool Offline => _currentEnvironment.IsEnvironment("Offline");
+        private bool ResetDB => (bool)(Configuration.GetSection("InitialSetup")?.GetValue(typeof(bool), "ResetDB", false) ?? false);
+        private bool Offline => (bool)(Configuration.GetValue(typeof(bool), "Offline", false) ?? false);
 
         private bool Debug => (bool)Configuration.GetValue(typeof(bool), "DebugMode", false);
 
@@ -110,7 +108,7 @@ namespace Datahub.Portal
             ConfigureLocalization(services);
 
             // add custom app services in this method
-            ConfigureDatahubServices(services);
+            ConfigureCoreDatahubServices(services);
 
             services.AddHttpClient();
             services.AddHttpClient<GraphServiceClient>().AddPolicyHandler(GetRetryPolicy());
@@ -180,7 +178,7 @@ namespace Datahub.Portal
 
         private void InitializeDatabase<T>(ILogger logger, IDbContextFactory<T> dbContextFactory, bool migrate = true, bool ensureDeleteinOffline = true) where T : DbContext
         {
-            EFTools.InitializeDatabase<T>(logger, Configuration, dbContextFactory, Offline, migrate, ensureDeleteinOffline);
+            EFTools.InitializeDatabase<T>(logger, Configuration, dbContextFactory, ResetDB, migrate, ensureDeleteinOffline);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -333,7 +331,7 @@ namespace Datahub.Portal
                 options.UseBaseName = false;
                 options.IsAbsolutePath = true;
                 options.LocalizationMode = Askmethat.Aspnet.JsonLocalizer.JsonOptions.LocalizationMode.I18n;
-                options.MissingTranslationLogBehavior = _currentEnvironment.EnvironmentName == "Development" ? MissingTranslationLogBehavior.LogConsoleError : MissingTranslationLogBehavior.Ignore;
+                options.MissingTranslationLogBehavior = _currentEnvironment.EnvironmentName == "Development" ? MissingTranslationLogBehavior.CollectToJSON : MissingTranslationLogBehavior.Ignore;
                 options.FileEncoding = Encoding.GetEncoding("UTF-8");
                 options.SupportedCultureInfos = supportedCultureInfos;
             });
@@ -351,7 +349,7 @@ namespace Datahub.Portal
             return (values ?? "").Split('|').Select(c => new CultureInfo($"{c.Substring(0, 2).ToLower()}-CA"));
         }
 
-        private void ConfigureDatahubServices(IServiceCollection services)
+        private void ConfigureCoreDatahubServices(IServiceCollection services)
         {
             // configure online/offline services
             if (!Offline)
@@ -380,6 +378,8 @@ namespace Datahub.Portal
                 services.AddSingleton<ICognitiveSearchService, CognitiveSearchService>();
 
                 services.AddScoped<PowerBiServiceApi>();
+                services.AddScoped<PowerBiSyncService>();
+                
             }
             else
             {
@@ -426,9 +426,14 @@ namespace Datahub.Portal
             services.AddSingleton<ServiceAuthManager>();
 
             services.AddCKANService();
+            services.AddSingleton<IOpenDataService, OpenDataService>();
 
             services.AddSingleton<IGlobalSessionManager, GlobalSessionManager>();
             services.AddScoped<IUserCircuitCounterService, UserCircuitCounterService>();
+
+            services.AddScoped<RequestManagementService>();
+
+            services.AddScoped<CustomNavigation>();
         }
 
         private void ConfigureDbContexts(IServiceCollection services)
@@ -460,7 +465,5 @@ namespace Datahub.Portal
             services.AddPooledDbContextFactory<T>(options => options.UseCosmos(connectionString, databaseName: catalogName));
             services.AddDbContextPool<T>(options => options.UseCosmos(connectionString, databaseName: catalogName));
         }
-
-
     }
 }
