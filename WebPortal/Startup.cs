@@ -435,6 +435,8 @@ namespace Datahub.Portal
             services.AddScoped<RequestManagementService>();
 
             services.AddScoped<CustomNavigation>();
+
+            services.AddScoped<IOrganizationLevelsService, OrganizationLevelsService>();
         }
 
         private void ConfigureDbContexts(IServiceCollection services)
