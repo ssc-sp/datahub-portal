@@ -14,9 +14,8 @@ namespace Datahub.ProjectForms.Data.PIP
         [AeFormIgnore]
         public int IndicatorAndResult_ID { get; set; }
 
-        [AeFormIgnore]
-        public int Year { get; set; }
-        [AeFormIgnore]
+        [MaxLength(20)]
+        public string Year { get; set; }
         [MaxLength(20)]
         public string IndicatorCode { get; set; }
 
