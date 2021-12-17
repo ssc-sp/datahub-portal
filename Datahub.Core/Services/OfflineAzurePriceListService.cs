@@ -9,7 +9,7 @@ namespace Datahub.Core.Services
 {
     public class OfflineAzurePriceListService : IAzurePriceListService
     {
-        public Task<Dictionary<string, EstimatorPriceList>> GetAzureStoragePriceLists()
+        public Task<SavedStorageCostPriceGrid> GetAzureStoragePriceLists()
         {
             EstimatorPriceList hotPrices = new()
             {
@@ -62,7 +62,11 @@ namespace Datahub.Core.Services
                 {IAzurePriceListService.GenerateAzurePriceListKey(AccessTierType.Archive, DataRedundancyType.GRS), archivePrices }
             };
 
-            return Task.FromResult(priceLists);
+            return Task.FromResult(new SavedStorageCostPriceGrid()
+            {
+                LastUpdatedUtc = DateTime.UtcNow,
+                PriceLists = priceLists
+            });
         }
     }
 }
