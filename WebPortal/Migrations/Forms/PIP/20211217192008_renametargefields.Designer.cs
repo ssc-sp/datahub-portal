@@ -4,6 +4,7 @@ using Datahub.ProjectForms.Data.PIP;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Datahub.Portal.Migrations.Forms.PIP
 {
     [DbContext(typeof(PIPDBContext))]
-    partial class PIPDBContextModelSnapshot : ModelSnapshot
+    [Migration("20211217192008_renametargefields")]
+    partial class renametargefields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -199,9 +201,8 @@ namespace Datahub.Portal.Migrations.Forms.PIP
                     b.Property<string>("UserIdWhoDeleted")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Year")
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                    b.Property<int>("Year")
+                        .HasColumnType("int");
 
                     b.HasKey("IndicatorAndResult_ID");
 
@@ -408,9 +409,8 @@ namespace Datahub.Portal.Migrations.Forms.PIP
                     b.Property<string>("UserIdWhoDeleted")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Year")
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                    b.Property<int>("Year")
+                        .HasColumnType("int");
 
                     b.HasKey("Risks_ID");
 
@@ -644,9 +644,8 @@ namespace Datahub.Portal.Migrations.Forms.PIP
                         .HasMaxLength(400)
                         .HasColumnType("nvarchar(400)");
 
-                    b.Property<string>("Year")
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                    b.Property<int>("Year")
+                        .HasColumnType("int");
 
                     b.HasKey("Tombstone_ID");
 
