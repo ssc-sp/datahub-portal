@@ -291,7 +291,7 @@ namespace Datahub.Core.Services
             return finalResult;
         }
 
-        public async Task<Dictionary<string, EstimatorPriceList>> GetAzureStoragePriceLists()
+        public async Task<SavedStorageCostPriceGrid> GetAzureStoragePriceLists()
         {
             var yesterday = DateTime.UtcNow - TimeSpan.FromDays(1);
 
@@ -311,7 +311,7 @@ namespace Datahub.Core.Services
                 await SavePriceGrid(priceGrid);
             }
 
-            return priceGrid.PriceLists;
+            return priceGrid;
         }
     }
 }
