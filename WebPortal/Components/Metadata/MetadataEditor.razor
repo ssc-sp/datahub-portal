@@ -6,7 +6,7 @@
 {
     var translationNote = new MarkupString(Localizer["METADATA-PAGE.TranslationNote"]);
     
-    var displayFields = Preview ? Definitions.Fields : EnumerateFields(!_showAll);
+    var displayFields = Preview ? Definitions.Fields : EnumerateFields(!ShowAll);
 
     <div>
         <div style="margin: 1rem 1rem 0rem 0rem; color: #57C4EC;">
@@ -35,19 +35,6 @@
             }
         }
 
-        @if (!Preview)
-        {
-            <div style="margin: 1em 0.5em;">
-                @if (!_showAll)
-                {
-                    <AeButton class="light" @onclick=@ToggleShowAll>@Localizer["METADATA-PAGE.ShowMore"]</AeButton>
-                }
-                else
-                {
-                    <AeButton class="light" @onclick=@ToggleShowAll>@Localizer["METADATA-PAGE.ShowLess"]</AeButton>
-                }
-            </div>
-        }
     </div>       
 }
 
@@ -69,9 +56,11 @@
     public FieldValueContainer FieldValues { get; set; }
 
     [Parameter]
+    public bool ShowAll { get; set; }
+
+    [Parameter]
     public EventCallback<ObjectFieldValue> OnFieldChanged { get; set; }
 
-    private bool _showAll;
     private HashSet<int> _modifedFieldIds = new HashSet<int>();
 
     private int? _subjectFieldId;
@@ -143,12 +132,6 @@
         return definition.HasChoices && !definition.MultiSelect_FLAG && definition.Choices.Count == 1 
             ? definition.Choices.First().Value_TXT 
             : null;
-    }
-
-    private void ToggleShowAll()
-    {
-        _showAll = !_showAll;
-        StateHasChanged();
     }
 
     private IEnumerable<FieldDefinition> EnumerateFields(bool required)
