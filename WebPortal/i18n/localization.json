@@ -497,7 +497,7 @@
         "Title": "Open Government Approval Form"
       },
       "SubmitSignedPDF": {
-        "Description": "Upload the signed PDF to GCDocs and paste the link in Datahub.",
+        "Description": "Upload the signed PDF to GCdocs and paste the link in Datahub.",
         "Title": "Submit Signed PDF"
       },
       "PendingApproval": {
@@ -506,7 +506,7 @@
       },
       "PendingUpload": {
         "Description": "The request has been approved, pending decision on file publishing location.",
-        "Title": "Pending Upload"
+        "Title": "Publish File"
       },
       "PendingPublication": {
         "Description": "The request has been approved, but the publication date has not yet been reached.",
@@ -559,10 +559,10 @@
     "CancelSharingDescription": "You may cancel the sharing request at any time before approval. This will completely remove the sharing request from the system. However, the file will still remain in storage and may be shared in the future.",
     "CancelSharingPrompt": "Do you want to cancel this sharing request? To share this file in the future, the process will have to be restarted from the beginning.",
     "SubmitSignedPdf": "Submit signed PDF document",
-    "EnterGcDocsUrl": "Enter GCDocs URL",
+    "EnterGcDocsUrl": "Enter GCdocs URL",
     "Approval_Form": "Approval Form",
     "Approval_filled_out": "- Approval form has been filled out, now you can generate the approval PDF.",
-    "GeneratePDF_explanation": "- Once you generate the approval PDF, please upload it to GcDocs and paste the URL of this file in the section below.",
+    "GeneratePDF_explanation": "- Once you generate the approval PDF, please upload it to GCdocs and paste the URL of this file in the section below.",
     "Publish_File": "Publish File",
     "Publish_As_URL_Desc": "Publish to Open Data as URL and keep the file in Datahub.",
     "Publish_As_URL": "Publish as URL",
@@ -592,6 +592,7 @@
     "RequestingUser": "Requesting user",
     "Edit_button": "Edit",
     "Save_button": "Save",
+    "Save_Metadata_button": "Save Metadata",
     "Continue_button": "Continue",
     "Delete_button": "Delete",
     "ValidationErrors": {
