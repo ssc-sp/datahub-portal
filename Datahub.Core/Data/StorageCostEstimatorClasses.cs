@@ -105,12 +105,4 @@ namespace Datahub.Core.Data.StorageCostEstimator
         public Dictionary<string, EstimatorPriceList> PriceLists { get; set; }
     }
 
-    public class MiscStoredObject
-    {
-        public string Id { get; set; }
-        public string TypeName { get; set; }
-        public string JsonContent { get; set; }
-    }
-
-
 }
