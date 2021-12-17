@@ -134,7 +134,7 @@
 
     private async Task CreateNewIndicator()
     {
-        _indicator = new PIP_IndicatorAndResults() { PIP_Tombstone = _tombstone, Last_Updated_DT = DateTime.Now, Date_201920_Result_Collected_DT = DateTime.Now, Date_To_Achieve_Target_DT = DateTime.Now };
+        _indicator = new PIP_IndicatorAndResults() { PIP_Tombstone = _tombstone, Last_Updated_DT = DateTime.Now, Date_Result_Collected = DateTime.Now, Date_To_Achieve_Target_DT = DateTime.Now };
         StateHasChanged();
         _navToEdit = true;
     }
