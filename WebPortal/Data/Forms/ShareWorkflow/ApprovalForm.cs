@@ -16,18 +16,22 @@ namespace Datahub.Portal.Data.Forms.ShareWorkflow
 
         /** Section: Business Partner **/
         [StringLength(32)]
+        [AeLabel(isDropDown: true, placeholder: " ")]
         public string Sector_NAME { get; set; }
 
         /** Section: Business Partner **/
         [StringLength(32)]
+        [AeLabel(isDropDown: true, placeholder: " ")]
         public string Branch_NAME { get; set; }
 
         /** Section: Business Partner **/
         [StringLength(32)]
+        [AeLabel(isDropDown: true, placeholder: " ")]
         public string Division_NAME { get; set; }
 
         /** Section: Business Partner **/
         [StringLength(32)]
+        [AeLabel(isDropDown: true, placeholder: " ")]
         public string Section_NAME { get; set; }
 
         /** Section: Business Partner **/
