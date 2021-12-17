@@ -129,7 +129,7 @@ namespace Datahub.ProjectForms.Data.PIP
         [AeLabel(row: "19", column: "2")]
         [AeFormCategory("Target", 20)]
         [MaxLength(4000)] 
-        public string Target_202021_DESC { get; set; }
+        public string Target_DESC { get; set; }
         [AeLabel(row: "19", column: "3")]
         [AeFormCategory("Target", 20)]
         public DateTime? Date_To_Achieve_Target_DT { get; set; }
@@ -138,10 +138,10 @@ namespace Datahub.ProjectForms.Data.PIP
         [AeLabel(row: "20", column: "1")]
         [AeFormCategory("Actual Results", 30)]
         [MaxLength(8000)]
-        public string Result_202021_DESC { get; set; }
+        public string Result_DESC { get; set; }
         [AeLabel(row: "20", column: "2")]
         [AeFormCategory("Actual Results", 30)]
-        public DateTime? Date_201920_Result_Collected_DT { get; set; }
+        public DateTime? Date_Result_Collected { get; set; }
         [AeLabel(row: "20", column: "3", isDropDown: true, placeholder: "Please Select")] [MaxLength(1000)] 
         [AeFormCategory("Actual Results", 30)]
         public string Target_Met { get; set; }
