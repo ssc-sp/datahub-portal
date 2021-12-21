@@ -11,5 +11,5 @@ namespace Datahub.Portal.Services
         Task<List<OrganizationLevel>> GetSections();
     }
 
-    public record OrganizationLevel(int Id, int ParentId, string EnglishLabel, string FrenchLevel);
+    public record OrganizationLevel(int Id, int ParentId, string EnglishLabel, string FrenchLabel);
 }
