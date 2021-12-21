@@ -495,7 +495,7 @@
         _ownSharingRequestCount = await PublicDataFileService.GetUsersOwnDataSharingRequestsCount(projectAcronym, _user.Id);
 
         var allPipelines = _project.Pipelines?.Select(p => p.Process_Nm).ToList();
-        if (allPipelines != null)
+        if (allPipelines != null && allPipelines.Count > 0)
         {
             _pipelineStatus = await etlContext.ETL_CONTROL_TBL.Where(t => allPipelines.Contains(t.PROCESS_NM)).ToListAsync();
             _pipelineStatus = _pipelineStatus.Where(t => t.STATUS_FLAG != "T").GroupBy(t => t.PROCESS_NM).Select(gp => gp.OrderByDescending(g => g.END_TS).First()).OrderBy(s => s.PROCESS_NM).ToList();
