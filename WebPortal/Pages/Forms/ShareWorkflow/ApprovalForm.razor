@@ -62,7 +62,7 @@
     private List<string> Sections => LocalizeChoices(_sections.Where(d => d.ParentId == _divisionId));
 
     private List<string> LocalizeChoices(IEnumerable<OrganizationLevel> levels) 
-        => levels.Select(s => !_isFrench ? s.EnglishLabel : s.FrenchLevel).ToList();
+        => levels.Select(s => !_isFrench ? s.EnglishLabel : s.FrenchLabel).ToList();
 
     public string SubmitLabel => Localizer[MakeLabel("Submit")];
 
@@ -96,7 +96,7 @@
 
     private int GetChoiceId(List<OrganizationLevel> choices, string value)
     {
-        return choices.FirstOrDefault(c => c.EnglishLabel.Equals(value) || c.FrenchLevel.Equals(value))?.Id ?? -1;
+        return choices.FirstOrDefault(c => c.EnglishLabel.Equals(value) || c.FrenchLabel.Equals(value))?.Id ?? -1;
     }
 
     private async Task HandleValidSubmit()
