@@ -4,7 +4,6 @@
 @using Microsoft.EntityFrameworkCore;
 @using Microsoft.PowerBI.Api.Models
 
-
 <div style="padding-left: 2rem;padding-right: 2rem">
 
     <AeTypography Variant="h1">@Localizer["Power BI Reports"]</AeTypography>
@@ -38,7 +37,6 @@
                         </AePagination>
                     }
                 </ChildContent>
-                    
                 
             </AeCard>        
     
@@ -49,11 +47,10 @@
 
     [Parameter]
     public string projectAcronym { get; set; }
+
     private List<Project_PBI_Report> _project_PBI_Reports;
-    private DatahubProjectDBContext ctx;
     private int _lastClicked = 0;
     private IPageableComponent _myTable;
-    
 
     private void OnPageClick(int pageIndex)
     {
@@ -67,11 +64,11 @@
 
     protected override async Task OnInitializedAsync()
     {
-        ctx = DbFactoryProject.CreateDbContext();
         _project_PBI_Reports = new();
         if (projectAcronym != null)
         {
-            _project_PBI_Reports = ctx.Project_PBI_Reports.Include(u => u.Project).Where(r => r.Project.Project_Acronym_CD.ToLower() == projectAcronym.ToLower()).ToList();
+            using var ctx = DbFactoryProject.CreateDbContext();
+            _project_PBI_Reports = await ctx.Project_PBI_Reports.Include(u => u.Project).Where(r => r.Project.Project_Acronym_CD.ToLower() == projectAcronym.ToLower()).ToListAsync();
         }
     }
 
@@ -82,33 +79,25 @@
         if (firstRender)
         {
             StateHasChanged();
-            
         }
     }
 
-
     private List<Func<Project_PBI_Report, string>> accessorFunctions = new List<Func<Project_PBI_Report, string>>
     {        
-        new Func< Project_PBI_Report, string>(pt => { return pt.ReportName; }),
+        new Func<Project_PBI_Report, string>(pt => { return pt.ReportName; }),
         null,
         null,
     };
 
-    private List<Func<Project_PBI_Report, RenderFragment>> GetRenderers()
-    {             
-        return new List<Func<Project_PBI_Report, RenderFragment>>() {            
-            null,
-            workspace => @<AeTypography><DHLink LinkType="DatahubLinkType.PowerBIWorkspace" PBIWorkspaceId=@(workspace.Workspace.ToString())>Workspace</DHLink></AeTypography>,
-            report => @<AeTypography><DHLink DataProject="@(report.Project.Project_Acronym_CD)" PBIWorkspaceId=@(report.Workspace.ToString()) PBIReportId=@(report.Id.ToString()) PowerBIURL="@(report.GetLink())" Name="@(report?.ReportName)">@report?.ReportName</DHLink></AeTypography>,     
-        };
-    }
+    private List<Func<Project_PBI_Report, RenderFragment>> GetRenderers() => new() { null, GetWorkspaceFragment, GetReportFragment };
 
-
-
-    public void Dispose()
+    private RenderFragment GetWorkspaceFragment(Project_PBI_Report report)
     {
-        ctx.Dispose();
+        return @<AeTypography><DHLink LinkType="DatahubLinkType.PowerBIWorkspace" PBIWorkspaceId=@(report?.Workspace?.ToString())>Workspace</DHLink></AeTypography>;
     }
 
-
+    private RenderFragment GetReportFragment(Project_PBI_Report report)
+    {
+        return @<AeTypography><DHLink DataProject="@(report?.Project?.Project_Acronym_CD)" PBIWorkspaceId=@(report?.Workspace?.ToString()) PBIReportId=@(report?.Id.ToString()) PowerBIURL="@(report?.GetLink())" Name="@(report?.ReportName)">@report?.ReportName</DHLink></AeTypography>;
+    }
 }
