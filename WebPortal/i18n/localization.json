@@ -556,7 +556,7 @@
     "PublicationDate": "Publication Date",
     "PublicUrl": "Public URL",
     "CancelSharing": "Cancel Open Data Sharing Request",
-    "CancelSharingDescription": "You may cancel the sharing request at any time before approval. This will completely remove the sharing request from the system. However, the file will still remain in storage and may be shared in the future.",
+    "CancelSharingDescription": "You can cancel this request to share the data file before it is approved.  The request to share will be deleted from system; however, the data file will remain stored in DataHub and may be shared in the future. Once approved, you will not be able to cancel the request.",
     "CancelSharingPrompt": "Do you want to cancel this sharing request? To share this file in the future, the process will have to be restarted from the beginning.",
     "SubmitSignedPdf": "Submit signed PDF document",
     "EnterGcDocsUrl": "Enter GCdocs URL",
@@ -564,12 +564,17 @@
     "Approval_filled_out": "- Approval form has been filled out, now you can generate the approval PDF.",
     "GeneratePDF_explanation": "- Once you generate the approval PDF, please upload it to GCdocs and paste the URL of this file in the section below.",
     "Publish_File": "Publish File",
-    "Publish_As_URL_Desc": "Publish to Open Data as URL and keep the file in Datahub.",
-    "Publish_As_URL": "Publish as URL",
-    "Upload_And_Publish_Desc": "Upload the file to Open Data storage and publish it.",
-    "Upload_And_Publish": "Upload and Publish",
+    "Publish_As_URL_Desc1": "Publish a <b>URL</b> to Open Data. The File is stored in DataHub.",
+    "Publish_As_URL_Desc2": "<b>Note:</b> The URL link will be broken if the File is deleted from DataHub.",
+    "Publish_As_URL": "Publish URL",
+    "Upload_And_Publish_Desc": "Publish an uploaded <b>File</b> to Open Data. A copy of the File is stored in DataHub.",
+    "Upload_And_Publish": "Publish File",
     "Uploading_file_in_progress": "Uploading file in progress. You can wait or come back later if the file is too big. The upload is running in the background.",
-    "Upload_Last_Error": "Last Error: "
+    "Upload_Last_Error": "Last Error: ",
+    "Approval_Filled_out_1": "Once the Open Government Approval Form is completed, generate the approval PDF.",
+    "Approval_Filled_out_2": "Save the generated approval PDF to GCdocs.",
+    "Approval_Filled_out_3": "Paste the GCdocs file link (https://gcdocs.gc.ca/nrcan-rncan/llisapi.dll/link/XXXXXXXX) in the section below.",
+    "Or": "Or"
   },
 
   "PUBLIC-URL-WIZARD": {
