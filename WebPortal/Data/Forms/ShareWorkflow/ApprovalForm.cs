@@ -11,31 +11,31 @@ namespace Datahub.Portal.Data.Forms.ShareWorkflow
         public int ApprovalFormId { get; set; }
 
         /** Section: Business Partner **/
-        [StringLength(32)]
+        [StringLength(256)]
         public string Department_NAME { get; set; }
 
         /** Section: Business Partner **/
-        [StringLength(32)]
+        [StringLength(256)]
         [AeLabel(isDropDown: true, placeholder: " ")]
         public string Sector_NAME { get; set; }
 
         /** Section: Business Partner **/
-        [StringLength(32)]
+        [StringLength(256)]
         [AeLabel(isDropDown: true, placeholder: " ")]
         public string Branch_NAME { get; set; }
 
         /** Section: Business Partner **/
-        [StringLength(32)]
+        [StringLength(256)]
         [AeLabel(isDropDown: true, placeholder: " ")]
         public string Division_NAME { get; set; }
 
         /** Section: Business Partner **/
-        [StringLength(32)]
+        [StringLength(256)]
         [AeLabel(isDropDown: true, placeholder: " ")]
         public string Section_NAME { get; set; }
 
         /** Section: Business Partner **/
-        [StringLength(200)]
+        [StringLength(256)]
         [Required]
         public string Name_NAME { get; set; }
 
@@ -44,17 +44,18 @@ namespace Datahub.Portal.Data.Forms.ShareWorkflow
         public string Phone_TXT { get; set; }
 
         /** Section: Business Partner **/
-        [StringLength(200)]
+        [StringLength(128)]
         [Required]
         public string Email_EMAIL { get; set; }
 
         /** Section: Source Information **/
         [Required]
-        [MaxLength(256)]
+        [StringLength(256)]
         public string Dataset_Title_TXT { get; set; }
 
         /** Section: Source Information **/
         [Required]
+        [StringLength(16)]
         [AeLabel(isDropDown: true)]
         public string Type_Of_Data_TXT { get; set; }
 
