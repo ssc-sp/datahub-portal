@@ -123,6 +123,17 @@ namespace Datahub.Metadata.Model
                 entity.HasKey(e => e.ApprovalFormId);
                 entity.Property(e => e.ApprovalFormId).ValueGeneratedOnAdd();
 
+                entity.Property(e => e.Department_NAME).HasMaxLength(256);
+                entity.Property(e => e.Sector_NAME).HasMaxLength(256);
+                entity.Property(e => e.Branch_NAME).HasMaxLength(256);
+                entity.Property(e => e.Division_NAME).HasMaxLength(256);
+                entity.Property(e => e.Section_NAME).HasMaxLength(256);
+
+                entity.Property(e => e.Name_NAME).HasMaxLength(256).IsRequired();
+                entity.Property(e => e.Phone_TXT).HasMaxLength(32);
+
+                entity.Property(e => e.Email_EMAIL).HasMaxLength(128).IsRequired();
+
                 entity.Property(e => e.Dataset_Title_TXT).HasMaxLength(256).IsRequired();
                 entity.Property(e => e.Type_Of_Data_TXT).HasMaxLength(16).IsRequired();
             });
