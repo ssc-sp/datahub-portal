@@ -63,8 +63,9 @@
                 <AeCard>
                     <AeTypography Variant="h3">@GetStepTitle(OpenDataSharingStatus.OpenGovApprovalForm)</AeTypography>
                     <AeFlex Vertical="true" style="margin: 1rem 1rem 1rem 0rem;">
-                        <AeTypography Variant="p">@Localizer["OPENDATA-WIZARD.Approval_filled_out"]</AeTypography>
-                        <AeTypography Variant="p">@Localizer["OPENDATA-WIZARD.GeneratePDF_explanation"]</AeTypography>
+                        <AeTypography Variant="p">@Localizer["OPENDATA-WIZARD.Approval_Filled_out_1"]</AeTypography>
+                        <AeTypography Variant="p">@Localizer["OPENDATA-WIZARD.Approval_Filled_out_2"]</AeTypography> 
+                        <AeTypography Variant="p">@Localizer["OPENDATA-WIZARD.Approval_Filled_out_3"]</AeTypography>
                     </AeFlex>
                     <AeFlex>
                         <AeButton OnClickEvent=@GenerateApprovalPDF>@Localizer["OPENDATA-WIZARD.GeneratePDF_button"]</AeButton>
@@ -104,7 +105,11 @@
                     @if (!OpenDataFileUploading)
                     {
                         <AeFlex Vertical="true">
-                            <AeTypography Variant="p">@Localizer["OPENDATA-WIZARD.Publish_As_URL_Desc"]</AeTypography>
+                            <AeTypography Variant="div">
+                                <p>@(new MarkupString(Localizer["OPENDATA-WIZARD.Publish_As_URL_Desc1"]))</p>
+                                <p>@(new MarkupString(Localizer["OPENDATA-WIZARD.Publish_As_URL_Desc2"]))</p>
+                            </AeTypography>
+
                             <div>
                                 <AeButton OnClickEvent=@PublishAsUrl Disabled=@_savingData>@Localizer["OPENDATA-WIZARD.Publish_As_URL"]</AeButton>
                             </div>
@@ -116,8 +121,12 @@
                             }
                         </AeFlex>
 
+                        <div>&nbsp;</div>
+                        <div>@Localizer["Or"].</div>
+                        <div>&nbsp;</div>
+
                         <AeFlex Vertical="true">
-                            <AeTypography Variant="p">@Localizer["OPENDATA-WIZARD.Upload_And_Publish_Desc"]</AeTypography>
+                            <AeTypography Variant="p">@(new MarkupString(Localizer["OPENDATA-WIZARD.Upload_And_Publish_Desc"]))</AeTypography>
                             <div>
                                 <AeButton OnClickEvent=@UploadAndPublish Disabled=@_savingData>@Localizer["OPENDATA-WIZARD.Upload_And_Publish"]</AeButton>
                             </div>
