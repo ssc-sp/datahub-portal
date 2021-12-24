@@ -4391,6 +4391,17 @@ body {
   cursor: pointer;
 }
 
+.details-close-button {
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  font-size: 1.5rem;
+}
+.details-close-button:hover {
+  color: #57C4EC;
+  cursor: pointer;
+}
+
 .ae.button.fa-button i {
   margin-right: 0.25rem;
   margin-left: 0.25rem;
