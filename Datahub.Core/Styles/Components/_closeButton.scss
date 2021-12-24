@@ -13,3 +13,16 @@
     }
 }
 
+.details-close-button {
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    font-size: 1.5rem;
+
+    &:hover {
+        color: c.$borderblue;
+        cursor: pointer;
+    }
+}
+
+
