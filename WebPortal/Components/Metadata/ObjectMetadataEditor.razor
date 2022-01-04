@@ -2,10 +2,10 @@
 @using Datahub.Metadata.Model
 @using Datahub.Metadata.DTO
 
-<div>
+<div style="width: 100%">
 @if (_fieldValues != null)
 {
-    <MetadataEditor Preview=@_preview
+    <MetadataEditor Preview=@Preview
                     Definitions=@_definitions
                     FieldValues=@_fieldValues
                     RequiredFields=@_requiredFields
@@ -13,14 +13,11 @@
                     ShowAll=@_showAll
                     OnFieldChanged=@FieldChanged />
 
-    @if (!_preview)
+    @if (!Preview)
     {
-        <div style="margin: 1em 0.5em;">
-            <AeFlex>
+        <div>
+            <AeFlex Vertical="true">
                 <div>
-                    <AeButton OnClickEvent=@SaveChanges Disabled=@_disableSave>@SaveButtonLabel</AeButton>
-                </div>
-                <div style="margin-left: 1rem;">
                     @if (!_showAll)
                     {
                         <AeButton class="light" @onclick=@ToggleShowAll>@Localizer["METADATA-PAGE.ShowMore"]</AeButton>
@@ -29,6 +26,9 @@
                     {
                         <AeButton class="light" @onclick=@ToggleShowAll>@Localizer["METADATA-PAGE.ShowLess"]</AeButton>
                     }
+                </div>
+                <div style="margin-top: 16px">
+                    <AeButton OnClickEvent=@SaveChanges Disabled=@_disableSave>@SaveButtonLabel</AeButton>
                 </div>
             </AeFlex>
             <div>
@@ -60,11 +60,13 @@
     public bool ValidateRequired { get; set; } = true;
 
     [Parameter]
+    public bool Preview { get; set; }
+
+    [Parameter]
     public EventCallback<FieldValueContainer> OnSave{ get; set; }
 
     private FieldDefinitions _definitions;
     private FieldValueContainer _fieldValues;
-    private bool _preview;
     private bool _showAll;
     private bool _savingData;
     private bool _disableSave = true;
@@ -107,7 +109,7 @@
 
     public void TogglePreview()
     {
-        _preview = !_preview;
+        Preview = !Preview;
     }
 
     private bool CheckRequiredFieldValues()
