@@ -44,7 +44,7 @@ else
         <div class="fileListContainer" @onfocusout="UnSelectFiles">
             @if (IsProjectStorage)
             {
-                if (_storageMetadata != null)
+                if (_showStorageDetails && _storageMetadata != null)
                 {
                     <div style="margin-bottom: 10px">
                         <StorageMetadataViewer Metadata=@_storageMetadata />
@@ -53,36 +53,44 @@ else
             }
 
             <div class="file-grid-menu">
-                <FileGridMenu SelectedItem="selectedMetaData" CanAddData=@CanAddData PerformMenuAction="(MenuActions m) => PerformMenuAction(m, selectedMetaData)" IsSearchedData="@IsSearchResults" CurrentUser="@CurrentUserId" Project="@Project"/>
+                <FileGridMenu SelectedItem="selectedMetaData" 
+                              CanAddData=@CanAddData 
+                              PerformMenuAction="(MenuActions m) => PerformMenuAction(m, selectedMetaData)" 
+                              IsSearchedData="@IsSearchResults" 
+                              CurrentUser="@CurrentUserId" 
+                              ShowingStorage=@_showStorageDetails
+                              Project="@Project"/>
             </div>
 
             <FileGridHeader IsSharedFiles=@CurrentFolder.isShared SortAscending=@CurrentFolder.sortAscending ToggleSort="ToggleSort" IsSearchedData="IsSearchResults" />
-            @foreach (var child in CurrentFolder.children)
-            {
-                var isSelected = child.id == selectedMetaData?.id;
-                if (child.dataType == MetadataType.Folder)
+            <div class=@FileGridClass>
+                @foreach (var child in CurrentFolder.children)
                 {
-                    <FileGridFolder Folder=@(child as Folder) 
-                                    IsSelected=@isSelected 
-                                    OnEllipsisClick="(e) => OnEllipsisClick(child as Folder, e)" 
-                                    SelectRow="() => SelectRow(child)" 
-                                    RemoveFolderFromList="RemoveFolderFromList" 
-                                    GetFilesForFolder="() => GetChildFolder(child as Folder)" 
-                                    PerformMenuAction="(MenuActions m) => PerformMenuAction(m, child)"  
-                                    CurrentUser="@CurrentUserId"/>
+                    var isSelected = child.id == selectedMetaData?.id;
+                    if (child.dataType == MetadataType.Folder)
+                    {
+                        <FileGridFolder Folder=@(child as Folder) 
+                                        IsSelected=@isSelected 
+                                        OnEllipsisClick="(e) => OnEllipsisClick(child as Folder, e)" 
+                                        SelectRow="() => SelectRow(child)" 
+                                        RemoveFolderFromList="RemoveFolderFromList" 
+                                        GetFilesForFolder="() => GetChildFolder(child as Folder)" 
+                                        PerformMenuAction="(MenuActions m) => PerformMenuAction(m, child)"  
+                                        CurrentUser="@CurrentUserId"/>
+                    }
+                    else
+                    {
+                        <FileGridFiles File=@(child as FileMetaData) 
+                                       IsSelected=@isSelected 
+                                       OnEllipsisClick="(e) => OnEllipsisClick(child as FileMetaData, e)" 
+                                       SelectRow="() => SelectRow(child)" 
+                                       PerformMenuAction="(MenuActions m) => PerformMenuAction(m, child)" 
+                                       IsSearchedData="IsSearchResults" 
+                                       CurrentUser="@CurrentUserId" 
+                                       Project="@Project" />
+                    }
                 }
-                else
-                {
-                    <FileGridFiles File=@(child as FileMetaData) 
-                                   IsSelected=@isSelected 
-                                   OnEllipsisClick="(e) => OnEllipsisClick(child as FileMetaData, e)" 
-                                   SelectRow="() => SelectRow(child)" 
-                                   PerformMenuAction="(MenuActions m) => PerformMenuAction(m, child)" 
-                                   IsSearchedData="IsSearchResults" 
-                                   CurrentUser="@CurrentUserId" 
-                                   Project="@Project" />
-                }
-            }
+            </div>
         </div>
 
     }
@@ -132,10 +140,14 @@ else
     private bool _showingDetails;
     private bool isLoading = false;
 
+    private bool _showStorageDetails = true;
+
     private List<string> allFolders = new List<string>();
 
     private string CurrentUserId => CurrentUser?.Id ?? string.Empty;
     private bool IsProjectStorage => !string.IsNullOrEmpty(Project);
+
+    private string FileGridClass => _showStorageDetails ? "file-grid-scroll" : "file-grid-scroll-lg";
 
     public bool LowMemoryMode
     {
@@ -266,7 +278,8 @@ else
 
     private void ToggleAddData()
     {
-        RenderFragment fragment = @<AddDataBar />;
+        RenderFragment fragment = 
+    @<AddDataBar />;
         UI.ToggleRightSidebar(fragment);
     }
 
@@ -277,16 +290,21 @@ else
             case MenuActions.DeleteRow:
             {
                 var messages = new List<string>() { Localizer["FILE-GRID-PAGE.ConfirmDeletePrompt", item.name] };
-                await UI.ToggleModal(@<UserChoiceModal HeaderText="Confirm Delete" ChoiceTextList=@messages OnDecision="(a) => OnConfirmDelete(a, item)" />);
-            }
-            break;
+                    await UI.ToggleModal(@<UserChoiceModal HeaderText="Confirm Delete" ChoiceTextList=@messages OnDecision="(a) => OnConfirmDelete(a, item)" />
+        );
+                }
+                break;
 
             case MenuActions.DownloadFile:
-            {
-                var uri = await DataRetrievalService.DownloadFile(item);    
-                await Task.Run(() => RedirectAndDownload(uri));                
-            }
-            break;
+                {
+                    var uri = await DataRetrievalService.DownloadFile(item);    
+                    await Task.Run(() => RedirectAndDownload(uri));                
+                }
+                break;
+
+            case MenuActions.ToggleStorageDetails:
+                _showStorageDetails = !_showStorageDetails;
+                break;
 
             case MenuActions.OpenDetails:
             {
@@ -550,7 +568,7 @@ else
 
     private void HandleDetailsClose()
     {
-        _showingDetails = false;
         _currentDetails = null;
+        _showingDetails = false;
     }
 }
