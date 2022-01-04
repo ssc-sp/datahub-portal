@@ -1,11 +1,11 @@
 ﻿@using Datahub.Metadata.Model
 
-<div style="margin: 1rem 0rem;">
+<div style="margin-bottom: 16px;">
 
     <AeFlex Vertical="true">
     
         <!-- field name -->
-        <div style="margin: 0em 0.5em;">
+        <div>
             <div>
                 <AeTypography style="cursor: pointer;">
                     @if (!Preview && Required && FieldValueEmpty)
@@ -29,18 +29,14 @@
         </div>
 
         <!-- value -->
-        <div style="margin: 0.5em;">
+        <div>
             <div class="customuserinput">
                 @if (Preview)
                 {
                     _fieldType = FieldType.Preview;
-                    if (!FieldDefinition.HasChoices)
-                    {
-                        <span>@BoundValue</span>
-                    }
-                    {
-                        <span>@ChoiceDisplay</span>
-                    }
+                    <span style="font-weight: bold; font-size: 0.9em;">
+                        @(!FieldDefinition.HasChoices ? BoundValue : ChoiceDisplay)
+                    </span>
                 }
                 else
                 {
@@ -209,7 +205,7 @@
 
     private bool CanAcceptTranslation()
     {
-        if (IsKeywordField())
+        if (Preview || IsKeywordField())
             return false;
 
         return FieldPair?.GetPaired(FieldValue) is not null;
