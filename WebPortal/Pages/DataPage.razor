@@ -4,7 +4,14 @@
 @page "/data"
 @page "/data/{uploaded}"
 
-<FileGrid CurrentFolder="ApiService.CurrentFolder" CanAddData="true" />
+<div style="padding: 2rem;">
+    <AeCard>
+        <ChildContent>
+            <FileGrid CurrentFolder="ApiService.CurrentFolder" CanAddData="true" />
+        </ChildContent>
+    </AeCard>
+    <div>&nbsp;</div>
+</div>
 
 @code
 {

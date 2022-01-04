@@ -65,7 +65,7 @@
     "OwnedBy": "Appartenant à"
   },
   "FILE-GRID-PAGE": {
-    "AddData": "Ajouter des données",
+    "AddData": "Ajouter des Données",
     "ConfirmDeletePrompt": "Êtes-vous sûr de vouloir supprimer définitivement '{0}'?",
     "CreateFolderPrompt": "Entrez le nom du nouveau dossier",
     "MoveToFolderPrompt": "Sélectionnez le dossier de destination",
@@ -214,7 +214,9 @@
   "TermsOfUse": "Modalités d’utilisation",
   "Unclassified": "Non classifié",
   "Versions": "Versions",
-  "ViewDetails": "Voir les renseignements",
+  "ViewDetails": "Détails du fichier",
+  "ShowStorageDetails": "Afficher le stockage",
+  "HideStorageDetails": "Masquer le stockage",
   "Viewer": "Visualiseur",
   "Viewers": "Visualiseurs",
   "My Projects": "Mes Projets",
