@@ -9,9 +9,14 @@
     var displayFields = Preview ? Definitions.Fields : EnumerateFields(!ShowAll);
 
     <div>
-        <div style="margin: 1rem 1rem 0rem 0rem; color: #57C4EC;">
-           <i class="fa fa-language" aria-hidden="true"></i>&nbsp;@translationNote
-        </div>
+        @if (!Preview)
+        {
+            <div>
+                <AeTypography Variant="p" style="color: #57C4EC;">
+                    <i class="fa fa-language" aria-hidden="true"></i>&nbsp;@translationNote
+                </AeTypography>               
+            </div>
+        }
 
         @foreach (var definition in displayFields)
         {
