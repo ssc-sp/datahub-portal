@@ -34,14 +34,9 @@
                 @if (Preview)
                 {
                     _fieldType = FieldType.Preview;
-                    if (!FieldDefinition.HasChoices)
-                    {
-                        <span>@BoundValue</span>
-                    }
-                    else
-                    {
-                        <span>@ChoiceDisplay</span>
-                    }
+                    <span style="font-weight: bold; font-size: 0.9em;">
+                        @(!FieldDefinition.HasChoices ? BoundValue : ChoiceDisplay)
+                    </span>
                 }
                 else
                 {

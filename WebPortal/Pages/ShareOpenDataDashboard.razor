@@ -4,6 +4,8 @@
 @inject IPublicDataFileService PublicFileService
 @inject IMetadataBrokerService MetadataBrokerService
 @inject IDatahubAuditingService AuditingService
+@inject IEmailNotificationService EmailNotificationService
+@inject ISystemNotificationService SystemNotificationService
 
 <div style="padding-left: 2rem; padding-right: 2rem">
 
@@ -84,6 +86,19 @@
                 // get the metadata
                 var fieldValues = await MetadataBrokerService.GetObjectMetadataValues(fileId);
                 await PublicFileService.ApproveOpenDataShare(file.File_ID, GetPublicationDate(fieldValues));
+
+                var project = await PublicFileService.GetProjectWithUsers(file.ProjectCode_CD);
+                var notificationKey = "SYSTEM-NOTIFICATION.NOTIFICATION-TEXT.OpenDataPublicationApproved";
+
+                var tasks = new List<Task>()
+                {
+                    // todo: send email 
+                    SystemNotificationService.CreateSystemNotificationWithLink(file.RequestingUser_ID,
+                        $"/share/opendata/{file.File_ID}", "SYSTEM-NOTIFICATION.ViewSharingStatus",
+                        notificationKey, file.Filename_TXT, new BilingualStringArgument(project.ProjectInfo.ProjectNameEn, project.ProjectInfo.ProjectNameFr),
+                        file.PublicationDate_DT?.ToShortDateString())
+                };
+                await Task.WhenAll(tasks);
             }
         }
         catch (Exception ex)

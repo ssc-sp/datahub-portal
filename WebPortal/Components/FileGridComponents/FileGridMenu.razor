@@ -42,6 +42,13 @@
     <strong>@Localizer["FILE-GRID-PAGE.AddData"]</strong>
 </FileGridMenuButton>
 
+@if (IsProject)
+{
+    <FileGridMenuButton IconClass="far fa-info-circle" Enabled="true" OnClick="ToggleStorageDetails">
+        @(ShowingStorage ? Localizer["HideStorageDetails"] : Localizer["ShowStorageDetails"])
+    </FileGridMenuButton>
+}
+
 @code {
 
     [Parameter]
@@ -62,10 +69,15 @@
     [Parameter]
     public bool CanAddData { get; set; }
 
+    [Parameter]
+    public bool ShowingStorage { get; set; } = true;
+
     private Task DeleteRow() => PerformMenuAction.InvokeAsync(MenuActions.DeleteRow);
-    
+
     private Task DownloadFile() => PerformMenuAction.InvokeAsync(MenuActions.DownloadFile);
-    
+
+    private Task ToggleStorageDetails() => PerformMenuAction.InvokeAsync(MenuActions.ToggleStorageDetails);
+
     private Task OpenDetails() => PerformMenuAction.InvokeAsync(MenuActions.OpenDetails);
     
     private Task OpenVersions() => PerformMenuAction.InvokeAsync(MenuActions.OpenVersions);
