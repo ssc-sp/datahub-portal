@@ -789,7 +789,7 @@
       "PublicUrlShareApproved": "Your request to share {0} in project {1} has been approved.",
       "PublicUrlShareApprovedLater": "Your request to share {0} in project {1} has been approved. The file will be publicly available on {2}."
     },
-    "TestStringThreeArgs": "Here are three things: {0}, {1}, and {2}"
+    "TestNotification": "This is a test."
   },
   "OPENDATA-DASHBOARD": {
     "FileName": "File Name",
