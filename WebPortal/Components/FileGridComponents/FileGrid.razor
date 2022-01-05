@@ -64,7 +64,7 @@ else
 
             <FileGridHeader IsSharedFiles=@CurrentFolder.isShared SortAscending=@CurrentFolder.sortAscending ToggleSort="ToggleSort" IsSearchedData="IsSearchResults" />
             <div class=@FileGridClass>
-                @foreach (var child in CurrentFolder.children)
+                @foreach (var child in GetCurrentFolderChildren())
                 {
                     var isSelected = child.id == selectedMetaData?.id;
                     if (child.dataType == MetadataType.Folder)
@@ -278,8 +278,7 @@ else
 
     private void ToggleAddData()
     {
-        RenderFragment fragment = 
-    @<AddDataBar />;
+        RenderFragment fragment = @<AddDataBar />;
         UI.ToggleRightSidebar(fragment);
     }
 
@@ -342,9 +341,10 @@ else
             case MenuActions.OpenVersions:
             {
                 RenderFragment frag = @<Versions File="selectedMetaData as FileMetaData"></Versions>;
-                await UI.ToggleModal(@<RenderFragmentModal Fragment=frag />);
-            }
-            break;
+                    await UI.ToggleModal(@<RenderFragmentModal Fragment=frag />
+    );
+                }
+                break;
 
             case MenuActions.ShareFile:
                 {
@@ -571,4 +571,17 @@ else
         _currentDetails = null;
         _showingDetails = false;
     }
+
+    private IEnumerable<BaseMetadata> GetCurrentFolderChildren()
+    {
+        return CurrentFolder.children.Select(MakeCompareKey).OrderBy(c => c.Key).Select(c => c.Item);
+    }
+
+    private FolderItemCompareKey MakeCompareKey(BaseMetadata item)
+    {
+        var lowerName = (item.name ?? string.Empty).ToLower();
+        return new FolderItemCompareKey(item is Folder ? $"___{lowerName}" : lowerName, item);    
+    }
+
+    record FolderItemCompareKey(string Key, BaseMetadata Item);
 }
