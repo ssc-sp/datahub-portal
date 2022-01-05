@@ -172,7 +172,7 @@
     "KeywordHint": "Cliquez pour ajouter"
   },
   "SYSTEM-NOTIFICATION": {
-    "TestStringThreeArgs": "Voici trois choses: {0}, {1}, et {2}",
+    "TestNotification": "C'est un test.'",
     "NOTIFICATION-TEXT": {
       "ServiceAccessRequested": "L’utilisateur {0} a demandé l’accès au service {1} dans le projet de données {2}.",
       "ServiceAccessRequestApproved": "Votre demande d'accès au service {0} dans le projet de données {1} a été approuvée.",
