@@ -427,6 +427,7 @@ namespace Datahub.Portal
 
             services.AddScoped<IEmailNotificationService, EmailNotificationService>();
             services.AddScoped<ISystemNotificationService, SystemNotificationService>();
+            services.AddSingleton<IPropagationService, PropagationService>();
 
             services.AddSingleton<ServiceAuthManager>();
 
