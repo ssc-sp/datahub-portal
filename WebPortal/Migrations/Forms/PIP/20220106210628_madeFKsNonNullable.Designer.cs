@@ -4,6 +4,7 @@ using Datahub.ProjectForms.Data.PIP;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Datahub.Portal.Migrations.Forms.PIP
 {
     [DbContext(typeof(PIPDBContext))]
-    partial class PIPDBContextModelSnapshot : ModelSnapshot
+    [Migration("20220106210628_madeFKsNonNullable")]
+    partial class madeFKsNonNullable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -737,7 +739,7 @@ namespace Datahub.Portal.Migrations.Forms.PIP
                     b.HasOne("Datahub.ProjectForms.Data.PIP.PIP_FiscalYears", "FiscalYear")
                         .WithMany()
                         .HasForeignKey("FiscalYearId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Datahub.ProjectForms.Data.PIP.PIP_Tombstone", "PIP_Tombstone")
@@ -769,7 +771,7 @@ namespace Datahub.Portal.Migrations.Forms.PIP
                     b.HasOne("Datahub.ProjectForms.Data.PIP.PIP_FiscalYears", "FiscalYear")
                         .WithMany()
                         .HasForeignKey("FiscalYearId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Datahub.ProjectForms.Data.PIP.PIP_Tombstone", "PIP_Tombstone")
@@ -786,7 +788,7 @@ namespace Datahub.Portal.Migrations.Forms.PIP
                     b.HasOne("Datahub.ProjectForms.Data.PIP.PIP_FiscalYears", "FiscalYear")
                         .WithMany()
                         .HasForeignKey("FiscalYearId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("FiscalYear");
