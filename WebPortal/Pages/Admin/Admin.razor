@@ -30,37 +30,6 @@
             IsDatahubAdmin=@IsDataHubAdmin()
         />
 
-@*
-        <AeCard>
-            <Header>        <AeTypography Variant="h1">@Localizer["Authorize Users"]</AeTypography> </Header>
-        <ChildContent>
-
-        @if (_usersAuthorization != null)
-        {
-            <AePaginatedTable Accessors="accessorFunctions"
-            T="Datahub_Project_Access_Request"
-                     Dataset="_usersAuthorization"
-                     Renderers="renderFunctions"
-                     @ref="@_table2"                     
-                     GridTemplateColumns="2fr 3fr 2fr 3fr 2fr" 
-                     Page="@_lastClicked2"
-                     Headers="LocalizeHeaders(headers)"
-                     PageSize="10"/>
-
-                @if (_table2 != null)
-                            {            
-            <AePagination Pageable="@_table2" OnPageClick="OnTableClick2"> 
-            <LeftIcon><i class='fad fa-chevron-double-left'></i></LeftIcon> 
-            <RightIcon><i class='fad fa-chevron-double-right'></i></RightIcon>
-            </AePagination>
-                            }
-        }
-        else
-        {
-            <div>@Localizer["Loading data..."]</div>
-        }
-        </ChildContent>
-        </AeCard>*@
         <div>&nbsp;</div>
 
         <ServiceCreationRequestTable 
@@ -167,8 +136,6 @@
 </div>
 @code {
 
-    private int _lastClicked2 = 0;
-
     [CascadingParameter]
     private Task<AuthenticationState> authenticationStateTask { get; set; }
 
@@ -176,23 +143,7 @@
 
     private List<string> _authorizedRoles;
 
-    private IPageableComponent _table2;
-
-    private List<Datahub_Project_Access_Request> _usersAuthorization;
-
-
     private DatahubProjectDBContext projectContext;
-
-    private List<string> headers = new List<string>
-{
-        "Project", "User", "Service", "Date","Actions"
-    };
-
-
-    private void OnTableClick2(int pageIndex)
-    {
-        _lastClicked2 = pageIndex;
-    }
 
     private string TestNotificationUserSearchFilter { get; set; } = string.Empty;
     private bool IsSendingSystemNotification { get; set; } = false;
@@ -279,36 +230,9 @@
         StateHasChanged();
     }
 
-    // Accessor functions to retrieve cell value
-    private List<Func<Datahub_Project_Access_Request, string>> accessorFunctions = new List<Func<Datahub_Project_Access_Request, string>>
-{
-        p => { return p.Project.Project_Name; },
-        p => { return p.User_Name; },
-        p => { return p.RequestServiceType; },
-        p => { return p.Request_DT.ToShortDateString(); },
-        p => { return ".."; },
-    };
-
-
-    // [Optional] Can define custom rendering for columns, order matters
-    private List<Func<Datahub_Project_Access_Request, RenderFragment>> renderFunctions;
     private void GetServiceType(Datahub_Project_Access_Request request)
     { 
 
-    }
-    private async Task AuthorizeUser(Datahub_Project_Access_Request r)
-    {
-        r.Completion_DT = DateTime.UtcNow;
-        await projectContext.SaveChangesAsync();
-
-        var serviceName = r.RequestServiceType;
-
-        await EmailService.SendServiceAccessGrantedNotification(serviceName, r.Project.ProjectInfo, r.User_ID);
-        await SystemNotificationService.CreateSystemNotificationWithLink(r.User_ID, $"/project/{r.Project.Project_Acronym_CD}", "SYSTEM-NOTIFICATION.GoToProject",
-            "SYSTEM-NOTIFICATION.NOTIFICATION-TEXT.ServiceAccessRequestApproved", serviceName,
-            new BilingualStringArgument(r.Project.ProjectInfo.ProjectNameEn, r.Project.ProjectInfo.ProjectNameFr));
-
-        await RefreshData();
     }
 
     protected override void OnAfterRender(bool firstRender)
@@ -322,37 +246,12 @@
 
 
 
-    private async Task RevokeAccess(Datahub_Project_Access_Request r)
-    {
-        r.Completion_DT = null;
-        await projectContext.SaveChangesAsync();
-
-        var serviceName = r.RequestServiceType;
-
-        await EmailService.SendAccessRevokedNotification(serviceName, r.Project.ProjectInfo, r.User_ID);
-        await SystemNotificationService.CreateSystemNotification(r.User_ID, "SYSTEM-NOTIFICATION.NOTIFICATION-TEXT.ServiceAccessRevoked",
-            serviceName, new BilingualStringArgument(r.Project.ProjectInfo.ProjectNameEn, r.Project.ProjectInfo.ProjectNameFr));
-
-        await RefreshData();
-    }
 
     private bool IsDataHubAdmin()
     {
         return _user.IsInRole(RoleConstants.DATAHUB_ROLE_ADMIN);
     }
 
-    private async Task RefreshData()
-    {
-
-        var userId = await UserInformationService.GetUserIdString();        
-        using var ctx = dbFactory.CreateDbContext();  
-
-        var validProjects = (IsDataHubAdmin() ? ctx.Project_Users : ctx.Project_Users.Where(u => u.IsAdmin && u.User_ID == userId)).Select(p => p.Project.Project_ID).ToHashSet();
-
-        var allAuths = await projectContext.Access_Requests.Include(a => a.Project).OrderByDescending(a => a.Request_DT).ToListAsync();
-        _usersAuthorization = allAuths.Where(a => validProjects.Contains(a.Project.Project_ID)).ToList();
-
-    }
 
     private async Task ValidateRequests()
     {
@@ -372,28 +271,6 @@
         CurrentUserId = await UserInformationService.GetUserIdString();
 
         await ResetTestRecipient();
-
-        await RefreshData();
-
-        renderFunctions = new List<Func<Datahub_Project_Access_Request, RenderFragment>>
-        {
-                null,
-                null,
-                null,
-                null,
-                new Func<Datahub_Project_Access_Request, RenderFragment>(a => {
-                    if (a.Completion_DT != null)
-                    {
-                        return @<div>@Localizer["Authorized"] <AeButton @onclick="async () => await RevokeAccess(a)">@Localizer["Revoke"]</AeButton> </div>;
-                    }
-                   else
-      
-                 {
-                       return @<AeButton @onclick="async () => await AuthorizeUser(a)">Authorize user</AeButton>;
-                   }
-                })
-
-        };
 
     }
 
