@@ -193,6 +193,8 @@ namespace Datahub.ProjectForms.Data.PIP
 
 
         public PIP_Tombstone PIP_Tombstone { get; set; }
+        public int? FiscalYearId { get; set; }
+        public PIP_FiscalYears FiscalYear { get; set; }
 
 
         [AeFormIgnore]

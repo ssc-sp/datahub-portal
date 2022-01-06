@@ -4,6 +4,7 @@ using Datahub.ProjectForms.Data.PIP;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Datahub.Portal.Migrations.Forms.PIP
 {
     [DbContext(typeof(PIPDBContext))]
-    partial class PIPDBContextModelSnapshot : ModelSnapshot
+    [Migration("20220106204449_removeFKSagain")]
+    partial class removeFKSagain
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -119,9 +121,6 @@ namespace Datahub.Portal.Migrations.Forms.PIP
                     b.Property<string>("Explanation")
                         .HasMaxLength(8000)
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("FiscalYearId")
-                        .HasColumnType("int");
 
                     b.Property<string>("Frequency_DESC")
                         .HasMaxLength(1000)
@@ -249,8 +248,6 @@ namespace Datahub.Portal.Migrations.Forms.PIP
 
                     b.HasKey("IndicatorAndResult_ID");
 
-                    b.HasIndex("FiscalYearId");
-
                     b.HasIndex("PIP_TombstoneTombstone_ID");
 
                     b.ToTable("IndicatorAndResults");
@@ -293,9 +290,6 @@ namespace Datahub.Portal.Migrations.Forms.PIP
 
                     b.Property<DateTime>("Date_Updated_DT")
                         .HasColumnType("datetime2");
-
-                    b.Property<int?>("FiscalYearId")
-                        .HasColumnType("int");
 
                     b.Property<string>("Future_Mitigation_Activities_TXT")
                         .IsRequired()
@@ -463,8 +457,6 @@ namespace Datahub.Portal.Migrations.Forms.PIP
 
                     b.HasKey("Risks_ID");
 
-                    b.HasIndex("FiscalYearId");
-
                     b.HasIndex("PIP_TombstoneTombstone_ID");
 
                     b.ToTable("Risks");
@@ -520,9 +512,6 @@ namespace Datahub.Portal.Migrations.Forms.PIP
                     b.Property<string>("Does_Indicator_Enable_Program_Measure_Equity_Option")
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
-
-                    b.Property<int?>("FiscalYearId")
-                        .HasColumnType("int");
 
                     b.Property<DateTime?>("Functional_SignOff_DT")
                         .HasColumnType("datetime2");
@@ -704,8 +693,6 @@ namespace Datahub.Portal.Migrations.Forms.PIP
 
                     b.HasKey("Tombstone_ID");
 
-                    b.HasIndex("FiscalYearId");
-
                     b.ToTable("Tombstones");
                 });
 
@@ -734,15 +721,9 @@ namespace Datahub.Portal.Migrations.Forms.PIP
 
             modelBuilder.Entity("Datahub.ProjectForms.Data.PIP.PIP_IndicatorAndResults", b =>
                 {
-                    b.HasOne("Datahub.ProjectForms.Data.PIP.PIP_FiscalYears", "FiscalYear")
-                        .WithMany()
-                        .HasForeignKey("FiscalYearId");
-
                     b.HasOne("Datahub.ProjectForms.Data.PIP.PIP_Tombstone", "PIP_Tombstone")
                         .WithMany()
                         .HasForeignKey("PIP_TombstoneTombstone_ID");
-
-                    b.Navigation("FiscalYear");
 
                     b.Navigation("PIP_Tombstone");
                 });
@@ -764,26 +745,11 @@ namespace Datahub.Portal.Migrations.Forms.PIP
 
             modelBuilder.Entity("Datahub.ProjectForms.Data.PIP.PIP_Risks", b =>
                 {
-                    b.HasOne("Datahub.ProjectForms.Data.PIP.PIP_FiscalYears", "FiscalYear")
-                        .WithMany()
-                        .HasForeignKey("FiscalYearId");
-
                     b.HasOne("Datahub.ProjectForms.Data.PIP.PIP_Tombstone", "PIP_Tombstone")
                         .WithMany()
                         .HasForeignKey("PIP_TombstoneTombstone_ID");
 
-                    b.Navigation("FiscalYear");
-
                     b.Navigation("PIP_Tombstone");
-                });
-
-            modelBuilder.Entity("Datahub.ProjectForms.Data.PIP.PIP_Tombstone", b =>
-                {
-                    b.HasOne("Datahub.ProjectForms.Data.PIP.PIP_FiscalYears", "FiscalYear")
-                        .WithMany()
-                        .HasForeignKey("FiscalYearId");
-
-                    b.Navigation("FiscalYear");
                 });
 
             modelBuilder.Entity("Datahub.ProjectForms.Data.PIP.PIP_TombstoneRisks", b =>
