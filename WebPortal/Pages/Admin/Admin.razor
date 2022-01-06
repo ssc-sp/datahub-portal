@@ -83,6 +83,14 @@
         </ChildContent>
         </AeCard>
         <div>&nbsp;</div>
+
+
+        <ServiceCreationRequestTable 
+            UserId=@CurrentUserId
+            IsDatahubAdmin=@IsDataHubAdmin()
+        />
+        
+        @*
         <AeCard>
             <Header>        <AeTypography Variant="h1">@Localizer["Service Requests"]</AeTypography></Header>
                     <ChildContent>
@@ -102,6 +110,8 @@
         }
         </ChildContent>
         </AeCard>
+*@
+
         <div>&nbsp;</div>
         @if (EmailService.IsDevTestMode())
         {
@@ -206,6 +216,8 @@
 
     [CascadingParameter]
     private Task<AuthenticationState> authenticationStateTask { get; set; }
+
+    private string CurrentUserId { get; set; }
 
     private List<string> _authorizedRoles;
 
@@ -514,6 +526,7 @@
         projectContext = dbFactory.CreateDbContext();
         _authorizedRoles = ServiceAuthManager.GetAdminProjectRoles();
         _user = (await authenticationStateTask).User;
+        CurrentUserId = await UserInformationService.GetUserIdString();
 
         await ResetTestRecipient();
 
