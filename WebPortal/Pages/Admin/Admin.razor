@@ -23,41 +23,6 @@
             IsDatahubAdmin=@IsDataHubAdmin()
         />
 
-        @*<AeCard>
-            <Header>
-        <AeTypography Variant="h1">@Localizer["Project User Requests"]</AeTypography>
-        </Header>
-        <ChildContent>
-        @if (_userProjectAuthorization != null)
-        {
-            <AeFlex Vertical>
-                <AePaginatedTable Accessors="GetProjectRequestAccessorFunctions()"
-                        T="Datahub_Project_User_Request"
-                         Dataset="_userProjectAuthorization"
-                         @ref="_table1"
-                         Page="@_lastClicked1"
-                         GridTemplateColumns="3fr 3fr 3fr 3fr"
-                         PageSize="10"
-                         Renderers="projectReqRenderFunctions"
-                         Headers="LocalizeHeaders(projectReqheaders)" />
-
-                @if (_table1 != null)
-                            {
-                                <AePagination Pageable="@_table1" OnPageClick="OnTableClick1"> 
-                                    <LeftIcon><i class='fad fa-chevron-double-left'></i></LeftIcon> 
-                                    <RightIcon><i class='fad fa-chevron-double-right'></i></RightIcon>
-                                </AePagination>
-                            }
-                        </AeFlex>
-        }
-        else
-        {
-            <div>@Localizer["Loading data..."]</div>
-        }
-        </ChildContent>
-        </AeCard>    *@
-
-
         <div>&nbsp;</div>
         <AeCard>
             <Header>        <AeTypography Variant="h1">@Localizer["Authorize Users"]</AeTypography> </Header>
@@ -195,7 +160,6 @@
 </div>
 @code {
 
-    private int _lastClicked1 = 0;
     private int _lastClicked2 = 0;
 
     [CascadingParameter]
@@ -205,29 +169,18 @@
 
     private List<string> _authorizedRoles;
 
-    private IPageableComponent _table1;
     private IPageableComponent _table2;
 
     private List<Datahub_Project_Access_Request> _usersAuthorization;
 
-    private List<Datahub_Project_User_Request> _userProjectAuthorization;
 
     private DatahubProjectDBContext projectContext;
-
-    private List<string> projectReqheaders = new List<string>
-{
-        "Project", "User", "Date","Actions"
-    };
 
     private List<string> headers = new List<string>
 {
         "Project", "User", "Service", "Date","Actions"
     };
 
-    private void OnTableClick1(int pageIndex)
-    {
-        _lastClicked1 = pageIndex;
-    }
 
     private void OnTableClick2(int pageIndex)
     {
@@ -329,20 +282,9 @@
         p => { return ".."; },
     };
 
-    private List<Func<Datahub_Project_User_Request, string>> GetProjectRequestAccessorFunctions()
-    {
-        return new List<Func<Datahub_Project_User_Request, string>>
-        {
-            p => { return p.Project.Project_Name; },
-            p => { return p.User_ID; },
-            p => { return p.Requested_DT.ToShortDateString(); },
-            p => { return ".."; },
-        };
-    }
 
     // [Optional] Can define custom rendering for columns, order matters
     private List<Func<Datahub_Project_Access_Request, RenderFragment>> renderFunctions;
-    private List<Func<Datahub_Project_User_Request, RenderFragment>> projectReqRenderFunctions;
     private void GetServiceType(Datahub_Project_Access_Request request)
     { 
 
@@ -371,40 +313,7 @@
         }
     }
 
-    private async Task DeleteProjectUser(Datahub_Project_User_Request r)
-    {
-        projectContext.Project_Users_Requests.Remove(r);
-        await projectContext.SaveChangesAsync();  
 
-        await RefreshData();        
-    }
-
-    private async Task AuthorizeProjectUser(Datahub_Project_User_Request r)
-    {
-        var approvedDate = DateTime.Now;
-
-        r.ApprovedUser = await UserInformationService.GetUserIdString();
-        r.Approved_DT = approvedDate;
-        var userId = await MSGraphService.GetUserEmail(r.User_ID, CancellationToken.None);
-        var request = new Datahub_Project_User()
-        {
-            User_ID = r.User_ID,
-            Project = r.Project,
-            ApprovedUser = await UserInformationService.GetUserIdString(),
-            Approved_DT = approvedDate,
-            IsAdmin = false,
-            IsDataApprover = false,
-            User_Name = userId.ToLower() 
-        };
-
-        projectContext.Project_Users.Add(request);
-        await projectContext.SaveChangesAsync();
-        var serviceName = r.Project.ProjectName;
-        await EmailService.SendServiceAccessGrantedNotification(serviceName, r.Project.ProjectInfo, r.User_ID);
-        await ServiceAuthManager.ClearProjectAdminCache();
-
-        await RefreshData();
-    }
 
     private async Task RevokeAccess(Datahub_Project_Access_Request r)
     {
@@ -435,8 +344,6 @@
 
         var allAuths = await projectContext.Access_Requests.Include(a => a.Project).OrderByDescending(a => a.Request_DT).ToListAsync();
         _usersAuthorization = allAuths.Where(a => validProjects.Contains(a.Project.Project_ID)).ToList();
-        var allProjectAuthorization = await projectContext.Project_Users_Requests.Include(a => a.Project).OrderByDescending(a => a.Requested_DT).ToListAsync();
-        _userProjectAuthorization = allProjectAuthorization.Where(a => validProjects.Contains(a.Project.Project_ID)).ToList();
 
     }
 
@@ -460,27 +367,6 @@
         await ResetTestRecipient();
 
         await RefreshData();
-
-        projectReqRenderFunctions = new List<Func<Datahub_Project_User_Request, RenderFragment>>
-        {
-                null,
-                user => @<div class="help icon-container"><GraphUserInformation UserId="@user.User_ID" IsUserNameRequested="true"></GraphUserInformation>  </div>,                
-                null,
-                new Func<Datahub_Project_User_Request, RenderFragment>(a => {
-                    if (a.Approved_DT != null)
-                    {
-                        return 
-    @<div>@Localizer["Authorized"]</div>;
-                    }
-                   else
-      
-                 {
-                       return @<div><AeButton @onclick="async () => await AuthorizeProjectUser(a)">Authorize user</AeButton>;
-                       <AeButton @onclick="async () => await DeleteProjectUser(a)">Delete Request</AeButton></div>;
-                   }
-                })
-
-        };
 
         renderFunctions = new List<Func<Datahub_Project_Access_Request, RenderFragment>>
         {
