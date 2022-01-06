@@ -111,9 +111,9 @@
         serviceRenderers = new List<Func<Datahub_ProjectServiceRequests, RenderFragment>>()
         {
             null,
-            p => @<div>@p.User_Name ?? @Localizer["N/A"]</div>,
+            p => @<div>@(p.User_Name ?? @Localizer["N/A"])</div>,
             null,
-            p => @<div>@p.Is_Completed?.ToShortDateString() ?? @Localizer["N/A"]</div>,
+            p => @<div>@(p.Is_Completed?.ToShortDateString() ?? @Localizer["N/A"])</div>,
             p => 
             {
                 if (!p.Is_Completed.HasValue)
