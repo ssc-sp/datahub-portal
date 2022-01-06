@@ -84,34 +84,11 @@
         </AeCard>
         <div>&nbsp;</div>
 
-
         <ServiceCreationRequestTable 
             UserId=@CurrentUserId
             IsDatahubAdmin=@IsDataHubAdmin()
         />
         
-        @*
-        <AeCard>
-            <Header>        <AeTypography Variant="h1">@Localizer["Service Requests"]</AeTypography></Header>
-                    <ChildContent>
-
-        @if (_serviceRequests != null)
-        {
-            <AeTable 
-                Accessors=@serviceRequestAccessors
-                Dataset=@_serviceRequests
-                Renderers=@serviceRenderers
-                Headers=@LocalizeHeaders(serviceReqHeaders)
-            />
-        }
-        else
-        {
-            <div>@Localizer["Loading data..."]</div>
-        }
-        </ChildContent>
-        </AeCard>
-*@
-
         <div>&nbsp;</div>
         @if (EmailService.IsDevTestMode())
         {
@@ -228,8 +205,6 @@
 
     private List<Datahub_Project_User_Request> _userProjectAuthorization;
 
-    private List<Datahub_ProjectServiceRequests> _serviceRequests;
-
     private DatahubProjectDBContext projectContext;
 
     private List<string> projectReqheaders = new List<string>
@@ -240,11 +215,6 @@
     private List<string> headers = new List<string>
 {
         "Project", "User", "Service", "Date","Actions"
-    };
-
-    private List<string> serviceReqHeaders = new List<string>()
-    {
-        "Project", "Requesting User", "Service", "Created", "Notified"
     };
 
     private void OnTableClick1(int pageIndex)
@@ -362,20 +332,10 @@
             p => { return ".."; },
         };
     }
-    
-    private List<Func<Datahub_ProjectServiceRequests, string>> serviceRequestAccessors = new List<Func<Datahub_ProjectServiceRequests, string>>()
-        {
-            p => p.Project.Project_Name,
-            p => p.User_Name ?? "N/A",
-            p => p.ServiceType,
-            p => p.Is_Completed?.ToShortDateString() ?? "N/A",
-            p => ".."
-        };
 
     // [Optional] Can define custom rendering for columns, order matters
     private List<Func<Datahub_Project_Access_Request, RenderFragment>> renderFunctions;
     private List<Func<Datahub_Project_User_Request, RenderFragment>> projectReqRenderFunctions;
-    private List<Func<Datahub_ProjectServiceRequests, RenderFragment>> serviceRenderers;
     private void GetServiceType(Datahub_Project_Access_Request request)
     { 
 
@@ -453,42 +413,6 @@
         await RefreshData();
     }
 
-    private async Task NotifyServiceCreation(Datahub_ProjectServiceRequests r)
-    {
-        var requestingUserId = r.User_ID;
-        var project = r.Project;
-        await projectContext.Entry(project).Collection(p => p.Users).LoadAsync();
-        var projectUserIds = project.Users
-            .Select(u => u.User_ID)
-            .ToHashSet();
-
-        Task individualEmailTask = null;
-
-        if (!string.IsNullOrEmpty(requestingUserId))
-        {
-            projectUserIds.Remove(requestingUserId);
-            individualEmailTask = EmailService.SendServiceCreationRequestApprovedIndividual(r.ServiceType, r.Project.ProjectInfo, requestingUserId);
-            await SystemNotificationService.CreateSystemNotificationWithLink(requestingUserId, $"/project/{r.Project.Project_Acronym_CD}", "SYSTEM-NOTIFICATION.GoToProject",
-                "SYSTEM-NOTIFICATION.NOTIFICATION-TEXT.ServiceCreatedIndividual",
-                r.ServiceType, new BilingualStringArgument(r.Project.ProjectInfo.ProjectNameEn, r.Project.ProjectInfo.ProjectNameFr));
-        }
-
-        await EmailService.SendServiceCreationGroupNotification(r.ServiceType, r.Project.ProjectInfo, projectUserIds.ToList());
-        await SystemNotificationService.CreateSystemNotificationsWithLink(projectUserIds.ToList(), $"/project/{r.Project.Project_Acronym_CD}", "SYSTEM-NOTIFICATION.GoToProject",
-            "SYSTEM-NOTIFICATION.NOTIFICATION-TEXT.ServiceCreatedGroup",
-            r.ServiceType, new BilingualStringArgument(r.Project.ProjectInfo.ProjectNameEn, r.Project.ProjectInfo.ProjectNameFr));
-
-        if (individualEmailTask != null)
-        {
-            await individualEmailTask;
-        }
-
-        r.Notification_Sent = DateTime.UtcNow;
-        await projectContext.SaveChangesAsync();
-
-        await RefreshData();
-    }
-
     private bool IsDataHubAdmin()
     {
         return _user.IsInRole(RoleConstants.DATAHUB_ROLE_ADMIN);
@@ -504,8 +428,6 @@
 
         var allAuths = await projectContext.Access_Requests.Include(a => a.Project).OrderByDescending(a => a.Request_DT).ToListAsync();
         _usersAuthorization = allAuths.Where(a => validProjects.Contains(a.Project.Project_ID)).ToList();
-        var allServiceCreationRequests = await projectContext.Project_Requests.Include(a => a.Project).OrderBy(a => a.Is_Completed).ThenByDescending(a => a.ServiceRequests_Date_DT).ToListAsync();
-        _serviceRequests = allServiceCreationRequests.Where(a => validProjects.Contains(a.Project.Project_ID)).ToList();
         var allProjectAuthorization = await projectContext.Project_Users_Requests.Include(a => a.Project).OrderByDescending(a => a.Requested_DT).ToListAsync();
         _userProjectAuthorization = allProjectAuthorization.Where(a => validProjects.Contains(a.Project.Project_ID)).ToList();
 
@@ -571,29 +493,6 @@
                    }
                 })
 
-        };
-
-        serviceRenderers = new List<Func<Datahub_ProjectServiceRequests, RenderFragment>>()
-        {
-            null,
-            null,
-            null,
-            null,
-            p => 
-            {
-                if (!p.Is_Completed.HasValue)
-                {
-                    return @<span>@Localizer["N/A"]</span>;
-                }
-                else if (!p.Notification_Sent.HasValue)
-                {
-                    return @<AeButton @onclick="async () => await NotifyServiceCreation(p)">@Localizer["Send Notification"]</AeButton>;
-                }
-                else
-                {
-                    return @<div>@p.Notification_Sent.Value.ToShortDateString()</div>;
-                }
-            }
         };
 
     }
