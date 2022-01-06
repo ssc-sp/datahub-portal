@@ -24,6 +24,13 @@
         />
 
         <div>&nbsp;</div>
+
+        <ServiceAccessRequestTable 
+            UserId=@CurrentUserId
+            IsDatahubAdmin=@IsDataHubAdmin()
+        />
+
+@*
         <AeCard>
             <Header>        <AeTypography Variant="h1">@Localizer["Authorize Users"]</AeTypography> </Header>
         <ChildContent>
@@ -53,7 +60,7 @@
             <div>@Localizer["Loading data..."]</div>
         }
         </ChildContent>
-        </AeCard>
+        </AeCard>*@
         <div>&nbsp;</div>
 
         <ServiceCreationRequestTable 
