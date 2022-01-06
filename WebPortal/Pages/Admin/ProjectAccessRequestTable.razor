@@ -16,7 +16,6 @@
                     Dataset=@_userProjectAuthorization
                     @ref=@ProjectAccessTable
                     Page=@CurrentPage
-                    GridTemplateColumns="3fr 3fr 3fr 3fr"
                     PageSize=@PageSize
                     Renderers=@projectReqRenderFunctions
                     Headers=@LocalizeHeaders(projectReqheaders)
@@ -111,7 +110,7 @@
         await RefreshData();
     }
 
-    private async Task DeleteProjectUser(Datahub_Project_User_Request req)
+    private async Task DeleteAccessRequest(Datahub_Project_User_Request req)
     {
         using var projectContext = await dbFactory.CreateDbContextAsync();
 
@@ -160,8 +159,8 @@
                 else
                 {
                     return @<div>
-                        <AeButton @onclick="async () => await AuthorizeProjectUser(a)">Authorize user</AeButton>
-                        <AeButton @onclick="async () => await DeleteProjectUser(a)">Delete Request</AeButton>
+                        <AeButton @onclick="async () => await AuthorizeProjectUser(a)">@Localizer["Authorize User"]</AeButton>
+                        <AeButton @onclick="async () => await DeleteAccessRequest(a)">@Localizer["Delete Request"]</AeButton>
                     </div>;
                 }
             }
