@@ -18,7 +18,12 @@
 <AuthorizeView Roles="@string.Join(',', _authorizedRoles)">
     <Authorized>
 
-        <AeCard>
+        <ProjectAccessRequestTable 
+            UserId=@CurrentUserId
+            IsDatahubAdmin=@IsDataHubAdmin()
+        />
+
+        @*<AeCard>
             <Header>
         <AeTypography Variant="h1">@Localizer["Project User Requests"]</AeTypography>
         </Header>
@@ -50,7 +55,9 @@
             <div>@Localizer["Loading data..."]</div>
         }
         </ChildContent>
-        </AeCard>    
+        </AeCard>    *@
+
+
         <div>&nbsp;</div>
         <AeCard>
             <Header>        <AeTypography Variant="h1">@Localizer["Authorize Users"]</AeTypography> </Header>

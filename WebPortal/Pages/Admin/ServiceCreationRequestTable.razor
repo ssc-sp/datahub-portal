@@ -116,7 +116,7 @@
 
     private async Task RefreshData()
     {
-        using var ctx = dbFactory.CreateDbContext();  
+        using var ctx = await dbFactory.CreateDbContextAsync();
 
         var validProjects = (IsDatahubAdmin ? ctx.Project_Users : ctx.Project_Users.Where(u => u.IsAdmin && u.User_ID == UserId))
             .Select(p => p.Project.Project_ID)
