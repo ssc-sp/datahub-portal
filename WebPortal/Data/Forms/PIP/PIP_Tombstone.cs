@@ -200,8 +200,8 @@ namespace Datahub.ProjectForms.Data.PIP
         [AeFormIgnore]
         [Timestamp]
         public byte[] Timestamp { get; set; }
-
-
+        public int? FiscalYearId { get; set; }
+        public PIP_FiscalYears FiscalYear { get; set; }
         private string GeneratePowerBiUrl()
         {
             return string.Empty;
