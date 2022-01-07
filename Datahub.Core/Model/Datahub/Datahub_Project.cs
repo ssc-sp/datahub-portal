@@ -361,4 +361,21 @@ namespace Datahub.Core.EFCore
         public string Org_Level { get; set; }
         public int? Superior_OrgId { get; set; }
     }
+
+    public class Datahub_ProjectApiUser
+    {
+        [Key]
+        public Guid ProjectApiUser_ID { get; set; }
+
+        [Required]
+        [StringLength(10)]
+        public string Project_Acronym_CD { get; set; }
+
+        [StringLength(128)]
+        public string Email_Contact_TXT { get; set; }
+
+        public DateTime? Expiration_DT { get; set; }
+
+        public bool Enabled { get; set; }
+    }
 }
