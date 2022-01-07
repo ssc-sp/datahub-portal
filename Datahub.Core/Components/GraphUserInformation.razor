@@ -32,13 +32,12 @@ else
 
     private GraphUser _graphUser;
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnParametersSetAsync()
     {
         _graphUser = await GraphService.GetUserAsync(UserId, _cts.Token);
-        //Task.Factory.StartNew(async () => { _graphUser = await GraphService.GetUserAsync(UserId, _cts.Token); });         
     }
 
-     public void Dispose()
+    public void Dispose()
     {
         _cts.Cancel();
         _cts.Dispose();        

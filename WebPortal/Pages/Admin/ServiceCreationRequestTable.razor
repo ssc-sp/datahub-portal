@@ -1,0 +1,166 @@
+﻿@inject IDbContextFactory<DatahubProjectDBContext> dbFactory
+@inject IEmailNotificationService EmailService
+@inject ISystemNotificationService SystemNotificationService
+
+<AeCard>
+    <Header>
+        <AeTypography Variant="h1">@Localizer["Service Requests"]</AeTypography>
+    </Header>
+    <ChildContent>
+        @if (ServiceCreationRequests != null)
+        {
+            <AeFlex Vertical>
+                <AePaginatedTable 
+                    Accessors=@serviceRequestAccessors
+                    Dataset=@ServiceCreationRequests
+                    Renderers=@serviceRenderers
+                    Headers=@LocalizeHeaders(serviceReqHeaders)
+                    PageSize=@PageSize
+                    Page=@CurrentPage
+                    @ref=@ServiceRequestTable
+                />
+
+                <AePagination Pageable=@ServiceRequestTable OnPageClick=@PaginationClicked >
+                    <LeftIcon><i class='fad fa-chevron-double-left'></i></LeftIcon> 
+                    <RightIcon><i class='fad fa-chevron-double-right'></i></RightIcon>
+                </AePagination>
+                
+            </AeFlex>
+        }
+        else
+        {
+            <div>@Localizer["Loading data..."]</div>
+        }
+    </ChildContent>
+</AeCard>
+
+@code {
+    [Parameter]
+    public string UserId { get; set; }
+
+    [Parameter]
+    public bool IsDatahubAdmin { get; set; }
+
+    [Parameter]
+    public int PageSize { get; set; } = 10;
+
+    private IPageableComponent ServiceRequestTable;
+    private int CurrentPage = 0;
+
+    private List<Datahub_ProjectServiceRequests> ServiceCreationRequests;
+
+    private List<Func<Datahub_ProjectServiceRequests, string>> serviceRequestAccessors = new List<Func<Datahub_ProjectServiceRequests, string>>()
+    {
+        p => p.Project.Project_Name,
+        p => p.User_Name ?? "N/A",
+        p => p.ServiceType ?? string.Empty,
+        p => p.Is_Completed?.ToShortDateString() ?? "N/A",
+        p => ".."
+    };
+
+    private List<Func<Datahub_ProjectServiceRequests, RenderFragment>> serviceRenderers;
+
+    private List<string> serviceReqHeaders = new List<string>()
+    {
+        "Project", "Requesting User", "Service", "Created", "Notified"
+    };
+
+    private List<string> LocalizeHeaders(List<string> input) => input.Select(s => Localizer[s].ToString()).ToList();
+    
+    private void PaginationClicked(int pageIndex)
+    {
+        CurrentPage = pageIndex;
+    }
+
+    private async Task NotifyServiceCreation(Datahub_ProjectServiceRequests req)
+    {
+        using var projectContext = await dbFactory.CreateDbContextAsync();
+
+        var r = await projectContext.Project_Requests
+            .Include(a => a.Project)
+            .Include(a => a.Project.Users)
+            .FirstOrDefaultAsync(a => a.ServiceRequests_ID == req.ServiceRequests_ID);
+
+        var requestingUserId = r.User_ID;
+        var project = r.Project;
+        var projectInfo = project.ProjectInfo;
+        var projectUserIds = project.Users
+            .Select(u => u.User_ID)
+            .ToHashSet();
+
+        var notificationTasks = new List<Task>();
+
+        if (!string.IsNullOrEmpty(requestingUserId))
+        {
+            projectUserIds.Remove(requestingUserId);
+            notificationTasks.Add(EmailService.SendServiceCreationRequestApprovedIndividual(r.ServiceType, projectInfo, requestingUserId));
+            notificationTasks.Add(SystemNotificationService.CreateSystemNotificationWithLink(requestingUserId, 
+                $"/project/{project.Project_Acronym_CD}", "SYSTEM-NOTIFICATION.GoToProject",
+                "SYSTEM-NOTIFICATION.NOTIFICATION-TEXT.ServiceCreatedIndividual",
+                r.ServiceType, new BilingualStringArgument(projectInfo.ProjectNameEn, projectInfo.ProjectNameFr)));
+        }
+
+        notificationTasks.Add(EmailService.SendServiceCreationGroupNotification(r.ServiceType, projectInfo, projectUserIds.ToList()));
+        notificationTasks.Add(SystemNotificationService.CreateSystemNotificationsWithLink(projectUserIds.ToList(), 
+            $"/project/{project.Project_Acronym_CD}", "SYSTEM-NOTIFICATION.GoToProject",
+            "SYSTEM-NOTIFICATION.NOTIFICATION-TEXT.ServiceCreatedGroup",
+            r.ServiceType, new BilingualStringArgument(projectInfo.ProjectNameEn, projectInfo.ProjectNameFr)));
+
+        await Task.WhenAll(notificationTasks);
+
+        r.Notification_Sent = DateTime.UtcNow;
+        await projectContext.SaveChangesAsync();
+
+        await RefreshData();
+    }
+
+    private async Task RefreshData()
+    {
+        using var ctx = await dbFactory.CreateDbContextAsync();
+
+        var validProjects = (IsDatahubAdmin ? ctx.Project_Users : ctx.Project_Users.Where(u => u.IsAdmin && u.User_ID == UserId))
+            .Select(p => p.Project.Project_ID)
+            .ToHashSet();
+
+        var allServiceCreationRequests = await ctx.Project_Requests
+            .Include(a => a.Project)
+            .OrderBy(a => a.Is_Completed)
+            .ThenByDescending(a => a.ServiceRequests_Date_DT)
+            .ToListAsync();
+
+        ServiceCreationRequests = allServiceCreationRequests
+            .Where(a => validProjects.Contains(a.Project.Project_ID))
+            .ToList();
+
+        StateHasChanged();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        serviceRenderers = new List<Func<Datahub_ProjectServiceRequests, RenderFragment>>()
+        {
+            null,
+            p => @<div>@(p.User_Name ?? @Localizer["N/A"])</div>,
+            null,
+            p => @<div>@(p.Is_Completed?.ToShortDateString() ?? @Localizer["N/A"])</div>,
+            p => 
+            {
+                if (!p.Is_Completed.HasValue)
+                {
+                    return @<div>@Localizer["N/A"]</div>;
+                }
+                else if (!p.Notification_Sent.HasValue)
+                {
+                    return @<AeButton @onclick="async () => await NotifyServiceCreation(p)">@Localizer["Send Notification"]</AeButton>;
+                }
+                else
+                {
+                    return @<div>@p.Notification_Sent.Value.ToShortDateString()</div>;
+                }
+            }
+        };
+
+        await RefreshData();
+    }
+
+}
