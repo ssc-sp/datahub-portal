@@ -1,387 +1,81 @@
-﻿@using Microsoft.EntityFrameworkCore.Query
-@using Microsoft.EntityFrameworkCore;
-@inject IStringLocalizer<DataLabels> DataLocalizer
-@inject NavigationManager NavigationManager
-@inject IJSRuntime JsInterop
-@inject IDbContextFactory<DatahubProjectDBContext> dbFactory
-@inject IEmailNotificationService EmailService
-@inject IMSGraphService MSGraphService
-@inject IUserInformationService UserInformationService
+﻿@inject IUserInformationService UserInformationService
 @inject ServiceAuthManager ServiceAuthManager
-@inject ISystemNotificationService SystemNotificationService
 @page "/admin"
+
+<style>
+    .ae.card {
+        margin-bottom: 1rem;
+    }
+</style>
 
 <div style="padding-left: 2rem;padding-right: 2rem">
 
     <AeTypography Variant="h1">@Localizer["DataHub Administration"]</AeTypography>
 
-<AuthorizeView Roles="@string.Join(',', _authorizedRoles)">
-    <Authorized>
-
-        <AeCard>
-            <Header>
-        <AeTypography Variant="h1">@Localizer["Project User Requests"]</AeTypography>
-        </Header>
-        <ChildContent>
-        @if (_userProjectAuthorization != null)
-        {
+    <AuthorizeView Roles="@string.Join(',', _authorizedRoles)">
+        <Authorized>
             <AeFlex Vertical>
-                <AePaginatedTable Accessors="GetProjectRequestAccessorFunctions()"
-                        T="Datahub_Project_User_Request"
-                         Dataset="_userProjectAuthorization"
-                         @ref="_table1"
-                         Page="@_lastClicked1"
-                         GridTemplateColumns="3fr 3fr 3fr 3fr"
-                         PageSize="10"
-                         Renderers="projectReqRenderFunctions"
-                         Headers="LocalizeHeaders(projectReqheaders)" />
+                <ProjectAccessRequestTable 
+                    UserId=@CurrentUserId
+                    IsDatahubAdmin=@IsDataHubAdmin
+                />
 
-                @if (_table1 != null)
-                            {
-                                <AePagination Pageable="@_table1" OnPageClick="OnTableClick1"> 
-                                    <LeftIcon><i class='fad fa-chevron-double-left'></i></LeftIcon> 
-                                    <RightIcon><i class='fad fa-chevron-double-right'></i></RightIcon>
-                                </AePagination>
-                            }
-                        </AeFlex>
-        }
-        else
-        {
-            <div>@Localizer["Loading data..."]</div>
-        }
-        </ChildContent>
-        </AeCard>    
-        <div>&nbsp;</div>
-        <AeCard>
-            <Header>        <AeTypography Variant="h1">@Localizer["Authorize Users"]</AeTypography> </Header>
-        <ChildContent>
+                <ServiceAccessRequestTable 
+                    UserId=@CurrentUserId
+                    IsDatahubAdmin=@IsDataHubAdmin
+                />
 
-        @if (_usersAuthorization != null)
-        {
-            <AePaginatedTable Accessors="accessorFunctions"
-            T="Datahub_Project_Access_Request"
-                     Dataset="_usersAuthorization"
-                     Renderers="renderFunctions"
-                     @ref="@_table2"                     
-                     GridTemplateColumns="2fr 3fr 2fr 3fr 2fr" 
-                     Page="@_lastClicked2"
-                     Headers="LocalizeHeaders(headers)"
-                     PageSize="10"/>
+                <ServiceCreationRequestTable 
+                    UserId=@CurrentUserId
+                    IsDatahubAdmin=@IsDataHubAdmin
+                />
 
-                @if (_table2 != null)
-                            {            
-            <AePagination Pageable="@_table2" OnPageClick="OnTableClick2"> 
-            <LeftIcon><i class='fad fa-chevron-double-left'></i></LeftIcon> 
-            <RightIcon><i class='fad fa-chevron-double-right'></i></RightIcon>
-            </AePagination>
-                            }
-        }
-        else
-        {
-            <div>@Localizer["Loading data..."]</div>
-        }
-        </ChildContent>
-        </AeCard>
-        <div>&nbsp;</div>
-        <AeCard>
-            <Header>        <AeTypography Variant="h1">@Localizer["Service Requests"]</AeTypography></Header>
-                    <ChildContent>
+                @if (_user != null)
+                {
+                    <NotificationTestPanel 
+                        DefaultEmailName=@CurrentUserName
+                        DefaultEmailAddress=@CurrentUserEmail
+                    />
+                }
+            </AeFlex>
+        </Authorized>
+        <NotAuthorized>
+            <AeTypography Variant="h1">@Localizer["This page is limited for DataHub administrators"]</AeTypography>
+        </NotAuthorized>
+    </AuthorizeView>
 
-        @if (_serviceRequests != null)
-        {
-            <AeTable 
-                Accessors=@serviceRequestAccessors
-                Dataset=@_serviceRequests
-                Renderers=@serviceRenderers
-                Headers=@LocalizeHeaders(serviceReqHeaders)
-            />
-        }
-        else
-        {
-            <div>@Localizer["Loading data..."]</div>
-        }
-        </ChildContent>
-        </AeCard>
-        <div>&nbsp;</div>
-        @if (EmailService.IsDevTestMode())
-        {
-            <div style="width:600px">
-                <AeCard>
-                    <AeTypography Variant="h1">@Localizer["Test Email Notification"]</AeTypography>
-                    
-                    <label>
-                        <input @bind=@EmailSelf type="checkbox"/>
-                        @Localizer["Send to self"]
-                    </label>
-                    
-                    <input @bind=@TestRecipientName type="text" disabled=@EmailSelf style="width:100%"/>
-                
-                    <input @bind=@TestRecipientEmail type="text" disabled=@EmailSelf style="width:100%" />
-                    
-                    <AeButton class="blue" @onclick="async () => await SendNamedTestEmail()" Disabled=@IsSendingTestEmail >
-                        @if (IsSendingTestEmail) {
-                            <Datahub.Core.Components.Spinner Small="true" />
-                        }
-                        else
-                        {
-                            @Localizer["Send test email"]
-                        }
-                    </AeButton>
-                </AeCard>
-        <div>&nbsp;</div>
-
-            </div>
-        }
-
-        <div>
+    <AuthorizeView Roles="@RoleConstants.DATAHUB_ROLE_ADMIN">
+        <Authorized>
             <AeCard>
-                <AeTypography Variant="h1">@Localizer["Test System Notification"]</AeTypography>
-
-                
-                <AeTypography Variant="h5">@Localizer["Recipients"]</AeTypography>
-                <ul>
-                    @foreach (var recipient in TestNotificationRecipients)
-                    {
-                        <li><span @onclick="() => RemoveTestNotificationRecipient(recipient)">@recipient.Name</span></li>
-                    }
-                    <li>
-                        <input type="text" id="inputSearch" class="selectedText" 
-                            @onclick="() => SearchTestNotificationUsers()" @onkeyup="() => SearchTestNotificationUsers()" 
-                            @bind-value=@TestNotificationUserSearchFilter @bind-value:event="oninput" 
-                            />
-                        <div class="nrcan-typography dropdown-content ddsearch" id="usermenu">
-                            @foreach (var item in TestNotificationSearchResults.Take(10))
-                            {
-                                <span>* <a @onclick="() => AddTestNotificationRecipient(item.Value)">@item.Value.DisplayName</a> &nbsp;</span>
-                            }
-                        </div>
-
-                    </li>
-                </ul>
-                    
-                <AeButton class="blue" @onclick="async () => await SendTestSystemNotification()" @Disabled=@IsSendingSystemNotification>
-                    @if(IsSendingSystemNotification)
-                    {
-                        <Datahub.Core.Components.Spinner Small="true" />
-                    }
-                    else
-                    {
-                        @Localizer["Send"]
-                    }
-                </AeButton>
-                
+                <Header>
+                    <AeTypography Variant="h1">@Localizer["Datahub Tools"]</AeTypography>
+                </Header>
+                <ChildContent>
+                    <p>
+                        <NavLink href="/admin/powerbi">@Localizer["Power BI Admin Page"]</NavLink>
+                    </p>
+                    <p>
+                        <NavLink href="/datahub/projects">@Localizer["DataHub Project Tracker"]</NavLink>
+                    </p>
+                </ChildContent>
             </AeCard>
-            <div>&nbsp;</div>
-        </div>
-    </Authorized>
-    <NotAuthorized>
-        <AeTypography Variant="h1">@Localizer["This page is limited for DataHub administrators"]</AeTypography>
-    </NotAuthorized>
-</AuthorizeView>
-
-<AuthorizeView Roles="@RoleConstants.DATAHUB_ROLE_ADMIN">
-    <Authorized>
-
-        <AeCard>
-            <Header>
-        <AeTypography Variant="h1">@Localizer["Datahub Tools"]</AeTypography>
-        </Header>
-        <ChildContent>
-            <p>
-            <NavLink href="/admin/powerbi">@Localizer["Power BI Admin Page"]</NavLink>
-            </p>
-            <p>
-            <NavLink href="/datahub/projects">@Localizer["DataHub Project Tracker"]</NavLink>
-            </p>
-        </ChildContent>
-        </AeCard>
-    </Authorized>
-</AuthorizeView>
-
+        </Authorized>
+    </AuthorizeView>
 </div>
-@code {
 
-    private int _lastClicked1 = 0;
-    private int _lastClicked2 = 0;
+@code {
 
     [CascadingParameter]
     private Task<AuthenticationState> authenticationStateTask { get; set; }
 
+    private System.Security.Claims.ClaimsPrincipal _user;
+
+    private string CurrentUserId { get; set; }
+    private string CurrentUserName { get; set; }
+    private string CurrentUserEmail { get; set; }
+    private bool IsDataHubAdmin { get; set; }
+
     private List<string> _authorizedRoles;
-
-    private IPageableComponent _table1;
-    private IPageableComponent _table2;
-
-    private List<Datahub_Project_Access_Request> _usersAuthorization;
-
-    private List<Datahub_Project_User_Request> _userProjectAuthorization;
-
-    private List<Datahub_ProjectServiceRequests> _serviceRequests;
-
-    private DatahubProjectDBContext projectContext;
-
-    private List<string> projectReqheaders = new List<string>
-{
-        "Project", "User", "Date","Actions"
-    };
-
-    private List<string> headers = new List<string>
-{
-        "Project", "User", "Service", "Date","Actions"
-    };
-
-    private List<string> serviceReqHeaders = new List<string>()
-    {
-        "Project", "Requesting User", "Service", "Created", "Notified"
-    };
-
-    private void OnTableClick1(int pageIndex)
-    {
-        _lastClicked1 = pageIndex;
-    }
-
-    private void OnTableClick2(int pageIndex)
-    {
-        _lastClicked2 = pageIndex;
-    }
-
-    private string TestNotificationUserSearchFilter { get; set; } = string.Empty;
-    private bool IsSendingSystemNotification { get; set; } = false;
-    private Dictionary<string, Datahub.Core.Data.GraphUser> TestNotificationSearchResults { get; set; } = new();
-
-    private HashSet<(string UserId, string Name)> TestNotificationRecipients = new();
-
-    private async Task SendTestSystemNotification()
-    {
-        IsSendingSystemNotification = true;
-        var recipients = TestNotificationRecipients.Select(r => r.UserId).ToList();
-        await SystemNotificationService.CreateSystemNotifications(recipients, "SYSTEM-NOTIFICATION.TestNotification");
-        IsSendingSystemNotification = false;
-    }
-
-    private void AddTestNotificationRecipient(Datahub.Core.Data.GraphUser chosenUser)
-    {
-        TestNotificationRecipients.Add((chosenUser.Id, chosenUser.DisplayName));
-        TestNotificationUserSearchFilter = string.Empty;
-        TestNotificationSearchResults.Clear();
-    }
-
-    private void RemoveTestNotificationRecipient((string UserId, string Name) chosenUser)
-    {
-        TestNotificationRecipients.Remove(chosenUser);
-    }
-
-    private async Task SearchTestNotificationUsers()
-    {
-        var toggleMenu = "false";
-
-        if (TestNotificationUserSearchFilter.Length > 3)
-        {
-            TestNotificationSearchResults = await MSGraphService.GetUsersListAsync(TestNotificationUserSearchFilter, CancellationToken.None);            
-            toggleMenu = "true";
-        }
-
-        await JsInterop.InvokeAsync<object>("toggleMenuWithBool", "usermenu", toggleMenu);
-    }
-
-
-    private bool _emailSelf = true;
-    private bool EmailSelf
-    {
-        get => _emailSelf;
-        set 
-        {
-            if (value)
-            {
-                ResetTestRecipient();
-            }
-            _emailSelf = value;
-        }
-    }
-
-    private List<string> LocalizeHeaders(List<string> input)
-    {
-        return input.Select(s => Localizer[s].ToString()).ToList();
-    }
-    private string TestRecipientName { get; set; }
-    private string TestRecipientEmail { get; set; }
-    private bool IsSendingTestEmail { get; set; }
-
-    private async Task ResetTestRecipient()
-    {
-        var email = _user.Identity.Name;
-        var name = _user.Claims.Where(c => c.Type == "name").FirstOrDefault()?.Value;
-
-        TestRecipientName = name;
-        TestRecipientEmail = email;
-        StateHasChanged();
-    }
-
-    private async Task SendNamedTestEmail()
-    {
-        IsSendingTestEmail = true;
-        StateHasChanged();
-
-        var html = await EmailService
-            .RenderTemplate<Datahub.Core.Templates.TestEmailTemplate>(new Dictionary<string, object>(){{ "Name", TestRecipientName }});
-        await EmailService.SendEmailMessage("Test", html, TestRecipientEmail, TestRecipientName);
-
-        IsSendingTestEmail = false;
-        StateHasChanged();
-    }
-
-    // Accessor functions to retrieve cell value
-    private List<Func<Datahub_Project_Access_Request, string>> accessorFunctions = new List<Func<Datahub_Project_Access_Request, string>>
-{
-        p => { return p.Project.Project_Name; },
-        p => { return p.User_Name; },
-        p => { return p.RequestServiceType; },
-        p => { return p.Request_DT.ToShortDateString(); },
-        p => { return ".."; },
-    };
-
-    private List<Func<Datahub_Project_User_Request, string>> GetProjectRequestAccessorFunctions()
-    {
-        return new List<Func<Datahub_Project_User_Request, string>>
-        {
-            p => { return p.Project.Project_Name; },
-            p => { return p.User_ID; },
-            p => { return p.Requested_DT.ToShortDateString(); },
-            p => { return ".."; },
-        };
-    }
-    
-    private List<Func<Datahub_ProjectServiceRequests, string>> serviceRequestAccessors = new List<Func<Datahub_ProjectServiceRequests, string>>()
-        {
-            p => p.Project.Project_Name,
-            p => p.User_Name ?? "N/A",
-            p => p.ServiceType,
-            p => p.Is_Completed?.ToShortDateString() ?? "N/A",
-            p => ".."
-        };
-
-    // [Optional] Can define custom rendering for columns, order matters
-    private List<Func<Datahub_Project_Access_Request, RenderFragment>> renderFunctions;
-    private List<Func<Datahub_Project_User_Request, RenderFragment>> projectReqRenderFunctions;
-    private List<Func<Datahub_ProjectServiceRequests, RenderFragment>> serviceRenderers;
-    private void GetServiceType(Datahub_Project_Access_Request request)
-    { 
-
-    }
-    private async Task AuthorizeUser(Datahub_Project_Access_Request r)
-    {
-        r.Completion_DT = DateTime.UtcNow;
-        await projectContext.SaveChangesAsync();
-
-        var serviceName = r.RequestServiceType;
-
-        await EmailService.SendServiceAccessGrantedNotification(serviceName, r.Project.ProjectInfo, r.User_ID);
-        await SystemNotificationService.CreateSystemNotificationWithLink(r.User_ID, $"/project/{r.Project.Project_Acronym_CD}", "SYSTEM-NOTIFICATION.GoToProject",
-            "SYSTEM-NOTIFICATION.NOTIFICATION-TEXT.ServiceAccessRequestApproved", serviceName,
-            new BilingualStringArgument(r.Project.ProjectInfo.ProjectNameEn, r.Project.ProjectInfo.ProjectNameFr));
-
-        await RefreshData();
-    }
 
     protected override void OnAfterRender(bool firstRender)
     {
@@ -392,197 +86,14 @@
         }
     }
 
-    private async Task DeleteProjectUser(Datahub_Project_User_Request r)
-    {
-        projectContext.Project_Users_Requests.Remove(r);
-        await projectContext.SaveChangesAsync();  
-
-        await RefreshData();        
-    }
-
-    private async Task AuthorizeProjectUser(Datahub_Project_User_Request r)
-    {
-        var approvedDate = DateTime.Now;
-
-        r.ApprovedUser = await UserInformationService.GetUserIdString();
-        r.Approved_DT = approvedDate;
-        var userId = await MSGraphService.GetUserEmail(r.User_ID, CancellationToken.None);
-        var request = new Datahub_Project_User()
-        {
-            User_ID = r.User_ID,
-            Project = r.Project,
-            ApprovedUser = await UserInformationService.GetUserIdString(),
-            Approved_DT = approvedDate,
-            IsAdmin = false,
-            IsDataApprover = false,
-            User_Name = userId.ToLower() 
-        };
-
-        projectContext.Project_Users.Add(request);
-        await projectContext.SaveChangesAsync();
-        var serviceName = r.Project.ProjectName;
-        await EmailService.SendServiceAccessGrantedNotification(serviceName, r.Project.ProjectInfo, r.User_ID);
-        await ServiceAuthManager.ClearProjectAdminCache();
-
-        await RefreshData();
-    }
-
-    private async Task RevokeAccess(Datahub_Project_Access_Request r)
-    {
-        r.Completion_DT = null;
-        await projectContext.SaveChangesAsync();
-
-        var serviceName = r.RequestServiceType;
-
-        await EmailService.SendAccessRevokedNotification(serviceName, r.Project.ProjectInfo, r.User_ID);
-        await SystemNotificationService.CreateSystemNotification(r.User_ID, "SYSTEM-NOTIFICATION.NOTIFICATION-TEXT.ServiceAccessRevoked",
-            serviceName, new BilingualStringArgument(r.Project.ProjectInfo.ProjectNameEn, r.Project.ProjectInfo.ProjectNameFr));
-
-        await RefreshData();
-    }
-
-    private async Task NotifyServiceCreation(Datahub_ProjectServiceRequests r)
-    {
-        var requestingUserId = r.User_ID;
-        var project = r.Project;
-        await projectContext.Entry(project).Collection(p => p.Users).LoadAsync();
-        var projectUserIds = project.Users
-            .Select(u => u.User_ID)
-            .ToHashSet();
-
-        Task individualEmailTask = null;
-
-        if (!string.IsNullOrEmpty(requestingUserId))
-        {
-            projectUserIds.Remove(requestingUserId);
-            individualEmailTask = EmailService.SendServiceCreationRequestApprovedIndividual(r.ServiceType, r.Project.ProjectInfo, requestingUserId);
-            await SystemNotificationService.CreateSystemNotificationWithLink(requestingUserId, $"/project/{r.Project.Project_Acronym_CD}", "SYSTEM-NOTIFICATION.GoToProject",
-                "SYSTEM-NOTIFICATION.NOTIFICATION-TEXT.ServiceCreatedIndividual",
-                r.ServiceType, new BilingualStringArgument(r.Project.ProjectInfo.ProjectNameEn, r.Project.ProjectInfo.ProjectNameFr));
-        }
-
-        await EmailService.SendServiceCreationGroupNotification(r.ServiceType, r.Project.ProjectInfo, projectUserIds.ToList());
-        await SystemNotificationService.CreateSystemNotificationsWithLink(projectUserIds.ToList(), $"/project/{r.Project.Project_Acronym_CD}", "SYSTEM-NOTIFICATION.GoToProject",
-            "SYSTEM-NOTIFICATION.NOTIFICATION-TEXT.ServiceCreatedGroup",
-            r.ServiceType, new BilingualStringArgument(r.Project.ProjectInfo.ProjectNameEn, r.Project.ProjectInfo.ProjectNameFr));
-
-        if (individualEmailTask != null)
-        {
-            await individualEmailTask;
-        }
-
-        r.Notification_Sent = DateTime.UtcNow;
-        await projectContext.SaveChangesAsync();
-
-        await RefreshData();
-    }
-
-    private bool IsDataHubAdmin()
-    {
-        return _user.IsInRole(RoleConstants.DATAHUB_ROLE_ADMIN);
-    }
-
-    private async Task RefreshData()
-    {
-
-        var userId = await UserInformationService.GetUserIdString();        
-        using var ctx = dbFactory.CreateDbContext();  
-
-        var validProjects = (IsDataHubAdmin() ? ctx.Project_Users : ctx.Project_Users.Where(u => u.IsAdmin && u.User_ID == userId)).Select(p => p.Project.Project_ID).ToHashSet();
-
-        var allAuths = await projectContext.Access_Requests.Include(a => a.Project).OrderByDescending(a => a.Request_DT).ToListAsync();
-        _usersAuthorization = allAuths.Where(a => validProjects.Contains(a.Project.Project_ID)).ToList();
-        var allServiceCreationRequests = await projectContext.Project_Requests.Include(a => a.Project).OrderBy(a => a.Is_Completed).ThenByDescending(a => a.ServiceRequests_Date_DT).ToListAsync();
-        _serviceRequests = allServiceCreationRequests.Where(a => validProjects.Contains(a.Project.Project_ID)).ToList();
-        var allProjectAuthorization = await projectContext.Project_Users_Requests.Include(a => a.Project).OrderByDescending(a => a.Requested_DT).ToListAsync();
-        _userProjectAuthorization = allProjectAuthorization.Where(a => validProjects.Contains(a.Project.Project_ID)).ToList();
-
-    }
-
-    private async Task ValidateRequests()
-    {
-        using var ctx = dbFactory.CreateDbContext();
-        var projectsWithDataBricks = await ctx.Projects.Where(t => !string.IsNullOrEmpty(t.Databricks_URL)).ToListAsync();
-        var databricksRequests = ctx.Project_Requests.Where(r => r.ServiceType == RequestManagementService.DATABRICKS).ToList();
-    }
-
-
-    private System.Security.Claims.ClaimsPrincipal _user;
-
     protected override async Task OnInitializedAsync()
     {
-        projectContext = dbFactory.CreateDbContext();
         _authorizedRoles = ServiceAuthManager.GetAdminProjectRoles();
         _user = (await authenticationStateTask).User;
-
-        await ResetTestRecipient();
-
-        await RefreshData();
-
-        projectReqRenderFunctions = new List<Func<Datahub_Project_User_Request, RenderFragment>>
-        {
-                null,
-                user => @<div class="help icon-container"><GraphUserInformation UserId="@user.User_ID" IsUserNameRequested="true"></GraphUserInformation>  </div>,                
-                null,
-                new Func<Datahub_Project_User_Request, RenderFragment>(a => {
-                    if (a.Approved_DT != null)
-                    {
-                        return 
-    @<div>@Localizer["Authorized"]</div>;
-                    }
-                   else
-      
-                 {
-                       return @<div><AeButton @onclick="async () => await AuthorizeProjectUser(a)">Authorize user</AeButton>;
-                       <AeButton @onclick="async () => await DeleteProjectUser(a)">Delete Request</AeButton></div>;
-                   }
-                })
-
-        };
-
-        renderFunctions = new List<Func<Datahub_Project_Access_Request, RenderFragment>>
-        {
-                null,
-                null,
-                null,
-                null,
-                new Func<Datahub_Project_Access_Request, RenderFragment>(a => {
-                    if (a.Completion_DT != null)
-                    {
-                        return @<div>@Localizer["Authorized"] <AeButton @onclick="async () => await RevokeAccess(a)">@Localizer["Revoke"]</AeButton> </div>;
-                    }
-                   else
-      
-                 {
-                       return @<AeButton @onclick="async () => await AuthorizeUser(a)">Authorize user</AeButton>;
-                   }
-                })
-
-        };
-
-        serviceRenderers = new List<Func<Datahub_ProjectServiceRequests, RenderFragment>>()
-        {
-            null,
-            null,
-            null,
-            null,
-            p => 
-            {
-                if (!p.Is_Completed.HasValue)
-                {
-                    return @<span>@Localizer["N/A"]</span>;
-                }
-                else if (!p.Notification_Sent.HasValue)
-                {
-                    return @<AeButton @onclick="async () => await NotifyServiceCreation(p)">@Localizer["Send Notification"]</AeButton>;
-                }
-                else
-                {
-                    return @<div>@p.Notification_Sent.Value.ToShortDateString()</div>;
-                }
-            }
-        };
-
+        CurrentUserId = await UserInformationService.GetUserIdString();
+        CurrentUserEmail = _user.Identity.Name;
+        CurrentUserName = _user.Claims.Where(c => c.Type == "name").FirstOrDefault()?.Value;
+        IsDataHubAdmin = _user.IsInRole(RoleConstants.DATAHUB_ROLE_ADMIN);
     }
 
 }
