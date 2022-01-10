@@ -45,6 +45,7 @@ using Datahub.LanguageTraining;
 using Microsoft.AspNetCore.HttpLogging;
 using Datahub.CKAN.Service;
 using Datahub.Core.UserTracking;
+using Datahub.Finance;
 
 namespace Datahub.Portal
 {
@@ -120,6 +121,7 @@ namespace Datahub.Portal
             services.AddScoped<TimeZoneService>();
             services.AddElemental();
             services.AddModule<LanguageTrainingModule>(Configuration);
+            services.AddModule<FinanceModule>(Configuration);
             // configure db contexts in this method
             ConfigureDbContexts(services);
 
@@ -197,6 +199,7 @@ namespace Datahub.Portal
             }
 
             app.ConfigureModule<LanguageTrainingModule>();
+            app.ConfigureModule<FinanceModule>();
 
             InitializeDatabase(logger, datahubFactory);
             InitializeDatabase(logger, userTrackingFactory, false);
@@ -448,7 +451,7 @@ namespace Datahub.Portal
         {
             ConfigureDbContext<DatahubProjectDBContext>(services, "datahub-mssql-project", Configuration.GetDriver());
             ConfigureDbContext<PIPDBContext>(services, "datahub-mssql-pip", Configuration.GetDriver());
-            ConfigureDbContext<FinanceDBContext>(services, "datahub-mssql-finance", Configuration.GetDriver());
+            //ConfigureDbContext<FinanceDBContext>(services, "datahub-mssql-finance", Configuration.GetDriver());
             if (Configuration.GetDriver() == DbDriver.SqlServer)
             {
                 ConfigureCosmosDbContext<UserTrackingContext>(services, "datahub-cosmosdb", "datahub-catalog-db");
