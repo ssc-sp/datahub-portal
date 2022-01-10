@@ -15,11 +15,19 @@
 @page "/pip/programs/{tombstone}"
 
 
-<h1>2020-21 Performance Information Profile (PIP) Forms</h1>
+<h1>Performance Information Profile (PIP) Forms</h1>
 <h2>Select Program Inventory Program</h2>
-<div>
 
-    <AePaginatedTable Accessors="accessorFunctions"
+@if (_fiscalYears.Any())
+{
+    <AeDropdown Items="_fiscalYears" OnChange="HandleDropdownChange" />    
+}
+
+@if (_projects != null)
+{
+    <div>
+
+        <AePaginatedTable Accessors="accessorFunctions"
              Renderers="GetRenderers()"
              T="PIP_Tombstone"
              Dataset="_projects"
@@ -31,15 +39,15 @@
              PageSize="10"
              @ref=_myTable />
 
-    <AePagination 
+        <AePagination 
             Pageable="@_myTable" 
             OnPageClick="OnPageClick"> 
             <LeftIcon><i class='fad fa-chevron-double-left'></i></LeftIcon> 
             <RightIcon><i class='fad fa-chevron-double-right'></i></RightIcon>
-            </AePagination>  
+        </AePagination>  
 
-</div>
-
+    </div>
+}
 @if (_tombstone != null)
 {
     if (_tombstone.Tombstone_ID > 0)
@@ -74,7 +82,10 @@
 @code {
     [Parameter]
     public string tombstone { get; set; }
-    
+
+
+    private List<string> _fiscalYears;
+
     private List<PIP_Tombstone> _projects;
     private PIP_Tombstone _tombstone;// = new PIP_Tombstone();
     private string SubmitLabel = "Save";
@@ -94,13 +105,22 @@
 
     protected override void OnAfterRender(bool firstRender)
     {
-    // You must re-render after the components are initialized in order for the 
-    // component reference to not be null
+        // You must re-render after the components are initialized in order for the 
+        // component reference to not be null
         if(firstRender){
             StateHasChanged();
         }
     }
 
+    private async void HandleDropdownChange(string selectedItem)
+    {
+
+        _projects = new();
+        _projects = Context.Tombstones.Where(l => l.FiscalYear.FiscalYear == selectedItem).ToList();
+        StateHasChanged();
+
+    }
+    
     private void OnPageClick(int pageIndex)
     {
         _lastClicked = pageIndex;
@@ -149,7 +169,8 @@
             if (!string.IsNullOrEmpty(powerBiTargets))
             {
                 var powerBiUrl = $"{powerBiTargets}rp:p_program_title={project.Program_Title.Replace(" ", "+")}";
-                project.PowerBiUrl = @<a href="@powerBiUrl" target="blank">Open PowerBI Report</a>
+                project.PowerBiUrl = 
+    @<a href="@powerBiUrl" target="blank">Open PowerBI Report</a>
     ;
             }
         }
@@ -185,8 +206,9 @@
     protected override async Task OnInitializedAsync()
     {        
         Context = DbFactory.CreateDbContext();
-        _projects = new();
-        _projects = Context.Tombstones.ToList();
+
+        _fiscalYears = new();
+        _fiscalYears = Context.FiscalYears.OrderByDescending(i => i.YearId).Select(i => i.FiscalYear).ToList();
 
         
 
