@@ -185,6 +185,7 @@
     protected override async Task OnInitializedAsync()
     {        
         Context = DbFactory.CreateDbContext();
+        _projects = new();
         _projects = Context.Tombstones.ToList();
 
         

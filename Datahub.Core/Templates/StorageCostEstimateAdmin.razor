@@ -85,9 +85,19 @@
                 </tbody>
                 <tfoot>
                     <tr class="totalrow">
-                        <td>@Localizer[$"{LOCALIZATION_PREFIX}.Total"]</td>
+                        <td>@Localizer[$"{LOCALIZATION_PREFIX}.Subtotal"]</td>
                         <td></td>
                         <td class="numbercol">@costEstimate.TotalCost.ToString("C4")</td>
+                    </tr>
+                    <tr>
+                        <td>@Localizer[$"{LOCALIZATION_PREFIX}.SscFee"]</td>
+                        <td></td>
+                        <td class="numbercol">@((costEstimate.TotalCost * SSC_FEE_FACTOR).ToString("C4"))</td>
+                    </tr>
+                    <tr class="totalrow">
+                        <td>@Localizer[$"{LOCALIZATION_PREFIX}.Total"]</td>
+                        <td></td>
+                        <td class="numbercol">@((costEstimate.TotalCost * (SSC_FEE_FACTOR + 1)).ToString("C4"))</td>
                     </tr>
                 </tfoot>
             </table>
@@ -104,6 +114,8 @@
                     <th>@Localizer[$"{LOCALIZATION_PREFIX}.StorageUsedLabel"]</th>
                     <th>@Localizer[$"{LOCALIZATION_PREFIX}.StorageCostLabel"]</th>
                     <th>@Localizer[$"{LOCALIZATION_PREFIX}.OperationalCostLabel"]</th>
+                    <th>@Localizer[$"{LOCALIZATION_PREFIX}.Subtotal"]</th>
+                    <th>@Localizer[$"{LOCALIZATION_PREFIX}.SscFee"]</th>
                     <th>@Localizer[$"{LOCALIZATION_PREFIX}.TotalCostLabel"]</th>
                 </tr>
             </thead>
@@ -120,6 +132,8 @@
                         <td class="numbercol">@lineItem.Item.Cost.ToString("C")</td>
                         <td class="numbercol">@monthlyOperationalCost.ToString("C")</td>
                         <td class="numbercol">@((monthlyOperationalCost + lineItem.Item.Cost).ToString("C"))</td>
+                        <td class="numbercol">@(((monthlyOperationalCost + lineItem.Item.Cost) * SSC_FEE_FACTOR).ToString("C"))</td>
+                        <td class="numbercol">@(((monthlyOperationalCost + lineItem.Item.Cost) * (SSC_FEE_FACTOR + 1)).ToString("C"))</td>
                     </tr>
                 }
             </tbody>
@@ -134,6 +148,8 @@
                         <td class="numbercol">@totalStorageCost.ToString("C")</td>
                         <td class="numbercol">@totalOperationalCost.ToString("C")</td>
                         <td class="numbercol">@grandTotal.ToString("C")</td>
+                        <td class="numbercol">@((grandTotal * SSC_FEE_FACTOR).ToString("C"))</td>
+                        <td class="numbercol">@((grandTotal * (SSC_FEE_FACTOR + 1)).ToString("C"))</td>
                     }
                 </tr>
             </tfoot>
@@ -144,6 +160,7 @@
 
 @code {
     private static readonly string LOCALIZATION_PREFIX = "STORAGE-COST-ESTIMATOR";
+    private static readonly decimal SSC_FEE_FACTOR = 0.1M;
 
     private string GetAccessTierLabel(AccessTierType t) => Localizer[$"{LOCALIZATION_PREFIX}.DataTier{t.ToString()}"];
     private string GetRedundancyLabel(DataRedundancyType t) => Localizer[$"{LOCALIZATION_PREFIX}.DataRed{t.ToString()}"];

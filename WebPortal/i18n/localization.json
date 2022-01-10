@@ -69,7 +69,7 @@
     "OwnedBy": "Owned By"
   },
   "FILE-GRID-PAGE": {
-    "AddData": "Add data",
+    "AddData": "Add Data",
     "ConfirmDeletePrompt": "Are you sure you want to permenantly delete '{0}'?",
     "CreateFolderPrompt": "Enter Folder Name",
     "MoveToFolderPrompt": "Select Destination Folder",
@@ -102,7 +102,8 @@
     "securityclass": "Security Class",
     "sharedwith": "Sharing",
     "tags": "Tags",
-    "uploadeddate": "Uploaded"
+    "uploadeddate": "Uploaded",
+    "CloseDetails": "Close file details"
   },
   "MAIN-CONTENT-PAGE": {
     "SECTION-1": {
@@ -196,7 +197,9 @@
   "UnhandledExceptionMessage-Dev": "An unhandled exception has occurred. See browser dev tools for details.",
   "UnhandledExceptionMessage-Prod": "An error has occurred. This application may no longer respond until reloaded.",
   "Versions": "Versions",
-  "ViewDetails": "View Details",
+  "ViewDetails": "File Details",
+  "ShowStorageDetails": "Show Storage",
+  "HideStorageDetails": "Hide Storage",
   "Viewer": "Viewer",
   "Viewers": "Viewers",
 
@@ -497,7 +500,7 @@
         "Title": "Open Government Approval Form"
       },
       "SubmitSignedPDF": {
-        "Description": "Upload the signed PDF to GCDocs and paste the link in Datahub.",
+        "Description": "Upload the signed PDF to GCdocs and paste the link in Datahub.",
         "Title": "Submit Signed PDF"
       },
       "PendingApproval": {
@@ -506,7 +509,7 @@
       },
       "PendingUpload": {
         "Description": "The request has been approved, pending decision on file publishing location.",
-        "Title": "Pending Upload"
+        "Title": "Publish File"
       },
       "PendingPublication": {
         "Description": "The request has been approved, but the publication date has not yet been reached.",
@@ -556,20 +559,25 @@
     "PublicationDate": "Publication Date",
     "PublicUrl": "Public URL",
     "CancelSharing": "Cancel Open Data Sharing Request",
-    "CancelSharingDescription": "You may cancel the sharing request at any time before approval. This will completely remove the sharing request from the system. However, the file will still remain in storage and may be shared in the future.",
+    "CancelSharingDescription": "You can cancel this request to share the data file before it is approved.  The request to share will be deleted from system; however, the data file will remain stored in DataHub and may be shared in the future. Once approved, you will not be able to cancel the request.",
     "CancelSharingPrompt": "Do you want to cancel this sharing request? To share this file in the future, the process will have to be restarted from the beginning.",
     "SubmitSignedPdf": "Submit signed PDF document",
-    "EnterGcDocsUrl": "Enter GCDocs URL",
+    "EnterGcDocsUrl": "Enter GCdocs URL",
     "Approval_Form": "Approval Form",
     "Approval_filled_out": "- Approval form has been filled out, now you can generate the approval PDF.",
-    "GeneratePDF_explanation": "- Once you generate the approval PDF, please upload it to GcDocs and paste the URL of this file in the section below.",
+    "GeneratePDF_explanation": "- Once you generate the approval PDF, please upload it to GCdocs and paste the URL of this file in the section below.",
     "Publish_File": "Publish File",
-    "Publish_As_URL_Desc": "Publish to Open Data as URL and keep the file in Datahub.",
-    "Publish_As_URL": "Publish as URL",
-    "Upload_And_Publish_Desc": "Upload the file to Open Data storage and publish it.",
-    "Upload_And_Publish": "Upload and Publish",
+    "Publish_As_URL_Desc1": "Publish a <b>URL</b> to Open Data. The File is stored in DataHub.",
+    "Publish_As_URL_Desc2": "<b>Note:</b> The URL link will be broken if the File is deleted from DataHub.",
+    "Publish_As_URL": "Publish URL",
+    "Upload_And_Publish_Desc": "Publish an uploaded <b>File</b> to Open Data. A copy of the File is stored in DataHub.",
+    "Upload_And_Publish": "Publish File",
     "Uploading_file_in_progress": "Uploading file in progress. You can wait or come back later if the file is too big. The upload is running in the background.",
-    "Upload_Last_Error": "Last Error: "
+    "Upload_Last_Error": "Last Error: ",
+    "Approval_Filled_out_1": "Once the Open Government Approval Form is completed, generate the approval PDF.",
+    "Approval_Filled_out_2": "Save the generated approval PDF to GCdocs.",
+    "Approval_Filled_out_3": "Paste the GCdocs file link (https://gcdocs.gc.ca/nrcan-rncan/llisapi.dll/link/XXXXXXXX) in the section below.",
+    "Or": "Or"
   },
 
   "PUBLIC-URL-WIZARD": {
@@ -592,6 +600,7 @@
     "RequestingUser": "Requesting user",
     "Edit_button": "Edit",
     "Save_button": "Save",
+    "Save_Metadata_button": "Save Metadata",
     "Continue_button": "Continue",
     "Delete_button": "Delete",
     "ValidationErrors": {
@@ -781,9 +790,10 @@
       "ServiceCreatedGroup": "Service {0} has been created in data project {1}.",
       "PublicUrlShareRequested": "User {0} has requested approval to share {1} in project {2} via public URL.",
       "PublicUrlShareApproved": "Your request to share {0} in project {1} has been approved.",
-      "PublicUrlShareApprovedLater": "Your request to share {0} in project {1} has been approved. The file will be publicly available on {2}."
+      "PublicUrlShareApprovedLater": "Your request to share {0} in project {1} has been approved. The file will be publicly available on {2}.",
+      "OpenDataPublicationApproved": "Your request to publish {0} from project {1} to Open Data has been approved."
     },
-    "TestStringThreeArgs": "Here are three things: {0}, {1}, and {2}"
+    "TestNotification": "This is a test."
   },
   "OPENDATA-DASHBOARD": {
     "FileName": "File Name",
@@ -797,10 +807,13 @@
   "STORAGE-COST-ESTIMATOR": {
     "Title": "Storage Cost Estimator",
     "IntroTitle": "Introduction",
-    "IntroPara1": "This tool can be used to estimate the initial migration cost as well as the monthly cost for an Azure storage solution.",
+    "IntroPara1": "This tool can be used to estimate the initial migration cost as well as the monthly cost in CAD$ for an Azure storage solution using the Block Blob v2 service.",
     "IntroPara2": "Proceed by entering the parameters in this form to the best of your knowledge and the cost estimate will be calculated and displayed below. You can then send yourself a copy of the estimate by email.",
-    "IntroPara3": "Please note the cost displayed in this tool is an estimate only and it is derived based on the answers provided. The actual cost may vary based on the actual size of the data stored as well as the access patterns.",
-    "ImpactHeading": "The cost of Azure Storage can be impacted by these factors:",
+    "IntroPara3": "Before using this tool, please read and accept the following statement:",
+    "PriceListLastUpdated": "This estimate is based on Azure storage prices for the Canada Central region, last fetched on {0}.",
+    "EstimateDisclaimer": "I understand that this tool provides an estimate of the cost based on the specified parameters, and the actual cost may vary based on real-world usage factors such as the actual amount of data, access patterns, etc.",
+    "MoreInfoIntro": "For more information, please expand the following sections:",
+    "ImpactHeading": "Cost Impact Factors",
     "ImpactFactor1": "Initial volume of data",
     "ImpactFactor2": "Monthly growth of the data",
     "ImpactFactor3": "Amount of data written",
@@ -808,6 +821,16 @@
     "ImpactFactor5": "Size of the files",
     "ImpactFactor6": "Access tiers (Hot, Cool, or Archive)",
     "ImpactFactor7": "Data redundancy requirement",
+    "TierInfoHeading": "Data access tiers and redundancy",
+    "MicrosoftDocNote": "These definitions are based on Microsoft Azure documentation. For more details, please consult the official Microsoft website.",
+    "AccessTiersHeading": "Data access tiers",
+    "RedundancyHeading": "Data redundancy levels",
+    "HotTierExplanation": "The Hot tier is optimized for storing data that is accessed or modified frequently. It has the highest storage costs, but the lowest access costs.",
+    "CoolTierExplanation": "The Cool tier is optimized for storing data that is infrequently accessed or modified, that should be stored for a minimum of 30 days. It has lower storage costs and higher access costs compared to the Hot tier.",
+    "ArchiveTierExplanation": "Archive is an 'offline' tier optimized for storage of data that is rarely accessed, with flexible latency requirements on the order of hours. Data in the Archive tier should be stored for a minimum of 180 days.",
+    "LRSExplanation": "Locally redundant storage (LRS) copies your data synchronously three times within a single physical location in the primary region. LRS is the least expensive replication option, but is not recommended for applications requiring high availability or durability.",
+    "ZRSExplanation": "Zone-redundant storage (ZRS) copies your data synchronously across three Azure availability zones in the primary region. For applications requiring high availability, Microsoft recommends using ZRS in the primary region, and also replicating to a secondary region.",
+    "GRSExplanation": "Geo-redundant storage (GRS) copies your data synchronously three times within a single physical location in the primary region using LRS. It then copies your data asynchronously to a single physical location in the secondary region. Within the secondary region, your data is copied synchronously three times using LRS.",
     "ParametersTitle": "Parameters",
     "InitDataLabel": "Initial data (GB):",
     "AverageSizeLabel": "Average file size (MB):",
@@ -821,6 +844,7 @@
     "DataRedLRS": "LRS",
     "DataRedZRS": "ZRS",
     "DataRedGRS": "GRS",
+    "NoArchiveZRSNote": "Note: The Archive tier is not supported with ZRS redundancy.",
     "CalculateButton": "Calculate",
     "SendButton": "Send Estimate by Email",
     "InitialCostSection": "Initial Cost",
@@ -835,6 +859,8 @@
     "DataRetrieval": "Data Retrieval",
     "DataWrite": "Data Write",
     "GeoReplication": "Geo Replication",
+    "Subtotal": "Subtotal",
+    "SscFee": "SSC Service Fee",
     "Total": "Total",
     "FirstYearTotal": "First Year Total",
     "MonthLabel": "Month",

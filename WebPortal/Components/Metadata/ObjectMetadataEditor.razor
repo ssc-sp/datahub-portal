@@ -2,27 +2,43 @@
 @using Datahub.Metadata.Model
 @using Datahub.Metadata.DTO
 
-<div>
+<div style="width: 100%">
 @if (_fieldValues != null)
 {
-    <MetadataEditor Preview=@_preview
+    <MetadataEditor Preview=@Preview
                     Definitions=@_definitions
                     FieldValues=@_fieldValues
                     RequiredFields=@_requiredFields
                     HiddenFields=@_hiddenFields
+                    ShowAll=@_showAll
                     OnFieldChanged=@FieldChanged />
 
-    <div style="margin: 1em 0.5em;">
-        <AeButton OnClickEvent=@SaveChanges Disabled=@_disableSave>
-            @SaveButtonLabel
-        </AeButton>
+    @if (!Preview)
+    {
         <div>
-            @if (_savingData)
-            {
-                <Spinner Small=@true/>
-            }
+            <AeFlex Vertical="true">
+                <div>
+                    @if (!_showAll)
+                    {
+                        <AeButton class="light" @onclick=@ToggleShowAll>@Localizer["METADATA-PAGE.ShowMore"]</AeButton>
+                    }
+                    else
+                    {
+                        <AeButton class="light" @onclick=@ToggleShowAll>@Localizer["METADATA-PAGE.ShowLess"]</AeButton>
+                    }
+                </div>
+                <div style="margin-top: 16px">
+                    <AeButton OnClickEvent=@SaveChanges Disabled=@_disableSave>@SaveButtonLabel</AeButton>
+                </div>
+            </AeFlex>
+            <div>
+                @if (_savingData)
+                {
+                    <Spinner Small=@true/>
+                }
+            </div>
         </div>
-    </div>
+    }
 }
 </div>
 
@@ -41,11 +57,17 @@
     public string SaveButtonLabel { get; set; } = "Save";
 
     [Parameter]
+    public bool ValidateRequired { get; set; } = true;
+
+    [Parameter]
+    public bool Preview { get; set; }
+
+    [Parameter]
     public EventCallback<FieldValueContainer> OnSave{ get; set; }
 
     private FieldDefinitions _definitions;
     private FieldValueContainer _fieldValues;
-    private bool _preview;
+    private bool _showAll;
     private bool _savingData;
     private bool _disableSave = true;
 
@@ -87,13 +109,12 @@
 
     public void TogglePreview()
     {
-        _preview = !_preview;
-        StateHasChanged();
+        Preview = !Preview;
     }
 
     private bool CheckRequiredFieldValues()
     {
-        return _fieldValues?.ValidateRequired(IsFieldRequired) == true;
+        return !ValidateRequired || _fieldValues?.ValidateRequired(IsFieldRequired) == true;
     }
 
     private bool IsFieldRequired(FieldDefinition field)
@@ -113,11 +134,16 @@
         {
             _savingData = false;
         }
-        await InvokeAsync(StateHasChanged);
+        //await InvokeAsync(StateHasChanged);
     }
 
     private void FieldChanged()
     {
         _disableSave = !CheckRequiredFieldValues();
+    }
+
+    private void ToggleShowAll()
+    {
+        _showAll = !_showAll;
     }
 }

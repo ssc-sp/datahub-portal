@@ -12,11 +12,12 @@ using System.Threading.Tasks;
 
 namespace Datahub.Core.Services
 {
-    public class SystemNotificationService : ISystemNotificationService
+    public class SystemNotificationService : ISystemNotificationService, IDisposable
     {
         private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory;
         private readonly IStringLocalizer<SystemNotificationService> _localizer;
         private readonly ILogger<SystemNotificationService> _logger;
+        private readonly IPropagationService _propagationService;
 
         private readonly CultureInfo enCulture;
         private readonly CultureInfo frCulture;
@@ -28,12 +29,16 @@ namespace Datahub.Core.Services
         public SystemNotificationService(
             IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
             IStringLocalizer<SystemNotificationService> localizer,
-            ILogger<SystemNotificationService> logger
+            ILogger<SystemNotificationService> logger,
+            IPropagationService propagationService
             )
         {
             _dbContextFactory = dbContextFactory;
             _localizer = localizer;
             _logger = logger;
+            _propagationService = propagationService;
+
+            _propagationService.UpdateSystemNotifications += DoNotifyUsers;
 
             enCulture = new CultureInfo("en-ca");
             frCulture = new CultureInfo("fr-ca");
@@ -116,6 +121,11 @@ namespace Datahub.Core.Services
 
         private async Task NotifyUsers(List<string> userIds)
         {
+            await _propagationService.PropagateSystemNotificationUpdate(userIds);
+        }
+
+        private async Task DoNotifyUsers(IEnumerable<string> userIds)
+        {
             if (Notify != null)
             {
                 var tasks = userIds.Select(u => Notify.Invoke(u));
@@ -167,6 +177,11 @@ namespace Datahub.Core.Services
         public int GetNotificationPageSize()
         {
             return _notificationPageSize;
+        }
+
+        public void Dispose()
+        {
+            _propagationService.UpdateSystemNotifications -= DoNotifyUsers;
         }
     }
 }

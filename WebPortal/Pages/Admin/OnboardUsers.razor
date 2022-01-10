@@ -13,7 +13,7 @@
 
 <div class="manage-access">
     <AeFlex Vertical>
-        <h1>@Localizer["Project Users"]</h1>
+        <h1>@($"{projectAcronym} {Localizer["Project Users"]}")</h1>
     </AeFlex>    
     <AeCard class="facardForms" CardPosition="AeCard.CardStyle.Horizontal">
     <AeTypography>@Localizer["Search Users"]</AeTypography>
@@ -31,14 +31,14 @@
 
             <AePaginatedTable Accessors="accessorFunctions"
                 Renderers="renderFunctions"
-                T="GraphUser"
+                T="Datahub_Project_User"
                 Dataset="_chosenUsers"
                 Headers="headers"
                 class="custom light"
-                style="Width:65%"
-                GridTemplateColumns="4fr 4fr 0.5fr"    
+                style="Width:100%"
+                GridTemplateColumns="4fr 4fr 2fr 2fr 2fr"    
                 Page="@_lastClicked"
-                PageSize="15"
+                PageSize="20"
                 @ref=_myTable
             />
 
@@ -53,7 +53,7 @@
             }
         </div>
 
-        <AeButton @onclick="@(async () => await AddUsersToProject())">@Localizer["Add Users"]</AeButton>
+       @* <AeButton @onclick="@(async () => await AddUsersToProject())">@Localizer["Add Users"]</AeButton>*@
     }
     </AeCard>
 </div>
@@ -63,14 +63,14 @@
     [Parameter]
     public string projectAcronym { get; set; }
 
-    private List<Func<GraphUser, string>> accessorFunctions;
-    private List<Func<GraphUser, RenderFragment>> renderFunctions;
+    private List<Func<Datahub_Project_User, string>> accessorFunctions;
+    private List<Func<Datahub_Project_User, RenderFragment>> renderFunctions;
 
     private Dictionary<string, GraphUser> filteredUsersList { get; set; } = new Dictionary<string, GraphUser>();
     private string _inputValue = string.Empty;    
     private DatahubProjectDBContext Context;
     private Datahub_Project _project;
-    private List<string> headers = new List<string>() { "Name", "Email", ""};
+    private List<string> headers = new List<string>() { "Name", "Email", "Admin", "Data Approver", "Delete User"};
     private int _lastClicked = 0;
     private IPageableComponent _myTable;
 
@@ -79,78 +79,79 @@
         _lastClicked = pageIndex;
     }
 
-    private List<GraphUser> _chosenUsers;
+    private List<Datahub_Project_User> _chosenUsers;
 
     protected override async Task OnInitializedAsync()
     {
         //var currentUserId = await UserInformationService.GetUserIdString();
-        _chosenUsers = new();
+
         Context = DbFactory.CreateDbContext();
         _project = Context.Projects.Single(p => p.Project_Acronym_CD == projectAcronym);
+        _chosenUsers = Context.Project_Users.Where(p => p.Project == _project).ToList();
         await FillAccessorFunctions();
 
-        renderFunctions = new List<Func<GraphUser, RenderFragment>>() {            
-            user => 
-    @<div class="help icon-container">@GetUserName(user)</div>,
-            user => @<div class="help icon-container">@GetUserEmail(user)  </div>,
-            user => 
-    @<div class="help icon-container" @onclick="() => DeleteRecord(user.Id)"><i class="far fa-trash-alt"></i></div>
+        renderFunctions = new List<Func<Datahub_Project_User, RenderFragment>>() {            
+            user => @<div class="help icon-container"><GraphUserInformation UserId="@user.User_ID" IsUserNameRequested="true"></GraphUserInformation></div>,
+            user => @<div class="help icon-container"><GraphUserInformation UserId="@user.User_ID"></GraphUserInformation></div>,
+            user => @<div class="help icon-container"><DHCheckbox IsChecked="@user.IsAdmin"
+                             IsCheckedChanged="e => HandleAdminChanged(user, e)"                
+                    /></div>,
+            user => @<div class="help icon-container"><DHCheckbox IsChecked="@user.IsDataApprover"
+                             IsCheckedChanged="e => HandleDataApproverChanged(user, e)"                
+                    /></div>,
+            user => @<div class="help icon-container" @onclick="() => DeleteRecord(user)"><i class="far fa-trash-alt"></i></div>
     ,
         };
     }
 
-    private string GetUserName(GraphUser graphuser)
+
+    private async void HandleAdminChanged(Datahub_Project_User user, bool isChecked)
     {
-        var user = _chosenUsers.Where(u => u.Id == graphuser.Id).First();
-        return user.DisplayName;
+        _chosenUsers.Where(u => u.User_ID == user.User_ID).First().IsAdmin = isChecked;
+        Context.Project_Users.Where(u => u.User_ID == user.User_ID).First().IsAdmin = isChecked;
+        await RefreshData();
     }
 
-    private string GetUserEmail(GraphUser graphuser)
+    private async void HandleDataApproverChanged(Datahub_Project_User user, bool isChecked)
     {
-        var user = _chosenUsers.Where(u => u.Id == graphuser.Id).First();
-        return user.Mail;
+        _chosenUsers.Where(u => u.User_ID == user.User_ID).First().IsDataApprover = isChecked;
+        Context.Project_Users.Where(u => u.User_ID == user.User_ID).First().IsDataApprover = isChecked;
+        await RefreshData();
     }
 
-
-    private async void DeleteRecord(string recordId)
+    private async void DeleteRecord(Datahub_Project_User user)
     {
-        var count = _chosenUsers.Where(u => u.Id == recordId).ToList().Count;
-        _chosenUsers.RemoveAll(u => u.Id == recordId);
-        _myTable.Total = _myTable.Total - count;
+        var userrec = _chosenUsers.Where(u => u.User_ID == user.User_ID).First();        
+        Context.Project_Users.Remove(userrec);
+
+        _chosenUsers.Clear();
+        await Context.TrackSaveChangesAsync(AuditingService);  
+
+        _chosenUsers = Context.Project_Users.Where(p => p.Project == _project).ToList();
         StateHasChanged();
+
     }
 
     private async Task FillAccessorFunctions()
     {
-        accessorFunctions = new List<Func<GraphUser, string>>() {
-            (user => { return user.Id; }),
+        accessorFunctions = new List<Func<Datahub_Project_User, string>>() {
+            (user => { return user.User_ID; }),
+            null,
+            null,
             null,
             null,
         };
 
     }
 
-    private async Task AddUsersToProject()
+    private async Task RefreshData(bool reloadUsers = false)
     {
-        foreach (var chosenUser in _chosenUsers)
-        {
-            var userName = await MSGraphService.GetUserEmail(chosenUser.Id, CancellationToken.None);
-
-            var request = new Datahub_Project_User()
-                {
-                    User_ID = chosenUser.Id,
-                    Project = _project,
-                    ApprovedUser = await UserInformationService.GetUserIdString(),
-                    Approved_DT = DateTime.Now,
-                    IsAdmin = false,
-                    IsDataApprover = false,
-                    User_Name = userName.ToLower()
-                };
-
-            Context.Project_Users.Add(request);
-        }
         await Context.TrackSaveChangesAsync(AuditingService);
-        _chosenUsers.Clear();
+        if (reloadUsers)
+        {
+            _chosenUsers.Clear();        
+            _chosenUsers = Context.Project_Users.Where(p => p.Project == _project).ToList();
+        }
         StateHasChanged();
     }
 
@@ -167,11 +168,22 @@
         await JSRuntime.InvokeAsync<object>("toggleMenuWithBool", $"usermenu", toggleMenu);
     }
 
-    private void OnUserClick(GraphUser user)
+    private async void OnUserClick(GraphUser chosenUser)
     {
+        var user = new Datahub_Project_User()
+                {
+                    User_ID = chosenUser.Id,
+                    Project = _project,
+                    ApprovedUser = await UserInformationService.GetUserIdString(),
+                    Approved_DT = DateTime.Now,
+                    IsAdmin = false,
+                    IsDataApprover = false,
+                    User_Name = chosenUser.Mail.ToLower()
+                };
         _chosenUsers.Add(user);
-        _inputValue = string.Empty;        
-        StateHasChanged();
+        _inputValue = string.Empty;
+        Context.Project_Users.Add(user);
+        await RefreshData(true);
     }
 
     
