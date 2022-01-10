@@ -180,3 +180,19 @@
         }
     }
 }
+
+.file-grid-scroll {
+    width: auto;
+    max-height: 300px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    text-align: center;
+}
+
+.file-grid-scroll-lg {
+    width: auto;
+    max-height: 460px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    text-align: center;
+}
