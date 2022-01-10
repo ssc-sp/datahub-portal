@@ -376,6 +376,8 @@ namespace Datahub.Portal
                 services.AddScoped<IDataRemovalService, DataRemovalService>();
 
                 services.AddSingleton<ICognitiveSearchService, CognitiveSearchService>();
+                
+                services.AddScoped<IAzurePriceListService, AzurePriceListService>();
 
                 services.AddScoped<PowerBiServiceApi>();
                 services.AddScoped<PowerBiSyncService>();
@@ -403,6 +405,8 @@ namespace Datahub.Portal
                 services.AddScoped<IDataRetrievalService, OfflineDataRetrievalService>();
                 services.AddScoped<IDataRemovalService, OfflineDataRemovalService>();
 
+                services.AddScoped<IAzurePriceListService, OfflineAzurePriceListService>();
+
                 services.AddSingleton<ICognitiveSearchService, OfflineCognitiveSearchService>();
             }
 
@@ -411,6 +415,7 @@ namespace Datahub.Portal
 
             services.AddScoped<IMetadataBrokerService, MetadataBrokerService>();
             services.AddScoped<IDatahubAuditingService, DatahubTelemetryAuditingService>();
+            services.AddScoped<IMiscStorageService, MiscStorageService>();
 
             services.AddScoped<DataImportingService>();
             services.AddSingleton<DatahubTools>();
@@ -422,6 +427,7 @@ namespace Datahub.Portal
 
             services.AddScoped<IEmailNotificationService, EmailNotificationService>();
             services.AddScoped<ISystemNotificationService, SystemNotificationService>();
+            services.AddSingleton<IPropagationService, PropagationService>();
 
             services.AddSingleton<ServiceAuthManager>();
 
@@ -434,6 +440,8 @@ namespace Datahub.Portal
             services.AddScoped<RequestManagementService>();
 
             services.AddScoped<CustomNavigation>();
+
+            services.AddScoped<IOrganizationLevelsService, OrganizationLevelsService>();
         }
 
         private void ConfigureDbContexts(IServiceCollection services)
