@@ -46,6 +46,8 @@ namespace Datahub.Core.EFCore
 
         public DbSet<Datahub_Project_Costs> Project_Costs { get; set; }
 
+        public DbSet<MiscStoredObject> MiscStoredObjects { get; set; }
+
         public void Seed(DatahubProjectDBContext context, IConfiguration configuration)
         {
             var p1 = context.Projects.Add(new Datahub_Project()
@@ -130,7 +132,10 @@ namespace Datahub.Core.EFCore
             modelBuilder.Entity<SharedDataFile>()
                 .HasIndex(e => e.File_ID)
                 .IsUnique();
-            
+
+            modelBuilder.Entity<MiscStoredObject>()
+                .HasAlternateKey(e => new { e.TypeName, e.Id });
+
         }
     }
 }
