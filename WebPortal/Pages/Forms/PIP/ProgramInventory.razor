@@ -20,7 +20,7 @@
 
 @if (_fiscalYears.Any())
 {
-    <AeDropdown Items="_fiscalYears" OnChange="HandleDropdownChange" />    
+    <AeDropdown Items="_fiscalYears" OnChange="HandleDropdownChange" Label="@_fiscalYear.FiscalYear" class="manageAccessDropdown"/>    
 }
 
 @if (_projects != null)
@@ -83,7 +83,7 @@
     [Parameter]
     public string tombstone { get; set; }
 
-
+    private PIP_FiscalYears _fiscalYear;
     private List<string> _fiscalYears;
 
     private List<PIP_Tombstone> _projects;
@@ -114,7 +114,7 @@
 
     private async void HandleDropdownChange(string selectedItem)
     {
-
+        _fiscalYear = Context.FiscalYears.Where(f => f.FiscalYear == selectedItem).First();
         _projects = new();
         _projects = Context.Tombstones.Where(l => l.FiscalYear.FiscalYear == selectedItem).ToList();
         StateHasChanged();
@@ -210,7 +210,14 @@
         _fiscalYears = new();
         _fiscalYears = Context.FiscalYears.OrderByDescending(i => i.YearId).Select(i => i.FiscalYear).ToList();
 
-        
+        _fiscalYear = _fiscalYear == null ? Context.FiscalYears.OrderByDescending(i => i.YearId).First() : _fiscalYear;
+
+        if (_fiscalYear != null)
+        {
+            _projects = new();
+            _projects = Context.Tombstones.Where(l => l.FiscalYear.FiscalYear == _fiscalYear.FiscalYear).ToList();
+        }
+
 
         if (!string.IsNullOrEmpty(tombstone))
         {
@@ -317,7 +324,7 @@
     private async Task GoToNextSheet()
     {
         var id = _tombstone.Tombstone_ID;
-        navigationUrl = $"/pip/indicators/{id}";
+        navigationUrl = $"/pip/indicators/{id}/{_fiscalYear.FiscalYear}";
         if (_tombstone == null || !Context.ChangeTracker.HasChanges())
             NavigationManager.NavigateTo(navigationUrl);
         else
