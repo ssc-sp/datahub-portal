@@ -83,7 +83,7 @@ namespace Datahub.Core.Services
             {
                 // configure: 
                 var keyVaultName = _targets.Value.KeyVaultName;
-                var keyPath = _targets.Value.KeyVaultApiKeyPath ?? "datahub-api-cmk/6dea4d67b99e40bfaddf63ae1e305a45";
+                var keyPath = _targets.Value.KeyVaultApiKeyPath;
                 string keyIdentifier = $"https://{keyVaultName}.vault.azure.net/keys/{keyPath}";
 
                 var signedData = await _keyVaultClient.SignAsync(keyIdentifier, JsonWebKeySignatureAlgorithm.RS256, GetSHA256Digest(data));
