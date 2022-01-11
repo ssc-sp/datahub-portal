@@ -143,18 +143,18 @@ namespace Datahub.Portal.Data.Finance
         public double? Percent_Of_Forecast_To_Budget_NUM { get; set; }
         /** Section: Comments/Notes for Financial Information  **/
         [MaxLength(7500)] 
-        public string Comments_Notes_For_Financial_Information_TXT { get; set; }
+        public string? Comments_Notes_For_Financial_Information_TXT { get; set; }
         /** Section: Involves an IT or Real Property Component? **/
         [MaxLength(7500)] 
-        public string Involves_An_It_Or_Real_Property_Component_TXT { get; set; }
+        public string? Involves_An_It_Or_Real_Property_Component_TXT { get; set; }
         /** Section: Comments/Notes for Non-Financial Information  **/
         [MaxLength(7500)] 
-        public string Comments_Notes_For_NonFinancial_Information_TXT { get; set; }
+        public string? Comments_Notes_For_NonFinancial_Information_TXT { get; set; }
 
         [AeFormIgnore]
         public SectorAndBranch SectorAndBranch { get; set; }
         [AeFormIgnore]
-        public string Last_Updated_UserId { get; set; }
+        public string? Last_Updated_UserId { get; set; }
 
         [AeFormIgnore]
         public DateTime Last_Updated_DT { get; set; }
