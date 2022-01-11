@@ -9,7 +9,7 @@
 @inject IDatahubAuditingService AuditingService
 @inject ServiceAuthManager ServiceAuthManager
 
-@page "/pip/indicators/{tombstone}"
+@page "/pip/indicators/{tombstone}/{fiscalYear}"
 
 <h1>Indicator And Results</h1>
 
@@ -91,6 +91,8 @@
 
     [Parameter]
     public string tombstone { get; set; }
+    [Parameter]
+    public string fiscalYear { get; set; }
 
     private const string PROJECTACRONYM = "PIP";
     private List<PIP_IndicatorAndResults> _indicators;
@@ -98,6 +100,7 @@
     private List<PIP_Tombstone> _tombstones;
     private List<PIP_Risks> _risks = new List<PIP_Risks>();
     private PIP_Tombstone _tombstone;
+    private PIP_FiscalYears _fiscalYear;
     private PIPDBContext Context;  
     private bool _navToEdit = false;
     private Microsoft.Graph.User CurrentUser;
@@ -125,16 +128,18 @@
         null,
         null,
     };
+
+        _fiscalYear = Context.FiscalYears.Where(f => f.FiscalYear == fiscalYear).First();
         CurrentUser = await UserInformationService.GetUserAsync();
         _isUserAdmin = await ServiceAuthManager.IsProjectAdmin(CurrentUser.Id, PROJECTACRONYM);
         // load projects
-        _tombstone = Context.Tombstones.Where(p => p.Tombstone_ID == Convert.ToInt32(tombstone)).FirstOrDefault();
-        _indicators = Context.IndicatorAndResults.Where(p => p.PIP_Tombstone.Tombstone_ID == _tombstone.Tombstone_ID && !p.IsDeleted).ToList();
+        _tombstone = Context.Tombstones.Where(p => p.Tombstone_ID == Convert.ToInt32(tombstone) && p.FiscalYear == _fiscalYear).FirstOrDefault();
+        _indicators = Context.IndicatorAndResults.Where(p => p.PIP_Tombstone.Tombstone_ID == _tombstone.Tombstone_ID && !p.IsDeleted && p.FiscalYear == _fiscalYear).ToList();
     }
 
     private async Task CreateNewIndicator()
     {
-        _indicator = new PIP_IndicatorAndResults() { PIP_Tombstone = _tombstone, Last_Updated_DT = DateTime.Now, Date_Result_Collected = DateTime.Now, Date_To_Achieve_Target_DT = DateTime.Now };
+        _indicator = new PIP_IndicatorAndResults() { PIP_Tombstone = _tombstone, Last_Updated_DT = DateTime.Now, Date_Result_Collected = DateTime.Now, Date_To_Achieve_Target_DT = DateTime.Now, FiscalYear = _fiscalYear };
         StateHasChanged();
         _navToEdit = true;
     }
@@ -201,7 +206,7 @@
         }
 
         _indicator = null;
-        _indicators = Context.IndicatorAndResults.Where(p => p.PIP_Tombstone.Tombstone_ID == _tombstone.Tombstone_ID && !p.IsDeleted).ToList();
+        _indicators = Context.IndicatorAndResults.Where(p => p.PIP_Tombstone.Tombstone_ID == _tombstone.Tombstone_ID && !p.IsDeleted && p.FiscalYear == _fiscalYear).ToList();
         await UI.ToggleModal();        
 
         StateHasChanged();
