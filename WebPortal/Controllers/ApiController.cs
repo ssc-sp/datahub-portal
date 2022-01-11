@@ -10,6 +10,8 @@ using System.Reflection;
 using Datahub.Core.Services;
 using System.IO;
 using Datahub.Core.Utils;
+using Microsoft.EntityFrameworkCore;
+using Datahub.Core.EFCore;
 
 namespace Datahub.Portal.Controllers
 {
@@ -17,13 +19,18 @@ namespace Datahub.Portal.Controllers
     [AllowAnonymous]
     public class ApiController : Controller
     {
-        readonly ILogger<PublicController> _logger;
+        private readonly ILogger<PublicController> _logger;
         private readonly IApiCallService _apiCallService;
+        private readonly IDbContextFactory<DatahubProjectDBContext> _contextFactory;
+        private readonly IKeyVaultService _keyVaultService;
 
-        public ApiController(ILogger<PublicController> logger, IApiCallService apiCallService)
+        public ApiController(ILogger<PublicController> logger, IApiCallService apiCallService, 
+            IDbContextFactory<DatahubProjectDBContext> contextFactory, IKeyVaultService keyVaultService)
         {
             _logger = logger;
             _apiCallService = apiCallService;
+            _contextFactory = contextFactory;
+            _keyVaultService = keyVaultService;
         }
 
         [HttpPost]
@@ -33,14 +40,27 @@ namespace Datahub.Portal.Controllers
             var authHeader = Request.Headers["Authorization"];
 
             // todo: validate token
+            var testToken = await _keyVaultService.SignAsync("0123456789");
 
-            // todo: retrieve the project acronym from the authorization token
-            var projectAcro = "canmetrobo";
+            // todo: extract the ProjectApiUser_Id fron the token
+            var projectApiUserId = Guid.Parse("10A5280E-4432-411C-89AA-861FE9258A40");
+
+            using var ctx = _contextFactory.CreateDbContext();
+            var userInfo = await ctx.Project_ApiUsers.FirstAsync(e => e.ProjectApiUser_ID == projectApiUserId);
+
+            if (userInfo == null)
+                return Unauthorized();
+
+            if (!userInfo.Enabled)
+                return Unauthorized("Account is not enabled");
+
+            // retrieve the project acronym
+            var projectAcro = (userInfo.Project_Acronym_CD ?? "").ToLower();
 
             // get the file from the form
             var count = Request.Form.Files.Count;
             if (count != 1)
-                return BadRequest();
+                return BadRequest("Must provide just one file.");
 
             // create the file id
             var fileId = Guid.NewGuid().ToString();
