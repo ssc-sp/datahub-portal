@@ -73,7 +73,7 @@ else
 
 @if (SelectedRecord != null)
 {
-    @if (Metadata.MarkDownContent.Any())
+    @if (Metadata.MarkDownContent?.Any() ?? false)
     {
         <AeCard class="facardForms" CardPosition="AeCard.CardStyle.Horizontal">
             @foreach (var content in Metadata.MarkDownContent)
@@ -97,7 +97,7 @@ else
                  IsSubmitEnabled="Metadata.IsSubmitEnabled" />
     </AeCard>
 
-    @if (Metadata.MarkDownContentFooter.Any())
+    @if (Metadata.MarkDownContentFooter?.Any() ?? false)
     {
         <AeCard class="facardForms" CardPosition="AeCard.CardStyle.Horizontal">
             @foreach (var content in Metadata.MarkDownContentFooter)
