@@ -16,6 +16,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
+using Microsoft.Azure.KeyVault.WebKey;
+using System.Text;
+using System.Security.Cryptography;
 
 namespace Datahub.Core.Services
 {
@@ -35,6 +38,7 @@ namespace Datahub.Core.Services
             _logger = logger;
             _targets = targets;
         }
+
         private string getEnvSuffix()
         {
             var envName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
@@ -51,7 +55,6 @@ namespace Datahub.Core.Services
         {
             try
             {
-
                 if (_keyVaultClient == null)
                 {
                     SetKeyVaultClient();
@@ -67,6 +70,28 @@ namespace Datahub.Core.Services
                 _logger.LogError($"Could not retrieve secret: {secretName}");
                 _logger.LogError($"The following error occured: {e.Message}");
                 throw;
+            }
+        }
+
+        public async Task<string> SignAsync(string data)
+        {
+            if (_keyVaultClient == null)
+            {
+                SetKeyVaultClient();
+            }
+            try
+            {
+                // configure: 
+                var keyVaultName = _targets.Value.KeyVaultName;
+                var keyPath = _targets.Value.KeyVaultApiKeyPath ?? "datahub-api-cmk/6dea4d67b99e40bfaddf63ae1e305a45";
+                string keyIdentifier = $"https://{keyVaultName}.vault.azure.net/keys/{keyPath}";
+
+                var signedData = await _keyVaultClient.SignAsync(keyIdentifier, JsonWebKeySignatureAlgorithm.RS256, GetSHA256Digest(data));
+                return Convert.ToBase64String(signedData.Result);
+            }
+            catch (Exception ex)
+            {
+                return ex.Message;
             }
         }
 
@@ -99,5 +124,10 @@ namespace Datahub.Core.Services
 
         }
 
+        static byte[] GetSHA256Digest(string value)
+        {
+            using var hash = SHA256.Create();
+            return hash.ComputeHash(Encoding.UTF8.GetBytes(value));
+        }
     }
 }
