@@ -187,7 +187,6 @@ namespace Datahub.Portal
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILogger<Startup> logger,
             IDbContextFactory<DatahubProjectDBContext> datahubFactory,
             IDbContextFactory<UserTrackingContext> userTrackingFactory,
-            IDbContextFactory<FinanceDBContext> financeFactory,
             IDbContextFactory<PIPDBContext> pipFactory,
             IDbContextFactory<MetadataDbContext> metadataFactory,
             IDbContextFactory<DatahubETLStatusContext> etlFactory)
@@ -204,7 +203,7 @@ namespace Datahub.Portal
             InitializeDatabase(logger, datahubFactory);
             InitializeDatabase(logger, userTrackingFactory, false);
             InitializeDatabase(logger, etlFactory);
-            InitializeDatabase(logger, financeFactory);
+            //InitializeDatabase(logger, financeFactory);
             InitializeDatabase(logger, pipFactory);
             InitializeDatabase(logger, metadataFactory, true, false);
 
