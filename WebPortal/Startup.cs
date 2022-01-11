@@ -29,7 +29,6 @@ using Microsoft.EntityFrameworkCore;
 using Datahub.ProjectForms.Data.PIP;
 using Datahub.Core.EFCore;
 using Datahub.Portal.Data;
-using Datahub.Portal.Data.Finance;
 using Datahub.Portal.Data.WebAnalytics;
 using Microsoft.Graph;
 using Polly;
@@ -203,7 +202,6 @@ namespace Datahub.Portal
             InitializeDatabase(logger, datahubFactory);
             InitializeDatabase(logger, userTrackingFactory, false);
             InitializeDatabase(logger, etlFactory);
-            //InitializeDatabase(logger, financeFactory);
             InitializeDatabase(logger, pipFactory);
             InitializeDatabase(logger, metadataFactory, true, false);
 
@@ -450,7 +448,6 @@ namespace Datahub.Portal
         {
             ConfigureDbContext<DatahubProjectDBContext>(services, "datahub-mssql-project", Configuration.GetDriver());
             ConfigureDbContext<PIPDBContext>(services, "datahub-mssql-pip", Configuration.GetDriver());
-            //ConfigureDbContext<FinanceDBContext>(services, "datahub-mssql-finance", Configuration.GetDriver());
             if (Configuration.GetDriver() == DbDriver.SqlServer)
             {
                 ConfigureCosmosDbContext<UserTrackingContext>(services, "datahub-cosmosdb", "datahub-catalog-db");
