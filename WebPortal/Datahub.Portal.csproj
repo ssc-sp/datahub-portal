@@ -79,6 +79,7 @@
     <ProjectReference Include="..\Datahub.Core\Datahub.Core.csproj" />
     <ProjectReference Include="..\Datahub.Metadata\Datahub.Metadata.csproj" />
     <ProjectReference Include="..\LanguageTraining\Datahub.LanguageTraining.csproj" />
+	<ProjectReference Include="..\Datahub.M365Forms\Datahub.M365Forms.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Update="Pages\Forms\LanguageTraining\FormFooterWarning.md">
