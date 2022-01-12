@@ -45,6 +45,7 @@ using Datahub.LanguageTraining;
 using Microsoft.AspNetCore.HttpLogging;
 using Datahub.CKAN.Service;
 using Datahub.Core.UserTracking;
+using Datahub.M365Forms;
 
 namespace Datahub.Portal
 {
@@ -120,6 +121,7 @@ namespace Datahub.Portal
             services.AddScoped<TimeZoneService>();
             services.AddElemental();
             services.AddModule<LanguageTrainingModule>(Configuration);
+            services.AddModule<M365FormsModule>(Configuration);
             // configure db contexts in this method
             ConfigureDbContexts(services);
 
@@ -197,6 +199,7 @@ namespace Datahub.Portal
             }
 
             app.ConfigureModule<LanguageTrainingModule>();
+            app.ConfigureModule<M365FormsModule>();
 
             InitializeDatabase(logger, datahubFactory);
             InitializeDatabase(logger, userTrackingFactory, false);
