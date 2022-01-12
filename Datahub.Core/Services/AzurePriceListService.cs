@@ -1,4 +1,4 @@
-﻿using Datahub.Core.Data.StorageCostEstimator;
+﻿using Datahub.Core.Data.CostEstimator;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -187,7 +187,7 @@ namespace Datahub.Core.Services
         };
 
         private static readonly string API_BASE_URL = "https://prices.azure.com/api/retail/prices";
-        private static readonly string SAVED_PRICE_LIST_ID = "StoragePriceList";
+        private static readonly string SAVED_STORAGE_PRICE_LIST_ID = "StoragePriceList";
 
         private static readonly UnitPrice zeroPrice = new(0.0M, 1);
 
@@ -255,11 +255,11 @@ namespace Datahub.Core.Services
             return new(result.Items.Where(i => i.SkuId == skuId).ToList());
         }
 
-        private async Task<SavedStorageCostPriceGrid> FetchSavedPriceGrid() => await _miscStorageService.GetObject<SavedStorageCostPriceGrid>(SAVED_PRICE_LIST_ID);
+        private async Task<SavedStorageCostPriceGrid> FetchSavedPriceGrid() => await _miscStorageService.GetObject<SavedStorageCostPriceGrid>(SAVED_STORAGE_PRICE_LIST_ID);
 
-        private async Task SavePriceGrid(SavedStorageCostPriceGrid priceGrid) => await _miscStorageService.SaveObject(priceGrid, SAVED_PRICE_LIST_ID);
+        private async Task SavePriceGrid(SavedStorageCostPriceGrid priceGrid) => await _miscStorageService.SaveObject(priceGrid, SAVED_STORAGE_PRICE_LIST_ID);
 
-        private async Task<Dictionary<string, EstimatorPriceList>> GeneratePriceListFromApi()
+        private async Task<Dictionary<string, StorageCostEstimatorPriceList>> GeneratePriceListFromApi()
         {
             var geoRepUrl = BuildApiUrl(AzureSkuIds.GEO_REPLICATION_SKU_ID);
             var geoRepResult = await GetAzureApiResult(geoRepUrl);
@@ -272,7 +272,7 @@ namespace Datahub.Core.Services
                 .Select(kvp =>
                 {
                     var rawSkuPrices = GetPricesForSku(priceResult, kvp.Value);
-                    var skuPriceList = new EstimatorPriceList()
+                    var skuPriceList = new StorageCostEstimatorPriceList()
                     {
                         ArchiveHPRead = GetUnitPriceFromApiResult(rawSkuPrices, AzureMeterIds.ArchivePriorityRead),
                         Capacity = GetUnitPriceFromApiResult(rawSkuPrices, AzureMeterIds.DataStored),
@@ -284,7 +284,7 @@ namespace Datahub.Core.Services
                         ReadOperations = GetUnitPriceFromApiResult(rawSkuPrices, AzureMeterIds.ReadOperations),
                         WriteOperations = GetUnitPriceFromApiResult(rawSkuPrices, AzureMeterIds.WriteOperations)
                     };
-                    return (IAzurePriceListService.GenerateAzurePriceListKey(kvp.Key.Item1, kvp.Key.Item2), skuPriceList);
+                    return (IAzurePriceListService.GenerateAzureStoragePriceListKey(kvp.Key.Item1, kvp.Key.Item2), skuPriceList);
                 })
                 .ToDictionary(tuple => tuple.Item1, tuple => tuple.skuPriceList);
 
