@@ -1,6 +1,6 @@
 ﻿@using Core.Layout
 <Router AppAssembly="@typeof(Program).Assembly"
-        AdditionalAssemblies="new[] { typeof(Datahub.LanguageTraining.LanguageTrainingModule).Assembly }">
+        AdditionalAssemblies="new[] { typeof(Datahub.LanguageTraining.LanguageTrainingModule).Assembly, typeof(Datahub.M365Forms.M365FormsModule).Assembly }" >
     <Found Context="routeData">
         <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(Datahub.Portal.Layout.PortalLayout)" />
     </Found>
