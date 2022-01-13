@@ -85,7 +85,7 @@
                     </div>
                 </Header>
                 <ChildContent>
-                    @if (_databricksAuthorized && !string.IsNullOrWhiteSpace(_project.Databricks_URL))
+                    @if (!string.IsNullOrWhiteSpace(_project.Databricks_URL))
                     {
                         <DHLink Variant="h3" DataProject="@projectAcronym" DatabricksURL="@_project.Databricks_URL">Azure Databricks</DHLink>
                     }
@@ -135,7 +135,7 @@
                     </div>
                 </Header>
                 <ChildContent>
-                    @if (_powerBIAuthorized && !string.IsNullOrWhiteSpace(_project.PowerBI_URL))
+                    @if (!string.IsNullOrWhiteSpace(_project.PowerBI_URL))
                     {
                         <DHLink Variant="h3" DataProject="@projectAcronym" LinkType="DatahubLinkType.PowerBIReport">PowerBI</DHLink>
                     }
