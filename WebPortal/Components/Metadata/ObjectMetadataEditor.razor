@@ -1,15 +1,15 @@
 ﻿@*ObjectMetadataEditor.razor*@
 @using Datahub.Metadata.Model
 @using Datahub.Metadata.DTO
+@using Datahub.Metadata.Utils;
 
 <div style="width: 100%">
 @if (_fieldValues != null)
 {
     <MetadataEditor Preview=@Preview
+                    Profile=@_profile
                     Definitions=@_definitions
                     FieldValues=@_fieldValues
-                    RequiredFields=@_requiredFields
-                    HiddenFields=@_hiddenFields
                     ShowAll=@_showAll
                     OnFieldChanged=@FieldChanged />
 
@@ -54,6 +54,9 @@
     public string ObjectId { get; set; }
 
     [Parameter]
+    public string ProfileName { get; set; } = "opendata";
+
+    [Parameter]
     public string SaveButtonLabel { get; set; } = "Save";
 
     [Parameter]
@@ -66,40 +69,24 @@
     public EventCallback<FieldValueContainer> OnSave{ get; set; }
 
     private FieldDefinitions _definitions;
+    private MetadataProfile _profile;
+
     private FieldValueContainer _fieldValues;
     private bool _showAll;
     private bool _savingData;
     private bool _disableSave = true;
 
-    private HashSet<string> _requiredFields = new() 
-    {
-        "collection",
-        "title_translated_en",
-        "title_translated_fr",
-        "owner_org",
-        "notes_translated_en",
-        "notes_translated_fr",
-        "keywords_en",
-        "keywords_fr",
-        "subject",
-        "frequency",
-        "date_published",
-        "jurisdiction",
-        //"license_id",
-        "restrictions"
-    };
-
-    private HashSet<string> _hiddenFields = new() 
-    { 
-        "imso_approval", 
-        "ready_to_publish" 
-    };
+    private HashSet<int> _requiredFieldIds = new();
 
     protected override async Task OnInitializedAsync()
     {
         _fieldValues = await MetadataBrokerService.GetObjectMetadataValues(ObjectId);
+        _profile = await MetadataBrokerService.GetProfile(ProfileName);
+
         _definitions = _fieldValues.Definitions;
         _disableSave = !CheckRequiredFieldValues();
+
+        _requiredFieldIds = _profile.GetRequiredFieldSet();
     }
 
     public string GetTitle()
@@ -119,7 +106,7 @@
 
     private bool IsFieldRequired(FieldDefinition field)
     {
-        return _requiredFields.Contains(field.Field_Name_TXT);
+        return _requiredFieldIds.Contains(field.FieldDefinitionId);
     }
 
     private async Task SaveChanges()
@@ -134,7 +121,6 @@
         {
             _savingData = false;
         }
-        //await InvokeAsync(StateHasChanged);
     }
 
     private void FieldChanged()

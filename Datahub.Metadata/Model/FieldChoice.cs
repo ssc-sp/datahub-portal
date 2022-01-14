@@ -1,5 +1,4 @@
-﻿using System;
-using System.Globalization;
+﻿using Datahub.Metadata.Utils;
 
 namespace Datahub.Metadata.Model
 {
@@ -14,8 +13,7 @@ namespace Datahub.Metadata.Model
 
         #region Entity extensions
 
-        public string Label => (IsFrenchCulture() ? Label_French_TXT : Label_English_TXT) ?? Label_English_TXT ?? Value_TXT;
-        static bool IsFrenchCulture() => CultureInfo.CurrentCulture.Name.StartsWith("fr", StringComparison.InvariantCulture);
+        public string Label => CultureUtils.SelectCulture(Label_English_TXT, Label_French_TXT);
 
         #endregion
     }
