@@ -692,6 +692,23 @@
   "Client_Information": "Client Information",
   "Project_Engagement_Category_Other": "Other",
 
+  "GCdocs_Hyperlink_URL": "GCdocs Hyperlink",
+  "Expected_Lifespan_DT": "Expected Lifespan",
+  "Expected_Lifespan": "Expected Lifespan",
+  "Name_of_Team": "Name of Team",
+  "Description_of_Team": "Description of Team",
+  "Team_Purpose": "Team Purpose",
+  "Team_Function": "Team Function",
+  "Number": "Number",
+  "Composition": "Composition",
+  "Business_Owner": "Business Owner",
+  "Team_Owner_s_": "Team Owner(s)",
+  "Information_and_Data_Security_Classification": "Information and Data Security Classification",
+  "Visibility": "Visibility",
+  "Team_Owner1": "Team Owner",
+  "Team_Owner2": "Team Owner",
+  "Team_Owner3": "Team Owner",
+  "Business_Owner_Approval": "I, the business owner identified above, approve this M365 Teams request.",
 
 
   "Project_Cost": "Cost",
@@ -879,5 +896,6 @@
     "ExpReadLabelEmail": "Expected Monthly Read",
     "DataTierLabelEmail": "Data Access Tier",
     "DataRedundancyLabelEmail": "Data Redundancy Requirement"
+
   }
 }

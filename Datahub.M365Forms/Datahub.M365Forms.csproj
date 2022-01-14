@@ -10,8 +10,4 @@
     <ProjectReference Include="..\Datahub.Core\Datahub.Core.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Pages\" />
-  </ItemGroup>
-
 </Project>
