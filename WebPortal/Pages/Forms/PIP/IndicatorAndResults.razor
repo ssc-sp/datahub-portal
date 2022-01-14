@@ -133,7 +133,7 @@
         CurrentUser = await UserInformationService.GetUserAsync();
         _isUserAdmin = await ServiceAuthManager.IsProjectAdmin(CurrentUser.Id, PROJECTACRONYM);
         // load projects
-        _tombstone = Context.Tombstones.Where(p => p.Tombstone_ID == Convert.ToInt32(tombstone) && p.FiscalYear == _fiscalYear).FirstOrDefault();
+        _tombstone = Context.Tombstones.Where(p => p.Tombstone_ID == Convert.ToInt32(tombstone)).FirstOrDefault();
         _indicators = Context.IndicatorAndResults.Where(p => p.PIP_Tombstone.Tombstone_ID == _tombstone.Tombstone_ID && !p.IsDeleted && p.FiscalYear == _fiscalYear).ToList();
     }
 
