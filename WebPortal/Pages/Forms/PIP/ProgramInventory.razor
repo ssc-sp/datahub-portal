@@ -16,12 +16,15 @@
 
 
 <h1>Performance Information Profile (PIP) Forms</h1>
-<h2>Select Program Inventory Program</h2>
 
+<h2>Select your fiscal year</h2>
 @if (_fiscalYears.Any())
 {
-    <AeDropdown Items="_fiscalYears" OnChange="HandleDropdownChange" Label="@_fiscalYear.FiscalYear" class="manageAccessDropdown"/>    
+    <AeDropdown Items="_fiscalYears" OnChange="HandleDropdownChange" Label="@_fiscalYear.FiscalYear" class="securityDropdown"/>    
 }
+
+<h2>Select Program Inventory Program</h2>
+
 
 @if (_projects != null)
 {
