@@ -22,6 +22,15 @@ namespace Datahub.Portal.Services
             _auditingService = auditingService;
         }
 
+        public async Task<MetadataProfile> GetProfile(string name)
+        {
+            using var ctx = _contextFactory.CreateDbContext();
+            return await ctx.Profiles
+                            .Include(p => p.Sections)
+                            .ThenInclude(s => s.Fields)
+                            .FirstOrDefaultAsync(p => p.Name == name);
+        }
+
         public async Task<FieldValueContainer> GetObjectMetadataValues(string objectId)
         {
             using var ctx = _contextFactory.CreateDbContext();
