@@ -1,5 +1,6 @@
 ﻿using Datahub.Metadata.DTO;
 using Datahub.Portal.Data.Forms.ShareWorkflow;
+using Entities = Datahub.Metadata.Model;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -7,6 +8,7 @@ namespace Datahub.Portal.Services
 {
     public interface IMetadataBrokerService
     {
+        Task<Entities.MetadataProfile> GetProfile(string name);
         Task<FieldValueContainer> GetObjectMetadataValues(string objectId);
         Task SaveMetadata(FieldValueContainer fieldValues);
         Task<ApprovalForm> GetApprovalForm(int ApprovalFormId);

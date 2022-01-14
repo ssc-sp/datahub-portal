@@ -17,6 +17,9 @@ namespace Datahub.Metadata.Model
         public DbSet<Keyword> Keywords { get; set; }
         public DbSet<Subject> Subjects { get; set; }
         public DbSet<SubSubject> SubSubjects { get; set; }
+        public DbSet<MetadataProfile> Profiles { get; set; }
+        public DbSet<MetadataSection> Sections { get; set; }
+        public DbSet<SectionField> SectionFields { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -151,6 +154,44 @@ namespace Datahub.Metadata.Model
             {
                 entity.ToTable("SubSubjects");
                 entity.HasKey(e => e.SubSubjectId);
+            });
+
+            modelBuilder.Entity<MetadataProfile>(entity =>
+            {
+                entity.ToTable("Profiles");
+
+                entity.HasKey(e => e.ProfileId);
+                entity.Property(e => e.ProfileId).ValueGeneratedOnAdd();
+
+                entity.Property(e => e.Name).HasMaxLength(32);
+                entity.HasIndex(e => e.Name).IsUnique();
+            });
+
+            modelBuilder.Entity<MetadataSection>(entity =>
+            {
+                entity.ToTable("Sections");
+
+                entity.HasKey(e => e.SectionId);
+                entity.Property(e => e.SectionId).ValueGeneratedOnAdd();
+
+                entity.Property(e => e.Name_English_TXT).HasMaxLength(256);
+                entity.Property(e => e.Name_French_TXT).HasMaxLength(256);
+
+                entity.HasOne(e => e.Profile)
+                      .WithMany(e => e.Sections);
+            });
+
+            modelBuilder.Entity<SectionField>(entity =>
+            {
+                entity.ToTable("SectionFields");
+
+                entity.HasKey(e => new { e.SectionId, e.FieldDefinitionId });
+
+                entity.HasOne(e => e.Section)
+                      .WithMany(e => e.Fields);
+
+                entity.HasOne(e => e.FieldDefinition)
+                      .WithMany(e => e.SectionFields);
             });
         }
     }
