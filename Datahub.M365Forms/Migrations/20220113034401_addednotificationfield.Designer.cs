@@ -4,6 +4,7 @@ using Datahub.Portal.Data.M365Forms;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Datahub.M365Forms.Migrations
 {
     [DbContext(typeof(M365FormsDBContext))]
-    partial class M365FormsDBContextModelSnapshot : ModelSnapshot
+    [Migration("20220113034401_addednotificationfield")]
+    partial class addednotificationfield
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -31,15 +33,22 @@ namespace Datahub.M365Forms.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Application_ID"), 1L, 1);
 
                     b.Property<string>("Business_Owner")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool>("Business_Owner_Approval")
-                        .HasColumnType("bit");
+                    b.Property<string>("Business_Owner_Approval")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Composition")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Description_of_Team")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Expected_Lifespan")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -47,6 +56,7 @@ namespace Datahub.M365Forms.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("GCdocs_Hyperlink_URL")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Information_and_Data_Security_Classification")
@@ -69,9 +79,11 @@ namespace Datahub.M365Forms.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("Number")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Team_Function")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Team_Owner1")
@@ -83,9 +95,11 @@ namespace Datahub.M365Forms.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Team_Owner3")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Team_Purpose")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<byte[]>("Timestamp")
@@ -94,9 +108,8 @@ namespace Datahub.M365Forms.Migrations
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("rowversion");
 
-                    b.Property<string>("Visibility")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<bool>("Visibility")
+                        .HasColumnType("bit");
 
                     b.HasKey("Application_ID");
 
