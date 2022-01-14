@@ -54,9 +54,9 @@ steps:
 - task: AzureRmWebAppDeployment@4
   inputs:
     ConnectionType: 'AzureRM'
-    azureSubscription: 'datahub-dev-service-connection'
+    azureSubscription: 'AZRM - DataSolutions - sand-rg'
     appType: 'webApp'
-    WebAppName: 'dh-portal-app-dev'
+    WebAppName: 'spdatahub-portal-app-sand'
     package: '$(System.DefaultWorkingDirectory)/WebPortal/**/*.zip'
     enableCustomDeployment: true
     DeploymentType: 'webDeploy'
