@@ -99,18 +99,21 @@ namespace Datahub.Core.Services
 
         private async Task<User> GetUserAsyncInternal()
         {
+         if (CurrentUser != null)
+                 return CurrentUser;
             try
             {               
                 var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
                 var claimsList = authState.User.Claims.ToList();
                 var email = authState.User.Identity.Name;
+                var userId = authState.User.Claims.First(c => c.Type == "http://schemas.microsoft.com/identity/claims/objectidentifier").Value; 
                 if (email is null)
                 {
                     throw new InvalidOperationException("Cannot resolve user email");
                 }
 
                 PrepareAuthenticatedClient();
-                CurrentUser = await graphServiceClient.Users[email].Request().GetAsync();
+                CurrentUser = await graphServiceClient.Users[userId].Request().GetAsync();
 
                 return CurrentUser;
             }
