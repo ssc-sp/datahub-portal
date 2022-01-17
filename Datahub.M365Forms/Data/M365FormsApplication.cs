@@ -95,9 +95,9 @@ namespace Datahub.Portal.Data
         [AeFormCategory("Approval", 80)]        
         public bool Business_Owner_Approval { get; set; }
         
-        [AeFormCategory("Application Status", 30)]
+        [AeFormCategory("Application Status", 90)]
         [AeLabel(isDropDown: true, placeholder: "Select status of application:", validValues: new[] { "Team Requested", "Submitted to Assyst", "Team Created" })]
-        public string? Status { get; set; }
+        public string? M365FormStatus { get; set; }
 
         [AeFormIgnore]
         public bool NotificationsSent { get; set; }

@@ -709,7 +709,10 @@
   "Team_Owner3": "Team Owner #3",
   "Business_Owner_Approval": "I, the business owner identified above, approve this M365 Teams request.",
   "Ongoing_Lifespan": "Ongoing",
-
+  "Working_Group": "Working Group",
+  "Project_Or_Initiative": "Project or Initiative",
+  "Other_Txt": "",
+  "M365FormStatus": "",
 
   "Project_Cost": "Cost",
   "Project_Cost_NotFound": "No cost data found.",
