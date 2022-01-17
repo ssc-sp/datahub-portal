@@ -17,21 +17,32 @@ namespace Datahub.Portal.Data
         [Required]
         [MaxLength(35)]
         [AeFormCategory("M365 Teams Information", 10)]
-        [AeLabel(placeholder: "Enter a short bilingual name for the team. For example: IM Working Group | Groupe de travail sur la GI")]
+        [AeLabel(placeholder: "Enter a short bilingual name for the team (max 35 characters). For example: IM Working Group | Groupe de travail sur la GI")]
         public string Name_of_Team { get; set; }
 
         [Required]
         [AeFormCategory("M365 Teams Information", 10)]
         [AeLabel(placeholder: "Enter a short bilingual description to display in the MS Teams 'About' section. For example: Collaboration space for sector financial advisors | Espace de collaboration pour les conseillers financier des secteurs")]
-        public string Description_of_Team { get; set; }
-
-        [AeFormCategory("M365 Teams Information", 10)]
-        [AeLabel(isDropDown: true, placeholder: "How do you plan to use the team? Select all that apply:", validValues: new[] { "Working Group", "Committee", "Event", "Project or Initiative", "Other (please specify)" })]
-        public string? Team_Purpose { get; set; }
+        public string Description_of_Team { get; set; }        
 
         [AeFormCategory("M365 Teams Information", 10)]
         [AeLabel(isDropDown: true, placeholder: "Select the appropriate Business Activity:", validValues: new[] { "Acquisition and Procurement", "Communication", "Emergency Management", "Financial Management", "Human Resources", "Information Management", "Information Technology", "Knowledge Dissemination", "Legal", "Management and Oversight", "Material Management", "Policy", "Program Administration", "Real Property Management", "Regulatory", "Science and Technology", "Stakeholder Relations", "Travel and Administrative Services" })]
         public string? Team_Function { get; set; }
+
+        [AeFormCategory("Team Purpose - How do you plan to use the team? Select all that apply", 15)]        
+        public bool Working_Group { get; set; }
+        [AeFormCategory("Team Purpose - How do you plan to use the team? Select all that apply", 15)]
+        public bool Committee { get; set; }
+        [AeFormCategory("Team Purpose - How do you plan to use the team? Select all that apply", 15)]
+        public bool Event { get; set; }
+        [AeFormCategory("Team Purpose - How do you plan to use the team? Select all that apply", 15)]
+        public bool Project_Or_Initiative { get; set; }
+        [AeFormCategory("Team Purpose - How do you plan to use the team? Select all that apply", 15)]
+        public bool Other { get; set; }
+        [AeFormCategory("Team Purpose - How do you plan to use the team? Select all that apply", 15)]
+        [AeLabel(placeholder: "Please specify other purpose")]
+        public string? Other_Txt { get; set; }
+
 
         [AeFormCategory("Membership", 20)]
         [AeLabel(isDropDown: true, placeholder: "Select a range for the number of members in the team:", validValues: new[] { "1-15", "16-30", "31-50", "51-100", "100+" })]
@@ -56,12 +67,11 @@ namespace Datahub.Portal.Data
         public string? GCdocs_Hyperlink_URL { get; set; }
 
         [AeFormCategory("Lifespan of Team", 60)]
+        public bool Ongoing_Lifespan { get; set; }
+
+        [AeFormCategory("Lifespan of Team", 60)]
         [AeLabel(placeholder: "Select the expected retirement date for the team:")]
         public DateTime Expected_Lifespan_DT { get; set; }
-
-        //[AeFormCategory("Lifespan of Team", 60)]
-        //[AeLabel(isDropDown: true, placeholder: "[Or Select Ongoing ")]
-        //public string Expected_Lifespan { get; set; }
 
 
         [AeFormCategory("Owners", 70)]
@@ -84,6 +94,10 @@ namespace Datahub.Portal.Data
 
         [AeFormCategory("Approval", 80)]        
         public bool Business_Owner_Approval { get; set; }
+        
+        [AeFormCategory("Application Status", 30)]
+        [AeLabel(isDropDown: true, placeholder: "Select status of application:", validValues: new[] { "Team Requested", "Submitted to Assyst", "Team Created" })]
+        public string? Status { get; set; }
 
         [AeFormIgnore]
         public bool NotificationsSent { get; set; }

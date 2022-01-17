@@ -71,7 +71,7 @@
         {
             p => { return Localizer[p.Name_of_Team]; },
             p => { return Localizer[p.Description_of_Team ?? string.Empty]; },
-            p => { return Localizer[p.Team_Purpose ?? string.Empty]; },
+            p => { return Localizer[p.Team_Function ?? string.Empty]; },
             p => { return p.Business_Owner; },
         };
 
