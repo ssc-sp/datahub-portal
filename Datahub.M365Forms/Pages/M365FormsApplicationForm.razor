@@ -79,6 +79,7 @@
 
 
         var footerfile = _isFrench ? "FormFooterFr.md" : "FormFooter.md";
+        var headerfile = "FormIntro.md";
         LoadApps(string.Empty);
         _formMetadata.Header = Localizer["M365 Team Request Form"];
         _formMetadata.TableRoles = RoleConstants.DATAHUB_ROLE_ADMIN;
@@ -87,7 +88,7 @@
         _formMetadata.Headers = headers;
         _formMetadata.GridTemplateColumns = "3fr 4fr 3fr 3fr";
         _formMetadata.IsSubmitEnabled = true;
-        _formMetadata.MarkDownContent = new List<string>();
+        _formMetadata.MarkDownContent = File.ReadAllLines($@"Pages\Forms\M365Forms\{headerfile}").ToList();
         _formMetadata.MarkDownContentFooter = File.ReadAllLines($@"Pages\Forms\M365Forms\{footerfile}").ToList();
         var filters = new List<(Delegate Label, Delegate Choices)>() { (() => "Status", () => new List<string> { "All", "Team Requested", "Submitted to Assyst", "Team Created" }) };
         _formMetadata.FilterProperties = filters;
