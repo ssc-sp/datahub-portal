@@ -15,10 +15,12 @@
 else
 {
     <AeTypography Variant="h1">Debug</AeTypography>
+    <AeTypography Variant="h3">User ID: @userId</AeTypography>
+    <AeTypography Variant="h3">User Name: @userName</AeTypography>
     <AeTypography Variant="h2">List of roles</AeTypography>
     @foreach (var role in roles)
     {
-        <AeTypography Variant="h3">Value: @role.Value</AeTypography>
+        <div>Role: @role.Value</div>
     }
 }
 
@@ -29,12 +31,16 @@ else
 
     public bool isLoaded { get; set; }
 
+    private string userId;
+    private string userName;
+
     private List<Claim> roles;
 
     protected override async Task OnInitializedAsync()
     {
         var user = (await authenticationStateTask).User;
-
+        userName = user.Identity.Name;
+        userId = user.Claims.FirstOrDefault(c => c.Type == "uid")?.Value;
         var userIdentity = (ClaimsIdentity)user.Identity;
         var claims = userIdentity.Claims;
         var roleClaimType = userIdentity.RoleClaimType;
