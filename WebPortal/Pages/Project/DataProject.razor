@@ -448,6 +448,7 @@
     private List<Datahub_ProjectServiceRequests> _serviceRequests = new List<Datahub_ProjectServiceRequests>();
 
     private Microsoft.Graph.User _user;
+    private string _userId;
 
     private bool _databricksRequested = false;
     private bool _powerBIRequested = false;
@@ -475,10 +476,10 @@
     {
         projectContext = DbFactoryProject.CreateDbContext();
         etlContext = DbFactoryEtl.CreateDbContext();
-        _user = await UserInformationService.GetUserAsync();
+        _userId = await UserInformationService.GetUserIdString();
         await RefreshComponents(false);
 
-        var projectUsers = await projectContext.Project_Users.Where(u => u.User_ID == _user.Id && _project == u.Project).ToListAsync();
+        var projectUsers = await projectContext.Project_Users.Where(u => u.User_ID == _userId && _project == u.Project).ToListAsync();
         if (projectUsers != null && projectUsers.Count > 0)
         {
             _isDataApprover = projectUsers.Any(u => u.IsDataApprover);
@@ -487,12 +488,8 @@
         _admins = await ServiceAuthManager.GetAdminUserString(projectAcronym);
         await GetUserList();
 
-
-
-
-
         _sharingRequestAwaitingApprovalCount = await PublicDataFileService.GetDataSharingRequestsAwaitingApprovalCount(projectAcronym);
-        _ownSharingRequestCount = await PublicDataFileService.GetUsersOwnDataSharingRequestsCount(projectAcronym, _user.Id);
+        _ownSharingRequestCount = await PublicDataFileService.GetUsersOwnDataSharingRequestsCount(projectAcronym, _userId);
 
         var allPipelines = _project.Pipelines?.Select(p => p.Process_Nm).ToList();
         if (allPipelines != null && allPipelines.Count > 0)
@@ -501,16 +498,16 @@
             _pipelineStatus = _pipelineStatus.Where(t => t.STATUS_FLAG != "T").GroupBy(t => t.PROCESS_NM).Select(gp => gp.OrderByDescending(g => g.END_TS).First()).OrderBy(s => s.PROCESS_NM).ToList();
         }
 
-        if (_user != null)
+        if (_userId != null)
         {
-            var userRequests = _project.Requests?.Where(r => r.User_ID == _user.Id && r.Completion_DT is null).ToList();
+            var userRequests = _project.Requests?.Where(r => r.User_ID == _userId && r.Completion_DT is null).ToList();
             if (userRequests != null)
             {
                 _databricksRequested = userRequests.Any(r => r.Databricks);
                 _powerBIRequested = userRequests.Any(r => r.PowerBI);
                 _webFormsRequested = userRequests.Any(r => r.WebForms);
             }
-            var userAccess = _project.Requests?.Where(r => r.User_ID == _user.Id && r.Completion_DT != null).ToList();
+            var userAccess = _project.Requests?.Where(r => r.User_ID == _userId && r.Completion_DT != null).ToList();
             if (userAccess != null)
             {
                 _databricksAuthorized = userAccess.Any(r => r.Databricks);
@@ -575,7 +572,7 @@
     {
         var request = new Datahub_Project_User_Request()
         {
-            User_ID = _user.Id,
+            User_ID = _userId,
             Project = _project,
             Requested_DT = DateTime.Now
         };
@@ -598,7 +595,7 @@
         {
             Request_DT = DateTime.Now,
             User_Name = _user.UserPrincipalName,
-            User_ID = _user.Id,
+            User_ID = _userId,
             Project = _project,
             PowerBI = powerbi,
             WebForms = webforms,
@@ -627,7 +624,7 @@
             ServiceRequests_Date_DT = DateTime.Now,
             Is_Completed = null,
             Project = _project,
-            User_ID = _user.Id,
+            User_ID = _userId,
             User_Name = _user.UserPrincipalName
         };
 
