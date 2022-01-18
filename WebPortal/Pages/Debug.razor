@@ -14,7 +14,7 @@
 else
 {
     <AeTypography Variant="h1">Debug</AeTypography>
-    <AeTypography Variant="h2">List of roles</AeTypography>
+    <AeTypography Variant="h2">User Information</AeTypography>
     <div>User ID: @userId</div>
     <div>Object ID: @oid</div>
     <div>User Name: @userName</div>
@@ -22,7 +22,8 @@ else
     @foreach (var role in roles)
     {
         <div>Role: @role.Value</div>
-    }
+    }   
+
 }
 
 @code
