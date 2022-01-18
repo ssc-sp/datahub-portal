@@ -18,14 +18,9 @@
         <div>
             <AeFlex Vertical="true">
                 <div>
-                    @if (!_showAll)
-                    {
-                        <AeButton class="light" @onclick=@ToggleShowAll>@Localizer["METADATA-PAGE.ShowMore"]</AeButton>
-                    }
-                    else
-                    {
-                        <AeButton class="light" @onclick=@ToggleShowAll>@Localizer["METADATA-PAGE.ShowLess"]</AeButton>
-                    }
+                    <AeButton class="light" @onclick=@ToggleShowAll>
+                        @(_showAll ? Localizer["METADATA-PAGE.ShowLess"] : Localizer["METADATA-PAGE.ShowMore"])
+                    </AeButton>
                 </div>
                 <div style="margin-top: 16px">
                     <AeButton OnClickEvent=@SaveChanges Disabled=@_disableSave>@SaveButtonLabel</AeButton>
@@ -46,6 +41,9 @@
 
     [Inject]
     public IMetadataBrokerService MetadataBrokerService { get; set; }
+
+    [Inject]
+    public IOrganizationLevelsService OrganizationLevelsService { get; set; }
 
     /// <summary>
     /// Object ID to edit or add metadata
@@ -87,6 +85,8 @@
         _disableSave = !CheckRequiredFieldValues();
 
         _requiredFieldIds = _profile.GetRequiredFieldSet();
+
+        await UpdateExternalFieldChoices();
     }
 
     public string GetTitle()
@@ -131,5 +131,38 @@
     private void ToggleShowAll()
     {
         _showAll = !_showAll;
+    }
+
+    private async Task UpdateExternalFieldChoices()
+    {
+        foreach (var definition in _definitions.Fields)
+        {
+            switch (definition.Field_Name_TXT)
+            {
+                case "sector":
+                    definition.Choices = GetOrganizationChoices(await OrganizationLevelsService.GetSectors(), false);
+                    break;
+                case "branch":
+                    definition.Choices = GetOrganizationChoices(await OrganizationLevelsService.GetBranches(), true);
+                    break;
+                case "division":
+                    definition.Choices = GetOrganizationChoices(await OrganizationLevelsService.GetDivisions(), true);
+                    break;
+                case "section":
+                    definition.Choices = GetOrganizationChoices(await OrganizationLevelsService.GetSections(), true);
+                    break;
+            }
+        }
+    }
+
+    private List<FieldChoice> GetOrganizationChoices(List<OrganizationLevel> levels, bool cascades)
+    {
+        return levels.Select(l => new FieldChoice()
+        {
+            Value_TXT = $"{l.Id}",
+            Cascading_Value_TXT = cascades ? $"{l.ParentId}" : null,
+            Label_English_TXT = l.EnglishLabel,
+            Label_French_TXT = l.FrenchLabel
+        }).ToList();
     }
 }

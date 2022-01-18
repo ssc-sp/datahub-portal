@@ -21,7 +21,9 @@
         {
             if (Profile.Sections.Count > 1)
             {
-                <AeTypography Variant="h4">@s.Name</AeTypography>
+                <div style="border-bottom: 1px solid #edf2f7; margin-bottom: 16px;">
+                    <AeTypography Variant="h4">@s.Name</AeTypography>
+                </div>
             }
 
             var sectionDefinitions = EnumerateFields(s, !ShowAll);
@@ -43,6 +45,7 @@
                                          FieldLabel=@definition.Name
                                          Subject=@_subject
                                          FieldPair=@fieldPair
+                                         CascadingValue=@GetCascadingValue(definition)
                                          OnFieldChanged=@FieldChanged />
                 }
             }
@@ -134,6 +137,11 @@
             }
         }
         return field;
+    }
+
+    private string GetCascadingValue(FieldDefinition definition)
+    {
+        return FieldValues.FirstOrDefault(f => f.FieldDefinitionId == definition.CascadeParentId)?.Value_TXT;
     }
 
     private string GetSingleChoiceValue(FieldDefinition definition)

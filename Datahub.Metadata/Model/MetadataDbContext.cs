@@ -64,6 +64,9 @@ namespace Datahub.Metadata.Model
                     .IsRequired()
                     .HasMaxLength(128);
 
+                entity.Property(e => e.Cascading_Value_TXT)
+                    .HasMaxLength(128);
+
                 entity.HasOne(e => e.FieldDefinition)
                       .WithMany(e => e.Choices);                   
             });
