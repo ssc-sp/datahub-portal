@@ -6,6 +6,8 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
+#nullable disable
+
 namespace Datahub.Portal.Migrations.Forms.PIP
 {
     [DbContext(typeof(PIPDBContext))]
@@ -15,16 +17,18 @@ namespace Datahub.Portal.Migrations.Forms.PIP
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("Relational:MaxIdentifierLength", 128)
-                .HasAnnotation("ProductVersion", "5.0.9")
-                .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                .HasAnnotation("ProductVersion", "6.0.1")
+                .HasAnnotation("Relational:MaxIdentifierLength", 128);
+
+            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
 
             modelBuilder.Entity("Datahub.ProjectForms.Data.PIP.PIP_IndicatorAndResults", b =>
                 {
                     b.Property<int>("IndicatorAndResult_ID")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IndicatorAndResult_ID"), 1L, 1);
 
                     b.Property<string>("Baseline_DESC")
                         .HasMaxLength(1000)
@@ -58,12 +62,12 @@ namespace Datahub.Portal.Migrations.Forms.PIP
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
-                    b.Property<DateTime?>("Date_201920_Result_Collected_DT")
-                        .HasColumnType("datetime2");
-
                     b.Property<string>("Date_Of_Baseline_DT")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime?>("Date_Result_Collected")
+                        .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("Date_To_Achieve_Target_DT")
                         .HasColumnType("datetime2");
@@ -151,7 +155,7 @@ namespace Datahub.Portal.Migrations.Forms.PIP
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
-                    b.Property<string>("Result_202021_DESC")
+                    b.Property<string>("Result_DESC")
                         .HasMaxLength(8000)
                         .HasColumnType("nvarchar(max)");
 
@@ -171,7 +175,7 @@ namespace Datahub.Portal.Migrations.Forms.PIP
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
-                    b.Property<string>("Target_202021_DESC")
+                    b.Property<string>("Target_DESC")
                         .HasMaxLength(4000)
                         .HasColumnType("nvarchar(4000)");
 
@@ -195,8 +199,9 @@ namespace Datahub.Portal.Migrations.Forms.PIP
                     b.Property<string>("UserIdWhoDeleted")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("Year")
-                        .HasColumnType("int");
+                    b.Property<string>("Year")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.HasKey("IndicatorAndResult_ID");
 
@@ -209,8 +214,9 @@ namespace Datahub.Portal.Migrations.Forms.PIP
                 {
                     b.Property<int>("IndicatorRisk_ID")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IndicatorRisk_ID"), 1L, 1);
 
                     b.Property<int?>("Pip_IndicatorIndicatorAndResult_ID")
                         .HasColumnType("int");
@@ -231,8 +237,9 @@ namespace Datahub.Portal.Migrations.Forms.PIP
                 {
                     b.Property<int>("Risks_ID")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Risks_ID"), 1L, 1);
 
                     b.Property<string>("Comments_TXT")
                         .HasMaxLength(7500)
@@ -401,8 +408,9 @@ namespace Datahub.Portal.Migrations.Forms.PIP
                     b.Property<string>("UserIdWhoDeleted")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("Year")
-                        .HasColumnType("int");
+                    b.Property<string>("Year")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.HasKey("Risks_ID");
 
@@ -415,8 +423,9 @@ namespace Datahub.Portal.Migrations.Forms.PIP
                 {
                     b.Property<int>("Tombstone_ID")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Tombstone_ID"), 1L, 1);
 
                     b.Property<decimal?>("Actual_Spending_AMTL")
                         .HasColumnType("Money");
@@ -635,8 +644,9 @@ namespace Datahub.Portal.Migrations.Forms.PIP
                         .HasMaxLength(400)
                         .HasColumnType("nvarchar(400)");
 
-                    b.Property<int>("Year")
-                        .HasColumnType("int");
+                    b.Property<string>("Year")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.HasKey("Tombstone_ID");
 
@@ -647,8 +657,9 @@ namespace Datahub.Portal.Migrations.Forms.PIP
                 {
                     b.Property<int>("TombstoneRisk_ID")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("TombstoneRisk_ID"), 1L, 1);
 
                     b.Property<int?>("Pip_RiskRisks_ID")
                         .HasColumnType("int");

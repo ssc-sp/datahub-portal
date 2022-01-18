@@ -9,5 +9,6 @@ public enum MenuActions
     Rename = 6,
     MoveTo = 7,
     OpenVersions = 8,
-    ShareFile = 9
+    ShareFile = 9,
+    ToggleStorageDetails = 10
 }
