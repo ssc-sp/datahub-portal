@@ -40,7 +40,8 @@
                 }
                 else
                 {
-                    if (!FieldDefinition.HasChoices)
+                    var fieldChoices = GetChoices();
+                    if (fieldChoices.Count == 0) //(!FieldDefinition.HasChoices)
                     {
                         if (IsKeywordField())
                         {
@@ -83,7 +84,7 @@
                                     <option value=""></option>
                                 }
 
-                                @foreach (var choice in FieldDefinition.Choices)
+                                @foreach (var choice in fieldChoices)
                                 {
                                     <option value="@choice.Value_TXT">@choice.Label</option>
                                 }
@@ -134,6 +135,9 @@
     [Parameter]
     public EventCallback<ObjectFieldValue> OnFieldChanged { get; set; }
 
+    [Parameter]
+    public string CascadingValue { get; set; }
+
     private string BoundValue
     {
         get => FieldValue.Value_TXT;
@@ -166,6 +170,27 @@
     private FieldType _fieldType;
     private KeywordInput _keywordInputRef;
     private ElementReference _fieldValueInput;
+
+    private string _cascadingValue;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        _cascadingValue = CascadingValue;
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (_cascadingValue != CascadingValue)
+        {
+            _cascadingValue = CascadingValue;
+            if (!string.IsNullOrEmpty(FieldValue.Value_TXT))
+            {
+                FieldValue.Value_TXT = string.Empty;
+                await OnFieldChanged.InvokeAsync(FieldValue);
+            }
+        }
+    }
 
     private string GetChoiceLabel(string name)
     {
@@ -244,5 +269,10 @@
         catch (Exception)
         {
         }
+    }
+
+    private List<FieldChoice> GetChoices()
+    {
+        return FieldDefinition.Choices.Where(c => c.Cascading_Value_TXT == CascadingValue).ToList();
     }
 }

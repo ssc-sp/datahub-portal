@@ -26,6 +26,7 @@ namespace Datahub.Metadata.Model
         public string Validators_TXT { get; set; }
         public bool Custom_Field_FLAG { get; set; }
         public string Default_Value_TXT { get; set; }
+        public int? CascadeParentId { get; set; }
         public virtual ICollection<FieldChoice> Choices { get; set; }
         public virtual ICollection<ObjectFieldValue> FieldValues { get; set; }
         public virtual ICollection<SectionField> SectionFields { get; set; }
