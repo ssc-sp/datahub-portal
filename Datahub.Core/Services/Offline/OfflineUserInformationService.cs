@@ -1,11 +1,14 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
+using System;
 using System.Threading.Tasks;
 
 namespace Datahub.Core.Services
 {
     public class OfflineUserInformationService : IUserInformationService
     {
+        private static readonly Guid UserGuid = new Guid(); 
+
         readonly ILogger<IUserInformationService> _logger;
 
         private User AnonymousUser => UserInformationServiceConstants.GetAnonymousUser();
@@ -22,7 +25,7 @@ namespace Datahub.Core.Services
             return Task.FromResult(new User
             {
                 DisplayName = "Offline User",
-                Id = "1",
+                Id = UserGuid.ToString(),
                 UserPrincipalName = "me@me.com"
             });
         }
@@ -39,7 +42,7 @@ namespace Datahub.Core.Services
 
         public Task<string> GetUserIdString()
         {
-            return Task.FromResult("1");
+            return Task.FromResult(UserGuid.ToString());
         }
 
         public Task<string> GetUserLanguage()
@@ -80,6 +83,21 @@ namespace Datahub.Core.Services
         public Task<User> GetAnonymousUserAsync()
         {
             return Task.FromResult(AnonymousUser);
+        }
+
+        public Task<string> GetAzureUserID()
+        {
+            return Task.FromResult(UserGuid.ToString());
+        }
+
+        public Task<User> GetUserAsync(string userId)
+        {
+            return Task.FromResult(new User
+            {
+                DisplayName = "Offline User random",
+                Id = userId,
+                UserPrincipalName = "me@me.com"
+            });
         }
     }
 }
