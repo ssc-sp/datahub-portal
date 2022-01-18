@@ -1,28 +1,24 @@
-﻿@page "/approvalform"
+﻿@using System.Linq
 
-<div style="margin: 2rem">
-    <AeCard>
-        <Header>
-            <h2>Approval Form</h2>
-        </Header>
-        <ChildContent>
-            <AeModelForm Model="_approvalForm"
-                         T="Data.Forms.ShareWorkflow.ApprovalForm"
-                         OnValidSubmit="HandleValidSubmit"
-                         OnCancel="ClearForm"
-                         OnConfigure="OnConfigure"
-                         CancelLabel="@CancelLabel"
-                         SubmitLabel="@SubmitLabel"
-                         LabelForPropertyFunc="@GetDataLabel"
-                         LabelsOnTop />
-        </ChildContent>
-    </AeCard>        
+<div style="margin-right: 1rem;">
+    <AeModelForm Model="_approvalForm"
+                 T="Data.Forms.ShareWorkflow.ApprovalForm"
+                 OnValidSubmit="HandleValidSubmit"
+                 OnCancel="ClearForm"
+                 OnConfigure="OnConfigure"
+                 CancelLabel="@CancelLabel"
+                 SubmitLabel="@SubmitLabel"
+                 LabelForPropertyFunc="@GetDataLabel"
+                 LabelsOnTop />
 </div>
 
 @code {
 
     [Inject]
     public IMetadataBrokerService MetadataBrokerService { get; set; }
+
+    [Inject]
+    public IOrganizationLevelsService OrganizationLevelsService { get; set; }
 
     [Parameter]
     public int ApprovalFormId { get; set; } = 0;
@@ -50,6 +46,26 @@
         }
     }
 
+    private List<OrganizationLevel> _sectors = new(); 
+    private List<OrganizationLevel> _branches = new(); 
+    private List<OrganizationLevel> _divisions = new();
+    private List<OrganizationLevel> _sections = new();
+
+    private int _sectorId = -1;
+    private int _branchId = -1;
+    private int _divisionId = -1;
+    private int _sectionId = -1; 
+
+    private bool _isFrench;
+
+    private List<string> Sectors => LocalizeChoices(_sectors);
+    private List<string> Branches => LocalizeChoices(_branches.Where(b => b.ParentId == _sectorId));
+    private List<string> Divisions => LocalizeChoices(_divisions.Where(d => d.ParentId == _branchId));
+    private List<string> Sections => LocalizeChoices(_sections.Where(d => d.ParentId == _divisionId));
+
+    private List<string> LocalizeChoices(IEnumerable<OrganizationLevel> levels) 
+        => levels.Select(s => !_isFrench ? s.EnglishLabel : s.FrenchLabel).OrderBy(s => s).ToList();
+
     public string SubmitLabel => Localizer[MakeLabel("Submit")];
 
     public string CancelLabel => Localizer[MakeLabel("Cancel")];
@@ -61,18 +77,35 @@
         _approvalForm = await MetadataBrokerService.GetApprovalForm(ApprovalFormId) ??
             new Data.Forms.ShareWorkflow.ApprovalForm() 
             { 
+                Department_NAME = "Natural Resources Canada / Ressources Naturelles Canada",
                 Type_Of_Data_TXT = "Data",
                 Name_NAME = _user?.DisplayName,
                 Email_EMAIL = _user?.Mail,
                 Dataset_Title_TXT = DatasetTitle ?? string.Empty
             };
+
+        _isFrench = CultureInfo.CurrentCulture.Name.StartsWith("fr", StringComparison.InvariantCulture);
+
+        _sectors = await OrganizationLevelsService.GetSectors();
+        _branches = await OrganizationLevelsService.GetBranches();
+        _divisions = await OrganizationLevelsService.GetDivisions();
+        _sections = await OrganizationLevelsService.GetSections();
+
+        _sectorId = GetChoiceId(_sectors, _approvalForm.Sector_NAME);
+        _branchId = GetChoiceId(_branches, _approvalForm.Branch_NAME);
+        _divisionId = GetChoiceId(_divisions, _approvalForm.Division_NAME);
+        _sectionId = GetChoiceId(_sections, _approvalForm.Section_NAME);
+    }
+
+    private int GetChoiceId(List<OrganizationLevel> choices, string value)
+    {
+        return choices.FirstOrDefault(c => c.EnglishLabel.Equals(value) || c.FrenchLabel.Equals(value))?.Id ?? -1;
     }
 
     private async Task HandleValidSubmit()
     {
         _approvalForm.ApprovalFormId = await MetadataBrokerService.SaveApprovalForm(_approvalForm);
         await OnSubmitForm.InvokeAsync(_approvalForm.ApprovalFormId);
-        // todo: navigate
     }
 
     private async Task<Data.Forms.ShareWorkflow.ApprovalForm> ClearForm()
@@ -87,6 +120,64 @@
     private void OnConfigure(IModelFormContext context)
     {
         context.RegisterOptionValueProperty<Data.Forms.ShareWorkflow.ApprovalForm>(p => p.Type_Of_Data_TXT, () => new string[] { "Data", "Info" });
+
+        context.RegisterOptionValueProperty<Data.Forms.ShareWorkflow.ApprovalForm>(p => p.Sector_NAME, () => Sectors, s => 
+        {
+            var id = GetChoiceId(_sectors, s);
+            if (_sectorId != id)
+            {
+                _sectorId = id;
+                RefreshBranches(context);
+            }
+        });
+
+        context.RegisterOptionValueProperty<Data.Forms.ShareWorkflow.ApprovalForm>(p => p.Branch_NAME, () => Branches, b =>
+        {
+            var id = GetChoiceId(_branches, b);
+            if (_branchId != id)
+            {
+                _branchId = id;
+                RefreshDivisions(context);
+            }
+        });
+
+        context.RegisterOptionValueProperty<Data.Forms.ShareWorkflow.ApprovalForm>(p => p.Division_NAME, () => Divisions, d =>
+        {
+            var id = GetChoiceId(_divisions, d);
+            if (_divisionId != id)
+            {
+                _divisionId = id;
+                RefreshSections(context);
+            }
+        });
+
+        context.RegisterOptionValueProperty<Data.Forms.ShareWorkflow.ApprovalForm>(p => p.Section_NAME, () => Sections, s =>
+        {
+            _sectionId = GetChoiceId(_sections, s);
+        });
+    }
+
+    private void RefreshBranches(IModelFormContext context)
+    {
+        _branchId = -1;
+        _approvalForm.Branch_NAME = string.Empty;
+        context.RefreshOptions<Data.Forms.ShareWorkflow.ApprovalForm>(p => p.Branch_NAME);
+        RefreshDivisions(context);
+    }
+
+    private void RefreshDivisions(IModelFormContext context)
+    {
+        _divisionId = -1;
+        _approvalForm.Division_NAME = string.Empty;
+        context.RefreshOptions<Data.Forms.ShareWorkflow.ApprovalForm>(p => p.Division_NAME);
+        RefreshSections(context);
+    }
+
+    private void RefreshSections(IModelFormContext context)
+    {
+        _sectionId = -1;
+        _approvalForm.Section_NAME = string.Empty;
+        context.RefreshOptions<Data.Forms.ShareWorkflow.ApprovalForm>(p => p.Section_NAME);
     }
 
     private string GetDataLabel(string propName)

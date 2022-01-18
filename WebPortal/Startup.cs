@@ -29,7 +29,6 @@ using Microsoft.EntityFrameworkCore;
 using Datahub.ProjectForms.Data.PIP;
 using Datahub.Core.EFCore;
 using Datahub.Portal.Data;
-using Datahub.Portal.Data.Finance;
 using Datahub.Portal.Data.WebAnalytics;
 using Microsoft.Graph;
 using Polly;
@@ -45,6 +44,7 @@ using Datahub.LanguageTraining;
 using Microsoft.AspNetCore.HttpLogging;
 using Datahub.CKAN.Service;
 using Datahub.Core.UserTracking;
+using Datahub.Finance;
 
 namespace Datahub.Portal
 {
@@ -120,6 +120,7 @@ namespace Datahub.Portal
             services.AddScoped<TimeZoneService>();
             services.AddElemental();
             services.AddModule<LanguageTrainingModule>(Configuration);
+            services.AddModule<FinanceModule>(Configuration);
             // configure db contexts in this method
             ConfigureDbContexts(services);
 
@@ -185,7 +186,6 @@ namespace Datahub.Portal
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILogger<Startup> logger,
             IDbContextFactory<DatahubProjectDBContext> datahubFactory,
             IDbContextFactory<UserTrackingContext> userTrackingFactory,
-            IDbContextFactory<FinanceDBContext> financeFactory,
             IDbContextFactory<PIPDBContext> pipFactory,
             IDbContextFactory<MetadataDbContext> metadataFactory,
             IDbContextFactory<DatahubETLStatusContext> etlFactory)
@@ -197,11 +197,11 @@ namespace Datahub.Portal
             }
 
             app.ConfigureModule<LanguageTrainingModule>();
+            app.ConfigureModule<FinanceModule>();
 
             InitializeDatabase(logger, datahubFactory);
             InitializeDatabase(logger, userTrackingFactory, false);
             InitializeDatabase(logger, etlFactory);
-            InitializeDatabase(logger, financeFactory);
             InitializeDatabase(logger, pipFactory);
             InitializeDatabase(logger, metadataFactory, true, false);
 
@@ -376,6 +376,8 @@ namespace Datahub.Portal
                 services.AddScoped<IDataRemovalService, DataRemovalService>();
 
                 services.AddSingleton<ICognitiveSearchService, CognitiveSearchService>();
+                
+                services.AddScoped<IAzurePriceListService, AzurePriceListService>();
 
                 services.AddScoped<PowerBiServiceApi>();
                 services.AddScoped<PowerBiSyncService>();
@@ -403,6 +405,8 @@ namespace Datahub.Portal
                 services.AddScoped<IDataRetrievalService, OfflineDataRetrievalService>();
                 services.AddScoped<IDataRemovalService, OfflineDataRemovalService>();
 
+                services.AddScoped<IAzurePriceListService, OfflineAzurePriceListService>();
+
                 services.AddSingleton<ICognitiveSearchService, OfflineCognitiveSearchService>();
             }
 
@@ -411,6 +415,7 @@ namespace Datahub.Portal
 
             services.AddScoped<IMetadataBrokerService, MetadataBrokerService>();
             services.AddScoped<IDatahubAuditingService, DatahubTelemetryAuditingService>();
+            services.AddScoped<IMiscStorageService, MiscStorageService>();
 
             services.AddScoped<DataImportingService>();
             services.AddSingleton<DatahubTools>();
@@ -422,6 +427,7 @@ namespace Datahub.Portal
 
             services.AddScoped<IEmailNotificationService, EmailNotificationService>();
             services.AddScoped<ISystemNotificationService, SystemNotificationService>();
+            services.AddSingleton<IPropagationService, PropagationService>();
 
             services.AddSingleton<ServiceAuthManager>();
 
@@ -434,13 +440,14 @@ namespace Datahub.Portal
             services.AddScoped<RequestManagementService>();
 
             services.AddScoped<CustomNavigation>();
+
+            services.AddScoped<IOrganizationLevelsService, OrganizationLevelsService>();
         }
 
         private void ConfigureDbContexts(IServiceCollection services)
         {
             ConfigureDbContext<DatahubProjectDBContext>(services, "datahub-mssql-project", Configuration.GetDriver());
             ConfigureDbContext<PIPDBContext>(services, "datahub-mssql-pip", Configuration.GetDriver());
-            ConfigureDbContext<FinanceDBContext>(services, "datahub-mssql-finance", Configuration.GetDriver());
             if (Configuration.GetDriver() == DbDriver.SqlServer)
             {
                 ConfigureCosmosDbContext<UserTrackingContext>(services, "datahub-cosmosdb", "datahub-catalog-db");

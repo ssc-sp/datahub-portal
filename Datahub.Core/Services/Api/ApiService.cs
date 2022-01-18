@@ -283,7 +283,8 @@ namespace Datahub.Core.Services
                 }
                 else
                 {
-                    await UploadToProject(fileMetadata);
+                    //await UploadToProject(fileMetadata);
+                    await UploadFileToProject(fileMetadata);
                 }
 
                 fileMetadata.FinishUploadInfo(FileUploadStatus.FileUploadSuccess);
@@ -329,8 +330,24 @@ namespace Datahub.Core.Services
             long maxFileSize = 1024000000000;
             await blob.UploadAsync(browserFile.OpenReadStream(maxFileSize), uploadOptions);
             await blob.SetMetadataAsync(metadata);
+
             // Upload local file
 
+        }
+
+        private async Task UploadFileToProject(FileMetaData fileMetadata)
+        {
+            string cxnstring = await _apiCallService.GetProjectConnectionString(ProjectUploadCode);
+            long maxFileSize = 1024000000000;
+            var metadata = fileMetadata.GenerateMetadata();
+
+            var blobClientUtil = new Utils.BlobClientUtils(cxnstring, "datahub");
+
+            await blobClientUtil.UploadFile(fileMetadata.filename, browserFile.OpenReadStream(maxFileSize), metadata, (progress) =>
+            {
+                fileMetadata.uploadedBytes = progress;
+                _ = _notifierService.Update($"adddata", false);
+            });
         }
 
         private async Task UploadToGen2Storage(FileMetaData fileMetadata)
