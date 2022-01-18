@@ -1,0 +1,46 @@
+﻿@using System.Security.Claims;
+@inject IUserInformationService UserInformationService
+@inject IApiService ApiService
+@inject IDataCreatorService DataCreatorService
+@inject UIControlsService UI
+@inject NavigationManager NavigationManager
+
+
+@page "/debug"
+
+@if (!isLoaded)
+{
+    <Spinner />
+}
+else
+{
+    <AeTypography Variant="h1">Debug</AeTypography>
+    <AeTypography Variant="h2">List of roles</AeTypography>
+    @foreach (var role in roles)
+    {
+        <AeTypography Variant="h3">Value: @role.Value</AeTypography>
+    }
+}
+
+@code
+{
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+
+    public bool isLoaded { get; set; }
+
+    private List<Claim> roles;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var user = (await authenticationStateTask).User;
+
+        var userIdentity = (ClaimsIdentity)user.Identity;
+        var claims = userIdentity.Claims;
+        var roleClaimType = userIdentity.RoleClaimType;
+        roles = claims.Where(c => c.Type == roleClaimType).ToList();
+        //roles = claims.Where(c => c.Type == ClaimTypes.Role).ToList();
+        isLoaded = true;
+        // or...
+    }
+}
