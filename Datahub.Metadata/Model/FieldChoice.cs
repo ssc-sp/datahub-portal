@@ -8,6 +8,7 @@ namespace Datahub.Metadata.Model
         public int FieldDefinitionId { get; set; }
         public virtual FieldDefinition FieldDefinition { get; set; }
         public string Value_TXT { get; set; }
+        public string Cascading_Value_TXT { get; set; }
         public string Label_English_TXT { get; set; }
         public string Label_French_TXT { get; set; }
 
