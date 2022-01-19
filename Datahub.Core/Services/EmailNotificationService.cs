@@ -544,6 +544,29 @@ namespace Datahub.Core.Services
 
             await Task.WhenAll(tasks);
         }
+
+        public async Task SendComputeCostEstimate(User estimatingUser, Dictionary<string, object> parameters)
+        {
+            var subject = "[DataHub] Your Databricks Compute Cost Estimate";
+            var adminSubject = "[DataHub] New Databricks Compute Cost Estimate";
+
+            var html = await RenderTemplate<ComputeCostEstimate>(parameters);
+
+            parameters.Add(nameof(ComputeCostEstimate.UserEmail), estimatingUser.Mail);
+            parameters.Add(nameof(ComputeCostEstimate.AdminVersion), true);
+
+            var adminHtml = await RenderTemplate<ComputeCostEstimate>(parameters);
+
+            var adminEmails = _serviceAuthManager.GetProjectAdminsEmails(DATAHUB_ADMIN_PROJECT_CODE);
+
+            var tasks = new List<Task>()
+            {
+                SendEmailMessage(subject, html, estimatingUser.Mail),
+                SendEmailMessage(adminSubject, adminHtml, adminEmails)
+            };
+
+            await Task.WhenAll(tasks);
+        }
     }
 
     public class LanguageTrainingParameters
