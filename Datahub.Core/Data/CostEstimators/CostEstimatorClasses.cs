@@ -4,6 +4,7 @@ using System.Collections.Generic;
 namespace Datahub.Core.Data.CostEstimator
 {
     public record class EstimatorResultLine(int NumberOfOperations, decimal Cost);
+    public record class EstimatorResultLineDecimal(decimal NumberOfOperations, decimal Cost);
     
     public record class UnitPrice(decimal BasePrice, int Units);
     
