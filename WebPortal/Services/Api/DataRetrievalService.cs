@@ -76,18 +76,18 @@ namespace Datahub.Portal.Services
             }
         }
 
-        public async Task<Folder> GetFolderContents(dynamic folder, string filterSearch, Microsoft.Graph.User user, string project = null)
+        public async Task<Folder> GetFolderContents(Folder folder, string filterSearch, Microsoft.Graph.User user, string project = null)
         {
             try
             {
                 // Clear folder as we will reload!
-                folder.Clear();
+                folder?.Clear();
                 if (!string.IsNullOrWhiteSpace(filterSearch))
                 {
                     return await getSearchResults(folder, filterSearch, user);
                 }
 
-                if (folder.isShared)
+                if (folder?.isShared ?? false)
                 {
                     return await getSharedFileList(folder, user);
                 }
