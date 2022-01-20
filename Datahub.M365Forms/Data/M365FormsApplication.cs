@@ -50,12 +50,12 @@ namespace Datahub.Portal.Data
         public string? Number { get; set; }
 
         [AeFormCategory("Membership", 20)]
-        [AeLabel(placeholder: "Enter what the membership composition will consist of. For example: Committee Members; M365 Power Users; All NRCan Management; Project Team and Sector stakeholders ")]
+        [AeLabel(placeholder: "Enter what the membership composition will consist of. For example: Committee Members; M365 Power Users; All NRCan Management; Project Team and Sector stakeholders")]
         public string? Composition { get; set; }
 
         [Required]
         [AeFormCategory("Security", 30)]
-        [AeLabel(placeholder: "Select an appropriate data security sensitivity applicable to ALL files, meetings and conversations within this team: Security and Information Classification Guide – a handy reference tool to assist you in categorizing and safeguarding information. ", validValues: new[] { "Protected A", "Protected B", "Unclassified" })]
+        [AeLabel(placeholder: "Select an appropriate data security sensitivity applicable to ALL files, meetings and conversations within this team: Security and Information Classification Guide – a handy reference tool to assist you in categorizing and safeguarding information.", validValues: new[] { "Protected A", "Protected B", "Unclassified" })]
         public string? Information_and_Data_Security_Classification { get; set; }
 
         [Required]
