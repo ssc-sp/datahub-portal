@@ -31,6 +31,6 @@ namespace Datahub.Core.Services
         Task UploadGen2File(FileMetaData fileMetadata);
         string ProjectUploadCode { get; set; }
 
-        Task<Uri> GetUserDelegationSasBlob(FileMetaData file, string project = null);
+        Task<Uri> GetUserDelegationSasBlob(FileMetaData file, string project = null, int daysValidity = 1);
     }    
 }
