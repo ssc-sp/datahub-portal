@@ -18,7 +18,7 @@
 {
     <div class="header-wrapper" @onclick="UnSelectFiles" @onclick:preventDefault="true" @oncontextmenu="UnSelectFiles" @oncontextmenu:preventDefault="true">
         <h3 class="nrcan-typography h3"><i class="fal fa-folder-open"></i>&nbsp;@GetCurrentFolderPath()</h3>
-        @if (CurrentFolder.parent != null)
+        @if (CurrentFolder?.parent != null)
         {
             <div class="roundbutton" style="margin-right: 1rem" @onclick="() => GetParentFolder()">
                 <i class="fal fa-arrow-left"></i>
@@ -170,7 +170,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        await base.OnInitializedAsync();
+        isLoading = true;
         CurrentUser = await UserInformationService.GetUserAsync();
 
         if (IsProjectStorage)
@@ -180,7 +180,7 @@ else
         }
 
         // If we get displayed on return from file upload, don't refresh from datalake
-        await GetFileList();
+        await LoadFileList();
 
         StateHasChanged();
     }
@@ -210,7 +210,6 @@ else
     }
     protected override void OnInitialized()
     {
-        base.OnInitialized();
         NotifierService.Notify += OnNotify;
 
         UI.OnRightSidebarChange += StateHasChanged;
@@ -226,7 +225,7 @@ else
 
     public async void Refresh()
     {
-        await GetFileList();
+        await LoadFileList();
         UnSelectFiles();
     }
     public async Task OnNotify(string key, bool reloadData)
@@ -263,7 +262,7 @@ else
         if (CurrentFolder.parent != null)
         {
             CurrentFolder = CurrentFolder.parent;
-            await GetFileList();            
+            await LoadFileList();            
         }
         UnSelectFiles();
     }
@@ -280,7 +279,7 @@ else
             }
 
             CurrentFolder = folder;
-            await GetFileList();
+            await LoadFileList();
         }
         UnSelectFiles();
     }
@@ -468,7 +467,7 @@ else
         StateHasChanged();
     }
 
-    private async Task GetFileList()
+    private async Task LoadFileList()
     {
         UnSelectFiles();
         isLoading = true;

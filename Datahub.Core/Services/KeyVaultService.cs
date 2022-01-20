@@ -54,7 +54,6 @@ namespace Datahub.Core.Services
             }
             catch (Exception e)
             {
-                Console.WriteLine($"Could not retrieve secret: {secretName}");
                 _logger.LogError($"Could not retrieve secret: {secretName}");
                 _logger.LogError($"The following error occured: {e.Message}");
                 _logger.LogError(e,$"Could not retrieve secret: {secretName}");
