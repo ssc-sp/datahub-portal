@@ -1,11 +1,17 @@
 ﻿@namespace Datahub.Core.Templates
 
-<p>Good day, </p>
-<p>We have a new onboarding request </p>
+<p>Good day,</p>
 
+<p>A user has submitted/updated a request for an MS Team in the Datahub.</p>
+
+<p>The business owner @ApplicationParameters.BusinessOwner has requested the creation of the team: @ApplicationParameters.TeamName</p>
+
+<p>The application was submitted by the following email address: @ApplicationParameters.SubmitterEmaill</p>
+
+<p>Please click here to see the request: (link to follow)</p>
 @code {
 
     [Parameter]
-    public OnboardingParameters ApplicationParameters { get; set; }
+    public M365FormsParameters ApplicationParameters { get; set; }
 
 }
