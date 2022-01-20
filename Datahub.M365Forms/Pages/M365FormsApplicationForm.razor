@@ -73,8 +73,12 @@
         {
             p => { return Localizer[p.Name_of_Team]; },
             p => { return Localizer[p.Description_of_Team ?? string.Empty]; },
-            p => { return Localizer[p.Team_Function ?? string.Empty]; },
             p => { return p.Business_Owner; },
+            p => { return p.Information_and_Data_Security_Classification; },
+            p => { return p.Team_Owner1; },
+            p => { return p.Team_Owner2; },
+            p => { return p.Team_Owner3; },
+            p => { return p.SubmittedBy; },
         };
 
 
@@ -86,7 +90,7 @@
         _formMetadata.DataSet = _m365FormsApplications;
         _formMetadata.AccessorFunctions = AccessorFunctions;
         _formMetadata.Headers = headers;
-        _formMetadata.GridTemplateColumns = "3fr 4fr 3fr 3fr";
+        _formMetadata.GridTemplateColumns = "3fr 5fr 3fr 3fr 3fr 3fr 3fr 3fr";
         _formMetadata.IsSubmitEnabled = true;
         _formMetadata.MarkDownContent = File.ReadAllLines($@"Pages\Forms\M365Forms\{headerfile}").ToList();
         _formMetadata.MarkDownContentFooter = File.ReadAllLines($@"Pages\Forms\M365Forms\{footerfile}").ToList();
@@ -103,7 +107,14 @@
 
     private List<string> headers => new List<string>
     {
-        Localizer["Name_of_Team"], Localizer["Description_of_Team"], Localizer["Team_Purpose"], Localizer["Business_Owner"]        
+        Localizer["Name_of_Team"], 
+        Localizer["Description_of_Team"], 
+        Localizer["Business_Owner"],
+        Localizer["Security Classification"],
+        Localizer["Owner 1"],
+        Localizer["Owner 2"],
+        Localizer["Owner 3"],
+        Localizer["Submitted by"],        
     };
 
     private async void HandleFilterChange(string selection)
@@ -152,9 +163,11 @@
 
             await EmailService.SendM365FormsConfirmations(m365FormsParameters);
             //_onboardingApplication.NotificationsSent = true;
-            
+
             await Context.TrackSaveChangesAsync(AuditingService);
-            NavigationManager.NavigateTo("/m365forms/confirmation");
+
+            m365FormApplication = null;
+            StateHasChanged();
         }
     }
 
@@ -185,7 +198,7 @@
 
     private void CreateNewApplication()
     {
-        m365FormApplication = new M365FormsApplication() { Last_Updated_DT = DateTime.Now, Expected_Lifespan_DT = DateTime.Now };
+        m365FormApplication = new M365FormsApplication() { Last_Updated_DT = DateTime.Now, Expected_Lifespan_DT = DateTime.Now, SubmittedBy = _user.Mail };
         //var user = await UserInformationService.GetUserAsync();        
         _formMetadata.IsSubmitEnabled = true;
         StateHasChanged();
