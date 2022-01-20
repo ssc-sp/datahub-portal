@@ -70,9 +70,6 @@
     <Content Update="i18n\localization.fr.json">
       <CustomToolNamespace>Resources</CustomToolNamespace>
     </Content>
-    <Content Update="wwwroot\img\landing\landing12.jpg">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Datahub.CKAN\Datahub.CKAN.csproj" />
