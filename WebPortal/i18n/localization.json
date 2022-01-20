@@ -692,7 +692,27 @@
   "Client_Information": "Client Information",
   "Project_Engagement_Category_Other": "Other",
 
-
+  "GCdocs_Hyperlink_URL": "GCdocs Hyperlink",
+  "Expected_Lifespan_DT": "Expected lifespan or retirement date for the Team",
+  "Name_of_Team": "Name of Team",
+  "Description_of_Team": "Description of Team",
+  "Team_Purpose": "Team Purpose",
+  "Team_Function": "Team Function",
+  "Number": "Number",
+  "Composition": "Composition",
+  "Business_Owner": "Business Owner",
+  "Team_Owner_s_": "Team Owner(s)",
+  "Information_and_Data_Security_Classification": "Information and Data Security Classification - *NOTE* Protected A and B requests will not be finalized until IM security labeling is implemented",
+  "Visibility": "Visibility - *NOTE*: Protected B must be Private",
+  "Team_Owner1": "Team Owner #1",
+  "Team_Owner2": "Team Owner #2",
+  "Team_Owner3": "Team Owner #3",
+  "Business_Owner_Approval": "The Business Owner (identified above) has endorsed this request.",
+  "Ongoing_Lifespan": "Ongoing",
+  "Working_Group": "Working Group",
+  "Project_Or_Initiative": "Project or Initiative",
+  "Other_Txt": "",
+  "M365FormStatus": "",
 
   "Project_Cost": "Cost",
   "Project_Cost_NotFound": "No cost data found.",
@@ -879,5 +899,6 @@
     "ExpReadLabelEmail": "Expected Monthly Read",
     "DataTierLabelEmail": "Data Access Tier",
     "DataRedundancyLabelEmail": "Data Redundancy Requirement"
+
   }
 }
