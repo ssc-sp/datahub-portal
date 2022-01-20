@@ -414,7 +414,7 @@ namespace Datahub.Core.Services
             var parametersDict = BuildM365FormsParameters(parameters);
 
             var subject = $"M365 Team Request – {parameters.TeamName}";
-            var html = await RenderTemplate<OnboardingAdmin>(parametersDict);
+            var html = await RenderTemplate<M365Notification>(parametersDict);
             await SendEmailMessage(subject, html, parameters.AdminEmailAddresses);
         }
 
