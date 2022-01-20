@@ -7,6 +7,18 @@ namespace Datahub.Core.Components
 {
     public enum DatahubLinkType
     {
-        PowerBI, Storage, WebForm,Databricks, DataProject, FormBuilder, DataSharingDashboard, PowerBIReport, PowerBIWorkspace, Onboarding, StorageCostEstimator, Undefined
+        PowerBI, 
+        Storage, 
+        WebForm,
+        Databricks, 
+        DataProject, 
+        FormBuilder, 
+        DataSharingDashboard, 
+        PowerBIReport, 
+        PowerBIWorkspace, 
+        Onboarding, 
+        StorageCostEstimator, 
+        ComputeCostEstimator, 
+        Undefined
     }
 }
