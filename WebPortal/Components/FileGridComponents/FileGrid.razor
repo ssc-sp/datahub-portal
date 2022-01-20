@@ -50,6 +50,17 @@ else
                         <StorageMetadataViewer Metadata=@_storageMetadata />
                     </div>
                 }
+                    <div style="margin-bottom: 10px">
+                        @if (_tempToken is null)
+                        {
+                            <div>Request SAS Token for 14 days <AeButton OnClickEvent="() => GenerateSASToken(14)">Generate Token</AeButton></div>
+                            <StorageMetadataViewer Metadata=@_storageMetadata />
+                        } else
+                        {
+                            <div>SAS Token for 14 days: </div>
+                            <div>@_tempToken</div>                    
+                        }
+                </div>
             }
 
             <div class="file-grid-menu">
@@ -120,6 +131,8 @@ else
     [Parameter]
     public bool IsSearchResult { get; set; } = false;
 
+    private string? _tempToken;
+
     //user and file tracking
     public Microsoft.Graph.User CurrentUser { get; set; }
 
@@ -148,6 +161,12 @@ else
     }
 
     public bool IsSearchResults => !string.IsNullOrWhiteSpace(SearchText);
+
+    private async Task GenerateSASToken(int days)
+    {
+        var uri = await ApiService.GetUserDelegationSasBlob(null,null,14);
+        _tempToken = uri.ToString();
+    }
 
     protected override async Task OnInitializedAsync()
     {
