@@ -27,7 +27,7 @@ namespace Datahub.Portal.Services.Offline
             return Task.FromResult(new List<Core.Data.Version>());
         }
 
-        public Task<Core.Data.Folder> GetFolderContents(dynamic folder, string filterSearch, User user, string project)
+        public Task<Core.Data.Folder> GetFolderContents(Core.Data.Folder folder, string filterSearch, User user, string project)
         {
             return Task.FromResult(new Core.Data.Folder());
         }
