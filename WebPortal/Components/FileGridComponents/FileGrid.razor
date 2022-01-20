@@ -109,17 +109,7 @@ else
     public string SearchText { get; set; }
 
     [Parameter]
-    public Folder CurrentFolder
-    {
-        get
-        {
-            return ApiService.CurrentFolder;
-        }
-        set
-        {
-            ApiService.CurrentFolder = value;
-        }
-    }
+    public Folder CurrentFolder { get; set; }
 
     [Parameter]
     public bool CanAddData { get; set; } = false;
@@ -278,7 +268,8 @@ else
 
     private void ToggleAddData()
     {
-        RenderFragment fragment = @<AddDataBar />;
+        RenderFragment fragment = 
+    @<AddDataBar />;
         UI.ToggleRightSidebar(fragment);
     }
 
