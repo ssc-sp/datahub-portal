@@ -18,7 +18,8 @@ namespace Datahub.Core.Components
         PowerBIWorkspace, 
         Onboarding, 
         StorageCostEstimator, 
-        ComputeCostEstimator, 
+        ComputeCostEstimator,
+        M365Form,
         Undefined
     }
 }

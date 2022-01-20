@@ -30,6 +30,7 @@ namespace Datahub.Core.Services
         Task SendFileSharingApproved(SharedDataFile sharedFileInfo, DatahubProjectInfo projectInfo, string publicUrlLink, string recipient);
         Task SendStorageCostEstimate(User estimatingUser, Dictionary<string, object> parameters);
         Task SendComputeCostEstimate(User estimatingUser, Dictionary<string, object> parameters);
+        Task SendM365FormsConfirmations(M365FormsParameters parameters);
     }
 
     public record class DatahubProjectInfo(string ProjectNameEn, string ProjectNameFr, string ProjectCode);
