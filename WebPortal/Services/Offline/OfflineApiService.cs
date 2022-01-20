@@ -159,7 +159,7 @@ namespace Datahub.Portal.Services.Offline
             return Task.FromResult(0);
         }
 
-        public Task<Uri> GetUserDelegationSasBlob(FileMetaData file, string project = null)
+        public Task<Uri> GetUserDelegationSasBlob(FileMetaData file, string project = null, int days = 1)
         {
             return Task.FromResult(new Uri(""));
         }

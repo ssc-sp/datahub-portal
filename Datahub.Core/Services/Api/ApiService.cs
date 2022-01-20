@@ -114,7 +114,6 @@ namespace Datahub.Core.Services
         }
 
         public IBrowserFile browserFile { get; set; }
-        public InputFile InputFile { get; set; }
 
         public string ProjectUploadCode { get; set; }
 
@@ -177,7 +176,7 @@ namespace Datahub.Core.Services
             }
         }
 
-        public async Task<Uri> GetUserDelegationSasBlob(FileMetaData file, string project = null)
+        public async Task<Uri> GetUserDelegationSasBlob(FileMetaData? file, string project = null, int days = 1)
         {
 
             var projectStr = project ?? ProjectUploadCode;
@@ -196,10 +195,10 @@ namespace Datahub.Core.Services
             BlobSasBuilder sasBuilder = new BlobSasBuilder()
             {
                 BlobContainerName = "datahub",
-                BlobName = file.name,
+                BlobName = file?.name,
                 Resource = "b",
                 StartsOn = DateTimeOffset.UtcNow,
-                ExpiresOn = DateTimeOffset.UtcNow.AddDays(1)
+                ExpiresOn = DateTimeOffset.UtcNow.AddDays(days)
             };
 
             // Specify read and write permissions for the SAS.
