@@ -180,7 +180,7 @@
 
     private void CreateNewApplication()
     {
-        m365FormApplication = new M365FormsApplication() { Last_Updated_DT = DateTime.Now };
+        m365FormApplication = new M365FormsApplication() { Last_Updated_DT = DateTime.Now, Expected_Lifespan_DT = DateTime.Now };
         //var user = await UserInformationService.GetUserAsync();        
         _formMetadata.IsSubmitEnabled = true;
         StateHasChanged();

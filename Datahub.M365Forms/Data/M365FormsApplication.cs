@@ -15,14 +15,15 @@ namespace Datahub.Portal.Data
         public int Application_ID { get; set; }
         
         [Required]
-        [MaxLength(35)]
+        [MaxLength(256)]
         [AeFormCategory("M365 Teams Information", 10)]
-        [AeLabel(placeholder: "Enter a short bilingual name for the team (max 35 characters). For example: IM Working Group | Groupe de travail sur la GI")]
+        [AeLabel(placeholder: "Enter a short bilingual name for the team (max 256 characters, recommended 35 characters). For example: IM Working Group | Groupe de travail sur la GI")]
         public string Name_of_Team { get; set; }
 
         [Required]
+        [MaxLength(1000)]
         [AeFormCategory("M365 Teams Information", 10)]
-        [AeLabel(placeholder: "Enter a short bilingual description to display in the MS Teams 'About' section. For example: Collaboration space for sector financial advisors | Espace de collaboration pour les conseillers financier des secteurs")]
+        [AeLabel(placeholder: "Enter a short bilingual description to display in the MS Teams 'About' section (max 1000 characters). For example: Collaboration space for sector financial advisors | Espace de collaboration pour les conseillers financier des secteurs")]
         public string Description_of_Team { get; set; }        
 
         [AeFormCategory("M365 Teams Information", 10)]
@@ -75,8 +76,9 @@ namespace Datahub.Portal.Data
 
 
         [AeFormCategory("Owners", 70)]
+        [Required]
         [AeLabel(placeholder: "Enter the name (Firsname Lastname) of the of DG-level business owner responsible for the Team and all the information within it.")]
-        public string? Business_Owner { get; set; }
+        public string Business_Owner { get; set; }
 
         [Required]
         [AeLabel(placeholder: "Enter required team owner.")]
