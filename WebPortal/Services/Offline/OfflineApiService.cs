@@ -133,7 +133,7 @@ namespace Datahub.Portal.Services.Offline
 
         }
 
-        public Task<Uri> DownloadFile(FileMetaData file)
+        public Task<Uri> DownloadFile(FileMetaData file, string projectUploadCode)
         {
             return Task.FromResult(new Uri(""));
         }
@@ -154,7 +154,7 @@ namespace Datahub.Portal.Services.Offline
             return Task.FromResult(0);
         }
 
-        public Task UploadGen2File(FileMetaData fileMetadata)
+        public Task UploadGen2File(FileMetaData fileMetadata, string projectUploadCode)
         {
             return Task.FromResult(0);
         }
@@ -168,5 +168,7 @@ namespace Datahub.Portal.Services.Offline
         {
             return Task.FromResult(0);
         }
+
+
     }
 }

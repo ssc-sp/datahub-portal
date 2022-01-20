@@ -134,7 +134,7 @@
         isDownloadingFileId = file.fileid;
         StateHasChanged();
 
-        await ApiService.DownloadFile(file);
+        await ApiService.DownloadFile(file, null);
 
         isDownloadingFileId = "";
         StateHasChanged();

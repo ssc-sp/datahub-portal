@@ -8,8 +8,12 @@
 @inject IDatahubAuditingService AuditingService
 @inject IUserCircuitCounterService UserCircuitCounterService
 
+@using Microsoft.Extensions.Configuration
 @using Microsoft.Identity.Web
 @inject MicrosoftIdentityConsentAndConditionalAccessHandler ConsentHandler
+@inject IConfiguration configuration
+
+<PageTitle>@Localizer[configuration["Title"]]</PageTitle>
 
 <AuthorizeView>
     <Authorized>        
