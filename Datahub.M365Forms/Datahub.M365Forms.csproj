@@ -7,7 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Datahub.Core\Datahub.Core.csproj" />
+    <ProjectReference Include="..\Datahub.Core\Datahub.Core.csproj" />	
   </ItemGroup>
 
+	<ItemGroup>
+		<PackageReference Include="AElemental.Blazor" Version="1.2.22018.3-beta" />
+	</ItemGroup>
 </Project>
