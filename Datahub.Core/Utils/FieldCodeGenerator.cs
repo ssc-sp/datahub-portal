@@ -101,7 +101,7 @@ namespace Datahub.Core.Utils
                     sb.Append(", ").Append(validValues);
                 }
 
-                sb.Append("]\n");
+                sb.Append(")]\n");
             }            
         }
 
