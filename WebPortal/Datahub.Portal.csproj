@@ -18,7 +18,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="AElemental.Blazor" Version="1.2.21344.1-beta" />
+    <PackageReference Include="AElemental.Blazor" Version="1.2.22018.3-beta" />
     <PackageReference Include="Askmethat.Aspnet.JsonLocalizer" Version="3.2.0-alpha.3" />
     <PackageReference Include="Azure.Identity" Version="1.5.0" />
     <PackageReference Include="Azure.Search.Documents" Version="11.3.0" />
@@ -76,6 +76,7 @@
     <ProjectReference Include="..\Datahub.Core\Datahub.Core.csproj" />
     <ProjectReference Include="..\Datahub.Metadata\Datahub.Metadata.csproj" />
     <ProjectReference Include="..\LanguageTraining\Datahub.LanguageTraining.csproj" />
+	<ProjectReference Include="..\Datahub.M365Forms\Datahub.M365Forms.csproj" />
     <ProjectReference Include="..\Datahub.Finance\Datahub.Finance.csproj" />
   </ItemGroup>
   <ItemGroup>
@@ -95,6 +96,12 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Pages\Forms\LanguageTraining\FormIntro.md">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Pages\Forms\M365Forms\FormFooter.md">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Pages\Forms\M365Forms\FormFooterFr.md">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>

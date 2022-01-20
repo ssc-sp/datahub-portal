@@ -170,7 +170,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        await base.OnInitializedAsync();
+        isLoading = true;
         CurrentUser = await UserInformationService.GetUserAsync();
 
         if (IsProjectStorage)
@@ -180,7 +180,7 @@ else
         }
 
         // If we get displayed on return from file upload, don't refresh from datalake
-        await GetFileList();
+        await LoadFileList();
 
         StateHasChanged();
     }
@@ -226,7 +226,7 @@ else
 
     public async void Refresh()
     {
-        await GetFileList();
+        await LoadFileList();
         UnSelectFiles();
     }
     public async Task OnNotify(string key, bool reloadData)
@@ -263,7 +263,7 @@ else
         if (CurrentFolder.parent != null)
         {
             CurrentFolder = CurrentFolder.parent;
-            await GetFileList();            
+            await LoadFileList();            
         }
         UnSelectFiles();
     }
@@ -280,7 +280,7 @@ else
             }
 
             CurrentFolder = folder;
-            await GetFileList();
+            await LoadFileList();
         }
         UnSelectFiles();
     }
@@ -468,7 +468,7 @@ else
         StateHasChanged();
     }
 
-    private async Task GetFileList()
+    private async Task LoadFileList()
     {
         UnSelectFiles();
         isLoading = true;
