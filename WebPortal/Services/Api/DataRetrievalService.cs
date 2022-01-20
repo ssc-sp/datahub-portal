@@ -92,7 +92,7 @@ namespace Datahub.Portal.Services
                     return await getSharedFileList(folder, user);
                 }
 
-                if (!string.IsNullOrEmpty(_apiService.ProjectUploadCode))
+                if (!string.IsNullOrEmpty(project))
                 {
                     return await GetProjectFileList(project, user);
                 }
@@ -158,7 +158,7 @@ namespace Datahub.Portal.Services
 
         public async Task<Uri> DownloadFile(FileMetaData file)
         {
-            return await _apiService.DownloadFile(file);
+            return await _apiService.DownloadFile(file, null);
         }
 
         public Task<List<Core.Data.Version>> GetFileVersions(string fileId)

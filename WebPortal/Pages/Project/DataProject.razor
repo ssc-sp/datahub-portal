@@ -16,10 +16,11 @@
 @inject ServiceAuthManager ServiceAuthManager
 @inject IMSGraphService MSGraphService
 @inject ISystemNotificationService SystemNotificationService
+@inject IConfiguration configuration
 
 @page "/project/{projectAcronym}"
 
-<PageTitle>DataHub - @_project.ProjectName</PageTitle>
+<PageTitle>@Localizer[configuration["Title"]] - @_project.ProjectName</PageTitle>
 
 <div style="padding-left: 2rem;padding-right: 2rem">
     @if (_project is null)

@@ -2,6 +2,7 @@
 @namespace Datahub.Portal.Pages
 @using Datahub.Core
 @using Microsoft.Extensions.Localization
+@using Microsoft.AspNetCore.Components.Web
 
 @inject IStringLocalizer Localizer
 
@@ -15,8 +16,6 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-    <title>@Localizer["SSC DataHub"]</title>
 
     <base href="~/" />
 
@@ -95,7 +94,7 @@
             }
         });
     </script>
-
+    <component type="typeof(HeadOutlet)" render-mode="ServerPrerendered" />
 </head>
 <style>
     #blazor-error-ui {
