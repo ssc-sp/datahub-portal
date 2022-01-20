@@ -49,6 +49,10 @@
                 <ChildContent>
                     <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.IntroPara1"]</AeTypography>
                     <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.IntroPara2"]</AeTypography>
+                    @if (PriceListLastUpdatedLocalTime.HasValue)
+                    {
+                        <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.PriceListLastUpdated", PriceListLastUpdatedLocalTime]</AeTypography>
+                    }
                     <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.IntroPara3"]</AeTypography>
                     <label>
                         <input type="checkbox" @bind-value=@DisclaimerAcknowledged/>
@@ -219,7 +223,6 @@
                                     {
                                         <tr>
                                             <td>@Localizer[$"{LOCALIZATION_PREFIX}.MonthNumber", lineItem.Month]</td>
-                                            @*<td>Month @lineItem.Month</td>*@
                                             <td class="numbercol">@lineItem.Item.VmHours.Cost.ToString("C")</td>
                                             <td class="numbercol">@lineItem.Item.Dbu.Cost.ToString("C")</td>
                                             <td class="numbercol">@lineItem.Item.TotalCost.ToString("C")</td>
@@ -313,21 +316,15 @@
 
     private string CurrentWorkloadLabel => Localizer[$"{LOCALIZATION_PREFIX}.WorkloadType{CurrentWorkload.ToString()}"];
 
-    //private string CurrentPriceKey => IAzurePriceListService.GenerateAzurePriceListKey(CurrentAccessTierType, CurrentDataRedundancyType);
-    //private bool IsCurrentPriceKeyValid => PriceListsReady && PriceLists.ContainsKey(CurrentPriceKey);
-
-    //private Dictionary<string, EstimatorPriceList> PriceLists = new();
-    //private DateTimeOffset? PriceListLastUpdatedLocalTime;
-
-    //private EstimatorPriceList CurrentPriceList => IsCurrentPriceKeyValid ? PriceLists[CurrentPriceKey] : null;
+    private DateTimeOffset? PriceListLastUpdatedLocalTime;
 
     private Dictionary<ComputeCostEstimateWorkloadType, ComputeCostEstimatorResult> MonthlyEstimate = new();
     private List<ComputeCostEstimatorResult> YearlyEstimate = new();
 
     private bool DisclaimerAcknowledged { get; set; } = false;
     private bool IsCalculating { get; set; } = false;
-    //private bool PriceListsReady { get; set; } = false;
-    private bool CanCalculate => DisclaimerAcknowledged && !IsCalculating && OpHoursPerDay > 0 && OpDaysPerMonth > 0;
+    private bool PriceListReady { get; set; } = false;
+    private bool CanCalculate => DisclaimerAcknowledged && PriceListReady && !IsCalculating && OpHoursPerDay > 0 && OpDaysPerMonth > 0;
     private bool NeedsRecalculation { get; set; } = true;
     private bool IsSending { get; set; } = false;
 
@@ -428,13 +425,13 @@
 
         var parameters = new Dictionary<string, object>()
         {
-            {nameof(ComputeCostEstimate.OpHoursPerDay), OpHoursPerDay},
-            {nameof(ComputeCostEstimate.OpDaysPerMonth), OpDaysPerMonth},
-            {nameof(ComputeCostEstimate.WorkloadType), CurrentWorkload},
-            {nameof(ComputeCostEstimate.ProjectedMonthlyGrowthPct), ProjectedMonthlyGrowthPct},
-            {nameof(ComputeCostEstimate.UserDisplayName), user.DisplayName},
-            {nameof(ComputeCostEstimate.MonthlyEstimate), MonthlyEstimate},
-            {nameof(ComputeCostEstimate.YearlyEstimate), YearlyEstimate}
+            { nameof(ComputeCostEstimate.OpHoursPerDay), OpHoursPerDay },
+            { nameof(ComputeCostEstimate.OpDaysPerMonth), OpDaysPerMonth },
+            { nameof(ComputeCostEstimate.WorkloadType), CurrentWorkload },
+            { nameof(ComputeCostEstimate.ProjectedMonthlyGrowthPct), ProjectedMonthlyGrowthPct },
+            { nameof(ComputeCostEstimate.UserDisplayName), user.DisplayName },
+            { nameof(ComputeCostEstimate.MonthlyEstimate), MonthlyEstimate },
+            { nameof(ComputeCostEstimate.YearlyEstimate), YearlyEstimate }
         };
 
         await emailService.SendComputeCostEstimate(user, parameters);
@@ -442,15 +439,15 @@
         IsSending = false;
     }
 
-    private async Task PreparePrices()
+    private async Task PreparePrices(ComputeCostEstimatorPrices priceGrid)
     {
         await Task.Run(() =>
         {
             ComputeCostMachines = new()
             {
-                { ComputeCostMachineType.DS3, new() { Cores = 4, RamGB = 14, DbuFactor = 0.75M, VmCost = 0.36M } },
-                { ComputeCostMachineType.DS4, new() { Cores = 8, RamGB = 28, DbuFactor = 1.5M, VmCost = 0.72M } },
-                { ComputeCostMachineType.DS5, new() { Cores = 16, RamGB = 56, DbuFactor = 3.0M, VmCost = 1.43M } }
+                { ComputeCostMachineType.DS3, new() { Cores = 4, RamGB = 14, DbuFactor = 0.75M, VmCost = priceGrid.Ds3VmPrice } },
+                { ComputeCostMachineType.DS4, new() { Cores = 8, RamGB = 28, DbuFactor = 1.5M, VmCost = priceGrid.Ds4VmPrice } },
+                { ComputeCostMachineType.DS5, new() { Cores = 16, RamGB = 56, DbuFactor = 3.0M, VmCost = priceGrid.Ds5VmPrice } }
             };
 
             PredefinedWorkloads = new()
@@ -461,13 +458,20 @@
                 { ComputeCostEstimateWorkloadType.Heavy, (ComputeCostMachines[ComputeCostMachineType.DS5], 3) }
             };
 
-            DbuPrice = 0.52M;
+            DbuPrice = priceGrid.DbuPrice;
         });
     }
 
     protected override async Task OnInitializedAsync()
     {
-        await PreparePrices();
+        var priceGrid = await azurePriceService.GetAzureComputeCostPrices();
+
+        var priceListDateUtc = DateTime.SpecifyKind(priceGrid.LastUpdatedUtc, DateTimeKind.Utc);
+        PriceListLastUpdatedLocalTime = await timezoneService.GetLocalDateTime(priceListDateUtc);
+
+        await PreparePrices(priceGrid);
+
+        PriceListReady = true;
     }
 
 }

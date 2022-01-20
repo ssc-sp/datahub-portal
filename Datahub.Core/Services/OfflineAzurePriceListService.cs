@@ -9,6 +9,18 @@ namespace Datahub.Core.Services
 {
     public class OfflineAzurePriceListService : IAzurePriceListService
     {
+        public async Task<ComputeCostEstimatorPrices> GetAzureComputeCostPrices()
+        {
+            return await Task.FromResult(new ComputeCostEstimatorPrices()
+            {
+                LastUpdatedUtc = DateTime.UtcNow,
+                DbuPrice = 0.52M,
+                Ds3VmPrice = 0.36M,
+                Ds4VmPrice = 0.72M,
+                Ds5VmPrice = 1.43M
+            });
+        }
+
         public Task<SavedStorageCostPriceGrid> GetAzureStoragePriceLists()
         {
             StorageCostEstimatorPriceList hotPrices = new()

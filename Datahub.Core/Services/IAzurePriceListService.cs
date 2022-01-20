@@ -11,5 +11,6 @@ namespace Datahub.Core.Services
     {
         Task<SavedStorageCostPriceGrid> GetAzureStoragePriceLists();
         static string GenerateAzureStoragePriceListKey(AccessTierType accessTierType, DataRedundancyType dataRedundancy) => $"{accessTierType}.{dataRedundancy}";
+        Task<ComputeCostEstimatorPrices> GetAzureComputeCostPrices();
     }
 }
