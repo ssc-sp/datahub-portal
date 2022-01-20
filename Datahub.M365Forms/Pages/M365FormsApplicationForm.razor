@@ -110,7 +110,7 @@
         Localizer["Name_of_Team"], 
         Localizer["Description_of_Team"], 
         Localizer["Business_Owner"],
-        Localizer["Security Classification"],
+        Localizer["Sec. Classification"],
         Localizer["Owner 1"],
         Localizer["Owner 2"],
         Localizer["Owner 3"],
@@ -125,8 +125,14 @@
 
     private async Task LoadApps(string filter)
     {
-        _m365FormsApplications = Context.M365FormsApplications.ToList();                
-
+        if (_isUserAdmin)
+        {
+            _m365FormsApplications = Context.M365FormsApplications.ToList();
+        }
+        else
+        {
+            _m365FormsApplications = Context.M365FormsApplications.Where(a => a.SubmittedBy == _user.Mail).ToList();
+        }
         if (filter == "All" || string.IsNullOrEmpty(filter))
         {
             _formMetadata.DataSet = _m365FormsApplications;
