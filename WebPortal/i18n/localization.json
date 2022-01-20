@@ -889,6 +889,7 @@
     "IntroPara1": "This tool can be used to give a rough estimate of Databricks compute cost in CAD$ for a given workload.",
     "IntroPara2": "Proceed by entering the parameters in this form, and the cost estimate will be calculated and displayed below. You can then send yourself a copy of the estimate by email.",
     "IntroPara3": "Before using this tool, please read and accept the following statement:",
+    "PriceListLastUpdated": "This estimate is based on Azure Databricks and compute prices for the Canada Central region, last fetched on {0}.",
     "EstimateDisclaimer": "I understand that this tool provides an estimate of the cost based on the specified parameters, and the actual cost may vary based on real-world usage factors.",
     "MoreInfoIntro": "For more information, please expand the following sections:",
     "WorkloadTypesHeading": "Workload Types",

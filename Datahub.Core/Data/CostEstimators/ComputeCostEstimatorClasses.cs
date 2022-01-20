@@ -35,5 +35,12 @@ namespace Datahub.Core.Data.CostEstimator
         public decimal VmCost { get; set; }
     }
 
-
+    public class ComputeCostEstimatorPrices
+    {
+        public DateTime LastUpdatedUtc { get; set; }
+        public decimal DbuPrice { get; set; }
+        public decimal Ds3VmPrice { get; set; }
+        public decimal Ds4VmPrice { get; set; }
+        public decimal Ds5VmPrice { get; set; }
+    }
 }
