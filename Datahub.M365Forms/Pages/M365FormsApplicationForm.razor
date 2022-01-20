@@ -142,12 +142,17 @@
             {
                 m365FormApplication.M365FormStatus = "Team Requested";
             }
-            @*emailparams
-           OnboardingParameters onboardingParameters = new() { App = _onboardingApplication, AdminEmailAddresses =  ServiceAuthManager.GetProjectAdminsEmails(PROJECTACRONYM)};
 
-            await EmailService.SendOnboardingConfirmations(onboardingParameters);
-            _onboardingApplication.NotificationsSent = true;
-            *@
+            M365FormsParameters m365FormsParameters = new() {
+                    TeamName = m365FormApplication.Name_of_Team,
+                    BusinessOwner = m365FormApplication.Business_Owner,
+                    SubmitterEmaill = _user.Mail,
+                    AdminEmailAddresses =  ServiceAuthManager.GetProjectAdminsEmails(PROJECTACRONYM)
+            };
+
+            await EmailService.SendM365FormsConfirmations(m365FormsParameters);
+            //_onboardingApplication.NotificationsSent = true;
+            
             await Context.TrackSaveChangesAsync(AuditingService);
             NavigationManager.NavigateTo("/m365forms/confirmation");
         }
