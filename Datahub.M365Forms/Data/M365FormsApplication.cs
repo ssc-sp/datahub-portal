@@ -102,6 +102,9 @@ namespace Datahub.Portal.Data
         public string? M365FormStatus { get; set; }
 
         [AeFormIgnore]
+        public string? SubmittedBy { get; set; }
+
+        [AeFormIgnore]
         public bool NotificationsSent { get; set; }
 
         [AeFormIgnore]
