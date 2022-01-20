@@ -188,7 +188,7 @@ namespace Datahub.Tests.Forms
             var generator = new FieldCodeGenerator(DummyMap);
             var csharp = generator.GenerateCSharp(field);
 
-            Assert.Contains("[AeLabel(isDropDown: true, validValues: new [] { \"Red\", \"Green\", \"Blue\", \"Light brown\" }]", csharp);
+            Assert.Contains("[AeLabel(isDropDown: true, validValues: new [] { \"Red\", \"Green\", \"Blue\", \"Light brown\" })]", csharp);
         }
 
         [Fact]
