@@ -76,7 +76,7 @@ namespace Datahub.Portal.Services
             }
         }
 
-        public async Task<Folder> GetFolderContents(dynamic folder, string filterSearch, Microsoft.Graph.User user, string project = null)
+        public async Task<Folder> GetFolderContents(Folder folder, string filterSearch, Microsoft.Graph.User user, string project = null)
         {
             try
             {
@@ -101,7 +101,7 @@ namespace Datahub.Portal.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"GetFileList folder: {folder.fullPathFromRoot} filter search: {filterSearch} user: {user.DisplayName} FAILED.");
+                _logger.LogError(ex, $"GetFileList folder: {folder?.fullPathFromRoot} filter search: {filterSearch} user: {user?.DisplayName} FAILED.");
                 throw;
             }
         }
