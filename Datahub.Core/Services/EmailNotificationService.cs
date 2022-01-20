@@ -462,6 +462,25 @@ namespace Datahub.Core.Services
             }
 
         }
+        public async Task SendM365FormsConfirmations(M365FormsParameters parameters)
+        {
+            var parametersDict = BuildM365FormsParameters(parameters);
+
+            var subject = $"M365 Team Request – {parameters.TeamName}";
+            var html = await RenderTemplate<OnboardingAdmin>(parametersDict);
+            await SendEmailMessage(subject, html, parameters.AdminEmailAddresses);
+        }
+
+        private Dictionary<string, object> BuildM365FormsParameters(M365FormsParameters parameters)
+        {
+            var parametersDict = new Dictionary<string, object>()
+            {
+                { "ApplicationParameters", parameters }
+
+            };
+
+            return parametersDict;
+        }
 
         public async Task SendOnboardingConfirmations(OnboardingParameters parameters)
         {
@@ -621,4 +640,13 @@ namespace Datahub.Core.Services
         public OnboardingApp App;        
         public List<string> AdminEmailAddresses;
     }
+
+    public class M365FormsParameters
+    {
+        public string TeamName;
+        public string BusinessOwner;
+        public string SubmitterEmaill;
+        public List<string> AdminEmailAddresses;
+    }
+
 }

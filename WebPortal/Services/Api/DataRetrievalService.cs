@@ -81,13 +81,13 @@ namespace Datahub.Portal.Services
             try
             {
                 // Clear folder as we will reload!
-                folder.Clear();
+                folder?.Clear();
                 if (!string.IsNullOrWhiteSpace(filterSearch))
                 {
                     return await getSearchResults(folder, filterSearch, user);
                 }
 
-                if (folder.isShared)
+                if (folder?.isShared ?? false)
                 {
                     return await getSharedFileList(folder, user);
                 }
