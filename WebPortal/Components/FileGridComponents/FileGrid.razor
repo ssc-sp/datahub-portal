@@ -175,7 +175,7 @@ else
 
         if (IsProjectStorage)
         {
-            ApiService.ProjectUploadCode = Project.ToLower();
+            //ApiService.ProjectUploadCode = Project.ToLower();
             _storageMetadata = await DataRetrievalService.GetStorageMetadata(Project.ToLower());
         }
 

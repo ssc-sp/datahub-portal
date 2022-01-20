@@ -115,7 +115,7 @@ namespace Datahub.Core.Services
 
         public IBrowserFile browserFile { get; set; }
 
-        public string ProjectUploadCode { get; set; }
+        //public string ProjectUploadCode { get; set; }
 
         public Dictionary<string, FileMetaData> UploadedFiles { get; set; } = new Dictionary<string, FileMetaData>();
 
@@ -176,11 +176,10 @@ namespace Datahub.Core.Services
             }
         }
 
-        public async Task<Uri> GetUserDelegationSasBlob(FileMetaData? file, string project = null, int days = 1)
+        public async Task<Uri> GetUserDelegationSasBlob(FileMetaData? file, string projectUploadCode, int days = 1)
         {
 
-            var projectStr = project ?? ProjectUploadCode;
-            string cxnstring = await _apiCallService.GetProjectConnectionString(projectStr);
+            string cxnstring = await _apiCallService.GetProjectConnectionString(projectUploadCode);
             BlobServiceClient blobServiceClient = new BlobServiceClient(cxnstring);
             BlobContainerClient containerClient = blobServiceClient.GetBlobContainerClient("datahub");
 
@@ -189,7 +188,7 @@ namespace Datahub.Core.Services
             BlobClient blobClient = containerClient.GetBlobClient(file.filename);
 
 
-            var sharedKeyCred = await _dataLakeClientService.GetSharedKeyCredential(projectStr);
+            var sharedKeyCred = await _dataLakeClientService.GetSharedKeyCredential(projectUploadCode);
 
             // Create a SAS token that's also valid for 7 days.
             BlobSasBuilder sasBuilder = new BlobSasBuilder()
@@ -214,13 +213,13 @@ namespace Datahub.Core.Services
             return blobUriBuilder.ToUri();
         }
 
-        public async Task<Uri> DownloadFile(FileMetaData file)
+        public async Task<Uri> DownloadFile(FileMetaData file, string? projectUploadCode)
         {
             try
             {
-                if (!string.IsNullOrEmpty(ProjectUploadCode))
+                if (!string.IsNullOrEmpty(projectUploadCode))
                 {
-                    return await GetUserDelegationSasBlob(file);
+                    return await GetUserDelegationSasBlob(file, projectUploadCode);
                 }
 
                 var fileSystemClient = await _dataLakeClientService.GetDataLakeFileSystemClient();
@@ -265,17 +264,17 @@ namespace Datahub.Core.Services
             }
         }
 
-        public async Task UploadGen2File(FileMetaData fileMetadata)
+        public async Task UploadGen2File(FileMetaData fileMetadata, string? projectUploadCode)
         {
             //await _notifierService.Update($"{fileMetadata.folderpath}/{fileMetadata.filename}", true);
             try
             {
                 fileMetadata.bytesToUpload = browserFile.Size;
                 fileMetadata.filesize = browserFile.Size.ToString();
-                fileMetadata.folderpath = string.IsNullOrEmpty(ProjectUploadCode) ? fileMetadata.folderpath : string.Empty;
+                fileMetadata.folderpath = string.IsNullOrEmpty(projectUploadCode) ? fileMetadata.folderpath : string.Empty;
 
 
-                if (string.IsNullOrEmpty(ProjectUploadCode))
+                if (string.IsNullOrEmpty(projectUploadCode))
                 {
                     await UploadToGen2Storage(fileMetadata);
                     await _cognitiveSearchService.AddDocumentToIndex(fileMetadata);
@@ -283,7 +282,7 @@ namespace Datahub.Core.Services
                 else
                 {
                     //await UploadToProject(fileMetadata);
-                    await UploadFileToProject(fileMetadata);
+                    await UploadFileToProject(fileMetadata, projectUploadCode);
                 }
 
                 fileMetadata.FinishUploadInfo(FileUploadStatus.FileUploadSuccess);
@@ -306,9 +305,9 @@ namespace Datahub.Core.Services
 
         }
 
-        private async Task UploadToProject(FileMetaData fileMetadata)
+        private async Task UploadToProject(FileMetaData fileMetadata, string projectUploadCode)
         {
-            string cxnstring = await _apiCallService.GetProjectConnectionString(ProjectUploadCode);
+            string cxnstring = await _apiCallService.GetProjectConnectionString(projectUploadCode);
             BlobServiceClient blobServiceClient = new BlobServiceClient(cxnstring);
             BlobContainerClient containerClient = blobServiceClient.GetBlobContainerClient("datahub");
 
@@ -334,9 +333,9 @@ namespace Datahub.Core.Services
 
         }
 
-        private async Task UploadFileToProject(FileMetaData fileMetadata)
+        private async Task UploadFileToProject(FileMetaData fileMetadata, string projectUploadCode)
         {
-            string cxnstring = await _apiCallService.GetProjectConnectionString(ProjectUploadCode);
+            string cxnstring = await _apiCallService.GetProjectConnectionString(projectUploadCode);
             long maxFileSize = 1024000000000;
             var metadata = fileMetadata.GenerateMetadata();
 
