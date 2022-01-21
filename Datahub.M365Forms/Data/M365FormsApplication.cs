@@ -27,7 +27,7 @@ namespace Datahub.Portal.Data
         public string Description_of_Team { get; set; }        
 
         [AeFormCategory("M365 Teams Information", 10)]
-        [AeLabel(isDropDown: true, placeholder: "Select the appropriate Business Activity:", validValues: new[] { "Acquisition and Procurement", "Communication", "Emergency Management", "Financial Management", "Human Resources", "Information Management", "Information Technology", "Knowledge Dissemination", "Legal", "Management and Oversight", "Material Management", "Policy", "Program Administration", "Real Property Management", "Regulatory", "Science and Technology", "Stakeholder Relations", "Travel and Administrative Services" })]
+        [AeLabel(isDropDown: true, placeholder: "Select the appropriate Business Activity:", validValues: new[] { "Acquisition and Procurement", "Communications", "Emergency Management", "Financial Management", "Human Resources", "Information Management", "Information Technology", "Knowledge Dissemination", "Legal", "Management and Oversight", "Material Management", "Policy", "Program Administration", "Real Property Management", "Regulatory", "Science and Technology", "Stakeholder Relations", "Travel and Administrative Services" })]
         public string? Team_Function { get; set; }
 
         [AeFormCategory("Team Purpose - How do you plan to use the team? Select all that apply", 15)]        
