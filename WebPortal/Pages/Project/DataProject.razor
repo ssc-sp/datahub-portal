@@ -490,7 +490,7 @@
         }
 
         _admins = await ServiceAuthManager.GetAdminUserString(projectAcronym);
-        await GetUserList();
+        await LoadUserList();
 
         _sharingRequestAwaitingApprovalCount = await PublicDataFileService.GetDataSharingRequestsAwaitingApprovalCount(projectAcronym);
         _ownSharingRequestCount = await PublicDataFileService.GetUsersOwnDataSharingRequestsCount(projectAcronym, _userId);
@@ -524,7 +524,7 @@
 
     }
 
-    private async Task GetUserList()
+    private async Task LoadUserList()
     {
         var userList = projectContext.Project_Users.Where(u => !u.IsAdmin && _project == u.Project).ToList();
         StringBuilder sbUsers = new();
