@@ -63,7 +63,7 @@ namespace Datahub.Portal
         private readonly IConfiguration Configuration;
         private readonly IWebHostEnvironment _currentEnvironment;
 
-        private bool ResetDB => (bool)(Configuration.GetSection("InitialSetup")?.GetValue(typeof(bool), "ResetDB", false) ?? false);
+        private bool ResetDB => (bool)(Configuration.GetSection("InitialSetup")?.GetValue<bool>("ResetDB", false) ?? false);
         private bool Offline => (bool)(Configuration.GetValue(typeof(bool), "Offline", false) ?? false);
 
         private bool Debug => (bool)Configuration.GetValue(typeof(bool), "DebugMode", false);
@@ -333,9 +333,6 @@ namespace Datahub.Portal
                 //                        .RequireAuthenticatedUser();
                 //                });
                 //        });
-
-
-
 
                 services.AddControllersWithViews(options =>
                 {
