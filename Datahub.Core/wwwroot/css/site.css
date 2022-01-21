@@ -2967,6 +2967,10 @@ body {
   color: #e53e3e;
 }
 
+code {
+  background-color: #e2e8f0;
+}
+
 .custom.light.ae.table .ae.table-header {
   display: grid;
 }
