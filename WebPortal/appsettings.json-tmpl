@@ -7,7 +7,7 @@
   "LandingBgFolder": "ssc",
   "LandingBgImgCount": 2,
   "Title": "SSC Datahub",
-  "DataHubModules", "*"
+  "DataHubModules", ""
 }
 
 
