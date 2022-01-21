@@ -183,11 +183,6 @@ namespace Datahub.Core.Services
             BlobServiceClient blobServiceClient = new BlobServiceClient(cxnstring);
             BlobContainerClient containerClient = blobServiceClient.GetBlobContainerClient("datahub");
 
-
-            // Get a reference to a blob named "sample-file" in a container named "sample-container"
-            BlobClient blobClient = containerClient.GetBlobClient(file.filename);
-
-
             var sharedKeyCred = await _dataLakeClientService.GetSharedKeyCredential(projectUploadCode);
 
             // Create a SAS token that's also valid for 7 days.
@@ -204,11 +199,25 @@ namespace Datahub.Core.Services
             sasBuilder.SetPermissions(BlobSasPermissions.Read |
                                       BlobSasPermissions.Write);
 
-            // Add the SAS token to the blob URI.
-            BlobUriBuilder blobUriBuilder = new BlobUriBuilder(blobClient.Uri)
+            BlobUriBuilder blobUriBuilder;
+            if (file is null)
             {
-                Sas = sasBuilder.ToSasQueryParameters(sharedKeyCred)
-            };
+                blobUriBuilder = new BlobUriBuilder(containerClient.Uri)
+                {
+                    Sas = sasBuilder.ToSasQueryParameters(sharedKeyCred)
+                };
+            }
+            else
+            {
+                // Get a reference to a blob named "sample-file" in a container named "sample-container"
+                BlobClient blobClient = containerClient.GetBlobClient(file.filename);
+
+                // Add the SAS token to the blob URI.
+                blobUriBuilder = new BlobUriBuilder(blobClient.Uri)
+                {
+                    Sas = sasBuilder.ToSasQueryParameters(sharedKeyCred)
+                };
+            }
 
             return blobUriBuilder.ToUri();
         }
