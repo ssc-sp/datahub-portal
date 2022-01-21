@@ -28,7 +28,8 @@ namespace Datahub.Core.Services
         Task SendOnboardingConfirmations(OnboardingParameters parameters);
         Task SendFileSharingApprovalRequest(string username, string filename, DatahubProjectInfo projectInfo, IList<string> recipients);
         Task SendFileSharingApproved(SharedDataFile sharedFileInfo, DatahubProjectInfo projectInfo, string publicUrlLink, string recipient);
-        Task SendStorageCostEstimate(User estimatingUser, Dictionary<string,object> parameters);
+        Task SendStorageCostEstimate(User estimatingUser, Dictionary<string, object> parameters);
+        Task SendComputeCostEstimate(User estimatingUser, Dictionary<string, object> parameters);
         Task SendM365FormsConfirmations(M365FormsParameters parameters);
     }
 
