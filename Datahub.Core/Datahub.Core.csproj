@@ -26,10 +26,10 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="AElemental.Blazor" Version="1.2.22018.3-beta" />
-    <PackageReference Include="AElemental.Blazor.Theme" Version="1.2.22018.3-beta" />
+    <PackageReference Include="AElemental.Blazor" Version="1.2.22020.1-beta" />
+    <PackageReference Include="AElemental.Blazor.Theme" Version="1.2.22020.1-beta" />
     <PackageReference Include="AngleSharp" Version="1.0.0-alpha-844" />
-    <PackageReference Include="Askmethat.Aspnet.JsonLocalizer" Version="3.2.0-alpha.3" />
+    <PackageReference Include="Askmethat.Aspnet.JsonLocalizer" Version="3.2.0-alpha.4" />
     <PackageReference Include="Azure.Identity" Version="1.5.0" />
     <PackageReference Include="Azure.Search.Documents" Version="11.3.0" />
     <PackageReference Include="Azure.Storage.Blobs" Version="12.9.1" />
@@ -75,7 +75,7 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="System.Drawing.Common" Version="6.0.0" />
-    <PackageReference Include="Tewr.Blazor.FileReader" Version="3.2.0.21211" />
+    <PackageReference Include="Tewr.Blazor.FileReader" Version="3.3.1.21360" />
   </ItemGroup>
   <ItemGroup>
     <Content Update="Resources\SharedResources.json">

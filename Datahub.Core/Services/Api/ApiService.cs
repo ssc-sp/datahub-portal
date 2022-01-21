@@ -195,13 +195,13 @@ namespace Datahub.Core.Services
                 ExpiresOn = DateTimeOffset.UtcNow.AddDays(days)
             };
 
-            // Specify read and write permissions for the SAS.
-            sasBuilder.SetPermissions(BlobSasPermissions.Read |
-                                      BlobSasPermissions.Write);
 
             BlobUriBuilder blobUriBuilder;
             if (file is null)
             {
+
+                // Specify read and write permissions for the SAS.
+                sasBuilder.SetPermissions(BlobSasPermissions.All);
                 blobUriBuilder = new BlobUriBuilder(containerClient.Uri)
                 {
                     Sas = sasBuilder.ToSasQueryParameters(sharedKeyCred)
@@ -209,6 +209,10 @@ namespace Datahub.Core.Services
             }
             else
             {
+                // Specify read and write permissions for the SAS.
+                sasBuilder.SetPermissions(BlobSasPermissions.Read |
+                                          BlobSasPermissions.Write);
+
                 // Get a reference to a blob named "sample-file" in a container named "sample-container"
                 BlobClient blobClient = containerClient.GetBlobClient(file.filename);
 
