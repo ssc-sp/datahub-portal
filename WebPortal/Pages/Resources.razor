@@ -37,15 +37,17 @@
 
     private string Markdown_Content;
 
-    private Func<string, string> RewriteLink;
+    //private Func<string, string> RewriteLink;
 
 
 
     public const string BaseURL = "/resources";
 
-    protected override void OnInitialized()
+    public string RewriteLink(string link)
     {
-        RewriteLink = s => BaseURL + "/" + HttpUtility.UrlEncode(s);
+        if (link.StartsWith("http"))
+            return link;
+        return BaseURL + "/" + HttpUtility.UrlEncode(link);
     }
 
     protected override void OnParametersSet()
