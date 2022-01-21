@@ -28,6 +28,9 @@
     [Parameter]
     public string PageName { get; set; }
 
+    [Parameter]
+    public List<(string,string)> Substitutions { get; set; }
+
     public const string DefaultPage = "Home";
 
     public const string Namespace = "Datahub.Portal";
@@ -47,12 +50,12 @@
 
     protected override void OnParametersSet()
     {
-        Markdown_Content = LoadPage(PageName ?? DefaultPage) ?? Localizer["Invalid link"];
+        Markdown_Content = LoadPage(PageName ?? DefaultPage, Substitutions) ?? Localizer["Invalid link"];
     }
 
     public static string Wiki_Url = "https://raw.githubusercontent.com/wiki/NRCan/datahub-portal/";
 
-    private string? LoadPage(string name)
+    private string? LoadPage(string name, List<(string,string)> substitutions = null)
     {
 
         if (name.StartsWith("/")) name = name.Substring(1);
@@ -61,7 +64,15 @@
         {
             try
             {
-                return client.DownloadString(fullUrl);
+                var content = client.DownloadString(fullUrl);
+                if (substitutions != null)
+                {
+                    foreach (var s in substitutions)
+                    {
+                        content = content.Replace(s.Item1, s.Item2);
+                    }
+                }
+                return content;
             } catch (Exception ex)
             {
                 logger.LogError(ex, $"Cannot load page {fullUrl}");

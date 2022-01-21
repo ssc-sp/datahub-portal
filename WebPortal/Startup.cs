@@ -46,7 +46,10 @@ using Datahub.CKAN.Service;
 using Datahub.Core.UserTracking;
 using Datahub.Finance;
 using Datahub.M365Forms;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 
+[assembly: InternalsVisibleTo("Datahub.Tests")]
 namespace Datahub.Portal
 {
     public class Startup
@@ -184,6 +187,28 @@ namespace Datahub.Portal
             EFTools.InitializeDatabase<T>(logger, Configuration, dbContextFactory, ResetDB, migrate, ensureDeleteinOffline);
         }
 
+        internal static List<Type> LoadModules(string filterString = "*")
+        {
+            var filters = filterString.Split(',', StringSplitOptions.RemoveEmptyEntries);
+            var modules = AppDomain.CurrentDomain.GetAssemblies().SelectMany(asm => TryFindInAssembly<IDatahubModule>(asm)).ToList();
+            if (filters.Contains("*"))
+                return modules;
+            var moduleFilters = filters.Select(c => c.ToLowerInvariant()).ToHashSet();
+            return modules.Where(t => moduleFilters.Contains(t.Name.ToLowerInvariant())).ToList();
+        }
+        private static List<Type> TryFindInAssembly<T>(Assembly asm)
+        {
+            try
+            {
+                return asm.GetTypes().Where(t => t.GetInterfaces().Contains(typeof(T))).ToList();
+            }
+            catch (Exception ex)
+            {
+                return new List<Type>();
+            }
+        }
+
+
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILogger<Startup> logger,
             IDbContextFactory<DatahubProjectDBContext> datahubFactory,
@@ -198,9 +223,12 @@ namespace Datahub.Portal
                 app.UseHttpLogging();
             }
 
-            app.ConfigureModule<LanguageTrainingModule>();
-            app.ConfigureModule<FinanceModule>();
-            app.ConfigureModule<M365FormsModule>();
+            var allModules = LoadModules(Configuration.GetValue<string>("DataHubModules", "*"));
+            foreach (var module in allModules)
+            {
+                logger.LogInformation($"Configuring module {module.Name}");
+                app.ConfigureModule(module);
+            }
 
             InitializeDatabase(logger, datahubFactory);
             InitializeDatabase(logger, userTrackingFactory, false);
