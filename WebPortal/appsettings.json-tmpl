@@ -3,22 +3,8 @@
     "Default": "en-CA",
     "SupportedCultures": "fr-CA|en-CA"
   },
-  "LandingBgFolder": "ssc",
-  "LandingBgImgCount": 2,
-  "Title": "SSC Datahub",
-  "DataHubModules": ""
+  "LandingBgFolder": "nrcan",
+  "LandingBgImgCount": 12,
+  "Title": "NRCan Datahub",
+  "DataHubModules": "*"
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
