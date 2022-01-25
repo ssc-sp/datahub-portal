@@ -1,5 +1,6 @@
 ﻿@namespace Datahub.Portal.Components
 @inject TimeZoneService TimeZoneService
+@inject IConfiguration configuration
 
 <AeFlex class="welcome-banner" style=@($"background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, black 100%), url('{GetBackground()}') no-repeat center center fixed;background-size: cover;")>
   <AeTypography Variant="h2" class="greeting">@GetGreeting()</AeTypography>
@@ -16,22 +17,25 @@
     }
 
     private string GetGreeting(){
-      var hour = now.Hour;
+        var hour = now.Hour;
 
-      if(hour < 12){
-        return @Localizer["Good Morning"];
-      }
-      else if(hour < 16){
-        return @Localizer["Good Afternoon"];
-      }
-      return @Localizer["Good Evening"];
+        if(hour < 12){
+            return @Localizer["Good Morning"];
+        }
+        else if(hour < 16){
+            return @Localizer["Good Afternoon"];
+        }
+        return @Localizer["Good Evening"];
     }
 
     private string GetBackground()
     {
         //earth-background.jpg
-        var randomId = (int)Math.Round(new Random().NextDouble() * 11);
-        return $"/img/landing/landing{randomId:00}.jpg";
+        //LandingBgFolder
+        var folder = configuration["LandingBgFolder"] ?? "nrcan";
+        var imgCount = (configuration.GetSection("LandingBgImgCount").Get<int?>() ?? 12)-1;
+        var randomId = (int)Math.Round(new Random().NextDouble() * imgCount);
+        return $"/img/{folder}/landing{randomId:00}.jpg";
     }
 }
 

@@ -1,4 +1,4 @@
-﻿using Datahub.Core.Data.StorageCostEstimator;
+﻿using Datahub.Core.Data.CostEstimator;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -39,7 +39,16 @@ namespace Datahub.Core.Services
             // geo replication v2, canada central
             public static readonly string GEO_REPLICATION_SKU_ID = "DZH318Z0BZ26/0021";
 
-            public static readonly Dictionary<(AccessTierType, DataRedundancyType), string> SkuMaps = new()
+            // DSv2 VM series, Canada central
+            public static readonly string STANDARD_DS3_V2_SKU_ID = "DZH318Z0BQ4C/0168";
+            public static readonly string STANDARD_DS4_V2_SKU_ID = "DZH318Z0BQ4C/0176";
+            public static readonly string STANDARD_DS5_V2_SKU_ID = "DZH318Z0BQ4C/011S";
+
+            // Standard all-purpose compute DBU, Canada central
+            public static readonly string STANDARD_ALL_PURPOSE_COMPUTE_DBU_SKU_ID = "DZH318Z0BWQJ/004Z";
+
+
+            public static readonly Dictionary<(AccessTierType, DataRedundancyType), string> StorageSkuMaps = new()
             {
                 { (AccessTierType.Hot, DataRedundancyType.LRS), HOT_LRS_BLOCK_SKU_ID },
                 { (AccessTierType.Hot, DataRedundancyType.ZRS), HOT_ZRS_BLOCK_SKU_ID },
@@ -120,6 +129,13 @@ namespace Datahub.Core.Services
             public static readonly string GEO_REPLICATION_V2_DATA_TRANSFER = "ea8e044b-900e-4137-b26f-7e41eecef1b6";
 
 
+            public static readonly string STANDARD_DS3_V2_METER_ID = "121219c8-4963-475a-b861-2cfe6667b9c2";
+            public static readonly string STANDARD_DS4_V2_METER_ID = "72cbc933-fe63-4de0-a60d-f37c66dc7d4f";
+            public static readonly string STANDARD_DS5_V2_METER_ID = "60596994-ce9c-470c-a8ee-853b694a3037";
+
+            public static readonly string STANDARD_ALL_PURPOSE_COMPUTE_DBU_METER_ID = "1c96d414-32bd-4360-acbf-48f233d03005";
+
+
             public static readonly List<string> DataStored = new()
             {
                 HOT_LRS_DATA_STORED,
@@ -183,11 +199,13 @@ namespace Datahub.Core.Services
             { "10K/Month", 10000 },
             { "1 GB/Month", 1 },
             { "1 GB", 1 },
-            { "1M", 1000000 }
+            { "1M", 1000000 },
+            { "1 Hour", 1 }
         };
 
         private static readonly string API_BASE_URL = "https://prices.azure.com/api/retail/prices";
-        private static readonly string SAVED_PRICE_LIST_ID = "StoragePriceList";
+        private static readonly string SAVED_STORAGE_PRICE_LIST_ID = "StoragePriceList";
+        private static readonly string SAVED_COMPUTE_PRICE_LIST_ID = "ComputePriceList";
 
         private static readonly UnitPrice zeroPrice = new(0.0M, 1);
 
@@ -238,6 +256,12 @@ namespace Datahub.Core.Services
             }
         }
 
+        private UnitPrice GetUnitPriceFromApiResult(IAzurePriceAPIItemContainer apiResult, string meterId) =>
+            GetUnitPriceFromApiResult(apiResult, new List<string>() { meterId });
+
+        private decimal GetDecimalPriceFromApiResult(IAzurePriceAPIItemContainer apiResult, string meterId) =>
+            GetUnitPriceFromApiResult(apiResult, meterId).BasePrice;
+
         private async Task<AzurePriceAPIResult> GetAzureApiResult(string url)
         {
             using var httpClient = _httpClientFactory.CreateClient();
@@ -255,24 +279,26 @@ namespace Datahub.Core.Services
             return new(result.Items.Where(i => i.SkuId == skuId).ToList());
         }
 
-        private async Task<SavedStorageCostPriceGrid> FetchSavedPriceGrid() => await _miscStorageService.GetObject<SavedStorageCostPriceGrid>(SAVED_PRICE_LIST_ID);
+        private async Task<SavedStorageCostPriceGrid> FetchSavedStoragePriceGrid() => await _miscStorageService.GetObject<SavedStorageCostPriceGrid>(SAVED_STORAGE_PRICE_LIST_ID);
+        private async Task<ComputeCostEstimatorPrices> FetchSavedComputePriceList() => await _miscStorageService.GetObject<ComputeCostEstimatorPrices>(SAVED_COMPUTE_PRICE_LIST_ID);
 
-        private async Task SavePriceGrid(SavedStorageCostPriceGrid priceGrid) => await _miscStorageService.SaveObject(priceGrid, SAVED_PRICE_LIST_ID);
+        private async Task SaveStoragePriceGrid(SavedStorageCostPriceGrid priceGrid) => await _miscStorageService.SaveObject(priceGrid, SAVED_STORAGE_PRICE_LIST_ID);
+        private async Task SaveComputePriceList(ComputeCostEstimatorPrices priceGrid) => await _miscStorageService.SaveObject(priceGrid, SAVED_COMPUTE_PRICE_LIST_ID);
 
-        private async Task<Dictionary<string, EstimatorPriceList>> GeneratePriceListFromApi()
+        private async Task<Dictionary<string, StorageCostEstimatorPriceList>> GenerateStoragePriceListFromApi()
         {
             var geoRepUrl = BuildApiUrl(AzureSkuIds.GEO_REPLICATION_SKU_ID);
             var geoRepResult = await GetAzureApiResult(geoRepUrl);
             var geoRepPrice = GetUnitPriceFromApiResult(geoRepResult, AzureMeterIds.GeoReplication);
 
-            var priceListUrl = BuildMultiSkuApiUrl(AzureSkuIds.SkuMaps.Values);
+            var priceListUrl = BuildMultiSkuApiUrl(AzureSkuIds.StorageSkuMaps.Values);
             var priceResult = await GetAzureApiResult(priceListUrl);
 
-            var finalResult = AzureSkuIds.SkuMaps
+            var finalResult = AzureSkuIds.StorageSkuMaps
                 .Select(kvp =>
                 {
                     var rawSkuPrices = GetPricesForSku(priceResult, kvp.Value);
-                    var skuPriceList = new EstimatorPriceList()
+                    var skuPriceList = new StorageCostEstimatorPriceList()
                     {
                         ArchiveHPRead = GetUnitPriceFromApiResult(rawSkuPrices, AzureMeterIds.ArchivePriorityRead),
                         Capacity = GetUnitPriceFromApiResult(rawSkuPrices, AzureMeterIds.DataStored),
@@ -284,7 +310,7 @@ namespace Datahub.Core.Services
                         ReadOperations = GetUnitPriceFromApiResult(rawSkuPrices, AzureMeterIds.ReadOperations),
                         WriteOperations = GetUnitPriceFromApiResult(rawSkuPrices, AzureMeterIds.WriteOperations)
                     };
-                    return (IAzurePriceListService.GenerateAzurePriceListKey(kvp.Key.Item1, kvp.Key.Item2), skuPriceList);
+                    return (IAzurePriceListService.GenerateAzureStoragePriceListKey(kvp.Key.Item1, kvp.Key.Item2), skuPriceList);
                 })
                 .ToDictionary(tuple => tuple.Item1, tuple => tuple.skuPriceList);
 
@@ -295,11 +321,11 @@ namespace Datahub.Core.Services
         {
             var yesterday = DateTime.UtcNow - TimeSpan.FromDays(1);
 
-            var priceGrid = await FetchSavedPriceGrid();
+            var priceGrid = await FetchSavedStoragePriceGrid();
             
             if (priceGrid == null || priceGrid.LastUpdatedUtc <= yesterday)
             {
-                var apiPriceList = await GeneratePriceListFromApi();
+                var apiPriceList = await GenerateStoragePriceListFromApi();
                 var utcNow = DateTime.UtcNow;
 
                 priceGrid = new SavedStorageCostPriceGrid()
@@ -308,7 +334,48 @@ namespace Datahub.Core.Services
                     PriceLists = apiPriceList
                 };
 
-                await SavePriceGrid(priceGrid);
+                await SaveStoragePriceGrid(priceGrid);
+            }
+
+            return priceGrid;
+        }
+
+        private async Task<ComputeCostEstimatorPrices> GetAzureDatabricksComputePriceListFromApi()
+        {
+            var computeSkus = new List<string>()
+            {
+                AzureSkuIds.STANDARD_DS3_V2_SKU_ID,
+                AzureSkuIds.STANDARD_DS4_V2_SKU_ID,
+                AzureSkuIds.STANDARD_DS5_V2_SKU_ID,
+                AzureSkuIds.STANDARD_ALL_PURPOSE_COMPUTE_DBU_SKU_ID
+            };
+
+            var apiUrl = BuildMultiSkuApiUrl(computeSkus);
+            var priceResult = await GetAzureApiResult(apiUrl);
+
+            var priceGrid = new ComputeCostEstimatorPrices()
+            {
+                LastUpdatedUtc = DateTime.UtcNow,
+                Ds3VmPrice = GetDecimalPriceFromApiResult(priceResult, AzureMeterIds.STANDARD_DS3_V2_METER_ID),
+                Ds4VmPrice = GetDecimalPriceFromApiResult(priceResult, AzureMeterIds.STANDARD_DS4_V2_METER_ID),
+                Ds5VmPrice = GetDecimalPriceFromApiResult(priceResult, AzureMeterIds.STANDARD_DS5_V2_METER_ID),
+                DbuPrice = GetDecimalPriceFromApiResult(priceResult, AzureMeterIds.STANDARD_ALL_PURPOSE_COMPUTE_DBU_METER_ID)
+            };
+
+            return priceGrid;
+        }
+
+        public async Task<ComputeCostEstimatorPrices> GetAzureComputeCostPrices()
+        {
+            var yesterday = DateTime.UtcNow - TimeSpan.FromDays(1);
+
+            var priceGrid = await FetchSavedComputePriceList();
+
+            if (priceGrid == null || priceGrid.LastUpdatedUtc <= yesterday)
+            {
+                priceGrid = await GetAzureDatabricksComputePriceListFromApi();
+
+                await SaveComputePriceList(priceGrid);
             }
 
             return priceGrid;

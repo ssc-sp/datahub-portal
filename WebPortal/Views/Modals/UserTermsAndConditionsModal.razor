@@ -1,4 +1,5 @@
 ﻿@inject IJSRuntime JSRuntime
+@inject IConfiguration Configuration
 
 <div class="modal-content-large">
 
@@ -48,7 +49,7 @@
                     {"TAC-PAGE.AcceptTerms",    "Accept Terms"},
                     {"TAC-PAGE.AgreeToTAC",     "I agree to the Terms and Conditions"},
                     {"TAC-PAGE.Introduction",   "Scroll down to read the complete terms and conditions before accepting."},
-                    {"TAC-PAGE.Title",          "Welcome to NRCAN DataHub"},
+                    {"TAC-PAGE.Title",          "Welcome to <title>"},
                     {"BUTTONS.Submit",          "Submit"},
                     {"BUTTONS.Cancel",          "Cancel"}
         }},
@@ -56,7 +57,7 @@
                     {"TAC-PAGE.AcceptTerms",    "Accepté les termes et conditions"},
                     {"TAC-PAGE.AgreeToTAC",     "J'accepte les termes et conditions"},
                     {"TAC-PAGE.Introduction",   "Faites défiler vers le bas pour lire les termes et conditions complets avant d'accepter."},
-                    {"TAC-PAGE.Title",          "Bienvenue au RNCan DataHub"},
+                    {"TAC-PAGE.Title",          "Bienvenue au <title>"},
                     {"BUTTONS.Submit",          "Soumettre"},
                     {"BUTTONS.Cancel",          "Annuler"}
         }}
@@ -70,7 +71,10 @@
     public string LocalizerRes(string resId)
     {
         var langDict = resources[Language];
-
+        foreach (var kvp in langDict)
+        {
+            langDict[kvp.Key] = kvp.Value.Replace("<title>",@Localizer[Configuration["Title"]]);
+        }
         return langDict[resId];
     }
 

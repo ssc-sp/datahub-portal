@@ -1,5 +1,5 @@
 ﻿@namespace Datahub.Core.Templates
-@using Datahub.Core.Data.StorageCostEstimator
+@using Datahub.Core.Data.CostEstimator
 
 <style>
     .numbercol {
@@ -42,7 +42,7 @@
 </table>
 
 <div>
-    @foreach(var whichEstimate in new List<(string Title, EstimatorResult CostEstimate)>() 
+    @foreach(var whichEstimate in new List<(string Title, StorageCostEstimatorResult CostEstimate)>() 
     {
         (Localizer[$"{LOCALIZATION_PREFIX}.InitialCostSection"], InitialCost), 
         (Localizer[$"{LOCALIZATION_PREFIX}.MonthlyCostSection"], MonthlyCost)
@@ -50,7 +50,7 @@
     {
         <h3>@whichEstimate.Title</h3>
         
-        EstimatorResult costEstimate = whichEstimate.CostEstimate;
+        StorageCostEstimatorResult costEstimate = whichEstimate.CostEstimate;
         @if(costEstimate.HasValues)
         {
             <table>
@@ -166,10 +166,10 @@
     private string GetRedundancyLabel(DataRedundancyType t) => Localizer[$"{LOCALIZATION_PREFIX}.DataRed{t.ToString()}"];
 
     [Parameter]
-    public EstimatorResult InitialCost { get; set; }
+    public StorageCostEstimatorResult InitialCost { get; set; }
 
     [Parameter]
-    public EstimatorResult MonthlyCost { get; set; }
+    public StorageCostEstimatorResult MonthlyCost { get; set; }
 
     [Parameter]
     public IList<EstimatorResultLine> StorageCostsByMonth { get; set; }
