@@ -127,11 +127,12 @@
             _onboardingApplication.Last_Updated_DT = DateTime.Now;
 
             OnboardingParameters onboardingParameters = new() { App = _onboardingApplication, AdminEmailAddresses =  ServiceAuthManager.GetProjectAdminsEmails(PROJECTACRONYM)};
+            
+            await Context.TrackSaveChangesAsync(AuditingService);
 
             await EmailService.SendOnboardingConfirmations(onboardingParameters);
             _onboardingApplication.NotificationsSent = true;
 
-            await Context.TrackSaveChangesAsync(AuditingService);
             NavigationManager.NavigateTo("/onboarding/confirmation");
         }
     }
