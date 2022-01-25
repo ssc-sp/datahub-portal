@@ -8,8 +8,12 @@
 @inject IDatahubAuditingService AuditingService
 @inject IUserCircuitCounterService UserCircuitCounterService
 
+@using Microsoft.Extensions.Configuration
 @using Microsoft.Identity.Web
 @inject MicrosoftIdentityConsentAndConditionalAccessHandler ConsentHandler
+@inject IConfiguration configuration
+
+<PageTitle>@Localizer[configuration["Title"]]</PageTitle>
 
 <AuthorizeView>
     <Authorized>        
@@ -33,8 +37,13 @@
                             <ErrorContent Context="ex">
                                 @if (HandleException(@ex)) 
                                 {
-                                    <Error CorrelationId=@_correlationId />    
+                                    <Error CorrelationId=@_correlationId />
                                 }
+                                else
+                                {
+                                    @Body
+                                }
+
                             </ErrorContent>
                         </ErrorBoundary>
                     </div>
@@ -74,8 +83,15 @@
         await ApiService.LoadApplicationData();
     }
 
+    private bool IsValidException(Exception ex)
+    {
+        return !(ex is ObjectDisposedException);
+    }
+
     private bool HandleException(Exception ex)
     {
+        if (!IsValidException(ex))
+            return false;
         if (ex != _lastException)
         {
             _lastException = ex;
