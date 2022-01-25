@@ -20,7 +20,7 @@
 
 @page "/project/{projectAcronym}"
 
-<PageTitle>@Localizer[configuration["Title"]] - @_project.ProjectName</PageTitle>
+<DHPageTitle PageTitleKey=@_project.ProjectName/>
 
 <div style="padding-left: 2rem;padding-right: 2rem">
     @if (_project is null)
