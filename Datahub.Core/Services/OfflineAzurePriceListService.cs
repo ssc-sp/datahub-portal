@@ -1,4 +1,4 @@
-﻿using Datahub.Core.Data.StorageCostEstimator;
+﻿using Datahub.Core.Data.CostEstimator;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,9 +9,21 @@ namespace Datahub.Core.Services
 {
     public class OfflineAzurePriceListService : IAzurePriceListService
     {
+        public async Task<ComputeCostEstimatorPrices> GetAzureComputeCostPrices()
+        {
+            return await Task.FromResult(new ComputeCostEstimatorPrices()
+            {
+                LastUpdatedUtc = DateTime.UtcNow,
+                DbuPrice = 0.52M,
+                Ds3VmPrice = 0.36M,
+                Ds4VmPrice = 0.72M,
+                Ds5VmPrice = 1.43M
+            });
+        }
+
         public Task<SavedStorageCostPriceGrid> GetAzureStoragePriceLists()
         {
-            EstimatorPriceList hotPrices = new()
+            StorageCostEstimatorPriceList hotPrices = new()
             {
                 Capacity = new(20.48M, 1000),
                 WriteOperations = new(0.055M, 10000),
@@ -24,7 +36,7 @@ namespace Datahub.Core.Services
                 GeoReplication = new(0.022M, 1000)
             };
 
-            EstimatorPriceList coolPrices = new()
+            StorageCostEstimatorPriceList coolPrices = new()
             {
                 Capacity = new(11.26M, 1000),
                 WriteOperations = new(0.1M, 10000),
@@ -37,7 +49,7 @@ namespace Datahub.Core.Services
                 GeoReplication = new(0.022M, 1000)
             };
 
-            EstimatorPriceList archivePrices = new()
+            StorageCostEstimatorPriceList archivePrices = new()
             {
                 Capacity = new(1.84M, 1000),
                 WriteOperations = new(0.11M, 10000),
@@ -50,16 +62,16 @@ namespace Datahub.Core.Services
                 GeoReplication = new(0.022M, 1000)
             };
             
-            var priceLists = new Dictionary<string, EstimatorPriceList>()
+            var priceLists = new Dictionary<string, StorageCostEstimatorPriceList>()
             {
-                {IAzurePriceListService.GenerateAzurePriceListKey(AccessTierType.Hot, DataRedundancyType.LRS), hotPrices },
-                {IAzurePriceListService.GenerateAzurePriceListKey(AccessTierType.Hot, DataRedundancyType.ZRS), hotPrices },
-                {IAzurePriceListService.GenerateAzurePriceListKey(AccessTierType.Hot, DataRedundancyType.GRS), hotPrices },
-                {IAzurePriceListService.GenerateAzurePriceListKey(AccessTierType.Cool, DataRedundancyType.LRS), coolPrices },
-                {IAzurePriceListService.GenerateAzurePriceListKey(AccessTierType.Cool, DataRedundancyType.ZRS), coolPrices },
-                {IAzurePriceListService.GenerateAzurePriceListKey(AccessTierType.Cool, DataRedundancyType.GRS), coolPrices },
-                {IAzurePriceListService.GenerateAzurePriceListKey(AccessTierType.Archive, DataRedundancyType.LRS), archivePrices },
-                {IAzurePriceListService.GenerateAzurePriceListKey(AccessTierType.Archive, DataRedundancyType.GRS), archivePrices }
+                {IAzurePriceListService.GenerateAzureStoragePriceListKey(AccessTierType.Hot, DataRedundancyType.LRS), hotPrices },
+                {IAzurePriceListService.GenerateAzureStoragePriceListKey(AccessTierType.Hot, DataRedundancyType.ZRS), hotPrices },
+                {IAzurePriceListService.GenerateAzureStoragePriceListKey(AccessTierType.Hot, DataRedundancyType.GRS), hotPrices },
+                {IAzurePriceListService.GenerateAzureStoragePriceListKey(AccessTierType.Cool, DataRedundancyType.LRS), coolPrices },
+                {IAzurePriceListService.GenerateAzureStoragePriceListKey(AccessTierType.Cool, DataRedundancyType.ZRS), coolPrices },
+                {IAzurePriceListService.GenerateAzureStoragePriceListKey(AccessTierType.Cool, DataRedundancyType.GRS), coolPrices },
+                {IAzurePriceListService.GenerateAzureStoragePriceListKey(AccessTierType.Archive, DataRedundancyType.LRS), archivePrices },
+                {IAzurePriceListService.GenerateAzureStoragePriceListKey(AccessTierType.Archive, DataRedundancyType.GRS), archivePrices }
             };
 
             return Task.FromResult(new SavedStorageCostPriceGrid()

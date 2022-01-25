@@ -14,6 +14,7 @@ using Microsoft.Graph.Auth;
 using Microsoft.Identity.Client;
 using Microsoft.Identity.Web;
 using Datahub.Core.UserTracking;
+using System.Security.Claims;
 
 namespace Datahub.Core.Services
 {
@@ -27,7 +28,8 @@ namespace Datahub.Core.Services
         private IConfiguration _configuration;
         //private GraphServiceClient _graphServiceClient;
         public string imageHtml;
-        
+        private ClaimsPrincipal authenticatedUser;
+
         public User CurrentUser { get; set; }
 
         private User AnonymousUser => UserInformationServiceConstants.GetAnonymousUser();
@@ -56,7 +58,7 @@ namespace Datahub.Core.Services
         public async Task<string> GetUserIdString()
         {
             await CheckUser();
-            return CurrentUser.Id;
+            return getOID();
         }
 
         public async Task<string> GetUserEmailDomain()
@@ -99,18 +101,22 @@ namespace Datahub.Core.Services
 
         private async Task<User> GetUserAsyncInternal()
         {
+         if (CurrentUser != null)
+                 return CurrentUser;
             try
-            {               
-                var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
-                var claimsList = authState.User.Claims.ToList();
-                var email = authState.User.Identity.Name;
+            {
+                if (authenticatedUser is null)
+                    authenticatedUser = (await _authenticationStateProvider.GetAuthenticationStateAsync()).User;
+                var claimsList = authenticatedUser.Claims.ToList();
+                var email = authenticatedUser.Identity.Name;
+                string userId = getOID();
                 if (email is null)
                 {
                     throw new InvalidOperationException("Cannot resolve user email");
                 }
 
                 PrepareAuthenticatedClient();
-                CurrentUser = await graphServiceClient.Users[email].Request().GetAsync();
+                CurrentUser = await graphServiceClient.Users[userId].Request().GetAsync();
 
                 return CurrentUser;
             }
@@ -127,6 +133,11 @@ namespace Datahub.Core.Services
                 throw new InvalidOperationException("Cannot retrieve user list", e);
 
             }
+        }
+
+        private string getOID()
+        {
+            return authenticatedUser.Claims.First(c => c.Type == "http://schemas.microsoft.com/identity/claims/objectidentifier").Value;
         }
 
         public async Task<User> GetUserAsync()
@@ -342,6 +353,29 @@ namespace Datahub.Core.Services
         public Task<User> GetAnonymousUserAsync()
         {
             return Task.FromResult(AnonymousUser);
+        }
+
+        public async Task<User?> GetUserAsync(string userId)
+        {
+            try
+            {
+                PrepareAuthenticatedClient();
+                CurrentUser = await graphServiceClient.Users[userId].Request().GetAsync();
+
+                return CurrentUser;
+            }
+            catch (ServiceException e)
+            {
+                if (e.InnerException is MsalUiRequiredException || e.InnerException is MicrosoftIdentityWebChallengeUserException)
+                    throw;
+                _logger.LogError(e, "Error Loading User");
+                return null;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error Loading User");
+                return null;
+            }
         }
     }    
 }

@@ -72,6 +72,7 @@ namespace Datahub.Core.Data
         public static void ConfigureDbContext<T>(this IServiceCollection services, IConfiguration configuration, string connectionStringName, DbDriver dbDriver) where T : DbContext
         {
             var connectionString = configuration.GetConnectionString(connectionStringName);
+            if (string.IsNullOrWhiteSpace(connectionStringName) || string.IsNullOrWhiteSpace(connectionString)) throw new InvalidProgramException($"Cannot configure {typeof(T).Name} - no connection string for '{connectionStringName}':{connectionString}");
             switch (dbDriver)
             {
                 case DbDriver.SqlServer:

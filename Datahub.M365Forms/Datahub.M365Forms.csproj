@@ -11,7 +11,7 @@
   </ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="AElemental.Blazor" Version="1.2.22018.3-beta" />
+		<PackageReference Include="AElemental.Blazor" Version="1.2.22020.1-beta" />
 	</ItemGroup>
 
 	<ItemGroup>

@@ -1,13 +1,19 @@
-﻿@inject IMSGraphService MSGraphService
+﻿@using Microsoft.Extensions.Logging
+@inject IMSGraphService MSGraphService
 @inject IDbContextFactory<DatahubProjectDBContext> dbFactory
 @inject IEmailNotificationService EmailService
 @inject ServiceAuthManager ServiceAuthManager
+@inject ILogger<ProjectAccessRequestTable> logger
 
 <AeCard>
     <Header>
         <AeTypography Variant="h1">@Localizer["Project User Requests"]</AeTypography>
     </Header>
     <ChildContent>
+        @if (Error != null)
+        {
+            <div>@Error</div>
+        }
         @if (_userProjectAuthorization != null)
         {
             <AeFlex Vertical>
@@ -46,6 +52,8 @@
 
     [Parameter]
     public int PageSize { get; set; } = 10;
+
+    private string? Error { get; set; }
 
     private List<Datahub_Project_User_Request> _userProjectAuthorization;
 
@@ -104,7 +112,14 @@
         await projectContext.SaveChangesAsync();
 
         var serviceName = r.Project.ProjectName;
-        await EmailService.SendServiceAccessGrantedNotification(serviceName, r.Project.ProjectInfo, r.User_ID);
+        try
+        {
+            await EmailService.SendServiceAccessGrantedNotification(serviceName, r.Project.ProjectInfo, r.User_ID);
+        } catch (Exception ex)
+        {
+            Error = "Cannot send email message";
+            logger.LogError(ex, "Cannot send email message");
+        }
         ServiceAuthManager.InvalidateAuthCache();
         await RefreshData();
     }
@@ -126,8 +141,9 @@
     {
         using var ctx = await dbFactory.CreateDbContextAsync();
 
-        var validProjects = (IsDatahubAdmin ? ctx.Project_Users : ctx.Project_Users.Where(u => u.IsAdmin && u.User_ID == UserId))
-            .Select(p => p.Project.Project_ID)
+        var validProjects = (IsDatahubAdmin ? 
+            ctx.Projects.Select(p => p.Project_ID) : 
+            ctx.Project_Users.Where(u => u.IsAdmin && u.User_ID == UserId).Select(p => p.Project.Project_ID))            
             .ToHashSet();
 
         var allProjectAuthorization = await ctx.Project_Users_Requests
@@ -147,7 +163,8 @@
         projectReqRenderFunctions = new()
         {
             null,
-            user => @<div class="help icon-container"><GraphUserInformation UserId="@user.User_ID" IsUserNameRequested="true"></GraphUserInformation></div>,
+            user => 
+    @<div class="help icon-container"><GraphUserInformation UserId="@user.User_ID" IsUserNameRequested="true"></GraphUserInformation></div>,
             null,
             a => 
             {
@@ -160,7 +177,8 @@
                     return @<div>
                         <AeButton @onclick="async () => await AuthorizeProjectUser(a)">@Localizer["Authorize User"]</AeButton>
                         <AeButton @onclick="async () => await DeleteAccessRequest(a)">@Localizer["Delete Request"]</AeButton>
-                    </div>;
+    </div>
+    ;
                 }
             }
         };

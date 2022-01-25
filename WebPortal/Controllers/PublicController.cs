@@ -61,7 +61,7 @@ namespace Datahub.Portal.Controllers
 
             _logger.LogDebug($"Downloading {filemd.filename}");
 
-            var uri = await _apiService.DownloadFile(filemd);
+            var uri = await _apiService.DownloadFile(filemd,null);
             return Redirect(uri.ToString());
         }
 
