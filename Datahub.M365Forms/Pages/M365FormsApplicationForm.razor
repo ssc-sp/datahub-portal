@@ -89,7 +89,7 @@
         var footerfile = _isFrench ? "FormFooterFr.md" : "FormFooter.md";
         LoadApps(string.Empty);
         _formMetadata.Header = Localizer["M365 Team Request Form"];
-        _formMetadata.TableRoles = $"M365FORM-admin, {RoleConstants.DATAHUB_ROLE_ADMIN}";
+        _formMetadata.TableRoles = $"default";
         _formMetadata.DataSet = _m365FormsApplications;
         _formMetadata.AccessorFunctions = AccessorFunctions;
         _formMetadata.Headers = headers;

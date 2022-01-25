@@ -126,11 +126,16 @@
             }
             _onboardingApplication.Last_Updated_DT = DateTime.Now;
 
-            OnboardingParameters onboardingParameters = new() { App = _onboardingApplication, AdminEmailAddresses =  ServiceAuthManager.GetProjectAdminsEmails(PROJECTACRONYM)};
-            
             await Context.TrackSaveChangesAsync(AuditingService);
 
+            OnboardingParameters onboardingParameters = new() { 
+                            App = _onboardingApplication, 
+                            AdminEmailAddresses =  ServiceAuthManager.GetProjectAdminsEmails(PROJECTACRONYM)
+                        };
+            
+
             await EmailService.SendOnboardingConfirmations(onboardingParameters);
+            
             _onboardingApplication.NotificationsSent = true;
 
             NavigationManager.NavigateTo("/onboarding/confirmation");
@@ -227,7 +232,7 @@
         StateHasChanged();
     }
 
-    private async void OnConfirmSave(bool isConfirmed, dynamic item)
+    @*private async void OnConfirmSave(bool isConfirmed, dynamic item)
     {
         if (isConfirmed && _onboardingApplication != null)
         {
@@ -252,7 +257,7 @@
         await UI.ToggleModal();
         _onboardingApplication = item;
         StateHasChanged();
-    }
+    }*@
 
     public void Dispose() { Context.Dispose(); }
 }
