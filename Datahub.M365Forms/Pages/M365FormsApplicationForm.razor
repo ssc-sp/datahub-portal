@@ -60,6 +60,7 @@
     private bool _isLoaded;
     private bool _isUserAdmin;
     private bool _isFrench;
+    private string _currentFilter;
 
     private string Localize(string input) => input == null ? null : Localizer[input];
 
@@ -76,9 +77,8 @@
         AccessorFunctions = new List<Func<M365FormsApplication, string>>
         {
             p => { return Localizer[p.Name_of_Team]; },
-            p => { return Localizer[p.Description_of_Team ?? string.Empty]; },
-            p => { return p.Business_Owner; },
-            p => { return p.Information_and_Data_Security_Classification; },
+            p => { return Localizer[p.Description_of_Team ?? string.Empty]; },            
+            p => { return p.Visibility; },
             p => { return p.Team_Owner1; },
             p => { return p.Team_Owner2; },
             p => { return p.Team_Owner3; },
@@ -93,7 +93,7 @@
         _formMetadata.DataSet = _m365FormsApplications;
         _formMetadata.AccessorFunctions = AccessorFunctions;
         _formMetadata.Headers = headers;
-        _formMetadata.GridTemplateColumns = "3fr 5fr 3fr 3fr 3fr 3fr 3fr 3fr";
+        _formMetadata.GridTemplateColumns = "3fr 6fr 3fr 2fr 2fr 2fr 5fr";
         _formMetadata.IsSubmitEnabled = true;
         _formMetadata.MarkDownContent = new List<string>();
         _formMetadata.MarkDownContentFooter = File.ReadAllLines($@"Pages\Forms\M365Forms\{footerfile}").ToList();
@@ -111,9 +111,8 @@
     private List<string> headers => new List<string>
     {
         Localizer["Name_of_Team"], 
-        Localizer["Description_of_Team"], 
-        Localizer["Business_Owner"],
-        Localizer["Sec. Classification"],
+        Localizer["Description_of_Team"],         
+        Localizer["VisibilityNoNote"],
         Localizer["Owner 1"],
         Localizer["Owner 2"],
         Localizer["Owner 3"],
@@ -122,6 +121,7 @@
 
     private async void HandleFilterChange(string selection)
     {
+        _currentFilter = selection;
         await LoadApps(selection);
         StateHasChanged();
     }
@@ -172,6 +172,8 @@
                 m365FormApplication.M365FormStatus = "Team Requested";
             }
 
+            await Context.TrackSaveChangesAsync(AuditingService);
+
             M365FormsParameters m365FormsParameters = new() {
                     AppId = m365FormApplication.Application_ID,
                     TeamName = m365FormApplication.Name_of_Team,
@@ -181,11 +183,10 @@
                     AdminEmailAddresses =  ServiceAuthManager.GetProjectAdminsEmails(PROJECTACRONYM)
             };
 
-            await Context.TrackSaveChangesAsync(AuditingService);
 
             await EmailService.SendM365FormsConfirmations(m365FormsParameters);
-            //_onboardingApplication.NotificationsSent = true;
 
+            await LoadApps(_currentFilter);
 
             m365FormApplication = null;
             StateHasChanged();
