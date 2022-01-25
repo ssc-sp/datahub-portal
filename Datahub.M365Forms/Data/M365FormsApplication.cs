@@ -101,6 +101,9 @@ namespace Datahub.Portal.Data
         [AeLabel(isDropDown: true, placeholder: "Select status of application:", validValues: new[] { "Team Requested", "Submitted to Assyst", "Team Created" })]
         public string? M365FormStatus { get; set; }
 
+        [AeFormCategory("Application Status", 90)]
+        public string? Comments { get; set; }
+
         [AeFormIgnore]
         public string? SubmittedBy { get; set; }
 
