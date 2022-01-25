@@ -271,7 +271,7 @@
 
                 _ = InvokeAsync(async () =>
                 {
-                    await ApiService.UploadGen2File(_fileMetadata);
+                    await ApiService.UploadGen2File(_fileMetadata,null);
                     await NotifierService.Update("filegrid", true);
                     ResetControls();
                 }); 
