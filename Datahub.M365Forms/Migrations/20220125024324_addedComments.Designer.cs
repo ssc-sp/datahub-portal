@@ -4,6 +4,7 @@ using Datahub.Portal.Data.M365Forms;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Datahub.M365Forms.Migrations
 {
     [DbContext(typeof(M365FormsDBContext))]
-    partial class M365FormsDBContextModelSnapshot : ModelSnapshot
+    [Migration("20220125024324_addedComments")]
+    partial class addedComments
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
