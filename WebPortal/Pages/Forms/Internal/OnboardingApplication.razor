@@ -1,4 +1,5 @@
 ﻿@page "/onboarding/applications"
+@page "/onboarding/applications/{AppId}"
 @inject IEmailNotificationService EmailService
 @implements IDisposable
 @inject ServiceAuthManager ServiceAuthManager
@@ -32,6 +33,8 @@
     [Parameter]
     [SupplyParameterFromQuery]
     public bool New { get; set; }
+    [Parameter]
+    public string AppId { get; set; }
 
     private const string PROJECTACRONYM = "DHPGLIST";
     private FormMetadata<OnboardingApp> _formMetadata;
@@ -51,7 +54,7 @@
     private int _sectorId = -1;
     private int _branchId = -1;
     private int _divisionId = -1;
-
+    private bool _isUserAdmin;
     private bool _isFrench;
 
     private List<string> Sectors => LocalizeChoices(_sectors);
@@ -66,7 +69,7 @@
         Context = DbFactory.CreateDbContext();
         _user = await UserInformationService.GetUserAsync();
         _formMetadata = new();
-
+        _isUserAdmin = await ServiceAuthManager.IsProjectAdmin(_user.Id, PROJECTACRONYM);
         _isFrench = CultureInfo.CurrentCulture.Name.StartsWith("fr", StringComparison.InvariantCulture);
 
         _sectors = await OrganizationLevelsService.GetSectors();
@@ -129,6 +132,7 @@
             await Context.TrackSaveChangesAsync(AuditingService);
 
             OnboardingParameters onboardingParameters = new() { 
+                            AppUrl = $"/onboarding/applications/{_onboardingApplication.Application_ID}",
                             App = _onboardingApplication, 
                             AdminEmailAddresses =  ServiceAuthManager.GetProjectAdminsEmails(PROJECTACRONYM)
                         };
@@ -146,6 +150,16 @@
     {
         _onboardingApplications = Context.OnboardingApps.ToList();
         _formMetadata.DataSet = _onboardingApplications;
+        
+        if (!string.IsNullOrEmpty(AppId))
+        {
+            _onboardingApplication = Context.OnboardingApps.Where(a => a.Application_ID == Convert.ToInt32(AppId)).FirstOrDefault();
+            if (_onboardingApplication != null && !_isUserAdmin)
+            {
+                _onboardingApplication = null;
+            }
+        }
+
     }
 
     private void OnConfigure(IModelFormContext context)
