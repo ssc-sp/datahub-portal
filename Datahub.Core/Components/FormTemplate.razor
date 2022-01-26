@@ -233,7 +233,10 @@ else
 
     private string GetDataLabel(string propName)
     {
-        return DataLocalizer[propName];
+        if (!string.IsNullOrEmpty(propName))
+            return DataLocalizer[propName];
+
+        return string.Empty;
     }
 
 }

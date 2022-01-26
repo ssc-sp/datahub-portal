@@ -76,23 +76,23 @@ namespace Datahub.Portal.Services
             }
         }
 
-        public async Task<Folder> GetFolderContents(dynamic folder, string filterSearch, Microsoft.Graph.User user, string project = null)
+        public async Task<Folder> GetFolderContents(Folder folder, string filterSearch, Microsoft.Graph.User user, string project = null)
         {
             try
             {
                 // Clear folder as we will reload!
-                folder.Clear();
+                folder?.Clear();
                 if (!string.IsNullOrWhiteSpace(filterSearch))
                 {
                     return await getSearchResults(folder, filterSearch, user);
                 }
 
-                if (folder.isShared)
+                if (folder?.isShared ?? false)
                 {
                     return await getSharedFileList(folder, user);
                 }
 
-                if (!string.IsNullOrEmpty(_apiService.ProjectUploadCode))
+                if (!string.IsNullOrEmpty(project))
                 {
                     return await GetProjectFileList(project, user);
                 }
@@ -101,7 +101,7 @@ namespace Datahub.Portal.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"GetFileList folder: {folder.fullPathFromRoot} filter search: {filterSearch} user: {user.DisplayName} FAILED.");
+                _logger.LogError(ex, $"GetFileList folder: {folder?.fullPathFromRoot} filter search: {filterSearch} user: {user?.DisplayName} FAILED.");
                 throw;
             }
         }
@@ -158,7 +158,7 @@ namespace Datahub.Portal.Services
 
         public async Task<Uri> DownloadFile(FileMetaData file)
         {
-            return await _apiService.DownloadFile(file);
+            return await _apiService.DownloadFile(file, null);
         }
 
         public Task<List<Core.Data.Version>> GetFileVersions(string fileId)
