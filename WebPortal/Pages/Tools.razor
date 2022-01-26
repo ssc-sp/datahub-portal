@@ -34,10 +34,27 @@
                 </ChildContent>
                 <Footer>
                     <AeFlex Vertical>
-                        <AeTypography Variant="warning">@Localizer["Looking of an estimate for your storage needs?"]</AeTypography>
+                        <AeTypography Variant="warning">@Localizer["Looking for an estimate for your storage needs?"]</AeTypography>
                     </AeFlex>
                 </Footer>
             </AeCard>
+
+            <AeCard class="facard1" CardPosition="AeCard.CardStyle.Horizontal">
+                <Header>
+                     <div class="indigo" style="width:120px">
+                        <AeIcon class="fad fa-microchip card-icon fa-xs" />
+                    </div>
+                </Header>
+                <ChildContent>
+                    <DHLink Variant="h3" LinkType="DatahubLinkType.ComputeCostEstimator">@Localizer["Compute Cost Estimator"]</DHLink>
+                </ChildContent>
+                <Footer>
+                    <AeFlex Vertical>
+                        <AeTypography Variant="warning">@Localizer["Estimate the cost for a Databricks compute setup"]</AeTypography>
+                    </AeFlex>
+                </Footer>
+            </AeCard>
+
 
             <AeCard class="facard1" CardPosition="AeCard.CardStyle.Horizontal">
                 <Header>
@@ -58,15 +75,15 @@
             <AeCard class="facard1" CardPosition="AeCard.CardStyle.Horizontal">
                 <Header>
                      <div class="purple" style="width:120px">
-                        <AeIcon class="fad fa-radar card-icon fa-xs" /> 
+                        <AeIcon class="fad fa-folder-plus card-icon fa-xs" />
                     </div>
                 </Header>
-                <ChildContent>                   
-                        <NavLink class="ae typography h3 a" href="/discovery">@Localizer["Discovery (beta)"]</NavLink>
+                <ChildContent>                                           
+                        <DHLink Variant="h3" LinkType="DatahubLinkType.M365Form">@Localizer["M365 teams Application"]</DHLink>
                 </ChildContent>
                 <Footer>
                     <AeFlex Vertical>
-                        <AeTypography Variant="warning">@Localizer["Search the Datahub catalog."]</AeTypography>     
+                        <AeTypography Variant="warning">@Localizer["Application to create a m365 team"]</AeTypography>     
                     </AeFlex>
                 </Footer>
             </AeCard>

@@ -38,7 +38,7 @@ steps:
     targetType: 'inline'
     script: |
       $files=Get-Childitem -Path WebPortal,DatahubIntakeForms,.vscode -Include  appsettings*json-tmpl,launch*json-tmpl -File -Recurse -ErrorAction SilentlyContinue  | Where {$_.FullName -notlike "*\Debug\*"}
-      foreach ($file in $files){
+      foreach ($file in $files) {
         $fileRendered=$file.FullName.trim("-tmpl")
         Write-Host "Processing file: ${file} > $fileRendered"
         Copy-Item $file.FullName -Force -Destination $fileRendered
