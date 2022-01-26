@@ -1,0 +1,50 @@
+﻿@page "/discovery"
+@using Datahub.Metadata.DTO
+
+<div style="margin: 2rem">
+    <AeCard>
+        <ChildContent>
+            <AeFlex Vertical>
+                <h2>Search catalog</h2>
+                <AeSearchInput id="search" Placeholder="@Localizer.GetString("Search...")" OnInputChangeWithLastKey=@HandleSearch ClearIconFAClass="null" />
+                <div>
+                    @if (_searchResults.Count > 0)
+                    {
+                        <h3>Results</h3>
+                        <ul>
+                            @foreach (var hit in _searchResults)
+                            {
+                                <li>@hit.ObjectName</li>
+                            }
+                        </ul>    
+                    }
+                    
+                </div>
+            </AeFlex>
+
+        </ChildContent>
+    </AeCard>
+</div>
+
+@code {
+
+    [Inject]
+    public IMetadataBrokerService MetadataBrokerService { get; set; }
+
+    private string _searchText;
+    private List<CatalogHit> _searchResults = new();
+
+    private async void HandleSearch(string newValue, KeyboardEventArgs ev)
+    {
+        _searchText = newValue ?? string.Empty;
+        if ("Enter".Equals(ev?.Code) || _searchText.Length > 4)
+        {
+            _searchResults.Clear();
+            if (!string.IsNullOrEmpty(_searchText))
+            {
+                _searchResults = await MetadataBrokerService.SearchCatalogEnglish(newValue);
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+    }
+}
