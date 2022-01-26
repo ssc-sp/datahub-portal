@@ -18,12 +18,17 @@ namespace Datahub.Core
 
         }
 
-        public static void ConfigureModule<T>(this IApplicationBuilder builder) where T : IDatahubModule
+        public static void ConfigureModule(this IApplicationBuilder builder, Type type)
         {
-            var module = (T) Activator.CreateInstance(typeof(T));
+            var module = (IDatahubModule)Activator.CreateInstance(type);
             var settings = builder.ApplicationServices.GetService(typeof(IConfiguration)) as IConfiguration;
             var context = new DatahubModuleContext(builder.ApplicationServices);
             module.InitializeDatabases(context, settings);
+        }
+
+        public static void ConfigureModule<T>(this IApplicationBuilder builder) where T : IDatahubModule
+        {
+            builder.ConfigureModule(typeof(T));
         }
     }
 }

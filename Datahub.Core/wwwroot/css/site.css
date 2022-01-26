@@ -1774,6 +1774,13 @@ body {
   flex-direction: row;
   grid-column: span 2;
 }
+.ae.modelform .ae.modelform-rows.top-label .ae.modelform-row .ae.modelform-col.checkbox-on-the-left {
+  grid-template-columns: 30px 1fr;
+}
+.ae.modelform .ae.modelform-rows.top-label .ae.modelform-row .ae.modelform-col.checkbox-on-the-left .ae.ae-form-control-label {
+  grid-column-start: 2;
+  grid-row-start: 1;
+}
 .ae.modelform .ae.modelform-rows.top-label .ae.modelform-row .ae.modelform-col .errortext {
   grid-column: 1;
 }
@@ -2958,6 +2965,10 @@ body {
 }
 .ae.typography.danger {
   color: #e53e3e;
+}
+
+code {
+  background-color: #e2e8f0;
 }
 
 .custom.light.ae.table .ae.table-header {
