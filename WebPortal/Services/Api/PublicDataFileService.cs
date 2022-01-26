@@ -171,7 +171,7 @@ namespace Datahub.Portal.Services
             }
             else
             {
-                return await _apiService.DownloadFile(fileMetadata);
+                return await _apiService.DownloadFile(fileMetadata, null);
             }
         }
 

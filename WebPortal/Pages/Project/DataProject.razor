@@ -16,8 +16,11 @@
 @inject ServiceAuthManager ServiceAuthManager
 @inject IMSGraphService MSGraphService
 @inject ISystemNotificationService SystemNotificationService
+@inject IConfiguration configuration
 
 @page "/project/{projectAcronym}"
+
+<DHPageTitle PageTitleKey=@_project.ProjectName/>
 
 <div style="padding-left: 2rem;padding-right: 2rem">
     @if (_project is null)
@@ -85,7 +88,7 @@
                     </div>
                 </Header>
                 <ChildContent>
-                    @if (_databricksAuthorized && !string.IsNullOrWhiteSpace(_project.Databricks_URL))
+                    @if (!string.IsNullOrWhiteSpace(_project.Databricks_URL))
                     {
                         <DHLink Variant="h3" DataProject="@projectAcronym" DatabricksURL="@_project.Databricks_URL">Azure Databricks</DHLink>
                     }
@@ -135,7 +138,7 @@
                     </div>
                 </Header>
                 <ChildContent>
-                    @if (_powerBIAuthorized && !string.IsNullOrWhiteSpace(_project.PowerBI_URL))
+                    @if (!string.IsNullOrWhiteSpace(_project.PowerBI_URL))
                     {
                         <DHLink Variant="h3" DataProject="@projectAcronym" LinkType="DatahubLinkType.PowerBIReport">PowerBI</DHLink>
                     }
@@ -185,18 +188,25 @@
                         </div>
                     </Header>
                     <ChildContent>
-                        @if (!string.IsNullOrWhiteSpace(_project.WebForms_URL) && _webFormsAuthorized)
+                        @if (!_userAccessLoaded)
                         {
-                            <DHLink Variant="h3" DataProject="@projectAcronym" WebFormsURL="@_project.WebForms_URL">@DataLocalizer["Data Entry"]</DHLink>
+                             <Spinner Small="true" />
                         }
                         else
                         {
-                            <AeTypography Variant="h3">@DataLocalizer["Data Entry"]</AeTypography>
+                            @if (!string.IsNullOrWhiteSpace(_project.WebForms_URL) && _webFormsAuthorized)
+                            {
+                                <DHLink Variant="h3" DataProject="@projectAcronym" WebFormsURL="@_project.WebForms_URL">@DataLocalizer["Data Entry"]</DHLink>
+                            }
+                            else
+                            {
+                                <AeTypography Variant="h3">@DataLocalizer["Data Entry"]</AeTypography>
+                            }
                         }
                         <AeTypography>@DataLocalizer["Start the Data Entry application enabled for this project"]</AeTypography>
                     </ChildContent>
                     <Footer>
-                        @if (!_webFormsAuthorized)
+                        @if (!_webFormsAuthorized & _userAccessLoaded)
                         {
                             @if (_webFormsRequested)
                             {
@@ -208,6 +218,7 @@
                                 <AeButton @onclick="@(async () => await RequestAccess(false, false, true))">@DataLocalizer["Request Access"]</AeButton>
                             }
                         }
+                        
                     </Footer>
                 </AeCard>
             }
@@ -448,6 +459,7 @@
     private List<Datahub_ProjectServiceRequests> _serviceRequests = new List<Datahub_ProjectServiceRequests>();
 
     private Microsoft.Graph.User _user;
+    private string _userId;
 
     private bool _databricksRequested = false;
     private bool _powerBIRequested = false;
@@ -456,6 +468,7 @@
     private bool _powerBIAuthorized = false;
     private bool _webFormsAuthorized = false;
     private bool _projectRequested = false;
+    private bool _userAccessLoaded = false;
 
     private List<ETL_CONTROL_TBL> _pipelineStatus = new List<ETL_CONTROL_TBL>();
 
@@ -475,55 +488,55 @@
     {
         projectContext = DbFactoryProject.CreateDbContext();
         etlContext = DbFactoryEtl.CreateDbContext();
+        _userId = await UserInformationService.GetUserIdString();
         _user = await UserInformationService.GetUserAsync();
         await RefreshComponents(false);
 
-        var projectUsers = await projectContext.Project_Users.Where(u => u.User_ID == _user.Id && _project == u.Project).ToListAsync();
+        var projectUsers = await projectContext.Project_Users.Where(u => u.User_ID == _userId && _project == u.Project).ToListAsync();
         if (projectUsers != null && projectUsers.Count > 0)
         {
             _isDataApprover = projectUsers.Any(u => u.IsDataApprover);
         }
 
         _admins = await ServiceAuthManager.GetAdminUserString(projectAcronym);
-        await GetUserList();
-
-
-
-
+        await LoadUserList();
 
         _sharingRequestAwaitingApprovalCount = await PublicDataFileService.GetDataSharingRequestsAwaitingApprovalCount(projectAcronym);
-        _ownSharingRequestCount = await PublicDataFileService.GetUsersOwnDataSharingRequestsCount(projectAcronym, _user.Id);
+        _ownSharingRequestCount = await PublicDataFileService.GetUsersOwnDataSharingRequestsCount(projectAcronym, _userId);
 
         var allPipelines = _project.Pipelines?.Select(p => p.Process_Nm).ToList();
-        if (allPipelines != null)
+        if (allPipelines != null && allPipelines.Count > 0)
         {
             _pipelineStatus = await etlContext.ETL_CONTROL_TBL.Where(t => allPipelines.Contains(t.PROCESS_NM)).ToListAsync();
             _pipelineStatus = _pipelineStatus.Where(t => t.STATUS_FLAG != "T").GroupBy(t => t.PROCESS_NM).Select(gp => gp.OrderByDescending(g => g.END_TS).First()).OrderBy(s => s.PROCESS_NM).ToList();
         }
 
-        if (_user != null)
+        if (_userId != null)
         {
-            var userRequests = _project.Requests?.Where(r => r.User_ID == _user.Id && r.Completion_DT is null).ToList();
+            var userRequests = _project.Requests?.Where(r => r.User_ID == _userId && r.Completion_DT is null).ToList();
             if (userRequests != null)
             {
                 _databricksRequested = userRequests.Any(r => r.Databricks);
                 _powerBIRequested = userRequests.Any(r => r.PowerBI);
                 _webFormsRequested = userRequests.Any(r => r.WebForms);
             }
-            var userAccess = _project.Requests?.Where(r => r.User_ID == _user.Id && r.Completion_DT != null).ToList();
+            var userAccess = _project.Requests?.Where(r => r.User_ID == _userId && r.Completion_DT != null).ToList();
             if (userAccess != null)
             {
                 _databricksAuthorized = userAccess.Any(r => r.Databricks);
                 _powerBIAuthorized = userAccess.Any(r => r.PowerBI);
                 _webFormsAuthorized = userAccess.Any(r => r.WebForms);
             }
-        }
 
+        }
         _projectCostFormatted = await GetProjectCostFormatted();
 
     }
-
-    private async Task GetUserList()
+    protected override void OnAfterRender(bool firstRender)
+    {
+        _userAccessLoaded = true;
+    }
+    private async Task LoadUserList()
     {
         var userList = projectContext.Project_Users.Where(u => !u.IsAdmin && _project == u.Project).ToList();
         StringBuilder sbUsers = new();
@@ -575,7 +588,7 @@
     {
         var request = new Datahub_Project_User_Request()
         {
-            User_ID = _user.Id,
+            User_ID = _userId,
             Project = _project,
             Requested_DT = DateTime.Now
         };
@@ -598,7 +611,7 @@
         {
             Request_DT = DateTime.Now,
             User_Name = _user.UserPrincipalName,
-            User_ID = _user.Id,
+            User_ID = _userId,
             Project = _project,
             PowerBI = powerbi,
             WebForms = webforms,
@@ -627,7 +640,7 @@
             ServiceRequests_Date_DT = DateTime.Now,
             Is_Completed = null,
             Project = _project,
-            User_ID = _user.Id,
+            User_ID = _userId,
             User_Name = _user.UserPrincipalName
         };
 
