@@ -20,6 +20,7 @@ namespace Datahub.Metadata.Model
         public DbSet<MetadataProfile> Profiles { get; set; }
         public DbSet<MetadataSection> Sections { get; set; }
         public DbSet<SectionField> SectionFields { get; set; }
+        public DbSet<CatalogObject> CatalogObjects { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -195,6 +196,19 @@ namespace Datahub.Metadata.Model
 
                 entity.HasOne(e => e.FieldDefinition)
                       .WithMany(e => e.SectionFields);
+            });
+
+            modelBuilder.Entity<CatalogObject>(entity =>
+            {
+                entity.ToTable("CatalogObjects");
+
+                entity.HasKey(e => e.CatalogObjectId);
+                entity.Property(e => e.CatalogObjectId).ValueGeneratedOnAdd();
+
+                entity.HasOne(e => e.ObjectMetadata)
+                      .WithMany(e => e.CatalogObjects);
+
+                entity.Property(e => e.Name_TXT).IsRequired();
             });
         }
     }

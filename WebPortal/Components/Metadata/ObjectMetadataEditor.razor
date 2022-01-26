@@ -2,6 +2,7 @@
 @using Datahub.Metadata.Model
 @using Datahub.Metadata.DTO
 @using Datahub.Metadata.Utils;
+@using System.Text
 
 <div style="width: 100%">
 @if (_fieldValues != null)
@@ -51,6 +52,12 @@
     [Parameter]
     public string ObjectId { get; set; }
 
+    /// <summary>
+    /// Object name if available
+    /// </summary>
+    [Parameter]
+    public string Name { get; set; }
+
     [Parameter]
     public string ProfileName { get; set; } = "opendata";
 
@@ -64,12 +71,15 @@
     public bool Preview { get; set; }
 
     [Parameter]
+    public bool UpdateCatalog { get; set; }
+
+    [Parameter]
     public EventCallback<FieldValueContainer> OnSave{ get; set; }
 
+    private FieldValueContainer _fieldValues;
     private FieldDefinitions _definitions;
     private MetadataProfile _profile;
 
-    private FieldValueContainer _fieldValues;
     private bool _showAll;
     private bool _savingData;
     private bool _disableSave = true;
@@ -114,12 +124,60 @@
         _savingData = true;
         try
         {
-            await MetadataBrokerService.SaveMetadata(_fieldValues);
+            SetObjectName();
+            var objectMetadata = await MetadataBrokerService.SaveMetadata(_fieldValues);
+            if (UpdateCatalog)
+            {
+                await UpdateObjectCatalog(objectMetadata.MetadataVersionId);
+            }
             await OnSave.InvokeAsync(_fieldValues);
         }
         finally
         {
             _savingData = false;
+        }
+    }
+
+    private async Task UpdateObjectCatalog(long objectMetadataId)
+    {
+        var subjects = _fieldValues.GetSelectedChoices("subject").ToList();
+
+        var sector = _fieldValues.GetSelectedChoices("sector").FirstOrDefault();
+        var branch = _fieldValues.GetSelectedChoices("branch").FirstOrDefault();
+
+        var objectName = _fieldValues.GetValue("name");
+
+        var englishKeywords = _fieldValues.GetValue("keywords_en").Split(',').ToList();
+        var frenchKeywords = _fieldValues.GetValue("keywords_fr").Split(',').ToList();
+
+        var englishCatalog = GetCatalogText(subjects.Select(s => s.Label_English_TXT), 
+            sector?.Label_English_TXT, branch?.Label_English_TXT, objectName, englishKeywords);
+
+        var frenchCatalog = GetCatalogText(subjects.Select(s => s.Label_French_TXT), 
+            sector?.Label_French_TXT, branch?.Label_French_TXT, objectName, frenchKeywords);
+
+        await MetadataBrokerService.UpdateCatalog(objectMetadataId, objectName, englishCatalog, frenchCatalog);
+    }
+
+    private string GetCatalogText(IEnumerable<string> subjects, string sector, string branch, string objectName, IEnumerable<string> keywords)
+    {
+        return new StringBuilder()
+          .AppendJoin(' ', keywords)
+          .Append(' ') 
+          .AppendJoin(' ', subjects)
+          .Append(' ') 
+          .Append($"{sector} {branch} {objectName}")
+          .ToString()
+          .ToLower();
+    }
+
+    private string GetFieldValue(string name, string defaultValue = "") => _fieldValues[name]?.Value_TXT ?? defaultValue;
+
+    private void SetObjectName()
+    {
+        if (Name is not null)
+        {
+            _fieldValues.SetValue("name", Name);
         }
     }
 

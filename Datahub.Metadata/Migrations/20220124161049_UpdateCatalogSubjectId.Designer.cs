@@ -4,6 +4,7 @@ using Datahub.Metadata.Model;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Datahub.Metadata.Migrations
 {
     [DbContext(typeof(MetadataDbContext))]
-    partial class MetadataDbContextModelSnapshot : ModelSnapshot
+    [Migration("20220124161049_UpdateCatalogSubjectId")]
+    partial class UpdateCatalogSubjectId
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -124,6 +126,27 @@ namespace Datahub.Metadata.Migrations
                     b.ToTable("ApprovalForms", (string)null);
                 });
 
+            modelBuilder.Entity("Datahub.Metadata.Model.CatalogKeyword", b =>
+                {
+                    b.Property<int>("CatalogKeywordId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CatalogKeywordId"), 1L, 1);
+
+                    b.Property<string>("Keyword_TXT")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.HasKey("CatalogKeywordId");
+
+                    b.HasIndex("Keyword_TXT")
+                        .IsUnique();
+
+                    b.ToTable("CatalogKeywords", (string)null);
+                });
+
             modelBuilder.Entity("Datahub.Metadata.Model.CatalogObject", b =>
                 {
                     b.Property<long>("CatalogObjectId")
@@ -132,18 +155,30 @@ namespace Datahub.Metadata.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("CatalogObjectId"), 1L, 1);
 
+                    b.Property<int>("BranchId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Keywords_English_TXT")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("Keywords_French_TXT")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
                     b.Property<string>("Name_TXT")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
 
                     b.Property<long>("ObjectMetadataId")
                         .HasColumnType("bigint");
 
-                    b.Property<string>("Search_English_TXT")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("SectorId")
+                        .HasColumnType("int");
 
-                    b.Property<string>("Search_French_TXT")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("SubjectId")
+                        .HasColumnType("int");
 
                     b.HasKey("CatalogObjectId");
 
