@@ -39,18 +39,6 @@ namespace Datahub.Core.Services
             _targets = targets;
         }
 
-        private string getEnvSuffix()
-        {
-            var envName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-            envName = (envName != null ? envName.ToLower() : "dev");
-            if (envName.Equals("development"))
-            {
-                envName = "dev";
-            }
-
-            return envName;
-        }
-
         public async Task<string> GetSecret(string secretName)
         {
             try
@@ -66,9 +54,9 @@ namespace Datahub.Core.Services
             }
             catch (Exception e)
             {
-                Console.WriteLine($"Could not retrieve secret: {secretName}");
                 _logger.LogError($"Could not retrieve secret: {secretName}");
                 _logger.LogError($"The following error occured: {e.Message}");
+                _logger.LogError(e,$"Could not retrieve secret: {secretName}");
                 throw;
             }
         }
