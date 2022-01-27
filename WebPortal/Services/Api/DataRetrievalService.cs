@@ -27,6 +27,7 @@ namespace Datahub.Portal.Services
 {
     public class DataRetrievalService : BaseService, IDataRetrievalService
     {
+        private const string METADATA_FILEID = "fileid";
         private ILogger<DataRetrievalService> _logger;
         private IHttpClientFactory _httpClient;
         private IUserInformationService _userInformationService;
@@ -126,7 +127,14 @@ namespace Datahub.Portal.Services
                     {
                         
                         Console.WriteLine("Blob name: {0}", blobItem.Name);
-                        string fileId = blobItem.Metadata.TryGetValue("fileid", out fileId) ? fileId : "External";
+                        //string fileId = blobItem.Metadata.TryGetValue("fileid", out fileId) ? fileId : "External";
+                        string? fileId = null;
+                        if (!blobItem.Metadata.TryGetValue(METADATA_FILEID, out fileId))
+                        {
+                            var newId = Guid.NewGuid().ToString();
+                            blobItem.Metadata.Add(METADATA_FILEID, newId);                              
+                            fileId = newId;                             
+                        }
                         string ownedby = blobItem.Metadata.TryGetValue("ownedby", out ownedby) ? ownedby : "Unknown";
                         string createdby = blobItem.Metadata.TryGetValue("createdby", out createdby) ? createdby : "Unknown";
                         string lastmodifiedby = blobItem.Metadata.TryGetValue("lastmodifiedby", out lastmodifiedby) ? lastmodifiedby : "lastmodifiedby";
@@ -156,9 +164,9 @@ namespace Datahub.Portal.Services
         }
 
 
-        public async Task<Uri> DownloadFile(FileMetaData file)
+        public async Task<Uri> DownloadFile(FileMetaData file, string project = null)
         {
-            return await _apiService.DownloadFile(file, null);
+            return await _apiService.DownloadFile(file, project?.ToLowerInvariant());
         }
 
         public Task<List<Core.Data.Version>> GetFileVersions(string fileId)
