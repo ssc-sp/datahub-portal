@@ -3,6 +3,8 @@
 @inject IDbContextFactory<DatahubProjectDBContext> DbFactoryProject
 @inject IApiService ApiService
 
+<DHPageTitle PageTitleKey=@(_project.ProjectName + " " + Localizer["Storage Explorer"])/>
+
 <div style="padding-left: 2rem;padding-right: 2rem;padding-bottom: 2rem">
     <AeFlex Vertical>
         <AeTypography Variant="h2">@Localizer["Storage Explorer"]</AeTypography>
