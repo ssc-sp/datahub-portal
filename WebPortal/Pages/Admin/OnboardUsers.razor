@@ -9,7 +9,7 @@
 @inject IDbContextFactory<DatahubProjectDBContext> DbFactory
 @inject IUserInformationService UserInformationService
 @inject IDatahubAuditingService AuditingService
-
+@inject ServiceAuthManager ServiceAuthManager
 
 <div class="manage-access">
     <AeFlex Vertical>
@@ -152,6 +152,7 @@
             _chosenUsers.Clear();        
             _chosenUsers = Context.Project_Users.Where(p => p.Project == _project).ToList();
         }
+        ServiceAuthManager.InvalidateAuthCache();
         StateHasChanged();
     }
 

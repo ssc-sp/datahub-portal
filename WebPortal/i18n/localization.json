@@ -704,6 +704,7 @@
   "Team_Owner_s_": "Team Owner(s)",
   "Information_and_Data_Security_Classification": "Information and Data Security Classification - *NOTE* Protected A and B requests will not be finalized until IM security labeling is implemented",
   "Visibility": "Visibility - *NOTE*: Protected B must be Private",
+  "VisibilityNoNote": "Visibility",
   "Team_Owner1": "Team Owner #1",
   "Team_Owner2": "Team Owner #2",
   "Team_Owner3": "Team Owner #3",

@@ -55,7 +55,7 @@ namespace Datahub.Portal.Data
 
         [Required]
         [AeFormCategory("Security", 30)]
-        [AeLabel(placeholder: "Select an appropriate data security sensitivity applicable to ALL files, meetings and conversations within this team: Security and Information Classification Guide – a handy reference tool to assist you in categorizing and safeguarding information.", validValues: new[] { "Protected A", "Protected B", "Unclassified" })]
+        [AeLabel(placeholder: "Select an appropriate data security sensitivity applicable to ALL files, meetings and conversations within this team: Security and Information Classification Guide – a handy reference tool to assist you in categorizing and safeguarding information.", validValues: new[] { "Unclassified", "Protected A", "Protected B" })]
         public string? Information_and_Data_Security_Classification { get; set; }
 
         [Required]
@@ -100,6 +100,9 @@ namespace Datahub.Portal.Data
         [AeFormCategory("Application Status", 90)]
         [AeLabel(isDropDown: true, placeholder: "Select status of application:", validValues: new[] { "Team Requested", "Submitted to Assyst", "Team Created" })]
         public string? M365FormStatus { get; set; }
+
+        [AeFormCategory("Application Status", 90)]
+        public string? Comments { get; set; }
 
         [AeFormIgnore]
         public string? SubmittedBy { get; set; }
