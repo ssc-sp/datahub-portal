@@ -1,55 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Datahub.Core.Data.StorageCostEstimator
+namespace Datahub.Core.Data.CostEstimator
 {
     public record class EstimatorResultLine(int NumberOfOperations, decimal Cost);
-    public class EstimatorResult
-    {
-        public EstimatorResultLine WriteOperations { get; set; }
-        public EstimatorResultLine ListCreateOperations { get; set; }
-        public EstimatorResultLine ReadOperations { get; set; }
-        public EstimatorResultLine OtherOperations { get; set; }
-        public EstimatorResultLine DataRetrieval { get; set; }
-        public EstimatorResultLine DataWrite { get; set; }
-        public EstimatorResultLine GeoReplication { get; set; }
-
-        private decimal Cost(EstimatorResultLine l) => l?.Cost ?? 0.0000M;
-        public bool HasValues => (WriteOperations ?? ListCreateOperations ?? ReadOperations ?? OtherOperations ?? DataRetrieval ?? DataWrite ?? GeoReplication) != null;
-        public decimal TotalCost => Cost(WriteOperations) + Cost(ListCreateOperations) + Cost(ReadOperations) +
-            Cost(OtherOperations) + Cost(DataRetrieval) + Cost(DataWrite) + Cost(GeoReplication);
-    }
-
+    public record class EstimatorResultLineDecimal(decimal NumberOfOperations, decimal Cost);
+    
     public record class UnitPrice(decimal BasePrice, int Units);
     
-    public class EstimatorPriceList
-    {
-        public UnitPrice Capacity { get; set; }
-        public UnitPrice WriteOperations { get; set; }
-        public UnitPrice ListCreateOperations { get; set; }
-        public UnitPrice ReadOperations { get; set; }
-        public UnitPrice ArchiveHPRead { get; set; }
-        public UnitPrice DataRetrieval { get; set; }
-        public UnitPrice DataWrite { get; set; }
-        public UnitPrice OtherOperations { get; set; }
-        public UnitPrice GeoReplication { get; set; }
-    }
-
-
-    public enum AccessTierType
-    {
-        Hot,
-        Cool,
-        Archive
-    }
-
-    public enum DataRedundancyType
-    {
-        LRS,
-        ZRS,
-        GRS
-    }
-
     public class AzurePriceAPIItem
     {
         public string MeterId { get; set; }
@@ -96,13 +54,6 @@ namespace Datahub.Core.Data.StorageCostEstimator
         {
             Items = items;
         }
-    }
-
-    public class SavedStorageCostPriceGrid
-    {
-        public DateTime LastUpdatedUtc { get; set; }
-        
-        public Dictionary<string, EstimatorPriceList> PriceLists { get; set; }
     }
 
 }

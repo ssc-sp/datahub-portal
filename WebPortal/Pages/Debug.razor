@@ -1,0 +1,55 @@
+﻿@using System.Security.Claims;
+@inject IUserInformationService UserInformationService
+@inject IApiService ApiService
+@inject IDataCreatorService DataCreatorService
+@inject UIControlsService UI
+@inject NavigationManager NavigationManager
+
+@page "/debug"
+
+@if (!isLoaded)
+{
+    <Spinner />
+}
+else
+{
+    <AeTypography Variant="h1">Debug</AeTypography>
+    <AeTypography Variant="h2">User Information</AeTypography>
+    <div>User ID: @userId</div>
+    <div>Object ID: @oid</div>
+    <div>User Name: @userName</div>
+    <AeTypography Variant="h2">List of roles</AeTypography>
+    @foreach (var role in roles)
+    {
+        <div>Role: @role.Value</div>
+    }   
+
+}
+
+@code
+{
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+
+    public bool isLoaded { get; set; }
+
+    private string userId;
+    private string oid;
+    private string userName;
+
+    private List<Claim> roles;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var user = (await authenticationStateTask).User;
+        userName = user.Identity.Name;
+        userId = user.Claims.FirstOrDefault(c => c.Type == "uid")?.Value;
+        oid = await UserInformationService.GetUserIdString();
+        var userIdentity = (ClaimsIdentity)user.Identity;
+        var claims = userIdentity.Claims;
+        var roleClaimType = userIdentity.RoleClaimType;
+        roles = claims.Where(c => c.Type == roleClaimType).ToList();
+        //roles = claims.Where(c => c.Type == ClaimTypes.Role).ToList();
+        isLoaded = true;
+    }
+}
