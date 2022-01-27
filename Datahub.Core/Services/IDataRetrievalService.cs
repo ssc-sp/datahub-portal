@@ -7,7 +7,7 @@ namespace Datahub.Core.Services
 {
     public interface IDataRetrievalService
     {
-        Task<System.Uri> DownloadFile(FileMetaData file);
+        Task<System.Uri> DownloadFile(FileMetaData file, string project = null);
         Task<List<string>> GetAllFolders(string rootFolderName, User user);
         Task<List<Version>> GetFileVersions(string fileId);
         Task<Data.Folder> GetFolderContents(Data.Folder folder, string filterSearch, User user, string project);
