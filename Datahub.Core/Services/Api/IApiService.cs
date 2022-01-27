@@ -27,10 +27,9 @@ namespace Datahub.Core.Services
         Task<bool> DoesFolderExist(string folderName);
         Task RestoreVersionOfBlob(string fileid, string versionId);
         Task<Folder> SearchIndex(dynamic folder, string filter, Microsoft.Graph.User user);
-        Task<Uri> DownloadFile(FileMetaData file);
-        Task UploadGen2File(FileMetaData fileMetadata);
-        string ProjectUploadCode { get; set; }
+        Task<Uri> DownloadFile(FileMetaData file, string? projectUploadCode);
+        Task UploadGen2File(FileMetaData fileMetadata, string? projectUploadCode);
 
-        Task<Uri> GetUserDelegationSasBlob(FileMetaData file, string project = null);
+        Task<Uri> GetUserDelegationSasBlob(FileMetaData? file, string projectUploadCode, int daysValidity = 1);
     }    
 }
