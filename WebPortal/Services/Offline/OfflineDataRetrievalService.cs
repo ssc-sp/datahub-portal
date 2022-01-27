@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.Graph;
 using Datahub.Core.Data;
 using Datahub.Core.Services;
+using System;
 
 namespace Datahub.Portal.Services.Offline
 {
@@ -12,7 +13,7 @@ namespace Datahub.Portal.Services.Offline
         {
         }
 
-        public Task<System.Uri> DownloadFile(FileMetaData file)
+        public Task<Uri> DownloadFile(FileMetaData file, string project = null)
         {
             return Task.FromResult(new System.Uri("anyfile"));
         }
