@@ -1,4 +1,5 @@
 ﻿@page "/m365form/applications"
+@page "/m365form/applications/{AppId}"
 @inject IStringLocalizer Localizer
 @inject IEmailNotificationService EmailService
 @implements IDisposable
@@ -43,6 +44,9 @@
     [Parameter]
     [SupplyParameterFromQuery]
     public bool New { get; set; }
+    [Parameter]
+    public string AppId { get; set; }
+
 
     private const string PROJECTACRONYM = "M365FORM";
     private FormMetadata<M365FormsApplication> _formMetadata;
@@ -56,6 +60,7 @@
     private bool _isLoaded;
     private bool _isUserAdmin;
     private bool _isFrench;
+    private string _currentFilter;
 
     private string Localize(string input) => input == null ? null : Localizer[input];
 
@@ -72,9 +77,8 @@
         AccessorFunctions = new List<Func<M365FormsApplication, string>>
         {
             p => { return Localizer[p.Name_of_Team]; },
-            p => { return Localizer[p.Description_of_Team ?? string.Empty]; },
-            p => { return p.Business_Owner; },
-            p => { return p.Information_and_Data_Security_Classification; },
+            p => { return Localizer[p.Description_of_Team ?? string.Empty]; },            
+            p => { return p.Visibility; },
             p => { return p.Team_Owner1; },
             p => { return p.Team_Owner2; },
             p => { return p.Team_Owner3; },
@@ -83,16 +87,15 @@
 
 
         var footerfile = _isFrench ? "FormFooterFr.md" : "FormFooter.md";
-        var headerfile = "FormIntro.md";
         LoadApps(string.Empty);
         _formMetadata.Header = Localizer["M365 Team Request Form"];
-        _formMetadata.TableRoles = RoleConstants.DATAHUB_ROLE_ADMIN;
+        _formMetadata.TableRoles = $"default";
         _formMetadata.DataSet = _m365FormsApplications;
         _formMetadata.AccessorFunctions = AccessorFunctions;
         _formMetadata.Headers = headers;
-        _formMetadata.GridTemplateColumns = "3fr 5fr 3fr 3fr 3fr 3fr 3fr 3fr";
+        _formMetadata.GridTemplateColumns = "3fr 6fr 3fr 2fr 2fr 2fr 5fr";
         _formMetadata.IsSubmitEnabled = true;
-        _formMetadata.MarkDownContent = File.ReadAllLines($@"Pages\Forms\M365Forms\{headerfile}").ToList();
+        _formMetadata.MarkDownContent = new List<string>();
         _formMetadata.MarkDownContentFooter = File.ReadAllLines($@"Pages\Forms\M365Forms\{footerfile}").ToList();
         var filters = new List<(Delegate Label, Delegate Choices)>() { (() => "Status", () => new List<string> { "All", "Team Requested", "Submitted to Assyst", "Team Created" }) };
         _formMetadata.FilterProperties = filters;
@@ -108,9 +111,8 @@
     private List<string> headers => new List<string>
     {
         Localizer["Name_of_Team"], 
-        Localizer["Description_of_Team"], 
-        Localizer["Business_Owner"],
-        Localizer["Sec. Classification"],
+        Localizer["Description_of_Team"],         
+        Localizer["VisibilityNoNote"],
         Localizer["Owner 1"],
         Localizer["Owner 2"],
         Localizer["Owner 3"],
@@ -119,6 +121,7 @@
 
     private async void HandleFilterChange(string selection)
     {
+        _currentFilter = selection;
         await LoadApps(selection);
         StateHasChanged();
     }
@@ -141,6 +144,15 @@
         {
             _formMetadata.DataSet = _m365FormsApplications.Where(r => r.M365FormStatus == filter).ToList();
         }
+
+        if (!string.IsNullOrEmpty(AppId))
+        {
+            m365FormApplication = Context.M365FormsApplications.Where(a => a.Application_ID == Convert.ToInt32(AppId)).FirstOrDefault();
+            if (m365FormApplication != null && !_isUserAdmin)
+            {
+                m365FormApplication = null;
+            }
+        }
     }
 
 
@@ -160,24 +172,28 @@
                 m365FormApplication.M365FormStatus = "Team Requested";
             }
 
+            await Context.TrackSaveChangesAsync(AuditingService);
+
             M365FormsParameters m365FormsParameters = new() {
+                    AppId = m365FormApplication.Application_ID,
                     TeamName = m365FormApplication.Name_of_Team,
                     BusinessOwner = m365FormApplication.Business_Owner,
                     SubmitterEmaill = _user.Mail,
+                    AppUrl = $"/m365form/applications/{m365FormApplication.Application_ID}",
                     AdminEmailAddresses =  ServiceAuthManager.GetProjectAdminsEmails(PROJECTACRONYM)
             };
 
-            await EmailService.SendM365FormsConfirmations(m365FormsParameters);
-            //_onboardingApplication.NotificationsSent = true;
 
-            await Context.TrackSaveChangesAsync(AuditingService);
+            await EmailService.SendM365FormsConfirmations(m365FormsParameters);
+
+            await LoadApps(_currentFilter);
 
             m365FormApplication = null;
             StateHasChanged();
         }
     }
 
-    
+
     private void OnConfigure(IModelFormContext context)
     {
         if (!_onchange)
@@ -192,6 +208,7 @@
         context.SetVisible<M365FormsApplication>(p => p.Other_Txt, m365FormApplication.Other);
         context.SetVisible<M365FormsApplication>(p => p.Expected_Lifespan_DT, !m365FormApplication.Ongoing_Lifespan);
         context.SetVisible<M365FormsApplication>(p => p.M365FormStatus, _isUserAdmin);
+        context.SetVisible<M365FormsApplication>(p => p.Comments, _isUserAdmin);
         _onchange = false;
     }
 

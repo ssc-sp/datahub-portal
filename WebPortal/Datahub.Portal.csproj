@@ -104,9 +104,6 @@
     <None Update="Pages\Forms\M365Forms\FormFooterFr.md">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Pages\Forms\M365Forms\FormIntro.md">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 
 </Project>
