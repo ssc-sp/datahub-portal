@@ -20,7 +20,7 @@
 
 @page "/project/{projectAcronym}"
 
-<PageTitle>@Localizer[configuration["Title"]] - @_project.ProjectName</PageTitle>
+<DHPageTitle PageTitleKey=@_project.ProjectName/>
 
 <div style="padding-left: 2rem;padding-right: 2rem">
     @if (_project is null)
@@ -188,18 +188,25 @@
                         </div>
                     </Header>
                     <ChildContent>
-                        @if (!string.IsNullOrWhiteSpace(_project.WebForms_URL) && _webFormsAuthorized)
+                        @if (!_userAccessLoaded)
                         {
-                            <DHLink Variant="h3" DataProject="@projectAcronym" WebFormsURL="@_project.WebForms_URL">@DataLocalizer["Data Entry"]</DHLink>
+                             <Spinner Small="true" />
                         }
                         else
                         {
-                            <AeTypography Variant="h3">@DataLocalizer["Data Entry"]</AeTypography>
+                            @if (!string.IsNullOrWhiteSpace(_project.WebForms_URL) && _webFormsAuthorized)
+                            {
+                                <DHLink Variant="h3" DataProject="@projectAcronym" WebFormsURL="@_project.WebForms_URL">@DataLocalizer["Data Entry"]</DHLink>
+                            }
+                            else
+                            {
+                                <AeTypography Variant="h3">@DataLocalizer["Data Entry"]</AeTypography>
+                            }
                         }
                         <AeTypography>@DataLocalizer["Start the Data Entry application enabled for this project"]</AeTypography>
                     </ChildContent>
                     <Footer>
-                        @if (!_webFormsAuthorized)
+                        @if (!_webFormsAuthorized & _userAccessLoaded)
                         {
                             @if (_webFormsRequested)
                             {
@@ -211,6 +218,7 @@
                                 <AeButton @onclick="@(async () => await RequestAccess(false, false, true))">@DataLocalizer["Request Access"]</AeButton>
                             }
                         }
+                        
                     </Footer>
                 </AeCard>
             }
@@ -460,6 +468,7 @@
     private bool _powerBIAuthorized = false;
     private bool _webFormsAuthorized = false;
     private bool _projectRequested = false;
+    private bool _userAccessLoaded = false;
 
     private List<ETL_CONTROL_TBL> _pipelineStatus = new List<ETL_CONTROL_TBL>();
 
@@ -518,12 +527,15 @@
                 _powerBIAuthorized = userAccess.Any(r => r.PowerBI);
                 _webFormsAuthorized = userAccess.Any(r => r.WebForms);
             }
-        }
 
+        }
         _projectCostFormatted = await GetProjectCostFormatted();
 
     }
-
+    protected override void OnAfterRender(bool firstRender)
+    {
+        _userAccessLoaded = true;
+    }
     private async Task LoadUserList()
     {
         var userList = projectContext.Project_Users.Where(u => !u.IsAdmin && _project == u.Project).ToList();

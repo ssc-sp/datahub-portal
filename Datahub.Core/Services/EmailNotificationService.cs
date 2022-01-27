@@ -473,6 +473,7 @@ namespace Datahub.Core.Services
 
         private Dictionary<string, object> BuildM365FormsParameters(M365FormsParameters parameters)
         {
+            parameters.AppUrl = BuildAppLink(parameters.AppUrl);
             var parametersDict = new Dictionary<string, object>()
             {
                 { "ApplicationParameters", parameters }
@@ -509,6 +510,8 @@ namespace Datahub.Core.Services
 
         private Dictionary<string, object> BuildOnboardingParameters(OnboardingParameters parameters)
         {
+
+            parameters.AppUrl = BuildAppLink(parameters.AppUrl);
             var parametersDict = new Dictionary<string, object>()
             {
                 { "ApplicationParameters", parameters }
@@ -660,7 +663,8 @@ namespace Datahub.Core.Services
 
     public class OnboardingParameters
     {
-        public OnboardingApp App;        
+        public OnboardingApp App;
+        public string AppUrl;
         public List<string> AdminEmailAddresses;
     }
 
@@ -669,6 +673,8 @@ namespace Datahub.Core.Services
         public string TeamName;
         public string BusinessOwner;
         public string SubmitterEmaill;
+        public int AppId;
+        public string AppUrl;
         public List<string> AdminEmailAddresses;
     }
 
