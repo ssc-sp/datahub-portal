@@ -132,8 +132,11 @@ namespace Datahub.Portal.Services
                         if (!blobItem.Metadata.TryGetValue(METADATA_FILEID, out fileId))
                         {
                             var newId = Guid.NewGuid().ToString();
-                            blobItem.Metadata.Add(METADATA_FILEID, newId);                              
-                            fileId = newId;                             
+                            blobItem.Metadata.Add(METADATA_FILEID, newId);
+                            var client = containerClient.GetBlobClient(blobItem.Name);
+                            await client.SetMetadataAsync(blobItem.Metadata);
+                            fileId = newId;
+                            
                         }
                         string ownedby = blobItem.Metadata.TryGetValue("ownedby", out ownedby) ? ownedby : "Unknown";
                         string createdby = blobItem.Metadata.TryGetValue("createdby", out createdby) ? createdby : "Unknown";
