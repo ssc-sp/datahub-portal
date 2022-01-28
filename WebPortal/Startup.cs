@@ -123,9 +123,14 @@ namespace Datahub.Portal
             //TimeZoneService provides the user time zone to the server using JS Interop
             services.AddScoped<TimeZoneService>();
             services.AddElemental();
-            services.AddModule<LanguageTrainingModule>(Configuration);
-            services.AddModule<FinanceModule>(Configuration);
-            services.AddModule<M365FormsModule>(Configuration);
+
+            var allModules = LoadModules(Configuration.GetValue<string>("DataHubModules", "*"));
+            foreach (var module in allModules)
+            {
+                Console.Write($"Configuring module {module.Name}");
+                services.AddModule(module,Configuration);
+            }
+
             // configure db contexts in this method
             ConfigureDbContexts(services);
 
