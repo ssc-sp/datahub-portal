@@ -6,7 +6,7 @@
     "datahub-mssql-finance": "",
     "datahub-mssql-webanalytics": "",
     "datahub-mssql-metadata": "",
-    "datahub-cosmosdb": ""  
+    "datahub-cosmosdb": ""
   },
   "AzureAd": {
     "Instance": "https://login.microsoftonline.com/",
@@ -68,9 +68,15 @@
     "OpenDataApprovalPdfBaseUrl": "",
     "OpenDataApprovalPdfFormIdParam": "rp:p_approval_form_id",
     "PublicFileSharingDomain": "https://localhost:44347"
-  },  
+  },
   "Azure:SignalR:StickyServerMode": "Required",
-  "AllowedHosts": "*"
+  "AllowedHosts": "*",
+  "PowerBI": {
+    "CatalogReport": {
+      "Report": "f2dc4fe1-05ad-45f5-a38d-fb07bcf3873b",
+      "Workspace": "6ca76417-b205-43c2-be1b-6aeeedcb84ae"
+    }
+  }
 }
 
 
