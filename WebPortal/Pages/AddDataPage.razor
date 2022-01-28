@@ -115,6 +115,9 @@
 @code
 {
     [Parameter]
+    public string? Project { get; set; }
+
+    [Parameter]
     public string DummyParam { get; set; }
 
     public bool isLoading { get; set; } = false;
@@ -283,7 +286,7 @@
                 //need cancellation token for this.
                 InvokeAsync(async () =>
                 {
-                    await ApiService.UploadGen2File(_fileMetadata, null);
+                    await ApiService.UploadGen2File(_fileMetadata, Project?.ToLowerInvariant());
                 });
                 // Return to grid view
                 NavigationManager.NavigateTo("data");
