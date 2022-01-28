@@ -43,7 +43,7 @@ steps:
         Write-Host "Processing file: ${file} > $fileRendered"
         Copy-Item $file.FullName -Force -Destination $fileRendered
       }
-      cd WebPortal; mv appsettings.Development.json appsettings.dev.json
+      cd WebPortal; mv appsettings.Development.json appsettings.dev.json; mv appsettings.json-tmpl-spdatahub appsettings.json
 - task: DotNetCoreCLI@2
   inputs:
     command: 'publish'
