@@ -38,7 +38,7 @@ steps:
     targetType: 'inline'
     script: |
       $files=Get-Childitem -Path WebPortal,DatahubIntakeForms,.vscode -Include  appsettings*json-tmpl,launch*json-tmpl -File -Recurse -ErrorAction SilentlyContinue  | Where {$_.FullName -notlike "*\Debug\*"}
-      foreach ($file in $files) {
+      foreach ($file in $files){
         $fileRendered=$file.FullName.trim("-tmpl")
         Write-Host "Processing file: ${file} > $fileRendered"
         Copy-Item $file.FullName -Force -Destination $fileRendered
@@ -54,9 +54,9 @@ steps:
 - task: AzureRmWebAppDeployment@4
   inputs:
     ConnectionType: 'AzureRM'
-    azureSubscription: 'datahub-dev-service-connection'
+    azureSubscription: 'AZRM - DataSolutions - sand-rg'
     appType: 'webApp'
-    WebAppName: 'dh-portal-app-dev'
+    WebAppName: 'spdatahub-portal-app-sand'
     package: '$(System.DefaultWorkingDirectory)/WebPortal/**/*.zip'
     enableCustomDeployment: true
     DeploymentType: 'webDeploy'
