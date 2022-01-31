@@ -79,6 +79,9 @@
     [Parameter]
     public string DummyParam { get; set; }
 
+    [Parameter]
+    public string Project { get; set; }
+
     public bool isLoading { get; set; } = false;
 
     private FileMetaData _fileMetadata;
@@ -271,7 +274,7 @@
 
                 _ = InvokeAsync(async () =>
                 {
-                    await ApiService.UploadGen2File(_fileMetadata,null);
+                    await ApiService.UploadGen2File(_fileMetadata, Project);
                     await NotifierService.Update("filegrid", true);
                     ResetControls();
                 }); 
