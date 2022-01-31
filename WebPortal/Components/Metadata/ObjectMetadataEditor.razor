@@ -59,6 +59,12 @@
     public string Name { get; set; }
 
     [Parameter]
+    public string Location { get; set; }
+
+    [Parameter]
+    public string SecurityClass { get; set; } = "Unclassified";
+
+    [Parameter]
     public string ProfileName { get; set; } = "opendata";
 
     [Parameter]
@@ -68,10 +74,13 @@
     public bool ValidateRequired { get; set; } = true;
 
     [Parameter]
-    public bool Preview { get; set; }
+    public MetadataObjectType ObjectType { get; set; } = MetadataObjectType.File;
 
     [Parameter]
     public bool UpdateCatalog { get; set; }
+
+    [Parameter]
+    public bool Preview { get; set; }
 
     [Parameter]
     public EventCallback<FieldValueContainer> OnSave{ get; set; }
@@ -79,6 +88,7 @@
     private FieldValueContainer _fieldValues;
     private FieldDefinitions _definitions;
     private MetadataProfile _profile;
+    private string _lastObjectId;
 
     private bool _showAll;
     private bool _savingData;
@@ -88,14 +98,38 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _fieldValues = await MetadataBrokerService.GetObjectMetadataValues(ObjectId);
+        await LoadFieldValues();
         _profile = await MetadataBrokerService.GetProfile(ProfileName);
+        _disableSave = !CheckRequiredFieldValues();
+        _requiredFieldIds = _profile.GetRequiredFieldSet();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var objectHasChanged = !string.IsNullOrEmpty(_lastObjectId) && _lastObjectId != ObjectId;
+        if (objectHasChanged)
+        {
+            await LoadFieldValues();
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task LoadFieldValues()
+    {
+        // the Object Id may come from an external source or from a know MetadataObject row
+        if (long.TryParse(ObjectId, out long metadataObjectId))
+        {
+            _fieldValues = await MetadataBrokerService.GetObjectMetadataValues(metadataObjectId);    
+        }
+        else
+        {
+            _fieldValues = await MetadataBrokerService.GetObjectMetadataValues(ObjectId);    
+        }
 
         _definitions = _fieldValues.Definitions;
-        _disableSave = !CheckRequiredFieldValues();
+        _lastObjectId = ObjectId;
 
-        _requiredFieldIds = _profile.GetRequiredFieldSet();
-
+        // set external choices
         await UpdateExternalFieldChoices();
     }
 
@@ -128,7 +162,7 @@
             var objectMetadata = await MetadataBrokerService.SaveMetadata(_fieldValues);
             if (UpdateCatalog)
             {
-                await UpdateObjectCatalog(objectMetadata.MetadataVersionId);
+                await UpdateObjectCatalog(objectMetadata.ObjectMetadataId);
             }
             await OnSave.InvokeAsync(_fieldValues);
         }
@@ -142,8 +176,8 @@
     {
         var subjects = _fieldValues.GetSelectedChoices("subject").ToList();
 
-        var sector = _fieldValues.GetSelectedChoices("sector").FirstOrDefault();
-        var branch = _fieldValues.GetSelectedChoices("branch").FirstOrDefault();
+        var sectorChoice = _fieldValues.GetSelectedChoices("sector").FirstOrDefault();
+        var branchChoice = _fieldValues.GetSelectedChoices("branch").FirstOrDefault();
 
         var objectName = _fieldValues.GetValue("name");
 
@@ -151,12 +185,18 @@
         var frenchKeywords = _fieldValues.GetValue("keywords_fr").Split(',').ToList();
 
         var englishCatalog = GetCatalogText(subjects.Select(s => s.Label_English_TXT), 
-            sector?.Label_English_TXT, branch?.Label_English_TXT, objectName, englishKeywords);
+            sectorChoice?.Label_English_TXT, branchChoice?.Label_English_TXT, objectName, englishKeywords);
 
         var frenchCatalog = GetCatalogText(subjects.Select(s => s.Label_French_TXT), 
-            sector?.Label_French_TXT, branch?.Label_French_TXT, objectName, frenchKeywords);
+            sectorChoice?.Label_French_TXT, branchChoice?.Label_French_TXT, objectName, frenchKeywords);
 
-        await MetadataBrokerService.UpdateCatalog(objectMetadataId, objectName, englishCatalog, frenchCatalog);
+        var sector = int.Parse(sectorChoice?.Value_TXT ?? "0");
+        var branch = int.Parse(branchChoice?.Value_TXT ?? "0");
+
+        var contact = _fieldValues.GetValue("contact_information");
+
+        await MetadataBrokerService.UpdateCatalog(objectMetadataId, ObjectType, objectName, Location, sector, branch, contact, 
+            englishCatalog, frenchCatalog);
     }
 
     private string GetCatalogText(IEnumerable<string> subjects, string sector, string branch, string objectName, IEnumerable<string> keywords)

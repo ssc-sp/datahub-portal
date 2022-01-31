@@ -9,6 +9,7 @@ namespace Datahub.Portal.Services
     public interface IMetadataBrokerService
     {
         Task<Entities.MetadataProfile> GetProfile(string name);
+        Task<FieldValueContainer> GetObjectMetadataValues(long objectMetadataId);
         Task<FieldValueContainer> GetObjectMetadataValues(string objectId);
         Task<Entities.ObjectMetadata> SaveMetadata(FieldValueContainer fieldValues);
         Task<ApprovalForm> GetApprovalForm(int ApprovalFormId);
@@ -17,7 +18,8 @@ namespace Datahub.Portal.Services
         Task<List<string>> GetSuggestedEnglishKeywords(string text, int max);
         Task<List<string>> GetSuggestedFrenchKeywords(string text, int max);
         Task<List<SubjectKeyword>> GetSubjectKeywords(IEnumerable<string> subjectIds);
-        Task UpdateCatalog(long objectId, string objectName, string englishText, string frenchText);
-        Task<List<CatalogHit>> SearchCatalogEnglish(string searchText);
+        Task UpdateCatalog(long objectId, Entities.MetadataObjectType dataType, string objectName, string location, int sector, int branch, string contact, string englishText, string frenchText);
+        Task<List<CatalogObjectResult>> SearchCatalogEnglish(string searchText);
+        Task<List<CatalogObjectResult>> SearchCatalogFrench(string searchText);
     }    
 }

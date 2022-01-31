@@ -1,29 +1,78 @@
 ﻿@page "/discovery"
 @using Datahub.Metadata.DTO
+@using Datahub.Core.Utils
+@using Datahub.Metadata.Model
 
 <div style="margin: 2rem">
+    <DHPageTitle PageTitleKey=@Localizer["Search catalog"] />
     <AeCard>
         <ChildContent>
             <AeFlex Vertical>
-                <h2>Search catalog</h2>
-                <AeSearchInput id="search" Placeholder="@Localizer.GetString("Search...")" OnInputChangeWithLastKey=@HandleSearch ClearIconFAClass="null" />
+                <h2>@Localizer["Search catalog"]</h2>
+
+                <AeSearchInput 
+                    id="search" 
+                    Placeholder=@Localizer.GetString("Enter keywods..") 
+                    OnInputChangeWithLastKey=@HandleSearch 
+                    ClearIconFAClass="null" 
+                />
+
                 <div>
-                    @if (_searchResults.Count > 0)
+                    <h3>@Localizer["Results"]</h3>
+
+                    <AePaginatedTable 
+                        @ref=@_resultTable
+                        Accessors=@_accessorFunctions 
+                        T=@CatalogObjectResult
+                        Dataset=@_searchResults
+                        Headers=@_headers
+                        Renderers=@_renderFunctions
+                        Page="@_lastClicked"
+                        PageSize=@_pageSize
+                        GridTemplateColumns="4fr 3fr 3fr 2fr 2fr 2fr 1fr"
+                        OnRowClick=@ShowDetails
+                    />
+                    @if (_resultTable != null)
                     {
-                        <h3>Results</h3>
-                        <ul>
-                            @foreach (var hit in _searchResults)
-                            {
-                                <li>@hit.ObjectName</li>
-                            }
-                        </ul>    
+                        <AePagination 
+                            Pageable=@_resultTable
+                            OnPageClick="OnPageClick"> 
+                            <LeftIcon><i class='fad fa-chevron-double-left'></i></LeftIcon> 
+                            <RightIcon><i class='fad fa-chevron-double-right'></i></RightIcon>
+                        </AePagination>                 
                     }
-                    
                 </div>
+
+                @if (_searching)
+                {
+                    <Spinner Small=true />
+                }
             </AeFlex>
+
+            <div>&nbsp;</div>
 
         </ChildContent>
     </AeCard>
+
+@if (_selectedResult is not null)
+{
+    <div>&nbsp;</div>
+
+    <AeCard>
+        <ChildContent>
+            <h2>@_selectedResult.Name</h2>
+
+            <ObjectMetadataEditor 
+                @key=@_selectedResult
+                ObjectId=@_selectedResult.ObjectMetadataId.ToString()
+                Name=@_selectedResult.Name
+                ValidateRequired=false
+                ProfileName="catalog"
+                Preview=true 
+            />
+        </ChildContent>
+    </AeCard>
+}
 </div>
 
 @code {
@@ -31,20 +80,132 @@
     [Inject]
     public IMetadataBrokerService MetadataBrokerService { get; set; }
 
-    private string _searchText;
-    private List<CatalogHit> _searchResults = new();
+    [Inject]
+    public IOrganizationLevelsService OrganizationLevelsService { get; set; }
+
+    [Inject]
+    public IApiService ApiService { get; set; }
+
+    [Inject]
+    public IJSRuntime JSRuntime { get; set; }
+
+    private bool _searching;
+    private QueryThrottler<string> _searchThrottler;
+    private List<CatalogObjectResult> _searchResults = new();
+    private bool _isFrench;
+    private CatalogObjectResult _selectedResult;
+
+    private Dictionary<int, OrganizationLevel> _sectors = new();
+    private Dictionary<int, OrganizationLevel> _branches = new();
+    private IPageableComponent _resultTable;
+    private List<string> _headers = new();
+    private List<Func<CatalogObjectResult, RenderFragment>> _renderFunctions = new();
+    private List<Func<CatalogObjectResult, string>> _accessorFunctions = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _isFrench = CultureInfo.CurrentCulture.Name.StartsWith("fr", StringComparison.InvariantCulture);
+        _accessorFunctions = new() { GetName, GetSector, GetBranch, GetContact, GetDataType, GetSecurityClass, null };
+        _headers = new() { Localizer["Name"], Localizer["Sector"], Localizer["Branch"], Localizer["Contact"], Localizer["Data Type"], Localizer["Security"], string.Empty };
+        _renderFunctions = new() { null, null, null, null, null, null, GetDownLoadFragment };
+        _sectors = (await OrganizationLevelsService.GetSectors()).ToDictionary(s => s.Id);
+        _branches = (await OrganizationLevelsService.GetBranches()).ToDictionary(b => b.Id);
+        _searchThrottler = new(TimeSpan.FromSeconds(0.5), ThrottleSearch); 
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        // You must re-render after the components are initialized in order for the 
+        // component reference to not be null
+        if (firstRender) 
+        {
+            StateHasChanged();
+        }
+    }
+
+    // accessor functions
+    private string GetName(CatalogObjectResult result) => result.Name;
+    private string GetSector(CatalogObjectResult result) => GetLabel(_sectors[result.Sector]);
+    private string GetBranch(CatalogObjectResult result) => GetLabel(_branches[result.Branch]);
+    private string GetContact(CatalogObjectResult result) => result.Contact;
+    private string GetDataType(CatalogObjectResult result) => $"{result.DataType}";
+    private string GetSecurityClass(CatalogObjectResult result) => result.SecurityClass;
+    private string GetLabel(OrganizationLevel orgLevel) => _isFrench ? orgLevel.FrenchLabel : orgLevel.EnglishLabel;
+
+    // renderer functions
+    private RenderFragment GetDownLoadFragment(CatalogObjectResult result) =>
+        SecurityClassification.Unclassified.Equals(result.SecurityClass) 
+            ? GetAuthorizedDownload(result) 
+            : GetUnauthorizedDownload(result);
+
+    private RenderFragment GetAuthorizedDownload(CatalogObjectResult result) =>
+        @<div style="cursor: pointer;" onclick=@(() => HandleDownload(result)) ><i class="far fa-cloud-download sm-icon"></i></div>;
+
+    private RenderFragment GetUnauthorizedDownload(CatalogObjectResult result) => 
+    @<span>&nbsp;</span>
+    ;
+
+    private async Task HandleDownload(CatalogObjectResult result)
+    {
+        if (result.DataType == MetadataObjectType.File)
+        {
+            await DownloadFile(result);
+        }
+    }
+
+    private async Task DownloadFile(CatalogObjectResult result)
+    {
+        var uri = await ApiService.GetDownloadAccessToSasBlob(fileName: result.Name, projectUploadCode: result.Location);
+        await Task.Run(() => RedirectAndDownload(uri));
+    }
 
     private async void HandleSearch(string newValue, KeyboardEventArgs ev)
     {
-        _searchText = newValue ?? string.Empty;
-        if ("Enter".Equals(ev?.Code) || _searchText.Length > 4)
+        await _searchThrottler.SetQuery(newValue);
+    }
+
+    private async Task ThrottleSearch(string searchText)
+    {
+        _searchResults.Clear();
+        _selectedResult = null;
+        await InvokeAsync(StateHasChanged);
+        if (!string.IsNullOrEmpty(searchText))
         {
-            _searchResults.Clear();
-            if (!string.IsNullOrEmpty(_searchText))
+            _searching = true;
+            await InvokeAsync(StateHasChanged);
+            try
             {
-                _searchResults = await MetadataBrokerService.SearchCatalogEnglish(newValue);
+                _searchResults = await SearchCatalog(searchText);
+            }
+            finally
+            {
+                _searching = false;
                 await InvokeAsync(StateHasChanged);
             }
-        }
+        }            
+    }
+
+    private Task<List<CatalogObjectResult>> SearchCatalog(string searchText)
+    {
+        return _isFrench ? MetadataBrokerService.SearchCatalogFrench(searchText) : MetadataBrokerService.SearchCatalogEnglish(searchText);
+    }
+
+    private int _pageSize = 5;
+    private int _lastClicked = 0;
+
+    private void OnPageClick(int pageIndex)
+    {
+        _lastClicked = pageIndex;
+        _selectedResult = null;
+    }
+
+    private void ShowDetails(CatalogObjectResult result)
+    {
+        _selectedResult = result;
+    }
+
+    private async Task RedirectAndDownload(Uri uri)
+    {
+        await JSRuntime.InvokeAsync<object>("open", uri.ToString(), "_blank");
     }
 }

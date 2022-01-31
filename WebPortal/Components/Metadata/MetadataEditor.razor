@@ -3,7 +3,7 @@
 @using Datahub.Metadata.DTO
 @using Datahub.Metadata.Utils
 
-@if (Definitions != null && FieldValues != null)
+@if (Definitions != null && FieldValues != null && Profile != null)
 {
     var translationNote = new MarkupString(Localizer["METADATA-PAGE.TranslationNote"]);
     
@@ -34,19 +34,22 @@
                     continue;
 
                 var fieldValue = GetFieldValue(definition, Preview);
-                var fieldPair = _fieldPairs.BindField(definition.Field_Name_TXT, fieldValue);
 
                 if (fieldValue != null)
                 {
-                    <MetadataFieldEditor Preview=@Preview
-                                         Required="IsFieldRequired(definition)"
-                                         FieldValue=@fieldValue
-                                         FieldDefinition=@definition
-                                         FieldLabel=@definition.Name
-                                         Subject=@_subject
-                                         FieldPair=@fieldPair
-                                         CascadingValue=@GetCascadingValue(definition)
-                                         OnFieldChanged=@FieldChanged />
+                    var fieldPair = _fieldPairs.BindField(definition.Field_Name_TXT, fieldValue);
+                    <MetadataFieldEditor 
+                        @key=@fieldValue
+                        Preview=@Preview
+                        Required="IsFieldRequired(definition)"
+                        FieldValue=@fieldValue
+                        FieldDefinition=@definition
+                        FieldLabel=@definition.Name
+                        Subject=@_subject
+                        FieldPair=@fieldPair
+                        CascadingValue=@GetCascadingValue(definition)
+                        OnFieldChanged=@FieldChanged 
+                    />
                 }
             }
         }
