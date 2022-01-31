@@ -31,7 +31,7 @@ namespace Datahub.Metadata.DTO
             var choiceValues = (fieldValue?.Value_TXT ?? "").Split(ChoiceSeparator, StringSplitOptions.RemoveEmptyEntries);
             foreach (var choiceValue in choiceValues)
             {
-                var choice = fieldValue.FieldDefinition.Choices.FirstOrDefault(c => choiceValue == c.Value_TXT);
+                var choice = GetFieldDefinition(fieldValue).Choices.FirstOrDefault(c => choiceValue == c.Value_TXT);
                 if (choice is not null)
                     yield return choice;
             }
@@ -75,48 +75,6 @@ namespace Datahub.Metadata.DTO
             return new FieldValueContainer(ObjectId, Definitions, CloneFieldsReadonly());
         }
 
-        public string GetIndexableValues(string separator, bool english, params string[] fieldNames)
-        {
-            List<string> values = new();
-            foreach (var fieldName in fieldNames)
-            {
-                var fieldValue = GetFieldValueByName(fieldName);
-                if (fieldValue is not null)
-                {
-                    if (fieldValue.FieldDefinition.HasChoices)
-                    {
-                        values.Add(fieldValue.FieldDefinition.GetChoiceTextValue(fieldValue.Value_TXT, english));
-                    }
-                    else
-                    {
-                        values.Add(fieldValue.Value_TXT);
-                    }
-                }
-            }
-            return string.Join(separator, values);
-        }
-
-        public Dictionary<string, string> GetValues(bool english, params string[] fieldNames)
-        {
-            Dictionary<string, string> values = new();
-            foreach (var fieldName in fieldNames)
-            {
-                var fieldValue = GetFieldValueByName(fieldName);
-                if (fieldValue is not null)
-                {
-                    if (fieldValue.FieldDefinition.HasChoices)
-                    {
-                        values[fieldName] = fieldValue.FieldDefinition.GetChoiceTextValue(fieldValue.Value_TXT, english);
-                    }
-                    else
-                    {
-                        values[fieldName] = fieldValue.Value_TXT;
-                    }
-                }
-            }
-            return values;
-        }
-
         private IEnumerable<ObjectFieldValue> CloneFieldsReadonly()
         {
             foreach (var fieldValue in this)
@@ -126,6 +84,8 @@ namespace Datahub.Metadata.DTO
                 yield return cloned;
             }
         }
+
+        private FieldDefinition GetFieldDefinition(ObjectFieldValue value) => value.FieldDefinition ?? Definitions.Get(value.FieldDefinitionId);
 
         private ObjectFieldValue GetFieldValueByName(string fieldName)
         {
