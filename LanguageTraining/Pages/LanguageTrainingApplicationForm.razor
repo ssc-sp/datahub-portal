@@ -94,9 +94,9 @@
                 _languageTrainingApplication = Context.LanguageTrainingApplications.Add(_languageTrainingApplication).Entity;
             }
             _languageTrainingApplication.Last_Updated_DT = DateTime.Now;
-            
+
             await Context.SaveChangesAsync();
-            
+
             var param = await GetLanguageTrainingParameters();
 
             if (!_languageTrainingApplication.ApplicationCompleteEmailSent)
@@ -170,8 +170,14 @@
 
     private async Task LoadApps(string filter)
     {
-
-        _languageTrainingApplications = Context.LanguageTrainingApplications.Where(r => (r.Email_Address_EMAIL.ToLower() == _user.Mail.ToLower()) ||(r.Delegated_Manager_Email.ToLower() == _user.Mail.ToLower()) ).ToList();
+        if (_isUserAdmin)
+        {
+            _languageTrainingApplications = Context.LanguageTrainingApplications.ToList();
+        }
+        else
+        {
+            _languageTrainingApplications = Context.LanguageTrainingApplications.Where(r => (r.Email_Address_EMAIL.ToLower() == _user.Mail.ToLower()) || (r.Delegated_Manager_Email.ToLower() == _user.Mail.ToLower())).ToList();
+        }
 
         if (filter == "All" || string.IsNullOrEmpty(filter))
         {
