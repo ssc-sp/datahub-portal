@@ -180,7 +180,7 @@
                     BusinessOwner = m365FormApplication.Business_Owner,
                     SubmitterEmaill = _user.Mail,
                     AppUrl = $"/m365form/applications/{m365FormApplication.Application_ID}",
-                    AdminEmailAddresses =  ServiceAuthManager.GetProjectAdminsEmails(PROJECTACRONYM)
+                    AdminEmailAddresses =  ServiceAuthManager.GetProjectMailboxEmails(PROJECTACRONYM)
             };
 
 
