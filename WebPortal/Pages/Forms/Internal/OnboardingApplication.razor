@@ -134,7 +134,7 @@
             OnboardingParameters onboardingParameters = new() { 
                             AppUrl = $"/onboarding/applications/{_onboardingApplication.Application_ID}",
                             App = _onboardingApplication, 
-                            AdminEmailAddresses =  ServiceAuthManager.GetProjectAdminsEmails(PROJECTACRONYM)
+                            AdminEmailAddresses =  ServiceAuthManager.GetProjectMailboxEmails(PROJECTACRONYM)
                         };
             
 
