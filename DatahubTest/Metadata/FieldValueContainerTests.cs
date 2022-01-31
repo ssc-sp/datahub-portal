@@ -33,44 +33,6 @@ namespace Datahub.Tests.Meta_Data
         }
 
         [Fact]
-        public void FieldValueContainer_GetIndexableValues_MustReturnExpected()
-        {
-            var fieldDefinitions = FieldDefinitionHelper.LoadDefinitions();
-
-            var container = GetFieldValueContainer(fieldDefinitions,
-                ("title_translated_en", "Sample file"),
-                ("title_translated_fr", "Exemple de fichier"),
-                ("topic_category", "environment"));
-
-            var expected = "Sample file|Environment";
-            var actual = container.GetIndexableValues("|", true, "title_translated_en", "topic_category");
-            Assert.Equal(actual, expected);
-
-            expected = "Exemple de fichier|Environnement";
-            actual = container.GetIndexableValues("|", false, "title_translated_fr", "topic_category");
-            Assert.Equal(actual, expected);
-        }
-
-        [Fact]
-        public void FieldValueContainer_GetValues_MustReturnExpected()
-        {
-            var fieldDefinitions = FieldDefinitionHelper.LoadDefinitions();
-
-            var container = GetFieldValueContainer(fieldDefinitions,
-                ("title_translated_en", "Sample file"),
-                ("title_translated_fr", "Exemple de fichier"),
-                ("topic_category", "environment"));
-
-            var actual = container.GetValues(true, "title_translated_fr", "title_translated_en", "topic_category");
-
-            var expected = "Sample file";
-            Assert.Equal(actual["title_translated_en"], expected);
-
-            expected = "Environment";
-            Assert.Equal(actual["topic_category"], expected);
-        }
-
-        [Fact]
         public void FieldValueContainer_GetValue_MustReturnExpected()
         {
             var fieldDefinitions = FieldDefinitionHelper.LoadDefinitions();

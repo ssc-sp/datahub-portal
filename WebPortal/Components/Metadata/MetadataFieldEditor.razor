@@ -200,7 +200,8 @@
     private string GetMultiChoiceLabels(string values)
     {
         var labels = (values ?? string.Empty).Split('|').Select(GetChoiceLabel);
-        return string.Join("|", labels);
+        // it is better to display it separated by comas
+        return string.Join(", ", labels); 
     }
 
     private void ClearField()

@@ -209,6 +209,7 @@ namespace Datahub.Metadata.Model
                       .WithMany(e => e.CatalogObjects);
 
                 entity.Property(e => e.Name_TXT).IsRequired();
+                entity.Property(e => e.SecurityClass_TXT).HasDefaultValue("Unclassified").IsRequired();
             });
         }
     }

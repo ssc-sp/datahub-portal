@@ -33,6 +33,24 @@ namespace Datahub.Portal.Services
                             .FirstOrDefaultAsync(p => p.Name == name);
         }
 
+        public async Task<FieldValueContainer> GetObjectMetadataValues(long objectMetadataId)
+        {
+            using var ctx = _contextFactory.CreateDbContext();
+
+            // retrieve the object metadata
+            var objectMetadata = await ctx.ObjectMetadataSet
+                .Include(e => e.FieldValues)
+                .FirstOrDefaultAsync(e => e.ObjectMetadataId == objectMetadataId);
+
+            // retrieve the field definitions
+            var metadataDefinitions = await (objectMetadata == null ? GetLatestMetadataDefinition(ctx) : GetMetadataDefinition(ctx, objectMetadata.MetadataVersionId));
+
+            // retrieve and clone the field values
+            var fieldValues = CloneFieldValues(objectMetadata?.FieldValues ?? new List<ObjectFieldValue>());
+
+            return new FieldValueContainer(objectMetadata.ObjectId_TXT, metadataDefinitions, fieldValues);
+        }
+
         public async Task<FieldValueContainer> GetObjectMetadataValues(string objectId)
         {
             using var ctx = _contextFactory.CreateDbContext();
@@ -219,7 +237,8 @@ namespace Datahub.Portal.Services
 
         const string KeywordSeparator = "|";
 
-        public async Task UpdateCatalog(long objectMetadataId, string objectName, string englishText, string frenchText)
+        public async Task UpdateCatalog(long objectMetadataId, MetadataObjectType dataType, string objectName, string location,
+            int sector, int branch, string contact, string englishText, string frenchText)
         {
             using var ctx = _contextFactory.CreateDbContext();
 
@@ -237,7 +256,12 @@ namespace Datahub.Portal.Services
                 CatalogObject catalogObject = new()
                 {
                     ObjectMetadataId = objectMetadataId,
+                    DataType = dataType,
                     Name_TXT = objectName,
+                    Location_TXT = location,
+                    Sector_NUM = sector,
+                    Branch_NUM = branch,
+                    Contact_TXT = contact,
                     Search_English_TXT = englishText,
                     Search_French_TXT = frenchText
                 };
@@ -255,28 +279,52 @@ namespace Datahub.Portal.Services
             }
         }
 
-        public async Task<List<CatalogHit>> SearchCatalogEnglish(string searchText)
+        public async Task<List<CatalogObjectResult>> SearchCatalogEnglish(string searchText)
         {
             return await SearchCatalog(searchText, "Search_English_TXT");
         }
 
-        public async Task<List<CatalogHit>> SearchCatalogFrench(string searchText)
+        public async Task<List<CatalogObjectResult>> SearchCatalogFrench(string searchText)
         {
             return await SearchCatalog(searchText, "Search_French_TXT");
         }
 
-        private async Task<List<CatalogHit>> SearchCatalog(string searchText, string fieldName)
+        private async Task<List<CatalogObjectResult>> SearchCatalog(string searchText, string fieldName)
         {
             using var ctx = _contextFactory.CreateDbContext();
+            
             var query = PrepareCatalogSearchQuery(searchText, fieldName);
+            if (string.IsNullOrEmpty(query))
+                return new();
+
             var results = await ctx.QueryCatalog(query);
-            return results.Select(r => new CatalogHit(r.CatalogObjectId.ToString(), r.Name_TXT)).ToList();
+
+            return results.Select(r => new CatalogObjectResult
+            (
+                r.ObjectMetadataId, 
+                r.DataType, 
+                r.Name_TXT, 
+                r.Location_TXT,
+                r.Sector_NUM, 
+                r.Branch_NUM, 
+                r.Contact_TXT,
+                r.SecurityClass_TXT
+            )).ToList();
         }
 
         static string PrepareCatalogSearchQuery(string searchText, string fieldName)
         {
-            var filteredSearchText = string.Concat(PreProcessSearchText(searchText));
-            return $"SELECT * FROM CatalogObjects WHERE {fieldName} LIKE '%{filteredSearchText}%'";
+            var filteredSearchText = string
+                .Concat(PreProcessSearchText(searchText))
+                .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                .Select(word => $"{fieldName} LIKE '%{word}%'");
+
+            var whereCondition = string.Join(" AND ", filteredSearchText);
+            if (string.IsNullOrEmpty(whereCondition))
+                return string.Empty;
+
+            //return $"SELECT * FROM CatalogObjects WHERE {fieldName} LIKE '%{filteredSearchText}%'";
+            return $"SELECT * FROM CatalogObjects WHERE {whereCondition}";
         }
 
         static IEnumerable<char> PreProcessSearchText(string text)
@@ -286,7 +334,7 @@ namespace Datahub.Portal.Services
                 if (char.IsLetterOrDigit(c))
                     yield return c;
                 else if (char.IsWhiteSpace(c))
-                    yield return '%';
+                    yield return ' ';
             }
         }
 
