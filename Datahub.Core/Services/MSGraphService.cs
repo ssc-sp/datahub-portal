@@ -151,7 +151,6 @@ namespace Datahub.Core.Services
                 catch (Exception e)
                 {
                     _logger.LogError($"Error preparing authentication client: {e.Message}");
-                    Console.WriteLine($"Error preparing authentication client: {e.Message}");
                     throw;
                 }
             }
