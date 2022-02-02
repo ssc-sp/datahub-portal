@@ -109,7 +109,6 @@
             </AeCard>
             }
 
-    </div>
             <environment include="Development">
             
                 <AeCard class="facard1" CardPosition="AeCard.CardStyle.Horizontal">
@@ -137,7 +136,7 @@
 
     private IConfigurationSection CatalogReport;
     
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
         CatalogReport = configuration.GetSection("PowerBI:CatalogReport");
     }
