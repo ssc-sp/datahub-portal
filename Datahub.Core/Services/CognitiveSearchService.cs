@@ -4,6 +4,7 @@ using Microsoft.Extensions.Options;
 using Datahub.Core.Data;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System;
 
 namespace Datahub.Core.Services
 {
@@ -41,12 +42,20 @@ namespace Datahub.Core.Services
             var response = searchClient.DeleteDocuments("fileid", idsToDelete);
         }
 
-        public async Task AddDocumentToIndex(FileMetaData fileMetaData)
+        public async Task<bool> AddDocumentToIndex(FileMetaData fileMetaData)
         {
-            var searchClient = await _commonAzureServices.GetSearchClient();
+            try
+            {
+                var searchClient = await _commonAzureServices.GetSearchClient();
 
-            IndexDocumentsBatch<FileMetaData> batch = IndexDocumentsBatch.Create(IndexDocumentsAction.Upload(fileMetaData));
-            IndexDocumentsResult result = searchClient.IndexDocuments(batch);
+                IndexDocumentsBatch<FileMetaData> batch = IndexDocumentsBatch.Create(IndexDocumentsAction.Upload(fileMetaData));
+                IndexDocumentsResult result = searchClient.IndexDocuments(batch);
+                return true;
+            } catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error indexing {fileMetaData}");
+                return false;
+            }
         }
 
         public async Task EditDocument(FileMetaData fileMetaData)

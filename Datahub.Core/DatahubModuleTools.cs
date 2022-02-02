@@ -13,7 +13,13 @@ namespace Datahub.Core
     {
         public static void AddModule<T>(this IServiceCollection services, IConfiguration configuration) where T:IDatahubModule
         {
-            var module = (T)Activator.CreateInstance(typeof(T));            
+            services.AddModule(typeof(T), configuration);
+
+        }
+
+        public static void AddModule(this IServiceCollection services, Type moduleType, IConfiguration configuration) 
+        {
+            var module = Activator.CreateInstance(moduleType) as IDatahubModule;
             module.ConfigureDatabases(services, configuration);
 
         }
