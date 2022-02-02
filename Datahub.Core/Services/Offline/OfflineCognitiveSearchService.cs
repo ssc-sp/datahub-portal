@@ -9,9 +9,9 @@ namespace Datahub.Core.Services
         {
         }
 
-        public Task AddDocumentToIndex(FileMetaData fileMetaData)
+        public Task<bool> AddDocumentToIndex(FileMetaData fileMetaData)
         {
-            return Task.FromResult(0);
+            return Task.FromResult(true);
         }
 
         public Task DeleteDocumentFromIndex(string documentId)
