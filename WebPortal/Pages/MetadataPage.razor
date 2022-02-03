@@ -9,10 +9,17 @@
             <h2>Metadata</h2>
         </Header>
         <ChildContent>
-            <ObjectMetadataEditor @ref="_objectMetadataEditor" ObjectId=@ObjectId />
+            <ObjectMetadataEditor 
+                @ref="_objectMetadataEditor" 
+                ObjectId=@ObjectId 
+                ProfileName="test" 
+                Name="Sample file with name" 
+                UpdateCatalog="true"/>
         </ChildContent>
         <Footer>
-            <AeButton @onclick="TogglePreview" style="margin: 5px;">Toggle Preview</AeButton>
+            @*<AeButton @onclick="TogglePreview" style="margin: 5px;">Toggle Preview</AeButton>*@
+            <input @bind=@_searchText/>
+            <AeButton @onclick="TestSearch" style="margin: 5px;">Search</AeButton>
         </Footer>
     </AeCard>
 </div>
@@ -33,10 +40,18 @@
     private bool _preview = false;
     private bool _saved = false;
 
-    private void TogglePreview()
+    private string _searchText;
+
+    //private void TogglePreview()
+    //{
+    //    _preview = !_preview;
+    //    _objectMetadataEditor.TogglePreview();
+    //    StateHasChanged();
+    //}
+
+    private async void TestSearch()
     {
-        _preview = !_preview;
-        _objectMetadataEditor.TogglePreview();
-        StateHasChanged();
+        var results = await MetadataBrokerService.SearchCatalogEnglish(_searchText);
+        var count = results.Count;
     }
 }

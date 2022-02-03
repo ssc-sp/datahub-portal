@@ -198,8 +198,8 @@
   "UnhandledExceptionMessage-Prod": "An error has occurred. This application may no longer respond until reloaded.",
   "Versions": "Versions",
   "ViewDetails": "File Details",
-  "ShowStorageDetails": "Show Storage",
-  "HideStorageDetails": "Hide Storage",
+  "ShowStorageDetails": "Show Storage Details",
+  "HideStorageDetails": "Hide Storage Details",
   "Viewer": "Viewer",
   "Viewers": "Viewers",
 

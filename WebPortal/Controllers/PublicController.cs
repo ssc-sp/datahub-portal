@@ -46,7 +46,7 @@ namespace Datahub.Portal.Controllers
 
             _logger.LogDebug($"Downloading {filemd.filename} from project {project}");
 
-            var uri = await _apiService.GetUserDelegationSasBlob(filemd, project);
+            var uri = await _apiService.GetUserDelegationSasBlob(filemd.filename, project);
 
             return Redirect(uri.ToString());
         }
