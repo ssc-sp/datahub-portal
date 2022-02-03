@@ -68,6 +68,20 @@
             </AeCard>
         }
 
+        @if (ShowPendingApprovalPanel)
+        {
+            <AeCard>
+                <AeTypography Variant="h3">@GetStepTitle(PublicUrlSharingStatus.PendingApproval)</AeTypography>
+                <AeTypography Variant="h5">@Localizer[$"{LOCALIZATION_PREFIX}.DataApprovers"]</AeTypography>
+                <ul>
+                    @foreach (var userid in _dataApproverUserIds)
+                    {
+                        <li><GraphUserInformation UserId=@userid IsUserNameRequested=@true /></li>
+                    }
+                </ul>
+            </AeCard>
+        }
+
         @if (ShowExpiryDatePanel && _isOwnRequest)
         {
             <AeCard>
@@ -174,6 +188,7 @@
     private bool ShowPublicationDate => currentStep == PublicUrlSharingStatus.PendingPublication && !string.IsNullOrEmpty(_publicationDateStr) && !_editSavedMetadata;
     private bool ShowPublicUrl => currentStep == PublicUrlSharingStatus.AccessPublicUrl;
     private bool ShowMetadataEditor => (currentStep == PublicUrlSharingStatus.EnterMetadata || _editSavedMetadata) && _isOwnRequest;
+    private bool ShowPendingApprovalPanel => currentStep == PublicUrlSharingStatus.PendingApproval && (_dataApproverUserIds?.Count ?? 0) > 0;
     private bool ShowCancelPanel => currentStep <= PublicUrlSharingStatus.PendingApproval && _isOwnRequest;
     private bool ShowExpiryDatePanel => currentStep <= PublicUrlSharingStatus.PendingApproval && !ShowMetadataEditor;
     private bool ShowDeletePanel => currentStep == PublicUrlSharingStatus.Expired && _isOwnRequest;
@@ -187,6 +202,9 @@
     private GraphUser _requestingUser;
     private string _requestFilename;
     private string _projectCode;
+    private DatahubProjectInfo _projectInfo;
+
+    private List<string> _dataApproverUserIds;
 
     private string PublicUrl => PublicFileService.GetPublicSharedFileUrl(FileId);
 
@@ -222,17 +240,16 @@
     {
         _savingData = true;
 
-        var project = await PublicFileService.GetProjectWithUsers(_projectCode);
-        var approvers = project.Users.Where(pu => pu.IsDataApprover).Select(pu => pu.User_ID).ToList();
+        var approvers = _dataApproverUserIds;
 
         var tasks = new List<Task>()
         {
             PublicFileService.SubmitPublicUrlShareForApproval(_fileIdGuid),
-            EmailNotificationService.SendFileSharingApprovalRequest(_requestingUser.Mail, _requestFilename, project.ProjectInfo, approvers),
+            EmailNotificationService.SendFileSharingApprovalRequest(_requestingUser.Mail, _requestFilename, _projectInfo, approvers),
             SystemNotificationService.CreateSystemNotificationsWithLink(approvers,
-                $"/project/{project.ProjectInfo.ProjectCode}/datasharing", "SYSTEM-NOTIFICATION.GoToSharingDashboard",
+                $"/project/{_projectInfo.ProjectCode}/datasharing", "SYSTEM-NOTIFICATION.GoToSharingDashboard",
                 "SYSTEM-NOTIFICATION.NOTIFICATION-TEXT.PublicUrlShareRequested", _requestingUser.Mail, _requestFilename,
-                new BilingualStringArgument(project.ProjectInfo.ProjectNameEn, project.ProjectInfo.ProjectNameFr))
+                new BilingualStringArgument(_projectInfo.ProjectNameEn, _projectInfo.ProjectNameFr))
         };
 
         await Task.WhenAll(tasks);
@@ -324,6 +341,13 @@
         }
     }
 
+    private async Task LoadProjectInfo()
+    {
+        var project = await PublicFileService.GetProjectWithUsers(_projectCode);
+        _dataApproverUserIds = project.Users.Where(pu => pu.IsDataApprover).Select(pu => pu.User_ID).ToList();
+        _projectInfo = project.ProjectInfo;
+    }
+
     protected override async Task OnInitializedAsync()
     {
         // don't show a step for Expired status
@@ -354,6 +378,7 @@
 
         _requestFilename = sharedFileInfo.Filename_TXT;
         _projectCode = sharedFileInfo.ProjectCode_CD;
+        await LoadProjectInfo();
 
         _requestingUser = await GraphService.GetUserAsync(sharedFileInfo.RequestingUser_ID, CancellationToken.None);
         var currentUser = await currentUserTask;
