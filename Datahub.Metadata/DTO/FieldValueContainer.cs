@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace Datahub.Metadata.DTO
 {
@@ -20,6 +21,21 @@ namespace Datahub.Metadata.DTO
         public string ObjectId { get; init; }
         public FieldDefinitions Definitions { get; init; }
         public ObjectFieldValue this[string fieldName] => GetFieldValueByName(fieldName);
+        public string GetValue(string fieldName, string defaultValue = "") => this[fieldName]?.Value_TXT ?? defaultValue;
+
+        public char ChoiceSeparator => '|';
+
+        public IEnumerable<FieldChoice> GetSelectedChoices(string fieldName)
+        {
+            var fieldValue = this[fieldName];
+            var choiceValues = (fieldValue?.Value_TXT ?? "").Split(ChoiceSeparator, StringSplitOptions.RemoveEmptyEntries);
+            foreach (var choiceValue in choiceValues)
+            {
+                var choice = GetFieldDefinition(fieldValue).Choices.FirstOrDefault(c => choiceValue == c.Value_TXT);
+                if (choice is not null)
+                    yield return choice;
+            }
+        }
 
         public bool ValidateRequired(Func<FieldDefinition, bool> isRequired)
         {
@@ -29,6 +45,29 @@ namespace Datahub.Metadata.DTO
             var passRequired = (FieldDefinition f) => !isRequired.Invoke(f) || findValidValue(f.FieldDefinitionId);
 
             return Definitions.Fields.All(passRequired);
+        }
+
+        public ObjectFieldValue SetValue(string fieldName, string fieldValue)
+        {
+            if (Definitions is null)
+                throw new ArgumentNullException(nameof(Definitions));
+
+            var definition = Definitions.Get(fieldName);
+            if (definition is null)
+                throw new ArgumentNullException(nameof(fieldName));
+
+            var fieldValueObj = this.FirstOrDefault(v => v.FieldDefinitionId == definition.FieldDefinitionId);
+            if (fieldValueObj is not null)
+            {
+                fieldValueObj.Value_TXT = fieldValue;
+            }
+            else
+            {
+                fieldValueObj = new() { FieldDefinitionId = definition.FieldDefinitionId, Value_TXT = fieldValue };
+                Add(fieldValueObj);    
+            }
+
+            return fieldValueObj;
         }
 
         public FieldValueContainer GetReadonlyCopy()
@@ -45,6 +84,8 @@ namespace Datahub.Metadata.DTO
                 yield return cloned;
             }
         }
+
+        private FieldDefinition GetFieldDefinition(ObjectFieldValue value) => value.FieldDefinition ?? Definitions.Get(value.FieldDefinitionId);
 
         private ObjectFieldValue GetFieldValueByName(string fieldName)
         {
