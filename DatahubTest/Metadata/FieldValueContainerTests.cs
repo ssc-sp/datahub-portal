@@ -32,6 +32,49 @@ namespace Datahub.Tests.Meta_Data
             Assert.False(actual);
         }
 
+        [Fact]
+        public void FieldValueContainer_GetValue_MustReturnExpected()
+        {
+            var fieldDefinitions = FieldDefinitionHelper.LoadDefinitions();
+
+            var container = GetFieldValueContainer(fieldDefinitions,
+                ("title_translated_en", "Sample file"),
+                ("title_translated_fr", "Exemple de fichier"),
+                ("topic_category", "environment"));
+
+            var expected = "Sample file";
+            var actual = container["title_translated_en"].Value_TXT;
+            Assert.Equal(actual, expected);
+
+            expected = "Expected name";
+            container.SetValue("name", expected);
+            actual = container["name"].Value_TXT;
+            Assert.Equal(actual, expected);
+        }
+
+        [Fact]
+        public void FieldValueContainer_GetSelectedChoices_MustReturnExpected()
+        {
+            var fieldDefinitions = FieldDefinitionHelper.LoadDefinitions();
+
+            var container = GetFieldValueContainer(fieldDefinitions,
+                ("title_translated_en", "Sample file"),
+                ("title_translated_fr", "Exemple de fichier"),
+                ("subject", "agriculture|law"));
+
+            var choices = container.GetSelectedChoices("subject").ToArray();
+            Assert.True(choices.Length == 2);
+
+            var expected = "agriculture"; 
+            var actual = choices[0].Value_TXT;
+            Assert.Equal(actual, expected);
+
+            expected = "law";
+            actual = choices[1].Value_TXT;
+            Assert.Equal(actual, expected);
+        }
+
+
         static FieldDefinitions GetDefinitions(params (string name, bool required)[] fields)
         {
             FieldDefinitions definitions = new();
@@ -51,6 +94,7 @@ namespace Datahub.Tests.Meta_Data
         {
             return new FieldValueContainer("1", definitions, fieldValues.Select(fv => new ObjectFieldValue() 
             { 
+                FieldDefinition = definitions.Get(fv.name),
                 FieldDefinitionId = definitions.Get(fv.name).FieldDefinitionId, 
                 Value_TXT = fv.value 
             }));

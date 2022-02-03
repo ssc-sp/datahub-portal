@@ -40,7 +40,7 @@ namespace Datahub.Portal.Controllers
             var authHeader = Request.Headers["Authorization"];
 
             // todo: validate token
-            var testToken = await _keyVaultService.SignAsync("0123456789");
+            //var testToken = await _keyVaultService.SignAsync("0123456789");
 
             // todo: extract the ProjectApiUser_Id fron the token
             var projectApiUserId = Guid.Parse("10A5280E-4432-411C-89AA-861FE9258A40");

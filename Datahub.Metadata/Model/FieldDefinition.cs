@@ -1,6 +1,6 @@
-﻿using System;
+﻿using Datahub.Metadata.Utils;
+using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 
 namespace Datahub.Metadata.Model
@@ -26,18 +26,23 @@ namespace Datahub.Metadata.Model
         public string Validators_TXT { get; set; }
         public bool Custom_Field_FLAG { get; set; }
         public string Default_Value_TXT { get; set; }
+        public int? CascadeParentId { get; set; }
         public virtual ICollection<FieldChoice> Choices { get; set; }
         public virtual ICollection<ObjectFieldValue> FieldValues { get; set; }
+        public virtual ICollection<SectionField> SectionFields { get; set; }
 
         #region Entity extensions
 
-        public string Name => IsFrenchCulture() ? SelectLabel(Name_French_TXT, Name_English_TXT) : SelectLabel(Name_English_TXT, Name_French_TXT);
-        public string Description => IsFrenchCulture() ? French_DESC : English_DESC;
+        public string Name => CultureUtils.SelectCulture(Name_English_TXT, Name_French_TXT);
+        public string Description => CultureUtils.SelectCulture(English_DESC, French_DESC);
         public bool HasChoices => Choices?.Count > 0;
         public bool IsDateField => (Validators_TXT ?? "").Split(' ').Contains("isodate");
-        static bool IsFrenchCulture() => CultureInfo.CurrentCulture.Name.StartsWith("fr", StringComparison.InvariantCulture);
         
-        static string SelectLabel(string value, string alt) => !string.IsNullOrWhiteSpace(value) ? value : alt;
+        public string GetChoiceTextValue(string choiceValue, bool english)
+        {
+            var choice = Choices.FirstOrDefault(x => x.Value_TXT == choiceValue);
+            return (choice is not null) ? (english ? choice.Label_English_TXT : choice.Label_French_TXT) : String.Empty;
+        }
 
         #endregion
     }
