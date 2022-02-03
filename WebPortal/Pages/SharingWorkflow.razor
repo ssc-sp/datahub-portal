@@ -1,9 +1,11 @@
 ﻿@page "/sharingworkflow/{FileId}"
 @using Microsoft.AspNetCore.WebUtilities
+@using Microsoft.Extensions.Logging
 @using Microsoft.Graph
 @inject CustomNavigation NavManager
 @inject IPublicDataFileService _publicDataService
 @inject IUserInformationService _userInfoService
+@inject ILogger<SharingWorkflow> logger
 
 @if (!_awaitingRedirect)
 {
@@ -121,6 +123,7 @@ else
         Guid fileIdGuid;
         if (!Guid.TryParse(FileId, out fileIdGuid))
         {
+            logger.LogError($"Error invalid FileID: '{FileId}''");
             // return to homepage if guid is invalid
             await NavManager.NavigateTo("/", true);
         }

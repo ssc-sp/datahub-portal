@@ -76,8 +76,9 @@
 
 @code
 {
+
     [Parameter]
-    public string DummyParam { get; set; }
+    public string? Project { get; set; }
 
     public bool isLoading { get; set; } = false;
 
@@ -251,7 +252,7 @@
             {
                 isLoading = true;
                 HandleUpload(true);
-                
+
             }
         }
     }
@@ -271,9 +272,15 @@
 
                 _ = InvokeAsync(async () =>
                 {
-                    await ApiService.UploadGen2File(_fileMetadata,null);
-                    await NotifierService.Update("filegrid", true);
-                    ResetControls();
+                    try
+                    {
+                        await ApiService.UploadGen2File(_fileMetadata, Project?.ToLower());
+                        await NotifierService.Update("filegrid", true);
+                        ResetControls();
+                    } catch (Exception ex)
+                    {
+                        logger.LogCritical(ex, $"Cannot upload file");
+                    }
                 }); 
             }
             else
@@ -319,7 +326,8 @@
 
     private async Task<RenderFragment> getIcon()
     {
-        RenderFragment fragment = @<div id="securityClassButton" class="ae button"> <div>@_fileMetadata.securityclass</div> <i class="fal fa-chevron-down chevronborder"></i></div>;
+        RenderFragment fragment = 
+    @<div id="securityClassButton" class="ae button"> <div>@_fileMetadata.securityclass</div> <i class="fal fa-chevron-down chevronborder"></i></div>;
         return await Task.FromResult(fragment);
     }
 

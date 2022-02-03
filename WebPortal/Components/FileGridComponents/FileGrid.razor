@@ -268,7 +268,7 @@ else
     private void ToggleAddData()
     {
         RenderFragment fragment =
-    @<AddDataBar />
+    @<AddDataBar Project="@Project" />
         ;
         UI.ToggleRightSidebar(fragment);
     }
@@ -288,7 +288,7 @@ else
 
             case MenuActions.DownloadFile:
                 {
-                    var uri = await DataRetrievalService.DownloadFile(item);
+                    var uri = await DataRetrievalService.DownloadFile(item, Project);
                     await Task.Run(() => RedirectAndDownload(uri));
                 }
                 break;
