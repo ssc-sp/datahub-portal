@@ -92,7 +92,7 @@
     
     private Task Share() => PerformMenuAction.InvokeAsync(MenuActions.ShareFile);
 
-    private void ToggleAddData() => UI.ToggleRightSidebar(@<AddDataBar />);
+    private void ToggleAddData() => UI.ToggleRightSidebar(@<AddDataBar Project="@Project"/>);
 
     private bool ItemOwned => SelectedItem != null && SelectedItem.ownedby == CurrentUser;
 
