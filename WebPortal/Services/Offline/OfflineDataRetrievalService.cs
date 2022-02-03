@@ -13,7 +13,7 @@ namespace Datahub.Portal.Services.Offline
         {
         }
 
-        public Task<Uri> DownloadFile(FileMetaData file, string project = null)
+        public Task<System.Uri> DownloadFile(FileMetaData file, string project)
         {
             return Task.FromResult(new System.Uri("anyfile"));
         }

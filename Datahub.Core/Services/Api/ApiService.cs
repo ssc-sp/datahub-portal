@@ -176,54 +176,19 @@ namespace Datahub.Core.Services
             }
         }
 
-        public async Task<Uri> GetUserDelegationSasBlob(FileMetaData? file, string projectUploadCode, int days = 1)
+        public async Task<Uri> GetUserDelegationSasBlob(string fileName, string projectUploadCode, int daysValidity = 1)
         {
+            return await GetDelegationSasBlobUri(fileName, projectUploadCode, daysValidity, BlobSasPermissions.Read | BlobSasPermissions.Write);
+        }
 
-            string cxnstring = await _apiCallService.GetProjectConnectionString(projectUploadCode);
-            BlobServiceClient blobServiceClient = new BlobServiceClient(cxnstring);
-            BlobContainerClient containerClient = blobServiceClient.GetBlobContainerClient("datahub");
+        public async Task<Uri> GetDownloadAccessToSasBlob(string fileName, string projectUploadCode, int daysValidity = 1)
+        {
+            return await GetDelegationSasBlobUri(fileName, projectUploadCode, daysValidity, BlobSasPermissions.Read);
+        }
 
-            var sharedKeyCred = await _dataLakeClientService.GetSharedKeyCredential(projectUploadCode);
-
-            // Create a SAS token that's also valid for 7 days.
-            BlobSasBuilder sasBuilder = new BlobSasBuilder()
-            {
-                BlobContainerName = "datahub",
-                BlobName = file?.name,
-                Resource = "b",
-                StartsOn = DateTimeOffset.UtcNow,
-                ExpiresOn = DateTimeOffset.UtcNow.AddDays(days)
-            };
-
-
-            BlobUriBuilder blobUriBuilder;
-            if (file is null)
-            {
-
-                // Specify read and write permissions for the SAS.
-                sasBuilder.SetPermissions(BlobSasPermissions.All);
-                blobUriBuilder = new BlobUriBuilder(containerClient.Uri)
-                {
-                    Sas = sasBuilder.ToSasQueryParameters(sharedKeyCred)
-                };
-            }
-            else
-            {
-                // Specify read and write permissions for the SAS.
-                sasBuilder.SetPermissions(BlobSasPermissions.Read |
-                                          BlobSasPermissions.Write);
-
-                // Get a reference to a blob named "sample-file" in a container named "sample-container"
-                BlobClient blobClient = containerClient.GetBlobClient(file.filename);
-
-                // Add the SAS token to the blob URI.
-                blobUriBuilder = new BlobUriBuilder(blobClient.Uri)
-                {
-                    Sas = sasBuilder.ToSasQueryParameters(sharedKeyCred)
-                };
-            }
-
-            return blobUriBuilder.ToUri();
+        public async Task<Uri> GenerateSasToken(string projectUploadCode, int daysValidity)
+        {
+            return await GetDelegationSasBlobUri(null, projectUploadCode, daysValidity, BlobSasPermissions.All);
         }
 
         public async Task<Uri> DownloadFile(FileMetaData file, string? projectUploadCode)
@@ -232,7 +197,7 @@ namespace Datahub.Core.Services
             {
                 if (!string.IsNullOrEmpty(projectUploadCode))
                 {
-                    return await GetUserDelegationSasBlob(file, projectUploadCode);
+                    return await GetUserDelegationSasBlob(file.filename, projectUploadCode);
                 }
 
                 var fileSystemClient = await _dataLakeClientService.GetDataLakeFileSystemClient();
@@ -517,6 +482,58 @@ namespace Datahub.Core.Services
             var directoryClient = fileSystemClient.GetDirectoryClient(folderName);
 
             return directoryClient.Exists();
+        }
+
+        const string defaultContainerName = "datahub";
+
+        static BlobSasBuilder GetBlobSasBuilder(string fileName, int days, BlobSasPermissions permissions)
+        {
+            var result = new BlobSasBuilder()
+            {
+                BlobContainerName = defaultContainerName,
+                BlobName = fileName,
+                Resource = "b",
+                StartsOn = DateTimeOffset.UtcNow,
+                ExpiresOn = DateTimeOffset.UtcNow.AddDays(days)
+            };
+
+            result.SetPermissions(permissions);
+
+            return result;
+        }
+
+        private async Task<BlobContainerClient> GetBlobContainerClient(string project)
+        {
+            var cxnstring = await _apiCallService.GetProjectConnectionString(project);
+            BlobServiceClient blobServiceClient = new BlobServiceClient(cxnstring);
+            return blobServiceClient.GetBlobContainerClient(defaultContainerName);
+        }
+
+        private async Task<Uri> GetDelegationSasBlobUri(string fileName, string projectUploadCode, int days, BlobSasPermissions permissions)
+        {
+            var project = projectUploadCode.ToLowerInvariant();
+            var containerClient = await GetBlobContainerClient(project);
+            var sasBuilder = GetBlobSasBuilder(fileName, days, permissions);
+
+            var sharedKeyCred = await _dataLakeClientService.GetSharedKeyCredential(project);
+
+            Uri uri;
+            if (!string.IsNullOrEmpty(fileName))
+            {
+                var blobClient = containerClient.GetBlobClient(fileName);
+                uri = blobClient.Uri;
+            }
+            else
+            {
+                uri = containerClient.Uri;
+            }
+
+            var blobUriBuilder = new BlobUriBuilder(uri)
+            {
+                Sas = sasBuilder.ToSasQueryParameters(sharedKeyCred)
+            };
+
+            return blobUriBuilder.ToUri();
         }
     }
 }
