@@ -600,6 +600,7 @@
     "ExpirationDate": "Expiration Date",
     "RequestingUser": "Requesting user",
     "ReturnToProject": "Return to Data Project",
+    "DataApprovers": "Data Approvers",
     "Edit_button": "Edit",
     "Save_button": "Save",
     "Save_Metadata_button": "Save Metadata",
