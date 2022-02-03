@@ -50,6 +50,10 @@ namespace Datahub.Core.EFCore
 
         public DbSet<Datahub_ProjectApiUser> Project_ApiUsers { get; set; }
 
+        public DbSet<PowerBi_Workspace> PowerBi_Workspaces { get; set; }
+        public DbSet<PowerBi_Report> PowerBi_Reports { get; set; }
+        public DbSet<PowerBi_DataSet> PowerBi_DataSets { get; set; }
+
         public void Seed(DatahubProjectDBContext context, IConfiguration configuration)
         {
             var p1 = context.Projects.Add(new Datahub_Project()
@@ -119,6 +123,22 @@ namespace Datahub.Core.EFCore
             modelBuilder.Entity<Datahub_ProjectComment>().HasOne(c => c.Project).WithMany(p => p.Comments);
 
             modelBuilder.Entity<Datahub_Project_Pipeline_Lnk>().HasKey(t => new { t.Project_ID, t.Process_Nm });
+
+            modelBuilder.Entity<PowerBi_Workspace>()
+                .HasOne<Datahub_Project>(w => w.Project)
+                .WithMany(p => p.PowerBi_Workspaces)
+                .HasForeignKey(w => w.Project_Id);
+
+            modelBuilder.Entity<PowerBi_Report>()
+                .HasOne<PowerBi_Workspace>(r => r.Workspace)
+                .WithMany(w => w.Reports)
+                .HasForeignKey(r => r.Workspace_Id);
+
+            modelBuilder.Entity<PowerBi_DataSet>()
+                .HasOne<PowerBi_Workspace>(d => d.Workspace)
+                .WithMany(w => w.Datasets)
+                .HasForeignKey(d => d.Workspace_Id);
+                
 
             //modelBuilder.Entity<Datahub_ProjectServiceRequests>().HasOne(c => c.Project).WithOne(p => p.Branch_Name);
 

@@ -230,6 +230,8 @@ namespace Datahub.Core.EFCore
 
         public List<Project_PBI_Workspace> PBI_Workspaces { get; set; }
 
+        public IList<PowerBi_Workspace> PowerBi_Workspaces { get; set; }
+
         [AeFormIgnore]
         [NotMapped]
         public string ProjectName
