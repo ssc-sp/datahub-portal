@@ -1,0 +1,48 @@
+﻿@page "/admin/powerbi"
+@page "/admin/powerbi/{ProjectAcronym}"
+
+@using global::Datahub.Portal.Services
+
+@inject PowerBiServiceApi _powerBiApi;
+
+<AeFlex Vertical>
+    <AeCard>
+        <PowerBiWorkspaceTable ProjectAcronym=@ProjectAcronym></PowerBiWorkspaceTable>
+    </AeCard>
+</AeFlex>
+
+
+<div>
+    <input type="text" @bind=@CreateWorkspaceName />
+    <AeButton OnClickEvent=@TestCreateWorkspace>Create</AeButton>
+    <div>
+        <span>Result: </span>
+        @if (Working)
+        {
+            <Spinner />
+        }
+        else
+        {
+            <span>@ApiResult</span>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string ProjectAcronym { get; set; }
+
+    private string CreateWorkspaceName { get; set; }
+    private string ApiResult { get; set; }
+    private bool Working { get; set; } = false;
+
+    private async Task TestCreateWorkspace()
+    {
+        ApiResult = await _powerBiApi.CreateAppWorkspace(CreateWorkspaceName);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        
+    }
+}
