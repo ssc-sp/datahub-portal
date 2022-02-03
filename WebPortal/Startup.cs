@@ -409,6 +409,7 @@ namespace Datahub.Portal
 
                 services.AddScoped<PowerBiServiceApi>();
                 services.AddScoped<PowerBiSyncService>();
+                services.AddScoped<IPowerBiDataService, PowerBiDataService>();
                 
             }
             else
