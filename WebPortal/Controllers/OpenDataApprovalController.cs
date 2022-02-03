@@ -59,11 +59,48 @@ namespace Datahub.Portal.Controllers
                 { "Email", form.Email_EMAIL },
                 { "Title", form.Dataset_Title_TXT },
                 { "Data", GetCheckBox("Data" == form.Type_Of_Data_TXT) },
-                { "Info", GetCheckBox("Info" == form.Type_Of_Data_TXT) }
+                { "Info", GetCheckBox("Info" == form.Type_Of_Data_TXT) },
+
+                { "Legal1", GetCheckBox(form.Copyright_Restrictions_FLAG) },
+                { "Legal2", GetCheckBox(!form.Copyright_Restrictions_FLAG) },
+
+                { "Auth1", GetCheckBox(form.Authority_To_Release_FLAG) },
+                { "Auth2", GetCheckBox(!form.Authority_To_Release_FLAG) },
+
+                { "Privacy1", GetCheckBox(form.Private_Personal_Information_FLAG) },
+                { "Privacy2", GetCheckBox(!form.Private_Personal_Information_FLAG) },
+
+                { "Access1", GetCheckBox(form.Subject_To_Exceptions_Or_Eclusions_FLAG) },
+                { "Access2", GetCheckBox(!form.Subject_To_Exceptions_Or_Eclusions_FLAG) },
+
+                { "Security1", GetCheckBox(form.Not_Clasified_Or_Protected_FLAG) },
+                { "Security2", GetCheckBox(!form.Not_Clasified_Or_Protected_FLAG) },
+
+                { "Cost1", GetCheckBox(form.Can_Be_Released_For_Free_FLAG) },
+                { "Cost2", GetCheckBox(!form.Can_Be_Released_For_Free_FLAG) },
+
+                { "FormatA1", GetCheckBox(form.Machine_Readable_FLAG) },
+                { "FormatA2", GetCheckBox(!form.Machine_Readable_FLAG) },
+
+                { "FormatB1", GetCheckBox(form.Non_Propietary_Format_FLAG) },
+                { "FormatB2", GetCheckBox(!form.Non_Propietary_Format_FLAG) },
+
+                { "FormatC1", GetCheckBox(form.Localized_Metadata_FLAG) },
+                { "FormatC2", GetCheckBox(!form.Localized_Metadata_FLAG) },
+
+                { "BlkApprov01", GetCheckBox(form.Requires_Blanket_Approval_FLAG) },
+                { "BlkApprov02", GetCheckBox(!form.Requires_Blanket_Approval_FLAG) },
+
+                { "BlkApprov1", GetCheckBox(form.Updated_On_Going_Basis_FLAG) },
+                { "BlkApprov2", GetCheckBox(form.Collection_Of_Datasets_FLAG) },
+                { "BlkApprov3", GetCheckBox(form.Approval_InSitu_FLAG) },
+                { "BlkApprov4", GetCheckBox(form.Approval_Other_FLAG) },
+
+                { "BlkApprovOther", form.Approval_Other_TXT }
             };
         }
 
-        static string GetCheckBox(bool value) => value ? "☒" : "☐";
+        static string GetCheckBox(bool value) => value ? $"☒" : $"☐";
 
         static Stream CompleteDocument(Stream inputDoc, Dictionary<string, string> content)
         {
