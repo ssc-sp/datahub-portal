@@ -30,6 +30,8 @@ namespace Datahub.Core.Services
         Task<Uri> DownloadFile(FileMetaData file, string? projectUploadCode);
         Task UploadGen2File(FileMetaData fileMetadata, string? projectUploadCode);
 
-        Task<Uri> GetUserDelegationSasBlob(FileMetaData? file, string projectUploadCode, int daysValidity = 1);
+        Task<Uri> GetUserDelegationSasBlob(string fileName, string projectUploadCode, int daysValidity = 1);
+        Task<Uri> GetDownloadAccessToSasBlob(string fileName, string projectUploadCode, int daysValidity = 1);
+        Task<Uri> GenerateSasToken(string projectUploadCode, int daysValidity);
     }    
 }

@@ -1,13 +1,12 @@
 ﻿@*MetadataEditor.razor*@
 @using Datahub.Metadata.Model
 @using Datahub.Metadata.DTO
+@using Datahub.Metadata.Utils
 
-@if (Definitions != null && FieldValues != null)
+@if (Definitions != null && FieldValues != null && Profile != null)
 {
     var translationNote = new MarkupString(Localizer["METADATA-PAGE.TranslationNote"]);
     
-    var displayFields = Preview ? Definitions.Fields : EnumerateFields(!ShowAll);
-
     <div>
         @if (!Preview)
         {
@@ -18,25 +17,40 @@
             </div>
         }
 
-        @foreach (var definition in displayFields)
+        @foreach (var s in Profile.Sections)
         {
-            // skip id & name fields (hidden fields)
-            if (!IsValidDefinition(definition))
-                continue;
-
-            var fieldValue = GetFieldValue(definition, Preview);
-            var fieldPair = _fieldPairs.BindField(definition.Field_Name_TXT, fieldValue);
-
-            if (fieldValue != null)
+            if (Profile.Sections.Count > 1)
             {
-                <MetadataFieldEditor Preview=@Preview
-                                     Required="IsFieldRequired(definition)"
-                                     FieldValue=@fieldValue
-                                     FieldDefinition=@definition
-                                     FieldLabel=@definition.Name
-                                     Subject=@_subject
-                                     FieldPair=@fieldPair
-                                     OnFieldChanged=@FieldChanged />
+                <div style="border-bottom: 1px solid #edf2f7; margin-bottom: 16px;">
+                    <AeTypography Variant="h4">@s.Name</AeTypography>
+                </div>
+            }
+
+            var sectionDefinitions = EnumerateFields(s, !ShowAll);
+            @foreach (var definition in sectionDefinitions)
+            {
+                // skip id & name fields (hidden fields)
+                if (!IsValidDefinition(definition))
+                    continue;
+
+                var fieldValue = GetFieldValue(definition, Preview);
+
+                if (fieldValue != null)
+                {
+                    var fieldPair = _fieldPairs.BindField(definition.Field_Name_TXT, fieldValue);
+                    <MetadataFieldEditor 
+                        @key=@fieldValue
+                        Preview=@Preview
+                        Required="IsFieldRequired(definition)"
+                        FieldValue=@fieldValue
+                        FieldDefinition=@definition
+                        FieldLabel=@definition.Name
+                        Subject=@_subject
+                        FieldPair=@fieldPair
+                        CascadingValue=@GetCascadingValue(definition)
+                        OnFieldChanged=@FieldChanged 
+                    />
+                }
             }
         }
 
@@ -52,10 +66,7 @@
     public FieldDefinitions Definitions { get; set; }
 
     [Parameter]
-    public HashSet<string> RequiredFields { get; set; }
-
-    [Parameter]
-    public HashSet<string> HiddenFields { get; set; }
+    public MetadataProfile Profile { get; set; }
 
     [Parameter]
     public FieldValueContainer FieldValues { get; set; }
@@ -66,7 +77,7 @@
     [Parameter]
     public EventCallback<ObjectFieldValue> OnFieldChanged { get; set; }
 
-    private HashSet<int> _modifedFieldIds = new HashSet<int>();
+    private HashSet<int> _requiredFieldIds = new(); 
 
     private int? _subjectFieldId;
     private string _subject { get; set; }
@@ -76,6 +87,7 @@
     protected override void OnInitialized()
     {
         _fieldPairs = new TranslatedFieldPairs();
+        _requiredFieldIds = Profile.GetRequiredFieldSet();
     }
 
     protected override void OnParametersSet()
@@ -86,8 +98,6 @@
 
     private async Task FieldChanged(ObjectFieldValue field)
     {
-        _modifedFieldIds.Add(field.FieldDefinitionId);
-
         if (string.IsNullOrEmpty(field.Value_TXT))
         {
             FieldValues.Remove(field);
@@ -132,6 +142,11 @@
         return field;
     }
 
+    private string GetCascadingValue(FieldDefinition definition)
+    {
+        return FieldValues.FirstOrDefault(f => f.FieldDefinitionId == definition.CascadeParentId)?.Value_TXT;
+    }
+
     private string GetSingleChoiceValue(FieldDefinition definition)
     {
         return definition.HasChoices && !definition.MultiSelect_FLAG && definition.Choices.Count == 1 
@@ -139,41 +154,30 @@
             : null;
     }
 
-    private IEnumerable<FieldDefinition> EnumerateFields(bool required)
+    private IEnumerable<FieldDefinition> EnumerateFields(MetadataSection section, bool required)
     {
-        // filter the hidden fields
-        var fields = Definitions.Fields.Where(IsNotHiddenField).ToList();
-        var selected = new HashSet<FieldDefinition>();
+        HashSet<int> requiredSet = section.GetRequiredFieldSet();
+        HashSet<int> optionalSet = section.GetNotRequiredFieldSet();
+
+        var fields = Definitions.Fields.Where(f => requiredSet.Contains(f.FieldDefinitionId)).ToList();
 
         // required fields
-        foreach (var field in fields.Where(IsFieldRequired))
+        foreach (var field in fields)
         {
-            selected.Add(field);
             yield return field;
         }
 
         // non-required but modifed fields
         if (!required)
         {
-            foreach (var field in fields.Where(f => !selected.Contains(f)))
+            foreach (var field in Definitions.Fields.Where(f => optionalSet.Contains(f.FieldDefinitionId)))
             {
                 yield return field;
             }
         }
     }
 
-    private bool IsNotHiddenField(FieldDefinition definition) => HiddenFields?.Contains(definition.Field_Name_TXT) != true; 
-
-    private bool IsFieldRequired(FieldDefinition definition)
-    {
-        var required = RequiredFields?.Contains(definition.Field_Name_TXT);
-        return required.HasValue ? required.Value : definition.Required_FLAG;
-    }
-
-    private bool IsFieldModified(FieldDefinition definition)
-    {
-        return _modifedFieldIds.Contains(definition.FieldDefinitionId) || FieldValues.Any(f => definition.FieldDefinitionId == f.FieldDefinitionId);
-    }
+    private bool IsFieldRequired(FieldDefinition definition) => _requiredFieldIds.Contains(definition.FieldDefinitionId);
 
     static bool IsValidDefinition(FieldDefinition field)
     {
