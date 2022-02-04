@@ -10,6 +10,13 @@
                  SubmitLabel="@SubmitLabel"
                  LabelForPropertyFunc="@GetDataLabel"
                  LabelsOnTop />
+    
+    @if (!_validMandatoryCheckboxes)
+    {
+        <AeTypography Variant="p" class="warning">
+            @(new MarkupString(Localizer["OPENDATA-WIZARD.MustAcknowledgeMandatoryReleaseCriteria"]))
+        </AeTypography>
+    }    
 </div>
 
 @code {
@@ -97,6 +104,20 @@
         _sectionId = GetChoiceId(_sections, _approvalForm.Section_NAME, _sectionId);
     }
 
+    private bool _validMandatoryCheckboxes = true;
+
+    private bool ValidMandatoryReleaseCriteria()
+    {
+        return _approvalForm.Copyright_Restrictions_FLAG &&
+               _approvalForm.Authority_To_Release_FLAG &&
+               _approvalForm.Private_Personal_Information_FLAG &&
+               _approvalForm.Not_Clasified_Or_Protected_FLAG &&
+               _approvalForm.Can_Be_Released_For_Free_FLAG &&
+               _approvalForm.Machine_Readable_FLAG &&
+               _approvalForm.Non_Propietary_Format_FLAG &&
+               _approvalForm.Localized_Metadata_FLAG;
+    }
+
     private int GetChoiceId(List<OrganizationLevel> choices, string value, int? parentId = null)
     {
         return choices.FirstOrDefault(c => (!parentId.HasValue || c.ParentId == parentId.Value) && (c.EnglishLabel.Equals(value) || c.FrenchLabel.Equals(value)))?.Id ?? -1;
@@ -104,8 +125,12 @@
 
     private async Task HandleValidSubmit()
     {
-        _approvalForm.ApprovalFormId = await MetadataBrokerService.SaveApprovalForm(_approvalForm);
-        await OnSubmitForm.InvokeAsync(_approvalForm.ApprovalFormId);
+        _validMandatoryCheckboxes = ValidMandatoryReleaseCriteria();
+        if (_validMandatoryCheckboxes)
+        {
+            _approvalForm.ApprovalFormId = await MetadataBrokerService.SaveApprovalForm(_approvalForm);
+            await OnSubmitForm.InvokeAsync(_approvalForm.ApprovalFormId);    
+        }
     }
 
     private async Task<Data.Forms.ShareWorkflow.ApprovalForm> ClearForm()
