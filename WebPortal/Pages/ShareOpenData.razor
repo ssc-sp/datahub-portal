@@ -68,7 +68,7 @@
                         <AeTypography Variant="p">@Localizer["OPENDATA-WIZARD.Approval_Filled_out_3"]</AeTypography>
                     </AeFlex>
                     <AeFlex>
-                        <AeButton OnClickEvent=@GenerateApprovalPDF>@Localizer["OPENDATA-WIZARD.GeneratePDF_button"]</AeButton>
+                        <AeButton OnClickEvent=@GenerateApprovalDocument>@Localizer["OPENDATA-WIZARD.GenerateDOCX_button"]</AeButton>
                         <div>&nbsp;</div>
                         <AeButton OnClickEvent=@ManuallyShowApprovalForm>@Localizer["OPENDATA-WIZARD.AmendApprovalForm_button"]</AeButton>
                     </AeFlex>
@@ -227,6 +227,8 @@
     private bool ShowPublicUrl => _currentStep == OpenDataSharingStatus.AccessOpenData;
     private bool ShowCancelPanel => _currentStep <= OpenDataSharingStatus.PendingApproval  && _isOwnRequest && !_editSavedMetadata;
     private bool ShowUploadCard => _currentStep == OpenDataSharingStatus.PendingUpload && _isOwnRequest && !_editSavedMetadata;
+    
+    private string GenerateApprovalDocumentUrl => $"/api/OpenDataApproval?id={_approvalFormId}";
 
     private bool _isOwnRequest = false;
 
@@ -241,7 +243,7 @@
     private string _uploadFileErrorMessage;
 
     private int _approvalFormId = 0;
-    private string _generateApprovalFormPdfUrl => PublicFileService.GetOpenDataApprovalFormPdfUrl(_approvalFormId);
+
     private string _signedApprovalFormUrl;
 
     private GraphUser _requestingUser;
@@ -287,11 +289,11 @@
         _editSubmittedApproval = true;
     }
 
-    private async void GenerateApprovalPDF()
+    private async void GenerateApprovalDocument()
     {
         try
         {
-            await jsRuntime.InvokeAsync<object>("open", _generateApprovalFormPdfUrl, "_blank");
+            await jsRuntime.InvokeAsync<object>("open", GenerateApprovalDocumentUrl, "_blank");
         }
         catch (Exception)
         {
