@@ -107,28 +107,28 @@ namespace Datahub.Portal.Data.Forms.ShareWorkflow
 
         /** Section: Format **/
         [AeFormIgnore]
-        [AeFormCategory("Blanket Approval")]
+        [AeFormCategory("Blanket Approvals")]
         public bool Requires_Blanket_Approval_FLAG { get; set; }
 
         /** Section: Blanket Approval **/
-        [AeFormCategory("Blanket Approval")]
+        [AeFormCategory("Blanket Approvals")]
         public bool Updated_On_Going_Basis_FLAG { get; set; }
 
         /** Section: Blanket Approval **/
-        [AeFormCategory("Blanket Approval")]
+        [AeFormCategory("Blanket Approvals")]
         public bool Collection_Of_Datasets_FLAG { get; set; }
 
         /** Section: Blanket Approval **/
-        [AeFormCategory("Blanket Approval")]
+        [AeFormCategory("Blanket Approvals")]
         public bool Approval_InSitu_FLAG { get; set; }
 
         /** Section: Blanket Approval **/
-        [AeFormCategory("Blanket Approval")]
+        [AeFormCategory("Blanket Approvals")]
         [AeFormIgnore]
         public bool Approval_Other_FLAG { get; set; }
 
         /** Section: Blanket Approval **/
-        [AeFormCategory("Blanket Approval")]
+        [AeFormCategory("Blanket Approvals")]
         public string Approval_Other_TXT { get; set; }
     }
 }

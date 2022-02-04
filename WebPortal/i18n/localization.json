@@ -578,7 +578,7 @@
     "Approval_Filled_out_2": "Save the generated approval form to GCdocs.",
     "Approval_Filled_out_3": "Paste the GCdocs file link (https://gcdocs.gc.ca/nrcan-rncan/llisapi.dll/link/XXXXXXXX) in the section below.",
     "Or": "Or",
-    "MustAcknowledgeMandatoryReleaseCriteria": "Cannot submit this form until all the <b>Mandatory Release Criteria</b> boxes have been checked."
+    "MustAcknowledgeMandatoryReleaseCriteria": "You must acknowledge and check all <b>Mandatory Release Criteria</b> boxes before submitting."
   },
 
   "PUBLIC-URL-WIZARD": {
