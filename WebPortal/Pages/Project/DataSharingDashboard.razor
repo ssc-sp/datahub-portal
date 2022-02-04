@@ -30,7 +30,6 @@
                 <AeTable
                     Accessors=@awaitingApprovalAccessors
                     Renderers=@awaitingApprovalRenderers
-                    T=@SharedDataFile
                     Dataset=@publicDataFilesAwaitingApproval
                     Headers=@awaitingApprovalHeaders
                     />
@@ -53,7 +52,6 @@
             <AeTable
                 Accessors=@usersOwnFilesAccessors
                 Renderers=@usersOwnFilesRenderers
-                T=@SharedDataFile
                 Dataset=@usersOwnSharedFiles
                 Headers=@usersOwnFilesHeaders
                 />
@@ -77,7 +75,6 @@
                 <AeTable
                     Accessors=@otherUsersFilesAccessors
                     Renderers=@otherUsersFilesRenderers
-                    T=@SharedDataFile
                     Dataset=@otherUsersSharedFiles
                     Headers=@otherUsersFilesHeaders
                     />
@@ -102,9 +99,22 @@
     public static readonly string NOTIFICATION_UPDATE_KEY = "datasharing";
     public static readonly string LOCALIZATION_PREFIX = "DATA-SHARING-DASHBOARD";
 
-    private List<SharedDataFile> publicDataFilesAwaitingApproval = new();
-    private List<SharedDataFile> usersOwnSharedFiles = new();
-    private List<SharedDataFile> otherUsersSharedFiles = new();
+    private class ExtendedSharedFileRecord
+    {
+        public SharedDataFile SharedDataFileEntity { get; set; }
+        public string UserDisplayName { get; set; }
+        public string RequestingUser_ID => SharedDataFileEntity.RequestingUser_ID;
+        public DateTime? SubmittedDate_DT => SharedDataFileEntity.SubmittedDate_DT;
+        public DateTime? ApprovedDate_DT => SharedDataFileEntity.ApprovedDate_DT;
+        public bool IsOpenDataRequest_FLAG => SharedDataFileEntity.IsOpenDataRequest_FLAG;
+        public string Filename_TXT => SharedDataFileEntity.Filename_TXT;
+        public string StatusKey => SharedDataFileEntity.GetStatusKey();
+        public DateTime? PublicationDate_DT => SharedDataFileEntity.PublicationDate_DT;
+    }
+
+    private List<ExtendedSharedFileRecord> publicDataFilesAwaitingApproval = new();
+    private List<ExtendedSharedFileRecord> usersOwnSharedFiles = new();
+    private List<ExtendedSharedFileRecord> otherUsersSharedFiles = new();
     private bool hasFilesAwaitingApproval => publicDataFilesAwaitingApproval.Count > 0;
     private bool hasOwnSharedFiles => usersOwnSharedFiles.Count > 0;
     private bool hasOtherUsersFiles => otherUsersSharedFiles.Count > 0;
@@ -116,8 +126,8 @@
     //TODO proper conditions for these
     private bool ShouldShowRequestsAwaitingApproval => isDataApprover;
     private bool ShouldShowAllSharingRequests => true;
-    
-    
+
+
     private List<string> LocalizeHeaders(List<string> headerKeys)
     {
         return headerKeys.Select(k => Localizer[$"{LOCALIZATION_PREFIX}.{k}"].ToString()).ToList();
@@ -141,13 +151,13 @@
     };
     private List<string> otherUsersFilesHeaders => LocalizeHeaders(otherUsersFilesHeaderKeys);
 
-    private List<Func<SharedDataFile, string>> awaitingApprovalAccessors = new();
-    private List<Func<SharedDataFile, string>> usersOwnFilesAccessors = new();
-    private List<Func<SharedDataFile, string>> otherUsersFilesAccessors = new();
+    private List<Func<ExtendedSharedFileRecord, string>> awaitingApprovalAccessors = new();
+    private List<Func<ExtendedSharedFileRecord, string>> usersOwnFilesAccessors = new();
+    private List<Func<ExtendedSharedFileRecord, string>> otherUsersFilesAccessors = new();
 
-    private List<Func<SharedDataFile, RenderFragment>> awaitingApprovalRenderers = new();
-    private List<Func<SharedDataFile, RenderFragment>> usersOwnFilesRenderers = new();
-    private List<Func<SharedDataFile, RenderFragment>> otherUsersFilesRenderers = new();
+    private List<Func<ExtendedSharedFileRecord, RenderFragment>> awaitingApprovalRenderers = new();
+    private List<Func<ExtendedSharedFileRecord, RenderFragment>> usersOwnFilesRenderers = new();
+    private List<Func<ExtendedSharedFileRecord, RenderFragment>> otherUsersFilesRenderers = new();
 
     private string GetSharingWorkflowUrl(SharedDataFile f)
     {
@@ -169,8 +179,13 @@
 
     private void PopupApprovalModal(SharedDataFile f)
     {
-        UI.ToggleRightSidebar(
-    @<ApprovePublicUrlShareRequestModal SharedFile=@f />);
+        UI.ToggleRightSidebar(@<ApprovePublicUrlShareRequestModal SharedFile=@f />);
+    }
+
+    private async Task<Dictionary<string, string>> GetUserDisplayNames(IEnumerable<string> userIds)
+    {
+        var userInfos = await Task.WhenAll(userIds.Select(async id => await GraphService.GetUserAsync(id, default)));
+        return userInfos.ToDictionary(u => u.Id, u => u.DisplayName);
     }
 
     private async Task LoadSharingRequests()
@@ -179,11 +194,22 @@
         var loadCurrentUserIdTask = UserService.GetUserIdString();
 
         var allSharedFilesForProject = await loadAllSharedFilesForProjectTask;
+
+        var allUserIds = allSharedFilesForProject.Select(f => f.RequestingUser_ID).ToHashSet();
+        var userNamesDict = await GetUserDisplayNames(allUserIds);
+
         currentUserId = await loadCurrentUserIdTask;
 
-        usersOwnSharedFiles = allSharedFilesForProject.Where(f => f.RequestingUser_ID == currentUserId).ToList();
-        otherUsersSharedFiles = allSharedFilesForProject.Except(usersOwnSharedFiles).ToList();
-        publicDataFilesAwaitingApproval = allSharedFilesForProject
+        var allExtendedSharedFileRecords = allSharedFilesForProject
+            .Select(f => new ExtendedSharedFileRecord() { SharedDataFileEntity = f, UserDisplayName = userNamesDict[f.RequestingUser_ID] })
+            .ToList();
+
+        usersOwnSharedFiles = allExtendedSharedFileRecords
+            .Where(f => f.RequestingUser_ID == currentUserId)
+            .ToList();
+        otherUsersSharedFiles = allExtendedSharedFileRecords
+            .Except(usersOwnSharedFiles).ToList();
+        publicDataFilesAwaitingApproval = allExtendedSharedFileRecords
             .Where(f => f.SubmittedDate_DT.HasValue 
                 && f.SubmittedDate_DT <= DateTime.UtcNow 
                 && !f.ApprovedDate_DT.HasValue
@@ -198,50 +224,50 @@
 
         NotifierService.Notify += OnNotify;
 
-        awaitingApprovalAccessors = new List<Func<SharedDataFile, string>>()
+        awaitingApprovalAccessors = new List<Func<ExtendedSharedFileRecord, string>>()
         {
             f => f.Filename_TXT,
-            null,
+            f => f.UserDisplayName,
             f => f.SubmittedDate_DT?.ToShortDateString() ?? "--"
         };
 
-        usersOwnFilesAccessors = new List<Func<SharedDataFile, string>>()
+        usersOwnFilesAccessors = new List<Func<ExtendedSharedFileRecord, string>>()
         {
             f => f.Filename_TXT,
             f => f.SubmittedDate_DT?.ToShortDateString() ?? "--",
             f => f.IsOpenDataRequest_FLAG? Localizer[$"{LOCALIZATION_PREFIX}.OpenData"]: Localizer[$"{LOCALIZATION_PREFIX}.PublicUrl"],
-            f => Localizer[f.GetStatusKey()],
+            f => Localizer[f.StatusKey],
             f => f.PublicationDate_DT?.ToShortDateString() ?? "--"
         };
 
-        otherUsersFilesAccessors = new List<Func<SharedDataFile, string>>()
+        otherUsersFilesAccessors = new List<Func<ExtendedSharedFileRecord, string>>()
         {
             f => f.Filename_TXT,
-            null,
+            f => f.UserDisplayName,
             f => f.IsOpenDataRequest_FLAG? Localizer[$"{LOCALIZATION_PREFIX}.OpenData"]: Localizer[$"{LOCALIZATION_PREFIX}.PublicUrl"],
-            f => Localizer[f.GetStatusKey()]
+            f => Localizer[f.StatusKey]
         };
 
-        awaitingApprovalRenderers = new List<Func<SharedDataFile, RenderFragment>>()
+        awaitingApprovalRenderers = new List<Func<ExtendedSharedFileRecord, RenderFragment>>()
         {
-            f => @<a href="#" @onclick="() => PopupApprovalModal(f)" @onclick:preventDefault="true">@f.Filename_TXT</a>,
-            f => @<div class="help icon-container"><GraphUserInformation UserId=@f.RequestingUser_ID IsUserNameRequested="true"></GraphUserInformation> </div>,
-            null
-        };
-
-        usersOwnFilesRenderers = new List<Func<SharedDataFile, RenderFragment>>()
-        {
-            f => @<a href=@GetSharingWorkflowUrl(f)>@f.Filename_TXT</a>,
-            null,
-            null,
+            f => @<a href="#" @onclick="() => PopupApprovalModal(f.SharedDataFileEntity)" @onclick:preventDefault="true">@f.Filename_TXT</a>,
             null,
             null
         };
 
-        otherUsersFilesRenderers = new List<Func<SharedDataFile, RenderFragment>>()
+        usersOwnFilesRenderers = new List<Func<ExtendedSharedFileRecord, RenderFragment>>()
         {
-            f => @<a href=@GetSharingWorkflowUrl(f)>@f.Filename_TXT</a>,
-            f => @<div class="help icon-container"><GraphUserInformation UserId=@f.RequestingUser_ID IsUserNameRequested="true"></GraphUserInformation> </div>,    
+            f => @<a href=@GetSharingWorkflowUrl(f.SharedDataFileEntity)>@f.Filename_TXT</a>,
+            null,
+            null,
+            null,
+            null
+        };
+
+        otherUsersFilesRenderers = new List<Func<ExtendedSharedFileRecord, RenderFragment>>()
+        {
+            f => @<a href=@GetSharingWorkflowUrl(f.SharedDataFileEntity)>@f.Filename_TXT</a>,
+            null,
             null,
             null
         };
