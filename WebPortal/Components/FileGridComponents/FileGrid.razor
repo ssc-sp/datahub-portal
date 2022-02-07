@@ -60,34 +60,45 @@ else
                       CurrentUser="@CurrentUserId"
                       ShowingStorage=@_showStorageDetails
                       Project="@Project" />
+
+                <AeSearchInput 
+                    id="search"
+                    SearchIconFAClass="fas fa-filter"
+                    OnInputChangeWithLastKey=@HandleSearch 
+                    style="margin-right: auto;"
+                />
             </div>
 
             <FileGridHeader IsSharedFiles=@CurrentFolder.isShared SortAscending=@CurrentFolder.sortAscending ToggleSort="ToggleSort" IsSearchedData="IsSearchResults" />
             <div class=@FileGridClass>
                 @foreach (var child in GetCurrentFolderChildren())
                 {
-                    var isSelected = child.id == selectedMetaData?.id;
+                    var isSelected = !string.IsNullOrEmpty(child.id) && child.id == selectedMetaData?.id;
                     if (child.dataType == MetadataType.Folder)
                     {
-                        <FileGridFolder Folder=@(child as Folder)
-                        IsSelected=@isSelected
-                        OnEllipsisClick="(e) => OnEllipsisClick(child as Folder, e)"
-                        SelectRow="() => SelectRow(child)"
-                        RemoveFolderFromList="RemoveFolderFromList"
-                        GetFilesForFolder="() => GetChildFolder(child as Folder)"
-                        PerformMenuAction="(MenuActions m) => PerformMenuAction(m, child)"
-                        CurrentUser="@CurrentUserId" />
+                        <FileGridFolder 
+                            Folder=@(child as Folder)
+                            IsSelected=@isSelected
+                            OnEllipsisClick="(e) => OnEllipsisClick(child as Folder, e)"
+                            SelectRow="() => SelectRow(child)"
+                            RemoveFolderFromList="RemoveFolderFromList"
+                            GetFilesForFolder="() => GetChildFolder(child as Folder)"
+                            PerformMenuAction="(MenuActions m) => PerformMenuAction(m, child)"
+                            CurrentUser="@CurrentUserId" 
+                        />
                     }
                     else
                     {
-                        <FileGridFiles File=@(child as FileMetaData)
-                       IsSelected=@isSelected
-                       OnEllipsisClick="(e) => OnEllipsisClick(child as FileMetaData, e)"
-                       SelectRow="() => SelectRow(child)"
-                       PerformMenuAction="(MenuActions m) => PerformMenuAction(m, child)"
-                       IsSearchedData="IsSearchResults"
-                       CurrentUser="@CurrentUserId"
-                       Project="@Project" />
+                        <FileGridFiles 
+                            File=@(child as FileMetaData)
+                            IsSelected=@isSelected
+                            OnEllipsisClick="(e) => OnEllipsisClick(child as FileMetaData, e)"
+                            SelectRow="() => SelectRow(child)"
+                            PerformMenuAction="(MenuActions m) => PerformMenuAction(m, child)"
+                            IsSearchedData="IsSearchResults"
+                            CurrentUser="@CurrentUserId"
+                            Project="@Project" 
+                        />
                     }
                 }
             </div>
@@ -137,6 +148,10 @@ else
 
     private bool _showStorageDetails = false;
 
+    private string _lastSearch;
+    private QueryThrottler<string> _searchThrottler;
+    private List<BaseMetadata> _searchResults = new();
+
     private List<string> allFolders = new List<string>();
 
     private string CurrentUserId => CurrentUser?.Id ?? string.Empty;
@@ -168,6 +183,8 @@ else
         // If we get displayed on return from file upload, don't refresh from datalake
         await LoadFileList();
 
+        _searchThrottler = new(TimeSpan.FromSeconds(0.5), ThrottleSearch);
+
         StateHasChanged();
     }
 
@@ -194,6 +211,7 @@ else
         }
 
     }
+
     protected override void OnInitialized()
     {
         NotifierService.Notify += OnNotify;
@@ -214,6 +232,7 @@ else
         await LoadFileList();
         UnSelectFiles();
     }
+
     public async Task OnNotify(string key, bool reloadData)
     {
         if (key == "filegrid")
@@ -443,6 +462,8 @@ else
         // Get our list of files!
         CurrentFolder = await DataRetrievalService.GetFolderContents(CurrentFolder, SearchText, CurrentUser, Project.ToLower());
 
+        ResetSearch();
+
         if (!string.IsNullOrEmpty(Project))
         {
             CurrentFolder.name = Project;
@@ -548,7 +569,7 @@ else
 
     private IEnumerable<BaseMetadata> GetCurrentFolderChildren()
     {
-        return CurrentFolder.children.Select(MakeCompareKey).OrderBy(c => c.Key).Select(c => c.Item);
+        return _searchResults.Select(MakeCompareKey).OrderBy(c => c.Key).Select(c => c.Item);
     }
 
     private FolderItemCompareKey MakeCompareKey(BaseMetadata item)
@@ -558,4 +579,34 @@ else
     }
 
     record FolderItemCompareKey(string Key, BaseMetadata Item);
+
+    private async void HandleSearch(string newValue, KeyboardEventArgs ev)
+    {
+        await _searchThrottler.SetQuery(newValue);
+    }
+
+    private void ResetSearch()
+    {
+        _lastSearch = null;
+        _searchResults = new(CurrentFolder.children);
+    }
+
+    private async Task ThrottleSearch(string searchText)
+    {
+        if (_lastSearch != searchText)
+        {
+            _searchResults.Clear();
+            _lastSearch = searchText;
+            try
+            {
+                var all = string.IsNullOrEmpty(searchText);
+                _searchResults = new(CurrentFolder.children.Where(c => all || c.name.Contains(searchText, StringComparison.InvariantCultureIgnoreCase)));
+                selectedMetaData = null; 
+            }
+            finally
+            {
+                await InvokeAsync(StateHasChanged);
+            }
+        }            
+    }
 }
