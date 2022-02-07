@@ -1,0 +1,107 @@
+﻿<style>
+    .success-indicator {
+        display: inline-block;
+        margin: 0.2rem 0.5rem;
+    }
+
+    .success-indicator.hidden {
+        visibility: hidden;
+        opacity: 0;
+        transition: visibility 0s 1s, opacity 1s linear;
+    }
+
+    .success-indicator.visible {
+        visibility: visible;
+        opacity: 1;
+    }
+
+    .success-indicator .bubble {
+        padding: 0.2rem 0.5rem;
+        border-radius: 0.5rem;
+    }
+
+    .success-indicator .success {
+        color: green;
+        background-color: lightgreen;
+    }
+
+    .success-indicator .failure {
+        color: red;
+        background-color: pink;
+    }
+</style>
+
+<div class=@ContainerClass>
+    @if (IsLoading)
+    {
+        <Spinner Small />
+    }
+    else if (IsSuccess)
+    {
+        <div class="success bubble">
+            <i class="fad fa-check-circle"></i>
+            @SuccessText
+        </div>
+    }
+    else if (IsFailure)
+    {
+        <div class="failure bubble">
+            <i class="fad fa-times-circle"></i>
+            @FailureText
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public bool IsLoading { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> IsLoadingChanged { get; set; }
+
+    [Parameter]
+    public int SuccessFadeSeconds { get; set; } = 3;
+
+    [Parameter]
+    public int FailureFadeSeconds { get; set; } = 10;
+
+    [Parameter]
+    public string SuccessMessage { get; set; }
+
+    [Parameter]
+    public string FailureMessage { get; set; }
+
+    private string SuccessText => SuccessMessage ?? Localizer["COMMON.Success"];
+    private string FailureText => FailureMessage ?? Localizer["COMMON.Failure"];
+
+    private enum SuccessIndicatorStatus
+    {
+        Success,
+        Failure
+    }
+
+    private SuccessIndicatorStatus CurrentStatus { get; set; } = SuccessIndicatorStatus.Success;
+
+    private bool IsSuccess => CurrentStatus == SuccessIndicatorStatus.Success;
+    private bool IsFailure => CurrentStatus == SuccessIndicatorStatus.Failure;
+
+    private bool IsVisible { get; set; } = false;
+
+    private string HiddenCssClass => IsVisible || IsLoading ? "visible" : "hidden";
+    private string ContainerClass => $"success-indicator {HiddenCssClass}";
+
+    private async Task SignalStatus(bool success)
+    {
+        IsVisible = true;
+        await IsLoadingChanged.InvokeAsync(false);
+        CurrentStatus = success ? SuccessIndicatorStatus.Success : SuccessIndicatorStatus.Failure;
+        StateHasChanged();
+        var timeoutMs = 1000 * (success ? SuccessFadeSeconds : FailureFadeSeconds);
+        await Task.Delay(timeoutMs);
+        IsVisible = false;
+    }
+
+    public async Task SignalSuccess() => await SignalStatus(true);
+    public async Task SignalFailure() => await SignalStatus(false);
+
+}
