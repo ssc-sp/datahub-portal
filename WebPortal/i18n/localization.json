@@ -41,7 +41,9 @@
   },
   "COMMON": {
     "Yes": "Yes",
-    "No": "No"
+    "No": "No",
+    "Success": "Success",
+    "Failure": "Failure"
   },
   "ERROR-PAGE": {
     "Title": "Error has occured",
