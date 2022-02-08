@@ -98,7 +98,7 @@ namespace Datahub.Portal.Data
         public bool Business_Owner_Approval { get; set; }
         
         [AeFormCategory("Application Status", 90)]
-        [AeLabel(isDropDown: true, placeholder: "Select status of application:", validValues: new[] { "Team Requested", "Submitted to Assyst", "Team Created" })]
+        [AeLabel(isDropDown: true, placeholder: "Select status of application:", validValues: new[] { "Team Requested", "Submitted to Assyst", "Request Pending", "Team Created", "Request Denied" })]
         public string? M365FormStatus { get; set; }
 
         [AeFormCategory("Application Status", 90)]
