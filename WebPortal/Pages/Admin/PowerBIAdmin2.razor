@@ -1,48 +1,117 @@
 ﻿@page "/admin/powerbi"
 @page "/admin/powerbi/{ProjectAcronym}"
 
+@using global::Datahub.Core.Services
+@using global::Datahub.Portal.Data
 @using global::Datahub.Portal.Services
 
-@inject PowerBiServiceApi _powerBiApi;
-
-<AeFlex Vertical>
-    <AeCard>
-        <PowerBiWorkspaceTable ProjectAcronym=@ProjectAcronym></PowerBiWorkspaceTable>
-    </AeCard>
-</AeFlex>
+@inject IPowerBiDataService _powerBiDataService
+@inject PowerBiServiceApi _powerBiServiceApi
+@inject Microsoft.Identity.Web.MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
 
 
-<div>
-    <input type="text" @bind=@CreateWorkspaceName />
-    <AeButton OnClickEvent=@TestCreateWorkspace>Create</AeButton>
-    <div>
-        <span>Result: </span>
-        @if (Working)
-        {
-            <Spinner />
-        }
-        else
-        {
-            <span>@ApiResult</span>
-        }
-    </div>
+<div style="padding-left: 2rem;padding-right: 2rem">
+
+    <AeTypography Variant="h1">PowerBI Administration</AeTypography>
+
+    <AeFlex Vertical>
+        <AeCard>
+            <Header>
+                <AeTypography Variant="h3">Workspaces</AeTypography>
+            </Header>
+            <ChildContent>
+                @if (IsLoadingWorkspaces)
+                {
+                    <Spinner />
+                }
+                else
+                {
+                    <PowerBiWorkspaceTable ProjectAcronym=@ProjectAcronym Workspaces=@Workspaces></PowerBiWorkspaceTable>
+                    <div>
+                        <AeButton OnClickEvent=@UpdateWorkspaces Disabled=@UpdateWorkspacesDisabled>Update</AeButton>
+                        @*TODO: add success indicator*@
+                        @if (IsWorking)
+                        {
+                            <Spinner Small />
+                        }
+                    </div>
+                }
+            </ChildContent>
+        </AeCard>
+    </AeFlex>
+
+
+    @*<div>
+        <AeButton OnClickEvent=@WorkspacesUpdated>Ding</AeButton>
+    </div>*@
+
 </div>
 
 @code {
     [Parameter]
     public string ProjectAcronym { get; set; }
 
-    private string CreateWorkspaceName { get; set; }
-    private string ApiResult { get; set; }
-    private bool Working { get; set; } = false;
+    private List<PowerBiAdminWorkspaceItem> Workspaces { get; set; } = new();
+    private List<PowerBiAdminWorkspaceItem> ChangedWorkspaces => Workspaces.Where(w => w.IsChanged).ToList();
+    private bool HasChangedWorkspaces => ChangedWorkspaces.Count > 0;
 
-    private async Task TestCreateWorkspace()
+    private bool IsLoadingWorkspaces { get; set; } = false;
+    private bool IsUpdatingWorkspaces { get; set; } = false;
+
+    private bool IsWorking => IsLoadingWorkspaces || IsUpdatingWorkspaces;
+
+    private bool UpdateWorkspacesDisabled => /*!HasChangedWorkspaces ||*/ IsWorking;
+
+    private async Task UpdateWorkspaces()
     {
-        ApiResult = await _powerBiApi.CreateAppWorkspace(CreateWorkspaceName);
+        if (HasChangedWorkspaces)
+        {
+            IsUpdatingWorkspaces = true;
+            StateHasChanged();
+            var updatedDefinitions = ChangedWorkspaces.Select(w => w.Definition);
+            var success = await _powerBiDataService.AddOrUpdateCataloguedWorkspaces(updatedDefinitions);
+            await ReloadWorkspaces();
+            IsUpdatingWorkspaces = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task<List<PowerBiAdminWorkspaceItem>> LoadWorkspaces()
+    {
+        var pbiWorkspaces = await _powerBiServiceApi.GetWorkspaces();
+        var dbWorkspacesList = await _powerBiDataService.GetAllWorkspaces();
+        var dbWorkspacesDict = dbWorkspacesList.ToDictionary(w => w.Workspace_ID);
+
+        var results = pbiWorkspaces
+            .Select(w =>
+            {
+                var dbWorkspace = dbWorkspacesDict.GetValueOrDefault(w.Id);
+                return new PowerBiAdminWorkspaceItem(w, dbWorkspace);
+            })
+            .ToList();
+
+        return results;
+    }
+
+    private async Task WorkspacesUpdated() => await InvokeAsync(StateHasChanged);
+
+    private async Task ReloadWorkspaces()
+    {
+        Workspaces = await LoadWorkspaces();
+        StateHasChanged();
     }
 
     protected override async Task OnInitializedAsync()
     {
-        
+        try
+        {
+            IsLoadingWorkspaces = true;
+            await ReloadWorkspaces();
+            IsLoadingWorkspaces = false;
+        }
+        catch (Exception ex)
+        {
+            _consentHandler.HandleException(ex);
+        }
     }
 }

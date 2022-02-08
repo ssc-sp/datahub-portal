@@ -9,7 +9,7 @@
 
 @inject IDbContextFactory<DatahubProjectDBContext> _contextFactory;
 
-@if (Workspaces != null)
+@if (Workspaces != null && Workspaces.Count > 0)
 {
     <AeFlex Vertical> 
         <AePaginatedTable 
@@ -37,9 +37,15 @@
     [Parameter]
     public int PageSize { get; set; } = 10;
 
-    private List<Datahub_Project> AllProjects { get; set; }
+    [Parameter]
+    public List<PowerBiAdminWorkspaceItem> Workspaces { get; set; }
 
-    private List<PowerBiAdminWorkspaceItem> Workspaces { get; set; }
+    [Parameter]
+    public EventCallback OnUpdated { get; set; }
+
+    private Timer _updateTimer;
+
+    private List<Datahub_Project> AllProjects { get; set; }
 
     private IPageableComponent WorkspaceTablePageable { get; set; }
     private int WorkspaceTableCurrentPage = 0;
@@ -49,14 +55,14 @@
         w => w.WorkspaceName,
         w => w.ProjectName ?? string.Empty,
         w => w.SandboxFlag.ToString(),
-        w => w.IsCatalogued.ToString()
+        w => w.IsChanged.ToString()
     };
 
     private List<Func<PowerBiAdminWorkspaceItem, RenderFragment>> WorkspaceTableRenderers;
 
     private List<string> WorkspaceTableHeaderKeys = new()
     {
-        "Workspace", "Project", "Sandbox", "Catalogued"
+        "Workspace", "Project", "Sandbox", "Add/Update"
     };
 
     private List<string> LocalizeHeaders(List<string> input) => input.Select(s => Localizer[s].ToString()).ToList();
@@ -66,93 +72,47 @@
         WorkspaceTableCurrentPage = pageIndex;
     }
 
-    private async Task<List<PowerBiAdminWorkspaceItem>> LoadWorkspaces()
-    {
-        var pbiWorkspaces = await _powerBiServiceApi.GetWorkspaces();
-        var dbWorkspacesList = await _powerBiDataService.GetAllWorkspaces();
-        var dbWorkspacesDict = dbWorkspacesList.ToDictionary(w => w.Workspace_ID);
-
-        var results = pbiWorkspaces
-            .Select(w =>
-            {
-                var dbWorkspace = dbWorkspacesDict.GetValueOrDefault(w.Id);
-                return new PowerBiAdminWorkspaceItem()
-                    {
-                        WorkspaceId = w.Id,
-                        WorkspaceName = w.Name,
-                        WorkspaceFromDb = dbWorkspace,
-                        SandboxFlag = dbWorkspace?.Sandbox_Flag ?? false,
-                        ProjectId = dbWorkspace?.Project?.Project_ID
-                    };
-            })
-            .ToList();
-
-        return results;
-    }
-
-    private async Task ReloadWorkspaces()
-    {
-        Workspaces = await LoadWorkspaces();
-        StateHasChanged();
-    }
-
-    private RenderFragment ProjectDropdownRenderFragment(PowerBiAdminWorkspaceItem w) => @<select @bind=@w.ProjectIdDropdown>
-        <option value=-1>@Localizer["(none)"]</option>
+    private RenderFragment ProjectDropdownRenderFragment(PowerBiAdminWorkspaceItem w) => 
+    @<select @bind=@w.ProjectId>
+        <option value=-1>--</option>
         @foreach (var p in AllProjects)
-            {
-                <option value=@p.Project_ID>@p.ProjectName</option>
-            }
-        </select>;
+        {
+            <option value=@p.Project_ID>@p.ProjectName</option>
+        }
+    </select>;
     
 
     private RenderFragment SandboxFlagRenderFragment(PowerBiAdminWorkspaceItem w) =>  @<input type="checkbox" @bind=@w.SandboxFlag />;
 
-    private RenderFragment CatalogueIndicatorRenderFragment(PowerBiAdminWorkspaceItem w)
-    {
-        RenderFragment yesFragment = @<div>@Localizer["Yes"] <AeButton OnClickEvent=@(() => UpdateCataloguedWorkspace(w))>@Localizer["Update"]</AeButton></div>;
-        RenderFragment noFragment = @<div>@Localizer["No"] <AeButton OnClickEvent=@(() => AddCataloguedWorkspace(w))>@Localizer["Add"]</AeButton></div>;
-
-        return w.IsCatalogued ? yesFragment : noFragment;
-    }
+    private RenderFragment CatalogueIndicatorRenderFragment(PowerBiAdminWorkspaceItem w) => @<input type="checkbox" @bind=@w.IsChanged />;
 
     private async Task SetupRenderers()
     {
         using var ctx = await _contextFactory.CreateDbContextAsync();
 
-        AllProjects = await ctx.Projects.ToListAsync();
+        AllProjects = (await ctx.Projects.ToListAsync())
+            .Where(p => !string.IsNullOrWhiteSpace(p.ProjectName))
+            .OrderBy(p => p.ProjectName)
+            .ToList();
 
         WorkspaceTableRenderers = new()
-            {
-                null,
-                ProjectDropdownRenderFragment,
-                SandboxFlagRenderFragment,
-                CatalogueIndicatorRenderFragment
-            };
+        {
+            null,
+            ProjectDropdownRenderFragment,
+            SandboxFlagRenderFragment,
+            CatalogueIndicatorRenderFragment
+        };
     }
 
-    private async Task AddCataloguedWorkspace(PowerBiAdminWorkspaceItem workspace)
-    {
-        await _powerBiDataService.AddCataloguedWorkspace(workspace.WorkspaceId, workspace.WorkspaceName, workspace.SandboxFlag, workspace.ProjectId);
-        await ReloadWorkspaces();
-    }
-
-    private async Task UpdateCataloguedWorkspace(PowerBiAdminWorkspaceItem workspace)
-    {
-        await _powerBiDataService.UpdateCataloguedWorkspace(workspace.WorkspaceId, workspace.WorkspaceName, workspace.SandboxFlag, workspace.ProjectId);
-        await ReloadWorkspaces();
-    }
+    //protected override async Task OnAfterRenderAsync(bool firstRender)
+    //{
+    //    if (OnUpdated.HasDelegate) { await OnUpdated.InvokeAsync(); }
+    //    await base.OnAfterRenderAsync(firstRender);
+    //}
 
     protected override async Task OnInitializedAsync()
     {
-        try
-        {
-            await ReloadWorkspaces();
-            await SetupRenderers();
-        }
-        catch (Exception ex)
-        {
-            _consentHandler.HandleException(ex);
-        }
+        await SetupRenderers();
     }
 
 }
