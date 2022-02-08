@@ -27,6 +27,7 @@ namespace Datahub.Core.Data
         public IList<(Delegate Label, Delegate Choices)> FilterProperties { get; set; }
 
         public bool IsSubmitEnabled { get; set; }
+        public string SaveButtonText { get; set; } = "Save";
 
         public string TableRoles { get; set; }
         public bool IsLoaded()
