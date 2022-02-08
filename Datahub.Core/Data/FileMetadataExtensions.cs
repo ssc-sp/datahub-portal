@@ -27,7 +27,11 @@ namespace Datahub.Core.Data
                             {
                                 if (info.PropertyType == typeof(DateTime))
                                 {
-                                    info.SetValue(fileMetadata, DateTime.Parse(value));
+                                    // note: there is a chance the date is not valid, find out why?
+                                    if (DateTime.TryParse(value, out DateTime dt))
+                                    {
+                                        info.SetValue(fileMetadata, dt);
+                                    }
                                 }
                                 else if (propertyName == "customfields")
                                 {
