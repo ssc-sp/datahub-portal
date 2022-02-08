@@ -1,37 +1,4 @@
-﻿<style>
-    .success-indicator {
-        display: inline-block;
-        margin: 0.2rem 0.5rem;
-    }
-
-    .success-indicator.hidden {
-        visibility: hidden;
-        opacity: 0;
-        transition: visibility 0s 1s, opacity 1s linear;
-    }
-
-    .success-indicator.visible {
-        visibility: visible;
-        opacity: 1;
-    }
-
-    .success-indicator .bubble {
-        padding: 0.2rem 0.5rem;
-        border-radius: 0.5rem;
-    }
-
-    .success-indicator .success {
-        color: green;
-        background-color: lightgreen;
-    }
-
-    .success-indicator .failure {
-        color: red;
-        background-color: pink;
-    }
-</style>
-
-<div class=@ContainerClass>
+﻿<div class=@ContainerClass>
     @if (IsLoading)
     {
         <Spinner Small />
@@ -93,12 +60,18 @@
     private async Task SignalStatus(bool success)
     {
         IsVisible = true;
-        await IsLoadingChanged.InvokeAsync(false);
+
+        if (IsLoadingChanged.HasDelegate)
+        {
+            await IsLoadingChanged.InvokeAsync(false);
+        }
+
         CurrentStatus = success ? SuccessIndicatorStatus.Success : SuccessIndicatorStatus.Failure;
         StateHasChanged();
         var timeoutMs = 1000 * (success ? SuccessFadeSeconds : FailureFadeSeconds);
         await Task.Delay(timeoutMs);
         IsVisible = false;
+        StateHasChanged();
     }
 
     public async Task SignalSuccess() => await SignalStatus(true);
