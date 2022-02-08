@@ -95,10 +95,16 @@ namespace Datahub.Portal.Data.LanguageTraining
         
         public string SLE_Results_Writing { get; set; }
         [AeFormCategory("Language Assessment", 20)]
-        [AeLabel(isDropDown: true)]
-        
+        [AeLabel(isDropDown: true)]        
         public string SLE_Results_Oral { get; set; }
-        
+
+
+        [AeFormCategory("Language Training Application", 30)]
+        [AeLabel(isDropDown: true)]
+        [MaxLength(100)]
+        [Required]
+        public string LanguageClass { get; set; }
+
         [AeFormCategory("Language Training Application", 30)]
         [AeLabel(isDropDown: true)]
         [Required]
