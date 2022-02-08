@@ -1,4 +1,5 @@
-﻿@using Datahub.Metadata.Model
+﻿@using Datahub.Metadata.DTO
+@using Datahub.Metadata.Model
 @using Datahub.Core.Utils
 @implements IDisposable
 
@@ -115,10 +116,10 @@
 
     private IEnumerable<string> ParseKeywords(string keywords)
     {
-        return (keywords ?? "").Split(',').Where(v => !string.IsNullOrWhiteSpace(v));
+        return (keywords ?? "").Split(',').Where(v => !string.IsNullOrWhiteSpace(v)).Select(k => k.Trim());
     }
 
-    private string JoinKeywords(IEnumerable<string> keywords) => string.Join(",", keywords);
+    private string JoinKeywords(IEnumerable<string> keywords) => string.Join(", ", keywords);
 
     private async Task UpdateSubjectKeywords()
     {
