@@ -41,7 +41,9 @@
   },
   "COMMON": {
     "Yes": "Yes",
-    "No": "No"
+    "No": "No",
+    "Success": "Success",
+    "Failure": "Failure"
   },
   "ERROR-PAGE": {
     "Title": "Error has occured",
@@ -555,6 +557,7 @@
     "GenerateDOCX_button": "Download Approval Document",
     "AmendApprovalForm_button": "Amend Approval Form",
     "Continue_button": "Continue",
+    "ReturnToProject": "Return to Data Project",
     "AcceptMetadata": "Accept Metadata As-is",
     "PublicationDate": "Publication Date",
     "PublicUrl": "Public URL",
@@ -599,6 +602,8 @@
     "EnableTempSharing": "Enable temporary sharing",
     "ExpirationDate": "Expiration Date",
     "RequestingUser": "Requesting user",
+    "ReturnToProject": "Return to Data Project",
+    "DataApprovers": "Data Approvers",
     "Edit_button": "Edit",
     "Save_button": "Save",
     "Save_Metadata_button": "Save Metadata",

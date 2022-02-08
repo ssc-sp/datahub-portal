@@ -169,6 +169,12 @@
             </AeCard>
         }
 
+        <div>&nbsp;</div>
+
+        <div>
+            <DHLink DataProject=@_projectCode>@Localizer[$"{LOCALIZATION_PREFIX}.ReturnToProject"]</DHLink>
+        </div>
+
     </AeFlex>
 
     <div id="stepsDiv" style="width: 50%;">
@@ -196,6 +202,7 @@
 <div>&nbsp;</div>
 
 @code {
+    private static readonly string LOCALIZATION_PREFIX = "OPENDATA-WIZARD";
 
     [Parameter]
     public string FileId { get; set; }
@@ -248,6 +255,7 @@
 
     private GraphUser _requestingUser;
     private string _requestFilename;
+    private string _projectCode;
 
     private string _datasetTitle;
 
@@ -517,6 +525,7 @@
             _requestingUser = await GraphService.GetUserAsync(sharedFileInfo.RequestingUser_ID, CancellationToken.None);
             var currentUser = await currentUserTask;
             _isOwnRequest = currentUser.Id == _requestingUser.Id;
+            _projectCode = sharedFileInfo.ProjectCode_CD;
 
             UpdateShareFileStatus(sharedFileInfo);
         }
