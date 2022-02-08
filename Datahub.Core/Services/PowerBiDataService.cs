@@ -11,8 +11,8 @@ namespace Datahub.Core.Services
 {
     public class PowerBiDataService : IPowerBiDataService
     {
-        private IDbContextFactory<DatahubProjectDBContext> _contextFactory;
-        private ILogger<PowerBiDataService> _logger;
+        private readonly IDbContextFactory<DatahubProjectDBContext> _contextFactory;
+        private readonly ILogger<PowerBiDataService> _logger;
 
         public PowerBiDataService(
             IDbContextFactory<DatahubProjectDBContext> contextFactory,
@@ -29,7 +29,7 @@ namespace Datahub.Core.Services
             return results;
         }
 
-        public async Task AddOrUpdateCataloguedWorkspaces(IEnumerable<PowerBi_WorkspaceDefinition> workspaceDefinitions)
+        public async Task<bool> AddOrUpdateCataloguedWorkspaces(IEnumerable<PowerBi_WorkspaceDefinition> workspaceDefinitions)
         {
             using var ctx = await _contextFactory.CreateDbContextAsync();
 
@@ -59,37 +59,15 @@ namespace Datahub.Core.Services
                     workspace.Project_Id = def.ProjectId;
                 }
             }
-
-            await ctx.SaveChangesAsync();
-        }
-
-        public async Task AddCataloguedWorkspace(Guid workspaceId, string workspaceName, bool sandboxFlag, int? projectId)
-        {
-            var workspace = new PowerBi_Workspace()
+            try
             {
-                Workspace_ID = workspaceId,
-                Project_Id = projectId,
-                Sandbox_Flag = sandboxFlag,
-                Workspace_Name = workspaceName
-            };
-
-            using var ctx = await _contextFactory.CreateDbContextAsync();
-            ctx.PowerBi_Workspaces.Add(workspace);
-            await ctx.SaveChangesAsync();
-        }
-
-        public async Task UpdateCataloguedWorkspace(Guid workspaceId, string workspaceName, bool sandboxFlag, int? projectId)
-        {
-            using var ctx = await _contextFactory.CreateDbContextAsync();
-
-            var existingWorkspace = await ctx.PowerBi_Workspaces.FirstOrDefaultAsync(w => w.Workspace_ID == workspaceId);
-            if (existingWorkspace != null)
-            {
-                existingWorkspace.Workspace_Name = workspaceName;
-                existingWorkspace.Sandbox_Flag = sandboxFlag;
-                existingWorkspace.Project_Id = projectId;
-
                 await ctx.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error adding/updating PowerBI workspaces");
+                return false;
             }
         }
     }
