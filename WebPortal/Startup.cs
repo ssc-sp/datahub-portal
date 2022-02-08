@@ -128,8 +128,8 @@ namespace Datahub.Portal
             services.AddElemental();
             services.AddSingleton(moduleManager);
 
-            
-            LoadModules(Configuration.GetValue<string>("DataHubModules", "*"));
+
+            moduleManager.LoadModules(Configuration.GetValue<string>("DataHubModules", "*"));
             foreach (var module in moduleManager.Modules)
             {
                 Console.Write($"Configuring module {module.Name}");
@@ -196,32 +196,6 @@ namespace Datahub.Portal
         private void InitializeDatabase<T>(ILogger logger, IDbContextFactory<T> dbContextFactory, bool migrate = true, bool ensureDeleteinOffline = true) where T : DbContext
         {
             EFTools.InitializeDatabase<T>(logger, Configuration, dbContextFactory, ResetDB, migrate, ensureDeleteinOffline);
-        }
-
-        internal void LoadModules(string filterString = "*")
-        {
-            var filters = filterString.Split(',', StringSplitOptions.RemoveEmptyEntries);
-            var allModules = AppDomain.CurrentDomain.GetAssemblies().SelectMany(asm => TryFindInAssembly<IDatahubModule>(asm)).ToList();
-            if (!filters.Contains("*"))
-            {
-                var moduleFilters = filters.Select(c => c.ToLowerInvariant()).ToHashSet();
-                moduleManager.Modules = allModules.Where(t => moduleFilters.Contains(t.Name.ToLowerInvariant())).ToList();
-            }
-            else
-            {
-                moduleManager.Modules = allModules;
-            }
-        }
-        private static List<Type> TryFindInAssembly<T>(Assembly asm)
-        {
-            try
-            {
-                return asm.GetTypes().Where(t => t.GetInterfaces().Contains(typeof(T))).ToList();
-            }
-            catch (Exception ex)
-            {
-                return new List<Type>();
-            }
         }
 
 
