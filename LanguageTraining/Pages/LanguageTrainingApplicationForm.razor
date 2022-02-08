@@ -61,6 +61,7 @@
         _formMetadata.Headers = headers;
         _formMetadata.GridTemplateColumns = "3fr 3fr 3fr 4fr 3fr";
         _formMetadata.IsSubmitEnabled = false;
+        _formMetadata.SaveButtonText = DataLocalizer["Submit"];
         var filters = new List<(Delegate Label, Delegate Choices)>() { (() => "Status", () => new List<string> { "All", "Pending", "Approved", "Declined" }) };
         _formMetadata.FilterProperties = filters;
         var isFrench = CultureInfo.CurrentCulture.Name.StartsWith("fr", StringComparison.InvariantCulture);
@@ -201,28 +202,50 @@
 
     }
 
+    private List<string> GetTrainingTypes()
+    {
+        var languageClass = _languageTrainingApplication.I_am_seeking;
+        return languageClass == "English Language Training" ? Language_Constants.TRAININGTYPEENGLISH.ToList() : Language_Constants.TRAININGTYPEFRENCH.ToList();
+    }
+
+    private void RefreshTrainingType(string option)
+    {
+        
+    }
     private void OnConfigure(IModelFormContext context)
     {
         if (!_onchange)
         {
+            
             context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Sector_Branch, () => Language_Constants.SECTORSANDBRANCHES);
             context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Province_Territory, () => Language_Constants.PROVINCES);
             context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Employment_Status, () => Language_Constants.EMPLOYMENT_STATUS);
-            context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.I_am_seeking, () => Language_Constants.LANGUAGE_TRAINING);
+            context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.I_am_seeking, () => Language_Constants.LANGUAGE_TRAINING, s => 
+            {
+                context.RefreshOptions<LanguageTrainingApplication>(p => p.Training_Type);
+            });
             context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Language_Training_Provided_By, () => Language_Constants.LANGUAGE_TRAINING_PROVIDERS);
             context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Last_Course_Successfully_Completed, () => Language_Constants.CLASSES_E);
             context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.SLE_Results_Reading, () => Language_Constants.SLESTATUS);
             context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.SLE_Results_Writing, () => Language_Constants.SLESTATUS);
             context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.SLE_Results_Oral, () => Language_Constants.SLESTATUS);
+            context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.LanguageClass, () => Language_Constants.LANGUAGE_TRAINING);
             context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Session_For_Language_Training, () => Language_Constants.QUARTERS);
-            context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Class_For_Language_Training, () => Language_Constants.CLASSES_E);
-            context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Training_Type, () => Language_Constants.TRAININGTYPE);
+            context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Class_For_Language_Training, () => Language_Constants.CLASSES_E);        
             context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Decision, () => Language_Constants.LANGUAGE_SCHOOL_SELECTION);
             context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Completed_Training_Session, () => Language_Constants.QUARTERS);
             context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Manager_Decision, () => new[] { "Pending", "Approved", "Declined"});
-
+            context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Training_Type, () => GetTrainingTypes());
         }
-
+        //var languageClass = _languageTrainingApplication.I_am_seeking; 
+        //if (languageClass == "English Language Training")
+        //{
+            
+        //}
+        //else
+        //{
+        //    context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Training_Type, () => Language_Constants.TRAININGTYPEFRENCH);
+        //}
         ToggleVisibility(context);
 
         
