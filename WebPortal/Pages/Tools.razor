@@ -1,6 +1,8 @@
 ﻿@page "/tools"
+@using Datahub.Core.Modules
 @using Microsoft.Extensions.Configuration
 @inject IConfiguration configuration
+@inject ModuleManager ModuleManager
 
 <div style="padding: 2rem;padding-right: 2rem">
 
@@ -74,6 +76,8 @@
                 </Footer>
             </AeCard>
 
+            @if (ModuleManager.IsEnabled("M365FormsModule"))
+            {
             <AeCard class="facard1" CardPosition="AeCard.CardStyle.Horizontal">
                 <Header>
                      <div class="purple" style="width:120px">
@@ -89,6 +93,7 @@
                     </AeFlex>
                 </Footer>
             </AeCard>
+            }
 
             @if (CatalogReport.Exists())
             {
