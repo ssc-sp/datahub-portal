@@ -32,6 +32,24 @@
         {
             case DatahubLinkType.DataProject:
                 return project?.ProjectName ?? "-";
+            case DatahubLinkType.Storage:
+                return Localizer["Storage"];
+            case DatahubLinkType.Databricks:
+                return Localizer["Databricks"];
+            case DatahubLinkType.DataSharingDashboard:
+                return Localizer["Data Sharing"];
+            case DatahubLinkType.ComputeCostEstimator:
+                return Localizer["Compute Cost"];
+            case DatahubLinkType.M365Form:
+                return Localizer["Microsoft 365 Data Entry"];
+            case DatahubLinkType.StorageCostEstimator:
+                return Localizer["Storage Cost Estimator"];
+            case DatahubLinkType.PowerBI:
+                return Localizer["PowerBI"];
+            case DatahubLinkType.PowerBIReport:
+                return Localizer["PowerBI Report"];
+            case DatahubLinkType.PowerBIWorkspace:
+                return Localizer["PowerBI Workspace"];
             default:
                 return string.IsNullOrWhiteSpace(link.Name)?"Power BI":Localizer[link.Name];
         }
@@ -43,14 +61,22 @@
     protected override void OnInitialized()
     {
         using var ctx = DbFactoryProject.CreateDbContext();
-        recentLinks = RecentLinks.Select(l => (l, project:GetProject(ctx,l))).ToList();        
+        var grouped = RecentLinks
+                .Where(ul => ul.LinkType != DatahubLinkType.DataProject)
+                .GroupBy(ul => (ul.LinkType, ul.DataProject?.Trim()))
+                .Select(gp => gp.First())
+                .ToList();
+        recentLinks = grouped
+        .Select(l => (l, project:GetProject(ctx,l)))
+        .Where(gp => gp.project != null)
+        .ToList();        
     }
 
     private Datahub_Project? GetProject(DatahubProjectDBContext ctx, UserRecentLink link)
     {
         if (link.DataProject == null)
             return null;
-        return ctx.Projects.FirstOrDefault(p => p.Project_Acronym_CD == link.DataProject);
+        return ctx.Projects.FirstOrDefault(p => p.Project_Acronym_CD == link.DataProject.Trim());
     }
 
     private Icon GetIcon(UserRecentLink link)
