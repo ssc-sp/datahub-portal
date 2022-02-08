@@ -109,6 +109,8 @@
             {                
                 await SendApplicationCompletedEmails(param);
                 _languageTrainingApplication.ApplicationCompleteEmailSent = true;
+                _languageTrainingApplication.FormSubmitted_DT = DateTime.Now;
+                _languageTrainingApplication.FormSubmitted_UserId = _user.Mail;
                 await Context.TrackSaveChangesAsync(AuditingService);
             }
 
@@ -138,6 +140,8 @@
     {
         await EmailService.SendLanguageSchoolDecision(param);
         _languageTrainingApplication.LSUDecisionSent = true;
+        _languageTrainingApplication.LanguageSchoolDecision_DT = DateTime.Now;
+        _languageTrainingApplication.LanguageSchoolDecision_UserId = _user.Mail;
         await Context.TrackSaveChangesAsync(AuditingService);
     }
 
@@ -147,6 +151,8 @@
         { 
             await EmailService.SendManagerDecisionEmail(param);
             _languageTrainingApplication.ManagerDecisionSent = true;
+            _languageTrainingApplication.ManagerDecision_DT = DateTime.Now;
+            _languageTrainingApplication.ManagerDecision_UserId = _user.Mail;
             await Context.TrackSaveChangesAsync(AuditingService);
         }  
     }
@@ -162,7 +168,7 @@
         param.ApplicationId = _languageTrainingApplication.Application_ID.ToString();
         param.AppUrl = $"/languagetraining/applications/{_languageTrainingApplication.Application_ID}";
         param.EmployeeEmailAddress = _languageTrainingApplication.Email_Address_EMAIL;
-        param.EmployeeName = _languageTrainingApplication.NRCan_Username;
+        param.EmployeeName = $"{_languageTrainingApplication.First_Name} {_languageTrainingApplication.Last_Name}";
         param.TrainingType = _languageTrainingApplication.Training_Type;
         param.ManagerEmailAddress = _languageTrainingApplication.Delegated_Manager_Email;
         param.ManagerName = _languageTrainingApplication.Delegate_Manager_First_Name + " " + _languageTrainingApplication.Delegated_Manager_Last_Name;
@@ -229,7 +235,6 @@
             context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.SLE_Results_Reading, () => Language_Constants.SLESTATUS);
             context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.SLE_Results_Writing, () => Language_Constants.SLESTATUS);
             context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.SLE_Results_Oral, () => Language_Constants.SLESTATUS);
-            context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.LanguageClass, () => Language_Constants.LANGUAGE_TRAINING);
             context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Session_For_Language_Training, () => Language_Constants.QUARTERS);
             context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Class_For_Language_Training, () => Language_Constants.CLASSES_E);        
             context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Decision, () => Language_Constants.LANGUAGE_SCHOOL_SELECTION);
@@ -237,15 +242,7 @@
             context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Manager_Decision, () => new[] { "Pending", "Approved", "Declined"});
             context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Training_Type, () => GetTrainingTypes());
         }
-        //var languageClass = _languageTrainingApplication.I_am_seeking; 
-        //if (languageClass == "English Language Training")
-        //{
-            
-        //}
-        //else
-        //{
-        //    context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Training_Type, () => Language_Constants.TRAININGTYPEFRENCH);
-        //}
+        
         ToggleVisibility(context);
 
         
@@ -299,7 +296,7 @@
 
     private async Task CreateNewApplication()
     {
-        _languageTrainingApplication = new LanguageTrainingApplication() { Last_Updated_DT = DateTime.Now };
+        _languageTrainingApplication = new LanguageTrainingApplication() { Last_Updated_DT = DateTime.Now, Manager_Decision = "Pending" };
         //var user = await UserInformationService.GetUserAsync();
         _languageTrainingApplication.Email_Address_EMAIL = _user.Mail;
         _languageTrainingApplication.First_Name = _user.GivenName;
