@@ -39,6 +39,12 @@
     "Submit": "Soumettre",
     "Upload": "Upload"
   },
+  "COMMON": {
+    "Yes": "Oui",
+    "No": "Non",
+    "Success": "Succès",
+    "Failure": "Échec"
+  },
   "ERROR-PAGE": {
     "Title": "Une erreur s'est produite",
     "Prompt": "Une erreur fatale s'est produite, veuillez contacter l'administrateur système pour clarification.",
