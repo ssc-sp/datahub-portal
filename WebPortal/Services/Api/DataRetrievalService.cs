@@ -167,9 +167,9 @@ namespace Datahub.Portal.Services
         }
 
 
-        public async Task<Uri> DownloadFile(FileMetaData file, string project = null)
+        public async Task<Uri> DownloadFile(FileMetaData file, string project)
         {
-            return await _apiService.DownloadFile(file, project?.ToLowerInvariant());
+            return await _apiService.DownloadFile(file, project);
         }
 
         public Task<List<Core.Data.Version>> GetFileVersions(string fileId)

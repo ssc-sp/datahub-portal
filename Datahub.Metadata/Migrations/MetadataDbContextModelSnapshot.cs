@@ -124,6 +124,55 @@ namespace Datahub.Metadata.Migrations
                     b.ToTable("ApprovalForms", (string)null);
                 });
 
+            modelBuilder.Entity("Datahub.Metadata.Model.CatalogObject", b =>
+                {
+                    b.Property<long>("CatalogObjectId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("CatalogObjectId"), 1L, 1);
+
+                    b.Property<int>("Branch_NUM")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Contact_TXT")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<byte>("DataType")
+                        .HasColumnType("tinyint");
+
+                    b.Property<string>("Location_TXT")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name_TXT")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("ObjectMetadataId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Search_English_TXT")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Search_French_TXT")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Sector_NUM")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SecurityClass_TXT")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("nvarchar(max)")
+                        .HasDefaultValue("Unclassified");
+
+                    b.HasKey("CatalogObjectId");
+
+                    b.HasIndex("ObjectMetadataId");
+
+                    b.ToTable("CatalogObjects", (string)null);
+                });
+
             modelBuilder.Entity("Datahub.Metadata.Model.FieldChoice", b =>
                 {
                     b.Property<int>("FieldChoiceId")
@@ -131,6 +180,10 @@ namespace Datahub.Metadata.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("FieldChoiceId"), 1L, 1);
+
+                    b.Property<string>("Cascading_Value_TXT")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
 
                     b.Property<int>("FieldDefinitionId")
                         .HasColumnType("int");
@@ -160,6 +213,9 @@ namespace Datahub.Metadata.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("FieldDefinitionId"), 1L, 1);
+
+                    b.Property<int?>("CascadeParentId")
+                        .HasColumnType("int");
 
                     b.Property<bool>("Custom_Field_FLAG")
                         .HasColumnType("bit");
@@ -245,6 +301,53 @@ namespace Datahub.Metadata.Migrations
                     b.ToTable("Keywords", (string)null);
                 });
 
+            modelBuilder.Entity("Datahub.Metadata.Model.MetadataProfile", b =>
+                {
+                    b.Property<int>("ProfileId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ProfileId"), 1L, 1);
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.HasKey("ProfileId");
+
+                    b.HasIndex("Name")
+                        .IsUnique()
+                        .HasFilter("[Name] IS NOT NULL");
+
+                    b.ToTable("Profiles", (string)null);
+                });
+
+            modelBuilder.Entity("Datahub.Metadata.Model.MetadataSection", b =>
+                {
+                    b.Property<int>("SectionId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SectionId"), 1L, 1);
+
+                    b.Property<string>("Name_English_TXT")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("Name_French_TXT")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<int>("ProfileId")
+                        .HasColumnType("int");
+
+                    b.HasKey("SectionId");
+
+                    b.HasIndex("ProfileId");
+
+                    b.ToTable("Sections", (string)null);
+                });
+
             modelBuilder.Entity("Datahub.Metadata.Model.MetadataVersion", b =>
                 {
                     b.Property<int>("MetadataVersionId")
@@ -313,6 +416,24 @@ namespace Datahub.Metadata.Migrations
                     b.ToTable("ObjectMetadata", (string)null);
                 });
 
+            modelBuilder.Entity("Datahub.Metadata.Model.SectionField", b =>
+                {
+                    b.Property<int>("SectionId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("FieldDefinitionId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("Required_FLAG")
+                        .HasColumnType("bit");
+
+                    b.HasKey("SectionId", "FieldDefinitionId");
+
+                    b.HasIndex("FieldDefinitionId");
+
+                    b.ToTable("SectionFields", (string)null);
+                });
+
             modelBuilder.Entity("Datahub.Metadata.Model.Subject", b =>
                 {
                     b.Property<int>("SubjectId")
@@ -368,6 +489,17 @@ namespace Datahub.Metadata.Migrations
                     b.ToTable("SubSubjectSubject");
                 });
 
+            modelBuilder.Entity("Datahub.Metadata.Model.CatalogObject", b =>
+                {
+                    b.HasOne("Datahub.Metadata.Model.ObjectMetadata", "ObjectMetadata")
+                        .WithMany("CatalogObjects")
+                        .HasForeignKey("ObjectMetadataId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ObjectMetadata");
+                });
+
             modelBuilder.Entity("Datahub.Metadata.Model.FieldChoice", b =>
                 {
                     b.HasOne("Datahub.Metadata.Model.FieldDefinition", "FieldDefinition")
@@ -388,6 +520,17 @@ namespace Datahub.Metadata.Migrations
                         .IsRequired();
 
                     b.Navigation("MetadataVersion");
+                });
+
+            modelBuilder.Entity("Datahub.Metadata.Model.MetadataSection", b =>
+                {
+                    b.HasOne("Datahub.Metadata.Model.MetadataProfile", "Profile")
+                        .WithMany("Sections")
+                        .HasForeignKey("ProfileId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Profile");
                 });
 
             modelBuilder.Entity("Datahub.Metadata.Model.ObjectFieldValue", b =>
@@ -420,6 +563,25 @@ namespace Datahub.Metadata.Migrations
                     b.Navigation("MetadataVersion");
                 });
 
+            modelBuilder.Entity("Datahub.Metadata.Model.SectionField", b =>
+                {
+                    b.HasOne("Datahub.Metadata.Model.FieldDefinition", "FieldDefinition")
+                        .WithMany("SectionFields")
+                        .HasForeignKey("FieldDefinitionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Datahub.Metadata.Model.MetadataSection", "Section")
+                        .WithMany("Fields")
+                        .HasForeignKey("SectionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("FieldDefinition");
+
+                    b.Navigation("Section");
+                });
+
             modelBuilder.Entity("SubSubjectSubject", b =>
                 {
                     b.HasOne("Datahub.Metadata.Model.SubSubject", null)
@@ -440,6 +602,18 @@ namespace Datahub.Metadata.Migrations
                     b.Navigation("Choices");
 
                     b.Navigation("FieldValues");
+
+                    b.Navigation("SectionFields");
+                });
+
+            modelBuilder.Entity("Datahub.Metadata.Model.MetadataProfile", b =>
+                {
+                    b.Navigation("Sections");
+                });
+
+            modelBuilder.Entity("Datahub.Metadata.Model.MetadataSection", b =>
+                {
+                    b.Navigation("Fields");
                 });
 
             modelBuilder.Entity("Datahub.Metadata.Model.MetadataVersion", b =>
@@ -451,6 +625,8 @@ namespace Datahub.Metadata.Migrations
 
             modelBuilder.Entity("Datahub.Metadata.Model.ObjectMetadata", b =>
                 {
+                    b.Navigation("CatalogObjects");
+
                     b.Navigation("FieldValues");
                 });
 #pragma warning restore 612, 618
