@@ -213,7 +213,6 @@ namespace Datahub.Portal
                 app.UseHttpLogging();
             }
 
-            LoadModules(Configuration.GetValue<string>("DataHubModules", "*"));
             foreach (var module in moduleManager.Modules)
             {
                 logger.LogInformation($"Configuring module {module.Name}");
