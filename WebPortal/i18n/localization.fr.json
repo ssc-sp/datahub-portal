@@ -1104,7 +1104,8 @@
   "Submitted to Assyst": "Soumis par Assyst",
   "Team Created": "Équipe créé",
   "Sec. Classification": "Class. de sécurité",
-
+  "Request Pending": "Demande en attente",
+  "Request Denied": "Demande refusée",
   "Client Information": "Information du client",
   "Client_Sector": "Secteur du client",
   "Client_Branch": "Branche du client",
