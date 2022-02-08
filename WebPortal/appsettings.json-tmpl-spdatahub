@@ -15,7 +15,7 @@
     "SQLServer": false,
     "PostgreSQL": true,
     "Costing": false,
-    "Storage": false
+    "Storage": true
   }
 }
 
