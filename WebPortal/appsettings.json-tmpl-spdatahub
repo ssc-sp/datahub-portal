@@ -6,7 +6,17 @@
   "LandingBgFolder": "ssc",
   "LandingBgImgCount": 2,
   "Title": "SSC Datahub",
-  "DataHubModules": ""
+  "DataHubModules": "",
+  "DataProjects": {
+    "PowerBI": false,
+    "PublicSharing": false,
+    "WebForms": false,
+    "Databricks": true,
+    "SQLServer": false,
+    "PostgreSQL": true,
+    "Costing": false,
+    "Storage": false
+  }
 }
 
 
