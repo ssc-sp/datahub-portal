@@ -14,7 +14,7 @@ namespace Datahub.Core.Services
 
         public async Task<IList<String[]>> GetRows(String input)
         {
-            var context = BrowsingContext.New(Configuration.Default);
+            var context = BrowsingContext.New(AngleSharp.Configuration.Default);
             var document = await context.OpenAsync(reg => reg.Content(input));
 
             var element = document.QuerySelector<IHtmlTableElement>("table");
