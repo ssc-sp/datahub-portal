@@ -6,7 +6,9 @@
 @inject IUserInformationService UserInformationService
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JsInterop
+@inject IDatahubAuditingService AuditingService
 @page "/languagetraining/applications"
+@page "/languagetraining/applications/{AppId}"
 
 <Datahub.Core.Components.FormTemplate 
         T="LanguageTrainingApplication"
@@ -22,6 +24,9 @@
         HandleFilterChange="HandleFilterChange" />
 
 @code {
+
+    [Parameter]
+    public string AppId { get; set; }
 
     private const string PROJECTACRONYM = "HRLTP";
     private const string FORMLOCATION = "languagetraining/applications";
@@ -94,16 +99,16 @@
                 _languageTrainingApplication = Context.LanguageTrainingApplications.Add(_languageTrainingApplication).Entity;
             }
             _languageTrainingApplication.Last_Updated_DT = DateTime.Now;
-            
-            await Context.SaveChangesAsync();
-            
+
+            await Context.TrackSaveChangesAsync(AuditingService);
+
             var param = await GetLanguageTrainingParameters();
 
             if (!_languageTrainingApplication.ApplicationCompleteEmailSent)
             {                
                 await SendApplicationCompletedEmails(param);
                 _languageTrainingApplication.ApplicationCompleteEmailSent = true;
-                await Context.SaveChangesAsync();
+                await Context.TrackSaveChangesAsync(AuditingService);
             }
 
             if (_languageTrainingApplication.ApplicationCompleteEmailSent && !_languageTrainingApplication.ManagerDecisionSent)
@@ -117,7 +122,7 @@
             }
 
         }
-
+        AppId = string.Empty;
         await LoadApps(string.Empty);
         _languageTrainingApplication = null;
         StateHasChanged();
@@ -132,7 +137,7 @@
     {
         await EmailService.SendLanguageSchoolDecision(param);
         _languageTrainingApplication.LSUDecisionSent = true;
-        await Context.SaveChangesAsync();
+        await Context.TrackSaveChangesAsync(AuditingService);
     }
 
     private async Task SendManagerDecisionEmails(LanguageTrainingParameters param)
@@ -141,7 +146,7 @@
         { 
             await EmailService.SendManagerDecisionEmail(param);
             _languageTrainingApplication.ManagerDecisionSent = true;
-            await Context.SaveChangesAsync();
+            await Context.TrackSaveChangesAsync(AuditingService);
         }  
     }
 
@@ -154,6 +159,7 @@
     {
         LanguageTrainingParameters param = new();
         param.ApplicationId = _languageTrainingApplication.Application_ID.ToString();
+        param.AppUrl = $"/languagetraining/applications/{_languageTrainingApplication.Application_ID}";
         param.EmployeeEmailAddress = _languageTrainingApplication.Email_Address_EMAIL;
         param.EmployeeName = _languageTrainingApplication.NRCan_Username;
         param.TrainingType = _languageTrainingApplication.Training_Type;
@@ -170,8 +176,18 @@
 
     private async Task LoadApps(string filter)
     {
-
-        _languageTrainingApplications = Context.LanguageTrainingApplications.Where(r => (r.Email_Address_EMAIL.ToLower() == _user.Mail.ToLower()) ||(r.Delegated_Manager_Email.ToLower() == _user.Mail.ToLower()) ).ToList();
+        if (_isUserAdmin)
+        {
+            _languageTrainingApplications = Context.LanguageTrainingApplications.ToList();
+            if (!string.IsNullOrEmpty(AppId))
+            {
+                _languageTrainingApplication = Context.LanguageTrainingApplications.Where(a => a.Application_ID == Convert.ToInt32(AppId)).FirstOrDefault();
+            }
+        }
+        else
+        {
+            _languageTrainingApplications = Context.LanguageTrainingApplications.Where(r => (r.Email_Address_EMAIL.ToLower() == _user.Mail.ToLower()) || (r.Delegated_Manager_Email.ToLower() == _user.Mail.ToLower())).ToList();
+        }
 
         if (filter == "All" || string.IsNullOrEmpty(filter))
         {
