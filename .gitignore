@@ -17,12 +17,15 @@ artifacts/
 dh-code.bat
 Datahub.Core/node_modules
 DatahubIntakeForms/appsettings.Development.json
+DatahubIntakeForms/appsettings.sqlite.json
 DatahubIntakeForms/appsettings.json
 DatahubIntakeForms/appsettings.Tst.json
 DatahubIntakeForms/Properties/launchSettings.json
 WebPortal/appsettings.Development.json
 WebPortal/appsettings.json
 **/*/appsettings.*.json
+**/*/*.db-shm
+**/*/*.db-wal
 WebPortal/Properties/launchSettings.json
 /WebPortal/*.db
 /Datahub.Core/node_modules/.bin
@@ -30,3 +33,4 @@ WebPortal/Properties/launchSettings.json
 /node_modules
 WebPortal/node_modules
 WebPortal/MissingTranslations.json
+WebPortal/appsettings.sqlite.json
