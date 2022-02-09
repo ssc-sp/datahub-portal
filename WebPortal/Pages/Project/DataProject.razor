@@ -33,6 +33,7 @@
         <AeFlex Vertical>
             <h2>@DataLocalizer["Data Project"]</h2>
         </AeFlex>
+        @* Project Info *@
         <AeCard CardPosition="AeCard.CardStyle.Horizontal">
             <Header>
                 <div style="width:180px;">
@@ -81,6 +82,12 @@
             }
 
             <h2>@DataLocalizer["Data Project Tools"]</h2>
+            @if (_isLoading)
+            {
+                <Spinner Small=@true />
+            }
+            else
+            {
             <div class="ae flex wrap">
 
                 @if (Configuration.Value.Databricks)
@@ -415,6 +422,7 @@
                 </AuthorizeView>
 
             </div>
+            }
 
         </AuthorizeView>
     }
