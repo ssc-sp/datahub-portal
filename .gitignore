@@ -17,6 +17,7 @@ artifacts/
 dh-code.bat
 Datahub.Core/node_modules
 DatahubIntakeForms/appsettings.Development.json
+DatahubIntakeForms/appsettings.sqlite.json
 DatahubIntakeForms/appsettings.json
 DatahubIntakeForms/appsettings.Tst.json
 DatahubIntakeForms/Properties/launchSettings.json
