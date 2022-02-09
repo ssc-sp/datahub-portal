@@ -141,6 +141,20 @@ namespace Datahub.Core.Services
 
         }
 
+        public List<string> GetProjectMailboxEmails(string projectAcronym)
+        {
+            using var ctx = dbFactory.CreateDbContext();
+            var mailboxEmails = ctx.Projects.Where(u => u.Project_Acronym_CD == projectAcronym).Select(s => s.Project_Admin).FirstOrDefault();
+
+            if (!string.IsNullOrEmpty(mailboxEmails))
+            {
+                return ExtractEmails(mailboxEmails);
+            }
+            else
+            { 
+                return GetProjectAdminsEmails(projectAcronym);  
+            }                    
+        }
         public async Task RegisterProjectAdmin(Datahub_Project project, string currentUserId)
         {
             using var ctx = dbFactory.CreateDbContext();

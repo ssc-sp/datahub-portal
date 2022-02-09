@@ -499,6 +499,7 @@ namespace Datahub.Core.Services
 
         private Dictionary<string, object> BuildLanguageNotificationParameters(LanguageTrainingParameters parameters)
         {
+            parameters.AppUrl = BuildAppLink(parameters.AppUrl);
             var parametersDict = new Dictionary<string, object>()
             {
                 { "ApplicationParameters", parameters }
@@ -647,6 +648,7 @@ namespace Datahub.Core.Services
     public class LanguageTrainingParameters
     {
         public string ApplicationId;
+        public string AppUrl;
         public string EmployeeName;
         public string EmployeeEmailAddress;
         public string TrainingType;
