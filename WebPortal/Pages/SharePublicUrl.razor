@@ -32,7 +32,7 @@
                 }
                 else
                 {
-                    <AeButton OnClickEvent=@ManuallyShowMetadataEditor>@Localizer[$"{LOCALIZATION_PREFIX}.Edit_button"]</AeButton>    
+                    <AeButton OnClickEvent=@ManuallyShowMetadataEditor Disabled=@_savingData>@Localizer[$"{LOCALIZATION_PREFIX}.Edit_button"]</AeButton>    
                 }
             }
             else
@@ -51,10 +51,7 @@
                 <AeTypography Variant="h3">@GetStepTitle(PublicUrlSharingStatus.RequestApproval)</AeTypography>
                 <AeFlex>
                     <AeButton OnClickEvent=@SubmitForApproval Disabled=@_savingData>@Localizer["BUTTONS.Submit"]</AeButton>
-                    @if (_savingData)
-                    {
-                        <Spinner Small=@true />
-                    }
+                    <SuccessIndicator @bind-IsLoading=@_submittingApproval @ref=@_submitApprovalInd />
                 </AeFlex>
                 <div>&nbsp;</div>
             </AeCard>
@@ -65,6 +62,20 @@
             <AeCard>
                 <AeTypography Variant="h3">@GetStepTitle(PublicUrlSharingStatus.PendingPublication)</AeTypography>
                 <p>@_publicationDateStr</p>
+            </AeCard>
+        }
+
+        @if (ShowPendingApprovalPanel)
+        {
+            <AeCard>
+                <AeTypography Variant="h3">@GetStepTitle(PublicUrlSharingStatus.PendingApproval)</AeTypography>
+                <AeTypography Variant="h5">@Localizer[$"{LOCALIZATION_PREFIX}.DataApprovers"]</AeTypography>
+                <ul>
+                    @foreach (var userid in _dataApproverUserIds)
+                    {
+                        <li><GraphUserInformation UserId=@userid IsUserNameRequested=@true /></li>
+                    }
+                </ul>
             </AeCard>
         }
 
@@ -91,7 +102,10 @@
                         <ValidationMessage For="()=>_dateHolder.Date" />
                     }
                 </EditForm>
-                <AeButton OnClickEvent=@SaveExpiryDate Disabled=@_savingData>@Localizer[$"{LOCALIZATION_PREFIX}.Save_button"]</AeButton>
+                <div>
+                    <AeButton OnClickEvent=@SaveExpiryDate Disabled=@_savingData>@Localizer[$"{LOCALIZATION_PREFIX}.Save_button"]</AeButton>
+                    <SuccessIndicator @bind-IsLoading=@_savingExpiryDate @ref=@_tempDateInd />
+                </div>
             </AeCard>
         }
 
@@ -100,7 +114,7 @@
             <AeCard style="margin-top: 1rem;">
                 <AeTypography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.CancelSharing"]</AeTypography>
                 <p>@Localizer[$"{LOCALIZATION_PREFIX}.CancelSharingDescription"]</p>
-                <AeButton OnClickEvent=@ShowCancelRequestDialog>@Localizer["BUTTONS.Cancel"]</AeButton>
+                <AeButton OnClickEvent=@ShowCancelRequestDialog Disabled=@_savingData>@Localizer["BUTTONS.Cancel"]</AeButton>
             </AeCard>
         }
 
@@ -114,6 +128,10 @@
         }
 
         <div>&nbsp;</div>
+
+        <div>
+            <DHLink DataProject=@_projectCode>@Localizer[$"{LOCALIZATION_PREFIX}.ReturnToProject"]</DHLink>
+        </div>
 
     </AeFlex>
 
@@ -164,12 +182,18 @@
     private string StepMessage(PublicUrlSharingStatus i) => _stepInfo.GetValueOrDefault(i)?.Item2;
     private AeSteps<PublicUrlSharingStatus>.StepState GetState(PublicUrlSharingStatus i) => _stepStates[i];
 
-    private bool _savingData = false;
+    private bool _savingExpiryDate = false;
+    private bool _submittingApproval = false;
+    private bool _cancellingSubmission = false;
+    private bool _savingData => _savingExpiryDate || _submittingApproval || _cancellingSubmission;
+    private SuccessIndicator _tempDateInd;
+    private SuccessIndicator _submitApprovalInd;
 
     private bool ShowSubmitApproval => currentStep == PublicUrlSharingStatus.RequestApproval && _isOwnRequest && !_editSavedMetadata;
     private bool ShowPublicationDate => currentStep == PublicUrlSharingStatus.PendingPublication && !string.IsNullOrEmpty(_publicationDateStr) && !_editSavedMetadata;
     private bool ShowPublicUrl => currentStep == PublicUrlSharingStatus.AccessPublicUrl;
     private bool ShowMetadataEditor => (currentStep == PublicUrlSharingStatus.EnterMetadata || _editSavedMetadata) && _isOwnRequest;
+    private bool ShowPendingApprovalPanel => currentStep == PublicUrlSharingStatus.PendingApproval && (_dataApproverUserIds?.Count ?? 0) > 0;
     private bool ShowCancelPanel => currentStep <= PublicUrlSharingStatus.PendingApproval && _isOwnRequest;
     private bool ShowExpiryDatePanel => currentStep <= PublicUrlSharingStatus.PendingApproval && !ShowMetadataEditor;
     private bool ShowDeletePanel => currentStep == PublicUrlSharingStatus.Expired && _isOwnRequest;
@@ -183,6 +207,9 @@
     private GraphUser _requestingUser;
     private string _requestFilename;
     private string _projectCode;
+    private DatahubProjectInfo _projectInfo;
+
+    private List<string> _dataApproverUserIds;
 
     private string PublicUrl => PublicFileService.GetPublicSharedFileUrl(FileId);
 
@@ -216,35 +243,41 @@
 
     private async Task SubmitForApproval()
     {
-        _savingData = true;
+        _submittingApproval = true;
 
-        var project = await PublicFileService.GetProjectWithUsers(_projectCode);
-        var approvers = project.Users.Where(pu => pu.IsDataApprover).Select(pu => pu.User_ID).ToList();
+        var approvers = _dataApproverUserIds;
 
-        var tasks = new List<Task>()
+        var success = await PublicFileService.SubmitPublicUrlShareForApproval(_fileIdGuid);
+
+        if (success)
         {
-            PublicFileService.SubmitPublicUrlShareForApproval(_fileIdGuid),
-            EmailNotificationService.SendFileSharingApprovalRequest(_requestingUser.Mail, _requestFilename, project.ProjectInfo, approvers),
-            SystemNotificationService.CreateSystemNotificationsWithLink(approvers,
-                $"/project/{project.ProjectInfo.ProjectCode}/datasharing", "SYSTEM-NOTIFICATION.GoToSharingDashboard",
-                "SYSTEM-NOTIFICATION.NOTIFICATION-TEXT.PublicUrlShareRequested", _requestingUser.Mail, _requestFilename,
-                new BilingualStringArgument(project.ProjectInfo.ProjectNameEn, project.ProjectInfo.ProjectNameFr))
-        };
+            var notifyTasks = new List<Task>()
+            {
+                EmailNotificationService.SendFileSharingApprovalRequest(_requestingUser.Mail, _requestFilename, _projectInfo, approvers),
+                SystemNotificationService.CreateSystemNotificationsWithLink(approvers,
+                    $"/project/{_projectInfo.ProjectCode}/datasharing", "SYSTEM-NOTIFICATION.GoToSharingDashboard",
+                    "SYSTEM-NOTIFICATION.NOTIFICATION-TEXT.PublicUrlShareRequested", _requestingUser.Mail, _requestFilename,
+                    new BilingualStringArgument(_projectInfo.ProjectNameEn, _projectInfo.ProjectNameFr))
+            };
 
-        await Task.WhenAll(tasks);
-        UpdateCurrentStatus(PublicUrlSharingStatus.PendingApproval);
-
-        _savingData = false;
+            await _submitApprovalInd.SignalSuccess();
+            await Task.WhenAll(notifyTasks);
+            UpdateCurrentStatus(PublicUrlSharingStatus.PendingApproval);
+        }
+        else
+        {
+            await _submitApprovalInd.SignalFailure();
+        }
     }
 
     private async Task SaveExpiryDate()
     {
         if (_editContext.Validate())
         {
-            _savingData = true;
+            _savingExpiryDate = true;
             var expirationDate = _dateHolder.EnableTempSharing ? _dateHolder.Date : null;
-            await PublicFileService.SaveTempSharingExpiryDate(_fileIdGuid, expirationDate);
-            _savingData = false;
+            var success = await PublicFileService.SaveTempSharingExpiryDate(_fileIdGuid, expirationDate);
+            await (success ? _tempDateInd.SignalSuccess() : _tempDateInd.SignalFailure());
         }
     }
 
@@ -297,9 +330,9 @@
     {
         if (isCancelled)
         {
-            _savingData = true;
+            _cancellingSubmission = true;
             await PublicFileService.CancelPublicDataShare(_fileIdGuid);
-            _savingData = false;
+            _cancellingSubmission = false;
             await NavManager.NavigateTo("/", true);
         }
         await UI.ToggleModal();
@@ -318,6 +351,13 @@
         {
             _validationMessageStore.Add(() => _dateHolder.Date, Localizer[$"{VALIDATION_ERROR_PREFIX}.ExpiryDateInPast"]);
         }
+    }
+
+    private async Task LoadProjectInfo()
+    {
+        var project = await PublicFileService.GetProjectWithUsers(_projectCode);
+        _dataApproverUserIds = project.Users.Where(pu => pu.IsDataApprover).Select(pu => pu.User_ID).ToList();
+        _projectInfo = project.ProjectInfo;
     }
 
     protected override async Task OnInitializedAsync()
@@ -350,6 +390,7 @@
 
         _requestFilename = sharedFileInfo.Filename_TXT;
         _projectCode = sharedFileInfo.ProjectCode_CD;
+        await LoadProjectInfo();
 
         _requestingUser = await GraphService.GetUserAsync(sharedFileInfo.RequestingUser_ID, CancellationToken.None);
         var currentUser = await currentUserTask;

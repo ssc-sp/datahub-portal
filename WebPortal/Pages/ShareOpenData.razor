@@ -68,7 +68,7 @@
                         <AeTypography Variant="p">@Localizer["OPENDATA-WIZARD.Approval_Filled_out_3"]</AeTypography>
                     </AeFlex>
                     <AeFlex>
-                        <AeButton OnClickEvent=@GenerateApprovalPDF>@Localizer["OPENDATA-WIZARD.GeneratePDF_button"]</AeButton>
+                        <AeButton OnClickEvent=@GenerateApprovalDocument>@Localizer["OPENDATA-WIZARD.GenerateDOCX_button"]</AeButton>
                         <div>&nbsp;</div>
                         <AeButton OnClickEvent=@ManuallyShowApprovalForm>@Localizer["OPENDATA-WIZARD.AmendApprovalForm_button"]</AeButton>
                     </AeFlex>
@@ -169,6 +169,12 @@
             </AeCard>
         }
 
+        <div>&nbsp;</div>
+
+        <div>
+            <DHLink DataProject=@_projectCode>@Localizer[$"{LOCALIZATION_PREFIX}.ReturnToProject"]</DHLink>
+        </div>
+
     </AeFlex>
 
     <div id="stepsDiv" style="width: 50%;">
@@ -196,6 +202,7 @@
 <div>&nbsp;</div>
 
 @code {
+    private static readonly string LOCALIZATION_PREFIX = "OPENDATA-WIZARD";
 
     [Parameter]
     public string FileId { get; set; }
@@ -227,6 +234,8 @@
     private bool ShowPublicUrl => _currentStep == OpenDataSharingStatus.AccessOpenData;
     private bool ShowCancelPanel => _currentStep <= OpenDataSharingStatus.PendingApproval  && _isOwnRequest && !_editSavedMetadata;
     private bool ShowUploadCard => _currentStep == OpenDataSharingStatus.PendingUpload && _isOwnRequest && !_editSavedMetadata;
+    
+    private string GenerateApprovalDocumentUrl => $"/api/OpenDataApproval?id={_approvalFormId}";
 
     private bool _isOwnRequest = false;
 
@@ -241,11 +250,12 @@
     private string _uploadFileErrorMessage;
 
     private int _approvalFormId = 0;
-    private string _generateApprovalFormPdfUrl => PublicFileService.GetOpenDataApprovalFormPdfUrl(_approvalFormId);
+
     private string _signedApprovalFormUrl;
 
     private GraphUser _requestingUser;
     private string _requestFilename;
+    private string _projectCode;
 
     private string _datasetTitle;
 
@@ -287,11 +297,11 @@
         _editSubmittedApproval = true;
     }
 
-    private async void GenerateApprovalPDF()
+    private async void GenerateApprovalDocument()
     {
         try
         {
-            await jsRuntime.InvokeAsync<object>("open", _generateApprovalFormPdfUrl, "_blank");
+            await jsRuntime.InvokeAsync<object>("open", GenerateApprovalDocumentUrl, "_blank");
         }
         catch (Exception)
         {
@@ -515,6 +525,7 @@
             _requestingUser = await GraphService.GetUserAsync(sharedFileInfo.RequestingUser_ID, CancellationToken.None);
             var currentUser = await currentUserTask;
             _isOwnRequest = currentUser.Id == _requestingUser.Id;
+            _projectCode = sharedFileInfo.ProjectCode_CD;
 
             UpdateShareFileStatus(sharedFileInfo);
         }
