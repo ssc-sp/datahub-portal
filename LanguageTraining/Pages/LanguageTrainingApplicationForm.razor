@@ -6,6 +6,7 @@
 @inject IUserInformationService UserInformationService
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JsInterop
+@inject IConfiguration Configuration
 @inject IDatahubAuditingService AuditingService
 @page "/languagetraining/applications"
 @page "/languagetraining/applications/{AppId}"
@@ -16,6 +17,7 @@
         Context="@Context"
         Metadata="@_formMetadata" 
         HandleSubmit="HandleValidSubmit"
+        HandleInvalidSubmit="HandleInvalidSubmit"
         OnChangeForms="OnChange"
         OnConfigureForms="OnConfigure"
         CreateNewRecord="CreateNewApplication"
@@ -23,9 +25,17 @@
         SetFormEditRecord="SetFormEdit" 
         HandleFilterChange="HandleFilterChange" />
 
+<AuthorizeView Roles="@($"{PROJECTACRONYM}-admin, {RoleConstants.DATAHUB_ROLE_ADMIN}")">
+    <AeCard class="facardForms" CardPosition="AeCard.CardStyle.Horizontal">
+        <AeTypography Variant="h3">@DataLocalizer["Admin Actions"]</AeTypography>
+        <div class="icon-container" style="margin-bottom: 10px; margin-left: 5px;">
+            <FAButton @onclick=@OpenExcel Text=@DataLocalizer["Open Excel Report"] />
+        </div>
+    </AeCard>
+</AuthorizeView>
 @code {
 
-    [Parameter]
+        [Parameter]
     public string AppId { get; set; }
 
     private const string PROJECTACRONYM = "HRLTP";
@@ -38,6 +48,12 @@
     private List<string> MarkDownContent = new();
     private Microsoft.Graph.User _user;
     private bool _isUserAdmin;
+
+    private async void OpenExcel()
+    {
+        var powerBiTargets = Configuration["PowerBiTargets:LT"];
+        await JsInterop.InvokeAsync<object>("open", powerBiTargets, "_blank");
+    }
 
     protected override async Task OnInitializedAsync()
     {        
@@ -89,6 +105,12 @@
     {
         await LoadApps(selection);
         StateHasChanged();
+    }
+
+    private async Task HandleInvalidSubmit(EditContext editContext)
+    {
+        var validations = editContext.Validate();
+        StateHasChanged();    
     }
 
     private async Task HandleValidSubmit()
