@@ -24,6 +24,8 @@ DatahubIntakeForms/Properties/launchSettings.json
 WebPortal/appsettings.Development.json
 WebPortal/appsettings.json
 **/*/appsettings.*.json
+**/*/*.db-shm
+**/*/*.db-wal
 WebPortal/Properties/launchSettings.json
 /WebPortal/*.db
 /Datahub.Core/node_modules/.bin
