@@ -80,6 +80,12 @@
         }
 
         <h2>@DataLocalizer["Data Project Tools"]</h2>
+    @if (_isLoading)
+    {
+        <Spinner Small=@true />
+    }
+    else
+    {
         <div class="ae flex wrap">
             <AeCard class="facard1" CardPosition="AeCard.CardStyle.Horizontal">
                 <Header>
@@ -269,7 +275,7 @@
                     }
                     else
                     {
-                        <AeButton @onclick="@(async () => await RequestServiceAccess("storage"))">@DataLocalizer["Request Service Creation"]</AeButton>
+                        <AeButton @onclick="@(async () => await RequestStorageAccess())">@DataLocalizer["Request Service Creation"]</AeButton>
                     }
                 </Footer>
             </AeCard>
@@ -395,6 +401,7 @@
             </AuthorizeView>
 
         </div>
+    }
         
     </AuthorizeView>
     }
@@ -469,6 +476,7 @@
     private bool _webFormsAuthorized = false;
     private bool _projectRequested = false;
     private bool _userAccessLoaded = false;
+    private bool _isLoading = true;
 
     private List<ETL_CONTROL_TBL> _pipelineStatus = new List<ETL_CONTROL_TBL>();
 
@@ -486,6 +494,7 @@
 
     protected override async Task OnInitializedAsync()
     {
+        _isLoading = true;
         projectContext = DbFactoryProject.CreateDbContext();
         etlContext = DbFactoryEtl.CreateDbContext();
         _userId = await UserInformationService.GetUserIdString();
@@ -530,6 +539,7 @@
 
         }
         _projectCostFormatted = await GetProjectCostFormatted();
+        _isLoading = false;
 
     }
     protected override void OnAfterRender(bool firstRender)
@@ -630,6 +640,11 @@
             _user.UserPrincipalName, serviceName, new BilingualStringArgument(_project.ProjectInfo.ProjectNameEn, _project.ProjectInfo.ProjectNameFr));
 
         await RefreshComponents(true);
+    }
+
+    private async Task RequestStorageAccess()
+    {
+        await RequestServiceAccess("storage");
     }
 
     private async Task RequestServiceAccess(string serviceType)
