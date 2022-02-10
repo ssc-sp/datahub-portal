@@ -343,7 +343,7 @@
                     </AuthorizeView>
                 }
 
-                @if (ShowDatabaseCard && Configuration.Value.PostgreSQL)
+                @if (Configuration.Value.PostgreSQL)
                 {
                     <AeCard class="facard1" CardPosition="AeCard.CardStyle.Horizontal">
                         <Header>
@@ -502,8 +502,6 @@
     private List<ETL_CONTROL_TBL> _pipelineStatus = new List<ETL_CONTROL_TBL>();
 
     private string _projectCostFormatted;
-
-    private bool ShowDatabaseCard => _project != null && _project.HasAssociatedDatabase;
 
     private async Task UpdateFeatured(bool changed)
     {
