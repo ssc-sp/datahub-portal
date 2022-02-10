@@ -1,7 +1,7 @@
 
-# What is the NRCan DataHub?
+# What is the SSC DataHub?
 
-The NRCan DataHub project is an enterprise platform for storing, working with and collaborating on data initiatives.  It is a central location for NRCan users to store any kind of data with a unified portal to facilitate data discovery and management, performing collaborative analysis, manipulating data using advanced analytics tools, and conducting data science experiments.
+The SSC DataHub project is an enterprise platform for storing, working with and collaborating on data initiatives.  It is a central location for users to store any kind of data with a unified portal to facilitate data discovery and management, performing collaborative analysis, manipulating data using advanced analytics tools, and conducting data science experiments.
 
 ![image](https://user-images.githubusercontent.com/82101285/129956914-9ebe7b07-25dd-4c2c-9da0-d8e8a2499c78.png)
 
@@ -16,7 +16,7 @@ The DataHub aims to provide the following features:
 - Data Projects empower users to tell data stories, work with massive datasets, conduct analyses and experiment with new technologies.
 - Connect Data Scientists & Analytics Users in Sectors & Collaborating with other platforms
 
-_This project is presently internal to NRCan and more details can be obtained by contacting on DataHub mailbox for any collaboration opportunities Datahub.rncan@canada.ca_
+_This project is presently an on-going proof-of-concept and more details can be obtained by contacting us for any collaboration opportunities_
 
 ![image](https://user-images.githubusercontent.com/82101285/122599381-48a01d00-d03c-11eb-9bb8-a20d76646258.png)
 
