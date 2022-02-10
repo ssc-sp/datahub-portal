@@ -84,6 +84,7 @@
             p => { return p.Team_Owner2; },
             p => { return p.Team_Owner3; },
             p => { return p.SubmittedBy; },
+            p => { return p.M365FormStatus; },
         };
 
 
@@ -91,14 +92,14 @@
         LoadApps(string.Empty);
         _formMetadata.Header = Localizer["M365 Team Request Form"];
         _formMetadata.TableRoles = $"default";
-        //_formMetadata.DataSet = _m365FormsApplications;
+
         _formMetadata.AccessorFunctions = AccessorFunctions;
         _formMetadata.Headers = headers;
-        _formMetadata.GridTemplateColumns = "3fr 6fr 3fr 2fr 2fr 2fr 5fr";
+        _formMetadata.GridTemplateColumns = "3fr 6fr 3fr 2fr 2fr 2fr 5fr 2fr";
         _formMetadata.IsSubmitEnabled = true;
         _formMetadata.MarkDownContent = new List<string>();
         _formMetadata.MarkDownContentFooter = File.ReadAllLines($@"Pages\Forms\M365Forms\{footerfile}").ToList();
-        var filters = new List<(Delegate Label, Delegate Choices)>() { (() => "Status", () => new List<string> { "All", "Team Requested", "Submitted to Assyst", "Team Created" }) };
+        var filters = new List<(Delegate Label, Delegate Choices)>() { (() => "Status", () => new List<string> { "All", "Team Requested", "Submitted to Assyst", "Request Pending", "Team Created", "Request Denied" }) };
         _formMetadata.FilterProperties = filters;
 
         if (New)
@@ -117,7 +118,8 @@
         Localizer["Owner 1"],
         Localizer["Owner 2"],
         Localizer["Owner 3"],
-        Localizer["Submitted by"],        
+        Localizer["Submitted by"],
+        Localizer["Status"],
     };
 
     private async void HandleFilterChange(string selection)
@@ -131,15 +133,17 @@
     {
         if (_isUserAdmin)
         {
-            _m365FormsApplications = Context.M365FormsApplications.ToList();
+            _m365FormsApplications = Context.M365FormsApplications.OrderByDescending(d => d.Last_Updated_DT).ToList();
         }
         else
         {
-            _m365FormsApplications = Context.M365FormsApplications.Where(a => a.SubmittedBy == _user.Mail).ToList();
+            _m365FormsApplications = Context.M365FormsApplications.OrderByDescending(d => d.Last_Updated_DT).Where(a => a.SubmittedBy == _user.Mail).ToList();
         }
         if (filter == "All" || string.IsNullOrEmpty(filter))
         {
+
             _formMetadata.DataSet = _m365FormsApplications.OrderByDescending(d => d.Last_Updated_DT).ToList();
+
         }
         else
         {
