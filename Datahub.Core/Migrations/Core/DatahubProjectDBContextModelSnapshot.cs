@@ -440,6 +440,9 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.Property<int?>("Project_ID")
                         .HasColumnType("int");
 
+                    b.Property<Guid?>("Project_StorageId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<DateTime>("ServiceRequests_Date_DT")
                         .HasColumnType("datetime2");
 
@@ -462,6 +465,8 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.HasKey("ServiceRequests_ID");
 
                     b.HasIndex("Project_ID");
+
+                    b.HasIndex("Project_StorageId");
 
                     b.ToTable("Project_Requests");
                 });
@@ -1184,7 +1189,13 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                         .WithMany()
                         .HasForeignKey("Project_ID");
 
+                    b.HasOne("Datahub.Core.EFCore.Project_Storage", "Project_Storage")
+                        .WithMany()
+                        .HasForeignKey("Project_StorageId");
+
                     b.Navigation("Project");
+
+                    b.Navigation("Project_Storage");
                 });
 
             modelBuilder.Entity("Datahub.Core.EFCore.PBI_License_Request", b =>
