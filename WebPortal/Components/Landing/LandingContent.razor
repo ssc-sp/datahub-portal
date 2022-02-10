@@ -1,7 +1,9 @@
 ﻿@namespace Datahub.Portal.Components
+@using Microsoft.Extensions.Options
 @inject IUserInformationService UserInformationService
 @inject UserLocationManagerService UserLocationManagerService 
 @inject NavigationManager NavigationManager
+@inject IOptions<DataProjectsConfiguration> DataProjectsConfiguration
 
 <AeFlex class="landing-content-wrapper">
   <AeFlex class="landing-content">
@@ -47,15 +49,31 @@
         {        
             //("My Projects", @<AeTypography>My Projects frag</AeTypography>),
             //("Shared with Me", @<AeTypography>Shared with Me frag</AeTypography>),
-            (@Localizer["My Projects"], @<Datahub.Portal.Components.Landing.Tabs.ProjectsTab />),
-            (@Localizer["My Databricks Workbooks"], @<Datahub.Portal.Components.Landing.Tabs.DatabricksTab />),
-            (@Localizer["My Power BI Reports"], @<Datahub.Portal.Components.Landing.Tabs.PowerBITab /> ),
-            (@Localizer["My Data Entry"], @<Datahub.Portal.Components.Landing.Tabs.DataEntryTab /> ),
-        
+            (@Localizer["My Projects"], 
+    @<Datahub.Portal.Components.Landing.Tabs.ProjectsTab />
+    ),        
         };
-        if (links?.Count > 0)
+        //,
+        //,
+        //
+    if (DataProjectsConfiguration.Value.Databricks)
+            res.Add((@Localizer["My Databricks Workbooks"],
+    @<Datahub.Portal.Components.Landing.Tabs.DatabricksTab />
+            ));
+
+    if (DataProjectsConfiguration.Value.PowerBI)
+            res.Add((@Localizer["My Power BI Reports"], @<Datahub.Portal.Components.Landing.Tabs.PowerBITab />
+            ));
+        if (DataProjectsConfiguration.Value.WebForms)
+            res.Add((@Localizer["My Data Entry"],
+    @<Datahub.Portal.Components.Landing.Tabs.DataEntryTab />
+            ));
+
+
+    if (links?.Count > 0)
         {
-            res.Insert(0, (@Localizer["Recent"], @<Datahub.Portal.Components.Landing.Tabs.RecentTab RecentLinks="links"/>));
+            res.Insert(0, (@Localizer["Recent"], 
+    @<Datahub.Portal.Components.Landing.Tabs.RecentTab RecentLinks="links"/>));
         }
         return res;
     }

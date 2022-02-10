@@ -167,11 +167,11 @@ namespace Datahub.Portal.Services
 
             if (publicFile.IsProjectBased)
             {
-                return await _apiService.GetUserDelegationSasBlob(fileMetadata, publicFile.ProjectCode_CD.ToLowerInvariant());
+                return await _apiService.GetUserDelegationSasBlob(fileMetadata.filename, publicFile.ProjectCode_CD.ToLowerInvariant());
             }
             else
             {
-                return await _apiService.DownloadFile(fileMetadata);
+                return await _apiService.DownloadFile(fileMetadata, null);
             }
         }
 

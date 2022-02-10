@@ -1,0 +1,188 @@
+﻿@using Microsoft.Extensions.Logging
+@inject IMSGraphService MSGraphService
+@inject IDbContextFactory<DatahubProjectDBContext> dbFactory
+@inject IEmailNotificationService EmailService
+@inject ServiceAuthManager ServiceAuthManager
+@inject ILogger<ProjectAccessRequestTable> logger
+
+<AeCard>
+    <Header>
+        <AeTypography Variant="h1">@Localizer["Project User Requests"]</AeTypography>
+    </Header>
+    <ChildContent>
+        @if (Error != null)
+        {
+            <div>@Error</div>
+        }
+        @if (_userProjectAuthorization != null)
+        {
+            <AeFlex Vertical>
+                <AePaginatedTable 
+                    Accessors=@ProjectRequestAccessorFunctions
+                    Dataset=@_userProjectAuthorization
+                    @ref=@ProjectAccessTable
+                    Page=@CurrentPage
+                    PageSize=@PageSize
+                    Renderers=@projectReqRenderFunctions
+                    Headers=@LocalizeHeaders(projectReqheaders)
+                />
+
+                @if (ProjectAccessTable != null)
+                {
+                    <AePagination Pageable=@ProjectAccessTable OnPageClick=@PaginationClicked> 
+                        <LeftIcon><i class='fad fa-chevron-double-left'></i></LeftIcon> 
+                        <RightIcon><i class='fad fa-chevron-double-right'></i></RightIcon>
+                    </AePagination>
+                }
+            </AeFlex>
+        }
+        else
+        {
+            <div>@Localizer["Loading data..."]</div>
+        }
+    </ChildContent>
+</AeCard>    
+
+@code {
+    [Parameter]
+    public string UserId { get; set; }
+
+    [Parameter]
+    public bool IsDatahubAdmin { get; set; }
+
+    [Parameter]
+    public int PageSize { get; set; } = 10;
+
+    private string? Error { get; set; }
+
+    private List<Datahub_Project_User_Request> _userProjectAuthorization;
+
+    private List<Func<Datahub_Project_User_Request, string>> ProjectRequestAccessorFunctions = new()
+    {
+        p => p.Project.Project_Name,
+        p => p.User_ID ?? "N/A",
+        p => p.Requested_DT.ToShortDateString(),
+        p => ".."
+    };
+
+    private List<Func<Datahub_Project_User_Request, RenderFragment>> projectReqRenderFunctions;
+
+    private List<string> projectReqheaders = new()
+    {
+        "Project", "User", "Date","Actions"
+    };
+
+    private List<string> LocalizeHeaders(List<string> input) => input.Select(s => Localizer[s].ToString()).ToList();
+
+    private void PaginationClicked(int pageIndex)
+    {
+        CurrentPage = pageIndex;
+    }
+
+    private IPageableComponent ProjectAccessTable;
+    private int CurrentPage = 0;
+
+
+    private async Task AuthorizeProjectUser(Datahub_Project_User_Request req)
+    {
+        using var projectContext = await dbFactory.CreateDbContextAsync();
+
+        var approvedDate = DateTime.Now;
+
+        var r = await projectContext.Project_Users_Requests
+            .Include(r => r.Project)
+            .FirstOrDefaultAsync(r => r.ProjectUserRequest_ID == req.ProjectUserRequest_ID);
+
+        r.ApprovedUser = UserId;
+        r.Approved_DT = approvedDate;
+        var requestingUserEmail = await MSGraphService.GetUserEmail(r.User_ID, CancellationToken.None);
+
+        var projectUser = new Datahub_Project_User()
+        {
+            User_ID = r.User_ID,
+            Project = r.Project,
+            ApprovedUser = UserId,
+            Approved_DT = approvedDate,
+            IsAdmin = false,
+            IsDataApprover = false,
+            User_Name = requestingUserEmail.ToLower()
+        };
+        projectContext.Project_Users.Add(projectUser);
+
+        await projectContext.SaveChangesAsync();
+
+        var serviceName = r.Project.ProjectName;
+        try
+        {
+            await EmailService.SendServiceAccessGrantedNotification(serviceName, r.Project.ProjectInfo, r.User_ID);
+        } catch (Exception ex)
+        {
+            Error = "Cannot send email message";
+            logger.LogError(ex, "Cannot send email message");
+        }
+        ServiceAuthManager.InvalidateAuthCache();
+        await RefreshData();
+    }
+
+    private async Task DeleteAccessRequest(Datahub_Project_User_Request req)
+    {
+        using var projectContext = await dbFactory.CreateDbContextAsync();
+
+        var r = await projectContext.Project_Users_Requests
+            .FirstOrDefaultAsync(r => r.ProjectUserRequest_ID == req.ProjectUserRequest_ID);
+
+        projectContext.Project_Users_Requests.Remove(r);
+        await projectContext.SaveChangesAsync();
+
+        await RefreshData();
+    }
+
+    private async Task RefreshData()
+    {
+        using var ctx = await dbFactory.CreateDbContextAsync();
+
+        var validProjects = (IsDatahubAdmin ? 
+            ctx.Projects.Select(p => p.Project_ID) : 
+            ctx.Project_Users.Where(u => u.IsAdmin && u.User_ID == UserId).Select(p => p.Project.Project_ID))            
+            .ToHashSet();
+
+        var allProjectAuthorization = await ctx.Project_Users_Requests
+            .Include(a => a.Project)
+            .OrderByDescending(a => a.Requested_DT)
+            .ToListAsync();
+
+        _userProjectAuthorization = allProjectAuthorization
+            .Where(a => validProjects.Contains(a.Project.Project_ID))
+            .ToList();
+
+        StateHasChanged();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        projectReqRenderFunctions = new()
+        {
+            null,
+            user => 
+    @<div class="help icon-container"><GraphUserInformation UserId="@user.User_ID" IsUserNameRequested="true"></GraphUserInformation></div>,
+            null,
+            a => 
+            {
+                if (a.Approved_DT != null)
+                {
+                    return @<div>@Localizer["Authorized"]</div>;
+                }
+                else
+                {
+                    return @<div>
+                        <AeButton @onclick="async () => await AuthorizeProjectUser(a)">@Localizer["Authorize User"]</AeButton>
+                        <AeButton @onclick="async () => await DeleteAccessRequest(a)">@Localizer["Delete Request"]</AeButton>
+    </div>
+    ;
+                }
+            }
+        };
+
+        await RefreshData();
+    }
+}

@@ -11,5 +11,10 @@ namespace Datahub.Core.Services
         {
             return Task.FromResult(string.Empty);
         }
+
+        public Task<string> SignAsync(string data)
+        {
+            return Task.FromResult(data);
+        }
     }
 }

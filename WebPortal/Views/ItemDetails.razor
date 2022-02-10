@@ -1,4 +1,6 @@
-﻿@using Datahub.Portal.Components;
+﻿@*ItemDetails.razor*@
+@using Datahub.Metadata.Model
+@using Datahub.Portal.Components;
 @inject IMSGraphService MSGraphService
 @inject CommonAzureServices CommonAzureServices;
 @inject NavigationManager NavigationManager
@@ -14,14 +16,15 @@
             </h4>
         </div>
 
-        <div class="tab">
+        @*<div class="tab">
             <h4 class="nrcan-typography @DetailsTabClassname h4" @onclick="@(() => TabClick("details"))">
                 @Localizer["ITEM-DETAILS-PAGE.Details-Label"]
             </h4>
             <h4 class="nrcan-typography @ActivityTabClassname h4" @onclick="@(() => TabClick("activity"))">
                 @Localizer["ITEM-DETAILS-PAGE.Activity-Label"]
             </h4>
-        </div>
+        </div>*@
+
         <div class="@DetailsContentClassname">
             @foreach ((string propertyName, string displayValue) in Properties)
             {
@@ -61,8 +64,14 @@
 
             <div class="item-row">
                 <ObjectMetadataEditor ObjectId=@SelectedFile.fileid 
+                                      Name=@SelectedFile.filename
+                                      Location=@Project
+                                      SecurityClass=@SelectedFile.securityclass
                                       SaveButtonLabel=@Localizer["OPENDATA-WIZARD.Save_button"] 
-                                      ValidateRequired="false" 
+                                      ValidateRequired=true
+                                      ProfileName="catalog"
+                                      ObjectType=@MetadataObjectType.File
+                                      UpdateCatalog=@UpdateCatalog
                                       Preview=@PreviewMetadata />
             </div>
 
@@ -91,7 +100,12 @@
     public string CurrentUser { get; set; }
 
     [Parameter]
+    public string Project { get; set; }
+
+    [Parameter]
     public EventCallback OnClose { get; set; }
+
+    private bool UpdateCatalog => !string.IsNullOrEmpty(Project);
 
     protected override async Task OnInitializedAsync()
     {

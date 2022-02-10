@@ -29,7 +29,6 @@ using Microsoft.EntityFrameworkCore;
 using Datahub.ProjectForms.Data.PIP;
 using Datahub.Core.EFCore;
 using Datahub.Portal.Data;
-using Datahub.Portal.Data.Finance;
 using Datahub.Portal.Data.WebAnalytics;
 using Microsoft.Graph;
 using Polly;
@@ -45,7 +44,14 @@ using Datahub.LanguageTraining;
 using Microsoft.AspNetCore.HttpLogging;
 using Datahub.CKAN.Service;
 using Datahub.Core.UserTracking;
+using Datahub.Finance;
+using Datahub.M365Forms;
+using System.Reflection;
+using System.Runtime.CompilerServices;
+using Datahub.Core.Configuration;
+using Datahub.Core.Modules;
 
+[assembly: InternalsVisibleTo("Datahub.Tests")]
 namespace Datahub.Portal
 {
     public class Startup
@@ -58,8 +64,9 @@ namespace Datahub.Portal
 
         private readonly IConfiguration Configuration;
         private readonly IWebHostEnvironment _currentEnvironment;
+        private ModuleManager moduleManager = new ModuleManager();
 
-        private bool ResetDB => (bool)(Configuration.GetSection("InitialSetup")?.GetValue(typeof(bool), "ResetDB", false) ?? false);
+        private bool ResetDB => (bool)(Configuration.GetSection("InitialSetup")?.GetValue<bool>("ResetDB", false) ?? false);
         private bool Offline => (bool)(Configuration.GetValue(typeof(bool), "Offline", false) ?? false);
 
         private bool Debug => (bool)Configuration.GetValue(typeof(bool), "DebugMode", false);
@@ -119,12 +126,22 @@ namespace Datahub.Portal
             //TimeZoneService provides the user time zone to the server using JS Interop
             services.AddScoped<TimeZoneService>();
             services.AddElemental();
-            services.AddModule<LanguageTrainingModule>(Configuration);
+            services.AddSingleton(moduleManager);
+
+
+            moduleManager.LoadModules(Configuration.GetValue<string>("DataHubModules", "*"));
+            foreach (var module in moduleManager.Modules)
+            {
+                Console.Write($"Configuring module {module.Name}");
+                services.AddModule(module,Configuration);
+            }
+
             // configure db contexts in this method
             ConfigureDbContexts(services);
 
-            IConfigurationSection sec = Configuration.GetSection("APITargets");
-            services.Configure<APITarget>(sec);
+            services.Configure<DataProjectsConfiguration>(Configuration.GetSection("DataProjects"));
+
+            services.Configure<APITarget>(Configuration.GetSection("APITargets"));
 
             services.Configure<TelemetryConfiguration>(Configuration.GetSection("ApplicationInsights"));
 
@@ -181,11 +198,11 @@ namespace Datahub.Portal
             EFTools.InitializeDatabase<T>(logger, Configuration, dbContextFactory, ResetDB, migrate, ensureDeleteinOffline);
         }
 
+
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILogger<Startup> logger,
             IDbContextFactory<DatahubProjectDBContext> datahubFactory,
             IDbContextFactory<UserTrackingContext> userTrackingFactory,
-            IDbContextFactory<FinanceDBContext> financeFactory,
             IDbContextFactory<PIPDBContext> pipFactory,
             IDbContextFactory<MetadataDbContext> metadataFactory,
             IDbContextFactory<DatahubETLStatusContext> etlFactory)
@@ -196,12 +213,15 @@ namespace Datahub.Portal
                 app.UseHttpLogging();
             }
 
-            app.ConfigureModule<LanguageTrainingModule>();
+            foreach (var module in moduleManager.Modules)
+            {
+                logger.LogInformation($"Configuring module {module.Name}");
+                app.ConfigureModule(module);
+            }
 
             InitializeDatabase(logger, datahubFactory);
             InitializeDatabase(logger, userTrackingFactory, false);
             InitializeDatabase(logger, etlFactory);
-            InitializeDatabase(logger, financeFactory);
             InitializeDatabase(logger, pipFactory);
             InitializeDatabase(logger, metadataFactory, true, false);
 
@@ -232,6 +252,7 @@ namespace Datahub.Portal
                 endpoints.MapControllers();
                 endpoints.MapFallbackToPage("/_Host");
             });
+
         }
 
         private void ConfigureAuthentication(IServiceCollection services)
@@ -266,9 +287,6 @@ namespace Datahub.Portal
                     .AddMicrosoftGraph(Configuration.GetSection("Graph"))
                     .AddInMemoryTokenCaches();
 
-
-
-
                 // var isCustomRedirectUriRequired = true;
                 // if (isCustomRedirectUriRequired)
                 // {
@@ -302,9 +320,6 @@ namespace Datahub.Portal
                 //                        .RequireAuthenticatedUser();
                 //                });
                 //        });
-
-
-
 
                 services.AddControllersWithViews(options =>
                 {
@@ -448,7 +463,6 @@ namespace Datahub.Portal
         {
             ConfigureDbContext<DatahubProjectDBContext>(services, "datahub-mssql-project", Configuration.GetDriver());
             ConfigureDbContext<PIPDBContext>(services, "datahub-mssql-pip", Configuration.GetDriver());
-            ConfigureDbContext<FinanceDBContext>(services, "datahub-mssql-finance", Configuration.GetDriver());
             if (Configuration.GetDriver() == DbDriver.SqlServer)
             {
                 ConfigureCosmosDbContext<UserTrackingContext>(services, "datahub-cosmosdb", "datahub-catalog-db");
