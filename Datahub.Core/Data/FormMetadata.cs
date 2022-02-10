@@ -12,7 +12,7 @@ namespace Datahub.Core.Data
         public string SubHeader { get; set; }
         public string UserId { get; set; }
 
-        public IList<T> DataSet { get; set; }
+        public List<T> DataSet { get; set; }
 
         public IList<Func<T, string>> AccessorFunctions { get; set; }
 
