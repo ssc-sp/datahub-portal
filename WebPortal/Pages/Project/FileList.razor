@@ -3,13 +3,15 @@
 @inject IDbContextFactory<DatahubProjectDBContext> DbFactoryProject
 @inject IApiService ApiService
 
+<DHPageTitle PageTitleKey=@(_project.ProjectName + " " + Localizer["Storage Explorer"])/>
+
 <div style="padding-left: 2rem;padding-right: 2rem;padding-bottom: 2rem">
     <AeFlex Vertical>
         <AeTypography Variant="h2">@Localizer["Storage Explorer"]</AeTypography>
     </AeFlex>
     <AeCard>
         <Header>
-            <AeTypography>@_project.ProjectName</AeTypography>
+            <AeTypography Variant="h3">@_project.ProjectName</AeTypography>
         </Header>
         <ChildContent>
             <FileGrid CurrentFolder="null" CanAddData="true" Project="@ProjectAcronym" />
@@ -67,11 +69,9 @@
 
     private async Task GenerateSASToken(int days)
     {
-        var uri = await ApiService.GetUserDelegationSasBlob(null, ProjectAcronym.ToLower(), 14);
+        var uri = await ApiService.GenerateSasToken(ProjectAcronym, 14);
         _tempToken = uri.ToString();
         _substitutions = new List<(string, string)>() { ("<sas_uri>",_tempToken) };
         StateHasChanged();
     }
-
-
 }

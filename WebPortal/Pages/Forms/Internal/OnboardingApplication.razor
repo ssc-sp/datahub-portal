@@ -109,9 +109,9 @@
                      .ToList();
     }
 
-    private int GetChoiceId(List<OrganizationLevel> choices, string value)
+    private int GetChoiceId(List<OrganizationLevel> choices, string value, int? parentId = null)
     {
-        return choices.FirstOrDefault(c => c.EnglishLabel.Equals(value) || c.FrenchLabel.Equals(value))?.Id ?? -1;
+        return choices.FirstOrDefault(c => (!parentId.HasValue || c.ParentId == parentId.Value) && (c.EnglishLabel.Equals(value) || c.FrenchLabel.Equals(value)))?.Id ?? -1;
     }
 
     private List<string> headers => new List<string>
@@ -134,7 +134,7 @@
             OnboardingParameters onboardingParameters = new() { 
                             AppUrl = $"/onboarding/applications/{_onboardingApplication.Application_ID}",
                             App = _onboardingApplication, 
-                            AdminEmailAddresses =  ServiceAuthManager.GetProjectAdminsEmails(PROJECTACRONYM)
+                            AdminEmailAddresses =  ServiceAuthManager.GetProjectMailboxEmails(PROJECTACRONYM)
                         };
             
 
@@ -178,7 +178,7 @@
 
             context.RegisterOptionValueProperty<OnboardingApp>(p => p.Client_Branch, () => Branches, s => 
             {
-                var id = GetChoiceId(_branches, s);
+                var id = GetChoiceId(_branches, s, _sectorId);
                 if (_branchId != id)
                 {
                     _branchId = id;
@@ -188,7 +188,7 @@
 
             context.RegisterOptionValueProperty<OnboardingApp>(p => p.Client_Division, () => Divisions, s => 
             {
-                _divisionId = GetChoiceId(_divisions, s);
+                _divisionId = GetChoiceId(_divisions, s, _branchId);
             });
 
             context.RegisterOptionValueProperty<OnboardingApp>(p => p.Project_Engagement_Category, () => Onboarding_Constants.CATEGORY);

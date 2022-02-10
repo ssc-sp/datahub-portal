@@ -10,6 +10,13 @@
                  SubmitLabel="@SubmitLabel"
                  LabelForPropertyFunc="@GetDataLabel"
                  LabelsOnTop />
+    
+    @if (!_validMandatoryCheckboxes)
+    {
+        <AeTypography Variant="p" class="warning">
+            @(new MarkupString(Localizer["OPENDATA-WIZARD.MustAcknowledgeMandatoryReleaseCriteria"]))
+        </AeTypography>
+    }    
 </div>
 
 @code {
@@ -92,20 +99,38 @@
         _sections = await OrganizationLevelsService.GetSections();
 
         _sectorId = GetChoiceId(_sectors, _approvalForm.Sector_NAME);
-        _branchId = GetChoiceId(_branches, _approvalForm.Branch_NAME);
-        _divisionId = GetChoiceId(_divisions, _approvalForm.Division_NAME);
-        _sectionId = GetChoiceId(_sections, _approvalForm.Section_NAME);
+        _branchId = GetChoiceId(_branches, _approvalForm.Branch_NAME, _sectorId);
+        _divisionId = GetChoiceId(_divisions, _approvalForm.Division_NAME, _branchId);
+        _sectionId = GetChoiceId(_sections, _approvalForm.Section_NAME, _sectionId);
     }
 
-    private int GetChoiceId(List<OrganizationLevel> choices, string value)
+    private bool _validMandatoryCheckboxes = true;
+
+    private bool ValidMandatoryReleaseCriteria()
     {
-        return choices.FirstOrDefault(c => c.EnglishLabel.Equals(value) || c.FrenchLabel.Equals(value))?.Id ?? -1;
+        return _approvalForm.Copyright_Restrictions_FLAG &&
+               _approvalForm.Authority_To_Release_FLAG &&
+               _approvalForm.Private_Personal_Information_FLAG &&
+               _approvalForm.Not_Clasified_Or_Protected_FLAG &&
+               _approvalForm.Can_Be_Released_For_Free_FLAG &&
+               _approvalForm.Machine_Readable_FLAG &&
+               _approvalForm.Non_Propietary_Format_FLAG &&
+               _approvalForm.Localized_Metadata_FLAG;
+    }
+
+    private int GetChoiceId(List<OrganizationLevel> choices, string value, int? parentId = null)
+    {
+        return choices.FirstOrDefault(c => (!parentId.HasValue || c.ParentId == parentId.Value) && (c.EnglishLabel.Equals(value) || c.FrenchLabel.Equals(value)))?.Id ?? -1;
     }
 
     private async Task HandleValidSubmit()
     {
-        _approvalForm.ApprovalFormId = await MetadataBrokerService.SaveApprovalForm(_approvalForm);
-        await OnSubmitForm.InvokeAsync(_approvalForm.ApprovalFormId);
+        _validMandatoryCheckboxes = ValidMandatoryReleaseCriteria();
+        if (_validMandatoryCheckboxes)
+        {
+            _approvalForm.ApprovalFormId = await MetadataBrokerService.SaveApprovalForm(_approvalForm);
+            await OnSubmitForm.InvokeAsync(_approvalForm.ApprovalFormId);    
+        }
     }
 
     private async Task<Data.Forms.ShareWorkflow.ApprovalForm> ClearForm()
@@ -133,7 +158,7 @@
 
         context.RegisterOptionValueProperty<Data.Forms.ShareWorkflow.ApprovalForm>(p => p.Branch_NAME, () => Branches, b =>
         {
-            var id = GetChoiceId(_branches, b);
+            var id = GetChoiceId(_branches, b, _sectorId);
             if (_branchId != id)
             {
                 _branchId = id;
@@ -143,7 +168,7 @@
 
         context.RegisterOptionValueProperty<Data.Forms.ShareWorkflow.ApprovalForm>(p => p.Division_NAME, () => Divisions, d =>
         {
-            var id = GetChoiceId(_divisions, d);
+            var id = GetChoiceId(_divisions, d, _branchId);
             if (_divisionId != id)
             {
                 _divisionId = id;
@@ -153,7 +178,7 @@
 
         context.RegisterOptionValueProperty<Data.Forms.ShareWorkflow.ApprovalForm>(p => p.Section_NAME, () => Sections, s =>
         {
-            _sectionId = GetChoiceId(_sections, s);
+            _sectionId = GetChoiceId(_sections, s, _divisionId);
         });
     }
 

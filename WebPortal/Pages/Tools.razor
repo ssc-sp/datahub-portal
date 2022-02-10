@@ -1,4 +1,8 @@
 ﻿@page "/tools"
+@using Datahub.Core.Modules
+@using Microsoft.Extensions.Configuration
+@inject IConfiguration configuration
+@inject ModuleManager ModuleManager
 
 <div style="padding: 2rem;padding-right: 2rem">
 
@@ -18,7 +22,7 @@
                 </ChildContent>
                 <Footer>
                     <AeFlex Vertical>
-                        <AeTypography Variant="warning">@Localizer["Have a new project? Fill out an onboarding application now!"]</AeTypography>                   
+                        <AeTypography Variant="warning">@Localizer["Have a new project? Start your collaboration with us by completing the Onboarding Form"]</AeTypography>                   
                     </AeFlex>
                 </Footer>
             </AeCard>
@@ -34,7 +38,7 @@
                 </ChildContent>
                 <Footer>
                     <AeFlex Vertical>
-                        <AeTypography Variant="warning">@Localizer["Looking for an estimate for your storage needs?"]</AeTypography>
+                        <AeTypography Variant="warning">@Localizer["Looking for storage costs? Use the Storage Cost Estimator to estimate your storage needs"]</AeTypography>
                     </AeFlex>
                 </Footer>
             </AeCard>
@@ -50,7 +54,7 @@
                 </ChildContent>
                 <Footer>
                     <AeFlex Vertical>
-                        <AeTypography Variant="warning">@Localizer["Estimate the cost for a Databricks compute setup"]</AeTypography>
+                        <AeTypography Variant="warning">@Localizer["Looking for compute costs? Use the Compute Cost Estimator to estimate your compute needs"]</AeTypography>
                     </AeFlex>
                 </Footer>
             </AeCard>
@@ -72,6 +76,8 @@
                 </Footer>
             </AeCard>
 
+            @if (ModuleManager.IsEnabled("M365FormsModule"))
+            {
             <AeCard class="facard1" CardPosition="AeCard.CardStyle.Horizontal">
                 <Header>
                      <div class="purple" style="width:120px">
@@ -87,10 +93,56 @@
                     </AeFlex>
                 </Footer>
             </AeCard>
+            }
 
+            @if (CatalogReport.Exists())
+            {
+            <AeCard class="facard1" CardPosition="AeCard.CardStyle.Horizontal">
+                <Header>
+                     <div class="purple" style="width:120px">
+                        <AeIcon class="fad fa-album-collection card-icon fa-xs" />
+                    </div>
+                </Header>
+                <ChildContent>                                           
+                        <DHLink Variant="h3" LinkType="DatahubLinkType.PowerBI" PBIReportId="@(CatalogReport.GetValue<string>("Report"))" PBIWorkspaceId="@(CatalogReport.GetValue<string>("Workspace"))">@Localizer["Data Catalog Report"]</DHLink>
+                </ChildContent>
+                <Footer>
+                    <AeFlex Vertical>
+                        <AeTypography Variant="warning">@Localizer["Data Cataloging status for PowerBI, Tableau and files"]</AeTypography>     
+                    </AeFlex>
+                </Footer>
+            </AeCard>
+            }
+
+            <environment include="Development">
+            
+                <AeCard class="facard1" CardPosition="AeCard.CardStyle.Horizontal">
+                    <Header>
+                         <div class="purple" style="width:120px">
+                            @*<AeIcon class="fad fa-radar card-icon fa-xs" /> *@
+                            <AeIcon class="fad fa-album-collection card-icon fa-xs" /> 
+                        </div>
+                    </Header>
+                    <ChildContent>                   
+                            <NavLink class="ae typography h3 a" href="/discovery">@Localizer["Discovery (beta)"]</NavLink>
+                    </ChildContent>
+                    <Footer>
+                        <AeFlex Vertical>
+                            <AeTypography Variant="warning">@Localizer["Search the Datahub catalog."]</AeTypography>     
+                        </AeFlex>
+                    </Footer>
+                </AeCard>
+
+            </environment>
     </div>
 </div>
 
 @code {
 
+    private IConfigurationSection CatalogReport;
+    
+    protected override void OnInitialized()
+    {
+        CatalogReport = configuration.GetSection("PowerBI:CatalogReport");
+    }
 }
