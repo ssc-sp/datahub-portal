@@ -24,5 +24,9 @@ namespace Datahub.Metadata.Model
         /// Field values collection
         /// </summary>
         public virtual ICollection<ObjectFieldValue> FieldValues { get; set; }
+        /// <summary>
+        /// Cataloged objects (because one object can be in more than one subject)
+        /// </summary>
+        public virtual ICollection<CatalogObject> CatalogObjects { get; set; }
     }
 }

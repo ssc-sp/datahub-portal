@@ -48,6 +48,8 @@ using Datahub.Finance;
 using Datahub.M365Forms;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using Datahub.Core.Configuration;
+using Datahub.Core.Modules;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]
 namespace Datahub.Portal
@@ -62,6 +64,7 @@ namespace Datahub.Portal
 
         private readonly IConfiguration Configuration;
         private readonly IWebHostEnvironment _currentEnvironment;
+        private ModuleManager moduleManager = new ModuleManager();
 
         private bool ResetDB => (bool)(Configuration.GetSection("InitialSetup")?.GetValue<bool>("ResetDB", false) ?? false);
         private bool Offline => (bool)(Configuration.GetValue(typeof(bool), "Offline", false) ?? false);
@@ -123,14 +126,22 @@ namespace Datahub.Portal
             //TimeZoneService provides the user time zone to the server using JS Interop
             services.AddScoped<TimeZoneService>();
             services.AddElemental();
-            services.AddModule<LanguageTrainingModule>(Configuration);
-            services.AddModule<FinanceModule>(Configuration);
-            services.AddModule<M365FormsModule>(Configuration);
+            services.AddSingleton(moduleManager);
+
+
+            moduleManager.LoadModules(Configuration.GetValue<string>("DataHubModules", "*"));
+            foreach (var module in moduleManager.Modules)
+            {
+                Console.Write($"Configuring module {module.Name}");
+                services.AddModule(module,Configuration);
+            }
+
             // configure db contexts in this method
             ConfigureDbContexts(services);
 
-            IConfigurationSection sec = Configuration.GetSection("APITargets");
-            services.Configure<APITarget>(sec);
+            services.Configure<DataProjectsConfiguration>(Configuration.GetSection("DataProjects"));
+
+            services.Configure<APITarget>(Configuration.GetSection("APITargets"));
 
             services.Configure<TelemetryConfiguration>(Configuration.GetSection("ApplicationInsights"));
 
@@ -187,27 +198,6 @@ namespace Datahub.Portal
             EFTools.InitializeDatabase<T>(logger, Configuration, dbContextFactory, ResetDB, migrate, ensureDeleteinOffline);
         }
 
-        internal static List<Type> LoadModules(string filterString = "*")
-        {
-            var filters = filterString.Split(',', StringSplitOptions.RemoveEmptyEntries);
-            var modules = AppDomain.CurrentDomain.GetAssemblies().SelectMany(asm => TryFindInAssembly<IDatahubModule>(asm)).ToList();
-            if (filters.Contains("*"))
-                return modules;
-            var moduleFilters = filters.Select(c => c.ToLowerInvariant()).ToHashSet();
-            return modules.Where(t => moduleFilters.Contains(t.Name.ToLowerInvariant())).ToList();
-        }
-        private static List<Type> TryFindInAssembly<T>(Assembly asm)
-        {
-            try
-            {
-                return asm.GetTypes().Where(t => t.GetInterfaces().Contains(typeof(T))).ToList();
-            }
-            catch (Exception ex)
-            {
-                return new List<Type>();
-            }
-        }
-
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILogger<Startup> logger,
@@ -223,8 +213,7 @@ namespace Datahub.Portal
                 app.UseHttpLogging();
             }
 
-            var allModules = LoadModules(Configuration.GetValue<string>("DataHubModules", "*"));
-            foreach (var module in allModules)
+            foreach (var module in moduleManager.Modules)
             {
                 logger.LogInformation($"Configuring module {module.Name}");
                 app.ConfigureModule(module);
@@ -263,6 +252,7 @@ namespace Datahub.Portal
                 endpoints.MapControllers();
                 endpoints.MapFallbackToPage("/_Host");
             });
+
         }
 
         private void ConfigureAuthentication(IServiceCollection services)
@@ -296,9 +286,6 @@ namespace Datahub.Portal
                     .EnableTokenAcquisitionToCallDownstreamApi(scopes)
                     .AddMicrosoftGraph(Configuration.GetSection("Graph"))
                     .AddInMemoryTokenCaches();
-
-
-
 
                 // var isCustomRedirectUriRequired = true;
                 // if (isCustomRedirectUriRequired)
