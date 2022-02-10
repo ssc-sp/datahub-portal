@@ -45,7 +45,7 @@ else
                 <AePaginatedTable 
                     T="@T"
                     Accessors="Metadata.AccessorFunctions.ToList()"
-                    Dataset="Metadata.DataSet.ToList()"
+                    Dataset="Metadata.DataSet"
                     ColorAccessor="getColor"
                     Headers="Metadata.Headers.ToList()"
                     GridTemplateColumns="@Metadata.GridTemplateColumns"
@@ -53,6 +53,7 @@ else
                     OnRowClick="@SetFormEdit" 
                     Page="@_lastClicked"
                     PageSize="10"
+                    DisableFirstSort="DisableFirstSort"
                     @ref=_myTable
                     />
 
@@ -73,7 +74,7 @@ else
 
 @if (SelectedRecord != null)
 {
-    @if (Metadata.MarkDownContent.Any())
+    @if (Metadata.MarkDownContent?.Any() ?? false)
     {
         <AeCard class="facardForms" CardPosition="AeCard.CardStyle.Horizontal">
             @foreach (var content in Metadata.MarkDownContent)
@@ -85,11 +86,12 @@ else
     <AeCard class="facardForms" CardPosition="AeCard.CardStyle.Horizontal">
     <AeModelForm Model="SelectedRecord"
                  T="@T"
-                 OnValidSubmit="HandleSubmit"
+                 OnValidSubmit="HandleFormSubmit"
+                 OnInvalidSubmit="HandleFormInvalidSubmit"
                  OnCancel="ClearForm"
                  OnConfigure="OnConfigure"
                  CancelLabel="Cancel"
-                 SubmitLabel="Save"
+                 SubmitLabel="@Metadata.SaveButtonText"
                  OnChange="OnChange"
                  LabelForPropertyFunc="@GetDataLabel"
                  LabelsOnTop="true"
@@ -97,7 +99,7 @@ else
                  IsSubmitEnabled="Metadata.IsSubmitEnabled" />
     </AeCard>
 
-    @if (Metadata.MarkDownContentFooter.Any())
+    @if (Metadata.MarkDownContentFooter?.Any() ?? false)
     {
         <AeCard class="facardForms" CardPosition="AeCard.CardStyle.Horizontal">
             @foreach (var content in Metadata.MarkDownContentFooter)
@@ -114,7 +116,9 @@ else
     [Parameter]
     public FormMetadata<T> Metadata { get; set; }
     [Parameter]
-    public EventCallback HandleSubmit { get; set; }
+    public EventCallback<EditContext> HandleSubmit { get; set; }
+    [Parameter]
+    public EventCallback<EditContext> HandleInvalidSubmit { get; set; }
     [Parameter]
     public EventCallback<IModelFormContext> OnConfigureForms { get; set; }
     [Parameter]
@@ -129,6 +133,8 @@ else
     public Action<string> HandleFilterChange { get; set; }
     [Parameter]
     public U Context { get; set; }
+    [Parameter]
+    public bool DisableFirstSort { get; set; }
 
 
     private int _lastClicked = 0;
@@ -162,8 +168,8 @@ else
         {
             var messages = new List<string>() { "Would you like to save the current record?" };
             await UI.ToggleModal(
-            @<UserChoiceModal HeaderText="Save Data" ChoiceTextList=@messages OnDecision="(a) => OnConfirmSave(a, selectedRecord)" ConfirmText="Yes" CancelText="No" />
-            );
+    @<UserChoiceModal HeaderText="Save Data" ChoiceTextList=@messages OnDecision="(a) => OnConfirmSave(a, selectedRecord)" ConfirmText="Yes" CancelText="No" />
+    );
         }
         await ClearForm();
         await SetFormEditRecord.InvokeAsync(selectedRecord);
@@ -182,7 +188,7 @@ else
                 entry.Property("Last_Updated_UserId").CurrentValue = Metadata.UserId;                
             }
             await Context.TrackSaveChangesAsync(AuditingService);
-            
+
         }
         else
         {
@@ -201,13 +207,13 @@ else
 
     protected override void OnAfterRender(bool firstRender)
     {
-    // You must re-render after the components are initialized in order for the 
-    // component reference to not be null
+        // You must re-render after the components are initialized in order for the 
+        // component reference to not be null
         if(firstRender){
             StateHasChanged();
         }
     }
-    
+
     private async Task OnConfigure(IModelFormContext context)
     {        
         if (context != null)
@@ -233,7 +239,20 @@ else
 
     private string GetDataLabel(string propName)
     {
-        return DataLocalizer[propName];
+        if (!string.IsNullOrEmpty(propName))
+            return DataLocalizer[propName];
+
+        return string.Empty;
+    }
+
+    private async Task HandleFormSubmit(EditContext editContext)
+    {
+        await HandleSubmit.InvokeAsync(editContext);
+    }
+
+    private async Task HandleFormInvalidSubmit(EditContext editContext)
+    {
+        await HandleInvalidSubmit.InvokeAsync(editContext);
     }
 
 }

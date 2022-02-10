@@ -6,7 +6,10 @@
 @inject IUserInformationService UserInformationService
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JsInterop
+@inject IConfiguration Configuration
+@inject IDatahubAuditingService AuditingService
 @page "/languagetraining/applications"
+@page "/languagetraining/applications/{AppId}"
 
 <Datahub.Core.Components.FormTemplate 
         T="LanguageTrainingApplication"
@@ -14,6 +17,7 @@
         Context="@Context"
         Metadata="@_formMetadata" 
         HandleSubmit="HandleValidSubmit"
+        HandleInvalidSubmit="HandleInvalidSubmit"
         OnChangeForms="OnChange"
         OnConfigureForms="OnConfigure"
         CreateNewRecord="CreateNewApplication"
@@ -21,7 +25,18 @@
         SetFormEditRecord="SetFormEdit" 
         HandleFilterChange="HandleFilterChange" />
 
+<AuthorizeView Roles="@($"{PROJECTACRONYM}-admin, {RoleConstants.DATAHUB_ROLE_ADMIN}")">
+    <AeCard class="facardForms" CardPosition="AeCard.CardStyle.Horizontal">
+        <AeTypography Variant="h3">@DataLocalizer["Admin Actions"]</AeTypography>
+        <div class="icon-container" style="margin-bottom: 10px; margin-left: 5px;">
+            <FAButton @onclick=@OpenExcel Text=@DataLocalizer["Open Excel Report"] />
+        </div>
+    </AeCard>
+</AuthorizeView>
 @code {
+
+        [Parameter]
+    public string AppId { get; set; }
 
     private const string PROJECTACRONYM = "HRLTP";
     private const string FORMLOCATION = "languagetraining/applications";
@@ -33,6 +48,12 @@
     private List<string> MarkDownContent = new();
     private Microsoft.Graph.User _user;
     private bool _isUserAdmin;
+
+    private async void OpenExcel()
+    {
+        var powerBiTargets = Configuration["PowerBiTargets:LT"];
+        await JsInterop.InvokeAsync<object>("open", powerBiTargets, "_blank");
+    }
 
     protected override async Task OnInitializedAsync()
     {        
@@ -56,6 +77,7 @@
         _formMetadata.Headers = headers;
         _formMetadata.GridTemplateColumns = "3fr 3fr 3fr 4fr 3fr";
         _formMetadata.IsSubmitEnabled = false;
+        _formMetadata.SaveButtonText = DataLocalizer["Submit"];
         var filters = new List<(Delegate Label, Delegate Choices)>() { (() => "Status", () => new List<string> { "All", "Pending", "Approved", "Declined" }) };
         _formMetadata.FilterProperties = filters;
         var isFrench = CultureInfo.CurrentCulture.Name.StartsWith("fr", StringComparison.InvariantCulture);
@@ -85,6 +107,12 @@
         StateHasChanged();
     }
 
+    private async Task HandleInvalidSubmit(EditContext editContext)
+    {
+        var validations = editContext.Validate();
+        StateHasChanged();    
+    }
+
     private async Task HandleValidSubmit()
     {
         if (_languageTrainingApplication != null)
@@ -94,16 +122,18 @@
                 _languageTrainingApplication = Context.LanguageTrainingApplications.Add(_languageTrainingApplication).Entity;
             }
             _languageTrainingApplication.Last_Updated_DT = DateTime.Now;
-            
-            await Context.SaveChangesAsync();
-            
+
+            await Context.TrackSaveChangesAsync(AuditingService);
+
             var param = await GetLanguageTrainingParameters();
 
             if (!_languageTrainingApplication.ApplicationCompleteEmailSent)
             {                
                 await SendApplicationCompletedEmails(param);
                 _languageTrainingApplication.ApplicationCompleteEmailSent = true;
-                await Context.SaveChangesAsync();
+                _languageTrainingApplication.FormSubmitted_DT = DateTime.Now;
+                _languageTrainingApplication.FormSubmitted_UserId = _user.Mail;
+                await Context.TrackSaveChangesAsync(AuditingService);
             }
 
             if (_languageTrainingApplication.ApplicationCompleteEmailSent && !_languageTrainingApplication.ManagerDecisionSent)
@@ -117,7 +147,7 @@
             }
 
         }
-
+        AppId = string.Empty;
         await LoadApps(string.Empty);
         _languageTrainingApplication = null;
         StateHasChanged();
@@ -132,7 +162,9 @@
     {
         await EmailService.SendLanguageSchoolDecision(param);
         _languageTrainingApplication.LSUDecisionSent = true;
-        await Context.SaveChangesAsync();
+        _languageTrainingApplication.LanguageSchoolDecision_DT = DateTime.Now;
+        _languageTrainingApplication.LanguageSchoolDecision_UserId = _user.Mail;
+        await Context.TrackSaveChangesAsync(AuditingService);
     }
 
     private async Task SendManagerDecisionEmails(LanguageTrainingParameters param)
@@ -141,7 +173,9 @@
         { 
             await EmailService.SendManagerDecisionEmail(param);
             _languageTrainingApplication.ManagerDecisionSent = true;
-            await Context.SaveChangesAsync();
+            _languageTrainingApplication.ManagerDecision_DT = DateTime.Now;
+            _languageTrainingApplication.ManagerDecision_UserId = _user.Mail;
+            await Context.TrackSaveChangesAsync(AuditingService);
         }  
     }
 
@@ -154,8 +188,9 @@
     {
         LanguageTrainingParameters param = new();
         param.ApplicationId = _languageTrainingApplication.Application_ID.ToString();
+        param.AppUrl = $"/languagetraining/applications/{_languageTrainingApplication.Application_ID}";
         param.EmployeeEmailAddress = _languageTrainingApplication.Email_Address_EMAIL;
-        param.EmployeeName = _languageTrainingApplication.NRCan_Username;
+        param.EmployeeName = $"{_languageTrainingApplication.First_Name} {_languageTrainingApplication.Last_Name}";
         param.TrainingType = _languageTrainingApplication.Training_Type;
         param.ManagerEmailAddress = _languageTrainingApplication.Delegated_Manager_Email;
         param.ManagerName = _languageTrainingApplication.Delegate_Manager_First_Name + " " + _languageTrainingApplication.Delegated_Manager_Last_Name;
@@ -170,8 +205,18 @@
 
     private async Task LoadApps(string filter)
     {
-
-        _languageTrainingApplications = Context.LanguageTrainingApplications.Where(r => (r.Email_Address_EMAIL.ToLower() == _user.Mail.ToLower()) ||(r.Delegated_Manager_Email.ToLower() == _user.Mail.ToLower()) ).ToList();
+        if (_isUserAdmin)
+        {
+            _languageTrainingApplications = Context.LanguageTrainingApplications.ToList();
+            if (!string.IsNullOrEmpty(AppId))
+            {
+                _languageTrainingApplication = Context.LanguageTrainingApplications.Where(a => a.Application_ID == Convert.ToInt32(AppId)).FirstOrDefault();
+            }
+        }
+        else
+        {
+            _languageTrainingApplications = Context.LanguageTrainingApplications.Where(r => (r.Email_Address_EMAIL.ToLower() == _user.Mail.ToLower()) || (r.Delegated_Manager_Email.ToLower() == _user.Mail.ToLower())).ToList();
+        }
 
         if (filter == "All" || string.IsNullOrEmpty(filter))
         {
@@ -185,28 +230,38 @@
 
     }
 
+    private List<string> GetTrainingTypes()
+    {
+        var languageClass = _languageTrainingApplication.I_am_seeking;
+        return languageClass == "English Language Training" ? Language_Constants.TRAININGTYPEENGLISH.ToList() : Language_Constants.TRAININGTYPEFRENCH.ToList();
+    }
+
+
     private void OnConfigure(IModelFormContext context)
     {
         if (!_onchange)
         {
+            
             context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Sector_Branch, () => Language_Constants.SECTORSANDBRANCHES);
             context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Province_Territory, () => Language_Constants.PROVINCES);
             context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Employment_Status, () => Language_Constants.EMPLOYMENT_STATUS);
-            context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.I_am_seeking, () => Language_Constants.LANGUAGE_TRAINING);
+            context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.I_am_seeking, () => Language_Constants.LANGUAGE_TRAINING, s => 
+            {
+                context.RefreshOptions<LanguageTrainingApplication>(p => p.Training_Type);
+            });
             context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Language_Training_Provided_By, () => Language_Constants.LANGUAGE_TRAINING_PROVIDERS);
             context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Last_Course_Successfully_Completed, () => Language_Constants.CLASSES_E);
             context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.SLE_Results_Reading, () => Language_Constants.SLESTATUS);
             context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.SLE_Results_Writing, () => Language_Constants.SLESTATUS);
             context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.SLE_Results_Oral, () => Language_Constants.SLESTATUS);
             context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Session_For_Language_Training, () => Language_Constants.QUARTERS);
-            context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Class_For_Language_Training, () => Language_Constants.CLASSES_E);
-            context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Training_Type, () => Language_Constants.TRAININGTYPE);
+            context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Class_For_Language_Training, () => Language_Constants.CLASSES_E);        
             context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Decision, () => Language_Constants.LANGUAGE_SCHOOL_SELECTION);
             context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Completed_Training_Session, () => Language_Constants.QUARTERS);
             context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Manager_Decision, () => new[] { "Pending", "Approved", "Declined"});
-
+            context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Training_Type, () => GetTrainingTypes());
         }
-
+        
         ToggleVisibility(context);
 
         
@@ -260,7 +315,7 @@
 
     private async Task CreateNewApplication()
     {
-        _languageTrainingApplication = new LanguageTrainingApplication() { Last_Updated_DT = DateTime.Now };
+        _languageTrainingApplication = new LanguageTrainingApplication() { Last_Updated_DT = DateTime.Now, Manager_Decision = "Pending" };
         //var user = await UserInformationService.GetUserAsync();
         _languageTrainingApplication.Email_Address_EMAIL = _user.Mail;
         _languageTrainingApplication.First_Name = _user.GivenName;

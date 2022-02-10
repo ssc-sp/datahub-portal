@@ -1,0 +1,162 @@
+﻿@namespace Datahub.Core.Templates
+@using Datahub.Core.Data.CostEstimator
+
+<style>
+    .numbercol {
+        text-align: right;
+    }
+    .totalrow td {
+        font-weight: bold;
+    }
+</style>
+
+@if (AdminVersion)
+{
+    <p>@Localizer[$"{EmailLocalizationPrefix}.EstimateEmailAdminIntro", UserDisplayName, UserEmail]</p>
+}
+else
+{
+    <p>@UserDisplayName,</p>
+
+    <p>@Localizer[$"{EmailLocalizationPrefix}.EstimateEmailIntro"]</p>
+}
+
+<table>
+    <tbody>
+        <tr>
+            <td>@Localizer[$"{EmailLocalizationPrefix}.HoursPerDayLabelEmail"]</td>
+            <td class="numbercol">@OpHoursPerDay</td>
+        </tr>
+        <tr>
+            <td>@Localizer[$"{EmailLocalizationPrefix}.DaysPerMonthLabelEmail"]</td>
+            <td class="numbercol">@OpDaysPerMonth</td>
+        </tr>
+        <tr>
+            <td>@Localizer[$"{EmailLocalizationPrefix}.YearlyWorkloadLabelEmail"]</td>
+            <td class="numbercol">@CurrentWorkloadLabel</td>
+        </tr>
+        <tr>
+            <td>@Localizer[$"{EmailLocalizationPrefix}.ProjectedGrowthLabelEmail"]</td>
+            <td class="numbercol">@ProjectedMonthlyGrowthForDisplay.ToString("P0")</td>
+        </tr>
+    </tbody>
+</table>
+
+<div>
+    <h3>@Localizer[$"{EmailLocalizationPrefix}.MonthlyEstimateTitle"]</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>@Localizer[$"{EmailLocalizationPrefix}.WorkloadTypeLabel"]</th>
+                <th>@Localizer[$"{EmailLocalizationPrefix}.VmCostMonthLabel"]</th>
+                <th>@Localizer[$"{EmailLocalizationPrefix}.DbuCostMonthLabel"]</th>
+                <th>@Localizer[$"{EmailLocalizationPrefix}.SubtotalLabel"]</th>
+                <th>@Localizer[$"{EmailLocalizationPrefix}.SscServiceFeeLabel"]</th>
+                <th>@Localizer[$"{EmailLocalizationPrefix}.TotalLabel"]</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach(var workloadType in WORKLOAD_TYPES_IN_ORDER)
+            {
+                var est = MonthlyEstimate[workloadType];
+                <tr>
+                    <td>@Localizer[$"{EmailLocalizationPrefix}.WorkloadType{workloadType.ToString()}"]</td>
+                    <td class="numbercol">@est.VmHours.Cost.ToString("C")</td>
+                    <td class="numbercol">@est.Dbu.Cost.ToString("C")</td>
+                    <td class="numbercol">@est.TotalCost.ToString("C")</td>
+                    <td class="numbercol">@((est.TotalCost * SSC_FEE_FACTOR).ToString("C"))</td>
+                    <td class="numbercol">@((est.TotalCost * (1 + SSC_FEE_FACTOR)).ToString("C"))</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<div>
+    <h3>@Localizer[$"{EmailLocalizationPrefix}.YearlyEstimateTitle", CurrentWorkloadLabel]</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>@Localizer[$"{EmailLocalizationPrefix}.MonthLabel"]</th>
+                <th>@Localizer[$"{EmailLocalizationPrefix}.VmCostLabel"]</th>
+                <th>@Localizer[$"{EmailLocalizationPrefix}.DbuCostLabel"]</th>
+                <th>@Localizer[$"{EmailLocalizationPrefix}.SubtotalLabel"]</th>
+                <th>@Localizer[$"{EmailLocalizationPrefix}.SscServiceFeeLabel"]</th>
+                <th>@Localizer[$"{EmailLocalizationPrefix}.TotalLabel"]</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach(var lineItem in YearlyEstimate.Select((item, i) => (Month: i + 1, Item: item)))
+            {
+                <tr>
+                    <td>@Localizer[$"{EmailLocalizationPrefix}.MonthNumber", lineItem.Month]</td>
+                    <td class="numbercol">@lineItem.Item.VmHours.Cost.ToString("C")</td>
+                    <td class="numbercol">@lineItem.Item.Dbu.Cost.ToString("C")</td>
+                    <td class="numbercol">@lineItem.Item.TotalCost.ToString("C")</td>
+                    <td class="numbercol">@((lineItem.Item.TotalCost * SSC_FEE_FACTOR).ToString("C"))</td>
+                    <td class="numbercol">@((lineItem.Item.TotalCost * (1 + SSC_FEE_FACTOR)).ToString("C"))</td>
+                </tr>
+            }
+        </tbody>
+        <tfoot>
+            <tr class="totalrow">
+                <td>@Localizer[$"{EmailLocalizationPrefix}.TotalLabel"]</td>
+                <td class="numbercol">@YearlyEstimate.Sum(e => e.VmHours.Cost).ToString("C")</td>
+                <td class="numbercol">@YearlyEstimate.Sum(e => e.Dbu.Cost).ToString("C")</td>
+                <td class="numbercol">@YearlyEstimate.Sum(e => e.TotalCost).ToString("C")</td>
+                <td class="numbercol">@YearlyEstimate.Sum(e => e.TotalCost * SSC_FEE_FACTOR).ToString("C")</td>
+                <td class="numbercol">@YearlyEstimate.Sum(e => e.TotalCost * (1 + SSC_FEE_FACTOR)).ToString("C")</td>
+            </tr>
+        </tfoot>
+    </table>
+</div>
+
+
+@code {
+    private static readonly string LOCALIZATION_PREFIX = "COMPUTE-COST-ESTIMATOR";
+    private static readonly string ADMIN_EMAIL_PREFIX = "AdminEmail";
+    private static readonly string USER_EMAIL_PREFIX = "UserEmail";
+    private string EmailLocalizationPrefix => $"{LOCALIZATION_PREFIX}.{(AdminVersion ? ADMIN_EMAIL_PREFIX : USER_EMAIL_PREFIX)}";
+
+    private static readonly decimal SSC_FEE_FACTOR = 0.1M;
+    private static readonly List<ComputeCostEstimateWorkloadType> WORKLOAD_TYPES_IN_ORDER = new()
+    {
+        ComputeCostEstimateWorkloadType.VeryLight,
+        ComputeCostEstimateWorkloadType.Light,
+        ComputeCostEstimateWorkloadType.Medium,
+        ComputeCostEstimateWorkloadType.Heavy
+    };
+
+    [Parameter]
+    public bool AdminVersion { get; set; } = false;
+
+    [Parameter]
+    public string UserDisplayName { get; set; }
+
+    [Parameter]
+    public string UserEmail { get; set; } = string.Empty;
+
+    [Parameter]
+    public int OpHoursPerDay { get; set; }
+
+    [Parameter]
+    public int OpDaysPerMonth { get; set; }
+
+    [Parameter]
+    public ComputeCostEstimateWorkloadType WorkloadType { get; set; }
+
+    [Parameter]
+    public int ProjectedMonthlyGrowthPct { get; set; }
+
+    [Parameter]
+    public Dictionary<ComputeCostEstimateWorkloadType, ComputeCostEstimatorResult> MonthlyEstimate { get; set; }
+
+    [Parameter]
+    public List<ComputeCostEstimatorResult> YearlyEstimate { get; set; }
+
+    private decimal ProjectedMonthlyGrowthForDisplay => 0.01M * ProjectedMonthlyGrowthPct;
+    private string CurrentWorkloadLabel => Localizer[$"{LOCALIZATION_PREFIX}.WorkloadType{WorkloadType.ToString()}"];
+
+
+
+}

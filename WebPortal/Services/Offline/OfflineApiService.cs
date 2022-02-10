@@ -133,7 +133,7 @@ namespace Datahub.Portal.Services.Offline
 
         }
 
-        public Task<Uri> DownloadFile(FileMetaData file)
+        public Task<Uri> DownloadFile(FileMetaData file, string projectUploadCode)
         {
             return Task.FromResult(new Uri(""));
         }
@@ -154,12 +154,12 @@ namespace Datahub.Portal.Services.Offline
             return Task.FromResult(0);
         }
 
-        public Task UploadGen2File(FileMetaData fileMetadata)
+        public Task UploadGen2File(FileMetaData fileMetadata, string projectUploadCode)
         {
             return Task.FromResult(0);
         }
 
-        public Task<Uri> GetUserDelegationSasBlob(FileMetaData file, string project = null)
+        public Task<Uri> GetUserDelegationSasBlob(string fileName, string project = null, int days = 1)
         {
             return Task.FromResult(new Uri(""));
         }
@@ -167,6 +167,16 @@ namespace Datahub.Portal.Services.Offline
         public Task AuditException(Exception ex, string correlationId)
         {
             return Task.FromResult(0);
+        }
+
+        public Task<Uri> GetDownloadAccessToSasBlob(string projectUploadCode, string fileName, int daysValidity = 1)
+        {
+            return Task.FromResult(new Uri(""));
+        }
+
+        public Task<Uri> GenerateSasToken(string projectUploadCode, int daysValidity)
+        {
+            return Task.FromResult(new Uri(""));
         }
     }
 }

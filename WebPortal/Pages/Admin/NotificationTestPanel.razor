@@ -1,0 +1,169 @@
+﻿@inject IEmailNotificationService EmailService
+@inject ISystemNotificationService SystemNotificationService
+@inject IMSGraphService MSGraphService
+@inject IJSRuntime JsInterop
+
+<AeFlex>
+    <div style="width:600px">
+        <AeCard>
+            <AeTypography Variant="h1">@Localizer["Test Email Notification"]</AeTypography>
+                    
+            <label>
+                <input @bind=@EmailSelf type="checkbox"/>
+                @Localizer["Send to self"]
+            </label>
+                    
+            <input @bind=@TestRecipientName type="text" disabled=@EmailSelf style="width:100%"/>
+                
+            <input @bind=@TestRecipientEmail type="text" disabled=@EmailSelf style="width:100%" />
+                    
+            <AeButton class="blue" @onclick="async () => await SendNamedTestEmail()" Disabled=@IsSendingTestEmail >
+                @if (IsSendingTestEmail) {
+                    <Datahub.Core.Components.Spinner Small="true" />
+                }
+                else
+                {
+                    @Localizer["Send test email"]
+                }
+            </AeButton>
+        </AeCard>
+        <div>&nbsp;</div>
+
+    </div>
+
+    <div style="width:600px">
+        <AeCard>
+            <AeTypography Variant="h1">@Localizer["Test System Notification"]</AeTypography>
+
+                
+            <AeTypography Variant="h5">@Localizer["Recipients"]</AeTypography>
+            <ul>
+                @foreach (var recipient in TestNotificationRecipients)
+                {
+                    <li><span @onclick="() => RemoveTestNotificationRecipient(recipient)">@recipient.Name</span></li>
+                }
+                <li>
+                    <input type="text" id="inputSearch" class="selectedText" 
+                        @onclick="() => SearchTestNotificationUsers()" @onkeyup="() => SearchTestNotificationUsers()" 
+                        @bind-value=@TestNotificationUserSearchFilter @bind-value:event="oninput" 
+                        />
+                    <div class="nrcan-typography dropdown-content ddsearch" id="usermenu">
+                        @foreach (var item in TestNotificationSearchResults.Take(10))
+                        {
+                            <span>* <a @onclick="() => AddTestNotificationRecipient(item.Value)">@item.Value.DisplayName</a> &nbsp;</span>
+                        }
+                    </div>
+
+                </li>
+            </ul>
+                    
+            <AeButton class="blue" @onclick="async () => await SendTestSystemNotification()" @Disabled=@IsSendingSystemNotification>
+                @if(IsSendingSystemNotification)
+                {
+                    <Datahub.Core.Components.Spinner Small="true" />
+                }
+                else
+                {
+                    @Localizer["Send"]
+                }
+            </AeButton>
+                
+        </AeCard>
+        <div>&nbsp;</div>
+    </div>
+</AeFlex>
+
+@code {
+
+    [Parameter]
+    public string DefaultEmailName { get; set; }
+
+    [Parameter]
+    public string DefaultEmailAddress { get; set; }
+
+    private bool _emailSelf = true;
+    private bool EmailSelf
+    {
+        get => _emailSelf;
+        set 
+        {
+            if (value)
+            {
+                ResetEmailTestRecipient();
+            }
+            _emailSelf = value;
+        }
+    }
+
+    private string TestRecipientName { get; set; }
+    private string TestRecipientEmail { get; set; }
+    private bool IsSendingTestEmail { get; set; }
+
+    private async Task ResetEmailTestRecipient()
+    {
+        await Task.Run(() =>
+        {
+            TestRecipientName = DefaultEmailName;
+            TestRecipientEmail = DefaultEmailAddress;
+        });
+        StateHasChanged();
+    }
+
+    private async Task SendNamedTestEmail()
+    {
+        IsSendingTestEmail = true;
+        StateHasChanged();
+
+        var html = await EmailService
+            .RenderTemplate<Datahub.Core.Templates.TestEmailTemplate>(new Dictionary<string, object>(){{ "Name", TestRecipientName }});
+        await EmailService.SendEmailMessage("Test", html, TestRecipientEmail, TestRecipientName);
+
+        IsSendingTestEmail = false;
+        StateHasChanged();
+    }
+
+    private string TestNotificationUserSearchFilter { get; set; } = string.Empty;
+    private bool IsSendingSystemNotification { get; set; } = false;
+    private Dictionary<string, Datahub.Core.Data.GraphUser> TestNotificationSearchResults { get; set; } = new();
+
+    private HashSet<(string UserId, string Name)> TestNotificationRecipients = new();
+
+    private async Task SendTestSystemNotification()
+    {
+        IsSendingSystemNotification = true;
+        var recipients = TestNotificationRecipients.Select(r => r.UserId).ToList();
+        await SystemNotificationService.CreateSystemNotifications(recipients, "SYSTEM-NOTIFICATION.TestNotification");
+        IsSendingSystemNotification = false;
+    }
+
+    private void AddTestNotificationRecipient(Datahub.Core.Data.GraphUser chosenUser)
+    {
+        TestNotificationRecipients.Add((chosenUser.Id, chosenUser.DisplayName));
+        TestNotificationUserSearchFilter = string.Empty;
+        TestNotificationSearchResults.Clear();
+    }
+
+    private void RemoveTestNotificationRecipient((string UserId, string Name) chosenUser)
+    {
+        TestNotificationRecipients.Remove(chosenUser);
+    }
+
+    private async Task SearchTestNotificationUsers()
+    {
+        var toggleMenu = "false";
+
+        if (TestNotificationUserSearchFilter.Length > 3)
+        {
+            TestNotificationSearchResults = await MSGraphService.GetUsersListAsync(TestNotificationUserSearchFilter, CancellationToken.None);            
+            toggleMenu = "true";
+        }
+
+        await JsInterop.InvokeAsync<object>("toggleMenuWithBool", "usermenu", toggleMenu);
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await ResetEmailTestRecipient();
+    }
+
+}
