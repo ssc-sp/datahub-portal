@@ -24,7 +24,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="AElemental.Blazor" Version="1.2.22020.1-beta" />
+    <PackageReference Include="AElemental.Blazor" Version="1.2.22040.6-beta" />
     <PackageReference Include="Askmethat.Aspnet.JsonLocalizer" Version="3.2.0-alpha.4" />
     <PackageReference Include="Azure.Identity" Version="1.5.0" />
     <PackageReference Include="Azure.Search.Documents" Version="11.3.0" />
