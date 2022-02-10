@@ -3,8 +3,8 @@
 @using Datahub.Core.Data
 @inject IApiService ApiService
 @inject IDataRetrievalService DataRetrievalService
-@inject IDataRemovalService  DataRemovalService
-@inject IDataCreatorService  DataCreatorService
+@inject IDataRemovalService DataRemovalService
+@inject IDataCreatorService DataCreatorService
 @inject IDataUpdatingService DataUpdatingService
 @inject IJSRuntime JSRuntime
 @inject IMSGraphService MSGraphService
@@ -18,13 +18,13 @@
 {
     <div class="header-wrapper" @onclick="UnSelectFiles" @onclick:preventDefault="true" @oncontextmenu="UnSelectFiles" @oncontextmenu:preventDefault="true">
         <h3 class="nrcan-typography h3"><i class="fal fa-folder-open"></i>&nbsp;@GetCurrentFolderPath()</h3>
-        @if (CurrentFolder.parent != null)
+        @if (CurrentFolder?.parent != null)
         {
             <div class="roundbutton" style="margin-right: 1rem" @onclick="() => GetParentFolder()">
                 <i class="fal fa-arrow-left"></i>
             </div>
         }
-    </div>    
+    </div>
 }
 
 @if (isLoading)
@@ -53,41 +53,52 @@ else
             }
 
             <div class="file-grid-menu">
-                <FileGridMenu SelectedItem="selectedMetaData" 
-                              CanAddData=@CanAddData 
-                              PerformMenuAction="(MenuActions m) => PerformMenuAction(m, selectedMetaData)" 
-                              IsSearchedData="@IsSearchResults" 
-                              CurrentUser="@CurrentUserId" 
-                              ShowingStorage=@_showStorageDetails
-                              Project="@Project"/>
+                <FileGridMenu SelectedItem="selectedMetaData"
+                      CanAddData=@CanAddData
+                      PerformMenuAction="(MenuActions m) => PerformMenuAction(m, selectedMetaData)"
+                      IsSearchedData="@IsSearchResults"
+                      CurrentUser="@CurrentUserId"
+                      ShowingStorage=@_showStorageDetails
+                      Project="@Project" />
+
+                <AeSearchInput 
+                    id="search"
+                    SearchIconFAClass="fas fa-filter"
+                    OnInputChangeWithLastKey=@HandleSearch 
+                    style="margin-right: auto;"
+                />
             </div>
 
             <FileGridHeader IsSharedFiles=@CurrentFolder.isShared SortAscending=@CurrentFolder.sortAscending ToggleSort="ToggleSort" IsSearchedData="IsSearchResults" />
             <div class=@FileGridClass>
                 @foreach (var child in GetCurrentFolderChildren())
                 {
-                    var isSelected = child.id == selectedMetaData?.id;
+                    var isSelected = !string.IsNullOrEmpty(child.id) && child.id == selectedMetaData?.id;
                     if (child.dataType == MetadataType.Folder)
                     {
-                        <FileGridFolder Folder=@(child as Folder) 
-                                        IsSelected=@isSelected 
-                                        OnEllipsisClick="(e) => OnEllipsisClick(child as Folder, e)" 
-                                        SelectRow="() => SelectRow(child)" 
-                                        RemoveFolderFromList="RemoveFolderFromList" 
-                                        GetFilesForFolder="() => GetChildFolder(child as Folder)" 
-                                        PerformMenuAction="(MenuActions m) => PerformMenuAction(m, child)"  
-                                        CurrentUser="@CurrentUserId"/>
+                        <FileGridFolder 
+                            Folder=@(child as Folder)
+                            IsSelected=@isSelected
+                            OnEllipsisClick="(e) => OnEllipsisClick(child as Folder, e)"
+                            SelectRow="() => SelectRow(child)"
+                            RemoveFolderFromList="RemoveFolderFromList"
+                            GetFilesForFolder="() => GetChildFolder(child as Folder)"
+                            PerformMenuAction="(MenuActions m) => PerformMenuAction(m, child)"
+                            CurrentUser="@CurrentUserId" 
+                        />
                     }
                     else
                     {
-                        <FileGridFiles File=@(child as FileMetaData) 
-                                       IsSelected=@isSelected 
-                                       OnEllipsisClick="(e) => OnEllipsisClick(child as FileMetaData, e)" 
-                                       SelectRow="() => SelectRow(child)" 
-                                       PerformMenuAction="(MenuActions m) => PerformMenuAction(m, child)" 
-                                       IsSearchedData="IsSearchResults" 
-                                       CurrentUser="@CurrentUserId" 
-                                       Project="@Project" />
+                        <FileGridFiles 
+                            File=@(child as FileMetaData)
+                            IsSelected=@isSelected
+                            OnEllipsisClick="(e) => OnEllipsisClick(child as FileMetaData, e)"
+                            SelectRow="() => SelectRow(child)"
+                            PerformMenuAction="(MenuActions m) => PerformMenuAction(m, child)"
+                            IsSearchedData="IsSearchResults"
+                            CurrentUser="@CurrentUserId"
+                            Project="@Project" 
+                        />
                     }
                 }
             </div>
@@ -98,7 +109,12 @@ else
     {
         @*showing details*@
         <div>
-            <ItemDetails SelectedFile=@_currentDetails CurrentUser=@CurrentUserId OnClose=HandleDetailsClose />
+            <ItemDetails 
+                SelectedFile=@_currentDetails 
+                CurrentUser=@CurrentUserId 
+                Project=@Project
+                OnClose=HandleDetailsClose 
+            />
         </div>
     }
 }
@@ -109,17 +125,7 @@ else
     public string SearchText { get; set; }
 
     [Parameter]
-    public Folder CurrentFolder
-    {
-        get
-        {
-            return ApiService.CurrentFolder;
-        }
-        set
-        {
-            ApiService.CurrentFolder = value;
-        }
-    }
+    public Folder CurrentFolder { get; set; }
 
     [Parameter]
     public bool CanAddData { get; set; } = false;
@@ -140,7 +146,11 @@ else
     private bool _showingDetails;
     private bool isLoading = false;
 
-    private bool _showStorageDetails = true;
+    private bool _showStorageDetails = false;
+
+    private string _lastSearch;
+    private QueryThrottler<string> _searchThrottler;
+    private List<BaseMetadata> _searchResults = new();
 
     private List<string> allFolders = new List<string>();
 
@@ -161,17 +171,19 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        await base.OnInitializedAsync();
+        isLoading = true;
         CurrentUser = await UserInformationService.GetUserAsync();
 
         if (IsProjectStorage)
         {
-            ApiService.ProjectUploadCode = Project.ToLower();
+            //ApiService.ProjectUploadCode = Project.ToLower();
             _storageMetadata = await DataRetrievalService.GetStorageMetadata(Project.ToLower());
         }
 
         // If we get displayed on return from file upload, don't refresh from datalake
-        await GetFileList();
+        await LoadFileList();
+
+        _searchThrottler = new(TimeSpan.FromSeconds(0.5), ThrottleSearch);
 
         StateHasChanged();
     }
@@ -199,9 +211,9 @@ else
         }
 
     }
+
     protected override void OnInitialized()
     {
-        base.OnInitialized();
         NotifierService.Notify += OnNotify;
 
         UI.OnRightSidebarChange += StateHasChanged;
@@ -217,9 +229,10 @@ else
 
     public async void Refresh()
     {
-        await GetFileList();
+        await LoadFileList();
         UnSelectFiles();
     }
+
     public async Task OnNotify(string key, bool reloadData)
     {
         if (key == "filegrid")
@@ -228,7 +241,7 @@ else
             {
                 Refresh();
             }
-            await InvokeAsync(() => {StateHasChanged();});
+            await InvokeAsync(() => { StateHasChanged(); });
         }
     }
 
@@ -254,7 +267,7 @@ else
         if (CurrentFolder.parent != null)
         {
             CurrentFolder = CurrentFolder.parent;
-            await GetFileList();            
+            await LoadFileList();
         }
         UnSelectFiles();
     }
@@ -271,14 +284,14 @@ else
             }
 
             CurrentFolder = folder;
-            await GetFileList();
+            await LoadFileList();
         }
         UnSelectFiles();
     }
 
     private void ToggleAddData()
     {
-        RenderFragment fragment = @<AddDataBar />;
+        RenderFragment fragment = @<AddDataBar Project="@Project" />;
         UI.ToggleRightSidebar(fragment);
     }
 
@@ -287,18 +300,13 @@ else
         switch (actionCode)
         {
             case MenuActions.DeleteRow:
-            {
                 var messages = new List<string>() { Localizer["FILE-GRID-PAGE.ConfirmDeletePrompt", item.name] };
-                    await UI.ToggleModal(@<UserChoiceModal HeaderText="Confirm Delete" ChoiceTextList=@messages OnDecision="(a) => OnConfirmDelete(a, item)" />
-        );
-                }
+                await UI.ToggleModal(@<UserChoiceModal HeaderText="Confirm Delete" ChoiceTextList=@messages OnDecision="(a) => OnConfirmDelete(a, item)" />);
                 break;
 
             case MenuActions.DownloadFile:
-                {
-                    var uri = await DataRetrievalService.DownloadFile(item);    
-                    await Task.Run(() => RedirectAndDownload(uri));                
-                }
+                var uri = await DataRetrievalService.DownloadFile(item, Project);
+                await Task.Run(() => RedirectAndDownload(uri));
                 break;
 
             case MenuActions.ToggleStorageDetails:
@@ -306,70 +314,55 @@ else
                 break;
 
             case MenuActions.OpenDetails:
-            {
                 _currentDetails = item as FileMetaData;
                 _showingDetails = true;
-            }
-            break;
+                break;
 
             case MenuActions.OpenManageAccess:
-            {
                 UI.ToggleRightSidebar(@<ManageAccess SelectedFile="item" />);
-            }
-            break;
+                break;
 
             case MenuActions.CreateFolder:
-            {
-                await UI.ToggleModal(@<UserInputModal HeaderText="@Localizer["FILE-GRID-PAGE.CreateFolderPrompt"]" OnDecision="OnConfirmCreateFolder" />);
-            }
-            break;
+                await UI.ToggleModal(@<UserInputModal HeaderText="@Localizer["FILE - GRID - PAGE.CreateFolderPrompt"]" OnDecision="OnConfirmCreateFolder" />);
+                break;
 
             case MenuActions.Rename:
-            {
                 string headerTextRes = (selectedMetaData.dataType == MetadataType.File) ? "FILE-GRID-PAGE.RenameFilePrompt" : "FILE-GRID-PAGE.RenameFolderPrompt";
                 await UI.ToggleModal(@<UserInputModal HeaderText="@Localizer[headerTextRes]" OnDecision="(a) => OnConfirmRename(a, item)" _inputValue="@item.name" />);
-            }
-            break;
+                break;
 
             case MenuActions.MoveTo:
-            {
                 allFolders = await DataRetrievalService.GetAllFolders(CurrentFolder.rootFolderName, CurrentUser);
-                await UI.ToggleModal(@<FolderViewModal OnDecision="(a) => OnConfirmMoveFile(a, item)" />);
-            }
-            break;
+                await UI.ToggleModal(@<FolderViewModal OnDecision= "(a) => OnConfirmMoveFile(a, item)" />);
+                break;
 
             case MenuActions.OpenVersions:
-            {
                 RenderFragment frag = @<Versions File="selectedMetaData as FileMetaData"></Versions>;
-                    await UI.ToggleModal(@<RenderFragmentModal Fragment=frag />
-    );
-                }
+                await UI.ToggleModal(@<RenderFragmentModal Fragment=frag />);
                 break;
 
             case MenuActions.ShareFile:
+                var fileMetadata = item as FileMetaData;
+                if (fileMetadata is null)
+                    return;
+
+                var sb = new System.Text.StringBuilder();
+                sb.Append("/sharingworkflow/");
+                sb.Append(fileMetadata.fileid);
+                sb.Append("?filename=");
+                sb.Append(fileMetadata.filename);
+                if (!string.IsNullOrWhiteSpace(Project))
                 {
-                    var fileMetadata = item as FileMetaData;
-                    if (fileMetadata is null)
-                        return;
-
-                    var sb = new System.Text.StringBuilder();
-                    sb.Append("/sharingworkflow/");
-                    sb.Append(fileMetadata.fileid);
-                    sb.Append("?filename=");
-                    sb.Append(fileMetadata.filename);
-                    if (!string.IsNullOrWhiteSpace(Project))
-                    {
-                        sb.Append("&project=");
-                        sb.Append(Project);
-                    }
-                    else
-                    {
-                        sb.Append("&folderpath=");
-                        sb.Append(fileMetadata.folderpath);
-                    }
-
-                    NavigationManager.NavigateTo(sb.ToString());
+                    sb.Append("&project=");
+                    sb.Append(Project);
                 }
+                else
+                {
+                    sb.Append("&folderpath=");
+                    sb.Append(fileMetadata.folderpath);
+                }
+
+                NavigationManager.NavigateTo(sb.ToString());
                 break;
         }
     }
@@ -383,14 +376,14 @@ else
             {
                 var now = DateTime.Now.Date;
                 var folder = new Folder()
-                {
-                    id = folderName,
-                    name = folderName,
-                    createdby = CurrentUser.Id,
-                    createdts = now,
-                    lastmodifiedby = CurrentUser.Id,
-                    lastmodifiedts = now
-                };
+                    {
+                        id = folderName,
+                        name = folderName,
+                        createdby = CurrentUser.Id,
+                        createdts = now,
+                        lastmodifiedby = CurrentUser.Id,
+                        lastmodifiedts = now
+                    };
 
                 if (await DataCreatorService.CreateFolder(folder, CurrentFolder, CurrentUser))
                 {
@@ -442,7 +435,7 @@ else
     {
         if (selectedMetaData != item)
         {
-            selectedMetaData = item;    
+            selectedMetaData = item;
         }
         else
         {
@@ -458,7 +451,7 @@ else
         StateHasChanged();
     }
 
-    private async Task GetFileList()
+    private async Task LoadFileList()
     {
         UnSelectFiles();
         isLoading = true;
@@ -468,6 +461,8 @@ else
 
         // Get our list of files!
         CurrentFolder = await DataRetrievalService.GetFolderContents(CurrentFolder, SearchText, CurrentUser, Project.ToLower());
+
+        ResetSearch();
 
         if (!string.IsNullOrEmpty(Project))
         {
@@ -560,7 +555,7 @@ else
         {
             yield return folder.name;
             folder = folder.parent;
-        }        
+        }
     }
 
     private bool RequiresHeader => !IsProjectStorage && (!IsSearchResult || CanAddData);
@@ -574,14 +569,44 @@ else
 
     private IEnumerable<BaseMetadata> GetCurrentFolderChildren()
     {
-        return CurrentFolder.children.Select(MakeCompareKey).OrderBy(c => c.Key).Select(c => c.Item);
+        return _searchResults.Select(MakeCompareKey).OrderBy(c => c.Key).Select(c => c.Item);
     }
 
     private FolderItemCompareKey MakeCompareKey(BaseMetadata item)
     {
         var lowerName = (item.name ?? string.Empty).ToLower();
-        return new FolderItemCompareKey(item is Folder ? $"___{lowerName}" : lowerName, item);    
+        return new FolderItemCompareKey(item is Folder ? $"___{lowerName}" : lowerName, item);
     }
 
     record FolderItemCompareKey(string Key, BaseMetadata Item);
+
+    private async void HandleSearch(string newValue, KeyboardEventArgs ev)
+    {
+        await _searchThrottler.SetQuery(newValue);
+    }
+
+    private void ResetSearch()
+    {
+        _lastSearch = null;
+        _searchResults = new(CurrentFolder.children);
+    }
+
+    private async Task ThrottleSearch(string searchText)
+    {
+        if (_lastSearch != searchText)
+        {
+            _searchResults.Clear();
+            _lastSearch = searchText;
+            try
+            {
+                var all = string.IsNullOrEmpty(searchText);
+                _searchResults = new(CurrentFolder.children.Where(c => all || c.name.Contains(searchText, StringComparison.InvariantCultureIgnoreCase)));
+                selectedMetaData = null; 
+            }
+            finally
+            {
+                await InvokeAsync(StateHasChanged);
+            }
+        }            
+    }
 }

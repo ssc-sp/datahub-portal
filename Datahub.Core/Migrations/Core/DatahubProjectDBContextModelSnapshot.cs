@@ -6,6 +6,8 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
+#nullable disable
+
 namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
 {
     [DbContext(typeof(DatahubProjectDBContext))]
@@ -15,16 +17,18 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("Relational:MaxIdentifierLength", 128)
-                .HasAnnotation("ProductVersion", "5.0.9")
-                .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                .HasAnnotation("ProductVersion", "6.0.1")
+                .HasAnnotation("Relational:MaxIdentifierLength", 128);
+
+            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
 
             modelBuilder.Entity("Datahub.Core.EFCore.Datahub_Project", b =>
                 {
                     b.Property<int>("Project_ID")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Project_ID"), 1L, 1);
 
                     b.Property<string>("Branch_Name")
                         .HasMaxLength(200)
@@ -149,82 +153,13 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.HasCheckConstraint("CHK_DB_Type", "DB_Type in ('SQL Server', 'Postgres')");
                 });
 
-            modelBuilder.Entity("Datahub.Core.EFCore.Datahub_ProjectComment", b =>
-                {
-                    b.Property<int>("Comment_ID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
-                    b.Property<DateTime>("Comment_Date_DT")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Comment_NT")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("Project_ID")
-                        .HasColumnType("int");
-
-                    b.Property<byte[]>("Timestamp")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("rowversion");
-
-                    b.HasKey("Comment_ID");
-
-                    b.HasIndex("Project_ID");
-
-                    b.ToTable("Project_Comments");
-                });
-
-            modelBuilder.Entity("Datahub.Core.EFCore.Datahub_ProjectServiceRequests", b =>
-                {
-                    b.Property<int>("ServiceRequests_ID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
-                    b.Property<DateTime?>("Is_Completed")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("Notification_Sent")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("Project_ID")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("ServiceRequests_Date_DT")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("ServiceType")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<byte[]>("Timestamp")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("rowversion");
-
-                    b.Property<string>("User_ID")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<string>("User_Name")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.HasKey("ServiceRequests_ID");
-
-                    b.HasIndex("Project_ID");
-
-                    b.ToTable("Project_Requests");
-                });
-
             modelBuilder.Entity("Datahub.Core.EFCore.Datahub_Project_Access_Request", b =>
                 {
                     b.Property<int>("Request_ID")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Request_ID"), 1L, 1);
 
                     b.Property<DateTime?>("Completion_DT")
                         .HasColumnType("datetime2");
@@ -269,8 +204,9 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                 {
                     b.Property<int>("ProjectCosts_ID")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ProjectCosts_ID"), 1L, 1);
 
                     b.Property<double>("Cost_AMT")
                         .HasColumnType("float");
@@ -310,8 +246,9 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                 {
                     b.Property<int>("SectorAndBranchS_ID")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SectorAndBranchS_ID"), 1L, 1);
 
                     b.Property<string>("Full_Acronym_E")
                         .HasMaxLength(4000)
@@ -356,8 +293,9 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                 {
                     b.Property<int>("ProjectUser_ID")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ProjectUser_ID"), 1L, 1);
 
                     b.Property<string>("ApprovedUser")
                         .HasColumnType("nvarchar(max)");
@@ -398,8 +336,9 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                 {
                     b.Property<int>("ProjectUserRequest_ID")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ProjectUserRequest_ID"), 1L, 1);
 
                     b.Property<string>("ApprovedUser")
                         .HasColumnType("nvarchar(max)");
@@ -429,12 +368,141 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.ToTable("Project_Users_Requests");
                 });
 
+            modelBuilder.Entity("Datahub.Core.EFCore.Datahub_ProjectApiUser", b =>
+                {
+                    b.Property<Guid>("ProjectApiUser_ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Email_Contact_TXT")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<bool>("Enabled")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("Expiration_DT")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Project_Acronym_CD")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.HasKey("ProjectApiUser_ID");
+
+                    b.ToTable("Project_ApiUsers");
+                });
+
+            modelBuilder.Entity("Datahub.Core.EFCore.Datahub_ProjectComment", b =>
+                {
+                    b.Property<int>("Comment_ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Comment_ID"), 1L, 1);
+
+                    b.Property<DateTime>("Comment_Date_DT")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Comment_NT")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("Project_ID")
+                        .HasColumnType("int");
+
+                    b.Property<byte[]>("Timestamp")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.HasKey("Comment_ID");
+
+                    b.HasIndex("Project_ID");
+
+                    b.ToTable("Project_Comments");
+                });
+
+            modelBuilder.Entity("Datahub.Core.EFCore.Datahub_ProjectServiceRequests", b =>
+                {
+                    b.Property<int>("ServiceRequests_ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ServiceRequests_ID"), 1L, 1);
+
+                    b.Property<DateTime?>("Is_Completed")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("Notification_Sent")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("Project_ID")
+                        .HasColumnType("int");
+
+                    b.Property<Guid?>("Project_StorageId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("ServiceRequests_Date_DT")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ServiceType")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<byte[]>("Timestamp")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<string>("User_ID")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("User_Name")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.HasKey("ServiceRequests_ID");
+
+                    b.HasIndex("Project_ID");
+
+                    b.HasIndex("Project_StorageId");
+
+                    b.ToTable("Project_Requests");
+                });
+
+            modelBuilder.Entity("Datahub.Core.EFCore.MiscStoredObject", b =>
+                {
+                    b.Property<Guid>("GeneratedId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Id")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("JsonContent")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TypeName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("GeneratedId");
+
+                    b.HasAlternateKey("TypeName", "Id");
+
+                    b.ToTable("MiscStoredObjects");
+                });
+
             modelBuilder.Entity("Datahub.Core.EFCore.PBI_License_Request", b =>
                 {
                     b.Property<int>("Request_ID")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Request_ID"), 1L, 1);
 
                     b.Property<string>("Contact_Email")
                         .IsRequired()
@@ -476,8 +544,9 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                 {
                     b.Property<int>("ID")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"), 1L, 1);
 
                     b.Property<string>("LicenseType")
                         .IsRequired()
@@ -584,8 +653,9 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
                     b.Property<string>("Attributes")
                         .HasMaxLength(200)
@@ -651,8 +721,9 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                 {
                     b.Property<long>("PublicDataFile_ID")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("PublicDataFile_ID"), 1L, 1);
 
                     b.Property<DateTime?>("ApprovedDate_DT")
                         .HasColumnType("datetime2");
@@ -699,8 +770,9 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                 {
                     b.Property<long>("SharedDataFile_ID")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("SharedDataFile_ID"), 1L, 1);
 
                     b.Property<DateTime?>("ApprovedDate_DT")
                         .HasColumnType("datetime2");
@@ -756,8 +828,9 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                 {
                     b.Property<long>("Notification_ID")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Notification_ID"), 1L, 1);
 
                     b.Property<string>("ActionLink_Key")
                         .HasMaxLength(128)
@@ -795,8 +868,9 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                 {
                     b.Property<int>("WebForm_ID")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("WebForm_ID"), 1L, 1);
 
                     b.Property<string>("Description_DESC")
                         .HasColumnType("nvarchar(max)");
@@ -840,8 +914,9 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                 {
                     b.Property<int>("FieldID")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("FieldID"), 1L, 1);
 
                     b.Property<string>("Choices_TXT")
                         .HasColumnType("nvarchar(max)");
@@ -898,8 +973,9 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                 {
                     b.Property<int>("Application_ID")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Application_ID"), 1L, 1);
 
                     b.Property<string>("Additional_Contact_Email_EMAIL")
                         .HasMaxLength(200)
@@ -1000,24 +1076,6 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.ToTable("OpenDataSharedFile");
                 });
 
-            modelBuilder.Entity("Datahub.Core.EFCore.Datahub_ProjectComment", b =>
-                {
-                    b.HasOne("Datahub.Core.EFCore.Datahub_Project", "Project")
-                        .WithMany("Comments")
-                        .HasForeignKey("Project_ID");
-
-                    b.Navigation("Project");
-                });
-
-            modelBuilder.Entity("Datahub.Core.EFCore.Datahub_ProjectServiceRequests", b =>
-                {
-                    b.HasOne("Datahub.Core.EFCore.Datahub_Project", "Project")
-                        .WithMany()
-                        .HasForeignKey("Project_ID");
-
-                    b.Navigation("Project");
-                });
-
             modelBuilder.Entity("Datahub.Core.EFCore.Datahub_Project_Access_Request", b =>
                 {
                     b.HasOne("Datahub.Core.EFCore.Datahub_Project", "Project")
@@ -1054,6 +1112,30 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                         .HasForeignKey("Project_ID");
 
                     b.Navigation("Project");
+                });
+
+            modelBuilder.Entity("Datahub.Core.EFCore.Datahub_ProjectComment", b =>
+                {
+                    b.HasOne("Datahub.Core.EFCore.Datahub_Project", "Project")
+                        .WithMany("Comments")
+                        .HasForeignKey("Project_ID");
+
+                    b.Navigation("Project");
+                });
+
+            modelBuilder.Entity("Datahub.Core.EFCore.Datahub_ProjectServiceRequests", b =>
+                {
+                    b.HasOne("Datahub.Core.EFCore.Datahub_Project", "Project")
+                        .WithMany()
+                        .HasForeignKey("Project_ID");
+
+                    b.HasOne("Datahub.Core.EFCore.Project_Storage", "Project_Storage")
+                        .WithMany()
+                        .HasForeignKey("Project_StorageId");
+
+                    b.Navigation("Project");
+
+                    b.Navigation("Project_Storage");
                 });
 
             modelBuilder.Entity("Datahub.Core.EFCore.PBI_License_Request", b =>

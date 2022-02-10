@@ -36,21 +36,6 @@ namespace Datahub.Core.Services
             return ctx.Projects.Where(p => p.Project_Acronym_CD != null).Select(p => p.Project_Acronym_CD).ToList();
         }
 
-        public bool InvalidateAuthCache()
-        {
-            var cache = serviceAuthCache as MemoryCache;
-            if (cache != null)
-            {
-                var percentage = 1.0;//100%
-                cache.Compact(percentage);
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
-
         public List<string> GetAdminProjectRoles()
         {
             var projects = GetAllProjects();
@@ -97,21 +82,40 @@ namespace Datahub.Core.Services
             }
             return admins.ToString().Trim().TrimEnd(';');
         }
-        public async Task ClearProjectAdminCache()
+        //public async Task ClearProjectAdminCache()
+        //{
+        //    await Task.Run(() =>
+        //    {
+        //        serviceAuthCache.Remove(PROJECT_ADMIN_KEY);
+        //        if (_resetCacheToken != null && !_resetCacheToken.IsCancellationRequested && _resetCacheToken.Token.CanBeCanceled)
+        //        {
+        //            _resetCacheToken.Cancel();
+        //            _resetCacheToken.Dispose();
+        //        }
+        //        _resetCacheToken = new CancellationTokenSource();
+        //    });
+
+        //    await checkCacheForAdmins();
+
+        //}
+
+
+
+        public bool InvalidateAuthCache()
         {
-            await Task.Run(() =>
+            var cache = serviceAuthCache as MemoryCache;
+            if (cache != null)
             {
-                serviceAuthCache.Remove(PROJECT_ADMIN_KEY);
-                if (_resetCacheToken != null && !_resetCacheToken.IsCancellationRequested && _resetCacheToken.Token.CanBeCanceled)
-                {
-                    _resetCacheToken.Cancel();
-                    _resetCacheToken.Dispose();
-                }
-                _resetCacheToken = new CancellationTokenSource();
-            });
-
-            await checkCacheForAdmins();
-
+                //https://stackoverflow.com/questions/49176244/asp-net-core-clear-cache-from-imemorycache-set-by-set-method-of-cacheextensions/49425102#49425102
+                //this weird trick removes all the entries
+                var percentage = 1.0;//100%
+                cache.Compact(percentage);
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
 
         public async Task<bool> IsProjectAdmin(string userid, string projectAcronym)
@@ -137,6 +141,20 @@ namespace Datahub.Core.Services
 
         }
 
+        public List<string> GetProjectMailboxEmails(string projectAcronym)
+        {
+            using var ctx = dbFactory.CreateDbContext();
+            var mailboxEmails = ctx.Projects.Where(u => u.Project_Acronym_CD == projectAcronym).Select(s => s.Project_Admin).FirstOrDefault();
+
+            if (!string.IsNullOrEmpty(mailboxEmails))
+            {
+                return ExtractEmails(mailboxEmails);
+            }
+            else
+            { 
+                return GetProjectAdminsEmails(projectAcronym);  
+            }                    
+        }
         public async Task RegisterProjectAdmin(Datahub_Project project, string currentUserId)
         {
             using var ctx = dbFactory.CreateDbContext();
@@ -187,7 +205,8 @@ namespace Datahub.Core.Services
             }
 
             await ctx.SaveChangesAsync();
-            await ClearProjectAdminCache();
+            //await ClearProjectAdminCache();
+            InvalidateAuthCache();
             ctx.Dispose();
         }
         private async Task<List<string>> GetProjectRoles()

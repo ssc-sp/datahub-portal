@@ -63,6 +63,11 @@ namespace Datahub.Core.Services
             _localizer = localizer;
             _config = new EmailConfiguration();
             config.Bind(EMAIL_CONFIGURATION_ROOT_KEY, _config);
+            if (_config.AppDomain is null)
+            {
+                logger.LogCritical("No Email Configuration available");
+                _config = null;
+            }
             _logger = logger;
             _graphService = graphService;
             _serviceAuthManager = serviceAuthManager;
@@ -135,6 +140,12 @@ namespace Datahub.Core.Services
 
         public async Task SendEmailMessage(string subject, string body, string userIdOrAddress, string recipientName = null, bool isHtml = true)
         {
+            if (_config is null)
+            {
+                _logger.LogCritical("Cannot send email - no configuration available");
+                return;
+            }
+
             var recipient = await BuildRecipient(userIdOrAddress, recipientName);
             var recipients = new List<MailboxAddress>() { recipient };
             await SendEmailMessage(subject, body, recipients, isHtml);
@@ -142,6 +153,12 @@ namespace Datahub.Core.Services
 
         public async Task SendEmailMessage(string subject, string body, IList<string> userIdsOrAddresses, bool isHtml = true)
         {
+            if (_config is null)
+            {
+                _logger.LogCritical("Cannot send email - no configuration available");
+                return;
+            }
+
             var recipients = await BuildRecipientList(userIdsOrAddresses);
             await SendEmailMessage(subject, body, recipients, isHtml);
         }
@@ -179,6 +196,12 @@ namespace Datahub.Core.Services
 
         private async Task SendEmailMessage(string subject, string body, IList<MailboxAddress> recipients, bool isHtml)
         {
+            if (_config is null)
+            {
+                _logger.LogCritical("Cannot send email - no configuration available");
+                return;
+            }
+
             try
             {
                 var validRecipients = recipients.Where(a => !string.IsNullOrWhiteSpace(a.Address)).ToHashSet();
@@ -252,6 +275,12 @@ namespace Datahub.Core.Services
 
         public async Task SendServiceCreationRequestNotification(string username, string serviceName, DatahubProjectInfo projectInfo, IList<string> recipients)
         {
+            if (_config is null)
+            {
+                _logger.LogCritical("Cannot send email - no configuration available");
+                return;
+            }
+
             var parameters = BuildNotificationParameters(projectInfo, serviceName, username);
 
             var subject = $"[DataHub] New {serviceName} service request";
@@ -266,6 +295,12 @@ namespace Datahub.Core.Services
 
         public async Task SendServiceAccessRequestNotification(string username, string serviceName, DatahubProjectInfo projectInfo, IList<string> recipients)
         {
+            if (_config is null)
+            {
+                _logger.LogCritical("Cannot send email - no configuration available");
+                return;
+            }
+
             var parameters = BuildNotificationParameters(projectInfo, serviceName, username);
 
             var subject = $"[DataHub] {serviceName} access request for project {projectInfo.ProjectNameEn} / demande d’accès pour le projet {projectInfo.ProjectNameFr}";
@@ -280,6 +315,12 @@ namespace Datahub.Core.Services
 
         public async Task SendServiceAccessGrantedNotification(string serviceName, DatahubProjectInfo projectInfo, string recipientAddress, string recipientName = null)
         {
+            if (_config is null)
+            {
+                _logger.LogCritical("Cannot send email - no configuration available");
+                return;
+            }
+
             var parameters = BuildNotificationParameters(projectInfo, serviceName);
 
             var subject = $"[DataHub] {serviceName} service access request approved / demande d’accès au service approuvée";
@@ -295,6 +336,12 @@ namespace Datahub.Core.Services
 
         public async Task SendServiceCreationRequestApprovedIndividual(string serviceName, DatahubProjectInfo projectInfo, string recipientAddress, string recipientName = null)
         {
+            if (_config is null)
+            {
+                _logger.LogCritical("Cannot send email - no configuration available");
+                return;
+            }
+
             var parameters = BuildNotificationParameters(projectInfo, serviceName);
 
             var subject = $"[DataHub] {serviceName} service request approved / demande de service approuvée";
@@ -310,6 +357,12 @@ namespace Datahub.Core.Services
 
         public async Task SendServiceCreationGroupNotification(string serviceName, DatahubProjectInfo projectInfo, IList<string> recipients)
         {
+            if (_config is null)
+            {
+                _logger.LogCritical("Cannot send email - no configuration available");
+                return;
+            }
+
             var parameters = BuildNotificationParameters(projectInfo, serviceName);
 
             var subject = $"[DataHub] {serviceName} service created / {serviceName} service créé ";
@@ -409,6 +462,26 @@ namespace Datahub.Core.Services
             }
 
         }
+        public async Task SendM365FormsConfirmations(M365FormsParameters parameters)
+        {
+            var parametersDict = BuildM365FormsParameters(parameters);
+
+            var subject = $"M365 Team Request – {parameters.TeamName}";
+            var html = await RenderTemplate<M365Notification>(parametersDict);
+            await SendEmailMessage(subject, html, parameters.AdminEmailAddresses);
+        }
+
+        private Dictionary<string, object> BuildM365FormsParameters(M365FormsParameters parameters)
+        {
+            parameters.AppUrl = BuildAppLink(parameters.AppUrl);
+            var parametersDict = new Dictionary<string, object>()
+            {
+                { "ApplicationParameters", parameters }
+
+            };
+
+            return parametersDict;
+        }
 
         public async Task SendOnboardingConfirmations(OnboardingParameters parameters)
         {
@@ -426,6 +499,7 @@ namespace Datahub.Core.Services
 
         private Dictionary<string, object> BuildLanguageNotificationParameters(LanguageTrainingParameters parameters)
         {
+            parameters.AppUrl = BuildAppLink(parameters.AppUrl);
             var parametersDict = new Dictionary<string, object>()
             {
                 { "ApplicationParameters", parameters }
@@ -437,6 +511,8 @@ namespace Datahub.Core.Services
 
         private Dictionary<string, object> BuildOnboardingParameters(OnboardingParameters parameters)
         {
+
+            parameters.AppUrl = BuildAppLink(parameters.AppUrl);
             var parametersDict = new Dictionary<string, object>()
             {
                 { "ApplicationParameters", parameters }
@@ -544,11 +620,35 @@ namespace Datahub.Core.Services
 
             await Task.WhenAll(tasks);
         }
+
+        public async Task SendComputeCostEstimate(User estimatingUser, Dictionary<string, object> parameters)
+        {
+            var subject = "[DataHub] Your Databricks Compute Cost Estimate";
+            var adminSubject = "[DataHub] New Databricks Compute Cost Estimate";
+
+            var html = await RenderTemplate<ComputeCostEstimate>(parameters);
+
+            parameters.Add(nameof(ComputeCostEstimate.UserEmail), estimatingUser.Mail);
+            parameters.Add(nameof(ComputeCostEstimate.AdminVersion), true);
+
+            var adminHtml = await RenderTemplate<ComputeCostEstimate>(parameters);
+
+            var adminEmails = _serviceAuthManager.GetProjectAdminsEmails(DATAHUB_ADMIN_PROJECT_CODE);
+
+            var tasks = new List<Task>()
+            {
+                SendEmailMessage(subject, html, estimatingUser.Mail),
+                SendEmailMessage(adminSubject, adminHtml, adminEmails)
+            };
+
+            await Task.WhenAll(tasks);
+        }
     }
 
     public class LanguageTrainingParameters
     {
         public string ApplicationId;
+        public string AppUrl;
         public string EmployeeName;
         public string EmployeeEmailAddress;
         public string TrainingType;
@@ -565,7 +665,19 @@ namespace Datahub.Core.Services
 
     public class OnboardingParameters
     {
-        public OnboardingApp App;        
+        public OnboardingApp App;
+        public string AppUrl;
         public List<string> AdminEmailAddresses;
     }
+
+    public class M365FormsParameters
+    {
+        public string TeamName;
+        public string BusinessOwner;
+        public string SubmitterEmaill;
+        public int AppId;
+        public string AppUrl;
+        public List<string> AdminEmailAddresses;
+    }
+
 }

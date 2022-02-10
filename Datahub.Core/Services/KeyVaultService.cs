@@ -16,6 +16,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
+using Microsoft.Azure.KeyVault.WebKey;
+using System.Text;
+using System.Security.Cryptography;
 
 namespace Datahub.Core.Services
 {
@@ -35,23 +38,11 @@ namespace Datahub.Core.Services
             _logger = logger;
             _targets = targets;
         }
-        private string getEnvSuffix()
-        {
-            var envName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-            envName = (envName != null ? envName.ToLower() : "dev");
-            if (envName.Equals("development"))
-            {
-                envName = "dev";
-            }
-
-            return envName;
-        }
 
         public async Task<string> GetSecret(string secretName)
         {
             try
             {
-
                 if (_keyVaultClient == null)
                 {
                     SetKeyVaultClient();
@@ -63,10 +54,32 @@ namespace Datahub.Core.Services
             }
             catch (Exception e)
             {
-                Console.WriteLine($"Could not retrieve secret: {secretName}");
                 _logger.LogError($"Could not retrieve secret: {secretName}");
                 _logger.LogError($"The following error occured: {e.Message}");
+                _logger.LogError(e,$"Could not retrieve secret: {secretName}");
                 throw;
+            }
+        }
+
+        public async Task<string> SignAsync(string data)
+        {
+            if (_keyVaultClient == null)
+            {
+                SetKeyVaultClient();
+            }
+            try
+            {
+                // configure: 
+                var keyVaultName = _targets.Value.KeyVaultName;
+                var keyPath = _targets.Value.KeyVaultApiKeyPath;
+                string keyIdentifier = $"https://{keyVaultName}.vault.azure.net/keys/{keyPath}";
+
+                var signedData = await _keyVaultClient.SignAsync(keyIdentifier, JsonWebKeySignatureAlgorithm.RS256, GetSHA256Digest(data));
+                return Convert.ToBase64String(signedData.Result);
+            }
+            catch (Exception ex)
+            {
+                return ex.Message;
             }
         }
 
@@ -99,5 +112,10 @@ namespace Datahub.Core.Services
 
         }
 
+        static byte[] GetSHA256Digest(string value)
+        {
+            using var hash = SHA256.Create();
+            return hash.ComputeHash(Encoding.UTF8.GetBytes(value));
+        }
     }
 }
