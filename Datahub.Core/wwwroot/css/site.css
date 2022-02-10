@@ -1733,6 +1733,7 @@ body {
 
 .ae.modelform .validation-errors .validation-message {
   font-size: 0.9rem;
+  color: #e53e3e;
 }
 .ae.modelform .ae.modelform-rows .ae.modelform-row {
   grid-template-rows: auto;
@@ -1748,6 +1749,10 @@ body {
   flex-direction: row-reverse;
   margin-right: 0.5rem;
   font-weight: bold;
+}
+.ae.modelform .ae.modelform-rows .ae.modelform-row .ae.modelform-col .ae.ae-form-control-label.notes {
+  font-weight: normal;
+  font-style: italic;
 }
 .ae.modelform .ae.modelform-rows .ae.modelform-row .ae.modelform-col .ae.ae-form-control-label.ae-label-required > :first-child::after {
   color: #e53e3e;
@@ -2956,6 +2961,9 @@ body {
 }
 .ae.typography.p {
   line-height: 1.75;
+}
+.ae.typography.p.no-margin {
+  margin: 0rem;
 }
 .ae.typography.hint {
   color: #cbd5e0;
