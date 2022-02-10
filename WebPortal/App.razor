@@ -1,6 +1,6 @@
 ﻿@using Core.Layout
 <Router AppAssembly="@typeof(Program).Assembly"
-        AdditionalAssemblies="new[] { typeof(Datahub.LanguageTraining.LanguageTrainingModule).Assembly }">
+        AdditionalAssemblies=@_additionalAssemblies>
     <Found Context="routeData">
         <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(Datahub.Portal.Layout.PortalLayout)" />
     </Found>
@@ -11,5 +11,16 @@
             </LayoutView>
         </CascadingAuthenticationState>
     </NotFound>
+
 </Router>
-<ApplicationInsightsComponent />
+
+
+@code {
+    private IEnumerable<System.Reflection.Assembly> _additionalAssemblies = new[]
+    {
+        typeof(Datahub.LanguageTraining.LanguageTrainingModule).Assembly,
+        typeof(Datahub.Finance.FinanceModule).Assembly,
+        typeof(Datahub.M365Forms.M365FormsModule).Assembly
+    };
+}
+
