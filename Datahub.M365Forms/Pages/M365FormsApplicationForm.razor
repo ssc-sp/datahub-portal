@@ -35,8 +35,9 @@
         OnConfigureForms="OnConfigure"
         CreateNewRecord="CreateNewApplication"
         SelectedRecord="@m365FormApplication"
-        SetFormEditRecord="SetFormEdit",
+        SetFormEditRecord="SetFormEdit"
         HandleFilterChange="HandleFilterChange"
+        DisableFirstSort="true"
         />
 }
 @code {
@@ -90,7 +91,7 @@
         LoadApps(string.Empty);
         _formMetadata.Header = Localizer["M365 Team Request Form"];
         _formMetadata.TableRoles = $"default";
-        _formMetadata.DataSet = _m365FormsApplications;
+        //_formMetadata.DataSet = _m365FormsApplications;
         _formMetadata.AccessorFunctions = AccessorFunctions;
         _formMetadata.Headers = headers;
         _formMetadata.GridTemplateColumns = "3fr 6fr 3fr 2fr 2fr 2fr 5fr";
@@ -138,11 +139,11 @@
         }
         if (filter == "All" || string.IsNullOrEmpty(filter))
         {
-            _formMetadata.DataSet = _m365FormsApplications;
+            _formMetadata.DataSet = _m365FormsApplications.OrderByDescending(d => d.Last_Updated_DT).ToList();
         }
         else
         {
-            _formMetadata.DataSet = _m365FormsApplications.Where(r => r.M365FormStatus == filter).ToList();
+            _formMetadata.DataSet = _m365FormsApplications.OrderByDescending(d => d.Last_Updated_DT).Where(r => r.M365FormStatus == filter).ToList();
         }
 
         if (!string.IsNullOrEmpty(AppId))

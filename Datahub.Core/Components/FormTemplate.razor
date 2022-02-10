@@ -45,7 +45,7 @@ else
                 <AePaginatedTable 
                     T="@T"
                     Accessors="Metadata.AccessorFunctions.ToList()"
-                    Dataset="Metadata.DataSet.ToList()"
+                    Dataset="Metadata.DataSet"
                     ColorAccessor="getColor"
                     Headers="Metadata.Headers.ToList()"
                     GridTemplateColumns="@Metadata.GridTemplateColumns"
@@ -53,6 +53,7 @@ else
                     OnRowClick="@SetFormEdit" 
                     Page="@_lastClicked"
                     PageSize="10"
+                    DisableFirstSort="DisableFirstSort"
                     @ref=_myTable
                     />
 
@@ -132,6 +133,8 @@ else
     public Action<string> HandleFilterChange { get; set; }
     [Parameter]
     public U Context { get; set; }
+    [Parameter]
+    public bool DisableFirstSort { get; set; }
 
 
     private int _lastClicked = 0;
