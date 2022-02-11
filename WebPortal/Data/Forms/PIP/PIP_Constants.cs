@@ -377,6 +377,7 @@ namespace Datahub.ProjectForms.Data.PIP
 "80 - Water treatment / distribution facilities",
 "81 - Ecological systems and/or natural habitats",
 "82 - Species at risk and/or invasive species" };
-        public static readonly string[] GOC_CLASSIFICATION = { };
+        
+        public static readonly string[] GOC_CLASSIFICATION = { "Economic affairs n.e.c." };
     }
 }
