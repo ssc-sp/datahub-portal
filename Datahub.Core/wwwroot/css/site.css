@@ -4554,6 +4554,35 @@ code {
   transform: translate(-50%);
 }
 
+.success-indicator {
+  display: inline-block;
+  margin: 0.2rem 0.5rem;
+}
+.success-indicator.hidden {
+  visibility: hidden;
+  opacity: 0;
+  -webkit-transition: visibility 0s 1s, opacity 1s linear;
+  -moz-transition: visibility 0s 1s, opacity 1s linear;
+  -o-transition: visibility 0s 1s, opacity 1s linear;
+  transition: visibility 0s 1s, opacity 1s linear;
+}
+.success-indicator.visible {
+  visibility: visible;
+  opacity: 1;
+}
+.success-indicator .bubble {
+  padding: 0.2rem 0.5rem;
+  border-radius: 0.5rem;
+}
+.success-indicator .success {
+  color: #38a169;
+  background-color: #c6f6d5;
+}
+.success-indicator .failure {
+  color: #e53e3e;
+  background-color: #fed7d7;
+}
+
 /** Transparent **/
 /** Black **/
 /** White **/
