@@ -6,7 +6,7 @@ The SSC DataHub is a **Proof of Concept for the Federal Science DataHub enterpri
 The SSC DataHub is an enterprise platform for storing, working with and collaborating on data initiatives across the GC and with external partners. It is a central location for users to store any kind of data, perform collaborative analysis, manipulate data using advanced analytics tools, and conducting data science experiments.
 
 
-![image](https://user-images.githubusercontent.com/99416857/153606426-e282339f-7379-455f-bcd5-501bd4bd43d1.png)
+![image](https://user-images.githubusercontent.com/99416857/153608163-8debe2cf-cc72-4c40-bb2a-456065ff3783.png)
 
 
 ## Data Projects
