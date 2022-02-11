@@ -200,7 +200,16 @@ namespace Datahub.ProjectForms.Data.PIP
         [Timestamp]
         public byte[] Timestamp { get; set; }
 
-        
+        [AeFormIgnore]
+        public bool IsMethodologyLocked { get; set; }
+        [AeFormIgnore]
+        public bool IsTargetLocked { get; set; }
+        [AeFormIgnore]
+        public bool IsActualResultsLocked { get; set; }
+        [AeFormIgnore]
+        public bool IsLatestUpdateLocked { get; set; }
+
+
 
 
     }
