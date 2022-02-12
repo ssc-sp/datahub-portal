@@ -1,47 +1,52 @@
 @using Datahub.Core.Data
+@using Datahub.Core.Utils
 @using Datahub.Portal.Services
 @inject ServiceAuthManager ServiceAuthManager
 
 <div id="sidebar">
-  <div class="logo">
-    <img src="_content/Datahub.Core/img/datahub-logo-v2.png" />
-  </div>
-  <div class="links">
-    @foreach(var link in GetLinks())
-    {
-      <NavLink class="@link.Icon.Color" href="@link.Href" Match="NavLinkMatch.All" ActiveClass="active">
-        <i class="@link.Icon.Name"></i>
-        @Localizer[@link.Label]
-      </NavLink>
-    }    
-    @foreach(var link in GetAuthorizedLinks())
-    {
-      <AuthorizeView Roles="@string.Join(',', link.Roles)">
-        <NavLink class="@link.Icon.Color" href="@link.Href" Match="NavLinkMatch.All" ActiveClass="active">
-          <i class="@link.Icon.Name"></i>
-          @Localizer[@link.Label]
+    <div class="logo">
+        <img src="_content/Datahub.Core/img/datahub-logo-v2.png"/>
+    </div>
+    <div class="links">
+        <NavLink class="@Icon.HOME.Color" href="/" Match="NavLinkMatch.All" ActiveClass="active">
+            <i class="@Icon.HOME.Name"></i>
+            @Localizer["SIDEBAR.Home"]
         </NavLink>
-      </AuthorizeView>
-    }
-  </div>
+        @foreach (var (href, icon, label) in GetLinks())
+        {
+            <NavLink class="@icon.Color" href="@href" Match="NavLinkMatch.Prefix" ActiveClass="active">
+                <i class="@icon.Name"></i>
+                @Localizer[label]
+            </NavLink>
+        }
+        @foreach (var link in GetAuthorizedLinks())
+        {
+            <AuthorizeView Roles="@string.Join(',', link.Roles)">
+                <NavLink class="@link.Icon.Color" href="@link.Href" Match="NavLinkMatch.Prefix" ActiveClass="active">
+                    <i class="@link.Icon.Name"></i>
+                    @Localizer[@link.Label]
+                </NavLink>
+            </AuthorizeView>
+        }
+    </div>
 </div>
 
 @code {
 
 
     private List<(string Href, Icon Icon, string Label)> GetLinks()
-  {
-    return new List<(string, Icon, string)>()
     {
-      ("/", Icon.HOME, "SIDEBAR.Home"),
-      //("/data", Icon.STORAGE, "SIDEBAR.Storage"),
-      ("/projects", Icon.PROJECT, "SIDEBAR.DataProjects"),
-      ("/resources", Icon.RESOURCES, "SIDEBAR.Resources"),
-      ("/tools", Icon.TOOLS, "SIDEBAR.Tools"),
-      //("/datasets", Icon.DATASETS, "SIDEBAR.Datasets"),
-      //("/powerbi", Icon.POWERBI, "SIDEBAR.PowerBI"),      
-    };
-  }
+        return new List<(string, Icon, string)>()
+        {
+            // ("/", Icon.HOME, "SIDEBAR.Home"),
+    //("/data", Icon.STORAGE, "SIDEBAR.Storage"),
+            ($"/{UrlPathSegment.PROJECTS}", Icon.PROJECT, "SIDEBAR.DataProjects"),
+            ("/resources", Icon.RESOURCES, "SIDEBAR.Resources"),
+            ("/tools", Icon.TOOLS, "SIDEBAR.Tools"),
+    //("/datasets", Icon.DATASETS, "SIDEBAR.Datasets"),
+    //("/powerbi", Icon.POWERBI, "SIDEBAR.PowerBI"),      
+        };
+    }
 
     private List<(string Href, Icon Icon, string Label, List<string> Roles)> GetAuthorizedLinks()
     {
@@ -50,7 +55,7 @@
         {
             return new List<(string, Icon, string, List<string>)>()
             {
-              ("/admin", Icon.ADMIN, "SIDEBAR.Admin", projects)
+                ("/admin", Icon.ADMIN, "SIDEBAR.Admin", projects)
             };
         }
         else
@@ -58,4 +63,5 @@
             return new List<(string, Icon, string, List<string>)>();
         }
     }
+
 }
