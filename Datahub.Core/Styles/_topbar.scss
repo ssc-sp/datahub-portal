@@ -3,7 +3,7 @@
 @import 'Components/Icons/_icon-colors.scss';
 
 #topbar {
-    background-color: c.$white;
+    background-color: c.$grey-100;
     position: fixed;
     z-index: 999;
     top: 0;
@@ -11,7 +11,6 @@
     display: flex;
     align-items: center;
     height: c.$topbarHeight;
-    box-shadow: 0 1px 0 c.$gray-200;
 
     .search-spacer {
         display: flex;

@@ -13,12 +13,10 @@
   height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: c.$white;
+  background-color: c.$grey-100;
 
   .links {
     height: 100%;
-    border-right: 1px solid c.$gray-200;
-
     > a, > div {
       padding: .75rem 0;
     }
@@ -52,30 +50,27 @@
         mask: url('icons/svg/power-bi.svg') no-repeat center;
       }
 
-      &:hover {
-        background-color: c.$gray-100;
-        @include base-icon-hover;
-        @include sidebar-icon-colors;
-      }
-
-
       &.active {
-        background-color: #F7F7F7;
+        background-color: c.$white;
         color: c.$gray-900;
 
         @include sidebar-border-colors;
+        @include sidebar-icon-colors;
+      }
+
+      &:hover {
+        background-color: c.$gray-200;
+        @include base-icon-hover;
         @include sidebar-icon-colors;
       }
     }
   }
 
   .logo {
-    background-color: c.$white;
     border-bottom: 1px solid transparent;
     height: (c.$topbarHeight - 10);
-    margin: 0 auto;
-    margin-top: 5px;
-    margin-bottom: 5px;
+    margin: 5px auto;
+
     img {
       padding: .5rem;
     }
