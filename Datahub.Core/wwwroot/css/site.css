@@ -13,20 +13,6 @@
 /** Indigo **/
 /** Purple **/
 /** Pink **/
-/** Transparent **/
-/** Black **/
-/** White **/
-/** Transparent **/
-/** Gray **/
-/** Red **/
-/** Orange **/
-/** Yellow **/
-/** Green **/
-/** Teal **/
-/** Blue **/
-/** Indigo **/
-/** Purple **/
-/** Pink **/
 /**
  * Copyright (c) 2020 Apption Corporation
  * 
@@ -3067,7 +3053,7 @@ code {
 /** Purple **/
 /** Pink **/
 #topbar {
-  background-color: #fff;
+  background-color: #f7fafc;
   position: fixed;
   z-index: 999;
   top: 0;
@@ -3075,7 +3061,6 @@ code {
   display: flex;
   align-items: center;
   height: 60px;
-  box-shadow: 0 1px 0 #edf2f7;
 }
 #topbar .search-spacer {
   display: flex;
@@ -3348,6 +3333,7 @@ code {
 .application-wrapper .main-layout .ui-control .page {
   display: grid;
   flex-grow: 1;
+  padding: 2rem;
 }
 .application-wrapper .main-layout .ui-control .right-sidebar {
   position: absolute;
@@ -4546,6 +4532,35 @@ code {
   transform: translate(-50%);
 }
 
+.success-indicator {
+  display: inline-block;
+  margin: 0.2rem 0.5rem;
+}
+.success-indicator.hidden {
+  visibility: hidden;
+  opacity: 0;
+  -webkit-transition: visibility 0s 1s, opacity 1s linear;
+  -moz-transition: visibility 0s 1s, opacity 1s linear;
+  -o-transition: visibility 0s 1s, opacity 1s linear;
+  transition: visibility 0s 1s, opacity 1s linear;
+}
+.success-indicator.visible {
+  visibility: visible;
+  opacity: 1;
+}
+.success-indicator .bubble {
+  padding: 0.2rem 0.5rem;
+  border-radius: 0.5rem;
+}
+.success-indicator .success {
+  color: #38a169;
+  background-color: #c6f6d5;
+}
+.success-indicator .failure {
+  color: #e53e3e;
+  background-color: #fed7d7;
+}
+
 /** Transparent **/
 /** Black **/
 /** White **/
@@ -4583,11 +4598,10 @@ code {
   height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: #fff;
+  background-color: #f7fafc;
 }
 #sidebar .links {
   height: 100%;
-  border-right: 1px solid #edf2f7;
 }
 #sidebar .links > a, #sidebar .links > div {
   padding: 0.75rem 0;
@@ -4618,51 +4632,8 @@ code {
   -webkit-mask: url("icons/svg/power-bi.svg") no-repeat center;
   mask: url("icons/svg/power-bi.svg") no-repeat center;
 }
-#sidebar .links > a:hover {
-  background-color: #f7fafc;
-}
-#sidebar .links > a:hover:hover {
-  --fa-primary-color: #4a5568;
-  --fa-secondary-color: #4a5568;
-}
-#sidebar .links > a:hover.blue {
-  --fa-primary-color: #90cdf4;
-  --fa-secondary-color: #63b3ed;
-}
-#sidebar .links > a:hover.indigo {
-  --fa-primary-color: #667eea;
-  --fa-secondary-color: #5a67d8;
-}
-#sidebar .links > a:hover.purple {
-  --fa-primary-color: #9f7aea;
-  --fa-secondary-color: #805ad5;
-}
-#sidebar .links > a:hover.pink {
-  --fa-primary-color: #ed64a6;
-  --fa-secondary-color: #d53f8c;
-}
-#sidebar .links > a:hover.yellow {
-  --fa-primary-color: #ecc94b;
-  --fa-secondary-color: #b7791f;
-}
-#sidebar .links > a:hover.green {
-  --fa-primary-color: #48bb78;
-  --fa-secondary-color: #38a169;
-}
-#sidebar .links > a:hover.orange {
-  --fa-primary-color: #ed8936;
-  --fa-secondary-color: #dd6b20;
-}
-#sidebar .links > a:hover.grey {
-  --fa-primary-color: #4a5568;
-  --fa-secondary-color: #4a5568;
-}
-#sidebar .links > a:hover.base {
-  --fa-primary-color: #a0aec0;
-  --fa-secondary-color: #a0aec0;
-}
 #sidebar .links > a.active {
-  background-color: #F7F7F7;
+  background-color: #fff;
   color: #1a202c;
 }
 #sidebar .links > a.active.blue {
@@ -4728,13 +4699,53 @@ code {
   --fa-primary-color: #a0aec0;
   --fa-secondary-color: #a0aec0;
 }
+#sidebar .links > a:hover {
+  background-color: #edf2f7;
+}
+#sidebar .links > a:hover:hover {
+  --fa-primary-color: #4a5568;
+  --fa-secondary-color: #4a5568;
+}
+#sidebar .links > a:hover.blue {
+  --fa-primary-color: #90cdf4;
+  --fa-secondary-color: #63b3ed;
+}
+#sidebar .links > a:hover.indigo {
+  --fa-primary-color: #667eea;
+  --fa-secondary-color: #5a67d8;
+}
+#sidebar .links > a:hover.purple {
+  --fa-primary-color: #9f7aea;
+  --fa-secondary-color: #805ad5;
+}
+#sidebar .links > a:hover.pink {
+  --fa-primary-color: #ed64a6;
+  --fa-secondary-color: #d53f8c;
+}
+#sidebar .links > a:hover.yellow {
+  --fa-primary-color: #ecc94b;
+  --fa-secondary-color: #b7791f;
+}
+#sidebar .links > a:hover.green {
+  --fa-primary-color: #48bb78;
+  --fa-secondary-color: #38a169;
+}
+#sidebar .links > a:hover.orange {
+  --fa-primary-color: #ed8936;
+  --fa-secondary-color: #dd6b20;
+}
+#sidebar .links > a:hover.grey {
+  --fa-primary-color: #4a5568;
+  --fa-secondary-color: #4a5568;
+}
+#sidebar .links > a:hover.base {
+  --fa-primary-color: #a0aec0;
+  --fa-secondary-color: #a0aec0;
+}
 #sidebar .logo {
-  background-color: #fff;
   border-bottom: 1px solid transparent;
   height: 50px;
-  margin: 0 auto;
-  margin-top: 5px;
-  margin-bottom: 5px;
+  margin: 5px auto;
 }
 #sidebar .logo img {
   padding: 0.5rem;
@@ -4824,6 +4835,8 @@ code {
   height: 300px;
   display: flex;
   flex-direction: column-reverse;
+  border-radius: 8px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.09), 0 6px 6px rgba(0, 0, 0, 0.13);
 }
 .welcome-banner .greeting {
   padding: 1rem;
@@ -4857,6 +4870,9 @@ code {
 .recent-card-container {
   display: inline-block;
 }
+.recent-card-container a {
+  text-decoration: none !important;
+}
 .recent-card-container .recent-card {
   display: flex;
   align-items: center;
@@ -4865,7 +4881,7 @@ code {
   --fa-primary-color: #a0aec0;
   --fa-secondary-color: #a0aec0;
   transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
-  border-left: 0px solid transparent;
+  border-left: 0 solid transparent;
 }
 .recent-card-container .recent-card:hover {
   --fa-primary-color: #4a5568;
@@ -4937,6 +4953,33 @@ code {
 }
 .recent-card-container .recent-card:hover.base {
   border-left-color: #a0aec0;
+}
+.recent-card-container .recent-card:hover.blue {
+  background-color: #ebf8ff;
+}
+.recent-card-container .recent-card:hover.indigo {
+  background-color: #ebf4ff;
+}
+.recent-card-container .recent-card:hover.purple {
+  background-color: #faf5ff;
+}
+.recent-card-container .recent-card:hover.pink {
+  background-color: #fff5f7;
+}
+.recent-card-container .recent-card:hover.yellow {
+  background-color: #fffff0;
+}
+.recent-card-container .recent-card:hover.green {
+  background-color: #f0fff4;
+}
+.recent-card-container .recent-card:hover.orange {
+  background-color: #fffaf0;
+}
+.recent-card-container .recent-card:hover.grey {
+  background-color: #f7fafc;
+}
+.recent-card-container .recent-card:hover.base {
+  background-color: #f7fafc;
 }
 .recent-card-container .recent-card:hover i {
   opacity: 1;
@@ -5021,7 +5064,7 @@ code {
 body {
   font-family: "Roboto", "RobotoDraft", Helvetica, Arial, sans-serif;
   font-size: 0.8rem;
-  background-color: #edf2f7;
+  background-color: #fff;
 }
 
 .add-data-wrapper {
