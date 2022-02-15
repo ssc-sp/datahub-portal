@@ -40,6 +40,8 @@ namespace Datahub.Core.EFCore
         public PowerBi_Workspace Workspace { get; set; }
     }
 
+    public record class PowerBi_ReportDefinition(Guid ReportId, string ReportName, Guid WorkspaceId);
+
     public class PowerBi_DataSet
     {
         [Key]
@@ -51,4 +53,6 @@ namespace Datahub.Core.EFCore
 
         public PowerBi_Workspace Workspace { get; set; }
     }
+
+    public record class PowerBi_DataSetDefinition(Guid DataSetId, string DataSetName, Guid WorkspaceId);
 }
