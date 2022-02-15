@@ -169,5 +169,17 @@ namespace Datahub.Core.Services
                 return false;
             }
         }
+
+        public async Task<List<PowerBi_Report>> GetReportsForProject(string projectCode)
+        {
+            using var ctx = await _contextFactory.CreateDbContextAsync();
+
+            var results = await ctx.PowerBi_Reports
+                .Include(r => r.Workspace)
+                .ThenInclude(w => w.Project)
+                .Where(r => r.Workspace.Project != null && r.Workspace.Project.Project_Acronym_CD.ToLower() == projectCode.ToLower())
+                .ToListAsync();
+            return results;
+        }
     }
 }
