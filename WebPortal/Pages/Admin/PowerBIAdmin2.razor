@@ -1,6 +1,7 @@
 ﻿@page "/admin/powerbi"
 @page "/admin/powerbi/{ProjectAcronym}"
 
+@using global::Datahub.Core.Components
 @using global::Datahub.Core.Services
 @using global::Datahub.Portal.Data
 @using global::Datahub.Portal.Services
@@ -9,6 +10,11 @@
 @inject PowerBiServiceApi _powerBiServiceApi
 @inject Microsoft.Identity.Web.MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
 
+<style>
+    .ae.card {
+        margin-bottom: 1rem;
+    }
+</style>
 
 <div style="padding-left: 2rem;padding-right: 2rem">
 
@@ -29,20 +35,58 @@
                     <PowerBiWorkspaceTable ProjectAcronym=@ProjectAcronym Workspaces=@Workspaces></PowerBiWorkspaceTable>
                     <div>
                         <AeButton OnClickEvent=@UpdateWorkspaces Disabled=@UpdateWorkspacesDisabled>Update</AeButton>
-                        @*TODO: add success indicator*@
-                        @if (IsWorking)
-                        {
-                            <Spinner Small />
-                        }
+                        <SuccessIndicator @bind-IsLoading=@IsUpdatingWorkspaces @ref=@_workspaceUpdateInd />
                     </div>
                 }
             </ChildContent>
         </AeCard>
+
+        <AeCard>
+            <Header>
+                <AeTypography Variant="h3">Datasets</AeTypography>
+            </Header>
+            <ChildContent>
+                @if (IsLoadingDatasets)
+                {
+                    <Spinner />
+                }
+                else
+                {
+                    <PowerBiDatasetTable Datasets=@Datasets Workspaces=@Workspaces></PowerBiDatasetTable>
+                    <div>
+                        <AeButton OnClickEvent=@UpdateDatasets Disabled=@UpdateDatasetsDisabled>Update</AeButton>
+                        <SuccessIndicator @bind-IsLoading=@IsUpdatingDatasets @ref=@_datasetUpdateInd />
+                    </div>
+                }
+            </ChildContent>
+        </AeCard>
+
+        <AeCard>
+            <Header>
+                <AeTypography Variant="h3">Reports</AeTypography>
+            </Header>
+            <ChildContent>
+                @if (IsLoadingReports)
+                {
+                    <Spinner />
+                }
+                else
+                {
+                    <PowerBiReportTable Reports=@Reports Workspaces=@Workspaces></PowerBiReportTable>
+                    <div>
+                        <AeButton OnClickEvent=@UpdateReports Disabled=@UpdateReportsDisabled>Update</AeButton>
+                        <SuccessIndicator @bind-IsLoading=@IsUpdatingReports @ref=@_reportUpdateInd />
+                    </div>
+                }
+            </ChildContent>
+        </AeCard>
+
+
     </AeFlex>
 
-
-    @*<div>
-        <AeButton OnClickEvent=@WorkspacesUpdated>Ding</AeButton>
+@*
+    <div>
+        <AeButton OnClickEvent=@TestDatasetApi>Ding</AeButton>
     </div>*@
 
 </div>
@@ -58,11 +102,37 @@
     private bool IsLoadingWorkspaces { get; set; } = false;
     private bool IsUpdatingWorkspaces { get; set; } = false;
 
-    private bool IsWorking => IsLoadingWorkspaces || IsUpdatingWorkspaces;
+    private bool IsWorking => IsLoadingWorkspaces || IsUpdatingWorkspaces 
+        || IsLoadingDatasets || IsUpdatingDatasets
+        || IsLoadingReports || IsUpdatingReports;
 
     private bool UpdateWorkspacesDisabled => /*!HasChangedWorkspaces ||*/ IsWorking;
 
-    private async Task UpdateWorkspaces()
+    private SuccessIndicator _workspaceUpdateInd;
+
+    private List<PowerBiAdminDataSetItem> Datasets { get; set; } = new();
+    private List<PowerBiAdminDataSetItem> ChangedDatasets => Datasets.Where(w => w.IsChanged).ToList();
+    private bool HasChangedDatasets => ChangedDatasets.Count > 0;
+
+    private bool UpdateDatasetsDisabled => /*!HasChangedDatasets ||*/ IsWorking;
+
+    private bool IsLoadingDatasets { get; set; } = false;
+    private bool IsUpdatingDatasets { get; set; } = false;
+
+    private SuccessIndicator _datasetUpdateInd;
+
+    private List<PowerBiAdminReportItem> Reports { get; set; } = new();
+    private List<PowerBiAdminReportItem> ChangedReports => Reports.Where(w => w.IsChanged).ToList();
+    private bool HasChangedReports => ChangedReports.Count > 0;
+
+    private bool UpdateReportsDisabled => /*!HasChangedReports ||*/ IsWorking;
+
+    private bool IsLoadingReports { get; set; } = false;
+    private bool IsUpdatingReports { get; set; } = false;
+
+    private SuccessIndicator _reportUpdateInd;
+
+    private async Task<bool> UpdateWorkspaces()
     {
         if (HasChangedWorkspaces)
         {
@@ -70,9 +140,105 @@
             StateHasChanged();
             var updatedDefinitions = ChangedWorkspaces.Select(w => w.Definition);
             var success = await _powerBiDataService.AddOrUpdateCataloguedWorkspaces(updatedDefinitions);
-            await ReloadWorkspaces();
-            IsUpdatingWorkspaces = false;
+            if (success)
+            {
+                await Task.WhenAll(new List<Task>()
+                {
+                    ReloadWorkspaces(),
+                    _workspaceUpdateInd.SignalSuccess()
+                });
+            }
+            else
+            {
+                await _workspaceUpdateInd.SignalFailure();
+            }
+
             StateHasChanged();
+            return success;
+        }
+        else
+        {
+            return true;
+        }
+    }
+
+    private async Task UpdateDatasets()
+    {
+        if (HasChangedDatasets)
+        {
+            IsUpdatingDatasets = true;
+            StateHasChanged();
+            // check for unmanaged workspaces
+            var affectedWorkspaceIds = ChangedDatasets.Select(d => d.WorkspaceId).ToHashSet();
+            var unmanagedWorkspaces = Workspaces.Where(w => !w.IsAlreadyCatalogued && affectedWorkspaceIds.Contains(w.WorkspaceId));
+            foreach (var w in unmanagedWorkspaces)
+            {
+                w.IsChanged = true;
+            }
+
+            var workspacesUpdated = await UpdateWorkspaces();
+            if (!workspacesUpdated)
+            {
+                await _datasetUpdateInd.SignalFailure();
+                return;
+            }
+
+            var updatedDefinitions = ChangedDatasets.Select(d => d.Definition);
+            var success = await _powerBiDataService.AddOrUpdateCataloguedDatasets(updatedDefinitions);
+
+            if (success)
+            {
+                await Task.WhenAll(new List<Task>()
+                {
+                    ReloadDatasets(),
+                    _datasetUpdateInd.SignalSuccess()
+                });
+            }
+            else
+            {
+                await _datasetUpdateInd.SignalFailure();
+            }
+
+        }
+    }
+
+    private async Task UpdateReports()
+    {
+        if (HasChangedReports)
+        {
+            IsUpdatingReports = true;
+            StateHasChanged();
+            // check for unmanaged workspaces
+            var affectedWorkspaceIds = ChangedReports.Select(d => d.WorkspaceId).ToHashSet();
+            var unmanagedWorkspaces = Workspaces.Where(w => !w.IsAlreadyCatalogued && affectedWorkspaceIds.Contains(w.WorkspaceId));
+            foreach (var w in unmanagedWorkspaces)
+            {
+                w.IsChanged = true;
+            }
+
+            var workspacesUpdated = await UpdateWorkspaces();
+            if (!workspacesUpdated)
+            {
+                await _reportUpdateInd.SignalFailure();
+                return;
+            }
+
+            var updatedDefinitions = ChangedReports.Select(d => d.Definition);
+            var success = await _powerBiDataService.AddOrUpdateCataloguedReports(updatedDefinitions);
+
+            if (success)
+            {
+                await Task.WhenAll(new List<Task>()
+                {
+                    ReloadReports(),
+                    _reportUpdateInd.SignalSuccess()
+                });
+            }
+            else
+            {
+                await _reportUpdateInd.SignalFailure();
+            }
+
         }
     }
 
@@ -101,13 +267,68 @@
         StateHasChanged();
     }
 
+    private async Task<List<PowerBiAdminDataSetItem>> LoadDatasets()
+    {
+        var pbiDatasets = await _powerBiServiceApi.GetWorkspaceDatasetsAsync();
+        var dbDatasets = await _powerBiDataService.GetAllDatasets();
+        var dbDatasetDict = dbDatasets.ToDictionary(d => d.DataSet_ID);
+
+        var results = pbiDatasets.Select(d =>
+        {
+            var datasetGuid = Guid.Parse(d.Dataset.Id);
+            var dbDataset = dbDatasetDict.GetValueOrDefault(datasetGuid);
+            return new PowerBiAdminDataSetItem(d.Dataset, d.WorkspaceId, dbDataset);
+        })
+        .ToList();
+
+        return results;
+    }
+
+    private async Task ReloadDatasets()
+    {
+        Datasets = await LoadDatasets();
+        StateHasChanged();
+    }
+
+    private async Task<List<PowerBiAdminReportItem>> LoadReports()
+    {
+        var pbiReports = await _powerBiServiceApi.GetWorkspaceReportsAsync();
+        var dbReports = await _powerBiDataService.GetAllReports();
+        var dbReportDict = dbReports.ToDictionary(d => d.Report_ID);
+
+        var results = pbiReports.Select(d =>
+        {
+            var reportGuid = d.Report.Id;
+            var dbReport = dbReportDict.GetValueOrDefault(reportGuid);
+            return new PowerBiAdminReportItem(d.Report, d.WorkspaceId, dbReport);
+        })
+        .ToList();
+
+        return results;
+    }
+
+    private async Task ReloadReports()
+    {
+        Reports = await LoadReports();
+        StateHasChanged();
+    }
+
     protected override async Task OnInitializedAsync()
     {
         try
         {
             IsLoadingWorkspaces = true;
+            IsLoadingDatasets = true;
+            IsLoadingReports = true;
             await ReloadWorkspaces();
             IsLoadingWorkspaces = false;
+
+            await ReloadDatasets();
+            IsLoadingDatasets = false;
+
+            await ReloadReports();
+            IsLoadingReports = false;
+            StateHasChanged();
         }
         catch (Exception ex)
         {
