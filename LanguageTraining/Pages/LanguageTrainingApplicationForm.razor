@@ -48,6 +48,7 @@
     private List<string> MarkDownContent = new();
     private Microsoft.Graph.User _user;
     private bool _isUserAdmin;
+    private List<string> headers;
 
     private async void OpenExcel()
     {
@@ -60,6 +61,10 @@
         Context = DbFactory.CreateDbContext();
         _user = await UserInformationService.GetUserAsync();
         _isUserAdmin = await ServiceAuthManager.IsProjectAdmin(_user.Id, PROJECTACRONYM);
+        headers = new List<string>
+        {
+            DataLocalizer["User"],DataLocalizer["Sector"],DataLocalizer["Manager"], DataLocalizer["Request"], DataLocalizer["Manager Decision"]
+        };
         _formMetadata = new();
         await LoadApps(string.Empty);
         PrepareMetadata();
@@ -96,10 +101,6 @@
         new Func<LanguageTrainingApplication, string>(p => { return p.Manager_Decision; }),
     };
 
-    private List<string> headers = new List<string>
-    {
-        "User","Sector","Manager", "Request", "Manager Decision"
-    };
 
     private async void HandleFilterChange(string selection)
     {
