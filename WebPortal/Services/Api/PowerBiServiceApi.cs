@@ -24,6 +24,8 @@ namespace Datahub.Portal.Services
 
     public record PowerBIDatasetElements(Group Group, Dataset Dataset, List<Report> Reports);
 
+    public record PowerBiWorkspaceDataset(Guid WorkspaceId, Dataset Dataset);
+    public record PowerBiWorkspaceReport(Guid WorkspaceId, Report Report);
 
     public class PowerBiServiceApi
     {
@@ -135,6 +137,54 @@ namespace Datahub.Portal.Services
                 //var newWorkspace = await client.Groups.CreateGroupAsync(groupRequest, true);
             }
             return allDataSets.Select(tp => new PowerBIDatasetElements(tp.Item1,tp.Item2,tp.Item3)).ToList();
+        }
+
+        public async Task<List<PowerBiWorkspaceDataset>> GetWorkspaceDatasetsAsync(Guid? workspaceId = null)
+        {
+            using var client = await GetPowerBiClientAsync();
+            var groups = await client.Groups.GetGroupsAsync();
+            var workspaceIds = workspaceId.HasValue ? new List<Guid> { workspaceId.Value } : groups.Value.Select(w => w.Id);
+
+            var result = new List<PowerBiWorkspaceDataset>();
+            
+            foreach (var id in workspaceIds)
+            {
+                try
+                {
+                    var datasets = await client.Datasets.GetDatasetsInGroupAsync(id);
+                    result.AddRange(datasets.Value.Select(d => new PowerBiWorkspaceDataset(id, d)));
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, $"Cannot get datasets for workspace {id}");
+                }
+            }
+
+            return result;
+        }
+
+        public async Task<List<PowerBiWorkspaceReport>> GetWorkspaceReportsAsync(Guid? workspaceId = null)
+        {
+            using var client = await GetPowerBiClientAsync();
+            var groups = await client.Groups.GetGroupsAsync();
+            var workspaceIds = workspaceId.HasValue ? new List<Guid> { workspaceId.Value } : groups.Value.Select(w => w.Id);
+
+            var result = new List<PowerBiWorkspaceReport>();
+
+            foreach(var id in workspaceIds)
+            {
+                try
+                {
+                    var reports = await client.Reports.GetReportsInGroupAsync(id);
+                    result.AddRange(reports.Value.Select(r => new PowerBiWorkspaceReport(id, r)));
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, $"Cannot get reports for workspace {id}");
+                }
+            }
+
+            return result;
         }
 
         public async Task<string> GetEmbeddedViewModel(string appWorkspaceId = "")
