@@ -181,5 +181,20 @@ namespace Datahub.Core.Services
                 .ToListAsync();
             return results;
         }
+
+        public async Task<List<PowerBi_Report>> GetReportsForUser(string userId)
+        {
+            using var ctx = await _contextFactory.CreateDbContextAsync();
+
+            var results = await ctx.PowerBi_Reports
+                .Include(r => r.Workspace)
+                .ThenInclude(w => w.Project)
+                .ThenInclude(p => p.Users)
+                .Where(r => r.Workspace.Project != null && r.Workspace.Project.Users.Any(u => u.User_ID == userId))
+                .Distinct()
+                .ToListAsync();
+
+            return results;
+        }
     }
 }
