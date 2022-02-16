@@ -17,5 +17,6 @@ namespace Datahub.Core.Services
         public Task<bool> AddOrUpdateCataloguedReports(IEnumerable<PowerBi_ReportDefinition> reportDefinitions);
 
         public Task<List<PowerBi_Report>> GetReportsForProject(string projectCode);
+        public Task<List<PowerBi_Report>> GetReportsForUser(string userId);
     }
 }
