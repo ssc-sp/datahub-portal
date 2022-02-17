@@ -4,6 +4,7 @@ using Datahub.Portal.Data.LanguageTraining;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Datahub.Portal.Migrations
 {
     [DbContext(typeof(LanguageTrainingDBContext))]
-    partial class LanguageTrainingDBContextModelSnapshot : ModelSnapshot
+    [Migration("20220207191902_newlanguageselectionfield")]
+    partial class newlanguageselectionfield
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -91,12 +93,6 @@ namespace Datahub.Portal.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime>("FormSubmitted_DT")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("FormSubmitted_UserId")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("I_am_seeking")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -104,11 +100,10 @@ namespace Datahub.Portal.Migrations
                     b.Property<bool>("LSUDecisionSent")
                         .HasColumnType("bit");
 
-                    b.Property<DateTime>("LanguageSchoolDecision_DT")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("LanguageSchoolDecision_UserId")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<string>("LanguageClass")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("Language_Training_Provided_By")
                         .HasColumnType("nvarchar(max)");
@@ -131,12 +126,6 @@ namespace Datahub.Portal.Migrations
 
                     b.Property<bool>("ManagerDecisionSent")
                         .HasColumnType("bit");
-
-                    b.Property<DateTime>("ManagerDecision_DT")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("ManagerDecision_UserId")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Manager_Decision")
                         .IsRequired()

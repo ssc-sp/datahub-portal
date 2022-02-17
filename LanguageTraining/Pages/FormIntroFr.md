@@ -19,5 +19,7 @@ _Si l’École de langues de RNCan n’est pas en mesure de répondre à vos bes
 ### Évaluation linguistique
 _Un Plan d’évaluation et de formation linguistiques (PEFL) est un prérequis à la formation linguistique. Si vous n’avez pas effectué une évaluation PEFL, veuillez en faire la demande [hyperlien vers le formulaire de demande PEFL] à l’École de langues de RNCan._
 
+_*Veuillez noter qu'il y a un pré-requis pour le cours de communication orale niveau avancé: avoir déjà atteint le niveau C ou avoir complété le programme niveau C de RNCan._
+
 ### Engagement et approbations
 _L’approbation de votre gestionnaire délégué est requise pour soumettre une demande de formation linguistique, en plus de la confirmation de votre engagement à participer au programme de formation linguistique. Veuillez prendre connaissance des exigences d’engagement ci-dessous et fournir les renseignements afférents au gestionnaire._
