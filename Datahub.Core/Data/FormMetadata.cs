@@ -12,7 +12,7 @@ namespace Datahub.Core.Data
         public string SubHeader { get; set; }
         public string UserId { get; set; }
 
-        public IList<T> DataSet { get; set; }
+        public List<T> DataSet { get; set; }
 
         public IList<Func<T, string>> AccessorFunctions { get; set; }
 
@@ -27,6 +27,7 @@ namespace Datahub.Core.Data
         public IList<(Delegate Label, Delegate Choices)> FilterProperties { get; set; }
 
         public bool IsSubmitEnabled { get; set; }
+        public string SaveButtonText { get; set; } = "Save";
 
         public string TableRoles { get; set; }
         public bool IsLoaded()
