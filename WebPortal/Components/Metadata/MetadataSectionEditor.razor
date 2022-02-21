@@ -1,0 +1,68 @@
+﻿@using Datahub.Metadata.DTO
+@using Datahub.Metadata.Model
+
+<div>
+    <div>
+        <div style="margin: 8px 0px 8px 0px;">
+            <div>
+                <AeTypography>Name English</AeTypography>
+            </div>
+            <div>
+                <input 
+                    class="ae input"
+                    placeholder="Enter section name (english)..."
+                    @bind=@Section.English
+                    style="width: 100%"
+                />
+            </div>
+        </div>
+
+        <div style="margin: 8px 0px 8px 0px;">
+            <div>
+                <AeTypography>Name French</AeTypography>
+            </div>
+            <div>
+                <input 
+                    class="ae input"
+                    placeholder="Enter section name (french)..."
+                    @bind=@Section.French
+                    style="width: 100%"
+                />
+            </div>
+        </div>
+    </div>
+
+    <div>
+        <MetadataSectionFields 
+            @key=@Section.ListId
+            Fields=@AvailableFields
+            Selection=@Section.Fields 
+        />
+    </div>
+
+    @if (IsNew)
+    {
+        <AeButton OnClickEvent=@OnSaveNew Disabled=@InvalidSection>Save</AeButton>
+        <AeButton OnClickEvent=@OnDiscardNew>Cancel</AeButton>
+    }
+</div>
+
+@code {
+
+    [Parameter]
+    public bool IsNew { get; set; }
+
+    [Parameter]
+    public MetadataSectionDetails Section { get; set; }
+
+    [Parameter]
+    public List<FieldDefinition> AvailableFields { get; set; }
+
+    [Parameter]
+    public EventCallback OnSaveNew { get; set; }
+
+    [Parameter]
+    public EventCallback OnDiscardNew { get; set; }
+
+    private bool InvalidSection => string.IsNullOrEmpty(Section.English) || string.IsNullOrEmpty(Section.French);
+}
