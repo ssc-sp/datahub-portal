@@ -1,0 +1,43 @@
+﻿@use '../Common' as c;
+
+@mixin transition($x...) {
+    -webkit-transition: $x;
+    -moz-transition: $x;
+    -o-transition: $x;
+    transition: $x;
+}
+
+$fade-length: 1s;
+$success-bg: c.$green-200;
+$success-col: c.$green-600;
+$fail-bg: c.$red-200;
+$fail-col: c.$red-600;
+
+.success-indicator {
+    display: inline-block;
+    margin: 0.2rem 0.5rem;
+    &.hidden {
+        visibility: hidden;
+        opacity: 0;
+        @include transition(visibility 0s $fade-length, opacity $fade-length linear);
+    }
+    &.visible {
+        visibility: visible;
+        opacity: 1;
+    }
+
+    .bubble {
+        padding: 0.2rem 0.5rem;
+        border-radius: 0.5rem;
+    }
+
+    .success {
+        color: $success-col;
+        background-color: $success-bg;
+    }
+
+    .failure {
+        color: $fail-col;
+        background-color: $fail-bg;
+    }
+}

@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.Graph;
 using Datahub.Core.Data;
 using Datahub.Core.Services;
+using System;
 
 namespace Datahub.Portal.Services.Offline
 {
@@ -12,7 +13,7 @@ namespace Datahub.Portal.Services.Offline
         {
         }
 
-        public Task<System.Uri> DownloadFile(FileMetaData file)
+        public Task<System.Uri> DownloadFile(FileMetaData file, string project)
         {
             return Task.FromResult(new System.Uri("anyfile"));
         }
@@ -27,7 +28,7 @@ namespace Datahub.Portal.Services.Offline
             return Task.FromResult(new List<Core.Data.Version>());
         }
 
-        public Task<Core.Data.Folder> GetFolderContents(dynamic folder, string filterSearch, User user, string project)
+        public Task<Core.Data.Folder> GetFolderContents(Core.Data.Folder folder, string filterSearch, User user, string project)
         {
             return Task.FromResult(new Core.Data.Folder());
         }

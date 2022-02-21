@@ -1,0 +1,9 @@
+﻿@using Microsoft.Extensions.Configuration
+@inject IConfiguration configuration
+
+<PageTitle>@Localizer[configuration["Title"]] - @PageTitleKey</PageTitle>
+
+@code {
+	[Parameter]
+	public string PageTitleKey { get; set; }
+}
