@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Datahub.Core\Datahub.Core.csproj" />	
+  </ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="AElemental.Blazor" Version="1.2.22041.2-beta" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Update="Pages\FormFooter.md">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Pages\FormFooterFr.md">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
+	</ItemGroup>
+</Project>
