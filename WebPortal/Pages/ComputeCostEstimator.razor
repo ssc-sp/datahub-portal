@@ -1,0 +1,477 @@
+﻿@page "/tools/computecost"
+@using Datahub.Core.Templates
+@using Datahub.Core.Data.CostEstimator
+@inject IEmailNotificationService emailService
+@inject IUserInformationService userService
+@inject IAzurePriceListService azurePriceService
+@inject TimeZoneService timezoneService
+
+<style>
+    .ae.card .ae.card-content {
+        padding-right: 1.25rem;
+    }
+    .clear-both {
+        clear: both;
+    }
+    .widetable {
+        min-width: 42rem;
+    }
+    .numbercol {
+        text-align: right;
+    }
+    .totalrow td {
+        font-weight: bold;
+    }
+    .faded {
+        opacity: 0.5;
+    }
+    .float-right {
+        float: right;
+    }
+    .number-input {
+        width: 4rem;
+    }
+    .hidden {
+        visibility: hidden;
+    }
+</style>
+
+
+<div style="padding: 2rem;">
+    <AeFlex Vertical>
+        <AeTypography Variant="h1">@Localizer[$"{LOCALIZATION_PREFIX}.Title"]</AeTypography>
+
+        <AeFlex>
+            <AeCard class="facard1 doublewide">
+                <Header>
+                    <AeTypography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.IntroTitle"]</AeTypography>
+                </Header>
+                <ChildContent>
+                    <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.IntroPara1"]</AeTypography>
+                    <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.IntroPara2"]</AeTypography>
+                    @if (PriceListLastUpdatedLocalTime.HasValue)
+                    {
+                        <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.PriceListLastUpdated", PriceListLastUpdatedLocalTime]</AeTypography>
+                    }
+                    <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.IntroPara3"]</AeTypography>
+                    <label>
+                        <input type="checkbox" @bind-value=@DisclaimerAcknowledged/>
+                        @Localizer[$"{LOCALIZATION_PREFIX}.EstimateDisclaimer"]
+                    </label>
+                    <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.MoreInfoIntro"]</AeTypography>
+                    <AeCollapse>
+                        <AeCollapseSection>
+                            <Header>
+                                <AeTypography Variant="h4">@Localizer[$"{LOCALIZATION_PREFIX}.WorkloadTypesHeading"]</AeTypography>
+                            </Header>
+                            <ChildContent>
+                                <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.WorkloadTypesP1"]</AeTypography>
+                                <ul>
+                                    @for (var i=1; i<=3; i++)
+                                    {
+                                        <li>@Localizer[$"{LOCALIZATION_PREFIX}.WorkloadMachineDesc{i}"]</li>
+                                    }
+                                </ul>
+                                <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.WorkloadTypesP2"]</AeTypography>
+                                <ul>
+                                    @for (var i=1; i<=4; i++)
+                                    {
+                                        <li>@Localizer[$"{LOCALIZATION_PREFIX}.WorkloadTypeDesc{i}"]</li>
+                                    }
+                                </ul>
+                            </ChildContent>
+                        </AeCollapseSection>
+                        <AeCollapseSection>
+                            <Header>
+                                <AeTypography Variant="h4">@Localizer[$"{LOCALIZATION_PREFIX}.CostsHeading"]</AeTypography>
+                            </Header>
+                            <ChildContent>
+                                <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.CostsP1"]</AeTypography>
+                            </ChildContent>
+                        </AeCollapseSection>
+                    </AeCollapse>
+                </ChildContent>
+            </AeCard>
+
+            <AeCard class=@ParametersCardCSSClass>
+                <Header>
+                    <AeTypography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.ParametersTitle"]</AeTypography>
+                </Header>
+                <ChildContent>
+                    <div class="clear-both">
+                        <label>
+                            @Localizer[$"{LOCALIZATION_PREFIX}.HoursPerDayLabel"]
+                            <input type="number" class="float-right number-input" @bind-value=@OpHoursPerDay />
+                        </label>
+                    </div>
+
+                    <div class="clear-both">
+                        <label>
+                            @Localizer[$"{LOCALIZATION_PREFIX}.DaysPerMonthLabel"]
+                            <input type="number" class="float-right number-input" @bind-value=@OpDaysPerMonth />
+                        </label>
+                    </div>
+
+                    <div class="clear-both">
+                        <label>
+                            @Localizer[$"{LOCALIZATION_PREFIX}.YearlyWorkloadLabel"]
+                            <select class="float-right" @bind=@CurrentWorkload>
+                                @foreach(var workloadType in WORKLOAD_TYPES_IN_ORDER)
+                                {
+                                    <option value=@workloadType>@Localizer[$"{LOCALIZATION_PREFIX}.WorkloadType{workloadType.ToString()}"]</option>
+                                }
+                            </select>
+                        </label>
+                    </div>
+
+                    <div class="clear-both">
+                        <label>
+                            @Localizer[$"{LOCALIZATION_PREFIX}.ProjectedGrowthLabel"]
+                            <input type="number" class="float-right number-input" @bind-value=@ProjectedMonthlyGrowthPct />
+                        </label>
+                    </div>
+
+                    <div>
+                        <AeButton OnClickEvent=@CalculateResults Disabled=@CalcButtonDisabled>
+                            @if(IsCalculating)
+                            {
+                                <Spinner Small/>
+                            }
+                            else
+                            {
+                                @Localizer[$"{LOCALIZATION_PREFIX}.CalculateButton"]
+                            }
+                        </AeButton>
+                        <AeButton OnClickEvent=@SendEmail Disabled=@SendButtonDisabled>
+                            @if (IsSending)
+                            {
+                                <Spinner Small/>
+                            }
+                            else
+                            {
+                                @Localizer[$"{LOCALIZATION_PREFIX}.SendButton"]
+                            }
+                        </AeButton>
+                    </div>
+                    
+                </ChildContent>
+            </AeCard>
+        </AeFlex>
+
+        <AeFlex>
+            <div class=@ResultsCSSClass>
+                <AeCard class="facard1" style="width:600px">
+                    <Header>
+                        <AeTypography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.MonthlyEstimateTitle"]</AeTypography>
+                    </Header>
+                    <ChildContent>
+                        @if (MonthlyEstimate.Count > 0)
+                        {
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>@Localizer[$"{LOCALIZATION_PREFIX}.WorkloadTypeLabel"]</th>
+                                        <th>@Localizer[$"{LOCALIZATION_PREFIX}.VmCostMonthLabel"]</th>
+                                        <th>@Localizer[$"{LOCALIZATION_PREFIX}.DbuCostMonthLabel"]</th>
+                                        <th>@Localizer[$"{LOCALIZATION_PREFIX}.SubtotalLabel"]</th>
+                                        <th>@Localizer[$"{LOCALIZATION_PREFIX}.SscServiceFeeLabel"]</th>
+                                        <th>@Localizer[$"{LOCALIZATION_PREFIX}.TotalLabel"]</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach(var workloadType in WORKLOAD_TYPES_IN_ORDER)
+                                    {
+                                        var est = MonthlyEstimate[workloadType];
+                                        <tr>
+                                            <td>@Localizer[$"{LOCALIZATION_PREFIX}.WorkloadType{workloadType.ToString()}"]</td>
+                                            <td class="numbercol">@est.VmHours.Cost.ToString("C")</td>
+                                            <td class="numbercol">@est.Dbu.Cost.ToString("C")</td>
+                                            <td class="numbercol">@est.TotalCost.ToString("C")</td>
+                                            <td class="numbercol">@((est.TotalCost * SSC_FEE_FACTOR).ToString("C"))</td>
+                                            <td class="numbercol">@((est.TotalCost * (1 + SSC_FEE_FACTOR)).ToString("C"))</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        }
+                    </ChildContent>
+                </AeCard>
+            </div>
+
+            <div class=@ResultsCSSClass>
+
+                <AeCard class="facard1" style="width:600px">
+                    <Header>
+                        <AeTypography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.YearlyEstimateTitle", CurrentWorkloadLabel]</AeTypography>
+                    </Header>
+                    <ChildContent>
+                        @if (YearlyEstimate.Count > 0)
+                        {
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>@Localizer[$"{LOCALIZATION_PREFIX}.MonthLabel"]</th>
+                                        <th>@Localizer[$"{LOCALIZATION_PREFIX}.VmCostLabel"]</th>
+                                        <th>@Localizer[$"{LOCALIZATION_PREFIX}.DbuCostLabel"]</th>
+                                        <th>@Localizer[$"{LOCALIZATION_PREFIX}.SubtotalLabel"]</th>
+                                        <th>@Localizer[$"{LOCALIZATION_PREFIX}.SscServiceFeeLabel"]</th>
+                                        <th>@Localizer[$"{LOCALIZATION_PREFIX}.TotalLabel"]</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach(var lineItem in YearlyEstimate.Select((item, i) => (Month: i + 1, Item: item)))
+                                    {
+                                        <tr>
+                                            <td>@Localizer[$"{LOCALIZATION_PREFIX}.MonthNumber", lineItem.Month]</td>
+                                            <td class="numbercol">@lineItem.Item.VmHours.Cost.ToString("C")</td>
+                                            <td class="numbercol">@lineItem.Item.Dbu.Cost.ToString("C")</td>
+                                            <td class="numbercol">@lineItem.Item.TotalCost.ToString("C")</td>
+                                            <td class="numbercol">@((lineItem.Item.TotalCost * SSC_FEE_FACTOR).ToString("C"))</td>
+                                            <td class="numbercol">@((lineItem.Item.TotalCost * (1 + SSC_FEE_FACTOR)).ToString("C"))</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                                <tfoot>
+                                    <tr class="totalrow">
+                                        <td>@Localizer[$"{LOCALIZATION_PREFIX}.TotalLabel"]</td>
+                                        <td class="numbercol">@YearlyEstimate.Sum(e => e.VmHours.Cost).ToString("C")</td>
+                                        <td class="numbercol">@YearlyEstimate.Sum(e => e.Dbu.Cost).ToString("C")</td>
+                                        <td class="numbercol">@YearlyEstimate.Sum(e => e.TotalCost).ToString("C")</td>
+                                        <td class="numbercol">@YearlyEstimate.Sum(e => e.TotalCost * SSC_FEE_FACTOR).ToString("C")</td>
+                                        <td class="numbercol">@YearlyEstimate.Sum(e => e.TotalCost * (1 + SSC_FEE_FACTOR)).ToString("C")</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        }
+                    </ChildContent>
+                </AeCard>
+            </div>
+            
+        </AeFlex>
+
+    </AeFlex>
+</div>
+
+@code {
+    private static readonly string LOCALIZATION_PREFIX = "COMPUTE-COST-ESTIMATOR";
+
+    private static readonly decimal SSC_FEE_FACTOR = 0.1M;
+
+    private static readonly List<ComputeCostEstimateWorkloadType> WORKLOAD_TYPES_IN_ORDER = new()
+    {
+        ComputeCostEstimateWorkloadType.VeryLight,
+        ComputeCostEstimateWorkloadType.Light,
+        ComputeCostEstimateWorkloadType.Medium,
+        ComputeCostEstimateWorkloadType.Heavy
+    };
+
+    private Dictionary<ComputeCostMachineType, ComputeCostMachineSpec> ComputeCostMachines = new();
+    private Dictionary<ComputeCostEstimateWorkloadType, (ComputeCostMachineSpec Machine, int NumVms)> PredefinedWorkloads = new();
+    private decimal? DbuPrice;
+
+    private int _opHoursPerDay;
+    private int _opDaysPerMonth;
+    private ComputeCostEstimateWorkloadType _currentWorkload = ComputeCostEstimateWorkloadType.VeryLight;
+    private int _projectedMonthlyGrowthPct;
+
+    private int OpHoursPerDay
+    {
+        get => _opHoursPerDay;
+        set
+        {
+            _opHoursPerDay = Math.Clamp(value, 0, 24);
+            NeedsRecalculation = true;
+        }
+    }
+
+    private int OpDaysPerMonth
+    {
+        get => _opDaysPerMonth;
+        set
+        {
+            _opDaysPerMonth = Math.Clamp(value, 0, 28);
+            NeedsRecalculation = true;
+        }
+    }
+
+    private ComputeCostEstimateWorkloadType CurrentWorkload
+    {
+        get => _currentWorkload;
+        set
+        {
+            _currentWorkload = value;
+            NeedsRecalculation = true;
+        }
+    }
+
+    private int ProjectedMonthlyGrowthPct
+    {
+        get => _projectedMonthlyGrowthPct;
+        set
+        {
+            _projectedMonthlyGrowthPct = Math.Clamp(value, 0, 100);
+            NeedsRecalculation = true;
+        }
+    }
+
+    private string CurrentWorkloadLabel => Localizer[$"{LOCALIZATION_PREFIX}.WorkloadType{CurrentWorkload.ToString()}"];
+
+    private DateTimeOffset? PriceListLastUpdatedLocalTime;
+
+    private Dictionary<ComputeCostEstimateWorkloadType, ComputeCostEstimatorResult> MonthlyEstimate = new();
+    private List<ComputeCostEstimatorResult> YearlyEstimate = new();
+
+    private bool DisclaimerAcknowledged { get; set; } = false;
+    private bool IsCalculating { get; set; } = false;
+    private bool PriceListReady { get; set; } = false;
+    private bool CanCalculate => DisclaimerAcknowledged && PriceListReady && !IsCalculating && OpHoursPerDay > 0 && OpDaysPerMonth > 0;
+    private bool NeedsRecalculation { get; set; } = true;
+    private bool IsSending { get; set; } = false;
+
+    private bool CalcButtonDisabled => !CanCalculate;
+    private bool SendButtonDisabled => NeedsRecalculation || IsCalculating || IsSending;
+
+    private string FadedResultsCSSClass => NeedsRecalculation ? "faded" : string.Empty;
+    private string HiddenCSSClass => DisclaimerAcknowledged ? string.Empty : "hidden";
+    private string ResultsCSSClass => $"{FadedResultsCSSClass} {HiddenCSSClass}";
+    private string ParametersCardCSSClass => $"facard1 {HiddenCSSClass}";
+
+    private ComputeCostEstimatorResult MakeSomethingUp()
+    {
+        var rand = new Random();
+        var vmh = new EstimatorResultLineDecimal(rand.Next(1, 8) * 1.0M, rand.Next(10, 100) * 1.23M);
+        var dbu = new EstimatorResultLineDecimal(rand.Next(1, 8) * 1.0M, rand.Next(10, 100) * 1.23M);
+        return new()
+        {
+            Dbu = dbu,
+            VmHours = vmh
+        };
+    }
+
+    private ComputeCostEstimatorResult CalculateMonthlyCost(ComputeCostMachineSpec machine, int numVms, int numHours)
+    {
+        var totalHours = numVms * numHours;
+        var vmPrice = totalHours * machine.VmCost;
+        var dbuUnits = totalHours * machine.DbuFactor;
+        var dbuPrice = dbuUnits * DbuPrice.Value;
+
+        return new()
+        {
+            Dbu = new(dbuUnits, dbuPrice),
+            VmHours = new(totalHours, vmPrice)
+        };
+    }
+
+
+    private async ValueTask<Dictionary<ComputeCostEstimateWorkloadType, ComputeCostEstimatorResult>> CalculateMonthlyCosts()
+    {
+        var totalHoursPerMonth = OpHoursPerDay * OpDaysPerMonth;
+
+        var result = new Dictionary<ComputeCostEstimateWorkloadType, ComputeCostEstimatorResult>();
+
+        foreach (var workloadType in WORKLOAD_TYPES_IN_ORDER)
+        {
+            var machineSpec = PredefinedWorkloads[workloadType].Machine;
+            var numVms = PredefinedWorkloads[workloadType].NumVms;
+
+            result[workloadType] = CalculateMonthlyCost(machineSpec, numVms, totalHoursPerMonth);
+        }
+
+        return await Task.FromResult(result);
+    }
+
+    private async ValueTask<List<ComputeCostEstimatorResult>> CalculateYearlyCost()
+    {
+        var monthlyBase = MonthlyEstimate[CurrentWorkload];
+        var growthFactor = 1.0 + (ProjectedMonthlyGrowthPct * 0.01);
+
+        var result = new List<ComputeCostEstimatorResult>();
+
+        for (var i = 0; i < 12; i++)
+        {
+            var multiplier = Convert.ToDecimal(Math.Pow(growthFactor, i));
+            var resultLine = new ComputeCostEstimatorResult()
+            {
+                VmHours = new(monthlyBase.VmHours.NumberOfOperations * multiplier, monthlyBase.VmHours.Cost * multiplier),
+                Dbu = new(monthlyBase.Dbu.NumberOfOperations * multiplier, monthlyBase.Dbu.Cost * multiplier)
+            };
+            result.Add(resultLine);
+        }
+
+        return await Task.FromResult(result);
+    }
+
+    private async Task CalculateResults()
+    {
+        if (!CanCalculate)
+        {
+            return;
+        }
+
+        IsCalculating = true;
+
+        MonthlyEstimate = await CalculateMonthlyCosts();
+        YearlyEstimate = await CalculateYearlyCost();
+
+        IsCalculating = false;
+        NeedsRecalculation = false;
+    }
+
+    private async Task SendEmail()
+    {
+        IsSending = true;
+
+        var user = await userService.GetUserAsync();
+
+        var parameters = new Dictionary<string, object>()
+        {
+            { nameof(ComputeCostEstimate.OpHoursPerDay), OpHoursPerDay },
+            { nameof(ComputeCostEstimate.OpDaysPerMonth), OpDaysPerMonth },
+            { nameof(ComputeCostEstimate.WorkloadType), CurrentWorkload },
+            { nameof(ComputeCostEstimate.ProjectedMonthlyGrowthPct), ProjectedMonthlyGrowthPct },
+            { nameof(ComputeCostEstimate.UserDisplayName), user.DisplayName },
+            { nameof(ComputeCostEstimate.MonthlyEstimate), MonthlyEstimate },
+            { nameof(ComputeCostEstimate.YearlyEstimate), YearlyEstimate }
+        };
+
+        await emailService.SendComputeCostEstimate(user, parameters);
+
+        IsSending = false;
+    }
+
+    private async Task PreparePrices(ComputeCostEstimatorPrices priceGrid)
+    {
+        await Task.Run(() =>
+        {
+            ComputeCostMachines = new()
+            {
+                { ComputeCostMachineType.DS3, new() { Cores = 4, RamGB = 14, DbuFactor = 0.75M, VmCost = priceGrid.Ds3VmPrice } },
+                { ComputeCostMachineType.DS4, new() { Cores = 8, RamGB = 28, DbuFactor = 1.5M, VmCost = priceGrid.Ds4VmPrice } },
+                { ComputeCostMachineType.DS5, new() { Cores = 16, RamGB = 56, DbuFactor = 3.0M, VmCost = priceGrid.Ds5VmPrice } }
+            };
+
+            PredefinedWorkloads = new()
+            {
+                { ComputeCostEstimateWorkloadType.VeryLight, (ComputeCostMachines[ComputeCostMachineType.DS3], 2) },
+                { ComputeCostEstimateWorkloadType.Light, (ComputeCostMachines[ComputeCostMachineType.DS3], 5) },
+                { ComputeCostEstimateWorkloadType.Medium, (ComputeCostMachines[ComputeCostMachineType.DS4], 3) },
+                { ComputeCostEstimateWorkloadType.Heavy, (ComputeCostMachines[ComputeCostMachineType.DS5], 3) }
+            };
+
+            DbuPrice = priceGrid.DbuPrice;
+        });
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var priceGrid = await azurePriceService.GetAzureComputeCostPrices();
+
+        var priceListDateUtc = DateTime.SpecifyKind(priceGrid.LastUpdatedUtc, DateTimeKind.Utc);
+        PriceListLastUpdatedLocalTime = await timezoneService.GetLocalDateTime(priceListDateUtc);
+
+        await PreparePrices(priceGrid);
+
+        PriceListReady = true;
+    }
+
+}

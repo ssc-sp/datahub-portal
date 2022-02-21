@@ -1,5 +1,5 @@
 ﻿@page "/tools/storagecost"
-@using Datahub.Core.Data.StorageCostEstimator
+@using Datahub.Core.Data.CostEstimator
 @using Datahub.Core.Templates
 @inject IEmailNotificationService emailService
 @inject IUserInformationService userService
@@ -188,7 +188,7 @@
             <AeFlex Vertical>
 
                 
-                @foreach(var whichEstimate in new List<(string Title, EstimatorResult CostEstimate)>() 
+                @foreach(var whichEstimate in new List<(string Title, StorageCostEstimatorResult CostEstimate)>() 
                 {
                     (Localizer[$"{LOCALIZATION_PREFIX}.InitialCostSection"], InitialCost), 
                     (Localizer[$"{LOCALIZATION_PREFIX}.MonthlyCostSection"], MonthlyCost)
@@ -202,7 +202,7 @@
                             </Header>
                             <ChildContent>
                                 @{
-                                    EstimatorResult costEstimate = whichEstimate.CostEstimate;
+                                    StorageCostEstimatorResult costEstimate = whichEstimate.CostEstimate;
                                     @if(costEstimate.HasValues)
                                     {
                                         <table>
@@ -405,16 +405,16 @@
         }
     }
 
-    private string CurrentPriceKey => IAzurePriceListService.GenerateAzurePriceListKey(CurrentAccessTierType, CurrentDataRedundancyType);
+    private string CurrentPriceKey => IAzurePriceListService.GenerateAzureStoragePriceListKey(CurrentAccessTierType, CurrentDataRedundancyType);
     private bool IsCurrentPriceKeyValid => PriceListsReady && PriceLists.ContainsKey(CurrentPriceKey);
 
-    private Dictionary<string, EstimatorPriceList> PriceLists = new();
+    private Dictionary<string, StorageCostEstimatorPriceList> PriceLists = new();
     private DateTimeOffset? PriceListLastUpdatedLocalTime;
 
-    private EstimatorPriceList CurrentPriceList => IsCurrentPriceKeyValid ? PriceLists[CurrentPriceKey] : null;
+    private StorageCostEstimatorPriceList CurrentPriceList => IsCurrentPriceKeyValid ? PriceLists[CurrentPriceKey] : null;
 
-    private EstimatorResult InitialCost { get; set; } = new();
-    private EstimatorResult MonthlyCost { get; set; } = new();
+    private StorageCostEstimatorResult InitialCost { get; set; } = new();
+    private StorageCostEstimatorResult MonthlyCost { get; set; } = new();
     private List<EstimatorResultLine> StorageCostsByMonth = new();
 
     private bool DisclaimerAcknowledged { get; set; } = false;
@@ -446,7 +446,7 @@
 
     private EstimatorResultLine CalculatePrice(int ops, UnitPrice unitPrice) => CalculatePrice(ops, unitPrice.BasePrice, unitPrice.Units);
 
-    private async ValueTask<EstimatorResult> CalculateInitialCost()
+    private async ValueTask<StorageCostEstimatorResult> CalculateInitialCost()
     {
         var initDataMb = InitialDataGB * MB_PER_GB;
         
@@ -454,7 +454,7 @@
         var listOps = initDataMb / AverageFileSizeMB;
         var dataWriteOps = InitialDataGB;
 
-        return await Task.FromResult(new EstimatorResult()
+        return await Task.FromResult(new StorageCostEstimatorResult()
         {
             WriteOperations = CalculatePrice(writeOps, CurrentPriceList.WriteOperations),
             ListCreateOperations = CalculatePrice(listOps, CurrentPriceList.ListCreateOperations),
@@ -462,7 +462,7 @@
         });
     }
 
-    private async ValueTask<EstimatorResult> CalculateMonthlyCost()
+    private async ValueTask<StorageCostEstimatorResult> CalculateMonthlyCost()
     {
         var monthlyGrowthMb = ExpectedMonthlyGrowth * MB_PER_GB;
 
@@ -474,7 +474,7 @@
         var dataWriteOps = ExpectedMonthlyGrowth;
         var geoRepOps = CurrentDataRedundancyType == DataRedundancyType.GRS ? ExpectedMonthlyGrowth : 0;
 
-        return await Task.FromResult(new EstimatorResult()
+        return await Task.FromResult(new StorageCostEstimatorResult()
             {
                 WriteOperations = CalculatePrice(writeOps, CurrentPriceList.WriteOperations),
                 ListCreateOperations = CalculatePrice(listOps, CurrentPriceList.ListCreateOperations),

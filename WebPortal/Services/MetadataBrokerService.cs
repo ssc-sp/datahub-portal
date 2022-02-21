@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Datahub.Metadata.Model;
+using Datahub.Metadata.Utils;
 using System.Threading.Tasks;
 using System.Linq;
 using System.Collections.Generic;
@@ -8,6 +9,7 @@ using Datahub.Metadata.DTO;
 using ShareWorkflow = Datahub.Portal.Data.Forms.ShareWorkflow;
 using Datahub.Core.Utils;
 using Datahub.Core.Services;
+using Microsoft.Data.SqlClient;
 
 namespace Datahub.Portal.Services
 {
@@ -20,6 +22,33 @@ namespace Datahub.Portal.Services
         {
             _contextFactory = contextFactory;
             _auditingService = auditingService;
+        }
+
+        public async Task<MetadataProfile> GetProfile(string name)
+        {
+            using var ctx = _contextFactory.CreateDbContext();
+            return await ctx.Profiles
+                            .Include(p => p.Sections)
+                            .ThenInclude(s => s.Fields)
+                            .FirstOrDefaultAsync(p => p.Name == name);
+        }
+
+        public async Task<FieldValueContainer> GetObjectMetadataValues(long objectMetadataId)
+        {
+            using var ctx = _contextFactory.CreateDbContext();
+
+            // retrieve the object metadata
+            var objectMetadata = await ctx.ObjectMetadataSet
+                .Include(e => e.FieldValues)
+                .FirstOrDefaultAsync(e => e.ObjectMetadataId == objectMetadataId);
+
+            // retrieve the field definitions
+            var metadataDefinitions = await (objectMetadata == null ? GetLatestMetadataDefinition(ctx) : GetMetadataDefinition(ctx, objectMetadata.MetadataVersionId));
+
+            // retrieve and clone the field values
+            var fieldValues = CloneFieldValues(objectMetadata?.FieldValues ?? new List<ObjectFieldValue>());
+
+            return new FieldValueContainer(objectMetadata.ObjectId_TXT, metadataDefinitions, fieldValues);
         }
 
         public async Task<FieldValueContainer> GetObjectMetadataValues(string objectId)
@@ -40,7 +69,7 @@ namespace Datahub.Portal.Services
             return new FieldValueContainer(objectId, metadataDefinitions, fieldValues);
         }
 
-        public async Task SaveMetadata(FieldValueContainer fieldValues)
+        public async Task<ObjectMetadata> SaveMetadata(FieldValueContainer fieldValues)
         {
             if (fieldValues.ObjectId == null)
                 throw new ArgumentException("Expected 'ObjectId' in parameter fieldValues.");
@@ -106,6 +135,8 @@ namespace Datahub.Portal.Services
                 await ctx.TrackSaveChangesAsync(_auditingService);
 
                 transation.Commit();
+
+                return current;
             }
             catch (Exception)
             {
@@ -202,6 +233,109 @@ namespace Datahub.Portal.Services
                 }
             }
             return keywords;
+        }
+
+        const string KeywordSeparator = "|";
+
+        public async Task UpdateCatalog(long objectMetadataId, MetadataObjectType dataType, string objectName, string location,
+            int sector, int branch, string contact, string englishText, string frenchText)
+        {
+            using var ctx = _contextFactory.CreateDbContext();
+
+            var transation = ctx.Database.BeginTransaction();
+            try
+            {
+                // delete existing catalog object
+                var catalogObjects = await ctx.CatalogObjects.Where(e => e.ObjectMetadataId == objectMetadataId).ToListAsync();
+                foreach (var obj in catalogObjects)
+                    ctx.CatalogObjects.Remove(obj);
+
+                await ctx.SaveChangesAsync();
+
+                // add new object
+                CatalogObject catalogObject = new()
+                {
+                    ObjectMetadataId = objectMetadataId,
+                    DataType = dataType,
+                    Name_TXT = objectName,
+                    Location_TXT = location,
+                    Sector_NUM = sector,
+                    Branch_NUM = branch,
+                    Contact_TXT = contact,
+                    Search_English_TXT = englishText,
+                    Search_French_TXT = frenchText
+                };
+                
+                ctx.CatalogObjects.Add(catalogObject);
+
+                await ctx.SaveChangesAsync();
+
+                transation.Commit();
+            }
+            catch (Exception)
+            {
+                transation.Rollback();
+                throw;
+            }
+        }
+
+        public async Task<List<CatalogObjectResult>> SearchCatalogEnglish(string searchText)
+        {
+            return await SearchCatalog(searchText, "Search_English_TXT");
+        }
+
+        public async Task<List<CatalogObjectResult>> SearchCatalogFrench(string searchText)
+        {
+            return await SearchCatalog(searchText, "Search_French_TXT");
+        }
+
+        private async Task<List<CatalogObjectResult>> SearchCatalog(string searchText, string fieldName)
+        {
+            using var ctx = _contextFactory.CreateDbContext();
+            
+            var query = PrepareCatalogSearchQuery(searchText, fieldName);
+            if (string.IsNullOrEmpty(query))
+                return new();
+
+            var results = await ctx.QueryCatalog(query);
+
+            return results.Select(r => new CatalogObjectResult
+            (
+                r.ObjectMetadataId, 
+                r.DataType, 
+                r.Name_TXT, 
+                r.Location_TXT,
+                r.Sector_NUM, 
+                r.Branch_NUM, 
+                r.Contact_TXT,
+                r.SecurityClass_TXT
+            )).ToList();
+        }
+
+        static string PrepareCatalogSearchQuery(string searchText, string fieldName)
+        {
+            var filteredSearchText = string
+                .Concat(PreProcessSearchText(searchText))
+                .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                .Select(word => $"{fieldName} LIKE '%{word}%'");
+
+            var whereCondition = string.Join(" AND ", filteredSearchText);
+            if (string.IsNullOrEmpty(whereCondition))
+                return string.Empty;
+
+            //return $"SELECT * FROM CatalogObjects WHERE {fieldName} LIKE '%{filteredSearchText}%'";
+            return $"SELECT * FROM CatalogObjects WHERE {whereCondition}";
+        }
+
+        static IEnumerable<char> PreProcessSearchText(string text)
+        {
+            foreach (char c in text)
+            {
+                if (char.IsLetterOrDigit(c))
+                    yield return c;
+                else if (char.IsWhiteSpace(c))
+                    yield return ' ';
+            }
         }
 
         private async Task<Subject> GetSubject(string subjectId)

@@ -10,7 +10,13 @@
     <Content Remove="package.json" />
   </ItemGroup>
   <ItemGroup>
+    <None Remove="Controllers\OpenDataApprovalForm.docx" />
+  </ItemGroup>
+  <ItemGroup>
     <_ContentIncludedByDefault Remove="efpt.config.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Controllers\OpenDataApprovalForm.docx" />
   </ItemGroup>
   <ItemGroup>
     <None Include="package.json">
@@ -18,14 +24,15 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="AElemental.Blazor" Version="1.2.21344.1-beta" />
-    <PackageReference Include="Askmethat.Aspnet.JsonLocalizer" Version="3.2.0-alpha.3" />
+    <PackageReference Include="AElemental.Blazor" Version="1.2.22041.2-beta" />
+    <PackageReference Include="Askmethat.Aspnet.JsonLocalizer" Version="3.2.0-alpha.4" />
     <PackageReference Include="Azure.Identity" Version="1.5.0" />
     <PackageReference Include="Azure.Search.Documents" Version="11.3.0" />
     <PackageReference Include="Azure.Storage.Blobs" Version="12.9.1" />
     <PackageReference Include="Azure.Storage.Files.DataLake" Version="12.7.0" />
     <PackageReference Include="BlazorDownloadFile" Version="2.3.1" />
     <PackageReference Include="BlazorInputFile" Version="0.2.0" />
+    <PackageReference Include="DocumentFormat.OpenXml" Version="2.15.0" />
     <PackageReference Include="Localization.AspNetCore.TagHelpers" Version="0.6.0" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.18.0" />
     <PackageReference Include="Microsoft.AspNetCore.ApplicationInsights.HostingStartup" Version="2.2.0" />
@@ -64,14 +71,11 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="System.Drawing.Common" Version="6.0.0" />
-    <PackageReference Include="Tewr.Blazor.FileReader" Version="3.2.0.21211" />
+    <PackageReference Include="Tewr.Blazor.FileReader" Version="3.3.1.21360" />
   </ItemGroup>
   <ItemGroup>
     <Content Update="i18n\localization.fr.json">
       <CustomToolNamespace>Resources</CustomToolNamespace>
-    </Content>
-    <Content Update="wwwroot\img\landing\landing12.jpg">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
   <ItemGroup>
@@ -79,6 +83,7 @@
     <ProjectReference Include="..\Datahub.Core\Datahub.Core.csproj" />
     <ProjectReference Include="..\Datahub.Metadata\Datahub.Metadata.csproj" />
     <ProjectReference Include="..\LanguageTraining\Datahub.LanguageTraining.csproj" />
+	<ProjectReference Include="..\Datahub.M365Forms\Datahub.M365Forms.csproj" />
     <ProjectReference Include="..\Datahub.Finance\Datahub.Finance.csproj" />
   </ItemGroup>
   <ItemGroup>
@@ -98,6 +103,12 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Pages\Forms\LanguageTraining\FormIntro.md">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Pages\Forms\M365Forms\FormFooter.md">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Pages\Forms\M365Forms\FormFooterFr.md">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
