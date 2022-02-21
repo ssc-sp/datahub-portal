@@ -13,6 +13,7 @@ namespace Datahub.Core.Services
 {
     public class DataLakeClientService
     {
+        private const string DatahubSecretName = "Datahub-StorageDL-Secret";
         private ICognitiveSearchService _cognitiveSearchService;
         private ILogger<DataLakeClientService> _logger;
         private IKeyVaultService _keyVaultService;
@@ -36,7 +37,7 @@ namespace Datahub.Core.Services
         private DataLakeFileSystemClient dataLakeFileSystemClient { get; set; }
         private async Task SetDataLakeServiceClient()
         {
-            var datalakeSecret = await _keyVaultService.GetSecret("Datahub-StorageDL-Secret");
+            var datalakeSecret = await _keyVaultService.GetSecret(DatahubSecretName);
             _sharedKeyCredential = new StorageSharedKeyCredential(_targets.Value.StorageAccountName, datalakeSecret);
             string dfsUri = $"https://{_targets.Value.StorageAccountName}.dfs.core.windows.net";
 

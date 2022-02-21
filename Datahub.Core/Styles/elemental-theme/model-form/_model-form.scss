@@ -23,93 +23,111 @@
 }
 
 @mixin styles {
-  .ae.modelform {
-    .validation-errors {
-      .validation-message {
-        font-size: 0.9rem;
-      }
-    }
-
-    .ae.modelform-rows {
-      .ae.modelform-row {
-        grid-template-rows: auto;
-
-        .ae.modelform-col {
-          display: grid;
-          grid-template-columns: 250px auto;
-          margin: 0.5rem 0;
-          .ae.ae-form-control-label {
-            display: flex;
-            align-items: center;
-            flex-direction: row-reverse;
-            margin-right: 0.5rem;
-            font-weight: bold;
-
-            &.ae-label-required {
-              & > :first-child::after {
+    .ae.modelform {
+        .validation-errors {
+            .validation-message {
+                font-size: 0.9rem;
                 color: c.$red-600;
-                content: ' * ';
-              }
             }
-          }
-
-          .errortext {
-            grid-column-start: 2;
-            color: c.$red-600;
-            padding: 0.5rem 0;
-            font-size: 0.9rem;
-          }
-
-          .ae.input {
-            width: initial;
-          }
-
-          input {
-            &[type='checkbox'] {
-              align-self: center;
-              transform: scale(1.5);
-              margin-left: 0.25rem;
-            }
-          }
         }
-      }
 
-      &.top-label {
-        .ae.modelform-row {
-          .ae.modelform-col {
-            grid-template-columns: 100%;
+        .ae.modelform-rows {
+            .ae.modelform-row {
+                grid-template-rows: auto;
 
-            .ae.ae-form-control-label {
-              flex-direction: row;
-              grid-column: span 2;
+                .ae.modelform-col {
+                    display: grid;
+                    grid-template-columns: 250px auto;
+                    margin: 0.5rem 0;
+
+
+                    .ae.ae-form-control-label {
+                        display: flex;
+                        align-items: center;
+                        flex-direction: row-reverse;
+                        margin-right: 0.5rem;
+                        font-weight: bold;
+
+                        &.notes {
+                            font-weight: normal;
+                            font-style: italic;
+                        }
+
+                        &.ae-label-required {
+                            & > :first-child::after {
+                                color: c.$red-600;
+                                content: ' * ';
+                            }
+                        }
+                    }
+
+                    .errortext {
+                        grid-column-start: 2;
+                        color: c.$red-600;
+                        padding: 0.5rem 0;
+                        font-size: 0.9rem;
+                    }
+
+                    .ae.input {
+                        width: initial;
+                    }
+
+                    input {
+                        &[type='checkbox'] {
+                            align-self: center;
+                            transform: scale(1.5);
+                            margin-left: 0.25rem;
+                        }
+                    }
+                }
             }
 
-            .errortext {
-              grid-column: 1;
+            &.top-label {
+                .ae.modelform-row {
+                    .ae.modelform-col {
+                        grid-template-columns: 100%;
+
+
+                        .ae.ae-form-control-label {
+                            flex-direction: row;
+                            grid-column: span 2;
+                        }
+
+                        &.checkbox-on-the-left {
+                            grid-template-columns: 30px 1fr;
+
+                            .ae.ae-form-control-label {
+                                grid-column-start: 2;
+                                grid-row-start: 1;
+                            }
+                        }
+
+                        .errortext {
+                            grid-column: 1;
+                        }
+                    }
+                }
             }
-          }
-        }
-      }
 
-      &.flexbox {
-        .ae.modelform-row {
-          display: flex;
-          flex-direction: row;
+            &.flexbox {
+                .ae.modelform-row {
+                    display: flex;
+                    flex-direction: row;
 
-          .ae.modelform-col {
-            position: relative;
-            width: 100%;
-            padding-right: 15px;
-            padding-left: 15px;
-            margin-bottom: 0.5rem;
-            -ms-flex-preferred-size: 0;
-            flex-basis: 0;
-            -ms-flex-positive: 1;
-            flex-grow: 1;
-            max-width: 100%;
-          }
+                    .ae.modelform-col {
+                        position: relative;
+                        width: 100%;
+                        padding-right: 15px;
+                        padding-left: 15px;
+                        margin-bottom: 0.5rem;
+                        -ms-flex-preferred-size: 0;
+                        flex-basis: 0;
+                        -ms-flex-positive: 1;
+                        flex-grow: 1;
+                        max-width: 100%;
+                    }
+                }
+            }
         }
-      }
     }
-  }
 }
