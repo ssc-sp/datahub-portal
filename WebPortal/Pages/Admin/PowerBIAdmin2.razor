@@ -2,6 +2,7 @@
 @page "/admin/powerbi/{ProjectAcronym}"
 
 @using global::Datahub.Core.Components
+@using global::Datahub.Core.EFCore
 @using global::Datahub.Core.Services
 @using global::Datahub.Portal.Data
 @using global::Datahub.Portal.Services
@@ -20,6 +21,122 @@
 
     <AeTypography Variant="h1">PowerBI Administration</AeTypography>
 
+    
+    <AeFlex Vertical>
+        <AeFlex>
+            <AeCard class="facard1 doublewide">
+                <Header>
+                    <AeTypography Variant="h3">Management</AeTypography>
+                </Header>
+                <ChildContent>
+                    @if (IsLoadingWorkspaceTreeItems)
+                    {
+                    <Spinner />
+                    }
+                    else
+                    {
+                    <div>This is where the management tree will live</div>
+                    }
+                </ChildContent>
+            </AeCard>
+
+            <AeCard class="facard1">
+                <Header>
+                    <AeTypography Variant="h3">Import/Update</AeTypography>
+                </Header>
+                <ChildContent>
+                    @if (UnmanagedWorkspaces != null && UnmanagedWorkspaces.Count > 0)
+                    {
+                        <AeTypography Variant="p">There are workspaces, reports and/or datasets available in PowerBI which are out of sync with the DataHub databse. Expand the section below for more details.</AeTypography>
+                        <AeCollapse>
+                            <AeCollapseSection>
+                                <Header>
+                                    <AeTypography Variant="h4">Details</AeTypography>
+                                </Header>
+                                <ChildContent>
+                                    <ul>
+                                        @foreach(var w in WorkspacesToBeUpdated)
+                                        {
+                                            <li>
+                                                <span>@w.PbiWorkspaceName</span>
+                                                @if (w.Datasets.Count > 0 || w.Reports.Count > 0)
+                                                {
+                                                    @if (w.Datasets.Count <= 0)
+                                                    {
+                                                        <span> (Reports: @w.Reports.Count)</span>
+                                                    }
+                                                    else if (w.Reports.Count <= 0)
+                                                    {
+                                                        <span> (Datasets: @w.Datasets.Count)</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span> (Datasets: @w.Datasets.Count, Reports: @w.Reports.Count)</span>
+                                                    }
+                                                }
+                                            </li>
+                                        }
+                                    </ul>
+                                </ChildContent>
+                            </AeCollapseSection>
+                        </AeCollapse>
+                        <div>
+                            <AeButton OnClickEvent=@ImportPowerBiItems Disabled=@ImportDisabled>Synchronize</AeButton>
+                            <SuccessIndicator @bind-IsLoading=@IsImportingPowerBiItems @ref=@_bulkImportInd />
+                        </div>
+                    }
+                    else
+                    {
+                        <AeTypography Variant="p">Nothing to import</AeTypography>
+                    }
+                </ChildContent>
+            </AeCard>
+        </AeFlex>
+        @*<AeCard>
+            @if (IsLoadingWorkspaceTreeItems)
+            {
+                <div>
+                    <Spinner />
+                </div>
+            }
+            else
+            {
+                <div>
+                    <p>Managed:</p>
+                    <ul>
+                        @foreach(var w in ManagedWorkspaces)
+                        {
+                            <li>@w.DbWorkspaceName - @(w.SandboxFlag? "sandbox":"not sandbox")</li>
+                        }
+                    </ul>
+                </div>
+                <div>
+                    <p>Unmanaged:</p>
+                    <ul>
+                        @foreach(var w in UnmanagedWorkspaces)
+                        {
+                            <li>@w.PbiWorkspaceName</li>
+                        }
+                    </ul>
+                    <p>add em asap</p>
+                </div>
+                <div>
+                    <p>Removed:</p>
+                    <ul>
+                        @foreach(var w in RemovedWorkspaces)
+                        {
+                            <li>@w.DbWorkspaceName</li>
+                        }
+                    </ul>
+                </div>
+            }
+        </AeCard>*@
+    </AeFlex>
+    
+
+
+    @if (false)
+    {
     <AeFlex Vertical>
         <AeCard>
             <Header>
@@ -83,6 +200,9 @@
 
 
     </AeFlex>
+        
+    }
+
 
 @*
     <div>
@@ -94,6 +214,22 @@
 @code {
     [Parameter]
     public string ProjectAcronym { get; set; }
+
+    private List<PowerBiAdminWorkspaceTreeItem> AllWorkspaceTreeItems { get; set; } = new();
+    private List<PowerBiAdminWorkspaceTreeItem> UnmanagedWorkspaces => AllWorkspaceTreeItems.Where(w => !w.IsInDb).ToList();
+    private List<PowerBiAdminWorkspaceTreeItem> WorkspacesToBeUpdated => AllWorkspaceTreeItems.Where(w => w.NeedsUpdate).ToList();
+    private List<PowerBiAdminWorkspaceTreeItem> RemovedWorkspaces => AllWorkspaceTreeItems.Where(w => !w.IsInPowerBi).ToList();
+    private List<PowerBiAdminWorkspaceTreeItem> ManagedWorkspaces => AllWorkspaceTreeItems.Where(w => w.IsInDb && w.IsInPowerBi).ToList();
+
+    private bool IsLoadingWorkspaceTreeItems { get; set; } = false;
+    private bool IsImportingPowerBiItems { get; set; } = false;
+
+    private bool ImportDisabled => IsImportingPowerBiItems || IsLoadingWorkspaceTreeItems;
+
+    private SuccessIndicator _bulkImportInd;
+
+
+    // old stuff below
 
     private List<PowerBiAdminWorkspaceItem> Workspaces { get; set; } = new();
     private List<PowerBiAdminWorkspaceItem> ChangedWorkspaces => Workspaces.Where(w => w.IsChanged).ToList();
@@ -313,22 +449,154 @@
         StateHasChanged();
     }
 
+    private async Task LoadOldStuff()
+    {
+        IsLoadingWorkspaces = true;
+        IsLoadingDatasets = true;
+        IsLoadingReports = true;
+        await ReloadWorkspaces();
+        IsLoadingWorkspaces = false;
+
+        await ReloadDatasets();
+        IsLoadingDatasets = false;
+
+        await ReloadReports();
+        IsLoadingReports = false;
+        StateHasChanged();
+    }
+
+    private async Task LoadWorkspaceTreeItems()
+    {
+        IsLoadingWorkspaceTreeItems = true;
+        StateHasChanged();
+
+        var pbiWorkspaces = await _powerBiServiceApi.GetWorkspaces();
+        var dbWorkspacesList = await _powerBiDataService.GetAllWorkspaces();
+
+        var pbiWorkspaceDict = pbiWorkspaces.ToDictionary(w => w.Id);
+        var dbWorkspaceDict = dbWorkspacesList.ToDictionary(w => w.Workspace_ID);
+
+        var allWorkspaceIds = pbiWorkspaces.Select(w => w.Id)
+            .Concat(dbWorkspacesList.Select(w => w.Workspace_ID))
+            .Distinct();
+
+        var treeItems = allWorkspaceIds.Select(id =>
+        {
+            var dbWorkspace = dbWorkspaceDict.GetValueOrDefault(id);
+            var pbiWorkspace = pbiWorkspaceDict.GetValueOrDefault(id);
+            return new PowerBiAdminWorkspaceTreeItem(pbiWorkspace, dbWorkspace);
+        });
+
+        var workspaceTreeItemsDict = treeItems.ToDictionary(i => i.WorkspaceId);
+
+        var datasetItems = await LoadDatasetTreeItems();
+        var reportItems = await LoadReportTreeItems();
+
+        AllWorkspaceTreeItems = treeItems.ToList();
+        foreach (var t in AllWorkspaceTreeItems)
+        {
+            var wId = t.WorkspaceId;
+            t.Datasets.AddRange(datasetItems.Where(d => d.AnyWorkspaceId == wId));
+            t.Reports.AddRange(reportItems.Where(r => r.AnyWorkspaceId == wId));
+        }
+
+        IsLoadingWorkspaceTreeItems = false;
+        StateHasChanged();
+    }
+
+    private async Task<List<PowerBiAdminDatasetTreeItem>> LoadDatasetTreeItems()
+    {
+        var pbiDatasets = await _powerBiServiceApi.GetWorkspaceDatasetsAsync();
+        var pbiDatasetIds = pbiDatasets.Select(d => Guid.Parse(d.Dataset.Id)).ToHashSet();
+        var dbDatasets = await _powerBiDataService.GetAllDatasets();
+        var dbDatasetDict = dbDatasets.ToDictionary(d => d.DataSet_ID);
+
+        var results = pbiDatasets.Select(d =>
+        {
+            var datasetGuid = Guid.Parse(d.Dataset.Id);
+            var dbDataset = dbDatasetDict.GetValueOrDefault(datasetGuid);
+            return new PowerBiAdminDatasetTreeItem(d.Dataset, dbDataset, d.WorkspaceId);
+        })
+        .Concat(dbDatasets
+            .Where(d => !pbiDatasetIds.Contains(d.DataSet_ID))
+            .Select(d => new PowerBiAdminDatasetTreeItem(null, d, null)))
+        .ToList();
+
+        return results;
+    }
+
+    private async Task<List<PowerBiAdminReportTreeItem>> LoadReportTreeItems()
+    {
+        var pbiReports = await _powerBiServiceApi.GetWorkspaceReportsAsync();
+        var pbiReportIds = pbiReports.Select(r => r.Report.Id).ToHashSet();
+        var dbReports = await _powerBiDataService.GetAllReports();
+        var dbReportDict = dbReports.ToDictionary(d => d.Report_ID);
+
+        var results = pbiReports.Select(d =>
+        {
+            var reportGuid = d.Report.Id;
+            var dbReport = dbReportDict.GetValueOrDefault(reportGuid);
+            return new PowerBiAdminReportTreeItem(d.Report, dbReport, d.WorkspaceId);
+        })
+        .Concat(dbReports
+            .Where(r => !pbiReportIds.Contains(r.Report_ID))
+            .Select(r => new PowerBiAdminReportTreeItem(null, r, null)))
+        .ToList();
+
+        return results;
+    }
+
+    private async Task ImportPowerBiItems()
+    {
+        IsImportingPowerBiItems = true;
+        StateHasChanged();
+
+        // each workspace item
+        // get the def if needs update
+        // get reportdefs if they need update
+        // get dataset defs if they need update
+
+        var workspacesToAdd = new List<PowerBi_WorkspaceDefinition>();
+        var datasetsToAdd = new List<PowerBi_DataSetDefinition>();
+        var reportsToAdd = new List<PowerBi_ReportDefinition>();
+
+        // for testing
+        var guids = new List<Guid>()
+        {
+            new("23b07362-8dc6-4714-a213-1fff95ef025c"),
+            new("b5321ecf-731b-4363-95a4-6bf28e6844f7")
+        };
+        var worksp = WorkspacesToBeUpdated.Where(w => guids.Contains(w.WorkspaceId));
+
+        foreach (var w in worksp)
+        {
+            if (w.NeedsUpdate)
+            {
+                workspacesToAdd.Add(w.Definition);
+            }
+
+            reportsToAdd.AddRange(w.Reports.Where(r => r.NeedsUpdate).Select(r => r.Definition));
+            datasetsToAdd.AddRange(w.Datasets.Where(d => d.NeedsUpdate).Select(d => d.Definition));
+        }
+
+        var success = await _powerBiDataService.BulkAddOrUpdatePowerBiItems(workspacesToAdd, datasetsToAdd, reportsToAdd);
+
+        if (success)
+        {
+            await _bulkImportInd.SignalSuccess();
+            await LoadWorkspaceTreeItems();
+        }
+        else
+        {
+            await _bulkImportInd.SignalFailure();
+        }
+    }
+
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            IsLoadingWorkspaces = true;
-            IsLoadingDatasets = true;
-            IsLoadingReports = true;
-            await ReloadWorkspaces();
-            IsLoadingWorkspaces = false;
-
-            await ReloadDatasets();
-            IsLoadingDatasets = false;
-
-            await ReloadReports();
-            IsLoadingReports = false;
-            StateHasChanged();
+            await LoadWorkspaceTreeItems();
         }
         catch (Exception ex)
         {
