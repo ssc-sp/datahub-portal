@@ -283,8 +283,6 @@
         context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Is_Equity_Seeking_Group2, () => PIP_Constants.EQUITY_SEEKING_GROUPS);
         context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Does_Indicator_Enable_Program_Measure_Equity_Option, () => PIP_Constants.YESNO);
         context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Departmental_Result_1_CD, () => PIP_Constants.CORE_RESPONSIBILITY1);
-        //context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Departmental_Result_2_CD, () => PIP_Constants.CORE_RESPONSIBILITY1);
-        //context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Departmental_Result_3_CD, () => PIP_Constants.CORE_RESPONSIBILITY1);
     }
 
     private async Task OnChange(ModelFormChangeArgs args)
