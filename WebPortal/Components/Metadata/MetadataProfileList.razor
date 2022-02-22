@@ -1,0 +1,82 @@
+﻿@inject IDbContextFactory<MetadataDbContext> ContextFactory
+@inject NavigationManager NavigationManager
+@using Datahub.Metadata.Model
+@using Datahub.Metadata.DTO
+
+<div>
+    <AeTable 
+        Accessors=@_profileAccessorFunctions 
+        T=@ProfileSummary
+        Dataset=@_profiles
+        Headers=@_profileHeaders
+        Renderers=@_profileRenderFunctions
+        GridTemplateColumns="3fr 3fr 1fr"
+    />
+    <div style="margin-top: 16px;">
+        <AeButton To="/metadata/newprofile">@Localizer["Add Profile"]</AeButton>
+    </div>
+</div>
+
+@code {
+
+    private List<ProfileSummary> _profiles;
+    private List<string> _profileHeaders = new();
+    private List<Func<ProfileSummary, RenderFragment>> _profileRenderFunctions = new();
+    private List<Func<ProfileSummary, string>> _profileAccessorFunctions = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var ctx = ContextFactory.CreateDbContext();
+
+        _profiles = await GetProfiles(ctx);
+        _profileHeaders = new() { Localizer["Name"], Localizer["Sections"], null };
+        _profileAccessorFunctions = new() { GetProfileName, GetProfileSections, null };
+        _profileRenderFunctions = new() { null, null, GetEditProfileFragment }; 
+    }
+
+    private string GetProfileName(ProfileSummary summary) => summary.Name;
+    private string GetProfileSections(ProfileSummary summary) => summary.Sections;
+
+    private RenderFragment GetEditProfileFragment(ProfileSummary result) => 
+        @<div>
+            <i class="far fa-edit sm-icon" style="cursor: pointer;" onclick=@(() => HandleEditProfile(result))></i> &nbsp;
+            <i class="far fa-ban sm-icon" style="cursor: pointer;" onclick=@(() => HandleDeleteProfile(result))></i>
+        </div>;
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        // You must re-render after the components are initialized in order for the 
+        // component reference to not be null
+        if (firstRender) 
+        {
+            StateHasChanged();
+        }
+    }
+
+    private async Task<List<ProfileSummary>> GetProfiles(MetadataDbContext ctx)
+    {
+        return await ctx.Profiles
+            .Include(p => p.Sections)
+            .Select(p => new ProfileSummary(p.ProfileId, p.Name, string.Join(", ", p.Sections.Select(s => s.Name_English_TXT))))
+            .ToListAsync();
+    }
+
+    private void HandleEditProfile(ProfileSummary profile)
+    {
+        NavigationManager.NavigateTo($"/metadata/profile/{profile.Id}");
+    }
+
+    private async Task HandleDeleteProfile(ProfileSummary profile)
+    {
+        using var ctx = ContextFactory.CreateDbContext();
+        var entity = await ctx.Profiles.FirstOrDefaultAsync(e => e.ProfileId == profile.Id);
+        if (entity is not null)
+        {
+            ctx.Profiles.Remove(entity);
+            await ctx.SaveChangesAsync();
+            _profiles.Remove(profile);
+        }
+    }
+
+    record ProfileSummary(int Id, string Name, string Sections);    
+}

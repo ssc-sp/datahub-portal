@@ -1,0 +1,41 @@
+﻿@page "/metadata/definitions"
+@inject IDbContextFactory<MetadataDbContext> ContextFactory
+@inject NavigationManager NavigationManager
+@inject ServiceAuthManager ServiceAuthManager
+@using Datahub.Metadata.Model
+@using Datahub.Metadata.DTO
+
+<DHPageTitle PageTitleKey=@Localizer["Metadata Definitions"] />
+<AuthorizeView Roles="@string.Join(',', _authorizedRoles)">
+    <Authorized>
+        <div style="margin: 2rem">
+            <AeTypography Variant="h2">Metadata</AeTypography>
+            <AeCard>
+                <ChildContent>
+                    <AeTypography Variant="h3">@Localizer["Definitions"]</AeTypography>
+                    <MetadataDefinitionList />
+                </ChildContent>
+            </AeCard>
+            <div>&nbsp;</div>
+            <AeCard>
+                <ChildContent>
+                    <AeTypography Variant="h3">@Localizer["Profiles"]</AeTypography>
+                    <MetadataProfileList />
+                </ChildContent>
+            </AeCard>
+        </div>
+    </Authorized>
+    <NotAuthorized>
+        @Localizer["You are not authorized to edit metadata."]
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+
+    private List<string> _authorizedRoles = new();
+
+    protected override void OnInitialized()
+    {
+        _authorizedRoles = ServiceAuthManager.GetAdminProjectRoles();
+    }
+}
