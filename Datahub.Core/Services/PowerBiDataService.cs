@@ -33,6 +33,11 @@ namespace Datahub.Core.Services
         {
             using var ctx = await _contextFactory.CreateDbContextAsync();
 
+            return await DoUpdateWorkspaces(ctx, workspaceDefinitions);
+        }
+
+        private async Task<bool> DoUpdateWorkspaces(DatahubProjectDBContext ctx, IEnumerable<PowerBi_WorkspaceDefinition> workspaceDefinitions)
+        {
             foreach (var def in workspaceDefinitions)
             {
                 var workspace = await ctx.PowerBi_Workspaces.FirstOrDefaultAsync(w => w.Workspace_ID == def.WorkspaceId);
@@ -83,6 +88,11 @@ namespace Datahub.Core.Services
         {
             using var ctx = await _contextFactory.CreateDbContextAsync();
 
+            return await DoUpdateDatasets(ctx, datasetDefinitions);
+        }
+
+        private async Task<bool> DoUpdateDatasets(DatahubProjectDBContext ctx, IEnumerable<PowerBi_DataSetDefinition> datasetDefinitions)
+        {
             foreach (var def in datasetDefinitions)
             {
                 var dataset = await ctx.PowerBi_DataSets.FirstOrDefaultAsync(d => d.DataSet_ID == def.DataSetId);
@@ -132,12 +142,17 @@ namespace Datahub.Core.Services
         {
             using var ctx = await _contextFactory.CreateDbContextAsync();
 
+            return await DoUpdateReports(ctx, reportDefinitions);
+        }
+
+        private async Task<bool> DoUpdateReports(DatahubProjectDBContext ctx, IEnumerable<PowerBi_ReportDefinition> reportDefinitions)
+        {
             foreach (var def in reportDefinitions)
             {
                 var report = await ctx.PowerBi_Reports.FirstOrDefaultAsync(d => d.Report_ID == def.ReportId);
                 if (report == null)
                 {
-                    _logger.LogDebug("Creating dataset record for {} ({}) in workspace {}", def.ReportName, def.ReportId, def.WorkspaceId);
+                    _logger.LogDebug("Creating report record for {} ({}) in workspace {}", def.ReportName, def.ReportId, def.WorkspaceId);
 
                     report = new()
                     {
@@ -150,7 +165,7 @@ namespace Datahub.Core.Services
                 }
                 else
                 {
-                    _logger.LogDebug("Updating dataset {} ({})", def.ReportName, def.ReportId);
+                    _logger.LogDebug("Updating report {} ({})", def.ReportName, def.ReportId);
 
                     report.Report_ID = def.ReportId;
                     report.Report_Name = def.ReportName;
@@ -165,7 +180,7 @@ namespace Datahub.Core.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error adding/updating PowerBI datasets");
+                _logger.LogError(ex, "Error adding/updating PowerBI reports");
                 return false;
             }
         }
@@ -195,6 +210,31 @@ namespace Datahub.Core.Services
                 .ToListAsync();
 
             return results;
+        }
+
+        public async Task<bool> BulkAddOrUpdatePowerBiItems(IEnumerable<PowerBi_WorkspaceDefinition> workspaceDefinitions, 
+            IEnumerable<PowerBi_DataSetDefinition> datasetDefinitions, 
+            IEnumerable<PowerBi_ReportDefinition> reportDefinitions)
+        {
+            using var ctx = await _contextFactory.CreateDbContextAsync();
+            var transaction = await ctx.Database.BeginTransactionAsync();
+
+            var success = true;
+
+            success &= await DoUpdateWorkspaces(ctx, workspaceDefinitions);
+            success &= await DoUpdateDatasets(ctx, datasetDefinitions);
+            success &= await DoUpdateReports(ctx, reportDefinitions);
+
+            if (success)
+            {
+                await transaction.CommitAsync();
+            }
+            else
+            {
+                await transaction.RollbackAsync();
+            }
+
+            return success;
         }
     }
 }
