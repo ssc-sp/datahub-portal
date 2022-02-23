@@ -11,6 +11,7 @@
 @implements IDisposable
 @inject IDbContextFactory<PIPDBContext> DbFactory
 
+<AeCard class="facardForms" CardPosition="AeCard.CardStyle.Horizontal">
 <h1>PIP Risk</h1>
 
 <h2>Selected Program</h2>
@@ -20,7 +21,9 @@
          Headers="pipheaders"
          GridTemplateColumns="4fr 8fr"
          MaxHeight="200" />
+</AeCard>
 
+<AeCard class="facardForms" CardPosition="AeCard.CardStyle.Horizontal">
 <h2>Step 3: Enter risks associated with the program</h2>
 
 <div>
@@ -59,38 +62,45 @@
         </AeFlex>
     }
 </div>
+</AeCard>
 
+<AeCard class="facardForms" CardPosition="AeCard.CardStyle.Horizontal">
+    <AeFlex id="buttonBar">
+        <div class="icon-container" style="margin-bottom: 10px; margin-left: 5px;">
+            <FAButton Text="Tombstone" Icon="fal fa-arrow-left" onclick="e => GoToPreviousSheet()" />
+        </div>
+    </AeFlex>
 @if (_risk != null)
 {
-    if (_risk.Risks_ID > 0)
-    {
-        <h2>Editing Risk @_risk.Risk_Id_TXT</h2>
-    }
-    else
-    {
-        <h2>Add New Risk</h2>
-    }
+        @if (_risk.Risks_ID > 0)
+        {
+            <h2>Editing Risk @_risk.Risk_Id_TXT</h2>
+        }
+        else
+        {
+            <h2>Add New Risk</h2>
+        }
 
-    <AeModelForm Model="_risk"
-                 T="PIP_Risks"
-                 OnValidSubmit="HandleValidSubmit"
-                 OnCancel="ClearForm"
-                 CancelLabel="Cancel"
-                 SubmitLabel="@SubmitLabel"
-                 LabelForPropertyFunc="@GetDataLabel"
-                 OnConfigure="OnConfigure"
-                 LabelsOnTop="true" 
-                 OnChange ="OnChange"
-                 Flexbox />
+        <AeModelForm Model="_risk"
+                     T="PIP_Risks"
+                     OnValidSubmit="HandleValidSubmit"
+                     OnCancel="ClearForm"
+                     CancelLabel="Cancel"
+                     SubmitLabel="@SubmitLabel"
+                     LabelForPropertyFunc="@GetDataLabel"
+                     OnConfigure="OnConfigure"
+                     LabelsOnTop="true" 
+                     OnChange ="OnChange"
+                     Flexbox />
 
-
+    <AeFlex id="buttonBar">
+        <div class="icon-container" style="margin-bottom: 10px; margin-left: 5px;">
+            <FAButton Text="Tombstone" Icon="fal fa-arrow-left" onclick="e => GoToPreviousSheet()" />
+        </div>
+    </AeFlex>
 }
 
-<AeFlex id="buttonBar">
-    <div class="icon-container" style="margin-bottom: 10px; margin-left: 5px;">
-        <FAButton Text="Indicator and Results" Icon="fal fa-arrow-left" onclick="e => GoToPreviousSheet()" />
-    </div>
-</AeFlex>
+</AeCard>
 
 @code {
     [Parameter]
@@ -230,11 +240,11 @@
 
     private async Task GoToPreviousSheet()
     {
-        navigationUrl = $"/pip/indicators/{_tombstone.Tombstone_ID}";
+        navigationUrl = $"/pip/programs/{_tombstone.Tombstone_ID}";
         if (_risk == null || !Context.ChangeTracker.HasChanges())
             NavigationManager.NavigateTo(navigationUrl);
         else
-            await HandleValidSubmit();           
+            await HandleValidSubmit(); 
     }
 
     private async Task<PIP_Risks> ClearForm()
