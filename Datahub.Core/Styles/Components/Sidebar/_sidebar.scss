@@ -13,7 +13,7 @@
   height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: c.$grey-100;
+  background-color: c.$white;
 
   .links {
     height: 100%;
@@ -51,7 +51,7 @@
       }
 
       &.active {
-        background-color: c.$white;
+        background-color: c.$grey-100;
         color: c.$gray-900;
 
         @include sidebar-border-colors;
