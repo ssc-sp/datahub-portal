@@ -1,0 +1,12 @@
+    <AeTypography class="sector">
+        <i class="@($"fad fa-{Project?.Project_Icon ?? "swatchbook"}")"></i>
+        @Localizer[Project?.Sector_Name ?? "N/A"]
+    </AeTypography>
+    <DHLink class="name" DataProject="@Project?.Project_Acronym_CD">@Project?.ProjectName</DHLink>
+    <AeMarkdown class="description" Content="@Project!.ProjectDescription"></AeMarkdown>
+@code {
+
+    [Parameter]
+    public Datahub_Project Project { get; set; }
+
+}
