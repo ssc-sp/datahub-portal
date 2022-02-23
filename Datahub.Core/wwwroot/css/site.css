@@ -892,12 +892,12 @@ body {
   width: 1rem;
   margin: 0 -1.5rem 0 0.5rem;
   z-index: 1;
-  color: #cbd5e0;
+  color: #a0aec0;
 }
 .ae.search-wrapper .ae.clear-icon {
   width: 1.5rem;
   margin-left: -1.5rem;
-  color: #cbd5e0;
+  color: #a0aec0;
   opacity: 0;
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
@@ -3052,7 +3052,7 @@ code {
 /** Purple **/
 /** Pink **/
 #topbar {
-  background-color: #f7fafc;
+  background-color: #fff;
   position: fixed;
   z-index: 999;
   top: 0;
@@ -4597,7 +4597,7 @@ code {
   height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: #f7fafc;
+  background-color: #fff;
 }
 #sidebar .links {
   height: 100%;
@@ -4632,7 +4632,7 @@ code {
   mask: url("icons/svg/power-bi.svg") no-repeat center;
 }
 #sidebar .links > a.active {
-  background-color: #fff;
+  background-color: #f7fafc;
   color: #1a202c;
 }
 #sidebar .links > a.active.blue {
@@ -5063,7 +5063,6 @@ code {
 body {
   font-family: "Roboto", "RobotoDraft", Helvetica, Arial, sans-serif;
   font-size: 0.8rem;
-  background-color: #fff;
 }
 
 .add-data-wrapper {
