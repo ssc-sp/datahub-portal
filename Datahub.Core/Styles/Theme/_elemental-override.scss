@@ -14,7 +14,10 @@
 $overrides: (
         'button': button.$buttonOptions,
         'dropdown': dropdown.$dropdownOptions,
-        'input': input.$inputOptions,
+        'input': (
+                'input': input.$inputOptions,
+                'search-wrapper': input.$searchInputOptions
+        ),
         'progress': progress.$progressOptions,
         'card': card.$cardOptions,
         'pagination': (
