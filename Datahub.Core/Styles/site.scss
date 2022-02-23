@@ -28,11 +28,12 @@
 @use 'Components/Sidebar';
 
 @use 'Views/_item-details.scss';
-@use 'Pages/Landing';
+
+@use 'Pages';
 
 @use 'Tables/_table-elements.scss';
 
-
+ 
 body {
     font-family: 'Roboto','RobotoDraft',Helvetica,Arial,sans-serif;
     font-size: 0.8rem;
