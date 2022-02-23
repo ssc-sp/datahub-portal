@@ -1,0 +1,24 @@
+@use '../../Common' as c;
+
+.all-projects-container {
+  .paging {
+    display: flex;
+    justify-content: center;
+  }
+
+  .all-projects {
+    display: grid;
+    grid-template-columns: auto 1fr 4fr;
+    gap: 1rem 2rem;
+    
+    .sector {
+      margin: 1rem 0;
+    }
+    .name {
+      margin: 1rem 0;
+    }
+    .description {
+
+    }
+  }
+}
