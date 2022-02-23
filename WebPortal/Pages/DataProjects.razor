@@ -1,70 +1,59 @@
-@inject IStringLocalizer<DataLabels> DataLocalizer
-@inject NavigationManager NavigationManager
-@inject IJSRuntime JsInterop
-@implements IDisposable
-@inject IDbContextFactory<DatahubProjectDBContext> DbFactory
-@page "/projects"
+@using Datahub.Portal.Pages.Project
 
+@inject IStringLocalizer<DataLabels> _dataLocalizer
+@inject NavigationManager _navigationManager
+@inject IJSRuntime _jsInterop
+@inject IDbContextFactory<DatahubProjectDBContext> _dbFactory
+
+@implements IDisposable
+@page "/projects"
 
 <div style="padding: 2rem;padding-right: 2rem">
 
     <AeFlex Vertical>
         <h1>@Localizer["Featured Projects"]</h1>
-    </AeFlex>    
-<div class="ae flex wrap">
-@foreach (var p in _featured)
-{
-    <AeCard style="width: 450px;margin-bottom:16px" class="small">
-        <Header>
-            <AeFlex>
-            <div style="font-size: 1.5rem;padding-right: 0.5em;">
-                <i class="@($"fad fa-{p.Project_Icon}")" />
-            </div>
-            <AeFlex>
-            <AeFlex Vertical>
-            <DHLink DataProject="@p.Project_Acronym_CD">@p.ProjectName</DHLink>
-            <AeTypography Variant="h4" style="margin-block-start: 0;">@Localizer[@p.Sector_Name]</AeTypography>
-            </AeFlex>
-            </AeFlex>
-            </AeFlex>
-        </Header>
-        <ChildContent>
-            
-            <AeMarkdown Content="@($"{p.ProjectDescription}")"></AeMarkdown>
-        </ChildContent>
-    </AeCard>
-}
+    </AeFlex>
+    <div class="ae flex wrap">
+        <div class="featured-projects">
+            @foreach (var p in _featured)
+            {
+                <FeaturedProject Project="p"/>
+            }
+        </div>
 
-</div>
+    </div>
     <AeFlex Vertical>
         <h1>@Localizer["All Projects"]</h1>
-    </AeFlex> 
-<AeCard>
-    <ChildContent>
-<div class="ae table-container">
+    </AeFlex>
+    <AeCard>
+        <ChildContent>
+            <div class="ae table-container">
 
-        <AePaginatedTable Accessors="accessorFunctions"     
-        Renderers="renderFunctions"
-        T="Datahub_Project"
-        Dataset="_projects"
-        Headers="headers"
-        class="custom light"
-        style="Width:100%"
-        GridTemplateColumns="0.5fr 0.5fr 2fr 3fr"    
-        Page="@_lastClicked"
-        PageSize="4"
-        @ref=_myTable
-        />
+                <AePaginatedTable Accessors="accessorFunctions"
+                                  Renderers="renderFunctions"
+                                  T="Datahub_Project"
+                                  Dataset="_projects"
+                                  Headers="headers"
+                                  class="custom light"
+                                  style="Width:100%"
+                                  GridTemplateColumns="0.5fr 0.5fr 2fr 3fr"
+                                  Page="@_lastClicked"
+                                  PageSize="4"
+                                  @ref="_myTable" />
 
-        <AePagination 
-            Pageable="@_myTable" 
-            OnPageClick="OnPageClick"> 
-            <LeftIcon><i class='fad fa-chevron-double-left'></i></LeftIcon> 
-            <RightIcon><i class='fad fa-chevron-double-right'></i></RightIcon>
-            </AePagination>
-</div>
-</ChildContent>
-</AeCard>
+                <AePagination
+                    Pageable="@_myTable"
+                    OnPageClick="OnPageClick">
+                    <LeftIcon>
+                        <i class="fad fa-chevron-double-left"></i>
+                    </LeftIcon>
+                    <RightIcon>
+                        <i class="fad fa-chevron-double-right"></i>
+                    </RightIcon>
+                </AePagination>
+            </div>
+        </ChildContent>
+    </AeCard>
 
 
 </div>
@@ -72,7 +61,7 @@
 @code {
 
     private List<Func<Datahub_Project, string>> accessorFunctions;
-    private List<Func<Datahub_Project, RenderFragment>> renderFunctions;    
+    private List<Func<Datahub_Project, RenderFragment>> renderFunctions;
 
     private IPageableComponent _myTable;
 
@@ -96,25 +85,33 @@
 
     protected override async Task OnInitializedAsync()
     {
-        Context = DbFactory.CreateDbContext();
-        _projects = Context.Projects.Where(p => 
+        Context = _dbFactory.CreateDbContext();
+        _projects = Context.Projects.Where(p =>
             (p.Project_Status_Desc == Datahub_Project.ONGOING || p.Is_Featured) &&
-            !p.Is_Private && !string.IsNullOrWhiteSpace(p.Project_Acronym_CD) 
+            !p.Is_Private && !string.IsNullOrWhiteSpace(p.Project_Acronym_CD)
             && !string.IsNullOrWhiteSpace(p.Project_Name)).Include(p => p.Users).ToList();
         _featured = _projects.Where(p => p.Is_Featured).ToList();
         await FillAccessorFunctions();
-        
-        renderFunctions = new List<Func<Datahub_Project, RenderFragment>>() {            
-            Datahub_Project => 
-                @<AeFlex class="table-icon"><i class="@($"fad fa-{Datahub_Project.Project_Icon}")"></i></AeFlex>,
-            Datahub_Project => @<AeFlex style="padding-top: 1rem"><AeTypography>@Localizer[@Datahub_Project?.Sector_Name]</AeTypography></AeFlex>,
-            Datahub_Project => @<AeFlex style="padding-top: 1rem"><AeTypography><DHLink DataProject="@Datahub_Project?.Project_Acronym_CD">@Datahub_Project?.ProjectName</DHLink></AeTypography></AeFlex>,
-            Datahub_Project => @<AeMarkdown Content="@($"{Datahub_Project.ProjectDescription}")"></AeMarkdown> ,
+
+        renderFunctions = new List<Func<Datahub_Project, RenderFragment>>()
+        {
+            Datahub_Project =>
+                @<AeFlex class="table-icon">
+                    <i class="@($"fad fa-{Datahub_Project.Project_Icon}")"></i>
+                </AeFlex>,
+            Datahub_Project => @<AeFlex style="padding-top: 1rem">
+                                   <AeTypography>@Localizer[@Datahub_Project?.Sector_Name]</AeTypography>
+                               </AeFlex>,
+            Datahub_Project => @<AeFlex style="padding-top: 1rem">
+                                   <AeTypography>
+                                       <DHLink DataProject="@Datahub_Project?.Project_Acronym_CD">@Datahub_Project?.ProjectName</DHLink>
+                                   </AeTypography>
+                               </AeFlex>,
+            Datahub_Project => @<AeMarkdown Content="@($"{Datahub_Project.ProjectDescription}")"></AeMarkdown>,
         };
-        
-        
-        
-        //await FillRenderFunctions();
+
+
+    //await FillRenderFunctions();
     }
 
     private List<string> headers = new List<string>();
@@ -122,16 +119,18 @@
 
     public async Task FillAccessorFunctions()
     {
-        accessorFunctions = new List<Func<Datahub_Project, string>>() {
+        accessorFunctions = new List<Func<Datahub_Project, string>>()
+        {
             Datahub_Project => { return Datahub_Project?.Project_Icon; },
             Datahub_Project => { return Datahub_Project?.Sector_Name; },
             Datahub_Project => { return Datahub_Project?.ProjectName; },
             Datahub_Project => { return Datahub_Project?.ProjectDescription; },
         };
     }
-    
-     public void Dispose() 
-    { 
-        Context.Dispose();         
+
+    public void Dispose()
+    {
+        Context.Dispose();
     }
+
 }
