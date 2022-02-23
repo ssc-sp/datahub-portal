@@ -3329,7 +3329,7 @@ code {
 .application-wrapper .main-layout .ui-control {
   display: flex;
 }
-.application-wrapper .main-layout .ui-control .page {
+.application-wrapper .main-layout .ui-control .main-page {
   display: grid;
   flex-grow: 1;
   padding: 2rem;
@@ -4620,9 +4620,10 @@ code {
   --fa-secondary-color: #a0aec0;
 }
 #sidebar .links > a i {
-  height: 36px;
-  font-size: 2rem;
+  height: 32px;
+  font-size: 1.5rem;
   margin-bottom: 2px;
+  margin-top: 4px;
 }
 #sidebar .links > a .powerbi-svg {
   background-color: red;
@@ -5031,6 +5032,21 @@ code {
   justify-self: center;
 }
 
+.all-projects-container .paging {
+  display: flex;
+  justify-content: center;
+}
+.all-projects-container .all-projects {
+  display: grid;
+  grid-template-columns: auto 1fr 4fr;
+  gap: 1rem 2rem;
+}
+.all-projects-container .all-projects .sector {
+  margin: 1rem 0;
+}
+.all-projects-container .all-projects .name {
+  margin: 1rem 0;
+}
 .table-icon {
   display: inline-block;
   display: flex;
