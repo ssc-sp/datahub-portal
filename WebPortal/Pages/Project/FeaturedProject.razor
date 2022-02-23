@@ -12,8 +12,7 @@
 
 @code {
 
-
-    private string _projectIcon => $"fas fa-{(Project?.Project_Icon != null ? Project.Project_Icon : "swatchbook")}";
+    private string _projectIcon => $"fas fa-{Project?.Project_Icon ?? "swatchbook"}";
 
     [Parameter]
     public Datahub_Project Project { get; init; }
