@@ -14,22 +14,23 @@
 @page "/pip/programs"
 @page "/pip/programs/{tombstone}"
 
+<AeCard class="facardForms" CardPosition="AeCard.CardStyle.Horizontal">
+    <h1>Performance Information Profile (PIP) Forms</h1>
 
-<h1>Performance Information Profile (PIP) Forms</h1>
+    <h2>Select your fiscal year</h2>
+    @if (_fiscalYears.Any())
+    {
+        <AeDropdown Items="_fiscalYears" OnChange="HandleDropdownChange" Label="@_fiscalYear.FiscalYear" class="securityDropdown"/>    
+    }
 
-<h2>Select your fiscal year</h2>
-@if (_fiscalYears.Any())
-{
-    <AeDropdown Items="_fiscalYears" OnChange="HandleDropdownChange" Label="@_fiscalYear.FiscalYear" class="securityDropdown"/>    
-}
-
-<h2>Select Program Inventory Program</h2>
+</AeCard>
 
 
 @if (_projects != null)
 {
-    <div>
+    <AeCard class="facardForms" CardPosition="AeCard.CardStyle.Horizontal">
 
+        <h2>Select Program Inventory Program</h2>
         <AePaginatedTable Accessors="accessorFunctions"
              Renderers="GetRenderers()"
              T="PIP_Tombstone"
@@ -49,11 +50,13 @@
             <RightIcon><i class='fad fa-chevron-double-right'></i></RightIcon>
         </AePagination>  
 
-    </div>
+    </AeCard>
 }
+
 @if (_tombstone != null)
 {
-    if (_tombstone.Tombstone_ID > 0)
+<AeCard class="facardForms" CardPosition="AeCard.CardStyle.Horizontal">
+    @if (_tombstone.Tombstone_ID > 0)
     {
         <h2>Edit PIP Information for @(_tombstone.Program_Title)</h2>
     }
@@ -61,6 +64,12 @@
     {
         <h2>Enter Program Details</h2>
     }
+    <AeFlex id="buttonBar">
+        <div class="icon-container" style="margin-bottom: 10px; margin-left: 5px;">
+            <FAButton Text="Indicators and Results" Icon="fal fa-poll" IconLocation="left" onclick="e => GoToIndicators()" />
+            <FAButton Text="Risks" Icon="fal fa-water-rise" IconLocation="left" onclick="e => GoToRisks()" />
+        </div>
+    </AeFlex>
 
     <AeModelForm Model="_tombstone"
                  T="PIP_Tombstone"
@@ -76,10 +85,12 @@
 
     <AeFlex id="buttonBar">
         <div class="icon-container" style="margin-bottom: 10px; margin-left: 5px;">
-            <FAButton Text="Indicators and Results" Icon="fal fa-arrow-right" IconLocation="right" onclick="e => GoToNextSheet()" />
+            <FAButton Text="Indicators and Results" Icon="fal fa-poll" IconLocation="left" onclick="e => GoToIndicators()" />
+            <FAButton Text="Risks" Icon="fal fa-water-rise" IconLocation="left" onclick="e => GoToRisks()" />
         </div>
     </AeFlex>
 
+</AeCard>
 }
 
 @code {
@@ -108,8 +119,6 @@
 
     protected override void OnAfterRender(bool firstRender)
     {
-        // You must re-render after the components are initialized in order for the 
-        // component reference to not be null
         if(firstRender){
             StateHasChanged();
         }
@@ -325,7 +334,7 @@
     }
 
 
-    private async Task GoToNextSheet()
+    private async Task GoToIndicators()
     {
         var id = _tombstone.Tombstone_ID;
         navigationUrl = $"/pip/indicators/{id}/{_fiscalYear.FiscalYear}";
@@ -333,6 +342,16 @@
             NavigationManager.NavigateTo(navigationUrl);
         else
             await HandleValidSubmit();           
+    }
+
+    private async Task GoToRisks()
+    {
+        var id = _tombstone.Tombstone_ID;
+        navigationUrl = $"/pip/risks/{_tombstone.Tombstone_ID}";
+        if (_tombstone == null || !Context.ChangeTracker.HasChanges())
+            NavigationManager.NavigateTo(navigationUrl);
+        else
+            await HandleValidSubmit();          
     }
 
     private async void OnConfirmSave(bool isConfirmed, dynamic item)

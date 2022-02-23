@@ -20,6 +20,7 @@ namespace Datahub.ProjectForms.Data.PIP
         [MaxLength(20)]
         public string Year { get; set; }
         [MaxLength(20)]
+        [AeFormIgnore]
         public string ProgramCode { get; set; }
 
         [AeLabel(row: "1", column:"1")]
@@ -200,6 +201,7 @@ namespace Datahub.ProjectForms.Data.PIP
         [AeFormIgnore]
         [Timestamp]
         public byte[] Timestamp { get; set; }
+        [AeFormIgnore]
         public int FiscalYearId { get; set; }
         public PIP_FiscalYears FiscalYear { get; set; }
         private string GeneratePowerBiUrl()
