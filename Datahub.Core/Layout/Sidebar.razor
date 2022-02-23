@@ -8,10 +8,6 @@
         <img src="_content/Datahub.Core/img/datahub-logo-v2.png"/>
     </div>
     <div class="links">
-        <NavLink class="@Icon.HOME.Color" href="/" Match="NavLinkMatch.All" ActiveClass="active">
-            <i class="@Icon.HOME.Name"></i>
-            @Localizer["SIDEBAR.Home"]
-        </NavLink>
         @foreach (var (href, icon, label) in GetLinks())
         {
             <NavLink class="@icon.Color" href="@href" Match="NavLinkMatch.Prefix" ActiveClass="active">
@@ -38,7 +34,7 @@
     {
         return new List<(string, Icon, string)>()
         {
-            // ("/", Icon.HOME, "SIDEBAR.Home"),
+            ("/home", Icon.HOME, "SIDEBAR.Home"),
     //("/data", Icon.STORAGE, "SIDEBAR.Storage"),
             ($"/{UrlPathSegment.PROJECTS}", Icon.PROJECT, "SIDEBAR.DataProjects"),
             ("/resources", Icon.RESOURCES, "SIDEBAR.Resources"),
