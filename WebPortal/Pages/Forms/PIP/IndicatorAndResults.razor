@@ -11,50 +11,60 @@
 
 @page "/pip/indicators/{tombstone}/{fiscalYear}"
 
-<h1>Indicator And Results</h1>
+<AeCard class="facardForms" CardPosition="AeCard.CardStyle.Horizontal">
+    <h1>Indicator And Results</h1>
 
-<ProgramTable tombstone="@tombstone"></ProgramTable>
+    <ProgramTable tombstone="@tombstone"></ProgramTable>
+</AeCard>
 
-<h2>Step 2: Enter/Select Indicators and Results for Selected Program</h2>
-<div>
-    <AeFlex Vertical id="indexFlex">
+<AeCard class="facardForms" CardPosition="AeCard.CardStyle.Horizontal">
+    <h2>Step 2: Enter/Select Indicators and Results for Selected Program</h2>
+    <div>
+        <AeFlex Vertical id="indexFlex">
 
 
 
-        <AePaginatedTable Accessors="accessorFunctions"
-                 T="PIP_IndicatorAndResults"
-                 Dataset="_indicators"
-                 Renderers="GetRenderers()"
-                 ColorAccessor="getColor"
-                 Headers="headers"
-                 GridTemplateColumns="1fr 4fr 4fr 1fr"
-                 OnRowClick="@SetFormEdit" 
-                 Page="@_lastClicked"
-                 PageSize="10"
-                 @ref=_myTable />
+            <AePaginatedTable Accessors="accessorFunctions"
+                     T="PIP_IndicatorAndResults"
+                     Dataset="_indicators"
+                     Renderers="GetRenderers()"
+                     ColorAccessor="getColor"
+                     Headers="headers"
+                     GridTemplateColumns="1fr 4fr 4fr 1fr"
+                     OnRowClick="@SetFormEdit" 
+                     Page="@_lastClicked"
+                     PageSize="10"
+                     @ref=_myTable />
 
-                 <AePagination 
-                Pageable="@_myTable" 
-                OnPageClick="OnPageClick"> 
-                <LeftIcon><i class='fad fa-chevron-double-left'></i></LeftIcon> 
-                <RightIcon><i class='fad fa-chevron-double-right'></i></RightIcon>
-                </AePagination>
+                     <AePagination 
+                    Pageable="@_myTable" 
+                    OnPageClick="OnPageClick"> 
+                    <LeftIcon><i class='fad fa-chevron-double-left'></i></LeftIcon> 
+                    <RightIcon><i class='fad fa-chevron-double-right'></i></RightIcon>
+                    </AePagination>
 
-    </AeFlex>
-    @if (_indicator == null)
-    {
-        <AeFlex id="buttonBar">
-            <div class="icon-container" style="margin-bottom: 10px; margin-left: 5px;">
-
-                <FAButton Text="Add New" Icon="far fa-plus-square" onclick="e => CreateNewIndicator()" />
-            </div>
         </AeFlex>
-    }
-</div>
+        @if (_indicator == null)
+        {
+            <AeFlex id="buttonBar">
+                <div class="icon-container" style="margin-bottom: 10px; margin-left: 5px;">
 
+                    <FAButton Text="Add New" Icon="far fa-plus-square" onclick="e => CreateNewIndicator()" />
+                </div>
+            </AeFlex>
+        }
+    </div>
+</AeCard>
+
+<AeCard class="facardForms" CardPosition="AeCard.CardStyle.Horizontal">
+    <AeFlex id="buttonBar">
+        <div class="icon-container" style="margin-bottom: 10px; margin-left: 5px;">
+            <FAButton Text="Tombstone" Icon="fal fa-arrow-left" onclick="e => GoToPreviousSheet()" />
+        </div>
+    </AeFlex>
 @if (_indicator != null)
 {
-    if (_indicator.IndicatorAndResult_ID > 0)
+    @if (_indicator.IndicatorAndResult_ID > 0)
     {
         <h2>Editing Indicator and Result @_indicator.IndicatorAndResult_ID</h2>
     }
@@ -75,19 +85,16 @@
                  LabelsOnTop="true" 
                  Flexbox
                  IsSectionLocksVisible="true"/>
+    
 
-    @*if (_indicator.IndicatorAndResult_ID > 0)
-    {
-        <RiskTable ToggleRisk="ToggleRisk" IndicatorRisks="@_risks" RenderFunctions="@renderFunctions"></RiskTable>
-    }*@
+    <AeFlex id="buttonBar">
+        <div class="icon-container" style="margin-bottom: 10px; margin-left: 5px;">
+            <FAButton Text="Tombstone" Icon="fal fa-arrow-left" onclick="e => GoToPreviousSheet()" />
+        </div>
+    </AeFlex>
 }
 
-<AeFlex id="buttonBar">
-    <div class="icon-container" style="margin-bottom: 10px; margin-left: 5px;">
-        <FAButton Text="Tombstone" Icon="fal fa-arrow-left" onclick="e => GoToPreviousSheet()" />
-        <FAButton Text="Risks" Icon="fal fa-arrow-right" IconLocation="right" onclick="e => GoToNextSheet()" />
-    </div>
-</AeFlex>
+</AeCard>
 
 @code {
 
