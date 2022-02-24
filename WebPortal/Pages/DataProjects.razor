@@ -1,5 +1,4 @@
 @using Datahub.Portal.Pages.Project
-@using Datahub.Core.Components.Pageable
 
 @inject IStringLocalizer<DataLabels> _dataLocalizer
 @inject NavigationManager _navigationManager
@@ -9,7 +8,7 @@
 @implements IDisposable
 @page "/projects"
 
-<h1>@Localizer["Featured Projects"]</h1>
+<AeTypography Variant="h1">@Localizer["Featured Projects"]</AeTypography>
 <div class="featured-projects">
     @foreach (var p in _featured)
     {
@@ -17,36 +16,48 @@
     }
 </div>
 
-<h1>@Localizer["All Projects"]</h1>
+<AeTypography Variant="h1">@Localizer["All Projects"]</AeTypography>
 
 <div class="all-projects-container">
 
-    <div class="paging">
-        <AePagination
-            Pageable="@_pagingInfo"
-            OnPageClick="index => _pagingInfo.Page = index">
-            <LeftIcon>
-                <i class="fad fa-chevron-double-left"></i>
-            </LeftIcon>
-            <RightIcon>
-                <i class="fad fa-chevron-double-right"></i>
-            </RightIcon>
-        </AePagination>
-    </div>
+    <AeSearchInput
+        class="all-projects-search"
+        SearchIconFAClass="fas fa-filter"
+        Placeholder="Filter projects"
+        OnInputChange="HandleAllProjectSearch"/>
+
     <div class="all-projects">
-        @foreach (var p in _pagedProjects)
+        @if (_filteredProjects.Any())
         {
-            <AllProjectsRow Project="p"/>
+            @foreach (var p in _filteredProjects)
+            {
+                <div class="project-row">
+                    <AeTypography class="sector">
+                        <i class="@($"fad fa-{p.Project_Icon ?? "swatchbook"}")"></i>
+                        @Localizer[p.Sector_Name ?? "N/A"]
+                    </AeTypography>
+                    <DHLink class="name" DataProject="@p.Project_Acronym_CD">
+                        <i class="fas fa-external-link"></i>
+                        @p.ProjectName
+                    </DHLink>
+                    <AeMarkdown class="description" Content="@p!.ProjectDescription"></AeMarkdown>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="no-projects">
+                <i class="fas fa-box-full"></i>
+                <AeTypography Variant="h3">Sorry, we can't find any projects that match your filter!</AeTypography>
+            </div>
         }
     </div>
 </div>
 
 @code {
 
-    private IPageableComponent _pagingInfo;
-    private List<Datahub_Project> _pagedProjects => _pagingInfo != null ? _projects?.Skip(_pagingInfo.Page * _pagingInfo.PageSize).Take(_pagingInfo.PageSize).ToList() : new List<Datahub_Project>();
-
-    private List<Datahub_Project> _projects;
+    private List<Datahub_Project> _allProjects;
+    private List<Datahub_Project> _filteredProjects;
     private List<Datahub_Project> _featured;
     private DatahubProjectDBContext _context;
 
@@ -61,24 +72,27 @@
     protected override async Task OnInitializedAsync()
     {
         _context = await _dbFactory.CreateDbContextAsync();
-        _projects = _context.Projects.Where(p =>
-            (p.Project_Status_Desc == Datahub_Project.ONGOING || p.Is_Featured) &&
-            !p.Is_Private && !string.IsNullOrWhiteSpace(p.Project_Acronym_CD)
-            && !string.IsNullOrWhiteSpace(p.Project_Name)).Include(p => p.Users).ToList();
-        _featured = _projects.Where(p => p.Is_Featured).ToList();
-
-
-        _pagingInfo = new PagingInfo()
-        {
-            Page = 0,
-            PageSize = 4,
-            Total = _projects.Count
-        };
+        _allProjects = _context.Projects
+            .Where(p =>
+                (p.Project_Status_Desc == Datahub_Project.ONGOING || p.Is_Featured) &&
+                !p.Is_Private && !string.IsNullOrWhiteSpace(p.Project_Acronym_CD)
+                && !string.IsNullOrWhiteSpace(p.Project_Name))
+    // .Include(p => p.Users)
+            .ToList();
+        _featured = _allProjects.Where(p => p.Is_Featured).ToList();
+        _filteredProjects = _allProjects;
     }
 
     public void Dispose()
     {
         _context.Dispose();
+    }
+
+    private void HandleAllProjectSearch(string filterValue)
+    {
+        _filteredProjects = _allProjects
+            .Where(p => p.Project_Name.ToLowerInvariant().Contains(filterValue.ToLowerInvariant()))
+            .ToList();
     }
 
 }
