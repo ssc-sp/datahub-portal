@@ -377,6 +377,23 @@ namespace Datahub.ProjectForms.Data.PIP
 "80 - Water treatment / distribution facilities",
 "81 - Ecological systems and/or natural habitats",
 "82 - Species at risk and/or invasive species" };
-        public static readonly string[] GOC_CLASSIFICATION = { };
+        public static readonly string[] GOC_CLASSIFICATION = {
+        "Economic affairs n.e.c.",
+        "Electricity",
+        "Executive and legislative organs",
+        "Forestry",
+        "Fuel and energy n.e.c",
+        "General economic and commercial affairs",
+        "General public services n.e.c",
+        "General public services n.e.c.",
+        "General purpose transfers to Provincial and Territorial governments",
+        "Mining of mineral resources other than mineral fuels",
+        "Overall planning and statistical services",
+        "Petroleum and natural gas",
+        "Protection of biodiversity and landscape",
+        "R&D Fuel and energy",
+        "R&D Mining, manufacturing, and construction",
+        "R&D Other industries"
+        };
     }
 }
