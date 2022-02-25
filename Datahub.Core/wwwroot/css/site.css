@@ -1733,6 +1733,7 @@ body {
 
 .ae.modelform .validation-errors .validation-message {
   font-size: 0.9rem;
+  color: #e53e3e;
 }
 .ae.modelform .ae.modelform-rows .ae.modelform-row {
   grid-template-rows: auto;
@@ -1748,6 +1749,10 @@ body {
   flex-direction: row-reverse;
   margin-right: 0.5rem;
   font-weight: bold;
+}
+.ae.modelform .ae.modelform-rows .ae.modelform-row .ae.modelform-col .ae.ae-form-control-label.notes {
+  font-weight: normal;
+  font-style: italic;
 }
 .ae.modelform .ae.modelform-rows .ae.modelform-row .ae.modelform-col .ae.ae-form-control-label.ae-label-required > :first-child::after {
   color: #e53e3e;
@@ -2956,6 +2961,9 @@ body {
 }
 .ae.typography.p {
   line-height: 1.75;
+}
+.ae.typography.p.no-margin {
+  margin: 0rem;
 }
 .ae.typography.hint {
   color: #cbd5e0;
@@ -4544,6 +4552,35 @@ code {
   position: absolute;
   left: 50%;
   transform: translate(-50%);
+}
+
+.success-indicator {
+  display: inline-block;
+  margin: 0.2rem 0.5rem;
+}
+.success-indicator.hidden {
+  visibility: hidden;
+  opacity: 0;
+  -webkit-transition: visibility 0s 1s, opacity 1s linear;
+  -moz-transition: visibility 0s 1s, opacity 1s linear;
+  -o-transition: visibility 0s 1s, opacity 1s linear;
+  transition: visibility 0s 1s, opacity 1s linear;
+}
+.success-indicator.visible {
+  visibility: visible;
+  opacity: 1;
+}
+.success-indicator .bubble {
+  padding: 0.2rem 0.5rem;
+  border-radius: 0.5rem;
+}
+.success-indicator .success {
+  color: #38a169;
+  background-color: #c6f6d5;
+}
+.success-indicator .failure {
+  color: #e53e3e;
+  background-color: #fed7d7;
 }
 
 /** Transparent **/

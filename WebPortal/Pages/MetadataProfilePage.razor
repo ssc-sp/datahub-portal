@@ -1,0 +1,292 @@
+﻿@page "/metadata/profile/{ProfileId}"
+@page "/metadata/newprofile"
+@using Datahub.Metadata.Model
+@using Datahub.Metadata.DTO
+@inject ServiceAuthManager ServiceAuthManager
+@inject NavigationManager NavigationManager
+@inject IDbContextFactory<MetadataDbContext> ContextFactory
+
+<DHPageTitle PageTitleKey=@Localizer["Metadata Profile"] />
+@if (_profile is not null)
+{
+    <AuthorizeView Roles="@string.Join(',', _authorizedRoles)">
+        <Authorized>
+            <div style="margin: 2rem">
+                <AeTypography Variant="h2">Metadata Profile</AeTypography>
+                <AeCard>
+                    <ChildContent>
+                        <div>
+                            <div>
+                                <AeTypography>@Localizer["Name"]</AeTypography>
+                            </div>
+                            <div>
+                                <input 
+                                    class="ae input"
+                                    placeholder=@Localizer["Enter profile name..."]
+                                    @bind=@_profile.Name
+                                    style="width: 100%"
+                                />
+                            </div>
+                        </div>
+                        <div>&nbsp;</div>
+                        <div>
+                            <div>
+                                @*section list*@
+                                <AeTypography>@Localizer["Section"]</AeTypography>
+                                <AeFlex Vertical="false">
+                                    <select class="ae input" style="width: 100%" @bind=@SelectedSessionId disabled=@_addingSection>
+                                        @foreach (var s in _sections)
+                                        {
+                                            <option value="@s.ListId">@s.English / @s.French</option>
+                                        }
+                                    </select>
+                                </AeFlex>
+                                
+                                @if (_selectedSection is not null)
+                                {
+                                    <MetadataSectionEditor 
+                                        IsNew=_addingSection
+                                        Section=@_selectedSection  
+                                        AvailableFields=@_availableFields
+                                        OnSaveNew=@HandleAddSection
+                                        OnDiscardNew=@HandleIgnoreSection
+                                    />
+                                }
+                            </div>
+                        </div>
+                        <div style="margin: 8px 0px 8px 0px;">
+                            <AeButton OnClickEvent=@SaveProfile Disabled=@_addingSection>@Localizer["Save Profile"]</AeButton>
+                            <AeButton OnClickEvent=@HandleStartAddingSection Disabled="_addingSection">@Localizer["Add Section"]</AeButton>
+                            <AeButton OnClickEvent=@HandleDeleteSection Disabled="_addingSection" style="background-color: red;" >@Localizer["Remove Section"]</AeButton>
+                        </div>
+                    </ChildContent>
+                </AeCard>
+            </div>
+        </Authorized>
+        <NotAuthorized>
+            @Localizer["You are not authorized to edit metadata."]
+        </NotAuthorized>
+    </AuthorizeView>
+}
+
+@code {
+
+    [Parameter]
+    public string ProfileId { get; set; }
+
+    private List<string> _authorizedRoles = new();
+
+    private MetadataProfile _profile;
+
+    private bool _addingSection;
+    private string _selectedSectionId;
+    private List<MetadataSectionDetails> _sections = new();
+    private MetadataSectionDetails _selectedSection;
+
+    private List<FieldDefinition> _fieldDefinitions = new();
+    private List<FieldDefinition> _availableFields = new();
+
+    private string SelectedSessionId
+    {
+        get => _selectedSectionId;
+        set
+        {
+            if (value != _selectedSectionId)
+            {
+                _selectedSectionId = value;
+                _selectedSection = _sections.FirstOrDefault(s => s.ListId == value);
+                RefreshAvailableFields(value);
+            }
+        }
+    }
+
+    private Dictionary<string, HashSet<int>> _fieldSelection = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _authorizedRoles = ServiceAuthManager.GetAdminProjectRoles();
+
+        using var ctx = ContextFactory.CreateDbContext();        
+
+        _fieldDefinitions = await ctx.FieldDefinitions
+            .OrderBy(d => d.Sort_Order_NUM)
+            .Where(f => !string.IsNullOrEmpty(f.Name_English_TXT))
+            .ToListAsync();
+
+        // load or create new profile
+        MetadataProfile newProfile = new() { Sections = new List<MetadataSection>() }; 
+        if (!string.IsNullOrEmpty(ProfileId))
+        {
+            var id = int.Parse(ProfileId);
+
+            _profile = await ctx.Profiles
+                .Include(p => p.Sections)
+                .ThenInclude(s => s.Fields)
+                .FirstOrDefaultAsync(p => p.ProfileId == id);
+
+            if (_profile is not null)
+            {
+                _sections.AddRange(_profile.Sections.Select(CreateMetadataSectionDetails));
+            }
+        }
+        _profile ??= newProfile;
+
+        if (_sections.Count > 0)
+        {
+            SelectedSessionId = _sections[0].ListId;
+        }
+    }
+
+    private void HandleStartAddingSection()
+    {
+        _addingSection = true;
+        _selectedSection = new MetadataSectionDetails()
+        {
+            ListId = GetListId(),
+            SectionId = 0,
+            English = "New Section",
+            French = "Nouvelle section",
+            Fields = new HashSet<int>()
+        };
+        RefreshAvailableFields("");
+    }
+
+    private void HandleAddSection()
+    {
+        _sections.Add(_selectedSection);
+        _addingSection = false;
+        SelectedSessionId = _selectedSection.ListId;
+    }
+
+    private void HandleDeleteSection()
+    {
+        _sections.Remove(_selectedSection);
+        SelectedSessionId = _sections.Count > 0 ? _sections[0].ListId : string.Empty;
+    }
+
+    private void HandleIgnoreSection()
+    {
+        _addingSection = false;
+        RefreshAvailableFields(SelectedSessionId);
+    }
+
+    private void RefreshAvailableFields(string excludeSection)
+    {
+        HashSet<int> selectedFields = new();
+        var otherSessions = _sections.Where(s => s.ListId != excludeSection).ToList();
+        foreach (var s in otherSessions)
+            selectedFields.UnionWith(s.Fields);
+
+        _availableFields = _fieldDefinitions.Where(f => !selectedFields.Contains(f.FieldDefinitionId)).ToList();
+        StateHasChanged();
+    }
+
+    static string GetListId() => Guid.NewGuid().ToString();
+
+    private MetadataSectionDetails CreateMetadataSectionDetails(MetadataSection section)
+    {
+        HashSet<int> fields = new(section.Fields.Select(s => s.FieldDefinitionId));
+        return new MetadataSectionDetails()
+        {
+            ListId = GetListId(),
+            SectionId = section.SectionId,
+            English = section.Name_English_TXT,
+            French = section.Name_French_TXT,
+            Fields = fields
+        };
+    }
+
+    private async Task SaveProfile()
+    {
+        using var ctx = ContextFactory.CreateDbContext();
+
+        var transation = ctx.Database.BeginTransaction();
+        try
+        {
+            if (_profile.ProfileId == 0)
+            {
+                ctx.Profiles.Add(_profile);
+            }
+            else
+            {
+                ctx.Profiles.Update(_profile);
+            }
+            await ctx.SaveChangesAsync();
+
+            // todo: capture deleted sections
+            var deleted = _profile.Sections.Where(s => _sections.FirstOrDefault(os => s.SectionId == os.SectionId) is null);
+            foreach (var s in deleted)
+            {
+                ctx.Sections.Remove(s);
+            }
+            await ctx.SaveChangesAsync();
+
+            foreach (var s in _sections)
+            {
+                if (s.SectionId == 0)
+                {
+                    var section = CreateSection(s, _profile.ProfileId);
+
+                    ctx.Sections.Add(section);
+                    await ctx.SaveChangesAsync();
+
+                    foreach (var fieldId in s.Fields)
+                    {
+                        ctx.SectionFields.Add(new SectionField() 
+                        { 
+                            SectionId = section.SectionId, 
+                            FieldDefinitionId = fieldId, 
+                            Required_FLAG = true 
+                        });    
+                    }
+                }
+                else
+                {
+                    var section = _profile.Sections.FirstOrDefault(ps => ps.SectionId == s.SectionId);
+
+                    section.Name_English_TXT = s.English;
+                    section.Name_French_TXT = s.French;
+                    ctx.Sections.Update(section);
+                    await ctx.SaveChangesAsync();
+
+                    // old fields set
+                    HashSet<int> oldFields = new(section.Fields.Select(f => f.FieldDefinitionId));
+
+                    // add new fields
+                    HashSet<int> newFields = new(s.Fields.Except(oldFields));
+                    foreach (var fieldId in newFields)
+                    {
+                        ctx.SectionFields.Add(new SectionField() { SectionId = section.SectionId, FieldDefinitionId = fieldId });    
+                    }
+
+                    HashSet<int> removedFields = new(oldFields.Except(s.Fields));
+                    foreach (var fieldId in removedFields)
+                    {
+                        var field = section.Fields.FirstOrDefault(f => f.FieldDefinitionId == fieldId);
+                        ctx.SectionFields.Remove(field);    
+                    }
+                }
+                await ctx.SaveChangesAsync();
+            }
+
+            transation.Commit();
+        }
+        catch (Exception)
+        {
+            transation.Rollback();
+            throw;
+        }
+
+        NavigationManager.NavigateTo("/metadata/definitions");
+    }
+
+    private MetadataSection CreateSection(MetadataSectionDetails option, int profileId)
+    {
+        return new MetadataSection()
+        {
+            ProfileId = profileId,
+            Name_English_TXT = option.English,
+            Name_French_TXT = option.French
+        };
+    }
+}
