@@ -1,0 +1,46 @@
+<AeCard CardPosition="AeCard.CardStyle.Horizontal">
+        <Header>
+            <div style="width:180px;">
+                <i class="@($"fad fa-{Project.Project_Icon}")"/>
+            </div>
+        </Header>
+        <ChildContent>
+            <AeTypography Variant="h1">@Project.ProjectName</AeTypography>
+            <AeMarkdown Content="@($"{Project.ProjectDescription}")"></AeMarkdown>
+            <AuthorizeView Roles="@($"{ProjectAcronym}, {ProjectAcronym}-admin, {RoleConstants.DATAHUB_ROLE_ADMIN}")">
+                <NotAuthorized>
+                    <AeTypography Variant="h3">@Localizer["Access Denied"]</AeTypography>
+                    <AeTypography class="warning">@Localizer["You currently do not have access to this project."]</AeTypography>
+                    @if (!_isProjectUserPendingApproval)
+                    {
+                        <AeButton @onclick="@(async () => await RequestProjectAccess())">@Localizer["Request Access"]</AeButton>
+                    }
+                    else
+                    {
+                        <AeTypography class="warning">@Localizer["Access Request is being reviewed"]</AeTypography>
+                    }
+                </NotAuthorized>
+                <Authorized>
+                    <AeTypography>
+                        <b>@Localizer["Project Administrators:"]</b> @_admins
+                    </AeTypography>
+                    <AeTypography>
+                        <b>@Localizer["Project Users:"]</b> @_users
+                    </AeTypography>
+                </Authorized>
+            </AuthorizeView>
+            <AeTypography>
+                <b>@Localizer["Data Sensitivity:"]</b> @Localizer[Project.Data_Sensitivity]
+            </AeTypography>
+
+        </ChildContent>
+    </AeCard>
+
+@code {
+    
+    [Parameter]
+    public Datahub_Project Project { get; set; }
+    
+    [Parameter]
+    public string ProjectAcronym { get; set; }
+}
