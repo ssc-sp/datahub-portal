@@ -1,8 +1,8 @@
 ﻿@using System.Text
 @using Microsoft.Extensions.Options
-@using Datahub.Portal.Pages.Project.DataProject
 
-@inject IStringLocalizer DataLocalizer
+@using Microsoft.Graph
+
 @inject NavigationManager NavigationManager
 @inject UIControlsService UIControlService
 @inject IUserInformationService UserInformationService
@@ -29,10 +29,16 @@ else
 {
     <DHPageTitle PageTitleKey=@_project.ProjectName/>
     <AeFlex Vertical>
-        <h2>@DataLocalizer["Data Project"]</h2>
+        <h2>@Localizer["Data Project"]</h2>
     </AeFlex>
         @* Project Info *@
-    <ProjectInfo />
+    <ProjectInfo
+        Project="_project"
+    />
+    
+    <ProjectMembers 
+        ProjectAcronym="@projectAcronym"
+        />
 
 
     <AuthorizeView
@@ -42,7 +48,7 @@ else
     @if (_pipelineStatus?.Count > 0)
     {
         <AeFlex Vertical>
-            <h2>@DataLocalizer["Data Pipeline Status"]</h2>
+            <h2>@Localizer["Data Pipeline Status"]</h2>
             <AeTable Accessors="accessorFunctions" Renderers="renderFunctions"
                      GridTemplateColumns="4fr 4fr 3fr 3fr"
                      Dataset="_pipelineStatus"
@@ -52,7 +58,7 @@ else
     
     
 
-    <h2>@DataLocalizer["Data Project Tools"]</h2>
+    <h2>@Localizer["Data Project Tools"]</h2>
     @if (_isLoading)
     {
         <Spinner Small=@true/>
@@ -72,13 +78,13 @@ else
                 <ChildContent>
                     @if (!string.IsNullOrWhiteSpace(_project.Databricks_URL))
                     {
-                        <DHLink Variant="h3" DataProject="@projectAcronym" DatabricksURL="@_project.Databricks_URL">@DataLocalizer["Azure Databricks"]</DHLink>
+                        <DHLink Variant="h3" DataProject="@projectAcronym" DatabricksURL="@_project.Databricks_URL">@Localizer["Azure Databricks"]</DHLink>
                     }
                     else
                     {
-                        <AeTypography Variant="h3">@DataLocalizer["Azure Databricks"]</AeTypography>
+                        <AeTypography Variant="h3">@Localizer["Azure Databricks"]</AeTypography>
                     }
-                    <AeTypography>@DataLocalizer["Run your Python, R and SQL notebooks in the cloud with Databricks for analytics, machine learning and data pipelines"]</AeTypography>
+                    <AeTypography>@Localizer["Run your Python, R and SQL notebooks in the cloud with Databricks for analytics, machine learning and data pipelines"]</AeTypography>
                 </ChildContent>
                 <Footer>
                     <AeFlex Vertical>
@@ -88,24 +94,24 @@ else
                             {
                                 @if (_databricksRequested)
                                 {
-                                    <AeTypography class="warning">@DataLocalizer["Access Request is being reviewed"]</AeTypography>
+                                    <AeTypography class="warning">@Localizer["Access Request is being reviewed"]</AeTypography>
                                 }
                                 else
                                 {
-                                    <AeTypography class="warning">@DataLocalizer["Access not authorized"]</AeTypography>
-                                    <AeButton @onclick="@(async () => await RequestAccess(true, false, false))">@DataLocalizer["Request Access"]</AeButton>
+                                    <AeTypography class="warning">@Localizer["Access not authorized"]</AeTypography>
+                                    <AeButton @onclick="@(async () => await RequestAccess(true, false, false))">@Localizer["Request Access"]</AeButton>
                                 }
                             }
                             else
                             {
                                 @if (_serviceRequests.Any(r => r.ServiceType == RequestManagementService.DATABRICKS && r.Is_Completed == null))
                                 {
-                                    <AeTypography class="warning">@DataLocalizer["Service Request is being reviewed"]</AeTypography>
+                                    <AeTypography class="warning">@Localizer["Service Request is being reviewed"]</AeTypography>
                                 }
                                 else
                                 {
                                             @* <AeTypography class="warning">Service not available</AeTypography> *@
-                                    <AeButton @onclick="@(async () => await RequestServiceAccess(RequestManagementService.POWERBI))">@DataLocalizer["Request Service Creation"]</AeButton>
+                                    <AeButton @onclick="@(async () => await RequestServiceAccess(RequestManagementService.POWERBI))">@Localizer["Request Service Creation"]</AeButton>
                                 }
                             }
                         }
@@ -139,24 +145,24 @@ else
                         {
                             @if (_powerBIRequested)
                             {
-                                <AeTypography class="warning">@DataLocalizer["Access Request is being reviewed"]</AeTypography>
+                                <AeTypography class="warning">@Localizer["Access Request is being reviewed"]</AeTypography>
                             }
                             else
                             {
-                                <AeTypography class="warning">@DataLocalizer["Access not authorized"]</AeTypography>
-                                <AeButton @onclick="@(async () => await RequestAccess(false, true, false))">@DataLocalizer["Request Access"]</AeButton>
+                                <AeTypography class="warning">@Localizer["Access not authorized"]</AeTypography>
+                                <AeButton @onclick="@(async () => await RequestAccess(false, true, false))">@Localizer["Request Access"]</AeButton>
                             }
                         }
                         else
                         {
                             @if (_serviceRequests.Any(r => r.ServiceType == RequestManagementService.POWERBI && r.Is_Completed == null))
                             {
-                                <AeTypography class="warning">@DataLocalizer["Service Request is being reviewed"]</AeTypography>
+                                <AeTypography class="warning">@Localizer["Service Request is being reviewed"]</AeTypography>
                             }
                             else
                             {
                                         @*<AeTypography class="warning">Service not available</AeTypography>*@
-                                <AeButton @onclick="@(async () => await RequestServiceAccess(RequestManagementService.POWERBI))">@DataLocalizer["Request Service Creation"]</AeButton>
+                                <AeButton @onclick="@(async () => await RequestServiceAccess(RequestManagementService.POWERBI))">@Localizer["Request Service Creation"]</AeButton>
                             }
                         }
                     }
@@ -181,26 +187,26 @@ else
                     {
                         @if (!string.IsNullOrWhiteSpace(_project.WebForms_URL) && _webFormsAuthorized)
                         {
-                            <DHLink Variant="h3" DataProject="@projectAcronym" WebFormsURL="@_project.WebForms_URL">@DataLocalizer["Data Entry"]</DHLink>
+                            <DHLink Variant="h3" DataProject="@projectAcronym" WebFormsURL="@_project.WebForms_URL">@Localizer["Data Entry"]</DHLink>
                         }
                         else
                         {
-                            <AeTypography Variant="h3">@DataLocalizer["Data Entry"]</AeTypography>
+                            <AeTypography Variant="h3">@Localizer["Data Entry"]</AeTypography>
                         }
                     }
-                    <AeTypography>@DataLocalizer["Start the Data Entry application enabled for this project"]</AeTypography>
+                    <AeTypography>@Localizer["Start the Data Entry application enabled for this project"]</AeTypography>
                 </ChildContent>
                 <Footer>
                     @if (!_webFormsAuthorized & _userAccessLoaded)
                     {
                         @if (_webFormsRequested)
                         {
-                            <AeTypography class="warning">@DataLocalizer["Access Request is being reviewed"]</AeTypography>
+                            <AeTypography class="warning">@Localizer["Access Request is being reviewed"]</AeTypography>
                         }
                         else
                         {
-                            <AeTypography class="warning">@DataLocalizer["Access not authorized"]</AeTypography>
-                            <AeButton @onclick="@(async () => await RequestAccess(false, false, true))">@DataLocalizer["Request Access"]</AeButton>
+                            <AeTypography class="warning">@Localizer["Access not authorized"]</AeTypography>
+                            <AeButton @onclick="@(async () => await RequestAccess(false, false, true))">@Localizer["Request Access"]</AeButton>
                         }
                     }
 
@@ -218,8 +224,8 @@ else
                 </Header>
                 <ChildContent>
                     <AeFlex Vertical>
-                        <DHLink Variant="h3" DataProject="@projectAcronym" LinkType="DatahubLinkType.FormBuilder">@DataLocalizer["Form Builder"]</DHLink>
-                        <AeTypography>@DataLocalizer["Design custom data entry forms"]</AeTypography>
+                        <DHLink Variant="h3" DataProject="@projectAcronym" LinkType="DatahubLinkType.FormBuilder">@Localizer["Form Builder"]</DHLink>
+                        <AeTypography>@Localizer["Design custom data entry forms"]</AeTypography>
                     </AeFlex>
                 </ChildContent>
             </AeCard>
@@ -238,13 +244,13 @@ else
 
                         @if (_serviceRequests.Any(r => r.ServiceType == RequestManagementService.STORAGE && r.Is_Completed != null))
                         {
-                            <DHLink Variant="h3" DataProject="@projectAcronym" LinkType="DatahubLinkType.Storage">@DataLocalizer["Project Storage"]</DHLink>
+                            <DHLink Variant="h3" DataProject="@projectAcronym" LinkType="DatahubLinkType.Storage">@Localizer["Project Storage"]</DHLink>
                         }
                         else
                         {
-                            <AeTypography Variant="h3">@DataLocalizer["Project Storage"]</AeTypography>
+                            <AeTypography Variant="h3">@Localizer["Project Storage"]</AeTypography>
                         }
-                        <AeTypography>@DataLocalizer["Access the storage account for this project to upload, download and share datasets with all project members."]</AeTypography>
+                        <AeTypography>@Localizer["Access the storage account for this project to upload, download and share datasets with all project members."]</AeTypography>
 
                     </AeFlex>
                 </ChildContent>
@@ -254,11 +260,11 @@ else
                     }
                     else if (_serviceRequests.Any(r => r.ServiceType == "storage" && r.Is_Completed == null))
                     {
-                        <AeTypography class="warning">@DataLocalizer["Service Request is being reviewed"]</AeTypography>
+                        <AeTypography class="warning">@Localizer["Service Request is being reviewed"]</AeTypography>
                     }
                     else
                     {
-                        <AeButton @onclick="@(async () => await RequestServiceAccess("storage"))">@DataLocalizer["Request Service Creation"]</AeButton>
+                        <AeButton @onclick="@(async () => await RequestServiceAccess("storage"))">@Localizer["Request Service Creation"]</AeButton>
                     }
                 </Footer>
             </AeCard>
@@ -300,7 +306,7 @@ else
                     <ChildContent>
                         <AeFlex Vertical>
                             <AeTypography Variant="h3">
-                                @DataLocalizer["Cost"]
+                                @Localizer["Cost"]
                             </AeTypography>
                             <AeTypography>
                                 @_projectCostFormatted
@@ -308,7 +314,7 @@ else
                         </AeFlex>
                     </ChildContent>
                     <Footer>
-                        <AeButton>@DataLocalizer["Project_Cost_Button"]</AeButton>
+                        <AeButton>@Localizer["Project_Cost_Button"]</AeButton>
                     </Footer>
                 </AeCard>
             </AuthorizeView>
@@ -342,7 +348,7 @@ else
                     }
                     else
                     {
-                        <AeButton @onclick="@(async () => await RequestServiceAccess("psql"))">@DataLocalizer["Request Service Creation"]</AeButton>
+                        <AeButton @onclick="@(async () => await RequestServiceAccess("psql"))">@Localizer["Request Service Creation"]</AeButton>
                     }
                 </Footer>
             </AeCard>
@@ -364,7 +370,7 @@ else
                     </AeFlex>
                 </ChildContent>
                 <Footer>
-                    <AeButton @onclick="@(async () => await RequestServiceAccess("sql"))">@DataLocalizer["Request Service Creation"]</AeButton>
+                    <AeButton @onclick="@(async () => await RequestServiceAccess("sql"))">@Localizer["Request Service Creation"]</AeButton>
                 </Footer>
             </AeCard>
         }
@@ -384,16 +390,16 @@ else
                 </ChildContent>
                 <Footer>
                     <NavLink href="@($"/edit-project/{projectAcronym}")">
-                        <AeButton>@DataLocalizer["Edit Project"]</AeButton>
+                        <AeButton>@Localizer["Edit Project"]</AeButton>
                     </NavLink>
                     <NavLink href="@($"/tracker/{projectAcronym}")">
-                        <AeButton>@DataLocalizer["Project Tracker"]</AeButton>
+                        <AeButton>@Localizer["Project Tracker"]</AeButton>
                     </NavLink>
                     <NavLink href="@($"/admin/powerbi/{projectAcronym}")">
-                        <AeButton>@DataLocalizer["Power BI Links"]</AeButton>
+                        <AeButton>@Localizer["Power BI Links"]</AeButton>
                     </NavLink>
                     <NavLink href="@($"/admin/onboardusers/{projectAcronym}")">
-                        <AeButton>@DataLocalizer["Onboard Users"]</AeButton>
+                        <AeButton>@Localizer["Onboard Users"]</AeButton>
                     </NavLink>
                 </Footer>
 
@@ -417,8 +423,8 @@ else
 
 
     private bool _isProjectUserPendingApproval;
-    private string _admins;
     private string _users;
+    private List<Datahub_Project_User> _projectUsers;
     private bool _isDataApprover;
     private int _sharingRequestAwaitingApprovalCount;
     private int _ownSharingRequestCount;
@@ -495,13 +501,13 @@ else
         _user = await UserInformationService.GetUserAsync();
         await RefreshComponents();
 
-        var projectUsers = await projectContext.Project_Users.Where(u => u.User_ID == _userId && _project == u.Project).ToListAsync();
-        if (projectUsers != null && projectUsers.Count > 0)
-        {
-            _isDataApprover = projectUsers.Any(u => u.IsDataApprover);
-        }
-
-        _admins = await ServiceAuthManager.GetAdminUserString(projectAcronym);
+        var projectUsers = await projectContext.Project_Users
+            .Where(u => u.User_ID == _userId && _project == u.Project)
+            .ToListAsync();
+        
+        _isDataApprover = projectUsers.Any(u => u.IsDataApprover);
+        // _admins = await ServiceAuthManager.GetAdminUserString(projectAcronym);
+        
         await LoadUserList();
 
         _sharingRequestAwaitingApprovalCount = await PublicDataFileService.GetDataSharingRequestsAwaitingApprovalCount(projectAcronym);
@@ -542,7 +548,9 @@ else
 
     private async Task LoadUserList()
     {
-        var userList = projectContext.Project_Users.Where(u => !u.IsAdmin && _project == u.Project).ToList();
+        var userList = projectContext.Project_Users
+            .Where(u => !u.IsAdmin && _project == u.Project)
+            .ToList();
         StringBuilder sbUsers = new();
         foreach (var user in userList)
         {
@@ -568,13 +576,13 @@ else
             .FirstOrDefaultAsync();
 
         if (prjCost == null)
-            return DataLocalizer["No cost data found."];
+            return Localizer["No cost data found."];
 
         var cost = Convert.ToDecimal(prjCost.Cost_AMT).ToString("C2");
         var fromDate = prjCost.Usage_DT.AddMonths(-1).ToShortDateString();
         var toDate = prjCost.Usage_DT.ToShortDateString();
         var asofDate = prjCost.Updated_DT.ToShortDateString();
-        var template = DataLocalizer["As of {0}, total resource cost is {1} for the period from {2} to {3}."];
+        var template = Localizer["As of {0}, total resource cost is {1} for the period from {2} to {3}."];
 
         return string.Format(template, asofDate, cost, toDate, asofDate);
     }
@@ -590,19 +598,20 @@ else
 
     private async Task RequestProjectAccess()
     {
+
         var request = new Datahub_Project_User_Request()
         {
             User_ID = _userId,
             Project = _project,
             Requested_DT = DateTime.Now
         };
-
+        
         projectContext.Project_Users_Requests.Add(request);
         await projectContext.SaveChangesAsync();
-
+        
         var admins = await GetProjectAdministratorEmailsAndIds();
         await EmailNotificationService.SendServiceAccessRequestNotification(_user.DisplayName, "project", _project.ProjectInfo, admins);
-
+        
         await RefreshComponents();
     }
 

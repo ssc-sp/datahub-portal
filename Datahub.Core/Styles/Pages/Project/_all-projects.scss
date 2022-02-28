@@ -17,13 +17,12 @@
       gap: 1rem 2rem;
       
       border-left: 4px solid c.$transparent;
-      border-radius: 4px;
       padding: 1rem;
       transition: all .3s c.$cubic-bezier;
       
       &:hover {
         border-color: c.$grey-300;
-        background-color: c.$white;
+        background-color: c.$grey-200;
       }
       
       .sector {

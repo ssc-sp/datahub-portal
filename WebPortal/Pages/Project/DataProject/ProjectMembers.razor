@@ -1,0 +1,108 @@
+@using Datahub.Core.Data.DTO
+@inject ServiceAuthManager _serviceAuthManager
+@inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
+@inject IUserInformationService _userInformationService
+@inject IEmailNotificationService _emailNotificationService
+
+
+@if (_isLoading)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <AuthorizeView Roles="@($"{ProjectAcronym}, {ProjectAcronym}-admin, {RoleConstants.DATAHUB_ROLE_ADMIN}")">
+        <NotAuthorized>
+            <AeTypography Variant="h3">@Localizer["Access Denied"]</AeTypography>
+            <AeTypography class="warning">@Localizer["You currently do not have access to this project."]</AeTypography>
+            @if (_isProjectUserPendingApproval)
+            {
+                <AeTypography class="warning">@Localizer["Access Request is being reviewed"]</AeTypography>
+            }
+            else
+            {
+                <AeButton @onclick="RequestProjectAccess">@Localizer["Request Access"]</AeButton>
+            }
+        </NotAuthorized>
+        <Authorized>
+            <AeTypography>
+                <b>@Localizer["Project Administrators:"]</b> @string.Join("; ", _projectUsers.Where(u => u.IsAdmin).Select(u => u.Name))
+            </AeTypography>
+            <AeTypography>
+                <b>@Localizer["Project Users:"]</b> @string.Join("; ", _projectUsers.Where(u => !u.IsAdmin).Select(u => u.Name))
+            </AeTypography>
+        </Authorized>
+    </AuthorizeView>
+}
+
+@code {
+
+    [Parameter]
+    public string ProjectAcronym { get; set; }
+
+    private bool _isLoading = true;
+    private bool _isProjectUserPendingApproval;
+
+    private DatahubProjectDBContext _projectContext;
+
+    private List<ProjectMember> _projectUsers;
+    private Microsoft.Graph.User _user;
+    private string _userId;
+    private Datahub_Project _project;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        _projectContext = await _dbFactoryProject.CreateDbContextAsync();
+        _userId = await _userInformationService.GetUserIdString();
+        _user = await _userInformationService.GetUserAsync();
+
+        _project = await _projectContext.Projects
+            .Include(p => p.Requests)
+            .Include(p => p.Pipelines)
+            .SingleAsync(p => p.Project_Acronym_CD == ProjectAcronym);
+
+        _isProjectUserPendingApproval = _projectContext.Project_Users_Requests
+            .Any(u =>
+                u.User_ID == _user.Id &&
+                _project == u.Project &&
+                u.Approved_DT == null);
+
+        _projectUsers = await _serviceAuthManager.GetProjectMembers(ProjectAcronym);
+
+        _isLoading = false;
+    }
+
+    private async Task RequestProjectAccess()
+    {
+        var request = new Datahub_Project_User_Request()
+        {
+            User_ID = _user.Id,
+            Project = _project,
+            Requested_DT = DateTime.Now
+        };
+
+        _projectContext.Project_Users_Requests.Add(request);
+        await _projectContext.SaveChangesAsync();
+
+        var admins = await GetProjectAdministratorEmailsAndIds();
+        await _emailNotificationService.SendServiceAccessRequestNotification(_user.DisplayName, "project", _project.ProjectInfo, admins);
+
+        _isProjectUserPendingApproval = true;
+    }
+
+    private async Task<List<string>> GetProjectAdministratorEmailsAndIds()
+    {
+        var loadUsersTask = _projectContext.Entry(_project).Collection(p => p.Users).LoadAsync();
+        var adminEmails = ServiceAuthManager.ExtractEmails(_project.Project_Admin ?? string.Empty);
+
+        await loadUsersTask;
+
+        var adminUsers = _project.Users.Where(u => u.IsAdmin).Select(u => u.User_ID);
+
+        return adminEmails
+            .Concat(adminUsers)
+            .ToList();
+    }
+
+}
