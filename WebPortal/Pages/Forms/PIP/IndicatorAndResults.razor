@@ -197,16 +197,16 @@
     }
 
     protected void ClearContextlocks(IModelFormContext context)
-    {
-        context.RegisterCategoryLocks("Target", false);
-        context.RegisterCategoryLocks("Actual Results", false);
-        context.RegisterCategoryLocks("Latest Update Information", false);
-        context.RegisterCategoryLocks("Methodology", false);        
+    {        
+        context.RegisterCategoryLock("Target", false);
+        context.RegisterCategoryLock("Actual Results", false);
+        context.RegisterCategoryLock("Latest Update Information", false);
+        context.RegisterCategoryLock("Methodology", false);        
     }
 
     protected void UpdateLocks(IModelFormContext context)
     {
-        var lockedCategories = context.GetLockedCategories;
+        var lockedCategories = context.LockedCategories;
         _indicator.IsActualResultsLocked = false;
         _indicator.IsLatestUpdateLocked = false;
         _indicator.IsMethodologyLocked = false;
@@ -227,13 +227,13 @@
     {
 
         if (_indicator.IsTargetLocked)
-            context.RegisterCategoryLocks("Target", true);
+            context.RegisterCategoryLock("Target", true);
         if (_indicator.IsActualResultsLocked)
-            context.RegisterCategoryLocks("Actual Results", true);
+            context.RegisterCategoryLock("Actual Results", true);
         if (_indicator.IsLatestUpdateLocked)
-            context.RegisterCategoryLocks("Latest Update Information", true);
+            context.RegisterCategoryLock("Latest Update Information", true);
         if (_indicator.IsMethodologyLocked)
-            context.RegisterCategoryLocks("Methodology", true);        
+            context.RegisterCategoryLock("Methodology", true);        
 
     }
     protected override void OnAfterRender(bool firstRender)
