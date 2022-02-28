@@ -1,0 +1,65 @@
+# ASP.NET Core (.NET Framework)
+# Build and test ASP.NET Core projects targeting the full .NET Framework.
+# Add steps that publish symbols, save build artifacts, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/dotnet-core
+
+pool:
+  vmImage: 'windows-latest'
+
+variables:
+  solution: '**/Datahub.Portal.sln'
+  buildPlatform: 'Any CPU'
+  buildConfiguration: 'Release'
+
+steps:
+
+
+- task: UseDotNet@2
+  displayName: 'Install .NET Core SDK'
+  inputs:
+    version: 6.0.x
+    performMultiLevelLookup: true
+    includePreviewVersions: true # Required for preview versions
+
+- task: NodeTool@0
+  displayName: 'install node'
+  inputs:
+    versionSpec: '15.11.0'
+
+- task: DotNetCoreCLI@2
+  displayName: dotnet restore
+  inputs:
+    command: restore
+    projects: 'WebPortal/*.csproj'
+    includeNuGetOrg: true
+    
+- task: PowerShell@2
+  inputs:
+    targetType: 'inline'
+    script: |
+      $files=Get-Childitem -Path WebPortal,DatahubIntakeForms,.vscode -Include  appsettings*json-tmpl,launch*json-tmpl -File -Recurse -ErrorAction SilentlyContinue  | Where {$_.FullName -notlike "*\Debug\*"}
+      foreach ($file in $files){
+        $fileRendered=$file.FullName.trim("-tmpl")
+        Write-Host "Processing file: ${file} > $fileRendered"
+        Copy-Item $file.FullName -Force -Destination $fileRendered
+      }
+      cd WebPortal; mv appsettings.Development.json appsettings.dev.json; Move-Item -Force appsettings.json-tmpl-spdatahub appsettings.json
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'publish'
+    projects: 'WebPortal/*.csproj'
+    arguments: ' -r win-x64 --self-contained true '
+    zipAfterPublish: true
+
+- task: AzureRmWebAppDeployment@4
+  inputs:
+    ConnectionType: 'AzureRM'
+    azureSubscription: 'AZRM - DataSolutions'
+    appType: 'webApp'
+    WebAppName: 'spdatahub-portal-app-sand'
+    DeployToSlotOrASEFlag: true
+    SlotName: 'stage'
+    ResourceGroupName: 'sp-datahub-sand-rg'
+    package: '$(System.DefaultWorkingDirectory)/WebPortal/**/*.zip'
+    enableCustomDeployment: true
+    DeploymentType: 'webDeploy'
