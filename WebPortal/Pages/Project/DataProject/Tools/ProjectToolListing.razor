@@ -4,60 +4,61 @@
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject IOptions<DataProjectsConfiguration> _configuration
 
-<h3>ProjectTools</h3>
+
 <AuthorizeView Roles="@($"{ProjectAcronym}, {ProjectAcronym}-admin, {RoleConstants.DATAHUB_ROLE_ADMIN}")">
+    <div class="project-tools">
 
-    <h2>@Localizer["Data Project Tools"]</h2>
-    @if (_isLoading)
-    {
-        <Spinner/>
-    }
-    else
-    {
-        <div class="ae flex wrap">
+        <h2>@Localizer["Data Project Tools"]</h2>
+        @if (_isLoading)
+        {
+            <Spinner/>
+        }
+        else
+        {
+            <div class="ae flex wrap">
 
-            @if (_configuration.Value.Databricks)
-            {
-                <Databricks/>
-            }
-            @if (_configuration.Value.PowerBI)
-            {
-                <PowerBi/>
-            }
-            @if (!string.IsNullOrEmpty(_project.WebForms_URL) && _configuration.Value.WebForms)
-            {
-                <DataEntry/>
-            }
-            @if (_configuration.Value.WebForms)
-            {
-                <WebForms/>
-            }
-            @if (_configuration.Value.Storage)
-            {
-                <Storage/>
-            }
-            @if (_configuration.Value.PublicSharing)
-            {
-                <PublicSharing/>
-            }
+                @if (_configuration.Value.Databricks)
+                {
+                    <Databricks/>
+                }
+                @if (_configuration.Value.PowerBI)
+                {
+                    <PowerBi/>
+                }
+                @if (!string.IsNullOrEmpty(_project.WebForms_URL) && _configuration.Value.WebForms)
+                {
+                    <DataEntry/>
+                }
+                @if (_configuration.Value.WebForms)
+                {
+                    <WebForms/>
+                }
+                @if (_configuration.Value.Storage)
+                {
+                    <Storage/>
+                }
+                @if (_configuration.Value.PublicSharing)
+                {
+                    <PublicSharing/>
+                }
 
-            @if (_configuration.Value.Costing)
-            {
-                <Costing/>
-            }
+                @if (_configuration.Value.Costing)
+                {
+                    <Costing/>
+                }
 
-            @if (_configuration.Value.PostgreSQL)
-            {
-                <PostgreSQL/>
-            }
+                @if (_configuration.Value.PostgreSQL)
+                {
+                    <PostgreSQL/>
+                }
 
-            @if (_configuration.Value.SQLServer)
-            {
-                <SQLServer/>
-            }
-        </div>
-    }
-
+                @if (_configuration.Value.SQLServer)
+                {
+                    <SQLServer/>
+                }
+            </div>
+        }
+    </div>
 </AuthorizeView>
 
 @code {

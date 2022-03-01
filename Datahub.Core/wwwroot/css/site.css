@@ -5006,6 +5006,17 @@ code {
   opacity: 0.5;
 }
 
+.project-page {
+  display: grid;
+  grid-template-columns: 3fr 1fr;
+  grid-template-rows: auto auto;
+  gap: 2rem;
+}
+.project-page .project-members {
+  grid-column: 2;
+  grid-row: 1/span 2;
+}
+
 .item-details-container {
   padding: 1rem;
   font-size: 0.8rem;
