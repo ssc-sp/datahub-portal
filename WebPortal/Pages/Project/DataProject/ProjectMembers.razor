@@ -11,35 +11,37 @@
 }
 else
 {
-    <AuthorizeView Roles="@($"{ProjectAcronym}, {ProjectAcronym}-admin, {RoleConstants.DATAHUB_ROLE_ADMIN}")">
-        <NotAuthorized>
-            <AeTypography Variant="h3">@Localizer["Access Denied"]</AeTypography>
-            <AeTypography class="warning">@Localizer["You currently do not have access to this project."]</AeTypography>
-            @if (_isProjectUserPendingApproval)
-            {
-                <AeTypography class="warning">@Localizer["Access Request is being reviewed"]</AeTypography>
-            }
-            else
-            {
-                <AeButton @onclick="RequestProjectAccess">@Localizer["Request Access"]</AeButton>
-            }
-        </NotAuthorized>
-        <Authorized>
-            <AeTypography>
-                <b>@Localizer["Project Administrators:"]</b> @string.Join("; ", _projectUsers.Where(u => u.IsAdmin).Select(u => u.Name))
-            </AeTypography>
-            <AeTypography>
-                <b>@Localizer["Project Users:"]</b> @string.Join("; ", _projectUsers.Where(u => !u.IsAdmin).Select(u => u.Name))
-            </AeTypography>
-        </Authorized>
-    </AuthorizeView>
+    <div class="project-members">
+        <AuthorizeView Roles="@($"{ProjectAcronym}, {ProjectAcronym}-admin, {RoleConstants.DATAHUB_ROLE_ADMIN}")">
+            <NotAuthorized>
+                <AeTypography Variant="h3">@Localizer["Access Denied"]</AeTypography>
+                <AeTypography class="warning">@Localizer["You currently do not have access to this project."]</AeTypography>
+                @if (_isProjectUserPendingApproval)
+                {
+                    <AeTypography class="warning">@Localizer["Access Request is being reviewed"]</AeTypography>
+                }
+                else
+                {
+                    <AeButton @onclick="RequestProjectAccess">@Localizer["Request Access"]</AeButton>
+                }
+            </NotAuthorized>
+            <Authorized>
+                <AeTypography>
+                    <b>@Localizer["Project Administrators:"]</b> @string.Join("; ", _projectUsers.Where(u => u.IsAdmin).Select(u => u.Name))
+                </AeTypography>
+                <AeTypography>
+                    <b>@Localizer["Project Users:"]</b> @string.Join("; ", _projectUsers.Where(u => !u.IsAdmin).Select(u => u.Name))
+                </AeTypography>
+            </Authorized>
+        </AuthorizeView>
+    </div>
 }
 
 @code {
 
     [CascadingParameter(Name = "ProjectAcronym")]
     public string ProjectAcronym { get; set; }
-    
+
     private bool _isLoading = true;
     private bool _isProjectUserPendingApproval;
 
@@ -52,12 +54,12 @@ else
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        
+
         await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
         _project = await projectContext.Projects
             .Include(p => p.Pipelines)
             .SingleAsync(p => p.Project_Acronym_CD == ProjectAcronym);
-        
+
         _user = await _userInformationService.GetUserAsync();
 
         _isProjectUserPendingApproval = projectContext.Project_Users_Requests
@@ -79,7 +81,7 @@ else
             Project = _project,
             Requested_DT = DateTime.Now
         };
-        
+
         await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
 
         projectContext.Project_Users_Requests.Add(request);
@@ -98,7 +100,7 @@ else
             .Entry(_project)
             .Collection(p => p.Users)
             .LoadAsync();
-        
+
         var adminEmails = ServiceAuthManager.
             ExtractEmails(_project.Project_Admin ?? string.Empty);
 
