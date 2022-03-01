@@ -1,0 +1,21 @@
+
+
+.project-page {
+  display: grid;
+  grid-template-columns: 3fr 1fr;
+  grid-template-rows: auto auto;
+  
+  gap: 2rem;
+  
+  .project-info {
+    
+  }
+  
+  .project-members {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+  }
+  
+  
+  
+}
