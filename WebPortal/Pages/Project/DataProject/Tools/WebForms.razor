@@ -1,0 +1,18 @@
+<AeCard class="facard1" CardPosition="AeCard.CardStyle.Horizontal">
+    <Header>
+        <div class="blue" style="width:180px">
+            <AeIcon class="fad fa-file-alt card-icon fa-xs"/>
+        </div>
+    </Header>
+    <ChildContent>
+        <AeFlex Vertical>
+            <DHLink Variant="h3" DataProject="@ProjectAcronym" LinkType="DatahubLinkType.FormBuilder">@Localizer["Form Builder"]</DHLink>
+            <AeTypography>@Localizer["Design custom data entry forms"]</AeTypography>
+        </AeFlex>
+    </ChildContent>
+</AeCard>
+
+@code {
+    [CascadingParameter(Name = "ProjectAcronym")]
+    public string ProjectAcronym { get; set; }
+}
