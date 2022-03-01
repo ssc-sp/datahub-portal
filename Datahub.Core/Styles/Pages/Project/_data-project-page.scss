@@ -1,3 +1,5 @@
+@use '../../Common' as c;
+
 
 
 .project-page {
@@ -6,10 +8,27 @@
   grid-template-rows: auto auto;
   
   gap: 2rem;
-  
+
   .project-info {
     
+    .project-data-sensitivity {
+      text-transform: uppercase;
+      font-weight: bold;
+      font-family: monospace;
+      background-color: c.$grey-800;
+      color: c.$white;
+      border-radius: 4px;
+      display: inline-block;
+      padding: 0 0.5rem;
+    }
+    
+    .project-icon {
+      font-size: 2rem;
+    }
+    .description {
+    }
   }
+
   
   .project-members {
     grid-column: 2;

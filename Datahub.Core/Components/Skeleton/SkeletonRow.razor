@@ -1,0 +1,14 @@
+<span class="skeleton row wave" style="@_style" ></span>
+
+
+@code {
+
+    [Parameter]
+    public string Height { get; set; }
+    
+    [Parameter]
+    public string Width { get; set; }
+
+    private string _style => $"height: {Height}; width: {Width}";
+
+}
