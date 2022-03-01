@@ -1,3 +1,4 @@
+@charset "UTF-8";
 @import url("https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap");
 /** Transparent **/
 /** Black **/
@@ -4560,6 +4561,63 @@ code {
   background-color: #fed7d7;
 }
 
+.skeleton {
+  height: 1.2rem;
+  display: block;
+  background-color: #cbd5e0;
+}
+.skeleton.row {
+  height: auto;
+  transform: scale(1, 0.6);
+  margin-top: 0;
+  margin-bottom: 0;
+  border-radius: 4px;
+  transform-origin: 0 60%;
+}
+.skeleton.row:empty:before {
+  content: " ";
+}
+.skeleton.pulse {
+  animation: skeleton-keyframes-pulse 1.5s ease-in-out 0.5s infinite;
+}
+.skeleton.wave {
+  overflow: hidden;
+  position: relative;
+}
+.skeleton.wave::after {
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  content: "";
+  position: absolute;
+  animation: skeleton-keyframes-wave 1.6s linear 0.5s infinite;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.04), transparent);
+}
+
+@-webkit-keyframes skeleton-keyframes-pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+@-webkit-keyframes skeleton-keyframes-wave {
+  0% {
+    transform: translateX(-100%);
+  }
+  60% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
 /** Transparent **/
 /** Black **/
 /** White **/
@@ -5011,6 +5069,19 @@ code {
   grid-template-columns: 3fr 1fr;
   grid-template-rows: auto auto;
   gap: 2rem;
+}
+.project-page .project-info .project-data-sensitivity {
+  text-transform: uppercase;
+  font-weight: bold;
+  font-family: monospace;
+  background-color: #2d3748;
+  color: #fff;
+  border-radius: 4px;
+  display: inline-block;
+  padding: 0 0.5rem;
+}
+.project-page .project-info .project-icon {
+  font-size: 2rem;
 }
 .project-page .project-members {
   grid-column: 2;
