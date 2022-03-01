@@ -1,27 +1,38 @@
+@using Datahub.Core.Components.Skeleton
+
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 
-@if (_project is null)
+<div class="project-info">
+@if (_loading)
 {
-    <div>Loading</div>
+    <SkeletonRow Height="1.5rem" Width="100px" />
+    <SkeletonRow Height="4rem" Width="50%" />
+    <SkeletonRow Height="2rem" Width="80%" />
+    <SkeletonRow Height="2rem" Width="85%"/>
+    <SkeletonRow Height="2rem" Width="40%" />
 }
 else
 {
-    <div class="project-info">
-        <AeTypography class="data-sensitivity">@Localizer[_project.Data_Sensitivity]</AeTypography>
+        <AeTypography class="project-data-sensitivity">@Localizer[_project.Data_Sensitivity]</AeTypography>
         <AeTypography Variant="h1">
-            <i class="@($"fad fa-{_project.Project_Icon}")"></i>
+            <span class="project-icon">
+                <i class="@($"fad fa-{_projectIcon}")"></i>
+            </span>
             @_project.ProjectName
         </AeTypography>
         <AeMarkdown class="description" Content="@($"{_project.ProjectDescription}")"/>
-    </div>
 }
+</div>
 
 @code {
 
     [CascadingParameter(Name = "ProjectAcronym")]
     public string ProjectAcronym { get; set; }
-    
+
     private Datahub_Project _project;
+    private string _projectIcon => $"fas fa-{_project?.Project_Icon ?? "swatchbook"}";
+
+    private bool _loading = true;
 
     protected override async Task OnInitializedAsync()
     {
@@ -30,5 +41,7 @@ else
         await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
         _project = await projectContext.Projects
             .SingleAsync(p => p.Project_Acronym_CD == ProjectAcronym);
+        _loading = false;
     }
+
 }
