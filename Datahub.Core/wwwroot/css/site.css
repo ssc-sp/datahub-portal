@@ -5080,7 +5080,10 @@ code {
   display: inline-block;
   padding: 0 0.5rem;
 }
-.project-page .project-info .project-icon {
+.project-page .project-info .project-title {
+  margin-top: 0.5rem;
+}
+.project-page .project-info .project-title .project-icon {
   font-size: 2rem;
 }
 .project-page .project-members {

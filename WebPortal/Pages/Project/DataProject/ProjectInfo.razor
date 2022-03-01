@@ -5,16 +5,16 @@
 <div class="project-info">
 @if (_loading)
 {
-    <SkeletonRow Height="1.5rem" Width="100px" />
-    <SkeletonRow Height="4rem" Width="50%" />
-    <SkeletonRow Height="2rem" Width="80%" />
-    <SkeletonRow Height="2rem" Width="85%"/>
-    <SkeletonRow Height="2rem" Width="40%" />
+    <SkeletonRow Height="2.5rem" Width="150px" />
+    <SkeletonRow Height="5rem" Width="650px" />
+    <SkeletonRow Height="2rem" Width="900px" />
+    <SkeletonRow Height="2rem" Width="900px"/>
+    <SkeletonRow Height="2rem" Width="300px" />
 }
 else
 {
         <AeTypography class="project-data-sensitivity">@Localizer[_project.Data_Sensitivity]</AeTypography>
-        <AeTypography Variant="h1">
+        <AeTypography class="project-title" Variant="h1">
             <span class="project-icon">
                 <i class="@($"fad fa-{_projectIcon}")"></i>
             </span>
@@ -41,6 +41,7 @@ else
         await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
         _project = await projectContext.Projects
             .SingleAsync(p => p.Project_Acronym_CD == ProjectAcronym);
+
         _loading = false;
     }
 
