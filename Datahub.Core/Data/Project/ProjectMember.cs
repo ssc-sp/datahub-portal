@@ -4,11 +4,11 @@ namespace Datahub.Core.Data.DTO;
 
 public class ProjectMember
 {
-    public string UserId { get; init; }
-    public string Email { get; init; }
+    public string UserId { get; }
+    public string Email { get; }
     public string Name { get; init; }
-    public bool IsAdmin { get; init; }
-    public bool IsDataApprover { get; init; }
+    public bool IsAdmin { get; }
+    public bool IsDataApprover { get; }
 
     public ProjectMember(Datahub_Project_User projectUser)
     {

@@ -1,0 +1,130 @@
+@inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
+@inject RequestManagementService _requestManagementService
+
+@if (_project is null)
+{
+    <div>Loading... databraicks.razor</div>
+}
+else
+{
+    <AeCard class="facard1" CardPosition="AeCard.CardStyle.Horizontal">
+        <Header>
+            <div style="width:180px">
+                <img src="/icons/svg/databricks.svg" alt="Databricks">
+            </div>
+        </Header>
+        <ChildContent>
+            @if (!string.IsNullOrWhiteSpace(_project.Databricks_URL))
+            {
+                <DHLink Variant="h3" DataProject="@ProjectAcronym" DatabricksURL="@_project.Databricks_URL">@Localizer["Azure Databricks"]</DHLink>
+            }
+            else
+            {
+                <AeTypography Variant="h3">@Localizer["Azure Databricks"]</AeTypography>
+            }
+            <AeTypography>@Localizer["Run your Python, R and SQL notebooks in the cloud with Databricks for analytics, machine learning and data pipelines"]</AeTypography>
+        </ChildContent>
+        <Footer>
+            <AeFlex Vertical>
+                @if (!_databricksAuthorized)
+                {
+                    @if (!string.IsNullOrWhiteSpace(_project.Databricks_URL))
+                    {
+                        @if (_databricksRequested)
+                        {
+                            <AeTypography class="warning">@Localizer["Access Request is being reviewed"]</AeTypography>
+                        }
+                        else
+                        {
+                            <AeTypography class="warning">@Localizer["Access not authorized"]</AeTypography>
+                            <AeButton @onclick="@HandleRequestAccess">@Localizer["Request Access"]</AeButton>
+                        }
+                    }
+                    else
+                    {
+                        @if (_databricksServiceRequested)
+                        {
+                            <AeTypography class="warning">@Localizer["Service Request is being reviewed"]</AeTypography>
+                        }
+                        else
+                        {
+                            <AeButton @onclick="@HandleRequestService">@Localizer["Request Service Creation"]</AeButton>
+                        }
+                    }
+                }
+            </AeFlex>
+        </Footer>
+    </AeCard>
+}
+
+@code {
+
+    [CascadingParameter(Name = "ProjectAcronym")]
+    public string ProjectAcronym { get; set; }
+
+    [CascadingParameter(Name = "UserId")]
+    public string UserId { get; set; }
+
+    [CascadingParameter(Name = "GraphUser")]
+    public Microsoft.Graph.User GraphUser { get; set; }
+
+    private bool _databricksRequested;
+    private bool _databricksServiceRequested;
+    private bool _databricksAuthorized;
+
+    private Datahub_Project _project;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        await using var projectDbContext = await _dbFactoryProject.CreateDbContextAsync();
+        
+        _project = await projectDbContext.Projects
+            .Include(p => p.Requests)
+            .SingleAsync(p => p.Project_Acronym_CD == ProjectAcronym);
+
+        if (UserId != null)
+        {
+            _databricksRequested = _project.Requests.Any(r => r.Databricks);
+            _databricksAuthorized = _project.Requests
+                .Where(r => r.User_ID == UserId && r.Completion_DT != null)
+                .Any(r => r.Databricks);
+            _databricksServiceRequested = await projectDbContext.Project_Requests
+                .Where(p => p.Project == _project)
+                .AnyAsync(r =>
+                    r.ServiceType == RequestManagementService.DATABRICKS
+                    && r.Is_Completed == null);
+        }
+    }
+
+    private async Task HandleRequestAccess()
+    {
+        var request = new Datahub_Project_Access_Request()
+        {
+            Request_DT = DateTime.Now,
+            User_Name = GraphUser.UserPrincipalName,
+            User_ID = UserId,
+            Project = _project,
+            Databricks = true
+        };
+
+        await _requestManagementService.RequestAccess(request);
+    }
+
+    private async Task HandleRequestService()
+    {
+        var serviceRequest = new Datahub_ProjectServiceRequests()
+        {
+            ServiceType = RequestManagementService.DATABRICKS,
+            ServiceRequests_Date_DT = DateTime.Now,
+            Is_Completed = null,
+            Project = _project,
+            User_ID = UserId,
+            User_Name = GraphUser.UserPrincipalName
+        };
+
+        await _requestManagementService.RequestService(serviceRequest);
+    }
+
+}
