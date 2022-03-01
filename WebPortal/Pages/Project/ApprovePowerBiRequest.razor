@@ -1,0 +1,283 @@
+﻿@page "/project/{ProjectAcronym}/powerbirequest"
+@using global::Datahub.Core.Components
+@using global::Datahub.Core.EFCore
+@using global::Datahub.Core.Services
+@using global::Datahub.Portal.Data
+@using global::Datahub.Portal.Services
+@using global::Microsoft.Extensions.Logging
+
+@inject IDbContextFactory<DatahubProjectDBContext> _contextFactory
+@inject PowerBiServiceApi _powerBiApi
+@inject IPowerBiDataService _powerBiDataService
+@inject Microsoft.Identity.Web.MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
+@inject ILogger<ApprovePowerBiRequest> _logger;
+
+<div style="padding-left: 2rem;padding-right: 2rem">
+
+    <h3>PowerBI Request Confirmation</h3>
+
+    <AeFlex Vertical>
+        <AeCard class="facard1 doublewide">
+
+            @if (IsInitializing)
+            {
+                <Spinner />
+            }
+            else
+            {
+                if (!PowerBiRequestExists)
+                {
+                    <AeTypography Variant="p">This project has no open PowerBI request at this time.</AeTypography>
+                }
+                else if (PowerBiRequestAlreadyCompleted)
+                {
+                    <AeTypography Variant="p">This project already has PowerBI enabled. No further action is needed.</AeTypography>
+                }
+                else
+                {
+                    if (HasConflict)
+                    {
+                        <AeTypography Variant="p">One or more of the following workspaces conflicts with an existing PowerBI workspace:</AeTypography>
+                        <ul>
+                            <li>Production: @ProdWorkspaceToCreate</li>
+                            <li>Sandbox: @SandboxWorkspaceToCreate</li>
+                        </ul>
+                        <AeTypography Variant="p">Please use the PowerBI management interface in the Admin section to address this.</AeTypography>
+                    }
+                    else
+                    {
+                        <AeTypography Variant="p">The following workspaces will be created and/or registered, and PowerBI features will be enabled for this project:</AeTypography>
+                        <ul>
+                            <li>Production: @ProdWorkspaceToCreate</li>
+                            <li>Sandbox: @SandboxWorkspaceToCreate</li>
+                        </ul>
+
+                        <div>
+                            <AeButton OnClickEvent=@ApproveRequest Disabled=@DisableApproveButton>Approve</AeButton>
+                            <SuccessIndicator @bind-IsLoading=@IsWorking @ref=@_workingInd />
+                        </div>
+
+                        @if (ErrorDuringApproval)
+                        {
+                            if (PowerBiWriteAccessForbidden)
+                            {
+                                <AeTypography Variant="p">Your account doesn't have permissions to create PowerBI workspaces.</AeTypography>
+                            }
+                            else
+                            {
+                                <AeTypography Variant="p">An error occurred while trying to approve the PowerBI request.</AeTypography>
+                            }
+                        }
+                    }
+                }
+            }
+
+        </AeCard>
+        
+        <div>
+            <DHLink DataProject=@ProjectAcronym>Return to project</DHLink>
+        </div>
+    </AeFlex>
+</div>
+
+
+@code {
+
+    [Parameter]
+    public string ProjectAcronym { get; set; }
+
+    private readonly static string SANDBOX_WORKSPACE_SUFFIX = "[Development]";
+
+    private Datahub_ProjectServiceRequests ProjectRequest { get; set; }
+
+    private string ProjectName { get; set; }
+
+    private List<Microsoft.PowerBI.Api.Models.Group> ExistingWorkspaces { get; set; }
+
+    private bool IsInitializing { get; set; } = true;
+
+    private bool PowerBiRequestExists { get; set; }
+    private bool PowerBiRequestAlreadyCompleted { get; set; }
+    private bool HasConflict { get; set; } = false;
+    private bool PowerBiWriteAccessForbidden { get; set; } = false;
+    private bool ErrorDuringApproval { get; set; } = false;
+
+    private string SandboxWorkspaceToCreate { get; set; }
+    private string ProdWorkspaceToCreate { get; set; }
+
+    private Dictionary<string, Guid> WorkspaceIdsByName { get; set; } = new();
+
+    private bool IsWorking { get; set; } = false;
+    private SuccessIndicator _workingInd;
+    private bool DisableApproveButton => IsWorking;
+
+    private async Task PrepareParameters()
+    {
+        if (ProjectRequest == null)
+        {
+            return;
+        }
+        else
+        {
+            var existingDbWorkspaces = await _powerBiDataService.GetAllWorkspaces();
+            ProdWorkspaceToCreate = ProjectName;
+            SandboxWorkspaceToCreate = $"{ProjectName} {SANDBOX_WORKSPACE_SUFFIX}";
+            var newNamesLower = new List<string> { ProdWorkspaceToCreate.ToLowerInvariant(), SandboxWorkspaceToCreate.ToLowerInvariant() };
+
+            foreach (var lowerName in newNamesLower)
+            {
+                var dbWorkspace = existingDbWorkspaces.FirstOrDefault(w => lowerName == w.Workspace_Name.ToLowerInvariant());
+                var pbiWorkspace = ExistingWorkspaces.FirstOrDefault(w => lowerName == w.Name.ToLowerInvariant());
+
+                if (dbWorkspace != null)
+                {
+                    // conflict if the existing workspace record is assigned to a different project
+                    HasConflict |= dbWorkspace.Project_Id.HasValue && dbWorkspace.Project_Id.Value != ProjectRequest.Project.Project_ID;
+
+                    // conflict if the existing workspace is marked as sandbox but the new one isn't, or vice versa
+                    HasConflict |= dbWorkspace.Sandbox_Flag != (lowerName == SandboxWorkspaceToCreate.ToLowerInvariant());
+
+                    // conflict if the existing workspace's id doesn't match the corresponding PowerBI workspace id
+                    // or if there's no PowerBI workspace that goes with the record, something is wrong
+                    HasConflict |= dbWorkspace.Workspace_ID != (pbiWorkspace?.Id ?? Guid.Empty);
+
+                    // if there's no conflict, we don't need to create a new PowerBI workspace, and can reassign the existing one
+                    // it may also already be assigned to this project, in which case that would be a no-op
+                    if (!HasConflict)
+                    {
+                        WorkspaceIdsByName.Add(dbWorkspace.Workspace_Name, dbWorkspace.Workspace_ID);
+                    }
+                }
+                else if (pbiWorkspace != null)
+                {
+                    // conflict if we already have a record for the pbi workspace but with a different name (otherwise dbWorkspace wouldn't be null)
+                    var nonMatchingExistingWorkspace = existingDbWorkspaces.FirstOrDefault(w => w.Workspace_ID == pbiWorkspace.Id);
+                    HasConflict |= nonMatchingExistingWorkspace != null;
+
+                    // if there's no conflict at this point, we can register this pbi workspace and assign it to the project
+                    if (!HasConflict)
+                    {
+                        WorkspaceIdsByName.Add(pbiWorkspace.Name, pbiWorkspace.Id);
+                    }
+                }
+            }
+        }
+    }
+
+    private async Task<Guid> CreateOrReuseWorkspace(string workspaceName)
+    {
+        if (WorkspaceIdsByName.ContainsKey(workspaceName))
+        {
+            return await Task.FromResult(WorkspaceIdsByName[workspaceName]);
+        }
+        else
+        {
+            try
+            {
+                var result = await _powerBiApi.CreateAppWorkspace(workspaceName);
+                return await Task.FromResult(Guid.Parse(result));
+            }
+            catch (Microsoft.Rest.HttpOperationException ex)
+            {
+                if (ex.Response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+                {
+                    PowerBiWriteAccessForbidden = true;
+                }
+                throw;
+            }
+        }
+    }
+
+    private async Task ApproveRequest()
+    {
+        IsWorking = true;
+        StateHasChanged();
+
+        var projectId = ProjectRequest.Project.Project_ID;
+        var success = true;
+
+        try
+        {
+            var sandboxWsId = await CreateOrReuseWorkspace(SandboxWorkspaceToCreate);
+            var prodWsId = await CreateOrReuseWorkspace(ProdWorkspaceToCreate);
+
+            var workspacesToCreate = new List<PowerBi_WorkspaceDefinition>
+            {
+                new(sandboxWsId, SandboxWorkspaceToCreate, true, projectId),
+                new(prodWsId, ProdWorkspaceToCreate, false, projectId)
+            };
+
+            success &= await _powerBiDataService.AddOrUpdateCataloguedWorkspaces(workspacesToCreate);
+
+            if (success)
+            {
+                using var ctx = await _contextFactory.CreateDbContextAsync();
+
+                var liveProjectRequest = await ctx.Project_Requests
+                    .Include(r => r.Project.Users)
+                    .FirstOrDefaultAsync(r => r.ServiceRequests_ID == ProjectRequest.ServiceRequests_ID);
+
+                liveProjectRequest.Is_Completed = DateTime.UtcNow;
+
+                //TODO notification
+
+                await ctx.SaveChangesAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error enabling PowerBI feature for project {ProjectName}");
+            success = false;
+        }
+
+        if (success)
+        {
+            await _workingInd.SignalSuccess();
+            PowerBiRequestAlreadyCompleted = true;
+        }
+        else
+        {
+            ErrorDuringApproval = true;
+            await _workingInd.SignalFailure();
+        }
+        StateHasChanged();
+    }
+
+    private async Task<bool> LoadPowerBiWorkspaces()
+    {
+        try
+        {
+            ExistingWorkspaces = (await _powerBiApi.GetWorkspaces()).ToList();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _consentHandler.HandleException(ex);
+            return false;
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var powerBiWorkspacesLoaded = await LoadPowerBiWorkspaces();
+        
+        if (powerBiWorkspacesLoaded)
+        {
+            using var ctx = await _contextFactory.CreateDbContextAsync();
+            var request = await ctx.Project_Requests
+                .Include(r => r.Project)
+                .Where(r => r.Project.Project_Acronym_CD == ProjectAcronym && r.ServiceType == "powerbi")
+                .FirstOrDefaultAsync();
+
+            PowerBiRequestExists = request != null;
+            PowerBiRequestAlreadyCompleted = PowerBiRequestExists && request.Is_Completed.HasValue;
+            ProjectName = request?.Project.ProjectName;
+            ProjectRequest = request;
+
+            await PrepareParameters();
+
+            IsInitializing = false;
+            StateHasChanged();
+        }
+    }
+}
