@@ -1,13 +1,34 @@
-<div class="project-info">
-    <AeTypography class="data-sensitivity">@Localizer[Project.Data_Sensitivity]</AeTypography>
-    <AeTypography Variant="h1">
-        <i class="@($"fad fa-{Project.Project_Icon}")"></i>
-        @Project.ProjectName
-    </AeTypography>
-    <AeMarkdown class="description" Content="@($"{Project.ProjectDescription}")"/>
-</div>
+@inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
+
+@if (_project is null)
+{
+    <div>Loading</div>
+}
+else
+{
+    <div class="project-info">
+        <AeTypography class="data-sensitivity">@Localizer[_project.Data_Sensitivity]</AeTypography>
+        <AeTypography Variant="h1">
+            <i class="@($"fad fa-{_project.Project_Icon}")"></i>
+            @_project.ProjectName
+        </AeTypography>
+        <AeMarkdown class="description" Content="@($"{_project.ProjectDescription}")"/>
+    </div>
+}
 
 @code {
-    [Parameter]
-    public Datahub_Project Project { get; set; }
+
+    [CascadingParameter(Name = "ProjectAcronym")]
+    public string ProjectAcronym { get; set; }
+    
+    private Datahub_Project _project;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
+        _project = await projectContext.Projects
+            .SingleAsync(p => p.Project_Acronym_CD == ProjectAcronym);
+    }
 }
