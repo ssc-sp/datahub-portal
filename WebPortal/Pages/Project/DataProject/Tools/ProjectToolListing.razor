@@ -18,49 +18,45 @@
         {
             <div class="tools-container">
 
-                @for (var i = 0; i < 5; i++)
+                @if (_configuration.Value.Databricks)
                 {
-                    <ToolCard />
+                    <Databricks/>
                 }
-                @* @if (_configuration.Value.Databricks) *@
-                @* { *@
-                @*     <Databricks/> *@
-                @* } *@
-                @* @if (_configuration.Value.PowerBI) *@
-                @* { *@
-                @*     <PowerBi/> *@
-                @* } *@
-                @* @if (!string.IsNullOrEmpty(_project.WebForms_URL) && _configuration.Value.WebForms) *@
-                @* { *@
-                @*     <DataEntry/> *@
-                @* } *@
-                @* @if (_configuration.Value.WebForms) *@
-                @* { *@
-                @*     <WebForms/> *@
-                @* } *@
-                @* @if (_configuration.Value.Storage) *@
-                @* { *@
-                @*     <Storage/> *@
-                @* } *@
-                @* @if (_configuration.Value.PublicSharing) *@
-                @* { *@
-                @*     <PublicSharing/> *@
-                @* } *@
-                @* *@
-                @* @if (_configuration.Value.Costing) *@
-                @* { *@
-                @*     <Costing/> *@
-                @* } *@
-                @* *@
-                @* @if (_configuration.Value.PostgreSQL) *@
-                @* { *@
-                @*     <PostgreSQL/> *@
-                @* } *@
-                @* *@
-                @* @if (_configuration.Value.SQLServer) *@
-                @* { *@
-                @*     <SQLServer/> *@
-                @* } *@
+                @if (_configuration.Value.PowerBI)
+                {
+                    <PowerBi/>
+                }
+                @if (!string.IsNullOrEmpty(_project.WebForms_URL) && _configuration.Value.WebForms)
+                {
+                    <DataEntry/>
+                }
+                @if (_configuration.Value.WebForms)
+                {
+                    <WebForms/>
+                }
+                @if (_configuration.Value.Storage)
+                {
+                    <Storage/>
+                }
+                @if (_configuration.Value.PublicSharing)
+                {
+                    <PublicSharing/>
+                }
+                
+                @if (_configuration.Value.Costing)
+                {
+                    <Costing/>
+                }
+                
+                @if (_configuration.Value.PostgreSQL)
+                {
+                    <PostgreSQL/>
+                }
+                
+                @if (_configuration.Value.SQLServer)
+                {
+                    <SQLServer/>
+                }
             </div>
         }
     </div>
