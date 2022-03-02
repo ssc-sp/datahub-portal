@@ -11,9 +11,12 @@ variables:
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
 
+trigger:
+  branches:
+    include:
+    - develop
+
 steps:
-
-
 - task: UseDotNet@2
   displayName: 'Install .NET Core SDK'
   inputs:
