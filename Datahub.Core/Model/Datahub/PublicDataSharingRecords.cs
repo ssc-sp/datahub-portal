@@ -134,6 +134,7 @@ namespace Datahub.Core.EFCore
         public FileStorageType? FileStorage_CD { get; set; }
         public OpenDataUploadStatus UploadStatus_CD { get; set; }
         public string UploadError_TXT { get; set; }
+        public string FileUrl_TXT { get; set; }
 
         public OpenDataSharingStatus GetOpenDataSharingStatus()
         {
@@ -153,7 +154,7 @@ namespace Datahub.Core.EFCore
             {
                 return OpenDataSharingStatus.PendingApproval;
             }
-            else if (ApprovalForm_ID.HasValue && ApprovalForm_ID > 0)
+            else if (ApprovalForm_ID.HasValue && ApprovalForm_ID > 0) // todo: replace with approval form is valid
             {
                 return OpenDataSharingStatus.SubmitSignedPDF;
             }
