@@ -121,21 +121,23 @@
                             }
                         </AeFlex>
 
-                        <div>&nbsp;</div>
-                        <div><b>@Localizer["Or"]</b></div>
-
-                        <AeFlex Vertical="true">
-                            <AeTypography Variant="p">@(new MarkupString(Localizer["OPENDATA-WIZARD.Upload_And_Publish_Desc"]))</AeTypography>
-                            <div>
-                                <AeButton OnClickEvent=@UploadAndPublish Disabled=@_savingData>@Localizer["OPENDATA-WIZARD.Upload_And_Publish"]</AeButton>
-                            </div>
-                            @if (_uploadStatus == OpenDataUploadStatus.Failed)
-                            {
-                                <AeTypography Variant="p" style="font-size: 0.8em">
-                                    @Localizer["OPENDATA-WIZARD.Upload_Last_Error"] @_uploadFileErrorMessage
-                                </AeTypography>
-                            }
-                        </AeFlex>
+                        @if (string.IsNullOrEmpty(_fileUrl))
+                        {
+                            <div>&nbsp;</div>
+                            <div><b>@Localizer["Or"]</b></div>
+                            <AeFlex Vertical="true">
+                                <AeTypography Variant="p">@(new MarkupString(Localizer["OPENDATA-WIZARD.Upload_And_Publish_Desc"]))</AeTypography>
+                                <div>
+                                    <AeButton OnClickEvent=@UploadAndPublish Disabled=@_savingData>@Localizer["OPENDATA-WIZARD.Upload_And_Publish"]</AeButton>
+                                </div>
+                                @if (_uploadStatus == OpenDataUploadStatus.Failed)
+                                {
+                                    <AeTypography Variant="p" style="font-size: 0.8em">
+                                        @Localizer["OPENDATA-WIZARD.Upload_Last_Error"] @_uploadFileErrorMessage
+                                    </AeTypography>
+                                }
+                            </AeFlex>
+                        }
                     }
                     else
                     {
@@ -215,7 +217,8 @@
 
     private List<OpenDataSharingStatus> _steps = Enum.GetValues<OpenDataSharingStatus>().ToList();
     private OpenDataSharingStatus _currentStep = OpenDataSharingStatus.EnterMetadata;
-    private RenderFragment _checkIcon = @<i class="fa fa-check"></i>;
+    private RenderFragment _checkIcon = @<i class="fa fa-check"></i>
+    ;
 
     private Dictionary<OpenDataSharingStatus, (string, string)?> _stepInfo = new();
     private Dictionary<OpenDataSharingStatus, AeSteps<OpenDataSharingStatus>.StepState> _stepStates = new();
@@ -234,7 +237,7 @@
     private bool ShowPublicUrl => _currentStep == OpenDataSharingStatus.AccessOpenData;
     private bool ShowCancelPanel => _currentStep <= OpenDataSharingStatus.PendingApproval  && _isOwnRequest && !_editSavedMetadata;
     private bool ShowUploadCard => _currentStep == OpenDataSharingStatus.PendingUpload && _isOwnRequest && !_editSavedMetadata;
-    
+
     private string GenerateApprovalDocumentUrl => $"/api/OpenDataApproval?id={_approvalFormId}";
 
     private bool _isOwnRequest = false;
@@ -256,6 +259,7 @@
     private GraphUser _requestingUser;
     private string _requestFilename;
     private string _projectCode;
+    private string _fileUrl;
 
     private string _datasetTitle;
 
@@ -353,8 +357,8 @@
 
             var fieldValues = await MetadataBrokerService.GetObjectMetadataValues(FileId);
 
-            // get the file url
-            var url = PublicFileService.GetPublicSharedFileUrl(FileId);
+            // get the file url (use the saved file url or build the url if none given)
+            var url = string.IsNullOrEmpty(_fileUrl) ? PublicFileService.GetPublicSharedFileUrl(FileId) : _fileUrl;
 
             // publish to open data
             var result = await OpenDataService.PublishFileAsUrl(fieldValues, url);
@@ -526,6 +530,8 @@
             var currentUser = await currentUserTask;
             _isOwnRequest = currentUser.Id == _requestingUser.Id;
             _projectCode = sharedFileInfo.ProjectCode_CD;
+            _fileUrl = sharedFileInfo.FileUrl_TXT;
+            _editSubmittedApproval = !string.IsNullOrEmpty(_fileUrl) && sharedFileInfo.GetOpenDataSharingStatus() == OpenDataSharingStatus.SubmitSignedPDF;
 
             UpdateShareFileStatus(sharedFileInfo);
         }
