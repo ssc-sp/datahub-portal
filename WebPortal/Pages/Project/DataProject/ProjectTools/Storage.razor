@@ -96,7 +96,7 @@ else
 
         _storageServiceRequestPending = true;
         StateHasChanged();
-        
+
         var serviceRequest = new Datahub_ProjectServiceRequests()
         {
             ServiceType = RequestManagementService.STORAGE,
@@ -106,7 +106,7 @@ else
             User_ID = UserId,
             User_Name = GraphUser.UserPrincipalName
         };
-        
+
         await _requestManagementService.RequestService(serviceRequest);
         _storageServiceRequested = true;
     }
