@@ -1,16 +1,18 @@
 @use '../../Common' as c;
 
 
+$first-column-max-width: 1200px;
 
 .project-page {
   display: grid;
   grid-template-columns: 3fr 1fr;
   grid-template-rows: auto auto;
-  
+
   gap: 2rem;
 
   .project-info {
-    
+    max-width: $first-column-max-width;
+
     .project-data-sensitivity {
       text-transform: uppercase;
       font-weight: bold;
@@ -21,11 +23,12 @@
       display: inline-block;
       padding: 0 0.5rem;
     }
-    
+
     .project-title {
       .project-icon {
         font-size: 2rem;
       }
+
       margin-top: .5rem;
     }
   }
@@ -34,32 +37,32 @@
     grid-column: 2;
     grid-row: 1 / span 2;
   }
-  
+
   .access-denied {
     grid-row: 2 / span 1;
-    
+
     display: flex;
     flex-direction: column;
     align-items: center;
-    
+
     .access-request-reviewing {
       margin-top: 2rem;
       padding: 1rem 2rem;
       border-radius: 8px;
       border: 1px solid c.$grey-500;
     }
-    
+
     .button-wrapper {
       display: block;
       margin-top: 2rem;
     }
   }
-  
+
   .project-members {
     grid-column: 2;
     grid-row: 1 / span 2;
-    
-    
+
+
     .member-list {
 
       ul {
@@ -67,18 +70,18 @@
         margin: 0;
         padding: 0;
       }
-      
+
       .group-name {
         display: flex;
         justify-content: space-between;
         align-items: baseline;
-        
+
         .member-count {
           font-size: .7rem;
           opacity: .7;
         }
       }
-      
+
       .members {
         li {
           padding: .5rem;
@@ -86,11 +89,11 @@
           grid-template-columns: 2rem 1fr 2rem;
           gap: .5rem;
           align-items: baseline;
-          
+
           &:hover {
             background-color: c.$grey-200;
           }
-          
+
           .email-icon {
             color: c.$grey-400;
             border-radius: 50px;
@@ -98,13 +101,13 @@
             height: 2rem;
             font-size: 1rem;
             text-decoration: none;
-            
+
             display: flex;
             justify-content: center;
             align-items: center;
-            
+
             transition: all .3s c.$cubic-bezier;
-            
+
             &:hover {
               cursor: pointer;
               color: c.$grey-800;
@@ -117,7 +120,74 @@
       }
     }
   }
-  
-  
-  
+
+  .project-tools {
+    max-width: $first-column-max-width;
+
+    .tools-container {
+
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+
+      .tool-card {
+
+        padding: 1rem;
+        background-color: c.$white;
+
+
+        --logo-size: 40px;
+        display: grid;
+        grid-template-columns: var(--logo-size) 1fr;
+        grid-template-rows: auto auto auto;
+        column-gap: 1rem;
+
+        transition: all .3s c.$cubic-bezier;
+        opacity: .9;
+
+        .tool-image {
+          font-size: var(--logo-size);
+          width: var(--logo-size);
+          color: c.$grey-500;
+        }
+
+        .tool-title {
+          grid-column: 2;
+          grid-row: 1;
+          margin-top: .5rem;
+        }
+
+        .tool-description {
+          grid-column: 1 / span 2;
+          grid-row: 2;
+        }
+
+        .tool-actions {
+          grid-column: 1 / span 2;
+          grid-row: 3;
+          border-top: 1px solid c.$grey-100;
+          padding: 1rem;
+          margin-top: 1rem;
+
+          ul {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+            
+            li:not(:last-child) {
+              margin-bottom: .25rem;
+            }
+          }
+        }
+
+        &:hover {
+          @include c.BoxShadow(1);
+          transform: translateY(-1px);
+          opacity: 1;
+        }
+
+      }
+    }
+  }
+
 }
