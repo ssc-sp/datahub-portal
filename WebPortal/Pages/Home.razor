@@ -1,0 +1,126 @@
+﻿@inject IUserInformationService UserInformationService
+@inject IApiService ApiService
+@inject IDataCreatorService DataCreatorService
+@inject UIControlsService UI
+@inject NavigationManager NavigationManager
+
+@page "/home/{TabIndex?}"
+
+@if (!_isLoaded)
+{
+    <Spinner />
+}
+else
+{
+    <WelcomeBanner />
+    <LandingContent TabIndex=@TabIndexParsed />
+}
+
+@code
+{
+    [Parameter]
+    public string TabIndex { get; set; }
+
+    private int TabIndexParsed => int.TryParse(TabIndex, out int tabIndex) ? tabIndex : 0;
+
+    private async Task InvalidUser()
+    {
+        UI.AllowEscape = false;
+
+        // Check if the user has a language set?
+        var language = await UserInformationService.GetUserLanguage();
+        if (string.IsNullOrWhiteSpace(language))
+        {
+            await UI.ToggleModal(@<UserSelectModal HideCancel="true" ConfirmLabel="BUTTONS.ConfirmBilingual" HeaderText="@Localizer["LanguagePreferencePrompt"]" Values="languages" OnDecision="SaveLanguage" />);
+        } 
+        else
+        {            
+            await UI.ToggleModal(@<UserTermsAndConditionsModal OnDecision="HandleAlertDecision" Language="@language" />);
+        }
+    }
+
+    private bool _isUserValid = true;
+    private bool _isLoaded;
+
+    protected List<string> languages { get; } = new() { "English", "Français" };
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _isUserValid = await UserInformationService.HasUserAcceptedTAC();
+            if (_isUserValid)
+            {
+                await SetupRootFolder();
+                await AdjustLanguage();
+            }
+            else
+            {
+                await InvalidUser();
+            }
+            StateHasChanged();
+        }
+    }
+
+    protected async Task SetupRootFolder()
+    {
+        _isLoaded = false;
+
+        // We need to load user and check they have root folder
+        var rootFolder = await UserInformationService.GetUserRootFolder();
+        var currentUser = await UserInformationService.GetUserAsync();
+        await DataCreatorService.CreateRootFolderIfNotExist(currentUser.Id, rootFolder);
+
+        // Set the user folder ID!
+        ApiService.MyDataFolder.id = rootFolder;
+        ApiService.SharedDataFolder.id = rootFolder;
+        ApiService.SearchDataFolder.id = rootFolder;
+
+        _isLoaded = true;
+    }
+
+    private async void HandleAlertDecision(bool IsContinue)
+    {
+        if (IsContinue)
+        {
+            // User has agreed to TAC, update in DB
+            if (await UserInformationService.RegisterUserTAC())
+            {
+                // ONLY valid if saved in DB
+                _isUserValid = true;
+                await UI.ToggleModal();
+                await SetupRootFolder();
+                await AdjustLanguage();
+            }
+
+            StateHasChanged();
+            return;
+        }
+
+        NavigationManager.NavigateTo(ApiService.LogoutURL, forceLoad: true);
+    }
+
+    private async Task AdjustLanguage()
+    {
+        var language = await UserInformationService.GetUserLanguage();
+        UserInformationService.SetLanguage(language);
+    }
+
+    private async void SaveLanguage((bool, string) isContinue)
+    {
+        UI.AllowEscape = true;
+        if (isContinue.Item1)
+        {
+            var language = isContinue.Item2.Equals("english", StringComparison.OrdinalIgnoreCase) ? "en-CA" : "fr-CA";
+            var isLangSaved = await UserInformationService.RegisterUserLanguage(language);
+            
+            await UI.ToggleModal();
+            await UI.ToggleModal(@<UserTermsAndConditionsModal OnDecision="HandleAlertDecision" Language="@language" />);
+        }
+        else
+        {
+            NavigationManager.NavigateTo(ApiService.LogoutURL, forceLoad: true);
+        }
+    }
+
+}

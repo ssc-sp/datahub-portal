@@ -1,0 +1,53 @@
+@use '../../Common' as c;
+
+.all-projects-container {
+  .all-projects-search {
+    max-width: 400px;
+    margin-bottom: 1rem;
+  }
+  
+  .all-projects {
+    height: 500px;
+    @include c.datahub-scrollbar;
+    overflow: auto;
+    
+    .project-row {
+      display: grid;
+      grid-template-columns: 1fr 2fr 6fr;
+      gap: 1rem 2rem;
+      
+      border-left: 4px solid c.$transparent;
+      padding: 1rem;
+      transition: all .3s c.$cubic-bezier;
+      
+      &:hover {
+        border-color: c.$grey-300;
+        background-color: c.$grey-200;
+      }
+      
+      .sector {
+        margin: 1rem 0;
+      }
+      .name {
+        margin: 1rem 0;
+      }
+      .description {
+  
+      }
+    }
+    
+    .no-projects {
+      display: flex;
+      flex-direction: column;
+      margin-top: 4rem;
+      text-align: center;
+      
+      opacity: .8;
+      
+      i {
+        font-size: 6rem;
+        opacity: .5;
+      }
+    }
+  }
+}

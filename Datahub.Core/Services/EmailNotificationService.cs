@@ -15,6 +15,7 @@ using Datahub.Core.Model.Onboarding;
 using Datahub.Core.EFCore;
 using Microsoft.Graph;
 using System.Threading;
+using Datahub.Core.Utils;
 
 namespace Datahub.Core.Services
 {
@@ -325,7 +326,7 @@ namespace Datahub.Core.Services
 
             var subject = $"[DataHub] {serviceName} service access request approved / demande d’accès au service approuvée";
 
-            var projectPagePath = $"{ServiceAccessRequestApproved.PROJECT_PAGE_PREFIX}/{projectInfo.ProjectCode}";
+            var projectPagePath = $"{UrlPathSegment.PROJECTS}/{projectInfo.ProjectCode}";
             var projectPageLink = BuildAppLink(projectPagePath);
             parameters.Add(nameof(ServiceAccessRequestApproved.ProjectPageUrl), projectPageLink);
 
@@ -346,7 +347,7 @@ namespace Datahub.Core.Services
 
             var subject = $"[DataHub] {serviceName} service request approved / demande de service approuvée";
 
-            var projectPagePath = $"{ServiceRequestApproved.PROJECT_PAGE_PREFIX}/{projectInfo.ProjectCode}";
+            var projectPagePath = $"{UrlPathSegment.PROJECTS}/{projectInfo.ProjectCode}";
             var projectPageLink = BuildAppLink(projectPagePath);
             parameters.Add(nameof(ServiceRequestApproved.ProjectPageUrl), projectPageLink);
 
@@ -367,7 +368,7 @@ namespace Datahub.Core.Services
 
             var subject = $"[DataHub] {serviceName} service created / {serviceName} service créé ";
 
-            var projectPagePath = $"{ServiceCreatedGroupNotification.PROJECT_PAGE_PREFIX}/{projectInfo.ProjectCode}";
+            var projectPagePath = $"{UrlPathSegment.PROJECTS}/{projectInfo.ProjectCode}";
             var projectPageLink = BuildAppLink(projectPagePath);
             parameters.Add(nameof(ServiceCreatedGroupNotification.ProjectPageUrl), projectPageLink);
 
@@ -561,7 +562,7 @@ namespace Datahub.Core.Services
         {
             var subject = "[DataHub] Public file sharing request";
 
-            var sharingDashboardLink = $"/project/{projectInfo.ProjectCode}/datasharing";
+            var sharingDashboardLink = $"/{UrlPathSegment.PROJECTS}/{projectInfo.ProjectCode}/datasharing";
 
             var parameters = new Dictionary<string, object>
             {
