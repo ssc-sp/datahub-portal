@@ -30,10 +30,92 @@
     }
   }
 
+  .project-members-skeleton-positioning {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+  }
+  
+  .access-denied {
+    grid-row: 2 / span 1;
+    
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    
+    .access-request-reviewing {
+      margin-top: 2rem;
+      padding: 1rem 2rem;
+      border-radius: 8px;
+      border: 1px solid c.$grey-500;
+    }
+    
+    .button-wrapper {
+      display: block;
+      margin-top: 2rem;
+    }
+  }
   
   .project-members {
     grid-column: 2;
     grid-row: 1 / span 2;
+    
+    
+    .member-list {
+
+      ul {
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+      }
+      
+      .group-name {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        
+        .member-count {
+          font-size: .7rem;
+          opacity: .7;
+        }
+      }
+      
+      .members {
+        li {
+          padding: .5rem;
+          display: grid;
+          grid-template-columns: 2rem 1fr 2rem;
+          gap: .5rem;
+          align-items: baseline;
+          
+          &:hover {
+            background-color: c.$grey-200;
+          }
+          
+          .email-icon {
+            color: c.$grey-400;
+            border-radius: 50px;
+            width: 2rem;
+            height: 2rem;
+            font-size: 1rem;
+            text-decoration: none;
+            
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            
+            transition: all .3s c.$cubic-bezier;
+            
+            &:hover {
+              cursor: pointer;
+              color: c.$grey-800;
+              background-color: c.$white;
+              transform: translateY(-2px);
+              @include c.BoxShadow(2);
+            }
+          }
+        }
+      }
+    }
   }
   
   
