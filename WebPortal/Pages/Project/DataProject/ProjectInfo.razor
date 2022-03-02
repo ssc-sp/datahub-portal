@@ -42,7 +42,6 @@
         _project = await projectContext.Projects
             .SingleAsync(p => p.Project_Acronym_CD == ProjectAcronym);
 
-        await Task.Delay(1500);
         _loading = false;
     }
 

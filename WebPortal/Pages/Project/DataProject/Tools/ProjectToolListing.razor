@@ -6,56 +6,61 @@
 
 
 <AuthorizeView Roles="@($"{ProjectAcronym}, {ProjectAcronym}-admin, {RoleConstants.DATAHUB_ROLE_ADMIN}")">
+    
     <div class="project-tools">
 
-        <h2>@Localizer["Data Project Tools"]</h2>
+        <AeTypography Variant="h2">@Localizer["Project Tools"]</AeTypography>
         @if (_isLoading)
         {
             <Spinner/>
         }
         else
         {
-            <div class="ae flex wrap">
+            <div class="tools-container">
 
-                @if (_configuration.Value.Databricks)
+                @for (var i = 0; i < 5; i++)
                 {
-                    <Databricks/>
+                    <ToolCard/>
                 }
-                @if (_configuration.Value.PowerBI)
-                {
-                    <PowerBi/>
-                }
-                @if (!string.IsNullOrEmpty(_project.WebForms_URL) && _configuration.Value.WebForms)
-                {
-                    <DataEntry/>
-                }
-                @if (_configuration.Value.WebForms)
-                {
-                    <WebForms/>
-                }
-                @if (_configuration.Value.Storage)
-                {
-                    <Storage/>
-                }
-                @if (_configuration.Value.PublicSharing)
-                {
-                    <PublicSharing/>
-                }
-
-                @if (_configuration.Value.Costing)
-                {
-                    <Costing/>
-                }
-
-                @if (_configuration.Value.PostgreSQL)
-                {
-                    <PostgreSQL/>
-                }
-
-                @if (_configuration.Value.SQLServer)
-                {
-                    <SQLServer/>
-                }
+                @* @if (_configuration.Value.Databricks) *@
+                @* { *@
+                @*     <Databricks/> *@
+                @* } *@
+                @* @if (_configuration.Value.PowerBI) *@
+                @* { *@
+                @*     <PowerBi/> *@
+                @* } *@
+                @* @if (!string.IsNullOrEmpty(_project.WebForms_URL) && _configuration.Value.WebForms) *@
+                @* { *@
+                @*     <DataEntry/> *@
+                @* } *@
+                @* @if (_configuration.Value.WebForms) *@
+                @* { *@
+                @*     <WebForms/> *@
+                @* } *@
+                @* @if (_configuration.Value.Storage) *@
+                @* { *@
+                @*     <Storage/> *@
+                @* } *@
+                @* @if (_configuration.Value.PublicSharing) *@
+                @* { *@
+                @*     <PublicSharing/> *@
+                @* } *@
+                @* *@
+                @* @if (_configuration.Value.Costing) *@
+                @* { *@
+                @*     <Costing/> *@
+                @* } *@
+                @* *@
+                @* @if (_configuration.Value.PostgreSQL) *@
+                @* { *@
+                @*     <PostgreSQL/> *@
+                @* } *@
+                @* *@
+                @* @if (_configuration.Value.SQLServer) *@
+                @* { *@
+                @*     <SQLServer/> *@
+                @* } *@
             </div>
         }
     </div>
