@@ -1,0 +1,137 @@
+﻿@inject IDbContextFactory<MetadataDbContext> ContextFactory
+@inject NavigationManager NavigationManager
+@using Datahub.Metadata.Model
+@using Datahub.Metadata.DTO
+
+<div>
+    <div style="margin-top: 16px; margin-bottom: 16px;">
+        <AeSearchInput 
+            id="search"
+            SearchIconFAClass="fas fa-search"
+            Placeholder=@Localizer["Search..."]
+            OnInputChangeWithLastKey=@HandleSearch 
+        />
+    </div>
+
+    <AePaginatedTable 
+        @ref=@_table
+        Accessors=@_accessorFunctions 
+        T=@FieldDefinition
+        Dataset=@_filteredDefinitions
+        Headers=@_headers
+        Renderers=@_renderFunctions
+        Page="@_lastClicked"
+        PageSize=@_pageSize
+        GridTemplateColumns="3fr 3fr 3fr 2fr 1fr"
+    />
+    @if (_table != null)
+    {
+        <AePagination 
+            Pageable=@_table
+            OnPageClick="OnPageClick"> 
+            <LeftIcon><i class='fad fa-chevron-double-left'></i></LeftIcon> 
+            <RightIcon><i class='fad fa-chevron-double-right'></i></RightIcon>
+        </AePagination>                 
+    }
+    <div style="margin-top: 16px;">
+        <AeButton To="/metadata/newdefinition">@Localizer["Add Definition"]</AeButton>
+    </div>
+</div>
+
+@code {
+
+    private List<FieldDefinition> _fieldDefinitions = new();
+    private List<FieldDefinition> _filteredDefinitions = new();
+
+    private IPageableComponent _table;
+    private List<string> _headers = new();
+    private List<Func<FieldDefinition, RenderFragment>> _renderFunctions = new();
+    private List<Func<FieldDefinition, string>> _accessorFunctions = new();
+    private int _pageSize = 8;
+    private int _lastClicked = 0;
+    private string _lastSearch;
+    private QueryThrottler<string> _searchThrottler;
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var ctx = ContextFactory.CreateDbContext();
+
+        _fieldDefinitions = await ctx.FieldDefinitions
+            .Include(d => d.Choices)
+            .OrderBy(d => d.Sort_Order_NUM)
+            .ToListAsync();
+
+        ApplyFilter();
+
+        _accessorFunctions = new() { GetName, GetNameEnglish, GetNameFrench, null, null };
+        _headers = new() { Localizer["ID"], Localizer["English Name"], Localizer["French Name"], Localizer["Has Choices?"], string.Empty };
+        _renderFunctions = new() { null, null, null, GetHasChoices, GetEditFragment };
+
+        _searchThrottler = new(TimeSpan.FromSeconds(0.5), ThrottleSearch);
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        // You must re-render after the components are initialized in order for the 
+        // component reference to not be null
+        if (firstRender) 
+        {
+            StateHasChanged();
+        }
+    }
+
+    private string GetName(FieldDefinition result) => result.Field_Name_TXT;
+    private string GetNameEnglish(FieldDefinition result) => result.Name_English_TXT;
+    private string GetNameFrench(FieldDefinition result) => result.Name_French_TXT;
+
+    private RenderFragment GetHasChoices(FieldDefinition result) 
+        => result.HasChoices ? @<span>Yes</span> : @<span>No</span>;
+
+    private RenderFragment GetEditFragment(FieldDefinition result) 
+        => @<div style="cursor: pointer;" onclick=@(() => HandleEdit(result)) ><i class="far fa-edit sm-icon"></i></div>;
+
+    private async void HandleSearch(string newValue, KeyboardEventArgs ev)
+    {
+        await _searchThrottler.SetQuery(newValue);
+    }
+
+    private void OnPageClick(int pageIndex)
+    {
+        _lastClicked = pageIndex;
+    }
+
+    private void HandleEdit(FieldDefinition definition)
+    {
+        NavigationManager.NavigateTo($"/metadata/definition/{definition.FieldDefinitionId}");
+    }
+
+    private async Task ThrottleSearch(string searchText)
+    {
+        if (_lastSearch != searchText)
+        {
+            _lastSearch = searchText;
+            try
+            {
+                ApplyFilter();
+            }
+            finally
+            {
+                await InvokeAsync(StateHasChanged);
+            }
+        }            
+    }
+
+    private void ApplyFilter()
+    {
+        if (string.IsNullOrEmpty(_lastSearch))
+        {
+            _filteredDefinitions = new(_fieldDefinitions);
+        }
+        else
+        {
+            _filteredDefinitions = _fieldDefinitions
+                .Where(d => d.Field_Name_TXT.Contains(_lastSearch) || d.Name_English_TXT.Contains(_lastSearch) || d.Name_French_TXT.Contains(_lastSearch))
+                .ToList();
+        }        
+    }
+}
