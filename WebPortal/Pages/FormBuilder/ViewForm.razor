@@ -1,4 +1,4 @@
-﻿@page "/project/{ProjectAcronym}/forms/{FormId}"
+﻿@page "/projects/{ProjectAcronym}/forms/{FormId}"
 @using System.Linq
 @inject NavigationManager NavManager
 
@@ -30,12 +30,12 @@
                     @if (_formId.HasValue)
                     {
                         <div style="margin-top: 8px;">
-                            <AeButton To=@($"/project/{ProjectAcronym}/forms/{_formId.Value}/edit") class="blue float-right">
+                            <AeButton To=@($"/{UrlPathSegment.PROJECTS}/{ProjectAcronym}/forms/{_formId.Value}/edit") class="blue float-right">
                                 <AeIcon Icon="add-circle" IconStyle="Elemental.Code.RXIcon.RXStyle.Fill" />
                                 Edit Form
                             </AeButton>
 
-                            <AeButton To=@($"/project/{ProjectAcronym}/forms/{_formId.Value}/newfield") class="blue float-right">
+                            <AeButton To=@($"/{UrlPathSegment.PROJECTS}/{ProjectAcronym}/forms/{_formId.Value}/newfield") class="blue float-right">
                                 <AeIcon Icon="add-circle" IconStyle="Elemental.Code.RXIcon.RXStyle.Fill" />
                                 Create New Form Field
                             </AeButton>
@@ -69,7 +69,7 @@
                         </div>
                     }
 
-                    <AeButton To=@($"/project/{ProjectAcronym}/forms")>Back to Form List</AeButton>
+                    <AeButton To=@($"/{UrlPathSegment.PROJECTS}/{ProjectAcronym}/forms")>Back to Form List</AeButton>
 
                 </div>
             </ChildContent>
@@ -123,7 +123,7 @@
     private List<Func<WebForm_Field, RenderFragment>> renderFunctions = new List<Func<WebForm_Field, RenderFragment>>()
     {
         null,
-        (f => @<a href=@($"/project/{f.WebForm.Project.Project_Acronym_CD}/forms/fields/{f.FieldID}")>@f.Field_DESC</a>),
+        (f => @<a href=@($"/{UrlPathSegment.PROJECTS}/{f.WebForm.Project.Project_Acronym_CD}/forms/fields/{f.FieldID}")>@f.Field_DESC</a>),
         (f => f.Mandatory_FLAG? @<AeIcon class="fas fa-asterisk" /> : @<span></span>
     ),
         null,

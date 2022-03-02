@@ -1,0 +1,69 @@
+@inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
+@inject RequestManagementService _requestManagementService
+@inject IPublicDataFileService _publicDataFileService
+
+@if (_project is null)
+{
+    <div>Loading... pubalicsharing.razor</div>
+}
+else
+{
+    <AeCard class="facard1" CardPosition="AeCard.CardStyle.Horizontal">
+        <Header>
+            <div>
+                <AeIcon class="fad fa-share-square card-icon fa-xs"/>
+            </div>
+        </Header>
+        <ChildContent>
+            <DHLink Variant="h3" DataProject="@ProjectAcronym" LinkType="DatahubLinkType.DataSharingDashboard">
+                @Localizer["PROJECT-PAGE.PUBLIC-SHARING-CARD.Title"]
+            </DHLink>
+            <AeTypography>@Localizer["PROJECT-PAGE.PUBLIC-SHARING-CARD.UsersOwnSharedFiles"]: @_ownSharingRequestCount</AeTypography>
+            @if (_isDataApprover)
+            {
+                <AeTypography>
+                    @Localizer["PROJECT-PAGE.PUBLIC-SHARING-CARD.SharedFilesAwaitingApproval"]: @_sharingRequestAwaitingApprovalCount
+                </AeTypography>
+            }
+        </ChildContent>
+    </AeCard>
+}
+
+@code {
+
+    [CascadingParameter(Name = "ProjectAcronym")]
+    public string ProjectAcronym { get; set; }
+
+    [CascadingParameter(Name = "UserId")]
+    public string UserId { get; set; }
+
+    [CascadingParameter(Name = "GraphUser")]
+    public Microsoft.Graph.User GraphUser { get; set; }
+
+    private bool _isDataApprover;
+    private int _sharingRequestAwaitingApprovalCount;
+    private int _ownSharingRequestCount;
+
+    private Datahub_Project _project;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        await using var projectDbContext = await _dbFactoryProject.CreateDbContextAsync();
+        
+        _project = await projectDbContext.Projects
+            .Include(p => p.Requests)
+            .SingleAsync(p => p.Project_Acronym_CD == ProjectAcronym);
+        
+        if (UserId != null)
+        {
+            _isDataApprover = await projectDbContext.Project_Users
+                .Where(u => u.User_ID == UserId && _project == u.Project)
+                .AnyAsync(u => u.IsDataApprover);
+                
+            _sharingRequestAwaitingApprovalCount = await _publicDataFileService.GetDataSharingRequestsAwaitingApprovalCount(ProjectAcronym);
+            _ownSharingRequestCount = await _publicDataFileService.GetUsersOwnDataSharingRequestsCount(ProjectAcronym, UserId);
+        }
+    }
+}
