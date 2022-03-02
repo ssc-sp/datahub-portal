@@ -1,31 +1,55 @@
-<div class="tool-card">
-    <span class="tool-image">
-        <i class="fas fa-server"></i>
+@using Datahub.Core.Components.Skeleton
+
+@if (Loading)
+{
+    <span style="height: 320px; background-color: white; padding: 1rem;">
+        <span style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+            <Skeleton Width="40px" Height="40px" Circle/>
+            <Skeleton Width="200px" Height="3rem"/>
+        </span>
+        <Skeleton Width="400px" Height="1.5rem"/>
+        <Skeleton Width="400px" Height="1.5rem"/>
+        <Skeleton Width="150px" Height="1.5rem"/>
+        <span style="padding-left: 2rem; display: block; margin-top: 1rem;">
+            <Skeleton Width="120px" Height="2.5rem"/>
+            <Skeleton Width="150px" Height="2.5rem"/>
+            <Skeleton Width="130px" Height="2.5rem"/>
+        </span>
     </span>
-    <AeTypography class="tool-title" Variant="h3">@Title</AeTypography>
-    <AeTypography class="tool-description">@Description</AeTypography>
-    <div class="tool-actions">
-        <ul>
-            <li>
-                <AeButton class="light">Request Access</AeButton>
-            </li>
-            <li>
-                <AeButton class="light">More Information</AeButton>
-            </li>
-            <li>
-                <AeButton class="light">Request Service Creation</AeButton>
-            </li>
-            
-        </ul>
+}
+else
+{
+    <div class="tool-card">
+        <span class="tool-image">
+            <i class="fas fa-server"></i>
+        </span>
+        <AeTypography class="tool-title" Variant="h3">@Title</AeTypography>
+        <AeTypography class="tool-description">@Description</AeTypography>
+        <div class="tool-actions">
+            <ul>
+                <li>
+                    <AeButton class="light">Request Access</AeButton>
+                </li>
+                <li>
+                    <AeButton class="light">More Information</AeButton>
+                </li>
+                <li>
+                    <AeButton class="light">Request Service Creation</AeButton>
+                </li>
+
+            </ul>
+        </div>
     </div>
-</div>
+}
 
 @code {
 
     [Parameter]
+    public bool Loading { get; set; }
+
+    [Parameter]
     public string Title { get; set; } = "Project Storage";
-    
+
     [Parameter]
     public string Description { get; set; } = "The cloud blows with riddle, sail the quarter-deck before it screams. The sail fires with endurance, loot the lighthouse. ";
-
 }
