@@ -29,12 +29,18 @@ else
                     if (_storageServiceRequested)
                     {
                         <li>
-                            <AeTypography>@Localizer["Service Request is being reviewed"]</AeTypography>
+                            <AeTypography class="access-text">@Localizer["Service Request is being reviewed"]</AeTypography>
                         </li>
                     }
                     else
                     {
-                        <AeButton class="light" @onclick="@HandleRequestService">@Localizer["Request Service Creation"]</AeButton>
+                        <AeButton class="light" @onclick="@HandleRequestService">
+                            @if (_storageServiceRequestPending)
+                            {
+                                <i class="fas fa-spinner-third pending"></i>
+                            }
+                            @Localizer["Request Service Creation"]
+                        </AeButton>
                     }
                 }
             </ul>
@@ -54,6 +60,7 @@ else
     public Microsoft.Graph.User GraphUser { get; set; }
 
     private bool _storageServiceRequested;
+    private bool _storageServiceRequestPending;
     private bool _storageDeployed;
 
     private Datahub_Project _project;
@@ -84,6 +91,12 @@ else
 
     private async Task HandleRequestService()
     {
+        if (_storageServiceRequestPending)
+            return;
+
+        _storageServiceRequestPending = true;
+        StateHasChanged();
+        
         var serviceRequest = new Datahub_ProjectServiceRequests()
         {
             ServiceType = RequestManagementService.STORAGE,
@@ -93,8 +106,9 @@ else
             User_ID = UserId,
             User_Name = GraphUser.UserPrincipalName
         };
-
+        
         await _requestManagementService.RequestService(serviceRequest);
+        _storageServiceRequested = true;
     }
 
 }
