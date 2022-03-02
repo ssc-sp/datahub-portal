@@ -8,25 +8,18 @@
 @page "/projects/{ProjectAcronymParam}"
 
 
-@if (_loading)
-{
-    <Spinner />
-}
-else
-{
-    <DHPageTitle PageTitleKey=@_projectName/>
-    <div class="project-page">
-        <CascadingValue Value="@ProjectAcronymParam" Name="ProjectAcronym">
-            <CascadingValue Value="_userId" Name="UserId">
-                <CascadingValue Value="_user" Name="GraphUser">
-                    <ProjectInfo/>
-                    <ProjectMembers/>
-                    <ProjectToolListing/>
-                </CascadingValue>
+<DHPageTitle PageTitleKey=@_projectName/>
+<div class="project-page">
+    <CascadingValue Value="@ProjectAcronymParam" Name="ProjectAcronym">
+        <CascadingValue Value="_userId" Name="UserId">
+            <CascadingValue Value="_user" Name="GraphUser">
+                <ProjectInfo/>
+                <ProjectMembers/>
+                <ProjectToolListing/>
             </CascadingValue>
         </CascadingValue>
-    </div>
-}
+    </CascadingValue>
+</div>
 
 @code {
 
@@ -36,8 +29,6 @@ else
     private Microsoft.Graph.User _user;
     private string _userId;
     private string _projectName;
-    private bool _loading = true;
-    
 
     protected override async Task OnInitializedAsync()
     {
@@ -51,6 +42,6 @@ else
         _userId = await _userInformationService.GetUserIdString();
         _user = await _userInformationService.GetUserAsync();
 
-        _loading = false;
     }
+
 }

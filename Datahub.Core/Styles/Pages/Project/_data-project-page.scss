@@ -135,10 +135,11 @@ $first-column-max-width: 1200px;
         padding: 1rem;
         background-color: c.$white;
 
-
-        --logo-size: 40px;
+        --logo-width: 40px;
+        --logo-height: 60px;
+        
         display: grid;
-        grid-template-columns: var(--logo-size) 1fr;
+        grid-template-columns: var(--logo-width) 1fr;
         grid-template-rows: auto auto 1fr;
         column-gap: 1rem;
 
@@ -146,8 +147,9 @@ $first-column-max-width: 1200px;
         opacity: .9;
 
         .tool-image {
-          font-size: var(--logo-size);
-          width: var(--logo-size);
+          font-size: var(--logo-width);
+          width: var(--logo-width);
+          height: var(--logo-height);
           color: c.$grey-500;
         }
 
@@ -173,9 +175,31 @@ $first-column-max-width: 1200px;
             list-style-type: none;
             margin: 0;
             padding: 0;
-            
+
             li:not(:last-child) {
               margin-bottom: .25rem;
+            }
+          }
+
+          .access-text {
+            font-size: 0.8rem;
+            line-height: 3;
+            border-left: 4px solid #f1f5fa;
+            padding-left: 12px;
+          }
+          
+          .pending {
+            margin-right: 1rem;
+            animation: spin-animation .5s infinite;
+          }
+
+
+          @keyframes spin-animation {
+            0% {
+              transform: rotate(0deg);
+            }
+            100% {
+              transform: rotate(359deg);
             }
           }
         }
@@ -189,5 +213,4 @@ $first-column-max-width: 1200px;
       }
     }
   }
-
 }
