@@ -14,7 +14,10 @@ variables:
 trigger:
   branches:
     include:
-    - develop
+    - staging
+
+pr:
+  - staging
 
 steps:
 - task: UseDotNet@2
