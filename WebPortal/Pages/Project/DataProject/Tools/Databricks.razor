@@ -115,9 +115,6 @@ else
                 .AnyAsync(r =>
                     r.ServiceType == RequestManagementService.DATABRICKS
                     && r.Is_Completed == null);
-
-
-            _databricksServiceRequested = false;
         }
     }
 
