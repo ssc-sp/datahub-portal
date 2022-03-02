@@ -6,9 +6,15 @@ namespace Datahub.Portal.Model
     public class OpenDataShareRequest
     {
         [Required]
-        public string FileURL { get; set; }
+        public string file_url { get; set; }
         [Required]
-        public string CustomId { get; set; }
+        public string file_id { get; set; }
+        [Required]
+        public string file_name { get; set; }
+        [Required]
+        public string email_contact { get; set; }
+        [Required]
+        public string collection { get; set; }
         [Required]
         public string title_translated_en { get; set; }
         [Required]
@@ -26,8 +32,13 @@ namespace Datahub.Portal.Model
         [Required]
         public string frequency { get; set; }
         [Required]
-        public DateTime date_published { get; set; }
+        public DateTime? date_published { get; set; }
         [Required]
         public string jurisdiction { get; set; }
+        // not required fields
+        public DateTime? time_period_coverage_start { get; set; }
+        public DateTime? time_period_coverage_end { get; set; }
+        public string audience { get; set; }
+        public string digital_object_identifier { get; set; }
     }
 }

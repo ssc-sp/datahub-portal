@@ -56,6 +56,8 @@
                         </div>
                         <div style="margin: 8px 0px 8px 0px;">
                             <AeButton OnClickEvent=@SaveProfile Disabled=@_addingSection>@Localizer["Save Profile"]</AeButton>
+                            <AeButton OnClickEvent=@DiscardProfileChanges Disabled=@_addingSection>@Localizer["Discard Changes"]</AeButton>
+                            <span style="margin-left: 2rem;">&nbsp;</span>
                             <AeButton OnClickEvent=@HandleStartAddingSection Disabled="_addingSection">@Localizer["Add Section"]</AeButton>
                             <AeButton OnClickEvent=@HandleDeleteSection Disabled="_addingSection" style="background-color: red;" >@Localizer["Remove Section"]</AeButton>
                         </div>
@@ -277,6 +279,11 @@
             throw;
         }
 
+        NavigationManager.NavigateTo("/metadata/definitions");
+    }
+
+    private void DiscardProfileChanges()
+    {
         NavigationManager.NavigateTo("/metadata/definitions");
     }
 
