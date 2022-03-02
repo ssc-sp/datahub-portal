@@ -19,10 +19,9 @@ else
                 @if (_storageDeployed)
                 {
                     <li>
-                        
-                    <DHLink Variant="h3" DataProject="@ProjectAcronym" LinkType="DatahubLinkType.Storage">
-                        <AeButton class="light">@Localizer["View Storage"]</AeButton>
-                    </DHLink>
+                        <DHLink Variant="h3" DataProject="@ProjectAcronym" LinkType="DatahubLinkType.Storage">
+                            <AeButton class="light">@Localizer["View Storage"]</AeButton>
+                        </DHLink>
                     </li>
                 }
                 else
@@ -30,7 +29,7 @@ else
                     if (_storageServiceRequested)
                     {
                         <li>
-                        <AeTypography>@Localizer["Service Request is being reviewed"]</AeTypography>
+                            <AeTypography>@Localizer["Service Request is being reviewed"]</AeTypography>
                         </li>
                     }
                     else
