@@ -2,6 +2,7 @@
 @using Datahub.Core.UserTracking
 @using Microsoft.Extensions.Logging 
 @using System.Text.RegularExpressions
+@using Datahub.Core.Utils
 @inject ILogger<DHLink> Logger
 @inject NavigationManager NavigationManager
 @inject UserLocationManagerService UserLocationManagerService
@@ -93,7 +94,7 @@
                 NavigationManager.NavigateTo($"/powerbi-report/{link.PBIWorkspaceId}/{link.PBIReportId}");
                 break;
             case DatahubLinkType.DataProject:
-                NavigationManager.NavigateTo($"/project/{link.DataProject}");
+                NavigationManager.NavigateTo($"/{UrlPathSegment.PROJECTS}/{link.DataProject}");
                 break;
             case DatahubLinkType.Databricks:
                 NavigationManager.NavigateTo(link.DatabricksURL);
@@ -102,13 +103,13 @@
                 NavigationManager.NavigateTo(link.WebFormsURL);
                 break;
             case DatahubLinkType.FormBuilder:
-                NavigationManager.NavigateTo($"/project/{link.DataProject}/forms");
+                NavigationManager.NavigateTo($"/{UrlPathSegment.PROJECTS}/{link.DataProject}/forms");
                 break;
             case DatahubLinkType.Storage:
-                NavigationManager.NavigateTo($"/project/{link.DataProject}/filelist");
+                NavigationManager.NavigateTo($"/{UrlPathSegment.PROJECTS}/{link.DataProject}/filelist");
                 break;
             case DatahubLinkType.DataSharingDashboard:
-                NavigationManager.NavigateTo($"/project/{link.DataProject}/datasharing");
+                NavigationManager.NavigateTo($"/{UrlPathSegment.PROJECTS}/{link.DataProject}/datasharing");
                 break;
             case DatahubLinkType.PowerBIReport:
                 NavigationManager.NavigateTo($"/powerbi/{link.DataProject}");
