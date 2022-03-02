@@ -1,0 +1,31 @@
+<div class="tool-card">
+    <span class="tool-image">
+        <i class="fas fa-server"></i>
+    </span>
+    <AeTypography class="tool-title" Variant="h3">@Title</AeTypography>
+    <AeTypography class="tool-description">@Description</AeTypography>
+    <div class="tool-actions">
+        <ul>
+            <li>
+                <AeButton class="light">Request Access</AeButton>
+            </li>
+            <li>
+                <AeButton class="light">More Information</AeButton>
+            </li>
+            <li>
+                <AeButton class="light">Request Service Creation</AeButton>
+            </li>
+            
+        </ul>
+    </div>
+</div>
+
+@code {
+
+    [Parameter]
+    public string Title { get; set; } = "Project Storage";
+    
+    [Parameter]
+    public string Description { get; set; } = "The cloud blows with riddle, sail the quarter-deck before it screams. The sail fires with endurance, loot the lighthouse. ";
+
+}
