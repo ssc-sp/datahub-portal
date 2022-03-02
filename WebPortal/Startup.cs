@@ -361,7 +361,7 @@ namespace Datahub.Portal
 
         static IEnumerable<CultureInfo> ParseCultures(string values)
         {
-            return (values ?? "").Split('|').Select(c => new CultureInfo($"{c.Substring(0, 2).ToLower()}-CA"));
+            return (values ?? "").Split('|').Select(c => new CultureInfo($"{c[..2].ToLower()}-CA"));
         }
 
         private void ConfigureCoreDatahubServices(IServiceCollection services)

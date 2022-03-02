@@ -2,18 +2,21 @@
 
 <h3>@Service Service Access Request Approved</h3>
 
-<p>Your request for the access to service <b>@Service</b> in data project <b>@DataProject.ProjectNameEn</b> has been approved. 
-    The service links in the <a href=@ProjectPageUrl >data project</a> page will now be active.</p>
+<p>
+    Your request for the access to service <b>@Service</b> in data project <b>@DataProject.ProjectNameEn</b> has been approved.
+    The service links in the <a href=@ProjectPageUrl>data project</a> page will now be active.
+</p>
 
-<hr />
+<hr/>
 
 <h3>Demande D’accès au Service Approuvée</h3>
 
-<p>Votre demande d'accès au service <b>@Service</b> dans le projet de données <b>@DataProject.ProjectNameFr</b> a été approuvée. 
-    Les liens menant au service dans la page du <a href=@ProjectPageUrl >projet de données</a> seront maintenant actifs.</p>
+<p>
+    Votre demande d'accès au service <b>@Service</b> dans le projet de données <b>@DataProject.ProjectNameFr</b> a été approuvée.
+    Les liens menant au service dans la page du <a href=@ProjectPageUrl>projet de données</a> seront maintenant actifs.
+</p>
 
 @code {
-    public static readonly string PROJECT_PAGE_PREFIX = "/project";
 
     [Parameter]
     public string Service { get; set; }

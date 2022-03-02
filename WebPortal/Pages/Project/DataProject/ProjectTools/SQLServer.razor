@@ -1,0 +1,66 @@
+@inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
+@inject RequestManagementService _requestManagementService
+
+@if (_project is null)
+{
+    <div>Loading... sqlserver.razor</div>
+}
+else
+{
+    <AeCard class="facard1" CardPosition="AeCard.CardStyle.Horizontal">
+        <Header>
+            <div>
+                <AeIcon class="fad fa-database card-icon fa-xs"/>
+            </div>
+        </Header>
+        <ChildContent>
+            <AeFlex Vertical>
+                <AeTypography Variant="h3">
+                    @Localizer["PROJECT-PAGE.DATABASE-CARD.CardTitleSQL"]
+                </AeTypography>
+            </AeFlex>
+        </ChildContent>
+        <Footer>
+            <AeButton @onclick="@HandleRequestService">@Localizer["Request Service Creation"]</AeButton>
+        </Footer>
+    </AeCard>
+}
+
+@code {
+    
+    [CascadingParameter(Name = "ProjectAcronym")]
+    public string ProjectAcronym { get; set; }
+
+    [CascadingParameter(Name = "UserId")]
+    public string UserId { get; set; }
+
+    [CascadingParameter(Name = "GraphUser")]
+    public Microsoft.Graph.User GraphUser { get; set; }
+
+    private Datahub_Project _project;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        await using var projectDbContext = await _dbFactoryProject.CreateDbContextAsync();
+        _project = await projectDbContext.Projects
+            .Include(p => p.Requests)
+            .SingleAsync(p => p.Project_Acronym_CD == ProjectAcronym);
+    }
+
+    private async Task HandleRequestService()
+    {
+        var serviceRequest = new Datahub_ProjectServiceRequests()
+        {
+            ServiceType = RequestManagementService.SQLSERVER,
+            ServiceRequests_Date_DT = DateTime.Now,
+            Is_Completed = null,
+            Project = _project,
+            User_ID = UserId,
+            User_Name = GraphUser.UserPrincipalName
+        };
+
+        await _requestManagementService.RequestService(serviceRequest);
+    }
+}
