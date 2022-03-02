@@ -1,4 +1,6 @@
 @using Datahub.Core.Data.DTO
+@using Datahub.Core.Components.Skeleton
+
 @inject ServiceAuthManager _serviceAuthManager
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject IUserInformationService _userInformationService
@@ -7,34 +9,98 @@
 
 @if (_isLoading)
 {
-    <p>Loading...</p>
+    <span class="project-members-skeleton-positioning">
+        <Skeleton Width="100px" Height="1.5rem" />
+        <span style="display: flex; margin: 1rem 0">
+            <Skeleton Circle Width="2rem" Height="2rem"/>
+            <span style="display: block; width: .5rem"></span>
+            <Skeleton Width="150px" Height="2rem"/>
+        </span>
+        <span style="display: flex; margin: 1rem 0">
+            <Skeleton Circle Width="2rem" Height="2rem"/>
+            <span style="display: block; width: .5rem"></span>
+            <Skeleton Width="150px" Height="2rem"/>
+        </span>
+        
+        <span style="display: block; height: 2rem"></span>
+        
+        <Skeleton Width="100px" Height="1.5rem" />
+        @for (var i = 0; i < 10; i++)
+        {
+            <span style="display: flex; margin: 1rem 0">
+                <Skeleton Circle Width="2rem" Height="2rem"/>
+                <span style="display: block; width: .5rem"></span>
+                <Skeleton Width="150px" Height="2rem"/>
+            </span>
+        }
+    </span>
 }
 else
 {
-    <div class="project-members">
-        <AuthorizeView Roles="@($"{ProjectAcronym}, {ProjectAcronym}-admin, {RoleConstants.DATAHUB_ROLE_ADMIN}")">
-            <NotAuthorized>
+    <AuthorizeView Roles="@($"{ProjectAcronym}, {ProjectAcronym}-admin, {RoleConstants.DATAHUB_ROLE_ADMIN}")">
+        <NotAuthorized>
+            <div class="access-denied">
                 <AeTypography Variant="h3">@Localizer["Access Denied"]</AeTypography>
-                <AeTypography class="warning">@Localizer["You currently do not have access to this project."]</AeTypography>
+                <AeTypography class="danger">@Localizer["You currently do not have access to this project."]</AeTypography>
                 @if (_isProjectUserPendingApproval)
                 {
-                    <AeTypography class="warning">@Localizer["Access Request is being reviewed"]</AeTypography>
+                    <AeTypography class="access-request-reviewing">@Localizer["Access Request is being reviewed"]</AeTypography>
                 }
                 else
                 {
-                    <AeButton @onclick="RequestProjectAccess">@Localizer["Request Access"]</AeButton>
+                    <span class="button-wrapper">
+                        <AeButton @onclick="RequestProjectAccess">@Localizer["Request Access"]</AeButton>
+                    </span>
                 }
-            </NotAuthorized>
-            <Authorized>
-                <AeTypography>
-                    <b>@Localizer["Project Administrators:"]</b> @string.Join("; ", _projectUsers.Where(u => u.IsAdmin).Select(u => u.Name))
-                </AeTypography>
-                <AeTypography>
-                    <b>@Localizer["Project Users:"]</b> @string.Join("; ", _projectUsers.Where(u => !u.IsAdmin).Select(u => u.Name))
-                </AeTypography>
-            </Authorized>
-        </AuthorizeView>
-    </div>
+            </div>
+        </NotAuthorized>
+        <Authorized>
+            <div class="project-members">
+
+                <div class="member-list">
+                    <span class="group-name">
+                        <AeTypography>
+                            <b>@Localizer["Admins"]</b>
+                        </AeTypography>
+                        <AeTypography class="member-count">@_projectUsers.Count(u => u.IsAdmin) @Localizer["members"]</AeTypography>
+                    </span>
+                    <ul class="members">
+                        @foreach (var admin in _projectUsers.Where(u => u.IsAdmin))
+                        {
+                            <li>
+                                <ProfileCircle FullName="@admin.Name"/>
+                                <AeTypography class="name">@admin.Name</AeTypography>
+
+                                <a class="email-icon" href="@($"mailto:{admin.Email}")">
+                                    <i class="fas fa-envelope"></i>
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                    <span style="display: block; height: 2rem"></span>
+                    <span class="group-name">
+                        <AeTypography>
+                            <b>@Localizer["Members"]</b>
+                        </AeTypography>
+                        <AeTypography class="member-count">@_projectUsers.Count(u => !u.IsAdmin) @Localizer["members"]</AeTypography>
+                    </span>
+                    <ul class="members">
+                        @foreach (var member in _projectUsers.Where(u => !u.IsAdmin))
+                        {
+                            <li>
+                                <ProfileCircle FullName="@member.Name"/>
+                                <AeTypography class="name">@member.Name</AeTypography>
+
+                                <a class="email-icon" href="@($"mailto:{member.Email}")">
+                                    <i class="fas fa-envelope"></i>
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </Authorized>
+    </AuthorizeView>
 }
 
 @code {
@@ -70,6 +136,7 @@ else
 
         _projectUsers = await _serviceAuthManager.GetProjectMembers(ProjectAcronym);
 
+        await Task.Delay(1500);
         _isLoading = false;
     }
 

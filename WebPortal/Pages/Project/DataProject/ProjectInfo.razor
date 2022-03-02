@@ -3,16 +3,16 @@
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 
 <div class="project-info">
-@if (_loading)
-{
-    <SkeletonRow Height="2.5rem" Width="150px" />
-    <SkeletonRow Height="5rem" Width="650px" />
-    <SkeletonRow Height="2rem" Width="900px" />
-    <SkeletonRow Height="2rem" Width="900px"/>
-    <SkeletonRow Height="2rem" Width="300px" />
-}
-else
-{
+    @if (_loading)
+    {
+        <Skeleton Height="2.5rem" Width="150px"/>
+        <Skeleton Height="5rem" Width="650px"/>
+        <Skeleton Height="2rem" Width="900px"/>
+        <Skeleton Height="2rem" Width="900px"/>
+        <Skeleton Height="2rem" Width="300px"/>
+    }
+    else
+    {
         <AeTypography class="project-data-sensitivity">@Localizer[_project.Data_Sensitivity]</AeTypography>
         <AeTypography class="project-title" Variant="h1">
             <span class="project-icon">
@@ -21,7 +21,7 @@ else
             @_project.ProjectName
         </AeTypography>
         <AeMarkdown class="description" Content="@($"{_project.ProjectDescription}")"/>
-}
+    }
 </div>
 
 @code {
@@ -42,6 +42,7 @@ else
         _project = await projectContext.Projects
             .SingleAsync(p => p.Project_Acronym_CD == ProjectAcronym);
 
+        await Task.Delay(1500);
         _loading = false;
     }
 
