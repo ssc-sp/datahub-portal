@@ -5,40 +5,36 @@
 
 @if (_project is null)
 {
-    <div>Loading... databraicks.razor</div>
+    <ToolCard Loading/>
 }
 else
 {
-    <AeCard class="facard1" CardPosition="AeCard.CardStyle.Horizontal">
-        <Header>
-            <div>
-                <AeIcon class="fad fa-database card-icon fa-xs"/>
-            </div>
-        </Header>
-        <ChildContent>
-            <AeFlex Vertical>
-                <AeTypography Variant="h3">
-                    @Localizer["PROJECT-PAGE.DATABASE-CARD.CardTitlePG"]
-                </AeTypography>
-                <AeTypography>@Localizer["Access the project PostgreSQL database and leverage your credentials for data connections"]</AeTypography>
-            </AeFlex>
-        </ChildContent>
-        <Footer>
-            <div>
-                <AeButton OnClickEvent=@ShowDatabaseInformationPopupWithoutToken>@Localizer["PROJECT-PAGE.DATABASE-CARD.MoreInfo_button"]</AeButton>
-            </div>
-            @if (_project.IsDatabasePostgres && _projectDatabaseService.IsServiceAvailable())
-            {
-                <div>
-                    <AeButton OnClickEvent=@ShowDatabaseInformationPopupWithToken>@Localizer["PROJECT-PAGE.DATABASE-CARD.GetToken_button"]</AeButton>
-                </div>
-            }
-            else
-            {
-                <AeButton @onclick="@HandleRequestService">@Localizer["Request Service Creation"]</AeButton>
-            }
-        </Footer>
-    </AeCard>
+    <ToolCard
+        Title="@Localizer["PROJECT-PAGE.DATABASE-CARD.CardTitlePG"]"
+        Description="@Localizer["Access the project PostgreSQL database and leverage your credentials for data connections"]">
+        <Logo>
+            <i class="fas fa-database"></i>
+        </Logo>
+        <ToolActionsList>
+            <ul>
+                <li>
+                    <AeButton class="light" OnClickEvent=@ShowDatabaseInformationPopupWithoutToken>@Localizer["PROJECT-PAGE.DATABASE-CARD.MoreInfo_button"]</AeButton>
+                </li>
+                @if (_project.IsDatabasePostgres && _projectDatabaseService.IsServiceAvailable())
+                {
+                    <li>
+                        <AeButton class="light" OnClickEvent=@ShowDatabaseInformationPopupWithToken>@Localizer["PROJECT-PAGE.DATABASE-CARD.GetToken_button"]</AeButton>
+                    </li>
+                }
+                else
+                {
+                    <li>
+                        <AeButton class="light" @onclick="@HandleRequestService">@Localizer["Request Service Creation"]</AeButton>
+                    </li>
+                }
+            </ul>
+        </ToolActionsList>
+    </ToolCard>
 }
 
 @code {
@@ -61,7 +57,7 @@ else
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        
+
         await using var projectDbContext = await _dbFactoryProject.CreateDbContextAsync();
 
         _project = await projectDbContext.Projects
