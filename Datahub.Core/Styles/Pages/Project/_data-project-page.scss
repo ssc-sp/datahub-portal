@@ -140,7 +140,7 @@ $first-column-max-width: 1200px;
         
         display: grid;
         grid-template-columns: var(--logo-width) 1fr;
-        grid-template-rows: auto auto 1fr;
+        grid-template-rows: auto minmax(80px, auto) 1fr;
         column-gap: 1rem;
 
         transition: all .3s c.$cubic-bezier;
