@@ -5,18 +5,6 @@
     <RootNamespace>Datahub.Core</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Content Remove="compilerconfig.json" />
-    <Content Remove="package-lock.json" />
-    <Content Remove="package.json" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Remove="Styles\Common\NewFile1.txt" />
-    <None Remove="Styles\_spinner.scss" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Styles\_spinner.scss" />
-  </ItemGroup>
-  <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
   <ItemGroup>
@@ -84,33 +72,5 @@
     <Content Update="i18n\SharedResources.fr.json">
       <CustomToolNamespace>Resources</CustomToolNamespace>
     </Content>
-  </ItemGroup>
-  <!-- from https://jacobdixon.uk/2020/10/compile-scss-at-build-time-visual-studio/ -->
-  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
-    <Exec Command="npm run build-css" />
-  </Target>
-
-  <!-- from https://stackoverflow.com/questions/35435041/run-npm-install-only-when-needed-and-or-partially -->
-  <PropertyGroup>
-    <!-- File with mtime of last successful npm install -->
-    <NpmInstallStampFile>node_modules/.install-stamp</NpmInstallStampFile>
-  </PropertyGroup>
-  <Target Name="NpmInstall" BeforeTargets="BeforeBuild" Inputs="package.json" Outputs="$(NpmInstallStampFile)">
-    <Exec Command="npm i sass --save-dev" />
-    <Touch Files="$(NpmInstallStampFile)" AlwaysCreate="true" />
-  </Target>
-
-  <ItemGroup>
-    <UpToDateCheckInput Include="Styles/**/*.scss" Set="Css" />
-    <UpToDateCheckBuilt Include="wwwroot/css/*.css" Set="Css" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <UpToDateCheckInput Remove="Styles\Theme\_paginated-table-light.scss" />
-    <UpToDateCheckInput Remove="Styles\Theme\_pagination.scss" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Styles\elemental-theme\" />
   </ItemGroup>
 </Project>

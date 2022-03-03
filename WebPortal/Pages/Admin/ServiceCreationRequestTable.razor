@@ -95,14 +95,14 @@
             projectUserIds.Remove(requestingUserId);
             notificationTasks.Add(EmailService.SendServiceCreationRequestApprovedIndividual(r.ServiceType, projectInfo, requestingUserId));
             notificationTasks.Add(SystemNotificationService.CreateSystemNotificationWithLink(requestingUserId, 
-                $"/project/{project.Project_Acronym_CD}", "SYSTEM-NOTIFICATION.GoToProject",
+                $"/{UrlPathSegment.PROJECTS}/{project.Project_Acronym_CD}", "SYSTEM-NOTIFICATION.GoToProject",
                 "SYSTEM-NOTIFICATION.NOTIFICATION-TEXT.ServiceCreatedIndividual",
                 r.ServiceType, new BilingualStringArgument(projectInfo.ProjectNameEn, projectInfo.ProjectNameFr)));
         }
 
         notificationTasks.Add(EmailService.SendServiceCreationGroupNotification(r.ServiceType, projectInfo, projectUserIds.ToList()));
         notificationTasks.Add(SystemNotificationService.CreateSystemNotificationsWithLink(projectUserIds.ToList(), 
-            $"/project/{project.Project_Acronym_CD}", "SYSTEM-NOTIFICATION.GoToProject",
+            $"/{UrlPathSegment.PROJECTS}/{project.Project_Acronym_CD}", "SYSTEM-NOTIFICATION.GoToProject",
             "SYSTEM-NOTIFICATION.NOTIFICATION-TEXT.ServiceCreatedGroup",
             r.ServiceType, new BilingualStringArgument(projectInfo.ProjectNameEn, projectInfo.ProjectNameFr)));
 

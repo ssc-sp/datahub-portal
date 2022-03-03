@@ -1,0 +1,39 @@
+<AuthorizeView Roles="@RoleConstants.DATAHUB_ROLE_ADMIN" Context="Admin_Card">
+    <ToolCard
+        Title="@Localizer["PROJECT-PAGE.ADMIN-CARD.Title"]"
+        Description="@Localizer["Manage the settings and actions for this project. "]">
+        <Logo>
+            <i class="fas fa-user-crown"></i>
+        </Logo>
+        <ToolActionsList>
+            <ul>
+                <li>
+                    <NavLink href="@($"/edit-project/{ProjectAcronym}")">
+                        <AeButton class="light">@Localizer["Edit Project"]</AeButton>
+                    </NavLink>
+                </li>
+                <li>
+                    <NavLink href="@($"/tracker/{ProjectAcronym}")">
+                        <AeButton class="light">@Localizer["Project Tracker"]</AeButton>
+                    </NavLink>
+                </li>
+                <li>
+                    <NavLink href="@($"/admin/powerbi/{ProjectAcronym}")">
+                        <AeButton class="light">@Localizer["Power BI Links"]</AeButton>
+                    </NavLink>
+                </li>
+                <li>
+                    <NavLink href="@($"/admin/onboardusers/{ProjectAcronym}")">
+                        <AeButton class="light">@Localizer["Onboard Users"]</AeButton>
+                    </NavLink>
+                </li>
+
+            </ul>
+        </ToolActionsList>
+    </ToolCard>
+</AuthorizeView>
+
+@code {
+    [CascadingParameter(Name = "ProjectAcronym")]
+    public string ProjectAcronym { get; set; }
+}

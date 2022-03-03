@@ -11,37 +11,29 @@
 @use 'overlay';
 @use 'page-titles';
 @use '_typography.scss';
-@use '_progressbar.scss';
+@use '_progressbar.scss'; 
 @use '_tacmodal.scss';
 @use 'search-layout';
 
-@use 'Components/versionList';
-@use 'Components/_tag.scss';
-@use 'Components/_profileCircle.scss';
-@use 'Components/_popup.scss';
-@use 'Components/_closeButton.scss';
-@use 'Components/_faButton.scss';
-@use 'Components/_facard1.scss';
-@use 'Components/_notifications.scss';
-@use 'Components/_successIndicator.scss';
+ 
 
-@use 'Components/Sidebar';
+@use 'Components';
+@use 'Pages';
 
 @use 'Views/_item-details.scss';
-@use 'Pages/Landing';
-
 @use 'Tables/_table-elements.scss';
 
-
+ 
 body {
     font-family: 'Roboto','RobotoDraft',Helvetica,Arial,sans-serif;
     font-size: 0.8rem;
-    background-color: c.$grey-200;
+    
+    @include c.datahub-scrollbar;
 }
 
 .add-data-wrapper {
     display: none;
-}
+} 
 
 /* Add Data page dropdown styling */
 #securityDropdown .ae.button {
