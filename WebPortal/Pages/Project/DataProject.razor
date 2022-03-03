@@ -142,6 +142,7 @@
                         </Footer>
                     </AeCard>
                 }
+
                 @if (Configuration.Value.PowerBI)
                 {
                     <AeCard class="facard1" CardPosition="AeCard.CardStyle.Horizontal">
@@ -151,9 +152,9 @@
                             </div>
                         </Header>
                         <ChildContent>
-                            @if (!string.IsNullOrWhiteSpace(_project.PowerBI_URL))
+                            @if (_powerBiServiceCreated && _powerBIAuthorized)
                             {
-                                <DHLink Variant="h3" DataProject="@projectAcronym" LinkType="DatahubLinkType.PowerBIReport">PowerBI</DHLink>
+                                <DHLink Variant="h3" DataProject="@projectAcronym" LinkType="DatahubLinkType.PowerBIReport">@Localizer["Power BI"]</DHLink>
                             }
                             else
                             {
@@ -162,32 +163,29 @@
                             <AeTypography>@Localizer["Power BI Workspace"]</AeTypography>
                         </ChildContent>
                         <Footer>
-                            @if (!_powerBIAuthorized)
+                            @if (_powerBiServiceCreated)
                             {
-                                @if (!string.IsNullOrWhiteSpace(_project.PowerBI_URL))
+                                @if (_powerBIAuthorized)
                                 {
-                                    @if (_powerBIRequested)
-                                    {
-                                        <AeTypography class="warning">@DataLocalizer["Access Request is being reviewed"]</AeTypography>
-                                    }
-                                    else
-                                    {
-                                        <AeTypography class="warning">@DataLocalizer["Access not authorized"]</AeTypography>
-                                        <AeButton @onclick="@(async () => await RequestAccess(false, true, false))">@DataLocalizer["Request Access"]</AeButton>
-                                    }
+                                    @* nothing *@
+                                }
+                                else if (_powerBiAccessRequested)
+                                {
+                                    <AeTypography class="warning">@DataLocalizer["Access Request is being reviewed"]</AeTypography>
                                 }
                                 else
                                 {
-                                    @if (_serviceRequests.Any(r => r.ServiceType == RequestManagementService.POWERBI && r.Is_Completed == null))
-                                    {
-                                        <AeTypography class="warning">@DataLocalizer["Service Request is being reviewed"]</AeTypography>
-                                    }
-                                    else
-                                    {
-                                        @*<AeTypography class="warning">Service not available</AeTypography>*@
-                                        <AeButton @onclick="@(async () => await RequestServiceAccess(RequestManagementService.POWERBI))">@DataLocalizer["Request Service Creation"]</AeButton>
-                                    }
+                                    <AeTypography class="warning">@DataLocalizer["Access not authorized"]</AeTypography>
+                                    <AeButton @onclick="@(async () => await RequestAccess(false, true, false))">@DataLocalizer["Request Access"]</AeButton>
                                 }
+                            }
+                            else if (_powerBiServiceRequested)
+                            {
+                                <AeTypography class="warning">@DataLocalizer["Service Request is being reviewed"]</AeTypography>
+                            }
+                            else
+                            {
+                                <AeButton @onclick="@(async () => await RequestServiceAccess(RequestManagementService.POWERBI))">@DataLocalizer["Request Service Creation"]</AeButton>
                             }
                         </Footer>
                     </AeCard>
@@ -489,8 +487,11 @@
     private Microsoft.Graph.User _user;
     private string _userId;
 
+    private bool _powerBiServiceRequested = false;
+    private bool _powerBiServiceCreated = false;
+
     private bool _databricksRequested = false;
-    private bool _powerBIRequested = false;
+    private bool _powerBiAccessRequested = false;
     private bool _webFormsRequested = false;
     private bool _databricksAuthorized = false;
     private bool _powerBIAuthorized = false;
@@ -547,7 +548,7 @@
             if (userRequests != null)
             {
                 _databricksRequested = userRequests.Any(r => r.Databricks);
-                _powerBIRequested = userRequests.Any(r => r.PowerBI);
+                _powerBiAccessRequested = userRequests.Any(r => r.PowerBI);
                 _webFormsRequested = userRequests.Any(r => r.WebForms);
             }
             var userAccess = _project.Requests?.Where(r => r.User_ID == _userId && r.Completion_DT != null).ToList();
@@ -636,7 +637,7 @@
     private async Task RequestAccess(bool databricks, bool powerbi, bool webforms)
     {
         _databricksRequested = databricks || _databricksRequested;
-        _powerBIRequested = powerbi || _powerBIRequested;
+        _powerBiAccessRequested = powerbi || _powerBiAccessRequested;
         _webFormsRequested = webforms || _webFormsRequested;
         var request = new Datahub_Project_Access_Request()
             {
@@ -732,6 +733,11 @@
     {
         _project = projectContext.Projects.Include(p => p.Requests).Include(p => p.Pipelines).Single(p => p.Project_Acronym_CD == projectAcronym);
         _serviceRequests = projectContext.Project_Requests.Where(p => p.Project == _project).ToList();
+
+        _powerBiServiceRequested = _serviceRequests.Any(r => r.ServiceType == RequestManagementService.POWERBI && r.Is_Completed == null);
+        _powerBiServiceCreated = !string.IsNullOrEmpty(_project.PowerBI_URL) || 
+            _serviceRequests.Any(r => r.ServiceType == RequestManagementService.POWERBI && r.Is_Completed != null);
+
         _isProjectUserPendingApproval = projectContext.Project_Users_Requests.Any(u => u.User_ID == _user.Id && _project == u.Project && u.Approved_DT == null);
         StateHasChanged();
     }
