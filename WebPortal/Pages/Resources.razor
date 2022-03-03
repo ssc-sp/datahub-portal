@@ -32,7 +32,7 @@
     public List<(string,string)> Substitutions { get; set; }
 
     private const string DefaultPage = "Home";
-    private string _markdownContent;
+    private string _markdownContent = string.Empty;
     private string _baseUrl = "/resources";
 
     private string RewriteLink(string link)
