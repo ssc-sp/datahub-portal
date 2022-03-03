@@ -111,6 +111,8 @@
     private SuccessIndicator _workingInd;
     private bool DisableApproveButton => IsWorking;
 
+    private string BuildPowerBIWorkspaceUrl(Guid workspaceId) => $"https://app.powerbi.com/groups/{workspaceId.ToString()}/list";
+
     private async Task PrepareParameters()
     {
         if (ProjectRequest == null)
@@ -218,6 +220,7 @@
                     .FirstOrDefaultAsync(r => r.ServiceRequests_ID == ProjectRequest.ServiceRequests_ID);
 
                 liveProjectRequest.Is_Completed = DateTime.UtcNow;
+                liveProjectRequest.Project.PowerBI_URL = BuildPowerBIWorkspaceUrl(prodWsId);
 
                 //TODO notification
 
