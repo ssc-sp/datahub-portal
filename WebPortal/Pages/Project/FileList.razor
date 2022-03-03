@@ -1,7 +1,8 @@
-﻿@page "/projects/{ProjectAcronym}/filelist"
-@inject IStringLocalizer<FileList> Localizer
+﻿@inject IStringLocalizer<FileList> Localizer
 @inject IDbContextFactory<DatahubProjectDBContext> DbFactoryProject
 @inject IApiService ApiService
+
+@page "/projects/{ProjectAcronym}/filelist"
 
 <DHPageTitle PageTitleKey=@(_project.ProjectName + " " + Localizer["Storage Explorer"])/>
 
