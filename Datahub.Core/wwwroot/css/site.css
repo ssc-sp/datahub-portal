@@ -4812,6 +4812,28 @@ code {
   padding: 0.5rem;
 }
 
+.markdown-container pre {
+  position: relative;
+}
+.markdown-container pre .codeblock-copy-icon {
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 0.5rem;
+  width: 33px;
+  height: 33px;
+  color: #cbd5e1;
+  cursor: pointer;
+  border-left: 1px solid #f1f5f9;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 1rem;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+.markdown-container pre .codeblock-copy-icon:hover, .markdown-container pre .codeblock-copy-icon.animating {
+  border-color: #cbd5e1;
+  color: #334155;
+}
+
 .welcome-banner {
   background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, black 100%), url("/img/landing/earth-background.jpg") no-repeat center center fixed;
   -webkit-background-size: cover;
