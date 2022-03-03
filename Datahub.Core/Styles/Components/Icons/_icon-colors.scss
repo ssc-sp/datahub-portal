@@ -4,38 +4,47 @@ $icon-colors: (
   "blue": (
     "primary": c.$blue-300,
     "secondary": c.$blue-400,
+    "background": c.$blue-100,
   ),
   "indigo": (
     "primary": c.$indigo-500,
     "secondary": c.$indigo-600,
+    "background": c.$indigo-100,
   ),
   "purple": (
     "primary": c.$purple-500,
     "secondary": c.$purple-600,
+    "background": c.$purple-100,
   ),
   "pink": (
     "primary": c.$pink-500,
     "secondary": c.$pink-600,
+    "background": c.$pink-100,
   ),
   "yellow": (
     "primary": c.$yellow-500,
     "secondary": c.$yellow-700,
+    "background": c.$yellow-100,
   ),
   "green": (
     "primary": c.$green-500,
     "secondary": c.$green-600,
+    "background": c.$green-100,
   ),
   "orange": (
     "primary": c.$orange-500,
     "secondary": c.$orange-600,
+    "background": c.$orange-100,
   ),
   "grey": (
     "primary": c.$gray-700,
     "secondary": c.$gray-700,
+    "background": c.$gray-100,
   ),
   "base": (
     "primary": c.$gray-500,
     "secondary": c.$gray-500,
+    "background": c.$gray-100,
   )
 );
 
@@ -44,6 +53,14 @@ $icon-colors: (
     &.#{$color} {
       --fa-primary-color: #{map-get($palette, "primary")};
       --fa-secondary-color: #{map-get($palette, "secondary")};
+    }
+  }
+}
+
+@mixin background-colors {
+  @each $color, $palette in $icon-colors {
+    &.#{$color} {
+      background-color: #{map-get($palette, "background")};
     }
   }
 }
