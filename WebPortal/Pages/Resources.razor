@@ -6,10 +6,10 @@
 @using System.IO
 @using System.Reflection
 @using System.Net
-@inject IStringLocalizer<DataLabels> DataLocalizer
-@inject NavigationManager NavigationManager
-@inject IJSRuntime JsInterop
-@inject ILogger<Resources> logger
+
+@inject NavigationManager _navigationManager
+@inject IJSRuntime _jsInterop
+@inject ILogger<Resources> _logger
 
 @page "/resources/"
 @page "/resources/{PageName}"
@@ -17,8 +17,8 @@
 <div style="padding: 2rem">
     <AeCard>
         <ChildContent>
-            <AeMarkdown Content="@Markdown_Content"
-                        LinkRewriter="@RewriteLink" />
+            <DHMarkdown Content="@_markdownContent"
+                        LinkRewriter="@RewriteLink"/>
         </ChildContent>
     </AeCard>
 </div>
@@ -31,70 +31,42 @@
     [Parameter]
     public List<(string,string)> Substitutions { get; set; }
 
-    public const string DefaultPage = "Home";
+    private const string DefaultPage = "Home";
+    private string _markdownContent;
+    private string _baseUrl = "/resources";
 
-    public const string Namespace = "Datahub.Portal";
-
-    private string Markdown_Content;
-
-    //private Func<string, string> RewriteLink;
-
-
-
-    public const string BaseURL = "/resources";
-
-    public string RewriteLink(string link)
+    private string RewriteLink(string link)
     {
         if (link.StartsWith("http"))
             return link;
-        return BaseURL + "/" + HttpUtility.UrlEncode(link);
+        return _baseUrl + "/" + HttpUtility.UrlEncode(link);
     }
 
-    protected override void OnParametersSet()
+    protected override async Task OnParametersSetAsync()
     {
-        Markdown_Content = LoadPage(PageName ?? DefaultPage, Substitutions) ?? Localizer["Invalid link"];
+        _markdownContent = await LoadPage(PageName ?? DefaultPage, Substitutions) ?? Localizer["Invalid link"];
     }
 
-    public static string Wiki_Url = "https://raw.githubusercontent.com/wiki/NRCan/datahub-portal/";
+    private static string _wikiUrl = "https://raw.githubusercontent.com/wiki/NRCan/datahub-portal/";
 
-    private string? LoadPage(string name, List<(string,string)> substitutions = null)
+    private async Task<string> LoadPage(string name, List<(string,string)> substitutions = null)
     {
-
         if (name.StartsWith("/")) name = name.Substring(1);
-        var fullUrl = $"{Wiki_Url}{name}.md";
-        using (var client = new WebClient())
+        var fullUrl = $"{_wikiUrl}{name}.md";
+        using var client = new HttpClient();
+        try
         {
-            try
-            {
-                var content = client.DownloadString(fullUrl);
-                if (substitutions != null)
-                {
-                    foreach (var s in substitutions)
-                    {
-                        content = content.Replace(s.Item1, s.Item2);
-                    }
-                }
+            var content = await client.GetStringAsync(fullUrl);
+            if (substitutions == null)
                 return content;
-            } catch (Exception ex)
-            {
-                logger.LogError(ex, $"Cannot load page {fullUrl}");
-                return null;
-            }
+            return substitutions
+                .Aggregate(content, (current, s) => current.Replace(s.Item1, s.Item2));
         }
-        //try
-        //{
-        //    var assembly = typeof(Startup).Assembly;
-        //    var resourceName = Namespace + ".Wiki." + name + ".md";
-
-        //    using Stream stream = assembly.GetManifestResourceStream(resourceName);
-        //    using StreamReader reader = new StreamReader(stream);
-        //    return reader.ReadToEnd();
-        //}
-        //catch (Exception ex)
-        //{
-        //    logger.LogError(ex, $"Cannot load page {name}");
-        //    return null;
-        //}
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Cannot load page url", fullUrl);
+            return null;
+        }
     }
 
 }
