@@ -14,14 +14,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
-    <base href="~/" />
+    <base href="~/"/>
 
     @*Favicons*@
     <!-- For old IEs -->
-    <link rel="shortcut icon" href="/img/favicons/favicon.ico" />
+    <link rel="shortcut icon" href="/img/favicons/favicon.ico"/>
     <!-- For new browsers - multisize ico  -->
     <link rel="icon" type="image/x-icon" sizes="16x16 32x32" href="~/_content/Datahub.Core/img/favicons/favicon.ico">
     <!-- For iPad with high-resolution Retina display running iOS ≥ 7: -->
@@ -49,36 +49,37 @@
     <link rel="icon" sizes="192x192" href="~/_content/Datahub.Core/img/favicons/favicon-192.png">
 
 
-
     @*<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">*@
     <link rel="stylesheet" href="~/_content/Datahub.Core/css/third-party/swiper-bundle.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400%7CRaleway:300,400,500,600,700%7CLato:300,400,400italic,600,700" rel="stylesheet" type="text/css" />
-    
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400%7CRaleway:300,400,500,600,700%7CLato:300,400,400italic,600,700" rel="stylesheet" type="text/css"/>
+    <link rel="stylesheet"
+          href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.4.0/styles/googlecode.min.css">
 
     @* CSS styling from DATAHUB_HOMEPAGE *@
-    <link rel="stylesheet" href="~/_content/Datahub.Core/css/third-party/blue.css" type="text/css" id="color_scheme" />
-    <link rel="stylesheet" href="~/_content/Datahub.Core/css/third-party/layout.css" type="text/css" />
-    <link rel="stylesheet" href="~/_content/Datahub.Core/css/third-party/datahub.css" type="text/css" />
+    <link rel="stylesheet" href="~/_content/Datahub.Core/css/third-party/layout.css" type="text/css"/>
+    <link rel="stylesheet" href="~/_content/Datahub.Core/css/third-party/datahub.css" type="text/css"/>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Arizonia&display=swap" type="text/css">
-    <link href="~/_content/Datahub.Core/css/third-party/font-awesome-all.min.css" rel="stylesheet" />
-    <link href="~/_content/Datahub.Core/css/third-party/normalize.css" rel="stylesheet" />
-    <link href="~/_content/Datahub.Core/css/site.css" rel="stylesheet" />
+    <link href="~/_content/Datahub.Core/css/third-party/font-awesome-all.min.css" rel="stylesheet"/>
+    <link href="~/_content/Datahub.Core/css/third-party/normalize.css" rel="stylesheet"/>
+    <link href="~/_content/Datahub.Core/css/site.css" rel="stylesheet"/>
 
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha256-4+XzXVhsDmqanXGHaHvgh1gMQKX40OUvDEBTu8JcmNs=" crossorigin="anonymous"></script>
-    @*<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>*@
-    @*<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js" integrity="sha384-LtrjvnR4Twt/qOuYxE721u19sVFLVSA4hf/rRt6PrZTmiPltdZcI7q7PXQBYTKyf" crossorigin="anonymous"></script>*@
     <script src="~/js/swiper-bundle.min.js"></script>
-    <script src="~/_content/Datahub.Core/js/inputfile.js"></script>
     <script src="~/js/swiper.js"></script>
+    <script src="~/js/powerbi-client/dist/powerbi.min.js"></script>
+    <script src="~/js/pbi-integration.js"></script>
+
+
+    <script src="~/js/third-party/highlight.min.js"></script>
+
     <script src="~/js/BlazorInterop.js"></script>
+    <script src="~/_content/Datahub.Core/js/inputfile.js"></script>
     <script src="~/_content/Datahub.Core/js/filegrid.js"></script>
     <script src="~/_content/Datahub.Core/js/anchorLink.js"></script>
     <script src="~/_content/Datahub.Core/js/clipboard-interop.js"></script>
     <script src="~/_content/Datahub.Core/js/iframe.js"></script>
     <script src="_content/AElemental.Blazor/js/aebundle.js"></script>
-    <script src="~/js/powerbi-client/dist/powerbi.min.js"></script>
-    <script src="~/js/pbi-integration.js"></script>
     <script src="~/js/custom-navigation.js"></script>
 
     <script type="text/javascript">
@@ -94,7 +95,7 @@
             }
         });
     </script>
-    <component type="typeof(HeadOutlet)" render-mode="ServerPrerendered" />
+    <component type="typeof(HeadOutlet)" render-mode="ServerPrerendered"/>
 </head>
 <style>
     #blazor-error-ui {
@@ -103,18 +104,18 @@
 </style>
 
 <body>
-    <app>
-        <component type="typeof(App)" render-mode="Server" />
-    </app>
+<app>
+    <component type="typeof(App)" render-mode="Server"/>
+</app>
 
-    <div id="browserNotSupported" style="display: none;">
-        <div style="width: 100%; text-align: center">
-            <i class="fad fa-exclamation-triangle fa-10x"></i>
-        </div>
-        <h1 style="margin: 16px 0; text-align: center">The Datahub Application requires a recent browser.</h1>
-        <p>To view our interactive report we recommend using a recent browser such as Chrome, Edge, Firefox, or Safari.</p>
+<div id="browserNotSupported" style="display: none;">
+    <div style="width: 100%; text-align: center">
+        <i class="fad fa-exclamation-triangle fa-10x"></i>
     </div>
-    <script>
+    <h1 style="margin: 16px 0; text-align: center">The Datahub Application requires a recent browser.</h1>
+    <p>To view our interactive report we recommend using a recent browser such as Chrome, Edge, Firefox, or Safari.</p>
+</div>
+<script>
         var ua = window.navigator.userAgent;
         var msie = ua.indexOf("MSIE ");
         if (msie > 0 || !!navigator.userAgent.match(/Trident.*rv\:11\./)) {
@@ -123,8 +124,7 @@
             document.getElementById('browserNotSupported').style.cssText = "display: inline; text-align: center; position: absolute; width: 60%; max-width: 600px; top: 40%; left: 50%;transform: translate(-50%, -50%);";
         }
     </script>
-    <script src="_content/BlazorApplicationInsights/JsInterop.js"></script>
-    <script src="_framework/blazor.server.js"></script>
+<script src="_content/BlazorApplicationInsights/JsInterop.js"></script>
+<script src="_framework/blazor.server.js"></script>
 </body>
 </html>
-
