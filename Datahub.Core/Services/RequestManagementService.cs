@@ -57,6 +57,7 @@ namespace Datahub.Core.Services
         public async Task RequestService(Datahub_ProjectServiceRequests request)
         {
             await using var ctx = await _dbContextFactory.CreateDbContextAsync();
+            ctx.Projects.Attach(request.Project);
 
             var exists = await ctx.Project_Requests
                 .AnyAsync(a => a.Project == request.Project && a.ServiceType == request.ServiceType);
@@ -64,12 +65,14 @@ namespace Datahub.Core.Services
             if (!exists)
             {
                 await ctx.Project_Requests.AddAsync(request);
+                await ctx.SaveChangesAsync();
                 
                 var projectResource = CreateProjectResource(request);
                 await ctx.Project_Resources.AddAsync(projectResource);
+                await ctx.SaveChangesAsync();
             }
             
-            await ctx.SaveChangesAsync();
+            
             
             await NotifyProjectAdminsOfServiceRequest(request);
         }
