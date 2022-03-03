@@ -1,4 +1,4 @@
-﻿@page "/project/{ProjectAcronym}/forms/new"
+﻿@page "/projects/{ProjectAcronym}/forms/new"
 @implements IDisposable
 @inject IDbContextFactory<DatahubProjectDBContext> DbFactory
 @inject NavigationManager NavManager
@@ -49,7 +49,7 @@ else
         var result = await projectContext.WebForms.AddAsync(_form);
         _form = result.Entity;
         await projectContext.SaveChangesAsync();
-        NavManager.NavigateTo($"/project/{ProjectAcronym}/forms/{_form.WebForm_ID}");
+        NavManager.NavigateTo($"/{UrlPathSegment.PROJECTS}/{ProjectAcronym}/forms/{_form.WebForm_ID}");
     }
     public void Dispose() { projectContext.Dispose(); }
 }

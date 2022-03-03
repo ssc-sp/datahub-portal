@@ -1,5 +1,5 @@
 ﻿@inject IUserInformationService UserInformationService
-@inject UserLocationManagerService UserLocationManagerService 
+@inject UserLocationManagerService UserLocationManagerService
 @inject IDbContextFactory<DatahubProjectDBContext> DbFactoryProject
 @inject IStringLocalizer Localizer
 
@@ -10,13 +10,15 @@
         {
             foreach (var item in recentLinks)
             {
-                <AeFlex class="@($"recent-card {GetIcon(item.link).Color}")">
-                    <i class="@GetIcon(item.link).Name" />
-                    <AeFlex class="text">
-                        <DHLink UserRecentLink="@(item.link)"><AeTypography class="title">@GetLinkDescription(item.link,item.project)</AeTypography></DHLink>
-                        <AeTypography class="subtitle">@GetDescription(item.link, item.project)</AeTypography>
+                <DHLink UserRecentLink="@(item.link)">
+                    <AeFlex class="@($"recent-card {GetIcon(item.link).Color}")">
+                        <i class="@GetIcon(item.link).Name"/>
+                        <AeFlex class="text">
+                            <AeTypography class="title">@GetLinkDescription(item.link, item.project)</AeTypography>
+                            <AeTypography class="subtitle">@GetDescription(item.link, item.project)</AeTypography>
+                        </AeFlex>
                     </AeFlex>
-                </AeFlex>
+                </DHLink>
             }
         }
     </AeFlex>
@@ -51,7 +53,7 @@
             case DatahubLinkType.PowerBIWorkspace:
                 return Localizer["PowerBI Workspace"];
             default:
-                return string.IsNullOrWhiteSpace(link.Name)?"Power BI":Localizer[link.Name];
+                return string.IsNullOrWhiteSpace(link.Name) ? "Power BI" : Localizer[link.Name];
         }
     }
 
@@ -62,14 +64,14 @@
     {
         using var ctx = DbFactoryProject.CreateDbContext();
         var grouped = RecentLinks
-                .Where(ul => ul.LinkType != DatahubLinkType.DataProject)
-                .GroupBy(ul => (ul.LinkType, ul.DataProject?.Trim()))
-                .Select(gp => gp.First())
-                .ToList();
+            .Where(ul => ul.LinkType != DatahubLinkType.DataProject)
+            .GroupBy(ul => (ul.LinkType, ul.DataProject?.Trim()))
+            .Select(gp => gp.First())
+            .ToList();
         recentLinks = grouped
-        .Select(l => (l, project:GetProject(ctx,l)))
-        .Where(gp => gp.project != null)
-        .ToList();        
+            .Select(l => (l, project:GetProject(ctx, l)))
+            .Where(gp => gp.project != null)
+            .ToList();
     }
 
     private Datahub_Project? GetProject(DatahubProjectDBContext ctx, UserRecentLink link)
@@ -123,4 +125,5 @@
         }
         return "N/A";
     }
+
 }
