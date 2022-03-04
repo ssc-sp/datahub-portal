@@ -4815,23 +4815,31 @@ code {
 .markdown-container pre {
   position: relative;
 }
+.markdown-container pre code {
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02), 0 1px 2px rgba(0, 0, 0, 0.14);
+}
 .markdown-container pre .codeblock-copy-icon {
   position: absolute;
-  top: 0;
-  right: 0;
+  top: 0.4rem;
+  right: 0.4rem;
   padding: 0.5rem;
   width: 33px;
   height: 33px;
   color: #cbd5e1;
   cursor: pointer;
-  border-left: 1px solid #f1f5f9;
-  border-bottom: 1px solid #f1f5f9;
+  border: 1px solid #f1f5f9;
+  border-radius: 4px;
   font-size: 1rem;
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
-.markdown-container pre .codeblock-copy-icon:hover, .markdown-container pre .codeblock-copy-icon.animating {
+.markdown-container pre .codeblock-copy-icon:hover {
   border-color: #cbd5e1;
-  color: #334155;
+  color: #475569;
+}
+.markdown-container pre .codeblock-copy-icon.animating {
+  border-color: #68d391;
+  color: #38a169;
 }
 
 .welcome-banner {
