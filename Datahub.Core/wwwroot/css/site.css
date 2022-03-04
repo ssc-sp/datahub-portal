@@ -1832,8 +1832,8 @@ body {
   color: #fff;
 }
 .ae.navbar .ae.navlinks .ae.nav-dropdown .ae.nav-dropdown-content {
-  display: none;
   position: absolute;
+  display: none;
   min-width: 160px;
   z-index: 1;
 }
@@ -1849,12 +1849,6 @@ body {
 .ae.navbar .ae.navlinks .ae.nav-dropdown .ae.nav-dropdown-content .ae.navlink .ae.typography {
   color: #4a5568;
 }
-.ae.navbar .ae.navlinks .ae.nav-dropdown:hover .ae.dropdown-label {
-  background-color: #2b6cb0;
-}
-.ae.navbar .ae.navlinks .ae.nav-dropdown:hover .ae.nav-dropdown-content {
-  display: block;
-}
 .ae.navbar .ae.navlinks .ae.responsive-icon .ae.navlink {
   display: none;
 }
@@ -1864,9 +1858,6 @@ body {
 }
 .ae.navbar.open .ae.navlinks .ae.navlink {
   display: block;
-}
-.ae.navbar.open .ae.navlinks .ae.nav-dropdown:hover .ae.nav-dropdown-content {
-  position: relative;
 }
 .ae.navbar.open .ae.navlinks .ae.responsive-icon {
   position: absolute;
@@ -1883,15 +1874,43 @@ body {
   .ae.navbar .ae.navlinks .ae.responsive-icon .ae.navlink {
     display: block;
   }
+  .ae.navbar .ae.navlinks .ae.nav-dropdown .ae.nav-dropdown-content {
+    position: relative;
+  }
   .ae.navbar .ae.navlinks .ae.nav-dropdown .ae.nav-dropdown-content .ae.navlink {
     box-shadow: none;
   }
+}
+@media (pointer: coarse) {
+  .ae.navbar .ae.navlinks .ae.nav-dropdown.open .ae.dropdown-label {
+    background-color: #2b6cb0;
+  }
+  .ae.navbar .ae.navlinks .ae.nav-dropdown.open .ae.nav-dropdown-content {
+    display: block !important;
+  }
+  .ae.navbar.open .ae.navlinks .ae.nav-dropdown.open .ae.nav-dropdown-content {
+    position: relative;
+  }
+}
+@media (pointer: fine) {
+  .ae.navbar .ae.navlinks .ae.nav-dropdown:hover .ae.dropdown-label {
+    background-color: #2b6cb0;
+  }
+  .ae.navbar .ae.navlinks .ae.nav-dropdown:hover .ae.nav-dropdown-content {
+    display: block !important;
+  }
+}
+.ae.navbar.force-responsive .ae.navlinks .ae.nav-dropdown .ae.nav-dropdown-content {
+  position: relative;
 }
 .ae.navbar.force-responsive:not(.open) .ae.navlinks .ae.navlink {
   display: none;
 }
 .ae.navbar.force-responsive:not(.open) .ae.navlinks .ae.responsive-icon .ae.navlink {
   display: block;
+}
+.ae.navbar.force-responsive:not(.open) .ae.navlinks .ae.nav-dropdown .ae.nav-dropdown-content {
+  position: relative;
 }
 .ae.navbar.force-responsive:not(.open) .ae.navlinks .ae.nav-dropdown .ae.nav-dropdown-content .ae.navlink {
   box-shadow: none;
