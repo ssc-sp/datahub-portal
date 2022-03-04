@@ -1,14 +1,13 @@
 ﻿@using Datahub.Portal.Pages.Project.DataProject.ProjectTools
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
-
 @inject IUserInformationService _userInformationService
 
 
 @page "/projects/{ProjectAcronymParam}"
 
 
-<DHPageTitle PageTitleKey=@_projectName/>
+<DHPageTitle PageTitleKey="@_projectName"/>
 <div class="project-page">
     <CascadingValue Value="@ProjectAcronymParam" Name="ProjectAcronym">
         <CascadingValue Value="_userId" Name="UserId">
