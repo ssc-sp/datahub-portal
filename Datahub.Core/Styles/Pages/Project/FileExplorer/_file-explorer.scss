@@ -1,12 +1,12 @@
-
+@use '../../../Common' as c;
 
 .file-explorer-layout {
   .heading {
     .breadcrumbs {
       display: flex;
-      gap: .5rem;
+      gap: c.spacing(1);
       align-items: baseline;
-      margin-bottom: .5rem;
+      margin-bottom: c.spacing(1);
       
       i {
         font-size: 1rem; 

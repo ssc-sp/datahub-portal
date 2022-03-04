@@ -5262,9 +5262,9 @@ code {
 
 .file-explorer-layout .heading .breadcrumbs {
   display: flex;
-  gap: 0.5rem;
+  gap: calc((0 + 1 * (var(--design-unit) * var(--density))) * 1px);
   align-items: baseline;
-  margin-bottom: 0.5rem;
+  margin-bottom: calc((0 + 1 * (var(--design-unit) * var(--density))) * 1px);
 }
 .file-explorer-layout .heading .breadcrumbs i {
   font-size: 1rem;
@@ -5413,6 +5413,11 @@ code {
 }
 
 :root {
+  --density: 2;
+  --design-unit: 4;
+  /*  
+        BUTTON
+   */
   --btn-light-color: #334155;
   --btn-light-bg-color: #f1f5f9;
   --btn-light-bg-color-hover: #e2e8f0;
