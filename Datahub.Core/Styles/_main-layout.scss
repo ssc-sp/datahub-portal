@@ -17,7 +17,7 @@
             .main-page {
                 display: grid;
                 flex-grow: 1;
-                padding: 2rem;
+                padding: c.spacing(4);
             }
 
             .right-sidebar {
