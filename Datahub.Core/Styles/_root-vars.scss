@@ -6,12 +6,40 @@
   --density: 2;
   --design-unit: 4;
   
+  
+  --border-radius: 4px;
 
-  /*  
-        BUTTON
-   */
+  /********************************  
+                BUTTON
+   ********************************/
   --btn-light-color: #{c.$grey-700};
   --btn-light-bg-color: #{c.$grey-100};
   --btn-light-bg-color-hover: #{c.$grey-200};
+
+
+  /********************************  
+                TYPOGRAPHY
+   ********************************/
+  --primary-text: #{c.$gray-800};
+  --secondary-text: #{c.$grey-700};
   
+  --primary-text-inverse: #{c.$grey-50};
+  --secondary-text-inverse: #{c.$grey-100};
+  
+
+  /********************************  
+                COLORS
+   ********************************/
+
+  --primary-color: #{c.$sky-500};
+  --primary-color-accent: #{c.$sky-600};
+  --primary-color-subdued: #{c.$sky-300};
+  
+  
+  
+  
+  
+  --bg-color: #{c.$grey-100};
+  --bg-color-accent: #{c.$grey-200};
+  --bg-color-accent-light: #{c.$grey-50};
 }

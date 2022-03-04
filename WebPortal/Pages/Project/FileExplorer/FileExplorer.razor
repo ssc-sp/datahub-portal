@@ -4,6 +4,7 @@
 
 <div class="file-explorer-layout">
     <div class="heading">
+        <AeTypography Variant="h1">@Localizer["Storage Explorer"]</AeTypography>
         <div class="breadcrumbs">
             <AeButton class="light">az-storage-123</AeButton>
             <i class="fas fa-chevron-right"></i>
@@ -11,11 +12,6 @@
             <i class="fas fa-chevron-right"></i>
             <AeButton class="light">az-storage-123</AeButton>
         </div>
-        <AeSearchInput
-            class="all-projects-search"
-            SearchIconFAClass="fas fa-filter"
-            Placeholder="Filter projects"
-            />
     </div>
 
     <div class="file-list">
@@ -27,23 +23,15 @@
         </div>
         @for (var i = 0; i < 2; i++)
         {
-            <div class="file-item">
-                <i class="fas fa-folder"></i>
-                <AeTypography>next folder/</AeTypography>
-                <AeTypography>15 bytes</AeTypography>
-                <AeTypography>@DateTime.Now</AeTypography>
-                <i class="fas fa-ellipsis-h"></i>
-            </div>
+            <FileItem Name="next folder/" Modified="DateTime.Now" >
+                <Icon>
+                    <i class="fas fa-folder"></i>
+                </Icon>
+            </FileItem>
         }
         @for (var i = 0; i < 15; i++)
         {
-            <div class="file-item">
-                <i class="fas fa-file"></i>
-                <AeTypography>test.py</AeTypography>
-                <AeTypography>15 bytes</AeTypography>
-                <AeTypography>@DateTime.Now</AeTypography>
-                <i class="fas fa-ellipsis-h"></i>
-            </div>
+            <FileItem Name="my-file.py" Modified="DateTime.Now" Size="15 bytes" />
         }
     </div>
 
@@ -52,20 +40,6 @@
             <i class="fas fa-folder"></i>
             <AeTypography Variant="h2">first run</AeTypography>
         </div>
-        
-        @* <TabControl TabIndex="@TabIndex" OnChangeTab="@OnChangeTab"> *@
-        @*     @foreach (var tab in GetTabs()) *@
-        @*     { *@
-        @*         <TabPage> *@
-        @*             <Control> *@
-        @*                 <AeTypography>@tab.Control</AeTypography> *@
-        @*             </Control> *@
-        @*             <ChildContent> *@
-        @*                 @tab.Content *@
-        @*             </ChildContent> *@
-        @*         </TabPage> *@
-        @*     } *@
-        @* </TabControl> *@
     </div>
 </div>
 

@@ -11,6 +11,7 @@
 /** Green **/
 /** Teal **/
 /** Blue **/
+/** Sky **/
 /** Indigo **/
 /** Purple **/
 /** Pink **/
@@ -3049,6 +3050,7 @@ code {
 /** Green **/
 /** Teal **/
 /** Blue **/
+/** Sky **/
 /** Indigo **/
 /** Purple **/
 /** Pink **/
@@ -3333,7 +3335,7 @@ code {
 .application-wrapper .main-layout .ui-control .main-page {
   display: grid;
   flex-grow: 1;
-  padding: 2rem;
+  padding: calc((0 + 4 * (var(--design-unit) * var(--density))) * 1px);
 }
 .application-wrapper .main-layout .ui-control .right-sidebar {
   position: absolute;
@@ -3934,6 +3936,7 @@ code {
 /** Green **/
 /** Teal **/
 /** Blue **/
+/** Sky **/
 /** Indigo **/
 /** Purple **/
 /** Pink **/
@@ -4632,6 +4635,7 @@ code {
 /** Green **/
 /** Teal **/
 /** Blue **/
+/** Sky **/
 /** Indigo **/
 /** Purple **/
 /** Pink **/
@@ -4646,6 +4650,7 @@ code {
 /** Green **/
 /** Teal **/
 /** Blue **/
+/** Sky **/
 /** Indigo **/
 /** Purple **/
 /** Pink **/
@@ -5260,14 +5265,75 @@ code {
   opacity: 1;
 }
 
+.file-explorer-layout {
+  display: grid;
+  grid-template-columns: 3fr 1fr;
+  grid-template-areas: "heading heading" "file-list item-details";
+}
+.file-explorer-layout .heading {
+  grid-area: heading;
+  border-bottom: 1px solid var(--bg-color-accent);
+}
+.file-explorer-layout .heading h1 {
+  margin-top: 0;
+}
 .file-explorer-layout .heading .breadcrumbs {
   display: flex;
   gap: calc((0 + 1 * (var(--design-unit) * var(--density))) * 1px);
   align-items: baseline;
-  margin-bottom: calc((0 + 1 * (var(--design-unit) * var(--density))) * 1px);
+  margin-top: calc((0 + 2 * (var(--design-unit) * var(--density))) * 1px);
+  padding-bottom: calc((0 + 1 * (var(--design-unit) * var(--density))) * 1px);
 }
 .file-explorer-layout .heading .breadcrumbs i {
   font-size: 1rem;
+}
+.file-explorer-layout .file-list {
+  grid-area: file-list;
+}
+.file-explorer-layout .file-list .file-list-header,
+.file-explorer-layout .file-list .file-item {
+  display: grid;
+  grid-template-columns: 1fr 150px 250px 40px;
+  align-items: center;
+  padding: calc((0 + 2 * (var(--design-unit) * var(--density))) * 1px);
+}
+.file-explorer-layout .file-list .file-list-header i,
+.file-explorer-layout .file-list .file-item i {
+  font-size: 1rem;
+}
+.file-explorer-layout .file-list .file-list-header {
+  border-bottom: 1px solid var(--bg-color-accent);
+}
+.file-explorer-layout .file-list .file-item .file-item-name {
+  display: flex;
+  align-items: center;
+  gap: calc((0 + 1 * (var(--design-unit) * var(--density))) * 1px);
+}
+.file-explorer-layout .file-list .file-item .file-item-name .file-item-icon {
+  width: calc((6 + 3 * (var(--design-unit) * var(--density))) * 1px);
+  height: calc((6 + 3 * (var(--design-unit) * var(--density))) * 1px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 100px;
+  background-color: var(--primary-color-subdued);
+  color: var(--primary-text-inverse);
+}
+.file-explorer-layout .file-list .file-item:not(:last-of-type) {
+  border-bottom: 1px solid var(--bg-color-accent);
+}
+.file-explorer-layout .item-details {
+  grid-area: item-details;
+  border-left: 1px solid var(--bg-color-accent);
+  padding: calc((0 + 2 * (var(--design-unit) * var(--density))) * 1px) calc((0 + 4 * (var(--design-unit) * var(--density))) * 1px);
+}
+.file-explorer-layout .item-details .details-title {
+  display: flex;
+  gap: calc((0 + 2 * (var(--design-unit) * var(--density))) * 1px);
+  align-items: baseline;
+}
+.file-explorer-layout .item-details .details-title i {
+  font-size: 2rem;
 }
 
 .item-details-container {
@@ -5415,12 +5481,29 @@ code {
 :root {
   --density: 2;
   --design-unit: 4;
-  /*  
-        BUTTON
-   */
+  --border-radius: 4px;
+  /********************************  
+                BUTTON
+   ********************************/
   --btn-light-color: #334155;
   --btn-light-bg-color: #f1f5f9;
   --btn-light-bg-color-hover: #e2e8f0;
+  /********************************  
+                TYPOGRAPHY
+   ********************************/
+  --primary-text: #1e293b;
+  --secondary-text: #334155;
+  --primary-text-inverse: #f8fafc;
+  --secondary-text-inverse: #f1f5f9;
+  /********************************  
+                COLORS
+   ********************************/
+  --primary-color: #0ea5e9;
+  --primary-color-accent: #0284c7;
+  --primary-color-subdued: #7dd3fc;
+  --bg-color: #f1f5f9;
+  --bg-color-accent: #e2e8f0;
+  --bg-color-accent-light: #f8fafc;
 }
 
 body {
