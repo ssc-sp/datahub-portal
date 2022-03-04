@@ -185,7 +185,7 @@ namespace Datahub.Portal.Controllers
         }
 
         private bool IsDisabledOrExpired(Datahub_ProjectApiUser apiUser) 
-            => !apiUser.Enabled && apiUser.Expiration_DT.HasValue && apiUser.Expiration_DT.Value > DateTime.UtcNow;
+            => !apiUser.Enabled || (apiUser.Expiration_DT.HasValue && apiUser.Expiration_DT.Value > DateTime.UtcNow);
 
         private async Task SaveMetadata(OpenDataShareRequest data, FieldDefinitions fieldDefinitions)
         {
