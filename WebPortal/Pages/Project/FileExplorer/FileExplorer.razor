@@ -1,0 +1,96 @@
+@inject IUserInformationService _userInformationService
+@inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
+
+
+<div class="file-explorer-layout">
+    <div class="heading">
+        <div class="breadcrumbs">
+            <AeTypography>az-storage-123</AeTypography>
+            <AeTypography>my folder</AeTypography>
+            <AeTypography>first run</AeTypography>
+        </div>
+        <AeSearchInput
+            class="all-projects-search"
+            SearchIconFAClass="fas fa-filter"
+            Placeholder="Filter projects"
+            />
+    </div>
+
+    <div class="file-list">
+        <div class="file-list-header">
+            <AeTypography>Name</AeTypography>
+            <AeTypography>Size</AeTypography>
+            <AeTypography>LastModified</AeTypography>
+            <i class="fas fa-sort-alpha-down"></i>
+        </div>
+        @for (var i = 0; i < 2; i++)
+        {
+            <div class="file-item">
+                <i class="fas fa-folder"></i>
+                <AeTypography>next folder/</AeTypography>
+                <AeTypography>15 bytes</AeTypography>
+                <AeTypography>@DateTime.Now</AeTypography>
+                <i class="fas fa-ellipsis-h"></i>
+            </div>
+        }
+        @for (var i = 0; i < 15; i++)
+        {
+            <div class="file-item">
+                <i class="fas fa-file"></i>
+                <AeTypography>test.py</AeTypography>
+                <AeTypography>15 bytes</AeTypography>
+                <AeTypography>@DateTime.Now</AeTypography>
+                <i class="fas fa-ellipsis-h"></i>
+            </div>
+        }
+    </div>
+
+    <div class="item-details">
+        <div class="details-title">
+            <i class="fas fa-folder"></i>
+            <AeTypography Variant="h2">first run</AeTypography>
+        </div>
+        
+        @* <TabControl TabIndex="@TabIndex" OnChangeTab="@OnChangeTab"> *@
+        @*     @foreach (var tab in GetTabs()) *@
+        @*     { *@
+        @*         <TabPage> *@
+        @*             <Control> *@
+        @*                 <AeTypography>@tab.Control</AeTypography> *@
+        @*             </Control> *@
+        @*             <ChildContent> *@
+        @*                 @tab.Content *@
+        @*             </ChildContent> *@
+        @*         </TabPage> *@
+        @*     } *@
+        @* </TabControl> *@
+    </div>
+</div>
+
+
+@code {
+
+    [CascadingParameter(Name = "ProjectAcronym")]
+    public string ProjectAcronym { get; set; }
+
+    private Microsoft.Graph.User _user;
+    private string _userId;
+
+
+    private bool _loading = true;
+    
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
+
+        _userId = await _userInformationService.GetUserIdString();
+        _user = await _userInformationService.GetUserAsync();
+
+        _loading = false;
+    }
+    
+    
+
+}
