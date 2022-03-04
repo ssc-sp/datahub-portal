@@ -1,0 +1,16 @@
+
+
+.file-explorer-layout {
+  .heading {
+    .breadcrumbs {
+      display: flex;
+      gap: .5rem;
+      align-items: baseline;
+      margin-bottom: .5rem;
+      
+      i {
+        font-size: 1rem; 
+      }
+    }
+  }
+}
