@@ -5071,13 +5071,10 @@ code {
   display: grid;
   grid-template-columns: 1fr 2fr 6fr;
   gap: 1rem 2rem;
-  border-left: 4px solid transparent;
   padding: 1rem;
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
-.all-projects-container .all-projects .project-row:hover {
-  border-color: #cbd5e1;
-  background-color: #e2e8f0;
+.all-projects-container .all-projects .project-row:nth-child(even) {
+  background-color: #f1f5f9;
 }
 .all-projects-container .all-projects .project-row .sector {
   margin: 1rem 0;
