@@ -5,10 +5,15 @@
   pre {
     position: relative;
 
+    code {
+      border-radius: 8px;
+      @include c.BoxShadow(1);
+    }
+
     .codeblock-copy-icon {
       position: absolute;
-      top: 0;
-      right: 0;
+      top: .4rem;
+      right: .4rem;
       padding: .5rem;
 
       width: 33px;
@@ -16,16 +21,19 @@
 
       color: c.$grey-300;
       cursor: pointer;
-      border-left: 1px solid c.$grey-100;
-      border-bottom: 1px solid c.$grey-100;
+      border: 1px solid c.$grey-100;
+      border-radius: 4px;
 
       font-size: 1rem;
       transition: all .3s c.$cubic-bezier;
 
-      &:hover,
-      &.animating {
+      &:hover {
         border-color: c.$grey-300;
-        color: c.$grey-700;
+        color: c.$grey-600;
+      }
+      &.animating {
+        border-color: c.$green-400;
+        color: c.$green-600;
       }
     }
   }
