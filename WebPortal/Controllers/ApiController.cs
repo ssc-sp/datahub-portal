@@ -121,7 +121,7 @@ namespace Datahub.Portal.Controllers
 
             // get the api use record
             var apiUser = await GetApiUserAsync(authHeader);
-            if (apiUser is null || HasExpired(apiUser))
+            if (apiUser is null || IsDisabledOrExpired(apiUser))
                 return Unauthorized();
 
             // validate the model
@@ -172,7 +172,7 @@ namespace Datahub.Portal.Controllers
 
             // get the api use record
             var apiUser = await GetApiUserAsync(authHeader);
-            if (apiUser is null || HasExpired(apiUser))
+            if (apiUser is null || IsDisabledOrExpired(apiUser))
                 return Unauthorized();
 
             // get the field definitions
@@ -184,7 +184,8 @@ namespace Datahub.Portal.Controllers
             return Ok(fieldChoices);
         }
 
-        private bool HasExpired(Datahub_ProjectApiUser apiUser) => apiUser.Expiration_DT.HasValue && apiUser.Expiration_DT.Value > DateTime.UtcNow;
+        private bool IsDisabledOrExpired(Datahub_ProjectApiUser apiUser) 
+            => !apiUser.Enabled && apiUser.Expiration_DT.HasValue && apiUser.Expiration_DT.Value > DateTime.UtcNow;
 
         private async Task SaveMetadata(OpenDataShareRequest data, FieldDefinitions fieldDefinitions)
         {
