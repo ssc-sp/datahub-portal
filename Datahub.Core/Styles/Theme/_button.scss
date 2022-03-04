@@ -32,12 +32,12 @@ $buttonOptions: (
         ),
     ),
     "light": (
-        "color": c.$gray-600,
-        "background-color": c.$gray-100,
-        "border-color": c.$gray-100,
+        "color": var(--btn-light-color),
+        "background-color": var(--btn-light-bg-color),
+        "border-color": var(--btn-light-bg-color),
         "&:hover": (
-            "background-color": c.$gray-300,
-            "border-color": c.$gray-300,
+            "background-color": var(--btn-light-bg-color-hover),
+            "border-color": var(--btn-light-bg-color-hover),
         ),
     ),
     "blue": (
