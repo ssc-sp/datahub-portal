@@ -15,7 +15,7 @@ else
         </Logo>
         <ToolActionsList>
             <ul>
-                @if (_databricksAuthorized && !string.IsNullOrWhiteSpace(_project.Databricks_URL))
+                @if (!string.IsNullOrWhiteSpace(_project.Databricks_URL))
                 {
                     <li>
                         <DHLink DataProject="@ProjectAcronym" DatabricksURL="@_project.Databricks_URL">
@@ -25,47 +25,23 @@ else
                 }
                 else
                 {
-                    if (!string.IsNullOrWhiteSpace(_project.Databricks_URL))
+                    if (_databricksServiceRequested)
                     {
-                        if (_databricksRequested)
-                        {
-                            <li>
-                                <AeTypography class="access-text">@Localizer["Access Request is being reviewed"]</AeTypography>
-                            </li>
-                        }
-                        else
-                        {
-                            <li>
-                                <AeButton class="light" @onclick="@HandleRequestAccess">
-                                    @if (_databricksRequestPending)
-                                    {
-                                        <i class="fas fa-spinner-third pending"></i>
-                                    }
-                                    @Localizer["Request Access"]
-                                </AeButton>
-                            </li>
-                        }
+                        <li>
+                            <AeTypography class="access-text">@Localizer["Service Request is being reviewed"]</AeTypography>
+                        </li>
                     }
                     else
                     {
-                        if (_databricksServiceRequested)
-                        {
-                            <li>
-                                <AeTypography class="access-text">@Localizer["Service Request is being reviewed"]</AeTypography>
-                            </li>
-                        }
-                        else
-                        {
-                            <li>
-                                <AeButton class="light" @onclick="@HandleRequestService">
-                                    @if (_databricksServiceRequestPending)
-                                    {
-                                        <i class="fas fa-spinner-third pending"></i>
-                                    }
-                                    @Localizer["Request Service Creation"]
-                                </AeButton>
-                            </li>
-                        }
+                        <li>
+                            <AeButton class="light" @onclick="@HandleRequestService">
+                                @if (_databricksServiceRequestPending)
+                                {
+                                    <i class="fas fa-spinner-third pending"></i>
+                                }
+                                @Localizer["Request Service Creation"]
+                            </AeButton>
+                        </li>
                     }
                 }
             </ul>
@@ -84,13 +60,8 @@ else
     [CascadingParameter(Name = "GraphUser")]
     public Microsoft.Graph.User GraphUser { get; set; }
 
-    private bool _databricksRequested;
-    private bool _databricksRequestPending;
-
     private bool _databricksServiceRequested;
     private bool _databricksServiceRequestPending;
-
-    private bool _databricksAuthorized;
 
     private Datahub_Project _project;
 
@@ -106,37 +77,12 @@ else
 
         if (UserId != null)
         {
-            _databricksRequested = _project.Requests.Any(r => r.Databricks);
-            _databricksAuthorized = _project.Requests
-                .Where(r => r.User_ID == UserId && r.Completion_DT != null)
-                .Any(r => r.Databricks);
             _databricksServiceRequested = await projectDbContext.Project_Requests
                 .Where(p => p.Project == _project)
                 .AnyAsync(r =>
                     r.ServiceType == RequestManagementService.DATABRICKS
                     && r.Is_Completed == null);
         }
-    }
-
-    private async Task HandleRequestAccess()
-    {
-        if (_databricksRequestPending)
-            return;
-
-        _databricksRequestPending = true;
-        StateHasChanged();
-
-        var request = new Datahub_Project_Access_Request()
-        {
-            Request_DT = DateTime.Now,
-            User_Name = GraphUser.UserPrincipalName,
-            User_ID = UserId,
-            Project = _project,
-            Databricks = true
-        };
-
-        await _requestManagementService.RequestAccess(request);
-        _databricksRequested = true;
     }
 
     private async Task HandleRequestService()
