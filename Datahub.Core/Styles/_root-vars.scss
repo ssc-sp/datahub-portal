@@ -1,0 +1,8 @@
+@use 'Common' as c;
+
+:root {
+  --btn-light-color: #{c.$grey-700};
+  --btn-light-bg-color: #{c.$grey-100};
+  
+  --btn-light-bg-color-hover: #{c.$grey-200};
+}
