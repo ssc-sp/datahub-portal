@@ -1,0 +1,36 @@
+<div class="file-item">
+    <AeTypography class="file-item-name">
+        <span class="file-item-icon">
+            @if (Icon != null)
+            {
+                @Icon
+            }
+            else
+            {
+                <i class="fas fa-file"></i>
+            }
+        </span>
+        @Name
+    </AeTypography>
+    <AeTypography class="file-item-size">@(Size ?? "")</AeTypography>
+    <AeTypography class="file-item-modified">@(Modified?.ToString("f", Thread.CurrentThread.CurrentUICulture) ?? "-")</AeTypography>
+    <span class="more-actions">
+        <i class="fas fa-ellipsis-h"></i>
+    </span>
+</div>
+
+@code {
+
+    [Parameter]
+    public string Name { get; set; }
+
+    [Parameter]
+    public RenderFragment Icon { get; set; }
+
+    [Parameter]
+    public string Size { get; set; }
+
+    [Parameter]
+    public DateTime? Modified { get; set; }
+
+}

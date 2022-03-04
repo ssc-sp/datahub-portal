@@ -4,7 +4,6 @@
 @page "/projects/{ProjectAcronymParam}/filelist"
 
 <DHPageTitle PageTitleKey="@_projectName"/>
-<AeTypography Variant="h1">@Localizer["Storage Explorer"]</AeTypography>
 
 <CascadingValue Value="@ProjectAcronymParam" Name="ProjectAcronym">
     <TabControl TabIndex="@_tabIndex" OnChangeTab="@OnChangeTab">

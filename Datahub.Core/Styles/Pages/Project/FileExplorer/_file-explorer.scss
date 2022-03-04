@@ -1,15 +1,106 @@
 @use '../../../Common' as c;
 
+
+
+
 .file-explorer-layout {
+  display: grid;
+  grid-template-columns: 3fr 1fr;
+
+  $border: 1px solid var(--bg-color-accent);
+  
+  grid-template-areas: 
+    "heading heading"
+    "file-list item-details";
+  
   .heading {
+    grid-area: heading;
+    border-bottom: $border;
+    
+    h1 {
+      margin-top: 0;
+    }
+    
     .breadcrumbs {
       display: flex;
       gap: c.spacing(1);
       align-items: baseline;
-      margin-bottom: c.spacing(1);
-      
+      margin-top: c.spacing(2);
+      padding-bottom: c.spacing(1);
+
       i {
         font-size: 1rem; 
+      }
+    }
+  }
+  
+  $page-padding: c.spacing(4);
+  $anti-page-padding: calc(#{$page-padding} * -1);
+  
+  .file-list {
+    grid-area: file-list;
+    $grid-columns: 1fr 150px 250px 40px;
+    
+    
+    
+    .file-list-header,
+    .file-item {
+      display: grid;
+      grid-template-columns: $grid-columns;
+      align-items: center;
+      padding: c.spacing(2);
+      
+      i {
+        font-size: 1rem;
+      } 
+    }
+    
+    .file-list-header {
+      border-bottom: $border;
+    }
+    
+    .file-item {
+      
+      .file-item-name {
+        display: flex;
+        align-items: center;
+        gap: c.spacing(1);
+        
+        .file-item-icon {
+          width: c.spacing(3, 6);
+          height: c.spacing(3, 6);
+          
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          
+          border-radius: 100px;
+          
+          background-color: var(--primary-color-subdued);
+          color: var(--primary-text-inverse);
+          
+        }
+      }
+      
+      &:not(:last-of-type){
+        border-bottom: 1px solid var(--bg-color-accent);
+      }
+    }
+  }
+  
+  .item-details {
+    grid-area: item-details;
+    border-left: $border;
+    
+    padding: c.spacing(2) c.spacing(4);
+    
+    .details-title {
+      display: flex;
+      gap: c.spacing(2);
+      align-items: baseline;
+      
+      i {
+        font-size: 2rem;
       }
     }
   }
