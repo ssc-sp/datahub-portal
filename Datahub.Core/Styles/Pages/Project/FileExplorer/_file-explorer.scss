@@ -1,11 +1,11 @@
 @use '../../../Common' as c;
 
-
+@use 'storage-properties';
 
 
 .file-explorer-layout {
   display: grid;
-  grid-template-columns: 3fr 1fr;
+  grid-template-columns: 1fr 400px;
 
   $border: 1px solid var(--bg-color-accent);
   
@@ -57,6 +57,10 @@
     
     .file-list-header {
       border-bottom: $border;
+      background-color: c.$grey-50;
+      z-index: 100;
+      position: sticky;
+      top: c.$topbarHeight;
     }
     
     .file-item {
@@ -98,17 +102,11 @@
     
     .details-sticky {
       position: sticky;
-      top: 60px;
-      padding: c.spacing(2) c.spacing(4);
+      top: c.$topbarHeight;
+      padding: c.spacing(2);
       
-      .details-title {
-        display: flex;
-        gap: c.spacing(2);
-        align-items: baseline;
-        
-        i {
-          font-size: 2rem;
-        }
+      .details-container {
+        @include storage-properties.file-explorer-card;
       }
     }
   }

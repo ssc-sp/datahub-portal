@@ -292,15 +292,14 @@ namespace Datahub.Portal.Services.Api
 
         public async Task<StorageMetadata> GetStorageMetadata(string project)
         {
-            string cxnstring = await _apiCallService.GetProjectConnectionString(project);
-            BlobServiceClient blobServiceClient = new(cxnstring);
-            BlobContainerClient containerClient = blobServiceClient.GetBlobContainerClient("datahub");
+            
+            var connectionString = await _apiCallService.GetProjectConnectionString(project?.ToLower());
+            var blobServiceClient = new BlobServiceClient(connectionString);
+            var containerClient = blobServiceClient.GetBlobContainerClient("datahub");
 
-            var accountInfo = blobServiceClient.GetAccountInfo().Value;
-            //var accountype = accountInfo.Value
-            //var skuName = accountInfo.SkuName;
+            var accountInfo = (await blobServiceClient.GetAccountInfoAsync()).Value;
 
-            StorageMetadata storeageMetadata = new() 
+            StorageMetadata storageMetadata = new() 
             {
                 Container = "datahub",
                 Url = containerClient.Uri.ToString(),
@@ -309,7 +308,7 @@ namespace Datahub.Portal.Services.Api
                 StorageAccountType = accountInfo.AccountKind.ToString()
             };
 
-            return storeageMetadata;
+            return storageMetadata;
         }
 
         public async Task<List<FileMetaData>> GetStorageBlobFiles(string projectAcronym, User user)
