@@ -1,70 +1,37 @@
-﻿using Azure;
-using Azure.Search.Documents;
-using Azure.Search.Documents.Models;
-using Azure.Storage.Blobs;
+﻿using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Azure.Storage.Files.DataLake;
 using Azure.Storage.Files.DataLake.Models;
-using Microsoft.AspNetCore.Components;
-using Microsoft.EntityFrameworkCore.Internal;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using Microsoft.JSInterop;
-using Newtonsoft.Json;
 using Datahub.Core.Data;
 using Datahub.Core.Services;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net.Http;
-using System.Reflection;
-using System.Threading.Tasks;
-using System.Web;
+using Microsoft.AspNetCore.Components;
+using Microsoft.Graph;
+using Folder = Datahub.Core.Data.Folder;
 
-namespace Datahub.Portal.Services
+namespace Datahub.Portal.Services.Api
 {
     public class DataRetrievalService : BaseService, IDataRetrievalService
     {
-        private const string METADATA_FILEID = "fileid";
-        private ILogger<DataRetrievalService> _logger;
-        private IHttpClientFactory _httpClient;
-        private IUserInformationService _userInformationService;
-        private IKeyVaultService _keyVaultService;
-        private IApiCallService _apiCallService;
-        private DataLakeClientService _dataLakeClientService;
-        private IJSRuntime _jsRuntime;
-        private CommonAzureServices _commonAzureServices;
-        private ICognitiveSearchService _cognitiveSearchService;
+        private const string METADATA_FILE_ID = "fileid";
+        private readonly ILogger<DataRetrievalService> _logger;
+        private readonly IApiCallService _apiCallService;
+        private readonly DataLakeClientService _dataLakeClientService;
 
         public DataRetrievalService(ILogger<DataRetrievalService> logger,
-                                    IHttpClientFactory clientFactory,
-                                    IUserInformationService userInformationService,
-                                    IKeyVaultService keyVaultService,
                                     IApiCallService apiCallService,
                                     IApiService apiService,
                                     DataLakeClientService dataLakeClientService,
-                                    ICognitiveSearchService cognitiveSearchService,
-                                    CommonAzureServices commonAzureServices,
-                                    IJSRuntime jSRuntime,
                                     NavigationManager navigationManager,
                                     UIControlsService uiService)
             : base(navigationManager, apiService, uiService)
         {
             _logger = logger;
-            _httpClient = clientFactory;
-            _userInformationService = userInformationService;
-            _keyVaultService = keyVaultService;
             _apiCallService = apiCallService;
             _dataLakeClientService = dataLakeClientService;
-            _jsRuntime = jSRuntime;
-            _commonAzureServices = commonAzureServices;
-            _cognitiveSearchService = cognitiveSearchService;
         }
 
 
-        public async Task<Folder> GetFolderStructure(Folder folder, Microsoft.Graph.User user, bool onlyFolders = true)
+        public async Task<Folder> GetFolderStructure(Folder folder, User user, bool onlyFolders = true)
         {
             try
             {
@@ -72,12 +39,12 @@ namespace Datahub.Portal.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"GetFolderStructure folder: {folder.fullPathFromRoot} user: {user.DisplayName} FAILED.");
+                _logger.LogError(ex, "GetFolderStructure folder: {FullPathFromRoot} user: {DisplayName} FAILED", folder.fullPathFromRoot, user.DisplayName);
                 throw;
             }
         }
 
-        public async Task<Folder> GetFolderContents(Folder folder, string filterSearch, Microsoft.Graph.User user, string project = null)
+        public async Task<Folder> GetFolderContents(Folder folder, string filterSearch, User user, string project = null)
         {
             try
             {
@@ -85,12 +52,12 @@ namespace Datahub.Portal.Services
                 folder?.Clear();
                 if (!string.IsNullOrWhiteSpace(filterSearch))
                 {
-                    return await getSearchResults(folder, filterSearch, user);
+                    return await GetSearchResults(folder, filterSearch, user);
                 }
 
                 if (folder?.isShared ?? false)
                 {
-                    return await getSharedFileList(folder, user);
+                    return await GetSharedFileList(folder, user);
                 }
 
                 if (!string.IsNullOrEmpty(project))
@@ -102,66 +69,66 @@ namespace Datahub.Portal.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"GetFileList folder: {folder?.fullPathFromRoot} filter search: {filterSearch} user: {user?.DisplayName} FAILED.");
+                _logger.LogError(ex, "GetFileList folder: {FullPathFromRoot} filter search: {FilterSearch} user: {DisplayName} FAILED",
+                    folder?.fullPathFromRoot, filterSearch, user?.DisplayName);
                 throw;
             }
         }
 
-        private async Task<Folder> GetProjectFileList(string project, Microsoft.Graph.User user)
+        private async Task<Folder> GetProjectFileList(string project, User user)
         {
             try
             {
 
-                string cxnstring = await _apiCallService.GetProjectConnectionString(project);
-                BlobServiceClient blobServiceClient = new BlobServiceClient(cxnstring);
-                BlobContainerClient containerClient = blobServiceClient.GetBlobContainerClient("datahub");
+                var connectionString = await _apiCallService.GetProjectConnectionString(project);
+                var blobServiceClient = new BlobServiceClient(connectionString);
+                var containerClient = blobServiceClient.GetBlobContainerClient("datahub");
 
-                Folder folder = new Folder();
-                var resultSegment = containerClient.GetBlobsAsync(BlobTraits.Metadata)
-                .AsPages(default, 30);
+                var folder = new Folder();
+                var resultSegment = containerClient
+                    .GetBlobsAsync(BlobTraits.Metadata)
+                    .AsPages(default, 30);
 
                 // Enumerate the blobs returned for each page.
-                await foreach (Azure.Page<BlobItem> blobPage in resultSegment)
+                await foreach (var blobPage in resultSegment)
                 {
-                    foreach (BlobItem blobItem in blobPage.Values)
+                    foreach (var blobItem in blobPage.Values)
                     {
                         
-                        Console.WriteLine("Blob name: {0}", blobItem.Name);
-                        //string fileId = blobItem.Metadata.TryGetValue("fileid", out fileId) ? fileId : "External";
-                        string? fileId = null;
-                        if (!blobItem.Metadata.TryGetValue(METADATA_FILEID, out fileId))
+                        // Console.WriteLine("Blob name: {0}", blobItem.Name);
+                        if (!blobItem.Metadata.TryGetValue(METADATA_FILE_ID, out var fileId))
                         {
                             var newId = Guid.NewGuid().ToString();
-                            blobItem.Metadata.Add(METADATA_FILEID, newId);
+                            blobItem.Metadata.Add(METADATA_FILE_ID, newId);
                             var client = containerClient.GetBlobClient(blobItem.Name);
                             await client.SetMetadataAsync(blobItem.Metadata);
                             fileId = newId;
                             
                         }
-                        string ownedby = blobItem.Metadata.TryGetValue("ownedby", out ownedby) ? ownedby : "Unknown";
-                        string createdby = blobItem.Metadata.TryGetValue("createdby", out createdby) ? createdby : "Unknown";
-                        string lastmodifiedby = blobItem.Metadata.TryGetValue("lastmodifiedby", out lastmodifiedby) ? lastmodifiedby : "lastmodifiedby";
+                        
+                        string ownedBy = blobItem.Metadata.TryGetValue(FileMetaData.OwnedBy, out ownedBy) ? ownedBy : "Unknown";
+                        string createdBy = blobItem.Metadata.TryGetValue(FileMetaData.CreatedBy, out createdBy) ? createdBy : "Unknown";
+                        // string lastModifiedBy = blobItem.Metadata.TryGetValue(FileMetaData.LastModifiedBy, out lastModifiedBy) ? lastModifiedBy : "lastmodifiedby";
 
                         var file = new FileMetaData()
                         {
                             id = fileId,
                             filename = blobItem.Name,
-                            ownedby = ownedby,
-                            createdby = createdby,
-                            lastmodifiedby = lastmodifiedby,
+                            ownedby = ownedBy,
+                            createdby = createdBy,
+                            // lastmodifiedby = lastModifiedBy,
                             lastmodifiedts = DateTime.Now
                         };
+                        
                         folder.Add(file, false);
                     }
-
-
                 }
 
                 return folder;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Get file list for project: {project} for user: {user.DisplayName} FAILED.");
+                _logger.LogError(ex, "Get file list for project: {Project} for user: {DisplayName} FAILED", project, user.DisplayName);
                 throw;
             }
         }
@@ -180,7 +147,7 @@ namespace Datahub.Portal.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Get versions for file: {fileId} FAILED.");
+                _logger.LogError(ex, "Get versions for file: {FileId} FAILED", fileId);
                 throw;
             }
 
@@ -198,29 +165,29 @@ namespace Datahub.Portal.Services
                 // Now iterate through sub folders
                 var directoryClient = fileSystemClient.GetDirectoryClient(folderName);
                 var subdirectories = directoryClient.GetPathsAsync().AsPages(default, 20);
-                await foreach (Azure.Page<PathItem> directoryPage in subdirectories)
+                await foreach (var directoryPage in subdirectories)
                 {
                     foreach (var item in directoryPage.Values)
                     {
-                        if (item.IsDirectory.Value)
-                        {
-                            var subFolders = await GetSubFolders(fileSystemClient, item.Name);
-                            folders.AddRange(subFolders);
-                        }
+                        if (item.IsDirectory != null && !item.IsDirectory.Value) 
+                            continue;
+                        
+                        var subFolders = await GetSubFolders(fileSystemClient, item.Name);
+                        folders.AddRange(subFolders);
                     }
                 }
 
-                _logger.LogDebug($"Get all folders under folder: {folderName} SUCCEEDED.");
+                _logger.LogDebug("Get all folders under folder: {FolderName} SUCCEEDED", folderName);
                 return folders;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Get all sub folders under folder: {folderName} FAILED.");
+                _logger.LogError(ex, "Get all sub folders under folder: {FolderName} FAILED", folderName);
                 throw;
             }
         }
 
-        public async Task<List<string>> GetAllFolders(string rootFolderName, Microsoft.Graph.User user)
+        public async Task<List<string>> GetAllFolders(string rootFolderName, User user)
         {
             try
             {
@@ -230,29 +197,29 @@ namespace Datahub.Portal.Services
                 List<string> displayableSubFolders = new List<string>();
                 subFolders.ForEach(f => displayableSubFolders.Add(f.Replace(rootFolderName, @".")));
 
-                _logger.LogDebug($"Get all folders under folder: {rootFolderName} for user: {user.DisplayName} SUCCEEDED.");
+                _logger.LogDebug("Get all folders under folder: {RootFolderName} for user: {DisplayName} SUCCEEDED", rootFolderName, user.DisplayName);
                 return displayableSubFolders;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Get all folders under folder: {rootFolderName} for user: {user.DisplayName} FAILED.");
+                _logger.LogError(ex, "Get all folders under folder: {RootFolderName} for user: {DisplayName} FAILED", rootFolderName, user.DisplayName);
                 throw;
             }
         }
 
-        protected async Task<Folder> getSharedFileList(dynamic folder, Microsoft.Graph.User user)
+        private async Task<Folder> GetSharedFileList(dynamic folder, User user)
         {
-            string filter = $"sharedwith/any(c: c/userid eq '{user.Id}')";
+            var filter = $"sharedwith/any(c: c/userid eq '{user.Id}')";
             return await _apiService.SearchIndex(folder, filter, user);
         }
 
-        protected async Task<Folder> getSearchResults(dynamic folder, string searchText, Microsoft.Graph.User user)
+        private async Task<Folder> GetSearchResults(dynamic folder, string searchText, User user)
         {
-            string filter = $"search.ismatch('{searchText}*', 'filename', 'full', 'any') and ownedby eq '{user.Id}'";
+            var filter = $"search.ismatch('{searchText}*', 'filename', 'full', 'any') and ownedby eq '{user.Id}'";
             return await _apiService.SearchIndex(folder, filter, user);
         }
 
-        public async Task<Folder> GetFileList(Folder folder, Microsoft.Graph.User user, bool onlyFolders = false, bool recursive = false)
+        private async Task<Folder> GetFileList(Folder folder, User user, bool onlyFolders = false, bool recursive = false)
         {
             try
             {
@@ -260,44 +227,44 @@ namespace Datahub.Portal.Services
                 var directoryClient = fileSystemClient.GetDirectoryClient(folder.fullPathFromRoot);
                 var subdirectories = directoryClient.GetPathsAsync().AsPages(default, 20);
 
-                await foreach (Azure.Page<PathItem> directoryPage in subdirectories)
+                await foreach (var directoryPage in subdirectories)
                 {
                     // The directoryPage.Values will contain both files and folders
                     // We will ALWAYS add subfolders
                     // ONLY add files IFF onlyFolders is false!
-                    foreach (var item in directoryPage.Values.Where(i => i.IsDirectory.Value || !onlyFolders))
+                    foreach (var item in directoryPage.Values.Where(i => i.IsDirectory != null && (i.IsDirectory.Value || !onlyFolders)))
                     {
                         dynamic child = Map(item, directoryClient);
                         folder.Add(child, false);
 
                         // If directrory and recursive, go down the tree
                         // THIS IS USUALLY ONLY FOR Folder lists!
-                        if (item.IsDirectory.Value && recursive)
+                        if (item.IsDirectory != null && item.IsDirectory.Value && recursive)
                         {
-                            child = await GetFileList(child, user, onlyFolders, recursive);
+                            await GetFileList(child, user, onlyFolders, true);
                         }
                     }
                 }
 
                 folder.Sort();
-                _logger.LogDebug($"Get file list for folder: {folder.fullPathFromRoot} for user: {user.DisplayName} results: {folder.children.Count} SUCCEEDED.");
+                _logger.LogDebug("Get file list for folder: {FullPathFromRoot} for user: {DisplayName} results: {Count} SUCCEEDED", folder.fullPathFromRoot, user.DisplayName, folder.children.Count);
 
                 return folder;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Get file list for folder: {folder.fullPathFromRoot} for user: {user.DisplayName} FAILED.");
+                _logger.LogError(ex, "Get file list for folder: {FullPathFromRoot} for user: {DisplayName} FAILED", folder.fullPathFromRoot, user.DisplayName);
                 throw;
             }
         }
 
 
-        protected BaseMetadata Map(PathItem item, DataLakeDirectoryClient directoryClient)
+        private static BaseMetadata Map(PathItem item, DataLakeDirectoryClient directoryClient)
         {
-            var itemName = System.IO.Path.GetFileName(item.Name);
+            var itemName = Path.GetFileName(item.Name);
             if (item.IsDirectory == true)
             {
-                return new Folder()
+                return new Folder
                 {
                     name = itemName,
                     id = itemName,
@@ -343,6 +310,63 @@ namespace Datahub.Portal.Services
             };
 
             return storeageMetadata;
+        }
+
+        public async Task<List<FileMetaData>> GetStorageBlobFiles(string projectAcronym, User user)
+        {
+            try
+            {
+                var connectionString = await _apiCallService.GetProjectConnectionString(projectAcronym.ToLower());
+                var blobServiceClient = new BlobServiceClient(connectionString);
+                var containerClient = blobServiceClient.GetBlobContainerClient("datahub");
+
+                var resultSegment = containerClient
+                    .GetBlobsAsync(BlobTraits.Metadata)
+                    .AsPages(default, 30);
+
+
+                var result = new List<FileMetaData>();
+                
+                // Enumerate the blobs returned for each page.
+                await foreach (var blobPage in resultSegment)
+                {
+                    foreach (var blobItem in blobPage.Values)
+                    {
+                        if (!blobItem.Metadata.TryGetValue(METADATA_FILE_ID, out var fileId))
+                        {
+                            var newId = Guid.NewGuid().ToString();
+                            blobItem.Metadata.Add(METADATA_FILE_ID, newId);
+                            var client = containerClient.GetBlobClient(blobItem.Name);
+                            await client.SetMetadataAsync(blobItem.Metadata);
+                            fileId = newId;
+                            
+                        }
+                        
+                        string ownedBy = blobItem.Metadata.TryGetValue(FileMetaData.OwnedBy, out ownedBy) ? ownedBy : "Unknown";
+                        string createdBy = blobItem.Metadata.TryGetValue(FileMetaData.CreatedBy, out createdBy) ? createdBy : "Unknown";
+                        // string lastModifiedBy = blobItem.Metadata.TryGetValue(FileMetaData.LastModifiedBy, out lastModifiedBy) ? lastModifiedBy : "lastmodifiedby";
+
+                        var file = new FileMetaData()
+                        {
+                            id = fileId,
+                            filename = blobItem.Name,
+                            ownedby = ownedBy,
+                            createdby = createdBy,
+                            // lastmodifiedby = lastModifiedBy,
+                            lastmodifiedts = DateTime.Now
+                        };
+                        
+                        result.Add(file);
+                    }
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Get file list for project: {ProjectAcronym} for user: {DisplayName} FAILED", projectAcronym, user.DisplayName);
+                throw;
+            }
         }
     }
 }
