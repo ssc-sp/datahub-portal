@@ -8,7 +8,7 @@
     <div class="heading">
         <AeTypography Variant="h1">@Localizer["Storage Explorer"]</AeTypography>
         <div class="breadcrumbs">
-            <AeButton class="light" @onclick="() => SetCurrentFolder(_root)">/</AeButton>
+            <AeButton class="light" @onclick="() => SetCurrentFolder(_root)">root/</AeButton>
             @foreach (var folder in _currentFolder.Split("/").Where(s => !string.IsNullOrWhiteSpace(s)))
             {
                 <i class="fas fa-chevron-right"></i>
@@ -69,9 +69,23 @@
 
     <div class="item-details">
         <div class="details-sticky">
-            <div class="details-title">
-                <i class="fas fa-folder"></i>
-                <AeTypography Variant="h2">first run</AeTypography>
+            <div class="details-container">
+                @if (_loading || _virtualDirectory.ContainsKey(_selectedItem))
+                {
+                    <StorageProperties DisplayName="@_selectedItem"/>
+                }
+                else
+                {
+                    var file = _virtualDirectory[_currentFolder]
+                        .Find(f => f.name.Equals(_selectedItem, StringComparison.OrdinalIgnoreCase));
+
+                    <i class="fas fa-file"></i>
+                    <AeTypography Variant="h3" class="details-title-text">@file?.name</AeTypography>
+                    <ItemDetails
+                        SelectedFile="@file"
+                        CurrentUser="@_userId"
+                        Project="@ProjectAcronym"/>
+                }
             </div>
         </div>
     </div>
@@ -92,8 +106,8 @@
 
     private readonly string _root = "/";
     private string _currentFolder = "/";
-    private string _selectedItem = "";
-    private Dictionary<string, List<FileMetaData>> _virtualDirectory;
+    private string _selectedItem = "/";
+    private Dictionary<string, List<FileMetaData>> _virtualDirectory = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -111,10 +125,11 @@
 
         _loading = false;
     }
-    
+
     private void SetCurrentFolder(string folderName)
     {
         _currentFolder = folderName;
+        _selectedItem = folderName;
     }
 
 
@@ -122,6 +137,7 @@
     {
         var index = _currentFolder.IndexOf(breadcrumb, StringComparison.OrdinalIgnoreCase);
         _currentFolder = _currentFolder[..(index + breadcrumb.Length)];
+        _selectedItem = _currentFolder;
     }
 
 }

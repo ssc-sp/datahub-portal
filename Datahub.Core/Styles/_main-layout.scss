@@ -10,13 +10,9 @@
 
     .main-layout {
         grid-area: main;
-        
         display: grid;
-        
 
         .ui-control {
-            display: flex;
-
             .main-page {
                 padding: c.spacing(4);
             }
