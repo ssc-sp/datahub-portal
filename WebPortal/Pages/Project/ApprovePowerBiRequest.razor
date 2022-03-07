@@ -10,7 +10,10 @@
 @inject PowerBiServiceApi _powerBiApi
 @inject IPowerBiDataService _powerBiDataService
 @inject Microsoft.Identity.Web.MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
-@inject ILogger<ApprovePowerBiRequest> _logger;
+@inject ILogger<ApprovePowerBiRequest> _logger
+@inject IEmailNotificationService _emailService
+@inject ISystemNotificationService _systemNotificationService
+
 
 <div style="padding-left: 2rem;padding-right: 2rem">
 
@@ -190,6 +193,38 @@
         }
     }
 
+    private async Task SendServiceCreatedNotifications(Datahub_ProjectServiceRequests liveProjectRequest)
+    {
+        var requestingUserId = liveProjectRequest.User_ID;
+        var project = liveProjectRequest.Project;
+        var projectInfo = project.ProjectInfo;
+        var projectUserIds = project.Users
+            .Select(u => u.User_ID)
+            .ToHashSet();
+
+        var notificationTasks = new List<Task>();
+
+        if (!string.IsNullOrEmpty(requestingUserId))
+        {
+            projectUserIds.Remove(requestingUserId);
+            notificationTasks.Add(_emailService.SendServiceCreationRequestApprovedIndividual(liveProjectRequest.ServiceType, projectInfo, requestingUserId));
+            notificationTasks.Add(_systemNotificationService.CreateSystemNotificationWithLink(requestingUserId, 
+                $"/project/{project.Project_Acronym_CD}", "SYSTEM-NOTIFICATION.GoToProject",
+                "SYSTEM-NOTIFICATION.NOTIFICATION-TEXT.ServiceCreatedIndividual",
+                liveProjectRequest.ServiceType, new BilingualStringArgument(projectInfo.ProjectNameEn, projectInfo.ProjectNameFr)));
+        }
+
+        notificationTasks.Add(_emailService.SendServiceCreationGroupNotification(liveProjectRequest.ServiceType, projectInfo, projectUserIds.ToList()));
+        notificationTasks.Add(_systemNotificationService.CreateSystemNotificationsWithLink(projectUserIds.ToList(), 
+            $"/project/{project.Project_Acronym_CD}", "SYSTEM-NOTIFICATION.GoToProject",
+            "SYSTEM-NOTIFICATION.NOTIFICATION-TEXT.ServiceCreatedGroup",
+            liveProjectRequest.ServiceType, new BilingualStringArgument(projectInfo.ProjectNameEn, projectInfo.ProjectNameFr)));
+
+        await Task.WhenAll(notificationTasks);
+
+        liveProjectRequest.Notification_Sent = DateTime.UtcNow;
+    }
+
     private async Task ApproveRequest()
     {
         IsWorking = true;
@@ -222,7 +257,7 @@
                 liveProjectRequest.Is_Completed = DateTime.UtcNow;
                 liveProjectRequest.Project.PowerBI_URL = BuildPowerBIWorkspaceUrl(prodWsId);
 
-                //TODO notification
+                await SendServiceCreatedNotifications(liveProjectRequest);
 
                 await ctx.SaveChangesAsync();
             }
