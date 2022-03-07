@@ -85,6 +85,10 @@
       &:not(:last-of-type){
         border-bottom: 1px solid var(--bg-color-accent);
       }
+      
+      &.highlight {
+        background-color: c.$grey-200;
+      }
     }
   }
   
@@ -92,15 +96,19 @@
     grid-area: item-details;
     border-left: $border;
     
-    padding: c.spacing(2) c.spacing(4);
-    
-    .details-title {
-      display: flex;
-      gap: c.spacing(2);
-      align-items: baseline;
+    .details-sticky {
+      position: sticky;
+      top: 60px;
+      padding: c.spacing(2) c.spacing(4);
       
-      i {
-        font-size: 2rem;
+      .details-title {
+        display: flex;
+        gap: c.spacing(2);
+        align-items: baseline;
+        
+        i {
+          font-size: 2rem;
+        }
       }
     }
   }
