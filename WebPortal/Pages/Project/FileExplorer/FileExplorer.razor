@@ -1,16 +1,19 @@
+@using Datahub.Core.Components.Skeleton
+
 @inject IUserInformationService _userInformationService
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
-
+@inject IDataRetrievalService _dataRetrievalService
 
 <div class="file-explorer-layout">
     <div class="heading">
         <AeTypography Variant="h1">@Localizer["Storage Explorer"]</AeTypography>
         <div class="breadcrumbs">
-            <AeButton class="light">az-storage-123</AeButton>
-            <i class="fas fa-chevron-right"></i>
-            <AeButton class="light">az-storage-123</AeButton>
-            <i class="fas fa-chevron-right"></i>
-            <AeButton class="light">az-storage-123</AeButton>
+            <AeButton class="light" @onclick="() => SetCurrentFolder(_root)">/</AeButton>
+            @foreach (var folder in _currentFolder.Split("/").Where(s => !string.IsNullOrWhiteSpace(s)))
+            {
+                <i class="fas fa-chevron-right"></i>
+                <AeButton class="light" @onclick="() => BreadcrumbClicked(folder)">@folder</AeButton>
+            }
         </div>
     </div>
 
@@ -21,28 +24,59 @@
             <AeTypography>LastModified</AeTypography>
             <i class="fas fa-sort-alpha-down"></i>
         </div>
-        @for (var i = 0; i < 2; i++)
+
+        @if (_loading)
         {
-            <FileItem Name="next folder/" Modified="DateTime.Now" >
-                <Icon>
-                    <i class="fas fa-folder"></i>
-                </Icon>
-            </FileItem>
+            @for (var i = 0; i < 10; i++)
+            {
+                <span class="file-item">
+                    <span style="display: flex; gap: .5rem; align-items: center;">
+                        <Skeleton Width="30px" Height="30px" Circle/>
+                        <Skeleton Width="300px" Height="2rem"/>
+                    </span>
+                    <Skeleton Width="100px" Height="2rem"/>
+                    <Skeleton Width="200px" Height="2rem"/>
+                    <span></span>
+                </span>
+            }
         }
-        @for (var i = 0; i < 15; i++)
+        else
         {
-            <FileItem Name="my-file.py" Modified="DateTime.Now" Size="15 bytes" />
+            @foreach (var (folderName, _) in _virtualDirectory
+                .Where(f => f.Key != "/" && (Path.GetDirectoryName(f.Key)?.Equals(_currentFolder) ?? false)))
+            {
+                <FileItem
+                    Name="@(folderName)"
+                    Highlighted="_selectedItem == folderName"
+                    @onclick="() => _selectedItem = folderName"
+                    @ondblclick="() => SetCurrentFolder(folderName)">
+                    <Icon>
+                        <i class="fas fa-folder"></i>
+                    </Icon>
+                </FileItem>
+            }
+            @foreach (var file in _virtualDirectory[_currentFolder])
+            {
+                <FileItem
+                    Name="@Path.GetFileName(file.name)"
+                    Modified="@file.Modified"
+                    Size="@file.filesize"
+                    @onclick="() => _selectedItem = file.name"
+                    Highlighted="_selectedItem == file.name"/>
+            }
         }
     </div>
 
     <div class="item-details">
-        <div class="details-title">
-            <i class="fas fa-folder"></i>
-            <AeTypography Variant="h2">first run</AeTypography>
+        <div class="details-sticky">
+            <div class="details-title">
+                <i class="fas fa-folder"></i>
+                <AeTypography Variant="h2">first run</AeTypography>
+            </div>
         </div>
     </div>
-</div>
 
+</div>
 
 @code {
 
@@ -54,8 +88,12 @@
 
 
     private bool _loading = true;
-    
+    private List<FileMetaData> _files;
 
+    private readonly string _root = "/";
+    private string _currentFolder = "/";
+    private string _selectedItem = "";
+    private Dictionary<string, List<FileMetaData>> _virtualDirectory;
 
     protected override async Task OnInitializedAsync()
     {
@@ -64,9 +102,26 @@
         _userId = await _userInformationService.GetUserIdString();
         _user = await _userInformationService.GetUserAsync();
 
+        _files = await _dataRetrievalService.GetStorageBlobFiles(ProjectAcronym, _user);
+
+        _virtualDirectory = _files
+            .GroupBy(f => $"/{Path.GetDirectoryName(f.filename)?.Trim()}")
+            .ToDictionary(g => g.Key,
+                g => g.ToList());
+
         _loading = false;
     }
     
-    
+    private void SetCurrentFolder(string folderName)
+    {
+        _currentFolder = folderName;
+    }
+
+
+    private void BreadcrumbClicked(string breadcrumb)
+    {
+        var index = _currentFolder.IndexOf(breadcrumb, StringComparison.OrdinalIgnoreCase);
+        _currentFolder = _currentFolder[..(index + breadcrumb.Length)];
+    }
 
 }

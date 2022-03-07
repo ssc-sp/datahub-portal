@@ -13,6 +13,9 @@ namespace Datahub.Core.Services
         Task<Data.Folder> GetFolderContents(Data.Folder folder, string filterSearch, User user, string project);
         Task<Data.Folder> GetFolderStructure(Data.Folder folder, User user, bool onlyFolders = true);
         Task<StorageMetadata> GetStorageMetadata(string project);
-        
+
+
+        Task<List<FileMetaData>> GetStorageBlobFiles(string projectAcronym, User user);
+
     }
 }

@@ -4,13 +4,11 @@
 
 #topbar {
     background-color: c.$white;
-    position: fixed;
-    z-index: 999;
+    position: sticky;
     top: 0;
-    width: calc(100% - #{c.$sidebarWidth});
+    z-index: 999;
     display: flex;
     align-items: center;
-    height: c.$topbarHeight;
 
     .search-spacer {
         display: flex;

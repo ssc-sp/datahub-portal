@@ -22,20 +22,20 @@
 </CascadingValue>
 
 @* *@
-@* <div style="padding-left: 2rem;padding-right: 2rem;padding-bottom: 2rem"> *@
-@*     <AeFlex Vertical> *@
-@*         <AeTypography Variant="h2">@Localizer["Storage Explorer"]</AeTypography> *@
-@*     </AeFlex> *@
-@*     <AeCard> *@
-@*         <Header> *@
-@*             <AeTypography Variant="h3">@_projectName</AeTypography> *@
-@*         </Header> *@
-@*         <ChildContent> *@
-@*             <FileGrid CurrentFolder="null" CanAddData="true" Project="@ProjectAcronymParam"/> *@
-@*         </ChildContent> *@
-@*     </AeCard> *@
-@* *@
-@* </div> *@
+<div style="padding-left: 2rem;padding-right: 2rem;padding-bottom: 2rem">
+    <AeFlex Vertical>
+        <AeTypography Variant="h2">@Localizer["Storage Explorer"]</AeTypography>
+    </AeFlex>
+    <AeCard>
+        <Header>
+            <AeTypography Variant="h3">@_projectName</AeTypography>
+        </Header>
+        <ChildContent>
+            <FileGrid CurrentFolder="null" CanAddData="true" Project="@ProjectAcronymParam"/>
+        </ChildContent>
+    </AeCard>
+
+</div>
 @* *@
 @* <div style="padding-left: 2rem;padding-right: 2rem"> *@
 @*     <AeCard> *@
