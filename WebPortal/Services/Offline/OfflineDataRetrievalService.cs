@@ -42,5 +42,10 @@ namespace Datahub.Portal.Services.Offline
         {
             return Task.FromResult(new StorageMetadata());
         }
+
+        public Task<List<FileMetaData>> GetStorageBlobFiles(string projectAcronym, User user)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
