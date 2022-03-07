@@ -181,7 +181,14 @@
                             }
                             else if (_powerBiServiceRequested)
                             {
-                                <AeTypography class="warning">@DataLocalizer["Service Request is being reviewed"]</AeTypography>
+                                <AuthorizeView Roles=@RoleConstants.DATAHUB_ROLE_ADMIN Context="PowerBi_admin">
+                                    <Authorized>
+                                        <NavLink href="@($"/project/{projectAcronym}/powerbirequest")"><AeButton>@Localizer["Review PowerBI Request"]</AeButton></NavLink>
+                                    </Authorized>
+                                    <NotAuthorized>
+                                        <AeTypography class="warning">@DataLocalizer["Service Request is being reviewed"]</AeTypography>
+                                    </NotAuthorized>
+                                </AuthorizeView>
                             }
                             else
                             {
@@ -397,7 +404,7 @@
                 }
 
 
-                <AuthorizeView Roles="DHPGLIST-admin" Context="Admin_Card">
+                <AuthorizeView Roles=@RoleConstants.DATAHUB_ROLE_ADMIN Context="Admin_Card">
                     <AeCard class="facard1" CardPosition="AeCard.CardStyle.Horizontal">
                         <Header>
                             <div>
