@@ -81,7 +81,8 @@
                  SubmitLabel="@SubmitLabel"
                  LabelForPropertyFunc="@GetDataLabel"
                  LabelsOnTop="true" 
-                 Flexbox/>
+                 IsSubmitEnabled="@_enableSave"
+                 />
 
     <AeFlex id="buttonBar">
         <div class="icon-container" style="margin-bottom: 10px; margin-left: 5px;">
@@ -105,7 +106,7 @@
     private string SubmitLabel = "Save";
     private const string EMAIL = "offline@nrcan-cnrcan.gc.ca";
     private string navigationUrl = string.Empty;
-    private bool _navToEdit = false;
+    private bool _enableSave = true;
     private Microsoft.Graph.User CurrentUser;
     private PIPDBContext Context;
     private List<string> headers = new List<string>
@@ -132,14 +133,15 @@
         StateHasChanged();
 
     }
-    
+
     private void OnPageClick(int pageIndex)
     {
         _lastClicked = pageIndex;
     }
 
     private Task<PIP_Tombstone> ClearForm()
-    {        
+    {
+        CleanEditingUser();
         _tombstone = null;
         StateHasChanged();
         return Task.FromResult<PIP_Tombstone>(null);
@@ -205,15 +207,51 @@
         }
         else
         {
-            _tombstone = project;
-            _tombstone.Last_Updated_UserName = await MSGraphService.GetUserName(_tombstone.Last_Updated_UserId, CancellationToken.None);
-
+            CleanEditingUser();                
+            await PrepareItemForEdit(project);            
             SubmitLabel = "Save";
             StateHasChanged();
-            _navToEdit = true;
         }
     }
 
+    private async Task PrepareItemForEdit(PIP_Tombstone project)
+    {
+        _enableSave = true;
+        if (IsRecordLocked(project))
+        {
+            var textList = new List<string>()
+            {
+                "This Program is currently being edited by another user, you will not be able to save any changes"
+            };
+            _enableSave = false;
+            await UI.ToggleModal(
+    @<WarningModal OnDecision="HandleWarningDecision" WarningTextString=@textList />);
+        }
+
+        //for users who had locked records and didnt refresh table
+        //if (Context.Entry(project).State != EntityState.Unchanged)
+        //{
+        //    _tombstone = 
+        //}
+
+        _tombstone = project;
+        var recordId = _tombstone.Tombstone_ID;
+        _tombstone.EditingUserId = CurrentUser.Id;
+        await Context.TrackSaveChangesAsync(AuditingService);
+        _tombstone = Context.Tombstones.Where(i => i.Tombstone_ID == recordId).First();
+        _tombstone.Last_Updated_UserName = await MSGraphService.GetUserName(_tombstone.Last_Updated_UserId, CancellationToken.None);
+    }
+
+    private async void HandleWarningDecision(bool IsContinue)
+    {
+        await UI.ToggleModal();
+        StateHasChanged();
+    }
+
+    private bool IsRecordLocked(PIP_Tombstone project)
+    {
+        return project == null ? false : (!string.IsNullOrEmpty(project.EditingUserId));
+    }
 
     protected override async Task OnInitializedAsync()
     {        
@@ -244,7 +282,6 @@
     {
         _tombstone = new PIP_Tombstone() { Last_Updated_DT = DateTime.Now, Date_Updated_DT = DateTime.Now };
         StateHasChanged();
-        _navToEdit = true;
         return Task.FromResult(0);
     }
 
@@ -368,6 +405,7 @@
             _tombstone.Last_Updated_DT = DateTime.Now;
             _tombstone.Date_Updated_DT = DateTime.Now;
             _tombstone.Last_Updated_UserId = CurrentUser.Id;
+            _tombstone.EditingUserId = string.Empty;
             //_tombstone.
             if (_tombstone.Tombstone_ID == 0)
             {
@@ -375,16 +413,19 @@
             }
             await Context.TrackSaveChangesAsync(AuditingService);
             _projects = Context.Tombstones.ToList();
-            
+
         }
         else if (!isConfirmed && _tombstone != null)
         {
             var entry = Context.Entry(_tombstone);
             entry.CurrentValues.SetValues(entry.OriginalValues);
             entry.State = EntityState.Unchanged;
-            
+
         }
-        _tombstone = item;
+        
+        if (item != null)
+            PrepareItemForEdit(item);        
+        
         await UI.ToggleModal();
 
         if (!string.IsNullOrEmpty(navigationUrl))        
@@ -398,20 +439,29 @@
     {
         var messages = new List<string>() { "Would you like to save PIP data?" };
         await UI.ToggleModal(
-        @<UserChoiceModal HeaderText="Save Data" ChoiceTextList=@messages OnDecision="(a) => OnConfirmSave(a, null)" ConfirmText="Yes" CancelText="No" />
+    @<UserChoiceModal HeaderText="Save Data" ChoiceTextList=@messages OnDecision="(a) => OnConfirmSave(a, null)" ConfirmText="Yes" CancelText="No" />
     );
     }
 
-    
+
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (_navToEdit)
-        {
-            _navToEdit = false;
-            await this.JsInterop.InvokeVoidAsync("anchorLink.scrollIntoView", "edit");
-        }
+
     }
 
-    public void Dispose() { Context.Dispose(); }
+    public void CleanEditingUser()
+    {
+        if (_tombstone != null && !string.IsNullOrEmpty(_tombstone.EditingUserId) && _tombstone.EditingUserId == CurrentUser.Id)
+        {
+            _tombstone.EditingUserId = string.Empty;
+            Context.SaveChanges();
+        } 
+    }
+
+    public void Dispose()     
+    {
+        CleanEditingUser();      
+        Context.Dispose(); 
+    }
 }

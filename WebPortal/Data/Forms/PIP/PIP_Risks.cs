@@ -212,7 +212,8 @@ namespace Datahub.ProjectForms.Data.PIP
         public byte[] Timestamp { get; set; }
 
         public List<PIP_IndicatorRisks> PIP_IndicatorRisks { get; set; }
-
+        [AeFormIgnore]
+        public string EditingUserId { get; set; }
         private int GetInherentLevel(string impact, string likelihood)
         {
             int intImpact;
