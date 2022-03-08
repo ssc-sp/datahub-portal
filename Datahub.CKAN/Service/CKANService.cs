@@ -1,13 +1,13 @@
-﻿using Microsoft.Extensions.Options;
-using Datahub.CKAN.Package;
+﻿using Datahub.CKAN.Package;
 using Datahub.Metadata.DTO;
+using Microsoft.Extensions.Options;
+using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Net.Http;
 using System.Text;
-using System.Threading.Tasks;
-using System.IO;
-using System.Net.Http.Headers;
-using System.Collections.Generic;
 using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace Datahub.CKAN.Service
 {
@@ -47,7 +47,7 @@ namespace Datahub.CKAN.Service
             var packageData = (new PackageGenerator()).GeneratePackage(fieldValues, url);
 
             // generate json from package
-            var jsonData = JsonSerializer.Serialize(packageData);
+            var jsonData = JsonSerializer.Serialize(packageData, GetSerializationOptions());
 
             var content = new StringContent(jsonData, Encoding.UTF8, "application/json");
 
@@ -85,12 +85,12 @@ namespace Datahub.CKAN.Service
                 //response.EnsureSuccessStatusCode();
 
                 var jsonResponse = await response.Content.ReadAsStringAsync();
-                var ckanResult = JsonSerializer.Deserialize<CKANResult>(jsonResponse);
+                var ckanResult = JsonSerializer.Deserialize<CKANResult>(jsonResponse, GetSerializationOptions());
 
                 var errorMessage = ckanResult.Success ? string.Empty : ckanResult.Error?.__type;
                 return new CKANApiResult(ckanResult.Success, errorMessage);
             }
-            catch (HttpRequestException ex)
+            catch (Exception ex)
             {
                 return new CKANApiResult(false, ex.Message);
             }
@@ -101,6 +101,11 @@ namespace Datahub.CKAN.Service
             var fileExt = (Path.GetExtension(fileName) ?? ".").Substring(1).ToUpper();
             return KnownFileTypes.Contains(fileExt) ? fileExt : defaultFormat;
         }
+
+        static JsonSerializerOptions GetSerializationOptions() => new()
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        };
     }
 
     class CKANResult
