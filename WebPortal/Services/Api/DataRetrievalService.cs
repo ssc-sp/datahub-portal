@@ -341,16 +341,16 @@ namespace Datahub.Portal.Services.Api
                             
                         }
                         
-                        string ownedBy = blobItem.Metadata.TryGetValue(FileMetaData.OwnedBy, out ownedBy) ? ownedBy : "Unknown";
-                        string createdBy = blobItem.Metadata.TryGetValue(FileMetaData.CreatedBy, out createdBy) ? createdBy : "Unknown";
+                        // string ownedBy = blobItem.Metadata.TryGetValue(FileMetaData.OwnedBy, out ownedBy) ? ownedBy : "Unknown";
+                        // string createdBy = blobItem.Metadata.TryGetValue(FileMetaData.CreatedBy, out createdBy) ? createdBy : "Unknown";
                         // string lastModifiedBy = blobItem.Metadata.TryGetValue(FileMetaData.LastModifiedBy, out lastModifiedBy) ? lastModifiedBy : "lastmodifiedby";
 
                         var file = new FileMetaData()
                         {
                             id = fileId,
                             filename = blobItem.Name,
-                            ownedby = ownedBy,
-                            createdby = createdBy,
+                            // ownedby = ownedBy,
+                            // createdby = createdBy,
                             // lastmodifiedby = lastModifiedBy,
                             lastmodifiedts = DateTime.Now
                         };

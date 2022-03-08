@@ -8,7 +8,7 @@
     <div class="heading">
         <AeTypography Variant="h1">@Localizer["Storage Explorer"]</AeTypography>
         <div class="breadcrumbs">
-            <AeButton class="light" @onclick="() => SetCurrentFolder(_root)">root/</AeButton>
+            <AeButton class="light" @onclick="() => SetCurrentFolder(_root)">root</AeButton>
             @foreach (var folder in _currentFolder.Split("/").Where(s => !string.IsNullOrWhiteSpace(s)))
             {
                 <i class="fas fa-chevron-right"></i>
@@ -62,7 +62,11 @@
                     Modified="@file.Modified"
                     Size="@file.filesize"
                     @onclick="() => _selectedItem = file.name"
-                    Highlighted="_selectedItem == file.name"/>
+                    Highlighted="_selectedItem == file.name">
+                    <Icon>
+                        <i class="@DatahubTools.GetFileTypeIcon(file.fileformat)"></i>
+                    </Icon>
+                </FileItem>
             }
         }
     </div>
@@ -79,12 +83,7 @@
                     var file = _virtualDirectory[_currentFolder]
                         .Find(f => f.name.Equals(_selectedItem, StringComparison.OrdinalIgnoreCase));
 
-                    <i class="fas fa-file"></i>
-                    <AeTypography Variant="h3" class="details-title-text">@file?.name</AeTypography>
-                    <ItemDetails
-                        SelectedFile="@file"
-                        CurrentUser="@_userId"
-                        Project="@ProjectAcronym"/>
+                    <FileProperties File="file" />
                 }
             </div>
         </div>
