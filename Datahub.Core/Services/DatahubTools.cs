@@ -39,24 +39,26 @@ namespace Datahub.Core.Services
             {
                 case "doc":
                 case "docx":
-                    return "far fa-file-word";
+                    return "fas fa-file-word";
                 case "txt":
                 case "json":
-                    return "far fa-file-alt";
+                    return "fas fa-file-alt";
                 case "png":
                 case "gif":
                 case "jpg":
                 case "jpeg":
-                    return "far fa-file-image";
+                    return "fas fa-file-image";
                 case "pdf":
-                    return "far fa-file-pdf";
+                    return "fas fa-file-pdf";
                 case "xls":
                 case "xlsx":
-                    return "far fa-file-excel";
+                    return "fas fa-file-excel";
                 case "zip":
-                    return "far fa-file-archive";
+                    return "fas fa-file-archive";
+                case "mp4":
+                    return "fas fa-file-video";
                 default:
-                    return "far fa-file";
+                    return "fas fa-file";
             }
         }
     }
