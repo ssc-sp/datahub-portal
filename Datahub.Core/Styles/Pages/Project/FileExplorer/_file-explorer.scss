@@ -71,8 +71,8 @@
         gap: c.spacing(1);
         
         .file-item-icon {
-          width: c.spacing(3, 6);
-          height: c.spacing(3, 6);
+          width: 30px;
+          height: 30px;
           
           display: flex;
           align-items: center;
@@ -80,9 +80,8 @@
           
           border-radius: 100px;
           
-          background-color: var(--primary-color-subdued);
-          color: var(--primary-text-inverse);
-          
+          background-color: c.$grey-50;
+          color: c.$grey-800;
         }
       }
       
