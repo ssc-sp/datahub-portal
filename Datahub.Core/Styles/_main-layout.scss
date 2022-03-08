@@ -2,22 +2,20 @@
 
 
 .application-wrapper {
-    display: flex;
-    min-height: 100vh;
+    display: grid;
+    grid-template-columns: #{c.$sidebarWidth} 1fr;
+    grid-template-areas: "sidebar main";
+    
+    height: 100vh;
 
     .main-layout {
-        flex-grow: 1;
-        overflow: hidden;
-        position: relative;
-        margin-top: c.$topbarHeight;
+        grid-area: main;
+        display: grid;
+        grid-template-rows: auto 1fr;
 
         .ui-control {
-            display: flex;
-
             .main-page {
-                display: grid;
-                flex-grow: 1;
-                padding: 2rem;
+                padding: c.spacing(4);
             }
 
             .right-sidebar {
