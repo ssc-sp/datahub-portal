@@ -46,6 +46,10 @@ namespace Datahub.CKAN.Package
             // type is dataset
             dict["type"] = "dataset";
 
+            dict["restrictions"] = "unrestricted";
+            dict["owner_org"] = "9391E0A2-9717-4755-B548-4499C21F917B";
+            dict["date_published"] = fieldValues["date_published"]?.Value_TXT ?? DateTime.UtcNow.ToString("yyyy-MM-dd");
+
             var requiredFields = fieldValues.Where(f => f.FieldDefinition?.Required_FLAG == true);
             var agents = InstantiateAgents(requiredFields).ToList();
             foreach (var agent in agents)
