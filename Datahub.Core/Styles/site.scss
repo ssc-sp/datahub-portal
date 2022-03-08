@@ -23,6 +23,7 @@
 @use 'Views/_item-details.scss';
 @use 'Tables/_table-elements.scss';
 
+@use 'root-vars';
  
 body {
     font-family: 'Roboto','RobotoDraft',Helvetica,Arial,sans-serif;
