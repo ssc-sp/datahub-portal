@@ -221,9 +221,9 @@ namespace Datahub.ProjectForms.Data.PIP
         [AeFormIgnore]
         public int FiscalYearId { get; set; }
         public PIP_FiscalYears FiscalYear { get; set; }
-        private string GeneratePowerBiUrl()
-        {
-            return string.Empty;
-        }
+        
+        [AeFormIgnore]
+        public string EditingUserId { get; set; }
+        
     }
 }
