@@ -37,8 +37,6 @@ namespace Datahub.Core.Services
         public async Task<GraphUser> GetUserAsync(string userId, CancellationToken tkn = default)
         {
             PrepareAuthenticatedClient();
-            if (!userId?.Contains("@") ?? true)
-                return new GraphUser();
             try
             {
                 var user = await graphServiceClient.Users.Request()
