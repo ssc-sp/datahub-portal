@@ -3327,6 +3327,7 @@ code {
 .application-wrapper .main-layout {
   grid-area: main;
   display: grid;
+  grid-template-rows: auto 1fr;
 }
 .application-wrapper .main-layout .ui-control .main-page {
   padding: calc((0 + 4 * (var(--design-unit) * var(--density))) * 1px);
@@ -5327,14 +5328,14 @@ code {
   gap: calc((0 + 1 * (var(--design-unit) * var(--density))) * 1px);
 }
 .file-explorer-layout .file-list .file-item .file-item-name .file-item-icon {
-  width: calc((6 + 3 * (var(--design-unit) * var(--density))) * 1px);
-  height: calc((6 + 3 * (var(--design-unit) * var(--density))) * 1px);
+  width: 30px;
+  height: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 100px;
-  background-color: var(--primary-color-subdued);
-  color: var(--primary-text-inverse);
+  background-color: #f8fafc;
+  color: #1e293b;
 }
 .file-explorer-layout .file-list .file-item:not(:last-of-type) {
   border-bottom: 1px solid var(--bg-color-accent);
