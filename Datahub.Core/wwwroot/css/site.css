@@ -5329,6 +5329,7 @@ code {
 }
 .file-explorer-layout .file-list .file-item .file-item-name .file-item-icon {
   width: 30px;
+  min-width: 30px;
   height: 30px;
   display: flex;
   align-items: center;
