@@ -11,6 +11,7 @@
     .main-layout {
         grid-area: main;
         display: grid;
+        grid-template-rows: auto 1fr;
 
         .ui-control {
             .main-page {
