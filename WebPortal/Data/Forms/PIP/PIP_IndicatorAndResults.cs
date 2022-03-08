@@ -212,7 +212,8 @@ namespace Datahub.ProjectForms.Data.PIP
         public bool IsActualResultsLocked { get; set; }
         [AeFormIgnore]
         public bool IsLatestUpdateLocked { get; set; }
-
+        [AeFormIgnore]
+        public string EditingUserId { get; set; }
 
 
 

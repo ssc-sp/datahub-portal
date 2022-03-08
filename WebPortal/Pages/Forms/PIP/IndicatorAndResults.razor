@@ -84,7 +84,8 @@
                  OnConfigure="OnConfigure"
                  LabelsOnTop="true" 
                  Flexbox
-                 IsSectionLocksVisible="true"/>
+                 IsSectionLocksVisible="true"
+                 IsSubmitEnabled="@_enableSave"/>
     
 
     <AeFlex id="buttonBar">
@@ -111,7 +112,7 @@
     private PIP_Tombstone _tombstone;
     private PIP_FiscalYears _fiscalYear;
     private PIPDBContext Context;  
-    private bool _navToEdit = false;
+    private bool _enableSave = true;
     private Microsoft.Graph.User CurrentUser;
     private string navigationUrl = string.Empty;
     private string SubmitLabel = "Save";
@@ -152,7 +153,6 @@
     {
         _indicator = new PIP_IndicatorAndResults() { PIP_Tombstone = _tombstone, Last_Updated_DT = DateTime.Now, Date_Result_Collected = DateTime.Now, Date_To_Achieve_Target_DT = DateTime.Now, FiscalYear = _fiscalYear };
         StateHasChanged();
-        _navToEdit = true;
     }
 
     private void OnChange(ModelFormChangeArgs args)
@@ -302,8 +302,35 @@
         null
     };
 
-
-
+    private async Task PrepareItemForEdit(PIP_IndicatorAndResults indicatorAndResults)
+    {
+        var recordId = indicatorAndResults.IndicatorAndResult_ID;
+        _enableSave = true;
+        if (IsRecordLocked(indicatorAndResults))
+        {
+            var textList = new List<string>()
+            {
+                "This Program is currently being edited by another user, you will not be able to save any changes"
+            };
+            _enableSave = false;
+            await UI.ToggleModal(
+    @<WarningModal OnDecision="HandleWarningDecision" WarningTextString=@textList />
+    );
+        }
+        else
+        {
+            _indicator = Context.IndicatorAndResults.Where(i => i.IndicatorAndResult_ID == recordId).First();            
+            _indicator.EditingUserId = CurrentUser.Id;
+            await Context.TrackSaveChangesAsync(AuditingService);
+        }
+        _indicator = Context.IndicatorAndResults.Where(i => i.IndicatorAndResult_ID == recordId).First();
+        _indicator.Last_Updated_UserName = await MSGraphService.GetUserName(_indicator.Last_Updated_UserId, CancellationToken.None);
+    }
+    private async void HandleWarningDecision(bool IsContinue)
+    {
+        await UI.ToggleModal();
+        StateHasChanged();
+    }
     private async void OnConfirmSave(bool isConfirmed, dynamic item)
     {
         if (isConfirmed && _indicator != null)
@@ -311,6 +338,7 @@
             _indicator.Last_Updated_DT = DateTime.Now;
             _indicator.Date_Updated_DT = DateTime.Now;
             _indicator.Last_Updated_UserId = CurrentUser.Id;
+            _indicator.EditingUserId = string.Empty;
             if (_indicator.IndicatorAndResult_ID == 0)
             {
                 _indicator = Context.IndicatorAndResults.Add(_indicator).Entity;
@@ -325,7 +353,8 @@
             entry.State = EntityState.Unchanged;
 
         }
-        _indicator = item;
+        if (item != null)
+            PrepareItemForEdit(item);
 
         if (item == null)
             _reloadOptions = true;
@@ -337,6 +366,15 @@
         
 
         StateHasChanged();
+    }
+
+     public void CleanEditingUser()
+    {
+        if (_indicator != null && _enableSave && !string.IsNullOrEmpty(_indicator.EditingUserId) && _indicator.EditingUserId == CurrentUser.Id)
+        {
+            _indicator.EditingUserId = string.Empty;
+            Context.SaveChanges();
+        } 
     }
 
     private async Task HandleValidSubmit()
@@ -375,13 +413,12 @@
         }
         else
         {
-            _indicator = indicator;
-            _indicator.Last_Updated_UserName = await MSGraphService.GetUserName(_indicator.Last_Updated_UserId, CancellationToken.None);
+            CleanEditingUser();
+            await PrepareItemForEdit(indicator);
 
             _indicatorSwitched = true;
-            
+
             StateHasChanged();
-            _navToEdit = true;
         }
     }
 
@@ -404,6 +441,7 @@
 
     private async Task<PIP_IndicatorAndResults> ClearForm()
     {
+        CleanEditingUser();
         _indicator = null;
         StateHasChanged();
         return null;
@@ -443,7 +481,16 @@
 
     }
 
-    public void Dispose() { Context.Dispose(); }
+    private bool IsRecordLocked(PIP_IndicatorAndResults indicator)
+    {
+        return indicator == null ? false : (!string.IsNullOrEmpty(indicator.EditingUserId));
+    }
+
+    public void Dispose() 
+    {
+        CleanEditingUser();
+        Context.Dispose(); 
+    }
 
 
 }
