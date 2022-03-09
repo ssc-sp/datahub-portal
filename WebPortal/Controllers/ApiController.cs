@@ -167,12 +167,12 @@ namespace Datahub.Portal.Controllers
         public async Task<IActionResult> GetFieldChoices()
         {
             // [authorization] Signed JWT with the claims including the UserName 
-            var authHeader = GetAuthorizationToken();
+            //var authHeader = GetAuthorizationToken();
 
-            // get the api use record
-            var apiUser = await GetApiUserAsync(authHeader);
-            if (apiUser is null || IsDisabledOrExpired(apiUser))
-                return Unauthorized();
+            //// get the api use record
+            //var apiUser = await GetApiUserAsync(authHeader);
+            //if (apiUser is null || IsDisabledOrExpired(apiUser))
+            //    return Unauthorized();
 
             // get the field definitions
             var fieldDefinitions = await _metadataBrokerService.GetFieldDefinitions();
