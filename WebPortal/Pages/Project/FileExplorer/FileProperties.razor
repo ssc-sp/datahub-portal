@@ -48,9 +48,11 @@
     private List<(string, string)> _properties;
     private string _powerBiPasteText;
     private string _fileLinkUrl;
-
-    protected override void OnInitialized()
+    
+    protected override void OnParametersSet()
     {
+        base.OnParametersSet();
+        
         _properties = File.GetMetadataProperties()
             .Where(p => p.isVisible)
             .Select(p => (p.key, Value: File.GetMetadataPropertyValue(p.key)))
@@ -59,5 +61,4 @@
         _powerBiPasteText = $"abfs://{_commonAzureServices.FileSystemName}@{_commonAzureServices.StorageAccountName}.dfs.core.windows.net/{File.folderpath}/{File.filename}";
         _fileLinkUrl = $"https://{_commonAzureServices.StorageAccountName}.blob.core.windows.net/datahub/{File.folderpath}/{File.filename}";
     }
-
 }

@@ -5387,6 +5387,9 @@ code {
 .file-explorer-layout .item-details .details-sticky .details-container .storage-properties .properties .label {
   opacity: 0.9;
 }
+.file-explorer-layout .item-details .details-sticky .details-container .storage-properties .properties .text {
+  word-break: break-word;
+}
 
 .item-details-container {
   padding: 1rem;
