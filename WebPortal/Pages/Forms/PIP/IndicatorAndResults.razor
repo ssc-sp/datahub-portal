@@ -146,7 +146,7 @@
         _isUserAdmin = await ServiceAuthManager.IsProjectAdmin(CurrentUser.Id, PROJECTACRONYM);
         // load projects
         _tombstone = Context.Tombstones.Where(p => p.Tombstone_ID == Convert.ToInt32(tombstone)).FirstOrDefault();
-        _indicators = Context.IndicatorAndResults.Where(p => p.PIP_Tombstone.Tombstone_ID == _tombstone.Tombstone_ID && !p.IsDeleted && p.FiscalYear == _fiscalYear).ToList();
+        LoadIndicators();
     }
 
     private async Task CreateNewIndicator()
@@ -256,9 +256,9 @@
                 null,
                 indicator => 
             @<div class="help icon-container" @onclick="() => DeleteRecord(indicator.IndicatorAndResult_ID)"><i class="far fa-trash-alt"></i></div>
-            };
+    };
         }
-       
+
         return new List<Func<PIP_IndicatorAndResults, RenderFragment>>
             {
                 null,
@@ -279,7 +279,7 @@
         }
 
         _indicator = null;
-        _indicators = Context.IndicatorAndResults.Where(p => p.PIP_Tombstone.Tombstone_ID == _tombstone.Tombstone_ID && !p.IsDeleted && p.FiscalYear == _fiscalYear).ToList();
+        LoadIndicators();
         await UI.ToggleModal();        
 
         StateHasChanged();
@@ -325,11 +325,21 @@
         }
         _indicator = Context.IndicatorAndResults.Where(i => i.IndicatorAndResult_ID == recordId).First();
         _indicator.Last_Updated_UserName = await MSGraphService.GetUserName(_indicator.Last_Updated_UserId, CancellationToken.None);
+
     }
     private async void HandleWarningDecision(bool IsContinue)
     {
         await UI.ToggleModal();
         StateHasChanged();
+    }
+
+    private void ResetContextChanges()
+    {
+        foreach(var entry in Context.ChangeTracker.Entries())
+        {
+            entry.CurrentValues.SetValues(entry.OriginalValues);
+            entry.State = EntityState.Unchanged;
+        }                        
     }
     private async void OnConfirmSave(bool isConfirmed, dynamic item)
     {
@@ -344,20 +354,21 @@
                 _indicator = Context.IndicatorAndResults.Add(_indicator).Entity;
             }
             await Context.TrackSaveChangesAsync(AuditingService);
-            await OnInitializedAsync();
+            LoadIndicators();
         }
         else if (!isConfirmed && _indicator != null)
         {
-            var entry = Context.Entry(_indicator);
-            entry.CurrentValues.SetValues(entry.OriginalValues);
-            entry.State = EntityState.Unchanged;
-
+            ResetContextChanges();    
         }
-        if (item != null)
-            PrepareItemForEdit(item);
 
-        if (item == null)
-            _reloadOptions = true;
+        if (item != null)
+        {
+            await PrepareItemForEdit(item);
+        }
+        else
+        {
+            await PrepareItemForEdit(_indicator);
+        }
 
         await UI.ToggleModal();
 
@@ -366,6 +377,11 @@
         
 
         StateHasChanged();
+    }
+
+      private void LoadIndicators()
+    {            
+        _indicators = Context.IndicatorAndResults.Where(p => p.PIP_Tombstone.Tombstone_ID == _tombstone.Tombstone_ID && !p.IsDeleted && p.FiscalYear == _fiscalYear).ToList();
     }
 
      public void CleanEditingUser()
@@ -405,6 +421,11 @@
 
     private async Task SetFormEdit(PIP_IndicatorAndResults indicator)
     {
+        if (!_enableSave)
+        {
+            ResetContextChanges();
+        }
+
         if (Context.ChangeTracker.HasChanges())
         {
             var messages = new List<string>() { "Data has been edited, would you like to save?" };
