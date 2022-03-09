@@ -276,7 +276,7 @@ namespace Datahub.Portal.Controllers
             var props = data.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public);
             foreach (var prop in props)
             {
-                if (prop.PropertyType == typeof(string) || prop.PropertyType == typeof(DateTime))
+                if (prop.PropertyType == typeof(string))
                 {
                     yield return new FieldValue(prop.Name, prop.GetValue(data, null)?.ToString());
                 }
