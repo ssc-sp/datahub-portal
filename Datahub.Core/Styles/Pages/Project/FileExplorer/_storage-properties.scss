@@ -46,6 +46,10 @@
       .label {
         opacity: .9;
       }
+      
+      .text {
+        word-break: break-word;
+      }
     }
   }
 }
