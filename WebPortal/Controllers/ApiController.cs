@@ -116,8 +116,7 @@ namespace Datahub.Portal.Controllers
         [Route("opendata/submit")]
         public async Task<IActionResult> StartSharing([FromBody] OpenDataShareRequest data)
         {
-            // [authorization] Signed JWT with the claims including the UserName 
-            var authHeader = Request.Headers["Authorization"];
+            var authHeader = GetAuthorizationToken();
 
             // get the api use record
             var apiUser = await GetApiUserAsync(authHeader);
@@ -162,13 +161,13 @@ namespace Datahub.Portal.Controllers
 
             return Ok(new OpenDataShareResponse(data.file_id, url));
         }
-        
+
         [HttpGet]
         [Route("opendata/choices")]
         public async Task<IActionResult> GetFieldChoices()
         {
             // [authorization] Signed JWT with the claims including the UserName 
-            var authHeader = Request.Headers["Authorization"];
+            var authHeader = GetAuthorizationToken();
 
             // get the api use record
             var apiUser = await GetApiUserAsync(authHeader);
@@ -183,6 +182,8 @@ namespace Datahub.Portal.Controllers
 
             return Ok(fieldChoices);
         }
+
+        private string GetAuthorizationToken() => Request.Headers["DH-Auth-Key"];
 
         private bool IsDisabledOrExpired(Datahub_ProjectApiUser apiUser) 
             => !apiUser.Enabled || (apiUser.Expiration_DT.HasValue && apiUser.Expiration_DT.Value > DateTime.UtcNow);
