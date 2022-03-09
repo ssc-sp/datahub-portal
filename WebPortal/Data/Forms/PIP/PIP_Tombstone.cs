@@ -224,6 +224,22 @@ namespace Datahub.ProjectForms.Data.PIP
         
         [AeFormIgnore]
         public string EditingUserId { get; set; }
-        
+
+
+
+        [AeFormIgnore]
+        public bool IsProgramInformationLocked { get; set; }
+        [AeFormIgnore]
+        public bool IsSpendingLocked { get; set; }
+        [AeFormIgnore]
+        public bool IsSectorProgramTagsLocked { get; set; }
+        [AeFormIgnore]
+        public bool IsGCInfoBaseProgramTagsLocked { get; set; }
+        [AeFormIgnore]
+        public bool IsGBALocked { get; set; }
+        [AeFormIgnore]
+        public bool IsDateOfPipApprovalLocked { get; set; }
+        [AeFormIgnore]
+        public bool IsLatestUpdateInformationLocked { get; set; }
     }
 }

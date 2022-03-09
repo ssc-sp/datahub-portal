@@ -7,6 +7,8 @@
 @inject UIControlsService UI
 @inject IConfiguration Configuration
 @inject IDatahubAuditingService AuditingService
+@inject ServiceAuthManager ServiceAuthManager
+
 
 @implements IDisposable
 @inject IDbContextFactory<PIPDBContext> DbFactory
@@ -82,6 +84,7 @@
                  LabelForPropertyFunc="@GetDataLabel"
                  LabelsOnTop="true" 
                  IsSubmitEnabled="@_enableSave"
+                 IsSectionLocksVisible="@_isUserAdmin"
                  />
 
     <AeFlex id="buttonBar">
@@ -97,6 +100,7 @@
 @code {
     [Parameter]
     public string tombstone { get; set; }
+    private const string PROJECTACRONYM = "PIP";
 
     private PIP_FiscalYears _fiscalYear;
     private List<string> _fiscalYears;
@@ -107,7 +111,9 @@
     private const string EMAIL = "offline@nrcan-cnrcan.gc.ca";
     private string navigationUrl = string.Empty;
     private bool _enableSave = true;
+    private bool _isSectionLocksVisibile = false;
     private Microsoft.Graph.User CurrentUser;
+    private bool _isUserAdmin;
     private PIPDBContext Context;
     private List<string> headers = new List<string>
     {
@@ -116,6 +122,8 @@
 
     private int _lastClicked = 0;
     private IPageableComponent _myTable;
+    private bool _tombstoneSwitched = false;
+    private bool _reloadOptions = true;
 
 
     protected override void OnAfterRender(bool firstRender)
@@ -129,7 +137,7 @@
     {
         _fiscalYear = Context.FiscalYears.Where(f => f.FiscalYear == selectedItem).First();
         _projects = new();
-        _projects = Context.Tombstones.Where(l => l.FiscalYear.FiscalYear == selectedItem).ToList();
+        LoadProjects();
         StateHasChanged();
 
     }
@@ -199,23 +207,93 @@
 
     private async Task SetFormEdit(PIP_Tombstone project)
     {
+        if (!_enableSave)
+        {
+            ResetContextChanges();
+        }
+
         if (Context.ChangeTracker.HasChanges())
         {
             var messages = new List<string>() { "Data has been edited, would you like to save?" };
-            await UI.ToggleModal(@<UserChoiceModal HeaderText="Save Data" ChoiceTextList=@messages OnDecision="(a) => OnConfirmSave(a, project)" ConfirmText="Yes" CancelText="No" />
+            await UI.ToggleModal(
+    @<UserChoiceModal HeaderText="Save Data" ChoiceTextList=@messages OnDecision="(a) => OnConfirmSave(a, project)" ConfirmText="Yes" CancelText="No" />
     );
         }
         else
         {
             CleanEditingUser();                
-            await PrepareItemForEdit(project);            
+            await PrepareItemForEdit(project);
+            _tombstoneSwitched = true;
             SubmitLabel = "Save";
             StateHasChanged();
         }
     }
 
+    protected void ClearContextlocks(IModelFormContext context)
+    {        
+        context.RegisterCategoryLock("Program Information", false);
+        context.RegisterCategoryLock("Spending (in $) as per GC InfoBase (to be updated by CMSS)", false);
+        context.RegisterCategoryLock("Program Tags to be Updated by Sector", false);
+        context.RegisterCategoryLock("Program Tags as per TBS Database and GCInfoBase", false);        
+        context.RegisterCategoryLock("GBA+", false);        
+        context.RegisterCategoryLock("Date of PIP Approval", false);        
+        context.RegisterCategoryLock("Latest Update Information", false);        
+    }
+
+    protected void UpdateLocks(IModelFormContext context)
+    {
+        var lockedCategories = context.LockedCategories;
+        _tombstone.IsProgramInformationLocked = false;
+        _tombstone.IsSpendingLocked = false;
+        _tombstone.IsSectorProgramTagsLocked = false;
+        _tombstone.IsGCInfoBaseProgramTagsLocked = false;
+        _tombstone.IsGBALocked = false;
+        _tombstone.IsDateOfPipApprovalLocked = false;
+        _tombstone.IsLatestUpdateInformationLocked = false;
+        
+        foreach (var category in lockedCategories)
+        {
+            if (category == "Program Information")
+                _tombstone.IsProgramInformationLocked = true;
+            if (category == "Spending (in $) as per GC InfoBase (to be updated by CMSS)")
+                _tombstone.IsSpendingLocked = true;
+            if (category == "Program Tags to be Updated by Sector")
+                _tombstone.IsSectorProgramTagsLocked = true;
+            if (category == "Program Tags as per TBS Database and GCInfoBase")
+                _tombstone.IsGCInfoBaseProgramTagsLocked = true;
+            if (category == "GBA+")
+            _tombstone.IsGBALocked = true;
+            if (category == "Date of PIP Approval")
+            _tombstone.IsDateOfPipApprovalLocked = true;
+            if (category == "Latest Update Information")
+            _tombstone.IsLatestUpdateInformationLocked = true;
+        }        
+    }
+
+    protected void RegisterLocks(IModelFormContext context)
+    {
+        if (_tombstone.IsProgramInformationLocked)
+            context.RegisterCategoryLock("Program Information", true);
+        if (_tombstone.IsSpendingLocked)
+            context.RegisterCategoryLock("Spending (in $) as per GC InfoBase (to be updated by CMSS)", true);
+        if (_tombstone.IsSectorProgramTagsLocked)
+            context.RegisterCategoryLock("Program Tags to be Updated by Sector", true);
+        if (_tombstone.IsGCInfoBaseProgramTagsLocked)
+            context.RegisterCategoryLock("Program Tags as per TBS Database and GCInfoBase", true);        
+        if (_tombstone.IsGBALocked)
+            context.RegisterCategoryLock("GBA+", true);        
+        if (_tombstone.IsDateOfPipApprovalLocked)
+            context.RegisterCategoryLock("Date of PIP Approval", true);        
+        if (_tombstone.IsLatestUpdateInformationLocked)
+            context.RegisterCategoryLock("Latest Update Information", true); 
+          
+
+    }
+
+
     private async Task PrepareItemForEdit(PIP_Tombstone project)
     {
+        var recordId = project.Tombstone_ID;
         _enableSave = true;
         if (IsRecordLocked(project))
         {
@@ -225,21 +303,18 @@
             };
             _enableSave = false;
             await UI.ToggleModal(
-    @<WarningModal OnDecision="HandleWarningDecision" WarningTextString=@textList />);
+    @<WarningModal OnDecision="HandleWarningDecision" WarningTextString=@textList />
+    );
         }
-
-        //for users who had locked records and didnt refresh table
-        //if (Context.Entry(project).State != EntityState.Unchanged)
-        //{
-        //    _tombstone = 
-        //}
-
-        _tombstone = project;
-        var recordId = _tombstone.Tombstone_ID;
-        _tombstone.EditingUserId = CurrentUser.Id;
-        await Context.TrackSaveChangesAsync(AuditingService);
+        else
+        {
+            _tombstone = Context.Tombstones.Where(i => i.Tombstone_ID == recordId).First();
+            _tombstone.EditingUserId = CurrentUser.Id;
+            await Context.TrackSaveChangesAsync(AuditingService);
+        }
         _tombstone = Context.Tombstones.Where(i => i.Tombstone_ID == recordId).First();
         _tombstone.Last_Updated_UserName = await MSGraphService.GetUserName(_tombstone.Last_Updated_UserId, CancellationToken.None);
+
     }
 
     private async void HandleWarningDecision(bool IsContinue)
@@ -253,10 +328,19 @@
         return project == null ? false : (!string.IsNullOrEmpty(project.EditingUserId));
     }
 
+    private void LoadProjects()
+    {            
+        _projects = Context.Tombstones.Where(l => l.FiscalYear.FiscalYear == _fiscalYear.FiscalYear).ToList();
+    }
+
+
+
+
     protected override async Task OnInitializedAsync()
     {        
         Context = DbFactory.CreateDbContext();
-
+        CurrentUser = await UserInformationService.GetUserAsync();
+        _isUserAdmin = await ServiceAuthManager.IsProjectAdmin(CurrentUser.Id, PROJECTACRONYM);
         _fiscalYears = new();
         _fiscalYears = Context.FiscalYears.OrderByDescending(i => i.YearId).Select(i => i.FiscalYear).ToList();
 
@@ -265,16 +349,17 @@
         if (_fiscalYear != null)
         {
             _projects = new();
-            _projects = Context.Tombstones.Where(l => l.FiscalYear.FiscalYear == _fiscalYear.FiscalYear).ToList();
+            LoadProjects();
+
         }
 
 
         if (!string.IsNullOrEmpty(tombstone))
         {
-            _tombstone = _projects.Where(p => p.Tombstone_ID == Convert.ToInt32(tombstone)).FirstOrDefault();
 
+            _tombstone = _projects.Where(p => p.Tombstone_ID == Convert.ToInt32(tombstone)).FirstOrDefault();
+            await PrepareItemForEdit(_tombstone);
         }
-        CurrentUser = await UserInformationService.GetUserAsync();
     }
 
 
@@ -296,46 +381,56 @@
 
     private async Task OnConfigure(IModelFormContext context)
     {
-        context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Core_Responsbility_DESC, () => PIP_Constants.CORE_RESPONSIBILITIES);
-        context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Mandate_Letter_Commitment_1_DESC, () => PIP_Constants.COMMITMENTS);
-        context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Mandate_Letter_Commitment_3_DESC, () => PIP_Constants.COMMITMENTS);
-        context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Mandate_Letter_Commitment_4_DESC, () => PIP_Constants.COMMITMENTS);
-        context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Transfer_Payment_Programs_1_DESC, () => PIP_Constants.TRANSFER_PROGRAMS);
-        context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Transfer_Payment_Programs_2_DESC, () => PIP_Constants.TRANSFER_PROGRAMS);
-        context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Transfer_Payment_Programs_3_DESC, () => PIP_Constants.TRANSFER_PROGRAMS);
-        context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Transfer_Payment_Programs_4_DESC, () => PIP_Constants.TRANSFER_PROGRAMS);
-        context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Transfer_Payment_Programs_5_DESC, () => PIP_Constants.TRANSFER_PROGRAMS);
-        context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Transfer_Payment_Programs_6_DESC, () => PIP_Constants.TRANSFER_PROGRAMS);
-        context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Transfer_Payment_Programs_7_DESC, () => PIP_Constants.TRANSFER_PROGRAMS);
-        context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Mandate_Letter_Commitment_2_DESC, () => PIP_Constants.COMMITMENTS);
-        context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Transfer_Payment_Programs_Less5_1_DESC, () => PIP_Constants.TRANSFER_PROGRAMS_LESS5);
-        context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Transfer_Payment_Programs_Less5_2_DESC, () => PIP_Constants.TRANSFER_PROGRAMS_LESS5);
-        context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Transfer_Payment_Programs_Less5_3_DESC, () => PIP_Constants.TRANSFER_PROGRAMS_LESS5);
-        context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Horizontal_Initiative_1_DESC, () => PIP_Constants.HORIZONTAL_INITIATIVES);
-        context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Horizontal_Initiative_2_DESC, () => PIP_Constants.HORIZONTAL_INITIATIVES);
-        context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Horizontal_Initiative_3_DESC, () => PIP_Constants.HORIZONTAL_INITIATIVES);
-        context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Method_Of_Intervention_1_DESC, () => PIP_Constants.INTERVENTION);
-        context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Method_Of_Intervention_2_DESC, () => PIP_Constants.INTERVENTION);
-        context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Target_Group_1_DESC, () => PIP_Constants.TARGET_GROUPS);
-        context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Target_Group_2_DESC, () => PIP_Constants.TARGET_GROUPS);
-        context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Target_Group_3_DESC, () => PIP_Constants.TARGET_GROUPS);
-        context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Target_Group_4_DESC, () => PIP_Constants.TARGET_GROUPS);
-        context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Target_Group_5_DESC, () => PIP_Constants.TARGET_GROUPS);
-        context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Government_Of_Canada_Activity_Tags_DESC, () => PIP_Constants.GOC_TAGS1);
-        context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Canadian_Classification_Of_Functions_Of_Government_DESC, () => PIP_Constants.GOC_CLASSIFICATION);
-        context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Strategic_Priorities_1_DESC, () => PIP_Constants.STRATEGIC);
-        context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Strategic_Priorities_2_DESC, () => PIP_Constants.STRATEGIC);
-        context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Is_Equity_Seeking_Group, () => PIP_Constants.EQUITY_SEEKING_GROUPS);
-        context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Is_Equity_Seeking_Group2, () => PIP_Constants.EQUITY_SEEKING_GROUPS);
-        context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Does_Indicator_Enable_Program_Measure_Equity_Option, () => PIP_Constants.YESNO);
-        context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Departmental_Result_1_CD, () => PIP_Constants.CORE_RESPONSIBILITY1);
-        context.RegisterFieldNotes<PIP_Tombstone>(p => p.Logic_Model, "Sector to include GCDocs link to their logic model");
-        context.RegisterFieldNotes<PIP_Tombstone>(p => p.Related_Program_Or_Activities, "Sectors to capture any programs or activities that are included in the PIP that we are unable to capture elsewhere in the PIP Webform.");
-        context.RegisterFieldNotes<PIP_Tombstone>(p => p.Program_Notes, "Sectors to use this field to capture any notes that are relevant to the Program");
-        context.RegisterCategoryNotes("Spending (in $) as per GC InfoBase (to be updated by CMSS)", "The planned and actual spending for the Program is based on the financial information submitted to TBS by CMSS as a part of the annual DP and DRR process is pre-populated here. TBS publishes this information on GCInfoBase.");
-        context.RegisterCategoryNotes("Program Tags to be Updated by Sector", "This section is intended to identify connections between Programs and  elements in other structures. They must be assigned in a manner that reflects the primary purpose of the Program, rather than attempting to select all possible tags that might be approporiate. Please select the relevant Tags from the drop downs below.");
-        context.RegisterCategoryNotes("Program Tags as per TBS Database and GCInfoBase", "These tags must be updated through the annual DRF amendment process. For more details on each Tag, please refer to NRCan's Performance Information Profile Guidelines and Procedures document.");
-        context.RegisterCategoryNotes("Latest Update Information", "This section will be updated automatically when you save your information and will show the name of the last user and date they update the form.");
+        if (_reloadOptions)
+        {
+            context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Core_Responsbility_DESC, () => PIP_Constants.CORE_RESPONSIBILITIES);
+            context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Mandate_Letter_Commitment_1_DESC, () => PIP_Constants.COMMITMENTS);
+            context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Mandate_Letter_Commitment_3_DESC, () => PIP_Constants.COMMITMENTS);
+            context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Mandate_Letter_Commitment_4_DESC, () => PIP_Constants.COMMITMENTS);
+            context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Transfer_Payment_Programs_1_DESC, () => PIP_Constants.TRANSFER_PROGRAMS);
+            context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Transfer_Payment_Programs_2_DESC, () => PIP_Constants.TRANSFER_PROGRAMS);
+            context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Transfer_Payment_Programs_3_DESC, () => PIP_Constants.TRANSFER_PROGRAMS);
+            context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Transfer_Payment_Programs_4_DESC, () => PIP_Constants.TRANSFER_PROGRAMS);
+            context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Transfer_Payment_Programs_5_DESC, () => PIP_Constants.TRANSFER_PROGRAMS);
+            context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Transfer_Payment_Programs_6_DESC, () => PIP_Constants.TRANSFER_PROGRAMS);
+            context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Transfer_Payment_Programs_7_DESC, () => PIP_Constants.TRANSFER_PROGRAMS);
+            context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Mandate_Letter_Commitment_2_DESC, () => PIP_Constants.COMMITMENTS);
+            context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Transfer_Payment_Programs_Less5_1_DESC, () => PIP_Constants.TRANSFER_PROGRAMS_LESS5);
+            context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Transfer_Payment_Programs_Less5_2_DESC, () => PIP_Constants.TRANSFER_PROGRAMS_LESS5);
+            context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Transfer_Payment_Programs_Less5_3_DESC, () => PIP_Constants.TRANSFER_PROGRAMS_LESS5);
+            context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Horizontal_Initiative_1_DESC, () => PIP_Constants.HORIZONTAL_INITIATIVES);
+            context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Horizontal_Initiative_2_DESC, () => PIP_Constants.HORIZONTAL_INITIATIVES);
+            context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Horizontal_Initiative_3_DESC, () => PIP_Constants.HORIZONTAL_INITIATIVES);
+            context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Method_Of_Intervention_1_DESC, () => PIP_Constants.INTERVENTION);
+            context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Method_Of_Intervention_2_DESC, () => PIP_Constants.INTERVENTION);
+            context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Target_Group_1_DESC, () => PIP_Constants.TARGET_GROUPS);
+            context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Target_Group_2_DESC, () => PIP_Constants.TARGET_GROUPS);
+            context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Target_Group_3_DESC, () => PIP_Constants.TARGET_GROUPS);
+            context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Target_Group_4_DESC, () => PIP_Constants.TARGET_GROUPS);
+            context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Target_Group_5_DESC, () => PIP_Constants.TARGET_GROUPS);
+            context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Government_Of_Canada_Activity_Tags_DESC, () => PIP_Constants.GOC_TAGS1);
+            context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Canadian_Classification_Of_Functions_Of_Government_DESC, () => PIP_Constants.GOC_CLASSIFICATION);
+            context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Strategic_Priorities_1_DESC, () => PIP_Constants.STRATEGIC);
+            context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Strategic_Priorities_2_DESC, () => PIP_Constants.STRATEGIC);
+            context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Is_Equity_Seeking_Group, () => PIP_Constants.EQUITY_SEEKING_GROUPS);
+            context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Is_Equity_Seeking_Group2, () => PIP_Constants.EQUITY_SEEKING_GROUPS);
+            context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Does_Indicator_Enable_Program_Measure_Equity_Option, () => PIP_Constants.YESNO);
+            context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Departmental_Result_1_CD, () => PIP_Constants.CORE_RESPONSIBILITY1);
+            context.RegisterFieldNotes<PIP_Tombstone>(p => p.Logic_Model, "Sector to include GCDocs link to their logic model");
+            context.RegisterFieldNotes<PIP_Tombstone>(p => p.Related_Program_Or_Activities, "Sectors to capture any programs or activities that are included in the PIP that we are unable to capture elsewhere in the PIP Webform.");
+            context.RegisterFieldNotes<PIP_Tombstone>(p => p.Program_Notes, "Sectors to use this field to capture any notes that are relevant to the Program");
+            context.RegisterCategoryNotes("Spending (in $) as per GC InfoBase (to be updated by CMSS)", "The planned and actual spending for the Program is based on the financial information submitted to TBS by CMSS as a part of the annual DP and DRR process is pre-populated here. TBS publishes this information on GCInfoBase.");
+            context.RegisterCategoryNotes("Program Tags to be Updated by Sector", "This section is intended to identify connections between Programs and  elements in other structures. They must be assigned in a manner that reflects the primary purpose of the Program, rather than attempting to select all possible tags that might be approporiate. Please select the relevant Tags from the drop downs below.");
+            context.RegisterCategoryNotes("Program Tags as per TBS Database and GCInfoBase", "These tags must be updated through the annual DRF amendment process. For more details on each Tag, please refer to NRCan's Performance Information Profile Guidelines and Procedures document.");
+            context.RegisterCategoryNotes("Latest Update Information", "This section will be updated automatically when you save your information and will show the name of the last user and date they update the form.");
+
+            RegisterLocks(context);
+            _reloadOptions = false;
+        }
+        else
+        {
+            UpdateLocks(context);
+        }
     }
 
     private async Task OnChange(ModelFormChangeArgs args)
@@ -375,6 +470,14 @@
             }
 
         }
+
+        if (_tombstoneSwitched)
+        {
+            ClearContextlocks(args.Context);
+            RegisterLocks(args.Context);
+            _tombstoneSwitched = false;
+            StateHasChanged();
+        }
     }
 
 
@@ -398,33 +501,46 @@
             await HandleValidSubmit();          
     }
 
+    private void ResetContextChanges()
+    {
+        foreach(var entry in Context.ChangeTracker.Entries())
+        {
+            entry.CurrentValues.SetValues(entry.OriginalValues);
+            entry.State = EntityState.Unchanged;    
+        }                        
+    }
+
     private async void OnConfirmSave(bool isConfirmed, dynamic item)
     {
         if (isConfirmed && _tombstone != null)
         {
             _tombstone.Last_Updated_DT = DateTime.Now;
             _tombstone.Date_Updated_DT = DateTime.Now;
-            _tombstone.Last_Updated_UserId = CurrentUser.Id;
+            _tombstone.Last_Updated_UserId = CurrentUser.Id;            
             _tombstone.EditingUserId = string.Empty;
-            //_tombstone.
+
             if (_tombstone.Tombstone_ID == 0)
             {
                 _tombstone = Context.Tombstones.Add(_tombstone).Entity;
             }
             await Context.TrackSaveChangesAsync(AuditingService);
-            _projects = Context.Tombstones.ToList();
+            LoadProjects();
 
         }
         else if (!isConfirmed && _tombstone != null)
         {
-            var entry = Context.Entry(_tombstone);
-            entry.CurrentValues.SetValues(entry.OriginalValues);
-            entry.State = EntityState.Unchanged;
-
+            ResetContextChanges();
         }
-        
+
         if (item != null)
-            PrepareItemForEdit(item);        
+        {
+            await PrepareItemForEdit(item);
+        }
+        else
+        {
+            await PrepareItemForEdit(_tombstone);
+        }
+
         
         await UI.ToggleModal();
 
@@ -455,6 +571,7 @@
         if (_tombstone != null && !string.IsNullOrEmpty(_tombstone.EditingUserId) && _tombstone.EditingUserId == CurrentUser.Id)
         {
             _tombstone.EditingUserId = string.Empty;
+
             Context.SaveChanges();
         } 
     }
