@@ -260,6 +260,7 @@
     private string _requestFilename;
     private string _projectCode;
     private string _fileUrl;
+    private bool IsExternalShare => !string.IsNullOrEmpty(_fileUrl);
 
     private string _datasetTitle;
 
@@ -361,7 +362,7 @@
             var url = string.IsNullOrEmpty(_fileUrl) ? PublicFileService.GetPublicSharedFileUrl(FileId) : _fileUrl;
 
             // publish to open data
-            var result = await OpenDataService.PublishFileAsUrl(fieldValues, url);
+            var result = await OpenDataService.PublishFileAsUrl(fieldValues, IsExternalShare, url);
 
             if (result.Succeeded)
             {

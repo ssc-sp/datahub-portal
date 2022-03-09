@@ -32,12 +32,12 @@ namespace Datahub.Portal.Model
         [Required]
         public string frequency { get; set; }
         [Required]
-        public DateTime? date_published { get; set; }
+        public string date_published { get; set; }
         [Required]
         public string jurisdiction { get; set; }
         // not required fields
-        public DateTime? time_period_coverage_start { get; set; }
-        public DateTime? time_period_coverage_end { get; set; }
+        public string time_period_coverage_start { get; set; }
+        public string time_period_coverage_end { get; set; }
         public string audience { get; set; }
         public string digital_object_identifier { get; set; }
     }
