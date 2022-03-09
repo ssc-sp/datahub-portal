@@ -21,7 +21,7 @@ namespace Datahub.CKAN.Package
             };
         }
 
-        public Dictionary<string, object> GeneratePackage(FieldValueContainer fieldValues, string url = null, bool @private = false)
+        public Dictionary<string, object> GeneratePackage(FieldValueContainer fieldValues, bool allFields, string url = null, bool @private = false)
         {
             if (fieldValues == null)
                 throw new ArgumentNullException(nameof(fieldValues));
