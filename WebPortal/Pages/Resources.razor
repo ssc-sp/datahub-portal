@@ -14,14 +14,12 @@
 @page "/resources/"
 @page "/resources/{PageName}"
 
-<div style="padding: 2rem">
-    <AeCard>
-        <ChildContent>
-            <DHMarkdown Content="@_markdownContent"
-                        LinkRewriter="@RewriteLink"/>
-        </ChildContent>
-    </AeCard>
-</div>
+<AeCard>
+    <ChildContent>
+        <DHMarkdown Content="@_markdownContent"
+                    LinkRewriter="@RewriteLink"/>
+    </ChildContent>
+</AeCard>
 
 @code {
 
@@ -31,7 +29,7 @@
     [Parameter]
     public List<(string,string)> Substitutions { get; set; }
 
-    private const string DefaultPage = "Home";
+        private const string DefaultPage = "Home";
     private string _markdownContent = string.Empty;
     private string _baseUrl = "/resources";
 

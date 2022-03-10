@@ -4,26 +4,28 @@
 @inject ServiceAuthManager ServiceAuthManager
 
 <div id="sidebar">
-    <div class="logo">
-        <img src="_content/Datahub.Core/img/datahub-logo-v2.png"/>
-    </div>
-    <div class="links">
-        @foreach (var (href, icon, label) in GetLinks())
-        {
-            <NavLink class="@icon.Color" href="@href" Match="NavLinkMatch.Prefix" ActiveClass="active">
-                <i class="@icon.Name"></i>
-                @Localizer[label]
-            </NavLink>
-        }
-        @foreach (var link in GetAuthorizedLinks())
-        {
-            <AuthorizeView Roles="@string.Join(',', link.Roles)">
-                <NavLink class="@link.Icon.Color" href="@link.Href" Match="NavLinkMatch.Prefix" ActiveClass="active">
-                    <i class="@link.Icon.Name"></i>
-                    @Localizer[@link.Label]
+    <div class="sidebar-sticky">
+        <div class="logo">
+            <img src="_content/Datahub.Core/img/datahub-logo-v2.png"/>
+        </div>
+        <div class="links">
+            @foreach (var (href, icon, label) in GetLinks())
+            {
+                <NavLink class="@icon.Color" href="@href" Match="NavLinkMatch.Prefix" ActiveClass="active">
+                    <i class="@icon.Name"></i>
+                    @Localizer[label]
                 </NavLink>
-            </AuthorizeView>
-        }
+            }
+            @foreach (var link in GetAuthorizedLinks())
+            {
+                <AuthorizeView Roles="@string.Join(',', link.Roles)">
+                    <NavLink class="@link.Icon.Color" href="@link.Href" Match="NavLinkMatch.Prefix" ActiveClass="active">
+                        <i class="@link.Icon.Name"></i>
+                        @Localizer[@link.Label]
+                    </NavLink>
+                </AuthorizeView>
+            }
+        </div>
     </div>
 </div>
 
