@@ -20,15 +20,15 @@ namespace Datahub.Portal.Controllers
     public class ApiController : Controller
     {
         private readonly ILogger<PublicController> _logger;
-        private readonly IApiCallService _apiCallService;
+        private readonly IDataRetrievalService dataRetrievalService;
         private readonly IDbContextFactory<DatahubProjectDBContext> _contextFactory;
         private readonly IKeyVaultService _keyVaultService;
 
-        public ApiController(ILogger<PublicController> logger, IApiCallService apiCallService, 
+        public ApiController(ILogger<PublicController> logger, IDataRetrievalService dataRetrievalService,
             IDbContextFactory<DatahubProjectDBContext> contextFactory, IKeyVaultService keyVaultService)
         {
             _logger = logger;
-            _apiCallService = apiCallService;
+            this.dataRetrievalService = dataRetrievalService;
             _contextFactory = contextFactory;
             _keyVaultService = keyVaultService;
         }
@@ -84,7 +84,7 @@ namespace Datahub.Portal.Controllers
 
             try
             {
-                var blobConnectionString = await _apiCallService.GetProjectConnectionString(projectAcro);
+                var blobConnectionString = await dataRetrievalService.GetProjectConnectionString(projectAcro);
 
                 BlobClientUtils blobClientUtil = new(blobConnectionString, "datahub");
 

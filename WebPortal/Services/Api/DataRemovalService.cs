@@ -23,23 +23,20 @@ namespace Datahub.Portal.Services
         private ICognitiveSearchService _cognitiveSearchService;
         private DataLakeClientService _dataLakeClientService;
         private IDataRetrievalService _dataRetrievalService;
-        private IApiCallService _apiCallService;
 
         public DataRemovalService(ILogger<DataRemovalService> logger,
                                   DataLakeClientService dataLakeClientService,
                                   IDataRetrievalService dataRetrievalService,
                                   ICognitiveSearchService cognitiveSearchService,
-                                  IApiService apiService,
+                                  IMyDataService apiService,
                                   NavigationManager navigationManager,
-                                  UIControlsService uiService,
-                                  IApiCallService apiCallService)
+                                  UIControlsService uiService)
             : base(navigationManager, apiService, uiService)
         {
             _logger = logger;
             _cognitiveSearchService = cognitiveSearchService;
             _dataLakeClientService = dataLakeClientService;
             _dataRetrievalService = dataRetrievalService;
-            _apiCallService = apiCallService;            
         }
 
         public async Task<bool> Delete(Folder folder, Microsoft.Graph.User currentUser)
@@ -188,7 +185,7 @@ namespace Datahub.Portal.Services
 
                 //return response.Value;
 
-                string cxnstring = await _apiCallService.GetProjectConnectionString(project);
+                string cxnstring = await _dataRetrievalService.GetProjectConnectionString(project);
                 CloudStorageAccount storageAccount = CloudStorageAccount.Parse(cxnstring);
 
                 // Create the blob client.
