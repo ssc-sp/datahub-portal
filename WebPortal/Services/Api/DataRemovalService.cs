@@ -29,7 +29,7 @@ namespace Datahub.Portal.Services
                                   DataLakeClientService dataLakeClientService,
                                   IDataRetrievalService dataRetrievalService,
                                   ICognitiveSearchService cognitiveSearchService,
-                                  IApiService apiService,
+                                  ApiService apiService,
                                   NavigationManager navigationManager,
                                   UIControlsService uiService,
                                   IApiCallService apiCallService)
