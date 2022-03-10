@@ -57,8 +57,8 @@ namespace Datahub.Tests
 
     public class APIServiceTest
     {
-        //private readonly IApiService _apiService;
-        //public APIServiceTest(IApiService ApiService)
+        //private readonly ApiService _apiService;
+        //public APIServiceTest(ApiService ApiService)
         //{
         //    _apiService = ApiService;
         //}

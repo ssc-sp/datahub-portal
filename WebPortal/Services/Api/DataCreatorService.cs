@@ -15,7 +15,7 @@ namespace Datahub.Portal.Services
         private DataLakeClientService _dataLakeClientService;
 
         public DataCreatorService(ILogger<DataCreatorService> logger,
-                                  IApiService apiService,
+                                  ApiService apiService,
                                   DataLakeClientService dataLakeClientService,
                                   NavigationManager navigationManager,
                                   UIControlsService uiService)
