@@ -24,6 +24,7 @@
     <PackageReference Include="Azure.Storage.Files.DataLake" Version="12.7.0" />
     <PackageReference Include="BlazorDownloadFile" Version="2.3.1" />
     <PackageReference Include="BlazorTemplater" Version="1.4.1" />
+    <PackageReference Include="ByteSize" Version="2.1.1" />
     <PackageReference Include="DeepL" Version="0.3.0" />
     <PackageReference Include="Localization.AspNetCore.TagHelpers" Version="0.6.0" />
     <PackageReference Include="MailKit" Version="3.0.0" />

@@ -168,13 +168,14 @@
                 StateHasChanged();
             });
 
-            await Task.Delay(2000);
-
-            _uploadingFiles.Remove(fileMetadata);
-
             _virtualDirectory[_currentFolder].RemoveAll(f => f.name == fileMetadata.name);
             _virtualDirectory[_currentFolder].Add(fileMetadata);
             
+            StateHasChanged();
+
+            // give a courtesy moment for tiny files
+            await Task.Delay(1000);
+            _uploadingFiles.Remove(fileMetadata);
             StateHasChanged();
         });
         

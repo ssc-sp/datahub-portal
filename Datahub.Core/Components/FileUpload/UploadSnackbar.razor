@@ -16,7 +16,7 @@
                         @file.filename
                     </AeTypography>
                     <AeTypography class="file-upload-bytes">
-                        @file.uploadedBytes
+                        @UploadedByteSize(file.uploadedBytes)
                     </AeTypography>
                 </span>
                 <div class="snack-file-progress">
@@ -35,6 +35,10 @@
     [Parameter]
     public List<FileMetaData> UploadingFiles { get; set; }
 
+    private string UploadedByteSize(long size)
+    {
+        return ByteSizeLib.ByteSize.FromBytes(size).ToString();
+    }
 
     private float CalculateProgress(FileMetaData file)
     {

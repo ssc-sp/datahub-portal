@@ -63,7 +63,6 @@
         {
             var uri = await _apiService.DownloadFile(file, ProjectAcronym);
             await _jsRuntime.InvokeVoidAsync("open", uri.ToString(), "_blank");
-            
         }
     }
 
