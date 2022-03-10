@@ -33,7 +33,7 @@ namespace Datahub.Portal.Migrations.Forms.PIP
 
                     b.HasKey("YearId");
 
-                    b.ToTable("FiscalYears");
+                    b.ToTable("FiscalYears", (string)null);
 
                     b.HasData(
                         new
@@ -268,7 +268,7 @@ namespace Datahub.Portal.Migrations.Forms.PIP
 
                     b.HasIndex("PIP_TombstoneTombstone_ID");
 
-                    b.ToTable("IndicatorAndResults");
+                    b.ToTable("IndicatorAndResults", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.ProjectForms.Data.PIP.PIP_IndicatorRisks", b =>
@@ -291,7 +291,7 @@ namespace Datahub.Portal.Migrations.Forms.PIP
 
                     b.HasIndex("Pip_RiskRisks_ID");
 
-                    b.ToTable("IndicatorRisks");
+                    b.ToTable("IndicatorRisks", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.ProjectForms.Data.PIP.PIP_Risks", b =>
@@ -485,7 +485,7 @@ namespace Datahub.Portal.Migrations.Forms.PIP
 
                     b.HasIndex("PIP_TombstoneTombstone_ID");
 
-                    b.ToTable("Risks");
+                    b.ToTable("Risks", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.ProjectForms.Data.PIP.PIP_Tombstone", b =>
@@ -752,7 +752,7 @@ namespace Datahub.Portal.Migrations.Forms.PIP
 
                     b.HasIndex("FiscalYearId");
 
-                    b.ToTable("Tombstones");
+                    b.ToTable("Tombstones", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.ProjectForms.Data.PIP.PIP_TombstoneRisks", b =>
@@ -775,7 +775,7 @@ namespace Datahub.Portal.Migrations.Forms.PIP
 
                     b.HasIndex("Pip_TombstoneTombstone_ID");
 
-                    b.ToTable("TombstoneRisks");
+                    b.ToTable("TombstoneRisks", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.ProjectForms.Data.PIP.PIP_IndicatorAndResults", b =>
