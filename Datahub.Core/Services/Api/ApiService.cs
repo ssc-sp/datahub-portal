@@ -248,8 +248,12 @@ namespace Datahub.Core.Services
             //await _notifierService.Update($"{fileMetadata.folderpath}/{fileMetadata.filename}", true);
             try
             {
-                fileMetadata.bytesToUpload = browserFile.Size;
-                fileMetadata.filesize = browserFile.Size.ToString();
+                if (browserFile != null)
+                {
+                    fileMetadata.bytesToUpload = browserFile.Size;
+                    fileMetadata.filesize = browserFile.Size.ToString();
+                }
+                
                 fileMetadata.folderpath = string.IsNullOrEmpty(projectUploadCode) ? fileMetadata.folderpath : string.Empty;
 
 
@@ -316,11 +320,14 @@ namespace Datahub.Core.Services
         {
             string cxnstring = await _apiCallService.GetProjectConnectionString(projectUploadCode);
             long maxFileSize = 1024000000000;
-            var metadata = fileMetadata.GenerateMetadata();
+            var metadata = fileMetadata!.GenerateMetadata();
 
             var blobClientUtil = new Utils.BlobClientUtils(cxnstring, "datahub");
 
-            await blobClientUtil.UploadFile(fileMetadata.filename, browserFile.OpenReadStream(maxFileSize), metadata, (progress) =>
+            await using var stream = fileMetadata.BrowserFile?.OpenReadStream(maxFileSize) ??
+                                     browserFile?.OpenReadStream(maxFileSize);
+
+            await blobClientUtil.UploadFile(fileMetadata.filename, stream, metadata, (progress) =>
             {
                 fileMetadata.uploadedBytes = progress;
                 _ = _notifierService.Update($"adddata", false);

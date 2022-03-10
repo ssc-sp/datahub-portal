@@ -1,5 +1,4 @@
 @using System.IO
-@implements IAsyncDisposable
 
 @inject IJSRuntime _jsRuntime
 
@@ -37,19 +36,4 @@
             _dropZoneInstance = await _module.InvokeAsync<IJSObjectReference>("initializeFileDropZone", _dropZoneElement, _inputFile.Element);
         }
     }
-
-    public async ValueTask DisposeAsync()
-    {
-        if (_dropZoneInstance != null)
-        {
-            await _dropZoneInstance.InvokeVoidAsync("dispose");
-            await _dropZoneInstance.DisposeAsync();
-        }
-
-        if (_module != null)
-        {
-            await _module.DisposeAsync();
-        }
-    }
-
 }
