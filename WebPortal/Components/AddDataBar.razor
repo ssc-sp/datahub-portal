@@ -11,7 +11,7 @@
 @inject IDataRetrievalService DataRetrievalService
 
 <EditForm Model="_fileMetadata" OnValidSubmit="HandleValidSubmit">
-    <DataAnnotationsValidator />
+    <DataAnnotationsValidator/>
     <div>
         <div class="header-wrapper">
             <div class="header">
@@ -26,7 +26,7 @@
         </div>
         <div class="bodytext">
             <label for="description" class="formlabel">@Localizer["ADD-DATA-PAGE.Description-Label"]</label>
-            <InputTextArea @bind-Value="_fileMetadata.description" class="formtextarea" id="description" placeholder=@Localizer["ADD-DATA-PAGE.Description-Placeholder"] rows="4" />
+            <InputTextArea @bind-Value="_fileMetadata.description" class="formtextarea" id="description" placeholder=@Localizer["ADD-DATA-PAGE.Description-Placeholder"] rows="4"/>
         </div>
         <div class="bodytext">
             <div class="formlabel">
@@ -35,35 +35,38 @@
             <div class="drag-drop-zone">
                 <label>
                     @status
-                    <Microsoft.AspNetCore.Components.Forms.InputFile OnChange="@OnInputFileChange" multiple />
+                    <Microsoft.AspNetCore.Components.Forms.InputFile OnChange="@OnInputFileChange" multiple/>
                 </label>
             </div>
         </div>
         <div class="bodytext">
             <label for="tags" class="formlabel">@Localizer["ADD-DATA-PAGE.Tags-Label"]</label>
-            <InputText @bind-Value="_fileMetadata._tags" class="formuserinput" id="tags" placeholder=@Localizer["ADD-DATA-PAGE.Tags-Placeholder"] />
+            <InputText @bind-Value="_fileMetadata._tags" class="formuserinput" id="tags" placeholder=@Localizer["ADD-DATA-PAGE.Tags-Placeholder"]/>
         </div>
         <div class="bodytext">
-            <label for="securityclass" class="formlabel">@Localizer["ADD-DATA-PAGE.SecurityClassification-Label"]<div class="bluetext">*</div></label>
-            <AeDropdown Items="securityClassOptions" Renderer="GetOption" OnChange="HandleDropdownChange" LabelRenderFragment="getIcon" id="securityDropdown" />
+            <label for="securityclass" class="formlabel">
+                @Localizer["ADD-DATA-PAGE.SecurityClassification-Label"]
+                <div class="bluetext">*</div>
+            </label>
+            <AeDropdown Items="securityClassOptions" Renderer="GetOption" OnChange="HandleDropdownChange" LabelRenderFragment="getIcon" id="securityDropdown"/>
         </div>
         <div class="errortext">
             <div class="formlabel"></div>
-            <ValidationMessage For="@(() => _fileMetadata.securityclass)" />
+            <ValidationMessage For="@(() => _fileMetadata.securityclass)"/>
         </div>
 
         @foreach (var field in _fileMetadata.customfields)
         {
             showHeader = _fileMetadata.customfields.First() == field;
-            <CustomFields Field="@field" CustomFieldChanged="CustomFieldChanged" DeleteRow="DeleteRow" IncludeHeader="showHeader" />
+            <CustomFields Field="@field" CustomFieldChanged="CustomFieldChanged" DeleteRow="DeleteRow" IncludeHeader="showHeader"/>
         }
-        
+
         @*<AeButton @onclick="OpenMetadata">Edit Metadata</AeButton>*@
 
-        @if(isLoading)
+        @if (isLoading)
         {
             <div class="bodytext">
-                <UploadProgress File="@_fileMetadata" />
+                <UploadProgress File="@_fileMetadata"/>
             </div>
         }
         <div class="bodytext">
@@ -83,7 +86,7 @@
     public bool isLoading { get; set; } = false;
 
     private FileMetaData _fileMetadata;
-    private IFileListEntry _fileToUpload;
+    private IBrowserFile _fileToUpload;
     private string status;
     bool showAddRow = true;
     bool showHeader;
@@ -95,19 +98,18 @@
     {
         base.OnInitialized();
         NotifierService.Notify += OnNotify;
-        
     }
 
     public void OpenMetadata()
-    {        
+    {
         NavigationManager.NavigateTo($"/metadata/");
     }
 
     public async Task OnNotify(string key, bool reloadData)
     {
         if (key == "adddata")
-        {            
-            await InvokeAsync(() => {StateHasChanged();});
+        {
+            await InvokeAsync(() => { StateHasChanged(); });
         }
     }
 
@@ -115,7 +117,6 @@
     {
         foreach (var file in e.GetMultipleFiles(10))
         {
-            
             ApiService.browserFile = file;
             status = file.Name;
         }
@@ -162,23 +163,23 @@
         {
             case SecurityClassification.Unclassified:
             case SecurityClassification.ProtectedA:
-                {
-                    _fileMetadata.securityclass = selectedItem;
-                }
+            {
+                _fileMetadata.securityclass = selectedItem;
+            }
                 break;
 
             case SecurityClassification.ProtectedB:
+            {
+                var textList = new List<string>()
                 {
-                    var textList = new List<string>()
-                    {
-                        Localizer.GetString("ADD-DATA-PAGE.Protected-B-Warning-1"),
-                        Localizer.GetString("ADD-DATA-PAGE.Protected-B-Warning-2")
-                    };
+                    Localizer.GetString("ADD-DATA-PAGE.Protected-B-Warning-1"),
+                    Localizer.GetString("ADD-DATA-PAGE.Protected-B-Warning-2")
+                };
 
-                    await UI.ToggleModal(
-    @<WarningModal OnDecision="HandleWarningDecision" WarningTextString=@textList />
-    );
-                }
+                await UI.ToggleModal(
+                    @<WarningModal OnDecision="HandleWarningDecision" WarningTextString=@textList/>
+                    );
+            }
                 break;
         }
         StateHasChanged();
@@ -204,21 +205,25 @@
     {
         NavigationManager.NavigateTo("privacystatement");
     }
+
     private void AddRow()
     {
-        _fileMetadata.customfields.Add(new Customfield { key = string.Empty, value = string.Empty });
+        _fileMetadata.customfields.Add(new Customfield {key = string.Empty, value = string.Empty});
         ToggleAddRowSymbol();
         StateHasChanged();
     }
+
     private void ToggleAddRowSymbol()
     {
         showAddRow = _fileMetadata.customfields.All(f => !string.IsNullOrWhiteSpace(f.key) && !string.IsNullOrWhiteSpace(f.value));
     }
+
     public void CustomFieldChanged()
     {
         ToggleAddRowSymbol();
         StateHasChanged();
     }
+
     public void DeleteRow(Customfield customField)
     {
         _fileMetadata.customfields.Remove(customField);
@@ -229,30 +234,29 @@
     {
         if (ApiService.browserFile != null)
         {
-             await ApiService.PopulateOtherMetadata(_fileMetadata);
+            await ApiService.PopulateOtherMetadata(_fileMetadata);
 
             _fileMetadata.folderpath = ApiService.CurrentFolder.fullPathFromRoot;
             _fileMetadata.filename = ApiService.browserFile.Name;
             _fileMetadata.filesize = ApiService.browserFile.Size.ToString();
             _fileMetadata.lastmodifiedts = DateTime.Now;
 
-            
-            //await ApiService.UploadGen2File(browserFile, _fileMetadata);
+
+    //await ApiService.UploadGen2File(browserFile, _fileMetadata);
 
             var overwriteFile = ApiService.CurrentFolder.AllFiles.FirstOrDefault(f => f.filename == ApiService.browserFile.Name);
             if (overwriteFile != null)
             {
                 _fileMetadata.fileid = overwriteFile.fileid;
-                List<string> overwriteList = new List<string>() { Localizer["ADD-DATA-PAGE.OverwriteFilePrompt", _fileMetadata.filename] };
+                List<string> overwriteList = new List<string>() {Localizer["ADD-DATA-PAGE.OverwriteFilePrompt", _fileMetadata.filename]};
                 await UI.ToggleModal(
-    @<UserChoiceModal HeaderText="@Localizer["ADD-DATA-PAGE.AddData"]" ChoiceTextList=overwriteList OnDecision="HandleUpload"></UserChoiceModal>
-    );
+                    @<UserChoiceModal HeaderText="@Localizer["ADD-DATA-PAGE.AddData"]" ChoiceTextList=overwriteList OnDecision="HandleUpload"></UserChoiceModal>
+                    );
             }
             else
             {
                 isLoading = true;
                 HandleUpload(true);
-
             }
         }
     }
@@ -267,7 +271,7 @@
 
             if (_fileMetadata != null && !string.IsNullOrWhiteSpace(_fileMetadata.filename))
             {
-                // We have file in browser, add to list of files downloaded!
+    // We have file in browser, add to list of files downloaded!
                 ApiService.UploadedFiles.Add($"{_fileMetadata.folderpath}/{_fileMetadata.filename}", _fileMetadata);
 
                 _ = InvokeAsync(async () =>
@@ -277,11 +281,12 @@
                         await ApiService.UploadGen2File(_fileMetadata, Project?.ToLower());
                         await NotifierService.Update("filegrid", true);
                         ResetControls();
-                    } catch (Exception ex)
+                    }
+                    catch (Exception ex)
                     {
                         logger.LogCritical(ex, $"Cannot upload file");
                     }
-                }); 
+                });
             }
             else
             {
@@ -305,7 +310,7 @@
         StateHasChanged();
     }
 
-    void HandleFileSelected(IFileListEntry[] files)
+    void HandleFileSelected(IBrowserFile[] files)
     {
         _fileToUpload = files.FirstOrDefault();
         status = _fileToUpload.Name;
@@ -326,15 +331,17 @@
 
     private async Task<RenderFragment> getIcon()
     {
-        RenderFragment fragment = 
-    @<div id="securityClassButton" class="ae button"> <div>@_fileMetadata.securityclass</div> <i class="fal fa-chevron-down chevronborder"></i></div>;
+        RenderFragment fragment =
+            @<div id="securityClassButton" class="ae button">
+                <div>@_fileMetadata.securityclass</div> <i class="fal fa-chevron-down chevronborder"></i>
+            </div>;
         return await Task.FromResult(fragment);
     }
 
     private RenderFragment GetOption(string option)
     {
         return @<span>@Localizer[option]</span>
-    ;
+            ;
     }
 
     private void HandleCancel()

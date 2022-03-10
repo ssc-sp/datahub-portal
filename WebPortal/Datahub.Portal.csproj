@@ -33,7 +33,6 @@
     <PackageReference Include="Azure.Storage.Blobs" Version="12.9.1" />
     <PackageReference Include="Azure.Storage.Files.DataLake" Version="12.7.0" />
     <PackageReference Include="BlazorDownloadFile" Version="2.3.1" />
-    <PackageReference Include="BlazorInputFile" Version="0.2.0" />
     <PackageReference Include="DocumentFormat.OpenXml" Version="2.15.0" />
     <PackageReference Include="Localization.AspNetCore.TagHelpers" Version="0.6.0" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.18.0" />

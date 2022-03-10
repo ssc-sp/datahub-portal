@@ -123,7 +123,7 @@
     public bool isLoading { get; set; } = false;
 
     private FileMetaData _fileMetadata;
-    private IFileListEntry _fileToUpload;
+    private IBrowserFile _fileToUpload;
     private string status;
     bool showAddRow = true;
     bool showHeader;
@@ -316,7 +316,7 @@
         StateHasChanged();
     }
 
-    void HandleFileSelected(IFileListEntry[] files)
+    void HandleFileSelected(IBrowserFile[] files)
     {
         _fileToUpload = files.FirstOrDefault();
         status = _fileToUpload.Name;

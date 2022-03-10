@@ -23,7 +23,6 @@
     <PackageReference Include="Azure.Storage.Blobs" Version="12.9.1" />
     <PackageReference Include="Azure.Storage.Files.DataLake" Version="12.7.0" />
     <PackageReference Include="BlazorDownloadFile" Version="2.3.1" />
-    <PackageReference Include="BlazorInputFile" Version="0.2.0" />
     <PackageReference Include="BlazorTemplater" Version="1.4.1" />
     <PackageReference Include="DeepL" Version="0.3.0" />
     <PackageReference Include="Localization.AspNetCore.TagHelpers" Version="0.6.0" />
@@ -72,6 +71,5 @@
     <Content Update="i18n\SharedResources.fr.json">
       <CustomToolNamespace>Resources</CustomToolNamespace>
     </Content>
-    <Content Include="Components\DHMarkdown.razor.js" />
   </ItemGroup>
 </Project>
