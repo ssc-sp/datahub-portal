@@ -11,6 +11,7 @@ using Datahub.Core.EFCore;
 using Datahub.Core.Services;
 using System.Net;
 using Datahub.Portal.Components;
+using Datahub.Portal.Services.Storage;
 
 namespace Datahub.Portal.Services
 {
@@ -27,7 +28,8 @@ namespace Datahub.Portal.Services
     public class PublicDataFileService : IPublicDataFileService
     {
         private readonly DatahubProjectDBContext _projectDbContext;
-        private readonly IMyDataService _apiService;
+        private readonly DataRetrievalService dataRetrievalService;
+        private readonly MyDataService _apiService;
         private readonly ILogger<IPublicDataFileService> _logger;
         private readonly IMetadataBrokerService _metadataService;
         private readonly IDatahubAuditingService _datahubAuditingService;
@@ -37,8 +39,9 @@ namespace Datahub.Portal.Services
         public static readonly string PUBLIC_FILE_SHARING_CONFIG_ROOT_KEY = "PublicFileSharing";
 
         public PublicDataFileService(
-            IMyDataService apiService,
+            MyDataService apiService,
             DatahubProjectDBContext projectDbContext,
+            DataRetrievalService dataRetrievalService,
             ILogger<IPublicDataFileService> logger,
             IDatahubAuditingService datahubAuditingService,
             IMetadataBrokerService metadataService,
@@ -48,6 +51,7 @@ namespace Datahub.Portal.Services
         {
             _apiService = apiService;
             _projectDbContext = projectDbContext;
+            this.dataRetrievalService = dataRetrievalService;
             _logger = logger;
             _datahubAuditingService = datahubAuditingService;
             _metadataService = metadataService;
@@ -167,11 +171,11 @@ namespace Datahub.Portal.Services
 
             if (publicFile.IsProjectBased)
             {
-                return await _apiService.GetUserDelegationSasBlob(fileMetadata.filename, publicFile.ProjectCode_CD.ToLowerInvariant());
+                return await dataRetrievalService.GetUserDelegationSasBlob(DataRetrievalService.DEFAULT_CONTAINER_NAME, fileMetadata.filename, publicFile.ProjectCode_CD.ToLowerInvariant());
             }
             else
             {
-                return await _apiService.DownloadFile(fileMetadata, null);
+                return await dataRetrievalService.DownloadFile(DataRetrievalService.DEFAULT_CONTAINER_NAME, fileMetadata, null);
             }
         }
 

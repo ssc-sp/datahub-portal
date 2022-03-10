@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using Datahub.Portal.Services;
 using Datahub.Core.Data;
 using Datahub.Core.Services;
+using Datahub.Portal.Services.Storage;
 
 namespace Datahub.Portal.Controllers
 {
@@ -13,19 +14,23 @@ namespace Datahub.Portal.Controllers
     [AllowAnonymous]
     public class PublicController: Controller
     {
+        private readonly DataRetrievalService dataRetrievalService;
+
         private ILogger<PublicController> _logger { get; set; }
-        private IMyDataService _apiService { get; set; }
+        private MyDataService _apiService { get; set; }
         private IPublicDataFileService _pubFileService { get; set; }
 
         public PublicController(
             ILogger<PublicController> logger, 
-            IMyDataService apiService,
-            IPublicDataFileService pubFileService
+            MyDataService apiService,
+            IPublicDataFileService pubFileService,
+            DataRetrievalService dataRetrievalService
             )
         {
             _logger = logger;
             _apiService = apiService;
             _pubFileService = pubFileService;
+            this.dataRetrievalService = dataRetrievalService;
         }
 
         public IActionResult HelloWorld()
@@ -46,7 +51,7 @@ namespace Datahub.Portal.Controllers
 
             _logger.LogDebug($"Downloading {filemd.filename} from project {project}");
 
-            var uri = await _apiService.GetUserDelegationSasBlob(filemd.filename, project);
+            var uri = await dataRetrievalService.GetUserDelegationSasBlob(DataRetrievalService.DEFAULT_CONTAINER_NAME, filemd.filename, project);
 
             return Redirect(uri.ToString());
         }
@@ -61,7 +66,7 @@ namespace Datahub.Portal.Controllers
 
             _logger.LogDebug($"Downloading {filemd.filename}");
 
-            var uri = await _apiService.DownloadFile(filemd,null);
+            var uri = await dataRetrievalService.DownloadFile(DataRetrievalService.DEFAULT_CONTAINER_NAME, filemd,null);
             return Redirect(uri.ToString());
         }
 

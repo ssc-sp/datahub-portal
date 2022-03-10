@@ -6,29 +6,30 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Logging;
 using Datahub.Core.Data;
 using Datahub.Core.Services;
+using Datahub.Portal.Services.Storage;
 
 namespace Datahub.Portal.Services
 {
     public class DataUpdatingService : BaseService, IDataUpdatingService
     {
-        private ILogger<DataUpdatingService> _logger;
-        private IHttpClientFactory _httpClient;
-        private IUserInformationService _userInformationService;
-        private DataLakeClientService _dataLakeClientService;
-        private IDataRetrievalService _retrievalService;
-
-        private ICognitiveSearchService _cognitiveSearchService;
+        private readonly ILogger<DataUpdatingService> _logger;
+        private readonly IHttpClientFactory _httpClient;
+        private readonly IUserInformationService _userInformationService;
+        private readonly DataLakeClientService _dataLakeClientService;
+        private readonly DataRetrievalService _retrievalService;
+        private readonly MyDataService myDataService;
+        private readonly ICognitiveSearchService _cognitiveSearchService;
 
         public DataUpdatingService(ILogger<DataUpdatingService> logger,
                     IHttpClientFactory clientFactory,
                     IUserInformationService userInformationService,
                     DataLakeClientService dataLakeClientService,
                     ICognitiveSearchService cognitiveSearchService,
-                    IMyDataService apiService,
-                    IDataRetrievalService retrievalService,
+                    DataRetrievalService retrievalService,
+                    MyDataService myDataService,
                     NavigationManager navigationManager,
                     UIControlsService uiService)
-            : base(navigationManager, apiService, uiService)
+            : base(navigationManager, uiService)
         {
             _logger = logger;
             _httpClient = clientFactory;
@@ -36,6 +37,7 @@ namespace Datahub.Portal.Services
             _cognitiveSearchService = cognitiveSearchService;
             _dataLakeClientService = dataLakeClientService;
             _retrievalService = retrievalService;
+            this.myDataService = myDataService;
         }
 
         public async Task<bool> RenameFolder(Folder folder, string newFolderName, Microsoft.Graph.User currentUser)
@@ -52,7 +54,7 @@ namespace Datahub.Portal.Services
 
                 // Because we may have files in this or sub folders of this folder
                 // We need to update their folderpaths...
-                folder = await _retrievalService.GetFolderStructure(folder, currentUser, false);
+                folder = await myDataService.GetFolderStructure(folder, currentUser, false);
 
                 await UpdateFilesWithNewFolderPath(fileSystemClient, folder, currentUser);
 

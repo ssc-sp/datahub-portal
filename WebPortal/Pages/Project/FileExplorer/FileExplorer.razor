@@ -2,7 +2,7 @@
 
 @inject IUserInformationService _userInformationService
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
-@inject IDataRetrievalService _dataRetrievalService
+@inject DataRetrievalService _dataRetrievalService
 
 <div class="file-explorer-layout">
     <div class="heading">
@@ -115,7 +115,7 @@
         _userId = await _userInformationService.GetUserIdString();
         _user = await _userInformationService.GetUserAsync();
 
-        _files = await _dataRetrievalService.GetStorageBlobFiles(ProjectAcronym, IDataRetrievalService.DEFAULT_CONTAINER_NAME, _user);
+        _files = await _dataRetrievalService.GetStorageBlobFiles(ProjectAcronym, DataRetrievalService.DEFAULT_CONTAINER_NAME, _user);
 
         _virtualDirectory = _files
             .GroupBy(f => $"/{Path.GetDirectoryName(f.filename)?.Trim()}")

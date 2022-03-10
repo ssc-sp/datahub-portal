@@ -12,6 +12,7 @@ using System.IO;
 using Datahub.Core.Utils;
 using Microsoft.EntityFrameworkCore;
 using Datahub.Core.EFCore;
+using Datahub.Portal.Services.Storage;
 
 namespace Datahub.Portal.Controllers
 {
@@ -20,11 +21,11 @@ namespace Datahub.Portal.Controllers
     public class ApiController : Controller
     {
         private readonly ILogger<PublicController> _logger;
-        private readonly IDataRetrievalService dataRetrievalService;
+        private readonly DataRetrievalService dataRetrievalService;
         private readonly IDbContextFactory<DatahubProjectDBContext> _contextFactory;
         private readonly IKeyVaultService _keyVaultService;
 
-        public ApiController(ILogger<PublicController> logger, IDataRetrievalService dataRetrievalService,
+        public ApiController(ILogger<PublicController> logger, DataRetrievalService dataRetrievalService,
             IDbContextFactory<DatahubProjectDBContext> contextFactory, IKeyVaultService keyVaultService)
         {
             _logger = logger;
