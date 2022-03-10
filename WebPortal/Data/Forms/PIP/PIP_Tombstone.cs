@@ -17,9 +17,7 @@ namespace Datahub.ProjectForms.Data.PIP
         [AeFormIgnore]
         public int Tombstone_ID { get; set; }
 
-        [MaxLength(20)]
-        [AeFormIgnore]
-        public string Year { get; set; }
+        
         [MaxLength(20)]
         [AeFormIgnore]
         public string ProgramCode { get; set; }

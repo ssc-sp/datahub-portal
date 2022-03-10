@@ -539,6 +539,7 @@
 
     private async void OnConfirmSave(bool isConfirmed, dynamic item)
     {
+        await UI.ToggleModal();
         _submittingApproval = true;
         if (isConfirmed && _tombstone != null)
         {
@@ -578,7 +579,7 @@
         }
 
         
-        await UI.ToggleModal();
+        
 
         if (!string.IsNullOrEmpty(navigationUrl))        
             NavigationManager.NavigateTo(navigationUrl);
