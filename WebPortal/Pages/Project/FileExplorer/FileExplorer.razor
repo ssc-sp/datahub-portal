@@ -46,34 +46,36 @@
         }
         else
         {
-            <DropZone OnFilesDrop="UploadFiles">
-                @foreach (var (folderName, _) in _virtualDirectory
-                    .Where(f => f.Key != "/" && (Path.GetDirectoryName(f.Key)?.Equals(_currentFolder) ?? false)))
-                {
-                    <FileItem
-                        Name="@(folderName)"
-                        Highlighted="_selectedItem == folderName"
-                        @onclick="() => _selectedItem = folderName"
-                        @ondblclick="() => SetCurrentFolder(folderName)">
-                        <Icon>
-                            <i class="fas fa-folder"></i>
-                        </Icon>
-                    </FileItem>
-                }
-                @foreach (var file in _virtualDirectory[_currentFolder])
-                {
-                    <FileItem
-                        Name="@Path.GetFileName(file.name)"
-                        Modified="@file.Modified"
-                        Size="@file.filesize"
-                        @onclick="() => _selectedItem = file.name"
-                        Highlighted="_selectedItem == file.name">
-                        <Icon>
-                            <i class="@DatahubTools.GetFileTypeIcon(file.fileformat)"></i>
-                        </Icon>
-                    </FileItem>
-                }
-            </DropZone>
+            <UploadSnackbar>
+                <DropZone OnFilesDrop="UploadFiles">
+                    @foreach (var (folderName, _) in _virtualDirectory
+                        .Where(f => f.Key != "/" && (Path.GetDirectoryName(f.Key)?.Equals(_currentFolder) ?? false)))
+                    {
+                        <FileItem
+                            Name="@(folderName)"
+                            Highlighted="_selectedItem == folderName"
+                            @onclick="() => _selectedItem = folderName"
+                            @ondblclick="() => SetCurrentFolder(folderName)">
+                            <Icon>
+                                <i class="fas fa-folder"></i>
+                            </Icon>
+                        </FileItem>
+                    }
+                    @foreach (var file in _virtualDirectory[_currentFolder])
+                    {
+                        <FileItem
+                            Name="@Path.GetFileName(file.name)"
+                            Modified="@file.Modified"
+                            Size="@file.filesize"
+                            @onclick="() => _selectedItem = file.name"
+                            Highlighted="_selectedItem == file.name">
+                            <Icon>
+                                <i class="@DatahubTools.GetFileTypeIcon(file.fileformat)"></i>
+                            </Icon>
+                        </FileItem>
+                    }
+                </DropZone>
+            </UploadSnackbar>
         }
     </div>
     <div class="item-details">
@@ -86,7 +88,7 @@
                 else
                 {
                     var file = _virtualDirectory[_currentFolder]
-                        .Find(f => f.name.Equals(_selectedItem, StringComparison.OrdinalIgnoreCase));
+                        .FirstOrDefault(f => f.name.Equals(_selectedItem, StringComparison.OrdinalIgnoreCase));
 
                     <FileProperties File="file"/>
                 }
@@ -111,10 +113,15 @@
     private readonly string _root = "/";
     private string _currentFolder = "/";
     private string _selectedItem = "/";
-    private Dictionary<string, List<FileMetaData>> _virtualDirectory = new();
+    private Dictionary<string, List<FileMetaData>> _virtualDirectory = new()
+    {
+        {"/", new List<FileMetaData>()}
+    };
 
     protected override async Task OnInitializedAsync()
     {
+        await base.OnInitializedAsync();
+        
         await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
 
         _userId = await _userInformationService.GetUserIdString();
@@ -127,6 +134,12 @@
             .ToDictionary(g => g.Key,
                 g => g.ToList());
 
+
+        if (!_virtualDirectory.Any())
+        {
+            _virtualDirectory.Add("/", new List<FileMetaData>());
+        }
+        
         _loading = false;
     }
 
@@ -138,9 +151,27 @@
 
     private async Task UploadFiles(InputFileChangeEventArgs e)
     {
+        var browserFile = e.GetMultipleFiles().FirstOrDefault();
+        if (browserFile == null)
+        {
+            return;
+        }
+
+        var fileMetadata = new FileMetaData()
+        {
+            folderpath = _currentFolder,
+            filename = browserFile.Name,
+            filesize = browserFile.Size.ToString(),
+            uploadStatus = FileUploadStatus.SelectedToUpload,
+            BrowserFile = browserFile
+        };
         
-        
-        // _apiService.QueueFileUpload(e.GetMultipleFiles(), ProjectAcronym);
+        await  _apiService.PopulateOtherMetadata(fileMetadata);
+
+        _ = InvokeAsync(async () =>
+        {
+            await _apiService.UploadGen2File(fileMetadata, ProjectAcronym.ToLower());
+        });
     }
 
     private void BreadcrumbClicked(string breadcrumb)
@@ -149,5 +180,4 @@
         _currentFolder = _currentFolder[..(index + breadcrumb.Length)];
         _selectedItem = _currentFolder;
     }
-
 }

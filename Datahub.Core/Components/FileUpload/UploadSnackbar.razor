@@ -1,0 +1,37 @@
+@using Datahub.Core.Data
+@if (ChildContent != null)
+{
+    @ChildContent
+}
+
+@if (UploadingFiles != null && UploadingFiles.Any())
+{
+    <div class="upload-snackbar">
+        @foreach (var file in UploadingFiles)
+        {
+            <div class="upload-snack">
+                <i class="fas fa-file-alt"></i>
+                <span class="upload-text">
+                    <AeTypography class="snack-file-name">
+                        @file.filename
+                    </AeTypography>
+                    <AeTypography class="file-upload-bytes">
+                        @file.uploadedBytes
+                    </AeTypography>
+                </span>
+                <div class="snack-file-progress">
+                    <div class="file-progress-bar" style="width: 25%;">@file.bytesToUpload @file.uploadedBytes</div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+    
+    [Parameter]
+    public List<FileMetaData> UploadingFiles { get; set; }
+}

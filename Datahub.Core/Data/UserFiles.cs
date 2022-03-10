@@ -5,6 +5,7 @@ using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Components.Forms;
 using Tewr.Blazor.FileReader;
 
 namespace Datahub.Core.Data
@@ -390,6 +391,9 @@ namespace Datahub.Core.Data
 
         [JsonIgnore]
         public string _tags { get; set; }
+        
+        [JsonIgnore]
+        public IBrowserFile BrowserFile { get; set; }
       
         [JsonIgnore]
         public string fullPathFromRoot
