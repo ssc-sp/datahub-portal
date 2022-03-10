@@ -1,4 +1,3 @@
-@using Datahub.Core.Components.Skeleton
 @using Datahub.Core.Components.FileUpload
 
 @inject IUserInformationService _userInformationService
@@ -8,19 +7,7 @@
 
 
 <div class="file-explorer-layout">
-    <div class="heading">
-        <AeTypography Variant="h1">@Localizer["Storage Explorer"]</AeTypography>
-        <div class="breadcrumbs">
-            <AeButton class="light" @onclick="() => SetCurrentFolder(_root)">root</AeButton>
-            @foreach (var folder in _currentFolder.Split("/").Where(s => !string.IsNullOrWhiteSpace(s)))
-            {
-                <i class="fas fa-chevron-right"></i>
-                <AeButton class="light" @onclick="() => BreadcrumbClicked(folder)">@folder</AeButton>
-            }
-        </div>
-        
-    </div>
-
+    <Heading SetCurrentFolder="SetCurrentFolder" CurrentFolder="@_currentFolder" />
 
     <div class="file-list">
         <div class="file-list-header">
@@ -32,18 +19,7 @@
 
         @if (_loading)
         {
-            @for (var i = 0; i < 10; i++)
-            {
-                <span class="file-item">
-                    <span style="display: flex; gap: .5rem; align-items: center;">
-                        <Skeleton Width="30px" Height="30px" Circle/>
-                        <Skeleton Width="300px" Height="2rem"/>
-                    </span>
-                    <Skeleton Width="100px" Height="2rem"/>
-                    <Skeleton Width="200px" Height="2rem"/>
-                    <span></span>
-                </span>
-            }
+            <LoadingFileList />
         }
         else
         {
@@ -200,10 +176,5 @@
         StateHasChanged();
     }
 
-    private void BreadcrumbClicked(string breadcrumb)
-    {
-        var index = _currentFolder.IndexOf(breadcrumb, StringComparison.OrdinalIgnoreCase);
-        _currentFolder = _currentFolder[..(index + breadcrumb.Length)];
-        _selectedItem = _currentFolder;
-    }
+    
 }
