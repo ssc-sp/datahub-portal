@@ -1,8 +1,5 @@
 // https://www.meziantou.net/upload-files-with-drag-drop-or-paste-from-clipboard-in-blazor.htm
 
-
-
-
 export function initializeFileDropZone(dropZoneElement, inputFile, dotNetHelper) {
     // Add a class when the user drags a file over the drop zone
     function onDragHover(e) {
