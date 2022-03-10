@@ -19,7 +19,7 @@ namespace Datahub.Portal.Services.Api
 
         public DataRetrievalService(ILogger<DataRetrievalService> logger,
                                     IApiCallService apiCallService,
-                                    IApiService apiService,
+                                    ApiService apiService,
                                     DataLakeClientService dataLakeClientService,
                                     NavigationManager navigationManager,
                                     UIControlsService uiService)

@@ -17,7 +17,7 @@ namespace Datahub.Portal.Services
 
         public DataSharingService(ILogger<DataSharingService> logger,
                                   DataLakeClientService dataLakeClientService,
-                                  IApiService apiService,
+                                  ApiService apiService,
                                   NavigationManager navigationManager,
                                   ICognitiveSearchService cognitiveSearchService,
                                   UIControlsService uiService)

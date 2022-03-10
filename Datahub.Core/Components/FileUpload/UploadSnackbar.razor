@@ -20,7 +20,7 @@
                     </AeTypography>
                 </span>
                 <div class="snack-file-progress">
-                    <div class="file-progress-bar" style="width: 25%;">@file.bytesToUpload @file.uploadedBytes</div>
+                    <div class="file-progress-bar" style="width: @CalculateProgress(file)%;">@CalculateProgress(file)%</div>
                 </div>
             </div>
         }
@@ -34,4 +34,11 @@
     
     [Parameter]
     public List<FileMetaData> UploadingFiles { get; set; }
+
+
+    private float CalculateProgress(FileMetaData file)
+    {
+        return file.bytesToUpload > 0 ? (float) file.uploadedBytes / file.bytesToUpload * 100F : 0F;
+    }
+
 }
