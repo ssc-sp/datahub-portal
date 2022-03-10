@@ -7,7 +7,12 @@
 
 
 <div class="file-explorer-layout">
-    <Heading SetCurrentFolder="SetCurrentFolder" CurrentFolder="@_currentFolder" />
+    <Heading 
+        SetCurrentFolder="SetCurrentFolder" 
+        CurrentFolder="@_currentFolder" 
+        SelectedItem="@_selectedItem"
+        VirtualDirectory="_virtualDirectory"
+        />
 
     <div class="file-list">
         <div class="file-list-header">
