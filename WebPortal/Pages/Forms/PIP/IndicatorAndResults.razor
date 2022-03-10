@@ -84,9 +84,19 @@
                  OnConfigure="OnConfigure"
                  LabelsOnTop="true" 
                  Flexbox
-                 IsSectionLocksVisible="true"
+                 IsSectionLocksVisible="@_isUserAdmin"
                  IsSubmitEnabled="@_enableSave"/>
-    
+     <AeFlex>
+        <div class="icon-container" style="margin-bottom: 10px; margin-left: 5px;">
+            <FAButton Text="Save and Lock" onclick="e => SaveAndLock()" />
+            <SuccessIndicator @bind-IsLoading=@_submittingApproval @ref=@_submitApprovalInd />
+        </div>
+    </AeFlex>
+    <AeFlex>
+        <div class="icon-container" style="margin-bottom: 10px; margin-left: 5px;">
+            <SuccessIndicator @bind-IsLoading=@_submittingApproval @ref=@_submitApprovalInd />
+        </div>
+    </AeFlex>
 
     <AeFlex id="buttonBar">
         <div class="icon-container" style="margin-bottom: 10px; margin-left: 5px;">
@@ -121,7 +131,8 @@
     private IPageableComponent _myTable;
     private bool _reloadOptions = true;
     private bool _indicatorSwitched = false;
-
+    private SuccessIndicator _submitApprovalInd;
+    private bool _submittingApproval = false;
 
     private void OnPageClick(int pageIndex)
     {
@@ -243,6 +254,17 @@
         }
     }
 
+    private async Task SaveAndLock()
+    {
+        _indicator.IsActualResultsLocked = true;
+        _indicator.IsLatestUpdateLocked = true;
+        _indicator.IsMethodologyLocked = true;
+        _indicator.IsTargetLocked = true;
+
+        await HandleValidSubmit();
+        
+        StateHasChanged();
+    }
 
     private List<Func<PIP_IndicatorAndResults, RenderFragment>> GetRenderers()
     {
@@ -343,6 +365,7 @@
     }
     private async void OnConfirmSave(bool isConfirmed, dynamic item)
     {
+        _submittingApproval = true;
         if (isConfirmed && _indicator != null)
         {
             _indicator.Last_Updated_DT = DateTime.Now;
@@ -353,7 +376,15 @@
             {
                 _indicator = Context.IndicatorAndResults.Add(_indicator).Entity;
             }
-            await Context.TrackSaveChangesAsync(AuditingService);
+            var result = await Context.TrackSaveChangesAsync(AuditingService);
+            if (result < 1)
+            {
+                await _submitApprovalInd.SignalFailure();
+            }
+            else
+            {
+                await _submitApprovalInd.SignalSuccess();
+            }
             LoadIndicators();
         }
         else if (!isConfirmed && _indicator != null)
