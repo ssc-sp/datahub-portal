@@ -50,6 +50,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using Datahub.Core.Configuration;
 using Datahub.Core.Modules;
+using Datahub.Portal.Services.Api;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]
 namespace Datahub.Portal

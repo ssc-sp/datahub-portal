@@ -2,7 +2,7 @@
 @inject IDbContextFactory<DatahubProjectDBContext> DbFactoryProject
 @inject IApiService ApiService
 
-@page "/projects/{ProjectAcronym}/filelist"
+@* @page "/projects/{ProjectAcronym}/filelist" *@
 
 <DHPageTitle PageTitleKey=@(_project.ProjectName + " " + Localizer["Storage Explorer"])/>
 
@@ -45,10 +45,6 @@
 
 <div>
     <Resources PageName="Use-AzCopy-to-Interact-with-Azure-Storage-Account" Substitutions="_substitutions" />
-</div>
-
-<div>
-    <Resources PageName="Access-your-storage-account-in-Databricks" Substitutions="_substitutions" />
 </div>
 
 <div>
