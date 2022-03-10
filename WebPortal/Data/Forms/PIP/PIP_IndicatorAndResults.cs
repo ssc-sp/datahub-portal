@@ -14,9 +14,7 @@ namespace Datahub.ProjectForms.Data.PIP
         [AeFormIgnore]
         public int IndicatorAndResult_ID { get; set; }
 
-        [MaxLength(20)]
-        [AeFormIgnore]
-        public string Year { get; set; }
+       
         [MaxLength(20)]
         [AeFormIgnore]
         public string IndicatorCode { get; set; }
@@ -152,18 +150,7 @@ namespace Datahub.ProjectForms.Data.PIP
         [AeFormCategory("Actual Results", 30)]
         public string Explanation { get; set; }
 
-        [AeLabel(row: "22", column: "1")]
-        [AeFormCategory("Actual Results", 30)]
-        [MaxLength(1000)] 
-        public string Result_201920_DESC { get; set; }
-        [AeLabel(row: "22", column: "2")]
-        [AeFormCategory("Actual Results", 30)]
-        [MaxLength(1000)] 
-        public string Result_201819_DESC { get; set; }
-        [AeLabel(row: "22", column: "3")]
-        [AeFormCategory("Actual Results", 30)]
-        [MaxLength(1000)] 
-        public string Result_201718_DESC { get; set; }
+       
 
 
         
