@@ -1,0 +1,32 @@
+<div class="heading">
+    <AeTypography Variant="h1">@Localizer["Storage Explorer"]</AeTypography>
+    <div class="breadcrumbs">
+        <AeButton class="light" @onclick="@(async () => await SetCurrentFolder.InvokeAsync("/"))">root</AeButton>
+        @foreach (var folder in CurrentFolder.Split("/").Where(s => !string.IsNullOrWhiteSpace(s)))
+        {
+            <i class="fas fa-chevron-right"></i>
+            <AeButton class="light" @onclick="@(async () => await BreadcrumbClicked(folder))">@folder</AeButton>
+        }
+    </div>
+    <div class="actions">
+        <AeButton>
+            <i class="fas fa-folder-plus"></i>
+            Create Folder
+        </AeButton>
+    </div>
+</div>
+
+@code {
+
+    [Parameter]
+    public string CurrentFolder { get; set; }
+    
+    [Parameter]
+    public EventCallback<string> SetCurrentFolder { get; set; }
+    
+    private async Task BreadcrumbClicked(string breadcrumb)
+    {
+        var index = CurrentFolder.IndexOf(breadcrumb, StringComparison.OrdinalIgnoreCase);
+        await SetCurrentFolder.InvokeAsync(CurrentFolder[..(index + breadcrumb.Length)]);
+    }
+}
