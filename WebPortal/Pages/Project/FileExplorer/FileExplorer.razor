@@ -4,7 +4,7 @@
 @inject IUserInformationService _userInformationService
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject IDataRetrievalService _dataRetrievalService
-@inject IApiService _apiService
+@inject ApiService _apiService
 
 
 <div class="file-explorer-layout">
@@ -18,6 +18,7 @@
                 <AeButton class="light" @onclick="() => BreadcrumbClicked(folder)">@folder</AeButton>
             }
         </div>
+        
     </div>
 
 
@@ -46,10 +47,11 @@
         }
         else
         {
-            <UploadSnackbar>
+            <UploadSnackbar UploadingFiles="_uploadingFiles">
                 <DropZone OnFilesDrop="UploadFiles">
                     @foreach (var (folderName, _) in _virtualDirectory
-                        .Where(f => f.Key != "/" && (Path.GetDirectoryName(f.Key)?.Equals(_currentFolder) ?? false)))
+                        .Where(f => f.Key != "/" 
+                                    && (Path.GetDirectoryName(f.Key)?.Equals(_currentFolder) ?? false)))
                     {
                         <FileItem
                             Name="@(folderName)"
@@ -61,7 +63,8 @@
                             </Icon>
                         </FileItem>
                     }
-                    @foreach (var file in _virtualDirectory[_currentFolder])
+                    @foreach (var file in _virtualDirectory[_currentFolder]
+                        .OrderBy(f => f.name))
                     {
                         <FileItem
                             Name="@Path.GetFileName(file.name)"
@@ -109,6 +112,7 @@
 
     private bool _loading = true;
     private List<FileMetaData> _files;
+    private List<FileMetaData> _uploadingFiles;
 
     private readonly string _root = "/";
     private string _currentFolder = "/";
@@ -128,6 +132,7 @@
         _user = await _userInformationService.GetUserAsync();
 
         _files = await _dataRetrievalService.GetStorageBlobFiles(ProjectAcronym, _user);
+        _uploadingFiles = new List<FileMetaData>();
 
         _virtualDirectory = _files
             .GroupBy(f => $"/{Path.GetDirectoryName(f.filename)?.Trim()}")
@@ -151,13 +156,18 @@
 
     private async Task UploadFiles(InputFileChangeEventArgs e)
     {
-        var browserFile = e.GetMultipleFiles().FirstOrDefault();
-        if (browserFile == null)
+        foreach (var browserFile in e.GetMultipleFiles())
         {
-            return;
+            await UploadFile(browserFile);
         }
+    }
+    
+    private async Task UploadFile(IBrowserFile browserFile)
+    {
+        if (browserFile == null)
+            return;
 
-        var fileMetadata = new FileMetaData()
+        var fileMetadata = new FileMetaData
         {
             folderpath = _currentFolder,
             filename = browserFile.Name,
@@ -167,11 +177,27 @@
         };
         
         await  _apiService.PopulateOtherMetadata(fileMetadata);
-
+        _uploadingFiles.Add(fileMetadata);
+        
         _ = InvokeAsync(async () =>
         {
-            await _apiService.UploadGen2File(fileMetadata, ProjectAcronym.ToLower());
+            await _apiService.UploadGen2File(fileMetadata, ProjectAcronym.ToLower(), (uploadedBytes) =>
+            {
+                fileMetadata.uploadedBytes = uploadedBytes;
+                StateHasChanged();
+            });
+
+            await Task.Delay(2000);
+
+            _uploadingFiles.Remove(fileMetadata);
+
+            _virtualDirectory[_currentFolder].RemoveAll(f => f.name == fileMetadata.name);
+            _virtualDirectory[_currentFolder].Add(fileMetadata);
+            
+            StateHasChanged();
         });
+        
+        StateHasChanged();
     }
 
     private void BreadcrumbClicked(string breadcrumb)

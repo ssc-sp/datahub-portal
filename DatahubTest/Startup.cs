@@ -10,8 +10,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Tewr.Blazor.FileReader;
 
-namespace Datahub.Tests
-{
+namespace Datahub.TestorageMetadatasts
+{storageMetadata
     public class Startup
     {
         public void ConfigureServices(IServiceCollection services)
@@ -21,7 +21,7 @@ namespace Datahub.Tests
             services.AddSingleton<IKeyVaultService, KeyVaultService>();
             services.AddScoped<DataLakeClientService>();
             services.AddSingleton<CognitiveSearchService>();
-            services.AddScoped<IApiService, ApiService>();
+            services.AddScoped<ApiService>();
             services.AddScoped<ApiCallService>();
             services.AddScoped<IWebHostEnvironment, FakeWebHostEnvironment>();
             services.AddScoped<IJSRuntime, FakeJSRuntime>();

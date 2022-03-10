@@ -25,7 +25,7 @@ namespace Datahub.Portal.Services
                     IUserInformationService userInformationService,
                     DataLakeClientService dataLakeClientService,
                     ICognitiveSearchService cognitiveSearchService,
-                    IApiService apiService,
+                    ApiService apiService,
                     IDataRetrievalService retrievalService,
                     IApiCallService apiCallService,
                     NavigationManager navigationManager,

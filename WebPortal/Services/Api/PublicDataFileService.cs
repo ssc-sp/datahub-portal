@@ -21,13 +21,13 @@ namespace Datahub.Portal.Services
         public string PublicFileSharingDomain { get; set; }
         public string OpenDataApproverName { get; set; }
         public string OpenDataApproverEmail { get; set; }
-        public string OpenDataApproverEmailSubject { get; set; } = "New Approval Requested / Nouvelle approbation demandée";
+        public string OpenDataApproverEmailSubject { get; set; } = "New Approval Requested / Nouvelle approbation demandï¿½e";
     }
 
     public class PublicDataFileService : IPublicDataFileService
     {
         private readonly DatahubProjectDBContext _projectDbContext;
-        private readonly IApiService _apiService;
+        private readonly ApiService _apiService;
         private readonly ILogger<IPublicDataFileService> _logger;
         private readonly IMetadataBrokerService _metadataService;
         private readonly IDatahubAuditingService _datahubAuditingService;
@@ -37,7 +37,7 @@ namespace Datahub.Portal.Services
         public static readonly string PUBLIC_FILE_SHARING_CONFIG_ROOT_KEY = "PublicFileSharing";
 
         public PublicDataFileService(
-            IApiService apiService,
+            ApiService apiService,
             DatahubProjectDBContext projectDbContext,
             ILogger<IPublicDataFileService> logger,
             IDatahubAuditingService datahubAuditingService,

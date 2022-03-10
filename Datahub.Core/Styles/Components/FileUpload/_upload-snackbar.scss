@@ -4,10 +4,13 @@
   position: fixed;
   right: 2rem;
   bottom: 2rem;
+  z-index: 1000;
   
   .upload-snack {
     width: 300px;
     height: 100px;
+    
+    margin-bottom: .5rem;
     
     display: grid;
     grid-template-columns: auto 1fr;
@@ -29,8 +32,7 @@
       font-size: 2rem;
       align-self: center;
     }
-    
-    
+
     .upload-text {
       grid-area: text;
       
@@ -43,7 +45,6 @@
         font-family: monospace;
         opacity: .7;
       }
-      
     }
     
     .snack-file-progress {
@@ -53,8 +54,8 @@
       height: 1rem;
       overflow: hidden;
       font-size: .75rem;
-      background-color: #e9ecef;
-      border-radius: 0.25rem;
+      background-color: c.$grey-100;
+      border-radius: 4px;
       
       .file-progress-bar {
         display: flex;
@@ -62,7 +63,7 @@
         justify-content: center;
         color: #fff;
         text-align: center;
-        background-color: #007bff;
+        background-color: c.$blue-400;
         transition: width .6s ease;
       }
     }

@@ -22,7 +22,7 @@ using System.Diagnostics;
 
 namespace Datahub.Core.Services
 {
-    public class ApiService : IApiService
+    public class ApiService
     {
         private IOptions<APITarget> _targets;
         private DataLakeClientService _dataLakeClientService;
@@ -245,10 +245,23 @@ namespace Datahub.Core.Services
 
         public async Task UploadGen2File(FileMetaData fileMetadata, string? projectUploadCode)
         {
+            await UploadGen2File(fileMetadata, projectUploadCode, (progress) =>
+            {
+                fileMetadata.uploadedBytes = progress;
+                _ = _notifierService.Update($"adddata", false);
+            });
+        }
+        public async Task UploadGen2File(FileMetaData fileMetadata, string? projectUploadCode, Action<long> progress)
+        {
             //await _notifierService.Update($"{fileMetadata.folderpath}/{fileMetadata.filename}", true);
             try
             {
-                if (browserFile != null)
+                if (fileMetadata.BrowserFile != null)
+                {
+                    fileMetadata.bytesToUpload = fileMetadata.BrowserFile.Size;
+                    fileMetadata.filesize = fileMetadata.BrowserFile.Size.ToString();
+                }
+                else 
                 {
                     fileMetadata.bytesToUpload = browserFile.Size;
                     fileMetadata.filesize = browserFile.Size.ToString();
@@ -265,7 +278,7 @@ namespace Datahub.Core.Services
                 else
                 {
                     //await UploadToProject(fileMetadata);
-                    await UploadFileToProject(fileMetadata, projectUploadCode);
+                    await UploadFileToProject(fileMetadata, projectUploadCode, progress);
                 }
 
                 fileMetadata.FinishUploadInfo(FileUploadStatus.FileUploadSuccess);
@@ -316,7 +329,7 @@ namespace Datahub.Core.Services
 
         }
 
-        private async Task UploadFileToProject(FileMetaData fileMetadata, string projectUploadCode)
+        private async Task UploadFileToProject(FileMetaData fileMetadata, string projectUploadCode, Action<long> progress)
         {
             string cxnstring = await _apiCallService.GetProjectConnectionString(projectUploadCode);
             long maxFileSize = 1024000000000;
@@ -327,11 +340,7 @@ namespace Datahub.Core.Services
             await using var stream = fileMetadata.BrowserFile?.OpenReadStream(maxFileSize) ??
                                      browserFile?.OpenReadStream(maxFileSize);
 
-            await blobClientUtil.UploadFile(fileMetadata.filename, stream, metadata, (progress) =>
-            {
-                fileMetadata.uploadedBytes = progress;
-                _ = _notifierService.Update($"adddata", false);
-            });
+            await blobClientUtil.UploadFile(fileMetadata.filename, stream, metadata, progress);
         }
 
         private async Task UploadToGen2Storage(FileMetaData fileMetadata)
