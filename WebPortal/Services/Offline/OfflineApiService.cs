@@ -7,11 +7,12 @@ using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.Extensions.Logging;
 using Datahub.Core.Data;
 using Datahub.Core.Services;
+using Azure.Storage.Blobs;
 
 namespace Datahub.Portal.Services.Offline
 {
 
-    public class OfflineApiService : IApiService
+    public class OfflineApiService : IMyDataService
     {
 
         private IFileListEntry _file = null;
@@ -178,5 +179,6 @@ namespace Datahub.Portal.Services.Offline
         {
             return Task.FromResult(new Uri(""));
         }
+
     }
 }

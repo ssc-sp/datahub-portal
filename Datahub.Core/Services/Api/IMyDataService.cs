@@ -6,10 +6,11 @@ using System.Collections.Specialized;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Tewr.Blazor.FileReader;
+using Azure.Storage.Blobs;
 
 namespace Datahub.Core.Services
 {
-    public interface IApiService
+    public interface IMyDataService
     {
         IBrowserFile browserFile { get; set; }
         Exception LastException { get; set; }
