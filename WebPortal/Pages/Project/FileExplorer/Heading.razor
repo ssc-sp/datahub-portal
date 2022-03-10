@@ -9,9 +9,18 @@
         }
     </div>
     <div class="actions">
-        <AeButton>
+        <AeButton class="tool">
+            <i class="fas fa-download"></i>
+        </AeButton>
+        <AeButton class="tool">
+            <i class="fas fa-trash-alt"></i>
+        </AeButton>
+        <span class="tool-divider"></span>
+        <AeButton class="tool">
+            <i class="fas fa-upload"></i>
+        </AeButton>
+        <AeButton class="tool">
             <i class="fas fa-folder-plus"></i>
-            Create Folder
         </AeButton>
     </div>
 </div>
@@ -20,13 +29,14 @@
 
     [Parameter]
     public string CurrentFolder { get; set; }
-    
+
     [Parameter]
     public EventCallback<string> SetCurrentFolder { get; set; }
-    
+
     private async Task BreadcrumbClicked(string breadcrumb)
     {
         var index = CurrentFolder.IndexOf(breadcrumb, StringComparison.OrdinalIgnoreCase);
         await SetCurrentFolder.InvokeAsync(CurrentFolder[..(index + breadcrumb.Length)]);
     }
+
 }
