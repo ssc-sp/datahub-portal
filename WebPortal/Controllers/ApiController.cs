@@ -17,6 +17,7 @@ using Datahub.Metadata.DTO;
 using System.Reflection;
 using System.Threading;
 using Datahub.Metadata.Model;
+using System.Globalization;
 
 namespace Datahub.Portal.Controllers
 {
@@ -129,7 +130,7 @@ namespace Datahub.Portal.Controllers
 
             // check the file_id is a valid GUID 
             if (!Guid.TryParse(data.file_id, out var fileId))
-                return BadRequest(ModelState);
+                return BadRequest($"Invalid file_id, must be a valid GUID!");
 
             // check the file_id doesn't exists in the shared files
             var sharedFile = await _publicDataService.LoadOpenDataSharedFileInfo(fileId);
@@ -144,10 +145,15 @@ namespace Datahub.Portal.Controllers
             if (validateChoiceResponse is not null)
                 return validateChoiceResponse;
 
+            // validate date field formats
+            var validateDateFieldsResponse = ValidateDateFields(data);
+            if (validateDateFieldsResponse is not null)
+                return validateDateFieldsResponse;
+
             // get the user id from the email contact
             var userId = await _msGraphService.GetUserIdFromEmailAsync(data.email_contact, CancellationToken.None);
             if (userId is null)
-                return BadRequest(ModelState);
+                return BadRequest($"Invalid email account '{data.email_contact}'");
 
             // create metadata record for external object
             await SaveMetadata(data, fieldDefinitions);
@@ -271,12 +277,31 @@ namespace Datahub.Portal.Controllers
             return null;
         }
 
-        private IEnumerable<FieldValue> EnumerateFieldValues(object data)
+        private IActionResult? ValidateDateFields(OpenDataShareRequest data)
+        {
+            if (!IsValidDate(data.date_published))
+                return BadRequest("Invalid 'date_published'");
+
+            if (!string.IsNullOrEmpty(data.time_period_coverage_start) && !IsValidDate(data.time_period_coverage_start))
+                return BadRequest("Invalid 'time_period_coverage_start'");
+
+            if (!string.IsNullOrEmpty(data.time_period_coverage_end) && !IsValidDate(data.time_period_coverage_end))
+                return BadRequest("Invalid 'time_period_coverage_start'");
+
+            return null;
+        }
+
+        static bool IsValidDate(string dateStr)
+        {
+            return DateTime.TryParseExact(dateStr, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime ignored);
+        }
+
+        private IEnumerable<FieldValue> EnumerateFieldValues(OpenDataShareRequest data)
         {
             var props = data.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public);
             foreach (var prop in props)
             {
-                if (prop.PropertyType == typeof(string) || prop.PropertyType == typeof(DateTime))
+                if (Attribute.IsDefined(prop, typeof(MetadataField)))
                 {
                     yield return new FieldValue(prop.Name, prop.GetValue(data, null)?.ToString());
                 }
