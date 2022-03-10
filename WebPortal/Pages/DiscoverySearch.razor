@@ -84,7 +84,10 @@
     public IOrganizationLevelsService OrganizationLevelsService { get; set; }
 
     [Inject]
-    public IMyDataService ApiService { get; set; }
+    public MyDataService ApiService { get; set; }
+
+    [Inject]
+    public DataRetrievalService DataRetrievalService { get; set; }
 
     [Inject]
     public IJSRuntime JSRuntime { get; set; }
@@ -155,7 +158,7 @@
 
     private async Task DownloadFile(CatalogObjectResult result)
     {
-        var uri = await ApiService.GetDownloadAccessToSasBlob(fileName: result.Name, projectUploadCode: result.Location);
+        var uri = await DataRetrievalService.GetDownloadAccessToSasBlob(DataRetrievalService.DEFAULT_CONTAINER_NAME, fileName: result.Name, projectUploadCode: result.Location);
         await Task.Run(() => RedirectAndDownload(uri));
     }
 

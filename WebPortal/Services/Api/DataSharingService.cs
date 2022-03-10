@@ -17,11 +17,10 @@ namespace Datahub.Portal.Services
 
         public DataSharingService(ILogger<DataSharingService> logger,
                                   DataLakeClientService dataLakeClientService,
-                                  IMyDataService apiService,
                                   NavigationManager navigationManager,
                                   ICognitiveSearchService cognitiveSearchService,
                                   UIControlsService uiService)
-            : base(navigationManager, apiService, uiService)
+            : base(navigationManager, uiService)
         {
             _logger = logger;
             _dataLakeClientService = dataLakeClientService;

@@ -1,5 +1,6 @@
 ﻿@inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
-@inject IMyDataService _apiService
+@inject MyDataService _apiService
+@inject DataRetrievalService DataRetrievalService
 
 @page "/projects/{ProjectAcronymParam}/filelist"
 
@@ -110,7 +111,7 @@
 
     private async Task GenerateSASToken(int days)
     {
-        var uri = await _apiService.GenerateSasToken(ProjectAcronymParam, 14);
+        var uri = await DataRetrievalService.GenerateSasToken(DataRetrievalService.DEFAULT_CONTAINER_NAME, ProjectAcronymParam, 14);
         _tempToken = uri.ToString();
         _substitutions = new List<(string, string)>() {("<sas_uri>",_tempToken)};
         StateHasChanged();
