@@ -14,7 +14,7 @@ The SSC DataHub is an enterprise platform for storing, working with and collabor
 The DataHub makes it easy for multiple teams, labs or users to get access to ETL, Data Science or Analytical tools.
 
 The web interface lets users browse data project, request access and work with the following tools:
-- **Storage Explorer and Databricks:** separate storage account and a databricks workspace are created for each project. The portal includes a user friendly drag and drop user interface to browse the account, upload and download files. _(Note - Databricks to be enabled at later point in the PoC)._
+- **Storage Explorer and Databricks:** separate storage account and a databricks workspace are created for each project. The portal includes a user friendly drag and drop user interface to browse the account, upload and download files. 
 
 ## System Architecture
 

@@ -72,5 +72,6 @@
     <Content Update="i18n\SharedResources.fr.json">
       <CustomToolNamespace>Resources</CustomToolNamespace>
     </Content>
+    <Content Include="Components\DHMarkdown.razor.js" />
   </ItemGroup>
 </Project>

@@ -1,0 +1,119 @@
+﻿@inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
+@inject IApiService _apiService
+
+@page "/projects/{ProjectAcronymParam}/filelist"
+
+<DHPageTitle PageTitleKey="@_projectName"/>
+
+<CascadingValue Value="@ProjectAcronymParam" Name="ProjectAcronym">
+    <TabControl TabIndex="@_tabIndex" OnChangeTab="@OnChangeTab">
+        @foreach (var (control, content) in GetTabs())
+        {
+            <TabPage>
+                <Control>
+                    <AeTypography>@control</AeTypography>
+                </Control>
+                <ChildContent>
+                    @content
+                </ChildContent>
+            </TabPage>
+        }
+    </TabControl>
+</CascadingValue>
+
+@* *@
+@* <div style="padding-left: 2rem;padding-right: 2rem;padding-bottom: 2rem"> *@
+@*     <AeFlex Vertical> *@
+@*         <AeTypography Variant="h2">@Localizer["Storage Explorer"]</AeTypography> *@
+@*     </AeFlex> *@
+@*     <AeCard> *@
+@*         <Header> *@
+@*             <AeTypography Variant="h3">@_projectName</AeTypography> *@
+@*         </Header> *@
+@*         <ChildContent> *@
+@*             <FileGrid CurrentFolder="null" CanAddData="true" Project="@ProjectAcronymParam"/> *@
+@*         </ChildContent> *@
+@*     </AeCard> *@
+@* *@
+@* </div> *@
+@* *@
+@* <div style="padding-left: 2rem;padding-right: 2rem"> *@
+@*     <AeCard> *@
+@*         <Header> *@
+@*             <AeTypography>AzCopy Access</AeTypography> *@
+@*         </Header> *@
+@*         <ChildContent> *@
+@*             <div style="margin-bottom: 10px"> *@
+@*                 @if (_tempToken is null) *@
+@*                 { *@
+@*                     <div>Request SAS Token for 14 days <AeButton OnClickEvent="() => GenerateSASToken(14)">Generate Token</AeButton></div> *@
+@*                 } *@
+@*                 else *@
+@*                 { *@
+@*                     <div>SAS Token for 14 days: </div> *@
+@*                     <div>@_tempToken</div> *@
+@*                 } *@
+@*             </div> *@
+@*         </ChildContent> *@
+@*     </AeCard> *@
+@* *@
+@* </div> *@
+@* *@
+@* <div> *@
+@*     <Resources PageName="Use-AzCopy-to-Interact-with-Azure-Storage-Account" Substitutions="_substitutions"/> *@
+@* </div> *@
+@* *@
+@* <div> *@
+@*     <Resources PageName="Datahub-AzureStorage"/> *@
+@* </div> *@
+
+@code {
+
+    [Parameter]
+    public string ProjectAcronymParam { get; set; }
+
+    private int _tabIndex;
+    private string _projectName;
+
+
+    private string _tempToken;
+    private List<(string, string)> _substitutions;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
+
+        _projectName = await projectContext.Projects
+            .Where(p => p.Project_Acronym_CD == ProjectAcronymParam)
+            .Select(p => p.ProjectName)
+            .FirstOrDefaultAsync();
+    }
+
+    private void OnChangeTab(int tabIndex)
+    {
+        _tabIndex = tabIndex;
+    }
+
+    private List<(string, RenderFragment)> GetTabs()
+    {
+        var result = new List<(string, RenderFragment)>
+        {
+            (Localizer["File Explorer"], @<FileExplorer />),
+            (Localizer["Az Copy"], @<Resources PageName="Use-AzCopy-to-Interact-with-Azure-Storage-Account" Substitutions="_substitutions"/>),
+            (Localizer["Databricks Access"], @<Resources PageName="Access-your-storage-account-in-Databricks" Substitutions="_substitutions" />),
+            (Localizer["Azure Storage"], @<Resources PageName="Datahub-AzureStorage"/>),
+        };
+
+        return result;
+    }
+
+    private async Task GenerateSASToken(int days)
+    {
+        var uri = await _apiService.GenerateSasToken(ProjectAcronymParam, 14);
+        _tempToken = uri.ToString();
+        _substitutions = new List<(string, string)>() {("<sas_uri>",_tempToken)};
+        StateHasChanged();
+    }
+
+}
