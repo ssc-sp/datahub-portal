@@ -1,3 +1,6 @@
+@inject ApiService _apiService
+@inject IJSRuntime _jsRuntime
+
 <div class="heading">
     <AeTypography Variant="h1">@Localizer["Storage Explorer"]</AeTypography>
     <div class="breadcrumbs">
@@ -9,13 +12,16 @@
         }
     </div>
     <div class="actions">
-        <AeButton class="tool">
-            <i class="fas fa-download"></i>
-        </AeButton>
-        <AeButton class="tool">
-            <i class="fas fa-trash-alt"></i>
-        </AeButton>
-        <span class="tool-divider"></span>
+        @if (!VirtualDirectory.ContainsKey(SelectedItem))
+        {
+            <AeButton class="tool" @onclick="HandleDownload">
+                <i class="fas fa-download"></i>
+            </AeButton>
+            <AeButton class="tool">
+                <i class="fas fa-trash-alt"></i>
+            </AeButton>
+            <span class="tool-divider"></span>
+        }
         <AeButton class="tool">
             <i class="fas fa-upload"></i>
         </AeButton>
@@ -27,8 +33,17 @@
 
 @code {
 
+    [CascadingParameter(Name = "ProjectAcronym")]
+    public string ProjectAcronym { get; set; }
+    
     [Parameter]
     public string CurrentFolder { get; set; }
+    
+    [Parameter]
+    public string SelectedItem { get; set; }
+    
+    [Parameter]
+    public Dictionary<string, List<FileMetaData>> VirtualDirectory { get; set; }
 
     [Parameter]
     public EventCallback<string> SetCurrentFolder { get; set; }
@@ -37,6 +52,19 @@
     {
         var index = CurrentFolder.IndexOf(breadcrumb, StringComparison.OrdinalIgnoreCase);
         await SetCurrentFolder.InvokeAsync(CurrentFolder[..(index + breadcrumb.Length)]);
+    }
+
+    private async Task HandleDownload()
+    {
+        var file = VirtualDirectory[CurrentFolder]?
+            .FirstOrDefault(f => f.name == SelectedItem);
+
+        if (file != null)
+        {
+            var uri = await _apiService.DownloadFile(file, ProjectAcronym);
+            await _jsRuntime.InvokeVoidAsync("open", uri.ToString(), "_blank");
+            
+        }
     }
 
 }
