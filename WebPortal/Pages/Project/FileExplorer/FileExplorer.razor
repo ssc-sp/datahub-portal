@@ -1,8 +1,11 @@
 @using Datahub.Core.Components.Skeleton
+@using Datahub.Core.Components.FileUpload
 
 @inject IUserInformationService _userInformationService
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject IDataRetrievalService _dataRetrievalService
+@inject IApiService _apiService
+
 
 <div class="file-explorer-layout">
     <div class="heading">
@@ -16,6 +19,7 @@
             }
         </div>
     </div>
+
 
     <div class="file-list">
         <div class="file-list-header">
@@ -42,35 +46,36 @@
         }
         else
         {
-            @foreach (var (folderName, _) in _virtualDirectory
-                .Where(f => f.Key != "/" && (Path.GetDirectoryName(f.Key)?.Equals(_currentFolder) ?? false)))
-            {
-                <FileItem
-                    Name="@(folderName)"
-                    Highlighted="_selectedItem == folderName"
-                    @onclick="() => _selectedItem = folderName"
-                    @ondblclick="() => SetCurrentFolder(folderName)">
-                    <Icon>
-                        <i class="fas fa-folder"></i>
-                    </Icon>
-                </FileItem>
-            }
-            @foreach (var file in _virtualDirectory[_currentFolder])
-            {
-                <FileItem
-                    Name="@Path.GetFileName(file.name)"
-                    Modified="@file.Modified"
-                    Size="@file.filesize"
-                    @onclick="() => _selectedItem = file.name"
-                    Highlighted="_selectedItem == file.name">
-                    <Icon>
-                        <i class="@DatahubTools.GetFileTypeIcon(file.fileformat)"></i>
-                    </Icon>
-                </FileItem>
-            }
+            <DropZone OnFilesDrop="UploadFiles">
+                @foreach (var (folderName, _) in _virtualDirectory
+                    .Where(f => f.Key != "/" && (Path.GetDirectoryName(f.Key)?.Equals(_currentFolder) ?? false)))
+                {
+                    <FileItem
+                        Name="@(folderName)"
+                        Highlighted="_selectedItem == folderName"
+                        @onclick="() => _selectedItem = folderName"
+                        @ondblclick="() => SetCurrentFolder(folderName)">
+                        <Icon>
+                            <i class="fas fa-folder"></i>
+                        </Icon>
+                    </FileItem>
+                }
+                @foreach (var file in _virtualDirectory[_currentFolder])
+                {
+                    <FileItem
+                        Name="@Path.GetFileName(file.name)"
+                        Modified="@file.Modified"
+                        Size="@file.filesize"
+                        @onclick="() => _selectedItem = file.name"
+                        Highlighted="_selectedItem == file.name">
+                        <Icon>
+                            <i class="@DatahubTools.GetFileTypeIcon(file.fileformat)"></i>
+                        </Icon>
+                    </FileItem>
+                }
+            </DropZone>
         }
     </div>
-
     <div class="item-details">
         <div class="details-sticky">
             <div class="details-container">
@@ -83,7 +88,7 @@
                     var file = _virtualDirectory[_currentFolder]
                         .Find(f => f.name.Equals(_selectedItem, StringComparison.OrdinalIgnoreCase));
 
-                    <FileProperties File="file" />
+                    <FileProperties File="file"/>
                 }
             </div>
         </div>
@@ -131,6 +136,12 @@
         _selectedItem = folderName;
     }
 
+    private async Task UploadFiles(InputFileChangeEventArgs e)
+    {
+        
+        
+        // _apiService.QueueFileUpload(e.GetMultipleFiles(), ProjectAcronym);
+    }
 
     private void BreadcrumbClicked(string breadcrumb)
     {

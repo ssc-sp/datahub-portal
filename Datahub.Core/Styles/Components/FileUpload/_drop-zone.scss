@@ -1,0 +1,9 @@
+@use '../../Common' as c;
+
+.dropzone-container {
+
+  &.hover {
+    border: 2px solid c.$blue-400;
+    background-color: rgba(c.$blue-400, .1);
+  }
+}

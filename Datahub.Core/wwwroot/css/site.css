@@ -4861,6 +4861,11 @@ code {
   align-self: center;
 }
 
+.dropzone-container.hover {
+  border: 2px solid #63b3ed;
+  background-color: rgba(99, 179, 237, 0.1);
+}
+
 .welcome-banner {
   background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, black 100%), url("/img/landing/earth-background.jpg") no-repeat center center fixed;
   -webkit-background-size: cover;
@@ -5335,7 +5340,6 @@ code {
   align-items: center;
   justify-content: center;
   border-radius: 100px;
-  background-color: #f8fafc;
   color: #1e293b;
 }
 .file-explorer-layout .file-list .file-item:not(:last-of-type) {
