@@ -4861,9 +4861,63 @@ code {
   align-self: center;
 }
 
+.dropzone-container {
+  height: 100%;
+}
 .dropzone-container.hover {
   border: 2px solid #63b3ed;
   background-color: rgba(99, 179, 237, 0.1);
+}
+
+.upload-snackbar {
+  position: fixed;
+  right: 2rem;
+  bottom: 2rem;
+}
+.upload-snackbar .upload-snack {
+  width: 300px;
+  height: 100px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto 1fr;
+  column-gap: 1rem;
+  row-gap: 0.5rem;
+  padding: 1rem;
+  background-color: #fff;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.06), 0 3px 6px rgba(0, 0, 0, 0.13);
+  grid-template-areas: "icon text" "progress progress";
+}
+.upload-snackbar .upload-snack i {
+  grid-area: icon;
+  font-size: 2rem;
+  align-self: center;
+}
+.upload-snackbar .upload-snack .upload-text {
+  grid-area: text;
+}
+.upload-snackbar .upload-snack .upload-text .file-upload-bytes {
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  font-family: monospace;
+  opacity: 0.7;
+}
+.upload-snackbar .upload-snack .snack-file-progress {
+  grid-area: progress;
+  display: flex;
+  height: 1rem;
+  overflow: hidden;
+  font-size: 0.75rem;
+  background-color: #e9ecef;
+  border-radius: 0.25rem;
+}
+.upload-snackbar .upload-snack .snack-file-progress .file-progress-bar {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  color: #fff;
+  text-align: center;
+  background-color: #007bff;
+  transition: width 0.6s ease;
 }
 
 .welcome-banner {
