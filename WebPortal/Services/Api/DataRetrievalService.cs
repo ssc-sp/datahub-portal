@@ -6,6 +6,7 @@ using Datahub.Core.Data;
 using Datahub.Core.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Graph;
+using Azure;
 using Folder = Datahub.Core.Data.Folder;
 
 namespace Datahub.Portal.Services.Api
@@ -14,20 +15,21 @@ namespace Datahub.Portal.Services.Api
     {
         private const string METADATA_FILE_ID = "fileid";
         private readonly ILogger<DataRetrievalService> _logger;
-        private readonly IApiCallService _apiCallService;
         private readonly DataLakeClientService _dataLakeClientService;
+        private readonly IKeyVaultService _keyVaultService;
 
-        public DataRetrievalService(ILogger<DataRetrievalService> logger,
-                                    IApiCallService apiCallService,
-                                    IApiService apiService,
+
+        public DataRetrievalService(ILogger<DataRetrievalService> logger,                                    
+                                    IMyDataService apiService,
+                                    IKeyVaultService keyVaultService,
                                     DataLakeClientService dataLakeClientService,
                                     NavigationManager navigationManager,
                                     UIControlsService uiService)
             : base(navigationManager, apiService, uiService)
         {
             _logger = logger;
-            _apiCallService = apiCallService;
             _dataLakeClientService = dataLakeClientService;
+            _keyVaultService = keyVaultService;
         }
 
 
@@ -75,12 +77,57 @@ namespace Datahub.Portal.Services.Api
             }
         }
 
+        public string getBlobContainerName()
+        {
+            return "datahub-nrcan" + ("dev" == getEnvSuffix() ? "-dev" : "");
+        }
+
+        public async Task<string> getStorageConnString()
+        {
+            var envName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+            envName = (envName != null ? envName.ToLower() : "dev");
+            if (envName.Equals("development"))
+            {
+                envName = "dev";
+            }
+
+            var blobKey = await _keyVaultService.GetSecret("DataHub-Blob-Access-Key");
+            return "DefaultEndpointsProtocol=https;AccountName=datahubstorage" + getEnvSuffix() + ";AccountKey=" + blobKey + ";EndpointSuffix=core.windows.net";
+        }
+
+        public async Task<string> GetProjectConnectionString(string accountName)
+        {
+            var envName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+            envName = (envName != null ? envName.ToLower() : "dev");
+            if (envName.Equals("development"))
+            {
+                envName = "dev";
+            }
+            string key = $"datahub-blob-key-{accountName}";
+            var accountKey = await _keyVaultService.GetSecret(key);
+            return @$"DefaultEndpointsProtocol=https;AccountName=dh{accountName}{envName};AccountKey={accountKey};EndpointSuffix=core.windows.net";
+        }
+
+        private string getEnvSuffix()
+        {
+            var envName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+            envName = (envName != null ? envName.ToLower() : "dev");
+            if (envName.Equals("development"))
+            {
+                envName = "dev";
+            }
+
+            return envName;
+        }
+
+
+
         private async Task<Folder> GetProjectFileList(string project, User user)
         {
             try
             {
 
-                var connectionString = await _apiCallService.GetProjectConnectionString(project);
+                var connectionString = await GetProjectConnectionString(project);
                 var blobServiceClient = new BlobServiceClient(connectionString);
                 var containerClient = blobServiceClient.GetBlobContainerClient("datahub");
 
@@ -293,7 +340,7 @@ namespace Datahub.Portal.Services.Api
         public async Task<StorageMetadata> GetStorageMetadata(string project)
         {
             
-            var connectionString = await _apiCallService.GetProjectConnectionString(project?.ToLower());
+            var connectionString = await GetProjectConnectionString(project?.ToLower());
             var blobServiceClient = new BlobServiceClient(connectionString);
             var containerClient = blobServiceClient.GetBlobContainerClient("datahub");
 
@@ -311,13 +358,26 @@ namespace Datahub.Portal.Services.Api
             return storageMetadata;
         }
 
-        public async Task<List<FileMetaData>> GetStorageBlobFiles(string projectAcronym, User user)
+        public async Task<List<string>> ListContainers(string projectAcronym, User user)
+        {
+            var connectionString = await GetProjectConnectionString(projectAcronym.ToLower());
+            var blobServiceClient = new BlobServiceClient(connectionString);
+            var pages = blobServiceClient.GetBlobContainersAsync().AsPages();
+            var containers = new List<string>();
+            await foreach (var page in pages)
+            {
+                containers.AddRange(page.Values.Select(c => c.Name));
+            }
+            return containers;
+        }
+
+        public async Task<List<FileMetaData>> GetStorageBlobFiles(string projectAcronym, string container, User user)
         {
             try
             {
-                var connectionString = await _apiCallService.GetProjectConnectionString(projectAcronym.ToLower());
+                var connectionString = await GetProjectConnectionString(projectAcronym.ToLower());
                 var blobServiceClient = new BlobServiceClient(connectionString);
-                var containerClient = blobServiceClient.GetBlobContainerClient("datahub");
+                var containerClient = blobServiceClient.GetBlobContainerClient(container);
 
                 var resultSegment = containerClient
                     .GetBlobsAsync(BlobTraits.Metadata)

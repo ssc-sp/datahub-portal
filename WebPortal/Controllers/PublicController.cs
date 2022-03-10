@@ -14,12 +14,12 @@ namespace Datahub.Portal.Controllers
     public class PublicController: Controller
     {
         private ILogger<PublicController> _logger { get; set; }
-        private IApiService _apiService { get; set; }
+        private IMyDataService _apiService { get; set; }
         private IPublicDataFileService _pubFileService { get; set; }
 
         public PublicController(
             ILogger<PublicController> logger, 
-            IApiService apiService,
+            IMyDataService apiService,
             IPublicDataFileService pubFileService
             )
         {

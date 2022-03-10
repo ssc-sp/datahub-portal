@@ -21,7 +21,7 @@ using System.Diagnostics;
 
 namespace Datahub.Core.Services
 {
-    public class ApiService : IApiService
+    public class MyDataService : IMyDataService
     {
         private IOptions<APITarget> _targets;
         private DataLakeClientService _dataLakeClientService;
@@ -31,21 +31,20 @@ namespace Datahub.Core.Services
         private readonly IUserInformationService _userInformationService;
         private readonly IKeyVaultService _keyVaultService;
         private readonly NotifierService _notifierService;
-        private readonly IApiCallService _apiCallService;
         private readonly IJSRuntime _jsRuntime;
-
+        private readonly IDataRetrievalService dataRetrievalService;
         private CommonAzureServices _commonAzureServices;
         private ApiTelemetryService _telemetryService;
         private IDatahubAuditingService _auditingService;
 
-        public ApiService(ILogger<ApiService> logger,
+        public MyDataService(ILogger<MyDataService> logger,
                     IHttpClientFactory clientFactory,
                     IUserInformationService userInformationService,
                     IKeyVaultService keyVaultService,
                     IOptions<APITarget> targets,
                     NotifierService notifierService,
-                    IApiCallService apiCallService,
                     IJSRuntime jSRuntime,
+                    IDataRetrievalService dataRetrievalService,
                     ICognitiveSearchService cognitiveSearchService,
                     DataLakeClientService dataLakeClientService,
                     ApiTelemetryService telemetryService,
@@ -57,8 +56,8 @@ namespace Datahub.Core.Services
             _userInformationService = userInformationService;
             _keyVaultService = keyVaultService;
             _notifierService = notifierService;
-            _apiCallService = apiCallService;
             _jsRuntime = jSRuntime;
+            this.dataRetrievalService = dataRetrievalService;
             _targets = targets;
             _dataLakeClientService = dataLakeClientService;
             _cognitiveSearchService = cognitiveSearchService;
@@ -285,7 +284,7 @@ namespace Datahub.Core.Services
 
         private async Task UploadToProject(FileMetaData fileMetadata, string projectUploadCode)
         {
-            string cxnstring = await _apiCallService.GetProjectConnectionString(projectUploadCode);
+            string cxnstring = await dataRetrievalService.GetProjectConnectionString(projectUploadCode);
             BlobServiceClient blobServiceClient = new BlobServiceClient(cxnstring);
             BlobContainerClient containerClient = blobServiceClient.GetBlobContainerClient("datahub");
 
@@ -313,7 +312,7 @@ namespace Datahub.Core.Services
 
         private async Task UploadFileToProject(FileMetaData fileMetadata, string projectUploadCode)
         {
-            string cxnstring = await _apiCallService.GetProjectConnectionString(projectUploadCode);
+            string cxnstring = await dataRetrievalService.GetProjectConnectionString(projectUploadCode);
             long maxFileSize = 1024000000000;
             var metadata = fileMetadata.GenerateMetadata();
 
@@ -399,15 +398,14 @@ namespace Datahub.Core.Services
             }
         }
 
-        public async Task RestoreVersionOfBlob(string versionId, string fileid)
+        public async Task RestoreVersionOfBlob(string fileid, string versionId)
         {
 
             try
             {
+                var containerClient = await GetBlobContainerClient(null);
                 // Get the name of the first blob in the container to use as the source.
-                BlobServiceClient blobServiceClient = new BlobServiceClient(await _apiCallService.getStorageConnString());
-                BlobContainerClient containerClient = blobServiceClient.GetBlobContainerClient(_apiCallService.getBlobContainerName());
-                BlobClient sourceBlob = containerClient.GetBlobClient(fileid).WithVersion(versionId);
+                var sourceBlob = containerClient.GetBlobClient(fileid).WithVersion(versionId);
 
                 // Create a BlobClient representing the source blob to copy.
 
@@ -504,7 +502,7 @@ namespace Datahub.Core.Services
 
         private async Task<BlobContainerClient> GetBlobContainerClient(string project)
         {
-            var cxnstring = await _apiCallService.GetProjectConnectionString(project);
+            var cxnstring = await dataRetrievalService.GetProjectConnectionString(project);
             BlobServiceClient blobServiceClient = new BlobServiceClient(cxnstring);
             return blobServiceClient.GetBlobContainerClient(defaultContainerName);
         }
