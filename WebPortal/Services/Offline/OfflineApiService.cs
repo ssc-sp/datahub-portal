@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using BlazorInputFile;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.Extensions.Logging;
 using Datahub.Core.Data;
@@ -14,9 +13,9 @@ namespace Datahub.Portal.Services.Offline
     public class OfflineApiService : IApiService
     {
 
-        private IFileListEntry _file = null;
+        private IBrowserFile _file = null;
 
-        public IFileListEntry GetFile()
+        public IBrowserFile GetFile()
         {
             return _file;
         }
