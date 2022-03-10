@@ -86,7 +86,17 @@
                  IsSubmitEnabled="@_enableSave"
                  IsSectionLocksVisible="@_isUserAdmin"
                  />
-
+    <AeFlex>
+        <div class="icon-container" style="margin-bottom: 10px; margin-left: 5px;">
+            <FAButton Text="Save and Lock" onclick="e => SaveAndLock()" />
+            <SuccessIndicator @bind-IsLoading=@_submittingApproval @ref=@_submitApprovalInd />
+        </div>
+    </AeFlex>
+    <AeFlex>
+        <div class="icon-container" style="margin-bottom: 10px; margin-left: 5px;">
+            <SuccessIndicator @bind-IsLoading=@_submittingApproval @ref=@_submitApprovalInd />
+        </div>
+    </AeFlex>
     <AeFlex id="buttonBar">
         <div class="icon-container" style="margin-bottom: 10px; margin-left: 5px;">
             <FAButton Text="Indicators and Results" Icon="fal fa-poll" IconLocation="left" onclick="e => GoToIndicators()" />
@@ -124,6 +134,8 @@
     private IPageableComponent _myTable;
     private bool _tombstoneSwitched = false;
     private bool _reloadOptions = true;
+    private SuccessIndicator _submitApprovalInd;
+    private bool _submittingApproval = false;
 
 
     protected override void OnAfterRender(bool firstRender)
@@ -491,6 +503,21 @@
             await HandleValidSubmit();           
     }
 
+    private async Task SaveAndLock()
+    {
+        _tombstone.IsProgramInformationLocked = true;
+        _tombstone.IsSpendingLocked = true;
+        _tombstone.IsSectorProgramTagsLocked = true;
+        _tombstone.IsGCInfoBaseProgramTagsLocked = true;
+        _tombstone.IsGBALocked = true;
+        _tombstone.IsDateOfPipApprovalLocked = true;
+        _tombstone.IsLatestUpdateInformationLocked = true;
+
+        await HandleValidSubmit();
+        //_tombstone = null;
+        StateHasChanged();
+    }
+
     private async Task GoToRisks()
     {
         var id = _tombstone.Tombstone_ID;
@@ -512,6 +539,7 @@
 
     private async void OnConfirmSave(bool isConfirmed, dynamic item)
     {
+        _submittingApproval = true;
         if (isConfirmed && _tombstone != null)
         {
             _tombstone.Last_Updated_DT = DateTime.Now;
@@ -523,7 +551,15 @@
             {
                 _tombstone = Context.Tombstones.Add(_tombstone).Entity;
             }
-            await Context.TrackSaveChangesAsync(AuditingService);
+            var result = await Context.TrackSaveChangesAsync(AuditingService);
+            if (result < 1)
+            {
+                await _submitApprovalInd.SignalFailure();
+            }
+            else
+            {
+                await _submitApprovalInd.SignalSuccess();
+            }
             LoadProjects();
 
         }
