@@ -14,7 +14,6 @@ namespace Datahub.Portal.Services
         private ILogger<DataUpdatingService> _logger;
         private IHttpClientFactory _httpClient;
         private IUserInformationService _userInformationService;
-        private IApiCallService _apiCallService;
         private DataLakeClientService _dataLakeClientService;
         private IDataRetrievalService _retrievalService;
 
@@ -25,9 +24,8 @@ namespace Datahub.Portal.Services
                     IUserInformationService userInformationService,
                     DataLakeClientService dataLakeClientService,
                     ICognitiveSearchService cognitiveSearchService,
-                    IApiService apiService,
+                    IMyDataService apiService,
                     IDataRetrievalService retrievalService,
-                    IApiCallService apiCallService,
                     NavigationManager navigationManager,
                     UIControlsService uiService)
             : base(navigationManager, apiService, uiService)
@@ -35,7 +33,6 @@ namespace Datahub.Portal.Services
             _logger = logger;
             _httpClient = clientFactory;
             _userInformationService = userInformationService;
-            _apiCallService = apiCallService;
             _cognitiveSearchService = cognitiveSearchService;
             _dataLakeClientService = dataLakeClientService;
             _retrievalService = retrievalService;

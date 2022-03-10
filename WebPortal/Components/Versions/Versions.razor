@@ -1,5 +1,5 @@
 ﻿@inject IDataRetrievalService DataRetreivalService
-@inject IApiService ApiService
+@inject IMyDataService MyDataService
 @inject UIControlsService UI
 @inject NotifierService NotifierService
 
@@ -43,7 +43,7 @@ else
     {
         if (restore)
         {
-            await ApiService.RestoreVersionOfBlob(selectedVersionId, File.fileid);
+            await MyDataService.RestoreVersionOfBlob(selectedVersionId, File.fileid);
             await NotifierService.Update("filegrid", true);
         }
         await UI.ToggleModal();

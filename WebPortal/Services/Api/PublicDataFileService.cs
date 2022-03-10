@@ -27,7 +27,7 @@ namespace Datahub.Portal.Services
     public class PublicDataFileService : IPublicDataFileService
     {
         private readonly DatahubProjectDBContext _projectDbContext;
-        private readonly IApiService _apiService;
+        private readonly IMyDataService _apiService;
         private readonly ILogger<IPublicDataFileService> _logger;
         private readonly IMetadataBrokerService _metadataService;
         private readonly IDatahubAuditingService _datahubAuditingService;
@@ -37,7 +37,7 @@ namespace Datahub.Portal.Services
         public static readonly string PUBLIC_FILE_SHARING_CONFIG_ROOT_KEY = "PublicFileSharing";
 
         public PublicDataFileService(
-            IApiService apiService,
+            IMyDataService apiService,
             DatahubProjectDBContext projectDbContext,
             ILogger<IPublicDataFileService> logger,
             IDatahubAuditingService datahubAuditingService,
