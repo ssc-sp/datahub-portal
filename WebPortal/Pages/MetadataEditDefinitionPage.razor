@@ -1,0 +1,123 @@
+﻿@page "/metadata/definition/{Id}"
+@page "/metadata/newdefinition"
+@using Datahub.Metadata.Model
+@inject IDbContextFactory<MetadataDbContext> ContextFactory
+@inject NavigationManager NavigationManager
+@inject ServiceAuthManager ServiceAuthManager
+
+<DHPageTitle PageTitleKey=@Localizer["Edit Field Definition"] />
+<div style="margin: 2rem">
+    <AuthorizeView Roles="@string.Join(',', _authorizedRoles)">
+        <Authorized>
+            <h2>Edit Field Definition</h2>
+            <AeCard>
+                <ChildContent>
+                    <AeModelForm 
+                        Model="_form"
+                        T=@Data.Forms.Metadata.FieldDefinitionForm
+                        OnValidSubmit=@HandleValidSubmit
+                        OnCancel="ClearForm"
+                        CancelLabel="Cancel"
+                        LabelForPropertyFunc="@GetDataLabel"
+                        LabelsOnTop 
+                    />
+                </ChildContent>
+            </AeCard>
+        </Authorized>
+        <NotAuthorized>
+            @Localizer["You are not authorized to edit metadata."]
+        </NotAuthorized>
+    </AuthorizeView>
+</div>
+
+@code {
+
+    [Parameter]
+    public string Id { get; set; } = "0";
+
+    private Data.Forms.Metadata.FieldDefinitionForm _form { get; set; }
+
+    private FieldDefinition FieldDefinition { get; set; }
+
+    private List<string> _authorizedRoles = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _authorizedRoles = ServiceAuthManager.GetAdminProjectRoles();
+
+        _form = new();
+        var defId = Id is not null ? int.Parse(Id) : 0;
+        if (defId != 0)
+        {
+            using var ctx = ContextFactory.CreateDbContext();
+            FieldDefinition = await ctx.FieldDefinitions.FirstOrDefaultAsync(e => e.FieldDefinitionId == defId);
+            FieldDefinition.CopyPublicPropertiesTo(_form);
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        var isNewDefinition = FieldDefinition is null;
+
+        var def = FieldDefinition ?? new();
+        _form.CopyPublicPropertiesTo(def);
+
+        using var ctx = ContextFactory.CreateDbContext();
+        var transation = ctx.Database.BeginTransaction();
+        try
+        {
+            if (isNewDefinition)
+            {
+                def.MetadataVersionId = 2; // temp
+                ctx.FieldDefinitions.Add(def);
+            }
+            else
+            {
+                ctx.FieldDefinitions.Update(def);
+            }
+
+            await ctx.SaveChangesAsync();
+
+            if (isNewDefinition && !string.IsNullOrEmpty(_form.Choices_TXT))
+            {
+                foreach (var choice in ParseChoices(_form.Choices_TXT, def.FieldDefinitionId))
+                {
+                    ctx.FieldChoices.Add(choice);
+                }
+                await ctx.SaveChangesAsync();
+            }
+
+            transation.Commit();
+        }
+        catch (Exception ex)
+        {
+            transation.Rollback();            
+        }
+
+        NavigationManager.NavigateTo("/metadata/definitions");
+    }
+
+    private IEnumerable<FieldChoice> ParseChoices(string choices, int definitionId)
+    {
+        return choices.Split('|', StringSplitOptions.RemoveEmptyEntries).Select(c => new FieldChoice()
+        {
+            FieldDefinitionId = definitionId,
+            Label_English_TXT = c,
+            Label_French_TXT = c,
+            Value_TXT = c
+        });
+    }
+
+    private async Task<Data.Forms.Metadata.FieldDefinitionForm> ClearForm()
+    {
+        NavigationManager.NavigateTo("/metadata/definitions");
+        return await Task.FromResult(_form);
+    }
+
+    private string GetDataLabel(string propName)
+    {
+        return Localizer[MakeLabel(propName)];
+    }
+
+    static string MakeLabel(string label) => $"METADATA-EDIT.FIELD-DEFINITIONS.{label}";
+}

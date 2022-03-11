@@ -23,10 +23,10 @@ namespace Datahub.Portal.Services
             _httpClientFactory = httpClientFactory;
         }
 
-        public async Task<CKANApiResult> PublishFileAsUrl(FieldValueContainer fileMetadata, string url)
+        public async Task<CKANApiResult> PublishFileAsUrl(FieldValueContainer fileMetadata, bool allFields, string url)
         {
             var service = _serviceFactory.CreateService();
-            return await service.CreatePackage(fileMetadata, url);
+            return await service.CreatePackage(fileMetadata, allFields, url);
         }
 
         public Task PublishFile(FieldValueContainer fileMetadata, long sharedRecordId, string fileId, string fileName, string fileUrl)
@@ -38,7 +38,7 @@ namespace Datahub.Portal.Services
                 var ckanService = _serviceFactory.CreateService();
 
                 // publish to open data record
-                var result = await ckanService.CreatePackage(fileMetadata);
+                var result = await ckanService.CreatePackage(fileMetadata, false);
                 if (result.Succeeded)
                 {
                     SetFileShareStatus(sharedRecordId, OpenDataUploadStatus.RecordCreated);
