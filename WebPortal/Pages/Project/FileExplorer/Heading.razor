@@ -15,18 +15,18 @@
     <div class="actions">
         @if (!VirtualDirectory.ContainsKey(SelectedItem))
         {
-            <AeButton class="tool" @onclick="HandleDownload">
+            <AeButton class="button-tool" @onclick="HandleDownload">
                 <i class="fas fa-download"></i>
             </AeButton>
-            <AeButton class="tool" @onclick="HandleDelete">
+            <AeButton class="button-tool" @onclick="HandleDelete">
                 <i class="fas fa-trash-alt"></i>
             </AeButton>
             <span class="tool-divider"></span>
         }
-        <AeButton class="tool" onclick="document.querySelector('.file-list .dropzone-container input').click();">
+        <AeButton class="button-tool" onclick="document.querySelector('.file-list .dropzone-container input').click();">
             <i class="fas fa-upload"></i>
         </AeButton>
-        <AeButton class="tool" @onclick="HandleNewFolder">
+        <AeButton class="button-tool" @onclick="HandleNewFolder">
             <i class="fas fa-folder-plus"></i>
         </AeButton>
     </div>

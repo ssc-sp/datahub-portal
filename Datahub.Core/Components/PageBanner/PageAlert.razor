@@ -1,0 +1,23 @@
+<div class="page-alert">
+    <span class="alert-heading">
+        <i class="fas fa-info-circle alert-level-icon"></i>
+        <AeTypography Variant="h1" class="alert-title">Welcome to DataHub!</AeTypography>
+        <span class="close-button-wrapper">
+            <AeButton class="button-tool" @onclick="OnClose">
+                <i class="fas fa-times"></i>
+            </AeButton>
+        </span>
+    </span>
+    <div class="alert-body">
+        <AeTypography Variant="h4">What is the SSC DataHub?</AeTypography>
+        <AeTypography>The SSC DataHub is an enterprise platform for storing, working with and collaborating on data initiatives across the GC and with external partners. It is a central location for users to store any kind of data, perform collaborative analysis, manipulate data using advanced analytics tools, and conducting data science experiments.</AeTypography>
+
+        <AeTypography Variant="h4">What are the objectives of the SSC DataHub POC project?</AeTypography>
+        <AeTypography>The objective of the SSC DataHub Proof of Concept is to test the scaling of an existing departmental data solution from departmental only to GC-wide, and with external partners. This will be done leveraging technology development and lessons learned from departments and will help identify area of focus for next steps (further Proof of Concepts and move to Production). By co-designing with science-based departments/agencies (SBDAs) we can implement required features/functions and elicit your feedback to identify what works, what is missing, what is useful, and any required refinements to the platform and supporting processes.</AeTypography>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+}
