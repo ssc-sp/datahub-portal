@@ -1,10 +1,17 @@
-﻿@inject IUserInformationService _userInformationService
+﻿@using Datahub.Core.Components.PageBanner
+
+@inject IUserInformationService _userInformationService
 @inject MyDataService _myDataService
 @inject IDataCreatorService _dataCreatorService
 @inject UIControlsService _uiControlsService
 @inject NavigationManager _navigationManager
 
 @page "/home/{TabIndex?}"
+
+@if (_showWelcome)
+{
+    <PageAlert OnClose="@HandleWelcomeClose" />
+}
 
 <WelcomeBanner />
 
@@ -125,4 +132,9 @@ else
         }
     }
 
+    private bool _showWelcome = true;
+    private async Task HandleWelcomeClose()
+    {
+        _showWelcome = false;
+    }
 }

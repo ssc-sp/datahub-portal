@@ -1,0 +1,19 @@
+@mixin scss {
+  .button-tool {
+    border-radius: 500px;
+    font-size: 1rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    background-color: transparent;
+    color: var(--tertiary-text);
+
+    &:hover {
+      background-color: var(--bg-color-accent);
+      color: var(--primary-text);
+    }
+  }
+}
