@@ -1,29 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using BlazorInputFile;
-using Microsoft.AspNetCore.Components.Forms;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.AspNetCore.Components.Forms;
 using Datahub.Core.Data;
 using Datahub.Core.Services;
 
 namespace Datahub.Portal.Services.Offline
 {
 
-    public class OfflineApiService : IApiService
+    public class OfflineMyDataService : MyDataService
     {
 
-        private IFileListEntry _file = null;
+        private IBrowserFile _file = null;
 
-        public IFileListEntry GetFile()
+        public IBrowserFile GetFile()
         {
             return _file;
         }
 
         public string CurrentFolderId { get; set; }
         private IUserInformationService _userInformationService;
-        private readonly ILogger<OfflineApiService> _logger;
+        private readonly ILogger<OfflineMyDataService> _logger;
 
         public Exception LastException { get; set; }
 
@@ -55,7 +49,20 @@ namespace Datahub.Portal.Services.Offline
         public IBrowserFile browserFile { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public string ProjectUploadCode { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
-        public OfflineApiService(IUserInformationService userInformationService, ILogger<OfflineApiService> logger)
+        public OfflineMyDataService(IUserInformationService userInformationService, ILogger<OfflineMyDataService> logger):
+            base(logger,
+                    null,
+                     userInformationService,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null)
         {
             _userInformationService = userInformationService;
             _logger = logger;
@@ -178,5 +185,6 @@ namespace Datahub.Portal.Services.Offline
         {
             return Task.FromResult(new Uri(""));
         }
+
     }
 }

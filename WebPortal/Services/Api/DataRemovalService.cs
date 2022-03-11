@@ -14,6 +14,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web;
+using Datahub.Portal.Services.Storage;
 
 namespace Datahub.Portal.Services
 {
@@ -22,24 +23,23 @@ namespace Datahub.Portal.Services
         private ILogger<DataRemovalService> _logger;
         private ICognitiveSearchService _cognitiveSearchService;
         private DataLakeClientService _dataLakeClientService;
-        private IDataRetrievalService _dataRetrievalService;
-        private IApiCallService _apiCallService;
+        private DataRetrievalService _dataRetrievalService;
+        private readonly MyDataService myDataService;
 
         public DataRemovalService(ILogger<DataRemovalService> logger,
                                   DataLakeClientService dataLakeClientService,
-                                  IDataRetrievalService dataRetrievalService,
+                                  DataRetrievalService dataRetrievalService,
+                                  MyDataService myDataService,
                                   ICognitiveSearchService cognitiveSearchService,
-                                  IApiService apiService,
                                   NavigationManager navigationManager,
-                                  UIControlsService uiService,
-                                  IApiCallService apiCallService)
-            : base(navigationManager, apiService, uiService)
+                                  UIControlsService uiService)
+            : base(navigationManager, uiService)
         {
             _logger = logger;
             _cognitiveSearchService = cognitiveSearchService;
             _dataLakeClientService = dataLakeClientService;
             _dataRetrievalService = dataRetrievalService;
-            _apiCallService = apiCallService;            
+            this.myDataService = myDataService;
         }
 
         public async Task<bool> Delete(Folder folder, Microsoft.Graph.User currentUser)
@@ -93,7 +93,7 @@ namespace Datahub.Portal.Services
 
                 // Deleting a folder means deleting all files underneath,
                 // We need to mark these files as 'isdeleted' for indexer
-                folder = await _dataRetrievalService.GetFolderStructure(folder, currentUser, false);
+                folder = await myDataService.GetFolderStructure(folder, currentUser, false);
 
                 await MarkChildFilesForDeletion(fileSystemClient, folder, currentUser);
 
@@ -188,7 +188,7 @@ namespace Datahub.Portal.Services
 
                 //return response.Value;
 
-                string cxnstring = await _apiCallService.GetProjectConnectionString(project);
+                string cxnstring = await _dataRetrievalService.GetProjectConnectionString(project);
                 CloudStorageAccount storageAccount = CloudStorageAccount.Parse(cxnstring);
 
                 // Create the blob client.

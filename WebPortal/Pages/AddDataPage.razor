@@ -3,11 +3,11 @@
 
 @inject NavigationManager NavigationManager
 @inject ILogger<AddDataPage> logger
-@inject IApiService ApiService
+@inject MyDataService ApiService
 @inject IJSRuntime JSRuntime
 @inject UIControlsService UI
 @inject IFileReaderService fileReaderService
-@inject IDataRetrievalService DataRetrievalService
+@inject DataRetrievalService DataRetrievalService
 
 <EditForm Model="_fileMetadata" OnValidSubmit="HandleValidSubmit">
     <DataAnnotationsValidator />
@@ -123,7 +123,7 @@
     public bool isLoading { get; set; } = false;
 
     private FileMetaData _fileMetadata;
-    private IFileListEntry _fileToUpload;
+    private IBrowserFile _fileToUpload;
     private string status;
     bool showAddRow = true;
     bool showHeader;
@@ -316,7 +316,7 @@
         StateHasChanged();
     }
 
-    void HandleFileSelected(IFileListEntry[] files)
+    void HandleFileSelected(IBrowserFile[] files)
     {
         _fileToUpload = files.FirstOrDefault();
         status = _fileToUpload.Name;

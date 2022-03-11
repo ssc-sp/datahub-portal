@@ -1,41 +1,43 @@
 @using Datahub.Core.Components.Code
 
-@inject IDataRetrievalService _dataRetrievalService
+@inject DataRetrievalService _dataRetrievalService
 @inject CommonAzureServices _commonAzureServices;
 
-<div class="storage-properties">
-    <div class="title-container">
-        <i class="@DatahubTools.GetFileTypeIcon(File.fileformat)"></i>
-        <AeTypography Variant="h3" class="details-title-text">
-            @File.name
-        </AeTypography>
+@if (File != null)
+{
+    <div class="storage-properties">
+        <div class="title-container">
+            <i class="@DatahubTools.GetFileTypeIcon(File.fileformat)"></i>
+            <AeTypography Variant="h3" class="details-title-text">
+                @Path.GetFileName(File.name)
+            </AeTypography>
+        </div>
+
+        <div class="access-container">
+            <AeTypography Variant="h4">Who has access</AeTypography>
+            <span class="circle-item">
+                <ProfileCircle FullName="@ProjectAcronym"/>
+                <AeTypography>@ProjectAcronym</AeTypography>
+            </span>
+        </div>
+
+        <div class="properties">
+            <AeTypography class="properties-title" Variant="h4">Storage Properties</AeTypography>
+            @foreach (var (key, value) in _properties)
+            {
+                <AeTypography class="label">@Localizer["ITEM-DETAILS-PAGE." + key]</AeTypography>
+                <AeTypography class="text">@value</AeTypography>
+            }
+
+            <AeTypography class="label">@Localizer["Power BI URL"]</AeTypography>
+            <InlineCodeWithCopy>@_powerBiPasteText</InlineCodeWithCopy>
+
+            <AeTypography class="label">@Localizer["File URL"]</AeTypography>
+            <InlineCodeWithCopy>@_fileLinkUrl</InlineCodeWithCopy>
+
+        </div>
     </div>
-
-    <div class="access-container">
-        <AeTypography Variant="h4">Who has access</AeTypography>
-        <span class="circle-item">
-            <ProfileCircle FullName="@ProjectAcronym"/>
-            <AeTypography>@ProjectAcronym</AeTypography>
-        </span>
-    </div>
-
-    <div class="properties">
-        <AeTypography class="properties-title" Variant="h4">Storage Properties</AeTypography>
-        @foreach (var (key, value) in _properties)
-        {
-            <AeTypography class="label">@Localizer["ITEM-DETAILS-PAGE." + key]</AeTypography>
-            <AeTypography class="text">@value</AeTypography>
-        }
-        
-        <AeTypography class="label">@Localizer["Power BI URL"]</AeTypography>
-        <InlineCodeWithCopy>@_powerBiPasteText</InlineCodeWithCopy>
-        
-        <AeTypography class="label">@Localizer["File URL"]</AeTypography>
-        <InlineCodeWithCopy>@_fileLinkUrl</InlineCodeWithCopy>
-
-    </div>
-</div>
-
+}
 
 @code {
 
@@ -49,8 +51,13 @@
     private string _powerBiPasteText;
     private string _fileLinkUrl;
 
-    protected override void OnInitialized()
+    protected override void OnParametersSet()
     {
+        base.OnParametersSet();
+
+        if (File == null)
+            return;
+
         _properties = File.GetMetadataProperties()
             .Where(p => p.isVisible)
             .Select(p => (p.key, Value: File.GetMetadataPropertyValue(p.key)))
@@ -61,3 +68,4 @@
     }
 
 }
+

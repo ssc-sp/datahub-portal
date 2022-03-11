@@ -27,8 +27,8 @@ $navbarOptions: (
       ),
       '.ae.nav-dropdown': (
         '.ae.nav-dropdown-content': (
-          'display': none,
           'position': absolute,
+          'display': none,
           'min-width': 160px,
           'z-index': 1,
           '.ae.navlink': (
@@ -42,14 +42,6 @@ $navbarOptions: (
             '.ae.typography': (
               'color': c.$text-primary,
             ),
-          ),
-        ),
-        '&:hover': (
-          '.ae.dropdown-label': (
-            'background-color': c.$blue-700,
-          ),
-          '.ae.nav-dropdown-content': (
-            'display': block,
           ),
         ),
       ),
@@ -67,13 +59,6 @@ $navbarOptions: (
       '.ae.navlink': (
         'display': block,
       ),
-      '.ae.nav-dropdown': (
-        '&:hover': (
-          '.ae.nav-dropdown-content': (
-            'position': relative,
-          ),
-        ),
-      ),
       '.ae.responsive-icon': (
         'position': absolute,
         'right': 0,
@@ -83,7 +68,7 @@ $navbarOptions: (
         ),
       ),
     ),
-  ),
+  )
 );
 
 $navbarResponsiveOptions: (
@@ -98,6 +83,7 @@ $navbarResponsiveOptions: (
     ),
     '.ae.nav-dropdown': (
       '.ae.nav-dropdown-content': (
+        'position': relative,
         '.ae.navlink': (
           'box-shadow': none,
         ),
@@ -106,18 +92,75 @@ $navbarResponsiveOptions: (
   ),
 );
 
+$navbarForceResponsiveOptions: (
+    '.ae.navlinks': (
+    '.ae.nav-dropdown': (
+      '.ae.nav-dropdown-content': (
+        'position': relative,
+      ),
+    ),
+  ),
+);
+
+$navbarNonTouchScreen: (
+    '.ae.navlinks': (
+        '.ae.nav-dropdown:hover': (
+            '.ae.dropdown-label': (
+                'background-color': c.$blue-700,
+            ),
+            '.ae.nav-dropdown-content': (
+                'display': block !important,
+            ),
+        ),
+    )
+    
+);
+
+$navbarTouchScreen: (
+    'default': (
+    '.ae.navlinks': (
+            '.ae.nav-dropdown.open': (
+                '.ae.dropdown-label': (
+                    'background-color': c.$blue-700,
+                ),
+                '.ae.nav-dropdown-content': (
+                    'display': block !important,
+                ),
+            ),
+        ),
+    ),
+    'open': (
+    '.ae.navlinks': (
+        '.ae.nav-dropdown.open': (
+                '.ae.nav-dropdown-content': (
+                    'position': relative,
+                ),
+            ),
+    ),
+    ),
+);
+
+
+
+
 @mixin configure($options) {
-  @if ($options) {
-    @if (map.get($options, 'navbarOptions')) {
-      $navbarOptions: map.get($options, 'navbarOptions') !global;
+    @if ($options) {
+        @if (map.get($options, 'navbarOptions')) {
+            $navbarOptions: map.get($options, 'navbarOptions') !global;
+        }
+
+        @if (map.get($options, 'navbarResponsiveOptions')) {
+            $navbarResponsiveOptions: map.get( $options, 'navbarResponsiveOptions' ) !global;
+        }
+
+        @if (map.get($options, 'navbarNonTouchScreen')) {
+            $navbarNonTouchScreen: map.get( $options, 'navbarNonTouchScreen' ) !global;
+        }
+
+        @if (map.get($options, 'navbarTouchScreen')) {
+            $navbarTouchScreen: map.get( $options, 'navbarTouchScreen' ) !global;
+        }
     }
-    @if (map.get($options, 'navbarResponsiveOptions')) {
-      $navbarResponsiveOptions: map.get(
-        $options,
-        'navbarResponsiveOptions'
-      ) !global;
-    }
-  }
 }
 
 @mixin styles {
@@ -127,9 +170,20 @@ $navbarResponsiveOptions: (
     @media screen and (max-width: c.$desktop-width) {
       @include c.set-values($navbarResponsiveOptions);
     }
+    // touch screens
+    @media (pointer:coarse) {
+        @include c.set-variations($navbarTouchScreen);
+    }
+    
+    @media  (pointer:fine) {
+        @include c.set-values($navbarNonTouchScreen);
+    }
 
-    &.force-responsive:not(.open) {
-      @include c.set-values($navbarResponsiveOptions);
+    &.force-responsive{
+        @include c.set-values($navbarForceResponsiveOptions);
+        &:not(.open) {
+            @include c.set-values($navbarResponsiveOptions);
+        }
     }
   }
 }
