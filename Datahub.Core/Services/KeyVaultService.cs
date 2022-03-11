@@ -30,7 +30,6 @@ namespace Datahub.Core.Services
         public KeyVaultClient _keyVaultClient;
         private IOptions<APITarget> _targets;
 
-
         public KeyVaultService(IWebHostEnvironment webHostEnvironment, IConfiguration configureOptions, IOptions<APITarget> targets, ILogger<KeyVaultService> logger)
         {
             _webHostEnvironment = webHostEnvironment;
@@ -61,26 +60,37 @@ namespace Datahub.Core.Services
             }
         }
 
-        public async Task<string> SignAsync(string data)
+        public async Task<string> EncryptApiTokenAsync(string data)
         {
             if (_keyVaultClient == null)
             {
                 SetKeyVaultClient();
             }
-            try
-            {
-                // configure: 
-                var keyVaultName = _targets.Value.KeyVaultName;
-                var keyPath = _targets.Value.KeyVaultApiKeyPath;
-                string keyIdentifier = $"https://{keyVaultName}.vault.azure.net/keys/{keyPath}";
 
-                var signedData = await _keyVaultClient.SignAsync(keyIdentifier, JsonWebKeySignatureAlgorithm.RS256, GetSHA256Digest(data));
-                return Convert.ToBase64String(signedData.Result);
-            }
-            catch (Exception ex)
+            string keyIdentifier = GetApiKeyIdentifier();
+            var encrypedData = await _keyVaultClient.EncryptAsync(keyIdentifier, JsonWebKeyEncryptionAlgorithm.RSAOAEP, Encoding.UTF8.GetBytes(data));
+
+            return Convert.ToBase64String(encrypedData.Result);
+        }
+
+        public async Task<string> DecryptApiTokenAsync(string data)
+        {
+            if (_keyVaultClient == null)
             {
-                return ex.Message;
+                SetKeyVaultClient();
             }
+
+            string keyIdentifier = GetApiKeyIdentifier();
+            var decrypedData = await _keyVaultClient.DecryptAsync(keyIdentifier, JsonWebKeyEncryptionAlgorithm.RSAOAEP, System.Convert.FromBase64String(data));
+
+            return Encoding.UTF8.GetString(decrypedData.Result);
+        }
+
+        private string GetApiKeyIdentifier()
+        {
+            var keyVaultName = _targets.Value.KeyVaultName;
+            var keyPath = _targets.Value.KeyVaultApiKeyPath;
+            return $"https://{keyVaultName}.vault.azure.net/keys/{keyPath}";
         }
 
         private void SetKeyVaultClient()

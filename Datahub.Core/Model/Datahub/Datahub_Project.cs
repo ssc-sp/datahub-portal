@@ -293,51 +293,6 @@ namespace Datahub.Core.EFCore
         public Datahub_Project Project { get; set; }
     }
 
-    public class Datahub_ProjectServiceRequests
-    {
-        // TODO add requesting user to data model
-
-        [Key]
-        [AeFormIgnore]
-
-        public int ServiceRequests_ID { get; set; }
-
-        public DateTime ServiceRequests_Date_DT { get; set; }
-
-        public string ServiceType { get; set; }
-        public DateTime? Is_Completed { get; set; }
-        
-        [StringLength(200)]
-        public string User_Name { get; set; }
-
-        [StringLength(200)]
-        public string User_ID { get; set; }
-
-        public DateTime? Notification_Sent { get; set; }
-
-        [AeFormIgnore]
-        [Timestamp]
-        public byte[] Timestamp { get; set; }
-        public Datahub_Project Project { get; set; }
-    }
-
-    public class Datahub_Project_Costs
-    {
-        [Key]
-        public int ProjectCosts_ID { get; set; }
-
-        public int Project_ID { get; set; }
-
-        [StringLength(10)]
-        public string Project_Acronym_CD { get; set; }
-
-        public DateTime Usage_DT { get; set; }
-
-        public double Cost_AMT { get; set; }
-
-        public DateTime Updated_DT { get; set; }
-    }
-
     public class Datahub_Project_Sectors_And_Branches
     {
         [Key]
@@ -364,16 +319,26 @@ namespace Datahub.Core.EFCore
 
     public class Datahub_ProjectApiUser
     {
+        [AeFormIgnore]
         [Key]
         public Guid ProjectApiUser_ID { get; set; }
 
         [Required]
+        [StringLength(32)]
+        [AeLabel("Name")]
+        public string Client_Name_TXT { get; set; }
+
+        [Required]
         [StringLength(10)]
+        [AeLabel("Project")]
         public string Project_Acronym_CD { get; set; }
 
+        [Required]
         [StringLength(128)]
+        [AeLabel("Email")]
         public string Email_Contact_TXT { get; set; }
 
+        [AeLabel("Expiration")]
         public DateTime? Expiration_DT { get; set; }
 
         public bool Enabled { get; set; }
