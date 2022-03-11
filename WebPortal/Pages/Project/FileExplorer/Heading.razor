@@ -1,0 +1,116 @@
+@inject IDataRemovalService _dataRemovalService
+@inject DataRetrievalService _dataRetrievalService
+@inject IJSRuntime _jsRuntime
+
+<div class="heading">
+    <AeTypography Variant="h1">@Localizer["Storage Explorer"]</AeTypography>
+    <div class="breadcrumbs">
+        <AeButton class="light" @onclick="@(async () => await SetCurrentFolder.InvokeAsync("/"))">root</AeButton>
+        @foreach (var folder in CurrentFolder.Split("/").Where(s => !string.IsNullOrWhiteSpace(s)))
+        {
+            <i class="fas fa-chevron-right"></i>
+            <AeButton class="light" @onclick="@(async () => await BreadcrumbClicked(folder))">@folder</AeButton>
+        }
+    </div>
+    <div class="actions">
+        @if (!VirtualDirectory.ContainsKey(SelectedItem))
+        {
+            <AeButton class="tool" @onclick="HandleDownload">
+                <i class="fas fa-download"></i>
+            </AeButton>
+            <AeButton class="tool" @onclick="HandleDelete">
+                <i class="fas fa-trash-alt"></i>
+            </AeButton>
+            <span class="tool-divider"></span>
+        }
+        <AeButton class="tool" onclick="document.querySelector('.file-list .dropzone-container input').click();">
+            <i class="fas fa-upload"></i>
+        </AeButton>
+        <AeButton class="tool" @onclick="HandleNewFolder">
+            <i class="fas fa-folder-plus"></i>
+        </AeButton>
+    </div>
+</div>
+
+@code {
+
+    [CascadingParameter(Name = "ProjectAcronym")]
+    public string ProjectAcronym { get; set; }
+    
+    [CascadingParameter(Name = "GraphUser")]
+    public Microsoft.Graph.User GraphUser { get; set; }
+    
+    [Parameter]
+    public string CurrentFolder { get; set; }
+    
+    [Parameter]
+    public string SelectedItem { get; set; }
+    
+    [Parameter]
+    public Dictionary<string, List<FileMetaData>> VirtualDirectory { get; set; }
+
+    [Parameter]
+    public EventCallback<string> SetCurrentFolder { get; set; }
+    
+    [Parameter]
+    public EventCallback<string> OnFileDelete { get; set; }
+    
+    [Parameter]
+    public EventCallback<string> OnNewFolder { get; set; }
+
+    
+    private IJSObjectReference _module;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+        
+        _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import",
+            "./Pages/Project/FileExplorer/Heading.razor.js");
+
+        
+    }
+
+    private async Task BreadcrumbClicked(string breadcrumb)
+    {
+        var index = CurrentFolder.IndexOf(breadcrumb, StringComparison.OrdinalIgnoreCase);
+        await SetCurrentFolder.InvokeAsync(CurrentFolder[..(index + breadcrumb.Length)]);
+    }
+
+    private async Task HandleDownload()
+    {
+        var file = VirtualDirectory[CurrentFolder]?
+            .FirstOrDefault(f => f.name == SelectedItem);
+
+        if (file != null)
+        {
+            var uri = await _dataRetrievalService.DownloadFile(DataRetrievalService.DEFAULT_CONTAINER_NAME, file, ProjectAcronym);
+            await _jsRuntime.InvokeVoidAsync("open", uri.ToString(), "_blank");
+        }
+    }
+
+    private async Task HandleDelete()
+    {
+        var file = VirtualDirectory[CurrentFolder]?
+            .FirstOrDefault(f => f.name == SelectedItem);
+        
+        if (file != null)
+        {
+            var success = await _dataRemovalService.DeleteStorageBlob(file, ProjectAcronym, GraphUser);
+            if (success)
+            {
+                await OnFileDelete.InvokeAsync(file.name);
+            }
+        }
+    }
+
+    private async Task HandleNewFolder()
+    {
+        var newFolderName = await _module.InvokeAsync<string>("promptForNewFolderName");
+
+        await OnNewFolder.InvokeAsync(newFolderName.Trim());
+    }
+    
+
+
+}

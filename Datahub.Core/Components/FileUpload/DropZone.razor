@@ -1,0 +1,38 @@
+@using System.IO
+
+@inject IJSRuntime _jsRuntime
+
+
+<div @ref="_dropZoneElement" class="dropzone-container">
+    <InputFile hidden multiple OnChange="@OnFilesDrop" @ref="_inputFile"/>
+    @if (ChildContent != null)
+    {
+        @ChildContent
+    }
+</div>
+
+@code {
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+    
+    [Parameter]
+    public EventCallback<InputFileChangeEventArgs> OnFilesDrop { get; set; }
+
+    private ElementReference _dropZoneElement;
+    private InputFile _inputFile;
+
+    private IJSObjectReference _module;
+    private IJSObjectReference _dropZoneInstance;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import",
+                "./_content/Datahub.Core/Components/FileUpload/DropZone.razor.js");
+
+            _dropZoneInstance = await _module.InvokeAsync<IJSObjectReference>("initializeFileDropZone", _dropZoneElement, _inputFile.Element);
+        }
+    }
+}
