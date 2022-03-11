@@ -16,8 +16,10 @@ namespace Datahub.ProjectForms.Data.PIP
         public int Risks_ID { get; set; }
 
         [MaxLength(20)]
+        [AeFormIgnore]
         public string Year { get; set; }
         [MaxLength(20)]
+        [AeFormIgnore]
         public string RiskCode { get; set; }
 
         [AeLabel(row: "1", column: "1")]
@@ -194,6 +196,10 @@ namespace Datahub.ProjectForms.Data.PIP
 
         public PIP_Tombstone PIP_Tombstone { get; set; }
 
+        [AeFormIgnore]
+        public int FiscalYearId { get; set; }
+        public PIP_FiscalYears FiscalYear { get; set; }
+
 
         [AeFormIgnore]
         public bool IsDeleted { get; set; }
@@ -210,7 +216,8 @@ namespace Datahub.ProjectForms.Data.PIP
         public byte[] Timestamp { get; set; }
 
         public List<PIP_IndicatorRisks> PIP_IndicatorRisks { get; set; }
-
+        [AeFormIgnore]
+        public string EditingUserId { get; set; }
         private int GetInherentLevel(string impact, string likelihood)
         {
             int intImpact;
