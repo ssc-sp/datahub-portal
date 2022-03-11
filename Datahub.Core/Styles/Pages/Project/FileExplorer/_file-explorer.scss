@@ -1,112 +1,101 @@
 @use '../../../Common' as c;
 
 @use 'storage-properties';
+@use 'heading';
 
+.file-explorer-layout-wrapper {
 
-.file-explorer-layout {
-  display: grid;
-  grid-template-columns: 1fr 400px;
-
-  $border: 1px solid var(--bg-color-accent);
+  position: relative;
   
-  grid-template-areas: 
+  .sas-token-button {
+    position: absolute;
+    top: 0;
+    right: 0;
+  }
+
+  .file-explorer-layout {
+    display: grid;
+    grid-template-columns: 1fr 400px;
+
+    $border: 1px solid var(--bg-color-accent);
+
+    grid-template-areas: 
     "heading heading"
     "file-list item-details";
-  
-  .heading {
-    grid-area: heading;
-    border-bottom: $border;
-    
-    h1 {
-      margin-top: 0;
-    }
-    
-    .breadcrumbs {
-      display: flex;
-      gap: c.spacing(1);
-      align-items: baseline;
-      margin-top: c.spacing(2);
-      padding-bottom: c.spacing(1);
 
-      i {
-        font-size: 1rem; 
-      }
-    }
-  }
-  
-  $page-padding: c.spacing(4);
-  $anti-page-padding: calc(#{$page-padding} * -1);
-  
-  .file-list {
-    grid-area: file-list;
-    $grid-columns: 1fr 150px 250px 40px;
-    
-    
-    
-    .file-list-header,
-    .file-item {
-      display: grid;
-      grid-template-columns: $grid-columns;
-      align-items: center;
-      padding: c.spacing(2);
-      
-      i {
-        font-size: 1rem;
-      } 
-    }
-    
-    .file-list-header {
-      border-bottom: $border;
-      background-color: c.$grey-50;
-      z-index: 100;
-      position: sticky;
-      top: c.$topbarHeight;
-    }
-    
-    .file-item {
-      
-      .file-item-name {
-        display: flex;
+    @include heading.scss($border);
+
+    $page-padding: c.spacing(4);
+    $anti-page-padding: calc(#{$page-padding} * -1);
+
+    .file-list {
+      grid-area: file-list;
+      $grid-columns: 1fr 150px 250px 40px;
+
+
+      .file-list-header,
+      .file-item {
+        display: grid;
+        grid-template-columns: $grid-columns;
         align-items: center;
-        gap: c.spacing(1);
-        
-        .file-item-icon {
-          width: 30px;
-          min-width: 30px;
-          height: 30px;
-          
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          
-          border-radius: 100px;
-          
-          background-color: c.$grey-50;
-          color: c.$grey-800;
+        padding: c.spacing(2);
+
+        i {
+          font-size: 1rem;
         }
       }
-      
-      &:not(:last-of-type){
-        border-bottom: 1px solid var(--bg-color-accent);
+
+      .file-list-header {
+        border-bottom: $border;
+        background-color: c.$grey-50;
+        z-index: 100;
+        position: sticky;
+        top: c.$topbarHeight;
       }
-      
-      &.highlight {
-        background-color: c.$grey-200;
+
+      .file-item {
+
+        .file-item-name {
+          display: flex;
+          align-items: center;
+          gap: c.spacing(1);
+
+          .file-item-icon {
+            width: 30px;
+            min-width: 30px;
+            height: 30px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 100px;
+            color: c.$grey-800;
+          }
+        }
+
+        &:not(:last-of-type) {
+          border-bottom: 1px solid var(--bg-color-accent);
+        }
+
+        &.highlight {
+          background-color: c.$grey-200;
+        }
       }
     }
-  }
-  
-  .item-details {
-    grid-area: item-details;
-    border-left: $border;
-    
-    .details-sticky {
-      position: sticky;
-      top: c.$topbarHeight;
-      padding: c.spacing(2);
-      
-      .details-container {
-        @include storage-properties.file-explorer-card;
+
+    .item-details {
+      grid-area: item-details;
+      border-left: $border;
+
+      .details-sticky {
+        position: sticky;
+        top: c.$topbarHeight;
+        padding: c.spacing(2);
+
+        .details-container {
+          @include storage-properties.file-explorer-card;
+        }
       }
     }
   }
