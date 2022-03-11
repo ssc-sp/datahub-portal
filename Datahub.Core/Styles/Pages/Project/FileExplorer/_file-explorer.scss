@@ -1,7 +1,7 @@
 @use '../../../Common' as c;
 
 @use 'storage-properties';
-
+@use 'heading';
 
 .file-explorer-layout {
   display: grid;
@@ -13,26 +13,7 @@
     "heading heading"
     "file-list item-details";
   
-  .heading {
-    grid-area: heading;
-    border-bottom: $border;
-    
-    h1 {
-      margin-top: 0;
-    }
-    
-    .breadcrumbs {
-      display: flex;
-      gap: c.spacing(1);
-      align-items: baseline;
-      margin-top: c.spacing(2);
-      padding-bottom: c.spacing(1);
-
-      i {
-        font-size: 1rem; 
-      }
-    }
-  }
+  @include heading.scss($border);
   
   $page-padding: c.spacing(4);
   $anti-page-padding: calc(#{$page-padding} * -1);
@@ -80,8 +61,6 @@
           justify-content: center;
           
           border-radius: 100px;
-          
-          background-color: c.$grey-50;
           color: c.$grey-800;
         }
       }
