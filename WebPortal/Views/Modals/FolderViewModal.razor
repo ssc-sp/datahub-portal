@@ -1,6 +1,6 @@
-@inject ApiService ApiService
+@inject MyDataService ApiService
 @inject UIControlsService UI
-@inject IDataRetrievalService DataRetrievalService
+@inject DataRetrievalService DataRetrievalService
 @inject IUserInformationService UserInformationService
 
 @if (isLoading)
@@ -64,7 +64,7 @@ else
         };
         
         // If we get displayed on return from file upload, don't refresh from datalake
-        RootFolder = await DataRetrievalService.GetFolderStructure(RootFolder, user);
+        RootFolder = await ApiService.GetFolderStructure(RootFolder, user);
         RootItem = LoadChildFolders(new ExpandableItem<Folder>()
                                     {
                                         item = RootFolder,
