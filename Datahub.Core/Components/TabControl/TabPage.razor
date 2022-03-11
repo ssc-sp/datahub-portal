@@ -1,9 +1,8 @@
 ﻿@namespace Datahub.Portal.Components
 
-@if (Parent.ActivePage == this)
-{
+<span style="@GetDisplayStyle()">
     @ChildContent
-}
+</span>
 
 @code {
 
@@ -26,6 +25,11 @@
         Parent.AddPage(this);
 
         base.OnInitialized();
+    }
+
+    private string GetDisplayStyle()
+    {
+        return $"display: {(Parent.ActivePage == this ? "" : "none")}";
     }
 }
 
