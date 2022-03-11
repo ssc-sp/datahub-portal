@@ -40,7 +40,7 @@ namespace Datahub.Core.Services
             try
             {
                 var user = await graphServiceClient.Users.Request()
-                    .Filter($"id eq '{userId}'")
+                    .Filter($"(id eq '{userId}') Or (mail eq '{userId}')")
                     .GetAsync(tkn);
                 return user == null ? null : GraphUser.Create(user[0]);
             }

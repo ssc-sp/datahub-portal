@@ -67,7 +67,7 @@ namespace Datahub.Core.Services
         /// <summary>
         /// Saves the changes async and tracks the changes as data change events
         /// </summary>
-        public static async Task<int> TrackSaveChangesAsync(this DbContext dbContext, IDatahubAuditingService auditService)
+        public static async Task<int> TrackSaveChangesAsync(this DbContext dbContext, IDatahubAuditingService auditService, bool anonymous = false)
         {
             try
             {
@@ -79,20 +79,23 @@ namespace Datahub.Core.Services
                         await auditService.TrackDataEvent(
                             entry.DebugView.ShortView, 
                             entry.Entity.GetType().Name, 
-                            AuditChangeType.New);
+                            AuditChangeType.New,
+                            anonymous);
 
                     if (entry.State == EntityState.Modified)
                         await auditService.TrackDataEvent(
                             entry.DebugView.ShortView, 
                             entry.Entity.GetType().Name, 
-                            AuditChangeType.Edit, 
+                            AuditChangeType.Edit,
+                            anonymous,
                             ("changeDetails", entry.DebugView.LongView));
 
                     if (entry.State == EntityState.Deleted)
                         await auditService.TrackDataEvent(
                             entry.DebugView.ShortView, 
                             entry.Entity.GetType().Name, 
-                            AuditChangeType.Delete);
+                            AuditChangeType.Delete,
+                            anonymous);
                 }
             }
             catch (Exception ex)

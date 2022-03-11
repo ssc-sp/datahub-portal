@@ -49,6 +49,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JsonTranslator", "JsonTrans
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.M365Forms", "Datahub.M365Forms\Datahub.M365Forms.csproj", "{52436CFD-EEE3-4249-AB82-53BBEE7F8251}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SQL", "SQL", "{0E732610-5629-46D1-B782-4DCEF65AB51D}"
+	ProjectSection(SolutionItems) = preProject
+		SQL\MigrateStorage.sql = SQL\MigrateStorage.sql
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
