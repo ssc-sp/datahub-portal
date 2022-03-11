@@ -1,4 +1,5 @@
 @inject ApiService _apiService
+@inject IDataRemovalService _dataRemovalService
 @inject IJSRuntime _jsRuntime
 
 <div class="heading">
@@ -17,7 +18,7 @@
             <AeButton class="tool" @onclick="HandleDownload">
                 <i class="fas fa-download"></i>
             </AeButton>
-            <AeButton class="tool">
+            <AeButton class="tool" @onclick="HandleDelete">
                 <i class="fas fa-trash-alt"></i>
             </AeButton>
             <span class="tool-divider"></span>
@@ -36,6 +37,9 @@
     [CascadingParameter(Name = "ProjectAcronym")]
     public string ProjectAcronym { get; set; }
     
+    [CascadingParameter(Name = "GraphUser")]
+    public Microsoft.Graph.User GraphUser { get; set; }
+    
     [Parameter]
     public string CurrentFolder { get; set; }
     
@@ -47,6 +51,9 @@
 
     [Parameter]
     public EventCallback<string> SetCurrentFolder { get; set; }
+    
+    [Parameter]
+    public EventCallback<string> OnFileDelete { get; set; }
 
     private async Task BreadcrumbClicked(string breadcrumb)
     {
@@ -63,6 +70,21 @@
         {
             var uri = await _apiService.DownloadFile(file, ProjectAcronym);
             await _jsRuntime.InvokeVoidAsync("open", uri.ToString(), "_blank");
+        }
+    }
+
+    private async Task HandleDelete()
+    {
+        var file = VirtualDirectory[CurrentFolder]?
+            .FirstOrDefault(f => f.name == SelectedItem);
+        
+        if (file != null)
+        {
+            var success = await _dataRemovalService.DeleteStorageBlob(file, ProjectAcronym, GraphUser);
+            if (success)
+            {
+                await OnFileDelete.InvokeAsync(file.name);
+            }
         }
     }
 

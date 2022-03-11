@@ -7,12 +7,14 @@
 
 
 <div class="file-explorer-layout">
-    <Heading 
-        SetCurrentFolder="SetCurrentFolder" 
-        CurrentFolder="@_currentFolder" 
-        SelectedItem="@_selectedItem"
-        VirtualDirectory="_virtualDirectory"
-        />
+    <CascadingValue Value="_user" Name="GraphUser">
+        <Heading
+            SetCurrentFolder="SetCurrentFolder"
+            OnFileDelete="HandleFileDelete"
+            CurrentFolder="@_currentFolder"
+            SelectedItem="@_selectedItem"
+            VirtualDirectory="_virtualDirectory"/>
+    </CascadingValue>
 
     <div class="file-list">
         <div class="file-list-header">
@@ -24,14 +26,14 @@
 
         @if (_loading)
         {
-            <LoadingFileList />
+            <LoadingFileList/>
         }
         else
         {
             <UploadSnackbar UploadingFiles="_uploadingFiles">
                 <DropZone OnFilesDrop="UploadFiles">
                     @foreach (var (folderName, _) in _virtualDirectory
-                        .Where(f => f.Key != "/" 
+                        .Where(f => f.Key != "/"
                                     && (Path.GetDirectoryName(f.Key)?.Equals(_currentFolder) ?? false)))
                     {
                         <FileItem
@@ -92,12 +94,12 @@
 
 
     private bool _loading = true;
-    private List<FileMetaData> _files;
     private List<FileMetaData> _uploadingFiles;
 
     private readonly string _root = "/";
     private string _currentFolder = "/";
     private string _selectedItem = "/";
+
     private Dictionary<string, List<FileMetaData>> _virtualDirectory = new()
     {
         {"/", new List<FileMetaData>()}
@@ -106,26 +108,23 @@
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        
+
         await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
 
         _userId = await _userInformationService.GetUserIdString();
         _user = await _userInformationService.GetUserAsync();
 
-        _files = await _dataRetrievalService.GetStorageBlobFiles(ProjectAcronym, _user);
         _uploadingFiles = new List<FileMetaData>();
-
-        _virtualDirectory = _files
+        _virtualDirectory = (await _dataRetrievalService.GetStorageBlobFiles(ProjectAcronym, _user))
             .GroupBy(f => $"/{Path.GetDirectoryName(f.filename)?.Trim()}")
             .ToDictionary(g => g.Key,
                 g => g.ToList());
-
 
         if (!_virtualDirectory.Any())
         {
             _virtualDirectory.Add("/", new List<FileMetaData>());
         }
-        
+
         _loading = false;
     }
 
@@ -135,6 +134,12 @@
         _selectedItem = folderName;
     }
 
+    private void HandleFileDelete(string filename)
+    {
+        _virtualDirectory[_currentFolder].RemoveAll(f => f.name.Equals(filename, StringComparison.OrdinalIgnoreCase));
+        SetCurrentFolder(_currentFolder);
+    }
+
     private async Task UploadFiles(InputFileChangeEventArgs e)
     {
         foreach (var browserFile in e.GetMultipleFiles())
@@ -142,7 +147,7 @@
             await UploadFile(browserFile);
         }
     }
-    
+
     private async Task UploadFile(IBrowserFile browserFile)
     {
         if (browserFile == null)
@@ -156,10 +161,10 @@
             uploadStatus = FileUploadStatus.SelectedToUpload,
             BrowserFile = browserFile
         };
-        
-        await  _apiService.PopulateOtherMetadata(fileMetadata);
+
+        await _apiService.PopulateOtherMetadata(fileMetadata);
         _uploadingFiles.Add(fileMetadata);
-        
+
         _ = InvokeAsync(async () =>
         {
             await _apiService.UploadGen2File(fileMetadata, ProjectAcronym.ToLower(), (uploadedBytes) =>
@@ -168,19 +173,15 @@
                 StateHasChanged();
             });
 
+            _uploadingFiles.Remove(fileMetadata);
             _virtualDirectory[_currentFolder].RemoveAll(f => f.name == fileMetadata.name);
             _virtualDirectory[_currentFolder].Add(fileMetadata);
-            
-            StateHasChanged();
 
-            // give a courtesy moment for tiny files
-            await Task.Delay(1000);
-            _uploadingFiles.Remove(fileMetadata);
             StateHasChanged();
         });
-        
+
         StateHasChanged();
     }
 
-    
+
 }
