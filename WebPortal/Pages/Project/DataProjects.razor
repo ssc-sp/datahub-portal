@@ -1,0 +1,97 @@
+@using Datahub.Portal.Pages.Project
+
+@inject NavigationManager _navigationManager
+@inject IJSRuntime _jsInterop
+@inject IDbContextFactory<DatahubProjectDBContext> _dbFactory
+
+@implements IDisposable
+@page "/projects"
+
+<AeTypography Variant="h1">@Localizer["Featured Projects"]</AeTypography>
+<div class="featured-projects">
+    @foreach (var p in _featured)
+    {
+        <FeaturedProject Project="p"/>
+    }
+</div>
+
+<AeTypography Variant="h1">@Localizer["All Projects"]</AeTypography>
+
+<div class="all-projects-container">
+
+    <AeSearchInput
+        class="all-projects-search"
+        SearchIconFAClass="fas fa-filter"
+        Placeholder="Filter projects"
+        OnInputChange="HandleAllProjectSearch"/>
+
+    <div class="all-projects">
+        @if (_filteredProjects.Any())
+        {
+            @foreach (var p in _filteredProjects)
+            {
+                <div class="project-row">
+                    <AeTypography class="sector">
+                        <i class="@($"fad fa-{p.Project_Icon ?? "swatchbook"}")"></i>
+                        @Localizer[p.Sector_Name ?? "N/A"]
+                    </AeTypography>
+                    <DHLink class="name" DataProject="@p.Project_Acronym_CD">
+                        <i class="fas fa-external-link"></i>
+                        @p.ProjectName
+                    </DHLink>
+                    <DHMarkdown class="description" Content="@p!.ProjectDescription"></DHMarkdown>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="no-projects">
+                <i class="fas fa-box-full"></i>
+                <AeTypography Variant="h3">Sorry, we can't find any projects that match your filter!</AeTypography>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+
+    private List<Datahub_Project> _allProjects;
+    private List<Datahub_Project> _filteredProjects;
+    private List<Datahub_Project> _featured;
+    private DatahubProjectDBContext _context;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+
+        if (firstRender)
+            StateHasChanged();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _context = await _dbFactory.CreateDbContextAsync();
+        _allProjects = _context.Projects
+            .Where(p =>
+                (p.Project_Status_Desc == Datahub_Project.ONGOING || p.Is_Featured) &&
+                !p.Is_Private && !string.IsNullOrWhiteSpace(p.Project_Acronym_CD)
+                && !string.IsNullOrWhiteSpace(p.Project_Name))
+    // .Include(p => p.Users)
+            .ToList();
+        _featured = _allProjects.Where(p => p.Is_Featured).ToList();
+        _filteredProjects = _allProjects;
+    }
+
+    public void Dispose()
+    {
+        _context.Dispose();
+    }
+
+    private void HandleAllProjectSearch(string filterValue)
+    {
+        _filteredProjects = _allProjects
+            .Where(p => p.Project_Name.ToLowerInvariant().Contains(filterValue.ToLowerInvariant()))
+            .ToList();
+    }
+
+}

@@ -1,0 +1,95 @@
+@using Datahub.Core.Components.Skeleton
+@using Datahub.Core.Components.Code
+
+@inject DataRetrievalService _dataRetrievalService
+
+@if (_loading)
+{
+    <span style="display: flex; gap: .5rem; align-items: center;">
+        <Skeleton Width="30px" Height="30px" Circle/>
+        <Skeleton Width="300px" Height="2rem"/>
+    </span>
+}
+else
+{
+    <div class="storage-properties">
+        <div class="title-container">
+            <i class="fas fa-folder"></i>
+            <AeTypography Variant="h3" class="details-title-text">
+                @if (@DisplayName == _root)
+                {
+                    <span>root/</span>
+                }
+                else
+                {
+                    @DisplayName
+                }
+            </AeTypography>
+        </div>
+
+        <div class="access-container">
+            <AeTypography Variant="h4">Who has access</AeTypography>
+            <span class="circle-item">
+                <ProfileCircle FullName="@ProjectAcronym"/>
+                <AeTypography>@ProjectAcronym</AeTypography>
+            </span>
+        </div>
+
+        <div class="properties">
+            <AeTypography class="properties-title" Variant="h4">Storage Properties</AeTypography>
+            @foreach (var (key, (value, fragment)) in _properties)
+            {
+                <AeTypography class="label">@key</AeTypography>
+                @if (fragment != null)
+                {
+                    @fragment
+                }
+                else
+                {
+                    <AeTypography class="text">@value</AeTypography>
+                }
+            }
+        </div>
+    </div>
+}
+
+
+@code {
+
+    [CascadingParameter(Name = "ProjectAcronym")]
+    public string ProjectAcronym { get; set; }
+
+    [Parameter]
+    public string DisplayName { get; set; }
+
+    private bool _loading = true;
+    private string _root = "/";
+    private Dictionary<string, (string, RenderFragment)> _properties;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var storageMetadata = await _dataRetrievalService.GetStorageMetadata(ProjectAcronym);
+        _properties = new Dictionary<string, (string, RenderFragment)>();
+        TryAdd(_properties, Localizer["Container Name"], storageMetadata.Container);
+        TryAdd(_properties, Localizer["AccountName"], storageMetadata.AccountName);
+        TryAdd(_properties, Localizer["Account Kind"], storageMetadata.StorageAccountType);
+        TryAdd(_properties, Localizer["Replication"], storageMetadata.GeoRedundancy);
+        TryAdd(_properties, Localizer["Versioning"], storageMetadata.Versioning);
+        TryAdd(_properties, Localizer["Url"], (storageMetadata.Url, @<InlineCodeWithCopy>@storageMetadata.Url</InlineCodeWithCopy>));
+
+        _loading = false;
+    }
+    
+    private void TryAdd(Dictionary<string, (string, RenderFragment)> dict, string prop, string value)
+    {
+        if (!string.IsNullOrEmpty(value))
+            TryAdd(dict, prop, (value, null));
+    }
+
+    private void TryAdd(Dictionary<string, (string, RenderFragment)> dict, string prop, (string Label, RenderFragment Fragment) value)
+    {
+        if (!string.IsNullOrEmpty(value.Label))
+            dict[prop] = value;
+    }
+
+}
