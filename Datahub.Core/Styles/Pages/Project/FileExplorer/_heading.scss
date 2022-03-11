@@ -27,17 +27,17 @@
     
     .actions {
       display: flex;
-      align-items: center;
-      margin-right: 2rem;
+      gap: .5rem;
       
       .tool-divider {
         width: 1px;
         background-color: var(--bg-color-accent);
         height: 66%;
         margin: 0 0.25rem;
+        align-self: center;
       }
       
-      @include button-tool.scss;
+      @include button-tool.scss(false);
       
       //.tool {
       //  border-radius: 500px;
