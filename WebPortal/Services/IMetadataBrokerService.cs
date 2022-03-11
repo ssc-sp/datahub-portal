@@ -11,7 +11,7 @@ namespace Datahub.Portal.Services
         Task<Entities.MetadataProfile> GetProfile(string name);
         Task<FieldValueContainer> GetObjectMetadataValues(long objectMetadataId);
         Task<FieldValueContainer> GetObjectMetadataValues(string objectId);
-        Task<Entities.ObjectMetadata> SaveMetadata(FieldValueContainer fieldValues);
+        Task<Entities.ObjectMetadata> SaveMetadata(FieldValueContainer fieldValues, bool anonymous = false);
         Task<ApprovalForm> GetApprovalForm(int ApprovalFormId);
         Task DeleteApprovalForm(int approvalFormId);
         Task<int> SaveApprovalForm(ApprovalForm form);
@@ -21,5 +21,6 @@ namespace Datahub.Portal.Services
         Task UpdateCatalog(long objectId, Entities.MetadataObjectType dataType, string objectName, string location, int sector, int branch, string contact, string englishText, string frenchText);
         Task<List<CatalogObjectResult>> SearchCatalogEnglish(string searchText);
         Task<List<CatalogObjectResult>> SearchCatalogFrench(string searchText);
+        Task<FieldDefinitions> GetFieldDefinitions();
     }    
 }
