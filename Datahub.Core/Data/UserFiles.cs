@@ -271,11 +271,18 @@ namespace Datahub.Core.Data
     }
 
     public class FileMetaData: BaseMetadata
-    {       
+    {
+        public const string OwnedBy = "ownedby";
+        public const string CreatedBy = "createdby";
+        public const string LastModifiedBy = "lastmodifiedby";
+        
+
         public FileMetaData()
         {
             dataType = MetadataType.File;
         }
+
+        public DateTime Modified => lastmodifiedts;
 
         [SimpleField(IsKey = true, IsFilterable = true)]
         public string fileid

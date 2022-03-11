@@ -1,0 +1,34 @@
+@inject IJSRuntime _jsRuntime;
+
+<span @ref="_elementReference">
+    <AeMarkdown
+        @attributes="@InputAttributes"
+        Content="@Content"
+        LinkRewriter="@LinkRewriter"/>
+</span>
+
+@code {
+
+    [Parameter]
+    public string Content { get; set; }
+
+    [Parameter]
+    public Func<string, string> LinkRewriter { get; set; }
+
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object> InputAttributes { get; set; }
+
+    private ElementReference _elementReference;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+
+        if (firstRender)
+        {
+            var module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", 
+                "./_content/Datahub.Core/Components/DHMarkdown.razor.js");
+            await module.InvokeVoidAsync("styleCodeblocks", _elementReference);
+        }
+    }
+}

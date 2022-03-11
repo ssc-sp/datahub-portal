@@ -88,7 +88,7 @@
         var serviceName = r.RequestServiceType;
 
         await EmailService.SendServiceAccessGrantedNotification(serviceName, r.Project.ProjectInfo, r.User_ID);
-        await SystemNotificationService.CreateSystemNotificationWithLink(r.User_ID, $"/project/{r.Project.Project_Acronym_CD}", "SYSTEM-NOTIFICATION.GoToProject",
+        await SystemNotificationService.CreateSystemNotificationWithLink(r.User_ID, $"/{UrlPathSegment.PROJECTS}/{r.Project.Project_Acronym_CD}", "SYSTEM-NOTIFICATION.GoToProject",
             "SYSTEM-NOTIFICATION.NOTIFICATION-TEXT.ServiceAccessRequestApproved", serviceName,
             new BilingualStringArgument(r.Project.ProjectInfo.ProjectNameEn, r.Project.ProjectInfo.ProjectNameFr));
 

@@ -4,11 +4,11 @@
 @inject NotifierService NotifierService
 @inject NavigationManager NavigationManager
 @inject ILogger<AddDataBar> logger
-@inject IApiService ApiService
+@inject MyDataService ApiService
 @inject IJSRuntime JSRuntime
 @inject UIControlsService UI
 @inject IFileReaderService fileReaderService
-@inject IDataRetrievalService DataRetrievalService
+@inject DataRetrievalService DataRetrievalService
 
 <EditForm Model="_fileMetadata" OnValidSubmit="HandleValidSubmit">
     <DataAnnotationsValidator />

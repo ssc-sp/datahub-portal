@@ -1,0 +1,142 @@
+@using Datahub.Core.Components.Skeleton
+
+@inject IUserInformationService _userInformationService
+@inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
+@inject DataRetrievalService _dataRetrievalService
+
+<div class="file-explorer-layout">
+    <div class="heading">
+        <AeTypography Variant="h1">@Localizer["Storage Explorer"]</AeTypography>
+        <div class="breadcrumbs">
+            <AeButton class="light" @onclick="() => SetCurrentFolder(_root)">root</AeButton>
+            @foreach (var folder in _currentFolder.Split("/").Where(s => !string.IsNullOrWhiteSpace(s)))
+            {
+                <i class="fas fa-chevron-right"></i>
+                <AeButton class="light" @onclick="() => BreadcrumbClicked(folder)">@folder</AeButton>
+            }
+        </div>
+    </div>
+
+    <div class="file-list">
+        <div class="file-list-header">
+            <AeTypography>Name</AeTypography>
+            <AeTypography>Size</AeTypography>
+            <AeTypography>LastModified</AeTypography>
+            <i class="fas fa-sort-alpha-down"></i>
+        </div>
+
+        @if (_loading)
+        {
+            @for (var i = 0; i < 10; i++)
+            {
+                <span class="file-item">
+                    <span style="display: flex; gap: .5rem; align-items: center;">
+                        <Skeleton Width="30px" Height="30px" Circle/>
+                        <Skeleton Width="300px" Height="2rem"/>
+                    </span>
+                    <Skeleton Width="100px" Height="2rem"/>
+                    <Skeleton Width="200px" Height="2rem"/>
+                    <span></span>
+                </span>
+            }
+        }
+        else
+        {
+            @foreach (var (folderName, _) in _virtualDirectory
+                .Where(f => f.Key != "/" && (Path.GetDirectoryName(f.Key)?.Equals(_currentFolder) ?? false)))
+            {
+                <FileItem
+                    Name="@(folderName)"
+                    Highlighted="_selectedItem == folderName"
+                    @onclick="() => _selectedItem = folderName"
+                    @ondblclick="() => SetCurrentFolder(folderName)">
+                    <Icon>
+                        <i class="fas fa-folder"></i>
+                    </Icon>
+                </FileItem>
+            }
+            @foreach (var file in _virtualDirectory[_currentFolder])
+            {
+                <FileItem
+                    Name="@Path.GetFileName(file.name)"
+                    Modified="@file.Modified"
+                    Size="@file.filesize"
+                    @onclick="() => _selectedItem = file.name"
+                    Highlighted="_selectedItem == file.name">
+                    <Icon>
+                        <i class="@DatahubTools.GetFileTypeIcon(file.fileformat)"></i>
+                    </Icon>
+                </FileItem>
+            }
+        }
+    </div>
+
+    <div class="item-details">
+        <div class="details-sticky">
+            <div class="details-container">
+                @if (_loading || _virtualDirectory.ContainsKey(_selectedItem))
+                {
+                    <StorageProperties DisplayName="@_selectedItem"/>
+                }
+                else
+                {
+                    var file = _virtualDirectory[_currentFolder]
+                        .Find(f => f.name.Equals(_selectedItem, StringComparison.OrdinalIgnoreCase));
+
+                    <FileProperties File="file" />
+                }
+            </div>
+        </div>
+    </div>
+
+</div>
+
+@code {
+
+    [CascadingParameter(Name = "ProjectAcronym")]
+    public string ProjectAcronym { get; set; }
+
+    private Microsoft.Graph.User _user;
+    private string _userId;
+
+
+    private bool _loading = true;
+    private List<FileMetaData> _files;
+
+    private readonly string _root = "/";
+    private string _currentFolder = "/";
+    private string _selectedItem = "/";
+    private Dictionary<string, List<FileMetaData>> _virtualDirectory = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
+
+        _userId = await _userInformationService.GetUserIdString();
+        _user = await _userInformationService.GetUserAsync();
+
+        _files = await _dataRetrievalService.GetStorageBlobFiles(ProjectAcronym, DataRetrievalService.DEFAULT_CONTAINER_NAME, _user);
+
+        _virtualDirectory = _files
+            .GroupBy(f => $"/{Path.GetDirectoryName(f.filename)?.Trim()}")
+            .ToDictionary(g => g.Key,
+                g => g.ToList());
+
+        _loading = false;
+    }
+
+    private void SetCurrentFolder(string folderName)
+    {
+        _currentFolder = folderName;
+        _selectedItem = folderName;
+    }
+
+
+    private void BreadcrumbClicked(string breadcrumb)
+    {
+        var index = _currentFolder.IndexOf(breadcrumb, StringComparison.OrdinalIgnoreCase);
+        _currentFolder = _currentFolder[..(index + breadcrumb.Length)];
+        _selectedItem = _currentFolder;
+    }
+
+}

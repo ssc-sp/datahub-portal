@@ -18,10 +18,13 @@ using Azure.Storage.Sas;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.JSInterop;
 using System.Diagnostics;
+using Folder = Datahub.Core.Data.Folder;
+using Microsoft.Graph;
+using Datahub.Portal.Services.Storage;
 
 namespace Datahub.Core.Services
 {
-    public class ApiService : IApiService
+    public class MyDataService
     {
         private IOptions<APITarget> _targets;
         private DataLakeClientService _dataLakeClientService;
@@ -31,21 +34,20 @@ namespace Datahub.Core.Services
         private readonly IUserInformationService _userInformationService;
         private readonly IKeyVaultService _keyVaultService;
         private readonly NotifierService _notifierService;
-        private readonly IApiCallService _apiCallService;
         private readonly IJSRuntime _jsRuntime;
-
+        private readonly DataRetrievalService dataRetrievalService;
         private CommonAzureServices _commonAzureServices;
         private ApiTelemetryService _telemetryService;
         private IDatahubAuditingService _auditingService;
 
-        public ApiService(ILogger<ApiService> logger,
+        public MyDataService(ILogger<MyDataService> logger,
                     IHttpClientFactory clientFactory,
                     IUserInformationService userInformationService,
                     IKeyVaultService keyVaultService,
                     IOptions<APITarget> targets,
                     NotifierService notifierService,
-                    IApiCallService apiCallService,
                     IJSRuntime jSRuntime,
+                    DataRetrievalService dataRetrievalService,
                     ICognitiveSearchService cognitiveSearchService,
                     DataLakeClientService dataLakeClientService,
                     ApiTelemetryService telemetryService,
@@ -57,8 +59,8 @@ namespace Datahub.Core.Services
             _userInformationService = userInformationService;
             _keyVaultService = keyVaultService;
             _notifierService = notifierService;
-            _apiCallService = apiCallService;
             _jsRuntime = jSRuntime;
+            this.dataRetrievalService = dataRetrievalService;
             _targets = targets;
             _dataLakeClientService = dataLakeClientService;
             _cognitiveSearchService = cognitiveSearchService;
@@ -176,72 +178,6 @@ namespace Datahub.Core.Services
             }
         }
 
-        public async Task<Uri> GetUserDelegationSasBlob(string fileName, string projectUploadCode, int daysValidity = 1)
-        {
-            return await GetDelegationSasBlobUri(fileName, projectUploadCode, daysValidity, BlobSasPermissions.Read | BlobSasPermissions.Write);
-        }
-
-        public async Task<Uri> GetDownloadAccessToSasBlob(string fileName, string projectUploadCode, int daysValidity = 1)
-        {
-            return await GetDelegationSasBlobUri(fileName, projectUploadCode, daysValidity, BlobSasPermissions.Read);
-        }
-
-        public async Task<Uri> GenerateSasToken(string projectUploadCode, int daysValidity)
-        {
-            return await GetDelegationSasBlobUri(null, projectUploadCode, daysValidity, BlobSasPermissions.All);
-        }
-
-        public async Task<Uri> DownloadFile(FileMetaData file, string? projectUploadCode)
-        {
-            try
-            {
-                if (!string.IsNullOrEmpty(projectUploadCode))
-                {
-                    return await GetUserDelegationSasBlob(file.filename, projectUploadCode);
-                }
-
-                var fileSystemClient = await _dataLakeClientService.GetDataLakeFileSystemClient();
-                DataLakeDirectoryClient directoryClient = fileSystemClient.GetDirectoryClient(file.folderpath);
-                DataLakeFileClient fileClient = directoryClient.GetFileClient(file.filename);
-                Response<FileDownloadInfo> downloadResponse = await fileClient.ReadAsync();
-
-                var sharedKeyCredential = await _dataLakeClientService.GetSharedKeyCredential();
-
-
-                DataLakeSasBuilder sasBuilder = new DataLakeSasBuilder()
-                {
-                    FileSystemName = fileSystemClient.Name,
-                    Path = fileClient.Path,
-                    Resource = "d",
-                    StartsOn = DateTimeOffset.UtcNow,
-                    ExpiresOn = DateTimeOffset.UtcNow.AddDays(7)
-                };
-
-                // Specify read and write permissions for the SAS.
-                sasBuilder.SetPermissions(DataLakeAccountSasPermissions.Read |
-                                          DataLakeAccountSasPermissions.Write);
-
-
-                DataLakeUriBuilder dataLakeUriBuilder = new DataLakeUriBuilder(fileClient.Uri)
-                {
-                    // Specify the user delegation key.
-                    //Sas = sasBuilder.ToSasQueryParameters(userDelegationKey,
-                    //                                  fileClient.AccountName)
-
-                    Sas = sasBuilder.ToSasQueryParameters(sharedKeyCredential)
-                };
-
-                _logger.LogDebug($"File URI Generation: {file.folderpath}/{file.filename} SUCCEEDED.");
-
-                return dataLakeUriBuilder.ToUri();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"File URI Generation: {file.folderpath}/{file.filename} FAILED.");
-                throw;
-            }
-        }
-
         public async Task UploadGen2File(FileMetaData fileMetadata, string? projectUploadCode)
         {
             //await _notifierService.Update($"{fileMetadata.folderpath}/{fileMetadata.filename}", true);
@@ -283,37 +219,9 @@ namespace Datahub.Core.Services
 
         }
 
-        private async Task UploadToProject(FileMetaData fileMetadata, string projectUploadCode)
-        {
-            string cxnstring = await _apiCallService.GetProjectConnectionString(projectUploadCode);
-            BlobServiceClient blobServiceClient = new BlobServiceClient(cxnstring);
-            BlobContainerClient containerClient = blobServiceClient.GetBlobContainerClient("datahub");
-
-
-            // Get a reference to a blob named "sample-file" in a container named "sample-container"
-            BlobClient blob = containerClient.GetBlobClient(fileMetadata.filename);
-
-            var metadata = fileMetadata.GenerateMetadata();
-            var uploadOptions = new BlobUploadOptions()
-            {
-                ProgressHandler = new Progress<long>((progress) =>
-                {
-                    fileMetadata.uploadedBytes = progress;
-                    _ = _notifierService.Update($"adddata", false);
-                })
-            };
-
-            long maxFileSize = 1024000000000;
-            await blob.UploadAsync(browserFile.OpenReadStream(maxFileSize), uploadOptions);
-            await blob.SetMetadataAsync(metadata);
-
-            // Upload local file
-
-        }
-
         private async Task UploadFileToProject(FileMetaData fileMetadata, string projectUploadCode)
         {
-            string cxnstring = await _apiCallService.GetProjectConnectionString(projectUploadCode);
+            string cxnstring = await dataRetrievalService.GetProjectConnectionString(projectUploadCode);
             long maxFileSize = 1024000000000;
             var metadata = fileMetadata.GenerateMetadata();
 
@@ -399,15 +307,65 @@ namespace Datahub.Core.Services
             }
         }
 
-        public async Task RestoreVersionOfBlob(string versionId, string fileid)
+        public async Task<Folder> GetFolderStructure(Folder folder, User user, bool onlyFolders = true)
+        {
+            try
+            {
+                return await dataRetrievalService.GetFileList(folder, user, onlyFolders, true);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "GetFolderStructure folder: {FullPathFromRoot} user: {DisplayName} FAILED", folder.fullPathFromRoot, user.DisplayName);
+                throw;
+            }
+        }
+
+        public async Task<Folder> GetFolderContents(Folder folder, string filterSearch, User user)
+        {
+            try
+            {
+                // Clear folder as we will reload!
+                folder?.Clear();
+                if (!string.IsNullOrWhiteSpace(filterSearch))
+                {
+                    return await GetSearchResults(folder, filterSearch, user);
+                }
+
+                if (folder?.isShared ?? false)
+                {
+                    return await GetSharedFileList(folder, user);
+                }
+
+                return await dataRetrievalService.GetFileList(folder, user);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "GetFileList folder: {FullPathFromRoot} filter search: {FilterSearch} user: {DisplayName} FAILED",
+                    folder?.fullPathFromRoot, filterSearch, user?.DisplayName);
+                throw;
+            }
+        }
+
+        private async Task<Folder> GetSharedFileList(dynamic folder, User user)
+        {
+            var filter = $"sharedwith/any(c: c/userid eq '{user.Id}')";
+            return await SearchIndex(folder, filter, user);
+        }
+
+        private async Task<Folder> GetSearchResults(dynamic folder, string searchText, User user)
+        {
+            var filter = $"search.ismatch('{searchText}*', 'filename', 'full', 'any') and ownedby eq '{user.Id}'";
+            return await SearchIndex(folder, filter, user);
+        }
+
+        public async Task RestoreVersionOfBlob(string fileid, string versionId)
         {
 
             try
             {
+                var containerClient = await dataRetrievalService.GetBlobContainerClient(null, MyDataService.MYDATA_CONTAINER_NAME);
                 // Get the name of the first blob in the container to use as the source.
-                BlobServiceClient blobServiceClient = new BlobServiceClient(await _apiCallService.getStorageConnString());
-                BlobContainerClient containerClient = blobServiceClient.GetBlobContainerClient(_apiCallService.getBlobContainerName());
-                BlobClient sourceBlob = containerClient.GetBlobClient(fileid).WithVersion(versionId);
+                var sourceBlob = containerClient.GetBlobClient(fileid).WithVersion(versionId);
 
                 // Create a BlobClient representing the source blob to copy.
 
@@ -484,56 +442,9 @@ namespace Datahub.Core.Services
             return directoryClient.Exists();
         }
 
-        const string defaultContainerName = "datahub";
+        public const string MYDATA_CONTAINER_NAME = "datahub";
 
-        static BlobSasBuilder GetBlobSasBuilder(string fileName, int days, BlobSasPermissions permissions)
-        {
-            var result = new BlobSasBuilder()
-            {
-                BlobContainerName = defaultContainerName,
-                BlobName = fileName,
-                Resource = "b",
-                StartsOn = DateTimeOffset.UtcNow,
-                ExpiresOn = DateTimeOffset.UtcNow.AddDays(days)
-            };
 
-            result.SetPermissions(permissions);
 
-            return result;
-        }
-
-        private async Task<BlobContainerClient> GetBlobContainerClient(string project)
-        {
-            var cxnstring = await _apiCallService.GetProjectConnectionString(project);
-            BlobServiceClient blobServiceClient = new BlobServiceClient(cxnstring);
-            return blobServiceClient.GetBlobContainerClient(defaultContainerName);
-        }
-
-        private async Task<Uri> GetDelegationSasBlobUri(string fileName, string projectUploadCode, int days, BlobSasPermissions permissions)
-        {
-            var project = projectUploadCode.ToLowerInvariant();
-            var containerClient = await GetBlobContainerClient(project);
-            var sasBuilder = GetBlobSasBuilder(fileName, days, permissions);
-
-            var sharedKeyCred = await _dataLakeClientService.GetSharedKeyCredential(project);
-
-            Uri uri;
-            if (!string.IsNullOrEmpty(fileName))
-            {
-                var blobClient = containerClient.GetBlobClient(fileName);
-                uri = blobClient.Uri;
-            }
-            else
-            {
-                uri = containerClient.Uri;
-            }
-
-            var blobUriBuilder = new BlobUriBuilder(uri)
-            {
-                Sas = sasBuilder.ToSasQueryParameters(sharedKeyCred)
-            };
-
-            return blobUriBuilder.ToUri();
-        }
     }
 }

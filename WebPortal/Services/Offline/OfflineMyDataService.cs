@@ -7,11 +7,12 @@ using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.Extensions.Logging;
 using Datahub.Core.Data;
 using Datahub.Core.Services;
+using Azure.Storage.Blobs;
 
 namespace Datahub.Portal.Services.Offline
 {
 
-    public class OfflineApiService : IApiService
+    public class OfflineMyDataService : MyDataService
     {
 
         private IFileListEntry _file = null;
@@ -23,7 +24,7 @@ namespace Datahub.Portal.Services.Offline
 
         public string CurrentFolderId { get; set; }
         private IUserInformationService _userInformationService;
-        private readonly ILogger<OfflineApiService> _logger;
+        private readonly ILogger<OfflineMyDataService> _logger;
 
         public Exception LastException { get; set; }
 
@@ -55,7 +56,20 @@ namespace Datahub.Portal.Services.Offline
         public IBrowserFile browserFile { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public string ProjectUploadCode { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
-        public OfflineApiService(IUserInformationService userInformationService, ILogger<OfflineApiService> logger)
+        public OfflineMyDataService(IUserInformationService userInformationService, ILogger<OfflineMyDataService> logger):
+            base(logger,
+                    null,
+                     userInformationService,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null)
         {
             _userInformationService = userInformationService;
             _logger = logger;
@@ -178,5 +192,6 @@ namespace Datahub.Portal.Services.Offline
         {
             return Task.FromResult(new Uri(""));
         }
+
     }
 }

@@ -1,7 +1,7 @@
 ﻿@inherits LayoutComponentBase
 
 @inject IMSGraphService MSGraphService
-@inject IApiService ApiService
+@inject MyDataService ApiService
 @inject NavigationManager NavigationManager
 @inject UserLocationManagerService UserLocationManagerService
 
@@ -22,7 +22,7 @@
             <div class="main-layout">
                 <Topbar />
                 <div class="ui-control">
-                    <div class="page">
+                    <div class="main-page">
                         <ErrorBoundary @ref="_errorBoundary">
                             <ChildContent>
                                 @if (_isSessionEnabled == true)
