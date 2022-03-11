@@ -15,11 +15,10 @@ namespace Datahub.Portal.Services
         private DataLakeClientService _dataLakeClientService;
 
         public DataCreatorService(ILogger<DataCreatorService> logger,
-                                  IApiService apiService,
                                   DataLakeClientService dataLakeClientService,
                                   NavigationManager navigationManager,
                                   UIControlsService uiService)
-            : base(navigationManager, apiService, uiService)
+            : base(navigationManager, uiService)
         {
             _logger = logger;
             _dataLakeClientService = dataLakeClientService;

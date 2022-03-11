@@ -1,15 +1,6 @@
-using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Datahub.Portal.Services;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.Identity.Web;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
@@ -32,25 +23,18 @@ using Datahub.Portal.Data;
 using Datahub.Portal.Data.WebAnalytics;
 using Microsoft.Graph;
 using Polly;
-using System.Net.Http;
 using Polly.Extensions.Http;
 using Datahub.Metadata.Model;
-using Microsoft.Extensions.Logging;
 using Datahub.Core.RoleManagement;
 using Datahub.Core;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.ApplicationInsights.Extensibility;
-using Datahub.LanguageTraining;
 using Microsoft.AspNetCore.HttpLogging;
 using Datahub.CKAN.Service;
 using Datahub.Core.UserTracking;
-using Datahub.Finance;
-using Datahub.M365Forms;
-using System.Reflection;
 using System.Runtime.CompilerServices;
 using Datahub.Core.Configuration;
 using Datahub.Core.Modules;
-using Datahub.Portal.Services.Api;
+using Datahub.Portal.Services.Storage;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]
 namespace Datahub.Portal
@@ -378,8 +362,7 @@ namespace Datahub.Portal
                 services.AddScoped<IUserInformationService, UserInformationService>();
                 services.AddSingleton<IMSGraphService, MSGraphService>();
 
-                services.AddScoped<IApiService, ApiService>();
-                services.AddScoped<IApiCallService, ApiCallService>();
+                services.AddScoped<MyDataService>();
 
                 services.AddScoped<IPublicDataFileService, PublicDataFileService>();
 
@@ -388,7 +371,7 @@ namespace Datahub.Portal
                 services.AddScoped<IDataUpdatingService, DataUpdatingService>();
                 services.AddScoped<IDataSharingService, DataSharingService>();
                 services.AddScoped<IDataCreatorService, DataCreatorService>();
-                services.AddScoped<IDataRetrievalService, DataRetrievalService>();
+                services.AddScoped<DataRetrievalService>();
                 services.AddScoped<IDataRemovalService, DataRemovalService>();
 
                 services.AddSingleton<ICognitiveSearchService, CognitiveSearchService>();
@@ -410,15 +393,14 @@ namespace Datahub.Portal
                 services.AddScoped<IUserInformationService, OfflineUserInformationService>();
                 services.AddSingleton<IMSGraphService, OfflineMSGraphService>();
 
-                services.AddScoped<IApiService, OfflineApiService>();
-                services.AddScoped<IApiCallService, OfflineApiCallService>();
+                services.AddScoped<MyDataService, OfflineMyDataService>();
                 
                 services.AddScoped<IProjectDatabaseService, OfflineProjectDatabaseService>();
 
                 services.AddScoped<IDataUpdatingService, OfflineDataUpdatingService>();
                 services.AddScoped<IDataSharingService, OfflineDataSharingService>();
                 services.AddScoped<IDataCreatorService, OfflineDataCreatorService>();
-                services.AddScoped<IDataRetrievalService, OfflineDataRetrievalService>();
+                services.AddScoped<DataRetrievalService, OfflineDataRetrievalService>();
                 services.AddScoped<IDataRemovalService, OfflineDataRemovalService>();
 
                 services.AddScoped<IAzurePriceListService, OfflineAzurePriceListService>();
