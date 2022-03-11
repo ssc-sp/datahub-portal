@@ -1,5 +1,5 @@
-@inject ApiService _apiService
 @inject IDataRemovalService _dataRemovalService
+@inject DataRetrievalService _dataRetrievalService
 @inject IJSRuntime _jsRuntime
 
 <div class="heading">
@@ -68,7 +68,7 @@
 
         if (file != null)
         {
-            var uri = await _apiService.DownloadFile(file, ProjectAcronym);
+            var uri = await _dataRetrievalService.DownloadFile(DataRetrievalService.DEFAULT_CONTAINER_NAME, file, ProjectAcronym);
             await _jsRuntime.InvokeVoidAsync("open", uri.ToString(), "_blank");
         }
     }
