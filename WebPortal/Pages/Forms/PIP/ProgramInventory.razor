@@ -86,10 +86,11 @@
                  IsSubmitEnabled="@_enableSave"
                  IsSectionLocksVisible="@_isUserAdmin"
                  CheckedIcon="far fa-check"
+                 @ref="_myModelForm"
                  />
     <AeFlex>
         <div class="icon-container" style="margin-bottom: 10px; margin-left: 5px;">
-            <FAButton Text="Save and Lock" onclick="e => SaveAndLock()" />
+            <FAButton Text="Save and Lock" onclick="e => SaveAndLock()" Disabled=@(!_enableSave) />
             <SuccessIndicator @bind-IsLoading=@_submittingApproval @ref=@_submitApprovalInd />
         </div>
     </AeFlex>
@@ -115,7 +116,7 @@
 
     private PIP_FiscalYears _fiscalYear;
     private List<string> _fiscalYears;
-
+    private AeModelForm<PIP_Tombstone> _myModelForm;
     private List<PIP_Tombstone> _projects;
     private PIP_Tombstone _tombstone;// = new PIP_Tombstone();
     private string SubmitLabel = "Save";
@@ -327,7 +328,8 @@
         }
         _tombstone = Context.Tombstones.Where(i => i.Tombstone_ID == recordId).First();
         _tombstone.Last_Updated_UserName = await MSGraphService.GetUserName(_tombstone.Last_Updated_UserId, CancellationToken.None);
-
+        var ctx = _myModelForm.ModelFormContext;
+        ApplyLocks(ctx);
     }
 
     private async void HandleWarningDecision(bool IsContinue)
@@ -484,13 +486,7 @@
 
         }
 
-        if (_tombstoneSwitched)
-        {
-            ClearContextlocks(args.Context);
-            RegisterLocks(args.Context);
-            _tombstoneSwitched = false;
-            StateHasChanged();
-        }
+        
     }
 
 
@@ -515,7 +511,7 @@
         _tombstone.IsLatestUpdateInformationLocked = true;
 
         await HandleValidSubmit();
-        //_tombstone = null;
+        
         StateHasChanged();
     }
 
@@ -603,10 +599,14 @@
     {
 
     }
-
+    private void ApplyLocks(IModelFormContext context)
+    { 
+        ClearContextlocks(context);
+        RegisterLocks(context);
+    }
     public void CleanEditingUser()
     {
-        if (_tombstone != null && !string.IsNullOrEmpty(_tombstone.EditingUserId) && _tombstone.EditingUserId == CurrentUser.Id)
+        if (_tombstone != null && _enableSave && !string.IsNullOrEmpty(_tombstone.EditingUserId) && _tombstone.EditingUserId == CurrentUser.Id)
         {
             _tombstone.EditingUserId = string.Empty;
 
