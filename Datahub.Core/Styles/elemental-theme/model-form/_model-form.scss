@@ -27,6 +27,7 @@
         .validation-errors {
             .validation-message {
                 font-size: 0.9rem;
+                color: c.$red-600;
             }
         }
 
@@ -39,12 +40,18 @@
                     grid-template-columns: 250px auto;
                     margin: 0.5rem 0;
 
+
                     .ae.ae-form-control-label {
                         display: flex;
                         align-items: center;
                         flex-direction: row-reverse;
                         margin-right: 0.5rem;
                         font-weight: bold;
+
+                        &.notes {
+                            font-weight: normal;
+                            font-style: italic;
+                        }
 
                         &.ae-label-required {
                             & > :first-child::after {
