@@ -1,21 +1,21 @@
-@using Datahub.Core.Components.Skeleton
+@using Datahub.Core.Components.FileUpload
 
 @inject IUserInformationService _userInformationService
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject DataRetrievalService _dataRetrievalService
+@inject MyDataService _apiService
+
 
 <div class="file-explorer-layout">
-    <div class="heading">
-        <AeTypography Variant="h1">@Localizer["Storage Explorer"]</AeTypography>
-        <div class="breadcrumbs">
-            <AeButton class="light" @onclick="() => SetCurrentFolder(_root)">root</AeButton>
-            @foreach (var folder in _currentFolder.Split("/").Where(s => !string.IsNullOrWhiteSpace(s)))
-            {
-                <i class="fas fa-chevron-right"></i>
-                <AeButton class="light" @onclick="() => BreadcrumbClicked(folder)">@folder</AeButton>
-            }
-        </div>
-    </div>
+    <CascadingValue Value="_user" Name="GraphUser">
+        <Heading
+            SetCurrentFolder="SetCurrentFolder"
+            OnFileDelete="HandleFileDelete"
+            OnNewFolder="HandleNewFolder"
+            CurrentFolder="@_currentFolder"
+            SelectedItem="@_selectedItem"
+            VirtualDirectory="_virtualDirectory"/>
+    </CascadingValue>
 
     <div class="file-list">
         <div class="file-list-header">
@@ -27,63 +27,57 @@
 
         @if (_loading)
         {
-            @for (var i = 0; i < 10; i++)
-            {
-                <span class="file-item">
-                    <span style="display: flex; gap: .5rem; align-items: center;">
-                        <Skeleton Width="30px" Height="30px" Circle/>
-                        <Skeleton Width="300px" Height="2rem"/>
-                    </span>
-                    <Skeleton Width="100px" Height="2rem"/>
-                    <Skeleton Width="200px" Height="2rem"/>
-                    <span></span>
-                </span>
-            }
+            <LoadingFileList/>
         }
         else
         {
-            @foreach (var (folderName, _) in _virtualDirectory
-                .Where(f => f.Key != "/" && (Path.GetDirectoryName(f.Key)?.Equals(_currentFolder) ?? false)))
-            {
-                <FileItem
-                    Name="@(folderName)"
-                    Highlighted="_selectedItem == folderName"
-                    @onclick="() => _selectedItem = folderName"
-                    @ondblclick="() => SetCurrentFolder(folderName)">
-                    <Icon>
-                        <i class="fas fa-folder"></i>
-                    </Icon>
-                </FileItem>
-            }
-            @foreach (var file in _virtualDirectory[_currentFolder])
-            {
-                <FileItem
-                    Name="@Path.GetFileName(file.name)"
-                    Modified="@file.Modified"
-                    Size="@file.filesize"
-                    @onclick="() => _selectedItem = file.name"
-                    Highlighted="_selectedItem == file.name">
-                    <Icon>
-                        <i class="@DatahubTools.GetFileTypeIcon(file.fileformat)"></i>
-                    </Icon>
-                </FileItem>
-            }
+            <UploadSnackbar UploadingFiles="_uploadingFiles">
+                <DropZone OnFilesDrop="UploadFiles">
+                    @foreach (var (folderName, _) in _virtualDirectory
+                        .Where(f => f.Key != "/"
+                                    && (Path.GetDirectoryName(f.Key)?.Equals(_currentFolder) ?? false)))
+                    {
+                        <FileItem
+                            Name="@(Path.GetFileName(folderName))"
+                            Highlighted="_selectedItem == folderName"
+                            @onclick="() => _selectedItem = folderName"
+                            @ondblclick="() => SetCurrentFolder(folderName)">
+                            <Icon>
+                                <i class="fas fa-folder"></i>
+                            </Icon>
+                        </FileItem>
+                    }
+                    @foreach (var file in _virtualDirectory[_currentFolder]
+                        .OrderBy(f => f.name))
+                    {
+                        <FileItem
+                            Name="@Path.GetFileName(file.name)"
+                            Modified="@file.Modified"
+                            Size="@file.filesize"
+                            @onclick="() => _selectedItem = file.name"
+                            Highlighted="_selectedItem == file.name">
+                            <Icon>
+                                <i class="@DatahubTools.GetFileTypeIcon(file.fileformat)"></i>
+                            </Icon>
+                        </FileItem>
+                    }
+                </DropZone>
+            </UploadSnackbar>
         }
     </div>
-
     <div class="item-details">
         <div class="details-sticky">
             <div class="details-container">
                 @if (_loading || _virtualDirectory.ContainsKey(_selectedItem))
                 {
-                    <StorageProperties DisplayName="@_selectedItem"/>
+                    <StorageProperties DisplayName="@Path.GetFileName(_selectedItem)"/>
                 }
                 else
                 {
                     var file = _virtualDirectory[_currentFolder]
-                        .Find(f => f.name.Equals(_selectedItem, StringComparison.OrdinalIgnoreCase));
+                        .FirstOrDefault(f => f.name.Equals(_selectedItem, StringComparison.OrdinalIgnoreCase));
 
-                    <FileProperties File="file" />
+                    <FileProperties File="file"/>
                 }
             </div>
         </div>
@@ -101,26 +95,36 @@
 
 
     private bool _loading = true;
-    private List<FileMetaData> _files;
+    private List<FileMetaData> _uploadingFiles;
 
     private readonly string _root = "/";
     private string _currentFolder = "/";
     private string _selectedItem = "/";
-    private Dictionary<string, List<FileMetaData>> _virtualDirectory = new();
+
+    private Dictionary<string, List<FileMetaData>> _virtualDirectory = new()
+    {
+        {"/", new List<FileMetaData>()}
+    };
 
     protected override async Task OnInitializedAsync()
     {
+        await base.OnInitializedAsync();
+
         await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
 
         _userId = await _userInformationService.GetUserIdString();
         _user = await _userInformationService.GetUserAsync();
 
-        _files = await _dataRetrievalService.GetStorageBlobFiles(ProjectAcronym, DataRetrievalService.DEFAULT_CONTAINER_NAME, _user);
-
-        _virtualDirectory = _files
+        _uploadingFiles = new List<FileMetaData>();
+        _virtualDirectory = (await _dataRetrievalService.GetStorageBlobFiles(ProjectAcronym, DataRetrievalService.DEFAULT_CONTAINER_NAME, _user))
             .GroupBy(f => $"/{Path.GetDirectoryName(f.filename)?.Trim()}")
             .ToDictionary(g => g.Key,
                 g => g.ToList());
+
+        if (!_virtualDirectory.Any())
+        {
+            _virtualDirectory.Add("/", new List<FileMetaData>());
+        }
 
         _loading = false;
     }
@@ -131,12 +135,62 @@
         _selectedItem = folderName;
     }
 
-
-    private void BreadcrumbClicked(string breadcrumb)
+    private void HandleFileDelete(string filename)
     {
-        var index = _currentFolder.IndexOf(breadcrumb, StringComparison.OrdinalIgnoreCase);
-        _currentFolder = _currentFolder[..(index + breadcrumb.Length)];
-        _selectedItem = _currentFolder;
+        _virtualDirectory[_currentFolder].RemoveAll(f => f.name.Equals(filename, StringComparison.OrdinalIgnoreCase));
+        SetCurrentFolder(_currentFolder);
     }
+
+    private void HandleNewFolder(string newFolderName)
+    {
+        if (_virtualDirectory.ContainsKey(newFolderName))
+            return;
+        
+        _virtualDirectory.Add(Path.Join(_currentFolder, newFolderName), new List<FileMetaData>());
+    }
+
+    private async Task UploadFiles(InputFileChangeEventArgs e)
+    {
+        foreach (var browserFile in e.GetMultipleFiles())
+        {
+            await UploadFile(browserFile);
+        }
+    }
+
+    private async Task UploadFile(IBrowserFile browserFile)
+    {
+        if (browserFile == null)
+            return;
+
+        var fileMetadata = new FileMetaData
+        {
+            folderpath = _currentFolder,
+            filename = Path.Join(_currentFolder, browserFile.Name),
+            filesize = browserFile.Size.ToString(),
+            uploadStatus = FileUploadStatus.SelectedToUpload,
+            BrowserFile = browserFile
+        };
+
+        await _apiService.PopulateOtherMetadata(fileMetadata);
+        _uploadingFiles.Add(fileMetadata);
+
+        _ = InvokeAsync(async () =>
+        {
+            await _apiService.UploadGen2File(fileMetadata, ProjectAcronym.ToLower(), (uploadedBytes) =>
+            {
+                fileMetadata.uploadedBytes = uploadedBytes;
+                StateHasChanged();
+            });
+
+            _uploadingFiles.Remove(fileMetadata);
+            _virtualDirectory[_currentFolder].RemoveAll(f => f.name == fileMetadata.name);
+            _virtualDirectory[_currentFolder].Add(fileMetadata);
+
+            StateHasChanged();
+        });
+
+        StateHasChanged();
+    }
+
 
 }
