@@ -1,7 +1,7 @@
 @inject UIControlsService UI
 @inject IUserInformationService UserInformationService
 @inject NavigationManager NavigationManager
-@inject IApiService ApiService
+@inject MyDataService _myDataService
 @using Microsoft.Identity.Web
 @inject MicrosoftIdentityConsentAndConditionalAccessHandler ConsentHandler
 
@@ -169,7 +169,7 @@
         _showUserPopup = !_showUserPopup;
         if (_showUserPopup)
         {
-            TotalSpaceUsed = await ApiService.GetUserUsedDataTotal(User);
+            TotalSpaceUsed = await _myDataService.GetUserUsedDataTotal(User);
         }
         _showHelp = false;
         StateHasChanged();
