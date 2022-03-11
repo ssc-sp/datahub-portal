@@ -26,7 +26,7 @@
         <AeButton class="tool" onclick="document.querySelector('.file-list .dropzone-container input').click();">
             <i class="fas fa-upload"></i>
         </AeButton>
-        <AeButton class="tool">
+        <AeButton class="tool" @onclick="HandleNewFolder">
             <i class="fas fa-folder-plus"></i>
         </AeButton>
     </div>
@@ -54,6 +54,22 @@
     
     [Parameter]
     public EventCallback<string> OnFileDelete { get; set; }
+    
+    [Parameter]
+    public EventCallback<string> OnNewFolder { get; set; }
+
+    
+    private IJSObjectReference _module;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+        
+        _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import",
+            "./Pages/Project/FileExplorer/Heading.razor.js");
+
+        
+    }
 
     private async Task BreadcrumbClicked(string breadcrumb)
     {
@@ -86,6 +102,13 @@
                 await OnFileDelete.InvokeAsync(file.name);
             }
         }
+    }
+
+    private async Task HandleNewFolder()
+    {
+        var newFolderName = await _module.InvokeAsync<string>("promptForNewFolderName");
+
+        await OnNewFolder.InvokeAsync(newFolderName.Trim());
     }
 
 }
