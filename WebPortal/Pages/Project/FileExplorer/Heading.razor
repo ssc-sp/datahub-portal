@@ -107,10 +107,9 @@
     private async Task HandleNewFolder()
     {
         var newFolderName = await _module.InvokeAsync<string>("promptForNewFolderName");
-
-        await OnNewFolder.InvokeAsync(newFolderName.Trim());
+        if (!string.IsNullOrWhiteSpace(newFolderName))
+        {
+            await OnNewFolder.InvokeAsync(newFolderName.Trim());
+        }
     }
-    
-
-
 }
