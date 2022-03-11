@@ -11,6 +11,7 @@
         <Heading
             SetCurrentFolder="SetCurrentFolder"
             OnFileDelete="HandleFileDelete"
+            OnNewFolder="HandleNewFolder"
             CurrentFolder="@_currentFolder"
             SelectedItem="@_selectedItem"
             VirtualDirectory="_virtualDirectory"/>
@@ -140,6 +141,14 @@
         SetCurrentFolder(_currentFolder);
     }
 
+    private void HandleNewFolder(string newFolderName)
+    {
+        if (_virtualDirectory.ContainsKey(newFolderName))
+            return;
+        
+        _virtualDirectory.Add(Path.Join(_currentFolder, newFolderName), new List<FileMetaData>());
+    }
+
     private async Task UploadFiles(InputFileChangeEventArgs e)
     {
         foreach (var browserFile in e.GetMultipleFiles())
@@ -156,7 +165,7 @@
         var fileMetadata = new FileMetaData
         {
             folderpath = _currentFolder,
-            filename = browserFile.Name,
+            filename = Path.Join(_currentFolder, browserFile.Name),
             filesize = browserFile.Size.ToString(),
             uploadStatus = FileUploadStatus.SelectedToUpload,
             BrowserFile = browserFile
