@@ -18,7 +18,7 @@
 </AeCard>
 
 <AeCard class="facardForms" CardPosition="AeCard.CardStyle.Horizontal">
-    <h2>Step 2: Enter/Select Indicators and Results for Selected Program</h2>
+    <h2>Enter/Select Indicators and Results for Selected Program</h2>
     <div>
         <AeFlex Vertical id="indexFlex">
 
@@ -66,11 +66,11 @@
 {
     @if (_indicator.IndicatorAndResult_ID > 0)
     {
-        <h2>Editing Indicator and Result @_indicator.IndicatorAndResult_ID</h2>
+        <h2>Editing Indicator and Result</h2>
     }
     else
     {
-        <h2>Update Outcome and Indicator Data</h2>
+        <h2>Enter Outcome and Indicator Data</h2>
     }
 
     <AeModelForm Model="_indicator"
@@ -85,10 +85,11 @@
                  LabelsOnTop="true" 
                  IsSectionLocksVisible="@_isUserAdmin"
                  IsSubmitEnabled="@_enableSave"
-                 CheckedIcon="far fa-check"/>
+                 CheckedIcon="far fa-check"
+                 @ref="_myModelForm"/>
      <AeFlex>
         <div class="icon-container" style="margin-bottom: 10px; margin-left: 5px;">
-            <FAButton Text="Save and Lock" onclick="e => SaveAndLock()" />
+            <FAButton Text="Save and Lock" @onclick="e => SaveAndLock()" Disabled=@(!_enableSave) />
             <SuccessIndicator @bind-IsLoading=@_submittingApproval @ref=@_submitApprovalInd />
         </div>
     </AeFlex>
@@ -114,6 +115,7 @@
     [Parameter]
     public string fiscalYear { get; set; }
 
+    private AeModelForm<PIP_IndicatorAndResults> _myModelForm;
     private const string PROJECTACRONYM = "PIP";
     private List<PIP_IndicatorAndResults> _indicators;
     private PIP_IndicatorAndResults _indicator;
@@ -130,7 +132,6 @@
     private int _lastClicked = 0;
     private IPageableComponent _myTable;
     private bool _reloadOptions = true;
-    private bool _indicatorSwitched = false;
     private SuccessIndicator _submitApprovalInd;
     private bool _submittingApproval = false;
 
@@ -168,16 +169,15 @@
 
     private void OnChange(ModelFormChangeArgs args)
     {
-        //HandleTranslationFields();      
-        if (_indicatorSwitched)
-        {
-            ClearContextlocks(args.Context);
-            RegisterLocks(args.Context);
-            _indicatorSwitched = false;
-            StateHasChanged();
-        }
-
+        
     }
+
+    private void ApplyLocks(IModelFormContext context)
+    { 
+        ClearContextlocks(context);
+        RegisterLocks(context);
+    }
+
     private async Task OnConfigure(IModelFormContext context)
     {
         if (_reloadOptions)
@@ -273,6 +273,8 @@
         _indicator.IsTargetLocked = true;
         _indicator.IsIndicatorDetailsLocked = true;
         _indicator.IsIndicatorStatusLocked = true;
+
+
         await HandleValidSubmit();
         
         StateHasChanged();
@@ -359,6 +361,8 @@
         }
         _indicator = Context.IndicatorAndResults.Where(i => i.IndicatorAndResult_ID == recordId).First();
         _indicator.Last_Updated_UserName = await MSGraphService.GetUserName(_indicator.Last_Updated_UserId, CancellationToken.None);
+        var ctx = _myModelForm.ModelFormContext;
+        ApplyLocks(ctx);
 
     }
     private async void HandleWarningDecision(bool IsContinue)
@@ -480,8 +484,6 @@
         {
             CleanEditingUser();
             await PrepareItemForEdit(indicator);
-
-            _indicatorSwitched = true;
 
             StateHasChanged();
         }
