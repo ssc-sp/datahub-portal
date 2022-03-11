@@ -22,7 +22,7 @@ namespace Datahub.Portal.Services
         public string PublicFileSharingDomain { get; set; }
         public string OpenDataApproverName { get; set; }
         public string OpenDataApproverEmail { get; set; }
-        public string OpenDataApproverEmailSubject { get; set; } = "New Approval Requested / Nouvelle approbation demandée";
+        public string OpenDataApproverEmailSubject { get; set; } = "New Approval Requested / Nouvelle approbation demandï¿½e";
     }
 
     public class PublicDataFileService : IPublicDataFileService

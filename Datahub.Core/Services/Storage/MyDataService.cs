@@ -10,11 +10,9 @@ using Azure;
 using Azure.Search.Documents;
 using Azure.Search.Documents.Models;
 using Azure.Storage.Blobs;
-using Azure.Storage.Blobs.Models;
 using Azure.Storage.Blobs.Specialized;
 using Azure.Storage.Files.DataLake;
 using Azure.Storage.Files.DataLake.Models;
-using Azure.Storage.Sas;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.JSInterop;
 using System.Diagnostics;
@@ -180,11 +178,28 @@ namespace Datahub.Core.Services
 
         public async Task UploadGen2File(FileMetaData fileMetadata, string? projectUploadCode)
         {
+            await UploadGen2File(fileMetadata, projectUploadCode, (progress) =>
+            {
+                fileMetadata.uploadedBytes = progress;
+                _ = _notifierService.Update($"adddata", false);
+            });
+        }
+        public async Task UploadGen2File(FileMetaData fileMetadata, string? projectUploadCode, Action<long> progress)
+        {
             //await _notifierService.Update($"{fileMetadata.folderpath}/{fileMetadata.filename}", true);
             try
             {
-                fileMetadata.bytesToUpload = browserFile.Size;
-                fileMetadata.filesize = browserFile.Size.ToString();
+                if (fileMetadata.BrowserFile != null)
+                {
+                    fileMetadata.bytesToUpload = fileMetadata.BrowserFile.Size;
+                    fileMetadata.filesize = fileMetadata.BrowserFile.Size.ToString();
+                }
+                else 
+                {
+                    fileMetadata.bytesToUpload = browserFile.Size;
+                    fileMetadata.filesize = browserFile.Size.ToString();
+                }
+                
                 fileMetadata.folderpath = string.IsNullOrEmpty(projectUploadCode) ? fileMetadata.folderpath : string.Empty;
 
 
@@ -196,7 +211,7 @@ namespace Datahub.Core.Services
                 else
                 {
                     //await UploadToProject(fileMetadata);
-                    await UploadFileToProject(fileMetadata, projectUploadCode);
+                    await UploadFileToProject(fileMetadata, projectUploadCode, progress);
                 }
 
                 fileMetadata.FinishUploadInfo(FileUploadStatus.FileUploadSuccess);
@@ -219,19 +234,18 @@ namespace Datahub.Core.Services
 
         }
 
-        private async Task UploadFileToProject(FileMetaData fileMetadata, string projectUploadCode)
+        private async Task UploadFileToProject(FileMetaData fileMetadata, string projectUploadCode, Action<long> progress)
         {
             string cxnstring = await dataRetrievalService.GetProjectConnectionString(projectUploadCode);
             long maxFileSize = 1024000000000;
-            var metadata = fileMetadata.GenerateMetadata();
+            var metadata = fileMetadata!.GenerateMetadata();
 
             var blobClientUtil = new Utils.BlobClientUtils(cxnstring, "datahub");
 
-            await blobClientUtil.UploadFile(fileMetadata.filename, browserFile.OpenReadStream(maxFileSize), metadata, (progress) =>
-            {
-                fileMetadata.uploadedBytes = progress;
-                _ = _notifierService.Update($"adddata", false);
-            });
+            await using var stream = fileMetadata.BrowserFile?.OpenReadStream(maxFileSize) ??
+                                     browserFile?.OpenReadStream(maxFileSize);
+
+            await blobClientUtil.UploadFile(fileMetadata.filename, stream, metadata, progress);
         }
 
         private async Task UploadToGen2Storage(FileMetaData fileMetadata)
