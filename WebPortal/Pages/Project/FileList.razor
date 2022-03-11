@@ -1,6 +1,6 @@
 ﻿@inject IStringLocalizer<FileList> Localizer
 @inject IDbContextFactory<DatahubProjectDBContext> DbFactoryProject
-@inject ApiService ApiService
+@inject MyDataService ApiService
 
 @* @page "/projects/{ProjectAcronym}/filelist" *@
 
@@ -68,11 +68,11 @@
         _project = projectContext.Projects.Single(p => p.Project_Acronym_CD == ProjectAcronym);        
     }
 
-    private async Task GenerateSASToken(int days)
-    {
-        var uri = await ApiService.GenerateSasToken(ProjectAcronym, 14);
-        _tempToken = uri.ToString();
-        _substitutions = new List<(string, string)>() { ("<sas_uri>",_tempToken) };
-        StateHasChanged();
-    }
+    // private async Task GenerateSASToken(int days)
+    // {
+    //     var uri = await ApiService.GenerateSasToken(ProjectAcronym, 14);
+    //     _tempToken = uri.ToString();
+    //     _substitutions = new List<(string, string)>() { ("<sas_uri>",_tempToken) };
+    //     StateHasChanged();
+    // }
 }
