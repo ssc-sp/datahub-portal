@@ -1,8 +1,8 @@
 @*FileGrid.razor*@
 @using System.Linq
 @using Datahub.Core.Data
-@inject ApiService ApiService
-@inject IDataRetrievalService DataRetrievalService
+@inject MyDataService MyDataService
+@inject DataRetrievalService DataRetrievalService
 @inject IDataRemovalService DataRemovalService
 @inject IDataCreatorService DataCreatorService
 @inject IDataUpdatingService DataUpdatingService
@@ -176,7 +176,7 @@ else
 
         if (IsProjectStorage)
         {
-            //ApiService.ProjectUploadCode = Project.ToLower();
+            //MyDataService.ProjectUploadCode = Project.ToLower();
             _storageMetadata = await DataRetrievalService.GetStorageMetadata(Project.ToLower());
         }
 
@@ -191,9 +191,9 @@ else
     private void UpdateFolderFromDownloads()
     {
         // Any downloads???
-        if (ApiService.UploadedFiles.Count() > 0)
+        if (MyDataService.UploadedFiles.Count() > 0)
         {
-            foreach (var uploadedFile in ApiService.UploadedFiles)
+            foreach (var uploadedFile in MyDataService.UploadedFiles)
             {
                 // Is in the folder we are currently displaying?
                 if (uploadedFile.Value.folderpath == CurrentFolder.fullPathFromRoot)
@@ -305,7 +305,7 @@ else
                 break;
 
             case MenuActions.DownloadFile:
-                var uri = await DataRetrievalService.DownloadFile(item, Project);
+                var uri = await DataRetrievalService.DownloadFile(DataRetrievalService.DEFAULT_CONTAINER_NAME, item, Project);
                 await Task.Run(() => RedirectAndDownload(uri));
                 break;
 
@@ -338,7 +338,8 @@ else
 
             case MenuActions.OpenVersions:
                 RenderFragment frag = @<Versions File="selectedMetaData as FileMetaData"></Versions>;
-                await UI.ToggleModal(@<RenderFragmentModal Fragment=frag />);
+                await UI.ToggleModal(@<RenderFragmentModal Fragment=frag />
+    );
                 break;
 
             case MenuActions.ShareFile:
@@ -459,8 +460,15 @@ else
 
         Project ??= string.Empty;
 
-        // Get our list of files!
-        CurrentFolder = await DataRetrievalService.GetFolderContents(CurrentFolder, SearchText, CurrentUser, Project.ToLower());
+        if (!string.IsNullOrWhiteSpace(Project))
+        {
+            CurrentFolder = await DataRetrievalService.GetProjectFileList(DataRetrievalService.DEFAULT_CONTAINER_NAME, Project.ToLowerInvariant(), CurrentUser);
+        }
+        else
+        {
+            // Get our list of files!
+            CurrentFolder = await MyDataService.GetFolderContents(CurrentFolder, SearchText, CurrentUser);
+        }
 
         ResetSearch();
 

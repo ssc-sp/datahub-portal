@@ -2,8 +2,8 @@
 
 @inject IUserInformationService _userInformationService
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
-@inject IDataRetrievalService _dataRetrievalService
-@inject ApiService _apiService
+@inject DataRetrievalService _dataRetrievalService
+@inject MyDataService _apiService
 
 
 <div class="file-explorer-layout">
@@ -115,7 +115,7 @@
         _user = await _userInformationService.GetUserAsync();
 
         _uploadingFiles = new List<FileMetaData>();
-        _virtualDirectory = (await _dataRetrievalService.GetStorageBlobFiles(ProjectAcronym, _user))
+        _virtualDirectory = (await _dataRetrievalService.GetStorageBlobFiles(ProjectAcronym, DataRetrievalService.DEFAULT_CONTAINER_NAME, _user))
             .GroupBy(f => $"/{Path.GetDirectoryName(f.filename)?.Trim()}")
             .ToDictionary(g => g.Key,
                 g => g.ToList());
