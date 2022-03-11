@@ -92,7 +92,11 @@
                      LabelsOnTop="true" 
                      OnChange ="OnChange"
                      Flexbox />
-
+    <AeFlex>
+        <div class="icon-container" style="margin-bottom: 10px; margin-left: 5px;">
+            <SuccessIndicator @bind-IsLoading=@_submittingApproval @ref=@_submitApprovalInd />
+        </div>
+    </AeFlex>
     <AeFlex id="buttonBar">
         <div class="icon-container" style="margin-bottom: 10px; margin-left: 5px;">
             <FAButton Text="Tombstone" Icon="fal fa-arrow-left" onclick="e => GoToPreviousSheet()" />
@@ -119,6 +123,8 @@
 
     private int _lastClicked = 0;
     private IPageableComponent _myTable;
+    private SuccessIndicator _submitApprovalInd;
+    private bool _submittingApproval = false;
 
     protected override void OnAfterRender(bool firstRender)
     {
@@ -200,6 +206,8 @@
 
     private async void OnConfirmSave(bool isConfirmed, dynamic item)
     {
+        await UI.ToggleModal();
+        _submittingApproval = true;
         if (isConfirmed && _risk != null)
         {
             _risk.Last_Updated_DT = DateTime.Now;
@@ -209,7 +217,15 @@
             {
                 _risk = Context.Risks.Add(_risk).Entity;
             }
-            await Context.TrackSaveChangesAsync(AuditingService);
+            var result = await Context.TrackSaveChangesAsync(AuditingService);
+            if (result < 1)
+            {
+                await _submitApprovalInd.SignalFailure();
+            }
+            else
+            {
+                await _submitApprovalInd.SignalSuccess();
+            }
             await OnInitializedAsync();
         }
          else if (!isConfirmed && _risk != null)
@@ -222,7 +238,6 @@
 
         _risk = item;
 
-        await UI.ToggleModal();
 
         if (!string.IsNullOrEmpty(navigationUrl))        
             NavigationManager.NavigateTo(navigationUrl);
