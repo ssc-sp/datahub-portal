@@ -1,5 +1,6 @@
 ﻿@using Datahub.Core.Data
-@inject IApiService ApiService
+@inject MyDataService ApiService
+@inject DataRetrievalService DataRetrieval
 @inject NavigationManager NavigationManager
 @inject IMSGraphService MSGraphService
 @inject IUserInformationService UserInformationService
@@ -134,7 +135,7 @@
         isDownloadingFileId = file.fileid;
         StateHasChanged();
 
-        await ApiService.DownloadFile(file, null);
+        await DataRetrieval.DownloadFile(MyDataService.MYDATA_CONTAINER_NAME, file, null);
 
         isDownloadingFileId = "";
         StateHasChanged();

@@ -5,6 +5,7 @@
   "main": "index.js",
   "private": "true",
   "scripts": {
+    "scss": "npm run watch-scss",
     "watch-scss": "sass Styles/site.scss:wwwroot/css/site.css --watch",
     "build-css": "sass Styles/site.scss:wwwroot/css/site.css && sass --style=compressed Styles/site.scss:wwwroot/css/site.min.css"
   },

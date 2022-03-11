@@ -1,0 +1,63 @@
+@using Datahub.Core.Components.Code
+
+@inject DataRetrievalService _dataRetrievalService
+@inject CommonAzureServices _commonAzureServices;
+
+<div class="storage-properties">
+    <div class="title-container">
+        <i class="@DatahubTools.GetFileTypeIcon(File.fileformat)"></i>
+        <AeTypography Variant="h3" class="details-title-text">
+            @File.name
+        </AeTypography>
+    </div>
+
+    <div class="access-container">
+        <AeTypography Variant="h4">Who has access</AeTypography>
+        <span class="circle-item">
+            <ProfileCircle FullName="@ProjectAcronym"/>
+            <AeTypography>@ProjectAcronym</AeTypography>
+        </span>
+    </div>
+
+    <div class="properties">
+        <AeTypography class="properties-title" Variant="h4">Storage Properties</AeTypography>
+        @foreach (var (key, value) in _properties)
+        {
+            <AeTypography class="label">@Localizer["ITEM-DETAILS-PAGE." + key]</AeTypography>
+            <AeTypography class="text">@value</AeTypography>
+        }
+        
+        <AeTypography class="label">@Localizer["Power BI URL"]</AeTypography>
+        <InlineCodeWithCopy>@_powerBiPasteText</InlineCodeWithCopy>
+        
+        <AeTypography class="label">@Localizer["File URL"]</AeTypography>
+        <InlineCodeWithCopy>@_fileLinkUrl</InlineCodeWithCopy>
+
+    </div>
+</div>
+
+
+@code {
+
+    [CascadingParameter(Name = "ProjectAcronym")]
+    public string ProjectAcronym { get; set; }
+
+    [Parameter]
+    public FileMetaData File { get; set; }
+
+    private List<(string, string)> _properties;
+    private string _powerBiPasteText;
+    private string _fileLinkUrl;
+
+    protected override void OnInitialized()
+    {
+        _properties = File.GetMetadataProperties()
+            .Where(p => p.isVisible)
+            .Select(p => (p.key, Value: File.GetMetadataPropertyValue(p.key)))
+            .ToList();
+
+        _powerBiPasteText = $"abfs://{_commonAzureServices.FileSystemName}@{_commonAzureServices.StorageAccountName}.dfs.core.windows.net/{File.folderpath}/{File.filename}";
+        _fileLinkUrl = $"https://{_commonAzureServices.StorageAccountName}.blob.core.windows.net/datahub/{File.folderpath}/{File.filename}";
+    }
+
+}
