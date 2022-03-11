@@ -30,7 +30,7 @@
                      Renderers="GetRenderers()"
                      ColorAccessor="getColor"
                      Headers="headers"
-                     GridTemplateColumns="1fr 4fr 4fr 1fr"
+                     GridTemplateColumns="2fr 1fr 4fr 1fr"
                      OnRowClick="@SetFormEdit" 
                      Page="@_lastClicked"
                      PageSize="10"
@@ -83,7 +83,6 @@
                  LabelForPropertyFunc="@GetDataLabel"
                  OnConfigure="OnConfigure"
                  LabelsOnTop="true" 
-                 Flexbox
                  IsSectionLocksVisible="@_isUserAdmin"
                  IsSubmitEnabled="@_enableSave"/>
      <AeFlex>
@@ -212,7 +211,9 @@
         context.RegisterCategoryLock("Target", false);
         context.RegisterCategoryLock("Actual Results", false);
         context.RegisterCategoryLock("Latest Update Information", false);
-        context.RegisterCategoryLock("Methodology", false);        
+        context.RegisterCategoryLock("Methodology", false);
+        context.RegisterCategoryLock("Indicator Details", false);
+        context.RegisterCategoryLock("Indicator Status", false);
     }
 
     protected void UpdateLocks(IModelFormContext context)
@@ -222,6 +223,8 @@
         _indicator.IsLatestUpdateLocked = false;
         _indicator.IsMethodologyLocked = false;
         _indicator.IsTargetLocked = false;
+        _indicator.IsIndicatorDetailsLocked = false;
+        _indicator.IsIndicatorStatusLocked = false;
         foreach (var category in lockedCategories)
         {
             if (category == "Methodology")
@@ -232,6 +235,10 @@
                 _indicator.IsActualResultsLocked = true;
             if (category == "Target")
                 _indicator.IsTargetLocked = true;
+            if (category == "Indicator Details")
+                _indicator.IsIndicatorDetailsLocked = true;
+            if (category == "Indicator Status")
+                _indicator.IsIndicatorStatusLocked = true;
         }        
     }
     protected void RegisterLocks(IModelFormContext context)
@@ -244,8 +251,11 @@
         if (_indicator.IsLatestUpdateLocked)
             context.RegisterCategoryLock("Latest Update Information", true);
         if (_indicator.IsMethodologyLocked)
-            context.RegisterCategoryLock("Methodology", true);        
-
+            context.RegisterCategoryLock("Methodology", true);
+        if (_indicator.IsIndicatorStatusLocked)
+            context.RegisterCategoryLock("Indicator Status", true);        
+        if (_indicator.IsIndicatorDetailsLocked)
+            context.RegisterCategoryLock("Indicator Details", true);        
     }
     protected override void OnAfterRender(bool firstRender)
     {
@@ -260,7 +270,8 @@
         _indicator.IsLatestUpdateLocked = true;
         _indicator.IsMethodologyLocked = true;
         _indicator.IsTargetLocked = true;
-
+        _indicator.IsIndicatorDetailsLocked = true;
+        _indicator.IsIndicatorStatusLocked = true;
         await HandleValidSubmit();
         
         StateHasChanged();
@@ -318,8 +329,8 @@
 
     private List<Func<PIP_IndicatorAndResults, string>> accessorFunctions = new List<Func<PIP_IndicatorAndResults, string>>
 {
+        new Func<PIP_IndicatorAndResults, string>(p => { return p.Indicator_Status; }),
         new Func<PIP_IndicatorAndResults, string>(p => { return p.Outcome_Level_DESC; }),
-        new Func<PIP_IndicatorAndResults, string>(p => { return p.Program_Output_Or_Outcome_DESC; }),
         new Func<PIP_IndicatorAndResults, string>(p => { return p.Indicator_DESC; }),
         null
     };
@@ -507,7 +518,7 @@
 
     private List<string> headers = new List<string>
 {
-        "Outcome Level","Program Output or Outcome", "Indicator", "Admin Actions"
+        "Status", "Outcome Level", "Indicator", "Admin Actions"
     };
 
     private List<Func<PIP_Risks, RenderFragment>> renderFunctions = null;
