@@ -1,3 +1,4 @@
+@using ByteSizeLib
 <div class="file-item @(Highlighted ? "highlight" : "")" @onclick="OnClick" @ondblclick="OnDblClick">
     <AeTypography class="file-item-name">
         <span class="file-item-icon">
@@ -12,7 +13,7 @@
         </span>
         @Name
     </AeTypography>
-    <AeTypography class="file-item-size">@(Size ?? "")</AeTypography>
+    <AeTypography class="file-item-size">@(ByteSize ?? "")</AeTypography>
     <AeTypography class="file-item-modified">@(Modified?.ToString("f", Thread.CurrentThread.CurrentUICulture) ?? "")</AeTypography>
     <span class="more-actions">
         <i class="fas fa-ellipsis-h"></i>
@@ -41,5 +42,7 @@
     
     [Parameter]
     public EventCallback<MouseEventArgs> OnDblClick { get; set; }
+
+    private string ByteSize => ByteSizeLib.ByteSize.FromBytes(long.Parse(Size ?? "0")).ToString();
 
 }
