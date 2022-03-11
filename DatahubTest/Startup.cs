@@ -21,8 +21,7 @@ namespace Datahub.Tests
             services.AddSingleton<IKeyVaultService, KeyVaultService>();
             services.AddScoped<DataLakeClientService>();
             services.AddSingleton<CognitiveSearchService>();
-            services.AddScoped<IApiService, ApiService>();
-            services.AddScoped<ApiCallService>();
+            services.AddScoped<MyDataService, MyDataService>();
             services.AddScoped<IWebHostEnvironment, FakeWebHostEnvironment>();
             services.AddScoped<IJSRuntime, FakeJSRuntime>();
             //services.AddScoped<DataUpdatingService>();
