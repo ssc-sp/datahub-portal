@@ -24,13 +24,13 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Azure.Search.Documents" Version="11.3.0" />
-    <PackageReference Include="Azure.Storage.Files.DataLake" Version="12.8.0" />
+    <PackageReference Include="Azure.Storage.Files.DataLake" Version="12.9.0" />
     <PackageReference Include="Divergic.Logging.Xunit" Version="4.0.0" />
     <PackageReference Include="Microsoft.Azure.Management.ResourceManager.Fluent" Version="1.38.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="6.0.2" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.1.0" />
-    <PackageReference Include="Microsoft.PowerBI.Api" Version="4.3.0" />
-    <PackageReference Include="Moq" Version="4.17.1" />
+    <PackageReference Include="Microsoft.PowerBI.Api" Version="4.4.0" />
+    <PackageReference Include="Moq" Version="4.17.2" />
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="Xunit.DependencyInjection" Version="8.3.0" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
