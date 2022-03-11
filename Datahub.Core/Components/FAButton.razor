@@ -1,18 +1,18 @@
 ﻿@using Microsoft.AspNetCore.Components
 
 @if (!string.IsNullOrWhiteSpace(To))
-{
-    <AeButton class="ae button dark fa-button" To="@To"><i class="@Icon"></i>@Text</AeButton>
+{    
+    <AeButton class="ae button dark fa-button" To="@To" Disabled=@Disabled><i class="@Icon"></i>@Text</AeButton>
 }
 else
 {
     @if (IconLocation == "right")
     {
-        <AeButton class="ae button dark fa-button" @onclick="onclick">@Text<i class="@Icon"></i></AeButton>
+        <AeButton class="ae button dark fa-button" @onclick="onclick" Disabled=@Disabled>@Text<i class="@Icon"></i></AeButton>
     }
     else
     {
-        <AeButton class="ae button dark fa-button" @onclick="onclick"><i class="@Icon"></i>@Text</AeButton>
+        <AeButton class="ae button dark fa-button" @onclick="onclick" Disabled=@Disabled><i class="@Icon"></i>@Text</AeButton>
     }
 }
 
@@ -30,5 +30,8 @@ else
 
     [Parameter]
     public EventCallback<MouseEventArgs> onclick { get; set; }
+
+    [Parameter]
+    public bool Disabled { get; set; }
 
 }
