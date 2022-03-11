@@ -65,6 +65,17 @@ namespace Datahub.Portal.Services
             return task;
         }
 
+        public async Task<CKANApiResult> UnpublishFile(string fileId)
+        {
+            var service = _serviceFactory.CreateService();
+            var apiResult = await service.DeletePackage(fileId);
+            if (apiResult.Succeeded)
+            {
+                SetFileUnpublishedCompleted(fileId);
+            }
+            return apiResult;
+        }
+
         public bool IsStaging() => _serviceFactory.IsStaging();
 
         private async Task DownloadFileContent(string fileUrl, Func<Stream, Task> processFile)
@@ -103,6 +114,18 @@ namespace Datahub.Portal.Services
                 sharedFile.UploadError_TXT = string.Empty;
                 sharedFile.FileStorage_CD = FileStorageType.OpenData;
                 // todo: use auditing service here
+                ctx.SaveChanges();
+            }
+        }
+
+        private void SetFileUnpublishedCompleted(string fileId)
+        {
+            var fileGuid = Guid.Parse(fileId);
+            using var ctx = _dbContextFactory.CreateDbContext();
+            var sharedFile = ctx.OpenDataSharedFiles.FirstOrDefault(e => e.File_ID  == fileGuid);
+            if (sharedFile is not null)
+            {
+                sharedFile.UnpublishDate_DT = DateTime.UtcNow;
                 ctx.SaveChanges();
             }
         }
