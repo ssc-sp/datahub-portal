@@ -55,6 +55,9 @@
     {
         base.OnParametersSet();
 
+        if (File == null)
+            return;
+
         _properties = File.GetMetadataProperties()
             .Where(p => p.isVisible)
             .Select(p => (p.key, Value: File.GetMetadataPropertyValue(p.key)))
