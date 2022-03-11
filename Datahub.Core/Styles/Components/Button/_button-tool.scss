@@ -1,9 +1,17 @@
-@mixin scss {
+@mixin scss($circle: true) {
+  
   .button-tool {
+    
+    @if($circle){
+      width: 2.5rem;
+      height: 2.5rem;
+    }
+    @else {
+      gap: .5rem
+    }
+    
     border-radius: 500px;
     font-size: 1rem;
-    width: 2.5rem;
-    height: 2.5rem;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -17,3 +25,4 @@
     }
   }
 }
+
