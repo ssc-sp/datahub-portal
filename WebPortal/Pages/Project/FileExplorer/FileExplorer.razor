@@ -38,7 +38,7 @@
                                     && (Path.GetDirectoryName(f.Key)?.Equals(_currentFolder) ?? false)))
                     {
                         <FileItem
-                            Name="@(folderName)"
+                            Name="@(Path.GetFileName(folderName))"
                             Highlighted="_selectedItem == folderName"
                             @onclick="() => _selectedItem = folderName"
                             @ondblclick="() => SetCurrentFolder(folderName)">
@@ -70,7 +70,7 @@
             <div class="details-container">
                 @if (_loading || _virtualDirectory.ContainsKey(_selectedItem))
                 {
-                    <StorageProperties DisplayName="@_selectedItem"/>
+                    <StorageProperties DisplayName="@Path.GetFileName(_selectedItem)"/>
                 }
                 else
                 {
