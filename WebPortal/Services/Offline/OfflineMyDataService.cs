@@ -1,13 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using BlazorInputFile;
-using Microsoft.AspNetCore.Components.Forms;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.AspNetCore.Components.Forms;
 using Datahub.Core.Data;
 using Datahub.Core.Services;
-using Azure.Storage.Blobs;
 
 namespace Datahub.Portal.Services.Offline
 {
@@ -15,9 +8,9 @@ namespace Datahub.Portal.Services.Offline
     public class OfflineMyDataService : MyDataService
     {
 
-        private IFileListEntry _file = null;
+        private IBrowserFile _file = null;
 
-        public IFileListEntry GetFile()
+        public IBrowserFile GetFile()
         {
             return _file;
         }
