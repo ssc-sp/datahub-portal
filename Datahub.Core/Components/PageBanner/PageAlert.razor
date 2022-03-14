@@ -1,0 +1,49 @@
+@inject Blazored.LocalStorage.ILocalStorageService _localStorage
+
+@if (!_hidePageAlert)
+{
+    <div class="page-alert">
+        <span class="alert-heading">
+            <i class="fas fa-info-circle alert-level-icon"></i>
+            <AeTypography Variant="h1" class="alert-title">@Title</AeTypography>
+            <span class="close-button-wrapper">
+                <AeButton class="button-tool" @onclick="HandlePageAlertClose">
+                    <i class="fas fa-times"></i>
+                </AeButton>
+            </span>
+        </span>
+        <div class="alert-body">
+            @ChildContent
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public string Title { get; set; }
+    
+    [Parameter]
+    public string Key { get; set; }
+    
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    private bool _hidePageAlert = true;
+    
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+
+        if (firstRender)
+        {
+            _hidePageAlert = await _localStorage.GetItemAsync<bool>(Key);
+            StateHasChanged();
+        }
+    }
+    
+    private async Task HandlePageAlertClose()
+    {
+        _hidePageAlert = true;
+        await _localStorage.SetItemAsync(Key, _hidePageAlert);
+    }
+}

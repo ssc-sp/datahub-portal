@@ -32,6 +32,7 @@ using Microsoft.AspNetCore.HttpLogging;
 using Datahub.CKAN.Service;
 using Datahub.Core.UserTracking;
 using System.Runtime.CompilerServices;
+using Blazored.LocalStorage;
 using Datahub.Core.Configuration;
 using Datahub.Core.Modules;
 using Datahub.Portal.Services.Storage;
@@ -106,6 +107,7 @@ namespace Datahub.Portal
             services.AddHttpClient<GraphServiceClient>().AddPolicyHandler(GetRetryPolicy());
             services.AddFileReaderService();
             services.AddBlazorDownloadFile();
+            services.AddBlazoredLocalStorage();
             services.AddScoped<ApiTelemetryService>();
             services.AddScoped<GetDimensionsService>();
             //TimeZoneService provides the user time zone to the server using JS Interop
