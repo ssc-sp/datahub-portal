@@ -35,10 +35,10 @@
                 <DropZone OnFilesDrop="UploadFiles">
                     @foreach (var (folderName, _) in _virtualDirectory
                         .Where(f => f.Key != "/"
-                                    && (Path.GetDirectoryName(f.Key)?.Equals(_currentFolder) ?? false)))
+                                    && (GetDirectoryName(f.Key)?.Equals(_currentFolder) ?? false)))
                     {
                         <FileItem
-                            Name="@(Path.GetFileName(folderName))"
+                            Name="@GetFileName(folderName)"
                             Highlighted="_selectedItem == folderName"
                             @onclick="() => _selectedItem = folderName"
                             @ondblclick="() => SetCurrentFolder(folderName)">
@@ -51,7 +51,7 @@
                         .OrderBy(f => f.name))
                     {
                         <FileItem
-                            Name="@Path.GetFileName(file.name)"
+                            Name="@GetFileName(file.name)"
                             Modified="@file.Modified"
                             Size="@file.filesize"
                             @onclick="() => _selectedItem = file.name"
@@ -70,7 +70,7 @@
             <div class="details-container">
                 @if (_loading || _virtualDirectory.ContainsKey(_selectedItem))
                 {
-                    <StorageProperties DisplayName="@Path.GetFileName(_selectedItem)"/>
+                    <StorageProperties DisplayName="@GetFileName(_selectedItem)"/>
                 }
                 else
                 {
@@ -117,7 +117,7 @@
 
         _uploadingFiles = new List<FileMetaData>();
         _virtualDirectory = (await _dataRetrievalService.GetStorageBlobFiles(ProjectAcronym, DataRetrievalService.DEFAULT_CONTAINER_NAME, _user))
-            .GroupBy(f => $"/{Path.GetDirectoryName(f.filename)?.Trim()}")
+            .GroupBy(f => $"/{GetDirectoryName(f.filename)}")
             .ToDictionary(g => g.Key,
                 g => g.ToList());
 
@@ -127,6 +127,24 @@
         }
 
         _loading = false;
+    }
+
+    private string GetDirectoryName(string path)
+    {
+        if(string.IsNullOrWhiteSpace(path) || !path.Contains("/"))
+            return string.Empty;
+        
+        var lastIndex = path.TrimEnd('/').LastIndexOf("/", StringComparison.Ordinal);
+        return lastIndex == -1 ? "/" : path[..lastIndex] + "/";
+    }
+
+    private string GetFileName(string path)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+            return string.Empty;
+        
+        var lastIndex = path.TrimEnd('/').LastIndexOf("/", StringComparison.Ordinal);
+        return lastIndex == -1 ? path : path[(lastIndex + 1)..];
     }
 
     private void SetCurrentFolder(string folderName)
@@ -145,8 +163,12 @@
     {
         if (_virtualDirectory.ContainsKey(newFolderName))
             return;
-        
-        _virtualDirectory.Add(Path.Join(_currentFolder, newFolderName), new List<FileMetaData>());
+
+        newFolderName = newFolderName
+            .Replace("/", "")
+            .Trim();
+
+        _virtualDirectory.Add($"{_currentFolder}{newFolderName}/", new List<FileMetaData>());
     }
 
     private async Task UploadFiles(InputFileChangeEventArgs e)
@@ -165,7 +187,7 @@
         var fileMetadata = new FileMetaData
         {
             folderpath = _currentFolder,
-            filename = Path.Join(_currentFolder, browserFile.Name),
+            filename = _currentFolder + browserFile.Name,
             filesize = browserFile.Size.ToString(),
             uploadStatus = FileUploadStatus.SelectedToUpload,
             BrowserFile = browserFile
