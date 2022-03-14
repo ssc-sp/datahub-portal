@@ -45,7 +45,7 @@
         _markdownContent = await LoadPage(PageName ?? DefaultPage, Substitutions) ?? Localizer["Invalid link"];
     }
 
-    private static string _wikiUrl = "https://raw.githubusercontent.com/wiki/NRCan/datahub-portal/";
+    private static string _wikiUrl = "https://raw.githubusercontent.com/wiki/ssc-sp/datahub-portal/";
 
     private async Task<string> LoadPage(string name, List<(string,string)> substitutions = null)
     {
