@@ -9,20 +9,27 @@
 
 @page "/home/{TabIndex?}"
 
-@if (!_hideWelcome)
-{
-    <PageAlert OnClose="@HandleWelcomeClose" />
-}
+<PageAlert Title="Welcome To DataHub!" Key="@PageAlert.Home">
+    <AeTypography Variant="h4">What is the SSC DataHub?</AeTypography>
+    <AeTypography>The SSC DataHub is an enterprise platform for storing, working with and collaborating on data initiatives across the GC and with external partners. It is a central location for users to store any kind of data, perform collaborative analysis, manipulate data using advanced analytics tools, and conducting data science experiments.</AeTypography>
 
-<WelcomeBanner />
+    <AeTypography Variant="h4">What are the objectives of the SSC DataHub POC project?</AeTypography>
+    <AeTypography>The objective of the SSC DataHub Proof of Concept is to test the scaling of an existing departmental data solution from departmental only to GC-wide, and with external partners. This will be done leveraging technology development and lessons learned from departments and will help identify area of focus for next steps (further Proof of Concepts and move to Production). By co-designing with science-based departments/agencies (SBDAs) we can implement required features/functions and elicit your feedback to identify what works, what is missing, what is useful, and any required refinements to the platform and supporting processes.</AeTypography>
+
+    <AeTypography Variant="h4">Which SSC DataHub features should I use?</AeTypography>
+    <AeTypography>The key features in the SSC DataHub include: Data Projects, Project Storage, Azure Databricks, and Structured Database sharing.</AeTypography>
+    <AeButton style="margin-top: 1rem" To="/resources">Learn More</AeButton>
+</PageAlert>
+
+<WelcomeBanner/>
 
 @if (!_isLoaded)
 {
-    <Spinner />
+    <Spinner/>
 }
 else
 {
-    <LandingContent TabIndex=@TabIndexParsed />
+    <LandingContent TabIndex=@TabIndexParsed/>
 }
 
 @code
@@ -33,17 +40,17 @@ else
     private int TabIndexParsed => int.TryParse(TabIndex, out var tabIndex) ? tabIndex : 0;
     private bool _isUserValid = true;
     private bool _isLoaded;
-    private bool _hideWelcome = true;
-    
-    private readonly List<string> _languages = new() { "English", "Français" };
+    private bool _hidePageAlert = true;
+
+    private readonly List<string> _languages = new() {"English", "Français"};
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            _hideWelcome = await _localStorage.GetItemAsync<bool>(PageAlert.Home);
+            _hidePageAlert = await _localStorage.GetItemAsync<bool>(PageAlert.Home);
             StateHasChanged();
-            
+
             _isUserValid = await _userInformationService.HasUserAcceptedTAC();
             if (_isUserValid)
             {
@@ -57,7 +64,7 @@ else
             StateHasChanged();
         }
     }
-    
+
     private async Task InvalidUser()
     {
         _uiControlsService.AllowEscape = false;
@@ -66,11 +73,11 @@ else
         var language = await _userInformationService.GetUserLanguage();
         if (string.IsNullOrWhiteSpace(language))
         {
-            await _uiControlsService.ToggleModal(@<UserSelectModal HideCancel="true" ConfirmLabel="BUTTONS.ConfirmBilingual" HeaderText="@Localizer["LanguagePreferencePrompt"]" Values="_languages" OnDecision="SaveLanguage" />);
-        } 
+            await _uiControlsService.ToggleModal(@<UserSelectModal HideCancel="true" ConfirmLabel="BUTTONS.ConfirmBilingual" HeaderText="@Localizer["LanguagePreferencePrompt"]" Values="_languages" OnDecision="SaveLanguage"/>);
+        }
         else
-        {            
-            await _uiControlsService.ToggleModal(@<UserTermsAndConditionsModal OnDecision="HandleAlertDecision" Language="@language" />);
+        {
+            await _uiControlsService.ToggleModal(@<UserTermsAndConditionsModal OnDecision="HandleAlertDecision" Language="@language"/>);
         }
     }
 
@@ -78,12 +85,12 @@ else
     {
         _isLoaded = false;
 
-        // We need to load user and check they have root folder
+    // We need to load user and check they have root folder
         var rootFolder = await _userInformationService.GetUserRootFolder();
         var currentUser = await _userInformationService.GetUserAsync();
         await _dataCreatorService.CreateRootFolderIfNotExist(currentUser.Id, rootFolder);
 
-        // Set the user folder ID!
+    // Set the user folder ID!
         _myDataService.MyDataFolder.id = rootFolder;
         _myDataService.SharedDataFolder.id = rootFolder;
         _myDataService.SearchDataFolder.id = rootFolder;
@@ -95,10 +102,10 @@ else
     {
         if (isContinue)
         {
-            // User has agreed to TAC, update in DB
+    // User has agreed to TAC, update in DB
             if (await _userInformationService.RegisterUserTAC())
             {
-                // ONLY valid if saved in DB
+    // ONLY valid if saved in DB
                 _isUserValid = true;
                 await _uiControlsService.ToggleModal();
                 await SetupRootFolder();
@@ -126,9 +133,9 @@ else
         {
             var language = newLanguage.Equals("english", StringComparison.OrdinalIgnoreCase) ? "en-CA" : "fr-CA";
             var isLangSaved = await _userInformationService.RegisterUserLanguage(language);
-            
+
             await _uiControlsService.ToggleModal();
-            await _uiControlsService.ToggleModal(@<UserTermsAndConditionsModal OnDecision="HandleAlertDecision" Language="@language" />);
+            await _uiControlsService.ToggleModal(@<UserTermsAndConditionsModal OnDecision="HandleAlertDecision" Language="@language"/>);
         }
         else
         {
@@ -136,10 +143,4 @@ else
         }
     }
 
-    
-    private async Task HandleWelcomeClose()
-    {
-        _hideWelcome = true;
-        await _localStorage.SetItemAsync(PageAlert.Home, _hideWelcome);
-    }
 }
