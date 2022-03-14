@@ -5,10 +5,11 @@
 @inject IDataCreatorService _dataCreatorService
 @inject UIControlsService _uiControlsService
 @inject NavigationManager _navigationManager
+@inject ILocalStorageService _localStorage
 
 @page "/home/{TabIndex?}"
 
-@if (_showWelcome)
+@if (!_hideWelcome)
 {
     <PageAlert OnClose="@HandleWelcomeClose" />
 }
@@ -30,32 +31,19 @@ else
     public string TabIndex { get; set; }
 
     private int TabIndexParsed => int.TryParse(TabIndex, out var tabIndex) ? tabIndex : 0;
-
-    private async Task InvalidUser()
-    {
-        _uiControlsService.AllowEscape = false;
-
-        // Check if the user has a language set?
-        var language = await _userInformationService.GetUserLanguage();
-        if (string.IsNullOrWhiteSpace(language))
-        {
-            await _uiControlsService.ToggleModal(@<UserSelectModal HideCancel="true" ConfirmLabel="BUTTONS.ConfirmBilingual" HeaderText="@Localizer["LanguagePreferencePrompt"]" Values="_languages" OnDecision="SaveLanguage" />);
-        } 
-        else
-        {            
-            await _uiControlsService.ToggleModal(@<UserTermsAndConditionsModal OnDecision="HandleAlertDecision" Language="@language" />);
-        }
-    }
-
     private bool _isUserValid = true;
     private bool _isLoaded;
-
+    private bool _hideWelcome = true;
+    
     private readonly List<string> _languages = new() { "English", "Français" };
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
+            _hideWelcome = await _localStorage.GetItemAsync<bool>(PageAlert.Home);
+            StateHasChanged();
+            
             _isUserValid = await _userInformationService.HasUserAcceptedTAC();
             if (_isUserValid)
             {
@@ -69,8 +57,24 @@ else
             StateHasChanged();
         }
     }
+    
+    private async Task InvalidUser()
+    {
+        _uiControlsService.AllowEscape = false;
 
-    protected async Task SetupRootFolder()
+    // Check if the user has a language set?
+        var language = await _userInformationService.GetUserLanguage();
+        if (string.IsNullOrWhiteSpace(language))
+        {
+            await _uiControlsService.ToggleModal(@<UserSelectModal HideCancel="true" ConfirmLabel="BUTTONS.ConfirmBilingual" HeaderText="@Localizer["LanguagePreferencePrompt"]" Values="_languages" OnDecision="SaveLanguage" />);
+        } 
+        else
+        {            
+            await _uiControlsService.ToggleModal(@<UserTermsAndConditionsModal OnDecision="HandleAlertDecision" Language="@language" />);
+        }
+    }
+
+    private async Task SetupRootFolder()
     {
         _isLoaded = false;
 
@@ -132,9 +136,10 @@ else
         }
     }
 
-    private bool _showWelcome = true;
+    
     private async Task HandleWelcomeClose()
     {
-        _showWelcome = false;
+        _hideWelcome = true;
+        await _localStorage.SetItemAsync(PageAlert.Home, _hideWelcome);
     }
 }
