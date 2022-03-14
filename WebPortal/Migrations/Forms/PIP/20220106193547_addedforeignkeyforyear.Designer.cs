@@ -4,6 +4,7 @@ using Datahub.ProjectForms.Data.PIP;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Datahub.Portal.Migrations.Forms.PIP
 {
     [DbContext(typeof(PIPDBContext))]
-    partial class PIPDBContextModelSnapshot : ModelSnapshot
+    [Migration("20220106193547_addedforeignkeyforyear")]
+    partial class addedforeignkeyforyear
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -116,14 +118,11 @@ namespace Datahub.Portal.Migrations.Forms.PIP
                     b.Property<DateTime>("Date_Updated_DT")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("EditingUserId")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("Explanation")
                         .HasMaxLength(8000)
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("FiscalYearId")
+                    b.Property<int?>("FiscalYearYearId")
                         .HasColumnType("int");
 
                     b.Property<string>("Frequency_DESC")
@@ -154,33 +153,11 @@ namespace Datahub.Portal.Migrations.Forms.PIP
                         .HasMaxLength(4000)
                         .HasColumnType("nvarchar(4000)");
 
-                    b.Property<string>("Indicator_Status")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
                     b.Property<string>("Indicator__Progressive_Or_Aggregate_DESC")
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
-                    b.Property<bool>("IsActualResultsLocked")
-                        .HasColumnType("bit");
-
                     b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsIndicatorDetailsLocked")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsIndicatorStatusLocked")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsLatestUpdateLocked")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsMethodologyLocked")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsTargetLocked")
                         .HasColumnType("bit");
 
                     b.Property<DateTime>("Last_Updated_DT")
@@ -268,9 +245,13 @@ namespace Datahub.Portal.Migrations.Forms.PIP
                     b.Property<string>("UserIdWhoDeleted")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Year")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
                     b.HasKey("IndicatorAndResult_ID");
 
-                    b.HasIndex("FiscalYearId");
+                    b.HasIndex("FiscalYearYearId");
 
                     b.HasIndex("PIP_TombstoneTombstone_ID");
 
@@ -315,10 +296,7 @@ namespace Datahub.Portal.Migrations.Forms.PIP
                     b.Property<DateTime>("Date_Updated_DT")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("EditingUserId")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("FiscalYearId")
+                    b.Property<int?>("FiscalYearYearId")
                         .HasColumnType("int");
 
                     b.Property<string>("Future_Mitigation_Activities_TXT")
@@ -487,7 +465,7 @@ namespace Datahub.Portal.Migrations.Forms.PIP
 
                     b.HasKey("Risks_ID");
 
-                    b.HasIndex("FiscalYearId");
+                    b.HasIndex("FiscalYearYearId");
 
                     b.HasIndex("PIP_TombstoneTombstone_ID");
 
@@ -545,10 +523,7 @@ namespace Datahub.Portal.Migrations.Forms.PIP
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<string>("EditingUserId")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("FiscalYearId")
+                    b.Property<int?>("FiscalYearYearId")
                         .HasColumnType("int");
 
                     b.Property<DateTime?>("Functional_SignOff_DT")
@@ -571,27 +546,6 @@ namespace Datahub.Portal.Migrations.Forms.PIP
                         .HasMaxLength(400)
                         .HasColumnType("nvarchar(400)");
 
-                    b.Property<bool>("IsDateOfPipApprovalLocked")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsGBALocked")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsGCInfoBaseProgramTagsLocked")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsLatestUpdateInformationLocked")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsProgramInformationLocked")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsSectorProgramTagsLocked")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsSpendingLocked")
-                        .HasColumnType("bit");
-
                     b.Property<string>("Is_Equity_Seeking_Group")
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
@@ -612,10 +566,6 @@ namespace Datahub.Portal.Migrations.Forms.PIP
 
                     b.Property<string>("Lead_Sector")
                         .IsRequired()
-                        .HasMaxLength(400)
-                        .HasColumnType("nvarchar(400)");
-
-                    b.Property<string>("Logic_Model")
                         .HasMaxLength(400)
                         .HasColumnType("nvarchar(400)");
 
@@ -750,9 +700,13 @@ namespace Datahub.Portal.Migrations.Forms.PIP
                         .HasMaxLength(400)
                         .HasColumnType("nvarchar(400)");
 
+                    b.Property<string>("Year")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
                     b.HasKey("Tombstone_ID");
 
-                    b.HasIndex("FiscalYearId");
+                    b.HasIndex("FiscalYearYearId");
 
                     b.ToTable("Tombstones");
                 });
@@ -784,9 +738,7 @@ namespace Datahub.Portal.Migrations.Forms.PIP
                 {
                     b.HasOne("Datahub.ProjectForms.Data.PIP.PIP_FiscalYears", "FiscalYear")
                         .WithMany()
-                        .HasForeignKey("FiscalYearId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("FiscalYearYearId");
 
                     b.HasOne("Datahub.ProjectForms.Data.PIP.PIP_Tombstone", "PIP_Tombstone")
                         .WithMany()
@@ -816,9 +768,7 @@ namespace Datahub.Portal.Migrations.Forms.PIP
                 {
                     b.HasOne("Datahub.ProjectForms.Data.PIP.PIP_FiscalYears", "FiscalYear")
                         .WithMany()
-                        .HasForeignKey("FiscalYearId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("FiscalYearYearId");
 
                     b.HasOne("Datahub.ProjectForms.Data.PIP.PIP_Tombstone", "PIP_Tombstone")
                         .WithMany()
@@ -833,9 +783,7 @@ namespace Datahub.Portal.Migrations.Forms.PIP
                 {
                     b.HasOne("Datahub.ProjectForms.Data.PIP.PIP_FiscalYears", "FiscalYear")
                         .WithMany()
-                        .HasForeignKey("FiscalYearId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("FiscalYearYearId");
 
                     b.Navigation("FiscalYear");
                 });

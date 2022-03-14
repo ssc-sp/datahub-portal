@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using System.Linq;
 using System.Collections.Generic;
 
-namespace Datahub.Portal.Services
+namespace Datahub.Core.Services
 {
     public class OrganizationLevelsService : IOrganizationLevelsService
     {
