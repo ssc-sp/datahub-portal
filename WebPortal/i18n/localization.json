@@ -299,7 +299,12 @@
   "Is_Equity_Seeking_Group2": "",
   "Is_Equity_Seeking_Group_Other": "",
   "No_Equity_Seeking_Group": "If 'No', please provide a reason/rationale.",
-
+  "Logic_Model": "Logic Model",
+  "Last_Updated_UserName": "Last Updated User",
+  "Indicator_Status": "Status",
+  "Target_DESC": "Target",
+  "Result_DESC": "Result",
+  "Date_Result_Collected": "Date Result Collected",
   "Does_Indicator_Enable_Program_Measure_Equity_Option": "Does this program monitor/measure impacts on equity seeking groups?",
 
   "Can_Report_On_Indicator": "Can you report on this indicator?",
