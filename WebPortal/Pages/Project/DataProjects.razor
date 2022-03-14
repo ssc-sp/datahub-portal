@@ -1,9 +1,18 @@
+@using Datahub.Core.Components.PageBanner
+
 @inject NavigationManager _navigationManager
 @inject IJSRuntime _jsInterop
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactory
 
-@implements IDisposable
+
 @page "/projects"
+
+<PageAlert Title="All Data Projects" Key="@PageAlert.Projects">
+    <AeTypography Variant="h4">Why would I use Data Projects?</AeTypography>
+    <AeTypography>Data Projects are created for each workgroup (team, lab, or any group of users) that want to share and collaborate on data.</AeTypography>
+    <br />
+    <AeTypography>A Data Project provides easy access to the key features in the DataHub: Storage (Azure Blob Storage); Data analytics tools (Azure Databricks); and Shared databases. It includes a separate storage account and a Databricks workspace for the workgroup, as well as Admin Actions and databases, if required.</AeTypography>
+</PageAlert>
 
 <AeTypography Variant="h1">@Localizer["Featured Projects"]</AeTypography>
 <div class="featured-projects">
@@ -56,20 +65,11 @@
     private List<Datahub_Project> _allProjects;
     private List<Datahub_Project> _filteredProjects;
     private List<Datahub_Project> _featured;
-    private DatahubProjectDBContext _context;
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        await base.OnAfterRenderAsync(firstRender);
-
-        if (firstRender)
-            StateHasChanged();
-    }
 
     protected override async Task OnInitializedAsync()
     {
-        _context = await _dbFactory.CreateDbContextAsync();
-        _allProjects = _context.Projects
+        await using var context = await _dbFactory.CreateDbContextAsync();
+        _allProjects = context.Projects
             .Where(p =>
                 (p.Project_Status_Desc == Datahub_Project.ONGOING || p.Is_Featured) &&
                 !p.Is_Private && !string.IsNullOrWhiteSpace(p.Project_Acronym_CD)
@@ -79,17 +79,11 @@
         _featured = _allProjects.Where(p => p.Is_Featured).ToList();
         _filteredProjects = _allProjects;
     }
-
-    public void Dispose()
-    {
-        _context.Dispose();
-    }
-
+    
     private void HandleAllProjectSearch(string filterValue)
     {
         _filteredProjects = _allProjects
             .Where(p => p.Project_Name.ToLowerInvariant().Contains(filterValue.ToLowerInvariant()))
             .ToList();
     }
-
 }
