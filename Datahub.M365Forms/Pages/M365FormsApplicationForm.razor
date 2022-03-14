@@ -11,7 +11,9 @@
 @inject UIControlsService UI
 @inject IDatahubAuditingService AuditingService
 @inject NavigationManager NavigationManager
+@inject IOrganizationLevelsService OrganizationLevelsService
 
+@using Datahub.Core.Components
 @using Datahub.Core.Data
 @using Datahub.Core.Model.Onboarding
 @using Datahub.Core.Services
@@ -39,7 +41,13 @@
         HandleFilterChange="HandleFilterChange"
         DisableFirstSort="true"
         />
+    <AeFlex>
+        <div class="icon-container" style="margin-bottom: 10px; margin-left: 5px;">
+            <SuccessIndicator @bind-IsLoading=@_submittingApproval @ref=@_submitApprovalInd />
+        </div>
+    </AeFlex>
 }
+
 @code {
 
     [Parameter]
@@ -62,8 +70,21 @@
     private bool _isUserAdmin;
     private bool _isFrench;
     private string _currentFilter;
+    private SuccessIndicator _submitApprovalInd;
+    private bool _submittingApproval = false;
+
 
     private string Localize(string input) => input == null ? null : Localizer[input];
+    private List<OrganizationLevel> _sectors = new(); 
+    private int _sectorId = -1;
+    private List<string> Sectors => LocalizeChoices(_sectors);
+
+    private List<string> LocalizeChoices(IEnumerable<OrganizationLevel> levels)
+    {
+        return levels.Select(s => !_isFrench ? s.EnglishLabel : s.FrenchLabel)
+                     .OrderBy(s => s)
+                     .ToList();
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -74,7 +95,7 @@
         _formMetadata = new();
 
         _isFrench = CultureInfo.CurrentCulture.Name.StartsWith("fr", StringComparison.InvariantCulture);
-
+        _sectors = await OrganizationLevelsService.GetSectors();
         AccessorFunctions = new List<Func<M365FormsApplication, string>>
         {
             p => { return Localizer[p.Name_of_Team]; },
@@ -99,7 +120,7 @@
         _formMetadata.IsSubmitEnabled = true;
         _formMetadata.MarkDownContent = new List<string>();
         _formMetadata.MarkDownContentFooter = File.ReadAllLines($@"Pages\Forms\M365Forms\{footerfile}").ToList();
-        var filters = new List<(Delegate Label, Delegate Choices)>() { (() => "Status", () => new List<string> { "All", "Team Requested", "Submitted to Assyst", "Request Pending", "Team Created", "Request Denied" }) };
+        var filters = new List<(Delegate Label, Delegate Choices)>() { (() => "Status", () => new List<string> { "All", "Team Requested", "Submitted to Assyst", "Request Pending", "Team Created", "Request Denied", "Team Deleted" }) };
         _formMetadata.FilterProperties = filters;
 
         if (New)
@@ -166,6 +187,7 @@
     {
         if (m365FormApplication != null)
         {
+            _submittingApproval = true;
             if (m365FormApplication.Application_ID == 0)
             {
                 m365FormApplication = Context.M365FormsApplications.Add(m365FormApplication).Entity;
@@ -177,8 +199,15 @@
                 m365FormApplication.M365FormStatus = "Team Requested";
             }
 
-            await Context.TrackSaveChangesAsync(AuditingService);
-
+            var result = await Context.TrackSaveChangesAsync(AuditingService);
+            if (result < 1)
+            {
+                await _submitApprovalInd.SignalFailure();
+            }
+            else
+            {
+                await _submitApprovalInd.SignalSuccess();
+            }
             M365FormsParameters m365FormsParameters = new() {
                     AppId = m365FormApplication.Application_ID,
                     TeamName = m365FormApplication.Name_of_Team,
@@ -202,7 +231,8 @@
     private void OnConfigure(IModelFormContext context)
     {
         if (!_onchange)
-        {                    
+        {
+            context.RegisterOptionValueProperty<M365FormsApplication>(p => p.Client_Sector, () => Sectors);
         }
 
         ToggleVisibility(context);
