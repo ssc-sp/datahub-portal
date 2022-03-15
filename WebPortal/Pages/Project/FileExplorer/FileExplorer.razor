@@ -77,7 +77,7 @@
                     var file = _virtualDirectory[_currentFolder]
                         .FirstOrDefault(f => f.name.Equals(_selectedItem, StringComparison.OrdinalIgnoreCase));
 
-                    <FileProperties File="file"/>
+                    <FileProperties File=@file Readonly="!OwnsFile(file)" />
                 }
             </div>
         </div>
@@ -145,7 +145,7 @@
     {
         if (_virtualDirectory.ContainsKey(newFolderName))
             return;
-        
+
         _virtualDirectory.Add(Path.Join(_currentFolder, newFolderName), new List<FileMetaData>());
     }
 
@@ -192,5 +192,5 @@
         StateHasChanged();
     }
 
-
+    private bool OwnsFile(FileMetaData file) => (file.ownedby ?? "").Equals(_userId, StringComparison.InvariantCulture);
 }
