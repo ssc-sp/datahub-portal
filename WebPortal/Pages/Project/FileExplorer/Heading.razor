@@ -1,5 +1,7 @@
+@*Heading.razor*@
 @inject IDataRemovalService _dataRemovalService
 @inject DataRetrievalService _dataRetrievalService
+@inject NavigationManager NavigationManager
 @inject IJSRuntime _jsRuntime
 
 <div class="heading">
@@ -13,19 +15,24 @@
         }
     </div>
     <div class="actions">
-        @if (!VirtualDirectory.ContainsKey(SelectedItem))
-        {
-            <AeButton class="tool" @onclick="HandleDownload">
-                <i class="fas fa-download"></i>
-            </AeButton>
-            <AeButton class="tool" @onclick="HandleDelete">
-                <i class="fas fa-trash-alt"></i>
-            </AeButton>
-            <span class="tool-divider"></span>
-        }
+        <AeButton class="tool" @onclick="HandleDownload" Disabled="!_isExistingFile">
+            <i class="fas fa-download"></i>
+        </AeButton>
+
+        <AeButton class="tool" @onclick="HandleShare" Disabled="!_ownsSelectedFile">
+            <i class="fas fa-share-square"></i>
+        </AeButton>
+
+        <AeButton class="tool" @onclick="HandleDelete" Disabled="!_ownsSelectedFile">
+            <i class="fas fa-trash-alt"></i>
+        </AeButton>
+
+        <span class="tool-divider"></span>
+
         <AeButton class="tool" onclick="document.querySelector('.file-list .dropzone-container input').click();">
             <i class="fas fa-upload"></i>
         </AeButton>
+
         <AeButton class="tool" @onclick="HandleNewFolder">
             <i class="fas fa-folder-plus"></i>
         </AeButton>
@@ -36,39 +43,47 @@
 
     [CascadingParameter(Name = "ProjectAcronym")]
     public string ProjectAcronym { get; set; }
-    
+
     [CascadingParameter(Name = "GraphUser")]
     public Microsoft.Graph.User GraphUser { get; set; }
-    
+
     [Parameter]
     public string CurrentFolder { get; set; }
-    
+
     [Parameter]
     public string SelectedItem { get; set; }
-    
+
     [Parameter]
     public Dictionary<string, List<FileMetaData>> VirtualDirectory { get; set; }
 
     [Parameter]
     public EventCallback<string> SetCurrentFolder { get; set; }
-    
+
     [Parameter]
     public EventCallback<string> OnFileDelete { get; set; }
-    
+
     [Parameter]
     public EventCallback<string> OnNewFolder { get; set; }
 
-    
     private IJSObjectReference _module;
+
+    private FileMetaData _selectedFile;
+    private bool _ownsSelectedFile;
+    private bool _isExistingFile;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         await base.OnAfterRenderAsync(firstRender);
-        
+
         _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import",
             "./Pages/Project/FileExplorer/Heading.razor.js");
+    }
 
-        
+    protected override void OnParametersSet()
+    {
+        _isExistingFile = !VirtualDirectory.ContainsKey(SelectedItem);
+        _selectedFile = VirtualDirectory[CurrentFolder]?.FirstOrDefault(f => f.name == SelectedItem);
+        _ownsSelectedFile = _selectedFile?.ownedby.Equals(GraphUser.Id, StringComparison.InvariantCulture) == true; 
     }
 
     private async Task BreadcrumbClicked(string breadcrumb)
@@ -79,27 +94,45 @@
 
     private async Task HandleDownload()
     {
-        var file = VirtualDirectory[CurrentFolder]?
-            .FirstOrDefault(f => f.name == SelectedItem);
-
-        if (file != null)
+        if (_selectedFile is not null)
         {
-            var uri = await _dataRetrievalService.DownloadFile(DataRetrievalService.DEFAULT_CONTAINER_NAME, file, ProjectAcronym);
+            var uri = await _dataRetrievalService.DownloadFile(DataRetrievalService.DEFAULT_CONTAINER_NAME, _selectedFile, ProjectAcronym);
             await _jsRuntime.InvokeVoidAsync("open", uri.ToString(), "_blank");
         }
     }
 
+    private void HandleShare()
+    {
+        if (_selectedFile is null)
+            return;
+
+        var sb = new System.Text.StringBuilder();
+        sb.Append("/sharingworkflow/");
+        sb.Append(_selectedFile.fileid);
+        sb.Append("?filename=");
+        sb.Append(_selectedFile.filename);
+        if (!string.IsNullOrWhiteSpace(ProjectAcronym))
+        {
+            sb.Append("&project=");
+            sb.Append(ProjectAcronym);
+        }
+        else
+        {
+            sb.Append("&folderpath=");
+            sb.Append(_selectedFile.folderpath);
+        }
+
+        NavigationManager.NavigateTo(sb.ToString());     
+    }
+
     private async Task HandleDelete()
     {
-        var file = VirtualDirectory[CurrentFolder]?
-            .FirstOrDefault(f => f.name == SelectedItem);
-        
-        if (file != null)
+        if (_selectedFile is not null)
         {
-            var success = await _dataRemovalService.DeleteStorageBlob(file, ProjectAcronym, GraphUser);
+            var success = await _dataRemovalService.DeleteStorageBlob(_selectedFile, ProjectAcronym, GraphUser);
             if (success)
             {
-                await OnFileDelete.InvokeAsync(file.name);
+                await OnFileDelete.InvokeAsync(_selectedFile.name);
             }
         }
     }
@@ -110,7 +143,4 @@
 
         await OnNewFolder.InvokeAsync(newFolderName.Trim());
     }
-    
-
-
 }
