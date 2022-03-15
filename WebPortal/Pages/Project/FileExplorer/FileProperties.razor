@@ -1,4 +1,5 @@
 @using Datahub.Core.Components.Code
+@using Datahub.Metadata.Model
 
 @inject DataRetrievalService _dataRetrievalService
 @inject CommonAzureServices _commonAzureServices;
@@ -36,6 +37,24 @@
             <InlineCodeWithCopy>@_fileLinkUrl</InlineCodeWithCopy>
 
         </div>
+
+        <div>
+            <AeTypography class="properties-title" Variant="h4">Metadata</AeTypography>
+
+            <ObjectMetadataEditor 
+                @key=@File.fileid 
+                ObjectId=@File.fileid 
+                Name=@File.filename
+                Location=@ProjectAcronym
+                SecurityClass=@File.securityclass
+                SaveButtonLabel=@Localizer["OPENDATA-WIZARD.Save_button"] 
+                ValidateRequired=true
+                ProfileName="catalog"
+                ObjectType=@MetadataObjectType.File
+                UpdateCatalog=@Readonly
+                Preview=@Readonly
+            />
+        </div>
     </div>
 }
 
@@ -46,6 +65,9 @@
 
     [Parameter]
     public FileMetaData File { get; set; }
+
+    [Parameter]
+    public bool Readonly { get; set; }
 
     private List<(string, string)> _properties;
     private string _powerBiPasteText;
