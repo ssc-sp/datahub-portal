@@ -1,0 +1,38 @@
+@layout BlankLayout
+@using Datahub.Portal.Data.Forms
+@inject ILogger<Signup> _logger
+
+@page "/signup"
+
+<div class="signup-container">
+    <div class="form-container">
+        <div class="form-section">
+            <AeTypography class="prefix">Collaborate across the clouds with</AeTypography>
+            <AeTypography Variant="h1">DataHub</AeTypography>
+
+            <AeModelForm
+                Model="_basicIntakeForm"
+                SubmitLabel="Sign up"
+                OnValidSubmit="HandleValidSubmit"
+                LabelsOnTop/>
+        </div>
+    </div>
+</div>
+
+@code {
+
+    private BasicIntakeForm _basicIntakeForm;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        _basicIntakeForm = new BasicIntakeForm();
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        _logger.LogInformation("HandleValidSubmit");
+        _logger.LogInformation(_basicIntakeForm.ToString());
+    }
+
+}
