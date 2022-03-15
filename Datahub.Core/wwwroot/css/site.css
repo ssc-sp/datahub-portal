@@ -5513,6 +5513,57 @@ code {
   word-break: break-word;
 }
 
+.signup-container {
+  width: 100vw;
+  height: 100vh;
+  padding: 4rem;
+  overflow: hidden;
+  background-image: radial-gradient(circle, rgba(0, 29, 36, 0) 0%, black 100%), url("/img/signup-bg.jpg");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.signup-container .form-container {
+  /* From https://css.glass */
+  background: rgba(255, 255, 255, 0.14);
+  border-radius: 16px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(7.8px);
+  -webkit-backdrop-filter: blur(7.8px);
+  border: 1px solid rgba(255, 255, 255, 0.36);
+  width: 600px;
+  padding: 2rem;
+}
+.signup-container .form-container .form-section .ae.typography {
+  color: white;
+}
+.signup-container .form-container .form-section .ae.typography.prefix {
+  opacity: 0.6;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+}
+.signup-container .form-container .form-section .ae.typography.h1 {
+  font-weight: bold;
+  margin-top: 0;
+}
+.signup-container .form-container .form-section .ae.input {
+  border-radius: 8px;
+  background-color: #1e293b;
+  border-color: transparent;
+  color: white;
+}
+.signup-container .form-container .form-section .errortext,
+.signup-container .form-container .form-section .validation-message {
+  text-shadow: 1px 1px 1px black;
+  margin-left: 0;
+}
+.signup-container .form-container .form-section .validation-errors {
+  display: none;
+}
+
 .item-details-container {
   padding: 1rem;
   font-size: 0.8rem;
