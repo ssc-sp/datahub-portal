@@ -1,0 +1,88 @@
+@inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
+@inject RequestManagementService _requestManagementService
+
+@if (_project is null)
+{
+    <ToolCard Loading/>
+}
+else
+{
+    <ToolCard Title=@Localizer["Data Entry"]
+              Description=@Localizer["Start the Data Entry application enabled for this project"]>
+        <Logo>
+            <div class="purple" style="width:180px">
+                <AeIcon class="fad fa-keyboard card-icon fa-xs"/>
+            </div>
+        </Logo>
+        <ToolActionsList>
+            @if (!string.IsNullOrWhiteSpace(_project.WebForms_URL) && _webFormsAuthorized)
+            {
+                <DHLink Variant="h3" DataProject="@ProjectAcronym" WebFormsURL="@_project.WebForms_URL">
+                    <AeButton @onclick="@HandleRequestAccess">@Localizer["Open Data Entry Application"]</AeButton>                    
+                </DHLink>
+            }
+            @if (!_webFormsAuthorized)
+            {
+                @if (_webFormsRequested)
+                {
+                    <AeTypography class="access-text">@Localizer["Access Request is being reviewed"]</AeTypography>
+                }
+                else
+                {
+                    <AeTypography class="access-text">@Localizer["Access not authorized"]</AeTypography>
+                    <AeButton @onclick="@HandleRequestAccess">@Localizer["Request Access"]</AeButton>
+                }
+            }
+
+        </ToolActionsList>
+    </ToolCard>
+}
+
+@code {
+
+    [CascadingParameter(Name = "ProjectAcronym")]
+    public string ProjectAcronym { get; set; }
+
+    [CascadingParameter(Name = "UserId")]
+    public string UserId { get; set; }
+
+    [CascadingParameter(Name = "GraphUser")]
+    public Microsoft.Graph.User GraphUser { get; set; }
+
+    private bool _webFormsRequested;
+    private bool _webFormsAuthorized;
+
+    private Datahub_Project _project;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        await using var projectDbContext = await _dbFactoryProject.CreateDbContextAsync();
+        _project = await projectDbContext.Projects
+            .Include(p => p.Requests)
+            .SingleAsync(p => p.Project_Acronym_CD == ProjectAcronym);
+
+        if (UserId != null)
+        {
+            _webFormsRequested = _project.Requests.Any(r => r.WebForms);
+            _webFormsAuthorized = _project.Requests
+                .Where(r => r.User_ID == UserId && r.Completion_DT != null)
+                .Any(r => r.WebForms);
+        }
+    }
+
+    private async Task HandleRequestAccess()
+    {
+        var request = new Datahub_Project_Access_Request()
+        {
+            Request_DT = DateTime.Now,
+            User_Name = GraphUser.UserPrincipalName,
+            User_ID = UserId,
+            Project = _project,
+            Databricks = true
+        };
+
+        await _requestManagementService.RequestAccess(request);
+    }
+}

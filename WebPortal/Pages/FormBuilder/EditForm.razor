@@ -1,4 +1,4 @@
-﻿@page "/project/{ProjectAcronym}/forms/{FormId}/edit"
+﻿@page "/projects/{ProjectAcronym}/forms/{FormId}/edit"
 @implements IDisposable
 @inject IDbContextFactory<DatahubProjectDBContext> DbFactory
 @inject NavigationManager NavManager
@@ -56,7 +56,7 @@
         return await Task.FromResult(_webForm);
     }
 
-    private string BackUrl => $"/project/{ProjectAcronym}/forms/{FormId}";
+    private string BackUrl => $"/{UrlPathSegment.PROJECTS}/{ProjectAcronym}/forms/{FormId}";
 
     public void Dispose() 
     { 

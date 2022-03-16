@@ -1,0 +1,21 @@
+@use 'colors' as c;
+
+
+@mixin datahub-scrollbar {
+
+  &::-webkit-scrollbar-track
+  {
+    background-color: c.$grey-300;
+  }
+
+  &::-webkit-scrollbar
+  {
+    width: 10px;
+    background-color: c.$grey-300;
+  }
+
+  &::-webkit-scrollbar-thumb
+  { 
+    background-color: c.$grey-500;
+  }
+}
