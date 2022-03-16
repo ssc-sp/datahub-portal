@@ -1,0 +1,55 @@
+@use '../../../Common' as c;
+
+@mixin file-explorer-card {
+
+  .storage-properties {
+    display: grid;
+    gap: c.spacing(8);
+
+    .h3, .h4 {
+      margin-top: 0;
+    }
+
+    .title-container {
+      display: flex;
+      gap: c.spacing(2);
+      align-items: baseline;
+
+      .details-title-text {
+        word-break: break-all;
+      }
+
+      i {
+        font-size: 1.5rem;
+      }
+    }
+    
+    .access-container {
+      .circle-item {
+        display: flex;
+        align-items: center;
+        gap: c.spacing(2);
+      }
+      
+      
+    }
+    
+    .properties {
+      display: grid;
+      grid-template-columns: 120px 1fr;
+      gap: c.spacing(2);
+      
+      .properties-title {
+        grid-column: 1 / span 2;
+      }
+      
+      .label {
+        opacity: .9;
+      }
+      
+      .text {
+        word-break: break-word;
+      }
+    }
+  }
+}
