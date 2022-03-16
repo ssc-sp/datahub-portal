@@ -1,0 +1,31 @@
+@if (ProjectAcronym is null)
+{
+    <ToolCard Loading/>
+}
+else
+{
+    <ToolCard
+        Title=@Localizer["Form Builder"]
+        Description="@Localizer["Design custom data entry forms"]">
+        <Logo>
+            <div class="blue" style="width:180px">
+                <AeIcon class="fad fa-file-alt card-icon fa-xs"/>
+            </div>
+        </Logo>
+        <ToolActionsList>
+             <ul>
+                <li>
+                    <DHLink Variant="h3" DataProject="@ProjectAcronym" LinkType="DatahubLinkType.FormBuilder">
+                        <AeButton class="light">@Localizer["Open Form Builder"]</AeButton>
+                    </DHLink>
+                </li>
+             </ul>
+        </ToolActionsList>
+    </ToolCard>
+}
+
+
+@code {
+    [CascadingParameter(Name = "ProjectAcronym")]
+    public string ProjectAcronym { get; set; }
+}
