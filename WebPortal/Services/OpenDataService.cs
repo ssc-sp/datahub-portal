@@ -23,10 +23,10 @@ namespace Datahub.Portal.Services
             _httpClientFactory = httpClientFactory;
         }
 
-        public async Task<CKANApiResult> PublishFileAsUrl(FieldValueContainer fileMetadata, string url)
+        public async Task<CKANApiResult> PublishFileAsUrl(FieldValueContainer fileMetadata, bool allFields, string url)
         {
             var service = _serviceFactory.CreateService();
-            return await service.CreatePackage(fileMetadata, url);
+            return await service.CreatePackage(fileMetadata, allFields, url);
         }
 
         public Task PublishFile(FieldValueContainer fileMetadata, long sharedRecordId, string fileId, string fileName, string fileUrl)
@@ -38,7 +38,7 @@ namespace Datahub.Portal.Services
                 var ckanService = _serviceFactory.CreateService();
 
                 // publish to open data record
-                var result = await ckanService.CreatePackage(fileMetadata);
+                var result = await ckanService.CreatePackage(fileMetadata, false);
                 if (result.Succeeded)
                 {
                     SetFileShareStatus(sharedRecordId, OpenDataUploadStatus.RecordCreated);
@@ -63,6 +63,17 @@ namespace Datahub.Portal.Services
                 }
             });
             return task;
+        }
+
+        public async Task<CKANApiResult> UnpublishFile(string fileId)
+        {
+            var service = _serviceFactory.CreateService();
+            var apiResult = await service.DeletePackage(fileId);
+            if (apiResult.Succeeded)
+            {
+                SetFileUnpublishedCompleted(fileId);
+            }
+            return apiResult;
         }
 
         public bool IsStaging() => _serviceFactory.IsStaging();
@@ -103,6 +114,18 @@ namespace Datahub.Portal.Services
                 sharedFile.UploadError_TXT = string.Empty;
                 sharedFile.FileStorage_CD = FileStorageType.OpenData;
                 // todo: use auditing service here
+                ctx.SaveChanges();
+            }
+        }
+
+        private void SetFileUnpublishedCompleted(string fileId)
+        {
+            var fileGuid = Guid.Parse(fileId);
+            using var ctx = _dbContextFactory.CreateDbContext();
+            var sharedFile = ctx.OpenDataSharedFiles.FirstOrDefault(e => e.File_ID  == fileGuid);
+            if (sharedFile is not null)
+            {
+                sharedFile.UnpublishDate_DT = DateTime.UtcNow;
                 ctx.SaveChanges();
             }
         }

@@ -72,7 +72,7 @@ namespace Datahub.Core.EFCore
         public DateTime? ApprovedDate_DT { get; set; }
         public DateTime? PublicationDate_DT { get; set; }
         public DateTime? ExpirationDate_DT { get; set; }
-
+        public DateTime? UnpublishDate_DT { get; set; }
         public bool MetadataCompleted_FLAG { get; set; }
 
         public PublicUrlSharingStatus GetPublicUrlSharingStatus()
@@ -134,6 +134,8 @@ namespace Datahub.Core.EFCore
         public FileStorageType? FileStorage_CD { get; set; }
         public OpenDataUploadStatus UploadStatus_CD { get; set; }
         public string UploadError_TXT { get; set; }
+        public string FileUrl_TXT { get; set; }
+        public bool ApprovalFormEdited_FLAG { get; set; }
 
         public OpenDataSharingStatus GetOpenDataSharingStatus()
         {
@@ -153,7 +155,7 @@ namespace Datahub.Core.EFCore
             {
                 return OpenDataSharingStatus.PendingApproval;
             }
-            else if (ApprovalForm_ID.HasValue && ApprovalForm_ID > 0)
+            else if (ApprovalForm_ID.HasValue && ApprovalForm_ID > 0 && ApprovalFormEdited_FLAG)
             {
                 return OpenDataSharingStatus.SubmitSignedPDF;
             }

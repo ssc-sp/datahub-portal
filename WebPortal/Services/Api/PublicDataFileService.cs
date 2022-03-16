@@ -114,6 +114,32 @@ namespace Datahub.Portal.Services
             _logger.LogInformation($"Wrote file share record for {fileId} - {numSaved} records written to database");
         }
 
+        public async Task<string> CreateExternalOpenDataSharing(int approvalFormId, string fileId, string fileName, string fileUrl, string contactEmail, string projectCode)
+        {
+            var shareRequest = new OpenDataSharedFile
+            {
+                IsOpenDataRequest_FLAG = true,
+                File_ID = Guid.Parse(fileId),
+                Filename_TXT = fileName,
+                FolderPath_TXT = "",
+                ProjectCode_CD = projectCode?.ToLowerInvariant(),
+                RequestingUser_ID = contactEmail,
+                RequestedDate_DT = DateTime.UtcNow,
+                MetadataCompleted_FLAG = true,
+                FileUrl_TXT = fileUrl,
+                ApprovalForm_ID = approvalFormId
+            };
+
+            await _projectDbContext.OpenDataSharedFiles.AddAsync(shareRequest);
+
+            await _projectDbContext.TrackSaveChangesAsync(_datahubAuditingService, true);
+
+            var ub = new UriBuilder(_config.PublicFileSharingDomain);
+            ub.Path = $"/share/opendata/{fileId}";
+
+            return ub.ToString();
+        }
+
         public async Task<Uri> DownloadPublicUrlSharedFile(Guid fileId, IPAddress ipAddress = null)
         {
             var publicFile = await LoadPublicUrlSharedFileInfo(fileId);
@@ -318,6 +344,7 @@ namespace Datahub.Portal.Services
             var shareInfo = await LoadOpenDataSharedFileInfo(fileId);
 
             shareInfo.ApprovalForm_ID = approvalFormId;
+            shareInfo.ApprovalFormEdited_FLAG = true;
 
             await _projectDbContext.TrackSaveChangesAsync(_datahubAuditingService);
         }
