@@ -36,6 +36,7 @@ using Blazored.LocalStorage;
 using Datahub.Core.Configuration;
 using Datahub.Core.Modules;
 using Datahub.Portal.Services.Storage;
+using Microsoft.AspNetCore.Authorization.Infrastructure;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]
 namespace Datahub.Portal
@@ -308,14 +309,8 @@ namespace Datahub.Portal
                 //                });
                 //        });
 
-                services.AddControllersWithViews(options =>
-                {
-                    var policy = new AuthorizationPolicyBuilder()
-                        .RequireAuthenticatedUser()
-                        .Build();
-                    options.Filters.Add(new AuthorizeFilter(policy));
-
-                }).AddMicrosoftIdentityUI();
+                services.AddControllersWithViews()
+                        .AddMicrosoftIdentityUI();
             }
         }
 
