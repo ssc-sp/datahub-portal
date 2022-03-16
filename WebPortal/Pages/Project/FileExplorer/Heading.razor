@@ -15,26 +15,31 @@
         }
     </div>
     <div class="actions">
-        <AeButton class="tool" @onclick="HandleDownload" Disabled="!_isExistingFile">
+        <AeButton class="button-tool" style="margin: 4px;" @onclick="HandleDownload" Disabled="!_isExistingFile">
             <i class="fas fa-download"></i>
+            @Localizer["Download"] 
         </AeButton>
 
-        <AeButton class="tool" @onclick="HandleShare" Disabled="!_ownsSelectedFile">
+        <AeButton class="button-tool" style="margin: 4px;" @onclick="HandleShare" Disabled="!_ownsSelectedFile">
             <i class="fas fa-share-square"></i>
+            @Localizer["Share"]
         </AeButton>
 
-        <AeButton class="tool" @onclick="HandleDelete" Disabled="!_ownsSelectedFile">
+        <AeButton class="button-tool" style="margin: 4px;" @onclick="HandleDelete" Disabled="!_ownsSelectedFile">
             <i class="fas fa-trash-alt"></i>
+            @Localizer["Delete"]
         </AeButton>
 
         <span class="tool-divider"></span>
 
-        <AeButton class="tool" onclick="document.querySelector('.file-list .dropzone-container input').click();">
+        <AeButton class="button-tool" style="margin: 4px;" onclick="document.querySelector('.file-list .dropzone-container input').click();">
             <i class="fas fa-upload"></i>
+            @Localizer["Upload"]
         </AeButton>
 
-        <AeButton class="tool" @onclick="HandleNewFolder">
+        <AeButton class="button-tool" style="margin: 4px;" @onclick="HandleNewFolder">
             <i class="fas fa-folder-plus"></i>
+            @Localizer["New Folder"]
         </AeButton>
     </div>
 </div>
@@ -140,7 +145,9 @@
     private async Task HandleNewFolder()
     {
         var newFolderName = await _module.InvokeAsync<string>("promptForNewFolderName");
-
-        await OnNewFolder.InvokeAsync(newFolderName.Trim());
+        if (!string.IsNullOrWhiteSpace(newFolderName))
+        {
+            await OnNewFolder.InvokeAsync(newFolderName.Trim());
+        }
     }
 }
