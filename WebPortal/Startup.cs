@@ -395,7 +395,6 @@ namespace Datahub.Portal
                 services.AddScoped<IAzurePriceListService, AzurePriceListService>();
 
                 services.AddScoped<PowerBiServiceApi>();
-                services.AddScoped<PowerBiSyncService>();
                 services.AddScoped<IPowerBiDataService, PowerBiDataService>();
                 
             }

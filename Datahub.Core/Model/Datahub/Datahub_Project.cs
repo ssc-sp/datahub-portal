@@ -224,12 +224,6 @@ namespace Datahub.Core.EFCore
 
         public List<Project_Database> Databases { get; set; }
 
-        public List<Project_PBI_Report> PBI_Reports { get; set; }
-
-        public List<Project_PBI_DataSet> PBI_DataSets { get; set; }
-
-        public List<Project_PBI_Workspace> PBI_Workspaces { get; set; }
-
         public IList<PowerBi_Workspace> PowerBi_Workspaces { get; set; }
 
         [AeFormIgnore]
