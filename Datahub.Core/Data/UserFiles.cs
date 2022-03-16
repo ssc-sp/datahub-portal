@@ -276,7 +276,8 @@ namespace Datahub.Core.Data
         public const string OwnedBy = "ownedby";
         public const string CreatedBy = "createdby";
         public const string LastModifiedBy = "lastmodifiedby";
-        
+        public const string LastModified = "lastmodifiedts";
+        public const string FileSize = "filesize";
 
         public FileMetaData()
         {
