@@ -73,5 +73,6 @@
     <Content Update="i18n\SharedResources.fr.json">
       <CustomToolNamespace>Resources</CustomToolNamespace>
     </Content>
+    <Content Remove="Layout\BlankLayout.razor" />
   </ItemGroup>
 </Project>
