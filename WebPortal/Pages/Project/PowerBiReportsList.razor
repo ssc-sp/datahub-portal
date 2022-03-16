@@ -8,9 +8,13 @@
     <AeCard>
                 
         <ChildContent>
-            @if (false)
+            @if (_isLoading)
             {
                 <Spinner />
+            }
+            else if (_powerBiReports.Count < 1)
+            {
+                <AeTypography Variant="p">@Localizer["There are no reports available for this project."]</AeTypography>
             }
             else
             {
@@ -29,7 +33,12 @@
                 </AePagination>
             }
         </ChildContent>
-                
+        <Footer>
+            <label>
+                <input type="checkbox" checked=@IncludeSandbox @oninput=@IncludeSandboxChanged />
+                @Localizer["Include sandbox workspaces"]
+            </label>
+        </Footer>
     </AeCard>        
     
 </div>
@@ -43,6 +52,9 @@
     private List<PowerBi_Report> _powerBiReports = new();
     private int _currentPage = 0;
     private IPageableComponent _reportTable;
+
+
+    private bool IncludeSandbox { get; set; } = false;
 
     private bool _isLoading = false;
 
@@ -73,11 +85,21 @@
         }
     }
 
+    private async Task IncludeSandboxChanged(ChangeEventArgs e)
+    {
+        var value = e.Value as bool?;
+        if (value.HasValue)
+        {
+            IncludeSandbox = value.Value;
+            await LoadReports();
+        }
+    }
+
     private async Task LoadReports()
     {
         _isLoading = true;
         StateHasChanged();
-        _powerBiReports = await PowerBiDataService.GetReportsForProject(projectAcronym);
+        _powerBiReports = await PowerBiDataService.GetReportsForProject(projectAcronym, IncludeSandbox);
         _isLoading = false;
         StateHasChanged();
     }
