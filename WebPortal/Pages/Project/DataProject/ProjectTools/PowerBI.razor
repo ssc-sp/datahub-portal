@@ -1,0 +1,137 @@
+@inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
+@inject RequestManagementService _requestManagementService
+
+@if (_project is null)
+{
+    <ToolCard Loading/>
+}
+else
+{
+    <ToolCard
+        Title=@Localizer["Power BI Workspace"]
+        Description="@Localizer["Access the project Workspace in the Power BI Service"]">
+        <Logo>
+           <img src="/icons/svg/powerbi.svg" alt="Power bi">
+        </Logo>
+        <ToolActionsList>
+             <ul>
+            @if (!string.IsNullOrWhiteSpace(_project.PowerBI_URL))
+            {
+                <li>
+                    <DHLink Variant="h3" DataProject="@ProjectAcronym" LinkType="DatahubLinkType.PowerBIReport">
+                        <AeButton class="light">Open Power BI</AeButton>
+                    </DHLink>
+                </li>
+            }
+            @if (!_powerBiAuthorized)
+            {
+                @if (!string.IsNullOrWhiteSpace(_project.PowerBI_URL))
+                {
+                    @if (_powerBiRequested)
+                    {
+                    <li>
+                        <AeTypography class="light">@Localizer["Access Request is being reviewed"]</AeTypography>
+                    </li>
+                    }
+                    else
+                    {
+                    <li>
+                        <AeTypography class="light">@Localizer["Access not authorized"]</AeTypography>
+                    </li>
+                    <li>
+                        <AeButton class="light" @onclick="@HandleRequestAccess">@Localizer["Request Access"]</AeButton>
+                    </li>
+                    }
+                }
+                else
+                {
+                    @if (_powerBiServiceRequested)
+                    {
+                    <li>
+                        <AeTypography class="light">@Localizer["Service Request is being reviewed"]</AeTypography>
+                    </li>
+                    }
+                    else
+                    {
+                    <li>
+                        <AeButton class="light" @onclick="@HandleRequestService">@Localizer["Request Service Creation"]</AeButton>
+                    </li>
+                    }
+                }
+            }
+             </ul>
+        </ToolActionsList>
+    </ToolCard>
+
+
+}
+
+@code {
+
+    [CascadingParameter(Name = "ProjectAcronym")]
+    public string ProjectAcronym { get; set; }
+
+    [CascadingParameter(Name = "UserId")]
+    public string UserId { get; set; }
+
+    [CascadingParameter(Name = "GraphUser")]
+    public Microsoft.Graph.User GraphUser { get; set; }
+
+    private bool _powerBiRequested;
+    private bool _powerBiServiceRequested;
+    private bool _powerBiAuthorized;
+
+    private Datahub_Project _project;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        await using var projectDbContext = await _dbFactoryProject.CreateDbContextAsync();
+        
+        _project = await projectDbContext.Projects
+            .Include(p => p.Requests)
+            .SingleAsync(p => p.Project_Acronym_CD == ProjectAcronym);
+
+        if (UserId != null)
+        {
+            _powerBiRequested = _project.Requests.Any(r => r.Databricks);
+            _powerBiAuthorized = _project.Requests
+                .Where(r => r.User_ID == UserId && r.Completion_DT != null)
+                .Any(r => r.PowerBI);
+            _powerBiServiceRequested = await projectDbContext.Project_Requests
+                .Where(p => p.Project == _project)
+                .AnyAsync(r =>
+                    r.ServiceType == RequestManagementService.POWERBI
+                    && r.Is_Completed == null);
+        }
+    }
+
+    private async Task HandleRequestAccess()
+    {
+        var request = new Datahub_Project_Access_Request()
+        {
+            Request_DT = DateTime.Now,
+            User_Name = GraphUser.UserPrincipalName,
+            User_ID = UserId,
+            Project = _project,
+            Databricks = true
+        };
+
+        await _requestManagementService.RequestAccess(request);
+    }
+
+    private async Task HandleRequestService()
+    {
+        var serviceRequest = new Datahub_ProjectServiceRequests()
+        {
+            ServiceType = RequestManagementService.DATABRICKS,
+            ServiceRequests_Date_DT = DateTime.Now,
+            Is_Completed = null,
+            Project = _project,
+            User_ID = UserId,
+            User_Name = GraphUser.UserPrincipalName
+        };
+
+        await _requestManagementService.RequestService(serviceRequest);
+    }
+}
