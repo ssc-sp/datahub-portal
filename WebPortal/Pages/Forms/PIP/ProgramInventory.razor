@@ -134,10 +134,10 @@
 
     private int _lastClicked = 0;
     private IPageableComponent _myTable;
-    private bool _tombstoneSwitched = false;
     private bool _reloadOptions = true;
     private SuccessIndicator _submitApprovalInd;
     private bool _submittingApproval = false;
+    private bool _isSetFormEdit = false;
 
 
     protected override void OnAfterRender(bool firstRender)
@@ -164,6 +164,7 @@
     private Task<PIP_Tombstone> ClearForm()
     {
         CleanEditingUser();
+        ResetContextChanges();
         _tombstone = null;
         StateHasChanged();
         return Task.FromResult<PIP_Tombstone>(null);
@@ -221,6 +222,7 @@
 
     private async Task SetFormEdit(PIP_Tombstone project)
     {
+        _isSetFormEdit = true;
         if (!_enableSave)
         {
             ResetContextChanges();
@@ -235,9 +237,11 @@
         }
         else
         {
-            CleanEditingUser();                
-            await PrepareItemForEdit(project);
-            _tombstoneSwitched = true;
+            if (_tombstone != null)                
+                CleanEditingUser();         
+                
+            _tombstone = Context.Tombstones.Where(i => i.Tombstone_ID == project.Tombstone_ID).First();
+            await PrepareItemForEdit(_tombstone);
             SubmitLabel = "Save";
             StateHasChanged();
         }
@@ -306,30 +310,32 @@
 
 
     private async Task PrepareItemForEdit(PIP_Tombstone project)
-    {
+    {        
         var recordId = project.Tombstone_ID;
+        _tombstone = Context.Tombstones.Where(i => i.Tombstone_ID == recordId).First();
+
         _enableSave = true;
-        if (IsRecordLocked(project))
+        if (IsRecordLocked(_tombstone))
         {
             var textList = new List<string>()
             {
                 "This Program is currently being edited by another user, you will not be able to save any changes"
             };
             _enableSave = false;
-            await UI.ToggleModal(
-    @<WarningModal OnDecision="HandleWarningDecision" WarningTextString=@textList />
-    );
+            await UI.ToggleModal(@<WarningModal OnDecision="HandleWarningDecision" WarningTextString=@textList />);
         }
         else
         {
-            _tombstone = Context.Tombstones.Where(i => i.Tombstone_ID == recordId).First();
             _tombstone.EditingUserId = CurrentUser.Id;
             await Context.TrackSaveChangesAsync(AuditingService);
         }
         _tombstone = Context.Tombstones.Where(i => i.Tombstone_ID == recordId).First();
         _tombstone.Last_Updated_UserName = await MSGraphService.GetUserName(_tombstone.Last_Updated_UserId, CancellationToken.None);
-        var ctx = _myModelForm.ModelFormContext;
-        ApplyLocks(ctx);
+        if (_myModelForm != null)
+        {
+            var ctx = _myModelForm.ModelFormContext;
+            ApplyLocks(ctx);
+        }
     }
 
     private async void HandleWarningDecision(bool IsContinue)
@@ -347,9 +353,6 @@
     {            
         _projects = Context.Tombstones.Where(l => l.FiscalYear.FiscalYear == _fiscalYear.FiscalYear).ToList();
     }
-
-
-
 
     protected override async Task OnInitializedAsync()
     {        
@@ -558,7 +561,6 @@
             {
                 await _submitApprovalInd.SignalSuccess();
             }
-            LoadProjects();
 
         }
         else if (!isConfirmed && _tombstone != null)
@@ -566,8 +568,9 @@
             ResetContextChanges();
         }
 
+        LoadProjects();
         if (item != null)
-        {
+        {            
             await PrepareItemForEdit(item);
         }
         else
@@ -608,15 +611,25 @@
     {
         if (_tombstone != null && _enableSave && !string.IsNullOrEmpty(_tombstone.EditingUserId) && _tombstone.EditingUserId == CurrentUser.Id)
         {
-            _tombstone.EditingUserId = string.Empty;
+            //IF for whatever reason the editing user gets in here through dispose, and the record has been "modified", just ignore it, it doesnt need to be overwritten.
+            try
+            {
+                Context.SaveChanges();
+                _tombstone.EditingUserId = null;
+            }
+            catch (Exception e)
+            {
 
-            Context.SaveChanges();
+            }
         } 
     }
 
     public void Dispose()     
     {
-        CleanEditingUser();      
+        //if (!_isSetFormEdit)
+        //    CleanEditingUser();
+
+        //_isSetFormEdit = true;
         Context.Dispose(); 
     }
 }
