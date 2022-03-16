@@ -257,6 +257,23 @@ namespace Datahub.Portal.Services
             return aws.Id.ToString();
         }
 
+        public async Task TestCreateUser(Guid workspaceId, string userId)
+        {
+            using var pbiClient = await GetPowerBiClientAsync();
+            var newUser = new GroupUser(userId, PrincipalType.User, GroupUserAccessRight.Viewer);
+
+            var groupUsers = await pbiClient.Groups.GetGroupUsersAsync(workspaceId);
+
+            try
+            {
+                await pbiClient.Groups.AddGroupUserAsync(workspaceId, newUser);
+            }
+            catch (Exception ex)
+            {
+                var msg = ex.Message;
+            }
+        }
+
         public async Task DeleteAppWorkspace(string WorkspaceId)
         {
             using PowerBIClient pbiClient = await GetPowerBiClientAsync();

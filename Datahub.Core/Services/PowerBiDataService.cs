@@ -185,14 +185,16 @@ namespace Datahub.Core.Services
             }
         }
 
-        public async Task<List<PowerBi_Report>> GetReportsForProject(string projectCode)
+        public async Task<List<PowerBi_Report>> GetReportsForProject(string projectCode, bool includeSandbox = false)
         {
             using var ctx = await _contextFactory.CreateDbContextAsync();
 
             var results = await ctx.PowerBi_Reports
                 .Include(r => r.Workspace)
                 .ThenInclude(w => w.Project)
-                .Where(r => r.Workspace.Project != null && r.Workspace.Project.Project_Acronym_CD.ToLower() == projectCode.ToLower())
+                .Where(r => r.Workspace.Project != null 
+                    && r.Workspace.Project.Project_Acronym_CD.ToLower() == projectCode.ToLower()
+                    && (includeSandbox || !r.Workspace.Sandbox_Flag))
                 .ToListAsync();
             return results;
         }
@@ -235,6 +237,27 @@ namespace Datahub.Core.Services
             }
 
             return success;
+        }
+
+        public async Task<PowerBi_Workspace> GetWorkspaceById(Guid id)
+        {
+            using var ctx = await _contextFactory.CreateDbContextAsync();
+            var result = await ctx.PowerBi_Workspaces.FirstOrDefaultAsync(w => w.Workspace_ID == id);
+            return result;
+        }
+
+        public async Task<PowerBi_DataSet> GetDatasetById(Guid id)
+        {
+            using var ctx = await _contextFactory.CreateDbContextAsync();
+            var result = await ctx.PowerBi_DataSets.FirstOrDefaultAsync(d => d.DataSet_ID == id);
+            return result;
+        }
+
+        public async Task<PowerBi_Report> GetReportById(Guid id)
+        {
+            using var ctx = await _contextFactory.CreateDbContextAsync();
+            var result = await ctx.PowerBi_Reports.FirstOrDefaultAsync(r => r.Report_ID == id);
+            return result;
         }
     }
 }

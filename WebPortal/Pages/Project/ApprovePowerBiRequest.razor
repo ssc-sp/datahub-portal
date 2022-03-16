@@ -13,6 +13,7 @@
 @inject ILogger<ApprovePowerBiRequest> _logger
 @inject IEmailNotificationService _emailService
 @inject ISystemNotificationService _systemNotificationService
+@inject IMSGraphService _msGraphService
 
 
 <div style="padding-left: 2rem;padding-right: 2rem">
@@ -53,6 +54,14 @@
                         <ul>
                             <li>Production: @ProdWorkspaceToCreate</li>
                             <li>Sandbox: @SandboxWorkspaceToCreate</li>
+                        </ul>
+
+                        <AeTypography Variant="p">These project users will be added to the workspaces:</AeTypography>
+                        <ul>
+                            @foreach(var user in UsersToAssign)
+                            {
+                                <li>@UserLabel(user)</li>
+                            }
                         </ul>
 
                         <div>
@@ -110,11 +119,15 @@
 
     private Dictionary<string, Guid> WorkspaceIdsByName { get; set; } = new();
 
+
+    private List<PowerBiAdminGroupUser> UsersToAssign { get; set; } = new();
+
     private bool IsWorking { get; set; } = false;
     private SuccessIndicator _workingInd;
     private bool DisableApproveButton => IsWorking;
 
     private string BuildPowerBIWorkspaceUrl(Guid workspaceId) => $"https://app.powerbi.com/groups/{workspaceId.ToString()}/list";
+    private string UserLabel(PowerBiAdminGroupUser u) => u.UserEmail + (u.IsAdmin ? " " + @Localizer["(Admin)"] : string.Empty);
 
     private async Task PrepareParameters()
     {
@@ -295,15 +308,25 @@
         }
     }
 
+    private async Task<List<PowerBiAdminGroupUser>> BuildUsersToAssignList(List<Datahub_Project_User> users)
+    {
+        var usersToAssign = await Task.WhenAll(users.Select(async u =>
+        {
+            var userEmail = await _msGraphService.GetUserEmail(u.User_ID, tkn: default);
+            return new PowerBiAdminGroupUser(userEmail, u.IsAdmin);
+        }));
+        return usersToAssign.OrderBy(u => u.IsAdmin).ThenBy(u => u.UserEmail).ToList();
+    }
+
     protected override async Task OnInitializedAsync()
     {
         var powerBiWorkspacesLoaded = await LoadPowerBiWorkspaces();
-        
+
         if (powerBiWorkspacesLoaded)
         {
             using var ctx = await _contextFactory.CreateDbContextAsync();
             var request = await ctx.Project_Requests
-                .Include(r => r.Project)
+                .Include(r => r.Project.Users)
                 .Where(r => r.Project.Project_Acronym_CD == ProjectAcronym && r.ServiceType == "powerbi")
                 .FirstOrDefaultAsync();
 
@@ -311,6 +334,8 @@
             PowerBiRequestAlreadyCompleted = PowerBiRequestExists && request.Is_Completed.HasValue;
             ProjectName = request?.Project.ProjectName;
             ProjectRequest = request;
+
+            UsersToAssign = await BuildUsersToAssignList(request?.Project.Users);
 
             await PrepareParameters();
 
