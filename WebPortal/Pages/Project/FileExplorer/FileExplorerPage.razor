@@ -9,18 +9,15 @@
 
 <PageAlert Title="How to use Project Storage tabs" Key="@PageAlert.Storage">
     <AeTypography Variant="h4">Storage Explorer</AeTypography>
-    <AeTypography>The current tab shows the File Explorer that enables you to browse the project files. You can interact with the web interface or drag and drop files to upload, download, delete them as needed.</AeTypography>
+    <AeTypography>The current tab shows the File Explorer that enables you to browse the project files. You can interact with the web interface and drag and drop files to upload, download, or delete them as needed.</AeTypography>
     <br/>
-    <AeTypography style="font-style: italic">Note: the web interface is not recommended for any files larger than a gigabyte.</AeTypography>
+    <AeTypography style="font-style: italic">Note: the web interface is not recommended for any files larger than a gigabyte, as this can be dependent on your network connection.</AeTypography>
 
-    <AeTypography Variant="h4">Az Copy</AeTypography>
-    <AeTypography>The recommended approach for managing large data files inside the Project Storage. To read more details about Az Copy click the second tab titled Az Copy.</AeTypography>
+    <AeTypography Variant="h4">AzCopy</AeTypography>
+    <AeTypography>AzCopy is the recommended approach for managing large data files inside the Project Storage. Click on "AzCopy" tab below for more details.</AeTypography>
 
     <AeTypography Variant="h4">Databricks Access</AeTypography>
     <AeTypography>Azure Databricks is an analytics platform that allows you and your colleagues to access and act on the same set of data analytics. Use Azure Databricks to prepare, explore, and analyze your data as well as build AI models.</AeTypography>
-
-    <AeTypography Variant="h4">Azure Storage</AeTypography>
-    <AeTypography>Azure Storage is Microsoft's cloud storage solution for modern data storage scenarios. Azure Storage offers highly available, massively scalable, durable, and secure storage for a variety of data objects in the cloud.</AeTypography>
 </PageAlert>
 
 <CascadingValue Value="@ProjectAcronymParam" Name="ProjectAcronym">
@@ -100,10 +97,9 @@
     {
         var result = new List<(string, RenderFragment)>
         {
-            (Localizer["File Explorer"], @<FileExplorer/>),
-            (Localizer["Az Copy"], @<Resources PageName="Use-AzCopy-to-Interact-with-Azure-Storage-Account" Substitutions="_substitutions"/>),
+            (Localizer["Storage Explorer"], @<FileExplorer/>),
+            (Localizer["AzCopy"], @<Resources PageName="Use-AzCopy-to-Interact-with-Azure-Storage-Account" Substitutions="_substitutions"/>),
             (Localizer["Databricks Access"], @<Resources PageName="Access-your-storage-account-in-Databricks" Substitutions="_substitutions"/>),
-            (Localizer["Azure Storage"], @<Resources PageName="Datahub-AzureStorage"/>),
         };
 
         return result;
