@@ -34,9 +34,7 @@ namespace Datahub.Core.EFCore
         public DbSet<Datahub_Project_Sectors_And_Branches> Organization_Levels { get; set; }
         public DbSet<OnboardingApp> OnboardingApps {  get; set; }
         public DbSet<Project_Resources> Project_Resources { get; set; }
-        public DbSet<Project_PBI_DataSet> Project_PBI_DataSets { get; set; }
-        public DbSet<Project_PBI_Report> Project_PBI_Reports { get; set; }
-        public DbSet<Project_PBI_Workspace> Project_PBI_Workspaces { get; set; }
+
         public DbSet<PublicDataFile> PublicDataFiles { get; set; }
 
         public DbSet<SharedDataFile> SharedDataFiles { get; set; }
