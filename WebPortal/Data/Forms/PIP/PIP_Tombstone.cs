@@ -24,23 +24,23 @@ namespace Datahub.ProjectForms.Data.PIP
 
         [AeLabel(row: "1", column:"1")]
         [AeFormCategory("Program Information",1)]
-        [Editable(false)] [Required] [MaxLength(400)] public string Program_Title { get; set; }
+        [MaxLength(400)] public string Program_Title { get; set; }
         [AeFormCategory("Program Information", 1)]
         [AeLabel(row: "1", column: "2")]
-        [Editable(false)] [Required] [MaxLength(400)] public string Lead_Sector { get; set; }
+        [MaxLength(400)] public string Lead_Sector { get; set; }
         [AeFormCategory("Program Information", 1)]
         [AeLabel(row: "1", column: "3")]
-        [Editable(false)] [Required] [MaxLength(400)] public string Program_Official_Title { get; set; }
+        [MaxLength(400)] public string Program_Official_Title { get; set; }
 
         [AeLabel(isDropDown: true, placeholder: "Please Select", row: "2", column: "1")]
         [AeFormCategory("Program Information", 1)]        
-        [Required]
+        
         [MaxLength(400)]
-        [Editable(false)] public string Core_Responsbility_DESC { get; set; }
+        public string Core_Responsbility_DESC { get; set; }
 
         [AeLabel(size: 100, row: "3", column: "1")] 
         [AeFormCategory("Program Information", 1)]
-        [Editable(false)] public string Program_Inventory_Program_Description_URL { get; set; }
+        public string Program_Inventory_Program_Description_URL { get; set; }
 
         [AeLabel(size: 100, row: "4", column: "1")]
         [AeFormCategory("Program Information", 1)]
@@ -53,7 +53,7 @@ namespace Datahub.ProjectForms.Data.PIP
         [AeLabel(row: "6", column: "1")]
         [AeFormCategory("Spending (in $) as per GC InfoBase (to be updated by CMSS)", 20)]
         [Column(TypeName = "Money")]
-        [Editable(false)] public double? Planned_Spending_AMTL { get; set; }
+        public double? Planned_Spending_AMTL { get; set; }
         [AeLabel(row: "6", column: "2", placeholder: "to be updated by CMSS")]
         [AeFormCategory("Spending (in $) as per GC InfoBase (to be updated by CMSS)", 20)]
         [Column(TypeName = "Money")]
@@ -111,33 +111,33 @@ namespace Datahub.ProjectForms.Data.PIP
 
         [AeLabel(isDropDown: true, placeholder: "Please Select", row: "28", column:"1")]
         [AeFormCategory("Program Tags as per TBS Database and GCInfoBase", 51)]
-        [Required]
+        
         [MaxLength(400)]
-        [Editable(false)] public string Departmental_Result_1_CD { get; set; }
+        public string Departmental_Result_1_CD { get; set; }
         [AeLabel(isDropDown: true, placeholder: "Please Select", row: "28", column: "2")]
         [AeFormCategory("Program Tags as per TBS Database and GCInfoBase", 51)]
         [MaxLength(400)]
-        [Editable(false)] public string Departmental_Result_2_CD { get; set; }
+        public string Departmental_Result_2_CD { get; set; }
         [AeLabel(isDropDown: true, placeholder: "Please Select", row: "28", column: "3")]
         [AeFormCategory("Program Tags as per TBS Database and GCInfoBase", 51)]
         [MaxLength(400)]
-        [Editable(false)] public string Departmental_Result_3_CD { get; set; }
+        public string Departmental_Result_3_CD { get; set; }
         
         
-        [Editable(false)] [AeLabel(isDropDown: true, placeholder: "Please Select", row: "29", column: "1")] [AeFormCategory("Program Tags as per TBS Database and GCInfoBase", 51)] [Required] [MaxLength(400)] public string Method_Of_Intervention_1_DESC { get; set; }
-        [Editable(false)] [AeLabel(isDropDown: true, placeholder: "Please Select", row: "29", column: "2")] [AeFormCategory("Program Tags as per TBS Database and GCInfoBase", 51)] [MaxLength(400)] public string Method_Of_Intervention_2_DESC { get; set; }
+        [AeLabel(isDropDown: true, placeholder: "Please Select", row: "29", column: "1")] [AeFormCategory("Program Tags as per TBS Database and GCInfoBase", 51)] [MaxLength(400)] public string Method_Of_Intervention_1_DESC { get; set; }
+        [AeLabel(isDropDown: true, placeholder: "Please Select", row: "29", column: "2")] [AeFormCategory("Program Tags as per TBS Database and GCInfoBase", 51)] [MaxLength(400)] public string Method_Of_Intervention_2_DESC { get; set; }
         
-        [Editable(false)] [AeLabel(isDropDown: true, placeholder: "Please Select", row: "30", column: "1")] [AeFormCategory("Program Tags as per TBS Database and GCInfoBase", 51)] [Required] [MaxLength(400)] public string Target_Group_1_DESC { get; set; }        
-        [Editable(false)] [AeLabel(isDropDown: true, placeholder: "Please Select", row: "30", column: "2")] [AeFormCategory("Program Tags as per TBS Database and GCInfoBase", 51)] [MaxLength(400)] public string Target_Group_2_DESC { get; set; }
+        [AeLabel(isDropDown: true, placeholder: "Please Select", row: "30", column: "1")] [AeFormCategory("Program Tags as per TBS Database and GCInfoBase", 51)] [MaxLength(400)] public string Target_Group_1_DESC { get; set; }        
+        [AeLabel(isDropDown: true, placeholder: "Please Select", row: "30", column: "2")] [AeFormCategory("Program Tags as per TBS Database and GCInfoBase", 51)] [MaxLength(400)] public string Target_Group_2_DESC { get; set; }
 
-        [Editable(false)] [AeLabel(isDropDown: true, placeholder: "Please Select", row: "31", column: "1")] [AeFormCategory("Program Tags as per TBS Database and GCInfoBase", 51)] [MaxLength(400)] public string Target_Group_3_DESC { get; set; }
-        [Editable(false)] [AeLabel(isDropDown: true, placeholder: "Please Select", row: "31", column: "2")] [AeFormCategory("Program Tags as per TBS Database and GCInfoBase", 51)] [MaxLength(400)] public string Target_Group_4_DESC { get; set; }
+        [AeLabel(isDropDown: true, placeholder: "Please Select", row: "31", column: "1")] [AeFormCategory("Program Tags as per TBS Database and GCInfoBase", 51)] [MaxLength(400)] public string Target_Group_3_DESC { get; set; }
+        [AeLabel(isDropDown: true, placeholder: "Please Select", row: "31", column: "2")] [AeFormCategory("Program Tags as per TBS Database and GCInfoBase", 51)] [MaxLength(400)] public string Target_Group_4_DESC { get; set; }
 
-        [Editable(false)] [AeLabel(isDropDown: true, placeholder: "Please Select", row: "32", column: "1")] [AeFormCategory("Program Tags as per TBS Database and GCInfoBase", 51)] [MaxLength(400)] public string Target_Group_5_DESC { get; set; }
+        [AeLabel(isDropDown: true, placeholder: "Please Select", row: "32", column: "1")] [AeFormCategory("Program Tags as per TBS Database and GCInfoBase", 51)] [MaxLength(400)] public string Target_Group_5_DESC { get; set; }
 
-        [Editable(false)] [AeLabel(isDropDown: true, placeholder: "Please Select", row: "33", column: "1")] [AeFormCategory("Program Tags as per TBS Database and GCInfoBase", 51)] [Required] [MaxLength(400)] public string Government_Of_Canada_Activity_Tags_DESC { get; set; }
+        [AeLabel(isDropDown: true, placeholder: "Please Select", row: "33", column: "1")] [AeFormCategory("Program Tags as per TBS Database and GCInfoBase", 51)] [MaxLength(400)] public string Government_Of_Canada_Activity_Tags_DESC { get; set; }
         
-        [Editable(false)] [AeLabel(isDropDown: true, placeholder: "Please Select", row: "34", column: "1")] [AeFormCategory("Program Tags as per TBS Database and GCInfoBase", 51)] [Required] [MaxLength(4000)] public string Canadian_Classification_Of_Functions_Of_Government_DESC { get; set; }
+        [AeLabel(isDropDown: true, placeholder: "Please Select", row: "34", column: "1")] [AeFormCategory("Program Tags as per TBS Database and GCInfoBase", 51)] [MaxLength(4000)] public string Canadian_Classification_Of_Functions_Of_Government_DESC { get; set; }
 
 
         
@@ -203,7 +203,7 @@ namespace Datahub.ProjectForms.Data.PIP
 
         [AeLabel(row: "42", column: "2")]        
         [AeFormCategory("Latest Update Information", 60)]
-        [Required] public DateTime Date_Updated_DT { get; set; }
+        public DateTime Date_Updated_DT { get; set; }
         
         [NotMapped]
         [AeFormIgnore]
