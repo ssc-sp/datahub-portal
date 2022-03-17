@@ -214,7 +214,7 @@
         var fileMetadata = new FileMetaData
         {
             folderpath = _currentFolder,
-            filename = _currentFolder + browserFile.Name,
+            filename = (_currentFolder + browserFile.Name).TrimStart('/'),
             filesize = browserFile.Size.ToString(),
             uploadStatus = FileUploadStatus.SelectedToUpload,
             BrowserFile = browserFile
