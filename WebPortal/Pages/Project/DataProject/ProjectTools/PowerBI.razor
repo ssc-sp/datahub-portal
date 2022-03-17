@@ -14,52 +14,57 @@ else
            <img src="/icons/svg/powerbi.svg" alt="Power bi">
         </Logo>
         <ToolActionsList>
-             <ul>
-            @if (!string.IsNullOrWhiteSpace(_project.PowerBI_URL))
-            {
-                <li>
-                    <DHLink Variant="h3" DataProject="@ProjectAcronym" LinkType="DatahubLinkType.PowerBIReport">
-                        <AeButton class="light">Open Power BI</AeButton>
-                    </DHLink>
-                </li>
-            }
-            @if (!_powerBiAuthorized)
-            {
-                @if (!string.IsNullOrWhiteSpace(_project.PowerBI_URL))
+            <ul>
+                @if (_powerBiServiceCreated)
                 {
-                    @if (_powerBiRequested)
+                    @if (_powerBiAuthorized)
                     {
-                    <li>
-                        <AeTypography class="light">@Localizer["Access Request is being reviewed"]</AeTypography>
-                    </li>
+                        <li>
+                            <DHLink Variant="h3" DataProject="@ProjectAcronym" LinkType="DatahubLinkType.PowerBIReport">
+                                <AeButton class="light">@Localizer["Open Power BI"]</AeButton>
+                            </DHLink>
+                        </li>
+                    }
+                    else if (_powerBiAccessRequested)
+                    {
+                        <li>
+                            <AeTypography class="light">@Localizer["Access Request is being reviewed"]</AeTypography>
+                        </li>
                     }
                     else
                     {
-                    <li>
-                        <AeTypography class="light">@Localizer["Access not authorized"]</AeTypography>
-                    </li>
-                    <li>
-                        <AeButton class="light" @onclick="@HandleRequestAccess">@Localizer["Request Access"]</AeButton>
-                    </li>
+                        <li>
+                            <AeTypography class="light">@Localizer["Access not authorized"]</AeTypography>
+                        </li>
+                        <li>
+                            <AeButton class="light" @onclick="@HandleRequestAccess">@Localizer["Request Access"]</AeButton>
+                        </li>
                     }
+                }
+                else if (_powerBiServiceRequested)
+                {
+                    <AuthorizeView Roles=@RoleConstants.DATAHUB_ROLE_ADMIN Context="PowerBi_admin">
+                        <Authorized>
+                            <li>
+                                <NavLink href="@($"/project/{ProjectAcronym}/powerbirequest")">
+                                    <AeButton class="light">@Localizer["Review PowerBI Request"]</AeButton>
+                                </NavLink>
+                            </li>
+                        </Authorized>
+                        <NotAuthorized>
+                            <li>
+                                <AeTypography class="light">@Localizer["Service Request is being reviewed"]</AeTypography>
+                            </li>
+                        </NotAuthorized>
+                    </AuthorizeView>
                 }
                 else
                 {
-                    @if (_powerBiServiceRequested)
-                    {
-                    <li>
-                        <AeTypography class="light">@Localizer["Service Request is being reviewed"]</AeTypography>
-                    </li>
-                    }
-                    else
-                    {
                     <li>
                         <AeButton class="light" @onclick="@HandleRequestService">@Localizer["Request Service Creation"]</AeButton>
                     </li>
-                    }
                 }
-            }
-             </ul>
+            </ul>
         </ToolActionsList>
     </ToolCard>
 
@@ -77,9 +82,10 @@ else
     [CascadingParameter(Name = "GraphUser")]
     public Microsoft.Graph.User GraphUser { get; set; }
 
-    private bool _powerBiRequested;
-    private bool _powerBiServiceRequested;
-    private bool _powerBiAuthorized;
+    private bool _powerBiServiceRequested = false;
+    private bool _powerBiServiceCreated = false;
+    private bool _powerBiAccessRequested = false;
+    private bool _powerBiAuthorized = false;
 
     private Datahub_Project _project;
 
@@ -87,22 +93,24 @@ else
     {
         await base.OnInitializedAsync();
         await using var projectDbContext = await _dbFactoryProject.CreateDbContextAsync();
-        
+
         _project = await projectDbContext.Projects
             .Include(p => p.Requests)
             .SingleAsync(p => p.Project_Acronym_CD == ProjectAcronym);
 
+        var _serviceRequests = await projectDbContext.Project_Requests
+            .Where(p => p.Project == _project)
+            .ToListAsync();
+
         if (UserId != null)
         {
-            _powerBiRequested = _project.Requests.Any(r => r.Databricks);
-            _powerBiAuthorized = _project.Requests
-                .Where(r => r.User_ID == UserId && r.Completion_DT != null)
-                .Any(r => r.PowerBI);
-            _powerBiServiceRequested = await projectDbContext.Project_Requests
-                .Where(p => p.Project == _project)
-                .AnyAsync(r =>
-                    r.ServiceType == RequestManagementService.POWERBI
-                    && r.Is_Completed == null);
+            _powerBiServiceRequested = _serviceRequests.Any(r => r.ServiceType == RequestManagementService.POWERBI && r.Is_Completed == null);
+            _powerBiServiceCreated = !string.IsNullOrEmpty(_project.PowerBI_URL) || 
+                _serviceRequests.Any(r => r.ServiceType == RequestManagementService.POWERBI && r.Is_Completed.HasValue);
+
+            var userAcessRequests = _project.Requests.Where(r => r.User_ID == UserId && r.PowerBI);
+            _powerBiAccessRequested = userAcessRequests.Any(r => r.Completion_DT is null);
+            _powerBiAuthorized = userAcessRequests.Any(r => r.Completion_DT.HasValue);
         }
     }
 
@@ -114,7 +122,7 @@ else
             User_Name = GraphUser.UserPrincipalName,
             User_ID = UserId,
             Project = _project,
-            Databricks = true
+            PowerBI = true
         };
 
         await _requestManagementService.RequestAccess(request);
@@ -124,7 +132,7 @@ else
     {
         var serviceRequest = new Datahub_ProjectServiceRequests()
         {
-            ServiceType = RequestManagementService.DATABRICKS,
+            ServiceType = RequestManagementService.POWERBI,
             ServiceRequests_Date_DT = DateTime.Now,
             Is_Completed = null,
             Project = _project,
