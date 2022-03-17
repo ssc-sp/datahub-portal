@@ -16,7 +16,7 @@
         </div>
 
         <div class="access-container">
-            <AeTypography Variant="h4">Who has access</AeTypography>
+            <AeTypography Variant="h4">@Localizer["Who has access"]</AeTypography>
             <span class="circle-item">
                 <ProfileCircle FullName="@ProjectAcronym"/>
                 <AeTypography>@ProjectAcronym</AeTypography>
@@ -24,7 +24,7 @@
         </div>
 
         <div class="properties">
-            <AeTypography class="properties-title" Variant="h4">Storage Properties</AeTypography>
+            <AeTypography class="properties-title" Variant="h4">@Localizer["Storage Properties"]</AeTypography>
             @foreach (var (key, value) in _properties)
             {
                 <AeTypography class="label">@Localizer["ITEM-DETAILS-PAGE." + key]</AeTypography>
@@ -40,7 +40,7 @@
         </div>
 
         <div>
-            <AeTypography class="properties-title" Variant="h4">Metadata</AeTypography>
+            <AeTypography class="properties-title" Variant="h4">@Localizer["Metadata"]</AeTypography>
 
             <ObjectMetadataEditor 
                 @key=@File.fileid 
