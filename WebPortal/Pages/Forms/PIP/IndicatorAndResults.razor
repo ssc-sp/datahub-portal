@@ -8,6 +8,9 @@
 @inject IDbContextFactory<PIPDBContext> DbFactory
 @inject IDatahubAuditingService AuditingService
 @inject ServiceAuthManager ServiceAuthManager
+@using Microsoft.Extensions.Logging 
+@inject ILogger<ProgramInventory> Logger
+
 
 @page "/pip/indicators/{tombstone}/{fiscalYear}"
 
@@ -144,14 +147,14 @@
     {
         Context = DbFactory.CreateDbContext();
         renderFunctions = new List<Func<PIP_Risks, RenderFragment>>
-{
-        new Func<PIP_Risks, RenderFragment>(p => { return p.PIP_IndicatorRisks.Any(q => q.Pip_Indicator == _indicator) ? 
-    @<i class="fal fa-check-square"></i> : @<i class="fal fa-square"></i>
-    ; }),
-        null,
-        null,
-        null,
-    };
+            {
+                new Func<PIP_Risks, RenderFragment>(p => { return p.PIP_IndicatorRisks.Any(q => q.Pip_Indicator == _indicator) ? 
+            @<i class="fal fa-check-square"></i> : @<i class="fal fa-square"></i>
+            ; }),
+                null,
+                null,
+                null,
+            };
 
         _fiscalYear = Context.FiscalYears.Where(f => f.FiscalYear == fiscalYear).First();
         CurrentUser = await UserInformationService.GetUserAsync();
@@ -282,6 +285,8 @@
         if (_indicator.IsIndicatorDetailsLocked)
             context.RegisterCategoryLock("Indicator Details", true);        
     }
+
+
     protected override void OnAfterRender(bool firstRender)
     {
         if(firstRender){
@@ -304,6 +309,15 @@
         StateHasChanged();
     }
 
+    private async Task<PIP_IndicatorAndResults> ClearForm()
+    {
+        CleanEditingUser();
+        ResetContextChanges();
+        _indicator = null;
+        StateHasChanged();
+        return null;
+    }
+
     private List<Func<PIP_IndicatorAndResults, RenderFragment>> GetRenderers()
     {
 
@@ -316,7 +330,7 @@
                 null,
                 indicator => 
             @<div class="help icon-container" @onclick="() => DeleteRecord(indicator.IndicatorAndResult_ID)"><i class="far fa-trash-alt"></i></div>
-    };
+         };
         }
 
         return new List<Func<PIP_IndicatorAndResults, RenderFragment>>
@@ -463,9 +477,16 @@
      public void CleanEditingUser()
     {
         if (_indicator != null && _enableSave && !string.IsNullOrEmpty(_indicator.EditingUserId) && _indicator.EditingUserId == CurrentUser.Id)
-        {
-            _indicator.EditingUserId = string.Empty;
-            Context.SaveChanges();
+        {                        
+            try
+            {
+                _indicator.EditingUserId = null;
+                Context.SaveChanges();
+            }
+            catch (Exception e)
+            {                
+                Logger.LogDebug(e, $"Cannot clean current user in IndicatorAndResults");
+            }
         } 
     }
 
@@ -537,14 +558,7 @@
         return "";
     }
 
-    private async Task<PIP_IndicatorAndResults> ClearForm()
-    {
-        CleanEditingUser();
-        ResetContextChanges();
-        _indicator = null;
-        StateHasChanged();
-        return null;
-    }
+
 
     public string GetDataLabel(string propName)
     {
@@ -585,10 +599,20 @@
         return indicator == null ? false : (!string.IsNullOrEmpty(indicator.EditingUserId));
     }
 
-    public void Dispose() 
-    {
-        CleanEditingUser();
-        Context.Dispose(); 
+    public void Dispose()     
+    {        
+        try
+        {
+            CleanEditingUser();
+        }
+        catch (Exception e)
+        {
+            Logger.LogDebug(e, $"Cannot clean current user in IndicatorAndResults in Dispose");
+        }
+        finally
+        {
+            Context.Dispose();            
+        }
     }
 
 
