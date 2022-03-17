@@ -25,15 +25,15 @@
             <AeButton class="sas-token-button dark" @onclick="HandleSasButtonClick">
                 @if (string.IsNullOrWhiteSpace(_sasToken))
                 {
-                    <span>Generate SAS Token</span>
+                    <span>@Localizer["Generate SAS Token"]</span>
                 }
                 else if(_showingCopiedForSasButton)
                 {
-                    <span>Copied!</span>
+                    <span>@Localizer["Copied!"]</span>
                 }
                 else
                 {
-                    <span>Copy SAS Token</span>
+                    <span>@Localizer["Copy SAS Token"]</span>
                 }
             </AeButton>
         </div>

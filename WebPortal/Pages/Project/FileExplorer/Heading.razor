@@ -7,7 +7,7 @@
 <div class="heading">
     <AeTypography Variant="h1">@Localizer["Storage Explorer"]</AeTypography>
     <div class="breadcrumbs">
-        <AeButton class="light" @onclick="@(async () => await SetCurrentFolder.InvokeAsync("/"))">root</AeButton>
+        <AeButton class="light" @onclick="@(async () => await SetCurrentFolder.InvokeAsync("/"))">@Localizer["root"]</AeButton>
         @foreach (var folder in CurrentFolder.Split("/").Where(s => !string.IsNullOrWhiteSpace(s)))
         {
             <i class="fas fa-chevron-right"></i>
@@ -15,29 +15,29 @@
         }
     </div>
     <div class="actions">
-        <AeButton class="button-tool" style="margin: 4px;" @onclick="HandleDownload" Disabled="!_isExistingFile">
+        <AeButton class="button-tool" @onclick="HandleDownload" Disabled="!_isExistingFile">
             <i class="fas fa-download"></i>
             @Localizer["Download"] 
         </AeButton>
 
-        <AeButton class="button-tool" style="margin: 4px;" @onclick="HandleShare" Disabled="!_ownsSelectedFile">
+        <AeButton class="button-tool" @onclick="HandleShare" Disabled="!_ownsSelectedFile">
             <i class="fas fa-share-square"></i>
             @Localizer["Share"]
         </AeButton>
 
-        <AeButton class="button-tool" style="margin: 4px;" @onclick="HandleDelete" Disabled="!_ownsSelectedFile">
+        <AeButton class="button-tool" @onclick="HandleDelete" Disabled="!_ownsSelectedFile">
             <i class="fas fa-trash-alt"></i>
             @Localizer["Delete"]
         </AeButton>
 
         <span class="tool-divider"></span>
 
-        <AeButton class="button-tool" style="margin: 4px;" onclick="document.querySelector('.file-list .dropzone-container input').click();">
+        <AeButton class="button-tool" onclick="document.querySelector('.file-list .dropzone-container input').click();">
             <i class="fas fa-upload"></i>
             @Localizer["Upload"]
         </AeButton>
 
-        <AeButton class="button-tool" style="margin: 4px;" @onclick="HandleNewFolder">
+        <AeButton class="button-tool" @onclick="HandleNewFolder">
             <i class="fas fa-folder-plus"></i>
             @Localizer["New Folder"]
         </AeButton>
