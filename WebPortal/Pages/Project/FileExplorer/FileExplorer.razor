@@ -40,6 +40,7 @@
                         <FileItem
                             Name="@GetFileName(folderName)"
                             Highlighted="_selectedItem == folderName"
+                            Folder
                             @onclick="() => _selectedItem = folderName"
                             @ondblclick="() => SetCurrentFolder(folderName)">
                             <Icon>
