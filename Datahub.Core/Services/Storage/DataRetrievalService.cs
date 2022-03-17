@@ -463,13 +463,17 @@ namespace Datahub.Portal.Services.Storage
                             fileId = newId;
                         }
 
+                        blobItem.Metadata.TryGetValue("ownedby", out var ownedby);
+                        blobItem.Metadata.TryGetValue("createdby", out var createdby);
+                        blobItem.Metadata.TryGetValue("lastmodifiedby", out var lastmodifiedby);
+
                         var file = new FileMetaData()
                         {
                             id = fileId,
                             filename = blobItem.Name,
-                            ownedby = blobItem.Metadata["ownedby"],
-                            createdby = blobItem.Metadata["createdby"],
-                            lastmodifiedby = blobItem.Metadata["lastmodifiedby"],
+                            ownedby = ownedby,
+                            createdby = createdby,
+                            lastmodifiedby = lastmodifiedby,
                             lastmodifiedts = blobItem.Properties.LastModified?.UtcDateTime ?? DateTime.Now,
                             filesize = blobItem.Properties.ContentLength.ToString(),
                         };

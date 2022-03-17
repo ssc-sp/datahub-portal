@@ -1,11 +1,14 @@
 @inject IJSRuntime _jsRuntime;
 
-<span @ref="_elementReference">
-    <AeMarkdown
-        @attributes="@InputAttributes"
-        Content="@Content"
-        LinkRewriter="@LinkRewriter"/>
-</span>
+@if (Content != null)
+{
+    <span @ref="_elementReference">
+        <AeMarkdown
+            @attributes="@InputAttributes"
+            Content="@Content"
+            LinkRewriter="@LinkRewriter"/>
+    </span>
+}
 
 @code {
 
@@ -24,11 +27,12 @@
     {
         await base.OnAfterRenderAsync(firstRender);
 
-        if (firstRender)
+        if (firstRender && Content != null)
         {
-            var module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", 
+            var module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import",
                 "./_content/Datahub.Core/Components/DHMarkdown.razor.js");
             await module.InvokeVoidAsync("styleCodeblocks", _elementReference);
         }
     }
+
 }
