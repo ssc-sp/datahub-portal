@@ -33,6 +33,28 @@
                 {
                     <AeTypography Variant="p">This project has no open PowerBI request at this time.</AeTypography>
                 }
+                else if (PowerBiServiceSuccessfullyApproved)
+                {
+                    <AeTypography Variant="p">The PowerBI service has been enabled and the following workspaces have been created:</AeTypography>
+                    @foreach(var which in new List<(string Title, string WorkspaceName, List<PowerBiAdminGroupUser> NotAssignedUsers)>()
+                    {
+                        (Localizer["Production"], ProdWorkspaceToCreate, ProdUsersNotAssigned),
+                        (Localizer["Sandbox"], SandboxWorkspaceToCreate, SandboxUsersNotAssigned)
+                    })
+                    {
+                        <AeTypography Variant="h5">@which.Title: @which.WorkspaceName</AeTypography>
+                        @if (which.NotAssignedUsers.Count > 0)
+                        {
+                            <AeTypography Variant="p">These users were not assigned:</AeTypography>
+                            <ul>
+                                @foreach(var u in which.NotAssignedUsers)
+                                {
+                                    <li>@UserLabel(u)</li>
+                                }
+                            </ul>
+                        }
+                    }
+                }
                 else if (PowerBiRequestAlreadyCompleted)
                 {
                     <AeTypography Variant="p">This project already has PowerBI enabled. No further action is needed.</AeTypography>
@@ -113,6 +135,7 @@
     private bool HasConflict { get; set; } = false;
     private bool PowerBiWriteAccessForbidden { get; set; } = false;
     private bool ErrorDuringApproval { get; set; } = false;
+    private bool PowerBiServiceSuccessfullyApproved { get; set; } = false;
 
     private string SandboxWorkspaceToCreate { get; set; }
     private string ProdWorkspaceToCreate { get; set; }
@@ -121,6 +144,8 @@
 
 
     private List<PowerBiAdminGroupUser> UsersToAssign { get; set; } = new();
+    private List<PowerBiAdminGroupUser> SandboxUsersNotAssigned { get; set; } = new();
+    private List<PowerBiAdminGroupUser> ProdUsersNotAssigned { get; set; } = new();
 
     private bool IsWorking { get; set; } = false;
     private SuccessIndicator _workingInd;
@@ -251,6 +276,9 @@
             var sandboxWsId = await CreateOrReuseWorkspace(SandboxWorkspaceToCreate);
             var prodWsId = await CreateOrReuseWorkspace(ProdWorkspaceToCreate);
 
+            SandboxUsersNotAssigned = await _powerBiApi.AssignUsersToWorkspace(sandboxWsId, UsersToAssign);
+            ProdUsersNotAssigned = await _powerBiApi.AssignUsersToWorkspace(prodWsId, UsersToAssign);
+
             var workspacesToCreate = new List<PowerBi_WorkspaceDefinition>
             {
                 new(sandboxWsId, SandboxWorkspaceToCreate, true, projectId),
@@ -284,7 +312,7 @@
         if (success)
         {
             await _workingInd.SignalSuccess();
-            PowerBiRequestAlreadyCompleted = true;
+            PowerBiServiceSuccessfullyApproved = true;
         }
         else
         {
