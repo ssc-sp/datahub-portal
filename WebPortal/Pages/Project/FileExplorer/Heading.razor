@@ -25,6 +25,18 @@
             </AeButton>
             <span class="tool-divider"></span>
         }
+        else
+        {
+            <AeButton class="button-tool disabled" style="cursor: default">
+                <i class="fas fa-download"></i>
+                Download
+            </AeButton>
+            <AeButton class="button-tool disabled" style="cursor: default">
+                <i class="fas fa-trash-alt"></i>
+                Delete
+            </AeButton>
+            <span class="tool-divider"></span>
+        }
         <AeButton class="button-tool" onclick="document.querySelector('.file-list .dropzone-container input').click();">
             <i class="fas fa-upload"></i>
             Upload
