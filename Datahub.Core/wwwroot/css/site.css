@@ -4924,6 +4924,12 @@ code {
 .upload-snackbar .upload-snack .upload-text {
   grid-area: text;
 }
+.upload-snackbar .upload-snack .upload-text .snack-file-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 200px;
+}
 .upload-snackbar .upload-snack .upload-text .file-upload-bytes {
   font-size: 0.6rem;
   text-transform: uppercase;
