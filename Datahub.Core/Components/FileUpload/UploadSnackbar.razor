@@ -20,7 +20,7 @@
                     </AeTypography>
                 </span>
                 <div class="snack-file-progress">
-                    <div class="file-progress-bar" style="width: @CalculateProgress(file)%;">@CalculateProgress(file)%</div>
+                    <div class="file-progress-bar" style="width: @CalculateProgress(file)%;">@CalculateProgress(file).ToString("0.00")%</div>
                 </div>
             </div>
         }
@@ -42,7 +42,7 @@
 
     private float CalculateProgress(FileMetaData file)
     {
-        return file.bytesToUpload > 0 ? (float) file.uploadedBytes / file.bytesToUpload * 100F : 0F;
+        return file.bytesToUpload > 0 ? (float) file.uploadedBytes / file.bytesToUpload * 100F : -1F;
     }
 
 }
