@@ -121,7 +121,7 @@
             .ToDictionary(g => g.Key,
                 g => g.ToList());
 
-        if (!_virtualDirectory.Any())
+        if (!_virtualDirectory.ContainsKey("/"))
         {
             _virtualDirectory.Add("/", new List<FileMetaData>());
         }
