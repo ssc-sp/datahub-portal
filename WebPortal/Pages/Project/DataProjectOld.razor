@@ -3,7 +3,7 @@
 @using Datahub.Portal.Data
 @using System.Text
 @using Microsoft.Extensions.Options
-@inject IStringLocalizer<DataProject> DataLocalizer
+@inject IStringLocalizer<DataProjectOld> DataLocalizer
 @inject NavigationManager NavigationManager
 @inject UIControlsService UIControlService
 @inject IUserInformationService UserInformationService
@@ -536,7 +536,7 @@
             _isDataApprover = projectUsers.Any(u => u.IsDataApprover);
         }
 
-        _admins = await ServiceAuthManager.GetAdminUserString(projectAcronym);
+        _admins = "all teh admins"; // await ServiceAuthManager.GetAdminUserString(projectAcronym);
         await LoadUserList();
 
         _sharingRequestAwaitingApprovalCount = await PublicDataFileService.GetDataSharingRequestsAwaitingApprovalCount(projectAcronym);
