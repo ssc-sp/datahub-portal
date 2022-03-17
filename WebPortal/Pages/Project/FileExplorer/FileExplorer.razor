@@ -127,7 +127,33 @@
             _virtualDirectory.Add("/", new List<FileMetaData>());
         }
 
+        SetupEmptyFolders();
+
         _loading = false;
+    }
+
+    private void SetupEmptyFolders()
+    {
+        var emptyFolders = new HashSet<string>();
+        foreach (var path in _virtualDirectory.Keys)
+        {
+            var remainingPath = path;
+            while (remainingPath != "/")
+            {
+                remainingPath = remainingPath.TrimEnd('/');
+                remainingPath = remainingPath[..(remainingPath.LastIndexOf("/", StringComparison.Ordinal) + 1)];
+
+                if (!_virtualDirectory.ContainsKey(remainingPath))
+                {
+                    emptyFolders.Add(remainingPath);
+                }
+            }
+        }
+
+        foreach (var folder in emptyFolders)
+        {
+            _virtualDirectory.Add(folder, new List<FileMetaData>());
+        }
     }
 
     private string GetDirectoryName(string path)
