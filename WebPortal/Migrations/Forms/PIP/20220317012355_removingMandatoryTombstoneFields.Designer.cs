@@ -4,6 +4,7 @@ using Datahub.ProjectForms.Data.PIP;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Datahub.Portal.Migrations.Forms.PIP
 {
     [DbContext(typeof(PIPDBContext))]
-    partial class PIPDBContextModelSnapshot : ModelSnapshot
+    [Migration("20220317012355_removingMandatoryTombstoneFields")]
+    partial class removingMandatoryTombstoneFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -516,6 +518,7 @@ namespace Datahub.Portal.Migrations.Forms.PIP
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Core_Responsbility_DESC")
+                        .IsRequired()
                         .HasMaxLength(400)
                         .HasColumnType("nvarchar(400)");
 
@@ -523,6 +526,7 @@ namespace Datahub.Portal.Migrations.Forms.PIP
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Departmental_Result_1_CD")
+                        .IsRequired()
                         .HasMaxLength(400)
                         .HasColumnType("nvarchar(400)");
 
