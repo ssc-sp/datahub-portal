@@ -1,5 +1,6 @@
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject RequestManagementService _requestManagementService
+@inject ILogger<PowerBI> _logger
 
 @if (_project is null)
 {
@@ -37,7 +38,8 @@ else
                             <AeTypography class="light">@Localizer["Access not authorized"]</AeTypography>
                         </li>
                         <li>
-                            <AeButton class="light" @onclick="@HandleRequestAccess">@Localizer["Request Access"]</AeButton>
+                            <AeButton class="light" @onclick="@HandleRequestAccess" Disabled=@_isWorking>@Localizer["Request Access"]</AeButton>
+                            <SuccessIndicator @bind-IsLoading=@_isWorking @ref=@_accessReqInd />
                         </li>
                     }
                 }
@@ -61,7 +63,8 @@ else
                 else
                 {
                     <li>
-                        <AeButton class="light" @onclick="@HandleRequestService">@Localizer["Request Service Creation"]</AeButton>
+                        <AeButton class="light" @onclick="@HandleRequestService" Disabled=@_isWorking>@Localizer["Request Service Creation"]</AeButton>
+                        <SuccessIndicator @bind-IsLoading=@_isWorking @ref=@_serviceReqInd />
                     </li>
                 }
             </ul>
@@ -87,11 +90,20 @@ else
     private bool _powerBiAccessRequested = false;
     private bool _powerBiAuthorized = false;
 
+    private bool _isWorking { get; set; } = false;
+    private SuccessIndicator _serviceReqInd;
+    private SuccessIndicator _accessReqInd;
+
     private Datahub_Project _project;
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
+        await LoadProjectAndRequests();
+    }
+
+    private async Task LoadProjectAndRequests()
+    {
         await using var projectDbContext = await _dbFactoryProject.CreateDbContextAsync();
 
         _project = await projectDbContext.Projects
@@ -116,6 +128,9 @@ else
 
     private async Task HandleRequestAccess()
     {
+        _isWorking = true;
+        StateHasChanged();
+
         var request = new Datahub_Project_Access_Request()
         {
             Request_DT = DateTime.Now,
@@ -125,11 +140,35 @@ else
             PowerBI = true
         };
 
-        await _requestManagementService.RequestAccess(request);
+        var success = true;
+
+        try
+        {
+            await _requestManagementService.RequestAccess(request);
+        }
+        catch (Exception ex)
+        {
+            success = false;
+            _logger.LogError(ex, $"Error while requesting PowerBI access in project {ProjectAcronym}");
+        }
+
+        if (success)
+        {
+            await _accessReqInd.SignalSuccess();
+        }
+        else
+        {
+            await _accessReqInd.SignalFailure();
+        }
+
+        await LoadProjectAndRequests();
     }
 
     private async Task HandleRequestService()
     {
+        _isWorking = true;
+        StateHasChanged();
+
         var serviceRequest = new Datahub_ProjectServiceRequests()
         {
             ServiceType = RequestManagementService.POWERBI,
@@ -140,6 +179,27 @@ else
             User_Name = GraphUser.UserPrincipalName
         };
 
-        await _requestManagementService.RequestService(serviceRequest);
+        var success = true;
+
+        try
+        {
+            await _requestManagementService.RequestService(serviceRequest);
+        }
+        catch (Exception ex)
+        {
+            success = false;
+            _logger.LogError(ex, $"Error requesting powerbi service in project {ProjectAcronym}");
+        }
+
+        if (success)
+        {
+            await _serviceReqInd.SignalSuccess();
+        }
+        else
+        {
+            await _serviceReqInd.SignalFailure();
+        }
+
+        await LoadProjectAndRequests();
     }
 }
