@@ -1,19 +1,35 @@
-﻿@inject IUserInformationService UserInformationService
-@inject MyDataService ApiService
-@inject IDataCreatorService DataCreatorService
-@inject UIControlsService UI
-@inject NavigationManager NavigationManager
+﻿@using Datahub.Core.Components.PageBanner
+
+@inject IUserInformationService _userInformationService
+@inject MyDataService _myDataService
+@inject IDataCreatorService _dataCreatorService
+@inject UIControlsService _uiControlsService
+@inject NavigationManager _navigationManager
+@inject ILocalStorageService _localStorage
 
 @page "/home/{TabIndex?}"
 
+<PageAlert Title="Welcome To DataHub!" Key="@PageAlert.Home">
+    <AeTypography Variant="h4">What is the SSC DataHub?</AeTypography>
+    <AeTypography>The SSC DataHub is an enterprise platform for storing, working with and collaborating on data initiatives across the GC and with external partners. It is a central location for users to store any kind of data, perform collaborative analysis, manipulate data using advanced analytics tools, and conduct data science experiments.</AeTypography>
+
+    <AeTypography Variant="h4">What are the objectives of the SSC DataHub PoC project?</AeTypography>
+    <AeTypography>The objective of the SSC DataHub Proof of Concept is to test the scaling of an existing departmental data solution from departmental-only to GC-wide, and with external partners. This will be done leveraging technology development and lessons learned from departments and will help identify areas of focus for next steps (further Proof of Concepts and eventual move to Production). By co-designing with science-based departments/agencies (SBDAs) we can implement required features/functions and elicit your feedback to identify what works, what is missing, what is useful, and any required refinements to the platform and supporting processes.</AeTypography>
+
+    <AeTypography Variant="h4">Which SSC DataHub features should I use?</AeTypography>
+    <AeTypography>The key features in the SSC DataHub include: Data Projects, Project Storage, Azure Databricks, and Structured Database sharing.</AeTypography>
+    <AeButton style="margin-top: 1rem" To="/resources">Learn More</AeButton>
+</PageAlert>
+
+<WelcomeBanner/>
+
 @if (!_isLoaded)
 {
-    <Spinner />
+    <Spinner/>
 }
 else
 {
-    <WelcomeBanner />
-    <LandingContent TabIndex=@TabIndexParsed />
+    <LandingContent TabIndex=@TabIndexParsed/>
 }
 
 @code
@@ -21,34 +37,21 @@ else
     [Parameter]
     public string TabIndex { get; set; }
 
-    private int TabIndexParsed => int.TryParse(TabIndex, out int tabIndex) ? tabIndex : 0;
-
-    private async Task InvalidUser()
-    {
-        UI.AllowEscape = false;
-
-        // Check if the user has a language set?
-        var language = await UserInformationService.GetUserLanguage();
-        if (string.IsNullOrWhiteSpace(language))
-        {
-            await UI.ToggleModal(@<UserSelectModal HideCancel="true" ConfirmLabel="BUTTONS.ConfirmBilingual" HeaderText="@Localizer["LanguagePreferencePrompt"]" Values="languages" OnDecision="SaveLanguage" />);
-        } 
-        else
-        {            
-            await UI.ToggleModal(@<UserTermsAndConditionsModal OnDecision="HandleAlertDecision" Language="@language" />);
-        }
-    }
-
+    private int TabIndexParsed => int.TryParse(TabIndex, out var tabIndex) ? tabIndex : 0;
     private bool _isUserValid = true;
     private bool _isLoaded;
+    private bool _hidePageAlert = true;
 
-    protected List<string> languages { get; } = new() { "English", "Français" };
+    private readonly List<string> _languages = new() {"English", "Français"};
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            _isUserValid = await UserInformationService.HasUserAcceptedTAC();
+            _hidePageAlert = await _localStorage.GetItemAsync<bool>(PageAlert.Home);
+            StateHasChanged();
+
+            _isUserValid = await _userInformationService.HasUserAcceptedTAC();
             if (_isUserValid)
             {
                 await SetupRootFolder();
@@ -62,33 +65,49 @@ else
         }
     }
 
-    protected async Task SetupRootFolder()
+    private async Task InvalidUser()
+    {
+        _uiControlsService.AllowEscape = false;
+
+    // Check if the user has a language set?
+        var language = await _userInformationService.GetUserLanguage();
+        if (string.IsNullOrWhiteSpace(language))
+        {
+            await _uiControlsService.ToggleModal(@<UserSelectModal HideCancel="true" ConfirmLabel="BUTTONS.ConfirmBilingual" HeaderText="@Localizer["LanguagePreferencePrompt"]" Values="_languages" OnDecision="SaveLanguage"/>);
+        }
+        else
+        {
+            await _uiControlsService.ToggleModal(@<UserTermsAndConditionsModal OnDecision="HandleAlertDecision" Language="@language"/>);
+        }
+    }
+
+    private async Task SetupRootFolder()
     {
         _isLoaded = false;
 
-        // We need to load user and check they have root folder
-        var rootFolder = await UserInformationService.GetUserRootFolder();
-        var currentUser = await UserInformationService.GetUserAsync();
-        await DataCreatorService.CreateRootFolderIfNotExist(currentUser.Id, rootFolder);
+    // We need to load user and check they have root folder
+        var rootFolder = await _userInformationService.GetUserRootFolder();
+        var currentUser = await _userInformationService.GetUserAsync();
+        await _dataCreatorService.CreateRootFolderIfNotExist(currentUser.Id, rootFolder);
 
-        // Set the user folder ID!
-        ApiService.MyDataFolder.id = rootFolder;
-        ApiService.SharedDataFolder.id = rootFolder;
-        ApiService.SearchDataFolder.id = rootFolder;
+    // Set the user folder ID!
+        _myDataService.MyDataFolder.id = rootFolder;
+        _myDataService.SharedDataFolder.id = rootFolder;
+        _myDataService.SearchDataFolder.id = rootFolder;
 
         _isLoaded = true;
     }
 
-    private async void HandleAlertDecision(bool IsContinue)
+    private async void HandleAlertDecision(bool isContinue)
     {
-        if (IsContinue)
+        if (isContinue)
         {
-            // User has agreed to TAC, update in DB
-            if (await UserInformationService.RegisterUserTAC())
+    // User has agreed to TAC, update in DB
+            if (await _userInformationService.RegisterUserTAC())
             {
-                // ONLY valid if saved in DB
+    // ONLY valid if saved in DB
                 _isUserValid = true;
-                await UI.ToggleModal();
+                await _uiControlsService.ToggleModal();
                 await SetupRootFolder();
                 await AdjustLanguage();
             }
@@ -97,29 +116,30 @@ else
             return;
         }
 
-        NavigationManager.NavigateTo(ApiService.LogoutURL, forceLoad: true);
+        _navigationManager.NavigateTo(_myDataService.LogoutURL, forceLoad: true);
     }
 
     private async Task AdjustLanguage()
     {
-        var language = await UserInformationService.GetUserLanguage();
-        UserInformationService.SetLanguage(language);
+        var language = await _userInformationService.GetUserLanguage();
+        _userInformationService.SetLanguage(language);
     }
 
-    private async void SaveLanguage((bool, string) isContinue)
+    private async void SaveLanguage((bool, string) saveTuple)
     {
-        UI.AllowEscape = true;
-        if (isContinue.Item1)
+        _uiControlsService.AllowEscape = true;
+        var (isContinue, newLanguage) = saveTuple;
+        if (isContinue)
         {
-            var language = isContinue.Item2.Equals("english", StringComparison.OrdinalIgnoreCase) ? "en-CA" : "fr-CA";
-            var isLangSaved = await UserInformationService.RegisterUserLanguage(language);
-            
-            await UI.ToggleModal();
-            await UI.ToggleModal(@<UserTermsAndConditionsModal OnDecision="HandleAlertDecision" Language="@language" />);
+            var language = newLanguage.Equals("english", StringComparison.OrdinalIgnoreCase) ? "en-CA" : "fr-CA";
+            var isLangSaved = await _userInformationService.RegisterUserLanguage(language);
+
+            await _uiControlsService.ToggleModal();
+            await _uiControlsService.ToggleModal(@<UserTermsAndConditionsModal OnDecision="HandleAlertDecision" Language="@language"/>);
         }
         else
         {
-            NavigationManager.NavigateTo(ApiService.LogoutURL, forceLoad: true);
+            _navigationManager.NavigateTo(_myDataService.LogoutURL, forceLoad: true);
         }
     }
 
