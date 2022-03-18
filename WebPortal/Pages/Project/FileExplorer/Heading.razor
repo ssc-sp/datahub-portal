@@ -15,31 +15,42 @@
         }
     </div>
     <div class="actions">
-        <AeButton class="button-tool" @onclick="HandleDownload" Disabled="!_isExistingFile">
-            <i class="fas fa-download"></i>
-            @Localizer["Download"] 
-        </AeButton>
-
+        @if (!VirtualDirectory.ContainsKey(SelectedItem))
+        {
+            <AeButton class="button-tool" @onclick="HandleDownload">
+                <i class="fas fa-download"></i>
+                Download
+            </AeButton>
+            <AeButton class="button-tool" @onclick="HandleDelete">
+                <i class="fas fa-trash-alt"></i>
+                Delete
+            </AeButton>
+            <span class="tool-divider"></span>
         <AeButton class="button-tool" @onclick="HandleShare" Disabled="!_ownsSelectedFile">
             <i class="fas fa-share-square"></i>
             @Localizer["Share"]
-        </AeButton>
-
-        <AeButton class="button-tool" @onclick="HandleDelete" Disabled="!_ownsSelectedFile">
-            <i class="fas fa-trash-alt"></i>
-            @Localizer["Delete"]
-        </AeButton>
-
-        <span class="tool-divider"></span>
-
+        </AeButton>            
+            <span class="tool-divider"></span>
+        }
+        else
+        {
+            <AeButton class="button-tool disabled" style="cursor: default">
+                <i class="fas fa-download"></i>
+                Download
+            </AeButton>
+            <AeButton class="button-tool disabled" style="cursor: default">
+                <i class="fas fa-trash-alt"></i>
+                Delete
+            </AeButton>
+            <span class="tool-divider"></span>
+        }
         <AeButton class="button-tool" onclick="document.querySelector('.file-list .dropzone-container input').click();">
             <i class="fas fa-upload"></i>
-            @Localizer["Upload"]
+            Upload
         </AeButton>
-
         <AeButton class="button-tool" @onclick="HandleNewFolder">
             <i class="fas fa-folder-plus"></i>
-            @Localizer["New Folder"]
+            New Folder
         </AeButton>
     </div>
 </div>
@@ -94,7 +105,7 @@
     private async Task BreadcrumbClicked(string breadcrumb)
     {
         var index = CurrentFolder.IndexOf(breadcrumb, StringComparison.OrdinalIgnoreCase);
-        await SetCurrentFolder.InvokeAsync(CurrentFolder[..(index + breadcrumb.Length)]);
+        await SetCurrentFolder.InvokeAsync(CurrentFolder[..(index + breadcrumb.Length)] + "/");
     }
 
     private async Task HandleDownload()
