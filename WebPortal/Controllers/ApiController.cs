@@ -286,7 +286,7 @@ namespace Datahub.Portal.Controllers
                 return BadRequest("Invalid 'time_period_coverage_start'");
 
             if (!string.IsNullOrEmpty(data.time_period_coverage_end) && !IsValidDate(data.time_period_coverage_end))
-                return BadRequest("Invalid 'time_period_coverage_start'");
+                return BadRequest("Invalid 'time_period_coverage_end'");
 
             return null;
         }
