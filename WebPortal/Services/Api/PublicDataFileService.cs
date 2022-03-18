@@ -344,6 +344,7 @@ namespace Datahub.Portal.Services
             var shareInfo = await LoadOpenDataSharedFileInfo(fileId);
 
             shareInfo.ApprovalForm_ID = approvalFormId;
+            shareInfo.ApprovalFormEdited_FLAG = true;
 
             await _projectDbContext.TrackSaveChangesAsync(_datahubAuditingService);
         }

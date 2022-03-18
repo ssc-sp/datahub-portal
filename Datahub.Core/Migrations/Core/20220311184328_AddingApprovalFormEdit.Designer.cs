@@ -4,16 +4,18 @@ using Datahub.Core.EFCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
+namespace Datahub.Core.Migrations.Core
 {
     [DbContext(typeof(DatahubProjectDBContext))]
-    partial class DatahubProjectDBContextModelSnapshot : ModelSnapshot
+    [Migration("20220311184328_AddingApprovalFormEdit")]
+    partial class AddingApprovalFormEdit
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -780,6 +782,9 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("SharedDataFile_ID"), 1L, 1);
 
+                    b.Property<bool>("ApprovalFormEdited_FLAG")
+                        .HasColumnType("bit");
+
                     b.Property<DateTime?>("ApprovedDate_DT")
                         .HasColumnType("datetime2");
 
@@ -1063,9 +1068,6 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
             modelBuilder.Entity("Datahub.Core.EFCore.OpenDataSharedFile", b =>
                 {
                     b.HasBaseType("Datahub.Core.EFCore.SharedDataFile");
-
-                    b.Property<bool>("ApprovalFormEdited_FLAG")
-                        .HasColumnType("bit");
 
                     b.Property<bool>("ApprovalFormRead_FLAG")
                         .HasColumnType("bit");
