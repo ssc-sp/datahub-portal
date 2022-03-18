@@ -22,6 +22,10 @@ namespace Datahub.ProjectForms.Data.PIP
         [AeFormIgnore]
         public string ProgramCode { get; set; }
 
+        [AeLabel(row: "1", column: "1")]
+        [AeFormCategory("Program Information", 1)]
+        [Editable(false)] public int FiscalYearId { get; set; }
+
         [AeLabel(row: "1", column:"1")]
         [AeFormCategory("Program Information",1)]
         [MaxLength(400)] public string Program_Title { get; set; }
@@ -216,8 +220,7 @@ namespace Datahub.ProjectForms.Data.PIP
         [AeFormIgnore]
         [Timestamp]
         public byte[] Timestamp { get; set; }
-        [AeFormIgnore]
-        public int FiscalYearId { get; set; }
+        
         public PIP_FiscalYears FiscalYear { get; set; }
         
         [AeFormIgnore]
