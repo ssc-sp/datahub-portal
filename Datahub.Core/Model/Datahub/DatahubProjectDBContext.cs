@@ -49,6 +49,8 @@ namespace Datahub.Core.EFCore
         public DbSet<MiscStoredObject> MiscStoredObjects { get; set; }
 
         public DbSet<Datahub_ProjectApiUser> Project_ApiUsers { get; set; }
+        
+        public DbSet<Datahub_Registration_Request> Registration_Requests { get; set; }
 
         public void Seed(DatahubProjectDBContext context, IConfiguration configuration)
         {
