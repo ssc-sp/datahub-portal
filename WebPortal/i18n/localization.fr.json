@@ -180,6 +180,7 @@
   "SYSTEM-NOTIFICATION": {
     "TestNotification": "C'est un test.'",
     "NOTIFICATION-TEXT": {
+      "ServiceCreationRequested": "User {0} has requested the creation of service {1} in data project {2}. Please visit the admin page to notify project users when it has been created.",
       "ServiceAccessRequested": "L’utilisateur {0} a demandé l’accès au service {1} dans le projet de données {2}.",
       "ServiceAccessRequestApproved": "Votre demande d'accès au service {0} dans le projet de données {1} a été approuvée.",
       "ServiceAccessRevoked": "Votre accès au service {0} dans le projet de données {1} a été révoqué. Les liens menant au service dans la page du projet de données ne seront plus accessibles.",
