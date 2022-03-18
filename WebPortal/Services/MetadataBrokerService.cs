@@ -327,9 +327,8 @@ namespace Datahub.Portal.Services
 
             var whereCondition = string.Join(" AND ", filteredSearchText);
             if (string.IsNullOrEmpty(whereCondition))
-                return string.Empty;
+                return "SELECT * FROM CatalogObjects";
 
-            //return $"SELECT * FROM CatalogObjects WHERE {fieldName} LIKE '%{filteredSearchText}%'";
             return $"SELECT * FROM CatalogObjects WHERE {whereCondition}";
         }
 

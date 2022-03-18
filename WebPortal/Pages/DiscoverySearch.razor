@@ -110,7 +110,8 @@
         _renderFunctions = new() { null, null, null, null, null, null, GetDownLoadFragment };
         _sectors = (await OrganizationLevelsService.GetSectors()).ToDictionary(s => s.Id);
         _branches = (await OrganizationLevelsService.GetBranches()).ToDictionary(b => b.Id);
-        _searchThrottler = new(TimeSpan.FromSeconds(0.5), ThrottleSearch); 
+        _searchThrottler = new(TimeSpan.FromSeconds(0.5), ThrottleSearch);
+        await _searchThrottler.SetQuery(string.Empty);
     }
 
     protected override void OnAfterRender(bool firstRender)
@@ -168,21 +169,17 @@
     {
         _searchResults.Clear();
         _selectedResult = null;
+        _searching = true;
         await InvokeAsync(StateHasChanged);
-        if (!string.IsNullOrEmpty(searchText))
+        try
         {
-            _searching = true;
+            _searchResults = await SearchCatalog(searchText);
+        }
+        finally
+        {
+            _searching = false;
             await InvokeAsync(StateHasChanged);
-            try
-            {
-                _searchResults = await SearchCatalog(searchText);
-            }
-            finally
-            {
-                _searching = false;
-                await InvokeAsync(StateHasChanged);
-            }
-        }            
+        }
     }
 
     private Task<List<CatalogObjectResult>> SearchCatalog(string searchText)
