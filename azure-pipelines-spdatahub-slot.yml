@@ -16,8 +16,6 @@ trigger:
     include:
       - develop
   paths:
-    include: 
-    - '*'
     exclude:
     - 'docs/**/*'
 
