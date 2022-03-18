@@ -1,5 +1,4 @@
 # [UC001] New user and new project
-
 As a new user, I want to sign up my project for DataHub
 
 ```mermaid
@@ -30,7 +29,6 @@ sequenceDiagram
 ```
 
 # [UC002] New user and existing project
-
 As a new user, I want to sign up to an existing project in DataHub
 
 ```mermaid
@@ -71,7 +69,6 @@ sequenceDiagram
 ```
 
 # [UC003] Existing user and new project
-
 As an existing user, I want to create a new project in DataHub
 
 ```mermaid
@@ -80,38 +77,42 @@ sequenceDiagram
     participant P as DataHub Portal
     actor D as DataHub Admin
 
-    U->>+P: request new project
+    U->>P: request new project
+    activate U
+    activate P
     P->>+D: request approval
+    P-->>U: notify pending
+    deactivate U
     D-->>-P: approve
     P->>P: provision project
     P->>P: add user as admin to project
     P->>-U: email notification
-
-    %% activate U
-    %% U->>-P: login to portal
-    %% activate P
-    %% P->>-P: update registration status (logged in)
 ```
 
-# [UC003] Existing user and new project
-
-As an existing user, I want to create a new project in DataHub
+# [UC003] Existing user and existing project
+As an existing user, I want to join an existing project in DataHub
 
 ```mermaid
 sequenceDiagram
     actor U as User
+    actor A as Project Admin
     participant P as DataHub Portal
-    actor D as DataHub Admin
 
-    U->>+P: request new project
-    P->>+D: request approval
-    D-->>-P: approve
-    P->>P: provision project
-    P->>P: add user as admin to project
-    P->>-U: email notification
+    U->>P: request to join existing project
+    activate U
+    activate P
+    P->>P: create join request
+    P-->>U: notify pending
+    deactivate U
 
-    %% activate U
-    %% U->>-P: login to portal
-    %% activate P
-    %% P->>-P: update registration status (logged in)
+    P->>A: notify of join request
+    deactivate P
+    activate A
+    A-->>P: approve join request
+    deactivate A
+
+    activate P
+    P->>P: add user to project
+    P->>U: email notification
+    deactivate P
 ```
