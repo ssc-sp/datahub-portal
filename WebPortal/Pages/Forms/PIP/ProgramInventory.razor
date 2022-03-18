@@ -405,9 +405,8 @@
         {
             if (!string.IsNullOrEmpty(powerBiTargets))
             {
-                var powerBiUrl = $"{powerBiTargets}rp:p_program_title={project.Program_Title.Replace(" ", "+")}";
-                project.PowerBiUrl = 
-    @<a href="@powerBiUrl" target="blank">Open PowerBI Report</a>;
+                var powerBiUrl = $"{powerBiTargets}rp:p_program_title={project.Program_Title.Replace(" ", "+")}&rp:p_fiscal_year_id={project.FiscalYearId}";
+                project.PowerBiUrl = @<a href="@powerBiUrl" target="blank">Open PowerBI Report</a>;
             }
         }
 
