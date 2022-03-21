@@ -251,6 +251,10 @@ namespace Datahub.ProjectForms.Data.PIP
         public bool IsIndicatorDetailsLocked { get; set; }
         [AeFormIgnore]
         public string EditingUserId { get; set; }
+        [AeFormIgnore]
+        public string SourceFileName { get; set; }
+        [AeFormIgnore]
+        public DateTime? SourceFileUploadDate { get; set; }
 
 
 
