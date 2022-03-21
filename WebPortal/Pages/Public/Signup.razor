@@ -1,19 +1,52 @@
 @using Datahub.Portal.Data.Forms
+@using Datahub.Core.Components.Common
 
 @inject ILogger<Signup> _logger
 
-@page "/signup"
+@page "/register"
+
+<PageTitle>DataHub | Registration</PageTitle>
 
 <div class="signup-container">
+    <span class="gc-logo">
+        <img src="/img/gc-logo.svg" alt="Government of Canada Logo"/>
+    </span>
+    <AeTypography class="language-toggle">
+        <LanguageToggle/>
+    </AeTypography>
+    <div class="info-container">
+        <span class="info-title-container">
+            <AeTypography class="info-pretext">Federal Science</AeTypography>
+            <span class="info-logo">
+                <img src="/_content/Datahub.Core/img/datahub-logo-v2.png" alt="datahub-logo"/>
+            </span>
+            <AeTypography class="info-title" Variant="h1">DataHub</AeTypography>
+        </span>
+        <span class="info-content">
+            <AeTypography class="info-welcome">Welcome to the Government of Canada's new one-stop hub for science data solutions.</AeTypography>
+            <AeTypography class="info-hosted">Hosted by SSC (Proof-of-Concept Phase)</AeTypography>
+            <AeTypography><b>Onboard here to escape the silos.</b> With one simple sign-on, you can:</AeTypography>
+            <br/>
+            <AeTypography>Access fit-for-purpose, scalabale <b>storage</b> for GC science Data</AeTypography>
+            <AeTypography>Easily <b>share</b> your data with your GC colleagues</AeTypography>
+            <AeTypography>Perform <b>analytics</b> and <b>collaborate</b> with your GC science partners in an interactive environment</AeTypography>
+        </span>
+    </div>
     <div class="form-container">
         <div class="form-section">
-            <AeTypography class="prefix">Collaborate across the clouds with</AeTypography>
-            <AeTypography Variant="h1">DataHub</AeTypography>
+            <AeTypography class="form-title">
+                <span class="info-logo">
+                    <img src="/_content/Datahub.Core/img/datahub-logo-v2.png" alt="datahub-logo"/>
+                </span>
+                DataHub
+            </AeTypography>
+            <AeTypography class="form-subtitle">Registration | Inscription</AeTypography>
 
             <AeModelForm
                 Model="_basicIntakeForm"
                 SubmitLabel="Sign up"
                 OnValidSubmit="HandleValidSubmit"
+                OnConfigure="HandleConfigure"
                 LabelsOnTop/>
         </div>
     </div>
@@ -33,6 +66,11 @@
     {
         _logger.LogInformation("HandleValidSubmit");
         _logger.LogInformation(_basicIntakeForm.ToString());
+    }
+
+    private async Task HandleConfigure(IModelFormContext context)
+    {
+        context.RegisterOptionValueProperty<BasicIntakeForm>(f => f.DepartmentName, () => BasicIntakeForm.DepartmentDictionary.Keys);
     }
 
 }
