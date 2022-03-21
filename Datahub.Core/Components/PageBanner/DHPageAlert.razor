@@ -1,38 +1,39 @@
-﻿@using Microsoft.EntityFrameworkCore.Query
-@using Microsoft.EntityFrameworkCore;
-@using Microsoft.Extensions.Logging
-@using Datahub.Portal.Data;
-@using System.Web
+﻿@using System.Web
 @using System.IO
 @using System.Reflection
 @using System.Net
-
+@using System.Globalization
 @inject NavigationManager _navigationManager
 @inject IJSRuntime _jsInterop
-@inject ILogger<Resources> _logger
-@inject IConfiguration Configuration
+@inject ILogger<DHPageAlert> _logger
+@inject IConfiguration configuration
 
-@page "/resources/"
-@page "/resources/{PageName}"
+@if (_contentFound)
+{
+    <PageAlert Title="@Localizer[Title]" Key=@Key>
 
-<AeCard>
-    <ChildContent>
-        <DHMarkdown Content="@_markdownContent"
-                    LinkRewriter="@RewriteLink"/>
-    </ChildContent>
-</AeCard>
+            <DHMarkdown Content="@_markdownContent"
+                        LinkRewriter="@RewriteLink"/>
+    </PageAlert>
+}
 
 @code {
+    [Parameter]
+    public string Title { get; set; }
 
     [Parameter]
-    public string PageName { get; set; }
+    public string Key { get; set; }
 
     [Parameter]
-    public List<(string,string)> Substitutions { get; set; }
+    public string WikiLinkEN { get; set; }
+
+    [Parameter]
+    public string WikiLinkFR { get; set; }
 
     private const string DefaultPage = "Home";
     private string _markdownContent = string.Empty;
     private string _baseUrl = "/resources";
+    private bool _contentFound = false;
 
     private string RewriteLink(string link)
     {
@@ -43,13 +44,16 @@
 
     protected override async Task OnParametersSetAsync()
     {
-        _markdownContent = await LoadPage(PageName ?? DefaultPage, Substitutions) ?? Localizer["Invalid link"];
+        var link = CultureInfo.CurrentCulture.TwoLetterISOLanguageName == "fr" ? WikiLinkFR : WikiLinkEN;
+        var content = await LoadPage(link ?? DefaultPage);
+        _markdownContent = content ?? Localizer[$"{link} cannot be found"];
+        _contentFound = content != null;
     }
 
     private async Task<string> LoadPage(string name, List<(string,string)> substitutions = null)
     {
         if (name.StartsWith("/")) name = name.Substring(1);
-        var wikiRoot = Configuration["WikiURL"];
+        var wikiRoot = configuration["WikiURL"];
         var fullUrl = $"{wikiRoot}{name}.md";
         using var client = new HttpClient();
         try

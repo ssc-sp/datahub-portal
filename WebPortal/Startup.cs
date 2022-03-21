@@ -275,40 +275,6 @@ namespace Datahub.Portal
                     .AddMicrosoftGraph(Configuration.GetSection("Graph"))
                     .AddInMemoryTokenCaches();
 
-                // var isCustomRedirectUriRequired = true;
-                // if (isCustomRedirectUriRequired)
-                // {
-                //     services
-                //         .Configure<OpenIdConnectOptions>(
-                //             AzureADDefaults.OpenIdScheme,
-                //             options =>
-                //             {
-                //                 options.Events =
-                //                     new OpenIdConnectEvents
-                //                     {
-                //                         OnRedirectToIdentityProvider = async ctx =>
-                //                         {
-                //                             ctx.ProtocolMessage.RedirectUri = "https://datahub-dev.nrcan-rncan.gc.ca/signin-oidc";
-                //                             await Task.Yield();
-                //                         }
-                //                     };
-                //             });
-                // }
-
-                //services
-                //    .AddAuthorization(
-                //        options =>
-                //        {
-                //            options.AddPolicy(
-                //                PolicyConstants.DashboardPolicy,
-                //                builder =>
-                //                {
-                //                    builder
-                //                        .AddAuthenticationSchemes(AzureADDefaults.AuthenticationScheme)
-                //                        .RequireAuthenticatedUser();
-                //                });
-                //        });
-
                 services.AddControllersWithViews()
                         .AddMicrosoftIdentityUI();
             }
