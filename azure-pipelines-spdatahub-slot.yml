@@ -15,6 +15,9 @@ trigger:
   branches:
     include:
       - develop
+  paths:
+    exclude:
+    - 'docs/**/*'
 
 pr:
   - develop
