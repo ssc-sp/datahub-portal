@@ -72,6 +72,19 @@ namespace Datahub.CKAN.Service
             return await PostRequestAsync("resource_create", content);
         }
 
+        public async Task<CKANApiResult> DeletePackage(string packageId)
+        {
+            // generate the dictionary with the package id
+            Dictionary<string, object> packageData = new() { { "id", packageId } };
+
+            // generate json from package
+            var jsonData = JsonSerializer.Serialize(packageData, GetSerializationOptions());
+
+            var content = new StringContent(jsonData, Encoding.UTF8, "application/json");
+
+            return await PostRequestAsync("package_delete", content);
+        }
+
         private async Task<CKANApiResult> PostRequestAsync(string action, HttpContent content)
         {
             try
