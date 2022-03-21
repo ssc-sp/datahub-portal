@@ -37,6 +37,11 @@ namespace Datahub.M365Forms.Migrations
                     b.Property<bool>("Business_Owner_Approval")
                         .HasColumnType("bit");
 
+                    b.Property<string>("Client_Sector")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
                     b.Property<string>("Comments")
                         .HasColumnType("nvarchar(max)");
 

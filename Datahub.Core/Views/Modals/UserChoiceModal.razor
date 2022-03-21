@@ -1,7 +1,7 @@
 ﻿@inject UIControlsService UI
 
 <div class="modal-content">
-    <div class="modal-background" @onclick="() => OnDecision?.Invoke(false)"></div>
+    <div class="modal-background" @onclick="() => OnDecision.InvokeAsync(false)"></div>
 
     <h4 class="nrcan-typography h4 modal-header">@HeaderText</h4>
 
@@ -22,9 +22,11 @@
 
 @code{
     [Parameter]
-    public Action<bool> OnDecision { get; set; }
+    public EventCallback<bool> OnDecision { get; set; }
+
     [Parameter]
     public List<string> ChoiceTextList { get; set; }
+
     [Parameter]
     public string HeaderText { get; set; }
 
@@ -41,10 +43,19 @@
         ConfirmText = string.IsNullOrEmpty(ConfirmText) ? Localizer["BUTTONS.Confirm"] : ConfirmText;
         CancelText = string.IsNullOrEmpty(CancelText) ? Localizer["BUTTONS.Cancel"] : CancelText;
     }
-    public void Processing(bool response)
+
+    public async Task Processing(bool response)
     {
         isProcessing = true;
-        StateHasChanged();
-        OnDecision?.Invoke(response);
+        await InvokeAsync(StateHasChanged);
+        try
+        {
+            await OnDecision.InvokeAsync(response);        
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+        await InvokeAsync(StateHasChanged);
     }  
 }
