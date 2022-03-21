@@ -5,18 +5,6 @@
     <RootNamespace>Datahub.Core</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Content Remove="compilerconfig.json" />
-    <Content Remove="package-lock.json" />
-    <Content Remove="package.json" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Remove="Styles\Common\NewFile1.txt" />
-    <None Remove="Styles\_spinner.scss" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Styles\_spinner.scss" />
-  </ItemGroup>
-  <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
   <ItemGroup>
@@ -26,51 +14,53 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="AElemental.Blazor" Version="1.5.22075.2-beta" />
-    <PackageReference Include="AElemental.Blazor.Theme" Version="1.5.22075.2-beta" />
+    <PackageReference Include="AElemental.Blazor" Version="1.5.22078.1-beta" />
+    <PackageReference Include="AElemental.Blazor.Theme" Version="1.5.22078.1-beta" />
     <PackageReference Include="AngleSharp" Version="1.0.0-alpha-844" />
-    <PackageReference Include="Askmethat.Aspnet.JsonLocalizer" Version="3.2.0-alpha.4" />
+    <PackageReference Include="Askmethat.Aspnet.JsonLocalizer" Version="4.0.0" />
     <PackageReference Include="Azure.Identity" Version="1.5.0" />
     <PackageReference Include="Azure.Search.Documents" Version="11.3.0" />
     <PackageReference Include="Azure.Storage.Blobs" Version="12.11.0" />
     <PackageReference Include="Azure.Storage.Files.DataLake" Version="12.9.0" />
-    <PackageReference Include="BlazorDownloadFile" Version="2.3.1" />
+    <PackageReference Include="BlazorDownloadFile" Version="2.3.1.1" />
+    <PackageReference Include="Blazored.LocalStorage" Version="4.2.0" />
     <PackageReference Include="BlazorInputFile" Version="0.2.0" />
     <PackageReference Include="BlazorTemplater" Version="1.4.1" />
+    <PackageReference Include="ByteSize" Version="2.1.1" />
     <PackageReference Include="DeepL" Version="0.4.0" />
     <PackageReference Include="Localization.AspNetCore.TagHelpers" Version="0.6.0" />
     <PackageReference Include="MailKit" Version="3.1.1" />
-    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.18.0" />
+    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.20.0" />
     <PackageReference Include="Microsoft.AspNetCore.ApplicationInsights.HostingStartup" Version="2.2.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.AzureAD.UI" Version="6.0.1" />
-    <PackageReference Include="Microsoft.AspNetCore.DataProtection.Abstractions" Version="6.0.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.AzureAD.UI" Version="6.0.3" />
+    <PackageReference Include="Microsoft.AspNetCore.DataProtection.Abstractions" Version="6.0.3" />
     <PackageReference Include="Microsoft.Azure.KeyVault" Version="3.0.5" />
     <PackageReference Include="Microsoft.Azure.KeyVault.Core" Version="3.0.5" />
     <PackageReference Include="Microsoft.Azure.Services.AppAuthentication" Version="1.6.2" />
     <PackageReference Include="Microsoft.Azure.Storage.Blob" Version="11.2.3" />
-    <PackageReference Include="Microsoft.Data.SqlClient" Version="4.0.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Cosmos" Version="6.0.1" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="6.0.1" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.1" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="6.0.1">		
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="4.1.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Cosmos" Version="6.0.3" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="6.0.3" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.3" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="6.0.3">		
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.Http.Polly" Version="6.0.1" />
-    <PackageReference Include="Microsoft.Graph" Version="4.11.0" />
+    <PackageReference Include="Microsoft.Extensions.Http.Polly" Version="6.0.3" />
+    <PackageReference Include="Microsoft.Graph" Version="4.21.0" />
     <PackageReference Include="Microsoft.Graph.Auth" Version="1.0.0-preview.5" />
     <PackageReference Include="Microsoft.Identity.Web" Version="1.23.1" />
     <PackageReference Include="Microsoft.Identity.Web.UI" Version="1.23.1" />
-    <PackageReference Include="Microsoft.PowerBI.Api" Version="4.4.0" />
-    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.14.0" />
+    <PackageReference Include="Microsoft.PowerBI.Api" Version="4.5.0" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.15.0" />
     <PackageReference Include="Microsoft.Azure.Search.Data" Version="10.1.0" />
     <PackageReference Include="Microsoft.Azure.Search" Version="10.1.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging.ApplicationInsights" Version="2.18.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging.AzureAppServices" Version="6.0.1" />
-    <PackageReference Include="Microsoft.ApplicationInsights" Version="2.18.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.ApplicationInsights" Version="2.20.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.AzureAppServices" Version="6.0.3" />
+    <PackageReference Include="Microsoft.ApplicationInsights" Version="2.20.0" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.1">
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.3">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
@@ -84,33 +74,6 @@
     <Content Update="i18n\SharedResources.fr.json">
       <CustomToolNamespace>Resources</CustomToolNamespace>
     </Content>
-  </ItemGroup>
-  <!-- from https://jacobdixon.uk/2020/10/compile-scss-at-build-time-visual-studio/ -->
-  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
-    <Exec Command="npm run build-css" />
-  </Target>
-
-  <!-- from https://stackoverflow.com/questions/35435041/run-npm-install-only-when-needed-and-or-partially -->
-  <PropertyGroup>
-    <!-- File with mtime of last successful npm install -->
-    <NpmInstallStampFile>node_modules/.install-stamp</NpmInstallStampFile>
-  </PropertyGroup>
-  <Target Name="NpmInstall" BeforeTargets="BeforeBuild" Inputs="package.json" Outputs="$(NpmInstallStampFile)">
-    <Exec Command="npm i sass --save-dev" />
-    <Touch Files="$(NpmInstallStampFile)" AlwaysCreate="true" />
-  </Target>
-
-  <ItemGroup>
-    <UpToDateCheckInput Include="Styles/**/*.scss" Set="Css" />
-    <UpToDateCheckBuilt Include="wwwroot/css/*.css" Set="Css" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <UpToDateCheckInput Remove="Styles\Theme\_paginated-table-light.scss" />
-    <UpToDateCheckInput Remove="Styles\Theme\_pagination.scss" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Styles\elemental-theme\" />
+    <Content Remove="Layout\BlankLayout.razor" />
   </ItemGroup>
 </Project>

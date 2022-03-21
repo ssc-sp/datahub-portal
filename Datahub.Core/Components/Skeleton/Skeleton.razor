@@ -1,0 +1,21 @@
+<span class="@_classname" style="@_style" ></span>
+
+@code {
+
+    [Parameter]
+    public string Height { get; set; }
+    
+    [Parameter]
+    public string Width { get; set; }
+    
+    [Parameter]
+    public bool Circle { get; set; }
+
+
+    private string _classname => $"skeleton {(Circle ? "circle" : "row")} wave";
+    
+    
+
+    private string _style => $"height: {Height}; width: {Width}";
+
+}
