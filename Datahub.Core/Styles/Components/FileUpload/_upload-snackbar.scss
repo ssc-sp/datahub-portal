@@ -1,0 +1,75 @@
+@use '../../Common' as c;
+
+.upload-snackbar {
+  position: fixed;
+  right: 2rem;
+  bottom: 2rem;
+  z-index: 1000;
+  
+  .upload-snack {
+    width: 300px;
+    height: 100px;
+    
+    margin-bottom: .5rem;
+    
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-template-rows: auto 1fr;
+    column-gap: 1rem;
+    row-gap: .5rem;
+    
+    padding: 1rem;
+    
+    background-color: c.$white;
+    @include c.BoxShadow(2);
+    
+    grid-template-areas: 
+          "icon text"
+          "progress progress";
+    
+    i {
+      grid-area: icon;
+      font-size: 2rem;
+      align-self: center;
+    }
+
+    .upload-text {
+      grid-area: text;
+      
+      .snack-file-name {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        width: 200px;
+      }
+      
+      .file-upload-bytes {
+        font-size: 0.6rem;
+        text-transform: uppercase;
+        font-family: monospace;
+        opacity: .7;
+      }
+    }
+    
+    .snack-file-progress {
+      grid-area: progress;
+      
+      display: flex;
+      height: 1rem;
+      overflow: hidden;
+      font-size: .75rem;
+      background-color: c.$grey-100;
+      border-radius: 4px;
+      
+      .file-progress-bar {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        color: #fff;
+        text-align: center;
+        background-color: c.$blue-400;
+        transition: width .6s ease;
+      }
+    }
+  }
+}
