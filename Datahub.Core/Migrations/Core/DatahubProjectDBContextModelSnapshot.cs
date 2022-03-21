@@ -822,6 +822,9 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.Property<DateTime?>("SubmittedDate_DT")
                         .HasColumnType("datetime2");
 
+                    b.Property<DateTime?>("UnpublishDate_DT")
+                        .HasColumnType("datetime2");
+
                     b.HasKey("SharedDataFile_ID");
 
                     b.HasIndex("File_ID")
@@ -1060,6 +1063,9 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
             modelBuilder.Entity("Datahub.Core.EFCore.OpenDataSharedFile", b =>
                 {
                     b.HasBaseType("Datahub.Core.EFCore.SharedDataFile");
+
+                    b.Property<bool>("ApprovalFormEdited_FLAG")
+                        .HasColumnType("bit");
 
                     b.Property<bool>("ApprovalFormRead_FLAG")
                         .HasColumnType("bit");
