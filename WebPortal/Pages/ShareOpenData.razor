@@ -193,10 +193,22 @@
         var publicUrl = GetOpenDataFileUrl();
         <AeCard>
             <AeTypography Variant="h3">@Localizer["OPENDATA-WIZARD.PublicUrl"]</AeTypography>
-            <p><a href=@publicUrl target="_blank">@publicUrl</a></p>
+            @if (!_unpublishedDate.HasValue)
+            {
+                <p><a href=@publicUrl target="_blank">@publicUrl</a></p>
+                @if (_isOwnRequest)
+                {
+                    <div>
+                        <AeButton OnClickEvent=@ShowCancelSharingFileDialog Disabled=@_savingData>@Localizer["OPENDATA-WIZARD.UnpublishFile"]</AeButton>
+                    </div>
+                }
+            }
+            else
+            {
+                <AeTypography Variant="p">@Localizer["OPENDATA-WIZARD.UnpublishFileLabel"]</AeTypography>
+            }
         </AeCard>
     }
-
     </div>
 
 </AeFlex>
@@ -241,6 +253,7 @@
     private string GenerateApprovalDocumentUrl => $"/api/OpenDataApproval?id={_approvalFormId}";
 
     private bool _isOwnRequest = false;
+    private DateTime? _unpublishedDate;
 
     private bool _editSavedMetadata = false;
     private bool _editSubmittedApproval = false;
@@ -403,6 +416,28 @@
         }
     }
 
+    private async Task UnpublishFile(bool confirmed)
+    {
+        if (confirmed)
+        {
+            try
+            {
+                _savingData = true;
+                var result = await OpenDataService.UnpublishFile(FileId);
+                if (result.Succeeded)
+                {
+                    _unpublishedDate = DateTime.UtcNow;
+                }            
+                await InvokeAsync(StateHasChanged);
+            }
+            finally
+            {
+                _savingData = false;
+            }        
+        }
+        await UI.ToggleModal();
+    }
+
     private bool OpenDataFileUploading => _uploadStatus == OpenDataUploadStatus.UploadingFile;
 
     private System.Timers.Timer _openDataUploadTimer;
@@ -489,6 +524,19 @@
         await UI.ToggleModal(cancelDialog);
     }
 
+    private async Task ShowCancelSharingFileDialog()
+    {
+        var promptText = new List<string>() { Localizer["OPENDATA-WIZARD.UnpublishOpenDataSharingPrompt"] };
+        RenderFragment modalDialog = 
+            @<UserChoiceModal HeaderText=@Localizer["OPENDATA-WIZARD.UnpublishOpenDataSharing"]
+                              ChoiceTextList=@promptText
+                              OnDecision="UnpublishFile"
+                              ConfirmText=@Localizer["COMMON.Yes"]
+                              CancelText=@Localizer["COMMON.No"]/>
+        ;
+        await UI.ToggleModal(modalDialog);
+    }
+
     private async void HandleCancel(bool isCancelled)
     {
         if (isCancelled)
@@ -533,6 +581,8 @@
             _projectCode = sharedFileInfo.ProjectCode_CD;
             _fileUrl = sharedFileInfo.FileUrl_TXT;
             _editSubmittedApproval = !string.IsNullOrEmpty(_fileUrl) && sharedFileInfo.GetOpenDataSharingStatus() == OpenDataSharingStatus.SubmitSignedPDF;
+
+            _unpublishedDate = sharedFileInfo.UnpublishDate_DT;
 
             UpdateShareFileStatus(sharedFileInfo);
         }

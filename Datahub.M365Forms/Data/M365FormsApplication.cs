@@ -24,7 +24,9 @@ namespace Datahub.Portal.Data
         [MaxLength(1000)]
         [AeFormCategory("M365 Teams Information", 10)]
         [AeLabel(placeholder: "Enter a short bilingual description to display in the MS Teams 'About' section (max 1000 characters). For example: Collaboration space for sector financial advisors | Espace de collaboration pour les conseillers financier des secteurs")]
-        public string Description_of_Team { get; set; }        
+        public string Description_of_Team { get; set; }
+
+
 
         [AeFormCategory("M365 Teams Information", 10)]
         [AeLabel(isDropDown: true, placeholder: "Select the appropriate Business Activity:", validValues: new[] { "Acquisition and Procurement", "Communications", "Emergency Management", "Financial Management", "Human Resources", "Information Management", "Information Technology", "Knowledge Dissemination", "Legal", "Management and Oversight", "Material Management", "Policy", "Program Administration", "Real Property Management", "Regulatory", "Science and Technology", "Stakeholder Relations", "Travel and Administrative Services" })]
@@ -75,6 +77,12 @@ namespace Datahub.Portal.Data
         public DateTime Expected_Lifespan_DT { get; set; }
 
 
+
+        [AeFormCategory("Owners", 70)]
+        [Required]
+        [AeLabel(isDropDown: true, placeholder: "[Enter your Sector acronym and/or name]")]
+        [StringLength(2000)]
+        public string? Client_Sector { get; set; }
         [AeFormCategory("Owners", 70)]
         [Required]
         [AeLabel(placeholder: "Enter the name (Firsname Lastname) of the of DG-level business owner responsible for the Team and all the information within it.")]
@@ -98,7 +106,7 @@ namespace Datahub.Portal.Data
         public bool Business_Owner_Approval { get; set; }
         
         [AeFormCategory("Application Status", 90)]
-        [AeLabel(isDropDown: true, placeholder: "Select status of application:", validValues: new[] { "Team Requested", "Submitted to Assyst", "Request Pending", "Team Created", "Request Denied" })]
+        [AeLabel(isDropDown: true, placeholder: "Select status of application:", validValues: new[] { "Team Requested", "Submitted to Assyst", "Request Pending", "Team Created", "Request Denied", "Team Deleted" })]
         public string? M365FormStatus { get; set; }
 
         [AeFormCategory("Application Status", 90)]
