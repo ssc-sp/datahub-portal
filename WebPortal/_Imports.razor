@@ -17,7 +17,6 @@
 @using Microsoft.Extensions.Configuration
 
 
-@using BlazorInputFile
 @using Tewr.Blazor.FileReader
 @using Microsoft.Extensions.Hosting
 
@@ -35,6 +34,7 @@
 @using Datahub.Core.Configuration
 @using Datahub.Core.Layout
 
+@using Datahub.Portal.Services.Storage
 @using Datahub.Portal.Services
 @using Datahub.Portal.Components
 @using Datahub.Portal.Components.FileGridComponents
@@ -52,7 +52,8 @@
 
 @using Datahub.LanguageTraining;
 
-@using Elemental.Components
+@using Elemental.Components;
 
+@using Blazored.LocalStorage;
 
 @inject IStringLocalizer Localizer

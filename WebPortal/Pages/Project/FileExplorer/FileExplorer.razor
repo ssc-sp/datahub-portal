@@ -1,0 +1,246 @@
+@*FileExplorer.razor*@
+@using Datahub.Core.Components.FileUpload
+
+@inject IUserInformationService _userInformationService
+@inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
+@inject DataRetrievalService _dataRetrievalService
+@inject MyDataService _apiService
+
+
+<div class="file-explorer-layout">
+    <CascadingValue Value="_user" Name="GraphUser">
+        <Heading
+            SetCurrentFolder="SetCurrentFolder"
+            OnFileDelete="HandleFileDelete"
+            OnNewFolder="HandleNewFolder"
+            CurrentFolder="@_currentFolder"
+            SelectedItem="@_selectedItem"
+            VirtualDirectory="_virtualDirectory"/>
+    </CascadingValue>
+
+    <div class="file-list">
+        <div class="file-list-header">
+            <AeTypography>@Localizer["Name"]</AeTypography>
+            <AeTypography>@Localizer["Size"]</AeTypography>
+            <AeTypography>@Localizer["Last Modified"]</AeTypography>
+            <i class="fas fa-sort-alpha-down"></i>
+        </div>
+
+        @if (_loading)
+        {
+            <LoadingFileList/>
+        }
+        else
+        {
+            <UploadSnackbar UploadingFiles="_uploadingFiles">
+                <DropZone OnFilesDrop="UploadFiles">
+                    @foreach (var (folderName, _) in _virtualDirectory
+                        .Where(f => f.Key != "/"
+                                    && (GetDirectoryName(f.Key)?.Equals(_currentFolder) ?? false)))
+                    {
+                        <FileItem
+                            Name="@GetFileName(folderName)"
+                            Highlighted="_selectedItem == folderName"
+                            Folder
+                            @onclick="() => _selectedItem = folderName"
+                            @ondblclick="() => SetCurrentFolder(folderName)">
+                            <Icon>
+                                <i class="fas fa-folder"></i>
+                            </Icon>
+                        </FileItem>
+                    }
+                    @foreach (var file in _virtualDirectory[_currentFolder]
+                        .OrderBy(f => f.name))
+                    {
+                        <FileItem
+                            Name="@GetFileName(file.name)"
+                            Modified="@file.Modified"
+                            Size="@file.filesize"
+                            @onclick="() => _selectedItem = file.name"
+                            Highlighted="_selectedItem == file.name">
+                            <Icon>
+                                <i class="@DatahubTools.GetFileTypeIcon(file.fileformat)"></i>
+                            </Icon>
+                        </FileItem>
+                    }
+                </DropZone>
+            </UploadSnackbar>
+        }
+    </div>
+    <div class="item-details">
+        <div class="details-sticky">
+            <div class="details-container">
+                @if (_loading || _virtualDirectory.ContainsKey(_selectedItem))
+                {
+                    <StorageProperties DisplayName="@GetFileName(_selectedItem)"/>
+                }
+                else
+                {
+                    var file = _virtualDirectory[_currentFolder]
+                        .FirstOrDefault(f => f.name.Equals(_selectedItem, StringComparison.OrdinalIgnoreCase));
+
+                    <FileProperties File=@file Readonly="!OwnsFile(file)" />
+                }
+            </div>
+        </div>
+    </div>
+
+</div>
+
+@code {
+
+    [CascadingParameter(Name = "ProjectAcronym")]
+    public string ProjectAcronym { get; set; }
+
+    private Microsoft.Graph.User _user;
+    private string _userId;
+
+
+    private bool _loading = true;
+    private List<FileMetaData> _uploadingFiles;
+
+    private readonly string _root = "/";
+    private string _currentFolder = "/";
+    private string _selectedItem = "/";
+
+    private Dictionary<string, List<FileMetaData>> _virtualDirectory = new()
+    {
+        {"/", new List<FileMetaData>()}
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
+
+        _userId = await _userInformationService.GetUserIdString();
+        _user = await _userInformationService.GetUserAsync();
+
+        _uploadingFiles = new List<FileMetaData>();
+        _virtualDirectory = (await _dataRetrievalService.GetStorageBlobFiles(ProjectAcronym, DataRetrievalService.DEFAULT_CONTAINER_NAME, _user))
+            .GroupBy(f => $"/{GetDirectoryName(f.filename)}")
+            .ToDictionary(g => g.Key,
+                g => g.ToList());
+
+        if (!_virtualDirectory.ContainsKey("/"))
+        {
+            _virtualDirectory.Add("/", new List<FileMetaData>());
+        }
+
+        SetupEmptyFolders();
+
+        _loading = false;
+    }
+
+    private void SetupEmptyFolders()
+    {
+        var emptyFolders = new HashSet<string>();
+        foreach (var path in _virtualDirectory.Keys)
+        {
+            var remainingPath = path;
+            while (remainingPath != "/")
+            {
+                remainingPath = remainingPath.TrimEnd('/');
+                remainingPath = remainingPath[..(remainingPath.LastIndexOf("/", StringComparison.Ordinal) + 1)];
+
+                if (!_virtualDirectory.ContainsKey(remainingPath))
+                {
+                    emptyFolders.Add(remainingPath);
+                }
+            }
+        }
+
+        foreach (var folder in emptyFolders)
+        {
+            _virtualDirectory.Add(folder, new List<FileMetaData>());
+        }
+    }
+
+    private string GetDirectoryName(string path)
+    {
+        if(string.IsNullOrWhiteSpace(path) || !path.Contains("/"))
+            return string.Empty;
+        
+        var lastIndex = path.TrimEnd('/').LastIndexOf("/", StringComparison.Ordinal);
+        return lastIndex == -1 ? "/" : path[..lastIndex] + "/";
+    }
+
+    private string GetFileName(string path)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+            return string.Empty;
+        
+        var lastIndex = path.TrimEnd('/').LastIndexOf("/", StringComparison.Ordinal);
+        return lastIndex == -1 ? path : path[(lastIndex + 1)..];
+    }
+
+    private void SetCurrentFolder(string folderName)
+    {
+        _currentFolder = folderName;
+        _selectedItem = folderName;
+    }
+
+    private void HandleFileDelete(string filename)
+    {
+        _virtualDirectory[_currentFolder].RemoveAll(f => f.name.Equals(filename, StringComparison.OrdinalIgnoreCase));
+        SetCurrentFolder(_currentFolder);
+    }
+
+    private void HandleNewFolder(string newFolderName)
+    {
+        if (_virtualDirectory.ContainsKey(newFolderName))
+            return;
+
+        newFolderName = newFolderName
+            .Replace("/", "")
+            .Trim();
+
+        _virtualDirectory.Add($"{_currentFolder}{newFolderName}/", new List<FileMetaData>());
+    }
+
+    private async Task UploadFiles(InputFileChangeEventArgs e)
+    {
+        foreach (var browserFile in e.GetMultipleFiles())
+        {
+            await UploadFile(browserFile);
+        }
+    }
+
+    private async Task UploadFile(IBrowserFile browserFile)
+    {
+        if (browserFile == null)
+            return;
+
+        var fileMetadata = new FileMetaData
+        {
+            folderpath = _currentFolder,
+            filename = (_currentFolder + browserFile.Name).TrimStart('/'),
+            filesize = browserFile.Size.ToString(),
+            uploadStatus = FileUploadStatus.SelectedToUpload,
+            BrowserFile = browserFile
+        };
+
+        await _apiService.PopulateOtherMetadata(fileMetadata);
+        _uploadingFiles.Add(fileMetadata);
+
+        _ = InvokeAsync(async () =>
+        {
+            await _apiService.UploadGen2File(fileMetadata, ProjectAcronym.ToLower(), (uploadedBytes) =>
+            {
+                fileMetadata.uploadedBytes = uploadedBytes;
+                StateHasChanged();
+            });
+
+            _uploadingFiles.Remove(fileMetadata);
+            _virtualDirectory[_currentFolder].RemoveAll(f => f.name == fileMetadata.name);
+            _virtualDirectory[_currentFolder].Add(fileMetadata);
+
+            StateHasChanged();
+        });
+
+        StateHasChanged();
+    }
+
+    private bool OwnsFile(FileMetaData file) => (file.ownedby ?? "").Equals(_userId, StringComparison.InvariantCulture);
+}

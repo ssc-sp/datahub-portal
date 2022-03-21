@@ -1,0 +1,110 @@
+@inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
+@inject RequestManagementService _requestManagementService
+
+@if (_project is null)
+{
+    <ToolCard Loading/>
+}
+else
+{
+    <ToolCard
+        Title="@Localizer["Azure Databricks"]"
+        Description="@Localizer["Run your Python, R and SQL notebooks in the cloud with Databricks for analytics, machine learning and data pipelines"]">
+        <Logo>
+            <img src="/icons/svg/databricks.svg" alt="Databricks">
+        </Logo>
+        <ToolActionsList>
+            <ul>
+                @if (!string.IsNullOrWhiteSpace(_project.Databricks_URL))
+                {
+                    <li>
+                        <DHLink DataProject="@ProjectAcronym" DatabricksURL="@_project.Databricks_URL">
+                            <AeButton class="light">@Localizer["Open Azure Databricks"]</AeButton>
+                        </DHLink>
+                    </li>
+                }
+                else
+                {
+                    if (_databricksServiceRequested)
+                    {
+                        <li>
+                            <AeTypography class="access-text">@Localizer["Service Request is being reviewed"]</AeTypography>
+                        </li>
+                    }
+                    else
+                    {
+                        <li>
+                            <AeButton class="light" @onclick="@HandleRequestService">
+                                @if (_databricksServiceRequestPending)
+                                {
+                                    <i class="fas fa-spinner-third pending"></i>
+                                }
+                                @Localizer["Request Service Creation"]
+                            </AeButton>
+                        </li>
+                    }
+                }
+            </ul>
+        </ToolActionsList>
+    </ToolCard>
+}
+
+@code {
+
+    [CascadingParameter(Name = "ProjectAcronym")]
+    public string ProjectAcronym { get; set; }
+
+    [CascadingParameter(Name = "UserId")]
+    public string UserId { get; set; }
+
+    [CascadingParameter(Name = "GraphUser")]
+    public Microsoft.Graph.User GraphUser { get; set; }
+
+    private bool _databricksServiceRequested;
+    private bool _databricksServiceRequestPending;
+
+    private Datahub_Project _project;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        await using var projectDbContext = await _dbFactoryProject.CreateDbContextAsync();
+
+        _project = await projectDbContext.Projects
+            .Include(p => p.Requests)
+            .SingleAsync(p => p.Project_Acronym_CD == ProjectAcronym);
+
+        if (UserId != null)
+        {
+            _databricksServiceRequested = await projectDbContext.Project_Requests
+                .Where(p => p.Project == _project)
+                .AnyAsync(r =>
+                    r.ServiceType == RequestManagementService.DATABRICKS
+                    && r.Is_Completed == null);
+        }
+    }
+
+    private async Task HandleRequestService()
+    {
+        if (_databricksServiceRequestPending)
+            return;
+
+        _databricksServiceRequestPending = true;
+        StateHasChanged();
+
+        var serviceRequest = new Datahub_ProjectServiceRequests()
+        {
+            ServiceType = RequestManagementService.DATABRICKS,
+            ServiceRequests_Date_DT = DateTime.Now,
+            Is_Completed = null,
+            Project = _project,
+            User_ID = UserId,
+            User_Name = GraphUser.UserPrincipalName
+        };
+
+        await _requestManagementService.RequestService(serviceRequest);
+        _databricksServiceRequested = true;
+    }
+
+}
