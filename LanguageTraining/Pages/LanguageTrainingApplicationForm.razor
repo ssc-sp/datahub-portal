@@ -263,12 +263,12 @@
             context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Training_Type, () => GetTrainingTypes());
             context.RegisterFieldNotes<LanguageTrainingApplication>(p => p.Manager_Decision, "The manager must approve or decline this appication to proceed");
         }
-        
+
         ToggleVisibility(context);
 
-        
+
     }
-    
+
     private void ToggleVisibility(IModelFormContext context)
     {
         context.SetVisible<LanguageTrainingApplication>(p => p.Language_Training_Since_LETP_Assessment, _languageTrainingApplication.Completed_LETP_Assessment);
@@ -283,8 +283,8 @@
         context.SetVisible<LanguageTrainingApplication>(p => p.SLE_Results_Oral, _languageTrainingApplication.Completed_LETP_Assessment && _languageTrainingApplication.Second_Language_Evaluation_Results);
         context.SetVisible<LanguageTrainingApplication>(p => p.Training_Type, _languageTrainingApplication.Completed_LETP_Assessment);
         context.SetVisible<LanguageTrainingApplication>(p => p.SLE_Test_Date, _languageTrainingApplication.Completed_LETP_Assessment && (_languageTrainingApplication.Training_Type == "Individual - Coaching" || _languageTrainingApplication.Training_Type == "Encadrement individuel"));
-        context.SetVisible<LanguageTrainingApplication>(p => p.Session_For_Language_Training, _languageTrainingApplication.Completed_LETP_Assessment && (_languageTrainingApplication.Training_Type == "Group Training - Part-Time Training" || _languageTrainingApplication.Training_Type == "Group Training - Full-Time Training" || _languageTrainingApplication.Training_Type == "Formation en groupe – Formation à temps plein" || _languageTrainingApplication.Training_Type == "Formation en groupe – Formation à temps partiel"));
-        context.SetVisible<LanguageTrainingApplication>(p => p.Class_For_Language_Training, _languageTrainingApplication.Completed_LETP_Assessment && (_languageTrainingApplication.Training_Type == "Group Training - Part-Time Training" || _languageTrainingApplication.Training_Type == "Group Training - Full-Time Training" || _languageTrainingApplication.Training_Type == "Formation en groupe – Formation à temps plein" || _languageTrainingApplication.Training_Type == "Formation en groupe – Formation à temps partiel"));
+        context.SetVisible<LanguageTrainingApplication>(p => p.Session_For_Language_Training, _languageTrainingApplication.Completed_LETP_Assessment && !(_languageTrainingApplication.Training_Type == "Private training: Coaching**" || _languageTrainingApplication.Training_Type == "Individual - Coaching"));
+        context.SetVisible<LanguageTrainingApplication>(p => p.Class_For_Language_Training, _languageTrainingApplication.Completed_LETP_Assessment && !(_languageTrainingApplication.Training_Type == "Private training: Coaching**" || _languageTrainingApplication.Training_Type == "Individual - Coaching"));
         context.SetVisible<LanguageTrainingApplication>(p => p.Delegate_Manager_First_Name, _languageTrainingApplication.Completed_LETP_Assessment);
         context.SetVisible<LanguageTrainingApplication>(p => p.Delegated_Manager_Last_Name, _languageTrainingApplication.Completed_LETP_Assessment);
         context.SetVisible<LanguageTrainingApplication>(p => p.Delegated_Manager_Email, _languageTrainingApplication.Completed_LETP_Assessment);
