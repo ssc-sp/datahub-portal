@@ -1,0 +1,51 @@
+@using ByteSizeLib
+<div class="file-item @(Highlighted ? "highlight" : "")" @onclick="OnClick" @ondblclick="OnDblClick">
+    <AeTypography class="file-item-name">
+        <span class="file-item-icon">
+            @if (Icon != null)
+            {
+                @Icon
+            }
+            else
+            {
+                <i class="fas fa-file"></i>
+            }
+        </span>
+        @Name
+    </AeTypography>
+    <AeTypography class="file-item-size">@(ByteSize ?? "")</AeTypography>
+    <AeTypography class="file-item-modified">@(Modified?.ToString("r") ?? "")</AeTypography>
+    <span class="more-actions">
+        <i class="fas fa-ellipsis-h"></i>
+    </span>
+</div>
+
+@code {
+    
+    [Parameter]
+    public bool Folder { get; set; }
+    
+    [Parameter]
+    public bool Highlighted { get; set; }
+
+    [Parameter]
+    public string Name { get; set; }
+
+    [Parameter]
+    public RenderFragment Icon { get; set; }
+
+    [Parameter]
+    public string Size { get; set; }
+
+    [Parameter]
+    public DateTime? Modified { get; set; }
+    
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnClick { get; set; }    
+    
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnDblClick { get; set; }
+
+    private string ByteSize => Folder ? "" : ByteSizeLib.ByteSize.FromBytes(long.Parse(Size ?? "0")).ToString();
+
+}

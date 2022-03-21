@@ -1,0 +1,47 @@
+﻿@using Datahub.Portal.Pages.Project.DataProject.ProjectTools
+@using Datahub.Core.Components.PageBanner
+
+@inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
+@inject IUserInformationService _userInformationService
+
+
+@page "/projects/{ProjectAcronymParam}"
+
+<DHPageAlert Title="Welcome to your Data Project" Key="@PageAlert.ProjectFeatures" WikiLinkEN="Onboarding---Data-Project" WikiLinkFR="Onboarding---Data-Project"/>
+
+<DHPageTitle PageTitleKey="@_projectName"/>
+<div class="project-page">
+    <CascadingValue Value="@ProjectAcronymParam" Name="ProjectAcronym">
+        <CascadingValue Value="_userId" Name="UserId">
+            <CascadingValue Value="_user" Name="GraphUser">
+                <ProjectInfo/>
+                <ProjectMembers/>
+                <ProjectToolListing/>
+            </CascadingValue>
+        </CascadingValue>
+    </CascadingValue>
+</div>
+
+@code {
+
+    [Parameter]
+    public string ProjectAcronymParam { get; set; }
+
+    private Microsoft.Graph.User _user;
+    private string _userId;
+    private string _projectName;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
+
+        _projectName = await projectContext.Projects
+            .Where(p => p.Project_Acronym_CD == ProjectAcronymParam)
+            .Select(p => p.ProjectName)
+            .FirstOrDefaultAsync();
+
+        _userId = await _userInformationService.GetUserIdString();
+        _user = await _userInformationService.GetUserAsync();
+    }
+
+}

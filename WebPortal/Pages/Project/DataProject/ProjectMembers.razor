@@ -1,0 +1,184 @@
+@using Datahub.Core.Data.DTO
+@using Datahub.Core.Components.Skeleton
+
+@inject ServiceAuthManager _serviceAuthManager
+@inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
+@inject IUserInformationService _userInformationService
+@inject IEmailNotificationService _emailNotificationService
+
+
+@if (_isLoading)
+{
+    <span class="project-members-skeleton-positioning">
+        <Skeleton Width="100px" Height="1.5rem" />
+        <span style="display: flex; margin: 1rem 0">
+            <Skeleton Circle Width="2rem" Height="2rem"/>
+            <span style="display: block; width: .5rem"></span>
+            <Skeleton Width="150px" Height="2rem"/>
+        </span>
+        <span style="display: flex; margin: 1rem 0">
+            <Skeleton Circle Width="2rem" Height="2rem"/>
+            <span style="display: block; width: .5rem"></span>
+            <Skeleton Width="150px" Height="2rem"/>
+        </span>
+        
+        <span style="display: block; height: 2rem"></span>
+        
+        <Skeleton Width="100px" Height="1.5rem" />
+        @for (var i = 0; i < 10; i++)
+        {
+            <span style="display: flex; margin: 1rem 0">
+                <Skeleton Circle Width="2rem" Height="2rem"/>
+                <span style="display: block; width: .5rem"></span>
+                <Skeleton Width="150px" Height="2rem"/>
+            </span>
+        }
+    </span>
+}
+else
+{
+    <AuthorizeView Roles="@($"{ProjectAcronym}, {ProjectAcronym}-admin, {RoleConstants.DATAHUB_ROLE_ADMIN}")">
+        <NotAuthorized>
+            <div class="access-denied">
+                <AeTypography Variant="h3">@Localizer["Access Denied"]</AeTypography>
+                <AeTypography class="danger">@Localizer["You currently do not have access to this project."]</AeTypography>
+                @if (_isProjectUserPendingApproval)
+                {
+                    <AeTypography class="access-request-reviewing">@Localizer["Access Request is being reviewed"]</AeTypography>
+                }
+                else
+                {
+                    <span class="button-wrapper">
+                        <AeButton @onclick="RequestProjectAccess">@Localizer["Request Access"]</AeButton>
+                    </span>
+                }
+            </div>
+        </NotAuthorized>
+        <Authorized>
+            <div class="project-members">
+
+                <div class="member-list">
+                    <span class="group-name">
+                        <AeTypography>
+                            <b>@Localizer["Admins"]</b>
+                        </AeTypography>
+                        <AeTypography class="member-count">@_projectUsers.Count(u => u.IsAdmin) @Localizer["members"]</AeTypography>
+                    </span>
+                    <ul class="members">
+                        @foreach (var admin in _projectUsers.Where(u => u.IsAdmin))
+                        {
+                            <li>
+                                <ProfileCircle FullName="@admin.Name"/>
+                                <AeTypography class="name">@admin.Name</AeTypography>
+
+                                <a class="email-icon" href="@($"mailto:{admin.Email}")">
+                                    <i class="fas fa-envelope"></i>
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                    <span style="display: block; height: 2rem"></span>
+                    <span class="group-name">
+                        <AeTypography>
+                            <b>@Localizer["Members"]</b>
+                        </AeTypography>
+                        <AeTypography class="member-count">@_projectUsers.Count(u => !u.IsAdmin) @Localizer["members"]</AeTypography>
+                    </span>
+                    <ul class="members">
+                        @foreach (var member in _projectUsers.Where(u => !u.IsAdmin))
+                        {
+                            <li>
+                                <ProfileCircle FullName="@member.Name"/>
+                                <AeTypography class="name">@member.Name</AeTypography>
+
+                                <a class="email-icon" href="@($"mailto:{member.Email}")">
+                                    <i class="fas fa-envelope"></i>
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </Authorized>
+    </AuthorizeView>
+}
+
+@code {
+
+    [CascadingParameter(Name = "ProjectAcronym")]
+    public string ProjectAcronym { get; set; }
+
+    private bool _isLoading = true;
+    private bool _isProjectUserPendingApproval;
+
+    private Datahub_Project _project;
+
+    private List<ProjectMember> _projectUsers;
+    private Microsoft.Graph.User _user;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
+        _project = await projectContext.Projects
+            .Include(p => p.Pipelines)
+            .SingleAsync(p => p.Project_Acronym_CD == ProjectAcronym);
+
+        _user = await _userInformationService.GetUserAsync();
+
+        _isProjectUserPendingApproval = projectContext.Project_Users_Requests
+            .Any(u =>
+                u.User_ID == _user.Id &&
+                _project == u.Project &&
+                u.Approved_DT == null);
+
+        _projectUsers = await _serviceAuthManager.GetProjectMembers(ProjectAcronym);
+
+        _isLoading = false;
+    }
+
+    private async Task RequestProjectAccess()
+    {
+        var request = new Datahub_Project_User_Request()
+        {
+            User_ID = _user.Id,
+            Project = _project,
+            Requested_DT = DateTime.Now
+        };
+
+        await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
+
+        projectContext.Project_Users_Requests.Add(request);
+        await projectContext.SaveChangesAsync();
+
+        var admins = await GetProjectAdministratorEmailsAndIds();
+        await _emailNotificationService.SendServiceAccessRequestNotification(_user.DisplayName, "project", _project.ProjectInfo, admins);
+
+        _isProjectUserPendingApproval = true;
+    }
+
+    private async Task<List<string>> GetProjectAdministratorEmailsAndIds()
+    {
+        await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
+        var loadUsersTask = projectContext
+            .Entry(_project)
+            .Collection(p => p.Users)
+            .LoadAsync();
+
+        var adminEmails = ServiceAuthManager.
+            ExtractEmails(_project.Project_Admin ?? string.Empty);
+
+        await loadUsersTask;
+
+        var adminUsers = _project.Users
+            .Where(u => u.IsAdmin)
+            .Select(u => u.User_ID);
+
+        return adminEmails
+            .Concat(adminUsers)
+            .ToList();
+    }
+
+}
