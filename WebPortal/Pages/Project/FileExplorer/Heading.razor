@@ -15,42 +15,35 @@
         }
     </div>
     <div class="actions">
-        @if (!VirtualDirectory.ContainsKey(SelectedItem))
-        {
-            <AeButton class="button-tool" @onclick="HandleDownload">
-                <i class="fas fa-download"></i>
-                Download
-            </AeButton>
-            <AeButton class="button-tool" @onclick="HandleDelete">
-                <i class="fas fa-trash-alt"></i>
-                Delete
-            </AeButton>
-            <span class="tool-divider"></span>
+        <AeButton class="button-tool" onclick="document.querySelector('.file-list .dropzone-container input').click();">
+            <i class="fas fa-upload"></i>
+            @Localizer["Upload"]
+        </AeButton>
+
+        <AeButton class="button-tool" @onclick="HandleDownload" Disabled="!_isExistingFile">
+            <i class="fas fa-download"></i>
+            @Localizer["Download"]
+        </AeButton>
+
+        <span class="tool-divider"></span>
+
         <AeButton class="button-tool" @onclick="HandleShare" Disabled="!_ownsSelectedFile">
             <i class="fas fa-share-square"></i>
             @Localizer["Share"]
         </AeButton>            
-            <span class="tool-divider"></span>
-        }
-        else
-        {
-            <AeButton class="button-tool disabled" style="cursor: default">
-                <i class="fas fa-download"></i>
-                Download
-            </AeButton>
-            <AeButton class="button-tool disabled" style="cursor: default">
-                <i class="fas fa-trash-alt"></i>
-                Delete
-            </AeButton>
-            <span class="tool-divider"></span>
-        }
-        <AeButton class="button-tool" onclick="document.querySelector('.file-list .dropzone-container input').click();">
-            <i class="fas fa-upload"></i>
-            Upload
+
+        <span class="tool-divider"></span>
+
+        <AeButton class="button-tool" @onclick="HandleDelete" Disabled="!_ownsSelectedFile">
+            <i class="fas fa-trash-alt"></i>
+            @Localizer["Delete"]
         </AeButton>
+
+        <span class="tool-divider"></span>
+
         <AeButton class="button-tool" @onclick="HandleNewFolder">
             <i class="fas fa-folder-plus"></i>
-            New Folder
+            @Localizer["New Folder"]
         </AeButton>
     </div>
 </div>
