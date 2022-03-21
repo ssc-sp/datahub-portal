@@ -13,6 +13,10 @@ using Datahub.Core.Utils;
 using Microsoft.EntityFrameworkCore;
 using Datahub.Core.EFCore;
 using Datahub.Portal.Services.Storage;
+using Datahub.Portal.Model;
+using Datahub.Metadata.DTO;
+using System.Globalization;
+using Datahub.Portal.Services;
 
 namespace Datahub.Portal.Controllers
 {
@@ -22,14 +26,17 @@ namespace Datahub.Portal.Controllers
     {
         private readonly ILogger<PublicController> _logger;
         private readonly DataRetrievalService dataRetrievalService;
+        private readonly IMetadataBrokerService _metadataBrokerService;
         private readonly IDbContextFactory<DatahubProjectDBContext> _contextFactory;
         private readonly IKeyVaultService _keyVaultService;
 
         public ApiController(ILogger<PublicController> logger, DataRetrievalService dataRetrievalService,
+            IMetadataBrokerService metadataBrokerService,
             IDbContextFactory<DatahubProjectDBContext> contextFactory, IKeyVaultService keyVaultService)
         {
             _logger = logger;
             this.dataRetrievalService = dataRetrievalService;
+            _metadataBrokerService = metadataBrokerService;
             _contextFactory = contextFactory;
             _keyVaultService = keyVaultService;
         }
