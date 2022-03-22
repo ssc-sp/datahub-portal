@@ -166,7 +166,8 @@
         {
 
             _tombstone = _projects.Where(p => p.Tombstone_ID == Convert.ToInt32(tombstone)).FirstOrDefault();
-            await PrepareItemForEdit(_tombstone);
+            if (_tombstone != null)
+                await PrepareItemForEdit(_tombstone);
         }
     }
 
