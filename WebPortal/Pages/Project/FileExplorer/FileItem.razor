@@ -14,13 +14,16 @@
         @Name
     </AeTypography>
     <AeTypography class="file-item-size">@(ByteSize ?? "")</AeTypography>
-    <AeTypography class="file-item-modified">@(Modified?.ToString("f", Thread.CurrentThread.CurrentUICulture) ?? "")</AeTypography>
+    <AeTypography class="file-item-modified">@(Modified?.ToString("r") ?? "")</AeTypography>
     <span class="more-actions">
         <i class="fas fa-ellipsis-h"></i>
     </span>
 </div>
 
 @code {
+    
+    [Parameter]
+    public bool Folder { get; set; }
     
     [Parameter]
     public bool Highlighted { get; set; }
@@ -43,6 +46,6 @@
     [Parameter]
     public EventCallback<MouseEventArgs> OnDblClick { get; set; }
 
-    private string ByteSize => ByteSizeLib.ByteSize.FromBytes(long.Parse(Size ?? "0")).ToString();
+    private string ByteSize => Folder ? "" : ByteSizeLib.ByteSize.FromBytes(long.Parse(Size ?? "0")).ToString();
 
 }

@@ -10,6 +10,7 @@
 @inject NavigationManager _navigationManager
 @inject IJSRuntime _jsInterop
 @inject ILogger<Resources> _logger
+@inject IConfiguration Configuration
 
 @page "/resources/"
 @page "/resources/{PageName}"
@@ -29,7 +30,7 @@
     [Parameter]
     public List<(string,string)> Substitutions { get; set; }
 
-        private const string DefaultPage = "Home";
+    private const string DefaultPage = "Home";
     private string _markdownContent = string.Empty;
     private string _baseUrl = "/resources";
 
@@ -45,12 +46,11 @@
         _markdownContent = await LoadPage(PageName ?? DefaultPage, Substitutions) ?? Localizer["Invalid link"];
     }
 
-    private static string _wikiUrl = "https://raw.githubusercontent.com/wiki/NRCan/datahub-portal/";
-
     private async Task<string> LoadPage(string name, List<(string,string)> substitutions = null)
     {
         if (name.StartsWith("/")) name = name.Substring(1);
-        var fullUrl = $"{_wikiUrl}{name}.md";
+        var wikiRoot = Configuration["WikiURL"];
+        var fullUrl = $"{wikiRoot}{name}.md";
         using var client = new HttpClient();
         try
         {
