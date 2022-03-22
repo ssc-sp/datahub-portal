@@ -8,66 +8,64 @@
     }
 </style>
 
-<div style="padding-left: 2rem;padding-right: 2rem">
 
-    <AeTypography Variant="h1">@Localizer["DataHub Administration"]</AeTypography>
+<AeTypography Variant="h1">@Localizer["DataHub Administration"]</AeTypography>
 
-    <AuthorizeView Roles="@string.Join(',', _authorizedRoles)">
-        <Authorized>
-            <AeFlex Vertical>
-                <ProjectAccessRequestTable 
-                    UserId=@CurrentUserId
-                    IsDatahubAdmin=@IsDataHubAdmin
+<AuthorizeView Roles="@string.Join(',', _authorizedRoles)">
+    <Authorized>
+        <AeFlex Vertical>
+            <ProjectAccessRequestTable 
+                UserId=@CurrentUserId
+                IsDatahubAdmin=@IsDataHubAdmin
+            />
+
+            <ServiceAccessRequestTable 
+                UserId=@CurrentUserId
+                IsDatahubAdmin=@IsDataHubAdmin
+            />
+
+            <ServiceCreationRequestTable 
+                UserId=@CurrentUserId
+                IsDatahubAdmin=@IsDataHubAdmin
+            />
+
+            @if (_user != null)
+            {
+                <NotificationTestPanel 
+                    DefaultEmailName=@CurrentUserName
+                    DefaultEmailAddress=@CurrentUserEmail
                 />
+            }
+        </AeFlex>
+    </Authorized>
+    <NotAuthorized>
+        <AeTypography Variant="h1">@Localizer["This page is limited for DataHub administrators"]</AeTypography>
+    </NotAuthorized>
+</AuthorizeView>
 
-                <ServiceAccessRequestTable 
-                    UserId=@CurrentUserId
-                    IsDatahubAdmin=@IsDataHubAdmin
-                />
-
-                <ServiceCreationRequestTable 
-                    UserId=@CurrentUserId
-                    IsDatahubAdmin=@IsDataHubAdmin
-                />
-
-                @if (_user != null)
-                {
-                    <NotificationTestPanel 
-                        DefaultEmailName=@CurrentUserName
-                        DefaultEmailAddress=@CurrentUserEmail
-                    />
-                }
-            </AeFlex>
-        </Authorized>
-        <NotAuthorized>
-            <AeTypography Variant="h1">@Localizer["This page is limited for DataHub administrators"]</AeTypography>
-        </NotAuthorized>
-    </AuthorizeView>
-
-    <AuthorizeView Roles="@RoleConstants.DATAHUB_ROLE_ADMIN">
-        <Authorized>
-            <AeCard>
-                <Header>
-                    <AeTypography Variant="h1">@Localizer["Datahub Tools"]</AeTypography>
-                </Header>
-                <ChildContent>
-                    <p>
-                        <NavLink href="/admin/powerbi">@Localizer["Power BI Admin Page"]</NavLink>
-                    </p>
-                    <p>
-                        <NavLink href="@($"/datahub/{UrlPathSegment.PROJECTS}")">@Localizer["DataHub Project Tracker"]</NavLink>
-                    </p>
-                    <p>
-                        <NavLink href="/metadata/definitions">@Localizer["Metadata"]</NavLink>
-                    </p>
-                    <p>
-                        <NavLink href="/apiusers">@Localizer["API Users"]</NavLink>
-                    </p>
-                </ChildContent>
-            </AeCard>
-        </Authorized>
-    </AuthorizeView>
-</div>
+<AuthorizeView Roles="@RoleConstants.DATAHUB_ROLE_ADMIN">
+    <Authorized>
+        <AeCard>
+            <Header>
+                <AeTypography Variant="h1">@Localizer["Datahub Tools"]</AeTypography>
+            </Header>
+            <ChildContent>
+                <p>
+                    <NavLink href="/admin/powerbi">@Localizer["Power BI Admin Page"]</NavLink>
+                </p>
+                <p>
+                    <NavLink href="@($"/datahub/{UrlPathSegment.PROJECTS}")">@Localizer["DataHub Project Tracker"]</NavLink>
+                </p>
+                <p>
+                    <NavLink href="/metadata/definitions">@Localizer["Metadata"]</NavLink>
+                </p>
+                <p>
+                    <NavLink href="/apiusers">@Localizer["API Users"]</NavLink>
+                </p>
+            </ChildContent>
+        </AeCard>
+    </Authorized>
+</AuthorizeView>
 
 @code {
 
