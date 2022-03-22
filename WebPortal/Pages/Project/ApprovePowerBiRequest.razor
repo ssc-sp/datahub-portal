@@ -33,20 +33,61 @@
                 {
                     <AeTypography Variant="p">This project has no open PowerBI request at this time.</AeTypography>
                 }
+                else if (PowerBiServiceSuccessfullyApproved)
+                {
+                    <AeTypography Variant="p">The PowerBI service has been enabled and the following workspaces have been created:</AeTypography>
+                    @foreach(var which in new List<(string Title, string WorkspaceName, List<PowerBiAdminGroupUser> NotAssignedUsers)>()
+                    {
+                        (Localizer["Production"], ProdWorkspaceToCreate, ProdUsersNotAssigned),
+                        (Localizer["Sandbox"], SandboxWorkspaceToCreate, SandboxUsersNotAssigned)
+                    })
+                    {
+                        <AeTypography Variant="h5">@which.Title: @which.WorkspaceName</AeTypography>
+                        @if (which.NotAssignedUsers.Count > 0)
+                        {
+                            <AeTypography Variant="p">These users were not assigned:</AeTypography>
+                            <ul>
+                                @foreach(var u in which.NotAssignedUsers)
+                                {
+                                    <li>@UserLabel(u)</li>
+                                }
+                            </ul>
+                        }
+                    }
+                }
                 else if (PowerBiRequestAlreadyCompleted)
                 {
                     <AeTypography Variant="p">This project already has PowerBI enabled. No further action is needed.</AeTypography>
                 }
                 else
                 {
-                    if (HasConflict)
+                    
+                    <div>
+                        <AeTypography Variant="h5">Workspace Name</AeTypography>
+                        <ul style="list-style: none">
+                            <li><label>Branch: <input type="text" @bind-value=@WorkspaceName.Branch disabled=@NotEditingWorkspace /></label></li>
+                            <li><label>Project Acronym: @WorkspaceName.ProjectAcronym</label></li>
+                            <li><label>Name: <input type="text" @bind-value=@WorkspaceName.Name disabled=@NotEditingWorkspace /></label></li>
+                        </ul>
+                        @if (IsEditingWorkspace)
+                        {
+                            <AeButton OnClickEvent=@PrepareParameters>Save</AeButton>
+                            <AeButton OnClickEvent=@WorkspaceName.Revert>Revert</AeButton>
+                        }
+                        else
+                        {
+                            <AeButton OnClickEvent=@(() => IsEditingWorkspace = true)>Edit</AeButton>
+                        }
+                    </div>
+                    
+                    if (HasProblem)
                     {
-                        <AeTypography Variant="p">One or more of the following workspaces conflicts with an existing PowerBI workspace:</AeTypography>
+                        <AeTypography Variant="p">One or more of the following workspaces is missing a field or conflicts with an existing PowerBI workspace:</AeTypography>
                         <ul>
                             <li>Production: @ProdWorkspaceToCreate</li>
                             <li>Sandbox: @SandboxWorkspaceToCreate</li>
                         </ul>
-                        <AeTypography Variant="p">Please use the PowerBI management interface in the Admin section to address this.</AeTypography>
+                        <AeTypography Variant="p">Please update the parameters or use the PowerBI management interface in the Admin section to address any conflicts.</AeTypography>
                     }
                     else
                     {
@@ -98,29 +139,34 @@
     [Parameter]
     public string ProjectAcronym { get; set; }
 
-    private readonly static string SANDBOX_WORKSPACE_SUFFIX = "[Development]";
-
     private Datahub_ProjectServiceRequests ProjectRequest { get; set; }
 
     private string ProjectName { get; set; }
 
     private List<Microsoft.PowerBI.Api.Models.Group> ExistingWorkspaces { get; set; }
+    private IList<PowerBi_Workspace> ExistingDbWorkspaces { get; set; }
 
     private bool IsInitializing { get; set; } = true;
+    private bool IsEditingWorkspace { get; set; } = false;
+    private bool NotEditingWorkspace => !IsEditingWorkspace;
 
     private bool PowerBiRequestExists { get; set; }
     private bool PowerBiRequestAlreadyCompleted { get; set; }
-    private bool HasConflict { get; set; } = false;
+    private bool HasProblem => WorkspaceName?.HasProblem ?? true;
     private bool PowerBiWriteAccessForbidden { get; set; } = false;
     private bool ErrorDuringApproval { get; set; } = false;
+    private bool PowerBiServiceSuccessfullyApproved { get; set; } = false;
 
-    private string SandboxWorkspaceToCreate { get; set; }
-    private string ProdWorkspaceToCreate { get; set; }
+    private PowerBiAdminWorkspaceName WorkspaceName { get; set; }
+    private string SandboxWorkspaceToCreate => WorkspaceName.SandboxName;
+    private string ProdWorkspaceToCreate => WorkspaceName.ProductionName;
 
     private Dictionary<string, Guid> WorkspaceIdsByName { get; set; } = new();
 
 
     private List<PowerBiAdminGroupUser> UsersToAssign { get; set; } = new();
+    private List<PowerBiAdminGroupUser> SandboxUsersNotAssigned { get; set; } = new();
+    private List<PowerBiAdminGroupUser> ProdUsersNotAssigned { get; set; } = new();
 
     private bool IsWorking { get; set; } = false;
     private SuccessIndicator _workingInd;
@@ -131,37 +177,34 @@
 
     private async Task PrepareParameters()
     {
-        if (ProjectRequest == null)
+        if (ProjectRequest == null || WorkspaceName == null)
         {
             return;
         }
         else
         {
-            var existingDbWorkspaces = await _powerBiDataService.GetAllWorkspaces();
-            ProdWorkspaceToCreate = ProjectName;
-            SandboxWorkspaceToCreate = $"{ProjectName} {SANDBOX_WORKSPACE_SUFFIX}";
             var newNamesLower = new List<string> { ProdWorkspaceToCreate.ToLowerInvariant(), SandboxWorkspaceToCreate.ToLowerInvariant() };
 
             foreach (var lowerName in newNamesLower)
             {
-                var dbWorkspace = existingDbWorkspaces.FirstOrDefault(w => lowerName == w.Workspace_Name.ToLowerInvariant());
+                var dbWorkspace = ExistingDbWorkspaces.FirstOrDefault(w => lowerName == w.Workspace_Name.ToLowerInvariant());
                 var pbiWorkspace = ExistingWorkspaces.FirstOrDefault(w => lowerName == w.Name.ToLowerInvariant());
 
                 if (dbWorkspace != null)
                 {
                     // conflict if the existing workspace record is assigned to a different project
-                    HasConflict |= dbWorkspace.Project_Id.HasValue && dbWorkspace.Project_Id.Value != ProjectRequest.Project.Project_ID;
+                    WorkspaceName.HasConflict |= dbWorkspace.Project_Id.HasValue && dbWorkspace.Project_Id.Value != ProjectRequest.Project.Project_ID;
 
                     // conflict if the existing workspace is marked as sandbox but the new one isn't, or vice versa
-                    HasConflict |= dbWorkspace.Sandbox_Flag != (lowerName == SandboxWorkspaceToCreate.ToLowerInvariant());
+                    WorkspaceName.HasConflict |= dbWorkspace.Sandbox_Flag != (lowerName == SandboxWorkspaceToCreate.ToLowerInvariant());
 
                     // conflict if the existing workspace's id doesn't match the corresponding PowerBI workspace id
                     // or if there's no PowerBI workspace that goes with the record, something is wrong
-                    HasConflict |= dbWorkspace.Workspace_ID != (pbiWorkspace?.Id ?? Guid.Empty);
+                    WorkspaceName.HasConflict |= dbWorkspace.Workspace_ID != (pbiWorkspace?.Id ?? Guid.Empty);
 
                     // if there's no conflict, we don't need to create a new PowerBI workspace, and can reassign the existing one
                     // it may also already be assigned to this project, in which case that would be a no-op
-                    if (!HasConflict)
+                    if (!WorkspaceName.HasConflict)
                     {
                         WorkspaceIdsByName.Add(dbWorkspace.Workspace_Name, dbWorkspace.Workspace_ID);
                     }
@@ -169,17 +212,21 @@
                 else if (pbiWorkspace != null)
                 {
                     // conflict if we already have a record for the pbi workspace but with a different name (otherwise dbWorkspace wouldn't be null)
-                    var nonMatchingExistingWorkspace = existingDbWorkspaces.FirstOrDefault(w => w.Workspace_ID == pbiWorkspace.Id);
-                    HasConflict |= nonMatchingExistingWorkspace != null;
+                    var nonMatchingExistingWorkspace = ExistingDbWorkspaces.FirstOrDefault(w => w.Workspace_ID == pbiWorkspace.Id);
+                    WorkspaceName.HasConflict |= nonMatchingExistingWorkspace != null;
 
                     // if there's no conflict at this point, we can register this pbi workspace and assign it to the project
-                    if (!HasConflict)
+                    if (!WorkspaceName.HasConflict)
                     {
                         WorkspaceIdsByName.Add(pbiWorkspace.Name, pbiWorkspace.Id);
                     }
                 }
             }
+            IsEditingWorkspace = HasProblem;
+            StateHasChanged();
         }
+
+        await Task.CompletedTask;
     }
 
     private async Task<Guid> CreateOrReuseWorkspace(string workspaceName)
@@ -251,6 +298,9 @@
             var sandboxWsId = await CreateOrReuseWorkspace(SandboxWorkspaceToCreate);
             var prodWsId = await CreateOrReuseWorkspace(ProdWorkspaceToCreate);
 
+            SandboxUsersNotAssigned = await _powerBiApi.AssignUsersToWorkspace(sandboxWsId, UsersToAssign);
+            ProdUsersNotAssigned = await _powerBiApi.AssignUsersToWorkspace(prodWsId, UsersToAssign);
+
             var workspacesToCreate = new List<PowerBi_WorkspaceDefinition>
             {
                 new(sandboxWsId, SandboxWorkspaceToCreate, true, projectId),
@@ -284,7 +334,7 @@
         if (success)
         {
             await _workingInd.SignalSuccess();
-            PowerBiRequestAlreadyCompleted = true;
+            PowerBiServiceSuccessfullyApproved = true;
         }
         else
         {
@@ -330,12 +380,19 @@
                 .Where(r => r.Project.Project_Acronym_CD == ProjectAcronym && r.ServiceType == "powerbi")
                 .FirstOrDefaultAsync();
 
+            ExistingDbWorkspaces = await _powerBiDataService.GetAllWorkspaces();
+
             PowerBiRequestExists = request != null;
             PowerBiRequestAlreadyCompleted = PowerBiRequestExists && request.Is_Completed.HasValue;
-            ProjectName = request?.Project.ProjectName;
-            ProjectRequest = request;
 
-            UsersToAssign = await BuildUsersToAssignList(request?.Project.Users);
+            if (PowerBiRequestExists)
+            {
+                ProjectName = request.Project.ProjectName;
+                ProjectRequest = request;
+                WorkspaceName = new(request.Project);
+
+                UsersToAssign = await BuildUsersToAssignList(request.Project.Users);
+            }
 
             await PrepareParameters();
 
