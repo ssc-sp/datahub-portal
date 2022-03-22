@@ -365,6 +365,7 @@
     {
         CleanEditingUser();
         ResetContextChanges();
+        LoadProjects();
         _tombstone = null;
         StateHasChanged();
         return null;
@@ -437,7 +438,7 @@
         {
             if (_tombstone != null)                
                 CleanEditingUser();         
-                
+
             _tombstone = Context.Tombstones.Where(i => i.Tombstone_ID == project.Tombstone_ID).First();
             await PrepareItemForEdit(_tombstone);
             SubmitLabel = "Save";
@@ -457,12 +458,14 @@
         _enableSave = true;
         if (IsRecordLocked(_tombstone))
         {
+            var user = await UserInformationService.GetUserAsync(_tombstone.EditingUserId);
             var textList = new List<string>()
             {
-                "This Program is currently being edited by another user, you will not be able to save any changes"
+                $"This Program is currently being edited by {user.DisplayName}, you will not be able to save any changes"
             };
             _enableSave = false;
-            await UI.ToggleModal(@<WarningModal OnDecision="HandleWarningDecision" WarningTextString=@textList />);
+            await UI.ToggleModal(
+    @<WarningModal OnDecision="HandleWarningDecision" WarningTextString=@textList />);
         }
         else
         {
