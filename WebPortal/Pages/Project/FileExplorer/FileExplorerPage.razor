@@ -3,8 +3,10 @@
 @inject IJSRuntime _jsRuntime
 
 @page "/projects/{ProjectAcronymParam}/filelist"
+@using Datahub.Core.Components.PageBanner
 
 <DHPageTitle PageTitleKey="@_projectName"/>
+<DHPageAlert Title="How to use Project Storage" Key="@PageAlert.Storage" WikiLinkEN="Onboarding---Project-Storage" WikiLinkFR="Onboarding---Project-Storage"/>
 
 <CascadingValue Value="@ProjectAcronymParam" Name="ProjectAcronym">
     <CascadingValue Value="@HandleSasButtonClick">
@@ -25,15 +27,15 @@
             <AeButton class="sas-token-button dark" @onclick="HandleSasButtonClick">
                 @if (string.IsNullOrWhiteSpace(_sasToken))
                 {
-                    <span>Generate SAS Token</span>
+                    <span>@Localizer["Generate SAS Token"]</span>
                 }
-                else if(_showingCopiedForSasButton)
+                else if (_showingCopiedForSasButton)
                 {
-                    <span>Copied!</span>
+                    <span>@Localizer["Copied!"]</span>
                 }
                 else
                 {
-                    <span>Copy SAS Token</span>
+                    <span>@Localizer["Copy SAS Token"]</span>
                 }
             </AeButton>
         </div>
@@ -69,7 +71,7 @@
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         await base.OnAfterRenderAsync(firstRender);
-        
+
         _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import",
             "./Pages/Project/FileExplorer/FileExplorerPage.razor.js");
     }
@@ -83,10 +85,9 @@
     {
         var result = new List<(string, RenderFragment)>
         {
-            (Localizer["File Explorer"], @<FileExplorer/>),
-            (Localizer["Az Copy"], @<Resources PageName="Use-AzCopy-to-Interact-with-Azure-Storage-Account" Substitutions="_substitutions"/>),
+            (Localizer["Storage Explorer"], @<FileExplorer/>),
+            (Localizer["AzCopy"], @<Resources PageName="Use-AzCopy-to-Interact-with-Azure-Storage-Account" Substitutions="_substitutions"/>),
             (Localizer["Databricks Access"], @<Resources PageName="Access-your-storage-account-in-Databricks" Substitutions="_substitutions"/>),
-            (Localizer["Azure Storage"], @<Resources PageName="Datahub-AzureStorage"/>),
         };
 
         return result;

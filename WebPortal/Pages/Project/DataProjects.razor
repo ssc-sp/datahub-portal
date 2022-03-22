@@ -1,9 +1,13 @@
+@using Datahub.Core.Components.PageBanner
+
 @inject NavigationManager _navigationManager
 @inject IJSRuntime _jsInterop
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactory
 
-@implements IDisposable
+
 @page "/projects"
+
+<DHPageAlert Title="Welcome to Data Projects" Key="@PageAlert.Projects" WikiLinkEN="Onboarding---Data-Projects" WikiLinkFR="Onboarding---Data-Projects"/>
 
 <AeTypography Variant="h1">@Localizer["Featured Projects"]</AeTypography>
 <div class="featured-projects">
@@ -56,20 +60,11 @@
     private List<Datahub_Project> _allProjects;
     private List<Datahub_Project> _filteredProjects;
     private List<Datahub_Project> _featured;
-    private DatahubProjectDBContext _context;
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        await base.OnAfterRenderAsync(firstRender);
-
-        if (firstRender)
-            StateHasChanged();
-    }
 
     protected override async Task OnInitializedAsync()
     {
-        _context = await _dbFactory.CreateDbContextAsync();
-        _allProjects = _context.Projects
+        await using var context = await _dbFactory.CreateDbContextAsync();
+        _allProjects = context.Projects
             .Where(p =>
                 (p.Project_Status_Desc == Datahub_Project.ONGOING || p.Is_Featured) &&
                 !p.Is_Private && !string.IsNullOrWhiteSpace(p.Project_Acronym_CD)
@@ -79,17 +74,11 @@
         _featured = _allProjects.Where(p => p.Is_Featured).ToList();
         _filteredProjects = _allProjects;
     }
-
-    public void Dispose()
-    {
-        _context.Dispose();
-    }
-
+    
     private void HandleAllProjectSearch(string filterValue)
     {
         _filteredProjects = _allProjects
             .Where(p => p.Project_Name.ToLowerInvariant().Contains(filterValue.ToLowerInvariant()))
             .ToList();
     }
-
 }
