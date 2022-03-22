@@ -1,44 +1,50 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using System.Threading.Tasks;
-using Newtonsoft.Json;
-using System.Collections.Generic;
-using System;
-using System.Reflection;
-using Datahub.Core.Services;
-using System.IO;
-using Datahub.Core.Utils;
-using Microsoft.EntityFrameworkCore;
+﻿#nullable enable
 using Datahub.Core.EFCore;
-using Datahub.Portal.Services.Storage;
-using Datahub.Portal.Services;
-using Datahub.Metadata.DTO;
+using Datahub.Core.Services;
+using Datahub.Core.Utils;
 using Datahub.Portal.Model;
+using Datahub.Portal.Services;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Threading.Tasks;
+using System.Linq;
+using Datahub.Metadata.DTO;
+using System.Reflection;
+using System.Threading;
+using Datahub.Metadata.Model;
 using System.Globalization;
 
 namespace Datahub.Portal.Controllers
 {
-    [Route("[controller]/[action]")]
+    [Route("[controller]")]
     [AllowAnonymous]
     public class ApiController : Controller
     {
         private readonly ILogger<PublicController> _logger;
-        private readonly DataRetrievalService dataRetrievalService;
         private readonly IDbContextFactory<DatahubProjectDBContext> _contextFactory;
         private readonly IKeyVaultService _keyVaultService;
         private readonly IMetadataBrokerService _metadataBrokerService;
+        private readonly IPublicDataFileService _publicDataService;
+        private readonly IMSGraphService _msGraphService;
 
-        public ApiController(ILogger<PublicController> logger, DataRetrievalService dataRetrievalService,
-            IDbContextFactory<DatahubProjectDBContext> contextFactory, IKeyVaultService keyVaultService)
+        public ApiController(ILogger<PublicController> logger, 
+            IDbContextFactory<DatahubProjectDBContext> contextFactory, IKeyVaultService keyVaultService, 
+            IMetadataBrokerService metadataBrokerService, IPublicDataFileService publicDataService, IMSGraphService msGraphService)
         {
             _logger = logger;
-            this.dataRetrievalService = dataRetrievalService;
             _contextFactory = contextFactory;
             _keyVaultService = keyVaultService;
+            _metadataBrokerService = metadataBrokerService;
+            _publicDataService = publicDataService;
+            _msGraphService = msGraphService;
         }
 
+        /* TBD!
         [HttpPost]
         public async Task<IActionResult> Upload()
         {
@@ -46,7 +52,7 @@ namespace Datahub.Portal.Controllers
             var authHeader = Request.Headers["Authorization"];
 
             // todo: validate token
-            //var testToken = await _keyVaultService.SignAsync("0123456789");
+            var testToken = await _keyVaultService.EncryptApiTokenAsync("0123456789");
 
             // todo: extract the ProjectApiUser_Id fron the token
             var projectApiUserId = Guid.Parse("10A5280E-4432-411C-89AA-861FE9258A40");
@@ -90,7 +96,7 @@ namespace Datahub.Portal.Controllers
 
             try
             {
-                var blobConnectionString = await dataRetrievalService.GetProjectConnectionString(projectAcro);
+                var blobConnectionString = await _apiCallService.GetProjectConnectionString(projectAcro);
 
                 BlobClientUtils blobClientUtil = new(blobConnectionString, "datahub");
 
@@ -103,18 +109,74 @@ namespace Datahub.Portal.Controllers
                 return Ok(ex);
             }
         }
+        */
+
+        [HttpPost]
+        [Route("opendata/submit")]
+        public async Task<IActionResult> StartSharing([FromBody] OpenDataShareRequest data)
+        {
+            var authHeader = GetAuthorizationToken();
+
+            // get the api use record
+            var apiUser = await GetApiUserAsync(authHeader);
+            if (apiUser is null || IsDisabledOrExpired(apiUser))
+                return Unauthorized();
+
+            // validate the model
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            // check the file_id is a valid GUID 
+            if (!Guid.TryParse(data.file_id, out var fileId))
+                return BadRequest($"Invalid file_id, must be a valid GUID!");
+
+            // check the file_id doesn't exists in the shared files
+            var sharedFile = await _publicDataService.LoadOpenDataSharedFileInfo(fileId);
+            if (sharedFile is not null)
+                return BadRequest($"A share with id: {data.file_id} already exists!");
+
+            // get the field definitions
+            var fieldDefinitions = await _metadataBrokerService.GetFieldDefinitions();
+
+            // validate choice fields
+            var validateChoiceResponse = ValidateFieldChoices(data, fieldDefinitions);
+            if (validateChoiceResponse is not null)
+                return validateChoiceResponse;
+
+            // validate date field formats
+            var validateDateFieldsResponse = ValidateDateFields(data);
+            if (validateDateFieldsResponse is not null)
+                return validateDateFieldsResponse;
+
+            // get the user id from the email contact
+            var userId = await _msGraphService.GetUserIdFromEmailAsync(data.email_contact, CancellationToken.None);
+            if (userId is null)
+                return BadRequest($"Invalid email account '{data.email_contact}'");
+
+            // create metadata record for external object
+            await SaveMetadata(data, fieldDefinitions);
+
+            // save a pre-filled approval form and retrieve the form id
+            var approvalFormId = await SaveApprovalForm(data);
+
+            // create open data share record
+            var url = await _publicDataService.CreateExternalOpenDataSharing(approvalFormId, data.file_id, data.file_name, data.file_url,
+                userId, apiUser.Project_Acronym_CD);
+
+            return Ok(new OpenDataShareResponse(data.file_id, url));
+        }
 
         [HttpGet]
         [Route("opendata/choices")]
         public async Task<IActionResult> GetFieldChoices()
         {
             // [authorization] Signed JWT with the claims including the UserName 
-            //var authHeader = GetAuthorizationToken();
+            var authHeader = GetAuthorizationToken();
 
             //// get the api use record
-            //var apiUser = await GetApiUserAsync(authHeader);
-            //if (apiUser is null || IsDisabledOrExpired(apiUser))
-            //    return Unauthorized();
+            var apiUser = await GetApiUserAsync(authHeader);
+            if (apiUser is null || IsDisabledOrExpired(apiUser))
+                return Unauthorized();
 
             // get the field definitions
             var fieldDefinitions = await _metadataBrokerService.GetFieldDefinitions();
@@ -199,7 +261,7 @@ namespace Datahub.Portal.Controllers
                 var definition = fieldDefinitions.Get(field.name);
                 if (definition is not null && definition.HasChoices)
                 {
-                    var splitChoices = (field.value ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries);
+                    var splitChoices = (field.value ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries).Select(c => c.Trim());
                     foreach (var choice in splitChoices)
                     {
                         var choiceValue = definition.GetChoiceTextValue(choice, true);

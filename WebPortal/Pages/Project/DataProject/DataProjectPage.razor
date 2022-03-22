@@ -1,4 +1,5 @@
 ﻿@using Datahub.Portal.Pages.Project.DataProject.ProjectTools
+@using Datahub.Core.Components.PageBanner
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject IUserInformationService _userInformationService
@@ -6,6 +7,7 @@
 
 @page "/projects/{ProjectAcronymParam}"
 
+<DHPageAlert Title="Welcome to your Data Project" Key="@PageAlert.ProjectFeatures" WikiLinkEN="Onboarding---Data-Project" WikiLinkFR="Onboarding---Data-Project"/>
 
 <DHPageTitle PageTitleKey="@_projectName"/>
 <div class="project-page">
@@ -40,7 +42,6 @@
 
         _userId = await _userInformationService.GetUserIdString();
         _user = await _userInformationService.GetUserAsync();
-
     }
 
 }

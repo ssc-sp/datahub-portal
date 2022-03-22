@@ -32,9 +32,11 @@ using Microsoft.AspNetCore.HttpLogging;
 using Datahub.CKAN.Service;
 using Datahub.Core.UserTracking;
 using System.Runtime.CompilerServices;
+using Blazored.LocalStorage;
 using Datahub.Core.Configuration;
 using Datahub.Core.Modules;
 using Datahub.Portal.Services.Storage;
+using Microsoft.AspNetCore.Authorization.Infrastructure;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]
 namespace Datahub.Portal
@@ -51,10 +53,10 @@ namespace Datahub.Portal
         private readonly IWebHostEnvironment _currentEnvironment;
         private ModuleManager moduleManager = new ModuleManager();
 
-        private bool ResetDB => (bool)(Configuration.GetSection("InitialSetup")?.GetValue<bool>("ResetDB", false) ?? false);
-        private bool Offline => (bool)(Configuration.GetValue(typeof(bool), "Offline", false) ?? false);
+        private bool ResetDB => (Configuration.GetSection("InitialSetup")?.GetValue<bool>("ResetDB", false) ?? false);
+        private bool Offline => Configuration.GetValue<bool>("Offline", false);
 
-        private bool Debug => (bool)Configuration.GetValue(typeof(bool), "DebugMode", false);
+        private bool Debug => Configuration.GetValue<bool>("DebugMode", false);
 
         // This method gets called by the runtime. Use this method to add services to the container.
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
@@ -106,6 +108,7 @@ namespace Datahub.Portal
             services.AddHttpClient<GraphServiceClient>().AddPolicyHandler(GetRetryPolicy());
             services.AddFileReaderService();
             services.AddBlazorDownloadFile();
+            services.AddBlazoredLocalStorage();
             services.AddScoped<ApiTelemetryService>();
             services.AddScoped<GetDimensionsService>();
             //TimeZoneService provides the user time zone to the server using JS Interop
@@ -272,55 +275,15 @@ namespace Datahub.Portal
                     .AddMicrosoftGraph(Configuration.GetSection("Graph"))
                     .AddInMemoryTokenCaches();
 
-                // var isCustomRedirectUriRequired = true;
-                // if (isCustomRedirectUriRequired)
-                // {
-                //     services
-                //         .Configure<OpenIdConnectOptions>(
-                //             AzureADDefaults.OpenIdScheme,
-                //             options =>
-                //             {
-                //                 options.Events =
-                //                     new OpenIdConnectEvents
-                //                     {
-                //                         OnRedirectToIdentityProvider = async ctx =>
-                //                         {
-                //                             ctx.ProtocolMessage.RedirectUri = "https://datahub-dev.nrcan-rncan.gc.ca/signin-oidc";
-                //                             await Task.Yield();
-                //                         }
-                //                     };
-                //             });
-                // }
-
-                //services
-                //    .AddAuthorization(
-                //        options =>
-                //        {
-                //            options.AddPolicy(
-                //                PolicyConstants.DashboardPolicy,
-                //                builder =>
-                //                {
-                //                    builder
-                //                        .AddAuthenticationSchemes(AzureADDefaults.AuthenticationScheme)
-                //                        .RequireAuthenticatedUser();
-                //                });
-                //        });
-
-                services.AddControllersWithViews(options =>
-                {
-                    var policy = new AuthorizationPolicyBuilder()
-                        .RequireAuthenticatedUser()
-                        .Build();
-                    options.Filters.Add(new AuthorizeFilter(policy));
-
-                }).AddMicrosoftIdentityUI();
+                services.AddControllersWithViews()
+                        .AddMicrosoftIdentityUI();
             }
         }
 
         private void ConfigureLocalization(IServiceCollection services)
         {
             var cultureSection = Configuration.GetSection("CultureSettings");
-
+            var trackTranslations = cultureSection.GetValue<bool>("TrackTranslations", false);
             var defaultCulture = cultureSection.GetValue<string>("Default");
             var supportedCultures = cultureSection.GetValue<string>("SupportedCultures");
             var supportedCultureInfos = new HashSet<CultureInfo>(ParseCultures(supportedCultures));
@@ -331,7 +294,7 @@ namespace Datahub.Portal
                 options.UseBaseName = false;
                 options.IsAbsolutePath = true;
                 options.LocalizationMode = Askmethat.Aspnet.JsonLocalizer.JsonOptions.LocalizationMode.I18n;
-                options.MissingTranslationLogBehavior = _currentEnvironment.EnvironmentName == "Development" ? MissingTranslationLogBehavior.CollectToJSON : MissingTranslationLogBehavior.Ignore;
+                options.MissingTranslationLogBehavior = trackTranslations ? MissingTranslationLogBehavior.CollectToJSON : MissingTranslationLogBehavior.Ignore;
                 options.FileEncoding = Encoding.GetEncoding("UTF-8");
                 options.SupportedCultureInfos = supportedCultureInfos;
             });
