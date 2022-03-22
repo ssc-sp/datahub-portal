@@ -265,4 +265,36 @@ namespace Datahub.Portal.Data
         public string UserEmail { get; private set; }
         public bool IsAdmin { get; private set; }
     }
+
+    public class PowerBiAdminWorkspaceName
+    {
+        public PowerBiAdminWorkspaceName(Datahub_Project project)
+        {
+            _originalBranch = project.Branch_Name;
+            _originalName = project.ProjectName;
+
+            ProjectAcronym = project.Project_Acronym_CD;
+            Branch = _originalBranch;
+            Name = _originalName;
+        }
+
+        private readonly static string SANDBOX_WORKSPACE_SUFFIX = "[Development]";
+
+        private readonly string _originalBranch;
+        private readonly string _originalName;
+        public string Branch { get; set; }
+        public string Name { get; set; }
+        public string ProjectAcronym { get; set; }
+        private bool _missingField => string.IsNullOrWhiteSpace(Branch) || string.IsNullOrWhiteSpace(Name) || string.IsNullOrWhiteSpace(ProjectAcronym);
+        public bool HasConflict { get; set; }
+        public bool HasProblem => _missingField || HasConflict;
+        public bool IsChanged => _originalName != Name || _originalBranch != Branch;
+        public void Revert()
+        {
+            Name = _originalName;
+            Branch = _originalBranch;
+        }
+        public string ProductionName => $"{Branch} - {ProjectAcronym} - {Name}";
+        public string SandboxName => $"{ProductionName} {SANDBOX_WORKSPACE_SUFFIX}";
+    }
 }
