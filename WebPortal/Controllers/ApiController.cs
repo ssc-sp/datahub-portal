@@ -171,12 +171,12 @@ namespace Datahub.Portal.Controllers
         public async Task<IActionResult> GetFieldChoices()
         {
             // [authorization] Signed JWT with the claims including the UserName 
-            //var authHeader = GetAuthorizationToken();
+            var authHeader = GetAuthorizationToken();
 
             //// get the api use record
-            //var apiUser = await GetApiUserAsync(authHeader);
-            //if (apiUser is null || IsDisabledOrExpired(apiUser))
-            //    return Unauthorized();
+            var apiUser = await GetApiUserAsync(authHeader);
+            if (apiUser is null || IsDisabledOrExpired(apiUser))
+                return Unauthorized();
 
             // get the field definitions
             var fieldDefinitions = await _metadataBrokerService.GetFieldDefinitions();
@@ -261,7 +261,7 @@ namespace Datahub.Portal.Controllers
                 var definition = fieldDefinitions.Get(field.name);
                 if (definition is not null && definition.HasChoices)
                 {
-                    var splitChoices = (field.value ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries);
+                    var splitChoices = (field.value ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries).Select(c => c.Trim());
                     foreach (var choice in splitChoices)
                     {
                         var choiceValue = definition.GetChoiceTextValue(choice, true);
