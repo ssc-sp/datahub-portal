@@ -8,6 +8,9 @@
 @inject IDbContextFactory<PIPDBContext> DbFactory
 @inject IDatahubAuditingService AuditingService
 @inject ServiceAuthManager ServiceAuthManager
+@using Microsoft.Extensions.Logging 
+@inject ILogger<ProgramInventory> Logger
+
 
 @page "/pip/indicators/{tombstone}/{fiscalYear}"
 
@@ -144,14 +147,14 @@
     {
         Context = DbFactory.CreateDbContext();
         renderFunctions = new List<Func<PIP_Risks, RenderFragment>>
-{
-        new Func<PIP_Risks, RenderFragment>(p => { return p.PIP_IndicatorRisks.Any(q => q.Pip_Indicator == _indicator) ? 
-    @<i class="fal fa-check-square"></i> : @<i class="fal fa-square"></i>
-    ; }),
-        null,
-        null,
-        null,
-    };
+            {
+                new Func<PIP_Risks, RenderFragment>(p => { return p.PIP_IndicatorRisks.Any(q => q.Pip_Indicator == _indicator) ? 
+            @<i class="fal fa-check-square"></i> : @<i class="fal fa-square"></i>
+            ; }),
+                null,
+                null,
+                null,
+            };
 
         _fiscalYear = Context.FiscalYears.Where(f => f.FiscalYear == fiscalYear).First();
         CurrentUser = await UserInformationService.GetUserAsync();
@@ -169,7 +172,7 @@
 
     private void OnChange(ModelFormChangeArgs args)
     {
-        
+
     }
 
     private void ApplyLocks(IModelFormContext context)
@@ -197,6 +200,30 @@
 
             context.RegisterOptionValueProperty<PIP_IndicatorAndResults>(p => p.Cannot_Report_On_Indicator, () => PIP_Constants.NOT_REPORTABLE_INDICATOR);
             context.RegisterOptionValueProperty<PIP_IndicatorAndResults>(s => s.Can_Report_On_Indicator, () => PIP_Constants.YESNO);
+
+            context.RegisterFieldNotes<PIP_IndicatorAndResults>(s => s.Outcome_Level_DESC, "Select the corresponding level of the logic model that the indicator supports. If the results annex outcome level happens to differ from the logic model, please use the outcome level as committed to in the TB Submission.");
+            context.RegisterFieldNotes<PIP_IndicatorAndResults>(s => s.Program_Output_Or_Outcome_DESC, "Enter an outcome that is a describable or measurable change that is derived from an initiative’s (program or project) outputs or lower-level outcomes.");
+            context.RegisterFieldNotes<PIP_IndicatorAndResults>(s => s.Indicator_DESC, "A means of measuring actual outcomes and outputs. It can be qualitative or quantitative, and is composed of a unit of measure, a unit of analysis and a context.");
+            context.RegisterFieldNotes<PIP_IndicatorAndResults>(s => s.Source_Of_Indicator_DESC, "Select all that apply");
+            context.RegisterFieldNotes<PIP_IndicatorAndResults>(s => s.DRF_Indicator_No, "Optional");
+            context.RegisterFieldNotes<PIP_IndicatorAndResults>(s => s.Tb_Sub_Indicator_Identification_Number_ID, "Optional");
+            context.RegisterFieldNotes<PIP_IndicatorAndResults>(s => s.Branch_Optional_DESC, "Optional");
+            context.RegisterFieldNotes<PIP_IndicatorAndResults>(s => s.Sub_Program, "Include the name of the small-p program this indicator aligns to.");
+            context.RegisterFieldNotes<PIP_IndicatorAndResults>(s => s.Indicator_Category_DESC, "Select whether the indicator is quantitative (numeric) or qualitative (non-numeric)");
+            context.RegisterFieldNotes<PIP_IndicatorAndResults>(s => s.Indicator_Direction_DESC, "Select whether the indicator seeks to maintain or an increase/decrease");
+            context.RegisterFieldNotes<PIP_IndicatorAndResults>(s => s.Indicator__Progressive_Or_Aggregate_DESC, "Select for quantitive indicators. A progressive indicator: an indicator that has multiple baselines/targets along a continuous temporal line, e.g., 75% in year 1, 80% in year 2, 85% in year 3. An aggregate indicator: an indicator that has multiple baselines/targets according to a number of criteria identified by the indicator itself, e.g., 80% of females in year x, 70% of males in year y.");
+
+            context.RegisterCategoryNotes("Methodology", "Explains in detail how the data would be interpreted in relationship with its targets and baseline, including the formula, its calculation method and all necessary definitions.");
+            context.RegisterFieldNotes<PIP_IndicatorAndResults>(s => s.Indicator_Rationale_DESC, "Explain how the indicator relates to the output/outcome. How it is a strong measure of the outcome?");
+            context.RegisterFieldNotes<PIP_IndicatorAndResults>(s => s.Indicator_Calculation_Formula_NUM, "Include the formula used to calculate the indicator result.");
+            context.RegisterFieldNotes<PIP_IndicatorAndResults>(s => s.Measurement_Strategy, "Explain the process to gather the data required for the formula/calculation.");
+            context.RegisterFieldNotes<PIP_IndicatorAndResults>(s => s.Baseline_DESC, "The starting point. Past performance information used to provide perspective when establishing the target.");
+            context.RegisterFieldNotes<PIP_IndicatorAndResults>(s => s.Data_Source_DESC, "Enter the data source for the indicator. Data sources are defined as the individuals, organizations, or documents from which data about your indicators will be obtained.");
+            context.RegisterFieldNotes<PIP_IndicatorAndResults>(s => s.Frequency_DESC, "Select the frequency of data collection against the indicator.");
+            context.RegisterFieldNotes<PIP_IndicatorAndResults>(s => s.Data_Type_DESC, "Select from the drop down menu, whether this indicator has a numeric or non-numeric data type. This enables the ability to sort the numeric versus non-numeric targets and results.");
+            context.RegisterFieldNotes<PIP_IndicatorAndResults>(s => s.Methodology_How_Will_The_Indicator_Be_Measured, "Additional defintions/information necessary to understand how the data will be collected for this indicator. Sectors may also insert a link a methodology sheet in this column.");
+            context.RegisterCategoryNotes("Target", "The level of performance the Program plans to achieve within a specified time. Target must be reflective of the indicator (same unit of measure) and must include a date to achieve the target. Use the following question as a guide to the target that is ambitious yet achievable: How is success defined for the indicator?");
+            context.RegisterFieldNotes<PIP_IndicatorAndResults>(s => s.Explanation, "Please provide additional context for the results achieved. This is required for targets not been met, to be achieved in the future, or if the result is significantly higher than the target. There is a character limit of 1000 for this cell in order to meet GC InfoBase character limit.");
 
             RegisterLocks(context);
             _reloadOptions = false;
@@ -258,6 +285,8 @@
         if (_indicator.IsIndicatorDetailsLocked)
             context.RegisterCategoryLock("Indicator Details", true);        
     }
+
+
     protected override void OnAfterRender(bool firstRender)
     {
         if(firstRender){
@@ -280,6 +309,15 @@
         StateHasChanged();
     }
 
+    private async Task<PIP_IndicatorAndResults> ClearForm()
+    {
+        CleanEditingUser();
+        ResetContextChanges();
+        _indicator = null;
+        StateHasChanged();
+        return null;
+    }
+
     private List<Func<PIP_IndicatorAndResults, RenderFragment>> GetRenderers()
     {
 
@@ -292,7 +330,7 @@
                 null,
                 indicator => 
             @<div class="help icon-container" @onclick="() => DeleteRecord(indicator.IndicatorAndResult_ID)"><i class="far fa-trash-alt"></i></div>
-    };
+         };
         }
 
         return new List<Func<PIP_IndicatorAndResults, RenderFragment>>
@@ -341,8 +379,10 @@
     private async Task PrepareItemForEdit(PIP_IndicatorAndResults indicatorAndResults)
     {
         var recordId = indicatorAndResults.IndicatorAndResult_ID;
+        _indicator = Context.IndicatorAndResults.Where(i => i.IndicatorAndResult_ID == recordId).First();
+
         _enableSave = true;
-        if (IsRecordLocked(indicatorAndResults))
+        if (IsRecordLocked(_indicator))
         {
             var textList = new List<string>()
             {
@@ -355,14 +395,16 @@
         }
         else
         {
-            _indicator = Context.IndicatorAndResults.Where(i => i.IndicatorAndResult_ID == recordId).First();            
             _indicator.EditingUserId = CurrentUser.Id;
             await Context.TrackSaveChangesAsync(AuditingService);
         }
         _indicator = Context.IndicatorAndResults.Where(i => i.IndicatorAndResult_ID == recordId).First();
         _indicator.Last_Updated_UserName = await MSGraphService.GetUserName(_indicator.Last_Updated_UserId, CancellationToken.None);
-        var ctx = _myModelForm.ModelFormContext;
-        ApplyLocks(ctx);
+        if (_myModelForm != null)
+        {
+            var ctx = _myModelForm.ModelFormContext;
+            ApplyLocks(ctx);
+        }
 
     }
     private async void HandleWarningDecision(bool IsContinue)
@@ -402,13 +444,13 @@
             {
                 await _submitApprovalInd.SignalSuccess();
             }
-            LoadIndicators();
         }
         else if (!isConfirmed && _indicator != null)
         {
             ResetContextChanges();    
         }
 
+        LoadIndicators();
         if (item != null)
         {
             await PrepareItemForEdit(item);
@@ -435,9 +477,16 @@
      public void CleanEditingUser()
     {
         if (_indicator != null && _enableSave && !string.IsNullOrEmpty(_indicator.EditingUserId) && _indicator.EditingUserId == CurrentUser.Id)
-        {
-            _indicator.EditingUserId = string.Empty;
-            Context.SaveChanges();
+        {                        
+            try
+            {
+                _indicator.EditingUserId = null;
+                Context.SaveChanges();
+            }
+            catch (Exception e)
+            {                
+                Logger.LogDebug(e, $"Cannot clean current user in IndicatorAndResults");
+            }
         } 
     }
 
@@ -482,8 +531,11 @@
         }
         else
         {
-            CleanEditingUser();
-            await PrepareItemForEdit(indicator);
+            if (_indicator != null)
+                CleanEditingUser();
+
+            _indicator = Context.IndicatorAndResults.Where(i => i.IndicatorAndResult_ID == indicator.IndicatorAndResult_ID).First();
+            await PrepareItemForEdit(_indicator);
 
             StateHasChanged();
         }
@@ -506,13 +558,7 @@
         return "";
     }
 
-    private async Task<PIP_IndicatorAndResults> ClearForm()
-    {
-        CleanEditingUser();
-        _indicator = null;
-        StateHasChanged();
-        return null;
-    }
+
 
     public string GetDataLabel(string propName)
     {
@@ -553,10 +599,20 @@
         return indicator == null ? false : (!string.IsNullOrEmpty(indicator.EditingUserId));
     }
 
-    public void Dispose() 
-    {
-        CleanEditingUser();
-        Context.Dispose(); 
+    public void Dispose()     
+    {        
+        try
+        {
+            CleanEditingUser();
+        }
+        catch (Exception e)
+        {
+            Logger.LogDebug(e, $"Cannot clean current user in IndicatorAndResults in Dispose");
+        }
+        finally
+        {
+            Context.Dispose();            
+        }
     }
 
 

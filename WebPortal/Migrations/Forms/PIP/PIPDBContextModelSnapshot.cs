@@ -17,7 +17,7 @@ namespace Datahub.Portal.Migrations.Forms.PIP
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "6.0.1")
+                .HasAnnotation("ProductVersion", "6.0.2")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
@@ -227,6 +227,12 @@ namespace Datahub.Portal.Migrations.Forms.PIP
                     b.Property<string>("Result_DESC")
                         .HasMaxLength(8000)
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SourceFileName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("SourceFileUploadDate")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Source_Of_Indicator2_DESC")
                         .HasMaxLength(1000)
@@ -509,7 +515,6 @@ namespace Datahub.Portal.Migrations.Forms.PIP
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Canadian_Classification_Of_Functions_Of_Government_DESC")
-                        .IsRequired()
                         .HasMaxLength(4000)
                         .HasColumnType("nvarchar(4000)");
 
@@ -517,7 +522,6 @@ namespace Datahub.Portal.Migrations.Forms.PIP
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Core_Responsbility_DESC")
-                        .IsRequired()
                         .HasMaxLength(400)
                         .HasColumnType("nvarchar(400)");
 
@@ -525,7 +529,6 @@ namespace Datahub.Portal.Migrations.Forms.PIP
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Departmental_Result_1_CD")
-                        .IsRequired()
                         .HasMaxLength(400)
                         .HasColumnType("nvarchar(400)");
 
@@ -555,7 +558,6 @@ namespace Datahub.Portal.Migrations.Forms.PIP
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Government_Of_Canada_Activity_Tags_DESC")
-                        .IsRequired()
                         .HasMaxLength(400)
                         .HasColumnType("nvarchar(400)");
 
@@ -611,7 +613,6 @@ namespace Datahub.Portal.Migrations.Forms.PIP
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Lead_Sector")
-                        .IsRequired()
                         .HasMaxLength(400)
                         .HasColumnType("nvarchar(400)");
 
@@ -636,7 +637,6 @@ namespace Datahub.Portal.Migrations.Forms.PIP
                         .HasColumnType("nvarchar(400)");
 
                     b.Property<string>("Method_Of_Intervention_1_DESC")
-                        .IsRequired()
                         .HasMaxLength(400)
                         .HasColumnType("nvarchar(400)");
 
@@ -663,12 +663,10 @@ namespace Datahub.Portal.Migrations.Forms.PIP
                         .HasColumnType("nvarchar(4000)");
 
                     b.Property<string>("Program_Official_Title")
-                        .IsRequired()
                         .HasMaxLength(400)
                         .HasColumnType("nvarchar(400)");
 
                     b.Property<string>("Program_Title")
-                        .IsRequired()
                         .HasMaxLength(400)
                         .HasColumnType("nvarchar(400)");
 
@@ -685,7 +683,6 @@ namespace Datahub.Portal.Migrations.Forms.PIP
                         .HasColumnType("nvarchar(400)");
 
                     b.Property<string>("Target_Group_1_DESC")
-                        .IsRequired()
                         .HasMaxLength(400)
                         .HasColumnType("nvarchar(400)");
 
