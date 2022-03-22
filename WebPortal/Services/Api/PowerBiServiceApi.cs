@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Datahub.Portal.Data;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Identity.Web;
 using Microsoft.PowerBI.Api;
@@ -257,6 +258,29 @@ namespace Datahub.Portal.Services
             return aws.Id.ToString();
         }
 
+        public async Task<List<PowerBiAdminGroupUser>> AssignUsersToWorkspace(Guid workspaceId, List<PowerBiAdminGroupUser> users)
+        {
+            using var pbiClient = await GetPowerBiClientAsync();
+
+            var errorUsers = await Task.WhenAll(users.Select(async u =>
+            {
+                var groupUser = new GroupUser(u.UserEmail, PrincipalType.User, u.IsAdmin ? GroupUserAccessRight.Admin : GroupUserAccessRight.Viewer);
+                try
+                {
+                    await pbiClient.Groups.AddGroupUserAsync(workspaceId, groupUser);
+                    // if successful, we don't add the user to the error list
+                    return null;
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, $"Couldn't add user {u.UserEmail} to PowerBI workspace with id {workspaceId}");
+                    return u;
+                }
+            }));
+            
+            return errorUsers.Where(u => u != null).ToList();
+        }
+
         public async Task TestCreateUser(Guid workspaceId, string userId)
         {
             using var pbiClient = await GetPowerBiClientAsync();
@@ -266,7 +290,7 @@ namespace Datahub.Portal.Services
 
             try
             {
-                await pbiClient.Groups.AddGroupUserAsync(workspaceId, newUser);
+                await pbiClient.Groups.AddGroupUserWithHttpMessagesAsync(workspaceId, newUser);
             }
             catch (Exception ex)
             {
