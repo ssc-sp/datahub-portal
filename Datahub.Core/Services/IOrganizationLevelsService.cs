@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Datahub.Portal.Services
+namespace Datahub.Core.Services
 {
     public interface IOrganizationLevelsService
     {

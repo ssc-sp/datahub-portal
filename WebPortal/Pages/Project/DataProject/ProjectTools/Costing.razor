@@ -1,26 +1,23 @@
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 
 <AuthorizeView Roles="@($"{ProjectAcronym}-admin")" Context="Project_Cost">
-    <AeCard class="facard1" CardPosition="AeCard.CardStyle.Horizontal">
-        <Header>
+    <ToolCard
+        Title=@Localizer["Azure Costs"]
+        Description=@_projectCostFormatted>
+        <Logo>
             <div class="indigo" style="width:180px">
                 <AeIcon class="fad fa-dollar-sign card-icon fa-xs"/>
-            </div>
-        </Header>
-        <ChildContent>
-            <AeFlex Vertical>
-                <AeTypography Variant="h3">
-                    @Localizer["Cost"]
-                </AeTypography>
-                <AeTypography>
-                    @_projectCostFormatted
-                </AeTypography>
-            </AeFlex>
-        </ChildContent>
-        <Footer>
-            <AeButton>@Localizer["Project_Cost_Button"]</AeButton>
-        </Footer>
-    </AeCard>
+            </div>        
+        </Logo>
+        <ToolActionsList>
+            <ul>
+                <li>
+                    <AeButton>@Localizer["Project_Cost_Button"]</AeButton>
+                </li>
+            </ul>
+        </ToolActionsList>
+    </ToolCard>
+
 </AuthorizeView>
 
 @code {

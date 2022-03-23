@@ -6,6 +6,8 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
+#nullable disable
+
 namespace Datahub.Portal.Migrations
 {
     [DbContext(typeof(LanguageTrainingDBContext))]
@@ -15,16 +17,18 @@ namespace Datahub.Portal.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("Relational:MaxIdentifierLength", 128)
-                .HasAnnotation("ProductVersion", "5.0.9")
-                .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                .HasAnnotation("ProductVersion", "6.0.1")
+                .HasAnnotation("Relational:MaxIdentifierLength", 128);
+
+            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
 
             modelBuilder.Entity("Datahub.Portal.Data.LanguageTraining.LanguageTrainingApplication", b =>
                 {
                     b.Property<int>("Application_ID")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Application_ID"), 1L, 1);
 
                     b.Property<bool>("ApplicationCompleteEmailSent")
                         .HasColumnType("bit");
@@ -87,12 +91,24 @@ namespace Datahub.Portal.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime>("FormSubmitted_DT")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("FormSubmitted_UserId")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("I_am_seeking")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("LSUDecisionSent")
                         .HasColumnType("bit");
+
+                    b.Property<DateTime>("LanguageSchoolDecision_DT")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("LanguageSchoolDecision_UserId")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Language_Training_Provided_By")
                         .HasColumnType("nvarchar(max)");
@@ -115,6 +131,12 @@ namespace Datahub.Portal.Migrations
 
                     b.Property<bool>("ManagerDecisionSent")
                         .HasColumnType("bit");
+
+                    b.Property<DateTime>("ManagerDecision_DT")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ManagerDecision_UserId")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Manager_Decision")
                         .IsRequired()

@@ -13,6 +13,7 @@ namespace Datahub.Portal.Services
         Task<Uri> DownloadPublicUrlSharedFile(Guid fileId, IPAddress ipAddress = null);
         Task<Uri> DoDownloadFile(SharedDataFile publicFile, bool anonymous = false, IPAddress ipAddress = null);
         Task CreateDataSharingRequest(FileMetaData fileMetaData, string projectCode, User requestingUser, bool openDataRequest = false);
+        Task<string> CreateExternalOpenDataSharing(int approvalFormId, string fileId, string fileName, string fileUrl, string contactEmail, string projectCode);
         Task<SharedDataFile> LoadPublicUrlSharedFileInfo(Guid fileId);
         Task<OpenDataSharedFile> LoadOpenDataSharedFileInfo(Guid fileId);
         Task<bool> MarkMetadataComplete(Guid fileId);

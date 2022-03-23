@@ -1,0 +1,44 @@
+﻿@using Datahub.Metadata.Model
+
+<select class="ae input" style="width: 100%" size="15" multiple>
+    @foreach (var opt in _options)
+    {
+        <option value=@opt.Id selected=@opt.Selected @onclick="(e) => ToggleField(opt.Id)">
+            @opt.Name
+        </option>
+    }
+</select>
+
+@code {
+
+    [Parameter]
+    public List<FieldDefinition> Fields { get; set; }
+
+    [Parameter]
+    public HashSet<int> Selection { get; set; }
+
+    private FieldOption[] _options;
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        if (Fields is not null && Selection is not null)
+        {
+            _options = Fields.Select(f => new FieldOption(f.FieldDefinitionId, f.Name_English_TXT, Selection.Contains(f.FieldDefinitionId))).ToArray();
+        }        
+    }
+
+    void ToggleField(int id)
+    {
+        if (Selection.Contains(id))
+        {
+            Selection.Remove(id);
+        }
+        else
+        {
+            Selection.Add(id);
+        }
+    }
+
+    record FieldOption(int Id, string Name, bool Selected);
+}

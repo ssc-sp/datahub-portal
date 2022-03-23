@@ -9,5 +9,11 @@
         public virtual FieldDefinition FieldDefinition { get; set; }
 
         public ObjectFieldValue Clone() => MemberwiseClone() as ObjectFieldValue;
+        
+        public override string ToString()
+        {
+            var fielName = FieldDefinition?.Name ?? FieldDefinitionId.ToString();
+            return $"{fielName} : '{Value_TXT}'";
+        }
     }
 }
