@@ -462,12 +462,16 @@ namespace Datahub.Portal.Services.Storage
                             await client.SetMetadataAsync(blobItem.Metadata);
                             fileId = newId;
                         }
-
+                        DateTime parsedModifiedDate;
                         string ownedBy = blobItem.Metadata.TryGetValue(FileMetaData.OwnedBy, out ownedBy) ? ownedBy : "Unknown";
                         string createdBy = blobItem.Metadata.TryGetValue(FileMetaData.CreatedBy, out createdBy) ? createdBy : "Unknown";
                         string lastModifiedBy = blobItem.Metadata.TryGetValue(FileMetaData.LastModifiedBy, out lastModifiedBy) ? lastModifiedBy : "lastmodifiedby";
                         string lastModified = blobItem.Metadata.TryGetValue(FileMetaData.LastModified, out lastModified) ? lastModified : DateTime.UtcNow.ToString();
                         string fileSize = blobItem.Metadata.TryGetValue(FileMetaData.FileSize, out fileSize) ? fileSize : "0";
+
+                        var isDateValid = DateTime.TryParse(lastModified, out parsedModifiedDate);
+                        if (!isDateValid)
+                            parsedModifiedDate = DateTime.UtcNow;
 
                         var file = new FileMetaData()
                         {
@@ -476,7 +480,7 @@ namespace Datahub.Portal.Services.Storage
                             ownedby = ownedBy,
                             createdby = createdBy,
                             lastmodifiedby = lastModifiedBy,
-                            lastmodifiedts = DateTime.Parse(lastModified),
+                            lastmodifiedts = parsedModifiedDate,
                             filesize = fileSize
                         };
 
