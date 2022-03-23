@@ -1,3 +1,4 @@
+@*FileExplorer.razor*@
 @using Datahub.Core.Components.FileUpload
 
 @inject IUserInformationService _userInformationService
@@ -19,9 +20,9 @@
 
     <div class="file-list">
         <div class="file-list-header">
-            <AeTypography>Name</AeTypography>
-            <AeTypography>Size</AeTypography>
-            <AeTypography>LastModified</AeTypography>
+            <AeTypography>@Localizer["Name"]</AeTypography>
+            <AeTypography>@Localizer["Size"]</AeTypography>
+            <AeTypography>@Localizer["Last Modified"]</AeTypography>
             <i class="fas fa-sort-alpha-down"></i>
         </div>
 
@@ -78,7 +79,7 @@
                     var file = _virtualDirectory[_currentFolder]
                         .FirstOrDefault(f => f.name.Equals(_selectedItem, StringComparison.OrdinalIgnoreCase));
 
-                    <FileProperties File="file"/>
+                    <FileProperties File=@file Readonly="!OwnsFile(file)" />
                 }
             </div>
         </div>
@@ -214,7 +215,7 @@
         var fileMetadata = new FileMetaData
         {
             folderpath = _currentFolder,
-            filename = _currentFolder + browserFile.Name,
+            filename = (_currentFolder + browserFile.Name).TrimStart('/'),
             filesize = browserFile.Size.ToString(),
             uploadStatus = FileUploadStatus.SelectedToUpload,
             BrowserFile = browserFile
@@ -241,5 +242,5 @@
         StateHasChanged();
     }
 
-
+    private bool OwnsFile(FileMetaData file) => (file.ownedby ?? "").Equals(_userId, StringComparison.InvariantCulture);
 }

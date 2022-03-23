@@ -45,5 +45,7 @@ namespace Datahub.Metadata.Model
         }
 
         #endregion
+
+        public override string ToString() => $"{Field_Name_TXT}({FieldDefinitionId})";
     }
 }

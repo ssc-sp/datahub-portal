@@ -110,7 +110,6 @@
         if (objectHasChanged)
         {
             await LoadFieldValues();
-            await InvokeAsync(StateHasChanged);
         }
     }
 
@@ -175,6 +174,7 @@
     private async Task UpdateObjectCatalog(long objectMetadataId)
     {
         var subjects = _fieldValues.GetSelectedChoices("subject").ToList();
+        var programs = _fieldValues.GetSelectedChoices("programs").ToList();
 
         var sectorChoice = _fieldValues.GetSelectedChoices("sector").FirstOrDefault();
         var branchChoice = _fieldValues.GetSelectedChoices("branch").FirstOrDefault();
@@ -184,10 +184,10 @@
         var englishKeywords = _fieldValues.GetValue("keywords_en").Split(',').ToList();
         var frenchKeywords = _fieldValues.GetValue("keywords_fr").Split(',').ToList();
 
-        var englishCatalog = GetCatalogText(subjects.Select(s => s.Label_English_TXT), 
+        var englishCatalog = GetCatalogText(subjects.Select(s => s.Label_English_TXT), programs.Select(p => p.Value_TXT),
             sectorChoice?.Label_English_TXT, branchChoice?.Label_English_TXT, objectName, englishKeywords);
 
-        var frenchCatalog = GetCatalogText(subjects.Select(s => s.Label_French_TXT), 
+        var frenchCatalog = GetCatalogText(subjects.Select(s => s.Label_French_TXT), programs.Select(p => p.Value_TXT),
             sectorChoice?.Label_French_TXT, branchChoice?.Label_French_TXT, objectName, frenchKeywords);
 
         var sector = int.Parse(sectorChoice?.Value_TXT ?? "0");
@@ -199,13 +199,14 @@
             englishCatalog, frenchCatalog);
     }
 
-    private string GetCatalogText(IEnumerable<string> subjects, string sector, string branch, string objectName, IEnumerable<string> keywords)
+    private string GetCatalogText(IEnumerable<string> subjects, IEnumerable<string> programs, string sector, string branch, string objectName, IEnumerable<string> keywords)
     {
         return new StringBuilder()
           .AppendJoin(' ', keywords)
           .Append(' ') 
           .AppendJoin(' ', subjects)
           .Append(' ') 
+          .AppendJoin(' ', programs.Where(p => p != "none"))
           .Append($"{sector} {branch} {objectName}")
           .ToString()
           .ToLower();

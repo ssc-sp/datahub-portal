@@ -22,7 +22,7 @@ namespace Datahub.Tests.CKAN
             var fieldValues = FieldDefinitionHelper.LoadFields(_fieldDefinitions);
             Assert.NotNull(fieldValues);
 
-            var dict = (new PackageGenerator()).GeneratePackage(fieldValues, "url_goes_here");
+            var dict = (new PackageGenerator()).GeneratePackage(fieldValues, true );//"url_goes_here"
 
             var expected = fieldValues.ObjectId;
 
