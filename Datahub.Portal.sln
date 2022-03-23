@@ -49,6 +49,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JsonTranslator", "JsonTrans
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.M365Forms", "Datahub.M365Forms\Datahub.M365Forms.csproj", "{52436CFD-EEE3-4249-AB82-53BBEE7F8251}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Datahub.Functions", "Datahub.Functions\Datahub.Functions.csproj", "{D49B255D-3B8D-473C-8BFA-094440AE9CED}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -110,6 +112,10 @@ Global
 		{52436CFD-EEE3-4249-AB82-53BBEE7F8251}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{52436CFD-EEE3-4249-AB82-53BBEE7F8251}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{52436CFD-EEE3-4249-AB82-53BBEE7F8251}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D49B255D-3B8D-473C-8BFA-094440AE9CED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D49B255D-3B8D-473C-8BFA-094440AE9CED}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D49B255D-3B8D-473C-8BFA-094440AE9CED}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D49B255D-3B8D-473C-8BFA-094440AE9CED}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
