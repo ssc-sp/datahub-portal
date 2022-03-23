@@ -2,6 +2,8 @@
 @using Datahub.Core.Components.Common
 
 @inject ILogger<Signup> _logger
+@inject IDbContextFactory<DatahubProjectDBContext> _dbFactory
+
 
 @page "/register"
 
@@ -16,20 +18,20 @@
     </AeTypography>
     <div class="info-container">
         <span class="info-title-container">
-            <AeTypography class="info-pretext">Federal Science</AeTypography>
+            <AeTypography class="info-pretext">@Localizer["Federal Science"]</AeTypography>
             <span class="info-logo">
                 <img src="/_content/Datahub.Core/img/datahub-logo-v2.png" alt="datahub-logo"/>
             </span>
-            <AeTypography class="info-title" Variant="h1">DataHub</AeTypography>
+            <AeTypography class="info-title" Variant="h1">@Localizer["DataHub"]</AeTypography>
         </span>
         <span class="info-content">
-            <AeTypography class="info-welcome">Welcome to the Government of Canada's new one-stop hub for science data solutions.</AeTypography>
-            <AeTypography class="info-hosted">Hosted by SSC (Proof-of-Concept Phase)</AeTypography>
-            <AeTypography><b>Onboard here to escape the silos.</b> With one simple sign-on, you can:</AeTypography>
+            <AeTypography class="info-welcome">@Localizer["Welcome to the Government of Canada's new one-stop hub for science data solutions."]</AeTypography>
+            <AeTypography class="info-hosted">@Localizer["Hosted by SSC (Proof-of-Concept Phase)"]</AeTypography>
+            <AeTypography>@((MarkupString) Localizer["<b>Onboard here to escape the silos.</b> With one simple sign-on, you can:"].ToString())</AeTypography>
             <br/>
-            <AeTypography>Access fit-for-purpose, scalabale <b>storage</b> for GC science Data</AeTypography>
-            <AeTypography>Easily <b>share</b> your data with your GC colleagues</AeTypography>
-            <AeTypography>Perform <b>analytics</b> and <b>collaborate</b> with your GC science partners in an interactive environment</AeTypography>
+            <AeTypography>@((MarkupString) Localizer["Access fit-for-purpose, scalable <b>storage</b> for GC science Data"].ToString())</AeTypography>
+            <AeTypography>@((MarkupString) Localizer["Easily <b>share</b> your data with your GC colleagues"].ToString())</AeTypography>
+            <AeTypography>@((MarkupString) Localizer["Perform <b>analytics</b> and <b>collaborate</b> with your GC science partners in an interactive environment"].ToString())</AeTypography>
         </span>
     </div>
     <div class="form-container">
@@ -38,16 +40,18 @@
                 <span class="info-logo">
                     <img src="/_content/Datahub.Core/img/datahub-logo-v2.png" alt="datahub-logo"/>
                 </span>
-                DataHub
+                @Localizer["DataHub"]
             </AeTypography>
             <AeTypography class="form-subtitle">Registration | Inscription</AeTypography>
 
             <AeModelForm
                 Model="_basicIntakeForm"
-                SubmitLabel="Sign up"
+                SubmitLabel="@(Localizer["Register"])"
                 OnValidSubmit="HandleValidSubmit"
                 OnConfigure="HandleConfigure"
-                LabelsOnTop/>
+                LabelForPropertyFunc="HandleLocalize"
+                LabelsOnTop
+                />
         </div>
     </div>
 </div>
@@ -64,13 +68,18 @@
 
     private async Task HandleValidSubmit()
     {
-        _logger.LogInformation("HandleValidSubmit");
-        _logger.LogInformation(_basicIntakeForm.ToString());
+        _logger.LogInformation("Submitting new Registration request for {Email} from {Department} on {Project}]", 
+            _basicIntakeForm.Email, _basicIntakeForm.DepartmentName, _basicIntakeForm.ProjectName);
     }
 
-    private async Task HandleConfigure(IModelFormContext context)
+    private static Task HandleConfigure(IModelFormContext context)
     {
         context.RegisterOptionValueProperty<BasicIntakeForm>(f => f.DepartmentName, () => BasicIntakeForm.DepartmentDictionary.Keys);
+        return Task.CompletedTask;
     }
-
+    
+    private string HandleLocalize(string propName)
+    {
+        return !string.IsNullOrEmpty(propName) ? Localizer[propName] : string.Empty;
+    }
 }

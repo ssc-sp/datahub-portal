@@ -13,19 +13,13 @@ public class BasicIntakeForm
     public string Email { get; set; }
 
     [Required]
-    [AeLabel(isDropDown: true)] 
+    [AeLabel("Department Name", isDropDown: true)] 
     public string DepartmentName { get; set; }
 
     [Required]
     [StringLength(36, ErrorMessage = "Project Name too long (36 character limit).")]
-    [AeLabel(placeholder: "Please enter the name of your project")]
+    [AeLabel("Project Name", "Please enter the name of your project")]
     public string ProjectName { get; set; }
-
-    [Required]
-    [RegularExpression(@"^[A-Z]*$", ErrorMessage = "Please enter only unaccented alphabetical letters (A-Z)")]
-    [StringLength(8, ErrorMessage = "Acronym is too long (8 character limit).")]
-    [AeLabel(placeholder: "Please enter the desired acronym for your project")]
-    public string ProjectAcronym { get; set; }
 
 
     [AeFormIgnore] 
