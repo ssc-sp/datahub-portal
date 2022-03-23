@@ -17,7 +17,7 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "6.0.1")
+                .HasAnnotation("ProductVersion", "6.0.2")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
@@ -374,7 +374,13 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("Client_Name_TXT")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
                     b.Property<string>("Email_Contact_TXT")
+                        .IsRequired()
                         .HasMaxLength(128)
                         .HasColumnType("nvarchar(128)");
 
@@ -816,6 +822,9 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.Property<DateTime?>("SubmittedDate_DT")
                         .HasColumnType("datetime2");
 
+                    b.Property<DateTime?>("UnpublishDate_DT")
+                        .HasColumnType("datetime2");
+
                     b.HasKey("SharedDataFile_ID");
 
                     b.HasIndex("File_ID")
@@ -1055,6 +1064,9 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                 {
                     b.HasBaseType("Datahub.Core.EFCore.SharedDataFile");
 
+                    b.Property<bool>("ApprovalFormEdited_FLAG")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("ApprovalFormRead_FLAG")
                         .HasColumnType("bit");
 
@@ -1063,6 +1075,9 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
 
                     b.Property<int?>("FileStorage_CD")
                         .HasColumnType("int");
+
+                    b.Property<string>("FileUrl_TXT")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("SignedApprovalForm_URL")
                         .HasColumnType("nvarchar(max)");

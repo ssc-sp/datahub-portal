@@ -7,6 +7,10 @@
     navigator.clipboard.writeText(elToCopy.value);
 }
 
+window.copyTextToClipboard = (value) => {
+    navigator.clipboard.writeText(value);
+}
+
 window.enableOnScroll = (elToScrollId, elToEnableId) => {
     var elToScroll = $(`#${elToScrollId}`)[0];
     if ((elToScroll.scrollTop + elToScroll.offsetHeight) >= elToScroll.scrollHeight){
