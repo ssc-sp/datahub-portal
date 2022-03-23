@@ -27,7 +27,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Metadata", "Datahub
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.LanguageTraining", "LanguageTraining\Datahub.LanguageTraining.csproj", "{94F1AACD-69F3-4B14-A0B5-9E2676C017C7}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SyncDbUsers", "Datahub.Functions\SyncDbUsers.csproj", "{AEB7AF13-E06C-4650-ADBD-5EF1BD5F645B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SyncDbUsers", "Datahub.SyncDbUsers\SyncDbUsers.csproj", "{AEB7AF13-E06C-4650-ADBD-5EF1BD5F645B}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SyncDBUsersConsole", "Datahub.FunctionConsole\SyncDBUsersConsole.csproj", "{FA17FE2D-2E5E-4992-92E0-A3F7B7E295DE}"
 EndProject
