@@ -127,100 +127,49 @@
 
         </AeFlex>
 
-            <AeCard class="facard1">
-                <Header>
-                    <AeTypography Variant="h3">Import/Update</AeTypography>
-                </Header>
-                <ChildContent>
-                    @if (UnmanagedWorkspaces != null && UnmanagedWorkspaces.Count > 0)
-                    {
-                        <AeTypography Variant="p">There are workspaces, reports and/or datasets available in PowerBI which are out of sync with the DataHub databse. Expand the section below for more details.</AeTypography>
-                        <AeCollapse>
-                            <AeCollapseSection>
-                                <Header>
-                                    <AeTypography Variant="h4">Details</AeTypography>
-                                </Header>
-                                <ChildContent>
-                                    <ul>
-                                        @foreach(var w in WorkspacesToBeUpdated)
-                                        {
-                                            <li>
-                                                <span>@w.PbiWorkspaceName</span>
-                                                @if (w.Datasets.Count > 0 || w.Reports.Count > 0)
-                                                {
-                                                    @if (w.Datasets.Count <= 0)
-                                                    {
-                                                        <span> (Reports: @w.Reports.Count)</span>
-                                                    }
-                                                    else if (w.Reports.Count <= 0)
-                                                    {
-                                                        <span> (Datasets: @w.Datasets.Count)</span>
-                                                    }
-                                                    else
-                                                    {
-                                                        <span> (Datasets: @w.Datasets.Count, Reports: @w.Reports.Count)</span>
-                                                    }
-                                                }
-                                            </li>
-                                        }
-                                    </ul>
-                                </ChildContent>
-                            </AeCollapseSection>
-                        </AeCollapse>
-                        <div>
-                            <AeButton OnClickEvent=@ImportPowerBiItems Disabled=@ImportDisabled>Synchronize</AeButton>
-                            <SuccessIndicator @bind-IsLoading=@IsImportingPowerBiItems @ref=@_bulkImportInd />
-                        </div>
-                    }
-                    else
-                    {
-                        <AeTypography Variant="p">Nothing to import</AeTypography>
-                    }
-                </ChildContent>
-            </AeCard>
-        
-        @*<AeCard>
-            @if (IsLoadingWorkspaceTreeItems)
-            {
-                <div>
-                    <Spinner />
-                </div>
-            }
-            else
-            {
-                <div>
-                    <p>Managed:</p>
-                    <ul>
-                        @foreach(var w in ManagedWorkspaces)
-                        {
-                            <li>@w.DbWorkspaceName - @(w.SandboxFlag? "sandbox":"not sandbox")</li>
-                        }
-                    </ul>
-                </div>
-                <div>
-                    <p>Unmanaged:</p>
-                    <ul>
-                        @foreach(var w in UnmanagedWorkspaces)
-                        {
-                            <li>@w.PbiWorkspaceName</li>
-                        }
-                    </ul>
-                    <p>add em asap</p>
-                </div>
-                <div>
-                    <p>Removed:</p>
-                    <ul>
-                        @foreach(var w in RemovedWorkspaces)
-                        {
-                            <li>@w.DbWorkspaceName</li>
-                        }
-                    </ul>
-                </div>
-            }
-        </AeCard>*@
+        <AeCard class="facard1">
+            <Header>
+                <AeTypography Variant="h3">Import/Update</AeTypography>
+            </Header>
+            <ChildContent>
+                @if (WorkspacesToBeUpdated != null && WorkspacesToBeUpdated.Count > 0)
+                {
+                    <AeTypography Variant="p">There are workspaces, reports and/or datasets available in PowerBI which are out of sync with the DataHub databse. Expand the section below for more details.</AeTypography>
+                    <AeCollapse>
+                        <AeCollapseSection>
+                            <Header>
+                                <AeTypography Variant="h4">Details</AeTypography>
+                            </Header>
+                            <ChildContent>
+                                <ul>
+                                    @foreach(var w in WorkspacesToBeUpdated)
+                                    {
+                                        <li>
+                                            <span>@w.PbiWorkspaceName</span>
+                                            @if (w.ChildrenNeedUpdate)
+                                            {
+                                                <span>&nbsp; @CountChildrenToUpdate(w)</span>
+                                            }
+                                        </li>
+                                    }
+                                </ul>
+                            </ChildContent>
+                        </AeCollapseSection>
+                    </AeCollapse>
+                    <div>
+                        <AeButton OnClickEvent=@ImportPowerBiItems Disabled=@ImportDisabled>Synchronize</AeButton>
+                        <SuccessIndicator @bind-IsLoading=@IsImportingPowerBiItems @ref=@_bulkImportInd />
+                    </div>
+                }
+                else
+                {
+                    <AeTypography Variant="p">Nothing to import</AeTypography>
+                }
+            </ChildContent>
+        </AeCard>
+
     </AeFlex>
     
-
 </div>
 
 @code {
@@ -228,7 +177,6 @@
     public string ProjectAcronym { get; set; }
 
     private List<PowerBiAdminWorkspaceTreeItem> AllWorkspaceTreeItems { get; set; } = new();
-    private List<PowerBiAdminWorkspaceTreeItem> UnmanagedWorkspaces => AllWorkspaceTreeItems.Where(w => !w.IsInDb).ToList();
     private List<PowerBiAdminWorkspaceTreeItem> WorkspacesToBeUpdated => AllWorkspaceTreeItems.Where(w => w.NeedsUpdate).ToList();
     private List<PowerBiAdminWorkspaceTreeItem> RemovedWorkspaces => AllWorkspaceTreeItems.Where(w => !w.IsInPowerBi).ToList();
     private List<PowerBiAdminWorkspaceTreeItem> ManagedWorkspaces => AllWorkspaceTreeItems.Where(w => w.IsInDb && w.IsInPowerBi).ToList();
@@ -252,6 +200,30 @@
     private bool IsSavingWorkspace { get; set; } = false;
     private SuccessIndicator _saveWorkspaceInd;
 
+
+    private string CountChildrenToUpdate(PowerBiAdminWorkspaceTreeItem workspace)
+    {
+        var numReports = workspace.Reports.Count(r => r.NeedsUpdate);
+        var numDatasets = workspace.Datasets.Count(r => r.NeedsUpdate);
+
+        if (numReports > 0 && numDatasets > 0)
+        {
+            return $"(Datasets: {numDatasets}, Reports: {numReports})";
+        }
+        else if (numReports > 0)
+        {
+            return $"(Reports: {numReports})";
+        }
+        else if (numDatasets > 0)
+        {
+            return $"(Datasets: {numDatasets})";
+        }
+        else
+        {
+            //this shouldn't happen; the method is only called when workspace has at least one child that needs to be updated
+            return string.Empty;
+        }
+    }
 
     private async Task LoadWorkspaceTreeItems()
     {

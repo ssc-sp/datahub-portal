@@ -39,7 +39,8 @@ namespace Datahub.Portal.Data
 
         public bool IsInPowerBi => _pbiDataset != null;
         public bool IsInDb => _dbDataset != null;
-        public bool NeedsUpdate => !IsInDb; //TODO
+        public bool NeedsUpdate => !IsInDb || _nameWasChanged;
+        private bool _nameWasChanged => PbiDatasetName != null && DbDatasetName != null && PbiDatasetName != DbDatasetName;
 
         public Guid DatasetId
         {
@@ -101,7 +102,8 @@ namespace Datahub.Portal.Data
 
         public bool IsInPowerBi => _pbiReport != null;
         public bool IsInDb => _dbReport != null;
-        public bool NeedsUpdate => !IsInDb; //TODO
+        public bool NeedsUpdate => !IsInDb || _nameWasChanged;
+        private bool _nameWasChanged => PbiReportName != null && DbReportName != null && PbiReportName != DbReportName;
 
         public Guid ReportId
         {
@@ -168,7 +170,9 @@ namespace Datahub.Portal.Data
 
         public bool IsInPowerBi => _pbiWorkspace != null;
         public bool IsInDb => _dbWorkspace != null;
-        public bool NeedsUpdate => !IsInDb || Datasets.Any(d => d.NeedsUpdate) || Reports.Any(r => r.NeedsUpdate); //TODO
+        public bool NeedsUpdate => !IsInDb || ChildrenNeedUpdate || _nameWasChanged;
+        public bool ChildrenNeedUpdate => Datasets.Any(d => d.NeedsUpdate) || Reports.Any(r => r.NeedsUpdate);
+        private bool _nameWasChanged => PbiWorkspaceName != null && DbWorkspaceName != null && PbiWorkspaceName != DbWorkspaceName;
 
         public Guid WorkspaceId
         {
