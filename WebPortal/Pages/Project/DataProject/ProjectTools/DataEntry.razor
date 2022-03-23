@@ -3,43 +3,39 @@
 
 @if (_project is null)
 {
-    <div>Loading... webforms.razor</div>
+    <ToolCard Loading/>
 }
 else
 {
-    <AeCard class="facard1" CardPosition="AeCard.CardStyle.Horizontal">
-        <Header>
+    <ToolCard Title=@Localizer["Data Entry"]
+              Description=@Localizer["Start the Data Entry application enabled for this project"]>
+        <Logo>
             <div class="purple" style="width:180px">
                 <AeIcon class="fad fa-keyboard card-icon fa-xs"/>
             </div>
-        </Header>
-        <ChildContent>
+        </Logo>
+        <ToolActionsList>
             @if (!string.IsNullOrWhiteSpace(_project.WebForms_URL) && _webFormsAuthorized)
             {
-                <DHLink Variant="h3" DataProject="@ProjectAcronym" WebFormsURL="@_project.WebForms_URL">@Localizer["Data Entry"]</DHLink>
+                <DHLink Variant="h3" DataProject="@ProjectAcronym" WebFormsURL="@_project.WebForms_URL">
+                    <AeButton @onclick="@HandleRequestAccess">@Localizer["Open Data Entry Application"]</AeButton>                    
+                </DHLink>
             }
-            else
-            {
-                <AeTypography Variant="h3">@Localizer["Data Entry"]</AeTypography>
-            }
-            <AeTypography>@Localizer["Start the Data Entry application enabled for this project"]</AeTypography>
-        </ChildContent>
-        <Footer>
             @if (!_webFormsAuthorized)
             {
                 @if (_webFormsRequested)
                 {
-                    <AeTypography class="warning">@Localizer["Access Request is being reviewed"]</AeTypography>
+                    <AeTypography class="access-text">@Localizer["Access Request is being reviewed"]</AeTypography>
                 }
                 else
                 {
-                    <AeTypography class="warning">@Localizer["Access not authorized"]</AeTypography>
+                    <AeTypography class="access-text">@Localizer["Access not authorized"]</AeTypography>
                     <AeButton @onclick="@HandleRequestAccess">@Localizer["Request Access"]</AeButton>
                 }
             }
 
-        </Footer>
-    </AeCard>
+        </ToolActionsList>
+    </ToolCard>
 }
 
 @code {
