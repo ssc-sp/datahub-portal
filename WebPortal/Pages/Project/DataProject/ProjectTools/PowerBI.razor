@@ -3,56 +3,67 @@
 
 @if (_project is null)
 {
-    <div>Loading... pwoerbi.razor</div>
+    <ToolCard Loading/>
 }
 else
 {
-    <AeCard class="facard1" CardPosition="AeCard.CardStyle.Horizontal">
-        <Header>
-            <div style="width:180px">
-                <img src="/icons/svg/powerbi.svg" alt="Power bi">
-            </div>
-        </Header>
-        <ChildContent>
+    <ToolCard
+        Title=@Localizer["Power BI Workspace"]
+        Description="@Localizer["Access the project Workspace in the Power BI Service"]">
+        <Logo>
+           <img src="/icons/svg/powerbi.svg" alt="Power bi">
+        </Logo>
+        <ToolActionsList>
+             <ul>
             @if (!string.IsNullOrWhiteSpace(_project.PowerBI_URL))
             {
-                <DHLink Variant="h3" DataProject="@ProjectAcronym" LinkType="DatahubLinkType.PowerBIReport">PowerBI</DHLink>
+                <li>
+                    <DHLink Variant="h3" DataProject="@ProjectAcronym" LinkType="DatahubLinkType.PowerBIReport">
+                        <AeButton class="light">Open Power BI</AeButton>
+                    </DHLink>
+                </li>
             }
-            else
-            {
-                <AeTypography Variant="h3">@Localizer["Power BI"]</AeTypography>
-            }
-            <AeTypography>@Localizer["Power BI Workspace"]</AeTypography>
-        </ChildContent>
-        <Footer>
             @if (!_powerBiAuthorized)
             {
                 @if (!string.IsNullOrWhiteSpace(_project.PowerBI_URL))
                 {
                     @if (_powerBiRequested)
                     {
-                        <AeTypography class="warning">@Localizer["Access Request is being reviewed"]</AeTypography>
+                    <li>
+                        <AeTypography class="light">@Localizer["Access Request is being reviewed"]</AeTypography>
+                    </li>
                     }
                     else
                     {
-                        <AeTypography class="warning">@Localizer["Access not authorized"]</AeTypography>
-                        <AeButton @onclick="@HandleRequestAccess">@Localizer["Request Access"]</AeButton>
+                    <li>
+                        <AeTypography class="light">@Localizer["Access not authorized"]</AeTypography>
+                    </li>
+                    <li>
+                        <AeButton class="light" @onclick="@HandleRequestAccess">@Localizer["Request Access"]</AeButton>
+                    </li>
                     }
                 }
                 else
                 {
                     @if (_powerBiServiceRequested)
                     {
-                        <AeTypography class="warning">@Localizer["Service Request is being reviewed"]</AeTypography>
+                    <li>
+                        <AeTypography class="light">@Localizer["Service Request is being reviewed"]</AeTypography>
+                    </li>
                     }
                     else
                     {
-                        <AeButton @onclick="@HandleRequestService">@Localizer["Request Service Creation"]</AeButton>
+                    <li>
+                        <AeButton class="light" @onclick="@HandleRequestService">@Localizer["Request Service Creation"]</AeButton>
+                    </li>
                     }
                 }
             }
-        </Footer>
-    </AeCard>
+             </ul>
+        </ToolActionsList>
+    </ToolCard>
+
+
 }
 
 @code {

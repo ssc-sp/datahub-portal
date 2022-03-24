@@ -1,0 +1,120 @@
+﻿@page "/apiusers"
+@inject ServiceAuthManager ServiceAuthManager
+@using Datahub.Core.EFCore
+@inject IDbContextFactory<DatahubProjectDBContext> ContextFactory
+@inject IKeyVaultService _keyVaultService
+@inject IJSRuntime JsInterop
+
+<DHPageTitle PageTitleKey="API Users" />
+
+<AuthorizeView Roles="@string.Join(',', _authorizedRoles)">
+    <Authorized>
+        <div style="margin: 2rem">
+            <AeTypography Variant="h2">API Users</AeTypography>
+            <AeCard>
+                <ChildContent>
+                    <div>
+                        <Typography Variant="h3">Clients</Typography>
+                        <AeTable 
+                            T=@Datahub_ProjectApiUser
+                            Accessors=@_accessorFunctions
+                            Dataset=@_apiUsers
+                            Headers=@_headers
+                            Renderers=@_renderFunctions
+                            GridTemplateColumns="2fr 2fr 4fr 2fr 2fr 2fr"
+                        />
+                        @if (_newClient is null)
+                        {
+                            <div style="margin-top: 16px;">
+                                <AeButton OnClickEvent=@HandleAddNewClient>Add Client</AeButton>
+                            </div>
+                        }
+                    </div>
+
+                    @if (_newClient is not null)
+                    {
+                        <div>
+                            <AeModelForm 
+                                Model=@_newClient
+                                T=@Datahub_ProjectApiUser
+                                OnValidSubmit=@HandleSubmitNewClient
+                                OnCancel=@HandleCancelNewClient
+                                CancelLabel="Cancel"
+                            />
+                        </div>
+                    }
+                </ChildContent>
+            </AeCard>
+        </div>
+    </Authorized>
+    <NotAuthorized>
+        "You are not authorized."
+    </NotAuthorized>
+</AuthorizeView>
+
+
+@code {
+
+    private List<string> _authorizedRoles = new();
+    private List<Datahub_ProjectApiUser> _apiUsers;
+
+    private List<string> _headers = new();
+    private List<Func<Datahub_ProjectApiUser, RenderFragment>> _renderFunctions = new();
+    private List<Func<Datahub_ProjectApiUser, string>> _accessorFunctions = new();
+
+    private Datahub_ProjectApiUser _newClient;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _authorizedRoles = ServiceAuthManager.GetAdminProjectRoles();
+
+        using var ctx = ContextFactory.CreateDbContext();
+        _apiUsers = await ctx.Project_ApiUsers.ToListAsync();
+
+        _headers = new() { "Client", "Project", "Email", "Expiration", "Active", "Token" };
+        _accessorFunctions = new() { GetClient, GetProject, GetEmail, GetExpiration, GetActive, null };
+        _renderFunctions = new() { null, null, null, null, null, GetActions }; 
+    }
+
+    private string GetClient(Datahub_ProjectApiUser row) => row.Client_Name_TXT;
+    private string GetProject(Datahub_ProjectApiUser row) => row.Project_Acronym_CD;
+    private string GetEmail(Datahub_ProjectApiUser row) => row.Email_Contact_TXT;
+    private string GetExpiration(Datahub_ProjectApiUser row) => row.Expiration_DT.HasValue ? row.Expiration_DT.Value.ToShortDateString() : "Never";
+    private string GetActive(Datahub_ProjectApiUser row) => row.Enabled ? "Yes" : "No";
+
+    private string GetToken(Datahub_ProjectApiUser row) => "";
+
+    private RenderFragment GetActions(Datahub_ProjectApiUser row)
+    {
+        return @<i class="fas fa-copy" style="cursor: pointer;" @onclick="() => CopyTokenToClipboad(row)" title="Copy to clipboard"></i>
+    ;
+    }
+
+    private void HandleAddNewClient()
+    {
+        _newClient = new() { Enabled = true };
+    }
+
+    private async Task HandleSubmitNewClient()
+    {
+        using var ctx = ContextFactory.CreateDbContext();
+        ctx.Project_ApiUsers.Add(_newClient);
+        await ctx.SaveChangesAsync();
+        _apiUsers.Add(_newClient);
+        _newClient = null;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task<Datahub_ProjectApiUser> HandleCancelNewClient()
+    {
+        _newClient = null;
+        await InvokeAsync(StateHasChanged);
+        return _newClient;
+    }    
+
+    private async Task CopyTokenToClipboad(Datahub_ProjectApiUser row)
+    {
+        var token = await _keyVaultService.EncryptApiTokenAsync(row.ProjectApiUser_ID.ToString());
+        await JsInterop.InvokeAsync<string>("copyTextToClipboard", token);
+    }
+}
