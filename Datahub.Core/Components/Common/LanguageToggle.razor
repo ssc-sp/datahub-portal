@@ -1,0 +1,20 @@
+@inject IUserInformationService _userInformationService
+
+<span @onclick="() => ChangeLanguage(Language)" style="cursor:pointer;">
+    @LanguageDisplay
+</span>
+
+@code {
+
+    private static string Language => Thread.CurrentThread.CurrentCulture.Name.ToLower().Contains("fr") ? "en-CA" : "fr-CA";
+    private static string LanguageDisplay => Thread.CurrentThread.CurrentCulture.Name.ToLower().Contains("fr") ? "English" : "Français";
+    
+    private async void ChangeLanguage(string language)
+    {
+        if (await _userInformationService.RegisterUserLanguage(language))
+        {
+            _userInformationService.SetLanguage(language);
+        }
+    }
+
+}
