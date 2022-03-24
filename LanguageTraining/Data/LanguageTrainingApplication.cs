@@ -95,10 +95,10 @@ namespace Datahub.Portal.Data.LanguageTraining
         
         public string SLE_Results_Writing { get; set; }
         [AeFormCategory("Language Assessment", 20)]
-        [AeLabel(isDropDown: true)]
-        
+        [AeLabel(isDropDown: true)]        
         public string SLE_Results_Oral { get; set; }
         
+
         [AeFormCategory("Language Training Application", 30)]
         [AeLabel(isDropDown: true)]
         [Required]
@@ -159,6 +159,19 @@ namespace Datahub.Portal.Data.LanguageTraining
 
         [AeFormIgnore]
         public DateTime Last_Updated_DT { get; set; }
+
+        [AeFormIgnore]
+        public DateTime FormSubmitted_DT { get; set; }
+        [AeFormIgnore]
+        public DateTime ManagerDecision_DT { get; set; }
+        [AeFormIgnore]
+        public DateTime LanguageSchoolDecision_DT { get; set; }
+        [AeFormIgnore]
+        public string FormSubmitted_UserId { get; set; }
+        [AeFormIgnore]
+        public string ManagerDecision_UserId { get; set; }
+        [AeFormIgnore]
+        public string LanguageSchoolDecision_UserId { get; set; }
 
         [AeFormIgnore]
         [Timestamp]

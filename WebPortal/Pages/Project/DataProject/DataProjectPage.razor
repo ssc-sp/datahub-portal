@@ -7,41 +7,7 @@
 
 @page "/projects/{ProjectAcronymParam}"
 
-<PageAlert Title="@($"Welcome to the Project page for {ProjectAcronymParam}")" Key="@PageAlert.ProjectFeatures">
-    <AeTypography Variant="h4">When would I use Azure Databricks?</AeTypography>
-    <AeTypography>Azure Databricks is an analytics platform that allows you and your colleagues to access and act on the same set of data analytics. Use Azure Databricks to prepare, explore, and analyze your data as well as build AI models. Azure Databricks enables you to perform data validation, data collaboration and results analysis/interpretation. Some example use cases include:</AeTypography>
-    <ul>
-        <li>
-            <AeTypography>I want to validate my analysis results again my colleague's results</AeTypography>
-        </li>
-        <li>
-            <AeTypography>I want to collaborate on analysis and share algorithms</AeTypography>
-        </li>
-        <li>
-            <AeTypography>I want to share a platform with a colleague for data analysis pipelines</AeTypography>
-        </li>
-        <li>
-            <AeTypography>I want to prepare my data and conduct analysis</AeTypography>
-        </li>
-    </ul>
-    
-    <AeTypography Variant="h4">When would I use Project Storage?</AeTypography>
-    <AeTypography>Project Storage allows you to upload and store data to share with colleagues (across the GC and, in some cases, external to the GC). Your colleague(s) must be a member of your Data Project – members are listed on your Data Project page.</AeTypography>
-    <br/>
-    <AeTypography>The DataHub uses Azure Storage, Microsoft's cloud storage solution for modern data storage scenarios. Azure Storage offers highly available, massively scalable, durable, and secure storage for a variety of data objects in the cloud. You have the option to use the browser interface or command line options to upload/download.</AeTypography>
-    
-    <AeTypography Variant="h4">When would I use Postgress SQL?</AeTypography>
-    <AeTypography>This feature provides access to a PostgreSQL database and allows you to leverage your credentials for data connections. Some example use cases include:</AeTypography>
-    <ul>
-        <li>
-            <AeTypography>I want to store data in a structured database for the purpose of sharing it interdepartmentally and with external partners and academia</AeTypography>
-        </li>
-        <li>
-            <AeTypography>I want to store and share raw data files with linkages into the structured database</AeTypography>
-        </li>
-    </ul>
-
-</PageAlert>
+<DHPageAlert Title="Welcome to your Data Project" Key="@PageAlert.ProjectFeatures" WikiLinkEN="Onboarding---Data-Project" WikiLinkFR="Onboarding---Data-Project"/>
 
 <DHPageTitle PageTitleKey="@_projectName"/>
 <div class="project-page">
