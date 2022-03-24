@@ -4,29 +4,28 @@
 
 @if (_project is null)
 {
-    <div>Loading... pubalicsharing.razor</div>
+    <ToolCard Loading/>
 }
 else
 {
-    <AeCard class="facard1" CardPosition="AeCard.CardStyle.Horizontal">
-        <Header>
-            <div>
-                <AeIcon class="fad fa-share-square card-icon fa-xs"/>
+    <ToolCard
+        Title=@Localizer["PROJECT-PAGE.PUBLIC-SHARING-CARD.Title"]
+        Description=@Description>
+        <Logo>
+            <div class="blue" style="width:180px">
+                <AeIcon class="fad fa-file-alt card-icon fa-xs"/>
             </div>
-        </Header>
-        <ChildContent>
-            <DHLink Variant="h3" DataProject="@ProjectAcronym" LinkType="DatahubLinkType.DataSharingDashboard">
-                @Localizer["PROJECT-PAGE.PUBLIC-SHARING-CARD.Title"]
-            </DHLink>
-            <AeTypography>@Localizer["PROJECT-PAGE.PUBLIC-SHARING-CARD.UsersOwnSharedFiles"]: @_ownSharingRequestCount</AeTypography>
-            @if (_isDataApprover)
-            {
-                <AeTypography>
-                    @Localizer["PROJECT-PAGE.PUBLIC-SHARING-CARD.SharedFilesAwaitingApproval"]: @_sharingRequestAwaitingApprovalCount
-                </AeTypography>
-            }
-        </ChildContent>
-    </AeCard>
+        </Logo>
+        <ToolActionsList>
+             <ul>
+                <li>
+                    <DHLink Variant="h3" DataProject="@ProjectAcronym" LinkType="DatahubLinkType.DataSharingDashboard">
+                        <AeButton class="light">@Localizer["PROJECT-PAGE.PUBLIC-SHARING-CARD.Title"]</AeButton>
+                    </DHLink>
+                </li>
+             </ul>
+        </ToolActionsList>
+    </ToolCard>
 }
 
 @code {
@@ -39,6 +38,10 @@ else
 
     [CascadingParameter(Name = "GraphUser")]
     public Microsoft.Graph.User GraphUser { get; set; }
+
+    public string Description => $"{Localizer["Share files to Open Data, Public URLs or geo.ca"]}. " +
+      (_isDataApprover?Localizer["This project has {0} active file shared and {1} files waiting for approval.",_ownSharingRequestCount,_sharingRequestAwaitingApprovalCount]
+        :Localizer["The current project has {0} active file shared",_ownSharingRequestCount]);
 
     private bool _isDataApprover;
     private int _sharingRequestAwaitingApprovalCount;

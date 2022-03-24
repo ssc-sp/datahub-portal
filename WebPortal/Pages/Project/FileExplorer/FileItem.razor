@@ -14,7 +14,7 @@
         @Name
     </AeTypography>
     <AeTypography class="file-item-size">@(ByteSize ?? "")</AeTypography>
-    <AeTypography class="file-item-modified">@(Modified?.ToString("f", Thread.CurrentThread.CurrentUICulture) ?? "")</AeTypography>
+    <AeTypography class="file-item-modified">@(Modified?.ToString("r") ?? "")</AeTypography>
     <span class="more-actions">
         <i class="fas fa-ellipsis-h"></i>
     </span>
