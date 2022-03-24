@@ -176,7 +176,7 @@ namespace Datahub.Core.Services
             }
         }
 
-        public async Task UploadGen2File(FileMetaData fileMetadata, string? projectUploadCode)
+        public async Task UploadGen2File(FileMetaData fileMetadata, string projectUploadCode)
         {
             await UploadGen2File(fileMetadata, projectUploadCode, (progress) =>
             {
@@ -184,7 +184,8 @@ namespace Datahub.Core.Services
                 _ = _notifierService.Update($"adddata", false);
             });
         }
-        public async Task UploadGen2File(FileMetaData fileMetadata, string? projectUploadCode, Action<long> progress)
+
+        public async Task UploadGen2File(FileMetaData fileMetadata, string projectUploadCode, Action<long> progress)
         {
             //await _notifierService.Update($"{fileMetadata.folderpath}/{fileMetadata.filename}", true);
             try

@@ -18,6 +18,8 @@ using System.Reflection;
 using System.Threading;
 using Datahub.Metadata.Model;
 using System.Globalization;
+using System.Text;
+using System.Text.Json;
 
 namespace Datahub.Portal.Controllers
 {
@@ -113,7 +115,7 @@ namespace Datahub.Portal.Controllers
 
         [HttpPost]
         [Route("opendata/submit")]
-        public async Task<IActionResult> StartSharing([FromBody] OpenDataShareRequest data)
+        public async Task<IActionResult> StartSharingOpenData([FromBody] OpenDataShareRequest data)
         {
             var authHeader = GetAuthorizationToken();
 
@@ -187,6 +189,45 @@ namespace Datahub.Portal.Controllers
             return Ok(fieldChoices);
         }
 
+        [HttpPost]
+        [Route("fgp/submit")]
+        public async Task<IActionResult> StartSharingFgp()
+        {
+            // [authorization] Signed JWT with the claims including the UserName 
+            var authHeader = GetAuthorizationToken();
+
+            //// get the api use record
+            var apiUser = await GetApiUserAsync(authHeader);
+            if (apiUser is null || IsDisabledOrExpired(apiUser))
+                return Unauthorized();
+
+            // verify required email-contact
+            var emailContact = Request.Headers["email-contact"];
+            if (string.IsNullOrEmpty(emailContact))
+                return BadRequest("Missing email-contact header");
+
+            // read request json
+            var requestJson = await ReadRequestAsString();
+
+            // todo: validate json
+
+            // parse the bear minimun data to create the approval form
+            var requestSummary = ParseGeoData(requestJson);
+            if (requestSummary is null)
+                return BadRequest();
+
+            // save a pre-filled approval form and retrieve the form id
+            var approvalFormId = await SaveApprovalForm(requestSummary.title_en, emailContact, $"{requestSummary.title_en } / {requestSummary.title_en}");
+
+            // save and store json request
+            var shareId = await SaveGeoData(requestJson, approvalFormId);
+
+            var url = _publicDataService.GetPublicSharedUrl($"/share/geodata/{shareId}");
+
+            // todo
+            return Ok(url);
+        }
+
         private string GetAuthorizationToken() => Request.Headers["DH-Auth-Key"];
 
         private bool IsDisabledOrExpired(Datahub_ProjectApiUser apiUser) 
@@ -206,13 +247,35 @@ namespace Datahub.Portal.Controllers
             await _metadataBrokerService.SaveMetadata(fieldValues, anonymous: true);
         }
 
-        private async Task<int> SaveApprovalForm(OpenDataShareRequest data)
+        private async Task<string> SaveGeoData(string requestJson, int approvalFormId)
+        {
+            using var ctx = _contextFactory.CreateDbContext();
+
+            GeoObjectShare geoObjectShare = new()
+            {
+                GeoObjectShare_ID = Guid.NewGuid().ToString(),
+                Json_TXT = requestJson,
+                ApprovalForm_ID = approvalFormId
+            };
+
+            ctx.GeoObjectShares.Add(geoObjectShare);
+            await ctx.SaveChangesAsync();
+
+            return geoObjectShare.GeoObjectShare_ID;
+        }
+
+        private Task<int> SaveApprovalForm(OpenDataShareRequest data)
+        {
+            return SaveApprovalForm(data.file_name, data.email_contact, $"{data.title_translated_en } / {data.title_translated_en}");
+        }
+
+        private async Task<int> SaveApprovalForm(string name, string email, string title)
         {
             Data.Forms.ShareWorkflow.ApprovalForm approvalForm = new()
             {
-                Name_NAME = data.file_name,
-                Email_EMAIL = data.email_contact,
-                Dataset_Title_TXT = $"{data.title_translated_en } / {data.title_translated_en}",
+                Name_NAME = name,
+                Email_EMAIL = email,
+                Dataset_Title_TXT = title,
                 Type_Of_Data_TXT = "Data"
             };
             return await _metadataBrokerService.SaveApprovalForm(approvalForm);
@@ -304,6 +367,19 @@ namespace Datahub.Portal.Controllers
                     yield return new FieldValue(prop.Name, prop.GetValue(data, null)?.ToString());
                 }
             }
+        }
+
+        private async Task<string> ReadRequestAsString()
+        {
+            using (var reader = new StreamReader(Request.Body, encoding: Encoding.UTF8, detectEncodingFromByteOrderMarks: false))
+            {
+                return await reader.ReadToEndAsync();
+            }
+        }
+
+        private GeoDataShareRequest? ParseGeoData(string data)
+        {
+            return JsonSerializer.Deserialize<GeoDataShareRequest>(data);
         }
     }
 
