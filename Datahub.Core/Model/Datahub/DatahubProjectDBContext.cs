@@ -50,6 +50,8 @@ namespace Datahub.Core.EFCore
 
         public DbSet<Datahub_ProjectApiUser> Project_ApiUsers { get; set; }
 
+        public DbSet<GeoObjectShare> GeoObjectShares { get; set; }
+
         public void Seed(DatahubProjectDBContext context, IConfiguration configuration)
         {
             var p1 = context.Projects.Add(new Datahub_Project()
