@@ -17,6 +17,11 @@ _Should the NRCan Language School be unable to fulfill your training needs, an e
 
 _A Language Training and Evaluation Plan (LETP) assessment is pre-requisite to language training. If you have not completed an LETP assessment, please submit a request [hyperlink to LETP request form] to the NRCan Language School._
 
+_*Please note that in order to be accepted into the Advanced Oral Communication course, participants must have level C in oral proficiency or have completed the level C program at NRCan._
+
+_**In order to be accepted for coaching, participants may have to undergo an LETP whereby the NRCan Language School determines that they qualify._
+
 ### Commitment and Approvals
 
 _Approval from your delegated manager is required to submit an application for language training, in addition to confirming your commitment to participate in the language-training program. Please review the below commitment requirements and provide the requested manager information._
+

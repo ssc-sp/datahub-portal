@@ -1,4 +1,6 @@
+@*FileProperties.razor*@
 @using Datahub.Core.Components.Code
+@using Datahub.Metadata.Model
 
 @inject DataRetrievalService _dataRetrievalService
 @inject CommonAzureServices _commonAzureServices;
@@ -14,7 +16,7 @@
         </div>
 
         <div class="access-container">
-            <AeTypography Variant="h4">Who has access</AeTypography>
+            <AeTypography Variant="h4">@Localizer["Who has access"]</AeTypography>
             <span class="circle-item">
                 <ProfileCircle FullName="@ProjectAcronym"/>
                 <AeTypography>@ProjectAcronym</AeTypography>
@@ -22,7 +24,7 @@
         </div>
 
         <div class="properties">
-            <AeTypography class="properties-title" Variant="h4">Storage Properties</AeTypography>
+            <AeTypography class="properties-title" Variant="h4">@Localizer["Storage Properties"]</AeTypography>
             @foreach (var (key, value) in _properties)
             {
                 <AeTypography class="label">@Localizer["ITEM-DETAILS-PAGE." + key]</AeTypography>
@@ -36,6 +38,24 @@
             <InlineCodeWithCopy>@_fileLinkUrl</InlineCodeWithCopy>
 
         </div>
+
+        <div>
+            <AeTypography class="properties-title" Variant="h4">@Localizer["Metadata"]</AeTypography>
+
+            <ObjectMetadataEditor 
+                @key=@File.fileid 
+                ObjectId=@File.fileid 
+                Name=@File.filename
+                Location=@ProjectAcronym
+                SecurityClass=@File.securityclass
+                SaveButtonLabel=@Localizer["OPENDATA-WIZARD.Save_button"] 
+                ValidateRequired=true
+                ProfileName="catalog"
+                ObjectType=@MetadataObjectType.File
+                UpdateCatalog=@Readonly
+                Preview=@Readonly
+            />
+        </div>
     </div>
 }
 
@@ -46,6 +66,9 @@
 
     [Parameter]
     public FileMetaData File { get; set; }
+
+    [Parameter]
+    public bool Readonly { get; set; }
 
     private List<(string, string)> _properties;
     private string _powerBiPasteText;

@@ -69,7 +69,7 @@ namespace Datahub.Portal.Services
             return new FieldValueContainer(objectId, metadataDefinitions, fieldValues);
         }
 
-        public async Task<ObjectMetadata> SaveMetadata(FieldValueContainer fieldValues)
+        public async Task<ObjectMetadata> SaveMetadata(FieldValueContainer fieldValues, bool anonymous = false)
         {
             if (fieldValues.ObjectId == null)
                 throw new ArgumentException("Expected 'ObjectId' in parameter fieldValues.");
@@ -132,7 +132,7 @@ namespace Datahub.Portal.Services
                 }
 
                 // save the changes
-                await ctx.TrackSaveChangesAsync(_auditingService);
+                await ctx.TrackSaveChangesAsync(_auditingService, anonymous);
 
                 transation.Commit();
 
@@ -289,6 +289,12 @@ namespace Datahub.Portal.Services
             return await SearchCatalog(searchText, "Search_French_TXT");
         }
 
+        public async Task<FieldDefinitions> GetFieldDefinitions()
+        {
+            using var ctx = _contextFactory.CreateDbContext();
+            return await GetLatestMetadataDefinition(ctx);
+        }
+
         private async Task<List<CatalogObjectResult>> SearchCatalog(string searchText, string fieldName)
         {
             using var ctx = _contextFactory.CreateDbContext();
@@ -321,9 +327,8 @@ namespace Datahub.Portal.Services
 
             var whereCondition = string.Join(" AND ", filteredSearchText);
             if (string.IsNullOrEmpty(whereCondition))
-                return string.Empty;
+                return "SELECT * FROM CatalogObjects";
 
-            //return $"SELECT * FROM CatalogObjects WHERE {fieldName} LIKE '%{filteredSearchText}%'";
             return $"SELECT * FROM CatalogObjects WHERE {whereCondition}";
         }
 

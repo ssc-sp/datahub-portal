@@ -463,19 +463,26 @@ namespace Datahub.Portal.Services.Storage
                             fileId = newId;
                         }
 
-                        blobItem.Metadata.TryGetValue("ownedby", out var ownedby);
-                        blobItem.Metadata.TryGetValue("createdby", out var createdby);
-                        blobItem.Metadata.TryGetValue("lastmodifiedby", out var lastmodifiedby);
+                        DateTime parsedModifiedDate;
+                        string ownedBy = blobItem.Metadata.TryGetValue(FileMetaData.OwnedBy, out ownedBy) ? ownedBy : "Unknown";
+                        string createdBy = blobItem.Metadata.TryGetValue(FileMetaData.CreatedBy, out createdBy) ? createdBy : "Unknown";
+                        string lastModifiedBy = blobItem.Metadata.TryGetValue(FileMetaData.LastModifiedBy, out lastModifiedBy) ? lastModifiedBy : "lastmodifiedby";
+                        string lastModified = blobItem.Metadata.TryGetValue(FileMetaData.LastModified, out lastModified) ? lastModified : DateTime.UtcNow.ToString();
+                        string fileSize = blobItem.Metadata.TryGetValue(FileMetaData.FileSize, out fileSize) ? fileSize : "0";
 
+                        var isDateValid = DateTime.TryParse(lastModified, out parsedModifiedDate);
+                        if (!isDateValid)
+                            parsedModifiedDate = DateTime.UtcNow;
+                        
                         var file = new FileMetaData()
                         {
                             id = fileId,
                             filename = blobItem.Name,
-                            ownedby = ownedby,
-                            createdby = createdby,
-                            lastmodifiedby = lastmodifiedby,
-                            lastmodifiedts = blobItem.Properties.LastModified?.UtcDateTime ?? DateTime.Now,
-                            filesize = blobItem.Properties.ContentLength.ToString(),
+                            ownedby = ownedBy,
+                            createdby = createdBy,
+                            lastmodifiedby = lastModifiedBy,
+                            lastmodifiedts = parsedModifiedDate,
+                            filesize = fileSize
                         };
 
                         result.Add(file);
