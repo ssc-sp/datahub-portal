@@ -17,8 +17,13 @@
             SelectedItem="@_selectedItem"
             VirtualDirectory="_virtualDirectory"/>
     </CascadingValue>
-
     <div class="file-list">
+        <AeSearchInput 
+            id="search"
+            SearchIconFAClass="fas fa-search"
+            OnInputChangeWithLastKey=@HandleSearch 
+            style="margin: 0rem 1rem;"
+        />
         <div class="file-list-header">
             <AeTypography>@Localizer["Name"]</AeTypography>
             <AeTypography>@Localizer["Size"]</AeTypography>
@@ -49,8 +54,7 @@
                             </Icon>
                         </FileItem>
                     }
-                    @foreach (var file in _virtualDirectory[_currentFolder]
-                        .OrderBy(f => f.name))
+                    @foreach (var file in _searchResults.OrderBy(f => f.name))
                     {
                         <FileItem
                             Name="@GetFileName(file.name)"
@@ -78,8 +82,10 @@
                 {
                     var file = _virtualDirectory[_currentFolder]
                         .FirstOrDefault(f => f.name.Equals(_selectedItem, StringComparison.OrdinalIgnoreCase));
-
-                    <FileProperties File=@file Readonly="!OwnsFile(file)" />
+                    if (file is not null)
+                    {
+                        <FileProperties File=@file Readonly="!OwnsFile(file)" />
+                    }
                 }
             </div>
         </div>
@@ -102,6 +108,10 @@
     private readonly string _root = "/";
     private string _currentFolder = "/";
     private string _selectedItem = "/";
+
+    private string _lastSearch;
+    private QueryThrottler<string> _searchThrottler;
+    private List<FileMetaData> _searchResults = new();
 
     private Dictionary<string, List<FileMetaData>> _virtualDirectory = new()
     {
@@ -129,6 +139,9 @@
         }
 
         SetupEmptyFolders();
+
+        _searchThrottler = new(TimeSpan.FromSeconds(0.5), ThrottleSearch);
+        ResetSearch();
 
         _loading = false;
     }
@@ -161,7 +174,7 @@
     {
         if(string.IsNullOrWhiteSpace(path) || !path.Contains("/"))
             return string.Empty;
-        
+
         var lastIndex = path.TrimEnd('/').LastIndexOf("/", StringComparison.Ordinal);
         return lastIndex == -1 ? "/" : path[..lastIndex] + "/";
     }
@@ -170,7 +183,7 @@
     {
         if (string.IsNullOrWhiteSpace(path))
             return string.Empty;
-        
+
         var lastIndex = path.TrimEnd('/').LastIndexOf("/", StringComparison.Ordinal);
         return lastIndex == -1 ? path : path[(lastIndex + 1)..];
     }
@@ -242,5 +255,36 @@
         StateHasChanged();
     }
 
-    private bool OwnsFile(FileMetaData file) => (file.ownedby ?? "").Equals(_userId, StringComparison.InvariantCulture);
+    private bool OwnsFile(FileMetaData file) => (file?.ownedby ?? "").Equals(_userId, StringComparison.InvariantCulture);
+
+    private async void HandleSearch(string newValue, KeyboardEventArgs ev)
+    {
+        await _searchThrottler.SetQuery(newValue);
+    }
+
+    private void ResetSearch()
+    {
+        _lastSearch = null;
+        _searchResults = new(_virtualDirectory[_currentFolder]);
+    }
+
+    private async Task ThrottleSearch(string searchText)
+    {
+        if (_lastSearch != searchText)
+        {
+            _searchResults.Clear();
+            _lastSearch = searchText;
+            _selectedItem = string.Empty;
+            try
+            {
+                var all = string.IsNullOrEmpty(searchText);
+                var files = _virtualDirectory[_currentFolder];
+                _searchResults = new(files.Where(c => all || c.name.Contains(searchText, StringComparison.InvariantCultureIgnoreCase)));
+            }
+            finally
+            {
+                await InvokeAsync(StateHasChanged);
+            }
+        }            
+    }
 }
