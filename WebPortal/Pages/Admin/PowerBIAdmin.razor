@@ -20,14 +20,14 @@
 
 <div style="padding-left: 2rem;padding-right: 2rem">
 
-    <AeTypography Variant="h1">PowerBI Administration</AeTypography>
+    <AeTypography Variant="h1">@Localizer[$"{LOCALIZATION_PREFIX}.Title"]</AeTypography>
 
     
     <AeFlex >
         <AeFlex Vertical>
             <AeCard class="facard1 doublewide">
                 <Header>
-                    <AeTypography Variant="h3">Management</AeTypography>
+                    <AeTypography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.ManagementTitle"]</AeTypography>
                 </Header>
                 <ChildContent>
                     @if (IsLoadingWorkspaceTreeItems)
@@ -45,14 +45,14 @@
             {
                 <AeCard class="facard1 doublewide">
                     <Header>
-                        <AeTypography Variant="h3">@Localizer["Workspace"]: @WorkspaceBeingEdited.DbWorkspaceName</AeTypography>
+                        <AeTypography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.Workspace"]: @WorkspaceBeingEdited.DbWorkspaceName</AeTypography>
                     </Header>
                     <ChildContent>
                         <div>
                             <label>
-                                <span>Project: </span>
+                                <span>@Localizer[$"{LOCALIZATION_PREFIX}.Project"]: </span>
                                 <select @bind=@WorkspaceBeingEdited.ProjectId>
-                                    <option value="-1">(unassigned)</option>
+                                    <option value="-1">@Localizer[$"{LOCALIZATION_PREFIX}.Unassigned"]</option>
                                     @foreach (var project in AvailableProjects)
                                     {
                                         <option value=@project.Project_ID>@project.ProjectName</option>
@@ -61,15 +61,15 @@
                             </label>
                             <label>
                                 <input type="checkbox" @bind=@WorkspaceBeingEdited.SandboxFlag />
-                                <span>Sandbox</span>
+                                <span>@Localizer[$"{LOCALIZATION_PREFIX}.Sandbox"]</span>
                             </label>
                         </div>
                         <div>
-                            <AeButton OnClickEvent=@SaveWorkspace Disabled=@IsSavingWorkspace>Save</AeButton>
-                            <AeButton OnClickEvent=@CloseItemBeingEdited>Cancel</AeButton>
+                            <AeButton OnClickEvent=@SaveWorkspace Disabled=@IsSavingWorkspace>@Localizer[$"BUTTONS.Save"]</AeButton>
+                            <AeButton OnClickEvent=@CloseItemBeingEdited>@Localizer[$"BUTTONS.Cancel"]</AeButton>
                             <SuccessIndicator @bind-IsLoading=@IsSavingWorkspace @ref=@_saveWorkspaceInd />
                         </div>
-                        <AeTypography Variant="h4">@Localizer["Metadata"]</AeTypography>
+                        <AeTypography Variant="h4">@Localizer[$"{LOCALIZATION_PREFIX}.Metadata"]</AeTypography>
                         <ObjectMetadataEditor 
                             ObjectId=@WorkspaceBeingEdited.WorkspaceId.ToString()
                             Location="PowerBI"
@@ -87,10 +87,10 @@
             {
                 <AeCard class="facard1 doublewide">
                     <Header>
-                        <AeTypography Variant="h3">@Localizer["Dataset"]: @DatasetBeingEdited.DbDatasetName</AeTypography>
+                        <AeTypography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.Dataset"]: @DatasetBeingEdited.DbDatasetName</AeTypography>
                     </Header>
                     <ChildContent>
-                        <AeTypography Variant="h4">@Localizer["Metadata"]</AeTypography>
+                        <AeTypography Variant="h4">@Localizer[$"{LOCALIZATION_PREFIX}.Metadata"]</AeTypography>
                         <ObjectMetadataEditor 
                             ObjectId=@DatasetBeingEdited.DatasetId.ToString()
                             Location="PowerBI"
@@ -108,10 +108,10 @@
             {
                 <AeCard class="facard1 doublewide">
                     <Header>
-                        <AeTypography Variant="h3">@Localizer["Report"]: @ReportBeingEdited.DbReportName</AeTypography>
+                        <AeTypography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.Report"]: @ReportBeingEdited.DbReportName</AeTypography>
                     </Header>
                     <ChildContent>
-                        <AeTypography Variant="h4">@Localizer["Metadata"]</AeTypography>
+                        <AeTypography Variant="h4">@Localizer[$"{LOCALIZATION_PREFIX}.Metadata"]</AeTypography>
                         <ObjectMetadataEditor 
                             ObjectId=@ReportBeingEdited.ReportId.ToString()
                             Location="PowerBI"
@@ -129,16 +129,16 @@
 
         <AeCard class="facard1">
             <Header>
-                <AeTypography Variant="h3">Import/Update</AeTypography>
+                <AeTypography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.ImportUpdateTitle"]</AeTypography>
             </Header>
             <ChildContent>
                 @if (WorkspacesToBeUpdated != null && WorkspacesToBeUpdated.Count > 0)
                 {
-                    <AeTypography Variant="p">There are workspaces, reports and/or datasets available in PowerBI which are out of sync with the DataHub databse. Expand the section below for more details.</AeTypography>
+                    <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.ChangesExist"]</AeTypography>
                     <AeCollapse>
                         <AeCollapseSection>
                             <Header>
-                                <AeTypography Variant="h4">Details</AeTypography>
+                                <AeTypography Variant="h4">@Localizer[$"{LOCALIZATION_PREFIX}.Details"]</AeTypography>
                             </Header>
                             <ChildContent>
                                 <ul>
@@ -157,13 +157,13 @@
                         </AeCollapseSection>
                     </AeCollapse>
                     <div>
-                        <AeButton OnClickEvent=@ImportPowerBiItems Disabled=@ImportDisabled>Synchronize</AeButton>
+                        <AeButton OnClickEvent=@ImportPowerBiItems Disabled=@ImportDisabled>@Localizer[$"{LOCALIZATION_PREFIX}.SynchronizeButton"]</AeButton>
                         <SuccessIndicator @bind-IsLoading=@IsImportingPowerBiItems @ref=@_bulkImportInd />
                     </div>
                 }
                 else
                 {
-                    <AeTypography Variant="p">Nothing to import</AeTypography>
+                    <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.NothingToImport"]</AeTypography>
                 }
             </ChildContent>
         </AeCard>
@@ -173,6 +173,8 @@
 </div>
 
 @code {
+    private static readonly string LOCALIZATION_PREFIX = $"{PowerBiManagementConstants.POWERBI_MANAGEMENT_LOCALIZATION_ROOT_KEY}.POWER_BI_ADMIN";
+
     [Parameter]
     public string ProjectAcronym { get; set; }
 
@@ -208,15 +210,18 @@
 
         if (numReports > 0 && numDatasets > 0)
         {
-            return $"(Datasets: {numDatasets}, Reports: {numReports})";
+            return Localizer[$"{LOCALIZATION_PREFIX}.NumDatasetsReports", numDatasets, numReports];
+            //return $"(Datasets: {numDatasets}, Reports: {numReports})";
         }
         else if (numReports > 0)
         {
-            return $"(Reports: {numReports})";
+            return Localizer[$"{LOCALIZATION_PREFIX}.NumReports", numReports];
+            //return $"(Reports: {numReports})";
         }
         else if (numDatasets > 0)
         {
-            return $"(Datasets: {numDatasets})";
+            return Localizer[$"{LOCALIZATION_PREFIX}.NumDatasets", numDatasets];
+            //return $"(Datasets: {numDatasets})";
         }
         else
         {
