@@ -43,6 +43,7 @@ public class Datahub_Registration_Request
     
     public Datahub_Registration_Request()
     {
+        LinkId = Guid.NewGuid();
         CreatedAt = DateTime.UtcNow;
         UpdatedAt = DateTime.UtcNow;
         Status = STATUS_CREATE;
