@@ -10,7 +10,7 @@
 @inject IConfiguration _configuration
 
 @if (_configuration["GlobalSearch"] != "disabled")
-{
+{ 
     <AeSearchInput id="topSearch" Placeholder="@Localizer.GetString("Search...")" OnInputChangeWithLastKey="(v, e) => HandleSearch(v, e)" ClearIconFAClass="null"/>
 }
 
