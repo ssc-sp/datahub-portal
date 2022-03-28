@@ -7,8 +7,12 @@
 @using Microsoft.Identity.Web
 @inject MicrosoftIdentityConsentAndConditionalAccessHandler ConsentHandler
 @inject IExternalSearchService ExternalSearchService
+@inject IConfiguration _configuration
 
-<AeSearchInput id="topSearch" Placeholder="@Localizer.GetString("Search...")" OnInputChangeWithLastKey="(v, e) => HandleSearch(v, e)" ClearIconFAClass="null"/>
+@if (_configuration["GlobalSearch"] != "disabled")
+{
+    <AeSearchInput id="topSearch" Placeholder="@Localizer.GetString("Search...")" OnInputChangeWithLastKey="(v, e) => HandleSearch(v, e)" ClearIconFAClass="null"/>
+}
 
 <Popup Show="isSearching || hasResults" class="search-popup" OnCloseClick="CloseSearch">
     <ChildContent>
@@ -21,13 +25,13 @@
                         <div class="textcontent large-text">@Localizer["No results found"]</div>
                     </div>
                 }
-                @foreach(FileMetaData file in ApiService.SearchDataFolder.AllFiles)
+                @foreach (FileMetaData file in ApiService.SearchDataFolder.AllFiles)
                 {
                     <div class="search-grid-row" @ondblclick="() => DownloadFile(file)">
                         <div class="grid-item icons">
                             @if (!string.IsNullOrWhiteSpace(isDownloadingFileId) && isDownloadingFileId == file.fileid)
                             {
-                                <Spinner Small="true" />
+                                <Spinner Small="true"/>
                             }
                             else
                             {
@@ -37,7 +41,9 @@
                         <div class="grid-item">
                             <div class="textcontent large-text">@file.filename</div>
                             <div class="break"></div>
-                            <div class="textcontent small-text"><GraphUserInformation UserId="@file.ownedby" IsUserNameRequested="true" PostText="@($"{Localizer["created this on"]} {displayDate(file.createdts)}")"></GraphUserInformation></div>
+                            <div class="textcontent small-text">
+                                <GraphUserInformation UserId="@file.ownedby" IsUserNameRequested="true" PostText="@($"{Localizer["created this on"]} {displayDate(file.createdts)}")"></GraphUserInformation>
+                            </div>
                         </div>
                         <div class="grid-item">
                             <div class="textcontent" style="justify-content: flex-end;">
@@ -49,27 +55,33 @@
 
                 if (isSearchingAdditional || hasAdditionalResults)
                 {
-                    <hr />
+                    <hr/>
                     if (hasAdditionalResults)
                     {
                         <p class="additional-results">
                             <span>@Localizer["Additional results available on search page:"] </span>
                             <span>
-                                @if (hasFGPResults) { <span class="additional-result-label">@Localizer["FGP"]</span> }
-                                @if (hasOpenDataResults) { <span class="additional-result-label">@Localizer["Open Data"]</span> }
+                                @if (hasFGPResults)
+                                {
+                                    <span class="additional-result-label">@Localizer["FGP"]</span>
+                                }
+                                @if (hasOpenDataResults)
+                                {
+                                    <span class="additional-result-label">@Localizer["Open Data"]</span>
+                                }
                             </span>
                         </p>
                     }
 
                     if (isSearchingAdditional)
                     {
-                        <Spinner Small="true" />
+                        <Spinner Small="true"/>
                     }
                 }
             }
             else
             {
-                <Spinner Small="true" />
+                <Spinner Small="true"/>
             }
         </div>
     </ChildContent>
@@ -78,7 +90,7 @@
         <button class="submitbutton finish" type="submit" @onclick="() => GotoSearchPage()">@Localizer["Goto search page"]</button>
     </Footer>
 </Popup>
-   
+
 @code
 {
     // Have we searched already since init control.
@@ -97,14 +109,22 @@
     private bool isSearchingOpenData { get; set; }
     private bool hasOpenDataResults { get; set; }
 
-    private bool hasAdditionalResults { get => hasFGPResults || hasOpenDataResults; }
-    private bool isSearchingAdditional { get => isSearchingFGP || isSearchingOpenData; }
+    private bool hasAdditionalResults
+    {
+        get => hasFGPResults || hasOpenDataResults;
+    }
+
+    private bool isSearchingAdditional
+    {
+        get => isSearchingFGP || isSearchingOpenData;
+    }
 
     private Microsoft.Graph.User _currentUser;
 
+
     protected string GetFileTypeIcon(FileMetaData file)
     {
-        return $"{DatahubTools.GetFileTypeIcon(file.fileformat)} fa-2x";        
+        return $"{DatahubTools.GetFileTypeIcon(file.fileformat)} fa-2x";
     }
 
     protected override async Task OnInitializedAsync()
@@ -188,7 +208,7 @@
         searchText = newValue;
         if (ev?.Code == "Enter" || searchedAlready || (!string.IsNullOrWhiteSpace(newValue) && newValue.Length >= 4))
         {
-            // Clear previous results
+    // Clear previous results
             ApiService.SearchDataFolder.Clear();
             isSearching = true;
             hasResults = false;
