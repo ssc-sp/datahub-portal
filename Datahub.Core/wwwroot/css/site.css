@@ -2530,12 +2530,15 @@ body {
   cursor: pointer;
   user-select: none;
   padding-left: 0.75rem;
-  background-color: #718096;
+  padding-top: 0.2rem;
+  padding-bottom: 0.2rem;
+  background-color: #4a5568;
   color: #fff;
   word-wrap: break-word;
+  font-weight: bold;
 }
 .ae.table:not(.custom) .ae.table-header .ae.table-cell:hover {
-  background-color: #4a5568;
+  background-color: #2d3748;
 }
 .ae.table:not(.custom) .ae.table-header.simple {
   display: inline-grid;
@@ -5430,6 +5433,20 @@ code {
   background-color: var(--bg-color-accent);
   color: var(--primary-text);
 }
+.file-explorer-layout-wrapper .file-explorer-layout .heading .actions .button-tool {
+  gap: 0.5rem;
+  border-radius: 500px;
+  font-size: 1rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: transparent;
+  color: var(--tertiary-text);
+}
+.file-explorer-layout-wrapper .file-explorer-layout .heading .actions .button-tool:hover {
+  background-color: var(--bg-color-accent);
+  color: var(--primary-text);
+}
 .file-explorer-layout-wrapper .file-explorer-layout .file-list {
   grid-area: file-list;
 }
@@ -5522,52 +5539,111 @@ code {
 .signup-container {
   width: 100vw;
   height: 100vh;
-  padding: 4rem;
   overflow: hidden;
-  background-image: radial-gradient(circle, rgba(0, 29, 36, 0) 0%, black 100%), url("/img/signup-bg.jpg");
+  display: grid;
+  grid-template-columns: 55% 45%;
+}
+.signup-container .gc-logo {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  width: 300px;
+}
+.signup-container .language-toggle {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+}
+.signup-container .info-container {
+  background-image: url("/img/bg-signup3.jpg");
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
   display: flex;
   flex-direction: column;
   justify-content: center;
+  align-items: center;
+  padding: 4rem;
 }
-.signup-container .form-container {
+.signup-container .info-container .info-title-container {
+  --logo-size: 64px;
+  margin-top: -15vh;
+  margin-left: -32px;
+}
+.signup-container .info-container .info-title-container .info-pretext {
+  opacity: 0.8;
+  text-transform: uppercase;
+  font-size: 1.4rem;
+  font-weight: bold;
+  transform: translateX(8px) translateY(16px) translateX(var(--logo-size));
+}
+.signup-container .info-container .info-title-container .info-logo {
+  width: var(--logo-size);
+  height: var(--logo-size);
+  display: inline-block;
+  transform: translateY(5px);
+}
+.signup-container .info-container .info-title-container .info-title {
+  margin-top: 0;
+  line-height: 1.2;
+  font-size: 5rem;
+  display: inline-block;
+}
+.signup-container .info-container .info-content {
   /* From https://css.glass */
-  background: rgba(255, 255, 255, 0.14);
-  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.54);
+  border-radius: 8px;
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(7.8px);
-  -webkit-backdrop-filter: blur(7.8px);
-  border: 1px solid rgba(255, 255, 255, 0.36);
+  backdrop-filter: blur(15.1px);
+  -webkit-backdrop-filter: blur(15.1px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   width: 600px;
   padding: 2rem;
+  text-align: center;
 }
-.signup-container .form-container .form-section .ae.typography {
-  color: white;
-}
-.signup-container .form-container .form-section .ae.typography.prefix {
-  opacity: 0.6;
-  text-transform: uppercase;
-  font-size: 0.8rem;
-}
-.signup-container .form-container .form-section .ae.typography.h1 {
+.signup-container .info-container .info-content .info-welcome {
+  font-size: 1.4rem;
   font-weight: bold;
-  margin-top: 0;
 }
-.signup-container .form-container .form-section .ae.input {
-  border-radius: 8px;
-  background-color: #1e293b;
-  border-color: transparent;
-  color: white;
+.signup-container .info-container .info-content .info-hosted {
+  font-style: italic;
+  opacity: 0.8;
+  margin-bottom: 2rem;
 }
-.signup-container .form-container .form-section .errortext,
-.signup-container .form-container .form-section .validation-message {
-  text-shadow: 1px 1px 1px black;
-  margin-left: 0;
+.signup-container .form-container {
+  display: flex;
+  flex-direction: column;
+  padding: 15vh 2rem 2rem;
+  background-color: #fdfbfb;
 }
-.signup-container .form-container .form-section .validation-errors {
-  display: none;
+.signup-container .form-container .form-section {
+  max-width: 600px;
+}
+.signup-container .form-container .form-section .form-title {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  --logo-size: 32px;
+}
+.signup-container .form-container .form-section .form-title .info-logo {
+  width: var(--logo-size);
+  height: var(--logo-size);
+  display: inline-block;
+  transform: translateY(5px);
+}
+.signup-container .form-container .form-section .form-subtitle {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+.signup-container .form-container .form-section .thank-you {
+  padding: 2rem 0;
+  text-align: center;
+}
+.signup-container .form-container .form-section .thank-you .thank-you-title {
+  margin-bottom: 1rem;
+}
+.signup-container .form-container .form-section .thank-you .thank-you-subtitle {
+  font-style: italic;
 }
 
 .item-details-container {
