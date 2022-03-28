@@ -1,0 +1,643 @@
+﻿@using Datahub.Portal.Data.PIP
+@using Microsoft.Extensions.Logging 
+@inject IStringLocalizer DataLocalizer
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JsInterop
+@inject IUserInformationService UserInformationService
+@inject IMSGraphService MSGraphService
+@inject UIControlsService UI
+@inject IConfiguration Configuration
+@inject IDatahubAuditingService AuditingService
+@inject ServiceAuthManager ServiceAuthManager
+@inject ILogger<ProgramInventory> Logger
+
+@implements IDisposable
+@inject IDbContextFactory<PIPDBContext> DbFactory
+
+@page "/pip/programs"
+@page "/pip/programs/{tombstone}"
+
+<AeCard class="facardForms" CardPosition="AeCard.CardStyle.Horizontal">
+    <h1>Performance Information Profile (PIP) Forms</h1>
+
+    <h2>Select your fiscal year</h2>
+    @if (_fiscalYears.Any())
+    {
+        <AeDropdown Items="_fiscalYears" OnChange="HandleDropdownChange" Label="@_fiscalYear.FiscalYear" class="securityDropdown"/>    
+    }
+
+</AeCard>
+
+
+@if (_projects != null)
+{
+    <AeCard class="facardForms" CardPosition="AeCard.CardStyle.Horizontal">
+
+        <h2>Select Program Inventory Program</h2>
+        <AePaginatedTable Accessors="accessorFunctions"
+             Renderers="GetRenderers()"
+             T="PIP_Tombstone"
+             Dataset="_projects"
+             Headers="headers"
+             ColorAccessor="getColor"
+             GridTemplateColumns="4fr 4fr 4fr"
+             OnRowClick="@SetFormEdit"
+             Page="@_lastClicked"
+             PageSize="10"
+             @ref=_myTable />
+
+        <AePagination 
+            Pageable="@_myTable" 
+            OnPageClick="OnPageClick"> 
+            <LeftIcon><i class='fad fa-chevron-double-left'></i></LeftIcon> 
+            <RightIcon><i class='fad fa-chevron-double-right'></i></RightIcon>
+        </AePagination>  
+
+    </AeCard>
+}
+
+@if (_tombstone != null)
+{
+<AeCard class="facardForms" CardPosition="AeCard.CardStyle.Horizontal">
+    @if (_tombstone.Tombstone_ID > 0)
+    {
+        <h2>Edit PIP Information for @(_tombstone.Program_Title)</h2>
+    }
+    else
+    {
+        <h2>Enter Program Details</h2>
+    }
+    <AeFlex id="buttonBar">
+        <div class="icon-container" style="margin-bottom: 10px; margin-left: 5px;">
+            <FAButton Text="Indicators and Results" Icon="fal fa-poll" IconLocation="left" onclick="e => GoToIndicators()" />
+            <FAButton Text="Risks" Icon="fal fa-water-rise" IconLocation="left" onclick="e => GoToRisks()" />
+        </div>
+    </AeFlex>
+
+    <AeModelForm Model="_tombstone"
+                 T="PIP_Tombstone"
+                 OnValidSubmit="HandleValidSubmit"
+                 OnCancel="ClearForm"
+                 OnConfigure="OnConfigure"
+                 CancelLabel="Cancel"
+                 OnChange="OnChange"
+                 SubmitLabel="@SubmitLabel"
+                 LabelForPropertyFunc="@GetDataLabel"
+                 LabelsOnTop="true" 
+                 IsSubmitEnabled="@_enableSave"
+                 IsSectionLocksVisible="@_isUserAdmin"
+                 CheckedIcon="far fa-check"
+                 @ref="_myModelForm"
+                 />
+    <AeFlex>
+        <div class="icon-container" style="margin-bottom: 10px; margin-left: 5px;">
+            <FAButton Text="Save and Lock" onclick="e => SaveAndLock()" Disabled=@(!_enableSave) />
+            <SuccessIndicator @bind-IsLoading=@_submittingApproval @ref=@_submitApprovalInd />
+        </div>
+    </AeFlex>
+    <AeFlex>
+        <div class="icon-container" style="margin-bottom: 10px; margin-left: 5px;">
+            <SuccessIndicator @bind-IsLoading=@_submittingApproval @ref=@_submitApprovalInd />
+        </div>
+    </AeFlex>
+    <AeFlex id="buttonBar">
+        <div class="icon-container" style="margin-bottom: 10px; margin-left: 5px;">
+            <FAButton Text="Indicators and Results" Icon="fal fa-poll" IconLocation="left" onclick="e => GoToIndicators()" />
+            <FAButton Text="Risks" Icon="fal fa-water-rise" IconLocation="left" onclick="e => GoToRisks()" />
+        </div>
+    </AeFlex>
+
+</AeCard>
+}
+
+@code {
+    [Parameter]
+    public string tombstone { get; set; }
+    private const string PROJECTACRONYM = "PIP";
+
+    private PIP_FiscalYears _fiscalYear;
+    private List<string> _fiscalYears;
+    private AeModelForm<PIP_Tombstone> _myModelForm;
+    private List<PIP_Tombstone> _projects;
+    private PIP_Tombstone _tombstone;// = new PIP_Tombstone();
+    private string SubmitLabel = "Save";
+    private const string EMAIL = "offline@nrcan-cnrcan.gc.ca";
+    private string navigationUrl = string.Empty;
+    private bool _enableSave = true;
+    private bool _isSectionLocksVisibile = false;
+    private Microsoft.Graph.User CurrentUser;
+    private bool _isUserAdmin;
+    private PIPDBContext Context;
+    private List<string> headers = new List<string>
+    {
+	    "Title","Lead Sector", "Report"
+    };
+
+    private int _lastClicked = 0;
+    private IPageableComponent _myTable;
+    private bool _reloadOptions = true;
+    private SuccessIndicator _submitApprovalInd;
+    private bool _submittingApproval = false;
+    private bool _isSetFormEdit = false;
+
+    private void OnPageClick(int pageIndex)
+    {
+        _lastClicked = pageIndex;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {        
+        Context = DbFactory.CreateDbContext();
+        CurrentUser = await UserInformationService.GetUserAsync();
+        _isUserAdmin = await ServiceAuthManager.IsProjectAdmin(CurrentUser.Id, PROJECTACRONYM);
+        _fiscalYears = new();
+        _fiscalYears = Context.FiscalYears.OrderByDescending(i => i.YearId).Select(i => i.FiscalYear).ToList();
+
+        _fiscalYear = _fiscalYear == null ? Context.FiscalYears.OrderByDescending(i => i.YearId).First() : _fiscalYear;
+
+        if (_fiscalYear != null)
+        {
+            _projects = new();
+            LoadProjects();
+
+        }
+
+
+        if (!string.IsNullOrEmpty(tombstone))
+        {
+
+            _tombstone = _projects.Where(p => p.Tombstone_ID == Convert.ToInt32(tombstone)).FirstOrDefault();
+            if (_tombstone != null)
+                await PrepareItemForEdit(_tombstone);
+        }
+    }
+
+
+    private void OnChange(ModelFormChangeArgs args)
+    {
+        var context = args.Context;
+        if (args.HasPropertyChanged<PIP_Tombstone>(s => s.Core_Responsbility_DESC))
+        {
+            if (_tombstone?.Core_Responsbility_DESC?.StartsWith("Natural") ?? false)
+            {
+                context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Departmental_Result_1_CD, () => PIP_Constants.CORE_RESPONSIBILITY1);
+                context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Departmental_Result_2_CD, () => PIP_Constants.CORE_RESPONSIBILITY1);
+                context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Departmental_Result_3_CD, () => PIP_Constants.CORE_RESPONSIBILITY1);
+                context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Strategic_Priorities_1_DESC, () => PIP_Constants.STRATEGIC);
+                context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Strategic_Priorities_2_DESC, () => PIP_Constants.STRATEGIC);
+
+            }
+            if (_tombstone?.Core_Responsbility_DESC?.StartsWith("Innovative") ?? false)
+            {
+                context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Departmental_Result_1_CD, () => PIP_Constants.CORE_RESPONSIBILITY2);
+                context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Departmental_Result_2_CD, () => PIP_Constants.CORE_RESPONSIBILITY2);
+                context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Departmental_Result_3_CD, () => PIP_Constants.CORE_RESPONSIBILITY2);
+                
+                context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Strategic_Priorities_1_DESC, () => PIP_Constants.STRATEGIC);
+                context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Strategic_Priorities_2_DESC, () => PIP_Constants.STRATEGIC);
+            }
+            if (_tombstone?.Core_Responsbility_DESC?.StartsWith("Globally") ?? false)
+            {
+                context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Departmental_Result_1_CD, () => PIP_Constants.CORE_RESPONSIBILITY3);
+                context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Departmental_Result_2_CD, () => PIP_Constants.CORE_RESPONSIBILITY3);
+                context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Departmental_Result_3_CD, () => PIP_Constants.CORE_RESPONSIBILITY3);
+                context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Strategic_Priorities_1_DESC, () => PIP_Constants.STRATEGIC);
+                context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Strategic_Priorities_2_DESC, () => PIP_Constants.STRATEGIC);
+            }
+            if (_tombstone?.Core_Responsbility_DESC?.StartsWith("Internal") ?? false)
+            {
+                context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Strategic_Priorities_1_DESC, () => PIP_Constants.NA);
+                context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Strategic_Priorities_2_DESC, () => PIP_Constants.NA);
+            }
+
+        }
+    }
+
+
+
+    private async void HandleDropdownChange(string selectedItem)
+    {
+        _fiscalYear = Context.FiscalYears.Where(f => f.FiscalYear == selectedItem).First();
+        _projects = new();
+        LoadProjects();
+        StateHasChanged();
+
+    }
+
+    private void ApplyLocks(IModelFormContext context)
+    { 
+        ClearContextlocks(context);
+        RegisterLocks(context);
+    }
+
+    private async Task OnConfigure(IModelFormContext context)
+    {
+        if (_reloadOptions)
+        {
+            context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Core_Responsbility_DESC, () => PIP_Constants.CORE_RESPONSIBILITIES);
+            context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Mandate_Letter_Commitment_1_DESC, () => PIP_Constants.COMMITMENTS);
+            context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Mandate_Letter_Commitment_3_DESC, () => PIP_Constants.COMMITMENTS);
+            context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Mandate_Letter_Commitment_4_DESC, () => PIP_Constants.COMMITMENTS);
+            context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Transfer_Payment_Programs_1_DESC, () => PIP_Constants.TRANSFER_PROGRAMS);
+            context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Transfer_Payment_Programs_2_DESC, () => PIP_Constants.TRANSFER_PROGRAMS);
+            context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Transfer_Payment_Programs_3_DESC, () => PIP_Constants.TRANSFER_PROGRAMS);
+            context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Transfer_Payment_Programs_4_DESC, () => PIP_Constants.TRANSFER_PROGRAMS);
+            context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Transfer_Payment_Programs_5_DESC, () => PIP_Constants.TRANSFER_PROGRAMS);
+            context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Transfer_Payment_Programs_6_DESC, () => PIP_Constants.TRANSFER_PROGRAMS);
+            context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Transfer_Payment_Programs_7_DESC, () => PIP_Constants.TRANSFER_PROGRAMS);
+            context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Mandate_Letter_Commitment_2_DESC, () => PIP_Constants.COMMITMENTS);
+            context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Transfer_Payment_Programs_Less5_1_DESC, () => PIP_Constants.TRANSFER_PROGRAMS_LESS5);
+            context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Transfer_Payment_Programs_Less5_2_DESC, () => PIP_Constants.TRANSFER_PROGRAMS_LESS5);
+            context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Transfer_Payment_Programs_Less5_3_DESC, () => PIP_Constants.TRANSFER_PROGRAMS_LESS5);
+            context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Horizontal_Initiative_1_DESC, () => PIP_Constants.HORIZONTAL_INITIATIVES);
+            context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Horizontal_Initiative_2_DESC, () => PIP_Constants.HORIZONTAL_INITIATIVES);
+            context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Horizontal_Initiative_3_DESC, () => PIP_Constants.HORIZONTAL_INITIATIVES);
+            context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Method_Of_Intervention_1_DESC, () => PIP_Constants.INTERVENTION);
+            context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Method_Of_Intervention_2_DESC, () => PIP_Constants.INTERVENTION);
+            context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Target_Group_1_DESC, () => PIP_Constants.TARGET_GROUPS);
+            context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Target_Group_2_DESC, () => PIP_Constants.TARGET_GROUPS);
+            context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Target_Group_3_DESC, () => PIP_Constants.TARGET_GROUPS);
+            context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Target_Group_4_DESC, () => PIP_Constants.TARGET_GROUPS);
+            context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Target_Group_5_DESC, () => PIP_Constants.TARGET_GROUPS);
+            context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Government_Of_Canada_Activity_Tags_DESC, () => PIP_Constants.GOC_TAGS1);
+            context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Canadian_Classification_Of_Functions_Of_Government_DESC, () => PIP_Constants.GOC_CLASSIFICATION);
+            context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Strategic_Priorities_1_DESC, () => PIP_Constants.STRATEGIC);
+            context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Strategic_Priorities_2_DESC, () => PIP_Constants.STRATEGIC);
+            context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Is_Equity_Seeking_Group, () => PIP_Constants.EQUITY_SEEKING_GROUPS);
+            context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Is_Equity_Seeking_Group2, () => PIP_Constants.EQUITY_SEEKING_GROUPS);
+            context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Does_Indicator_Enable_Program_Measure_Equity_Option, () => PIP_Constants.YESNO);
+            context.RegisterFieldNotes<PIP_Tombstone>(p => p.Logic_Model, "Sector to include GCDocs link to their logic model");
+            context.RegisterFieldNotes<PIP_Tombstone>(p => p.Related_Program_Or_Activities, "Sectors to capture any programs or activities that are included in the PIP that we are unable to capture elsewhere in the PIP Webform.");
+            context.RegisterFieldNotes<PIP_Tombstone>(p => p.Program_Notes, "Sectors to use this field to capture any notes that are relevant to the Program");
+            context.RegisterCategoryNotes("Spending (in $) as per GC InfoBase (to be updated by CMSS)", "The planned and actual spending for the Program is based on the financial information submitted to TBS by CMSS as a part of the annual DP and DRR process is pre-populated here. TBS publishes this information on GCInfoBase.");
+            context.RegisterCategoryNotes("Program Tags to be Updated by Sector", "This section is intended to identify connections between Programs and  elements in other structures. They must be assigned in a manner that reflects the primary purpose of the Program, rather than attempting to select all possible tags that might be approporiate. Please select the relevant Tags from the drop downs below.");
+            context.RegisterCategoryNotes("Program Tags as per TBS Database and GCInfoBase", "These tags must be updated through the annual DRF amendment process. For more details on each Tag, please refer to NRCan's Performance Information Profile Guidelines and Procedures document.");
+            context.RegisterCategoryNotes("Latest Update Information", "This section will be updated automatically when you save your information and will show the name of the last user and date they update the form.");
+
+            RegisterLocks(context);
+            _reloadOptions = false;
+        }
+        else
+        {
+            UpdateLocks(context);
+        }
+    }
+
+    protected void ClearContextlocks(IModelFormContext context)
+    {        
+        context.RegisterCategoryLock("Program Information", false);
+        context.RegisterCategoryLock("Spending (in $) as per GC InfoBase (to be updated by CMSS)", false);
+        context.RegisterCategoryLock("Program Tags to be Updated by Sector", false);
+        context.RegisterCategoryLock("Program Tags as per TBS Database and GCInfoBase", false);        
+        context.RegisterCategoryLock("GBA+", false);        
+        context.RegisterCategoryLock("Date of PIP Approval", false);        
+        context.RegisterCategoryLock("Latest Update Information", false);        
+    }
+
+    protected void UpdateLocks(IModelFormContext context)
+    {
+        var lockedCategories = context.LockedCategories;
+        _tombstone.IsProgramInformationLocked = false;
+        _tombstone.IsSpendingLocked = false;
+        _tombstone.IsSectorProgramTagsLocked = false;
+        _tombstone.IsGCInfoBaseProgramTagsLocked = false;
+        _tombstone.IsGBALocked = false;
+        _tombstone.IsDateOfPipApprovalLocked = false;
+        _tombstone.IsLatestUpdateInformationLocked = false;
+
+        foreach (var category in lockedCategories)
+        {
+            if (category == "Program Information")
+                _tombstone.IsProgramInformationLocked = true;
+            if (category == "Spending (in $) as per GC InfoBase (to be updated by CMSS)")
+                _tombstone.IsSpendingLocked = true;
+            if (category == "Program Tags to be Updated by Sector")
+                _tombstone.IsSectorProgramTagsLocked = true;
+            if (category == "Program Tags as per TBS Database and GCInfoBase")
+                _tombstone.IsGCInfoBaseProgramTagsLocked = true;
+            if (category == "GBA+")
+                _tombstone.IsGBALocked = true;
+            if (category == "Date of PIP Approval")
+                _tombstone.IsDateOfPipApprovalLocked = true;
+            if (category == "Latest Update Information")
+                _tombstone.IsLatestUpdateInformationLocked = true;
+        }        
+    }
+
+    protected void RegisterLocks(IModelFormContext context)
+    {
+        if (_tombstone.IsProgramInformationLocked)
+            context.RegisterCategoryLock("Program Information", true);
+        if (_tombstone.IsSpendingLocked)
+            context.RegisterCategoryLock("Spending (in $) as per GC InfoBase (to be updated by CMSS)", true);
+        if (_tombstone.IsSectorProgramTagsLocked)
+            context.RegisterCategoryLock("Program Tags to be Updated by Sector", true);
+        if (_tombstone.IsGCInfoBaseProgramTagsLocked)
+            context.RegisterCategoryLock("Program Tags as per TBS Database and GCInfoBase", true);        
+        if (_tombstone.IsGBALocked)
+            context.RegisterCategoryLock("GBA+", true);        
+        if (_tombstone.IsDateOfPipApprovalLocked)
+            context.RegisterCategoryLock("Date of PIP Approval", true);        
+        if (_tombstone.IsLatestUpdateInformationLocked)
+            context.RegisterCategoryLock("Latest Update Information", true);        
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if(firstRender){
+            StateHasChanged();
+        }
+    }
+
+    private async Task SaveAndLock()
+    {
+        _tombstone.IsProgramInformationLocked = true;
+        _tombstone.IsSpendingLocked = true;
+        _tombstone.IsSectorProgramTagsLocked = true;
+        _tombstone.IsGCInfoBaseProgramTagsLocked = true;
+        _tombstone.IsGBALocked = true;
+        _tombstone.IsDateOfPipApprovalLocked = true;
+        _tombstone.IsLatestUpdateInformationLocked = true;
+
+        await HandleValidSubmit();
+
+        StateHasChanged();
+    }
+    private async Task<PIP_Tombstone> ClearForm()
+    {
+        CleanEditingUser();
+        ResetContextChanges();
+        _tombstone = null;
+        StateHasChanged();
+        return null;
+    }
+
+    public string GetDataLabel(string propName)
+    {
+        return DataLocalizer[propName];
+    }
+
+    public static string ShortenString(string input, int maxLength)
+    {
+
+        if (input is null || input.Length <= maxLength)
+            return input;
+        var words = input.Split(" ", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        var final = new List<string>();
+        int wPos = 0;
+        while (final.Sum(l => l.Length + 1) <= maxLength)
+        {
+            final.Add(words[wPos++]);
+        }
+        return string.Join(" ", final) + "...";
+    }
+
+  // Accessor functions to retrieve cell value
+    private List<Func<PIP_Tombstone, string>> accessorFunctions = new List<Func<PIP_Tombstone, string>>
+{
+        new Func<PIP_Tombstone, string>(p => { return p.Program_Title; }),
+        new Func<PIP_Tombstone, string>(p => { return p.Lead_Sector; }),
+        null,
+    };
+
+    private List<Func<PIP_Tombstone, RenderFragment>> GetRenderers()
+    {
+        var powerBiTargets = Configuration["PowerBiTargets:SPI"];
+        foreach(var project in _projects)
+        {
+            if (!string.IsNullOrEmpty(powerBiTargets))
+            {
+                var powerBiUrl = $"{powerBiTargets}rp:p_program_title={project.Program_Title.Replace(" ", "+")}&rp:p_fiscal_year_id={project.FiscalYearId}";
+                project.PowerBiUrl = @<a href="@powerBiUrl" target="blank">Open PowerBI Report</a>;
+            }
+        }
+
+        return new List<Func<PIP_Tombstone, RenderFragment>>() {
+            null,
+            null,
+            new Func< PIP_Tombstone, RenderFragment>(pt => { return pt.PowerBiUrl; }),    
+        };
+    }
+
+
+    private async Task SetFormEdit(PIP_Tombstone project)
+    {
+        _isSetFormEdit = true;
+        if (!_enableSave)
+        {
+            ResetContextChanges();
+        }
+
+        if (Context.ChangeTracker.HasChanges())
+        {
+            var messages = new List<string>() { "Data has been edited, would you like to save?" };
+            await UI.ToggleModal(
+    @<UserChoiceModal HeaderText="Save Data" ChoiceTextList=@messages OnDecision="(a) => OnConfirmSave(a, project)" ConfirmText="Yes" CancelText="No" />
+    );
+        }
+        else
+        {
+            if (_tombstone != null)                
+                CleanEditingUser();         
+                
+            _tombstone = Context.Tombstones.Where(i => i.Tombstone_ID == project.Tombstone_ID).First();
+            await PrepareItemForEdit(_tombstone);
+            SubmitLabel = "Save";
+            StateHasChanged();
+        }
+    }
+
+
+
+
+    private async Task PrepareItemForEdit(PIP_Tombstone project)
+    {        
+        //if (project.Tombstone_ID != _tombstone.Tombstone_ID)
+        var recordId = project.Tombstone_ID;
+        _tombstone = Context.Tombstones.Where(i => i.Tombstone_ID == recordId).First();
+
+        _enableSave = true;
+        if (IsRecordLocked(_tombstone))
+        {
+            var textList = new List<string>()
+            {
+                "This Program is currently being edited by another user, you will not be able to save any changes"
+            };
+            _enableSave = false;
+            await UI.ToggleModal(@<WarningModal OnDecision="HandleWarningDecision" WarningTextString=@textList />);
+        }
+        else
+        {
+            _tombstone.EditingUserId = CurrentUser.Id;
+            await Context.TrackSaveChangesAsync(AuditingService);
+        }
+        _tombstone = Context.Tombstones.Where(i => i.Tombstone_ID == recordId).First();
+        _tombstone.Last_Updated_UserName = await MSGraphService.GetUserName(_tombstone.Last_Updated_UserId, CancellationToken.None);
+        if (_myModelForm != null)
+        {
+            var ctx = _myModelForm.ModelFormContext;
+            ApplyLocks(ctx);
+        }
+    }
+
+    private async void HandleWarningDecision(bool IsContinue)
+    {
+        await UI.ToggleModal();
+        StateHasChanged();
+    }
+
+    private bool IsRecordLocked(PIP_Tombstone project)
+    {
+        return project == null ? false : (!string.IsNullOrEmpty(project.EditingUserId));
+    }
+
+    private void LoadProjects()
+    {            
+        _projects = Context.Tombstones.Where(l => l.FiscalYear.FiscalYear == _fiscalYear.FiscalYear).ToList();
+    }
+
+ 
+
+    private Task CreateNewProject()
+    {
+        _tombstone = new PIP_Tombstone() { Last_Updated_DT = DateTime.Now, Date_Updated_DT = DateTime.Now };
+        StateHasChanged();
+        return Task.FromResult(0);
+    }
+
+    private string getColor(PIP_Tombstone current)
+    {
+        if (current == _tombstone)
+        {
+            return "yellow";
+        }
+        return "";
+    }
+
+
+
+
+
+
+    private async Task GoToIndicators()
+    {
+        var id = _tombstone.Tombstone_ID;
+        navigationUrl = $"/pip/indicators/{id}/{_fiscalYear.FiscalYear}";
+        if (_tombstone == null || !Context.ChangeTracker.HasChanges())
+            NavigationManager.NavigateTo(navigationUrl);
+        else
+            await HandleValidSubmit();           
+    }
+
+   
+
+    private async Task GoToRisks()
+    {
+        var id = _tombstone.Tombstone_ID;
+        navigationUrl = $"/pip/risks/{_tombstone.Tombstone_ID}";
+        if (_tombstone == null || !Context.ChangeTracker.HasChanges())
+            NavigationManager.NavigateTo(navigationUrl);
+        else
+            await HandleValidSubmit();          
+    }
+
+    private void ResetContextChanges()
+    {
+        foreach(var entry in Context.ChangeTracker.Entries())
+        {
+            entry.CurrentValues.SetValues(entry.OriginalValues);
+            entry.State = EntityState.Unchanged;    
+        }                        
+    }
+
+    private async void OnConfirmSave(bool isConfirmed, dynamic item)
+    {
+        await UI.ToggleModal();
+        _submittingApproval = true;
+        if (isConfirmed && _tombstone != null)
+        {
+            _tombstone.Last_Updated_DT = DateTime.Now;
+            _tombstone.Date_Updated_DT = DateTime.Now;
+            _tombstone.Last_Updated_UserId = CurrentUser.Id;            
+            _tombstone.EditingUserId = string.Empty;
+
+            if (_tombstone.Tombstone_ID == 0)
+            {
+                _tombstone = Context.Tombstones.Add(_tombstone).Entity;
+            }
+            var result = await Context.TrackSaveChangesAsync(AuditingService);
+            if (result < 1)
+            {
+                await _submitApprovalInd.SignalFailure();
+            }
+            else
+            {
+                await _submitApprovalInd.SignalSuccess();
+            }
+
+        }
+        else if (!isConfirmed && _tombstone != null)
+        {
+            ResetContextChanges();
+        }
+
+        LoadProjects();
+        if (item != null)
+        {            
+            await PrepareItemForEdit(item);
+        }
+        else
+        {
+            await PrepareItemForEdit(_tombstone);
+        }
+
+        
+        
+
+        if (!string.IsNullOrEmpty(navigationUrl))        
+            NavigationManager.NavigateTo(navigationUrl);
+
+        StateHasChanged();
+    }
+
+
+    private async Task HandleValidSubmit()
+    {
+        var messages = new List<string>() { "Would you like to save PIP data?" };
+        await UI.ToggleModal(
+    @<UserChoiceModal HeaderText="Save Data" ChoiceTextList=@messages OnDecision="(a) => OnConfirmSave(a, null)" ConfirmText="Yes" CancelText="No" />
+    );
+    }
+
+    public void CleanEditingUser()
+    {
+        if (_tombstone != null && _enableSave && !string.IsNullOrEmpty(_tombstone.EditingUserId) && _tombstone.EditingUserId == CurrentUser.Id)
+        {
+            try
+            {
+                _tombstone.EditingUserId = null;
+                Context.SaveChanges();
+            }
+            catch (Exception e)
+            {                
+                Logger.LogDebug(e, $"Cannot clean current user in Program Inventory");
+            }
+        } 
+    }
+
+    public void Dispose()     
+    {        
+        try
+        {
+            CleanEditingUser();
+        }
+        catch (Exception e)
+        {
+            Logger.LogDebug(e, $"Cannot clean current user in Program Inventory in Dispose");
+        }
+        finally
+        {
+            Context.Dispose();            
+        }
+    }
+}
