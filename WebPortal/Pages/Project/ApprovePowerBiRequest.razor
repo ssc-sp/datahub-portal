@@ -18,7 +18,7 @@
 
 <div style="padding-left: 2rem;padding-right: 2rem">
 
-    <h3>PowerBI Request Confirmation</h3>
+    <h3>@Localizer[$"{LOCALIZATION_PREFIX}.Title"]</h3>
 
     <AeFlex Vertical>
         <AeCard class="facard1 doublewide">
@@ -31,21 +31,21 @@
             {
                 if (!PowerBiRequestExists)
                 {
-                    <AeTypography Variant="p">This project has no open PowerBI request at this time.</AeTypography>
+                    <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.NoPowerBiRequest"]</AeTypography>
                 }
                 else if (PowerBiServiceSuccessfullyApproved)
                 {
-                    <AeTypography Variant="p">The PowerBI service has been enabled and the following workspaces have been created:</AeTypography>
+                    <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.WorkspacesCreated"]</AeTypography>
                     @foreach(var which in new List<(string Title, string WorkspaceName, List<PowerBiAdminGroupUser> NotAssignedUsers)>()
                     {
-                        (Localizer["Production"], ProdWorkspaceToCreate, ProdUsersNotAssigned),
-                        (Localizer["Sandbox"], SandboxWorkspaceToCreate, SandboxUsersNotAssigned)
+                        (Localizer[$"{LOCALIZATION_PREFIX}.ProductionLabel"], ProdWorkspaceToCreate, ProdUsersNotAssigned),
+                        (Localizer[$"{LOCALIZATION_PREFIX}.SandboxLabel"], SandboxWorkspaceToCreate, SandboxUsersNotAssigned)
                     })
                     {
                         <AeTypography Variant="h5">@which.Title: @which.WorkspaceName</AeTypography>
                         @if (which.NotAssignedUsers.Count > 0)
                         {
-                            <AeTypography Variant="p">These users were not assigned:</AeTypography>
+                            <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.UsersNotAssigned"]</AeTypography>
                             <ul>
                                 @foreach(var u in which.NotAssignedUsers)
                                 {
@@ -57,47 +57,65 @@
                 }
                 else if (PowerBiRequestAlreadyCompleted)
                 {
-                    <AeTypography Variant="p">This project already has PowerBI enabled. No further action is needed.</AeTypography>
+                    <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.PowerBiAlreadyEnabled"]</AeTypography>
                 }
                 else
                 {
                     
                     <div>
                         <AeTypography Variant="h5">Workspace Name</AeTypography>
+
                         <ul style="list-style: none">
-                            <li><label>Branch: <input type="text" @bind-value=@WorkspaceName.Branch disabled=@NotEditingWorkspace /></label></li>
-                            <li><label>Project Acronym: @WorkspaceName.ProjectAcronym</label></li>
-                            <li><label>Name: <input type="text" @bind-value=@WorkspaceName.Name disabled=@NotEditingWorkspace /></label></li>
+                            <li>
+                                <label class="ae input-wrapper">
+                                    <span>@Localizer[$"{LOCALIZATION_PREFIX}.BranchLabel"]: &nbsp;</span>
+                                    <input type="text" @bind-value=@WorkspaceName.Branch disabled=@NotEditingWorkspace class="ae input" />
+                                </label>
+                            </li>
+                            <li>
+                                
+                                <label class="ae input-wrapper">
+                                    @Localizer[$"{LOCALIZATION_PREFIX}.ProjectAcronymLabel"]: &nbsp;
+                                    @*<input type="text" @bind-value=@WorkspaceName.ProjectAcronym disabled class="ae input" />*@
+                                    @WorkspaceName.ProjectAcronym
+                                </label>
+                            </li>
+                            <li>
+                                <label class="ae input-wrapper">
+                                    <span>@Localizer[$"{LOCALIZATION_PREFIX}.NameLabel"]: &nbsp;</span>
+                                    <input type="text" @bind-value=@WorkspaceName.Name disabled=@NotEditingWorkspace class="ae input" />
+                                </label>
+                            </li>
                         </ul>
                         @if (IsEditingWorkspace)
                         {
-                            <AeButton OnClickEvent=@PrepareParameters>Save</AeButton>
-                            <AeButton OnClickEvent=@WorkspaceName.Revert>Revert</AeButton>
+                            <AeButton OnClickEvent=@PrepareParameters>@Localizer["BUTTONS.Save"]</AeButton>
+                            <AeButton OnClickEvent=@WorkspaceName.Revert>@Localizer["BUTTONS.Revert"]</AeButton>
                         }
                         else
                         {
-                            <AeButton OnClickEvent=@(() => IsEditingWorkspace = true)>Edit</AeButton>
+                            <AeButton OnClickEvent=@(() => IsEditingWorkspace = true)>@Localizer["BUTTONS.Edit"]</AeButton>
                         }
                     </div>
                     
                     if (HasProblem)
                     {
-                        <AeTypography Variant="p">One or more of the following workspaces is missing a field or conflicts with an existing PowerBI workspace:</AeTypography>
+                        <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.WorkspaceNameConflict"]</AeTypography>
                         <ul>
-                            <li>Production: @ProdWorkspaceToCreate</li>
-                            <li>Sandbox: @SandboxWorkspaceToCreate</li>
+                            <li>@Localizer[$"{LOCALIZATION_PREFIX}.ProductionLabel"]: @ProdWorkspaceToCreate</li>
+                            <li>@Localizer[$"{LOCALIZATION_PREFIX}.SandboxLabel"]: @SandboxWorkspaceToCreate</li>
                         </ul>
-                        <AeTypography Variant="p">Please update the parameters or use the PowerBI management interface in the Admin section to address any conflicts.</AeTypography>
+                        <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.WorkspaceNameConflictInstruction"]</AeTypography>
                     }
                     else
                     {
-                        <AeTypography Variant="p">The following workspaces will be created and/or registered, and PowerBI features will be enabled for this project:</AeTypography>
+                        <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.WorkspacesToBeCreated"]</AeTypography>
                         <ul>
-                            <li>Production: @ProdWorkspaceToCreate</li>
-                            <li>Sandbox: @SandboxWorkspaceToCreate</li>
+                            <li>@Localizer[$"{LOCALIZATION_PREFIX}.ProductionLabel"]: @ProdWorkspaceToCreate</li>
+                            <li>@Localizer[$"{LOCALIZATION_PREFIX}.SandboxLabel"]: @SandboxWorkspaceToCreate</li>
                         </ul>
 
-                        <AeTypography Variant="p">These project users will be added to the workspaces:</AeTypography>
+                        <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.UsersToBeAdded"]</AeTypography>
                         <ul>
                             @foreach(var user in UsersToAssign)
                             {
@@ -106,7 +124,7 @@
                         </ul>
 
                         <div>
-                            <AeButton OnClickEvent=@ApproveRequest Disabled=@DisableApproveButton>Approve</AeButton>
+                            <AeButton OnClickEvent=@ApproveRequest Disabled=@DisableApproveButton>@Localizer[$"{LOCALIZATION_PREFIX}.ApproveButton"]</AeButton>
                             <SuccessIndicator @bind-IsLoading=@IsWorking @ref=@_workingInd />
                         </div>
 
@@ -114,11 +132,11 @@
                         {
                             if (PowerBiWriteAccessForbidden)
                             {
-                                <AeTypography Variant="p">Your account doesn't have permissions to create PowerBI workspaces.</AeTypography>
+                                <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.NoPowerBiPermission"]</AeTypography>
                             }
                             else
                             {
-                                <AeTypography Variant="p">An error occurred while trying to approve the PowerBI request.</AeTypography>
+                                <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.ErrorApproving"]</AeTypography>
                             }
                         }
                     }
@@ -128,13 +146,14 @@
         </AeCard>
         
         <div>
-            <DHLink DataProject=@ProjectAcronym>Return to project</DHLink>
+            <DHLink DataProject=@ProjectAcronym>@Localizer[$"{LOCALIZATION_PREFIX}.ReturnToProject"]</DHLink>
         </div>
     </AeFlex>
 </div>
 
 
 @code {
+    private readonly static string LOCALIZATION_PREFIX = $"{PowerBiManagementConstants.POWERBI_MANAGEMENT_LOCALIZATION_ROOT_KEY}.REQUEST_APPROVAL_PAGE";
 
     [Parameter]
     public string ProjectAcronym { get; set; }
@@ -173,7 +192,7 @@
     private bool DisableApproveButton => IsWorking;
 
     private string BuildPowerBIWorkspaceUrl(Guid workspaceId) => $"https://app.powerbi.com/groups/{workspaceId.ToString()}/list";
-    private string UserLabel(PowerBiAdminGroupUser u) => u.UserEmail + (u.IsAdmin ? " " + @Localizer["(Admin)"] : string.Empty);
+    private string UserLabel(PowerBiAdminGroupUser u) => u.UserEmail + (u.IsAdmin ? " " + Localizer[$"{LOCALIZATION_PREFIX}.AdminUserTag"] : string.Empty);
 
     private async Task PrepareParameters()
     {
