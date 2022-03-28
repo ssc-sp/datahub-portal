@@ -5,7 +5,7 @@
     "DefaultStatusText": "Drop or click here to add file",
     "Description-Label": "Description",
     "Description-Placeholder": "Describe your data",
-    "Disclaimer-1": "Use of this functionality is subject to the NRCAN Datahub ",
+    "Disclaimer-1": "Use of this functionality is subject to the NRCAN DataHub ",
     "Disclaimer-2": " and ",
     "Disclaimer-3": ".",
     "File-Label": "File",
@@ -526,7 +526,7 @@
         "Title": "Open Government Approval Form"
       },
       "SubmitSignedPDF": {
-        "Description": "Upload the signed form to GCdocs and paste the link in Datahub.",
+        "Description": "Upload the signed form to GCdocs and paste the link in DataHub.",
         "Title": "Submit Signed Form"
       },
       "PendingApproval": {
@@ -1072,7 +1072,7 @@
     }
   },
 
-  "NRCan Datahub": "NRCan Datahub",
+  "NRCan Datahub": "NRCan DataHub",
   "Search...": "Search...",
   "Good Morning": "Good Morning",
   "My Projects": "My Projects",
@@ -1086,7 +1086,7 @@
   "Data Sharing": "Data Sharing",
   "PowerBI": "PowerBI",
   "DataHub Administration": "DataHub Administration",
-  "Datahub Tools": "Datahub Tools",
+  "Datahub Tools": "DataHub Tools",
   "Power BI Admin Page": "Power BI Admin Page",
   "DataHub Project Tracker": "DataHub Project Tracker",
   "Metadata": "Metadata",
