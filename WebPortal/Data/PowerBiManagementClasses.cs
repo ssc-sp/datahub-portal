@@ -6,6 +6,12 @@ using System.Linq;
 
 namespace Datahub.Portal.Data
 {
+    public class PowerBiManagementConstants
+    {
+        public static readonly string POWERBI_MANAGEMENT_LOCALIZATION_ROOT_KEY = "POWER_BI_MANAGEMENT";
+        public readonly static string SANDBOX_WORKSPACE_SUFFIX = "[Development]";
+    }
+
     public class PowerBiAdminDatasetTreeItem
     {
         public PowerBiAdminDatasetTreeItem(Dataset pbiDataset, PowerBi_DataSet dbDataset, Guid? workspaceId)
@@ -282,7 +288,7 @@ namespace Datahub.Portal.Data
             Name = _originalName;
         }
 
-        private readonly static string SANDBOX_WORKSPACE_SUFFIX = "[Development]";
+        
 
         private readonly string _originalBranch;
         private readonly string _originalName;
@@ -299,6 +305,6 @@ namespace Datahub.Portal.Data
             Branch = _originalBranch;
         }
         public string ProductionName => $"{Branch} - {ProjectAcronym} - {Name}";
-        public string SandboxName => $"{ProductionName} {SANDBOX_WORKSPACE_SUFFIX}";
+        public string SandboxName => $"{ProductionName} {PowerBiManagementConstants.SANDBOX_WORKSPACE_SUFFIX}";
     }
 }
