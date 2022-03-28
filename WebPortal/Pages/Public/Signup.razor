@@ -44,14 +44,23 @@
             </AeTypography>
             <AeTypography class="form-subtitle">Registration | Inscription</AeTypography>
 
-            <AeModelForm
-                Model="_basicIntakeForm"
-                SubmitLabel="@(Localizer["Register"])"
-                OnValidSubmit="HandleValidSubmit"
-                OnConfigure="HandleConfigure"
-                LabelForPropertyFunc="HandleLocalize"
-                LabelsOnTop
-                />
+            @if (_showThankYou)
+            {
+                <div class="thank-you">
+                    <AeTypography class="thank-you-title">@Localizer["Thank you for registering with DataHub."]</AeTypography>
+                    <AeTypography class="thank-you-subtitle">@Localizer["You will receive an email with your account details."]</AeTypography>
+                </div>
+            }
+            else
+            {
+                <AeModelForm
+                    Model="_basicIntakeForm"
+                    SubmitLabel="@(Localizer["Register"])"
+                    OnValidSubmit="HandleValidSubmit"
+                    OnConfigure="HandleConfigure"
+                    LabelForPropertyFunc="HandleLocalize"
+                    LabelsOnTop/>
+            }
         </div>
     </div>
 </div>
@@ -59,6 +68,7 @@
 @code {
 
     private BasicIntakeForm _basicIntakeForm;
+    private bool _showThankYou;
 
     protected override void OnInitialized()
     {
@@ -68,8 +78,36 @@
 
     private async Task HandleValidSubmit()
     {
-        _logger.LogInformation("Submitting new Registration request for {Email} from {Department} on {Project}]", 
-            _basicIntakeForm.Email, _basicIntakeForm.DepartmentName, _basicIntakeForm.ProjectName);
+        await using var db = await _dbFactory.CreateDbContextAsync();
+
+        var exists = await db.Registration_Requests
+            .FirstOrDefaultAsync(r => r.Email == _basicIntakeForm.Email);
+
+        if (exists != null)
+        {
+            _logger.LogInformation("Registration request for {Email} already exists", _basicIntakeForm.Email);
+            exists.UpdatedBy = "self-signup page (resubmitted)";
+            exists.ProjectName = _basicIntakeForm.ProjectName;
+            exists.DepartmentName = _basicIntakeForm.DepartmentName;
+            exists.UpdatedAt = DateTime.UtcNow;
+        }
+        else 
+        {
+            _logger.LogInformation("Submitting new Registration request for {Email} from {Department} on {Project}]",
+                _basicIntakeForm.Email, _basicIntakeForm.DepartmentName, _basicIntakeForm.ProjectName);
+            
+            var registrationRequest = new Datahub_Registration_Request()
+            {
+                Email = _basicIntakeForm.Email,
+                DepartmentName = _basicIntakeForm.DepartmentName,
+                ProjectName = _basicIntakeForm.ProjectName,
+                CreatedBy = "self-signup page",
+            };
+            await db.Registration_Requests.AddAsync(registrationRequest);
+        }
+        
+        await db.SaveChangesAsync();
+        _showThankYou = true;
     }
 
     private static Task HandleConfigure(IModelFormContext context)
@@ -77,9 +115,10 @@
         context.RegisterOptionValueProperty<BasicIntakeForm>(f => f.DepartmentName, () => BasicIntakeForm.DepartmentDictionary.Keys);
         return Task.CompletedTask;
     }
-    
+
     private string HandleLocalize(string propName)
     {
         return !string.IsNullOrEmpty(propName) ? Localizer[propName] : string.Empty;
     }
+
 }
