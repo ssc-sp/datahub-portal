@@ -2530,12 +2530,15 @@ body {
   cursor: pointer;
   user-select: none;
   padding-left: 0.75rem;
-  background-color: #718096;
+  padding-top: 0.2rem;
+  padding-bottom: 0.2rem;
+  background-color: #4a5568;
   color: #fff;
   word-wrap: break-word;
+  font-weight: bold;
 }
 .ae.table:not(.custom) .ae.table-header .ae.table-cell:hover {
-  background-color: #4a5568;
+  background-color: #2d3748;
 }
 .ae.table:not(.custom) .ae.table-header.simple {
   display: inline-grid;
@@ -5430,6 +5433,20 @@ code {
   background-color: var(--bg-color-accent);
   color: var(--primary-text);
 }
+.file-explorer-layout-wrapper .file-explorer-layout .heading .actions .button-tool {
+  gap: 0.5rem;
+  border-radius: 500px;
+  font-size: 1rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: transparent;
+  color: var(--tertiary-text);
+}
+.file-explorer-layout-wrapper .file-explorer-layout .heading .actions .button-tool:hover {
+  background-color: var(--bg-color-accent);
+  color: var(--primary-text);
+}
 .file-explorer-layout-wrapper .file-explorer-layout .file-list {
   grid-area: file-list;
 }
@@ -5596,13 +5613,11 @@ code {
 .signup-container .form-container {
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  padding: 2rem;
+  padding: 15vh 2rem 2rem;
   background-color: #fdfbfb;
 }
 .signup-container .form-container .form-section {
   max-width: 600px;
-  margin: 0 auto;
 }
 .signup-container .form-container .form-section .form-title {
   font-size: 2rem;
@@ -5619,6 +5634,16 @@ code {
   font-size: 1.5rem;
   font-weight: bold;
   margin-bottom: 1rem;
+}
+.signup-container .form-container .form-section .thank-you {
+  padding: 2rem 0;
+  text-align: center;
+}
+.signup-container .form-container .form-section .thank-you .thank-you-title {
+  margin-bottom: 1rem;
+}
+.signup-container .form-container .form-section .thank-you .thank-you-subtitle {
+  font-style: italic;
 }
 
 .item-details-container {
