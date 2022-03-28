@@ -4,16 +4,18 @@ using Datahub.Core.EFCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
+namespace Datahub.Core.Migrations.Core
 {
     [DbContext(typeof(DatahubProjectDBContext))]
-    partial class DatahubProjectDBContextModelSnapshot : ModelSnapshot
+    [Migration("20220321123543_AddRegistrationRequest")]
+    partial class AddRegistrationRequest
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -374,13 +376,7 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("Client_Name_TXT")
-                        .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("nvarchar(32)");
-
                     b.Property<string>("Email_Contact_TXT")
-                        .IsRequired()
                         .HasMaxLength(128)
                         .HasColumnType("nvarchar(128)");
 
@@ -492,10 +488,6 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
-                    b.Property<string>("DepartmentName")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
                     b.Property<string>("Email")
                         .HasMaxLength(254)
                         .HasColumnType("nvarchar(254)");
@@ -504,13 +496,9 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                         .HasMaxLength(36)
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("ProjectAcronym")
+                    b.Property<string>("RequestedProjectAcronym")
                         .HasMaxLength(36)
                         .HasColumnType("nvarchar(36)");
-
-                    b.Property<string>("ProjectName")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
 
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
@@ -878,9 +866,6 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.Property<DateTime?>("SubmittedDate_DT")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime?>("UnpublishDate_DT")
-                        .HasColumnType("datetime2");
-
                     b.HasKey("SharedDataFile_ID");
 
                     b.HasIndex("File_ID")
@@ -1120,9 +1105,6 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                 {
                     b.HasBaseType("Datahub.Core.EFCore.SharedDataFile");
 
-                    b.Property<bool>("ApprovalFormEdited_FLAG")
-                        .HasColumnType("bit");
-
                     b.Property<bool>("ApprovalFormRead_FLAG")
                         .HasColumnType("bit");
 
@@ -1131,9 +1113,6 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
 
                     b.Property<int?>("FileStorage_CD")
                         .HasColumnType("int");
-
-                    b.Property<string>("FileUrl_TXT")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("SignedApprovalForm_URL")
                         .HasColumnType("nvarchar(max)");
