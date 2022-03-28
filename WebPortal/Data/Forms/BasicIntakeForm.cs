@@ -17,7 +17,7 @@ public class BasicIntakeForm
     public string DepartmentName { get; set; }
 
     [Required]
-    [StringLength(36, ErrorMessage = "Project Name too long (36 character limit).")]
+    [StringLength(200, ErrorMessage = "Project Name too long (200 character limit).")]
     [AeLabel("Project Name", "Please enter the name of your project")]
     public string ProjectName { get; set; }
 

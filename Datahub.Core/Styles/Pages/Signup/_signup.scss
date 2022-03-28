@@ -100,15 +100,13 @@
 
     display: flex;
     flex-direction: column;
-    justify-content: center;
     
-    padding: 2rem;
+    padding: 15vh 2rem 2rem;
     background-color: #fdfbfb;
 
     .form-section {
 
       max-width: 600px;
-      margin: 0 auto;
 
       .form-title {
         font-size: 2rem;
@@ -122,13 +120,24 @@
           display: inline-block;
           transform: translateY(5px);
         }
-        
       }
 
       .form-subtitle {
         font-size: 1.5rem;
         font-weight: bold;
         margin-bottom: 1rem;
+      }
+
+      .thank-you {
+        padding: 2rem 0;
+        text-align: center;
+        
+        .thank-you-title {
+          margin-bottom: 1rem;
+        }
+        .thank-you-subtitle {
+          font-style: italic;
+        }
       }
     }
   }
