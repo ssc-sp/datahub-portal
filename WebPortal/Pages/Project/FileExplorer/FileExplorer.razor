@@ -14,7 +14,9 @@
             OnNewFolder="HandleNewFolder"
             CurrentFolder="@_currentFolder"
             SelectedItem="@_selectedItem"
-            VirtualDirectory="_virtualDirectory"/>
+            Files="@_files"
+            Folders="@_folders"
+            />
     </CascadingValue>
 
     <div class="file-list">
@@ -33,23 +35,20 @@
         {
             <UploadSnackbar UploadingFiles="_uploadingFiles">
                 <DropZone OnFilesDrop="UploadFiles">
-                    @foreach (var (folderName, _) in _virtualDirectory
-                        .Where(f => f.Key != "/"
-                                    && (GetDirectoryName(f.Key)?.Equals(_currentFolder) ?? false)))
+                    @foreach (var folderName in _folders)
                     {
                         <FileItem
                             Name="@GetFileName(folderName)"
                             Highlighted="_selectedItem == folderName"
                             Folder
                             @onclick="() => _selectedItem = folderName"
-                            @ondblclick="() => SetCurrentFolder(folderName)">
+                            @ondblclick="async () => await SetCurrentFolder(folderName)">
                             <Icon>
                                 <i class="fas fa-folder"></i>
                             </Icon>
                         </FileItem>
                     }
-                    @foreach (var file in _virtualDirectory[_currentFolder]
-                        .OrderBy(f => f.name))
+                    @foreach (var file in _files)
                     {
                         <FileItem
                             Name="@GetFileName(file.name)"
@@ -69,15 +68,13 @@
     <div class="item-details">
         <div class="details-sticky">
             <div class="details-container">
-                @if (_loading || _virtualDirectory.ContainsKey(_selectedItem))
+                @if (_loading || _folders.Contains(_selectedItem) || _currentFolder == _selectedItem)
                 {
                     <StorageProperties DisplayName="@GetFileName(_selectedItem)"/>
                 }
                 else
                 {
-                    var file = _virtualDirectory[_currentFolder]
-                        .FirstOrDefault(f => f.name.Equals(_selectedItem, StringComparison.OrdinalIgnoreCase));
-
+                    var file = _files.FirstOrDefault(f => f.name.Equals(_selectedItem, StringComparison.OrdinalIgnoreCase));
                     <FileProperties File=@file Readonly="!OwnsFile(file)"/>
                 }
             </div>
@@ -103,10 +100,8 @@
     private string _currentFolder = "/";
     private string _selectedItem = "/";
 
-    private Dictionary<string, List<FileMetaData>> _virtualDirectory = new()
-    {
-        {"/", new List<FileMetaData>()}
-    };
+    private List<string> _folders = new();
+    private List<FileMetaData> _files = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -119,48 +114,25 @@
 
         _uploadingFiles = new List<FileMetaData>();
 
-        var (results, continuationToken) = await _dataRetrievalService.GetStorageBlobPagesAsync(ProjectAcronym, DataRetrievalService.DEFAULT_CONTAINER_NAME, _user, _continuationToken);
+        await FetchStorageBlobsPageAsync();
+    }
+
+    private async Task FetchStorageBlobsPageAsync()
+    {
+        _loading = true;
+        StateHasChanged();
         
-        // _virtualDirectory = (await _dataRetrievalService.GetStorageBlobFiles(ProjectAcronym, DataRetrievalService.DEFAULT_CONTAINER_NAME, _user))
-        _virtualDirectory = results
-            .GroupBy(f => $"/{GetDirectoryName(f.filename)}")
-            .ToDictionary(g => g.Key,
-                g => g.ToList());
+        var (folders, files, continuationToken) = 
+            await _dataRetrievalService.GetStorageBlobPagesAsync(ProjectAcronym, DataRetrievalService.DEFAULT_CONTAINER_NAME, _user, _currentFolder, _continuationToken);
 
-        if (!_virtualDirectory.ContainsKey("/"))
-        {
-            _virtualDirectory.Add("/", new List<FileMetaData>());
-        }
-
-        SetupEmptyFolders();
+        _continuationToken = continuationToken;
+        _files = files;
+        _folders = folders;
 
         _loading = false;
-        _continuationToken = continuationToken;
+        StateHasChanged();
     }
 
-    private void SetupEmptyFolders()
-    {
-        var emptyFolders = new HashSet<string>();
-        foreach (var path in _virtualDirectory.Keys)
-        {
-            var remainingPath = path;
-            while (remainingPath != "/")
-            {
-                remainingPath = remainingPath.TrimEnd('/');
-                remainingPath = remainingPath[..(remainingPath.LastIndexOf("/", StringComparison.Ordinal) + 1)];
-
-                if (!_virtualDirectory.ContainsKey(remainingPath))
-                {
-                    emptyFolders.Add(remainingPath);
-                }
-            }
-        }
-
-        foreach (var folder in emptyFolders)
-        {
-            _virtualDirectory.Add(folder, new List<FileMetaData>());
-        }
-    }
 
     private string GetDirectoryName(string path)
     {
@@ -180,28 +152,29 @@
         return lastIndex == -1 ? path : path[(lastIndex + 1)..];
     }
 
-    private void SetCurrentFolder(string folderName)
+    private async Task SetCurrentFolder(string folderName)
     {
         _currentFolder = folderName;
         _selectedItem = folderName;
+        await FetchStorageBlobsPageAsync();
     }
 
-    private void HandleFileDelete(string filename)
+    private async Task HandleFileDelete(string filename)
     {
-        _virtualDirectory[_currentFolder].RemoveAll(f => f.name.Equals(filename, StringComparison.OrdinalIgnoreCase));
-        SetCurrentFolder(_currentFolder);
+        _files.RemoveAll(f => f.name.Equals(filename, StringComparison.OrdinalIgnoreCase));
+        await SetCurrentFolder(_currentFolder);
     }
 
     private void HandleNewFolder(string newFolderName)
     {
-        if (_virtualDirectory.ContainsKey(newFolderName))
+        if (_folders.Contains(newFolderName))
             return;
 
         newFolderName = newFolderName
             .Replace("/", "")
             .Trim();
 
-        _virtualDirectory.Add($"{_currentFolder}{newFolderName}/", new List<FileMetaData>());
+        _folders.Add($"{_currentFolder}{newFolderName}/");
     }
 
     private async Task UploadFiles(InputFileChangeEventArgs e)
@@ -238,8 +211,8 @@
             });
 
             _uploadingFiles.Remove(fileMetadata);
-            _virtualDirectory[_currentFolder].RemoveAll(f => f.name == fileMetadata.name);
-            _virtualDirectory[_currentFolder].Add(fileMetadata);
+            _files.RemoveAll(f => f.name == fileMetadata.name);
+            _files.Add(fileMetadata);
 
             StateHasChanged();
         });
@@ -247,5 +220,5 @@
         StateHasChanged();
     }
 
-    private bool OwnsFile(FileMetaData file) => (file.ownedby ?? "").Equals(_userId, StringComparison.InvariantCulture);
+    private bool OwnsFile(FileMetaData file) => (file?.ownedby ?? "").Equals(_userId, StringComparison.InvariantCulture);
 }

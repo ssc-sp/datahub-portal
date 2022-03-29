@@ -490,6 +490,11 @@ namespace Datahub.Portal.Services.Storage
                 throw;
             }
         }
+        
+        private static async Task<string> VerifyFileIdMetadata(BlobHierarchyItem blobItem, BlobContainerClient containerClient)
+        {
+            return await VerifyFileIdMetadata(blobItem.Blob, containerClient);
+        }
 
         private static async Task<string> VerifyFileIdMetadata(BlobItem blobItem, BlobContainerClient containerClient)
         {
@@ -503,6 +508,11 @@ namespace Datahub.Portal.Services.Storage
             fileId = newId;
 
             return fileId;
+        }
+
+        private static FileMetaData FileMetadataFromBlobItem(BlobHierarchyItem blobItem, string fileId)
+        {
+            return FileMetadataFromBlobItem(blobItem.Blob, fileId);
         }
 
         private static FileMetaData FileMetadataFromBlobItem(BlobItem blobItem, string fileId)
@@ -550,36 +560,43 @@ namespace Datahub.Portal.Services.Storage
             };
         }
 
-        public async Task<(List<FileMetaData>, string)> GetStorageBlobPagesAsync(string projectAcronym, string containerName, User user, string continuationToken = default)
+        public async Task<(List<string>, List<FileMetaData>, string)> GetStorageBlobPagesAsync(string projectAcronym, string containerName, User user, string prefix, string continuationToken = default)
         {
             try
             {
-                var result = new List<FileMetaData>();
+                var folders = new List<string>();
+                var files = new List<FileMetaData>();
                 
                 var connectionString = await GetProjectConnectionString(projectAcronym.ToLower());
                 var blobServiceClient = new BlobServiceClient(connectionString);
                 var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
 
-                var blobPages = containerClient
-                    .GetBlobsAsync(BlobTraits.Metadata)
-                    .AsPages(continuationToken, 30);
+                var resultSegment = containerClient
+                    .GetBlobsByHierarchyAsync(prefix: prefix.TrimStart('/'), traits: BlobTraits.Metadata, delimiter: "/")
+                    .AsPages(continuationToken);
 
                 // Enumerate the blobs returned for each page.
-                await foreach (var blobPage in blobPages)
+                await foreach (var blobPage in resultSegment)
                 {
                     continuationToken = blobPage.ContinuationToken;
-                    foreach (var blobItem in blobPage.Values)
+                    foreach (var blobHierarchyItem in blobPage.Values)
                     {
-                        var fileId = await VerifyFileIdMetadata(blobItem, containerClient);
-                        var fileMetaData = FileMetadataFromBlobItem(blobItem, fileId);
+                        if (blobHierarchyItem.IsPrefix)
+                        {
+                            folders.Add(blobHierarchyItem.Prefix);
+                        }
+                        else
+                        {
+                            var fileId = await VerifyFileIdMetadata(blobHierarchyItem, containerClient);
+                            var fileMetaData = FileMetadataFromBlobItem(blobHierarchyItem, fileId);
+                            files.Add(fileMetaData);
+                        }
                         
-                        result.Add(fileMetaData);
                     }
-                    
-                    return (result, continuationToken);
+                    return (folders, files, continuationToken);
                 }
                 
-                return (result, continuationToken);
+                return (folders, files, continuationToken);
             }
             catch (Exception ex)
             {

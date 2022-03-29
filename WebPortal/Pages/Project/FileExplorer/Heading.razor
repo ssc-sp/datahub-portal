@@ -1,7 +1,6 @@
-@*Heading.razor*@
 @inject IDataRemovalService _dataRemovalService
 @inject DataRetrievalService _dataRetrievalService
-@inject NavigationManager NavigationManager
+@inject NavigationManager _navigationManager
 @inject IJSRuntime _jsRuntime
 
 <div class="heading">
@@ -61,9 +60,12 @@
 
     [Parameter]
     public string SelectedItem { get; set; }
-
+    
     [Parameter]
-    public Dictionary<string, List<FileMetaData>> VirtualDirectory { get; set; }
+    public List<string> Folders { get; set; }
+    
+    [Parameter]
+    public List<FileMetaData> Files { get; set; }
 
     [Parameter]
     public EventCallback<string> SetCurrentFolder { get; set; }
@@ -90,9 +92,16 @@
 
     protected override void OnParametersSet()
     {
-        _isExistingFile = !VirtualDirectory.ContainsKey(SelectedItem);
-        _selectedFile = VirtualDirectory[CurrentFolder]?.FirstOrDefault(f => f.name == SelectedItem);
-        _ownsSelectedFile = _selectedFile?.ownedby.Equals(GraphUser.Id, StringComparison.InvariantCulture) == true; 
+        _isExistingFile = !Folders.Contains(SelectedItem);
+        _selectedFile = Files?.FirstOrDefault(f => f.name == SelectedItem);
+        if (Environment.GetEnvironmentVariable("HostingProfile") == "ssc")
+        {
+            _ownsSelectedFile = _selectedFile != null;
+        }
+        else
+        {
+            _ownsSelectedFile = _selectedFile?.ownedby.Equals(GraphUser.Id, StringComparison.InvariantCulture) == true; 
+        }
     }
 
     private async Task BreadcrumbClicked(string breadcrumb)
@@ -131,12 +140,12 @@
             sb.Append(_selectedFile.folderpath);
         }
 
-        NavigationManager.NavigateTo(sb.ToString());     
+        _navigationManager.NavigateTo(sb.ToString());     
     }
 
     private async Task HandleDelete()
     {
-        if (_selectedFile is not null)
+        if (_selectedFile is not null && _ownsSelectedFile)
         {
             var success = await _dataRemovalService.DeleteStorageBlob(_selectedFile, ProjectAcronym, GraphUser);
             if (success)
