@@ -235,8 +235,6 @@ namespace Datahub.Portal.Services
             return keywords;
         }
 
-        const string KeywordSeparator = "|";
-
         public async Task UpdateCatalog(long objectMetadataId, MetadataObjectType dataType, string objectName, string location,
             int sector, int branch, string contact, string securityClass, string englishText, string frenchText)
         {
@@ -438,12 +436,6 @@ namespace Datahub.Portal.Services
         {
             using var ctx = await _contextFactory.CreateDbContextAsync();
             return await ctx.ObjectMetadataSet.FirstOrDefaultAsync(m => m.ObjectId_TXT == objectId);
-        }
-
-        public Task CatalogObject()
-        {
-            // ...
-            return Task.CompletedTask;
         }
     }
 }
