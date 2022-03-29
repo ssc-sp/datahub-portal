@@ -48,7 +48,7 @@ namespace Datahub.Portal.Services
             // retrieve and clone the field values
             var fieldValues = CloneFieldValues(objectMetadata?.FieldValues ?? new List<ObjectFieldValue>());
 
-            return new FieldValueContainer(objectMetadata.ObjectId_TXT, metadataDefinitions, fieldValues);
+            return new FieldValueContainer(objectMetadata?.ObjectMetadataId ?? 0, objectMetadata.ObjectId_TXT, metadataDefinitions, fieldValues);
         }
 
         public async Task<FieldValueContainer> GetObjectMetadataValues(string objectId)
@@ -66,7 +66,7 @@ namespace Datahub.Portal.Services
             // retrieve and clone the field values
             var fieldValues = CloneFieldValues(objectMetadata?.FieldValues ?? new List<ObjectFieldValue>());
 
-            return new FieldValueContainer(objectId, metadataDefinitions, fieldValues);
+            return new FieldValueContainer(objectMetadata?.ObjectMetadataId ?? 0, objectId, metadataDefinitions, fieldValues);
         }
 
         public async Task<ObjectMetadata> SaveMetadata(FieldValueContainer fieldValues, bool anonymous = false)
@@ -238,7 +238,7 @@ namespace Datahub.Portal.Services
         const string KeywordSeparator = "|";
 
         public async Task UpdateCatalog(long objectMetadataId, MetadataObjectType dataType, string objectName, string location,
-            int sector, int branch, string contact, string englishText, string frenchText)
+            int sector, int branch, string contact, string securityClass, string englishText, string frenchText)
         {
             using var ctx = _contextFactory.CreateDbContext();
 
@@ -262,6 +262,7 @@ namespace Datahub.Portal.Services
                     Sector_NUM = sector,
                     Branch_NUM = branch,
                     Contact_TXT = contact,
+                    SecurityClass_TXT = !string.IsNullOrEmpty(securityClass) ? securityClass : "Unclasified",
                     Search_English_TXT = englishText,
                     Search_French_TXT = frenchText
                 };
@@ -425,6 +426,12 @@ namespace Datahub.Portal.Services
             var approvalForm = await GetApprovalFormEntity(ctx, approvalFormId);
             ctx.ApprovalForms.Remove(approvalForm);
             await ctx.SaveChangesAsync();
+        }
+
+        public Task CatalogObject()
+        {
+            // ...
+            return Task.CompletedTask;
         }
     }
 }
