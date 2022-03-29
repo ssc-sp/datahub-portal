@@ -21,7 +21,7 @@ namespace Datahub.ProjectForms.Data.PIP
 
         [AeFormCategory("Indicator Status", 1)]
         [MaxLength(100)]
-        [AeLabel(row: "1", column: "1", isDropDown: true, validValues: new[] { "Input Required" })]
+        [AeLabel(row: "1", column: "1", isDropDown: true, validValues: new[] { "Input Required", "DRR Results Required" })]
         public string Indicator_Status { get; set; }
 
         [AeFormCategory("Indicator Details", 5)]
@@ -100,7 +100,7 @@ namespace Datahub.ProjectForms.Data.PIP
         public string Indicator__Progressive_Or_Aggregate_DESC { get; set; }
 
 
-        [AeLabel(row: "11", column: "1", placeholder: "How it relates to the output or outcome; why is it relevant?")]
+        [AeLabel(row: "11", column: "1")]
         [MaxLength(4000)]
         [AeFormCategory("Methodology", 10)]
         public string Indicator_Rationale_DESC { get; set; }
@@ -148,7 +148,7 @@ namespace Datahub.ProjectForms.Data.PIP
         [AeFormCategory("Methodology", 10)]
         public string Data_Type_DESC { get; set; }
 
-        [AeLabel(row: "18", column: "1", placeholder: "Additional definitions/information necessary to understand how the data will be collected for this indicator; Sectors may also insert a link to a methodology sheet in this column")]
+        [AeLabel(row: "18", column: "1")]
         [MaxLength(8000)]
         [AeFormCategory("Methodology", 10)]
         public string Methodology_How_Will_The_Indicator_Be_Measured { get; set; }
@@ -179,7 +179,7 @@ namespace Datahub.ProjectForms.Data.PIP
         public string Target_Met { get; set; }
 
 
-        [AeLabel(row: "21", column: "1", placeholder: "Please provide additional context for the results achieved. This is required for targets not been met, to be achieved in the future, or if the result is significantly higher than the target. There is a character limit of 1000 for this cell in order to meet GC InfoBase character limit.")]
+        [AeLabel(row: "21", column: "1")]
         [MaxLength(8000)]
         [AeFormCategory("Actual Results", 30)]
         public string Explanation { get; set; }
