@@ -428,6 +428,18 @@ namespace Datahub.Portal.Services
             await ctx.SaveChangesAsync();
         }
 
+        public async Task<ObjectMetadata> GetMetadata(long objectMetadataId)
+        {
+            using var ctx = await _contextFactory.CreateDbContextAsync();
+            return await ctx.ObjectMetadataSet.FirstOrDefaultAsync(m => m.ObjectMetadataId == objectMetadataId);
+        }
+
+        public async Task<ObjectMetadata> GetMetadata(string objectId)
+        {
+            using var ctx = await _contextFactory.CreateDbContextAsync();
+            return await ctx.ObjectMetadataSet.FirstOrDefaultAsync(m => m.ObjectId_TXT == objectId);
+        }
+
         public Task CatalogObject()
         {
             // ...

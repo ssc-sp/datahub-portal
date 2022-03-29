@@ -12,6 +12,8 @@ namespace Datahub.Portal.Services
         Task<FieldValueContainer> GetObjectMetadataValues(long objectMetadataId);
         Task<FieldValueContainer> GetObjectMetadataValues(string objectId);
         Task<Entities.ObjectMetadata> SaveMetadata(FieldValueContainer fieldValues, bool anonymous = false);
+        Task<Entities.ObjectMetadata> GetMetadata(long objectMetadataId);
+        Task<Entities.ObjectMetadata> GetMetadata(string objectId);
         Task<ApprovalForm> GetApprovalForm(int ApprovalFormId);
         Task DeleteApprovalForm(int approvalFormId);
         Task<int> SaveApprovalForm(ApprovalForm form);
