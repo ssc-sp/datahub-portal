@@ -1,4 +1,6 @@
 ﻿@page "/share/opendata/{FileId}"
+@using Datahub.Metadata.Model
+@using Datahub.Metadata.Utils
 @inject CustomNavigation NavManager
 @inject IPublicDataFileService PublicFileService
 @inject IDbContextFactory<DatahubProjectDBContext> dbContextFactory
@@ -266,6 +268,8 @@
     private string _uploadFileErrorMessage;
 
     private int _approvalFormId = 0;
+    private int _approvalFormSectorId = 0;
+    private int _approvalFormBranchId = 0;
 
     private string _signedApprovalFormUrl;
 
@@ -326,13 +330,15 @@
         }
     }
 
-    private async Task UpdateApprovalFormId(int id)
+    private async Task UpdateApprovalFormId(Forms.ShareWorkflow.ApprovalFormSubmitArgs args)
     {
         _savingData = true;
         try
         {
-            _approvalFormId = id;
-            await PublicFileService.UpdateOpenDataApprovalFormId(_fileIdGuid, id);        
+            _approvalFormId = args.FormId;
+            _approvalFormSectorId = args.SectorId;
+            _approvalFormBranchId = args.BranchId;
+            await PublicFileService.UpdateOpenDataApprovalFormId(_fileIdGuid, _approvalFormId);        
         }
         finally
         {
@@ -370,9 +376,12 @@
             _urlPublishError = string.Empty;
 
             var fieldValues = await MetadataBrokerService.GetObjectMetadataValues(FileId);
+            fieldValues.SetValue("sector", _approvalFormSectorId.ToString());
+            fieldValues.SetValue("branch", _approvalFormBranchId.ToString());
 
             // get the file url (use the saved file url or build the url if none given)
-            var url = string.IsNullOrEmpty(_fileUrl) ? PublicFileService.GetPublicSharedFileUrl(FileId) : _fileUrl;
+            var isUrl = !string.IsNullOrEmpty(_fileUrl);
+            var url = isUrl ? _fileUrl : PublicFileService.GetPublicSharedFileUrl(FileId);
 
             // publish to open data
             var result = await OpenDataService.PublishFileAsUrl(fieldValues, IsExternalShare, url);
@@ -381,6 +390,25 @@
             {
                 var updatedFile = await PublicFileService.UpdateOpenDataPublication(_fileIdGuid, true);
                 UpdateShareFileStatus(updatedFile);
+
+                // catalog object
+                var objectType = isUrl ? MetadataObjectType.FileUrl : MetadataObjectType.File;
+                var location = isUrl ? _fileUrl : _projectCode;
+                var digest = fieldValues.GetCatalogDigest();
+                await MetadataBrokerService.UpdateCatalog
+                (
+                    fieldValues.MetadataId, 
+                    objectType, 
+                    digest.Name, 
+                    location, 
+                    digest.Sector, 
+                    digest.Branch, 
+                    digest.Contact, 
+                    "", // I don't have a security class
+                    digest.EnglishCatalog, 
+                    digest.FrenchCatalog
+                );
+                
                 await InvokeAsync(StateHasChanged);
             }
             else
@@ -533,7 +561,7 @@
                               OnDecision="UnpublishFile"
                               ConfirmText=@Localizer["COMMON.Yes"]
                               CancelText=@Localizer["COMMON.No"]/>
-        ;
+    ;
         await UI.ToggleModal(modalDialog);
     }
 
@@ -571,6 +599,8 @@
             _uploadFileErrorMessage = sharedFileInfo.UploadError_TXT;
 
             _approvalFormId = sharedFileInfo.ApprovalForm_ID ?? 0;
+            await ReadSectorAndBranch();
+
             _signedApprovalFormUrl = sharedFileInfo.SignedApprovalForm_URL;
             _requestFilename = sharedFileInfo.Filename_TXT;
             _publicationDateText = sharedFileInfo.PublicationDate_DT?.ToShortDateString();
@@ -625,4 +655,19 @@
     }
 
     private bool UploadSignedPDFDisabled() => _savingData || !IsPDFUrlValid();
+
+    private async Task ReadSectorAndBranch()
+    {
+        if (_approvalFormId != 0)
+        {
+            var approvalForm = await MetadataBrokerService.GetApprovalForm(_approvalFormId);
+            if (approvalForm != null)
+            {
+                _approvalFormSectorId = approvalForm.Sector_ID;
+                _approvalFormBranchId = approvalForm.Branch_ID;
+            }
+        }
+    }
 }
+
+    
