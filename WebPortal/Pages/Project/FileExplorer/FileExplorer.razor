@@ -1,4 +1,3 @@
-@*FileExplorer.razor*@
 @using Datahub.Core.Components.FileUpload
 
 @inject IUserInformationService _userInformationService
@@ -79,7 +78,7 @@
                     var file = _virtualDirectory[_currentFolder]
                         .FirstOrDefault(f => f.name.Equals(_selectedItem, StringComparison.OrdinalIgnoreCase));
 
-                    <FileProperties File=@file Readonly="!OwnsFile(file)" />
+                    <FileProperties File=@file Readonly="!OwnsFile(file)"/>
                 }
             </div>
         </div>
@@ -159,9 +158,9 @@
 
     private string GetDirectoryName(string path)
     {
-        if(string.IsNullOrWhiteSpace(path) || !path.Contains("/"))
+        if (string.IsNullOrWhiteSpace(path) || !path.Contains("/"))
             return string.Empty;
-        
+
         var lastIndex = path.TrimEnd('/').LastIndexOf("/", StringComparison.Ordinal);
         return lastIndex == -1 ? "/" : path[..lastIndex] + "/";
     }
@@ -170,7 +169,7 @@
     {
         if (string.IsNullOrWhiteSpace(path))
             return string.Empty;
-        
+
         var lastIndex = path.TrimEnd('/').LastIndexOf("/", StringComparison.Ordinal);
         return lastIndex == -1 ? path : path[(lastIndex + 1)..];
     }
