@@ -4,20 +4,22 @@ using Datahub.Core.EFCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
+namespace Datahub.Core.Migrations.Core
 {
     [DbContext(typeof(DatahubProjectDBContext))]
-    partial class DatahubProjectDBContextModelSnapshot : ModelSnapshot
+    [Migration("20220127023012_UpdatedPowerBiEntities")]
+    partial class UpdatedPowerBiEntities
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "6.0.3")
+                .HasAnnotation("ProductVersion", "6.0.1")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
@@ -374,13 +376,7 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("Client_Name_TXT")
-                        .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("nvarchar(32)");
-
                     b.Property<string>("Email_Contact_TXT")
-                        .IsRequired()
                         .HasMaxLength(128)
                         .HasColumnType("nvarchar(128)");
 
@@ -446,9 +442,6 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.Property<int?>("Project_ID")
                         .HasColumnType("int");
 
-                    b.Property<Guid?>("Project_StorageId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<DateTime>("ServiceRequests_Date_DT")
                         .HasColumnType("datetime2");
 
@@ -472,32 +465,7 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
 
                     b.HasIndex("Project_ID");
 
-                    b.HasIndex("Project_StorageId");
-
                     b.ToTable("Project_Requests");
-                });
-
-            modelBuilder.Entity("Datahub.Core.EFCore.GeoObjectShare", b =>
-                {
-                    b.Property<string>("GeoObjectShare_ID")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<bool>("ApprovalFormCompleted")
-                        .HasColumnType("bit");
-
-                    b.Property<int?>("ApprovalForm_ID")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Json_TXT")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("ShareApproved")
-                        .HasColumnType("bit");
-
-                    b.HasKey("GeoObjectShare_ID");
-
-                    b.ToTable("GeoObjectShares");
                 });
 
             modelBuilder.Entity("Datahub.Core.EFCore.MiscStoredObject", b =>
@@ -905,9 +873,6 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.Property<DateTime?>("SubmittedDate_DT")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime?>("UnpublishDate_DT")
-                        .HasColumnType("datetime2");
-
                     b.HasKey("SharedDataFile_ID");
 
                     b.HasIndex("File_ID")
@@ -1147,9 +1112,6 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                 {
                     b.HasBaseType("Datahub.Core.EFCore.SharedDataFile");
 
-                    b.Property<bool>("ApprovalFormEdited_FLAG")
-                        .HasColumnType("bit");
-
                     b.Property<bool>("ApprovalFormRead_FLAG")
                         .HasColumnType("bit");
 
@@ -1158,9 +1120,6 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
 
                     b.Property<int?>("FileStorage_CD")
                         .HasColumnType("int");
-
-                    b.Property<string>("FileUrl_TXT")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("SignedApprovalForm_URL")
                         .HasColumnType("nvarchar(max)");
@@ -1227,13 +1186,7 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                         .WithMany()
                         .HasForeignKey("Project_ID");
 
-                    b.HasOne("Datahub.Core.EFCore.Project_Storage", "Project_Storage")
-                        .WithMany()
-                        .HasForeignKey("Project_StorageId");
-
                     b.Navigation("Project");
-
-                    b.Navigation("Project_Storage");
                 });
 
             modelBuilder.Entity("Datahub.Core.EFCore.PBI_License_Request", b =>

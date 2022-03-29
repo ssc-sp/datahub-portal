@@ -5,7 +5,7 @@
     "DefaultStatusText": "Drop or click here to add file",
     "Description-Label": "Description",
     "Description-Placeholder": "Describe your data",
-    "Disclaimer-1": "Use of this functionality is subject to the NRCAN Datahub ",
+    "Disclaimer-1": "Use of this functionality is subject to the NRCAN DataHub ",
     "Disclaimer-2": " and ",
     "Disclaimer-3": ".",
     "File-Label": "File",
@@ -37,7 +37,10 @@
     "Finish": "Finish",
     "Restore": "Restore",
     "Submit": "Submit",
-    "Upload": "Upload"
+    "Upload": "Upload",
+    "Save": "Save",
+    "Revert": "Revert",
+    "Edit": "Edit"
   },
   "COMMON": {
     "Yes": "Yes",
@@ -242,7 +245,7 @@
   "Departmental_Result_1_CD": "Departmental Result",
   "Departmental_Result_2_CD": "",
   "Departmental_Result_3_CD": "",
-  "Strategic_Priorities_1_DESC": "Strategic Priorities",
+  "Strategic_Priorities_1_DESC": "Departmental Priorities as per Departmental Plan",
   "Strategic_Priorities_2_DESC": "",
   "Mandate_Letter_Commitment_1_DESC": "Mandate Letter Commitment",
   "Mandate_Letter_Commitment_2_DESC": " ",
@@ -322,7 +325,7 @@
   "Indicator_Category_DESC": "Indicator Category",
   "Indicator_Direction_DESC": "Indicator Direction ",
   "Indicator__Progressive_Or_Aggregate_DESC": "Indicator - progressive or aggregate",
-  "Branch_Optional_DESC": "Branch",
+  "Branch_Optional_DESC": "Branch OR Division",
   "Sub_Program": "Name of sub-program (if applicable)",
   "Data_Owner_NAME": "Data Owner",
   "Data_Source_DESC": "Data Source",
@@ -523,7 +526,7 @@
         "Title": "Open Government Approval Form"
       },
       "SubmitSignedPDF": {
-        "Description": "Upload the signed form to GCdocs and paste the link in Datahub.",
+        "Description": "Upload the signed form to GCdocs and paste the link in DataHub.",
         "Title": "Submit Signed Form"
       },
       "PendingApproval": {
@@ -1023,8 +1026,53 @@
       "MonthNumber": "Month #{0}"
     }
   },
+  "POWER_BI_MANAGEMENT": {
+    "REQUEST_APPROVAL_PAGE": {
+      "Title": "Power BI Request Confirmation",
+      "ErrorApproving": "An error occurred while trying to approve the Power BI request.",
+      "WorkspaceNameConflict": "One or more of the following workspaces is missing a field or conflicts with an existing Power BI workspace:",
+      "WorkspaceNameConflictInstruction": "Please update the parameters or use the Power BI management interface in the Admin section to address any conflicts.",
+      "WorkspacesToBeCreated": "The following workspaces will be created and/or registered, and Power BI features will be enabled for this project:",
+      "WorkspacesCreated": "The Power BI service has been enabled and the following workspaces have been created:",
+      "UsersToBeAdded": "These project users will be added to the workspaces:",
+      "UsersNotAssigned": "These users were not assigned:",
+      "PowerBiAlreadyEnabled": "This project already has Power BI enabled. No further action is needed.",
+      "NoPowerBiRequest": "This project has no open Power BI request at this time.",
+      "NoPowerBiPermission": "Your account doesn't have permissions to create Power BI workspaces.",
+      "AdminUserTag": "(Admin)",
+      "ApproveButton": "Approve",
+      "BranchLabel": "Branch",
+      "NameLabel": "Name",
+      "ProjectAcronymLabel": "Project Acronym",
+      "ProductionLabel": "Production",
+      "SandboxLabel": "Sandbox",
+      "ReturnToProject": "Return to project",
+      "WorkspaceNameTitle": "Workspace Name"
+    },
+    "POWER_BI_ADMIN": {
+      "Title": "Power BI Administration",
+      "NumDatasets": "(Datasets: {0})",
+      "NumDatasetsReports": "(Datasets: {0}, Reports: {1})",
+      "NumReports": "(Reports: {0})",
+      "Unassigned": "(unassigned)",
+      "Dataset": "Dataset",
+      "Details": "Details",
+      "ImportUpdateTitle": "Synchronize",
+      "ManagementTitle": "Management",
+      "Metadata": "Metadata",
+      "NothingToImport": "Everything is up to date",
+      "Project": "Project",
+      "Report": "Report",
+      "Sandbox": "Sandbox",
+      "SynchronizeButton": "Synchronize",
+      "ChangesExist": "There are workspaces, reports and/or datasets available in Power BI which are out of sync with the DataHub database. Expand the section below for more details.",
+      "Workspace": "Workspace",
+      "Datasets": "Datasets",
+      "Reports": "Reports"
+    }
+  },
 
-  "NRCan Datahub": "NRCan Datahub",
+  "NRCan Datahub": "NRCan DataHub",
   "Search...": "Search...",
   "Good Morning": "Good Morning",
   "My Projects": "My Projects",
@@ -1038,7 +1086,7 @@
   "Data Sharing": "Data Sharing",
   "PowerBI": "PowerBI",
   "DataHub Administration": "DataHub Administration",
-  "Datahub Tools": "Datahub Tools",
+  "Datahub Tools": "DataHub Tools",
   "Power BI Admin Page": "Power BI Admin Page",
   "DataHub Project Tracker": "DataHub Project Tracker",
   "Metadata": "Metadata",
