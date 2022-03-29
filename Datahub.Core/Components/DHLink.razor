@@ -6,6 +6,7 @@
 @inject ILogger<DHLink> Logger
 @inject NavigationManager NavigationManager
 @inject UserLocationManagerService UserLocationManagerService
+@inject IJSRuntime _jsRuntime
 
 @inherits HtmlElement
 
@@ -97,7 +98,8 @@
                 NavigationManager.NavigateTo($"/{UrlPathSegment.PROJECTS}/{link.DataProject}");
                 break;
             case DatahubLinkType.Databricks:
-                NavigationManager.NavigateTo(link.DatabricksURL);
+                await _jsRuntime.InvokeVoidAsync("open", link?.DatabricksURL, "_blank");
+                // NavigationManager.NavigateTo(link.DatabricksURL);
                 break;
             case DatahubLinkType.WebForm:
                 NavigationManager.NavigateTo(link.WebFormsURL);
