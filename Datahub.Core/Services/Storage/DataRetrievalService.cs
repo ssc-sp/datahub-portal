@@ -445,7 +445,7 @@ namespace Datahub.Portal.Services.Storage
                 var resultSegment = containerClient
                     .GetBlobsAsync(BlobTraits.Metadata)
                     .AsPages(default, 30);
-
+                
 
                 var result = new List<FileMetaData>();
 
@@ -463,29 +463,48 @@ namespace Datahub.Portal.Services.Storage
                             fileId = newId;
                         }
 
-                        DateTime parsedModifiedDate;
                         string ownedBy = blobItem.Metadata.TryGetValue(FileMetaData.OwnedBy, out ownedBy) ? ownedBy : "Unknown";
                         string createdBy = blobItem.Metadata.TryGetValue(FileMetaData.CreatedBy, out createdBy) ? createdBy : "Unknown";
                         string lastModifiedBy = blobItem.Metadata.TryGetValue(FileMetaData.LastModifiedBy, out lastModifiedBy) ? lastModifiedBy : "lastmodifiedby";
-                        string lastModified = blobItem.Metadata.TryGetValue(FileMetaData.LastModified, out lastModified) ? lastModified : DateTime.UtcNow.ToString();
-                        string fileSize = blobItem.Metadata.TryGetValue(FileMetaData.FileSize, out fileSize) ? fileSize : "0";
-
-                        var isDateValid = DateTime.TryParse(lastModified, out parsedModifiedDate);
-                        if (!isDateValid)
-                            parsedModifiedDate = DateTime.UtcNow;
                         
-                        var file = new FileMetaData()
+                        if (Environment.GetEnvironmentVariable("HostingProfile") == "ssc")
                         {
-                            id = fileId,
-                            filename = blobItem.Name,
-                            ownedby = ownedBy,
-                            createdby = createdBy,
-                            lastmodifiedby = lastModifiedBy,
-                            lastmodifiedts = parsedModifiedDate,
-                            filesize = fileSize
-                        };
+                            var file = new FileMetaData()
+                            {
+                                id = fileId,
+                                filename = blobItem.Name,
+                                ownedby = ownedBy,
+                                createdby = createdBy,
+                                lastmodifiedby = lastModifiedBy,
+                                lastmodifiedts = (DateTime) blobItem.Properties.LastModified?.DateTime,
+                                filesize = blobItem.Properties.ContentLength.ToString()
+                            };
 
-                        result.Add(file);
+                            result.Add(file);
+                        }
+                        else
+                        {
+                            DateTime parsedModifiedDate;
+                            string lastModified = blobItem.Metadata.TryGetValue(FileMetaData.LastModified, out lastModified) ? lastModified : DateTime.UtcNow.ToString();
+                            string fileSize = blobItem.Metadata.TryGetValue(FileMetaData.FileSize, out fileSize) ? fileSize : "0";
+
+                            var isDateValid = DateTime.TryParse(lastModified, out parsedModifiedDate);
+                            if (!isDateValid)
+                                parsedModifiedDate = DateTime.UtcNow;
+                            
+                            var file = new FileMetaData()
+                            {
+                                id = fileId,
+                                filename = blobItem.Name,
+                                ownedby = ownedBy,
+                                createdby = createdBy,
+                                lastmodifiedby = lastModifiedBy,
+                                lastmodifiedts = parsedModifiedDate,
+                                filesize = fileSize
+                            };
+
+                            result.Add(file);
+                        }
                     }
                 }
 
