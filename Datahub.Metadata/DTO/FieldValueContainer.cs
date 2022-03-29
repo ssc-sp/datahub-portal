@@ -11,13 +11,20 @@ namespace Datahub.Metadata.DTO
     /// </summary>
     public class FieldValueContainer : List<ObjectFieldValue>
     {
-        public FieldValueContainer(string objectId, FieldDefinitions definitions, IEnumerable<ObjectFieldValue> values) : base()
+        public FieldValueContainer(long metadataId, string objectId, FieldDefinitions definitions, IEnumerable<ObjectFieldValue> values) : base()
         {
+            MetadataId = metadataId;
             ObjectId = objectId;
             Definitions = definitions;
             AddRange(values);
         }
 
+        public FieldValueContainer(string objectId, FieldDefinitions definitions, IEnumerable<ObjectFieldValue> values) 
+            : this(0, objectId, definitions, values)
+        {
+        }
+
+        public long MetadataId { get; set; }
         public string ObjectId { get; init; }
         public FieldDefinitions Definitions { get; init; }
         public ObjectFieldValue this[string fieldName] => GetFieldValueByName(fieldName);
@@ -72,7 +79,7 @@ namespace Datahub.Metadata.DTO
 
         public FieldValueContainer GetReadonlyCopy()
         {
-            return new FieldValueContainer(ObjectId, Definitions, CloneFieldsReadonly());
+            return new FieldValueContainer(MetadataId, ObjectId, Definitions, CloneFieldsReadonly());
         }
 
         private IEnumerable<ObjectFieldValue> CloneFieldsReadonly()
