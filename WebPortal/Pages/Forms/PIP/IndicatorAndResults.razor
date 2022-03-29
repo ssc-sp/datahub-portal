@@ -33,7 +33,7 @@
                      Renderers="GetRenderers()"
                      ColorAccessor="getColor"
                      Headers="headers"
-                     GridTemplateColumns="2fr 1fr 4fr 1fr"
+                     GridTemplateColumns="1fr 1fr 5fr 1fr"
                      OnRowClick="@SetFormEdit" 
                      Page="@_lastClicked"
                      PageSize="10"
@@ -146,15 +146,7 @@
     protected override async Task OnInitializedAsync()
     {
         Context = DbFactory.CreateDbContext();
-        renderFunctions = new List<Func<PIP_Risks, RenderFragment>>
-            {
-                new Func<PIP_Risks, RenderFragment>(p => { return p.PIP_IndicatorRisks.Any(q => q.Pip_Indicator == _indicator) ? 
-            @<i class="fal fa-check-square"></i> : @<i class="fal fa-square"></i>
-            ; }),
-                null,
-                null,
-                null,
-            };
+        
 
         _fiscalYear = Context.FiscalYears.Where(f => f.FiscalYear == fiscalYear).First();
         CurrentUser = await UserInformationService.GetUserAsync();
@@ -313,6 +305,7 @@
     {
         CleanEditingUser();
         ResetContextChanges();
+        LoadIndicators();
         _indicator = null;
         StateHasChanged();
         return null;
@@ -325,7 +318,7 @@
         {
         return new List<Func<PIP_IndicatorAndResults, RenderFragment>>
             {
-                null,
+                indicator => @<div><b>@indicator.Indicator_Status</b></div>,
                 null,
                 null,
                 indicator => 
@@ -335,7 +328,7 @@
 
         return new List<Func<PIP_IndicatorAndResults, RenderFragment>>
             {
-                null,
+                indicator => @<div><b>@indicator.Indicator_Status</b></div>,
                 null,
                 null,
                 null
@@ -384,9 +377,10 @@
         _enableSave = true;
         if (IsRecordLocked(_indicator))
         {
+            var user = await UserInformationService.GetUserAsync(_indicator.EditingUserId);
             var textList = new List<string>()
             {
-                "This Program is currently being edited by another user, you will not be able to save any changes"
+                $"This Program is currently being edited by {user.DisplayName}, you will not be able to save any changes"
             };
             _enableSave = false;
             await UI.ToggleModal(
@@ -570,29 +564,7 @@
         "Status", "Outcome Level", "Indicator", "Admin Actions"
     };
 
-    private List<Func<PIP_Risks, RenderFragment>> renderFunctions = null;
 
-
-    private void ToggleRisk(PIP_Risks risk)
-    {
-        var storedRisks = _risks.Where(r => r.Risks_ID == risk.Risks_ID).First().PIP_IndicatorRisks.Where(i => i.Pip_Indicator.IndicatorAndResult_ID == _indicator.IndicatorAndResult_ID).ToList();
-        if (storedRisks.Any(r => r.Pip_Risk == risk))
-        {
-            var indicatorRisk = Context.IndicatorRisks.Where(r => r.Pip_Risk == risk && r.Pip_Indicator.IndicatorAndResult_ID == _indicator.IndicatorAndResult_ID).FirstOrDefault();
-            Context.IndicatorRisks.Remove(indicatorRisk);
-        }
-        else
-        {
-            var pipIndicator = Context.IndicatorAndResults.Where(i => i.IndicatorAndResult_ID == _indicator.IndicatorAndResult_ID).First();
-            var indicatorRisk = new PIP_IndicatorRisks() { Pip_Indicator = pipIndicator, Pip_Risk = risk };
-            Context.IndicatorRisks.Add(indicatorRisk);
-        }
-        Context.TrackSaveChangesAsync(AuditingService);
-
-        UpdateRisks();
-        StateHasChanged();
-
-    }
 
     private bool IsRecordLocked(PIP_IndicatorAndResults indicator)
     {

@@ -1,0 +1,422 @@
+﻿@page "/project/{ProjectAcronym}/powerbirequest"
+@using global::Datahub.Core.Components
+@using global::Datahub.Core.EFCore
+@using global::Datahub.Core.Services
+@using global::Datahub.Portal.Data
+@using global::Datahub.Portal.Services
+@using global::Microsoft.Extensions.Logging
+
+@inject IDbContextFactory<DatahubProjectDBContext> _contextFactory
+@inject PowerBiServiceApi _powerBiApi
+@inject IPowerBiDataService _powerBiDataService
+@inject Microsoft.Identity.Web.MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
+@inject ILogger<ApprovePowerBiRequest> _logger
+@inject IEmailNotificationService _emailService
+@inject ISystemNotificationService _systemNotificationService
+@inject IMSGraphService _msGraphService
+
+
+<div style="padding-left: 2rem;padding-right: 2rem">
+
+    <h3>@Localizer[$"{LOCALIZATION_PREFIX}.Title"]</h3>
+
+    <AeFlex Vertical>
+        <AeCard class="facard1 doublewide">
+
+            @if (IsInitializing)
+            {
+                <Spinner />
+            }
+            else
+            {
+                if (!PowerBiRequestExists)
+                {
+                    <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.NoPowerBiRequest"]</AeTypography>
+                }
+                else if (PowerBiServiceSuccessfullyApproved)
+                {
+                    <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.WorkspacesCreated"]</AeTypography>
+                    @foreach(var which in new List<(string Title, string WorkspaceName, List<PowerBiAdminGroupUser> NotAssignedUsers)>()
+                    {
+                        (Localizer[$"{LOCALIZATION_PREFIX}.ProductionLabel"], ProdWorkspaceToCreate, ProdUsersNotAssigned),
+                        (Localizer[$"{LOCALIZATION_PREFIX}.SandboxLabel"], SandboxWorkspaceToCreate, SandboxUsersNotAssigned)
+                    })
+                    {
+                        <AeTypography Variant="h5">@which.Title: @which.WorkspaceName</AeTypography>
+                        @if (which.NotAssignedUsers.Count > 0)
+                        {
+                            <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.UsersNotAssigned"]</AeTypography>
+                            <ul>
+                                @foreach(var u in which.NotAssignedUsers)
+                                {
+                                    <li>@UserLabel(u)</li>
+                                }
+                            </ul>
+                        }
+                    }
+                }
+                else if (PowerBiRequestAlreadyCompleted)
+                {
+                    <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.PowerBiAlreadyEnabled"]</AeTypography>
+                }
+                else
+                {
+                    
+                    <div>
+                        <AeTypography Variant="h5">Workspace Name</AeTypography>
+
+                        <ul style="list-style: none">
+                            <li>
+                                <label class="ae input-wrapper">
+                                    <span>@Localizer[$"{LOCALIZATION_PREFIX}.BranchLabel"]: &nbsp;</span>
+                                    <input type="text" @bind-value=@WorkspaceName.Branch disabled=@NotEditingWorkspace class="ae input" />
+                                </label>
+                            </li>
+                            <li>
+                                
+                                <label class="ae input-wrapper">
+                                    @Localizer[$"{LOCALIZATION_PREFIX}.ProjectAcronymLabel"]: &nbsp;
+                                    @*<input type="text" @bind-value=@WorkspaceName.ProjectAcronym disabled class="ae input" />*@
+                                    @WorkspaceName.ProjectAcronym
+                                </label>
+                            </li>
+                            <li>
+                                <label class="ae input-wrapper">
+                                    <span>@Localizer[$"{LOCALIZATION_PREFIX}.NameLabel"]: &nbsp;</span>
+                                    <input type="text" @bind-value=@WorkspaceName.Name disabled=@NotEditingWorkspace class="ae input" />
+                                </label>
+                            </li>
+                        </ul>
+                        @if (IsEditingWorkspace)
+                        {
+                            <AeButton OnClickEvent=@PrepareParameters>@Localizer["BUTTONS.Save"]</AeButton>
+                            <AeButton OnClickEvent=@WorkspaceName.Revert>@Localizer["BUTTONS.Revert"]</AeButton>
+                        }
+                        else
+                        {
+                            <AeButton OnClickEvent=@(() => IsEditingWorkspace = true)>@Localizer["BUTTONS.Edit"]</AeButton>
+                        }
+                    </div>
+                    
+                    if (HasProblem)
+                    {
+                        <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.WorkspaceNameConflict"]</AeTypography>
+                        <ul>
+                            <li>@Localizer[$"{LOCALIZATION_PREFIX}.ProductionLabel"]: @ProdWorkspaceToCreate</li>
+                            <li>@Localizer[$"{LOCALIZATION_PREFIX}.SandboxLabel"]: @SandboxWorkspaceToCreate</li>
+                        </ul>
+                        <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.WorkspaceNameConflictInstruction"]</AeTypography>
+                    }
+                    else
+                    {
+                        <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.WorkspacesToBeCreated"]</AeTypography>
+                        <ul>
+                            <li>@Localizer[$"{LOCALIZATION_PREFIX}.ProductionLabel"]: @ProdWorkspaceToCreate</li>
+                            <li>@Localizer[$"{LOCALIZATION_PREFIX}.SandboxLabel"]: @SandboxWorkspaceToCreate</li>
+                        </ul>
+
+                        <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.UsersToBeAdded"]</AeTypography>
+                        <ul>
+                            @foreach(var user in UsersToAssign)
+                            {
+                                <li>@UserLabel(user)</li>
+                            }
+                        </ul>
+
+                        <div>
+                            <AeButton OnClickEvent=@ApproveRequest Disabled=@DisableApproveButton>@Localizer[$"{LOCALIZATION_PREFIX}.ApproveButton"]</AeButton>
+                            <SuccessIndicator @bind-IsLoading=@IsWorking @ref=@_workingInd />
+                        </div>
+
+                        @if (ErrorDuringApproval)
+                        {
+                            if (PowerBiWriteAccessForbidden)
+                            {
+                                <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.NoPowerBiPermission"]</AeTypography>
+                            }
+                            else
+                            {
+                                <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.ErrorApproving"]</AeTypography>
+                            }
+                        }
+                    }
+                }
+            }
+
+        </AeCard>
+        
+        <div>
+            <DHLink DataProject=@ProjectAcronym>@Localizer[$"{LOCALIZATION_PREFIX}.ReturnToProject"]</DHLink>
+        </div>
+    </AeFlex>
+</div>
+
+
+@code {
+    private readonly static string LOCALIZATION_PREFIX = $"{PowerBiManagementConstants.POWERBI_MANAGEMENT_LOCALIZATION_ROOT_KEY}.REQUEST_APPROVAL_PAGE";
+
+    [Parameter]
+    public string ProjectAcronym { get; set; }
+
+    private Datahub_ProjectServiceRequests ProjectRequest { get; set; }
+
+    private string ProjectName { get; set; }
+
+    private List<Microsoft.PowerBI.Api.Models.Group> ExistingWorkspaces { get; set; }
+    private IList<PowerBi_Workspace> ExistingDbWorkspaces { get; set; }
+
+    private bool IsInitializing { get; set; } = true;
+    private bool IsEditingWorkspace { get; set; } = false;
+    private bool NotEditingWorkspace => !IsEditingWorkspace;
+
+    private bool PowerBiRequestExists { get; set; }
+    private bool PowerBiRequestAlreadyCompleted { get; set; }
+    private bool HasProblem => WorkspaceName?.HasProblem ?? true;
+    private bool PowerBiWriteAccessForbidden { get; set; } = false;
+    private bool ErrorDuringApproval { get; set; } = false;
+    private bool PowerBiServiceSuccessfullyApproved { get; set; } = false;
+
+    private PowerBiAdminWorkspaceName WorkspaceName { get; set; }
+    private string SandboxWorkspaceToCreate => WorkspaceName.SandboxName;
+    private string ProdWorkspaceToCreate => WorkspaceName.ProductionName;
+
+    private Dictionary<string, Guid> WorkspaceIdsByName { get; set; } = new();
+
+
+    private List<PowerBiAdminGroupUser> UsersToAssign { get; set; } = new();
+    private List<PowerBiAdminGroupUser> SandboxUsersNotAssigned { get; set; } = new();
+    private List<PowerBiAdminGroupUser> ProdUsersNotAssigned { get; set; } = new();
+
+    private bool IsWorking { get; set; } = false;
+    private SuccessIndicator _workingInd;
+    private bool DisableApproveButton => IsWorking;
+
+    private string BuildPowerBIWorkspaceUrl(Guid workspaceId) => $"https://app.powerbi.com/groups/{workspaceId.ToString()}/list";
+    private string UserLabel(PowerBiAdminGroupUser u) => u.UserEmail + (u.IsAdmin ? " " + Localizer[$"{LOCALIZATION_PREFIX}.AdminUserTag"] : string.Empty);
+
+    private async Task PrepareParameters()
+    {
+        if (ProjectRequest == null || WorkspaceName == null)
+        {
+            return;
+        }
+        else
+        {
+            var newNamesLower = new List<string> { ProdWorkspaceToCreate.ToLowerInvariant(), SandboxWorkspaceToCreate.ToLowerInvariant() };
+
+            foreach (var lowerName in newNamesLower)
+            {
+                var dbWorkspace = ExistingDbWorkspaces.FirstOrDefault(w => lowerName == w.Workspace_Name.ToLowerInvariant());
+                var pbiWorkspace = ExistingWorkspaces.FirstOrDefault(w => lowerName == w.Name.ToLowerInvariant());
+
+                if (dbWorkspace != null)
+                {
+                    // conflict if the existing workspace record is assigned to a different project
+                    WorkspaceName.HasConflict |= dbWorkspace.Project_Id.HasValue && dbWorkspace.Project_Id.Value != ProjectRequest.Project.Project_ID;
+
+                    // conflict if the existing workspace is marked as sandbox but the new one isn't, or vice versa
+                    WorkspaceName.HasConflict |= dbWorkspace.Sandbox_Flag != (lowerName == SandboxWorkspaceToCreate.ToLowerInvariant());
+
+                    // conflict if the existing workspace's id doesn't match the corresponding PowerBI workspace id
+                    // or if there's no PowerBI workspace that goes with the record, something is wrong
+                    WorkspaceName.HasConflict |= dbWorkspace.Workspace_ID != (pbiWorkspace?.Id ?? Guid.Empty);
+
+                    // if there's no conflict, we don't need to create a new PowerBI workspace, and can reassign the existing one
+                    // it may also already be assigned to this project, in which case that would be a no-op
+                    if (!WorkspaceName.HasConflict)
+                    {
+                        WorkspaceIdsByName.Add(dbWorkspace.Workspace_Name, dbWorkspace.Workspace_ID);
+                    }
+                }
+                else if (pbiWorkspace != null)
+                {
+                    // conflict if we already have a record for the pbi workspace but with a different name (otherwise dbWorkspace wouldn't be null)
+                    var nonMatchingExistingWorkspace = ExistingDbWorkspaces.FirstOrDefault(w => w.Workspace_ID == pbiWorkspace.Id);
+                    WorkspaceName.HasConflict |= nonMatchingExistingWorkspace != null;
+
+                    // if there's no conflict at this point, we can register this pbi workspace and assign it to the project
+                    if (!WorkspaceName.HasConflict)
+                    {
+                        WorkspaceIdsByName.Add(pbiWorkspace.Name, pbiWorkspace.Id);
+                    }
+                }
+            }
+            IsEditingWorkspace = HasProblem;
+            StateHasChanged();
+        }
+
+        await Task.CompletedTask;
+    }
+
+    private async Task<Guid> CreateOrReuseWorkspace(string workspaceName)
+    {
+        if (WorkspaceIdsByName.ContainsKey(workspaceName))
+        {
+            return await Task.FromResult(WorkspaceIdsByName[workspaceName]);
+        }
+        else
+        {
+            try
+            {
+                var result = await _powerBiApi.CreateAppWorkspace(workspaceName);
+                return await Task.FromResult(Guid.Parse(result));
+            }
+            catch (Microsoft.Rest.HttpOperationException ex)
+            {
+                if (ex.Response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+                {
+                    PowerBiWriteAccessForbidden = true;
+                }
+                throw;
+            }
+        }
+    }
+
+    private async Task SendServiceCreatedNotifications(Datahub_ProjectServiceRequests liveProjectRequest)
+    {
+        var requestingUserId = liveProjectRequest.User_ID;
+        var project = liveProjectRequest.Project;
+        var projectInfo = project.ProjectInfo;
+        var projectUserIds = project.Users
+            .Select(u => u.User_ID)
+            .ToHashSet();
+
+        var notificationTasks = new List<Task>();
+
+        if (!string.IsNullOrEmpty(requestingUserId))
+        {
+            projectUserIds.Remove(requestingUserId);
+            notificationTasks.Add(_emailService.SendServiceCreationRequestApprovedIndividual(liveProjectRequest.ServiceType, projectInfo, requestingUserId));
+            notificationTasks.Add(_systemNotificationService.CreateSystemNotificationWithLink(requestingUserId, 
+                $"/project/{project.Project_Acronym_CD}", "SYSTEM-NOTIFICATION.GoToProject",
+                "SYSTEM-NOTIFICATION.NOTIFICATION-TEXT.ServiceCreatedIndividual",
+                liveProjectRequest.ServiceType, new BilingualStringArgument(projectInfo.ProjectNameEn, projectInfo.ProjectNameFr)));
+        }
+
+        notificationTasks.Add(_emailService.SendServiceCreationGroupNotification(liveProjectRequest.ServiceType, projectInfo, projectUserIds.ToList()));
+        notificationTasks.Add(_systemNotificationService.CreateSystemNotificationsWithLink(projectUserIds.ToList(), 
+            $"/project/{project.Project_Acronym_CD}", "SYSTEM-NOTIFICATION.GoToProject",
+            "SYSTEM-NOTIFICATION.NOTIFICATION-TEXT.ServiceCreatedGroup",
+            liveProjectRequest.ServiceType, new BilingualStringArgument(projectInfo.ProjectNameEn, projectInfo.ProjectNameFr)));
+
+        await Task.WhenAll(notificationTasks);
+
+        liveProjectRequest.Notification_Sent = DateTime.UtcNow;
+    }
+
+    private async Task ApproveRequest()
+    {
+        IsWorking = true;
+        StateHasChanged();
+
+        var projectId = ProjectRequest.Project.Project_ID;
+        var success = true;
+
+        try
+        {
+            var sandboxWsId = await CreateOrReuseWorkspace(SandboxWorkspaceToCreate);
+            var prodWsId = await CreateOrReuseWorkspace(ProdWorkspaceToCreate);
+
+            SandboxUsersNotAssigned = await _powerBiApi.AssignUsersToWorkspace(sandboxWsId, UsersToAssign);
+            ProdUsersNotAssigned = await _powerBiApi.AssignUsersToWorkspace(prodWsId, UsersToAssign);
+
+            var workspacesToCreate = new List<PowerBi_WorkspaceDefinition>
+            {
+                new(sandboxWsId, SandboxWorkspaceToCreate, true, projectId),
+                new(prodWsId, ProdWorkspaceToCreate, false, projectId)
+            };
+
+            success &= await _powerBiDataService.AddOrUpdateCataloguedWorkspaces(workspacesToCreate);
+
+            if (success)
+            {
+                using var ctx = await _contextFactory.CreateDbContextAsync();
+
+                var liveProjectRequest = await ctx.Project_Requests
+                    .Include(r => r.Project.Users)
+                    .FirstOrDefaultAsync(r => r.ServiceRequests_ID == ProjectRequest.ServiceRequests_ID);
+
+                liveProjectRequest.Is_Completed = DateTime.UtcNow;
+                liveProjectRequest.Project.PowerBI_URL = BuildPowerBIWorkspaceUrl(prodWsId);
+
+                await SendServiceCreatedNotifications(liveProjectRequest);
+
+                await ctx.SaveChangesAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error enabling PowerBI feature for project {ProjectName}");
+            success = false;
+        }
+
+        if (success)
+        {
+            await _workingInd.SignalSuccess();
+            PowerBiServiceSuccessfullyApproved = true;
+        }
+        else
+        {
+            ErrorDuringApproval = true;
+            await _workingInd.SignalFailure();
+        }
+        StateHasChanged();
+    }
+
+    private async Task<bool> LoadPowerBiWorkspaces()
+    {
+        try
+        {
+            ExistingWorkspaces = (await _powerBiApi.GetWorkspaces()).ToList();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _consentHandler.HandleException(ex);
+            return false;
+        }
+    }
+
+    private async Task<List<PowerBiAdminGroupUser>> BuildUsersToAssignList(List<Datahub_Project_User> users)
+    {
+        var usersToAssign = await Task.WhenAll(users.Select(async u =>
+        {
+            var userEmail = await _msGraphService.GetUserEmail(u.User_ID, tkn: default);
+            return new PowerBiAdminGroupUser(userEmail, u.IsAdmin);
+        }));
+        return usersToAssign.OrderBy(u => u.IsAdmin).ThenBy(u => u.UserEmail).ToList();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var powerBiWorkspacesLoaded = await LoadPowerBiWorkspaces();
+
+        if (powerBiWorkspacesLoaded)
+        {
+            using var ctx = await _contextFactory.CreateDbContextAsync();
+            var request = await ctx.Project_Requests
+                .Include(r => r.Project.Users)
+                .Where(r => r.Project.Project_Acronym_CD == ProjectAcronym && r.ServiceType == "powerbi")
+                .FirstOrDefaultAsync();
+
+            ExistingDbWorkspaces = await _powerBiDataService.GetAllWorkspaces();
+
+            PowerBiRequestExists = request != null;
+            PowerBiRequestAlreadyCompleted = PowerBiRequestExists && request.Is_Completed.HasValue;
+
+            if (PowerBiRequestExists)
+            {
+                ProjectName = request.Project.ProjectName;
+                ProjectRequest = request;
+                WorkspaceName = new(request.Project);
+
+                UsersToAssign = await BuildUsersToAssignList(request.Project.Users);
+            }
+
+            await PrepareParameters();
+
+            IsInitializing = false;
+            StateHasChanged();
+        }
+    }
+}
