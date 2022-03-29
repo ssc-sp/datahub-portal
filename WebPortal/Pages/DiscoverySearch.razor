@@ -161,6 +161,10 @@
         {
             await DownloadFile(result);
         }
+        else if (result.DataType == MetadataObjectType.FileUrl)
+        {
+            await DownloadFileUrl(result);
+        }
         else if (result.DataType == MetadataObjectType.PowerBIReport)
         {
             await ViewPowerBIReport(result);
@@ -176,12 +180,6 @@
             // TODO this url template is also used in DHLink; should only be in raw form in one place
             NavigationManager.NavigateTo($"/powerbi-report/{report.Workspace_Id}/{report.Report_ID}");
         }
-    }
-
-    private async Task ViewPowerBIReport(CatalogObjectResult result)
-    {
-        // todo: fill when merge Alex code!
-        await Task.CompletedTask;
     }
 
     private async Task DownloadFile(CatalogObjectResult result)
