@@ -5395,7 +5395,7 @@ code {
   grid-area: heading;
   border-bottom: 1px solid var(--bg-color-accent);
   display: grid;
-  grid-template-columns: 1fr auto 400px;
+  grid-template-columns: 1fr 1fr;
 }
 .file-explorer-layout-wrapper .file-explorer-layout .heading h1 {
   margin-top: 0;
