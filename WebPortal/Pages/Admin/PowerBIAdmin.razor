@@ -74,7 +74,7 @@
                             ObjectId=@WorkspaceBeingEdited.WorkspaceId.ToString()
                             Location="PowerBI"
                             ProfileName="catalog"
-                            ObjectType=@Metadata.Model.MetadataObjectType.PowerBI
+                            ObjectType=@Metadata.Model.MetadataObjectType.PowerBIWorkspace
                             UpdateCatalog=@true
                             ValidateRequired=@false
                             Name=@WorkspaceBeingEdited.DbWorkspaceName
@@ -95,7 +95,7 @@
                             ObjectId=@DatasetBeingEdited.DatasetId.ToString()
                             Location="PowerBI"
                             ProfileName="catalog"
-                            ObjectType=@Metadata.Model.MetadataObjectType.PowerBI
+                            ObjectType=@Metadata.Model.MetadataObjectType.PowerBIDataset
                             UpdateCatalog=@true
                             ValidateRequired=@false
                             Name=@DatasetBeingEdited.DbDatasetName
@@ -116,7 +116,7 @@
                             ObjectId=@ReportBeingEdited.ReportId.ToString()
                             Location="PowerBI"
                             ProfileName="catalog"
-                            ObjectType=@Metadata.Model.MetadataObjectType.PowerBI
+                            ObjectType=@Metadata.Model.MetadataObjectType.PowerBIReport
                             UpdateCatalog=@true
                             ValidateRequired=@false
                             Name=@ReportBeingEdited.DbReportName
