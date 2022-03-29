@@ -22,8 +22,9 @@ namespace Datahub.ProjectForms.Data.PIP
         [AeFormIgnore]
         public string ProgramCode { get; set; }
 
-        [AeLabel(row: "1", column: "1")]
-        [AeFormCategory("Program Information", 1)]
+        [AeFormIgnore]
+        //[AeLabel(row: "1", column: "1")]
+        //[AeFormCategory("Program Information", 1)]
         [Editable(false)] public int FiscalYearId { get; set; }
 
         [AeLabel(row: "1", column:"1")]
