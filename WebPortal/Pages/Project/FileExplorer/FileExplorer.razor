@@ -97,6 +97,7 @@
 
     private bool _loading = true;
     private List<FileMetaData> _uploadingFiles;
+    private string _continuationToken;
 
     private readonly string _root = "/";
     private string _currentFolder = "/";
@@ -117,7 +118,11 @@
         _user = await _userInformationService.GetUserAsync();
 
         _uploadingFiles = new List<FileMetaData>();
-        _virtualDirectory = (await _dataRetrievalService.GetStorageBlobFiles(ProjectAcronym, DataRetrievalService.DEFAULT_CONTAINER_NAME, _user))
+
+        var (results, continuationToken) = await _dataRetrievalService.GetStorageBlobPagesAsync(ProjectAcronym, DataRetrievalService.DEFAULT_CONTAINER_NAME, _user, _continuationToken);
+        
+        // _virtualDirectory = (await _dataRetrievalService.GetStorageBlobFiles(ProjectAcronym, DataRetrievalService.DEFAULT_CONTAINER_NAME, _user))
+        _virtualDirectory = results
             .GroupBy(f => $"/{GetDirectoryName(f.filename)}")
             .ToDictionary(g => g.Key,
                 g => g.ToList());
@@ -130,6 +135,7 @@
         SetupEmptyFolders();
 
         _loading = false;
+        _continuationToken = continuationToken;
     }
 
     private void SetupEmptyFolders()
