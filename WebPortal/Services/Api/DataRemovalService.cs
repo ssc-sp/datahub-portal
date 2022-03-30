@@ -195,7 +195,7 @@ namespace Datahub.Portal.Services
                 CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
 
                 // Retrieve reference to a previously created container.
-                CloudBlobContainer container = blobClient.GetContainerReference("datahub");
+                CloudBlobContainer container = blobClient.GetContainerReference(DataRetrievalService.DEFAULT_CONTAINER_NAME);
 
                 // Retrieve reference to a blob named "myblob.csv".
                 CloudBlockBlob blockBlob = container.GetBlockBlobReference(file.name);
