@@ -34,7 +34,7 @@
                      Renderers="GetRenderers()"
                      ColorAccessor="getColor"
                      Headers="headers"
-                     GridTemplateColumns="2fr 1fr 4fr 1fr"
+                     GridTemplateColumns="1fr 1fr 5fr 1fr"
                      OnRowClick="@SetFormEdit" 
                      Page="@_lastClicked"
                      PageSize="10"
@@ -147,15 +147,7 @@
     protected override async Task OnInitializedAsync()
     {
         Context = DbFactory.CreateDbContext();
-        renderFunctions = new List<Func<PIP_Risks, RenderFragment>>
-            {
-                new Func<PIP_Risks, RenderFragment>(p => { return p.PIP_IndicatorRisks.Any(q => q.Pip_Indicator == _indicator) ? 
-            @<i class="fal fa-check-square"></i> : @<i class="fal fa-square"></i>
-            ; }),
-                null,
-                null,
-                null,
-            };
+        
 
         _fiscalYear = Context.FiscalYears.Where(f => f.FiscalYear == fiscalYear).First();
         CurrentUser = await UserInformationService.GetUserAsync();
@@ -312,8 +304,9 @@
 
     private async Task<PIP_IndicatorAndResults> ClearForm()
     {
-        CleanEditingUser();
+        //CleanEditingUser();
         ResetContextChanges();
+        LoadIndicators();
         _indicator = null;
         StateHasChanged();
         return null;
@@ -326,7 +319,7 @@
         {
         return new List<Func<PIP_IndicatorAndResults, RenderFragment>>
             {
-                null,
+                indicator => @<div><b>@indicator.Indicator_Status</b></div>,
                 null,
                 null,
                 indicator => 
@@ -336,7 +329,7 @@
 
         return new List<Func<PIP_IndicatorAndResults, RenderFragment>>
             {
-                null,
+                indicator => @<div><b>@indicator.Indicator_Status</b></div>,
                 null,
                 null,
                 null
@@ -383,22 +376,23 @@
         _indicator = Context.IndicatorAndResults.Where(i => i.IndicatorAndResult_ID == recordId).First();
 
         _enableSave = true;
-        if (IsRecordLocked(_indicator))
-        {
-            var textList = new List<string>()
-            {
-                "This Program is currently being edited by another user, you will not be able to save any changes"
-            };
-            _enableSave = false;
-            await UI.ToggleModal(
-    @<WarningModal OnDecision="HandleWarningDecision" WarningTextString=@textList />
-    );
-        }
-        else
-        {
-            _indicator.EditingUserId = CurrentUser.Id;
-            await Context.TrackSaveChangesAsync(AuditingService);
-        }
+    //    if (IsRecordLocked(_indicator))
+    //    {
+    //        var user = await UserInformationService.GetUserAsync(_indicator.EditingUserId);
+    //        var textList = new List<string>()
+    //        {
+    //            $"This Program is currently being edited by {user.DisplayName}, you will not be able to save any changes"
+    //        };
+    //        _enableSave = false;
+    //        await UI.ToggleModal(
+    //@<WarningModal OnDecision="HandleWarningDecision" WarningTextString=@textList />
+    //);
+    //    }
+    //    else
+    //    {
+    //        _indicator.EditingUserId = CurrentUser.Id;
+    //        await Context.TrackSaveChangesAsync(AuditingService);
+    //    }
         _indicator = Context.IndicatorAndResults.Where(i => i.IndicatorAndResult_ID == recordId).First();
         _indicator.Last_Updated_UserName = await MSGraphService.GetUserName(_indicator.Last_Updated_UserId, CancellationToken.None);
         if (_myModelForm != null)
@@ -439,6 +433,12 @@
             var result = await Context.TrackSaveChangesAsync(AuditingService);
             if (result < 1)
             {
+                var textList = new List<string>()
+                {
+                    $"The record you were trying to update has been modified by another user. Please copy your changes, refresh the page and re-enter the data."
+                };                
+                await UI.ToggleModal(@<WarningModal OnDecision="HandleWarningDecision" WarningTextString=@textList />);
+
                 await _submitApprovalInd.SignalFailure();
             }
             else
@@ -475,21 +475,21 @@
         _indicators = Context.IndicatorAndResults.Where(p => p.PIP_Tombstone.Tombstone_ID == _tombstone.Tombstone_ID && !p.IsDeleted && p.FiscalYear == _fiscalYear).ToList();
     }
 
-     public void CleanEditingUser()
-    {
-        if (_indicator != null && _enableSave && !string.IsNullOrEmpty(_indicator.EditingUserId) && _indicator.EditingUserId == CurrentUser.Id)
-        {                        
-            try
-            {
-                _indicator.EditingUserId = null;
-                Context.SaveChanges();
-            }
-            catch (Exception e)
-            {                
-                Logger.LogDebug(e, $"Cannot clean current user in IndicatorAndResults");
-            }
-        } 
-    }
+    // public void CleanEditingUser()
+    //{
+    //    if (_indicator != null && _enableSave && !string.IsNullOrEmpty(_indicator.EditingUserId) && _indicator.EditingUserId == CurrentUser.Id)
+    //    {                        
+    //        try
+    //        {
+    //            _indicator.EditingUserId = null;
+    //            Context.SaveChanges();
+    //        }
+    //        catch (Exception e)
+    //        {                
+    //            Logger.LogDebug(e, $"Cannot clean current user in IndicatorAndResults");
+    //        }
+    //    } 
+    //}
 
     private async Task HandleValidSubmit()
     {
@@ -532,8 +532,8 @@
         }
         else
         {
-            if (_indicator != null)
-                CleanEditingUser();
+            //if (_indicator != null)
+            //    CleanEditingUser();
 
             _indicator = Context.IndicatorAndResults.Where(i => i.IndicatorAndResult_ID == indicator.IndicatorAndResult_ID).First();
             await PrepareItemForEdit(_indicator);
@@ -571,40 +571,19 @@
         "Status", "Outcome Level", "Indicator", "Admin Actions"
     };
 
-    private List<Func<PIP_Risks, RenderFragment>> renderFunctions = null;
 
-
-    private void ToggleRisk(PIP_Risks risk)
-    {
-        var storedRisks = _risks.Where(r => r.Risks_ID == risk.Risks_ID).First().PIP_IndicatorRisks.Where(i => i.Pip_Indicator.IndicatorAndResult_ID == _indicator.IndicatorAndResult_ID).ToList();
-        if (storedRisks.Any(r => r.Pip_Risk == risk))
-        {
-            var indicatorRisk = Context.IndicatorRisks.Where(r => r.Pip_Risk == risk && r.Pip_Indicator.IndicatorAndResult_ID == _indicator.IndicatorAndResult_ID).FirstOrDefault();
-            Context.IndicatorRisks.Remove(indicatorRisk);
-        }
-        else
-        {
-            var pipIndicator = Context.IndicatorAndResults.Where(i => i.IndicatorAndResult_ID == _indicator.IndicatorAndResult_ID).First();
-            var indicatorRisk = new PIP_IndicatorRisks() { Pip_Indicator = pipIndicator, Pip_Risk = risk };
-            Context.IndicatorRisks.Add(indicatorRisk);
-        }
-        Context.TrackSaveChangesAsync(AuditingService);
-
-        UpdateRisks();
-        StateHasChanged();
-
-    }
 
     private bool IsRecordLocked(PIP_IndicatorAndResults indicator)
     {
-        return indicator == null ? false : (!string.IsNullOrEmpty(indicator.EditingUserId));
+        //return indicator == null ? false : (!string.IsNullOrEmpty(indicator.EditingUserId));
+        return false;
     }
 
     public void Dispose()     
     {        
         try
         {
-            CleanEditingUser();
+            //CleanEditingUser();
         }
         catch (Exception e)
         {
