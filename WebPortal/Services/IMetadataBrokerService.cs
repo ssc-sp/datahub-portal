@@ -20,7 +20,8 @@ namespace Datahub.Portal.Services
         Task<List<string>> GetSuggestedEnglishKeywords(string text, int max);
         Task<List<string>> GetSuggestedFrenchKeywords(string text, int max);
         Task<List<SubjectKeyword>> GetSubjectKeywords(IEnumerable<string> subjectIds);
-        Task UpdateCatalog(long objectId, Entities.MetadataObjectType dataType, string objectName, string location, int sector, int branch, string contact, string englishText, string frenchText);
+        Task UpdateCatalog(long objectId, Entities.MetadataObjectType dataType, string objectName, string location, 
+            int sector, int branch, string contact, string securityClass, string englishText, string frenchText);
         Task<List<CatalogObjectResult>> SearchCatalogEnglish(string searchText);
         Task<List<CatalogObjectResult>> SearchCatalogFrench(string searchText);
         Task<FieldDefinitions> GetFieldDefinitions();

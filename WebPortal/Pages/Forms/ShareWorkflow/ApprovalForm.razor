@@ -34,7 +34,7 @@
     public string DatasetTitle { get; set; }
 
     [Parameter]
-    public EventCallback<int> OnSubmitForm { get; set; }
+    public EventCallback<ApprovalFormSubmitArgs> OnSubmitForm { get; set; }
 
     private GraphUser _user;
     [Parameter]
@@ -129,7 +129,7 @@
         if (_validMandatoryCheckboxes)
         {
             _approvalForm.ApprovalFormId = await MetadataBrokerService.SaveApprovalForm(_approvalForm);
-            await OnSubmitForm.InvokeAsync(_approvalForm.ApprovalFormId);    
+            await OnSubmitForm.InvokeAsync(new(_approvalForm.ApprovalFormId, _approvalForm.Sector_ID, _approvalForm.Branch_ID));    
         }
     }
 
@@ -152,6 +152,7 @@
             if (_sectorId != id)
             {
                 _sectorId = id;
+                _approvalForm.Sector_ID = id;
                 RefreshBranches(context);
             }
         });
@@ -162,6 +163,7 @@
             if (_branchId != id)
             {
                 _branchId = id;
+                _approvalForm.Branch_ID = id;
                 RefreshDivisions(context);
             }
         });
