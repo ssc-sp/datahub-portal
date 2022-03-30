@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Datahub.Portal.Data;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Identity.Web;
 using Microsoft.PowerBI.Api;
@@ -24,6 +25,8 @@ namespace Datahub.Portal.Services
 
     public record PowerBIDatasetElements(Group Group, Dataset Dataset, List<Report> Reports);
 
+    public record PowerBiWorkspaceDataset(Guid WorkspaceId, Dataset Dataset);
+    public record PowerBiWorkspaceReport(Guid WorkspaceId, Report Report);
 
     public class PowerBiServiceApi
     {
@@ -137,6 +140,54 @@ namespace Datahub.Portal.Services
             return allDataSets.Select(tp => new PowerBIDatasetElements(tp.Item1,tp.Item2,tp.Item3)).ToList();
         }
 
+        public async Task<List<PowerBiWorkspaceDataset>> GetWorkspaceDatasetsAsync(Guid? workspaceId = null)
+        {
+            using var client = await GetPowerBiClientAsync();
+            var groups = await client.Groups.GetGroupsAsync();
+            var workspaceIds = workspaceId.HasValue ? new List<Guid> { workspaceId.Value } : groups.Value.Select(w => w.Id);
+
+            var result = new List<PowerBiWorkspaceDataset>();
+            
+            foreach (var id in workspaceIds)
+            {
+                try
+                {
+                    var datasets = await client.Datasets.GetDatasetsInGroupAsync(id);
+                    result.AddRange(datasets.Value.Select(d => new PowerBiWorkspaceDataset(id, d)));
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, $"Cannot get datasets for workspace {id}");
+                }
+            }
+
+            return result;
+        }
+
+        public async Task<List<PowerBiWorkspaceReport>> GetWorkspaceReportsAsync(Guid? workspaceId = null)
+        {
+            using var client = await GetPowerBiClientAsync();
+            var groups = await client.Groups.GetGroupsAsync();
+            var workspaceIds = workspaceId.HasValue ? new List<Guid> { workspaceId.Value } : groups.Value.Select(w => w.Id);
+
+            var result = new List<PowerBiWorkspaceReport>();
+
+            foreach(var id in workspaceIds)
+            {
+                try
+                {
+                    var reports = await client.Reports.GetReportsInGroupAsync(id);
+                    result.AddRange(reports.Value.Select(r => new PowerBiWorkspaceReport(id, r)));
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, $"Cannot get reports for workspace {id}");
+                }
+            }
+
+            return result;
+        }
+
         public async Task<string> GetEmbeddedViewModel(string appWorkspaceId = "")
         {
             using PowerBIClient pbiClient = await GetPowerBiClientAsync();
@@ -205,6 +256,46 @@ namespace Datahub.Portal.Services
             Group aws = pbiClient.Groups.CreateGroup(request);
             // return app workspace ID
             return aws.Id.ToString();
+        }
+
+        public async Task<List<PowerBiAdminGroupUser>> AssignUsersToWorkspace(Guid workspaceId, List<PowerBiAdminGroupUser> users)
+        {
+            using var pbiClient = await GetPowerBiClientAsync();
+
+            var errorUsers = await Task.WhenAll(users.Select(async u =>
+            {
+                var groupUser = new GroupUser(u.UserEmail, PrincipalType.User, u.IsAdmin ? GroupUserAccessRight.Admin : GroupUserAccessRight.Viewer);
+                try
+                {
+                    await pbiClient.Groups.AddGroupUserAsync(workspaceId, groupUser);
+                    // if successful, we don't add the user to the error list
+                    return null;
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, $"Couldn't add user {u.UserEmail} to PowerBI workspace with id {workspaceId}");
+                    return u;
+                }
+            }));
+            
+            return errorUsers.Where(u => u != null).ToList();
+        }
+
+        public async Task TestCreateUser(Guid workspaceId, string userId)
+        {
+            using var pbiClient = await GetPowerBiClientAsync();
+            var newUser = new GroupUser(userId, PrincipalType.User, GroupUserAccessRight.Viewer);
+
+            var groupUsers = await pbiClient.Groups.GetGroupUsersAsync(workspaceId);
+
+            try
+            {
+                await pbiClient.Groups.AddGroupUserWithHttpMessagesAsync(workspaceId, newUser);
+            }
+            catch (Exception ex)
+            {
+                var msg = ex.Message;
+            }
         }
 
         public async Task DeleteAppWorkspace(string WorkspaceId)

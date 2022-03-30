@@ -462,7 +462,6 @@ namespace Datahub.Portal.Services.Storage
                             await client.SetMetadataAsync(blobItem.Metadata);
                             fileId = newId;
                         }
-
                         DateTime parsedModifiedDate;
                         string ownedBy = blobItem.Metadata.TryGetValue(FileMetaData.OwnedBy, out ownedBy) ? ownedBy : "Unknown";
                         string createdBy = blobItem.Metadata.TryGetValue(FileMetaData.CreatedBy, out createdBy) ? createdBy : "Unknown";
@@ -470,10 +469,11 @@ namespace Datahub.Portal.Services.Storage
                         string lastModified = blobItem.Metadata.TryGetValue(FileMetaData.LastModified, out lastModified) ? lastModified : DateTime.UtcNow.ToString();
                         string fileSize = blobItem.Metadata.TryGetValue(FileMetaData.FileSize, out fileSize) ? fileSize : "0";
 
+                        //TODO - we need to figure out what date to use if the modified date is invalid
                         var isDateValid = DateTime.TryParse(lastModified, out parsedModifiedDate);
                         if (!isDateValid)
                             parsedModifiedDate = DateTime.UtcNow;
-                        
+
                         var file = new FileMetaData()
                         {
                             id = fileId,

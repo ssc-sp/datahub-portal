@@ -15,11 +15,17 @@ namespace Datahub.Portal.Data.Forms.ShareWorkflow
         [AeFormCategory("Business Owner")]
         public string Department_NAME { get; set; }
 
+        [AeFormIgnore]
+        public int Sector_ID { get; set; }
+
         /** Section: Business Partner **/
         [StringLength(256)]
         [AeFormCategory("Business Owner")]
         [AeLabel(isDropDown: true, placeholder: " ")]
         public string Sector_NAME { get; set; }
+
+        [AeFormIgnore]
+        public int Branch_ID { get; set; }
 
         /** Section: Business Partner **/
         [StringLength(256)]
