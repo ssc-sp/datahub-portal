@@ -1,6 +1,5 @@
 @inject IDataRemovalService _dataRemovalService
 @inject DataRetrievalService _dataRetrievalService
-@inject IDataUpdatingService _dataUpdatingService
 @inject NavigationManager _navigationManager
 @inject IJSRuntime _jsRuntime
 
@@ -78,6 +77,9 @@
 
     [Parameter]
     public EventCallback<string> OnFileDelete { get; set; }
+    
+    [Parameter]
+    public EventCallback<string> OnFileRename { get; set; }
 
     [Parameter]
     public EventCallback<string> OnNewFolder { get; set; }
@@ -170,10 +172,7 @@
             var newName = await _jsRuntime.InvokeAsync<string>("prompt", "Enter new name", _selectedFile.filename);
             newName = newName.Replace("/", "").Trim();
             
-            if (!string.IsNullOrWhiteSpace(newName))
-            {
-                await _dataUpdatingService.RenameStorageBlob(_selectedFile, newName, ProjectAcronym, GraphUser);
-            }
+            await OnFileRename.InvokeAsync(newName);
         }
     }
 
