@@ -183,7 +183,6 @@
             context.RegisterOptionValueProperty<PIP_IndicatorAndResults>(s => s.Source_Of_Indicator_DESC, () => new[] { "Horizontal Intiative", "DRF indicator", "GC InfoBase Indicator", "TB Sub indicator", "DSDS indicator", "SDG indicator", "TPP indicator", "Internal program indicator only" });
             context.RegisterOptionValueProperty<PIP_IndicatorAndResults>(s => s.Source_Of_Indicator2_DESC, () => new[] { "Horizontal Intiative", "DRF indicator", "GC InfoBase Indicator", "TB Sub indicator", "DSDS indicator", "SDG indicator", "TPP indicator", "Internal program indicator only" });
             context.RegisterOptionValueProperty<PIP_IndicatorAndResults>(s => s.Source_Of_Indicator3_DESC, () => new[] { "Horizontal Intiative", "DRF indicator", "GC InfoBase Indicator", "TB Sub indicator", "DSDS indicator", "SDG indicator", "TPP indicator", "Internal program indicator only" });
-            context.RegisterOptionValueProperty<PIP_IndicatorAndResults>(s => s.Indicator__Progressive_Or_Aggregate_DESC, () => new[] { "Progressive", "Aggregate" });
             context.RegisterOptionValueProperty<PIP_IndicatorAndResults>(s => s.Indicator_Category_DESC, () => new[] { "Quantitative", "Qualitative" });
             context.RegisterOptionValueProperty<PIP_IndicatorAndResults>(s => s.Indicator_Direction_DESC, () => new[] { "Increase", "Decrease", "Maintain" });
             context.RegisterOptionValueProperty<PIP_IndicatorAndResults>(s => s.Data_Type_DESC, () => new[] { "Number", "Non numeric", "Dollar", "Percent" });
@@ -199,12 +198,10 @@
             context.RegisterFieldNotes<PIP_IndicatorAndResults>(s => s.Indicator_DESC, "A means of measuring actual outcomes and outputs. It can be qualitative or quantitative, and is composed of a unit of measure, a unit of analysis and a context.");
             context.RegisterFieldNotes<PIP_IndicatorAndResults>(s => s.Source_Of_Indicator_DESC, "Select all that apply");
             context.RegisterFieldNotes<PIP_IndicatorAndResults>(s => s.DRF_Indicator_No, "Optional");
-            context.RegisterFieldNotes<PIP_IndicatorAndResults>(s => s.Tb_Sub_Indicator_Identification_Number_ID, "Optional");
             context.RegisterFieldNotes<PIP_IndicatorAndResults>(s => s.Branch_Optional_DESC, "Optional");
             context.RegisterFieldNotes<PIP_IndicatorAndResults>(s => s.Sub_Program, "Include the name of the small-p program this indicator aligns to.");
             context.RegisterFieldNotes<PIP_IndicatorAndResults>(s => s.Indicator_Category_DESC, "Select whether the indicator is quantitative (numeric) or qualitative (non-numeric)");
             context.RegisterFieldNotes<PIP_IndicatorAndResults>(s => s.Indicator_Direction_DESC, "Select whether the indicator seeks to maintain or an increase/decrease");
-            context.RegisterFieldNotes<PIP_IndicatorAndResults>(s => s.Indicator__Progressive_Or_Aggregate_DESC, "Select for quantitive indicators. A progressive indicator: an indicator that has multiple baselines/targets along a continuous temporal line, e.g., 75% in year 1, 80% in year 2, 85% in year 3. An aggregate indicator: an indicator that has multiple baselines/targets according to a number of criteria identified by the indicator itself, e.g., 80% of females in year x, 70% of males in year y.");
 
             context.RegisterCategoryNotes("Methodology", "Explains in detail how the data would be interpreted in relationship with its targets and baseline, including the formula, its calculation method and all necessary definitions.");
             context.RegisterFieldNotes<PIP_IndicatorAndResults>(s => s.Indicator_Rationale_DESC, "Explain how the indicator relates to the output/outcome. How it is a strong measure of the outcome?");
