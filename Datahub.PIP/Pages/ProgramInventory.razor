@@ -34,7 +34,9 @@
     <AeCard class="facardForms" CardPosition="AeCard.CardStyle.Horizontal">
 
         <h2>Select Program Inventory Program</h2>
-
+        <AeFlex id="filterBar">            
+            <AeDropdown Items="validFilterValues" OnChange="HandleFilterChanges" Label="@_filterLabel" class="filterDropdown"/>                
+        </AeFlex>
         <AePaginatedTable Accessors="accessorFunctions"
              Renderers="GetRenderers()"
              T="PIP_Tombstone"
@@ -140,7 +142,9 @@
     private SuccessIndicator _submitApprovalInd;
     private bool _submittingApproval = false;
     private bool _isSetFormEdit = false;
-
+    private List<string> validFilterValues = new List<string>();
+    private string _selectedFilter = "All";
+    private string _filterLabel;
     private void OnPageClick(int pageIndex)
     {
         _lastClicked = pageIndex;
@@ -153,8 +157,11 @@
         _isUserAdmin = await ServiceAuthManager.IsProjectAdmin(CurrentUser.Id, PROJECTACRONYM);
         _fiscalYears = new();
         _fiscalYears = Context.FiscalYears.OrderByDescending(i => i.YearId).Select(i => i.FiscalYear).ToList();
-
         _fiscalYear = _fiscalYear == null ? Context.FiscalYears.OrderByDescending(i => i.YearId).First() : _fiscalYear;
+
+        validFilterValues = Context.Tombstones.Select(s => s.Lead_Sector).Distinct().ToList();
+        validFilterValues.Insert(0, "All");
+        _filterLabel = $"Lead Sector: {_selectedFilter}";
 
         if (_fiscalYear != null)
         {
@@ -173,6 +180,12 @@
         }
     }
 
+    private void HandleFilterChanges(string selectedValue)
+    {
+        _selectedFilter = selectedValue;
+        _filterLabel = $"Lead Sector: {_selectedFilter}";
+        LoadProjects();
+    }
 
     private void OnChange(ModelFormChangeArgs args)
     {
@@ -410,7 +423,8 @@
             if (!string.IsNullOrEmpty(powerBiTargets))
             {
                 var powerBiUrl = $"{powerBiTargets}rp:p_program_title={project.Program_Title.Replace(" ", "+")}&rp:p_fiscal_year_id={project.FiscalYearId}";
-                project.PowerBiUrl = @<a href="@powerBiUrl" target="blank">Open PowerBI Report</a>;
+                project.PowerBiUrl = 
+    @<a href="@powerBiUrl" target="blank">Open PowerBI Report</a>;
             }
         }
 
@@ -496,8 +510,16 @@
     }
 
     private void LoadProjects()
-    {            
-        _projects = Context.Tombstones.Where(l => l.FiscalYear.FiscalYear == _fiscalYear.FiscalYear).ToList();
+    {
+        if (string.IsNullOrEmpty(_selectedFilter) || _selectedFilter == "All")
+        {
+            _projects = Context.Tombstones.Where(l => l.FiscalYear.FiscalYear == _fiscalYear.FiscalYear).ToList();
+        }
+        else
+        {
+            _projects = Context.Tombstones.Where(l => l.FiscalYear.FiscalYear == _fiscalYear.FiscalYear && l.Lead_Sector == _selectedFilter).ToList();
+        }
+        StateHasChanged();
     }
 
  
@@ -576,7 +598,8 @@
                 {
                     $"The record you were trying to update has been modified by another user. Please copy your changes, refresh the page and re-enter the data."
                 };                
-                await UI.ToggleModal(@<WarningModal OnDecision="HandleWarningDecision" WarningTextString=@textList />);
+                await UI.ToggleModal(
+    @<WarningModal OnDecision="HandleWarningDecision" WarningTextString=@textList />);
 
                 await _submitApprovalInd.SignalFailure();
             }

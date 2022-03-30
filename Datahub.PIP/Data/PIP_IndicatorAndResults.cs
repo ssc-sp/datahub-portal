@@ -159,7 +159,7 @@ namespace Datahub.Portal.Data.PIP
 
         [AeLabel(row: "20", column: "1")]
         [AeFormCategory("Actual Results", 30)]
-        [MaxLength(500)]
+        [MaxLength(5000)]
         public string Result_DESC { get; set; }
         [AeLabel(row: "20", column: "2")]
         [AeFormCategory("Actual Results", 30)]
