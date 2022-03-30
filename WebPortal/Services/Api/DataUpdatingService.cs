@@ -72,19 +72,19 @@ namespace Datahub.Portal.Services
             }
         }
         
-        public async Task RenameStorageBlob(FileMetaData selectedFile, string newName, string projectAcronym, User graphUser)
+        public async Task RenameStorageBlob(string oldName, string newName, string projectAcronym)
         {
             var connectionString = await _dataRetrievalService.GetProjectConnectionString(projectAcronym.ToLower());
             var container = CloudStorageAccount.Parse(connectionString)
                 .CreateCloudBlobClient()
                 .GetContainerReference(DataRetrievalService.DEFAULT_CONTAINER_NAME);
 
-            var source = (CloudBlockBlob) await container.GetBlobReferenceFromServerAsync(selectedFile.name);
+            var source = (CloudBlockBlob) await container.GetBlobReferenceFromServerAsync(oldName);
             var target = container.GetBlockBlobReference(newName);
 
             if (source is null)
             {
-                throw new Exception($"Could not find blob: {selectedFile.name}");
+                throw new Exception($"Could not find blob: {oldName}");
             }
             
             await target.StartCopyAsync(source);
