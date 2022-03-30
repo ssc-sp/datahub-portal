@@ -21,7 +21,7 @@ namespace Datahub.Portal.Data.PIP
 
         [AeFormCategory("Indicator Status", 1)]
         [MaxLength(100)]
-        [AeLabel(row: "1", column: "1", isDropDown: true, validValues: new[] { "Input Required" })]
+        [AeLabel(row: "1", column: "1", isDropDown: true, validValues: new[] { "Input Required", "DRR Results Required" })]
         public string Indicator_Status { get; set; }
 
         [AeFormCategory("Indicator Details", 5)]
@@ -69,11 +69,7 @@ namespace Datahub.Portal.Data.PIP
         [MaxLength(4000)]
         public string DRF_Indicator_No { get; set; }
 
-        [AeFormCategory("Indicator Details", 5)]
-        [AeLabel(row: "8", column: "2")]
-        [MaxLength(1000)]
-        public string Tb_Sub_Indicator_Identification_Number_ID { get; set; }
-
+        
         [AeFormCategory("Indicator Details", 5)]
         [AeLabel(row: "9", column: "1")]
         [MaxLength(1000)]
@@ -94,13 +90,8 @@ namespace Datahub.Portal.Data.PIP
         [MaxLength(1000)]
         public string Indicator_Direction_DESC { get; set; }
 
-        [AeFormCategory("Indicator Details", 5)]
-        [AeLabel(row: "10", column: "3", isDropDown: true, placeholder: "Please Select")]
-        [MaxLength(1000)]
-        public string Indicator__Progressive_Or_Aggregate_DESC { get; set; }
 
-
-        [AeLabel(row: "11", column: "1", placeholder: "How it relates to the output or outcome; why is it relevant")]
+        [AeLabel(row: "11", column: "1")]
         [MaxLength(4000)]
         [AeFormCategory("Methodology", 10)]
         public string Indicator_Rationale_DESC { get; set; }
@@ -148,7 +139,7 @@ namespace Datahub.Portal.Data.PIP
         [AeFormCategory("Methodology", 10)]
         public string Data_Type_DESC { get; set; }
 
-        [AeLabel(row: "18", column: "1", placeholder: "Additional definitions/information necessary to understand how the data will be collected for this indicator; Sectors may also insert a link to a methodology sheet in this column")]
+        [AeLabel(row: "18", column: "1")]
         [MaxLength(8000)]
         [AeFormCategory("Methodology", 10)]
         public string Methodology_How_Will_The_Indicator_Be_Measured { get; set; }
@@ -168,7 +159,7 @@ namespace Datahub.Portal.Data.PIP
 
         [AeLabel(row: "20", column: "1")]
         [AeFormCategory("Actual Results", 30)]
-        [MaxLength(8000)]
+        [MaxLength(500)]
         public string Result_DESC { get; set; }
         [AeLabel(row: "20", column: "2")]
         [AeFormCategory("Actual Results", 30)]
@@ -179,10 +170,15 @@ namespace Datahub.Portal.Data.PIP
         public string Target_Met { get; set; }
 
 
-        [AeLabel(row: "21", column: "1", placeholder: "Please provide additional context for the results achieved. This is required for targets not been met, to be achieved in the future, or if the result is significantly higher than the target. There is a character limit of 1000 for this cell in order to meet GC InfoBase character limit.")]
+        [AeLabel(row: "21", column: "1")]
         [MaxLength(8000)]
         [AeFormCategory("Actual Results", 30)]
         public string Explanation { get; set; }
+
+        [AeLabel(row: "21", column: "1")]
+        [MaxLength(8000)]
+        [AeFormCategory("Actual Results", 30)]
+        public string Trend_Rationale { get; set; }
 
         [AeLabel(row: "22", column: "1")]
         [AeFormCategory("Actual Results", 30)]
