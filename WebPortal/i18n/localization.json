@@ -319,6 +319,7 @@
   "Source_Of_Indicator2_DESC": "",
   "Source_Of_Indicator3_DESC": "",
   "Tb_Sub_Indicator_Identification_Number_ID": "TB Sub Indicator Identification Number",
+  "Trend_Rationale": "Rationale for change/trend from previous year",
   "Indicator_Category_DESC": "Indicator Category",
   "Indicator_Direction_DESC": "Indicator Direction ",
   "Indicator__Progressive_Or_Aggregate_DESC": "Indicator - progressive or aggregate",
