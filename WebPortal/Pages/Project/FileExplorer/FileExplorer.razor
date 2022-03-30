@@ -4,6 +4,7 @@
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject DataRetrievalService _dataRetrievalService
 @inject MyDataService _apiService
+@inject IJSRuntime _jsRuntime
 
 
 <div class="file-explorer-layout">
@@ -15,8 +16,7 @@
             CurrentFolder="@_currentFolder"
             SelectedItem="@_selectedItem"
             Files="@_files"
-            Folders="@_folders"
-            />
+            Folders="@_folders"/>
     </CascadingValue>
 
     <div class="file-list">
@@ -121,8 +121,8 @@
     {
         _loading = true;
         StateHasChanged();
-        
-        var (folders, files, continuationToken) = 
+
+        var (folders, files, continuationToken) =
             await _dataRetrievalService.GetStorageBlobPagesAsync(ProjectAcronym, DataRetrievalService.DEFAULT_CONTAINER_NAME, _user, _currentFolder, _continuationToken);
 
         _continuationToken = continuationToken;
@@ -189,6 +189,16 @@
     {
         if (browserFile == null)
             return;
+
+        var newFilename = (_currentFolder + browserFile.Name).TrimStart('/');
+
+        if (_files.Any(f => f.name == newFilename))
+        {
+            var response = await _jsRuntime.InvokeAsync<bool>("confirm",
+                string.Format(Localizer["File '{0}' already exists. Do you want to overwrite it?"], newFilename));
+            if (!response)
+                return;
+        }
 
         var fileMetadata = new FileMetaData
         {
