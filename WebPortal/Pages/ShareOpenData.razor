@@ -442,6 +442,8 @@
             _uploadStatus = OpenDataUploadStatus.UploadingFile;
             StartOpenDataUploadTimer();
 
+            await CatalogSharedObject(fieldValues);
+
             await InvokeAsync(StateHasChanged);
         }
         finally
