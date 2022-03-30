@@ -161,6 +161,10 @@
         {
             await DownloadFile(result);
         }
+        else if (result.DataType == MetadataObjectType.FileUrl)
+        {
+            await DownloadFileUrl(result);
+        }
         else if (result.DataType == MetadataObjectType.PowerBIReport)
         {
             await ViewPowerBIReport(result);
@@ -181,7 +185,12 @@
     private async Task DownloadFile(CatalogObjectResult result)
     {
         var uri = await DataRetrievalService.GetDownloadAccessToSasBlob(DataRetrievalService.DEFAULT_CONTAINER_NAME, fileName: result.Name, projectUploadCode: result.Location);
-        await Task.Run(() => RedirectAndDownload(uri));
+        await Task.Run(() => RedirectAndDownload(uri.ToString()));
+    }
+
+    private async Task DownloadFileUrl(CatalogObjectResult result)
+    {
+        await Task.Run(() => RedirectAndDownload(result.Location));
     }
 
     private async void HandleSearch(string newValue, KeyboardEventArgs ev)
@@ -225,8 +234,8 @@
         _selectedResult = result;
     }
 
-    private async Task RedirectAndDownload(Uri uri)
+    private async Task RedirectAndDownload(string url)
     {
-        await JSRuntime.InvokeAsync<object>("open", uri.ToString(), "_blank");
+        await JSRuntime.InvokeAsync<object>("open", url, "_blank");
     }
 }
