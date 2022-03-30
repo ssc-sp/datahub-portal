@@ -260,7 +260,7 @@ namespace Datahub.Portal.Services
                     Sector_NUM = sector,
                     Branch_NUM = branch,
                     Contact_TXT = contact,
-                    SecurityClass_TXT = !string.IsNullOrEmpty(securityClass) ? securityClass : "Unclasified",
+                    SecurityClass_TXT = !string.IsNullOrEmpty(securityClass) ? securityClass : SecurityClassification.Unclassified,
                     Search_English_TXT = englishText,
                     Search_French_TXT = frenchText
                 };
