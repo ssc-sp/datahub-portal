@@ -25,5 +25,10 @@ namespace Datahub.Portal.Services.Offline
         {
             return Task.FromResult(true);
         }
+
+        public async Task RenameStorageBlob(FileMetaData selectedFile, string newName, string projectAcronym, User graphUser)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
