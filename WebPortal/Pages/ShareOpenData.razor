@@ -377,8 +377,6 @@
             _urlPublishError = string.Empty;
 
             var fieldValues = await MetadataBrokerService.GetObjectMetadataValues(FileId);
-            fieldValues.SetValue("sector", _approvalFormSectorId.ToString());
-            fieldValues.SetValue("branch", _approvalFormBranchId.ToString());
 
             // get the file url (use the saved file url or build the url if none given)
             var url = !string.IsNullOrEmpty(_fileUrl) ? _fileUrl : PublicFileService.GetPublicSharedFileUrl(FileId);
@@ -412,17 +410,21 @@
         var isUrl = !string.IsNullOrEmpty(_fileUrl);
         var objectType = isUrl ? MetadataObjectType.FileUrl : MetadataObjectType.File;
         var location = isUrl ? _fileUrl : _projectCode;
+
+        // allow the name to be indexed as well
+        fieldValues.SetValue("name", _requestFilename); 
         var digest = fieldValues.GetCatalogDigest();
+
         await MetadataBrokerService.UpdateCatalog
         (
             fieldValues.MetadataId, 
             objectType, 
-            digest.Name, 
+            _requestFilename, 
             location, 
-            digest.Sector, 
-            digest.Branch, 
-            digest.Contact, 
-            "", // I don't have a security class
+            _approvalFormSectorId, 
+            _approvalFormBranchId, 
+            _requestingUser?.Mail, 
+            SecurityClassification.Unclassified,
             digest.EnglishCatalog, 
             digest.FrenchCatalog
         );

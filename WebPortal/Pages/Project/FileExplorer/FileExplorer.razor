@@ -249,10 +249,19 @@
             _virtualDirectory[_currentFolder].RemoveAll(f => f.name == fileMetadata.name);
             _virtualDirectory[_currentFolder].Add(fileMetadata);
 
-            StateHasChanged();
+            var savedSearch = _lastSearch;
+            ResetSearch();
+            if (!string.IsNullOrEmpty(savedSearch))
+            {
+                await _searchThrottler.SetQuery(savedSearch);
+            }
+            else
+            {
+                await InvokeAsync(StateHasChanged);
+            }
         });
 
-        StateHasChanged();
+        await InvokeAsync(StateHasChanged);
     }
 
     private bool OwnsFile(FileMetaData file) => (file?.ownedby ?? "").Equals(_userId, StringComparison.InvariantCulture);
