@@ -1,5 +1,6 @@
 @inject IDataRemovalService _dataRemovalService
 @inject DataRetrievalService _dataRetrievalService
+@inject IDataUpdatingService _dataUpdatingService
 @inject NavigationManager _navigationManager
 @inject IJSRuntime _jsRuntime
 
@@ -24,12 +25,17 @@
             @Localizer["Download"]
         </AeButton>
 
+        <AeButton class="button-tool" @onclick="HandleRename" Disabled="!_ownsSelectedFile">
+            <i class="fas fa-edit"></i>
+            @Localizer["Rename"]
+        </AeButton>
+
         <span class="tool-divider"></span>
 
         <AeButton class="button-tool" @onclick="HandleShare" Disabled="!_ownsSelectedFile">
             <i class="fas fa-share-square"></i>
             @Localizer["Share"]
-        </AeButton>            
+        </AeButton>
 
         <span class="tool-divider"></span>
 
@@ -60,10 +66,10 @@
 
     [Parameter]
     public string SelectedItem { get; set; }
-    
+
     [Parameter]
     public List<string> Folders { get; set; }
-    
+
     [Parameter]
     public List<FileMetaData> Files { get; set; }
 
@@ -94,13 +100,15 @@
     {
         _isExistingFile = !Folders.Contains(SelectedItem);
         _selectedFile = Files?.FirstOrDefault(f => f.name == SelectedItem);
+        
+        // TODO: This is a hack until SSC properly sets the owner of a file
         if (Environment.GetEnvironmentVariable("HostingProfile") == "ssc")
         {
             _ownsSelectedFile = _selectedFile != null;
         }
         else
         {
-            _ownsSelectedFile = _selectedFile?.ownedby.Equals(GraphUser.Id, StringComparison.InvariantCulture) == true; 
+            _ownsSelectedFile = _selectedFile?.ownedby.Equals(GraphUser.Id, StringComparison.InvariantCulture) == true;
         }
     }
 
@@ -140,7 +148,7 @@
             sb.Append(_selectedFile.folderpath);
         }
 
-        _navigationManager.NavigateTo(sb.ToString());     
+        _navigationManager.NavigateTo(sb.ToString());
     }
 
     private async Task HandleDelete()
@@ -155,6 +163,20 @@
         }
     }
 
+    private async Task HandleRename()
+    {
+        if (_selectedFile is not null && _ownsSelectedFile)
+        {
+            var newName = await _jsRuntime.InvokeAsync<string>("prompt", "Enter new name", _selectedFile.filename);
+            newName = newName.Replace("/", "").Trim();
+            
+            if (!string.IsNullOrWhiteSpace(newName))
+            {
+                await _dataUpdatingService.RenameStorageBlob(_selectedFile, newName, ProjectAcronym, GraphUser);
+            }
+        }
+    }
+
     private async Task HandleNewFolder()
     {
         var newFolderName = await _module.InvokeAsync<string>("promptForNewFolderName");
@@ -163,4 +185,5 @@
             await OnNewFolder.InvokeAsync(newFolderName.Trim());
         }
     }
+
 }
