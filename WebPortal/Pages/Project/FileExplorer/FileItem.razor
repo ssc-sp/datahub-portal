@@ -2,15 +2,14 @@
 
 @inject IJSRuntime _jsRuntime
 
-<div 
+<div
     @ref="_fileItemElement"
     draggable="true"
     data-type="@(Folder ? "folder" : "file")"
     data-name="@Name"
-    class="file-item @(Highlighted ? "highlight" : "")" 
-    @onclick="OnClick" 
-    @ondblclick="OnDblClick"
-    >
+    class="file-item @(Highlighted ? "highlight" : "")"
+    @onclick="OnClick"
+    @ondblclick="OnDblClick">
     <AeTypography class="file-item-name">
         <span class="file-item-icon">
             @if (Icon != null)
@@ -32,10 +31,13 @@
 </div>
 
 @code {
-    
+
+    [CascadingParameter(Name = "FilterValue")]
+    public string FilterValue { get; set; }
+
     [Parameter]
     public bool Folder { get; set; }
-    
+
     [Parameter]
     public bool Highlighted { get; set; }
 
@@ -50,17 +52,17 @@
 
     [Parameter]
     public DateTime? Modified { get; set; }
-    
+
     [Parameter]
-    public EventCallback<MouseEventArgs> OnClick { get; set; }    
-    
+    public EventCallback<MouseEventArgs> OnClick { get; set; }
+
     [Parameter]
     public EventCallback<MouseEventArgs> OnDblClick { get; set; }
 
     private string ByteSize => Folder ? "" : ByteSizeLib.ByteSize.FromBytes(long.Parse(Size ?? "0")).ToString();
     private IJSObjectReference _module;
     private ElementReference _fileItemElement;
-    
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         await base.OnAfterRenderAsync(firstRender);
@@ -72,7 +74,6 @@
 
             await _module.InvokeAsync<IJSObjectReference>("initializeDraggable", _fileItemElement);
         }
-        
     }
 
 }
