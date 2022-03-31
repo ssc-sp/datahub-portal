@@ -8,7 +8,7 @@
   
   
   &.hover {
-    border: 2px solid c.$blue-400;
+    box-shadow: inset 0 0 0 2px c.$blue-400;
     background-color: rgba(c.$blue-400, .1);
   }
 }
