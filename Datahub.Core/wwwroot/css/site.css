@@ -4995,6 +4995,9 @@ code {
 .tab-control .tab-selection .tab.active {
   border-color: #57C4EC;
 }
+.tab-control .tab-selection .tab.force-gap-left {
+  margin-left: auto;
+}
 .landing-content-wrapper .landing-content {
   margin: 0 0.5rem;
   max-width: 1200px;
