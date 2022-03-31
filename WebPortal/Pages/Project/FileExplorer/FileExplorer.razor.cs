@@ -52,14 +52,23 @@ public partial class FileExplorer
 
     private async Task HandleFileItemDrop(string folder, string filename)
     {
-        _selectedItem = filename;
+        if (!string.IsNullOrWhiteSpace(folder) && !string.IsNullOrWhiteSpace(filename))
+        {
+            var oldFilename = _currentFolder + filename;
+            var newFilename = folder + filename;
+            
+            await _dataUpdatingService.RenameStorageBlob(oldFilename, newFilename, ProjectAcronym, ContainerName);
+            _files.RemoveAll(f => f.name == oldFilename);
+        }
     }
     
-    private async Task HandleFileRename(string newFilename)
+    private async Task HandleFileRename(string fileRename)
     {
-        if (!string.IsNullOrWhiteSpace(newFilename))
+        if (!string.IsNullOrWhiteSpace(fileRename))
         {
-            var oldFilename = _selectedItem;
+            var oldFilename = _currentFolder + GetFileName(_selectedItem);
+            var newFilename = _currentFolder + fileRename;
+            
             await _dataUpdatingService.RenameStorageBlob(oldFilename, newFilename, ProjectAcronym, ContainerName);
             var file = _files.First(f => f.name == oldFilename);
             file.name = newFilename;
@@ -130,7 +139,7 @@ public partial class FileExplorer
         return lastIndex == -1 ? "/" : path[..lastIndex] + "/";
     }
 
-    private string GetFileName(string path)
+    public static string GetFileName(string path)
     {
         if (string.IsNullOrWhiteSpace(path))
             return string.Empty;
