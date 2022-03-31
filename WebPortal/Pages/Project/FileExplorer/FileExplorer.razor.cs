@@ -168,34 +168,15 @@ public partial class FileExplorer
             await UploadFile(browserFile, folderName);
         }
     }
-    
-    private async void HandleSearch(string newValue, KeyboardEventArgs ev)
+
+    private void HandleSearch(string newValue, KeyboardEventArgs ev)
     {
-        await _searchThrottler.SetQuery(newValue);
-    }
-    
-    private void ResetSearch()
-    {
-        _lastSearch = null;
-        _searchResults = _files;
+        _filterValue = newValue.Trim();
+        StateHasChanged();
     }
 
-    private async Task ThrottleSearch(string searchText)
+    private void ResetSearch()
     {
-        if (_lastSearch != searchText)
-        {
-            _searchResults.Clear();
-            _lastSearch = searchText;
-            _selectedItem = string.Empty;
-            try
-            {
-                var all = string.IsNullOrEmpty(searchText);
-                _searchResults = new List<FileMetaData>(_files.Where(c => all || c.name.Contains(searchText ?? string.Empty, StringComparison.InvariantCultureIgnoreCase)));
-            }
-            finally
-            {
-                await InvokeAsync(StateHasChanged);
-            }
-        }            
+        _filterValue = string.Empty;
     }
 }

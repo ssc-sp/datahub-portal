@@ -24,14 +24,16 @@
     </CascadingValue>
 
     <div class="file-list">
-        <AeSearchInput 
-            id="search"
-            SearchIconFAClass="fas fa-search"
-            OnInputChangeWithLastKey=@HandleSearch 
-            style="margin: 1rem;"
-        />
+
+
         <div class="file-list-header">
-            <AeTypography>@Localizer["Name"]</AeTypography>
+            <AeTypography>
+                @Localizer["Name"]
+                @* <AeSearchInput *@
+                @*     SearchIconFAClass="fas fa-search" *@
+                @*     OnInputChangeWithLastKey="HandleSearch" *@
+                @*     style="margin: 0 1rem;"/> *@
+            </AeTypography>
             <AeTypography>@Localizer["Size"]</AeTypography>
             <AeTypography>@Localizer["Last Modified"]</AeTypography>
             <i class="fas fa-sort-alpha-down"></i>
@@ -43,6 +45,7 @@
         }
         else
         {
+            <CascadingValue Value="@_filterValue" Name="FilterValue">
             <UploadSnackbar UploadingFiles="_uploadingFiles">
                 <DropZone MaxHeight OnFilesDrop="UploadFiles">
                     @if (_currentFolder != _root)
@@ -63,7 +66,9 @@
                             </FileItem>
                         </DropZone>
                     }
-                    @foreach (var folderName in _folders)
+                    @foreach (var folderName in _folders
+                        .Where(f => f?.Contains(_filterValue) ?? false)
+                        .OrderBy(f => f.ToLower()))
                     {
                         <DropZone
                             OnFilesDrop="async (e) => await UploadFiles(e, folderName)"
@@ -80,7 +85,9 @@
                             </FileItem>
                         </DropZone>
                     }
-                    @foreach (var file in _searchResults.OrderBy(f => f.name))
+                    @foreach (var file in _files
+                        .Where(f => f?.name?.Contains(_filterValue) ?? false)
+                        .OrderBy(f => f.name.ToLower()))
                     {
                         <FileItem
                             Name="@GetFileName(file.name)"
@@ -95,6 +102,7 @@
                     }
                 </DropZone>
             </UploadSnackbar>
+            </CascadingValue>
         }
     </div>
     <div class="item-details">
@@ -137,9 +145,7 @@
 
     private List<string> _folders = new();
     private List<FileMetaData> _files = new();
-    private string _lastSearch;
-    private QueryThrottler<string> _searchThrottler;
-    private List<FileMetaData> _searchResults = new();
+    private string _filterValue = string.Empty;
 
 
     protected override async Task OnInitializedAsync()
@@ -152,10 +158,6 @@
         _user = await _userInformationService.GetUserAsync();
 
         _uploadingFiles = new List<FileMetaData>();
-        
-        _searchThrottler = new(TimeSpan.FromSeconds(0.5), ThrottleSearch);
-        ResetSearch();
-        
 
         await FetchStorageBlobsPageAsync();
     }
