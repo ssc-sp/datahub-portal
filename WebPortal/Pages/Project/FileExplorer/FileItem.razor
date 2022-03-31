@@ -1,5 +1,16 @@
 @using ByteSizeLib
-<div class="file-item @(Highlighted ? "highlight" : "")" @onclick="OnClick" @ondblclick="OnDblClick">
+
+@inject IJSRuntime _jsRuntime
+
+<div 
+    @ref="_fileItemElement"
+    draggable="true"
+    data-type="@(Folder ? "folder" : "file")"
+    data-name="@Name"
+    class="file-item @(Highlighted ? "highlight" : "")" 
+    @onclick="OnClick" 
+    @ondblclick="OnDblClick"
+    >
     <AeTypography class="file-item-name">
         <span class="file-item-icon">
             @if (Icon != null)
@@ -47,5 +58,21 @@
     public EventCallback<MouseEventArgs> OnDblClick { get; set; }
 
     private string ByteSize => Folder ? "" : ByteSizeLib.ByteSize.FromBytes(long.Parse(Size ?? "0")).ToString();
+    private IJSObjectReference _module;
+    private ElementReference _fileItemElement;
+    
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+
+        if (firstRender)
+        {
+            _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import",
+                "./Pages/Project/FileExplorer/FileItem.razor.js");
+
+            await _module.InvokeAsync<IJSObjectReference>("initializeDraggable", _fileItemElement);
+        }
+        
+    }
 
 }
