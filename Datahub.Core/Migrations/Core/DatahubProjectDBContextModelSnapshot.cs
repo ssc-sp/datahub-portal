@@ -531,6 +531,8 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.HasKey("Id");
 
                     b.ToTable("Registration_Requests");
+                });
+
             modelBuilder.Entity("Datahub.Core.EFCore.GeoObjectShare", b =>
                 {
                     b.Property<string>("GeoObjectShare_ID")
