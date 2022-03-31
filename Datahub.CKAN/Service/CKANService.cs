@@ -89,6 +89,10 @@ namespace Datahub.CKAN.Service
         {
             try
             {
+                // this is to avoid developing on the VPN (test mode should be off in prod)
+                if (_ckanConfiguration.TestMode)
+                    return new CKANApiResult(true, "");
+
                 var baseUrl = _ckanConfiguration.BaseUrl;
                 var apiKey = _ckanConfiguration.ApiKey;
 
