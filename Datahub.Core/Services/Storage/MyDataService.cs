@@ -176,15 +176,15 @@ namespace Datahub.Core.Services
             }
         }
 
-        public async Task UploadGen2File(FileMetaData fileMetadata, string? projectUploadCode)
+        public async Task UploadGen2File(FileMetaData fileMetadata, string projectUploadCode, string containerName)
         {
-            await UploadGen2File(fileMetadata, projectUploadCode, (progress) =>
+            await UploadGen2File(fileMetadata, projectUploadCode, containerName, (progress) =>
             {
                 fileMetadata.uploadedBytes = progress;
                 _ = _notifierService.Update($"adddata", false);
             });
         }
-        public async Task UploadGen2File(FileMetaData fileMetadata, string? projectUploadCode, Action<long> progress)
+        public async Task UploadGen2File(FileMetaData fileMetadata, string projectUploadCode, string containerName, Action<long> progress)
         {
             //await _notifierService.Update($"{fileMetadata.folderpath}/{fileMetadata.filename}", true);
             try
@@ -211,7 +211,7 @@ namespace Datahub.Core.Services
                 else
                 {
                     //await UploadToProject(fileMetadata);
-                    await UploadFileToProject(fileMetadata, projectUploadCode, progress);
+                    await UploadFileToProject(fileMetadata, projectUploadCode, containerName, progress);
                 }
 
                 fileMetadata.FinishUploadInfo(FileUploadStatus.FileUploadSuccess);
@@ -234,13 +234,13 @@ namespace Datahub.Core.Services
 
         }
 
-        private async Task UploadFileToProject(FileMetaData fileMetadata, string projectUploadCode, Action<long> progress)
+        private async Task UploadFileToProject(FileMetaData fileMetadata, string projectUploadCode, string containerName, Action<long> progress)
         {
             string cxnstring = await dataRetrievalService.GetProjectConnectionString(projectUploadCode);
             long maxFileSize = 1024000000000;
             var metadata = fileMetadata!.GenerateMetadata();
 
-            var blobClientUtil = new Utils.BlobClientUtils(cxnstring, "datahub");
+            var blobClientUtil = new Utils.BlobClientUtils(cxnstring, containerName);
 
             await using var stream = fileMetadata.BrowserFile?.OpenReadStream(maxFileSize) ??
                                      browserFile?.OpenReadStream(maxFileSize);

@@ -19,7 +19,7 @@ public partial class FileExplorer
         StateHasChanged();
 
         var (folders, files, continuationToken) =
-            await _dataRetrievalService.GetStorageBlobPagesAsync(ProjectAcronym, DataRetrievalService.DEFAULT_CONTAINER_NAME, _user, _currentFolder, _continuationToken);
+            await _dataRetrievalService.GetStorageBlobPagesAsync(ProjectAcronym, ContainerName, _user, _currentFolder, _continuationToken);
 
         _continuationToken = continuationToken;
         _files = files;
@@ -87,7 +87,7 @@ public partial class FileExplorer
 
         _ = InvokeAsync(async () =>
         {
-            await _apiService.UploadGen2File(fileMetadata, ProjectAcronym.ToLower(), (uploadedBytes) =>
+            await _apiService.UploadGen2File(fileMetadata, ProjectAcronym.ToLower(), ContainerName, (uploadedBytes) =>
             {
                 fileMetadata.uploadedBytes = uploadedBytes;
                 StateHasChanged();
