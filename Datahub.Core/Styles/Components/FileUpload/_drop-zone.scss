@@ -1,7 +1,11 @@
 @use '../../Common' as c;
 
 .dropzone-container {
-  height: 100%;
+  
+  &.max-height {
+    height: 100%;
+  }
+  
   
   &.hover {
     border: 2px solid c.$blue-400;
