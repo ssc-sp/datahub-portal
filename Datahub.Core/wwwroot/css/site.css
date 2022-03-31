@@ -4353,6 +4353,45 @@ code {
   padding-bottom: 2rem;
 }
 
+.admin {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin: 1rem 0 2rem;
+}
+@media (min-width: 1440px) {
+  .admin {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+}
+.admin .project {
+  display: grid;
+  grid-template-rows: auto auto 1fr auto;
+  padding: 1rem 1.5rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  background-color: #fff;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+.admin .project:hover {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02), 0 1px 2px rgba(0, 0, 0, 0.14);
+}
+.admin .project .sector {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+  text-transform: uppercase;
+  opacity: 0.6;
+  line-height: 1;
+}
+.admin .project .name {
+  font-size: 1rem;
+  font-weight: bold;
+}
+.admin .project .project-btn {
+  justify-self: center;
+}
+
 .versionContainer .fileGrid {
   display: grid;
   grid-template-columns: 0.25fr 2.5fr 2.5fr 2.5fr 0.25fr;
@@ -4893,11 +4932,11 @@ code {
   align-self: center;
 }
 
-.dropzone-container {
+.dropzone-container.max-height {
   height: 100%;
 }
 .dropzone-container.hover {
-  border: 2px solid #63b3ed;
+  box-shadow: inset 0 0 0 2px #63b3ed;
   background-color: rgba(99, 179, 237, 0.1);
 }
 
@@ -4994,6 +5033,9 @@ code {
 }
 .tab-control .tab-selection .tab.active {
   border-color: #57C4EC;
+}
+.tab-control .tab-selection .tab.force-gap-left {
+  margin-left: auto;
 }
 .landing-content-wrapper .landing-content {
   margin: 0 0.5rem;
@@ -5395,7 +5437,7 @@ code {
   grid-area: heading;
   border-bottom: 1px solid var(--bg-color-accent);
   display: grid;
-  grid-template-columns: 1fr auto 400px;
+  grid-template-columns: 1fr 1fr;
 }
 .file-explorer-layout-wrapper .file-explorer-layout .heading h1 {
   margin-top: 0;
@@ -5485,11 +5527,14 @@ code {
   border-radius: 100px;
   color: #1e293b;
 }
-.file-explorer-layout-wrapper .file-explorer-layout .file-list .file-item:not(:last-of-type) {
+.file-explorer-layout-wrapper .file-explorer-layout .file-list .file-item:not(:last-of-type), .dropzone-container + .file-explorer-layout-wrapper .file-explorer-layout .file-list .file-item {
   border-bottom: 1px solid var(--bg-color-accent);
 }
 .file-explorer-layout-wrapper .file-explorer-layout .file-list .file-item.highlight {
   background-color: #e2e8f0;
+}
+.file-explorer-layout-wrapper .file-explorer-layout .file-list .dropzone-container:not(:last-of-type) .file-item {
+  border-bottom: 1px solid var(--bg-color-accent);
 }
 .file-explorer-layout-wrapper .file-explorer-layout .item-details {
   grid-area: item-details;
