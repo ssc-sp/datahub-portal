@@ -10,7 +10,6 @@
 
 
 <div class="file-explorer-layout">
-    <CascadingValue Value="_user" Name="GraphUser">
         <Heading
             CurrentFolder="@_currentFolder"
             SelectedItem="@_selectedItem"
@@ -21,7 +20,6 @@
             OnFileDelete="HandleFileDelete"
             OnFileDownload="HandleFileDownload"
             OnFileRename="HandleFileRename"/>
-    </CascadingValue>
 
     <div class="file-list">
 
@@ -45,7 +43,6 @@
         }
         else
         {
-            <CascadingValue Value="@_filterValue" Name="FilterValue">
             <UploadSnackbar UploadingFiles="_uploadingFiles">
                 <DropZone MaxHeight OnFilesDrop="UploadFiles">
                     @if (_currentFolder != _root)
@@ -102,7 +99,6 @@
                     }
                 </DropZone>
             </UploadSnackbar>
-            </CascadingValue>
         }
     </div>
     <div class="item-details">
@@ -127,11 +123,13 @@
 
     [CascadingParameter(Name = "ProjectAcronym")]
     public string ProjectAcronym { get; set; }
+    
+    [CascadingParameter(Name = "GraphUser")]
+    public Microsoft.Graph.User GraphUser { get; set; }
 
     [Parameter]
     public string ContainerName { get; set; }
 
-    private Microsoft.Graph.User _user;
     private string _userId;
 
 
@@ -155,7 +153,6 @@
         await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
 
         _userId = await _userInformationService.GetUserIdString();
-        _user = await _userInformationService.GetUserAsync();
 
         _uploadingFiles = new List<FileMetaData>();
 
