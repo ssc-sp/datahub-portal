@@ -20,8 +20,7 @@
             SetCurrentFolder="SetCurrentFolder"
             OnFileDelete="HandleFileDelete"
             OnFileDownload="HandleFileDownload"
-            OnFileRename="HandleFileRename"
-            />
+            OnFileRename="HandleFileRename"/>
     </CascadingValue>
 
     <div class="file-list">
@@ -39,19 +38,21 @@
         else
         {
             <UploadSnackbar UploadingFiles="_uploadingFiles">
-                <DropZone OnFilesDrop="UploadFiles">
+                <DropZone MaxHeight OnFilesDrop="UploadFiles">
                     @foreach (var folderName in _folders)
                     {
-                        <FileItem
-                            Name="@GetFileName(folderName)"
-                            Highlighted="_selectedItem == folderName"
-                            Folder
-                            @onclick="() => _selectedItem = folderName"
-                            @ondblclick="async () => await SetCurrentFolder(folderName)">
-                            <Icon>
-                                <i class="fas fa-folder"></i>
-                            </Icon>
-                        </FileItem>
+                        <DropZone OnFilesDrop="async (e) => await UploadFiles(e, folderName)">
+                            <FileItem
+                                Name="@GetFileName(folderName)"
+                                Highlighted="_selectedItem == folderName"
+                                Folder
+                                @onclick="() => _selectedItem = folderName"
+                                @ondblclick="async () => await SetCurrentFolder(folderName)">
+                                <Icon>
+                                    <i class="fas fa-folder"></i>
+                                </Icon>
+                            </FileItem>
+                        </DropZone>
                     }
                     @foreach (var file in _files)
                     {
@@ -92,7 +93,7 @@
 
     [CascadingParameter(Name = "ProjectAcronym")]
     public string ProjectAcronym { get; set; }
-    
+
     [Parameter]
     public string ContainerName { get; set; }
 

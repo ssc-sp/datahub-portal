@@ -60,12 +60,12 @@ public partial class FileExplorer
         }
     }
     
-    private async Task UploadFile(IBrowserFile browserFile)
+    private async Task UploadFile(IBrowserFile browserFile, string folder)
     {
         if (browserFile == null)
             return;
 
-        var newFilename = (_currentFolder + browserFile.Name).TrimStart('/');
+        var newFilename = (folder + browserFile.Name).TrimStart('/');
 
         if (_files.Any(f => f.name == newFilename))
         {
@@ -77,8 +77,8 @@ public partial class FileExplorer
 
         var fileMetadata = new FileMetaData
         {
-            folderpath = _currentFolder,
-            filename = (_currentFolder + browserFile.Name).TrimStart('/'),
+            folderpath = folder,
+            filename = (folder + browserFile.Name).TrimStart('/'),
             filesize = browserFile.Size.ToString(),
             uploadStatus = FileUploadStatus.SelectedToUpload,
             BrowserFile = browserFile
@@ -96,9 +96,11 @@ public partial class FileExplorer
             });
 
             _uploadingFiles.Remove(fileMetadata);
-            _files.RemoveAll(f => f.name == fileMetadata.name);
-            _files.Add(fileMetadata);
-
+            if (folder == _currentFolder)
+            {
+                _files.RemoveAll(f => f.name == fileMetadata.name);
+                _files.Add(fileMetadata);
+            }
             StateHasChanged();
         });
 
@@ -138,13 +140,16 @@ public partial class FileExplorer
         await FetchStorageBlobsPageAsync();
     }
 
-    
-
     private async Task UploadFiles(InputFileChangeEventArgs e)
+    {
+        await UploadFiles(e, _currentFolder);
+    }
+
+    private async Task UploadFiles(InputFileChangeEventArgs e, string folderName)
     {
         foreach (var browserFile in e.GetMultipleFiles())
         {
-            await UploadFile(browserFile);
+            await UploadFile(browserFile, folderName);
         }
     }
 }
