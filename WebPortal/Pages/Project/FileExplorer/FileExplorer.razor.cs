@@ -54,8 +54,8 @@ public partial class FileExplorer
     {
         if (!string.IsNullOrWhiteSpace(folder) && !string.IsNullOrWhiteSpace(filename))
         {
-            var oldFilename = _currentFolder + filename;
-            var newFilename = folder + filename;
+            var oldFilename = (_currentFolder + filename).TrimStart('/');
+            var newFilename = (folder + filename).TrimStart('/');
             
             await _dataUpdatingService.RenameStorageBlob(oldFilename, newFilename, ProjectAcronym, ContainerName);
             _files.RemoveAll(f => f.name == oldFilename);
@@ -66,8 +66,8 @@ public partial class FileExplorer
     {
         if (!string.IsNullOrWhiteSpace(fileRename))
         {
-            var oldFilename = _currentFolder + GetFileName(_selectedItem);
-            var newFilename = _currentFolder + fileRename;
+            var oldFilename = (_currentFolder + GetFileName(_selectedItem)).TrimStart('/');
+            var newFilename = (_currentFolder + fileRename).TrimStart('/');
             
             await _dataUpdatingService.RenameStorageBlob(oldFilename, newFilename, ProjectAcronym, ContainerName);
             var file = _files.First(f => f.name == oldFilename);
