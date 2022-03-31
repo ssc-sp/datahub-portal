@@ -60,7 +60,7 @@ public partial class FileExplorer
         if (!string.IsNullOrWhiteSpace(newFilename))
         {
             var oldFilename = _selectedItem;
-            await _dataUpdatingService.RenameStorageBlob(oldFilename, newFilename, ProjectAcronym);
+            await _dataUpdatingService.RenameStorageBlob(oldFilename, newFilename, ProjectAcronym, ContainerName);
             var file = _files.First(f => f.name == oldFilename);
             file.name = newFilename;
         }

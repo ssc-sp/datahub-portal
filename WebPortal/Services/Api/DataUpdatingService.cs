@@ -72,12 +72,12 @@ namespace Datahub.Portal.Services
             }
         }
         
-        public async Task RenameStorageBlob(string oldName, string newName, string projectAcronym)
+        public async Task RenameStorageBlob(string oldName, string newName, string projectAcronym, string containerName)
         {
             var connectionString = await _dataRetrievalService.GetProjectConnectionString(projectAcronym.ToLower());
             var container = CloudStorageAccount.Parse(connectionString)
                 .CreateCloudBlobClient()
-                .GetContainerReference(DataRetrievalService.DEFAULT_CONTAINER_NAME);
+                .GetContainerReference(containerName);
 
             var source = (CloudBlockBlob) await container.GetBlobReferenceFromServerAsync(oldName);
             var target = container.GetBlockBlobReference(newName);
