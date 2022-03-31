@@ -159,32 +159,6 @@
 
         await FetchStorageBlobsPageAsync();
     }
-    
-    private void ResetSearch()
-    {
-        _lastSearch = null;
-        _searchResults = _files;
-    }
-
-    private async Task ThrottleSearch(string searchText)
-    {
-        if (_lastSearch != searchText)
-        {
-            _searchResults.Clear();
-            _lastSearch = searchText;
-            _selectedItem = string.Empty;
-            try
-            {
-                var all = string.IsNullOrEmpty(searchText);
-                _searchResults = new(_files.Where(c => all || c.name.Contains(searchText, StringComparison.InvariantCultureIgnoreCase)));
-            }
-            finally
-            {
-                await InvokeAsync(StateHasChanged);
-            }
-        }            
-    }
-
 
     private bool OwnsFile(FileMetaData file) => (file?.ownedby ?? "").Equals(_userId, StringComparison.InvariantCulture);
 }
