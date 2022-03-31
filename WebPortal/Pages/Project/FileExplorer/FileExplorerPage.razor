@@ -1,9 +1,11 @@
 ﻿@inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject DataRetrievalService _dataRetrievalService
+@inject IUserInformationService _userInformationService
 
 @page "/projects/{ProjectAcronymParam}/filelist"
 @using Datahub.Core.Components.PageBanner
 @using Datahub.Portal.Pages.Project.FileExplorer.ResourcePages
+@using Microsoft.Graph
 
 <DHPageTitle PageTitleKey="@_projectName"/>
 <DHPageAlert Title="How to use Project Storage" Key="@PageAlert.Storage" WikiLinkEN="Onboarding---Project-Storage" WikiLinkFR="Onboarding---Project-Storage"/>
@@ -11,21 +13,23 @@
 <AeTypography style="margin-top: 0;" Variant="h1">@Localizer["Storage Explorer"]</AeTypography>
 
 <CascadingValue Value="@ProjectAcronymParam" Name="ProjectAcronym">
+    <CascadingValue Value="_user" Name="GraphUser">
     <div class="file-explorer-layout-wrapper">
         <TabControl TabIndex="@_tabIndex" OnChangeTab="@OnChangeTab">
             @foreach (var (control, content, forceGapLeft) in _tabs)
             {
-                    <TabPage ForceGapToLeft="forceGapLeft">
-                        <Control>
-                            <AeTypography>@control</AeTypography>
-                        </Control>
-                        <ChildContent>
-                            @content
-                        </ChildContent>
-                    </TabPage>
+                <TabPage ForceGapToLeft="forceGapLeft">
+                    <Control>
+                        <AeTypography>@control</AeTypography>
+                    </Control>
+                    <ChildContent>
+                        @content
+                    </ChildContent>
+                </TabPage>
             }
         </TabControl>
     </div>
+</CascadingValue>
 </CascadingValue>
 
 @code {
@@ -36,10 +40,13 @@
     private int _tabIndex;
     private string _projectName;
     private List<(string, RenderFragment, bool)> _tabs = new();
+    private User _user;
 
     protected override async Task OnInitializedAsync()
     {
         await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
+        
+        _user = await _userInformationService.GetUserAsync();
 
         _projectName = await projectContext.Projects
             .Where(p => p.Project_Acronym_CD == ProjectAcronymParam)
@@ -58,7 +65,7 @@
     {
         await Task.Delay(1);
 
-        var containers = await _dataRetrievalService.GetProjectContainersAsync(ProjectAcronymParam);
+        var containers = await _dataRetrievalService.GetProjectContainersAsync(ProjectAcronymParam, _user);
 
         var tabs = new List<(string, RenderFragment, bool)>();
         containers.ForEach(container => tabs.Add((Localizer[container], @<FileExplorer ContainerName="@container"/>, false)));
