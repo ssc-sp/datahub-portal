@@ -46,7 +46,8 @@ public partial class FileExplorer
         {
             _files?.RemoveAll(f => f.name.Equals(filename, StringComparison.OrdinalIgnoreCase));
         }
-        await SetCurrentFolder(_currentFolder);
+        _selectedItem = _currentFolder;
+        
     }
     
     private async Task HandleFileRename(string newFilename)
