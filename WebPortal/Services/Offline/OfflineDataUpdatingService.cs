@@ -26,7 +26,7 @@ namespace Datahub.Portal.Services.Offline
             return Task.FromResult(true);
         }
 
-        public async Task RenameStorageBlob(string oldName, string newName, string projectAcronym)
+        public async Task RenameStorageBlob(string oldName, string newName, string projectAcronym, string containerName)
         {
             throw new NotImplementedException();
         }
