@@ -1,0 +1,84 @@
+﻿@page "/sharefgp"
+@inject CustomNavigation NavManager
+@inject IDbContextFactory<DatahubProjectDBContext> dbContextFactory
+
+<AeTypography style="margin-left: 2rem;" Variant="h2">@Localizer["FGP-WIZARD.Page_Title"]</AeTypography>
+
+<AeFlex>
+    <AeFlex Vertical style="margin-left: 2rem; width: 50%;">
+        <AeButton OnClickEvent="HandleNext" >
+            Next
+        </AeButton>
+    </AeFlex>
+
+    <div>
+        <AeSteps T=@ShareFGPSteps
+            CurrentStepState=@GetState
+            StepItems=@_steps
+            StepTitle=@StepTitle
+            StepMessage=@StepMessage
+            PassedIcon=@CheckIcon
+            />
+    </div>
+</AeFlex>
+
+@code {
+
+    [Parameter]
+    public string ObjectId { get; set; }
+
+    enum ShareFGPSteps
+    {
+        FillApprovalForm,
+        SubmitApprovalForm,
+        WaitForApproval,
+        PublishDataset,
+        DatasetPublished
+    }
+
+    // steps
+    private List<ShareFGPSteps> _steps = Enum.GetValues<ShareFGPSteps>().ToList();
+    private ShareFGPSteps _currentStep = ShareFGPSteps.FillApprovalForm;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!IsValidObjectId(ObjectId))
+            await NavManager.NavigateTo($"/", true);
+
+        // read shared record
+        using var ctx = dbContextFactory.CreateDbContext();
+        var sharedObject = await ctx.GeoObjectShares.FirstOrDefaultAsync(e => e.GeoObjectShare_ID == ObjectId);
+
+        if (sharedObject is null)
+            await NavManager.NavigateTo($"/", true);
+    }
+
+
+    private AeSteps<ShareFGPSteps>.StepState GetState(ShareFGPSteps step)
+    {
+        if (step < _currentStep) 
+            return AeSteps<ShareFGPSteps>.StepState.Passed;
+
+        if (step == _currentStep) 
+            return AeSteps<ShareFGPSteps>.StepState.Running;
+
+        return AeSteps<ShareFGPSteps>.StepState.Queued;
+    }
+
+    const string PREFIX = "SHARING-STATUS.FGP";
+
+    private string StepTitle(ShareFGPSteps status) => Localizer[$"{PREFIX}.{status}.Title"];
+
+    private string StepMessage(ShareFGPSteps status) => Localizer[$"{PREFIX}.{status}.Description"];
+
+    private RenderFragment CheckIcon => 
+    @<i class="fa fa-check"></i>;
+
+    private void HandleNext()
+    {
+        _currentStep++;
+        StateHasChanged();
+    }
+
+    static bool IsValidObjectId(string id) => Guid.TryParse(id, out Guid ignore);
+}
