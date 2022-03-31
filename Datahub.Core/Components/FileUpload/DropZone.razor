@@ -3,8 +3,11 @@
 @inject IJSRuntime _jsRuntime
 
 
-<div @ref="_dropZoneElement" class="dropzone-container">
-    <InputFile hidden multiple OnChange="@OnFilesDrop" @ref="_inputFile"/>
+<div @ref="_dropZoneElement" class="dropzone-container @(MaxHeight ? "max-height" : "")">
+    @if (OnFilesDrop.HasDelegate)
+    {
+        <InputFile hidden multiple OnChange="@OnFilesDrop" @ref="_inputFile"/>
+    }
     @if (ChildContent != null)
     {
         @ChildContent
@@ -18,6 +21,9 @@
     
     [Parameter]
     public EventCallback<InputFileChangeEventArgs> OnFilesDrop { get; set; }
+    
+    [Parameter]
+    public bool MaxHeight { get; set; }
 
     private ElementReference _dropZoneElement;
     private InputFile _inputFile;
@@ -32,7 +38,7 @@
             _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import",
                 "./_content/Datahub.Core/Components/FileUpload/DropZone.razor.js");
 
-            _dropZoneInstance = await _module.InvokeAsync<IJSObjectReference>("initializeFileDropZone", _dropZoneElement, _inputFile.Element);
+            _dropZoneInstance = await _module.InvokeAsync<IJSObjectReference>("initializeFileDropZone", _dropZoneElement, _inputFile?.Element);
         }
     }
 }

@@ -4893,7 +4893,7 @@ code {
   align-self: center;
 }
 
-.dropzone-container {
+.dropzone-container.max-height {
   height: 100%;
 }
 .dropzone-container.hover {
@@ -5488,11 +5488,14 @@ code {
   border-radius: 100px;
   color: #1e293b;
 }
-.file-explorer-layout-wrapper .file-explorer-layout .file-list .file-item:not(:last-of-type) {
+.file-explorer-layout-wrapper .file-explorer-layout .file-list .file-item:not(:last-of-type), .dropzone-container + .file-explorer-layout-wrapper .file-explorer-layout .file-list .file-item {
   border-bottom: 1px solid var(--bg-color-accent);
 }
 .file-explorer-layout-wrapper .file-explorer-layout .file-list .file-item.highlight {
   background-color: #e2e8f0;
+}
+.file-explorer-layout-wrapper .file-explorer-layout .file-list .dropzone-container:not(:last-of-type) .file-item {
+  border-bottom: 1px solid var(--bg-color-accent);
 }
 .file-explorer-layout-wrapper .file-explorer-layout .item-details {
   grid-area: item-details;
