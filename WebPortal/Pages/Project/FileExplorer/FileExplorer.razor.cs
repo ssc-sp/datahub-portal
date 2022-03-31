@@ -17,7 +17,7 @@ public partial class FileExplorer
         StateHasChanged();
 
         var (folders, files, continuationToken) =
-            await _dataRetrievalService.GetStorageBlobPagesAsync(ProjectAcronym, ContainerName, _user, _currentFolder, _continuationToken);
+            await _dataRetrievalService.GetStorageBlobPagesAsync(ProjectAcronym, ContainerName, GraphUser, _currentFolder, _continuationToken);
 
         _continuationToken = continuationToken;
         _files = files;
@@ -42,7 +42,7 @@ public partial class FileExplorer
     private async Task HandleFileDelete(string filename)
     {
         var selectedFile = _files?.FirstOrDefault(f => f.name == filename);
-        var success = await _dataRemovalService.DeleteStorageBlob(selectedFile, ProjectAcronym, ContainerName, _user);
+        var success = await _dataRemovalService.DeleteStorageBlob(selectedFile, ProjectAcronym, ContainerName, GraphUser);
         if (success)
         {
             _files?.RemoveAll(f => f.name.Equals(filename, StringComparison.OrdinalIgnoreCase));
