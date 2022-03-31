@@ -49,6 +49,11 @@ public partial class FileExplorer
         _selectedItem = _currentFolder;
         
     }
+
+    private async Task HandleFileItemDrop(string folder, string filename)
+    {
+        _selectedItem = filename;
+    }
     
     private async Task HandleFileRename(string newFilename)
     {

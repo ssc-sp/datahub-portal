@@ -18,22 +18,26 @@ export function initializeFileDropZone(dropZoneElement, inputFile, dotNetHelper)
         e.preventDefault();
         e.stopPropagation();
         dropZoneElement.classList.remove("hover");
-        console.log("here");
-        
-        if(inputFile == null) {
+
+        if (inputFile == null) {
             return;
         }
         
+        let draggedFile = e.dataTransfer.getData("text") 
+        if(draggedFile != null) {
+            dotNetHelper.invokeMethodAsync("HandleFileItemDropped", draggedFile);
+        }
+
         // // Set the files property of the input element and raise the change event
         inputFile.files = e.dataTransfer.files;
-        const event = new Event('change', { bubbles: true });
+        const event = new Event('change', {bubbles: true});
         inputFile.dispatchEvent(event);
     }
 
     function onPaste(e) {
         // Set the files property of the input element and raise the change event
         // inputFile.files = e.clipboardData.files;
-        const event = new Event('change', { bubbles: true });
+        const event = new Event('change', {bubbles: true});
         // inputFile.dispatchEvent(event);
     }
 

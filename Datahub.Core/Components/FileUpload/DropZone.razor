@@ -1,7 +1,9 @@
 @using System.IO
 
 @inject IJSRuntime _jsRuntime
+@inject ILogger<DropZone> _logger
 
+@implements IDisposable
 
 <div @ref="_dropZoneElement" class="dropzone-container @(MaxHeight ? "max-height" : "")">
     @if (OnFilesDrop.HasDelegate)
@@ -23,6 +25,9 @@
     public EventCallback<InputFileChangeEventArgs> OnFilesDrop { get; set; }
     
     [Parameter]
+    public EventCallback<string> OnFileItemDrop { get; set; }
+    
+    [Parameter]
     public bool MaxHeight { get; set; }
 
     private ElementReference _dropZoneElement;
@@ -30,6 +35,7 @@
 
     private IJSObjectReference _module;
     private IJSObjectReference _dropZoneInstance;
+    private DotNetObjectReference<DropZone> _dotNetHelper;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -38,7 +44,22 @@
             _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import",
                 "./_content/Datahub.Core/Components/FileUpload/DropZone.razor.js");
 
-            _dropZoneInstance = await _module.InvokeAsync<IJSObjectReference>("initializeFileDropZone", _dropZoneElement, _inputFile?.Element);
+            _dotNetHelper = DotNetObjectReference.Create(this);
+            _dropZoneInstance = await _module.InvokeAsync<IJSObjectReference>("initializeFileDropZone", _dropZoneElement, _inputFile?.Element, _dotNetHelper);
         }
     }
+
+    [JSInvokable]
+    public async Task HandleFileItemDropped(string filename)
+    {
+        _logger.LogInformation("File dragged: {Filename}", filename);
+        await OnFileItemDrop.InvokeAsync(filename);
+    }
+
+    public void Dispose()
+    {
+        ((IDisposable) _inputFile)?.Dispose();
+        _dotNetHelper?.Dispose();
+    }
+
 }
