@@ -1,6 +1,13 @@
+
+<SASTokenButton OnSubstitutionsChanged="HandleSubstitutionsChanged" />
 <Resources PageName="Use-AzCopy-to-Interact-with-Azure-Storage-Account" Substitutions="_substitutions"/>
 
 @code {
     private List<(string, string)> _substitutions;
+    
+    private async Task HandleSubstitutionsChanged(List<(string, string)> substitutions)
+    {
+        _substitutions = substitutions;
+    }
 
 }
