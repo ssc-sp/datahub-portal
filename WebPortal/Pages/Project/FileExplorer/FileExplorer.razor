@@ -3,6 +3,8 @@
 @inject IUserInformationService _userInformationService
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject DataRetrievalService _dataRetrievalService
+@inject IDataUpdatingService _dataUpdatingService
+@inject IDataRemovalService _dataRemovalService
 @inject MyDataService _apiService
 @inject IJSRuntime _jsRuntime
 
@@ -10,15 +12,16 @@
 <div class="file-explorer-layout">
     <CascadingValue Value="_user" Name="GraphUser">
         <Heading
-            ContainerName="@ContainerName"
-            SetCurrentFolder="SetCurrentFolder"
-            OnFileDelete="HandleFileDelete"
-            OnNewFolder="HandleNewFolder"
-            OnFileRename="HandleFileRename"
             CurrentFolder="@_currentFolder"
             SelectedItem="@_selectedItem"
             Files="@_files"
-            Folders="@_folders"/>
+            Folders="@_folders"
+            OnNewFolder="HandleNewFolder"
+            SetCurrentFolder="SetCurrentFolder"
+            OnFileDelete="HandleFileDelete"
+            OnFileDownload="HandleFileDownload"
+            OnFileRename="HandleFileRename"
+            />
     </CascadingValue>
 
     <div class="file-list">
