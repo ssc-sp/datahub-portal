@@ -66,7 +66,15 @@
         }
     </div>
 
-
+    @if (SharedFile != null)
+    {
+        <ObjectMetadataEditor 
+            ObjectId=@SharedFile.File_ID.ToString()
+            Name=@SharedFile.Filename_TXT
+            ValidateRequired=@false
+            Preview=@true
+        />
+    }
 
 </AeFlex>
 
