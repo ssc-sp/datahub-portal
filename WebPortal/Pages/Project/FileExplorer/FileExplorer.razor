@@ -10,6 +10,7 @@
 <div class="file-explorer-layout">
     <CascadingValue Value="_user" Name="GraphUser">
         <Heading
+            ContainerName="@ContainerName"
             SetCurrentFolder="SetCurrentFolder"
             OnFileDelete="HandleFileDelete"
             OnNewFolder="HandleNewFolder"
@@ -88,6 +89,9 @@
 
     [CascadingParameter(Name = "ProjectAcronym")]
     public string ProjectAcronym { get; set; }
+    
+    [Parameter]
+    public string ContainerName { get; set; }
 
     private Microsoft.Graph.User _user;
     private string _userId;
