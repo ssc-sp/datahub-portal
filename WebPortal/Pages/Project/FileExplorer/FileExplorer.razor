@@ -24,6 +24,12 @@
     </CascadingValue>
 
     <div class="file-list">
+        <AeSearchInput 
+            id="search"
+            SearchIconFAClass="fas fa-search"
+            OnInputChangeWithLastKey=@HandleSearch 
+            style="margin: 1rem;"
+        />
         <div class="file-list-header">
             <AeTypography>@Localizer["Name"]</AeTypography>
             <AeTypography>@Localizer["Size"]</AeTypography>
@@ -74,7 +80,7 @@
                             </FileItem>
                         </DropZone>
                     }
-                    @foreach (var file in _files)
+                    @foreach (var file in _searchResults.OrderBy(f => f.name))
                     {
                         <FileItem
                             Name="@GetFileName(file.name)"
@@ -131,6 +137,10 @@
 
     private List<string> _folders = new();
     private List<FileMetaData> _files = new();
+    private string _lastSearch;
+    private QueryThrottler<string> _searchThrottler;
+    private List<FileMetaData> _searchResults = new();
+
 
     protected override async Task OnInitializedAsync()
     {
@@ -142,9 +152,39 @@
         _user = await _userInformationService.GetUserAsync();
 
         _uploadingFiles = new List<FileMetaData>();
+        
+        _searchThrottler = new(TimeSpan.FromSeconds(0.5), ThrottleSearch);
+        ResetSearch();
+        
 
         await FetchStorageBlobsPageAsync();
     }
+    
+    private void ResetSearch()
+    {
+        _lastSearch = null;
+        _searchResults = _files;
+    }
+
+    private async Task ThrottleSearch(string searchText)
+    {
+        if (_lastSearch != searchText)
+        {
+            _searchResults.Clear();
+            _lastSearch = searchText;
+            _selectedItem = string.Empty;
+            try
+            {
+                var all = string.IsNullOrEmpty(searchText);
+                _searchResults = new(_files.Where(c => all || c.name.Contains(searchText, StringComparison.InvariantCultureIgnoreCase)));
+            }
+            finally
+            {
+                await InvokeAsync(StateHasChanged);
+            }
+        }            
+    }
+
 
     private bool OwnsFile(FileMetaData file) => (file?.ownedby ?? "").Equals(_userId, StringComparison.InvariantCulture);
 }
