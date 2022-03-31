@@ -591,16 +591,9 @@ namespace Datahub.Portal.Services.Storage
             }
         }
 
-        public async Task<List<string>> GetProjectContainersAsync(string projectAcronymParam)
+        public async Task<List<string>> GetProjectContainersAsync(string projectAcronymParam, User user)
         {
-            // TODO: This is a temporary solution to get the project containers.
-            // This should be replaced with a call to the storage API.
-            await Task.Delay(0);
-
-            return new List<string>
-            {
-                DEFAULT_CONTAINER_NAME,
-            };
+            return await ListContainers(projectAcronymParam, user);
         }
     }
 }
