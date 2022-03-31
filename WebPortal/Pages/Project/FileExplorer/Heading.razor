@@ -164,8 +164,9 @@
     {
         if (_selectedFile is not null && _ownsSelectedFile)
         {
-            var newName = await _jsRuntime.InvokeAsync<string>("prompt", "Enter new name", _selectedFile.filename);
-            newName = newName.Replace("/", "").Trim();
+            var newName = await _jsRuntime.InvokeAsync<string>("prompt", "Enter new name", 
+                FileExplorer.GetFileName(_selectedFile.filename));
+            newName = newName?.Replace("/", "").Trim();
 
             await OnFileRename.InvokeAsync(newName);
         }
