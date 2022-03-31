@@ -570,7 +570,33 @@
       "Expired": {
         "Title": "Expired"
       }
+    },
+    "FGP": {
+      "FillApprovalForm": {
+        "Description": "Complete the online form and request a digital signature from the Director General.",
+        "Title": "Government Approval Form"
+      },
+      "SubmitApprovalForm": {
+        "Description": "Upload the signed form to GCdocs and paste the link in DataHub.",
+        "Title": "Submit Signed Form"
+      },
+      "WaitForApproval": {
+        "Description": "The request has been submitted for approval. Once the request is approved, the file will be uploaded to Open Data.",
+        "Title": "Pending Approval"
+      },
+      "PublishDataset": {
+        "Description": "The request has been approved, the dataset is ready for publishing.",
+        "Title": "Publish Dataset"
+      },
+      "DatasetPublished": {
+        "Description": "The dataset is now available.",
+        "Title": "Access Dataset"
+      }
     }
+  },
+
+  "FGP-WIZARD": {
+    "Page_Title": "Share FGP Dataset"
   },
 
   "OPENDATA-WIZARD": {

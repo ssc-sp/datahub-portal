@@ -7,11 +7,20 @@ namespace Datahub.Core.EFCore
     {
         [AeFormIgnore]
         [Key]
+        [StringLength(40)]
         public string GeoObjectShare_ID { get; set; }
         [Required]
         public string Json_TXT { get; set; }
         public int? ApprovalForm_ID { get; set; }
-        public bool ApprovalFormCompleted { get; set; }
-        public bool ShareApproved { get; set; }
+        public ShareFGPStatus ShareStatus { get; set; }
+    }
+
+    public enum ShareFGPStatus
+    {
+        FillApprovalForm,
+        SubmitApprovalForm,
+        WaitingForApproval,
+        PublishDataset,
+        DatasetPublished
     }
 }
