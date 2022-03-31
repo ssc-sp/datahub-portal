@@ -136,7 +136,7 @@
 
     private async Task HandleDelete()
     {
-        if (_selectedFile is not null)
+        if (_selectedFile is not null && _ownsSelectedFile)
         {
             var success = await _dataRemovalService.DeleteStorageBlob(_selectedFile, ProjectAcronym, GraphUser);
             if (success)
