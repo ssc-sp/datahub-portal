@@ -249,19 +249,21 @@ namespace Datahub.Portal.Controllers
 
         private async Task<string> SaveGeoData(string requestJson, int approvalFormId)
         {
-            using var ctx = _contextFactory.CreateDbContext();
+            using var ctx = await _contextFactory.CreateDbContextAsync();
 
-            GeoObjectShare geoObjectShare = new()
-            {
-                GeoObjectShare_ID = Guid.NewGuid().ToString(),
-                Json_TXT = requestJson,
-                ApprovalForm_ID = approvalFormId
-            };
+            //GeoObjectShare geoObjectShare = new()
+            //{
+            //    GeoObjectShare_ID = Guid.NewGuid().ToString(),
+            //    Json_TXT = requestJson,
+            //    ApprovalForm_ID = approvalFormId
+            //};
 
-            ctx.GeoObjectShares.Add(geoObjectShare);
-            await ctx.SaveChangesAsync();
+            //ctx.GeoObjectShares.Add(geoObjectShare);
+            //await ctx.SaveChangesAsync();
 
-            return geoObjectShare.GeoObjectShare_ID;
+            //return geoObjectShare.GeoObjectShare_ID;
+
+            return "temp_id";
         }
 
         private Task<int> SaveApprovalForm(OpenDataShareRequest data)
