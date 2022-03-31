@@ -1,5 +1,3 @@
-@inject IDataRemovalService _dataRemovalService
-@inject DataRetrievalService _dataRetrievalService
 @inject NavigationManager _navigationManager
 @inject IJSRuntime _jsRuntime
 
@@ -58,9 +56,6 @@
 
     [CascadingParameter(Name = "GraphUser")]
     public Microsoft.Graph.User GraphUser { get; set; }
-    
-    [Parameter]
-    public string ContainerName { get; set; }
 
     [Parameter]
     public string CurrentFolder { get; set; }
@@ -80,6 +75,9 @@
     [Parameter]
     public EventCallback<string> OnFileDelete { get; set; }
     
+    [Parameter]
+    public EventCallback<string> OnFileDownload { get; set; }
+
     [Parameter]
     public EventCallback<string> OnFileRename { get; set; }
 
@@ -104,8 +102,8 @@
     {
         _isExistingFile = !Folders.Contains(SelectedItem);
         _selectedFile = Files?.FirstOrDefault(f => f.name == SelectedItem);
-        
-        // TODO: This is a hack until SSC properly sets the owner of a file
+
+    // TODO: This is a hack until SSC properly sets the owner of a file
         if (Environment.GetEnvironmentVariable("HostingProfile") == "ssc")
         {
             _ownsSelectedFile = _selectedFile != null;
@@ -126,8 +124,7 @@
     {
         if (_selectedFile is not null)
         {
-            var uri = await _dataRetrievalService.DownloadFile(ContainerName, _selectedFile, ProjectAcronym);
-            await _jsRuntime.InvokeVoidAsync("open", uri.ToString(), "_blank");
+            await OnFileDownload.InvokeAsync(_selectedFile.name);
         }
     }
 
@@ -159,11 +156,7 @@
     {
         if (_selectedFile is not null && _ownsSelectedFile)
         {
-            var success = await _dataRemovalService.DeleteStorageBlob(_selectedFile, ProjectAcronym, ContainerName, GraphUser);
-            if (success)
-            {
-                await OnFileDelete.InvokeAsync(_selectedFile.name);
-            }
+            await OnFileDelete.InvokeAsync(_selectedFile.name);
         }
     }
 
@@ -173,7 +166,7 @@
         {
             var newName = await _jsRuntime.InvokeAsync<string>("prompt", "Enter new name", _selectedFile.filename);
             newName = newName.Replace("/", "").Trim();
-            
+
             await OnFileRename.InvokeAsync(newName);
         }
     }

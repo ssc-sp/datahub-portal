@@ -1,5 +1,6 @@
 using Datahub.Core.Data;
 using Datahub.Core.Services;
+using Datahub.Portal.Services;
 using Datahub.Portal.Services.Storage;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
@@ -9,10 +10,6 @@ namespace Datahub.Portal.Pages.Project.FileExplorer;
 
 public partial class FileExplorer
 {
-
-    [Inject] private IDataUpdatingService _dataUpdatingService { get; set; }
-
-    
     private async Task FetchStorageBlobsPageAsync()
     {
         _loading = true;
@@ -43,7 +40,12 @@ public partial class FileExplorer
     
     private async Task HandleFileDelete(string filename)
     {
-        _files.RemoveAll(f => f.name.Equals(filename, StringComparison.OrdinalIgnoreCase));
+        var selectedFile = _files?.FirstOrDefault(f => f.name == filename);
+        var success = await _dataRemovalService.DeleteStorageBlob(selectedFile, ProjectAcronym, ContainerName, _user);
+        if (success)
+        {
+            _files?.RemoveAll(f => f.name.Equals(filename, StringComparison.OrdinalIgnoreCase));
+        }
         await SetCurrentFolder(_currentFolder);
     }
     
@@ -101,6 +103,13 @@ public partial class FileExplorer
         });
 
         StateHasChanged();
+    }
+
+    private async Task HandleFileDownload(string filename)
+    {   
+        var selectedFile = _files?.FirstOrDefault(f => f.name == filename);
+        var uri = await _dataRetrievalService.DownloadFile(ContainerName, selectedFile, ProjectAcronym);
+        await _jsRuntime.InvokeVoidAsync("open", uri.ToString(), "_blank");
     }
     
     
