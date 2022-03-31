@@ -47,7 +47,7 @@
 
         // read shared record
         using var ctx = dbContextFactory.CreateDbContext();
-        var sharedObject = await ctx.GeoObjectShares.FirstOrDefaultAsync(e => e.GeoObjectShare_ID == ObjectId);
+        var sharedObject = await ctx.FGPObjectShares.FirstOrDefaultAsync(e => e.GeoObjectShare_ID == ObjectId);
 
         if (sharedObject is null)
             await NavManager.NavigateTo($"/", true);
