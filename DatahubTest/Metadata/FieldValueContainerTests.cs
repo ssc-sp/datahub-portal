@@ -92,7 +92,7 @@ namespace Datahub.Tests.Meta_Data
 
         static FieldValueContainer GetFieldValueContainer(FieldDefinitions definitions, params (string name, string value)[] fieldValues)
         {
-            return new FieldValueContainer("1", definitions, fieldValues.Select(fv => new ObjectFieldValue() 
+            return new FieldValueContainer(1, "1", definitions, fieldValues.Select(fv => new ObjectFieldValue() 
             { 
                 FieldDefinition = definitions.Get(fv.name),
                 FieldDefinitionId = definitions.Get(fv.name).FieldDefinitionId, 

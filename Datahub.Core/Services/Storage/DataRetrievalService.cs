@@ -75,8 +75,7 @@ namespace Datahub.Portal.Services.Storage
 
             string key = $"datahub-blob-key-{accountName}";
             var accountKey = await _keyVaultService.GetSecret(key);
-            return
-                @$"DefaultEndpointsProtocol=https;AccountName=dh{accountName}{envName};AccountKey={accountKey};EndpointSuffix=core.windows.net";
+            return @$"DefaultEndpointsProtocol=https;AccountName=dh{accountName}{envName};AccountKey={accountKey};EndpointSuffix=core.windows.net";
         }
 
         private string getEnvSuffix()
@@ -159,8 +158,7 @@ namespace Datahub.Portal.Services.Storage
             return blobServiceClient.GetBlobContainerClient(containerName);
         }
 
-        static BlobSasBuilder GetBlobSasBuilder(string container, string fileName, int days,
-            BlobSasPermissions permissions)
+        static BlobSasBuilder GetBlobSasBuilder(string container, string fileName, int days, BlobSasPermissions permissions)
         {
             var result = new BlobSasBuilder()
             {
@@ -176,8 +174,7 @@ namespace Datahub.Portal.Services.Storage
             return result;
         }
 
-        private async Task<Uri> GetDelegationSasBlobUri(string container, string fileName, string projectUploadCode,
-            int days, BlobSasPermissions permissions)
+        private async Task<Uri> GetDelegationSasBlobUri(string container, string fileName, string projectUploadCode, int days, BlobSasPermissions permissions)
         {
             var project = projectUploadCode.ToLowerInvariant();
             var containerClient = await GetBlobContainerClient(project, container);
@@ -204,24 +201,19 @@ namespace Datahub.Portal.Services.Storage
             return blobUriBuilder.ToUri();
         }
 
-        public async Task<Uri> GetUserDelegationSasBlob(string container, string fileName, string projectUploadCode,
-            int daysValidity = 1)
+        public async Task<Uri> GetUserDelegationSasBlob(string container, string fileName, string projectUploadCode, int daysValidity = 1)
         {
-            return await GetDelegationSasBlobUri(container, fileName, projectUploadCode, daysValidity,
-                BlobSasPermissions.Read | BlobSasPermissions.Write);
+            return await GetDelegationSasBlobUri(container, fileName, projectUploadCode, daysValidity, BlobSasPermissions.Read | BlobSasPermissions.Write);
         }
 
-        public async Task<Uri> GetDownloadAccessToSasBlob(string container, string fileName, string projectUploadCode,
-            int daysValidity = 1)
+        public async Task<Uri> GetDownloadAccessToSasBlob(string container, string fileName, string projectUploadCode, int daysValidity = 1)
         {
-            return await GetDelegationSasBlobUri(container, fileName, projectUploadCode, daysValidity,
-                BlobSasPermissions.Read);
+            return await GetDelegationSasBlobUri(container, fileName, projectUploadCode, daysValidity, BlobSasPermissions.Read);
         }
 
         public async Task<Uri> GenerateSasToken(string container, string projectUploadCode, int daysValidity)
         {
-            return await GetDelegationSasBlobUri(container, null, projectUploadCode, daysValidity,
-                BlobSasPermissions.All);
+            return await GetDelegationSasBlobUri(container, null, projectUploadCode, daysValidity, BlobSasPermissions.All);
         }
 
         public async Task<Uri> DownloadFile(string container, FileMetaData file, string projectUploadCode)
@@ -333,20 +325,17 @@ namespace Datahub.Portal.Services.Storage
                 List<string> displayableSubFolders = new List<string>();
                 subFolders.ForEach(f => displayableSubFolders.Add(f.Replace(rootFolderName, @".")));
 
-                _logger.LogDebug("Get all folders under folder: {RootFolderName} for user: {DisplayName} SUCCEEDED",
-                    rootFolderName, user.DisplayName);
+                _logger.LogDebug("Get all folders under folder: {RootFolderName} for user: {DisplayName} SUCCEEDED", rootFolderName, user.DisplayName);
                 return displayableSubFolders;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Get all folders under folder: {RootFolderName} for user: {DisplayName} FAILED",
-                    rootFolderName, user.DisplayName);
+                _logger.LogError(ex, "Get all folders under folder: {RootFolderName} for user: {DisplayName} FAILED", rootFolderName, user.DisplayName);
                 throw;
             }
         }
 
-        public async Task<Folder> GetFileList(Folder folder, User user, bool onlyFolders = false,
-            bool recursive = false)
+        public async Task<Folder> GetFileList(Folder folder, User user, bool onlyFolders = false, bool recursive = false)
         {
             try
             {
@@ -359,8 +348,7 @@ namespace Datahub.Portal.Services.Storage
                     // The directoryPage.Values will contain both files and folders
                     // We will ALWAYS add subfolders
                     // ONLY add files IFF onlyFolders is false!
-                    foreach (var item in directoryPage.Values.Where(i =>
-                                 i.IsDirectory != null && (i.IsDirectory.Value || !onlyFolders)))
+                    foreach (var item in directoryPage.Values.Where(i => i.IsDirectory != null && (i.IsDirectory.Value || !onlyFolders)))
                     {
                         dynamic child = Map(item, directoryClient);
                         folder.Add(child, false);
@@ -375,16 +363,13 @@ namespace Datahub.Portal.Services.Storage
                 }
 
                 folder.Sort();
-                _logger.LogDebug(
-                    "Get file list for folder: {FullPathFromRoot} for user: {DisplayName} results: {Count} SUCCEEDED",
-                    folder.fullPathFromRoot, user.DisplayName, folder.children.Count);
+                _logger.LogDebug("Get file list for folder: {FullPathFromRoot} for user: {DisplayName} results: {Count} SUCCEEDED", folder.fullPathFromRoot, user.DisplayName, folder.children.Count);
 
                 return folder;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Get file list for folder: {FullPathFromRoot} for user: {DisplayName} FAILED",
-                    folder.fullPathFromRoot, user.DisplayName);
+                _logger.LogError(ex, "Get file list for folder: {FullPathFromRoot} for user: {DisplayName} FAILED", folder.fullPathFromRoot, user.DisplayName);
                 throw;
             }
         }
