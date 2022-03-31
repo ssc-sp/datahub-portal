@@ -22,7 +22,7 @@ namespace Datahub.Core.Modules
             {
                 return asm.GetTypes().Where(t => t.GetInterfaces().Contains(typeof(T))).ToList();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return new List<Type>();
             }
