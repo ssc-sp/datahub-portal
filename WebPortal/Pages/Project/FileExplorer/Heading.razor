@@ -4,7 +4,6 @@
 @inject IJSRuntime _jsRuntime
 
 <div class="heading">
-    <AeTypography Variant="h1">@Localizer["Storage Explorer"]</AeTypography>
     <div class="breadcrumbs">
         <AeButton class="light" @onclick="@(async () => await SetCurrentFolder.InvokeAsync("/"))">@Localizer["root"]</AeButton>
         @foreach (var folder in CurrentFolder.Split("/").Where(s => !string.IsNullOrWhiteSpace(s)))
@@ -59,6 +58,9 @@
 
     [CascadingParameter(Name = "GraphUser")]
     public Microsoft.Graph.User GraphUser { get; set; }
+    
+    [Parameter]
+    public string ContainerName { get; set; }
 
     [Parameter]
     public string CurrentFolder { get; set; }
@@ -124,7 +126,7 @@
     {
         if (_selectedFile is not null)
         {
-            var uri = await _dataRetrievalService.DownloadFile(DataRetrievalService.DEFAULT_CONTAINER_NAME, _selectedFile, ProjectAcronym);
+            var uri = await _dataRetrievalService.DownloadFile(ContainerName, _selectedFile, ProjectAcronym);
             await _jsRuntime.InvokeVoidAsync("open", uri.ToString(), "_blank");
         }
     }
@@ -157,7 +159,7 @@
     {
         if (_selectedFile is not null && _ownsSelectedFile)
         {
-            var success = await _dataRemovalService.DeleteStorageBlob(_selectedFile, ProjectAcronym, GraphUser);
+            var success = await _dataRemovalService.DeleteStorageBlob(_selectedFile, ProjectAcronym, ContainerName, GraphUser);
             if (success)
             {
                 await OnFileDelete.InvokeAsync(_selectedFile.name);

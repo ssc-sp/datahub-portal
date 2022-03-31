@@ -278,7 +278,7 @@
                 {
                     try
                     {
-                        await ApiService.UploadGen2File(_fileMetadata, Project?.ToLower());
+                        await ApiService.UploadGen2File(_fileMetadata, Project?.ToLower(), DataRetrievalService.DEFAULT_CONTAINER_NAME);
                         await NotifierService.Update("filegrid", true);
                         ResetControls();
                     }
