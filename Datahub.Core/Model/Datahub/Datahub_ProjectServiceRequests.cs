@@ -30,7 +30,10 @@ namespace Datahub.Core.EFCore
         [Timestamp]
         public byte[] Timestamp { get; set; }
 
+        #nullable enable
         public Project_Storage? Project_Storage { get; set; }
+        #nullable disable
+
         public Datahub_Project Project { get; set; }
     }
 }
