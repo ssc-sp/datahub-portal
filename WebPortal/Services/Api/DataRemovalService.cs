@@ -180,7 +180,7 @@ namespace Datahub.Portal.Services
         {
             try
             {
-                var connectionString = await _dataRetrievalService.GetProjectConnectionString(project);
+                var connectionString = await _dataRetrievalService.GetProjectConnectionString(project.ToLower());
                 return await CloudStorageAccount.Parse(connectionString)
                     .CreateCloudBlobClient()
                     .GetContainerReference(containerName)
