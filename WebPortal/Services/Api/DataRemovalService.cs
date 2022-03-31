@@ -176,40 +176,20 @@ namespace Datahub.Portal.Services
             }
         }
 
-        public async Task<bool> DeleteStorageBlob(FileMetaData file, string project, Microsoft.Graph.User currentUser)
+        public async Task<bool> DeleteStorageBlob(FileMetaData file, string project, string containerName, Microsoft.Graph.User currentUser)
         {
             try
             {
-                //var uri = await _apiService.GetUserDelegationSasBlob(file, project);
-
-
-                //BlobClient blobClient = new BlobClient(uri);
-                //var response = await blobClient.DeleteIfExistsAsync(Azure.Storage.Blobs.Models.DeleteSnapshotsOption.IncludeSnapshots);
-
-                //return response.Value;
-
-                string cxnstring = await _dataRetrievalService.GetProjectConnectionString(project);
-                CloudStorageAccount storageAccount = CloudStorageAccount.Parse(cxnstring);
-
-                // Create the blob client.
-                CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
-
-                // Retrieve reference to a previously created container.
-                CloudBlobContainer container = blobClient.GetContainerReference(DataRetrievalService.DEFAULT_CONTAINER_NAME);
-
-                // Retrieve reference to a blob named "myblob.csv".
-                CloudBlockBlob blockBlob = container.GetBlockBlobReference(file.name);
-
-                // Delete the blob.
-                blockBlob.Delete();
-
-                return true;
-
-
+                var connectionString = await _dataRetrievalService.GetProjectConnectionString(project);
+                return await CloudStorageAccount.Parse(connectionString)
+                    .CreateCloudBlobClient()
+                    .GetContainerReference(containerName)
+                    .GetBlockBlobReference(file.name)
+                    .DeleteIfExistsAsync();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Delete blob : {file.filename} owned by: {currentUser.DisplayName} FAILED.");
+                _logger.LogError(ex, "Delete blob : {Filename} owned by: {DisplayName} FAILED", file.name, currentUser.DisplayName);   
                 throw;
             }
         }
