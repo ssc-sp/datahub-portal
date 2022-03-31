@@ -2,10 +2,10 @@
 
 <div class="tab-control">
     <div class="tab-selection">
-        @foreach (TabPage tabpage in _pages)
+        @foreach (var tabPage in _pages)
         {
-            <div class="tab @GetTabClass(tabpage)" @onclick=@(() => ActivatePage(tabpage))>
-                @tabpage.Control
+            <div class="tab @GetTabClass(tabPage)" @onclick=@(() => ActivatePage(tabPage))>
+                @tabPage.Control
             </div>
         }
     </div>
@@ -30,7 +30,7 @@
 
     public TabPage ActivePage { get; set; }
 
-    private List<TabPage> _pages = new List<TabPage>();
+    private List<TabPage> _pages = new();
 
     protected override void OnParametersSet()
     {
@@ -41,9 +41,12 @@
         }
     }
 
-    private string GetTabClass(TabPage tabpage)
+    private string GetTabClass(TabPage tabPage)
     {
-        return tabpage == ActivePage ? "active" : "";
+        var active = tabPage == ActivePage ? "active" : "";
+        var forceGapOnLeft = tabPage.ForceGapToLeft ? "force-gap-left" : "";
+        
+        return $"{active} {forceGapOnLeft}";
     }
 
     private async void ActivatePage(TabPage tabPage)
