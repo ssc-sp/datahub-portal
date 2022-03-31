@@ -41,7 +41,10 @@
                 <DropZone MaxHeight OnFilesDrop="UploadFiles">
                     @foreach (var folderName in _folders)
                     {
-                        <DropZone OnFilesDrop="async (e) => await UploadFiles(e, folderName)">
+                        <DropZone 
+                            OnFilesDrop="async (e) => await UploadFiles(e, folderName)"
+                            OnFileItemDrop="async filename => await HandleFileItemDrop(folderName, filename)"
+                            >
                             <FileItem
                                 Name="@GetFileName(folderName)"
                                 Highlighted="_selectedItem == folderName"
