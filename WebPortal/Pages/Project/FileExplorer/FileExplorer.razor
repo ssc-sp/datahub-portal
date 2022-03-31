@@ -39,12 +39,29 @@
         {
             <UploadSnackbar UploadingFiles="_uploadingFiles">
                 <DropZone MaxHeight OnFilesDrop="UploadFiles">
+                    @if (_currentFolder != _root)
+                    {
+                        var parentFolder = GetDirectoryName(_currentFolder);
+                        <DropZone
+                            OnFilesDrop="async (e) => await UploadFiles(e, parentFolder)"
+                            OnFileItemDrop="async filename => await HandleFileItemDrop(parentFolder, filename)">
+                            <FileItem
+                                Name="[..]"
+                                Highlighted="_selectedItem == parentFolder"
+                                Folder
+                                @onclick="() => _selectedItem = parentFolder"
+                                @ondblclick="async () => await SetCurrentFolder(parentFolder)">
+                                <Icon>
+                                    <i class="fas fa-folder"></i>
+                                </Icon>
+                            </FileItem>
+                        </DropZone>
+                    }
                     @foreach (var folderName in _folders)
                     {
-                        <DropZone 
+                        <DropZone
                             OnFilesDrop="async (e) => await UploadFiles(e, folderName)"
-                            OnFileItemDrop="async filename => await HandleFileItemDrop(folderName, filename)"
-                            >
+                            OnFileItemDrop="async filename => await HandleFileItemDrop(folderName, filename)">
                             <FileItem
                                 Name="@GetFileName(folderName)"
                                 Highlighted="_selectedItem == folderName"
