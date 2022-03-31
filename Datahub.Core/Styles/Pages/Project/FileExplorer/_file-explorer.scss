@@ -74,12 +74,21 @@
           }
         }
 
-        &:not(:last-of-type) {
+        &:not(:last-of-type),
+        .dropzone-container + &{
           border-bottom: 1px solid var(--bg-color-accent);
         }
 
         &.highlight {
           background-color: c.$grey-200;
+        }
+      }
+      
+      .dropzone-container {
+        &:not(:last-of-type) {
+          .file-item {
+            border-bottom: 1px solid var(--bg-color-accent);
+          }
         }
       }
     }
