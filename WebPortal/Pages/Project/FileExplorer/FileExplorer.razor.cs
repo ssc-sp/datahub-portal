@@ -4,6 +4,7 @@ using Datahub.Portal.Services;
 using Datahub.Portal.Services.Storage;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 
 namespace Datahub.Portal.Pages.Project.FileExplorer;
@@ -166,5 +167,35 @@ public partial class FileExplorer
         {
             await UploadFile(browserFile, folderName);
         }
+    }
+    
+    private async void HandleSearch(string newValue, KeyboardEventArgs ev)
+    {
+        await _searchThrottler.SetQuery(newValue);
+    }
+    
+    private void ResetSearch()
+    {
+        _lastSearch = null;
+        _searchResults = _files;
+    }
+
+    private async Task ThrottleSearch(string searchText)
+    {
+        if (_lastSearch != searchText)
+        {
+            _searchResults.Clear();
+            _lastSearch = searchText;
+            _selectedItem = string.Empty;
+            try
+            {
+                var all = string.IsNullOrEmpty(searchText);
+                _searchResults = new List<FileMetaData>(_files.Where(c => all || c.name.Contains(searchText ?? string.Empty, StringComparison.InvariantCultureIgnoreCase)));
+            }
+            finally
+            {
+                await InvokeAsync(StateHasChanged);
+            }
+        }            
     }
 }
