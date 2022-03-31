@@ -9,6 +9,17 @@
     <ChildContent>
         @if (_usersAuthorization != null)
         {
+            <div>
+                <FilterBar 
+                    ShowCheckBox="true" 
+                    ShowTextSearch="true" 
+                    CheckBoxText="Hide Approved Users" 
+                    SearchPlaceHolderText="Enter user email"
+                    HandleCheckBoxChange=@HandleCheckChanged
+                    FilterSearch=@FilterSearch
+                    IsChecked="@_hideAuthorizedUsers"
+                />                
+            </div>
             <AePaginatedTable
                 Accessors=@accessorFunctions
                 Dataset=@_usersAuthorization
@@ -44,6 +55,9 @@
 
     [Parameter]
     public int PageSize { get; set; } = 10;
+
+    private bool _hideAuthorizedUsers = true;
+    private string _searchFilter = string.Empty;
 
 
     private List<Datahub_Project_Access_Request> _usersAuthorization;
@@ -128,11 +142,29 @@
             .OrderByDescending(a => a.Request_DT)
             .ToListAsync();
 
+        if (_hideAuthorizedUsers)
+            allAuths = allAuths.Where(a => a.Completion_DT == null).ToList();
+
+        if (!string.IsNullOrWhiteSpace(_searchFilter))
+            allAuths = allAuths.Where(a => a.User_Name.Contains(_searchFilter)).ToList();    
+
         _usersAuthorization = allAuths
             .Where(a => validProjects.Contains(a.Project.Project_ID))
             .ToList();
 
         StateHasChanged();
+    }
+
+    private async void HandleCheckChanged(bool isChecked)
+    {
+        _hideAuthorizedUsers = isChecked;
+        await RefreshData();
+    }
+
+    private async void FilterSearch(string searchFilter)
+    {
+        _searchFilter = searchFilter;
+        await InvokeAsync(RefreshData);
     }
 
     protected override async Task OnInitializedAsync()
