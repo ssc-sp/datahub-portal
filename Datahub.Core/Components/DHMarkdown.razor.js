@@ -1,5 +1,5 @@
 export function styleCodeblocks(element){
-    if(hljs){
+    if(hljs && element && element.querySelectorAll){
         element.querySelectorAll('pre code')
             .forEach(el => {
                 hljs.highlightElement(el);
