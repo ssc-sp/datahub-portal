@@ -54,7 +54,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SQL", "SQL", "{0E732610-562
 		SQL\MigrateStorage.sql = SQL\MigrateStorage.sql
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Datahub.Functions", "Datahub.Functions\Datahub.Functions.csproj", "{D49B255D-3B8D-473C-8BFA-094440AE9CED}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Functions", "Datahub.Functions\Datahub.Functions.csproj", "{D49B255D-3B8D-473C-8BFA-094440AE9CED}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -134,10 +134,11 @@ Global
 		{13C0760C-F9A3-4582-94F6-B34FDF871EAD} = {2B936783-B7E9-401F-9AB4-2D60D9F1E95E}
 		{6DF3ED4E-088F-423B-B766-69243BD9ADF0} = {99B35301-CA50-489C-B1BF-E77559140B1E}
 		{52436CFD-EEE3-4249-AB82-53BBEE7F8251} = {2B936783-B7E9-401F-9AB4-2D60D9F1E95E}
+		{D49B255D-3B8D-473C-8BFA-094440AE9CED} = {D678C794-D1AE-4372-9097-A8C8E0469613}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {9DC4B901-16FF-4FF2-9ED6-B286EA17048E}
-		RESX_AutoCreateNewLanguageFiles = True
 		RESX_ConfirmAddLanguageFile = True
+		RESX_AutoCreateNewLanguageFiles = True
+		SolutionGuid = {9DC4B901-16FF-4FF2-9ED6-B286EA17048E}
 	EndGlobalSection
 EndGlobal
