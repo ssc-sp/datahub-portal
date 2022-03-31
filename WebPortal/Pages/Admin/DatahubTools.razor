@@ -1,0 +1,19 @@
+﻿<AeCard>
+    <Header>
+        <AeTypography Variant="h2">@Localizer["DataHub Tools"]</AeTypography>
+    </Header>
+    <ChildContent>
+        <p>
+            <NavLink href="/admin/powerbi">@Localizer["Power BI Admin Page"]</NavLink>
+        </p>
+        <p>
+            <NavLink href="@($"/datahub/{UrlPathSegment.PROJECTS}")">@Localizer["DataHub Project Tracker"]</NavLink>
+        </p>
+        <p>
+            <NavLink href="/metadata/definitions">@Localizer["Metadata"]</NavLink>
+        </p>
+        <p>
+            <NavLink href="/apiusers">@Localizer["API Users"]</NavLink>
+        </p>
+    </ChildContent>
+</AeCard>
