@@ -1,0 +1,106 @@
+﻿@using global::Datahub.Portal.Data
+
+@*TODO: override icons in AeTreeView with FA icons instead of this hack*@
+<style>
+.ri-arrow-right-s-line::before {
+	content: "\23f5";
+}
+.ri-arrow-down-s-line::before {
+	content: "\23f7";
+}
+</style>
+
+<AeTreeViewIcon 
+    Roots=@TreeItems
+    T=@PowerBiAdminTreeItem
+    FetchChildren=@GetChildren
+    RenderNode=@((t) => t.Label)
+    NodeIsClickable=@NodeIsClickable
+    NodeClicked=@NodeClicked
+    RenderIcon=@((t) => string.Empty)
+/>
+
+@code {
+    private static readonly string LOCALIZATION_PREFIX = $"{PowerBiManagementConstants.POWERBI_MANAGEMENT_LOCALIZATION_ROOT_KEY}.POWER_BI_ADMIN";
+
+    [Parameter]
+    public List<Datahub_Project> DataProjects { get; set; }
+
+    [Parameter]
+    public List<PowerBiAdminWorkspaceTreeItem> Workspaces { get; set; }
+
+    [Parameter]
+    public EventCallback<PowerBiAdminTreeItem> OnItemClicked { get; set; }
+
+    private List<PowerBiAdminTreeItem> TreeItems { get; set; } = new();
+
+    private List<PowerBiAdminTreeItem> GetChildren(PowerBiAdminTreeItem item) => item.Children;
+
+    private bool NodeIsClickable(PowerBiAdminTreeItem item) => item.ItemType == PowerBiAdminTreeItemType.Workspace 
+        || item.ItemType == PowerBiAdminTreeItemType.Report 
+        || item.ItemType == PowerBiAdminTreeItemType.Dataset;
+
+    private async Task NodeClicked(PowerBiAdminTreeItem item)
+    {
+        if (NodeIsClickable(item) && OnItemClicked.HasDelegate)
+        {
+            await OnItemClicked.InvokeAsync(item);
+        }
+    }
+
+    private async Task BuildTree()
+    {
+        var projectDict = DataProjects.ToDictionary(p => p.Project_ID, p => new PowerBiAdminTreeItem(p.ProjectName, PowerBiAdminTreeItemType.Project));
+        var noProject = new PowerBiAdminTreeItem(Localizer[$"{LOCALIZATION_PREFIX}.Unassigned"], PowerBiAdminTreeItemType.Project);
+
+        foreach(var workspace in Workspaces.OrderBy(w => w.DbWorkspaceName))
+        {
+            var wsTreeItem = workspace.ManagementTreeItem;
+            var datasetContainer = new PowerBiAdminTreeItem(Localizer[$"{LOCALIZATION_PREFIX}.Datasets"], PowerBiAdminTreeItemType.Container);
+            var reportContainer = new PowerBiAdminTreeItem(Localizer[$"{LOCALIZATION_PREFIX}.Reports"], PowerBiAdminTreeItemType.Container);
+
+            datasetContainer.AddChildren(workspace.Datasets.Select(d => d.ManagementTreeItem).OrderBy(d => d.Label));
+            reportContainer.AddChildren(workspace.Reports.Select(r => r.ManagementTreeItem).OrderBy(r => r.Label));
+
+            if (datasetContainer.HasChildren)
+            {
+                wsTreeItem.AddChild(datasetContainer);
+            }
+
+            if (reportContainer.HasChildren)
+            {
+                wsTreeItem.AddChild(reportContainer);
+            }
+
+            if (workspace.ProjectId < 0)
+            {
+                noProject.AddChild(wsTreeItem);
+            }
+            else
+            {
+                var projTreeItem = projectDict.GetValueOrDefault(workspace.ProjectId);
+
+                // no projTreeItem means the workspace is assigned to a project that's not available in the current view
+                // e.g. if the powerbi admin page is filtered by one project
+
+                if (projTreeItem != null)
+                {
+                    projTreeItem.AddChild(wsTreeItem);
+                }
+            }
+        }
+
+        TreeItems = new();
+        TreeItems.Add(noProject);
+        TreeItems.AddRange(projectDict.Values.Where(t => t.HasChildren).OrderBy(t => t.Label));
+
+        StateHasChanged();
+        await Task.CompletedTask;
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await BuildTree();
+        await base.OnParametersSetAsync();
+    }
+}

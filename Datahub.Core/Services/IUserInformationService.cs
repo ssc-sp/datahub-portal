@@ -6,7 +6,7 @@ namespace Datahub.Core.Services
     public interface IUserInformationService
     {
         Task<User> GetUserAsync();
-        Task<User?> GetUserAsync(string userId);
+        Task<User> GetUserAsync(string userId);
         Task<User> GetAnonymousUserAsync();
         Task<string> GetUserIdString();
         Task<bool> HasUserAcceptedTAC();
