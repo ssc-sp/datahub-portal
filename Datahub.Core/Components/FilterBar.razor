@@ -1,22 +1,24 @@
 ﻿@using Datahub.Core.Utils
 
-@if (ShowTextSearch)
-{
-    <AeSearchInput 
-            id="search"
-            SearchIconFAClass="fas fa-search"
-            OnInputChangeWithLastKey=@HandleSearch 
-            style="margin: 1rem;"
-            Placeholder=@SearchPlaceHolderText
-    />
-}
-@if (ShowCheckBox)
-{
-    <div>
-        <AeTypography Variant="p">@Localizer[CheckBoxText]</AeTypography>
-        <DHCheckbox IsChecked="@IsChecked" IsCheckedChanged="e => HandleCheckChanged(e)" ></DHCheckbox>
-    </div>
-}
+<div class="filter-bar">
+    @if (ShowTextSearch)
+    {
+        <AeSearchInput 
+                id="search"
+                SearchIconFAClass="fas fa-search"
+                OnInputChangeWithLastKey=@HandleSearch 
+                style="margin: 1rem;"
+                Placeholder=@SearchPlaceHolderText
+        />
+    }
+    @if (ShowCheckBox)
+    {
+        <div class="checkbox">
+            <AeTypography Variant="p no-margin" class="typography-right-margin">@Localizer[CheckBoxText]</AeTypography>
+            <DHCheckbox IsChecked="@IsChecked" IsCheckedChanged="e => HandleCheckChanged(e)"></DHCheckbox>
+        </div>
+    }
+</div>
 @code {
 
     [Parameter]
@@ -39,7 +41,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _searchThrottler = new(TimeSpan.FromSeconds(0.5), ThrottleSearch);
+        _searchThrottler = new(TimeSpan.FromSeconds(0.3), ThrottleSearch);
     }
 
     private async void HandleSearch(string newValue, KeyboardEventArgs ev)
