@@ -206,6 +206,11 @@ namespace Datahub.Portal.Controllers
             if (string.IsNullOrEmpty(emailContact))
                 return BadRequest("Missing email-contact header");
 
+            // get the user id from the email contact
+            var userId = await _msGraphService.GetUserIdFromEmailAsync(emailContact, CancellationToken.None);
+            if (userId is null)
+                return BadRequest($"Invalid email account '{emailContact}'");
+
             // read request json
             var requestJson = await ReadRequestAsString();
 
@@ -220,11 +225,10 @@ namespace Datahub.Portal.Controllers
             var approvalFormId = await SaveApprovalForm(requestSummary.title_en, emailContact, $"{requestSummary.title_en } / {requestSummary.title_en}");
 
             // save and store json request
-            var shareId = await SaveGeoData(requestJson, approvalFormId);
+            var shareId = await SaveGeoData(requestJson, approvalFormId, emailContact);
 
             var url = _publicDataService.GetPublicSharedUrl($"/share/geodata/{shareId}");
 
-            // todo
             return Ok(url);
         }
 
@@ -247,23 +251,22 @@ namespace Datahub.Portal.Controllers
             await _metadataBrokerService.SaveMetadata(fieldValues, anonymous: true);
         }
 
-        private async Task<string> SaveGeoData(string requestJson, int approvalFormId)
+        private async Task<string> SaveGeoData(string requestJson, int approvalFormId, string emailContact)
         {
             using var ctx = await _contextFactory.CreateDbContextAsync();
 
-            //GeoObjectShare geoObjectShare = new()
-            //{
-            //    GeoObjectShare_ID = Guid.NewGuid().ToString(),
-            //    Json_TXT = requestJson,
-            //    ApprovalForm_ID = approvalFormId
-            //};
+            GeoObjectShare geoObjectShare = new()
+            {
+                GeoObjectShare_ID = Guid.NewGuid().ToString(),
+                Json_TXT = requestJson,
+                ApprovalForm_ID = approvalFormId,
+                Email_Contact_TXT = emailContact                
+            };
 
-            //ctx.GeoObjectShares.Add(geoObjectShare);
-            //await ctx.SaveChangesAsync();
+            ctx.GeoObjectShares.Add(geoObjectShare);
+            await ctx.SaveChangesAsync();
 
-            //return geoObjectShare.GeoObjectShare_ID;
-
-            return "temp_id";
+            return geoObjectShare.GeoObjectShare_ID;
         }
 
         private Task<int> SaveApprovalForm(OpenDataShareRequest data)

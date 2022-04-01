@@ -1,24 +1,31 @@
-﻿@page "/sharefgp"
+﻿@page "/share/geodata/{ObjectId}"
 @inject CustomNavigation NavManager
 @inject IDbContextFactory<DatahubProjectDBContext> dbContextFactory
+@inject IMSGraphService GraphService
 
 <AeTypography style="margin-left: 2rem;" Variant="h2">@Localizer["FGP-WIZARD.Page_Title"]</AeTypography>
 
 <AeFlex>
     <AeFlex Vertical style="margin-left: 2rem; width: 50%;">
+
+        @if (_currentStatus == GeoObjectShareStatus.FillApprovalForm)
+        {
+            // ...
+        }
+
         <AeButton OnClickEvent="HandleNext" >
             Next
         </AeButton>
     </AeFlex>
 
     <div>
-        <AeSteps T=@ShareFGPSteps
+        <AeSteps T=@GeoObjectShareStatus
             CurrentStepState=@GetState
             StepItems=@_steps
             StepTitle=@StepTitle
             StepMessage=@StepMessage
             PassedIcon=@CheckIcon
-            />
+        />
     </div>
 </AeFlex>
 
@@ -27,18 +34,10 @@
     [Parameter]
     public string ObjectId { get; set; }
 
-    enum ShareFGPSteps
-    {
-        FillApprovalForm,
-        SubmitApprovalForm,
-        WaitForApproval,
-        PublishDataset,
-        DatasetPublished
-    }
-
-    // steps
-    private List<ShareFGPSteps> _steps = Enum.GetValues<ShareFGPSteps>().ToList();
-    private ShareFGPSteps _currentStep = ShareFGPSteps.FillApprovalForm;
+    private List<GeoObjectShareStatus> _steps = Enum.GetValues<GeoObjectShareStatus>().ToList();
+    private GeoObjectShareStatus _currentStatus = GeoObjectShareStatus.FillApprovalForm;
+    private int _approvalFormId;
+    private GraphUser _requestingUser;
 
     protected override async Task OnInitializedAsync()
     {
@@ -47,36 +46,39 @@
 
         // read shared record
         using var ctx = dbContextFactory.CreateDbContext();
-        var sharedObject = await ctx.FGPObjectShares.FirstOrDefaultAsync(e => e.GeoObjectShare_ID == ObjectId);
 
+        var sharedObject = await ctx.GeoObjectShares.FirstOrDefaultAsync(e => e.GeoObjectShare_ID == ObjectId);
         if (sharedObject is null)
             await NavManager.NavigateTo($"/", true);
+
+        _requestingUser = await GraphService.GetUserAsync(sharedObject.Email_Contact_TXT, CancellationToken.None);
+        _currentStatus = sharedObject.ShareStatus;
+        _approvalFormId = sharedObject.ApprovalForm_ID;
     }
 
-
-    private AeSteps<ShareFGPSteps>.StepState GetState(ShareFGPSteps step)
+    private AeSteps<GeoObjectShareStatus>.StepState GetState(GeoObjectShareStatus step)
     {
-        if (step < _currentStep) 
-            return AeSteps<ShareFGPSteps>.StepState.Passed;
+        if (step < _currentStatus) 
+            return AeSteps<GeoObjectShareStatus>.StepState.Passed;
 
-        if (step == _currentStep) 
-            return AeSteps<ShareFGPSteps>.StepState.Running;
+        if (step == _currentStatus) 
+            return AeSteps<GeoObjectShareStatus>.StepState.Running;
 
-        return AeSteps<ShareFGPSteps>.StepState.Queued;
+        return AeSteps<GeoObjectShareStatus>.StepState.Queued;
     }
 
     const string PREFIX = "SHARING-STATUS.FGP";
 
-    private string StepTitle(ShareFGPSteps status) => Localizer[$"{PREFIX}.{status}.Title"];
+    private string StepTitle(GeoObjectShareStatus status) => Localizer[$"{PREFIX}.{status}.Title"];
 
-    private string StepMessage(ShareFGPSteps status) => Localizer[$"{PREFIX}.{status}.Description"];
+    private string StepMessage(GeoObjectShareStatus status) => Localizer[$"{PREFIX}.{status}.Description"];
 
     private RenderFragment CheckIcon => 
     @<i class="fa fa-check"></i>;
 
     private void HandleNext()
     {
-        _currentStep++;
+        _currentStatus++;
         StateHasChanged();
     }
 
