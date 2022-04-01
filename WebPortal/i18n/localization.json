@@ -173,6 +173,14 @@
     "Unknown": "Unknown",
     "Version": "Version {0}"
   },
+  "DISCOVERY-DATA-TYPES": {
+    "File": "File",
+    "PowerBIWorkspace": "Power BI Workspace",
+    "PowerBIDataset": "Power BI Dataset",
+    "PowerBIReport": "Power BI Report",
+    "FileUrl": "File URL",
+    "GeoObject": "Geo Object"
+  },
   "404-Page-Error": "Invalid URL, please contact administrator if in error.",
   "ChangeOwner": "Change Owner",
   "CreateFolder": "Create Folder",
