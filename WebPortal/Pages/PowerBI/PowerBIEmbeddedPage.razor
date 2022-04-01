@@ -17,7 +17,7 @@
 @using Microsoft.Identity.Web
 @inject MicrosoftIdentityConsentAndConditionalAccessHandler ConsentHandler
 
-<div @ref="@PowerBIElement" style="width:100%;height:600px;max-width: 2000px" />
+<div @ref="@PowerBIElement" style="width:100%;height:600px;max-width: 2000px">@_errorMessage</div>
 
 @code {
 
@@ -41,6 +41,8 @@
     private Report report;
     private string reportToken;
 
+    private string _errorMessage;
+
     protected override async Task OnInitializedAsync()
     {
         try
@@ -50,35 +52,50 @@
             else
                 report = await PowerBiServiceApi.GetReport(ReportId, GroupId);                
             reportToken = await PowerBiServiceApi.GetAccessTokenAsync();
-        } catch (Exception ex)
-        {
-            ConsentHandler.HandleException(ex);
-        }
-        var pbiSettings = new PowerBISettings();
-        if (ReadOnly)
-        {
-            pbiSettings.bars.actionBar.visible = false;
-            pbiSettings.navContentPaneEnabled = false;            
-        }
 
-        if (report != null)
+            var pbiSettings = new PowerBISettings();
+            if (ReadOnly)
+            {
+                pbiSettings.bars.actionBar.visible = false;
+                pbiSettings.navContentPaneEnabled = false;            
+            }
+
+            if (report != null)
+            {
+                await JSRuntime.InvokeAsync<object>(
+                    "ShowMyPowerBI.showReport",
+                    PowerBIElement, reportToken, report.EmbedUrl,
+                    report.Id.ToString(), pbiSettings);
+            }
+        } 
+        catch (Exception ex)
         {
-            await JSRuntime.InvokeAsync<object>(
-                "ShowMyPowerBI.showReport",
-                PowerBIElement, reportToken, report.EmbedUrl,
-                report.Id.ToString(), pbiSettings);
+            HandleError(ex);
         }
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    private void HandleError(Exception ex)
+    {
+        _errorMessage = $"Internal error loading report {ReportId}.";
+        try
+        {
+            ConsentHandler.HandleException(ex);        
+        }
+        catch (Exception)
+        {
+            // >>
+        }
+    }
+
+    protected override Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-
-            
+            // >>
         }
+        return Task.CompletedTask;
     }
+
     private const string AuthorityFormat = "https://login.microsoftonline.com/{0}/v2.0";
     private const string MSGraphScope = "https://analysis.windows.net/powerbi/api/.default";
-
 }
