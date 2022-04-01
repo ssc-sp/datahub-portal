@@ -146,7 +146,7 @@
             allAuths = allAuths.Where(a => a.Completion_DT == null).ToList();
 
         if (!string.IsNullOrWhiteSpace(_searchFilter))
-            allAuths = allAuths.Where(a => a.User_Name.Contains(_searchFilter)).ToList();    
+            allAuths = allAuths.Where(a => a.User_Name.Contains(_searchFilter, StringComparison.InvariantCultureIgnoreCase)).ToList();    
 
         _usersAuthorization = allAuths
             .Where(a => validProjects.Contains(a.Project.Project_ID))
