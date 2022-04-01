@@ -3,43 +3,25 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Datahub.Core.EFCore
 {
-    //public class GeoObjectShare
-    //{
-    //    [AeFormIgnore]
-    //    [Key]
-    //    [StringLength(40)]
-    //    public string GeoObjectShare_ID { get; set; }
-    //    [Required]
-    //    public string Json_TXT { get; set; }
-    //    public int? ApprovalForm_ID { get; set; }
-    //    public ShareFGPStatus ShareStatus { get; set; }
-    //}
-
     public class GeoObjectShare
-    {
-        [AeFormIgnore]
-        [Key]
-        public string GeoObjectShare_ID { get; set; }
-        [Required]
-        public string Json_TXT { get; set; }
-        public int? ApprovalForm_ID { get; set; }
-        public bool ApprovalFormCompleted { get; set; }
-        public bool ShareApproved { get; set; }
-    }
-
-    public class FGPObjectShare
     {
         [AeFormIgnore]
         [Key]
         [StringLength(40)]
         public string GeoObjectShare_ID { get; set; }
+        
         [Required]
         public string Json_TXT { get; set; }
+
+        [Required]
+        [StringLength(128)]
+        public string Email_Contact_TXT { get; set; }
+
         public int ApprovalForm_ID { get; set; }
-        public ShareFGPStatus ShareStatus { get; set; }
+        public GeoObjectShareStatus ShareStatus { get; set; }
     }
 
-    public enum ShareFGPStatus
+    public enum GeoObjectShareStatus
     {
         FillApprovalForm,
         SubmitApprovalForm,
