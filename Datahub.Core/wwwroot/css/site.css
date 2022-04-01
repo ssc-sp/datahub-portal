@@ -2530,12 +2530,15 @@ body {
   cursor: pointer;
   user-select: none;
   padding-left: 0.75rem;
-  background-color: #718096;
+  padding-top: 0.2rem;
+  padding-bottom: 0.2rem;
+  background-color: #4a5568;
   color: #fff;
   word-wrap: break-word;
+  font-weight: bold;
 }
 .ae.table:not(.custom) .ae.table-header .ae.table-cell:hover {
-  background-color: #4a5568;
+  background-color: #2d3748;
 }
 .ae.table:not(.custom) .ae.table-header.simple {
   display: inline-grid;
@@ -4646,6 +4649,16 @@ code {
     transform: translateX(100%);
   }
 }
+.filter-bar .checkbox {
+  margin-bottom: 0.5rem;
+  display: flex;
+  flex-direction: row;
+  padding-left: 1rem;
+}
+.filter-bar .checkbox .typography-right-left {
+  margin-left: 0.5rem;
+}
+
 /** Transparent **/
 /** Black **/
 /** White **/
@@ -5415,6 +5428,20 @@ code {
   height: 66%;
   margin: 0 0.25rem;
   align-self: center;
+}
+.file-explorer-layout-wrapper .file-explorer-layout .heading .actions .button-tool {
+  gap: 0.5rem;
+  border-radius: 500px;
+  font-size: 1rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: transparent;
+  color: var(--tertiary-text);
+}
+.file-explorer-layout-wrapper .file-explorer-layout .heading .actions .button-tool:hover {
+  background-color: var(--bg-color-accent);
+  color: var(--primary-text);
 }
 .file-explorer-layout-wrapper .file-explorer-layout .heading .actions .button-tool {
   gap: 0.5rem;
