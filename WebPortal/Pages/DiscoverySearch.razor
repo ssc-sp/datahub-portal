@@ -3,6 +3,30 @@
 @using Datahub.Core.Utils
 @using Datahub.Metadata.Model
 
+@* TODO: transfer these rules to scss, apply it to metadata keywords *@
+<style>
+    ul.inline-list {
+        margin: 0; 
+        padding: 0; 
+        list-style-type: none; 
+        list-style-image: none;
+    }
+
+    ul.inline-list li {
+        float: left; 
+        margin: 5px 5px 0px 0px; 
+        padding: 4px 8px 4px 4px; 
+        border-width: 1px; 
+        border: 1px dotted grey; 
+        border-radius: 5px; 
+        background-color: #f2f2f2;
+    }
+
+    ul.inline-list li.active {
+        border: 1px solid grey; 
+    }
+</style>
+
 <div style="margin: 2rem">
     <DHPageTitle PageTitleKey=@Localizer["Search catalog"] />
     <AeCard>
@@ -12,10 +36,29 @@
 
                 <AeSearchInput 
                     id="search" 
-                    Placeholder=@Localizer.GetString("Enter keywods..") 
+                    Placeholder=@Localizer.GetString("Enter keywords..") 
                     OnInputChangeWithLastKey=@HandleSearch 
                     ClearIconFAClass="null" 
                 />
+
+                <AeCollapse>
+                    <AeCollapseSection>
+                        <Header><AeTypography Variant="h3">@Localizer["Filter"]</AeTypography></Header>
+                        <ChildContent>
+                            <ul class="ae inline-list" >
+                                @foreach(var t in _filterDataTypes.Keys)
+                                {
+                                    <li class=@(_filterDataTypes[t]? "active":string.Empty)>
+                                        <label>
+                                            <input type="checkbox" checked=@_filterDataTypes[t] @onchange=@(e => ChangeDataTypeFilter(t, e)) />
+                                            <span>@GetLocalizedDataType(t)</span>
+                                        </label>
+                                    </li>
+                                }
+                            </ul>
+                        </ChildContent>
+                    </AeCollapseSection>
+                </AeCollapse>
 
                 <div>
                     <h3>@Localizer["Results"]</h3>
@@ -24,7 +67,7 @@
                         @ref=@_resultTable
                         Accessors=@_accessorFunctions 
                         T=@CatalogObjectResult
-                        Dataset=@_searchResults
+                        Dataset=@_filteredSearchResults
                         Headers=@_headers
                         Renderers=@_renderFunctions
                         Page="@_lastClicked"
@@ -101,8 +144,11 @@
     private bool _searching;
     private QueryThrottler<string> _searchThrottler;
     private List<CatalogObjectResult> _searchResults = new();
+    private List<CatalogObjectResult> _filteredSearchResults = new();
     private bool _isFrench;
     private CatalogObjectResult _selectedResult;
+
+    private Dictionary<MetadataObjectType, bool> _filterDataTypes = new();
 
     private Dictionary<int, OrganizationLevel> _sectors = new();
     private Dictionary<int, OrganizationLevel> _branches = new();
@@ -120,6 +166,7 @@
         _sectors = (await OrganizationLevelsService.GetSectors()).ToDictionary(s => s.Id);
         _branches = (await OrganizationLevelsService.GetBranches()).ToDictionary(b => b.Id);
         _searchThrottler = new(TimeSpan.FromSeconds(0.5), ThrottleSearch);
+        _filterDataTypes = Enum.GetValues<MetadataObjectType>().ToDictionary(t => t, t => false);
         await _searchThrottler.SetQuery(string.Empty);
     }
 
@@ -133,12 +180,37 @@
         }
     }
 
+    private string GetLocalizedDataType(MetadataObjectType dataType) => Localizer[$"DISCOVERY-DATA-TYPES.{dataType}"];
+
+    private void ChangeDataTypeFilter(MetadataObjectType t, ChangeEventArgs e)
+    {
+        if (e.Value is bool)
+        {
+            _filterDataTypes[t] = (bool)e.Value;
+            UpdateFilter();
+        }
+    }
+
+    private void UpdateFilter()
+    {
+        var filteredDataTypes = _filterDataTypes.Where(t => t.Value).Select(t => t.Key).ToHashSet();
+        var noDataTypesSelected = filteredDataTypes.Count < 1;
+
+        _filteredSearchResults = _searchResults
+            .Where(r => noDataTypesSelected || filteredDataTypes.Contains(r.DataType))
+            .ToList();
+
+        _lastClicked = 0;
+        
+        StateHasChanged();
+    }
+
     // accessor functions
     private string GetName(CatalogObjectResult result) => result.Name;
     private string GetSector(CatalogObjectResult result) => GetLabel(_sectors.GetValueOrDefault(result.Sector));
     private string GetBranch(CatalogObjectResult result) => GetLabel(_branches.GetValueOrDefault(result.Branch));
     private string GetContact(CatalogObjectResult result) => result.Contact;
-    private string GetDataType(CatalogObjectResult result) => $"{result.DataType}";
+    private string GetDataType(CatalogObjectResult result) => GetLocalizedDataType(result.DataType);
     private string GetSecurityClass(CatalogObjectResult result) => result.SecurityClass;
     private string GetLabel(OrganizationLevel orgLevel) => (_isFrench ? orgLevel?.FrenchLabel : orgLevel?.EnglishLabel) ?? "-";
 
@@ -207,6 +279,7 @@
         try
         {
             _searchResults = await SearchCatalog(searchText);
+            UpdateFilter();
         }
         finally
         {
