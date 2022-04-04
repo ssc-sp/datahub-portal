@@ -57,6 +57,9 @@ public partial class FileExplorer
         {
             var oldFilename = (_currentFolder + filename).TrimStart('/');
             var newFilename = (folder + filename).TrimStart('/');
+
+            if (await PreventOverwrite(newFilename))
+                return;
             
             await _dataUpdatingService.RenameStorageBlob(oldFilename, newFilename, ProjectAcronym, ContainerName);
             _files.RemoveAll(f => f.name == oldFilename);
@@ -69,11 +72,30 @@ public partial class FileExplorer
         {
             var oldFilename = (_currentFolder + GetFileName(_selectedItem)).TrimStart('/');
             var newFilename = (_currentFolder + fileRename).TrimStart('/');
+
+            if (await PreventOverwrite(newFilename))
+                return;
             
             await _dataUpdatingService.RenameStorageBlob(oldFilename, newFilename, ProjectAcronym, ContainerName);
             var file = _files.First(f => f.name == oldFilename);
             file.name = newFilename;
         }
+    }
+
+    private async Task<bool> IfFileExistsInLocation(string filename)
+    {
+        return await _dataRetrievalService.StorageBlobExistsAsync(filename, ProjectAcronym, ContainerName);
+    }
+
+    private async Task<bool> PreventOverwrite(string filename)
+    {
+        if (await IfFileExistsInLocation(filename))
+        {
+            return !await _jsRuntime.InvokeAsync<bool>("confirm",
+                string.Format(Localizer["File '{0}' already exists. Do you want to overwrite it?"], filename));
+        }
+
+        return false;
     }
     
     private async Task UploadFile(IBrowserFile browserFile, string folder)
@@ -82,14 +104,8 @@ public partial class FileExplorer
             return;
 
         var newFilename = (folder + browserFile.Name).TrimStart('/');
-
-        if (_files.Any(f => f.name == newFilename))
-        {
-            var response = await _jsRuntime.InvokeAsync<bool>("confirm",
-                string.Format(Localizer["File '{0}' already exists. Do you want to overwrite it?"], newFilename));
-            if (!response)
-                return;
-        }
+        if (await PreventOverwrite(newFilename))
+            return;
 
         var fileMetadata = new FileMetaData
         {
