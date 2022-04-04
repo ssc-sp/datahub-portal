@@ -4691,6 +4691,16 @@ code {
     transform: translateX(100%);
   }
 }
+.filter-bar .checkbox {
+  margin-bottom: 0.5rem;
+  display: flex;
+  flex-direction: row;
+  padding-left: 1rem;
+}
+.filter-bar .checkbox .typography-right-left {
+  margin-left: 0.5rem;
+}
+
 /** Transparent **/
 /** Black **/
 /** White **/

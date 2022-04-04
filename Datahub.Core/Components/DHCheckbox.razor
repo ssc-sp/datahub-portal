@@ -1,6 +1,6 @@
 ﻿  <AeCheckbox IsChecked="@IsChecked" IsCheckedChanged="@IsCheckedChanged" 
   HasValueChanged="@HasValueChanged" NullIcon="fad fa-minus-square"
-              CheckedIcon="fad fa-check-square" UncheckedIcon="fal fa-square"/>
+              CheckedIcon="fad fa-check"/>
 
 @code {
 
@@ -8,7 +8,7 @@
     public bool IsChecked { get; set; }
 
     [Parameter]
-    public bool HasValue { get; set; } = true;
+    public bool HasValue { get; set; } = true;    
 
     [Parameter]
     public EventCallback<bool> IsCheckedChanged { get; set; }
