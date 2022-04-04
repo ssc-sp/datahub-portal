@@ -5429,6 +5429,9 @@ code {
   right: 30px;
   z-index: 100;
 }
+.file-explorer-layout-wrapper .tab-control .tab-selection i {
+  margin-right: 4px;
+}
 .file-explorer-layout-wrapper .file-explorer-layout {
   display: grid;
   grid-template-columns: 1fr 400px;

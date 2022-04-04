@@ -10,16 +10,16 @@
 
 
 <div class="file-explorer-layout">
-        <Heading
-            CurrentFolder="@_currentFolder"
-            SelectedItem="@_selectedItem"
-            Files="@_files"
-            Folders="@_folders"
-            OnNewFolder="HandleNewFolder"
-            SetCurrentFolder="SetCurrentFolder"
-            OnFileDelete="HandleFileDelete"
-            OnFileDownload="HandleFileDownload"
-            OnFileRename="HandleFileRename"/>
+    <Heading
+        CurrentFolder="@_currentFolder"
+        SelectedItem="@_selectedItem"
+        Files="@_files"
+        Folders="@_folders"
+        OnNewFolder="HandleNewFolder"
+        SetCurrentFolder="SetCurrentFolder"
+        OnFileDelete="HandleFileDelete"
+        OnFileDownload="HandleFileDownload"
+        OnFileRename="HandleFileRename"/>
 
     <div class="file-list">
 
@@ -123,7 +123,7 @@
 
     [CascadingParameter(Name = "ProjectAcronym")]
     public string ProjectAcronym { get; set; }
-    
+
     [CascadingParameter(Name = "GraphUser")]
     public Microsoft.Graph.User GraphUser { get; set; }
 
