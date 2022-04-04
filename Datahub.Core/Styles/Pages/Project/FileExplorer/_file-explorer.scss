@@ -9,8 +9,9 @@
   
   .sas-token-button {
     position: absolute;
-    top: 0;
-    right: 0;
+    top: 70px;
+    right: 30px;
+    z-index: 100;
   }
 
   .file-explorer-layout {
