@@ -1,0 +1,61 @@
+﻿@using Datahub.Core.Utils
+
+<div class="filter-bar">
+    @if (ShowTextSearch)
+    {
+        <AeSearchInput 
+                id="search"
+                SearchIconFAClass="fas fa-search"
+                OnInputChangeWithLastKey=@HandleSearch 
+                style="margin: 1rem;"
+                Placeholder=@Localizer[SearchPlaceHolderText]
+        />
+    }
+    @if (ShowCheckBox)
+    {
+        <div class="checkbox">
+            <AeTypography Variant="p no-margin" class="typography-right-margin">@Localizer[CheckBoxText]</AeTypography>
+            <DHCheckbox IsChecked="@IsChecked" IsCheckedChanged="e => HandleCheckChanged(e)"></DHCheckbox>
+        </div>
+    }
+</div>
+@code {
+
+    [Parameter]
+    public bool ShowCheckBox { get; set; }
+    [Parameter]
+    public bool ShowTextSearch { get; set; }
+    [Parameter]
+    public EventCallback<string> FilterSearch { get; set; }
+    [Parameter]
+    public string SearchPlaceHolderText { get; set; } = string.Empty;
+
+    [Parameter]
+    public string CheckBoxText { get; set; } = string.Empty;
+    [Parameter]
+    public bool IsChecked { get; set; }
+    [Parameter]
+    public EventCallback<bool> HandleCheckBoxChange { get; set; }
+
+    private QueryThrottler<string> _searchThrottler;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _searchThrottler = new(TimeSpan.FromSeconds(0.3), ThrottleSearch);
+    }
+
+    private async void HandleSearch(string newValue, KeyboardEventArgs ev)
+    {
+        await _searchThrottler.SetQuery(newValue);
+    }
+
+    private async Task ThrottleSearch(string searchText)
+    {
+        await FilterSearch.InvokeAsync(searchText);                    
+    }
+
+    private async void HandleCheckChanged(bool isChecked)
+    {
+        await HandleCheckBoxChange.InvokeAsync(isChecked);
+    }
+}
