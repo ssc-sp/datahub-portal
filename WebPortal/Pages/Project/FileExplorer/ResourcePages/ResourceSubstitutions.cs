@@ -10,6 +10,6 @@ public static class ResourceSubstitutions
     public static string GetStorageAccountNameFromProjectAcronym(string projectAcronym)
     {
         var envName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-        return $"dh{projectAcronym}{envName}";
+        return $"dh{projectAcronym.ToLower()}{envName}";
     }
 }
