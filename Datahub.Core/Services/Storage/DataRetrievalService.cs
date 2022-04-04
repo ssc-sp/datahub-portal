@@ -173,12 +173,14 @@ namespace Datahub.Portal.Services.Storage
 
             return result;
         }
-
-        private async Task<Uri> GetDelegationSasBlobUri(string container, string fileName, string projectUploadCode, int days, BlobSasPermissions permissions)
+        
+        private async Task<Uri> GetDelegationSasBlobUri(string container, string fileName, string projectUploadCode, int days, BlobSasPermissions permissions, bool containerLevel = false)
         {
             var project = projectUploadCode.ToLowerInvariant();
             var containerClient = await GetBlobContainerClient(project, container);
-            var sasBuilder = GetBlobSasBuilder(container, fileName, days, permissions);
+            var sasBuilder = containerLevel
+                ? GetContainerSasBuild(containerClient.Name, days, permissions) 
+                : GetBlobSasBuilder(container, fileName, days, permissions);
 
             var sharedKeyCred = await _dataLakeClientService.GetSharedKeyCredential(project);
 
@@ -201,6 +203,21 @@ namespace Datahub.Portal.Services.Storage
             return blobUriBuilder.ToUri();
         }
 
+        private static BlobSasBuilder GetContainerSasBuild(string containerName, int days, BlobSasPermissions permissions)
+        {
+            var sasBuilder  = new BlobSasBuilder
+            {
+                BlobContainerName = containerName,
+                Resource = "c",
+                StartsOn = DateTimeOffset.Now,
+                ExpiresOn = DateTimeOffset.Now.AddDays(days)
+            };
+            
+            sasBuilder.SetPermissions(permissions);
+
+            return sasBuilder;
+        }
+
         public async Task<Uri> GetUserDelegationSasBlob(string container, string fileName, string projectUploadCode, int daysValidity = 1)
         {
             return await GetDelegationSasBlobUri(container, fileName, projectUploadCode, daysValidity, BlobSasPermissions.Read | BlobSasPermissions.Write);
@@ -211,10 +228,12 @@ namespace Datahub.Portal.Services.Storage
             return await GetDelegationSasBlobUri(container, fileName, projectUploadCode, daysValidity, BlobSasPermissions.Read);
         }
 
-        public async Task<Uri> GenerateSasToken(string container, string projectUploadCode, int daysValidity)
+        public async Task<Uri> GenerateSasToken(string container, string projectUploadCode, int daysValidity, bool containerLevel = false)
         {
-            return await GetDelegationSasBlobUri(container, null, projectUploadCode, daysValidity, BlobSasPermissions.All);
+            return await GetDelegationSasBlobUri(container, null, projectUploadCode, daysValidity, BlobSasPermissions.All, containerLevel);
         }
+
+        
 
         public async Task<Uri> DownloadFile(string container, FileMetaData file, string projectUploadCode)
         {

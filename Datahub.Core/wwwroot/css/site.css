@@ -3361,6 +3361,7 @@ code {
 }
 .application-wrapper .main-layout .ui-control .main-page {
   padding: calc((0 + 4 * (var(--design-unit) * var(--density))) * 1px);
+  max-width: calc(100vw - 90px);
 }
 .application-wrapper .main-layout .ui-control .right-sidebar {
   position: absolute;
@@ -4893,12 +4894,13 @@ code {
 }
 .markdown-container pre .codeblock-copy-icon {
   position: absolute;
-  top: 0.4rem;
-  right: 0.4rem;
+  top: 0.2rem;
+  right: 0.2rem;
   padding: 0.5rem;
   width: 33px;
   height: 33px;
   color: #cbd5e1;
+  background-color: #fff;
   cursor: pointer;
   border: 1px solid #f1f5f9;
   border-radius: 4px;
@@ -5428,6 +5430,9 @@ code {
   top: 70px;
   right: 30px;
   z-index: 100;
+}
+.file-explorer-layout-wrapper .tab-control .tab-selection i {
+  margin-right: 4px;
 }
 .file-explorer-layout-wrapper .file-explorer-layout {
   display: grid;
@@ -6039,6 +6044,19 @@ img {
   color: #742a2a;
   border-color: #742a2a;
   border-left: 8px solid #742a2a;
+}
+
+pre {
+  white-space: pre-wrap;
+  /* css-3 */
+  white-space: -moz-pre-wrap;
+  /* Mozilla, since 1999 */
+  white-space: -pre-wrap;
+  /* Opera 4-6 */
+  white-space: -o-pre-wrap;
+  /* Opera 7 */
+  word-wrap: break-word;
+  /* Internet Explorer 5.5+ */
 }
 
 .page-alert {

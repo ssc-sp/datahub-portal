@@ -14,22 +14,22 @@
 
 <CascadingValue Value="@ProjectAcronymParam" Name="ProjectAcronym">
     <CascadingValue Value="_user" Name="GraphUser">
-    <div class="file-explorer-layout-wrapper">
-        <TabControl TabIndex="@_tabIndex" OnChangeTab="@OnChangeTab">
-            @foreach (var (control, content, forceGapLeft) in _tabs)
-            {
-                <TabPage ForceGapToLeft="forceGapLeft">
-                    <Control>
-                        <AeTypography>@control</AeTypography>
-                    </Control>
-                    <ChildContent>
-                        @content
-                    </ChildContent>
-                </TabPage>
-            }
-        </TabControl>
-    </div>
-</CascadingValue>
+        <div class="file-explorer-layout-wrapper">
+            <TabControl TabIndex="@_tabIndex" OnChangeTab="@OnChangeTab">
+                @foreach (var (control, content, forceGapLeft) in _tabs)
+                {
+                    <TabPage ForceGapToLeft="forceGapLeft">
+                        <Control>
+                            @control
+                        </Control>
+                        <ChildContent>
+                            @content
+                        </ChildContent>
+                    </TabPage>
+                }
+            </TabControl>
+        </div>
+    </CascadingValue>
 </CascadingValue>
 
 @code {
@@ -39,20 +39,20 @@
 
     private int _tabIndex;
     private string _projectName;
-    private List<(string, RenderFragment, bool)> _tabs = new();
+    private List<(RenderFragment, RenderFragment, bool)> _tabs = new();
     private User _user;
 
     protected override async Task OnInitializedAsync()
     {
         await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
-        
+
         _user = await _userInformationService.GetUserAsync();
 
         _projectName = await projectContext.Projects
             .Where(p => p.Project_Acronym_CD == ProjectAcronymParam)
             .Select(p => p.ProjectName)
             .FirstOrDefaultAsync();
-        
+
         _tabs = await GetTabs();
     }
 
@@ -61,17 +61,27 @@
         _tabIndex = tabIndex;
     }
 
-    private async Task<List<(string, RenderFragment, bool)>> GetTabs()
+    private async Task<List<(RenderFragment, RenderFragment, bool)>> GetTabs()
     {
         await Task.Delay(1);
 
         var containers = await _dataRetrievalService.GetProjectContainersAsync(ProjectAcronymParam, _user);
 
-        var tabs = new List<(string, RenderFragment, bool)>();
-        containers.ForEach(container => tabs.Add((Localizer[container], @<FileExplorer ContainerName="@container"/>, false)));
+        var tabs = new List<(RenderFragment, RenderFragment, bool)>();
+        containers.ForEach(container =>
+            tabs.Add((@<AeTypography>
+                         <i class="fas fa-hdd"></i>
+                         @Localizer[container]
+                     </AeTypography>, @<FileExplorer ContainerName="@container"/>, false)));
 
-        tabs.Add((Localizer["AzCopy"], @<AzCopy/>, true));
-        tabs.Add((Localizer["Databricks Access"], @<Databricks />, false));
+        tabs.Add((@<AeTypography>
+                      <i class="fas fa-info-circle"></i>
+                      @Localizer["AzCopy"]
+                  </AeTypography>, @<AzCopy/>, true));
+        tabs.Add((@<AeTypography>
+                      <i class="fas fa-info-circle"></i>
+                      @Localizer["Databricks Access"]
+                  </AeTypography>, @<Databricks/>, false));
 
         return tabs;
     }
