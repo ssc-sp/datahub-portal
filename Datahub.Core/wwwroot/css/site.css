@@ -2984,6 +2984,19 @@ body {
   color: #e53e3e;
 }
 
+pre {
+  white-space: pre-wrap;
+  /* css-3 */
+  white-space: -moz-pre-wrap;
+  /* Mozilla, since 1999 */
+  white-space: -pre-wrap;
+  /* Opera 4-6 */
+  white-space: -o-pre-wrap;
+  /* Opera 7 */
+  word-wrap: break-word;
+  /* Internet Explorer 5.5+ */
+}
+
 code {
   background-color: #e2e8f0;
 }
@@ -3361,6 +3374,7 @@ code {
 }
 .application-wrapper .main-layout .ui-control .main-page {
   padding: calc((0 + 4 * (var(--design-unit) * var(--density))) * 1px);
+  max-width: calc(100vw - 90px);
 }
 .application-wrapper .main-layout .ui-control .right-sidebar {
   position: absolute;
@@ -4893,8 +4907,8 @@ code {
 }
 .markdown-container pre .codeblock-copy-icon {
   position: absolute;
-  top: 0.4rem;
-  right: 0.4rem;
+  top: 0.2rem;
+  right: 0.2rem;
   padding: 0.5rem;
   width: 33px;
   height: 33px;

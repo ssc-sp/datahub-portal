@@ -173,7 +173,7 @@ namespace Datahub.Portal.Services.Storage
 
             return result;
         }
-
+        
         private async Task<Uri> GetDelegationSasBlobUri(string container, string fileName, string projectUploadCode, int days, BlobSasPermissions permissions)
         {
             var project = projectUploadCode.ToLowerInvariant();
@@ -211,9 +211,39 @@ namespace Datahub.Portal.Services.Storage
             return await GetDelegationSasBlobUri(container, fileName, projectUploadCode, daysValidity, BlobSasPermissions.Read);
         }
 
-        public async Task<Uri> GenerateSasToken(string container, string projectUploadCode, int daysValidity)
+        public async Task<Uri> GenerateSasToken(string container, string projectUploadCode, int daysValidity, bool containerLevel = false)
         {
+            if (containerLevel)
+            {
+                return await GetBlobContainerSasUri(container, projectUploadCode, daysValidity,
+                    BlobContainerSasPermissions.All);
+            }
+            
             return await GetDelegationSasBlobUri(container, null, projectUploadCode, daysValidity, BlobSasPermissions.All);
+        }
+
+        private async Task<Uri> GetBlobContainerSasUri(string container, string projectUploadCode, int daysValidity, BlobContainerSasPermissions blobContainerSasPermissions)
+        {
+            var project = projectUploadCode.ToLowerInvariant();
+            var containerClient = await GetBlobContainerClient(project, container);
+            var sharedKeyCred = await _dataLakeClientService.GetSharedKeyCredential(project);
+
+            var sasBuilder  = new BlobSasBuilder
+            {
+                BlobContainerName = containerClient.Name,
+                Resource = "c",
+                StartsOn = DateTimeOffset.Now,
+                ExpiresOn = DateTimeOffset.Now.AddDays(daysValidity)
+            };
+            sasBuilder.SetPermissions(blobContainerSasPermissions);
+            
+            var uri = containerClient.GenerateSasUri(sasBuilder);
+            var blobUriBuilder = new BlobUriBuilder(uri)
+            {
+                Sas = sasBuilder.ToSasQueryParameters(sharedKeyCred)
+            };
+
+            return blobUriBuilder.ToUri();
         }
 
         public async Task<Uri> DownloadFile(string container, FileMetaData file, string projectUploadCode)
