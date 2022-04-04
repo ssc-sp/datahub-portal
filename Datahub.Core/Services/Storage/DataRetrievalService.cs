@@ -614,5 +614,16 @@ namespace Datahub.Portal.Services.Storage
         {
             return await ListContainers(projectAcronymParam, user);
         }
+
+        public async Task<bool> StorageBlobExistsAsync(string filename, string projectAcronym, string containerName)
+        {
+            var connectionString = await GetProjectConnectionString(projectAcronym.ToLower());
+            var blobServiceClient = new BlobServiceClient(connectionString);
+            
+            var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
+            var blobClient = containerClient.GetBlobClient(filename);
+
+            return await blobClient.ExistsAsync();
+        }
     }
 }
