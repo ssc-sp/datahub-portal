@@ -6,6 +6,7 @@
 @inject ILogger<DHLink> Logger
 @inject NavigationManager NavigationManager
 @inject UserLocationManagerService UserLocationManagerService
+@inject IJSRuntime _jsRuntime
 
 @inherits HtmlElement
 
@@ -37,19 +38,15 @@
     public string Name { get; set; }
 
     [Parameter]
-    public string? PBIReportId { get; set; } = null;
+    public string PBIReportId { get; set; } = null;
 
     [Parameter]
-    public string? PBIWorkspaceId { get; set; } = null;
+    public string PBIWorkspaceId { get; set; } = null;
 
     [Parameter]
-    public UserRecentLink? UserRecentLink { get; set; }
+    public UserRecentLink UserRecentLink { get; set; }
 
     public static readonly Regex PBIUrl = new Regex("https://app.powerbi.com/groups/(.+)/reports/(.+)/(.+)", RegexOptions.IgnoreCase);
-
-    //            <NavLink href="@("/project/" + p.Project_Acronym_CD)"> <AeTypography></AeTypography></NavLink>
-
-    private string url;
 
     private async Task Navigate()
     {
@@ -97,7 +94,8 @@
                 NavigationManager.NavigateTo($"/{UrlPathSegment.PROJECTS}/{link.DataProject}");
                 break;
             case DatahubLinkType.Databricks:
-                NavigationManager.NavigateTo(link.DatabricksURL);
+                await _jsRuntime.InvokeVoidAsync("open", link?.DatabricksURL, "_blank");
+                // NavigationManager.NavigateTo(link.DatabricksURL);
                 break;
             case DatahubLinkType.WebForm:
                 NavigationManager.NavigateTo(link.WebFormsURL);

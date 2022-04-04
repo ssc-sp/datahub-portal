@@ -1,349 +1,445 @@
 ﻿@page "/admin/powerbi"
-@page "/admin/powerbi/{projectAcronym}"
+@page "/admin/powerbi/{ProjectAcronym}"
 
-@using Microsoft.EntityFrameworkCore.Query
-@using Microsoft.EntityFrameworkCore;
-@using Microsoft.PowerBI.Api.Models
-@inject IStringLocalizer<DataLabels> DataLocalizer
-@inject NavigationManager NavigationManager
-@inject IJSRuntime JsInterop
-@inject PowerBiServiceApi PowerBiServiceApi
-@inject PowerBiSyncService PowerBiSyncService
-@using Microsoft.Identity.Web
-@inject MicrosoftIdentityConsentAndConditionalAccessHandler ConsentHandler
-@inject IDbContextFactory<DatahubProjectDBContext> DbFactoryProject
+@using global::Datahub.Core.Components
+@using global::Datahub.Core.EFCore
+@using global::Datahub.Core.Services
+@using global::Datahub.Portal.Data
+@using global::Datahub.Portal.Services
 
-@implements IDisposable
+@inject IPowerBiDataService _powerBiDataService
+@inject PowerBiServiceApi _powerBiServiceApi
+@inject Microsoft.Identity.Web.MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
+@inject IDbContextFactory<DatahubProjectDBContext> _contextFactory
+
+<style>
+    .ae.card {
+        margin-bottom: 1rem;
+    }
+</style>
 
 <div style="padding-left: 2rem;padding-right: 2rem">
 
-    <AeTypography Variant="h1">@Localizer["Power BI Admin"]</AeTypography>
+    <AeTypography Variant="h1">@Localizer[$"{LOCALIZATION_PREFIX}.Title"]</AeTypography>
 
-    <AuthorizeView Roles="@RoleConstants.DATAHUB_ROLE_ADMIN">
-        <Authorized>
-            <AeCard>
+    
+    <AeFlex >
+        <AeFlex Vertical>
+            <AeCard class="facard1 doublewide">
                 <Header>
-                    @($"Link PowerBI Reports to {((selectedProject is null)?"Projects":selectedProject.ProjectName)}")
+                    <AeTypography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.ManagementTitle"]</AeTypography>
                 </Header>
                 <ChildContent>
-                    @if (!isWorkspacesLoaded)
+                    @if (IsLoadingWorkspaceTreeItems)
                     {
-                        <Spinner />
+                    <Spinner />
                     }
                     else
                     {
-
-                        <AePaginatedTable Accessors="reportAccessorFunctions"
-                                      Dataset="reports"
-                                      Headers="reportHeaders"
-                                      T="(Report report, Group group)"
-                                      @ref="_myTable2"
-                                      Page="@_lastClicked2"
-                                      PageSize="20"
-                                      Renderers="reportRenderFunctions"
-                                      OnRowClick="@RowSelected" />
-                        
-                        <AePagination 
-                        Pageable="@_myTable2" 
-                        OnPageClick="OnPageClick2"> 
-                        <LeftIcon><i class='fad fa-chevron-double-left'></i></LeftIcon> 
-                        <RightIcon><i class='fad fa-chevron-double-right'></i></RightIcon>
-                        </AePagination>
+                    <PowerBiManagementTree DataProjects=@AvailableProjects Workspaces=@ManagedWorkspaces OnItemClicked=@OpenItemEditor />
                     }
                 </ChildContent>
-                <Footer>
-                    <div style='flex-direction: row'>
-                        <AeButton @onclick="ReloadData">Cancel</AeButton>
-                        <AeButton @onclick="SaveChanges">Save Changes</AeButton>
+            </AeCard>
+
+            @if (WorkspaceBeingEdited != null)
+            {
+                <AeCard class="facard1 doublewide">
+                    <Header>
+                        <AeTypography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.Workspace"]: @WorkspaceBeingEdited.DbWorkspaceName</AeTypography>
+                    </Header>
+                    <ChildContent>
+                        <div>
+                            <label>
+                                <span>@Localizer[$"{LOCALIZATION_PREFIX}.Project"]: </span>
+                                <select @bind=@WorkspaceBeingEdited.ProjectId>
+                                    <option value="-1">@Localizer[$"{LOCALIZATION_PREFIX}.Unassigned"]</option>
+                                    @foreach (var project in AvailableProjects)
+                                    {
+                                        <option value=@project.Project_ID>@project.ProjectName</option>
+                                    }
+                                </select>
+                            </label>
+                            <label>
+                                <input type="checkbox" @bind=@WorkspaceBeingEdited.SandboxFlag />
+                                <span>@Localizer[$"{LOCALIZATION_PREFIX}.Sandbox"]</span>
+                            </label>
+                        </div>
+                        <div>
+                            <AeButton OnClickEvent=@SaveWorkspace Disabled=@IsSavingWorkspace>@Localizer[$"BUTTONS.Save"]</AeButton>
+                            <AeButton OnClickEvent=@CloseItemBeingEdited>@Localizer[$"BUTTONS.Cancel"]</AeButton>
+                            <SuccessIndicator @bind-IsLoading=@IsSavingWorkspace @ref=@_saveWorkspaceInd />
+                        </div>
+                        <AeTypography Variant="h4">@Localizer[$"{LOCALIZATION_PREFIX}.Metadata"]</AeTypography>
+                        <ObjectMetadataEditor 
+                            ObjectId=@WorkspaceBeingEdited.WorkspaceId.ToString()
+                            Location="PowerBI"
+                            ProfileName="catalog"
+                            ObjectType=@Metadata.Model.MetadataObjectType.PowerBIWorkspace
+                            UpdateCatalog=@true
+                            ValidateRequired=@false
+                            Name=@WorkspaceBeingEdited.DbWorkspaceName
+                        />
+                    </ChildContent>
+                </AeCard>
+            }
+
+            @if (DatasetBeingEdited != null)
+            {
+                <AeCard class="facard1 doublewide">
+                    <Header>
+                        <AeTypography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.Dataset"]: @DatasetBeingEdited.DbDatasetName</AeTypography>
+                    </Header>
+                    <ChildContent>
+                        <AeTypography Variant="h4">@Localizer[$"{LOCALIZATION_PREFIX}.Metadata"]</AeTypography>
+                        <ObjectMetadataEditor 
+                            ObjectId=@DatasetBeingEdited.DatasetId.ToString()
+                            Location="PowerBI"
+                            ProfileName="catalog"
+                            ObjectType=@Metadata.Model.MetadataObjectType.PowerBIDataset
+                            UpdateCatalog=@true
+                            ValidateRequired=@false
+                            Name=@DatasetBeingEdited.DbDatasetName
+                        />
+                    </ChildContent>
+                </AeCard>
+            }
+
+            @if (ReportBeingEdited != null)
+            {
+                <AeCard class="facard1 doublewide">
+                    <Header>
+                        <AeTypography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.Report"]: @ReportBeingEdited.DbReportName</AeTypography>
+                    </Header>
+                    <ChildContent>
+                        <AeTypography Variant="h4">@Localizer[$"{LOCALIZATION_PREFIX}.Metadata"]</AeTypography>
+                        <ObjectMetadataEditor 
+                            ObjectId=@ReportBeingEdited.ReportId.ToString()
+                            Location="PowerBI"
+                            ProfileName="catalog"
+                            ObjectType=@Metadata.Model.MetadataObjectType.PowerBIReport
+                            UpdateCatalog=@true
+                            ValidateRequired=@false
+                            Name=@ReportBeingEdited.DbReportName
+                        />
+                    </ChildContent>
+                </AeCard>
+            }
+
+        </AeFlex>
+
+        <AeCard class="facard1">
+            <Header>
+                <AeTypography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.ImportUpdateTitle"]</AeTypography>
+            </Header>
+            <ChildContent>
+                @if (WorkspacesToBeUpdated != null && WorkspacesToBeUpdated.Count > 0)
+                {
+                    <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.ChangesExist"]</AeTypography>
+                    <AeCollapse>
+                        <AeCollapseSection>
+                            <Header>
+                                <AeTypography Variant="h4">@Localizer[$"{LOCALIZATION_PREFIX}.Details"]</AeTypography>
+                            </Header>
+                            <ChildContent>
+                                <ul>
+                                    @foreach(var w in WorkspacesToBeUpdated)
+                                    {
+                                        <li>
+                                            <span>@w.PbiWorkspaceName</span>
+                                            @if (w.ChildrenNeedUpdate)
+                                            {
+                                                <span>&nbsp; @CountChildrenToUpdate(w)</span>
+                                            }
+                                        </li>
+                                    }
+                                </ul>
+                            </ChildContent>
+                        </AeCollapseSection>
+                    </AeCollapse>
+                    <div>
+                        <AeButton OnClickEvent=@ImportPowerBiItems Disabled=@ImportDisabled>@Localizer[$"{LOCALIZATION_PREFIX}.SynchronizeButton"]</AeButton>
+                        <SuccessIndicator @bind-IsLoading=@IsImportingPowerBiItems @ref=@_bulkImportInd />
                     </div>
-		        </Footer>
-            </AeCard>
-            <div>&nbsp;</div>
+                }
+                else
+                {
+                    <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.NothingToImport"]</AeTypography>
+                }
+            </ChildContent>
+        </AeCard>
 
-            <AeCard>
-                <Header>
-                    @($"Link PowerBI Datasets to {((selectedProject is null)?"Projects":selectedProject.ProjectName)}")
-                </Header>
-                <ChildContent>
-                    @if (!isWorkspacesLoaded)
-                    {
-                        <Spinner />
-                    }
-                    else
-                    {
-
-                        <AePaginatedTable Accessors="accessorFunctions"
-                                      Dataset="dataSets"
-                                      Headers="headers"
-                                      T="PowerBIDatasetElements"
-                                      @ref="_myTable"
-                                      Page="@_lastClicked"
-                                      PageSize="20"
-                                      Renderers="renderFunctions"
-                                      OnRowClick="@RowSelected" />
-
-                        <AePagination 
-                        Pageable="@_myTable" 
-                        OnPageClick="OnPageClick"> 
-                        <LeftIcon><i class='fad fa-chevron-double-left'></i></LeftIcon> 
-                        <RightIcon><i class='fad fa-chevron-double-right'></i></RightIcon>
-                        </AePagination>
-                    }
-                </ChildContent>
-@*                <Footer>
-                    <AeButton @onclick="ReloadData">Cancel</AeButton>
-                    <AeButton @onclick="SaveChanges">Save Changes</AeButton>
-		        </Footer>*@
-            </AeCard>
-        </Authorized>
-        <NotAuthorized>
-            <AeTypography>This view is only available for administrators.</AeTypography>
-		</NotAuthorized>
-    </AuthorizeView>
-    <div>&nbsp;</div>
-
+    </AeFlex>
+    
 </div>
-@code {
-    private bool isWorkspacesLoaded = false;
 
-    private List<PowerBIDatasetElements> dataSets;
+@code {
+    private static readonly string LOCALIZATION_PREFIX = $"{PowerBiManagementConstants.POWERBI_MANAGEMENT_LOCALIZATION_ROOT_KEY}.POWER_BI_ADMIN";
 
     [Parameter]
-    public string projectAcronym { get; set; }
+    public string ProjectAcronym { get; set; }
+
+    private List<PowerBiAdminWorkspaceTreeItem> AllWorkspaceTreeItems { get; set; } = new();
+    private List<PowerBiAdminWorkspaceTreeItem> WorkspacesToBeUpdated => AllWorkspaceTreeItems.Where(w => w.NeedsUpdate).ToList();
+    private List<PowerBiAdminWorkspaceTreeItem> RemovedWorkspaces => AllWorkspaceTreeItems.Where(w => !w.IsInPowerBi).ToList();
+    private List<PowerBiAdminWorkspaceTreeItem> ManagedWorkspaces => AllWorkspaceTreeItems.Where(w => w.IsInDb && w.IsInPowerBi).ToList();
+
+    private bool IsLoadingWorkspaceTreeItems { get; set; } = false;
+    private bool IsImportingPowerBiItems { get; set; } = false;
+
+    private bool ImportDisabled => IsImportingPowerBiItems || IsLoadingWorkspaceTreeItems;
+
+    private SuccessIndicator _bulkImportInd;
+
+    private List<Datahub_Project> AvailableProjects { get; set; } = new();
+
+    private string _tempLastClickedItem { get; set; }
+    private string _tempLastClickedType { get; set; }
+
+    private PowerBiAdminWorkspaceTreeItem WorkspaceBeingEdited { get; set; }
+    private PowerBiAdminDatasetTreeItem DatasetBeingEdited { get; set; }
+    private PowerBiAdminReportTreeItem ReportBeingEdited { get; set; }
+
+    private bool IsSavingWorkspace { get; set; } = false;
+    private SuccessIndicator _saveWorkspaceInd;
 
 
-    private int _lastClicked = 0;
-    private int _lastClicked2 = 0;
-    private AePaginatedTable<PowerBIDatasetElements> _myTable;
-    private AePaginatedTable<(Report report, Group group)> _myTable2;
-    private PowerBIDatasetElements? _selected;
-    protected override void OnAfterRender(bool firstRender)
+    private string CountChildrenToUpdate(PowerBiAdminWorkspaceTreeItem workspace)
     {
-        // You must re-render after the components are initialized in order for the
-        // component reference to not be null
-        if (firstRender)
+        var numReports = workspace.Reports.Count(r => r.NeedsUpdate);
+        var numDatasets = workspace.Datasets.Count(r => r.NeedsUpdate);
+
+        if (numReports > 0 && numDatasets > 0)
         {
-            StateHasChanged();
+            return Localizer[$"{LOCALIZATION_PREFIX}.NumDatasetsReports", numDatasets, numReports];
+            //return $"(Datasets: {numDatasets}, Reports: {numReports})";
+        }
+        else if (numReports > 0)
+        {
+            return Localizer[$"{LOCALIZATION_PREFIX}.NumReports", numReports];
+            //return $"(Reports: {numReports})";
+        }
+        else if (numDatasets > 0)
+        {
+            return Localizer[$"{LOCALIZATION_PREFIX}.NumDatasets", numDatasets];
+            //return $"(Datasets: {numDatasets})";
+        }
+        else
+        {
+            //this shouldn't happen; the method is only called when workspace has at least one child that needs to be updated
+            return string.Empty;
         }
     }
 
-    // Define the headers at the top of the table
-    private List<string> headers = new List<string>
-  {
-    "Dataset", "Workspace", "Data Project"
-  };
-
-    private List<string> reportHeaders = new List<string>
+    private async Task LoadWorkspaceTreeItems()
     {
-    "Report", "Workspace", "Data Project"
-    };
+        await CloseItemBeingEdited();
+        IsLoadingWorkspaceTreeItems = true;
+        StateHasChanged();
 
-    // Accessor functions to retrieve cell value
-    private List<Func<PowerBIDatasetElements, string>> accessorFunctions = new List<Func<PowerBIDatasetElements, string>>
-    {
-        dummyData => { return dummyData.Dataset.Name; },
-        dummyData => { return dummyData.Group.Name; },
-        null
-    };
+        var pbiWorkspaces = await _powerBiServiceApi.GetWorkspaces();
+        var dbWorkspacesList = await _powerBiDataService.GetAllWorkspaces();
 
-    //(Report report, Group group)
-    private List<Func<(Report report, Group group), string>> reportAccessorFunctions = new List<Func<(Report report, Group group), string>>
-    {
-        dummyData => { return dummyData.report.Name; },
-        dummyData => { return dummyData.group.Name; },
-        null
-    };
+        var pbiWorkspaceDict = pbiWorkspaces.ToDictionary(w => w.Id);
+        var dbWorkspaceDict = dbWorkspacesList.ToDictionary(w => w.Workspace_ID);
 
-    private List<Func<PowerBIDatasetElements, RenderFragment>> renderFunctions;
-    private List<Func<(Report report, Group group), RenderFragment>> reportRenderFunctions;
+        var allWorkspaceIds = pbiWorkspaces.Select(w => w.Id)
+            .Concat(dbWorkspacesList.Select(w => w.Workspace_ID))
+            .Distinct();
 
-    public Datahub_Project GetAssociatedProject(PowerBIDatasetElements el)
-    {
-        return datasetLinks.FirstOrDefault(d => d.Id == Guid.Parse(el.Dataset.Id))?.Project;
-    }
-
-    public Datahub_Project GetAssociatedProject((Report report, Group group) el)
-    {
-        return reportLinks.FirstOrDefault(d => d.Id == el.report.Id)?.Project;
-    }
-
-    private Dictionary<Guid,Datahub_Project> associations = new Dictionary<Guid,Datahub_Project>();
-
-    private void HandleDropDownChange(PowerBIDatasetElements el, Datahub_Project project, bool? isChecked = null)
-    {
-        if (isChecked is null || isChecked == false)
+        var treeItems = allWorkspaceIds.Select(id =>
         {
-            var toRem = ctx.Project_PBI_DataSets.Where(r => r.Id == Guid.Parse(el.Dataset.Id)).ToList();
-            ctx.Project_PBI_DataSets.RemoveRange(toRem);
-            datasetLinks.RemoveAll(r => r.Id == Guid.Parse(el.Dataset.Id));
-            ctx.SaveChanges();
+            var dbWorkspace = dbWorkspaceDict.GetValueOrDefault(id);
+            var pbiWorkspace = pbiWorkspaceDict.GetValueOrDefault(id);
+            return new PowerBiAdminWorkspaceTreeItem(pbiWorkspace, dbWorkspace);
+        });
+
+        var workspaceTreeItemsDict = treeItems.ToDictionary(i => i.WorkspaceId);
+
+        var datasetItems = await LoadDatasetTreeItems();
+        var reportItems = await LoadReportTreeItems();
+
+        AllWorkspaceTreeItems = treeItems.ToList();
+        foreach (var t in AllWorkspaceTreeItems)
+        {
+            var wId = t.WorkspaceId;
+            t.Datasets.AddRange(datasetItems.Where(d => d.AnyWorkspaceId == wId));
+            t.Reports.AddRange(reportItems.Where(r => r.AnyWorkspaceId == wId));
         }
 
-        if (isChecked is null || isChecked == true)
-        {
-            var e = new Project_PBI_DataSet() { Id = Guid.Parse(el.Dataset.Id), Workspace = el.Group.Id, Project = project, DatasetName = el.Dataset.Name };
-            ctx.Project_PBI_DataSets.Add(e);
-            datasetLinks.Add(e);
-            ctx.SaveChanges();
-        }
-    }
-
-    private void HandleDropDownChange((Report report, Group group) el, Datahub_Project project, bool? isChecked = null)
-    {
-        if (isChecked is null || isChecked == false)
-        {
-            var toRem = ctx.Project_PBI_Reports.Where(r => r.Id == el.report.Id).ToList();
-            ctx.Project_PBI_Reports.RemoveRange(toRem);
-            reportLinks.RemoveAll(d => d.Id == el.report.Id);
-            ctx.SaveChanges();
-        }
-
-        if (isChecked is null || isChecked == true)
-        {
-            var e = PowerBiSyncService.GetReport(el.report, project, el.group,ctx);
-            ctx.Project_PBI_Reports.Add(e);
-            reportLinks.Add(e);
-            ctx.SaveChanges();
-        }
-    }
-
-    private void RowSelected(PowerBIDatasetElements selected)
-    {
-        _selected = selected;
-    }
-
-    private void RowSelected((Report report, Group group) selected)
-    {
-        //_selected = selected;
-    }
-
-    private void OnPageClick(int pageIndex)
-    {
-        _lastClicked = pageIndex;
-    }
-
-    private void OnPageClick2(int pageIndex)
-    {
-        _lastClicked2 = pageIndex;
-    }
-
-    private List<Datahub_Project> allProjects;
-
-    private List<Project_PBI_DataSet> datasetLinks;    
-    private List<Project_PBI_Report> reportLinks;    
-
-    private string CustomRenderer(Datahub_Project item)
-    {
-        if (item is null) return "-";
-        return $"{item.ProjectName} {item.Project_Acronym_CD}";          
-
-    }
-
-    private async Task LoadData()
-    {
-        if (selectedProject is null)
-        {
-            allProjects = await ctx.Projects.ToListAsync();
-        }
-        datasetLinks = await ctx.Project_PBI_DataSets.Include(e => e.Project).ToListAsync();
-        reportLinks = await ctx.Project_PBI_Reports.Include(e => e.Project).ToListAsync();
-    }
-
-    private async Task SaveChanges()
-    {        
-        await ctx.SaveChangesAsync();
-    }
-
-    private async Task ReloadData()
-    {
-        ctx.ChangeTracker.Clear();
-        await LoadData();
+        IsLoadingWorkspaceTreeItems = false;
         StateHasChanged();
     }
 
-    public void Dispose()
+    private async Task<List<PowerBiAdminDatasetTreeItem>> LoadDatasetTreeItems()
     {
-        ctx.Dispose();
+        var pbiDatasets = await _powerBiServiceApi.GetWorkspaceDatasetsAsync();
+        var pbiDatasetIds = pbiDatasets.Select(d => Guid.Parse(d.Dataset.Id)).ToHashSet();
+        var dbDatasets = await _powerBiDataService.GetAllDatasets();
+        var dbDatasetDict = dbDatasets.ToDictionary(d => d.DataSet_ID);
+
+        var results = pbiDatasets.Select(d =>
+        {
+            var datasetGuid = Guid.Parse(d.Dataset.Id);
+            var dbDataset = dbDatasetDict.GetValueOrDefault(datasetGuid);
+            return new PowerBiAdminDatasetTreeItem(d.Dataset, dbDataset, d.WorkspaceId);
+        })
+        .Concat(dbDatasets
+            .Where(d => !pbiDatasetIds.Contains(d.DataSet_ID))
+            .Select(d => new PowerBiAdminDatasetTreeItem(null, d, null)))
+        .ToList();
+
+        return results;
     }
 
-    private DatahubProjectDBContext ctx;
+    private async Task<List<PowerBiAdminReportTreeItem>> LoadReportTreeItems()
+    {
+        var pbiReports = await _powerBiServiceApi.GetWorkspaceReportsAsync();
+        var pbiReportIds = pbiReports.Select(r => r.Report.Id).ToHashSet();
+        var dbReports = await _powerBiDataService.GetAllReports();
+        var dbReportDict = dbReports.ToDictionary(d => d.Report_ID);
 
-    private List<(Report report, Group group)> reports;
+        var results = pbiReports.Select(d =>
+        {
+            var reportGuid = d.Report.Id;
+            var dbReport = dbReportDict.GetValueOrDefault(reportGuid);
+            return new PowerBiAdminReportTreeItem(d.Report, dbReport, d.WorkspaceId);
+        })
+        .Concat(dbReports
+            .Where(r => !pbiReportIds.Contains(r.Report_ID))
+            .Select(r => new PowerBiAdminReportTreeItem(null, r, null)))
+        .ToList();
 
-    private Datahub_Project? selectedProject = null;
+        return results;
+    }
+
+    private async Task CloseItemBeingEdited()
+    {
+        //TODO check for changes, popup dialog
+        WorkspaceBeingEdited = null;
+        DatasetBeingEdited = null;
+        ReportBeingEdited = null;
+
+        await Task.CompletedTask;
+    }
+
+    private async Task OpenItemEditor(PowerBiAdminTreeItem item)
+    {
+        await CloseItemBeingEdited();
+
+        if (item.ItemType == PowerBiAdminTreeItemType.Workspace)
+        {
+            var workspace = await _powerBiDataService.GetWorkspaceById(item.Id);
+            WorkspaceBeingEdited = new(null, workspace);
+        }
+        else if (item.ItemType == PowerBiAdminTreeItemType.Dataset)
+        {
+            var dataset = await _powerBiDataService.GetDatasetById(item.Id);
+            DatasetBeingEdited = new(null, dataset, null);
+        }
+        else if (item.ItemType == PowerBiAdminTreeItemType.Report)
+        {
+            var report = await _powerBiDataService.GetReportById(item.Id);
+            ReportBeingEdited = new(null, report, null);
+        }
+
+        _tempLastClickedItem = item.Label;
+        _tempLastClickedType = item.ItemType.ToString();
+        await Task.CompletedTask;
+    }
+
+    private async Task SaveWorkspace()
+    {
+        if (WorkspaceBeingEdited == null)
+        {
+            await Task.CompletedTask;
+            return;
+        }
+
+        IsSavingWorkspace = true;
+        StateHasChanged();
+
+        var wsDef = WorkspaceBeingEdited.Definition;
+        var success = await _powerBiDataService.AddOrUpdateCataloguedWorkspace(wsDef);
+
+        if (success)
+        {
+            await _saveWorkspaceInd.SignalSuccess();
+            await LoadWorkspaceTreeItems();
+        }
+        else
+        {
+            await _saveWorkspaceInd.SignalFailure();
+        }
+    }
+
+
+
+    private async Task ImportPowerBiItems()
+    {
+        IsImportingPowerBiItems = true;
+        StateHasChanged();
+
+        // each workspace item
+        // get the def if needs update
+        // get reportdefs if they need update
+        // get dataset defs if they need update
+
+        var workspacesToAdd = new List<PowerBi_WorkspaceDefinition>();
+        var datasetsToAdd = new List<PowerBi_DataSetDefinition>();
+        var reportsToAdd = new List<PowerBi_ReportDefinition>();
+
+        foreach (var w in WorkspacesToBeUpdated)
+        {
+            if (w.NeedsUpdate)
+            {
+                workspacesToAdd.Add(w.Definition);
+            }
+
+            reportsToAdd.AddRange(w.Reports.Where(r => r.NeedsUpdate).Select(r => r.Definition));
+            datasetsToAdd.AddRange(w.Datasets.Where(d => d.NeedsUpdate).Select(d => d.Definition));
+        }
+
+        var success = await _powerBiDataService.BulkAddOrUpdatePowerBiItems(workspacesToAdd, datasetsToAdd, reportsToAdd);
+
+        if (success)
+        {
+            await _bulkImportInd.SignalSuccess();
+            await LoadWorkspaceTreeItems();
+        }
+        else
+        {
+            await _bulkImportInd.SignalFailure();
+        }
+    }
+
+    private async Task LoadProjects()
+    {
+        using var ctx = await _contextFactory.CreateDbContextAsync();
+
+        // TODO restrict based on user's access?
+
+        if (!string.IsNullOrEmpty(ProjectAcronym))
+        {
+            AvailableProjects = await ctx.Projects.Where(p => p.Project_Acronym_CD.ToLower() == ProjectAcronym.ToLower()).ToListAsync();
+        }
+        else
+        {
+            AvailableProjects = await ctx.Projects.ToListAsync();
+        }
+
+        AvailableProjects = AvailableProjects.OrderBy(p => p.ProjectName).ToList();
+    }
 
     protected override async Task OnInitializedAsync()
     {
-        ctx = DbFactoryProject.CreateDbContext();
-        if (projectAcronym != null)
-        {
-            selectedProject = await ctx.Projects.FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronym);
-        }
-        //Task.Run(async () =>
-        //{
         try
         {
-            dataSets = await PowerBiServiceApi.GetAllDatasetsAsync();
-            reports = dataSets.SelectMany(r => r.Reports.Select(rp => (rp, r.Group))).Distinct().ToList();
-            isWorkspacesLoaded = true;
-            StateHasChanged();
-            // StateHasChanged();
-
+            await LoadWorkspaceTreeItems();
+            await LoadProjects();
         }
         catch (Exception ex)
         {
-            ConsentHandler.HandleException(ex);
-        }
-        //});
-        await LoadData();
-        if (selectedProject is null)
-        {
-            renderFunctions = new List<Func<PowerBIDatasetElements, RenderFragment>>
-        {
-            null,
-            null,
-            el =>  { return 
-                @<AeMultiSelect @key=el T="Datahub_Project" DefaultLabel="Select Project"
-                        SelectedItem="GetAssociatedProject(el)" SelectedItemChanged="e => HandleDropDownChange(el,e)"
-                        Renderer="CustomRenderer" Items="allProjects"/>
-    ; }
-
-        };
-            reportRenderFunctions = new List<Func<(Report report, Group group), RenderFragment>>
-        {
-            null,
-            null,
-            el =>  { return 
-                @<AeMultiSelect @key=el T="Datahub_Project" DefaultLabel="Select Project"
-                        SelectedItem="GetAssociatedProject(el)" SelectedItemChanged="e => HandleDropDownChange(el,e)"
-                        Renderer="CustomRenderer" Items="allProjects"/>
-    ; }
-
-        };
-        } else
-        {
-            renderFunctions = new List<Func<PowerBIDatasetElements, RenderFragment>>
-        {
-            null,
-            null,
-            el =>  { return 
-                @<DHCheckbox IsChecked="@(selectedProject == GetAssociatedProject(el))"
-                             IsCheckedChanged="e => HandleDropDownChange(el,selectedProject,e)"
-                 />;
-                   }
-
-        };
-            reportRenderFunctions = new List<Func<(Report report, Group group), RenderFragment>>
-        {
-            null,
-            null,
-            el =>  { return 
-                @<DHCheckbox IsChecked="@(selectedProject == GetAssociatedProject(el))"
-                             IsCheckedChanged="e => HandleDropDownChange(el,selectedProject,e)"                
-                />;
-                   }
-        };            
+            _consentHandler.HandleException(ex);
         }
     }
-
 }

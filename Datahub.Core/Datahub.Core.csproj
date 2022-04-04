@@ -74,6 +74,7 @@
     <Content Update="i18n\SharedResources.fr.json">
       <CustomToolNamespace>Resources</CustomToolNamespace>
     </Content>
-    <Content Remove="Layout\BlankLayout.razor" />
+    <Content Include="Components\DHMarkdown.razor.js" />
+    <Content Include="Components\FileUpload\DropZone.razor.js" />
   </ItemGroup>
 </Project>

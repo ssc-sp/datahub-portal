@@ -27,7 +27,7 @@ namespace Datahub.Tests
         }
 
         [Fact]
-        public async Task GivenModuleName_FindClass()
+        public void GivenModuleName_FindClass()
         {
             var mod = new ModuleManager();
             mod.LoadModules("*");
@@ -42,7 +42,7 @@ namespace Datahub.Tests
         }
 
         [Fact]
-        public async Task GivenFilterStar_FindModule()
+        public void GivenFilterStar_FindModule()
         {
             var mod = new ModuleManager();
             mod.LoadModules("*");
@@ -52,7 +52,7 @@ namespace Datahub.Tests
         }
 
         [Fact]
-        public async Task GivenFilterSingle_FindModule()
+        public void GivenFilterSingle_FindModule()
         {
             var mod = new ModuleManager();
             mod.LoadModules("*");
