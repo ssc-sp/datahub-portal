@@ -9,6 +9,17 @@
     <ChildContent>
         @if (ServiceCreationRequests != null)
         {
+            <div>
+                <FilterBar
+                    ShowCheckBox="true" 
+                    CheckBoxText="Hide Created Services" 
+                    ShowTextSearch="true" 
+                    SearchPlaceHolderText="Enter user email"
+                    FilterSearch=@FilterSearch
+                    HandleCheckBoxChange=@HandleCheckChanged                    
+                    IsChecked="@_hideAuthorizedUsers"
+                />                
+            </div>
             <AeFlex Vertical>
                 <AePaginatedTable 
                     Accessors=@serviceRequestAccessors
@@ -46,7 +57,8 @@
 
     private IPageableComponent ServiceRequestTable;
     private int CurrentPage = 0;
-
+    private string _searchFilter = string.Empty;
+    private bool _hideAuthorizedUsers = true;
     private List<Datahub_ProjectServiceRequests> ServiceCreationRequests;
 
     private List<Func<Datahub_ProjectServiceRequests, string>> serviceRequestAccessors = new List<Func<Datahub_ProjectServiceRequests, string>>()
@@ -70,6 +82,18 @@
     private void PaginationClicked(int pageIndex)
     {
         CurrentPage = pageIndex;
+    }
+
+    private async void FilterSearch(string searchFilter)
+    {
+        _searchFilter = searchFilter;
+        await InvokeAsync(RefreshData);
+    }
+    
+    private async void HandleCheckChanged(bool isChecked)
+    {
+        _hideAuthorizedUsers = isChecked;
+        await RefreshData();
     }
 
     private async Task NotifyServiceCreation(Datahub_ProjectServiceRequests req)
@@ -128,6 +152,12 @@
             .ThenByDescending(a => a.ServiceRequests_Date_DT)
             .ToListAsync();
 
+        if (_hideAuthorizedUsers)
+            allServiceCreationRequests = allServiceCreationRequests.Where(a => a.Is_Completed == null).ToList();
+
+        if (!string.IsNullOrWhiteSpace(_searchFilter))
+            allServiceCreationRequests = allServiceCreationRequests.Where(a => a.User_Name != null && a.User_Name.Contains(_searchFilter, StringComparison.InvariantCultureIgnoreCase)).ToList();    
+
         ServiceCreationRequests = allServiceCreationRequests
             .Where(a => validProjects.Contains(a.Project.Project_ID))
             .ToList();
@@ -140,7 +170,8 @@
         serviceRenderers = new List<Func<Datahub_ProjectServiceRequests, RenderFragment>>()
         {
             null,
-            p => @<div>@(p.User_Name ?? @Localizer["N/A"])</div>,
+            p => 
+    @<div>@(p.User_Name ?? @Localizer["N/A"])</div>,
             null,
             p => @<div>@(p.Is_Completed?.ToShortDateString() ?? @Localizer["N/A"])</div>,
             p => 
