@@ -58,10 +58,7 @@ namespace Datahub.Core.Services
             var storageAccountName = $"dh{project}{envName}";
             var datalakeSecret = await _keyVaultService.GetSecret(key);
             return new StorageSharedKeyCredential(storageAccountName, datalakeSecret);
-                        
         }
-
-        
 
         public async Task<StorageSharedKeyCredential> GetSharedKeyCredential()
         {

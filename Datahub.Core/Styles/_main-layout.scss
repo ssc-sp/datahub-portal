@@ -1,6 +1,5 @@
 @use 'Common' as c;
 
-
 .application-wrapper {
     display: grid;
     grid-template-columns: #{c.$sidebarWidth} 1fr;
@@ -16,6 +15,8 @@
         .ui-control {
             .main-page {
                 padding: c.spacing(4);
+                max-width: calc(100vw - #{c.$sidebarWidth + c.$scrollbarWidth});
+
             }
 
             .right-sidebar {
