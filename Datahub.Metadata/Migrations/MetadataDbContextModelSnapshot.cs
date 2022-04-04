@@ -17,7 +17,7 @@ namespace Datahub.Metadata.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "6.0.1")
+                .HasAnnotation("ProductVersion", "6.0.3")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
@@ -41,6 +41,9 @@ namespace Datahub.Metadata.Migrations
 
                     b.Property<bool>("Authority_To_Release_FLAG")
                         .HasColumnType("bit");
+
+                    b.Property<int>("Branch_ID")
+                        .HasColumnType("int");
 
                     b.Property<string>("Branch_NAME")
                         .HasMaxLength(256)
@@ -103,6 +106,9 @@ namespace Datahub.Metadata.Migrations
                     b.Property<string>("Section_NAME")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
+
+                    b.Property<int>("Sector_ID")
+                        .HasColumnType("int");
 
                     b.Property<string>("Sector_NAME")
                         .HasMaxLength(256)

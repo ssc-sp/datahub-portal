@@ -1,96 +1,112 @@
-@using Microsoft.EntityFrameworkCore.Query
-@using Microsoft.EntityFrameworkCore;
-@inject IStringLocalizer<DataLabels> DataLocalizer
-@inject NavigationManager NavigationManager
-@inject IJSRuntime JsInterop
-@implements IDisposable
-@inject IDbContextFactory<DatahubProjectDBContext> DbFactory
 @inject IUserInformationService UserInformationService
+@inject IPowerBiDataService PowerBiDataService
+
 
 <div class="ae table-container">
-
     @if (_reports != null)
     {
-        <AePaginatedTable Accessors="accessorFunctions"
-            Renderers="renderFunctions"
-            T="Project_PBI_Report"
+        <AePaginatedTable
+            Accessors=@accessors
+            Renderers=@renderers
             Dataset="_reports"
-            Headers="headers"
             class="custom light"
             style="Width:100%"
-            GridTemplateColumns="0.5fr 3fr 2fr"    
-            Page="@_lastClicked"
+            GridTemplateColumns="0.5fr 3fr 2fr"
+            Page=@_currentPage
             PageSize="4"
-            @ref=_myTable
-            />
+            @ref=@_reportTable
+        />
 
-        <AePagination 
-            Pageable="@_myTable" 
-            OnPageClick="OnPageClick"> 
+        <AePagination Pageable=@_reportTable OnPageClick=@OnPageClick> 
             <LeftIcon><i class='fad fa-chevron-double-left'></i></LeftIcon> 
             <RightIcon><i class='fad fa-chevron-double-right'></i></RightIcon>
-            </AePagination>   
-         }
+        </AePagination>   
+    }
 </div>
-
 
 
 @code {
 
-    private List<Func<Project_PBI_Report, string>> accessorFunctions;
-    private List<Func<Project_PBI_Report, RenderFragment>> renderFunctions;    
+    private IPageableComponent _reportTable;
 
-    private IPageableComponent _myTable;
+    private int _currentPage = 0;
 
-    DatahubProjectDBContext Context;
+    private List<Func<PowerBi_Report, string>> accessors = new()
+    {
+        r => r.Workspace.Project?.ProjectName ?? string.Empty,
+        r => r.Report_Name,
+        r => r.Workspace.Project?.ProjectName ?? string.Empty
+    };
 
-    private int _lastClicked = 0;
-
+    private List<Func<PowerBi_Report, RenderFragment>> renderers = new();
 
     private void OnPageClick(int pageIndex)
     {
-        _lastClicked = pageIndex;
+        _currentPage = pageIndex;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
+        {
             StateHasChanged();
+        }
+
+        await Task.CompletedTask;
     }
 
-    private List<Project_PBI_Report> _reports;
+    private List<PowerBi_Report> _reports;
+
+    private RenderFragment ProjectIconFragment(PowerBi_Report r) =>
+    @<AeFlex class="table-icon">
+        <i class="@($"fad fa-{r.Workspace.Project?.Project_Icon}")"></i>
+    </AeFlex>
+    ;
+
+    private RenderFragment ReportLinkFragment(PowerBi_Report r) =>
+    @<AeFlex style="padding-top: 1rem">
+        <AeTypography>
+            <DHLink 
+                    LinkType=@DatahubLinkType.PowerBI
+                    DataProject=@(r.Workspace.Project?.Project_Acronym_CD)
+                    PBIWorkspaceId=@(r.Workspace_Id.ToString())
+                    PBIReportId=@(r.Report_ID.ToString())
+                    Name=@(r.Report_Name)>
+                @r.Report_Name
+            </DHLink>
+        </AeTypography>
+    </AeFlex>
+    ;
+
+    private RenderFragment ProjectLinkFragment(PowerBi_Report r) =>
+    @<AeFlex style="padding-top: 1rem">
+        <AeTypography>
+            <DHLink DataProject=@(r.Workspace.Project?.Project_Acronym_CD)>
+                @r.Workspace.Project?.ProjectName
+            </DHLink>
+        </AeTypography>
+    </AeFlex>
+    ;
+
+    private async Task FillRenderers()
+    {
+        renderers = new()
+            {
+                ProjectIconFragment,
+                ReportLinkFragment,
+                ProjectLinkFragment
+            };
+
+        await Task.CompletedTask;
+    }
 
     protected override async Task OnInitializedAsync()
     {
         var currentUserId = await UserInformationService.GetUserIdString();
-        Context = DbFactory.CreateDbContext();
-        _reports = Context.Project_Users.Include(u => u.Project)
-            .ThenInclude(p => p.PBI_Reports).ThenInclude(p => p.Project)
-            .Where(u => u.User_ID == currentUserId).SelectMany(u => u.Project.PBI_Reports).Distinct().ToList();
 
-        accessorFunctions = new List<Func<Project_PBI_Report, string>>() {
-            (report => { return report?.Id.ToString(); }),
-            (report => { return report?.Id.ToString(); }),
-            (report => { return report?.Id.ToString(); })
-        };
-        
-        renderFunctions = new List<Func<Project_PBI_Report, RenderFragment>>() {            
-            report => @<AeFlex class="table-icon"><i class="@($"fad fa-{report?.Project?.Project_Icon}")"></i></AeFlex>,
-            report => @<AeFlex style="padding-top: 1rem"><AeTypography><DHLink DataProject="@(report.Project.Project_Acronym_CD)" PBIWorkspaceId=@(report.Workspace?.ToString()) PBIReportId=@(report.Id.ToString()) PowerBIURL="@(report.GetLink())" Name="@(report?.ReportName)">@report?.ReportName</DHLink></AeTypography></AeFlex>, 
-            report => @<AeFlex style="padding-top: 1rem"><AeTypography><DHLink DataProject="@(report.Project.Project_Acronym_CD)">@report?.Project.ProjectName</DHLink></AeTypography></AeFlex>             
-        };
-        
-        
-        
-        //await FillRenderFunctions();
+        _reports = await PowerBiDataService.GetReportsForUser(currentUserId);
+
+        await FillRenderers();
     }
 
-    private List<string> headers = new List<string>();
-
-
-    
-     public void Dispose() 
-    { 
-        Context.Dispose();         
-    }
 }

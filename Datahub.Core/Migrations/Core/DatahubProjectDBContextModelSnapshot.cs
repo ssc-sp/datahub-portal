@@ -17,7 +17,7 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "6.0.2")
+                .HasAnnotation("ProductVersion", "6.0.3")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
@@ -477,6 +477,85 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.ToTable("Project_Requests");
                 });
 
+            modelBuilder.Entity("Datahub.Core.EFCore.Datahub_Registration_Request", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("DepartmentName")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(254)
+                        .HasColumnType("nvarchar(254)");
+
+                    b.Property<Guid?>("LinkId")
+                        .HasMaxLength(36)
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ProjectAcronym")
+                        .HasMaxLength(36)
+                        .HasColumnType("nvarchar(36)");
+
+                    b.Property<string>("ProjectName")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<string>("Status")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Registration_Requests");
+                });
+
+            modelBuilder.Entity("Datahub.Core.EFCore.GeoObjectShare", b =>
+                {
+                    b.Property<string>("GeoObjectShare_ID")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<bool>("ApprovalFormCompleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("ApprovalForm_ID")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Json_TXT")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("ShareApproved")
+                        .HasColumnType("bit");
+
+                    b.HasKey("GeoObjectShare_ID");
+
+                    b.ToTable("GeoObjectShares");
+                });
+
             modelBuilder.Entity("Datahub.Core.EFCore.MiscStoredObject", b =>
                 {
                     b.Property<Guid>("GeneratedId")
@@ -572,6 +651,66 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.HasIndex("RequestID");
 
                     b.ToTable("PowerBI_License_User_Requests");
+                });
+
+            modelBuilder.Entity("Datahub.Core.EFCore.PowerBi_DataSet", b =>
+                {
+                    b.Property<Guid>("DataSet_ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("DataSet_Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("Workspace_Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("DataSet_ID");
+
+                    b.HasIndex("Workspace_Id");
+
+                    b.ToTable("PowerBi_DataSets");
+                });
+
+            modelBuilder.Entity("Datahub.Core.EFCore.PowerBi_Report", b =>
+                {
+                    b.Property<Guid>("Report_ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Report_Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("Workspace_Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Report_ID");
+
+                    b.HasIndex("Workspace_Id");
+
+                    b.ToTable("PowerBi_Reports");
+                });
+
+            modelBuilder.Entity("Datahub.Core.EFCore.PowerBi_Workspace", b =>
+                {
+                    b.Property<Guid>("Workspace_ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int?>("Project_Id")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("Sandbox_Flag")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Workspace_Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Workspace_ID");
+
+                    b.HasIndex("Project_Id");
+
+                    b.ToTable("PowerBi_Workspaces");
                 });
 
             modelBuilder.Entity("Datahub.Core.EFCore.Project_Database", b =>
@@ -1175,6 +1314,37 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.Navigation("LicenseRequest");
                 });
 
+            modelBuilder.Entity("Datahub.Core.EFCore.PowerBi_DataSet", b =>
+                {
+                    b.HasOne("Datahub.Core.EFCore.PowerBi_Workspace", "Workspace")
+                        .WithMany("Datasets")
+                        .HasForeignKey("Workspace_Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Workspace");
+                });
+
+            modelBuilder.Entity("Datahub.Core.EFCore.PowerBi_Report", b =>
+                {
+                    b.HasOne("Datahub.Core.EFCore.PowerBi_Workspace", "Workspace")
+                        .WithMany("Reports")
+                        .HasForeignKey("Workspace_Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Workspace");
+                });
+
+            modelBuilder.Entity("Datahub.Core.EFCore.PowerBi_Workspace", b =>
+                {
+                    b.HasOne("Datahub.Core.EFCore.Datahub_Project", "Project")
+                        .WithMany("PowerBi_Workspaces")
+                        .HasForeignKey("Project_Id");
+
+                    b.Navigation("Project");
+                });
+
             modelBuilder.Entity("Datahub.Core.EFCore.Project_Database", b =>
                 {
                     b.HasOne("Datahub.Core.EFCore.Datahub_Project", "Project")
@@ -1280,6 +1450,8 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
 
                     b.Navigation("Pipelines");
 
+                    b.Navigation("PowerBi_Workspaces");
+
                     b.Navigation("Requests");
 
                     b.Navigation("StorageAccounts");
@@ -1292,6 +1464,13 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
             modelBuilder.Entity("Datahub.Core.EFCore.PBI_License_Request", b =>
                 {
                     b.Navigation("User_License_Requests");
+                });
+
+            modelBuilder.Entity("Datahub.Core.EFCore.PowerBi_Workspace", b =>
+                {
+                    b.Navigation("Datasets");
+
+                    b.Navigation("Reports");
                 });
 
             modelBuilder.Entity("Datahub.Core.EFCore.WebForm", b =>

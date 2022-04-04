@@ -1,5 +1,6 @@
 @use 'colors' as c;
 
+$scrollbarWidth: 10px;
 
 @mixin datahub-scrollbar {
 
@@ -10,7 +11,7 @@
 
   &::-webkit-scrollbar
   {
-    width: 10px;
+    width: $scrollbarWidth;
     background-color: c.$grey-300;
   }
 

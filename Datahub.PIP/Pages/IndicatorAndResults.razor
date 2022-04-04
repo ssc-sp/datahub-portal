@@ -1,0 +1,596 @@
+﻿@inject UIControlsService UI
+@inject IStringLocalizer DataLocalizer
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JsInterop
+@inject IUserInformationService UserInformationService
+@inject IMSGraphService MSGraphService
+@implements IDisposable
+@inject IDbContextFactory<PIPDBContext> DbFactory
+@inject IDatahubAuditingService AuditingService
+@inject ServiceAuthManager ServiceAuthManager
+@using Datahub.Portal.Data.PIP
+@using Microsoft.Extensions.Logging 
+@inject ILogger<ProgramInventory> Logger
+
+
+@page "/pip/indicators/{tombstone}/{fiscalYear}"
+
+<AeCard class="facardForms" CardPosition="AeCard.CardStyle.Horizontal">
+    <h1>Indicator And Results</h1>
+
+    <ProgramTable tombstone="@tombstone"></ProgramTable>
+</AeCard>
+
+<AeCard class="facardForms" CardPosition="AeCard.CardStyle.Horizontal">
+    <h2>Enter/Select Indicators and Results for Selected Program</h2>
+    <div>
+        <AeFlex Vertical id="indexFlex">
+
+
+
+            <AePaginatedTable Accessors="accessorFunctions"
+                     T="PIP_IndicatorAndResults"
+                     Dataset="_indicators"
+                     Renderers="GetRenderers()"
+                     ColorAccessor="getColor"
+                     Headers="headers"
+                     GridTemplateColumns="1fr 1fr 5fr 1fr"
+                     OnRowClick="@SetFormEdit" 
+                     Page="@_lastClicked"
+                     PageSize="10"
+                     @ref=_myTable />
+
+                     <AePagination 
+                    Pageable="@_myTable" 
+                    OnPageClick="OnPageClick"> 
+                    <LeftIcon><i class='fad fa-chevron-double-left'></i></LeftIcon> 
+                    <RightIcon><i class='fad fa-chevron-double-right'></i></RightIcon>
+                    </AePagination>
+
+        </AeFlex>
+        @if (_indicator == null)
+        {
+            <AeFlex id="buttonBar">
+                <div class="icon-container" style="margin-bottom: 10px; margin-left: 5px;">
+
+                    <FAButton Text="Add New" Icon="far fa-plus-square" onclick="e => CreateNewIndicator()" />
+                </div>
+            </AeFlex>
+        }
+    </div>
+</AeCard>
+
+<AeCard class="facardForms" CardPosition="AeCard.CardStyle.Horizontal">
+    <AeFlex id="buttonBar">
+        <div class="icon-container" style="margin-bottom: 10px; margin-left: 5px;">
+            <FAButton Text="Tombstone" Icon="fal fa-arrow-left" onclick="e => GoToPreviousSheet()" />
+        </div>
+    </AeFlex>
+@if (_indicator != null)
+{
+    @if (_indicator.IndicatorAndResult_ID > 0)
+    {
+        <h2>Editing Indicator and Result</h2>
+    }
+    else
+    {
+        <h2>Enter Outcome and Indicator Data</h2>
+    }
+
+    <AeModelForm Model="_indicator"
+                 T="PIP_IndicatorAndResults"
+                 OnValidSubmit="HandleValidSubmit"
+                 OnCancel="ClearForm"
+                 OnChange="OnChange"
+                 CancelLabel="Cancel"
+                 SubmitLabel="@SubmitLabel"
+                 LabelForPropertyFunc="@GetDataLabel"
+                 OnConfigure="OnConfigure"
+                 LabelsOnTop="true" 
+                 IsSectionLocksVisible="@_isUserAdmin"
+                 IsSubmitEnabled="@_enableSave"
+                 CheckedIcon="far fa-check"
+                 @ref="_myModelForm"/>
+     <AeFlex>
+        <div class="icon-container" style="margin-bottom: 10px; margin-left: 5px;">
+            <FAButton Text="Save and Lock" @onclick="e => SaveAndLock()" Disabled=@(!_enableSave) />
+            <SuccessIndicator @bind-IsLoading=@_submittingApproval @ref=@_submitApprovalInd />
+        </div>
+    </AeFlex>
+    <AeFlex>
+        <div class="icon-container" style="margin-bottom: 10px; margin-left: 5px;">
+            <SuccessIndicator @bind-IsLoading=@_submittingApproval @ref=@_submitApprovalInd />
+        </div>
+    </AeFlex>
+
+    <AeFlex id="buttonBar">
+        <div class="icon-container" style="margin-bottom: 10px; margin-left: 5px;">
+            <FAButton Text="Tombstone" Icon="fal fa-arrow-left" onclick="e => GoToPreviousSheet()" />
+        </div>
+    </AeFlex>
+}
+
+</AeCard>
+
+@code {
+
+    [Parameter]
+    public string tombstone { get; set; }
+    [Parameter]
+    public string fiscalYear { get; set; }
+
+    private AeModelForm<PIP_IndicatorAndResults> _myModelForm;
+    private const string PROJECTACRONYM = "PIP";
+    private List<PIP_IndicatorAndResults> _indicators;
+    private PIP_IndicatorAndResults _indicator;
+    private List<PIP_Tombstone> _tombstones;
+    private List<PIP_Risks> _risks = new List<PIP_Risks>();
+    private PIP_Tombstone _tombstone;
+    private PIP_FiscalYears _fiscalYear;
+    private PIPDBContext Context;  
+    private bool _enableSave = true;
+    private Microsoft.Graph.User CurrentUser;
+    private string navigationUrl = string.Empty;
+    private string SubmitLabel = "Save";
+    private bool _isUserAdmin;
+    private int _lastClicked = 0;
+    private IPageableComponent _myTable;
+    private bool _reloadOptions = true;
+    private SuccessIndicator _submitApprovalInd;
+    private bool _submittingApproval = false;
+
+    private void OnPageClick(int pageIndex)
+    {
+        _lastClicked = pageIndex;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Context = DbFactory.CreateDbContext();
+        
+
+        _fiscalYear = Context.FiscalYears.Where(f => f.FiscalYear == fiscalYear).First();
+        CurrentUser = await UserInformationService.GetUserAsync();
+        _isUserAdmin = await ServiceAuthManager.IsProjectAdmin(CurrentUser.Id, PROJECTACRONYM);
+        // load projects
+        _tombstone = Context.Tombstones.Where(p => p.Tombstone_ID == Convert.ToInt32(tombstone)).FirstOrDefault();
+        LoadIndicators();
+    }
+
+    private async Task CreateNewIndicator()
+    {
+        _indicator = new PIP_IndicatorAndResults() { PIP_Tombstone = _tombstone, Last_Updated_DT = DateTime.Now, Date_Result_Collected = DateTime.Now, Date_To_Achieve_Target_DT = DateTime.Now, FiscalYear = _fiscalYear };
+        StateHasChanged();
+    }
+
+    private void OnChange(ModelFormChangeArgs args)
+    {
+
+    }
+
+    private void ApplyLocks(IModelFormContext context)
+    { 
+        ClearContextlocks(context);
+        RegisterLocks(context);
+    }
+
+    private async Task OnConfigure(IModelFormContext context)
+    {
+        if (_reloadOptions)
+        {
+            context.RegisterOptionValueProperty<PIP_IndicatorAndResults>(s => s.Outcome_Level_DESC, () => new[] { "Immediate", "Intermediate", "Ultimate", "Output" });
+            context.RegisterOptionValueProperty<PIP_IndicatorAndResults>(s => s.Frequency_DESC, () => new[] { "Monthly", "Bi-Monthly", "Quarterly", "Semi-Anually", "Annually", "2 Years", "3 Years", "5 Years", "Other" });
+            context.RegisterOptionValueProperty<PIP_IndicatorAndResults>(s => s.Source_Of_Indicator_DESC, () => new[] { "Horizontal Intiative", "DRF indicator", "GC InfoBase Indicator", "TB Sub indicator", "DSDS indicator", "SDG indicator", "TPP indicator", "Internal program indicator only" });
+            context.RegisterOptionValueProperty<PIP_IndicatorAndResults>(s => s.Source_Of_Indicator2_DESC, () => new[] { "Horizontal Intiative", "DRF indicator", "GC InfoBase Indicator", "TB Sub indicator", "DSDS indicator", "SDG indicator", "TPP indicator", "Internal program indicator only" });
+            context.RegisterOptionValueProperty<PIP_IndicatorAndResults>(s => s.Source_Of_Indicator3_DESC, () => new[] { "Horizontal Intiative", "DRF indicator", "GC InfoBase Indicator", "TB Sub indicator", "DSDS indicator", "SDG indicator", "TPP indicator", "Internal program indicator only" });
+            context.RegisterOptionValueProperty<PIP_IndicatorAndResults>(s => s.Indicator_Category_DESC, () => new[] { "Quantitative", "Qualitative" });
+            context.RegisterOptionValueProperty<PIP_IndicatorAndResults>(s => s.Indicator_Direction_DESC, () => new[] { "Increase", "Decrease", "Maintain" });
+            context.RegisterOptionValueProperty<PIP_IndicatorAndResults>(s => s.Data_Type_DESC, () => new[] { "Number", "Non numeric", "Dollar", "Percent" });
+            context.RegisterOptionValueProperty<PIP_IndicatorAndResults>(s => s.Target_Type_DESC, () => new[] { "Minimum value(at least)", "Maximum value(at most)", "Closed range", "Exact(single) value" });
+            context.RegisterOptionValueProperty<PIP_IndicatorAndResults>(s => s.Target_Met, () => new[] { "On Track", "Met", "Not Met", "Not on track to meet target" });
+
+
+            context.RegisterOptionValueProperty<PIP_IndicatorAndResults>(p => p.Cannot_Report_On_Indicator, () => PIP_Constants.NOT_REPORTABLE_INDICATOR);
+            context.RegisterOptionValueProperty<PIP_IndicatorAndResults>(s => s.Can_Report_On_Indicator, () => PIP_Constants.YESNO);
+
+            context.RegisterFieldNotes<PIP_IndicatorAndResults>(s => s.Outcome_Level_DESC, "Select the corresponding level of the logic model that the indicator supports. If the results annex outcome level happens to differ from the logic model, please use the outcome level as committed to in the TB Submission.");
+            context.RegisterFieldNotes<PIP_IndicatorAndResults>(s => s.Program_Output_Or_Outcome_DESC, "Enter an outcome that is a describable or measurable change that is derived from an initiative’s (program or project) outputs or lower-level outcomes.");
+            context.RegisterFieldNotes<PIP_IndicatorAndResults>(s => s.Indicator_DESC, "A means of measuring actual outcomes and outputs. It can be qualitative or quantitative, and is composed of a unit of measure, a unit of analysis and a context.");
+            context.RegisterFieldNotes<PIP_IndicatorAndResults>(s => s.Source_Of_Indicator_DESC, "Select all that apply");
+            context.RegisterFieldNotes<PIP_IndicatorAndResults>(s => s.DRF_Indicator_No, "Optional");
+            context.RegisterFieldNotes<PIP_IndicatorAndResults>(s => s.Branch_Optional_DESC, "Optional");
+            context.RegisterFieldNotes<PIP_IndicatorAndResults>(s => s.Sub_Program, "Include the name of the small-p program this indicator aligns to.");
+            context.RegisterFieldNotes<PIP_IndicatorAndResults>(s => s.Indicator_Category_DESC, "Select whether the indicator is quantitative (numeric) or qualitative (non-numeric)");
+            context.RegisterFieldNotes<PIP_IndicatorAndResults>(s => s.Indicator_Direction_DESC, "Select whether the indicator seeks to maintain or an increase/decrease");
+
+            context.RegisterCategoryNotes("Methodology", "Explains in detail how the data would be interpreted in relationship with its targets and baseline, including the formula, its calculation method and all necessary definitions.");
+            context.RegisterFieldNotes<PIP_IndicatorAndResults>(s => s.Indicator_Rationale_DESC, "Explain how the indicator relates to the output/outcome. How it is a strong measure of the outcome?");
+            context.RegisterFieldNotes<PIP_IndicatorAndResults>(s => s.Indicator_Calculation_Formula_NUM, "Include the formula used to calculate the indicator result.");
+            context.RegisterFieldNotes<PIP_IndicatorAndResults>(s => s.Measurement_Strategy, "Explain the process to gather the data required for the formula/calculation.");
+            context.RegisterFieldNotes<PIP_IndicatorAndResults>(s => s.Baseline_DESC, "The starting point. Past performance information used to provide perspective when establishing the target.");
+            context.RegisterFieldNotes<PIP_IndicatorAndResults>(s => s.Data_Source_DESC, "Enter the data source for the indicator. Data sources are defined as the individuals, organizations, or documents from which data about your indicators will be obtained.");
+            context.RegisterFieldNotes<PIP_IndicatorAndResults>(s => s.Frequency_DESC, "Select the frequency of data collection against the indicator.");
+            context.RegisterFieldNotes<PIP_IndicatorAndResults>(s => s.Data_Type_DESC, "Select from the drop down menu, whether this indicator has a numeric or non-numeric data type. This enables the ability to sort the numeric versus non-numeric targets and results.");
+            context.RegisterFieldNotes<PIP_IndicatorAndResults>(s => s.Methodology_How_Will_The_Indicator_Be_Measured, "Additional defintions/information necessary to understand how the data will be collected for this indicator. Sectors may also insert a link a methodology sheet in this column.");
+            context.RegisterCategoryNotes("Target", "The level of performance the Program plans to achieve within a specified time. Target must be reflective of the indicator (same unit of measure) and must include a date to achieve the target. Use the following question as a guide to the target that is ambitious yet achievable: How is success defined for the indicator?");
+            context.RegisterFieldNotes<PIP_IndicatorAndResults>(s => s.Explanation, "Please provide additional context for the results achieved. This is required for targets not been met, to be achieved in the future, or if the result is significantly higher than the target. There is a character limit of 1000 for this cell in order to meet GC InfoBase character limit.");
+
+            RegisterLocks(context);
+            _reloadOptions = false;
+        }
+        else
+        {
+            UpdateLocks(context);
+        }
+    }
+
+    protected void ClearContextlocks(IModelFormContext context)
+    {        
+        context.RegisterCategoryLock("Target", false);
+        context.RegisterCategoryLock("Actual Results", false);
+        context.RegisterCategoryLock("Latest Update Information", false);
+        context.RegisterCategoryLock("Methodology", false);
+        context.RegisterCategoryLock("Indicator Details", false);
+        context.RegisterCategoryLock("Indicator Status", false);
+    }
+
+    protected void UpdateLocks(IModelFormContext context)
+    {
+        var lockedCategories = context.LockedCategories;
+        _indicator.IsActualResultsLocked = false;
+        _indicator.IsLatestUpdateLocked = false;
+        _indicator.IsMethodologyLocked = false;
+        _indicator.IsTargetLocked = false;
+        _indicator.IsIndicatorDetailsLocked = false;
+        _indicator.IsIndicatorStatusLocked = false;
+        foreach (var category in lockedCategories)
+        {
+            if (category == "Methodology")
+                _indicator.IsMethodologyLocked = true;
+            if (category == "Latest Update Information")
+                _indicator.IsLatestUpdateLocked = true;
+            if (category == "Actual Results")
+                _indicator.IsActualResultsLocked = true;
+            if (category == "Target")
+                _indicator.IsTargetLocked = true;
+            if (category == "Indicator Details")
+                _indicator.IsIndicatorDetailsLocked = true;
+            if (category == "Indicator Status")
+                _indicator.IsIndicatorStatusLocked = true;
+        }        
+    }
+    protected void RegisterLocks(IModelFormContext context)
+    {
+
+        if (_indicator.IsTargetLocked)
+            context.RegisterCategoryLock("Target", true);
+        if (_indicator.IsActualResultsLocked)
+            context.RegisterCategoryLock("Actual Results", true);
+        if (_indicator.IsLatestUpdateLocked)
+            context.RegisterCategoryLock("Latest Update Information", true);
+        if (_indicator.IsMethodologyLocked)
+            context.RegisterCategoryLock("Methodology", true);
+        if (_indicator.IsIndicatorStatusLocked)
+            context.RegisterCategoryLock("Indicator Status", true);        
+        if (_indicator.IsIndicatorDetailsLocked)
+            context.RegisterCategoryLock("Indicator Details", true);        
+    }
+
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if(firstRender){
+            StateHasChanged();
+        }
+    }
+
+    private async Task SaveAndLock()
+    {
+        _indicator.IsActualResultsLocked = true;
+        _indicator.IsLatestUpdateLocked = true;
+        _indicator.IsMethodologyLocked = true;
+        _indicator.IsTargetLocked = true;
+        _indicator.IsIndicatorDetailsLocked = true;
+        _indicator.IsIndicatorStatusLocked = true;
+
+
+        await HandleValidSubmit();
+        
+        StateHasChanged();
+    }
+
+    private async Task<PIP_IndicatorAndResults> ClearForm()
+    {
+        //CleanEditingUser();
+        ResetContextChanges();
+        LoadIndicators();
+        _indicator = null;
+        StateHasChanged();
+        return null;
+    }
+
+    private List<Func<PIP_IndicatorAndResults, RenderFragment>> GetRenderers()
+    {
+
+        if (_isUserAdmin)
+        {
+        return new List<Func<PIP_IndicatorAndResults, RenderFragment>>
+            {
+                indicator => @<div><b>@indicator.Indicator_Status</b></div>,
+                null,
+                null,
+                indicator => 
+            @<div class="help icon-container" @onclick="() => DeleteRecord(indicator.IndicatorAndResult_ID)"><i class="far fa-trash-alt"></i></div>
+         };
+        }
+
+        return new List<Func<PIP_IndicatorAndResults, RenderFragment>>
+            {
+                indicator => @<div><b>@indicator.Indicator_Status</b></div>,
+                null,
+                null,
+                null
+            };
+    }
+
+
+    private async void OnConfirmDelete(bool isConfirmed, dynamic item)
+    {
+        if (isConfirmed && _indicator != null)
+        {
+            _indicator.IsDeleted = true;
+            _indicator.UserIdWhoDeleted = CurrentUser.Id;
+            await Context.TrackSaveChangesAsync(AuditingService);
+        }
+
+        _indicator = null;
+        LoadIndicators();
+        await UI.ToggleModal();        
+
+        StateHasChanged();
+    }
+
+
+    private async void DeleteRecord(int recordId)
+    {
+        var messages = new List<string>() { "Would you like to delete this record?" };
+        await UI.ToggleModal(
+    @<UserChoiceModal HeaderText="Save Data" ChoiceTextList=@messages OnDecision="(a) => OnConfirmDelete(a, recordId)" ConfirmText="Yes" CancelText="No"  />
+    );
+    }
+
+    private List<Func<PIP_IndicatorAndResults, string>> accessorFunctions = new List<Func<PIP_IndicatorAndResults, string>>
+{
+        new Func<PIP_IndicatorAndResults, string>(p => { return p.Indicator_Status; }),
+        new Func<PIP_IndicatorAndResults, string>(p => { return p.Outcome_Level_DESC; }),
+        new Func<PIP_IndicatorAndResults, string>(p => { return p.Indicator_DESC; }),
+        null
+    };
+
+    private async Task PrepareItemForEdit(PIP_IndicatorAndResults indicatorAndResults)
+    {
+        var recordId = indicatorAndResults.IndicatorAndResult_ID;
+        _indicator = Context.IndicatorAndResults.Where(i => i.IndicatorAndResult_ID == recordId).First();
+
+        _enableSave = true;
+    //    if (IsRecordLocked(_indicator))
+    //    {
+    //        var user = await UserInformationService.GetUserAsync(_indicator.EditingUserId);
+    //        var textList = new List<string>()
+    //        {
+    //            $"This Program is currently being edited by {user.DisplayName}, you will not be able to save any changes"
+    //        };
+    //        _enableSave = false;
+    //        await UI.ToggleModal(
+    //@<WarningModal OnDecision="HandleWarningDecision" WarningTextString=@textList />
+    //);
+    //    }
+    //    else
+    //    {
+    //        _indicator.EditingUserId = CurrentUser.Id;
+    //        await Context.TrackSaveChangesAsync(AuditingService);
+    //    }
+        _indicator = Context.IndicatorAndResults.Where(i => i.IndicatorAndResult_ID == recordId).First();
+        _indicator.Last_Updated_UserName = await MSGraphService.GetUserName(_indicator.Last_Updated_UserId, CancellationToken.None);
+        if (_myModelForm != null)
+        {
+            var ctx = _myModelForm.ModelFormContext;
+            ApplyLocks(ctx);
+        }
+
+    }
+    private async void HandleWarningDecision(bool IsContinue)
+    {
+        await UI.ToggleModal();
+        StateHasChanged();
+    }
+
+    private void ResetContextChanges()
+    {
+        foreach(var entry in Context.ChangeTracker.Entries())
+        {
+            entry.CurrentValues.SetValues(entry.OriginalValues);
+            entry.State = EntityState.Unchanged;
+        }                        
+    }
+    private async void OnConfirmSave(bool isConfirmed, dynamic item)
+    {
+        await UI.ToggleModal();
+        _submittingApproval = true;
+        if (isConfirmed && _indicator != null)
+        {
+            _indicator.Last_Updated_DT = DateTime.Now;
+            _indicator.Date_Updated_DT = DateTime.Now;
+            _indicator.Last_Updated_UserId = CurrentUser.Id;
+            _indicator.EditingUserId = string.Empty;
+            if (_indicator.IndicatorAndResult_ID == 0)
+            {
+                _indicator = Context.IndicatorAndResults.Add(_indicator).Entity;
+            }
+            var result = await Context.TrackSaveChangesAsync(AuditingService);
+            if (result < 1)
+            {
+                var textList = new List<string>()
+                {
+                    $"The record you were trying to update has been modified by another user. Please copy your changes, refresh the page and re-enter the data."
+                };                
+                await UI.ToggleModal(@<WarningModal OnDecision="HandleWarningDecision" WarningTextString=@textList />);
+
+                await _submitApprovalInd.SignalFailure();
+            }
+            else
+            {
+                await _submitApprovalInd.SignalSuccess();
+            }
+        }
+        else if (!isConfirmed && _indicator != null)
+        {
+            ResetContextChanges();    
+        }
+
+        LoadIndicators();
+        if (item != null)
+        {
+            await PrepareItemForEdit(item);
+        }
+        else
+        {
+            await PrepareItemForEdit(_indicator);
+        }
+
+        
+
+        if (!string.IsNullOrEmpty(navigationUrl))        
+            NavigationManager.NavigateTo(navigationUrl);
+        
+
+        StateHasChanged();
+    }
+
+      private void LoadIndicators()
+    {            
+        _indicators = Context.IndicatorAndResults.Where(p => p.PIP_Tombstone.Tombstone_ID == _tombstone.Tombstone_ID && !p.IsDeleted && p.FiscalYear == _fiscalYear).ToList();
+    }
+
+    // public void CleanEditingUser()
+    //{
+    //    if (_indicator != null && _enableSave && !string.IsNullOrEmpty(_indicator.EditingUserId) && _indicator.EditingUserId == CurrentUser.Id)
+    //    {                        
+    //        try
+    //        {
+    //            _indicator.EditingUserId = null;
+    //            Context.SaveChanges();
+    //        }
+    //        catch (Exception e)
+    //        {                
+    //            Logger.LogDebug(e, $"Cannot clean current user in IndicatorAndResults");
+    //        }
+    //    } 
+    //}
+
+    private async Task HandleValidSubmit()
+    {
+        var messages = new List<string>() { "Would you like to save indicator data?" };
+        await UI.ToggleModal(
+        @<UserChoiceModal HeaderText="Save Data" ChoiceTextList=@messages OnDecision="(a) => OnConfirmSave(a, null)" ConfirmText="Yes" CancelText="No"  />);
+    }
+
+    private async Task GoToNextSheet()
+    {
+        navigationUrl = $"/pip/risks/{_tombstone.Tombstone_ID}";
+        if (_indicator == null || !Context.ChangeTracker.HasChanges())
+            NavigationManager.NavigateTo(navigationUrl);
+        else
+            await HandleValidSubmit();
+    }
+
+    private async Task GoToPreviousSheet()
+    {
+        navigationUrl = $"/pip/programs/{_tombstone.Tombstone_ID}";
+        if (_indicator == null || !Context.ChangeTracker.HasChanges())
+            NavigationManager.NavigateTo(navigationUrl);
+        else
+            await HandleValidSubmit();        
+    }
+
+
+    private async Task SetFormEdit(PIP_IndicatorAndResults indicator)
+    {
+        if (!_enableSave)
+        {
+            ResetContextChanges();
+        }
+
+        if (Context.ChangeTracker.HasChanges())
+        {
+            var messages = new List<string>() { "Data has been edited, would you like to save?" };
+            await UI.ToggleModal(@<UserChoiceModal HeaderText="Save Data" ChoiceTextList=@messages OnDecision="(a) => OnConfirmSave(a, indicator)" ConfirmText="Yes" CancelText="No" />
+    );
+        }
+        else
+        {
+            //if (_indicator != null)
+            //    CleanEditingUser();
+
+            _indicator = Context.IndicatorAndResults.Where(i => i.IndicatorAndResult_ID == indicator.IndicatorAndResult_ID).First();
+            await PrepareItemForEdit(_indicator);
+
+            StateHasChanged();
+        }
+    }
+
+
+
+    private void UpdateRisks()
+    {
+        _risks.Clear();
+        _risks = Context.Risks.Include(r => r.PIP_IndicatorRisks).ToList();
+    }
+
+    private string getColor(PIP_IndicatorAndResults current)
+    {
+        if (current == _indicator)
+        {
+            return "yellow";
+        }
+        return "";
+    }
+
+
+
+    public string GetDataLabel(string propName)
+    {
+        return DataLocalizer[propName];
+    }
+
+    private List<string> headers = new List<string>
+{
+        "Status", "Outcome Level", "Indicator", "Admin Actions"
+    };
+
+
+
+    private bool IsRecordLocked(PIP_IndicatorAndResults indicator)
+    {
+        //return indicator == null ? false : (!string.IsNullOrEmpty(indicator.EditingUserId));
+        return false;
+    }
+
+    public void Dispose()     
+    {        
+        try
+        {
+            //CleanEditingUser();
+        }
+        catch (Exception e)
+        {
+            Logger.LogDebug(e, $"Cannot clean current user in IndicatorAndResults in Dispose");
+        }
+        finally
+        {
+            Context.Dispose();            
+        }
+    }
+
+
+}
