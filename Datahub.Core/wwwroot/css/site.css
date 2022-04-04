@@ -2984,19 +2984,6 @@ body {
   color: #e53e3e;
 }
 
-pre {
-  white-space: pre-wrap;
-  /* css-3 */
-  white-space: -moz-pre-wrap;
-  /* Mozilla, since 1999 */
-  white-space: -pre-wrap;
-  /* Opera 4-6 */
-  white-space: -o-pre-wrap;
-  /* Opera 7 */
-  word-wrap: break-word;
-  /* Internet Explorer 5.5+ */
-}
-
 code {
   background-color: #e2e8f0;
 }
@@ -4913,6 +4900,7 @@ code {
   width: 33px;
   height: 33px;
   color: #cbd5e1;
+  background-color: #fff;
   cursor: pointer;
   border: 1px solid #f1f5f9;
   border-radius: 4px;
@@ -6056,6 +6044,19 @@ img {
   color: #742a2a;
   border-color: #742a2a;
   border-left: 8px solid #742a2a;
+}
+
+pre {
+  white-space: pre-wrap;
+  /* css-3 */
+  white-space: -moz-pre-wrap;
+  /* Mozilla, since 1999 */
+  white-space: -pre-wrap;
+  /* Opera 4-6 */
+  white-space: -o-pre-wrap;
+  /* Opera 7 */
+  word-wrap: break-word;
+  /* Internet Explorer 5.5+ */
 }
 
 .page-alert {
