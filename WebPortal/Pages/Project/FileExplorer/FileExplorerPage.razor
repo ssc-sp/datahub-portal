@@ -63,8 +63,6 @@
 
     private async Task<List<(string, RenderFragment, bool)>> GetTabs()
     {
-        await Task.Delay(1);
-
         var containers = await _dataRetrievalService.GetProjectContainersAsync(ProjectAcronymParam, _user);
 
         var tabs = new List<(string, RenderFragment, bool)>();
