@@ -13,6 +13,14 @@
     right: 30px;
     z-index: 100;
   }
+  
+  .tab-control {
+    .tab-selection {
+      i {
+        margin-right: 4px;
+      }
+    }
+  }
 
   .file-explorer-layout {
     display: grid;
