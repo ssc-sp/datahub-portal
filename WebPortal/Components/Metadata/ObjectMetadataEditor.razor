@@ -173,46 +173,21 @@
 
     private async Task UpdateObjectCatalog(long objectMetadataId)
     {
-        var subjects = _fieldValues.GetSelectedChoices("subject").ToList();
-        var programs = _fieldValues.GetSelectedChoices("programs").ToList();
-
-        var sectorChoice = _fieldValues.GetSelectedChoices("sector").FirstOrDefault();
-        var branchChoice = _fieldValues.GetSelectedChoices("branch").FirstOrDefault();
-
-        var objectName = _fieldValues.GetValue("name");
-
-        var englishKeywords = _fieldValues.GetValue("keywords_en").Split(',').ToList();
-        var frenchKeywords = _fieldValues.GetValue("keywords_fr").Split(',').ToList();
-
-        var englishCatalog = GetCatalogText(subjects.Select(s => s.Label_English_TXT), programs.Select(p => p.Value_TXT),
-            sectorChoice?.Label_English_TXT, branchChoice?.Label_English_TXT, objectName, englishKeywords);
-
-        var frenchCatalog = GetCatalogText(subjects.Select(s => s.Label_French_TXT), programs.Select(p => p.Value_TXT),
-            sectorChoice?.Label_French_TXT, branchChoice?.Label_French_TXT, objectName, frenchKeywords);
-
-        var sector = int.Parse(sectorChoice?.Value_TXT ?? "0");
-        var branch = int.Parse(branchChoice?.Value_TXT ?? "0");
-
-        var contact = _fieldValues.GetValue("contact_information");
-
-        await MetadataBrokerService.UpdateCatalog(objectMetadataId, ObjectType, objectName, Location, sector, branch, contact, 
-            englishCatalog, frenchCatalog);
+        var digest = _fieldValues.GetCatalogDigest();
+        await MetadataBrokerService.UpdateCatalog
+        (
+            objectMetadataId, 
+            ObjectType, 
+            digest.Name, 
+            Location, 
+            digest.Sector, 
+            digest.Branch, 
+            digest.Contact, 
+            SecurityClass,
+            digest.EnglishCatalog, 
+            digest.FrenchCatalog
+        );
     }
-
-    private string GetCatalogText(IEnumerable<string> subjects, IEnumerable<string> programs, string sector, string branch, string objectName, IEnumerable<string> keywords)
-    {
-        return new StringBuilder()
-          .AppendJoin(' ', keywords)
-          .Append(' ') 
-          .AppendJoin(' ', subjects)
-          .Append(' ') 
-          .AppendJoin(' ', programs.Where(p => p != "none"))
-          .Append($"{sector} {branch} {objectName}")
-          .ToString()
-          .ToLower();
-    }
-
-    private string GetFieldValue(string name, string defaultValue = "") => _fieldValues[name]?.Value_TXT ?? defaultValue;
 
     private void SetObjectName()
     {

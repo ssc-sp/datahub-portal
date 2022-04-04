@@ -12,14 +12,15 @@
 
     .codeblock-copy-icon {
       position: absolute;
-      top: .4rem;
-      right: .4rem;
+      top: .2rem;
+      right: .2rem;
       padding: .5rem;
 
       width: 33px;
       height: 33px;
 
       color: c.$grey-300;
+      background-color: c.$white;
       cursor: pointer;
       border: 1px solid c.$grey-100;
       border-radius: 4px;

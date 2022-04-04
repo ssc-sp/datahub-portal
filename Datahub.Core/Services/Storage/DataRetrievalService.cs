@@ -14,8 +14,11 @@ using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.IO;
+using Azure.Storage.Blobs.Specialized;
+using Microsoft.Azure.Storage.Blob;
 
 namespace Datahub.Portal.Services.Storage
 {
@@ -30,10 +33,10 @@ namespace Datahub.Portal.Services.Storage
 
 
         public DataRetrievalService(ILogger<DataRetrievalService> logger,
-                                    IKeyVaultService keyVaultService,
-                                    DataLakeClientService dataLakeClientService,
-                                    NavigationManager navigationManager,
-                                    UIControlsService uiService)
+            IKeyVaultService keyVaultService,
+            DataLakeClientService dataLakeClientService,
+            NavigationManager navigationManager,
+            UIControlsService uiService)
             : base(navigationManager, uiService)
         {
             _logger = logger;
@@ -57,7 +60,8 @@ namespace Datahub.Portal.Services.Storage
             }
 
             var blobKey = await _keyVaultService.GetSecret("DataHub-Blob-Access-Key");
-            return "DefaultEndpointsProtocol=https;AccountName=datahubstorage" + getEnvSuffix() + ";AccountKey=" + blobKey + ";EndpointSuffix=core.windows.net";
+            return "DefaultEndpointsProtocol=https;AccountName=datahubstorage" + getEnvSuffix() + ";AccountKey=" +
+                   blobKey + ";EndpointSuffix=core.windows.net";
         }
 
         public async Task<string> GetProjectConnectionString(string accountName)
@@ -68,6 +72,7 @@ namespace Datahub.Portal.Services.Storage
             {
                 envName = "dev";
             }
+
             string key = $"datahub-blob-key-{accountName}";
             var accountKey = await _keyVaultService.GetSecret(key);
             return @$"DefaultEndpointsProtocol=https;AccountName=dh{accountName}{envName};AccountKey={accountKey};EndpointSuffix=core.windows.net";
@@ -86,12 +91,10 @@ namespace Datahub.Portal.Services.Storage
         }
 
 
-
         public async Task<Folder> GetProjectFileList(string container, string project, User user)
         {
             try
             {
-
                 var connectionString = await GetProjectConnectionString(project);
                 var blobServiceClient = new BlobServiceClient(connectionString);
                 var containerClient = blobServiceClient.GetBlobContainerClient(container);
@@ -106,7 +109,6 @@ namespace Datahub.Portal.Services.Storage
                 {
                     foreach (var blobItem in blobPage.Values)
                     {
-
                         // Console.WriteLine("Blob name: {0}", blobItem.Name);
                         if (!blobItem.Metadata.TryGetValue(METADATA_FILE_ID, out var fileId))
                         {
@@ -115,11 +117,14 @@ namespace Datahub.Portal.Services.Storage
                             var client = containerClient.GetBlobClient(blobItem.Name);
                             await client.SetMetadataAsync(blobItem.Metadata);
                             fileId = newId;
-
                         }
 
-                        string ownedBy = blobItem.Metadata.TryGetValue(FileMetaData.OwnedBy, out ownedBy) ? ownedBy : "Unknown";
-                        string createdBy = blobItem.Metadata.TryGetValue(FileMetaData.CreatedBy, out createdBy) ? createdBy : "Unknown";
+                        string ownedBy = blobItem.Metadata.TryGetValue(FileMetaData.OwnedBy, out ownedBy)
+                            ? ownedBy
+                            : "Unknown";
+                        string createdBy = blobItem.Metadata.TryGetValue(FileMetaData.CreatedBy, out createdBy)
+                            ? createdBy
+                            : "Unknown";
                         // string lastModifiedBy = blobItem.Metadata.TryGetValue(FileMetaData.LastModifiedBy, out lastModifiedBy) ? lastModifiedBy : "lastmodifiedby";
 
                         var file = new FileMetaData()
@@ -140,7 +145,8 @@ namespace Datahub.Portal.Services.Storage
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Get file list for project: {Project} for user: {DisplayName} FAILED", project, user.DisplayName);
+                _logger.LogError(ex, "Get file list for project: {Project} for user: {DisplayName} FAILED", project,
+                    user.DisplayName);
                 throw;
             }
         }
@@ -167,12 +173,14 @@ namespace Datahub.Portal.Services.Storage
 
             return result;
         }
-
-        private async Task<Uri> GetDelegationSasBlobUri(string container, string fileName, string projectUploadCode, int days, BlobSasPermissions permissions)
+        
+        private async Task<Uri> GetDelegationSasBlobUri(string container, string fileName, string projectUploadCode, int days, BlobSasPermissions permissions, bool containerLevel = false)
         {
             var project = projectUploadCode.ToLowerInvariant();
             var containerClient = await GetBlobContainerClient(project, container);
-            var sasBuilder = GetBlobSasBuilder(container, fileName, days, permissions);
+            var sasBuilder = containerLevel
+                ? GetContainerSasBuild(containerClient.Name, days, permissions) 
+                : GetBlobSasBuilder(container, fileName, days, permissions);
 
             var sharedKeyCred = await _dataLakeClientService.GetSharedKeyCredential(project);
 
@@ -195,6 +203,21 @@ namespace Datahub.Portal.Services.Storage
             return blobUriBuilder.ToUri();
         }
 
+        private static BlobSasBuilder GetContainerSasBuild(string containerName, int days, BlobSasPermissions permissions)
+        {
+            var sasBuilder  = new BlobSasBuilder
+            {
+                BlobContainerName = containerName,
+                Resource = "c",
+                StartsOn = DateTimeOffset.Now,
+                ExpiresOn = DateTimeOffset.Now.AddDays(days)
+            };
+            
+            sasBuilder.SetPermissions(permissions);
+
+            return sasBuilder;
+        }
+
         public async Task<Uri> GetUserDelegationSasBlob(string container, string fileName, string projectUploadCode, int daysValidity = 1)
         {
             return await GetDelegationSasBlobUri(container, fileName, projectUploadCode, daysValidity, BlobSasPermissions.Read | BlobSasPermissions.Write);
@@ -205,10 +228,12 @@ namespace Datahub.Portal.Services.Storage
             return await GetDelegationSasBlobUri(container, fileName, projectUploadCode, daysValidity, BlobSasPermissions.Read);
         }
 
-        public async Task<Uri> GenerateSasToken(string container, string projectUploadCode, int daysValidity)
+        public async Task<Uri> GenerateSasToken(string container, string projectUploadCode, int daysValidity, bool containerLevel = false)
         {
-            return await GetDelegationSasBlobUri(container, null, projectUploadCode, daysValidity, BlobSasPermissions.All);
+            return await GetDelegationSasBlobUri(container, null, projectUploadCode, daysValidity, BlobSasPermissions.All, containerLevel);
         }
+
+        
 
         public async Task<Uri> DownloadFile(string container, FileMetaData file, string projectUploadCode)
         {
@@ -402,7 +427,6 @@ namespace Datahub.Portal.Services.Storage
 
         public async Task<StorageMetadata> GetStorageMetadata(string project)
         {
-
             var connectionString = await GetProjectConnectionString(project?.ToLower());
             var blobServiceClient = new BlobServiceClient(connectionString);
             var containerClient = blobServiceClient.GetBlobContainerClient("datahub");
@@ -431,6 +455,7 @@ namespace Datahub.Portal.Services.Storage
             {
                 containers.AddRange(page.Values.Select(c => c.Name));
             }
+
             return containers;
         }
 
@@ -454,43 +479,151 @@ namespace Datahub.Portal.Services.Storage
                 {
                     foreach (var blobItem in blobPage.Values)
                     {
-                        if (!blobItem.Metadata.TryGetValue(METADATA_FILE_ID, out var fileId))
-                        {
-                            var newId = Guid.NewGuid().ToString();
-                            blobItem.Metadata.Add(METADATA_FILE_ID, newId);
-                            var client = containerClient.GetBlobClient(blobItem.Name);
-                            await client.SetMetadataAsync(blobItem.Metadata);
-                            fileId = newId;
-                        }
-
-                        string ownedBy = blobItem.Metadata.TryGetValue(FileMetaData.OwnedBy, out ownedBy) ? ownedBy : "Unknown";
-                        string createdBy = blobItem.Metadata.TryGetValue(FileMetaData.CreatedBy, out createdBy) ? createdBy : "Unknown";
-                        string lastModifiedBy = blobItem.Metadata.TryGetValue(FileMetaData.LastModifiedBy, out lastModifiedBy) ? lastModifiedBy : "lastmodifiedby";
-                        string lastModified = blobItem.Metadata.TryGetValue(FileMetaData.LastModified, out lastModified) ? lastModified : DateTime.UtcNow.ToString();
-                        string fileSize = blobItem.Metadata.TryGetValue(FileMetaData.FileSize, out fileSize) ? fileSize : "0";
-
-                        var file = new FileMetaData()
-                        {
-                            id = fileId,
-                            filename = blobItem.Name,
-                            ownedby = ownedBy,
-                            createdby = createdBy,
-                            lastmodifiedby = lastModifiedBy,
-                            lastmodifiedts = DateTime.Parse(lastModified),
-                            filesize = fileSize
-                        };
-
-                        result.Add(file);
+                        var fileId = await VerifyFileIdMetadata(blobItem, containerClient);
+                        var fileMetaData = FileMetadataFromBlobItem(blobItem, fileId);
+                        
+                        result.Add(fileMetaData);
                     }
                 }
-
                 return result;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Get file list for project: {ProjectAcronym} for user: {DisplayName} FAILED", projectAcronym, user.DisplayName);
+                _logger.LogError(ex, "Get file list for project: {ProjectAcronym} for user: {DisplayName} FAILED",
+                    projectAcronym, user.DisplayName);
                 throw;
             }
+        }
+        
+        private static async Task<string> VerifyFileIdMetadata(BlobHierarchyItem blobItem, BlobContainerClient containerClient)
+        {
+            return await VerifyFileIdMetadata(blobItem.Blob, containerClient);
+        }
+
+        private static async Task<string> VerifyFileIdMetadata(BlobItem blobItem, BlobContainerClient containerClient)
+        {
+            if (blobItem.Metadata.TryGetValue(METADATA_FILE_ID, out var fileId))
+                return fileId;
+
+            var newId = Guid.NewGuid().ToString();
+            blobItem.Metadata.Add(METADATA_FILE_ID, newId);
+            var client = containerClient.GetBlobClient(blobItem.Name);
+            await client.SetMetadataAsync(blobItem.Metadata);
+            fileId = newId;
+
+            return fileId;
+        }
+
+        private static FileMetaData FileMetadataFromBlobItem(BlobHierarchyItem blobItem, string fileId)
+        {
+            return FileMetadataFromBlobItem(blobItem.Blob, fileId);
+        }
+
+        private static FileMetaData FileMetadataFromBlobItem(BlobItem blobItem, string fileId)
+        {
+            string ownedBy = blobItem.Metadata.TryGetValue(FileMetaData.OwnedBy, out ownedBy) ? ownedBy : "Unknown";
+            string createdBy = blobItem.Metadata.TryGetValue(FileMetaData.CreatedBy, out createdBy)
+                ? createdBy
+                : "Unknown";
+            string lastModifiedBy = blobItem.Metadata.TryGetValue(FileMetaData.LastModifiedBy, out lastModifiedBy)
+                ? lastModifiedBy
+                : "lastmodifiedby";
+
+            if (Environment.GetEnvironmentVariable("HostingProfile") == "ssc")
+            {
+                return new FileMetaData()
+                {
+                    id = fileId,
+                    filename = blobItem.Name,
+                    ownedby = ownedBy,
+                    createdby = createdBy,
+                    lastmodifiedby = lastModifiedBy,
+                    lastmodifiedts = blobItem.Properties.LastModified?.DateTime ?? DateTime.Now,
+                    filesize = blobItem.Properties.ContentLength.ToString()
+                };
+            }
+
+            string lastModified = blobItem.Metadata.TryGetValue(FileMetaData.LastModified, out lastModified)
+                ? lastModified
+                : DateTime.UtcNow.ToString(CultureInfo.InvariantCulture);
+            string fileSize = blobItem.Metadata.TryGetValue(FileMetaData.FileSize, out fileSize) ? fileSize : "0";
+
+            var isDateValid = DateTime.TryParse(lastModified, out var parsedModifiedDate);
+            if (!isDateValid)
+                parsedModifiedDate = DateTime.UtcNow;
+
+            return new FileMetaData()
+            {
+                id = fileId,
+                filename = blobItem.Name,
+                ownedby = ownedBy,
+                createdby = createdBy,
+                lastmodifiedby = lastModifiedBy,
+                lastmodifiedts = parsedModifiedDate,
+                filesize = fileSize
+            };
+        }
+
+        public async Task<(List<string>, List<FileMetaData>, string)> GetStorageBlobPagesAsync(string projectAcronym, string containerName, User user, string prefix, string continuationToken = default)
+        {
+            try
+            {
+                var folders = new List<string>();
+                var files = new List<FileMetaData>();
+                
+                var connectionString = await GetProjectConnectionString(projectAcronym.ToLower());
+                var blobServiceClient = new BlobServiceClient(connectionString);
+                var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
+
+                var resultSegment = containerClient
+                    .GetBlobsByHierarchyAsync(prefix: prefix.TrimStart('/'), traits: BlobTraits.Metadata, delimiter: "/")
+                    .AsPages(continuationToken);
+
+                // Enumerate the blobs returned for each page.
+                await foreach (var blobPage in resultSegment)
+                {
+                    continuationToken = blobPage.ContinuationToken;
+                    foreach (var blobHierarchyItem in blobPage.Values)
+                    {
+                        if (blobHierarchyItem.IsPrefix)
+                        {
+                            folders.Add(blobHierarchyItem.Prefix);
+                        }
+                        else
+                        {
+                            var fileId = await VerifyFileIdMetadata(blobHierarchyItem, containerClient);
+                            var fileMetaData = FileMetadataFromBlobItem(blobHierarchyItem, fileId);
+                            files.Add(fileMetaData);
+                        }
+                        
+                    }
+                    return (folders, files, continuationToken);
+                }
+                
+                return (folders, files, continuationToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Get file list for project: {ProjectAcronym} for user: {DisplayName} FAILED",
+                    projectAcronym, user.DisplayName);
+                throw;
+            }
+        }
+
+        public async Task<List<string>> GetProjectContainersAsync(string projectAcronymParam, User user)
+        {
+            return await ListContainers(projectAcronymParam, user);
+        }
+
+        public async Task<bool> StorageBlobExistsAsync(string filename, string projectAcronym, string containerName)
+        {
+            var connectionString = await GetProjectConnectionString(projectAcronym.ToLower());
+            var blobServiceClient = new BlobServiceClient(connectionString);
+            
+            var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
+            var blobClient = containerClient.GetBlobClient(filename);
+
+            return await blobClient.ExistsAsync();
         }
     }
 }

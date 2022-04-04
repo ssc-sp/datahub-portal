@@ -526,7 +526,7 @@ else
         }
         else
         {
-            if (await DataRemovalService.DeleteStorageBlob(file, Project.ToLower(), CurrentUser))
+            if (await DataRemovalService.DeleteStorageBlob(file, Project.ToLower(), DataRetrievalService.DEFAULT_CONTAINER_NAME, CurrentUser))
             {
                 CurrentFolder.Remove(file);
                 UnSelectFiles();

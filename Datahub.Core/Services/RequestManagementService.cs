@@ -36,6 +36,7 @@ namespace Datahub.Core.Services
         public async Task RequestAccess(Datahub_Project_Access_Request request)
         {
             await using var ctx = await _dbContextFactory.CreateDbContextAsync();
+            ctx.Projects.Attach(request.Project);
 
             var exists = await ctx.Access_Requests
                 .AnyAsync(a => a.User_ID == request.User_ID
