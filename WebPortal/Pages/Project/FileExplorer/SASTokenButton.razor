@@ -48,7 +48,7 @@
         if (string.IsNullOrWhiteSpace(_sasToken))
         {
             var uri = await _dataRetrievalService.GenerateSasToken(DataRetrievalService.DEFAULT_CONTAINER_NAME, ProjectAcronym, 14, ContainerToken);
-            _sasToken = uri.ToString();
+            _sasToken = ContainerToken ? uri.Query[1..] : uri.ToString();
 
             await OnSubstitutionsChanged.InvokeAsync(new List<(string, string)> {(ResourceSubstitutions.Token, _sasToken)});
         }
