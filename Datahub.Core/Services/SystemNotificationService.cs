@@ -62,7 +62,7 @@ namespace Datahub.Core.Services
                 currentThread.CurrentUICulture = oldCulture;
                 return localizedText;
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 _logger.LogWarning("Missing translation for key {TextKey}", textKey);
                 return $"Missing translation for {textKey}";

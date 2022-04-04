@@ -1,0 +1,95 @@
+﻿@inject IUserInformationService UserInformationService
+@inject ServiceAuthManager ServiceAuthManager
+@page "/administration"
+
+<DHPageTitle PageTitleKey="@Localizer["Admin"]"/>
+
+<AeTypography Variant="h1">@Localizer["DataHub Administration"]</AeTypography>
+
+<AuthorizeView Roles="@string.Join(',', _authorizedRoles)">
+    <Authorized>
+        <div class="file-explorer-layout-wrapper">
+            <TabControl TabIndex="@_tabIndex" OnChangeTab="@OnChangeTab">
+                            @foreach (var (control, content) in GetTabs())
+                            {
+                                <TabPage>
+                                    <Control>
+                                        <AeTypography>@control</AeTypography>
+                                    </Control>
+                                    <ChildContent>
+                                        @content
+                                    </ChildContent>
+                                </TabPage>
+                            }
+            </TabControl>
+        </div>
+    </Authorized>
+    <NotAuthorized>
+        <AeTypography Variant="h1">@Localizer["This page is limited for DataHub administrators"]</AeTypography>
+    </NotAuthorized>
+</AuthorizeView>
+@code {
+
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+
+    private System.Security.Claims.ClaimsPrincipal _user;
+
+    private string CurrentUserId { get; set; }
+    private string CurrentUserName { get; set; }
+    private string CurrentUserEmail { get; set; }
+    private bool IsDataHubAdmin { get; set; }
+    private int _tabIndex;
+    private List<string> _authorizedRoles;
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        // You must re-render after the components are initialized in order for the 
+        // component reference to not be null
+        if (firstRender) {
+            StateHasChanged();
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _authorizedRoles = ServiceAuthManager.GetAdminProjectRoles();
+        _user = (await authenticationStateTask).User;
+        
+        CurrentUserId = await UserInformationService.GetUserIdString();
+        CurrentUserEmail = _user.Identity.Name;
+        CurrentUserName = _user.Claims.Where(c => c.Type == "name").FirstOrDefault()?.Value;
+        IsDataHubAdmin = _user.IsInRole(RoleConstants.DATAHUB_ROLE_ADMIN);
+    }
+
+    private void OnChangeTab(int tabIndex)
+    {
+        _tabIndex = tabIndex;
+    }
+
+    private List<(string, RenderFragment)> GetTabs()
+    {
+        var result = new List<(string, RenderFragment)>
+        {
+            (Localizer["Project Requests"], @<ProjectAccessRequestTable UserId=@CurrentUserId IsDatahubAdmin=@IsDataHubAdmin />),
+            (Localizer["Authorize Users"], @<ServiceAccessRequestTable UserId=@CurrentUserId IsDatahubAdmin=@IsDataHubAdmin />),
+            (Localizer["Service Requests"], @<ServiceCreationRequestTable UserId=@CurrentUserId IsDatahubAdmin=@IsDataHubAdmin />),
+        };
+
+        if (_user != null)
+        {
+            result.Add((Localizer["Notification Test Panel"], @<NotificationTestPanel 
+                    DefaultEmailName=@CurrentUserName
+                    DefaultEmailAddress=@CurrentUserEmail
+                />
+            ));
+        }
+
+        if (IsDataHubAdmin)
+        {
+            result.Add((Localizer["DataHub Tools"], @<DatahubTools />));
+        }
+        return result;
+    }
+
+}

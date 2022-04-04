@@ -6,7 +6,9 @@ namespace Datahub.Metadata.Model
     {
         public int ApprovalFormId { get; set; }
         public string Department_NAME { get; set; }
+        public int Sector_ID { get; set; }
         public string Sector_NAME { get; set; }
+        public int Branch_ID { get; set; }
         public string Branch_NAME { get; set; }
         public string Division_NAME { get; set; }
         public string Section_NAME { get; set; }

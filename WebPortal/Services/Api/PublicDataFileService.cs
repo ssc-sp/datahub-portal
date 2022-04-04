@@ -431,6 +431,12 @@ namespace Datahub.Portal.Services
             return ub.ToString();
         }
 
+        public string GetPublicSharedUrl(string path)
+        {
+            var ub = new UriBuilder(_config.PublicFileSharingDomain) { Path = path };
+            return ub.ToString();
+        }
+
         public async Task<List<OpenDataSharedFile>> GetPendingApprovalOpenDataFiles()
         {
             return await _projectDbContext.OpenDataSharedFiles

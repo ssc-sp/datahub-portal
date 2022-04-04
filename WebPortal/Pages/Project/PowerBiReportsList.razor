@@ -1,44 +1,45 @@
 ﻿@page "/powerbi/{projectAcronym}"
-@inject IDbContextFactory<DatahubProjectDBContext> DbFactoryProject
-@using Microsoft.EntityFrameworkCore.Query
-@using Microsoft.EntityFrameworkCore;
-@using Microsoft.PowerBI.Api.Models
+@inject IPowerBiDataService PowerBiDataService
 
 <div style="padding-left: 2rem;padding-right: 2rem">
 
     <AeTypography Variant="h1">@Localizer["Power BI Reports"]</AeTypography>
 
-            <AeCard>
-                <Header>
-                    
-                </Header>
-                <ChildContent>
-                    @if (false)
-                    {
-                        <Spinner />
-                    }
-                    else
-                    {
-
-                        <AePaginatedTable Accessors="accessorFunctions"
-                                      Renderers="GetRenderers()"
-                                      Dataset="_project_PBI_Reports"
-                                      Headers="headers"
-                                      T="Project_PBI_Report"
-                                      @ref="_myTable"
-                                      Page="@_lastClicked"
-                                      PageSize="20" />
-                        
-                        <AePagination 
-                        Pageable="@_myTable" 
-                        OnPageClick="OnPageClick"> 
-                        <LeftIcon><i class='fad fa-chevron-double-left'></i></LeftIcon> 
-                        <RightIcon><i class='fad fa-chevron-double-right'></i></RightIcon>
-                        </AePagination>
-                    }
-                </ChildContent>
+    <AeCard>
                 
-            </AeCard>        
+        <ChildContent>
+            @if (_isLoading)
+            {
+                <Spinner />
+            }
+            else if (_powerBiReports.Count < 1)
+            {
+                <AeTypography Variant="p">@Localizer["There are no reports available for this project."]</AeTypography>
+            }
+            else
+            {
+                <AePaginatedTable
+                    Accessors=@accessors
+                    Renderers=@renderers
+                    Dataset=@_powerBiReports
+                    Headers=@(LocalizeHeaders(headers))
+                    @ref=@_reportTable
+                    Page=@_currentPage
+                    PageSize="20" />
+                        
+                <AePagination Pageable=@_reportTable OnPageClick=@OnPageClick> 
+                    <LeftIcon><i class='fad fa-chevron-double-left'></i></LeftIcon> 
+                    <RightIcon><i class='fad fa-chevron-double-right'></i></RightIcon>
+                </AePagination>
+            }
+        </ChildContent>
+        <Footer>
+            <label>
+                <input type="checkbox" checked=@IncludeSandbox @oninput=@IncludeSandboxChanged />
+                @Localizer["Include sandbox workspaces"]
+            </label>
+        </Footer>
+    </AeCard>        
     
 </div>
 
@@ -48,13 +49,18 @@
     [Parameter]
     public string projectAcronym { get; set; }
 
-    private List<Project_PBI_Report> _project_PBI_Reports;
-    private int _lastClicked = 0;
-    private IPageableComponent _myTable;
+    private List<PowerBi_Report> _powerBiReports = new();
+    private int _currentPage = 0;
+    private IPageableComponent _reportTable;
+
+
+    private bool IncludeSandbox { get; set; } = false;
+
+    private bool _isLoading = false;
 
     private void OnPageClick(int pageIndex)
     {
-        _lastClicked = pageIndex;
+        _currentPage = pageIndex;
     }
 
     private List<string> headers = new List<string>
@@ -62,14 +68,40 @@
         "Report Name", "Workspace", "Report"
     };
 
+    private List<string> LocalizeHeaders(List<string> input) => input.Select(s => Localizer[s].ToString()).ToList();
+
     protected override async Task OnInitializedAsync()
     {
-        _project_PBI_Reports = new();
+        renderers = new()
+        {
+            null,
+            WorkspaceLinkFragment,
+            ReportLinkFragment
+        };
+
         if (projectAcronym != null)
         {
-            using var ctx = DbFactoryProject.CreateDbContext();
-            _project_PBI_Reports = await ctx.Project_PBI_Reports.Include(u => u.Project).Where(r => r.Project.Project_Acronym_CD.ToLower() == projectAcronym.ToLower()).ToListAsync();
+            await LoadReports();
         }
+    }
+
+    private async Task IncludeSandboxChanged(ChangeEventArgs e)
+    {
+        var value = e.Value as bool?;
+        if (value.HasValue)
+        {
+            IncludeSandbox = value.Value;
+            await LoadReports();
+        }
+    }
+
+    private async Task LoadReports()
+    {
+        _isLoading = true;
+        StateHasChanged();
+        _powerBiReports = await PowerBiDataService.GetReportsForProject(projectAcronym, IncludeSandbox);
+        _isLoading = false;
+        StateHasChanged();
     }
 
     protected override void OnAfterRender(bool firstRender)
@@ -82,22 +114,36 @@
         }
     }
 
-    private List<Func<Project_PBI_Report, string>> accessorFunctions = new List<Func<Project_PBI_Report, string>>
-    {        
-        new Func<Project_PBI_Report, string>(pt => { return pt.ReportName; }),
-        null,
-        null,
-    };
+    private List<Func<PowerBi_Report, string>> accessors = new()
+        {
+            r => r.Report_Name,
+            r => r.Workspace?.Workspace_Name ?? string.Empty,
+            r => r.Report_Name
+        };
 
-    private List<Func<Project_PBI_Report, RenderFragment>> GetRenderers() => new() { null, GetWorkspaceFragment, GetReportFragment };
+    private List<Func<PowerBi_Report, RenderFragment>> renderers = new();
 
-    private RenderFragment GetWorkspaceFragment(Project_PBI_Report report)
-    {
-        return @<AeTypography><DHLink LinkType="DatahubLinkType.PowerBIWorkspace" PBIWorkspaceId=@(report?.Workspace?.ToString())>Workspace</DHLink></AeTypography>;
-    }
+    private RenderFragment WorkspaceLinkFragment(PowerBi_Report r) =>
+    @<AeTypography>
+        <DHLink 
+                LinkType=@DatahubLinkType.PowerBIWorkspace 
+                PBIWorkspaceId=@(r.Workspace_Id.ToString())>
+            @r.Workspace.Workspace_Name
+        </DHLink>
+    </AeTypography>
+    ;
 
-    private RenderFragment GetReportFragment(Project_PBI_Report report)
-    {
-        return @<AeTypography><DHLink DataProject="@(report?.Project?.Project_Acronym_CD)" PBIWorkspaceId=@(report?.Workspace?.ToString()) PBIReportId=@(report?.Id.ToString()) PowerBIURL="@(report?.GetLink())" Name="@(report?.ReportName)">@report?.ReportName</DHLink></AeTypography>;
-    }
+    private RenderFragment ReportLinkFragment(PowerBi_Report r) =>
+    @<AeTypography>
+        <DHLink 
+                LinkType=@DatahubLinkType.PowerBI
+                DataProject=@(r.Workspace.Project?.Project_Acronym_CD) 
+                PBIWorkspaceId=@(r.Workspace_Id.ToString())
+                PBIReportId=@(r.Report_ID.ToString())
+                Name=@(r.Report_Name)>
+            @r.Report_Name
+        </DHLink>
+    </AeTypography>
+    ;
+
 }

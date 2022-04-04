@@ -1,4 +1,7 @@
 ﻿@page "/share/opendata/{FileId}"
+@using Datahub.Metadata.Model
+@using Datahub.Metadata.DTO
+@using Datahub.Metadata.Utils
 @inject CustomNavigation NavManager
 @inject IPublicDataFileService PublicFileService
 @inject IDbContextFactory<DatahubProjectDBContext> dbContextFactory
@@ -266,6 +269,8 @@
     private string _uploadFileErrorMessage;
 
     private int _approvalFormId = 0;
+    private int _approvalFormSectorId = 0;
+    private int _approvalFormBranchId = 0;
 
     private string _signedApprovalFormUrl;
 
@@ -326,13 +331,15 @@
         }
     }
 
-    private async Task UpdateApprovalFormId(int id)
+    private async Task UpdateApprovalFormId(Forms.ShareWorkflow.ApprovalFormSubmitArgs args)
     {
         _savingData = true;
         try
         {
-            _approvalFormId = id;
-            await PublicFileService.UpdateOpenDataApprovalFormId(_fileIdGuid, id);        
+            _approvalFormId = args.FormId;
+            _approvalFormSectorId = args.SectorId;
+            _approvalFormBranchId = args.BranchId;
+            await PublicFileService.UpdateOpenDataApprovalFormId(_fileIdGuid, _approvalFormId);        
         }
         finally
         {
@@ -372,7 +379,7 @@
             var fieldValues = await MetadataBrokerService.GetObjectMetadataValues(FileId);
 
             // get the file url (use the saved file url or build the url if none given)
-            var url = string.IsNullOrEmpty(_fileUrl) ? PublicFileService.GetPublicSharedFileUrl(FileId) : _fileUrl;
+            var url = !string.IsNullOrEmpty(_fileUrl) ? _fileUrl : PublicFileService.GetPublicSharedFileUrl(FileId);
 
             // publish to open data
             var result = await OpenDataService.PublishFileAsUrl(fieldValues, IsExternalShare, url);
@@ -381,6 +388,10 @@
             {
                 var updatedFile = await PublicFileService.UpdateOpenDataPublication(_fileIdGuid, true);
                 UpdateShareFileStatus(updatedFile);
+
+                // catalog the shared object
+                await CatalogSharedObject(fieldValues);
+
                 await InvokeAsync(StateHasChanged);
             }
             else
@@ -392,6 +403,31 @@
         {
             _savingData = false;
         }
+    }
+
+    private async Task CatalogSharedObject(FieldValueContainer fieldValues)
+    {
+        var isUrl = !string.IsNullOrEmpty(_fileUrl);
+        var objectType = isUrl ? MetadataObjectType.FileUrl : MetadataObjectType.File;
+        var location = isUrl ? _fileUrl : _projectCode;
+
+        // allow the name to be indexed as well
+        fieldValues.SetValue("name", _requestFilename); 
+        var digest = fieldValues.GetCatalogDigest();
+
+        await MetadataBrokerService.UpdateCatalog
+        (
+            fieldValues.MetadataId, 
+            objectType, 
+            _requestFilename, 
+            location, 
+            _approvalFormSectorId, 
+            _approvalFormBranchId, 
+            _requestingUser?.Mail, 
+            SecurityClassification.Unclassified,
+            digest.EnglishCatalog, 
+            digest.FrenchCatalog
+        );
     }
 
     private async Task UploadAndPublish()
@@ -407,6 +443,8 @@
 
             _uploadStatus = OpenDataUploadStatus.UploadingFile;
             StartOpenDataUploadTimer();
+
+            await CatalogSharedObject(fieldValues);
 
             await InvokeAsync(StateHasChanged);
         }
@@ -533,7 +571,7 @@
                               OnDecision="UnpublishFile"
                               ConfirmText=@Localizer["COMMON.Yes"]
                               CancelText=@Localizer["COMMON.No"]/>
-        ;
+    ;
         await UI.ToggleModal(modalDialog);
     }
 
@@ -571,6 +609,8 @@
             _uploadFileErrorMessage = sharedFileInfo.UploadError_TXT;
 
             _approvalFormId = sharedFileInfo.ApprovalForm_ID ?? 0;
+            await ReadSectorAndBranch();
+
             _signedApprovalFormUrl = sharedFileInfo.SignedApprovalForm_URL;
             _requestFilename = sharedFileInfo.Filename_TXT;
             _publicationDateText = sharedFileInfo.PublicationDate_DT?.ToShortDateString();
@@ -625,4 +665,19 @@
     }
 
     private bool UploadSignedPDFDisabled() => _savingData || !IsPDFUrlValid();
+
+    private async Task ReadSectorAndBranch()
+    {
+        if (_approvalFormId != 0)
+        {
+            var approvalForm = await MetadataBrokerService.GetApprovalForm(_approvalFormId);
+            if (approvalForm != null)
+            {
+                _approvalFormSectorId = approvalForm.Sector_ID;
+                _approvalFormBranchId = approvalForm.Branch_ID;
+            }
+        }
+    }
 }
+
+    

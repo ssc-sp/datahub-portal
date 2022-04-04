@@ -1,22 +1,26 @@
 ﻿@inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject DataRetrievalService _dataRetrievalService
-@inject IJSRuntime _jsRuntime
+@inject IUserInformationService _userInformationService
 
 @page "/projects/{ProjectAcronymParam}/filelist"
 @using Datahub.Core.Components.PageBanner
+@using Datahub.Portal.Pages.Project.FileExplorer.ResourcePages
+@using Microsoft.Graph
 
 <DHPageTitle PageTitleKey="@_projectName"/>
 <DHPageAlert Title="How to use Project Storage" Key="@PageAlert.Storage" WikiLinkEN="Onboarding---Project-Storage" WikiLinkFR="Onboarding---Project-Storage"/>
 
+<AeTypography style="margin-top: 0;" Variant="h1">@Localizer["Storage Explorer"]</AeTypography>
+
 <CascadingValue Value="@ProjectAcronymParam" Name="ProjectAcronym">
-    <CascadingValue Value="@HandleSasButtonClick">
+    <CascadingValue Value="_user" Name="GraphUser">
         <div class="file-explorer-layout-wrapper">
             <TabControl TabIndex="@_tabIndex" OnChangeTab="@OnChangeTab">
-                @foreach (var (control, content) in GetTabs())
+                @foreach (var (control, content, forceGapLeft) in _tabs)
                 {
-                    <TabPage>
+                    <TabPage ForceGapToLeft="forceGapLeft">
                         <Control>
-                            <AeTypography>@control</AeTypography>
+                            @control
                         </Control>
                         <ChildContent>
                             @content
@@ -24,20 +28,6 @@
                     </TabPage>
                 }
             </TabControl>
-            <AeButton class="sas-token-button dark" @onclick="HandleSasButtonClick">
-                @if (string.IsNullOrWhiteSpace(_sasToken))
-                {
-                    <span>@Localizer["Generate SAS Token"]</span>
-                }
-                else if (_showingCopiedForSasButton)
-                {
-                    <span>@Localizer["Copied!"]</span>
-                }
-                else
-                {
-                    <span>@Localizer["Copy SAS Token"]</span>
-                }
-            </AeButton>
         </div>
     </CascadingValue>
 </CascadingValue>
@@ -49,31 +39,21 @@
 
     private int _tabIndex;
     private string _projectName;
-
-
-    private string _sasToken;
-    private List<(string, string)> _substitutions;
-
-    private IJSObjectReference _module;
-    private bool _showingCopiedForSasButton;
-
+    private List<(RenderFragment, RenderFragment, bool)> _tabs = new();
+    private User _user;
 
     protected override async Task OnInitializedAsync()
     {
         await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
 
+        _user = await _userInformationService.GetUserAsync();
+
         _projectName = await projectContext.Projects
             .Where(p => p.Project_Acronym_CD == ProjectAcronymParam)
             .Select(p => p.ProjectName)
             .FirstOrDefaultAsync();
-    }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        await base.OnAfterRenderAsync(firstRender);
-
-        _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import",
-            "./Pages/Project/FileExplorer/FileExplorerPage.razor.js");
+        _tabs = await GetTabs();
     }
 
     private void OnChangeTab(int tabIndex)
@@ -81,36 +61,27 @@
         _tabIndex = tabIndex;
     }
 
-    private List<(string, RenderFragment)> GetTabs()
+    private async Task<List<(RenderFragment, RenderFragment, bool)>> GetTabs()
     {
-        var result = new List<(string, RenderFragment)>
-        {
-            (Localizer["Storage Explorer"], @<FileExplorer/>),
-            (Localizer["AzCopy"], @<Resources PageName="Use-AzCopy-to-Interact-with-Azure-Storage-Account" Substitutions="_substitutions"/>),
-            (Localizer["Databricks Access"], @<Resources PageName="Access-your-storage-account-in-Databricks" Substitutions="_substitutions"/>),
-        };
+        var containers = await _dataRetrievalService.GetProjectContainersAsync(ProjectAcronymParam, _user);
 
-        return result;
-    }
+        var tabs = new List<(RenderFragment, RenderFragment, bool)>();
+        containers.ForEach(container =>
+            tabs.Add((@<AeTypography>
+                         <i class="fas fa-hdd"></i>
+                         @Localizer[container]
+                     </AeTypography>, @<FileExplorer ContainerName="@container"/>, false)));
 
-    private async Task HandleSasButtonClick()
-    {
-        if (string.IsNullOrWhiteSpace(_sasToken))
-        {
-            var uri = await _dataRetrievalService.GenerateSasToken(DataRetrievalService.DEFAULT_CONTAINER_NAME, ProjectAcronymParam, 14);
-            _sasToken = uri.ToString();
-            _substitutions = new List<(string, string)> {("<sas_uri>",_sasToken)};
-        }
-        else
-        {
-            _showingCopiedForSasButton = true;
-            await _module.InvokeVoidAsync("copyTextToClipboard", _sasToken);
-            StateHasChanged();
+        tabs.Add((@<AeTypography>
+                      <i class="fas fa-info-circle"></i>
+                      @Localizer["AzCopy"]
+                  </AeTypography>, @<AzCopy/>, true));
+        tabs.Add((@<AeTypography>
+                      <i class="fas fa-info-circle"></i>
+                      @Localizer["Databricks Access"]
+                  </AeTypography>, @<Databricks/>, false));
 
-            await Task.Delay(1000);
-            _showingCopiedForSasButton = false;
-            StateHasChanged();
-        }
+        return tabs;
     }
 
 }
