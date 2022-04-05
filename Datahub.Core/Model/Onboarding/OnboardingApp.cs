@@ -97,6 +97,9 @@ namespace Datahub.Core.Model.Onboarding
         [Timestamp]
         public byte[] Timestamp { get; set; }
 
+        [AeFormIgnore]
+        public DateTime? ProjectCreatedDate { get; set; }
+
        
     }
 }

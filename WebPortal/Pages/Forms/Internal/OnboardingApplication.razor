@@ -13,6 +13,7 @@
 @inject IOrganizationLevelsService OrganizationLevelsService
 
 @using Datahub.Core.Model.Onboarding
+@using System.Text
 
 @if (_isLoaded)
 {
@@ -27,7 +28,24 @@
         CreateNewRecord="CreateNewApplication"
         SelectedRecord="@_onboardingApplication"
         SetFormEditRecord="SetFormEdit" />
+
+    <AeCard class="facardForms" CardPosition="AeCard.CardStyle.Horizontal">
+        @if (_isUserAdmin && _onboardingApplication != null)
+        {
+            <AeTypography Variant="h2">Create Project</AeTypography>
+            <AeTypography Variant="p"><b>Project Acronym</b></AeTypography>
+            <AeInput class="formuserinput"  @onchange="@SetProjectAcronym"></AeInput>
+            <AeFlex id="buttonBar">
+                <div class="icon-container" style="margin-top: 5px;">
+                    <FAButton Text="@_addButton" Icon="far fa-plus-square" onclick="CreateNewProject" />
+                    <SuccessIndicator @bind-IsLoading=@_submittingApproval @ref=@_submitApprovalInd />
+                </div>
+            </AeFlex>
+        }
+    </AeCard>
+  
 }
+
 @code {
 
     [Parameter]
@@ -46,6 +64,7 @@
     private Microsoft.Graph.User _user;
     private List<Func<OnboardingApp, string>> AccessorFunctions = new List<Func<OnboardingApp, string>>();
     private bool _isLoaded;
+    private string _addButton = "Create";
 
     private List<OrganizationLevel> _sectors = new(); 
     private List<OrganizationLevel> _branches = new(); 
@@ -54,8 +73,12 @@
     private int _sectorId = -1;
     private int _branchId = -1;
     private int _divisionId = -1;
+
     private bool _isUserAdmin;
     private bool _isFrench;
+    private string _newProjectAcronym;
+    private SuccessIndicator _submitApprovalInd;
+    private bool _submittingApproval = false;
 
     private List<string> Sectors => LocalizeChoices(_sectors);
     private List<string> Branches => LocalizeChoices(_branches.Where(b => b.ParentId == _sectorId));
@@ -82,6 +105,7 @@
             p => { return Localizer[p.Client_Branch ?? string.Empty]; },
             p => { return Localizer[p.Client_Division ?? string.Empty]; },
             p => { return p.Client_Contact_Name; },
+            p => { return p.ProjectCreatedDate.ToString() ?? string.Empty; },
         };
 
         LoadApps();
@@ -90,7 +114,7 @@
         _formMetadata.DataSet = _onboardingApplications;
         _formMetadata.AccessorFunctions = AccessorFunctions;
         _formMetadata.Headers = headers;
-        _formMetadata.GridTemplateColumns = "4fr 4fr 4fr 4fr";
+        _formMetadata.GridTemplateColumns = "4fr 4fr 4fr 4fr 2fr";
         _formMetadata.IsSubmitEnabled = true;
         _formMetadata.MarkDownContent = new List<string>();
         _formMetadata.MarkDownContentFooter = new List<string>();
@@ -99,6 +123,76 @@
             CreateNewApplication();    
 
         _isLoaded = true;
+        StateHasChanged();
+    }
+
+    private void SetProjectAcronym(ChangeEventArgs args) => _newProjectAcronym = (string)args.Value;
+
+    private async Task CreateNewProject()
+    {
+        var exists = Context.Projects.Where(a => a.Project_Acronym_CD.ToLowerInvariant() == _newProjectAcronym.ToLowerInvariant()).Any();
+        if (exists)
+        {
+            var textList = new List<string>()
+            {
+                Localizer[$"The program acronym already exists, enter a different one."]
+            };
+            await UI.ToggleModal(
+    @<WarningModal OnDecision="HandleWarningDecision" WarningTextString=@textList />
+    );
+        }
+        else
+        {
+            _submittingApproval = true;
+            var project = new Datahub_Project();
+            project.Project_Acronym_CD = _newProjectAcronym;
+            project.Sector_Name = _onboardingApplication.Client_Sector;
+            project.Branch_Name = _onboardingApplication.Client_Branch;
+            project.Division_Name = _onboardingApplication.Client_Division;
+            project.Contact_List = CreateContactList();
+            project.Project_Name = _onboardingApplication.Project_Name;
+            project.Project_Summary_Desc = _onboardingApplication.Project_Summary_Description;
+            project.Project_Category = _onboardingApplication.Project_Engagement_Category;
+            project.OnboardingApplicationId = _onboardingApplication.Application_ID;
+
+            Context.Projects.Add(project);
+
+            _onboardingApplication.ProjectCreatedDate = DateTime.Now.Date;
+ 
+            var result = await Context.TrackSaveChangesAsync(AuditingService);
+            if (result < 1)
+            {   
+                await _submitApprovalInd.SignalFailure();
+            }
+            else
+            {
+                await _submitApprovalInd.SignalSuccess();
+            }
+
+        }
+    }
+
+    private string CreateContactList()
+    {
+        StringBuilder stringbuilder = new();
+        stringbuilder.Append(_onboardingApplication.Client_Contact_Name);
+        stringbuilder.Append(" ");
+        stringbuilder.Append($"<{_onboardingApplication.Client_Email}>; ");
+
+        if (!string.IsNullOrWhiteSpace(_onboardingApplication.Additional_Contact_Email_EMAIL))
+        {
+            stringbuilder.Append(_onboardingApplication.Additional_Contact_Name ?? string.Empty);
+            stringbuilder.Append(" ");
+            stringbuilder.Append($"<{_onboardingApplication.Additional_Contact_Email_EMAIL}>; ");
+        }
+
+        return stringbuilder.ToString();
+    }
+
+
+    private async void HandleWarningDecision(bool IsContinue)
+    {
+        await UI.ToggleModal();
         StateHasChanged();
     }
 
@@ -116,7 +210,7 @@
 
     private List<string> headers => new List<string>
     {
-        Localizer["Sector"], Localizer["Branch"], Localizer["Division"], Localizer["Contact"]        
+        Localizer["Sector"], Localizer["Branch"], Localizer["Division"], Localizer["Contact"], Localizer["Created Date"]        
     };
 
     private async Task HandleValidSubmit()
