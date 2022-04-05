@@ -1,45 +1,65 @@
 
-# What is the NRCan DataHub?
+# Welcome to the NRCan DataHub Portal
 
-The NRCan DataHub project is an enterprise platform for storing, working with and collaborating on data initiatives.  It is a central location for NRCan users to store any kind of data with a unified portal to facilitate data discovery and management, performing collaborative analysis, manipulating data using advanced analytics tools, and conducting data science experiments.
+This repository contains the source code the NRCan DataHub. The DataHub is an enterprise portal designed to manage, connect and bridge existing cloud tools and simplify scientific and corporate workflows.
 
-![image](https://user-images.githubusercontent.com/82101285/129956914-9ebe7b07-25dd-4c2c-9da0-d8e8a2499c78.png)
+## What are the portal capabilities?
 
+### Landing & Shortcuts
 
-## Scope and Objectives
+The DataHub landing pages provides instant jump lists to let users access their recent tools, and also the storage, Power BI and databricks areas associated with their account. The DataHub landing has saved many users from navigation exhaustion in the Power BI & Databricks menus.
 
-The DataHub aims to provide the following features:
-- Trusted Enterprise platform for storing, working with, and collaborating on data initiatives.
-- Common and integrated environment for working with data, including an intuitive interface and features designed for usability, collaboration, and mobility.
-- Reduce barriers to entry for using the latest business intelligence and analytics tools, frameworks and technologies.
-- Secure end-to-end data management
-- Data Projects empower users to tell data stories, work with massive datasets, conduct analyses and experiment with new technologies.
-- Connect Data Scientists & Analytics Users in Sectors & Collaborating with other platforms
+### Data Projects
 
-_This project is presently internal to NRCan and more details can be obtained by contacting on DataHub mailbox for any collaboration opportunities Datahub.rncan@canada.ca_
+The DataHub makes it easy for multiple teams, labs or users to get access to Storage, Databases, Data Science and Analytical tools:
 
-![image](https://user-images.githubusercontent.com/82101285/122599381-48a01d00-d03c-11eb-9bb8-a20d76646258.png)
+- Storage accounts: A Data Project includes a storage explorer to upload/download files with a friendly user interface.
+- Databricks integration: The Data Project has a direct link to Databricks workspaces and also simplifies the mounting of the storage account for the notebooks
+- Power BI integration: The integration implements NRCan's governance model and connects users directly to their workspaces and key reports.
+- SQL Server: A SQL Server can be associated to a project and the connection details will be directly available to the users.
+- PostgreSQL: Postgresql servers can also be linked and the project tools can generate the associated Azure token for integrated authentication.
+- Data Sharing: A simple workflow lets users select a file, and request data sharing (see Data Sharing for more details)
+- User onboarding: Project administrators can invite other users to their project(s)
 
-## Data Projects
+### User Management
 
-The DataHub makes it easy for multiple teams, labs or users to get access to ETL, Data Science or Analytical tools.
+The portal integrates with Azure Active Directory and manages roles and users. The portal has 3 types of users: Datahub administrators, Project administrators and Users. Users can access project resources, project administrators can invite other users and datahub administrators have the ability to invite administrators.
 
-The web interface lets users browse data project, request access and work with the following tools:
-- **PowerBI Workspaces:** Each data project can be associated with its own workspace.
-- **Storage Explorer & Databricks:** For data science projects, a separate storage account and a databricks workspace are created. The portal includes a user friendly drag and drop user interface to browse the account, upload and download files.
-- **Form Builder**: DataHub include a data model manager that lets user design data models which can be converted into Entity Framework Models and connected to Blazor Forms.
-- **Data Entry**: Once deployed into a web application, the forms designed with the form builder can be accessed for each data project and convert complex legacy spreadsheets into user friendly web applications.
+### Resource Management
 
-## System Architecture
+The portal is designed to be used with Terraform or other IaC systems and automate the creation of resources. The system manages a list of workflows with user requests in SQL tables that can be integrated in DevOps pipelines. 
 
-The diagram below shows the key components of the platform
+### Secure by default
 
-![image](https://user-images.githubusercontent.com/82101285/122604469-fd8a0800-d043-11eb-8e51-e1a3b3325ee2.png)
+Each component in the system has been designed with high security in mind. The portal doesn't require any elevated Azure role or service principal and uses OBO permissions for all management tasks.
+
+### Integrated help
+
+The key pages and modules in the portal offer integrated help for guiding users with Power BI, Databricks, and Azure Storage. The current help content is located in the Wiki.
+
+### Data Entry Framework
+
+The portal includes a data entry framework that leverages Entity Framework, fluent code, annotations and can generate complex forms to support client business rules, multiple tables through standard SQL tables. This model enables an easy integration in Power BI or Tableau.
+
+## Technology
+
+The Web Portal is developed in .NET 6 and uses Blazor and ASP.Net core and several other open source libraries. The portal can run on Windows, Linux and can be deployed in any cloud environment. The styling leverages SCSS to modularize the CSS settings.
+
+## Extensibility & Configuration
+
+Several customizations can be done simply using the configuration. Each module in the data project can be enabled or disabled in the configuration.
+
+The DataHub is divided into modules which connect together using the ASP.Net core IoC broker. This enables to add extensions through nuget packages or separate projects. All modules are automatically wired to the portal using assembly scanning. Each module can be disabled using the configuration files.
+
+### Localization
+
+The DataHub provides localization files for both English et Francais but support for other languages can be added using additional localization files.
+
 
 # Github Structure
 
 This project includes multiple repositories
-- **DataHub Web Portal:** This repository contains the code for all the portal and Azure Functions used to automate PowerBI & Databricks tasks
+- **DataHub Web Portal:** This repository contains the code for all the portal and Azure Functions used to automate Databricks tasks.
 - **DataHub Terraform:** The terraform infrastructure for the project is stored in this repository and elements of the terraform script are dynamically generated from the Data Project database. Please contact us for details on the terraform infrastructure.
 - **DataHub Databricks:** Databricks is used in this project for ETL, Data Science and other data transformations. Examples from this repository can be used as template for setting up new tasks.
 

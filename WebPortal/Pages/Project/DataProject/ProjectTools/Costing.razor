@@ -1,0 +1,55 @@
+@inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
+
+<AuthorizeView Roles="@($"{ProjectAcronym}-admin")" Context="Project_Cost">
+    <ToolCard
+        Title=@Localizer["Azure Costs"]
+        Description=@_projectCostFormatted>
+        <Logo>
+            <div class="indigo" style="width:180px">
+                <AeIcon class="fad fa-dollar-sign card-icon fa-xs"/>
+            </div>        
+        </Logo>
+        <ToolActionsList>
+            <ul>
+                <li>
+                    <AeButton>@Localizer["Project_Cost_Button"]</AeButton>
+                </li>
+            </ul>
+        </ToolActionsList>
+    </ToolCard>
+
+</AuthorizeView>
+
+@code {
+
+    [CascadingParameter(Name = "ProjectAcronym")]
+    public string ProjectAcronym { get; set; }
+
+    private string _projectCostFormatted;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        _projectCostFormatted = await GetProjectCostFormatted();
+    }
+
+    private async Task<string> GetProjectCostFormatted()
+    {
+        await using var projectDbContext = await _dbFactoryProject.CreateDbContextAsync();
+
+        var projectCosts = await projectDbContext.Project_Costs
+            .Where(pc => pc.Project_Acronym_CD == ProjectAcronym)
+            .OrderByDescending(pc => pc.Usage_DT)
+            .FirstOrDefaultAsync();
+
+        if (projectCosts == null)
+            return Localizer["No cost data found."];
+
+        var cost = Convert.ToDecimal(projectCosts.Cost_AMT).ToString("C2");
+        var toDate = projectCosts.Usage_DT.ToShortDateString();
+        var asOfDate = projectCosts.Updated_DT.ToShortDateString();
+        var template = Localizer["As of {0}, total resource cost is {1} for the period from {2} to {3}."];
+
+        return string.Format(template, asOfDate, cost, toDate, asOfDate);
+    }
+}

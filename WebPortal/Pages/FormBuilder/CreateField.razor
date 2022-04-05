@@ -1,4 +1,4 @@
-﻿@page "/project/{ProjectAcronym}/forms/{FormId}/newfield"
+﻿@page "/projects/{ProjectAcronym}/forms/{FormId}/newfield"
 @inject NavigationManager NavManager
 @implements IDisposable
 @inject IDbContextFactory<DatahubProjectDBContext> DbFactory
@@ -22,11 +22,11 @@ else
 
 @if (_form != null)
 {
-    <AeButton To=@($"/project/{ProjectAcronym}/forms/{_form.WebForm_ID}")>Back</AeButton>
+    <AeButton To="@($"/{UrlPathSegment.PROJECTS}/{ProjectAcronym}/forms/{_form.WebForm_ID}")">Back</AeButton>
 }
 else
 {
-    <AeButton To=@("/project/{ProjectAcronym}/forms")>Back</AeButton>
+    <AeButton To="@($"/{UrlPathSegment.PROJECTS}/{ProjectAcronym}/forms")">Back</AeButton>
 }
 
 @code {
@@ -55,7 +55,7 @@ else
         }
         else
         {
-            NavManager.NavigateTo($"/project/{ProjectAcronym}/forms");
+            NavManager.NavigateTo($"/{UrlPathSegment.PROJECTS}/{ProjectAcronym}/forms");
         }
     }
 
@@ -75,7 +75,7 @@ else
         _formField = result.Entity;
         await projectContext.SaveChangesAsync();
 
-        NavManager.NavigateTo($"/project/{ProjectAcronym}/forms/fields/{_formField.FieldID}");
+        NavManager.NavigateTo($"/{UrlPathSegment.PROJECTS}/{ProjectAcronym}/forms/fields/{_formField.FieldID}");
     }
 
     public void Dispose() { projectContext.Dispose(); }

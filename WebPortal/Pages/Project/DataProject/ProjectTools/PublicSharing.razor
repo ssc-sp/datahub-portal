@@ -1,0 +1,72 @@
+@inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
+@inject RequestManagementService _requestManagementService
+@inject IPublicDataFileService _publicDataFileService
+
+@if (_project is null)
+{
+    <ToolCard Loading/>
+}
+else
+{
+    <ToolCard
+        Title=@Localizer["PROJECT-PAGE.PUBLIC-SHARING-CARD.Title"]
+        Description=@Description>
+        <Logo>
+            <div class="blue" style="width:180px">
+                <AeIcon class="fad fa-file-alt card-icon fa-xs"/>
+            </div>
+        </Logo>
+        <ToolActionsList>
+             <ul>
+                <li>
+                    <DHLink Variant="h3" DataProject="@ProjectAcronym" LinkType="DatahubLinkType.DataSharingDashboard">
+                        <AeButton class="light">@Localizer["PROJECT-PAGE.PUBLIC-SHARING-CARD.Title"]</AeButton>
+                    </DHLink>
+                </li>
+             </ul>
+        </ToolActionsList>
+    </ToolCard>
+}
+
+@code {
+
+    [CascadingParameter(Name = "ProjectAcronym")]
+    public string ProjectAcronym { get; set; }
+
+    [CascadingParameter(Name = "UserId")]
+    public string UserId { get; set; }
+
+    [CascadingParameter(Name = "GraphUser")]
+    public Microsoft.Graph.User GraphUser { get; set; }
+
+    public string Description => $"{Localizer["Share files to Open Data, Public URLs or geo.ca"]}. " +
+      (_isDataApprover?Localizer["This project has {0} active file shared and {1} files waiting for approval.",_ownSharingRequestCount,_sharingRequestAwaitingApprovalCount]
+        :Localizer["The current project has {0} active file shared",_ownSharingRequestCount]);
+
+    private bool _isDataApprover;
+    private int _sharingRequestAwaitingApprovalCount;
+    private int _ownSharingRequestCount;
+
+    private Datahub_Project _project;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        await using var projectDbContext = await _dbFactoryProject.CreateDbContextAsync();
+        
+        _project = await projectDbContext.Projects
+            .Include(p => p.Requests)
+            .SingleAsync(p => p.Project_Acronym_CD == ProjectAcronym);
+        
+        if (UserId != null)
+        {
+            _isDataApprover = await projectDbContext.Project_Users
+                .Where(u => u.User_ID == UserId && _project == u.Project)
+                .AnyAsync(u => u.IsDataApprover);
+                
+            _sharingRequestAwaitingApprovalCount = await _publicDataFileService.GetDataSharingRequestsAwaitingApprovalCount(ProjectAcronym);
+            _ownSharingRequestCount = await _publicDataFileService.GetUsersOwnDataSharingRequestsCount(ProjectAcronym, UserId);
+        }
+    }
+}

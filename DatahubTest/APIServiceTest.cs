@@ -1,26 +1,12 @@
-using BlazorDownloadFile;
-
-using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
-using Datahub.Portal.Services;
 using Datahub.Core.Data;
-using Datahub.Core.Services;
 using System;
 using System.Collections.Generic;
-using System.Net.Http;
 using System.Threading.Tasks;
-using Tewr.Blazor.FileReader;
 using Xunit;
-using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.FileProviders;
-using Microsoft.JSInterop;
-using System.Threading;
 using Azure.Storage.Files.DataLake;
 using Azure.Storage;
 using System.IO;
-using Azure.Core;
-using Azure.Identity;
 using Azure.Storage.Files.DataLake.Models;
 
 using System.Linq;
@@ -29,8 +15,6 @@ using Azure.Search.Documents.Indexes;
 using Azure;
 using Azure.Search.Documents;
 using Azure.Search.Documents.Models;
-using Datahub.Portal.EFCore;
-using Datahub.Core.EFCore;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 
@@ -57,8 +41,8 @@ namespace Datahub.Tests
 
     public class APIServiceTest
     {
-        //private readonly IApiService _apiService;
-        //public APIServiceTest(IApiService ApiService)
+        //private readonly ApiService _apiService;
+        //public APIServiceTest(ApiService ApiService)
         //{
         //    _apiService = ApiService;
         //}

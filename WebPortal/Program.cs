@@ -67,10 +67,13 @@ namespace Datahub.Portal
                     logBuilder.AddFilter("Microsoft.AspNetCore.HttpLogging.HttpLoggingMiddleware", LogLevel.Information);
                     logBuilder.AddFilter<Microsoft.Extensions.Logging.ApplicationInsights.ApplicationInsightsLoggerProvider>("Microsoft.AspNetCore.HttpLogging.HttpLoggingMiddleware", LogLevel.Information);
                 })
+                .ConfigureAppConfiguration(conf => {
+                    var profile = Environment.GetEnvironmentVariable("HostingProfile") ?? "nrcan";
+                    conf.AddJsonFile($"datahub.{profile}.json", true);
+                })
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
-                    webBuilder.UseStartup<Startup>();
-
+                    webBuilder.UseStartup<Startup>();                    
                     webBuilder.ConfigureAppConfiguration((ctx, cb) =>
                     {
                         if (!ctx.HostingEnvironment.IsDevelopment()) // you'll have to find the right method to check that

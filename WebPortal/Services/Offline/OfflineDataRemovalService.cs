@@ -21,7 +21,7 @@ namespace Datahub.Portal.Services.Offline
             return Task.FromResult(true);
         }
 
-        public Task<bool> DeleteStorageBlob(FileMetaData file, string project, User currentUser)
+        public Task<bool> DeleteStorageBlob(FileMetaData file, string project, string containerName, User currentUser)
         {
             return Task.FromResult(true);
         }

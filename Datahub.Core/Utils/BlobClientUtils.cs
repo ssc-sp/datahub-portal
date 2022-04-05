@@ -28,7 +28,7 @@ namespace Datahub.Core.Utils
             if (progress is not null)
             {
                 uploadOptions.ProgressHandler = new Progress<long>(progress);
-            };
+            }
 
             await blob.UploadAsync(fileData, uploadOptions);
             await blob.SetMetadataAsync(metadata);

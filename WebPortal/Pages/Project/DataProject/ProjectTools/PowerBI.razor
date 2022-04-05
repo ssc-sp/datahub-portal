@@ -1,0 +1,205 @@
+@inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
+@inject RequestManagementService _requestManagementService
+@inject ILogger<PowerBI> _logger
+
+@if (_project is null)
+{
+    <ToolCard Loading/>
+}
+else
+{
+    <ToolCard
+        Title=@Localizer["Power BI Workspace"]
+        Description="@Localizer["Access the project Workspace in the Power BI Service"]">
+        <Logo>
+           <img src="/icons/svg/powerbi.svg" alt="Power bi">
+        </Logo>
+        <ToolActionsList>
+            <ul>
+                @if (_powerBiServiceCreated)
+                {
+                    @if (_powerBiAuthorized)
+                    {
+                        <li>
+                            <DHLink Variant="h3" DataProject="@ProjectAcronym" LinkType="DatahubLinkType.PowerBIReport">
+                                <AeButton class="light">@Localizer["Open Power BI"]</AeButton>
+                            </DHLink>
+                        </li>
+                    }
+                    else if (_powerBiAccessRequested)
+                    {
+                        <li>
+                            <AeTypography class="light">@Localizer["Access Request is being reviewed"]</AeTypography>
+                        </li>
+                    }
+                    else
+                    {
+                        <li>
+                            <AeTypography class="light">@Localizer["Access not authorized"]</AeTypography>
+                        </li>
+                        <li>
+                            <AeButton class="light" @onclick="@HandleRequestAccess" Disabled=@_isWorking>@Localizer["Request Access"]</AeButton>
+                            <SuccessIndicator @bind-IsLoading=@_isWorking @ref=@_accessReqInd />
+                        </li>
+                    }
+                }
+                else if (_powerBiServiceRequested)
+                {
+                    <AuthorizeView Roles=@RoleConstants.DATAHUB_ROLE_ADMIN Context="PowerBi_admin">
+                        <Authorized>
+                            <li>
+                                <NavLink href="@($"/project/{ProjectAcronym}/powerbirequest")">
+                                    <AeButton class="light">@Localizer["Review PowerBI Request"]</AeButton>
+                                </NavLink>
+                            </li>
+                        </Authorized>
+                        <NotAuthorized>
+                            <li>
+                                <AeTypography class="light">@Localizer["Service Request is being reviewed"]</AeTypography>
+                            </li>
+                        </NotAuthorized>
+                    </AuthorizeView>
+                }
+                else
+                {
+                    <li>
+                        <AeButton class="light" @onclick="@HandleRequestService" Disabled=@_isWorking>@Localizer["Request Service Creation"]</AeButton>
+                        <SuccessIndicator @bind-IsLoading=@_isWorking @ref=@_serviceReqInd />
+                    </li>
+                }
+            </ul>
+        </ToolActionsList>
+    </ToolCard>
+
+
+}
+
+@code {
+
+    [CascadingParameter(Name = "ProjectAcronym")]
+    public string ProjectAcronym { get; set; }
+
+    [CascadingParameter(Name = "UserId")]
+    public string UserId { get; set; }
+
+    [CascadingParameter(Name = "GraphUser")]
+    public Microsoft.Graph.User GraphUser { get; set; }
+
+    private bool _powerBiServiceRequested = false;
+    private bool _powerBiServiceCreated = false;
+    private bool _powerBiAccessRequested = false;
+    private bool _powerBiAuthorized = false;
+
+    private bool _isWorking { get; set; } = false;
+    private SuccessIndicator _serviceReqInd;
+    private SuccessIndicator _accessReqInd;
+
+    private Datahub_Project _project;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        await LoadProjectAndRequests();
+    }
+
+    private async Task LoadProjectAndRequests()
+    {
+        await using var projectDbContext = await _dbFactoryProject.CreateDbContextAsync();
+
+        _project = await projectDbContext.Projects
+            .Include(p => p.Requests)
+            .SingleAsync(p => p.Project_Acronym_CD == ProjectAcronym);
+
+        var _serviceRequests = await projectDbContext.Project_Requests
+            .Where(p => p.Project == _project)
+            .ToListAsync();
+
+        if (UserId != null)
+        {
+            _powerBiServiceRequested = _serviceRequests.Any(r => r.ServiceType == RequestManagementService.POWERBI && r.Is_Completed == null);
+            _powerBiServiceCreated = !string.IsNullOrEmpty(_project.PowerBI_URL) || 
+                _serviceRequests.Any(r => r.ServiceType == RequestManagementService.POWERBI && r.Is_Completed.HasValue);
+
+            var userAcessRequests = _project.Requests.Where(r => r.User_ID == UserId && r.PowerBI);
+            _powerBiAccessRequested = userAcessRequests.Any(r => r.Completion_DT is null);
+            _powerBiAuthorized = userAcessRequests.Any(r => r.Completion_DT.HasValue);
+        }
+    }
+
+    private async Task HandleRequestAccess()
+    {
+        _isWorking = true;
+        StateHasChanged();
+
+        var request = new Datahub_Project_Access_Request()
+        {
+            Request_DT = DateTime.Now,
+            User_Name = GraphUser.UserPrincipalName,
+            User_ID = UserId,
+            Project = _project,
+            PowerBI = true
+        };
+
+        var success = true;
+
+        try
+        {
+            await _requestManagementService.RequestAccess(request);
+        }
+        catch (Exception ex)
+        {
+            success = false;
+            _logger.LogError(ex, $"Error while requesting PowerBI access in project {ProjectAcronym}");
+        }
+
+        if (success)
+        {
+            await _accessReqInd.SignalSuccess();
+        }
+        else
+        {
+            await _accessReqInd.SignalFailure();
+        }
+
+        await LoadProjectAndRequests();
+    }
+
+    private async Task HandleRequestService()
+    {
+        _isWorking = true;
+        StateHasChanged();
+
+        var serviceRequest = new Datahub_ProjectServiceRequests()
+        {
+            ServiceType = RequestManagementService.POWERBI,
+            ServiceRequests_Date_DT = DateTime.Now,
+            Is_Completed = null,
+            Project = _project,
+            User_ID = UserId,
+            User_Name = GraphUser.UserPrincipalName
+        };
+
+        var success = true;
+
+        try
+        {
+            await _requestManagementService.RequestService(serviceRequest);
+        }
+        catch (Exception ex)
+        {
+            success = false;
+            _logger.LogError(ex, $"Error requesting powerbi service in project {ProjectAcronym}");
+        }
+
+        if (success)
+        {
+            await _serviceReqInd.SignalSuccess();
+        }
+        else
+        {
+            await _serviceReqInd.SignalFailure();
+        }
+
+        await LoadProjectAndRequests();
+    }
+}

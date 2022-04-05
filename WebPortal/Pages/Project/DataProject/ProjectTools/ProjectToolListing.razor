@@ -1,0 +1,86 @@
+@using Microsoft.Extensions.Options
+@using Datahub.Portal.Pages.Project.DataProject.ProjectTools
+
+@inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
+@inject IOptions<DataProjectsConfiguration> _configuration
+
+
+<AuthorizeView Roles="@($"{ProjectAcronym}, {ProjectAcronym}-admin, {RoleConstants.DATAHUB_ROLE_ADMIN}")">
+
+    <div class="project-tools">
+
+        <AeTypography Variant="h2">@Localizer["Project Tools"]</AeTypography>
+        @if (_isLoading)
+        {
+            <Spinner/>
+        }
+        else
+        {
+            <div class="tools-container">
+
+                @if (_configuration.Value.Databricks)
+                {
+                    <Databricks/>
+                }
+                @if (_configuration.Value.PowerBI)
+                {
+                    <PowerBI/>
+                }
+                @if (!string.IsNullOrEmpty(_project.WebForms_URL) && _configuration.Value.WebForms)
+                {
+                    <DataEntry/>
+                }
+                @if (_configuration.Value.WebForms)
+                {
+                    <FormBuilder/>
+                }
+                @if (_configuration.Value.Storage)
+                {
+                    <Storage/>
+                }
+                @if (_configuration.Value.PublicSharing)
+                {
+                    <PublicSharing/>
+                }
+
+                @if (_configuration.Value.Costing)
+                {
+                    <Costing/>
+                }
+
+                @if (_configuration.Value.PostgreSQL)
+                {
+                    <PostgreSQL/>
+                }
+
+                @if (_configuration.Value.SQLServer)
+                {
+                    <SQLServer/>
+                }
+
+                <Admin/>
+            </div>
+        }
+    </div>
+</AuthorizeView>
+
+@code {
+
+    [CascadingParameter(Name = "ProjectAcronym")]
+    public string ProjectAcronym { get; set; }
+
+    private bool _isLoading = true;
+    private Datahub_Project _project;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
+        _project = await projectContext.Projects
+            .SingleOrDefaultAsync(p => p.Project_Acronym_CD == ProjectAcronym);
+
+        _isLoading = false;
+    }
+
+}

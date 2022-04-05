@@ -1,0 +1,50 @@
+@use '../../Common' as c;
+
+.all-projects-container {
+  .all-projects-search {
+    max-width: 400px;
+    margin-bottom: 1rem;
+  }
+  
+  .all-projects {
+    height: 500px;
+    @include c.datahub-scrollbar;
+    overflow: auto;
+    
+    .project-row {
+      display: grid;
+      grid-template-columns: 1fr 2fr 6fr;
+      gap: 1rem 2rem;
+      
+      padding: 1rem;
+      
+      &:nth-child(even) {
+        background-color: c.$grey-100;
+      }
+      
+      .sector {
+        margin: 1rem 0;
+      }
+      .name {
+        margin: 1rem 0;
+      }
+      .description {
+  
+      }
+    }
+    
+    .no-projects {
+      display: flex;
+      flex-direction: column;
+      margin-top: 4rem;
+      text-align: center;
+      
+      opacity: .8;
+      
+      i {
+        font-size: 6rem;
+        opacity: .5;
+      }
+    }
+  }
+}

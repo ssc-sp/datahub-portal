@@ -208,12 +208,12 @@ namespace Datahub.Core.Services
         //    }
         //}
 
-        private byte[] turnImageToByteArray(System.Drawing.Image img)
-        {
-            MemoryStream ms = new MemoryStream();
-            img.Save(ms, System.Drawing.Imaging.ImageFormat.Bmp);
-            return ms.ToArray();
-        }
+        //private byte[] turnImageToByteArray(System.Drawing.Image img)
+        //{
+        //    MemoryStream ms = new MemoryStream();
+        //    img.Save(ms, System.Drawing.Imaging.ImageFormat.Bmp);
+        //    return ms.ToArray();
+        //}
 
         private void PrepareAuthenticatedClient()
         {
@@ -355,7 +355,7 @@ namespace Datahub.Core.Services
             return Task.FromResult(AnonymousUser);
         }
 
-        public async Task<User?> GetUserAsync(string userId)
+        public async Task<User> GetUserAsync(string userId)
         {
             try
             {

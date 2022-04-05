@@ -1,0 +1,74 @@
+﻿@using System.Web
+@using System.IO
+@using System.Reflection
+@using System.Net
+@using System.Globalization
+@inject NavigationManager _navigationManager
+@inject IJSRuntime _jsInterop
+@inject ILogger<DHPageAlert> _logger
+@inject IConfiguration configuration
+
+@if (_contentFound && configuration["PageAlerts"] != "disabled")
+{
+    <PageAlert Title="@Localizer[Title]" Key=@Key>
+
+            <DHMarkdown Content="@_markdownContent"
+                        LinkRewriter="@RewriteLink"/>
+    </PageAlert>
+}
+
+@code {
+    [Parameter]
+    public string Title { get; set; }
+
+    [Parameter]
+    public string Key { get; set; }
+
+    [Parameter]
+    public string WikiLinkEN { get; set; }
+
+    [Parameter]
+    public string WikiLinkFR { get; set; }
+
+    private const string DefaultPage = "Home";
+    private string _markdownContent = string.Empty;
+    private string _baseUrl = "/resources";
+    private bool _contentFound = false;
+
+    private string RewriteLink(string link)
+    {
+        if (link.StartsWith("http"))
+            return link;
+        return _baseUrl + "/" + HttpUtility.UrlEncode(link);
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var link = CultureInfo.CurrentCulture.TwoLetterISOLanguageName == "fr" ? WikiLinkFR : WikiLinkEN;
+        var content = await LoadPage(link ?? DefaultPage);
+        _markdownContent = content ?? Localizer[$"{link} cannot be found"];
+        _contentFound = content != null;
+    }
+
+    private async Task<string> LoadPage(string name, List<(string,string)> substitutions = null)
+    {
+        if (name.StartsWith("/")) name = name[1..];
+        var wikiRoot = configuration["WikiURL"];
+        var fullUrl = $"{wikiRoot}{name}.md";
+        using var client = new HttpClient();
+        try
+        {
+            var content = await client.GetStringAsync(fullUrl);
+            if (substitutions == null)
+                return content;
+            return substitutions
+                .Aggregate(content, (current, s) => current.Replace(s.Item1, s.Item2));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Cannot load page url", fullUrl);
+            return null;
+        }
+    }
+
+}

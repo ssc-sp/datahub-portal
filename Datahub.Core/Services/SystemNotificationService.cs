@@ -8,7 +8,9 @@ using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace Datahub.Core.Services
 {
@@ -48,15 +50,23 @@ namespace Datahub.Core.Services
 
         private string GetLocalizedString(CultureInfo culture, string textKey, object[] arguments)
         {
-            var currentThread = System.Threading.Thread.CurrentThread;
-            var oldCulture = currentThread.CurrentUICulture;
-            currentThread.CurrentUICulture = culture;
-            
-            var localizedArguments = arguments.Select(a => ConvertLocalizableArgument(a)).ToArray();
-            var localizedText = _localizer[textKey, localizedArguments];
+            try
+            {
+                var currentThread = Thread.CurrentThread;
+                var oldCulture = currentThread.CurrentUICulture;
+                currentThread.CurrentUICulture = culture;
 
-            currentThread.CurrentUICulture = oldCulture;
-            return localizedText;
+                var localizedArguments = arguments.Select(a => ConvertLocalizableArgument(a)).ToArray();
+                var localizedText = _localizer[textKey, localizedArguments];
+
+                currentThread.CurrentUICulture = oldCulture;
+                return localizedText;
+            }
+            catch (Exception)
+            {
+                _logger.LogWarning("Missing translation for key {TextKey}", textKey);
+                return $"Missing translation for {textKey}";
+            }
         }
 
         public async Task<int> CreateSystemNotifications(List<string> userIds, string textKey, params object[] arguments)
@@ -160,6 +170,22 @@ namespace Datahub.Core.Services
                 .Skip(pageNumber * _notificationPageSize)
                 .Take(_notificationPageSize)
                 .ToListAsync();
+        }
+
+        public async Task MarkAllAsRead(string userId)
+        {
+            var condition = CreateUserNotificationCondition(userId, true);
+            using var ctx = _dbContextFactory.CreateDbContext();
+
+            var notifications = await ctx.SystemNotifications
+                .Where(condition)
+                .ToListAsync();
+
+            if (notifications.Any())
+            {
+                notifications.ForEach(x => x.Read_FLAG = true);
+                await ctx.SaveChangesAsync();
+            }                        
         }
 
         public async Task SetReadStatus(long notificationId, bool readStatus)

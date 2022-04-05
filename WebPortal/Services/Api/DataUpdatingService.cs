@@ -6,39 +6,42 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Logging;
 using Datahub.Core.Data;
 using Datahub.Core.Services;
+using Datahub.Portal.Services.Storage;
+using Microsoft.Azure.Storage;
+using Microsoft.Azure.Storage.Blob;
+using Microsoft.Graph;
+using Folder = Datahub.Core.Data.Folder;
 
 namespace Datahub.Portal.Services
 {
     public class DataUpdatingService : BaseService, IDataUpdatingService
     {
-        private ILogger<DataUpdatingService> _logger;
-        private IHttpClientFactory _httpClient;
-        private IUserInformationService _userInformationService;
-        private IApiCallService _apiCallService;
-        private DataLakeClientService _dataLakeClientService;
-        private IDataRetrievalService _retrievalService;
-
-        private ICognitiveSearchService _cognitiveSearchService;
+        private readonly ILogger<DataUpdatingService> _logger;
+        private readonly IHttpClientFactory _httpClient;
+        private readonly IUserInformationService _userInformationService;
+        private readonly DataLakeClientService _dataLakeClientService;
+        private readonly DataRetrievalService _dataRetrievalService;
+        private readonly MyDataService myDataService;
+        private readonly ICognitiveSearchService _cognitiveSearchService;
 
         public DataUpdatingService(ILogger<DataUpdatingService> logger,
                     IHttpClientFactory clientFactory,
                     IUserInformationService userInformationService,
                     DataLakeClientService dataLakeClientService,
                     ICognitiveSearchService cognitiveSearchService,
-                    IApiService apiService,
-                    IDataRetrievalService retrievalService,
-                    IApiCallService apiCallService,
+                    DataRetrievalService dataRetrievalService,
+                    MyDataService myDataService,
                     NavigationManager navigationManager,
                     UIControlsService uiService)
-            : base(navigationManager, apiService, uiService)
+            : base(navigationManager, uiService)
         {
             _logger = logger;
             _httpClient = clientFactory;
             _userInformationService = userInformationService;
-            _apiCallService = apiCallService;
             _cognitiveSearchService = cognitiveSearchService;
             _dataLakeClientService = dataLakeClientService;
-            _retrievalService = retrievalService;
+            _dataRetrievalService = dataRetrievalService;
+            this.myDataService = myDataService;
         }
 
         public async Task<bool> RenameFolder(Folder folder, string newFolderName, Microsoft.Graph.User currentUser)
@@ -55,7 +58,7 @@ namespace Datahub.Portal.Services
 
                 // Because we may have files in this or sub folders of this folder
                 // We need to update their folderpaths...
-                folder = await _retrievalService.GetFolderStructure(folder, currentUser, false);
+                folder = await myDataService.GetFolderStructure(folder, currentUser, false);
 
                 await UpdateFilesWithNewFolderPath(fileSystemClient, folder, currentUser);
 
@@ -68,6 +71,32 @@ namespace Datahub.Portal.Services
                 throw;
             }
         }
+        
+        public async Task RenameStorageBlob(string oldName, string newName, string projectAcronym, string containerName)
+        {
+            var connectionString = await _dataRetrievalService.GetProjectConnectionString(projectAcronym.ToLower());
+            var container = CloudStorageAccount.Parse(connectionString)
+                .CreateCloudBlobClient()
+                .GetContainerReference(containerName);
+
+            var source = (CloudBlockBlob) await container.GetBlobReferenceFromServerAsync(oldName);
+            var target = container.GetBlockBlobReference(newName);
+
+            if (source is null)
+            {
+                throw new Exception($"Could not find blob: {oldName}");
+            }
+            
+            await target.StartCopyAsync(source);
+
+            while (target.CopyState.Status == CopyStatus.Pending)
+                await Task.Delay(100);
+
+            if (target.CopyState.Status != CopyStatus.Success)
+                throw new Exception("Rename failed: " + target.CopyState.Status);
+
+            await source.DeleteAsync();
+        }
 
         public async Task<bool> RenameFile(FileMetaData file, string newFileName, Microsoft.Graph.User currentUser)
         {
@@ -75,7 +104,7 @@ namespace Datahub.Portal.Services
             try
             {
                 // Same folder, new file name
-                return await ChangeFile(file, file.folderpath, newFileName, currentUser);
+                return await RenameDataLakeFile(file, file.folderpath, newFileName, currentUser);
             }
             catch (Exception ex)
             {
@@ -90,7 +119,7 @@ namespace Datahub.Portal.Services
             try
             {
                 // new folder path, same filename
-                return await ChangeFile(file, newParentFolder, file.filename, currentUser);
+                return await RenameDataLakeFile(file, newParentFolder, file.filename, currentUser);
             }
             catch (Exception ex)
             {
@@ -153,7 +182,7 @@ namespace Datahub.Portal.Services
             }
         }
 
-        protected async Task<bool> ChangeFile(FileMetaData file, string newFolderPath, string newFileName, Microsoft.Graph.User currentUser)
+        protected async Task<bool> RenameDataLakeFile(FileMetaData file, string newFolderPath, string newFileName, Microsoft.Graph.User currentUser)
         {
             try
             {
@@ -185,5 +214,7 @@ namespace Datahub.Portal.Services
                 throw;
             }
         }
+
+        
     }
 }

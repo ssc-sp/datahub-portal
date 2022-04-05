@@ -1,0 +1,46 @@
+@use '../../Common' as c;
+
+.featured-projects {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin: 1rem 0 2rem;
+  
+  @include c.desktop {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+  
+  .project {
+    display: grid;
+    grid-template-rows: auto auto 1fr auto;
+    padding: 1rem 1.5rem;
+    border: 1px solid c.$grey-200;
+    border-radius: 4px;
+    background-color: c.$white;
+    
+    transition: all 0.3s c.$cubic-bezier;
+    
+    &:hover {
+      @include c.BoxShadow(1);
+    }
+    
+    .sector {
+      display: flex;
+      align-items: baseline;
+      gap: .25rem;
+      text-transform: uppercase;
+      opacity: .6;
+      line-height: 1;
+    }
+    
+    .name {
+      font-size: 1rem;
+      font-weight: bold;
+    }
+    
+    .project-btn {
+      justify-self: center;
+    }
+    
+  }
+}

@@ -1,8 +1,17 @@
-﻿@using Core.Layout
+﻿@using Datahub.Portal.Layout
 <Router AppAssembly="@typeof(Program).Assembly"
         AdditionalAssemblies=@_additionalAssemblies>
     <Found Context="routeData">
-        <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(Datahub.Portal.Layout.PortalLayout)" />
+        <CascadingAuthenticationState>
+            @if (routeData?.PageType.Namespace?.StartsWith(PublicPageNamespace) ?? false)
+            {
+                <RouteView RouteData="@routeData" DefaultLayout="typeof(PublicLayout)"/>
+            }
+            else
+            {
+                <AuthorizeRouteView Resource="@routeData" RouteData="@routeData" DefaultLayout="@typeof(PortalLayout)"/>
+            }
+        </CascadingAuthenticationState>
     </Found>
     <NotFound>
         <CascadingAuthenticationState>
@@ -16,11 +25,15 @@
 
 
 @code {
+
     private IEnumerable<System.Reflection.Assembly> _additionalAssemblies = new[]
     {
         typeof(Datahub.LanguageTraining.LanguageTrainingModule).Assembly,
         typeof(Datahub.Finance.FinanceModule).Assembly,
-        typeof(Datahub.M365Forms.M365FormsModule).Assembly
+        typeof(Datahub.M365Forms.M365FormsModule).Assembly,
+        typeof(Datahub.PIP.PIPFormsModule).Assembly
     };
-}
 
+
+        private const string PublicPageNamespace = "Datahub.Portal.Pages.Public";
+}

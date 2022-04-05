@@ -23,9 +23,6 @@ namespace Datahub.Core.Services
             //clientSecret = configuration["ClientAppSecret"];
         }
 
-
-    
-
         public async Task LoadUsersAsync()
         {
             await Task.Run(() =>
@@ -81,17 +78,16 @@ namespace Datahub.Core.Services
         //    return null;
         //}
 
-        public async Task<string> GetUserName(string userId, CancellationToken tkn)
+        public Task<string> GetUserName(string userId, CancellationToken tkn)
         {
             if (!string.IsNullOrWhiteSpace(userId))
             {
                 if (UsersDict != null && UsersDict.ContainsKey(userId))
                 {
-                    return UsersDict[userId].DisplayName;
+                    return Task.FromResult(UsersDict[userId].DisplayName);
                 }
             }
-
-            return "...";
+            return Task.FromResult("...");
         }
 
         public async Task<string> GetUserEmail(string userId, CancellationToken tkn)
@@ -111,9 +107,9 @@ namespace Datahub.Core.Services
         }
 
 
-        public async Task<Dictionary<string, GraphUser>> GetUsersListAsync(string filterText, CancellationToken tkn)
+        public Task<Dictionary<string, GraphUser>> GetUsersListAsync(string filterText, CancellationToken tkn)
         {
-            return UsersDict;
+            return Task.FromResult(UsersDict);
         }
     }
 }

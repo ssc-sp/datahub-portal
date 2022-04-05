@@ -1,7 +1,7 @@
-﻿@page "/project/{ProjectAcronym}/filelist"
-@inject IStringLocalizer<FileList> Localizer
-@inject IDbContextFactory<DatahubProjectDBContext> DbFactoryProject
-@inject IApiService ApiService
+﻿@inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
+@inject DataRetrievalService _dataRetrievalService
+
+@* @page "/projects/{ProjectAcronym}/filelist" *@
 
 <DHPageTitle PageTitleKey=@(_project.ProjectName + " " + Localizer["Storage Explorer"])/>
 
@@ -63,13 +63,13 @@
 
     protected override void OnInitialized()
     {
-        using var projectContext = DbFactoryProject.CreateDbContext();
+        using var projectContext = _dbFactoryProject.CreateDbContext();
         _project = projectContext.Projects.Single(p => p.Project_Acronym_CD == ProjectAcronym);        
     }
 
     private async Task GenerateSASToken(int days)
     {
-        var uri = await ApiService.GenerateSasToken(ProjectAcronym, 14);
+        var uri = await _dataRetrievalService.GenerateSasToken(DataRetrievalService.DEFAULT_CONTAINER_NAME, ProjectAcronym, 14);
         _tempToken = uri.ToString();
         _substitutions = new List<(string, string)>() { ("<sas_uri>",_tempToken) };
         StateHasChanged();

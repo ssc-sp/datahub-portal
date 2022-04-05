@@ -8,3 +8,6 @@ $marginTop: 0.5rem;
 
 
 
+@function spacing($value: 1, $base: 0){
+  @return calc((#{$base} + #{$value} * (var(--design-unit) * var(--density))) * 1px);
+}

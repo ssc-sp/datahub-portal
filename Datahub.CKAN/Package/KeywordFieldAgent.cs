@@ -1,6 +1,7 @@
 ﻿using Datahub.Metadata.Model;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Datahub.CKAN.Package
 {
@@ -20,7 +21,7 @@ namespace Datahub.CKAN.Package
             var append = _languages.Count == 0;
 
             var language = fieldName.Substring(KeywordPrefix.Length);
-            _languages[language] = fieldValue.Split(',', StringSplitOptions.RemoveEmptyEntries);
+            _languages[language] = fieldValue.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(k => k.Trim()).ToArray();
 
             return (append, this);
         }
