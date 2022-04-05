@@ -1,4 +1,5 @@
 {
   "WikiURL": "https://raw.githubusercontent.com/wiki/ssc-sp/datahub-portal/",
-  "GlobalSearch": "disabled"
+  "GlobalSearch": "disabled",
+  "PageAlerts": "enabled"
 }
