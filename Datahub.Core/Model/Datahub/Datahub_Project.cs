@@ -227,6 +227,9 @@ namespace Datahub.Core.EFCore
         public IList<PowerBi_Workspace> PowerBi_Workspaces { get; set; }
 
         [AeFormIgnore]
+        public int OnboardingApplicationId { get; set; }
+
+        [AeFormIgnore]
         [NotMapped]
         public string ProjectName
         {
