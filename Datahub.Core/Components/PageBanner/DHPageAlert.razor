@@ -8,7 +8,7 @@
 @inject ILogger<DHPageAlert> _logger
 @inject IConfiguration configuration
 
-@if (_contentFound)
+@if (_contentFound && configuration["PageAlerts"] != "disabled")
 {
     <PageAlert Title="@Localizer[Title]" Key=@Key>
 
