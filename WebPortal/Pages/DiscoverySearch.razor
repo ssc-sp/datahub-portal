@@ -45,17 +45,46 @@
                     <AeCollapseSection>
                         <Header><AeTypography Variant="h3">@Localizer["Filter"]</AeTypography></Header>
                         <ChildContent>
-                            <ul class="ae inline-list" >
-                                @foreach(var t in _filterDataTypes.Keys)
-                                {
-                                    <li class=@(_filterDataTypes[t]? "active":string.Empty)>
+                            <AeFlex Vertical>
+                                <div>
+                                    <ul class="ae inline-list" >
+                                        @foreach(var t in _filterDataTypes.Keys.OrderBy(t => GetLocalizedDataType(t)))
+                                        {
+                                            <li class=@(_filterDataTypes[t]? "active":string.Empty)>
+                                                <label>
+                                                    <input type="checkbox" checked=@_filterDataTypes[t] @onchange=@(e => ChangeDataTypeFilter(t, e)) />
+                                                    <span>@GetLocalizedDataType(t)</span>
+                                                </label>
+                                            </li>
+                                        }
+                                    </ul>
+                                </div>
+                                <div>
+                                    <label>
+                                        @Localizer["Sector"]: 
+                                        <select @bind=@SectorFilter title=@Localizer["Sector"]>
+                                            <option value=@NO_FILTER_SELECTED>@Localizer["(any)"]</option>
+                                            @foreach(var sector in _sectors.Values.OrderBy(s => GetLabel(s)))
+                                            {
+                                                <option value=@sector.Id>@GetLabel(sector)</option>
+                                            }
+                                        </select>
+                                    </label>
+                                    @if (_filteredBranches.Count > 0)
+                                    {
                                         <label>
-                                            <input type="checkbox" checked=@_filterDataTypes[t] @onchange=@(e => ChangeDataTypeFilter(t, e)) />
-                                            <span>@GetLocalizedDataType(t)</span>
+                                            @Localizer["Branch"]:
+                                            <select @bind=@BranchFilter title=@Localizer["Branch"]>
+                                                <option value=@NO_FILTER_SELECTED>@Localizer["(any)"]</option>
+                                                @foreach(var branch in _filteredBranches)
+                                                {
+                                                    <option value=@branch.Id>@GetLabel(branch)</option>
+                                                }
+                                            </select>
                                         </label>
-                                    </li>
-                                }
-                            </ul>
+                                    }
+                                </div>
+                            </AeFlex>
                         </ChildContent>
                     </AeCollapseSection>
                 </AeCollapse>
@@ -141,6 +170,8 @@
     [Inject]
     public NavigationManager NavigationManager { get; set; }
 
+    private const int NO_FILTER_SELECTED = -1;
+
     private bool _searching;
     private QueryThrottler<string> _searchThrottler;
     private List<CatalogObjectResult> _searchResults = new();
@@ -149,6 +180,9 @@
     private CatalogObjectResult _selectedResult;
 
     private Dictionary<MetadataObjectType, bool> _filterDataTypes = new();
+    private int _filterSector = NO_FILTER_SELECTED;
+    private int _filterBranch = NO_FILTER_SELECTED;
+    private List<OrganizationLevel> _filteredBranches => _branches.Values.Where(b => b.ParentId == _filterSector).OrderBy(b => GetLabel(b)).ToList();
 
     private Dictionary<int, OrganizationLevel> _sectors = new();
     private Dictionary<int, OrganizationLevel> _branches = new();
@@ -191,13 +225,51 @@
         }
     }
 
+    private string SectorFilter
+    {
+        get => _filterSector.ToString();
+        set
+        {
+            if (int.TryParse(value, out var intval))
+            {
+                _filterSector = intval;
+                _filterBranch = NO_FILTER_SELECTED;
+            }
+            else
+            {
+                _filterSector = NO_FILTER_SELECTED;
+                _filterBranch = NO_FILTER_SELECTED;
+            }
+            UpdateFilter();
+        }
+    }
+
+    private string BranchFilter
+    {
+        get => _filterBranch.ToString();
+        set
+        {
+            if (int.TryParse(value, out var intval))
+            {
+                _filterBranch = intval;
+            }
+            else
+            {
+                _filterBranch = NO_FILTER_SELECTED;
+            }
+            UpdateFilter();
+        }
+    }
+
     private void UpdateFilter()
     {
         var filteredDataTypes = _filterDataTypes.Where(t => t.Value).Select(t => t.Key).ToHashSet();
         var noDataTypesSelected = filteredDataTypes.Count < 1;
 
         _filteredSearchResults = _searchResults
-            .Where(r => noDataTypesSelected || filteredDataTypes.Contains(r.DataType))
+            .Where(r => (noDataTypesSelected || filteredDataTypes.Contains(r.DataType)) &&
+                (_filterSector == NO_FILTER_SELECTED || r.Sector == _filterSector) &&
+                (_filterBranch == NO_FILTER_SELECTED || r.Branch == _filterBranch))
             .ToList();
 
         _lastClicked = 0;
