@@ -5,8 +5,9 @@
   "main": "index.js",
   "private": "true",
   "scripts": {
-    "watch-scss": "sass Styles/site.scss:wwwroot/css/site.css --watch",
-    "build-css": "sass Styles/site.scss:wwwroot/css/site.css && sass --style=compressed Styles/site.scss:wwwroot/css/site.min.css"
+    "scss": "npm run watch-scss",
+    "watch-scss": "sass site.scss:wwwroot/css/site.css --watch",
+    "build-css": "sass site.scss:wwwroot/css/site.css && sass --style=compressed site.scss:wwwroot/css/site.min.css"
   },
   "author": "Apption",
   "license": "Apache-2.0",

@@ -3,6 +3,10 @@
     public enum MetadataObjectType : byte
     {
         File,
-        PowerBI,
+        PowerBIWorkspace,
+        PowerBIDataset,
+        PowerBIReport,
+        FileUrl,
+        GeoObject
     }
 }

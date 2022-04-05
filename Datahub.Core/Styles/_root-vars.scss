@@ -1,0 +1,52 @@
+@use 'Common' as c;
+
+:root {
+  
+  
+  --density: 2;
+  --design-unit: 4;
+  
+  
+  --border-radius: 4px;
+
+  /********************************  
+                BUTTON
+   ********************************/
+  --btn-light-color: #{c.$grey-700};
+  --btn-light-bg-color: #{c.$grey-100};
+  --btn-light-bg-color-hover: #{c.$grey-200};
+
+
+  /********************************  
+                SHADOWS
+   ********************************/
+  --box-shadow-1: #{c.$box-shadow-1};
+  --box-shadow-2: #{c.$box-shadow-2};
+
+  /********************************  
+                TYPOGRAPHY
+   ********************************/ 
+  --primary-text: #{c.$gray-800};
+  --secondary-text: #{c.$grey-700};
+  --tertiary-text: #{c.$grey-500};
+  
+  --primary-text-inverse: #{c.$grey-50};
+  --secondary-text-inverse: #{c.$grey-100};
+  
+
+  /********************************  
+                COLORS
+   ********************************/
+
+  --primary-color: #{c.$sky-500};
+  --primary-color-accent: #{c.$sky-600};
+  --primary-color-subdued: #{c.$sky-300};
+  
+  
+  --bg-color: #{c.$grey-100};
+  --bg-color-accent: #{c.$grey-200};
+  --bg-color-accent-light: #{c.$grey-50};
+
+  --alert--bg-color: #{c.$white};
+  --alert-color: #{c.$blue-400};
+}

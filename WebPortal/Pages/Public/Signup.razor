@@ -1,0 +1,124 @@
+@using Datahub.Portal.Data.Forms
+@using Datahub.Core.Components.Common
+
+@inject ILogger<Signup> _logger
+@inject IDbContextFactory<DatahubProjectDBContext> _dbFactory
+
+
+@page "/register"
+
+<PageTitle>DataHub | Registration</PageTitle>
+
+<div class="signup-container">
+    <span class="gc-logo">
+        <img src="/img/gc-logo.svg" alt="Government of Canada Logo"/>
+    </span>
+    <AeTypography class="language-toggle">
+        <LanguageToggle/>
+    </AeTypography>
+    <div class="info-container">
+        <span class="info-title-container">
+            <AeTypography class="info-pretext">@Localizer["Federal Science"]</AeTypography>
+            <span class="info-logo">
+                <img src="/_content/Datahub.Core/img/datahub-logo-v2.png" alt="datahub-logo"/>
+            </span>
+            <AeTypography class="info-title" Variant="h1">@Localizer["DataHub"]</AeTypography>
+        </span>
+        <span class="info-content">
+            <AeTypography class="info-welcome">@Localizer["Welcome to the Government of Canada's new one-stop hub for science data solutions."]</AeTypography>
+            <AeTypography class="info-hosted">@Localizer["Hosted by SSC (Proof-of-Concept Phase)"]</AeTypography>
+            <AeTypography>@((MarkupString) Localizer["<b>Onboard here to escape the silos.</b> With one simple sign-on, you can:"].ToString())</AeTypography>
+            <br/>
+            <AeTypography>@((MarkupString) Localizer["Access fit-for-purpose, scalable <b>storage</b> for GC science Data"].ToString())</AeTypography>
+            <AeTypography>@((MarkupString) Localizer["Easily <b>share</b> your data with your GC colleagues"].ToString())</AeTypography>
+            <AeTypography>@((MarkupString) Localizer["Perform <b>analytics</b> and <b>collaborate</b> with your GC science partners in an interactive environment"].ToString())</AeTypography>
+        </span>
+    </div>
+    <div class="form-container">
+        <div class="form-section">
+            <AeTypography class="form-title">
+                <span class="info-logo">
+                    <img src="/_content/Datahub.Core/img/datahub-logo-v2.png" alt="datahub-logo"/>
+                </span>
+                @Localizer["DataHub"]
+            </AeTypography>
+            <AeTypography class="form-subtitle">Registration | Inscription</AeTypography>
+
+            @if (_showThankYou)
+            {
+                <div class="thank-you">
+                    <AeTypography class="thank-you-title">@Localizer["Thank you for registering with DataHub."]</AeTypography>
+                    <AeTypography class="thank-you-subtitle">@Localizer["You will receive an email with your account details."]</AeTypography>
+                </div>
+            }
+            else
+            {
+                <AeModelForm
+                    Model="_basicIntakeForm"
+                    SubmitLabel="@(Localizer["Register"])"
+                    OnValidSubmit="HandleValidSubmit"
+                    OnConfigure="HandleConfigure"
+                    LabelForPropertyFunc="HandleLocalize"
+                    LabelsOnTop/>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+
+    private BasicIntakeForm _basicIntakeForm;
+    private bool _showThankYou;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        _basicIntakeForm = new BasicIntakeForm();
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        await using var db = await _dbFactory.CreateDbContextAsync();
+
+        var exists = await db.Registration_Requests
+            .FirstOrDefaultAsync(r => r.Email == _basicIntakeForm.Email);
+
+        if (exists != null)
+        {
+            _logger.LogInformation("Registration request for {Email} already exists", _basicIntakeForm.Email);
+            exists.UpdatedBy = "self-signup page (resubmitted)";
+            exists.ProjectName = _basicIntakeForm.ProjectName;
+            exists.DepartmentName = _basicIntakeForm.DepartmentName;
+            exists.UpdatedAt = DateTime.UtcNow;
+        }
+        else 
+        {
+            _logger.LogInformation("Submitting new Registration request for {Email} from {Department} on {Project}]",
+                _basicIntakeForm.Email, _basicIntakeForm.DepartmentName, _basicIntakeForm.ProjectName);
+            
+            var registrationRequest = new Datahub_Registration_Request()
+            {
+                Email = _basicIntakeForm.Email,
+                DepartmentName = _basicIntakeForm.DepartmentName,
+                ProjectName = _basicIntakeForm.ProjectName,
+                CreatedBy = "self-signup page",
+            };
+            await db.Registration_Requests.AddAsync(registrationRequest);
+        }
+        
+        await db.SaveChangesAsync();
+        _showThankYou = true;
+    }
+
+    private static Task HandleConfigure(IModelFormContext context)
+    {
+        context.RegisterOptionValueProperty<BasicIntakeForm>(f => f.DepartmentName, () => BasicIntakeForm.DepartmentDictionary.Keys);
+        return Task.CompletedTask;
+    }
+
+    private string HandleLocalize(string propName)
+    {
+        return !string.IsNullOrEmpty(propName) ? Localizer[propName] : string.Empty;
+    }
+
+}

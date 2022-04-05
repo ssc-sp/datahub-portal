@@ -1,0 +1,67 @@
+@using Datahub.Portal.Pages.Project.FileExplorer.ResourcePages
+@inject IJSRuntime _jsRuntime
+@inject DataRetrievalService _dataRetrievalService
+
+
+<AeButton class="sas-token-button dark" @onclick="HandleSasButtonClick">
+    @if (string.IsNullOrWhiteSpace(_sasToken))
+    {
+        <span>@Localizer[$"Generate {TokenName} Token"]</span>
+    }
+    else if (_showingCopiedForSasButton)
+    {
+        <span>@Localizer["Copied!"]</span>
+    }
+    else
+    {
+        <span>@Localizer[$"Copy {TokenName} Token"]</span>
+    }
+</AeButton>
+
+@code {
+
+    [CascadingParameter(Name = "ProjectAcronym")]
+    public string ProjectAcronym { get; set; }
+
+    [Parameter]
+    public EventCallback<List<(string, string)>> OnSubstitutionsChanged { get; set; }
+
+    [Parameter]
+    public bool ContainerToken { get; set; }
+
+    private string TokenName => ContainerToken ? "Container" : "SAS";
+
+    private bool _showingCopiedForSasButton;
+    private string _sasToken;
+    private IJSObjectReference _module;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+
+        _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import",
+            "./Pages/Project/FileExplorer/FileExplorerPage.razor.js");
+    }
+
+    private async Task HandleSasButtonClick()
+    {
+        if (string.IsNullOrWhiteSpace(_sasToken))
+        {
+            var uri = await _dataRetrievalService.GenerateSasToken(DataRetrievalService.DEFAULT_CONTAINER_NAME, ProjectAcronym, 14, ContainerToken);
+            _sasToken = ContainerToken ? uri.Query[1..] : uri.ToString();
+
+            await OnSubstitutionsChanged.InvokeAsync(new List<(string, string)> {(ResourceSubstitutions.Token, _sasToken)});
+        }
+        else
+        {
+            _showingCopiedForSasButton = true;
+            await _module.InvokeVoidAsync("copyTextToClipboard", _sasToken);
+            StateHasChanged();
+
+            await Task.Delay(1000);
+            _showingCopiedForSasButton = false;
+            StateHasChanged();
+        }
+    }
+
+}

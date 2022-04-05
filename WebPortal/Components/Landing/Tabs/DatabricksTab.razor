@@ -68,7 +68,7 @@
         renderFunctions = new List<Func<Datahub_Project, RenderFragment>>() {            
             new Func<Datahub_Project, RenderFragment>(Datahub_Project => 
                 @<AeFlex class="table-icon"><i class="@($"fad fa-{Datahub_Project.Project_Icon}")"></i></AeFlex>),
-            new Func<Datahub_Project, RenderFragment>(Datahub_Project => @<AeFlex style="padding-top: 1rem"><AeTypography><NavLink href="@($"/project/{Datahub_Project?.Project_Acronym_CD}")">@Datahub_Project?.ProjectName</NavLink></AeTypography></AeFlex> ),
+            new Func<Datahub_Project, RenderFragment>(Datahub_Project => @<AeFlex style="padding-top: 1rem"><AeTypography><NavLink href="@($"/{UrlPathSegment.PROJECTS}/{Datahub_Project?.Project_Acronym_CD}")">@Datahub_Project?.ProjectName</NavLink></AeTypography></AeFlex> ),
             new Func<Datahub_Project, RenderFragment>(Datahub_Project => @<AeMarkdown Content="@($"{Datahub_Project.ProjectDescription}")"></AeMarkdown> ),
         };
         

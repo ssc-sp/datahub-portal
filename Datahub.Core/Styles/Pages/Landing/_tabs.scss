@@ -21,6 +21,10 @@
             &.active {
                 border-color: c.$borderblue;
             }
+            
+            &.force-gap-left {
+                margin-left: auto;
+            }
         }
     }
 

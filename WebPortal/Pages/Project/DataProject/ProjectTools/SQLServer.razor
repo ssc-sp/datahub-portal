@@ -1,0 +1,66 @@
+@inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
+@inject RequestManagementService _requestManagementService
+
+@if (_project is null)
+{
+    <ToolCard Loading/>
+}
+else
+{
+    <ToolCard
+        Title=@Localizer["PROJECT-PAGE.DATABASE-CARD.CardTitleSQL"]
+        Description="@Localizer["Azure SQL Database is a scalable database service built for the cloud to store structured datasets and access them through Tableau, Power BI, Web forms or other tools."]">
+        <Logo>
+            <div>
+                <AeIcon class="fad fa-database card-icon fa-xs"/>
+            </div>
+        </Logo>
+        <ToolActionsList>
+             <ul>
+                <li>
+                    <AeButton @onclick="@HandleRequestService">@Localizer["Request Service Creation"]</AeButton>
+                </li>
+             </ul>
+        </ToolActionsList>
+    </ToolCard>
+
+}
+
+@code {
+    
+    [CascadingParameter(Name = "ProjectAcronym")]
+    public string ProjectAcronym { get; set; }
+
+    [CascadingParameter(Name = "UserId")]
+    public string UserId { get; set; }
+
+    [CascadingParameter(Name = "GraphUser")]
+    public Microsoft.Graph.User GraphUser { get; set; }
+
+    private Datahub_Project _project;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        await using var projectDbContext = await _dbFactoryProject.CreateDbContextAsync();
+        _project = await projectDbContext.Projects
+            .Include(p => p.Requests)
+            .SingleAsync(p => p.Project_Acronym_CD == ProjectAcronym);
+    }
+
+    private async Task HandleRequestService()
+    {
+        var serviceRequest = new Datahub_ProjectServiceRequests()
+        {
+            ServiceType = RequestManagementService.SQLSERVER,
+            ServiceRequests_Date_DT = DateTime.Now,
+            Is_Completed = null,
+            Project = _project,
+            User_ID = UserId,
+            User_Name = GraphUser.UserPrincipalName
+        };
+
+        await _requestManagementService.RequestService(serviceRequest);
+    }
+}

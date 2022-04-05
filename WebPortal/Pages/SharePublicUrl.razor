@@ -255,7 +255,7 @@
             {
                 EmailNotificationService.SendFileSharingApprovalRequest(_requestingUser.Mail, _requestFilename, _projectInfo, approvers),
                 SystemNotificationService.CreateSystemNotificationsWithLink(approvers,
-                    $"/project/{_projectInfo.ProjectCode}/datasharing", "SYSTEM-NOTIFICATION.GoToSharingDashboard",
+                    $"/{UrlPathSegment.PROJECTS}/{_projectInfo.ProjectCode}/datasharing", "SYSTEM-NOTIFICATION.GoToSharingDashboard",
                     "SYSTEM-NOTIFICATION.NOTIFICATION-TEXT.PublicUrlShareRequested", _requestingUser.Mail, _requestFilename,
                     new BilingualStringArgument(_projectInfo.ProjectNameEn, _projectInfo.ProjectNameFr))
             };

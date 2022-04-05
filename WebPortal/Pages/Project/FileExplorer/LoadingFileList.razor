@@ -1,0 +1,14 @@
+@using Datahub.Core.Components.Skeleton
+
+@for (var i = 0; i < 10; i++)
+{
+    <span class="file-item">
+        <span style="display: flex; gap: .5rem; align-items: center;">
+            <Skeleton Width="30px" Height="30px" Circle/>
+            <Skeleton Width="300px" Height="2rem"/>
+        </span>
+        <Skeleton Width="100px" Height="2rem"/>
+        <Skeleton Width="200px" Height="2rem"/>
+        <span></span>
+    </span>
+}

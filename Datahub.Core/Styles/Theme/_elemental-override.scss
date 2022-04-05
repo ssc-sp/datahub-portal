@@ -10,26 +10,29 @@
 @use '../elemental-theme/common';
 @use '../elemental-theme/table/table';
 
-$overrides: (
-  'button': button.$buttonOptions,
-  'dropdown': dropdown.$dropdownOptions,
-  'input': input.$inputOptions,
-  'progress': progress.$progressOptions,
-   'card': card.$cardOptions,
-  'pagination': (
-    'tableHeaderOptions': pagination.$tableHeaderOptions,
-    'tableRowOptions': pagination.$tableRowOptions,
-  ),
 
+$overrides: (
+        'button': button.$buttonOptions,
+        'dropdown': dropdown.$dropdownOptions,
+        'input': (
+                'input': input.$inputOptions,
+                'search-wrapper': input.$searchInputOptions
+        ),
+        'progress': progress.$progressOptions,
+        'card': card.$cardOptions,
+        'pagination': (
+                'tableHeaderOptions': pagination.$tableHeaderOptions,
+                'tableRowOptions': pagination.$tableRowOptions,
+        ),
 );
 
 @include theme.custom($overrides);
- 
+
 $light: (
-  'tableHeaderOptions': paginated-table-light.$tableHeaderOptions,
-  'tableRowOptions': paginated-table-light.$tableRowOptions,
-  'tableRowContainerOptions': paginated-table-light.$tableRowContainerOptions,
-  'tableScrollOptions': paginated-table-light.$tableScrollOptions
+        'tableHeaderOptions': paginated-table-light.$tableHeaderOptions,
+        'tableRowOptions': paginated-table-light.$tableRowOptions,
+        'tableRowContainerOptions': paginated-table-light.$tableRowContainerOptions,
+        'tableScrollOptions': paginated-table-light.$tableScrollOptions
 );
 @include table.configure($light);
 @include table.styles('light');

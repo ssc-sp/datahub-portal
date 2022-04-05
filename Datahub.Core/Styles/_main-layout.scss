@@ -1,22 +1,22 @@
 @use 'Common' as c;
 
-
 .application-wrapper {
-    display: flex;
-    min-height: 100vh;
+    display: grid;
+    grid-template-columns: #{c.$sidebarWidth} 1fr;
+    grid-template-areas: "sidebar main";
+    
+    height: 100vh;
 
     .main-layout {
-        flex-grow: 1;
-        overflow: hidden;
-        position: relative;
-        margin-top: c.$topbarHeight;
+        grid-area: main;
+        display: grid;
+        grid-template-rows: auto 1fr;
 
         .ui-control {
-            display: flex;
+            .main-page {
+                padding: c.spacing(4);
+                max-width: calc(100vw - #{c.$sidebarWidth + c.$scrollbarWidth});
 
-            .page {
-                display: grid;
-                flex-grow: 1;
             }
 
             .right-sidebar {
@@ -62,7 +62,9 @@
                     margin: 5% auto;
                     padding: 20px;
                     border: 1px solid #888;
-                    width: 50rem; 
+                    width: 50rem;
+                    overflow-y: auto;
+                    max-height: 85vh;
                 }
 
                 .modal-content {

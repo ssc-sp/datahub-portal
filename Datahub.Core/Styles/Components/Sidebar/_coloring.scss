@@ -9,7 +9,7 @@
 }
 
 @mixin sidebar-icon-colors {
-  @include icon-colors;
+  @include icon-colors.icon-colors;
 }
 
 

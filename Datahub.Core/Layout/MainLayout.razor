@@ -1,19 +1,18 @@
 ﻿@inherits LayoutComponentBase
 
-@inject IMSGraphService MSGraphService
-@inject IApiService ApiService
-@inject NavigationManager NavigationManager
-@inject UserLocationManagerService UserLocationManagerService
-
-@inject IDatahubAuditingService AuditingService
-@inject IUserCircuitCounterService UserCircuitCounterService
-
 @using Microsoft.Extensions.Configuration
 @using Microsoft.Identity.Web
-@inject MicrosoftIdentityConsentAndConditionalAccessHandler ConsentHandler
-@inject IConfiguration configuration
 
-<PageTitle>@Localizer[configuration["Title"]]</PageTitle>
+@inject IMSGraphService _msGraphService
+@inject MyDataService _apiService
+@inject NavigationManager _navigationManager
+@inject UserLocationManagerService _userLocationManagerService
+@inject IDatahubAuditingService _auditingService
+@inject IUserCircuitCounterService _userCircuitCounterService
+@inject MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
+@inject IConfiguration _configuration
+
+<PageTitle>@Localizer[_configuration["Title"]]</PageTitle>
 
 <AuthorizeView>
     <Authorized>        
@@ -22,7 +21,7 @@
             <div class="main-layout">
                 <Topbar />
                 <div class="ui-control">
-                    <div class="page">
+                    <div class="main-page">
                         <ErrorBoundary @ref="_errorBoundary">
                             <ChildContent>
                                 @if (_isSessionEnabled == true)
@@ -60,10 +59,13 @@
 
 @code
 {
+    [CascadingParameter]
+    private Task<AuthenticationState> _authenticationStateTask { get; set; }
+    
     private ErrorBoundary _errorBoundary;
     private string _correlationId;
     private Exception _lastException;
-    private bool? _isSessionEnabled = null;
+    private bool? _isSessionEnabled;
 
     protected override void OnParametersSet()
     {
@@ -72,15 +74,26 @@
 
     protected override async Task OnInitializedAsync()
     {
+        var authState = await _authenticationStateTask;
+        var user = authState.User;
+
+        if (!user.Identity?.IsAuthenticated ?? true)
+        {
+            var scopes = _configuration["Graph:Scopes"]
+                .Split(',');
+            _consentHandler.ChallengeUser(scopes);
+            return;
+        }
+        
         try 
         {
-            _isSessionEnabled = await UserCircuitCounterService.IsSessionEnabled();
+            _isSessionEnabled = await _userCircuitCounterService.IsSessionEnabled();
         } 
         catch (Exception ex)
         {
-            ConsentHandler.HandleException(ex);
+            _consentHandler.HandleException(ex);
         }
-        await ApiService.LoadApplicationData();
+        await _apiService.LoadApplicationData();
     }
 
     private bool IsValidException(Exception ex)
@@ -105,7 +118,7 @@
         try
         {
             var correlationId = Guid.NewGuid().ToString();
-            await AuditingService.TrackException(ex, (nameof(correlationId), correlationId));
+            await _auditingService.TrackException(ex, (nameof(correlationId), correlationId));
             _correlationId = correlationId;
             await InvokeAsync(StateHasChanged);
         }

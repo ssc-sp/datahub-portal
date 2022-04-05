@@ -9,7 +9,8 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Text;
+using Datahub.Core.Data.DTO;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Datahub.Core.Services
 {
@@ -69,19 +70,43 @@ namespace Datahub.Core.Services
         }
 
 
-        public async Task<string> GetAdminUserString(string projectAcronym)
+        public async Task<List<ProjectMember>> GetProjectMembers(string projectAcronym)
         {
-            var adminEmailList = GetProjectAdminsEmails(projectAcronym);
-            StringBuilder admins = new();
-           
-            foreach (var admin in adminEmailList)
+            await using var ctx = await dbFactory.CreateDbContextAsync();
+            
+            var project = await ctx.Projects
+                .FirstAsync(p => p.Project_Acronym_CD.ToLower() == projectAcronym.ToLower());
+            
+            var users = await ctx.Project_Users
+                .Where(u => u.Project == project)
+                .ToListAsync();
+
+            var result = new List<ProjectMember>();
+            foreach (var user in users)
             {
-                var userId = await mSGraphService.GetUserIdFromEmailAsync(admin, CancellationToken.None);
-                var userName = await mSGraphService.GetUserName(userId, CancellationToken.None);
-                admins.Append($"{userName}; ");
+                var username = await mSGraphService.GetUserName(user.User_ID, CancellationToken.None);
+                
+                result.Add(new ProjectMember(user)
+                {
+                    Name = username
+                });
             }
-            return admins.ToString().Trim().TrimEnd(';');
+            return result;
         }
+
+        // public async Task<string> GetAdminUserString(string projectAcronym)
+        // {
+        //     var adminEmailList = GetProjectAdminsEmails(projectAcronym);
+        //     StringBuilder admins = new();
+        //    
+        //     foreach (var admin in adminEmailList)
+        //     {
+        //         var userId = await mSGraphService.GetUserIdFromEmailAsync(admin, CancellationToken.None);
+        //         var userName = await mSGraphService.GetUserName(userId, CancellationToken.None);
+        //         admins.Append($"{userName}; ");
+        //     }
+        //     return admins.ToString().Trim().TrimEnd(';');
+        // }
         //public async Task ClearProjectAdminCache()
         //{
         //    await Task.Run(() =>
@@ -138,7 +163,6 @@ namespace Datahub.Core.Services
             var project = ctx.Projects.Where(p => p.Project_Acronym_CD.ToLower() == projectAcronym.ToLower()).First();
 
             return ctx.Project_Users.Where(a => a.Project == project && a.IsAdmin && !string.IsNullOrEmpty(a.User_Name)).Select(f => f.User_Name).ToList();
-
         }
 
         public List<string> GetProjectMailboxEmails(string projectAcronym)

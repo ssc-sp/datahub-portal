@@ -1,0 +1,108 @@
+@inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
+@inject RequestManagementService _requestManagementService
+@inject UIControlsService _uiControlService
+@inject IProjectDatabaseService _projectDatabaseService
+
+@if (_project is null)
+{
+    <ToolCard Loading/>
+}
+else
+{
+    <ToolCard
+        Title="@Localizer["PROJECT-PAGE.DATABASE-CARD.CardTitlePG"]"
+        Description="@Localizer["Access the project PostgreSQL database and leverage your credentials for data connections"]">
+        <Logo>
+            <i class="fas fa-database"></i>
+        </Logo>
+        <ToolActionsList>
+            <ul>
+                <li>
+                    <AeButton class="light" OnClickEvent=@ShowDatabaseInformationPopupWithoutToken>@Localizer["PROJECT-PAGE.DATABASE-CARD.MoreInfo_button"]</AeButton>
+                </li>
+                @if (_project.IsDatabasePostgres && _projectDatabaseService.IsServiceAvailable())
+                {
+                    <li>
+                        <AeButton class="light" OnClickEvent=@ShowDatabaseInformationPopupWithToken>@Localizer["PROJECT-PAGE.DATABASE-CARD.GetToken_button"]</AeButton>
+                    </li>
+                }
+                else
+                {
+                    <li>
+                        <AeButton class="light" @onclick="@HandleRequestService">@Localizer["Request Service Creation"]</AeButton>
+                    </li>
+                }
+            </ul>
+        </ToolActionsList>
+    </ToolCard>
+}
+
+@code {
+
+    [CascadingParameter(Name = "ProjectAcronym")]
+    public string ProjectAcronym { get; set; }
+
+    [CascadingParameter(Name = "UserId")]
+    public string UserId { get; set; }
+
+    [CascadingParameter(Name = "GraphUser")]
+    public Microsoft.Graph.User GraphUser { get; set; }
+
+    private bool _powerBiRequested;
+    private bool _powerBiServiceRequested;
+    private bool _powerBiAuthorized;
+
+    private Datahub_Project _project;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        await using var projectDbContext = await _dbFactoryProject.CreateDbContextAsync();
+
+        _project = await projectDbContext.Projects
+            .Include(p => p.Requests)
+            .SingleAsync(p => p.Project_Acronym_CD == ProjectAcronym);
+
+        if (UserId != null)
+        {
+            _powerBiRequested = _project.Requests.Any(r => r.Databricks);
+            _powerBiAuthorized = _project.Requests
+                .Where(r => r.User_ID == UserId && r.Completion_DT != null)
+                .Any(r => r.PowerBI);
+            _powerBiServiceRequested = await projectDbContext.Project_Requests
+                .Where(p => p.Project == _project)
+                .AnyAsync(r =>
+                    r.ServiceType == RequestManagementService.POWERBI
+                    && r.Is_Completed == null);
+        }
+    }
+
+    private async Task HandleRequestService()
+    {
+        var serviceRequest = new Datahub_ProjectServiceRequests()
+        {
+            ServiceType = RequestManagementService.POSTGRESQL,
+            ServiceRequests_Date_DT = DateTime.Now,
+            Is_Completed = null,
+            Project = _project,
+            User_ID = UserId,
+            User_Name = GraphUser.UserPrincipalName
+        };
+
+        await _requestManagementService.RequestService(serviceRequest);
+    }
+
+
+    private async Task ShowDatabaseInformationPopup(bool getToken = false)
+    {
+        RenderFragment popupHtml =
+            @<DataProjectDbInformation DataProject=@_project GetAccessTokenImmediately="@getToken"/>;
+        await _uiControlService.ToggleModal(@<RenderFragmentModal Fragment=@popupHtml/>);
+    }
+
+    private async Task ShowDatabaseInformationPopupWithToken() => await ShowDatabaseInformationPopup(true);
+    private async Task ShowDatabaseInformationPopupWithoutToken() => await ShowDatabaseInformationPopup();
+
+
+}

@@ -1,0 +1,42 @@
+@use '../../Common' as c;
+
+.markdown-container {
+
+  pre {
+    position: relative;
+
+    code {
+      border-radius: 8px;
+      @include c.BoxShadow(1);
+    }
+
+    .codeblock-copy-icon {
+      position: absolute;
+      top: .2rem;
+      right: .2rem;
+      padding: .5rem;
+
+      width: 33px;
+      height: 33px;
+
+      color: c.$grey-300;
+      background-color: c.$white;
+      cursor: pointer;
+      border: 1px solid c.$grey-100;
+      border-radius: 4px;
+
+      font-size: 1rem;
+      transition: all .3s c.$cubic-bezier;
+
+      &:hover {
+        border-color: c.$grey-300;
+        color: c.$grey-600;
+      }
+      &.animating {
+        border-color: c.$green-400;
+        color: c.$green-600;
+      }
+    }
+  }
+}
+

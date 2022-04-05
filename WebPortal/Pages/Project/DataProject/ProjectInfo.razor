@@ -1,0 +1,48 @@
+@using Datahub.Core.Components.Skeleton
+
+@inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
+
+<div class="project-info">
+    @if (_loading)
+    {
+        <Skeleton Height="2.5rem" Width="150px"/>
+        <Skeleton Height="5rem" Width="650px"/>
+        <Skeleton Height="2rem" Width="900px"/>
+        <Skeleton Height="2rem" Width="900px"/>
+        <Skeleton Height="2rem" Width="300px"/>
+    }
+    else
+    {
+        <AeTypography class="project-data-sensitivity">@Localizer[_project.Data_Sensitivity]</AeTypography>
+        <AeTypography class="project-title" Variant="h1">
+            <span class="project-icon">
+                <i class="@($"fad fa-{_projectIcon}")"></i>
+            </span>
+            @_project.ProjectName
+        </AeTypography>
+        <DHMarkdown class="description" Content="@($"{_project.ProjectDescription}")"/>
+    }
+</div>
+
+@code {
+
+    [CascadingParameter(Name = "ProjectAcronym")]
+    public string ProjectAcronym { get; set; }
+
+    private Datahub_Project _project;
+    private string _projectIcon => $"fas fa-{_project?.Project_Icon ?? "swatchbook"}";
+
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
+        _project = await projectContext.Projects
+            .SingleAsync(p => p.Project_Acronym_CD == ProjectAcronym);
+
+        _loading = false;
+    }
+
+}

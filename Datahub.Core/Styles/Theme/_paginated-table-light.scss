@@ -1,4 +1,4 @@
-@use '../common/' as c;
+@use '../Common' as c;
 
 $cell-padding: 0.25rem 0.75rem;
 
@@ -25,7 +25,6 @@ $tableHeaderOptions: (
 $tableRowOptions: (
   'default': (
     'display': grid,
-//    'width': 100%,
     'padding': $cell-padding,
     '--fa-primary-color': c.$gray-700,
     '--fa-secondary-color': c.$gray-900,

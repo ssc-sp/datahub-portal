@@ -1,0 +1,163 @@
+@using Datahub.Core.Components.FileUpload
+
+@inject IUserInformationService _userInformationService
+@inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
+@inject DataRetrievalService _dataRetrievalService
+@inject IDataUpdatingService _dataUpdatingService
+@inject IDataRemovalService _dataRemovalService
+@inject MyDataService _apiService
+@inject IJSRuntime _jsRuntime
+
+
+<div class="file-explorer-layout">
+    <Heading
+        CurrentFolder="@_currentFolder"
+        SelectedItem="@_selectedItem"
+        Files="@_files"
+        Folders="@_folders"
+        OnNewFolder="HandleNewFolder"
+        SetCurrentFolder="SetCurrentFolder"
+        OnFileDelete="HandleFileDelete"
+        OnFileDownload="HandleFileDownload"
+        OnFileRename="HandleFileRename"/>
+
+    <div class="file-list">
+
+
+        <div class="file-list-header">
+            <AeTypography>
+                @Localizer["Name"]
+                @* <AeSearchInput *@
+                @*     SearchIconFAClass="fas fa-search" *@
+                @*     OnInputChangeWithLastKey="HandleSearch" *@
+                @*     style="margin: 0 1rem;"/> *@
+            </AeTypography>
+            <AeTypography>@Localizer["Size"]</AeTypography>
+            <AeTypography>@Localizer["Last Modified"]</AeTypography>
+            <i class="fas fa-sort-alpha-down"></i>
+        </div>
+
+        @if (_loading)
+        {
+            <LoadingFileList/>
+        }
+        else
+        {
+            <UploadSnackbar UploadingFiles="_uploadingFiles">
+                <DropZone MaxHeight OnFilesDrop="UploadFiles">
+                    @if (_currentFolder != _root)
+                    {
+                        var parentFolder = GetDirectoryName(_currentFolder);
+                        <DropZone
+                            OnFilesDrop="async (e) => await UploadFiles(e, parentFolder)"
+                            OnFileItemDrop="async filename => await HandleFileItemDrop(parentFolder, filename)">
+                            <FileItem
+                                Name="[..]"
+                                Highlighted="_selectedItem == parentFolder"
+                                Folder
+                                @onclick="() => _selectedItem = parentFolder"
+                                @ondblclick="async () => await SetCurrentFolder(parentFolder)">
+                                <Icon>
+                                    <i class="fas fa-folder"></i>
+                                </Icon>
+                            </FileItem>
+                        </DropZone>
+                    }
+                    @foreach (var folderName in _folders
+                        .Where(f => f?.Contains(_filterValue) ?? false)
+                        .OrderBy(f => f.ToLower()))
+                    {
+                        <DropZone
+                            OnFilesDrop="async (e) => await UploadFiles(e, folderName)"
+                            OnFileItemDrop="async filename => await HandleFileItemDrop(folderName, filename)">
+                            <FileItem
+                                Name="@GetFileName(folderName)"
+                                Highlighted="_selectedItem == folderName"
+                                Folder
+                                @onclick="() => _selectedItem = folderName"
+                                @ondblclick="async () => await SetCurrentFolder(folderName)">
+                                <Icon>
+                                    <i class="fas fa-folder"></i>
+                                </Icon>
+                            </FileItem>
+                        </DropZone>
+                    }
+                    @foreach (var file in _files
+                        .Where(f => f?.name?.Contains(_filterValue) ?? false)
+                        .OrderBy(f => f.name.ToLower()))
+                    {
+                        <FileItem
+                            Name="@GetFileName(file.name)"
+                            Modified="@file.Modified"
+                            Size="@file.filesize"
+                            @onclick="() => _selectedItem = file.name"
+                            Highlighted="_selectedItem == file.name">
+                            <Icon>
+                                <i class="@DatahubTools.GetFileTypeIcon(file.fileformat)"></i>
+                            </Icon>
+                        </FileItem>
+                    }
+                </DropZone>
+            </UploadSnackbar>
+        }
+    </div>
+    <div class="item-details">
+        <div class="details-sticky">
+            <div class="details-container">
+                @if (_loading || _folders.Contains(_selectedItem) || _currentFolder == _selectedItem)
+                {
+                    <StorageProperties DisplayName="@GetFileName(_selectedItem)"/>
+                }
+                else
+                {
+                    var file = _files.FirstOrDefault(f => f.name.Equals(_selectedItem, StringComparison.OrdinalIgnoreCase));
+                    <FileProperties File=@file Readonly="!OwnsFile(file)"/>
+                }
+            </div>
+        </div>
+    </div>
+
+</div>
+
+@code {
+
+    [CascadingParameter(Name = "ProjectAcronym")]
+    public string ProjectAcronym { get; set; }
+
+    [CascadingParameter(Name = "GraphUser")]
+    public Microsoft.Graph.User GraphUser { get; set; }
+
+    [Parameter]
+    public string ContainerName { get; set; }
+
+    private string _userId;
+
+
+    private bool _loading = true;
+    private List<FileMetaData> _uploadingFiles;
+    private string _continuationToken;
+
+    private readonly string _root = "/";
+    private string _currentFolder = "/";
+    private string _selectedItem = "/";
+
+    private List<string> _folders = new();
+    private List<FileMetaData> _files = new();
+    private string _filterValue = string.Empty;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
+
+        _userId = await _userInformationService.GetUserIdString();
+
+        _uploadingFiles = new List<FileMetaData>();
+
+        await FetchStorageBlobsPageAsync();
+    }
+
+    private bool OwnsFile(FileMetaData file) => (file?.ownedby ?? "").Equals(_userId, StringComparison.InvariantCulture);
+}

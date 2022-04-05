@@ -1,0 +1,26 @@
+@inject IJSRuntime _jsRuntime;
+
+<code class="inline-code-with-copy" @ref="_elementReference">
+    <span class="code-text">
+        @ChildContent
+    </span>
+</code>
+
+@code {
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+    
+    private ElementReference _elementReference;
+    
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+
+        if (firstRender)
+        {
+            var module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", 
+                "./_content/Datahub.Core/Components/DHMarkdown.razor.js");
+            await module.InvokeVoidAsync("appendCopyIcon", _elementReference);
+        }
+    }
+}

@@ -1,9 +1,11 @@
 @inject UIControlsService UI
 @inject IUserInformationService UserInformationService
 @inject NavigationManager NavigationManager
-@inject IApiService ApiService
+@inject MyDataService _myDataService
 @using Microsoft.Identity.Web
 @inject MicrosoftIdentityConsentAndConditionalAccessHandler ConsentHandler
+
+@using Datahub.Core.Components.Common
 
 @using System.Timers;
 
@@ -62,7 +64,9 @@
                             <Typography class="email">@Email</Typography>
                         </div>
                         <div class="language-toggle">
-                            <Typography Variant="b" @onclick="() => ChangeLanguage(Language)" style="cursor:pointer;">@LanguageDisplay</Typography>
+                            <Typography Variant="b">
+                                <LanguageToggle />
+                            </Typography>
                         </div>
                     </div>
                     <Typography class="description">@Localizer.GetString("You have used {0} of your allocated {1}", DatahubTools.BytesToString(TotalSpaceUsed), MaxAllocatedSpace)</Typography>
@@ -109,31 +113,6 @@
 
     public long TotalSpaceUsed { get; set; } = 0;
     
-    private string Language
-    {
-        get
-        {
-            if (Thread.CurrentThread.CurrentCulture.Name.ToLower().Contains("fr"))
-            {
-                return "en-CA";
-            }
-
-            return "fr-CA";
-        }
-    }
-    private string LanguageDisplay
-    {
-        get
-        {
-            if (Thread.CurrentThread.CurrentCulture.Name.ToLower().Contains("fr"))
-            {
-                return "English";
-            }
-
-            return "Français";
-        }
-    }
-
     protected override void OnInitialized()
     {
         UI.OnRightSidebarChange += StateHasChanged;
@@ -156,20 +135,12 @@
         StateHasChanged();
     }
 
-    private async void ChangeLanguage(string language)
-    {
-        if (await UserInformationService.RegisterUserLanguage(language))
-        {
-            UserInformationService.SetLanguage(language);
-        }
-    }
-
     private async void ToggleUserPopup()
     {
         _showUserPopup = !_showUserPopup;
         if (_showUserPopup)
         {
-            TotalSpaceUsed = await ApiService.GetUserUsedDataTotal(User);
+            TotalSpaceUsed = await _myDataService.GetUserUsedDataTotal(User);
         }
         _showHelp = false;
         StateHasChanged();

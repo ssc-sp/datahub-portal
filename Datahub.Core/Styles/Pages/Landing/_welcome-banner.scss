@@ -1,4 +1,5 @@
-﻿@use '../../Common/colors';
+﻿@use '../../Common' as c;
+
 
 
 .welcome-banner {
@@ -10,10 +11,14 @@
   height: 300px;
   display: flex;
   flex-direction: column-reverse;
+  
+  border-radius: 8px;
+  
+  @include c.BoxShadow(3);
 
   .greeting {
     padding: 1rem;
-    color: colors.$white;
-    text-shadow: 1px 1px 5px colors.$baseBlack;
+    color: c.$white;
+    text-shadow: 1px 1px 5px c.$baseBlack;
   }
 }

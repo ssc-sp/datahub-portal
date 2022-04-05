@@ -1,4 +1,4 @@
-﻿@page "/project/{ProjectAcronym}/forms/fields/{id}"
+﻿@page "/projects/{ProjectAcronym}/forms/fields/{id}"
 @inject NavigationManager NavManager
 
 @implements IDisposable
@@ -88,11 +88,11 @@ else
 
 @if (_formField == null)
 {
-    <AeButton To=@($"/project/{ProjectAcronym}/forms")>Back</AeButton>
+    <AeButton To=@($"/{UrlPathSegment.PROJECTS}/{ProjectAcronym}/forms")>Back</AeButton>
 }
 else
 {
-    <AeButton To=@($"/project/{ProjectAcronym}/forms/{_formField.WebForm_ID}")>Back</AeButton>
+    <AeButton To=@($"/{UrlPathSegment.PROJECTS}/{ProjectAcronym}/forms/{_formField.WebForm_ID}")>Back</AeButton>
 }
 
 

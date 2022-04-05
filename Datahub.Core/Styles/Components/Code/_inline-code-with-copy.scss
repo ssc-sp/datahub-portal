@@ -1,0 +1,23 @@
+@use '../../Common' as c;
+
+.inline-code-with-copy {
+  display: grid;
+  padding-left: c.spacing(1);
+  gap: c.spacing(1);
+  
+  grid-template-columns: 1fr 20px;
+  
+  .code-text {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: flex;
+    align-items: center;
+    
+  }
+
+  i {
+    font-size: 1rem;
+    align-self: center;
+  }
+}
