@@ -78,7 +78,7 @@
         var authState = await _authenticationStateTask;
         var user = authState.User;
         var titleConfig = _configuration["Title"];
-        _title = Localizer[titleConfig];
+        _title = "DATAHUB";//Localizer[titleConfig];
         if (!user.Identity?.IsAuthenticated ?? true)
         {
             var scopes = _configuration["Graph:Scopes"]
