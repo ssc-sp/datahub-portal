@@ -130,7 +130,7 @@
 
     private async Task CreateNewProject()
     {
-        var exists = Context.Projects.Where(a => a.Project_Acronym_CD.ToLowerInvariant() == _newProjectAcronym.ToLowerInvariant()).Any();
+        var exists = Context.Projects.Where(a => a.Project_Acronym_CD.ToLower() == _newProjectAcronym.ToLower()).Any();
         if (exists)
         {
             var textList = new List<string>()
