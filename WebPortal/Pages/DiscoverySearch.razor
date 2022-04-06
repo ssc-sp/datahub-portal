@@ -61,6 +61,16 @@
                                 </div>
                                 <div>
                                     <label>
+                                        @Localizer["Security"]:
+                                        <select @bind=@SecurityFilter title=@Localizer["Security"]>
+                                            <option value=@string.Empty>@Localizer["(any)"]</option>
+                                            @foreach(var sc in SecurityClassification.SECURITY_CLASSES)
+                                            {
+                                                <option value=@sc>@Localizer[sc]</option>
+                                            }
+                                        </select>
+                                    </label>
+                                    <label>
                                         @Localizer["Sector"]: 
                                         <select @bind=@SectorFilter title=@Localizer["Sector"]>
                                             <option value=@NO_FILTER_SELECTED>@Localizer["(any)"]</option>
@@ -182,6 +192,7 @@
     private Dictionary<MetadataObjectType, bool> _filterDataTypes = new();
     private int _filterSector = NO_FILTER_SELECTED;
     private int _filterBranch = NO_FILTER_SELECTED;
+    private string _securityFilter = string.Empty;
     private List<OrganizationLevel> _filteredBranches => _branches.Values.Where(b => b.ParentId == _filterSector).OrderBy(b => GetLabel(b)).ToList();
 
     private Dictionary<int, OrganizationLevel> _sectors = new();
@@ -261,6 +272,16 @@
         }
     }
 
+    private string SecurityFilter
+    {
+        get => _securityFilter;
+        set
+        {
+            _securityFilter = value;
+            UpdateFilter();
+        }
+    }
+
     private void UpdateFilter()
     {
         var filteredDataTypes = _filterDataTypes.Where(t => t.Value).Select(t => t.Key).ToHashSet();
@@ -269,7 +290,8 @@
         _filteredSearchResults = _searchResults
             .Where(r => (noDataTypesSelected || filteredDataTypes.Contains(r.DataType)) &&
                 (_filterSector == NO_FILTER_SELECTED || r.Sector == _filterSector) &&
-                (_filterBranch == NO_FILTER_SELECTED || r.Branch == _filterBranch))
+                (_filterBranch == NO_FILTER_SELECTED || r.Branch == _filterBranch) &&
+                (string.IsNullOrEmpty(_securityFilter) || r.SecurityClass == _securityFilter))
             .ToList();
 
         _lastClicked = 0;
@@ -283,7 +305,7 @@
     private string GetBranch(CatalogObjectResult result) => GetLabel(_branches.GetValueOrDefault(result.Branch));
     private string GetContact(CatalogObjectResult result) => result.Contact;
     private string GetDataType(CatalogObjectResult result) => GetLocalizedDataType(result.DataType);
-    private string GetSecurityClass(CatalogObjectResult result) => result.SecurityClass;
+    private string GetSecurityClass(CatalogObjectResult result) => Localizer[result.SecurityClass];
     private string GetLabel(OrganizationLevel orgLevel) => (_isFrench ? orgLevel?.FrenchLabel : orgLevel?.EnglishLabel) ?? "-";
 
     // renderer functions
