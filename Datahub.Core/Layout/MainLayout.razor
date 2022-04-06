@@ -12,7 +12,7 @@
 @inject MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
 @inject IConfiguration _configuration
 
-<PageTitle>@Localizer[_configuration["Title"]]</PageTitle>
+<PageTitle>@_title</PageTitle>
 
 <AuthorizeView>
     <Authorized>        
@@ -61,11 +61,12 @@
 {
     [CascadingParameter]
     private Task<AuthenticationState> _authenticationStateTask { get; set; }
-    
+
     private ErrorBoundary _errorBoundary;
     private string _correlationId;
     private Exception _lastException;
     private bool? _isSessionEnabled;
+    private string _title;
 
     protected override void OnParametersSet()
     {
@@ -76,7 +77,8 @@
     {
         var authState = await _authenticationStateTask;
         var user = authState.User;
-
+        var titleConfig = _configuration["Title"];
+        _title = Localizer[titleConfig];
         if (!user.Identity?.IsAuthenticated ?? true)
         {
             var scopes = _configuration["Graph:Scopes"]
