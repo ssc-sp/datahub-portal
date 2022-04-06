@@ -22,9 +22,6 @@
 
   "&lt;h1&gt;hello {0}&lt;/h1&gt;": "&lt;h1&gt;bonjour {0}&lt;/h1&gt;",
 
-  // "&lt;Typography&gt;{0} created &lt;span class=&quot;bluetext&quot;&gt;{1}&lt;/span&gt; in &lt;span class=&quot;bluetext&quot;&gt;{2}&lt;/span&gt;&lt;/Typography&gt;": "&lt;Typography&gt;{0} a créé &lt;span class="
-  //bluetext"&gt;{1}&lt;/span&gt; dans &lt;span class="bluetext"&gt;{2}&lt;/span&gt;&lt;/Typography&gt;",
-
   "a": "à",
 
   "A fully curated, scalable and high-performing business intelligence system designed to expedite data discovery, reports and dashboards for evidence-based decision making.": "Un système d’intelligence d’affaires entièrement organisé, évolutif et très performant, conçu pour accélérer la recherche de données, les rapports et les tableaux de bord pour un processus décisionnel fondé sur des données probantes.",
