@@ -40,7 +40,8 @@
     "Upload": "Upload",
     "Save": "Save",
     "Revert": "Revert",
-    "Edit": "Edit"
+    "Edit": "Edit",
+    "Clear": "Clear"
   },
   "COMMON": {
     "Yes": "Yes",
@@ -1143,5 +1144,7 @@
   "Discard Changes": "Discard Changes",
   "Add Section": "Add Section",
   "Remove Section": "Remove Section",
-  "(any)": "(any)"
+  "(any)": "(any)",
+  "Expand": "Expand",
+  "Collapse": "Collapse"
 }
