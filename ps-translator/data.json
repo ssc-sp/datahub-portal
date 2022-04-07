@@ -1,8 +1,11 @@
 {
-"DataHub Tools":"",
-"Onboarding Form":"",
-"Have a new project? Fill out an onboarding application now!":"",
-"Looking of an estimate for your storage needs?":"",
-"My Files":"",
-"User area for file storage and sharing":""
+  "[Enter any additional information/comments regarding your product or questions for the DataHub team]": "",
+  "[Enter the name of your product]": "",
+  "[Provide a brief summary/description of your product]": "",
+  "Product Information": "",
+  "Product Name": "",
+  "Product Summary Description": "",
+  "Product Goal": "",
+  "DataHub Product Onboarding Form": "",
+  "Product Engagement Category": ""
 }

@@ -1,8 +1,11 @@
 {
-  "DataHub Tools": "Outils DataHub",
-  "Onboarding Form": "Formulaire d'embarquement",
-  "Have a new project? Fill out an onboarding application now!": "Vous avez un nouveau projet ? Remplissez une demande d'adh\u00E9sion maintenant !",
-  "Looking of an estimate for your storage needs?": "Vous cherchez un devis pour vos besoins de stockage ?",
-  "My Files": "Mes dossiers",
-  "User area for file storage and sharing": "Zone utilisateur pour le stockage et le partage de fichiers"
+  "[Enter any additional information/comments regarding your product or questions for the DataHub team]": "[Saisissez toute information/commentaire suppl\u00E9mentaire concernant votre produit ou toute question destin\u00E9e \u00E0 l\u0027\u00E9quipe de DataHub].",
+  "[Enter the name of your product]": "[Entrez le nom de votre produit]",
+  "[Provide a brief summary/description of your product]": "[Fournissez un bref r\u00E9sum\u00E9/description de votre produit].",
+  "Product Information": "Informations sur le produit",
+  "Product Name": "Nom du produit",
+  "Product Summary Description": "Description sommaire du produit",
+  "Product Goal": "Objectif du produit",
+  "DataHub Product Onboarding Form": "Formulaire d\u0027int\u00E9gration des produits DataHub",
+  "Product Engagement Category": "Cat\u00E9gorie d\u0027engagement du produit"
 }

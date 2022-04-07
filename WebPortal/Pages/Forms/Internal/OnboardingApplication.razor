@@ -99,6 +99,8 @@
         _branches = await OrganizationLevelsService.GetBranches();
         _divisions = await OrganizationLevelsService.GetDivisions();
 
+        
+
         AccessorFunctions = new List<Func<OnboardingApp, string>>
         {
             p => { return Localizer[p.Client_Sector]; },
@@ -144,18 +146,21 @@
         else
         {
             _submittingApproval = true;
+            var orgAcronym = Context.Organization_Levels.Where(s => s.Org_Name_E == _onboardingApplication.Client_Sector).Select(a => a.Org_Acronym_E).FirstOrDefault();
             var project = new Datahub_Project();
             project.Project_Acronym_CD = _newProjectAcronym;
-            project.Sector_Name = _onboardingApplication.Client_Sector;
+            project.Sector_Name = orgAcronym;
             project.Branch_Name = _onboardingApplication.Client_Branch;
             project.Division_Name = _onboardingApplication.Client_Division;
             project.Contact_List = CreateContactList();
-            project.Project_Name = _onboardingApplication.Project_Name;
+            project.Project_Name = _onboardingApplication.Product_Name;
             project.Project_Summary_Desc = _onboardingApplication.Project_Summary_Description;
             project.Project_Category = _onboardingApplication.Project_Engagement_Category;
             project.OnboardingApplicationId = _onboardingApplication.Application_ID;
             project.Data_Sensitivity = _onboardingApplication.Data_Security_Level ?? "Unclassified";
             project.Project_Status_Desc = "Ongoing";
+            project.Initial_Meeting_DT = DateTime.Now;
+            project.Last_Contact_DT = DateTime.Now;
 
             Context.Projects.Add(project);
 
@@ -185,7 +190,7 @@
         {
             stringbuilder.Append(_onboardingApplication.Additional_Contact_Name ?? string.Empty);
             stringbuilder.Append(" ");
-            stringbuilder.Append($"<{_onboardingApplication.Additional_Contact_Email_EMAIL}>; ");
+            stringbuilder.Append($"<{_onboardingApplication.Additional_Contact_Email_EMAIL}>");
         }
 
         return stringbuilder.ToString();
@@ -317,7 +322,6 @@
 
     private void OnChange(ModelFormChangeArgs args)
     {
-        //HandleTranslationFields();
         _onchange = true;
         OnConfigure(args.Context);
     }
@@ -325,7 +329,6 @@
     private void CreateNewApplication()
     {
         _onboardingApplication = new OnboardingApp() { Last_Updated_DT = DateTime.Now };
-        //var user = await UserInformationService.GetUserAsync();
         _onboardingApplication.Client_Email = _user.Mail;
         _onboardingApplication.Client_Contact_Name = _user.DisplayName;
         _formMetadata.IsSubmitEnabled = true;
@@ -336,38 +339,16 @@
     {
         _onboardingApplication = application;
 
+        _sectorId = GetChoiceId(_sectors, _onboardingApplication.Client_Sector);
+        _branchId = GetChoiceId(_branches, _onboardingApplication.Client_Branch, _sectorId);
+        _divisionId = GetChoiceId(_divisions, _onboardingApplication.Client_Division, _branchId);
+
         if (_onboardingApplication.NotificationsSent)
             _formMetadata.IsSubmitEnabled = false;
 
         StateHasChanged();
     }
 
-    @*private async void OnConfirmSave(bool isConfirmed, dynamic item)
-    {
-        if (isConfirmed && _onboardingApplication != null)
-        {
-            _onboardingApplication.Last_Updated_DT = DateTime.Now;
-            _onboardingApplication.Last_Updated_UserId = _user.Id;
-            if (_onboardingApplication.Application_ID == 0)
-            {
-                _onboardingApplication = Context.OnboardingApps.Add(_onboardingApplication).Entity;
-            }
-            await Context.TrackSaveChangesAsync(AuditingService);
-            
-        }
-        else
-        {
-            var entry = Context.Entry(_onboardingApplication);
-            foreach (var property in entry.OriginalValues.Properties)  
-            {
-                var propertyName = property.Name;
-                entry.Property(propertyName).CurrentValue = entry.Property(propertyName).OriginalValue;   
-            }              
-        }
-        await UI.ToggleModal();
-        _onboardingApplication = item;
-        StateHasChanged();
-    }*@
 
     public void Dispose() { Context.Dispose(); }
 }
