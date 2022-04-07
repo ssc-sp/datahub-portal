@@ -1,9 +1,16 @@
 ﻿using Datahub.Core.Services;
 using Microsoft.Extensions.Configuration;
+using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Text.Unicode;
 
-var src = @"C:\code\datahub-portal\ps-translator\data.json";
-var tgt = Path.Combine(Path.GetDirectoryName(src), "output-fr.json");
+var src = @"..\..\..\..\WebPortal\i18n\localizations2.json";
+var fPath = Path.GetFullPath(src);
+if (!File.Exists(fPath))
+{
+    throw new Exception($"File {fPath} does not exist");
+}
+var tgt = Path.Combine(Path.GetDirectoryName(fPath)!, "output-fr.json");
 using var sourceFile = File.OpenRead(src);
 var data = await JsonSerializer.DeserializeAsync<Dictionary<string,string>>(sourceFile);
 var cfgPath = Path.GetFullPath(@"../../../../WebPortal");
@@ -16,7 +23,7 @@ var config = new ConfigurationBuilder()
 
 var translator = new TranslationService(config);
 var newDic = new Dictionary<string, string>();
-foreach (var item in data)
+foreach (var item in data.Where(d => !String.IsNullOrWhiteSpace(d.Key)))
 {
     if (!string.IsNullOrWhiteSpace(item.Value))
     {
@@ -32,4 +39,10 @@ foreach (var item in data)
     }
 }
 using var outFile = File.OpenWrite(tgt);
-await JsonSerializer.SerializeAsync(outFile, newDic);
+var options = new JsonSerializerOptions
+{
+    Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+    //JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Cyrillic),
+    WriteIndented = true
+};
+await JsonSerializer.SerializeAsync(outFile, newDic, options);

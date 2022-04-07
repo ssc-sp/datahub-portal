@@ -1,6 +1,6 @@
 ﻿@using Datahub.Portal.Data.PIP
 @using Microsoft.Extensions.Logging 
-@inject IStringLocalizer DataLocalizer
+@inject IStringLocalizer Localizer
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JsInterop
 @inject IUserInformationService UserInformationService
@@ -389,7 +389,7 @@
 
     public string GetDataLabel(string propName)
     {
-        return DataLocalizer[propName];
+        return Localizer[propName];
     }
 
     public static string ShortenString(string input, int maxLength)
@@ -424,7 +424,7 @@
             {
                 var powerBiUrl = $"{powerBiTargets}rp:p_program_title={project.Program_Title.Replace(" ", "+")}&rp:p_fiscal_year_id={project.FiscalYearId}";
                 project.PowerBiUrl = 
-    @<a href="@powerBiUrl" target="blank">Open PowerBI Report</a>;
+    @<a href="@powerBiUrl" target="blank">@Localizer["Open PowerBI Report"]</a>;
             }
         }
 

@@ -8,7 +8,7 @@
 @inject ILogger<DHPageAlert> _logger
 @inject IConfiguration configuration
 
-@if (_contentFound)
+@if (_contentFound && configuration["PageAlerts"] != "disabled")
 {
     <PageAlert Title="@Localizer[Title]" Key=@Key>
 
@@ -52,7 +52,7 @@
 
     private async Task<string> LoadPage(string name, List<(string,string)> substitutions = null)
     {
-        if (name.StartsWith("/")) name = name.Substring(1);
+        if (name.StartsWith("/")) name = name[1..];
         var wikiRoot = configuration["WikiURL"];
         var fullUrl = $"{wikiRoot}{name}.md";
         using var client = new HttpClient();
