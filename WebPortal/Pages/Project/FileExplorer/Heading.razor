@@ -1,11 +1,7 @@
-@*Heading.razor*@
-@inject IDataRemovalService _dataRemovalService
-@inject DataRetrievalService _dataRetrievalService
-@inject NavigationManager NavigationManager
+@inject NavigationManager _navigationManager
 @inject IJSRuntime _jsRuntime
 
 <div class="heading">
-    <AeTypography Variant="h1">@Localizer["Storage Explorer"]</AeTypography>
     <div class="breadcrumbs">
         <AeButton class="light" @onclick="@(async () => await SetCurrentFolder.InvokeAsync("/"))">@Localizer["root"]</AeButton>
         @foreach (var folder in CurrentFolder.Split("/").Where(s => !string.IsNullOrWhiteSpace(s)))
@@ -25,12 +21,17 @@
             @Localizer["Download"]
         </AeButton>
 
+        <AeButton class="button-tool" @onclick="HandleRename" Disabled="!_ownsSelectedFile">
+            <i class="fas fa-edit"></i>
+            @Localizer["Rename"]
+        </AeButton>
+
         <span class="tool-divider"></span>
 
         <AeButton class="button-tool" @onclick="HandleShare" Disabled="!_ownsSelectedFile">
             <i class="fas fa-share-square"></i>
             @Localizer["Share"]
-        </AeButton>            
+        </AeButton>
 
         <span class="tool-divider"></span>
 
@@ -63,13 +64,22 @@
     public string SelectedItem { get; set; }
 
     [Parameter]
-    public Dictionary<string, List<FileMetaData>> VirtualDirectory { get; set; }
+    public List<string> Folders { get; set; }
+
+    [Parameter]
+    public List<FileMetaData> Files { get; set; }
 
     [Parameter]
     public EventCallback<string> SetCurrentFolder { get; set; }
 
     [Parameter]
     public EventCallback<string> OnFileDelete { get; set; }
+    
+    [Parameter]
+    public EventCallback<string> OnFileDownload { get; set; }
+
+    [Parameter]
+    public EventCallback<string> OnFileRename { get; set; }
 
     [Parameter]
     public EventCallback<string> OnNewFolder { get; set; }
@@ -90,9 +100,18 @@
 
     protected override void OnParametersSet()
     {
-        _isExistingFile = !VirtualDirectory.ContainsKey(SelectedItem);
-        _selectedFile = VirtualDirectory[CurrentFolder]?.FirstOrDefault(f => f.name == SelectedItem);
-        _ownsSelectedFile = _selectedFile?.ownedby.Equals(GraphUser.Id, StringComparison.InvariantCulture) == true; 
+        _isExistingFile = !Folders.Contains(SelectedItem);
+        _selectedFile = Files?.FirstOrDefault(f => f.name == SelectedItem);
+
+    // TODO: This is a hack until SSC properly sets the owner of a file
+        if (Environment.GetEnvironmentVariable("HostingProfile") == "ssc")
+        {
+            _ownsSelectedFile = _selectedFile != null;
+        }
+        else
+        {
+            _ownsSelectedFile = _selectedFile?.ownedby.Equals(GraphUser.Id, StringComparison.InvariantCulture) == true;
+        }
     }
 
     private async Task BreadcrumbClicked(string breadcrumb)
@@ -105,8 +124,7 @@
     {
         if (_selectedFile is not null)
         {
-            var uri = await _dataRetrievalService.DownloadFile(DataRetrievalService.DEFAULT_CONTAINER_NAME, _selectedFile, ProjectAcronym);
-            await _jsRuntime.InvokeVoidAsync("open", uri.ToString(), "_blank");
+            await OnFileDownload.InvokeAsync(_selectedFile.name);
         }
     }
 
@@ -131,18 +149,26 @@
             sb.Append(_selectedFile.folderpath);
         }
 
-        NavigationManager.NavigateTo(sb.ToString());     
+        _navigationManager.NavigateTo(sb.ToString());
     }
 
     private async Task HandleDelete()
     {
-        if (_selectedFile is not null)
+        if (_selectedFile is not null && _ownsSelectedFile)
         {
-            var success = await _dataRemovalService.DeleteStorageBlob(_selectedFile, ProjectAcronym, GraphUser);
-            if (success)
-            {
-                await OnFileDelete.InvokeAsync(_selectedFile.name);
-            }
+            await OnFileDelete.InvokeAsync(_selectedFile.name);
+        }
+    }
+
+    private async Task HandleRename()
+    {
+        if (_selectedFile is not null && _ownsSelectedFile)
+        {
+            var newName = await _jsRuntime.InvokeAsync<string>("prompt", "Enter new name", 
+                FileExplorer.GetFileName(_selectedFile.filename));
+            newName = newName?.Replace("/", "").Trim();
+
+            await OnFileRename.InvokeAsync(newName);
         }
     }
 
@@ -154,4 +180,5 @@
             await OnNewFolder.InvokeAsync(newFolderName.Trim());
         }
     }
+
 }

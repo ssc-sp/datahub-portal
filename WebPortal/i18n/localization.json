@@ -837,6 +837,7 @@
   "SYSTEM-NOTIFICATION": {
     "MarkRead": "Mark as read",
     "MarkUnread": "Mark unread",
+    "MarkAllAsRead": "Mark all as read",
     "DefaultActionLinkText": "Go",
     "BackToLatest": "Back to latest",
     "Older": "Older",
