@@ -25,6 +25,10 @@
     ul.inline-list li.active {
         border: 1px solid grey; 
     }
+
+    div.with-bottom-margin {
+        margin-bottom: 0.5rem;
+    }
 </style>
 
 <div style="margin: 2rem">
@@ -32,7 +36,7 @@
     <AeCard>
         <ChildContent>
             <AeFlex Vertical>
-                <h2>@Localizer["Search catalog"]</h2>
+                <AeTypography Variant="h2">@Localizer["Search catalog"]</AeTypography>
 
                 <AeSearchInput 
                     id="search" 
@@ -41,12 +45,18 @@
                     ClearIconFAClass="null" 
                 />
 
-                <AeCollapse>
-                    <AeCollapseSection>
-                        <Header><AeTypography Variant="h3">@Localizer["Filter"]</AeTypography></Header>
+                <AeCollapse OnSectionToggled=@OnFilterToggled>
+                    <AeCollapseSection DefaultOpen=@_filterSectionOpen>
+                        <Header>
+                            <AeTypography Variant="h3">
+                                <AeIcon class=@_filterSectionOpenIconClass />
+                                <span>@Localizer["Filter"]</span>
+                                <AeIcon class=@_filterActiveIconClass />
+                            </AeTypography>
+                        </Header>
                         <ChildContent>
                             <AeFlex Vertical>
-                                <div>
+                                <div class="with-bottom-margin">
                                     <ul class="ae inline-list" >
                                         @foreach(var t in _filterDataTypes.Keys.OrderBy(t => GetLocalizedDataType(t)))
                                         {
@@ -59,9 +69,9 @@
                                         }
                                     </ul>
                                 </div>
-                                <div>
+                                <div class="with-bottom-margin">
                                     <label>
-                                        @Localizer["Security"]:
+                                        <span>@Localizer["Security"]: </span>
                                         <select @bind=@SecurityFilter title=@Localizer["Security"]>
                                             <option value=@string.Empty>@Localizer["(any)"]</option>
                                             @foreach(var sc in SecurityClassification.SECURITY_CLASSES)
@@ -71,7 +81,7 @@
                                         </select>
                                     </label>
                                     <label>
-                                        @Localizer["Sector"]: 
+                                        <span>@Localizer["Sector"]: </span>
                                         <select @bind=@SectorFilter title=@Localizer["Sector"]>
                                             <option value=@NO_FILTER_SELECTED>@Localizer["(any)"]</option>
                                             @foreach(var sector in _sectors.Values.OrderBy(s => GetLabel(s)))
@@ -80,10 +90,10 @@
                                             }
                                         </select>
                                     </label>
-                                    @if (_filteredBranches.Count > 0)
-                                    {
-                                        <label>
-                                            @Localizer["Branch"]:
+                                    <label>
+                                        @if (_filteredBranches.Count > 0)
+                                        {
+                                            <span>@Localizer["Branch"]: </span>
                                             <select @bind=@BranchFilter title=@Localizer["Branch"]>
                                                 <option value=@NO_FILTER_SELECTED>@Localizer["(any)"]</option>
                                                 @foreach(var branch in _filteredBranches)
@@ -91,8 +101,11 @@
                                                     <option value=@branch.Id>@GetLabel(branch)</option>
                                                 }
                                             </select>
-                                        </label>
-                                    }
+                                        }
+                                    </label>
+                                </div>
+                                <div>
+                                    <AeButton OnClickEvent=@ClearFilters Disabled=@_clearFilterDisabled>@Localizer["BUTTONS.Clear"]</AeButton>
                                 </div>
                             </AeFlex>
                         </ChildContent>
@@ -100,7 +113,7 @@
                 </AeCollapse>
 
                 <div>
-                    <h3>@Localizer["Results"]</h3>
+                    <AeTypography Variant="h3">@Localizer["Results"]</AeTypography>
 
                     <AePaginatedTable 
                         @ref=@_resultTable
@@ -195,12 +208,18 @@
     private string _securityFilter = string.Empty;
     private List<OrganizationLevel> _filteredBranches => _branches.Values.Where(b => b.ParentId == _filterSector).OrderBy(b => GetLabel(b)).ToList();
 
+    private bool _filterSectionOpen = true;
+    private string _filterSectionOpenIconClass => $"fad fa-caret-circle-{(_filterSectionOpen ? "down" : "right")}";
+    private string _filterActiveIconClass => $"{(_filtersActive ? "fas" : "fad")} fa-filter";
+
     private Dictionary<int, OrganizationLevel> _sectors = new();
     private Dictionary<int, OrganizationLevel> _branches = new();
     private IPageableComponent _resultTable;
     private List<string> _headers = new();
     private List<Func<CatalogObjectResult, RenderFragment>> _renderFunctions = new();
     private List<Func<CatalogObjectResult, string>> _accessorFunctions = new();
+    private bool _filtersActive = false;
+    private bool _clearFilterDisabled => !_filtersActive;
 
     protected override async Task OnInitializedAsync()
     {
@@ -295,8 +314,28 @@
             .ToList();
 
         _lastClicked = 0;
-        
+
+        _filtersActive = filteredDataTypes.Count > 0 || _filterSector != NO_FILTER_SELECTED || _filterBranch != NO_FILTER_SELECTED || !string.IsNullOrEmpty(_securityFilter);
+
         StateHasChanged();
+    }
+
+    private void ClearFilters()
+    {
+        foreach (var t in _filterDataTypes.Keys)
+        {
+            _filterDataTypes[t] = false;
+        }
+        _filterSector = NO_FILTER_SELECTED;
+        _filterBranch = NO_FILTER_SELECTED;
+        _securityFilter = string.Empty;
+
+        UpdateFilter();
+    }
+
+    private void OnFilterToggled((AeCollapseSection Section, bool Open) e)
+    {
+        _filterSectionOpen = e.Open;
     }
 
     // accessor functions
