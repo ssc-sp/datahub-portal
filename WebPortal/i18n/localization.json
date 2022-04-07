@@ -698,10 +698,7 @@
   "Client_Email": "Client Email",
   "Additional_Contact_Name": "Additional Contact Name",
   "Additional_Contact_Email_EMAIL": "Additional Contact Email",
-  "Project_Summary_Description": "Project Summary Description",
-  "Project_Goal": "Project Goal",
   "Onboarding_Timeline": "Onboarding Timeline",
-  "Project_Engagement_Category": "Project Engagement Category",
   "Project_Engagement_Category_OtherText": "",
   "Data_Set_Security_Level_Classified": "Data Set Security Classified",
   "Data_Set_Security_Level_ProtectedA": "Data Set Security Protected A",
@@ -725,6 +722,16 @@
   "Additional_Information": "Additional Information",
   "Client_Information": "Client Information",
   "Project_Engagement_Category_Other": "Other",
+
+  "Product Information": "Product Information",
+  "Product_Name": "Product Name",
+  "Project_Summary_Description": "Product Summary Description",
+  "Project_Goal": "Product Goal",
+  "DataHub Project Onboarding Form": "DataHub Product Onboarding Form",
+  "Project_Engagement_Category": "Product Engagement Category",
+  
+
+
 
   "GCdocs_Hyperlink_URL": "GCdocs Hyperlink",
   "Expected_Lifespan_DT": "Expected lifespan or retirement date for the Team",
