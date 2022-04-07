@@ -495,7 +495,7 @@ namespace Datahub.Core.Services
         {
             var parametersDict = BuildOnboardingParameters(parameters);
 
-            var subject = $"Onboarding Request – {parameters.App.Project_Name}";
+            var subject = $"Onboarding Request – {parameters.App.Product_Name}";
             var html = await RenderTemplate<OnboardingAdmin>(parametersDict);
             await SendEmailMessage(subject, html, parameters.AdminEmailAddresses);
             html = await RenderTemplate<OnboardingClient>(parametersDict);

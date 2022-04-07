@@ -46,41 +46,41 @@ namespace Datahub.Core.Model.Onboarding
         public string Additional_Contact_Email_EMAIL { get; set; }
 
 
-        [AeFormCategory("Project Information", 20)]
-        [AeLabel(placeholder: "[Enter the name of your project]")]
-        public string Project_Name { get; set; }
+        [AeFormCategory("Product Information", 20)]
+        [AeLabel(placeholder: "[Enter the name of your product]")]
+        public string Product_Name { get; set; }
 
 
-        [AeFormCategory("Project Information", 20)]
-        [AeLabel(placeholder: "[Provide a brief summary/description of your project]")]
+        [AeFormCategory("Product Information", 20)]
+        [AeLabel(placeholder: "[Provide a brief summary/description of your product]")]
         public string Project_Summary_Description { get; set; }
 
-        [AeFormCategory("Project Information", 20)]
+        [AeFormCategory("Product Information", 20)]
         [AeLabel(placeholder: "[Provide a brief description of the objective(s) you would like to accomplish with DataHub]")]
         public string Project_Goal { get; set; }
 
-        [AeFormCategory("Project Information", 20)]
+        [AeFormCategory("Product Information", 20)]
         [AeLabel(placeholder: "[Provide any anticipated timelines or deadlines for onboarding to DataHub]")]
         public string Onboarding_Timeline { get; set; }
 
 
-        [AeFormCategory("Project Information", 20)]
+        [AeFormCategory("Product Information", 20)]
         [AeLabel(isDropDown: true)]
         public string Project_Engagement_Category { get; set; }
 
-        [AeFormCategory("Project Information", 20)]        
+        [AeFormCategory("Product Information", 20)]        
         public string Project_Engagement_Category_Other { get; set; }
 
 
 
-        [AeFormCategory("Project Information", 20)]
+        [AeFormCategory("Product Information", 20)]
         [AeLabel(isDropDown: true)]
         public string Data_Security_Level { get; set; }
 
 
 
         [AeFormCategory("Additional Information", 30)]
-        [AeLabel(placeholder: "[Enter any additional information/comments regarding your project or questions for the DataHub team]")]
+        [AeLabel(placeholder: "[Enter any additional information/comments regarding your product or questions for the DataHub team]")]
         public string Questions_for_the_DataHub_Team { get; set; }
         
 
