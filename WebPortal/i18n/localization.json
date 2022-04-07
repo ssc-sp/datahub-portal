@@ -40,7 +40,8 @@
     "Upload": "Upload",
     "Save": "Save",
     "Revert": "Revert",
-    "Edit": "Edit"
+    "Edit": "Edit",
+    "Clear": "Clear"
   },
   "COMMON": {
     "Yes": "Yes",
@@ -172,6 +173,14 @@
     "EditedBy": "Edited by: {0}",
     "Unknown": "Unknown",
     "Version": "Version {0}"
+  },
+  "DISCOVERY-DATA-TYPES": {
+    "File": "File",
+    "PowerBIWorkspace": "Power BI Workspace",
+    "PowerBIDataset": "Power BI Dataset",
+    "PowerBIReport": "Power BI Report",
+    "FileUrl": "File URL",
+    "GeoObject": "Geo Object"
   },
   "404-Page-Error": "Invalid URL, please contact administrator if in error.",
   "ChangeOwner": "Change Owner",
@@ -1135,5 +1144,8 @@
   "Save Profile": "Save Profile",
   "Discard Changes": "Discard Changes",
   "Add Section": "Add Section",
-  "Remove Section": "Remove Section"
+  "Remove Section": "Remove Section",
+  "(any)": "(any)",
+  "Expand": "Expand",
+  "Collapse": "Collapse"
 }
