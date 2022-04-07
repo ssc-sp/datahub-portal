@@ -154,6 +154,8 @@
             project.Project_Summary_Desc = _onboardingApplication.Project_Summary_Description;
             project.Project_Category = _onboardingApplication.Project_Engagement_Category;
             project.OnboardingApplicationId = _onboardingApplication.Application_ID;
+            project.Data_Sensitivity = _onboardingApplication.Data_Security_Level ?? "Unclassified";
+            project.Project_Status_Desc = "Ongoing";
 
             Context.Projects.Add(project);
 
