@@ -49,7 +49,9 @@
                     <AeCollapseSection DefaultOpen=@_filterSectionOpen>
                         <Header>
                             <AeTypography Variant="h3">
-                                <AeIcon class=@_filterSectionOpenIconClass />
+                                <span title=@_filterSectionOpenTitle>
+                                    <AeIcon class=@_filterSectionOpenIconClass />
+                                </span>
                                 <span>@Localizer["Filter"]</span>
                                 <AeIcon class=@_filterActiveIconClass />
                             </AeTypography>
@@ -210,6 +212,7 @@
 
     private bool _filterSectionOpen = true;
     private string _filterSectionOpenIconClass => $"fad fa-caret-circle-{(_filterSectionOpen ? "down" : "right")}";
+    private string _filterSectionOpenTitle => _filterSectionOpen ? Localizer["Collapse"] : Localizer["Expand"];
     private string _filterActiveIconClass => $"{(_filtersActive ? "fas" : "fad")} fa-filter";
 
     private Dictionary<int, OrganizationLevel> _sectors = new();
