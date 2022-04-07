@@ -18,7 +18,7 @@ else
             @if (!string.IsNullOrWhiteSpace(_project.WebForms_URL) && _webFormsAuthorized)
             {
                 <DHLink Variant="h3" DataProject="@ProjectAcronym" WebFormsURL="@_project.WebForms_URL">
-                    <AeButton @onclick="@HandleRequestAccess">@Localizer["Open Data Entry Application"]</AeButton>                    
+                    <AeButton>@Localizer["Open Data Entry Application"]</AeButton>                    
                 </DHLink>
             }
             @if (!_webFormsAuthorized)
@@ -80,7 +80,7 @@ else
             User_Name = GraphUser.UserPrincipalName,
             User_ID = UserId,
             Project = _project,
-            Databricks = true
+            WebForms = true
         };
 
         await _requestManagementService.RequestAccess(request);
