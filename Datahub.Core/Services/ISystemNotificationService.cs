@@ -26,7 +26,7 @@ namespace Datahub.Core.Services
         Task<List<SystemNotification>> GetNotificationsForUser(string userId, bool unreadOnly = false, int pageNumber = 0);
 
         Task SetReadStatus(long notificationId, bool readStatus);
-
+        Task MarkAllAsRead(string userId);
         int GetNotificationPageSize();
 
         event Func<string, Task> Notify;
