@@ -107,12 +107,12 @@ namespace Datahub.Tests
         }
 
         string storageAccountName = "datahubdatalakedev";
-        string storageAccountKey = @"3GURb30PvhqD3L4aD+27fDxhNmde5oY0kpu5G0imTMdgwExq9MafQOgpWDnElgLQFHjpY6tkekf28SAdIjiSNQ==";
+        string storageAccountKey = @"";
         string fileSystemName = "datahub";
-        string userId = "0403528c-5abc-423f-9201-9c945f628595";
+        string userId = "";
         string storageAccountNameFlat = "dhcanmetrobodev";
-        string storageAccountKeyFlat = @"FvGP17Hc8RlR5ztEjmwafUU/MFmILU8v5f+JQOf9bW+QZWYRoayUMyX38XxNrLbbICwrWnLLIGPlXi/b60gnBQ==";
-        string cxnstring = @"DefaultEndpointsProtocol=https;AccountName=dhcanmetrobodev;AccountKey=FvGP17Hc8RlR5ztEjmwafUU/MFmILU8v5f+JQOf9bW+QZWYRoayUMyX38XxNrLbbICwrWnLLIGPlXi/b60gnBQ==;EndpointSuffix=core.windows.net";
+        string storageAccountKeyFlat = @"";
+        string cxnstring = @"";
 
 
         [Fact]
