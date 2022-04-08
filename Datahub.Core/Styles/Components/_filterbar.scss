@@ -1,0 +1,15 @@
+﻿@use '../Common' as c;
+
+.filter-bar {
+    
+    .checkbox {
+        margin-bottom: 0.5rem;
+        display: flex;
+        flex-direction: row;
+        padding-left: 1rem;
+
+        .typography-right-left {
+            margin-left: 0.5rem;    
+        }
+    }
+}

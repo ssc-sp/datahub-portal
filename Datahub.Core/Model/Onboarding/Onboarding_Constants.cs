@@ -15,7 +15,7 @@ namespace Datahub.Core.Model.Onboarding
                                                     "Power BI Reports",
                                                     "Storage",
                                                     "Web Forms",
-                                                    "UNknown",
+                                                    "Unknown",
                                                     "Other"
         };
 
@@ -23,6 +23,6 @@ namespace Datahub.Core.Model.Onboarding
                                                             "Protected A",
                                                             "Protected B",
                                                             "Protected C",
-                                                            "UNclassified",};
+                                                            "Unclassified",};
 }
 }

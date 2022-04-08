@@ -36,6 +36,17 @@ namespace Datahub.Portal.Data.PIP
         public static readonly string[] EQUITY_SEEKING_GROUPS = { "Indigenous Peoples", "LGBTQ2S+", "People with disabilities", "Black people and racialized people", "Women", 
                                                                     "Underrepresented groups including immigrants", "older adults", " people living in poverty", "rural/remote residents and language minorities" };
 
+        public static readonly string[] CORE_RESPONSIBILITY = { "R1 Canadians have access to cutting-edge research to inform decisions on the management  of natural resources",
+                                                                "R2 Communities and officials have the tools to safeguard Canadians from natural hazards and explosives",
+                                                                "R3 Communities and industries are adapting to climate change",
+                                                                "R4 Natural resource sectors are innovative",
+                                                                "R5 Clean technologies and energy efficiencies enhance economic performance",
+                                                                "R6 Canada’s natural resources are sustainable",
+                                                                "R7 Access to new and priority markets for Canada’s natural resources is enhanced",
+                                                                "R8 Canadians are engaged in the future of the new and inclusive resource economy",
+                                                                "R9 Enhanced competitiveness of Canada’s natural resource sectors"};
+
+
 
         public static readonly string[] CORE_RESPONSIBILITY1 = { "R1 Canadians have access to cutting-edge research to inform decisions on the management  of natural resources",
 "R2 Communities and officials have the tools to safeguard Canadians from natural hazards and explosives",

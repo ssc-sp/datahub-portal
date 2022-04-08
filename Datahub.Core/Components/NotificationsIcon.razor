@@ -27,6 +27,7 @@
         Show=@ShowNotifications 
         OnCloseClick=@ToggleNotifications>
         <ChildContent>
+            <AeButton class="newer-button" OnClickEvent=@MarkAllAsRead>@Localizer[$"{LOCALIZATION_PREFIX}.MarkAllAsRead"]</AeButton>
             <div class="notification-scrollpane">
             @foreach(var n in Notifications)
             {
@@ -149,11 +150,11 @@
         IsLoading = true;
         StateHasChanged();
         TotalNotificationCount = await systemNotificationService.GetNotificationCountForUser(CurrentUserId, UnreadOnly);
-        
+
         UnreadNotificationCount = UnreadOnly ? 
             TotalNotificationCount : 
             await systemNotificationService.GetNotificationCountForUser(CurrentUserId, true);
-        
+
         Notifications = await systemNotificationService.GetNotificationsForUser(CurrentUserId, UnreadOnly, CurrentPage);
         IsLoading = false;
         StateHasChanged();
@@ -175,6 +176,12 @@
     private async Task NextPage()
     {
         CurrentPage = Math.Min(CurrentPage + 1, MaxPage);
+        await RefreshNotifications();
+    }
+
+    private async Task MarkAllAsRead()
+    {
+        await systemNotificationService.MarkAllAsRead(CurrentUserId);
         await RefreshNotifications();
     }
 
