@@ -27,7 +27,9 @@
         OnConfigureForms="OnConfigure"
         CreateNewRecord="CreateNewApplication"
         SelectedRecord="@_onboardingApplication"
-        SetFormEditRecord="SetFormEdit" />
+        SetFormEditRecord="SetFormEdit"
+        FormFilterBarOptions="@_filterBarOptions"
+        FilterBarCheckChange="HandleFilterBarCheckChange" />
 
         @if (_isUserAdmin && _onboardingApplication != null)
         {
@@ -84,6 +86,9 @@
     private List<string> Branches => LocalizeChoices(_branches.Where(b => b.ParentId == _sectorId));
     private List<string> Divisions => LocalizeChoices(_divisions.Where(d => d.ParentId == _branchId));
 
+    private FilterBarOptions _filterBarOptions;
+
+
     private string Localize(string input) => input == null ? null : Localizer[input];
 
     protected override async Task OnInitializedAsync()
@@ -99,7 +104,10 @@
         _branches = await OrganizationLevelsService.GetBranches();
         _divisions = await OrganizationLevelsService.GetDivisions();
 
-        
+        _filterBarOptions = new();
+        _filterBarOptions.ShowCheckBox = true;
+        _filterBarOptions.CheckBoxText = Localize("Hide Created Products");
+        _filterBarOptions.IsChecked = true;
 
         AccessorFunctions = new List<Func<OnboardingApp, string>>
         {
@@ -110,7 +118,7 @@
             p => { return p.ProjectCreatedDate.ToString() ?? string.Empty; },
         };
 
-        LoadApps();
+        await LoadApps();
         _formMetadata.Header = Localizer["DataHub Project Onboarding Form"];
         _formMetadata.TableRoles = RoleConstants.DATAHUB_ROLE_ADMIN;
         _formMetadata.DataSet = _onboardingApplications;
@@ -129,6 +137,12 @@
     }
 
     private void SetProjectAcronym(ChangeEventArgs args) => _newProjectAcronym = (string)args.Value;
+
+    private async void HandleFilterBarCheckChange(bool isChecked)
+    {
+        _filterBarOptions.IsChecked = isChecked;
+        await LoadApps();
+    }
 
     private async Task CreateNewProject()
     {
@@ -165,7 +179,7 @@
             Context.Projects.Add(project);
 
             _onboardingApplication.ProjectCreatedDate = DateTime.Now.Date;
- 
+
             var result = await Context.TrackSaveChangesAsync(AuditingService);
             if (result < 1)
             {   
@@ -237,19 +251,25 @@
                             App = _onboardingApplication, 
                             AdminEmailAddresses =  ServiceAuthManager.GetProjectMailboxEmails(PROJECTACRONYM)
                         };
-            
+
 
             await EmailService.SendOnboardingConfirmations(onboardingParameters);
-            
+
             _onboardingApplication.NotificationsSent = true;
 
             NavigationManager.NavigateTo("/onboarding/confirmation");
         }
     }
 
-    private void LoadApps()
+    private async Task LoadApps()
     {
         _onboardingApplications = Context.OnboardingApps.ToList();
+
+        if (_filterBarOptions.IsChecked)
+        {
+            _onboardingApplications = _onboardingApplications.Where(d => d.ProjectCreatedDate == null).ToList() ;
+        }
+
         _formMetadata.DataSet = _onboardingApplications;
         
         if (!string.IsNullOrEmpty(AppId))
