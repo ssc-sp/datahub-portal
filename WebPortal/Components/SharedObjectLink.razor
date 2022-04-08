@@ -1,0 +1,15 @@
+﻿@inject NavigationManager NavigationManager
+
+<span @onclick=@Navigate style="cursor: pointer;">
+    @Name
+</span>    
+
+@code {
+    [Parameter]
+    public string Name { get; set; }
+
+    [Parameter]
+    public string Url { get; set; }
+
+    private void Navigate() => NavigationManager.NavigateTo(Url);
+}

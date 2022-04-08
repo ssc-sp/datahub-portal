@@ -1,5 +1,5 @@
-﻿@inject IJSRuntime jsRuntime
-@inject IPublicDataFileService PublicFileService
+﻿@using Datahub.Portal.Model
+@inject IJSRuntime jsRuntime
 
 <AeButton @onclick=@NavigateToUrl disabled="@Disabled" title=@Localizer["OPENDATA-DASHBOARD.ClickToReadPDF"]>@ChildContent</AeButton>
 
@@ -9,19 +9,23 @@
     public RenderFragment ChildContent { get; set; }
 
     [Parameter]
-    public OpenDataSharedFile File { get; set; }
+    public ShareApproval Object { get; set; }
 
-    private bool Disabled => File.ApprovalFormRead_FLAG;
+    [Parameter]
+    public EventCallback<ShareApproval> OnRead { get; set; }
+
+    private bool Disabled => Object.Read;
 
     private async void NavigateToUrl()
     {
-        if (!File.ApprovalFormRead_FLAG)
+        if (!Object.Read)
         {
-            await PublicFileService.SetPendingApprovalOpenDataAsRead(File);
             await InvokeAsync(StateHasChanged);
             try
             {
-                await jsRuntime.InvokeAsync<object>("open", File.SignedApprovalForm_URL, "_blank");
+                Object.Read = true;
+                await jsRuntime.InvokeAsync<object>("open", Object.DocumentUrl, "_blank");
+                await OnRead.InvokeAsync(Object);
             }
             catch (Exception)
             {

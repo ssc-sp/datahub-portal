@@ -581,7 +581,7 @@
         "Description": "Upload the signed form to GCdocs and paste the link in DataHub.",
         "Title": "Submit Signed Form"
       },
-      "WaitForApproval": {
+      "WaitingForApproval": {
         "Description": "The request has been submitted for approval. Once the request is approved, the file will be uploaded to Open Data.",
         "Title": "Pending Approval"
       },
@@ -597,7 +597,17 @@
   },
 
   "FGP-WIZARD": {
-    "Page_Title": "Share FGP Dataset"
+    "Page_Title": "Share FGP Dataset",
+    "Title": "Title",
+    "Approval_Filled_out_1": "Once the Approval Form is completed, generate the approval form.",
+    "Approval_Filled_out_2": "Save the generated approval form to GCdocs.",
+    "Approval_Filled_out_3": "Paste the GCdocs file link (https://gcdocs.gc.ca/nrcan-rncan/llisapi.dll/link/XXXXXXXX) in the section below.",
+    "GenerateDOCX_button": "Download Approval Document",
+    "AmendApprovalForm_button": "Amend Approval Form",
+    "EnterGcDocsUrl": "Enter GCdocs URL",
+    "CancelSharing": "Cancel the Sharing Request",
+    "CancelSharingDescription": "You can cancel this request to share the data file before it is approved. The request to share will be deleted from system. Once approved, you will not be able to cancel the request.",
+    "PublishDataset_button": "Publish Dataset"
   },
 
   "OPENDATA-WIZARD": {
@@ -878,7 +888,8 @@
     "TestNotification": "This is a test."
   },
   "OPENDATA-DASHBOARD": {
-    "FileName": "File Name",
+    "FileName": "Name",
+    "Type":  "Type",
     "Read": "Read",
     "Approve": "Approve",
     "ClickToReadPDF": "Click to read document",

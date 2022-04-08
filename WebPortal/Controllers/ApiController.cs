@@ -190,7 +190,7 @@ namespace Datahub.Portal.Controllers
         }
 
         [HttpPost]
-        [Route("fgp/submit")]
+        [Route("spatial/submit")]
         public async Task<IActionResult> StartSharingFgp()
         {
             // [authorization] Signed JWT with the claims including the UserName 
@@ -227,7 +227,7 @@ namespace Datahub.Portal.Controllers
             // save and store json request
             var shareId = await SaveGeoData(requestJson, approvalFormId, emailContact);
 
-            var url = _publicDataService.GetPublicSharedUrl($"/share/geodata/{shareId}");
+            var url = _publicDataService.GetPublicSharedUrl($"/share/spatial/{shareId}");
 
             return Ok(url);
         }
