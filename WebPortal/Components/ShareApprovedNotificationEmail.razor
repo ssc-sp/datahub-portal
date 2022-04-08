@@ -1,0 +1,18 @@
+﻿<p>Hi @UserName, your approval for sharing <a href="@Url">@RequestTitle</a> has been approved.</p> 
+<p>Thank you!</p>
+<p></p>
+<p>Bonjour @UserName, votre approbation pour le partage de <a href="@Url">@RequestTitle</a> a été approuvée.</p>
+<p>Merci !</p>
+
+@code {
+
+    [Parameter]
+    public string UserName { get; set; }        
+
+    [Parameter]
+    public string RequestTitle { get; set; }        
+
+    [Parameter]
+    public string Url { get; set; }        
+
+}
