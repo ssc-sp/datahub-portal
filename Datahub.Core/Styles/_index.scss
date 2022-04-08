@@ -14,7 +14,7 @@
 @use '_progressbar.scss';
 @use '_tacmodal.scss';
 @use 'search-layout';
-@use '_admin.scss'
+@use '_admin.scss';
 
 
 @use 'Components';
@@ -192,4 +192,12 @@ img {
   color: c.$red-900;
   border-color: c.$red-900;
   border-left: 8px solid c.$red-900;
+}
+
+pre {
+  white-space: pre-wrap;       /* css-3 */
+  white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
+  white-space: -pre-wrap;      /* Opera 4-6 */
+  white-space: -o-pre-wrap;    /* Opera 7 */
+  word-wrap: break-word;       /* Internet Explorer 5.5+ */
 }

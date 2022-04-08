@@ -24,7 +24,7 @@ steps:
 - task: NodeTool@0
   displayName: 'install node'
   inputs:
-    versionSpec: '15.11.0'
+    versionSpec: '16.14.2'
 
 - task: DotNetCoreCLI@2
   displayName: dotnet restore

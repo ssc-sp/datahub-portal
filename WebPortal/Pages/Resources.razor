@@ -10,15 +10,17 @@
 @inject NavigationManager _navigationManager
 @inject IJSRuntime _jsInterop
 @inject ILogger<Resources> _logger
-@inject IConfiguration Configuration
+@inject IConfiguration _configuration
 
 @page "/resources/"
 @page "/resources/{PageName}"
 
 <AeCard>
     <ChildContent>
-        <DHMarkdown Content="@_markdownContent"
-                    LinkRewriter="@RewriteLink"/>
+        <DHMarkdown
+            @ref="_markdownElement"
+            Content="@_markdownContent"
+            LinkRewriter="@RewriteLink"/>
     </ChildContent>
 </AeCard>
 
@@ -33,6 +35,9 @@
     private const string DefaultPage = "Home";
     private string _markdownContent = string.Empty;
     private string _baseUrl = "/resources";
+    
+    private DHMarkdown _markdownElement;
+    private bool _needsStyleRefresh;
 
     private string RewriteLink(string link)
     {
@@ -40,16 +45,29 @@
             return link;
         return _baseUrl + "/" + HttpUtility.UrlEncode(link);
     }
-
+    
     protected override async Task OnParametersSetAsync()
     {
         _markdownContent = await LoadPage(PageName ?? DefaultPage, Substitutions) ?? Localizer["Invalid link"];
+        _needsStyleRefresh = true;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+
+        if (!firstRender && _needsStyleRefresh)
+        {
+            await _markdownElement.StyleCodeblocks();
+            _needsStyleRefresh = false;
+        }
     }
 
     private async Task<string> LoadPage(string name, List<(string,string)> substitutions = null)
     {
-        if (name.StartsWith("/")) name = name.Substring(1);
-        var wikiRoot = Configuration["WikiURL"];
+        name.TrimStart('/');
+        
+        var wikiRoot = _configuration["WikiURL"];
         var fullUrl = $"{wikiRoot}{name}.md";
         using var client = new HttpClient();
         try
@@ -62,7 +80,7 @@
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Cannot load page url", fullUrl);
+            _logger.LogError(ex, "Cannot load page url: {FullUrl}", fullUrl);
             return null;
         }
     }
