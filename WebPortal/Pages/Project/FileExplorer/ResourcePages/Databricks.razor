@@ -1,0 +1,20 @@
+
+<SASTokenButton OnSubstitutionsChanged="HandleSubstitutionsChanged" ContainerToken />
+<Resources PageName="Access-your-storage-account-in-Databricks" Substitutions="_substitutions"/>
+
+@code {
+    [CascadingParameter(Name = "ProjectAcronym")]
+    public string ProjectAcronym { get; set; }
+    
+    private List<(string, string)> _substitutions;
+
+    private async Task HandleSubstitutionsChanged(List<(string, string)> substitutions)
+    {
+        _substitutions = substitutions;
+        
+        _substitutions.Add((ResourceSubstitutions.ProjectAcronym, ProjectAcronym));
+        _substitutions.Add((ResourceSubstitutions.StorageAccount, ResourceSubstitutions.GetStorageAccountNameFromProjectAcronym(ProjectAcronym)));
+        _substitutions.Add((ResourceSubstitutions.ContainerName, DataRetrievalService.DEFAULT_CONTAINER_NAME));
+        
+    }
+}
