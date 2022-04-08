@@ -44,5 +44,29 @@ namespace Datahub.Tests
             //var dups = await ctx.Project_Users_Requests.GroupBy(a => new { a.Project, a.User_ID }).SelectMany(grp => grp.Skip(1)).ToListAsync();
 
         }
+
+        [Fact]
+        public async Task CreateContacts()
+        {
+            var email1 = "test1@gmail.com";
+            var name1 = "lastname, user1";
+            var email2 = "test2@gmail.com";
+            var name2 = "lastname2, user2";
+
+            StringBuilder stringbuilder = new();
+            stringbuilder.Append(name1);
+            stringbuilder.Append(" ");
+            stringbuilder.Append($"<{email1}>; ");
+
+            if (!string.IsNullOrWhiteSpace(email2))
+            {
+                stringbuilder.Append(name2 ?? string.Empty);
+                stringbuilder.Append(" ");
+                stringbuilder.Append($"<{email2}>");
+            }
+
+            Assert.True(stringbuilder.ToString() == "lastname, user1 <test1@gmail.com>; lastname2, user2 <test2@gmail.com>");
+        }
+
     }
 }

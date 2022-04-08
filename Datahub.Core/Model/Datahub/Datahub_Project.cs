@@ -114,7 +114,7 @@ namespace Datahub.Core.EFCore
         public int Project_ID { get; set; }
 
         [Required]
-        [StringLength(10)]
+        [StringLength(4000)]
 
         public string Sector_Name { get; set; }
 
@@ -225,6 +225,9 @@ namespace Datahub.Core.EFCore
         public List<Project_Database> Databases { get; set; }
 
         public IList<PowerBi_Workspace> PowerBi_Workspaces { get; set; }
+
+        [AeFormIgnore]
+        public int OnboardingApplicationId { get; set; }
 
         [AeFormIgnore]
         [NotMapped]

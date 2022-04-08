@@ -24,6 +24,18 @@ else
             
         <AuthorizeView Roles="@Metadata.TableRoles">
             
+            @if (FormFilterBarOptions != null)
+            {
+                <FilterBar
+                    ShowCheckBox=@FormFilterBarOptions.ShowCheckBox
+                    ShowTextSearch=@FormFilterBarOptions.ShowTextSearch
+                    SearchPlaceHolderText=@FormFilterBarOptions.SearchPlaceHolderText
+                    CheckBoxText=@FormFilterBarOptions.CheckBoxText
+                    IsChecked=@FormFilterBarOptions.IsChecked
+                    HandleCheckBoxChange=@HandleFilterCheckChanged
+                    FilterSearch=@FilterSearch
+                />
+            }
 
             @if ((Metadata.DataSet.Any() && Metadata.FilterProperties != null) || _selectedFilter != "All")
             {
@@ -135,7 +147,13 @@ else
     public U Context { get; set; }
     [Parameter]
     public bool DisableFirstSort { get; set; }
+    [Parameter]
+    public FilterBarOptions FormFilterBarOptions { get; set;}
 
+    [Parameter]
+    public EventCallback<string> FilterBarSearch { get; set; }
+    [Parameter]
+    public EventCallback<bool> FilterBarCheckChange { get; set; }
 
     private int _lastClicked = 0;
     private IPageableComponent _myTable;
@@ -143,7 +161,18 @@ else
 
     private string _selectedFilter = "All";
     private string _addButton => Localizer["Add New"];
-    
+
+
+    private async void FilterSearch(string searchFilter)
+    {
+        await FilterBarSearch.InvokeAsync(searchFilter);
+    }
+
+    private async void HandleFilterCheckChanged(bool isChecked)
+    {
+        await FilterBarCheckChange.InvokeAsync(isChecked);
+    }
+
     private void HandleFilterChanges(string selectedValue)
     {
         _selectedFilter = selectedValue;
@@ -157,13 +186,6 @@ else
 
     private async Task SetFormEdit(T selectedRecord)
     {
-        //if (Context.ChangeTracker.HasChanges())
-        //{
-        //    var messages = new List<string>() { "Would you like to save the current record?" };
-        //    await UI.ToggleModal(
-        //    @<UserChoiceModal HeaderText="Save Data" ChoiceTextList=@messages OnDecision="(a) => OnConfirmSave(a, application)" ConfirmText="Yes" CancelText="No" />
-        //)
-
         if (Context.ChangeTracker.HasChanges())
         {
             var messages = new List<string>() { "Would you like to save the current record?" };
