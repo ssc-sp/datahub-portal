@@ -172,6 +172,22 @@ namespace Datahub.Core.Services
                 .ToListAsync();
         }
 
+        public async Task MarkAllAsRead(string userId)
+        {
+            var condition = CreateUserNotificationCondition(userId, true);
+            using var ctx = _dbContextFactory.CreateDbContext();
+
+            var notifications = await ctx.SystemNotifications
+                .Where(condition)
+                .ToListAsync();
+
+            if (notifications.Any())
+            {
+                notifications.ForEach(x => x.Read_FLAG = true);
+                await ctx.SaveChangesAsync();
+            }                        
+        }
+
         public async Task SetReadStatus(long notificationId, bool readStatus)
         {
             using var ctx = _dbContextFactory.CreateDbContext();

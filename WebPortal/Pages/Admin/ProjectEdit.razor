@@ -136,14 +136,17 @@
 
     private async Task OnConfigure(IModelFormContext context)
     {
-        context.RegisterOptionValueProperty<Datahub_Project>(s => s.Project_Category, () => new[] { "Guidance & Recommendations",
-                                                                "Presentations",
-                                                                "Data Sci. & Machine Learn.",
-                                                                "Data Pipelines",
-                                                                "Full Stack",
-                                                                "Storage",
-                                                                "Dashboards",
-                                                                "Web Forms"
+        context.RegisterOptionValueProperty<Datahub_Project>(s => s.Project_Category, () => new[] { "Data Pipeline",
+                                                    "Data Science",
+                                                    "Full Stack",
+                                                    "Guidance",
+                                                    "Power BI Reports",
+                                                    "Storage",
+                                                    "Web Forms",
+                                                    "Unknown",
+                                                    "Other",
+                                                    "Presentations",
+                                                    "Dashboards"
                                                                  });
         context.RegisterOptionValueProperty<Datahub_Project>(s => s.Project_Phase, () => new[] {"Initiation",
                                                                 "Requirements",

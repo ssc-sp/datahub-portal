@@ -76,7 +76,6 @@
     {
         var authState = await _authenticationStateTask;
         var user = authState.User;
-
         if (!user.Identity?.IsAuthenticated ?? true)
         {
             var scopes = _configuration["Graph:Scopes"]
