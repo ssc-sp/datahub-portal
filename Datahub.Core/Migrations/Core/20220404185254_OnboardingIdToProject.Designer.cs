@@ -4,16 +4,18 @@ using Datahub.Core.EFCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
+namespace Datahub.Core.Migrations.Core
 {
     [DbContext(typeof(DatahubProjectDBContext))]
-    partial class DatahubProjectDBContextModelSnapshot : ModelSnapshot
+    [Migration("20220404185254_OnboardingIdToProject")]
+    partial class OnboardingIdToProject
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -134,8 +136,8 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
 
                     b.Property<string>("Sector_Name")
                         .IsRequired()
-                        .HasMaxLength(4000)
-                        .HasColumnType("nvarchar(4000)");
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
 
                     b.Property<string>("Stage_Desc")
                         .HasColumnType("nvarchar(max)");
@@ -478,62 +480,6 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.HasIndex("Project_StorageId");
 
                     b.ToTable("Project_Requests");
-                });
-
-            modelBuilder.Entity("Datahub.Core.EFCore.Datahub_Registration_Request", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
-
-                    b.Property<DateTime?>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("CreatedBy")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<string>("DepartmentName")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<string>("Email")
-                        .HasMaxLength(254)
-                        .HasColumnType("nvarchar(254)");
-
-                    b.Property<Guid?>("LinkId")
-                        .HasMaxLength(36)
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("ProjectAcronym")
-                        .HasMaxLength(36)
-                        .HasColumnType("nvarchar(36)");
-
-                    b.Property<string>("ProjectName")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<byte[]>("RowVersion")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("rowversion");
-
-                    b.Property<string>("Status")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("UpdatedBy")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Registration_Requests");
                 });
 
             modelBuilder.Entity("Datahub.Core.EFCore.GeoObjectShare", b =>
@@ -1109,12 +1055,6 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.Property<string>("Onboarding_Timeline")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Product_Name")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("ProjectCreatedDate")
-                        .HasColumnType("datetime2");
-
                     b.Property<string>("Project_Engagement_Category")
                         .HasColumnType("nvarchar(max)");
 
@@ -1122,6 +1062,9 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Project_Goal")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Project_Name")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Project_Summary_Description")
