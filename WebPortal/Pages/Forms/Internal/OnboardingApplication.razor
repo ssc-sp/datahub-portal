@@ -104,11 +104,13 @@
         _branches = await OrganizationLevelsService.GetBranches();
         _divisions = await OrganizationLevelsService.GetDivisions();
 
-        _filterBarOptions = new();
-        _filterBarOptions.ShowCheckBox = true;
-        _filterBarOptions.CheckBoxText = Localize("Hide Created Products");
-        _filterBarOptions.IsChecked = true;
-
+        if (_isUserAdmin)
+        {
+            _filterBarOptions = new();
+            _filterBarOptions.ShowCheckBox = true;
+            _filterBarOptions.CheckBoxText = Localize("Hide Created Products");
+            _filterBarOptions.IsChecked = true;
+        }
         AccessorFunctions = new List<Func<OnboardingApp, string>>
         {
             p => { return Localizer[p.Client_Sector]; },
