@@ -29,20 +29,20 @@
         SelectedRecord="@_onboardingApplication"
         SetFormEditRecord="SetFormEdit" />
 
-    <AeCard class="facardForms" CardPosition="AeCard.CardStyle.Horizontal">
         @if (_isUserAdmin && _onboardingApplication != null)
         {
-            <AeTypography Variant="h2">Create Project</AeTypography>
-            <AeTypography Variant="p"><b>Project Acronym</b></AeTypography>
-            <AeInput class="formuserinput"  @onchange="@SetProjectAcronym"></AeInput>
-            <AeFlex id="buttonBar">
-                <div class="icon-container" style="margin-top: 5px;">
-                    <FAButton Text="@_addButton" Icon="far fa-plus-square" onclick="CreateNewProject" />
-                    <SuccessIndicator @bind-IsLoading=@_submittingApproval @ref=@_submitApprovalInd />
-                </div>
-            </AeFlex>
+            <AeCard class="facardForms" CardPosition="AeCard.CardStyle.Horizontal">
+                <AeTypography Variant="h2">Create Product</AeTypography>
+                <AeTypography Variant="p"><b>Product Acronym</b></AeTypography>
+                <AeInput class="formuserinput"  @onchange="@SetProjectAcronym"></AeInput>
+                <AeFlex id="buttonBar">
+                    <div class="icon-container" style="margin-top: 5px;">
+                        <FAButton Text="@_addButton" Icon="far fa-plus-square" onclick="CreateNewProject" />
+                        <SuccessIndicator @bind-IsLoading=@_submittingApproval @ref=@_submitApprovalInd />
+                    </div>
+                </AeFlex>
+            </AeCard>
         }
-    </AeCard>
   
 }
 
