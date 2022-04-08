@@ -68,7 +68,7 @@ namespace Datahub.Portal
                     logBuilder.AddFilter<Microsoft.Extensions.Logging.ApplicationInsights.ApplicationInsightsLoggerProvider>("Microsoft.AspNetCore.HttpLogging.HttpLoggingMiddleware", LogLevel.Information);
                 })
                 .ConfigureAppConfiguration(conf => {
-                    var profile = Environment.GetEnvironmentVariable("Hosting:Profile") ?? "nrcan";
+                    var profile = Environment.GetEnvironmentVariable("HostingProfile") ?? "nrcan";
                     conf.AddJsonFile($"datahub.{profile}.json", true);
                 })
                 .ConfigureWebHostDefaults(webBuilder =>

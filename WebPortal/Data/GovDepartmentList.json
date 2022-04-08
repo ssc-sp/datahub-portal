@@ -1,0 +1,826 @@
+[
+  {
+    "name": "Accessibility Standards Canada",
+    "acronym": "ASC"
+  },
+  {
+    "name": "Administrative Tribunals Support Service of Canada",
+    "acronym": "ATSSC"
+  },
+  {
+    "name": "Agriculture and Agri-Food Canada",
+    "acronym": "AAFC"
+  },
+  {
+    "name": "Atlantic Canada Opportunities Agency",
+    "acronym": "ACOA"
+  },
+  {
+    "name": "Atlantic Pilotage Authority Canada",
+    "acronym": "APA"
+  },
+  {
+    "name": "Atomic Energy of Canada Limited",
+    "acronym": "AECL"
+  },
+  {
+    "name": "Auditor General of Canada (Office of the)",
+    "acronym": "OAG"
+  },
+  {
+    "name": "Bank of Canada",
+    "acronym": ""
+  },
+  {
+    "name": "Bank of Canada Museum",
+    "acronym": ""
+  },
+  {
+    "name": "Blue Water Bridge Canada",
+    "acronym": "BWB"
+  },
+  {
+    "name": "Business Development Bank of Canada",
+    "acronym": "BDC"
+  },
+  {
+    "name": "Canada Agricultural Review Tribunal",
+    "acronym": "CART"
+  },
+  {
+    "name": "Canada Agriculture and Food Museum",
+    "acronym": ""
+  },
+  {
+    "name": "Canada Aviation and Space Museum",
+    "acronym": ""
+  },
+  {
+    "name": "Canada Border Services Agency",
+    "acronym": "CBSA"
+  },
+  {
+    "name": "Canada Council for the Arts",
+    "acronym": ""
+  },
+  {
+    "name": "Canada Deposit Insurance Corporation",
+    "acronym": "CDIC"
+  },
+  {
+    "name": "Canada Development Investment Corporation",
+    "acronym": "CDEV"
+  },
+  {
+    "name": "Canada Economic Development for Quebec Regions",
+    "acronym": "CED"
+  },
+  {
+    "name": "Canada Employment Insurance Commission",
+    "acronym": "CEIC"
+  },
+  {
+    "name": "Canada Energy Regulator",
+    "acronym": "CER"
+  },
+  {
+    "name": "Canada Firearms Centre",
+    "acronym": "CAFC"
+  },
+  {
+    "name": "Canada Industrial Relations Board",
+    "acronym": "CIRB"
+  },
+  {
+    "name": "Canada Infrastructure Bank",
+    "acronym": "CIB"
+  },
+  {
+    "name": "Canada Lands Company Limited",
+    "acronym": "CLC"
+  },
+  {
+    "name": "Canada Mortgage and Housing Corporation",
+    "acronym": "CMHC"
+  },
+  {
+    "name": "Canada Pension Plan Investment Board",
+    "acronym": "CPPIB"
+  },
+  {
+    "name": "Canada Post",
+    "acronym": "CPC"
+  },
+  {
+    "name": "Canada Research Chairs",
+    "acronym": ""
+  },
+  {
+    "name": "Canada Revenue Agency",
+    "acronym": "CRA"
+  },
+  {
+    "name": "Canada School of Public Service",
+    "acronym": "CSPS"
+  },
+  {
+    "name": "Canada Science and Technology Museum",
+    "acronym": ""
+  },
+  {
+    "name": "Canadian Air Transport Security Authority",
+    "acronym": "CATSA"
+  },
+  {
+    "name": "Canadian Army",
+    "acronym": "CA"
+  },
+  {
+    "name": "Canadian Centre for Occupational Health and Safety",
+    "acronym": "CCOHS"
+  },
+  {
+    "name": "Canadian Coast Guard",
+    "acronym": "CCG"
+  },
+  {
+    "name": "Canadian Commercial Corporation",
+    "acronym": "CCC"
+  },
+  {
+    "name": "Canadian Conservation Institute",
+    "acronym": "CCI"
+  },
+  {
+    "name": "Canadian Cultural Property Export Review Board",
+    "acronym": ""
+  },
+  {
+    "name": "Canadian Dairy Commission",
+    "acronym": "CDC"
+  },
+  {
+    "name": "Canadian Food Inspection Agency",
+    "acronym": "CFIA"
+  },
+  {
+    "name": "Canadian Grain Commission",
+    "acronym": "CGC"
+  },
+  {
+    "name": "Canadian Heritage",
+    "acronym": "PCH"
+  },
+  {
+    "name": "Canadian Heritage Information Network",
+    "acronym": "CHIN"
+  },
+  {
+    "name": "Canadian Human Rights Commission",
+    "acronym": "CHRC"
+  },
+  {
+    "name": "Canadian Institutes of Health Research",
+    "acronym": "CIHR"
+  },
+  {
+    "name": "Canadian Intellectual Property Office",
+    "acronym": "CIPO"
+  },
+  {
+    "name": "Canadian Intergovernmental Conference Secretariat",
+    "acronym": "CICS"
+  },
+  {
+    "name": "Canadian International Trade Tribunal",
+    "acronym": "CITT"
+  },
+  {
+    "name": "Canadian Judicial Council",
+    "acronym": "CJC"
+  },
+  {
+    "name": "Canadian Museum for Human Rights",
+    "acronym": "CMHR"
+  },
+  {
+    "name": "Canadian Museum of History",
+    "acronym": "CMH"
+  },
+  {
+    "name": "Canadian Museum of Immigration at Pier 21",
+    "acronym": "CMIP"
+  },
+  {
+    "name": "Canadian Museum of Nature",
+    "acronym": "CMN"
+  },
+  {
+    "name": "Canadian Northern Economic Development Agency",
+    "acronym": "CanNor"
+  },
+  {
+    "name": "Canadian Nuclear Safety Commission",
+    "acronym": "CNSC"
+  },
+  {
+    "name": "Canadian Pari-Mutuel Agency",
+    "acronym": "CPMA"
+  },
+  {
+    "name": "Canadian Police College",
+    "acronym": "CPC"
+  },
+  {
+    "name": "Canadian Race Relations Foundation",
+    "acronym": "CRRF"
+  },
+  {
+    "name": "Canadian Radio-Television and Telecommunications Commission",
+    "acronym": "CRTC"
+  },
+  {
+    "name": "Canadian Security Intelligence Service",
+    "acronym": "CSIS"
+  },
+  {
+    "name": "Canadian Space Agency",
+    "acronym": "CSA"
+  },
+  {
+    "name": "Canadian Special Operations Forces Command",
+    "acronym": "CANSOFCOM"
+  },
+  {
+    "name": "Canadian Trade Commissioner Service",
+    "acronym": "TCS"
+  },
+  {
+    "name": "Canadian Transportation Agency",
+    "acronym": "CTA"
+  },
+  {
+    "name": "Canadian War Museum",
+    "acronym": ""
+  },
+  {
+    "name": "CBC/Radio-Canada",
+    "acronym": "CBC"
+  },
+  {
+    "name": "Civilian Review and Complaints Commission for the RCMP",
+    "acronym": "CRCC"
+  },
+  {
+    "name": "Commissioner for Federal Judicial Affairs Canada (Office of the)",
+    "acronym": "FJA"
+  },
+  {
+    "name": "Commissioner of Lobbying of Canada (Office of the)",
+    "acronym": "OCL"
+  },
+  {
+    "name": "Commissioner of Official Languages (Office of the)",
+    "acronym": "OCOL"
+  },
+  {
+    "name": "Communications Research Centre Canada",
+    "acronym": "CRC"
+  },
+  {
+    "name": "Communications Security Establishment Canada",
+    "acronym": "CSEC"
+  },
+  {
+    "name": "Competition Bureau Canada",
+    "acronym": "COBU"
+  },
+  {
+    "name": "Competition Tribunal",
+    "acronym": ""
+  },
+  {
+    "name": "Conflict of Interest and Ethics Commissioner (Office of the)",
+    "acronym": "CIEC"
+  },
+  {
+    "name": "Copyright Board Canada",
+    "acronym": "CB"
+  },
+  {
+    "name": "CORCAN",
+    "acronym": ""
+  },
+  {
+    "name": "Correctional Investigator Canada",
+    "acronym": "OCI"
+  },
+  {
+    "name": "Correctional Service Canada",
+    "acronym": "CSC"
+  },
+  {
+    "name": "Court Martial Appeal Court of Canada",
+    "acronym": "CMAC"
+  },
+  {
+    "name": "Courts Administration Service",
+    "acronym": "CAS"
+  },
+  {
+    "name": "Crown-Indigenous Relations and Northern Affairs Canada",
+    "acronym": "CIRNAC"
+  },
+  {
+    "name": "Defence Construction Canada",
+    "acronym": "DCC"
+  },
+  {
+    "name": "Defence Research and Development Canada",
+    "acronym": "DRDC"
+  },
+  {
+    "name": "Democratic Institutions",
+    "acronym": ""
+  },
+  {
+    "name": "Destination Canada",
+    "acronym": "DC"
+  },
+  {
+    "name": "Elections Canada",
+    "acronym": "Elections"
+  },
+  {
+    "name": "Employment and Social Development Canada",
+    "acronym": "ESDC"
+  },
+  {
+    "name": "Environment and Climate Change Canada",
+    "acronym": "ECCC"
+  },
+  {
+    "name": "Environmental Protection Review Canada",
+    "acronym": "EPRC"
+  },
+  {
+    "name": "Export Development Canada",
+    "acronym": "EDC"
+  },
+  {
+    "name": "Farm Credit Canada",
+    "acronym": "FCC"
+  },
+  {
+    "name": "Farm Products Council of Canada",
+    "acronym": "FPCC"
+  },
+  {
+    "name": "Federal Bridge Corporation",
+    "acronym": "FBCL"
+  },
+  {
+    "name": "Federal Court of Appeal",
+    "acronym": "FCA"
+  },
+  {
+    "name": "Federal Court of Canada",
+    "acronym": "FC"
+  },
+  {
+    "name": "Federal Economic Development Agency for Southern Ontario",
+    "acronym": "FedDev Ontario"
+  },
+  {
+    "name": "Federal Ombudsman for Victims Of Crime (Office of the)",
+    "acronym": "OFOVC"
+  },
+  {
+    "name": "FedNor",
+    "acronym": ""
+  },
+  {
+    "name": "Finance Canada (Department of)",
+    "acronym": "FIN"
+  },
+  {
+    "name": "Financial Consumer Agency of Canada",
+    "acronym": "FCAC"
+  },
+  {
+    "name": "Financial Transactions and Reports Analysis Centre of Canada",
+    "acronym": "FINTRAC"
+  },
+  {
+    "name": "Fisheries and Oceans Canada",
+    "acronym": "DFO"
+  },
+  {
+    "name": "Freshwater Fish Marketing Corporation",
+    "acronym": "FFMC"
+  },
+  {
+    "name": "Global Affairs Canada",
+    "acronym": "GAC"
+  },
+  {
+    "name": "Governor General of Canada",
+    "acronym": "OSGG"
+  },
+  {
+    "name": "Great Lakes Pilotage Authority Canada",
+    "acronym": "GLPA"
+  },
+  {
+    "name": "Health Canada",
+    "acronym": "HC"
+  },
+  {
+    "name": "Historic Sites and Monuments Board of Canada",
+    "acronym": "HSMBC"
+  },
+  {
+    "name": "Human Rights Tribunal of Canada",
+    "acronym": "HRTC"
+  },
+  {
+    "name": "Immigration and Refugee Board of Canada",
+    "acronym": "IRB"
+  },
+  {
+    "name": "Immigration, Refugees and Citizenship Canada",
+    "acronym": "IRCC"
+  },
+  {
+    "name": "Impact Assessment Agency of Canada",
+    "acronym": "IAAC"
+  },
+  {
+    "name": "Independent Review Panel for Defence Acquisition",
+    "acronym": "IRPDA"
+  },
+  {
+    "name": "Indian Oil and Gas Canada",
+    "acronym": ""
+  },
+  {
+    "name": "Indigenous and Northern Affairs Canada",
+    "acronym": "INAC"
+  },
+  {
+    "name": "Indigenous Services Canada",
+    "acronym": "ISC"
+  },
+  {
+    "name": "Industrial Technologies Office",
+    "acronym": "ITO"
+  },
+  {
+    "name": "Information Commissioner (Office of the)",
+    "acronym": "OIC"
+  },
+  {
+    "name": "Infrastructure Canada",
+    "acronym": "INFC"
+  },
+  {
+    "name": "Innovation, Science and Economic Development Canada",
+    "acronym": "ISED"
+  },
+  {
+    "name": "Intelligence Commissoner (Office of the)",
+    "acronym": ""
+  },
+  {
+    "name": "Intergovernmental Affairs",
+    "acronym": "IGA"
+  },
+  {
+    "name": "International Development Research Centre",
+    "acronym": "IDRC"
+  },
+  {
+    "name": "Jacques Cartier and Champlain Bridges",
+    "acronym": "JCCBI"
+  },
+  {
+    "name": "Judicial Compensation and Benefits Commission",
+    "acronym": ""
+  },
+  {
+    "name": "Justice Canada (Department of)",
+    "acronym": "JUS"
+  },
+  {
+    "name": "Labour Program",
+    "acronym": ""
+  },
+  {
+    "name": "Laurentian Pilotage Authority Canada",
+    "acronym": "LPA"
+  },
+  {
+    "name": "Leader of the Government in the House of Commons",
+    "acronym": ""
+  },
+  {
+    "name": "Library and Archives Canada",
+    "acronym": "LAC"
+  },
+  {
+    "name": "Marine Atlantic",
+    "acronym": "MarineAtlantic"
+  },
+  {
+    "name": "Measurement Canada",
+    "acronym": "MC"
+  },
+  {
+    "name": "Military Grievances External Review Committee",
+    "acronym": "MGERC"
+  },
+  {
+    "name": "Military Police Complaints Commission of Canada",
+    "acronym": "MPCC"
+  },
+  {
+    "name": "National Arts Centre",
+    "acronym": "NAC"
+  },
+  {
+    "name": "National Battlefields Commission",
+    "acronym": "NBC"
+  },
+  {
+    "name": "National Capital Commission",
+    "acronym": "NCC"
+  },
+  {
+    "name": "National Defence",
+    "acronym": "DND"
+  },
+  {
+    "name": "National Film Board",
+    "acronym": "NFB"
+  },
+  {
+    "name": "National Gallery of Canada",
+    "acronym": "NGC"
+  },
+  {
+    "name": "National Research Council Canada",
+    "acronym": "NRC"
+  },
+  {
+    "name": "National Security and Intelligence Review Agency",
+    "acronym": "NSIRA"
+  },
+  {
+    "name": "National Seniors Council",
+    "acronym": ""
+  },
+  {
+    "name": "Natural Resources Canada",
+    "acronym": "NRCan"
+  },
+  {
+    "name": "Natural Sciences and Engineering Research Canada",
+    "acronym": "NSERC"
+  },
+  {
+    "name": "Northern Pipeline Agency Canada",
+    "acronym": "NPA"
+  },
+  {
+    "name": "Occupational Health and Safety Tribunal Canada",
+    "acronym": "OHSTC"
+  },
+  {
+    "name": "Office of the Chief Military Judge",
+    "acronym": "OCMJ"
+  },
+  {
+    "name": "Ombudsman for the Department of National Defence and the Canadian Armed Forces (Office of the)",
+    "acronym": ""
+  },
+  {
+    "name": "Pacific Economic Development Canada",
+    "acronym": "PacifiCan"
+  },
+  {
+    "name": "Pacific Pilotage Authority Canada",
+    "acronym": "PPA"
+  },
+  {
+    "name": "Parks Canada",
+    "acronym": "PC"
+  },
+  {
+    "name": "Parliament of Canada",
+    "acronym": ""
+  },
+  {
+    "name": "Parole Board of Canada",
+    "acronym": "PBC"
+  },
+  {
+    "name": "Patented Medicine Prices Review Board Canada",
+    "acronym": "PMPRB"
+  },
+  {
+    "name": "Polar Knowledge Canada",
+    "acronym": "POLAR"
+  },
+  {
+    "name": "Prairies Economic Development Canada",
+    "acronym": "PrairiesCan"
+  },
+  {
+    "name": "Prime Minister of Canada",
+    "acronym": ""
+  },
+  {
+    "name": "Privacy Commissioner of Canada (Office of the)",
+    "acronym": "OPC"
+  },
+  {
+    "name": "Privy Council Office",
+    "acronym": "PCO"
+  },
+  {
+    "name": "Procurement Ombudsman (Office of the)",
+    "acronym": "OPO"
+  },
+  {
+    "name": "Public Health Agency of Canada",
+    "acronym": "PHAC"
+  },
+  {
+    "name": "Public Prosecution Service of Canada",
+    "acronym": "PPSC"
+  },
+  {
+    "name": "Public Safety Canada",
+    "acronym": "PS"
+  },
+  {
+    "name": "Public Sector Integrity Commissioner of Canada (Office of the)",
+    "acronym": "PSIC"
+  },
+  {
+    "name": "Public Sector Pension Investment Board",
+    "acronym": "PSP Investments"
+  },
+  {
+    "name": "Public Servants Disclosure Protection Tribunal Canada",
+    "acronym": "PSDPTC"
+  },
+  {
+    "name": "Public Service Commission of Canada",
+    "acronym": "PSC"
+  },
+  {
+    "name": "Public Service Labour Relations and Employment Board",
+    "acronym": "PSLREB"
+  },
+  {
+    "name": "Public Services and Procurement Canada",
+    "acronym": "PSPC"
+  },
+  {
+    "name": "Registry of the Specific Claims Tribunal of Canada",
+    "acronym": "SCT"
+  },
+  {
+    "name": "Ridley Terminals Inc.",
+    "acronym": ""
+  },
+  {
+    "name": "Royal Canadian Air Force",
+    "acronym": "RCAF"
+  },
+  {
+    "name": "Royal Canadian Mint",
+    "acronym": "Mint"
+  },
+  {
+    "name": "Royal Canadian Mounted Police",
+    "acronym": "RCMP"
+  },
+  {
+    "name": "Royal Canadian Mounted Police External Review Committee",
+    "acronym": "ERC"
+  },
+  {
+    "name": "Royal Canadian Navy",
+    "acronym": "RCN"
+  },
+  {
+    "name": "Royal Military College of Canada",
+    "acronym": "RMCC"
+  },
+  {
+    "name": "Secretariat of the National Security and Intelligence Committee of Parliamentarians",
+    "acronym": "NSICOP"
+  },
+  {
+    "name": "Service Canada",
+    "acronym": "ServCan"
+  },
+  {
+    "name": "Shared Services Canada",
+    "acronym": "SSC"
+  },
+  {
+    "name": "Social Sciences and Humanities Research Council of Canada",
+    "acronym": "SSHRC"
+  },
+  {
+    "name": "Social Security Tribunal of Canada",
+    "acronym": "SST"
+  },
+  {
+    "name": "Standards Council of Canada",
+    "acronym": "SCC-CCN"
+  },
+  {
+    "name": "Statistics Canada",
+    "acronym": "StatCan"
+  },
+  {
+    "name": "Superintendent of Bankruptcy Canada (Office of the)",
+    "acronym": "OSB"
+  },
+  {
+    "name": "Superintendent of Financial Institutions Canada (Office of the)",
+    "acronym": "OSFI"
+  },
+  {
+    "name": "Supreme Court of Canada",
+    "acronym": "SCC"
+  },
+  {
+    "name": "Tax Court of Canada",
+    "acronym": "TCC"
+  },
+  {
+    "name": "Taxpayers' Ombudsperson (Office of the)",
+    "acronym": "OTO"
+  },
+  {
+    "name": "Telefilm Canada",
+    "acronym": ""
+  },
+  {
+    "name": "Translation Bureau",
+    "acronym": ""
+  },
+  {
+    "name": "Transport Canada",
+    "acronym": "TC"
+  },
+  {
+    "name": "Transportation Appeal Tribunal of Canada",
+    "acronym": "TATC"
+  },
+  {
+    "name": "Transportation Safety Board of Canada",
+    "acronym": "TSB"
+  },
+  {
+    "name": "Treasury Board of Canada Secretariat",
+    "acronym": "TBS"
+  },
+  {
+    "name": "Veterans Affairs Canada",
+    "acronym": "VAC"
+  },
+  {
+    "name": "Veterans Review and Appeal Board",
+    "acronym": "VRAB"
+  },
+  {
+    "name": "Veterans' Ombudsman (Office of the)",
+    "acronym": ""
+  },
+  {
+    "name": "VIA Rail Canada",
+    "acronym": "VIA Rail"
+  },
+  {
+    "name": "Virtual Museum of Canada",
+    "acronym": "VMC"
+  },
+  {
+    "name": "Windsor-Detroit Bridge Authority",
+    "acronym": "WDBA"
+  },
+  {
+    "name": "Women and Gender Equality Canada",
+    "acronym": "WAGE"
+  },
+  {
+    "name": "Youth",
+    "acronym": "YOUTH"
+  }
+]

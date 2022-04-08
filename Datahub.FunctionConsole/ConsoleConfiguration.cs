@@ -1,6 +1,6 @@
 ﻿using System;
-using NRCanDataHub;
 using Microsoft.Extensions.Configuration;
+using NRCanDataHub;
 
 namespace SyncDBUsersConsole
 {
