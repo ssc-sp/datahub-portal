@@ -5,27 +5,6 @@
 
 @* TODO: transfer these rules to scss, apply it to metadata keywords *@
 <style>
-    ul.inline-list {
-        margin: 0; 
-        padding: 0; 
-        list-style-type: none; 
-        list-style-image: none;
-    }
-
-    ul.inline-list li {
-        float: left; 
-        margin: 5px 5px 0px 0px; 
-        padding: 4px 8px 4px 4px; 
-        border-width: 1px; 
-        border: 1px dotted grey; 
-        border-radius: 5px; 
-        background-color: #f2f2f2;
-    }
-
-    ul.inline-list li.active {
-        border: 1px solid grey; 
-    }
-
     div.with-bottom-margin {
         margin-bottom: 0.5rem;
     }
@@ -59,17 +38,14 @@
                         <ChildContent>
                             <AeFlex Vertical>
                                 <div class="with-bottom-margin">
-                                    <ul class="ae inline-list" >
-                                        @foreach(var t in _filterDataTypes.Keys.OrderBy(t => GetLocalizedDataType(t)))
-                                        {
-                                            <li class=@(_filterDataTypes[t]? "active":string.Empty)>
-                                                <label>
-                                                    <input type="checkbox" checked=@_filterDataTypes[t] @onchange=@(e => ChangeDataTypeFilter(t, e)) />
-                                                    <span>@GetLocalizedDataType(t)</span>
-                                                </label>
-                                            </li>
-                                        }
-                                    </ul>
+                                    <MultiCheckboxSelect 
+                                        T=MetadataObjectType
+                                        Options=@(Enum.GetValues<MetadataObjectType>())
+                                        OptionLabelFunction=@(t => GetLocalizedDataType(t))
+                                        OptionSortFunction=@(t => GetLocalizedDataType(t))
+                                        OnSelectionChanged=@UpdateDataTypeFilter
+                                        @ref=@_objectTypeFilter
+                                    />
                                 </div>
                                 <div class="with-bottom-margin">
                                     <label>
@@ -204,7 +180,8 @@
     private bool _isFrench;
     private CatalogObjectResult _selectedResult;
 
-    private Dictionary<MetadataObjectType, bool> _filterDataTypes = new();
+    private HashSet<MetadataObjectType> _filteredDataTypes = new();
+    private MultiCheckboxSelect<MetadataObjectType> _objectTypeFilter;
     private int _filterSector = NO_FILTER_SELECTED;
     private int _filterBranch = NO_FILTER_SELECTED;
     private string _securityFilter = string.Empty;
@@ -233,7 +210,6 @@
         _sectors = (await OrganizationLevelsService.GetSectors()).ToDictionary(s => s.Id);
         _branches = (await OrganizationLevelsService.GetBranches()).ToDictionary(b => b.Id);
         _searchThrottler = new(TimeSpan.FromSeconds(0.5), ThrottleSearch);
-        _filterDataTypes = Enum.GetValues<MetadataObjectType>().ToDictionary(t => t, t => false);
         await _searchThrottler.SetQuery(string.Empty);
     }
 
@@ -249,13 +225,11 @@
 
     private string GetLocalizedDataType(MetadataObjectType dataType) => Localizer[$"DISCOVERY-DATA-TYPES.{dataType}"];
 
-    private void ChangeDataTypeFilter(MetadataObjectType t, ChangeEventArgs e)
+    private async Task UpdateDataTypeFilter(IEnumerable<MetadataObjectType> filteredTypes)
     {
-        if (e.Value is bool)
-        {
-            _filterDataTypes[t] = (bool)e.Value;
-            UpdateFilter();
-        }
+        _filteredDataTypes = filteredTypes.ToHashSet();
+        UpdateFilter();
+        await Task.CompletedTask;
     }
 
     private string SectorFilter
@@ -306,11 +280,10 @@
 
     private void UpdateFilter()
     {
-        var filteredDataTypes = _filterDataTypes.Where(t => t.Value).Select(t => t.Key).ToHashSet();
-        var noDataTypesSelected = filteredDataTypes.Count < 1;
+        var noDataTypesSelected = _filteredDataTypes.Count < 1;
 
         _filteredSearchResults = _searchResults
-            .Where(r => (noDataTypesSelected || filteredDataTypes.Contains(r.DataType)) &&
+            .Where(r => (noDataTypesSelected || _filteredDataTypes.Contains(r.DataType)) &&
                 (_filterSector == NO_FILTER_SELECTED || r.Sector == _filterSector) &&
                 (_filterBranch == NO_FILTER_SELECTED || r.Branch == _filterBranch) &&
                 (string.IsNullOrEmpty(_securityFilter) || r.SecurityClass == _securityFilter))
@@ -318,17 +291,18 @@
 
         _lastClicked = 0;
 
-        _filtersActive = filteredDataTypes.Count > 0 || _filterSector != NO_FILTER_SELECTED || _filterBranch != NO_FILTER_SELECTED || !string.IsNullOrEmpty(_securityFilter);
+        _filtersActive = _filteredDataTypes.Count > 0 || _filterSector != NO_FILTER_SELECTED || _filterBranch != NO_FILTER_SELECTED || !string.IsNullOrEmpty(_securityFilter);
 
         StateHasChanged();
     }
 
     private void ClearFilters()
     {
-        foreach (var t in _filterDataTypes.Keys)
+        if (_objectTypeFilter != null)
         {
-            _filterDataTypes[t] = false;
+            _objectTypeFilter.Clear();
         }
+
         _filterSector = NO_FILTER_SELECTED;
         _filterBranch = NO_FILTER_SELECTED;
         _securityFilter = string.Empty;
