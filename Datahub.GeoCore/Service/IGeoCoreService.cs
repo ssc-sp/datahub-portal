@@ -2,8 +2,12 @@
 {
     public interface IGeoCoreService
     {
-        Task<GeoCoreResult> CreatePackage(string data);
+        Task<GeoCoreResult> PublishDataset(string data);
+        Task<ShemaValidatorResult> ValidateJson(string data);
+        string GetDatasetUrl(string datasetId, string lang);
     }
 
-    public record GeoCoreResult(bool Suceeded, string ErrorMessage);
+    public record GeoCoreResult(bool Suceeded, string DatasetId, string ErrorMessage);
+
+    public record ShemaValidatorResult(bool Valid, string ErrorMessages);
 }

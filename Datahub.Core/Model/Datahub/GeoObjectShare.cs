@@ -20,6 +20,7 @@ namespace Datahub.Core.EFCore
         public int ApprovalForm_ID { get; set; }
         public GeoObjectShareStatus ShareStatus { get; set; }
         public string Approval_Document_URL { get; set; }
+        public string Publication_ID { get; set; }
         public bool Deleted { get; set; }
     }
 

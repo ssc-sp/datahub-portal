@@ -88,6 +88,21 @@
                     <AeTypography Variant="h3">@StepTitle(GeoObjectShareStatus.PublishDataset)</AeTypography>
                     <p>@StepMessage(GeoObjectShareStatus.PublishDataset)</p>
                     <AeButton OnClickEvent=@HandlePublishDatset>@Localizer["FGP-WIZARD.PublishDataset_button"]</AeButton>
+                    @if (string.IsNullOrEmpty(_publicationError))
+                    {
+                        <AeTypography Variant="p" style="font-size: 0.8em">
+                            @_publicationError
+                        </AeTypography>
+                    }
+                </AeCard>
+            }
+
+            @*5- Show Dataset URL*@
+            @if (ShowPublicUrl)
+            {
+                <AeCard style="margin-top: 1rem;">
+                    <AeTypography Variant="h3">@Localizer["FGP-WIZARD.PublicUrl"]</AeTypography>
+                    <p><a href=@PublicationURL target="_blank">@PublicationURL</a></p>                        
                 </AeCard>
             }
 
@@ -122,13 +137,16 @@
 
     private GeoObjectShare _sharedObject;
     private GeoDataShareRequest _requestSummary;
-    
+
     private List<GeoObjectShareStatus> _steps = Enum.GetValues<GeoObjectShareStatus>().ToList();
     private GraphUser _requestingUser;
     private bool _editSubmittedApproval;
     private string _signedApprovalFormUrl;
     private bool _savingData;
     private bool _isOwnRequest;
+    private string _publicationError;
+
+    private IGeoCoreService _geoCoreService;
 
     protected override async Task OnInitializedAsync()
     {
@@ -150,6 +168,8 @@
         _isOwnRequest = currentUser.Id == _requestingUser.Id;
 
         _requestSummary = JsonSerializer.Deserialize<GeoDataShareRequest>(_sharedObject.Json_TXT);
+
+        _geoCoreService = GeoCoreServiceFactory.CreateService();
     }
 
     private GeoObjectShareStatus CurrentStatus => _sharedObject.ShareStatus;
@@ -160,14 +180,18 @@
     private bool ShowWaitingForApproval => _isOwnRequest && CurrentStatus == GeoObjectShareStatus.WaitingForApproval;    
     private bool ShowPublishPanel => _isOwnRequest && CurrentStatus == GeoObjectShareStatus.PublishDataset;    
     private bool ShowCancelPanel => _isOwnRequest && CurrentStatus < GeoObjectShareStatus.DatasetPublished;
+    private bool ShowPublicUrl => CurrentStatus == GeoObjectShareStatus.DatasetPublished;
 
     private string Title => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName.ToLowerInvariant() == "fr" ? _requestSummary.title_fr : _requestSummary.title_en;
 
     private string GenerateApprovalDocumentUrl => $"/api/OpenDataApproval?id={ApprovalFormId}";
 
+    private string PublicationURL => _geoCoreService.GetDatasetUrl(_sharedObject.Publication_ID, "en");
+
     private string StepTitle(GeoObjectShareStatus status) => Localizer[$"{PREFIX}.{status}.Title"];
     private string StepMessage(GeoObjectShareStatus status) => Localizer[$"{PREFIX}.{status}.Description"];
-    private RenderFragment CheckIcon => @<i class="fa fa-check"></i>
+    private RenderFragment CheckIcon => 
+    @<i class="fa fa-check"></i>
     ;
 
     private void ManuallyShowApprovalForm()
@@ -236,22 +260,31 @@
     {
         try
         {
-            var geoCoreService = GeoCoreServiceFactory.CreateService();
-            var result = await geoCoreService.CreatePackage(_sharedObject.Json_TXT);
+            _publicationError = string.Empty;
+            _savingData = true;
+            await InvokeAsync(StateHasChanged);
+
+            var result = await _geoCoreService.PublishDataset(_sharedObject.Json_TXT);
 
             if (result.Suceeded)
             {
                 _sharedObject.ShareStatus = GeoObjectShareStatus.DatasetPublished;
+                _sharedObject.Publication_ID = result.DatasetId;
                 await UpdateSharedObject();
             }
             else
             {
-                // >>
+                _publicationError = result.ErrorMessage;
             }
         }
         catch (Exception)
         {
-            // >>
+            _publicationError = "Unknown error publishing the spatial dataset!";
+        }
+        finally
+        {
+            _savingData = false;
+            await InvokeAsync(StateHasChanged);
         }
     }
 

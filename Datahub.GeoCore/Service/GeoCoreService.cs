@@ -15,38 +15,48 @@ namespace Datahub.GeoCore.Service
             _config = config.Value;
         }
         
-        public async Task<GeoCoreResult> CreatePackage(string jsonData)
+        public async Task<GeoCoreResult> PublishDataset(string jsonData)
         {
             var content = new StringContent(jsonData, Encoding.UTF8, "application/json");
-            return await PostRequestAsync("new", content);
+            return await PostRequestAsync("new?source_key=1", content);
         }
 
-        private async Task<GeoCoreResult> PostRequestAsync(string action, HttpContent content)
+        public async Task<ShemaValidatorResult> ValidateJson(string data)
+        {
+            return await Task.FromResult(ShemaValidatorUtil.Validate(data));
+        }
+
+        public string GetDatasetUrl(string datasetId, string lang)
+        {
+            return $"{_config.DatasetBaseUrl}?id={datasetId}&lang={lang}";
+        }
+
+        private async Task<GeoCoreResult> PostRequestAsync(string path, HttpContent content)
         {
             try
             {
                 // this is to avoid developing on the VPN (test mode should be off in prod)
                 if (_config.TestMode)
-                    return new GeoCoreResult(true, "");
+                    return new GeoCoreResult(true, Guid.NewGuid().ToString(), "");
 
                 var baseUrl = _config.BaseUrl;
                 var apiKey = _config.ApiKey;
 
-                content.Headers.Add("x_api_key", apiKey);
+                content.Headers.Add("x-api-key", apiKey);
 
-                var response = await _httpClient.PostAsync($"{baseUrl}/{action}", content);
+                var response = await _httpClient.PostAsync($"{baseUrl}/{path}", content);
                 //response.EnsureSuccessStatusCode();
 
                 var jsonResponse = await response.Content.ReadAsStringAsync();
                 var apiResult = JsonSerializer.Deserialize<GeoCoreApiResult>(jsonResponse, GetSerializationOptions());
 
-                var succeeded = apiResult?.Success == true;
-                var errorMessage = succeeded ? string.Empty : "Request failed (todo)";
-                return new GeoCoreResult(succeeded, errorMessage);
+                var succeeded = apiResult?.StatusCode == 200;
+                var errorMessage = succeeded ? string.Empty : "Request failed!";
+                return new GeoCoreResult(succeeded, apiResult?.Body ?? "", errorMessage);
             }
             catch (Exception ex)
             {
-                return new GeoCoreResult(false, ex.Message);
+                return new GeoCoreResult(false, "", ex.Message);
             }
         }
 
@@ -58,6 +68,8 @@ namespace Datahub.GeoCore.Service
 
     class GeoCoreApiResult
     {
-        public bool Success { get; set; }
+        // {"statusCode":200,"body":"b52a1cfd-db6d-4289-afd5-b5851a89456b"}
+        public int StatusCode { get; set; }
+        public string Body { get; set; }
     }
 }
