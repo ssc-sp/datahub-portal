@@ -1,6 +1,7 @@
 @using Microsoft.Extensions.Options
 @using Datahub.Portal.Pages.Project.DataProject.ProjectTools
 
+@inject ServiceAuthManager ServiceAuthManager
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject IOptions<DataProjectsConfiguration> _configuration
 
@@ -18,11 +19,11 @@
         {
             <div class="tools-container">
 
-                @if (_configuration.Value.Databricks)
+                @if (_configuration.Value.Databricks && _canViewDatabricks)
                 {
                     <Databricks/>
                 }
-                @if (_configuration.Value.PowerBI)
+                @if (_configuration.Value.PowerBI && _canViewPowerBi)
                 {
                     <PowerBI/>
                 }
@@ -68,18 +69,39 @@
 
     [CascadingParameter(Name = "ProjectAcronym")]
     public string ProjectAcronym { get; set; }
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
 
     private bool _isLoading = true;
     private Datahub_Project _project;
+    private System.Security.Claims.ClaimsPrincipal _user;
+    private bool _canViewDatabricks;
+    private bool _canViewPowerBi;
+    private List<string> _authorizedRoles;
 
     protected override async Task OnInitializedAsync()
     {
+        await using var projectDbContext = await _dbFactoryProject.CreateDbContextAsync();
+
         await base.OnInitializedAsync();
+        _authorizedRoles = ServiceAuthManager.GetAdminProjectRoles();
+        _user = (await authenticationStateTask).User;
 
         await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
         _project = await projectContext.Projects
             .SingleOrDefaultAsync(p => p.Project_Acronym_CD == ProjectAcronym);
 
+        var _serviceRequests = await projectDbContext.Project_Requests
+            .Where(p => p.Project == _project)
+            .ToListAsync();
+
+        var isUserAdmin = _user.IsInRole($"{ProjectAcronym}-admin");
+        _canViewDatabricks = isUserAdmin || !string.IsNullOrEmpty(_project.Databricks_URL);
+
+        var isPowerBiActiveForNonAdmin = !string.IsNullOrEmpty(_project.PowerBI_URL) || 
+                _serviceRequests.Any(r => r.ServiceType == RequestManagementService.POWERBI && r.Is_Completed.HasValue);
+
+        _canViewPowerBi = isUserAdmin || isPowerBiActiveForNonAdmin;
         _isLoading = false;
     }
 
