@@ -616,7 +616,8 @@
     "EnterGcDocsUrl": "Enter GCdocs URL",
     "CancelSharing": "Cancel the Sharing Request",
     "CancelSharingDescription": "You can cancel this request to share the data file before it is approved. The request to share will be deleted from system. Once approved, you will not be able to cancel the request.",
-    "PublishDataset_button": "Publish Dataset"
+    "PublishDataset_button": "Publish Dataset",
+    "PublicUrl": "Public URL"
   },
 
   "OPENDATA-WIZARD": {
