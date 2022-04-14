@@ -60,10 +60,9 @@
 
     static string GetFileName(ShareApproval entry) => entry.Name;
     static string GetType(ShareApproval entry) => entry.RequestObject is GeoObjectShare ? "Spatial" : "File";
-    private RenderFragment GetFileLink(ShareApproval entry) => @<SharedObjectLink Name=@entry.Name Url=@entry.ShareUrl />;
+    private RenderFragment GetFileLink(ShareApproval entry) => @<a href="@entry.ShareUrl">@entry.Name</a>;
     private RenderFragment GetDocumentLink(ShareApproval entry) => @<SharedObjectApprovalLink Object=@entry OnRead=@HandleRead><i class="far fa-file-pdf"></i></SharedObjectApprovalLink>;
-    private RenderFragment GetApproveLink(ShareApproval entry) => @<SharedObjectApprovalButton Object=@entry OnApprove=@HandleApproveShare />
-    ;
+    private RenderFragment GetApproveLink(ShareApproval entry) => @<SharedObjectApprovalButton Object=@entry OnApprove=@HandleApproveShare />;
 
     protected override async Task OnInitializedAsync()
     {
