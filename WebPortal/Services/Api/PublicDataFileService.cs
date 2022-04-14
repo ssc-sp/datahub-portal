@@ -456,18 +456,32 @@ namespace Datahub.Portal.Services
             await _projectDbContext.TrackSaveChangesAsync(_datahubAuditingService);
         }
 
-        public async Task NotifySignedPDFUploaded()
+        public async Task NotifySignedDocumentUploaded()
         {
             Dictionary<string, object> parameters = new()
             {
                 { "UserName", _config.OpenDataApproverName },
-                { "Url", _emailNotificationService.BuildAppLink("/opendata/dashboard") }
+                { "Url", _emailNotificationService.BuildAppLink("/share/dashboard") }
             };
             
-            var emailBody = await _emailNotificationService.RenderTemplate<OpenDataApprovalNotificationEmail>(parameters);
+            var emailBody = await _emailNotificationService.RenderTemplate<RequestForApprovalNotificationEmail>(parameters);
             var emailRecipients = new List<string>() { _config.OpenDataApproverEmail };
 
             await _emailNotificationService.SendEmailMessage(_config.OpenDataApproverEmailSubject, emailBody, emailRecipients, true);
+        }
+
+        public async Task NotifySignedDocumentApproved(string userName, string email, string requestTitle, string url)
+        {
+            Dictionary<string, object> parameters = new()
+            {
+                { "UserName", userName },
+                { "Url", _emailNotificationService.BuildAppLink(url) },
+                { "RequestTitle", requestTitle }
+            };
+            var emailBody = await _emailNotificationService.RenderTemplate<ShareApprovedNotificationEmail>(parameters);
+            var emailRecipients = new List<string>() { email };
+
+            await _emailNotificationService.SendEmailMessage("Share approved / Partage approuvé", emailBody, emailRecipients, true);
         }
     }
 }

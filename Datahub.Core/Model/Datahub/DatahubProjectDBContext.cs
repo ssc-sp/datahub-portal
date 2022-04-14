@@ -56,6 +56,8 @@ namespace Datahub.Core.EFCore
 
         public DbSet<GeoObjectShare> GeoObjectShares { get; set; }
 
+        //public DbSet<FGPObjectShare> FGPObjectShares { get; set; }
+
         public void Seed(DatahubProjectDBContext context, IConfiguration configuration)
         {
             var p1 = context.Projects.Add(new Datahub_Project()

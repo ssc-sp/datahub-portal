@@ -1,0 +1,222 @@
+{
+	"source_key": "1",
+	"id": "000183ed-8864-42f0-ae43-c4313a860728",
+	"coordinates": [
+		[
+			[
+				-141.003,
+				41.6755
+			],
+			[
+				-52.6174,
+				41.6755
+			],
+			[
+				-52.6174,
+				83.1139
+			],
+			[
+				-141.003,
+				83.1139
+			],
+			[
+				-141.003,
+				41.6755
+			]
+		]
+	],
+	"title_en": "Principal Mineral Areas, Producing Mines, and Oil and Gas Fields (900A)",
+	"title_fr": "Principales régions minières, principales mines productrices, principaux champs de pétrole et de gaz (900A)",
+	"description_en": "This dataset is produced and published annually by Natural Resources Canada. It contains a variety of statistics on Canada’s mineral production, and provides the geographic locations of significant metallic, nonmetallic and coal mines, oil sands mines, selected metallurgical works and gas fields for the provinces and territories of Canada.Related product:- **[Top 100 Exploration Projects](https://open.canada.ca/data/en/dataset/b64179f3-ea0f-4abb-9cc5-85432fc958a0)**",
+	"description_fr": "Ce jeu de données est produit et publié annuellement par Ressources naturelles Canada. Il contient une variété de statistiques sur la production de minéraux du Canada et montre l’emplacement géographique des principaux champs de gaz, certaines activités métallurgiques, mines de minéraux métalliques, non métalliques et de charbon, et mines de sables bitumineux dans les provinces et les territoires du Canada.Produit connexe:- **[Les 100 principaux projets d'exploration](https://open.canada.ca/data/fr/dataset/b64179f3-ea0f-4abb-9cc5-85432fc958a0)**",
+	"keywords_en": "mineralization, mineral occurrences, mines, hydrocarbons, fossil fuels, industrial minerals, metallic minerals, economic geology, mineral deposits, exploration and deposit appraisal, nonmetallic minerals, oil, gas, hydrocarbons, refineries, smelters, mineral processing, ferroalloy, automobile shredders, Coal, Earth sciences, Oil sands, Recycling, Metals, Minerals, Mining industry, Gas industry, Steel,",
+	"keywords_fr": "minéralisation, indices minéralisés, mines, hydrocarbures, combustibles fossiles, minéraux industriels, minéraux métalliques, géologie économique, gisements minéraux, exploration et mise en valeur de gisements, minéraux non métalliques, pétrole, gaz, hydrocarbures, raffineries, fonderies, traitement des minerais, ferro-alliages, déchiqueteurs d'automobiles, Acier, Industrie gazière, Charbon, Sciences de la terre, Sables bitumineux, Recyclage, Métal, Minerai, Industrie minière",
+	"topicCategory": "economy",
+	"date_published_text": "publication; publication",
+	"date_published_date": "2020-02-27",
+	"date_created_text": "creation; création",
+	"date_created_date": "2019-04-12",
+	"spatialRepresentation": "vector; vecteur",
+	"type": "series; série",
+	"geometry": "POLYGON((-141.003 41.6755, -52.6174 41.6755, -52.6174 83.1139, -141.003 83.1139, -141.003 41.6755))",
+	"temporalExtent_begin": "2020-01",
+	"temporalExtent_end": "2020-12",
+	"refSys": "EPSG:3978",
+	"refSys_version": "8.9.2",
+	"status": "completed; complété",
+	"maintenance": "annually; annuel",
+	"metadataStandard_en": "North American Profile of ISO 19115:2003 - Geographic information - Metadata",
+	"metadataStandard_fr": "Profil nord-américain de la norme ISO 19115:2003 - Information géographique - Métadonnées",
+	"metadataStandardVersion": "CAN/CGSB-171.100-2009",
+	"graphicOverview": [
+		{
+			"overviewFileName": "http://ftp.maps.canada.ca/pub/nrcan_rncan/Mining-industry_Industrie-miniere/900A_and_top_100/Thumbnail/900A.png",
+			"overviewFileDescription": null,
+			"overviewFileTupe": null
+		}
+	],
+	"distributionFormat_name": null,
+	"distributionFormat_format": null,
+	"useLimits_en": "Open Government Licence - Canada (http://open.canada.ca/en/open-government-licence-canada)",
+	"useLimits_fr": "Licence du gouvernement ouvert - Canada (http://ouvert.canada.ca/fr/licence-du-gouvernement-ouvert-canada)",
+	"accessConstraints": "license; licence",
+	"otherConstraints_en": null,
+	"otherConstraints_fr": null,
+	"dateStamp": "2021-09-24T13:44:48",
+	"dataSetURI": null,
+	"locale_language": "French; Français",
+	"locale_country": "Canada; Canada",
+	"locale_encoding": "utf8; utf8",
+	"language": "eng; CAN",
+	"characterSet": "utf8; utf8",
+	"environmentDescription": "",
+	"supplementalInformation_en": "",
+	"supplementalInformation_fr": "",
+	"contact": [
+		{
+			"individual": null,
+			"position": {
+				"en": null,
+				"fr": null
+			},
+			"organisation": {
+				"en": "Government of Canada; Natural Resources Canada; Lands and Minerals Sector",
+				"fr": "Gouvernement du Canada; Ressources naturelles Canada; Secteur des terres et des minéraux"
+			},
+			"telephone": {
+				"en": "1-855-525-9293",
+				"fr": "1-855-525-9293"
+			},
+			"fax": null,
+			"address": {
+				"en": "580 Booth Street",
+				"fr": "580 rue Booth"
+			},
+			"city": "Ottawa",
+			"pt": {
+				"en": "Ontario",
+				"fr": "Ontario"
+			},
+			"postalcode": "K1A 0E4",
+			"country": {
+				"en": "Canada",
+				"fr": "Canada"
+			},
+			"email": {
+				"en": "NRCan.questions.RNCan@canada.ca",
+				"fr": "NRCan.questions.RNCan@canada.ca"
+			},
+			"onlineResource": {
+				"onlineResource": null,
+				"onlineResource_Name": null,
+				"onlineResource_Protocol": "http",
+				"onlineResource_Description": null
+			},
+			"hoursOfService": null,
+			"role": "pointOfContact; contact"
+		}
+	],
+	"credits": [],
+	"cited": [
+		{
+			"individual": null,
+			"position": {
+				"en": null,
+				"fr": null
+			},
+			"organisation": {
+				"en": "Government of Canada; Natural Resources Canada; Lands and Minerals Sector",
+				"fr": "Gouvernement du Canada; Ressources naturelles Canada; Secteur des terres et des minéraux"
+			},
+			"telephone": {
+				"en": "1-855-525-9293",
+				"fr": "1-855-525-9293"
+			},
+			"fax": null,
+			"address": {
+				"en": "580 Booth Street",
+				"fr": "580 rue Booth"
+			},
+			"city": "Ottawa",
+			"pt": {
+				"en": "Ontario",
+				"fr": "Ontario"
+			},
+			"postalcode": "K1A 0E4",
+			"country": {
+				"en": "Canada",
+				"fr": "Canada"
+			},
+			"email": {
+				"en": "NRCan.questions.RNCan@canada.ca",
+				"fr": "NRCan.questions.RNCan@canada.ca"
+			},
+			"onlineResource": {
+				"onlineResource": null,
+				"onlineResource_Name": null,
+				"onlineResource_Protocol": "http",
+				"onlineResource_Description": null
+			},
+			"hoursOfService": null,
+			"role": "pointOfContact; contact"
+		}
+	],
+	"distributor": [
+		{
+			"individual": null,
+			"position": {
+				"en": null,
+				"fr": null
+			},
+			"organisation": {
+				"en": "Government of Canada; Natural Resources Canada; Lands and Minerals Sector",
+				"fr": "Gouvernement du Canada; Ressources naturelles Canada; Secteur des terres et des minéraux"
+			},
+			"telephone": {
+				"en": "1-855-525-9293",
+				"fr": "1-855-525-9293"
+			},
+			"fax": null,
+			"address": {
+				"en": "580 Booth Street",
+				"fr": "580 rue Booth"
+			},
+			"city": "Ottawa",
+			"pt": {
+				"en": null,
+				"fr": "Ontario"
+			},
+			"postalcode": "K1A 0E4",
+			"country": {
+				"en": "Canada",
+				"fr": "Canada"
+			},
+			"email": {
+				"en": "NRCan.questions.RNCan@canada.ca",
+				"fr": "NRCan.questions.RNCan@canada.ca"
+			},
+			"onlineResource": {
+				"onlineResource": null,
+				"onlineResource_Name": null,
+				"onlineResource_Protocol": "http",
+				"onlineResource_Description": null
+			},
+			"hoursOfService": null,
+			"role": "distributor; distributeur"
+		}
+	],
+	"options": [
+		{
+			"url": "https://maps-cartes.services.geo.ca/server_serveur/rest/services/NRCan/900A_and_top_100_fr/MapServer/1",
+			"protocol": "ESRI REST: Map Server",
+			"name": {
+				"en": "Mineral Areas, Producing Mines, and Oil and Gas Fields (900A)",
+				"fr": "Principales régions minières, principales mines productrices, principaux champs de pétrole et de gaz (900A)"
+			},
+			"description": {
+				"en": "Web Service;ESRI REST;fra",
+				"fr": "Service Web;ESRI REST;fra"
+			}
+		}
+	]
+}
