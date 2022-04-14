@@ -11,6 +11,7 @@ namespace Datahub.Core.Services
         Dictionary<string, GraphUser> UsersDict { get; set; }
 
         Task<GraphUser> GetUserAsync(string userId, CancellationToken tkn);
+        Task<GraphUser> GetUserFromEmailAsync(string email, CancellationToken tkn);
         Task<Dictionary<string, GraphUser>> GetUsersListAsync(string filterText, CancellationToken tkn);
         Task<string> GetUserName(string userId, CancellationToken tkn = default);
         Task<string> GetUserEmail(string userId, CancellationToken tkn);

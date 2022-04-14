@@ -20,6 +20,7 @@ using Datahub.Metadata.Model;
 using System.Globalization;
 using System.Text;
 using System.Text.Json;
+using Datahub.GeoCore.Service;
 
 namespace Datahub.Portal.Controllers
 {
@@ -33,10 +34,12 @@ namespace Datahub.Portal.Controllers
         private readonly IMetadataBrokerService _metadataBrokerService;
         private readonly IPublicDataFileService _publicDataService;
         private readonly IMSGraphService _msGraphService;
+        private readonly IGeoCoreServiceFactory _geoCoreServiceFactory;
 
         public ApiController(ILogger<PublicController> logger, 
             IDbContextFactory<DatahubProjectDBContext> contextFactory, IKeyVaultService keyVaultService, 
-            IMetadataBrokerService metadataBrokerService, IPublicDataFileService publicDataService, IMSGraphService msGraphService)
+            IMetadataBrokerService metadataBrokerService, IPublicDataFileService publicDataService, 
+            IMSGraphService msGraphService, IGeoCoreServiceFactory geoCoreServiceFactory)
         {
             _logger = logger;
             _contextFactory = contextFactory;
@@ -44,6 +47,7 @@ namespace Datahub.Portal.Controllers
             _metadataBrokerService = metadataBrokerService;
             _publicDataService = publicDataService;
             _msGraphService = msGraphService;
+            _geoCoreServiceFactory = geoCoreServiceFactory;
         }
 
         /* TBD!
@@ -190,7 +194,7 @@ namespace Datahub.Portal.Controllers
         }
 
         [HttpPost]
-        [Route("fgp/submit")]
+        [Route("spatial/submit")]
         public async Task<IActionResult> StartSharingFgp()
         {
             // [authorization] Signed JWT with the claims including the UserName 
@@ -201,30 +205,37 @@ namespace Datahub.Portal.Controllers
             if (apiUser is null || IsDisabledOrExpired(apiUser))
                 return Unauthorized();
 
-            // verify required email-contact
-            var emailContact = Request.Headers["email-contact"];
-            if (string.IsNullOrEmpty(emailContact))
-                return BadRequest("Missing email-contact header");
-
             // read request json
             var requestJson = await ReadRequestAsString();
 
-            // todo: validate json
+            // validate json
+            var validationResult = await ValidateGeoCoreRequestJson(requestJson);
+            if (!validationResult.Valid)
+                return BadRequest($"Invalid request JSON '{validationResult.ErrorMessages}'");
 
             // parse the bear minimun data to create the approval form
             var requestSummary = ParseGeoData(requestJson);
             if (requestSummary is null)
                 return BadRequest();
 
+            // verify required email
+            var emailContact = GetGeoCoreContactEmail(requestSummary);
+            if (string.IsNullOrEmpty(emailContact))
+                return BadRequest("Missing email-contact in the request");
+
+            // get the user id from the email contact
+            var userId = await _msGraphService.GetUserIdFromEmailAsync(emailContact, CancellationToken.None);
+            if (userId is null)
+                return BadRequest($"Invalid email contact '{emailContact}'");
+
             // save a pre-filled approval form and retrieve the form id
             var approvalFormId = await SaveApprovalForm(requestSummary.title_en, emailContact, $"{requestSummary.title_en } / {requestSummary.title_en}");
 
             // save and store json request
-            var shareId = await SaveGeoData(requestJson, approvalFormId);
+            var shareId = await SaveGeoData(requestJson, approvalFormId, emailContact);
 
-            var url = _publicDataService.GetPublicSharedUrl($"/share/geodata/{shareId}");
+            var url = _publicDataService.GetPublicSharedUrl($"/share/spatial/{shareId}");
 
-            // todo
             return Ok(url);
         }
 
@@ -247,15 +258,16 @@ namespace Datahub.Portal.Controllers
             await _metadataBrokerService.SaveMetadata(fieldValues, anonymous: true);
         }
 
-        private async Task<string> SaveGeoData(string requestJson, int approvalFormId)
+        private async Task<string> SaveGeoData(string requestJson, int approvalFormId, string emailContact)
         {
-            using var ctx = _contextFactory.CreateDbContext();
+            using var ctx = await _contextFactory.CreateDbContextAsync();
 
             GeoObjectShare geoObjectShare = new()
             {
                 GeoObjectShare_ID = Guid.NewGuid().ToString(),
                 Json_TXT = requestJson,
-                ApprovalForm_ID = approvalFormId
+                ApprovalForm_ID = approvalFormId,
+                Email_Contact_TXT = emailContact                
             };
 
             ctx.GeoObjectShares.Add(geoObjectShare);
@@ -377,9 +389,21 @@ namespace Datahub.Portal.Controllers
             }
         }
 
+        private async Task<ShemaValidatorResult> ValidateGeoCoreRequestJson(string data)
+        {
+            var service = _geoCoreServiceFactory.CreateService();
+            return await service.ValidateJson(data);
+        }
+
         private GeoDataShareRequest? ParseGeoData(string data)
         {
             return JsonSerializer.Deserialize<GeoDataShareRequest>(data);
+        }
+
+        private string GetGeoCoreContactEmail(GeoDataShareRequest request)
+        {
+            // since this passed the schema validation we can trust there will be a contact with the email.
+            return request.contact[0].email.en ?? request.contact[0].email.fr;
         }
     }
 
