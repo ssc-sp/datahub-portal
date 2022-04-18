@@ -18,7 +18,7 @@ namespace Datahub.GeoCore.Service
         public async Task<GeoCoreResult> PublishDataset(string jsonData)
         {
             var content = new StringContent(jsonData, Encoding.UTF8, "application/json");
-            return await PostRequestAsync("new?source_key=1", content);
+            return await PostRequestAsync($"new?source_key={_config.SourceKey}", content);
         }
 
         public async Task<ShemaValidatorResult> ValidateJson(string data)
@@ -39,13 +39,11 @@ namespace Datahub.GeoCore.Service
                 if (_config.TestMode)
                     return new GeoCoreResult(true, Guid.NewGuid().ToString(), "");
 
-                var baseUrl = _config.BaseUrl;
-                var apiKey = _config.ApiKey;
+                content.Headers.Add("x-api-key", _config.ApiKey);
+                content.Headers.Add("User-Agent", "Datahub Application");
 
-                content.Headers.Add("x-api-key", apiKey);
-
-                var response = await _httpClient.PostAsync($"{baseUrl}/{path}", content);
-                //response.EnsureSuccessStatusCode();
+                var response = await _httpClient.PostAsync($"{_config.BaseUrl}/{path}", content);
+                response.EnsureSuccessStatusCode();
 
                 var jsonResponse = await response.Content.ReadAsStringAsync();
                 var apiResult = JsonSerializer.Deserialize<GeoCoreApiResult>(jsonResponse, GetSerializationOptions());
@@ -66,10 +64,12 @@ namespace Datahub.GeoCore.Service
         };
     }
 
+    /// <summary>
+    /// Expected json { "statusCode": 200, "body": "b52a1cfd-db6d-4289-afd5-b5851a89456b" }
+    /// </summary>
     class GeoCoreApiResult
     {
-        // {"statusCode":200,"body":"b52a1cfd-db6d-4289-afd5-b5851a89456b"}
         public int StatusCode { get; set; }
-        public string Body { get; set; }
+        public string? Body { get; set; }
     }
 }
