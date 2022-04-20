@@ -17,17 +17,18 @@ namespace Datahub.Core.Services
         private readonly IConfiguration _configuration;
         private readonly ILogger<MSGraphService> _logger;
         private readonly IHttpClientFactory _httpClientFactory;
-        private GraphServiceClient _graphServiceClient;
+        private readonly IKeyVaultService _keyVaultService;
+        private GraphServiceClient _graphServiceClient;        
 
         public Dictionary<string, GraphUser> UsersDict { get; set; }
 
-        public MSGraphService(IConfiguration configureOptions, 
-            ILogger<MSGraphService> logger,
-            IHttpClientFactory clientFactory)
+        public MSGraphService(IConfiguration configureOptions, ILogger<MSGraphService> logger, IHttpClientFactory clientFactory, 
+            IKeyVaultService keyVaultService)
         {
             _configuration = configureOptions;
             _logger = logger;
             _httpClientFactory = clientFactory;
+            _keyVaultService = keyVaultService;
         }
     
         public async Task<GraphUser> GetUserAsync(string userId, CancellationToken token)
@@ -65,7 +66,7 @@ namespace Datahub.Core.Services
         public async Task<Dictionary<string, GraphUser>> GetUsersListAsync(string filterText, CancellationToken token)
         {
             Dictionary<string, GraphUser> users = new();
-            PrepareAuthenticatedClient();
+            await PrepareAuthenticatedClient();
 
             var options = new List<Option>();
             options.Add(new QueryOption("$filter",$"startswith(mail,'{filterText}')"));
@@ -98,16 +99,17 @@ namespace Datahub.Core.Services
             return users;
         }
  
-        private void PrepareAuthenticatedClient()
+        private async Task PrepareAuthenticatedClient()
         {
             if (_graphServiceClient == null)
             {
+                var clientSecret = await _keyVaultService.GetClientSecret();
                 try
                 {
                     IConfidentialClientApplication confidentialClientApplication = ConfidentialClientApplicationBuilder
                                     .Create(_configuration.GetSection("AzureAd").GetValue<string>("ClientId"))
                                     .WithTenantId(_configuration.GetSection("AzureAd").GetValue<string>("TenantId"))
-                                    .WithClientSecret(_configuration.GetSection("AzureAd").GetValue<string>("ClientSecret"))
+                                    .WithClientSecret(clientSecret)
                                     .Build();
                     ClientCredentialProvider authProvider = new ClientCredentialProvider(confidentialClientApplication);
 
@@ -127,7 +129,7 @@ namespace Datahub.Core.Services
 
         private async Task<GraphUser> QueryUserAsync(string filter, CancellationToken token)
         {
-            PrepareAuthenticatedClient();
+            await PrepareAuthenticatedClient();
             try
             {
                 var user = await _graphServiceClient.Users.Request().Filter(filter).GetAsync(token);
