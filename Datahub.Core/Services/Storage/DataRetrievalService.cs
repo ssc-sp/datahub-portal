@@ -28,13 +28,13 @@ namespace Datahub.Portal.Services.Storage
         public const string DEFAULT_CONTAINER_NAME = "datahub";
 
         private readonly ILogger<DataRetrievalService> _logger;
-        private readonly DataLakeClientService _dataLakeClientService;
+        private readonly IDataLakeClientService _dataLakeClientService;
         private readonly IKeyVaultService _keyVaultService;
 
 
         public DataRetrievalService(ILogger<DataRetrievalService> logger,
             IKeyVaultService keyVaultService,
-            DataLakeClientService dataLakeClientService,
+            IDataLakeClientService dataLakeClientService,
             NavigationManager navigationManager,
             UIControlsService uiService)
             : base(navigationManager, uiService)
