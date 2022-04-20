@@ -322,7 +322,7 @@ namespace Datahub.Portal
                 services.AddSingleton<IKeyVaultService, KeyVaultService>();
                 services.AddScoped<UserLocationManagerService>();
                 services.AddSingleton<CommonAzureServices>();
-                services.AddScoped<DataLakeClientService>();
+                services.AddScoped<IDataLakeClientService, DataLakeClientService>();
 
                 services.AddScoped<IUserInformationService, UserInformationService>();
                 services.AddSingleton<IMSGraphService, MSGraphService>();
@@ -352,7 +352,7 @@ namespace Datahub.Portal
                 services.AddSingleton<IKeyVaultService, OfflineKeyVaultService>();
                 services.AddScoped<UserLocationManagerService>();
                 services.AddSingleton<CommonAzureServices>();
-                //services.AddScoped<DataLakeClientService>();
+                services.AddScoped<IDataLakeClientService, OfflineDataLakeClientService>();
 
                 services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
                 services.AddScoped<IUserInformationService, OfflineUserInformationService>();
@@ -371,6 +371,8 @@ namespace Datahub.Portal
                 services.AddScoped<IAzurePriceListService, OfflineAzurePriceListService>();
 
                 services.AddSingleton<ICognitiveSearchService, OfflineCognitiveSearchService>();
+
+                services.AddScoped<IPowerBiDataService, PowerBiDataService>();
             }
 
             services.AddSingleton<IExternalSearchService, ExternalSearchService>();

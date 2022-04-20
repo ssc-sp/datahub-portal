@@ -13,7 +13,7 @@ namespace Datahub.Portal.Services.Offline
     {
         public OfflineDataRetrievalService(ILogger<DataRetrievalService> logger,
                             IKeyVaultService keyVaultService,
-                            DataLakeClientService dataLakeClientService,
+                            IDataLakeClientService dataLakeClientService,
                             NavigationManager navigationManager,
                             UIControlsService uiService) : base(logger, keyVaultService,
                              dataLakeClientService,
