@@ -53,30 +53,27 @@
     [Parameter]
     [SupplyParameterFromQuery]
     public bool New { get; set; }
-    [Parameter]
-    public string AppId { get; set; }
 
+    [Parameter]
+    public string AppId { get; set; } = string.Empty;
 
     private const string PROJECTACRONYM = "M365FORM";
-    private FormMetadata<M365FormsApplication> _formMetadata;
+    private FormMetadata<M365FormsApplication> _formMetadata = new();
     private bool _onchange;
-    private List<M365FormsApplication> _m365FormsApplications;
-    private M365FormsApplication m365FormApplication;
-    private M365FormsDBContext Context;
+    private List<M365FormsApplication> _m365FormsApplications = new();
+    private M365FormsApplication? m365FormApplication;
+    private M365FormsDBContext Context = null!;
     private List<string> MarkDownContent = new();
-    private Microsoft.Graph.User _user;
+    private Microsoft.Graph.User _user = null!;
     private List<Func<M365FormsApplication, string>> AccessorFunctions = new List<Func<M365FormsApplication, string>>();
     private bool _isLoaded;
     private bool _isUserAdmin;
     private bool _isFrench;
-    private string _currentFilter;
-    private SuccessIndicator _submitApprovalInd;
+    private string? _currentFilter;
+    private SuccessIndicator _submitApprovalInd = null!;
     private bool _submittingApproval = false;
 
-
-    private string Localize(string input) => input == null ? null : Localizer[input];
     private List<OrganizationLevel> _sectors = new(); 
-    private int _sectorId = -1;
     private List<string> Sectors => LocalizeChoices(_sectors);
 
     private List<string> LocalizeChoices(IEnumerable<OrganizationLevel> levels)
@@ -92,7 +89,6 @@
         Context = DbFactory.CreateDbContext();
         _user = await UserInformationService.GetUserAsync();
         _isUserAdmin = await ServiceAuthManager.IsProjectAdmin(_user.Id, PROJECTACRONYM);
-        _formMetadata = new();
 
         _isFrench = CultureInfo.CurrentCulture.Name.StartsWith("fr", StringComparison.InvariantCulture);
         _sectors = await OrganizationLevelsService.GetSectors();
@@ -100,17 +96,18 @@
         {
             p => { return Localizer[p.Name_of_Team]; },
             p => { return Localizer[p.Description_of_Team ?? string.Empty]; },            
-            p => { return p.Visibility; },
-            p => { return p.Team_Owner1; },
-            p => { return p.Team_Owner2; },
-            p => { return p.Team_Owner3; },
-            p => { return p.SubmittedBy; },
-            p => { return p.M365FormStatus; },
+            p => { return p.Visibility ?? string.Empty; },
+            p => { return p.Team_Owner1 ?? string.Empty; },
+            p => { return p.Team_Owner2 ?? string.Empty; },
+            p => { return p.Team_Owner3 ?? string.Empty; },
+            p => { return p.SubmittedBy ?? string.Empty; },
+            p => { return p.M365FormStatus ?? string.Empty; },
         };
 
-
         var footerfile = _isFrench ? "FormFooterFr.md" : "FormFooter.md";
+        
         LoadApps(string.Empty);
+
         _formMetadata.Header = Localizer["M365 Team Request Form"];
         _formMetadata.TableRoles = $"default";
 
@@ -130,7 +127,6 @@
         StateHasChanged();
     }
 
-
     private List<string> headers => new List<string>
     {
         Localizer["Name_of_Team"], 
@@ -146,11 +142,11 @@
     private async void HandleFilterChange(string selection)
     {
         _currentFilter = selection;
-        await LoadApps(selection);
-        StateHasChanged();
+        LoadApps(selection);
+        await InvokeAsync(StateHasChanged);
     }
 
-    private async Task LoadApps(string filter)
+    private void LoadApps(string? filter)
     {
         if (_isUserAdmin)
         {
@@ -180,8 +176,6 @@
             }
         }
     }
-
-
 
     private async Task HandleValidSubmit()
     {
@@ -220,7 +214,7 @@
 
             await EmailService.SendM365FormsConfirmations(m365FormsParameters);
 
-            await LoadApps(_currentFilter);
+            LoadApps(_currentFilter);
 
             m365FormApplication = null;
             StateHasChanged();
@@ -240,10 +234,10 @@
 
     private void ToggleVisibility(IModelFormContext context)
     {
-        context.SetVisible<M365FormsApplication>(p => p.Other_Txt, m365FormApplication.Other);
-        context.SetVisible<M365FormsApplication>(p => p.Expected_Lifespan_DT, !m365FormApplication.Ongoing_Lifespan);
-        context.SetVisible<M365FormsApplication>(p => p.M365FormStatus, _isUserAdmin);
-        context.SetVisible<M365FormsApplication>(p => p.Comments, _isUserAdmin);
+        context.SetVisible<M365FormsApplication>(p => p.Other_Txt!, m365FormApplication?.Other == true);
+        context.SetVisible<M365FormsApplication>(p => p.Expected_Lifespan_DT, m365FormApplication?.Ongoing_Lifespan != true);
+        context.SetVisible<M365FormsApplication>(p => p.M365FormStatus!, _isUserAdmin);
+        context.SetVisible<M365FormsApplication>(p => p.Comments!, _isUserAdmin);
         _onchange = false;
     }
 
