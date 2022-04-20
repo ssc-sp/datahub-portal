@@ -40,7 +40,7 @@
 
     private QueryThrottler<string> _searchThrottler;
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
         _searchThrottler = new(TimeSpan.FromSeconds(0.3), ThrottleSearch);
     }
