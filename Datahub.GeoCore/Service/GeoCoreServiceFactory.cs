@@ -13,6 +13,6 @@ namespace Datahub.GeoCore.Service
             _configuration = configuration;
         }
 
-        public IGeoCoreService CreateService() => new GeoCoreService(_httpClientFactory.CreateClient(), _configuration);
+        public IGeoCoreService CreateService() => new GeoCoreService(_httpClientFactory.CreateClient("DatahubApp"), _configuration);
     }
 }
