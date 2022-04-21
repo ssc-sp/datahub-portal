@@ -38,6 +38,7 @@ using Datahub.Core.Modules;
 using Datahub.Portal.Services.Storage;
 using Microsoft.AspNetCore.Authorization.Infrastructure;
 using Datahub.GeoCore.Service;
+using System.Net.Http.Headers;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]
 namespace Datahub.Portal
@@ -106,6 +107,13 @@ namespace Datahub.Portal
             ConfigureCoreDatahubServices(services);
 
             services.AddHttpClient();
+
+            services.AddHttpClient("DatahubApp", config =>
+            {
+                var productValue = new ProductInfoHeaderValue("Datahub", "1.0");
+                config.DefaultRequestHeaders.UserAgent.Add(productValue);
+            });
+
             services.AddHttpClient<GraphServiceClient>().AddPolicyHandler(GetRetryPolicy());
             services.AddFileReaderService();
             services.AddBlazorDownloadFile();
