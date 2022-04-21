@@ -166,9 +166,12 @@ namespace Datahub.Portal.Data.PIP
 "FCSAP – Federal Contaminated Sites Action Plan (ECCC)",
 "IICP – Investing in Infrastructure Canada Plan (INFC)",
 "IARP – Impact Assessment and Regulatory Processes (IAAC)",
+"MCT – Achieving Marine Conservation Targets (DFO)",
+"NCSF – Natural Climate Solutions Fund – 2BT (NRCAN)",
 "NCSS - National Cyber Security Strategy (PSC)",
 "Nature Legacy for Canada (ECCC)",
 "OPP – Oceans Protection Plan (TC)",
+"SCP – Strengthen Climate Plan (ECCC)",
 "YESS - Youth Employment Skills Strategy (ESDC)",
 };
         public static readonly string[] GOC_OUTCOMES = {"Economic Affairs - income security and employment for Canadians",
