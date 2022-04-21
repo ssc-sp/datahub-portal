@@ -40,7 +40,6 @@ namespace Datahub.GeoCore.Service
                     return new GeoCoreResult(true, Guid.NewGuid().ToString(), "");
 
                 content.Headers.Add("x-api-key", _config.ApiKey);
-                content.Headers.Add("User-Agent", "Datahub Application");
 
                 var response = await _httpClient.PostAsync($"{_config.BaseUrl}/{path}", content);
                 response.EnsureSuccessStatusCode();
