@@ -30,8 +30,8 @@ foreach ($change in $changes)
     $secret = CheckSecrets($winPath)
     if ($secret -ne $null) {
         write-output "Found '$secret' in $winPath"
+        $output += $secret
     }
-    $output += $secret
 }
 
 write-output "======================================="
