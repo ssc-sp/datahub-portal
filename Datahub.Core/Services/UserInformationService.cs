@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using System.Linq;
 using System.Net.Mail;
 using System.Threading;
@@ -20,15 +19,16 @@ namespace Datahub.Core.Services
 {
     public class UserInformationService : IUserInformationService
     {
-        private ILogger<UserInformationService> _logger;
-        private GraphServiceClient graphServiceClient;
-        private readonly IDbContextFactory<UserTrackingContext> contextFactory;
-        private AuthenticationStateProvider _authenticationStateProvider;
-        private NavigationManager _navigationManager;
-        private IConfiguration _configuration;
-        //private GraphServiceClient _graphServiceClient;
-        public string imageHtml;
-        private ClaimsPrincipal authenticatedUser;
+        private readonly ILogger<UserInformationService> _logger;
+        private readonly IDbContextFactory<UserTrackingContext> _contextFactory;
+        private readonly AuthenticationStateProvider _authenticationStateProvider;
+        private readonly IConfiguration _configuration;
+        private readonly NavigationManager _navigationManager;
+        private readonly IKeyVaultService _keyVaultService;
+
+        private ClaimsPrincipal _authenticatedUser;
+        private GraphServiceClient _graphServiceClient;
+        private string _clientSecret = null;
 
         public User CurrentUser { get; set; }
 
@@ -41,16 +41,16 @@ namespace Datahub.Core.Services
             IConfiguration configureOptions,
             UserTrackingContext eFCoreDatahubContext,
             GraphServiceClient graphServiceClient,
-            IDbContextFactory<UserTrackingContext> contextFactory
-            )
+            IKeyVaultService keyVaultService,
+            IDbContextFactory<UserTrackingContext> contextFactory)
         {
             _logger = logger;
             _authenticationStateProvider = authenticationStateProvider;
             _navigationManager = navigationManager;
             _configuration = configureOptions;
-            
-            this.graphServiceClient = graphServiceClient;
-            this.contextFactory = contextFactory;
+            _graphServiceClient = graphServiceClient;
+            _keyVaultService = keyVaultService;
+            _contextFactory = contextFactory;
         }
 
         public string UserLanguage { get; set; }
@@ -101,22 +101,22 @@ namespace Datahub.Core.Services
 
         private async Task<User> GetUserAsyncInternal()
         {
-         if (CurrentUser != null)
-                 return CurrentUser;
+            if (CurrentUser != null)
+                return CurrentUser;
             try
             {
-                if (authenticatedUser is null)
-                    authenticatedUser = (await _authenticationStateProvider.GetAuthenticationStateAsync()).User;
-                var claimsList = authenticatedUser.Claims.ToList();
-                var email = authenticatedUser.Identity.Name;
+                if (_authenticatedUser is null)
+                    _authenticatedUser = (await _authenticationStateProvider.GetAuthenticationStateAsync()).User;
+                var claimsList = _authenticatedUser.Claims.ToList();
+                var email = _authenticatedUser.Identity.Name;
                 string userId = getOID();
                 if (email is null)
                 {
                     throw new InvalidOperationException("Cannot resolve user email");
                 }
 
-                PrepareAuthenticatedClient();
-                CurrentUser = await graphServiceClient.Users[userId].Request().GetAsync();
+                await PrepareAuthenticatedClient();
+                CurrentUser = await _graphServiceClient.Users[userId].Request().GetAsync();
 
                 return CurrentUser;
             }
@@ -137,7 +137,7 @@ namespace Datahub.Core.Services
 
         private string getOID()
         {
-            return authenticatedUser.Claims.First(c => c.Type == "http://schemas.microsoft.com/identity/claims/objectidentifier").Value;
+            return _authenticatedUser.Claims.First(c => c.Type == "http://schemas.microsoft.com/identity/claims/objectidentifier").Value;
         }
 
         public async Task<User> GetUserAsync()
@@ -146,87 +146,19 @@ namespace Datahub.Core.Services
             return CurrentUser;
         }
 
-        //public async Task<string> GetMePhotoAsync()
-        //{
-        //    try
-        //    {
-
-        //        //var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
-        //        //var claimsList = authState.User.Claims.ToList();
-        //        //var email = authState.User.Identity.Name;
-        //        //PrepareAuthenticatedClient();
-        //        //Stream photoresponse = await graphServiceClient.Users[email].Photo.Content.Request().GetAsync();
-
-        //        //if (photoresponse != null)
-        //        //{
-        //        //    MemoryStream ms = new MemoryStream();
-        //        //    photoresponse.CopyTo(ms);
-        //        //    System.Drawing.Image i = System.Drawing.Image.FromStream(ms);
-
-        //        //    byte[] imgBytes = turnImageToByteArray(i);
-        //        //    string imgString = Convert.ToBase64String(imgBytes);
-        //        //    return String.Format($@"<img src=""data:image/Bmp;base64,{imgString}"">");
-        //        //}
-        //        //else
-        //        //{
-        //        //    return string.Empty;
-        //        //}
-
-        //        byte[] imgBytes = await GetStreamWithAuthAsync();
-        //        string imgString = Convert.ToBase64String(imgBytes);
-        //        return String.Format($@"<img src=""data:image/Bmp;base64,{imgString}"">");
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        Console.WriteLine($"Error getting signed-in user profilephoto: {ex.Message}");
-        //        throw;
-        //    }
-        //}
-
-        //private async Task<byte[]> GetStreamWithAuthAsync()
-        //{
-        //    //TODO figure out length of time of authtoken
-        //    PrepareAuthenticatedClient();
-        //    var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
-        //    var claimsList = authState.User.Claims.ToList();
-        //    var email = authState.User.Identity.Name;
-        //    var endpoint = @$"https://graph.microsoft.com/v1.0/users/0403528c-5abc-423f-9201-9c945f628595/photo/$value";
-        //    var client = _httpClient.CreateClient();
-        //    client.DefaultRequestHeaders.Add("Authorization", "Bearer " + accessToken);
-        //    client.DefaultRequestHeaders.Add("Accept", "application/json");
-        //    using (var response = await client.GetAsync(endpoint))
-        //    {
-        //        if (response.IsSuccessStatusCode)
-        //        {
-        //            var stream = await response.Content.ReadAsStreamAsync();
-        //            byte[] bytes = new byte[stream.Length];
-        //            stream.Read(bytes, 0, (int)stream.Length);
-        //            return bytes;
-        //        }
-        //        else
-        //            return null;
-        //    }
-        //}
-
-        //private byte[] turnImageToByteArray(System.Drawing.Image img)
-        //{
-        //    MemoryStream ms = new MemoryStream();
-        //    img.Save(ms, System.Drawing.Imaging.ImageFormat.Bmp);
-        //    return ms.ToArray();
-        //}
-
-        private void PrepareAuthenticatedClient()
+        private async Task PrepareAuthenticatedClient()
         {
             //if (graphServiceClient != null) return;
             try
             {
+                _clientSecret ??= await _keyVaultService.GetClientSecret();
                 IConfidentialClientApplication confidentialClientApplication = ConfidentialClientApplicationBuilder
-                                .Create(_configuration.GetSection("AzureAd").GetValue<string>("ClientId"))
-                                .WithTenantId(_configuration.GetSection("AzureAd").GetValue<string>("TenantId"))
-                                .WithClientSecret(_configuration.GetSection("AzureAd").GetValue<string>("ClientSecret"))
-                                .Build();
-                ClientCredentialProvider authProvider = new ClientCredentialProvider(confidentialClientApplication);
-                graphServiceClient = new GraphServiceClient(authProvider);
+                    .Create(_configuration.GetSection("AzureAd").GetValue<string>("ClientId"))
+                    .WithTenantId(_configuration.GetSection("AzureAd").GetValue<string>("TenantId"))
+                    .WithClientSecret(_clientSecret)
+                    .Build();
+                ClientCredentialProvider authProvider = new(confidentialClientApplication);
+                _graphServiceClient = new GraphServiceClient(authProvider);
             }
             catch (Exception e)
             {
@@ -243,7 +175,7 @@ namespace Datahub.Core.Services
 
             try
             {
-                using var eFCoreDatahubContext = contextFactory.CreateDbContext();
+                using var eFCoreDatahubContext = _contextFactory.CreateDbContext();
                 var userSetting = eFCoreDatahubContext.UserSettings.FirstOrDefault(u => u.UserId == userId);
                 if (userSetting == null)
                 {
@@ -253,7 +185,7 @@ namespace Datahub.Core.Services
 
                 userSetting.UserName = CurrentUser.DisplayName;
                 userSetting.AcceptedDate = DateTime.UtcNow;
-                
+
                 if (await eFCoreDatahubContext.SaveChangesAsync() <= 0)
                 {
                     _logger.LogInformation($"User: {CurrentUser.DisplayName} has accepted Terms and Conditions. Changes NOT saved");
@@ -264,7 +196,7 @@ namespace Datahub.Core.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"User: {CurrentUser.DisplayName} registering TAC failed.");                
+                _logger.LogError(ex, $"User: {CurrentUser.DisplayName} registering TAC failed.");
             }
 
             return false;
@@ -277,7 +209,7 @@ namespace Datahub.Core.Services
 
             try
             {
-                using var eFCoreDatahubContext = contextFactory.CreateDbContext();
+                using var eFCoreDatahubContext = _contextFactory.CreateDbContext();
                 var userSetting = eFCoreDatahubContext.UserSettings.FirstOrDefault(u => u.UserId == userId);
                 if (userSetting == null)
                 {
@@ -297,7 +229,7 @@ namespace Datahub.Core.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"User: {CurrentUser.DisplayName} registering TAC failed.");                
+                _logger.LogError(ex, $"User: {CurrentUser.DisplayName} registering TAC failed.");
             }
 
             return false;
@@ -306,7 +238,7 @@ namespace Datahub.Core.Services
         public async Task<string> GetUserLanguage()
         {
             var userId = await GetUserIdString();
-            using var eFCoreDatahubContext = contextFactory.CreateDbContext();
+            using var eFCoreDatahubContext = _contextFactory.CreateDbContext();
             var userSetting = eFCoreDatahubContext.UserSettings.FirstOrDefault(u => u.UserId == userId);
             return userSetting != null ? userSetting.Language : string.Empty;
         }
@@ -336,7 +268,7 @@ namespace Datahub.Core.Services
         public async Task<bool> HasUserAcceptedTAC()
         {
             var userId = await GetUserIdString();
-            using var eFCoreDatahubContext = contextFactory.CreateDbContext();
+            using var eFCoreDatahubContext = _contextFactory.CreateDbContext();
             var userSetting = eFCoreDatahubContext.UserSettings.FirstOrDefault(u => u.UserId == userId);
 
             return userSetting != null ? userSetting.AcceptedDate.HasValue : false;
@@ -359,8 +291,8 @@ namespace Datahub.Core.Services
         {
             try
             {
-                PrepareAuthenticatedClient();
-                CurrentUser = await graphServiceClient.Users[userId].Request().GetAsync();
+                await PrepareAuthenticatedClient();
+                CurrentUser = await _graphServiceClient.Users[userId].Request().GetAsync();
 
                 return CurrentUser;
             }
@@ -377,5 +309,5 @@ namespace Datahub.Core.Services
                 return null;
             }
         }
-    }    
+    }
 }
