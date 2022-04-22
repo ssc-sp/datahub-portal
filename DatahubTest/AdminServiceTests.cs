@@ -46,7 +46,7 @@ namespace Datahub.Tests
         }
 
         [Fact]
-        public async Task CreateContacts()
+        public void CreateContacts()
         {
             var email1 = "test1@gmail.com";
             var name1 = "lastname, user1";
