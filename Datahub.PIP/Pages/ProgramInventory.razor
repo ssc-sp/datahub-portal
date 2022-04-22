@@ -227,6 +227,7 @@
             context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Transfer_Payment_Programs_5_DESC, () => PIP_Constants.TRANSFER_PROGRAMS);
             context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Transfer_Payment_Programs_6_DESC, () => PIP_Constants.TRANSFER_PROGRAMS);
             context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Transfer_Payment_Programs_7_DESC, () => PIP_Constants.TRANSFER_PROGRAMS);
+            context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Transfer_Payment_Programs_8_DESC, () => PIP_Constants.TRANSFER_PROGRAMS);
             context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Mandate_Letter_Commitment_2_DESC, () => PIP_Constants.COMMITMENTS);
             context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Transfer_Payment_Programs_Less5_1_DESC, () => PIP_Constants.TRANSFER_PROGRAMS_LESS5);
             context.RegisterOptionValueProperty<PIP_Tombstone>(p => p.Transfer_Payment_Programs_Less5_2_DESC, () => PIP_Constants.TRANSFER_PROGRAMS_LESS5);
@@ -555,8 +556,11 @@
         _submittingApproval = true;
         if (isConfirmed && _tombstone != null)
         {
-            _tombstone.Last_Updated_DT = DateTime.Now;
-            _tombstone.Date_Updated_DT = DateTime.Now;
+            var timeUtc = DateTime.UtcNow;
+            TimeZoneInfo easternZone = TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time");
+            
+            _tombstone.Last_Updated_DT = TimeZoneInfo.ConvertTimeFromUtc(timeUtc, easternZone);
+            _tombstone.Date_Updated_DT = TimeZoneInfo.ConvertTimeFromUtc(timeUtc, easternZone);
             _tombstone.Last_Updated_UserId = CurrentUser.Id;            
             _tombstone.EditingUserId = string.Empty;
 

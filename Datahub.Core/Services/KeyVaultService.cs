@@ -60,6 +60,8 @@ namespace Datahub.Core.Services
             }
         }
 
+        public Task<string> GetClientSecret() => GetSecret("datahubportal-client-secret");
+
         public async Task<string> EncryptApiTokenAsync(string data)
         {
             if (_keyVaultClient == null)
