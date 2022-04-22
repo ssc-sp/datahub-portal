@@ -22,7 +22,7 @@ using Microsoft.Azure.Storage.Blob;
 
 namespace Datahub.Portal.Services.Storage
 {
-    public class DataRetrievalService : BaseService
+    public class DataRetrievalService : BaseService, IDataRetrievalService
     {
         private const string METADATA_FILE_ID = "fileid";
         public const string DEFAULT_CONTAINER_NAME = "datahub";

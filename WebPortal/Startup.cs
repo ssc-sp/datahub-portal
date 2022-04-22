@@ -327,7 +327,7 @@ namespace Datahub.Portal
                 services.AddScoped<IUserInformationService, UserInformationService>();
                 services.AddSingleton<IMSGraphService, MSGraphService>();
 
-                services.AddScoped<MyDataService>();
+                services.AddScoped<IMyDataService, MyDataService>();
 
                 services.AddScoped<IPublicDataFileService, PublicDataFileService>();
 
@@ -336,7 +336,7 @@ namespace Datahub.Portal
                 services.AddScoped<IDataUpdatingService, DataUpdatingService>();
                 services.AddScoped<IDataSharingService, DataSharingService>();
                 services.AddScoped<IDataCreatorService, DataCreatorService>();
-                services.AddScoped<DataRetrievalService>();
+                services.AddScoped<IDataRetrievalService, DataRetrievalService>();
                 services.AddScoped<IDataRemovalService, DataRemovalService>();
 
                 services.AddSingleton<ICognitiveSearchService, CognitiveSearchService>();
@@ -358,14 +358,14 @@ namespace Datahub.Portal
                 services.AddScoped<IUserInformationService, OfflineUserInformationService>();
                 services.AddSingleton<IMSGraphService, OfflineMSGraphService>();
 
-                services.AddScoped<MyDataService, OfflineMyDataService>();
+                services.AddScoped<IMyDataService, OfflineMyDataService>();
                 
                 services.AddScoped<IProjectDatabaseService, OfflineProjectDatabaseService>();
 
                 services.AddScoped<IDataUpdatingService, OfflineDataUpdatingService>();
                 services.AddScoped<IDataSharingService, OfflineDataSharingService>();
                 services.AddScoped<IDataCreatorService, OfflineDataCreatorService>();
-                services.AddScoped<DataRetrievalService, OfflineDataRetrievalService>();
+                services.AddScoped<IDataRetrievalService, OfflineDataRetrievalService>();
                 services.AddScoped<IDataRemovalService, OfflineDataRemovalService>();
 
                 services.AddScoped<IAzurePriceListService, OfflineAzurePriceListService>();
