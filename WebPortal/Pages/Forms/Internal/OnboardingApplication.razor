@@ -120,7 +120,7 @@
             p => { return p.ProjectCreatedDate.ToString() ?? string.Empty; },
         };
 
-        await LoadApps();
+        LoadApps();
         _formMetadata.Header = Localizer["DataHub Project Onboarding Form"];
         _formMetadata.TableRoles = RoleConstants.DATAHUB_ROLE_ADMIN;
         _formMetadata.DataSet = _onboardingApplications;
@@ -140,10 +140,10 @@
 
     private void SetProjectAcronym(ChangeEventArgs args) => _newProjectAcronym = (string)args.Value;
 
-    private async void HandleFilterBarCheckChange(bool isChecked)
+    private void HandleFilterBarCheckChange(bool isChecked)
     {
         _filterBarOptions.IsChecked = isChecked;
-        await LoadApps();
+        LoadApps();
     }
 
     private async Task CreateNewProject()
@@ -263,7 +263,7 @@
         }
     }
 
-    private async Task LoadApps()
+    private void LoadApps()
     {
         _onboardingApplications = Context.OnboardingApps.ToList();
 
@@ -282,7 +282,6 @@
                 _onboardingApplication = null;
             }
         }
-
     }
 
     private void OnConfigure(IModelFormContext context)
@@ -370,7 +369,6 @@
 
         StateHasChanged();
     }
-
 
     public void Dispose() { Context.Dispose(); }
 }

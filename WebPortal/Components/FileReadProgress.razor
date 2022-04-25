@@ -23,13 +23,12 @@
     private int percentReadProcessed = 0;
     const int onlyReportProgressAfterThisPercentDelta = 10;
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
         if (Fileinfo?.PositionInfo != null)
         {
             Fileinfo.PositionInfo.PositionChanged += OnPositionChange;
         }
-
     }
 
     private async void OnPositionChange(object sender, IFilePositionInfo e)
@@ -41,8 +40,5 @@
             percentReadProcessed = (int)(100.0 * e.Position / Fileinfo.Size);
             await InvokeAsync(() => StateHasChanged());
         };
-
     }
 }
-
-

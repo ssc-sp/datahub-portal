@@ -1,12 +1,5 @@
 ﻿@page "/admin/powerbi"
 @page "/admin/powerbi/{ProjectAcronym}"
-
-@using global::Datahub.Core.Components
-@using global::Datahub.Core.EFCore
-@using global::Datahub.Core.Services
-@using global::Datahub.Portal.Data
-@using global::Datahub.Portal.Services
-
 @inject IPowerBiDataService _powerBiDataService
 @inject PowerBiServiceApi _powerBiServiceApi
 @inject Microsoft.Identity.Web.MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
