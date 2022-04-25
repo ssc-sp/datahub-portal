@@ -15,7 +15,6 @@
     </div>
 </AeFlex>
 
-
 <AeTable Accessors="accessorFunctions"
          T="WebAnalytics"
          Dataset="_webanalytics"
@@ -59,17 +58,14 @@
     private List<WebAnalytics> _webanalytics;
     private WebAnalytics _webanalytic;
     private string SubmitLabel = "Save";
-    private bool _navToEdit = false;
     private WebAnalyticsContext Context;  
-   
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
         // load projects
         Context = DbFactory.CreateDbContext();
         _webanalytics = Context.WebAnalytics.ToList();
     }
-
 
     private async Task GoToNextSheet()
     {
@@ -78,12 +74,10 @@
     }
 
     private List<Func<WebAnalytics, string>> accessorFunctions = new List<Func<WebAnalytics, string>>
-{
+    {
         new Func<WebAnalytics, string>(p => { return p.Owner; }),
         new Func<WebAnalytics, string>(p => { return p.URL; }),
     };
-
-   
 
     private string getColor(WebAnalytics current)
     {
@@ -95,7 +89,7 @@
     }
 
     private List<string> headers = new List<string>
-{
+    {
         "Owner","Url"
     };
 
@@ -103,14 +97,12 @@
     {
         _webanalytic = project;
         StateHasChanged();
-        _navToEdit = true;
     }
 
-    private async Task CreateNewProject()
+    private void CreateNewProject()
     {
         _webanalytic = new WebAnalytics() { Last_Updated_DT = DateTime.Now };
         StateHasChanged();
-        _navToEdit = true;
     }
 
     private async Task HandleValidSubmit()
@@ -136,7 +128,7 @@
     {
         _webanalytic = null;
         StateHasChanged();
-        return null;
+        return await Task.FromResult((WebAnalytics)null);
     }
 
     private string GetDataLabel(string propName)
@@ -144,7 +136,8 @@
         return DataLocalizer[propName];
     }
 
-
-    public void Dispose() { Context.Dispose(); }
-
+    public void Dispose() 
+    { 
+        Context.Dispose();
+    }
 }
