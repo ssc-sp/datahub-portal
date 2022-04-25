@@ -80,8 +80,14 @@
                 }
                 else
                 {
-                   <AeDropdown LabelRenderFragment="@(() => GetLabel(person.role))" Items="permissionOptions.Where(s => s != person.role)" class="manageAccessDropdown" 
-                            Renderer="GetOption" OnChange="(selectedItem) => OnPermissionSwitch(person, selectedItem)" />      
+                    @*todo: review the OnChange behavior *@
+                    <AeDropdown 
+                        LabelRenderFragment="@(() => GetLabel(person.role))" 
+                        Items="permissionOptions.Where(s => s != person.role)" 
+                        class="manageAccessDropdown" 
+                        Renderer="GetOption" 
+                        OnChange="(selectedItem) => _ = OnPermissionSwitch(person, selectedItem)" 
+                    /> 
                 }
             </div>
             <div class="nrcan-typography">
@@ -313,11 +319,22 @@
 
     private RenderFragment GetOption(string option)
     {
-        return 
-    @<span>@Localizer[option]</span>;
+        return @<span>@Localizer[option]</span>;
     }
 
-    private async Task<RenderFragment> GetLabel(string role) => @<div class="ae button"> <div>@Localizer[role]</div> <i class="fal fa-chevron-down chevronborder"></i></div>;
+    private async Task<RenderFragment> GetLabel(string role)
+    {
+        return await Task.FromResult<RenderFragment>
+        (
+            @<div class="ae button"> <div>@Localizer[role]</div> <i class="fal fa-chevron-down chevronborder"></i></div>
+        );        
+    }
 
-    private async Task<RenderFragment> getIcon() => @<div id="manageButton" class="ae button"> <div>@selectedPermission</div> <i class="fal fa-chevron-down chevronborder"></i></div>;
+    private async Task<RenderFragment> getIcon()
+    {
+        return await Task.FromResult<RenderFragment>
+        (
+            @<div id="manageButton" class="ae button"> <div>@selectedPermission</div> <i class="fal fa-chevron-down chevronborder"></i></div>
+        );        
+    }    
 }
