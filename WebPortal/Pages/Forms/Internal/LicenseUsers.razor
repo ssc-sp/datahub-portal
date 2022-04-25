@@ -100,15 +100,17 @@ else
         };
     }
 
-
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
         // load projects        
         Context = DbFactory.CreateDbContext();
         RequestID= Int32.Parse(RequestIDParam);
         _userRequests = Context.PowerBI_License_User_Requests.ToList();
-        _userRequest = new PBI_User_License_Request() { ID = 0, RequestID = RequestID } ;
-
+        _userRequest = new PBI_User_License_Request() 
+        { 
+            ID = 0, 
+            RequestID = RequestID 
+        };
     }
 
      private async Task HandleValidSubmit()
