@@ -3,11 +3,10 @@
 
 @inject NavigationManager NavigationManager
 @inject ILogger<AddDataPage> logger
-@inject MyDataService ApiService
+@inject IMyDataService ApiService
 @inject IJSRuntime JSRuntime
 @inject UIControlsService UI
 @inject IFileReaderService fileReaderService
-@inject DataRetrievalService DataRetrievalService
 
 <EditForm Model="_fileMetadata" OnValidSubmit="HandleValidSubmit">
     <DataAnnotationsValidator />

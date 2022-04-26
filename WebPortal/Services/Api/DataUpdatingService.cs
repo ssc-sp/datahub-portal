@@ -19,18 +19,18 @@ namespace Datahub.Portal.Services
         private readonly ILogger<DataUpdatingService> _logger;
         private readonly IHttpClientFactory _httpClient;
         private readonly IUserInformationService _userInformationService;
-        private readonly DataLakeClientService _dataLakeClientService;
-        private readonly DataRetrievalService _dataRetrievalService;
-        private readonly MyDataService myDataService;
+        private readonly IDataLakeClientService _dataLakeClientService;
+        private readonly IDataRetrievalService _dataRetrievalService;
+        private readonly IMyDataService myDataService;
         private readonly ICognitiveSearchService _cognitiveSearchService;
 
         public DataUpdatingService(ILogger<DataUpdatingService> logger,
                     IHttpClientFactory clientFactory,
                     IUserInformationService userInformationService,
-                    DataLakeClientService dataLakeClientService,
+                    IDataLakeClientService dataLakeClientService,
                     ICognitiveSearchService cognitiveSearchService,
-                    DataRetrievalService dataRetrievalService,
-                    MyDataService myDataService,
+                    IDataRetrievalService dataRetrievalService,
+                    IMyDataService myDataService,
                     NavigationManager navigationManager,
                     UIControlsService uiService)
             : base(navigationManager, uiService)
