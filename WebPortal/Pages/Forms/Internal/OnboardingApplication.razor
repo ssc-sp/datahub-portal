@@ -86,7 +86,7 @@
     private List<string> Branches => LocalizeChoices(_branches.Where(b => b.ParentId == _sectorId));
     private List<string> Divisions => LocalizeChoices(_divisions.Where(d => d.ParentId == _branchId));
 
-    private FilterBarOptions _filterBarOptions;
+    private FilterBarOptions _filterBarOptions = new();
 
 
     private string Localize(string input) => input == null ? null : Localizer[input];
