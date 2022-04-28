@@ -37,6 +37,7 @@
 </div>
 
 @code {
+    private static readonly string DEFAULT_SECURITY_CLASS = SecurityClassification.Unclassified;
 
     [Inject]
     public IMetadataBrokerService MetadataBrokerService { get; set; }
@@ -60,7 +61,7 @@
     public string Location { get; set; }
 
     [Parameter]
-    public string SecurityClass { get; set; } = "Unclassified";
+    public string SecurityClass { get; set; } = DEFAULT_SECURITY_CLASS;
 
     [Parameter]
     public string ProfileName { get; set; } = "opendata";
@@ -86,6 +87,9 @@
     [Parameter]
     public EventCallback<FieldValueContainer> OnSave { get; set; }
 
+    [Parameter]
+    public EventCallback OnValuesChanged { get; set; }
+
     private FieldValueContainer _fieldValues;
     private FieldDefinitions _definitions;
     private MetadataProfile _profile;
@@ -110,6 +114,7 @@
         _profile = await MetadataBrokerService.GetProfile(ProfileName);
         _requiredFieldsAreValid = CheckRequiredFieldValues();
         _requiredFieldIds = _profile.GetRequiredFieldSet();
+        await TriggerValuesChanged();
     }
 
     protected override async Task OnParametersSetAsync()
@@ -126,15 +131,27 @@
         // the Object Id may come from an external source or from a know MetadataObject row
         if (long.TryParse(ObjectId, out long metadataObjectId))
         {
-            _fieldValues = await MetadataBrokerService.GetObjectMetadataValues(metadataObjectId);    
+            _fieldValues = await MetadataBrokerService.GetObjectMetadataValues(metadataObjectId);
+            if (UpdateCatalog)
+            {
+                var catalogResult = await MetadataBrokerService.GetCatalogObjectByMetadataId(metadataObjectId);
+                SecurityClass = catalogResult?.SecurityClass ?? SecurityClass;
+            }
         }
         else
         {
-            _fieldValues = await MetadataBrokerService.GetObjectMetadataValues(ObjectId);    
+            _fieldValues = await MetadataBrokerService.GetObjectMetadataValues(ObjectId);
+            if (UpdateCatalog)
+            {
+                var catalogResult = await MetadataBrokerService.GetCatalogObjectByObjectId(ObjectId);
+                SecurityClass = catalogResult?.SecurityClass ?? SecurityClass;
+            }
         }
 
         _definitions = _fieldValues.Definitions;
         _lastObjectId = ObjectId;
+
+        await TriggerValuesChanged();
 
         // set external choices
         await UpdateExternalFieldChoices();
@@ -227,9 +244,10 @@
         }
     }
 
-    private void FieldChanged()
+    private async Task FieldChanged()
     {
         _requiredFieldsAreValid = CheckRequiredFieldValues();
+        await TriggerValuesChanged();
     }
 
     private void ToggleShowAll()
@@ -290,6 +308,14 @@
     {
         var names = _fieldValues.GetAllFieldNames();
         return names.ToDictionary(n => n, n => GetValue(n));
+    }
+
+    private async Task TriggerValuesChanged()
+    {
+        if (OnValuesChanged.HasDelegate)
+        {
+            await OnValuesChanged.InvokeAsync();
+        }
     }
 
 }
