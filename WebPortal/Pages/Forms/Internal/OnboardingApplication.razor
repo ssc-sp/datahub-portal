@@ -255,9 +255,10 @@
                         };
 
 
-            await EmailService.SendOnboardingConfirmations(onboardingParameters);
+            await EmailService.SendOnboardingConfirmations(onboardingParameters, _onboardingApplication.NotificationsSent);
 
             _onboardingApplication.NotificationsSent = true;
+            await Context.TrackSaveChangesAsync(AuditingService);
 
             NavigationManager.NavigateTo("/onboarding/confirmation");
         }
@@ -363,10 +364,7 @@
         _sectorId = GetChoiceId(_sectors, _onboardingApplication.Client_Sector);
         _branchId = GetChoiceId(_branches, _onboardingApplication.Client_Branch, _sectorId);
         _divisionId = GetChoiceId(_divisions, _onboardingApplication.Client_Division, _branchId);
-
-        if (_onboardingApplication.NotificationsSent)
-            _formMetadata.IsSubmitEnabled = false;
-
+        
         StateHasChanged();
     }
 
