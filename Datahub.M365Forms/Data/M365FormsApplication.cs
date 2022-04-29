@@ -108,6 +108,9 @@ namespace Datahub.Portal.Data
         [AeFormCategory("Application Status", 90)]
         public string? Comments { get; set; }
 
+        [AeFormCategory("Application Status", 90)]
+        public bool IsOrganizationalTeam { get; set; }
+
         [AeFormIgnore]
         public string? SubmittedBy { get; set; }
 
