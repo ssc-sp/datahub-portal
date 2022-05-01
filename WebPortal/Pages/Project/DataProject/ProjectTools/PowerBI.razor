@@ -118,7 +118,7 @@ else
         {
             _powerBiServiceRequested = _serviceRequests.Any(r => r.ServiceType == RequestManagementService.POWERBI && r.Is_Completed == null);
             _powerBiServiceCreated = !string.IsNullOrEmpty(_project.PowerBI_URL) || 
-                _serviceRequests.Any(r => r.ServiceType == RequestManagementService.POWERBI && r.Is_Completed.HasValue);
+            _serviceRequests.Any(r => r.ServiceType == RequestManagementService.POWERBI && r.Is_Completed.HasValue);
 
             var userAcessRequests = _project.Requests.Where(r => r.User_ID == UserId && r.PowerBI);
             _powerBiAccessRequested = userAcessRequests.Any(r => r.Completion_DT is null);

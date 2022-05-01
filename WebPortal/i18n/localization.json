@@ -267,6 +267,7 @@
   "Transfer_Payment_Programs_5_DESC": " ",
   "Transfer_Payment_Programs_6_DESC": " ",
   "Transfer_Payment_Programs_7_DESC": " ",
+  "Transfer_Payment_Programs_8_DESC": " ",
   "Transfer_Payment_Programs_Less5_1_DESC": "Transfer Payment Programs with total planned spending of less than $5 million",
   "Transfer_Payment_Programs_Less5_2_DESC": " ",
   "Transfer_Payment_Programs_Less5_3_DESC": " ",
@@ -307,7 +308,7 @@
   "Output_2_From_Immediate_Outcome_4_DESC": "Output 2 (from Immediate Outcome 4)",
   "Activity_2_From_Immediate_Outcome_4_DESC": "Activity 2 (from Immediate Outcome 4)",
   "Does_Indicator_Enable_Program_Measure_Equity": "If Yes, explain what impacts are being monitored (positive/negative/direct/indirect), if No, please provide a reason / rationale.",
-  "Is_Equity_Seeking_Group": "Is data collected against this program being disaggregated? if yes, which equity seeking group is the data being collected on?",
+  "Is_Equity_Seeking_Group": "Which equity seeking group is the data being collected on",
   "Is_Equity_Seeking_Group2": "",
   "Is_Equity_Seeking_Group_Other": "",
   "No_Equity_Seeking_Group": "If 'No', please provide a reason/rationale.",
@@ -317,7 +318,10 @@
   "Target_DESC": "Target",
   "Result_DESC": "Result",
   "Date_Result_Collected": "Date Result Collected",
-  "Does_Indicator_Enable_Program_Measure_Equity_Option": "Does this program monitor/measure impacts on equity seeking groups?",
+  "Does_Indicator_Enable_Program_Measure_Equity_Option": "Does the program monitor/measure impacts on equity seeking groups",
+  "Collecting_Data": "Are you collecting data on this program",
+  "Disaggregated_Data": "Is data collected against this program being disaggregated",
+  "Disaggregated_Data_Information": "What type of information are you collecting from your disaggregated data? Please describe",
 
   "Can_Report_On_Indicator": "Can you report on this indicator?",
   "Cannot_Report_On_Indicator": "If No, why not?",
@@ -580,7 +584,44 @@
       "Expired": {
         "Title": "Expired"
       }
+    },
+    "FGP": {
+      "FillApprovalForm": {
+        "Description": "Complete the online form and request a digital signature from the Director General.",
+        "Title": "Government Approval Form"
+      },
+      "SubmitApprovalForm": {
+        "Description": "Upload the signed form to GCdocs and paste the link in DataHub.",
+        "Title": "Submit Signed Form"
+      },
+      "WaitingForApproval": {
+        "Description": "The request has been submitted for approval. Once the request is approved, the file will be uploaded to Open Data.",
+        "Title": "Pending Approval"
+      },
+      "PublishDataset": {
+        "Description": "The request has been approved, the dataset is ready for publishing.",
+        "Title": "Publish Dataset"
+      },
+      "DatasetPublished": {
+        "Description": "The dataset is now available.",
+        "Title": "Access Dataset"
+      }
     }
+  },
+
+  "FGP-WIZARD": {
+    "Page_Title": "Share FGP Dataset",
+    "Title": "Title",
+    "Approval_Filled_out_1": "Once the Approval Form is completed, generate the approval form.",
+    "Approval_Filled_out_2": "Save the generated approval form to GCdocs.",
+    "Approval_Filled_out_3": "Paste the GCdocs file link (https://gcdocs.gc.ca/nrcan-rncan/llisapi.dll/link/XXXXXXXX) in the section below.",
+    "GenerateDOCX_button": "Download Approval Document",
+    "AmendApprovalForm_button": "Amend Approval Form",
+    "EnterGcDocsUrl": "Enter GCdocs URL",
+    "CancelSharing": "Cancel the Sharing Request",
+    "CancelSharingDescription": "You can cancel this request to share the data file before it is approved. The request to share will be deleted from system. Once approved, you will not be able to cancel the request.",
+    "PublishDataset_button": "Publish Dataset",
+    "PublicUrl": "Public URL"
   },
 
   "OPENDATA-WIZARD": {
@@ -738,7 +779,7 @@
   "Project_Goal": "Product Goal",
   "DataHub Project Onboarding Form": "DataHub Product Onboarding Form",
   "Project_Engagement_Category": "Product Engagement Category",
-  
+
 
 
 
@@ -764,7 +805,7 @@
   "Project_Or_Initiative": "Project or Initiative",
   "Other_Txt": "",
   "M365FormStatus": "",
-
+  "IsOrganizationalTeam": "Organization-wide Team",
   "Project_Cost": "Cost",
   "Project_Cost_NotFound": "No cost data found.",
   "Project_Cost_Template": "As of {0}, total resource cost is {1} for the period from {2} to {3}.",
@@ -869,7 +910,8 @@
     "TestNotification": "This is a test."
   },
   "OPENDATA-DASHBOARD": {
-    "FileName": "File Name",
+    "FileName": "Name",
+    "Type": "Type",
     "Read": "Read",
     "Approve": "Approve",
     "ClickToReadPDF": "Click to read document",
@@ -1086,7 +1128,8 @@
       "ChangesExist": "There are workspaces, reports and/or datasets available in Power BI which are out of sync with the DataHub database. Expand the section below for more details.",
       "Workspace": "Workspace",
       "Datasets": "Datasets",
-      "Reports": "Reports"
+      "Reports": "Reports",
+      "SecurityClassification": "Security Classification"
     }
   },
 

@@ -22,19 +22,19 @@ using Microsoft.Azure.Storage.Blob;
 
 namespace Datahub.Portal.Services.Storage
 {
-    public class DataRetrievalService : BaseService
+    public class DataRetrievalService : BaseService, IDataRetrievalService
     {
         private const string METADATA_FILE_ID = "fileid";
         public const string DEFAULT_CONTAINER_NAME = "datahub";
 
         private readonly ILogger<DataRetrievalService> _logger;
-        private readonly DataLakeClientService _dataLakeClientService;
+        private readonly IDataLakeClientService _dataLakeClientService;
         private readonly IKeyVaultService _keyVaultService;
 
 
         public DataRetrievalService(ILogger<DataRetrievalService> logger,
             IKeyVaultService keyVaultService,
-            DataLakeClientService dataLakeClientService,
+            IDataLakeClientService dataLakeClientService,
             NavigationManager navigationManager,
             UIControlsService uiService)
             : base(navigationManager, uiService)

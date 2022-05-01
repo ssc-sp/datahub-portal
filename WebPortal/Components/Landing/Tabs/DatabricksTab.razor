@@ -50,7 +50,7 @@
     _lastClicked = pageIndex;
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    protected override void OnAfterRender(bool firstRender)
     {
         if (firstRender)
             StateHasChanged();
@@ -63,7 +63,7 @@
         _projects = Context.Project_Users.Include(u => u.Project)            
             .Where(u => u.User_ID == currentUserId).Select(u => u.Project).Where(p => p.Databricks_URL != null).Distinct().ToList();
 
-        await FillAccessorFunctions();
+        FillAccessorFunctions();
         
         renderFunctions = new List<Func<Datahub_Project, RenderFragment>>() {            
             new Func<Datahub_Project, RenderFragment>(Datahub_Project => 
@@ -77,16 +77,12 @@
             Datahub_Project => @<AeFlex style="padding-top: 1rem"><AeTypography><DHLink DataProject="@(Datahub_Project.Project_Acronym_CD)" DatabricksURL="@(Datahub_Project.Databricks_URL)" Name="Databricks Workspace">Databricks Workspace</DHLink></AeTypography></AeFlex>, 
             Datahub_Project => @<AeFlex style="padding-top: 1rem"><AeTypography><DHLink DataProject="@(Datahub_Project.Project_Acronym_CD)">@Datahub_Project.ProjectName</DHLink></AeTypography></AeFlex>             
         };
-
-        
-        
-        //await FillRenderFunctions();
     }
 
     private List<string> headers = new List<string>();
 
 
-    public async Task FillAccessorFunctions()
+    public void FillAccessorFunctions()
     {
         accessorFunctions = new List<Func<Datahub_Project, string>>() {
             new Func<Datahub_Project, string>(Datahub_Project => { return Datahub_Project?.Project_Icon; }),

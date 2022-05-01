@@ -31,7 +31,6 @@
 </div>
 
 
-
 @code {
 
     private List<Func<Datahub_Project, string>> accessorFunctions;
@@ -45,13 +44,12 @@
 
     private int _lastClicked = 0;
 
-
     private void OnPageClick(int pageIndex)
     {
-    _lastClicked = pageIndex;
+        _lastClicked = pageIndex;
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    protected override void OnAfterRender(bool firstRender)
     {
         if (firstRender)
             StateHasChanged();
@@ -64,23 +62,18 @@
         
         _projects = Context.Project_Users.Include(u => u.Project).Where(u => u.User_ID == _currentUserId && u.Project.WebForms_URL != null).Select(u => u.Project).Distinct().ToList();
 
-        await FillAccessorFunctions();
+        FillAccessorFunctions();
         
         renderFunctions = new List<Func<Datahub_Project, RenderFragment>>() {            
             new Func<Datahub_Project, RenderFragment>(Datahub_Project => 
                 @<AeFlex class="table-icon"><i class="@($"fad fa-{Datahub_Project.Project_Icon}")"></i></AeFlex>),
             new Func<Datahub_Project, RenderFragment>(Datahub_Project => @<AeFlex style="padding-top: 1rem"><AeTypography><DHLink WebFormsURL="@(Datahub_Project?.WebForms_URL)">@Datahub_Project?.ProjectName</DHLink></AeTypography></AeFlex> ),            
         };
-        
-        
-        
-        //await FillRenderFunctions();
     }
 
     private List<string> headers = new List<string>();
 
-
-    public async Task FillAccessorFunctions()
+    public void FillAccessorFunctions()
     {
         accessorFunctions = new List<Func<Datahub_Project, string>>() {
             new Func<Datahub_Project, string>(Datahub_Project => { return Datahub_Project?.Project_Icon; }),
@@ -88,7 +81,7 @@
         };
     }
     
-     public void Dispose() 
+    public void Dispose()
     { 
         Context.Dispose();         
     }

@@ -1,14 +1,17 @@
 {
   "ConnectionStrings": {
-    "datahub-mssql-project": "",
-    "datahub-mssql-pip": "",
-    "datahub-mssql-etldb": "",
-    "datahub-mssql-finance": "",
-    "datahub-mssql-webanalytics": "",
-    "datahub-cosmosdb": "",
-    "datahub-mssql-metadata-bak": "",
-    "datahub-mssql-metadata": ""
+    "datahub-mssql-project": "Server=(LocalDB)\\\\MSSQLLocalDB;Integrated Security=true;AttachDbFileName={{database path}}\\project.mdf;Database=project",
+    "datahub-mssql-pip": "Server=(LocalDB)\\\\MSSQLLocalDB;Integrated Security=true;AttachDbFileName={{database path}}\\pip.mdf;Database=pip",
+    "datahub-mssql-etldb": "Server=(LocalDB)\\\\MSSQLLocalDB;Integrated Security=true;AttachDbFileName={{database path}}\\etldb.mdf;Database=etldb",
+    "datahub-mssql-finance": "Server=(LocalDB)\\MSSQLLocalDB;Integrated Security=true;AttachDbFileName={{database path}}\finance.mdf;Database=finance",
+    "datahub-mssql-webanalytics": "Server=(LocalDB)\\\\MSSQLLocalDB;Integrated Security=true;AttachDbFileName={{database path}}\\webanalytics.mdf;Database=webanalytics",
+    "datahub-mssql-metadata": "Server=(LocalDB)\\\\MSSQLLocalDB;Integrated Security=true;AttachDbFileName={{database path}}\\metadata.mdf;Database=metadata",
+    "datahub-mssql-languagetraining": "Server=(LocalDB)\\\\MSSQLLocalDB;Integrated Security=true;AttachDbFileName={{database path}}\\languagetraining.mdf;Database=languagetraining",
+    "datahub-mssql-m365forms": "Server=(LocalDB)\\\\MSSQLLocalDB;Integrated Security=true;AttachDbFileName={{database path}}\\m365forms.mdf;Database=m365forms",
+    "datahub-cosmosdb": ""
   },
+  "Offline": true,
+  "DbDriver": "SqlServer",
   "AzureAd": {
     "Instance": "https://login.microsoftonline.com/",
     "Domain": "",
@@ -63,27 +66,22 @@
     "SmtpPassword": "",
     "SenderName": "NRCan DataHub RNCan",
     "SenderAddress": "",
-    "DevTestMode": false
+    "DevTestMode": false,
+    "AppDomain": "https://localhost:44347",
+    "DevTestEmail": ""
   },
   "PublicFileSharing": {
     "OpenDataApprovalPdfBaseUrl": "",
     "OpenDataApprovalPdfFormIdParam": "rp:p_approval_form_id",
     "PublicFileSharingDomain": "https://localhost:44347"
-  },  
+  },
+  "HttpLogging": {
+    "Enabled": false,
+    "RequestHeaders": "Host,dnt",
+    "ResponseHeaders": "Location"
+  },
   "Azure:SignalR:StickyServerMode": "Required",
-  "AllowedHosts": "*"
+  "AllowedHosts": "*",
+  "Title": "NRCan Datahub (Offline)",
+  "DataHubModules": ""
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-

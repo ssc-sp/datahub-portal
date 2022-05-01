@@ -4,11 +4,10 @@
 @inject NotifierService NotifierService
 @inject NavigationManager NavigationManager
 @inject ILogger<AddDataBar> logger
-@inject MyDataService ApiService
+@inject IMyDataService ApiService
 @inject IJSRuntime JSRuntime
 @inject UIControlsService UI
 @inject IFileReaderService fileReaderService
-@inject DataRetrievalService DataRetrievalService
 
 <EditForm Model="_fileMetadata" OnValidSubmit="HandleValidSubmit">
     <DataAnnotationsValidator/>
@@ -90,9 +89,6 @@
     private string status;
     bool showAddRow = true;
     bool showHeader;
-    private ElementReference inputTypeFileElement;
-    private ElementReference dropTargetInput;
-    private IFileReference fileReference;
 
     protected override void OnInitialized()
     {
@@ -315,18 +311,6 @@
         _fileToUpload = files.FirstOrDefault();
         status = _fileToUpload.Name;
         StateHasChanged();
-    }
-
-    public async Task OnInputChange(EventArgs e)
-    {
-        foreach (var file in await fileReaderService.CreateReference(dropTargetInput).EnumerateFilesAsync())
-        {
-            fileReference = file;
-            var fileInfo = await fileReference.ReadFileInfoAsync();
-            status = fileInfo.Name;
-            _fileMetadata.filename = fileInfo.Name;
-            StateHasChanged();
-        }
     }
 
     private async Task<RenderFragment> getIcon()
