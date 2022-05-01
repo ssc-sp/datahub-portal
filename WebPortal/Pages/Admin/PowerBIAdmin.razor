@@ -1,12 +1,5 @@
 ﻿@page "/admin/powerbi"
 @page "/admin/powerbi/{ProjectAcronym}"
-
-@using global::Datahub.Core.Components
-@using global::Datahub.Core.EFCore
-@using global::Datahub.Core.Services
-@using global::Datahub.Portal.Data
-@using global::Datahub.Portal.Services
-
 @inject IPowerBiDataService _powerBiDataService
 @inject PowerBiServiceApi _powerBiServiceApi
 @inject Microsoft.Identity.Web.MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
@@ -64,11 +57,6 @@
                                 <span>@Localizer[$"{LOCALIZATION_PREFIX}.Sandbox"]</span>
                             </label>
                         </div>
-                        <div>
-                            <AeButton OnClickEvent=@SaveWorkspace Disabled=@IsSavingWorkspace>@Localizer[$"BUTTONS.Save"]</AeButton>
-                            <AeButton OnClickEvent=@CloseItemBeingEdited>@Localizer[$"BUTTONS.Cancel"]</AeButton>
-                            <SuccessIndicator @bind-IsLoading=@IsSavingWorkspace @ref=@_saveWorkspaceInd />
-                        </div>
                         <AeTypography Variant="h4">@Localizer[$"{LOCALIZATION_PREFIX}.Metadata"]</AeTypography>
                         <ObjectMetadataEditor 
                             ObjectId=@WorkspaceBeingEdited.WorkspaceId.ToString()
@@ -78,7 +66,15 @@
                             UpdateCatalog=@true
                             ValidateRequired=@false
                             Name=@WorkspaceBeingEdited.DbWorkspaceName
+                            HideSaveButton
+                            OnValuesChanged=@(() => StateHasChanged())
+                            @ref=@_workspaceMetadata
                         />
+                        <div>
+                            <AeButton OnClickEvent=@SaveWorkspace Disabled=@SaveWorkspaceDisabled>@Localizer[$"BUTTONS.Save"]</AeButton>
+                            <AeButton OnClickEvent=@CloseItemBeingEdited>@Localizer[$"BUTTONS.Cancel"]</AeButton>
+                            <SuccessIndicator @bind-IsLoading=@IsSavingWorkspace @ref=@_saveWorkspaceInd />
+                        </div>
                     </ChildContent>
                 </AeCard>
             }
@@ -91,6 +87,21 @@
                     </Header>
                     <ChildContent>
                         <AeTypography Variant="h4">@Localizer[$"{LOCALIZATION_PREFIX}.Metadata"]</AeTypography>
+                        @if (_datasetMetadata != null)
+                        {
+                            <label>
+                                <AeFlex Vertical>
+                                    <AeTypography><strong><span>@Localizer[$"{LOCALIZATION_PREFIX}.SecurityClassification"]</span></strong></AeTypography>
+                                    <select @bind=@_datasetMetadata.SecurityClass class="ae input">
+                                        @foreach(var sec in SecurityClassification.SECURITY_CLASSES)
+                                        {
+                                            <option value=@sec>@Localizer[@sec]</option>
+                                        }
+                                    </select>
+                                </AeFlex>
+                            </label>
+                        }
+
                         <ObjectMetadataEditor 
                             ObjectId=@DatasetBeingEdited.DatasetId.ToString()
                             Location="PowerBI"
@@ -99,7 +110,16 @@
                             UpdateCatalog=@true
                             ValidateRequired=@false
                             Name=@DatasetBeingEdited.DbDatasetName
+                            HideSaveButton
+                            OnValuesChanged=@(() => StateHasChanged())
+                            @ref=@_datasetMetadata
                         />
+
+                        <div>
+                            <AeButton OnClickEvent=@SaveDataset Disabled=@SaveDatasetDisabled>@Localizer[$"BUTTONS.Save"]</AeButton>
+                            <AeButton class="light" OnClickEvent=@CloseItemBeingEdited>@Localizer[$"BUTTONS.Cancel"]</AeButton>
+                            <SuccessIndicator @bind-IsLoading=@IsSavingDataset @ref=@_saveDatasetInd />
+                        </div>
                     </ChildContent>
                 </AeCard>
             }
@@ -112,7 +132,23 @@
                     </Header>
                     <ChildContent>
                         <AeTypography Variant="h4">@Localizer[$"{LOCALIZATION_PREFIX}.Metadata"]</AeTypography>
+                        @if (_reportMetadata != null)
+                        {
+                            <label>
+                                <AeFlex Vertical>
+                                    <AeTypography><strong><span>@Localizer[$"{LOCALIZATION_PREFIX}.SecurityClassification"]</span></strong></AeTypography>
+                                    <select @bind=@_reportMetadata.SecurityClass class="ae input">
+                                        @foreach(var sec in SecurityClassification.SECURITY_CLASSES)
+                                        {
+                                            <option value=@sec>@Localizer[@sec]</option>
+                                        }
+                                    </select>
+                                </AeFlex>
+                            </label>
+                        }
+
                         <ObjectMetadataEditor 
+                            @ref=@_reportMetadata
                             ObjectId=@ReportBeingEdited.ReportId.ToString()
                             Location="PowerBI"
                             ProfileName="catalog"
@@ -120,53 +156,63 @@
                             UpdateCatalog=@true
                             ValidateRequired=@false
                             Name=@ReportBeingEdited.DbReportName
+                            HideSaveButton
+                            OnValuesChanged=@(() => StateHasChanged())
                         />
+
+                        <div>
+                            <AeButton OnClickEvent=@SaveReport Disabled=@SaveReportDisabled>@Localizer[$"BUTTONS.Save"]</AeButton>
+                            <AeButton class="light" OnClickEvent=@CloseItemBeingEdited>@Localizer[$"BUTTONS.Cancel"]</AeButton>
+                            <SuccessIndicator @bind-IsLoading=@IsSavingReport @ref=@_saveReportInd />
+                        </div>
                     </ChildContent>
                 </AeCard>
             }
 
         </AeFlex>
 
-        <AeCard class="facard1">
-            <Header>
-                <AeTypography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.ImportUpdateTitle"]</AeTypography>
-            </Header>
-            <ChildContent>
-                @if (WorkspacesToBeUpdated != null && WorkspacesToBeUpdated.Count > 0)
-                {
-                    <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.ChangesExist"]</AeTypography>
-                    <AeCollapse>
-                        <AeCollapseSection>
-                            <Header>
-                                <AeTypography Variant="h4">@Localizer[$"{LOCALIZATION_PREFIX}.Details"]</AeTypography>
-                            </Header>
-                            <ChildContent>
-                                <ul>
-                                    @foreach(var w in WorkspacesToBeUpdated)
-                                    {
-                                        <li>
-                                            <span>@w.PbiWorkspaceName</span>
-                                            @if (w.ChildrenNeedUpdate)
-                                            {
-                                                <span>&nbsp; @CountChildrenToUpdate(w)</span>
-                                            }
-                                        </li>
-                                    }
-                                </ul>
-                            </ChildContent>
-                        </AeCollapseSection>
-                    </AeCollapse>
-                    <div>
-                        <AeButton OnClickEvent=@ImportPowerBiItems Disabled=@ImportDisabled>@Localizer[$"{LOCALIZATION_PREFIX}.SynchronizeButton"]</AeButton>
-                        <SuccessIndicator @bind-IsLoading=@IsImportingPowerBiItems @ref=@_bulkImportInd />
-                    </div>
-                }
-                else
-                {
-                    <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.NothingToImport"]</AeTypography>
-                }
-            </ChildContent>
-        </AeCard>
+        <AeFlex Vertical>
+            <AeCard class="facard1">
+                <Header>
+                    <AeTypography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.ImportUpdateTitle"]</AeTypography>
+                </Header>
+                <ChildContent>
+                    @if (WorkspacesToBeUpdated != null && WorkspacesToBeUpdated.Count > 0)
+                    {
+                        <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.ChangesExist"]</AeTypography>
+                        <AeCollapse>
+                            <AeCollapseSection>
+                                <Header>
+                                    <AeTypography Variant="h4">@Localizer[$"{LOCALIZATION_PREFIX}.Details"]</AeTypography>
+                                </Header>
+                                <ChildContent>
+                                    <ul>
+                                        @foreach(var w in WorkspacesToBeUpdated)
+                                        {
+                                            <li>
+                                                <span>@w.PbiWorkspaceName</span>
+                                                @if (w.ChildrenNeedUpdate)
+                                                {
+                                                    <span>&nbsp; @CountChildrenToUpdate(w)</span>
+                                                }
+                                            </li>
+                                        }
+                                    </ul>
+                                </ChildContent>
+                            </AeCollapseSection>
+                        </AeCollapse>
+                        <div>
+                            <AeButton OnClickEvent=@ImportPowerBiItems Disabled=@ImportDisabled>@Localizer[$"{LOCALIZATION_PREFIX}.SynchronizeButton"]</AeButton>
+                            <SuccessIndicator @bind-IsLoading=@IsImportingPowerBiItems @ref=@_bulkImportInd />
+                        </div>
+                    }
+                    else
+                    {
+                        <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.NothingToImport"]</AeTypography>
+                    }
+                </ChildContent>
+            </AeCard>
+        </AeFlex>
 
     </AeFlex>
     
@@ -199,9 +245,20 @@
     private PowerBiAdminDatasetTreeItem DatasetBeingEdited { get; set; }
     private PowerBiAdminReportTreeItem ReportBeingEdited { get; set; }
 
+    private ObjectMetadataEditor _workspaceMetadata;
     private bool IsSavingWorkspace { get; set; } = false;
+    private bool SaveWorkspaceDisabled => IsSavingWorkspace || (_workspaceMetadata?.SaveDisabled ?? false);
     private SuccessIndicator _saveWorkspaceInd;
 
+    private ObjectMetadataEditor _reportMetadata;
+    private bool IsSavingReport { get; set; } = false;
+    private bool SaveReportDisabled => IsSavingReport || (_reportMetadata?.SaveDisabled ?? false);
+    private SuccessIndicator _saveReportInd;
+
+    private ObjectMetadataEditor _datasetMetadata;
+    private bool IsSavingDataset { get; set; } = false;
+    private bool SaveDatasetDisabled => IsSavingDataset || (_datasetMetadata?.SaveDisabled ?? false);
+    private SuccessIndicator _saveDatasetInd;
 
     private string CountChildrenToUpdate(PowerBiAdminWorkspaceTreeItem workspace)
     {
@@ -344,6 +401,7 @@
 
         _tempLastClickedItem = item.Label;
         _tempLastClickedType = item.ItemType.ToString();
+        StateHasChanged();
         await Task.CompletedTask;
     }
 
@@ -361,6 +419,8 @@
         var wsDef = WorkspaceBeingEdited.Definition;
         var success = await _powerBiDataService.AddOrUpdateCataloguedWorkspace(wsDef);
 
+        success &= await _workspaceMetadata.SaveChanges();
+
         if (success)
         {
             await _saveWorkspaceInd.SignalSuccess();
@@ -372,6 +432,51 @@
         }
     }
 
+    private async Task SaveReport()
+    {
+        if (ReportBeingEdited == null)
+        {
+            await Task.CompletedTask;
+            return;
+        }
+
+        IsSavingReport = true;
+        StateHasChanged();
+
+        var success = await _reportMetadata.SaveChanges();
+        if (success)
+        {
+            await _saveReportInd.SignalSuccess();
+            await CloseItemBeingEdited();
+        }
+        else
+        {
+            await _saveReportInd.SignalFailure();
+        }
+    }
+
+    private async Task SaveDataset()
+    {
+        if (DatasetBeingEdited == null)
+        {
+            await Task.CompletedTask;
+            return;
+        }
+
+        IsSavingDataset = true;
+        StateHasChanged();
+
+        var success = await _datasetMetadata.SaveChanges();
+        if (success)
+        {
+            await _saveDatasetInd.SignalSuccess();
+            await CloseItemBeingEdited();
+        }
+        else
+        {
+            await _saveDatasetInd.SignalFailure();
+        }
+    }
 
 
     private async Task ImportPowerBiItems()

@@ -106,6 +106,7 @@
 
         if (_isUserAdmin)
         {
+            _filterBarOptions = new();
             _filterBarOptions.ShowCheckBox = true;
             _filterBarOptions.CheckBoxText = Localize("Hide Created Products");
             _filterBarOptions.IsChecked = true;
@@ -119,7 +120,7 @@
             p => { return p.ProjectCreatedDate.ToString() ?? string.Empty; },
         };
 
-        await LoadApps();
+        LoadApps();
         _formMetadata.Header = Localizer["DataHub Project Onboarding Form"];
         _formMetadata.TableRoles = RoleConstants.DATAHUB_ROLE_ADMIN;
         _formMetadata.DataSet = _onboardingApplications;
@@ -139,10 +140,10 @@
 
     private void SetProjectAcronym(ChangeEventArgs args) => _newProjectAcronym = (string)args.Value;
 
-    private async void HandleFilterBarCheckChange(bool isChecked)
+    private void HandleFilterBarCheckChange(bool isChecked)
     {
         _filterBarOptions.IsChecked = isChecked;
-        await LoadApps();
+        LoadApps();
     }
 
     private async Task CreateNewProject()
@@ -254,15 +255,16 @@
                         };
 
 
-            await EmailService.SendOnboardingConfirmations(onboardingParameters);
+            await EmailService.SendOnboardingConfirmations(onboardingParameters, _onboardingApplication.NotificationsSent);
 
             _onboardingApplication.NotificationsSent = true;
+            await Context.TrackSaveChangesAsync(AuditingService);
 
             NavigationManager.NavigateTo("/onboarding/confirmation");
         }
     }
 
-    private async Task LoadApps()
+    private void LoadApps()
     {
         _onboardingApplications = Context.OnboardingApps.ToList();
 
@@ -281,7 +283,6 @@
                 _onboardingApplication = null;
             }
         }
-
     }
 
     private void OnConfigure(IModelFormContext context)
@@ -363,13 +364,9 @@
         _sectorId = GetChoiceId(_sectors, _onboardingApplication.Client_Sector);
         _branchId = GetChoiceId(_branches, _onboardingApplication.Client_Branch, _sectorId);
         _divisionId = GetChoiceId(_divisions, _onboardingApplication.Client_Division, _branchId);
-
-        if (_onboardingApplication.NotificationsSent)
-            _formMetadata.IsSubmitEnabled = false;
-
+        
         StateHasChanged();
     }
-
 
     public void Dispose() { Context.Dispose(); }
 }

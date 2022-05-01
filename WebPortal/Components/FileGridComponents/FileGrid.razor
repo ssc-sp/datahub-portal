@@ -1,8 +1,8 @@
 @*FileGrid.razor*@
 @using System.Linq
 @using Datahub.Core.Data
-@inject MyDataService MyDataService
-@inject DataRetrievalService DataRetrievalService
+@inject IMyDataService MyDataService
+@inject IDataRetrievalService _dataRetrievalService
 @inject IDataRemovalService DataRemovalService
 @inject IDataCreatorService DataCreatorService
 @inject IDataUpdatingService DataUpdatingService
@@ -177,7 +177,7 @@ else
         if (IsProjectStorage)
         {
             //MyDataService.ProjectUploadCode = Project.ToLower();
-            _storageMetadata = await DataRetrievalService.GetStorageMetadata(Project.ToLower());
+            _storageMetadata = await _dataRetrievalService.GetStorageMetadata(Project.ToLower());
         }
 
         // If we get displayed on return from file upload, don't refresh from datalake
@@ -305,7 +305,7 @@ else
                 break;
 
             case MenuActions.DownloadFile:
-                var uri = await DataRetrievalService.DownloadFile(DataRetrievalService.DEFAULT_CONTAINER_NAME, item, Project);
+                var uri = await _dataRetrievalService.DownloadFile(DataRetrievalService.DEFAULT_CONTAINER_NAME, item, Project);
                 await Task.Run(() => RedirectAndDownload(uri));
                 break;
 
@@ -332,7 +332,7 @@ else
                 break;
 
             case MenuActions.MoveTo:
-                allFolders = await DataRetrievalService.GetAllFolders(CurrentFolder.rootFolderName, CurrentUser);
+                allFolders = await _dataRetrievalService.GetAllFolders(CurrentFolder.rootFolderName, CurrentUser);
                 await UI.ToggleModal(@<FolderViewModal OnDecision= "(a) => OnConfirmMoveFile(a, item)" />);
                 break;
 
@@ -462,7 +462,7 @@ else
 
         if (!string.IsNullOrWhiteSpace(Project))
         {
-            CurrentFolder = await DataRetrievalService.GetProjectFileList(DataRetrievalService.DEFAULT_CONTAINER_NAME, Project.ToLowerInvariant(), CurrentUser);
+            CurrentFolder = await _dataRetrievalService.GetProjectFileList(DataRetrievalService.DEFAULT_CONTAINER_NAME, Project.ToLowerInvariant(), CurrentUser);
         }
         else
         {

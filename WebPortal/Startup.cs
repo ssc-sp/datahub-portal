@@ -37,6 +37,8 @@ using Datahub.Core.Configuration;
 using Datahub.Core.Modules;
 using Datahub.Portal.Services.Storage;
 using Microsoft.AspNetCore.Authorization.Infrastructure;
+using Datahub.GeoCore.Service;
+using System.Net.Http.Headers;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]
 namespace Datahub.Portal
@@ -105,6 +107,13 @@ namespace Datahub.Portal
             ConfigureCoreDatahubServices(services);
 
             services.AddHttpClient();
+
+            services.AddHttpClient("DatahubApp", config =>
+            {
+                var productValue = new ProductInfoHeaderValue("Datahub", "1.0");
+                config.DefaultRequestHeaders.UserAgent.Add(productValue);
+            });
+
             services.AddHttpClient<GraphServiceClient>().AddPolicyHandler(GetRetryPolicy());
             services.AddFileReaderService();
             services.AddBlazorDownloadFile();
@@ -134,6 +143,7 @@ namespace Datahub.Portal
             services.Configure<TelemetryConfiguration>(Configuration.GetSection("ApplicationInsights"));
 
             services.Configure<CKANConfiguration>(Configuration.GetSection("CKAN"));
+            services.Configure<GeoCoreConfiguration>(Configuration.GetSection("GeoCore"));
 
             services.Configure<SessionsConfig>(Configuration.GetSection("Sessions"));
 
@@ -320,12 +330,12 @@ namespace Datahub.Portal
                 services.AddSingleton<IKeyVaultService, KeyVaultService>();
                 services.AddScoped<UserLocationManagerService>();
                 services.AddSingleton<CommonAzureServices>();
-                services.AddScoped<DataLakeClientService>();
+                services.AddScoped<IDataLakeClientService, DataLakeClientService>();
 
                 services.AddScoped<IUserInformationService, UserInformationService>();
                 services.AddSingleton<IMSGraphService, MSGraphService>();
 
-                services.AddScoped<MyDataService>();
+                services.AddScoped<IMyDataService, MyDataService>();
 
                 services.AddScoped<IPublicDataFileService, PublicDataFileService>();
 
@@ -334,7 +344,7 @@ namespace Datahub.Portal
                 services.AddScoped<IDataUpdatingService, DataUpdatingService>();
                 services.AddScoped<IDataSharingService, DataSharingService>();
                 services.AddScoped<IDataCreatorService, DataCreatorService>();
-                services.AddScoped<DataRetrievalService>();
+                services.AddScoped<IDataRetrievalService, DataRetrievalService>();
                 services.AddScoped<IDataRemovalService, DataRemovalService>();
 
                 services.AddSingleton<ICognitiveSearchService, CognitiveSearchService>();
@@ -350,25 +360,27 @@ namespace Datahub.Portal
                 services.AddSingleton<IKeyVaultService, OfflineKeyVaultService>();
                 services.AddScoped<UserLocationManagerService>();
                 services.AddSingleton<CommonAzureServices>();
-                //services.AddScoped<DataLakeClientService>();
+                services.AddScoped<IDataLakeClientService, OfflineDataLakeClientService>();
 
                 services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
                 services.AddScoped<IUserInformationService, OfflineUserInformationService>();
                 services.AddSingleton<IMSGraphService, OfflineMSGraphService>();
 
-                services.AddScoped<MyDataService, OfflineMyDataService>();
+                services.AddScoped<IMyDataService, OfflineMyDataService>();
                 
                 services.AddScoped<IProjectDatabaseService, OfflineProjectDatabaseService>();
 
                 services.AddScoped<IDataUpdatingService, OfflineDataUpdatingService>();
                 services.AddScoped<IDataSharingService, OfflineDataSharingService>();
                 services.AddScoped<IDataCreatorService, OfflineDataCreatorService>();
-                services.AddScoped<DataRetrievalService, OfflineDataRetrievalService>();
+                services.AddScoped<IDataRetrievalService, OfflineDataRetrievalService>();
                 services.AddScoped<IDataRemovalService, OfflineDataRemovalService>();
 
                 services.AddScoped<IAzurePriceListService, OfflineAzurePriceListService>();
 
                 services.AddSingleton<ICognitiveSearchService, OfflineCognitiveSearchService>();
+
+                services.AddScoped<IPowerBiDataService, PowerBiDataService>();
             }
 
             services.AddSingleton<IExternalSearchService, ExternalSearchService>();
@@ -394,6 +406,8 @@ namespace Datahub.Portal
 
             services.AddCKANService();
             services.AddSingleton<IOpenDataService, OpenDataService>();
+
+            services.AddGeoCoreService();
 
             services.AddSingleton<IGlobalSessionManager, GlobalSessionManager>();
             services.AddScoped<IUserCircuitCounterService, UserCircuitCounterService>();
