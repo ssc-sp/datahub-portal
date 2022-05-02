@@ -23,5 +23,7 @@ namespace Datahub.Core.Services
 
         public Task<List<PowerBi_Report>> GetReportsForProject(string projectCode, bool includeSandbox = false);
         public Task<List<PowerBi_Report>> GetReportsForUser(string userId);
+        public Task<List<string>> GetGlobalPowerBiAdmins();
+        public Task SetGlobalPowerBiAdmins(IEnumerable<string> adminEmails);
     }
 }
