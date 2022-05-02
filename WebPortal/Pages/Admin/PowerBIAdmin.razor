@@ -4,6 +4,7 @@
 @inject PowerBiServiceApi _powerBiServiceApi
 @inject Microsoft.Identity.Web.MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
 @inject IDbContextFactory<DatahubProjectDBContext> _contextFactory
+@inject IMSGraphService _msGraphService
 
 <style>
     .ae.card {
@@ -120,46 +121,110 @@
 
         </AeFlex>
 
-        <AeCard class="facard1">
-            <Header>
-                <AeTypography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.ImportUpdateTitle"]</AeTypography>
-            </Header>
-            <ChildContent>
-                @if (WorkspacesToBeUpdated != null && WorkspacesToBeUpdated.Count > 0)
-                {
-                    <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.ChangesExist"]</AeTypography>
-                    <AeCollapse>
-                        <AeCollapseSection>
-                            <Header>
-                                <AeTypography Variant="h4">@Localizer[$"{LOCALIZATION_PREFIX}.Details"]</AeTypography>
-                            </Header>
-                            <ChildContent>
-                                <ul>
-                                    @foreach(var w in WorkspacesToBeUpdated)
+        <AeFlex Vertical>
+
+            <AeCard class="facard1">
+                <Header>
+                    <AeTypography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.ImportUpdateTitle"]</AeTypography>
+                </Header>
+                <ChildContent>
+                    @if (WorkspacesToBeUpdated != null && WorkspacesToBeUpdated.Count > 0)
+                    {
+                        <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.ChangesExist"]</AeTypography>
+                        <AeCollapse>
+                            <AeCollapseSection>
+                                <Header>
+                                    <AeTypography Variant="h4">@Localizer[$"{LOCALIZATION_PREFIX}.Details"]</AeTypography>
+                                </Header>
+                                <ChildContent>
+                                    <ul>
+                                        @foreach(var w in WorkspacesToBeUpdated)
+                                        {
+                                            <li>
+                                                <span>@w.PbiWorkspaceName</span>
+                                                @if (w.ChildrenNeedUpdate)
+                                                {
+                                                    <span>&nbsp; @CountChildrenToUpdate(w)</span>
+                                                }
+                                            </li>
+                                        }
+                                    </ul>
+                                </ChildContent>
+                            </AeCollapseSection>
+                        </AeCollapse>
+                        <div>
+                            <AeButton OnClickEvent=@ImportPowerBiItems Disabled=@ImportDisabled>@Localizer[$"{LOCALIZATION_PREFIX}.SynchronizeButton"]</AeButton>
+                            <SuccessIndicator @bind-IsLoading=@IsImportingPowerBiItems @ref=@_bulkImportInd />
+                        </div>
+                    }
+                    else
+                    {
+                        <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.NothingToImport"]</AeTypography>
+                    }
+                </ChildContent>
+            </AeCard>
+
+            <AeCard class="facard1">
+                <Header>
+                    <AeTypography Variant="h3">Global Power BI Administrators</AeTypography>
+                </Header>
+                <ChildContent>
+                    @if(_globalPowerBiAdminEmails.Count > 0)
+                    {
+                        <ul>
+                            @foreach(var email in _globalPowerBiAdminEmails)
+                            {
+                                <li>
+                                    @if (_editingGlobalPowerBiAdmins)
                                     {
-                                        <li>
-                                            <span>@w.PbiWorkspaceName</span>
-                                            @if (w.ChildrenNeedUpdate)
-                                            {
-                                                <span>&nbsp; @CountChildrenToUpdate(w)</span>
-                                            }
-                                        </li>
+                                        <span @onclick=@(() => RemoveGlobalPowerBiAdmin(email))><i class="fad fa-times-circle"></i></span>
                                     }
-                                </ul>
-                            </ChildContent>
-                        </AeCollapseSection>
-                    </AeCollapse>
+                                    <span>@email</span>
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <AeTypography Variant="p">There are currently no global Power BI admins registered.</AeTypography>
+                    }
                     <div>
-                        <AeButton OnClickEvent=@ImportPowerBiItems Disabled=@ImportDisabled>@Localizer[$"{LOCALIZATION_PREFIX}.SynchronizeButton"]</AeButton>
-                        <SuccessIndicator @bind-IsLoading=@IsImportingPowerBiItems @ref=@_bulkImportInd />
+                        @if (_editingGlobalPowerBiAdmins)
+                        {
+                            <AeFlex Vertical>
+                                <div>
+                                    <input type="text" @bind-value=@_userSearchFilter @bind-value:event="oninput" @onkeyup=@SearchUsers />
+                                    @if (_isSearchingUsers)
+                                    {
+                                        <Spinner Small />
+                                    }
+                                </div>
+                                @if (_userSearchResults.Count > 0)
+                                {
+                                    <ul>
+                                        @foreach (var user in _userSearchResults.Values.OrderBy(u => u.DisplayName))
+                                        {
+                                            <li>
+                                                <span @onclick=@(() => AddGlobalPowerBiAdmin(user))>@user.DisplayName - @user.Mail.ToLowerInvariant()</span>
+                                            </li>
+                                        }
+                                    </ul>
+                                }
+                                <div>
+                                    <AeButton OnClickEvent=@SaveGlobalPowerBiAdmins >@Localizer[$"BUTTONS.Save"]</AeButton>
+                                    <AeButton OnClickEvent=@CancelEditingGlobalPowerBiAdmins class="light">@Localizer[$"BUTTONS.Cancel"]</AeButton>
+                                    <SuccessIndicator />
+                                </div>
+                            </AeFlex>
+                        }
+                        else
+                        {
+                            <AeButton OnClickEvent=@(() => _editingGlobalPowerBiAdmins = true)>@Localizer[$"BUTTONS.Edit"]</AeButton>
+                        }
                     </div>
-                }
-                else
-                {
-                    <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.NothingToImport"]</AeTypography>
-                }
-            </ChildContent>
-        </AeCard>
+                </ChildContent>
+            </AeCard>
+        </AeFlex>
 
     </AeFlex>
     
@@ -195,6 +260,12 @@
     private bool IsSavingWorkspace { get; set; } = false;
     private SuccessIndicator _saveWorkspaceInd;
 
+    private ISet<string> _globalPowerBiAdminEmails = new HashSet<string>();
+    private bool _editingGlobalPowerBiAdmins = false;
+    private string _userSearchFilter = string.Empty;
+    private Dictionary<string, GraphUser> _userSearchResults = new();
+    private QueryThrottler<string> _userSearchThrottler;
+    private bool _isSearchingUsers = false;
 
     private string CountChildrenToUpdate(PowerBiAdminWorkspaceTreeItem workspace)
     {
@@ -423,12 +494,67 @@
         AvailableProjects = AvailableProjects.OrderBy(p => p.ProjectName).ToList();
     }
 
+    private async Task LoadGlobalPowerBiAdmins()
+    {
+        var list = await _powerBiDataService.GetGlobalPowerBiAdmins();
+        _globalPowerBiAdminEmails = list?.ToHashSet() ?? new HashSet<string>();
+        StateHasChanged();
+    }
+
+    private async Task SearchUsers(KeyboardEventArgs args)
+    {
+        await _userSearchThrottler.SetQuery(_userSearchFilter);
+    }
+
+    private async Task InvokeSearchUsers(string searchFilter)
+    {
+        if (searchFilter.Length >= 3)
+        {
+            await InvokeAsync(() => DoSearchUsers(searchFilter));
+        }
+    }
+
+    private async Task DoSearchUsers(string searchFilter)
+    {
+        _isSearchingUsers = true;
+        StateHasChanged();
+
+        _userSearchResults = await _msGraphService.GetUsersListAsync(_userSearchFilter, CancellationToken.None);
+        _isSearchingUsers = false;
+        StateHasChanged();
+    }
+
+    private void AddGlobalPowerBiAdmin(GraphUser user)
+    {
+        _globalPowerBiAdminEmails.Add(user.Mail.ToLowerInvariant());
+        _userSearchFilter = string.Empty;
+        _userSearchResults.Clear();
+    }
+
+    private void RemoveGlobalPowerBiAdmin(string email)
+    {
+        _globalPowerBiAdminEmails.Remove(email);
+    }
+
+    private async Task SaveGlobalPowerBiAdmins()
+    {
+        await _powerBiDataService.SetGlobalPowerBiAdmins(_globalPowerBiAdminEmails);
+        await CancelEditingGlobalPowerBiAdmins();
+    }
+
+    private async Task CancelEditingGlobalPowerBiAdmins()
+    {
+        _editingGlobalPowerBiAdmins = false;
+        await LoadGlobalPowerBiAdmins();
+    }
+
     protected override async Task OnInitializedAsync()
     {
         try
         {
+            _userSearchThrottler = new(TimeSpan.FromSeconds(0.3), InvokeSearchUsers);
             await LoadWorkspaceTreeItems();
-            await LoadProjects();
+            await Task.WhenAll(LoadProjects(), LoadGlobalPowerBiAdmins());
         }
         catch (Exception ex)
         {
