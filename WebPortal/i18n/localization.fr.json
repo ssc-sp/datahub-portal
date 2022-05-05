@@ -790,6 +790,7 @@
   "Event": "Évènement",
   "Project_Or_Initiative": "Projet ou Initiative",
   "Other": "Autre",
+  "IsOrganizationalTeam": "Équipe à l’échelle de l’organisation",
   "Visibility": "Visibilité - *NOTE* Protégé B doit être Privé ",
   "VisibilityNoNote": "Visibilité",
   "Ongoing_Lifespan": "Permanent",

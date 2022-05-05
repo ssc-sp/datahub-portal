@@ -23,22 +23,21 @@
                         @(_showAll ? Localizer["METADATA-PAGE.ShowLess"] : Localizer["METADATA-PAGE.ShowMore"])
                     </AeButton>
                 </div>
-                <div style="margin-top: 16px">
-                    <AeButton OnClickEvent=@SaveChanges Disabled=@_disableSave>@SaveButtonLabel</AeButton>
-                </div>
-            </AeFlex>
-            <div>
-                @if (_savingData)
+                @if (_showSaveButton)
                 {
-                    <Spinner Small=@true/>
+                    <div style="margin-top: 16px">
+                        <AeButton OnClickEvent=@HandleSaveButton Disabled=@_disableSave>@SaveButtonLabel</AeButton>
+                        <SuccessIndicator @bind-IsLoading=@_savingData @ref=@_saveInd />
+                    </div>
                 }
-            </div>
+            </AeFlex>
         </div>
     }
 }
 </div>
 
 @code {
+    private static readonly string DEFAULT_SECURITY_CLASS = SecurityClassification.Unclassified;
 
     [Inject]
     public IMetadataBrokerService MetadataBrokerService { get; set; }
@@ -62,7 +61,7 @@
     public string Location { get; set; }
 
     [Parameter]
-    public string SecurityClass { get; set; } = "Unclassified";
+    public string SecurityClass { get; set; } = DEFAULT_SECURITY_CLASS;
 
     [Parameter]
     public string ProfileName { get; set; } = "opendata";
@@ -83,7 +82,13 @@
     public bool Preview { get; set; }
 
     [Parameter]
+    public bool HideSaveButton { get; set; } = false;
+
+    [Parameter]
     public EventCallback<FieldValueContainer> OnSave { get; set; }
+
+    [Parameter]
+    public EventCallback OnValuesChanged { get; set; }
 
     private FieldValueContainer _fieldValues;
     private FieldDefinitions _definitions;
@@ -92,7 +97,14 @@
 
     private bool _showAll;
     private bool _savingData;
-    private bool _disableSave = true;
+    private bool _requiredFieldsAreValid;
+    private bool _disableSave => _savingData || !_requiredFieldsAreValid;
+
+    public bool SaveDisabled => _disableSave;
+
+    private bool _showSaveButton => !HideSaveButton;
+
+    private SuccessIndicator _saveInd;
 
     private HashSet<int> _requiredFieldIds = new();
 
@@ -100,8 +112,9 @@
     {
         await LoadFieldValues();
         _profile = await MetadataBrokerService.GetProfile(ProfileName);
-        _disableSave = !CheckRequiredFieldValues();
+        _requiredFieldsAreValid = CheckRequiredFieldValues();
         _requiredFieldIds = _profile.GetRequiredFieldSet();
+        await TriggerValuesChanged();
     }
 
     protected override async Task OnParametersSetAsync()
@@ -118,15 +131,27 @@
         // the Object Id may come from an external source or from a know MetadataObject row
         if (long.TryParse(ObjectId, out long metadataObjectId))
         {
-            _fieldValues = await MetadataBrokerService.GetObjectMetadataValues(metadataObjectId);    
+            _fieldValues = await MetadataBrokerService.GetObjectMetadataValues(metadataObjectId);
+            if (UpdateCatalog)
+            {
+                var catalogResult = await MetadataBrokerService.GetCatalogObjectByMetadataId(metadataObjectId);
+                SecurityClass = catalogResult?.SecurityClass ?? SecurityClass;
+            }
         }
         else
         {
-            _fieldValues = await MetadataBrokerService.GetObjectMetadataValues(ObjectId);    
+            _fieldValues = await MetadataBrokerService.GetObjectMetadataValues(ObjectId);
+            if (UpdateCatalog)
+            {
+                var catalogResult = await MetadataBrokerService.GetCatalogObjectByObjectId(ObjectId);
+                SecurityClass = catalogResult?.SecurityClass ?? SecurityClass;
+            }
         }
 
         _definitions = _fieldValues.Definitions;
         _lastObjectId = ObjectId;
+
+        await TriggerValuesChanged();
 
         // set external choices
         await UpdateExternalFieldChoices();
@@ -152,9 +177,9 @@
         return _requiredFieldIds.Contains(field.FieldDefinitionId);
     }
 
-    private async Task SaveChanges()
+    private async Task<bool> DoSaveChanges()
     {
-        _savingData = true;
+        var success = true;
         try
         {
             SetObjectName();
@@ -165,9 +190,31 @@
             }
             await OnSave.InvokeAsync(_fieldValues);
         }
-        finally
+        catch (Exception)
         {
-            _savingData = false;
+            success = false;
+        }
+
+        return await Task.FromResult(success);
+    }
+
+    public async Task<bool> SaveChanges() => await DoSaveChanges();
+
+    private async Task HandleSaveButton()
+    {
+        if (!_disableSave)
+        {
+            _savingData = true;
+
+            var success = await DoSaveChanges();
+            if (success)
+            {
+                await _saveInd.SignalSuccess();
+            }
+            else
+            {
+                await _saveInd.SignalFailure();
+            }
         }
     }
 
@@ -197,9 +244,10 @@
         }
     }
 
-    private void FieldChanged()
+    private async Task FieldChanged()
     {
-        _disableSave = !CheckRequiredFieldValues();
+        _requiredFieldsAreValid = CheckRequiredFieldValues();
+        await TriggerValuesChanged();
     }
 
     private void ToggleShowAll()
@@ -239,4 +287,35 @@
             Label_French_TXT = l.FrenchLabel
         }).ToList();
     }
+
+    public void SetValue(string fieldName, string fieldValue)
+    {
+        // TODO: see if we can do anything useful with the returned ObjectFieldValue
+        _fieldValues.SetValue(fieldName, fieldValue);
+    }
+
+    public void SetValues(Dictionary<string, string> values)
+    {
+        foreach (var entry in values)
+        {
+            SetValue(entry.Key, entry.Value);
+        }
+    }
+
+    public string GetValue(string fieldName) => _fieldValues.GetValue(fieldName);
+
+    public Dictionary<string, string> GetAllValues()
+    {
+        var names = _fieldValues.GetAllFieldNames();
+        return names.ToDictionary(n => n, n => GetValue(n));
+    }
+
+    private async Task TriggerValuesChanged()
+    {
+        if (OnValuesChanged.HasDelegate)
+        {
+            await OnValuesChanged.InvokeAsync();
+        }
+    }
+
 }
