@@ -2,7 +2,6 @@
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <AddRazorSupportForMvc>true</AddRazorSupportForMvc>
-    <UserSecretsId>6c9f0107-a066-45ca-9449-dd1f55641b99</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <DockerfileContext>.</DockerfileContext>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -26,7 +25,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="AElemental.Blazor" Version="1.5.22078.1-beta" />
+    <PackageReference Include="AElemental.Blazor" Version="1.5.22122.3-beta" />
     <PackageReference Include="Askmethat.Aspnet.JsonLocalizer" Version="4.0.0" />
     <PackageReference Include="Azure.Identity" Version="1.5.0" />
     <PackageReference Include="Azure.Search.Documents" Version="11.3.0" />

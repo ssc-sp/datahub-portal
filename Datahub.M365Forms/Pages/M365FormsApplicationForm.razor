@@ -105,7 +105,7 @@
         };
 
         var footerfile = _isFrench ? "FormFooterFr.md" : "FormFooter.md";
-        
+
         LoadApps(string.Empty);
 
         _formMetadata.Header = Localizer["M365 Team Request Form"];
@@ -202,18 +202,24 @@
             {
                 await _submitApprovalInd.SignalSuccess();
             }
-            M365FormsParameters m365FormsParameters = new() {
-                    AppId = m365FormApplication.Application_ID,
-                    TeamName = m365FormApplication.Name_of_Team,
-                    BusinessOwner = m365FormApplication.Business_Owner,
-                    SubmitterEmaill = _user.Mail,
-                    AppUrl = $"/m365form/applications/{m365FormApplication.Application_ID}",
-                    AdminEmailAddresses =  ServiceAuthManager.GetProjectMailboxEmails(PROJECTACRONYM)
-            };
+
+            if (!m365FormApplication.NotificationsSent)
+            {
+                M365FormsParameters m365FormsParameters = new()
+                    {
+                        AppId = m365FormApplication.Application_ID,
+                        TeamName = m365FormApplication.Name_of_Team,
+                        BusinessOwner = m365FormApplication.Business_Owner,
+                        SubmitterEmaill = _user.Mail,
+                        AppUrl = $"/m365form/applications/{m365FormApplication.Application_ID}",
+                        AdminEmailAddresses = ServiceAuthManager.GetProjectMailboxEmails(PROJECTACRONYM)
+                    };
 
 
-            await EmailService.SendM365FormsConfirmations(m365FormsParameters);
-
+                await EmailService.SendM365FormsConfirmations(m365FormsParameters);
+                m365FormApplication.NotificationsSent = true;
+                await Context.TrackSaveChangesAsync(AuditingService);
+            }
             LoadApps(_currentFilter);
 
             m365FormApplication = null;
@@ -238,6 +244,7 @@
         context.SetVisible<M365FormsApplication>(p => p.Expected_Lifespan_DT, m365FormApplication?.Ongoing_Lifespan != true);
         context.SetVisible<M365FormsApplication>(p => p.M365FormStatus!, _isUserAdmin);
         context.SetVisible<M365FormsApplication>(p => p.Comments!, _isUserAdmin);
+        context.SetVisible<M365FormsApplication>(p => p.IsOrganizationalTeam!, _isUserAdmin);
         _onchange = false;
     }
 
@@ -259,10 +266,7 @@
     private void SetFormEdit(M365FormsApplication application)
     {
         m365FormApplication = application;
-
-        if (m365FormApplication.NotificationsSent)
-            _formMetadata.IsSubmitEnabled = false;
-
+        
         StateHasChanged();
     }
 

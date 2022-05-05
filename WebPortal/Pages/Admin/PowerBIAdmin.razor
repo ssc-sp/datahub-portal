@@ -58,11 +58,6 @@
                                 <span>@Localizer[$"{LOCALIZATION_PREFIX}.Sandbox"]</span>
                             </label>
                         </div>
-                        <div>
-                            <AeButton OnClickEvent=@SaveWorkspace Disabled=@IsSavingWorkspace>@Localizer[$"BUTTONS.Save"]</AeButton>
-                            <AeButton OnClickEvent=@CloseItemBeingEdited>@Localizer[$"BUTTONS.Cancel"]</AeButton>
-                            <SuccessIndicator @bind-IsLoading=@IsSavingWorkspace @ref=@_saveWorkspaceInd />
-                        </div>
                         <AeTypography Variant="h4">@Localizer[$"{LOCALIZATION_PREFIX}.Metadata"]</AeTypography>
                         <ObjectMetadataEditor 
                             ObjectId=@WorkspaceBeingEdited.WorkspaceId.ToString()
@@ -72,7 +67,15 @@
                             UpdateCatalog=@true
                             ValidateRequired=@false
                             Name=@WorkspaceBeingEdited.DbWorkspaceName
+                            HideSaveButton
+                            OnValuesChanged=@(() => StateHasChanged())
+                            @ref=@_workspaceMetadata
                         />
+                        <div>
+                            <AeButton OnClickEvent=@SaveWorkspace Disabled=@SaveWorkspaceDisabled>@Localizer[$"BUTTONS.Save"]</AeButton>
+                            <AeButton OnClickEvent=@CloseItemBeingEdited>@Localizer[$"BUTTONS.Cancel"]</AeButton>
+                            <SuccessIndicator @bind-IsLoading=@IsSavingWorkspace @ref=@_saveWorkspaceInd />
+                        </div>
                     </ChildContent>
                 </AeCard>
             }
@@ -85,6 +88,21 @@
                     </Header>
                     <ChildContent>
                         <AeTypography Variant="h4">@Localizer[$"{LOCALIZATION_PREFIX}.Metadata"]</AeTypography>
+                        @if (_datasetMetadata != null)
+                        {
+                            <label>
+                                <AeFlex Vertical>
+                                    <AeTypography><strong><span>@Localizer[$"{LOCALIZATION_PREFIX}.SecurityClassification"]</span></strong></AeTypography>
+                                    <select @bind=@_datasetMetadata.SecurityClass class="ae input">
+                                        @foreach(var sec in SecurityClassification.SECURITY_CLASSES)
+                                        {
+                                            <option value=@sec>@Localizer[@sec]</option>
+                                        }
+                                    </select>
+                                </AeFlex>
+                            </label>
+                        }
+
                         <ObjectMetadataEditor 
                             ObjectId=@DatasetBeingEdited.DatasetId.ToString()
                             Location="PowerBI"
@@ -93,7 +111,16 @@
                             UpdateCatalog=@true
                             ValidateRequired=@false
                             Name=@DatasetBeingEdited.DbDatasetName
+                            HideSaveButton
+                            OnValuesChanged=@(() => StateHasChanged())
+                            @ref=@_datasetMetadata
                         />
+
+                        <div>
+                            <AeButton OnClickEvent=@SaveDataset Disabled=@SaveDatasetDisabled>@Localizer[$"BUTTONS.Save"]</AeButton>
+                            <AeButton class="light" OnClickEvent=@CloseItemBeingEdited>@Localizer[$"BUTTONS.Cancel"]</AeButton>
+                            <SuccessIndicator @bind-IsLoading=@IsSavingDataset @ref=@_saveDatasetInd />
+                        </div>
                     </ChildContent>
                 </AeCard>
             }
@@ -106,7 +133,23 @@
                     </Header>
                     <ChildContent>
                         <AeTypography Variant="h4">@Localizer[$"{LOCALIZATION_PREFIX}.Metadata"]</AeTypography>
+                        @if (_reportMetadata != null)
+                        {
+                            <label>
+                                <AeFlex Vertical>
+                                    <AeTypography><strong><span>@Localizer[$"{LOCALIZATION_PREFIX}.SecurityClassification"]</span></strong></AeTypography>
+                                    <select @bind=@_reportMetadata.SecurityClass class="ae input">
+                                        @foreach(var sec in SecurityClassification.SECURITY_CLASSES)
+                                        {
+                                            <option value=@sec>@Localizer[@sec]</option>
+                                        }
+                                    </select>
+                                </AeFlex>
+                            </label>
+                        }
+
                         <ObjectMetadataEditor 
+                            @ref=@_reportMetadata
                             ObjectId=@ReportBeingEdited.ReportId.ToString()
                             Location="PowerBI"
                             ProfileName="catalog"
@@ -114,7 +157,15 @@
                             UpdateCatalog=@true
                             ValidateRequired=@false
                             Name=@ReportBeingEdited.DbReportName
+                            HideSaveButton
+                            OnValuesChanged=@(() => StateHasChanged())
                         />
+
+                        <div>
+                            <AeButton OnClickEvent=@SaveReport Disabled=@SaveReportDisabled>@Localizer[$"BUTTONS.Save"]</AeButton>
+                            <AeButton class="light" OnClickEvent=@CloseItemBeingEdited>@Localizer[$"BUTTONS.Cancel"]</AeButton>
+                            <SuccessIndicator @bind-IsLoading=@IsSavingReport @ref=@_saveReportInd />
+                        </div>
                     </ChildContent>
                 </AeCard>
             }
@@ -164,66 +215,73 @@
                 </ChildContent>
             </AeCard>
 
-            <AeCard class="facard1">
-                <Header>
-                    <AeTypography Variant="h3">Global Power BI Administrators</AeTypography>
-                </Header>
-                <ChildContent>
-                    @if(_globalPowerBiAdminEmails.Count > 0)
-                    {
-                        <ul>
-                            @foreach(var email in _globalPowerBiAdminEmails)
+
+            <AuthorizeView Roles=@RoleConstants.DATAHUB_ROLE_ADMIN >
+                <Authorized>
+
+                    <AeCard class="facard1">
+                        <Header>
+                            <AeTypography Variant="h3">Global Power BI Administrators</AeTypography>
+                        </Header>
+                        <ChildContent>
+                            @if(_globalPowerBiAdminEmails.Count > 0)
                             {
-                                <li>
-                                    @if (_editingGlobalPowerBiAdmins)
+                                <ul>
+                                    @foreach(var email in _globalPowerBiAdminEmails)
                                     {
-                                        <span @onclick=@(() => RemoveGlobalPowerBiAdmin(email))><i class="fad fa-times-circle"></i></span>
+                                        <li>
+                                            @if (_editingGlobalPowerBiAdmins)
+                                            {
+                                                <span @onclick=@(() => RemoveGlobalPowerBiAdmin(email))><i class="fad fa-times-circle"></i></span>
+                                            }
+                                            <span>@email</span>
+                                        </li>
                                     }
-                                    <span>@email</span>
-                                </li>
+                                </ul>
                             }
-                        </ul>
-                    }
-                    else
-                    {
-                        <AeTypography Variant="p">There are currently no global Power BI admins registered.</AeTypography>
-                    }
-                    <div>
-                        @if (_editingGlobalPowerBiAdmins)
-                        {
-                            <AeFlex Vertical>
-                                <div>
-                                    <input type="text" @bind-value=@_userSearchFilter @bind-value:event="oninput" @onkeyup=@SearchUsers />
-                                    @if (_isSearchingUsers)
-                                    {
-                                        <Spinner Small />
-                                    }
-                                </div>
-                                @if (_userSearchResults.Count > 0)
+                            else
+                            {
+                                <AeTypography Variant="p">There are currently no global Power BI admins registered.</AeTypography>
+                            }
+                            <div>
+                                @if (_editingGlobalPowerBiAdmins)
                                 {
-                                    <ul>
-                                        @foreach (var user in _userSearchResults.Values.OrderBy(u => u.DisplayName))
+                                    <AeFlex Vertical>
+                                        <div>
+                                            <input type="text" @bind-value=@_userSearchFilter @bind-value:event="oninput" @onkeyup=@SearchUsers />
+                                            @if (_isSearchingUsers)
+                                            {
+                                                <Spinner Small />
+                                            }
+                                        </div>
+                                        @if (_userSearchResults.Count > 0)
                                         {
-                                            <li>
-                                                <span @onclick=@(() => AddGlobalPowerBiAdmin(user))>@user.DisplayName - @user.Mail.ToLowerInvariant()</span>
-                                            </li>
+                                            <ul>
+                                                @foreach (var user in _userSearchResults.Values.OrderBy(u => u.DisplayName))
+                                                {
+                                                    <li>
+                                                        <span @onclick=@(() => AddGlobalPowerBiAdmin(user))>@user.DisplayName - @user.Mail.ToLowerInvariant()</span>
+                                                    </li>
+                                                }
+                                            </ul>
                                         }
-                                    </ul>
+                                        <div>
+                                            <AeButton OnClickEvent=@SaveGlobalPowerBiAdmins >@Localizer[$"BUTTONS.Save"]</AeButton>
+                                            <AeButton OnClickEvent=@CancelEditingGlobalPowerBiAdmins class="light">@Localizer[$"BUTTONS.Cancel"]</AeButton>
+                                            <SuccessIndicator />
+                                        </div>
+                                    </AeFlex>
                                 }
-                                <div>
-                                    <AeButton OnClickEvent=@SaveGlobalPowerBiAdmins >@Localizer[$"BUTTONS.Save"]</AeButton>
-                                    <AeButton OnClickEvent=@CancelEditingGlobalPowerBiAdmins class="light">@Localizer[$"BUTTONS.Cancel"]</AeButton>
-                                    <SuccessIndicator />
-                                </div>
-                            </AeFlex>
-                        }
-                        else
-                        {
-                            <AeButton OnClickEvent=@(() => _editingGlobalPowerBiAdmins = true)>@Localizer[$"BUTTONS.Edit"]</AeButton>
-                        }
-                    </div>
-                </ChildContent>
-            </AeCard>
+                                else
+                                {
+                                    <AeButton OnClickEvent=@(() => _editingGlobalPowerBiAdmins = true)>@Localizer[$"BUTTONS.Edit"]</AeButton>
+                                }
+                            </div>
+                        </ChildContent>
+                    </AeCard>
+
+                </Authorized>
+            </AuthorizeView>
         </AeFlex>
 
     </AeFlex>
@@ -257,8 +315,20 @@
     private PowerBiAdminDatasetTreeItem DatasetBeingEdited { get; set; }
     private PowerBiAdminReportTreeItem ReportBeingEdited { get; set; }
 
+    private ObjectMetadataEditor _workspaceMetadata;
     private bool IsSavingWorkspace { get; set; } = false;
+    private bool SaveWorkspaceDisabled => IsSavingWorkspace || (_workspaceMetadata?.SaveDisabled ?? false);
     private SuccessIndicator _saveWorkspaceInd;
+
+    private ObjectMetadataEditor _reportMetadata;
+    private bool IsSavingReport { get; set; } = false;
+    private bool SaveReportDisabled => IsSavingReport || (_reportMetadata?.SaveDisabled ?? false);
+    private SuccessIndicator _saveReportInd;
+
+    private ObjectMetadataEditor _datasetMetadata;
+    private bool IsSavingDataset { get; set; } = false;
+    private bool SaveDatasetDisabled => IsSavingDataset || (_datasetMetadata?.SaveDisabled ?? false);
+    private SuccessIndicator _saveDatasetInd;
 
     private ISet<string> _globalPowerBiAdminEmails = new HashSet<string>();
     private bool _editingGlobalPowerBiAdmins = false;
@@ -408,6 +478,7 @@
 
         _tempLastClickedItem = item.Label;
         _tempLastClickedType = item.ItemType.ToString();
+        StateHasChanged();
         await Task.CompletedTask;
     }
 
@@ -425,6 +496,8 @@
         var wsDef = WorkspaceBeingEdited.Definition;
         var success = await _powerBiDataService.AddOrUpdateCataloguedWorkspace(wsDef);
 
+        success &= await _workspaceMetadata.SaveChanges();
+
         if (success)
         {
             await _saveWorkspaceInd.SignalSuccess();
@@ -436,6 +509,51 @@
         }
     }
 
+    private async Task SaveReport()
+    {
+        if (ReportBeingEdited == null)
+        {
+            await Task.CompletedTask;
+            return;
+        }
+
+        IsSavingReport = true;
+        StateHasChanged();
+
+        var success = await _reportMetadata.SaveChanges();
+        if (success)
+        {
+            await _saveReportInd.SignalSuccess();
+            await CloseItemBeingEdited();
+        }
+        else
+        {
+            await _saveReportInd.SignalFailure();
+        }
+    }
+
+    private async Task SaveDataset()
+    {
+        if (DatasetBeingEdited == null)
+        {
+            await Task.CompletedTask;
+            return;
+        }
+
+        IsSavingDataset = true;
+        StateHasChanged();
+
+        var success = await _datasetMetadata.SaveChanges();
+        if (success)
+        {
+            await _saveDatasetInd.SignalSuccess();
+            await CloseItemBeingEdited();
+        }
+        else
+        {
+            await _saveDatasetInd.SignalFailure();
+        }
+    }
 
 
     private async Task ImportPowerBiItems()
