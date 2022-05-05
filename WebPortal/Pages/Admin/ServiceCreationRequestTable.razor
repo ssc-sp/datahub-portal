@@ -78,7 +78,7 @@
     };
 
     private List<string> LocalizeHeaders(List<string> input) => input.Select(s => Localizer[s].ToString()).ToList();
-    
+
     private void PaginationClicked(int pageIndex)
     {
         CurrentPage = pageIndex;
@@ -89,7 +89,7 @@
         _searchFilter = searchFilter;
         await InvokeAsync(RefreshData);
     }
-    
+
     private async void HandleCheckChanged(bool isChecked)
     {
         _hideAuthorizedUsers = isChecked;
@@ -165,6 +165,22 @@
         StateHasChanged();
     }
 
+    private RenderFragment RequestCompletedTimeFragment(Datahub_ProjectServiceRequests request)
+    {
+        if (request.ServiceType == RequestManagementService.POWERBI && !request.Is_Completed.HasValue)
+        {
+            var projectCode = request.Project.Project_Acronym_CD;
+            return @<NavLink href="@($"/project/{projectCode}/powerbirequest")">
+                <AeButton>@Localizer["Review PowerBI Request"]</AeButton>
+            </NavLink>;
+        }
+        else
+        {
+            return 
+            @<div>@(request.Is_Completed?.ToShortDateString() ?? @Localizer["N/A"])</div>;
+        }
+    }
+
     protected override async Task OnInitializedAsync()
     {
         serviceRenderers = new List<Func<Datahub_ProjectServiceRequests, RenderFragment>>()
@@ -173,7 +189,7 @@
             p => 
     @<div>@(p.User_Name ?? @Localizer["N/A"])</div>,
             null,
-            p => @<div>@(p.Is_Completed?.ToShortDateString() ?? @Localizer["N/A"])</div>,
+            RequestCompletedTimeFragment,
             p => 
             {
                 if (!p.Is_Completed.HasValue)
