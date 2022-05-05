@@ -139,6 +139,7 @@
     private bool _reloadOptions = true;
     private SuccessIndicator _submitApprovalInd;
     private bool _submittingApproval = false;
+    private int _indicatorFiscalYear;
 
     private void OnPageClick(int pageIndex)
     {
@@ -245,6 +246,8 @@
         _indicator.IsTargetLocked = false;
         _indicator.IsIndicatorDetailsLocked = false;
         _indicator.IsIndicatorStatusLocked = false;
+        _indicator.IsFiscalYearLocked = true;
+
         foreach (var category in lockedCategories)
         {
             if (category == "Methodology")
@@ -259,6 +262,7 @@
                 _indicator.IsIndicatorDetailsLocked = true;
             if (category == "Indicator Status")
                 _indicator.IsIndicatorStatusLocked = true;
+
         }        
     }
     protected void RegisterLocks(IModelFormContext context)
@@ -275,7 +279,9 @@
         if (_indicator.IsIndicatorStatusLocked)
             context.RegisterCategoryLock("Indicator Status", true);        
         if (_indicator.IsIndicatorDetailsLocked)
-            context.RegisterCategoryLock("Indicator Details", true);        
+            context.RegisterCategoryLock("Indicator Details", true);
+        if (_indicator.IsFiscalYearLocked)
+            context.RegisterCategoryLock("Fiscal Year", true);                    
     }
 
 
@@ -294,6 +300,7 @@
         _indicator.IsTargetLocked = true;
         _indicator.IsIndicatorDetailsLocked = true;
         _indicator.IsIndicatorStatusLocked = true;
+        _indicator.IsFiscalYearLocked = true;
 
 
         await HandleValidSubmit();
@@ -376,25 +383,26 @@
         _indicator = Context.IndicatorAndResults.Where(i => i.IndicatorAndResult_ID == recordId).First();
 
         _enableSave = true;
-    //    if (IsRecordLocked(_indicator))
-    //    {
-    //        var user = await UserInformationService.GetUserAsync(_indicator.EditingUserId);
-    //        var textList = new List<string>()
-    //        {
-    //            $"This Program is currently being edited by {user.DisplayName}, you will not be able to save any changes"
-    //        };
-    //        _enableSave = false;
-    //        await UI.ToggleModal(
-    //@<WarningModal OnDecision="HandleWarningDecision" WarningTextString=@textList />
-    //);
-    //    }
-    //    else
-    //    {
-    //        _indicator.EditingUserId = CurrentUser.Id;
-    //        await Context.TrackSaveChangesAsync(AuditingService);
-    //    }
+        //    if (IsRecordLocked(_indicator))
+        //    {
+        //        var user = await UserInformationService.GetUserAsync(_indicator.EditingUserId);
+        //        var textList = new List<string>()
+        //        {
+        //            $"This Program is currently being edited by {user.DisplayName}, you will not be able to save any changes"
+        //        };
+        //        _enableSave = false;
+        //        await UI.ToggleModal(
+        //@<WarningModal OnDecision="HandleWarningDecision" WarningTextString=@textList />
+        //);
+        //    }
+        //    else
+        //    {
+        //        _indicator.EditingUserId = CurrentUser.Id;
+        //        await Context.TrackSaveChangesAsync(AuditingService);
+        //    }
         _indicator = Context.IndicatorAndResults.Where(i => i.IndicatorAndResult_ID == recordId).First();
         _indicator.Last_Updated_UserName = await MSGraphService.GetUserName(_indicator.Last_Updated_UserId, CancellationToken.None);
+        _indicatorFiscalYear = _indicator.FiscalYearId;
         if (_myModelForm != null)
         {
             var ctx = _myModelForm.ModelFormContext;
@@ -416,6 +424,8 @@
             entry.State = EntityState.Unchanged;
         }                        
     }
+
+    
     private async void OnConfirmSave(bool isConfirmed, dynamic item)
     {
         await UI.ToggleModal();
@@ -424,11 +434,13 @@
         {
             var timeUtc = DateTime.UtcNow;
             TimeZoneInfo easternZone = TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time");
-            
+
             _indicator.Last_Updated_DT = TimeZoneInfo.ConvertTimeFromUtc(timeUtc, easternZone);
             _indicator.Date_Updated_DT = TimeZoneInfo.ConvertTimeFromUtc(timeUtc, easternZone);
             _indicator.Last_Updated_UserId = CurrentUser.Id;
             _indicator.EditingUserId = string.Empty;
+            _indicator.IsFiscalYearLocked = true;
+            _indicator.FiscalYearId = _indicatorFiscalYear;
             if (_indicator.IndicatorAndResult_ID == 0)
             {
                 _indicator = Context.IndicatorAndResults.Add(_indicator).Entity;
@@ -440,7 +452,8 @@
                 {
                     $"The record you were trying to update has been modified by another user. Please copy your changes, refresh the page and re-enter the data."
                 };                
-                await UI.ToggleModal(@<WarningModal OnDecision="HandleWarningDecision" WarningTextString=@textList />);
+                await UI.ToggleModal(
+    @<WarningModal OnDecision="HandleWarningDecision" WarningTextString=@textList />);
 
                 await _submitApprovalInd.SignalFailure();
             }

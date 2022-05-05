@@ -54,11 +54,12 @@ namespace Datahub.Portal.Data.PIP
 
 
 
-
+        [AeFormIgnore]
         [AeLabel(row: "6", column: "1")]
         [AeFormCategory("Spending (in $) as per GC InfoBase (to be updated by CMSS)", 20)]
         [Column(TypeName = "Money")]
         public double? Planned_Spending_AMTL { get; set; }
+        [AeFormIgnore]
         [AeLabel(row: "6", column: "2", placeholder: "to be updated by CMSS")]
         [AeFormCategory("Spending (in $) as per GC InfoBase (to be updated by CMSS)", 20)]
         [Column(TypeName = "Money")]
@@ -196,17 +197,19 @@ namespace Datahub.Portal.Data.PIP
         public string No_Equity_Seeking_Group { get; set; }
 
 
-
+        [AeFormIgnore]
         [AeLabel(row: "40", column: "1")]
         [AeFormCategory("Date of PIP Approval", 57)] public DateTime? Approval_By_Program_Offical_DT { get; set; }
+        [AeFormIgnore]
         [AeLabel(row: "40", column: "2")]
         [AeFormCategory("Date of PIP Approval", 57)] public DateTime? Consultation_With_The_Head_Of_Evaluation_DT { get; set; }
+        [AeFormIgnore]
         [AeLabel(row: "40", column: "3")]
         [AeFormCategory("Date of PIP Approval", 57)] public DateTime? Functional_SignOff_DT { get; set; }
 
 
         [AeLabel(row: "41", column: "1")]
-        [AeFormCategory("Date of PIP Approval", 57)]
+        [AeFormCategory("Program Notes", 57)]
         [MaxLength(4000)]
         public string Program_Notes { get; set; }
 
@@ -259,5 +262,7 @@ namespace Datahub.Portal.Data.PIP
         public bool IsDateOfPipApprovalLocked { get; set; }
         [AeFormIgnore]
         public bool IsLatestUpdateInformationLocked { get; set; }
+        [AeFormIgnore]
+        public bool IsProgramNotesLocked { get; set; }
     }
 }
