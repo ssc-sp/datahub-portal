@@ -77,6 +77,11 @@
         </div>
     </AeFlex>
 
+
+    @foreach (var content in _markDownContent)
+    {
+        <AeMarkdown Content="@($"{content}")"></AeMarkdown>
+    }
     <AeModelForm Model="_tombstone"
                  T="PIP_Tombstone"
                  OnValidSubmit="HandleValidSubmit"
@@ -136,7 +141,7 @@
     {
 	    "Title","Lead Sector", "Report"
     };
-
+    private List<string> _markDownContent;
     private int _lastClicked = 0;
     private IPageableComponent _myTable;
     private bool _reloadOptions = true;
@@ -159,7 +164,7 @@
         _fiscalYears = new();
         _fiscalYears = Context.FiscalYears.OrderByDescending(i => i.YearId).Select(i => i.FiscalYear).ToList();
         _fiscalYear = _fiscalYear == null ? Context.FiscalYears.OrderByDescending(i => i.YearId).First() : _fiscalYear;
-
+        _markDownContent = File.ReadAllLines($@"Pages\Forms\Pip\PipFormIntro.md").ToList();
         validFilterValues = Context.Tombstones.Where(l => l.FiscalYear.FiscalYear == _fiscalYear.FiscalYear).Select(s => s.Lead_Sector).Distinct().ToList();
         validFilterValues.Insert(0, "All");
         _filterLabel = $"Lead Sector: {_selectedFilter}";
@@ -278,9 +283,10 @@
         context.RegisterCategoryLock("Spending (in $) as per GC InfoBase (to be updated by CMSS)", false);
         context.RegisterCategoryLock("Program Tags to be Updated by Sector", false);
         context.RegisterCategoryLock("Program Tags as per TBS Database and GCInfoBase", false);        
-        context.RegisterCategoryLock("GBA+", false);        
+        context.RegisterCategoryLock("GBA Plus", false);        
         context.RegisterCategoryLock("Date of PIP Approval", false);        
         context.RegisterCategoryLock("Latest Update Information", false);        
+        context.RegisterCategoryLock("Program Notes", false);        
     }
 
     protected void UpdateLocks(IModelFormContext context)
@@ -293,6 +299,7 @@
         _tombstone.IsGBALocked = false;
         _tombstone.IsDateOfPipApprovalLocked = false;
         _tombstone.IsLatestUpdateInformationLocked = false;
+        _tombstone.IsProgramNotesLocked = false;
 
         foreach (var category in lockedCategories)
         {
@@ -304,12 +311,14 @@
                 _tombstone.IsSectorProgramTagsLocked = true;
             if (category == "Program Tags as per TBS Database and GCInfoBase")
                 _tombstone.IsGCInfoBaseProgramTagsLocked = true;
-            if (category == "GBA+")
+            if (category == "GBA Plus")
                 _tombstone.IsGBALocked = true;
             if (category == "Date of PIP Approval")
                 _tombstone.IsDateOfPipApprovalLocked = true;
             if (category == "Latest Update Information")
                 _tombstone.IsLatestUpdateInformationLocked = true;
+            if (category == "Program Notes")
+                _tombstone.IsProgramNotesLocked = true;
         }        
     }
 
@@ -324,11 +333,13 @@
         if (_tombstone.IsGCInfoBaseProgramTagsLocked)
             context.RegisterCategoryLock("Program Tags as per TBS Database and GCInfoBase", true);        
         if (_tombstone.IsGBALocked)
-            context.RegisterCategoryLock("GBA+", true);        
+            context.RegisterCategoryLock("GBA Plus", true);        
         if (_tombstone.IsDateOfPipApprovalLocked)
             context.RegisterCategoryLock("Date of PIP Approval", true);        
         if (_tombstone.IsLatestUpdateInformationLocked)
             context.RegisterCategoryLock("Latest Update Information", true);        
+        if (_tombstone.IsProgramNotesLocked)
+            context.RegisterCategoryLock("Program Notes", true);        
     }
 
     protected override void OnAfterRender(bool firstRender)
@@ -347,6 +358,7 @@
         _tombstone.IsGBALocked = true;
         _tombstone.IsDateOfPipApprovalLocked = true;
         _tombstone.IsLatestUpdateInformationLocked = true;
+        _tombstone.IsProgramNotesLocked = true;
 
         await HandleValidSubmit();
 
