@@ -3,7 +3,7 @@
 
 To support you in completing the data entry, a [PIP Webform Guidance](https://gcdocs.gc.ca/nrcan-rncan/llisapi.dll/link/71571677) document has been developed and saved on GC Docs. 
 
-Additional supporting guidance material can be found saved [here](https://gcdocs.gc.ca/nrcan-rncan/llisapi.dll?func=ll&objId=71758883&objAction=browse&viewType=1). This includes roles and responsibilities and background information on the Policy on Results. 
+Additional supporting guidance material can be found [here](https://gcdocs.gc.ca/nrcan-rncan/llisapi.dll?func=ll&objId=71758883&objAction=browse&viewType=1). This includes roles, responsibilities and background information on the Policy on Results. 
 
 #### Plans for Future Audits and Evaluations
 

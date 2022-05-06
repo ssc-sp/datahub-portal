@@ -76,7 +76,10 @@
     {
         <h2>Enter Outcome and Indicator Data</h2>
     }
-
+    @foreach (var content in _markDownContent)
+    {
+        <AeMarkdown Content="@($"{content}")"></AeMarkdown>
+    }
     <AeModelForm Model="_indicator"
                  T="PIP_IndicatorAndResults"
                  OnValidSubmit="HandleValidSubmit"
@@ -140,7 +143,8 @@
     private SuccessIndicator _submitApprovalInd;
     private bool _submittingApproval = false;
     private int _indicatorFiscalYear;
-
+    private List<string> _markDownContent;
+    
     private void OnPageClick(int pageIndex)
     {
         _lastClicked = pageIndex;
@@ -150,7 +154,8 @@
     {
         Context = DbFactory.CreateDbContext();
 
-
+        _markDownContent = File.ReadAllLines($@"Pages\Forms\Pip\PipFormIntro.md").ToList();
+        
         _fiscalYear = Context.FiscalYears.Where(f => f.FiscalYear == fiscalYear).First();
         CurrentUser = await UserInformationService.GetUserAsync();
         _isUserAdmin = await ServiceAuthManager.IsProjectAdmin(CurrentUser.Id, PROJECTACRONYM);
