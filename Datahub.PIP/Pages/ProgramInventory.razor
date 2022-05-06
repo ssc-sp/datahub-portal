@@ -77,6 +77,11 @@
         </div>
     </AeFlex>
 
+
+     @foreach (var content in _markDownContent)
+    {
+        <AeMarkdown Content="@($"{content}")"></AeMarkdown>
+    }
     <AeModelForm Model="_tombstone"
                  T="PIP_Tombstone"
                  OnValidSubmit="HandleValidSubmit"
@@ -136,7 +141,7 @@
     {
 	    "Title","Lead Sector", "Report"
     };
-
+    private List<string> _markDownContent;
     private int _lastClicked = 0;
     private IPageableComponent _myTable;
     private bool _reloadOptions = true;
@@ -159,7 +164,7 @@
         _fiscalYears = new();
         _fiscalYears = Context.FiscalYears.OrderByDescending(i => i.YearId).Select(i => i.FiscalYear).ToList();
         _fiscalYear = _fiscalYear == null ? Context.FiscalYears.OrderByDescending(i => i.YearId).First() : _fiscalYear;
-
+        _markDownContent = File.ReadAllLines($@"Pages\Forms\Pip\PipFormIntro.md").ToList();
         validFilterValues = Context.Tombstones.Where(l => l.FiscalYear.FiscalYear == _fiscalYear.FiscalYear).Select(s => s.Lead_Sector).Distinct().ToList();
         validFilterValues.Insert(0, "All");
         _filterLabel = $"Lead Sector: {_selectedFilter}";
