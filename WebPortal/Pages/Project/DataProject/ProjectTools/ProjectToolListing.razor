@@ -11,14 +11,21 @@
     <div class="project-tools">
 
         <AeTypography Variant="h2">@Localizer["Project Tools"]</AeTypography>
+        <div class="controls">
+            <span class="icon-wrapper @(_isDense ? "active" : "")" @onclick="@(() => ToggleDense(false))">
+                <i class="fas fa-list-ul"></i>
+            </span>
+            <span class="icon-wrapper @(!_isDense ? "active" : "")" @onclick="@(() => ToggleDense(true))">
+                <i class="fas fa-th-large"></i>
+            </span>
+        </div>
         @if (_isLoading)
         {
             <Spinner/>
         }
         else
         {
-            <div class="tools-container">
-
+            <div class="tools-container @(_isDense ? "dense" : "")">
                 @if (_dataProjectConfiguration.Value.Databricks)
                 {
                     <Databricks/>
@@ -53,12 +60,12 @@
                 {
                     <IoT/>
                 }
-                
+
                 @if (_configuration["ProjectTools:IoT"] == "enabled")
                 {
-                    <DataManagement />
+                    <DataManagement/>
                 }
-                
+
                 @if (_dataProjectConfiguration.Value.PostgreSQL)
                 {
                     <PostgreSQL/>
@@ -82,6 +89,7 @@
     public string ProjectAcronym { get; set; }
 
     private bool _isLoading = true;
+    private bool _isDense = false;
     private Datahub_Project _project;
 
     protected override async Task OnInitializedAsync()
@@ -95,4 +103,8 @@
         _isLoading = false;
     }
 
+    private void ToggleDense(bool isDense)
+    {
+        _isDense = isDense;
+    }
 }

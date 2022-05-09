@@ -3,6 +3,38 @@
 
 $first-column-max-width: 1200px;
 
+@mixin project-icon-style {
+  color: c.$grey-400;
+  border-radius: 8px;
+  width: 2rem;
+  height: 2rem;
+  font-size: 1rem;
+  text-decoration: none;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: .8;
+
+  transition: all .3s c.$cubic-bezier;
+
+  &:hover:not(.active) {
+    cursor: pointer;
+    color: c.$grey-800;
+    opacity: 1;
+    background-color: c.$grey-200;
+    transform: translateY(-1px);
+    @include c.BoxShadow(1);
+  }
+  
+  &.active {
+    color: c.$grey-800;
+    opacity: 1;
+    background-color: c.$grey-200;
+    @include c.BoxShadow(-1);
+  }
+}
+
 .project-page {
   display: grid;
   grid-template-columns: 3fr 1fr;
@@ -95,40 +127,52 @@ $first-column-max-width: 1200px;
           }
 
           .email-icon {
-            color: c.$grey-400;
-            border-radius: 50px;
-            width: 2rem;
-            height: 2rem;
-            font-size: 1rem;
-            text-decoration: none;
-
-            display: flex;
-            justify-content: center;
-            align-items: center;
-
-            transition: all .3s c.$cubic-bezier;
-
+            @include project-icon-style;
             &:hover {
-              cursor: pointer;
-              color: c.$grey-800;
-              background-color: c.$white;
-              transform: translateY(-2px);
-              @include c.BoxShadow(2);
+              background-color: c.$grey-100 !important;
             }
           }
         }
       }
     }
   }
+  
+
 
   .project-tools {
     max-width: $first-column-max-width;
+    
+    display: grid;
+    grid-template-columns: 1fr auto;
 
+    .controls {
+      display: flex;
+      gap: .25rem;
+      align-self: end;
+      margin-bottom: .75rem;
+      
+      .icon-wrapper {
+        @include project-icon-style;
+        
+        &.active {
+          
+        }
+      }
+    }
+    
     .tools-container {
+      
+      grid-column: 1 / span 2;
+      --grid-template-columns: 1fr 1fr;
+
+      &.dense {
+        --grid-template-columns: 1fr;
+      }
 
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: var(--grid-template-columns);
       gap: 1rem;
+
 
       .tool-card {
 
