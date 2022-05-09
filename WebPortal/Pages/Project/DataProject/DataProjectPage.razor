@@ -31,7 +31,6 @@
     private string _userId;
     private string _projectName;
 
-
     protected override async Task OnInitializedAsync()
     {
         await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();

@@ -2,6 +2,7 @@
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <AddRazorSupportForMvc>true</AddRazorSupportForMvc>
+    <UserSecretsId>6c9f0107-a066-45ca-9449-dd1f55641b99</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <DockerfileContext>.</DockerfileContext>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -9,6 +10,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Content Remove="package.json" />
+    <Content Include="Pages\Project\FileExplorer\Heading.razor.js" />
   </ItemGroup>
   <ItemGroup>
     <None Remove="Controllers\OpenDataApprovalForm.docx" />
@@ -25,7 +27,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="AElemental.Blazor" Version="1.5.22122.3-beta" />
+    <PackageReference Include="AElemental.Blazor" Version="1.5.22078.1-beta" />
     <PackageReference Include="Askmethat.Aspnet.JsonLocalizer" Version="4.0.0" />
     <PackageReference Include="Azure.Identity" Version="1.5.0" />
     <PackageReference Include="Azure.Search.Documents" Version="11.3.0" />
@@ -82,7 +84,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Datahub.CKAN\Datahub.CKAN.csproj" />
     <ProjectReference Include="..\Datahub.Core\Datahub.Core.csproj" />
-    <ProjectReference Include="..\Datahub.GeoCore\Datahub.GeoCore.csproj" />
     <ProjectReference Include="..\Datahub.Metadata\Datahub.Metadata.csproj" />
     <ProjectReference Include="..\LanguageTraining\Datahub.LanguageTraining.csproj" />
 	<ProjectReference Include="..\Datahub.M365Forms\Datahub.M365Forms.csproj" />
@@ -114,6 +115,15 @@
     <None Update="Pages\Forms\M365Forms\FormFooterFr.md">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <AdditionalFiles Include="Pages\Landing\LandingContent.razor" />
+    <AdditionalFiles Include="Pages\Landing\Tabs\DatabricksTab.razor" />
+    <AdditionalFiles Include="Pages\Landing\Tabs\DataEntryTab.razor" />
+    <AdditionalFiles Include="Pages\Landing\Tabs\PowerBITab.razor" />
+    <AdditionalFiles Include="Pages\Landing\Tabs\ProjectsTab.razor" />
+    <AdditionalFiles Include="Pages\Landing\Tabs\RecentTab.razor" />
+    <AdditionalFiles Include="Pages\Landing\WelcomeBanner.razor" />
   </ItemGroup>
 
 </Project>

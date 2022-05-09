@@ -25,7 +25,5 @@ namespace Datahub.Portal.Services
         Task<List<CatalogObjectResult>> SearchCatalogEnglish(string searchText);
         Task<List<CatalogObjectResult>> SearchCatalogFrench(string searchText);
         Task<FieldDefinitions> GetFieldDefinitions();
-        Task<CatalogObjectResult> GetCatalogObjectByMetadataId(long metadataId);
-        Task<CatalogObjectResult> GetCatalogObjectByObjectId(string objectId);
     }    
 }

@@ -99,7 +99,5 @@ namespace Datahub.Metadata.DTO
             var definitionId = Definitions?.Get(fieldName)?.FieldDefinitionId;
             return definitionId.HasValue ? this.FirstOrDefault(v => v.FieldDefinitionId == definitionId.Value) : null;
         }
-
-        public IEnumerable<string> GetAllFieldNames() => Definitions?.Fields.Select(f => f.Field_Name_TXT);
     }
 }

@@ -1,4 +1,7 @@
+@using Blazored.LocalStorage
+
 @inject IUserInformationService _userInformationService
+@inject ILocalStorageService _localStorage
 
 <span @onclick="() => ChangeLanguage(Language)" style="cursor:pointer;">
     @LanguageDisplay
@@ -11,10 +14,11 @@
     
     private async void ChangeLanguage(string language)
     {
-        if (await _userInformationService.RegisterUserLanguage(language))
-        {
-            _userInformationService.SetLanguage(language);
-        }
+        if (!await _userInformationService.RegisterUserLanguage(language)) 
+            return;
+        
+        _userInformationService.SetLanguage(language);
+        await _localStorage.SetItemAsStringAsync("language", language);
     }
 
 }

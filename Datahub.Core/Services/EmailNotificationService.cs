@@ -491,20 +491,17 @@ namespace Datahub.Core.Services
             return parametersDict;
         }
 
-        public async Task SendOnboardingConfirmations(OnboardingParameters parameters, bool isClientNotificationSent)
+        public async Task SendOnboardingConfirmations(OnboardingParameters parameters)
         {
             var parametersDict = BuildOnboardingParameters(parameters);
 
-            var subject = $"Onboarding Request – {parameters.App.Product_Name}";
-            var html = isClientNotificationSent ? await RenderTemplate<OnboardingAdminUpdated>(parametersDict) : await RenderTemplate<OnboardingAdmin>(parametersDict);
+            var subject = $"Onboarding Request – {parameters.App.Project_Name}";
+            var html = await RenderTemplate<OnboardingAdmin>(parametersDict);
             await SendEmailMessage(subject, html, parameters.AdminEmailAddresses);
-            if (!isClientNotificationSent)
-            { 
-                html = await RenderTemplate<OnboardingClient>(parametersDict);
-                await SendEmailMessage(subject, html, parameters.App.Client_Email, parameters.App.Client_Contact_Name);
-                if (!string.IsNullOrEmpty(parameters.App.Additional_Contact_Email_EMAIL))
-                    await SendEmailMessage(subject, html, parameters.App.Additional_Contact_Email_EMAIL, parameters.App.Additional_Contact_Email_EMAIL);
-            }
+            html = await RenderTemplate<OnboardingClient>(parametersDict);
+            await SendEmailMessage(subject, html, parameters.App.Client_Email, parameters.App.Client_Contact_Name);
+            if (!string.IsNullOrEmpty(parameters.App.Additional_Contact_Email_EMAIL))
+                await SendEmailMessage(subject, html, parameters.App.Additional_Contact_Email_EMAIL, parameters.App.Additional_Contact_Email_EMAIL);
 
         }
 

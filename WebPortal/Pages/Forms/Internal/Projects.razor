@@ -24,7 +24,7 @@
 @if(_project?.Project_ID > 0)
 {
        @* <FAButton Text="Edit" Icon="fad fa-edit" onclick="async () => await SetFormEdit(q)"/>  *@
-        <FAButton Text="Delete" Icon="fad fa-trash-alt" onclick="() => DeleteShowModal(_project)"/>                    
+        <FAButton Text="Delete" Icon="fad fa-trash-alt" onclick="async () => DeleteShowModal(_project)"/>                    
         <FAButton Text="Power BI License Request Form" To="@($"/licenses/{_project.Project_ID}")" Icon="fas fa-chart-pie"/>                    
 }
 
@@ -153,12 +153,13 @@ if (_project.Project_ID > 0)
     private IPageableComponent _myTableComment;
 
     private List<(Delegate Label, Delegate Choices)> filterProperties = new List<(Delegate Label, Delegate choices)>();
+    private int InputSelectIndex = 0;
     private List<string> ValidDisplayValues { get; set; }
     private string filterLabel;
     private string filterLabelValue;
     private string filterClass;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         // load projects        
         Context = DbFactory.CreateDbContext();
@@ -221,7 +222,7 @@ if (_project.Project_ID > 0)
     {
         _project = null;
         StateHasChanged();
-        return await Task.FromResult((Datahub_Project)null);
+        return null;
     }
 
     public string GetDataLabel(string propName)
@@ -277,14 +278,14 @@ if (_project.Project_ID > 0)
         new Func<Datahub_ProjectComment, string>(p => { return ShortenString(p.Comment_NT,50); })
     };
 
-    @*private async Task SetFormEditAsync(Datahub_Project project)
+    private async Task SetFormEditAsync(Datahub_Project project)
     {
         _project = project;
         _comment = null;
         SubmitLabel = "Save Changes";
         StateHasChanged();
         _navToEdit = true;
-        }*@
+    }
 
     private void SetFormEdit(Datahub_Project project)
     {
@@ -308,14 +309,14 @@ if (_project.Project_ID > 0)
         _projects = Context.Projects.Include(r => r.Comments).Where(p => p.Deleted_DT == null).ToList();        
     }
 
-    private void CreateNewProject()
+    private async Task CreateNewProject()
     {
         _project = new Datahub_Project() { Last_Updated_DT = DateTime.Now, Project_ID = 0 } ;
         StateHasChanged();
         _navToEdit = true;
     }
 
-    private void AddNewComment()
+    private async Task AddNewComment()
     {
         _comment = new Datahub_ProjectComment() { Comment_Date_DT = DateTime.Now, Project = _project };
         StateHasChanged();
@@ -330,40 +331,8 @@ if (_project.Project_ID > 0)
         return "";        
     }
 
-    private void DeleteShowModal(Datahub_Project project)
-    {
-        RenderFragment modalBody = 
-            @<div>
-                <p>Do you confirm the deletion of Project @(project.Project_ID)?</p>
-                <p>Acronym: @project.Project_Acronym_CD</p>
-                <p>Summary: @project.ProjectDescription</p>
-            </div>;
 
-        RenderFragment modalFooter = 
-            @<div style="display:flex;justify-content:space-between;">
-                <AeButton class="red" @onclick="async () => { UIControlService.ToggleModal(); StateHasChanged(); await DeleteConfirmed(project); }">
-                    Delete
-                </AeButton>  
-                <AeButton class="blue" @onclick="() => { UIControlService.ToggleModal(); StateHasChanged(); }">
-                    Cancel
-                </AeButton> 
-            </div>;
 
-        var modalParameter = new Elemental.Code.ModalParameter() 
-        { 
-            Class = "modal", 
-            Body = modalBody, 
-            DisableBackgroundCancel = true, 
-            Title = "Delete Project", 
-            Footer = modalFooter 
-        };
-
-        UIControlService.ToggleModal(modalParameter);
-
-        StateHasChanged();
-    }
-
-    @*
     private void DeleteShowModal(Datahub_Project project)
     {
         InvokeAsync(async () =>
@@ -384,7 +353,7 @@ if (_project.Project_ID > 0)
             StateHasChanged();
         });
     }
-    *@
+
 
     private async Task DeleteConfirmed(Datahub_Project project)
     {
@@ -446,19 +415,17 @@ if (_project.Project_ID > 0)
         }
     }
 
-    private void OnConfigure(IModelFormContext context)
+
+    private async Task OnConfigure(IModelFormContext context)
     {
-        context.RegisterOptionValueProperty<Datahub_Project>(s => s.Project_Category, () => new[] { "Data Pipeline",
-                                                    "Data Science",
-                                                    "Full Stack",
-                                                    "Guidance",
-                                                    "Power BI Reports",
-                                                    "Storage",
-                                                    "Web Forms",
-                                                    "Unknown",
-                                                    "Other",
-                                                    "Presentations",
-                                                    "Dashboards"
+        context.RegisterOptionValueProperty<Datahub_Project>(s => s.Project_Category, () => new[] { "Guidance & Recommendations",
+                                                                "Presentations",
+                                                                "Data Sci. & Machine Learn.",
+                                                                "Data Pipelines",
+                                                                "Full Stack",
+                                                                "Storage",
+                                                                "Dashboards",
+                                                                "Web Forms"
                                                                  });
         context.RegisterOptionValueProperty<Datahub_Project>(s => s.Project_Phase, () => new[] {"Initiation",
                                                                 "Requirements",
@@ -470,8 +437,5 @@ if (_project.Project_ID > 0)
                                                                  });
     }
 
-    public void Dispose() 
-    { 
-        Context.Dispose(); 
-    }
+    public void Dispose() { Context.Dispose(); }
 }
