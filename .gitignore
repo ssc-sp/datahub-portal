@@ -34,6 +34,3 @@ WebPortal/Properties/launchSettings.json
 WebPortal/node_modules
 WebPortal/MissingTranslations.json
 WebPortal/appsettings.sqlite.json
-testsettings.json
-DatahubTest/testsettings.json
-DatahubTest/testsettings.json

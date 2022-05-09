@@ -3,26 +3,32 @@ As a new user, I want to sign up my project for DataHub
 
 ```mermaid
 sequenceDiagram
+    actor A as DataHub Admin
     actor U as User
     participant P as DataHub Portal
-    actor C as Cloud Admin
+    participant F as Graph Function
 
     U->>+P: /register/new
-    P->>P: insert registration request (create)
+    P->>P: insert registration request (requested)
     P-->>U: notify pending
-
-    P->>+C: request user creation
+    P-->>A: notify pending
     deactivate P
-    C->>C: create user in AAD
-    C->>-P: notify DataHub
+    activate A
 
+    
+    A->>-P: approve
     activate P
-    P->>P: provision project 
-    P->>P: update registration status (provisioned) 
-    P->>U: email notification
+    P->>P: create project
+    P->>P: create storage request for project
+    P->>+F: create user
+    F->>U: email notification
+    activate U
+    F->>-P: notify success
+
+    P->>P: set user as project admin
+    P->>P: update registration status (created) 
     deactivate P
 
-    activate U
     U->>-P: login to portal
     activate P
     P->>-P: update registration status (logged in)
