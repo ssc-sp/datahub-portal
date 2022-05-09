@@ -1,0 +1,109 @@
+﻿@inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
+@inject RequestManagementService _requestManagementService
+
+@if(_isLoading)
+{
+    <ToolCard Loading />
+}
+else
+{
+    <ToolCard
+        Title="Database"
+        Description="blah">
+
+        <Logo>
+            <div>
+                <AeIcon class="fad fa-database card-icon fa-xs"/>
+            </div>
+        </Logo>
+
+        <ToolActionsList>
+            <ul>
+            @if (string.IsNullOrEmpty(ResourceID))
+            {
+                @if (_databaseRequests.Count < 1)
+                {
+                        <li>
+                            <AeButton OnClickEvent=@RequestPostgres>@Localizer["Request PostgreSQL Database"]</AeButton>
+                        </li>
+                        <li>
+                            <AeButton OnClickEvent=@RequestSqlServer>@Localizer["Request SQL Server Database"]</AeButton>
+                        </li>
+                }
+                else
+                {
+                    <li>
+                        <AeTypography class="light">@Localizer["Service Request is being reviewed"]</AeTypography>
+                    </li>
+                }
+            }
+            else
+            {
+                <li>TODO</li>
+            }
+            </ul>
+        </ToolActionsList>
+
+
+    </ToolCard>
+}
+
+@code {
+    [CascadingParameter(Name = "ProjectAcronym")]
+    public string ProjectAcronym { get; set; }
+
+    [CascadingParameter(Name = "UserId")]
+    public string UserId { get; set; }
+
+    [CascadingParameter(Name = "GraphUser")]
+    public Microsoft.Graph.User GraphUser { get; set; }
+
+    [Parameter]
+    public string ResourceID { get; set; } = null;
+
+    private Datahub_Project _project;
+    private List<Datahub_ProjectServiceRequests> _databaseRequests = new();
+
+    private bool _isLoading => _project == null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        await LoadProjectsAndRequests();
+    }
+
+    private async Task LoadProjectsAndRequests()
+    {
+        using var projectDbContext = await _dbFactoryProject.CreateDbContextAsync();
+        _project = await projectDbContext.Projects
+            .Include(p => p.Requests)
+            .Include(p => p.ServiceRequests)
+            .SingleAsync(p => p.Project_Acronym_CD == ProjectAcronym);
+
+        _databaseRequests = _project?.ServiceRequests
+            .Where(r => r.ServiceType == RequestManagementService.POSTGRESQL || r.ServiceType == RequestManagementService.SQLSERVER)
+            .ToList();        
+    }
+
+    private async Task RequestSqlServer() => await RequestDatabase(RequestManagementService.SQLSERVER);
+
+    private async Task RequestPostgres() => await RequestDatabase(RequestManagementService.POSTGRESQL);
+
+    private async Task RequestDatabase(string which)
+    {
+        var serviceRequest = new Datahub_ProjectServiceRequests()
+        {
+            ServiceType = which,
+            ServiceRequests_Date_DT = DateTime.Now,
+            Is_Completed = null,
+            Project = _project,
+            User_ID = UserId,
+            User_Name = GraphUser.UserPrincipalName
+        };
+
+        await _requestManagementService.RequestService(serviceRequest);
+        await LoadProjectsAndRequests();
+        StateHasChanged();
+    }
+
+}

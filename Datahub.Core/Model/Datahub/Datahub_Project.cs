@@ -189,6 +189,8 @@ namespace Datahub.Core.EFCore
         
         public List<Datahub_Project_Access_Request> Requests { get; set; }
 
+        public List<Datahub_ProjectServiceRequests> ServiceRequests { get; set; }
+
         [StringLength(400)]
         public string Databricks_URL { get; set; }
 

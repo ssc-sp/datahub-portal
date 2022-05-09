@@ -59,6 +59,11 @@
                     <SQLServer/>
                 }
 
+                @if (_configuration.Value.ProjectDatabases)
+                {
+                    <ProjectDatabase />
+                }
+
                 <Admin/>
             </div>
         }
