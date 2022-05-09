@@ -5360,22 +5360,46 @@ code {
 .project-page .project-tools .tools-container {
   grid-column: 1/span 2;
   --grid-template-columns: 1fr 1fr;
+  --logo-width: 40px;
+  --logo-height: 60px;
+  --logo-margin-top: 0;
+  --tool-grid-template-columns: var(--logo-width) 1fr;
+  --tool-grid-template-rows: auto minmax(80px, auto) 1fr;
+  --tool-column-gap: 1rem;
+  --tool-description-display: block;
+  --tool-actions-column: 1 / span 2;
+  --tool-actions-row: 3;
+  --tool-actions-spacing: 1rem;
+  --tool-actions-border-top: 1px solid c.$grey-100;
+  --tool-actions-border-left: none;
+  --title-font-size: 1.5rem;
+  --title-margin-top: .5rem;
   display: grid;
   grid-template-columns: var(--grid-template-columns);
   gap: 1rem;
 }
 .project-page .project-tools .tools-container.dense {
-  --grid-template-columns: 1fr;
+  --grid-template-columns: 1fr 1fr;
+  --logo-width: 20px;
+  --logo-height: 30px;
+  --logo-margin-top: 8px;
+  --tool-grid-template-columns: var(--logo-width) 250px 1fr;
+  --tool-grid-template-rows: auto 1fr;
+  --tool-column-gap: .5rem;
+  --tool-description-display: none;
+  --tool-actions-column: 3;
+  --tool-actions-row: 1 / span 2;
+  --tool-actions-spacing: 0;
+  --tool-actions-border-top: none;
+  --tool-actions-border-left: 1px solid c.$grey-100;
+  --title-font-size: 1rem;
 }
 .project-page .project-tools .tools-container .tool-card {
   padding: 1rem;
   background-color: #fff;
-  --logo-width: 40px;
-  --logo-height: 60px;
   display: grid;
-  grid-template-columns: var(--logo-width) 1fr;
-  grid-template-rows: auto minmax(80px, auto) 1fr;
-  column-gap: 1rem;
+  grid-template-columns: var(--tool-grid-template-columns);
+  column-gap: var(--tool-column-gap);
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   opacity: 0.9;
 }
@@ -5384,22 +5408,26 @@ code {
   width: var(--logo-width);
   height: var(--logo-height);
   color: #64748b;
+  margin-top: var(--logo-margin-top);
 }
 .project-page .project-tools .tools-container .tool-card .tool-title {
   grid-column: 2;
   grid-row: 1;
-  margin-top: 0.5rem;
+  margin-top: var(--title-margin-top);
+  font-size: var(--title-font-size);
 }
 .project-page .project-tools .tools-container .tool-card .tool-description {
+  display: var(--tool-description-display);
   grid-column: 1/span 2;
   grid-row: 2;
 }
 .project-page .project-tools .tools-container .tool-card .tool-actions {
-  grid-column: 1/span 2;
-  grid-row: 3;
-  border-top: 1px solid #f1f5f9;
-  padding: 1rem;
-  margin-top: 1rem;
+  grid-column: var(--tool-actions-column);
+  grid-row: var(--tool-actions-row);
+  border-left: var(--tool-actions-border-left);
+  border-top: var(--tool-actions-border-top);
+  padding: var(--tool-actions-spacing);
+  margin-top: var(--tool-actions-spacing);
 }
 .project-page .project-tools .tools-container .tool-card .tool-actions ul {
   list-style-type: none;
