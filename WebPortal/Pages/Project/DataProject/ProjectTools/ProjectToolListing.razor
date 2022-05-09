@@ -12,10 +12,10 @@
 
         <AeTypography Variant="h2">@Localizer["Project Tools"]</AeTypography>
         <div class="controls">
-            <span class="icon-wrapper @(_isDense ? "active" : "")" @onclick="@(() => ToggleDense(false))">
+            <span class="icon-wrapper @(_isDense ? "active" : "")" @onclick="@(() => ToggleDense(true))">
                 <i class="fas fa-list-ul"></i>
             </span>
-            <span class="icon-wrapper @(!_isDense ? "active" : "")" @onclick="@(() => ToggleDense(true))">
+            <span class="icon-wrapper @(!_isDense ? "active" : "")" @onclick="@(() => ToggleDense(false))">
                 <i class="fas fa-th-large"></i>
             </span>
         </div>
