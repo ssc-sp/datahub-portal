@@ -1,0 +1,161 @@
+﻿@inject IDbContextFactory<DatahubProjectDBContext> _dbFactory
+@inject IEmailNotificationService _emailService
+@inject ISystemNotificationService _systemNotificationService
+
+<AeCard>
+    <Header>
+        <AeTypography Variant="h2">@Localizer["Authorize Users"]</AeTypography>
+    </Header>
+    <ChildContent>
+        @if (_usersAuthorization != null)
+        {
+            <AePaginatedTable
+                Accessors=@_accessorFunctions
+                Dataset=@_usersAuthorization
+                Renderers=@_renderFunctions
+                @ref=@_serviceAccessTable                    
+                GridTemplateColumns="2fr 3fr 2fr 3fr 2fr" 
+                Page=@_currentPage
+                Headers=@LocalizeHeaders(_headers)
+                PageSize=@PageSize
+            />
+
+            @if (_serviceAccessTable != null)
+            {            
+                <AePagination Pageable=@_serviceAccessTable OnPageClick=@PaginationClicked> 
+                    <LeftIcon><i class='fad fa-chevron-double-left'></i></LeftIcon> 
+                    <RightIcon><i class='fad fa-chevron-double-right'></i></RightIcon>
+                </AePagination>
+            }
+        }
+        else
+        {
+            <div>@Localizer["Loading data..."]</div>
+        }
+    </ChildContent>
+</AeCard>
+
+@code {
+    [CascadingParameter(Name="UserId")]
+    public string UserId { get; set; }
+
+    [CascadingParameter(Name="IsDatahubAdmin")]
+    public bool IsDatahubAdmin { get; set; }
+
+    [Parameter]
+    public int PageSize { get; set; } = 10;
+
+    private IPageableComponent _serviceAccessTable;
+    private int _currentPage = 0;
+
+    private List<Datahub_Project_Access_Request> _usersAuthorization;
+    private List<Func<Datahub_Project_Access_Request, string>> _accessorFunctions = new()
+    {
+        p => p.Project.Project_Name,
+        p => p.User_Name ?? "N/A",
+        p => p.RequestServiceType,
+        p => p.Request_DT.ToShortDateString(),
+        _ => ".."
+    };
+    private List<Func<Datahub_Project_Access_Request, RenderFragment>> _renderFunctions;
+    private List<string> _headers = new()
+    {
+        "Project", "User", "Service", "Date","Actions"
+    };
+
+    private List<string> LocalizeHeaders(List<string> input) => input.Select(s => Localizer[s].ToString()).ToList();
+
+    private void PaginationClicked(int pageIndex)
+    {
+        _currentPage = pageIndex;
+    }
+
+    private async Task AuthorizeUser(Datahub_Project_Access_Request req)
+    {
+        var projectContext = await _dbFactory.CreateDbContextAsync();
+
+        var r = await projectContext.Access_Requests
+            .Include(r => r.Project)
+            .FirstAsync(r => r.Request_ID == req.Request_ID);
+
+        r.Completion_DT = DateTime.UtcNow;
+        await projectContext.SaveChangesAsync();
+
+        var serviceName = r.RequestServiceType;
+
+        await _emailService.SendServiceAccessGrantedNotification(serviceName, r.Project.ProjectInfo, r.User_ID);
+        await _systemNotificationService.CreateSystemNotificationWithLink(r.User_ID, $"/{UrlPathSegment.PROJECTS}/{r.Project.Project_Acronym_CD}", "SYSTEM-NOTIFICATION.GoToProject",
+            "SYSTEM-NOTIFICATION.NOTIFICATION-TEXT.ServiceAccessRequestApproved", serviceName,
+            new BilingualStringArgument(r.Project.ProjectInfo.ProjectNameEn, r.Project.ProjectInfo.ProjectNameFr));
+
+        await RefreshData();
+    }
+
+    private async Task RevokeAccess(Datahub_Project_Access_Request req)
+    {
+        var projectContext = await _dbFactory.CreateDbContextAsync();
+
+        var projectAccessRequest = await projectContext.Access_Requests
+            .Include(r => r.Project)
+            .FirstAsync(r => r.Request_ID == req.Request_ID);
+
+        projectAccessRequest.Completion_DT = null;
+        await projectContext.SaveChangesAsync();
+
+        var serviceName = projectAccessRequest.RequestServiceType;
+
+        await _emailService.SendAccessRevokedNotification(serviceName, projectAccessRequest.Project.ProjectInfo, projectAccessRequest.User_ID);
+        await _systemNotificationService.CreateSystemNotification(projectAccessRequest.User_ID, "SYSTEM-NOTIFICATION.NOTIFICATION-TEXT.ServiceAccessRevoked",
+            serviceName, new BilingualStringArgument(projectAccessRequest.Project.ProjectInfo.ProjectNameEn, projectAccessRequest.Project.ProjectInfo.ProjectNameFr));
+
+        await RefreshData();
+    }
+
+    private async Task RefreshData()
+    { 
+        await using var ctx = await _dbFactory.CreateDbContextAsync();
+
+        var validProjects = (IsDatahubAdmin ? ctx.Project_Users : ctx.Project_Users.Where(u => u.IsAdmin && u.User_ID == UserId))
+            .Select(p => p.Project.Project_ID)
+            .ToHashSet();
+
+        var allAuths = await ctx.Access_Requests
+            .Include(a => a.Project)
+            .OrderByDescending(a => a.Request_DT)
+            .ToListAsync();
+
+        _usersAuthorization = allAuths
+            .Where(a => validProjects.Contains(a.Project.Project_ID))
+            .ToList();
+
+        StateHasChanged();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _renderFunctions = new List<Func<Datahub_Project_Access_Request, RenderFragment>>
+        {
+            null,
+            p => @<div>@(p.User_Name ?? Localizer["N/A"])</div>,
+            null,
+            null,
+            a => 
+            {
+                if (a.Completion_DT != null)
+                {
+                    return @<div>
+                        <span>@Localizer["Authorized"]</span>
+                        <AeButton @onclick="async () => await RevokeAccess(a)">@Localizer["Revoke"]</AeButton>
+                    </div>;
+                }
+                else
+                {
+                    return @<AeButton @onclick="async () => await AuthorizeUser(a)">@Localizer["Authorize user"]</AeButton>;
+                }
+            }
+        };
+
+        await RefreshData();
+    }
+
+}

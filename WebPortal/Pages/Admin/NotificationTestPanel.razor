@@ -78,8 +78,8 @@
     [Parameter]
     public string DefaultEmailName { get; set; }
 
-    [Parameter]
-    public string DefaultEmailAddress { get; set; }
+    [CascadingParameter(Name = "CurrentUserEmail")]
+    public string CurrentUserEmail { get; set; }
 
     private bool _emailSelf = true;
     private bool EmailSelf
@@ -104,7 +104,7 @@
         await Task.Run(() =>
         {
             TestRecipientName = DefaultEmailName;
-            TestRecipientEmail = DefaultEmailAddress;
+            TestRecipientEmail = CurrentUserEmail;
         });
         StateHasChanged();
     }
