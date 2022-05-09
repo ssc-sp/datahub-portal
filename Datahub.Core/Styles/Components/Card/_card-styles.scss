@@ -1,0 +1,11 @@
+@use '../../Common' as c;
+
+@mixin default-card {
+  border: 1px solid c.$grey-200;
+  border-radius: 4px;
+  background-color: c.$white;
+
+  &:hover {
+    @include c.BoxShadow(1);
+  }
+}

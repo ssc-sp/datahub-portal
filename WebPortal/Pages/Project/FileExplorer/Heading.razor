@@ -16,26 +16,26 @@
             @Localizer["Upload"]
         </AeButton>
 
-        <AeButton class="button-tool" @onclick="HandleDownload" Disabled="!_isExistingFile">
+        <AeButton class="button-tool" @onclick="HandleDownload" Disabled="IsActionDisabled(ButtonAction.Download)">
             <i class="fas fa-download"></i>
             @Localizer["Download"]
         </AeButton>
 
-        <AeButton class="button-tool" @onclick="HandleRename" Disabled="!_ownsSelectedFile">
+        <AeButton class="button-tool" @onclick="HandleRename" Disabled="IsActionDisabled(ButtonAction.Rename)">
             <i class="fas fa-edit"></i>
             @Localizer["Rename"]
         </AeButton>
 
         <span class="tool-divider"></span>
 
-        <AeButton class="button-tool" @onclick="HandleShare" Disabled="!_ownsSelectedFile">
+        <AeButton class="button-tool" @onclick="HandleShare" Disabled="IsActionDisabled(ButtonAction.Share)">
             <i class="fas fa-share-square"></i>
             @Localizer["Share"]
         </AeButton>
 
         <span class="tool-divider"></span>
 
-        <AeButton class="button-tool" @onclick="HandleDelete" Disabled="!_ownsSelectedFile">
+        <AeButton class="button-tool" @onclick="HandleDelete" Disabled="IsActionDisabled(ButtonAction.Delete)">
             <i class="fas fa-trash-alt"></i>
             @Localizer["Delete"]
         </AeButton>
@@ -61,7 +61,7 @@
     public string CurrentFolder { get; set; }
 
     [Parameter]
-    public string SelectedItem { get; set; }
+    public HashSet<string> SelectedItems { get; set; }
 
     [Parameter]
     public List<string> Folders { get; set; }
@@ -86,98 +86,36 @@
 
     private IJSObjectReference _module;
 
-    private FileMetaData _selectedFile;
-    private bool _ownsSelectedFile;
-    private bool _isExistingFile;
+    private List<FileMetaData> _selectedFiles;
+    private bool _ownsSelectedFiles;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         await base.OnAfterRenderAsync(firstRender);
 
-        _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import",
-            "./Pages/Project/FileExplorer/Heading.razor.js");
+        if (firstRender)
+        {
+            _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import",
+                "./Pages/Project/FileExplorer/Heading.razor.js");
+        }
     }
 
     protected override void OnParametersSet()
     {
-        _isExistingFile = !Folders.Contains(SelectedItem);
-        _selectedFile = Files?.FirstOrDefault(f => f.name == SelectedItem);
+        _selectedFiles = Files?
+            .Where(f => SelectedItems.Contains(f.name))
+            .ToList();
 
     // TODO: This is a hack until SSC properly sets the owner of a file
         if (Environment.GetEnvironmentVariable("HostingProfile") == "ssc")
         {
-            _ownsSelectedFile = _selectedFile != null;
+            _ownsSelectedFiles = _selectedFiles != null;
         }
         else
         {
-            _ownsSelectedFile = _selectedFile?.ownedby.Equals(GraphUser.Id, StringComparison.InvariantCulture) == true;
-        }
-    }
-
-    private async Task BreadcrumbClicked(string breadcrumb)
-    {
-        var index = CurrentFolder.IndexOf(breadcrumb, StringComparison.OrdinalIgnoreCase);
-        await SetCurrentFolder.InvokeAsync(CurrentFolder[..(index + breadcrumb.Length)] + "/");
-    }
-
-    private async Task HandleDownload()
-    {
-        if (_selectedFile is not null)
-        {
-            await OnFileDownload.InvokeAsync(_selectedFile.name);
-        }
-    }
-
-    private void HandleShare()
-    {
-        if (_selectedFile is null)
-            return;
-
-        var sb = new System.Text.StringBuilder();
-        sb.Append("/sharingworkflow/");
-        sb.Append(_selectedFile.fileid);
-        sb.Append("?filename=");
-        sb.Append(_selectedFile.filename);
-        if (!string.IsNullOrWhiteSpace(ProjectAcronym))
-        {
-            sb.Append("&project=");
-            sb.Append(ProjectAcronym);
-        }
-        else
-        {
-            sb.Append("&folderpath=");
-            sb.Append(_selectedFile.folderpath);
-        }
-
-        _navigationManager.NavigateTo(sb.ToString());
-    }
-
-    private async Task HandleDelete()
-    {
-        if (_selectedFile is not null && _ownsSelectedFile)
-        {
-            await OnFileDelete.InvokeAsync(_selectedFile.name);
-        }
-    }
-
-    private async Task HandleRename()
-    {
-        if (_selectedFile is not null && _ownsSelectedFile)
-        {
-            var newName = await _jsRuntime.InvokeAsync<string>("prompt", "Enter new name", 
-                FileExplorer.GetFileName(_selectedFile.filename));
-            newName = newName?.Replace("/", "").Trim();
-
-            await OnFileRename.InvokeAsync(newName);
-        }
-    }
-
-    private async Task HandleNewFolder()
-    {
-        var newFolderName = await _module.InvokeAsync<string>("promptForNewFolderName");
-        if (!string.IsNullOrWhiteSpace(newFolderName))
-        {
-            await OnNewFolder.InvokeAsync(newFolderName.Trim());
+            _ownsSelectedFiles = _selectedFiles?
+                .TrueForAll(file => file?.ownedby?.Equals(GraphUser.Id, StringComparison.InvariantCulture) ?? false)
+                .Equals(true) ?? false;
         }
     }
 

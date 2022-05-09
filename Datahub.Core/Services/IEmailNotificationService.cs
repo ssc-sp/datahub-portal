@@ -25,7 +25,7 @@ namespace Datahub.Core.Services
         Task SendApplicationCompleteNotification(LanguageTrainingParameters parameters);
         Task SendLanguageSchoolDecision(LanguageTrainingParameters parameters);
         Task SendManagerDecisionEmail(LanguageTrainingParameters parameters);
-        Task SendOnboardingConfirmations(OnboardingParameters parameters, bool isClientNotificationSent);
+        Task SendOnboardingConfirmations(OnboardingParameters parameters);
         Task SendFileSharingApprovalRequest(string username, string filename, DatahubProjectInfo projectInfo, IList<string> recipients);
         Task SendFileSharingApproved(SharedDataFile sharedFileInfo, DatahubProjectInfo projectInfo, string publicUrlLink, string recipient);
         Task SendStorageCostEstimate(User estimatingUser, Dictionary<string, object> parameters);

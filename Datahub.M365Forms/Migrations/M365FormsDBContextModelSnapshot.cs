@@ -17,7 +17,7 @@ namespace Datahub.M365Forms.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "6.0.3")
+                .HasAnnotation("ProductVersion", "6.0.1")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
@@ -68,9 +68,6 @@ namespace Datahub.M365Forms.Migrations
                     b.Property<string>("Information_and_Data_Security_Classification")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsOrganizationalTeam")
-                        .HasColumnType("bit");
 
                     b.Property<DateTime>("Last_Updated_DT")
                         .HasColumnType("datetime2");

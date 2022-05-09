@@ -22,14 +22,14 @@ namespace Datahub.Portal.Services
     {
         private ILogger<DataRemovalService> _logger;
         private ICognitiveSearchService _cognitiveSearchService;
-        private IDataLakeClientService _dataLakeClientService;
-        private IDataRetrievalService _dataRetrievalService;
-        private readonly IMyDataService myDataService;
+        private DataLakeClientService _dataLakeClientService;
+        private DataRetrievalService _dataRetrievalService;
+        private readonly MyDataService myDataService;
 
         public DataRemovalService(ILogger<DataRemovalService> logger,
-                                  IDataLakeClientService dataLakeClientService,
-                                  IDataRetrievalService dataRetrievalService,
-                                  IMyDataService myDataService,
+                                  DataLakeClientService dataLakeClientService,
+                                  DataRetrievalService dataRetrievalService,
+                                  MyDataService myDataService,
                                   ICognitiveSearchService cognitiveSearchService,
                                   NavigationManager navigationManager,
                                   UIControlsService uiService)

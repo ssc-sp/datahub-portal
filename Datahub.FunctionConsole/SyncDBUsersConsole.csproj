@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Datahub.Functions\SyncDbUsers.csproj" />
     <ProjectReference Include="..\Datahub.SyncDbUsers\SyncDbUsers.csproj" />
   </ItemGroup>
 

@@ -3,101 +3,28 @@
 @using Datahub.Core.Utils
 @using Datahub.Metadata.Model
 
-@* TODO: transfer these rules to scss, apply it to metadata keywords *@
-<style>
-    div.with-bottom-margin {
-        margin-bottom: 0.5rem;
-    }
-</style>
-
 <div style="margin: 2rem">
     <DHPageTitle PageTitleKey=@Localizer["Search catalog"] />
     <AeCard>
         <ChildContent>
             <AeFlex Vertical>
-                <AeTypography Variant="h2">@Localizer["Search catalog"]</AeTypography>
+                <h2>@Localizer["Search catalog"]</h2>
 
                 <AeSearchInput 
                     id="search" 
-                    Placeholder=@Localizer.GetString("Enter keywords..") 
+                    Placeholder=@Localizer.GetString("Enter keywods..") 
                     OnInputChangeWithLastKey=@HandleSearch 
                     ClearIconFAClass="null" 
                 />
 
-                <AeCollapse OnSectionToggled=@OnFilterToggled>
-                    <AeCollapseSection DefaultOpen=@_filterSectionOpen>
-                        <Header>
-                            <AeTypography Variant="h3">
-                                <span title=@_filterSectionOpenTitle>
-                                    <AeIcon class=@_filterSectionOpenIconClass />
-                                </span>
-                                <span>@Localizer["Filter"]</span>
-                                <AeIcon class=@_filterActiveIconClass />
-                            </AeTypography>
-                        </Header>
-                        <ChildContent>
-                            <AeFlex Vertical>
-                                <div class="with-bottom-margin">
-                                    <MultiCheckboxSelect 
-                                        T=MetadataObjectType
-                                        Options=@(Enum.GetValues<MetadataObjectType>())
-                                        OptionLabelFunction=@(t => GetLocalizedDataType(t))
-                                        OptionSortFunction=@(t => GetLocalizedDataType(t))
-                                        OnSelectionChanged=@UpdateDataTypeFilter
-                                        @ref=@_objectTypeFilter
-                                    />
-                                </div>
-                                <div class="with-bottom-margin">
-                                    <label>
-                                        <span>@Localizer["Security"]: </span>
-                                        <select @bind=@SecurityFilter title=@Localizer["Security"]>
-                                            <option value=@string.Empty>@Localizer["(any)"]</option>
-                                            @foreach(var sc in SecurityClassification.SECURITY_CLASSES)
-                                            {
-                                                <option value=@sc>@Localizer[sc]</option>
-                                            }
-                                        </select>
-                                    </label>
-                                    <label>
-                                        <span>@Localizer["Sector"]: </span>
-                                        <select @bind=@SectorFilter title=@Localizer["Sector"]>
-                                            <option value=@NO_FILTER_SELECTED>@Localizer["(any)"]</option>
-                                            @foreach(var sector in _sectors.Values.OrderBy(s => GetLabel(s)))
-                                            {
-                                                <option value=@sector.Id>@GetLabel(sector)</option>
-                                            }
-                                        </select>
-                                    </label>
-                                    <label>
-                                        @if (_filteredBranches.Count > 0)
-                                        {
-                                            <span>@Localizer["Branch"]: </span>
-                                            <select @bind=@BranchFilter title=@Localizer["Branch"]>
-                                                <option value=@NO_FILTER_SELECTED>@Localizer["(any)"]</option>
-                                                @foreach(var branch in _filteredBranches)
-                                                {
-                                                    <option value=@branch.Id>@GetLabel(branch)</option>
-                                                }
-                                            </select>
-                                        }
-                                    </label>
-                                </div>
-                                <div>
-                                    <AeButton OnClickEvent=@ClearFilters Disabled=@_clearFilterDisabled>@Localizer["BUTTONS.Clear"]</AeButton>
-                                </div>
-                            </AeFlex>
-                        </ChildContent>
-                    </AeCollapseSection>
-                </AeCollapse>
-
                 <div>
-                    <AeTypography Variant="h3">@Localizer["Results"]</AeTypography>
+                    <h3>@Localizer["Results"]</h3>
 
                     <AePaginatedTable 
                         @ref=@_resultTable
                         Accessors=@_accessorFunctions 
                         T=@CatalogObjectResult
-                        Dataset=@_filteredSearchResults
+                        Dataset=@_searchResults
                         Headers=@_headers
                         Renderers=@_renderFunctions
                         Page="@_lastClicked"
@@ -157,7 +84,10 @@
     public IOrganizationLevelsService OrganizationLevelsService { get; set; }
 
     [Inject]
-    public IDataRetrievalService RetrievalService { get; set; }
+    public MyDataService ApiService { get; set; }
+
+    [Inject]
+    public DataRetrievalService DataRetrievalService { get; set; }
 
     [Inject]
     public IJSRuntime JSRuntime { get; set; }
@@ -168,26 +98,11 @@
     [Inject]
     public NavigationManager NavigationManager { get; set; }
 
-    private const int NO_FILTER_SELECTED = -1;
-
     private bool _searching;
     private QueryThrottler<string> _searchThrottler;
     private List<CatalogObjectResult> _searchResults = new();
-    private List<CatalogObjectResult> _filteredSearchResults = new();
     private bool _isFrench;
     private CatalogObjectResult _selectedResult;
-
-    private HashSet<MetadataObjectType> _filteredDataTypes = new();
-    private MultiCheckboxSelect<MetadataObjectType> _objectTypeFilter;
-    private int _filterSector = NO_FILTER_SELECTED;
-    private int _filterBranch = NO_FILTER_SELECTED;
-    private string _securityFilter = string.Empty;
-    private List<OrganizationLevel> _filteredBranches => _branches.Values.Where(b => b.ParentId == _filterSector).OrderBy(b => GetLabel(b)).ToList();
-
-    private bool _filterSectionOpen = true;
-    private string _filterSectionOpenIconClass => $"fad fa-caret-circle-{(_filterSectionOpen ? "down" : "right")}";
-    private string _filterSectionOpenTitle => _filterSectionOpen ? Localizer["Collapse"] : Localizer["Expand"];
-    private string _filterActiveIconClass => $"{(_filtersActive ? "fas" : "fad")} fa-filter";
 
     private Dictionary<int, OrganizationLevel> _sectors = new();
     private Dictionary<int, OrganizationLevel> _branches = new();
@@ -195,8 +110,6 @@
     private List<string> _headers = new();
     private List<Func<CatalogObjectResult, RenderFragment>> _renderFunctions = new();
     private List<Func<CatalogObjectResult, string>> _accessorFunctions = new();
-    private bool _filtersActive = false;
-    private bool _clearFilterDisabled => !_filtersActive;
 
     protected override async Task OnInitializedAsync()
     {
@@ -220,105 +133,13 @@
         }
     }
 
-    private string GetLocalizedDataType(MetadataObjectType dataType) => Localizer[$"DISCOVERY-DATA-TYPES.{dataType}"];
-
-    private async Task UpdateDataTypeFilter(IEnumerable<MetadataObjectType> filteredTypes)
-    {
-        _filteredDataTypes = filteredTypes.ToHashSet();
-        UpdateFilter();
-        await Task.CompletedTask;
-    }
-
-    private string SectorFilter
-    {
-        get => _filterSector.ToString();
-        set
-        {
-            if (int.TryParse(value, out var intval))
-            {
-                _filterSector = intval;
-                _filterBranch = NO_FILTER_SELECTED;
-            }
-            else
-            {
-                _filterSector = NO_FILTER_SELECTED;
-                _filterBranch = NO_FILTER_SELECTED;
-            }
-            UpdateFilter();
-        }
-    }
-
-    private string BranchFilter
-    {
-        get => _filterBranch.ToString();
-        set
-        {
-            if (int.TryParse(value, out var intval))
-            {
-                _filterBranch = intval;
-            }
-            else
-            {
-                _filterBranch = NO_FILTER_SELECTED;
-            }
-            UpdateFilter();
-        }
-    }
-
-    private string SecurityFilter
-    {
-        get => _securityFilter;
-        set
-        {
-            _securityFilter = value;
-            UpdateFilter();
-        }
-    }
-
-    private void UpdateFilter()
-    {
-        var noDataTypesSelected = _filteredDataTypes.Count < 1;
-
-        _filteredSearchResults = _searchResults
-            .Where(r => (noDataTypesSelected || _filteredDataTypes.Contains(r.DataType)) &&
-                (_filterSector == NO_FILTER_SELECTED || r.Sector == _filterSector) &&
-                (_filterBranch == NO_FILTER_SELECTED || r.Branch == _filterBranch) &&
-                (string.IsNullOrEmpty(_securityFilter) || r.SecurityClass == _securityFilter))
-            .ToList();
-
-        _lastClicked = 0;
-
-        _filtersActive = _filteredDataTypes.Count > 0 || _filterSector != NO_FILTER_SELECTED || _filterBranch != NO_FILTER_SELECTED || !string.IsNullOrEmpty(_securityFilter);
-
-        StateHasChanged();
-    }
-
-    private void ClearFilters()
-    {
-        if (_objectTypeFilter != null)
-        {
-            _objectTypeFilter.Clear();
-        }
-
-        _filterSector = NO_FILTER_SELECTED;
-        _filterBranch = NO_FILTER_SELECTED;
-        _securityFilter = string.Empty;
-
-        UpdateFilter();
-    }
-
-    private void OnFilterToggled((AeCollapseSection Section, bool Open) e)
-    {
-        _filterSectionOpen = e.Open;
-    }
-
     // accessor functions
     private string GetName(CatalogObjectResult result) => result.Name;
     private string GetSector(CatalogObjectResult result) => GetLabel(_sectors.GetValueOrDefault(result.Sector));
     private string GetBranch(CatalogObjectResult result) => GetLabel(_branches.GetValueOrDefault(result.Branch));
     private string GetContact(CatalogObjectResult result) => result.Contact;
-    private string GetDataType(CatalogObjectResult result) => GetLocalizedDataType(result.DataType);
-    private string GetSecurityClass(CatalogObjectResult result) => Localizer[result.SecurityClass];
+    private string GetDataType(CatalogObjectResult result) => $"{result.DataType}";
+    private string GetSecurityClass(CatalogObjectResult result) => result.SecurityClass;
     private string GetLabel(OrganizationLevel orgLevel) => (_isFrench ? orgLevel?.FrenchLabel : orgLevel?.EnglishLabel) ?? "-";
 
     // renderer functions
@@ -363,7 +184,7 @@
 
     private async Task DownloadFile(CatalogObjectResult result)
     {
-        var uri = await RetrievalService.GetDownloadAccessToSasBlob(DataRetrievalService.DEFAULT_CONTAINER_NAME, fileName: result.Name, projectUploadCode: result.Location);
+        var uri = await DataRetrievalService.GetDownloadAccessToSasBlob(DataRetrievalService.DEFAULT_CONTAINER_NAME, fileName: result.Name, projectUploadCode: result.Location);
         await Task.Run(() => RedirectAndDownload(uri.ToString()));
     }
 
@@ -386,7 +207,6 @@
         try
         {
             _searchResults = await SearchCatalog(searchText);
-            UpdateFilter();
         }
         finally
         {

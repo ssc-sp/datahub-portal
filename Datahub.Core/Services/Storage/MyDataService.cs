@@ -22,10 +22,10 @@ using Datahub.Portal.Services.Storage;
 
 namespace Datahub.Core.Services
 {
-    public class MyDataService: IMyDataService
+    public class MyDataService
     {
         private IOptions<APITarget> _targets;
-        private IDataLakeClientService _dataLakeClientService;
+        private DataLakeClientService _dataLakeClientService;
         private ICognitiveSearchService _cognitiveSearchService;
         private readonly IHttpClientFactory _httpClient;
         private readonly ILogger _logger;
@@ -33,7 +33,7 @@ namespace Datahub.Core.Services
         private readonly IKeyVaultService _keyVaultService;
         private readonly NotifierService _notifierService;
         private readonly IJSRuntime _jsRuntime;
-        private readonly IDataRetrievalService _dataRetrievalService;
+        private readonly DataRetrievalService dataRetrievalService;
         private CommonAzureServices _commonAzureServices;
         private ApiTelemetryService _telemetryService;
         private IDatahubAuditingService _auditingService;
@@ -45,9 +45,9 @@ namespace Datahub.Core.Services
                     IOptions<APITarget> targets,
                     NotifierService notifierService,
                     IJSRuntime jSRuntime,
-                    IDataRetrievalService dataRetrievalService,
+                    DataRetrievalService dataRetrievalService,
                     ICognitiveSearchService cognitiveSearchService,
-                    IDataLakeClientService dataLakeClientService,
+                    DataLakeClientService dataLakeClientService,
                     ApiTelemetryService telemetryService,
                     IDatahubAuditingService auditingService,
                     CommonAzureServices commonAzureServices)
@@ -58,7 +58,7 @@ namespace Datahub.Core.Services
             _keyVaultService = keyVaultService;
             _notifierService = notifierService;
             _jsRuntime = jSRuntime;
-            _dataRetrievalService = dataRetrievalService;
+            this.dataRetrievalService = dataRetrievalService;
             _targets = targets;
             _dataLakeClientService = dataLakeClientService;
             _cognitiveSearchService = cognitiveSearchService;
@@ -236,7 +236,7 @@ namespace Datahub.Core.Services
 
         private async Task UploadFileToProject(FileMetaData fileMetadata, string projectUploadCode, string containerName, Action<long> progress)
         {
-            string cxnstring = await _dataRetrievalService.GetProjectConnectionString(projectUploadCode);
+            string cxnstring = await dataRetrievalService.GetProjectConnectionString(projectUploadCode);
             long maxFileSize = 1024000000000;
             var metadata = fileMetadata!.GenerateMetadata();
 
@@ -325,7 +325,7 @@ namespace Datahub.Core.Services
         {
             try
             {
-                return await _dataRetrievalService.GetFileList(folder, user, onlyFolders, true);
+                return await dataRetrievalService.GetFileList(folder, user, onlyFolders, true);
             }
             catch (Exception ex)
             {
@@ -350,7 +350,7 @@ namespace Datahub.Core.Services
                     return await GetSharedFileList(folder, user);
                 }
 
-                return await _dataRetrievalService.GetFileList(folder, user);
+                return await dataRetrievalService.GetFileList(folder, user);
             }
             catch (Exception ex)
             {
@@ -377,7 +377,7 @@ namespace Datahub.Core.Services
 
             try
             {
-                var containerClient = await _dataRetrievalService.GetBlobContainerClient(null, MyDataService.MYDATA_CONTAINER_NAME);
+                var containerClient = await dataRetrievalService.GetBlobContainerClient(null, MyDataService.MYDATA_CONTAINER_NAME);
                 // Get the name of the first blob in the container to use as the source.
                 var sourceBlob = containerClient.GetBlobClient(fileid).WithVersion(versionId);
 

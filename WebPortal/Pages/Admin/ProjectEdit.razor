@@ -56,6 +56,12 @@
     //Service Status - 0 = pending creation, 1 = created
 
     private DatahubProjectDBContext projectContext;
+    
+    private bool _isProjectUserPendingApproval;
+
+    private bool _isDataApprover;
+    private int _sharingRequestCount;
+    private bool _showSharingRequestCard => _isDataApprover && _sharingRequestCount > 0;
 
     // Define the headers at the top of the table
     private List<string> pipelineHeaders = new List<string>
@@ -122,25 +128,22 @@
 
     }
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         projectContext = DbFactoryProject.CreateDbContext();   
         _project = projectContext.Projects.Include(p => p.Requests).Include(p => p.Pipelines).Single(p => p.Project_Acronym_CD == projectAcronym);        
     }
 
-    private void OnConfigure(IModelFormContext context)
+    private async Task OnConfigure(IModelFormContext context)
     {
-        context.RegisterOptionValueProperty<Datahub_Project>(s => s.Project_Category, () => new[] { "Data Pipeline",
-                                                    "Data Science",
-                                                    "Full Stack",
-                                                    "Guidance",
-                                                    "Power BI Reports",
-                                                    "Storage",
-                                                    "Web Forms",
-                                                    "Unknown",
-                                                    "Other",
-                                                    "Presentations",
-                                                    "Dashboards"
+        context.RegisterOptionValueProperty<Datahub_Project>(s => s.Project_Category, () => new[] { "Guidance & Recommendations",
+                                                                "Presentations",
+                                                                "Data Sci. & Machine Learn.",
+                                                                "Data Pipelines",
+                                                                "Full Stack",
+                                                                "Storage",
+                                                                "Dashboards",
+                                                                "Web Forms"
                                                                  });
         context.RegisterOptionValueProperty<Datahub_Project>(s => s.Project_Phase, () => new[] {"Initiation",
                                                                 "Requirements",
@@ -151,6 +154,7 @@
                                                                 "Ongoing Maintenance and Support"
                                                                  });
     }
+
 
     public void Dispose()
     {

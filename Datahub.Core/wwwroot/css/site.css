@@ -4691,16 +4691,6 @@ code {
     transform: translateX(100%);
   }
 }
-.filter-bar .checkbox {
-  margin-bottom: 0.5rem;
-  display: flex;
-  flex-direction: row;
-  padding-left: 1rem;
-}
-.filter-bar .checkbox .typography-right-left {
-  margin-left: 0.5rem;
-}
-
 /** Transparent **/
 /** Black **/
 /** White **/
@@ -5032,7 +5022,7 @@ code {
 .tab-control .tab-selection {
   display: flex;
   flex-wrap: wrap;
-  margin: 1rem 0;
+  margin: 0 0 1rem;
 }
 .tab-control .tab-selection .tab {
   padding: 0.5rem 1rem;
@@ -5049,27 +5039,28 @@ code {
 .tab-control .tab-selection .tab.force-gap-left {
   margin-left: auto;
 }
-.landing-content-wrapper .landing-content {
-  margin: 0 0.5rem;
-  max-width: 1200px;
-  padding: 1.5em;
-}
-
 .recent-card-container {
-  display: inline-block;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 1rem;
+  margin-top: 1rem;
 }
 .recent-card-container a {
   text-decoration: none !important;
 }
 .recent-card-container .recent-card {
-  display: flex;
-  align-items: center;
   padding: 1rem;
-  margin: 1rem 0;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  background-color: #fff;
+  display: grid;
+  grid-template-columns: auto 1fr;
   --fa-primary-color: #64748b;
   --fa-secondary-color: #64748b;
   transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
-  border-left: 0 solid transparent;
+}
+.recent-card-container .recent-card:hover {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02), 0 1px 2px rgba(0, 0, 0, 0.14);
 }
 .recent-card-container .recent-card:hover {
   --fa-primary-color: #334155;
@@ -5113,87 +5104,46 @@ code {
 }
 .recent-card-container .recent-card:hover {
   cursor: pointer;
-  border-left: 4px solid transparent;
-}
-.recent-card-container .recent-card:hover.blue {
-  border-left-color: #90cdf4;
-}
-.recent-card-container .recent-card:hover.indigo {
-  border-left-color: #667eea;
-}
-.recent-card-container .recent-card:hover.purple {
-  border-left-color: #9f7aea;
-}
-.recent-card-container .recent-card:hover.pink {
-  border-left-color: #ed64a6;
-}
-.recent-card-container .recent-card:hover.yellow {
-  border-left-color: #ecc94b;
-}
-.recent-card-container .recent-card:hover.green {
-  border-left-color: #48bb78;
-}
-.recent-card-container .recent-card:hover.orange {
-  border-left-color: #ed8936;
-}
-.recent-card-container .recent-card:hover.grey {
-  border-left-color: #334155;
-}
-.recent-card-container .recent-card:hover.base {
-  border-left-color: #64748b;
-}
-.recent-card-container .recent-card:hover.blue {
-  background-color: #ebf8ff;
-}
-.recent-card-container .recent-card:hover.indigo {
-  background-color: #ebf4ff;
-}
-.recent-card-container .recent-card:hover.purple {
-  background-color: #faf5ff;
-}
-.recent-card-container .recent-card:hover.pink {
-  background-color: #fff5f7;
-}
-.recent-card-container .recent-card:hover.yellow {
-  background-color: #fffff0;
-}
-.recent-card-container .recent-card:hover.green {
-  background-color: #f0fff4;
-}
-.recent-card-container .recent-card:hover.orange {
-  background-color: #fffaf0;
-}
-.recent-card-container .recent-card:hover.grey {
-  background-color: #f1f5f9;
-}
-.recent-card-container .recent-card:hover.base {
-  background-color: #f1f5f9;
+  transform: translateY(-1px);
 }
 .recent-card-container .recent-card:hover i {
   opacity: 1;
 }
 .recent-card-container .recent-card i {
   font-size: 2rem;
-  width: 50px;
   opacity: 0.5;
+  margin-right: 0.5rem;
+  margin-bottom: 0.5rem;
 }
-.recent-card-container .recent-card .text .subtitle {
+.recent-card-container .recent-card .title {
+  white-space: nowrap;
+  overflow: hidden;
+  font-size: 1rem;
+  text-overflow: ellipsis;
+  max-width: 500px;
+}
+.recent-card-container .recent-card .subtitle {
+  grid-column: 1/span 2;
   font-size: 0.6rem;
   color: #64748b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 500px;
 }
 
-.featured-projects {
+.featured-projects-container {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 2rem;
   margin: 1rem 0 2rem;
 }
 @media (min-width: 1440px) {
-  .featured-projects {
+  .featured-projects-container {
     grid-template-columns: 1fr 1fr 1fr;
   }
 }
-.featured-projects .project {
+.featured-projects-container .project {
   display: grid;
   grid-template-rows: auto auto 1fr auto;
   padding: 1rem 1.5rem;
@@ -5202,10 +5152,10 @@ code {
   background-color: #fff;
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
-.featured-projects .project:hover {
+.featured-projects-container .project:hover {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02), 0 1px 2px rgba(0, 0, 0, 0.14);
 }
-.featured-projects .project .sector {
+.featured-projects-container .project .sector {
   display: flex;
   align-items: baseline;
   gap: 0.25rem;
@@ -5213,11 +5163,11 @@ code {
   opacity: 0.6;
   line-height: 1;
 }
-.featured-projects .project .name {
+.featured-projects-container .project .name {
   font-size: 1rem;
   font-weight: bold;
 }
-.featured-projects .project .project-btn {
+.featured-projects-container .project .project-btn {
   justify-self: center;
 }
 
@@ -5513,12 +5463,13 @@ code {
 .file-explorer-layout-wrapper .file-explorer-layout .file-list .file-list-header,
 .file-explorer-layout-wrapper .file-explorer-layout .file-list .file-item {
   display: grid;
-  grid-template-columns: 1fr 150px 250px 40px;
+  grid-template-columns: 36px 1fr 150px 250px 36px;
+  gap: calc((0 + 1 * (var(--design-unit) * var(--density))) * 1px);
   align-items: center;
-  padding: calc((0 + 2 * (var(--design-unit) * var(--density))) * 1px);
+  padding: calc((0 + 1 * (var(--design-unit) * var(--density))) * 1px);
 }
-.file-explorer-layout-wrapper .file-explorer-layout .file-list .file-list-header i,
-.file-explorer-layout-wrapper .file-explorer-layout .file-list .file-item i {
+.file-explorer-layout-wrapper .file-explorer-layout .file-list .file-list-header .file-item-name i,
+.file-explorer-layout-wrapper .file-explorer-layout .file-list .file-item .file-item-name i {
   font-size: 1rem;
 }
 .file-explorer-layout-wrapper .file-explorer-layout .file-list .file-list-header {
@@ -5528,14 +5479,43 @@ code {
   position: sticky;
   top: 60px;
 }
+.file-explorer-layout-wrapper .file-explorer-layout .file-list .file-item .file-selection-icon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  height: 100%;
+  width: 100%;
+}
+.file-explorer-layout-wrapper .file-explorer-layout .file-list .file-item .unchecked,
+.file-explorer-layout-wrapper .file-explorer-layout .file-list .file-item .suggest,
+.file-explorer-layout-wrapper .file-explorer-layout .file-list .file-item .checked {
+  display: none;
+  position: absolute;
+  font-size: 1rem;
+}
+.file-explorer-layout-wrapper .file-explorer-layout .file-list .file-item.highlight {
+  background-color: red;
+}
+.file-explorer-layout-wrapper .file-explorer-layout .file-list .file-item.highlight .checked {
+  display: inline-block;
+}
+.file-explorer-layout-wrapper .file-explorer-layout .file-list .file-item:hover:not(.highlight) .file-selection-icon .unchecked {
+  display: inline-block;
+}
+.file-explorer-layout-wrapper .file-explorer-layout .file-list .file-item:hover:not(.highlight) .file-selection-icon:hover .unchecked {
+  display: none;
+}
+.file-explorer-layout-wrapper .file-explorer-layout .file-list .file-item:hover:not(.highlight) .file-selection-icon:hover .suggest {
+  display: inline-block;
+}
 .file-explorer-layout-wrapper .file-explorer-layout .file-list .file-item .file-item-name {
   display: flex;
   align-items: center;
   gap: calc((0 + 1 * (var(--design-unit) * var(--density))) * 1px);
 }
 .file-explorer-layout-wrapper .file-explorer-layout .file-list .file-item .file-item-name .file-item-icon {
-  width: 30px;
-  min-width: 30px;
+  width: 20px;
   height: 30px;
   display: flex;
   align-items: center;
@@ -5546,8 +5526,14 @@ code {
 .file-explorer-layout-wrapper .file-explorer-layout .file-list .file-item:not(:last-of-type), .dropzone-container + .file-explorer-layout-wrapper .file-explorer-layout .file-list .file-item {
   border-bottom: 1px solid var(--bg-color-accent);
 }
+.file-explorer-layout-wrapper .file-explorer-layout .file-list .file-item:hover {
+  background-color: #f1f5f9;
+}
 .file-explorer-layout-wrapper .file-explorer-layout .file-list .file-item.highlight {
   background-color: #e2e8f0;
+}
+.file-explorer-layout-wrapper .file-explorer-layout .file-list .file-item.highlight:hover {
+  background-color: #cbd5e1;
 }
 .file-explorer-layout-wrapper .file-explorer-layout .file-list .dropzone-container:not(:last-of-type) .file-item {
   border-bottom: 1px solid var(--bg-color-accent);
