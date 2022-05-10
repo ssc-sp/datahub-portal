@@ -9,12 +9,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "powerbi-client": "^2.19.1",
-    "glob-parent": ">=5.1.2"
+    "powerbi-client": "^2.19.1"
   },
   "devDependencies": {
     "gulp": "^4.0.2",
-    "gulp-cached": "^1.1.1",
-    "glob-parent": ">=5.1.2"
+    "gulp-cached": "^1.1.1"
   }
 }
