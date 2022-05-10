@@ -1,0 +1,24 @@
+@use '../../Common' as c;
+.catalog-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto;
+    gap: 2rem;
+
+    .card {
+    border: 1px solid c.$grey-200;
+    border-radius: 4px;
+    background-color: c.$white;
+
+    transition: all 0.3s c.$cubic-bezier;
+        
+        .securityclass {
+            display: flex;
+            align-items: baseline;
+            gap: .25rem;
+            text-transform: uppercase;
+            opacity: .6;
+            line-height: 1;
+        }
+    }
+}

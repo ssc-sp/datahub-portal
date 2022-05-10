@@ -2,6 +2,7 @@
 @using Datahub.Metadata.DTO
 @using Datahub.Core.Utils
 @using Datahub.Metadata.Model
+@using Datahub.Portal.Pages.Project.DataProject.ProjectTools
 
 @* TODO: transfer these rules to scss, apply it to metadata keywords *@
 <style>
@@ -90,6 +91,12 @@
                     </AeCollapseSection>
                 </AeCollapse>
 
+                <div class="catalog-cards">
+                    @foreach(var result in _filteredSearchResults)
+                    {
+                        <CatalogCards CatalogResult="@result" />
+                    }
+                </div>
                 <div>
                     <AeTypography Variant="h3">@Localizer["Results"]</AeTypography>
 

@@ -1,0 +1,24 @@
+@using Datahub.Metadata.DTO
+<div class="card">
+    <span class="securityclass">
+        <i class="@($"fad fa-{_projectIcon}")"></i>
+        <AeTypography>@Localizer[@CatalogResult.SecurityClass]</AeTypography>
+    </span>
+    <AeTypography Variant="h4">@Localizer[@CatalogResult.Name]</AeTypography>
+    @*<AeTypography Variant="p">@Localizer[@CatalogResult.Sector]</AeTypography>
+    <AeTypography Variant="p">@Localizer[@CatalogResult.Branch]</AeTypography>*@
+    <AeTypography Variant="p">@Localizer[@CatalogResult.Location]</AeTypography>
+ 
+    @*<DHLink class="name" DataProject="@Project.Project_Acronym_CD">@Project.ProjectName</DHLink>
+    <DHLink class="project-btn" DataProject="@Project.Project_Acronym_CD">
+        <AeButton>@Localizer["View Project"]</AeButton>
+    </DHLink>*@
+</div>
+
+@code {
+
+    private string _projectIcon => $"fas fa-swatchbook";
+
+    [Parameter]
+    public CatalogObjectResult CatalogResult { get; init; }
+}
