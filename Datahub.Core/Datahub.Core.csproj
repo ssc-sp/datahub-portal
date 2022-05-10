@@ -14,8 +14,8 @@
 		</None>
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="AElemental.Blazor" Version="1.5.22122.3-beta" />
-		<PackageReference Include="AElemental.Blazor.Theme" Version="1.5.22122.3-beta" />
+		<PackageReference Include="AElemental.Blazor" Version="1.6.22130.1" />
+		<PackageReference Include="AElemental.Blazor.Theme" Version="1.6.22130.1" />
 		<PackageReference Include="AngleSharp" Version="1.0.0-alpha-844" />
 		<PackageReference Include="Askmethat.Aspnet.JsonLocalizer" Version="4.0.0" />
 		<PackageReference Include="Azure.Identity" Version="1.5.0" />
