@@ -3,7 +3,7 @@
   "GlobalSearch": "disabled",
   "PortalRunAsManagedIdentity": "disabled",
   "ProjectTools": {
-    "IoT": "enabled",
+    "IoT": "disabled",
     "DataManagement": "enabled"
   }
 }
