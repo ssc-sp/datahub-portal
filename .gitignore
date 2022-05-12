@@ -34,3 +34,6 @@ WebPortal/Properties/launchSettings.json
 WebPortal/node_modules
 WebPortal/MissingTranslations.json
 WebPortal/appsettings.sqlite.json
+
+
+.idea/
