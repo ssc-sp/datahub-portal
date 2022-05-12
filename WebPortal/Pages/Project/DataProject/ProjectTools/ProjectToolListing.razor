@@ -62,6 +62,17 @@
                 @if (_configuration.Value.ProjectDatabases)
                 {
                     <ProjectDatabase />
+                    @*@if (_projectDatabaseResources.Count < 1)
+                    {
+                        <ProjectDatabase />
+                    }
+                    else
+                    {
+                        foreach(var db in _projectDatabaseResources)
+                        {
+                            <ProjectDatabase ResourceID=@db.Id />
+                        }
+                    }*@
                 }
 
                 <Admin/>
@@ -83,6 +94,8 @@
     private bool _canViewDatabricks;
     private bool _canViewPowerBi;
     private List<string> _authorizedRoles;
+
+    private List<Project_Resources2> _projectDatabaseResources = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -107,6 +120,13 @@
                 _serviceRequests.Any(r => r.ServiceType == RequestManagementService.POWERBI && r.Is_Completed.HasValue);
 
         _canViewPowerBi = isUserAdmin || isPowerBiActiveForNonAdmin;
+
+        var allProjectResources = await projectDbContext.Project_Resources2.Where(r => r.Project == _project).ToListAsync();
+
+        _projectDatabaseResources = allProjectResources
+            .Where(r => r.TimeCreated.HasValue && (r.ResourceType == RequestManagementService.POSTGRESQL || r.ResourceType == RequestManagementService.SQLSERVER))
+            .ToList();
+
         _isLoading = false;
     }
 
