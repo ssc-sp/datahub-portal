@@ -35,7 +35,7 @@ else
         </div>
 *@
         <div class="topright">
-            <div style="--security-text-color: #d69e2e" class="securityclass">
+            <div style="@($"--security-text-color: {_securityClassColor}")" class="securityclass">
                 <i class="@($"fad fa-{_projectIcon}")"></i>
                 <p>@Localizer[@CatalogResult.SecurityClass]</p>
             </div>            
@@ -68,7 +68,8 @@ else
             <AeTypography Variant="p no-margin"><b>Data Type: </b>@AccessorFunctions[4](@CatalogResult)</AeTypography>
         </div>
         <div class="key-words">
-            <AeTypography Variant="p no-margin">Thes are my TAGS</AeTypography>            
+            <AeTypography Variant="p no-margin"><b>English Tags: </b>@_allFieldValues["keywords_en"]</AeTypography>
+            <AeTypography Variant="p no-margin"><b>French Tags: </b>@_allFieldValues["keywords_fr"]</AeTypography>
         </div>
         @*<DHLink class="name" DataProject="@Project.Project_Acronym_CD">@Project.ProjectName</DHLink>
         <DHLink class="project-btn" DataProject="@Project.Project_Acronym_CD">
