@@ -44,7 +44,7 @@ namespace Datahub.Core.Services
             {
                 if (_keyVaultClient == null)
                 {
-                    SetKeyVaultClient();
+                    await SetKeyVaultClient();
                 }
 
                 var keyVaultName = _targets.Value.KeyVaultName;
@@ -64,7 +64,7 @@ namespace Datahub.Core.Services
         {
             if (_keyVaultClient == null)
             {
-                SetKeyVaultClient();
+                await SetKeyVaultClient();
             }
 
             string keyIdentifier = GetApiKeyIdentifier();
@@ -77,7 +77,7 @@ namespace Datahub.Core.Services
         {
             if (_keyVaultClient == null)
             {
-                SetKeyVaultClient();
+                await SetKeyVaultClient();
             }
 
             string keyIdentifier = GetApiKeyIdentifier();
@@ -93,29 +93,31 @@ namespace Datahub.Core.Services
             return $"https://{keyVaultName}.vault.azure.net/keys/{keyPath}";
         }
 
-        private void SetKeyVaultClient()
+        private async Task SetKeyVaultClient()
         {
             DefaultAzureCredential credential;
             _logger.LogInformation("Entering setting Key Vault");
-            if (_webHostEnvironment.IsDevelopment() || Environment.GetEnvironmentVariable("IS_LOCAL") != null)
+            if (_webHostEnvironment.IsDevelopment() || _webHostEnvironment.EnvironmentName.Equals("sand", StringComparison.InvariantCultureIgnoreCase) || Environment.GetEnvironmentVariable("IS_LOCAL") != null)
             {
-                //for these credentials, check config file for user name
-                //check your ide account ca connect to azure - Tools -> Options -> Azure Service Authentication
-                //check keyvault access for user permissions
-                var azureCredentialOptions = new DefaultAzureCredentialOptions();
-                azureCredentialOptions.SharedTokenCacheUsername = _configuration["KeyVault:UserName"];
-                credential = new DefaultAzureCredential(azureCredentialOptions);
-                _keyVaultClient = new KeyVaultClient((authority, resource, scope) =>
-                {
-                    var token = credential.GetToken(
-                        new Azure.Core.TokenRequestContext(
-                            new[] { "https://vault.azure.net/.default" }));
-                    return Task.FromResult(token.Token);
-                });
+                _logger.LogInformation("Entering key vault development");
+
+                var tenantId = _configuration["AzureAd:TenantId"];
+                var clientId = _configuration["AzureAd:ClientId"];
+                var clientSecret = _configuration["AzureAd:ClientSecret"];
+                
+                var azureServiceTokenProvider = new AzureServiceTokenProvider($"RunAs=App;AppId={clientId};TenantId={tenantId};AppKey={clientSecret}");
+                _keyVaultClient = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(azureServiceTokenProvider.KeyVaultTokenCallback));
             }
-            else
+            else if (_configuration["PortalRunAsManagedIdentity"]
+                     .Equals("enabled", StringComparison.InvariantCultureIgnoreCase))
             {
-                _logger.LogInformation("Entering key vault production");
+                _logger.LogInformation("Entering key vault production with Managed Identity");
+                var azureServiceTokenProvider = new AzureServiceTokenProvider("RunAs=App");
+                _keyVaultClient = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(azureServiceTokenProvider.KeyVaultTokenCallback));
+            }
+            else  
+            {
+                _logger.LogInformation("Entering key vault production with default identity");
                 var azureServiceTokenProvider = new AzureServiceTokenProvider();
                 _keyVaultClient = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(azureServiceTokenProvider.KeyVaultTokenCallback));
             }
