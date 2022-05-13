@@ -1,3 +1,6 @@
+using System.Text;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using Datahub.Core.EFCore;
 using Datahub.Portal.Data.Forms;
 using Microsoft.EntityFrameworkCore;
@@ -10,6 +13,11 @@ public class RegistrationService
     private const string DEFAULT_DATABRICKS_URL = "https://adb-5415916054641848.8.azuredatabricks.net/";
     private const string DEFAULT_PROJECT_STATUS = "Ongoing";
 
+    
+    public const string STATUS_REQUESTED = "requested";
+    public const string STATUS_CREATED = "created";
+    public const string STATUS_COMPLETED = "completed";
+    public const string STATUS_CONFIRMED = "confirmed";
 
     private readonly IDbContextFactory<DatahubProjectDBContext> _dbFactory;
     private readonly ILogger<RegistrationService> _logger;
@@ -113,7 +121,7 @@ public class RegistrationService
         
         await db.Projects.AddAsync(project);
 
-        registrationRequest.Status = Datahub_Registration_Request.STATUS_CREATED;
+        registrationRequest.Status = STATUS_CREATED;
         registrationRequest.UpdatedAt = DateTime.UtcNow;
         registrationRequest.UpdatedBy = adminUserId;
         
@@ -122,26 +130,68 @@ public class RegistrationService
         await db.SaveChangesAsync();
     }
 
-    public async Task<string> CreateUser(string userEmail)
+    public async Task AddUserToExistingProject(Datahub_Registration_Request registrationRequest, string adminUserId, bool isProjectAdmin = false)
     {
-        if (string.IsNullOrWhiteSpace(userEmail))
-            throw new ArgumentNullException(nameof(userEmail));
+        if (string.IsNullOrWhiteSpace(adminUserId))
+            throw new ArgumentNullException(nameof(adminUserId));
+        
+        if (string.IsNullOrWhiteSpace(registrationRequest.Email))
+            throw new ArgumentNullException(nameof(registrationRequest.Email));
+        
+        await using var db = await _dbFactory.CreateDbContextAsync();
+        
+        var user = await db.Project_Users
+            .FirstOrDefaultAsync(u => u.User_Name == registrationRequest.Email);
+        
+        var project = await db.Projects
+            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == registrationRequest.ProjectAcronym);
+        
+        if(project == null)
+            throw new InvalidOperationException($"Project with acronym {registrationRequest.ProjectAcronym} not found");
+        
+        if(user != null)
+            throw new InvalidOperationException($"User already associated with project {registrationRequest.ProjectAcronym}");
 
-        //
-        // var user = new Datahub_User()
-        // {
-        //     Email = userEmail,
-        //     User_Name = userEmail,
-        //     User_Status_Desc = Datahub_User.STATUS_ACTIVE,
-        //     User_Type_Desc = Datahub_User.TYPE_ADMIN,
-        //     Created_By = userEmail,
-        //     Created_At = DateTime.UtcNow,
-        // };
-        //
-        // await db.Users.AddAsync(user);
-        // await db.SaveChangesAsync();
+        var guid = await CreateUser(registrationRequest.Email);
+        user = new Datahub_Project_User
+        {
+            User_Name = registrationRequest.Email,
+            User_ID = guid,
+            ApprovedUser = adminUserId,
+            Approved_DT = DateTime.Now,
+            IsAdmin = isProjectAdmin,
+            IsDataApprover = true,
+            Project = project
+        };
 
-        // return user.User_Id;
-        return userEmail;
+        await db.Project_Users.AddAsync(user);
+        
+        registrationRequest.Status = Datahub_Registration_Request.STATUS_COMPLETED;
+        registrationRequest.UpdatedAt = DateTime.UtcNow;
+        registrationRequest.UpdatedBy = adminUserId;
+        
+        db.Entry(registrationRequest).State = EntityState.Modified;
+        await db.SaveChangesAsync();
+    }
+
+    public async Task<string> CreateUser(string registrationRequestEmail)
+    {
+        using var client = new HttpClient();
+
+        var payload = new Dictionary<string, JsonNode>
+        {
+            ["email"] = registrationRequestEmail,
+        };
+
+        var jsonBody = new JsonObject(payload);
+        const string url = "http://localhost:7071/api/CreateGraphUser";
+        
+        var content = new StringContent(jsonBody.ToString(), Encoding.UTF8, "application/json");
+        var result = await client.PostAsync(url, content);
+        
+        var resultString  = await result.Content.ReadAsStringAsync();
+        var resultJson = JsonNode.Parse(resultString);
+        
+        return resultJson?["data"]?["id"]?.ToString();
     }
 }
