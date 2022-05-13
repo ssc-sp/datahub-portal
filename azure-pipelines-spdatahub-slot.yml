@@ -54,6 +54,7 @@ steps:
         Copy-Item $file.FullName -Force -Destination $fileRendered
       }
       cd WebPortal; mv appsettings.Development.json appsettings.dev.json; Move-Item -Force appsettings.json-tmpl-spdatahub appsettings.json
+
 - task: DotNetCoreCLI@2
   inputs:
     command: 'publish'
@@ -62,6 +63,7 @@ steps:
     zipAfterPublish: true
 
 - task: AzureRmWebAppDeployment@4
+  condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
   inputs:
     ConnectionType: 'AzureRM'
     azureSubscription: 'AZRM - DataSolutions'
@@ -73,3 +75,18 @@ steps:
     package: '$(System.DefaultWorkingDirectory)/WebPortal/**/*.zip'
     enableCustomDeployment: true
     DeploymentType: 'webDeploy'
+
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'publish'
+    projects: 'Datahub.Graph.Functions/*.csproj'
+    zipAfterPublish: true
+
+- task: AzureFunctionApp@1
+  condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+  inputs:
+    azureSubscription: 'AZRM - DataSolutions'
+    appType: 'functionApp'
+    appName: 'spdatahub-portal-func-dotnet-sand'
+    package: '$(System.DefaultWorkingDirectory)/Datahub.Graph.Functions/**/*.zip'
+    deploymentMethod: 'auto'
