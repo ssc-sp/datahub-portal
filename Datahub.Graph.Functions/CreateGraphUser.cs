@@ -23,8 +23,7 @@ public static class CreateGraphUser
     private const string CLIENT_SECRET = "FUNC_SP_CLIENT_SECRET";
     private const string SP_GROUP_ID = "SP_GROUP_ID";
 
-    private const string PORTAL_URL = "https://datahub-test.scienceprogram.cloud";
-
+    private const string PORTAL_URL = "PORTAL_URL";
 
     [FunctionName("CreateGraphUser")]
     public static async Task<IActionResult> RunAsync(
@@ -44,46 +43,61 @@ public static class CreateGraphUser
 
         try
         {
-            log.LogInformation("Creating graph service client");
-            var graphClient = GetGraphServiceClientFromEnvVariables();
-
-            log.LogInformation("Sending invitation to {UserEmail}", userEmail);
-            
-            
-            
-            
-            var groupId = Environment.GetEnvironmentVariable(SP_GROUP_ID);
-
-            var response = new JsonObject
+            bool isMockInvite = data.mockInvite == "true";
+            if (isMockInvite)
             {
-                ["message"] = $"Successfully FAKE invited {userEmail} and added to group {groupId}",
-                ["data"] = new JsonObject
-                {
-                    ["email"] = userEmail,
-                    ["id"] = Guid.NewGuid().ToString()
-                } 
-            };
+                return await MockInviteUser(userEmail, log);
+            }
             
-            return new OkObjectResult(response.ToString());
-            
-            
-            
-            // var result = await SendInvitation(userEmail, graphClient);
-            //
-            // var groupId = Environment.GetEnvironmentVariable(SP_GROUP_ID);
-            //
-            // log.LogInformation("Adding invited user {UserID} to group {GroupID}", result.InvitedUser.Id, groupId);
-            // await AddToGroup(result.InvitedUser.Id, groupId, graphClient);
-            //
-            // log.LogInformation("Success inviting {UserEmail} ({UserID}) to group {GroupID}", userEmail,
-            //     result.InvitedUser.Id, groupId);
-            // return new OkObjectResult($"Successfully invited {userEmail} and added to group {groupId}");
+            return await InviteUser(userEmail, log);
         }
         catch (Exception e)
         {
             log.LogError(e, "Error creating user");
             return new InternalServerErrorResult();
         }
+    }
+
+    private static async Task<IActionResult> MockInviteUser(string userEmail, ILogger log)
+    {
+        log.LogInformation("*** Mocking the AD Graph invitation ***");
+        
+        log.LogInformation("Creating graph service client");
+        
+        // sanity check the service principal credentials
+        var graphClient = GetGraphServiceClientFromEnvVariables();
+        
+        var groupId = Environment.GetEnvironmentVariable(SP_GROUP_ID);
+        
+        var response = new JsonObject
+        {
+            ["message"] = $"Successfully FAKE invited {userEmail} and added to group {groupId}",
+            ["data"] = new JsonObject
+            {
+                ["email"] = userEmail,
+                ["id"] = Guid.NewGuid().ToString()
+            } 
+        };
+            
+        return new OkObjectResult(response.ToString());
+    }
+
+    private static async Task<IActionResult> InviteUser(string userEmail, ILogger log)
+    {
+        log.LogInformation("Creating graph service client");
+        var graphClient = GetGraphServiceClientFromEnvVariables();
+
+        log.LogInformation("Sending invitation to {UserEmail}", userEmail);
+        
+        var result = await SendInvitation(userEmail, graphClient);
+        var groupId = Environment.GetEnvironmentVariable(SP_GROUP_ID);
+            
+        log.LogInformation("Adding invited user {UserID} to group {GroupID}", result.InvitedUser.Id, groupId);
+        await AddToGroup(result.InvitedUser.Id, groupId, graphClient);
+            
+        log.LogInformation("Success inviting {UserEmail} ({UserID}) to group {GroupID}", userEmail,
+            result.InvitedUser.Id, groupId);
+        return new OkObjectResult($"Successfully invited {userEmail} and added to group {groupId}");
     }
 
     private static async Task AddToGroup(string userId, string groupId, GraphServiceClient graphClient)
@@ -103,7 +117,7 @@ public static class CreateGraphUser
         var invitation = new Invitation
         {
             InvitedUserEmailAddress = userEmail,
-            InviteRedirectUrl = PORTAL_URL,
+            InviteRedirectUrl = Environment.GetEnvironmentVariable(PORTAL_URL),
             SendInvitationMessage = true
         };
 

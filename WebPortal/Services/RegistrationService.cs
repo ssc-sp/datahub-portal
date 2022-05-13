@@ -2,6 +2,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Datahub.Core.EFCore;
+using Datahub.Core.Services;
 using Datahub.Portal.Data.Forms;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,12 +14,6 @@ public class RegistrationService
     private const string DEFAULT_DATABRICKS_URL = "https://adb-5415916054641848.8.azuredatabricks.net/";
     private const string DEFAULT_PROJECT_STATUS = "Ongoing";
 
-    
-    public const string STATUS_REQUESTED = "requested";
-    public const string STATUS_CREATED = "created";
-    public const string STATUS_COMPLETED = "completed";
-    public const string STATUS_CONFIRMED = "confirmed";
-
     private readonly IDbContextFactory<DatahubProjectDBContext> _dbFactory;
     private readonly ILogger<RegistrationService> _logger;
 
@@ -27,11 +22,17 @@ public class RegistrationService
         "new",
     };
 
+    private readonly IKeyVaultService _keyVaultService;
 
-    public RegistrationService(IDbContextFactory<DatahubProjectDBContext> dbFactory, ILogger<RegistrationService> logger)
+    public RegistrationService(
+        IDbContextFactory<DatahubProjectDBContext> dbFactory, 
+        ILogger<RegistrationService> logger,
+        IKeyVaultService keyVaultService
+        )
     {
         _dbFactory = dbFactory;
         _logger = logger;
+        _keyVaultService = keyVaultService;
     }
 
     public async Task<bool> IsValidRegistrationRequest(Datahub_Registration_Request registrationRequest)
@@ -121,7 +122,7 @@ public class RegistrationService
         
         await db.Projects.AddAsync(project);
 
-        registrationRequest.Status = STATUS_CREATED;
+        registrationRequest.Status = Datahub_Registration_Request.STATUS_CREATED;
         registrationRequest.UpdatedAt = DateTime.UtcNow;
         registrationRequest.UpdatedBy = adminUserId;
         
@@ -181,10 +182,11 @@ public class RegistrationService
         var payload = new Dictionary<string, JsonNode>
         {
             ["email"] = registrationRequestEmail,
+            ["mockInvite"] = true,
         };
 
         var jsonBody = new JsonObject(payload);
-        const string url = "http://localhost:7071/api/CreateGraphUser";
+        var url = await _keyVaultService.GetSecret("datahub-create-graph-user-url");
         
         var content = new StringContent(jsonBody.ToString(), Encoding.UTF8, "application/json");
         var result = await client.PostAsync(url, content);
