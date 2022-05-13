@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using System.Web.Http;
 using Azure.Identity;
@@ -47,16 +48,36 @@ public static class CreateGraphUser
             var graphClient = GetGraphServiceClientFromEnvVariables();
 
             log.LogInformation("Sending invitation to {UserEmail}", userEmail);
-            var result = await SendInvitation(userEmail, graphClient);
-
+            
+            
+            
+            
             var groupId = Environment.GetEnvironmentVariable(SP_GROUP_ID);
 
-            log.LogInformation("Adding invited user {UserID} to group {GroupID}", result.InvitedUser.Id, groupId);
-            await AddToGroup(result.InvitedUser.Id, groupId, graphClient);
-
-            log.LogInformation("Success inviting {UserEmail} ({UserID}) to group {GroupID}", userEmail,
-                result.InvitedUser.Id, groupId);
-            return new OkObjectResult($"Successfully invited {userEmail} and added to group {groupId}");
+            var response = new JsonObject
+            {
+                ["message"] = $"Successfully FAKE invited {userEmail} and added to group {groupId}",
+                ["data"] = new JsonObject
+                {
+                    ["email"] = userEmail,
+                    ["id"] = Guid.NewGuid().ToString()
+                } 
+            };
+            
+            return new OkObjectResult(response.ToString());
+            
+            
+            
+            // var result = await SendInvitation(userEmail, graphClient);
+            //
+            // var groupId = Environment.GetEnvironmentVariable(SP_GROUP_ID);
+            //
+            // log.LogInformation("Adding invited user {UserID} to group {GroupID}", result.InvitedUser.Id, groupId);
+            // await AddToGroup(result.InvitedUser.Id, groupId, graphClient);
+            //
+            // log.LogInformation("Success inviting {UserEmail} ({UserID}) to group {GroupID}", userEmail,
+            //     result.InvitedUser.Id, groupId);
+            // return new OkObjectResult($"Successfully invited {userEmail} and added to group {groupId}");
         }
         catch (Exception e)
         {

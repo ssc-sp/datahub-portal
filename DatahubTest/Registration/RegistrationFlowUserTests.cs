@@ -1,11 +1,6 @@
-using System;
-using System.Linq;
 using System.Threading.Tasks;
-using Datahub.Core.EFCore;
-using Datahub.Portal.Data.Forms;
 using Datahub.Portal.Services;
 using Datahub.Tests.Portal;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
@@ -24,11 +19,11 @@ public class RegistrationFlowUserTests
         _registrationService = new RegistrationService(_dbFactory, logger);
     }
 
-    [Fact]
+    [Fact (Skip = "Need to run manually against the graph function")]
     public async Task RegistrationFlow_UserCreate_Test()
     {
-        var userEmail = "RegistrationFlow_UserCreate_Test";
-        var graphId = _registrationService.CreateUser(userEmail);
+        var userEmail = "yjmrobert@gmail.com";
+        var graphId = await _registrationService.CreateUser(userEmail);
         Assert.NotNull(graphId);
     }
 }
