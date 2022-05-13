@@ -94,7 +94,7 @@
                 <div class="catalog-cards">
                     @foreach(var result in _filteredSearchResults)
                     {
-                        <CatalogCards CatalogResult="@result" />
+                        <CatalogCards CatalogResult="@result" AccessorFunctions="@_accessorFunctions" RenderFunctions="@_renderFunctions"/>
                     }
                 </div>
                 <div>
