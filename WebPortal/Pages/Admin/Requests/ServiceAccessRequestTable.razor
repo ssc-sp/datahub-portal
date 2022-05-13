@@ -1,6 +1,6 @@
-﻿@inject IDbContextFactory<DatahubProjectDBContext> dbFactory
-@inject IEmailNotificationService EmailService
-@inject ISystemNotificationService SystemNotificationService
+﻿@inject IDbContextFactory<DatahubProjectDBContext> _dbFactory
+@inject IEmailNotificationService _emailService
+@inject ISystemNotificationService _systemNotificationService
 
 <AeCard>
     <Header>
@@ -10,19 +10,19 @@
         @if (_usersAuthorization != null)
         {
             <AePaginatedTable
-                Accessors=@accessorFunctions
+                Accessors=@_accessorFunctions
                 Dataset=@_usersAuthorization
-                Renderers=@renderFunctions
-                @ref=@ServiceAccessTable                    
+                Renderers=@_renderFunctions
+                @ref=@_serviceAccessTable                    
                 GridTemplateColumns="2fr 3fr 2fr 3fr 2fr" 
-                Page=@CurrentPage
-                Headers=@LocalizeHeaders(headers)
+                Page=@_currentPage
+                Headers=@LocalizeHeaders(_headers)
                 PageSize=@PageSize
             />
 
-            @if (ServiceAccessTable != null)
+            @if (_serviceAccessTable != null)
             {            
-                <AePagination Pageable=@ServiceAccessTable OnPageClick=@PaginationClicked> 
+                <AePagination Pageable=@_serviceAccessTable OnPageClick=@PaginationClicked> 
                     <LeftIcon><i class='fad fa-chevron-double-left'></i></LeftIcon> 
                     <RightIcon><i class='fad fa-chevron-double-right'></i></RightIcon>
                 </AePagination>
@@ -36,30 +36,29 @@
 </AeCard>
 
 @code {
-    [Parameter]
+    [CascadingParameter(Name="UserId")]
     public string UserId { get; set; }
 
-    [Parameter]
+    [CascadingParameter(Name="IsDatahubAdmin")]
     public bool IsDatahubAdmin { get; set; }
 
     [Parameter]
     public int PageSize { get; set; } = 10;
 
+    private IPageableComponent _serviceAccessTable;
+    private int _currentPage = 0;
 
     private List<Datahub_Project_Access_Request> _usersAuthorization;
-
-    private List<Func<Datahub_Project_Access_Request, string>> accessorFunctions = new()
+    private List<Func<Datahub_Project_Access_Request, string>> _accessorFunctions = new()
     {
         p => p.Project.Project_Name,
         p => p.User_Name ?? "N/A",
         p => p.RequestServiceType,
         p => p.Request_DT.ToShortDateString(),
-        p => ".."
+        _ => ".."
     };
-
-    private List<Func<Datahub_Project_Access_Request, RenderFragment>> renderFunctions;
-
-    private List<string> headers = new()
+    private List<Func<Datahub_Project_Access_Request, RenderFragment>> _renderFunctions;
+    private List<string> _headers = new()
     {
         "Project", "User", "Service", "Date","Actions"
     };
@@ -68,27 +67,24 @@
 
     private void PaginationClicked(int pageIndex)
     {
-        CurrentPage = pageIndex;
+        _currentPage = pageIndex;
     }
-
-    private IPageableComponent ServiceAccessTable;
-    private int CurrentPage = 0;
 
     private async Task AuthorizeUser(Datahub_Project_Access_Request req)
     {
-        var projectContext = await dbFactory.CreateDbContextAsync();
+        var projectContext = await _dbFactory.CreateDbContextAsync();
 
         var r = await projectContext.Access_Requests
             .Include(r => r.Project)
-            .FirstOrDefaultAsync(r => r.Request_ID == req.Request_ID);
+            .FirstAsync(r => r.Request_ID == req.Request_ID);
 
         r.Completion_DT = DateTime.UtcNow;
         await projectContext.SaveChangesAsync();
 
         var serviceName = r.RequestServiceType;
 
-        await EmailService.SendServiceAccessGrantedNotification(serviceName, r.Project.ProjectInfo, r.User_ID);
-        await SystemNotificationService.CreateSystemNotificationWithLink(r.User_ID, $"/{UrlPathSegment.PROJECTS}/{r.Project.Project_Acronym_CD}", "SYSTEM-NOTIFICATION.GoToProject",
+        await _emailService.SendServiceAccessGrantedNotification(serviceName, r.Project.ProjectInfo, r.User_ID);
+        await _systemNotificationService.CreateSystemNotificationWithLink(r.User_ID, $"/{UrlPathSegment.PROJECTS}/{r.Project.Project_Acronym_CD}", "SYSTEM-NOTIFICATION.GoToProject",
             "SYSTEM-NOTIFICATION.NOTIFICATION-TEXT.ServiceAccessRequestApproved", serviceName,
             new BilingualStringArgument(r.Project.ProjectInfo.ProjectNameEn, r.Project.ProjectInfo.ProjectNameFr));
 
@@ -97,27 +93,27 @@
 
     private async Task RevokeAccess(Datahub_Project_Access_Request req)
     {
-        var projectContext = await dbFactory.CreateDbContextAsync();
+        var projectContext = await _dbFactory.CreateDbContextAsync();
 
-        var r = await projectContext.Access_Requests
+        var projectAccessRequest = await projectContext.Access_Requests
             .Include(r => r.Project)
-            .FirstOrDefaultAsync(r => r.Request_ID == req.Request_ID);
+            .FirstAsync(r => r.Request_ID == req.Request_ID);
 
-        r.Completion_DT = null;
+        projectAccessRequest.Completion_DT = null;
         await projectContext.SaveChangesAsync();
 
-        var serviceName = r.RequestServiceType;
+        var serviceName = projectAccessRequest.RequestServiceType;
 
-        await EmailService.SendAccessRevokedNotification(serviceName, r.Project.ProjectInfo, r.User_ID);
-        await SystemNotificationService.CreateSystemNotification(r.User_ID, "SYSTEM-NOTIFICATION.NOTIFICATION-TEXT.ServiceAccessRevoked",
-            serviceName, new BilingualStringArgument(r.Project.ProjectInfo.ProjectNameEn, r.Project.ProjectInfo.ProjectNameFr));
+        await _emailService.SendAccessRevokedNotification(serviceName, projectAccessRequest.Project.ProjectInfo, projectAccessRequest.User_ID);
+        await _systemNotificationService.CreateSystemNotification(projectAccessRequest.User_ID, "SYSTEM-NOTIFICATION.NOTIFICATION-TEXT.ServiceAccessRevoked",
+            serviceName, new BilingualStringArgument(projectAccessRequest.Project.ProjectInfo.ProjectNameEn, projectAccessRequest.Project.ProjectInfo.ProjectNameFr));
 
         await RefreshData();
     }
 
     private async Task RefreshData()
     { 
-        using var ctx = await dbFactory.CreateDbContextAsync();
+        await using var ctx = await _dbFactory.CreateDbContextAsync();
 
         var validProjects = (IsDatahubAdmin ? ctx.Project_Users : ctx.Project_Users.Where(u => u.IsAdmin && u.User_ID == UserId))
             .Select(p => p.Project.Project_ID)
@@ -137,7 +133,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        renderFunctions = new()
+        _renderFunctions = new List<Func<Datahub_Project_Access_Request, RenderFragment>>
         {
             null,
             p => @<div>@(p.User_Name ?? Localizer["N/A"])</div>,

@@ -1,26 +1,26 @@
-﻿@inject IDbContextFactory<DatahubProjectDBContext> dbFactory
-@inject IEmailNotificationService EmailService
-@inject ISystemNotificationService SystemNotificationService
+﻿@inject IDbContextFactory<DatahubProjectDBContext> _dbFactory
+@inject IEmailNotificationService _emailService
+@inject ISystemNotificationService _systemNotificationService
 
 <AeCard>
     <Header>
         <AeTypography Variant="h2">@Localizer["Service Requests"]</AeTypography>
     </Header>
     <ChildContent>
-        @if (ServiceCreationRequests != null)
+        @if (_serviceCreationRequests != null)
         {
             <AeFlex Vertical>
                 <AePaginatedTable 
-                    Accessors=@serviceRequestAccessors
-                    Dataset=@ServiceCreationRequests
-                    Renderers=@serviceRenderers
-                    Headers=@LocalizeHeaders(serviceReqHeaders)
+                    Accessors=@_serviceRequestAccessors
+                    Dataset=@_serviceCreationRequests
+                    Renderers=@_serviceRenderers
+                    Headers=@LocalizeHeaders(_serviceReqHeaders)
                     PageSize=@PageSize
-                    Page=@CurrentPage
-                    @ref=@ServiceRequestTable
+                    Page=@_currentPage
+                    @ref=@_serviceRequestTable
                 />
 
-                <AePagination Pageable=@ServiceRequestTable OnPageClick=@PaginationClicked >
+                <AePagination Pageable=@_serviceRequestTable OnPageClick=@PaginationClicked >
                     <LeftIcon><i class='fad fa-chevron-double-left'></i></LeftIcon> 
                     <RightIcon><i class='fad fa-chevron-double-right'></i></RightIcon>
                 </AePagination>
@@ -35,32 +35,30 @@
 </AeCard>
 
 @code {
-    [Parameter]
+    [CascadingParameter(Name="UserId")]
     public string UserId { get; set; }
 
-    [Parameter]
+    [CascadingParameter(Name="IsDatahubAdmin")]
     public bool IsDatahubAdmin { get; set; }
 
     [Parameter]
     public int PageSize { get; set; } = 10;
 
-    private IPageableComponent ServiceRequestTable;
-    private int CurrentPage = 0;
-
-    private List<Datahub_ProjectServiceRequests> ServiceCreationRequests;
-
-    private List<Func<Datahub_ProjectServiceRequests, string>> serviceRequestAccessors = new List<Func<Datahub_ProjectServiceRequests, string>>()
+    private IPageableComponent _serviceRequestTable;
+    private int _currentPage = 0;
+    private List<Datahub_ProjectServiceRequests> _serviceCreationRequests;
+    private List<Func<Datahub_ProjectServiceRequests, string>> _serviceRequestAccessors = new()
     {
         p => p.Project.Project_Name,
         p => p.User_Name ?? "N/A",
         p => p.ServiceType ?? string.Empty,
         p => p.Is_Completed?.ToShortDateString() ?? "N/A",
-        p => ".."
+        _ => ".."
     };
 
-    private List<Func<Datahub_ProjectServiceRequests, RenderFragment>> serviceRenderers;
+    private List<Func<Datahub_ProjectServiceRequests, RenderFragment>> _serviceRenderers;
 
-    private List<string> serviceReqHeaders = new List<string>()
+    private List<string> _serviceReqHeaders = new()
     {
         "Project", "Requesting User", "Service", "Created", "Notified"
     };
@@ -69,20 +67,20 @@
     
     private void PaginationClicked(int pageIndex)
     {
-        CurrentPage = pageIndex;
+        _currentPage = pageIndex;
     }
 
     private async Task NotifyServiceCreation(Datahub_ProjectServiceRequests req)
     {
-        using var projectContext = await dbFactory.CreateDbContextAsync();
+        await using var projectContext = await _dbFactory.CreateDbContextAsync();
 
-        var r = await projectContext.Project_Requests
+        var projectRequests = await projectContext.Project_Requests
             .Include(a => a.Project)
             .Include(a => a.Project.Users)
-            .FirstOrDefaultAsync(a => a.ServiceRequests_ID == req.ServiceRequests_ID);
+            .FirstAsync(a => a.ServiceRequests_ID == req.ServiceRequests_ID);
 
-        var requestingUserId = r.User_ID;
-        var project = r.Project;
+        var requestingUserId = projectRequests.User_ID;
+        var project = projectRequests.Project;
         var projectInfo = project.ProjectInfo;
         var projectUserIds = project.Users
             .Select(u => u.User_ID)
@@ -93,22 +91,22 @@
         if (!string.IsNullOrEmpty(requestingUserId))
         {
             projectUserIds.Remove(requestingUserId);
-            notificationTasks.Add(EmailService.SendServiceCreationRequestApprovedIndividual(r.ServiceType, projectInfo, requestingUserId));
-            notificationTasks.Add(SystemNotificationService.CreateSystemNotificationWithLink(requestingUserId, 
+            notificationTasks.Add(_emailService.SendServiceCreationRequestApprovedIndividual(projectRequests.ServiceType, projectInfo, requestingUserId));
+            notificationTasks.Add(_systemNotificationService.CreateSystemNotificationWithLink(requestingUserId, 
                 $"/{UrlPathSegment.PROJECTS}/{project.Project_Acronym_CD}", "SYSTEM-NOTIFICATION.GoToProject",
                 "SYSTEM-NOTIFICATION.NOTIFICATION-TEXT.ServiceCreatedIndividual",
-                r.ServiceType, new BilingualStringArgument(projectInfo.ProjectNameEn, projectInfo.ProjectNameFr)));
+                projectRequests.ServiceType, new BilingualStringArgument(projectInfo.ProjectNameEn, projectInfo.ProjectNameFr)));
         }
 
-        notificationTasks.Add(EmailService.SendServiceCreationGroupNotification(r.ServiceType, projectInfo, projectUserIds.ToList()));
-        notificationTasks.Add(SystemNotificationService.CreateSystemNotificationsWithLink(projectUserIds.ToList(), 
+        notificationTasks.Add(_emailService.SendServiceCreationGroupNotification(projectRequests.ServiceType, projectInfo, projectUserIds.ToList()));
+        notificationTasks.Add(_systemNotificationService.CreateSystemNotificationsWithLink(projectUserIds.ToList(), 
             $"/{UrlPathSegment.PROJECTS}/{project.Project_Acronym_CD}", "SYSTEM-NOTIFICATION.GoToProject",
             "SYSTEM-NOTIFICATION.NOTIFICATION-TEXT.ServiceCreatedGroup",
-            r.ServiceType, new BilingualStringArgument(projectInfo.ProjectNameEn, projectInfo.ProjectNameFr)));
+            projectRequests.ServiceType, new BilingualStringArgument(projectInfo.ProjectNameEn, projectInfo.ProjectNameFr)));
 
         await Task.WhenAll(notificationTasks);
 
-        r.Notification_Sent = DateTime.UtcNow;
+        projectRequests!.Notification_Sent = DateTime.UtcNow;
         await projectContext.SaveChangesAsync();
 
         await RefreshData();
@@ -116,7 +114,7 @@
 
     private async Task RefreshData()
     {
-        using var ctx = await dbFactory.CreateDbContextAsync();
+        using var ctx = await _dbFactory.CreateDbContextAsync();
 
         var validProjects = (IsDatahubAdmin ? ctx.Project_Users : ctx.Project_Users.Where(u => u.IsAdmin && u.User_ID == UserId))
             .Select(p => p.Project.Project_ID)
@@ -128,7 +126,7 @@
             .ThenByDescending(a => a.ServiceRequests_Date_DT)
             .ToListAsync();
 
-        ServiceCreationRequests = allServiceCreationRequests
+        _serviceCreationRequests = allServiceCreationRequests
             .Where(a => validProjects.Contains(a.Project.Project_ID))
             .ToList();
 
@@ -137,7 +135,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        serviceRenderers = new List<Func<Datahub_ProjectServiceRequests, RenderFragment>>()
+        _serviceRenderers = new List<Func<Datahub_ProjectServiceRequests, RenderFragment>>()
         {
             null,
             p => @<div>@(p.User_Name ?? @Localizer["N/A"])</div>,
