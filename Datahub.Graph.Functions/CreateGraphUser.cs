@@ -46,7 +46,7 @@ public static class CreateGraphUser
             bool isMockInvite = data.mockInvite == "true";
             if (isMockInvite)
             {
-                return await MockInviteUser(userEmail, log);
+                return MockInviteUser(userEmail, log);
             }
             
             return await InviteUser(userEmail, log);
@@ -58,7 +58,7 @@ public static class CreateGraphUser
         }
     }
 
-    private static async Task<IActionResult> MockInviteUser(string userEmail, ILogger log)
+    private static IActionResult MockInviteUser(string userEmail, ILogger log)
     {
         log.LogInformation("*** Mocking the AD Graph invitation ***");
         
@@ -75,7 +75,7 @@ public static class CreateGraphUser
             ["data"] = new JsonObject
             {
                 ["email"] = userEmail,
-                ["id"] = Guid.NewGuid().ToString()
+                ["id"] = "00000000-0000-0000-0000-000000000000"
             } 
         };
             
