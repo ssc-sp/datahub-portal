@@ -76,11 +76,25 @@ steps:
     enableCustomDeployment: true
     DeploymentType: 'webDeploy'
 
+
+
+# Graph Function
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'restore'
+    projects: 'Datahub.Graph.Functions/*.csproj'
+    feedsToUse: 'select'
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'build'
+    projects: 'Datahub.Graph.Functions/*.csproj'
+    arguments: '--configuration Release'
 - task: DotNetCoreCLI@2
   inputs:
     command: 'publish'
-    publishWebProjects: false
     projects: 'Datahub.Graph.Functions/*.csproj'
+    arguments: '--configuration Release'
+    publishWebProjects: false
 
 - task: AzureFunctionApp@1
   condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
@@ -89,4 +103,4 @@ steps:
     appType: 'functionApp'
     appName: 'spdatahub-portal-func-dotnet-sand'
     package: '$(System.DefaultWorkingDirectory)/Datahub.Graph.Functions/**/*.zip'
-    deploymentMethod: 'auto'
+    deploymentMethod: 'zipDeploy'
