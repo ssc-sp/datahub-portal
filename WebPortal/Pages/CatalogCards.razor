@@ -22,22 +22,10 @@ else
 {
     <div class="card">
 
-        @*<div class="toprow">        
-            <div class="header">
-                <i class="@_fileIcon"></i>
-                <p>@_allFieldValues["name"]</p>          
-            </div>
-            <div style="@($"--security-text-color: {_securityClassColor}")" class="securityclass">
-                <i class="@($"fad fa-{_projectIcon}")"></i>
-                <p>@Localizer[@CatalogResult.SecurityClass]</p>
-            </div>    
-                     
-        </div>
-*@
         <div class="topright">
             <div style="@($"--security-text-color: {_securityClassColor}")" class="securityclass">
                 <i class="@($"fad fa-{_projectIcon}")"></i>
-                <p>@Localizer[@CatalogResult.SecurityClass]</p>
+                <p><b>Security Classification: @Localizer[@CatalogResult.SecurityClass]</b></p>
             </div>            
             <div>
                 
@@ -86,7 +74,7 @@ else
     [Inject]
     public IOrganizationLevelsService OrganizationLevelsService { get; set; }
 
-    private string _projectIcon => $"fas fa-swatchbook";
+    private string _projectIcon => CatalogResult.SecurityClass.Contains("Protect") ? $"fas fa-lock-alt" : $"fas fa-lock-open-alt";
     private string _fileIcon => GetFileIcon();
     private string _securityClassColor => GetSecurityClassColor();
 
