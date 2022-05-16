@@ -97,7 +97,18 @@ public static class CreateGraphUser
             
         log.LogInformation("Success inviting {UserEmail} ({UserID}) to group {GroupID}", userEmail,
             result.InvitedUser.Id, groupId);
-        return new OkObjectResult($"Successfully invited {userEmail} and added to group {groupId}");
+        
+        var response = new JsonObject
+        {
+            ["message"] = $"Successfully invited {userEmail} and added to group {groupId}",
+            ["data"] = new JsonObject
+            {
+                ["email"] = userEmail,
+                ["id"] = result.InvitedUser.Id
+            } 
+        };
+            
+        return new OkObjectResult(response.ToString());
     }
 
     private static async Task AddToGroup(string userId, string groupId, GraphServiceClient graphClient)
