@@ -1,11 +1,18 @@
 @inject ILogger<ProjectAccessRequestTable> _logger
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactory
+@inject RegistrationService _registrationService
 
 <AeCard style="min-width: 1200px;">
     <Header>
         <AeTypography Variant="h2">@Localizer["Registration Requests"]</AeTypography>
     </Header>
     <ChildContent>
+        <div class="graph-test-container">
+            <AeButton @onclick="@HandleGraphTestClick">
+                <i class="fas fa-function"></i>@Localizer["Test Graph Function"]
+            </AeButton>
+            <AeTypography>@Localizer[_graphStatusMessage]</AeTypography>
+        </div>
         @if (_registrationRequests != null)
         {
             <AePaginatedTable
@@ -71,6 +78,8 @@
 
     private void PaginationClicked(int pageIndex) => _currentPage = pageIndex;
 
+    private string _graphStatusMessage = "";
+
 
     protected override async Task OnInitializedAsync()
     {
@@ -95,7 +104,7 @@
     private async Task HandleRequestUpdate(Datahub_Registration_Request request)
     {
         await using var context = await _dbFactory.CreateDbContextAsync();
-        
+
         context.Entry(request).State = EntityState.Modified;
         request.UpdatedAt = DateTime.Now;
         request.UpdatedBy = UserId;
@@ -103,6 +112,10 @@
         await context.SaveChangesAsync();
     }
 
+    private async Task HandleGraphTestClick()
+    {
+        _graphStatusMessage = await _registrationService.CreateUser("test@email.com", true);
+    }
 
 
 

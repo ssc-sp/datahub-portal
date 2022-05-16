@@ -175,14 +175,14 @@ public class RegistrationService
         await db.SaveChangesAsync();
     }
 
-    public async Task<string> CreateUser(string registrationRequestEmail)
+    public async Task<string> CreateUser(string registrationRequestEmail, bool mockInvite = false)
     {
         using var client = new HttpClient();
 
         var payload = new Dictionary<string, JsonNode>
         {
             ["email"] = registrationRequestEmail,
-            ["mockInvite"] = true,
+            ["mockInvite"] = mockInvite,
         };
 
         var jsonBody = new JsonObject(payload);
@@ -192,8 +192,12 @@ public class RegistrationService
         var result = await client.PostAsync(url, content);
         
         var resultString  = await result.Content.ReadAsStringAsync();
-        var resultJson = JsonNode.Parse(resultString);
+        if (mockInvite)
+        {
+            return resultString;
+        }
         
+        var resultJson = JsonNode.Parse(resultString);
         return resultJson?["data"]?["id"]?.ToString();
     }
 }
