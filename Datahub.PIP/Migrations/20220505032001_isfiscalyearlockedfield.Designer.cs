@@ -4,6 +4,7 @@ using Datahub.Portal.Data.PIP;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Datahub.Portal.Migrations.Forms.PIP
 {
     [DbContext(typeof(PIPDBContext))]
-    partial class PIPDBContextModelSnapshot : ModelSnapshot
+    [Migration("20220505032001_isfiscalyearlockedfield")]
+    partial class isfiscalyearlockedfield
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -211,21 +213,9 @@ namespace Datahub.Portal.Migrations.Forms.PIP
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
-                    b.Property<string>("Result_201718_DESC")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
-
-                    b.Property<string>("Result_201819_DESC")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
-
-                    b.Property<string>("Result_201920_DESC")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
-
                     b.Property<string>("Result_DESC")
-                        .HasMaxLength(5000)
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("SourceFileName")
                         .HasColumnType("nvarchar(max)");
@@ -517,6 +507,10 @@ namespace Datahub.Portal.Migrations.Forms.PIP
                         .HasMaxLength(4000)
                         .HasColumnType("nvarchar(4000)");
 
+                    b.Property<string>("Collecting_Data")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
                     b.Property<DateTime?>("Consultation_With_The_Head_Of_Evaluation_DT")
                         .HasColumnType("datetime2");
 
@@ -538,6 +532,14 @@ namespace Datahub.Portal.Migrations.Forms.PIP
                     b.Property<string>("Departmental_Result_3_CD")
                         .HasMaxLength(400)
                         .HasColumnType("nvarchar(400)");
+
+                    b.Property<string>("Disaggregated_Data")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("Disaggregated_Data_Information")
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
 
                     b.Property<string>("Does_Indicator_Enable_Program_Measure_Equity")
                         .HasMaxLength(8000)
@@ -734,6 +736,10 @@ namespace Datahub.Portal.Migrations.Forms.PIP
                         .HasColumnType("nvarchar(400)");
 
                     b.Property<string>("Transfer_Payment_Programs_7_DESC")
+                        .HasMaxLength(400)
+                        .HasColumnType("nvarchar(400)");
+
+                    b.Property<string>("Transfer_Payment_Programs_8_DESC")
                         .HasMaxLength(400)
                         .HasColumnType("nvarchar(400)");
 

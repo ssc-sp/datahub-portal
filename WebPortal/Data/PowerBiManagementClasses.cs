@@ -274,6 +274,11 @@ namespace Datahub.Portal.Data
         }
         public string UserEmail { get; private set; }
         public bool IsAdmin { get; private set; }
+
+        public override string ToString()
+        {
+            return $"{UserEmail}{(IsAdmin? " (admin)": string.Empty)}";
+        }
     }
 
     public class PowerBiAdminWorkspaceName
