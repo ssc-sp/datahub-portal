@@ -36,16 +36,16 @@ public class Datahub_Registration_Request
     [Timestamp]
     public byte[] RowVersion { get; set; }
     
-    public static readonly string STATUS_CREATE = "create";
-    public static readonly string STATUS_INVITE = "invite";
-    public static readonly string STATUS_PROVISIONED = "provisioned";
-    public static readonly string STATUS_LOGGED_IN = "logged in";
+    public const string STATUS_REQUESTED = "requested";
+    public const string STATUS_CREATED = "created";
+    public const string STATUS_COMPLETED = "completed";
+    public const string STATUS_CONFIRMED = "confirmed";
     
     public Datahub_Registration_Request()
     {
         LinkId = Guid.NewGuid();
         CreatedAt = DateTime.UtcNow;
         UpdatedAt = DateTime.UtcNow;
-        Status = STATUS_CREATE;
+        Status = STATUS_REQUESTED;
     }
 }
