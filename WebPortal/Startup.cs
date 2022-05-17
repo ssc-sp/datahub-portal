@@ -309,6 +309,8 @@ namespace Datahub.Portal
 
         static IEnumerable<CultureInfo> ParseCultures(string values)
         {
+            if (string.IsNullOrWhiteSpace(values))
+                values = "en|fr";
             return (values ?? "").Split('|').Select(c => new CultureInfo($"{c[..2].ToLower()}-CA"));
         }
 
