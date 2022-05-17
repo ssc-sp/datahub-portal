@@ -2771,6 +2771,65 @@ body {
   visibility: visible;
 }
 
+.ae.tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-around;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  cursor: pointer;
+  color: #fff;
+  font-weight: bold;
+  background-color: #718096;
+  border-radius: 30px;
+  padding: 0.5rem 1rem;
+  margin: 0.5rem 0.125rem;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+.ae.tag .ae.tag-icon {
+  margin-right: 8px;
+}
+.ae.tag .ae.tag-title {
+  margin-right: 4px;
+}
+.ae.tag .ae.tag-secondary {
+  background-color: #edf2f7;
+  color: #000;
+  font-size: 12px;
+  padding: 3px 6px;
+  margin-left: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+}
+.ae.tag.dark {
+  background-color: #2d3748;
+  border-color: #2d3748;
+  color: #fff;
+}
+.ae.tag.light {
+  color: #000;
+  background-color: #e2e8f0;
+  border-color: #e2e8f0;
+}
+.ae.tag.light .ae.tag-secondary {
+  background-color: #718096;
+  color: #fff;
+}
+.ae.tag.blue {
+  background-color: #3182ce;
+  border-color: #3182ce;
+}
+.ae.tag.red {
+  background-color: #e53e3e;
+  border-color: #e53e3e;
+}
+
 .ae.toggle {
   position: relative;
   display: inline-block;
