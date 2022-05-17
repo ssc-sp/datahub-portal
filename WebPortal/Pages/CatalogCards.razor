@@ -1,0 +1,190 @@
+@using Datahub.Metadata.DTO
+@using Datahub.Metadata.Model
+
+@if (_fieldValues == null || _allFieldValues == null)
+{
+    <span style="height: 320px; background-color: white; padding: 1rem;">
+        <span style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+            <Skeleton Width="40px" Height="40px" Circle/>
+            <Skeleton Width="200px" Height="3rem"/>
+        </span>
+        <Skeleton Width="400px" Height="1.5rem"/>
+        <Skeleton Width="400px" Height="1.5rem"/>
+        <Skeleton Width="150px" Height="1.5rem"/>
+        <span style="padding-left: 2rem; display: block; margin-top: 1rem;">
+            <Skeleton Width="120px" Height="2.5rem"/>
+            <Skeleton Width="150px" Height="2.5rem"/>
+            <Skeleton Width="130px" Height="2.5rem"/>
+        </span>
+    </span>
+}
+else
+{
+    <div class="card">
+
+        <div class="topright">
+            <div style="@($"--security-text-color: {_securityClassColor}")" class="securityclass">
+                <i class="@($"fad fa-{_projectIcon}")"></i>
+                <p><b>Security Classification: @Localizer[@CatalogResult.SecurityClass]</b></p>
+            </div>            
+            <div>
+                
+            </div>
+        </div>
+        <div class="topleft">
+            <div class="rowheader">
+                <i class="@_fileIcon"></i>
+                <p>@_allFieldValues["name"]</p>          
+                <p>@RenderFunctions[6](@CatalogResult)</p>
+            </div>
+            <div class="datasetname">
+                <p>@_allFieldValues["title_translated_fr"]</p>                 
+            </div>           
+        </div>
+        <div class="title-and-subject">  
+
+            <AeTypography Variant="p no-margin">@_allFieldValues["subject"]</AeTypography>
+        </div>
+        <div class="details-left">
+            <AeTypography Variant="p no-margin"><b>Collection Type: </b>@_allFieldValues["collection"]</AeTypography>
+            <AeTypography Variant="p no-margin"><b>Contact Information: </b>@AccessorFunctions[3](@CatalogResult)</AeTypography>
+@*            <AeTypography Variant="p no-margin"><b>Programs: </b>these are programs</AeTypography>*@
+        </div>
+        <div class="details-right">
+            <AeTypography Variant="p no-margin"><b>Sector: </b>@AccessorFunctions[1](@CatalogResult)</AeTypography>
+            <AeTypography Variant="p no-margin"><b>Branch: </b>@AccessorFunctions[2](@CatalogResult)</AeTypography>
+            <AeTypography Variant="p no-margin"><b>Data Type: </b>@AccessorFunctions[4](@CatalogResult)</AeTypography>
+        </div>
+        <div class="key-words">
+            @foreach(var tag in _tags)
+            {
+                <AeTag Title="@tag" class="dark"></AeTag>                
+            }
+        </div>
+
+    </div>
+}
+@code {
+
+
+    [Inject]
+    public IMetadataBrokerService MetadataBrokerService { get; set; }
+
+    [Inject]
+    public IOrganizationLevelsService OrganizationLevelsService { get; set; }
+
+    private string _projectIcon => CatalogResult.SecurityClass.Contains("Protect") ? $"fas fa-lock-alt" : $"fas fa-lock-open-alt";
+    private string _fileIcon => GetFileIcon();
+    private string _securityClassColor => GetSecurityClassColor();
+
+    [Parameter]
+    public CatalogObjectResult CatalogResult { get; init; }
+    [Parameter]
+    public List<Func<CatalogObjectResult, string>> AccessorFunctions { get; set; }
+    [Parameter]
+    public List<Func<CatalogObjectResult, RenderFragment>> RenderFunctions { get; set; }
+
+    private FieldValueContainer _fieldValues;
+    private MetadataProfile _profile;
+    private Dictionary<string, string> _allFieldValues;
+    private List<string> _tags;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadFieldValues();
+        _allFieldValues = new();        
+        SetAllValues();
+        SetAllTags();
+
+    }
+
+    private void SetAllTags()
+    {
+        var eTags = _allFieldValues["keywords_en"] ?? string.Empty;
+        var eTagsList = eTags.Split(',').ToList();
+        var fTags = _allFieldValues["keywords_en"] ?? string.Empty;
+        var fTagsList = fTags.Split(',').ToList();
+        _tags = new();
+        _tags.AddRange(eTagsList);
+        _tags.AddRange(fTagsList);
+    }
+    private string GetSecurityClassColor()
+    {
+        var secClass = CatalogResult.SecurityClass;
+        switch (secClass.ToLower())
+        {
+            case "protected a":
+                return "#d69e2e";
+            case "protected b":
+                return "#e53e3e";
+            default:
+                return "#38a169";
+        }
+    }
+    private string GetFileIcon()
+    {
+        var fileName = _allFieldValues["name"];
+        var ext = Path.GetExtension(fileName);
+        ext = ext.Replace(".", "");
+        return DatahubTools.GetFileTypeIcon(ext);
+
+    }
+    private void SetAllValues()
+    {
+        var names = _fieldValues.GetAllFieldNames();
+        _allFieldValues = names.ToDictionary(n => n, n => _fieldValues.GetValue(n));
+    }
+
+    private async Task LoadFieldValues()
+    {
+        // the Object Id may come from an external source or from a know MetadataObject row
+        if (long.TryParse(CatalogResult.ObjectMetadataId.ToString(), out long metadataObjectId))
+        {
+            _fieldValues = await MetadataBrokerService.GetObjectMetadataValues(metadataObjectId);
+            
+        }
+        else
+        {
+            _fieldValues = await MetadataBrokerService.GetObjectMetadataValues(CatalogResult.ObjectMetadataId);
+            
+        }
+
+        //_definitions = _fieldValues.Definitions;
+        //_lastObjectId = ObjectId;
+        // set external choices
+        await UpdateExternalFieldChoices();
+    }
+
+    private async Task UpdateExternalFieldChoices()
+    {
+        foreach (var definition in _fieldValues.Definitions.Fields)
+        {
+            switch (definition.Field_Name_TXT)
+            {
+                case "sector":
+                    definition.Choices = GetOrganizationChoices(await OrganizationLevelsService.GetSectors(), false);
+                    break;
+                case "branch":
+                    definition.Choices = GetOrganizationChoices(await OrganizationLevelsService.GetBranches(), true);
+                    break;
+                case "division":
+                    definition.Choices = GetOrganizationChoices(await OrganizationLevelsService.GetDivisions(), true);
+                    break;
+                case "section":
+                    definition.Choices = GetOrganizationChoices(await OrganizationLevelsService.GetSections(), true);
+                    break;
+            }
+        }
+    }
+
+    private List<FieldChoice> GetOrganizationChoices(List<OrganizationLevel> levels, bool cascades)
+    {
+        return levels.Select(l => new FieldChoice()
+        {
+            Value_TXT = $"{l.Id}",
+            Cascading_Value_TXT = cascades ? $"{l.ParentId}" : null,
+            Label_English_TXT = l.EnglishLabel,
+            Label_French_TXT = l.FrenchLabel
+        }).ToList();
+    }
+}
