@@ -93,6 +93,7 @@
                  IsSectionLocksVisible="@_isUserAdmin"
                  IsSubmitEnabled="@_enableSave"
                  CheckedIcon="far fa-check"
+                 AreFieldsNullable="true"
                  @ref="_myModelForm"/>
      <AeFlex>
         <div class="icon-container" style="margin-bottom: 10px; margin-left: 5px;">
@@ -166,6 +167,7 @@
     private async Task CreateNewIndicator()
     {
         _indicator = new PIP_IndicatorAndResults() { PIP_Tombstone = _tombstone, Last_Updated_DT = DateTime.Now, Date_Result_Collected = DateTime.Now, Date_To_Achieve_Target_DT = DateTime.Now, FiscalYear = _fiscalYear };
+        _reloadOptions = true;
         StateHasChanged();
     }
 
@@ -186,9 +188,9 @@
         {
             context.RegisterOptionValueProperty<PIP_IndicatorAndResults>(s => s.Outcome_Level_DESC, () => new[] { "Immediate", "Intermediate", "Ultimate", "Output" });
             context.RegisterOptionValueProperty<PIP_IndicatorAndResults>(s => s.Frequency_DESC, () => new[] { "Monthly", "Bi-Monthly", "Quarterly", "Semi-Anually", "Annually", "2 Years", "3 Years", "5 Years", "Other" });
-            context.RegisterOptionValueProperty<PIP_IndicatorAndResults>(s => s.Source_Of_Indicator_DESC, () => new[] { "Horizontal Intiative", "DRF indicator", "GC InfoBase Indicator", "TB Sub indicator", "DSDS indicator", "SDG indicator", "TPP indicator", "Internal program indicator only" });
-            context.RegisterOptionValueProperty<PIP_IndicatorAndResults>(s => s.Source_Of_Indicator2_DESC, () => new[] { "Horizontal Intiative", "DRF indicator", "GC InfoBase Indicator", "TB Sub indicator", "DSDS indicator", "SDG indicator", "TPP indicator", "Internal program indicator only" });
-            context.RegisterOptionValueProperty<PIP_IndicatorAndResults>(s => s.Source_Of_Indicator3_DESC, () => new[] { "Horizontal Intiative", "DRF indicator", "GC InfoBase Indicator", "TB Sub indicator", "DSDS indicator", "SDG indicator", "TPP indicator", "Internal program indicator only" });
+            context.RegisterOptionValueProperty<PIP_IndicatorAndResults>(s => s.Source_Of_Indicator_DESC, () => new[] { "Horizontal Initiative", "DRF indicator", "GC InfoBase Indicator", "TB Sub indicator", "DSDS indicator", "SDG indicator", "TPP indicator", "Internal program indicator only" });
+            context.RegisterOptionValueProperty<PIP_IndicatorAndResults>(s => s.Source_Of_Indicator2_DESC, () => new[] { "Horizontal Initiative", "DRF indicator", "GC InfoBase Indicator", "TB Sub indicator", "DSDS indicator", "SDG indicator", "TPP indicator", "Internal program indicator only" });
+            context.RegisterOptionValueProperty<PIP_IndicatorAndResults>(s => s.Source_Of_Indicator3_DESC, () => new[] { "Horizontal Initiative", "DRF indicator", "GC InfoBase Indicator", "TB Sub indicator", "DSDS indicator", "SDG indicator", "TPP indicator", "Internal program indicator only" });
             context.RegisterOptionValueProperty<PIP_IndicatorAndResults>(s => s.Indicator_Category_DESC, () => new[] { "Quantitative", "Qualitative" });
             context.RegisterOptionValueProperty<PIP_IndicatorAndResults>(s => s.Indicator_Direction_DESC, () => new[] { "Increase", "Decrease", "Maintain" });
             context.RegisterOptionValueProperty<PIP_IndicatorAndResults>(s => s.Data_Type_DESC, () => new[] { "Number", "Non numeric", "Dollar", "Percent" });
@@ -328,7 +330,8 @@
         {
         return new List<Func<PIP_IndicatorAndResults, RenderFragment>>
             {
-                indicator => @<div><b>@indicator.Indicator_Status</b></div>,
+                indicator => 
+    @<div><b>@indicator.Indicator_Status</b></div>,
                 null,
                 null,
                 indicator => 
