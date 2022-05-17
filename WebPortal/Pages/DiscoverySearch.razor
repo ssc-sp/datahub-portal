@@ -97,31 +97,7 @@
                         <CatalogCards CatalogResult="@result" AccessorFunctions="@_accessorFunctions" RenderFunctions="@_renderFunctions"/>
                     }
                 </div>
-                <div>
-                    <AeTypography Variant="h3">@Localizer["Results"]</AeTypography>
-
-                    <AePaginatedTable 
-                        @ref=@_resultTable
-                        Accessors=@_accessorFunctions 
-                        T=@CatalogObjectResult
-                        Dataset=@_filteredSearchResults
-                        Headers=@_headers
-                        Renderers=@_renderFunctions
-                        Page="@_lastClicked"
-                        PageSize=@_pageSize
-                        GridTemplateColumns="4fr 3fr 3fr 2fr 2fr 2fr 1fr"
-                        OnRowClick=@ShowDetails
-                    />
-                    @if (_resultTable != null)
-                    {
-                        <AePagination 
-                            Pageable=@_resultTable
-                            OnPageClick="OnPageClick"> 
-                            <LeftIcon><i class='fad fa-chevron-double-left'></i></LeftIcon> 
-                            <RightIcon><i class='fad fa-chevron-double-right'></i></RightIcon>
-                        </AePagination>                 
-                    }
-                </div>
+                
 
                 @if (_searching)
                 {
@@ -134,25 +110,6 @@
         </ChildContent>
     </AeCard>
 
-@if (_selectedResult is not null)
-{
-    <div>&nbsp;</div>
-
-    <AeCard>
-        <ChildContent>
-            <h2>@_selectedResult.Name</h2>
-
-            <ObjectMetadataEditor 
-                @key=@_selectedResult
-                ObjectId=@_selectedResult.ObjectMetadataId.ToString()
-                Name=@_selectedResult.Name
-                ValidateRequired=false
-                ProfileName="catalog"
-                Preview=true 
-            />
-        </ChildContent>
-    </AeCard>
-}
 </div>
 
 @code {
