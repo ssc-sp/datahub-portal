@@ -182,6 +182,10 @@
     "FileUrl": "File URL",
     "GeoObject": "Geo Object"
   },
+  "RESOURCE-TYPE": {
+    "psql": "PostgreSQL",
+    "sql": "SQL Server"
+  },
   "404-Page-Error": "Invalid URL, please contact administrator if in error.",
   "ChangeOwner": "Change Owner",
   "CreateFolder": "Create Folder",
@@ -855,6 +859,8 @@
     "No_Access_Message": "You currently do not have access to this project.",
     "Request_Access_Reviewed": "Access Request is being reviewed",
     "DATABASE-CARD": {
+      "Database": "Database",
+      "PendingRequest": "Pending Request",
       "CardTitlePG": "Postgres SQL",
       "CardTitleSQL": "SQL Server",
       "MoreInfo_button": "More Information",
@@ -868,9 +874,12 @@
       "Value": "Value",
       "DbUsername": "Database Username",
       "DbHostname": "Database Host Name",
+      "ConnectionString": "Connection String",
       "PostgresResources": "PostgreSQL Resources",
       "ClickToExpand": "(click to expand)",
       "ErrorLoadingPostgresInfo": "There was an error loading the Postgres Resources",
+      "RequestBeingReviewed": "A request for {0} is being reviewed.",
+      "ErrorLoadingDisplaying": "There was an error loading or displaying database information for this project. Please contact an administrator and include the project acronym {0}.",
       "Copy": "Copy"
     },
     "PUBLIC-SHARING-CARD": {

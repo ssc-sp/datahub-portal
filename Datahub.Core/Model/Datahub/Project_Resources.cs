@@ -40,7 +40,7 @@ namespace Datahub.Core.EFCore
                 throw new InvalidCastException($"Resource {ResourceId} has type {ClassName} (tried getting {typeof(T).FullName})");
             }
 
-            return JsonConvert.DeserializeObject<T>(JsonContent);
+            return string.IsNullOrEmpty(JsonContent) ? default : JsonConvert.DeserializeObject<T>(JsonContent);
         }
 
         public void SetResourceObject<T>(T obj)
@@ -64,5 +64,8 @@ namespace Datahub.Core.EFCore
         public string Database_Type { get; set; }
         public string Database_Name { get; set; }
         public string Database_Server { get; set; }
+
+        public bool IsPostgres => Database_Type == ProjectResourceConstants.SERVICE_TYPE_POSTGRES;
+        public bool IsSqlServer => Database_Type == ProjectResourceConstants.SERVICE_TYPE_SQL_SERVER;
     }
 }
