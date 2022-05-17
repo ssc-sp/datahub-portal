@@ -76,7 +76,10 @@
     {
         <h2>Enter Outcome and Indicator Data</h2>
     }
-
+    @foreach (var content in _markDownContent)
+    {
+        <AeMarkdown Content="@($"{content}")"></AeMarkdown>
+    }
     <AeModelForm Model="_indicator"
                  T="PIP_IndicatorAndResults"
                  OnValidSubmit="HandleValidSubmit"
@@ -138,7 +141,9 @@
     private bool _reloadOptions = true;
     private SuccessIndicator _submitApprovalInd;
     private bool _submittingApproval = false;
-
+    private int _indicatorFiscalYear;
+    private List<string> _markDownContent;
+    
     private void OnPageClick(int pageIndex)
     {
         _lastClicked = pageIndex;
@@ -147,8 +152,9 @@
     protected override async Task OnInitializedAsync()
     {
         Context = DbFactory.CreateDbContext();
-        
 
+        _markDownContent = File.ReadAllLines($@"Pages\Forms\Pip\PipFormIntro.md").ToList();
+        
         _fiscalYear = Context.FiscalYears.Where(f => f.FiscalYear == fiscalYear).First();
         CurrentUser = await UserInformationService.GetUserAsync();
         _isUserAdmin = await ServiceAuthManager.IsProjectAdmin(CurrentUser.Id, PROJECTACRONYM);
@@ -187,7 +193,7 @@
             context.RegisterOptionValueProperty<PIP_IndicatorAndResults>(s => s.Indicator_Direction_DESC, () => new[] { "Increase", "Decrease", "Maintain" });
             context.RegisterOptionValueProperty<PIP_IndicatorAndResults>(s => s.Data_Type_DESC, () => new[] { "Number", "Non numeric", "Dollar", "Percent" });
             context.RegisterOptionValueProperty<PIP_IndicatorAndResults>(s => s.Target_Type_DESC, () => new[] { "Minimum value(at least)", "Maximum value(at most)", "Closed range", "Exact(single) value" });
-            context.RegisterOptionValueProperty<PIP_IndicatorAndResults>(s => s.Target_Met, () => new[] { "On Track", "Met", "Not Met", "Not on track to meet target" });
+            context.RegisterOptionValueProperty<PIP_IndicatorAndResults>(s => s.Target_Met, () => new[] { "On Track to be achieved in the future", "Met", "Not Met", "Not on track to meet target", "Not Available – To be used where target was not set" });
 
 
             context.RegisterOptionValueProperty<PIP_IndicatorAndResults>(p => p.Cannot_Report_On_Indicator, () => PIP_Constants.NOT_REPORTABLE_INDICATOR);
@@ -243,6 +249,8 @@
         _indicator.IsTargetLocked = false;
         _indicator.IsIndicatorDetailsLocked = false;
         _indicator.IsIndicatorStatusLocked = false;
+        _indicator.IsFiscalYearLocked = true;
+
         foreach (var category in lockedCategories)
         {
             if (category == "Methodology")
@@ -257,6 +265,7 @@
                 _indicator.IsIndicatorDetailsLocked = true;
             if (category == "Indicator Status")
                 _indicator.IsIndicatorStatusLocked = true;
+
         }        
     }
     protected void RegisterLocks(IModelFormContext context)
@@ -273,7 +282,9 @@
         if (_indicator.IsIndicatorStatusLocked)
             context.RegisterCategoryLock("Indicator Status", true);        
         if (_indicator.IsIndicatorDetailsLocked)
-            context.RegisterCategoryLock("Indicator Details", true);        
+            context.RegisterCategoryLock("Indicator Details", true);
+        if (_indicator.IsFiscalYearLocked)
+            context.RegisterCategoryLock("Fiscal Year", true);                    
     }
 
 
@@ -292,6 +303,7 @@
         _indicator.IsTargetLocked = true;
         _indicator.IsIndicatorDetailsLocked = true;
         _indicator.IsIndicatorStatusLocked = true;
+        _indicator.IsFiscalYearLocked = true;
 
 
         await HandleValidSubmit();
@@ -373,25 +385,26 @@
         _indicator = Context.IndicatorAndResults.Where(i => i.IndicatorAndResult_ID == recordId).First();
 
         _enableSave = true;
-    //    if (IsRecordLocked(_indicator))
-    //    {
-    //        var user = await UserInformationService.GetUserAsync(_indicator.EditingUserId);
-    //        var textList = new List<string>()
-    //        {
-    //            $"This Program is currently being edited by {user.DisplayName}, you will not be able to save any changes"
-    //        };
-    //        _enableSave = false;
-    //        await UI.ToggleModal(
-    //@<WarningModal OnDecision="HandleWarningDecision" WarningTextString=@textList />
-    //);
-    //    }
-    //    else
-    //    {
-    //        _indicator.EditingUserId = CurrentUser.Id;
-    //        await Context.TrackSaveChangesAsync(AuditingService);
-    //    }
+        //    if (IsRecordLocked(_indicator))
+        //    {
+        //        var user = await UserInformationService.GetUserAsync(_indicator.EditingUserId);
+        //        var textList = new List<string>()
+        //        {
+        //            $"This Program is currently being edited by {user.DisplayName}, you will not be able to save any changes"
+        //        };
+        //        _enableSave = false;
+        //        await UI.ToggleModal(
+        //@<WarningModal OnDecision="HandleWarningDecision" WarningTextString=@textList />
+        //);
+        //    }
+        //    else
+        //    {
+        //        _indicator.EditingUserId = CurrentUser.Id;
+        //        await Context.TrackSaveChangesAsync(AuditingService);
+        //    }
         _indicator = Context.IndicatorAndResults.Where(i => i.IndicatorAndResult_ID == recordId).First();
         _indicator.Last_Updated_UserName = await MSGraphService.GetUserName(_indicator.Last_Updated_UserId, CancellationToken.None);
+        _indicatorFiscalYear = _indicator.FiscalYearId;
         if (_myModelForm != null)
         {
             var ctx = _myModelForm.ModelFormContext;
@@ -413,16 +426,23 @@
             entry.State = EntityState.Unchanged;
         }                        
     }
+
+    
     private async void OnConfirmSave(bool isConfirmed, dynamic item)
     {
         await UI.ToggleModal();
         _submittingApproval = true;
         if (isConfirmed && _indicator != null)
         {
-            _indicator.Last_Updated_DT = DateTime.Now;
-            _indicator.Date_Updated_DT = DateTime.Now;
+            var timeUtc = DateTime.UtcNow;
+            TimeZoneInfo easternZone = TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time");
+
+            _indicator.Last_Updated_DT = TimeZoneInfo.ConvertTimeFromUtc(timeUtc, easternZone);
+            _indicator.Date_Updated_DT = TimeZoneInfo.ConvertTimeFromUtc(timeUtc, easternZone);
             _indicator.Last_Updated_UserId = CurrentUser.Id;
             _indicator.EditingUserId = string.Empty;
+            _indicator.IsFiscalYearLocked = true;
+            _indicator.FiscalYearId = _indicatorFiscalYear;
             if (_indicator.IndicatorAndResult_ID == 0)
             {
                 _indicator = Context.IndicatorAndResults.Add(_indicator).Entity;
@@ -434,7 +454,8 @@
                 {
                     $"The record you were trying to update has been modified by another user. Please copy your changes, refresh the page and re-enter the data."
                 };                
-                await UI.ToggleModal(@<WarningModal OnDecision="HandleWarningDecision" WarningTextString=@textList />);
+                await UI.ToggleModal(
+    @<WarningModal OnDecision="HandleWarningDecision" WarningTextString=@textList />);
 
                 await _submitApprovalInd.SignalFailure();
             }

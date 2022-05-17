@@ -29,7 +29,6 @@ else
                 }
                 else
                 {
-                    <AeTypography class="access-text">@Localizer["Access not authorized"]</AeTypography>
                     <AeButton @onclick="@HandleRequestAccess">@Localizer["Request Access"]</AeButton>
                 }
             }
@@ -65,7 +64,7 @@ else
 
         if (UserId != null)
         {
-            _webFormsRequested = _project.Requests.Any(r => r.WebForms);
+            _webFormsRequested = _project.Requests.Where(r => r.User_ID == UserId && r.Completion_DT == null).Any(r => r.WebForms);
             _webFormsAuthorized = _project.Requests
                 .Where(r => r.User_ID == UserId && r.Completion_DT != null)
                 .Any(r => r.WebForms);
