@@ -29,10 +29,10 @@
     }
     else if (RegistrationRequest.Status == Datahub_Registration_Request.STATUS_COMPLETED)
     {
-        <AeTypography>
-            <i class="fas fa-check"></i>
-            Completed
-        </AeTypography>
+        <AeButton @onclick="HandleResendInvite">
+            <i class="fas fa-repeat"></i>
+            Resend Invitation
+        </AeButton>
     }
     else if (RegistrationRequest.Status == Datahub_Registration_Request.STATUS_CONFIRMED)
     {
