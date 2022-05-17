@@ -1,10 +1,5 @@
 ﻿using Elemental.Components;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Datahub.Portal.Data
 {
@@ -13,20 +8,18 @@ namespace Datahub.Portal.Data
         [Key]
         [AeFormIgnore]
         public int Application_ID { get; set; }
-        
+
         [Required]
         [MaxLength(256)]
         [AeFormCategory("M365 Teams Information", 10)]
         [AeLabel(placeholder: "Enter a short bilingual name for the team (max 256 characters, recommended 35 characters). For example: IM Working Group | Groupe de travail sur la GI")]
-        public string Name_of_Team { get; set; }
+        public string Name_of_Team { get; set; } = null!;
 
         [Required]
         [MaxLength(1000)]
         [AeFormCategory("M365 Teams Information", 10)]
         [AeLabel(placeholder: "Enter a short bilingual description to display in the MS Teams 'About' section (max 1000 characters). For example: Collaboration space for sector financial advisors | Espace de collaboration pour les conseillers financier des secteurs")]
-        public string Description_of_Team { get; set; }
-
-
+        public string Description_of_Team { get; set; } = null!;
 
         [AeFormCategory("M365 Teams Information", 10)]
         [AeLabel(isDropDown: true, placeholder: "Select the appropriate Business Activity:", validValues: new[] { "Acquisition and Procurement", "Communications", "Emergency Management", "Financial Management", "Human Resources", "Information Management", "Information Technology", "Knowledge Dissemination", "Legal", "Management and Oversight", "Material Management", "Policy", "Program Administration", "Real Property Management", "Regulatory", "Science and Technology", "Stakeholder Relations", "Travel and Administrative Services" })]
@@ -34,18 +27,22 @@ namespace Datahub.Portal.Data
 
         [AeFormCategory("Team Purpose - How do you plan to use the team? Select all that apply", 15)]        
         public bool Working_Group { get; set; }
+
         [AeFormCategory("Team Purpose - How do you plan to use the team? Select all that apply", 15)]
         public bool Committee { get; set; }
+
         [AeFormCategory("Team Purpose - How do you plan to use the team? Select all that apply", 15)]
         public bool Event { get; set; }
+
         [AeFormCategory("Team Purpose - How do you plan to use the team? Select all that apply", 15)]
         public bool Project_Or_Initiative { get; set; }
+
         [AeFormCategory("Team Purpose - How do you plan to use the team? Select all that apply", 15)]
         public bool Other { get; set; }
+
         [AeFormCategory("Team Purpose - How do you plan to use the team? Select all that apply", 15)]
         [AeLabel(placeholder: "Please specify other purpose")]
         public string? Other_Txt { get; set; }
-
 
         [AeFormCategory("Membership", 20)]
         [AeLabel(isDropDown: true, placeholder: "Select a range for the number of members in the team:", validValues: new[] { "1-15", "16-30", "31-50", "51-100", "100+" })]
@@ -58,12 +55,12 @@ namespace Datahub.Portal.Data
         [Required]
         [AeFormCategory("Security", 30)]
         [AeLabel(placeholder: "Select an appropriate data security sensitivity applicable to ALL files, meetings and conversations within this team: Security and Information Classification Guide – a handy reference tool to assist you in categorizing and safeguarding information.", validValues: new[] { "Unclassified", "Protected A", "Protected B" })]
-        public string? Information_and_Data_Security_Classification { get; set; }
+        public string Information_and_Data_Security_Classification { get; set; } = null!;
 
         [Required]
         [AeFormCategory("Security", 30)]
         [AeLabel(isDropDown: true, placeholder: "Select whether this team will be accessible to:", validValues: new[] { "Private (select members only)", "Public (all NRCan staff)" })]
-        public string? Visibility { get; set; }
+        public string Visibility { get; set; } = null!;
 
         [AeFormCategory("GCdocs Folder Location", 50)]
         [AeLabel(placeholder: "Insert the GCdocs hyperlink (i.e. https://gcdocs.gc.ca/nrcan-rncan/llisapi.dll/Overview/XXXXXXXX) of where business value information will be saved.")]
@@ -76,31 +73,30 @@ namespace Datahub.Portal.Data
         [AeLabel(placeholder: "Select the expected retirement date for the team:")]
         public DateTime Expected_Lifespan_DT { get; set; }
 
-
-
         [AeFormCategory("Owners", 70)]
         [Required]
         [AeLabel(isDropDown: true, placeholder: "[Enter your Sector acronym and/or name]")]
         [StringLength(2000)]
-        public string? Client_Sector { get; set; }
+        public string Client_Sector { get; set; } = null!;
+
         [AeFormCategory("Owners", 70)]
         [Required]
         [AeLabel(placeholder: "Enter the name (Firsname Lastname) of the of DG-level business owner responsible for the Team and all the information within it.")]
-        public string Business_Owner { get; set; }
+        public string Business_Owner { get; set; } = null!;
 
         [Required]
         [AeLabel(placeholder: "Enter required team owner.")]
         [AeFormCategory("Owners", 70)]        
-        public string Team_Owner1 { get; set; }
+        public string Team_Owner1 { get; set; } = null!;
+
         [Required]
         [AeLabel(placeholder: "Enter required team owner.")]
         [AeFormCategory("Owners", 70)]
-        public string Team_Owner2 { get; set; }
-        
+        public string Team_Owner2 { get; set; } = null!;
+
         [AeFormCategory("Owners", 70)]
         [AeLabel(placeholder: "Enter optional team owner.")]
         public string? Team_Owner3 { get; set; }
-
 
         [AeFormCategory("Approval", 80)]        
         public bool Business_Owner_Approval { get; set; }
@@ -112,6 +108,9 @@ namespace Datahub.Portal.Data
         [AeFormCategory("Application Status", 90)]
         public string? Comments { get; set; }
 
+        [AeFormCategory("Application Status", 90)]
+        public bool IsOrganizationalTeam { get; set; }
+
         [AeFormIgnore]
         public string? SubmittedBy { get; set; }
 
@@ -119,14 +118,14 @@ namespace Datahub.Portal.Data
         public bool NotificationsSent { get; set; }
 
         [AeFormIgnore]
-        public string Last_Updated_UserId { get; set; }
+        public string Last_Updated_UserId { get; set; } = null!;
 
         [AeFormIgnore]
         public DateTime Last_Updated_DT { get; set; }
 
         [AeFormIgnore]
         [Timestamp]
-        public byte[] Timestamp { get; set; }
+        public byte[] Timestamp { get; set; } = null!;
 
     }
 }
