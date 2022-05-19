@@ -25,7 +25,7 @@ else
         <div class="topright">
             <div style="@($"--security-text-color: {_securityClassColor}")" class="securityclass">
                 <i class="@($"fad fa-{_projectIcon}")"></i>
-                <p><b>Security Classification: @Localizer[@CatalogResult.SecurityClass]</b></p>
+                <p><b>@Localizer["Security Classification"]: @Localizer[@CatalogResult.SecurityClass]</b></p>
             </div>            
             <div>
                 
@@ -46,14 +46,14 @@ else
             <AeTypography Variant="p no-margin">@_allFieldValues["subject"]</AeTypography>
         </div>
         <div class="details-left">
-            <AeTypography Variant="p no-margin"><b>Collection Type: </b>@_allFieldValues["collection"]</AeTypography>
-            <AeTypography Variant="p no-margin"><b>Contact Information: </b>@AccessorFunctions[3](@CatalogResult)</AeTypography>
+            <AeTypography Variant="p no-margin"><b>@Localizer["Collection Type"]: </b>@_allFieldValues["collection"]</AeTypography>
+            <AeTypography Variant="p no-margin"><b>@Localizer["Contact Information"]: </b>@AccessorFunctions[3](@CatalogResult)</AeTypography>
 @*            <AeTypography Variant="p no-margin"><b>Programs: </b>these are programs</AeTypography>*@
         </div>
         <div class="details-right">
-            <AeTypography Variant="p no-margin"><b>Sector: </b>@AccessorFunctions[1](@CatalogResult)</AeTypography>
-            <AeTypography Variant="p no-margin"><b>Branch: </b>@AccessorFunctions[2](@CatalogResult)</AeTypography>
-            <AeTypography Variant="p no-margin"><b>Data Type: </b>@AccessorFunctions[4](@CatalogResult)</AeTypography>
+            <AeTypography Variant="p no-margin"><b>@Localizer["Sector"]: </b>@AccessorFunctions[1](@CatalogResult)</AeTypography>
+            <AeTypography Variant="p no-margin"><b>@Localizer["Branch"]: </b>@AccessorFunctions[2](@CatalogResult)</AeTypography>
+            <AeTypography Variant="p no-margin"><b>@Localizer["Data Type"]: </b>@AccessorFunctions[4](@CatalogResult)</AeTypography>
         </div>
         <div class="key-words">
             @foreach(var tag in _tags)
@@ -102,7 +102,7 @@ else
     {
         var eTags = _allFieldValues["keywords_en"] ?? string.Empty;
         var eTagsList = eTags.Split(',').ToList();
-        var fTags = _allFieldValues["keywords_en"] ?? string.Empty;
+        var fTags = _allFieldValues["keywords_fr"] ?? string.Empty;
         var fTagsList = fTags.Split(',').ToList();
         _tags = new();
         _tags.AddRange(eTagsList);

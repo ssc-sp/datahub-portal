@@ -241,7 +241,11 @@ namespace Datahub.Portal.Data.PIP
         public string SourceFileName { get; set; }
         [AeFormIgnore]
         public DateTime? SourceFileUploadDate { get; set; }
-
+        [AeFormIgnore]
+        public int DuplicateCount { get; set; }
+        [AeFormIgnore]
+        [MaxLength(256)]
+        public string DataFactoryRunId { get; set; }
 
 
     }
