@@ -1,6 +1,9 @@
 ﻿@inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject RequestManagementService _requestManagementService
 @inject IProjectDatabaseService _projectDatabaseService;
+@inject IHttpClientFactory _httpClientFactory;
+@inject ILogger<ProjectDatabase> _logger;
+@inject UIControlsService _uiControlService
 
 @if(_isLoading)
 {
@@ -55,6 +58,14 @@ else
                                 </li>
                             }
                         }
+                        @if (_showPostgresInstructionsButton)
+                        {
+                            <li><AeButton OnClickEvent=@ShowPostgresResources class="light">@Localizer[$"{LOCALIZATION_PREFIX}.PostgresResources"]</AeButton></li>
+                        }
+                        else if (_showPostgresInstructionError)
+                        {
+                            <li><AeTypography>@Localizer[$"{LOCALIZATION_PREFIX}.ErrorLoadingPostgresInfo"]</AeTypography></li>
+                        }
                     }
                     else if (_showSqlServerInfo)
                     {
@@ -66,6 +77,7 @@ else
                             <AeInput disabled DefaultValue=@BuildSqlServerConnectionString(_databaseResource) class="formuserinput" id="sqlConnString" />
                         </li>
                     }
+                    <li><AeButton OnClickEvent=@ShowMetadataEditor>@Localizer[$"{LOCALIZATION_PREFIX}.EditMetadata"]</AeButton></li>
                 }
                 else if (_showExistingRequest)
                 {
@@ -122,9 +134,12 @@ else
     private bool _showSqlServerInfo => _showDatabaseInfo && _databaseResource.IsSqlServer;
     private bool _showPostgresTokenSection => _showPostgresInfo && _projectDatabaseService.IsServiceAvailable();
     private bool _showPostgresToken => _postgresAuthResult != null;
+    private bool _showPostgresInstructionsButton => !string.IsNullOrEmpty(_postgresInstructionsMd);
+    private bool _showPostgresInstructionError = false;
 
     private bool _awaitingToken;
     private Microsoft.Azure.Services.AppAuthentication.AppAuthenticationResult _postgresAuthResult;
+    private string _postgresInstructionsMd;
 
     private string BuildSqlServerConnectionString(ProjectResource_Database db) => $"Server={db.Database_Server};Database={db.Database_Name};Authentication=Active Directory Integrated;";
 
@@ -184,6 +199,54 @@ else
         await base.OnInitializedAsync();
         await LoadProjectsAndRequests();
         _isLoading = false;
+        await LoadPostgresResourcesContent();
+    }
+
+    private async Task LoadPostgresResourcesContent()
+    {
+        _postgresInstructionsMd = null;
+        _showPostgresInstructionError = false;
+
+        using var httpClient = _httpClientFactory.CreateClient();
+
+        using (var res = await httpClient.GetAsync(POSTGRES_RESOURCES_URL))
+        {
+            try
+            {
+                res.EnsureSuccessStatusCode();
+
+                var content = await res.Content.ReadAsStringAsync();
+
+                _postgresInstructionsMd = content;
+            }
+            catch (HttpRequestException ex)
+            {
+                _logger.LogError(ex, $"Error loading Postgres information from {POSTGRES_RESOURCES_URL}");
+                _showPostgresInstructionError = true;
+            }
+        }
+
+        StateHasChanged();
+    }
+
+    private async Task ShowPostgresResources()
+    {
+        RenderFragment popupHtml = @<AeMarkdown Content=@_postgresInstructionsMd />;
+        await _uiControlService.ToggleModal(@<RenderFragmentModal Fragment=@popupHtml/>);
+    }
+
+    private async Task ShowMetadataEditor()
+    {
+        RenderFragment metadataEditor = @<ObjectMetadataEditor 
+                            ObjectId=@ResourceID.ToString()
+                            Location="Azure"
+                            ProfileName="catalog"
+                            ObjectType=@Metadata.Model.MetadataObjectType.Database
+                            UpdateCatalog=@true
+                            ValidateRequired=@false
+                            Name=@_databaseResource.Database_Name
+                        />;
+        await _uiControlService.ToggleModal(@<RenderFragmentModal Fragment=@metadataEditor />);
     }
 
     private async Task GetPostgresToken()
