@@ -23,6 +23,7 @@
 @use 'steps/steps';
 @use 'tabs/tabs';
 @use 'table/table';
+@use 'tag/tag';
 @use 'toggle/toggle';
 @use 'tooltip/tooltip';
 @use 'treeview/treeview';
@@ -59,10 +60,11 @@
     @include steps.configure(map-get($overrides, 'steps'));
     @include tabs.configure(map-get($overrides, 'tabs'));
     @include table.configure(map-get($overrides, 'table'));
+    @include tag.configure(map-get($overrides, 'tag'));
     @include toggle.configure(map-get($overrides, 'toggle'));
     @include tooltip.configure(map-get($overrides, 'tooltip'));
     @include treeview.configure(map-get($overrides, 'treeview'));
-    @include typography.configure(map-get($overrides, 'typography'));    
+    @include typography.configure(map-get($overrides, 'typography'));
 
     @include styles;
 }
@@ -93,6 +95,7 @@
   @include steps.styles;
   @include tabs.styles;
   @include table.styles;
+  @include tag.styles;
   @include toggle.styles;
   @include tooltip.styles;
   @include treeview.styles;
