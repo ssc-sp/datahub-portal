@@ -180,7 +180,8 @@
     "PowerBIDataset": "Power BI Dataset",
     "PowerBIReport": "Power BI Report",
     "FileUrl": "File URL",
-    "GeoObject": "Geo Object"
+    "GeoObject": "Geo Object",
+    "Database": "Database"
   },
   "RESOURCE-TYPE": {
     "psql": "PostgreSQL",
@@ -876,6 +877,7 @@
       "DbHostname": "Database Host Name",
       "ConnectionString": "Connection String",
       "PostgresResources": "PostgreSQL Resources",
+      "EditMetadata": "Edit Metadata",
       "ClickToExpand": "(click to expand)",
       "ErrorLoadingPostgresInfo": "There was an error loading the Postgres Resources",
       "RequestBeingReviewed": "A request for {0} is being reviewed.",
