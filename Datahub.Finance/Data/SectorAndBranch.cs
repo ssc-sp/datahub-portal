@@ -24,7 +24,7 @@ namespace Datahub.Portal.Data.Finance
         public Branch Branch { get; set; }
 
         [AeFormIgnore]
-        public string Last_Updated_UserId { get; set; }
+        public string? Last_Updated_UserId { get; set; }
 
         [AeFormIgnore]
         public DateTime Last_Updated_DT { get; set; }

@@ -195,7 +195,7 @@
             context.RegisterOptionValueProperty<PIP_IndicatorAndResults>(s => s.Indicator_Direction_DESC, () => new[] { "Increase", "Decrease", "Maintain" });
             context.RegisterOptionValueProperty<PIP_IndicatorAndResults>(s => s.Data_Type_DESC, () => new[] { "Number", "Non numeric", "Dollar", "Percent" });
             context.RegisterOptionValueProperty<PIP_IndicatorAndResults>(s => s.Target_Type_DESC, () => new[] { "Minimum value(at least)", "Maximum value(at most)", "Closed range", "Exact(single) value" });
-            context.RegisterOptionValueProperty<PIP_IndicatorAndResults>(s => s.Target_Met, () => new[] { "On Track", "Met", "Not Met", "Not on track to meet target" });
+            context.RegisterOptionValueProperty<PIP_IndicatorAndResults>(s => s.Target_Met, () => new[] { "On Track to be achieved in the future", "Met", "Not Met", "Not on track to meet target", "Not Available – To be used where target was not set" });
 
 
             context.RegisterOptionValueProperty<PIP_IndicatorAndResults>(p => p.Cannot_Report_On_Indicator, () => PIP_Constants.NOT_REPORTABLE_INDICATOR);
