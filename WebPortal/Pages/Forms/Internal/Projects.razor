@@ -1,6 +1,6 @@
-﻿
+﻿@*Project.razor*@
+
 @inject IStringLocalizer DataLocalizer
-@implements IDisposable
 @inject IDbContextFactory<DatahubProjectDBContext> DbFactory
 @inject ServiceAuthManager ServiceAuthManager
 @inject IUserInformationService UserInformationService
@@ -14,6 +14,8 @@
 @using Microsoft.EntityFrameworkCore.Query
 @using Microsoft.EntityFrameworkCore;
 @page "/datahub/projects"
+
+@implements IDisposable
 
 <AeCard>
 
@@ -87,7 +89,9 @@
             <h2>Create new project</h2>
         }
 
-        <AeButton @onclick="SuggestTranslation">@DataLocalizer["Suggest French Translation"]</AeButton>
+        <AeButton @onclick=@SuggestTranslation Disabled=@DisabledSuggestTranslation>
+            @DataLocalizer["Suggest French Translation"]
+        </AeButton>
 
         <AeModelForm 
             Model="_project"
@@ -97,6 +101,7 @@
             CancelLabel="Cancel"
             SubmitLabel="@SubmitLabel"        
             LabelForPropertyFunc="@GetDataLabel"
+            OnChange=@FormChanged
             OnConfigure="OnConfigure"
         />
 
@@ -216,13 +221,19 @@
         StateHasChanged();
     }
 
+    private bool DisabledSuggestTranslation => string.IsNullOrEmpty(_project?.Project_Name) || string.IsNullOrEmpty(_project?.Project_Summary_Desc);
+
     public async Task SuggestTranslation()
     {
-        _project.Project_Name_Fr = await TranslationService.GetFrenchTranslation(_project.Project_Name);
-        _project.Project_Summary_Desc_Fr = await TranslationService.GetFrenchTranslation(_project.Project_Summary_Desc);
-        //TranslationService
+        if (!string.IsNullOrEmpty(_project.Project_Name))
+        {
+            _project.Project_Name_Fr = await TranslationService.GetFrenchTranslation(_project.Project_Name);
+        }
+        if (!string.IsNullOrEmpty(_project.Project_Summary_Desc))
+        {
+            _project.Project_Summary_Desc_Fr = await TranslationService.GetFrenchTranslation(_project.Project_Summary_Desc);
+        }
     }
-
 
     private void OnPageClick(int pageIndex)
     {
@@ -236,7 +247,7 @@
 
     private List<string> headers = new List<string>
     {
-        "Status", "Sector","Project", "Name", "Last Contact", "Contacts"
+        "Status", "Sector", "Project", "Name", "Last Contact", "Contacts"
     };
 
     private List<string> commentsHeaders = new List<string>
@@ -434,7 +445,7 @@
 
 
             await Context.TrackSaveChangesAsync(AuditingService);
-            
+
             //await UpdateAdmins();
             LoadProjects(); 
             _project = null;
@@ -477,7 +488,7 @@
     {
         return levels.Select(s => !_isFrench ? s.EnglishLabel : s.FrenchLabel).OrderBy(s => s).ToList();
     }
-    
+
     private List<string> Sectors => LocalizeChoices(_sectors);
     private List<string> Branches => LocalizeChoices(_branches.Where(b => b.ParentId == _sectorId));
     private List<string> Divisions => LocalizeChoices(_divisions.Where(d => d.ParentId == _branchId));
@@ -500,7 +511,7 @@
                                                     "Other",
                                                     "Presentations",
                                                     "Dashboards"
-                                                                 });
+                                 });
         context.RegisterOptionValueProperty<Datahub_Project>(s => s.Project_Phase, () => new[] {"Initiation",
                                                                 "Requirements",
                                                                 "Development/Design",
@@ -508,7 +519,7 @@
                                                                 "Testing",
                                                                 "Deployment",
                                                                 "Ongoing Maintenance and Support"
-                                                                 });
+                                 });
 
         context.RegisterOptionValueProperty<Datahub_Project>(p => p.Sector_Name, () => Sectors, s => 
         {
@@ -553,6 +564,26 @@
         _divisionId = -1;
         _project.Division_Name = string.Empty;
         context.RefreshOptions<Datahub_Project>(p => p.Division_Name);
+    }
+
+    private string CreateAcronysm(string name)
+    {
+        var words = (name ?? "").Split(' ', StringSplitOptions.RemoveEmptyEntries).ToArray();
+        if (words.Length == 0)
+            return string.Empty;
+
+        if (words.Length == 1)
+            return words[0].Substring(0, 4).ToUpper();
+
+        return string.Join("", words.Select(w => w[0])).ToUpper();
+    }
+
+    private void FormChanged(ModelFormChangeArgs args)
+    {
+        if (nameof(_project.Project_Name) == args.PropertyInfo.Name && string.IsNullOrEmpty(_project.Project_Acronym_CD))
+        {
+            _project.Project_Acronym_CD = CreateAcronysm(_project.Project_Name);
+        }        
     }
 
     public void Dispose() 
