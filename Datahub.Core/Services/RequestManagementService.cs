@@ -14,9 +14,9 @@ namespace Datahub.Core.Services
         private readonly ISystemNotificationService _systemNotificationService;
         private readonly IUserInformationService _userInformationService;
 
-        public const string DATABRICKS = "databricks";
-        public const string POWERBI = "powerbi";
-        public const string STORAGE = "storage";
+        public const string DATABRICKS = ProjectResourceConstants.SERVICE_TYPE_DATABRICKS;
+        public const string POWERBI = ProjectResourceConstants.SERVICE_TYPE_POWERBI;
+        public const string STORAGE = ProjectResourceConstants.SERVICE_TYPE_STORAGE;
         public const string SQLSERVER = ProjectResourceConstants.SERVICE_TYPE_SQL_SERVER;
         public const string POSTGRESQL = ProjectResourceConstants.SERVICE_TYPE_POSTGRES;
         
@@ -68,9 +68,6 @@ namespace Datahub.Core.Services
                 await ctx.Project_Requests.AddAsync(request);
                 await ctx.SaveChangesAsync();
 
-                //var projectResource = CreateProjectResource(request);
-                //await ctx.Project_Resources.AddAsync(projectResource);
-
                 var projectResource = CreateEmptyProjectResource(request);
                 await ctx.Project_Resources2.AddAsync(projectResource);
 
@@ -82,26 +79,6 @@ namespace Datahub.Core.Services
             await NotifyProjectAdminsOfServiceRequest(request);
         }
         
-        //private static Project_Resources CreateProjectResource(Datahub_ProjectServiceRequests request)
-        //{
-        //    var attributes = request.ServiceType switch
-        //    {
-        //        "sql" => "\"type\":\"sql\"",
-        //        "psql" => "\"type\":\"psql\"",
-        //        "storage" => "\"type\":\"gen2\"",
-        //        _ => $"\"type\":\"{request.ServiceType}\""
-        //    };
-        
-        //    return new Project_Resources      
-        //    {
-        //        ResourceType = request.ServiceType,
-        //        ResourceName = request.Project.Project_Acronym_CD,
-        //        TimeRequested = DateTime.Now,
-        //        Attributes = attributes,
-        //        Project = request.Project
-        //    };
-        //}
-
         private static Project_Resources2 CreateEmptyProjectResource(Datahub_ProjectServiceRequests request)
         {
             var resource = new Project_Resources2()
