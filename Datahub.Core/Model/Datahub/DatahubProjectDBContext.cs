@@ -119,8 +119,8 @@ namespace Datahub.Core.EFCore
 
             modelBuilder.Entity<Datahub_Project>().HasOne(p => p.PBI_License_Request).WithOne(p => p.Project).HasForeignKey<PBI_License_Request>(l => l.Project_ID);
 
-            modelBuilder.Entity<Datahub_Project>()
-                .HasCheckConstraint("CHK_DB_Type", "DB_Type in ('SQL Server', 'Postgres')");
+            //modelBuilder.Entity<Datahub_Project>()
+            //    .HasCheckConstraint("CHK_DB_Type", "DB_Type in ('SQL Server', 'Postgres')");
 
             modelBuilder.Entity<Datahub_ProjectComment>().HasOne(c => c.Project).WithMany(p => p.Comments);
 

@@ -9,4 +9,11 @@
         FileUrl,
         GeoObject
     }
+
+    public enum MetadataClassificationType : byte
+    { 
+        Unclassified,
+        ProtectedA,
+        ProtectedB  
+    }
 }

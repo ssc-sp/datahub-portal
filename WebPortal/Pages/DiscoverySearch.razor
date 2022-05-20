@@ -15,98 +15,143 @@
     <DHPageTitle PageTitleKey=@Localizer["Search catalog"] />
     <AeCard>
         <ChildContent>
-            <AeFlex Vertical>
-                <AeTypography Variant="h2">@Localizer["Search catalog"]</AeTypography>
-
-                <AeSearchInput 
-                    id="search" 
-                    Placeholder=@Localizer.GetString("Enter keywords..") 
-                    OnInputChangeWithLastKey=@HandleSearch 
-                    ClearIconFAClass="null" 
-                />
-
-                <AeCollapse OnSectionToggled=@OnFilterToggled>
-                    <AeCollapseSection DefaultOpen=@_filterSectionOpen>
-                        <Header>
-                            <AeTypography Variant="h3">
-                                <span title=@_filterSectionOpenTitle>
-                                    <AeIcon class=@_filterSectionOpenIconClass />
-                                </span>
-                                <span>@Localizer["Filter"]</span>
-                                <AeIcon class=@_filterActiveIconClass />
-                            </AeTypography>
-                        </Header>
-                        <ChildContent>
-                            <AeFlex Vertical>
-                                <div class="with-bottom-margin">
-                                    <MultiCheckboxSelect 
-                                        T=MetadataObjectType
-                                        Options=@(Enum.GetValues<MetadataObjectType>())
-                                        OptionLabelFunction=@(t => GetLocalizedDataType(t))
-                                        OptionSortFunction=@(t => GetLocalizedDataType(t))
-                                        OnSelectionChanged=@UpdateDataTypeFilter
-                                        @ref=@_objectTypeFilter
+            <div class="catalog-page">
+                <div class="filter">
+                    <AeFlex Vertical>
+                        <AeTypography Variant="h2">@Localizer["Filters"]</AeTypography>
+                        
+                        <AeCollapse OnSectionToggled=@OnSearchFilterToggled>
+                            <AeCollapseSection DefaultOpen=@_searchFilterSectionOpen>
+                                <Header>
+                                    <AeTypography Variant="h3">
+                                        <span title=@_filterSectionOpenTitle>
+                                            <AeIcon class=@_filterSectionOpenIconClass />
+                                        </span>
+                                        <span>@Localizer["Keyword Search"]</span>
+                                        <AeIcon class=@_filterActiveIconClass />
+                                    </AeTypography>
+                                </Header>
+                                <ChildContent>
+                                    <AeSearchInput 
+                                        id="search" 
+                                        Placeholder=@Localizer.GetString("Enter keywords..") 
+                                        OnInputChangeWithLastKey=@HandleSearch 
+                                        ClearIconFAClass="null" 
                                     />
-                                </div>
-                                <div class="with-bottom-margin">
-                                    <label>
-                                        <span>@Localizer["Security"]: </span>
-                                        <select @bind=@SecurityFilter title=@Localizer["Security"]>
-                                            <option value=@string.Empty>@Localizer["(any)"]</option>
-                                            @foreach(var sc in SecurityClassification.SECURITY_CLASSES)
-                                            {
-                                                <option value=@sc>@Localizer[sc]</option>
-                                            }
-                                        </select>
-                                    </label>
-                                    <label>
-                                        <span>@Localizer["Sector"]: </span>
-                                        <select @bind=@SectorFilter title=@Localizer["Sector"]>
-                                            <option value=@NO_FILTER_SELECTED>@Localizer["(any)"]</option>
-                                            @foreach(var sector in _sectors.Values.OrderBy(s => GetLabel(s)))
-                                            {
-                                                <option value=@sector.Id>@GetLabel(sector)</option>
-                                            }
-                                        </select>
-                                    </label>
-                                    <label>
-                                        @if (_filteredBranches.Count > 0)
-                                        {
-                                            <span>@Localizer["Branch"]: </span>
-                                            <select @bind=@BranchFilter title=@Localizer["Branch"]>
-                                                <option value=@NO_FILTER_SELECTED>@Localizer["(any)"]</option>
-                                                @foreach(var branch in _filteredBranches)
+                                </ChildContent>
+                            </AeCollapseSection>
+                        </AeCollapse>
+
+                        <AeCollapse OnSectionToggled=@OnSecurityFilterToggled>
+                            <AeCollapseSection DefaultOpen=@_securityFilterSectionOpen>
+                                <Header>
+                                    <AeTypography Variant="h3">
+                                        <span title=@_filterSectionOpenTitle>
+                                            <AeIcon class=@_filterSectionOpenIconClass />
+                                        </span>
+                                        <span>@Localizer["Security Classification"]</span>
+                                        <AeIcon class=@_filterActiveIconClass />
+                                    </AeTypography>
+                                </Header>
+                                
+                                <ChildContent>
+                                    <AeFlex Vertical>
+                                        <div class="with-bottom-margin">
+                                            <MultiCheckboxSelect 
+                                                T=MetadataClassificationType
+                                                Options=@(Enum.GetValues<MetadataClassificationType>())
+                                                OptionLabelFunction=@(t => GetLocalizedClassificationType(t))
+                                                OptionSortFunction=@(t => GetLocalizedClassificationType(t))
+                                                OnSelectionChanged=@UpdateClassificationTypeFilter
+                                                @ref=@_classificationTypeFilter
+                                            />
+                                        </div>
+                                    </AeFlex>
+                                </ChildContent>
+                            </AeCollapseSection>
+                        </AeCollapse>
+                        
+                        <AeCollapse OnSectionToggled=@OnFilterToggled>
+                            <AeCollapseSection DefaultOpen=@_filterSectionOpen>
+                                <Header>
+                                    <AeTypography Variant="h3">
+                                        <span title=@_filterSectionOpenTitle>
+                                            <AeIcon class=@_filterSectionOpenIconClass />
+                                        </span>
+                                        <span>@Localizer["Data Type"]</span>
+                                        <AeIcon class=@_filterActiveIconClass />
+                                    </AeTypography>
+                                </Header>
+                                <ChildContent>
+                                    <AeFlex Vertical>
+                                        <div class="with-bottom-margin">
+                                            <MultiCheckboxSelect 
+                                                T=MetadataObjectType
+                                                Options=@(Enum.GetValues<MetadataObjectType>())
+                                                OptionLabelFunction=@(t => GetLocalizedDataType(t))
+                                                OptionSortFunction=@(t => GetLocalizedDataType(t))
+                                                OnSelectionChanged=@UpdateDataTypeFilter
+                                                @ref=@_objectTypeFilter
+                                            />
+                                        </div>
+                                        <div class="dropdowns">
+                                            <label>
+                                                <span>@Localizer["Security"]: </span>
+                                                <select @bind=@SecurityFilter title=@Localizer["Security"]>
+                                                    <option value=@string.Empty>@Localizer["(any)"]</option>
+                                                    @foreach(var sc in SecurityClassification.SECURITY_CLASSES)
+                                                    {
+                                                        <option value=@sc>@Localizer[sc]</option>
+                                                    }
+                                                </select>
+                                            </label>
+                                            <label>
+                                                <span>@Localizer["Sector"]: </span>
+                                                <select @bind=@SectorFilter title=@Localizer["Sector"]>
+                                                    <option value=@NO_FILTER_SELECTED>@Localizer["(any)"]</option>
+                                                    @foreach(var sector in _sectors.Values.OrderBy(s => GetLabel(s)))
+                                                    {
+                                                        <option value=@sector.Id>@GetLabel(sector)</option>
+                                                    }
+                                                </select>
+                                            </label>
+                                            <label>
+                                                @if (_filteredBranches.Count > 0)
                                                 {
-                                                    <option value=@branch.Id>@GetLabel(branch)</option>
+                                                    <span>@Localizer["Branch"]: </span>
+                                                    <select @bind=@BranchFilter title=@Localizer["Branch"]>
+                                                        <option value=@NO_FILTER_SELECTED>@Localizer["(any)"]</option>
+                                                        @foreach(var branch in _filteredBranches)
+                                                        {
+                                                            <option value=@branch.Id>@GetLabel(branch)</option>
+                                                        }
+                                                    </select>
                                                 }
-                                            </select>
-                                        }
-                                    </label>
-                                </div>
-                                <div>
-                                    <AeButton OnClickEvent=@ClearFilters Disabled=@_clearFilterDisabled>@Localizer["BUTTONS.Clear"]</AeButton>
-                                </div>
-                            </AeFlex>
-                        </ChildContent>
-                    </AeCollapseSection>
-                </AeCollapse>
-
-                <div class="catalog-cards">
-                    @foreach(var result in _filteredSearchResults)
-                    {
-                        <CatalogCards CatalogResult="@result" AccessorFunctions="@_accessorFunctions" RenderFunctions="@_renderFunctions"/>
-                    }
+                                            </label>
+                                        </div>
+                                        <div>
+                                            <AeButton OnClickEvent=@ClearFilters Disabled=@_clearFilterDisabled>@Localizer["BUTTONS.Clear"]</AeButton>
+                                        </div>
+                                    </AeFlex>
+                                </ChildContent>
+                            </AeCollapseSection>
+                        </AeCollapse>
+                        @if (_searching)
+                        {
+                            <Spinner Small=true />
+                        }
+                    </AeFlex>
                 </div>
-                
-
-                @if (_searching)
-                {
-                    <Spinner Small=true />
-                }
-            </AeFlex>
-
-            <div>&nbsp;</div>
-
+                <div class="cards">
+                    <div class="catalog-cards">
+                        @foreach(var result in _filteredSearchResults)
+                        {
+                            <CatalogCards CatalogResult="@result" AccessorFunctions="@_accessorFunctions" RenderFunctions="@_renderFunctions"/>
+                        }
+                    </div>
+                </div>
+            </div>
+            
         </ChildContent>
     </AeCard>
 
@@ -142,12 +187,17 @@
     private CatalogObjectResult _selectedResult;
 
     private HashSet<MetadataObjectType> _filteredDataTypes = new();
+    private HashSet<MetadataClassificationType> _filteredClassificationTypes = new();
+
     private MultiCheckboxSelect<MetadataObjectType> _objectTypeFilter;
+    private MultiCheckboxSelect<MetadataClassificationType> _classificationTypeFilter;
     private int _filterSector = NO_FILTER_SELECTED;
     private int _filterBranch = NO_FILTER_SELECTED;
     private string _securityFilter = string.Empty;
     private List<OrganizationLevel> _filteredBranches => _branches.Values.Where(b => b.ParentId == _filterSector).OrderBy(b => GetLabel(b)).ToList();
 
+    private bool _searchFilterSectionOpen = true;
+    private bool _securityFilterSectionOpen = true;
     private bool _filterSectionOpen = true;
     private string _filterSectionOpenIconClass => $"fad fa-caret-circle-{(_filterSectionOpen ? "down" : "right")}";
     private string _filterSectionOpenTitle => _filterSectionOpen ? Localizer["Collapse"] : Localizer["Expand"];
@@ -186,12 +236,22 @@
 
     private string GetLocalizedDataType(MetadataObjectType dataType) => Localizer[$"DISCOVERY-DATA-TYPES.{dataType}"];
 
+    private string GetLocalizedClassificationType(MetadataClassificationType dataType) => Localizer[$"DISCOVERY-DATA-TYPES.{dataType}"];
+
     private async Task UpdateDataTypeFilter(IEnumerable<MetadataObjectType> filteredTypes)
     {
         _filteredDataTypes = filteredTypes.ToHashSet();
         UpdateFilter();
         await Task.CompletedTask;
     }
+
+    private async Task UpdateClassificationTypeFilter(IEnumerable<MetadataClassificationType> filteredTypes)
+    {
+        _filteredClassificationTypes = filteredTypes.ToHashSet();
+        UpdateFilter();
+        await Task.CompletedTask;
+    }
+
 
     private string SectorFilter
     {
@@ -239,12 +299,19 @@
         }
     }
 
+    private void GetMetadataClassificationType(string securityClass)
+    {
+        var enumType = Enum.Parse(typeof(MetadataClassificationType), securityClass);
+    }
+
     private void UpdateFilter()
     {
         var noDataTypesSelected = _filteredDataTypes.Count < 1;
+        var noClassificationTypesSelected = _filteredClassificationTypes.Count < 1;
 
         _filteredSearchResults = _searchResults
             .Where(r => (noDataTypesSelected || _filteredDataTypes.Contains(r.DataType)) &&
+                (noClassificationTypesSelected || _filteredClassificationTypes.Contains((MetadataClassificationType) Enum.Parse(typeof(MetadataClassificationType), r.SecurityClass.Replace(" ", "")))) &&
                 (_filterSector == NO_FILTER_SELECTED || r.Sector == _filterSector) &&
                 (_filterBranch == NO_FILTER_SELECTED || r.Branch == _filterBranch) &&
                 (string.IsNullOrEmpty(_securityFilter) || r.SecurityClass == _securityFilter))
@@ -252,7 +319,7 @@
 
         _lastClicked = 0;
 
-        _filtersActive = _filteredDataTypes.Count > 0 || _filterSector != NO_FILTER_SELECTED || _filterBranch != NO_FILTER_SELECTED || !string.IsNullOrEmpty(_securityFilter);
+        _filtersActive = _filteredDataTypes.Count > 0 || _filteredClassificationTypes.Count > 0 || _filterSector != NO_FILTER_SELECTED || _filterBranch != NO_FILTER_SELECTED || !string.IsNullOrEmpty(_securityFilter);
 
         StateHasChanged();
     }
@@ -262,6 +329,11 @@
         if (_objectTypeFilter != null)
         {
             _objectTypeFilter.Clear();
+        }
+
+        if (_classificationTypeFilter != null)
+        {
+            _classificationTypeFilter.Clear();
         }
 
         _filterSector = NO_FILTER_SELECTED;
@@ -274,6 +346,15 @@
     private void OnFilterToggled((AeCollapseSection Section, bool Open) e)
     {
         _filterSectionOpen = e.Open;
+    }
+
+    private void OnSearchFilterToggled((AeCollapseSection Section, bool Open) e)
+    {
+        _searchFilterSectionOpen = e.Open;
+    }
+    private void OnSecurityFilterToggled((AeCollapseSection Section, bool Open) e)
+    {
+        _securityFilterSectionOpen = e.Open;
     }
 
     // accessor functions
