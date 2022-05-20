@@ -57,6 +57,9 @@ namespace Datahub.Core.EFCore
     {
         public const string SERVICE_TYPE_POSTGRES = "psql";
         public const string SERVICE_TYPE_SQL_SERVER = "sql";
+        public const string SERVICE_TYPE_STORAGE = "storage";
+        public const string SERVICE_TYPE_DATABRICKS = "databricks";
+        public const string SERVICE_TYPE_POWERBI = "powerbi";
     }
 
     public class ProjectResource_Database
