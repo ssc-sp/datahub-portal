@@ -7,6 +7,7 @@
         PowerBIDataset,
         PowerBIReport,
         FileUrl,
-        GeoObject
+        GeoObject,
+        Database
     }
 }
