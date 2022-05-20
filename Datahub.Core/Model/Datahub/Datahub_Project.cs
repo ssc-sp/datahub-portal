@@ -191,6 +191,8 @@ namespace Datahub.Core.EFCore
         
         public List<Datahub_Project_Access_Request> Requests { get; set; }
 
+        public List<Datahub_ProjectServiceRequests> ServiceRequests { get; set; }
+
         [StringLength(400)]
         public string Databricks_URL { get; set; }
 
@@ -224,7 +226,7 @@ namespace Datahub.Core.EFCore
 
         public List<Project_Storage> StorageAccounts { get; set; }
 
-        public List<Project_Database> Databases { get; set; }
+        public IList<Project_Resources2> Resources { get; set; }
 
         public IList<PowerBi_Workspace> PowerBi_Workspaces { get; set; }
 
