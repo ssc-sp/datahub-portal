@@ -4,7 +4,7 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Unicode;
 
-var src = @"..\..\..\..\WebPortal\i18n\localizations2.json";
+var src = @"C:\code\DataHub\datahub-portal\ps-translator\data.json";
 var fPath = Path.GetFullPath(src);
 if (!File.Exists(fPath))
 {
