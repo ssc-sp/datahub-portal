@@ -180,7 +180,10 @@
     "PowerBIDataset": "Power BI Dataset",
     "PowerBIReport": "Power BI Report",
     "FileUrl": "File URL",
-    "GeoObject": "Geo Object"
+    "GeoObject": "Geo Object",
+    "Unclassified": "Unclassified",
+    "ProtectedA": "Protected A",
+    "ProtectedB": "Protected B"
   },
   "404-Page-Error": "Invalid URL, please contact administrator if in error.",
   "ChangeOwner": "Change Owner",

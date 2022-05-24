@@ -27,16 +27,12 @@ else
                 <i class="@($"fad fa-{_projectIcon}")"></i>
                 <p><b>@Localizer["Security Classification"]: @Localizer[@CatalogResult.SecurityClass]</b></p>
             </div>            
-            <div>
-                
+            <div class="rowheader">
+                <i style="margin-top: 0.2rem;" class="@_fileIcon"></i>
+                <p>@_allFieldValues["name"]</p>     
             </div>
         </div>
-        <div class="topleft">
-            <div class="rowheader">
-                <i class="@_fileIcon"></i>
-                <p>@_allFieldValues["name"]</p>          
-                <p>@RenderFunctions[6](@CatalogResult)</p>
-            </div>
+        <div class="topleft">            
             <div class="datasetname">
                 <p>@_allFieldValues["title_translated_fr"]</p>                 
             </div>           
@@ -46,22 +42,25 @@ else
             <AeTypography Variant="p no-margin">@_allFieldValues["subject"]</AeTypography>
         </div>
         <div class="details-left">
-            <AeTypography Variant="p no-margin"><b>@Localizer["Collection Type"]: </b>@_allFieldValues["collection"]</AeTypography>
+            <AeTypography Variant="p no-margin"><b>@Localizer["Data Type"]: </b>@AccessorFunctions[4](@CatalogResult)</AeTypography>
             <AeTypography Variant="p no-margin"><b>@Localizer["Contact Information"]: </b>@AccessorFunctions[3](@CatalogResult)</AeTypography>
-@*            <AeTypography Variant="p no-margin"><b>Programs: </b>these are programs</AeTypography>*@
         </div>
         <div class="details-right">
             <AeTypography Variant="p no-margin"><b>@Localizer["Sector"]: </b>@AccessorFunctions[1](@CatalogResult)</AeTypography>
             <AeTypography Variant="p no-margin"><b>@Localizer["Branch"]: </b>@AccessorFunctions[2](@CatalogResult)</AeTypography>
-            <AeTypography Variant="p no-margin"><b>@Localizer["Data Type"]: </b>@AccessorFunctions[4](@CatalogResult)</AeTypography>
+            <AeTypography Variant="p no-margin"><b>@Localizer["Collection Type"]: </b>@_allFieldValues["collection"]</AeTypography>
         </div>
-        <div class="key-words">
-            @foreach(var tag in _tags)
-            {
-                <AeTag Title="@tag" class="dark"></AeTag>                
-            }
+        <div class="bottom-row">
+            <div class="key-words">
+                @foreach(var tag in _tags)
+                {
+                    <AeTag Title="@tag" class="dark"></AeTag>                
+                }
+            </div>
+            <div class="buttons">                
+                <p>@RenderFunctions[6](@CatalogResult)</p>
+            </div>
         </div>
-
     </div>
 }
 @code {
@@ -88,11 +87,16 @@ else
     private MetadataProfile _profile;
     private Dictionary<string, string> _allFieldValues;
     private List<string> _tags;
+    private bool _isFrench;
+
+    private string GetTitle() => _isFrench ? _allFieldValues["title_translated_fr"] : _allFieldValues["title_translated_en"];
+    private string GetDescription() => _isFrench ? _allFieldValues["notes_translated_fr"] : _allFieldValues["notes_translated_en"];
 
     protected override async Task OnInitializedAsync()
     {
         await LoadFieldValues();
-        _allFieldValues = new();        
+        _allFieldValues = new();
+        _isFrench = CultureInfo.CurrentCulture.Name.StartsWith("fr", StringComparison.InvariantCulture);
         SetAllValues();
         SetAllTags();
 
