@@ -1,16 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System;
+using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
 namespace Datahub.Core.EFCore
 {
-    public class Project_Database
-    {
-        [Key]
-        public Guid Id { get; set; }
-
-        public Datahub_Project Project { get; set; }
-    }
-
     public class Project_Resources
     {
         [Key]
