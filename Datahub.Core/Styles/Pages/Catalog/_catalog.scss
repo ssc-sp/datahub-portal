@@ -5,7 +5,6 @@
     --security-text-color: #38a169;
     display: grid;
     grid-template-columns: 1fr;
-    
     gap: 1rem;
 
     p {
@@ -22,7 +21,7 @@
         transition: all 0.3s c.$cubic-bezier;
         margin: 0.5rem;
 
-      
+
 
         .topleft {
             grid-column-start: 1;
@@ -34,11 +33,7 @@
             display: flex;
             flex-direction: column;
 
-            .rowheader {
-                display: flex;
-                flex-direction: row;
-                flex-wrap: nowrap;
-            }
+
 
             .datasetname {
                 line-height: 1;
@@ -87,11 +82,25 @@
             margin: 0.5rem;
         }
 
-        .key-words {
-            grid-column: 1 / span 2;
+        .bottom-row {
+            grid-column: 1/span 2;
             grid-row-start: 4;
             grid-row-end: 5;
             margin: 0.5rem;
+            display: grid;
+            grid-template-columns: 4fr 1fr;
+
+            .key-words {
+                grid-column: 1 / span 1;
+            }
+
+            .buttons {
+                grid-column: 2 / span 1;
+                display: flex;
+                flex-direction: column;
+                justify-content: flex-end;
+                align-items: end;
+            }
         }
 
         .topright {
@@ -99,12 +108,12 @@
             grid-row-start: 1;
             grid-row-end: 2;
             display: flex;
-            justify-content: flex-end;
-            font-size: 1.5rem;
+            flex-direction: column;
             margin: 0.5rem;
 
             .securityclass {
                 display: flex;
+                justify-content: flex-end;
                 align-items: baseline;
                 gap: .25rem;
                 text-transform: uppercase;
@@ -112,6 +121,14 @@
                 line-height: 1;
                 font-size: 0.8rem;
                 color: var(--security-text-color);
+            }
+
+            .rowheader {
+                display: flex;
+                justify-content: flex-end;
+                flex-direction: row;
+                flex-wrap: nowrap;
+                font-size: 1rem;
             }
         }
     }
