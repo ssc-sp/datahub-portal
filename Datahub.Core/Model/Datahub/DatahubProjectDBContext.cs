@@ -30,10 +30,10 @@ namespace Datahub.Core.EFCore
         public DbSet<Datahub_Project_User_Request> Project_Users_Requests { get; set; }
         public DbSet<Datahub_ProjectServiceRequests> Project_Requests { get; set; }
         public DbSet<Datahub_Project_Pipeline_Lnk> Project_Pipeline_Links { get; set; }
-        public DbSet<Project_Database> Project_Databases { get; set; }
         public DbSet<Datahub_Project_Sectors_And_Branches> Organization_Levels { get; set; }
         public DbSet<OnboardingApp> OnboardingApps {  get; set; }
         public DbSet<Project_Resources> Project_Resources { get; set; }
+        public DbSet<Project_Resources2> Project_Resources2 { get; set; }
 
         public DbSet<PublicDataFile> PublicDataFiles { get; set; }
 
@@ -118,9 +118,6 @@ namespace Datahub.Core.EFCore
             modelBuilder.Entity<WebForm>().HasOne(e => e.Project).WithMany(e => e.WebForms);
 
             modelBuilder.Entity<Datahub_Project>().HasOne(p => p.PBI_License_Request).WithOne(p => p.Project).HasForeignKey<PBI_License_Request>(l => l.Project_ID);
-
-            //modelBuilder.Entity<Datahub_Project>()
-            //    .HasCheckConstraint("CHK_DB_Type", "DB_Type in ('SQL Server', 'Postgres')");
 
             modelBuilder.Entity<Datahub_ProjectComment>().HasOne(c => c.Project).WithMany(p => p.Comments);
 

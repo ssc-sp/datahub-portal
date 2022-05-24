@@ -9,133 +9,145 @@
 @inject IJSRuntime JsInterop
 @inject TranslationService TranslationService
 @inject IDatahubAuditingService AuditingService
+@inject IOrganizationLevelsService OrganizationLevelsService
 
 @using Microsoft.EntityFrameworkCore.Query
 @using Microsoft.EntityFrameworkCore;
 @page "/datahub/projects"
 
-<h1>DataHub Project List</h1>
+<AeCard>
 
-<div>
-<AeFlex id="buttonBar">
-    <div class="icon-container" style="margin-bottom: 10px; margin-left: 5px;">
+    <h1>DataHub Project List</h1>
 
-        <FAButton Text="Add New" Icon="far fa-plus-square" onclick="e => CreateNewProject()"/>
-@if(_project?.Project_ID > 0)
-{
-       @* <FAButton Text="Edit" Icon="fad fa-edit" onclick="async () => await SetFormEdit(q)"/>  *@
-        <FAButton Text="Delete" Icon="fad fa-trash-alt" onclick="() => DeleteShowModal(_project)"/>                    
-        <FAButton Text="Power BI License Request Form" To="@($"/licenses/{_project.Project_ID}")" Icon="fas fa-chart-pie"/>                    
-}
+    <div>
+        <AeFlex id="buttonBar">
+            <div class="icon-container" style="margin-bottom: 10px; margin-left: 5px;">
 
-    </div>
-</AeFlex>
+                <FAButton Text="Add New" Icon="far fa-plus-square" onclick="e => CreateNewProject()"/>
 
-@if (filterProperties != null)
-    {
-        <AeFlex id="filterBar">            
-            @foreach (var filter in filterProperties)
-            {                
-                <AeDropdown Items="ValidDisplayValues" OnChange="HandleDropdownChange" Label="@filterLabelValue" class="@filterClass"/>                
-            }
+                @if (_project?.Project_ID > 0)
+                {
+                    @* <FAButton Text="Edit" Icon="fad fa-edit" onclick="async () => await SetFormEdit(q)"/>  *@
+                    <FAButton Text="Delete" Icon="fad fa-trash-alt" onclick="() => DeleteShowModal(_project)"/>                    
+                    <FAButton Text="Power BI License Request Form" To="@($"/licenses/{_project.Project_ID}")" Icon="fas fa-chart-pie"/>                    
+                }
 
+            </div>
         </AeFlex>
-    }
 
+        @if (filterProperties != null)
+        {
+            <AeFlex id="filterBar">            
+                @foreach (var filter in filterProperties)
+                {                
+                    <AeDropdown Items="ValidDisplayValues" OnChange="HandleDropdownChange" Label="@filterLabelValue" class="@filterClass"/>                
+                }
+            </AeFlex>
+        }
 
-<AeFlex Vertical id="indexFlex">
+        <AeFlex Vertical id="indexFlex">
 
-
-<AePaginatedTable Accessors="accessorFunctions"
-       T="Datahub_Project"
-       Dataset="_projects"
-       ColorAccessor="getColor"
-       Headers="headers" 
-       GridTemplateColumns="2fr 2fr 2fr 8fr 2fr 8fr"
-       MaxHeight="400"
-       OnRowClick="@SetFormEdit"
-       Page="@_lastClicked"
-                 PageSize="10"
-                 @ref=_myTable />
+            <AePaginatedTable 
+                Accessors="accessorFunctions"
+                T="Datahub_Project"
+                Dataset="_projects"
+                ColorAccessor="getColor"
+                Headers="headers" 
+                GridTemplateColumns="2fr 4fr 2fr 8fr 2fr 8fr"
+                MaxHeight="400"
+                OnRowClick="@SetFormEdit"
+                Page="@_lastClicked"
+                PageSize="10"
+                @ref=_myTable 
+            />
     
-    <AePagination 
-            Pageable="@_myTable" 
-            OnPageClick="OnPageClick"> 
-            <LeftIcon><i class='fad fa-chevron-double-left'></i></LeftIcon> 
-            <RightIcon><i class='fad fa-chevron-double-right'></i></RightIcon>
+            <AePagination Pageable="@_myTable" OnPageClick="OnPageClick"> 
+                <LeftIcon><i class='fad fa-chevron-double-left'></i></LeftIcon> 
+                <RightIcon><i class='fad fa-chevron-double-right'></i></RightIcon>
             </AePagination>
 
-</AeFlex>
+        </AeFlex>
 
-</div>
+    </div>
+
+</AeCard>
 
 @if (_project != null)
 {
-    if(_project.Project_ID > 0)
-    {
-        <h2>Editing Project @_project.Project_ID (@(_project.Project_Acronym_CD))</h2>
-    }
-    else
-    {
-        <h2>Create new project</h2>
-    }
+    <div>&nbsp;</div>
 
-    <AeButton @onclick="SuggestTranslation">@DataLocalizer["Suggest French Translation"]</AeButton>
+    <AeCard>
 
-    <AeModelForm Model="_project"
-        T="Datahub_Project"
-        OnValidSubmit="HandleValidSubmit"
-        OnCancel="ClearForm"
-        CancelLabel="Cancel"
-        SubmitLabel="@SubmitLabel"        
-        LabelForPropertyFunc="@GetDataLabel"
-        OnConfigure="OnConfigure"/>
-
-if (_project.Project_ID > 0)
-    {
-    <AeFlex id="buttonBar">
-        <div class="icon-container" style="margin-bottom: 10px; margin-left: 5px;">
-
-                <FAButton Text="Add New Comment" Icon="far fa-plus-square" onclick="e => AddNewComment()"/>
-                @if (_comment?.Comment_ID > 0)
-                {
-                @* <FAButton Text="Edit" Icon="fad fa-edit" onclick="async () => await SetFormEdit(q)"/>  *@
-                @* <FAButton Text="Delete" Icon="fad fa-trash-alt" onclick="async () => DeleteShowModal(_project)"/> *@
-        
+        @if (_project.Project_ID > 0)
+        {
+            <h2>Editing Project @_project.Project_ID (@(_project.Project_Acronym_CD))</h2>
+        }
+        else
+        {
+            <h2>Create new project</h2>
         }
 
-        </div>
-    </AeFlex>
-    
+        <AeButton @onclick="SuggestTranslation">@DataLocalizer["Suggest French Translation"]</AeButton>
 
+        <AeModelForm 
+            Model="_project"
+            T="Datahub_Project"
+            OnValidSubmit="HandleValidSubmit"
+            OnCancel="ClearForm"
+            CancelLabel="Cancel"
+            SubmitLabel="@SubmitLabel"        
+            LabelForPropertyFunc="@GetDataLabel"
+            OnConfigure="OnConfigure"
+        />
+
+        @if (_project.Project_ID > 0)
+        {
+            <AeFlex id="buttonBar">
+                <div class="icon-container" style="margin-bottom: 10px; margin-left: 5px;">
+
+                    <FAButton Text="Add New Comment" Icon="far fa-plus-square" onclick="e => AddNewComment()"/>
+                    @if (_comment?.Comment_ID > 0)
+                    {
+                        @* <FAButton Text="Edit" Icon="fad fa-edit" onclick="async () => await SetFormEdit(q)"/>  *@
+                        @* <FAButton Text="Delete" Icon="fad fa-trash-alt" onclick="async () => DeleteShowModal(_project)"/> *@
+                    }
+
+                </div>
+            </AeFlex>
+
+            <AePaginatedTable 
+                Accessors="commentAccessorFunctions"
+                T="Datahub_ProjectComment"
+                Dataset="_project.Comments"
+                ColorAccessor="getColor"
+                Headers="commentsHeaders" 
+                GridTemplateColumns="1fr 8fr"
+                MaxHeight="400"
+                OnRowClick="@SetCommentEdit"
+                Page="@_lastClickedComment"
+                PageSize="10"
+                @ref=_myTableComment 
+            />
     
-       <AePaginatedTable Accessors="commentAccessorFunctions"
-       T="Datahub_ProjectComment"
-       Dataset="_project.Comments"
-       ColorAccessor="getColor"
-       Headers="commentsHeaders" 
-       GridTemplateColumns="1fr 8fr"
-       MaxHeight="400"
-       OnRowClick="@SetCommentEdit"
-       Page="@_lastClickedComment"
-                 PageSize="10"
-                 @ref=_myTableComment />
-    
-    <AePagination 
-            Pageable="@_myTableComment" 
-            OnPageClick="OnPageClickComment"> 
-            <LeftIcon><i class='fad fa-chevron-double-left'></i></LeftIcon> 
-            <RightIcon><i class='fad fa-chevron-double-right'></i></RightIcon>
+            <AePagination Pageable="@_myTableComment" OnPageClick="OnPageClickComment"> 
+                <LeftIcon>
+                    <i class='fad fa-chevron-double-left'></i>
+                    </LeftIcon> 
+                <RightIcon>
+                    <i class='fad fa-chevron-double-right'></i>
+                </RightIcon>
             </AePagination>
 
-
-
-    <AeModelForm Model="_comment"
-        OnValidSubmit="HandleValidCommentSubmit"
-        CancelLabel="Cancel"
-        SubmitLabel="Save Comment"        
-        LabelForPropertyFunc="@GetDataLabel" />
+            <AeModelForm 
+                Model="_comment"
+                OnValidSubmit="HandleValidCommentSubmit"
+                CancelLabel="Cancel"
+                SubmitLabel="Save Comment"        
+                LabelForPropertyFunc="@GetDataLabel" 
+            />
         }
+
+    </AeCard>
 }
 
 @code {
@@ -146,7 +158,7 @@ if (_project.Project_ID > 0)
     private const string EMAIL = "offline@nrcan-cnrcan.gc.ca";
     private bool _navToEdit = false;
     private DatahubProjectDBContext Context;
-    
+
     private int _lastClicked = 0;
     private IPageableComponent _myTable;
     private int _lastClickedComment = 0;
@@ -158,8 +170,23 @@ if (_project.Project_ID > 0)
     private string filterLabelValue;
     private string filterClass;
 
-    protected override void OnInitialized()
+    private List<OrganizationLevel> _sectors = new(); 
+    private List<OrganizationLevel> _branches = new(); 
+    private List<OrganizationLevel> _divisions = new();
+
+    private int _sectorId = -1;
+    private int _branchId = -1;
+    private int _divisionId = -1;
+
+    private bool _isFrench;
+
+    protected override async Task OnInitializedAsync()
     {
+        _isFrench = CultureInfo.CurrentCulture.Name.StartsWith("fr", StringComparison.InvariantCulture);
+        _sectors = await OrganizationLevelsService.GetSectors();
+        _branches = await OrganizationLevelsService.GetBranches();
+        _divisions = await OrganizationLevelsService.GetDivisions();
+
         // load projects        
         Context = DbFactory.CreateDbContext();
         LoadProjects();
@@ -333,21 +360,21 @@ if (_project.Project_ID > 0)
     private void DeleteShowModal(Datahub_Project project)
     {
         RenderFragment modalBody = 
-            @<div>
-                <p>Do you confirm the deletion of Project @(project.Project_ID)?</p>
-                <p>Acronym: @project.Project_Acronym_CD</p>
-                <p>Summary: @project.ProjectDescription</p>
-            </div>;
+    @<div>
+                    <p>Do you confirm the deletion of Project @(project.Project_ID)?</p>
+                    <p>Acronym: @project.Project_Acronym_CD</p>
+                    <p>Summary: @project.ProjectDescription</p>
+    </div>;
 
         RenderFragment modalFooter = 
-            @<div style="display:flex;justify-content:space-between;">
-                <AeButton class="red" @onclick="async () => { UIControlService.ToggleModal(); StateHasChanged(); await DeleteConfirmed(project); }">
-                    Delete
-                </AeButton>  
-                <AeButton class="blue" @onclick="() => { UIControlService.ToggleModal(); StateHasChanged(); }">
-                    Cancel
-                </AeButton> 
-            </div>;
+    @<div style="display:flex;justify-content:space-between;">
+                    <AeButton class="red" @onclick="async () => { UIControlService.ToggleModal(); StateHasChanged(); await DeleteConfirmed(project); }">
+                        Delete
+                    </AeButton>  
+                    <AeButton class="blue" @onclick="() => { UIControlService.ToggleModal(); StateHasChanged(); }">
+                        Cancel
+                    </AeButton> 
+    </div>;
 
         var modalParameter = new Elemental.Code.ModalParameter() 
         { 
@@ -446,6 +473,20 @@ if (_project.Project_ID > 0)
         }
     }
 
+    private List<string> LocalizeChoices(IEnumerable<OrganizationLevel> levels) 
+    {
+        return levels.Select(s => !_isFrench ? s.EnglishLabel : s.FrenchLabel).OrderBy(s => s).ToList();
+    }
+    
+    private List<string> Sectors => LocalizeChoices(_sectors);
+    private List<string> Branches => LocalizeChoices(_branches.Where(b => b.ParentId == _sectorId));
+    private List<string> Divisions => LocalizeChoices(_divisions.Where(d => d.ParentId == _branchId));
+
+    private int GetChoiceId(List<OrganizationLevel> choices, string value, int? parentId = null)
+    {
+        return choices.FirstOrDefault(c => (!parentId.HasValue || c.ParentId == parentId.Value) && (c.EnglishLabel.Equals(value) || c.FrenchLabel.Equals(value)))?.Id ?? -1;
+    }
+
     private void OnConfigure(IModelFormContext context)
     {
         context.RegisterOptionValueProperty<Datahub_Project>(s => s.Project_Category, () => new[] { "Data Pipeline",
@@ -468,6 +509,50 @@ if (_project.Project_ID > 0)
                                                                 "Deployment",
                                                                 "Ongoing Maintenance and Support"
                                                                  });
+
+        context.RegisterOptionValueProperty<Datahub_Project>(p => p.Sector_Name, () => Sectors, s => 
+        {
+            var id = GetChoiceId(_sectors, s);
+            if (_sectorId != id)
+            {
+                _sectorId = id;
+                RefreshBranches(context);
+            }
+        });
+
+        context.RegisterOptionValueProperty<Datahub_Project>(p => p.Branch_Name, () => Branches, b =>
+        {
+            var id = GetChoiceId(_branches, b, _sectorId);
+            if (_branchId != id)
+            {
+                _branchId = id;
+                RefreshDivisions(context);
+            }
+        });
+
+        context.RegisterOptionValueProperty<Datahub_Project>(p => p.Division_Name, () => Divisions, d =>
+        {
+            var id = GetChoiceId(_divisions, d, _branchId);
+            if (_divisionId != id)
+            {
+                _divisionId = id;
+            }
+        });
+    }
+
+    private void RefreshBranches(IModelFormContext context)
+    {
+        _branchId = -1;
+        _project.Branch_Name = string.Empty;
+        context.RefreshOptions<Datahub_Project>(p => p.Branch_Name);
+        RefreshDivisions(context);
+    }
+
+    private void RefreshDivisions(IModelFormContext context)
+    {
+        _divisionId = -1;
+        _project.Division_Name = string.Empty;
+        context.RefreshOptions<Datahub_Project>(p => p.Division_Name);
     }
 
     public void Dispose() 
