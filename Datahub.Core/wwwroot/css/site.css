@@ -5797,11 +5797,6 @@ code {
   display: flex;
   flex-direction: column;
 }
-.catalog-cards .card .topleft .rowheader {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
-}
 .catalog-cards .card .topleft .datasetname {
   line-height: 1;
   font-size: 1.5rem;
@@ -5841,23 +5836,35 @@ code {
   grid-row-end: 4;
   margin: 0.5rem;
 }
-.catalog-cards .card .key-words {
+.catalog-cards .card .bottom-row {
   grid-column: 1/span 2;
   grid-row-start: 4;
   grid-row-end: 5;
   margin: 0.5rem;
+  display: grid;
+  grid-template-columns: 4fr 1fr;
+}
+.catalog-cards .card .bottom-row .key-words {
+  grid-column: 1/span 1;
+}
+.catalog-cards .card .bottom-row .buttons {
+  grid-column: 2/span 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: end;
 }
 .catalog-cards .card .topright {
   grid-column-start: 2;
   grid-row-start: 1;
   grid-row-end: 2;
   display: flex;
-  justify-content: flex-end;
-  font-size: 1.5rem;
+  flex-direction: column;
   margin: 0.5rem;
 }
 .catalog-cards .card .topright .securityclass {
   display: flex;
+  justify-content: flex-end;
   align-items: baseline;
   gap: 0.25rem;
   text-transform: uppercase;
@@ -5865,6 +5872,13 @@ code {
   line-height: 1;
   font-size: 0.8rem;
   color: var(--security-text-color);
+}
+.catalog-cards .card .topright .rowheader {
+  display: flex;
+  justify-content: flex-end;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  font-size: 1rem;
 }
 
 .catalog-page {

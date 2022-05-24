@@ -373,7 +373,7 @@
             : GetUnauthorizedDownload(result);
 
     private RenderFragment GetAuthorizedDownload(CatalogObjectResult result) =>
-        @<div style="cursor: pointer;" onclick=@(() => HandleDownload(result)) ><i class="far fa-cloud-download sm-icon"></i></div>;
+        @<AeButton class="blue" onclick=@(() => HandleDownload(result))>Open File</AeButton>;
 
     private RenderFragment GetUnauthorizedDownload(CatalogObjectResult result) => 
         @<span>&nbsp;</span>
