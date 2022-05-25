@@ -1,3 +1,4 @@
+using Datahub.Portal.Services.Storage;
 using Microsoft.JSInterop;
 
 namespace Datahub.Portal.Pages.Project.FileExplorer;
@@ -19,6 +20,12 @@ public partial class Heading
         {
             await OnFileDownload.InvokeAsync(download);
         }
+    }
+
+    private async Task HandleAzSyncDown()
+    {
+        var uri = await _dataRetrievalService.GenerateSasToken(DataRetrievalService.DEFAULT_CONTAINER_NAME, ProjectAcronym, 14);
+        await _module.InvokeAsync<string>("azSyncDown", uri.ToString());
     }
 
     private void HandleShare()
@@ -87,13 +94,15 @@ public partial class Heading
         Download,
         Share,
         Delete,
-        Rename
+        Rename,
+        AzSync,
     }
 
     private bool IsActionDisabled(ButtonAction buttonAction)
     {
         return buttonAction switch
         {
+            ButtonAction.AzSync     => !_isElectron,
             ButtonAction.Download => _selectedFiles is null || !_selectedFiles.Any() || !_ownsSelectedFiles,
             ButtonAction.Share    => _selectedFiles is null || !_selectedFiles.Any() || !_ownsSelectedFiles || SelectedItems.Count > 1,
             ButtonAction.Delete   => _selectedFiles is null || !_selectedFiles.Any() || !_ownsSelectedFiles,
