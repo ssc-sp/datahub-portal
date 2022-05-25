@@ -1,4 +1,5 @@
 @inject NavigationManager _navigationManager
+@inject DataRetrievalService _dataRetrievalService
 @inject IJSRuntime _jsRuntime
 
 <div class="heading">
@@ -19,6 +20,11 @@
         <AeButton class="button-tool" @onclick="HandleDownload" Disabled="IsActionDisabled(ButtonAction.Download)">
             <i class="fas fa-download"></i>
             @Localizer["Download"]
+        </AeButton>
+        
+        <AeButton class="button-tool" @onclick="HandleAzSyncDown" Disabled="IsActionDisabled(ButtonAction.AzSync)">
+            <i class="fas fa-cloud-download-alt"></i>
+            @Localizer["AzSync Down"]
         </AeButton>
 
         <AeButton class="button-tool" @onclick="HandleRename" Disabled="IsActionDisabled(ButtonAction.Rename)">
@@ -88,6 +94,7 @@
 
     private List<FileMetaData> _selectedFiles;
     private bool _ownsSelectedFiles;
+    private bool _isElectron = true;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
