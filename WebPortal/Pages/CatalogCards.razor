@@ -34,12 +34,12 @@ else
         </div>
         <div class="topleft">            
             <div class="datasetname">
-                <p>@_allFieldValues["title_translated_fr"]</p>                 
+                <p>@GetTitle()</p>                 
             </div>           
         </div>
         <div class="title-and-subject">  
 
-            <AeTypography Variant="p no-margin">@_allFieldValues["subject"]</AeTypography>
+            <AeTypography Variant="p no-margin">@GetDescription()</AeTypography>
         </div>
         <div class="details-left">
             <AeTypography Variant="p no-margin"><b>@Localizer["Data Type"]: </b>@AccessorFunctions[4](@CatalogResult)</AeTypography>
