@@ -119,6 +119,16 @@
                                 
                                 <ChildContent>
                                     <AeFlex Vertical>
+                                        <div class="with-bottom-margin">
+                                            <MultiCheckboxSelect 
+                                                T=OrganizationLevel
+                                                Options=@(_allSectors)
+                                                OptionLabelFunction=@(t => t.EnglishLabel)
+                                                OptionSortFunction=@(t => t.EnglishLabel)
+                                                OnSelectionChanged=@UpdateSectorFilter
+                                                @ref=@_sectorFilter
+                                            />
+                                        </div>
                                         <div class="dropdowns">                                            
                                             <label>                                                
                                                 <select class="ae input" @bind=@SectorFilter title=@Localizer["Sector"]>
@@ -200,9 +210,11 @@
     private bool _isFrench;
     private CatalogObjectResult _selectedResult;
 
+    private HashSet<OrganizationLevel> _filteredSectors = new();
     private HashSet<MetadataObjectType> _filteredDataTypes = new();
     private HashSet<MetadataClassificationType> _filteredClassificationTypes = new();
 
+    private MultiCheckboxSelect<OrganizationLevel> _sectorFilter;
     private MultiCheckboxSelect<MetadataObjectType> _objectTypeFilter;
     private MultiCheckboxSelect<MetadataClassificationType> _classificationTypeFilter;
     private int _filterSector = NO_FILTER_SELECTED;
@@ -218,6 +230,7 @@
     private string _filterSectionOpenTitle => _filterSectionOpen ? Localizer["Collapse"] : Localizer["Expand"];
     private string _filterActiveIconClass => $"{(_filtersActive ? "fas" : "fad")} fa-filter";
 
+    private List<OrganizationLevel> _allSectors = new();
     private Dictionary<int, OrganizationLevel> _sectors = new();
     private Dictionary<int, OrganizationLevel> _branches = new();
     private IPageableComponent _resultTable;
@@ -234,6 +247,7 @@
         _headers = new() { Localizer["Name"], Localizer["Sector"], Localizer["Branch"], Localizer["Contact"], Localizer["Data Type"], Localizer["Security"], string.Empty };
         _renderFunctions = new() { null, null, null, null, null, null, GetDownLoadFragment };
         _sectors = (await OrganizationLevelsService.GetSectors()).ToDictionary(s => s.Id);
+        _allSectors = await OrganizationLevelsService.GetSectors();
         _branches = (await OrganizationLevelsService.GetBranches()).ToDictionary(b => b.Id);
         _searchThrottler = new(TimeSpan.FromSeconds(0.5), ThrottleSearch);
         await _searchThrottler.SetQuery(string.Empty);
@@ -252,6 +266,13 @@
     private string GetLocalizedDataType(MetadataObjectType dataType) => Localizer[$"DISCOVERY-DATA-TYPES.{dataType}"];
 
     private string GetLocalizedClassificationType(MetadataClassificationType dataType) => Localizer[$"DISCOVERY-DATA-TYPES.{dataType}"];
+
+    private async Task UpdateSectorFilter(IEnumerable<OrganizationLevel> filteredTypes)
+    {
+        _filteredSectors = filteredTypes.ToHashSet();
+        UpdateFilter();
+        await Task.CompletedTask;
+    }
 
     private async Task UpdateDataTypeFilter(IEnumerable<MetadataObjectType> filteredTypes)
     {
@@ -323,9 +344,11 @@
     {
         var noDataTypesSelected = _filteredDataTypes.Count < 1;
         var noClassificationTypesSelected = _filteredClassificationTypes.Count < 1;
-
+        var noSectorsSelected = _filteredSectors.Count < 1;
+        
         _filteredSearchResults = _searchResults
             .Where(r => (noDataTypesSelected || _filteredDataTypes.Contains(r.DataType)) &&
+                (noSectorsSelected || (r.Sector != 0 && _filteredSectors.Contains(_sectors[r.Sector]))) &&
                 (noClassificationTypesSelected || _filteredClassificationTypes.Contains((MetadataClassificationType) Enum.Parse(typeof(MetadataClassificationType), r.SecurityClass.Replace(" ", "")))) &&
                 (_filterSector == NO_FILTER_SELECTED || r.Sector == _filterSector) &&
                 (_filterBranch == NO_FILTER_SELECTED || r.Branch == _filterBranch) &&
@@ -341,9 +364,15 @@
 
     private void ClearFilters()
     {
+
         if (_objectTypeFilter != null)
         {
             _objectTypeFilter.Clear();
+        }
+
+        if (_sectorFilter != null)
+        {
+            _sectorFilter.Clear();
         }
 
         if (_classificationTypeFilter != null)
