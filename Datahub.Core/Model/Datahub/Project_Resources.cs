@@ -33,6 +33,11 @@ namespace Datahub.Core.EFCore
 
         public Datahub_Project Project { get; set; }
 
+        [StringLength(200)]
+        public string InputClassName { get; set; }
+
+        public string InputJsonContent { get; set; }
+
         public T GetResourceObject<T>()
         {
             if (typeof(T).FullName != ClassName)
@@ -51,6 +56,26 @@ namespace Datahub.Core.EFCore
                 JsonContent = JsonConvert.SerializeObject(obj);
             }
         }
+
+        public T GetInputParameters<T>() where T : IProjectResourceInput
+        {
+            if (typeof(T).FullName != InputClassName)
+            {
+                throw new InvalidCastException($"Resource {ResourceId} has input parameter type {InputClassName} (tried getting {typeof(T).FullName})");
+            }
+
+            return string.IsNullOrEmpty(InputJsonContent) ? default : JsonConvert.DeserializeObject<T>(InputJsonContent);
+        }
+
+        public void SetInputParameters<T>(T obj) where T: IProjectResourceInput
+        {
+            var realType = obj.GetType();
+            InputClassName = realType.FullName;
+            if (obj != null)
+            {
+                InputJsonContent = JsonConvert.SerializeObject(obj);
+            }
+        }
     }
 
     public static class ProjectResourceConstants
@@ -60,6 +85,9 @@ namespace Datahub.Core.EFCore
         public const string SERVICE_TYPE_STORAGE = "storage";
         public const string SERVICE_TYPE_DATABRICKS = "databricks";
         public const string SERVICE_TYPE_POWERBI = "powerbi";
+
+        public const string STORAGE_TYPE_BLOB = "blob";
+        public const string STORAGE_TYPE_GEN2 = "gen2";
     }
 
     public class ProjectResource_Database
@@ -70,5 +98,24 @@ namespace Datahub.Core.EFCore
 
         public bool IsPostgres => Database_Type == ProjectResourceConstants.SERVICE_TYPE_POSTGRES;
         public bool IsSqlServer => Database_Type == ProjectResourceConstants.SERVICE_TYPE_SQL_SERVER;
+    }
+
+    public class ProjectResource_Storage
+    {
+        public string Storage_Type { get; set; }
+        public string Storage_Account { get; set; }
+        public List<string> Containers { get; set; }
+
+        public bool IsBlobStorage => Storage_Type == ProjectResourceConstants.STORAGE_TYPE_BLOB;
+        public bool IsGen2Storage => Storage_Type == ProjectResourceConstants.STORAGE_TYPE_GEN2;
+    }
+
+    public class ProjectResource_Blank { }
+
+    public interface IProjectResourceInput { }
+
+    public class ProjectResourceInput_Storage: IProjectResourceInput
+    {
+        public string Storage_Type { get; set; }
     }
 }
