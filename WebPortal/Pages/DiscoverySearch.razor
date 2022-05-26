@@ -129,7 +129,7 @@
                                                 @ref=@_sectorFilter
                                             />
                                         </div>
-                                        <div class="dropdowns">                                            
+                                       @* <div class="dropdowns">                                            
                                             <label>                                                
                                                 <select class="ae input" @bind=@SectorFilter title=@Localizer["Sector"]>
                                                     <option value=@NO_FILTER_SELECTED>@Localizer["(Any Sector)"]</option>
@@ -151,7 +151,7 @@
                                                     </select>
                                                 }
                                             </label>
-                                        </div>
+                                        </div>*@
                                     </AeFlex>
                                 </ChildContent>
                             </AeCollapseSection>
@@ -423,11 +423,11 @@
             : GetUnauthorizedDownload(result);
 
     private RenderFragment GetAuthorizedDownload(CatalogObjectResult result) =>
-        @<AeButton class="blue" onclick=@(() => HandleDownload(result))>Open File</AeButton>;
+        @<AeButton class="blue" onclick=@(() => HandleDownload(result))>@Localizer[GetButtonText(result)]</AeButton>;
 
     private RenderFragment GetUnauthorizedDownload(CatalogObjectResult result) => 
-        @<span>&nbsp;</span>
-    ;
+    @<AeButton class="blue" onclick=@(() => HandleDownload(result))>@Localizer["Request Access"]</AeButton>
+    ;    
 
     private async Task HandleDownload(CatalogObjectResult result)
     {
@@ -443,6 +443,35 @@
         {
             await ViewPowerBIReport(result);
         }
+    }
+
+    private string GetButtonText(CatalogObjectResult result)
+    {
+        if (result.DataType == MetadataObjectType.File || result.DataType == MetadataObjectType.FileUrl)
+        {
+            return Localizer["Download File"];
+        }
+        else if (result.DataType == MetadataObjectType.PowerBIReport)
+        {
+            return Localizer["Open Report"];
+        }
+        else if (result.DataType == MetadataObjectType.PowerBIWorkspace)
+        {
+            return Localizer["Open Workspace"];
+        }
+        else if (result.DataType == MetadataObjectType.PowerBIDataset)
+        {
+            return Localizer["Open Dataset"];
+        }
+        else if (result.DataType == MetadataObjectType.Database)
+        {
+            return Localizer["Open Database"];
+        }
+        else if (result.DataType == MetadataObjectType.GeoObject)
+        {
+            return Localizer["Open Geo Object"];
+        }
+        return Localizer["Download File"];
     }
 
     private async Task ViewPowerBIReport(CatalogObjectResult result)
