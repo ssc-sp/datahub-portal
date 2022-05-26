@@ -55,7 +55,7 @@ namespace Datahub.Core.Services
             await NotifyProjectAdminsOfAccessRequest(request);
         }
 
-        public async Task RequestService(Datahub_ProjectServiceRequests request)
+        public async Task RequestService(Datahub_ProjectServiceRequests request, IProjectResourceInput inputParams = null)
         {
             await using var ctx = await _dbContextFactory.CreateDbContextAsync();
             ctx.Projects.Attach(request.Project);
@@ -66,9 +66,8 @@ namespace Datahub.Core.Services
             if (!exists)
             {
                 await ctx.Project_Requests.AddAsync(request);
-                await ctx.SaveChangesAsync();
 
-                var projectResource = CreateEmptyProjectResource(request);
+                var projectResource = CreateEmptyProjectResource(request, inputParams);
                 await ctx.Project_Resources2.AddAsync(projectResource);
 
                 await ctx.SaveChangesAsync();
@@ -79,7 +78,7 @@ namespace Datahub.Core.Services
             await NotifyProjectAdminsOfServiceRequest(request);
         }
         
-        private static Project_Resources2 CreateEmptyProjectResource(Datahub_ProjectServiceRequests request)
+        private static Project_Resources2 CreateEmptyProjectResource(Datahub_ProjectServiceRequests request, IProjectResourceInput inputParams)
         {
             var resource = new Project_Resources2()
             {
@@ -88,14 +87,22 @@ namespace Datahub.Core.Services
                 TimeRequested = DateTime.UtcNow
             };
 
+            if (inputParams != null)
+            {
+                resource.SetInputParameters(inputParams);
+            }
+
             switch(request.ServiceType)
             {
                 case POSTGRESQL:
                 case SQLSERVER:
                     resource.SetResourceObject(default(ProjectResource_Database));
                     break;
+                case STORAGE:
+                    resource.SetResourceObject(default(ProjectResource_Storage));
+                    break;
                 default:
-                    //TODO
+                    resource.SetResourceObject(default(ProjectResource_Blank));
                     break;
             }
 
