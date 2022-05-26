@@ -181,7 +181,10 @@
     "PowerBIReport": "Power BI Report",
     "FileUrl": "File URL",
     "GeoObject": "Geo Object",
-    "Database": "Database"
+    "Database": "Database",
+    "Unclassified": "Unclassified",
+    "ProtectedA": "Protected A",
+    "ProtectedB": "Protected B"
   },
   "RESOURCE-TYPE": {
     "psql": "PostgreSQL",
@@ -778,12 +781,12 @@
   "Client_Information": "Client Information",
   "Project_Engagement_Category_Other": "Other",
 
-  "Product Information": "Product Information",
-  "Product_Name": "Product Name",
-  "Project_Summary_Description": "Product Summary Description",
-  "Project_Goal": "Product Goal",
-  "DataHub Project Onboarding Form": "DataHub Product Onboarding Form",
-  "Project_Engagement_Category": "Product Engagement Category",
+  "Product Information": "Information",
+  "Product_Name": "Initiative Name",
+  "Project_Summary_Description": "Initiative Summary Description",
+  "Project_Goal": "Initiative Goal",
+  "DataHub Project Onboarding Form": "DataHub Onboarding Form",
+  "Project_Engagement_Category": "Engagement Category",
 
 
 

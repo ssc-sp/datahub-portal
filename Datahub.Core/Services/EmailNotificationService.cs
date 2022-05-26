@@ -164,6 +164,12 @@ namespace Datahub.Core.Services
             await SendEmailMessage(subject, body, recipients, isHtml);
         }
 
+        public async Task SendEmailMessage(string subject, string body, List<DatahubEmailRecipient> recipients, bool isHtml = true)
+        {
+            var mailboxRecipients = recipients.Select(r => CreateMailboxAddress(r.Name, r.Address)).ToList();
+            await SendEmailMessage(subject, body, mailboxRecipients, isHtml);
+        }
+
         private static string BuildTestEmailOriginalRecipientsList(IEnumerable<MailboxAddress> recipients, bool isHtml)
         {
             var sb = new StringBuilder();
@@ -402,9 +408,7 @@ namespace Datahub.Core.Services
             html = await RenderTemplate<RequestManagerApproval>(parametersDict);
 
             await SendEmailMessage(subject, html, parameters.ManagerEmailAddress, parameters.ManagerName);
-
         }
-
 
         public async Task SendManagerDecisionEmail(LanguageTrainingParameters parameters)
         {
@@ -414,8 +418,13 @@ namespace Datahub.Core.Services
             {
                 var subject = $"Language Training Request – MANAGER APPROVED / Demande de formation linguistique – APPROUVÉE PAR LA GESTION - {parameters.EmployeeName} – {parameters.TrainingType} - {parameters.ApplicationId} ";
                 var html = await RenderTemplate<ManagerRequestApproved>(parametersDict);
-                await SendEmailMessage(subject, html, parameters.EmployeeEmailAddress, parameters.EmployeeName);
-                await SendEmailMessage(subject, html, parameters.ManagerEmailAddress, parameters.ManagerName);
+
+                await SendEmailMessage(subject, html, new List<DatahubEmailRecipient> 
+                { 
+                    new(parameters.EmployeeName, parameters.EmployeeEmailAddress),
+                    new(parameters.ManagerName, parameters.ManagerEmailAddress)
+                });
+
                 html = await RenderTemplate<LSUNotification>(parametersDict);
                 await SendEmailMessage(subject, html, parameters.AdminEmailAddresses);
 
@@ -437,39 +446,54 @@ namespace Datahub.Core.Services
             {
                 var subject = $"Language Training Request – PLACEMENT ACCEPTED / Demande de formation linguistique - PLACE APPROUVÉE - {parameters.EmployeeName} – {parameters.TrainingType} - {parameters.ApplicationId} ";
                 var html = await RenderTemplate<LSUApproved>(parametersDict);
-                await SendEmailMessage(subject, html, parameters.EmployeeEmailAddress, parameters.EmployeeName);
-                await SendEmailMessage(subject, html, parameters.ManagerEmailAddress, parameters.ManagerName);
+                await SendEmailMessage(subject, html, new List<DatahubEmailRecipient>
+                {
+                    new(parameters.EmployeeName, parameters.EmployeeEmailAddress),
+                    new(parameters.ManagerName, parameters.ManagerEmailAddress)
+                });
             }
             else if (parameters.LanguageSchoolDecision == "Requires LETP assessment")
             {
                 var subject = $"Language Training Request – NEW LETP REQUIRED / Demande de formation linguistique - NOUVEAU ELPF REQUIS - {parameters.EmployeeName} – {parameters.TrainingType} - {parameters.ApplicationId} ";
                 var html = await RenderTemplate<LSUNewLTPReq>(parametersDict);
-                await SendEmailMessage(subject, html, parameters.EmployeeEmailAddress, parameters.EmployeeName);
-                await SendEmailMessage(subject, html, parameters.ManagerEmailAddress, parameters.ManagerName);
+                await SendEmailMessage(subject, html, new List<DatahubEmailRecipient>
+                {
+                    new(parameters.EmployeeName, parameters.EmployeeEmailAddress),
+                    new(parameters.ManagerName, parameters.ManagerEmailAddress)
+                });
             }
             else if (parameters.LanguageSchoolDecision == "Insufficient interest at level")
             {
                 var subject = $"Language Training Request – INSUFFICIENT REGISTRATIONS / Demande de formation linguistique - INSCRIPTIONS INSUFFISANTES - {parameters.EmployeeName} – {parameters.TrainingType} - {parameters.ApplicationId} ";
                 var html = await RenderTemplate<LSUInsufficientInterest>(parametersDict);
-                await SendEmailMessage(subject, html, parameters.EmployeeEmailAddress, parameters.EmployeeName);
-                await SendEmailMessage(subject, html, parameters.ManagerEmailAddress, parameters.ManagerName);
+                await SendEmailMessage(subject, html, new List<DatahubEmailRecipient>
+                {
+                    new(parameters.EmployeeName, parameters.EmployeeEmailAddress),
+                    new(parameters.ManagerName, parameters.ManagerEmailAddress)
+                });
             }
             else if (parameters.LanguageSchoolDecision == "Demand exceeds capacity")
             {
                 var subject = $"Language Training Request – EXCESS IN DEMAND / Demande de formation linguistique - SURPLUS DE DEMANDE - {parameters.EmployeeName} – {parameters.TrainingType} - {parameters.ApplicationId} ";
                 var html = await RenderTemplate<LSUExcessInDemand>(parametersDict);
-                await SendEmailMessage(subject, html, parameters.EmployeeEmailAddress, parameters.EmployeeName);
-                await SendEmailMessage(subject, html, parameters.ManagerEmailAddress, parameters.ManagerName);
+                await SendEmailMessage(subject, html, new List<DatahubEmailRecipient>
+                {
+                    new(parameters.EmployeeName, parameters.EmployeeEmailAddress),
+                    new(parameters.ManagerName, parameters.ManagerEmailAddress)
+                });
             }
             else if (parameters.LanguageSchoolDecision == "Late application")
             {
                 var subject = $"Language Training Request – APPLICATION PERIOD CLOSED / Demande de formation linguistique - PÉRIODE D’INSCRIPTION FERMÉE -  {parameters.EmployeeName} – {parameters.TrainingType} - {parameters.ApplicationId} ";
                 var html = await RenderTemplate<LSUApplicationPeriodClosed>(parametersDict);
-                await SendEmailMessage(subject, html, parameters.EmployeeEmailAddress, parameters.EmployeeName);
-                await SendEmailMessage(subject, html, parameters.ManagerEmailAddress, parameters.ManagerName);
+                await SendEmailMessage(subject, html, new List<DatahubEmailRecipient>
+                {
+                    new(parameters.EmployeeName, parameters.EmployeeEmailAddress),
+                    new(parameters.ManagerName, parameters.ManagerEmailAddress)
+                });
             }
-
         }
+
         public async Task SendM365FormsConfirmations(M365FormsParameters parameters)
         {
             var parametersDict = BuildM365FormsParameters(parameters);

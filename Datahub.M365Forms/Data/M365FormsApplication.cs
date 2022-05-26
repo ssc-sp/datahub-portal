@@ -71,7 +71,7 @@ namespace Datahub.Portal.Data
 
         [AeFormCategory("Lifespan of Team", 60)]
         [AeLabel(placeholder: "Select the expected retirement date for the team:")]
-        public DateTime Expected_Lifespan_DT { get; set; }
+        public DateTime? Expected_Lifespan_DT { get; set; }
 
         [AeFormCategory("Owners", 70)]
         [Required]
