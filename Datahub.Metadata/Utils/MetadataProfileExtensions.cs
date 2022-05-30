@@ -32,5 +32,10 @@ namespace Datahub.Metadata.Utils
         {
             return new(section.Fields.Where(f => !f.Required_FLAG).Select(f => f.FieldDefinitionId));
         }
+
+        public static bool HasOptionalFields(this MetadataProfile profile)
+        {
+            return profile.Sections.Any(s => s.Fields.Any(f => !f.Required_FLAG));
+        }
     }
 }
