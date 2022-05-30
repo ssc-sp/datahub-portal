@@ -114,13 +114,15 @@ namespace Datahub.Core.EFCore
         public int Project_ID { get; set; }
 
         [Required]
-        [StringLength(10)]
-
+        [StringLength(4000)]
+        [AeLabel(isDropDown: true, placeholder: " ")]
         public string Sector_Name { get; set; }
 
         [StringLength(200)]
+        [AeLabel(isDropDown: true, placeholder: " ")]
         public string Branch_Name { get; set; }
 
+        [AeLabel(isDropDown: true, placeholder: " ")]
         public string Division_Name { get; set; }
 
         public string Contact_List { get; set; }
@@ -189,6 +191,8 @@ namespace Datahub.Core.EFCore
         
         public List<Datahub_Project_Access_Request> Requests { get; set; }
 
+        public List<Datahub_ProjectServiceRequests> ServiceRequests { get; set; }
+
         [StringLength(400)]
         public string Databricks_URL { get; set; }
 
@@ -222,7 +226,7 @@ namespace Datahub.Core.EFCore
 
         public List<Project_Storage> StorageAccounts { get; set; }
 
-        public List<Project_Database> Databases { get; set; }
+        public IList<Project_Resources2> Resources { get; set; }
 
         public IList<PowerBi_Workspace> PowerBi_Workspaces { get; set; }
 
