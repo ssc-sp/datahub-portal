@@ -258,7 +258,7 @@
                     HashSet<int> newFields = new(s.Fields.Except(oldFields));
                     foreach (var fieldId in newFields)
                     {
-                        ctx.SectionFields.Add(new SectionField() { SectionId = section.SectionId, FieldDefinitionId = fieldId });    
+                        ctx.SectionFields.Add(new SectionField() { SectionId = section.SectionId, FieldDefinitionId = fieldId, Required_FLAG = true });    
                     }
 
                     HashSet<int> removedFields = new(oldFields.Except(s.Fields));
