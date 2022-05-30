@@ -23,7 +23,7 @@ namespace Datahub.Core.Configuration
         public bool WebForms { get; set; } = true;
         public bool Costing { get; set; } = true;
         public bool Storage { get; set; } = true;
-
+        public bool ProjectDatabases { get; set; } = true;
 
     }
 }
