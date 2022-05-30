@@ -57,6 +57,8 @@ namespace Datahub.Core.Services
                     return "fas fa-file-archive";
                 case "mp4":
                     return "fas fa-file-video";
+                case "csv":
+                    return "fas fa-file-csv";
                 default:
                     return "fas fa-file";
             }

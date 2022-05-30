@@ -13,13 +13,18 @@ namespace Datahub.Core.Services
     {
         private readonly IDbContextFactory<DatahubProjectDBContext> _contextFactory;
         private readonly ILogger<PowerBiDataService> _logger;
+        private readonly IMiscStorageService _miscStorageService;
+
+        private static readonly string GLOBAL_POWERBI_ADMIN_LIST_KEY = "GlobalPowerBiAdmins";
 
         public PowerBiDataService(
             IDbContextFactory<DatahubProjectDBContext> contextFactory,
-            ILogger<PowerBiDataService> logger)
+            ILogger<PowerBiDataService> logger,
+            IMiscStorageService miscStorageService)
         {
             _contextFactory = contextFactory;
             _logger = logger;
+            _miscStorageService = miscStorageService;
         }
 
         public async Task<IList<PowerBi_Workspace>> GetAllWorkspaces()
@@ -258,6 +263,18 @@ namespace Datahub.Core.Services
             using var ctx = await _contextFactory.CreateDbContextAsync();
             var result = await ctx.PowerBi_Reports.FirstOrDefaultAsync(r => r.Report_ID == id);
             return result;
+        }
+
+        public async Task<List<string>> GetGlobalPowerBiAdmins()
+        {
+            var result = await _miscStorageService.GetObject<List<string>>(GLOBAL_POWERBI_ADMIN_LIST_KEY);
+            return result;
+        }
+
+        public async Task SetGlobalPowerBiAdmins(IEnumerable<string> adminEmails)
+        {
+            var adminList = adminEmails.ToList();
+            await _miscStorageService.SaveObject(adminList, GLOBAL_POWERBI_ADMIN_LIST_KEY);
         }
     }
 }

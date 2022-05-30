@@ -16,7 +16,7 @@ public class RegistrationFlowUserTests
     {
         _dbFactory = new MockProjectDbContextFactory();
         var logger = Mock.Of<ILogger<RegistrationService>>();
-        _registrationService = new RegistrationService(_dbFactory, logger);
+        _registrationService = new RegistrationService(_dbFactory, logger,null);
     }
 
     [Fact (Skip = "Need to run manually against the graph function")]

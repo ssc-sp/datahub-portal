@@ -21,7 +21,7 @@ public class RegistrationFlowProjectTests
     {
         _dbFactory = new MockProjectDbContextFactory();
         var logger = Mock.Of<ILogger<RegistrationService>>();
-        _registrationService = new RegistrationService(_dbFactory, logger);
+        _registrationService = new RegistrationService(_dbFactory, logger, null);
     }
     
     [Fact]

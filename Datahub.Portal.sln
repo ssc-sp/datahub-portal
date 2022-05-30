@@ -11,7 +11,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Core", "Datahub.Cor
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{B6CC5ED1-A990-4AC7-89C7-B0F62FFEEC26}"
 	ProjectSection(SolutionItems) = preProject
+		COPYRIGHT.md = COPYRIGHT.md
+		LICENSE.md = LICENSE.md
 		nuget.config = nuget.config
+		Objectives.md = Objectives.md
+		README.md = README.md
+		Revisions.md = Revisions.md
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Devops", "Devops", "{FA743C91-03DD-4DB2-A88D-73155C6500C6}"
@@ -56,7 +61,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SQL", "SQL", "{0E732610-562
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Functions", "Datahub.Functions\Datahub.Functions.csproj", "{D49B255D-3B8D-473C-8BFA-094440AE9CED}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Datahub.Graph.Functions", "Datahub.Graph.Functions\Datahub.Graph.Functions.csproj", "{0DFB053A-5AB4-4280-8852-14FD52559D0E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Datahub.GeoCore", "Datahub.GeoCore\Datahub.GeoCore.csproj", "{80F3D52C-9396-4C7C-A717-6314813E6493}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -119,14 +124,14 @@ Global
 		{52436CFD-EEE3-4249-AB82-53BBEE7F8251}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{52436CFD-EEE3-4249-AB82-53BBEE7F8251}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{52436CFD-EEE3-4249-AB82-53BBEE7F8251}.Release|Any CPU.Build.0 = Release|Any CPU
+		{80F3D52C-9396-4C7C-A717-6314813E6493}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{80F3D52C-9396-4C7C-A717-6314813E6493}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{80F3D52C-9396-4C7C-A717-6314813E6493}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{80F3D52C-9396-4C7C-A717-6314813E6493}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D49B255D-3B8D-473C-8BFA-094440AE9CED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D49B255D-3B8D-473C-8BFA-094440AE9CED}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D49B255D-3B8D-473C-8BFA-094440AE9CED}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D49B255D-3B8D-473C-8BFA-094440AE9CED}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0DFB053A-5AB4-4280-8852-14FD52559D0E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0DFB053A-5AB4-4280-8852-14FD52559D0E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0DFB053A-5AB4-4280-8852-14FD52559D0E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0DFB053A-5AB4-4280-8852-14FD52559D0E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -143,8 +148,8 @@ Global
 		{D49B255D-3B8D-473C-8BFA-094440AE9CED} = {D678C794-D1AE-4372-9097-A8C8E0469613}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		RESX_ConfirmAddLanguageFile = True
-		RESX_AutoCreateNewLanguageFiles = True
 		SolutionGuid = {9DC4B901-16FF-4FF2-9ED6-B286EA17048E}
+		RESX_AutoCreateNewLanguageFiles = True
+		RESX_ConfirmAddLanguageFile = True
 	EndGlobalSection
 EndGlobal
