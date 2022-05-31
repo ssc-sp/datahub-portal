@@ -129,7 +129,7 @@
                                                 @ref=@_sectorFilter
                                             />
                                         </div>
-                                       @* <div class="dropdowns">                                            
+                                        <div class="dropdowns">                                            
                                             <label>                                                
                                                 <select class="ae input" @bind=@SectorFilter title=@Localizer["Sector"]>
                                                     <option value=@NO_FILTER_SELECTED>@Localizer["(Any Sector)"]</option>
@@ -151,7 +151,7 @@
                                                     </select>
                                                 }
                                             </label>
-                                        </div>*@
+                                        </div>
                                     </AeFlex>
                                 </ChildContent>
                             </AeCollapseSection>
@@ -170,7 +170,11 @@
                     <div class="catalog-cards">
                         @foreach(var result in _filteredSearchResults)
                         {
-                            <CatalogCards CatalogResult="@result" AccessorFunctions="@_accessorFunctions" RenderFunctions="@_renderFunctions"/>
+                            <CatalogCards 
+                                @key=@result
+                                CatalogResult="@result" 
+                                AccessorFunctions="@_accessorFunctions" 
+                                RenderFunctions="@_renderFunctions"/>
                         }
                     </div>
                 </div>
@@ -425,7 +429,7 @@
         @<AeButton class="blue" onclick=@(() => HandleDownload(result))>@Localizer[GetButtonText(result)]</AeButton>;
 
     private RenderFragment GetUnauthorizedDownload(CatalogObjectResult result) => 
-    @<AeButton class="blue" onclick=@(() => HandleDownload(result))>@Localizer["Request Access"]</AeButton>
+    @<AeButton class="red" onclick=@(() => HandleDownload(result))>@(SecurityClassification.ProtectedA.Equals(result.SecurityClass) ? Localizer["Protected A - Request Access"] : Localizer["Protected B - Request Access"])</AeButton>
     ;    
 
     private async Task HandleDownload(CatalogObjectResult result)
