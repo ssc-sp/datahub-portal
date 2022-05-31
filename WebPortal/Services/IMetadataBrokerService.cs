@@ -9,8 +9,8 @@ namespace Datahub.Portal.Services
     public interface IMetadataBrokerService
     {
         Task<Entities.MetadataProfile> GetProfile(string name);
-        Task<FieldValueContainer> GetObjectMetadataValues(long objectMetadataId);
-        Task<FieldValueContainer> GetObjectMetadataValues(string objectId);
+        Task<FieldValueContainer> GetObjectMetadataValues(long objectMetadataId, string defaultMetadataId = null);
+        Task<FieldValueContainer> GetObjectMetadataValues(string objectId, string defaultMetadataId = null);
         Task<Entities.ObjectMetadata> SaveMetadata(FieldValueContainer fieldValues, bool anonymous = false);
         Task<Entities.ObjectMetadata> GetMetadata(long objectMetadataId);
         Task<Entities.ObjectMetadata> GetMetadata(string objectId);

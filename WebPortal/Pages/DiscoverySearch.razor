@@ -237,7 +237,6 @@
     private List<OrganizationLevel> _allSectors = new();
     private Dictionary<int, OrganizationLevel> _sectors = new();
     private Dictionary<int, OrganizationLevel> _branches = new();
-    private IPageableComponent _resultTable;
     private List<string> _headers = new();
     private List<Func<CatalogObjectResult, RenderFragment>> _renderFunctions = new();
     private List<Func<CatalogObjectResult, string>> _accessorFunctions = new();
@@ -528,7 +527,6 @@
         return _isFrench ? MetadataBrokerService.SearchCatalogFrench(searchText) : MetadataBrokerService.SearchCatalogEnglish(searchText);
     }
 
-    private int _pageSize = 5;
     private int _lastClicked = 0;
 
     private void OnPageClick(int pageIndex)
