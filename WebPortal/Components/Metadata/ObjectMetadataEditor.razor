@@ -5,35 +5,45 @@
 @using System.Text
 
 <div style="width: 100%">
-@if (_fieldValues != null)
-{
-    <MetadataEditor Preview=@Preview
-                    Profile=@_profile
-                    Definitions=@_definitions
-                    FieldValues=@_fieldValues
-                    ShowAll=@_showAll
-                    OnFieldChanged=@FieldChanged />
-
-    @if (!Preview)
+    @if (_fieldValues != null && _profile != null && _definitions != null)
     {
-        <div>
-            <AeFlex Vertical="true">
-                <div>
-                    <AeButton class="light" @onclick=@ToggleShowAll>
-                        @(_showAll ? Localizer["METADATA-PAGE.ShowLess"] : Localizer["METADATA-PAGE.ShowMore"])
-                    </AeButton>
-                </div>
-                @if (_showSaveButton)
+
+        <MetadataEditor Preview=@Preview
+                        Profile=@_profile
+                        Definitions=@_definitions
+                        FieldValues=@_fieldValues
+                        ShowAll=@_showAll
+                        OnFieldChanged=@FieldChanged />
+
+        @if (!Preview)
+        {
+            <div>
+                @if (_profile.HasOptionalFields())
                 {
-                    <div style="margin-top: 16px">
-                        <AeButton OnClickEvent=@HandleSaveButton Disabled=@_disableSave>@SaveButtonLabel</AeButton>
-                        <SuccessIndicator @bind-IsLoading=@_savingData @ref=@_saveInd />
-                    </div>
+                    <AeFlex>
+                        <div>
+                            <AeButton class="light" @onclick=@ToggleShowAll>
+                                @(_showAll ? Localizer["METADATA-PAGE.ShowLess"] : Localizer["METADATA-PAGE.ShowMore"])
+                            </AeButton>
+                        </div>
+                    </AeFlex>                    
                 }
-            </AeFlex>
-        </div>
+                <AeFlex Vertical="false" style="margin-top: 16px">
+                    @if (DiscardButton)
+                    {
+                        <AeButton OnClickEvent=@HandleDiscard style="margin-right: 1rem;">@Localizer["Discard"]</AeButton>
+                    }
+                    @if (ShowSaveButton)
+                    {
+                        <div>
+                            <AeButton OnClickEvent=@HandleSaveButton Disabled=@SaveDisabled>@SaveButtonLabel</AeButton>
+                            <SuccessIndicator @bind-IsLoading=@_savingData @ref=@_saveInd />
+                        </div>
+                    }
+                </AeFlex>
+            </div>
+        }
     }
-}
 </div>
 
 @code {
@@ -50,6 +60,12 @@
     /// </summary>
     [Parameter]
     public string ObjectId { get; set; }
+
+    /// <summary>
+    /// Object ID to prefill default metadata value (optional)
+    /// </summary>
+    [Parameter]
+    public string DefaultMetadataId { get; set; }
 
     /// <summary>
     /// Object name if available
@@ -70,6 +86,9 @@
     public string SaveButtonLabel { get; set; } = "Save";
 
     [Parameter]
+    public bool DiscardButton { get; set; }
+
+    [Parameter]
     public bool ValidateRequired { get; set; } = true;
 
     [Parameter]
@@ -88,7 +107,12 @@
     public EventCallback<FieldValueContainer> OnSave { get; set; }
 
     [Parameter]
+    public EventCallback OnDiscard { get; set; }
+
+    [Parameter]
     public EventCallback OnValuesChanged { get; set; }
+
+    public bool SaveDisabled => _savingData || !_requiredFieldsAreValid;
 
     private FieldValueContainer _fieldValues;
     private FieldDefinitions _definitions;
@@ -98,15 +122,12 @@
     private bool _showAll;
     private bool _savingData;
     private bool _requiredFieldsAreValid;
-    private bool _disableSave => _savingData || !_requiredFieldsAreValid;
-
-    public bool SaveDisabled => _disableSave;
-
-    private bool _showSaveButton => !HideSaveButton;
 
     private SuccessIndicator _saveInd;
 
     private HashSet<int> _requiredFieldIds = new();
+
+    private bool ShowSaveButton => !HideSaveButton;
 
     protected override async Task OnInitializedAsync()
     {
@@ -131,7 +152,7 @@
         // the Object Id may come from an external source or from a know MetadataObject row
         if (long.TryParse(ObjectId, out long metadataObjectId))
         {
-            _fieldValues = await MetadataBrokerService.GetObjectMetadataValues(metadataObjectId);
+            _fieldValues = await MetadataBrokerService.GetObjectMetadataValues(metadataObjectId, DefaultMetadataId);
             if (UpdateCatalog)
             {
                 var catalogResult = await MetadataBrokerService.GetCatalogObjectByMetadataId(metadataObjectId);
@@ -140,7 +161,7 @@
         }
         else
         {
-            _fieldValues = await MetadataBrokerService.GetObjectMetadataValues(ObjectId);
+            _fieldValues = await MetadataBrokerService.GetObjectMetadataValues(ObjectId, DefaultMetadataId);
             if (UpdateCatalog)
             {
                 var catalogResult = await MetadataBrokerService.GetCatalogObjectByObjectId(ObjectId);
@@ -179,6 +200,9 @@
 
     private async Task<bool> DoSaveChanges()
     {
+        _savingData = true;
+        await InvokeAsync(StateHasChanged);
+
         var success = true;
         try
         {
@@ -195,6 +219,9 @@
             success = false;
         }
 
+        _savingData = false;
+        await InvokeAsync(StateHasChanged);
+
         return await Task.FromResult(success);
     }
 
@@ -202,10 +229,8 @@
 
     private async Task HandleSaveButton()
     {
-        if (!_disableSave)
+        if (!SaveDisabled)
         {
-            _savingData = true;
-
             var success = await DoSaveChanges();
             if (success)
             {
@@ -216,6 +241,11 @@
                 await _saveInd.SignalFailure();
             }
         }
+    }
+
+    private async Task HandleDiscard()
+    {
+        await OnDiscard.InvokeAsync();
     }
 
     private async Task UpdateObjectCatalog(long objectMetadataId)
@@ -317,5 +347,4 @@
             await OnValuesChanged.InvokeAsync();
         }
     }
-
 }
