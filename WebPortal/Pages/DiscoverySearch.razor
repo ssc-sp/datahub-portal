@@ -119,6 +119,16 @@
                                 
                                 <ChildContent>
                                     <AeFlex Vertical>
+                                        <div class="with-bottom-margin">
+                                            <MultiCheckboxSelect 
+                                                T=OrganizationLevel
+                                                Options=@(_allSectors)
+                                                OptionLabelFunction=@(t => t.EnglishLabel)
+                                                OptionSortFunction=@(t => t.EnglishLabel)
+                                                OnSelectionChanged=@UpdateSectorFilter
+                                                @ref=@_sectorFilter
+                                            />
+                                        </div>
                                         <div class="dropdowns">                                            
                                             <label>                                                
                                                 <select class="ae input" @bind=@SectorFilter title=@Localizer["Sector"]>
@@ -160,7 +170,11 @@
                     <div class="catalog-cards">
                         @foreach(var result in _filteredSearchResults)
                         {
-                            <CatalogCards CatalogResult="@result" AccessorFunctions="@_accessorFunctions" RenderFunctions="@_renderFunctions"/>
+                            <CatalogCards 
+                                @key=@result
+                                CatalogResult="@result" 
+                                AccessorFunctions="@_accessorFunctions" 
+                                RenderFunctions="@_renderFunctions"/>
                         }
                     </div>
                 </div>
@@ -200,9 +214,11 @@
     private bool _isFrench;
     private CatalogObjectResult _selectedResult;
 
+    private HashSet<OrganizationLevel> _filteredSectors = new();
     private HashSet<MetadataObjectType> _filteredDataTypes = new();
     private HashSet<MetadataClassificationType> _filteredClassificationTypes = new();
 
+    private MultiCheckboxSelect<OrganizationLevel> _sectorFilter;
     private MultiCheckboxSelect<MetadataObjectType> _objectTypeFilter;
     private MultiCheckboxSelect<MetadataClassificationType> _classificationTypeFilter;
     private int _filterSector = NO_FILTER_SELECTED;
@@ -218,6 +234,7 @@
     private string _filterSectionOpenTitle => _filterSectionOpen ? Localizer["Collapse"] : Localizer["Expand"];
     private string _filterActiveIconClass => $"{(_filtersActive ? "fas" : "fad")} fa-filter";
 
+    private List<OrganizationLevel> _allSectors = new();
     private Dictionary<int, OrganizationLevel> _sectors = new();
     private Dictionary<int, OrganizationLevel> _branches = new();
     private List<string> _headers = new();
@@ -233,6 +250,7 @@
         _headers = new() { Localizer["Name"], Localizer["Sector"], Localizer["Branch"], Localizer["Contact"], Localizer["Data Type"], Localizer["Security"], string.Empty };
         _renderFunctions = new() { null, null, null, null, null, null, GetDownLoadFragment };
         _sectors = (await OrganizationLevelsService.GetSectors()).ToDictionary(s => s.Id);
+        _allSectors = await OrganizationLevelsService.GetSectors();
         _branches = (await OrganizationLevelsService.GetBranches()).ToDictionary(b => b.Id);
         _searchThrottler = new(TimeSpan.FromSeconds(0.5), ThrottleSearch);
         await _searchThrottler.SetQuery(string.Empty);
@@ -251,6 +269,13 @@
     private string GetLocalizedDataType(MetadataObjectType dataType) => Localizer[$"DISCOVERY-DATA-TYPES.{dataType}"];
 
     private string GetLocalizedClassificationType(MetadataClassificationType dataType) => Localizer[$"DISCOVERY-DATA-TYPES.{dataType}"];
+
+    private async Task UpdateSectorFilter(IEnumerable<OrganizationLevel> filteredTypes)
+    {
+        _filteredSectors = filteredTypes.ToHashSet();
+        UpdateFilter();
+        await Task.CompletedTask;
+    }
 
     private async Task UpdateDataTypeFilter(IEnumerable<MetadataObjectType> filteredTypes)
     {
@@ -322,9 +347,11 @@
     {
         var noDataTypesSelected = _filteredDataTypes.Count < 1;
         var noClassificationTypesSelected = _filteredClassificationTypes.Count < 1;
-
+        var noSectorsSelected = _filteredSectors.Count < 1;
+        
         _filteredSearchResults = _searchResults
             .Where(r => (noDataTypesSelected || _filteredDataTypes.Contains(r.DataType)) &&
+                (noSectorsSelected || (r.Sector != 0 && _filteredSectors.Contains(_sectors[r.Sector]))) &&
                 (noClassificationTypesSelected || _filteredClassificationTypes.Contains((MetadataClassificationType) Enum.Parse(typeof(MetadataClassificationType), r.SecurityClass.Replace(" ", "")))) &&
                 (_filterSector == NO_FILTER_SELECTED || r.Sector == _filterSector) &&
                 (_filterBranch == NO_FILTER_SELECTED || r.Branch == _filterBranch) &&
@@ -340,9 +367,15 @@
 
     private void ClearFilters()
     {
+
         if (_objectTypeFilter != null)
         {
             _objectTypeFilter.Clear();
+        }
+
+        if (_sectorFilter != null)
+        {
+            _sectorFilter.Clear();
         }
 
         if (_classificationTypeFilter != null)
@@ -393,11 +426,11 @@
             : GetUnauthorizedDownload(result);
 
     private RenderFragment GetAuthorizedDownload(CatalogObjectResult result) =>
-        @<AeButton class="blue" onclick=@(() => HandleDownload(result))>Open File</AeButton>;
+        @<AeButton class="blue" onclick=@(() => HandleDownload(result))>@Localizer[GetButtonText(result)]</AeButton>;
 
     private RenderFragment GetUnauthorizedDownload(CatalogObjectResult result) => 
-        @<span>&nbsp;</span>
-    ;
+    @<AeButton class="red" onclick=@(() => HandleDownload(result))>@(SecurityClassification.ProtectedA.Equals(result.SecurityClass) ? Localizer["Protected A - Request Access"] : Localizer["Protected B - Request Access"])</AeButton>
+    ;    
 
     private async Task HandleDownload(CatalogObjectResult result)
     {
@@ -413,6 +446,35 @@
         {
             await ViewPowerBIReport(result);
         }
+    }
+
+    private string GetButtonText(CatalogObjectResult result)
+    {
+        if (result.DataType == MetadataObjectType.File || result.DataType == MetadataObjectType.FileUrl)
+        {
+            return Localizer["Download File"];
+        }
+        else if (result.DataType == MetadataObjectType.PowerBIReport)
+        {
+            return Localizer["Open Report"];
+        }
+        else if (result.DataType == MetadataObjectType.PowerBIWorkspace)
+        {
+            return Localizer["Open Workspace"];
+        }
+        else if (result.DataType == MetadataObjectType.PowerBIDataset)
+        {
+            return Localizer["Open Dataset"];
+        }
+        else if (result.DataType == MetadataObjectType.Database)
+        {
+            return Localizer["Open Database"];
+        }
+        else if (result.DataType == MetadataObjectType.GeoObject)
+        {
+            return Localizer["Open Geo Object"];
+        }
+        return Localizer["Download File"];
     }
 
     private async Task ViewPowerBIReport(CatalogObjectResult result)
