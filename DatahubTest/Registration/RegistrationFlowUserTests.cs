@@ -16,6 +16,7 @@ public class RegistrationFlowUserTests
     {
         _dbFactory = new MockProjectDbContextFactory();
         var logger = Mock.Of<ILogger<RegistrationService>>();
+
         _registrationService = new RegistrationService(_dbFactory, logger, null);
     }
 

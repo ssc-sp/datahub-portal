@@ -18,6 +18,8 @@ namespace Datahub.Portal.Data.PIP
         [AeFormIgnore]
         public string IndicatorCode { get; set; }
 
+        [AeFormCategory("Fiscal Year", 1)]
+        public int FiscalYearId { get; set; }
 
         [AeFormCategory("Indicator Status", 1)]
         [MaxLength(100)]
@@ -159,7 +161,7 @@ namespace Datahub.Portal.Data.PIP
 
         [AeLabel(row: "20", column: "1")]
         [AeFormCategory("Actual Results", 30)]
-        [MaxLength(5000)]
+        [MaxLength(500)]
         public string Result_DESC { get; set; }
         [AeLabel(row: "20", column: "2")]
         [AeFormCategory("Actual Results", 30)]
@@ -175,24 +177,11 @@ namespace Datahub.Portal.Data.PIP
         [AeFormCategory("Actual Results", 30)]
         public string Explanation { get; set; }
 
+        [AeFormIgnore]
         [AeLabel(row: "21", column: "1")]
         [MaxLength(8000)]
         [AeFormCategory("Actual Results", 30)]
         public string Trend_Rationale { get; set; }
-
-        [AeLabel(row: "22", column: "1")]
-        [AeFormCategory("Actual Results", 30)]
-        [MaxLength(1000)]
-        public string Result_201920_DESC { get; set; }
-        [AeLabel(row: "22", column: "2")]
-        [AeFormCategory("Actual Results", 30)]
-        [MaxLength(1000)]
-        public string Result_201819_DESC { get; set; }
-        [AeLabel(row: "22", column: "3")]
-        [AeFormCategory("Actual Results", 30)]
-        [MaxLength(1000)]
-        public string Result_201718_DESC { get; set; }
-
 
 
         [AeFormIgnore]
@@ -220,8 +209,7 @@ namespace Datahub.Portal.Data.PIP
 
         public PIP_Tombstone PIP_Tombstone { get; set; }
 
-        [AeFormIgnore]
-        public int FiscalYearId { get; set; }
+        
 
         public PIP_FiscalYears FiscalYear { get; set; }
 
@@ -245,6 +233,8 @@ namespace Datahub.Portal.Data.PIP
         public bool IsIndicatorStatusLocked { get; set; }
         [AeFormIgnore]
         public bool IsIndicatorDetailsLocked { get; set; }
+        [AeFormIgnore]
+        public bool IsFiscalYearLocked { get; set; }
         [AeFormIgnore]
         public string EditingUserId { get; set; }
         [AeFormIgnore]
