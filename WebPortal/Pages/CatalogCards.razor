@@ -25,7 +25,7 @@ else
         <div class="topright">
             <div style="@($"--security-text-color: {_securityClassColor}")" class="securityclass">
                 <i class="@($"fad fa-{_projectIcon}")"></i>
-                <p><b>@Localizer["Data Sensitivity"]: @Localizer[@CatalogResult.SecurityClass]</b></p>
+                <p><b>@Localizer["DISCOVERY-LABELS.DATA SENSITIVITY"]: @Localizer[@CatalogResult.SecurityClass]</b></p>
             </div>            
             <div title="@GetFieldDefinitions("name")" class="rowheader">
                 <i style="margin-top: 0.2rem;" class="@_fileIcon"></i>
@@ -41,18 +41,18 @@ else
             <AeTypography Variant="p no-margin">@GetDescription()</AeTypography>
         </div>
         <div class="details-left">
-            <div title="@GetDivTitleSubject()"><AeTypography Variant="p no-margin"><b>@Localizer["Subject"]: </b>@GetSubject()</AeTypography></div>
-            <AeTypography Variant="p no-margin"><b>@Localizer["Data Type"]: </b>@AccessorFunctions[4](@CatalogResult)</AeTypography>
+            <div title="@GetDivTitleSubject()"><AeTypography Variant="p no-margin"><b>@Localizer["Subject"]: </b>@GetLabel("subject")</AeTypography></div>
+            <AeTypography Variant="p no-margin"><b>@Localizer["DISCOVERY-LABELS.Data Type"]: </b>@AccessorFunctions[4](@CatalogResult)</AeTypography>
             @if (!string.IsNullOrWhiteSpace(_fileType))
             {
-                <AeTypography Variant="p no-margin"><b>@Localizer["File Format"]: </b>@_fileType</AeTypography>
+                <AeTypography Variant="p no-margin"><b>@Localizer["DISCOVERY-LABELS.File Format"]: </b>@_fileType</AeTypography>
             }
-            <AeTypography Variant="p no-margin"><b>@Localizer["Contact Information"]: </b>@AccessorFunctions[3](@CatalogResult)</AeTypography>
+            <AeTypography Variant="p no-margin"><b>@Localizer["DISCOVERY-LABELS.Contact Information"]: </b>@AccessorFunctions[3](@CatalogResult)</AeTypography>
         </div>
         <div class="details-right">
             <AeTypography Variant="p no-margin"><b>@Localizer["Sector"]: </b>@AccessorFunctions[1](@CatalogResult)</AeTypography>
             <AeTypography Variant="p no-margin"><b>@Localizer["Branch"]: </b>@AccessorFunctions[2](@CatalogResult)</AeTypography>
-            <div title="@GetFieldDefinitions("collection")"><AeTypography Variant="p no-margin"><b>@Localizer["Collection Type"]: </b>@_allFieldValues["collection"]</AeTypography></div>
+            <div title="@GetFieldDefinitions("collection")"><AeTypography Variant="p no-margin"><b>@Localizer["DISCOVERY-LABELS.Collection Type"]: </b>@GetLabel("collection")</AeTypography></div>
         </div>
         <div class="bottom-row">
             <div class="key-words">
@@ -99,17 +99,25 @@ else
     private string GetTitle() => _isFrench ? _allFieldValues["title_translated_fr"] : _allFieldValues["title_translated_en"];
     private string GetDescription() => _isFrench ? _allFieldValues["notes_translated_fr"] : _allFieldValues["notes_translated_en"];
 
-    private string GetSubject() => _allFieldValues["subject"];
+    private string GetLabel(string label) 
+    {
+        var subjects = _fieldValues.GetSelectedChoices(label).Select(s => s.Label).ToList();
+        return subjects.Any() ? subjects[0] : string.Empty;
+    }
+
+    
+
     private string GetDivTitleSubject() => GetFieldDefinitions("subject");
+
 
     protected override async Task OnInitializedAsync()
     {
         await LoadFieldValues();
+        var subjects =_fieldValues.GetSelectedChoices("subject").Select(s => s.Label).ToList();
         _allFieldValues = new();
         _isFrench = CultureInfo.CurrentCulture.Name.StartsWith("fr", StringComparison.InvariantCulture);
         SetAllValues();
         SetAllTags();
-
     }
 
     private void SetAllTags()
