@@ -15,6 +15,14 @@
 /** Indigo **/
 /** Purple **/
 /** Pink **/
+@keyframes spin-animation {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(359deg);
+  }
+}
 /**
  * Copyright (c) 2020 Apption Corporation
  * 
@@ -5001,6 +5009,65 @@ code {
   transition: width 0.6s ease;
 }
 
+.toaster {
+  position: fixed;
+  right: 2rem;
+  bottom: 2rem;
+  z-index: 1000;
+}
+.toaster .toast {
+  width: 300px;
+  height: 100px;
+  margin-bottom: 0.5rem;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto 1fr;
+  column-gap: 1rem;
+  row-gap: 0.5rem;
+  padding: 1rem;
+  background-color: #fff;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.06), 0 3px 6px rgba(0, 0, 0, 0.13);
+  grid-template-areas: "icon text" "progress progress";
+}
+.toaster .toast i {
+  grid-area: icon;
+  font-size: 2rem;
+  align-self: center;
+}
+.toaster .toast .toast-text {
+  grid-area: text;
+}
+.toaster .toast .toast-text .toast-title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 200px;
+}
+.toaster .toast .toast-text .toast-subtitle {
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  font-family: monospace;
+  opacity: 0.7;
+}
+.toaster .toast .toast-progress {
+  grid-area: progress;
+  display: flex;
+  height: 1rem;
+  overflow: hidden;
+  font-size: 0.75rem;
+  background-color: #f1f5f9;
+  border-radius: 4px;
+}
+.toaster .toast .toast-progress .toast-progress-bar {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  color: #fff;
+  text-align: center;
+  background-color: #63b3ed;
+  transition: width 0.6s ease;
+}
+
 .welcome-banner {
   background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, black 100%), url("/img/landing/earth-background.jpg") no-repeat center center fixed;
   -webkit-background-size: cover;
@@ -5446,14 +5513,6 @@ code {
 .project-page .project-tools .tools-container .tool-card .tool-actions .pending {
   margin-right: 1rem;
   animation: spin-animation 0.5s infinite;
-}
-@keyframes spin-animation {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(359deg);
-  }
 }
 .project-page .project-tools .tools-container .tool-card:hover {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02), 0 1px 2px rgba(0, 0, 0, 0.14);
