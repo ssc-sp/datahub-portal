@@ -1,6 +1,11 @@
 @inject NavigationManager _navigationManager
+@inject DataRetrievalService _dataRetrievalService
 @inject IJSRuntime _jsRuntime
 
+@using Datahub.Core.Components.Common
+
+<Toaster Toasts="_toasts" >
+    
 <div class="heading">
     <div class="breadcrumbs">
         <AeButton class="light" @onclick="@(async () => await SetCurrentFolder.InvokeAsync("/"))">@Localizer["root"]</AeButton>
@@ -19,6 +24,11 @@
         <AeButton class="button-tool" @onclick="HandleDownload" Disabled="IsActionDisabled(ButtonAction.Download)">
             <i class="fas fa-download"></i>
             @Localizer["Download"]
+        </AeButton>
+        
+        <AeButton class="button-tool" @onclick="HandleAzSyncDown" Disabled="IsActionDisabled(ButtonAction.AzSync)">
+            <i class="fas fa-cloud-download-alt"></i>
+            @Localizer["Azure Copy"]
         </AeButton>
 
         <AeButton class="button-tool" @onclick="HandleRename" Disabled="IsActionDisabled(ButtonAction.Rename)">
@@ -48,7 +58,7 @@
         </AeButton>
     </div>
 </div>
-
+</Toaster>
 @code {
 
     [CascadingParameter(Name = "ProjectAcronym")]
@@ -88,7 +98,11 @@
 
     private List<FileMetaData> _selectedFiles;
     private bool _ownsSelectedFiles;
+    private bool _isElectron = true;
 
+    private List<Toast> _toasts = new();
+    private DotNetObjectReference<Heading> _dotNetHelper;
+    
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         await base.OnAfterRenderAsync(firstRender);
@@ -97,8 +111,11 @@
         {
             _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import",
                 "./Pages/Project/FileExplorer/Heading.razor.js");
+            _dotNetHelper = DotNetObjectReference.Create(this);
         }
     }
+
+   
 
     protected override void OnParametersSet()
     {
@@ -118,5 +135,40 @@
                 .Equals(true) ?? false;
         }
     }
+    
+    
+    [JSInvokable]
+    public async Task AzCopyProgress(string jobStatus, string percentComplete)
+    {
+        var toast = new Toast();
 
+        if (_toasts.Any())
+        {
+            toast = _toasts.First();
+        }
+        else  
+        {
+            // sanity check in case IPC message gets delayed or
+            // comes out of order and it's already been removed
+            if (jobStatus != JobStatusComplete && percentComplete != "100")
+            {
+                _toasts.Add(toast);
+            }
+        }
+        
+        toast.Title = "Azure Copy";
+        toast.Subtitle = jobStatus;
+        toast.Progress = float.Parse(percentComplete);
+        
+        StateHasChanged();
+        
+        if(jobStatus == JobStatusComplete && percentComplete == "100")
+        {
+            _toasts.Remove(toast);
+            await Task.Delay(500);
+            StateHasChanged();
+        }
+    }
+    
+    private const string JobStatusComplete = "Completed";
 }
