@@ -15,7 +15,8 @@
             ProfileName="project"
             ObjectId=@ProjectAcronym
             SaveButtonLabel=@Localizer["OPENDATA-WIZARD.Save_button"]
-            OnSave=@HandleSaved
+            OnSave=@HandleBack
+            OnDiscard=@HandleBack
         />    
     </AeCard>
 </div>
@@ -26,7 +27,7 @@
     [Parameter]
     public string ProjectAcronym { get; set; }
 
-    private void HandleSaved(FieldValueContainer fields)
+    private void HandleBack()
     {
         NavigationManager.NavigateTo($"/projects/{ProjectAcronym}");
     }

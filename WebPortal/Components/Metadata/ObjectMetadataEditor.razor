@@ -29,7 +29,7 @@
                     </AeFlex>                    
                 }
                 <AeFlex Vertical="false" style="margin-top: 16px">
-                    @if (DiscardButton)
+                    @if (ShowDiscardButton)
                     {
                         <AeButton OnClickEvent=@HandleDiscard style="margin-right: 1rem;">@Localizer["Discard"]</AeButton>
                     }
@@ -86,9 +86,6 @@
     public string SaveButtonLabel { get; set; } = "Save";
 
     [Parameter]
-    public bool DiscardButton { get; set; }
-
-    [Parameter]
     public bool ValidateRequired { get; set; } = true;
 
     [Parameter]
@@ -128,6 +125,7 @@
     private HashSet<int> _requiredFieldIds = new();
 
     private bool ShowSaveButton => !HideSaveButton;
+    private bool ShowDiscardButton => OnDiscard.HasDelegate;
 
     protected override async Task OnInitializedAsync()
     {
