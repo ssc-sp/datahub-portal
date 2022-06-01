@@ -25,7 +25,7 @@ public partial class Heading
     private async Task HandleAzSyncDown()
     {
         var uri = await _dataRetrievalService.GenerateSasToken(DataRetrievalService.DEFAULT_CONTAINER_NAME, ProjectAcronym, 14);
-        await _module.InvokeAsync<string>("azSyncDown", uri.ToString());
+        await _module.InvokeAsync<string>("azSyncDown", uri.ToString(), _dotNetHelper);
     }
 
     private void HandleShare()
