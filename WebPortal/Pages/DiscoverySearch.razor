@@ -12,13 +12,13 @@
 </style>
 
 <div style="margin: 2rem">
-    <DHPageTitle PageTitleKey=@Localizer["Search catalog"] />
+    <DHPageTitle PageTitleKey=@Localizer["DISCOVERY-FILTERS.Search Catalog"] />
     <AeCard>
         <ChildContent>
             <div class="catalog-page">
                 <div class="filter">
                     <AeFlex Vertical>
-                        <AeTypography Variant="h2">@Localizer["Filters"]</AeTypography>
+                        <AeTypography Variant="h2">@Localizer["DISCOVERY-FILTERS.Filters"]</AeTypography>
                         
                         <AeCollapse OnSectionToggled=@OnSearchFilterToggled>
                             <AeCollapseSection DefaultOpen=@_searchFilterSectionOpen>
@@ -27,14 +27,14 @@
                                         <span title=@_filterSectionOpenTitle>
                                             <AeIcon class=@_filterSectionOpenIconClass />
                                         </span>
-                                        <span>@Localizer["Keyword Search"]</span>
+                                        <span>@Localizer["DISCOVERY-FILTERS.Keyword Search"]</span>
                                         <AeIcon class=@_filterActiveIconClass />
                                     </AeTypography>
                                 </Header>
                                 <ChildContent>
                                     <AeSearchInput 
                                         id="search" 
-                                        Placeholder=@Localizer.GetString("Enter keywords..") 
+                                        Placeholder=@Localizer["DISCOVERY-FILTERS.Enter Keywords"] 
                                         OnInputChangeWithLastKey=@HandleSearch 
                                         ClearIconFAClass="null" 
                                     />
@@ -49,7 +49,7 @@
                                         <span title=@_filterSectionOpenTitle>
                                             <AeIcon class=@_filterSectionOpenIconClass />
                                         </span>
-                                        <span>@Localizer["Security Classification"]</span>
+                                        <span>@Localizer["DISCOVERY-FILTERS.Security Classification"]</span>
                                         <AeIcon class=@_filterActiveIconClass />
                                     </AeTypography>
                                 </Header>
@@ -81,7 +81,7 @@
                                         <span title=@_filterSectionOpenTitle>
                                             <AeIcon class=@_filterSectionOpenIconClass />
                                         </span>
-                                        <span>@Localizer["Data Type"]</span>
+                                        <span>@Localizer["DISCOVERY-FILTERS.Data Type"]</span>
                                         <AeIcon class=@_filterActiveIconClass />
                                     </AeTypography>
                                 </Header>
@@ -112,7 +112,7 @@
                                         <span title=@_filterSectionOpenTitle>
                                             <AeIcon class=@_filterSectionOpenIconClass />
                                         </span>
-                                        <span>@Localizer["Sectors/Branches"]</span>
+                                        <span>@Localizer["Sectors"]</span>
                                         <AeIcon class=@_filterActiveIconClass />
                                     </AeTypography>
                                 </Header>
@@ -123,8 +123,8 @@
                                             <MultiCheckboxSelect 
                                                 T=OrganizationLevel
                                                 Options=@(_allSectors)
-                                                OptionLabelFunction=@(t => t.EnglishLabel)
-                                                OptionSortFunction=@(t => t.EnglishLabel)
+                                                OptionLabelFunction=@(t => _isFrench ? t.FrenchLabel : t.EnglishLabel)
+                                                OptionSortFunction=@(t => _isFrench ? t.FrenchLabel : t.EnglishLabel)
                                                 OnSelectionChanged=@UpdateSectorFilter
                                                 @ref=@_sectorFilter
                                             />
@@ -132,7 +132,7 @@
                                         <div class="dropdowns">                                            
                                             <label>                                                
                                                 <select class="ae input" @bind=@SectorFilter title=@Localizer["Sector"]>
-                                                    <option value=@NO_FILTER_SELECTED>@Localizer["(Any Sector)"]</option>
+                                                    <option value=@NO_FILTER_SELECTED>@Localizer["DISCOVERY-FILTERS.(All Sectors)"]</option>
                                                     @foreach(var sector in _sectors.Values.OrderBy(s => GetLabel(s)))
                                                     {
                                                         <option value=@sector.Id>@GetLabel(sector)</option>
@@ -143,7 +143,7 @@
                                                 @if (_filteredBranches.Count > 0)
                                                 {
                                                     <select class="ae input" @bind=@BranchFilter title=@Localizer["Branch"]>
-                                                        <option value=@NO_FILTER_SELECTED>@Localizer["(Any Branch)"]</option>
+                                                        <option value=@NO_FILTER_SELECTED>@Localizer["DISCOVERY-FILTERS.(All Branches)"]</option>
                                                         @foreach(var branch in _filteredBranches)
                                                         {
                                                             <option value=@branch.Id>@GetLabel(branch)</option>
