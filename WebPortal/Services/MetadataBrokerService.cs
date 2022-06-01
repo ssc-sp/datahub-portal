@@ -304,17 +304,7 @@ namespace Datahub.Portal.Services
 
             var results = await ctx.QueryCatalog(query);
 
-            return results.Select(r => new CatalogObjectResult
-            (
-                r.ObjectMetadataId, 
-                r.DataType, 
-                r.Name_TXT, 
-                r.Location_TXT,
-                r.Sector_NUM, 
-                r.Branch_NUM, 
-                r.Contact_TXT,
-                r.SecurityClass_TXT
-            )).ToList();
+            return results.Select(TransformCatalogObject).ToList();
         }
 
         static string PrepareCatalogSearchQuery(string searchText, string fieldName)
@@ -436,6 +426,36 @@ namespace Datahub.Portal.Services
         {
             using var ctx = await _contextFactory.CreateDbContextAsync();
             return await ctx.ObjectMetadataSet.FirstOrDefaultAsync(m => m.ObjectId_TXT == objectId);
+        }
+
+        private static CatalogObjectResult TransformCatalogObject(CatalogObject catObj) => catObj == null ? null : new(
+                catObj.ObjectMetadataId,
+                catObj.DataType,
+                catObj.Name_TXT,
+                catObj.Location_TXT,
+                catObj.Sector_NUM,
+                catObj.Branch_NUM,
+                catObj.Contact_TXT,
+                catObj.SecurityClass_TXT
+            );
+
+
+        public async Task<CatalogObjectResult> GetCatalogObjectByMetadataId(long metadataId)
+        {
+            using var ctx = await _contextFactory.CreateDbContextAsync();
+
+            var result = await ctx.CatalogObjects.Where(c => c.ObjectMetadataId == metadataId).FirstOrDefaultAsync();
+
+            return await Task.FromResult(TransformCatalogObject(result));
+        }
+
+        public async Task<CatalogObjectResult> GetCatalogObjectByObjectId(string objectId)
+        {
+            using var ctx = await _contextFactory.CreateDbContextAsync();
+
+            var result = await ctx.CatalogObjects.Where(c => c.ObjectMetadata.ObjectId_TXT == objectId).FirstOrDefaultAsync();
+
+            return await Task.FromResult(TransformCatalogObject(result));
         }
     }
 }

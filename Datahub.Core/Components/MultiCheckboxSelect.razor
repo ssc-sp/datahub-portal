@@ -1,0 +1,106 @@
+﻿@typeparam T
+
+<style>
+    ul.inline-list {
+        margin: 0; 
+        padding: 0; 
+        list-style-type: none; 
+        list-style-image: none;
+    }
+
+    ul.inline-list li {
+        float: left; 
+        margin: 5px 5px 0px 0px; 
+        padding: 4px 8px 4px 4px; 
+        border-width: 1px; 
+        border: 1px dotted grey; 
+        border-radius: 5px; 
+        background-color: #f2f2f2;
+    }
+
+    ul.inline-list li.active {
+        border: 1px solid grey; 
+    }
+</style>
+
+<ul class="ae inline-list" >
+    @foreach(var t in _selectOptions.Keys.OrderBy(t => OptionSortFunction(t)))
+    {
+        <li class=@(_selectOptions[t]? "active":string.Empty)>
+            <label>
+                <input type="checkbox" checked=@_selectOptions[t] @onchange=@(e => ChangeDataTypeFilter(t, e)) />
+                <span>@OptionLabelFunction(t)</span>
+            </label>
+        </li>
+    }
+</ul>
+
+
+@code {
+
+    [Parameter]
+    public IEnumerable<T> Options { get; set; }
+
+    [Parameter]
+    public EventCallback<IEnumerable<T>> OnSelectionChanged { get; set; }
+
+    [Parameter]
+    public Func<T, IComparable> OptionSortFunction { get; set; } = t => t.ToString();
+
+    [Parameter]
+    public Func<T, string> OptionLabelFunction { get; set; } = t => t.ToString();
+
+    private Dictionary<T, bool> _selectOptions = new();
+
+    private async Task ChangeDataTypeFilter(T t, ChangeEventArgs e)
+    {
+        if (e.Value is bool)
+        {
+            await SetSelection(t, (bool)e.Value);
+        }
+    }
+
+    private async Task SetSelection(T which, bool selected)
+    {
+        if (_selectOptions.ContainsKey(which))
+        {
+            _selectOptions[which] = selected;
+            var selectedItems = _selectOptions.Where(t => t.Value).Select(t => t.Key);
+            await TriggerSelectionChanged(selectedItems);
+        }
+    }
+
+    public async Task Select(T which) => await SetSelection(which, true);
+    public async Task Unselect(T which) => await SetSelection(which, false);
+    public async Task Toggle(T which) => await SetSelection(which, !_selectOptions.GetValueOrDefault(which));
+
+    public async Task Clear()
+    {
+        foreach (var t in _selectOptions.Keys)
+        {
+            _selectOptions[t] = false;
+        }
+
+        await TriggerSelectionChanged(new List<T>());
+    }
+
+    private async Task TriggerSelectionChanged(IEnumerable<T> selectedItems)
+    {
+        if (OnSelectionChanged.HasDelegate)
+        {
+            await OnSelectionChanged.InvokeAsync(selectedItems);
+        }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        // if the options param is null, we want an empty dict
+        // otherwise, only update if the options are different
+        if (Options?.Except(_selectOptions.Keys).Any() ?? true)
+        {
+            _selectOptions = Options?.ToDictionary(t => t, t => false) ?? new();
+            await TriggerSelectionChanged(new List<T>());
+        }
+    }
+
+}
