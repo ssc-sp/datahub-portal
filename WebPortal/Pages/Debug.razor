@@ -24,6 +24,10 @@ else
         <div>Role: @role.Value</div>
     }   
 
+    <AeTypography Variant="h2">Portal Version</AeTypography>
+    <div>Release: @VersionService.ReleaseVersion</div>
+    <div>Tag: <a href=@VersionService.ReleaseUrl target="_git">@VersionService.ReleaseTag</a></div>
+    <div>Commit: <a href=@VersionService.CommitUrl target="_git">@VersionService.CommitSha</a></div>
 }
 
 @code
@@ -36,6 +40,9 @@ else
     private string userId;
     private string oid;
     private string userName;
+
+    private string BuildUrl => $"https://github.com/NRCan/datahub-portal/releases/tag/{VersionService.ReleaseTag}";
+    private string CommitUrl => $"https://github.com/NRCan/datahub-portal/commit/{VersionService.CommitSha}";
 
     private List<Claim> roles;
 
