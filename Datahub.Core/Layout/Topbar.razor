@@ -1,7 +1,6 @@
 @inject UIControlsService UI
 @inject IUserInformationService UserInformationService
 @inject NavigationManager NavigationManager
-@inject IPortalVersionService VersionService
 @inject IMyDataService _myDataService
 @inject IPortalVersionService VersionService
 @inject MicrosoftIdentityConsentAndConditionalAccessHandler ConsentHandler
@@ -37,7 +36,7 @@
                     <a href="mailto:Datahub.mcan@canada.ca">Datahub.mcan@canada.ca</a>
                 </div>
                 <div style="margin-top: 1rem;">
-                    <Typography>@Localizer["Release"]: @(VersionService.ReleaseVersion ?? Localizer["Unknown"])</Typography>
+                    <Typography>@Localizer["Release"]: @VersionService.ReleaseVersion</Typography>
                 </div>
             </ChildContent>
             <Footer>
@@ -156,7 +155,8 @@
     {
         _showUserPopup = false;
         _showHelp = false;
-        UI.ToggleRightSidebar(@<Datahub.Core.Views.Notifications />);
+        UI.ToggleRightSidebar(@<Datahub.Core.Views.Notifications />
+    );
     }
 
     private void NavigateToTermsOfUse()
@@ -167,5 +167,12 @@
     private void NavigateToPrivacyStatement()
     {
         NavigationManager.NavigateTo("privacystatement");
+    }
+
+    private string GetReleaseVersion()
+    {
+        return Assembly.GetExecutingAssembly()
+            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
+            .InformationalVersion;
     }
 }
