@@ -66,3 +66,28 @@ steps:
     package: '$(System.DefaultWorkingDirectory)/WebPortal/**/*.zip'
     enableCustomDeployment: true
     DeploymentType: 'webDeploy'
+
+- task: AzureAppServiceSettings@1
+  displayName: Azure App Service Settings
+  inputs:
+    azureSubscription: 'AZRM - DataSolutions'
+    appName: 'spdatahub-portal-app-sand'
+    ResourceGroupName: 'sp-datahub-sand-rg'
+    appSettings: |
+      [
+        {
+          "name": "PortalVersion__Release",
+          "value": "$(Build.BuildNumber)",
+          "slotSetting": false
+        },
+        {
+          "name": "PortalVersion__Commit",
+          "value": "$(Build.SourceVersion)", 
+          "slotSetting": false
+        },
+        {
+          "name": "PortalVersion__BuildId",
+          "value": "$(Build.BuildId)", 
+          "slotSetting": false
+        }
+      ]
