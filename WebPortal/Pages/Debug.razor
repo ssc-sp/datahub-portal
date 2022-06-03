@@ -3,6 +3,7 @@
 @inject IDataCreatorService DataCreatorService
 @inject UIControlsService UI
 @inject NavigationManager NavigationManager
+@inject IPortalVersionService VersionService
 
 @page "/debug"
 
@@ -23,6 +24,10 @@ else
         <div>Role: @role.Value</div>
     }   
 
+    <AeTypography Variant="h2">Portal Version</AeTypography>
+    <div>Release: @VersionService.ReleaseVersion</div>
+    <div>Tag: <a href=@VersionService.ReleaseUrl target="_git">@VersionService.ReleaseTag</a></div>
+    <div>Commit: <a href=@VersionService.CommitUrl target="_git">@VersionService.CommitSha</a></div>
 }
 
 @code
@@ -36,6 +41,9 @@ else
     private string oid;
     private string userName;
 
+    private string BuildUrl => $"https://github.com/NRCan/datahub-portal/releases/tag/{VersionService.ReleaseTag}";
+    private string CommitUrl => $"https://github.com/NRCan/datahub-portal/commit/{VersionService.CommitSha}";
+
     private List<Claim> roles;
 
     protected override async Task OnInitializedAsync()
@@ -48,7 +56,6 @@ else
         var claims = userIdentity.Claims;
         var roleClaimType = userIdentity.RoleClaimType;
         roles = claims.Where(c => c.Type == roleClaimType).ToList();
-        //roles = claims.Where(c => c.Type == ClaimTypes.Role).ToList();
         isLoaded = true;
     }
 }
