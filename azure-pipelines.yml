@@ -60,3 +60,29 @@ steps:
     package: '$(System.DefaultWorkingDirectory)/WebPortal/**/*.zip'
     enableCustomDeployment: true
     DeploymentType: 'webDeploy'
+
+- task: AzureAppServiceSettings@1
+  displayName: Azure App Service Settings
+  inputs:
+    ConnectionType: 'AzureRM'
+    azureSubscription: 'datahub-dev-service-connection'
+    appType: 'webApp'
+    WebAppName: 'dh-portal-app-dev'
+    appSettings: |
+      [
+        {
+          "name": "PortalVersion__Release",
+          "value": "$(Build.BuildNumber)",
+          "slotSetting": false
+        },
+        {
+          "name": "PortalVersion__Commit",
+          "value": "$(Build.SourceVersion)", 
+          "slotSetting": false
+        },
+        {
+          "name": "PortalVersion__BuildId",
+          "value": "$(Build.BuildId)", 
+          "slotSetting": false
+        }
+      ]
