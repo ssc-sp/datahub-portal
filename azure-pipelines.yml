@@ -64,10 +64,9 @@ steps:
 - task: AzureAppServiceSettings@1
   displayName: Azure App Service Settings
   inputs:
-    ConnectionType: 'AzureRM'
     azureSubscription: 'datahub-dev-service-connection'
-    appType: 'webApp'
-    WebAppName: 'dh-portal-app-dev'
+    appName: 'dh-portal-app-dev'
+    resourceGroupName: 'ciosb-dev-datahub-ca-central'
     appSettings: |
       [
         {
