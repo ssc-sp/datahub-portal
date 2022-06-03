@@ -25,9 +25,12 @@ else
     }   
 
     <AeTypography Variant="h2">Portal Version</AeTypography>
-    <div>Release: @VersionService.ReleaseVersion</div>
-    <div>Tag: <a href=@VersionService.ReleaseUrl target="_git">@VersionService.ReleaseTag</a></div>
-    <div>Commit: <a href=@VersionService.CommitUrl target="_git">@VersionService.CommitSha</a></div>
+    <div>
+        <div>Release: @VersionService.ReleaseVersion</div>
+        <div>Build ID: @VersionService.GetCustomValue("BUILD_BUILDID")</div>
+        <div>Build URL: @VersionService.GetCustomValue("BUILD_REPOSITORY_URL")</div>
+        <div>Source Version: @VersionService.GetCustomValue("BUILD_SOURCEVERSION")</div>
+    </div>
 }
 
 @code
@@ -40,10 +43,6 @@ else
     private string userId;
     private string oid;
     private string userName;
-
-    private string BuildUrl => $"https://github.com/NRCan/datahub-portal/releases/tag/{VersionService.ReleaseTag}";
-    private string CommitUrl => $"https://github.com/NRCan/datahub-portal/commit/{VersionService.CommitSha}";
-
     private List<Claim> roles;
 
     protected override async Task OnInitializedAsync()
