@@ -3,6 +3,7 @@
 @inject IDataCreatorService DataCreatorService
 @inject UIControlsService UI
 @inject NavigationManager NavigationManager
+@inject IPortalVersionService VersionService
 
 @page "/debug"
 
@@ -23,6 +24,13 @@ else
         <div>Role: @role.Value</div>
     }   
 
+    <AeTypography Variant="h2">Portal Version</AeTypography>
+    <div>
+        <div>Release: @VersionService.ReleaseVersion</div>
+        <div>Build ID: @VersionService.GetCustomValue("BUILD_BUILDID")</div>
+        <div>Build URL: @VersionService.GetCustomValue("BUILD_REPOSITORY_URL")</div>
+        <div>Source Version: @VersionService.GetCustomValue("BUILD_SOURCEVERSION")</div>
+    </div>
 }
 
 @code
@@ -35,7 +43,6 @@ else
     private string userId;
     private string oid;
     private string userName;
-
     private List<Claim> roles;
 
     protected override async Task OnInitializedAsync()
@@ -48,7 +55,6 @@ else
         var claims = userIdentity.Claims;
         var roleClaimType = userIdentity.RoleClaimType;
         roles = claims.Where(c => c.Type == roleClaimType).ToList();
-        //roles = claims.Where(c => c.Type == ClaimTypes.Role).ToList();
         isLoaded = true;
     }
 }
