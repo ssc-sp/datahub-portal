@@ -155,8 +155,7 @@
     {
         _showUserPopup = false;
         _showHelp = false;
-        UI.ToggleRightSidebar(@<Datahub.Core.Views.Notifications />
-    );
+        UI.ToggleRightSidebar(@<Datahub.Core.Views.Notifications />);
     }
 
     private void NavigateToTermsOfUse()
@@ -167,12 +166,5 @@
     private void NavigateToPrivacyStatement()
     {
         NavigationManager.NavigateTo("privacystatement");
-    }
-
-    private string GetReleaseVersion()
-    {
-        return Assembly.GetExecutingAssembly()
-            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
-            .InformationalVersion;
     }
 }
