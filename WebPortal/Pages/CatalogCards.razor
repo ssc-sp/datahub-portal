@@ -114,8 +114,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadFieldValues();
-        var subjects =_fieldValues.GetSelectedChoices("subject").Select(s => s.Label).ToList();
+        _fieldValues = await MetadataBrokerService.GetObjectMetadataValues(CatalogResult.ObjectMetadataId);
         _allFieldValues = new();
         _isFrench = CultureInfo.CurrentCulture.Name.StartsWith("fr", StringComparison.InvariantCulture);
         SetAllValues();
@@ -158,52 +157,11 @@ else
         _allFieldValues = names.ToDictionary(n => n, n => _fieldValues.GetValue(n));
     }
 
-    private async Task LoadFieldValues()
-    {
-        // the Object Id may come from an external source or from a know MetadataObject row
-        if (long.TryParse(CatalogResult.ObjectMetadataId.ToString(), out long metadataObjectId))
-        {
-            _fieldValues = await MetadataBrokerService.GetObjectMetadataValues(metadataObjectId);
-
-        }
-        else
-        {
-            _fieldValues = await MetadataBrokerService.GetObjectMetadataValues(CatalogResult.ObjectMetadataId);
-
-        }
-
-         //_definitions = _fieldValues.Definitions;
-        //_lastObjectId = ObjectId;
-        // set external choices
-        await UpdateExternalFieldChoices();
-    }
-
     private string GetFieldDefinitions(string field)
     {
         return _fieldValues.Definitions.Get(field).Description;
     }
 
-    private async Task UpdateExternalFieldChoices()
-    {
-        foreach (var definition in _fieldValues.Definitions.Fields)
-        {
-            switch (definition.Field_Name_TXT)
-            {
-                case "sector":
-                    definition.Choices = GetOrganizationChoices(await OrganizationLevelsService.GetSectors(), false);
-                    break;
-                case "branch":
-                    definition.Choices = GetOrganizationChoices(await OrganizationLevelsService.GetBranches(), true);
-                    break;
-                case "division":
-                    definition.Choices = GetOrganizationChoices(await OrganizationLevelsService.GetDivisions(), true);
-                    break;
-                case "section":
-                    definition.Choices = GetOrganizationChoices(await OrganizationLevelsService.GetSections(), true);
-                    break;
-            }
-        }
-    }
 
     private List<FieldChoice> GetOrganizationChoices(List<OrganizationLevel> levels, bool cascades)
     {

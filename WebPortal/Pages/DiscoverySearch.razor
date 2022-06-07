@@ -254,15 +254,16 @@
         _searchThrottler = new(TimeSpan.FromSeconds(0.5), ThrottleSearch);
         await _searchThrottler.SetQuery(string.Empty);
     }
-    
+
     private async Task ChangeIncompleteCatalogFilter(ChangeEventArgs e)
     {
         if (e.Value is bool)
         {
             _excludeIncompleteCatalogs = (bool)e.Value;
-        }
+            await UpdateFilter();            
+        }        
     }
-    
+
     protected override void OnAfterRender(bool firstRender)
     {
         // You must re-render after the components are initialized in order for the 
@@ -282,42 +283,22 @@
         _filteredSectors = filteredTypes.ToHashSet();
         _filterSector = _filteredSectors.Count == 1 ? filteredTypes.ToList()[0].Id : NO_FILTER_SELECTED;
         _filterBranch = _filteredSectors.Count != 1 ? NO_FILTER_SELECTED : _filterBranch;
-        UpdateFilter();
+        await UpdateFilter();
         await Task.CompletedTask;
     }
 
     private async Task UpdateDataTypeFilter(IEnumerable<MetadataObjectType> filteredTypes)
     {
         _filteredDataTypes = filteredTypes.ToHashSet();
-        UpdateFilter();
+        await UpdateFilter();
         await Task.CompletedTask;
     }
 
     private async Task UpdateClassificationTypeFilter(IEnumerable<MetadataClassificationType> filteredTypes)
     {
         _filteredClassificationTypes = filteredTypes.ToHashSet();
-        UpdateFilter();
+        await UpdateFilter();
         await Task.CompletedTask;
-    }
-
-
-    private string SectorFilter
-    {
-        get => _filterSector.ToString();
-        set
-        {
-            if (int.TryParse(value, out var intval))
-            {
-                _filterSector = intval;
-                _filterBranch = NO_FILTER_SELECTED;
-            }
-            else
-            {
-                _filterSector = NO_FILTER_SELECTED;
-                _filterBranch = NO_FILTER_SELECTED;
-            }
-            UpdateFilter();
-        }
     }
 
     private string BranchFilter
@@ -333,26 +314,18 @@
             {
                 _filterBranch = NO_FILTER_SELECTED;
             }
-            UpdateFilter();
+            _ = UpdateFilter();
         }
     }
 
-    private string SecurityFilter
-    {
-        get => _securityFilter;
-        set
-        {
-            _securityFilter = value;
-            UpdateFilter();
-        }
-    }
+
 
     private void GetMetadataClassificationType(string securityClass)
     {
         var enumType = Enum.Parse(typeof(MetadataClassificationType), securityClass);
     }
 
-    private void UpdateFilter()
+    private async Task UpdateFilter()
     {
         var noDataTypesSelected = _filteredDataTypes.Count < 1;
         var noClassificationTypesSelected = _filteredClassificationTypes.Count < 1;
@@ -365,34 +338,45 @@
             .Where(r => (noDataTypesSelected || _filteredDataTypes.Contains(r.DataType)) &&
                 (noSectorsSelected || (r.Sector != 0 && _filteredSectors.Contains(_sectors[r.Sector]))) &&
                 (noClassificationTypesSelected || _filteredClassificationTypes.Contains((MetadataClassificationType) Enum.Parse(typeof(MetadataClassificationType), r.SecurityClass.Replace(" ", "")))) &&
-                (_filterBranch == NO_FILTER_SELECTED || r.Branch == _filterBranch) &&
-                (string.IsNullOrEmpty(_securityFilter) || r.SecurityClass == _securityFilter))
+                (_filterBranch == NO_FILTER_SELECTED || r.Branch == _filterBranch))
             .ToList();
 
         if (_excludeIncompleteCatalogs)
-            RemoveIncompleteCatalogsFromSearchResults(); 
+            await RemoveIncompleteCatalogsFromSearchResults(); 
 
         _lastClicked = 0;
 
         _filtersActive = _filteredSectors.Count > 0 || _filteredDataTypes.Count > 0 || _filteredClassificationTypes.Count > 0 || _filterBranch != NO_FILTER_SELECTED || !string.IsNullOrEmpty(_securityFilter);
 
-        StateHasChanged();
+        await InvokeAsync(StateHasChanged);
     }
 
-    private void RemoveIncompleteCatalogsFromSearchResults()
+    private async Task RemoveIncompleteCatalogsFromSearchResults()
     {
+        var catalogsToRemove = new List<CatalogObjectResult>();
+
         foreach (var result in _filteredSearchResults)
         {
-            var strings = new List<string> { GetName(result), GetSector(result), GetContact(result), GetSecurityClass(result)};
+            var fieldValues = await MetadataBrokerService.GetObjectMetadataValues(result.ObjectMetadataId);
+            var names = fieldValues.GetAllFieldNames();
+            var allFieldValues = names.ToDictionary(n => n, n => fieldValues.GetValue(n));
+            var title = _isFrench ? allFieldValues["title_translated_fr"] : allFieldValues["title_translated_en"];
+            var subject = allFieldValues["subject"] ?? string.Empty;
+
+            var strings = new List<string> { title, subject, GetName(result), GetSector(result), GetContact(result), GetSecurityClass(result)};
             if (strings.Any(s => string.IsNullOrWhiteSpace(s)))
             {
-                _filteredSearchResults.Remove(result);    
+                catalogsToRemove.Add(result);    
             }
         }
-        
+
+        foreach (var result in catalogsToRemove)
+        {
+            _filteredSearchResults.Remove(result);
+        }
     }
 
-    private void ClearFilters()
+    private async Task ClearFilters()
     {
 
         if (_objectTypeFilter != null)
@@ -414,7 +398,7 @@
         _filterBranch = NO_FILTER_SELECTED;
         _securityFilter = string.Empty;
 
-        UpdateFilter();
+        await UpdateFilter();
     }
 
     private void OnFilterToggled((AeCollapseSection Section, bool Open) e)
@@ -541,7 +525,7 @@
         try
         {
             _searchResults = await SearchCatalog(searchText);
-            UpdateFilter();
+            await UpdateFilter();
         }
         finally
         {
