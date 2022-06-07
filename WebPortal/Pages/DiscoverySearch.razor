@@ -20,6 +20,11 @@
                     <AeFlex Vertical>
                         <AeTypography Variant="h2">@Localizer["DISCOVERY-FILTERS.Filters"]</AeTypography>
                         
+                        <label>
+                            <input type="checkbox" checked=@_excludeIncompleteCatalogs @onchange=@(e => ChangeIncompleteCatalogFilter(e)) />
+                            <span>@Localizer["DISCOVERY-FILTERS.HideIncomplete"]</span>
+                        </label>
+
                         <AeCollapse OnSectionToggled=@OnSearchFilterToggled>
                             <AeCollapseSection DefaultOpen=@_searchFilterSectionOpen>
                                 <Header>
@@ -129,16 +134,7 @@
                                                 @ref=@_sectorFilter
                                             />
                                         </div>
-                                        <div class="dropdowns">                                            
-                                            <label>                                                
-                                                <select class="ae input" @bind=@SectorFilter title=@Localizer["Sector"]>
-                                                    <option value=@NO_FILTER_SELECTED>@Localizer["DISCOVERY-FILTERS.(All Sectors)"]</option>
-                                                    @foreach(var sector in _sectors.Values.OrderBy(s => GetLabel(s)))
-                                                    {
-                                                        <option value=@sector.Id>@GetLabel(sector)</option>
-                                                    }
-                                                </select>
-                                            </label>
+                                        <div class="dropdowns">                                                                                        
                                             <label>
                                                 @if (_filteredBranches.Count > 0)
                                                 {
@@ -211,6 +207,7 @@
     private QueryThrottler<string> _searchThrottler;
     private List<CatalogObjectResult> _searchResults = new();
     private List<CatalogObjectResult> _filteredSearchResults = new();
+    private List<CatalogObjectResult> _incompleteCatalogObjects = new();
     private bool _isFrench;
     private CatalogObjectResult _selectedResult;
 
@@ -230,13 +227,14 @@
     private bool _securityFilterSectionOpen = true;
     private bool _sectorFilterSectionOpen = true;
     private bool _filterSectionOpen = true;
+    private bool _excludeIncompleteCatalogs = true;
     private string _filterSectionOpenIconClass => $"fad fa-caret-circle-{(_filterSectionOpen ? "down" : "right")}";
     private string _filterSectionOpenTitle => _filterSectionOpen ? Localizer["Collapse"] : Localizer["Expand"];
     private string _filterActiveIconClass => $"{(_filtersActive ? "fas" : "fad")} fa-filter";
 
     private List<OrganizationLevel> _allSectors = new();
     private Dictionary<int, OrganizationLevel> _sectors = new();
-    private Dictionary<int, OrganizationLevel> _branches = new();
+    private Dictionary<int, OrganizationLevel> _branches = new();    
     private IPageableComponent _resultTable;
     private List<string> _headers = new();
     private List<Func<CatalogObjectResult, RenderFragment>> _renderFunctions = new();
@@ -256,7 +254,15 @@
         _searchThrottler = new(TimeSpan.FromSeconds(0.5), ThrottleSearch);
         await _searchThrottler.SetQuery(string.Empty);
     }
-
+    
+    private async Task ChangeIncompleteCatalogFilter(ChangeEventArgs e)
+    {
+        if (e.Value is bool)
+        {
+            _excludeIncompleteCatalogs = (bool)e.Value;
+        }
+    }
+    
     protected override void OnAfterRender(bool firstRender)
     {
         // You must re-render after the components are initialized in order for the 
@@ -274,6 +280,8 @@
     private async Task UpdateSectorFilter(IEnumerable<OrganizationLevel> filteredTypes)
     {
         _filteredSectors = filteredTypes.ToHashSet();
+        _filterSector = _filteredSectors.Count == 1 ? filteredTypes.ToList()[0].Id : NO_FILTER_SELECTED;
+        _filterBranch = _filteredSectors.Count != 1 ? NO_FILTER_SELECTED : _filterBranch;
         UpdateFilter();
         await Task.CompletedTask;
     }
@@ -349,21 +357,39 @@
         var noDataTypesSelected = _filteredDataTypes.Count < 1;
         var noClassificationTypesSelected = _filteredClassificationTypes.Count < 1;
         var noSectorsSelected = _filteredSectors.Count < 1;
-        
+
+
+
+
         _filteredSearchResults = _searchResults
             .Where(r => (noDataTypesSelected || _filteredDataTypes.Contains(r.DataType)) &&
                 (noSectorsSelected || (r.Sector != 0 && _filteredSectors.Contains(_sectors[r.Sector]))) &&
                 (noClassificationTypesSelected || _filteredClassificationTypes.Contains((MetadataClassificationType) Enum.Parse(typeof(MetadataClassificationType), r.SecurityClass.Replace(" ", "")))) &&
-                (_filterSector == NO_FILTER_SELECTED || r.Sector == _filterSector) &&
                 (_filterBranch == NO_FILTER_SELECTED || r.Branch == _filterBranch) &&
                 (string.IsNullOrEmpty(_securityFilter) || r.SecurityClass == _securityFilter))
             .ToList();
 
+        if (_excludeIncompleteCatalogs)
+            RemoveIncompleteCatalogsFromSearchResults(); 
+
         _lastClicked = 0;
 
-        _filtersActive = _filteredDataTypes.Count > 0 || _filteredClassificationTypes.Count > 0 || _filterSector != NO_FILTER_SELECTED || _filterBranch != NO_FILTER_SELECTED || !string.IsNullOrEmpty(_securityFilter);
+        _filtersActive = _filteredSectors.Count > 0 || _filteredDataTypes.Count > 0 || _filteredClassificationTypes.Count > 0 || _filterBranch != NO_FILTER_SELECTED || !string.IsNullOrEmpty(_securityFilter);
 
         StateHasChanged();
+    }
+
+    private void RemoveIncompleteCatalogsFromSearchResults()
+    {
+        foreach (var result in _filteredSearchResults)
+        {
+            var strings = new List<string> { GetName(result), GetSector(result), GetContact(result), GetSecurityClass(result)};
+            if (strings.Any(s => string.IsNullOrWhiteSpace(s)))
+            {
+                _filteredSearchResults.Remove(result);    
+            }
+        }
+        
     }
 
     private void ClearFilters()
@@ -419,6 +445,7 @@
     private string GetDataType(CatalogObjectResult result) => GetLocalizedDataType(result.DataType);
     private string GetSecurityClass(CatalogObjectResult result) => Localizer[result.SecurityClass];
     private string GetLabel(OrganizationLevel orgLevel) => (_isFrench ? orgLevel?.FrenchLabel : orgLevel?.EnglishLabel) ?? "-";
+    
 
     // renderer functions
     private RenderFragment GetDownLoadFragment(CatalogObjectResult result) =>
