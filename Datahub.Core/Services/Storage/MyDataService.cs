@@ -125,7 +125,7 @@ namespace Datahub.Core.Services
             await _auditingService.TrackException(ex, (nameof(correlationId), correlationId));
         }
 
-        public async Task LoadApplicationData()
+        public async Task SetupUserFolders()
         {
             var rootFolder = await _userInformationService.GetUserRootFolder();
             MyDataFolder.id = rootFolder;
