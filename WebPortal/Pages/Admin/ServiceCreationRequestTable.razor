@@ -1,6 +1,7 @@
 ﻿@inject IDbContextFactory<DatahubProjectDBContext> dbFactory
 @inject IEmailNotificationService EmailService
 @inject ISystemNotificationService SystemNotificationService
+@inject UIControlsService _uiControlService
 
 <AeCard>
     <Header>
@@ -176,9 +177,14 @@
         }
         else
         {
-            return 
-            @<div>@(request.Is_Completed?.ToShortDateString() ?? @Localizer["N/A"])</div>;
+            return @<div>@(request.Is_Completed?.ToShortDateString() ?? @Localizer["N/A"])</div>;
         }
+    }
+
+    private async Task ShowRequestInfoPanel(Datahub_ProjectServiceRequests r)
+    {
+        RenderFragment popupHtml = @<ResourceRequestInfoPanel Request=@r />;
+        await _uiControlService.ToggleModal(@<RenderFragmentModal Fragment=@popupHtml />);
     }
 
     protected override async Task OnInitializedAsync()
@@ -186,9 +192,11 @@
         serviceRenderers = new List<Func<Datahub_ProjectServiceRequests, RenderFragment>>()
         {
             null,
-            p => 
-    @<div>@(p.User_Name ?? @Localizer["N/A"])</div>,
-            null,
+            p => @<div>@(p.User_Name ?? @Localizer["N/A"])</div>,
+            p => @<div>
+                <span>@Localizer[$"RESOURCE-TYPE.{p.ServiceType}"]</span>
+                <span @onclick=@(async () => await ShowRequestInfoPanel(p))><i class="far fa-info-circle"></i></span>
+            </div>,
             RequestCompletedTimeFragment,
             p => 
             {

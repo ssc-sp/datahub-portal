@@ -33,10 +33,9 @@ namespace Datahub.Core.EFCore
 
         public Datahub_Project Project { get; set; }
 
-        [StringLength(200)]
-        public string InputClassName { get; set; }
-
         public string InputJsonContent { get; set; }
+
+        public bool HasInputParams => !string.IsNullOrEmpty(InputJsonContent);
 
         public T GetResourceObject<T>()
         {
@@ -57,26 +56,23 @@ namespace Datahub.Core.EFCore
             }
         }
 
-        public T GetInputParameters<T>() where T : IProjectResourceInput
+        public class CaseInsensitiveSettingsDict : Dictionary<string, string>
         {
-            if (typeof(T).FullName != InputClassName)
-            {
-                throw new InvalidCastException($"Resource {ResourceId} has input parameter type {InputClassName} (tried getting {typeof(T).FullName})");
-            }
-
-            return string.IsNullOrEmpty(InputJsonContent) ? default : JsonConvert.DeserializeObject<T>(InputJsonContent);
+            public CaseInsensitiveSettingsDict() : base(StringComparer.OrdinalIgnoreCase) { }
         }
 
-        public void SetInputParameters<T>(T obj) where T: IProjectResourceInput
+        public Dictionary<string, string> GetInputParamsDictionary()
         {
-            var realType = obj.GetType();
-            InputClassName = realType.FullName;
-            if (obj != null)
-            {
-                InputJsonContent = JsonConvert.SerializeObject(obj);
-            }
+            return string.IsNullOrEmpty(InputJsonContent) ? default : JsonConvert.DeserializeObject<CaseInsensitiveSettingsDict>(InputJsonContent);
+        }
+
+        public void SetInputParameters(Dictionary<string, string> inputParams)
+        {
+            InputJsonContent = JsonConvert.SerializeObject(inputParams);
         }
     }
+
+    
 
     public static class ProjectResourceConstants
     {
@@ -88,6 +84,8 @@ namespace Datahub.Core.EFCore
 
         public const string STORAGE_TYPE_BLOB = "blob";
         public const string STORAGE_TYPE_GEN2 = "gen2";
+
+        public const string INPUT_PARAM_STORAGE_TYPE = "storage_type";
     }
 
     public class ProjectResource_Database
@@ -102,6 +100,7 @@ namespace Datahub.Core.EFCore
 
     public class ProjectResource_Storage
     {
+        public const string DEFAULT_STORAGE_TYPE = ProjectResourceConstants.STORAGE_TYPE_BLOB;
         public string Storage_Type { get; set; }
         public string Storage_Account { get; set; }
         public List<string> Containers { get; set; }
@@ -111,11 +110,4 @@ namespace Datahub.Core.EFCore
     }
 
     public class ProjectResource_Blank { }
-
-    public interface IProjectResourceInput { }
-
-    public class ProjectResourceInput_Storage: IProjectResourceInput
-    {
-        public string Storage_Type { get; set; }
-    }
 }
