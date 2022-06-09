@@ -93,6 +93,8 @@ else
     public List<Func<CatalogObjectResult, string>> AccessorFunctions { get; set; }
     [Parameter]
     public List<Func<CatalogObjectResult, RenderFragment>> RenderFunctions { get; set; }
+    [Parameter]
+    public EventCallback<CatalogObjectResult> RefreshCard { get; set; }
 
     private FieldValueContainer _fieldValues;
     private Dictionary<string, string> _allFieldValues;
@@ -132,25 +134,28 @@ else
                 ObjectType=@MetadataObjectType.File
                 UpdateCatalog=true
             />;
-        await _uiControlService.ToggleModal(@<RenderFragmentModal Fragment=@metadataEditor />);
+        await _uiControlService.ToggleModal(@<RenderFragmentModal Fragment=@metadataEditor />
+    );
     }
 
     private async Task HandleClose()
     {
         await _uiControlService.ToggleModal();
+        await RefreshCard.InvokeAsync(CatalogResult);                    
     }
     protected override async Task OnInitializedAsync()
+    {
+        
+    }
+
+    protected override async Task OnParametersSetAsync()
     {
         _fieldValues = await MetadataBrokerService.GetObjectMetadataValues(CatalogResult.ObjectMetadataId);
         _allFieldValues = new();
         _isFrench = CultureInfo.CurrentCulture.Name.StartsWith("fr", StringComparison.InvariantCulture);
         SetAllValues();
         SetAllTags();
-    }
 
-    private async Task OpenMetadataEditor()
-    {
-        
     }
 
     private void SetAllTags()
