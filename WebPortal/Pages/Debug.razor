@@ -26,10 +26,10 @@ else
 
     <AeTypography Variant="h2">Portal Version</AeTypography>
     <div>
-        <div>Release: @VersionService.ReleaseVersion</div>
-        <div>Build ID: @VersionService.GetCustomValue("BUILD_BUILDID")</div>
-        <div>Build URL: @VersionService.GetCustomValue("BUILD_REPOSITORY_URL")</div>
-        <div>Source Version: @VersionService.GetCustomValue("BUILD_SOURCEVERSION")</div>
+        <div>Release Version: @VersionService.ReleaseVersion</div>
+        <div>Build ID: @VersionService.BuildId</div>
+        <div>Deployment: @VersionService.Release</div>
+        <div>Commit: <a href=@GetSourceVersionUrl(VersionService.Commit) target="_blank">@VersionService.Commit</a></div>
     </div>
 }
 
@@ -57,4 +57,6 @@ else
         roles = claims.Where(c => c.Type == roleClaimType).ToList();
         isLoaded = true;
     }
+
+    private string GetSourceVersionUrl(string commit) => $"https://github.com/NRCan/datahub-portal/commit/{commit}";
 }
