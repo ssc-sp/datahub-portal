@@ -47,7 +47,8 @@
                 report = await PowerBiServiceApi.GetReport(ReportId);                
             else
                 report = await PowerBiServiceApi.GetReport(ReportId, GroupId);
-            reportToken = await PowerBiServiceApi.GetEmbedTokenAsync(10,new Guid(ReportId));
+            
+            reportToken = await PowerBiServiceApi.GetEmbedTokenAsync(10,new Guid(report.DatasetId), new Guid(ReportId));
 
             var pbiSettings = new PowerBISettings();
             if (ReadOnly)
