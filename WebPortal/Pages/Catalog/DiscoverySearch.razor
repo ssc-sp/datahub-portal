@@ -164,14 +164,23 @@
                 </div>
                 <div class="cards">
                     <div class="catalog-cards">
-                        @foreach(var result in _filteredSearchResults)
+                        @if (!_filteredSearchResults.Any())
                         {
-                            <CatalogCards 
-                                @key=@result
-                                CatalogResult="@result" 
-                                AccessorFunctions="@_accessorFunctions" 
-                                RenderFunctions="@_renderFunctions"
-                                RefreshCard="RefreshCard"/>
+                            <CardSkeleton />
+                            <CardSkeleton />
+                            <CardSkeleton />
+                        }
+                        else
+                        {
+                            @foreach(var result in _filteredSearchResults)
+                            {
+                                <CatalogCards 
+                                    @key=@result
+                                    CatalogResult="@result" 
+                                    AccessorFunctions="@_accessorFunctions" 
+                                    RenderFunctions="@_renderFunctions"
+                                    RefreshCard="RefreshCard"/>
+                            }
                         }
                     </div>
                 </div>
