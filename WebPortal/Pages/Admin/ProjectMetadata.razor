@@ -1,0 +1,34 @@
+﻿@*ProjectMetadata.razor*@
+
+@page "/admin/metadata/{ProjectAcronym}"
+@using Datahub.Metadata.DTO
+@inject NavigationManager NavigationManager
+
+<div class="manage-access"> 
+
+    <AeFlex Vertical>
+        <h1>@($"{ProjectAcronym} {Localizer["Project Metadata"]}")</h1>
+    </AeFlex>    
+
+    <AeCard>
+        <ObjectMetadataEditor 
+            ProfileName="project"
+            ObjectId=@ProjectAcronym
+            SaveButtonLabel=@Localizer["OPENDATA-WIZARD.Save_button"]
+            OnSave=@HandleBack
+            OnDiscard=@HandleBack
+        />    
+    </AeCard>
+</div>
+
+
+@code {
+
+    [Parameter]
+    public string ProjectAcronym { get; set; }
+
+    private void HandleBack()
+    {
+        NavigationManager.NavigateTo($"/projects/{ProjectAcronym}");
+    }
+}

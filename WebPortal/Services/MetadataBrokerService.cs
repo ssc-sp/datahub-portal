@@ -33,38 +33,34 @@ namespace Datahub.Portal.Services
                             .FirstOrDefaultAsync(p => p.Name == name);
         }
 
-        public async Task<FieldValueContainer> GetObjectMetadataValues(long objectMetadataId)
+        public async Task<FieldValueContainer> GetObjectMetadataValues(long objectMetadataId, string defaultMetadataId)
         {
             using var ctx = _contextFactory.CreateDbContext();
 
             // retrieve the object metadata
-            var objectMetadata = await ctx.ObjectMetadataSet
-                .Include(e => e.FieldValues)
-                .FirstOrDefaultAsync(e => e.ObjectMetadataId == objectMetadataId);
+            var objectMetadata = await GetObjectMetadata(ctx, objectMetadataId);
 
             // retrieve the field definitions
             var metadataDefinitions = await (objectMetadata == null ? GetLatestMetadataDefinition(ctx) : GetMetadataDefinition(ctx, objectMetadata.MetadataVersionId));
 
             // retrieve and clone the field values
-            var fieldValues = CloneFieldValues(objectMetadata?.FieldValues ?? new List<ObjectFieldValue>());
+            var fieldValues = CloneFieldValues(objectMetadata?.FieldValues ?? await CloneMetadataValues(ctx, defaultMetadataId));
 
-            return new FieldValueContainer(objectMetadata?.ObjectMetadataId ?? 0, objectMetadata.ObjectId_TXT, metadataDefinitions, fieldValues);
+            return new FieldValueContainer(objectMetadataId, objectMetadata?.ObjectId_TXT, metadataDefinitions, fieldValues);
         }
 
-        public async Task<FieldValueContainer> GetObjectMetadataValues(string objectId)
+        public async Task<FieldValueContainer> GetObjectMetadataValues(string objectId, string defaultMetadataId)
         {
             using var ctx = _contextFactory.CreateDbContext();
 
             // retrieve the object metadata
-            var objectMetadata = await ctx.ObjectMetadataSet
-                .Include(e => e.FieldValues)
-                .FirstOrDefaultAsync(e => e.ObjectId_TXT == objectId);
+            var objectMetadata = await GetObjectMetadata(ctx, objectId);
 
             // retrieve the field definitions
             var metadataDefinitions = await (objectMetadata == null ? GetLatestMetadataDefinition(ctx) : GetMetadataDefinition(ctx, objectMetadata.MetadataVersionId));
 
             // retrieve and clone the field values
-            var fieldValues = CloneFieldValues(objectMetadata?.FieldValues ?? new List<ObjectFieldValue>());
+            var fieldValues = CloneFieldValues(objectMetadata?.FieldValues ?? await CloneMetadataValues(ctx, defaultMetadataId));
 
             return new FieldValueContainer(objectMetadata?.ObjectMetadataId ?? 0, objectId, metadataDefinitions, fieldValues);
         }
@@ -292,6 +288,33 @@ namespace Datahub.Portal.Services
         {
             using var ctx = _contextFactory.CreateDbContext();
             return await GetLatestMetadataDefinition(ctx);
+        }
+
+        private async Task<ObjectMetadata> GetObjectMetadata(MetadataDbContext ctx, string objectId)
+        {
+            return await ctx.ObjectMetadataSet.Include(e => e.FieldValues).FirstOrDefaultAsync(e => e.ObjectId_TXT == objectId);
+        }
+
+        private async Task<ObjectMetadata> GetObjectMetadata(MetadataDbContext ctx, long objectMetadataId)
+        {
+            return await ctx.ObjectMetadataSet.Include(e => e.FieldValues).FirstOrDefaultAsync(e => e.ObjectMetadataId == objectMetadataId);
+        }
+
+        private async Task<List<ObjectFieldValue>> CloneMetadataValues(MetadataDbContext ctx, string objectId)
+        {
+            List<ObjectFieldValue> values = new();
+
+            var metadata = await GetObjectMetadata(ctx, objectId);
+            if (metadata is not null)
+            {
+                values.AddRange(metadata.FieldValues.Select(f => new ObjectFieldValue()
+                {
+                    FieldDefinitionId = f.FieldDefinitionId,
+                    Value_TXT = f.Value_TXT
+                }));
+            }
+
+            return values;
         }
 
         private async Task<List<CatalogObjectResult>> SearchCatalog(string searchText, string fieldName)
