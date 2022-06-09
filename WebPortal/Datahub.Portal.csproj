@@ -9,11 +9,6 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
   </PropertyGroup>
-	<ItemGroup>
-		<AssemblyMetadata Include="BUILD_BUILDID" Value='$(BUILD_BUILDID)'/>
-		<AssemblyMetadata Include="BUILD_REPOSITORY_URL" Value='$(BUILD_REPOSITORY_URL)'/>
-		<AssemblyMetadata Include="BUILD_SOURCEVERSION" Value='$(BUILD_SOURCEVERSION)'/>
-	</ItemGroup>	
   <ItemGroup>
     <Content Remove="package.json" />
   </ItemGroup>
