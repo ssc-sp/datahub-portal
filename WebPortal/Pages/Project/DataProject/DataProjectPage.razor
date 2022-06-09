@@ -13,10 +13,12 @@
 <div class="project-page">
     <CascadingValue Value="@ProjectAcronymParam" Name="ProjectAcronym">
         <CascadingValue Value="_userId" Name="UserId">
-            <CascadingValue Value="_user" Name="GraphUser">
-                <ProjectInfo/>
-                <ProjectMembers/>
-                <ProjectToolListing/>
+            <CascadingValue Value="_isDatahubAdmin" Name="IsDatahubAdmin">
+                <CascadingValue Value="_user" Name="GraphUser">
+                    <ProjectInfo/>
+                    <ProjectMembers/>
+                    <ProjectToolListing/>
+                </CascadingValue>
             </CascadingValue>
         </CascadingValue>
     </CascadingValue>
@@ -26,10 +28,13 @@
 
     [Parameter]
     public string ProjectAcronymParam { get; set; }
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
 
     private Microsoft.Graph.User _user;
     private string _userId;
     private string _projectName;
+    private bool _isDatahubAdmin;
 
 
     protected override async Task OnInitializedAsync()
@@ -43,6 +48,8 @@
 
         _userId = await _userInformationService.GetUserIdString();
         _user = await _userInformationService.GetUserAsync();
+        var authUser = (await authenticationStateTask).User;
+        _isDatahubAdmin = authUser.IsInRole(RoleConstants.DATAHUB_ROLE_ADMIN);
     }
 
 }

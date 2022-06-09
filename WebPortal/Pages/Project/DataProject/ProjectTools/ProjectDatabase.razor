@@ -245,8 +245,16 @@ else
                             UpdateCatalog=@true
                             ValidateRequired=@false
                             Name=@_databaseResource.Database_Name
+                            OnSave=@HandleClose
+                            OnDiscard=@HandleClose
                         />;
-        await _uiControlService.ToggleModal(@<RenderFragmentModal Fragment=@metadataEditor />);
+        await _uiControlService.ToggleModal(@<RenderFragmentModal Fragment=@metadataEditor />
+    );
+    }
+
+    private async Task HandleClose()
+    {
+        await _uiControlService.ToggleModal();
     }
 
     private async Task GetPostgresToken()

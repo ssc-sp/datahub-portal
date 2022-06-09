@@ -149,6 +149,9 @@ namespace Datahub.Portal
 
             services.AddScoped<IClaimsTransformation, RoleClaimTransformer>();
 
+            services.Configure<PortalVersion>(Configuration.GetSection("PortalVersion"));
+            services.AddScoped<IPortalVersionService, PortalVersionService>();
+
             services.AddSignalRCore();
 
             var httpLoggingConfig = Configuration.GetSection("HttpLogging");
