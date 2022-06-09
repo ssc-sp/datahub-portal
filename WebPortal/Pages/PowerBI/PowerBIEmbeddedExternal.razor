@@ -47,7 +47,7 @@
                 report = await PowerBiServiceApi.GetReport(ReportId);                
             else
                 report = await PowerBiServiceApi.GetReport(ReportId, GroupId);
-            
+
             reportToken = await PowerBiServiceApi.GetEmbedTokenAsync(10,report.DatasetId, new Guid(ReportId));
 
             var pbiSettings = new PowerBISettings();
@@ -73,15 +73,22 @@
 
     private void HandleError(Exception ex)
     {
-        _errorMessage = $"Internal error loading report {ReportId}.";
-        try
-        {
-            ConsentHandler.HandleException(ex);        
-        }
-        catch (Exception)
-        {
-            throw;
-        }
+            _errorMessage = $"Internal error loading report {ReportId}.";
+            try
+            {
+                ConsentHandler.HandleException(ex);
+            }
+            catch (Exception)
+            {
+                var httpEx = ex as HttpOperationException;
+                if (httpEx?.Response?.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                {
+                    _errorMessage = $"Insufficient Power BI Permissions to generate Token for Report {ReportId} and Dataset";
+                }
+                else
+                    throw;
+            }
+        
     }
 
     private const string AuthorityFormat = "https://login.microsoftonline.com/{0}/v2.0";
