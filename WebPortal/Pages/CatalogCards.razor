@@ -31,6 +31,10 @@ else
                 <i style="margin-top: 0.2rem;" class="@_fileIcon"></i>
                 <p>@_allFieldValues["name"]</p>     
             </div>
+            <div class="rowheader">
+                <AeButton class="green" onclick=@(() => OpenMetadataEditor()) >@Localizer["Edit Metadata"]</AeButton>
+                
+            </div>
         </div>
         <div class="topleft">            
             <div title="@GetDivTitleTitle()" class="datasetname">
@@ -119,6 +123,11 @@ else
         _isFrench = CultureInfo.CurrentCulture.Name.StartsWith("fr", StringComparison.InvariantCulture);
         SetAllValues();
         SetAllTags();
+    }
+
+    private async Task OpenMetadataEditor()
+    {
+        
     }
 
     private void SetAllTags()
