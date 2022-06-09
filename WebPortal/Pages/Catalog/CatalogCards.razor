@@ -1,6 +1,8 @@
 @using Datahub.Metadata.DTO
 @using Datahub.Metadata.Model
 
+@inject UIControlsService _uiControlService;
+
 @if (_fieldValues == null || _allFieldValues == null)
 {
     <span style="height: 320px; background-color: white; padding: 1rem;">
@@ -31,8 +33,8 @@ else
                 <i style="margin-top: 0.2rem;" class="@_fileIcon"></i>
                 <p>@_allFieldValues["name"]</p>     
             </div>
-            <div class="rowheader">
-                <AeButton class="green" onclick=@(() => OpenMetadataEditor()) >@Localizer["Edit Metadata"]</AeButton>
+            <div class="rowheader">                
+                <AeButton OnClickEvent=@ShowMetadataEditor>@Localizer["Metadata"]</AeButton>
                 
             </div>
         </div>
@@ -113,7 +115,30 @@ else
 
     private string GetDivTitleSubject() => GetFieldDefinitions("subject");
 
+    private async Task ShowMetadataEditor()
+    {
+        RenderFragment metadataEditor = @<ObjectMetadataEditor 
+                @key=@CatalogResult.ObjectMetadataId
+                ObjectId=@CatalogResult.ObjectMetadataId.ToString() 
+                DefaultMetadataId=@CatalogResult.Location
+                Name=@CatalogResult.Name
+                Location=@CatalogResult.Location
+                SecurityClass=@CatalogResult.SecurityClass
+                SaveButtonLabel=@Localizer["OPENDATA-WIZARD.Save_button"] 
+                OnSave=@HandleClose
+                OnDiscard=@HandleClose
+                ValidateRequired=true
+                ProfileName="catalog"
+                ObjectType=@MetadataObjectType.File
+                UpdateCatalog=true
+            />;
+        await _uiControlService.ToggleModal(@<RenderFragmentModal Fragment=@metadataEditor />);
+    }
 
+    private async Task HandleClose()
+    {
+        await _uiControlService.ToggleModal();
+    }
     protected override async Task OnInitializedAsync()
     {
         _fieldValues = await MetadataBrokerService.GetObjectMetadataValues(CatalogResult.ObjectMetadataId);
