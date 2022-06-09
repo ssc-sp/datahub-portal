@@ -26,10 +26,10 @@ else
 
     <AeTypography Variant="h2">Portal Version</AeTypography>
     <div>
-        <div>Assembly Version: @VersionService.ReleaseVersion</div>
+        <div>Release Version: @VersionService.ReleaseVersion</div>
         <div>Build ID: @VersionService.BuildId</div>
-        <div>Release: @VersionService.Release</div>
-        <div>Source Version: <a href=@GetSourceVersionUrl(VersionService.Commit) target="_blank">@VersionService.Commit</a></div>
+        <div>Deployment: @VersionService.Release</div>
+        <div>Commit: <a href=@GetSourceVersionUrl(VersionService.Commit) target="_blank">@VersionService.Commit</a></div>
     </div>
 }
 
