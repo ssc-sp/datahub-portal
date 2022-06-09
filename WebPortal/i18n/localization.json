@@ -188,7 +188,10 @@
   },
   "RESOURCE-TYPE": {
     "psql": "PostgreSQL",
-    "sql": "SQL Server"
+    "sql": "SQL Server",
+    "powerbi": "Power BI",
+    "storage": "Storage",
+    "databricks": "Databricks"
   },
   "404-Page-Error": "Invalid URL, please contact administrator if in error.",
   "ChangeOwner": "Change Owner",
