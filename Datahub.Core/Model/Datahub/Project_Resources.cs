@@ -47,6 +47,24 @@ namespace Datahub.Core.EFCore
             return string.IsNullOrEmpty(JsonContent) ? default : JsonConvert.DeserializeObject<T>(JsonContent);
         }
 
+        public bool IsValid<T>()
+        {
+            if (typeof(T).FullName != ClassName)
+            {
+                return false;
+            }
+            if (string.IsNullOrEmpty(JsonContent))
+                return false;
+            try
+            {
+                JsonConvert.DeserializeObject<T>(JsonContent);
+                return true;
+            } catch (Exception)
+            {
+                return false;
+            }
+        }
+
         public void SetResourceObject<T>(T obj)
         {
             ClassName = typeof(T).FullName;

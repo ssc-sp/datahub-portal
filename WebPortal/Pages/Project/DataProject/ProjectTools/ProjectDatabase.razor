@@ -245,8 +245,16 @@ else
                             UpdateCatalog=@true
                             ValidateRequired=@false
                             Name=@_databaseResource.Database_Name
+                            OnSave=@HandleClose
+                            OnDiscard=@HandleClose
                         />;
-        await _uiControlService.ToggleModal(@<RenderFragmentModal Fragment=@metadataEditor />);
+        await _uiControlService.ToggleModal(@<RenderFragmentModal Fragment=@metadataEditor />
+    );
+    }
+
+    private async Task HandleClose()
+    {
+        await _uiControlService.ToggleModal();
     }
 
     private async Task GetPostgresToken()
@@ -270,8 +278,11 @@ else
         if (ResourceID.HasValue)
         {
             _resource = await projectDbContext.Project_Resources2.FirstOrDefaultAsync(r => r.ResourceId == ResourceID.Value);
-            _databaseResource = _resource?.GetResourceObject<ProjectResource_Database>();
             _existingRequestType = _resource?.ResourceType;
+            if (_resource.IsValid<ProjectResource_Database>())
+            {
+                _databaseResource = _resource?.GetResourceObject<ProjectResource_Database>();
+            }
         }
 
         _databaseRequests = _project?.ServiceRequests

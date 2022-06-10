@@ -11,9 +11,9 @@ variables:
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
 
+name: 2.0.$(date:yy)$(DayOfYear)$(rev:.r)
+
 steps:
-
-
 - task: UseDotNet@2
   displayName: 'Install .NET Core SDK'
   inputs:
@@ -60,3 +60,28 @@ steps:
     package: '$(System.DefaultWorkingDirectory)/WebPortal/**/*.zip'
     enableCustomDeployment: true
     DeploymentType: 'webDeploy'
+
+- task: AzureAppServiceSettings@1
+  displayName: Azure App Service Settings
+  inputs:
+    azureSubscription: 'datahub-dev-service-connection'
+    appName: 'dh-portal-app-dev'
+    resourceGroupName: 'ciosb-dev-datahub-ca-central'
+    appSettings: |
+      [
+        {
+          "name": "PortalVersion__Release",
+          "value": "$(Build.BuildNumber)",
+          "slotSetting": false
+        },
+        {
+          "name": "PortalVersion__Commit",
+          "value": "$(Build.SourceVersion)", 
+          "slotSetting": false
+        },
+        {
+          "name": "PortalVersion__BuildId",
+          "value": "$(Build.BuildId)", 
+          "slotSetting": false
+        }
+      ]

@@ -12,13 +12,13 @@
 </style>
 
 <div style="margin: 2rem">
-    <DHPageTitle PageTitleKey=@Localizer["Search catalog"] />
+    <DHPageTitle PageTitleKey=@Localizer["DISCOVERY-FILTERS.Search Catalog"] />
     <AeCard>
         <ChildContent>
             <div class="catalog-page">
                 <div class="filter">
                     <AeFlex Vertical>
-                        <AeTypography Variant="h2">@Localizer["Filters"]</AeTypography>
+                        <AeTypography Variant="h2">@Localizer["DISCOVERY-FILTERS.Filters"]</AeTypography>
                         
                         <AeCollapse OnSectionToggled=@OnSearchFilterToggled>
                             <AeCollapseSection DefaultOpen=@_searchFilterSectionOpen>
@@ -27,14 +27,14 @@
                                         <span title=@_filterSectionOpenTitle>
                                             <AeIcon class=@_filterSectionOpenIconClass />
                                         </span>
-                                        <span>@Localizer["Keyword Search"]</span>
+                                        <span>@Localizer["DISCOVERY-FILTERS.Keyword Search"]</span>
                                         <AeIcon class=@_filterActiveIconClass />
                                     </AeTypography>
                                 </Header>
                                 <ChildContent>
                                     <AeSearchInput 
                                         id="search" 
-                                        Placeholder=@Localizer.GetString("Enter keywords..") 
+                                        Placeholder=@Localizer["DISCOVERY-FILTERS.Enter Keywords"] 
                                         OnInputChangeWithLastKey=@HandleSearch 
                                         ClearIconFAClass="null" 
                                     />
@@ -49,7 +49,7 @@
                                         <span title=@_filterSectionOpenTitle>
                                             <AeIcon class=@_filterSectionOpenIconClass />
                                         </span>
-                                        <span>@Localizer["Security Classification"]</span>
+                                        <span>@Localizer["DISCOVERY-FILTERS.Security Classification"]</span>
                                         <AeIcon class=@_filterActiveIconClass />
                                     </AeTypography>
                                 </Header>
@@ -81,7 +81,7 @@
                                         <span title=@_filterSectionOpenTitle>
                                             <AeIcon class=@_filterSectionOpenIconClass />
                                         </span>
-                                        <span>@Localizer["Data Type"]</span>
+                                        <span>@Localizer["DISCOVERY-FILTERS.Data Type"]</span>
                                         <AeIcon class=@_filterActiveIconClass />
                                     </AeTypography>
                                 </Header>
@@ -112,7 +112,7 @@
                                         <span title=@_filterSectionOpenTitle>
                                             <AeIcon class=@_filterSectionOpenIconClass />
                                         </span>
-                                        <span>@Localizer["Sectors/Branches"]</span>
+                                        <span>@Localizer["Sectors"]</span>
                                         <AeIcon class=@_filterActiveIconClass />
                                     </AeTypography>
                                 </Header>
@@ -123,16 +123,16 @@
                                             <MultiCheckboxSelect 
                                                 T=OrganizationLevel
                                                 Options=@(_allSectors)
-                                                OptionLabelFunction=@(t => t.EnglishLabel)
-                                                OptionSortFunction=@(t => t.EnglishLabel)
+                                                OptionLabelFunction=@(t => _isFrench ? t.FrenchLabel : t.EnglishLabel)
+                                                OptionSortFunction=@(t => _isFrench ? t.FrenchLabel : t.EnglishLabel)
                                                 OnSelectionChanged=@UpdateSectorFilter
                                                 @ref=@_sectorFilter
                                             />
                                         </div>
-                                       @* <div class="dropdowns">                                            
+                                        <div class="dropdowns">                                            
                                             <label>                                                
                                                 <select class="ae input" @bind=@SectorFilter title=@Localizer["Sector"]>
-                                                    <option value=@NO_FILTER_SELECTED>@Localizer["(Any Sector)"]</option>
+                                                    <option value=@NO_FILTER_SELECTED>@Localizer["DISCOVERY-FILTERS.(All Sectors)"]</option>
                                                     @foreach(var sector in _sectors.Values.OrderBy(s => GetLabel(s)))
                                                     {
                                                         <option value=@sector.Id>@GetLabel(sector)</option>
@@ -143,7 +143,7 @@
                                                 @if (_filteredBranches.Count > 0)
                                                 {
                                                     <select class="ae input" @bind=@BranchFilter title=@Localizer["Branch"]>
-                                                        <option value=@NO_FILTER_SELECTED>@Localizer["(Any Branch)"]</option>
+                                                        <option value=@NO_FILTER_SELECTED>@Localizer["DISCOVERY-FILTERS.(All Branches)"]</option>
                                                         @foreach(var branch in _filteredBranches)
                                                         {
                                                             <option value=@branch.Id>@GetLabel(branch)</option>
@@ -151,7 +151,7 @@
                                                     </select>
                                                 }
                                             </label>
-                                        </div>*@
+                                        </div>
                                     </AeFlex>
                                 </ChildContent>
                             </AeCollapseSection>
@@ -170,7 +170,11 @@
                     <div class="catalog-cards">
                         @foreach(var result in _filteredSearchResults)
                         {
-                            <CatalogCards CatalogResult="@result" AccessorFunctions="@_accessorFunctions" RenderFunctions="@_renderFunctions"/>
+                            <CatalogCards 
+                                @key=@result
+                                CatalogResult="@result" 
+                                AccessorFunctions="@_accessorFunctions" 
+                                RenderFunctions="@_renderFunctions"/>
                         }
                     </div>
                 </div>
@@ -233,7 +237,6 @@
     private List<OrganizationLevel> _allSectors = new();
     private Dictionary<int, OrganizationLevel> _sectors = new();
     private Dictionary<int, OrganizationLevel> _branches = new();
-    private IPageableComponent _resultTable;
     private List<string> _headers = new();
     private List<Func<CatalogObjectResult, RenderFragment>> _renderFunctions = new();
     private List<Func<CatalogObjectResult, string>> _accessorFunctions = new();
@@ -426,7 +429,7 @@
         @<AeButton class="blue" onclick=@(() => HandleDownload(result))>@Localizer[GetButtonText(result)]</AeButton>;
 
     private RenderFragment GetUnauthorizedDownload(CatalogObjectResult result) => 
-    @<AeButton class="blue" onclick=@(() => HandleDownload(result))>@Localizer["Request Access"]</AeButton>
+    @<AeButton class="red" onclick=@(() => HandleDownload(result))>@(SecurityClassification.ProtectedA.Equals(result.SecurityClass) ? Localizer["Protected A - Request Access"] : Localizer["Protected B - Request Access"])</AeButton>
     ;    
 
     private async Task HandleDownload(CatalogObjectResult result)
@@ -524,7 +527,6 @@
         return _isFrench ? MetadataBrokerService.SearchCatalogFrench(searchText) : MetadataBrokerService.SearchCatalogEnglish(searchText);
     }
 
-    private int _pageSize = 5;
     private int _lastClicked = 0;
 
     private void OnPageClick(int pageIndex)

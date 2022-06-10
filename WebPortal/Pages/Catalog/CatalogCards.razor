@@ -25,30 +25,34 @@ else
         <div class="topright">
             <div style="@($"--security-text-color: {_securityClassColor}")" class="securityclass">
                 <i class="@($"fad fa-{_projectIcon}")"></i>
-                <p><b>@Localizer["Security Classification"]: @Localizer[@CatalogResult.SecurityClass]</b></p>
+                <p><b>@Localizer["DISCOVERY-LABELS.DATA SENSITIVITY"]: @Localizer[@CatalogResult.SecurityClass]</b></p>
             </div>            
-            <div class="rowheader">
+            <div title="@GetFieldDefinitions("name")" class="rowheader">
                 <i style="margin-top: 0.2rem;" class="@_fileIcon"></i>
                 <p>@_allFieldValues["name"]</p>     
             </div>
         </div>
         <div class="topleft">            
-            <div class="datasetname">
+            <div title="@GetDivTitleTitle()" class="datasetname">
                 <p>@GetTitle()</p>                 
             </div>           
         </div>
-        <div class="title-and-subject">  
-
+        <div title="@GetDivTitleDescription()" class="title-and-subject">  
             <AeTypography Variant="p no-margin">@GetDescription()</AeTypography>
         </div>
         <div class="details-left">
-            <AeTypography Variant="p no-margin"><b>@Localizer["Data Type"]: </b>@AccessorFunctions[4](@CatalogResult)</AeTypography>
-            <AeTypography Variant="p no-margin"><b>@Localizer["Contact Information"]: </b>@AccessorFunctions[3](@CatalogResult)</AeTypography>
+            <div title="@GetDivTitleSubject()"><AeTypography Variant="p no-margin"><b>@Localizer["Subject"]: </b>@GetLabel("subject")</AeTypography></div>
+            <AeTypography Variant="p no-margin"><b>@Localizer["DISCOVERY-LABELS.Data Type"]: </b>@AccessorFunctions[4](@CatalogResult)</AeTypography>
+            @if (!string.IsNullOrWhiteSpace(_fileType))
+            {
+                <AeTypography Variant="p no-margin"><b>@Localizer["DISCOVERY-LABELS.File Format"]: </b>@_fileType</AeTypography>
+            }
+            <AeTypography Variant="p no-margin"><b>@Localizer["DISCOVERY-LABELS.Contact Information"]: </b>@AccessorFunctions[3](@CatalogResult)</AeTypography>
         </div>
         <div class="details-right">
             <AeTypography Variant="p no-margin"><b>@Localizer["Sector"]: </b>@AccessorFunctions[1](@CatalogResult)</AeTypography>
             <AeTypography Variant="p no-margin"><b>@Localizer["Branch"]: </b>@AccessorFunctions[2](@CatalogResult)</AeTypography>
-            <AeTypography Variant="p no-margin"><b>@Localizer["Collection Type"]: </b>@_allFieldValues["collection"]</AeTypography>
+            <div title="@GetFieldDefinitions("collection")"><AeTypography Variant="p no-margin"><b>@Localizer["DISCOVERY-LABELS.Collection Type"]: </b>@GetLabel("collection")</AeTypography></div>
         </div>
         <div class="bottom-row">
             <div class="key-words">
@@ -74,6 +78,7 @@ else
 
     private string _projectIcon => CatalogResult.SecurityClass.Contains("Protect") ? $"fas fa-lock-alt" : $"fas fa-lock-open-alt";
     private string _fileIcon => GetFileIcon();
+
     private string _securityClassColor => GetSecurityClassColor();
 
     [Parameter]
@@ -84,33 +89,45 @@ else
     public List<Func<CatalogObjectResult, RenderFragment>> RenderFunctions { get; set; }
 
     private FieldValueContainer _fieldValues;
-    private MetadataProfile _profile;
     private Dictionary<string, string> _allFieldValues;
     private List<string> _tags;
     private bool _isFrench;
+    private string _fileType;
 
+    private string GetDivTitleTitle() => _isFrench ? GetFieldDefinitions("title_translated_fr") : GetFieldDefinitions("title_translated_en");
+    private string GetDivTitleDescription() => _isFrench ? GetFieldDefinitions("notes_translated_fr") : GetFieldDefinitions("notes_translated_en");
     private string GetTitle() => _isFrench ? _allFieldValues["title_translated_fr"] : _allFieldValues["title_translated_en"];
     private string GetDescription() => _isFrench ? _allFieldValues["notes_translated_fr"] : _allFieldValues["notes_translated_en"];
+
+    private string GetLabel(string label) 
+    {
+        var subjects = _fieldValues.GetSelectedChoices(label).Select(s => s.Label).ToList();
+        return subjects.Any() ? subjects[0] : string.Empty;
+    }
+
+    
+
+    private string GetDivTitleSubject() => GetFieldDefinitions("subject");
+
 
     protected override async Task OnInitializedAsync()
     {
         await LoadFieldValues();
+        var subjects =_fieldValues.GetSelectedChoices("subject").Select(s => s.Label).ToList();
         _allFieldValues = new();
         _isFrench = CultureInfo.CurrentCulture.Name.StartsWith("fr", StringComparison.InvariantCulture);
         SetAllValues();
         SetAllTags();
-
     }
 
     private void SetAllTags()
     {
-        var eTags = _allFieldValues["keywords_en"] ?? string.Empty;
-        var eTagsList = eTags.Split(',').ToList();
-        var fTags = _allFieldValues["keywords_fr"] ?? string.Empty;
-        var fTagsList = fTags.Split(',').ToList();
         _tags = new();
+        var keywords = _isFrench ? "keywords_fr" : "keywords_en";        
+        var eTags = _allFieldValues[keywords] ?? string.Empty;
+        var eTagsList = eTags.Split(',').ToList();
         _tags.AddRange(eTagsList);
-        _tags.AddRange(fTagsList);
+
     }
     private string GetSecurityClassColor()
     {
@@ -128,9 +145,9 @@ else
     private string GetFileIcon()
     {
         var fileName = _allFieldValues["name"];
-        var ext = Path.GetExtension(fileName);
-        ext = ext.Replace(".", "");
-        return DatahubTools.GetFileTypeIcon(ext);
+        _fileType = Path.GetExtension(fileName);
+        _fileType = _fileType.Replace(".", "");
+        return DatahubTools.GetFileTypeIcon(_fileType);
 
     }
     private void SetAllValues()
@@ -145,18 +162,23 @@ else
         if (long.TryParse(CatalogResult.ObjectMetadataId.ToString(), out long metadataObjectId))
         {
             _fieldValues = await MetadataBrokerService.GetObjectMetadataValues(metadataObjectId);
-            
+
         }
         else
         {
             _fieldValues = await MetadataBrokerService.GetObjectMetadataValues(CatalogResult.ObjectMetadataId);
-            
+
         }
 
-        //_definitions = _fieldValues.Definitions;
+         //_definitions = _fieldValues.Definitions;
         //_lastObjectId = ObjectId;
         // set external choices
         await UpdateExternalFieldChoices();
+    }
+
+    private string GetFieldDefinitions(string field)
+    {
+        return _fieldValues.Definitions.Get(field).Description;
     }
 
     private async Task UpdateExternalFieldChoices()
