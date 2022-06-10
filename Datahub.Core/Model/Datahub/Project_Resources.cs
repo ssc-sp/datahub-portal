@@ -32,7 +32,7 @@ namespace Datahub.Core.EFCore
         public DateTime? TimeCreated { get; set; }
 
         public Datahub_Project Project { get; set; }
-
+      
         public T GetResourceObject<T>()
         {
             if (typeof(T).FullName != ClassName)
@@ -41,6 +41,24 @@ namespace Datahub.Core.EFCore
             }
 
             return string.IsNullOrEmpty(JsonContent) ? default : JsonConvert.DeserializeObject<T>(JsonContent);
+        }
+
+        public bool IsValid<T>()
+        {
+            if (typeof(T).FullName != ClassName)
+            {
+                return false;
+            }
+            if (string.IsNullOrEmpty(JsonContent))
+                return false;
+            try
+            {
+                JsonConvert.DeserializeObject<T>(JsonContent);
+                return true;
+            } catch (Exception)
+            {
+                return false;
+            }
         }
 
         public void SetResourceObject<T>(T obj)
