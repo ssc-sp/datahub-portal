@@ -3,6 +3,7 @@
 @using Datahub.Metadata.Model
 
 @inject CommonAzureServices _commonAzureServices;
+@inject UIControlsService _uiControlService;
 
 @if (File != null)
 {
@@ -26,8 +27,11 @@
             <AeTypography class="properties-title" Variant="h4">@Localizer["Storage Properties"]</AeTypography>
             @foreach (var (key, value) in _properties)
             {
-                <AeTypography class="label">@Localizer["ITEM-DETAILS-PAGE." + key]</AeTypography>
-                <AeTypography class="text">@value</AeTypography>
+                if (!string.IsNullOrEmpty(value) && value != "[]")
+                {
+                    <AeTypography class="label">@Localizer["ITEM-DETAILS-PAGE." + key]</AeTypography>
+                    <AeTypography class="text">@value</AeTypography>
+                }
             }
 
             <AeTypography class="label">@Localizer["Power BI URL"]</AeTypography>
@@ -37,23 +41,8 @@
             <InlineCodeWithCopy>@_fileLinkUrl</InlineCodeWithCopy>
 
         </div>
-
         <div>
-            <AeTypography class="properties-title" Variant="h4">@Localizer["Metadata"]</AeTypography>
-
-            <ObjectMetadataEditor 
-                @key=@File.fileid 
-                ObjectId=@File.fileid 
-                Name=@File.filename
-                Location=@ProjectAcronym
-                SecurityClass=@File.securityclass
-                SaveButtonLabel=@Localizer["OPENDATA-WIZARD.Save_button"] 
-                ValidateRequired=true
-                ProfileName="catalog"
-                ObjectType=@MetadataObjectType.File
-                UpdateCatalog=@Readonly
-                Preview=@Readonly
-            />
+            <AeButton OnClickEvent=@ShowMetadataEditor>@Localizer["Metadata"]</AeButton> 
         </div>
     </div>
 }
@@ -89,5 +78,30 @@
         _fileLinkUrl = $"https://{_commonAzureServices.StorageAccountName}.blob.core.windows.net/datahub/{File.folderpath}/{File.filename}";
     }
 
+    private async Task ShowMetadataEditor()
+    {
+        RenderFragment metadataEditor = @<ObjectMetadataEditor 
+                @key=@File.fileid 
+                ObjectId=@File.fileid 
+                DefaultMetadataId=@ProjectAcronym
+                Name=@File.filename
+                Location=@ProjectAcronym
+                SecurityClass=@File.securityclass
+                SaveButtonLabel=@Localizer["OPENDATA-WIZARD.Save_button"] 
+                OnSave=@HandleClose
+                OnDiscard=@HandleClose
+                ValidateRequired=true
+                ProfileName="catalog"
+                ObjectType=@MetadataObjectType.File
+                UpdateCatalog=@Readonly
+                Preview=@Readonly
+            />;
+        await _uiControlService.ToggleModal(@<RenderFragmentModal Fragment=@metadataEditor />);
+    }
+
+    private async Task HandleClose()
+    {
+        await _uiControlService.ToggleModal();
+    }
 }
 

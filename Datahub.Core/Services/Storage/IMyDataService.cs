@@ -19,7 +19,7 @@ namespace Datahub.Core.Services
         IBrowserFile browserFile { get; set; }
         public Dictionary<string, FileMetaData> UploadedFiles { get; set; }
         Task AuditException(Exception ex, string correlationId);
-        Task LoadApplicationData();
+        Task SetupUserFolders();
         Task<Folder> SearchIndex(dynamic folder, string filter, User user);
         Task UploadGen2File(FileMetaData fileMetadata, string projectUploadCode, string containerName);
         Task UploadGen2File(FileMetaData fileMetadata, string projectUploadCode, string containerName, Action<long> progress);
