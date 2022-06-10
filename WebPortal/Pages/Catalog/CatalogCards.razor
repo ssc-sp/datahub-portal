@@ -1,6 +1,7 @@
 @using Datahub.Metadata.DTO
 @using Datahub.Metadata.Model
 
+@inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject UIControlsService _uiControlService;
 
 @if (_fieldValues == null || _allFieldValues == null)
@@ -21,7 +22,7 @@ else
                 <p>@_allFieldValues["name"]</p>     
             </div>
             <div class="rowheader">                
-                <AeButton OnClickEvent=@ShowMetadataEditor>@Localizer["Metadata"]</AeButton>
+                <AeButton class=@GetMetadataButtonColor() OnClickEvent=@ShowMetadataEditor>@Localizer[GetMetadataButtonText()]</AeButton>
                 
             </div>
         </div>
@@ -41,6 +42,10 @@ else
                 <AeTypography Variant="p no-margin"><b>@Localizer["DISCOVERY-LABELS.File Format"]: </b>@_fileType</AeTypography>
             }
             <AeTypography Variant="p no-margin"><b>@Localizer["DISCOVERY-LABELS.Contact Information"]: </b>@AccessorFunctions[3](@CatalogResult)</AeTypography>
+            @if (!string.IsNullOrWhiteSpace(CatalogResult.Location))
+            {
+                <AeTypography Variant="p no-margin"><b>@Localizer["Location"]: </b><DHLink DataProject="@(CatalogResult.Location)">@CatalogResult.Location</DHLink></AeTypography>
+            }   
         </div>
         <div class="details-right">
             <AeTypography Variant="p no-margin"><b>@Localizer["Sector"]: </b>@AccessorFunctions[1](@CatalogResult)</AeTypography>
@@ -73,6 +78,7 @@ else
     private string _fileIcon => GetFileIcon();
 
     private string _securityClassColor => GetSecurityClassColor();
+    private string _metadataButtonColor => GetMetadataButtonColor();
 
     [Parameter]
     public CatalogObjectResult CatalogResult { get; init; }
@@ -93,6 +99,7 @@ else
     private string GetDivTitleDescription() => _isFrench ? GetFieldDefinitions("notes_translated_fr") : GetFieldDefinitions("notes_translated_en");
     private string GetTitle() => _isFrench ? _allFieldValues["title_translated_fr"] : _allFieldValues["title_translated_en"];
     private string GetDescription() => _isFrench ? _allFieldValues["notes_translated_fr"] : _allFieldValues["notes_translated_en"];
+    private Datahub_Project _project;
 
     private string GetLabel(string label) 
     {
@@ -133,6 +140,12 @@ else
     
     protected override async Task OnParametersSetAsync()
     {
+        await using var projectDbContext = await _dbFactoryProject.CreateDbContextAsync();
+        _project = await projectDbContext.Projects
+            .Where(p => p.Project_Acronym_CD.ToLower() == CatalogResult.Location.ToLower()).FirstOrDefaultAsync();
+
+
+
         _fieldValues = await MetadataBrokerService.GetObjectMetadataValues(CatalogResult.ObjectMetadataId);
         _allFieldValues = new();
         _isFrench = CultureInfo.CurrentCulture.Name.StartsWith("fr", StringComparison.InvariantCulture);
@@ -149,6 +162,16 @@ else
         var eTagsList = eTags.Split(',').ToList();
         _tags.AddRange(eTagsList);
 
+    }
+
+    private string GetMetadataButtonText()
+    {
+        return CatalogResult.IsCatalogComplete ? "Update Metadata" : "Complete Metadata";
+    }
+
+    private string GetMetadataButtonColor()
+    {
+        return CatalogResult.IsCatalogComplete ? "blue" : "red";
     }
     private string GetSecurityClassColor()
     {

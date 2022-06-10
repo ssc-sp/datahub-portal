@@ -217,7 +217,6 @@
     private QueryThrottler<string> _searchThrottler;
     private List<CatalogObjectResult> _searchResults = new();
     private List<CatalogObjectResult> _filteredSearchResults = new();
-    private List<CatalogObjectResult> _incompleteCatalogObjects = new();
     private bool _isFrench;
     private CatalogObjectResult _selectedResult;
 
@@ -286,10 +285,7 @@
 
     private async Task RefreshCard(CatalogObjectResult catalogObject)
     {
-        //_searchResults.Remove(catalogObject);
-        //var updatedCatalogObject = await MetadataBrokerService.GetCatalogObjectByMetadataId(catalogObject.ObjectMetadataId);
-        //_searchResults.Add(updatedCatalogObject);
-        //await UpdateFilter();
+
     }
 
 
@@ -361,7 +357,7 @@
             .ToList();
 
         if (_excludeIncompleteCatalogs)
-            await RemoveIncompleteCatalogsFromSearchResults(); 
+            _filteredSearchResults.RemoveAll(c => !c.IsCatalogComplete); 
 
         _lastClicked = 0;
 
@@ -370,11 +366,9 @@
         await InvokeAsync(StateHasChanged);
     }
 
-    private async Task RemoveIncompleteCatalogsFromSearchResults()
+    private async Task CheckCompleteneses()
     {
-        var catalogsToRemove = new List<CatalogObjectResult>();
-
-        foreach (var result in _filteredSearchResults)
+        foreach (var result in _searchResults)
         {
             var fieldValues = await MetadataBrokerService.GetObjectMetadataValues(result.ObjectMetadataId);
             var names = fieldValues.GetAllFieldNames();
@@ -385,13 +379,8 @@
             var strings = new List<string> { title, subject, GetName(result), GetSector(result), GetContact(result), GetSecurityClass(result)};
             if (strings.Any(s => string.IsNullOrWhiteSpace(s)))
             {
-                catalogsToRemove.Add(result);    
+                result.IsCatalogComplete = false;                    
             }
-        }
-
-        foreach (var result in catalogsToRemove)
-        {
-            _filteredSearchResults.Remove(result);
         }
     }
 
@@ -400,17 +389,17 @@
 
         if (_objectTypeFilter != null)
         {
-            _objectTypeFilter.Clear();
+            await _objectTypeFilter.Clear();
         }
 
         if (_sectorFilter != null)
         {
-            _sectorFilter.Clear();
+            await _sectorFilter.Clear();
         }
 
         if (_classificationTypeFilter != null)
         {
-            _classificationTypeFilter.Clear();
+            await _classificationTypeFilter.Clear();
         }
 
         _filterSector = NO_FILTER_SELECTED;
@@ -544,6 +533,7 @@
         try
         {
             _searchResults = await SearchCatalog(searchText);
+            await CheckCompleteneses();
             await UpdateFilter();
         }
         finally
