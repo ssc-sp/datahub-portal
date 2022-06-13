@@ -173,6 +173,24 @@
     "Unknown": "Unknown",
     "Version": "Version {0}"
   },
+  "DISCOVERY-LABELS": {
+    "DATA SENSITIVITY": "DATA SENSITIVITY",
+    "Data Type": "Data Type",
+    "File Format": "File Format",
+    "Contact Information": "Contact Information",
+    "Collection Type": "Collection Type"
+  },
+  "DISCOVERY-FILTERS": {
+    "Search Catalog": "Search Catalog",
+    "Filters": "Filters",
+    "Keyword Search": "Keyword Search",
+    "Enter Keywords": "Enter Keywords...",
+    "Security Classification": "Security Classification",
+    "Data Type": "Data Type",
+    "(All Sectors)": "(All Sectors)",
+    "(All Branches)": "(All Branches)",
+    "HideIncomplete": "Hide Incomplete Catalogs"
+  },
   "DISCOVERY-DATA-TYPES": {
     "File": "File",
     "PowerBIWorkspace": "Power BI Workspace",
@@ -187,7 +205,10 @@
   },
   "RESOURCE-TYPE": {
     "psql": "PostgreSQL",
-    "sql": "SQL Server"
+    "sql": "SQL Server",
+    "powerbi": "Power BI",
+    "storage": "Storage",
+    "databricks": "Databricks"
   },
   "404-Page-Error": "Invalid URL, please contact administrator if in error.",
   "ChangeOwner": "Change Owner",

@@ -107,7 +107,12 @@ else
             User_Name = GraphUser.UserPrincipalName
         };
 
-        await _requestManagementService.RequestService(serviceRequest);
+        var inputParams = new Dictionary<string, string>()
+        {
+            {ProjectResourceConstants.INPUT_PARAM_STORAGE_TYPE, ProjectResource_Storage.DEFAULT_STORAGE_TYPE }
+        };
+
+        await _requestManagementService.RequestService(serviceRequest, inputParams);
         _storageServiceRequested = true;
     }
 

@@ -92,6 +92,10 @@
 
     [CascadingParameter(Name = "ProjectAcronym")]
     public string ProjectAcronym { get; set; }
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+    [CascadingParameter(Name = "IsDatahubAdmin")]
+    public bool IsDatahubAdmin { get; set; }
 
     private bool _isLoading = true;
     private bool _isDense = false;
@@ -112,12 +116,12 @@
             .ToListAsync();
 
         var isUserAdmin = _user.IsInRole($"{ProjectAcronym}-admin");
-        _canViewDatabricks = isUserAdmin || !string.IsNullOrEmpty(_project.Databricks_URL);
+        _canViewDatabricks = isUserAdmin || !string.IsNullOrEmpty(_project.Databricks_URL) || IsDatahubAdmin;
 
         var isPowerBiActiveForNonAdmin = !string.IsNullOrEmpty(_project.PowerBI_URL) || 
                 _serviceRequests.Any(r => r.ServiceType == RequestManagementService.POWERBI && r.Is_Completed.HasValue);
 
-        _canViewPowerBi = isUserAdmin || isPowerBiActiveForNonAdmin;
+        _canViewPowerBi = isUserAdmin || isPowerBiActiveForNonAdmin || IsDatahubAdmin;
 
         var allProjectResources = await projectDbContext.Project_Resources2.Where(r => r.Project == _project).ToListAsync();
 

@@ -1,13 +1,15 @@
 @inject UIControlsService UI
 @inject IUserInformationService UserInformationService
 @inject NavigationManager NavigationManager
-@inject MyDataService _myDataService
-@using Microsoft.Identity.Web
+@inject IMyDataService _myDataService
+@inject IPortalVersionService VersionService
 @inject MicrosoftIdentityConsentAndConditionalAccessHandler ConsentHandler
 
+@using Microsoft.Identity.Web
 @using Datahub.Core.Components.Common
-
-@using System.Timers;
+@using Microsoft.Identity.Web
+@using System.Timers
+@using System.Reflection
 
 <div id="topbar">
     <div style="font-size: 1.8em;font-weight: lighter;">DataHub</div>
@@ -34,12 +36,16 @@
                     <i class="fal fa-envelope"></i>
                     <a href="mailto:Datahub.mcan@canada.ca">Datahub.mcan@canada.ca</a>
                 </div>
+                <div style="margin-top: 1rem;">
+                    <Typography>@Localizer["Release"]: @VersionService.ReleaseVersion</Typography>
+                </div>
             </ChildContent>
             <Footer>
                 <div class="help-links">
                     <div class="link-wrapper" @onclick="NavigateToPrivacyStatement">
                         <a>@Localizer["Privacy Policy"]</a>
                     </div>
+                    
                     <div class="link-wrapper" @onclick="NavigateToTermsOfUse">
                         <a>@Localizer["Terms and Conditions"]</a>
                     </div>

@@ -4,7 +4,7 @@
 @using Microsoft.Identity.Web
 
 @inject IMSGraphService _msGraphService
-@inject MyDataService _apiService
+@inject IMyDataService _apiService
 @inject NavigationManager _navigationManager
 @inject UserLocationManagerService _userLocationManagerService
 @inject IDatahubAuditingService _auditingService
@@ -14,48 +14,22 @@
 
 <PageTitle>@Localizer[_configuration["Title"]]</PageTitle>
 
-<AuthorizeView>
-    <Authorized>        
-        <div class="application-wrapper">
-            <Sidebar />
-            <div class="main-layout">
-                <Topbar />
-                <div class="ui-control">
-                    <div class="main-page">
-                        <ErrorBoundary @ref="_errorBoundary">
-                            <ChildContent>
-                                @if (_isSessionEnabled == true)
-                                {
-                                    @Body
-                                }
-                                @if (_isSessionEnabled == false)
-                                {
-                                    <TooManyTabs />
-                                }                                
-                            </ChildContent>
-                            <ErrorContent Context="ex">
-                                @if (HandleException(@ex)) 
-                                {
-                                    <Error CorrelationId=@_correlationId />
-                                }
-                                else
-                                {
-                                    @Body
-                                }
+<ErrorBoundary @ref="_errorBoundary">
+    <ChildContent>
+            @Body
+    </ChildContent>
+    <ErrorContent Context="ex">
+        @if (HandleException(@ex)) 
+        {
+            <Error CorrelationId=@_correlationId />
+        }
+        else
+        {
+            @Body
+        }
 
-                            </ErrorContent>
-                        </ErrorBoundary>
-                    </div>
-                    <RightSidebar />
-                    <Modal />
-                </div>
-            </div>
-        </div>
-    </Authorized>
-    <NotAuthorized>
-        <div>@Localizer["ERROR-PAGE.ConnectionLost-Label"]</div>
-    </NotAuthorized>
-</AuthorizeView>
+    </ErrorContent>
+</ErrorBoundary>
 
 @code
 {
@@ -76,7 +50,6 @@
     {
         var authState = await _authenticationStateTask;
         var user = authState.User;
-
         if (!user.Identity?.IsAuthenticated ?? true)
         {
             var scopes = _configuration["Graph:Scopes"]
