@@ -9,7 +9,15 @@
     <ChildContent>
         <div class="graph-test-container">
             <AeButton @onclick="@HandleGraphTestClick">
-                <i class="fas fa-function"></i>@Localizer["Test Graph Function"]
+                @if (_graphTestRunning)
+                {
+                    <i style="animation: spin-animation .5s infinite; margin-right: 1rem;" class="fas fa-spinner-third"></i>
+                }
+                else
+                {
+                    <i style="margin-right: 1rem;" class="fas fa-function"></i>
+                }
+                @Localizer["Test Graph Function"]
             </AeButton>
             <AeTypography>@Localizer[_graphStatusMessage]</AeTypography>
         </div>
@@ -50,6 +58,7 @@
     public int PageSize { get; set; } = 10;
 
     private List<Datahub_Registration_Request> _registrationRequests;
+    
 
     private List<Func<Datahub_Registration_Request, string>> _accessorFunctions = new()
     {
@@ -79,6 +88,7 @@
     private void PaginationClicked(int pageIndex) => _currentPage = pageIndex;
 
     private string _graphStatusMessage = "";
+    private bool _graphTestRunning = false;
 
 
     protected override async Task OnInitializedAsync()
@@ -114,7 +124,11 @@
 
     private async Task HandleGraphTestClick()
     {
-        _graphStatusMessage = await _registrationService.CreateUser("test@email.com", true);
+        _graphTestRunning = true;
+        StateHasChanged();
+        
+        _graphStatusMessage = await _registrationService.SendUserInvite("test@email.com", true);
+        _graphTestRunning = false;
     }
 
 

@@ -153,7 +153,7 @@ public class RegistrationService
         if(user != null)
             throw new InvalidOperationException($"User already associated with project {registrationRequest.ProjectAcronym}");
 
-        var guid = await CreateUser(registrationRequest.Email);
+        var guid = await SendUserInvite(registrationRequest.Email);
         user = new Datahub_Project_User
         {
             User_Name = registrationRequest.Email,
@@ -175,7 +175,7 @@ public class RegistrationService
         await db.SaveChangesAsync();
     }
 
-    public async Task<string> CreateUser(string registrationRequestEmail, bool mockInvite = false)
+    public async Task<string> SendUserInvite(string registrationRequestEmail, bool mockInvite = false)
     {
         using var client = new HttpClient();
 

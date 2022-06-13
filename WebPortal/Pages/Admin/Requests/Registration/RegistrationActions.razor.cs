@@ -33,4 +33,9 @@ public partial class RegistrationActions
         
         await _registrationService.CreateProject(RegistrationRequest, UserId);
     }
+
+    private async Task HandleResendInvite()
+    {
+        await _registrationService.SendUserInvite(RegistrationRequest.Email);
+    }
 }

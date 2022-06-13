@@ -76,7 +76,31 @@ steps:
     enableCustomDeployment: true
     DeploymentType: 'webDeploy'
 
-
+- task: AzureAppServiceSettings@1
+  displayName: Azure App Service Settings
+  inputs:
+    azureSubscription: 'AZRM - DataSolutions'
+    appName: 'spdatahub-portal-app-sand'
+    ResourceGroupName: 'sp-datahub-sand-rg'
+    SlotName: 'stage'
+    appSettings: |
+      [
+        {
+          "name": "PortalVersion__Release",
+          "value": "$(Build.BuildNumber)",
+          "slotSetting": true
+        },
+        {
+          "name": "PortalVersion__Commit",
+          "value": "$(Build.SourceVersion)", 
+          "slotSetting": true
+        },
+        {
+          "name": "PortalVersion__BuildId",
+          "value": "$(Build.BuildId)", 
+          "slotSetting": true
+        }
+      ]
 
 # Graph Function
 - task: DotNetCoreCLI@2
