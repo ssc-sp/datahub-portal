@@ -99,7 +99,7 @@ namespace Datahub.Core.EFCore
 
     }
 
-    public class Datahub_Project: IComparable<Datahub_Project>
+    public class Datahub_Project : IComparable<Datahub_Project>
     {
         public const string ONGOING = "Ongoing";
         public const string CLOSED = "Closed";
@@ -114,13 +114,15 @@ namespace Datahub.Core.EFCore
         public int Project_ID { get; set; }
 
         [Required]
-        [StringLength(10)]
-
+        [StringLength(4000)]
+        [AeLabel(isDropDown: true, placeholder: " ")]
         public string Sector_Name { get; set; }
 
         [StringLength(200)]
+        [AeLabel(isDropDown: true, placeholder: " ")]
         public string Branch_Name { get; set; }
 
+        [AeLabel(isDropDown: true, placeholder: " ")]
         public string Division_Name { get; set; }
 
         public string Contact_List { get; set; }
@@ -139,14 +141,14 @@ namespace Datahub.Core.EFCore
         public string Project_Summary_Desc { get; set; }
         public string Project_Summary_Desc_Fr { get; set; }
 
-        [AeLabel(isDropDown: true)] 
+        [AeLabel(isDropDown: true)]
         public string Project_Category { get; set; }
         public DateTime Initial_Meeting_DT { get; set; }
 
         public int? Number_Of_Users_Involved { get; set; }
         public bool Is_Private { get; set; }
 
-        
+
         public bool Is_Featured { get; set; }
 
         [Required]
@@ -155,7 +157,7 @@ namespace Datahub.Core.EFCore
 
         public string Stage_Desc { get; set; }
 
-        
+
 
         [Required]
         [AeLabel(validValues: new[] { ONGOING, CLOSED, ON_HOLD })]
@@ -185,9 +187,11 @@ namespace Datahub.Core.EFCore
 
         public List<Datahub_ProjectComment> Comments { get; set; }
 
-        public List<Datahub_Project_User> Users { get; set; }    
-        
+        public List<Datahub_Project_User> Users { get; set; }
+
         public List<Datahub_Project_Access_Request> Requests { get; set; }
+
+        public List<Datahub_ProjectServiceRequests> ServiceRequests { get; set; }
 
         [StringLength(400)]
         public string Databricks_URL { get; set; }
@@ -211,7 +215,7 @@ namespace Datahub.Core.EFCore
         public string DB_Server { get; set; }
 
         [StringLength(100)]
-        [AeLabel(validValues: new [] {SQL_SERVER_DB_TYPE, POSTGRES_DB_TYPE})]
+        [AeLabel(validValues: new[] { SQL_SERVER_DB_TYPE, POSTGRES_DB_TYPE })]
         public string DB_Type { get; set; }
 
         public bool IsDatabasePostgres => DB_Type == POSTGRES_DB_TYPE;
@@ -222,9 +226,12 @@ namespace Datahub.Core.EFCore
 
         public List<Project_Storage> StorageAccounts { get; set; }
 
-        public List<Project_Database> Databases { get; set; }
+        public IList<Project_Resources2> Resources { get; set; }
 
         public IList<PowerBi_Workspace> PowerBi_Workspaces { get; set; }
+
+        [AeFormIgnore]
+        public int OnboardingApplicationId { get; set; }
 
         [AeFormIgnore]
         [NotMapped]

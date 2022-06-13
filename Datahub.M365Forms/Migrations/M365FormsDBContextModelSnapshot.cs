@@ -59,7 +59,7 @@ namespace Datahub.M365Forms.Migrations
                     b.Property<bool>("Event")
                         .HasColumnType("bit");
 
-                    b.Property<DateTime>("Expected_Lifespan_DT")
+                    b.Property<DateTime?>("Expected_Lifespan_DT")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("GCdocs_Hyperlink_URL")

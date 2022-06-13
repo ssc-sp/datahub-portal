@@ -13,26 +13,29 @@ namespace Datahub.Core.Services
         private readonly IEmailNotificationService _emailNotificationService;
         private readonly ISystemNotificationService _systemNotificationService;
         private readonly IUserInformationService _userInformationService;
+        private readonly IDatahubAuditingService _datahubAuditingService;
 
-        public const string DATABRICKS = "databricks";
-        public const string POWERBI = "powerbi";
-        public const string STORAGE = "storage";
-        public const string SQLSERVER = "sql";
-        public const string POSTGRESQL = "psql";
-        
+        public const string DATABRICKS = ProjectResourceConstants.SERVICE_TYPE_DATABRICKS;
+        public const string POWERBI = ProjectResourceConstants.SERVICE_TYPE_POWERBI;
+        public const string STORAGE = ProjectResourceConstants.SERVICE_TYPE_STORAGE;
+        public const string SQLSERVER = ProjectResourceConstants.SERVICE_TYPE_SQL_SERVER;
+        public const string POSTGRESQL = ProjectResourceConstants.SERVICE_TYPE_POSTGRES;
+
 
 
         public RequestManagementService(
-            IDbContextFactory<DatahubProjectDBContext> dbContextFactory, 
-            IEmailNotificationService emailNotificationService, 
-            ISystemNotificationService systemNotificationService, IUserInformationService userInformationService)
+            IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
+            IEmailNotificationService emailNotificationService,
+            ISystemNotificationService systemNotificationService, IUserInformationService userInformationService, 
+            IDatahubAuditingService datahubAuditingService)
         {
             _dbContextFactory = dbContextFactory;
             _emailNotificationService = emailNotificationService;
             _systemNotificationService = systemNotificationService;
             _userInformationService = userInformationService;
+            _datahubAuditingService = datahubAuditingService;
         }
-        
+
         public async Task RequestAccess(Datahub_Project_Access_Request request)
         {
             await using var ctx = await _dbContextFactory.CreateDbContextAsync();
@@ -55,7 +58,7 @@ namespace Datahub.Core.Services
             await NotifyProjectAdminsOfAccessRequest(request);
         }
 
-        public async Task RequestService(Datahub_ProjectServiceRequests request)
+        public async Task RequestService(Datahub_ProjectServiceRequests request, Dictionary<string, string> inputParams = null)
         {
             await using var ctx = await _dbContextFactory.CreateDbContextAsync();
             ctx.Projects.Attach(request.Project);
@@ -66,38 +69,77 @@ namespace Datahub.Core.Services
             if (!exists)
             {
                 await ctx.Project_Requests.AddAsync(request);
-                await ctx.SaveChangesAsync();
-                
-                var projectResource = CreateProjectResource(request);
-                await ctx.Project_Resources.AddAsync(projectResource);
-                await ctx.SaveChangesAsync();
+
+                var projectResource = CreateEmptyProjectResource(request, inputParams);
+                await ctx.Project_Resources2.AddAsync(projectResource);
+
+                await ctx.TrackSaveChangesAsync(_datahubAuditingService);
             }
-            
-            
-            
+
+
+
             await NotifyProjectAdminsOfServiceRequest(request);
         }
-        
-        private static Project_Resources CreateProjectResource(Datahub_ProjectServiceRequests request)
+
+        private static Project_Resources2 CreateEmptyProjectResource(Datahub_ProjectServiceRequests request, Dictionary<string, string> inputParams)
         {
-            var attributes = request.ServiceType switch
+            var resource = new Project_Resources2()
             {
-                "sql" => "\"type\":\"sql\"",
-                "psql" => "\"type\":\"psql\"",
-                "storage" => "\"type\":\"gen2\"",
-                _ => $"\"type\":\"{request.ServiceType}\""
-            };
-        
-            return new Project_Resources      
-            {
+                Project = request.Project,
                 ResourceType = request.ServiceType,
-                ResourceName = request.Project.Project_Acronym_CD,
-                TimeRequested = DateTime.Now,
-                Attributes = attributes,
-                Project = request.Project
+                TimeRequested = DateTime.UtcNow
             };
+
+            if (inputParams != null)
+            {
+                resource.SetInputParameters(inputParams);
+            }
+
+            switch (request.ServiceType)
+            {
+                case POSTGRESQL:
+                case SQLSERVER:
+                    resource.SetResourceObject(default(ProjectResource_Database));
+                    break;
+                case STORAGE:
+                    resource.SetResourceObject(default(ProjectResource_Storage));
+                    break;
+                default:
+                    resource.SetResourceObject(default(ProjectResource_Blank));
+                    break;
+            }
+
+            return resource;
+
         }
-        
+
+        public async Task<List<Project_Resources2>> GetResourcesByRequest(Datahub_ProjectServiceRequests request)
+        {
+            using var ctx = await _dbContextFactory.CreateDbContextAsync();
+
+            var resources = await ctx.Project_Resources2
+                .Where(r => r.Project == request.Project && r.ResourceType == request.ServiceType)
+                .ToListAsync();
+
+            return resources;
+        }
+
+        public async Task<bool> UpdateResourceInputParameters(Guid resourceId, Dictionary<string,string> inputParams)
+        {
+            using var ctx = await _dbContextFactory.CreateDbContextAsync();
+            var resource = await ctx.Project_Resources2.FirstOrDefaultAsync(r => r.ResourceId == resourceId);
+            if (resource != null)
+            {
+                resource.SetInputParameters(inputParams);
+                await ctx.TrackSaveChangesAsync(_datahubAuditingService);
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
         private async Task NotifyProjectAdminsOfServiceRequest(Datahub_ProjectServiceRequests request)
         {
             
