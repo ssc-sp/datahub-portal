@@ -13,26 +13,29 @@ namespace Datahub.Core.Services
         private readonly IEmailNotificationService _emailNotificationService;
         private readonly ISystemNotificationService _systemNotificationService;
         private readonly IUserInformationService _userInformationService;
+        private readonly IDatahubAuditingService _datahubAuditingService;
 
         public const string DATABRICKS = ProjectResourceConstants.SERVICE_TYPE_DATABRICKS;
         public const string POWERBI = ProjectResourceConstants.SERVICE_TYPE_POWERBI;
         public const string STORAGE = ProjectResourceConstants.SERVICE_TYPE_STORAGE;
         public const string SQLSERVER = ProjectResourceConstants.SERVICE_TYPE_SQL_SERVER;
         public const string POSTGRESQL = ProjectResourceConstants.SERVICE_TYPE_POSTGRES;
-        
+
 
 
         public RequestManagementService(
-            IDbContextFactory<DatahubProjectDBContext> dbContextFactory, 
-            IEmailNotificationService emailNotificationService, 
-            ISystemNotificationService systemNotificationService, IUserInformationService userInformationService)
+            IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
+            IEmailNotificationService emailNotificationService,
+            ISystemNotificationService systemNotificationService, IUserInformationService userInformationService, 
+            IDatahubAuditingService datahubAuditingService)
         {
             _dbContextFactory = dbContextFactory;
             _emailNotificationService = emailNotificationService;
             _systemNotificationService = systemNotificationService;
             _userInformationService = userInformationService;
+            _datahubAuditingService = datahubAuditingService;
         }
-        
+
         public async Task RequestAccess(Datahub_Project_Access_Request request)
         {
             await using var ctx = await _dbContextFactory.CreateDbContextAsync();
@@ -70,7 +73,7 @@ namespace Datahub.Core.Services
                 var projectResource = CreateEmptyProjectResource(request, inputParams);
                 await ctx.Project_Resources2.AddAsync(projectResource);
 
-                await ctx.SaveChangesAsync();
+                await ctx.TrackSaveChangesAsync(_datahubAuditingService);
             }
 
 
@@ -128,7 +131,7 @@ namespace Datahub.Core.Services
             if (resource != null)
             {
                 resource.SetInputParameters(inputParams);
-                await ctx.SaveChangesAsync();
+                await ctx.TrackSaveChangesAsync(_datahubAuditingService);
                 return true;
             }
             else
