@@ -90,6 +90,9 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.Property<int?>("Number_Of_Users_Involved")
                         .HasColumnType("int");
 
+                    b.Property<int>("OnboardingApplicationId")
+                        .HasColumnType("int");
+
                     b.Property<string>("PowerBI_URL")
                         .HasMaxLength(400)
                         .HasColumnType("nvarchar(400)");
@@ -131,8 +134,8 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
 
                     b.Property<string>("Sector_Name")
                         .IsRequired()
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)");
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
 
                     b.Property<string>("Stage_Desc")
                         .HasColumnType("nvarchar(max)");
@@ -534,20 +537,32 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
             modelBuilder.Entity("Datahub.Core.EFCore.GeoObjectShare", b =>
                 {
                     b.Property<string>("GeoObjectShare_ID")
-                        .HasColumnType("nvarchar(450)");
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
 
-                    b.Property<bool>("ApprovalFormCompleted")
+                    b.Property<int>("ApprovalForm_ID")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Approval_Document_URL")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("Deleted")
                         .HasColumnType("bit");
 
-                    b.Property<int?>("ApprovalForm_ID")
-                        .HasColumnType("int");
+                    b.Property<string>("Email_Contact_TXT")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
 
                     b.Property<string>("Json_TXT")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool>("ShareApproved")
-                        .HasColumnType("bit");
+                    b.Property<string>("Publication_ID")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("ShareStatus")
+                        .HasColumnType("int");
 
                     b.HasKey("GeoObjectShare_ID");
 
@@ -1126,6 +1141,12 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.Property<string>("Onboarding_Timeline")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Product_Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("ProjectCreatedDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Project_Engagement_Category")
                         .HasColumnType("nvarchar(max)");
 
@@ -1360,10 +1381,6 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.Navigation("Comments");
 
                     b.Navigation("PBI_License_Request");
-
-                    b.Navigation("PBI_Reports");
-
-                    b.Navigation("PBI_Workspaces");
 
                     b.Navigation("Pipelines");
 
