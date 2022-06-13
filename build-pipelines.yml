@@ -13,9 +13,9 @@ variables:
   solution: '**/Datahub.Portal.sln'
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
-  version.MajorMinor: '1.0' # Manually adjust the version number as needed for semantic versioning. Revision is auto-incremented.
-  version.Revision: $[counter(variables['version.MajorMinor'], 0)]
-  versionNumber: '$(version.MajorMinor).$(version.Revision)'
+  #version.MajorMinor: '1.0' # Manually adjust the version number as needed for semantic versioning. Revision is auto-incremented.
+  #version.Revision: $[counter(variables['version.MajorMinor'], 0)]
+  #versionNumber: '$(version.MajorMinor).$(version.Revision)'
 
 name: 2.0.$(date:yy)$(DayOfYear)$(rev:.r)
 
