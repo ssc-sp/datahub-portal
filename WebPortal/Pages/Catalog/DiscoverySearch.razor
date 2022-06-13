@@ -12,14 +12,19 @@
 </style>
 
 <div style="margin: 2rem">
-    <DHPageTitle PageTitleKey=@Localizer["Search catalog"] />
+    <DHPageTitle PageTitleKey=@Localizer["DISCOVERY-FILTERS.Search Catalog"] />
     <AeCard>
         <ChildContent>
             <div class="catalog-page">
                 <div class="filter">
                     <AeFlex Vertical>
-                        <AeTypography Variant="h2">@Localizer["Filters"]</AeTypography>
+                        <AeTypography Variant="h2">@Localizer["DISCOVERY-FILTERS.Filters"]</AeTypography>
                         
+                        <label>
+                            <input type="checkbox" checked=@_excludeIncompleteCatalogs @onchange=@(e => ChangeIncompleteCatalogFilter(e)) />
+                            <span>@Localizer["DISCOVERY-FILTERS.HideIncomplete"]</span>
+                        </label>
+
                         <AeCollapse OnSectionToggled=@OnSearchFilterToggled>
                             <AeCollapseSection DefaultOpen=@_searchFilterSectionOpen>
                                 <Header>
@@ -27,14 +32,14 @@
                                         <span title=@_filterSectionOpenTitle>
                                             <AeIcon class=@_filterSectionOpenIconClass />
                                         </span>
-                                        <span>@Localizer["Keyword Search"]</span>
+                                        <span>@Localizer["DISCOVERY-FILTERS.Keyword Search"]</span>
                                         <AeIcon class=@_filterActiveIconClass />
                                     </AeTypography>
                                 </Header>
                                 <ChildContent>
                                     <AeSearchInput 
                                         id="search" 
-                                        Placeholder=@Localizer.GetString("Enter keywords..") 
+                                        Placeholder=@Localizer["DISCOVERY-FILTERS.Enter Keywords"] 
                                         OnInputChangeWithLastKey=@HandleSearch 
                                         ClearIconFAClass="null" 
                                     />
@@ -49,7 +54,7 @@
                                         <span title=@_filterSectionOpenTitle>
                                             <AeIcon class=@_filterSectionOpenIconClass />
                                         </span>
-                                        <span>@Localizer["Security Classification"]</span>
+                                        <span>@Localizer["DISCOVERY-FILTERS.Security Classification"]</span>
                                         <AeIcon class=@_filterActiveIconClass />
                                     </AeTypography>
                                 </Header>
@@ -81,7 +86,7 @@
                                         <span title=@_filterSectionOpenTitle>
                                             <AeIcon class=@_filterSectionOpenIconClass />
                                         </span>
-                                        <span>@Localizer["Data Type"]</span>
+                                        <span>@Localizer["DISCOVERY-FILTERS.Data Type"]</span>
                                         <AeIcon class=@_filterActiveIconClass />
                                     </AeTypography>
                                 </Header>
@@ -112,7 +117,7 @@
                                         <span title=@_filterSectionOpenTitle>
                                             <AeIcon class=@_filterSectionOpenIconClass />
                                         </span>
-                                        <span>@Localizer["Sectors/Branches"]</span>
+                                        <span>@Localizer["Sectors"]</span>
                                         <AeIcon class=@_filterActiveIconClass />
                                     </AeTypography>
                                 </Header>
@@ -123,27 +128,18 @@
                                             <MultiCheckboxSelect 
                                                 T=OrganizationLevel
                                                 Options=@(_allSectors)
-                                                OptionLabelFunction=@(t => t.EnglishLabel)
-                                                OptionSortFunction=@(t => t.EnglishLabel)
+                                                OptionLabelFunction=@(t => _isFrench ? t.FrenchLabel : t.EnglishLabel)
+                                                OptionSortFunction=@(t => _isFrench ? t.FrenchLabel : t.EnglishLabel)
                                                 OnSelectionChanged=@UpdateSectorFilter
                                                 @ref=@_sectorFilter
                                             />
                                         </div>
-                                       @* <div class="dropdowns">                                            
-                                            <label>                                                
-                                                <select class="ae input" @bind=@SectorFilter title=@Localizer["Sector"]>
-                                                    <option value=@NO_FILTER_SELECTED>@Localizer["(Any Sector)"]</option>
-                                                    @foreach(var sector in _sectors.Values.OrderBy(s => GetLabel(s)))
-                                                    {
-                                                        <option value=@sector.Id>@GetLabel(sector)</option>
-                                                    }
-                                                </select>
-                                            </label>
+                                        <div class="dropdowns">                                                                                        
                                             <label>
                                                 @if (_filteredBranches.Count > 0)
                                                 {
                                                     <select class="ae input" @bind=@BranchFilter title=@Localizer["Branch"]>
-                                                        <option value=@NO_FILTER_SELECTED>@Localizer["(Any Branch)"]</option>
+                                                        <option value=@NO_FILTER_SELECTED>@Localizer["DISCOVERY-FILTERS.(All Branches)"]</option>
                                                         @foreach(var branch in _filteredBranches)
                                                         {
                                                             <option value=@branch.Id>@GetLabel(branch)</option>
@@ -151,7 +147,7 @@
                                                     </select>
                                                 }
                                             </label>
-                                        </div>*@
+                                        </div>
                                     </AeFlex>
                                 </ChildContent>
                             </AeCollapseSection>
@@ -168,9 +164,23 @@
                 </div>
                 <div class="cards">
                     <div class="catalog-cards">
-                        @foreach(var result in _filteredSearchResults)
+                        @if (!_filteredSearchResults.Any())
                         {
-                            <CatalogCards CatalogResult="@result" AccessorFunctions="@_accessorFunctions" RenderFunctions="@_renderFunctions"/>
+                            <CardSkeleton />
+                            <CardSkeleton />
+                            <CardSkeleton />
+                        }
+                        else
+                        {
+                            @foreach(var result in _filteredSearchResults)
+                            {
+                                <CatalogCards 
+                                    @key=@result
+                                    CatalogResult="@result" 
+                                    AccessorFunctions="@_accessorFunctions" 
+                                    RenderFunctions="@_renderFunctions"
+                                    RefreshCard="RefreshCard"/>
+                            }
                         }
                     </div>
                 </div>
@@ -226,13 +236,14 @@
     private bool _securityFilterSectionOpen = true;
     private bool _sectorFilterSectionOpen = true;
     private bool _filterSectionOpen = true;
+    private bool _excludeIncompleteCatalogs = true;
     private string _filterSectionOpenIconClass => $"fad fa-caret-circle-{(_filterSectionOpen ? "down" : "right")}";
     private string _filterSectionOpenTitle => _filterSectionOpen ? Localizer["Collapse"] : Localizer["Expand"];
     private string _filterActiveIconClass => $"{(_filtersActive ? "fas" : "fad")} fa-filter";
 
     private List<OrganizationLevel> _allSectors = new();
     private Dictionary<int, OrganizationLevel> _sectors = new();
-    private Dictionary<int, OrganizationLevel> _branches = new();
+    private Dictionary<int, OrganizationLevel> _branches = new();    
     private IPageableComponent _resultTable;
     private List<string> _headers = new();
     private List<Func<CatalogObjectResult, RenderFragment>> _renderFunctions = new();
@@ -253,6 +264,15 @@
         await _searchThrottler.SetQuery(string.Empty);
     }
 
+    private async Task ChangeIncompleteCatalogFilter(ChangeEventArgs e)
+    {
+        if (e.Value is bool)
+        {
+            _excludeIncompleteCatalogs = (bool)e.Value;
+            await UpdateFilter();            
+        }        
+    }
+
     protected override void OnAfterRender(bool firstRender)
     {
         // You must re-render after the components are initialized in order for the 
@@ -263,6 +283,12 @@
         }
     }
 
+    private async Task RefreshCard(CatalogObjectResult catalogObject)
+    {
+
+    }
+
+
     private string GetLocalizedDataType(MetadataObjectType dataType) => Localizer[$"DISCOVERY-DATA-TYPES.{dataType}"];
 
     private string GetLocalizedClassificationType(MetadataClassificationType dataType) => Localizer[$"DISCOVERY-DATA-TYPES.{dataType}"];
@@ -270,42 +296,24 @@
     private async Task UpdateSectorFilter(IEnumerable<OrganizationLevel> filteredTypes)
     {
         _filteredSectors = filteredTypes.ToHashSet();
-        UpdateFilter();
+        _filterSector = _filteredSectors.Count == 1 ? filteredTypes.ToList()[0].Id : NO_FILTER_SELECTED;
+        _filterBranch = _filteredSectors.Count != 1 ? NO_FILTER_SELECTED : _filterBranch;
+        await UpdateFilter();
         await Task.CompletedTask;
     }
 
     private async Task UpdateDataTypeFilter(IEnumerable<MetadataObjectType> filteredTypes)
     {
         _filteredDataTypes = filteredTypes.ToHashSet();
-        UpdateFilter();
+        await UpdateFilter();
         await Task.CompletedTask;
     }
 
     private async Task UpdateClassificationTypeFilter(IEnumerable<MetadataClassificationType> filteredTypes)
     {
         _filteredClassificationTypes = filteredTypes.ToHashSet();
-        UpdateFilter();
+        await UpdateFilter();
         await Task.CompletedTask;
-    }
-
-
-    private string SectorFilter
-    {
-        get => _filterSector.ToString();
-        set
-        {
-            if (int.TryParse(value, out var intval))
-            {
-                _filterSector = intval;
-                _filterBranch = NO_FILTER_SELECTED;
-            }
-            else
-            {
-                _filterSector = NO_FILTER_SELECTED;
-                _filterBranch = NO_FILTER_SELECTED;
-            }
-            UpdateFilter();
-        }
     }
 
     private string BranchFilter
@@ -321,70 +329,84 @@
             {
                 _filterBranch = NO_FILTER_SELECTED;
             }
-            UpdateFilter();
+            _ = UpdateFilter();
         }
     }
 
-    private string SecurityFilter
-    {
-        get => _securityFilter;
-        set
-        {
-            _securityFilter = value;
-            UpdateFilter();
-        }
-    }
+
 
     private void GetMetadataClassificationType(string securityClass)
     {
         var enumType = Enum.Parse(typeof(MetadataClassificationType), securityClass);
     }
 
-    private void UpdateFilter()
+    private async Task UpdateFilter()
     {
         var noDataTypesSelected = _filteredDataTypes.Count < 1;
         var noClassificationTypesSelected = _filteredClassificationTypes.Count < 1;
         var noSectorsSelected = _filteredSectors.Count < 1;
-        
+
+
+
+
         _filteredSearchResults = _searchResults
             .Where(r => (noDataTypesSelected || _filteredDataTypes.Contains(r.DataType)) &&
                 (noSectorsSelected || (r.Sector != 0 && _filteredSectors.Contains(_sectors[r.Sector]))) &&
                 (noClassificationTypesSelected || _filteredClassificationTypes.Contains((MetadataClassificationType) Enum.Parse(typeof(MetadataClassificationType), r.SecurityClass.Replace(" ", "")))) &&
-                (_filterSector == NO_FILTER_SELECTED || r.Sector == _filterSector) &&
-                (_filterBranch == NO_FILTER_SELECTED || r.Branch == _filterBranch) &&
-                (string.IsNullOrEmpty(_securityFilter) || r.SecurityClass == _securityFilter))
+                (_filterBranch == NO_FILTER_SELECTED || r.Branch == _filterBranch))
             .ToList();
+
+        if (_excludeIncompleteCatalogs)
+            _filteredSearchResults.RemoveAll(c => !c.IsCatalogComplete); 
 
         _lastClicked = 0;
 
-        _filtersActive = _filteredDataTypes.Count > 0 || _filteredClassificationTypes.Count > 0 || _filterSector != NO_FILTER_SELECTED || _filterBranch != NO_FILTER_SELECTED || !string.IsNullOrEmpty(_securityFilter);
+        _filtersActive = _filteredSectors.Count > 0 || _filteredDataTypes.Count > 0 || _filteredClassificationTypes.Count > 0 || _filterBranch != NO_FILTER_SELECTED || !string.IsNullOrEmpty(_securityFilter);
 
-        StateHasChanged();
+        await InvokeAsync(StateHasChanged);
     }
 
-    private void ClearFilters()
+    private async Task CheckCompleteneses()
+    {
+        foreach (var result in _searchResults)
+        {
+            var fieldValues = await MetadataBrokerService.GetObjectMetadataValues(result.ObjectMetadataId);
+            var names = fieldValues.GetAllFieldNames();
+            var allFieldValues = names.ToDictionary(n => n, n => fieldValues.GetValue(n));
+            var title = _isFrench ? allFieldValues["title_translated_fr"] : allFieldValues["title_translated_en"];
+            var subject = allFieldValues["subject"] ?? string.Empty;
+
+            var strings = new List<string> { title, subject, GetName(result), GetSector(result), GetContact(result), GetSecurityClass(result)};
+            if (strings.Any(s => string.IsNullOrWhiteSpace(s)))
+            {
+                result.IsCatalogComplete = false;                    
+            }
+        }
+    }
+
+    private async Task ClearFilters()
     {
 
         if (_objectTypeFilter != null)
         {
-            _objectTypeFilter.Clear();
+            await _objectTypeFilter.Clear();
         }
 
         if (_sectorFilter != null)
         {
-            _sectorFilter.Clear();
+            await _sectorFilter.Clear();
         }
 
         if (_classificationTypeFilter != null)
         {
-            _classificationTypeFilter.Clear();
+            await _classificationTypeFilter.Clear();
         }
 
         _filterSector = NO_FILTER_SELECTED;
         _filterBranch = NO_FILTER_SELECTED;
         _securityFilter = string.Empty;
 
-        UpdateFilter();
+        await UpdateFilter();
     }
 
     private void OnFilterToggled((AeCollapseSection Section, bool Open) e)
@@ -415,6 +437,7 @@
     private string GetDataType(CatalogObjectResult result) => GetLocalizedDataType(result.DataType);
     private string GetSecurityClass(CatalogObjectResult result) => Localizer[result.SecurityClass];
     private string GetLabel(OrganizationLevel orgLevel) => (_isFrench ? orgLevel?.FrenchLabel : orgLevel?.EnglishLabel) ?? "-";
+    
 
     // renderer functions
     private RenderFragment GetDownLoadFragment(CatalogObjectResult result) =>
@@ -426,7 +449,7 @@
         @<AeButton class="blue" onclick=@(() => HandleDownload(result))>@Localizer[GetButtonText(result)]</AeButton>;
 
     private RenderFragment GetUnauthorizedDownload(CatalogObjectResult result) => 
-    @<AeButton class="blue" onclick=@(() => HandleDownload(result))>@Localizer["Request Access"]</AeButton>
+    @<AeButton class="red" onclick=@(() => HandleDownload(result))>@(SecurityClassification.ProtectedA.Equals(result.SecurityClass) ? Localizer["Protected A - Request Access"] : Localizer["Protected B - Request Access"])</AeButton>
     ;    
 
     private async Task HandleDownload(CatalogObjectResult result)
@@ -510,7 +533,8 @@
         try
         {
             _searchResults = await SearchCatalog(searchText);
-            UpdateFilter();
+            await CheckCompleteneses();
+            await UpdateFilter();
         }
         finally
         {
@@ -524,7 +548,6 @@
         return _isFrench ? MetadataBrokerService.SearchCatalogFrench(searchText) : MetadataBrokerService.SearchCatalogEnglish(searchText);
     }
 
-    private int _pageSize = 5;
     private int _lastClicked = 0;
 
     private void OnPageClick(int pageIndex)

@@ -9,7 +9,7 @@ namespace Datahub.Core.Services
     public interface IEmailNotificationService
     {
         Task<string> RenderTestTemplate();
-        Task<string> RenderTemplate<T>(IDictionary<string, object> parameters = null) where T: Microsoft.AspNetCore.Components.IComponent;
+        Task<string> RenderTemplate<T>(IDictionary<string, object> parameters = null) where T : Microsoft.AspNetCore.Components.IComponent;
         Task SendEmailMessage(string subject, string body, string userIdOrAddress, string recipientName = null, bool isHtml = true);
         Task SendEmailMessage(string subject, string body, IList<string> userIdsOrAddresses, bool isHtml = true);
         Task SendEmailMessage(string subject, string body, List<DatahubEmailRecipient> recipients, bool isHtml = true);
@@ -26,7 +26,7 @@ namespace Datahub.Core.Services
         Task SendApplicationCompleteNotification(LanguageTrainingParameters parameters);
         Task SendLanguageSchoolDecision(LanguageTrainingParameters parameters);
         Task SendManagerDecisionEmail(LanguageTrainingParameters parameters);
-        Task SendOnboardingConfirmations(OnboardingParameters parameters);
+        Task SendOnboardingConfirmations(OnboardingParameters parameters, bool isClientNotificationSent);
         Task SendFileSharingApprovalRequest(string username, string filename, DatahubProjectInfo projectInfo, IList<string> recipients);
         Task SendFileSharingApproved(SharedDataFile sharedFileInfo, DatahubProjectInfo projectInfo, string publicUrlLink, string recipient);
         Task SendStorageCostEstimate(User estimatingUser, Dictionary<string, object> parameters);
