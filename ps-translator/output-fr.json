@@ -1,6 +1,6 @@
 {
-  "DATA SENSITIVITY": "SENSIBILITÉ DES DONNÉES",
-  "File Format": "Format de fichier",
-  "Contact Information": "Informations de contact",
-  "Collection Type": "Type de collection"
+  "Update Metadata": "Mise à jour des métadonnées",
+  "Complete Metadata": "Métadonnées complètes",
+  "Protected A - Request Access": "Protégé A - Demande d'accès",
+  "Protected B - Request Access": "Protected B - Demande d'accès"
 }
