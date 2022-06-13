@@ -17,6 +17,8 @@ variables:
   version.Revision: $[counter(variables['version.MajorMinor'], 0)]
   versionNumber: '$(version.MajorMinor).$(version.Revision)'
 
+name: 2.0.$(date:yy)$(DayOfYear)$(rev:.r)
+
 pool:
   vmImage: 'windows-latest'
 
