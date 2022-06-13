@@ -189,7 +189,8 @@
     "Security Classification": "Security Classification",
     "Data Type": "Data Type",
     "(All Sectors)": "(All Sectors)",
-    "(All Branches)": "(All Branches)"
+    "(All Branches)": "(All Branches)",
+    "HideIncomplete": "Hide Incomplete Catalogs"
   },
   "DISCOVERY-DATA-TYPES": {
     "File": "File",
