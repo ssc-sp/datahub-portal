@@ -173,6 +173,43 @@
     "Unknown": "Unknown",
     "Version": "Version {0}"
   },
+  "DISCOVERY-LABELS": {
+    "DATA SENSITIVITY": "DATA SENSITIVITY",
+    "Data Type": "Data Type",
+    "File Format": "File Format",
+    "Contact Information": "Contact Information",
+    "Collection Type": "Collection Type"
+  },
+  "DISCOVERY-FILTERS": {
+    "Search Catalog": "Search Catalog",
+    "Filters": "Filters",
+    "Keyword Search": "Keyword Search",
+    "Enter Keywords": "Enter Keywords...",
+    "Security Classification": "Security Classification",
+    "Data Type": "Data Type",
+    "(All Sectors)": "(All Sectors)",
+    "(All Branches)": "(All Branches)",
+    "HideIncomplete": "Hide Incomplete Catalogs"
+  },
+  "DISCOVERY-DATA-TYPES": {
+    "File": "File",
+    "PowerBIWorkspace": "Power BI Workspace",
+    "PowerBIDataset": "Power BI Dataset",
+    "PowerBIReport": "Power BI Report",
+    "FileUrl": "File URL",
+    "GeoObject": "Geo Object",
+    "Database": "Database",
+    "Unclassified": "Unclassified",
+    "ProtectedA": "Protected A",
+    "ProtectedB": "Protected B"
+  },
+  "RESOURCE-TYPE": {
+    "psql": "PostgreSQL",
+    "sql": "SQL Server",
+    "powerbi": "Power BI",
+    "storage": "Storage",
+    "databricks": "Databricks"
+  },
   "404-Page-Error": "Invalid URL, please contact administrator if in error.",
   "ChangeOwner": "Change Owner",
   "CreateFolder": "Create Folder",
@@ -726,6 +763,16 @@
   "Client_Information": "Client Information",
   "Project_Engagement_Category_Other": "Other",
 
+  "Product Information": "Information",
+  "Product_Name": "Initiative Name",
+  "Project_Summary_Description": "Initiative Summary Description",
+  "Project_Goal": "Initiative Goal",
+  "DataHub Project Onboarding Form": "DataHub Onboarding Form",
+  "Project_Engagement_Category": "Engagement Category",
+
+
+
+
   "GCdocs_Hyperlink_URL": "GCdocs Hyperlink",
   "Expected_Lifespan_DT": "Expected lifespan or retirement date for the Team",
   "Name_of_Team": "Name of Team",
@@ -798,6 +845,8 @@
     "No_Access_Message": "You currently do not have access to this project.",
     "Request_Access_Reviewed": "Access Request is being reviewed",
     "DATABASE-CARD": {
+      "Database": "Database",
+      "PendingRequest": "Pending Request",
       "CardTitlePG": "Postgres SQL",
       "CardTitleSQL": "SQL Server",
       "MoreInfo_button": "More Information",
@@ -811,9 +860,13 @@
       "Value": "Value",
       "DbUsername": "Database Username",
       "DbHostname": "Database Host Name",
+      "ConnectionString": "Connection String",
       "PostgresResources": "PostgreSQL Resources",
+      "EditMetadata": "Edit Metadata",
       "ClickToExpand": "(click to expand)",
       "ErrorLoadingPostgresInfo": "There was an error loading the Postgres Resources",
+      "RequestBeingReviewed": "A request for {0} is being reviewed.",
+      "ErrorLoadingDisplaying": "There was an error loading or displaying database information for this project. Please contact an administrator and include the project acronym {0}.",
       "Copy": "Copy"
     },
     "PUBLIC-SHARING-CARD": {

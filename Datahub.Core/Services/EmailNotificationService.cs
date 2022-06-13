@@ -81,7 +81,7 @@ namespace Datahub.Core.Services
                 .Render();
             return await Task.FromResult(html);
         }
-        
+
         private async Task<MailboxAddress> BuildRecipient(string userIdOrAddress, string recipientName = null)
         {
             if (Guid.TryParse(userIdOrAddress, out var parsedGuid))
@@ -164,6 +164,12 @@ namespace Datahub.Core.Services
             await SendEmailMessage(subject, body, recipients, isHtml);
         }
 
+        public async Task SendEmailMessage(string subject, string body, List<DatahubEmailRecipient> recipients, bool isHtml = true)
+        {
+            var mailboxRecipients = recipients.Select(r => CreateMailboxAddress(r.Name, r.Address)).ToList();
+            await SendEmailMessage(subject, body, mailboxRecipients, isHtml);
+        }
+
         private static string BuildTestEmailOriginalRecipientsList(IEnumerable<MailboxAddress> recipients, bool isHtml)
         {
             var sb = new StringBuilder();
@@ -172,7 +178,7 @@ namespace Datahub.Core.Services
                 sb.Append("<hr />");
                 sb.Append("<b>Original Recipients:</b>");
                 sb.Append("<ul>");
-                foreach(var recipient in recipients)
+                foreach (var recipient in recipients)
                 {
                     sb.Append($"<li>{recipient.Name} - {recipient.Address}</li>");
                 }
@@ -185,7 +191,7 @@ namespace Datahub.Core.Services
                 sb.Append("-----");
                 sb.Append(nl);
                 sb.Append("Original recipients:");
-                foreach(var recipient in recipients)
+                foreach (var recipient in recipients)
                 {
                     sb.Append(nl);
                     sb.Append($"{recipient.Name} - {recipient.Address}");
@@ -402,9 +408,7 @@ namespace Datahub.Core.Services
             html = await RenderTemplate<RequestManagerApproval>(parametersDict);
 
             await SendEmailMessage(subject, html, parameters.ManagerEmailAddress, parameters.ManagerName);
-
         }
-
 
         public async Task SendManagerDecisionEmail(LanguageTrainingParameters parameters)
         {
@@ -414,8 +418,13 @@ namespace Datahub.Core.Services
             {
                 var subject = $"Language Training Request – MANAGER APPROVED / Demande de formation linguistique – APPROUVÉE PAR LA GESTION - {parameters.EmployeeName} – {parameters.TrainingType} - {parameters.ApplicationId} ";
                 var html = await RenderTemplate<ManagerRequestApproved>(parametersDict);
-                await SendEmailMessage(subject, html, parameters.EmployeeEmailAddress, parameters.EmployeeName);
-                await SendEmailMessage(subject, html, parameters.ManagerEmailAddress, parameters.ManagerName);
+
+                await SendEmailMessage(subject, html, new List<DatahubEmailRecipient>
+                {
+                    new(parameters.EmployeeName, parameters.EmployeeEmailAddress),
+                    new(parameters.ManagerName, parameters.ManagerEmailAddress)
+                });
+
                 html = await RenderTemplate<LSUNotification>(parametersDict);
                 await SendEmailMessage(subject, html, parameters.AdminEmailAddresses);
 
@@ -437,39 +446,54 @@ namespace Datahub.Core.Services
             {
                 var subject = $"Language Training Request – PLACEMENT ACCEPTED / Demande de formation linguistique - PLACE APPROUVÉE - {parameters.EmployeeName} – {parameters.TrainingType} - {parameters.ApplicationId} ";
                 var html = await RenderTemplate<LSUApproved>(parametersDict);
-                await SendEmailMessage(subject, html, parameters.EmployeeEmailAddress, parameters.EmployeeName);
-                await SendEmailMessage(subject, html, parameters.ManagerEmailAddress, parameters.ManagerName);
+                await SendEmailMessage(subject, html, new List<DatahubEmailRecipient>
+                {
+                    new(parameters.EmployeeName, parameters.EmployeeEmailAddress),
+                    new(parameters.ManagerName, parameters.ManagerEmailAddress)
+                });
             }
             else if (parameters.LanguageSchoolDecision == "Requires LETP assessment")
             {
                 var subject = $"Language Training Request – NEW LETP REQUIRED / Demande de formation linguistique - NOUVEAU ELPF REQUIS - {parameters.EmployeeName} – {parameters.TrainingType} - {parameters.ApplicationId} ";
                 var html = await RenderTemplate<LSUNewLTPReq>(parametersDict);
-                await SendEmailMessage(subject, html, parameters.EmployeeEmailAddress, parameters.EmployeeName);
-                await SendEmailMessage(subject, html, parameters.ManagerEmailAddress, parameters.ManagerName);
+                await SendEmailMessage(subject, html, new List<DatahubEmailRecipient>
+                {
+                    new(parameters.EmployeeName, parameters.EmployeeEmailAddress),
+                    new(parameters.ManagerName, parameters.ManagerEmailAddress)
+                });
             }
             else if (parameters.LanguageSchoolDecision == "Insufficient interest at level")
             {
                 var subject = $"Language Training Request – INSUFFICIENT REGISTRATIONS / Demande de formation linguistique - INSCRIPTIONS INSUFFISANTES - {parameters.EmployeeName} – {parameters.TrainingType} - {parameters.ApplicationId} ";
                 var html = await RenderTemplate<LSUInsufficientInterest>(parametersDict);
-                await SendEmailMessage(subject, html, parameters.EmployeeEmailAddress, parameters.EmployeeName);
-                await SendEmailMessage(subject, html, parameters.ManagerEmailAddress, parameters.ManagerName);
+                await SendEmailMessage(subject, html, new List<DatahubEmailRecipient>
+                {
+                    new(parameters.EmployeeName, parameters.EmployeeEmailAddress),
+                    new(parameters.ManagerName, parameters.ManagerEmailAddress)
+                });
             }
             else if (parameters.LanguageSchoolDecision == "Demand exceeds capacity")
             {
                 var subject = $"Language Training Request – EXCESS IN DEMAND / Demande de formation linguistique - SURPLUS DE DEMANDE - {parameters.EmployeeName} – {parameters.TrainingType} - {parameters.ApplicationId} ";
                 var html = await RenderTemplate<LSUExcessInDemand>(parametersDict);
-                await SendEmailMessage(subject, html, parameters.EmployeeEmailAddress, parameters.EmployeeName);
-                await SendEmailMessage(subject, html, parameters.ManagerEmailAddress, parameters.ManagerName);
+                await SendEmailMessage(subject, html, new List<DatahubEmailRecipient>
+                {
+                    new(parameters.EmployeeName, parameters.EmployeeEmailAddress),
+                    new(parameters.ManagerName, parameters.ManagerEmailAddress)
+                });
             }
             else if (parameters.LanguageSchoolDecision == "Late application")
             {
                 var subject = $"Language Training Request – APPLICATION PERIOD CLOSED / Demande de formation linguistique - PÉRIODE D’INSCRIPTION FERMÉE -  {parameters.EmployeeName} – {parameters.TrainingType} - {parameters.ApplicationId} ";
                 var html = await RenderTemplate<LSUApplicationPeriodClosed>(parametersDict);
-                await SendEmailMessage(subject, html, parameters.EmployeeEmailAddress, parameters.EmployeeName);
-                await SendEmailMessage(subject, html, parameters.ManagerEmailAddress, parameters.ManagerName);
+                await SendEmailMessage(subject, html, new List<DatahubEmailRecipient>
+                {
+                    new(parameters.EmployeeName, parameters.EmployeeEmailAddress),
+                    new(parameters.ManagerName, parameters.ManagerEmailAddress)
+                });
             }
-
         }
+
         public async Task SendM365FormsConfirmations(M365FormsParameters parameters)
         {
             var parametersDict = BuildM365FormsParameters(parameters);
@@ -491,17 +515,20 @@ namespace Datahub.Core.Services
             return parametersDict;
         }
 
-        public async Task SendOnboardingConfirmations(OnboardingParameters parameters)
+        public async Task SendOnboardingConfirmations(OnboardingParameters parameters, bool isClientNotificationSent)
         {
             var parametersDict = BuildOnboardingParameters(parameters);
 
-            var subject = $"Onboarding Request – {parameters.App.Project_Name}";
-            var html = await RenderTemplate<OnboardingAdmin>(parametersDict);
+            var subject = $"Onboarding Request – {parameters.App.Product_Name}";
+            var html = isClientNotificationSent ? await RenderTemplate<OnboardingAdminUpdated>(parametersDict) : await RenderTemplate<OnboardingAdmin>(parametersDict);
             await SendEmailMessage(subject, html, parameters.AdminEmailAddresses);
-            html = await RenderTemplate<OnboardingClient>(parametersDict);
-            await SendEmailMessage(subject, html, parameters.App.Client_Email, parameters.App.Client_Contact_Name);
-            if (!string.IsNullOrEmpty(parameters.App.Additional_Contact_Email_EMAIL))
-                await SendEmailMessage(subject, html, parameters.App.Additional_Contact_Email_EMAIL, parameters.App.Additional_Contact_Email_EMAIL);
+            if (!isClientNotificationSent)
+            {
+                html = await RenderTemplate<OnboardingClient>(parametersDict);
+                await SendEmailMessage(subject, html, parameters.App.Client_Email, parameters.App.Client_Contact_Name);
+                if (!string.IsNullOrEmpty(parameters.App.Additional_Contact_Email_EMAIL))
+                    await SendEmailMessage(subject, html, parameters.App.Additional_Contact_Email_EMAIL, parameters.App.Additional_Contact_Email_EMAIL);
+            }
 
         }
 
@@ -547,7 +574,7 @@ namespace Datahub.Core.Services
                 _logger.LogInformation("List has 1 item: single recipient method");
                 var item = recipients.First();
                 var recipient = await BuildRecipient(item.address, item.name);
-                return new List<MailboxAddress>() { recipient }; 
+                return new List<MailboxAddress>() { recipient };
             }
             else
             {

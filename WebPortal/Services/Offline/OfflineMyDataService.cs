@@ -147,7 +147,8 @@ namespace Datahub.Portal.Services.Offline
             return Task.FromResult(true);
         }
 
-        public new Task LoadApplicationData()
+
+        public Task SetupUserFolders()
         {
             return Task.FromResult(0);
         }

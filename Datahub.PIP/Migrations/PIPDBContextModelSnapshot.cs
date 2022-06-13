@@ -91,6 +91,10 @@ namespace Datahub.Portal.Migrations.Forms.PIP
                         .HasMaxLength(4000)
                         .HasColumnType("nvarchar(4000)");
 
+                    b.Property<string>("DataFactoryRunId")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
                     b.Property<string>("Data_Owner_NAME")
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
@@ -115,6 +119,9 @@ namespace Datahub.Portal.Migrations.Forms.PIP
 
                     b.Property<DateTime>("Date_Updated_DT")
                         .HasColumnType("datetime2");
+
+                    b.Property<int>("DuplicateCount")
+                        .HasColumnType("int");
 
                     b.Property<string>("EditingUserId")
                         .HasColumnType("nvarchar(max)");

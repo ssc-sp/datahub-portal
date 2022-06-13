@@ -7,6 +7,14 @@
         PowerBIDataset,
         PowerBIReport,
         FileUrl,
-        GeoObject
+        GeoObject,
+        Database
+    }
+
+    public enum MetadataClassificationType : byte
+    { 
+        Unclassified,
+        ProtectedA,
+        ProtectedB  
     }
 }

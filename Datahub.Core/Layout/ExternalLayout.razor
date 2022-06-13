@@ -1,0 +1,102 @@
+﻿@inherits LayoutComponentBase
+
+@using Microsoft.Extensions.Configuration
+@using Microsoft.Identity.Web
+
+@inject IMSGraphService _msGraphService
+@inject MyDataService _apiService
+@inject NavigationManager _navigationManager
+@inject UserLocationManagerService _userLocationManagerService
+@inject IDatahubAuditingService _auditingService
+@inject IUserCircuitCounterService _userCircuitCounterService
+@inject MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
+@inject IConfiguration _configuration
+
+<PageTitle>@Localizer[_configuration["Title"]]</PageTitle>
+
+<ErrorBoundary @ref="_errorBoundary">
+    <ChildContent>
+            @Body
+    </ChildContent>
+    <ErrorContent Context="ex">
+        @if (HandleException(@ex)) 
+        {
+            <Error CorrelationId=@_correlationId />
+        }
+        else
+        {
+            @Body
+        }
+
+    </ErrorContent>
+</ErrorBoundary>
+
+@code
+{
+    [CascadingParameter]
+    private Task<AuthenticationState> _authenticationStateTask { get; set; }
+    
+    private ErrorBoundary _errorBoundary;
+    private string _correlationId;
+    private Exception _lastException;
+    private bool? _isSessionEnabled;
+
+    protected override void OnParametersSet()
+    {
+        _errorBoundary?.Recover();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await _authenticationStateTask;
+        var user = authState.User;
+        if (!user.Identity?.IsAuthenticated ?? true)
+        {
+            var scopes = _configuration["Graph:Scopes"]
+                .Split(',');
+            _consentHandler.ChallengeUser(scopes);
+            return;
+        }
+        
+        try 
+        {
+            _isSessionEnabled = await _userCircuitCounterService.IsSessionEnabled();
+        } 
+        catch (Exception ex)
+        {
+            _consentHandler.HandleException(ex);
+        }
+        await _apiService.SetupUserFolders();
+    }
+
+    private bool IsValidException(Exception ex)
+    {
+        return !(ex is ObjectDisposedException);
+    }
+
+    private bool HandleException(Exception ex)
+    {
+        if (!IsValidException(ex))
+            return false;
+        if (ex != _lastException)
+        {
+            _lastException = ex;
+            _ = AuditExceptionAsync(ex);
+        }
+        return true;
+    }
+
+    private async Task AuditExceptionAsync(Exception ex)
+    {
+        try
+        {
+            var correlationId = Guid.NewGuid().ToString();
+            await _auditingService.TrackException(ex, (nameof(correlationId), correlationId));
+            _correlationId = correlationId;
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception)
+        {
+        }
+    }
+}

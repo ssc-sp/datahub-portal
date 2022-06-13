@@ -93,7 +93,7 @@
         {
             _consentHandler.HandleException(ex);
         }
-        await _apiService.LoadApplicationData();
+        await _apiService.SetupUserFolders();
     }
 
     private bool IsValidException(Exception ex)

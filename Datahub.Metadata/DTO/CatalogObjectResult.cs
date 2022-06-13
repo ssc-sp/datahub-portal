@@ -2,15 +2,16 @@
 
 namespace Datahub.Metadata.DTO
 {
-    public record CatalogObjectResult
-    (
-        long ObjectMetadataId,
-        MetadataObjectType DataType,
-        string Name,
-        string Location,
-        int Sector,
-        int Branch,
-        string Contact,
-        string SecurityClass
-    );
+    public class CatalogObjectResult
+    {
+        public long ObjectMetadataId { get; set; }
+        public MetadataObjectType DataType { get; set; }
+        public string Name { get; set; }
+        public string Location { get; set; }
+        public int Sector { get; set; }
+        public int Branch { get; set; }
+        public string Contact { get; set; }
+        public string SecurityClass { get; set; }
+        public bool IsCatalogComplete { get; set; } = true;
+    }
 }
