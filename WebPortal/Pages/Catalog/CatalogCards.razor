@@ -21,10 +21,11 @@ else
                 <i style="margin-top: 0.2rem;" class="@_fileIcon"></i>
                 <p>@_allFieldValues["name"]</p>     
             </div>
-            <div class="rowheader">                
-                <AeButton class=@GetMetadataButtonColor() OnClickEvent=@ShowMetadataEditor>@Localizer[GetMetadataButtonText()]</AeButton>
-                
-            </div>
+            <AuthorizeView Roles="@_metadataRoles">
+                <div class="rowheader">                
+                    <AeButton class=@GetMetadataButtonColor() OnClickEvent=@ShowMetadataEditor>@Localizer[GetMetadataButtonText()]</AeButton>                
+                </div>
+            </AuthorizeView>
         </div>
         <div class="topleft">            
             <div title="@GetDivTitleTitle()" class="datasetname">
@@ -42,9 +43,9 @@ else
                 <AeTypography Variant="p no-margin"><b>@Localizer["DISCOVERY-LABELS.File Format"]: </b>@_fileType</AeTypography>
             }
             <AeTypography Variant="p no-margin"><b>@Localizer["DISCOVERY-LABELS.Contact Information"]: </b>@AccessorFunctions[3](@CatalogResult)</AeTypography>
-            @if (!string.IsNullOrWhiteSpace(CatalogResult.Location))
+            @if (_project != null)
             {
-                <AeTypography Variant="p no-margin"><b>@Localizer["Location"]: </b><DHLink DataProject="@(CatalogResult.Location)">@CatalogResult.Location</DHLink></AeTypography>
+                <AeTypography Variant="p no-margin"><b>@Localizer["Location"]: </b><DHLink DataProject="@(_project.Project_Acronym_CD)">@_project.ProjectName</DHLink></AeTypography>
             }   
         </div>
         <div class="details-right">
@@ -100,6 +101,7 @@ else
     private string GetTitle() => _isFrench ? _allFieldValues["title_translated_fr"] : _allFieldValues["title_translated_en"];
     private string GetDescription() => _isFrench ? _allFieldValues["notes_translated_fr"] : _allFieldValues["notes_translated_en"];
     private Datahub_Project _project;
+    private string _metadataRoles;
 
     private string GetLabel(string label) 
     {
@@ -113,7 +115,8 @@ else
 
     private async Task ShowMetadataEditor()
     {
-        RenderFragment metadataEditor = @<ObjectMetadataEditor 
+        RenderFragment metadataEditor = 
+    @<ObjectMetadataEditor 
                 @key=@CatalogResult.ObjectMetadataId
                 ObjectId=@CatalogResult.ObjectMetadataId.ToString() 
                 DefaultMetadataId=@CatalogResult.Location
@@ -137,14 +140,17 @@ else
         await _uiControlService.ToggleModal();
         await RefreshCard.InvokeAsync(CatalogResult);                    
     }
-    
+
     protected override async Task OnParametersSetAsync()
     {
         await using var projectDbContext = await _dbFactoryProject.CreateDbContextAsync();
         _project = await projectDbContext.Projects
             .Where(p => p.Project_Acronym_CD.ToLower() == CatalogResult.Location.ToLower()).FirstOrDefaultAsync();
-
-
+        _metadataRoles = RoleConstants.DATAHUB_ROLE_ADMIN;
+        if (_project != null)
+        {
+           _metadataRoles = $"{_project.Project_Acronym_CD}-admin, {RoleConstants.DATAHUB_ROLE_ADMIN}";
+        }
 
         _fieldValues = await MetadataBrokerService.GetObjectMetadataValues(CatalogResult.ObjectMetadataId);
         _allFieldValues = new();
