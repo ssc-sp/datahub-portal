@@ -3,7 +3,7 @@
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject IOptions<DataProjectsConfiguration> _configuration
-
+@inject ServiceAuthManager ServiceAuthManager
 
 <AuthorizeView Roles="@($"{ProjectAcronym}, {ProjectAcronym}-admin, {RoleConstants.DATAHUB_ROLE_ADMIN}")">
 
@@ -108,7 +108,8 @@
 
     protected override async Task OnInitializedAsync()
     {
-        await base.OnInitializedAsync();
+        _authorizedRoles = ServiceAuthManager.GetAdminProjectRoles();
+        _user = (await authenticationStateTask).User;
 
         await using var projectDbContext = await _dbFactoryProject.CreateDbContextAsync();
         _project = await projectDbContext.Projects
