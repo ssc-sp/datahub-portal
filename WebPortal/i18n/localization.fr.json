@@ -170,6 +170,36 @@
     "Unknown": "Inconnu",
     "Version": "Version {0}"
   },
+  "DISCOVERY-LABELS": {
+    "DATA SENSITIVITY": "SENSIBILITÉ DES DONNÉES",
+    "Data Type": "Type de données",
+    "File Format": "Format de fichier",
+    "Contact Information": "Informations de contact",
+    "Collection Type": "Type de collection"
+  },
+  "DISCOVERY-FILTERS": {
+    "Search Catalog": "Recherche dans le catalogue",
+    "Filters": "Filtres",
+    "Keyword Search": "Recherche de mots-clés",
+    "Enter Keywords": "Entrez les mots-clés...",
+    "Security Classification": "Classification de la sécurité",
+    "Data Type": "Type de données",
+    "(All Sectors)": "(Tous les secteurs)",
+    "(All Branches)": "(Toutes les branches)",
+    "HideIncomplete": "Masquer les catalogues incomplets"
+  },
+  "DISCOVERY-DATA-TYPES": {
+    "File": "Fichier",
+    "PowerBIWorkspace": "Espace de travail Power BI",
+    "PowerBIDataset": "Ensemble de données Power BI",
+    "PowerBIReport": "Rapport Power BI",
+    "File Url": "URL du fichier",
+    "Geo Object": "Géo Objet",
+    "Database": "Base de données",
+    "Unclassified": "Non classifié",
+    "ProtectedA": "Protégé A",
+    "ProtectedB": "Protégé B"
+  },
   "METADATA-PAGE": {
     "ShowMore": "Afficher les champs optionnels",
     "ShowLess": "Masquer les champs optionnels",
@@ -188,6 +218,16 @@
       "ServiceCreatedGroup": "Le service {0} a été créé dans le projet de données {1}."
     }
   },
+  "Download File": "Fichier de téléchargement",
+  "Open Report": "Rapport ouvert",
+  "Open Workspace": "Espace de travail ouvert",
+  "Open Dataset": "Ensemble de données ouvert",
+  "Open Database": "Base de données ouverte",
+  "Open Geo Object": "Ouvrir un géo-objet",
+  "Update Metadata": "Mise à jour des métadonnées",
+  "Complete Metadata": "Métadonnées complètes",
+  "Protected A - Request Access": "Protégé A - Demande d'accès",
+  "Protected B - Request Access": "Protected B - Demande d'accès",
   "Connection lost, please refresh this page": "Connexion perdue, veuillez actualiser cette page",
   "Connection to server...": "Connexion au serveur...",
   "Attempting to re-connect with server, please wait...": "Tentative de connexion au serveur, veuillez patienter...",
