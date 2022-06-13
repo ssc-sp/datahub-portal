@@ -30,6 +30,8 @@ namespace Datahub.Metadata.DTO
         public ObjectFieldValue this[string fieldName] => GetFieldValueByName(fieldName);
         public string GetValue(string fieldName, string defaultValue = "") => this[fieldName]?.Value_TXT ?? defaultValue;
 
+        public bool IsNew => MetadataId == 0;
+
         public char ChoiceSeparator => '|';
 
         public IEnumerable<FieldChoice> GetSelectedChoices(string fieldName)

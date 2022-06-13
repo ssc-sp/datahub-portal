@@ -33,38 +33,34 @@ namespace Datahub.Portal.Services
                             .FirstOrDefaultAsync(p => p.Name == name);
         }
 
-        public async Task<FieldValueContainer> GetObjectMetadataValues(long objectMetadataId)
+        public async Task<FieldValueContainer> GetObjectMetadataValues(long objectMetadataId, string defaultMetadataId)
         {
             using var ctx = _contextFactory.CreateDbContext();
 
             // retrieve the object metadata
-            var objectMetadata = await ctx.ObjectMetadataSet
-                .Include(e => e.FieldValues)
-                .FirstOrDefaultAsync(e => e.ObjectMetadataId == objectMetadataId);
+            var objectMetadata = await GetObjectMetadata(ctx, objectMetadataId);
 
             // retrieve the field definitions
             var metadataDefinitions = await (objectMetadata == null ? GetLatestMetadataDefinition(ctx) : GetMetadataDefinition(ctx, objectMetadata.MetadataVersionId));
 
             // retrieve and clone the field values
-            var fieldValues = CloneFieldValues(objectMetadata?.FieldValues ?? new List<ObjectFieldValue>());
+            var fieldValues = CloneFieldValues(objectMetadata?.FieldValues ?? await CloneMetadataValues(ctx, defaultMetadataId));
 
-            return new FieldValueContainer(objectMetadata?.ObjectMetadataId ?? 0, objectMetadata.ObjectId_TXT, metadataDefinitions, fieldValues);
+            return new FieldValueContainer(objectMetadataId, objectMetadata?.ObjectId_TXT, metadataDefinitions, fieldValues);
         }
 
-        public async Task<FieldValueContainer> GetObjectMetadataValues(string objectId)
+        public async Task<FieldValueContainer> GetObjectMetadataValues(string objectId, string defaultMetadataId)
         {
             using var ctx = _contextFactory.CreateDbContext();
 
             // retrieve the object metadata
-            var objectMetadata = await ctx.ObjectMetadataSet
-                .Include(e => e.FieldValues)
-                .FirstOrDefaultAsync(e => e.ObjectId_TXT == objectId);
+            var objectMetadata = await GetObjectMetadata(ctx, objectId);
 
             // retrieve the field definitions
             var metadataDefinitions = await (objectMetadata == null ? GetLatestMetadataDefinition(ctx) : GetMetadataDefinition(ctx, objectMetadata.MetadataVersionId));
 
             // retrieve and clone the field values
-            var fieldValues = CloneFieldValues(objectMetadata?.FieldValues ?? new List<ObjectFieldValue>());
+            var fieldValues = CloneFieldValues(objectMetadata?.FieldValues ?? await CloneMetadataValues(ctx, defaultMetadataId));
 
             return new FieldValueContainer(objectMetadata?.ObjectMetadataId ?? 0, objectId, metadataDefinitions, fieldValues);
         }
@@ -87,10 +83,10 @@ namespace Datahub.Portal.Services
             {
                 // fetch the existing metadata object or create a new one
                 var current = await FetchObjectMetadata(ctx, objectId) ?? await CreateNewObjectMetadata(ctx, objectId, metadataVersionId);
-                
+
                 // hash the new values by FieldDefinitionId
                 var newValues = fieldValues.ToDictionary(v => v.FieldDefinitionId);
-                
+
                 // hash the existing values by FieldDefinitionId
                 var currentValues = current.FieldValues.ToDictionary(v => v.FieldDefinitionId);
 
@@ -148,7 +144,7 @@ namespace Datahub.Portal.Services
         public async Task<ShareWorkflow.ApprovalForm> GetApprovalForm(int approvalFormId)
         {
             using var ctx = _contextFactory.CreateDbContext();
-            
+
             var approvalFormEntity = await GetApprovalFormEntity(ctx, approvalFormId);
             if (approvalFormEntity != null)
             {
@@ -264,7 +260,7 @@ namespace Datahub.Portal.Services
                     Search_English_TXT = englishText,
                     Search_French_TXT = frenchText
                 };
-                
+
                 ctx.CatalogObjects.Add(catalogObject);
 
                 await ctx.SaveChangesAsync();
@@ -294,10 +290,37 @@ namespace Datahub.Portal.Services
             return await GetLatestMetadataDefinition(ctx);
         }
 
+        private async Task<ObjectMetadata> GetObjectMetadata(MetadataDbContext ctx, string objectId)
+        {
+            return await ctx.ObjectMetadataSet.Include(e => e.FieldValues).FirstOrDefaultAsync(e => e.ObjectId_TXT == objectId);
+        }
+
+        private async Task<ObjectMetadata> GetObjectMetadata(MetadataDbContext ctx, long objectMetadataId)
+        {
+            return await ctx.ObjectMetadataSet.Include(e => e.FieldValues).FirstOrDefaultAsync(e => e.ObjectMetadataId == objectMetadataId);
+        }
+
+        private async Task<List<ObjectFieldValue>> CloneMetadataValues(MetadataDbContext ctx, string objectId)
+        {
+            List<ObjectFieldValue> values = new();
+
+            var metadata = await GetObjectMetadata(ctx, objectId);
+            if (metadata is not null)
+            {
+                values.AddRange(metadata.FieldValues.Select(f => new ObjectFieldValue()
+                {
+                    FieldDefinitionId = f.FieldDefinitionId,
+                    Value_TXT = f.Value_TXT
+                }));
+            }
+
+            return values;
+        }
+
         private async Task<List<CatalogObjectResult>> SearchCatalog(string searchText, string fieldName)
         {
             using var ctx = _contextFactory.CreateDbContext();
-            
+
             var query = PrepareCatalogSearchQuery(searchText, fieldName);
             if (string.IsNullOrEmpty(query))
                 return new();
@@ -360,7 +383,7 @@ namespace Datahub.Portal.Services
 
         private async Task<ObjectMetadata> CreateNewObjectMetadata(MetadataDbContext ctx, string objectId, int metadataVersionId)
         {
-            var objectMetadata =  new ObjectMetadata()
+            var objectMetadata = new ObjectMetadata()
             {
                 MetadataVersionId = metadataVersionId,
                 ObjectId_TXT = objectId,
@@ -428,16 +451,17 @@ namespace Datahub.Portal.Services
             return await ctx.ObjectMetadataSet.FirstOrDefaultAsync(m => m.ObjectId_TXT == objectId);
         }
 
-        private static CatalogObjectResult TransformCatalogObject(CatalogObject catObj) => catObj == null ? null : new(
-                catObj.ObjectMetadataId,
-                catObj.DataType,
-                catObj.Name_TXT,
-                catObj.Location_TXT,
-                catObj.Sector_NUM,
-                catObj.Branch_NUM,
-                catObj.Contact_TXT,
-                catObj.SecurityClass_TXT
-            );
+        private static CatalogObjectResult TransformCatalogObject(CatalogObject catObj) => catObj == null ? null : new CatalogObjectResult
+        {
+            ObjectMetadataId = catObj.ObjectMetadataId,
+            DataType = catObj.DataType,
+            Name = catObj.Name_TXT,
+            Location = catObj.Location_TXT,
+            Sector = catObj.Sector_NUM,
+            Branch = catObj.Branch_NUM,
+            Contact = catObj.Contact_TXT,
+            SecurityClass = catObj.SecurityClass_TXT
+        };
 
 
         public async Task<CatalogObjectResult> GetCatalogObjectByMetadataId(long metadataId)

@@ -1,5 +1,6 @@
 ﻿using Datahub.Core.Services;
 using Microsoft.Extensions.Configuration;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 
 var src = @"C:\code\DataHub\datahub-portal\ps-translator\data.json";

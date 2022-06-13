@@ -170,7 +170,6 @@
     private IPageableComponent _myTableComment;
 
     private List<(Delegate Label, Delegate Choices)> filterProperties = new List<(Delegate Label, Delegate choices)>();
-    private int InputSelectIndex = 0;
     private List<string> ValidDisplayValues { get; set; }
     private string filterLabel;
     private string filterLabelValue;
@@ -260,7 +259,7 @@
     {
         _project = null;
         StateHasChanged();
-        return null;
+        return await Task.FromResult((Datahub_Project)null);
     }
 
     public string GetDataLabel(string propName)
@@ -316,14 +315,14 @@
         new Func<Datahub_ProjectComment, string>(p => { return ShortenString(p.Comment_NT,50); })
     };
 
-    private async Task SetFormEditAsync(Datahub_Project project)
+    @*private async Task SetFormEditAsync(Datahub_Project project)
     {
         _project = project;
         _comment = null;
         SubmitLabel = "Save Changes";
         StateHasChanged();
         _navToEdit = true;
-    }
+        }*@
 
     private void SetFormEdit(Datahub_Project project)
     {
@@ -347,14 +346,14 @@
         _projects = Context.Projects.Include(r => r.Comments).Where(p => p.Deleted_DT == null).ToList();        
     }
 
-    private async Task CreateNewProject()
+    private void CreateNewProject()
     {
         _project = new Datahub_Project() { Last_Updated_DT = DateTime.Now, Project_ID = 0 } ;
         StateHasChanged();
         _navToEdit = true;
     }
 
-    private async Task AddNewComment()
+    private void AddNewComment()
     {
         _comment = new Datahub_ProjectComment() { Comment_Date_DT = DateTime.Now, Project = _project };
         StateHasChanged();
@@ -399,7 +398,10 @@
 
         UIControlService.ToggleModal(modalParameter);
 
+        StateHasChanged();
+    }
 
+    @*
     private void DeleteShowModal(Datahub_Project project)
     {
         InvokeAsync(async () =>
@@ -420,7 +422,7 @@
             StateHasChanged();
         });
     }
-
+    *@
 
     private async Task DeleteConfirmed(Datahub_Project project)
     {
@@ -496,8 +498,7 @@
         return choices.FirstOrDefault(c => (!parentId.HasValue || c.ParentId == parentId.Value) && (c.EnglishLabel.Equals(value) || c.FrenchLabel.Equals(value)))?.Id ?? -1;
     }
 
-
-    private async Task OnConfigure(IModelFormContext context)
+    private void OnConfigure(IModelFormContext context)
     {
         context.RegisterOptionValueProperty<Datahub_Project>(s => s.Project_Category, () => new[] { "Data Pipeline",
                                                     "Data Science",
