@@ -195,7 +195,7 @@
             p => @<div>@(p.User_Name ?? @Localizer["N/A"])</div>,
             p => @<div>
                 <span>@Localizer[$"RESOURCE-TYPE.{p.ServiceType}"]</span>
-                <span @onclick=@(async () => await ShowRequestInfoPanel(p))><i class="far fa-info-circle"></i></span>
+                <span @onclick=@(async () => await ShowRequestInfoPanel(p)) style="cursor:pointer"><i class="fas fa-info-circle"></i></span>
             </div>,
             RequestCompletedTimeFragment,
             p => 
