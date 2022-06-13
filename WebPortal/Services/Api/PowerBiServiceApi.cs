@@ -72,6 +72,17 @@ namespace Datahub.Portal.Services
             return await this.tokenAcquisition.GetAccessTokenForUserAsync(RequiredReadScopes);
         }
 
+        public async Task<EmbedToken> GetEmbedTokenAsync(int durationMinutes, string datasetId, params Guid[] reports)
+        {
+            using var client = await GetPowerBiClientAsync();
+            var ds = new GenerateTokenRequestV2Dataset(datasetId);
+            var tkReports =  reports.Select(r => new GenerateTokenRequestV2Report() {  AllowEdit = false, Id = r}).ToList();
+            return await client.EmbedToken.GenerateTokenAsync(
+                new GenerateTokenRequestV2() { Reports = tkReports, 
+                    Datasets = new[] {ds},
+                    LifetimeInMinutes = durationMinutes });
+        }
+
         public async Task<PowerBIClient> GetPowerBiClientAsync()
         {
             var tokenCredentials = new TokenCredentials((await GetAccessTokenAsync()), "Bearer");
@@ -80,12 +91,10 @@ namespace Datahub.Portal.Services
 
         public async Task<Report> GetReport(string report, string workspace)
         {
-            using (var client = await GetPowerBiClientAsync())
-            {
-                return await client.Reports.GetReportInGroupAsync(
-                        new Guid(workspace),
-                        new Guid(report));
-            }
+            using var client = await GetPowerBiClientAsync();
+            return await client.Reports.GetReportInGroupAsync(
+                    new Guid(workspace),
+                    new Guid(report));
         }
 
         public async Task<Report> GetReport(string report)

@@ -11,9 +11,9 @@ variables:
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
 
+name: 2.0.$(date:yy)$(DayOfYear)$(rev:.r)
+
 steps:
-
-
 - task: UseDotNet@2
   displayName: 'Install .NET Core SDK'
   inputs:
