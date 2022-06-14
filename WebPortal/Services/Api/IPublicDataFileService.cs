@@ -36,8 +36,7 @@ namespace Datahub.Portal.Services
         Task<List<OpenDataSharedFile>> GetPendingApprovalOpenDataFiles();
         Task SetPendingApprovalOpenDataAsRead(OpenDataSharedFile file);
         Task SetPendingApprovalOpenDataAsApproved(OpenDataSharedFile file);
-        Task NotifySignedDocumentUploaded();
-        Task NotifySignedDocumentApproved(string userName, string email, string requestTitle, string url);
+        Task NotifySignedPDFUploaded();
         Task<OpenDataSharedFile> UpdateOpenDataPublication(Guid fileId, bool urlSharing);
         string GetPublicSharedUrl(string path);
     }

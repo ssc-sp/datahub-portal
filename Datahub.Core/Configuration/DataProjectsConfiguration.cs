@@ -24,6 +24,8 @@ namespace Datahub.Core.Configuration
         public bool Costing { get; set; } = true;
         public bool Storage { get; set; } = true;
         public bool ProjectDatabases { get; set; } = true;
+        public bool DataManagement { get; set; } = true;
+        public bool IoT { get; set; } = true;
 
     }
 }

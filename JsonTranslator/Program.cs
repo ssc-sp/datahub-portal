@@ -2,7 +2,6 @@
 using Microsoft.Extensions.Configuration;
 using System.Text.Encodings.Web;
 using System.Text.Json;
-using System.Text.Unicode;
 
 var src = @"C:\code\DataHub\datahub-portal\ps-translator\data.json";
 var fPath = Path.GetFullPath(src);

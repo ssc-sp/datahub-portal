@@ -1,0 +1,74 @@
+@inject RegistrationService _registrationService
+@inject IDbContextFactory<DatahubProjectDBContext> _dbFactory
+@inject IJSRuntime _jsRuntime
+
+<div class="registration-actions">
+    @if (RegistrationRequest.Status == Datahub_Registration_Request.STATUS_REQUESTED)
+    {
+        if (!_isValid)
+        {
+            <AeButton @onclick="HandleEditAcronym">
+                <i class="fas fa-edit"></i>
+                Edit Acronym
+            </AeButton>
+        }
+        else
+        {
+            <AeButton @onclick="HandleCreateProject">
+                <i class="fas fa-plus"></i>
+                Create Project
+            </AeButton>
+        }
+    }
+    else if (RegistrationRequest.Status == Datahub_Registration_Request.STATUS_CREATED)
+    {
+        <AeButton @onclick="HandleAddUser">
+            <i class="fas fa-plus"></i>
+            Add User
+        </AeButton>
+    }
+    else if (RegistrationRequest.Status == Datahub_Registration_Request.STATUS_COMPLETED)
+    {
+        <AeButton @onclick="HandleResendInvite">
+            <i class="fas fa-repeat"></i>
+            Resend Invitation
+        </AeButton>
+    }
+    else if (RegistrationRequest.Status == Datahub_Registration_Request.STATUS_CONFIRMED)
+    {
+        <AeTypography>
+            <i class="fas fa-check"></i>
+            Confirmed
+        </AeTypography>
+    }
+    else
+    {
+        <AeTypography>Unrecognized: @RegistrationRequest.Status</AeTypography>
+    }
+</div>
+
+@code {
+    
+    [CascadingParameter(Name = "UserId")]
+    public string UserId { get; set; }
+
+    [Parameter]
+    public Datahub_Registration_Request RegistrationRequest { get; set; }
+
+    [Parameter]
+    public EventCallback<Datahub_Registration_Request> OnRequestUpdated { get; set; }
+
+
+    private bool _isValid = false;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await base.OnParametersSetAsync();
+        await using var dbContext = await _dbFactory.CreateDbContextAsync();
+
+        if (RegistrationRequest.Status == Datahub_Registration_Request.STATUS_REQUESTED)
+        {
+            _isValid = await _registrationService.IsValidRegistrationRequest(RegistrationRequest);   
+        }
+    }
+}

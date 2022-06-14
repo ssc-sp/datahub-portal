@@ -9,7 +9,7 @@ namespace Datahub.Core.Services
     public interface IEmailNotificationService
     {
         Task<string> RenderTestTemplate();
-        Task<string> RenderTemplate<T>(IDictionary<string, object> parameters = null) where T: Microsoft.AspNetCore.Components.IComponent;
+        Task<string> RenderTemplate<T>(IDictionary<string, object> parameters = null) where T : Microsoft.AspNetCore.Components.IComponent;
         Task SendEmailMessage(string subject, string body, string userIdOrAddress, string recipientName = null, bool isHtml = true);
         Task SendEmailMessage(string subject, string body, IList<string> userIdsOrAddresses, bool isHtml = true);
         Task SendEmailMessage(string subject, string body, List<DatahubEmailRecipient> recipients, bool isHtml = true);

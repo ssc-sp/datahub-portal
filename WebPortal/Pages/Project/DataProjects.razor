@@ -10,7 +10,7 @@
 <DHPageAlert Title="Welcome to Data Projects" Key="@PageAlert.Projects" WikiLinkEN="Onboarding---Data-Projects" WikiLinkFR="Onboarding---Data-Projects"/>
 
 <AeTypography Variant="h1">@Localizer["Featured Projects"]</AeTypography>
-<div class="featured-projects">
+<div class="featured-projects-container">
     @foreach (var p in _featured)
     {
         <FeaturedProject Project="p"/>
@@ -34,7 +34,7 @@
             {
                 <div class="project-row">
                     <AeTypography class="sector">
-                        <i class="@($"fad fa-{p.Project_Icon ?? "swatchbook"}")"></i>
+                        <i class="@($"fad fa-{p.Project_Icon ?? Icon.DEFAULT_PROJECT_ICON}")"></i>
                         @Localizer[p.Sector_Name ?? "N/A"]
                     </AeTypography>
                     <DHLink class="name" DataProject="@p.Project_Acronym_CD">
