@@ -4,7 +4,7 @@
 <div class="modal-content">
     <h4 class="nrcan-typography h4 modal-header">@HeaderText</h4>
 
-    <AeDropdown Items="Values" OnChange="HandleDropdownChange" LabelRenderFragment="GetIcon" class="manageAccessDropdown" disabled="@isProcessing" />
+    <AeDropdown Items="Values" OnChange="HandleDropdownChange" LabelRenderFragment="getIcon" class="manageAccessDropdown" disabled="@isProcessing" />
     @if (isProcessing)
     {
         <Spinner />
@@ -64,9 +64,9 @@
         OnDecision?.Invoke((true, _selectedItem));
     }
 
-    private async Task<RenderFragment> GetIcon()
+    private async Task<RenderFragment> getIcon()
     {
-        RenderFragment fragment = @<div id="manageButton" class="ae button"> <div>@_selectedItem</div> <i class="fal fa-chevron-down chevronborder"></i></div>;
-        return await Task.FromResult(fragment);
-    }
+        return @<div id="manageButton" class="ae button"> <div>@_selectedItem</div> <i class="fal fa-chevron-down chevronborder"></i></div>;
+}
+
 }

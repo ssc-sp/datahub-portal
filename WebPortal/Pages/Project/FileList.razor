@@ -1,5 +1,5 @@
 ﻿@inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
-@inject IDataRetrievalService _dataRetrievalService
+@inject DataRetrievalService _dataRetrievalService
 
 @* @page "/projects/{ProjectAcronym}/filelist" *@
 
@@ -59,7 +59,7 @@
 
     private List<(string, string)> _substitutions;
 
-    private string _tempToken;
+    private string? _tempToken;
 
     protected override void OnInitialized()
     {
@@ -71,7 +71,7 @@
     {
         var uri = await _dataRetrievalService.GenerateSasToken(DataRetrievalService.DEFAULT_CONTAINER_NAME, ProjectAcronym, 14);
         _tempToken = uri.ToString();
-        _substitutions = new List<(string, string)>() { ("<sas_uri>", _tempToken) };
+        _substitutions = new List<(string, string)>() { ("<sas_uri>",_tempToken) };
         StateHasChanged();
     }
 }

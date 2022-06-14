@@ -1,5 +1,9 @@
 {
   "WikiURL": "https://raw.githubusercontent.com/wiki/ssc-sp/datahub-portal/",
   "GlobalSearch": "disabled",
-  "PageAlerts": "enabled"
+  "PortalRunAsManagedIdentity": "disabled",
+  "ProjectTools": {
+    "IoT": "disabled",
+    "DataManagement": "enabled"
+  }
 }

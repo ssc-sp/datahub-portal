@@ -1,4 +1,4 @@
-﻿@inject IMyDataService ApiService
+﻿@inject MyDataService ApiService
 @inject NavigationManager NavigationManager
 @inject IExternalSearchService ExternalSearchService
 @inject IUserInformationService UserInfoService
@@ -197,14 +197,14 @@
     {
         var moreResults = await LoadFGPResults();
         FgpItems.AddRange(moreResults.Items);
-        await InvokeAsync(StateHasChanged);
+        this.InvokeAsync(async () => StateHasChanged());
     }
 
     protected async Task LoadMoreOpenDataResults()
     {
         var moreResults = await LoadOpenDataResults();
         OpenDataItems.AddRange(moreResults);
-        await InvokeAsync(StateHasChanged);
+        this.InvokeAsync(async () => StateHasChanged());
     }
 
     private string CutDescriptionShort(string description)
@@ -229,14 +229,14 @@
         OpenDataItems = new List<OpenDataItem>();
     }
 
-    protected override void OnParametersSet()
+    protected override async Task OnParametersSetAsync()
     {
         if (!string.IsNullOrWhiteSpace(searchtext))
         {
             ResetExternalSearch();
-            // don't want to await these actions?
-            _ = LoadMoreFGPResults();
-            _ = LoadMoreOpenDataResults();
+
+            LoadMoreFGPResults();
+            LoadMoreOpenDataResults();
         }
     }
 }

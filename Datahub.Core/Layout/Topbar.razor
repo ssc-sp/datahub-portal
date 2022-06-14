@@ -1,10 +1,11 @@
 @inject UIControlsService UI
 @inject IUserInformationService UserInformationService
 @inject NavigationManager NavigationManager
-@inject IMyDataService _myDataService
+@inject MyDataService _myDataService
 @inject IPortalVersionService VersionService
 @inject MicrosoftIdentityConsentAndConditionalAccessHandler ConsentHandler
 
+@using Microsoft.Identity.Web
 @using Datahub.Core.Components.Common
 @using Microsoft.Identity.Web
 @using System.Timers

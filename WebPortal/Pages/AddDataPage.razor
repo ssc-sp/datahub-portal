@@ -3,10 +3,11 @@
 
 @inject NavigationManager NavigationManager
 @inject ILogger<AddDataPage> logger
-@inject IMyDataService ApiService
+@inject MyDataService ApiService
 @inject IJSRuntime JSRuntime
 @inject UIControlsService UI
 @inject IFileReaderService fileReaderService
+@inject DataRetrievalService DataRetrievalService
 
 <EditForm Model="_fileMetadata" OnValidSubmit="HandleValidSubmit">
     <DataAnnotationsValidator />
@@ -67,7 +68,7 @@
         </div>
         <div class="bodytext">
             <label for="securityclass" class="formlabel">@Localizer["ADD-DATA-PAGE.SecurityClassification-Label"]<div class="bluetext">*</div></label>
-            <AeDropdown Items="securityClassOptions" Renderer="GetOption" OnChange="HandleDropdownChange" LabelRenderFragment="GetIcon" id="securityDropdown" />
+            <AeDropdown Items="securityClassOptions" Renderer="GetOption" OnChange="HandleDropdownChange" LabelRenderFragment="getIcon" id="securityDropdown" />
         </div>
         <div class="errortext">
             <div class="formlabel"></div>
@@ -114,7 +115,7 @@
 @code
 {
     [Parameter]
-    public string Project { get; set; }
+    public string? Project { get; set; }
 
     [Parameter]
     public string DummyParam { get; set; }
@@ -126,10 +127,14 @@
     private string status;
     bool showAddRow = true;
     bool showHeader;
+    private ElementReference inputTypeFileElement;
+    private ElementReference dropTargetInput;
+    private IFileReference fileReference;
+    //private IBrowserFile browserFile;
 
-    private void OnInputFileChange(InputFileChangeEventArgs e)
+    private async Task OnInputFileChange(InputFileChangeEventArgs e)
     {
-        foreach (var file in e.GetMultipleFiles(10))
+         foreach (var file in e.GetMultipleFiles(10))
         {
             ApiService.browserFile = file;
         }
@@ -279,16 +284,14 @@
                 isLoading = false;
 
                 //need cancellation token for this.
-                //InvokeAsync(async () =>
-                //{
-                //    await ApiService.UploadGen2File(_fileMetadata, Project?.ToLowerInvariant(), DataRetrievalService.DEFAULT_CONTAINER_NAME);
-                //});
-
-                // don't want to await this?
-                _ = ApiService.UploadGen2File(_fileMetadata, Project?.ToLowerInvariant(), DataRetrievalService.DEFAULT_CONTAINER_NAME);
-
+                InvokeAsync(async () =>
+                {
+                    await ApiService.UploadGen2File(_fileMetadata, Project?.ToLowerInvariant(), DataRetrievalService.DEFAULT_CONTAINER_NAME);
+                });
                 // Return to grid view
-                NavigationManager.NavigateTo("data");                
+                NavigationManager.NavigateTo("data");
+
+                
             }
             else
             {
@@ -320,25 +323,24 @@
         StateHasChanged();
     }
 
-    //public async Task OnInputChange(EventArgs e)
-    //{
-    //    foreach (var file in await fileReaderService.CreateReference(dropTargetInput).EnumerateFilesAsync())
-    //    {
-    //        fileReference = file;
-    //        var fileInfo = await fileReference.ReadFileInfoAsync();
-    //        status = fileInfo.Name;
-    //        _fileMetadata.filename = fileInfo.Name;
-    //        StateHasChanged();
-    //    }
-    //}
-
-    private async Task<RenderFragment> GetIcon()
+    public async Task OnInputChange(EventArgs e)
     {
-        return await Task.FromResult<RenderFragment>
-        (
-            @<div id="securityClassButton" class="ae button"> <div>@_fileMetadata.securityclass</div> <i class="fal fa-chevron-down chevronborder"></i></div>
-        );
+        foreach (var file in await fileReaderService.CreateReference(dropTargetInput).EnumerateFilesAsync())
+        {
+            fileReference = file;
+            var fileInfo = await fileReference.ReadFileInfoAsync();
+            status = fileInfo.Name;
+            _fileMetadata.filename = fileInfo.Name;
+            StateHasChanged();
+        }
     }
+
+    private async Task<RenderFragment> getIcon()
+    {
+        return 
+    @<div id="securityClassButton" class="ae button"> <div>@_fileMetadata.securityclass</div> <i class="fal fa-chevron-down chevronborder"></i></div>;
+    }
+
 
     private RenderFragment GetOption(string option)
     {

@@ -10,12 +10,10 @@
     
     [Parameter]
     public bool Circle { get; set; }
-
+    
+    [Parameter]
+    public string Style { get; set; }
 
     private string _classname => $"skeleton {(Circle ? "circle" : "row")} wave";
-    
-    
-
-    private string _style => $"height: {Height}; width: {Width}";
-
+    private string _style => $"{Style}; height: {Height}; width: {Width}";
 }

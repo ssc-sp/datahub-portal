@@ -11,6 +11,8 @@ variables:
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
 
+name: 2.0.$(date:yy)$(DayOfYear)$(rev:.r)
+
 trigger:
   branches:
     include:
@@ -54,6 +56,7 @@ steps:
         Copy-Item $file.FullName -Force -Destination $fileRendered
       }
       cd WebPortal; mv appsettings.Development.json appsettings.dev.json; Move-Item -Force appsettings.json-tmpl-spdatahub appsettings.json
+
 - task: DotNetCoreCLI@2
   inputs:
     command: 'publish'
@@ -62,6 +65,7 @@ steps:
     zipAfterPublish: true
 
 - task: AzureRmWebAppDeployment@4
+  condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
   inputs:
     ConnectionType: 'AzureRM'
     azureSubscription: 'AZRM - DataSolutions'
@@ -73,3 +77,56 @@ steps:
     package: '$(System.DefaultWorkingDirectory)/WebPortal/**/*.zip'
     enableCustomDeployment: true
     DeploymentType: 'webDeploy'
+
+- task: AzureAppServiceSettings@1
+  displayName: Azure App Service Settings
+  inputs:
+    azureSubscription: 'AZRM - DataSolutions'
+    appName: 'spdatahub-portal-app-sand'
+    ResourceGroupName: 'sp-datahub-sand-rg'
+    SlotName: 'stage'
+    appSettings: |
+      [
+        {
+          "name": "PortalVersion__Release",
+          "value": "$(Build.BuildNumber)",
+          "slotSetting": true
+        },
+        {
+          "name": "PortalVersion__Commit",
+          "value": "$(Build.SourceVersion)", 
+          "slotSetting": true
+        },
+        {
+          "name": "PortalVersion__BuildId",
+          "value": "$(Build.BuildId)", 
+          "slotSetting": true
+        }
+      ]
+
+# Graph Function
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'restore'
+    projects: 'Datahub.Graph.Functions/*.csproj'
+    feedsToUse: 'select'
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'build'
+    projects: 'Datahub.Graph.Functions/*.csproj'
+    arguments: '--configuration Release'
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'publish'
+    projects: 'Datahub.Graph.Functions/*.csproj'
+    arguments: '--configuration Release'
+    publishWebProjects: false
+
+- task: AzureFunctionApp@1
+  condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
+  inputs:
+    azureSubscription: 'AZRM - DataSolutions'
+    appType: 'functionApp'
+    appName: 'spdatahub-portal-func-dotnet-sand'
+    package: '$(System.DefaultWorkingDirectory)/Datahub.Graph.Functions/**/*.zip'
+    deploymentMethod: 'zipDeploy'

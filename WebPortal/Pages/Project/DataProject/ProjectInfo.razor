@@ -30,7 +30,7 @@
     public string ProjectAcronym { get; set; }
 
     private Datahub_Project _project;
-    private string _projectIcon => $"fas fa-{_project?.Project_Icon ?? "swatchbook"}";
+    private string _projectIcon => $"fas fa-{_project?.Project_Icon ?? Icon.DEFAULT_PROJECT_ICON}";
 
     private bool _loading = true;
 

@@ -81,14 +81,14 @@
 
     private List<Datahub_Project_User> _chosenUsers;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         //var currentUserId = await UserInformationService.GetUserIdString();
 
         Context = DbFactory.CreateDbContext();
         _project = Context.Projects.Single(p => p.Project_Acronym_CD == projectAcronym);
         _chosenUsers = Context.Project_Users.Where(p => p.Project == _project).ToList();
-        FillAccessorFunctions();
+        await FillAccessorFunctions();
 
         renderFunctions = new List<Func<Datahub_Project_User, RenderFragment>>() {            
             user => @<div class="help icon-container"><GraphUserInformation UserId="@user.User_ID" IsUserNameRequested="true"></GraphUserInformation></div>,
@@ -132,7 +132,7 @@
 
     }
 
-    private void FillAccessorFunctions()
+    private async Task FillAccessorFunctions()
     {
         accessorFunctions = new List<Func<Datahub_Project_User, string>>() {
             (user => { return user.User_ID; }),

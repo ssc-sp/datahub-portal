@@ -1,0 +1,37 @@
+@using Datahub.Core.Data
+@if (ChildContent != null)
+{
+    @ChildContent
+}
+
+@if (Toasts != null && Toasts.Any())
+{
+    <div class="toaster">
+        @foreach (var toast in Toasts)
+        {
+            <div class="toast">
+                <i class="fas fa-cloud-download-alt"></i>
+                <span class="toast-text">
+                    <AeTypography class="toast-title">
+                        @toast.Title
+                    </AeTypography>
+                    <AeTypography class="toast-subtitle">
+                        @toast.Subtitle
+                    </AeTypography>
+                </span>
+                <div class="toast-progress">
+                    <div class="toast-progress-bar" style="width: @toast.Progress%;">@toast.Progress.ToString("0.00")%</div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    [Parameter]
+    public List<Toast> Toasts { get; set; }
+}
