@@ -54,5 +54,16 @@ namespace Datahub.Core.EFCore
         public PowerBi_Workspace Workspace { get; set; }
     }
 
+
+    public class ExternalPowerBiReport
+    { 
+        [Key]
+        public int ExternalPowerBiReport_ID { get; set; }
+        public string Token { get; set; }
+        public string Url { get; set; }
+        public Guid Report_ID { get; set; }
+
+    }
+
     public record class PowerBi_DataSetDefinition(Guid DataSetId, string DataSetName, Guid WorkspaceId);
 }

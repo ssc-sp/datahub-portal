@@ -1,8 +1,8 @@
 ﻿@page "/powerbi-report/embed/{GroupId}/{ReportId}"
 @page "/powerbi-report/embed/{ReportId}"
-@* @layout ExternalLayout *@
 @using System.Net.Http
 @using System.Threading.Tasks
+@using Datahub.Portal.Layout
 @using Microsoft.Identity.Client
 @using Microsoft.PowerBI.Api
 @using Microsoft.PowerBI.Api.Models
@@ -11,6 +11,7 @@
 @using Microsoft.Extensions.Configuration
 @inject IJSRuntime JSRuntime
 @inject IConfiguration _configuration
+
 
 @inject IStringLocalizer<DataLabels> DataLocalizer
 @inject NavigationManager NavigationManager
@@ -43,12 +44,15 @@
     {
         try
         {
+            PowerBiServiceApi.SetToken($"eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6ImpTMVhvMU9XRGpfNTJ2YndHTmd2UU8yVnpNYyIsImtpZCI6ImpTMVhvMU9XRGpfNTJ2YndHTmd2UU8yVnpNYyJ9.eyJhdWQiOiJodHRwczovL2FuYWx5c2lzLndpbmRvd3MubmV0L3Bvd2VyYmkvYXBpIiwiaXNzIjoiaHR0cHM6Ly9zdHMud2luZG93cy5uZXQvMDVjOTViMzMtOTBjYS00OWQ1LWI2NDQtMjg4YjkzMGI5MTJiLyIsImlhdCI6MTY1NTE3ODQyOCwibmJmIjoxNjU1MTc4NDI4LCJleHAiOjE2NTUxODM2NTUsImFjY3QiOjAsImFjciI6IjEiLCJhaW8iOiJBVlFBcS84VEFBQUFLak1pQm1iYWk1ZGFpQnZiamVQSEtvOGNlb0VUS2V5cWdjTjdIUlRPVTJZNGc5VEdvYm1JVmRsSk9UUTJoQUU2WFIrajZDalhmTGp1MTVkU1RPWjNWMUFVSEk4d2V4NEZJeHhmK3ROSnFvTT0iLCJhbXIiOlsicHdkIiwicnNhIiwibWZhIl0sImFwcGlkIjoiNzkxYzIyNzYtMjhiNi00OTYyLWIwNDMtMzgxYzQ3NDEwODkyIiwiYXBwaWRhY3IiOiIxIiwiZGV2aWNlaWQiOiI3YzJkNWMwZC1iODc2LTQ1NDctYmJhZS0yYTYxNGJmNzNjZGQiLCJmYW1pbHlfbmFtZSI6IkJhZGVyIiwiZ2l2ZW5fbmFtZSI6Ik5hYmVlbCIsImlwYWRkciI6IjE3NC4xMTQuMjkuMTE3IiwibmFtZSI6IkJhZGVyLCBOYWJlZWwiLCJvaWQiOiIwNDAzNTI4Yy01YWJjLTQyM2YtOTIwMS05Yzk0NWY2Mjg1OTUiLCJvbnByZW1fc2lkIjoiUy0xLTUtMjEtNjYwODE3ODgtNDYyOTc4NjYxLTEyNjg4NjI4NjUtMzA2MjkyIiwicHVpZCI6IjEwMDMyMDAwQzlDNkIyRjMiLCJyaCI6IjAuQVJjQU0xdkpCY3FRMVVtMlJDaUxrd3VSS3drQUFBQUFBQUFBd0FBQUFBQUFBQUFYQVBjLiIsInNjcCI6IkFwcC5SZWFkLkFsbCBDYXBhY2l0eS5SZWFkLkFsbCBDb250ZW50LkNyZWF0ZSBEYXNoYm9hcmQuUmVhZC5BbGwgRGF0YWZsb3cuUmVhZC5BbGwgRGF0YWZsb3cuUmVhZFdyaXRlLkFsbCBEYXRhc2V0LlJlYWQuQWxsIERhdGFzZXQuUmVhZFdyaXRlLkFsbCBHYXRld2F5LlJlYWQuQWxsIFBpcGVsaW5lLlJlYWQuQWxsIFJlcG9ydC5SZWFkLkFsbCBSZXBvcnQuUmVhZFdyaXRlLkFsbCBTdG9yYWdlQWNjb3VudC5SZWFkLkFsbCBUZW5hbnQuUmVhZC5BbGwgV29ya3NwYWNlLlJlYWQuQWxsIFdvcmtzcGFjZS5SZWFkV3JpdGUuQWxsIiwic2lnbmluX3N0YXRlIjpbImR2Y19tbmdkIiwiZHZjX2RtamQiLCJrbXNpIl0sInN1YiI6InA0enZJT1J0dkxDLVkybTYyWGwwOWJGSXF1VzRGN3Eza2pveGN2UEx2VkEiLCJ0aWQiOiIwNWM5NWIzMy05MGNhLTQ5ZDUtYjY0NC0yODhiOTMwYjkxMmIiLCJ1bmlxdWVfbmFtZSI6Im5hYmVlbC5iYWRlckBucmNhbi1ybmNhbi5nYy5jYSIsInVwbiI6Im5hYmVlbC5iYWRlckBucmNhbi1ybmNhbi5nYy5jYSIsInV0aSI6Imx2NjUwMzBIZ1V5bEEzb1JMYklVQUEiLCJ2ZXIiOiIxLjAiLCJ3aWRzIjpbImI3OWZiZjRkLTNlZjktNDY4OS04MTQzLTc2YjE5NGU4NTUwOSJdfQ.q37Ml8XGpSoBPvvdo6KnP4ATO7KXlpLP6Fej8hL_cBJarDTj6h9mcnowWQCF7QSIRX9xbyp3aQU5AeqtWY_00APzuof3hIM4zhcFO68JfJMjo_POdle7D6Vgso9mNOh4LoNpcBjfS_2ZYUsZCrE_tBwAAa4RHnPeFCXgKRhsiFvXmrrxYgWUEYN6zbzzY7DPCzODHX0Wgmktq7WGC27IdlCfBF7J3c_BZbMeMMlOB6txch1oweKLTkeNsDUP6byNrDt_yuMts71bJtv_ultADBT_M49vjjNfCkXMdDN8710fOxPscJ9z-BuhM3MKQhwyOaRz7xdDV3ZZvJJj6GG3Kg");
             if (GroupId is null)
                 report = await PowerBiServiceApi.GetReport(ReportId);                
             else
                 report = await PowerBiServiceApi.GetReport(ReportId, GroupId);
 
-            reportToken = await PowerBiServiceApi.GetEmbedTokenAsync(10,report.DatasetId, new Guid(ReportId));
+            reportToken = await PowerBiServiceApi.GetEmbedTokenAsync(100,report.DatasetId, new Guid(ReportId));
+
+            PowerBiServiceApi.SetToken(string.Empty);
 
             var pbiSettings = new PowerBISettings();
             if (ReadOnly)
@@ -56,12 +60,12 @@
                 pbiSettings.bars.actionBar.visible = false;
                 pbiSettings.navContentPaneEnabled = false;            
             }
-
+            
             if (report != null)
             {
                 await JSRuntime.InvokeAsync<object>(
                     "ShowMyPowerBI.showReportEmbed",
-                    PowerBIElement, reportToken, report.EmbedUrl,
+                    PowerBIElement, reportToken.Token, report.EmbedUrl,
                     report.Id.ToString(), pbiSettings);
             }
         } 
