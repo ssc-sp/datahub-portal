@@ -115,7 +115,7 @@ namespace Datahub.Core.Services
                 .ToList();
             var user = await _userInformationService.GetUserAsync();
             
-            await _systemNotificationService.CreateSystemNotificationsWithLink(adminUserIds, $"/admin", "SYSTEM-NOTIFICATION.GoToAdminPage",
+            await _systemNotificationService.CreateSystemNotificationsWithLink(adminUserIds, $"/administration", "SYSTEM-NOTIFICATION.GoToAdminPage",
                 "SYSTEM-NOTIFICATION.NOTIFICATION-TEXT.ServiceCreationRequested",
                 user.UserPrincipalName, request.ServiceType, new BilingualStringArgument(request.Project.ProjectInfo.ProjectNameEn, request.Project.ProjectInfo.ProjectNameFr));
 
@@ -135,7 +135,7 @@ namespace Datahub.Core.Services
             
             var user = await _userInformationService.GetUserAsync();
 
-            await _systemNotificationService.CreateSystemNotificationsWithLink(adminUserIds, $"/admin",
+            await _systemNotificationService.CreateSystemNotificationsWithLink(adminUserIds, $"/administration",
                 "SYSTEM-NOTIFICATION.GoToAdminPage",
                 "SYSTEM-NOTIFICATION.NOTIFICATION-TEXT.ServiceAccessRequested",
                 user.UserPrincipalName, serviceName,
