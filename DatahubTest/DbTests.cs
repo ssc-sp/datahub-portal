@@ -142,7 +142,7 @@ namespace Datahub.Tests
             serviceCollection.AddScoped<IUserInformationService, UserInformationService>();
             serviceCollection.AddSingleton<IMSGraphService, MSGraphService>();
 
-            serviceCollection.AddScoped<MyDataService, MyDataService>();
+            serviceCollection.AddScoped<IMyDataService, MyDataService>();
 
             _serviceProvider = serviceCollection.BuildServiceProvider();
         }
