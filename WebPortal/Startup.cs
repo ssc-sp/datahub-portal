@@ -330,7 +330,7 @@ namespace Datahub.Portal
                 services.AddScoped<IUserInformationService, UserInformationService>();
                 services.AddSingleton<IMSGraphService, MSGraphService>();
 
-                services.AddScoped<MyDataService>();
+                services.AddScoped<IMyDataService, MyDataService>();
 
                 services.AddScoped<IPublicDataFileService, PublicDataFileService>();
 
@@ -362,7 +362,7 @@ namespace Datahub.Portal
                 services.AddScoped<IUserInformationService, OfflineUserInformationService>();
                 services.AddSingleton<IMSGraphService, OfflineMSGraphService>();
 
-                services.AddScoped<MyDataService, OfflineMyDataService>();
+                services.AddScoped<IMyDataService, OfflineMyDataService>();
                 
                 services.AddScoped<IProjectDatabaseService, OfflineProjectDatabaseService>();
 
