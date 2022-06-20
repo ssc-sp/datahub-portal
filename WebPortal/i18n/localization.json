@@ -202,7 +202,8 @@
     "Database": "Database",
     "Unclassified": "Unclassified",
     "ProtectedA": "Protected A",
-    "ProtectedB": "Protected B"
+    "ProtectedB": "Protected B",
+    "DatasetUrl": "Dataset Url"
   },
   "RESOURCE-TYPE": {
     "psql": "PostgreSQL",

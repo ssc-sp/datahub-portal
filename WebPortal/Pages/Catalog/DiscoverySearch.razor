@@ -2,7 +2,7 @@
 @using Datahub.Metadata.DTO
 @using Datahub.Core.Utils
 @using Datahub.Metadata.Model
-@using Datahub.Portal.Pages.Project.DataProject.ProjectTools
+//@using Datahub.Portal.Pages.Project.DataProject.ProjectTools
 
 @* TODO: transfer these rules to scss, apply it to metadata keywords *@
 <style>
@@ -176,10 +176,13 @@
                             {
                                 <CatalogCards 
                                     @key=@result
-                                    CatalogResult="@result" 
-                                    AccessorFunctions="@_accessorFunctions" 
-                                    RenderFunctions="@_renderFunctions"
-                                    RefreshCard="RefreshCard"/>
+                                    CatalogResult=@result 
+                                    AccessorFunctions=@_accessorFunctions 
+                                    RenderFunctions=@_renderFunctions
+                                    RefreshCard=@RefreshCard
+                                    IsFrench=@_isFrench
+                                    Project=@GetProject(result)
+                                />
                             }
                         }
                     </div>
@@ -210,6 +213,9 @@
 
     [Inject]
     public NavigationManager NavigationManager { get; set; }
+
+    [Inject]
+    public IDbContextFactory<DatahubProjectDBContext> DatahubProjectDbFactory {get; set; }
 
     private const int NO_FILTER_SELECTED = -1;
 
@@ -251,6 +257,8 @@
     private bool _filtersActive = false;
     private bool _clearFilterDisabled => !_filtersActive;
 
+    private Dictionary<string, Datahub_Project> _projects = new();
+
     protected override async Task OnInitializedAsync()
     {
         _isFrench = CultureInfo.CurrentCulture.Name.StartsWith("fr", StringComparison.InvariantCulture);
@@ -260,8 +268,24 @@
         _sectors = (await OrganizationLevelsService.GetSectors()).ToDictionary(s => s.Id);
         _allSectors = await OrganizationLevelsService.GetSectors();
         _branches = (await OrganizationLevelsService.GetBranches()).ToDictionary(b => b.Id);
+
+        await LoadProjects();
+
         _searchThrottler = new(TimeSpan.FromSeconds(0.5), ThrottleSearch);
         await _searchThrottler.SetQuery(string.Empty);
+    }
+
+    private async Task LoadProjects()
+    {
+        using var ctx = await DatahubProjectDbFactory.CreateDbContextAsync();
+        _projects = await ctx.Projects.ToDictionaryAsync(p => p.Project_Acronym_CD);
+    }
+
+    private Datahub_Project GetProject(CatalogObjectResult result)
+    {
+        if (result.DataType == MetadataObjectType.File && _projects.ContainsKey(result.Location))
+            return _projects[result.Location];
+        return null;
     }
 
     private async Task ChangeIncompleteCatalogFilter(ChangeEventArgs e)
@@ -285,9 +309,7 @@
 
     private async Task RefreshCard(CatalogObjectResult catalogObject)
     {
-
     }
-
 
     private string GetLocalizedDataType(MetadataObjectType dataType) => Localizer[$"DISCOVERY-DATA-TYPES.{dataType}"];
 
@@ -366,11 +388,11 @@
         await InvokeAsync(StateHasChanged);
     }
 
-    private async Task CheckCompleteneses()
+    private void CheckCompleteneses()
     {
         foreach (var result in _searchResults)
         {
-            var fieldValues = await MetadataBrokerService.GetObjectMetadataValues(result.ObjectMetadataId);
+            var fieldValues = result.Metadata;
             var names = fieldValues.GetAllFieldNames();
             var allFieldValues = names.ToDictionary(n => n, n => fieldValues.GetValue(n));
             var title = _isFrench ? allFieldValues["title_translated_fr"] : allFieldValues["title_translated_en"];
@@ -533,7 +555,7 @@
         try
         {
             _searchResults = await SearchCatalog(searchText);
-            await CheckCompleteneses();
+            CheckCompleteneses();
             await UpdateFilter();
         }
         finally
