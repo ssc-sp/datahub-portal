@@ -25,6 +25,8 @@ class CatalogObject:
     programs: str
     keywords_en: list[str]
     keywords_fr: list[str]
+    url_en: str
+    url_fr: str
 
 def map_path(fileName: str) -> str:
     return f"./data/{fileName}"
@@ -46,6 +48,9 @@ def index_table(table: list[Entity], key: str) -> dict:
     for row in table:
         index[getattr(row, key, "")] = row
     return index
+
+def build_url(lang: str, id: str) -> str:
+    return f"https://applications.cfl.scf.rncan.gc.ca/ids/{lang}/data/view/{id}"
 
 # load all tables
 
@@ -77,14 +82,16 @@ output = list()
 for e in datasheets:
     keyword_ids = get_datasheet_keywords(e.id)
     ds = CatalogObject(
-        id=e.id, 
+        id=f"CFS_{e.id}", 
         name_en=e.name_en, 
         name_fr=e.name_fr,
         contact=e.datLeadContact,
         subjects=get_subjects(e.id),
         programs=e.datRelProg,
         keywords_en=get_keywords(list(map(lambda kw: kw.keyword_id_en, keyword_ids)), threasaurus_en),
-        keywords_fr=get_keywords(list(map(lambda kw: kw.keyword_id_fr, keyword_ids)), threasaurus_fr))
+        keywords_fr=get_keywords(list(map(lambda kw: kw.keyword_id_fr, keyword_ids)), threasaurus_fr),
+        url_en=build_url("en", e.id),
+        url_fr=build_url("fr", e.id))
     output.append(ds)
 
 # output 

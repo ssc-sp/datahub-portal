@@ -13,5 +13,6 @@ namespace Datahub.Metadata.DTO
         public string Contact { get; set; }
         public string SecurityClass { get; set; }
         public bool IsCatalogComplete { get; set; } = true;
+        public FieldValueContainer Metadata { get; set; }
     }
 }
