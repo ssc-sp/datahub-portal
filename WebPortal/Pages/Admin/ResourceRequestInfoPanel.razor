@@ -1,6 +1,7 @@
 ﻿@inject RequestManagementService _requestService;
 @using Datahub.Core.EFCore;
-@using Datahub.Metadata.DTO
+@using Datahub.Metadata.DTO;
+@using Datahub.Portal.Data.ProjectResource;
 
 @* TODO: localize text *@
 
@@ -61,22 +62,24 @@
             ResourceRecord = res;
             SettingsDict = res.GetInputParamsDictionary();
             IsEditing = false;
-            ResetFieldValues();
         }
-        public void ResetFieldValues()
-        {
-            FieldValues = ProjectResourceFormHelper.BuildFieldValues(SettingsDict, ResourceRecord.ResourceType);
-        }
-        public static EditableResource BuildForResource(Project_Resources2 res)
+        public static EditableResource BuildForResource(Project_Resources2 res, FieldDefinitions fieldDefs)
         {
             if (res.HasInputParams)
             {
-                return new EditableResource(res);
+                var result = new EditableResource(res);
+                result.ResetValues(fieldDefs);
+                return result;
             }
             else
             {
                 return default;
             }
+        }
+        public void ResetValues(FieldDefinitions fieldDefs)
+        {
+            var objectId = FieldValues?.ObjectId;
+            FieldValues = ProjectResourceFormHelper.BuildFieldValues(fieldDefs, SettingsDict, objectId);
         }
     }
 
@@ -126,7 +129,7 @@
     private async Task CancelEditing(EditableResource r)
     {
         r.SettingsDict = r.ResourceRecord.GetInputParamsDictionary();
-        r.ResetFieldValues();
+        r.ResetValues(_formParams.FieldDefinitions);
         r.IsEditing = false;
         await Task.CompletedTask;
     }
@@ -151,20 +154,22 @@
     private async Task LoadResources()
     {
         _resources = await _requestService.GetResourcesByRequest(Request);
+
         _editableResources = _resources
-            .Select(r => EditableResource.BuildForResource(r))
+            .Select(r => EditableResource.BuildForResource(r, _formParams.FieldDefinitions))
             .Where(r => r != null)
             .ToList();
     }
 
     private async Task LoadResourceFormParams()
     {
-        _formParams = await Task.FromResult(ProjectResourceFormHelper.GetProjectResourceParams(Request.ServiceType));
+        _formParams = await _requestService.CreateResourceInputFormParams(Request.ServiceType);
     }
 
     protected override async Task OnInitializedAsync()
     {
-        await Task.WhenAll(LoadResources(), LoadResourceFormParams());
+        await LoadResourceFormParams();
+        await LoadResources();
     }
 
 }
