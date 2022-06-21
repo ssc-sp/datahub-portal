@@ -1,9 +1,10 @@
 @*CatalogCard.razor*@
 @using Datahub.Metadata.DTO
 @using Datahub.Metadata.Model
-@inject UIControlsService _uiControlService
+@using Datahub.Metadata.Utils
+@inject UIControlsService uiControlService
 
-@if (_fieldValues == null || _allFieldValues == null)
+@if (CatalogResult is null)
 {
     <CardSkeleton />
 }
@@ -70,19 +71,16 @@ else
     public CatalogObjectResult CatalogResult { get; init; }
 
     [Parameter]
+    public Datahub_Project Project { get; set; }
+
+    [Parameter]
     public List<Func<CatalogObjectResult, string>> AccessorFunctions { get; set; }
 
     [Parameter]
     public List<Func<CatalogObjectResult, RenderFragment>> RenderFunctions { get; set; }
 
     [Parameter]
-    public EventCallback<CatalogObjectResult> RefreshCard { get; set; }
-
-    [Parameter]
     public bool IsFrench { get; set; }
-
-    [Parameter]
-    public Datahub_Project Project { get; set; }
 
     private string _projectIcon => CatalogResult.SecurityClass.Contains("Protect") ? $"fas fa-lock-alt" : $"fas fa-lock-open-alt";
     private string _fileIcon => GetFileIcon();
@@ -98,6 +96,13 @@ else
     private string GetDivTitleDescription() => IsFrench ? GetFieldDefinitions("notes_translated_fr") : GetFieldDefinitions("notes_translated_en");
     private string GetTitle() => IsFrench ? _allFieldValues["title_translated_fr"] : _allFieldValues["title_translated_en"];
     private string GetDescription() => IsFrench ? _allFieldValues["notes_translated_fr"] : _allFieldValues["notes_translated_en"];
+
+    protected override void OnInitialized()
+    {
+        _fieldValues = CatalogResult.Metadata;
+        IndexFieldValues(_fieldValues);
+        SetAllTags();
+    }
 
     private string GetLabel(string label) 
     {
@@ -118,37 +123,36 @@ else
             Location=@CatalogResult.Location
             SecurityClass=@CatalogResult.SecurityClass
             SaveButtonLabel=@Localizer["OPENDATA-WIZARD.Save_button"] 
-            OnSave=@HandleSave
-            OnDiscard=@HandleClose
+            OnSave="HandleSave"
+            OnDiscard="HandleClose"
             ValidateRequired=true
             ProfileName="catalog"
             ObjectType=@MetadataObjectType.File
             UpdateCatalog=true
         />;
-        await _uiControlService.ToggleModal(@<RenderFragmentModal Fragment=@metadataEditor />
+        await uiControlService.ToggleModal(@<RenderFragmentModal Fragment=@metadataEditor />
     );
     }
 
     private async Task HandleSave(FieldValueContainer values)
     {
-        await _uiControlService.ToggleModal();
         CatalogResult.Metadata = values;
-        SetAllValues(values);
-        await RefreshCard.InvokeAsync(CatalogResult);
+        IndexFieldValues(values);
+        UpdateCatalogData(values);
         await InvokeAsync(StateHasChanged);
+        await uiControlService.ToggleModal();
     }
 
     private async Task HandleClose()
     {
-        await _uiControlService.ToggleModal();
-        await RefreshCard.InvokeAsync(CatalogResult);                    
+        await uiControlService.ToggleModal();
     }
 
-    protected override void OnInitialized()
+    private void UpdateCatalogData(FieldValueContainer values)
     {
-        _fieldValues = CatalogResult.Metadata;
-        SetAllValues(_fieldValues);
-        SetAllTags();
+        var digest = values.GetCatalogDigest();
+        CatalogResult.Sector = digest.Sector;
+        CatalogResult.Branch = digest.Branch;
     }
 
     private string GetCardAdminRoles()
@@ -197,7 +201,7 @@ else
         return DatahubTools.GetFileTypeIcon(_fileType);
     }
 
-    private void SetAllValues(FieldValueContainer fieldValues)
+    private void IndexFieldValues(FieldValueContainer fieldValues)
     {
         var names = fieldValues.GetAllFieldNames();
         _allFieldValues = names.ToDictionary(n => n, n => fieldValues.GetValue(n));
