@@ -2,7 +2,6 @@
 @using Datahub.Metadata.DTO
 @using Datahub.Core.Utils
 @using Datahub.Metadata.Model
-//@using Datahub.Portal.Pages.Project.DataProject.ProjectTools
 
 @* TODO: transfer these rules to scss, apply it to metadata keywords *@
 <style>
@@ -75,9 +74,6 @@
                                 </ChildContent>
                             </AeCollapseSection>
                         </AeCollapse>
-                        
-                       
-
 
                         <AeCollapse OnSectionToggled=@OnFilterToggled>
                             <AeCollapseSection DefaultOpen=@_filterSectionOpen>
@@ -102,13 +98,10 @@
                                                 @ref=@_objectTypeFilter
                                             />
                                         </div>
-                                        
-                                       
                                     </AeFlex>
                                 </ChildContent>
                             </AeCollapseSection>
                         </AeCollapse>
-
 
                         <AeCollapse OnSectionToggled=@OnSectorFilterToggled>
                             <AeCollapseSection DefaultOpen=@_sectorFilterSectionOpen>
@@ -156,6 +149,7 @@
                         <div>
                             <AeButton OnClickEvent=@ClearFilters Disabled=@_clearFilterDisabled>@Localizer["BUTTONS.Clear"]</AeButton>
                         </div>
+
                         @if (_searching)
                         {
                             <Spinner Small=true />
@@ -179,7 +173,6 @@
                                     CatalogResult=@result 
                                     AccessorFunctions=@_accessorFunctions 
                                     RenderFunctions=@_renderFunctions
-                                    RefreshCard=@RefreshCard
                                     IsFrench=@_isFrench
                                     Project=@GetProject(result)
                                 />
@@ -250,7 +243,6 @@
     private List<OrganizationLevel> _allSectors = new();
     private Dictionary<int, OrganizationLevel> _sectors = new();
     private Dictionary<int, OrganizationLevel> _branches = new();    
-    private IPageableComponent _resultTable;
     private List<string> _headers = new();
     private List<Func<CatalogObjectResult, RenderFragment>> _renderFunctions = new();
     private List<Func<CatalogObjectResult, string>> _accessorFunctions = new();
@@ -307,10 +299,6 @@
         }
     }
 
-    private async Task RefreshCard(CatalogObjectResult catalogObject)
-    {
-    }
-
     private string GetLocalizedDataType(MetadataObjectType dataType) => Localizer[$"DISCOVERY-DATA-TYPES.{dataType}"];
 
     private string GetLocalizedClassificationType(MetadataClassificationType dataType) => Localizer[$"DISCOVERY-DATA-TYPES.{dataType}"];
@@ -355,8 +343,6 @@
         }
     }
 
-
-
     private void GetMetadataClassificationType(string securityClass)
     {
         var enumType = Enum.Parse(typeof(MetadataClassificationType), securityClass);
@@ -367,9 +353,6 @@
         var noDataTypesSelected = _filteredDataTypes.Count < 1;
         var noClassificationTypesSelected = _filteredClassificationTypes.Count < 1;
         var noSectorsSelected = _filteredSectors.Count < 1;
-
-
-
 
         _filteredSearchResults = _searchResults
             .Where(r => (noDataTypesSelected || _filteredDataTypes.Contains(r.DataType)) &&
@@ -471,7 +454,7 @@
         @<AeButton class="blue" onclick=@(() => HandleDownload(result))>@Localizer[GetButtonText(result)]</AeButton>;
 
     private RenderFragment GetUnauthorizedDownload(CatalogObjectResult result) => 
-    @<AeButton class="red" onclick=@(() => HandleDownload(result))>@(SecurityClassification.ProtectedA.Equals(result.SecurityClass) ? Localizer["Protected A - Request Access"] : Localizer["Protected B - Request Access"])</AeButton>
+        @<AeButton class="red" onclick=@(() => HandleDownload(result))>@(SecurityClassification.ProtectedA.Equals(result.SecurityClass) ? Localizer["Protected A - Request Access"] : Localizer["Protected B - Request Access"])</AeButton>
     ;    
 
     private async Task HandleDownload(CatalogObjectResult result)
@@ -487,6 +470,10 @@
         else if (result.DataType == MetadataObjectType.PowerBIReport)
         {
             await ViewPowerBIReport(result);
+        }
+        else if (result.DataType == MetadataObjectType.DatasetUrl)
+        {
+            await RedirectAndDownload(result.Location);
         }
     }
 
