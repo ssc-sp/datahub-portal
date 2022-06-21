@@ -136,7 +136,6 @@ else
 
     private async Task HandleSave(FieldValueContainer values)
     {
-        CatalogResult.Metadata = values;
         IndexFieldValues(values);
         UpdateCatalogData(values);
         await InvokeAsync(StateHasChanged);
@@ -150,6 +149,8 @@ else
 
     private void UpdateCatalogData(FieldValueContainer values)
     {
+        CatalogResult.Metadata = values;
+
         var digest = values.GetCatalogDigest();
         CatalogResult.Sector = digest.Sector;
         CatalogResult.Branch = digest.Branch;
