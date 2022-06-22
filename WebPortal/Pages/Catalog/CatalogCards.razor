@@ -16,10 +16,15 @@ else
                 <i class="@($"fad fa-{_projectIcon}")"></i>
                 <p><b>@Localizer["DISCOVERY-LABELS.DATA SENSITIVITY"]: @Localizer[@CatalogResult.SecurityClass]</b></p>
             </div>            
-            <div title="@GetFieldDefinitions("name")" class="rowheader">
-                <i style="margin-top: 0.2rem;" class="@_fileIcon"></i>
-                <p>@_allFieldValues["name"]</p>     
-            </div>
+
+            @if (!string.IsNullOrEmpty(_allFieldValues["name"]))
+            {
+                <div title="@GetFieldDefinitions("name")" class="rowheader">
+                    <i style="margin-top: 0.2rem;" class="@_fileIcon"></i>
+                    <p>@_allFieldValues["name"]</p>     
+                </div>
+            }
+
             <AuthorizeView Roles=@GetCardAdminRoles()>
                 <div class="rowheader">                
                     <AeButton class=@GetMetadataButtonColor() OnClickEvent=@ShowMetadataEditor>@Localizer[GetMetadataButtonText()]</AeButton>                
@@ -170,7 +175,10 @@ else
         _tags = new();
         var keywords = IsFrench ? "keywords_fr" : "keywords_en";        
         var eTags = _allFieldValues[keywords] ?? string.Empty;
-        var eTagsList = eTags.Split(',').ToList();
+        var eTagsList = eTags.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                             .Select(kw => kw.Trim())
+                             .Where(kw => !string.IsNullOrEmpty(kw))
+                             .ToList();
         _tags.AddRange(eTagsList);
     }
 
