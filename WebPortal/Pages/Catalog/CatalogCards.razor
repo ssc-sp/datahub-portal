@@ -1,27 +1,31 @@
+@*CatalogCard.razor*@
 @using Datahub.Metadata.DTO
 @using Datahub.Metadata.Model
+@using Datahub.Metadata.Utils
+@inject UIControlsService uiControlService
 
-@inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
-@inject UIControlsService _uiControlService;
-
-@if (_fieldValues == null || _allFieldValues == null)
+@if (CatalogResult is null)
 {
     <CardSkeleton />
 }
 else
 {
     <div class="card">
-
         <div class="topright">
             <div style="@($"--security-text-color: {_securityClassColor}")" class="securityclass">
                 <i class="@($"fad fa-{_projectIcon}")"></i>
                 <p><b>@Localizer["DISCOVERY-LABELS.DATA SENSITIVITY"]: @Localizer[@CatalogResult.SecurityClass]</b></p>
             </div>            
-            <div title="@GetFieldDefinitions("name")" class="rowheader">
-                <i style="margin-top: 0.2rem;" class="@_fileIcon"></i>
-                <p>@_allFieldValues["name"]</p>     
-            </div>
-            <AuthorizeView Roles="@_metadataRoles">
+
+            @if (!string.IsNullOrEmpty(_allFieldValues["name"]))
+            {
+                <div title="@GetFieldDefinitions("name")" class="rowheader">
+                    <i style="margin-top: 0.2rem;" class="@_fileIcon"></i>
+                    <p>@_allFieldValues["name"]</p>     
+                </div>
+            }
+
+            <AuthorizeView Roles=@GetCardAdminRoles()>
                 <div class="rowheader">                
                     <AeButton class=@GetMetadataButtonColor() OnClickEvent=@ShowMetadataEditor>@Localizer[GetMetadataButtonText()]</AeButton>                
                 </div>
@@ -37,20 +41,20 @@ else
         </div>
         <div class="details-left">
             <div title="@GetDivTitleSubject()"><AeTypography Variant="p no-margin"><b>@Localizer["Subject"]: </b>@GetLabel("subject")</AeTypography></div>
-            <AeTypography Variant="p no-margin"><b>@Localizer["DISCOVERY-LABELS.Data Type"]: </b>@AccessorFunctions[4](@CatalogResult)</AeTypography>
+            <AeTypography Variant="p no-margin"><b>@Localizer["DISCOVERY-LABELS.Data Type"]: </b>@Localizer[$"DISCOVERY-DATA-TYPES.{CatalogResult.DataType}"]</AeTypography>
             @if (!string.IsNullOrWhiteSpace(_fileType))
             {
                 <AeTypography Variant="p no-margin"><b>@Localizer["DISCOVERY-LABELS.File Format"]: </b>@_fileType</AeTypography>
             }
-            <AeTypography Variant="p no-margin"><b>@Localizer["DISCOVERY-LABELS.Contact Information"]: </b>@AccessorFunctions[3](@CatalogResult)</AeTypography>
-            @if (_project != null)
+            <AeTypography Variant="p no-margin"><b>@Localizer["DISCOVERY-LABELS.Contact Information"]: </b>@CatalogResult.Contact</AeTypography>
+            @if (Project is not null)
             {
-                <AeTypography Variant="p no-margin"><b>@Localizer["Location"]: </b><DHLink DataProject="@(_project.Project_Acronym_CD)">@_project.ProjectName</DHLink></AeTypography>
+                <AeTypography Variant="p no-margin"><b>@Localizer["Location"]: </b><DHLink DataProject="@(Project.Project_Acronym_CD)">@Project.ProjectName</DHLink></AeTypography>
             }   
         </div>
         <div class="details-right">
-            <AeTypography Variant="p no-margin"><b>@Localizer["Sector"]: </b>@AccessorFunctions[1](@CatalogResult)</AeTypography>
-            <AeTypography Variant="p no-margin"><b>@Localizer["Branch"]: </b>@AccessorFunctions[2](@CatalogResult)</AeTypography>
+            <AeTypography Variant="p no-margin"><b>@Localizer["Sector"]: </b>@(MapSector?.Invoke(CatalogResult) ?? "")</AeTypography>
+            <AeTypography Variant="p no-margin"><b>@Localizer["Branch"]: </b>@(MapBranch?.Invoke(CatalogResult) ?? "")</AeTypography>
             <div title="@GetFieldDefinitions("collection")"><AeTypography Variant="p no-margin"><b>@Localizer["DISCOVERY-LABELS.Collection Type"]: </b>@GetLabel("collection")</AeTypography></div>
         </div>
         <div class="bottom-row">
@@ -61,47 +65,52 @@ else
                 }
             </div>
             <div class="buttons">                
-                <p>@RenderFunctions[6](@CatalogResult)</p>
+                <p>@ChildContent</p>
             </div>
         </div>
     </div>
 }
 @code {
 
+    [Parameter]
+    public CatalogObjectResult CatalogResult { get; init; }
 
-    [Inject]
-    public IMetadataBrokerService MetadataBrokerService { get; set; }
+    [Parameter]
+    public Datahub_Project Project { get; set; }
 
-    [Inject]
-    public IOrganizationLevelsService OrganizationLevelsService { get; set; }
+    [Parameter]
+    public bool IsFrench { get; set; }
+
+    [Parameter]
+    public Func<CatalogObjectResult, string> MapSector { get; set; }
+
+    [Parameter]
+    public Func<CatalogObjectResult, string> MapBranch { get; set; }
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
 
     private string _projectIcon => CatalogResult.SecurityClass.Contains("Protect") ? $"fas fa-lock-alt" : $"fas fa-lock-open-alt";
     private string _fileIcon => GetFileIcon();
-
     private string _securityClassColor => GetSecurityClassColor();
     private string _metadataButtonColor => GetMetadataButtonColor();
-
-    [Parameter]
-    public CatalogObjectResult CatalogResult { get; init; }
-    [Parameter]
-    public List<Func<CatalogObjectResult, string>> AccessorFunctions { get; set; }
-    [Parameter]
-    public List<Func<CatalogObjectResult, RenderFragment>> RenderFunctions { get; set; }
-    [Parameter]
-    public EventCallback<CatalogObjectResult> RefreshCard { get; set; }
 
     private FieldValueContainer _fieldValues;
     private Dictionary<string, string> _allFieldValues;
     private List<string> _tags;
-    private bool _isFrench;
     private string _fileType;
 
-    private string GetDivTitleTitle() => _isFrench ? GetFieldDefinitions("title_translated_fr") : GetFieldDefinitions("title_translated_en");
-    private string GetDivTitleDescription() => _isFrench ? GetFieldDefinitions("notes_translated_fr") : GetFieldDefinitions("notes_translated_en");
-    private string GetTitle() => _isFrench ? _allFieldValues["title_translated_fr"] : _allFieldValues["title_translated_en"];
-    private string GetDescription() => _isFrench ? _allFieldValues["notes_translated_fr"] : _allFieldValues["notes_translated_en"];
-    private Datahub_Project _project;
-    private string _metadataRoles;
+    private string GetDivTitleTitle() => IsFrench ? GetFieldDefinitions("title_translated_fr") : GetFieldDefinitions("title_translated_en");
+    private string GetDivTitleDescription() => IsFrench ? GetFieldDefinitions("notes_translated_fr") : GetFieldDefinitions("notes_translated_en");
+    private string GetTitle() => IsFrench ? _allFieldValues["title_translated_fr"] : _allFieldValues["title_translated_en"];
+    private string GetDescription() => IsFrench ? _allFieldValues["notes_translated_fr"] : _allFieldValues["notes_translated_en"];
+
+    protected override void OnInitialized()
+    {
+        _fieldValues = CatalogResult.Metadata;
+        IndexFieldValues(_fieldValues);
+        SetAllTags();
+    }
 
     private string GetLabel(string label) 
     {
@@ -109,65 +118,68 @@ else
         return subjects.Any() ? subjects[0] : string.Empty;
     }
 
-    
-
     private string GetDivTitleSubject() => GetFieldDefinitions("subject");
 
     private async Task ShowMetadataEditor()
     {
         RenderFragment metadataEditor = 
-    @<ObjectMetadataEditor 
-                @key=@CatalogResult.ObjectMetadataId
-                ObjectId=@CatalogResult.ObjectMetadataId.ToString() 
-                DefaultMetadataId=@CatalogResult.Location
-                Name=@CatalogResult.Name
-                Location=@CatalogResult.Location
-                SecurityClass=@CatalogResult.SecurityClass
-                SaveButtonLabel=@Localizer["OPENDATA-WIZARD.Save_button"] 
-                OnSave=@HandleClose
-                OnDiscard=@HandleClose
-                ValidateRequired=true
-                ProfileName="catalog"
-                ObjectType=@MetadataObjectType.File
-                UpdateCatalog=true
-            />;
-        await _uiControlService.ToggleModal(@<RenderFragmentModal Fragment=@metadataEditor />
+        @<ObjectMetadataEditor 
+            @key=@CatalogResult.ObjectMetadataId
+            ObjectId=@CatalogResult.ObjectMetadataId.ToString() 
+            DefaultMetadataId=@CatalogResult.Location
+            Name=@CatalogResult.Name
+            Location=@CatalogResult.Location
+            SecurityClass=@CatalogResult.SecurityClass
+            SaveButtonLabel=@Localizer["OPENDATA-WIZARD.Save_button"] 
+            OnSave="HandleSave"
+            OnDiscard="HandleClose"
+            ValidateRequired=true
+            ProfileName="catalog"
+            ObjectType=@MetadataObjectType.File
+            UpdateCatalog=true
+        />;
+        await uiControlService.ToggleModal(@<RenderFragmentModal Fragment=@metadataEditor />
     );
+    }
+
+    private async Task HandleSave(FieldValueContainer values)
+    {
+        IndexFieldValues(values);
+        UpdateCatalogData(values);
+        await InvokeAsync(StateHasChanged);
+        await uiControlService.ToggleModal();
     }
 
     private async Task HandleClose()
     {
-        await _uiControlService.ToggleModal();
-        await RefreshCard.InvokeAsync(CatalogResult);                    
+        await uiControlService.ToggleModal();
     }
 
-    protected override async Task OnParametersSetAsync()
+    private void UpdateCatalogData(FieldValueContainer values)
     {
-        await using var projectDbContext = await _dbFactoryProject.CreateDbContextAsync();
-        _project = await projectDbContext.Projects
-            .Where(p => p.Project_Acronym_CD.ToLower() == CatalogResult.Location.ToLower()).FirstOrDefaultAsync();
-        _metadataRoles = RoleConstants.DATAHUB_ROLE_ADMIN;
-        if (_project != null)
-        {
-           _metadataRoles = $"{_project.Project_Acronym_CD}-admin, {RoleConstants.DATAHUB_ROLE_ADMIN}";
-        }
+        CatalogResult.Metadata = values;
 
-        _fieldValues = await MetadataBrokerService.GetObjectMetadataValues(CatalogResult.ObjectMetadataId);
-        _allFieldValues = new();
-        _isFrench = CultureInfo.CurrentCulture.Name.StartsWith("fr", StringComparison.InvariantCulture);
-        SetAllValues();
-        SetAllTags();
+        var digest = values.GetCatalogDigest();
+        CatalogResult.Sector = digest.Sector;
+        CatalogResult.Branch = digest.Branch;
+        CatalogResult.Contact = digest.Contact;
+    }
 
+    private string GetCardAdminRoles()
+    {
+        return Project is null ?  RoleConstants.DATAHUB_ROLE_ADMIN : $"{Project.Project_Acronym_CD}-admin {RoleConstants.DATAHUB_ROLE_ADMIN}";
     }
 
     private void SetAllTags()
     {
         _tags = new();
-        var keywords = _isFrench ? "keywords_fr" : "keywords_en";        
+        var keywords = IsFrench ? "keywords_fr" : "keywords_en";        
         var eTags = _allFieldValues[keywords] ?? string.Empty;
-        var eTagsList = eTags.Split(',').ToList();
+        var eTagsList = eTags.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                             .Select(kw => kw.Trim())
+                             .Where(kw => !string.IsNullOrEmpty(kw))
+                             .ToList();
         _tags.AddRange(eTagsList);
-
     }
 
     private string GetMetadataButtonText()
@@ -179,6 +191,7 @@ else
     {
         return CatalogResult.IsCatalogComplete ? "blue" : "red";
     }
+
     private string GetSecurityClassColor()
     {
         var secClass = CatalogResult.SecurityClass;
@@ -192,25 +205,25 @@ else
                 return "#38a169";
         }
     }
+
     private string GetFileIcon()
     {
         var fileName = _allFieldValues["name"];
         _fileType = Path.GetExtension(fileName);
         _fileType = _fileType.Replace(".", "");
         return DatahubTools.GetFileTypeIcon(_fileType);
-
     }
-    private void SetAllValues()
+
+    private void IndexFieldValues(FieldValueContainer fieldValues)
     {
-        var names = _fieldValues.GetAllFieldNames();
-        _allFieldValues = names.ToDictionary(n => n, n => _fieldValues.GetValue(n));
+        var names = fieldValues.GetAllFieldNames();
+        _allFieldValues = names.ToDictionary(n => n, n => fieldValues.GetValue(n));
     }
 
     private string GetFieldDefinitions(string field)
     {
         return _fieldValues.Definitions.Get(field).Description;
     }
-
 
     private List<FieldChoice> GetOrganizationChoices(List<OrganizationLevel> levels, bool cascades)
     {

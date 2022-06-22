@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "CatalogIngestTool": {
+      "commandName": "Project",
+      "commandLineArgs": ".\\data\\cfs_catalog.json"
+    }
+  }
+}

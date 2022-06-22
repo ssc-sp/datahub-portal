@@ -8,7 +8,8 @@
         PowerBIReport,
         FileUrl,
         GeoObject,
-        Database
+        Database,
+        DatasetUrl
     }
 
     public enum MetadataClassificationType : byte
