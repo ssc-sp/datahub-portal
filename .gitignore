@@ -37,3 +37,4 @@ WebPortal/appsettings.sqlite.json
 testsettings.json
 DatahubTest/testsettings.json
 DatahubTest/testsettings.json
+/CatalogIngestTool/Data/cfs_catalog.json
