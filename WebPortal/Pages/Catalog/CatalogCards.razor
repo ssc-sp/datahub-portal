@@ -36,20 +36,20 @@ else
         </div>
         <div class="details-left">
             <div title="@GetDivTitleSubject()"><AeTypography Variant="p no-margin"><b>@Localizer["Subject"]: </b>@GetLabel("subject")</AeTypography></div>
-            <AeTypography Variant="p no-margin"><b>@Localizer["DISCOVERY-LABELS.Data Type"]: </b>@AccessorFunctions[4](@CatalogResult)</AeTypography>
+            <AeTypography Variant="p no-margin"><b>@Localizer["DISCOVERY-LABELS.Data Type"]: </b>@Localizer[$"DISCOVERY-DATA-TYPES.{CatalogResult.DataType}"]</AeTypography>
             @if (!string.IsNullOrWhiteSpace(_fileType))
             {
                 <AeTypography Variant="p no-margin"><b>@Localizer["DISCOVERY-LABELS.File Format"]: </b>@_fileType</AeTypography>
             }
-            <AeTypography Variant="p no-margin"><b>@Localizer["DISCOVERY-LABELS.Contact Information"]: </b>@AccessorFunctions[3](@CatalogResult)</AeTypography>
+            <AeTypography Variant="p no-margin"><b>@Localizer["DISCOVERY-LABELS.Contact Information"]: </b>@CatalogResult.Contact</AeTypography>
             @if (Project is not null)
             {
                 <AeTypography Variant="p no-margin"><b>@Localizer["Location"]: </b><DHLink DataProject="@(Project.Project_Acronym_CD)">@Project.ProjectName</DHLink></AeTypography>
             }   
         </div>
         <div class="details-right">
-            <AeTypography Variant="p no-margin"><b>@Localizer["Sector"]: </b>@AccessorFunctions[1](@CatalogResult)</AeTypography>
-            <AeTypography Variant="p no-margin"><b>@Localizer["Branch"]: </b>@AccessorFunctions[2](@CatalogResult)</AeTypography>
+            <AeTypography Variant="p no-margin"><b>@Localizer["Sector"]: </b>@(MapSector?.Invoke(CatalogResult) ?? "")</AeTypography>
+            <AeTypography Variant="p no-margin"><b>@Localizer["Branch"]: </b>@(MapBranch?.Invoke(CatalogResult) ?? "")</AeTypography>
             <div title="@GetFieldDefinitions("collection")"><AeTypography Variant="p no-margin"><b>@Localizer["DISCOVERY-LABELS.Collection Type"]: </b>@GetLabel("collection")</AeTypography></div>
         </div>
         <div class="bottom-row">
@@ -60,7 +60,7 @@ else
                 }
             </div>
             <div class="buttons">                
-                <p>@RenderFunctions[6](@CatalogResult)</p>
+                <p>@ChildContent</p>
             </div>
         </div>
     </div>
@@ -74,13 +74,16 @@ else
     public Datahub_Project Project { get; set; }
 
     [Parameter]
-    public List<Func<CatalogObjectResult, string>> AccessorFunctions { get; set; }
-
-    [Parameter]
-    public List<Func<CatalogObjectResult, RenderFragment>> RenderFunctions { get; set; }
-
-    [Parameter]
     public bool IsFrench { get; set; }
+
+    [Parameter]
+    public Func<CatalogObjectResult, string> MapSector { get; set; }
+
+    [Parameter]
+    public Func<CatalogObjectResult, string> MapBranch { get; set; }
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
 
     private string _projectIcon => CatalogResult.SecurityClass.Contains("Protect") ? $"fas fa-lock-alt" : $"fas fa-lock-open-alt";
     private string _fileIcon => GetFileIcon();
@@ -154,6 +157,7 @@ else
         var digest = values.GetCatalogDigest();
         CatalogResult.Sector = digest.Sector;
         CatalogResult.Branch = digest.Branch;
+        CatalogResult.Contact = digest.Contact;
     }
 
     private string GetCardAdminRoles()

@@ -1,4 +1,5 @@
-﻿@page "/discovery"
+﻿@*DiscoverySearch.razor*@
+@page "/discovery"
 @using Datahub.Metadata.DTO
 @using Datahub.Core.Utils
 @using Datahub.Metadata.Model
@@ -149,33 +150,31 @@
                         <div>
                             <AeButton OnClickEvent=@ClearFilters Disabled=@_clearFilterDisabled>@Localizer["BUTTONS.Clear"]</AeButton>
                         </div>
-
-                        @if (_searching)
-                        {
-                            <Spinner Small=true />
-                        }
                     </AeFlex>
                 </div>
                 <div class="cards">
                     <div class="catalog-cards">
-                        @if (!_filteredSearchResults.Any())
-                        {
-                            <CardSkeleton />
-                            <CardSkeleton />
-                            <CardSkeleton />
-                        }
-                        else
+                        @if (_filteredSearchResults.Any())
                         {
                             @foreach(var result in _filteredSearchResults)
                             {
                                 <CatalogCards 
                                     @key=@result
                                     CatalogResult=@result 
-                                    AccessorFunctions=@_accessorFunctions 
-                                    RenderFunctions=@_renderFunctions
                                     IsFrench=@_isFrench
                                     Project=@GetProject(result)
-                                />
+                                    MapSector=@GetSector
+                                    MapBranch=@GetBranch
+                                >
+                                    @GetDownLoadFragment(result)
+                                </CatalogCards>
+                            }
+                        }
+                        else
+                        {
+                            @if (_searching)
+                            {
+                                <Spinner Small=true />
                             }
                         }
                     </div>
@@ -184,7 +183,6 @@
             
         </ChildContent>
     </AeCard>
-
 </div>
 
 @code {
@@ -243,9 +241,6 @@
     private List<OrganizationLevel> _allSectors = new();
     private Dictionary<int, OrganizationLevel> _sectors = new();
     private Dictionary<int, OrganizationLevel> _branches = new();    
-    private List<string> _headers = new();
-    private List<Func<CatalogObjectResult, RenderFragment>> _renderFunctions = new();
-    private List<Func<CatalogObjectResult, string>> _accessorFunctions = new();
     private bool _filtersActive = false;
     private bool _clearFilterDisabled => !_filtersActive;
 
@@ -254,9 +249,6 @@
     protected override async Task OnInitializedAsync()
     {
         _isFrench = CultureInfo.CurrentCulture.Name.StartsWith("fr", StringComparison.InvariantCulture);
-        _accessorFunctions = new() { GetName, GetSector, GetBranch, GetContact, GetDataType, GetSecurityClass, null };
-        _headers = new() { Localizer["Name"], Localizer["Sector"], Localizer["Branch"], Localizer["Contact"], Localizer["Data Type"], Localizer["Security"], string.Empty };
-        _renderFunctions = new() { null, null, null, null, null, null, GetDownLoadFragment };
         _sectors = (await OrganizationLevelsService.GetSectors()).ToDictionary(s => s.Id);
         _allSectors = await OrganizationLevelsService.GetSectors();
         _branches = (await OrganizationLevelsService.GetBranches()).ToDictionary(b => b.Id);
@@ -287,16 +279,6 @@
             _excludeIncompleteCatalogs = (bool)e.Value;
             await UpdateFilter();            
         }        
-    }
-
-    protected override void OnAfterRender(bool firstRender)
-    {
-        // You must re-render after the components are initialized in order for the 
-        // component reference to not be null
-        if (firstRender) 
-        {
-            StateHasChanged();
-        }
     }
 
     private string GetLocalizedDataType(MetadataObjectType dataType) => Localizer[$"DISCOVERY-DATA-TYPES.{dataType}"];
@@ -433,7 +415,6 @@
         _sectorFilterSectionOpen = e.Open;
     }
 
-
     // accessor functions
     private string GetName(CatalogObjectResult result) => result.Name;
     private string GetSector(CatalogObjectResult result) => GetLabel(_sectors.GetValueOrDefault(result.Sector));
@@ -442,7 +423,6 @@
     private string GetDataType(CatalogObjectResult result) => GetLocalizedDataType(result.DataType);
     private string GetSecurityClass(CatalogObjectResult result) => Localizer[result.SecurityClass];
     private string GetLabel(OrganizationLevel orgLevel) => (_isFrench ? orgLevel?.FrenchLabel : orgLevel?.EnglishLabel) ?? "-";
-    
 
     // renderer functions
     private RenderFragment GetDownLoadFragment(CatalogObjectResult result) =>
