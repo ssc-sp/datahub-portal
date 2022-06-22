@@ -276,5 +276,28 @@ namespace Datahub.Core.Services
             var adminList = adminEmails.ToList();
             await _miscStorageService.SaveObject(adminList, GLOBAL_POWERBI_ADMIN_LIST_KEY);
         }
+
+        public async Task<List<PowerBi_Report>> GetReportsForProjectWithExternalReportInfo(string projectCode, bool includeSandbox = false)
+        {
+            using var ctx = await _contextFactory.CreateDbContextAsync();
+
+            var results = await ctx.PowerBi_Reports
+                .Include(r => r.Workspace)
+                .ThenInclude(w => w.Project)
+                .Where(r => r.Workspace.Project != null
+                    && r.Workspace.Project.Project_Acronym_CD.ToLower() == projectCode.ToLower()
+                    && (includeSandbox || !r.Workspace.Sandbox_Flag))
+                .ToListAsync();
+
+            var externalReportIds = await ctx.ExternalPowerBiReports.Where(r => r.End_Date >= DateTime.Now).Select(r => r.Report_ID).ToListAsync();
+
+            foreach (var report in results)
+            {
+                if (externalReportIds.Contains(report.Report_ID))
+                    report.IsExternalReportActive = true;
+            }
+
+            return results;
+        }
     }
 }

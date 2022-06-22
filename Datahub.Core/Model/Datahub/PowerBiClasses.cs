@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -38,6 +39,9 @@ namespace Datahub.Core.EFCore
         public Guid Workspace_Id { get; set; }
 
         public PowerBi_Workspace Workspace { get; set; }
+
+        [NotMapped]
+        public bool IsExternalReportActive { get; set; }
     }
 
     public record class PowerBi_ReportDefinition(Guid ReportId, string ReportName, Guid WorkspaceId);
@@ -59,6 +63,8 @@ namespace Datahub.Core.EFCore
     { 
         [Key]
         public int ExternalPowerBiReport_ID { get; set; }
+        public bool Is_Created { get; set; } 
+        public DateTime End_Date { get; set; }
         public string Token { get; set; }
         public string Url { get; set; }
         public Guid Report_ID { get; set; }

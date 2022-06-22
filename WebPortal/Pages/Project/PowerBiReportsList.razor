@@ -65,7 +65,7 @@
 
     private List<string> headers = new List<string>
     {
-        "Report Name", "Workspace", "Report"
+        "Report Name", "Workspace", "Report", "External Access"
     };
 
     private List<string> LocalizeHeaders(List<string> input) => input.Select(s => Localizer[s].ToString()).ToList();
@@ -76,7 +76,8 @@
         {
             null,
             WorkspaceLinkFragment,
-            ReportLinkFragment
+            ReportLinkFragment,
+            ExternalReport
         };
 
         if (projectAcronym != null)
@@ -99,7 +100,10 @@
     {
         _isLoading = true;
         StateHasChanged();
-        _powerBiReports = await PowerBiDataService.GetReportsForProject(projectAcronym, IncludeSandbox);
+        _powerBiReports = await PowerBiDataService.GetReportsForProjectWithExternalReportInfo(projectAcronym, IncludeSandbox);
+
+
+
         _isLoading = false;
         StateHasChanged();
     }
@@ -118,10 +122,34 @@
         {
             r => r.Report_Name,
             r => r.Workspace?.Workspace_Name ?? string.Empty,
-            r => r.Report_Name
+            r => r.Report_Name,
+            null
         };
 
     private List<Func<PowerBi_Report, RenderFragment>> renderers = new();
+
+    private async void OnCreateClick(Guid reportId)
+    {
+        
+    }
+
+
+
+    private RenderFragment ExternalReport(PowerBi_Report r) =>
+    @<AeTypography>
+        @if (r.IsExternalReportActive)
+            {
+                <p>Exists</p>;
+            }
+            else
+            {
+                <div @onclick="() => OnCreateClick(r.Report_ID)">
+                <i class="far fa-plus-square"></i>
+                <a>Request External Report</a>
+                </div>
+                //<i class="fal fa-times-circle nrcan-close-button" @onclick="() => OnCreateClick(r.Report_ID)"></i>
+            }
+    </AeTypography>;
 
     private RenderFragment WorkspaceLinkFragment(PowerBi_Report r) =>
     @<AeTypography>
