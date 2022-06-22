@@ -32,7 +32,11 @@ namespace Datahub.Core.EFCore
         public DateTime? TimeCreated { get; set; }
 
         public Datahub_Project Project { get; set; }
-      
+
+        public string InputJsonContent { get; set; }
+
+        public bool HasInputParams => !string.IsNullOrEmpty(InputJsonContent);
+
         public T GetResourceObject<T>()
         {
             if (typeof(T).FullName != ClassName)
@@ -69,7 +73,24 @@ namespace Datahub.Core.EFCore
                 JsonContent = JsonConvert.SerializeObject(obj);
             }
         }
+
+        public class CaseInsensitiveSettingsDict : Dictionary<string, string>
+        {
+            public CaseInsensitiveSettingsDict() : base(StringComparer.OrdinalIgnoreCase) { }
+        }
+
+        public Dictionary<string, string> GetInputParamsDictionary()
+        {
+            return string.IsNullOrEmpty(InputJsonContent) ? default : JsonConvert.DeserializeObject<CaseInsensitiveSettingsDict>(InputJsonContent);
+        }
+
+        public void SetInputParameters(Dictionary<string, string> inputParams)
+        {
+            InputJsonContent = JsonConvert.SerializeObject(inputParams);
+        }
     }
+
+    
 
     public static class ProjectResourceConstants
     {
@@ -78,6 +99,11 @@ namespace Datahub.Core.EFCore
         public const string SERVICE_TYPE_STORAGE = "storage";
         public const string SERVICE_TYPE_DATABRICKS = "databricks";
         public const string SERVICE_TYPE_POWERBI = "powerbi";
+
+        public const string STORAGE_TYPE_BLOB = "blob";
+        public const string STORAGE_TYPE_GEN2 = "gen2";
+
+        public const string INPUT_PARAM_STORAGE_TYPE = "storage_type";
     }
 
     public class ProjectResource_Database
@@ -89,4 +115,17 @@ namespace Datahub.Core.EFCore
         public bool IsPostgres => Database_Type == ProjectResourceConstants.SERVICE_TYPE_POSTGRES;
         public bool IsSqlServer => Database_Type == ProjectResourceConstants.SERVICE_TYPE_SQL_SERVER;
     }
+
+    public class ProjectResource_Storage
+    {
+        public const string DEFAULT_STORAGE_TYPE = ProjectResourceConstants.STORAGE_TYPE_BLOB;
+        public string Storage_Type { get; set; }
+        public string Storage_Account { get; set; }
+        public List<string> Containers { get; set; }
+
+        public bool IsBlobStorage => Storage_Type == ProjectResourceConstants.STORAGE_TYPE_BLOB;
+        public bool IsGen2Storage => Storage_Type == ProjectResourceConstants.STORAGE_TYPE_GEN2;
+    }
+
+    public class ProjectResource_Blank { }
 }
