@@ -1167,6 +1167,13 @@
       "SecurityClassification": "Security Classification"
     }
   },
+  "RESOURCE_REQUEST_INFO_PANEL": {
+    "RequestInformation": "Request Information",
+    "InputParameters": "Input Parameters",
+    "projectName": "Project Name",
+    "serviceType": "Service Type",
+    "requestingUser": "Requesting User"
+  },
 
   "NRCan Datahub": "NRCan DataHub",
   "Search...": "Search...",
@@ -1232,5 +1239,7 @@
   "Remove Section": "Remove Section",
   "(any)": "(any)",
   "Expand": "Expand",
-  "Collapse": "Collapse"
+  "Collapse": "Collapse",
+  "Project Resource Definitions": "Project Resource Definitions",
+  "Resources": "Resources"
 }

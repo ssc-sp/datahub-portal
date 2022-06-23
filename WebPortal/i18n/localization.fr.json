@@ -1670,5 +1670,14 @@
     "Approve": "Approuver",
     "ClickToReadPDF": "Cliquez pour lire le PDF",
     "ClickToApprove": "Cliquez pour approuver la publication"
-  }
+  },
+  "RESOURCE_REQUEST_INFO_PANEL": {
+    "RequestInformation": "Information sur la demande",
+    "InputParameters": "Paramètres d'entrée",
+    "projectName": "Nom du projet",
+    "serviceType": "Type de service",
+    "requestingUser": "Utilisateur demandeur"
+  },
+  "Project Resource Definitions": "Définitions des ressources du projet",
+  "Resources": "Ressources"
 }
