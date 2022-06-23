@@ -14,17 +14,20 @@ namespace Datahub.Core.Services
         private readonly IDbContextFactory<DatahubProjectDBContext> _contextFactory;
         private readonly ILogger<PowerBiDataService> _logger;
         private readonly IMiscStorageService _miscStorageService;
+        private readonly IDatahubAuditingService _auditingService;
 
         private static readonly string GLOBAL_POWERBI_ADMIN_LIST_KEY = "GlobalPowerBiAdmins";
 
         public PowerBiDataService(
             IDbContextFactory<DatahubProjectDBContext> contextFactory,
             ILogger<PowerBiDataService> logger,
-            IMiscStorageService miscStorageService)
+            IMiscStorageService miscStorageService,
+            IDatahubAuditingService auditingService)
         {
             _contextFactory = contextFactory;
             _logger = logger;
             _miscStorageService = miscStorageService;
+            _auditingService = auditingService;
         }
 
         public async Task<IList<PowerBi_Workspace>> GetAllWorkspaces()
@@ -298,6 +301,30 @@ namespace Datahub.Core.Services
             }
 
             return results;
+        }
+
+        public async Task CreateExternalPowerBiReportRequest(string userId, Guid reportId)
+        {
+            using var ctx = await _contextFactory.CreateDbContextAsync();
+
+            var request = new ExternalPowerBiReport
+            {
+                RequestingUser = userId,
+                Report_ID = reportId
+            };
+
+            ctx.ExternalPowerBiReports.Add(request);
+
+            var result = await ctx.TrackSaveChangesAsync(_auditingService);
+
+        }
+
+        public async Task<ExternalPowerBiReport> GetExternalReportRecord(Guid reportId)
+        {
+            using var ctx = await _contextFactory.CreateDbContextAsync();
+
+            return ctx.ExternalPowerBiReports.FirstOrDefault(r => r.Report_ID == reportId);
+
         }
     }
 }
