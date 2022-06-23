@@ -130,6 +130,11 @@ namespace Datahub.Portal.Data.ProjectResource
 
         private static ProjectResourceFormParams BuildFormParamsFromJson(string inputJson)
         {
+            if (string.IsNullOrEmpty(inputJson))
+            {
+                return default;
+            }
+
             var anonObject = JsonConvert.DeserializeObject<dynamic>(inputJson);
 
             var defs = BuildFieldDefsFromDynamic(anonObject.fields);
