@@ -100,6 +100,15 @@ namespace Datahub.Core.EFCore
         public const string SERVICE_TYPE_DATABRICKS = "databricks";
         public const string SERVICE_TYPE_POWERBI = "powerbi";
 
+        public static readonly string[] ALL_RESOURCE_TYPES = new[] 
+        { 
+            SERVICE_TYPE_DATABRICKS, 
+            SERVICE_TYPE_SQL_SERVER, 
+            SERVICE_TYPE_POSTGRES, 
+            SERVICE_TYPE_POWERBI, 
+            SERVICE_TYPE_STORAGE 
+        };
+
         public const string STORAGE_TYPE_BLOB = "blob";
         public const string STORAGE_TYPE_GEN2 = "gen2";
 

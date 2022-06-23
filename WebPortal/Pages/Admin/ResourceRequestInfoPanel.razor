@@ -65,7 +65,7 @@
         }
         public static EditableResource BuildForResource(Project_Resources2 res, FieldDefinitions fieldDefs)
         {
-            if (res.HasInputParams)
+            if (res.HasInputParams && fieldDefs != null)
             {
                 var result = new EditableResource(res);
                 result.ResetValues(fieldDefs);
@@ -156,7 +156,7 @@
         _resources = await _requestService.GetResourcesByRequest(Request);
 
         _editableResources = _resources
-            .Select(r => EditableResource.BuildForResource(r, _formParams.FieldDefinitions))
+            .Select(r => EditableResource.BuildForResource(r, _formParams?.FieldDefinitions))
             .Where(r => r != null)
             .ToList();
     }
