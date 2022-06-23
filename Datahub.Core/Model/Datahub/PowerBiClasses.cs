@@ -34,6 +34,7 @@ namespace Datahub.Core.EFCore
         [Key]
         public Guid Report_ID { get; set; }
 
+        
         public string Report_Name { get; set; }
 
         public Guid Workspace_Id { get; set; }
@@ -63,12 +64,15 @@ namespace Datahub.Core.EFCore
     { 
         [Key]
         public int ExternalPowerBiReport_ID { get; set; }
+        [StringLength(200)]
+        public string RequestingUser { get; set; }        
         public bool Is_Created { get; set; } 
         public DateTime End_Date { get; set; }
         public string Token { get; set; }
         public string Url { get; set; }
         public Guid Report_ID { get; set; }
 
+        public bool IsExpired => End_Date != DateTime.MinValue && DateTime.Now > End_Date;
     }
 
     public record class PowerBi_DataSetDefinition(Guid DataSetId, string DataSetName, Guid WorkspaceId);

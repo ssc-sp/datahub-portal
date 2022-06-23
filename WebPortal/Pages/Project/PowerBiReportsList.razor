@@ -128,27 +128,12 @@
 
     private List<Func<PowerBi_Report, RenderFragment>> renderers = new();
 
-    private async void OnCreateClick(Guid reportId)
-    {
-        
-    }
-
+ 
 
 
     private RenderFragment ExternalReport(PowerBi_Report r) =>
     @<AeTypography>
-        @if (r.IsExternalReportActive)
-            {
-                <p>Exists</p>;
-            }
-            else
-            {
-                <div @onclick="() => OnCreateClick(r.Report_ID)">
-                <i class="far fa-plus-square"></i>
-                <a>Request External Report</a>
-                </div>
-                //<i class="fal fa-times-circle nrcan-close-button" @onclick="() => OnCreateClick(r.Report_ID)"></i>
-            }
+        <ExternalReportRequest PowerBi_Report=@(r)/>        
     </AeTypography>;
 
     private RenderFragment WorkspaceLinkFragment(PowerBi_Report r) =>

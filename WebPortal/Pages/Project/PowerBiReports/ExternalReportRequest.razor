@@ -1,0 +1,59 @@
+﻿@inject IPowerBiDataService PowerBiDataService
+@inject IUserInformationService UserInformationService
+@inject IMSGraphService MSGraphService
+
+@if (_isReportActive)
+{
+    <a>Exists</a>
+}
+else if (_isReportRequested)
+{
+    <a>Requested</a>
+}
+else
+{
+    <div @onclick="() => OnCreateClick(PowerBi_Report.Report_ID)">
+        <i class="far fa-plus-square"></i>
+        <a>Request External Report</a>
+    </div>                
+}
+
+@code {
+
+    [Parameter]
+    public PowerBi_Report PowerBi_Report { get; set; }
+
+    private bool _isReportRequested;
+    private bool _isReportActive;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        var report = await PowerBiDataService.GetExternalReportRecord(PowerBi_Report.Report_ID);
+
+        if (report is null || report.IsExpired)
+        {
+            _isReportRequested = false;
+        }
+        else if (!report.Is_Created)
+        {
+            _isReportRequested = true;
+        }
+        else if (report.Is_Created && !report.IsExpired)
+        {
+            _isReportActive = true;
+        }
+        else
+        {
+            _isReportRequested = false;
+        }
+    }
+
+    private async void OnCreateClick(Guid reportId)
+    {
+        var currentUserId = await UserInformationService.GetUserIdString();
+        var requestingUserEmail = await MSGraphService.GetUserEmail(currentUserId, CancellationToken.None);
+        await PowerBiDataService.CreateExternalPowerBiReportRequest(requestingUserEmail, reportId);
+    }
+
+}
