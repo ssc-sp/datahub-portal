@@ -1,8 +1,8 @@
-﻿@page "/discovery"
+﻿@*DiscoverySearch.razor*@
+@page "/discovery"
 @using Datahub.Metadata.DTO
 @using Datahub.Core.Utils
 @using Datahub.Metadata.Model
-@using Datahub.Portal.Pages.Project.DataProject.ProjectTools
 
 @* TODO: transfer these rules to scss, apply it to metadata keywords *@
 <style>
@@ -75,9 +75,6 @@
                                 </ChildContent>
                             </AeCollapseSection>
                         </AeCollapse>
-                        
-                       
-
 
                         <AeCollapse OnSectionToggled=@OnFilterToggled>
                             <AeCollapseSection DefaultOpen=@_filterSectionOpen>
@@ -102,13 +99,10 @@
                                                 @ref=@_objectTypeFilter
                                             />
                                         </div>
-                                        
-                                       
                                     </AeFlex>
                                 </ChildContent>
                             </AeCollapseSection>
                         </AeCollapse>
-
 
                         <AeCollapse OnSectionToggled=@OnSectorFilterToggled>
                             <AeCollapseSection DefaultOpen=@_sectorFilterSectionOpen>
@@ -156,30 +150,31 @@
                         <div>
                             <AeButton OnClickEvent=@ClearFilters Disabled=@_clearFilterDisabled>@Localizer["BUTTONS.Clear"]</AeButton>
                         </div>
-                        @if (_searching)
-                        {
-                            <Spinner Small=true />
-                        }
                     </AeFlex>
                 </div>
                 <div class="cards">
                     <div class="catalog-cards">
-                        @if (!_filteredSearchResults.Any())
-                        {
-                            <CardSkeleton />
-                            <CardSkeleton />
-                            <CardSkeleton />
-                        }
-                        else
+                        @if (_filteredSearchResults.Any())
                         {
                             @foreach(var result in _filteredSearchResults)
                             {
                                 <CatalogCards 
                                     @key=@result
-                                    CatalogResult="@result" 
-                                    AccessorFunctions="@_accessorFunctions" 
-                                    RenderFunctions="@_renderFunctions"
-                                    RefreshCard="RefreshCard"/>
+                                    CatalogResult=@result 
+                                    IsFrench=@_isFrench
+                                    Project=@GetProject(result)
+                                    MapSector=@GetSector
+                                    MapBranch=@GetBranch
+                                >
+                                    @GetDownLoadFragment(result)
+                                </CatalogCards>
+                            }
+                        }
+                        else
+                        {
+                            @if (_searching)
+                            {
+                                <Spinner Small=true />
                             }
                         }
                     </div>
@@ -188,7 +183,6 @@
             
         </ChildContent>
     </AeCard>
-
 </div>
 
 @code {
@@ -210,6 +204,9 @@
 
     [Inject]
     public NavigationManager NavigationManager { get; set; }
+
+    [Inject]
+    public IDbContextFactory<DatahubProjectDBContext> DatahubProjectDbFactory {get; set; }
 
     private const int NO_FILTER_SELECTED = -1;
 
@@ -244,24 +241,35 @@
     private List<OrganizationLevel> _allSectors = new();
     private Dictionary<int, OrganizationLevel> _sectors = new();
     private Dictionary<int, OrganizationLevel> _branches = new();    
-    private IPageableComponent _resultTable;
-    private List<string> _headers = new();
-    private List<Func<CatalogObjectResult, RenderFragment>> _renderFunctions = new();
-    private List<Func<CatalogObjectResult, string>> _accessorFunctions = new();
     private bool _filtersActive = false;
     private bool _clearFilterDisabled => !_filtersActive;
+
+    private Dictionary<string, Datahub_Project> _projects = new();
 
     protected override async Task OnInitializedAsync()
     {
         _isFrench = CultureInfo.CurrentCulture.Name.StartsWith("fr", StringComparison.InvariantCulture);
-        _accessorFunctions = new() { GetName, GetSector, GetBranch, GetContact, GetDataType, GetSecurityClass, null };
-        _headers = new() { Localizer["Name"], Localizer["Sector"], Localizer["Branch"], Localizer["Contact"], Localizer["Data Type"], Localizer["Security"], string.Empty };
-        _renderFunctions = new() { null, null, null, null, null, null, GetDownLoadFragment };
         _sectors = (await OrganizationLevelsService.GetSectors()).ToDictionary(s => s.Id);
         _allSectors = await OrganizationLevelsService.GetSectors();
         _branches = (await OrganizationLevelsService.GetBranches()).ToDictionary(b => b.Id);
+
+        await LoadProjects();
+
         _searchThrottler = new(TimeSpan.FromSeconds(0.5), ThrottleSearch);
         await _searchThrottler.SetQuery(string.Empty);
+    }
+
+    private async Task LoadProjects()
+    {
+        using var ctx = await DatahubProjectDbFactory.CreateDbContextAsync();
+        _projects = await ctx.Projects.ToDictionaryAsync(p => p.Project_Acronym_CD);
+    }
+
+    private Datahub_Project GetProject(CatalogObjectResult result)
+    {
+        if (result.DataType == MetadataObjectType.File && _projects.ContainsKey(result.Location))
+            return _projects[result.Location];
+        return null;
     }
 
     private async Task ChangeIncompleteCatalogFilter(ChangeEventArgs e)
@@ -272,22 +280,6 @@
             await UpdateFilter();            
         }        
     }
-
-    protected override void OnAfterRender(bool firstRender)
-    {
-        // You must re-render after the components are initialized in order for the 
-        // component reference to not be null
-        if (firstRender) 
-        {
-            StateHasChanged();
-        }
-    }
-
-    private async Task RefreshCard(CatalogObjectResult catalogObject)
-    {
-
-    }
-
 
     private string GetLocalizedDataType(MetadataObjectType dataType) => Localizer[$"DISCOVERY-DATA-TYPES.{dataType}"];
 
@@ -333,8 +325,6 @@
         }
     }
 
-
-
     private void GetMetadataClassificationType(string securityClass)
     {
         var enumType = Enum.Parse(typeof(MetadataClassificationType), securityClass);
@@ -345,9 +335,6 @@
         var noDataTypesSelected = _filteredDataTypes.Count < 1;
         var noClassificationTypesSelected = _filteredClassificationTypes.Count < 1;
         var noSectorsSelected = _filteredSectors.Count < 1;
-
-
-
 
         _filteredSearchResults = _searchResults
             .Where(r => (noDataTypesSelected || _filteredDataTypes.Contains(r.DataType)) &&
@@ -366,11 +353,11 @@
         await InvokeAsync(StateHasChanged);
     }
 
-    private async Task CheckCompleteneses()
+    private void CheckCompleteneses()
     {
         foreach (var result in _searchResults)
         {
-            var fieldValues = await MetadataBrokerService.GetObjectMetadataValues(result.ObjectMetadataId);
+            var fieldValues = result.Metadata;
             var names = fieldValues.GetAllFieldNames();
             var allFieldValues = names.ToDictionary(n => n, n => fieldValues.GetValue(n));
             var title = _isFrench ? allFieldValues["title_translated_fr"] : allFieldValues["title_translated_en"];
@@ -428,7 +415,6 @@
         _sectorFilterSectionOpen = e.Open;
     }
 
-
     // accessor functions
     private string GetName(CatalogObjectResult result) => result.Name;
     private string GetSector(CatalogObjectResult result) => GetLabel(_sectors.GetValueOrDefault(result.Sector));
@@ -437,7 +423,6 @@
     private string GetDataType(CatalogObjectResult result) => GetLocalizedDataType(result.DataType);
     private string GetSecurityClass(CatalogObjectResult result) => Localizer[result.SecurityClass];
     private string GetLabel(OrganizationLevel orgLevel) => (_isFrench ? orgLevel?.FrenchLabel : orgLevel?.EnglishLabel) ?? "-";
-    
 
     // renderer functions
     private RenderFragment GetDownLoadFragment(CatalogObjectResult result) =>
@@ -449,7 +434,7 @@
         @<AeButton class="blue" onclick=@(() => HandleDownload(result))>@Localizer[GetButtonText(result)]</AeButton>;
 
     private RenderFragment GetUnauthorizedDownload(CatalogObjectResult result) => 
-    @<AeButton class="red" onclick=@(() => HandleDownload(result))>@(SecurityClassification.ProtectedA.Equals(result.SecurityClass) ? Localizer["Protected A - Request Access"] : Localizer["Protected B - Request Access"])</AeButton>
+        @<AeButton class="red" onclick=@(() => HandleDownload(result))>@(SecurityClassification.ProtectedA.Equals(result.SecurityClass) ? Localizer["Protected A - Request Access"] : Localizer["Protected B - Request Access"])</AeButton>
     ;    
 
     private async Task HandleDownload(CatalogObjectResult result)
@@ -465,6 +450,10 @@
         else if (result.DataType == MetadataObjectType.PowerBIReport)
         {
             await ViewPowerBIReport(result);
+        }
+        else if (result.DataType == MetadataObjectType.DatasetUrl)
+        {
+            await RedirectAndDownload(result.Location);
         }
     }
 
@@ -533,7 +522,7 @@
         try
         {
             _searchResults = await SearchCatalog(searchText);
-            await CheckCompleteneses();
+            CheckCompleteneses();
             await UpdateFilter();
         }
         finally
