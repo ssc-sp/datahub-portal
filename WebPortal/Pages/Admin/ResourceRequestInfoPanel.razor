@@ -5,13 +5,13 @@
 
 @* TODO: localize text *@
 
-<AeTypography Variant="h4">Request Information</AeTypography>
+<AeTypography Variant="h4">@Localizer[$"{LOCALIZATION_PREFIX}.RequestInformation"]</AeTypography>
 
-<PropertyList PropertyDict=@RequestInfo Headers=@new()/>
+<PropertyList PropertyDict=@RequestInfo Headers=@new() KeyTransformer=@LocalizeInfoKey/>
 
 @if (ShowInputParams && FormParamsLoaded)
 {
-    <AeTypography Variant="h5">Input parameters</AeTypography>
+    <AeTypography Variant="h5">@Localizer[$"{LOCALIZATION_PREFIX}.InputParameters"]</AeTypography>
     @foreach(var r in _editableResources)
     {
         <AeCard>
@@ -29,8 +29,8 @@
             @if (r.IsEditing)
             {
                 <div>
-                    <AeButton OnClickEvent=@(async () => await SaveInputParams(r)) Disabled=@_isSaving>Save</AeButton>
-                    <AeButton class="light" OnClickEvent=@(async () => await CancelEditing(r)) Disabled=@_isSaving>Cancel</AeButton>
+                    <AeButton OnClickEvent=@(async () => await SaveInputParams(r)) Disabled=@_isSaving>@Localizer["BUTTONS.Save"]</AeButton>
+                    <AeButton class="light" OnClickEvent=@(async () => await CancelEditing(r)) Disabled=@_isSaving>@Localizer["BUTTONS.Cancel"]</AeButton>
                     <SuccessIndicator @bind-IsLoading=@_isSaving @ref=@_savingInd />
                 </div>
             }
@@ -45,6 +45,7 @@
 
 
 @code {
+    private const string LOCALIZATION_PREFIX = "RESOURCE_REQUEST_INFO_PANEL";
 
     [Parameter]
     public Datahub_ProjectServiceRequests Request { get; set; }
@@ -94,13 +95,15 @@
             {
                 _requestInfo = new();
                 _requestInfo.Add("projectName", Request.Project.ProjectName);
-                _requestInfo.Add("serviceType", Request.ServiceType);
+                _requestInfo.Add("serviceType", Localizer[$"RESOURCE-TYPE.{Request.ServiceType}"]);
                 _requestInfo.Add("requestingUser", Request.User_Name);
             }
 
             return _requestInfo;
         }
     }
+
+    private string LocalizeInfoKey(string k) => Localizer[$"{LOCALIZATION_PREFIX}.{k}"];
 
     private bool ShowInputParams => _resources.Count > 0 && _resources.Any(r => r.HasInputParams);
 
