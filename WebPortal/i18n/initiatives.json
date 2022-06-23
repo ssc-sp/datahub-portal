@@ -214,6 +214,13 @@
       "SecurityClassification": "Security Classification"
     }
   },
+  "RESOURCE_REQUEST_INFO_PANEL": {
+    "RequestInformation": "Request Information",
+    "InputParameters": "Input Parameters",
+    "projectName": "Initiative Name",
+    "serviceType": "Service Type",
+    "requestingUser": "Requesting User"
+  },
 
   "Project_Summary_Desc": "Initiative Summary (English)",
   "Project_Admin": "Initiative Admin",
@@ -251,6 +258,6 @@
   "This project has {0} active file shared and {1} files waiting for approval.": "This initiative has {0} active file shared and {1} files waiting for approval.",
   "View Project": "View Initiative",
   "DataHub Project Tracker": "DataHub Initiative Tracker",
-  "The current project has {0} active file shared": "The current initiative has {0} active file shared"
-
+  "The current project has {0} active file shared": "The current initiative has {0} active file shared",
+  "Project Resource Definitions": "Initiative Resource Definitions"
 }
