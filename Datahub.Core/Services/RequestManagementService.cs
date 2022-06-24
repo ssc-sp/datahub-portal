@@ -14,6 +14,7 @@ namespace Datahub.Core.Services
         private readonly ISystemNotificationService _systemNotificationService;
         private readonly IUserInformationService _userInformationService;
         private readonly IDatahubAuditingService _datahubAuditingService;
+        private readonly IMiscStorageService _miscStorageService;
 
         public const string DATABRICKS = ProjectResourceConstants.SERVICE_TYPE_DATABRICKS;
         public const string POWERBI = ProjectResourceConstants.SERVICE_TYPE_POWERBI;
@@ -21,19 +22,22 @@ namespace Datahub.Core.Services
         public const string SQLSERVER = ProjectResourceConstants.SERVICE_TYPE_SQL_SERVER;
         public const string POSTGRESQL = ProjectResourceConstants.SERVICE_TYPE_POSTGRES;
 
-
+        private const string RESOURCE_REQUEST_INPUT_JSON_PREFIX = "ResourceInput";
 
         public RequestManagementService(
             IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
             IEmailNotificationService emailNotificationService,
-            ISystemNotificationService systemNotificationService, IUserInformationService userInformationService, 
-            IDatahubAuditingService datahubAuditingService)
+            ISystemNotificationService systemNotificationService, 
+            IUserInformationService userInformationService,
+            IDatahubAuditingService datahubAuditingService, 
+            IMiscStorageService miscStorageService)
         {
             _dbContextFactory = dbContextFactory;
             _emailNotificationService = emailNotificationService;
             _systemNotificationService = systemNotificationService;
             _userInformationService = userInformationService;
             _datahubAuditingService = datahubAuditingService;
+            _miscStorageService = miscStorageService;
         }
 
         public async Task RequestAccess(Datahub_Project_Access_Request request)
@@ -138,6 +142,21 @@ namespace Datahub.Core.Services
             {
                 return false;
             }
+        }
+
+        private string GetResourceInputDefinitionIdentifier(string resourceType) => $"{RESOURCE_REQUEST_INPUT_JSON_PREFIX}-{resourceType}";
+
+        public async Task<string> GetResourceInputDefinitionJson(string resourceType)
+        {
+            var id = GetResourceInputDefinitionIdentifier(resourceType);
+            var result = await _miscStorageService.GetObject<string>(id);
+            return result;
+        }
+
+        public async Task SaveResourceInputDefinitionJson(string resourceType, string jsonContent)
+        {
+            var id = GetResourceInputDefinitionIdentifier(resourceType);
+            await _miscStorageService.SaveObject(jsonContent, id);
         }
 
         private async Task NotifyProjectAdminsOfServiceRequest(Datahub_ProjectServiceRequests request)
