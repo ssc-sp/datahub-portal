@@ -271,7 +271,7 @@ namespace Datahub.Portal.Controllers
 
         private async Task<int> SaveApprovalForm(string name, string email, string title)
         {
-            Data.Forms.ShareWorkflow.ApprovalForm approvalForm = new()
+            Metadata.Model.ApprovalForm approvalForm = new()
             {
                 Name_NAME = name,
                 Email_EMAIL = email,
