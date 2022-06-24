@@ -25,7 +25,8 @@
                     Headers=@(LocalizeHeaders(headers))
                     @ref=@_reportTable
                     Page=@_currentPage
-                    PageSize="20" />
+                    PageSize="20"
+                    @key=@_powerBiReports/>
                         
                 <AePagination Pageable=@_reportTable OnPageClick=@OnPageClick> 
                     <LeftIcon><i class='fad fa-chevron-double-left'></i></LeftIcon> 
@@ -128,12 +129,16 @@
 
     private List<Func<PowerBi_Report, RenderFragment>> renderers = new();
 
- 
 
+    public async void RefreshTable()
+    {
+        _powerBiReports = await PowerBiDataService.GetReportsForProjectWithExternalReportInfo(projectAcronym, IncludeSandbox);
+        StateHasChanged();
+    }
 
     private RenderFragment ExternalReport(PowerBi_Report r) =>
     @<AeTypography>
-        <ExternalReportRequest PowerBi_Report=@(r)/>        
+        <ExternalReportRequest PowerBi_Report=@(r) RefreshTable=RefreshTable/>        
     </AeTypography>;
 
     private RenderFragment WorkspaceLinkFragment(PowerBi_Report r) =>

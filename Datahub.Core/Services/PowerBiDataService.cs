@@ -326,5 +326,26 @@ namespace Datahub.Core.Services
             return ctx.ExternalPowerBiReports.FirstOrDefault(r => r.Report_ID == reportId);
 
         }
+
+        public async Task<List<ExternalPowerBiReport>> GetRequestedExternalReports()
+        {
+            using var ctx = await _contextFactory.CreateDbContextAsync();
+
+            return ctx.ExternalPowerBiReports.Where(r => !r.Is_Created).ToList();
+        }
+
+        public async Task UpdateExternalPowerBiRecord(ExternalPowerBiReport report)
+        {
+            using var ctx = await _contextFactory.CreateDbContextAsync();
+            var rep = ctx.ExternalPowerBiReports.Where(r => report.ExternalPowerBiReport_ID == r.ExternalPowerBiReport_ID).FirstOrDefault();
+            if (rep != null) 
+            {
+                rep.Url = report.Url;
+                rep.Token = report.Token;
+                rep.End_Date = report.End_Date;
+                rep.Is_Created = report.Is_Created;
+                await ctx.TrackSaveChangesAsync(_auditingService);
+            }
+        }
     }
 }
