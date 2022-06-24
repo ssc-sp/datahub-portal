@@ -1,0 +1,139 @@
+﻿@using System.Net.Http
+@using System.Threading.Tasks
+@using Datahub.Portal.Layout
+@using Microsoft.Identity.Client
+@using Microsoft.PowerBI.Api
+@using Microsoft.PowerBI.Api.Models
+@using Microsoft.Rest
+@using Newtonsoft.Json.Linq
+@using Microsoft.Extensions.Configuration
+@inject IJSRuntime JSRuntime
+@inject IConfiguration _configuration
+
+@inject IDbContextFactory<DatahubProjectDBContext> dbFactory
+@inject IEmailNotificationService EmailService
+@inject ISystemNotificationService SystemNotificationService
+@inject IPowerBiDataService PowerBiDataService
+@inject PowerBiServiceApi PowerBiServiceApi
+@using Microsoft.Identity.Web
+@inject MicrosoftIdentityConsentAndConditionalAccessHandler ConsentHandler
+
+<AeCard>
+    <Header>
+        <AeTypography Variant="h2">@Localizer["Create Requests"]</AeTypography>
+    </Header>
+    <ChildContent>
+        
+            <AePaginatedTable
+                Accessors=@accessorFunctions
+                Dataset=@_externalReports
+                Renderers=@renderFunctions
+                @ref=@_externalRequests                    
+                GridTemplateColumns="2fr 3fr 2fr" 
+                Page=@_currentPage
+                Headers=@LocalizeHeaders(headers)
+                PageSize=@_pageSize
+                @key=@_externalReports
+            />
+
+            @if (_externalRequests != null)
+            {            
+                <AePagination Pageable=@_externalRequests OnPageClick=@PaginationClicked> 
+                    <LeftIcon><i class='fad fa-chevron-double-left'></i></LeftIcon> 
+                    <RightIcon><i class='fad fa-chevron-double-right'></i></RightIcon>
+                </AePagination>
+            }
+        
+    </ChildContent>
+</AeCard>
+
+@code {
+
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public bool ReadOnly { get; set; }
+
+    private IPageableComponent _externalRequests;
+    private int _currentPage = 0;
+    private int _pageSize = 10;
+
+    private List<ExternalPowerBiReport> _externalReports;
+
+    private List<Func<ExternalPowerBiReport, string>> accessorFunctions = new()
+    {
+        p => p.RequestingUser,
+        p => p.Report_ID.ToString(),
+        null
+    };
+
+    private List<Func<ExternalPowerBiReport, RenderFragment>> renderFunctions;
+
+    private List<string> headers = new()
+    {
+        "Requesting User", "Report Id", "Create"
+    };
+
+    private List<string> LocalizeHeaders(List<string> input) => input.Select(s => Localizer[s].ToString()).ToList();
+
+    private void PaginationClicked(int pageIndex)
+    {
+        _currentPage = pageIndex;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _externalReports = new();
+        _externalReports = await PowerBiDataService.GetRequestedExternalReports();
+
+        renderFunctions = new()
+        {
+            null,
+            null,
+            GetReportFragment 
+        };
+
+    }
+
+    private RenderFragment GetReportFragment(ExternalPowerBiReport result) => 
+        @<div @onclick="() => OnCreateUrl(result)" style="cursor:pointer;">
+                <i class="far fa-plus-square"></i>
+                <a>Create External Report</a>
+    </div>
+    ;
+
+    private async void OnCreateUrl(ExternalPowerBiReport report)
+    {
+        var rep = await PowerBiServiceApi.GetReport(report.Report_ID.ToString());
+
+        try
+        {
+            //var reportToken = await PowerBiServiceApi.GetEmbedTokenAsync(24 * 2 * 60, rep.DatasetId, report.Report_ID);   
+            report.Token = "faketoken"; //reportToken.Token;
+            report.Url = rep.EmbedUrl;
+            report.End_Date = DateTime.Now.AddDays(2);
+            report.Is_Created = true;
+            await PowerBiDataService.UpdateExternalPowerBiRecord(report);
+            _externalReports = await PowerBiDataService.GetRequestedExternalReports();
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+             var httpEx = ex as HttpOperationException;
+                if (httpEx?.Response?.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                {
+                    var errorText = string.Format("Request: {0}\r\nStatus: {1} ({2})\r\nResponse: {3}",
+                     httpEx.Request.Content, httpEx.Response.StatusCode, (int)httpEx.Response.StatusCode, httpEx.Response.Content);
+    
+                }
+        }
+ 
+
+
+        //CreateUrl();
+        //SaveUrlToDb();
+    }
+
+    private const string AuthorityFormat = "https://login.microsoftonline.com/{0}/v2.0";
+    private const string MSGraphScope = "https://analysis.windows.net/powerbi/api/.default";
+ 
+}

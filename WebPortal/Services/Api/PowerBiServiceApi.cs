@@ -35,7 +35,6 @@ namespace Datahub.Portal.Services
 
         private readonly ILogger<PowerBiServiceApi> logger;
 
-        private string _token { get; set; }
 
         private string urlPowerBiServiceApiRoot { get; }
 
@@ -70,14 +69,11 @@ namespace Datahub.Portal.Services
   };
 
 
-        public void SetToken(string token)
-        { 
-            _token = token;
-        }
+        
 
         public async Task<string> GetAccessTokenAsync()
         {
-            return string.IsNullOrWhiteSpace(_token) ? await this.tokenAcquisition.GetAccessTokenForUserAsync(RequiredReadScopes) : _token;
+            return await this.tokenAcquisition.GetAccessTokenForUserAsync(RequiredReadScopes);
         }
 
         public async Task<EmbedToken> GetEmbedTokenAsync(int durationMinutes, string datasetId, params Guid[] reports)
