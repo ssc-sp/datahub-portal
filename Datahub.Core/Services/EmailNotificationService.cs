@@ -557,6 +557,31 @@ namespace Datahub.Core.Services
             return parametersDict;
         }
 
+        private Dictionary<string, object> BuildPowerBiExternalReportParameters(PowerBiExternalReportParameters parameters)
+        {
+
+            parameters.AppUrl = BuildAppLink(parameters.AppUrl);
+            var parametersDict = new Dictionary<string, object>()
+            {
+                { "ApplicationParameters", parameters }
+
+            };
+
+            return parametersDict;
+        }
+
+        public async Task SendPowerBiExternalUrlEmail(PowerBiExternalReportParameters parameters)
+        {
+            var parametersDict = BuildPowerBiExternalReportParameters(parameters);
+
+            var subject = $"External Power Bi Report Request";
+
+            var html = await RenderTemplate<ExternalPowerBiCreated>(parametersDict);
+
+            await SendEmailMessage(subject, html, parameters.App.RequestingUser, parameters.App.RequestingUser);
+
+        }
+
         public async Task<IList<MailboxAddress>> TestUsernameEmailConversion(IList<(string address, string name)> recipients)
         {
             if (recipients == null)
@@ -703,6 +728,12 @@ namespace Datahub.Core.Services
         public OnboardingApp App;
         public string AppUrl;
         public List<string> AdminEmailAddresses;
+    }
+
+    public class PowerBiExternalReportParameters
+    {
+        public ExternalPowerBiReport App;
+        public string AppUrl;
     }
 
     public class M365FormsParameters

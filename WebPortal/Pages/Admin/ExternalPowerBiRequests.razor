@@ -9,6 +9,7 @@
 @using Microsoft.Extensions.Configuration
 @inject IJSRuntime JSRuntime
 @inject IConfiguration _configuration
+@inject IEmailNotificationService EmailService
 
 @inject IDbContextFactory<DatahubProjectDBContext> dbFactory
 @inject IEmailNotificationService EmailService
@@ -115,22 +116,30 @@
             await PowerBiDataService.UpdateExternalPowerBiRecord(report);
             _externalReports = await PowerBiDataService.GetRequestedExternalReports();
             StateHasChanged();
+
+            var emailParams = GetEmailParameters(report);
+
+
         }
         catch (Exception ex)
         {
-             var httpEx = ex as HttpOperationException;
-                if (httpEx?.Response?.StatusCode == System.Net.HttpStatusCode.Unauthorized)
-                {
-                    var errorText = string.Format("Request: {0}\r\nStatus: {1} ({2})\r\nResponse: {3}",
-                     httpEx.Request.Content, httpEx.Response.StatusCode, (int)httpEx.Response.StatusCode, httpEx.Response.Content);
-    
-                }
+            var httpEx = ex as HttpOperationException;
+            if (httpEx?.Response?.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                var errorText = string.Format("Request: {0}\r\nStatus: {1} ({2})\r\nResponse: {3}",
+                 httpEx.Request.Content, httpEx.Response.StatusCode, (int)httpEx.Response.StatusCode, httpEx.Response.Content);
+
+            }
         }
- 
+    }
 
+    private PowerBiExternalReportParameters GetEmailParameters(ExternalPowerBiReport report)
+    {
+        PowerBiExternalReportParameters param = new();
+        param.AppUrl = $"/powerbi-report/embed/{report.Report_ID.ToString()}";
+        param.App = report;
 
-        //CreateUrl();
-        //SaveUrlToDb();
+        return param;
     }
 
     private const string AuthorityFormat = "https://login.microsoftonline.com/{0}/v2.0";
