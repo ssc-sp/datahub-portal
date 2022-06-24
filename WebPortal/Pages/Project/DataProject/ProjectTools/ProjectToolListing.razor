@@ -1,24 +1,30 @@
 @using Microsoft.Extensions.Options
 @using Datahub.Portal.Pages.Project.DataProject.ProjectTools
 
-@inject ServiceAuthManager ServiceAuthManager
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject IOptions<DataProjectsConfiguration> _configuration
-
+@inject ServiceAuthManager ServiceAuthManager
 
 <AuthorizeView Roles="@($"{ProjectAcronym}, {ProjectAcronym}-admin, {RoleConstants.DATAHUB_ROLE_ADMIN}")">
 
     <div class="project-tools">
 
         <AeTypography Variant="h2">@Localizer["Project Tools"]</AeTypography>
+        <div class="controls">
+            <span class="icon-wrapper @(_isDense ? "active" : "")" @onclick="@(() => ToggleDense(true))">
+                <i class="fas fa-list-ul"></i>
+            </span>
+            <span class="icon-wrapper @(!_isDense ? "active" : "")" @onclick="@(() => ToggleDense(false))">
+                <i class="fas fa-th-large"></i>
+            </span>
+        </div>
         @if (_isLoading)
         {
             <Spinner/>
         }
         else
         {
-            <div class="tools-container">
-
+            <div class="tools-container @(_isDense ? "dense" : "")">
                 @if (_configuration.Value.Databricks && _canViewDatabricks)
                 {
                     <Databricks/>
@@ -49,7 +55,17 @@
                     <Costing/>
                 }
 
-                @if (_configuration.Value.ProjectDatabases)
+                @if (_configuration.Value.DataManagement)
+                {
+                    <IoT/>
+                }
+
+                @if (_configuration.Value.IoT)
+                {
+                    <DataManagement/>
+                }
+
+                @if (_configuration.Value.PostgreSQL)
                 {
                     @if (_projectDatabaseResources.Count < 1)
                     {
@@ -63,6 +79,7 @@
                         }
                     }
                 }
+
 
                 <Admin/>
             </div>
@@ -80,6 +97,7 @@
     public bool IsDatahubAdmin { get; set; }
 
     private bool _isLoading = true;
+    private bool _isDense = false;
     private Datahub_Project _project;
     private System.Security.Claims.ClaimsPrincipal _user;
     private bool _canViewDatabricks;
@@ -90,14 +108,11 @@
 
     protected override async Task OnInitializedAsync()
     {
-        await using var projectDbContext = await _dbFactoryProject.CreateDbContextAsync();
-
-        await base.OnInitializedAsync();
         _authorizedRoles = ServiceAuthManager.GetAdminProjectRoles();
         _user = (await authenticationStateTask).User;
 
-        await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
-        _project = await projectContext.Projects
+        await using var projectDbContext = await _dbFactoryProject.CreateDbContextAsync();
+        _project = await projectDbContext.Projects
             .SingleOrDefaultAsync(p => p.Project_Acronym_CD == ProjectAcronym);
 
         var _serviceRequests = await projectDbContext.Project_Requests
@@ -121,4 +136,8 @@
         _isLoading = false;
     }
 
+    private void ToggleDense(bool isDense)
+    {
+        _isDense = isDense;
+    }
 }

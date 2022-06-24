@@ -1,28 +1,24 @@
 @use '../../Common' as c;
+@use '../../Components/Card' as card;
 
-.featured-projects {
+.featured-projects-container {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 2rem;
   margin: 1rem 0 2rem;
-  
+
   @include c.desktop {
     grid-template-columns: 1fr 1fr 1fr;
   }
-  
+
   .project {
     display: grid;
     grid-template-rows: auto auto 1fr auto;
     padding: 1rem 1.5rem;
-    border: 1px solid c.$grey-200;
-    border-radius: 4px;
-    background-color: c.$white;
+
+    @include card.default-card;
     
     transition: all 0.3s c.$cubic-bezier;
-    
-    &:hover {
-      @include c.BoxShadow(1);
-    }
     
     .sector {
       display: flex;
