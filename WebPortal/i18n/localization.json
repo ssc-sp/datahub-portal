@@ -931,6 +931,7 @@
     }
   },
   
+
   "NRCan Datahub": "NRCan DataHub",
   "Search...": "Search...",
   "Good Morning": "Good Morning",
@@ -991,5 +992,6 @@
   "Remove Section": "Remove Section",
   "(any)": "(any)",
   "Expand": "Expand",
-  "Collapse": "Collapse"
+  "Collapse": "Collapse",
+  "Resources": "Resources"
 }

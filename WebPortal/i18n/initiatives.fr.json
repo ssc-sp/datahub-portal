@@ -214,6 +214,14 @@
       "Metadata": "Metadata"
     }
   },
+  "RESOURCE_REQUEST_INFO_PANEL": {
+    "RequestInformation": "Information sur la demande",
+    "InputParameters": "Paramètres d'entrée",
+    "projectName": "Nom d'initiative",
+    "serviceType": "Type de service",
+    "requestingUser": "Utilisateur demandeur"
+  },
+  "Project Resource Definitions": "Définitions des ressources d'initiative",
 
   "Project_Summary_Desc": "Résumé de l'initiative (anglais)",
   "Project_Admin": "Initiative Admin",

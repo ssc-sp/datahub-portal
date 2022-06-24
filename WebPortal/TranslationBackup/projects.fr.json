@@ -264,6 +264,13 @@
   "Start the Data Entry application enabled for this project": "Démarrer l’application de saisie de données activée pour ce projet",
   "You currently do not have access to this project": "Vous n’avez actuellement pas accès à ce projet",
   "You currently do not have access to this project.": "Vous n’avez actuellement pas accès à ce projet.",
-  "Project Information": "Informations sur le projet"
-  
+  "Project Information": "Informations sur le projet",
+  "RESOURCE_REQUEST_INFO_PANEL": {
+    "RequestInformation": "Information sur la demande",
+    "InputParameters": "Paramètres d'entrée",
+    "projectName": "Nom du projet",
+    "serviceType": "Type de service",
+    "requestingUser": "Utilisateur demandeur"
+  },
+  "Project Resource Definitions": "Définitions des ressources du projet",
 }
