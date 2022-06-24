@@ -1,0 +1,39 @@
+
+
+@mixin sharepoint-style {
+  
+  .unchecked,
+  .suggest,
+  .checked {
+    display: none;
+    position: absolute;
+    font-size: 1rem;
+  }
+  
+  &.highlight {
+    background-color: red;
+    .checked {
+      display: inline-block;
+    }
+  }
+  
+  &:hover {
+    &:not(.highlight) .file-selection-icon {
+      
+      .unchecked {
+        display: inline-block;
+      }
+      
+      &:hover {
+        .unchecked {
+          display: none;
+        }
+
+        .suggest {
+          display: inline-block;
+        }
+      }
+      
+    }
+  }
+}

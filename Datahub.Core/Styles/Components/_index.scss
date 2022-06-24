@@ -8,7 +8,7 @@
 @use 'notifications';
 @use 'successIndicator';
 @use 'skeletons';
-@use 'filterbar';
+
 @use 'Sidebar';
 
 @use 'Icons/codeblock-copy-icon';
@@ -16,3 +16,5 @@
 
 @use 'FileUpload/drop-zone';
 @use 'FileUpload/upload-snackbar';
+
+@use 'Toaster/toaster';

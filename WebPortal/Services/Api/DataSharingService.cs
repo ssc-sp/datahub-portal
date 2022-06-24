@@ -12,11 +12,11 @@ namespace Datahub.Portal.Services
     public class DataSharingService : BaseService, IDataSharingService
     {
         private ILogger<DataSharingService> _logger;
-        private IDataLakeClientService _dataLakeClientService;
+        private DataLakeClientService _dataLakeClientService;
         private ICognitiveSearchService _cognitiveSearchService;
 
         public DataSharingService(ILogger<DataSharingService> logger,
-                                  IDataLakeClientService dataLakeClientService,
+                                  DataLakeClientService dataLakeClientService,
                                   NavigationManager navigationManager,
                                   ICognitiveSearchService cognitiveSearchService,
                                   UIControlsService uiService)

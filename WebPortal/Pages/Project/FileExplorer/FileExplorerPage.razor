@@ -1,5 +1,5 @@
 ﻿@inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
-@inject IDataRetrievalService _dataRetrievalService
+@inject DataRetrievalService _dataRetrievalService
 @inject IUserInformationService _userInformationService
 
 @page "/projects/{ProjectAcronymParam}/filelist"
@@ -71,6 +71,11 @@
                          <i class="fas fa-hdd"></i>
                          @Localizer[container]
                      </AeTypography>, @<FileExplorer ContainerName="@container"/>, false)));
+        
+        tabs.Add((@<AeTypography>
+                      <i class="fas fa-plus"></i>
+                      @Localizer["Create New Container"]
+                  </AeTypography>, @<AzCopy/>, false));
 
         tabs.Add((@<AeTypography>
                       <i class="fas fa-info-circle"></i>
