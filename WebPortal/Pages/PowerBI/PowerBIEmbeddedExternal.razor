@@ -48,7 +48,8 @@
             else
                 report = await PowerBiServiceApi.GetReport(ReportId, GroupId);
 
-            reportToken = await PowerBiServiceApi.GetEmbedTokenAsync(10,report.DatasetId, new Guid(ReportId));
+            //2 days
+            reportToken = await PowerBiServiceApi.GetEmbedTokenAsync(24*2*60,report.DatasetId, new Guid(ReportId));
 
             var pbiSettings = new PowerBISettings();
             if (ReadOnly)
@@ -61,8 +62,8 @@
             {
                 await JSRuntime.InvokeAsync<object>(
                     "ShowMyPowerBI.showReportEmbed",
-                    PowerBIElement, reportToken, report.EmbedUrl,
-                    report.Id.ToString(), pbiSettings);
+                    PowerBIElement, reportToken.Token, report.EmbedUrl,
+                report.Id.ToString(), pbiSettings);
             }
         } 
         catch (Exception ex)
@@ -74,20 +75,20 @@
     private void HandleError(Exception ex)
     {
             _errorMessage = $"Internal error loading report {ReportId}.";
-            try
-            {
-                ConsentHandler.HandleException(ex);
-            }
-            catch (Exception)
-            {
+            //try
+            //{
+            //    ConsentHandler.HandleException(ex);
+            //}
+            //catch (Exception)
+            //{
                 var httpEx = ex as HttpOperationException;
                 if (httpEx?.Response?.StatusCode == System.Net.HttpStatusCode.Unauthorized)
                 {
                     _errorMessage = $"Insufficient Power BI Permissions to generate Token for Report {ReportId} and Dataset";
                 }
-                else
-                    throw;
-            }
+                //else
+                //    throw;
+            //}
         
     }
 

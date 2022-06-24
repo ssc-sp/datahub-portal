@@ -7,6 +7,8 @@ namespace Datahub.Metadata.Model
 {
     public class FieldDefinition
     {
+        //TODO: Add an option to exclude the blank option from dropdowns
+
         public FieldDefinition()
         {
             Choices = new List<FieldChoice>();
