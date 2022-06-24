@@ -84,6 +84,9 @@
 	<ItemGroup>
 		<GitHookFiles Include="../.githooks/*.*" />
 	</ItemGroup>
+	<ItemGroup>
+	  <ProjectReference Include="..\Datahub.Metadata\Datahub.Metadata.csproj" />
+	</ItemGroup>
 
 	<Target Name="CopyCustomContent" AfterTargets="AfterBuild">
 		<Copy SourceFiles="@(GitHookFiles)" DestinationFolder="../.git/hooks/" SkipUnchangedFiles="true" />

@@ -8,7 +8,7 @@
     var translationNote = new MarkupString(Localizer["METADATA-PAGE.TranslationNote"]);
     
     <div>
-        @if (!Preview)
+        @if (_showTranslationNote)
         {
             <div>
                 <AeTypography Variant="p" style="color: #57C4EC;">
@@ -77,10 +77,14 @@
     [Parameter]
     public EventCallback<ObjectFieldValue> OnFieldChanged { get; set; }
 
+    [Parameter]
+    public bool HideTranslationNote { get; set; } = false;
+
     private HashSet<int> _requiredFieldIds = new(); 
 
     private int? _subjectFieldId;
     private string _subject { get; set; }
+    private bool _showTranslationNote => !Preview && !HideTranslationNote;
 
     private TranslatedFieldPairs _fieldPairs;
 

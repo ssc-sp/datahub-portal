@@ -1,10 +1,9 @@
 ﻿using Datahub.Metadata.DTO;
-using Datahub.Portal.Data.Forms.ShareWorkflow;
 using Entities = Datahub.Metadata.Model;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Datahub.Portal.Services
+namespace Datahub.Core.Services
 {
     public interface IMetadataBrokerService
     {
@@ -14,9 +13,9 @@ namespace Datahub.Portal.Services
         Task<Entities.ObjectMetadata> SaveMetadata(FieldValueContainer fieldValues, bool anonymous = false);
         Task<Entities.ObjectMetadata> GetMetadata(long objectMetadataId);
         Task<Entities.ObjectMetadata> GetMetadata(string objectId);
-        Task<ApprovalForm> GetApprovalForm(int ApprovalFormId);
+        Task<Entities.ApprovalForm> GetApprovalForm(int ApprovalFormId);
         Task DeleteApprovalForm(int approvalFormId);
-        Task<int> SaveApprovalForm(ApprovalForm form);
+        Task<int> SaveApprovalForm(Entities.ApprovalForm form);
         Task<List<string>> GetSuggestedEnglishKeywords(string text, int max);
         Task<List<string>> GetSuggestedFrenchKeywords(string text, int max);
         Task<List<SubjectKeyword>> GetSubjectKeywords(IEnumerable<string> subjectIds);
