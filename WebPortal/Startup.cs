@@ -127,7 +127,7 @@ namespace Datahub.Portal
             // configure db contexts in this method
             ConfigureDbContexts(services);
 
-            services.Configure<DataProjectsConfiguration>(Configuration.GetSection("DataProjects"));
+            services.Configure<DataProjectsConfiguration>(Configuration.GetSection("ProjectTools"));
 
             services.Configure<APITarget>(Configuration.GetSection("APITargets"));
 
