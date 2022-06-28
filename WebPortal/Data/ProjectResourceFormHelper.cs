@@ -49,6 +49,7 @@ namespace Datahub.Portal.Data.ProjectResource
                     Name_English_TXT = field.name_en,
                     Name_French_TXT = field.name_fr,
                     Required_FLAG = field.required ?? false,
+                    Default_Value_TXT = field.default_value,
                     FieldDefinitionId = nextId++
                 };
 
@@ -141,6 +142,32 @@ namespace Datahub.Portal.Data.ProjectResource
             var profile = BuildProfileFromDefsAndDynamic(defs, anonObject.profile);
 
             return new(defs, profile);
+        }
+
+        public static async Task<Dictionary<string, string>> GetDefaultValues(this RequestManagementService requestManagementService, string resourceType)
+        {
+            var formParams = await CreateResourceInputFormParams(requestManagementService, resourceType);
+            return GetDefaultValues(formParams);
+        }
+
+        public static Dictionary<string, string> GetDefaultValues(ProjectResourceFormParams formParams)
+        {
+            return formParams.FieldDefinitions.Fields
+                .Where(f => !string.IsNullOrEmpty(f.Default_Value_TXT))
+                .ToDictionary(f => f.Field_Name_TXT, f => f.Default_Value_TXT);
+        }
+
+        public static async Task RequestServiceWithDefaults(this RequestManagementService requestManagementService, Datahub_ProjectServiceRequests request)
+        {
+            var defaultValues = await GetDefaultValues(requestManagementService, request.ServiceType);
+            if (defaultValues?.Count > 0)
+            {
+                await requestManagementService.RequestService(request, defaultValues);
+            }
+            else
+            {
+                await requestManagementService.RequestService(request);
+            }
         }
 
     }
