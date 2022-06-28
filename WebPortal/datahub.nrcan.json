@@ -1,5 +1,10 @@
 {
   "WikiURL": "https://raw.githubusercontent.com/wiki/nrcan/datahub-portal/",
   "GlobalSearch": "enabled",
-  "PortalRunAsManagedIdentity": "disabled"
+  "PortalRunAsManagedIdentity": "disabled",
+  "ProjectTools": {
+    "IoT": false,
+    "DataManagement": true,
+    "WebForms": false
+  }
 }
