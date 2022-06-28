@@ -80,8 +80,6 @@ namespace Datahub.Core.Services
                 await ctx.TrackSaveChangesAsync(_datahubAuditingService);
             }
 
-
-
             await NotifyProjectAdminsOfServiceRequest(request);
         }
 
