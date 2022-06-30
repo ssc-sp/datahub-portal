@@ -7,9 +7,6 @@ using System.Collections.Generic;
 using System;
 using Datahub.Metadata.DTO;
 using Entities = Datahub.Metadata.Model;
-using Datahub.Core.Utils;
-using Datahub.Core.Services;
-using Microsoft.Data.SqlClient;
 
 namespace Datahub.Core.Services
 {
@@ -262,20 +259,37 @@ namespace Datahub.Core.Services
             }
         }
 
-        public async Task<List<CatalogObjectResult>> SearchCatalogEnglish(string searchText)
-        {
-            return await SearchCatalog(searchText, "Search_English_TXT");
-        }
-
-        public async Task<List<CatalogObjectResult>> SearchCatalogFrench(string searchText)
-        {
-            return await SearchCatalog(searchText, "Search_French_TXT");
-        }
-
         public async Task<FieldDefinitions> GetFieldDefinitions()
         {
             using var ctx = _contextFactory.CreateDbContext();
             return await GetLatestMetadataDefinition(ctx);
+        }
+
+        public async Task<List<CatalogObjectResult>> SearchCatalog(CatalogSearchRequest request, Func<CatalogObjectResult, bool> validateResult)
+        {
+            using var ctx = _contextFactory.CreateDbContext();
+
+            var conditions = new List<string>()
+            {
+                GetSearchTextCondition(request.Keywords, request.IsFrench ? "Search_French_TXT" : "Search_English_TXT"),
+                GetOrSearchCondition(request.Classifications, "SecurityClass_TXT"),
+                GetOrSearchCondition(request.ObjectTypes.Select(o => (int)o), "DataType"),
+                GetOrSearchCondition(request.Sectors, "Sector_NUM"),
+                GetOrSearchCondition(request.Branches, "Branch_NUM")
+            };
+            var whereCondition = string.Join(" AND ", conditions.Where(s => !string.IsNullOrEmpty(s)).Select(s => $"({s})"));
+
+            var query = string.IsNullOrEmpty(whereCondition)
+                ? $"SELECT * FROM CatalogObjects WHERE CatalogObjectId > {request.LastPageId}"
+                : $"SELECT * FROM CatalogObjects WHERE CatalogObjectId > {request.LastPageId} AND {whereCondition}";
+
+            var definitions = await GetLatestMetadataDefinition(ctx);
+            var results = await ctx.QueryCatalog(query);
+
+            return results.Select(e => TransformCatalogObject(e, definitions))
+                          .Where(validateResult)
+                          .Take(request.PageSize)
+                          .ToList();
         }
 
         private async Task<ObjectMetadata> GetObjectMetadata(MetadataDbContext ctx, string objectId)
@@ -305,33 +319,14 @@ namespace Datahub.Core.Services
             return values;
         }
 
-        private async Task<List<CatalogObjectResult>> SearchCatalog(string searchText, string fieldName)
-        {
-            using var ctx = _contextFactory.CreateDbContext();
+        static string GetSearchTextCondition(IEnumerable<string> keywords, string fieldName) => 
+            string.Join(" AND ", keywords.Select(kw => $"{fieldName} LIKE '%{string.Concat(PreProcessSearchText(kw))}%'"));
 
-            var query = PrepareCatalogSearchQuery(searchText, fieldName);
-            if (string.IsNullOrEmpty(query))
-                return new();
+        static string GetOrSearchCondition(IEnumerable<int> values, string fieldName) =>
+            string.Join(" OR ", values.Select(v => $"{fieldName} = {v}"));
 
-            var definitions = await GetLatestMetadataDefinition(ctx);
-            var results = await ctx.QueryCatalog(query);
-
-            return results.Select(e => TransformCatalogObject(e, definitions)).ToList();
-        }
-
-        static string PrepareCatalogSearchQuery(string searchText, string fieldName)
-        {
-            var filteredSearchText = string
-                .Concat(PreProcessSearchText(searchText))
-                .Split(' ', StringSplitOptions.RemoveEmptyEntries)
-                .Select(word => $"{fieldName} LIKE '%{word}%'");
-
-            var whereCondition = string.Join(" AND ", filteredSearchText);
-            if (string.IsNullOrEmpty(whereCondition))
-                return "SELECT * FROM CatalogObjects";
-
-            return $"SELECT * FROM CatalogObjects WHERE {whereCondition}";
-        }
+        static string GetOrSearchCondition(IEnumerable<MetadataClassificationType> values, string fieldName) =>
+            string.Join(" OR ", values.Select(v => $"{fieldName} = '{v}'"));
 
         static IEnumerable<char> PreProcessSearchText(string text)
         {
@@ -339,7 +334,7 @@ namespace Datahub.Core.Services
             {
                 if (char.IsLetterOrDigit(c))
                     yield return c;
-                else if (char.IsWhiteSpace(c))
+                else if (char.IsWhiteSpace(c) || char.IsPunctuation(c))
                     yield return ' ';
             }
         }
@@ -447,6 +442,7 @@ namespace Datahub.Core.Services
 
             return new CatalogObjectResult()
             {
+                CatalogObjectId = catObj.CatalogObjectId,
                 ObjectMetadataId = catObj.ObjectMetadataId,
                 DataType = catObj.DataType,
                 Name = catObj.Name_TXT,
