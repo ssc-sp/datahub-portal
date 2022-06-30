@@ -4,6 +4,7 @@ namespace Datahub.Metadata.DTO
 {
     public class CatalogObjectResult
     {
+        public long CatalogObjectId { get; set; }
         public long ObjectMetadataId { get; set; }
         public MetadataObjectType DataType { get; set; }
         public string Name { get; set; }
