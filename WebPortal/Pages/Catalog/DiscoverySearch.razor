@@ -18,14 +18,31 @@
             <div class="catalog-page">
                 <div class="filter">
                     <AeFlex Vertical>
-                        <AeTypography Variant="h2">@Localizer["DISCOVERY-FILTERS.Filters"]</AeTypography>
+                        <AeTypography Variant="h3">
+                                        @*<span title=@_filterSectionOpenTitle>
+                                            <AeIcon class=@_filterSectionOpenIconClass />
+                                        </span>*@
+                                        <span>@Localizer["DISCOVERY-FILTERS.Keyword Search"]</span>
+                                        @*<AeIcon class=@_filterActiveIconClass />*@
+                        </AeTypography>
+                        <div>
+                            <AeSearchInput 
+                                id="search" 
+                                Placeholder=@Localizer["DISCOVERY-FILTERS.Enter Keywords"] 
+                                OnInputChangeWithLastKey=@HandleSearch
+                                SearchIconFAClass=null
+                                ClearIconFAClass=null
+                            />
+                        </div>
+
+                        <AeTypography Variant="h3">@Localizer["DISCOVERY-FILTERS.Filters"]</AeTypography>
                         
                         <label>
                             <input type="checkbox" checked=@_excludeIncompleteCatalogs @onchange=@(e => ChangeIncompleteCatalogFilter(e)) />
                             <span>@Localizer["DISCOVERY-FILTERS.HideIncomplete"]</span>
                         </label>
 
-                        <AeCollapse OnSectionToggled=@OnSearchFilterToggled>
+                        @*<AeCollapse OnSectionToggled=@OnSearchFilterToggled>
                             <AeCollapseSection DefaultOpen=@_searchFilterSectionOpen>
                                 <Header>
                                     <AeTypography Variant="h3">
@@ -45,12 +62,12 @@
                                     />
                                 </ChildContent>
                             </AeCollapseSection>
-                        </AeCollapse>
+                        </AeCollapse>*@
 
                         <AeCollapse OnSectionToggled=@OnSecurityFilterToggled>
                             <AeCollapseSection DefaultOpen=@_securityFilterSectionOpen>
                                 <Header>
-                                    <AeTypography Variant="h3">
+                                    <AeTypography Variant="h4">
                                         <span title=@_filterSectionOpenTitle>
                                             <AeIcon class=@_filterSectionOpenIconClass />
                                         </span>
@@ -79,7 +96,7 @@
                         <AeCollapse OnSectionToggled=@OnFilterToggled>
                             <AeCollapseSection DefaultOpen=@_filterSectionOpen>
                                 <Header>
-                                    <AeTypography Variant="h3">
+                                    <AeTypography Variant="h4">
                                         <span title=@_filterSectionOpenTitle>
                                             <AeIcon class=@_filterSectionOpenIconClass />
                                         </span>
@@ -107,7 +124,7 @@
                         <AeCollapse OnSectionToggled=@OnSectorFilterToggled>
                             <AeCollapseSection DefaultOpen=@_sectorFilterSectionOpen>
                                 <Header>
-                                    <AeTypography Variant="h3">
+                                    <AeTypography Variant="h4">
                                         <span title=@_filterSectionOpenTitle>
                                             <AeIcon class=@_filterSectionOpenIconClass />
                                         </span>
@@ -154,9 +171,10 @@
                 </div>
                 <div class="cards">
                     <div class="catalog-cards">
-                        @if (_filteredSearchResults.Any())
+                        @if (_searchResults.Any())
                         {
-                            @foreach(var result in _filteredSearchResults)
+                            <div>
+                            @foreach(var result in _searchResults)
                             {
                                 <CatalogCards 
                                     @key=@result
@@ -169,12 +187,34 @@
                                     @GetDownLoadFragment(result)
                                 </CatalogCards>
                             }
+                            </div>
+                            <div>
+                                @if (CanLoadMore())
+                                {
+                                    <AeButton OnClickEvent=@HandleLoadMore>More...</AeButton>
+                                }
+                            </div>
                         }
                         else
                         {
                             @if (_searching)
                             {
                                 <Spinner Small=true />
+                            }
+                            else
+                            {
+                                if (HasValidFilters())
+                                {
+                                    <div>
+                                        No catalog records found, try different keyword and filters.
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div>
+                                        Discovery landing page goes here...
+                                    </div>
+                                }
                             }
                         }
                     </div>
@@ -209,13 +249,16 @@
     public IDbContextFactory<DatahubProjectDBContext> DatahubProjectDbFactory {get; set; }
 
     private const int NO_FILTER_SELECTED = -1;
+    private const int PAGE_SIZE = 10;
 
     private bool _searching;
+    private string _searchKeywords;
     private QueryThrottler<string> _searchThrottler;
     private List<CatalogObjectResult> _searchResults = new();
-    private List<CatalogObjectResult> _filteredSearchResults = new();
     private bool _isFrench;
     private CatalogObjectResult _selectedResult;
+    private CatalogSearchRequest? _catalogSearchRequest;
+    private int _lastQueryCount = 0;
 
     private HashSet<OrganizationLevel> _filteredSectors = new();
     private HashSet<MetadataObjectType> _filteredDataTypes = new();
@@ -291,21 +334,18 @@
         _filterSector = _filteredSectors.Count == 1 ? filteredTypes.ToList()[0].Id : NO_FILTER_SELECTED;
         _filterBranch = _filteredSectors.Count != 1 ? NO_FILTER_SELECTED : _filterBranch;
         await UpdateFilter();
-        await Task.CompletedTask;
     }
 
     private async Task UpdateDataTypeFilter(IEnumerable<MetadataObjectType> filteredTypes)
     {
         _filteredDataTypes = filteredTypes.ToHashSet();
         await UpdateFilter();
-        await Task.CompletedTask;
     }
 
     private async Task UpdateClassificationTypeFilter(IEnumerable<MetadataClassificationType> filteredTypes)
     {
         _filteredClassificationTypes = filteredTypes.ToHashSet();
         await UpdateFilter();
-        await Task.CompletedTask;
     }
 
     private string BranchFilter
@@ -332,48 +372,44 @@
 
     private async Task UpdateFilter()
     {
-        var noDataTypesSelected = _filteredDataTypes.Count < 1;
-        var noClassificationTypesSelected = _filteredClassificationTypes.Count < 1;
-        var noSectorsSelected = _filteredSectors.Count < 1;
-
-        _filteredSearchResults = _searchResults
-            .Where(r => (noDataTypesSelected || _filteredDataTypes.Contains(r.DataType)) &&
-                (noSectorsSelected || (r.Sector != 0 && _filteredSectors.Contains(_sectors[r.Sector]))) &&
-                (noClassificationTypesSelected || _filteredClassificationTypes.Contains((MetadataClassificationType) Enum.Parse(typeof(MetadataClassificationType), r.SecurityClass.Replace(" ", "")))) &&
-                (_filterBranch == NO_FILTER_SELECTED || r.Branch == _filterBranch))
-            .ToList();
-
-        if (_excludeIncompleteCatalogs)
-            _filteredSearchResults.RemoveAll(c => !c.IsCatalogComplete); 
+        await ThrottleSearch(_searchKeywords);
 
         _lastClicked = 0;
 
         _filtersActive = _filteredSectors.Count > 0 || _filteredDataTypes.Count > 0 || _filteredClassificationTypes.Count > 0 || _filterBranch != NO_FILTER_SELECTED || !string.IsNullOrEmpty(_securityFilter);
-
-        await InvokeAsync(StateHasChanged);
     }
 
-    private void CheckCompleteneses()
+    private bool CheckMetadataCompleted(CatalogObjectResult result)
     {
-        foreach (var result in _searchResults)
+        if (_excludeIncompleteCatalogs)
         {
             var fieldValues = result.Metadata;
-            var names = fieldValues.GetAllFieldNames();
-            var allFieldValues = names.ToDictionary(n => n, n => fieldValues.GetValue(n));
-            var title = _isFrench ? allFieldValues["title_translated_fr"] : allFieldValues["title_translated_en"];
-            var subject = allFieldValues["subject"] ?? string.Empty;
 
-            var strings = new List<string> { title, subject, GetName(result), GetSector(result), GetContact(result), GetSecurityClass(result)};
-            if (strings.Any(s => string.IsNullOrWhiteSpace(s)))
-            {
-                result.IsCatalogComplete = false;                    
-            }
+            // name
+            if (string.IsNullOrEmpty(result.Name))
+                return false;
+
+            // contact
+            if (string.IsNullOrEmpty(result.Contact))
+                return false;
+
+            // security class
+            if (string.IsNullOrEmpty(result.SecurityClass))
+                return false;
+
+            // subject
+            if (string.IsNullOrEmpty(fieldValues.GetValue("subject")))
+                return false;
+
+            // title
+            if (string.IsNullOrEmpty(fieldValues.GetValue(_isFrench ? "title_translated_fr" : "title_translated_en")))
+                return false;
         }
+        return true;
     }
 
     private async Task ClearFilters()
     {
-
         if (_objectTypeFilter != null)
         {
             await _objectTypeFilter.Clear();
@@ -521,9 +557,10 @@
         await InvokeAsync(StateHasChanged);
         try
         {
+            _searchKeywords = searchText;
             _searchResults = await SearchCatalog(searchText);
-            CheckCompleteneses();
-            await UpdateFilter();
+            //CheckCompleteneses();
+            //await UpdateFilter();
         }
         finally
         {
@@ -532,9 +569,32 @@
         }
     }
 
-    private Task<List<CatalogObjectResult>> SearchCatalog(string searchText)
+    private async Task<List<CatalogObjectResult>> SearchCatalog(string searchText)
     {
-        return _isFrench ? MetadataBrokerService.SearchCatalogFrench(searchText) : MetadataBrokerService.SearchCatalogEnglish(searchText);
+        if (!HasValidFilters())
+        {
+            _catalogSearchRequest = null;
+            _lastQueryCount = 0;
+            return new();
+        }
+        else
+        {
+            var keywords = (_searchKeywords ?? "").Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries).ToList(); 
+            var sectors = _filteredSectors.Select(s => s.Id).ToList();
+            var branches = GetBranches().ToList();
+
+            _catalogSearchRequest = new(0, 10, _isFrench, keywords, _filteredClassificationTypes.ToList(), _filteredDataTypes.ToList(), sectors, branches);
+            var results = await MetadataBrokerService.SearchCatalog(_catalogSearchRequest, CheckMetadataCompleted);
+            _lastQueryCount = results.Count;
+
+            return results;
+        }
+    }
+
+    private IEnumerable<int> GetBranches()
+    {
+        if (_filterBranch != -1)
+            yield return _filterBranch;
     }
 
     private int _lastClicked = 0;
@@ -553,5 +613,31 @@
     private async Task RedirectAndDownload(string url)
     {
         await JSRuntime.InvokeAsync<object>("open", url, "_blank");
+    }
+
+    private bool HasValidFilters()
+    {
+        return !string.IsNullOrWhiteSpace(_searchKeywords) || _filteredSectors.Any() || _filteredDataTypes.Any() || _filteredClassificationTypes.Any();
+    }
+
+    private bool CanLoadMore()
+    {
+        return _lastQueryCount == PAGE_SIZE;
+    }
+
+    private async Task HandleLoadMore()
+    {
+        var newRequest = _catalogSearchRequest with
+        {
+            LastPageId = _searchResults.Last().CatalogObjectId
+        };
+
+        var results = await MetadataBrokerService.SearchCatalog(newRequest, CheckMetadataCompleted);
+        _lastQueryCount = results.Count;
+        _searchResults.AddRange(results);
+
+        _catalogSearchRequest = newRequest;
+
+        await InvokeAsync(StateHasChanged);
     }
 }
