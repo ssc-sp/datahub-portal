@@ -111,8 +111,6 @@ namespace Datahub.Core.EFCore
 
         public const string STORAGE_TYPE_BLOB = "blob";
         public const string STORAGE_TYPE_GEN2 = "gen2";
-
-        public const string INPUT_PARAM_STORAGE_TYPE = "storage_type";
     }
 
     public class ProjectResource_Database
@@ -127,7 +125,6 @@ namespace Datahub.Core.EFCore
 
     public class ProjectResource_Storage
     {
-        public const string DEFAULT_STORAGE_TYPE = ProjectResourceConstants.STORAGE_TYPE_BLOB;
         public string Storage_Type { get; set; }
         public string Storage_Account { get; set; }
         public List<string> Containers { get; set; }
