@@ -86,7 +86,7 @@
                             <input @bind=@_signedApprovalFormUrl class="ae input" style="width: 100%" @bind:event="oninput"/>
                         </AeFlex>
                         <AeFlex>
-                            <AeButton OnClickEvent=@UploadSignedPDF Disabled=@UploadSignedPDFDisabled()>@Localizer["BUTTONS.Submit"]</AeButton>
+                            <AeButton OnClickEvent=@UploadSignedDocument Disabled=@UploadSignedDocumentDisabled()>@Localizer["BUTTONS.Submit"]</AeButton>
                             <div>
                                 @if (_savingData)
                                 {
@@ -355,14 +355,14 @@
         }
     }
 
-    private async Task UploadSignedPDF()
+    private async Task UploadSignedDocument()
     {
-        if (IsPDFUrlValid())
+        if (IsDocumentUrlValid())
         {
             _savingData = true;
 
             await PublicFileService.UpdateOpenDataSignedApprovalFormUrl(_fileIdGuid, _signedApprovalFormUrl);
-            await PublicFileService.NotifySignedPDFUploaded();
+            await PublicFileService.NotifySignedDocumentUploaded();
 
             _savingData = false;
             UpdateCurrentStatus(OpenDataSharingStatus.PendingApproval);   
@@ -518,7 +518,7 @@
         }
     }
 
-    private async Task HandleSaveMetadata()
+    private async Task HandleSaveMetadata(FieldValueContainer fieldValues)
     {
         _datasetTitle = _metadataEditor.GetTitle();
 
@@ -592,7 +592,7 @@
         if (Guid.TryParse(FileId, out _fileIdGuid))
         {
             var loadTask = PublicFileService.LoadOpenDataSharedFileInfo(_fileIdGuid);
-            var currentUserTask = UserInformationService.GetUserAsync();
+            var currentUser = await UserInformationService.GetUserAsync();
 
             _stepInfo = _steps.ToDictionary(s => s, s => GetStepPair(s));
             _stepStates = _steps.ToDictionary(s => s, s => AeSteps<OpenDataSharingStatus>.StepState.Queued);
@@ -615,8 +615,8 @@
             _requestFilename = sharedFileInfo.Filename_TXT;
             _publicationDateText = sharedFileInfo.PublicationDate_DT?.ToShortDateString();
 
-            _requestingUser = await GraphService.GetUserAsync(sharedFileInfo.RequestingUser_ID, CancellationToken.None);
-            var currentUser = await currentUserTask;
+            _requestingUser = await GetRequestUser(sharedFileInfo.RequestingUser_ID);
+
             _isOwnRequest = currentUser.Id == _requestingUser.Id;
             _projectCode = sharedFileInfo.ProjectCode_CD;
             _fileUrl = sharedFileInfo.FileUrl_TXT;
@@ -630,6 +630,13 @@
         {
             await NavManager.NavigateTo("/", true);
         }
+    }
+
+    private Task<GraphUser> GetRequestUser(string requestingUserId)
+    {
+        if ((requestingUserId ?? "").Contains('@'))
+            return GraphService.GetUserFromEmailAsync(requestingUserId, CancellationToken.None);
+        return GraphService.GetUserAsync(requestingUserId, CancellationToken.None);
     }
 
     private (string, string)? GetStepPair(OpenDataSharingStatus status)
@@ -657,14 +664,12 @@
         }
     }
 
-    const string GcDocURLBase = "https://gcdocs.gc.ca/nrcan-rncan/llisapi.dll/link/";
-
-    private bool IsPDFUrlValid()
+    private bool IsDocumentUrlValid()
     {
-        return (_signedApprovalFormUrl ?? string.Empty).StartsWith(GcDocURLBase, StringComparison.InvariantCultureIgnoreCase);
+        return (_signedApprovalFormUrl ?? string.Empty).StartsWith(GcDocs.BaseUrl, StringComparison.InvariantCultureIgnoreCase);
     }
 
-    private bool UploadSignedPDFDisabled() => _savingData || !IsPDFUrlValid();
+    private bool UploadSignedDocumentDisabled() => _savingData || !IsDocumentUrlValid();
 
     private async Task ReadSectorAndBranch()
     {
