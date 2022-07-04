@@ -1,3 +1,4 @@
+@using Datahub.Portal.Data.ProjectResource
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject RequestManagementService _requestManagementService
 
@@ -107,12 +108,7 @@ else
             User_Name = GraphUser.UserPrincipalName
         };
 
-        var inputParams = new Dictionary<string, string>()
-        {
-            {ProjectResourceConstants.INPUT_PARAM_STORAGE_TYPE, ProjectResource_Storage.DEFAULT_STORAGE_TYPE }
-        };
-
-        await _requestManagementService.RequestService(serviceRequest, inputParams);
+        await _requestManagementService.RequestServiceWithDefaults(serviceRequest);
         _storageServiceRequested = true;
     }
 
