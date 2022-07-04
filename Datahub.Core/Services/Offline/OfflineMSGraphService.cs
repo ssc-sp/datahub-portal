@@ -111,5 +111,10 @@ namespace Datahub.Core.Services
         {
             return Task.FromResult(UsersDict);
         }
+
+        public Task<GraphUser> GetUserFromEmailAsync(string email, CancellationToken tkn) 
+        {
+            return Task.FromResult((GraphUser)null);
+        }
     }
 }

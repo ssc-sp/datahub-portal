@@ -37,6 +37,7 @@ using Datahub.Core.Configuration;
 using Datahub.Core.Modules;
 using Datahub.Portal.Services.Storage;
 using Microsoft.AspNetCore.Authorization.Infrastructure;
+using Datahub.GeoCore.Service;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]
 namespace Datahub.Portal
@@ -134,6 +135,7 @@ namespace Datahub.Portal
             services.Configure<TelemetryConfiguration>(Configuration.GetSection("ApplicationInsights"));
 
             services.Configure<CKANConfiguration>(Configuration.GetSection("CKAN"));
+            services.Configure<GeoCoreConfiguration>(Configuration.GetSection("GeoCore"));
 
             services.Configure<SessionsConfig>(Configuration.GetSection("Sessions"));
 
@@ -400,6 +402,8 @@ namespace Datahub.Portal
 
             services.AddCKANService();
             services.AddSingleton<IOpenDataService, OpenDataService>();
+
+            services.AddGeoCoreService();
 
             services.AddSingleton<IGlobalSessionManager, GlobalSessionManager>();
             services.AddScoped<IUserCircuitCounterService, UserCircuitCounterService>();
