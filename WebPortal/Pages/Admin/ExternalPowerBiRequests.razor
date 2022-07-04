@@ -1,21 +1,9 @@
-﻿@using System.Net.Http
-@using System.Threading.Tasks
-@using Datahub.Portal.Layout
-@using Microsoft.Identity.Client
-@using Microsoft.PowerBI.Api
-@using Microsoft.PowerBI.Api.Models
-@using Microsoft.Rest
-@using Newtonsoft.Json.Linq
-@using Microsoft.Extensions.Configuration
-@inject IJSRuntime JSRuntime
-@inject IConfiguration _configuration
-@inject IEmailNotificationService EmailService
-
+﻿@inject IEmailNotificationService EmailService
 @inject IDbContextFactory<DatahubProjectDBContext> dbFactory
-@inject IEmailNotificationService EmailService
 @inject ISystemNotificationService SystemNotificationService
 @inject IPowerBiDataService PowerBiDataService
 @inject PowerBiServiceApi PowerBiServiceApi
+@inject NavigationManager NavigationManager
 @using Microsoft.Identity.Web
 @inject MicrosoftIdentityConsentAndConditionalAccessHandler ConsentHandler
 
@@ -44,7 +32,15 @@
                     <RightIcon><i class='fad fa-chevron-double-right'></i></RightIcon>
                 </AePagination>
             }
-        
+               
+            @foreach (var set in _externalReports)
+        {
+            <div @onclick="() => OnCreateUrl(set)" style="cursor:pointer;">
+                <i class="far fa-plus-square"></i>
+                <a>Create External Report</a>
+            </div>
+            
+        }
     </ChildContent>
 </AeCard>
 
@@ -102,45 +98,13 @@
     </div>
     ;
 
+
     private async void OnCreateUrl(ExternalPowerBiReport report)
     {
-        var rep = await PowerBiServiceApi.GetReport(report.Report_ID.ToString());
-
-        try
-        {
-            //var reportToken = await PowerBiServiceApi.GetEmbedTokenAsync(24 * 2 * 60, rep.DatasetId, report.Report_ID);   
-            report.Token = "faketoken"; //reportToken.Token;
-            report.Url = rep.EmbedUrl;
-            report.End_Date = DateTime.Now.AddDays(2);
-            report.Is_Created = true;
-            await PowerBiDataService.UpdateExternalPowerBiRecord(report);
-            _externalReports = await PowerBiDataService.GetRequestedExternalReports();
-            StateHasChanged();
-
-            var emailParams = GetEmailParameters(report);
-
-
-        }
-        catch (Exception ex)
-        {
-            var httpEx = ex as HttpOperationException;
-            if (httpEx?.Response?.StatusCode == System.Net.HttpStatusCode.Unauthorized)
-            {
-                var errorText = string.Format("Request: {0}\r\nStatus: {1} ({2})\r\nResponse: {3}",
-                 httpEx.Request.Content, httpEx.Response.StatusCode, (int)httpEx.Response.StatusCode, httpEx.Response.Content);
-
-            }
-        }
+        NavigationManager.NavigateTo($"/powerbi-consent/{report.Report_ID.ToString()}/{report.ExternalPowerBiReport_ID}");
+        
     }
 
-    private PowerBiExternalReportParameters GetEmailParameters(ExternalPowerBiReport report)
-    {
-        PowerBiExternalReportParameters param = new();
-        param.AppUrl = $"/powerbi-report/embed/{report.Report_ID.ToString()}";
-        param.App = report;
-
-        return param;
-    }
 
     private const string AuthorityFormat = "https://login.microsoftonline.com/{0}/v2.0";
     private const string MSGraphScope = "https://analysis.windows.net/powerbi/api/.default";

@@ -1,24 +1,15 @@
-﻿@page "/powerbi-report/embed/{GroupId}/{ReportId}"
-@page "/powerbi-report/embed/{ReportId}"
-
-@using System.Net.Http
-@using System.Threading.Tasks
+﻿@page "/powerbi-report/embed/{ReportId}"
+@inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
+@layout PublicLayout
 @using Datahub.Portal.Layout
-@using Microsoft.Identity.Client
 @using Microsoft.PowerBI.Api
 @using Microsoft.PowerBI.Api.Models
-@using Microsoft.Rest
 @using Newtonsoft.Json.Linq
 @using Microsoft.Extensions.Configuration
 @inject IJSRuntime JSRuntime
 @inject IConfiguration _configuration
 
 
-@inject IStringLocalizer<DataLabels> DataLocalizer
-@inject NavigationManager NavigationManager
-@inject PowerBiServiceApi PowerBiServiceApi
-@using Microsoft.Identity.Web
-@inject MicrosoftIdentityConsentAndConditionalAccessHandler ConsentHandler
 
 <div @ref="@PowerBIElement" style="width:100%;height:600px;max-width: 2000px">@_errorMessage</div>
 
@@ -27,8 +18,7 @@
     [Parameter]
     public string ReportId {  get;  set; }
 
-    [Parameter]
-    public string GroupId {  get;  set; }
+
 
     [Parameter]
     [SupplyParameterFromQuery]
@@ -41,30 +31,32 @@
 
     private string _errorMessage;
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         try
         {
-            if (GroupId is null)
-                report = await PowerBiServiceApi.GetReport(ReportId);                
-            else
-                report = await PowerBiServiceApi.GetReport(ReportId, GroupId);
+            if (firstRender)
+            {
+                using var context = _dbFactoryProject.CreateDbContext();
+                var extreport = context.ExternalPowerBiReports.Where(r => r.Report_ID.ToString() == ReportId).FirstOrDefault();
 
-            //2 days            
-            reportToken = await PowerBiServiceApi.GetEmbedTokenAsync(24*2*60,report.DatasetId, new Guid(ReportId));
-            var pbiSettings = new PowerBISettings();
-            if (ReadOnly)
-            {
-                pbiSettings.bars.actionBar.visible = false;
-                pbiSettings.navContentPaneEnabled = false;            
-            }
-            
-            if (report != null)
-            {
-                await JSRuntime.InvokeAsync<object>(
-                    "ShowMyPowerBI.showReportEmbed",
-                    PowerBIElement, reportToken.Token, report.EmbedUrl,
-                report.Id.ToString(), pbiSettings);
+                if (extreport is not null)
+                {
+
+                    var pbiSettings = new PowerBISettings();
+                    if (ReadOnly)
+                    {
+                        pbiSettings.bars.actionBar.visible = false;
+                        pbiSettings.navContentPaneEnabled = false;
+                    }
+
+
+                    await JSRuntime.InvokeAsync<object>(
+                        "ShowMyPowerBI.showReportEmbed",
+                        PowerBIElement, extreport.Token, extreport.Url,
+                    extreport.Report_ID.ToString(), pbiSettings);
+
+                }
             }
         } 
         catch (Exception ex)
@@ -76,21 +68,7 @@
     private void HandleError(Exception ex)
     {
             _errorMessage = $"Internal error loading report {ReportId}.";
-            //try
-            //{
-            //    ConsentHandler.HandleException(ex);
-            //}
-            //catch (Exception)
-            //{
-                var httpEx = ex as HttpOperationException;
-                if (httpEx?.Response?.StatusCode == System.Net.HttpStatusCode.Unauthorized)
-                {
-                    _errorMessage = $"Insufficient Power BI Permissions to generate Token for Report {ReportId} and Dataset";
-                }
-                //else
-                //    throw;
-            //}
-        
+           
     }
 
     private const string AuthorityFormat = "https://login.microsoftonline.com/{0}/v2.0";
