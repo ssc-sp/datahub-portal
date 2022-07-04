@@ -136,7 +136,7 @@
     "Title": "Gérer l'accès",
     "FolderNotExist": "L'utilisateur n'a pas de dossier racine défini, la propriété ne peut pas être transférée."
   },
-  
+
   "TAC-PAGE": {
     "AcceptTerms": "Accepté les termes et conditions",
     "AgreeToTAC": "J'accepte les termes et conditions",
@@ -559,6 +559,7 @@
   "Delegated_Manager_Email": "Courriel",
   "Employee_Appointed_NonImperative_Basis": "Employé nommé sur une base non impérative",
   "Employee_language_profile_raised": "Employé occupant un poste où le profil linguistique a été relevé",
+  "Employee_In_Pardp": "Participant in the PARDP program",
   "Employee_professional_dev_program": "Employé participant à un programme de perfectionnement professionnel",
   "Employee_talent_management_exercise": "Employé identifié dans le cadre d’un exercice de gestion des talents",
   "Employee_equity_group": "Employé qui s’est identifié comme membre d’un groupe visé par l’équité en matière d’emploi",
@@ -855,7 +856,7 @@
   "[Enter the name of your product]": "[Entrez le nom de votre produit]",
   "[Provide a brief summary/description of your product]": "[Fournissez un bref r\u00E9sum\u00E9/description de votre produit].",
   "Product Information": "Informations",
-  
+
 
   "AA": "AA",
   "AAA": "AAA",
