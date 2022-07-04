@@ -8,14 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="appsettings.Development.json" />
     <None Remove="Data\cfs_catalog.json" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="appsettings.Development.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
 
   <ItemGroup>
