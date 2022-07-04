@@ -2,9 +2,9 @@
 
 _Training options offered by the NRCan Language School are as follows:_
 
-- _Group Training - Full-time Training – 37.5 hours/week (up to $45/hour)_
-- _Group Training - Part-Time Training – 6 hours/week (2 hours/session over 3 days) (up to $45/hour)_
-- _Individual - Coaching – up to 5 one-hour sessions (in preparation of a scheduled SLE test date) (up to $45/hour)_
+- _Group Training - Full-time Training – 37.5 hours/week ($35/hour)_
+- _Group Training - Part-Time Training – 6 hours/week (2 hours/session over 3 days) ($45/hour)_
+- _Individual - Coaching – up to 5 one-hour sessions (in preparation of a scheduled SLE test date) ($45/hour)_
 
 _Group training will be scheduled on a quarterly basis; whereas coaching is available on an ad hoc basis once an employee has been provided with a SLE testing date._
 
@@ -15,7 +15,7 @@ _Should the NRCan Language School be unable to fulfill your training needs, an e
 
 ### Language Assessment
 
-_A Language Training and Evaluation Plan (LETP) assessment is pre-requisite to language training. If you have not completed an LETP assessment, please submit a request [hyperlink to LETP request form] to the NRCan Language School._
+_A Language Training and Evaluation Plan (LETP) assessment is pre-requisite to language training. If you have not completed an LETP assessment, please submit a request by sending an email to languagetraining-formationlinguistique@nrcan-rncan.gc.ca._
 
 _*Please note that in order to be accepted into the Advanced Oral Communication course, participants must have level C in oral proficiency or have completed the level C program at NRCan._
 
