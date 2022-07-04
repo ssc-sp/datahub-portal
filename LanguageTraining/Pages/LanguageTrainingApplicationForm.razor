@@ -292,6 +292,8 @@
         context.SetVisible<LanguageTrainingApplication>(p => p.Employee_equity_group, _languageTrainingApplication.Completed_LETP_Assessment);
         context.SetVisible<LanguageTrainingApplication>(p => p.Employee_language_profile_raised, _languageTrainingApplication.Completed_LETP_Assessment);
         context.SetVisible<LanguageTrainingApplication>(p => p.Employee_professional_dev_program, _languageTrainingApplication.Completed_LETP_Assessment);
+        
+        context.SetVisible<LanguageTrainingApplication>(p => p.Employee_In_Pardp, _languageTrainingApplication.Completed_LETP_Assessment);
         context.SetVisible<LanguageTrainingApplication>(p => p.Employee_talent_management_exercise, _languageTrainingApplication.Completed_LETP_Assessment);
 
         context.SetVisible<LanguageTrainingApplication>(p => p.Manager_First_Name, _isUserAdmin || _languageTrainingApplication.Delegated_Manager_Email?.ToLower() == _user.Mail.ToLower());

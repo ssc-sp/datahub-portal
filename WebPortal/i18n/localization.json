@@ -242,7 +242,7 @@
   "Division_Name": "Division",
   "Branch_Name": "Branch",
   "Sector_Name": "Sector",
-  "Number_Of_Users_Involved": "Number of Users Involved",  
+  "Number_Of_Users_Involved": "Number of Users Involved",
   "FiscalYearId": "Fiscal Year",
   "Program_Title": "Program Title",
   "Program_Official_Title": "Program Official",
@@ -679,12 +679,12 @@
   "[Lastname,_Firstname]": "[Lastname, Firstname]",
   "[Firstname.Lastname@nrcan-rncan.gc.ca]": "[Firstname.Lastname@nrcan-rncan.gc.ca]",
   "[Provide_a_brief_description_of_the_objective(s)_you_would_like_to_accomplish_with_DataHub]": "[Provide a brief description of the objective(s) you would like to accomplish with DataHub]",
-  "[Provide_any_anticipated_timelines_or_deadlines_for_onboarding_to_DataHub]": "[Provide any anticipated timelines or deadlines for onboarding to DataHub]",  
+  "[Provide_any_anticipated_timelines_or_deadlines_for_onboarding_to_DataHub]": "[Provide any anticipated timelines or deadlines for onboarding to DataHub]",
   "Additional_Information": "Additional Information",
-  "Client_Information": "Client Information",  
+  "Client_Information": "Client Information",
   "Product Information": "Information",
   "Product_Name": "Initiative Name",
-  
+
 
 
 
@@ -725,7 +725,7 @@
   "Province_Territory": "Province/Territory",
   "Employment_Status": "Employment Status",
   "I_am_seeking": "I am seeking",
-  "Completed_LETP_Assessment": "Have your completed a LETP assessment with the NRCan Language School in the last two (2) year",
+  "Completed_LETP_Assessment": "Have you completed a LETP assessment with the NRCan Language School in the last two (2) years",
   "Language_Training_Since_LETP_Assessment": "Have you taken language training since your LETP assessment",
   "Language_Training_Provided_By": "The language training was provided by",
   "Last_Course_Successfully_Completed": "What was the last course you successfully completed",
@@ -746,7 +746,8 @@
   "Delegated_Manager_Email": "Delegated Manager Email",
   "Employee_Appointed_NonImperative_Basis": "Employee appointed on a non-imperative basis",
   "Employee_language_profile_raised": "Employee occupying a position where the language profile was raised",
-  "Employee_professional_dev_program": "Employee in a professional development program",
+  "Employee_In_Pardp": "Participant in the PARDP program",
+  "Employee_professional_dev_program": "Employee in a professional development program other than PARDP",
   "Employee_talent_management_exercise": "Employee identified through a talent management exercise",
   "Employee_equity_group": "Employee who has self-identified as a member of an employment equity group",
   "Manager_First_Name": "Finance Officer First Name",
@@ -930,7 +931,6 @@
       "MonthNumber": "Month #{0}"
     }
   },
-  
 
   "NRCan Datahub": "NRCan DataHub",
   "Search...": "Search...",
