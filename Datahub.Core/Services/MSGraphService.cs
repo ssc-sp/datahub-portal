@@ -18,11 +18,11 @@ namespace Datahub.Core.Services
         private readonly ILogger<MSGraphService> _logger;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IKeyVaultService _keyVaultService;
-        private GraphServiceClient _graphServiceClient;        
+        private GraphServiceClient _graphServiceClient;
 
         public Dictionary<string, GraphUser> UsersDict { get; set; }
 
-        public MSGraphService(IConfiguration configureOptions, ILogger<MSGraphService> logger, IHttpClientFactory clientFactory, 
+        public MSGraphService(IConfiguration configureOptions, ILogger<MSGraphService> logger, IHttpClientFactory clientFactory,
             IKeyVaultService keyVaultService)
         {
             _configuration = configureOptions;
@@ -30,7 +30,7 @@ namespace Datahub.Core.Services
             _httpClientFactory = clientFactory;
             _keyVaultService = keyVaultService;
         }
-    
+
         public async Task<GraphUser> GetUserAsync(string userId, CancellationToken token)
         {
             return await QueryUserAsync($"id eq '{userId}'", token);
@@ -44,7 +44,7 @@ namespace Datahub.Core.Services
         public async Task<string> GetUserName(string userId, CancellationToken token)
         {
             if (!string.IsNullOrWhiteSpace(userId))
-            {             
+            {
                 var user = await GetUserAsync(userId, token);
                 return user?.DisplayName ?? "...";
             }
@@ -69,7 +69,7 @@ namespace Datahub.Core.Services
             await PrepareAuthenticatedClient();
 
             var options = new List<Option>();
-            options.Add(new QueryOption("$filter",$"startswith(mail,'{filterText}')"));
+            options.Add(new QueryOption("$filter", $"startswith(mail,'{filterText}')"));
             options.Add(new HeaderOption("ConsistencyLevel", "eventual"));
             options.Add(new QueryOption("$count", "true"));
 
@@ -98,7 +98,7 @@ namespace Datahub.Core.Services
 
             return users;
         }
- 
+
         private async Task PrepareAuthenticatedClient()
         {
             if (_graphServiceClient == null)
