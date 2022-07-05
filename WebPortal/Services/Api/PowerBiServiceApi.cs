@@ -152,8 +152,7 @@ namespace Datahub.Portal.Services
         public async Task<List<PowerBiWorkspaceDataset>> GetWorkspaceDatasetsAsync(Guid? workspaceId = null)
         {
             using var client = await GetPowerBiClientAsync();
-            var groups = await client.Groups.GetGroupsAsync();
-            var workspaceIds = workspaceId.HasValue ? new List<Guid> { workspaceId.Value } : groups.Value.Select(w => w.Id);
+            var workspaceIds = workspaceId.HasValue ? new List<Guid> { workspaceId.Value } : (await client.Groups.GetGroupsAsync()).Value.Select(w => w.Id);
 
             var result = new List<PowerBiWorkspaceDataset>();
             
