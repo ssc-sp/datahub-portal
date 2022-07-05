@@ -9,6 +9,7 @@ using Microsoft.Graph;
 using Datahub.Core.Data;
 using Datahub.Core.EFCore;
 using Datahub.Core.Services;
+using Datahub.Core.Templates;
 using System.Net;
 using Datahub.Portal.Components;
 using Datahub.Portal.Services.Storage;
