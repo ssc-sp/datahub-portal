@@ -173,27 +173,23 @@
                     <div class="catalog-cards">
                         @if (_searchResults.Any())
                         {
-                            <div>
-                            @foreach(var result in _searchResults)
-                            {
-                                <CatalogCards 
-                                    @key=@result
-                                    CatalogResult=@result 
-                                    IsFrench=@_isFrench
-                                    Project=@GetProject(result)
-                                    MapSector=@GetSector
-                                    MapBranch=@GetBranch
-                                >
-                                    @GetDownLoadFragment(result)
-                                </CatalogCards>
-                            }
-                            </div>
-                            <div>
-                                @if (CanLoadMore())
-                                {
-                                    <AeButton OnClickEvent=@HandleLoadMore>More...</AeButton>
-                                }
-                            </div>
+                            <InfiniteScrolling Preloaded=@_searchResults ItemsProvider=@GetMore>
+                                <ItemTemplate Context="item">
+                                    <CatalogCards 
+                                        @key=@item
+                                        CatalogResult=@item
+                                        IsFrench=@_isFrench
+                                        Project=@GetProject(item)
+                                        MapSector=@GetSector
+                                        MapBranch=@GetBranch
+                                    >
+                                        @GetDownLoadFragment(item)
+                                    </CatalogCards>
+                                </ItemTemplate>
+                                <LoadingTemplate>
+                                    <div>@Localizer["Loading..."]</div>
+                                </LoadingTemplate>
+                            </InfiniteScrolling>
                         }
                         else
                         {
@@ -373,9 +369,6 @@
     private async Task UpdateFilter()
     {
         await ThrottleSearch(_searchKeywords);
-
-        _lastClicked = 0;
-
         _filtersActive = _filteredSectors.Count > 0 || _filteredDataTypes.Count > 0 || _filteredClassificationTypes.Count > 0 || _filterBranch != NO_FILTER_SELECTED || !string.IsNullOrEmpty(_securityFilter);
     }
 
@@ -559,8 +552,6 @@
         {
             _searchKeywords = searchText;
             _searchResults = await SearchCatalog(searchText);
-            //CheckCompleteneses();
-            //await UpdateFilter();
         }
         finally
         {
@@ -597,19 +588,6 @@
             yield return _filterBranch;
     }
 
-    private int _lastClicked = 0;
-
-    private void OnPageClick(int pageIndex)
-    {
-        _lastClicked = pageIndex;
-        _selectedResult = null;
-    }
-
-    private void ShowDetails(CatalogObjectResult result)
-    {
-        _selectedResult = result;
-    }
-
     private async Task RedirectAndDownload(string url)
     {
         await JSRuntime.InvokeAsync<object>("open", url, "_blank");
@@ -620,24 +598,16 @@
         return !string.IsNullOrWhiteSpace(_searchKeywords) || _filteredSectors.Any() || _filteredDataTypes.Any() || _filteredClassificationTypes.Any();
     }
 
-    private bool CanLoadMore()
-    {
-        return _lastQueryCount == PAGE_SIZE;
-    }
-
-    private async Task HandleLoadMore()
+    private async Task<IEnumerable<CatalogObjectResult>> GetMore(InfiniteScrollingItemsProviderRequest request)
     {
         var newRequest = _catalogSearchRequest with
         {
-            LastPageId = _searchResults.Last().CatalogObjectId
+            LastPageId = _searchResults.LastOrDefault()?.CatalogObjectId ?? 0
         };
 
-        var results = await MetadataBrokerService.SearchCatalog(newRequest, CheckMetadataCompleted);
-        _lastQueryCount = results.Count;
-        _searchResults.AddRange(results);
+        var newResults = await MetadataBrokerService.SearchCatalog(newRequest, CheckMetadataCompleted);
+        _searchResults.AddRange(newResults);
 
-        _catalogSearchRequest = newRequest;
-
-        await InvokeAsync(StateHasChanged);
+        return newResults;
     }
 }
