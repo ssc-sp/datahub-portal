@@ -10,16 +10,38 @@
     .ae.card {
         margin-bottom: 1rem;
     }
+
+    .powerbi-admin-container {
+        display: grid;
+        grid-template-columns: [mainbody] 1fr [rightside] 400px;
+        grid-template-rows: auto 1fr;
+        grid-template-areas:
+            "main import"
+            "main admins"
+            "main .";
+        gap: 1rem;
+    }
+    
+    .powerbi-admin-container .main-body {
+        grid-area: main;
+    }
+
+    .powerbi-admin-container .import-list {
+        grid-area: import;
+    }
+
+    .powerbi-admin-container .admin-list {
+        grid-area: admins;
+    }
 </style>
 
 <div style="padding-left: 2rem;padding-right: 2rem">
 
     <AeTypography Variant="h1">@Localizer[$"{LOCALIZATION_PREFIX}.Title"]</AeTypography>
 
-    
-    <AeFlex >
-        <AeFlex Vertical>
-            <AeCard class="facard1 doublewide">
+    <div class="powerbi-admin-container">
+        <div class="main-body">
+            <AeCard>
                 <Header>
                     <AeTypography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.ManagementTitle"]</AeTypography>
                 </Header>
@@ -32,149 +54,154 @@
                     {
                     <PowerBiManagementTree DataProjects=@AvailableProjects Workspaces=@ManagedWorkspaces OnItemClicked=@OpenItemEditor />
                     }
+
+                    @if (WorkspaceBeingEdited != null)
+                    {
+                        <AeCard>
+                            <Header>
+                                <AeTypography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.Workspace"]: @WorkspaceBeingEdited.DbWorkspaceName</AeTypography>
+                            </Header>
+                            <ChildContent>
+                                <div>
+                                    <label>
+                                        <span>@Localizer[$"{LOCALIZATION_PREFIX}.Project"]: </span>
+                                        <select @bind=@WorkspaceBeingEdited.ProjectId>
+                                            <option value="-1">@Localizer[$"{LOCALIZATION_PREFIX}.Unassigned"]</option>
+                                            @foreach (var project in AvailableProjects)
+                                            {
+                                                <option value=@project.Project_ID>@project.ProjectName</option>
+                                            }
+                                        </select>
+                                    </label>
+                                    <label>
+                                        <input type="checkbox" @bind=@WorkspaceBeingEdited.SandboxFlag />
+                                        <span>@Localizer[$"{LOCALIZATION_PREFIX}.Sandbox"]</span>
+                                    </label>
+                                </div>
+                                <AeTypography Variant="h4">@Localizer[$"{LOCALIZATION_PREFIX}.Metadata"]</AeTypography>
+                                <ObjectMetadataEditor 
+                                    ObjectId=@WorkspaceBeingEdited.WorkspaceId.ToString()
+                                    Location="PowerBI"
+                                    ProfileName="catalog"
+                                    ObjectType=@Metadata.Model.MetadataObjectType.PowerBIWorkspace
+                                    UpdateCatalog=@true
+                                    ValidateRequired=@false
+                                    Name=@WorkspaceBeingEdited.DbWorkspaceName
+                                    HideSaveButton
+                                    OnValuesChanged=@(() => StateHasChanged())
+                                    @ref=@_workspaceMetadata
+                                />
+                                <div>
+                                    <AeButton OnClickEvent=@SaveWorkspace Disabled=@SaveWorkspaceDisabled>@Localizer[$"BUTTONS.Save"]</AeButton>
+                                    <AeButton OnClickEvent=@CloseItemBeingEdited>@Localizer[$"BUTTONS.Cancel"]</AeButton>
+                                    <SuccessIndicator @bind-IsLoading=@IsSavingWorkspace @ref=@_saveWorkspaceInd />
+                                </div>
+                            </ChildContent>
+                        </AeCard>
+                    }
+
+                    @if (DatasetBeingEdited != null)
+                    {
+                        <AeCard>
+                            <Header>
+                                <AeTypography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.Dataset"]: @DatasetBeingEdited.DbDatasetName</AeTypography>
+                            </Header>
+                            <ChildContent>
+                                @if (!DatasetBeingEdited.IsLinkedToProject)
+                                {
+                                    <AeTypography Variant="p" class="warning">@Localizer[$"{LOCALIZATION_PREFIX}.UnassignedWarning"]</AeTypography>
+                                }
+                                <AeTypography Variant="h4">@Localizer[$"{LOCALIZATION_PREFIX}.Metadata"]</AeTypography>
+                                @if (_datasetMetadata != null)
+                                {
+                                    <label>
+                                        <AeFlex Vertical>
+                                            <AeTypography><strong><span>@Localizer[$"{LOCALIZATION_PREFIX}.SecurityClassification"]</span></strong></AeTypography>
+                                            <select @bind=@_datasetMetadata.SecurityClass class="ae input">
+                                                @foreach(var sec in SecurityClassification.SECURITY_CLASSES)
+                                                {
+                                                    <option value=@sec>@Localizer[@sec]</option>
+                                                }
+                                            </select>
+                                        </AeFlex>
+                                    </label>
+                                }
+
+                                <ObjectMetadataEditor 
+                                    ObjectId=@DatasetBeingEdited.DatasetId.ToString()
+                                    Location="PowerBI"
+                                    ProfileName="catalog"
+                                    ObjectType=@Metadata.Model.MetadataObjectType.PowerBIDataset
+                                    UpdateCatalog=@true
+                                    ValidateRequired=@false
+                                    Name=@DatasetBeingEdited.DbDatasetName
+                                    HideSaveButton
+                                    OnValuesChanged=@(() => StateHasChanged())
+                                    @ref=@_datasetMetadata
+                                />
+
+                                <div>
+                                    <AeButton OnClickEvent=@SaveDataset Disabled=@SaveDatasetDisabled>@Localizer[$"BUTTONS.Save"]</AeButton>
+                                    <AeButton class="light" OnClickEvent=@CloseItemBeingEdited>@Localizer[$"BUTTONS.Cancel"]</AeButton>
+                                    <SuccessIndicator @bind-IsLoading=@IsSavingDataset @ref=@_saveDatasetInd />
+                                </div>
+                            </ChildContent>
+                        </AeCard>
+                    }
+
+                    @if (ReportBeingEdited != null)
+                    {
+                        <AeCard>
+                            <Header>
+                                <AeTypography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.Report"]: @ReportBeingEdited.DbReportName</AeTypography>
+                            </Header>
+                            <ChildContent>
+                                @if (!ReportBeingEdited.IsLinkedToProject)
+                                {
+                                    <AeTypography Variant="p" class="warning">@Localizer[$"{LOCALIZATION_PREFIX}.UnassignedWarning"]</AeTypography>
+                                }
+                                <AeTypography Variant="h4">@Localizer[$"{LOCALIZATION_PREFIX}.Metadata"]</AeTypography>
+                                @if (_reportMetadata != null)
+                                {
+                                    <label>
+                                        <AeFlex Vertical>
+                                            <AeTypography><strong><span>@Localizer[$"{LOCALIZATION_PREFIX}.SecurityClassification"]</span></strong></AeTypography>
+                                            <select @bind=@_reportMetadata.SecurityClass class="ae input">
+                                                @foreach(var sec in SecurityClassification.SECURITY_CLASSES)
+                                                {
+                                                    <option value=@sec>@Localizer[@sec]</option>
+                                                }
+                                            </select>
+                                        </AeFlex>
+                                    </label>
+                                }
+
+                                <ObjectMetadataEditor 
+                                    @ref=@_reportMetadata
+                                    ObjectId=@ReportBeingEdited.ReportId.ToString()
+                                    Location="PowerBI"
+                                    ProfileName="catalog"
+                                    ObjectType=@Metadata.Model.MetadataObjectType.PowerBIReport
+                                    UpdateCatalog=@true
+                                    ValidateRequired=@false
+                                    Name=@ReportBeingEdited.DbReportName
+                                    HideSaveButton
+                                    OnValuesChanged=@(() => StateHasChanged())
+                                />
+
+                                <div>
+                                    <AeButton OnClickEvent=@SaveReport Disabled=@SaveReportDisabled>@Localizer[$"BUTTONS.Save"]</AeButton>
+                                    <AeButton class="light" OnClickEvent=@CloseItemBeingEdited>@Localizer[$"BUTTONS.Cancel"]</AeButton>
+                                    <SuccessIndicator @bind-IsLoading=@IsSavingReport @ref=@_saveReportInd />
+                                </div>
+                            </ChildContent>
+                        </AeCard>
+                    }
                 </ChildContent>
             </AeCard>
-
-            @if (WorkspaceBeingEdited != null)
-            {
-                <AeCard class="facard1 doublewide">
-                    <Header>
-                        <AeTypography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.Workspace"]: @WorkspaceBeingEdited.DbWorkspaceName</AeTypography>
-                    </Header>
-                    <ChildContent>
-                        <div>
-                            <label>
-                                <span>@Localizer[$"{LOCALIZATION_PREFIX}.Project"]: </span>
-                                <select @bind=@WorkspaceBeingEdited.ProjectId>
-                                    <option value="-1">@Localizer[$"{LOCALIZATION_PREFIX}.Unassigned"]</option>
-                                    @foreach (var project in AvailableProjects)
-                                    {
-                                        <option value=@project.Project_ID>@project.ProjectName</option>
-                                    }
-                                </select>
-                            </label>
-                            <label>
-                                <input type="checkbox" @bind=@WorkspaceBeingEdited.SandboxFlag />
-                                <span>@Localizer[$"{LOCALIZATION_PREFIX}.Sandbox"]</span>
-                            </label>
-                        </div>
-                        <AeTypography Variant="h4">@Localizer[$"{LOCALIZATION_PREFIX}.Metadata"]</AeTypography>
-                        <ObjectMetadataEditor 
-                            ObjectId=@WorkspaceBeingEdited.WorkspaceId.ToString()
-                            Location="PowerBI"
-                            ProfileName="catalog"
-                            ObjectType=@Metadata.Model.MetadataObjectType.PowerBIWorkspace
-                            UpdateCatalog=@true
-                            ValidateRequired=@false
-                            Name=@WorkspaceBeingEdited.DbWorkspaceName
-                            HideSaveButton
-                            OnValuesChanged=@(() => StateHasChanged())
-                            @ref=@_workspaceMetadata
-                        />
-                        <div>
-                            <AeButton OnClickEvent=@SaveWorkspace Disabled=@SaveWorkspaceDisabled>@Localizer[$"BUTTONS.Save"]</AeButton>
-                            <AeButton OnClickEvent=@CloseItemBeingEdited>@Localizer[$"BUTTONS.Cancel"]</AeButton>
-                            <SuccessIndicator @bind-IsLoading=@IsSavingWorkspace @ref=@_saveWorkspaceInd />
-                        </div>
-                    </ChildContent>
-                </AeCard>
-            }
-
-            @if (DatasetBeingEdited != null)
-            {
-                <AeCard class="facard1 doublewide">
-                    <Header>
-                        <AeTypography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.Dataset"]: @DatasetBeingEdited.DbDatasetName</AeTypography>
-                    </Header>
-                    <ChildContent>
-                        <AeTypography Variant="h4">@Localizer[$"{LOCALIZATION_PREFIX}.Metadata"]</AeTypography>
-                        @if (_datasetMetadata != null)
-                        {
-                            <label>
-                                <AeFlex Vertical>
-                                    <AeTypography><strong><span>@Localizer[$"{LOCALIZATION_PREFIX}.SecurityClassification"]</span></strong></AeTypography>
-                                    <select @bind=@_datasetMetadata.SecurityClass class="ae input">
-                                        @foreach(var sec in SecurityClassification.SECURITY_CLASSES)
-                                        {
-                                            <option value=@sec>@Localizer[@sec]</option>
-                                        }
-                                    </select>
-                                </AeFlex>
-                            </label>
-                        }
-
-                        <ObjectMetadataEditor 
-                            ObjectId=@DatasetBeingEdited.DatasetId.ToString()
-                            Location="PowerBI"
-                            ProfileName="catalog"
-                            ObjectType=@Metadata.Model.MetadataObjectType.PowerBIDataset
-                            UpdateCatalog=@true
-                            ValidateRequired=@false
-                            Name=@DatasetBeingEdited.DbDatasetName
-                            HideSaveButton
-                            OnValuesChanged=@(() => StateHasChanged())
-                            @ref=@_datasetMetadata
-                        />
-
-                        <div>
-                            <AeButton OnClickEvent=@SaveDataset Disabled=@SaveDatasetDisabled>@Localizer[$"BUTTONS.Save"]</AeButton>
-                            <AeButton class="light" OnClickEvent=@CloseItemBeingEdited>@Localizer[$"BUTTONS.Cancel"]</AeButton>
-                            <SuccessIndicator @bind-IsLoading=@IsSavingDataset @ref=@_saveDatasetInd />
-                        </div>
-                    </ChildContent>
-                </AeCard>
-            }
-
-            @if (ReportBeingEdited != null)
-            {
-                <AeCard class="facard1 doublewide">
-                    <Header>
-                        <AeTypography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.Report"]: @ReportBeingEdited.DbReportName</AeTypography>
-                    </Header>
-                    <ChildContent>
-                        <AeTypography Variant="h4">@Localizer[$"{LOCALIZATION_PREFIX}.Metadata"]</AeTypography>
-                        @if (_reportMetadata != null)
-                        {
-                            <label>
-                                <AeFlex Vertical>
-                                    <AeTypography><strong><span>@Localizer[$"{LOCALIZATION_PREFIX}.SecurityClassification"]</span></strong></AeTypography>
-                                    <select @bind=@_reportMetadata.SecurityClass class="ae input">
-                                        @foreach(var sec in SecurityClassification.SECURITY_CLASSES)
-                                        {
-                                            <option value=@sec>@Localizer[@sec]</option>
-                                        }
-                                    </select>
-                                </AeFlex>
-                            </label>
-                        }
-
-                        <ObjectMetadataEditor 
-                            @ref=@_reportMetadata
-                            ObjectId=@ReportBeingEdited.ReportId.ToString()
-                            Location="PowerBI"
-                            ProfileName="catalog"
-                            ObjectType=@Metadata.Model.MetadataObjectType.PowerBIReport
-                            UpdateCatalog=@true
-                            ValidateRequired=@false
-                            Name=@ReportBeingEdited.DbReportName
-                            HideSaveButton
-                            OnValuesChanged=@(() => StateHasChanged())
-                        />
-
-                        <div>
-                            <AeButton OnClickEvent=@SaveReport Disabled=@SaveReportDisabled>@Localizer[$"BUTTONS.Save"]</AeButton>
-                            <AeButton class="light" OnClickEvent=@CloseItemBeingEdited>@Localizer[$"BUTTONS.Cancel"]</AeButton>
-                            <SuccessIndicator @bind-IsLoading=@IsSavingReport @ref=@_saveReportInd />
-                        </div>
-                    </ChildContent>
-                </AeCard>
-            }
-
-        </AeFlex>
-
-        <AeFlex Vertical>
-
-            <AeCard class="facard1">
+        </div>
+        <div class="import-list">
+            <AeCard>
                 <Header>
                     <AeTypography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.ImportUpdateTitle"]</AeTypography>
                 </Header>
@@ -214,12 +241,11 @@
                     }
                 </ChildContent>
             </AeCard>
-
-
-            <AuthorizeView Roles=@RoleConstants.DATAHUB_ROLE_ADMIN >
+        </div>
+        <div class="admin-list">
+            <AuthorizeView Roles=@RoleConstants.DATAHUB_ROLE_ADMIN>
                 <Authorized>
-
-                    <AeCard class="facard1">
+                    <AeCard>
                         <Header>
                             <AeTypography Variant="h3">Global Power BI Administrators</AeTypography>
                         </Header>
@@ -282,9 +308,9 @@
 
                 </Authorized>
             </AuthorizeView>
-        </AeFlex>
+        </div>
+    </div>
 
-    </AeFlex>
     
 </div>
 
@@ -469,11 +495,13 @@
         {
             var dataset = await _powerBiDataService.GetDatasetById(item.Id);
             DatasetBeingEdited = new(null, dataset, null);
+            DatasetBeingEdited.ProjectId = item.ProjectId;
         }
         else if (item.ItemType == PowerBiAdminTreeItemType.Report)
         {
             var report = await _powerBiDataService.GetReportById(item.Id);
             ReportBeingEdited = new(null, report, null);
+            ReportBeingEdited.ProjectId = item.ProjectId;
         }
 
         _tempLastClickedItem = item.Label;
