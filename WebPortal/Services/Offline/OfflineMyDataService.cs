@@ -4,7 +4,7 @@ using Datahub.Core.Services;
 
 namespace Datahub.Portal.Services.Offline
 {
-    public class OfflineMyDataService : IMyDataService
+    public class OfflineMyDataService : MyDataService
     {
         private IBrowserFile _file = null;
 
@@ -17,37 +17,48 @@ namespace Datahub.Portal.Services.Offline
         private IUserInformationService _userInformationService;
         private readonly ILogger<OfflineMyDataService> _logger;
 
-        public Exception LastException { get; set; }
+        public new Exception LastException { get; set; }
 
-        public Folder CurrentFolder { get; set; }
+        public new Folder CurrentFolder { get; set; }
 
-        public Folder MyDataFolder { get; } = new Folder() {
+        public new Folder MyDataFolder { get; } = new Folder() {
             id = "-1",
             name = "MyData",
             isShared = false
         };
 
-        public NonHierarchicalFolder SharedDataFolder { get; } = new NonHierarchicalFolder() {
+        public new NonHierarchicalFolder SharedDataFolder { get; } = new NonHierarchicalFolder() {
             id = "-2",
             name = "SharedWithYou",
             isShared = true
         };
 
-        public NonHierarchicalFolder SearchDataFolder { get; } = new NonHierarchicalFolder() {
+        public new NonHierarchicalFolder SearchDataFolder { get; } = new NonHierarchicalFolder() {
             id = "-3",
             name = "SearchData",
             isShared = false
         };
 
-        public string LogoutURL => "";
+        public new string LogoutURL => "";
 
-        public Dictionary<string, FileMetaData> UploadedFiles { get; set; } = new Dictionary<string, FileMetaData>();
-        public IBrowserFile browserFile { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public new Dictionary<string, FileMetaData> UploadedFiles { get; set; } = new Dictionary<string, FileMetaData>();
+        public new IBrowserFile browserFile { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public string ProjectUploadCode { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
-        public OfflineMyDataService(
-                IUserInformationService userInformationService, 
-                ILogger<OfflineMyDataService> logger)
+        public OfflineMyDataService(IUserInformationService userInformationService, ILogger<OfflineMyDataService> logger):
+            base(logger,
+                    null,
+                     userInformationService,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null)
         {
             _userInformationService = userInformationService;
             _logger = logger;
@@ -89,7 +100,7 @@ namespace Datahub.Portal.Services.Offline
             });
         }
 
-        public async Task PopulateOtherMetadata(FileMetaData fileMetadata)
+        public new async Task PopulateOtherMetadata(FileMetaData fileMetadata)
         {
             var authState = await _userInformationService.GetUserAsync();
             fileMetadata.createdby = authState.Id;
@@ -106,17 +117,17 @@ namespace Datahub.Portal.Services.Offline
             return FileName.Substring(pos, FileName.Length - pos);
         }
 
-        public Task<long> GetUserUsedDataTotal(Microsoft.Graph.User user)
+        public new Task<long> GetUserUsedDataTotal(Microsoft.Graph.User user)
         {
             return Task.FromResult(0L);
         }
 
-        public Task RestoreVersionOfBlob(string fileid, string versionId)
+        public new Task RestoreVersionOfBlob(string fileid, string versionId)
         {
             return Task.FromResult(0);
         }
 
-        public Task<Folder> SearchIndex(dynamic folder, string filter, Microsoft.Graph.User user)
+        public new Task<Folder> SearchIndex(dynamic folder, string filter, Microsoft.Graph.User user)
         {
             return Task.FromResult(new Folder());
         }
@@ -131,17 +142,18 @@ namespace Datahub.Portal.Services.Offline
 
         }
 
-        public Task<bool> DoesFolderExist(string folderName)
+        public new Task<bool> DoesFolderExist(string folderName)
         {
             return Task.FromResult(true);
         }
+
 
         public Task SetupUserFolders()
         {
             return Task.FromResult(0);
         }
 
-        public Task UploadGen2File(FileMetaData fileMetadata, string projectUploadCode)
+        public new Task UploadGen2File(FileMetaData fileMetadata, string projectUploadCode)
         {
             return Task.FromResult(0);
         }
@@ -151,7 +163,7 @@ namespace Datahub.Portal.Services.Offline
             return Task.FromResult(new Uri(""));
         }
 
-        public Task AuditException(Exception ex, string correlationId)
+        public new Task AuditException(Exception ex, string correlationId)
         {
             return Task.FromResult(0);
         }
@@ -164,26 +176,6 @@ namespace Datahub.Portal.Services.Offline
         public Task<Uri> GenerateSasToken(string projectUploadCode, int daysValidity)
         {
             return Task.FromResult(new Uri(""));
-        }
-
-        public async Task<Folder> GetFolderContents(Folder folder, string filterSearch, Microsoft.Graph.User user)
-        {
-            return await Task.FromResult(MyDataFolder);
-        }
-
-        public async Task UploadGen2File(FileMetaData fileMetadata, string projectUploadCode, string containerName)
-        {
-            await Task.CompletedTask;
-        }
-
-        public async Task UploadGen2File(FileMetaData fileMetadata, string projectUploadCode, string containerName, Action<long> progress)
-        {
-            await Task.CompletedTask;
-        }
-
-        public async Task<Folder> GetFolderStructure(Folder folder, Microsoft.Graph.User user, bool onlyFolders = true)
-        {
-            return await Task.FromResult(MyDataFolder);
         }
     }
 }

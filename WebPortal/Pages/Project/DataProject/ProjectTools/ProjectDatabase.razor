@@ -1,4 +1,5 @@
-﻿@inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
+﻿@using Datahub.Portal.Data.ProjectResource
+@inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject RequestManagementService _requestManagementService
 @inject IProjectDatabaseService _projectDatabaseService;
 @inject IHttpClientFactory _httpClientFactory;
@@ -308,7 +309,7 @@ else
             User_Name = GraphUser.UserPrincipalName
         };
 
-        await _requestManagementService.RequestService(serviceRequest);
+        await _requestManagementService.RequestServiceWithDefaults(serviceRequest);
         await LoadProjectsAndRequests();
         StateHasChanged();
     }

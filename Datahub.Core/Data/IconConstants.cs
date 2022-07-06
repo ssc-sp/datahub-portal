@@ -10,6 +10,8 @@ namespace Datahub.Core.Data
     {
         public string Name { get; set; }
         public string Color { get; set; }
+        
+        public static readonly string DEFAULT_PROJECT_ICON = "swatchbook";
 
         public static readonly Icon HOME = new()
         {

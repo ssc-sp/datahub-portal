@@ -81,15 +81,24 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _approvalForm = await MetadataBrokerService.GetApprovalForm(ApprovalFormId) ??
-            new Data.Forms.ShareWorkflow.ApprovalForm() 
-            { 
+        var dbForm = await MetadataBrokerService.GetApprovalForm(ApprovalFormId);
+        if (dbForm is null)
+        {
+            // create a new form
+            _approvalForm = new()
+            {
                 Department_NAME = "Natural Resources Canada / Ressources Naturelles Canada",
                 Type_Of_Data_TXT = "Data",
                 Name_NAME = _user?.DisplayName,
                 Email_EMAIL = _user?.Mail,
                 Dataset_Title_TXT = DatasetTitle ?? string.Empty
             };
+        }
+        else
+        {
+            _approvalForm = new();
+            dbForm.CopyPublicPropertiesTo(_approvalForm);
+        }
 
         _isFrench = CultureInfo.CurrentCulture.Name.StartsWith("fr", StringComparison.InvariantCulture);
 
@@ -128,7 +137,11 @@
         _validMandatoryCheckboxes = ValidMandatoryReleaseCriteria();
         if (_validMandatoryCheckboxes)
         {
-            _approvalForm.ApprovalFormId = await MetadataBrokerService.SaveApprovalForm(_approvalForm);
+            var dbForm = new Metadata.Model.ApprovalForm();
+            _approvalForm.CopyPublicPropertiesTo(dbForm);
+
+            _approvalForm.ApprovalFormId = await MetadataBrokerService.SaveApprovalForm(dbForm);
+
             await OnSubmitForm.InvokeAsync(new(_approvalForm.ApprovalFormId, _approvalForm.Sector_ID, _approvalForm.Branch_ID));    
         }
     }

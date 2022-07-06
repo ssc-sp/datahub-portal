@@ -9,6 +9,7 @@ using Microsoft.Graph;
 using Datahub.Core.Data;
 using Datahub.Core.EFCore;
 using Datahub.Core.Services;
+using Datahub.Core.Templates;
 using System.Net;
 using Datahub.Portal.Components;
 using Datahub.Portal.Services.Storage;
@@ -28,7 +29,7 @@ namespace Datahub.Portal.Services
     public class PublicDataFileService : IPublicDataFileService
     {
         private readonly DatahubProjectDBContext _projectDbContext;
-        private readonly IDataRetrievalService dataRetrievalService;
+        private readonly DataRetrievalService dataRetrievalService;
         private readonly ILogger<IPublicDataFileService> _logger;
         private readonly IMetadataBrokerService _metadataService;
         private readonly IDatahubAuditingService _datahubAuditingService;
@@ -39,7 +40,7 @@ namespace Datahub.Portal.Services
 
         public PublicDataFileService(
             DatahubProjectDBContext projectDbContext,
-            IDataRetrievalService dataRetrievalService,
+            DataRetrievalService dataRetrievalService,
             ILogger<IPublicDataFileService> logger,
             IDatahubAuditingService datahubAuditingService,
             IMetadataBrokerService metadataService,

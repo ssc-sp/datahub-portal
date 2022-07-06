@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace Datahub.Core.Services
 {
-    public class DataLakeClientService : IDataLakeClientService
+    public class DataLakeClientService
     {
         private const string DatahubSecretName = "Datahub-StorageDL-Secret";
         private ICognitiveSearchService _cognitiveSearchService;

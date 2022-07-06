@@ -1,3 +1,4 @@
+@*Topbar.razor*@
 @inject UIControlsService UI
 @inject IUserInformationService UserInformationService
 @inject NavigationManager NavigationManager
@@ -5,15 +6,17 @@
 @inject IPortalVersionService VersionService
 @inject MicrosoftIdentityConsentAndConditionalAccessHandler ConsentHandler
 
-@using Datahub.Core.Components.Common
 @using Microsoft.Identity.Web
+@using Datahub.Core.Components.Common
 @using System.Timers
 @using System.Reflection
 
 <div id="topbar">
     <div style="font-size: 1.8em;font-weight: lighter;">DataHub</div>
+
+    @*todo fix spacing*@
     <div class="search-spacer">
-        <Search />
+        <div id="topSearch"></div>
     </div>
 
     <NotificationsIcon />

@@ -1,0 +1,95 @@
+﻿@using Microsoft.EntityFrameworkCore.Query
+@using Microsoft.EntityFrameworkCore;
+@inject IStringLocalizer<DataLabels> DataLocalizer
+@inject IUserInformationService UserInformationService
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JsInterop
+@implements IDisposable
+@inject IDbContextFactory<DatahubProjectDBContext> DbFactory
+
+<div class="ae table-container">
+
+        <AePaginatedTable Accessors="accessorFunctions"     
+            Renderers="renderFunctions"
+            T="Datahub_Project"
+            Dataset="_projects"
+            Headers="headers"
+            class="custom light"
+            style="Width:100%"
+            GridTemplateColumns="0.5fr 4fr"    
+            Page="@_lastClicked"
+            PageSize="4"
+            @ref=_myTable
+        />
+
+        <AePagination 
+            Pageable="@_myTable" 
+            OnPageClick="OnPageClick"> 
+            <LeftIcon><i class='fad fa-chevron-double-left'></i></LeftIcon> 
+            <RightIcon><i class='fad fa-chevron-double-right'></i></RightIcon>
+            </AePagination>                 
+</div>
+
+
+
+@code {
+
+    private List<Func<Datahub_Project, string>> accessorFunctions;
+    private List<Func<Datahub_Project, RenderFragment>> renderFunctions;    
+
+    private IPageableComponent _myTable;
+    private string _currentUserId;
+
+    private List<Datahub_Project> _projects;
+    DatahubProjectDBContext Context;
+
+    private int _lastClicked = 0;
+
+
+    private void OnPageClick(int pageIndex)
+    {
+    _lastClicked = pageIndex;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+            StateHasChanged();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _currentUserId = await UserInformationService.GetUserIdString();
+        Context = DbFactory.CreateDbContext();
+        
+        _projects = Context.Project_Users.Include(u => u.Project).Where(u => u.User_ID == _currentUserId && u.Project.WebForms_URL != null).Select(u => u.Project).Distinct().ToList();
+
+        await FillAccessorFunctions();
+        
+        renderFunctions = new List<Func<Datahub_Project, RenderFragment>>() {            
+            new Func<Datahub_Project, RenderFragment>(Datahub_Project => 
+                @<AeFlex class="table-icon"><i class="@($"fad fa-{Datahub_Project.Project_Icon}")"></i></AeFlex>),
+            new Func<Datahub_Project, RenderFragment>(Datahub_Project => @<AeFlex style="padding-top: 1rem"><AeTypography><DHLink WebFormsURL="@(Datahub_Project?.WebForms_URL)">@Datahub_Project?.ProjectName</DHLink></AeTypography></AeFlex> ),            
+        };
+        
+        
+        
+        //await FillRenderFunctions();
+    }
+
+    private List<string> headers = new List<string>();
+
+
+    public async Task FillAccessorFunctions()
+    {
+        accessorFunctions = new List<Func<Datahub_Project, string>>() {
+            new Func<Datahub_Project, string>(Datahub_Project => { return Datahub_Project?.Project_Icon; }),
+            new Func<Datahub_Project, string>(Datahub_Project => { return Datahub_Project?.ProjectName; }),
+        };
+    }
+    
+     public void Dispose() 
+    { 
+        Context.Dispose();         
+    }
+}

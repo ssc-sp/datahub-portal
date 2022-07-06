@@ -1,0 +1,71 @@
+@inject IJSRuntime _jsRuntime
+
+<dialog @ref="_dialogReference">
+    <form method="dialog">
+        
+        @if (CancelFragment != null)
+        {
+            <span @onclick="CancelDialog">
+                @CancelFragment
+            </span>
+        }
+        
+        <span @onclick="SubmitDialog">
+            @if (SubmitFragment != null)
+            {
+                @SubmitFragment
+            }
+            else
+            {
+                <AeButton>@Localizer["Close"]</AeButton>
+            }
+        </span>
+    </form>
+</dialog>
+
+<span @onclick="OpenDialog">
+    @OpenFragment
+</span>
+
+@code {
+    
+    [Parameter]
+    public RenderFragment OpenFragment { get; set; }
+    
+    [Parameter]
+    public RenderFragment CancelFragment { get; set; }
+    
+    [Parameter]
+    public RenderFragment SubmitFragment { get; set; }
+
+    private ElementReference _dialogReference;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+
+        if (firstRender)
+        {
+            var module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", 
+                "./_content/Datahub.Core/Components/DHDialog/DHDialog.razor.js");
+            await module.InvokeVoidAsync("appendCopyIcon", _dialogReference);
+        }
+    }
+
+
+    private void OpenDialog()
+    {
+        // Dialog.Open();
+    }
+    
+    private void SubmitDialog()
+    {
+        // Dialog.Submit();
+    }
+    
+    private void CancelDialog()
+    {
+        // Dialog.Cancel();
+    }
+    
+}

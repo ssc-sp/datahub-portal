@@ -29,7 +29,7 @@
             @if (ShowApprovalForm)
             {
                 <AeCard>
-                    <AeTypography Variant="h3">@StepTitle(GeoObjectShareStatus.FillApprovalForm)</AeTypography>
+                    <AeTypography Variant="h3">@StepTitle(SpatialObjectShareStatus.FillApprovalForm)</AeTypography>
                     <Datahub.Portal.Pages.Forms.ShareWorkflow.ApprovalForm 
                     ApprovalFormId=@ApprovalFormId 
                     OnSubmitForm=@UpdateApprovalFormId 
@@ -42,7 +42,7 @@
             @if (ShowSubmitApprovalForm)
             {
                 <AeCard>
-                    <AeTypography Variant="h3">@StepTitle(GeoObjectShareStatus.SubmitApprovalForm)</AeTypography>
+                    <AeTypography Variant="h3">@StepTitle(SpatialObjectShareStatus.SubmitApprovalForm)</AeTypography>
                     <AeFlex Vertical="true" style="margin: 1rem 1rem 1rem 0rem;">
                         <AeTypography Variant="p">@Localizer["FGP-WIZARD.Approval_Filled_out_1"]</AeTypography>
                         <AeTypography Variant="p">@Localizer["FGP-WIZARD.Approval_Filled_out_2"]</AeTypography> 
@@ -76,8 +76,8 @@
             @if (ShowWaitingForApproval)
             {
                 <AeCard style="margin-top: 1rem;">
-                    <AeTypography Variant="h3">@StepTitle(GeoObjectShareStatus.WaitingForApproval)</AeTypography>
-                    <p>@StepMessage(GeoObjectShareStatus.WaitingForApproval)</p>
+                    <AeTypography Variant="h3">@StepTitle(SpatialObjectShareStatus.WaitingForApproval)</AeTypography>
+                    <p>@StepMessage(SpatialObjectShareStatus.WaitingForApproval)</p>
                 </AeCard>
             }
 
@@ -85,8 +85,8 @@
             @if (ShowPublishPanel)
             {
                 <AeCard style="margin-top: 1rem;">
-                    <AeTypography Variant="h3">@StepTitle(GeoObjectShareStatus.PublishDataset)</AeTypography>
-                    <p>@StepMessage(GeoObjectShareStatus.PublishDataset)</p>
+                    <AeTypography Variant="h3">@StepTitle(SpatialObjectShareStatus.PublishDataset)</AeTypography>
+                    <p>@StepMessage(SpatialObjectShareStatus.PublishDataset)</p>
                     <AeButton OnClickEvent=@HandlePublishDatset>@Localizer["FGP-WIZARD.PublishDataset_button"]</AeButton>
                     @if (string.IsNullOrEmpty(_publicationError))
                     {
@@ -119,7 +119,7 @@
         </AeFlex>
 
         <div>
-            <AeSteps T=@GeoObjectShareStatus
+            <AeSteps T=@SpatialObjectShareStatus
             CurrentStepState=@GetState
             StepItems=@_steps
             StepTitle=@StepTitle
@@ -135,10 +135,10 @@
     [Parameter]
     public string ObjectId { get; set; }
 
-    private GeoObjectShare _sharedObject;
+    private SpatialObjectShare _sharedObject;
     private GeoDataShareRequest _requestSummary;
 
-    private List<GeoObjectShareStatus> _steps = Enum.GetValues<GeoObjectShareStatus>().ToList();
+    private List<SpatialObjectShareStatus> _steps = Enum.GetValues<SpatialObjectShareStatus>().ToList();
     private GraphUser _requestingUser;
     private bool _editSubmittedApproval;
     private string _signedApprovalFormUrl;
@@ -159,7 +159,7 @@
         _sharedObject = await ctx.GeoObjectShares.FirstOrDefaultAsync(e => e.GeoObjectShare_ID == ObjectId);
 
         // object not found, share has been unpublished or abandoned
-        if (_sharedObject is null || _sharedObject.ShareStatus > GeoObjectShareStatus.DatasetPublished)
+        if (_sharedObject is null || _sharedObject.ShareStatus > SpatialObjectShareStatus.DatasetPublished)
             await NavManager.NavigateTo($"/", true);
 
         _requestingUser = await GraphService.GetUserFromEmailAsync(_sharedObject.Email_Contact_TXT, CancellationToken.None);
@@ -172,15 +172,15 @@
         _geoCoreService = GeoCoreServiceFactory.CreateService();
     }
 
-    private GeoObjectShareStatus CurrentStatus => _sharedObject.ShareStatus;
+    private SpatialObjectShareStatus CurrentStatus => _sharedObject.ShareStatus;
     private int ApprovalFormId => _sharedObject.ApprovalForm_ID;
 
-    private bool ShowApprovalForm => _isOwnRequest && (CurrentStatus == GeoObjectShareStatus.FillApprovalForm || _editSubmittedApproval) && (ApprovalFormId != 0);
-    private bool ShowSubmitApprovalForm => _isOwnRequest && CurrentStatus == GeoObjectShareStatus.SubmitApprovalForm && !_editSubmittedApproval;
-    private bool ShowWaitingForApproval => _isOwnRequest && CurrentStatus == GeoObjectShareStatus.WaitingForApproval;    
-    private bool ShowPublishPanel => _isOwnRequest && CurrentStatus == GeoObjectShareStatus.PublishDataset;    
-    private bool ShowCancelPanel => _isOwnRequest && CurrentStatus < GeoObjectShareStatus.DatasetPublished;
-    private bool ShowPublicUrl => CurrentStatus == GeoObjectShareStatus.DatasetPublished;
+    private bool ShowApprovalForm => _isOwnRequest && (CurrentStatus == SpatialObjectShareStatus.FillApprovalForm || _editSubmittedApproval) && (ApprovalFormId != 0);
+    private bool ShowSubmitApprovalForm => _isOwnRequest && CurrentStatus == SpatialObjectShareStatus.SubmitApprovalForm && !_editSubmittedApproval;
+    private bool ShowWaitingForApproval => _isOwnRequest && CurrentStatus == SpatialObjectShareStatus.WaitingForApproval;    
+    private bool ShowPublishPanel => _isOwnRequest && CurrentStatus == SpatialObjectShareStatus.PublishDataset;    
+    private bool ShowCancelPanel => _isOwnRequest && CurrentStatus < SpatialObjectShareStatus.DatasetPublished;
+    private bool ShowPublicUrl => CurrentStatus == SpatialObjectShareStatus.DatasetPublished;
 
     private string Title => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName.ToLowerInvariant() == "fr" ? _requestSummary.title_fr : _requestSummary.title_en;
 
@@ -188,8 +188,8 @@
 
     private string PublicationURL => _geoCoreService.GetDatasetUrl(_sharedObject.Publication_ID, "en");
 
-    private string StepTitle(GeoObjectShareStatus status) => Localizer[$"{PREFIX}.{status}.Title"];
-    private string StepMessage(GeoObjectShareStatus status) => Localizer[$"{PREFIX}.{status}.Description"];
+    private string StepTitle(SpatialObjectShareStatus status) => Localizer[$"{PREFIX}.{status}.Title"];
+    private string StepMessage(SpatialObjectShareStatus status) => Localizer[$"{PREFIX}.{status}.Description"];
     private RenderFragment CheckIcon => 
     @<i class="fa fa-check"></i>
     ;
@@ -210,15 +210,15 @@
         }
     }
 
-    private AeSteps<GeoObjectShareStatus>.StepState GetState(GeoObjectShareStatus step)
+    private AeSteps<SpatialObjectShareStatus>.StepState GetState(SpatialObjectShareStatus step)
     {
         if (step < CurrentStatus) 
-            return AeSteps<GeoObjectShareStatus>.StepState.Passed;
+            return AeSteps<SpatialObjectShareStatus>.StepState.Passed;
 
         if (step == CurrentStatus) 
-            return AeSteps<GeoObjectShareStatus>.StepState.Running;
+            return AeSteps<SpatialObjectShareStatus>.StepState.Running;
 
-        return AeSteps<GeoObjectShareStatus>.StepState.Queued;
+        return AeSteps<SpatialObjectShareStatus>.StepState.Queued;
     }
 
     const string PREFIX = "SHARING-STATUS.FGP";
@@ -227,7 +227,7 @@
 
     private async Task UpdateApprovalFormId(Forms.ShareWorkflow.ApprovalFormSubmitArgs args)
     {
-        await UpdateCurrentStatus(GeoObjectShareStatus.SubmitApprovalForm);
+        await UpdateCurrentStatus(SpatialObjectShareStatus.SubmitApprovalForm);
         _editSubmittedApproval = false;
     }
 
@@ -246,7 +246,7 @@
             await InvokeAsync(StateHasChanged);
 
             _sharedObject.Approval_Document_URL = _signedApprovalFormUrl;
-            _sharedObject.ShareStatus = GeoObjectShareStatus.WaitingForApproval;
+            _sharedObject.ShareStatus = SpatialObjectShareStatus.WaitingForApproval;
             await UpdateSharedObject();
 
             await PublicFileService.NotifySignedDocumentUploaded();
@@ -268,7 +268,7 @@
 
             if (result.Suceeded)
             {
-                _sharedObject.ShareStatus = GeoObjectShareStatus.DatasetPublished;
+                _sharedObject.ShareStatus = SpatialObjectShareStatus.DatasetPublished;
                 _sharedObject.Publication_ID = result.DatasetId;
                 await UpdateSharedObject();
             }
@@ -313,7 +313,7 @@
         await UI.ToggleModal();
     }
 
-    private async Task UpdateCurrentStatus(GeoObjectShareStatus status)
+    private async Task UpdateCurrentStatus(SpatialObjectShareStatus status)
     {
         _sharedObject.ShareStatus = status;
         await UpdateSharedObject();

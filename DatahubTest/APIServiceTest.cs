@@ -74,7 +74,7 @@ namespace Datahub.Tests
         [Fact]
         public void GivenGen2URL_GenerateABFSUri()
         {
-             var fileSystemName = "datahub";
+            var fileSystemName = "datahub";
             var accountName = "datahubdatalakedev";
             var folderpath = "NRCan-RNCan.gc.ca/nabeel.bader";
             var filename = "favicon-192.png";
@@ -140,13 +140,13 @@ namespace Datahub.Tests
 
         }
 
-       
+
 
 
         [Fact]
         public async Task ConnectToGen2SAFlat()
         {
-            
+
             var sharedKeyCredential = new StorageSharedKeyCredential(storageAccountNameFlat, storageAccountKeyFlat);
             string dfsUri = "https://" + storageAccountNameFlat + ".dfs.core.windows.net";
             DataLakeServiceClient dataLakeServiceClient = new DataLakeServiceClient(new Uri(dfsUri), sharedKeyCredential);
@@ -161,7 +161,7 @@ namespace Datahub.Tests
             IAsyncEnumerator<PathItem> enumerator =
                 fileSystemClient.GetPathsAsync(string.Empty).GetAsyncEnumerator();
 
-            
+
             int count = 0;
 
             while (await enumerator.MoveNextAsync())
@@ -169,7 +169,7 @@ namespace Datahub.Tests
                 var item = enumerator.Current;
                 count++;
             }
-            
+
 
             Assert.True(count == 2);
 
@@ -396,7 +396,7 @@ namespace Datahub.Tests
             return Task.CompletedTask;
         }
 
-       
+
         private SearchClient CreateSearchIndexClient(string indexName)
         {
             var azureKeyCreds = new AzureKeyCredential("21D5756DF91AE0E5E65C47D41DDE3ACF");

@@ -72,7 +72,7 @@
         StateHasChanged();
     }
 
-    private void SelectFolderEmit()
+    private async Task SelectFolderEmit()
     {
         SelectFolder?.Invoke(Folder.item);
         StateHasChanged();

@@ -81,7 +81,7 @@ namespace Datahub.Core.Services
                 .Render();
             return await Task.FromResult(html);
         }
-        
+
         private async Task<MailboxAddress> BuildRecipient(string userIdOrAddress, string recipientName = null)
         {
             if (Guid.TryParse(userIdOrAddress, out var parsedGuid))
@@ -178,7 +178,7 @@ namespace Datahub.Core.Services
                 sb.Append("<hr />");
                 sb.Append("<b>Original Recipients:</b>");
                 sb.Append("<ul>");
-                foreach(var recipient in recipients)
+                foreach (var recipient in recipients)
                 {
                     sb.Append($"<li>{recipient.Name} - {recipient.Address}</li>");
                 }
@@ -191,7 +191,7 @@ namespace Datahub.Core.Services
                 sb.Append("-----");
                 sb.Append(nl);
                 sb.Append("Original recipients:");
-                foreach(var recipient in recipients)
+                foreach (var recipient in recipients)
                 {
                     sb.Append(nl);
                     sb.Append($"{recipient.Name} - {recipient.Address}");
@@ -419,8 +419,8 @@ namespace Datahub.Core.Services
                 var subject = $"Language Training Request – MANAGER APPROVED / Demande de formation linguistique – APPROUVÉE PAR LA GESTION - {parameters.EmployeeName} – {parameters.TrainingType} - {parameters.ApplicationId} ";
                 var html = await RenderTemplate<ManagerRequestApproved>(parametersDict);
 
-                await SendEmailMessage(subject, html, new List<DatahubEmailRecipient> 
-                { 
+                await SendEmailMessage(subject, html, new List<DatahubEmailRecipient>
+                {
                     new(parameters.EmployeeName, parameters.EmployeeEmailAddress),
                     new(parameters.ManagerName, parameters.ManagerEmailAddress)
                 });
@@ -523,7 +523,7 @@ namespace Datahub.Core.Services
             var html = isClientNotificationSent ? await RenderTemplate<OnboardingAdminUpdated>(parametersDict) : await RenderTemplate<OnboardingAdmin>(parametersDict);
             await SendEmailMessage(subject, html, parameters.AdminEmailAddresses);
             if (!isClientNotificationSent)
-            { 
+            {
                 html = await RenderTemplate<OnboardingClient>(parametersDict);
                 await SendEmailMessage(subject, html, parameters.App.Client_Email, parameters.App.Client_Contact_Name);
                 if (!string.IsNullOrEmpty(parameters.App.Additional_Contact_Email_EMAIL))
@@ -599,7 +599,7 @@ namespace Datahub.Core.Services
                 _logger.LogInformation("List has 1 item: single recipient method");
                 var item = recipients.First();
                 var recipient = await BuildRecipient(item.address, item.name);
-                return new List<MailboxAddress>() { recipient }; 
+                return new List<MailboxAddress>() { recipient };
             }
             else
             {
