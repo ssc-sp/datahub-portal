@@ -68,7 +68,7 @@
             StateHasChanged(); // Allow the UI to display the loading indicator
             try
             {
-                var newItems = await ItemsProvider(new InfiniteScrollingItemsProviderRequest(_items.Count, _loadItemsCts.Token));
+                var newItems = await ItemsProvider(new InfiniteScrollingItemsProviderRequest<T>(_items, _loadItemsCts.Token));
                 var prevCount = _items.Count;
                 _items.AddRange(newItems);
                 _noMoreItems = prevCount == _items.Count;
