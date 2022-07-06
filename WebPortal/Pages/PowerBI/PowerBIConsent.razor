@@ -17,6 +17,8 @@
 @inject NavigationManager NavigationManager
 @inject PowerBiServiceApi PowerBiServiceApi
 @using Microsoft.Identity.Web
+@using System.Security.Cryptography;
+@using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 @inject MicrosoftIdentityConsentAndConditionalAccessHandler ConsentHandler
 
 <h3>Admin Power BI Consent Page</h3>
@@ -65,6 +67,20 @@
 
         ExternalPowerBiReport exreport = new();
 
+        Guid validationcode = Guid.NewGuid();
+        byte[] salt = new byte[128 / 8];
+        using (var rngCsp = new RNGCryptoServiceProvider())
+        {
+            rngCsp.GetNonZeroBytes(salt);
+        }
+
+        string hashed = Convert.ToBase64String(KeyDerivation.Pbkdf2(
+            password: validationcode.ToString(),
+            salt: salt,
+            prf: KeyDerivationPrf.HMACSHA256,
+            iterationCount: 100000,
+            numBytesRequested: 256 / 8));
+
         exreport.ExternalPowerBiReport_ID = Convert.ToInt32(ExternalReportId);
         exreport.Token = Token.Token;
         exreport.Url = report.EmbedUrl;
@@ -72,8 +88,9 @@
         exreport.Is_Created = true;
         exreport.RequestingUser = extreport.RequestingUser;
         exreport.Report_ID = extreport.Report_ID;
-
-
+        exreport.Validation_Code = hashed;
+        exreport.ValidationSalt = salt;
+        exreport.UnhashedValidationCode = validationcode.ToString();
         await PowerBiDataService.UpdateExternalPowerBiRecord(exreport);
         
 
