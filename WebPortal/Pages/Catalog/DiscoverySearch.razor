@@ -598,11 +598,11 @@
         return !string.IsNullOrWhiteSpace(_searchKeywords) || _filteredSectors.Any() || _filteredDataTypes.Any() || _filteredClassificationTypes.Any();
     }
 
-    private async Task<IEnumerable<CatalogObjectResult>> GetMore(InfiniteScrollingItemsProviderRequest request)
+    private async Task<IEnumerable<CatalogObjectResult>> GetMore(InfiniteScrollingItemsProviderRequest<CatalogObjectResult> request)
     {
         var newRequest = _catalogSearchRequest with
         {
-            LastPageId = _searchResults.LastOrDefault()?.CatalogObjectId ?? 0
+            LastPageId = request.Items.LastOrDefault()?.CatalogObjectId ?? 0
         };
 
         var newResults = await MetadataBrokerService.SearchCatalog(newRequest, CheckMetadataCompleted);

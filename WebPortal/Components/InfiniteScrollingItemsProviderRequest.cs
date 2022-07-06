@@ -3,16 +3,16 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-public sealed class InfiniteScrollingItemsProviderRequest
+public sealed class InfiniteScrollingItemsProviderRequest<T>
 {
-    public InfiniteScrollingItemsProviderRequest(long startIndex, CancellationToken cancellationToken)
+    public InfiniteScrollingItemsProviderRequest(List<T> items, CancellationToken cancellationToken)
     {
-        StartIndex = startIndex;
+        Items = items;
         CancellationToken = cancellationToken;
     }
 
-    public long StartIndex { get; }
+    public List<T> Items { get; }
     public CancellationToken CancellationToken { get; }
 }
 
-public delegate Task<IEnumerable<T>> ItemsProviderRequestDelegate<T>(InfiniteScrollingItemsProviderRequest request);
+public delegate Task<IEnumerable<T>> ItemsProviderRequestDelegate<T>(InfiniteScrollingItemsProviderRequest<T> request);
