@@ -1,6 +1,8 @@
 ﻿@page "/powerbi-report/embed/{ReportId}"
+@inject UIControlsService UI
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @layout PublicLayout
+@inject NavigationManager NavManager
 @using Datahub.Portal.Layout
 @using Microsoft.PowerBI.Api
 @using Microsoft.PowerBI.Api.Models
@@ -9,8 +11,16 @@
 @inject IJSRuntime JSRuntime
 @inject IConfiguration _configuration
 
-
-
+@using System.Security.Cryptography;
+@using Microsoft.AspNetCore.Cryptography.KeyDerivation;
+@if (!_isAccessible)
+{
+    <div style="padding:10px">
+    <label>Enter Password</label>
+    <input type="text" @bind-value="_inputValue"  />
+    <AeButton @onclick="async () => await OnOpenReport()">Open Report</AeButton>    
+    </div>
+}
 <div @ref="@PowerBIElement" style="width:100%;height:600px;max-width: 2000px">@_errorMessage</div>
 
 @code {
@@ -25,39 +35,64 @@
     public bool ReadOnly { get; set; }
 
     private ElementReference PowerBIElement;
-
+    private string _inputValue;
     private Report report;
     private EmbedToken reportToken;
+    private ExternalPowerBiReport ExtReport;
 
     private string _errorMessage;
+    private bool _isAccessible = false;
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+
+
+    private async Task OnOpenReport()
+    {
+        using var context = _dbFactoryProject.CreateDbContext();
+        ExtReport = await context.ExternalPowerBiReports.Where(r => r.Report_ID.ToString() == ReportId).FirstOrDefaultAsync();
+
+        await ValidateUser();
+    }
+
+    private async Task ValidateUser()
+    {
+        string hashed = Convert.ToBase64String(KeyDerivation.Pbkdf2(
+            password: _inputValue,
+            salt: ExtReport.ValidationSalt,
+            prf: KeyDerivationPrf.HMACSHA256,
+            iterationCount: 100000,
+            numBytesRequested: 256 / 8));
+
+        _isAccessible = hashed == ExtReport.Validation_Code;
+        await LaunchReport();
+    }
+
+    private async Task LaunchReport()
     {
         try
         {
-            if (firstRender)
+
+            if (_isAccessible && ExtReport is not null)
             {
-                using var context = _dbFactoryProject.CreateDbContext();
-                var extreport = context.ExternalPowerBiReports.Where(r => r.Report_ID.ToString() == ReportId).FirstOrDefault();
 
-                if (extreport is not null)
+                var pbiSettings = new PowerBISettings();
+                if (ReadOnly)
                 {
-
-                    var pbiSettings = new PowerBISettings();
-                    if (ReadOnly)
-                    {
-                        pbiSettings.bars.actionBar.visible = false;
-                        pbiSettings.navContentPaneEnabled = false;
-                    }
-
-
-                    await JSRuntime.InvokeAsync<object>(
-                        "ShowMyPowerBI.showReportEmbed",
-                        PowerBIElement, extreport.Token, extreport.Url,
-                    extreport.Report_ID.ToString(), pbiSettings);
-
+                    pbiSettings.bars.actionBar.visible = false;
+                    pbiSettings.navContentPaneEnabled = false;
                 }
+
+
+                await JSRuntime.InvokeAsync<object>(
+                    "ShowMyPowerBI.showReportEmbed",
+                    PowerBIElement, ExtReport.Token, ExtReport.Url,
+                ExtReport.Report_ID.ToString(), pbiSettings);
+
             }
+            else
+            {
+                NavManager.NavigateTo($"http://www.google.ca");
+            }
+
         } 
         catch (Exception ex)
         {
@@ -70,6 +105,7 @@
             _errorMessage = $"Internal error loading report {ReportId}.";
            
     }
+
 
     private const string AuthorityFormat = "https://login.microsoftonline.com/{0}/v2.0";
     private const string MSGraphScope = "https://analysis.windows.net/powerbi/api/.default";

@@ -344,6 +344,8 @@ namespace Datahub.Core.Services
                 rep.Token = report.Token;
                 rep.End_Date = report.End_Date;
                 rep.Is_Created = report.Is_Created;
+                rep.ValidationSalt = report.ValidationSalt;
+                rep.Validation_Code = report.Validation_Code;
                 await ctx.TrackSaveChangesAsync(_auditingService);
             }
         }

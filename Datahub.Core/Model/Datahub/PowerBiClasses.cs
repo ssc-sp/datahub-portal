@@ -72,6 +72,11 @@ namespace Datahub.Core.EFCore
         public string Url { get; set; }
         public Guid Report_ID { get; set; }
 
+        public string Validation_Code { get; set; }
+        public byte[] ValidationSalt { get; set; }
+
+        [NotMapped]
+        public string UnhashedValidationCode { get; set; }
         [NotMapped]
         public string ReportName { get; set; }
         public bool IsExpired => End_Date != DateTime.MinValue && DateTime.Now > End_Date;
