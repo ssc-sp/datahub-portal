@@ -10,6 +10,8 @@ variables:
   solution: '**/Datahub.Portal.sln'
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
+  
+name: 2.0.$(date:yy)$(DayOfYear)$(rev:.r)  
 
 steps:
 

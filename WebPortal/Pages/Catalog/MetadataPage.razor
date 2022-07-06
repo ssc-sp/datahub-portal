@@ -18,8 +18,8 @@
         </ChildContent>
         <Footer>
             @*<AeButton @onclick="TogglePreview" style="margin: 5px;">Toggle Preview</AeButton>*@
-            <input @bind=@_searchText/>
-            <AeButton @onclick="TestSearch" style="margin: 5px;">Search</AeButton>
+            @*<input @bind=@_searchText/>
+            <AeButton @onclick="TestSearch" style="margin: 5px;">Search</AeButton>*@
         </Footer>
     </AeCard>
 </div>
@@ -49,9 +49,9 @@
     //    StateHasChanged();
     //}
 
-    private async void TestSearch()
-    {
-        var results = await MetadataBrokerService.SearchCatalogEnglish(_searchText);
-        var count = results.Count;
-    }
+    //private async void TestSearch()
+    //{
+    //    var results = await MetadataBrokerService.SearchCatalogEnglish(_searchText);
+    //    var count = results.Count;
+    //}
 }

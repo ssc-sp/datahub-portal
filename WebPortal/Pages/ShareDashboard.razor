@@ -59,7 +59,7 @@
     private int _lastClicked = 0;
 
     static string GetFileName(ShareApproval entry) => entry.Name;
-    static string GetType(ShareApproval entry) => entry.RequestObject is GeoObjectShare ? "Spatial" : "File";
+    static string GetType(ShareApproval entry) => entry.RequestObject is SpatialObjectShare ? "Spatial" : "File";
     private RenderFragment GetFileLink(ShareApproval entry) => @<a href="@entry.ShareUrl">@entry.Name</a>;
     private RenderFragment GetDocumentLink(ShareApproval entry) => @<SharedObjectApprovalLink Object=@entry OnRead=@HandleRead><i class="far fa-file-pdf"></i></SharedObjectApprovalLink>;
     private RenderFragment GetApproveLink(ShareApproval entry) => @<SharedObjectApprovalButton Object=@entry OnApprove=@HandleApproveShare />;
@@ -85,10 +85,10 @@
         }
     }
 
-    private async Task<List<GeoObjectShare>> GetGeoObjectShares()
+    private async Task<List<SpatialObjectShare>> GetGeoObjectShares()
     {
         using var ctx = dbContextFactory.CreateDbContext();
-        return await ctx.GeoObjectShares.Where(e => e.ShareStatus == GeoObjectShareStatus.WaitingForApproval && !e.Deleted).ToListAsync();
+        return await ctx.GeoObjectShares.Where(e => e.ShareStatus == SpatialObjectShareStatus.WaitingForApproval && !e.Deleted).ToListAsync();
     }
 
     static List<ShareApproval> GetDashboardShareRequest(IEnumerable<OpenDataSharedFile> files)
@@ -103,12 +103,12 @@
         }).ToList();
     }
 
-    static List<ShareApproval> GetDashboardShareRequest(IEnumerable<GeoObjectShare> geoObjects, bool english)
+    static List<ShareApproval> GetDashboardShareRequest(IEnumerable<SpatialObjectShare> geoObjects, bool english)
     {
         return geoObjects.Select(f => Convert(f, english)).ToList();
     }
 
-    static ShareApproval Convert(GeoObjectShare geoObject, bool english)
+    static ShareApproval Convert(SpatialObjectShare geoObject, bool english)
     {
         var requestSummary = JsonSerializer.Deserialize<GeoDataShareRequest>(geoObject.Json_TXT);
         return new()
@@ -132,7 +132,7 @@
         if (shareApproval.RequestObject is OpenDataSharedFile)
             await OnApproveFile(shareApproval.RequestObject as OpenDataSharedFile);
 
-        if (shareApproval.RequestObject is GeoObjectShare)
+        if (shareApproval.RequestObject is SpatialObjectShare)
             await OnApproveGeoShare(shareApproval);
     }
 
@@ -163,12 +163,12 @@
     {
         try
         {
-            var geoObject = shareApproval.RequestObject as GeoObjectShare;
-            if (geoObject.ShareStatus == GeoObjectShareStatus.WaitingForApproval)
+            var geoObject = shareApproval.RequestObject as SpatialObjectShare;
+            if (geoObject.ShareStatus == SpatialObjectShareStatus.WaitingForApproval)
             {
                 using var ctx = dbContextFactory.CreateDbContext();
 
-                geoObject.ShareStatus = GeoObjectShareStatus.PublishDataset;
+                geoObject.ShareStatus = SpatialObjectShareStatus.PublishDataset;
                 ctx.GeoObjectShares.Update(geoObject);
                 await ctx.TrackSaveChangesAsync(AuditingService);
 

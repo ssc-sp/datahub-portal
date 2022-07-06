@@ -106,14 +106,15 @@ namespace Datahub.Core.Services
             throw new NotImplementedException();
         }
 
-        public Task<GraphUser> GetUserFromEmailAsync(string email, CancellationToken tkn)
-        {
-            throw new NotImplementedException();
-        }
 
         public Task<Dictionary<string, GraphUser>> GetUsersListAsync(string filterText, CancellationToken tkn)
         {
             return Task.FromResult(UsersDict);
+        }
+
+        public Task<GraphUser> GetUserFromEmailAsync(string email, CancellationToken tkn) 
+        {
+            return Task.FromResult((GraphUser)null);
         }
     }
 }

@@ -28,7 +28,7 @@ namespace Datahub.Portal.Controllers
     [AllowAnonymous]
     public class ApiController : Controller
     {
-        private readonly ILogger<PublicController> _logger;
+        private readonly ILogger<ApiController> _logger;
         private readonly IDbContextFactory<DatahubProjectDBContext> _contextFactory;
         private readonly IKeyVaultService _keyVaultService;
         private readonly IMetadataBrokerService _metadataBrokerService;
@@ -36,7 +36,7 @@ namespace Datahub.Portal.Controllers
         private readonly IMSGraphService _msGraphService;
         private readonly IGeoCoreServiceFactory _geoCoreServiceFactory;
 
-        public ApiController(ILogger<PublicController> logger, 
+        public ApiController(ILogger<ApiController> logger, 
             IDbContextFactory<DatahubProjectDBContext> contextFactory, IKeyVaultService keyVaultService, 
             IMetadataBrokerService metadataBrokerService, IPublicDataFileService publicDataService, 
             IMSGraphService msGraphService, IGeoCoreServiceFactory geoCoreServiceFactory)
@@ -262,7 +262,7 @@ namespace Datahub.Portal.Controllers
         {
             using var ctx = await _contextFactory.CreateDbContextAsync();
 
-            GeoObjectShare geoObjectShare = new()
+            SpatialObjectShare geoObjectShare = new()
             {
                 GeoObjectShare_ID = Guid.NewGuid().ToString(),
                 Json_TXT = requestJson,
@@ -283,7 +283,7 @@ namespace Datahub.Portal.Controllers
 
         private async Task<int> SaveApprovalForm(string name, string email, string title)
         {
-            Data.Forms.ShareWorkflow.ApprovalForm approvalForm = new()
+            Datahub.Metadata.Model.ApprovalForm approvalForm = new()
             {
                 Name_NAME = name,
                 Email_EMAIL = email,

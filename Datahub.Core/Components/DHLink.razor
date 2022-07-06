@@ -55,6 +55,7 @@
         {
             LinkType = UserRecentLink.LinkType;
             link = UserRecentLink;
+            link.accessedTime = DateTimeOffset.Now;
             await UserLocationManagerService.RegisterNavigation(link, false);
         }
         else
@@ -80,8 +81,11 @@
             link.WebFormsURL = WebFormsURL;
             link.DataProject = DataProject;
             link.Name = Name;
-            await UserLocationManagerService.RegisterNavigation(link, true);
+            link.accessedTime = DateTimeOffset.Now;
         }
+        
+        await UserLocationManagerService.RegisterNavigation(link, true);
+        
         switch (LinkType)
         {
             case DatahubLinkType.PowerBI:

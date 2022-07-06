@@ -1,111 +1,174 @@
 ﻿using Datahub.Core.EFCore;
+using Datahub.Core.Services;
 using Datahub.Metadata.DTO;
 using Datahub.Metadata.Model;
+using Newtonsoft.Json;
 
-namespace Datahub.Portal.Data
+namespace Datahub.Portal.Data.ProjectResource
 {
     public record ProjectResourceFormParams(FieldDefinitions FieldDefinitions, MetadataProfile Profile);
 
     public static class ProjectResourceFormHelper
     {
-        private static readonly Dictionary<string, FieldDefinitions> _defCache = new();
-        private static readonly Dictionary<string, MetadataProfile> _profileCache = new();
-
-        private static FieldDefinitions BuildStorageFieldDefinitions()
+        public static FieldValueContainer BuildFieldValues(FieldDefinitions fieldDefinitions, Dictionary<string, string> existingValues, string objectId = null)
         {
-            var def = new FieldDefinition()
+            if (string.IsNullOrEmpty(objectId))
             {
-                Field_Name_TXT = ProjectResourceConstants.INPUT_PARAM_STORAGE_TYPE,
-                Name_English_TXT = "Storage Type",
-                Choices = new List<FieldChoice>(),
-                Required_FLAG = true
-            };
-
-            def.Choices.Add(new FieldChoice() { Value_TXT = ProjectResourceConstants.STORAGE_TYPE_BLOB, Label_English_TXT = "Blob" });
-            def.Choices.Add(new FieldChoice() { Value_TXT = ProjectResourceConstants.STORAGE_TYPE_GEN2, Label_English_TXT = "Gen2" });
-
-            var fd = new FieldDefinitions();
-            fd.Add(def);
-
-            return fd;
-        }
-
-        private static FieldDefinitions GetOrCreateFieldDefinitions(string resourceType)
-        {
-            if (!_defCache.ContainsKey(resourceType))
-            {
-                _defCache[resourceType] = resourceType switch
-                {
-                    ProjectResourceConstants.SERVICE_TYPE_STORAGE => BuildStorageFieldDefinitions(),
-                    _ => default
-                };
+                objectId = Guid.NewGuid().ToString();
             }
-            return _defCache[resourceType];
-        }
 
-        public static FieldValueContainer BuildFieldValues(Dictionary<string, string> existingValues, string resourceType)
-        {
-            var fd = GetOrCreateFieldDefinitions(resourceType);
-            var vals = fd.Fields.Select(f =>
+            var vals = fieldDefinitions.Fields.Select(f =>
             {
                 var val = new ObjectFieldValue()
                 {
-                    FieldDefinition = f
+                    FieldDefinition = f,
+                    FieldDefinitionId = f.FieldDefinitionId
                 };
+
                 if (existingValues.ContainsKey(f.Field_Name_TXT))
                 {
                     val.Value_TXT = existingValues[f.Field_Name_TXT];
                 }
+
                 return val;
             }).ToList();
 
-            return new(resourceType, fd, vals);
+            return new(objectId, fieldDefinitions, vals);
         }
 
-        private static MetadataProfile BuildStorageProfile()
+        private static FieldDefinitions BuildFieldDefsFromDynamic(dynamic fields)
         {
-            var fd = GetOrCreateFieldDefinitions(ProjectResourceConstants.SERVICE_TYPE_STORAGE);
+            var defs = new FieldDefinitions();
+            var nextId = 1;
 
+            foreach (dynamic field in fields)
+            {
+                var def = new FieldDefinition()
+                {
+                    Field_Name_TXT = field.field_name,
+                    Name_English_TXT = field.name_en,
+                    Name_French_TXT = field.name_fr,
+                    Required_FLAG = field.required ?? false,
+                    Default_Value_TXT = field.default_value,
+                    FieldDefinitionId = nextId++
+                };
+
+                if (field.choices != null)
+                {
+                    foreach (dynamic choice in field.choices)
+                    {
+                        var fc = new FieldChoice()
+                        {
+                            FieldChoiceId = nextId++,
+                            Value_TXT = choice.value,
+                            Label_English_TXT = choice.label_en,
+                            Label_French_TXT = choice.label_fr,
+                            FieldDefinition = def,
+                            FieldDefinitionId = def.FieldDefinitionId
+                        };
+
+                        def.Choices.Add(fc);
+                    }
+                }
+
+                defs.Add(def);
+            }
+
+            return defs;
+        }
+
+        private static MetadataProfile BuildProfileFromDefsAndDynamic(FieldDefinitions defs, dynamic profileDyn)
+        {
             var profileSections = new List<MetadataSection>();
-            var section = new MetadataSection()
-            {
-                Fields = new List<SectionField>()
-            };
-            profileSections.Add(section);
-            section.Fields.Add(new SectionField()
-            {
-                FieldDefinition = fd.Get(ProjectResourceConstants.INPUT_PARAM_STORAGE_TYPE),
-                Section = section
-            });
+            var nextId = 1;
 
             var profile = new MetadataProfile()
             {
-                Name = ProjectResourceConstants.SERVICE_TYPE_STORAGE,
-                Sections = profileSections
+                Name = profileDyn.name,
+                Sections = profileSections,
+                ProfileId = nextId++
             };
 
-            return profile;
-        }
-
-        private static MetadataProfile GetOrCreateProfile(string resourceType)
-        {
-            if (!_profileCache.ContainsKey(resourceType))
+            foreach (var secDyn in profileDyn.sections)
             {
-                _profileCache[resourceType] = resourceType switch
+                var section = new MetadataSection()
                 {
-                    ProjectResourceConstants.SERVICE_TYPE_STORAGE => BuildStorageProfile(),
-                    _ => default
+                    SectionId = nextId++,
+                    Name_English_TXT = secDyn.label_en,
+                    Name_French_TXT = secDyn.label_fr,
+                    Fields = new List<SectionField>(),
+                    Profile = profile,
+                    ProfileId = profile.ProfileId
                 };
+
+                foreach (string fieldName in secDyn.fields)
+                {
+                    var fd = defs.Get(fieldName);
+                    var sf = new SectionField()
+                    {
+                        FieldDefinition = fd,
+                        FieldDefinitionId = fd.FieldDefinitionId,
+                        Section = section,
+                        SectionId = section.SectionId
+                    };
+                    section.Fields.Add(sf);
+                }
+
+                profileSections.Add(section);
             }
-            return _profileCache[resourceType];
+
+
+            return profile;
+
         }
 
-        public static ProjectResourceFormParams GetProjectResourceParams(string resourceType)
+        public static async Task<ProjectResourceFormParams> CreateResourceInputFormParams(this RequestManagementService requestManagementService, string resourceType)
         {
-            var fd = GetOrCreateFieldDefinitions(resourceType);
-            var profile = GetOrCreateProfile(resourceType);
-
-            return new(fd, profile);
+            var resourceJson = await requestManagementService.GetResourceInputDefinitionJson(resourceType);
+            var paramDef = BuildFormParamsFromJson(resourceJson);
+            return await Task.FromResult(paramDef);
         }
+
+        private static ProjectResourceFormParams BuildFormParamsFromJson(string inputJson)
+        {
+            if (string.IsNullOrEmpty(inputJson))
+            {
+                return default;
+            }
+
+            var anonObject = JsonConvert.DeserializeObject<dynamic>(inputJson);
+
+            var defs = BuildFieldDefsFromDynamic(anonObject.fields);
+            var profile = BuildProfileFromDefsAndDynamic(defs, anonObject.profile);
+
+            return new(defs, profile);
+        }
+
+        public static async Task<Dictionary<string, string>> GetDefaultValues(this RequestManagementService requestManagementService, string resourceType)
+        {
+            var formParams = await CreateResourceInputFormParams(requestManagementService, resourceType);
+            return GetDefaultValues(formParams);
+        }
+
+        public static Dictionary<string, string> GetDefaultValues(ProjectResourceFormParams formParams)
+        {
+            return formParams.FieldDefinitions.Fields
+                .Where(f => !string.IsNullOrEmpty(f.Default_Value_TXT))
+                .ToDictionary(f => f.Field_Name_TXT, f => f.Default_Value_TXT);
+        }
+
+        public static async Task RequestServiceWithDefaults(this RequestManagementService requestManagementService, Datahub_ProjectServiceRequests request)
+        {
+            var defaultValues = await GetDefaultValues(requestManagementService, request.ServiceType);
+            if (defaultValues?.Count > 0)
+            {
+                await requestManagementService.RequestService(request, defaultValues);
+            }
+            else
+            {
+                await requestManagementService.RequestService(request);
+            }
+        }
+
     }
 }

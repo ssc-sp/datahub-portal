@@ -1,5 +1,8 @@
-﻿@inject IUserInformationService UserInformationService
-@inject ServiceAuthManager ServiceAuthManager
+﻿@using Datahub.Portal.Pages.Admin.Requests
+@using Datahub.Portal.Pages.Admin.Requests.Registration
+
+@inject IUserInformationService _userInformationService
+@inject ServiceAuthManager _serviceAuthManager
 @page "/administration"
 
 <DHPageTitle PageTitleKey="@Localizer["Admin"]"/>
@@ -8,8 +11,11 @@
 
 <AuthorizeView Roles="@string.Join(',', _authorizedRoles)">
     <Authorized>
-        <div class="file-explorer-layout-wrapper">
-            <TabControl TabIndex="@_tabIndex" OnChangeTab="@OnChangeTab">
+        <CascadingValue Value="CurrentUserId" Name="UserId">
+            <CascadingValue Value="IsDataHubAdmin" Name="IsDatahubAdmin">
+                <CascadingValue Value="CurrentUserEmail" Name="CurrentUserEmail">
+                    <div class="file-explorer-layout-wrapper">
+                        <TabControl TabIndex="@_tabIndex" OnChangeTab="@OnChangeTab">
                             @foreach (var (control, content) in GetTabs())
                             {
                                 <TabPage>
@@ -21,17 +27,21 @@
                                     </ChildContent>
                                 </TabPage>
                             }
-            </TabControl>
-        </div>
+                        </TabControl>
+                    </div>
+                </CascadingValue>
+            </CascadingValue>
+        </CascadingValue>
     </Authorized>
     <NotAuthorized>
         <AeTypography Variant="h1">@Localizer["This page is limited for DataHub administrators"]</AeTypography>
     </NotAuthorized>
 </AuthorizeView>
+
 @code {
 
     [CascadingParameter]
-    private Task<AuthenticationState> authenticationStateTask { get; set; }
+    private Task<AuthenticationState> AuthenticationStateTask { get; set; }
 
     private System.Security.Claims.ClaimsPrincipal _user;
 
@@ -44,21 +54,22 @@
 
     protected override void OnAfterRender(bool firstRender)
     {
-        // You must re-render after the components are initialized in order for the 
-        // component reference to not be null
-        if (firstRender) {
+    // You must re-render after the components are initialized in order for the 
+    // component reference to not be null
+        if (firstRender)
+        {
             StateHasChanged();
         }
     }
 
     protected override async Task OnInitializedAsync()
     {
-        _authorizedRoles = ServiceAuthManager.GetAdminProjectRoles();
-        _user = (await authenticationStateTask).User;
-        
-        CurrentUserId = await UserInformationService.GetUserIdString();
-        CurrentUserEmail = _user.Identity.Name;
-        CurrentUserName = _user.Claims.Where(c => c.Type == "name").FirstOrDefault()?.Value;
+        _authorizedRoles = _serviceAuthManager.GetAdminProjectRoles();
+        _user = (await AuthenticationStateTask).User;
+
+        CurrentUserId = await _userInformationService.GetUserIdString();
+        CurrentUserEmail = _user.Identity?.Name;
+        CurrentUserName = _user.Claims.FirstOrDefault(c => c.Type == "name")?.Value;
         IsDataHubAdmin = _user.IsInRole(RoleConstants.DATAHUB_ROLE_ADMIN);
     }
 
@@ -71,18 +82,15 @@
     {
         var result = new List<(string, RenderFragment)>
         {
-            (Localizer["Project Requests"], @<ProjectAccessRequestTable UserId=@CurrentUserId IsDatahubAdmin=@IsDataHubAdmin />),
-            (Localizer["Authorize Users"], @<ServiceAccessRequestTable UserId=@CurrentUserId IsDatahubAdmin=@IsDataHubAdmin />),
-            (Localizer["Service Requests"], @<ServiceCreationRequestTable UserId=@CurrentUserId IsDatahubAdmin=@IsDataHubAdmin />),
+            (Localizer["Project Requests"], @<ProjectAccessRequestTable/>),
+            (Localizer["Authorize Users"], @<ServiceAccessRequestTable/>),
+            (Localizer["Service Requests"], @<ServiceCreationRequestTable/>),
+            (Localizer["Registration Requests"], @<ViewRegistrationRequests/>),
         };
 
         if (_user != null)
         {
-            result.Add((Localizer["Notification Test Panel"], @<NotificationTestPanel 
-                    DefaultEmailName=@CurrentUserName
-                    DefaultEmailAddress=@CurrentUserEmail
-                />
-            ));
+            result.Add((Localizer["Notification Test Panel"], @<NotificationTestPanel DefaultEmailName="@CurrentUserName"/>));
         }
 
         if (IsDataHubAdmin)
