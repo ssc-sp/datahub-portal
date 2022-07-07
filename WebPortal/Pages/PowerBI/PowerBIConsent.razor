@@ -50,7 +50,6 @@
 
     private ElementReference PowerBIElement;
 
-    private bool _isReportLaunched;
     private Report report;
     private string reportToken;
 
@@ -110,9 +109,7 @@
                     PowerBIElement, extreportdb.Token, extreportdb.Url,
                 extreportdb.Report_ID.ToString(), pbiSettings);
                 
-            }
-
-
+        }
     }
     
     private PowerBiExternalReportParameters GetEmailParameters(ExternalPowerBiReport report)
