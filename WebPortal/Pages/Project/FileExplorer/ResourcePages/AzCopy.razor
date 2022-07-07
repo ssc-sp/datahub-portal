@@ -5,9 +5,8 @@
 @code {
     private List<(string, string)> _substitutions;
     
-    private async Task HandleSubstitutionsChanged(List<(string, string)> substitutions)
+    private void HandleSubstitutionsChanged(List<(string, string)> substitutions)
     {
         _substitutions = substitutions;
     }
-
 }
