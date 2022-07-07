@@ -35,6 +35,7 @@ namespace Datahub.Portal.Services
 
         private readonly ILogger<PowerBiServiceApi> logger;
 
+
         private string urlPowerBiServiceApiRoot { get; }
 
         public const string POWERBI_ROOT_URL = "https://api.powerbi.com/";
@@ -66,6 +67,9 @@ namespace Datahub.Portal.Services
     //"https://analysis.windows.net/powerbi/api/Dataflow.Read.All",   
     "https://analysis.windows.net/powerbi/api/Workspace.Read.All"
   };
+
+
+        
 
         public async Task<string> GetAccessTokenAsync()
         {

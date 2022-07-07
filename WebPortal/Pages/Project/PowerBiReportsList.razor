@@ -25,7 +25,8 @@
                     Headers=@(LocalizeHeaders(headers))
                     @ref=@_reportTable
                     Page=@_currentPage
-                    PageSize="20" />
+                    PageSize="20"
+                    @key=@_powerBiReports/>
                         
                 <AePagination Pageable=@_reportTable OnPageClick=@OnPageClick> 
                     <LeftIcon><i class='fad fa-chevron-double-left'></i></LeftIcon> 
@@ -65,7 +66,7 @@
 
     private List<string> headers = new List<string>
     {
-        "Report Name", "Workspace", "Report"
+        "Report Name", "Workspace", "Report", "External Access"
     };
 
     private List<string> LocalizeHeaders(List<string> input) => input.Select(s => Localizer[s].ToString()).ToList();
@@ -76,7 +77,8 @@
         {
             null,
             WorkspaceLinkFragment,
-            ReportLinkFragment
+            ReportLinkFragment,
+            ExternalReport
         };
 
         if (projectAcronym != null)
@@ -99,7 +101,10 @@
     {
         _isLoading = true;
         StateHasChanged();
-        _powerBiReports = await PowerBiDataService.GetReportsForProject(projectAcronym, IncludeSandbox);
+        _powerBiReports = await PowerBiDataService.GetReportsForProjectWithExternalReportInfo(projectAcronym, IncludeSandbox);
+
+
+
         _isLoading = false;
         StateHasChanged();
     }
@@ -118,10 +123,23 @@
         {
             r => r.Report_Name,
             r => r.Workspace?.Workspace_Name ?? string.Empty,
-            r => r.Report_Name
+            r => r.Report_Name,
+            null
         };
 
     private List<Func<PowerBi_Report, RenderFragment>> renderers = new();
+
+
+    public async void RefreshTable()
+    {
+        _powerBiReports = await PowerBiDataService.GetReportsForProjectWithExternalReportInfo(projectAcronym, IncludeSandbox);
+        StateHasChanged();
+    }
+
+    private RenderFragment ExternalReport(PowerBi_Report r) =>
+    @<AeTypography>
+        <ExternalReportRequest PowerBi_Report=@(r) RefreshTable=RefreshTable/>        
+    </AeTypography>;
 
     private RenderFragment WorkspaceLinkFragment(PowerBi_Report r) =>
     @<AeTypography>
