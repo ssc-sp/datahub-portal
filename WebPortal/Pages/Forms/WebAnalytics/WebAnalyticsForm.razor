@@ -59,7 +59,6 @@
     private List<WebAnalytics> _webanalytics;
     private WebAnalytics _webanalytic;
     private string SubmitLabel = "Save";
-    private bool _navToEdit = false;
     private WebAnalyticsContext Context;  
    
 
@@ -67,9 +66,8 @@
     {
         // load projects
         Context = DbFactory.CreateDbContext();
-        _webanalytics = Context.WebAnalytics.ToList();
+        _webanalytics = await Context.WebAnalytics.ToListAsync();
     }
-
 
     private async Task GoToNextSheet()
     {
@@ -95,7 +93,7 @@
     }
 
     private List<string> headers = new List<string>
-{
+    {
         "Owner","Url"
     };
 
@@ -103,14 +101,12 @@
     {
         _webanalytic = project;
         StateHasChanged();
-        _navToEdit = true;
     }
 
-    private async Task CreateNewProject()
+    private void CreateNewProject()
     {
         _webanalytic = new WebAnalytics() { Last_Updated_DT = DateTime.Now };
         StateHasChanged();
-        _navToEdit = true;
     }
 
     private async Task HandleValidSubmit()
@@ -132,11 +128,11 @@
         StateHasChanged();
     }
 
-    private async Task<WebAnalytics> ClearForm()
+    private Task<WebAnalytics> ClearForm()
     {
         _webanalytic = null;
         StateHasChanged();
-        return null;
+        return Task.FromResult((WebAnalytics)null);
     }
 
     private string GetDataLabel(string propName)
