@@ -68,7 +68,7 @@
         </div>
         <div class="bodytext">
             <label for="securityclass" class="formlabel">@Localizer["ADD-DATA-PAGE.SecurityClassification-Label"]<div class="bluetext">*</div></label>
-            <AeDropdown Items="securityClassOptions" Renderer="GetOption" OnChange="HandleDropdownChange" LabelRenderFragment="getIcon" id="securityDropdown" />
+            <AeDropdown Items="securityClassOptions" Renderer="GetOption" OnChange="HandleDropdownChange" LabelRenderFragment="GetIcon" id="securityDropdown" />
         </div>
         <div class="errortext">
             <div class="formlabel"></div>
@@ -115,7 +115,7 @@
 @code
 {
     [Parameter]
-    public string? Project { get; set; }
+    public string Project { get; set; }
 
     [Parameter]
     public string DummyParam { get; set; }
@@ -127,12 +127,8 @@
     private string status;
     bool showAddRow = true;
     bool showHeader;
-    private ElementReference inputTypeFileElement;
-    private ElementReference dropTargetInput;
-    private IFileReference fileReference;
-    //private IBrowserFile browserFile;
 
-    private async Task OnInputFileChange(InputFileChangeEventArgs e)
+    private void OnInputFileChange(InputFileChangeEventArgs e)
     {
          foreach (var file in e.GetMultipleFiles(10))
         {
@@ -272,10 +268,7 @@
 
             CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 
-
             isLoading = true;
-
-
             if (_fileMetadata != null && !string.IsNullOrWhiteSpace(_fileMetadata.filename))
             {
                 // We have file in browser, add to list of files downloaded!
@@ -283,15 +276,10 @@
 
                 isLoading = false;
 
-                //need cancellation token for this.
-                InvokeAsync(async () =>
-                {
-                    await ApiService.UploadGen2File(_fileMetadata, Project?.ToLowerInvariant(), DataRetrievalService.DEFAULT_CONTAINER_NAME);
-                });
+                _ = ApiService.UploadGen2File(_fileMetadata, Project?.ToLowerInvariant(), DataRetrievalService.DEFAULT_CONTAINER_NAME);
+
                 // Return to grid view
                 NavigationManager.NavigateTo("data");
-
-                
             }
             else
             {
@@ -323,24 +311,13 @@
         StateHasChanged();
     }
 
-    public async Task OnInputChange(EventArgs e)
+    private async Task<RenderFragment> GetIcon()
     {
-        foreach (var file in await fileReaderService.CreateReference(dropTargetInput).EnumerateFilesAsync())
-        {
-            fileReference = file;
-            var fileInfo = await fileReference.ReadFileInfoAsync();
-            status = fileInfo.Name;
-            _fileMetadata.filename = fileInfo.Name;
-            StateHasChanged();
-        }
+        return await Task.FromResult<RenderFragment>
+        (
+            @<div id="securityClassButton" class="ae button"> <div>@_fileMetadata.securityclass</div> <i class="fal fa-chevron-down chevronborder"></i></div>
+        );
     }
-
-    private async Task<RenderFragment> getIcon()
-    {
-        return 
-    @<div id="securityClassButton" class="ae button"> <div>@_fileMetadata.securityclass</div> <i class="fal fa-chevron-down chevronborder"></i></div>;
-    }
-
 
     private RenderFragment GetOption(string option)
     {
