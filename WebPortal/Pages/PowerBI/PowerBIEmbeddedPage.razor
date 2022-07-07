@@ -70,15 +70,14 @@
         }
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    protected override void OnAfterRender(bool firstRender)
     {
         if (firstRender)
         {
-
-            
+            // ??
         }
     }
+
     private const string AuthorityFormat = "https://login.microsoftonline.com/{0}/v2.0";
     private const string MSGraphScope = "https://analysis.windows.net/powerbi/api/.default";
-
 }
