@@ -14,17 +14,20 @@ namespace Datahub.Core.Services
         private readonly IDbContextFactory<DatahubProjectDBContext> _contextFactory;
         private readonly ILogger<PowerBiDataService> _logger;
         private readonly IMiscStorageService _miscStorageService;
+        private readonly IDatahubAuditingService _auditingService;
 
         private static readonly string GLOBAL_POWERBI_ADMIN_LIST_KEY = "GlobalPowerBiAdmins";
 
         public PowerBiDataService(
             IDbContextFactory<DatahubProjectDBContext> contextFactory,
             ILogger<PowerBiDataService> logger,
-            IMiscStorageService miscStorageService)
+            IMiscStorageService miscStorageService,
+            IDatahubAuditingService auditingService)
         {
             _contextFactory = contextFactory;
             _logger = logger;
             _miscStorageService = miscStorageService;
+            _auditingService = auditingService;
         }
 
         public async Task<IList<PowerBi_Workspace>> GetAllWorkspaces()
@@ -275,6 +278,76 @@ namespace Datahub.Core.Services
         {
             var adminList = adminEmails.ToList();
             await _miscStorageService.SaveObject(adminList, GLOBAL_POWERBI_ADMIN_LIST_KEY);
+        }
+
+        public async Task<List<PowerBi_Report>> GetReportsForProjectWithExternalReportInfo(string projectCode, bool includeSandbox = false)
+        {
+            using var ctx = await _contextFactory.CreateDbContextAsync();
+
+            var results = await ctx.PowerBi_Reports
+                .Include(r => r.Workspace)
+                .ThenInclude(w => w.Project)
+                .Where(r => r.Workspace.Project != null
+                    && r.Workspace.Project.Project_Acronym_CD.ToLower() == projectCode.ToLower()
+                    && (includeSandbox || !r.Workspace.Sandbox_Flag))
+                .ToListAsync();
+
+            var externalReportIds = await ctx.ExternalPowerBiReports.Where(r => r.End_Date >= DateTime.Now).Select(r => r.Report_ID).ToListAsync();
+
+            foreach (var report in results)
+            {
+                if (externalReportIds.Contains(report.Report_ID))
+                    report.IsExternalReportActive = true;
+            }
+
+            return results;
+        }
+
+        public async Task CreateExternalPowerBiReportRequest(string userId, Guid reportId)
+        {
+            using var ctx = await _contextFactory.CreateDbContextAsync();
+
+            var request = new ExternalPowerBiReport
+            {
+                RequestingUser = userId,
+                Report_ID = reportId
+            };
+
+            ctx.ExternalPowerBiReports.Add(request);
+
+            var result = await ctx.TrackSaveChangesAsync(_auditingService);
+
+        }
+
+        public async Task<ExternalPowerBiReport> GetExternalReportRecord(Guid reportId)
+        {
+            using var ctx = await _contextFactory.CreateDbContextAsync();
+
+            return ctx.ExternalPowerBiReports.FirstOrDefault(r => r.Report_ID == reportId);
+
+        }
+
+        public async Task<List<ExternalPowerBiReport>> GetRequestedExternalReports()
+        {
+            using var ctx = await _contextFactory.CreateDbContextAsync();
+
+            return ctx.ExternalPowerBiReports.Where(r => !r.Is_Created).ToList();
+        }
+
+        public async Task UpdateExternalPowerBiRecord(ExternalPowerBiReport report)
+        {
+            using var ctx = await _contextFactory.CreateDbContextAsync();
+            var rep = ctx.ExternalPowerBiReports.Where(r => report.ExternalPowerBiReport_ID == r.ExternalPowerBiReport_ID).FirstOrDefault();
+            if (rep != null) 
+            {
+                rep.Url = report.Url;
+                rep.Token = report.Token;
+                rep.End_Date = report.End_Date;
+                rep.Is_Created = report.Is_Created;
+                rep.ValidationSalt = report.ValidationSalt;
+                rep.Validation_Code = report.Validation_Code;
+                await ctx.TrackSaveChangesAsync(_auditingService);
+            }
         }
     }
 }
