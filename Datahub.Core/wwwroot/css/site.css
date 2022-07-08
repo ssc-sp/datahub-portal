@@ -6022,6 +6022,26 @@ code {
   flex-direction: column;
   margin-bottom: 0.5rem;
 }
+.catalog-page .sectors {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+}
+.catalog-page .sectors .sector {
+  margin: 0.5rem;
+}
+.catalog-page .sectors .sector:hover {
+  cursor: pointer;
+  transform: translateY(-1px);
+}
+.catalog-page .sectors .sector:hover i {
+  opacity: 1;
+}
+.catalog-page .sectors .sector i {
+  font-size: 2rem;
+  opacity: 0.5;
+  margin-right: 0.5rem;
+  margin-bottom: 0.5rem;
+}
 
 .item-details-container {
   padding: 1rem;
