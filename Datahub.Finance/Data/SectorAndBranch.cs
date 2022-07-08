@@ -14,17 +14,28 @@ namespace Datahub.Portal.Data.Finance
         [AeFormIgnore]
         public int SectorBranch_ID { get; set; }
 
-        [AeLabel(isDropDown: true)] [Required] public string Sector_TXT { get; set; }
-        [AeLabel(isDropDown: true)] [Required] public string Branch_TXT { get; set; }
-        [Column(TypeName = "Money")] public double? Branch_Budget_NUM { get; set; }
-        [Column(TypeName = "Money")] public double? Allocated_Budget_NUM { get; set; }
-        [Column(TypeName = "Money")] public double? Unallocated_Budget_NUM { get; set; }
+        [AeLabel(isDropDown: true)] 
+        [Required] 
+        public string Sector_TXT { get; set; }
+        
+        [AeLabel(isDropDown: true)] 
+        [Required] 
+        public string Branch_TXT { get; set; }
+
+        [Column(TypeName = "Money")] 
+        public double? Branch_Budget_NUM { get; set; }
+
+        [Column(TypeName = "Money")] 
+        public double? Allocated_Budget_NUM { get; set; }
+
+        [Column(TypeName = "Money")] 
+        public double? Unallocated_Budget_NUM { get; set; }
 
         public Sector Sector { get; set; }
         public Branch Branch { get; set; }
 
         [AeFormIgnore]
-        public string? Last_Updated_UserId { get; set; }
+        public string Last_Updated_UserId { get; set; }
 
         [AeFormIgnore]
         public DateTime Last_Updated_DT { get; set; }

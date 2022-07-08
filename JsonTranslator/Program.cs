@@ -11,7 +11,7 @@ if (!File.Exists(fPath))
 }
 var tgt = Path.Combine(Path.GetDirectoryName(fPath)!, "output-fr.json");
 using var sourceFile = File.OpenRead(src);
-var data = await JsonSerializer.DeserializeAsync<Dictionary<string,string>>(sourceFile);
+var data = (await JsonSerializer.DeserializeAsync<Dictionary<string,string>>(sourceFile)) ?? new();
 var cfgPath = Path.GetFullPath(@"../../../../WebPortal");
 var config = new ConfigurationBuilder()
     //.SetBasePath(AppContext.BaseDirectory)
