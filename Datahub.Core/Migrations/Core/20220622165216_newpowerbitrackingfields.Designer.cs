@@ -4,16 +4,18 @@ using Datahub.Core.EFCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
+namespace Datahub.Core.Migrations.Core
 {
     [DbContext(typeof(DatahubProjectDBContext))]
-    partial class DatahubProjectDBContextModelSnapshot : ModelSnapshot
+    [Migration("20220622165216_newpowerbitrackingfields")]
+    partial class newpowerbitrackingfields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -551,25 +553,50 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.Property<Guid>("Report_ID")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("RequestingUser")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
                     b.Property<string>("Token")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Url")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<byte[]>("ValidationSalt")
-                        .HasColumnType("varbinary(max)");
-
-                    b.Property<string>("Validation_Code")
-                        .HasColumnType("nvarchar(max)");
-
                     b.HasKey("ExternalPowerBiReport_ID");
 
                     b.ToTable("ExternalPowerBiReports");
+                });
+
+            modelBuilder.Entity("Datahub.Core.EFCore.GeoObjectShare", b =>
+                {
+                    b.Property<string>("GeoObjectShare_ID")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<int>("ApprovalForm_ID")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Approval_Document_URL")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Email_Contact_TXT")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<string>("Json_TXT")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Publication_ID")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("ShareStatus")
+                        .HasColumnType("int");
+
+                    b.HasKey("GeoObjectShare_ID");
+
+                    b.ToTable("GeoObjectShares");
                 });
 
             modelBuilder.Entity("Datahub.Core.EFCore.MiscStoredObject", b =>
@@ -943,41 +970,6 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                         .IsUnique();
 
                     b.ToTable("SharedDataFiles");
-                });
-
-            modelBuilder.Entity("Datahub.Core.EFCore.SpatialObjectShare", b =>
-                {
-                    b.Property<string>("GeoObjectShare_ID")
-                        .HasMaxLength(40)
-                        .HasColumnType("nvarchar(40)");
-
-                    b.Property<int>("ApprovalForm_ID")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Approval_Document_URL")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("Deleted")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Email_Contact_TXT")
-                        .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
-
-                    b.Property<string>("Json_TXT")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Publication_ID")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("ShareStatus")
-                        .HasColumnType("int");
-
-                    b.HasKey("GeoObjectShare_ID");
-
-                    b.ToTable("SpatialObjectShares", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.EFCore.SystemNotification", b =>
