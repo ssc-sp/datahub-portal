@@ -2,6 +2,8 @@
 using Entities = Datahub.Metadata.Model;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Datahub.Metadata.Model;
+using System;
 
 namespace Datahub.Core.Services
 {
@@ -21,10 +23,21 @@ namespace Datahub.Core.Services
         Task<List<SubjectKeyword>> GetSubjectKeywords(IEnumerable<string> subjectIds);
         Task UpdateCatalog(long objectId, Entities.MetadataObjectType dataType, string objectName, string location, 
             int sector, int branch, string contact, string securityClass, string englishText, string frenchText);
-        Task<List<CatalogObjectResult>> SearchCatalogEnglish(string searchText);
-        Task<List<CatalogObjectResult>> SearchCatalogFrench(string searchText);
+        Task<List<CatalogObjectResult>> SearchCatalog(CatalogSearchRequest request, Func<CatalogObjectResult, bool> validateResult);
         Task<FieldDefinitions> GetFieldDefinitions();
         Task<CatalogObjectResult> GetCatalogObjectByMetadataId(long metadataId);
         Task<CatalogObjectResult> GetCatalogObjectByObjectId(string objectId);
-    }    
+    }
+    
+    public record CatalogSearchRequest
+    (
+        long LastPageId,
+        int PageSize,
+        bool IsFrench,
+        List<string> Keywords,
+        List<MetadataClassificationType> Classifications,
+        List<MetadataObjectType> ObjectTypes,
+        List<int> Sectors,
+        List<int> Branches 
+    );
 }
