@@ -34,9 +34,11 @@
                     <SuccessIndicator @bind-IsLoading=@_isSaving @ref=@_savingInd />
                 </div>
             }
-            else
+            else if (!r.IsAlreadyCreated)
             {
-                <AeButton OnClickEvent=@(() => r.IsEditing = !r.IsEditing) Disabled=@_isEditingAny><i class="fad fa-pencil"></i></AeButton>
+                <AeButton OnClickEvent=@(() => r.IsEditing = !r.IsEditing) Disabled=@(_isEditingAny)>
+                    <i class="fad fa-pencil"></i>
+                </AeButton>
             }
         </div>
         </AeCard>
@@ -58,6 +60,7 @@
         public Dictionary<string, string> SettingsDict { get; set; }
         public FieldValueContainer FieldValues { get; set; }
         public bool IsEditing { get; set; }
+        public bool IsAlreadyCreated => ResourceRecord?.TimeCreated != null;
         private EditableResource(Project_Resources2 res)
         {
             ResourceRecord = res;

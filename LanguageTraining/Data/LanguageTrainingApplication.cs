@@ -75,7 +75,11 @@ namespace Datahub.Portal.Data.LanguageTraining
         [AeFormCategory("Language Assessment", 20)]
         public bool Employee_language_profile_raised { get; set; }
         [AeFormCategory("Language Assessment", 20)]
+        public bool Employee_In_Pardp { get; set; }
+        [AeFormCategory("Language Assessment", 20)]
         public bool Employee_professional_dev_program { get; set; }
+        
+
         [AeFormCategory("Language Assessment", 20)]
         public bool Employee_talent_management_exercise { get; set; }
         [AeFormCategory("Language Assessment", 20)]

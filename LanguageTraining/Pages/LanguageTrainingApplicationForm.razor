@@ -35,6 +35,10 @@
 </AuthorizeView>
 @code {
 
+    // IP: please enable nullable and review every warning it produces, 
+    // I am not familiar with the code, so I didn't want to make breaking changes.
+    #nullable disable 
+
     [Parameter]
     public string AppId { get; set; }
 
@@ -108,7 +112,7 @@
         StateHasChanged();
     }
 
-    private async Task HandleInvalidSubmit(EditContext editContext)
+    private void HandleInvalidSubmit(EditContext editContext)
     {
         var validations = editContext.Validate();
         StateHasChanged();    
@@ -126,7 +130,7 @@
 
             await Context.TrackSaveChangesAsync(AuditingService);
 
-            var param = await GetLanguageTrainingParameters();
+            var param = GetLanguageTrainingParameters();
 
             if (!_languageTrainingApplication.ApplicationCompleteEmailSent)
             {                
@@ -185,7 +189,7 @@
         await EmailService.SendApplicationCompleteNotification(param);    
     }
 
-    private async Task<LanguageTrainingParameters> GetLanguageTrainingParameters()
+    private LanguageTrainingParameters GetLanguageTrainingParameters()
     {
         LanguageTrainingParameters param = new();
         param.ApplicationId = _languageTrainingApplication.Application_ID.ToString();
@@ -208,7 +212,7 @@
     {
         if (_isUserAdmin)
         {
-            _languageTrainingApplications = Context.LanguageTrainingApplications.ToList();
+            _languageTrainingApplications = await Context.LanguageTrainingApplications.ToListAsync();
             if (!string.IsNullOrEmpty(AppId))
             {
                 _languageTrainingApplication = Context.LanguageTrainingApplications.Where(a => a.Application_ID == Convert.ToInt32(AppId)).FirstOrDefault();
@@ -227,8 +231,6 @@
         {
             _formMetadata.DataSet = _languageTrainingApplications.Where(r => r.Manager_Decision == filter).ToList();
         }
-
-
     }
 
     private List<string> GetTrainingTypes()
@@ -237,12 +239,10 @@
         return languageClass == "English Language Training" ? Language_Constants.TRAININGTYPEENGLISH.ToList() : Language_Constants.TRAININGTYPEFRENCH.ToList();
     }
 
-
     private void OnConfigure(IModelFormContext context)
     {
         if (!_onchange)
         {
-
             context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Sector_Branch, () => Language_Constants.SECTORSANDBRANCHES);
             context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Province_Territory, () => Language_Constants.PROVINCES);
             context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Employment_Status, () => Language_Constants.EMPLOYMENT_STATUS);
@@ -265,8 +265,6 @@
         }
 
         ToggleVisibility(context);
-
-
     }
 
     private void ToggleVisibility(IModelFormContext context)
@@ -292,6 +290,8 @@
         context.SetVisible<LanguageTrainingApplication>(p => p.Employee_equity_group, _languageTrainingApplication.Completed_LETP_Assessment);
         context.SetVisible<LanguageTrainingApplication>(p => p.Employee_language_profile_raised, _languageTrainingApplication.Completed_LETP_Assessment);
         context.SetVisible<LanguageTrainingApplication>(p => p.Employee_professional_dev_program, _languageTrainingApplication.Completed_LETP_Assessment);
+        
+        context.SetVisible<LanguageTrainingApplication>(p => p.Employee_In_Pardp, _languageTrainingApplication.Completed_LETP_Assessment);
         context.SetVisible<LanguageTrainingApplication>(p => p.Employee_talent_management_exercise, _languageTrainingApplication.Completed_LETP_Assessment);
 
         context.SetVisible<LanguageTrainingApplication>(p => p.Manager_First_Name, _isUserAdmin || _languageTrainingApplication.Delegated_Manager_Email?.ToLower() == _user.Mail.ToLower());
@@ -315,7 +315,7 @@
         OnConfigure(args.Context);
     }
 
-    private async Task CreateNewApplication()
+    private void CreateNewApplication()
     {
         _languageTrainingApplication = new LanguageTrainingApplication() { Last_Updated_DT = DateTime.Now, Manager_Decision = "Pending" };
         //var user = await UserInformationService.GetUserAsync();
