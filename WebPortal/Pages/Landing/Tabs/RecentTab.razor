@@ -26,7 +26,7 @@
 
 
 @code {
-    private List<(UserRecentLink link,Datahub_Project? project)> recentLinks;
+    private List<(UserRecentLink link, Datahub_Project project)> recentLinks;
 
     public string GetLinkDescription(UserRecentLink link, Datahub_Project project)
     {
@@ -74,7 +74,7 @@
             .ToList();
     }
 
-    private Datahub_Project? GetProject(DatahubProjectDBContext ctx, UserRecentLink link)
+    private Datahub_Project GetProject(DatahubProjectDBContext ctx, UserRecentLink link)
     {
         if (link.DataProject == null)
             return null;

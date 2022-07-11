@@ -252,8 +252,7 @@
     private QueryThrottler<string> _searchThrottler;
     private List<CatalogObjectResult> _searchResults = new();
     private bool _isFrench;
-    private CatalogObjectResult _selectedResult;
-    private CatalogSearchRequest? _catalogSearchRequest;
+    private CatalogSearchRequest _catalogSearchRequest;
     private int _lastQueryCount = 0;
 
     private HashSet<OrganizationLevel> _filteredSectors = new();
@@ -545,7 +544,6 @@
     private async Task ThrottleSearch(string searchText)
     {
         _searchResults.Clear();
-        _selectedResult = null;
         _searching = true;
         await InvokeAsync(StateHasChanged);
         try

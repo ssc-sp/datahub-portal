@@ -35,8 +35,6 @@
     [CascadingParameter(Name = "GraphUser")]
     public Microsoft.Graph.User User { get; set; }
 
-    List<UserRecentLink> links = null;
-
     private List<(string Control, RenderFragment Content)> GetTabs()
     {
         var res = new List<(string, RenderFragment)>

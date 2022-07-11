@@ -51,7 +51,7 @@
     _lastClicked = pageIndex;
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    protected override void OnAfterRender(bool firstRender)
     {
         if (firstRender)
             StateHasChanged();
@@ -64,7 +64,7 @@
         
         _projects = Context.Project_Users.Include(u => u.Project).Where(u => u.User_ID == _currentUserId && u.Project.WebForms_URL != null).Select(u => u.Project).Distinct().ToList();
 
-        await FillAccessorFunctions();
+        FillAccessorFunctions();
         
         renderFunctions = new List<Func<Datahub_Project, RenderFragment>>() {            
             new Func<Datahub_Project, RenderFragment>(Datahub_Project => 
@@ -79,8 +79,7 @@
 
     private List<string> headers = new List<string>();
 
-
-    public async Task FillAccessorFunctions()
+    private void FillAccessorFunctions()
     {
         accessorFunctions = new List<Func<Datahub_Project, string>>() {
             new Func<Datahub_Project, string>(Datahub_Project => { return Datahub_Project?.Project_Icon; }),
@@ -88,7 +87,7 @@
         };
     }
     
-     public void Dispose() 
+    public void Dispose() 
     { 
         Context.Dispose();         
     }
