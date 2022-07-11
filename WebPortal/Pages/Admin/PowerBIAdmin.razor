@@ -6,6 +6,8 @@
 @inject IDbContextFactory<DatahubProjectDBContext> _contextFactory
 @inject IMSGraphService _msGraphService
 
+@* TODO create binding variables for security classifications rather than binding to the metadta editor property directly *@
+
 <style>
     .ae.card {
         margin-bottom: 1rem;
@@ -46,6 +48,24 @@
                     <AeTypography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.ManagementTitle"]</AeTypography>
                 </Header>
                 <ChildContent>
+                    @*<AeCollapse>
+                        <AeCollapseSection DefaultOpen>
+                            <Header>
+                                <AeTypography Variant="h5">Instructions</AeTypography>
+                            </Header>
+                            <ChildContent>
+                                @if(IsAdminView)
+                                {
+                                    <AeTypography Variant="p">Blah blah blah (admin version)</AeTypography>
+                                }
+                                else
+                                {
+                                    <AeTypography Variant="p">Blah blah blah (project version)</AeTypography>
+                                }
+                            </ChildContent>
+                        </AeCollapseSection>
+                    </AeCollapse>*@
+                    
                     @if (IsLoadingWorkspaceTreeItems)
                     {
                     <Spinner />
@@ -63,19 +83,23 @@
                             </Header>
                             <ChildContent>
                                 <div>
-                                    <label>
-                                        <span>@Localizer[$"{LOCALIZATION_PREFIX}.Project"]: </span>
-                                        <select @bind=@WorkspaceBeingEdited.ProjectId>
-                                            <option value="-1">@Localizer[$"{LOCALIZATION_PREFIX}.Unassigned"]</option>
-                                            @foreach (var project in AvailableProjects)
-                                            {
-                                                <option value=@project.Project_ID>@project.ProjectName</option>
-                                            }
-                                        </select>
-                                    </label>
+                                    <div style="margin-bottom: 16px;">
+                                        <label>
+                                            <AeFlex Vertical>
+                                                <AeTypography><strong><span>@Localizer[$"{LOCALIZATION_PREFIX}.Project"]</span></strong></AeTypography>
+                                                <select @bind=@WorkspaceBeingEdited.ProjectId class="ae input">
+                                                    <option value="-1">@Localizer[$"{LOCALIZATION_PREFIX}.Unassigned"]</option>
+                                                    @foreach (var project in AvailableProjects)
+                                                    {
+                                                        <option value=@project.Project_ID>@project.ProjectName</option>
+                                                    }
+                                                </select>
+                                            </AeFlex>
+                                        </label>
+                                    </div>
                                     <label>
                                         <input type="checkbox" @bind=@WorkspaceBeingEdited.SandboxFlag />
-                                        <span>@Localizer[$"{LOCALIZATION_PREFIX}.Sandbox"]</span>
+                                        <AeTypography style="display: inline-block;"><strong><span>@Localizer[$"{LOCALIZATION_PREFIX}.Sandbox"]</span></strong></AeTypography>
                                     </label>
                                 </div>
                                 <AeTypography Variant="h4">@Localizer[$"{LOCALIZATION_PREFIX}.Metadata"]</AeTypography>
@@ -90,6 +114,7 @@
                                     HideSaveButton
                                     OnValuesChanged=@(() => StateHasChanged())
                                     @ref=@_workspaceMetadata
+                                    DefaultMetadataId=@GetProjectMetadataUid(WorkspaceBeingEdited.ProjectId)
                                 />
                                 <div>
                                     <AeButton OnClickEvent=@SaveWorkspace Disabled=@SaveWorkspaceDisabled>@Localizer[$"BUTTONS.Save"]</AeButton>
@@ -137,6 +162,7 @@
                                     Name=@DatasetBeingEdited.DbDatasetName
                                     HideSaveButton
                                     OnValuesChanged=@(() => StateHasChanged())
+                                    DefaultMetadataId=@GetProjectMetadataUid(DatasetBeingEdited.ProjectId)
                                     @ref=@_datasetMetadata
                                 />
 
@@ -187,6 +213,7 @@
                                     Name=@ReportBeingEdited.DbReportName
                                     HideSaveButton
                                     OnValuesChanged=@(() => StateHasChanged())
+                                    DefaultMetadataId=@GetProjectMetadataUid(ReportBeingEdited.ProjectId)
                                 />
 
                                 <div>
@@ -320,6 +347,8 @@
     [Parameter]
     public string ProjectAcronym { get; set; }
 
+    private bool IsAdminView => string.IsNullOrEmpty(ProjectAcronym);
+
     private List<PowerBiAdminWorkspaceTreeItem> AllWorkspaceTreeItems { get; set; } = new();
     private List<PowerBiAdminWorkspaceTreeItem> WorkspacesToBeUpdated => AllWorkspaceTreeItems.Where(w => w.NeedsUpdate).ToList();
     private List<PowerBiAdminWorkspaceTreeItem> RemovedWorkspaces => AllWorkspaceTreeItems.Where(w => !w.IsInPowerBi).ToList();
@@ -362,6 +391,8 @@
     private Dictionary<string, GraphUser> _userSearchResults = new();
     private QueryThrottler<string> _userSearchThrottler;
     private bool _isSearchingUsers = false;
+
+    private string GetProjectMetadataUid(int projectId) => AvailableProjects.FirstOrDefault(p => p.Project_ID == projectId)?.Project_Acronym_CD;
 
     private string CountChildrenToUpdate(PowerBiAdminWorkspaceTreeItem workspace)
     {
