@@ -133,7 +133,6 @@
     private const string EMAIL = "offline@nrcan-cnrcan.gc.ca";
     private string navigationUrl = string.Empty;
     private bool _enableSave = true;
-    private bool _isSectionLocksVisibile = false;
     private Microsoft.Graph.User CurrentUser;
     private bool _isUserAdmin;
     private PIPDBContext Context;
@@ -147,7 +146,6 @@
     private bool _reloadOptions = true;
     private SuccessIndicator _submitApprovalInd;
     private bool _submittingApproval = false;
-    private bool _isSetFormEdit = false;
     private List<string> validFilterValues = new List<string>();
     private string _selectedFilter = "All";
     private string _filterLabel;
@@ -199,7 +197,7 @@
 
 
 
-    private async void HandleDropdownChange(string selectedItem)
+    private void HandleDropdownChange(string selectedItem)
     {
         _fiscalYear = Context.FiscalYears.Where(f => f.FiscalYear == selectedItem).First();
         validFilterValues.Clear();
@@ -209,7 +207,6 @@
         _projects = new();
         LoadProjects();
         StateHasChanged();
-
     }
 
     private void ApplyLocks(IModelFormContext context)
@@ -218,7 +215,7 @@
         RegisterLocks(context);
     }
 
-    private async Task OnConfigure(IModelFormContext context)
+    private void OnConfigure(IModelFormContext context)
     {
         if (_reloadOptions)
         {
@@ -371,7 +368,7 @@
         LoadProjects();
         _tombstone = null;
         StateHasChanged();
-        return null;
+        return await Task.FromResult((PIP_Tombstone)null);
     }
 
     public string GetDataLabel(string propName)
@@ -425,7 +422,6 @@
 
     private async Task SetFormEdit(PIP_Tombstone project)
     {
-        _isSetFormEdit = true;
         if (!_enableSave)
         {
             ResetContextChanges();

@@ -92,12 +92,10 @@
     ;
 
 
-    private async void OnCreateUrl(ExternalPowerBiReport report)
+    private void OnCreateUrl(ExternalPowerBiReport report)
     {
         NavigationManager.NavigateTo($"/powerbi-consent/{report.Report_ID.ToString()}/{report.ExternalPowerBiReport_ID}");
-        
     }
-
 
     private const string AuthorityFormat = "https://login.microsoftonline.com/{0}/v2.0";
     private const string MSGraphScope = "https://analysis.windows.net/powerbi/api/.default";

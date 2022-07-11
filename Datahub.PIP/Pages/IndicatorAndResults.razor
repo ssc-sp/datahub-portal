@@ -127,7 +127,6 @@
     private const string PROJECTACRONYM = "PIP";
     private List<PIP_IndicatorAndResults> _indicators;
     private PIP_IndicatorAndResults _indicator;
-    private List<PIP_Tombstone> _tombstones;
     private List<PIP_Risks> _risks = new List<PIP_Risks>();
     private PIP_Tombstone _tombstone;
     private PIP_FiscalYears _fiscalYear;
@@ -164,7 +163,7 @@
         LoadIndicators();
     }
 
-    private async Task CreateNewIndicator()
+    private void CreateNewIndicator()
     {
         _indicator = new PIP_IndicatorAndResults() { PIP_Tombstone = _tombstone, Last_Updated_DT = DateTime.Now, Date_Result_Collected = DateTime.Now, Date_To_Achieve_Target_DT = DateTime.Now, FiscalYear = _fiscalYear };
         _reloadOptions = true;
@@ -182,7 +181,7 @@
         RegisterLocks(context);
     }
 
-    private async Task OnConfigure(IModelFormContext context)
+    private void OnConfigure(IModelFormContext context)
     {
         if (_reloadOptions)
         {
@@ -320,12 +319,11 @@
         LoadIndicators();
         _indicator = null;
         StateHasChanged();
-        return null;
+        return await Task.FromResult((PIP_IndicatorAndResults)null);
     }
 
     private List<Func<PIP_IndicatorAndResults, RenderFragment>> GetRenderers()
     {
-
         if (_isUserAdmin)
         {
         return new List<Func<PIP_IndicatorAndResults, RenderFragment>>

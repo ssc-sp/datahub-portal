@@ -50,7 +50,6 @@
 
     private ElementReference PowerBIElement;
 
-    private bool _isReportLaunched;
     private Report report;
     private string reportToken;
 
@@ -69,9 +68,16 @@
 
         Guid validationcode = Guid.NewGuid();
         byte[] salt = new byte[128 / 8];
-        using (var rngCsp = new RNGCryptoServiceProvider())
+
+        //was causing a warning of an obsolete class
+        //using (var rngCsp = new RNGCryptoServiceProvider())
+        //{
+        //    rngCsp.GetNonZeroBytes(salt);
+        //}
+
+        using (var rng = RandomNumberGenerator.Create())
         {
-            rngCsp.GetNonZeroBytes(salt);
+            rng.GetBytes(salt);
         }
 
         string hashed = Convert.ToBase64String(KeyDerivation.Pbkdf2(
@@ -101,24 +107,21 @@
         var extreportdb = context2.ExternalPowerBiReports.Where(r => r.Report_ID.ToString() == ReportId).FirstOrDefault();
 
         if (extreportdb is not null)
+        {
+            var pbiSettings = new PowerBISettings();
+            if (ReadOnly)
             {
-                _isReportLaunched = true;
-                var pbiSettings = new PowerBISettings();
-                if (ReadOnly)
-                {
-                    pbiSettings.bars.actionBar.visible = false;
-                    pbiSettings.navContentPaneEnabled = false;
-                }
-
-               
-                await JSRuntime.InvokeAsync<object>(
-                    "ShowMyPowerBI.showReportEmbed",
-                    PowerBIElement, extreportdb.Token, extreportdb.Url,
-                extreportdb.Report_ID.ToString(), pbiSettings);
-                
+                pbiSettings.bars.actionBar.visible = false;
+                pbiSettings.navContentPaneEnabled = false;
             }
 
-
+               
+            await JSRuntime.InvokeAsync<object>(
+                "ShowMyPowerBI.showReportEmbed",
+                PowerBIElement, extreportdb.Token, extreportdb.Url,
+            extreportdb.Report_ID.ToString(), pbiSettings);
+                
+        }
     }
     
     private PowerBiExternalReportParameters GetEmailParameters(ExternalPowerBiReport report)
