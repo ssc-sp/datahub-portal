@@ -40,27 +40,6 @@
 							<span>@Localizer["DISCOVERY-FILTERS.HideIncomplete"]</span>
 						</label>
 
-						@*<AeCollapse OnSectionToggled=@OnSearchFilterToggled>
-						<AeCollapseSection DefaultOpen=@_searchFilterSectionOpen>
-						<Header>
-						<AeTypography Variant="h3">
-						<span title=@_filterSectionOpenTitle>
-						<AeIcon class=@_filterSectionOpenIconClass />
-						</span>
-						<span>@Localizer["DISCOVERY-FILTERS.Keyword Search"]</span>
-						<AeIcon class=@_filterActiveIconClass />
-						</AeTypography>
-						</Header>
-						<ChildContent>
-						<AeSearchInput
-						id="search"
-						Placeholder=@Localizer["DISCOVERY-FILTERS.Enter Keywords"]
-						OnInputChangeWithLastKey=@HandleSearch
-						ClearIconFAClass="null"
-						/>
-						</ChildContent>
-						</AeCollapseSection>
-						</AeCollapse>*@
 
 						<AeCollapse OnSectionToggled=@OnSecurityFilterToggled>
 							<AeCollapseSection DefaultOpen=@_securityFilterSectionOpen>
@@ -207,14 +186,21 @@
 													<div class="sectors">
 														@foreach (var sector in _allSectors)
 														{
-															<a @onclick=@(() => SelectSector(sector))>
+															
 															<div class="sector">
-																<AeFlex class="recent-card yellow">
+																<a @onclick=@(() => SelectSector(sector))>
+																	<label>
 																		<i class="fad fa-book"></i>
-																		<AeTypography>@(_isFrench ? sector.FrenchLabel : sector.EnglishLabel)</AeTypography>
-																</AeFlex>
+																		<span>@(_isFrench ? sector.FrenchLabel : sector.EnglishLabel)</span>
+																	</label>
+																</a>
+																@*<AeFlex class="recent-card yellow" Vertical="false">
+																	<a @onclick=@(() => SelectSector(sector))>
+																		<i class="fad fa-book"></i>
+																	</a>
+																	<AeTypography>@(_isFrench ? sector.FrenchLabel : sector.EnglishLabel)</AeTypography>
+																</AeFlex>*@
 															</div>
-															</a>
 														}
 													</div>
 												<div>
@@ -271,8 +257,7 @@
 	private QueryThrottler<string> _searchThrottler;
 	private List<CatalogObjectResult> _searchResults = new();
 	private bool _isFrench;
-	private CatalogObjectResult _selectedResult;
-	private CatalogSearchRequest? _catalogSearchRequest;
+	private CatalogSearchRequest _catalogSearchRequest;
 	private int _lastQueryCount = 0;
 
 	private HashSet<OrganizationLevel> _filteredSectors = new();
@@ -310,11 +295,11 @@
 		_sectors = (await OrganizationLevelsService.GetSectors()).ToDictionary(s => s.Id);
 		_allSectors = await OrganizationLevelsService.GetSectors();
 		_branches = (await OrganizationLevelsService.GetBranches()).ToDictionary(b => b.Id);
-		_searchThrottler = new(TimeSpan.FromSeconds(0.5), ThrottleSearch);
-		await _searchThrottler.SetQuery(string.Empty);
 
 		await LoadProjects();
 
+		_searchThrottler = new(TimeSpan.FromSeconds(0.5), ThrottleSearch);
+		await _searchThrottler.SetQuery(string.Empty);
 	}
 
 	private async Task LoadProjects()
@@ -353,7 +338,8 @@
 
 	private async Task SelectSector(OrganizationLevel sector)
 	{
-		await UpdateSectorFilter(new[] { sector });
+		await _sectorFilter.Clear();
+		await _sectorFilter.Select(sector);
 	}
 
 	private async Task UpdateDataTypeFilter(IEnumerable<MetadataObjectType> filteredTypes)
@@ -487,7 +473,7 @@
 	@<AeButton class="blue" onclick=@(() => HandleDownload(result))>@Localizer[GetButtonText(result)]</AeButton>;
 
 	private RenderFragment GetUnauthorizedDownload(CatalogObjectResult result) =>
-	@<AeButton class="red" onclick=@(() => HandleDownload(result))>@(SecurityClassification.ProtectedA.Equals(result.SecurityClass) ? Localizer["Protected A - Request Access"] : Localizer["Protected B - Request Access"])</AeButton>
+		@<AeButton class="red" onclick=@(() => HandleDownload(result))>@(SecurityClassification.ProtectedA.Equals(result.SecurityClass) ? Localizer["Protected A - Request Access"] : Localizer["Protected B - Request Access"])</AeButton>
 	;
 
 	private async Task HandleDownload(CatalogObjectResult result)
@@ -569,7 +555,6 @@
 	private async Task ThrottleSearch(string searchText)
 	{
 		_searchResults.Clear();
-		_selectedResult = null;
 		_searching = true;
 		await InvokeAsync(StateHasChanged);
 		try
@@ -625,12 +610,15 @@
 	private async Task<IEnumerable<CatalogObjectResult>> GetMore(InfiniteScrollingItemsProviderRequest<CatalogObjectResult> request)
 	{
 		var newRequest = _catalogSearchRequest with
-			{
-				LastPageId = request.Items.LastOrDefault()?.CatalogObjectId ?? 0
-			};
+		{
+			LastPageId = request.Items.LastOrDefault()?.CatalogObjectId ?? 0
+		};
 
 		var newResults = await MetadataBrokerService.SearchCatalog(newRequest, CheckMetadataCompleted);
 		_searchResults.AddRange(newResults);
+
+		// just for the demo
+		await Task.Delay(TimeSpan.FromSeconds(1));
 
 		return newResults;
 	}
