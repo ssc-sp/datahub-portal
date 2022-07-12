@@ -20,4 +20,29 @@
         flex-direction: column;
         margin-bottom: 0.5rem;
     }
+
+    .sectors {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+
+        .sector {
+            margin: 0.5rem;
+
+            &:hover {
+                cursor: pointer;
+                transform: translateY(-1px);
+
+                i {
+                    opacity: 1;
+                }
+            }
+
+            i {
+                font-size: 2rem;
+                opacity: .5;
+                margin-right: .5rem;
+                margin-bottom: .5rem;
+            }
+        }
+    }
 }
