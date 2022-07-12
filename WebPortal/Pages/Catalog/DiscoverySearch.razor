@@ -6,219 +6,224 @@
 
 @* TODO: transfer these rules to scss, apply it to metadata keywords *@
 <style>
-    div.with-bottom-margin {
-        margin-bottom: 0.5rem;
-    }
+	div.with-bottom-margin {
+		margin-bottom: 0.5rem;
+	}
 </style>
 
 <div style="margin: 2rem">
-    <DHPageTitle PageTitleKey=@Localizer["DISCOVERY-FILTERS.Search Catalog"] />
-    <AeCard>
-        <ChildContent>
-            <div class="catalog-page">
-                <div class="filter">
-                    <AeFlex Vertical>
-                        <AeTypography Variant="h3">
-                                        @*<span title=@_filterSectionOpenTitle>
-                                            <AeIcon class=@_filterSectionOpenIconClass />
-                                        </span>*@
-                                        <span>@Localizer["DISCOVERY-FILTERS.Keyword Search"]</span>
-                                        @*<AeIcon class=@_filterActiveIconClass />*@
-                        </AeTypography>
-                        <div>
-                            <AeSearchInput 
-                                id="search" 
-                                Placeholder=@Localizer["DISCOVERY-FILTERS.Enter Keywords"] 
-                                OnInputChangeWithLastKey=@HandleSearch
-                                SearchIconFAClass=null
-                                ClearIconFAClass=null
-                            />
-                        </div>
+	<DHPageTitle PageTitleKey=@Localizer["DISCOVERY-FILTERS.Search Catalog"] />
+	<AeCard>
+		<ChildContent>
+			<div class="catalog-page">
+				<div class="filter">
+					<AeFlex Vertical>
+						<AeTypography Variant="h3">
+							@*<span title=@_filterSectionOpenTitle>
+							<AeIcon class=@_filterSectionOpenIconClass />
+							</span>*@
+							<span>@Localizer["DISCOVERY-FILTERS.Keyword Search"]</span>
+							@*<AeIcon class=@_filterActiveIconClass />*@
+						</AeTypography>
+						<div>
+							<AeSearchInput id="search"
+										   Placeholder=@Localizer["DISCOVERY-FILTERS.Enter Keywords"]
+										   OnInputChangeWithLastKey=@HandleSearch
+										   SearchIconFAClass=null
+										   ClearIconFAClass=null />
+						</div>
 
-                        <AeTypography Variant="h3">@Localizer["DISCOVERY-FILTERS.Filters"]</AeTypography>
-                        
-                        <label>
-                            <input type="checkbox" checked=@_excludeIncompleteCatalogs @onchange=@(e => ChangeIncompleteCatalogFilter(e)) />
-                            <span>@Localizer["DISCOVERY-FILTERS.HideIncomplete"]</span>
-                        </label>
+						<AeTypography Variant="h3">@Localizer["DISCOVERY-FILTERS.Filters"]</AeTypography>
 
-                        @*<AeCollapse OnSectionToggled=@OnSearchFilterToggled>
-                            <AeCollapseSection DefaultOpen=@_searchFilterSectionOpen>
-                                <Header>
-                                    <AeTypography Variant="h3">
-                                        <span title=@_filterSectionOpenTitle>
-                                            <AeIcon class=@_filterSectionOpenIconClass />
-                                        </span>
-                                        <span>@Localizer["DISCOVERY-FILTERS.Keyword Search"]</span>
-                                        <AeIcon class=@_filterActiveIconClass />
-                                    </AeTypography>
-                                </Header>
-                                <ChildContent>
-                                    <AeSearchInput 
-                                        id="search" 
-                                        Placeholder=@Localizer["DISCOVERY-FILTERS.Enter Keywords"] 
-                                        OnInputChangeWithLastKey=@HandleSearch 
-                                        ClearIconFAClass="null" 
-                                    />
-                                </ChildContent>
-                            </AeCollapseSection>
-                        </AeCollapse>*@
+						<label>
+							<input type="checkbox" checked=@_excludeIncompleteCatalogs @onchange=@(e => ChangeIncompleteCatalogFilter(e)) />
+							<span>@Localizer["DISCOVERY-FILTERS.HideIncomplete"]</span>
+						</label>
 
-                        <AeCollapse OnSectionToggled=@OnSecurityFilterToggled>
-                            <AeCollapseSection DefaultOpen=@_securityFilterSectionOpen>
-                                <Header>
-                                    <AeTypography Variant="h4">
-                                        <span title=@_filterSectionOpenTitle>
-                                            <AeIcon class=@_filterSectionOpenIconClass />
-                                        </span>
-                                        <span>@Localizer["DISCOVERY-FILTERS.Security Classification"]</span>
-                                        <AeIcon class=@_filterActiveIconClass />
-                                    </AeTypography>
-                                </Header>
-                                
-                                <ChildContent>
-                                    <AeFlex Vertical>
-                                        <div class="with-bottom-margin">
-                                            <MultiCheckboxSelect 
-                                                T=MetadataClassificationType
-                                                Options=@(Enum.GetValues<MetadataClassificationType>())
-                                                OptionLabelFunction=@(t => GetLocalizedClassificationType(t))
-                                                OptionSortFunction=@(t => GetLocalizedClassificationType(t))
-                                                OnSelectionChanged=@UpdateClassificationTypeFilter
-                                                @ref=@_classificationTypeFilter
-                                            />
-                                        </div>
-                                    </AeFlex>
-                                </ChildContent>
-                            </AeCollapseSection>
-                        </AeCollapse>
 
-                        <AeCollapse OnSectionToggled=@OnFilterToggled>
-                            <AeCollapseSection DefaultOpen=@_filterSectionOpen>
-                                <Header>
-                                    <AeTypography Variant="h4">
-                                        <span title=@_filterSectionOpenTitle>
-                                            <AeIcon class=@_filterSectionOpenIconClass />
-                                        </span>
-                                        <span>@Localizer["DISCOVERY-FILTERS.Data Type"]</span>
-                                        <AeIcon class=@_filterActiveIconClass />
-                                    </AeTypography>
-                                </Header>
-                                <ChildContent>
-                                    <AeFlex Vertical>
-                                        <div class="with-bottom-margin">
-                                            <MultiCheckboxSelect 
-                                                T=MetadataObjectType
-                                                Options=@(Enum.GetValues<MetadataObjectType>())
-                                                OptionLabelFunction=@(t => GetLocalizedDataType(t))
-                                                OptionSortFunction=@(t => GetLocalizedDataType(t))
-                                                OnSelectionChanged=@UpdateDataTypeFilter
-                                                @ref=@_objectTypeFilter
-                                            />
-                                        </div>
-                                    </AeFlex>
-                                </ChildContent>
-                            </AeCollapseSection>
-                        </AeCollapse>
+						<AeCollapse OnSectionToggled=@OnSecurityFilterToggled>
+							<AeCollapseSection DefaultOpen=@_securityFilterSectionOpen>
+								<Header>
+									<AeTypography Variant="h4">
+										<span title=@_filterSectionOpenTitle>
+											<AeIcon class=@_filterSectionOpenIconClass />
+										</span>
+										<span>@Localizer["DISCOVERY-FILTERS.Security Classification"]</span>
+										<AeIcon class=@_filterActiveIconClass />
+									</AeTypography>
+								</Header>
 
-                        <AeCollapse OnSectionToggled=@OnSectorFilterToggled>
-                            <AeCollapseSection DefaultOpen=@_sectorFilterSectionOpen>
-                                <Header>
-                                    <AeTypography Variant="h4">
-                                        <span title=@_filterSectionOpenTitle>
-                                            <AeIcon class=@_filterSectionOpenIconClass />
-                                        </span>
-                                        <span>@Localizer["Sectors"]</span>
-                                        <AeIcon class=@_filterActiveIconClass />
-                                    </AeTypography>
-                                </Header>
-                                
-                                <ChildContent>
-                                    <AeFlex Vertical>
-                                        <div class="with-bottom-margin">
-                                            <MultiCheckboxSelect 
-                                                T=OrganizationLevel
-                                                Options=@(_allSectors)
-                                                OptionLabelFunction=@(t => _isFrench ? t.FrenchLabel : t.EnglishLabel)
-                                                OptionSortFunction=@(t => _isFrench ? t.FrenchLabel : t.EnglishLabel)
-                                                OnSelectionChanged=@UpdateSectorFilter
-                                                @ref=@_sectorFilter
-                                            />
-                                        </div>
-                                        <div class="dropdowns">                                                                                        
-                                            <label>
-                                                @if (_filteredBranches.Count > 0)
-                                                {
-                                                    <select class="ae input" @bind=@BranchFilter title=@Localizer["Branch"]>
-                                                        <option value=@NO_FILTER_SELECTED>@Localizer["DISCOVERY-FILTERS.(All Branches)"]</option>
-                                                        @foreach(var branch in _filteredBranches)
-                                                        {
-                                                            <option value=@branch.Id>@GetLabel(branch)</option>
-                                                        }
-                                                    </select>
-                                                }
-                                            </label>
-                                        </div>
-                                    </AeFlex>
-                                </ChildContent>
-                            </AeCollapseSection>
-                        </AeCollapse>
+								<ChildContent>
+									<AeFlex Vertical>
+										<div class="with-bottom-margin">
+											<MultiCheckboxSelect T=MetadataClassificationType
+																 Options=@(Enum.GetValues<MetadataClassificationType>())
+																 OptionLabelFunction=@(t => GetLocalizedClassificationType(t))
+																 OptionSortFunction=@(t => GetLocalizedClassificationType(t))
+																 OnSelectionChanged=@UpdateClassificationTypeFilter
+																 @ref=@_classificationTypeFilter />
+										</div>
+									</AeFlex>
+								</ChildContent>
+							</AeCollapseSection>
+						</AeCollapse>
 
-                        <div>
-                            <AeButton OnClickEvent=@ClearFilters Disabled=@_clearFilterDisabled>@Localizer["BUTTONS.Clear"]</AeButton>
-                        </div>
-                    </AeFlex>
-                </div>
-                <div class="cards">
-                    <div class="catalog-cards">
-                        @if (_searchResults.Any())
-                        {
-                            <InfiniteScrolling Preloaded=@_searchResults ItemsProvider=@GetMore>
-                                <ItemTemplate Context="item">
-                                    <CatalogCards 
-                                        @key=@item
-                                        CatalogResult=@item
-                                        IsFrench=@_isFrench
-                                        Project=@GetProject(item)
-                                        MapSector=@GetSector
-                                        MapBranch=@GetBranch
-                                    >
-                                        @GetDownLoadFragment(item)
-                                    </CatalogCards>
-                                </ItemTemplate>
-                                <LoadingTemplate>
-                                    <div>@Localizer["Loading..."]</div>
-                                </LoadingTemplate>
-                            </InfiniteScrolling>
-                        }
-                        else
-                        {
-                            @if (_searching)
-                            {
-                                <Spinner Small=true />
-                            }
-                            else
-                            {
-                                if (HasValidFilters())
-                                {
-                                    <div>
-                                        No catalog records found, try different keyword and filters.
-                                    </div>
-                                }
-                                else
-                                {
-                                    <div>
-                                        Discovery landing page goes here...
-                                    </div>
-                                }
-                            }
-                        }
-                    </div>
-                </div>
-            </div>
-            
-        </ChildContent>
-    </AeCard>
+						<AeCollapse OnSectionToggled=@OnFilterToggled>
+							<AeCollapseSection DefaultOpen=@_filterSectionOpen>
+								<Header>
+									<AeTypography Variant="h4">
+										<span title=@_filterSectionOpenTitle>
+											<AeIcon class=@_filterSectionOpenIconClass />
+										</span>
+										<span>@Localizer["DISCOVERY-FILTERS.Data Type"]</span>
+										<AeIcon class=@_filterActiveIconClass />
+									</AeTypography>
+								</Header>
+								<ChildContent>
+									<AeFlex Vertical>
+										<div class="with-bottom-margin">
+											<MultiCheckboxSelect T=MetadataObjectType
+																 Options=@(Enum.GetValues<MetadataObjectType>())
+																 OptionLabelFunction=@(t => GetLocalizedDataType(t))
+																 OptionSortFunction=@(t => GetLocalizedDataType(t))
+																 OnSelectionChanged=@UpdateDataTypeFilter
+																 @ref=@_objectTypeFilter />
+										</div>
+									</AeFlex>
+								</ChildContent>
+							</AeCollapseSection>
+						</AeCollapse>
+
+						<AeCollapse OnSectionToggled=@OnSectorFilterToggled>
+							<AeCollapseSection DefaultOpen=@_sectorFilterSectionOpen>
+								<Header>
+									<AeTypography Variant="h4">
+										<span title=@_filterSectionOpenTitle>
+											<AeIcon class=@_filterSectionOpenIconClass />
+										</span>
+										<span>@Localizer["Sectors"]</span>
+										<AeIcon class=@_filterActiveIconClass />
+									</AeTypography>
+								</Header>
+
+								<ChildContent>
+									<AeFlex Vertical>
+										<div class="with-bottom-margin">
+											<MultiCheckboxSelect T=OrganizationLevel
+																 Options=@(_allSectors)
+																 OptionLabelFunction=@(t => _isFrench ? t.FrenchLabel : t.EnglishLabel)
+																 OptionSortFunction=@(t => _isFrench ? t.FrenchLabel : t.EnglishLabel)
+																 OnSelectionChanged=@UpdateSectorFilter
+																 @ref=@_sectorFilter />
+										</div>
+										<div class="dropdowns">
+											<label>
+												@if (_filteredBranches.Count > 0)
+												{
+													<select class="ae input" @bind=@BranchFilter title=@Localizer["Branch"]>
+														<option value=@NO_FILTER_SELECTED>@Localizer["DISCOVERY-FILTERS.(All Branches)"]</option>
+														@foreach (var branch in _filteredBranches)
+														{
+															<option value=@branch.Id>@GetLabel(branch)</option>
+														}
+													</select>
+												}
+											</label>
+										</div>
+									</AeFlex>
+								</ChildContent>
+							</AeCollapseSection>
+						</AeCollapse>
+
+						<div>
+							<AeButton OnClickEvent=@ClearFilters Disabled=@_clearFilterDisabled>@Localizer["BUTTONS.Clear"]</AeButton>
+						</div>
+					</AeFlex>
+				</div>
+				<div class="cards">
+					<div class="catalog-cards">
+						@if (_searchResults.Any())
+						{
+							<InfiniteScrolling Preloaded=@_searchResults ItemsProvider=@GetMore>
+								<ItemTemplate Context="item">
+									<CatalogCards @key=@item
+											  CatalogResult=@item
+											  IsFrench=@_isFrench
+											  Project=@GetProject(item)
+											  MapSector=@GetSector
+											  MapBranch=@GetBranch>
+										@GetDownLoadFragment(item)
+									</CatalogCards>
+								</ItemTemplate>
+								<LoadingTemplate>
+									<div>@Localizer["Loading..."]</div>
+								</LoadingTemplate>
+							</InfiniteScrolling>
+						}
+						else
+						{
+							@if (_searching)
+							{
+								<Spinner Small=true />
+							}
+							else
+							{
+								if (HasValidFilters())
+								{
+									<div>
+										No catalog records found, try different keyword and filters.
+									</div>
+								}
+								else
+								{
+									<div>
+											<AeFlex Vertical>
+												<h1>@Localizer["Data Catalog"]</h1>
+												<div>@Localizer["The DataHub Data Catalog provides a collection of NRCan data assets, including Datahub initiatives, DataHub files, CFS data catalog items, Power BI reports, datasets and workspaces."]</div>
+												<AeFlex Vertical>
+													<div><h2>@Localizer["Browse by Sector"]</h2>
+													</div>
+													<div class="sectors">
+														@foreach (var sector in _allSectors)
+														{
+															
+															<div class="sector">
+																<a @onclick=@(() => SelectSector(sector))>
+																	<label>
+																		<i class="fad fa-book"></i>
+																		<span>@(_isFrench ? sector.FrenchLabel : sector.EnglishLabel)</span>
+																	</label>
+																</a>
+																@*<AeFlex class="recent-card yellow" Vertical="false">
+																	<a @onclick=@(() => SelectSector(sector))>
+																		<i class="fad fa-book"></i>
+																	</a>
+																	<AeTypography>@(_isFrench ? sector.FrenchLabel : sector.EnglishLabel)</AeTypography>
+																</AeFlex>*@
+															</div>
+														}
+													</div>
+												<div>
+													<h2>Search through the DataHub Data Catalog</h2>
+													<div>Looking for data about NRCan economy, finance, science, forestry or human resources? Discover that and more through our catalog, your one-stop shop for NRCan datasets.</div>
+												</div>
+												<div>
+													<h2>Looking to publish data DataHub Data Catalog?</h2>
+													<div>Contact the DataHub team for more details nrcan.datahub.rncan@canada.ca</div>
+												</div>
+												</AeFlex>
+											</AeFlex>
+
+									</div>
+								}
+							}
+						}
+					</div>
+				</div>
+			</div>
+
+		</ChildContent>
+	</AeCard>
 </div>
 
 @code {
@@ -242,7 +247,7 @@
     public NavigationManager NavigationManager { get; set; }
 
     [Inject]
-    public IDbContextFactory<DatahubProjectDBContext> DatahubProjectDbFactory {get; set; }
+    public IDbContextFactory<DatahubProjectDBContext> DatahubProjectDbFactory { get; set; }
 
     private const int NO_FILTER_SELECTED = -1;
     private const int PAGE_SIZE = 10;
@@ -278,7 +283,7 @@
 
     private List<OrganizationLevel> _allSectors = new();
     private Dictionary<int, OrganizationLevel> _sectors = new();
-    private Dictionary<int, OrganizationLevel> _branches = new();    
+    private Dictionary<int, OrganizationLevel> _branches = new();
     private bool _filtersActive = false;
     private bool _clearFilterDisabled => !_filtersActive;
 
@@ -315,8 +320,8 @@
         if (e.Value is bool)
         {
             _excludeIncompleteCatalogs = (bool)e.Value;
-            await UpdateFilter();            
-        }        
+            await UpdateFilter();
+        }
     }
 
     private string GetLocalizedDataType(MetadataObjectType dataType) => Localizer[$"DISCOVERY-DATA-TYPES.{dataType}"];
@@ -329,6 +334,12 @@
         _filterSector = _filteredSectors.Count == 1 ? filteredTypes.ToList()[0].Id : NO_FILTER_SELECTED;
         _filterBranch = _filteredSectors.Count != 1 ? NO_FILTER_SELECTED : _filterBranch;
         await UpdateFilter();
+    }
+
+    private async Task SelectSector(OrganizationLevel sector)
+    {
+        await _sectorFilter.Clear();
+        await _sectorFilter.Select(sector);
     }
 
     private async Task UpdateDataTypeFilter(IEnumerable<MetadataObjectType> filteredTypes)
@@ -454,16 +465,16 @@
 
     // renderer functions
     private RenderFragment GetDownLoadFragment(CatalogObjectResult result) =>
-        SecurityClassification.Unclassified.Equals(result.SecurityClass) 
-            ? GetAuthorizedDownload(result) 
-            : GetUnauthorizedDownload(result);
+    SecurityClassification.Unclassified.Equals(result.SecurityClass)
+        ? GetAuthorizedDownload(result)
+        : GetUnauthorizedDownload(result);
 
     private RenderFragment GetAuthorizedDownload(CatalogObjectResult result) =>
-        @<AeButton class="blue" onclick=@(() => HandleDownload(result))>@Localizer[GetButtonText(result)]</AeButton>;
+    @<AeButton class="blue" onclick=@(() => HandleDownload(result))>@Localizer[GetButtonText(result)]</AeButton>;
 
-    private RenderFragment GetUnauthorizedDownload(CatalogObjectResult result) => 
-        @<AeButton class="red" onclick=@(() => HandleDownload(result))>@(SecurityClassification.ProtectedA.Equals(result.SecurityClass) ? Localizer["Protected A - Request Access"] : Localizer["Protected B - Request Access"])</AeButton>
-    ;    
+    private RenderFragment GetUnauthorizedDownload(CatalogObjectResult result) =>
+    @<AeButton class="red" onclick=@(() => HandleDownload(result))>@(SecurityClassification.ProtectedA.Equals(result.SecurityClass) ? Localizer["Protected A - Request Access"] : Localizer["Protected B - Request Access"])</AeButton>
+    ;
 
     private async Task HandleDownload(CatalogObjectResult result)
     {
@@ -568,7 +579,7 @@
         }
         else
         {
-            var keywords = (_searchKeywords ?? "").Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries).ToList(); 
+            var keywords = (_searchKeywords ?? "").Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries).ToList();
             var sectors = _filteredSectors.Select(s => s.Id).ToList();
             var branches = GetBranches().ToList();
 
@@ -599,12 +610,15 @@
     private async Task<IEnumerable<CatalogObjectResult>> GetMore(InfiniteScrollingItemsProviderRequest<CatalogObjectResult> request)
     {
         var newRequest = _catalogSearchRequest with
-        {
-            LastPageId = request.Items.LastOrDefault()?.CatalogObjectId ?? 0
-        };
+            {
+                LastPageId = request.Items.LastOrDefault()?.CatalogObjectId ?? 0
+            };
 
         var newResults = await MetadataBrokerService.SearchCatalog(newRequest, CheckMetadataCompleted);
         _searchResults.AddRange(newResults);
+
+        // just for the demo
+        await Task.Delay(TimeSpan.FromSeconds(1));
 
         return newResults;
     }
