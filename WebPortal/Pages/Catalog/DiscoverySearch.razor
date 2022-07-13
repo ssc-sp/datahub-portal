@@ -310,11 +310,11 @@
 		_sectors = (await OrganizationLevelsService.GetSectors()).ToDictionary(s => s.Id);
 		_allSectors = await OrganizationLevelsService.GetSectors();
 		_branches = (await OrganizationLevelsService.GetBranches()).ToDictionary(b => b.Id);
+		_searchThrottler = new(TimeSpan.FromSeconds(0.5), ThrottleSearch);
+		await _searchThrottler.SetQuery(string.Empty);
 
 		await LoadProjects();
 
-		_searchThrottler = new(TimeSpan.FromSeconds(0.5), ThrottleSearch);
-		await _searchThrottler.SetQuery(string.Empty);
 	}
 
 	private async Task LoadProjects()
