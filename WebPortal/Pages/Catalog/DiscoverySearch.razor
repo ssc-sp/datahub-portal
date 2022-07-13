@@ -389,7 +389,7 @@
             var fieldValues = result.Metadata;
 
             // name
-            if (string.IsNullOrEmpty(result.Name))
+            if (string.IsNullOrEmpty(result.Name_English))
                 return false;
 
             // contact
@@ -455,7 +455,7 @@
     }
 
     // accessor functions
-    private string GetName(CatalogObjectResult result) => result.Name;
+    private string GetName(CatalogObjectResult result) => result.Name_English;
     private string GetSector(CatalogObjectResult result) => GetLabel(_sectors.GetValueOrDefault(result.Sector));
     private string GetBranch(CatalogObjectResult result) => GetLabel(_branches.GetValueOrDefault(result.Branch));
     private string GetContact(CatalogObjectResult result) => result.Contact;
@@ -538,7 +538,7 @@
 
     private async Task DownloadFile(CatalogObjectResult result)
     {
-        var uri = await RetrievalService.GetDownloadAccessToSasBlob(DataRetrievalService.DEFAULT_CONTAINER_NAME, fileName: result.Name, projectUploadCode: result.Location);
+        var uri = await RetrievalService.GetDownloadAccessToSasBlob(DataRetrievalService.DEFAULT_CONTAINER_NAME, fileName: result.Name_English, projectUploadCode: result.Location);
         await Task.Run(() => RedirectAndDownload(uri.ToString()));
     }
 
