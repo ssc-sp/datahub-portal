@@ -107,6 +107,7 @@ if (metadataCtx is not null && projectCtx is not null && InputFileExists(args))
             ObjectMetadataId = objMetadata.ObjectMetadataId,
             DataType = MetadataObjectType.DatasetUrl,
             Name_TXT = entry.name_en,
+            Name_French_TXT = entry.name_fr,
             Location_TXT = entry.url_en,
             SecurityClass_TXT = entry.securityClass ?? "Unclassified",
             Sector_NUM = sector?.Id ?? 0,
