@@ -68,11 +68,7 @@
         ExternalPowerBiReport exreport = new();
 
         Guid validationcode = Guid.NewGuid();
-        byte[] salt = new byte[128 / 8];
-        using (var rngCsp = new RNGCryptoServiceProvider())
-        {
-            rngCsp.GetNonZeroBytes(salt);
-        }
+        var salt = RandomNumberGenerator.GetBytes(128 / 8);
 
         string hashed = Convert.ToBase64String(KeyDerivation.Pbkdf2(
             password: validationcode.ToString(),
@@ -91,8 +87,7 @@
         exreport.Validation_Code = hashed;
         exreport.ValidationSalt = salt;
         exreport.UnhashedValidationCode = validationcode.ToString();
-        await PowerBiDataService.UpdateExternalPowerBiRecord(exreport);
-        
+        await PowerBiDataService.UpdateExternalPowerBiRecord(exreport);        
 
         var emailParams = GetEmailParameters(exreport);
         await EmailService.SendPowerBiExternalUrlEmail(emailParams);
@@ -109,7 +104,6 @@
                     pbiSettings.bars.actionBar.visible = false;
                     pbiSettings.navContentPaneEnabled = false;
                 }
-
                
                 await JSRuntime.InvokeAsync<object>(
                     "ShowMyPowerBI.showReportEmbed",

@@ -8,6 +8,7 @@
     "datahub-mssql-metadata": "",
     "datahub-cosmosdb": ""
   },
+  "DbDriver": "Azure",
   "AzureAd": {
     "Instance": "https://login.microsoftonline.com/",
     "Domain": "",

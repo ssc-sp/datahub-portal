@@ -67,6 +67,7 @@ namespace Datahub.Core.Data
         {
             "sqlite" => DbDriver.Sqlite,
             "memory" => DbDriver.Memory,
+            "azure" => DbDriver.Azure,
             "sqllocaldb" => DbDriver.SqlLocalDB,
             _ => DbDriver.SqlServer
         };
