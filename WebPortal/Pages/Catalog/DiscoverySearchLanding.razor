@@ -27,21 +27,6 @@
 				</AeCard>
 			}
 		</div>
-
-		@*<div class="sectors">
-			@foreach (var sector in Sectors)
-			{
-															
-				<div class="sector">
-					<a @onclick=@(() => ClickSector(sector))>
-						<div style="cursor:pointer">
-							<AeIcon class=@GetIconClass(sector.Id) />
-							<span>@(IsFrench ? sector.FrenchLabel : sector.EnglishLabel)</span>
-						</div>
-					</a>
-				</div>
-			}
-		</div>*@
 	<div>
 		<h2>@Localizer["Search"]</h2>
 		<div>
@@ -85,22 +70,22 @@
 	{
 		return new()
 		{
-			{ 526, "fa-trees" },
-			{ 2, "fa-info-circle" },
-			{ 43, "fa-fire" },
-			{ 81, "fa-building" },
-			{ 133, "fa-balance-scale" },
-			{ 7291, "fa-lightbulb-dollar" },
-			{ 9752, "fa-stream" },
-			{ 7891, "fa-info-circle" },
-			{ 11573, "fa-project-diagram" },
-			{ 11993, "fa-broadcast-tower" },
-			{ 15433, "fa-chair-office" },
-			{ 14913, "fa-share" },
-			{ 16493, "fa-mountains" },
-			{ 16873, "fa-gas-pump" },
-			{ 16393, "fa-chair-office" },
-			{ 16613, "fa-leaf-maple" }
+			{ 526,		"fa-trees" },			// Canadian Forest Service
+			{ 2,		"fa-search-dollar" },	// Audit and Evaluation Branch 
+			{ 43,		"fa-fire" },			// Energy Systems Sector
+			{ 81,		"fa-building" },		// Corporate Management and Services Sector
+			{ 133,		"fa-balance-scale" },	// Legal Services
+			{ 7291,		"fa-lightbulb-dollar" },// Energy Efficiency and Technology Sector
+			{ 9752,		"fa-stream" },			// Northern Pipeline Agency
+			{ 7891,		"fa-lightbulb-on" },	// Strategic Policy and Innovation Sector
+			{ 11573,	"fa-project-diagram" },	// Major Projects Management Office
+			{ 11993,	"fa-broadcast-tower" },	// Communications and Portfolio Sector
+			{ 15433,	"fa-chair-office" },	// Office of the Chief Scientist
+			{ 14913,	"fa-share" },			// Shared Services Canada
+			{ 16493,	"fa-mountains" },		// Lands and Minerals Sector
+			{ 16873,	"fa-gas-pump" },		// Fuels Sector
+			{ 16393,	"fa-phone-office" },	// Associate Deputy Minister's Office
+			{ 16613,	"fa-leaf-maple" }		// Indigenous Affairs and Reconciliation Sector
 		};
 	}
 }
