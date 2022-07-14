@@ -97,21 +97,17 @@
         if (extreportdb is not null)
         {
             var pbiSettings = new PowerBISettings();
+
             if (ReadOnly)
             {
-                _isReportLaunched = true;
-                var pbiSettings = new PowerBISettings();
-                if (ReadOnly)
-                {
-                    pbiSettings.bars.actionBar.visible = false;
-                    pbiSettings.navContentPaneEnabled = false;
-                }
-               
-                await JSRuntime.InvokeAsync<object>(
-                    "ShowMyPowerBI.showReportEmbed",
-                    PowerBIElement, extreportdb.Token, extreportdb.Url,
-                extreportdb.Report_ID.ToString(), pbiSettings);
-                
+                pbiSettings.bars.actionBar.visible = false;
+                pbiSettings.navContentPaneEnabled = false;
+            }
+
+            await JSRuntime.InvokeAsync<object>(
+                "ShowMyPowerBI.showReportEmbed",
+                PowerBIElement, extreportdb.Token, extreportdb.Url,
+            extreportdb.Report_ID.ToString(), pbiSettings);            
         }
     }
     
