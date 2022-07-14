@@ -95,6 +95,9 @@
         var extreportdb = context2.ExternalPowerBiReports.Where(r => r.Report_ID.ToString() == ReportId).FirstOrDefault();
 
         if (extreportdb is not null)
+        {
+            var pbiSettings = new PowerBISettings();
+            if (ReadOnly)
             {
                 _isReportLaunched = true;
                 var pbiSettings = new PowerBISettings();
