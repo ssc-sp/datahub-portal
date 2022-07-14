@@ -342,6 +342,12 @@
         await _sectorFilter.Select(sector);
     }
 
+    private async Task SelectSector(OrganizationLevel sector)
+    {
+        await _sectorFilter.Clear();
+        await _sectorFilter.Select(sector);
+    }
+
     private async Task UpdateDataTypeFilter(IEnumerable<MetadataObjectType> filteredTypes)
     {
         _filteredDataTypes = filteredTypes.ToHashSet();
@@ -388,9 +394,9 @@
 		{
 			var fieldValues = result.Metadata;
 
-			// name
-			if (string.IsNullOrEmpty(result.Name))
-				return false;
+            // name
+            if (string.IsNullOrEmpty(result.Name_English))
+                return false;
 
 			// contact
 			if (string.IsNullOrEmpty(result.Contact))
@@ -454,14 +460,14 @@
 		_sectorFilterSectionOpen = e.Open;
 	}
 
-	// accessor functions
-	private string GetName(CatalogObjectResult result) => result.Name;
-	private string GetSector(CatalogObjectResult result) => GetLabel(_sectors.GetValueOrDefault(result.Sector));
-	private string GetBranch(CatalogObjectResult result) => GetLabel(_branches.GetValueOrDefault(result.Branch));
-	private string GetContact(CatalogObjectResult result) => result.Contact;
-	private string GetDataType(CatalogObjectResult result) => GetLocalizedDataType(result.DataType);
-	private string GetSecurityClass(CatalogObjectResult result) => Localizer[result.SecurityClass];
-	private string GetLabel(OrganizationLevel orgLevel) => (_isFrench ? orgLevel?.FrenchLabel : orgLevel?.EnglishLabel) ?? "-";
+    // accessor functions
+    private string GetName(CatalogObjectResult result) => result.Name_English;
+    private string GetSector(CatalogObjectResult result) => GetLabel(_sectors.GetValueOrDefault(result.Sector));
+    private string GetBranch(CatalogObjectResult result) => GetLabel(_branches.GetValueOrDefault(result.Branch));
+    private string GetContact(CatalogObjectResult result) => result.Contact;
+    private string GetDataType(CatalogObjectResult result) => GetLocalizedDataType(result.DataType);
+    private string GetSecurityClass(CatalogObjectResult result) => Localizer[result.SecurityClass];
+    private string GetLabel(OrganizationLevel orgLevel) => (_isFrench ? orgLevel?.FrenchLabel : orgLevel?.EnglishLabel) ?? "-";
 
     // renderer functions
     private RenderFragment GetDownLoadFragment(CatalogObjectResult result) =>
@@ -536,11 +542,11 @@
 		}
 	}
 
-	private async Task DownloadFile(CatalogObjectResult result)
-	{
-		var uri = await RetrievalService.GetDownloadAccessToSasBlob(DataRetrievalService.DEFAULT_CONTAINER_NAME, fileName: result.Name, projectUploadCode: result.Location);
-		await Task.Run(() => RedirectAndDownload(uri.ToString()));
-	}
+    private async Task DownloadFile(CatalogObjectResult result)
+    {
+        var uri = await RetrievalService.GetDownloadAccessToSasBlob(DataRetrievalService.DEFAULT_CONTAINER_NAME, fileName: result.Name_English, projectUploadCode: result.Location);
+        await Task.Run(() => RedirectAndDownload(uri.ToString()));
+    }
 
 	private async Task DownloadFileUrl(CatalogObjectResult result)
 	{
@@ -552,22 +558,22 @@
 		await _searchThrottler.SetQuery(newValue);
 	}
 
-	private async Task ThrottleSearch(string searchText)
-	{
-		_searchResults.Clear();
-		_searching = true;
-		await InvokeAsync(StateHasChanged);
-		try
-		{
-			_searchKeywords = searchText;
-			_searchResults = await SearchCatalog(searchText);
-		}
-		finally
-		{
-			_searching = false;
-			await InvokeAsync(StateHasChanged);
-		}
-	}
+    private async Task ThrottleSearch(string searchText)
+    {
+        _searchResults.Clear();
+        _searching = true;
+        await InvokeAsync(StateHasChanged);
+        try
+        {
+            _searchKeywords = searchText;
+            _searchResults = await SearchCatalog(searchText);
+        }
+        finally
+        {
+            _searching = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
 
     private async Task<List<CatalogObjectResult>> SearchCatalog(string searchText)
     {
@@ -616,6 +622,9 @@
 
 		var newResults = await MetadataBrokerService.SearchCatalog(newRequest, CheckMetadataCompleted);
 		_searchResults.AddRange(newResults);
+
+        // just for the demo
+        await Task.Delay(TimeSpan.FromSeconds(1));
 
         // just for the demo
         await Task.Delay(TimeSpan.FromSeconds(1));
