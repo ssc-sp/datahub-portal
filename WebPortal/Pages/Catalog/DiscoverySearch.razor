@@ -342,12 +342,6 @@
         await _sectorFilter.Select(sector);
     }
 
-    private async Task SelectSector(OrganizationLevel sector)
-    {
-        await _sectorFilter.Clear();
-        await _sectorFilter.Select(sector);
-    }
-
     private async Task UpdateDataTypeFilter(IEnumerable<MetadataObjectType> filteredTypes)
     {
         _filteredDataTypes = filteredTypes.ToHashSet();
