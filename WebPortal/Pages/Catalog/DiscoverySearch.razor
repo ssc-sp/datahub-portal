@@ -194,58 +194,58 @@
 
 @code {
 
-    [Inject]
-    public IMetadataBrokerService MetadataBrokerService { get; set; }
+	[Inject]
+	public IMetadataBrokerService MetadataBrokerService { get; set; }
 
-    [Inject]
-    public IOrganizationLevelsService OrganizationLevelsService { get; set; }
+	[Inject]
+	public IOrganizationLevelsService OrganizationLevelsService { get; set; }
 
-    [Inject]
-    public DataRetrievalService RetrievalService { get; set; }
+	[Inject]
+	public DataRetrievalService RetrievalService { get; set; }
 
-    [Inject]
-    public IJSRuntime JSRuntime { get; set; }
+	[Inject]
+	public IJSRuntime JSRuntime { get; set; }
 
-    [Inject]
-    public IPowerBiDataService PowerBiDataService { get; set; }
+	[Inject]
+	public IPowerBiDataService PowerBiDataService { get; set; }
 
-    [Inject]
-    public NavigationManager NavigationManager { get; set; }
+	[Inject]
+	public NavigationManager NavigationManager { get; set; }
 
     [Inject]
     public IDbContextFactory<DatahubProjectDBContext> DatahubProjectDbFactory { get; set; }
 
-    private const int NO_FILTER_SELECTED = -1;
-    private const int PAGE_SIZE = 10;
+	private const int NO_FILTER_SELECTED = -1;
+	private const int PAGE_SIZE = 10;
 
-    private bool _searching;
-    private string _searchKeywords;
-    private QueryThrottler<string> _searchThrottler;
-    private List<CatalogObjectResult> _searchResults = new();
-    private bool _isFrench;
-    private CatalogSearchRequest _catalogSearchRequest;
-    private int _lastQueryCount = 0;
+	private bool _searching;
+	private string _searchKeywords;
+	private QueryThrottler<string> _searchThrottler;
+	private List<CatalogObjectResult> _searchResults = new();
+	private bool _isFrench;
+	private CatalogSearchRequest _catalogSearchRequest;
+	private int _lastQueryCount = 0;
 
-    private HashSet<OrganizationLevel> _filteredSectors = new();
-    private HashSet<MetadataObjectType> _filteredDataTypes = new();
-    private HashSet<MetadataClassificationType> _filteredClassificationTypes = new();
+	private HashSet<OrganizationLevel> _filteredSectors = new();
+	private HashSet<MetadataObjectType> _filteredDataTypes = new();
+	private HashSet<MetadataClassificationType> _filteredClassificationTypes = new();
 
-    private MultiCheckboxSelect<OrganizationLevel> _sectorFilter;
-    private MultiCheckboxSelect<MetadataObjectType> _objectTypeFilter;
-    private MultiCheckboxSelect<MetadataClassificationType> _classificationTypeFilter;
-    private int _filterSector = NO_FILTER_SELECTED;
-    private int _filterBranch = NO_FILTER_SELECTED;
-    private string _securityFilter = string.Empty;
-    private List<OrganizationLevel> _filteredBranches => _branches.Values.Where(b => b.ParentId == _filterSector).OrderBy(b => GetLabel(b)).ToList();
+	private MultiCheckboxSelect<OrganizationLevel> _sectorFilter;
+	private MultiCheckboxSelect<MetadataObjectType> _objectTypeFilter;
+	private MultiCheckboxSelect<MetadataClassificationType> _classificationTypeFilter;
+	private int _filterSector = NO_FILTER_SELECTED;
+	private int _filterBranch = NO_FILTER_SELECTED;
+	private string _securityFilter = string.Empty;
+	private List<OrganizationLevel> _filteredBranches => _branches.Values.Where(b => b.ParentId == _filterSector).OrderBy(b => GetLabel(b)).ToList();
 
-    private bool _searchFilterSectionOpen = true;
-    private bool _securityFilterSectionOpen = true;
-    private bool _sectorFilterSectionOpen = true;
-    private bool _filterSectionOpen = true;
-    private bool _excludeIncompleteCatalogs = true;
-    private string _filterSectionOpenIconClass => $"fad fa-caret-circle-{(_filterSectionOpen ? "down" : "right")}";
-    private string _filterSectionOpenTitle => _filterSectionOpen ? Localizer["Collapse"] : Localizer["Expand"];
-    private string _filterActiveIconClass => $"{(_filtersActive ? "fas" : "fad")} fa-filter";
+	private bool _searchFilterSectionOpen = true;
+	private bool _securityFilterSectionOpen = true;
+	private bool _sectorFilterSectionOpen = true;
+	private bool _filterSectionOpen = true;
+	private bool _excludeIncompleteCatalogs = true;
+	private string _filterSectionOpenIconClass => $"fad fa-caret-circle-{(_filterSectionOpen ? "down" : "right")}";
+	private string _filterSectionOpenTitle => _filterSectionOpen ? Localizer["Collapse"] : Localizer["Expand"];
+	private string _filterActiveIconClass => $"{(_filtersActive ? "fas" : "fad")} fa-filter";
 
     private List<OrganizationLevel> _allSectors = new();
     private Dictionary<int, OrganizationLevel> _sectors = new();
@@ -253,33 +253,33 @@
     private bool _filtersActive = false;
     private bool _clearFilterDisabled => !_filtersActive;
 
-    private Dictionary<string, Datahub_Project> _projects = new();
+	private Dictionary<string, Datahub_Project> _projects = new();
 
-    protected override async Task OnInitializedAsync()
-    {
-        _isFrench = CultureInfo.CurrentCulture.Name.StartsWith("fr", StringComparison.InvariantCulture);
-        _sectors = (await OrganizationLevelsService.GetSectors()).ToDictionary(s => s.Id);
-        _allSectors = await OrganizationLevelsService.GetSectors();
-        _branches = (await OrganizationLevelsService.GetBranches()).ToDictionary(b => b.Id);
+	protected override async Task OnInitializedAsync()
+	{
+		_isFrench = CultureInfo.CurrentCulture.Name.StartsWith("fr", StringComparison.InvariantCulture);
+		_sectors = (await OrganizationLevelsService.GetSectors()).ToDictionary(s => s.Id);
+		_allSectors = await OrganizationLevelsService.GetSectors();
+		_branches = (await OrganizationLevelsService.GetBranches()).ToDictionary(b => b.Id);
 
-        await LoadProjects();
+		await LoadProjects();
 
-        _searchThrottler = new(TimeSpan.FromSeconds(0.5), ThrottleSearch);
-        await _searchThrottler.SetQuery(string.Empty);
-    }
+		_searchThrottler = new(TimeSpan.FromSeconds(0.5), ThrottleSearch);
+		await _searchThrottler.SetQuery(string.Empty);
+	}
 
-    private async Task LoadProjects()
-    {
-        using var ctx = await DatahubProjectDbFactory.CreateDbContextAsync();
-        _projects = await ctx.Projects.ToDictionaryAsync(p => p.Project_Acronym_CD);
-    }
+	private async Task LoadProjects()
+	{
+		using var ctx = await DatahubProjectDbFactory.CreateDbContextAsync();
+		_projects = await ctx.Projects.ToDictionaryAsync(p => p.Project_Acronym_CD);
+	}
 
-    private Datahub_Project GetProject(CatalogObjectResult result)
-    {
-        if (result.DataType == MetadataObjectType.File && _projects.ContainsKey(result.Location))
-            return _projects[result.Location];
-        return null;
-    }
+	private Datahub_Project GetProject(CatalogObjectResult result)
+	{
+		if (result.DataType == MetadataObjectType.File && _projects.ContainsKey(result.Location))
+			return _projects[result.Location];
+		return null;
+	}
 
     private async Task ChangeIncompleteCatalogFilter(ChangeEventArgs e)
     {
@@ -290,17 +290,17 @@
         }
     }
 
-    private string GetLocalizedDataType(MetadataObjectType dataType) => Localizer[$"DISCOVERY-DATA-TYPES.{dataType}"];
+	private string GetLocalizedDataType(MetadataObjectType dataType) => Localizer[$"DISCOVERY-DATA-TYPES.{dataType}"];
 
-    private string GetLocalizedClassificationType(MetadataClassificationType dataType) => Localizer[$"DISCOVERY-DATA-TYPES.{dataType}"];
+	private string GetLocalizedClassificationType(MetadataClassificationType dataType) => Localizer[$"DISCOVERY-DATA-TYPES.{dataType}"];
 
-    private async Task UpdateSectorFilter(IEnumerable<OrganizationLevel> filteredTypes)
-    {
-        _filteredSectors = filteredTypes.ToHashSet();
-        _filterSector = _filteredSectors.Count == 1 ? filteredTypes.ToList()[0].Id : NO_FILTER_SELECTED;
-        _filterBranch = _filteredSectors.Count != 1 ? NO_FILTER_SELECTED : _filterBranch;
-        await UpdateFilter();
-    }
+	private async Task UpdateSectorFilter(IEnumerable<OrganizationLevel> filteredTypes)
+	{
+		_filteredSectors = filteredTypes.ToHashSet();
+		_filterSector = _filteredSectors.Count == 1 ? filteredTypes.ToList()[0].Id : NO_FILTER_SELECTED;
+		_filterBranch = _filteredSectors.Count != 1 ? NO_FILTER_SELECTED : _filterBranch;
+		await UpdateFilter();
+	}
 
     private async Task SelectSector(OrganizationLevel sector)
     {
@@ -314,111 +314,111 @@
         await UpdateFilter();
     }
 
-    private async Task UpdateClassificationTypeFilter(IEnumerable<MetadataClassificationType> filteredTypes)
-    {
-        _filteredClassificationTypes = filteredTypes.ToHashSet();
-        await UpdateFilter();
-    }
+	private async Task UpdateClassificationTypeFilter(IEnumerable<MetadataClassificationType> filteredTypes)
+	{
+		_filteredClassificationTypes = filteredTypes.ToHashSet();
+		await UpdateFilter();
+	}
 
-    private string BranchFilter
-    {
-        get => _filterBranch.ToString();
-        set
-        {
-            if (int.TryParse(value, out var intval))
-            {
-                _filterBranch = intval;
-            }
-            else
-            {
-                _filterBranch = NO_FILTER_SELECTED;
-            }
-            _ = UpdateFilter();
-        }
-    }
+	private string BranchFilter
+	{
+		get => _filterBranch.ToString();
+		set
+		{
+			if (int.TryParse(value, out var intval))
+			{
+				_filterBranch = intval;
+			}
+			else
+			{
+				_filterBranch = NO_FILTER_SELECTED;
+			}
+			_ = UpdateFilter();
+		}
+	}
 
-    private void GetMetadataClassificationType(string securityClass)
-    {
-        var enumType = Enum.Parse(typeof(MetadataClassificationType), securityClass);
-    }
+	private void GetMetadataClassificationType(string securityClass)
+	{
+		var enumType = Enum.Parse(typeof(MetadataClassificationType), securityClass);
+	}
 
-    private async Task UpdateFilter()
-    {
-        await ThrottleSearch(_searchKeywords);
-        _filtersActive = _filteredSectors.Count > 0 || _filteredDataTypes.Count > 0 || _filteredClassificationTypes.Count > 0 || _filterBranch != NO_FILTER_SELECTED || !string.IsNullOrEmpty(_securityFilter);
-    }
+	private async Task UpdateFilter()
+	{
+		await ThrottleSearch(_searchKeywords);
+		_filtersActive = _filteredSectors.Count > 0 || _filteredDataTypes.Count > 0 || _filteredClassificationTypes.Count > 0 || _filterBranch != NO_FILTER_SELECTED || !string.IsNullOrEmpty(_securityFilter);
+	}
 
-    private bool CheckMetadataCompleted(CatalogObjectResult result)
-    {
-        if (_excludeIncompleteCatalogs)
-        {
-            var fieldValues = result.Metadata;
+	private bool CheckMetadataCompleted(CatalogObjectResult result)
+	{
+		if (_excludeIncompleteCatalogs)
+		{
+			var fieldValues = result.Metadata;
 
             // name
             if (string.IsNullOrEmpty(result.Name_English))
                 return false;
 
-            // contact
-            if (string.IsNullOrEmpty(result.Contact))
-                return false;
+			// contact
+			if (string.IsNullOrEmpty(result.Contact))
+				return false;
 
-            // security class
-            if (string.IsNullOrEmpty(result.SecurityClass))
-                return false;
+			// security class
+			if (string.IsNullOrEmpty(result.SecurityClass))
+				return false;
 
-            // subject
-            if (string.IsNullOrEmpty(fieldValues.GetValue("subject")))
-                return false;
+			// subject
+			if (string.IsNullOrEmpty(fieldValues.GetValue("subject")))
+				return false;
 
-            // title
-            if (string.IsNullOrEmpty(fieldValues.GetValue(_isFrench ? "title_translated_fr" : "title_translated_en")))
-                return false;
-        }
-        return true;
-    }
+			// title
+			if (string.IsNullOrEmpty(fieldValues.GetValue(_isFrench ? "title_translated_fr" : "title_translated_en")))
+				return false;
+		}
+		return true;
+	}
 
-    private async Task ClearFilters()
-    {
-        if (_objectTypeFilter != null)
-        {
-            await _objectTypeFilter.Clear();
-        }
+	private async Task ClearFilters()
+	{
+		if (_objectTypeFilter != null)
+		{
+			await _objectTypeFilter.Clear();
+		}
 
-        if (_sectorFilter != null)
-        {
-            await _sectorFilter.Clear();
-        }
+		if (_sectorFilter != null)
+		{
+			await _sectorFilter.Clear();
+		}
 
-        if (_classificationTypeFilter != null)
-        {
-            await _classificationTypeFilter.Clear();
-        }
+		if (_classificationTypeFilter != null)
+		{
+			await _classificationTypeFilter.Clear();
+		}
 
-        _filterSector = NO_FILTER_SELECTED;
-        _filterBranch = NO_FILTER_SELECTED;
-        _securityFilter = string.Empty;
+		_filterSector = NO_FILTER_SELECTED;
+		_filterBranch = NO_FILTER_SELECTED;
+		_securityFilter = string.Empty;
 
-        await UpdateFilter();
-    }
+		await UpdateFilter();
+	}
 
-    private void OnFilterToggled((AeCollapseSection Section, bool Open) e)
-    {
-        _filterSectionOpen = e.Open;
-    }
+	private void OnFilterToggled((AeCollapseSection Section, bool Open) e)
+	{
+		_filterSectionOpen = e.Open;
+	}
 
-    private void OnSearchFilterToggled((AeCollapseSection Section, bool Open) e)
-    {
-        _searchFilterSectionOpen = e.Open;
-    }
-    private void OnSecurityFilterToggled((AeCollapseSection Section, bool Open) e)
-    {
-        _securityFilterSectionOpen = e.Open;
-    }
+	private void OnSearchFilterToggled((AeCollapseSection Section, bool Open) e)
+	{
+		_searchFilterSectionOpen = e.Open;
+	}
+	private void OnSecurityFilterToggled((AeCollapseSection Section, bool Open) e)
+	{
+		_securityFilterSectionOpen = e.Open;
+	}
 
-    private void OnSectorFilterToggled((AeCollapseSection Section, bool Open) e)
-    {
-        _sectorFilterSectionOpen = e.Open;
-    }
+	private void OnSectorFilterToggled((AeCollapseSection Section, bool Open) e)
+	{
+		_sectorFilterSectionOpen = e.Open;
+	}
 
     // accessor functions
     private string GetName(CatalogObjectResult result) => result.Name_English;
@@ -442,65 +442,65 @@
     @<AeButton class="red" onclick=@(() => HandleDownload(result))>@(SecurityClassification.ProtectedA.Equals(result.SecurityClass) ? Localizer["Protected A - Request Access"] : Localizer["Protected B - Request Access"])</AeButton>
     ;
 
-    private async Task HandleDownload(CatalogObjectResult result)
-    {
-        if (result.DataType == MetadataObjectType.File)
-        {
-            await DownloadFile(result);
-        }
-        else if (result.DataType == MetadataObjectType.FileUrl)
-        {
-            await DownloadFileUrl(result);
-        }
-        else if (result.DataType == MetadataObjectType.PowerBIReport)
-        {
-            await ViewPowerBIReport(result);
-        }
-        else if (result.DataType == MetadataObjectType.DatasetUrl)
-        {
-            await RedirectAndDownload(result.Location);
-        }
-    }
+	private async Task HandleDownload(CatalogObjectResult result)
+	{
+		if (result.DataType == MetadataObjectType.File)
+		{
+			await DownloadFile(result);
+		}
+		else if (result.DataType == MetadataObjectType.FileUrl)
+		{
+			await DownloadFileUrl(result);
+		}
+		else if (result.DataType == MetadataObjectType.PowerBIReport)
+		{
+			await ViewPowerBIReport(result);
+		}
+		else if (result.DataType == MetadataObjectType.DatasetUrl)
+		{
+			await RedirectAndDownload(result.Location);
+		}
+	}
 
-    private string GetButtonText(CatalogObjectResult result)
-    {
-        if (result.DataType == MetadataObjectType.File || result.DataType == MetadataObjectType.FileUrl)
-        {
-            return Localizer["Download File"];
-        }
-        else if (result.DataType == MetadataObjectType.PowerBIReport)
-        {
-            return Localizer["Open Report"];
-        }
-        else if (result.DataType == MetadataObjectType.PowerBIWorkspace)
-        {
-            return Localizer["Open Workspace"];
-        }
-        else if (result.DataType == MetadataObjectType.PowerBIDataset)
-        {
-            return Localizer["Open Dataset"];
-        }
-        else if (result.DataType == MetadataObjectType.Database)
-        {
-            return Localizer["Open Database"];
-        }
-        else if (result.DataType == MetadataObjectType.GeoObject)
-        {
-            return Localizer["Open Geo Object"];
-        }
-        return Localizer["Download File"];
-    }
+	private string GetButtonText(CatalogObjectResult result)
+	{
+		if (result.DataType == MetadataObjectType.File || result.DataType == MetadataObjectType.FileUrl)
+		{
+			return Localizer["Download File"];
+		}
+		else if (result.DataType == MetadataObjectType.PowerBIReport)
+		{
+			return Localizer["Open Report"];
+		}
+		else if (result.DataType == MetadataObjectType.PowerBIWorkspace)
+		{
+			return Localizer["Open Workspace"];
+		}
+		else if (result.DataType == MetadataObjectType.PowerBIDataset)
+		{
+			return Localizer["Open Dataset"];
+		}
+		else if (result.DataType == MetadataObjectType.Database)
+		{
+			return Localizer["Open Database"];
+		}
+		else if (result.DataType == MetadataObjectType.GeoObject)
+		{
+			return Localizer["Open Geo Object"];
+		}
+		return Localizer["Download File"];
+	}
 
-    private async Task ViewPowerBIReport(CatalogObjectResult result)
-    {
-        var metadata = await MetadataBrokerService.GetMetadata(result.ObjectMetadataId);
-        if (Guid.TryParse(metadata.ObjectId_TXT, out var guid))
-        {
-            var report = await PowerBiDataService.GetReportById(guid);
-            // TODO this url template is also used in DHLink; should only be in raw form in one place
-            NavigationManager.NavigateTo($"/powerbi-report/{report.Workspace_Id}/{report.Report_ID}");
-        }
-    }
+	private async Task ViewPowerBIReport(CatalogObjectResult result)
+	{
+		var metadata = await MetadataBrokerService.GetMetadata(result.ObjectMetadataId);
+		if (Guid.TryParse(metadata.ObjectId_TXT, out var guid))
+		{
+			var report = await PowerBiDataService.GetReportById(guid);
+			// TODO this url template is also used in DHLink; should only be in raw form in one place
+			NavigationManager.NavigateTo($"/powerbi-report/{report.Workspace_Id}/{report.Report_ID}");
+		}
+	}
 
     private async Task DownloadFile(CatalogObjectResult result)
     {
@@ -508,15 +508,15 @@
         await Task.Run(() => RedirectAndDownload(uri.ToString()));
     }
 
-    private async Task DownloadFileUrl(CatalogObjectResult result)
-    {
-        await Task.Run(() => RedirectAndDownload(result.Location));
-    }
+	private async Task DownloadFileUrl(CatalogObjectResult result)
+	{
+		await Task.Run(() => RedirectAndDownload(result.Location));
+	}
 
-    private async void HandleSearch(string newValue, KeyboardEventArgs ev)
-    {
-        await _searchThrottler.SetQuery(newValue);
-    }
+	private async void HandleSearch(string newValue, KeyboardEventArgs ev)
+	{
+		await _searchThrottler.SetQuery(newValue);
+	}
 
     private async Task ThrottleSearch(string searchText)
     {
@@ -549,29 +549,29 @@
             var sectors = _filteredSectors.Select(s => s.Id).ToList();
             var branches = GetBranches().ToList();
 
-            _catalogSearchRequest = new(0, 10, _isFrench, keywords, _filteredClassificationTypes.ToList(), _filteredDataTypes.ToList(), sectors, branches);
-            var results = await MetadataBrokerService.SearchCatalog(_catalogSearchRequest, CheckMetadataCompleted);
-            _lastQueryCount = results.Count;
+			_catalogSearchRequest = new(0, 10, _isFrench, keywords, _filteredClassificationTypes.ToList(), _filteredDataTypes.ToList(), sectors, branches);
+			var results = await MetadataBrokerService.SearchCatalog(_catalogSearchRequest, CheckMetadataCompleted);
+			_lastQueryCount = results.Count;
 
-            return results;
-        }
-    }
+			return results;
+		}
+	}
 
-    private IEnumerable<int> GetBranches()
-    {
-        if (_filterBranch != -1)
-            yield return _filterBranch;
-    }
+	private IEnumerable<int> GetBranches()
+	{
+		if (_filterBranch != -1)
+			yield return _filterBranch;
+	}
 
-    private async Task RedirectAndDownload(string url)
-    {
-        await JSRuntime.InvokeAsync<object>("open", url, "_blank");
-    }
+	private async Task RedirectAndDownload(string url)
+	{
+		await JSRuntime.InvokeAsync<object>("open", url, "_blank");
+	}
 
-    private bool HasValidFilters()
-    {
-        return !string.IsNullOrWhiteSpace(_searchKeywords) || _filteredSectors.Any() || _filteredDataTypes.Any() || _filteredClassificationTypes.Any();
-    }
+	private bool HasValidFilters()
+	{
+		return !string.IsNullOrWhiteSpace(_searchKeywords) || _filteredSectors.Any() || _filteredDataTypes.Any() || _filteredClassificationTypes.Any();
+	}
 
     private async Task<IEnumerable<CatalogObjectResult>> GetMore(InfiniteScrollingItemsProviderRequest<CatalogObjectResult> request)
     {
@@ -580,8 +580,11 @@
                 LastPageId = request.Items.LastOrDefault()?.CatalogObjectId ?? 0
             };
 
-        var newResults = await MetadataBrokerService.SearchCatalog(newRequest, CheckMetadataCompleted);
-        _searchResults.AddRange(newResults);
+		var newResults = await MetadataBrokerService.SearchCatalog(newRequest, CheckMetadataCompleted);
+		_searchResults.AddRange(newResults);
+
+        // just for the demo
+        await Task.Delay(TimeSpan.FromSeconds(1));
 
         // just for the demo
         await Task.Delay(TimeSpan.FromSeconds(1));
