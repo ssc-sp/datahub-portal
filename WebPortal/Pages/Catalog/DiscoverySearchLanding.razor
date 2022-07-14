@@ -1,0 +1,106 @@
+﻿<AeFlex Vertical>
+	<h1>@Localizer["DataHub Data Catalog"]</h1>
+	
+	<div>
+		@Localizer["The DataHub Data Catalog provides a collection of various NRCan data assets, such as DataHub files and initiatives; CFS data catalog items; and Power BI datasets, reports and workspaces."]
+	</div>
+
+	<AeFlex Vertical>
+		<div>
+			<h2>@Localizer["Browse by Sector"]</h2>
+		</div>
+
+		<div class="ae flex wrap">
+			@foreach (var sector in Sectors)
+			{
+				<AeCard class="facard1" CardPosition="AeCard.CardStyle.Horizontal" onclick=@(() => ClickSector(sector))>
+					<Header>
+						<div style="width:120px">                        
+							<AeIcon class=@GetIconClass(sector.Id) />
+						</div>
+					</Header>
+					<ChildContent>                   
+							<h3>@(IsFrench ? sector.FrenchLabel : sector.EnglishLabel)</h3>
+					</ChildContent>
+					<Footer>
+					</Footer>
+				</AeCard>
+			}
+		</div>
+
+		@*<div class="sectors">
+			@foreach (var sector in Sectors)
+			{
+															
+				<div class="sector">
+					<a @onclick=@(() => ClickSector(sector))>
+						<div style="cursor:pointer">
+							<AeIcon class=@GetIconClass(sector.Id) />
+							<span>@(IsFrench ? sector.FrenchLabel : sector.EnglishLabel)</span>
+						</div>
+					</a>
+				</div>
+			}
+		</div>*@
+	<div>
+		<h2>@Localizer["Search"]</h2>
+		<div>
+			@Localizer["Search the Data Catalog to find and discover NRCan datasets on energy, finance, science, forestry or human resources, and more."]
+		</div>
+	</div>
+	<div>
+		<h2>@Localizer["Publish"]</h2>
+		<div>
+			@Localizer["Contact the DataHub team (nrcan.datahub.rncan@canada.ca) for details on how to publish your data to the Data Catalog."]
+		</div>
+	</div>
+	</AeFlex>
+</AeFlex>
+
+@code {
+
+	[Parameter]
+	public List<OrganizationLevel> Sectors { get; set; } = new();
+
+	[Parameter]
+	public bool IsFrench { get; set; }
+
+	[Parameter]
+	public EventCallback<OrganizationLevel> OnClickSector { get; set; }
+
+	static Dictionary<int, string> _icons = GetIcons();
+
+	private async void ClickSector(OrganizationLevel sector)
+	{
+		await OnClickSector.InvokeAsync(sector);
+	}
+
+	private string GetIconClass(int id)
+	{
+		var iconClass = _icons.ContainsKey(id) ? _icons[id] : "fa-info-circle";
+		return $"fad {iconClass} card-icon fa-xs";
+	}
+
+	static Dictionary<int, string> GetIcons()
+	{
+		return new()
+		{
+			{ 526, "fa-trees" },
+			{ 2, "fa-info-circle" },
+			{ 43, "fa-fire" },
+			{ 81, "fa-building" },
+			{ 133, "fa-balance-scale" },
+			{ 7291, "fa-lightbulb-dollar" },
+			{ 9752, "fa-stream" },
+			{ 7891, "fa-info-circle" },
+			{ 11573, "fa-project-diagram" },
+			{ 11993, "fa-broadcast-tower" },
+			{ 15433, "fa-chair-office" },
+			{ 14913, "fa-share" },
+			{ 16493, "fa-mountains" },
+			{ 16873, "fa-gas-pump" },
+			{ 16393, "fa-chair-office" },
+			{ 16613, "fa-leaf-maple" }
+		};
+	}
+}
