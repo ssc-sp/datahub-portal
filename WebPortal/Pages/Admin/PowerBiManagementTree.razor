@@ -8,6 +8,14 @@
 .ri-arrow-down-s-line::before {
 	content: "\23f7";
 }
+
+.ae.tree-view .caret {
+    margin-left: -29px;
+}
+
+.ae.tree-view .tree-view-item-content {
+    margin-left: 29px;
+}
 </style>
 
 <AeTreeViewIcon 
@@ -17,10 +25,12 @@
     RenderNode=@((t) => t.Label)
     NodeIsClickable=@NodeIsClickable
     NodeClicked=@NodeClicked
-    RenderIcon=@((t) => string.Empty)
+    RenderIcon=@((t) => $"xxx fas fa-{t.Icon} xxx")
 />
 
+
 @code {
+
     private static readonly string LOCALIZATION_PREFIX = $"{PowerBiManagementConstants.POWERBI_MANAGEMENT_LOCALIZATION_ROOT_KEY}.POWER_BI_ADMIN";
 
     [Parameter]
@@ -48,28 +58,27 @@
         }
     }
 
-    private async Task BuildTree()
+    private async Task BuildTreeSimplified()
     {
         var projectDict = DataProjects.ToDictionary(p => p.Project_ID, p => new PowerBiAdminTreeItem(p.ProjectName, PowerBiAdminTreeItemType.Project));
-        var noProject = new PowerBiAdminTreeItem(Localizer[$"{LOCALIZATION_PREFIX}.Unassigned"], PowerBiAdminTreeItemType.Project);
+        var noProject = new PowerBiAdminTreeItem(Localizer[$"{LOCALIZATION_PREFIX}.Unassigned"], PowerBiAdminTreeItemType.Container);
 
-        foreach(var workspace in Workspaces.OrderBy(w => w.DbWorkspaceName))
+        foreach (var workspace in Workspaces.OrderBy(w => w.DbWorkspaceName))
         {
             var wsTreeItem = workspace.ManagementTreeItem;
-            var datasetContainer = new PowerBiAdminTreeItem(Localizer[$"{LOCALIZATION_PREFIX}.Datasets"], PowerBiAdminTreeItemType.Container);
-            var reportContainer = new PowerBiAdminTreeItem(Localizer[$"{LOCALIZATION_PREFIX}.Reports"], PowerBiAdminTreeItemType.Container);
-
-            datasetContainer.AddChildren(workspace.Datasets.Select(d => d.ManagementTreeItem).OrderBy(d => d.Label));
-            reportContainer.AddChildren(workspace.Reports.Select(r => r.ManagementTreeItem).OrderBy(r => r.Label));
-
-            if (datasetContainer.HasChildren)
+            foreach(var report in workspace.Reports.OrderBy(r => r.ManagementTreeItem.Label))
             {
-                wsTreeItem.AddChild(datasetContainer);
-            }
+                var dataset = workspace.Datasets.FirstOrDefault(d => d.DatasetId == report.DatasetId);
+                report.ProjectId = workspace.ProjectId;
+                var reportTreeItem = report.ManagementTreeItem;
 
-            if (reportContainer.HasChildren)
-            {
-                wsTreeItem.AddChild(reportContainer);
+                if (dataset != null)
+                {
+                    dataset.ProjectId = workspace.ProjectId;
+                    reportTreeItem.AddChild(dataset.ManagementTreeItem);
+                }
+
+                wsTreeItem.AddChild(reportTreeItem);
             }
 
             if (workspace.ProjectId < 0)
@@ -96,11 +105,12 @@
 
         StateHasChanged();
         await Task.CompletedTask;
+
     }
 
     protected override async Task OnParametersSetAsync()
     {
-        await BuildTree();
+        await BuildTreeSimplified();
         await base.OnParametersSetAsync();
     }
 }
