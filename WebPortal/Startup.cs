@@ -419,7 +419,7 @@ namespace Datahub.Portal
         {
             ConfigureDbContext<DatahubProjectDBContext>(services, "datahub-mssql-project", Configuration.GetDriver());
             ConfigureDbContext<PIPDBContext>(services, "datahub-mssql-pip", Configuration.GetDriver());
-            if (Configuration.GetDriver() == DbDriver.SqlServer)
+            if (Configuration.GetDriver() == DbDriver.Azure)
             {
                 ConfigureCosmosDbContext<UserTrackingContext>(services, "datahub-cosmosdb", "datahub-catalog-db");
             }
