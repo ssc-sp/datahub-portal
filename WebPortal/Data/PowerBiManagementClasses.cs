@@ -8,8 +8,12 @@ namespace Datahub.Portal.Data
 {
     public class PowerBiManagementConstants
     {
-        public static readonly string POWERBI_MANAGEMENT_LOCALIZATION_ROOT_KEY = "POWER_BI_MANAGEMENT";
-        public readonly static string SANDBOX_WORKSPACE_SUFFIX = "[Development]";
+        public const string POWERBI_MANAGEMENT_LOCALIZATION_ROOT_KEY = "POWER_BI_MANAGEMENT";
+        public const string SANDBOX_WORKSPACE_SUFFIX = "[Development]";
+
+        public const string TITLE_EN_METADATA_FIELD = "title_translated_en";
+        public const string TITLE_FR_METADATA_FIELD = "title_translated_fr";
+        public const string CONTACT_INFO_METADATA_FIELD = "contact_information";
     }
 
     public class PowerBiAdminDatasetTreeItem

@@ -5,6 +5,7 @@
 @inject Microsoft.Identity.Web.MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
 @inject IDbContextFactory<DatahubProjectDBContext> _contextFactory
 @inject IMSGraphService _msGraphService
+@inject TranslationService _translationService
 
 @* TODO create binding variables for security classifications rather than binding to the metadta editor property directly *@
 
@@ -48,24 +49,6 @@
                     <AeTypography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.ManagementTitle"]</AeTypography>
                 </Header>
                 <ChildContent>
-                    @*<AeCollapse>
-                        <AeCollapseSection DefaultOpen>
-                            <Header>
-                                <AeTypography Variant="h5">Instructions</AeTypography>
-                            </Header>
-                            <ChildContent>
-                                @if(IsAdminView)
-                                {
-                                    <AeTypography Variant="p">Blah blah blah (admin version)</AeTypography>
-                                }
-                                else
-                                {
-                                    <AeTypography Variant="p">Blah blah blah (project version)</AeTypography>
-                                }
-                            </ChildContent>
-                        </AeCollapseSection>
-                    </AeCollapse>*@
-                    
                     @if (IsLoadingWorkspaceTreeItems)
                     {
                     <Spinner />
@@ -115,6 +98,7 @@
                                     OnValuesChanged=@(() => StateHasChanged())
                                     @ref=@_workspaceMetadata
                                     DefaultMetadataId=@GetProjectMetadataUid(WorkspaceBeingEdited.ProjectId)
+                                    OnNewMetadataCreated=@AutoFillNewMetadataFields
                                 />
                                 <div>
                                     <AeButton OnClickEvent=@SaveWorkspace Disabled=@SaveWorkspaceDisabled>@Localizer[$"BUTTONS.Save"]</AeButton>
@@ -164,6 +148,7 @@
                                     OnValuesChanged=@(() => StateHasChanged())
                                     DefaultMetadataId=@GetProjectMetadataUid(DatasetBeingEdited.ProjectId)
                                     @ref=@_datasetMetadata
+                                    OnNewMetadataCreated=@AutoFillNewMetadataFields
                                 />
 
                                 <div>
@@ -214,6 +199,7 @@
                                     HideSaveButton
                                     OnValuesChanged=@(() => StateHasChanged())
                                     DefaultMetadataId=@GetProjectMetadataUid(ReportBeingEdited.ProjectId)
+                                    OnNewMetadataCreated=@AutoFillNewMetadataFields
                                 />
 
                                 <div>
@@ -393,6 +379,7 @@
     private bool _isSearchingUsers = false;
 
     private string GetProjectMetadataUid(int projectId) => AvailableProjects.FirstOrDefault(p => p.Project_ID == projectId)?.Project_Acronym_CD;
+    private string GetProjectAdmins(int projectId) => AvailableProjects.FirstOrDefault(p => p.Project_ID == projectId)?.Project_Admin;
 
     private string CountChildrenToUpdate(PowerBiAdminWorkspaceTreeItem workspace)
     {
@@ -614,6 +601,75 @@
         }
     }
 
+    private ObjectMetadataEditor GetCurrentlyActiveMetadataEditor()
+    {
+        if (WorkspaceBeingEdited != null)
+        {
+            return _workspaceMetadata;
+        }
+        else if (ReportBeingEdited != null)
+        {
+            return _reportMetadata;
+        }
+        else if (DatasetBeingEdited != null)
+        {
+            return _datasetMetadata;
+        }
+        else
+        {
+            return default;
+        }
+    }
+
+    private string GetCurrentPowerBiObjectName()
+    {
+        if (WorkspaceBeingEdited != null)
+        {
+            return WorkspaceBeingEdited.DbWorkspaceName ?? WorkspaceBeingEdited.PbiWorkspaceName;
+        }
+        else if (ReportBeingEdited != null)
+        {
+            return ReportBeingEdited.DbReportName ?? ReportBeingEdited.PbiReportName;
+        }
+        else if (DatasetBeingEdited != null)
+        {
+            return DatasetBeingEdited.DbDatasetName ?? DatasetBeingEdited.PbiDatasetName;
+        }
+        else
+        {
+            return default;
+        }
+    }
+
+    private int? GetCurrentPowerBiObjectProjectId() => WorkspaceBeingEdited?.ProjectId ?? DatasetBeingEdited?.ProjectId ?? ReportBeingEdited?.ProjectId;
+
+    private async Task AutoFillNewMetadataFields()
+    {
+        var metadataEditor = GetCurrentlyActiveMetadataEditor();
+        if (metadataEditor == null) 
+        {
+            return;
+        }
+
+        var currentTitle = GetCurrentPowerBiObjectName();
+        if (string.IsNullOrEmpty(currentTitle))
+        {
+            return;
+        }
+
+        var titleFr = await _translationService.GetFrenchTranslation(currentTitle);
+
+        metadataEditor.SetValue(PowerBiManagementConstants.TITLE_EN_METADATA_FIELD, currentTitle);
+        metadataEditor.SetValue(PowerBiManagementConstants.TITLE_FR_METADATA_FIELD, titleFr);
+
+        var currentProjectId = GetCurrentPowerBiObjectProjectId();
+        if (currentProjectId.HasValue)
+        {
+            metadataEditor.SetValue(PowerBiManagementConstants.CONTACT_INFO_METADATA_FIELD, GetProjectAdmins(currentProjectId.Value));
+        }
+
+        await Task.CompletedTask;
+    }
 
     private async Task ImportPowerBiItems()
     {
