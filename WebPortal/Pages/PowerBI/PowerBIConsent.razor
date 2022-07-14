@@ -67,18 +67,7 @@
         ExternalPowerBiReport exreport = new();
 
         Guid validationcode = Guid.NewGuid();
-        byte[] salt = new byte[128 / 8];
-
-        //was causing a warning of an obsolete class
-        //using (var rngCsp = new RNGCryptoServiceProvider())
-        //{
-        //    rngCsp.GetNonZeroBytes(salt);
-        //}
-
-        using (var rng = RandomNumberGenerator.Create())
-        {
-            rng.GetBytes(salt);
-        }
+        var salt = RandomNumberGenerator.GetBytes(128 / 8);
 
         string hashed = Convert.ToBase64String(KeyDerivation.Pbkdf2(
             password: validationcode.ToString(),
@@ -97,8 +86,7 @@
         exreport.Validation_Code = hashed;
         exreport.ValidationSalt = salt;
         exreport.UnhashedValidationCode = validationcode.ToString();
-        await PowerBiDataService.UpdateExternalPowerBiRecord(exreport);
-        
+        await PowerBiDataService.UpdateExternalPowerBiRecord(exreport);        
 
         var emailParams = GetEmailParameters(exreport);
         await EmailService.SendPowerBiExternalUrlEmail(emailParams);
@@ -109,18 +97,17 @@
         if (extreportdb is not null)
         {
             var pbiSettings = new PowerBISettings();
+
             if (ReadOnly)
             {
                 pbiSettings.bars.actionBar.visible = false;
                 pbiSettings.navContentPaneEnabled = false;
             }
 
-               
             await JSRuntime.InvokeAsync<object>(
                 "ShowMyPowerBI.showReportEmbed",
                 PowerBIElement, extreportdb.Token, extreportdb.Url,
-            extreportdb.Report_ID.ToString(), pbiSettings);
-                
+            extreportdb.Report_ID.ToString(), pbiSettings);            
         }
     }
     

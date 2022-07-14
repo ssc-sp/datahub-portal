@@ -109,6 +109,12 @@
     [Parameter]
     public EventCallback OnValuesChanged { get; set; }
 
+    [Parameter]
+    public EventCallback OnNewMetadataCreated { get; set; }
+
+    [Parameter]
+    public EventCallback OnExistingMetadataLoaded { get; set; }
+
     public bool SaveDisabled => _savingData || !_requiredFieldsAreValid;
 
     private FieldValueContainer _fieldValues;
@@ -169,6 +175,16 @@
 
         _definitions = _fieldValues.Definitions;
         _lastObjectId = ObjectId;
+
+        if (_fieldValues.IsNew && OnNewMetadataCreated.HasDelegate)
+        {
+            await OnNewMetadataCreated.InvokeAsync();
+        }
+        else if (!_fieldValues.IsNew && OnExistingMetadataLoaded.HasDelegate)
+        {
+            // !IsNew is explicitly checked to avoid calling On..Loaded for new metadata without an On..Created delegate
+            await OnExistingMetadataLoaded.InvokeAsync();
+        }
 
         await TriggerValuesChanged();
 
