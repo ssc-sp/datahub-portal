@@ -3,7 +3,7 @@
 @inject UserLocationManagerService _userLocationManagerService
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 
-<AeTypography Variant="h4">Recent Places</AeTypography>
+<AeTypography Variant="h4">@Localizer["Recent Places"]</AeTypography>
 <div class="recent-card-container">
     @if (_recentLinks is null)
     {
