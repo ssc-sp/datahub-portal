@@ -28,6 +28,7 @@ namespace Datahub.Core.Services
         public Task<List<PowerBi_Report>> GetReportsForProjectWithExternalReportInfo(string projectCode, bool includeSandbox = false);
 
         public Task CreateExternalPowerBiReportRequest(string userId, Guid reportId);
+        public Task<bool> RevokePowerBiReportRequest(Guid reportId);
         public Task<ExternalPowerBiReport> GetExternalReportRecord(Guid reportId);
         public Task<List<ExternalPowerBiReport>> GetRequestedExternalReports();
         public Task UpdateExternalPowerBiRecord(ExternalPowerBiReport report);
