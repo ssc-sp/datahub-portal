@@ -3,7 +3,7 @@
   "Data Entry": "Saisie de données",
   "Form Builder": "Constructeur de formulaires",
   "Databricks": "Databricks",
-  
+
   "CFS": "CFS",
   "CMSS": "CMSS",
   "ETS": "ETS",
@@ -95,5 +95,9 @@
   "Replication": "Réplication",
   "Versioning": "Versioning",
   "Url": "Url",
-  "Review PowerBI Request": "Demande de révision de PowerBI"
+  "Review PowerBI Request": "Demande de révision de PowerBI",
+  "Recent Places": "Locations recentes",
+  "My Places": "Mes Favoris",
+  "Databricks Workbooks": "Classeurs databricks",
+  "PowerBI Reports": "Rapports PowerBI"
 }
