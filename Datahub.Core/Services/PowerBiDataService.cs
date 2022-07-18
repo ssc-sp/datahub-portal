@@ -318,6 +318,24 @@ namespace Datahub.Core.Services
             var result = await ctx.TrackSaveChangesAsync(_auditingService);
 
         }
+        
+        public async Task<bool> RevokePowerBiReportRequest(Guid reportId)
+        {
+            using var ctx = await _contextFactory.CreateDbContextAsync();
+
+            var existing = await ctx.ExternalPowerBiReports.FirstOrDefaultAsync(t => t.Report_ID == reportId);
+            var found = false;
+            if (existing != null)
+            {
+                ctx.Remove(existing);
+                found = true;
+            }
+
+            var result = await ctx.TrackSaveChangesAsync(_auditingService);
+            return found;
+
+        }
+
 
         public async Task<ExternalPowerBiReport> GetExternalReportRecord(Guid reportId)
         {
