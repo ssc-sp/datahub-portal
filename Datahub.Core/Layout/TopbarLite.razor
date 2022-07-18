@@ -1,0 +1,52 @@
+@*Topbar.razor*@
+@inject UIControlsService UI
+@inject IUserInformationService UserInformationService
+@inject NavigationManager NavigationManager
+@inject IMyDataService _myDataService
+@inject IPortalVersionService VersionService
+@inject MicrosoftIdentityConsentAndConditionalAccessHandler ConsentHandler
+
+@using Microsoft.Identity.Web
+@using Datahub.Core.Components.Common
+@using System.Timers
+@using System.Reflection
+
+<div id="topbarlite">
+
+    <div style="font-size: 1.8em;font-weight: lighter;">DataHub</div>
+        
+    
+    <div class="profile">
+        <AuthorizeView>
+            <div class="toggle">
+                <Typography>@UserName</Typography>
+                <ProfileCircle FullName="@UserName" style="margin-left: 1rem" />                
+            </div>
+        </AuthorizeView>
+    </div>
+</div>
+
+@code
+{
+
+    public Microsoft.Graph.User User { get; set; }
+
+    private string UserName
+    {
+        get
+        {
+            return User != null ? User.DisplayName : "...";
+        }
+    }
+        
+    protected override async Task OnInitializedAsync()
+    {
+        try {
+            User = await UserInformationService.GetUserAsync();
+        } catch (Exception ex)
+        {
+            ConsentHandler.HandleException(ex);
+        }
+     }
+
+}
