@@ -177,43 +177,9 @@
 								else
 								{
 									<div>
-											<AeFlex Vertical>
-												<h1>@Localizer["Data Catalog"]</h1>
-												<div>@Localizer["The DataHub Data Catalog provides a collection of NRCan data assets, including Datahub initiatives, DataHub files, CFS data catalog items, Power BI reports, datasets and workspaces."]</div>
-												<AeFlex Vertical>
-													<div><h2>@Localizer["Browse by Sector"]</h2>
-													</div>
-													<div class="sectors">
-														@foreach (var sector in _allSectors)
-														{
-															
-															<div class="sector">
-																<a @onclick=@(() => SelectSector(sector))>
-																	<label>
-																		<i class="fad fa-book"></i>
-																		<span>@(_isFrench ? sector.FrenchLabel : sector.EnglishLabel)</span>
-																	</label>
-																</a>
-																@*<AeFlex class="recent-card yellow" Vertical="false">
-																	<a @onclick=@(() => SelectSector(sector))>
-																		<i class="fad fa-book"></i>
-																	</a>
-																	<AeTypography>@(_isFrench ? sector.FrenchLabel : sector.EnglishLabel)</AeTypography>
-																</AeFlex>*@
-															</div>
-														}
-													</div>
-												<div>
-													<h2>Search through the DataHub Data Catalog</h2>
-													<div>Looking for data about NRCan economy, finance, science, forestry or human resources? Discover that and more through our catalog, your one-stop shop for NRCan datasets.</div>
-												</div>
-												<div>
-													<h2>Looking to publish data DataHub Data Catalog?</h2>
-													<div>Contact the DataHub team for more details nrcan.datahub.rncan@canada.ca</div>
-												</div>
-												</AeFlex>
-											</AeFlex>
-
+                                        <DiscoverySearchLanding Sectors=@_allSectors 
+                                                                IsFrench=@_isFrench 
+                                                                OnClickSector=@SelectSector />
 									</div>
 								}
 							}
