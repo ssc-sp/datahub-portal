@@ -3304,6 +3304,20 @@ code {
   align-items: center;
   height: 60px;
 }
+#topbarlite .headertext {
+  display: flex;
+  flex-direction: row;
+  font-weight: lighter;
+}
+#topbarlite .headertext .title {
+  font-size: 1.8em;
+}
+#topbarlite .headertext .notification {
+  display: flex;
+  flex-direction: column;
+  margin-left: 1rem;
+  font-size: 1em;
+}
 #topbarlite .profile {
   height: 100%;
   display: flex;
