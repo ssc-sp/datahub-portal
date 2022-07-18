@@ -12,6 +12,22 @@
     align-items: center;
     height: c.$topbarHeight;
 
+    .headertext {
+        display: flex;
+        flex-direction: row;
+        font-weight: lighter;
+
+        .title {
+            font-size: 1.8em;
+        }
+
+        .notification {
+            display: flex;
+            flex-direction: column;
+            margin-left: 1rem;
+            font-size: 1em;
+        }
+    }
 
     .profile {
         height: 100%;
@@ -25,7 +41,6 @@
             white-space: nowrap;
             padding: 0 1rem;
             margin-top: 0px;
-
         }
 
         .picture {
@@ -35,7 +50,5 @@
             border-radius: 4rem;
             background-color: c.$gray-800;
         }
-
-        
     }
 }
