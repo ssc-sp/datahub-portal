@@ -47,10 +47,10 @@
 </AeCard>
 
 @code {
-    [Parameter]
+    [CascadingParameter(Name = "UserId")]
     public string UserId { get; set; }
 
-    [Parameter]
+    [CascadingParameter(Name = "IsDatahubAdmin")]
     public bool IsDatahubAdmin { get; set; }
 
     [Parameter]
