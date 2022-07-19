@@ -152,7 +152,7 @@ namespace Datahub.Portal.Data.ProjectResource
 
         public static Dictionary<string, string> GetDefaultValues(ProjectResourceFormParams formParams)
         {
-            return formParams.FieldDefinitions.Fields
+            return formParams?.FieldDefinitions.Fields
                 .Where(f => !string.IsNullOrEmpty(f.Default_Value_TXT))
                 .ToDictionary(f => f.Field_Name_TXT, f => f.Default_Value_TXT);
         }
