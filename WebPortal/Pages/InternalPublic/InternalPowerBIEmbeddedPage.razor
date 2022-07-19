@@ -55,10 +55,12 @@
             ConsentHandler.HandleException(ex);
         }
         var pbiSettings = new PowerBISettings();
+        ReadOnly = true;
         if (ReadOnly)
         {
             pbiSettings.bars.actionBar.visible = false;
-            pbiSettings.navContentPaneEnabled = false;            
+            //pbiSettings.navContentPaneEnabled = false;
+            pbiSettings.filterPaneEnabled = false;
         }
 
         if (report != null)
