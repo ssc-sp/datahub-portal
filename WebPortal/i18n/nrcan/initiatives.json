@@ -222,7 +222,8 @@
     "serviceType": "Service Type",
     "requestingUser": "Requesting User"
   },
-
+  "Welcome to Data Projects": "Welcome to Data Initiatives",
+  "Filter projects": "Filter initiatives",
   "Project_Summary_Desc": "Initiative Summary (English)",
   "Project_Admin": "Initiative Admin",
   "Project_Acronym_CD": "Initiative Acronym",
