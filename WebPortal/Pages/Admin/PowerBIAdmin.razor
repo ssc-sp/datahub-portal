@@ -49,6 +49,23 @@
                     <AeTypography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.ManagementTitle"]</AeTypography>
                 </Header>
                 <ChildContent>
+
+                    <AeCollapse>
+                        <AeCollapseSection DefaultOpen>
+                            <Header>
+                                <AeTypography Variant="h5">@Localizer[$"{LOCALIZATION_PREFIX}.InstructionsTitle"]</AeTypography>
+                            </Header>
+                            <ChildContent>
+                                <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.InstructionsP1"]</AeTypography>
+                                <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.InstructionsP2"]</AeTypography>
+                                @if (IsAdminView)
+                                {
+                                    <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.InstructionsAdmin"]</AeTypography>
+                                }
+                            </ChildContent>
+                        </AeCollapseSection>
+                    </AeCollapse>
+
                     @if (IsLoadingWorkspaceTreeItems)
                     {
                     <Spinner />
@@ -102,7 +119,7 @@
                                 />
                                 <div>
                                     <AeButton OnClickEvent=@SaveWorkspace Disabled=@SaveWorkspaceDisabled>@Localizer[$"BUTTONS.Save"]</AeButton>
-                                    <AeButton OnClickEvent=@CloseItemBeingEdited>@Localizer[$"BUTTONS.Cancel"]</AeButton>
+                                    <AeButton class="light" OnClickEvent=@CloseItemBeingEdited>@Localizer[$"BUTTONS.Cancel"]</AeButton>
                                     <SuccessIndicator @bind-IsLoading=@IsSavingWorkspace @ref=@_saveWorkspaceInd />
                                 </div>
                             </ChildContent>
