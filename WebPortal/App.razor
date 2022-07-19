@@ -7,6 +7,10 @@
             {
                 <RouteView RouteData="@routeData" DefaultLayout="typeof(PublicLayout)"/>
             }
+            else if (routeData?.PageType.Namespace?.StartsWith(InternalPublicPageNamespace) ?? false)
+            {
+                <AuthorizeRouteView Resource="@routeData" RouteData="@routeData" DefaultLayout="@typeof(InternalPublicLayout)"/>
+            }
             else
             {
                 <AuthorizeRouteView Resource="@routeData" RouteData="@routeData" DefaultLayout="@typeof(PortalLayout)"/>
@@ -34,6 +38,6 @@
         typeof(Datahub.PIP.PIPFormsModule).Assembly
     };
 
-
+        private const string InternalPublicPageNamespace = "Datahub.Portal.Pages.InternalPublic";
         private const string PublicPageNamespace = "Datahub.Portal.Pages.Public";
 }
