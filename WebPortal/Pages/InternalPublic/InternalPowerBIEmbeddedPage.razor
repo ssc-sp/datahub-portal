@@ -1,5 +1,4 @@
-﻿@page "/internal-powerbi-report/{GroupId}/{ReportId}"
-@page "/internal-powerbi-report/{ReportId}"
+﻿@page "/internal-powerbi-report"
 @using System.Net.Http
 @using System.Threading.Tasks
 @using Microsoft.Identity.Client
@@ -20,16 +19,18 @@
 <div @ref="@PowerBIElement" style="width:100%;height:600px;max-width: 2000px" />
 
 @code {
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "lang")]
+    public string? RequestedLanguage { get; set; } = "en";
 
     [Parameter]
-    public string ReportId {  get;  set; }
+    [SupplyParameterFromQuery(Name = "pbi_en")]
+    public string? PowerBIEnglishGUID { get; set; }
 
     [Parameter]
-    public string GroupId {  get;  set; }
+    [SupplyParameterFromQuery(Name = "pbi_fr")]
+    public string? PowerBIFrenchGUID { get; set; }
 
-    [Parameter]
-    [SupplyParameterFromQuery]
-    public bool ReadOnly { get; set; }
 
     //protected override async Task OnAfterRenderAsync(bool firstRender)
     //{
@@ -40,23 +41,26 @@
 
     private Report report;
     private string reportToken;
-
+    private string _reportLanguage;
+    private bool _readOnly = true;
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            if (GroupId is null)
-                report = await PowerBiServiceApi.GetReport(ReportId);                
+            _reportLanguage = RequestedLanguage;
+            if (_reportLanguage == "en")
+                report = await PowerBiServiceApi.GetReport(PowerBIEnglishGUID);                
             else
-                report = await PowerBiServiceApi.GetReport(ReportId, GroupId);                
+                report = await PowerBiServiceApi.GetReport(PowerBIFrenchGUID);                
+
             reportToken = await PowerBiServiceApi.GetAccessTokenAsync();
         } catch (Exception ex)
         {
             ConsentHandler.HandleException(ex);
         }
         var pbiSettings = new PowerBISettings();
-        ReadOnly = true;
-        if (ReadOnly)
+        
+        if (_readOnly)
         {
             pbiSettings.bars.actionBar.visible = false;
             pbiSettings.navContentPaneEnabled = false;
