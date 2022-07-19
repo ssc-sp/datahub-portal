@@ -216,7 +216,8 @@
       "Workspace": "Espace de travail",
       "Reports": "Rapports",
       "SecurityClassification": "Classification de la sécurité",
-      "Metadata": "Metadata"
+      "Metadata": "Metadata",
+      "UpdateAssignment": "Mise à jour"
     }
   },
   "RESOURCE_REQUEST_INFO_PANEL": {
