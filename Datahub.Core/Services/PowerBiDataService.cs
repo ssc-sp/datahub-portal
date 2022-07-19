@@ -271,7 +271,7 @@ namespace Datahub.Core.Services
         public async Task<List<string>> GetGlobalPowerBiAdmins()
         {
             var result = await _miscStorageService.GetObject<List<string>>(GLOBAL_POWERBI_ADMIN_LIST_KEY);
-            return result;
+            return result ?? new List<string>();
         }
 
         public async Task SetGlobalPowerBiAdmins(IEnumerable<string> adminEmails)
