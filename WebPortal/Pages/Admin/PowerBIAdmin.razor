@@ -103,9 +103,9 @@
                                     </label>
                                     <div>
                                         <AeButton OnClickEvent=@UpdateWorkspaceProjectAssignment 
-                                            Disabled=@UpdateWorkspaceProjectAssignmentDisabled>Update Project Assignment</AeButton>
+                                            Disabled=@UpdateWorkspaceProjectAssignmentDisabled>@Localizer[$"{LOCALIZATION_PREFIX}.UpdateAssignment"]</AeButton>
                                         <AeButton OnClickEvent=@WorkspaceBeingEdited.RevertProjectAssignment 
-                                            Disabled=@UpdateWorkspaceProjectAssignmentDisabled class="light">Revert</AeButton>
+                                            Disabled=@UpdateWorkspaceProjectAssignmentDisabled class="light">@Localizer["BUTTONS.Revert"]</AeButton>
                                         <SuccessIndicator @bind-IsLoading=@IsSavingWorkspace />
                                     </div>
                                 </div>
@@ -384,7 +384,7 @@
     private bool IsSavingWorkspace { get; set; } = false;
     private bool SaveWorkspaceDisabled => IsSavingWorkspace || (_workspaceMetadata?.SaveDisabled ?? false);
     private SuccessIndicator _saveWorkspaceInd;
-    private bool UpdateWorkspaceProjectAssignmentDisabled => IsSavingWorkspace || !WorkspaceBeingEdited.ProjectAssignmentChanged;
+    private bool UpdateWorkspaceProjectAssignmentDisabled => IsSavingWorkspace || IsLoadingWorkspaceTreeItems || !WorkspaceBeingEdited.ProjectAssignmentChanged;
 
     private ObjectMetadataEditor _reportMetadata;
     private bool IsSavingReport { get; set; } = false;
