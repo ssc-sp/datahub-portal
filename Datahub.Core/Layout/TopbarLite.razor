@@ -1,0 +1,58 @@
+@*Topbar.razor*@
+@inject UIControlsService UI
+@inject IUserInformationService UserInformationService
+@inject NavigationManager NavigationManager
+@inject IMyDataService _myDataService
+@inject IPortalVersionService VersionService
+@inject MicrosoftIdentityConsentAndConditionalAccessHandler ConsentHandler
+
+@using Microsoft.Identity.Web
+@using Datahub.Core.Components.Common
+@using System.Timers
+@using System.Reflection
+
+<div id="topbarlite">
+
+    <div class="headertext">
+        <div class="title">DataHub</div>
+
+        <div class="notification">
+            <div>Visit the <a href="https://intranet.nrcan.gc.ca/services-policies/nrcan-datahub">DataHub</a> and <a href="https://intranet.nrcan.gc.ca/services-policies/nrcan-datahub/power-bi-service/43811">Power BI Service</a> page on The Source</div>
+            <div>Visitez la page <a href="https://intranet.nrcan.gc.ca/services-policies/nrcan-datahub">DataHub</a> et <a href="https://intranet.nrcan.gc.ca/services-policies/nrcan-datahub/power-bi-service/43811">Service Power BI</a> sur la Source</div>
+        </div>
+    </div>
+    
+    <div class="profile">
+        @*<AuthorizeView>
+            <div class="toggle">
+                <Typography>@UserName</Typography>
+                <ProfileCircle FullName="@UserName" style="margin-left: 1rem" />                
+            </div>
+        </AuthorizeView>*@
+    </div>
+</div>
+
+@code
+{
+
+    public Microsoft.Graph.User User { get; set; }
+
+    private string UserName
+    {
+        get
+        {
+            return User != null ? User.DisplayName : "...";
+        }
+    }
+        
+    protected override async Task OnInitializedAsync()
+    {
+        try {
+            User = await UserInformationService.GetUserAsync();
+        } catch (Exception ex)
+        {
+            ConsentHandler.HandleException(ex);
+        }
+     }
+
+}

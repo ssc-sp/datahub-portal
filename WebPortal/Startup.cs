@@ -292,10 +292,12 @@ namespace Datahub.Portal
             var defaultCulture = cultureSection.GetValue<string>("Default");
             var supportedCultures = cultureSection.GetValue<string>("SupportedCultures");
             var supportedCultureInfos = new HashSet<CultureInfo>(ParseCultures(supportedCultures));
+            
             services.AddJsonLocalization(options =>
             {
                 options.CacheDuration = TimeSpan.FromMinutes(15);
                 options.ResourcesPath = "i18n";
+                options.AdditionalResourcePaths = new[] { $"i18n/{Program.GetDataHubProfile()}" };
                 options.UseBaseName = false;
                 options.IsAbsolutePath = true;
                 options.LocalizationMode = Askmethat.Aspnet.JsonLocalizer.JsonOptions.LocalizationMode.I18n;
@@ -419,7 +421,7 @@ namespace Datahub.Portal
         {
             ConfigureDbContext<DatahubProjectDBContext>(services, "datahub-mssql-project", Configuration.GetDriver());
             ConfigureDbContext<PIPDBContext>(services, "datahub-mssql-pip", Configuration.GetDriver());
-            if (Configuration.GetDriver() == DbDriver.SqlServer)
+            if (Configuration.GetDriver() == DbDriver.Azure)
             {
                 ConfigureCosmosDbContext<UserTrackingContext>(services, "datahub-cosmosdb", "datahub-catalog-db");
             }

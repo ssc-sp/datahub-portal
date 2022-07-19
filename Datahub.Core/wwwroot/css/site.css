@@ -3279,6 +3279,66 @@ code {
   margin: 1rem 1rem 0;
 }
 
+/** Transparent **/
+/** Black **/
+/** White **/
+/** Transparent **/
+/** Gray **/
+/** Red **/
+/** Orange **/
+/** Yellow **/
+/** Green **/
+/** Teal **/
+/** Blue **/
+/** Sky **/
+/** Indigo **/
+/** Purple **/
+/** Pink **/
+#topbarlite {
+  background-color: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 999;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 60px;
+}
+#topbarlite .headertext {
+  display: flex;
+  flex-direction: row;
+  font-weight: lighter;
+}
+#topbarlite .headertext .title {
+  font-size: 1.8em;
+}
+#topbarlite .headertext .notification {
+  display: flex;
+  flex-direction: column;
+  margin-left: 1rem;
+  font-size: 1em;
+}
+#topbarlite .profile {
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+}
+#topbarlite .profile .toggle {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  padding: 0 1rem;
+  margin-top: 0px;
+}
+#topbarlite .profile .picture {
+  margin-left: 1rem;
+  height: 2rem;
+  width: 2rem;
+  border-radius: 4rem;
+  background-color: #1e293b;
+}
+
 .swiper-container {
   width: 100%;
   height: 60vh;
@@ -6020,6 +6080,26 @@ code {
 .catalog-page .dropdowns {
   display: flex;
   flex-direction: column;
+  margin-bottom: 0.5rem;
+}
+.catalog-page .sectors {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+}
+.catalog-page .sectors .sector {
+  margin: 0.5rem;
+}
+.catalog-page .sectors .sector:hover {
+  cursor: pointer;
+  transform: translateY(-1px);
+}
+.catalog-page .sectors .sector:hover i {
+  opacity: 1;
+}
+.catalog-page .sectors .sector i {
+  font-size: 2rem;
+  opacity: 0.5;
+  margin-right: 0.5rem;
   margin-bottom: 0.5rem;
 }
 

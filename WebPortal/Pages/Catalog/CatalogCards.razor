@@ -102,8 +102,18 @@ else
 
     private string GetDivTitleTitle() => IsFrench ? GetFieldDefinitions("title_translated_fr") : GetFieldDefinitions("title_translated_en");
     private string GetDivTitleDescription() => IsFrench ? GetFieldDefinitions("notes_translated_fr") : GetFieldDefinitions("notes_translated_en");
-    private string GetTitle() => IsFrench ? _allFieldValues["title_translated_fr"] : _allFieldValues["title_translated_en"];
     private string GetDescription() => IsFrench ? _allFieldValues["notes_translated_fr"] : _allFieldValues["notes_translated_en"];
+
+    private string GetTitle() 
+    {
+        var key = IsFrench ? "title_translated_fr" : "title_translated_en";
+        var title = _allFieldValues.ContainsKey(key) ? _allFieldValues[key] : string.Empty;
+
+        if (string.IsNullOrEmpty(title) && _allFieldValues.ContainsKey("name"))
+            title = _allFieldValues["name"];
+
+        return title;
+    }
 
     protected override void OnInitialized()
     {
@@ -127,7 +137,7 @@ else
             @key=@CatalogResult.ObjectMetadataId
             ObjectId=@CatalogResult.ObjectMetadataId.ToString() 
             DefaultMetadataId=@CatalogResult.Location
-            Name=@CatalogResult.Name
+            Name=@CatalogResult.Name_English
             Location=@CatalogResult.Location
             SecurityClass=@CatalogResult.SecurityClass
             SaveButtonLabel=@Localizer["OPENDATA-WIZARD.Save_button"] 

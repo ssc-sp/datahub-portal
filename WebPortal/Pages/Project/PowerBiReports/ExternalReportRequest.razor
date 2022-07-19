@@ -4,9 +4,9 @@
 
 @if (_isReportActive)
 {
-    <div>
+    <div @onclick="() => OnRevokeClick(PowerBi_Report.Report_ID)" style="cursor:pointer;">
         <i class="far fa-check-square"></i>
-        <a>Active</a>
+        <a>Revoke Active Sharing</a>
     </div>
 }
 else if (_isReportRequested)
@@ -63,6 +63,12 @@ else
         var currentUserId = await UserInformationService.GetUserIdString();
         var requestingUserEmail = await MSGraphService.GetUserEmail(currentUserId, CancellationToken.None);
         await PowerBiDataService.CreateExternalPowerBiReportRequest(requestingUserEmail, reportId);
+        await RefreshTable.InvokeAsync();
+    }
+
+    private async void OnRevokeClick(Guid reportId)
+    {
+        await PowerBiDataService.RevokePowerBiReportRequest(reportId);
         await RefreshTable.InvokeAsync();
     }
 

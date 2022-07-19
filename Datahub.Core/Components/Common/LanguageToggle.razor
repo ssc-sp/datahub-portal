@@ -14,8 +14,8 @@
     
     private async void ChangeLanguage(string language)
     {
-        if (!await _userInformationService.RegisterUserLanguage(language)) 
-            return;
+        await _userInformationService.RegisterUserLanguage(language);
+        //    return;
         
         _userInformationService.SetLanguage(language);
         await _localStorage.SetItemAsStringAsync("language", language);
