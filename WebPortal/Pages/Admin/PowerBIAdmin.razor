@@ -101,6 +101,13 @@
                                         <input type="checkbox" @bind=@WorkspaceBeingEdited.SandboxFlag />
                                         <AeTypography style="display: inline-block;"><strong><span>@Localizer[$"{LOCALIZATION_PREFIX}.Sandbox"]</span></strong></AeTypography>
                                     </label>
+                                    <div>
+                                        <AeButton OnClickEvent=@UpdateWorkspaceProjectAssignment 
+                                            Disabled=@UpdateWorkspaceProjectAssignmentDisabled>Update Project Assignment</AeButton>
+                                        <AeButton OnClickEvent=@WorkspaceBeingEdited.RevertProjectAssignment 
+                                            Disabled=@UpdateWorkspaceProjectAssignmentDisabled class="light">Revert</AeButton>
+                                        <SuccessIndicator @bind-IsLoading=@IsSavingWorkspace />
+                                    </div>
                                 </div>
                                 <AeTypography Variant="h4">@Localizer[$"{LOCALIZATION_PREFIX}.Metadata"]</AeTypography>
                                 <ObjectMetadataEditor 
@@ -377,6 +384,7 @@
     private bool IsSavingWorkspace { get; set; } = false;
     private bool SaveWorkspaceDisabled => IsSavingWorkspace || (_workspaceMetadata?.SaveDisabled ?? false);
     private SuccessIndicator _saveWorkspaceInd;
+    private bool UpdateWorkspaceProjectAssignmentDisabled => IsSavingWorkspace || !WorkspaceBeingEdited.ProjectAssignmentChanged;
 
     private ObjectMetadataEditor _reportMetadata;
     private bool IsSavingReport { get; set; } = false;
@@ -545,6 +553,35 @@
         await Task.CompletedTask;
     }
 
+
+    private async Task<bool> DoUpdateWorkspaceProjectAssignment()
+    {
+        var wsDef = WorkspaceBeingEdited.Definition;
+        return await _powerBiDataService.AddOrUpdateCataloguedWorkspace(wsDef);
+    }
+
+    private async Task UpdateWorkspaceProjectAssignment()
+    {
+        IsSavingWorkspace = true;
+        await InvokeAsync(StateHasChanged);
+
+        await DoUpdateWorkspaceProjectAssignment();
+
+        var workspace = WorkspaceBeingEdited;
+        
+        var workspaceTreeTask = LoadWorkspaceTreeItems();
+
+        WorkspaceBeingEdited = null;
+        IsSavingWorkspace = false;
+        await InvokeAsync(StateHasChanged);
+
+        var dbWorkspace = await _powerBiDataService.GetWorkspaceById(workspace.WorkspaceId);
+        WorkspaceBeingEdited = new(null, dbWorkspace);
+
+        await InvokeAsync(StateHasChanged);
+        await workspaceTreeTask;
+    }
+
     private async Task SaveWorkspace()
     {
         if (WorkspaceBeingEdited == null)
@@ -556,8 +593,7 @@
         IsSavingWorkspace = true;
         StateHasChanged();
 
-        var wsDef = WorkspaceBeingEdited.Definition;
-        var success = await _powerBiDataService.AddOrUpdateCataloguedWorkspace(wsDef);
+        var success = await DoUpdateWorkspaceProjectAssignment();
 
         success &= await _workspaceMetadata.SaveChanges();
 
