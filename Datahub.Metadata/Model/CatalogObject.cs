@@ -7,9 +7,13 @@
         public virtual ObjectMetadata ObjectMetadata { get; set; }
         public MetadataObjectType DataType { get; set; }
         /// <summary>
-        /// Name or title of the object
+        /// Name or title of the object (english)
         /// </summary>
         public string Name_TXT { get; set; }
+        /// <summary>
+        /// Name or title of the object (french)
+        /// </summary>
+        public string Name_French_TXT { get; set; }
         /// <summary>
         /// Location of the object (path, url, key, id, etc)
         /// </summary>

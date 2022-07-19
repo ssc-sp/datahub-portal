@@ -63,7 +63,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Functions", "Datahu
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.GeoCore", "Datahub.GeoCore\Datahub.GeoCore.csproj", "{80F3D52C-9396-4C7C-A717-6314813E6493}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CatalogIngestTool", "CatalogIngestTool\CatalogIngestTool.csproj", "{C7E9370C-84AF-461F-A073-43AD43B3AF21}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CatalogIngestTool", "CatalogIngestTool\CatalogIngestTool.csproj", "{C7E9370C-84AF-461F-A073-43AD43B3AF21}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
