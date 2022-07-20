@@ -12,7 +12,8 @@
     "Datasets": "Datasets",
     "PowerBI": "Power BI",
     "Admin": "Admin",
-    "Tools": "Tools"
+    "Tools": "Tools",
+    "Catalog":  "Data"
   },
   "OPENDATA-WIZARD": {
     "Page_Title": "Share on Open Data",

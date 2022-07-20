@@ -1,7 +1,9 @@
+@*Sidebar.razor*@
 @using Datahub.Core.Data
 @using Datahub.Core.Utils
 @using Datahub.Portal.Services
 @inject ServiceAuthManager ServiceAuthManager
+@inject IConfiguration Configuration
 
 <div id="sidebar">
     <div class="sidebar-sticky">
@@ -9,12 +11,15 @@
             <img src="_content/Datahub.Core/img/datahub-logo-v2.png"/>
         </div>
         <div class="links">
-            @foreach (var (href, icon, label) in GetLinks())
+            @foreach (var (href, icon, label, enabled) in GetLinks())
             {
-                <NavLink class="@icon.Color" href="@href" Match="NavLinkMatch.Prefix" ActiveClass="active">
-                    <i class="@icon.Name"></i>
-                    @Localizer[label]
-                </NavLink>
+                @if (enabled)
+                {
+                    <NavLink class="@icon.Color" href="@href" Match="NavLinkMatch.Prefix" ActiveClass="active">
+                        <i class="@icon.Name"></i>
+                        @Localizer[label]
+                    </NavLink>
+                }
             }
             @foreach (var link in GetAuthorizedLinks())
             {
@@ -31,18 +36,18 @@
 
 @code {
 
-
-    private List<(string Href, Icon Icon, string Label)> GetLinks()
+    private List<(string Href, Icon Icon, string Label, bool enabled)> GetLinks()
     {
-        return new List<(string, Icon, string)>()
+        return new()
         {
-            ("/home", Icon.HOME, "SIDEBAR.Home"),
-    //("/data", Icon.STORAGE, "SIDEBAR.Storage"),
-            ($"/{UrlPathSegment.PROJECTS}", Icon.PROJECT, "SIDEBAR.DataProjects"),
-            ("/resources", Icon.RESOURCES, "SIDEBAR.Resources"),
-            ("/tools", Icon.TOOLS, "SIDEBAR.Tools"),
-    //("/datasets", Icon.DATASETS, "SIDEBAR.Datasets"),
-    //("/powerbi", Icon.POWERBI, "SIDEBAR.PowerBI"),      
+            ("/home", Icon.HOME, "SIDEBAR.Home", true),
+            ($"/{UrlPathSegment.PROJECTS}", Icon.PROJECT, "SIDEBAR.DataProjects", true),
+            ("/resources", Icon.RESOURCES, "SIDEBAR.Resources", true),
+            ("/tools", Icon.TOOLS, "SIDEBAR.Tools", true),
+            ("/discovery", Icon.CATALOG, "SIDEBAR.Catalog", IsFeatureEnabled("DataCatalog"))
+            //("/data", Icon.STORAGE, "SIDEBAR.Storage"),
+            //("/datasets", Icon.DATASETS, "SIDEBAR.Datasets"),
+            //("/powerbi", Icon.POWERBI, "SIDEBAR.PowerBI"),      
         };
     }
 
@@ -51,15 +56,19 @@
         var projects = ServiceAuthManager.GetAdminProjectRoles();
         if (projects.Any())
         {
-            return new List<(string, Icon, string, List<string>)>()
+            return new()
             {
                 ("/administration", Icon.ADMIN, "SIDEBAR.Admin", projects),
             };
         }
         else
         {
-            return new List<(string, Icon, string, List<string>)>();
+            return new();
         }
     }
 
+    private bool IsFeatureEnabled(string name)
+    {
+        return Configuration[name] == "enabled";
+    }
 }
