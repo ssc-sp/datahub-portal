@@ -150,7 +150,7 @@
                                     <label>
                                         <AeFlex Vertical>
                                             <AeTypography><strong><span>@Localizer[$"{LOCALIZATION_PREFIX}.SecurityClassification"]</span></strong></AeTypography>
-                                            <select @bind=@_datasetMetadata.SecurityClass class="ae input">
+                                            <select @bind=@_datasetMetadataSecurityClass class="ae input">
                                                 @foreach(var sec in SecurityClassification.SECURITY_CLASSES)
                                                 {
                                                     <option value=@sec>@Localizer[@sec]</option>
@@ -171,6 +171,7 @@
                                     HideSaveButton
                                     OnValuesChanged=@(() => StateHasChanged())
                                     DefaultMetadataId=@GetProjectMetadataUid(DatasetBeingEdited.ProjectId)
+                                    SecurityClass=@_datasetMetadataSecurityClass
                                     @ref=@_datasetMetadata
                                     OnNewMetadataCreated=@AutoFillNewMetadataFields
                                 />
@@ -201,7 +202,7 @@
                                     <label>
                                         <AeFlex Vertical>
                                             <AeTypography><strong><span>@Localizer[$"{LOCALIZATION_PREFIX}.SecurityClassification"]</span></strong></AeTypography>
-                                            <select @bind=@_reportMetadata.SecurityClass class="ae input">
+                                            <select @bind=@_reportMetadataSecurityClass class="ae input">
                                                 @foreach(var sec in SecurityClassification.SECURITY_CLASSES)
                                                 {
                                                     <option value=@sec>@Localizer[@sec]</option>
@@ -224,6 +225,7 @@
                                     OnValuesChanged=@(() => StateHasChanged())
                                     DefaultMetadataId=@GetProjectMetadataUid(ReportBeingEdited.ProjectId)
                                     OnNewMetadataCreated=@AutoFillNewMetadataFields
+                                    SecurityClass=@_reportMetadataSecurityClass
                                 />
 
                                 <div>
@@ -387,11 +389,13 @@
     private bool UpdateWorkspaceProjectAssignmentDisabled => IsSavingWorkspace || IsLoadingWorkspaceTreeItems || !WorkspaceBeingEdited.ProjectAssignmentChanged;
 
     private ObjectMetadataEditor _reportMetadata;
+    private string _reportMetadataSecurityClass = SecurityClassification.Unclassified;
     private bool IsSavingReport { get; set; } = false;
     private bool SaveReportDisabled => IsSavingReport || (_reportMetadata?.SaveDisabled ?? false);
     private SuccessIndicator _saveReportInd;
 
     private ObjectMetadataEditor _datasetMetadata;
+    private string _datasetMetadataSecurityClass = SecurityClassification.Unclassified;
     private bool IsSavingDataset { get; set; } = false;
     private bool SaveDatasetDisabled => IsSavingDataset || (_datasetMetadata?.SaveDisabled ?? false);
     private SuccessIndicator _saveDatasetInd;
