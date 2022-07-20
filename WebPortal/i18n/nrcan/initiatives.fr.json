@@ -269,13 +269,14 @@
   "Initiative Acronym": "Acronyme de l'project",
   "Considering an analytics project?": "Vous envisagez un projet d’analyse?",
   "Jumpstart your team’s project with all of your data in one place": "Démarrez le projet de votre équipe avec toutes vos données en un seul endroit.",
-  "Set up your team to work collaboratively on projects and with partners.": "Formez votre équipe pour collaborer à des projets et avec des partenaires.",
-  "Share files, projects, and data with specific colleagues or users across the organization.": "Partagez des fichiers, des projets et des données avec certains collègues ou utilisateurs de l’organisation.",
+  "Set up your team to work collaboratively on projects and with partners.": "Formez votre équipe pour collaborer à des initiatives et avec des partenaires.",
+  "Share files, projects, and data with specific colleagues or users across the organization.": "Partagez des fichiers, des initiatives et des données avec certains collègues ou utilisateurs de l’organisation.",
   "Project Administrators:": "Administrateurs du projet:",
   "Project Users:": "Utilisateurs du projet:",
-  "Data Project Tools": "Outils pour les projets de données",
-  "Start the Data Entry application enabled for this project": "Démarrer l’application de saisie de données activée pour ce projet",
-  "You currently do not have access to this project": "Vous n’avez actuellement pas accès à ce projet",
-  "You currently do not have access to this project.": "Vous n’avez actuellement pas accès à ce projet.",
-  "Project Information": "Informations sur le projet"
+  "Data Project Tools": "Outils pour les initiatives de données",
+  "Start the Data Entry application enabled for this project": "Démarrer l’application de saisie de données activée pour cette initiative",
+  "You currently do not have access to this project": "Vous n’avez actuellement pas accès à cette initiative",
+  "You currently do not have access to this project.": "Vous n’avez actuellement pas accès à cette initiative.",
+  "Project Information": "Informations sur le projet",
+  "Welcome to your Data Project": "Bienvenue a votre initiative de données"
 }
