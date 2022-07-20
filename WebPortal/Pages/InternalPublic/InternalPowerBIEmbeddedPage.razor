@@ -1,4 +1,4 @@
-﻿@page "/internal-powerbi-report"
+﻿@page "/internal-powerbi-report/{lang}/{eng_guid}/{fre_guid}"
 @using System.Net.Http
 @using System.Threading.Tasks
 @using Microsoft.Identity.Client
@@ -20,16 +20,13 @@
 
 @code {
     [Parameter]
-    [SupplyParameterFromQuery(Name = "lang")]
-    public string? RequestedLanguage { get; set; } = "en";
+    public string? lang { get; set; } = "en";
 
     [Parameter]
-    [SupplyParameterFromQuery(Name = "pbi_en")]
-    public string? PowerBIEnglishGUID { get; set; }
+    public string? eng_guid { get; set; }
 
     [Parameter]
-    [SupplyParameterFromQuery(Name = "pbi_fr")]
-    public string? PowerBIFrenchGUID { get; set; }
+    public string? fre_guid { get; set; }
 
 
     //protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -47,11 +44,11 @@
     {
         try
         {
-            _reportLanguage = RequestedLanguage;
+            _reportLanguage = lang;
             if (_reportLanguage == "en")
-                report = await PowerBiServiceApi.GetReport(PowerBIEnglishGUID);                
+                report = await PowerBiServiceApi.GetReport(eng_guid);                
             else
-                report = await PowerBiServiceApi.GetReport(PowerBIFrenchGUID);                
+                report = await PowerBiServiceApi.GetReport(fre_guid);                
 
             reportToken = await PowerBiServiceApi.GetAccessTokenAsync();
         } catch (Exception ex)
