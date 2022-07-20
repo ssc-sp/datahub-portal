@@ -7,7 +7,7 @@
 
 @page "/projects"
 
-<DHPageAlert Title="Welcome to Data Projects" Key="@PageAlert.Projects" WikiLinkEN="Onboarding---Data-Projects" WikiLinkFR="Onboarding---Data-Projects"/>
+<DHPageAlert Title=@Localizer["Welcome to Data Projects"] Key="@PageAlert.Projects" WikiLinkEN="Onboarding---Data-Projects" WikiLinkFR="Onboarding---Data-Projects"/>
 
 <AeTypography Variant="h1">@Localizer["Featured Projects"]</AeTypography>
 <div class="featured-projects-container">
@@ -24,7 +24,7 @@
     <AeSearchInput
         class="all-projects-search"
         SearchIconFAClass="fas fa-filter"
-        Placeholder="Filter projects"
+        Placeholder=@Localizer["Filter projects"]
         OnInputChange="HandleAllProjectSearch"/>
 
     <div class="all-projects">
