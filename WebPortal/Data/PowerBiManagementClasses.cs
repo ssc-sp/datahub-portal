@@ -196,8 +196,7 @@ namespace Datahub.Portal.Data
             _workspaceId = pbiWorkspace?.Id ?? dbWorkspace?.Workspace_ID ?? Guid.Empty;
             _dbWorkspaceName = dbWorkspace?.Workspace_Name;
             _pbiWorkspaceName = pbiWorkspace?.Name;
-            _sandboxFlag = dbWorkspace?.Sandbox_Flag ?? false;
-            _projectId = dbWorkspace?.Project_Id;
+            RevertProjectAssignment();
         }
 
         private Guid _workspaceId;
@@ -218,6 +217,14 @@ namespace Datahub.Portal.Data
         public bool NeedsUpdate => !IsInDb || ChildrenNeedUpdate || _nameWasChanged;
         public bool ChildrenNeedUpdate => Datasets.Any(d => d.NeedsUpdate) || Reports.Any(r => r.NeedsUpdate);
         private bool _nameWasChanged => PbiWorkspaceName != null && DbWorkspaceName != null && PbiWorkspaceName != DbWorkspaceName;
+
+        public bool ProjectAssignmentChanged => _dbWorkspace == null || _dbWorkspace.Sandbox_Flag != _sandboxFlag || _dbWorkspace.Project_Id != _projectId;
+
+        public void RevertProjectAssignment()
+        {
+            _sandboxFlag = _dbWorkspace?.Sandbox_Flag ?? false;
+            _projectId = _dbWorkspace?.Project_Id;
+        }
 
         public Guid WorkspaceId
         {

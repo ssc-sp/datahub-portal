@@ -217,7 +217,8 @@
       "Workspace": "Workspace",
       "Datasets": "Datasets",
       "Reports": "Reports",
-      "SecurityClassification": "Security Classification"
+      "SecurityClassification": "Security Classification",
+      "UpdateAssignment": "Update"
     }
   },
   "RESOURCE_REQUEST_INFO_PANEL": {
