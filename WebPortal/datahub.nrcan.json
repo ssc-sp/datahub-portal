@@ -7,6 +7,6 @@
   "ProjectTools": {
     "IoT": false,
     "DataManagement": true,
-    "WebForms": false
+    "WebForms": true
   }
 }
