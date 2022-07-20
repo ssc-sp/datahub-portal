@@ -265,5 +265,6 @@
   "View Project": "View Initiative",
   "DataHub Project Tracker": "DataHub Initiative Tracker",
   "The current project has {0} active file shared": "The current initiative has {0} active file shared",
-  "Project Resource Definitions": "Initiative Resource Definitions"
+  "Project Resource Definitions": "Initiative Resource Definitions",
+  "Welcome to your Data Project": "Welcome to your Data Initiative"
 }
