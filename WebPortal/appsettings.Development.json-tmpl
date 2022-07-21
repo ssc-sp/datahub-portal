@@ -77,7 +77,8 @@
       "Report": "f2dc4fe1-05ad-45f5-a38d-fb07bcf3873b",
       "Workspace": "6ca76417-b205-43c2-be1b-6aeeedcb84ae"
     }
-  }
+  },
+  "DataCatalog": "enabled"
 }
 
 
