@@ -23,12 +23,26 @@
     </div>
     
     <div class="profile">
-        @*<AuthorizeView>
-            <div class="toggle">
+        <AuthorizeView>
+            <div class="toggle" @onclick="ToggleUserPopup">
                 <Typography>@UserName</Typography>
-                <ProfileCircle FullName="@UserName" style="margin-left: 1rem" />                
+                <ProfileCircle FullName="@UserName" style="margin-left: 1rem" />  
+                <i class="fal fa-chevron-down" style="padding-left: 0.75rem;"></i>
             </div>
-        </AuthorizeView>*@
+            <Popup Show="_showUserPopup" class="nrcan-popup top-nav-popup user-popup" OnCloseClick="ToggleUserPopup">
+                <ChildContent>
+                    <div class="user-section">
+                        <div class="language-toggle">
+                            <Typography Variant="b">
+                                <span @onclick="() => ChangeLanguage()" style="cursor:pointer;">
+                                      @_language
+                                </span>
+                            </Typography>
+                        </div>
+                    </div>
+                </ChildContent>
+            </Popup>
+        </AuthorizeView>
     </div>
 </div>
 
@@ -36,7 +50,12 @@
 {
 
     public Microsoft.Graph.User User { get; set; }
+    [CascadingParameter(Name = "UserLanguage")]
+    public (Func<string> currentLanguage, Action<string> setLanguage) UserLanguage { get; set; }
 
+    //private string _languageDisplay;
+    private bool _showUserPopup = false;
+    private string _language;
     private string UserName
     {
         get
@@ -44,11 +63,29 @@
             return User != null ? User.DisplayName : "...";
         }
     }
-        
-    protected override async Task OnInitializedAsync()
+
+    private void ChangeLanguage()
+    {
+        if (UserLanguage.currentLanguage() == "en")
+        {
+            UserLanguage.setLanguage("fr");
+        }
+        else
+        {
+            UserLanguage.setLanguage("en");
+        }
+        ToggleUserPopup();
+    }
+    private void ToggleUserPopup()
+    {
+        _showUserPopup = !_showUserPopup;
+        StateHasChanged();
+    }
+    protected override async Task OnParametersSetAsync()
     {
         try {
             User = await UserInformationService.GetUserAsync();
+            _language = UserLanguage.currentLanguage() == "en" ? "Français" : "English";
         } catch (Exception ex)
         {
             ConsentHandler.HandleException(ex);
