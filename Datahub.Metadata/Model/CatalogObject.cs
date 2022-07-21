@@ -42,5 +42,24 @@
         /// Search text French
         /// </summary>
         public string Search_French_TXT { get; set; }
+        /// <summary>
+        /// Dataset url localized in English
+        /// </summary>
+        public string Url_English_TXT { get; set; }
+        /// <summary>
+        /// Dataset url localized in French
+        /// </summary>
+        public string Url_French_TXT { get; set; }
+        /// <summary>
+        /// Language by default it is bilingual.
+        /// </summary>
+        public CatalogObjectLanguage Language { get; set; }
+    }
+
+    public enum CatalogObjectLanguage
+    {
+        Bilingual,
+        English,
+        French
     }
 }
