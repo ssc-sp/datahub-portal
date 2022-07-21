@@ -74,9 +74,10 @@
 
         if (report != null)
         {
+            var embedURL = _reportLanguage == "en" ? $"{report.EmbedUrl}&language=en-ca" : $"{report.EmbedUrl}&language=fr-ca";
             await JSRuntime.InvokeAsync<object>(
                 "ShowMyPowerBI.showReport",
-                _powerBIElement, reportToken, report.EmbedUrl,
+                _powerBIElement, reportToken, embedURL,
                 report.Id.ToString(), pbiSettings);            
         }
     }
