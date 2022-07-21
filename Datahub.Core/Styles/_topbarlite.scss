@@ -50,5 +50,25 @@
             border-radius: 4rem;
             background-color: c.$gray-800;
         }
+
+        .user-popup {
+            right: 0;
+            width: 150px;
+            height: 50px;
+
+            .user-section {
+                display: flex;
+                .language-toggle {
+                    margin-left: 20px;
+                    .nrcan-typography {
+
+                        &:hover {
+                            text-decoration: underline;
+                            cursor: pointer;
+                        }
+                    }
+                }
+            }
+        }
     }
 }
