@@ -14,6 +14,9 @@ namespace Datahub.Metadata.DTO
         public int Branch { get; set; }
         public string Contact { get; set; }
         public string SecurityClass { get; set; }
+        public string Url_English { get; set; }
+        public string Url_French { get; set; }
+        public CatalogObjectLanguage Language { get; init; }
         public bool IsCatalogComplete { get; set; } = true;
         public FieldValueContainer Metadata { get; set; }
     }
