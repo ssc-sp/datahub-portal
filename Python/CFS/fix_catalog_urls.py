@@ -6,5 +6,5 @@ with open('./data/catalog_urls.csv', newline='') as csvfile:
         id = r[0]
         en_url = r[1]
         fr_url = en_url.replace("/en/", "/fr/")
-        print(f"update CatalogObject set Url_English_TXT = '{en_url}', Url_French_TXT = '{fr_url}' where CatalogObjectId = {id}")
+        print(f"update CatalogObjects set Url_English_TXT = '{en_url}', Url_French_TXT = '{fr_url}' where CatalogObjectId = {id}")
 

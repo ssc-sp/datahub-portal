@@ -124,7 +124,7 @@
 														<option value=@NO_FILTER_SELECTED>@Localizer["DISCOVERY-FILTERS.(All Branches)"]</option>
 														@foreach (var branch in _filteredBranches)
 														{
-															<option value=@branch.Id>@GetLabel(branch)</option>
+															<option value=@branch.Id>@GetLabel(branch, _isFrench)</option>
 														}
 													</select>
 												}
@@ -148,7 +148,6 @@
 								<ItemTemplate Context="item">
 									<CatalogCards @key=@item
 											  CatalogResult=@item
-											  IsFrench=@_isFrench
 											  Project=@GetProject(item)
 											  MapSector=@GetSector
 											  MapBranch=@GetBranch>
@@ -236,7 +235,7 @@
 	private int _filterSector = NO_FILTER_SELECTED;
 	private int _filterBranch = NO_FILTER_SELECTED;
 	private string _securityFilter = string.Empty;
-	private List<OrganizationLevel> _filteredBranches => _branches.Values.Where(b => b.ParentId == _filterSector).OrderBy(b => GetLabel(b)).ToList();
+	private List<OrganizationLevel> _filteredBranches => _branches.Values.Where(b => b.ParentId == _filterSector).OrderBy(b => GetLabel(b, _isFrench)).ToList();
 
 	private bool _searchFilterSectionOpen = true;
 	private bool _securityFilterSectionOpen = true;
@@ -420,14 +419,11 @@
 		_sectorFilterSectionOpen = e.Open;
 	}
 
-    // accessor functions
-    private string GetName(CatalogObjectResult result) => result.Name_English;
-    private string GetSector(CatalogObjectResult result) => GetLabel(_sectors.GetValueOrDefault(result.Sector));
-    private string GetBranch(CatalogObjectResult result) => GetLabel(_branches.GetValueOrDefault(result.Branch));
-    private string GetContact(CatalogObjectResult result) => result.Contact;
-    private string GetDataType(CatalogObjectResult result) => GetLocalizedDataType(result.DataType);
-    private string GetSecurityClass(CatalogObjectResult result) => Localizer[result.SecurityClass];
-    private string GetLabel(OrganizationLevel orgLevel) => (_isFrench ? orgLevel?.FrenchLabel : orgLevel?.EnglishLabel) ?? "-";
+    private string GetSector(CatalogObjectResult result, bool french) => GetLabel(_sectors.GetValueOrDefault(result.Sector), french);
+
+    private string GetBranch(CatalogObjectResult result, bool french) => GetLabel(_branches.GetValueOrDefault(result.Branch), french);
+
+    private string GetLabel(OrganizationLevel orgLevel, bool french) => (french ? orgLevel?.FrenchLabel : orgLevel?.EnglishLabel) ?? "-";
 
     // renderer functions
     private RenderFragment GetDownLoadFragment(CatalogObjectResult result) =>
@@ -458,7 +454,7 @@
 		}
 		else if (result.DataType == MetadataObjectType.DatasetUrl)
 		{
-			await RedirectAndDownload(result.Location);
+			await RedirectAndDownload(result.IsFrench ? result.Url_French : result.Url_English);
 		}
 	}
 
@@ -552,6 +548,10 @@
 			_catalogSearchRequest = new(0, 10, _isFrench, keywords, _filteredClassificationTypes.ToList(), _filteredDataTypes.ToList(), sectors, branches);
 			var results = await MetadataBrokerService.SearchCatalog(_catalogSearchRequest, CheckMetadataCompleted);
 			_lastQueryCount = results.Count;
+
+			// apply localization
+			foreach (var r in results)
+				r.IsFrench = _isFrench;
 
 			return results;
 		}

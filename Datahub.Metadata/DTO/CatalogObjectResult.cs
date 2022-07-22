@@ -18,6 +18,7 @@ namespace Datahub.Metadata.DTO
         public string Url_French { get; set; }
         public CatalogObjectLanguage Language { get; init; }
         public bool IsCatalogComplete { get; set; } = true;
+        public bool IsFrench { get; set; }
         public FieldValueContainer Metadata { get; set; }
     }
 }
