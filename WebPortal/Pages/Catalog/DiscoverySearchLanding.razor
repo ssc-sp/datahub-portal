@@ -14,7 +14,7 @@
 		<div class="ae flex wrap">
 			@foreach (var sector in Sectors)
 			{
-				<AeCard class="facard1" CardPosition="AeCard.CardStyle.Horizontal" onclick=@(() => ClickSector(sector))>
+				<AeCard class="facard1" style="cursor: pointer;" CardPosition="AeCard.CardStyle.Horizontal" onclick=@(() => ClickSector(sector))>
 					<Header>
 						<div style="width:120px">                        
 							<AeIcon class=@GetIconClass(sector.Id) />

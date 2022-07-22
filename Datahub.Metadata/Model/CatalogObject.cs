@@ -54,6 +54,10 @@
         /// Language by default it is bilingual.
         /// </summary>
         public CatalogObjectLanguage Language { get; set; }
+        /// <summary>
+        /// ClassificationType: Unclassified, Protected A or Protected B
+        /// </summary>
+        public MetadataClassificationType Classification_Type { get; set; }
     }
 
     public enum CatalogObjectLanguage

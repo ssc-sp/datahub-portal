@@ -452,6 +452,9 @@ namespace Datahub.Core.Services
                 Branch = catObj.Branch_NUM,
                 Contact = catObj.Contact_TXT,
                 SecurityClass = catObj.SecurityClass_TXT,
+                Language = catObj.Language,
+                Url_English = catObj.Url_English_TXT,
+                Url_French = catObj.Url_French_TXT,
                 Metadata = new FieldValueContainer(catObj.ObjectMetadata.ObjectMetadataId, catObj.ObjectMetadata.ObjectId_TXT, definitions, 
                     catObj.ObjectMetadata.FieldValues)
             };
