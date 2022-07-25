@@ -217,7 +217,8 @@
       "Datasets": "Datasets",
       "Reports": "Reports",
       "SecurityClassification": "Security Classification",
-      "UpdateAssignment": "Update"
+      "UpdateAssignment": "Update",
+      "IncludeInCatalog": "Include in catalog"
     }
   },
   "RESOURCE_REQUEST_INFO_PANEL": {
