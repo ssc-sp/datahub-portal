@@ -22,7 +22,7 @@ else
             
             <div style="@($"--security-text-color: {_securityClassColor}")" class="securityclass">
                 <i class="@($"fad fa-{_projectIcon}")"></i>
-                <p><b>@Localizer["DISCOVERY-LABELS.DATA SENSITIVITY"]: @Localizer[@CatalogResult.SecurityClass]</b></p>
+                <p><b>@Localizer["DISCOVERY-LABELS.DATA SENSITIVITY"]: @Localizer[SecurityClassification.GetSecurityClassification(CatalogResult.ClassificationType)]</b></p>
             </div>            
 
             @if (!string.IsNullOrEmpty(_allFieldValues["name"]))
@@ -97,7 +97,7 @@ else
     [Parameter]
     public RenderFragment ChildContent { get; set; }
 
-    private string _projectIcon => CatalogResult.SecurityClass.Contains("Protect") ? $"fas fa-lock-alt" : $"fas fa-lock-open-alt";
+    private string _projectIcon => CatalogResult.ClassificationType != ClassificationType.Unclassified ? $"fas fa-lock-alt" : $"fas fa-lock-open-alt";
     private string _fileIcon => GetFileIcon();
     private string _securityClassColor => GetSecurityClassColor();
     private string _metadataButtonColor => GetMetadataButtonColor();
@@ -142,23 +142,22 @@ else
     private async Task ShowMetadataEditor()
     {
         RenderFragment metadataEditor = 
-    @<ObjectMetadataEditor 
+        @<ObjectMetadataEditor 
                 @key=@CatalogResult.ObjectMetadataId
-            ObjectId=@CatalogResult.ObjectMetadataId.ToString() 
-            DefaultMetadataId=@CatalogResult.Location
-            Name=@CatalogResult.Name_English
-            Location=@CatalogResult.Location
-            SecurityClass=@CatalogResult.SecurityClass
-            SaveButtonLabel=@Localizer["OPENDATA-WIZARD.Save_button"] 
-            OnSave="HandleSave"
-            OnDiscard="HandleClose"
-            ValidateRequired=true
-            ProfileName="catalog"
-            ObjectType=@MetadataObjectType.File
-            UpdateCatalog=true
-            />;
-        await uiControlService.ToggleModal(@<RenderFragmentModal Fragment=@metadataEditor />
-    );
+                ObjectId=@CatalogResult.ObjectMetadataId.ToString() 
+                DefaultMetadataId=@CatalogResult.Location
+                Name=@CatalogResult.Name_English
+                Location=@CatalogResult.Location
+                SecurityClass=@SecurityClassification.GetSecurityClassification(CatalogResult.ClassificationType)
+                SaveButtonLabel=@Localizer["OPENDATA-WIZARD.Save_button"] 
+                OnSave="HandleSave"
+                OnDiscard="HandleClose"
+                ValidateRequired=true
+                ProfileName="catalog"
+                ObjectType=@MetadataObjectType.File
+                UpdateCatalog=true
+        />;
+        await uiControlService.ToggleModal(@<RenderFragmentModal Fragment=@metadataEditor />);
     }
 
     private async Task HandleSave(FieldValueContainer values)
@@ -213,16 +212,12 @@ else
 
     private string GetSecurityClassColor()
     {
-        var secClass = CatalogResult.SecurityClass;
-        switch (secClass.ToLower())
+        return CatalogResult.ClassificationType switch
         {
-            case "protected a":
-                return "#d69e2e";
-            case "protected b":
-                return "#e53e3e";
-            default:
-                return "#38a169";
-        }
+            ClassificationType.ProtectedA => "#d69e2e",
+            ClassificationType.ProtectedB => "#e53e3e",
+            _ => "#38a169"
+        };
     }
 
     private string GetFileIcon()
