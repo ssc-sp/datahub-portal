@@ -173,7 +173,7 @@
                                     Location="PowerBI"
                                     ProfileName="catalog"
                                     ObjectType=@Metadata.Model.MetadataObjectType.PowerBIDataset
-                                    UpdateCatalog=@true
+                                    UpdateCatalog=@IncludeCurrentItemInCatalog
                                     ValidateRequired=@false
                                     Name=@DatasetBeingEdited.DbDatasetName
                                     HideSaveButton
@@ -181,8 +181,14 @@
                                     DefaultMetadataId=@GetProjectMetadataUid(DatasetBeingEdited.ProjectId)
                                     @ref=@_datasetMetadata
                                     OnNewMetadataCreated=@AutoFillNewMetadataFields
+                                    OnExistingMetadataLoaded=@DetectIfCurrentItemIsInCatalog
                                 />
-
+                                <div>
+                                    <label>
+                                        <input type="checkbox" @bind=@IncludeCurrentItemInCatalog />
+                                        <AeTypography style="display: inline-block;"><strong><span>@Localizer[$"{LOCALIZATION_PREFIX}.IncludeInCatalog"]</span></strong></AeTypography>
+                                    </label>
+                                </div>
                                 <div>
                                     <AeButton OnClickEvent=@SaveDataset Disabled=@SaveDatasetDisabled>@Localizer[$"BUTTONS.Save"]</AeButton>
                                     <AeButton class="light" OnClickEvent=@CloseItemBeingEdited>@Localizer[$"BUTTONS.Cancel"]</AeButton>
@@ -225,15 +231,21 @@
                                     Location="PowerBI"
                                     ProfileName="catalog"
                                     ObjectType=@Metadata.Model.MetadataObjectType.PowerBIReport
-                                    UpdateCatalog=@true
+                                    UpdateCatalog=@IncludeCurrentItemInCatalog
                                     ValidateRequired=@false
                                     Name=@ReportBeingEdited.DbReportName
                                     HideSaveButton
                                     OnValuesChanged=@(() => StateHasChanged())
                                     DefaultMetadataId=@GetProjectMetadataUid(ReportBeingEdited.ProjectId)
                                     OnNewMetadataCreated=@AutoFillNewMetadataFields
+                                    OnExistingMetadataLoaded=@DetectIfCurrentItemIsInCatalog
                                 />
-
+                                <div>
+                                    <label>
+                                        <input type="checkbox" @bind=@IncludeCurrentItemInCatalog />
+                                        <AeTypography style="display: inline-block;"><strong><span>@Localizer[$"{LOCALIZATION_PREFIX}.IncludeInCatalog"]</span></strong></AeTypography>
+                                    </label>
+                                </div>
                                 <div>
                                     <AeButton OnClickEvent=@SaveReport Disabled=@SaveReportDisabled>@Localizer[$"BUTTONS.Save"]</AeButton>
                                     <AeButton class="light" OnClickEvent=@CloseItemBeingEdited>@Localizer[$"BUTTONS.Cancel"]</AeButton>
@@ -637,6 +649,12 @@
         StateHasChanged();
 
         var success = await _reportMetadata.SaveChanges();
+
+        if (success && !IncludeCurrentItemInCatalog)
+        {
+            await _metadataService.DeleteFromCatalog(_reportMetadata.ObjectId);
+        }
+
         if (success)
         {
             await _saveReportInd.SignalSuccess();
@@ -660,6 +678,12 @@
         StateHasChanged();
 
         var success = await _datasetMetadata.SaveChanges();
+
+        if (success && !IncludeCurrentItemInCatalog)
+        {
+            await _metadataService.DeleteFromCatalog(_datasetMetadata.ObjectId);
+        }
+
         if (success)
         {
             await _saveDatasetInd.SignalSuccess();
