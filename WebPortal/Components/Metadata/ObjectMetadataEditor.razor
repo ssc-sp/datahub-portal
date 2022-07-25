@@ -274,13 +274,13 @@
             digest.Sector, 
             digest.Branch, 
             digest.Contact, 
-            GetMetadataClassificationType(SecurityClass),
+            GetClassificationType(SecurityClass),
             digest.EnglishCatalog, 
             digest.FrenchCatalog
         );
     }
 
-    private ClassificationType GetMetadataClassificationType(string securityClass)
+    private ClassificationType GetClassificationType(string securityClass)
     {
         return securityClass switch
         {
