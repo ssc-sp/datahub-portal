@@ -6,6 +6,7 @@
 @inject IDbContextFactory<DatahubProjectDBContext> _contextFactory
 @inject IMSGraphService _msGraphService
 @inject TranslationService _translationService
+@inject IMetadataBrokerService _metadataService
 
 @* TODO create binding variables for security classifications rather than binding to the metadta editor property directly *@
 
@@ -115,7 +116,7 @@
                                     Location="PowerBI"
                                     ProfileName="catalog"
                                     ObjectType=@Metadata.Model.MetadataObjectType.PowerBIWorkspace
-                                    UpdateCatalog=@true
+                                    UpdateCatalog=@IncludeCurrentItemInCatalog
                                     ValidateRequired=@false
                                     Name=@WorkspaceBeingEdited.DbWorkspaceName
                                     HideSaveButton
@@ -123,7 +124,14 @@
                                     @ref=@_workspaceMetadata
                                     DefaultMetadataId=@GetProjectMetadataUid(WorkspaceBeingEdited.ProjectId)
                                     OnNewMetadataCreated=@AutoFillNewMetadataFields
+                                    OnExistingMetadataLoaded=@DetectIfCurrentItemIsInCatalog
                                 />
+                                <div>
+                                    <label>
+                                        <input type="checkbox" @bind=@IncludeCurrentItemInCatalog />
+                                        <AeTypography style="display: inline-block;"><strong><span>Include in Catalog</span></strong></AeTypography>
+                                    </label>
+                                </div>
                                 <div>
                                     <AeButton OnClickEvent=@SaveWorkspace Disabled=@SaveWorkspaceDisabled>@Localizer[$"BUTTONS.Save"]</AeButton>
                                     <AeButton class="light" OnClickEvent=@CloseItemBeingEdited>@Localizer[$"BUTTONS.Cancel"]</AeButton>
@@ -380,6 +388,8 @@
     private PowerBiAdminDatasetTreeItem DatasetBeingEdited { get; set; }
     private PowerBiAdminReportTreeItem ReportBeingEdited { get; set; }
 
+    private bool IncludeCurrentItemInCatalog { get; set; } = true;
+
     private ObjectMetadataEditor _workspaceMetadata;
     private bool IsSavingWorkspace { get; set; } = false;
     private bool SaveWorkspaceDisabled => IsSavingWorkspace || (_workspaceMetadata?.SaveDisabled ?? false);
@@ -522,6 +532,8 @@
         DatasetBeingEdited = null;
         ReportBeingEdited = null;
 
+        IncludeCurrentItemInCatalog = true;
+
         await Task.CompletedTask;
     }
 
@@ -568,7 +580,7 @@
         await DoUpdateWorkspaceProjectAssignment();
 
         var workspace = WorkspaceBeingEdited;
-        
+
         var workspaceTreeTask = LoadWorkspaceTreeItems();
 
         WorkspaceBeingEdited = null;
@@ -596,6 +608,11 @@
         var success = await DoUpdateWorkspaceProjectAssignment();
 
         success &= await _workspaceMetadata.SaveChanges();
+
+        if (success && !IncludeCurrentItemInCatalog)
+        {
+            await _metadataService.DeleteFromCatalog(_workspaceMetadata.ObjectId);
+        }
 
         if (success)
         {
@@ -722,6 +739,19 @@
         }
 
         await Task.CompletedTask;
+    }
+
+    private async Task DetectIfCurrentItemIsInCatalog()
+    {
+        var metadataEditor = GetCurrentlyActiveMetadataEditor();
+        if (metadataEditor == null)
+        {
+            // reset boolean to default, just in case
+            IncludeCurrentItemInCatalog = true;
+            return;
+        }
+
+        IncludeCurrentItemInCatalog = await _metadataService.IsObjectCatalogued(metadataEditor.ObjectId);
     }
 
     private async Task ImportPowerBiItems()

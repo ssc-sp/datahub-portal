@@ -27,6 +27,8 @@ namespace Datahub.Core.Services
         Task<FieldDefinitions> GetFieldDefinitions();
         Task<CatalogObjectResult> GetCatalogObjectByMetadataId(long metadataId);
         Task<CatalogObjectResult> GetCatalogObjectByObjectId(string objectId);
+        Task<bool> IsObjectCatalogued(string objectId);
+        Task DeleteFromCatalog(string objectId);
     }
     
     public record CatalogSearchRequest
