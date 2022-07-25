@@ -217,7 +217,7 @@ namespace Datahub.Core.Services
         }
 
         public async Task UpdateCatalog(long objectMetadataId, MetadataObjectType dataType, string objectName, string location,
-            int sector, int branch, string contact, string securityClass, string englishText, string frenchText)
+            int sector, int branch, string contact, ClassificationType securityClass, string englishText, string frenchText)
         {
             using var ctx = _contextFactory.CreateDbContext();
 
@@ -241,7 +241,7 @@ namespace Datahub.Core.Services
                     Sector_NUM = sector,
                     Branch_NUM = branch,
                     Contact_TXT = contact,
-                    SecurityClass_TXT = !string.IsNullOrEmpty(securityClass) ? securityClass : SecurityClassification.Unclassified,
+                    Classification_Type = securityClass,
                     Search_English_TXT = englishText,
                     Search_French_TXT = frenchText
                 };
@@ -272,7 +272,7 @@ namespace Datahub.Core.Services
             var conditions = new List<string>()
             {
                 GetSearchTextCondition(request.Keywords, request.IsFrench ? "Search_French_TXT" : "Search_English_TXT"),
-                GetOrSearchCondition(request.Classifications, "SecurityClass_TXT"),
+                GetOrSearchCondition(request.Classifications, "Classification_Type"),
                 GetOrSearchCondition(request.ObjectTypes.Select(o => (int)o), "DataType"),
                 GetOrSearchCondition(request.Sectors, "Sector_NUM"),
                 GetOrSearchCondition(request.Branches, "Branch_NUM")
@@ -325,8 +325,8 @@ namespace Datahub.Core.Services
         static string GetOrSearchCondition(IEnumerable<int> values, string fieldName) =>
             string.Join(" OR ", values.Select(v => $"{fieldName} = {v}"));
 
-        static string GetOrSearchCondition(IEnumerable<MetadataClassificationType> values, string fieldName) =>
-            string.Join(" OR ", values.Select(v => $"{fieldName} = '{v}'"));
+        static string GetOrSearchCondition(IEnumerable<ClassificationType> values, string fieldName) =>
+            string.Join(" OR ", values.Select(v => $"{fieldName} = {(int)v}"));
 
         static IEnumerable<char> PreProcessSearchText(string text)
         {
@@ -451,7 +451,11 @@ namespace Datahub.Core.Services
                 Sector = catObj.Sector_NUM,
                 Branch = catObj.Branch_NUM,
                 Contact = catObj.Contact_TXT,
-                SecurityClass = catObj.SecurityClass_TXT,
+                //SecurityClass = catObj.SecurityClass_TXT,
+                ClassificationType = catObj.Classification_Type,
+                Language = catObj.Language,
+                Url_English = catObj.Url_English_TXT,
+                Url_French = catObj.Url_French_TXT,
                 Metadata = new FieldValueContainer(catObj.ObjectMetadata.ObjectMetadataId, catObj.ObjectMetadata.ObjectId_TXT, definitions, 
                     catObj.ObjectMetadata.FieldValues)
             };

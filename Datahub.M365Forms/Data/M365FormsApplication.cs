@@ -62,9 +62,10 @@ namespace Datahub.Portal.Data
         [AeLabel(isDropDown: true, placeholder: "Select whether this team will be accessible to:", validValues: new[] { "Private (select members only)", "Public (all NRCan staff)" })]
         public string Visibility { get; set; } = null!;
 
+        [Required]
         [AeFormCategory("GCdocs Folder Location", 50)]
         [AeLabel(placeholder: "Insert the GCdocs hyperlink (i.e. https://gcdocs.gc.ca/nrcan-rncan/llisapi.dll/Overview/XXXXXXXX) of where business value information will be saved.")]
-        public string? GCdocs_Hyperlink_URL { get; set; }
+        public string GCdocs_Hyperlink_URL { get; set; } = null!;
 
         [AeFormCategory("Lifespan of Team", 60)]
         public bool Ongoing_Lifespan { get; set; }

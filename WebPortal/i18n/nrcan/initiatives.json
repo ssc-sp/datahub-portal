@@ -12,7 +12,8 @@
     "Datasets": "Datasets",
     "PowerBI": "Power BI",
     "Admin": "Admin",
-    "Tools": "Tools"
+    "Tools": "Tools",
+    "Catalog":  "Catalog"
   },
   "OPENDATA-WIZARD": {
     "Page_Title": "Share on Open Data",
@@ -228,7 +229,8 @@
     "serviceType": "Service Type",
     "requestingUser": "Requesting User"
   },
-
+  "Welcome to Data Projects": "Welcome to Data Initiatives",
+  "Filter projects": "Filter initiatives",
   "Project_Summary_Desc": "Initiative Summary (English)",
   "Project_Admin": "Initiative Admin",
   "Project_Acronym_CD": "Initiative Acronym",
@@ -266,5 +268,6 @@
   "View Project": "View Initiative",
   "DataHub Project Tracker": "DataHub Initiative Tracker",
   "The current project has {0} active file shared": "The current initiative has {0} active file shared",
-  "Project Resource Definitions": "Initiative Resource Definitions"
+  "Project Resource Definitions": "Initiative Resource Definitions",
+  "Welcome to your Data Project": "Welcome to your Data Initiative"
 }

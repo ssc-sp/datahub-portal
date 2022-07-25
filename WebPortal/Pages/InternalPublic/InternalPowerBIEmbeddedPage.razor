@@ -1,5 +1,4 @@
-﻿@page "/internal-powerbi-report/{GroupId}/{ReportId}"
-@page "/internal-powerbi-report/{ReportId}"
+﻿@page "/internal-powerbi-report/{lang}/{eng_guid}/{fre_guid}"
 @using System.Net.Http
 @using System.Threading.Tasks
 @using Microsoft.Identity.Client
@@ -17,64 +16,80 @@
 @using Microsoft.Identity.Web
 @inject MicrosoftIdentityConsentAndConditionalAccessHandler ConsentHandler
 
-<div @ref="@PowerBIElement" style="width:100%;height:600px;max-width: 2000px" />
+
+    <div @ref="@_powerBIElement" style="width:100%;height:600px;max-width: 2000px" />
 
 @code {
+    [Parameter]
+    public string lang { get; set; } = "en";
 
     [Parameter]
-    public string ReportId {  get;  set; }
+    public string eng_guid { get; set; }
 
     [Parameter]
-    public string GroupId {  get;  set; }
+    public string fre_guid { get; set; }
 
-    [Parameter]
-    [SupplyParameterFromQuery]
-    public bool ReadOnly { get; set; }
+    [CascadingParameter(Name = "UserLanguage")]
+    public (Func<string> currentLanguage, Action<string> setLanguage) UserLanguage { get; set; }
 
-    //protected override async Task OnAfterRenderAsync(bool firstRender)
-    //{
-    //    await JSRuntime.InvokeVoidAsync("ResizeIFrame","#powerbi-iframe");
-    //}
 
-    private ElementReference PowerBIElement;
+    private ElementReference _powerBIElement;
 
     private Report report;
     private string reportToken;
+    private string _reportLanguage;
+    private bool _readOnly = true;
+    private PowerBISettings pbiSettings;
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
+    {
+        UserLanguage.setLanguage(lang);            
+    }
+
+    protected override async Task OnParametersSetAsync()
     {
         try
-        {
-            if (GroupId is null)
-                report = await PowerBiServiceApi.GetReport(ReportId);                
+        {            
+            _reportLanguage = lang;
+            if (_reportLanguage == "en")
+                report = await PowerBiServiceApi.GetReport(eng_guid);
             else
-                report = await PowerBiServiceApi.GetReport(ReportId, GroupId);                
+                report = await PowerBiServiceApi.GetReport(fre_guid);
+
             reportToken = await PowerBiServiceApi.GetAccessTokenAsync();
         } catch (Exception ex)
         {
             ConsentHandler.HandleException(ex);
         }
-        var pbiSettings = new PowerBISettings();
-        if (ReadOnly)
+        pbiSettings = new PowerBISettings();
+
+        if (_readOnly)
         {
-            pbiSettings.bars.actionBar.visible = false;
-            pbiSettings.navContentPaneEnabled = false;            
+            pbiSettings.bars.actionBar.visible = true;
+            pbiSettings.navContentPaneEnabled = true;
+            pbiSettings.filterPaneEnabled = true;
+
         }
 
         if (report != null)
         {
+            var embedURL = _reportLanguage == "en" ? $"{report.EmbedUrl}&language=en-ca" : $"{report.EmbedUrl}&language=fr-ca";
             await JSRuntime.InvokeAsync<object>(
                 "ShowMyPowerBI.showReport",
-                PowerBIElement, reportToken, report.EmbedUrl,
-                report.Id.ToString(), pbiSettings);
+                _powerBIElement, reportToken, embedURL,
+                report.Id.ToString(), pbiSettings);            
         }
     }
 
     protected override void OnAfterRender(bool firstRender)
     {
-        if (firstRender)
+        if (!firstRender)
         {
-            // ??
+            var newLang = UserLanguage.currentLanguage();
+            if (newLang != _reportLanguage)
+            {
+                NavigationManager.NavigateTo($"/internal-powerbi-report/{newLang}/{eng_guid}/{fre_guid}", forceLoad: true);
+            }            
         }
     }
 
