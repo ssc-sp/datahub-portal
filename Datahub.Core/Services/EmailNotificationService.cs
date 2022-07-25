@@ -532,6 +532,17 @@ namespace Datahub.Core.Services
 
         }
 
+        public async Task SendExternalPowerBiCreationRequested(PowerBiExternalReportParameters parameters)
+        {
+            var parametersDict = BuildPowerBiExternalReportParameters(parameters);
+
+            var subject = $"External Power Bi Report Requested";
+
+            var html = await RenderTemplate<ExternalPowerBiCreation>(parametersDict);
+
+            await SendEmailMessage(subject, html, parameters.AdminEmailAddresses);
+        }
+
         private Dictionary<string, object> BuildLanguageNotificationParameters(LanguageTrainingParameters parameters)
         {
             parameters.AppUrl = BuildAppLink(parameters.AppUrl);
@@ -729,11 +740,11 @@ namespace Datahub.Core.Services
         public string AppUrl;
         public List<string> AdminEmailAddresses;
     }
-
     public class PowerBiExternalReportParameters
     {
         public ExternalPowerBiReport App;
         public string AppUrl;
+        public List<string> AdminEmailAddresses;
     }
 
     public class M365FormsParameters

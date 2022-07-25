@@ -1,7 +1,8 @@
 ﻿@inject IPowerBiDataService PowerBiDataService
 @inject IUserInformationService UserInformationService
 @inject IMSGraphService MSGraphService
-
+@inject ServiceAuthManager ServiceAuthManager
+@inject IEmailNotificationService EmailService
 @if (_isReportActive)
 {
     <div @onclick="() => OnRevokeClick(PowerBi_Report.Report_ID)" style="cursor:pointer;">
@@ -34,7 +35,7 @@ else
 
     private bool _isReportRequested;
     private bool _isReportActive;
-
+    private const string PROJECTACRONYM = "DHPGLIST";
 
     protected override async Task OnInitializedAsync()
     {
@@ -63,6 +64,13 @@ else
         var currentUserId = await UserInformationService.GetUserIdString();
         var requestingUserEmail = await MSGraphService.GetUserEmail(currentUserId, CancellationToken.None);
         await PowerBiDataService.CreateExternalPowerBiReportRequest(requestingUserEmail, reportId);
+        PowerBiExternalReportParameters powerbiExternalParameters = new() { 
+                            AppUrl = $"/administration",
+                            App = null, 
+                            AdminEmailAddresses =  ServiceAuthManager.GetProjectMailboxEmails(PROJECTACRONYM)
+                        };
+        await EmailService.SendExternalPowerBiCreationRequested(powerbiExternalParameters);
+
         await RefreshTable.InvokeAsync();
     }
 
