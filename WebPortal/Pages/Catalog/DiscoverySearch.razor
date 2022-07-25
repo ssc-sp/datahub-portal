@@ -56,8 +56,8 @@
 								<ChildContent>
 									<AeFlex Vertical>
 										<div class="with-bottom-margin">
-											<MultiCheckboxSelect T=MetadataClassificationType
-																 Options=@(Enum.GetValues<MetadataClassificationType>())
+											<MultiCheckboxSelect T=ClassificationType
+																 Options=@(Enum.GetValues<ClassificationType>())
 																 OptionLabelFunction=@(t => GetLocalizedClassificationType(t))
 																 OptionSortFunction=@(t => GetLocalizedClassificationType(t))
 																 OnSelectionChanged=@UpdateClassificationTypeFilter
@@ -124,7 +124,7 @@
 														<option value=@NO_FILTER_SELECTED>@Localizer["DISCOVERY-FILTERS.(All Branches)"]</option>
 														@foreach (var branch in _filteredBranches)
 														{
-															<option value=@branch.Id>@GetLabel(branch)</option>
+															<option value=@branch.Id>@GetLabel(branch, _isFrench)</option>
 														}
 													</select>
 												}
@@ -148,7 +148,6 @@
 								<ItemTemplate Context="item">
 									<CatalogCards @key=@item
 											  CatalogResult=@item
-											  IsFrench=@_isFrench
 											  Project=@GetProject(item)
 											  MapSector=@GetSector
 											  MapBranch=@GetBranch>
@@ -228,15 +227,15 @@
 
 	private HashSet<OrganizationLevel> _filteredSectors = new();
 	private HashSet<MetadataObjectType> _filteredDataTypes = new();
-	private HashSet<MetadataClassificationType> _filteredClassificationTypes = new();
+	private HashSet<ClassificationType> _filteredClassificationTypes = new();
 
 	private MultiCheckboxSelect<OrganizationLevel> _sectorFilter;
 	private MultiCheckboxSelect<MetadataObjectType> _objectTypeFilter;
-	private MultiCheckboxSelect<MetadataClassificationType> _classificationTypeFilter;
+	private MultiCheckboxSelect<ClassificationType> _classificationTypeFilter;
 	private int _filterSector = NO_FILTER_SELECTED;
 	private int _filterBranch = NO_FILTER_SELECTED;
 	private string _securityFilter = string.Empty;
-	private List<OrganizationLevel> _filteredBranches => _branches.Values.Where(b => b.ParentId == _filterSector).OrderBy(b => GetLabel(b)).ToList();
+	private List<OrganizationLevel> _filteredBranches => _branches.Values.Where(b => b.ParentId == _filterSector).OrderBy(b => GetLabel(b, _isFrench)).ToList();
 
 	private bool _searchFilterSectionOpen = true;
 	private bool _securityFilterSectionOpen = true;
@@ -292,7 +291,7 @@
 
 	private string GetLocalizedDataType(MetadataObjectType dataType) => Localizer[$"DISCOVERY-DATA-TYPES.{dataType}"];
 
-	private string GetLocalizedClassificationType(MetadataClassificationType dataType) => Localizer[$"DISCOVERY-DATA-TYPES.{dataType}"];
+	private string GetLocalizedClassificationType(ClassificationType dataType) => Localizer[$"DISCOVERY-DATA-TYPES.{dataType}"];
 
 	private async Task UpdateSectorFilter(IEnumerable<OrganizationLevel> filteredTypes)
 	{
@@ -314,7 +313,7 @@
         await UpdateFilter();
     }
 
-	private async Task UpdateClassificationTypeFilter(IEnumerable<MetadataClassificationType> filteredTypes)
+	private async Task UpdateClassificationTypeFilter(IEnumerable<ClassificationType> filteredTypes)
 	{
 		_filteredClassificationTypes = filteredTypes.ToHashSet();
 		await UpdateFilter();
@@ -339,7 +338,7 @@
 
 	private void GetMetadataClassificationType(string securityClass)
 	{
-		var enumType = Enum.Parse(typeof(MetadataClassificationType), securityClass);
+		var enumType = Enum.Parse(typeof(ClassificationType), securityClass);
 	}
 
 	private async Task UpdateFilter()
@@ -360,10 +359,6 @@
 
 			// contact
 			if (string.IsNullOrEmpty(result.Contact))
-				return false;
-
-			// security class
-			if (string.IsNullOrEmpty(result.SecurityClass))
 				return false;
 
 			// subject
@@ -420,27 +415,24 @@
 		_sectorFilterSectionOpen = e.Open;
 	}
 
-    // accessor functions
-    private string GetName(CatalogObjectResult result) => result.Name_English;
-    private string GetSector(CatalogObjectResult result) => GetLabel(_sectors.GetValueOrDefault(result.Sector));
-    private string GetBranch(CatalogObjectResult result) => GetLabel(_branches.GetValueOrDefault(result.Branch));
-    private string GetContact(CatalogObjectResult result) => result.Contact;
-    private string GetDataType(CatalogObjectResult result) => GetLocalizedDataType(result.DataType);
-    private string GetSecurityClass(CatalogObjectResult result) => Localizer[result.SecurityClass];
-    private string GetLabel(OrganizationLevel orgLevel) => (_isFrench ? orgLevel?.FrenchLabel : orgLevel?.EnglishLabel) ?? "-";
+    private string GetSector(CatalogObjectResult result, bool french) => GetLabel(_sectors.GetValueOrDefault(result.Sector), french);
+
+    private string GetBranch(CatalogObjectResult result, bool french) => GetLabel(_branches.GetValueOrDefault(result.Branch), french);
+
+    private string GetLabel(OrganizationLevel orgLevel, bool french) => (french ? orgLevel?.FrenchLabel : orgLevel?.EnglishLabel) ?? "-";
 
     // renderer functions
-    private RenderFragment GetDownLoadFragment(CatalogObjectResult result) =>
-    SecurityClassification.Unclassified.Equals(result.SecurityClass)
-        ? GetAuthorizedDownload(result)
-        : GetUnauthorizedDownload(result);
+    private RenderFragment GetDownLoadFragment(CatalogObjectResult result) => 
+		result.ClassificationType == ClassificationType.Unclassified ? GetAuthorizedDownload(result) : GetUnauthorizedDownload(result);
 
     private RenderFragment GetAuthorizedDownload(CatalogObjectResult result) =>
-    @<AeButton class="blue" onclick=@(() => HandleDownload(result))>@Localizer[GetButtonText(result)]</AeButton>;
+		@<AeButton class="blue" onclick=@(() => HandleDownload(result))>@Localizer[GetButtonText(result)]</AeButton>;
 
-    private RenderFragment GetUnauthorizedDownload(CatalogObjectResult result) =>
-    @<AeButton class="red" onclick=@(() => HandleDownload(result))>@(SecurityClassification.ProtectedA.Equals(result.SecurityClass) ? Localizer["Protected A - Request Access"] : Localizer["Protected B - Request Access"])</AeButton>
-    ;
+	private RenderFragment GetUnauthorizedDownload(CatalogObjectResult result)
+	{
+		var label = result.ClassificationType == ClassificationType.ProtectedA ? Localizer["Protected A - Request Access"] : Localizer["Protected B - Request Access"];
+		return @<AeButton class="red" onclick=@(() => HandleDownload(result))>@label</AeButton>;
+	}
 
 	private async Task HandleDownload(CatalogObjectResult result)
 	{
@@ -458,7 +450,7 @@
 		}
 		else if (result.DataType == MetadataObjectType.DatasetUrl)
 		{
-			await RedirectAndDownload(result.Location);
+			await RedirectAndDownload(result.IsFrench ? result.Url_French : result.Url_English);
 		}
 	}
 
@@ -552,6 +544,10 @@
 			_catalogSearchRequest = new(0, 10, _isFrench, keywords, _filteredClassificationTypes.ToList(), _filteredDataTypes.ToList(), sectors, branches);
 			var results = await MetadataBrokerService.SearchCatalog(_catalogSearchRequest, CheckMetadataCompleted);
 			_lastQueryCount = results.Count;
+
+			// apply localization
+			foreach (var r in results)
+				r.IsFrench = _isFrench;
 
 			return results;
 		}
