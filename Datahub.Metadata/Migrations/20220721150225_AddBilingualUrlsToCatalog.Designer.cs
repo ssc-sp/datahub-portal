@@ -4,6 +4,7 @@ using Datahub.Metadata.Model;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Datahub.Metadata.Migrations
 {
     [DbContext(typeof(MetadataDbContext))]
-    partial class MetadataDbContextModelSnapshot : ModelSnapshot
+    [Migration("20220721150225_AddBilingualUrlsToCatalog")]
+    partial class AddBilingualUrlsToCatalog
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -140,9 +142,6 @@ namespace Datahub.Metadata.Migrations
 
                     b.Property<int>("Branch_NUM")
                         .HasColumnType("int");
-
-                    b.Property<byte>("Classification_Type")
-                        .HasColumnType("tinyint");
 
                     b.Property<string>("Contact_TXT")
                         .HasColumnType("nvarchar(max)");

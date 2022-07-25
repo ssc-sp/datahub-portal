@@ -1,4 +1,6 @@
-﻿namespace Datahub.Metadata.Model
+﻿using System.ComponentModel;
+
+namespace Datahub.Metadata.Model
 {
     public enum MetadataObjectType : byte
     {
@@ -10,12 +12,5 @@
         GeoObject,
         Database,
         DatasetUrl
-    }
-
-    public enum MetadataClassificationType : byte
-    { 
-        Unclassified,
-        ProtectedA,
-        ProtectedB  
     }
 }

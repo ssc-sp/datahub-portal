@@ -21,13 +21,13 @@
 
 @code {
     [Parameter]
-    public string? lang { get; set; }
+    public string lang { get; set; } = "en";
 
     [Parameter]
-    public string? eng_guid { get; set; }
+    public string eng_guid { get; set; }
 
     [Parameter]
-    public string? fre_guid { get; set; }
+    public string fre_guid { get; set; }
 
     [CascadingParameter(Name = "UserLanguage")]
     public (Func<string> currentLanguage, Action<string> setLanguage) UserLanguage { get; set; }
@@ -40,7 +40,6 @@
     private string _reportLanguage;
     private bool _readOnly = true;
     private PowerBISettings pbiSettings;
-    private bool _firstLoad = true;
 
     protected override void OnInitialized()
     {
