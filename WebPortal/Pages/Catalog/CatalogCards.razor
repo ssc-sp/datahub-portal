@@ -12,9 +12,17 @@ else
 {
     <div class="card">
         <div class="topright">
+            @if (CatalogResult.Language == CatalogObjectLanguage.Bilingual)
+            {
+                <a @onclick="SwitchLanguage" style="cursor: pointer;">
+                    <i class="fad fa-repeat"></i>
+                    <span>@GetOtherLangauge()</span>
+                </a>
+            }
+            
             <div style="@($"--security-text-color: {_securityClassColor}")" class="securityclass">
                 <i class="@($"fad fa-{_projectIcon}")"></i>
-                <p><b>@Localizer["DISCOVERY-LABELS.DATA SENSITIVITY"]: @Localizer[@CatalogResult.SecurityClass]</b></p>
+                <p><b>@Localizer["DISCOVERY-LABELS.DATA SENSITIVITY"]: @Localizer[SecurityClassification.GetSecurityClassification(CatalogResult.ClassificationType)]</b></p>
             </div>            
 
             @if (!string.IsNullOrEmpty(_allFieldValues["name"]))
@@ -53,8 +61,8 @@ else
             }   
         </div>
         <div class="details-right">
-            <AeTypography Variant="p no-margin"><b>@Localizer["Sector"]: </b>@(MapSector?.Invoke(CatalogResult) ?? "")</AeTypography>
-            <AeTypography Variant="p no-margin"><b>@Localizer["Branch"]: </b>@(MapBranch?.Invoke(CatalogResult) ?? "")</AeTypography>
+            <AeTypography Variant="p no-margin"><b>@Localizer["Sector"]: </b>@(MapSector?.Invoke(CatalogResult, IsFrench) ?? "")</AeTypography>
+            <AeTypography Variant="p no-margin"><b>@Localizer["Branch"]: </b>@(MapBranch?.Invoke(CatalogResult, IsFrench) ?? "")</AeTypography>
             <div title="@GetFieldDefinitions("collection")"><AeTypography Variant="p no-margin"><b>@Localizer["DISCOVERY-LABELS.Collection Type"]: </b>@GetLabel("collection")</AeTypography></div>
         </div>
         <div class="bottom-row">
@@ -78,19 +86,18 @@ else
     [Parameter]
     public Datahub_Project Project { get; set; }
 
-    [Parameter]
-    public bool IsFrench { get; set; }
+    public bool IsFrench => CatalogResult?.IsFrench == true;
 
     [Parameter]
-    public Func<CatalogObjectResult, string> MapSector { get; set; }
+    public Func<CatalogObjectResult, bool, string> MapSector { get; set; }
 
     [Parameter]
-    public Func<CatalogObjectResult, string> MapBranch { get; set; }
+    public Func<CatalogObjectResult, bool, string> MapBranch { get; set; }
 
     [Parameter]
     public RenderFragment ChildContent { get; set; }
 
-    private string _projectIcon => CatalogResult.SecurityClass.Contains("Protect") ? $"fas fa-lock-alt" : $"fas fa-lock-open-alt";
+    private string _projectIcon => CatalogResult.ClassificationType != ClassificationType.Unclassified ? $"fas fa-lock-alt" : $"fas fa-lock-open-alt";
     private string _fileIcon => GetFileIcon();
     private string _securityClassColor => GetSecurityClassColor();
     private string _metadataButtonColor => GetMetadataButtonColor();
@@ -106,11 +113,13 @@ else
 
     private string GetTitle() 
     {
-        var key = IsFrench ? "title_translated_fr" : "title_translated_en";
-        var title = _allFieldValues.ContainsKey(key) ? _allFieldValues[key] : string.Empty;
+        var name_en = _allFieldValues.ContainsKey("title_translated_en") ? _allFieldValues["title_translated_en"] : string.Empty;
+        var name_fr = _allFieldValues.ContainsKey("title_translated_fr") ? _allFieldValues["title_translated_fr"] : string.Empty;
 
-        if (string.IsNullOrEmpty(title) && _allFieldValues.ContainsKey("name"))
-            title = _allFieldValues["name"];
+        var title = IsFrench ? name_fr : name_en;
+
+        if (string.IsNullOrEmpty(title))
+            title = name_en;
 
         return title;
     }
@@ -124,7 +133,7 @@ else
 
     private string GetLabel(string label) 
     {
-        var subjects = _fieldValues.GetSelectedChoices(label).Select(s => s.Label).ToList();
+        var subjects = _fieldValues.GetSelectedChoices(label).Select(s => IsFrench ? s.Label_French_TXT : s.Label_English_TXT).ToList();
         return subjects.Any() ? subjects[0] : string.Empty;
     }
 
@@ -134,22 +143,21 @@ else
     {
         RenderFragment metadataEditor = 
         @<ObjectMetadataEditor 
-            @key=@CatalogResult.ObjectMetadataId
-            ObjectId=@CatalogResult.ObjectMetadataId.ToString() 
-            DefaultMetadataId=@CatalogResult.Location
-            Name=@CatalogResult.Name_English
-            Location=@CatalogResult.Location
-            SecurityClass=@CatalogResult.SecurityClass
-            SaveButtonLabel=@Localizer["OPENDATA-WIZARD.Save_button"] 
-            OnSave="HandleSave"
-            OnDiscard="HandleClose"
-            ValidateRequired=true
-            ProfileName="catalog"
-            ObjectType=@MetadataObjectType.File
-            UpdateCatalog=true
+                @key=@CatalogResult.ObjectMetadataId
+                ObjectId=@CatalogResult.ObjectMetadataId.ToString() 
+                DefaultMetadataId=@CatalogResult.Location
+                Name=@CatalogResult.Name_English
+                Location=@CatalogResult.Location
+                SecurityClass=@SecurityClassification.GetSecurityClassification(CatalogResult.ClassificationType)
+                SaveButtonLabel=@Localizer["OPENDATA-WIZARD.Save_button"] 
+                OnSave="HandleSave"
+                OnDiscard="HandleClose"
+                ValidateRequired=true
+                ProfileName="catalog"
+                ObjectType=@MetadataObjectType.File
+                UpdateCatalog=true
         />;
-        await uiControlService.ToggleModal(@<RenderFragmentModal Fragment=@metadataEditor />
-    );
+        await uiControlService.ToggleModal(@<RenderFragmentModal Fragment=@metadataEditor />);
     }
 
     private async Task HandleSave(FieldValueContainer values)
@@ -204,16 +212,12 @@ else
 
     private string GetSecurityClassColor()
     {
-        var secClass = CatalogResult.SecurityClass;
-        switch (secClass.ToLower())
+        return CatalogResult.ClassificationType switch
         {
-            case "protected a":
-                return "#d69e2e";
-            case "protected b":
-                return "#e53e3e";
-            default:
-                return "#38a169";
-        }
+            ClassificationType.ProtectedA => "#d69e2e",
+            ClassificationType.ProtectedB => "#e53e3e",
+            _ => "#38a169"
+        };
     }
 
     private string GetFileIcon()
@@ -245,4 +249,12 @@ else
             Label_French_TXT = l.FrenchLabel
         }).ToList();
     }
+
+    private void SwitchLanguage()
+    {
+        CatalogResult.IsFrench = !CatalogResult.IsFrench;
+        StateHasChanged();
+    }
+
+    private string GetOtherLangauge() => IsFrench ? "English" : "Français";
 }

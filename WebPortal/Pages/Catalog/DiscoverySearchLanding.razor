@@ -1,4 +1,6 @@
-﻿<AeFlex Vertical>
+﻿@*DiscoverySearchLanding.razor*@
+
+<AeFlex Vertical>
 	<h1>@Localizer["DataHub Data Catalog"]</h1>
 	
 	<div>
@@ -13,7 +15,7 @@
 		<div class="ae flex wrap">
 			@foreach (var sector in Sectors)
 			{
-				<AeCard class="facard1" CardPosition="AeCard.CardStyle.Horizontal" onclick=@(() => ClickSector(sector))>
+				<AeCard class="facard1" style="cursor: pointer;" CardPosition="AeCard.CardStyle.Horizontal" onclick=@(() => ClickSector(sector))>
 					<Header>
 						<div style="width:120px">                        
 							<AeIcon class=@GetIconClass(sector.Id) />
@@ -36,7 +38,7 @@
 	<div>
 		<h2>@Localizer["Publish"]</h2>
 		<div>
-			@Localizer["Contact the DataHub team (nrcan.datahub.rncan@canada.ca) for details on how to publish your data to the Data Catalog."]
+			@Localizer["Contact the DataHub team (datahub@nrcan-rncan.gc.ca) for details on how to publish your data to the Data Catalog."]
 		</div>
 	</div>
 	</AeFlex>
