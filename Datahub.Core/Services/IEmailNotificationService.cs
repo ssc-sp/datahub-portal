@@ -33,6 +33,7 @@ namespace Datahub.Core.Services
         Task SendComputeCostEstimate(User estimatingUser, Dictionary<string, object> parameters);
         Task SendM365FormsConfirmations(M365FormsParameters parameters);
         Task SendPowerBiExternalUrlEmail(PowerBiExternalReportParameters parameters);
+        Task SendExternalPowerBiCreationRequested(PowerBiExternalReportParameters parameters);
     }
 
     public record DatahubProjectInfo(string ProjectNameEn, string ProjectNameFr, string ProjectCode);
