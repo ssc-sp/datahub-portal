@@ -1,6 +1,6 @@
 ﻿namespace Datahub.Metadata.Model
 {
-    public enum MetadataClassificationType : byte
+    public enum ClassificationType : byte
     { 
         Unclassified,
         ProtectedA,

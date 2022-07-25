@@ -57,7 +57,7 @@
         /// <summary>
         /// ClassificationType: Unclassified, Protected A or Protected B
         /// </summary>
-        public MetadataClassificationType Classification_Type { get; set; }
+        public ClassificationType Classification_Type { get; set; }
     }
 
     public enum CatalogObjectLanguage
