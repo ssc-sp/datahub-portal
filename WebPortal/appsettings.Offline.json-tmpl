@@ -69,7 +69,11 @@
     "OpenDataApprovalPdfBaseUrl": "",
     "OpenDataApprovalPdfFormIdParam": "rp:p_approval_form_id",
     "PublicFileSharingDomain": "https://localhost:44347"
-  },  
+  },
+  "Contact": {
+    "Name": "DataHub",
+    "Email": "datahub@nrcan-rncan.gc.ca"
+  },
   "Azure:SignalR:StickyServerMode": "Required",
   "AllowedHosts": "*"
 }
