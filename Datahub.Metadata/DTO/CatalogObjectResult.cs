@@ -13,7 +13,6 @@ namespace Datahub.Metadata.DTO
         public int Sector { get; set; }
         public int Branch { get; set; }
         public string Contact { get; set; }
-        //public string SecurityClass { get; set; }
         public ClassificationType ClassificationType {  get; set; }
         public string Url_English { get; set; }
         public string Url_French { get; set; }
