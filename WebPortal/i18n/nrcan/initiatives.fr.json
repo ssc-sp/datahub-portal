@@ -217,7 +217,8 @@
       "Reports": "Rapports",
       "SecurityClassification": "Classification de la sécurité",
       "Metadata": "Metadata",
-      "UpdateAssignment": "Mise à jour"
+      "UpdateAssignment": "Mise à jour",
+      "IncludeInCatalog": "Inclure dans le catalogue"
     }
   },
   "RESOURCE_REQUEST_INFO_PANEL": {
