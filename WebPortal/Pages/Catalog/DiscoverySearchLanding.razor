@@ -39,7 +39,7 @@
 	<div>
 		<h2>@Localizer["Publish"]</h2>
 		<div>
-			@Localizer[$"Contact the DataHub team ({(Configuration["Contact:Email"] ?? "datahub@nrcan-rncan.gc.ca")}) for details on how to publish your data to the Data Catalog."]
+			@Localizer[$"Contact the DataHub team ({(Configuration[$"{ConfigurationConstants.CONTACT_EMAIL}"] ?? "datahub@nrcan-rncan.gc.ca")}) for details on how to publish your data to the Data Catalog."]
 		</div>
 	</div>
 	</AeFlex>

@@ -131,8 +131,7 @@
     {
         try {
             User = await UserInformationService.GetUserAsync();
-            _email = Configuration["Contact:Email"] ?? "datahub@nrcan-rncan@gc.ca";
-            //_email = Configuration[$"{ConfigurationConstants.CONTACT_EMAIL}"] ?? "datahub@nrcan-rncan@gc.ca";
+            _email = Configuration[$"{ConfigurationConstants.CONTACT_EMAIL}"] ?? "datahub@nrcan-rncan@gc.ca";
         } catch (Exception ex)
         {
             ConsentHandler.HandleException(ex);
