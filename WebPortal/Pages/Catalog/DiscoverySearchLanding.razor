@@ -1,6 +1,7 @@
 ﻿@*DiscoverySearchLanding.razor*@
 @using Datahub.Core.Components.FileUpload
 @inject CatalogImportService CatalogImportService
+@inject IConfiguration Configuration
 
 <AeFlex Vertical>
 	<h1>@Localizer["DataHub Data Catalog"]</h1>
@@ -63,7 +64,7 @@
 
 				<NotAuthorized>
 					<div>
-						@Localizer["Contact the DataHub team (datahub@nrcan-rncan.gc.ca) for details on how to publish your data to the Data Catalog."]
+						@Localizer[$"Contact the DataHub team ({(Configuration[$"{ConfigurationConstants.CONTACT_EMAIL}"] ?? ConfigurationConstants.DEFAULT_EMAIL)}) for details on how to publish your data to the Data Catalog."]
 					</div>
 				</NotAuthorized>
 			</AuthorizeView>
