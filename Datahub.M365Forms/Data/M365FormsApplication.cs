@@ -112,6 +112,13 @@ namespace Datahub.Portal.Data
         [AeFormCategory("Application Status", 90)]
         public bool IsOrganizationalTeam { get; set; }
 
+        [AeFormCategory("Application Status", 90)]
+        public DateTime Submitted_DT { get; set; }
+
+        [AeFormCategory("Application Status", 90)]        
+        public DateTime Last_Updated_DT { get; set; }
+
+
         [AeFormIgnore]
         public string? SubmittedBy { get; set; }
 
@@ -121,8 +128,7 @@ namespace Datahub.Portal.Data
         [AeFormIgnore]
         public string Last_Updated_UserId { get; set; } = null!;
 
-        [AeFormIgnore]
-        public DateTime Last_Updated_DT { get; set; }
+        
 
         [AeFormIgnore]
         [Timestamp]
