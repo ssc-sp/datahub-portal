@@ -10,8 +10,12 @@
     <None Remove="Data\field_values.json" />
     <None Remove="Data\open_data_definitions.json" />
     <None Remove="Data\open_data_definition_choices.json" />
+    <None Remove="Data\sample_catalog.json" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Data\sample_catalog.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Data\field_values.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

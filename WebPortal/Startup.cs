@@ -144,6 +144,8 @@ namespace Datahub.Portal
             services.Configure<PortalVersion>(Configuration.GetSection("PortalVersion"));
             services.AddScoped<IPortalVersionService, PortalVersionService>();
 
+            services.AddScoped<CatalogImportService>();
+
             services.AddSignalRCore();
 
             var httpLoggingConfig = Configuration.GetSection("HttpLogging");

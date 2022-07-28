@@ -116,5 +116,10 @@ namespace Datahub.Core.Services
         {
             return Task.FromResult((GraphUser)null);
         }
-    }
+
+		public Task<GraphUser> GetUserFromSamAccountNameAsync(string account, CancellationToken tkn)
+		{
+            return Task.FromResult((GraphUser)null);
+        }
+	}
 }

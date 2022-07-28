@@ -1,4 +1,6 @@
 ﻿@*DiscoverySearchLanding.razor*@
+@using Datahub.Core.Components.FileUpload
+@inject CatalogImportService CatalogImportService
 
 <AeFlex Vertical>
 	<h1>@Localizer["DataHub Data Catalog"]</h1>
@@ -29,19 +31,48 @@
 				</AeCard>
 			}
 		</div>
-	<div>
-		<h2>@Localizer["Search"]</h2>
 		<div>
-			@Localizer["Search the Data Catalog to find and discover NRCan datasets on energy, finance, science, forestry or human resources, and more."]
+			<h2>@Localizer["Search"]</h2>
+			<div>
+				@Localizer["Search the Data Catalog to find and discover NRCan datasets on energy, finance, science, forestry or human resources, and more."]
+			</div>
 		</div>
-	</div>
-	<div>
-		<h2>@Localizer["Publish"]</h2>
 		<div>
-			@Localizer["Contact the DataHub team (datahub@nrcan-rncan.gc.ca) for details on how to publish your data to the Data Catalog."]
+			<h2>@Localizer["Publish"]</h2>
+			<AuthorizeView>
+				<Authorized>
+					<div>
+						@Localizer["Since you are an Admin in Datahub use the Upload button below to import a valid catalog dump file."]
+					</div>
+					<div>
+						<a href="/resources/Catalog-Import-Format">@Localizer["Import file format documentation"]</a>
+					</div>
+					<div class="file-list">
+						<UploadSnackbar UploadingFiles="_uploadingFiles">
+							<DropZone MaxHeight OnFilesDrop="UploadFiles">
+								<p>&nbsp;</p>
+							</DropZone>
+						</UploadSnackbar>
+						<AeButton class="button-tool" onclick="document.querySelector('.file-list .dropzone-container input').click();">
+							<i class="fas fa-upload"></i>
+							@Localizer["Upload"]
+						</AeButton>
+					</div>
+				</Authorized>
+				<NotAuthorized>
+					<div>
+						@Localizer["Contact the DataHub team (datahub@nrcan-rncan.gc.ca) for details on how to publish your data to the Data Catalog."]
+					</div>
+				</NotAuthorized>
+			</AuthorizeView>
+
 		</div>
-	</div>
+
+		<div style="margin-top: 16px;"></div>
+
+
 	</AeFlex>
+
 </AeFlex>
 
 @code {
@@ -56,6 +87,8 @@
 	public EventCallback<OrganizationLevel> OnClickSector { get; set; }
 
 	static Dictionary<int, string> _icons = GetIcons();
+
+	private List<FileMetaData> _uploadingFiles = new();
 
 	private async void ClickSector(OrganizationLevel sector)
 	{
@@ -89,5 +122,14 @@
 			{ 16393,	"fa-phone-office" },	// Associate Deputy Minister's Office
 			{ 16613,	"fa-leaf-maple" }		// Indigenous Affairs and Reconciliation Sector
 		};
+	}
+
+	private async Task UploadFiles(InputFileChangeEventArgs e)
+	{
+		foreach (var browserFile in e.GetMultipleFiles())
+		{
+			var stream = browserFile.OpenReadStream();
+			await CatalogImportService.Import(browserFile.OpenReadStream());
+		}
 	}
 }
