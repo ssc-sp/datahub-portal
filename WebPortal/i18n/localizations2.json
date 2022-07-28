@@ -88,6 +88,8 @@
   "Replication": "Replication",
   "Versioning": "Versioning",
   "Url": "Url",
-  "Review PowerBI Request": "Review PowerBI Request"
+  "Review PowerBI Request": "Review PowerBI Request",
+  "Last_Updated_DT": "Last Updated Date",
+  "Submitted_DT": "Submitted Date"
 
 }
