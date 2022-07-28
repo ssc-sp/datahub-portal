@@ -486,5 +486,33 @@ namespace Datahub.Core.Services
 
             return await Task.FromResult(TransformCatalogObject(result, definitions));
         }
+
+        public async Task<bool> IsObjectCatalogued(string objectId)
+        {
+            using var ctx = await _contextFactory.CreateDbContextAsync();
+
+            var count = await ctx.CatalogObjects.CountAsync(o => o.ObjectMetadata.ObjectId_TXT == objectId);
+
+            return count > 0;
+        }
+
+        public async Task DeleteFromCatalog(string objectId)
+        {
+            using var ctx = await _contextFactory.CreateDbContextAsync();
+
+            var existingObjects = await ctx.CatalogObjects
+                .Where(o => o.ObjectMetadata.ObjectId_TXT == objectId)
+                .ToListAsync();
+
+            if (existingObjects?.Count > 0)
+            {
+                foreach(var catalogObject in existingObjects)
+                {
+                    ctx.CatalogObjects.Remove(catalogObject);
+                }
+
+                await ctx.SaveChangesAsync();
+            }
+        }
     }
 }

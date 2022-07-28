@@ -5,6 +5,7 @@
 @inject IMyDataService _myDataService
 @inject IPortalVersionService VersionService
 @inject MicrosoftIdentityConsentAndConditionalAccessHandler ConsentHandler
+@inject IConfiguration Configuration
 
 @using Microsoft.Identity.Web
 @using Datahub.Core.Components.Common
@@ -36,7 +37,7 @@
                 <Typography>@Localizer["Whether you need to report an issue or just want some guidance on setting up and using your account, send us an email at:"]</Typography>
                 <div class="email-wrapper">
                     <i class="fal fa-envelope"></i>
-                    <a href="mailto:Datahub.mcan@canada.ca">Datahub.mcan@canada.ca</a>
+                    <a href=@($"mailto:{_email}")>@_email</a>
                 </div>
                 <div style="margin-top: 1rem;">
                     <Typography>@Localizer["Release"]: @VersionService.ReleaseVersion</Typography>
@@ -116,7 +117,7 @@
 
     private bool _showHelp = false;
     private bool _showUserPopup = false;
-
+    private string _email;
     public string MaxAllocatedSpace = "10GB";
 
     public long TotalSpaceUsed { get; set; } = 0;
@@ -130,6 +131,7 @@
     {
         try {
             User = await UserInformationService.GetUserAsync();
+            _email = Configuration[$"{ConfigurationConstants.CONTACT_EMAIL}"] ?? ConfigurationConstants.DEFAULT_EMAIL;
         } catch (Exception ex)
         {
             ConsentHandler.HandleException(ex);
@@ -158,7 +160,8 @@
     {
         _showUserPopup = false;
         _showHelp = false;
-        UI.ToggleRightSidebar(@<Datahub.Core.Views.Notifications />);
+        UI.ToggleRightSidebar(
+    @<Datahub.Core.Views.Notifications />);
     }
 
     private void NavigateToTermsOfUse()
