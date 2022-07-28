@@ -46,28 +46,28 @@
     "FieldDefinitionId": 78,
     "Value_TXT": "boundaries",
     "Label_English_TXT": "Boundaries",
-    "Label_French_TXT": "Frontières"
+    "Label_French_TXT": "Frontiï¿½res"
   },
   {
     "FieldChoiceId": 454,
     "FieldDefinitionId": 78,
     "Value_TXT": "climatology_meterology_atmosphere",
     "Label_English_TXT": "Climatology Meteorology Atmosphere",
-    "Label_French_TXT": "Climatologie Météorologie Atmosphère"
+    "Label_French_TXT": "Climatologie Mï¿½tï¿½orologie Atmosphï¿½re"
   },
   {
     "FieldChoiceId": 455,
     "FieldDefinitionId": 78,
     "Value_TXT": "economy",
     "Label_English_TXT": "Economy",
-    "Label_French_TXT": "Économie"
+    "Label_French_TXT": "ï¿½conomie"
   },
   {
     "FieldChoiceId": 456,
     "FieldDefinitionId": 78,
     "Value_TXT": "elevation",
     "Label_English_TXT": "Elevation",
-    "Label_French_TXT": "Élévation"
+    "Label_French_TXT": "ï¿½lï¿½vation"
   },
   {
     "FieldChoiceId": 457,
@@ -81,14 +81,14 @@
     "FieldDefinitionId": 78,
     "Value_TXT": "geoscientific_information",
     "Label_English_TXT": "Geoscientific Information",
-    "Label_French_TXT": "Information géoscientifique"
+    "Label_French_TXT": "Information gï¿½oscientifique"
   },
   {
     "FieldChoiceId": 459,
     "FieldDefinitionId": 78,
     "Value_TXT": "health",
     "Label_English_TXT": "Health",
-    "Label_French_TXT": "Santé"
+    "Label_French_TXT": "Santï¿½"
   },
   {
     "FieldChoiceId": 460,
@@ -109,7 +109,7 @@
     "FieldDefinitionId": 78,
     "Value_TXT": "inland_waters",
     "Label_English_TXT": "Inland Waters",
-    "Label_French_TXT": "Eaux intérieures"
+    "Label_French_TXT": "Eaux intï¿½rieures"
   },
   {
     "FieldChoiceId": 463,
@@ -123,21 +123,21 @@
     "FieldDefinitionId": 78,
     "Value_TXT": "oceans",
     "Label_English_TXT": "Oceans",
-    "Label_French_TXT": "Océans"
+    "Label_French_TXT": "Ocï¿½ans"
   },
   {
     "FieldChoiceId": 465,
     "FieldDefinitionId": 78,
     "Value_TXT": "planning_cadastre",
     "Label_English_TXT": "Planning Cadastre",
-    "Label_French_TXT": "Aménagement cadastre"
+    "Label_French_TXT": "Amï¿½nagement cadastre"
   },
   {
     "FieldChoiceId": 466,
     "FieldDefinitionId": 78,
     "Value_TXT": "society",
     "Label_English_TXT": "Society",
-    "Label_French_TXT": "Société"
+    "Label_French_TXT": "Sociï¿½tï¿½"
   },
   {
     "FieldChoiceId": 467,
@@ -165,7 +165,7 @@
     "FieldDefinitionId": 86,
     "Value_TXT": "arts_music_literature",
     "Label_English_TXT": "Arts, Music, Literature",
-    "Label_French_TXT": "Arts, musique, littérature"
+    "Label_French_TXT": "Arts, musique, littï¿½rature"
   },
   {
     "FieldChoiceId": 471,
@@ -179,14 +179,14 @@
     "FieldDefinitionId": 86,
     "Value_TXT": "economics_and_industry",
     "Label_English_TXT": "Economics and Industry",
-    "Label_French_TXT": "Économie et industrie"
+    "Label_French_TXT": "ï¿½conomie et industrie"
   },
   {
     "FieldChoiceId": 473,
     "FieldDefinitionId": 86,
     "Value_TXT": "education_and_training",
     "Label_English_TXT": "Education and Training",
-    "Label_French_TXT": "Éducation et formation"
+    "Label_French_TXT": "ï¿½ducation et formation"
   },
   {
     "FieldChoiceId": 474,
@@ -207,14 +207,14 @@
     "FieldDefinitionId": 86,
     "Value_TXT": "health_and_safety",
     "Label_English_TXT": "Health and Safety",
-    "Label_French_TXT": "Santé et sécurité"
+    "Label_French_TXT": "Santï¿½ et sï¿½curitï¿½"
   },
   {
     "FieldChoiceId": 477,
     "FieldDefinitionId": 86,
     "Value_TXT": "history_and_archaeology",
     "Label_English_TXT": "History and Archaeology",
-    "Label_French_TXT": "Histoire et archéologie"
+    "Label_French_TXT": "Histoire et archï¿½ologie"
   },
   {
     "FieldChoiceId": 478,
@@ -277,7 +277,7 @@
     "FieldDefinitionId": 86,
     "Value_TXT": "society_and_culture",
     "Label_English_TXT": "Society and Culture",
-    "Label_French_TXT": "Société et culture"
+    "Label_French_TXT": "Sociï¿½tï¿½ et culture"
   },
   {
     "FieldChoiceId": 487,
@@ -319,7 +319,7 @@
     "FieldDefinitionId": 87,
     "Value_TXT": "educators",
     "Label_English_TXT": "Educators",
-    "Label_French_TXT": "Éducateurs"
+    "Label_French_TXT": "ï¿½ducateurs"
   },
   {
     "FieldChoiceId": 493,
@@ -361,14 +361,14 @@
     "FieldDefinitionId": 87,
     "Value_TXT": "job_seekers",
     "Label_English_TXT": "Job seekers",
-    "Label_French_TXT": "Chercheurs d’emploi"
+    "Label_French_TXT": "Chercheurs dï¿½emploi"
   },
   {
     "FieldChoiceId": 499,
     "FieldDefinitionId": 87,
     "Value_TXT": "media",
     "Label_English_TXT": "Media",
-    "Label_French_TXT": "Médias"
+    "Label_French_TXT": "Mï¿½dias"
   },
   {
     "FieldChoiceId": 500,
@@ -396,21 +396,21 @@
     "FieldDefinitionId": 87,
     "Value_TXT": "persons_with_disabilities",
     "Label_English_TXT": "Persons with disabilities",
-    "Label_French_TXT": "Personnes handicapées"
+    "Label_French_TXT": "Personnes handicapï¿½es"
   },
   {
     "FieldChoiceId": 504,
     "FieldDefinitionId": 87,
     "Value_TXT": "rural_community",
     "Label_English_TXT": "Rural community",
-    "Label_French_TXT": "Communauté rurale"
+    "Label_French_TXT": "Communautï¿½ rurale"
   },
   {
     "FieldChoiceId": 505,
     "FieldDefinitionId": 87,
     "Value_TXT": "seniors",
     "Label_English_TXT": "Seniors",
-    "Label_French_TXT": "Aînés"
+    "Label_French_TXT": "Aï¿½nï¿½s"
   },
   {
     "FieldChoiceId": 506,
@@ -424,7 +424,7 @@
     "FieldDefinitionId": 87,
     "Value_TXT": "students",
     "Label_English_TXT": "Students",
-    "Label_French_TXT": "Étudiants"
+    "Label_French_TXT": "ï¿½tudiants"
   },
   {
     "FieldChoiceId": 508,
@@ -564,161 +564,161 @@
     "FieldDefinitionId": 88,
     "Value_TXT": "11",
     "Label_English_TXT": "Prince Edward Island",
-    "Label_French_TXT": "Île-du-Prince-Édouard"
+    "Label_French_TXT": "ï¿½le-du-Prince-ï¿½douard"
   },
   {
     "FieldChoiceId": 528,
     "FieldDefinitionId": 88,
     "Value_TXT": "1101",
     "Label_English_TXT": "Prince Edward Island - Kings",
-    "Label_French_TXT": "Île-du-Prince-Édouard - Kings"
+    "Label_French_TXT": "ï¿½le-du-Prince-ï¿½douard - Kings"
   },
   {
     "FieldChoiceId": 529,
     "FieldDefinitionId": 88,
     "Value_TXT": "1102",
     "Label_English_TXT": "Prince Edward Island - Queens",
-    "Label_French_TXT": "Île-du-Prince-Édouard - Queens"
+    "Label_French_TXT": "ï¿½le-du-Prince-ï¿½douard - Queens"
   },
   {
     "FieldChoiceId": 530,
     "FieldDefinitionId": 88,
     "Value_TXT": "1103",
     "Label_English_TXT": "Prince Edward Island - Prince",
-    "Label_French_TXT": "Île-du-Prince-Édouard - Prince"
+    "Label_French_TXT": "ï¿½le-du-Prince-ï¿½douard - Prince"
   },
   {
     "FieldChoiceId": 531,
     "FieldDefinitionId": 88,
     "Value_TXT": "12",
     "Label_English_TXT": "Nova Scotia",
-    "Label_French_TXT": "Nouvelle-Écosse"
+    "Label_French_TXT": "Nouvelle-ï¿½cosse"
   },
   {
     "FieldChoiceId": 532,
     "FieldDefinitionId": 88,
     "Value_TXT": "1201",
     "Label_English_TXT": "Nova Scotia - Shelburne",
-    "Label_French_TXT": "Nouvelle-Écosse - Shelburne"
+    "Label_French_TXT": "Nouvelle-ï¿½cosse - Shelburne"
   },
   {
     "FieldChoiceId": 533,
     "FieldDefinitionId": 88,
     "Value_TXT": "1202",
     "Label_English_TXT": "Nova Scotia - Yarmouth",
-    "Label_French_TXT": "Nouvelle-Écosse - Yarmouth"
+    "Label_French_TXT": "Nouvelle-ï¿½cosse - Yarmouth"
   },
   {
     "FieldChoiceId": 534,
     "FieldDefinitionId": 88,
     "Value_TXT": "1203",
     "Label_English_TXT": "Nova Scotia - Digby",
-    "Label_French_TXT": "Nouvelle-Écosse - Digby"
+    "Label_French_TXT": "Nouvelle-ï¿½cosse - Digby"
   },
   {
     "FieldChoiceId": 535,
     "FieldDefinitionId": 88,
     "Value_TXT": "1204",
     "Label_English_TXT": "Nova Scotia - Queens",
-    "Label_French_TXT": "Nouvelle-Écosse - Queens"
+    "Label_French_TXT": "Nouvelle-ï¿½cosse - Queens"
   },
   {
     "FieldChoiceId": 536,
     "FieldDefinitionId": 88,
     "Value_TXT": "1205",
     "Label_English_TXT": "Nova Scotia - Annapolis",
-    "Label_French_TXT": "Nouvelle-Écosse - Annapolis"
+    "Label_French_TXT": "Nouvelle-ï¿½cosse - Annapolis"
   },
   {
     "FieldChoiceId": 537,
     "FieldDefinitionId": 88,
     "Value_TXT": "1206",
     "Label_English_TXT": "Nova Scotia - Lunenburg",
-    "Label_French_TXT": "Nouvelle-Écosse - Lunenburg"
+    "Label_French_TXT": "Nouvelle-ï¿½cosse - Lunenburg"
   },
   {
     "FieldChoiceId": 538,
     "FieldDefinitionId": 88,
     "Value_TXT": "1207",
     "Label_English_TXT": "Nova Scotia - Kings",
-    "Label_French_TXT": "Nouvelle-Écosse - Kings"
+    "Label_French_TXT": "Nouvelle-ï¿½cosse - Kings"
   },
   {
     "FieldChoiceId": 539,
     "FieldDefinitionId": 88,
     "Value_TXT": "1208",
     "Label_English_TXT": "Nova Scotia - Hants",
-    "Label_French_TXT": "Nouvelle-Écosse - Hants"
+    "Label_French_TXT": "Nouvelle-ï¿½cosse - Hants"
   },
   {
     "FieldChoiceId": 540,
     "FieldDefinitionId": 88,
     "Value_TXT": "1209",
     "Label_English_TXT": "Nova Scotia - Halifax",
-    "Label_French_TXT": "Nouvelle-Écosse - Halifax"
+    "Label_French_TXT": "Nouvelle-ï¿½cosse - Halifax"
   },
   {
     "FieldChoiceId": 541,
     "FieldDefinitionId": 88,
     "Value_TXT": "1210",
     "Label_English_TXT": "Nova Scotia - Colchester",
-    "Label_French_TXT": "Nouvelle-Écosse - Colchester"
+    "Label_French_TXT": "Nouvelle-ï¿½cosse - Colchester"
   },
   {
     "FieldChoiceId": 542,
     "FieldDefinitionId": 88,
     "Value_TXT": "1211",
     "Label_English_TXT": "Nova Scotia - Cumberland",
-    "Label_French_TXT": "Nouvelle-Écosse - Cumberland"
+    "Label_French_TXT": "Nouvelle-ï¿½cosse - Cumberland"
   },
   {
     "FieldChoiceId": 543,
     "FieldDefinitionId": 88,
     "Value_TXT": "1212",
     "Label_English_TXT": "Nova Scotia - Pictou",
-    "Label_French_TXT": "Nouvelle-Écosse - Pictou"
+    "Label_French_TXT": "Nouvelle-ï¿½cosse - Pictou"
   },
   {
     "FieldChoiceId": 544,
     "FieldDefinitionId": 88,
     "Value_TXT": "1213",
     "Label_English_TXT": "Nova Scotia - Guysborough",
-    "Label_French_TXT": "Nouvelle-Écosse - Guysborough"
+    "Label_French_TXT": "Nouvelle-ï¿½cosse - Guysborough"
   },
   {
     "FieldChoiceId": 545,
     "FieldDefinitionId": 88,
     "Value_TXT": "1214",
     "Label_English_TXT": "Nova Scotia - Antigonish",
-    "Label_French_TXT": "Nouvelle-Écosse - Antigonish"
+    "Label_French_TXT": "Nouvelle-ï¿½cosse - Antigonish"
   },
   {
     "FieldChoiceId": 546,
     "FieldDefinitionId": 88,
     "Value_TXT": "1215",
     "Label_English_TXT": "Nova Scotia - Inverness",
-    "Label_French_TXT": "Nouvelle-Écosse - Inverness"
+    "Label_French_TXT": "Nouvelle-ï¿½cosse - Inverness"
   },
   {
     "FieldChoiceId": 547,
     "FieldDefinitionId": 88,
     "Value_TXT": "1216",
     "Label_English_TXT": "Nova Scotia - Richmond",
-    "Label_French_TXT": "Nouvelle-Écosse - Richmond"
+    "Label_French_TXT": "Nouvelle-ï¿½cosse - Richmond"
   },
   {
     "FieldChoiceId": 548,
     "FieldDefinitionId": 88,
     "Value_TXT": "1217",
     "Label_English_TXT": "Nova Scotia - Cape Breton",
-    "Label_French_TXT": "Nouvelle-Écosse - Cape Breton"
+    "Label_French_TXT": "Nouvelle-ï¿½cosse - Cape Breton"
   },
   {
     "FieldChoiceId": 549,
     "FieldDefinitionId": 88,
     "Value_TXT": "1218",
     "Label_English_TXT": "Nova Scotia - Victoria",
-    "Label_French_TXT": "Nouvelle-Écosse - Victoria"
+    "Label_French_TXT": "Nouvelle-ï¿½cosse - Victoria"
   },
   {
     "FieldChoiceId": 550,
@@ -837,693 +837,693 @@
     "FieldDefinitionId": 88,
     "Value_TXT": "2",
     "Label_English_TXT": "Quebec",
-    "Label_French_TXT": "Québec"
+    "Label_French_TXT": "Quï¿½bec"
   },
   {
     "FieldChoiceId": 567,
     "FieldDefinitionId": 88,
     "Value_TXT": "2401",
-    "Label_English_TXT": "Quebec - Les Îles-de-la-Madeleine",
-    "Label_French_TXT": "Québec - Les Îles-de-la-Madeleine"
+    "Label_English_TXT": "Quebec - Les ï¿½les-de-la-Madeleine",
+    "Label_French_TXT": "Quï¿½bec - Les ï¿½les-de-la-Madeleine"
   },
   {
     "FieldChoiceId": 568,
     "FieldDefinitionId": 88,
     "Value_TXT": "2402",
-    "Label_English_TXT": "Quebec - Le Rocher-Percé",
-    "Label_French_TXT": "Québec - Le Rocher-Percé"
+    "Label_English_TXT": "Quebec - Le Rocher-Percï¿½",
+    "Label_French_TXT": "Quï¿½bec - Le Rocher-Percï¿½"
   },
   {
     "FieldChoiceId": 569,
     "FieldDefinitionId": 88,
     "Value_TXT": "2403",
-    "Label_English_TXT": "Quebec - La Côte-de-Gaspé",
-    "Label_French_TXT": "Québec - La Côte-de-Gaspé"
+    "Label_English_TXT": "Quebec - La Cï¿½te-de-Gaspï¿½",
+    "Label_French_TXT": "Quï¿½bec - La Cï¿½te-de-Gaspï¿½"
   },
   {
     "FieldChoiceId": 570,
     "FieldDefinitionId": 88,
     "Value_TXT": "2404",
-    "Label_English_TXT": "Quebec - La Haute-Gaspésie",
-    "Label_French_TXT": "Québec - La Haute-Gaspésie"
+    "Label_English_TXT": "Quebec - La Haute-Gaspï¿½sie",
+    "Label_French_TXT": "Quï¿½bec - La Haute-Gaspï¿½sie"
   },
   {
     "FieldChoiceId": 571,
     "FieldDefinitionId": 88,
     "Value_TXT": "2405",
     "Label_English_TXT": "Quebec - Bonaventure",
-    "Label_French_TXT": "Québec - Bonaventure"
+    "Label_French_TXT": "Quï¿½bec - Bonaventure"
   },
   {
     "FieldChoiceId": 572,
     "FieldDefinitionId": 88,
     "Value_TXT": "2406",
     "Label_English_TXT": "Quebec - Avignon",
-    "Label_French_TXT": "Québec - Avignon"
+    "Label_French_TXT": "Quï¿½bec - Avignon"
   },
   {
     "FieldChoiceId": 573,
     "FieldDefinitionId": 88,
     "Value_TXT": "2407",
-    "Label_English_TXT": "Quebec - La Matapédia",
-    "Label_French_TXT": "Québec - La Matapédia"
+    "Label_English_TXT": "Quebec - La Matapï¿½dia",
+    "Label_French_TXT": "Quï¿½bec - La Matapï¿½dia"
   },
   {
     "FieldChoiceId": 574,
     "FieldDefinitionId": 88,
     "Value_TXT": "2408",
     "Label_English_TXT": "Quebec - Matane",
-    "Label_French_TXT": "Québec - Matane"
+    "Label_French_TXT": "Quï¿½bec - Matane"
   },
   {
     "FieldChoiceId": 575,
     "FieldDefinitionId": 88,
     "Value_TXT": "2409",
     "Label_English_TXT": "Quebec - La Mitis",
-    "Label_French_TXT": "Québec - La Mitis"
+    "Label_French_TXT": "Quï¿½bec - La Mitis"
   },
   {
     "FieldChoiceId": 576,
     "FieldDefinitionId": 88,
     "Value_TXT": "2410",
     "Label_English_TXT": "Quebec - Rimouski-Neigette",
-    "Label_French_TXT": "Québec - Rimouski-Neigette"
+    "Label_French_TXT": "Quï¿½bec - Rimouski-Neigette"
   },
   {
     "FieldChoiceId": 577,
     "FieldDefinitionId": 88,
     "Value_TXT": "2411",
     "Label_English_TXT": "Quebec - Les Basques",
-    "Label_French_TXT": "Québec - Les Basques"
+    "Label_French_TXT": "Quï¿½bec - Les Basques"
   },
   {
     "FieldChoiceId": 578,
     "FieldDefinitionId": 88,
     "Value_TXT": "2412",
-    "Label_English_TXT": "Quebec - Rivière-du-Loup",
-    "Label_French_TXT": "Québec - Rivière-du-Loup"
+    "Label_English_TXT": "Quebec - Riviï¿½re-du-Loup",
+    "Label_French_TXT": "Quï¿½bec - Riviï¿½re-du-Loup"
   },
   {
     "FieldChoiceId": 579,
     "FieldDefinitionId": 88,
     "Value_TXT": "2413",
-    "Label_English_TXT": "Quebec - Témiscouata",
-    "Label_French_TXT": "Québec - Témiscouata"
+    "Label_English_TXT": "Quebec - Tï¿½miscouata",
+    "Label_French_TXT": "Quï¿½bec - Tï¿½miscouata"
   },
   {
     "FieldChoiceId": 580,
     "FieldDefinitionId": 88,
     "Value_TXT": "2414",
     "Label_English_TXT": "Quebec - Kamouraska",
-    "Label_French_TXT": "Québec - Kamouraska"
+    "Label_French_TXT": "Quï¿½bec - Kamouraska"
   },
   {
     "FieldChoiceId": 581,
     "FieldDefinitionId": 88,
     "Value_TXT": "2415",
     "Label_English_TXT": "Quebec - Charlevoix-Est",
-    "Label_French_TXT": "Québec - Charlevoix-Est"
+    "Label_French_TXT": "Quï¿½bec - Charlevoix-Est"
   },
   {
     "FieldChoiceId": 582,
     "FieldDefinitionId": 88,
     "Value_TXT": "2416",
     "Label_English_TXT": "Quebec - Charlevoix",
-    "Label_French_TXT": "Québec - Charlevoix"
+    "Label_French_TXT": "Quï¿½bec - Charlevoix"
   },
   {
     "FieldChoiceId": 583,
     "FieldDefinitionId": 88,
     "Value_TXT": "2417",
     "Label_English_TXT": "Quebec - LIslet",
-    "Label_French_TXT": "Québec - LIslet"
+    "Label_French_TXT": "Quï¿½bec - LIslet"
   },
   {
     "FieldChoiceId": 584,
     "FieldDefinitionId": 88,
     "Value_TXT": "2418",
     "Label_English_TXT": "Quebec - Montmagny",
-    "Label_French_TXT": "Québec - Montmagny"
+    "Label_French_TXT": "Quï¿½bec - Montmagny"
   },
   {
     "FieldChoiceId": 585,
     "FieldDefinitionId": 88,
     "Value_TXT": "2419",
     "Label_English_TXT": "Quebec - Bellechasse",
-    "Label_French_TXT": "Québec - Bellechasse"
+    "Label_French_TXT": "Quï¿½bec - Bellechasse"
   },
   {
     "FieldChoiceId": 586,
     "FieldDefinitionId": 88,
     "Value_TXT": "2420",
-    "Label_English_TXT": "Quebec - LÎle-dOrléans",
-    "Label_French_TXT": "Québec - LÎle-dOrléans"
+    "Label_English_TXT": "Quebec - Lï¿½le-dOrlï¿½ans",
+    "Label_French_TXT": "Quï¿½bec - Lï¿½le-dOrlï¿½ans"
   },
   {
     "FieldChoiceId": 587,
     "FieldDefinitionId": 88,
     "Value_TXT": "2421",
-    "Label_English_TXT": "Quebec - La Côte-de-Beaupré",
-    "Label_French_TXT": "Québec - La Côte-de-Beaupré"
+    "Label_English_TXT": "Quebec - La Cï¿½te-de-Beauprï¿½",
+    "Label_French_TXT": "Quï¿½bec - La Cï¿½te-de-Beauprï¿½"
   },
   {
     "FieldChoiceId": 588,
     "FieldDefinitionId": 88,
     "Value_TXT": "2422",
     "Label_English_TXT": "Quebec - La Jacques-Cartier",
-    "Label_French_TXT": "Québec - La Jacques-Cartier"
+    "Label_French_TXT": "Quï¿½bec - La Jacques-Cartier"
   },
   {
     "FieldChoiceId": 589,
     "FieldDefinitionId": 88,
     "Value_TXT": "2423",
-    "Label_English_TXT": "Quebec - Québec",
-    "Label_French_TXT": "Québec - Québec"
+    "Label_English_TXT": "Quebec - Quï¿½bec",
+    "Label_French_TXT": "Quï¿½bec - Quï¿½bec"
   },
   {
     "FieldChoiceId": 590,
     "FieldDefinitionId": 88,
     "Value_TXT": "2425",
-    "Label_English_TXT": "Quebec - Lévis",
-    "Label_French_TXT": "Québec - Lévis"
+    "Label_English_TXT": "Quebec - Lï¿½vis",
+    "Label_French_TXT": "Quï¿½bec - Lï¿½vis"
   },
   {
     "FieldChoiceId": 591,
     "FieldDefinitionId": 88,
     "Value_TXT": "2426",
     "Label_English_TXT": "Quebec - La Nouvelle-Beauce",
-    "Label_French_TXT": "Québec - La Nouvelle-Beauce"
+    "Label_French_TXT": "Quï¿½bec - La Nouvelle-Beauce"
   },
   {
     "FieldChoiceId": 592,
     "FieldDefinitionId": 88,
     "Value_TXT": "2427",
     "Label_English_TXT": "Quebec - Robert-Cliche",
-    "Label_French_TXT": "Québec - Robert-Cliche"
+    "Label_French_TXT": "Quï¿½bec - Robert-Cliche"
   },
   {
     "FieldChoiceId": 593,
     "FieldDefinitionId": 88,
     "Value_TXT": "2428",
     "Label_English_TXT": "Quebec - Les Etchemins",
-    "Label_French_TXT": "Québec - Les Etchemins"
+    "Label_French_TXT": "Quï¿½bec - Les Etchemins"
   },
   {
     "FieldChoiceId": 594,
     "FieldDefinitionId": 88,
     "Value_TXT": "2429",
     "Label_English_TXT": "Quebec - Beauce-Sartigan",
-    "Label_French_TXT": "Québec - Beauce-Sartigan"
+    "Label_French_TXT": "Quï¿½bec - Beauce-Sartigan"
   },
   {
     "FieldChoiceId": 595,
     "FieldDefinitionId": 88,
     "Value_TXT": "2430",
     "Label_English_TXT": "Quebec - Le Granit",
-    "Label_French_TXT": "Québec - Le Granit"
+    "Label_French_TXT": "Quï¿½bec - Le Granit"
   },
   {
     "FieldChoiceId": 596,
     "FieldDefinitionId": 88,
     "Value_TXT": "2431",
     "Label_English_TXT": "Quebec - Les Appalaches",
-    "Label_French_TXT": "Québec - Les Appalaches"
+    "Label_French_TXT": "Quï¿½bec - Les Appalaches"
   },
   {
     "FieldChoiceId": 597,
     "FieldDefinitionId": 88,
     "Value_TXT": "2432",
-    "Label_English_TXT": "Quebec - LÉrable",
-    "Label_French_TXT": "Québec - LÉrable"
+    "Label_English_TXT": "Quebec - Lï¿½rable",
+    "Label_French_TXT": "Quï¿½bec - Lï¿½rable"
   },
   {
     "FieldChoiceId": 598,
     "FieldDefinitionId": 88,
     "Value_TXT": "2433",
-    "Label_English_TXT": "Quebec - Lotbinière",
-    "Label_French_TXT": "Québec - Lotbinière"
+    "Label_English_TXT": "Quebec - Lotbiniï¿½re",
+    "Label_French_TXT": "Quï¿½bec - Lotbiniï¿½re"
   },
   {
     "FieldChoiceId": 599,
     "FieldDefinitionId": 88,
     "Value_TXT": "2434",
     "Label_English_TXT": "Quebec - Portneuf",
-    "Label_French_TXT": "Québec - Portneuf"
+    "Label_French_TXT": "Quï¿½bec - Portneuf"
   },
   {
     "FieldChoiceId": 600,
     "FieldDefinitionId": 88,
     "Value_TXT": "2435",
-    "Label_English_TXT": "Quebec - Mékinac",
-    "Label_French_TXT": "Québec - Mékinac"
+    "Label_English_TXT": "Quebec - Mï¿½kinac",
+    "Label_French_TXT": "Quï¿½bec - Mï¿½kinac"
   },
   {
     "FieldChoiceId": 601,
     "FieldDefinitionId": 88,
     "Value_TXT": "2436",
     "Label_English_TXT": "Quebec - Shawinigan",
-    "Label_French_TXT": "Québec - Shawinigan"
+    "Label_French_TXT": "Quï¿½bec - Shawinigan"
   },
   {
     "FieldChoiceId": 602,
     "FieldDefinitionId": 88,
     "Value_TXT": "2437",
     "Label_English_TXT": "Quebec - Francheville",
-    "Label_French_TXT": "Québec - Francheville"
+    "Label_French_TXT": "Quï¿½bec - Francheville"
   },
   {
     "FieldChoiceId": 603,
     "FieldDefinitionId": 88,
     "Value_TXT": "2438",
-    "Label_English_TXT": "Quebec - Bécancour",
-    "Label_French_TXT": "Québec - Bécancour"
+    "Label_English_TXT": "Quebec - Bï¿½cancour",
+    "Label_French_TXT": "Quï¿½bec - Bï¿½cancour"
   },
   {
     "FieldChoiceId": 604,
     "FieldDefinitionId": 88,
     "Value_TXT": "2439",
     "Label_English_TXT": "Quebec - Arthabaska",
-    "Label_French_TXT": "Québec - Arthabaska"
+    "Label_French_TXT": "Quï¿½bec - Arthabaska"
   },
   {
     "FieldChoiceId": 605,
     "FieldDefinitionId": 88,
     "Value_TXT": "2440",
     "Label_English_TXT": "Quebec - Les Sources",
-    "Label_French_TXT": "Québec - Les Sources"
+    "Label_French_TXT": "Quï¿½bec - Les Sources"
   },
   {
     "FieldChoiceId": 606,
     "FieldDefinitionId": 88,
     "Value_TXT": "2441",
-    "Label_English_TXT": "Quebec - Le Haut-Saint-François",
-    "Label_French_TXT": "Québec - Le Haut-Saint-François"
+    "Label_English_TXT": "Quebec - Le Haut-Saint-Franï¿½ois",
+    "Label_French_TXT": "Quï¿½bec - Le Haut-Saint-Franï¿½ois"
   },
   {
     "FieldChoiceId": 607,
     "FieldDefinitionId": 88,
     "Value_TXT": "2442",
-    "Label_English_TXT": "Quebec - Le Val-Saint-François",
-    "Label_French_TXT": "Québec - Le Val-Saint-François"
+    "Label_English_TXT": "Quebec - Le Val-Saint-Franï¿½ois",
+    "Label_French_TXT": "Quï¿½bec - Le Val-Saint-Franï¿½ois"
   },
   {
     "FieldChoiceId": 608,
     "FieldDefinitionId": 88,
     "Value_TXT": "2443",
     "Label_English_TXT": "Quebec - Sherbrooke",
-    "Label_French_TXT": "Québec - Sherbrooke"
+    "Label_French_TXT": "Quï¿½bec - Sherbrooke"
   },
   {
     "FieldChoiceId": 609,
     "FieldDefinitionId": 88,
     "Value_TXT": "2444",
     "Label_English_TXT": "Quebec - Coaticook",
-    "Label_French_TXT": "Québec - Coaticook"
+    "Label_French_TXT": "Quï¿½bec - Coaticook"
   },
   {
     "FieldChoiceId": 610,
     "FieldDefinitionId": 88,
     "Value_TXT": "2445",
-    "Label_English_TXT": "Quebec - Memphrémagog",
-    "Label_French_TXT": "Québec - Memphrémagog"
+    "Label_English_TXT": "Quebec - Memphrï¿½magog",
+    "Label_French_TXT": "Quï¿½bec - Memphrï¿½magog"
   },
   {
     "FieldChoiceId": 611,
     "FieldDefinitionId": 88,
     "Value_TXT": "2446",
     "Label_English_TXT": "Quebec - Brome-Missisquoi",
-    "Label_French_TXT": "Québec - Brome-Missisquoi"
+    "Label_French_TXT": "Quï¿½bec - Brome-Missisquoi"
   },
   {
     "FieldChoiceId": 612,
     "FieldDefinitionId": 88,
     "Value_TXT": "2447",
     "Label_English_TXT": "Quebec - La Haute-Yamaska",
-    "Label_French_TXT": "Québec - La Haute-Yamaska"
+    "Label_French_TXT": "Quï¿½bec - La Haute-Yamaska"
   },
   {
     "FieldChoiceId": 613,
     "FieldDefinitionId": 88,
     "Value_TXT": "2448",
     "Label_English_TXT": "Quebec - Acton",
-    "Label_French_TXT": "Québec - Acton"
+    "Label_French_TXT": "Quï¿½bec - Acton"
   },
   {
     "FieldChoiceId": 614,
     "FieldDefinitionId": 88,
     "Value_TXT": "2449",
     "Label_English_TXT": "Quebec - Drummond",
-    "Label_French_TXT": "Québec - Drummond"
+    "Label_French_TXT": "Quï¿½bec - Drummond"
   },
   {
     "FieldChoiceId": 615,
     "FieldDefinitionId": 88,
     "Value_TXT": "2450",
     "Label_English_TXT": "Quebec - Nicolet-Yamaska",
-    "Label_French_TXT": "Québec - Nicolet-Yamaska"
+    "Label_French_TXT": "Quï¿½bec - Nicolet-Yamaska"
   },
   {
     "FieldChoiceId": 616,
     "FieldDefinitionId": 88,
     "Value_TXT": "2451",
-    "Label_English_TXT": "Quebec - Maskinongé",
-    "Label_French_TXT": "Québec - Maskinongé"
+    "Label_English_TXT": "Quebec - Maskinongï¿½",
+    "Label_French_TXT": "Quï¿½bec - Maskinongï¿½"
   },
   {
     "FieldChoiceId": 617,
     "FieldDefinitionId": 88,
     "Value_TXT": "2452",
     "Label_English_TXT": "Quebec - DAutray",
-    "Label_French_TXT": "Québec - DAutray"
+    "Label_French_TXT": "Quï¿½bec - DAutray"
   },
   {
     "FieldChoiceId": 618,
     "FieldDefinitionId": 88,
     "Value_TXT": "2453",
     "Label_English_TXT": "Quebec - Pierre-De Saurel",
-    "Label_French_TXT": "Québec - Pierre-De Saurel"
+    "Label_French_TXT": "Quï¿½bec - Pierre-De Saurel"
   },
   {
     "FieldChoiceId": 619,
     "FieldDefinitionId": 88,
     "Value_TXT": "2454",
     "Label_English_TXT": "Quebec - Les Maskoutains",
-    "Label_French_TXT": "Québec - Les Maskoutains"
+    "Label_French_TXT": "Quï¿½bec - Les Maskoutains"
   },
   {
     "FieldChoiceId": 620,
     "FieldDefinitionId": 88,
     "Value_TXT": "2455",
     "Label_English_TXT": "Quebec - Rouville",
-    "Label_French_TXT": "Québec - Rouville"
+    "Label_French_TXT": "Quï¿½bec - Rouville"
   },
   {
     "FieldChoiceId": 621,
     "FieldDefinitionId": 88,
     "Value_TXT": "2456",
     "Label_English_TXT": "Quebec - Le Haut-Richelieu",
-    "Label_French_TXT": "Québec - Le Haut-Richelieu"
+    "Label_French_TXT": "Quï¿½bec - Le Haut-Richelieu"
   },
   {
     "FieldChoiceId": 622,
     "FieldDefinitionId": 88,
     "Value_TXT": "2457",
-    "Label_English_TXT": "Quebec - La Vallée-du-Richelieu",
-    "Label_French_TXT": "Québec - La Vallée-du-Richelieu"
+    "Label_English_TXT": "Quebec - La Vallï¿½e-du-Richelieu",
+    "Label_French_TXT": "Quï¿½bec - La Vallï¿½e-du-Richelieu"
   },
   {
     "FieldChoiceId": 623,
     "FieldDefinitionId": 88,
     "Value_TXT": "2458",
     "Label_English_TXT": "Quebec - Longueuil",
-    "Label_French_TXT": "Québec - Longueuil"
+    "Label_French_TXT": "Quï¿½bec - Longueuil"
   },
   {
     "FieldChoiceId": 624,
     "FieldDefinitionId": 88,
     "Value_TXT": "2459",
     "Label_English_TXT": "Quebec - Lajemmerais",
-    "Label_French_TXT": "Québec - Lajemmerais"
+    "Label_French_TXT": "Quï¿½bec - Lajemmerais"
   },
   {
     "FieldChoiceId": 625,
     "FieldDefinitionId": 88,
     "Value_TXT": "2460",
     "Label_English_TXT": "Quebec - LAssomption",
-    "Label_French_TXT": "Québec - LAssomption"
+    "Label_French_TXT": "Quï¿½bec - LAssomption"
   },
   {
     "FieldChoiceId": 626,
     "FieldDefinitionId": 88,
     "Value_TXT": "2461",
     "Label_English_TXT": "Quebec - Joliette",
-    "Label_French_TXT": "Québec - Joliette"
+    "Label_French_TXT": "Quï¿½bec - Joliette"
   },
   {
     "FieldChoiceId": 627,
     "FieldDefinitionId": 88,
     "Value_TXT": "2462",
     "Label_English_TXT": "Quebec - Matawinie",
-    "Label_French_TXT": "Québec - Matawinie"
+    "Label_French_TXT": "Quï¿½bec - Matawinie"
   },
   {
     "FieldChoiceId": 628,
     "FieldDefinitionId": 88,
     "Value_TXT": "2463",
     "Label_English_TXT": "Quebec - Montcalm",
-    "Label_French_TXT": "Québec - Montcalm"
+    "Label_French_TXT": "Quï¿½bec - Montcalm"
   },
   {
     "FieldChoiceId": 629,
     "FieldDefinitionId": 88,
     "Value_TXT": "2464",
     "Label_English_TXT": "Quebec - Les Moulins",
-    "Label_French_TXT": "Québec - Les Moulins"
+    "Label_French_TXT": "Quï¿½bec - Les Moulins"
   },
   {
     "FieldChoiceId": 630,
     "FieldDefinitionId": 88,
     "Value_TXT": "2465",
     "Label_English_TXT": "Quebec - Laval",
-    "Label_French_TXT": "Québec - Laval"
+    "Label_French_TXT": "Quï¿½bec - Laval"
   },
   {
     "FieldChoiceId": 631,
     "FieldDefinitionId": 88,
     "Value_TXT": "2466",
-    "Label_English_TXT": "Quebec - Montréal",
-    "Label_French_TXT": "Québec - Montréal"
+    "Label_English_TXT": "Quebec - Montrï¿½al",
+    "Label_French_TXT": "Quï¿½bec - Montrï¿½al"
   },
   {
     "FieldChoiceId": 632,
     "FieldDefinitionId": 88,
     "Value_TXT": "2467",
     "Label_English_TXT": "Quebec - Roussillon",
-    "Label_French_TXT": "Québec - Roussillon"
+    "Label_French_TXT": "Quï¿½bec - Roussillon"
   },
   {
     "FieldChoiceId": 633,
     "FieldDefinitionId": 88,
     "Value_TXT": "2468",
     "Label_English_TXT": "Quebec - Les Jardins-de-Napierville",
-    "Label_French_TXT": "Québec - Les Jardins-de-Napierville"
+    "Label_French_TXT": "Quï¿½bec - Les Jardins-de-Napierville"
   },
   {
     "FieldChoiceId": 634,
     "FieldDefinitionId": 88,
     "Value_TXT": "2469",
     "Label_English_TXT": "Quebec - Le Haut-Saint-Laurent",
-    "Label_French_TXT": "Québec - Le Haut-Saint-Laurent"
+    "Label_French_TXT": "Quï¿½bec - Le Haut-Saint-Laurent"
   },
   {
     "FieldChoiceId": 635,
     "FieldDefinitionId": 88,
     "Value_TXT": "2470",
     "Label_English_TXT": "Quebec - Beauharnois-Salaberry",
-    "Label_French_TXT": "Québec - Beauharnois-Salaberry"
+    "Label_French_TXT": "Quï¿½bec - Beauharnois-Salaberry"
   },
   {
     "FieldChoiceId": 636,
     "FieldDefinitionId": 88,
     "Value_TXT": "2471",
     "Label_English_TXT": "Quebec - Vaudreuil-Soulanges",
-    "Label_French_TXT": "Québec - Vaudreuil-Soulanges"
+    "Label_French_TXT": "Quï¿½bec - Vaudreuil-Soulanges"
   },
   {
     "FieldChoiceId": 637,
     "FieldDefinitionId": 88,
     "Value_TXT": "2472",
     "Label_English_TXT": "Quebec - Deux-Montagnes",
-    "Label_French_TXT": "Québec - Deux-Montagnes"
+    "Label_French_TXT": "Quï¿½bec - Deux-Montagnes"
   },
   {
     "FieldChoiceId": 638,
     "FieldDefinitionId": 88,
     "Value_TXT": "2473",
-    "Label_English_TXT": "Quebec - Thérèse-De Blainville",
-    "Label_French_TXT": "Québec - Thérèse-De Blainville"
+    "Label_English_TXT": "Quebec - Thï¿½rï¿½se-De Blainville",
+    "Label_French_TXT": "Quï¿½bec - Thï¿½rï¿½se-De Blainville"
   },
   {
     "FieldChoiceId": 639,
     "FieldDefinitionId": 88,
     "Value_TXT": "2474",
     "Label_English_TXT": "Quebec - Mirabel",
-    "Label_French_TXT": "Québec - Mirabel"
+    "Label_French_TXT": "Quï¿½bec - Mirabel"
   },
   {
     "FieldChoiceId": 640,
     "FieldDefinitionId": 88,
     "Value_TXT": "2475",
-    "Label_English_TXT": "Quebec - La Rivière-du-Nord",
-    "Label_French_TXT": "Québec - La Rivière-du-Nord"
+    "Label_English_TXT": "Quebec - La Riviï¿½re-du-Nord",
+    "Label_French_TXT": "Quï¿½bec - La Riviï¿½re-du-Nord"
   },
   {
     "FieldChoiceId": 641,
     "FieldDefinitionId": 88,
     "Value_TXT": "2476",
     "Label_English_TXT": "Quebec - Argenteuil",
-    "Label_French_TXT": "Québec - Argenteuil"
+    "Label_French_TXT": "Quï¿½bec - Argenteuil"
   },
   {
     "FieldChoiceId": 642,
     "FieldDefinitionId": 88,
     "Value_TXT": "2477",
     "Label_English_TXT": "Quebec - Les Pays-den-Haut",
-    "Label_French_TXT": "Québec - Les Pays-den-Haut"
+    "Label_French_TXT": "Quï¿½bec - Les Pays-den-Haut"
   },
   {
     "FieldChoiceId": 643,
     "FieldDefinitionId": 88,
     "Value_TXT": "2478",
     "Label_English_TXT": "Quebec - Les Laurentides",
-    "Label_French_TXT": "Québec - Les Laurentides"
+    "Label_French_TXT": "Quï¿½bec - Les Laurentides"
   },
   {
     "FieldChoiceId": 644,
     "FieldDefinitionId": 88,
     "Value_TXT": "2479",
     "Label_English_TXT": "Quebec - Antoine-Labelle",
-    "Label_French_TXT": "Québec - Antoine-Labelle"
+    "Label_French_TXT": "Quï¿½bec - Antoine-Labelle"
   },
   {
     "FieldChoiceId": 645,
     "FieldDefinitionId": 88,
     "Value_TXT": "2480",
     "Label_English_TXT": "Quebec - Papineau",
-    "Label_French_TXT": "Québec - Papineau"
+    "Label_French_TXT": "Quï¿½bec - Papineau"
   },
   {
     "FieldChoiceId": 646,
     "FieldDefinitionId": 88,
     "Value_TXT": "2481",
     "Label_English_TXT": "Quebec - Gatineau",
-    "Label_French_TXT": "Québec - Gatineau"
+    "Label_French_TXT": "Quï¿½bec - Gatineau"
   },
   {
     "FieldChoiceId": 647,
     "FieldDefinitionId": 88,
     "Value_TXT": "2482",
     "Label_English_TXT": "Quebec - Les Collines-de-lOutaouais",
-    "Label_French_TXT": "Québec - Les Collines-de-lOutaouais"
+    "Label_French_TXT": "Quï¿½bec - Les Collines-de-lOutaouais"
   },
   {
     "FieldChoiceId": 648,
     "FieldDefinitionId": 88,
     "Value_TXT": "2483",
-    "Label_English_TXT": "Quebec - La Vallée-de-la-Gatineau",
-    "Label_French_TXT": "Québec - La Vallée-de-la-Gatineau"
+    "Label_English_TXT": "Quebec - La Vallï¿½e-de-la-Gatineau",
+    "Label_French_TXT": "Quï¿½bec - La Vallï¿½e-de-la-Gatineau"
   },
   {
     "FieldChoiceId": 649,
     "FieldDefinitionId": 88,
     "Value_TXT": "2484",
     "Label_English_TXT": "Quebec - Pontiac",
-    "Label_French_TXT": "Québec - Pontiac"
+    "Label_French_TXT": "Quï¿½bec - Pontiac"
   },
   {
     "FieldChoiceId": 650,
     "FieldDefinitionId": 88,
     "Value_TXT": "2485",
-    "Label_English_TXT": "Quebec - Témiscamingue",
-    "Label_French_TXT": "Québec - Témiscamingue"
+    "Label_English_TXT": "Quebec - Tï¿½miscamingue",
+    "Label_French_TXT": "Quï¿½bec - Tï¿½miscamingue"
   },
   {
     "FieldChoiceId": 651,
     "FieldDefinitionId": 88,
     "Value_TXT": "2486",
     "Label_English_TXT": "Quebec - Rouyn-Noranda",
-    "Label_French_TXT": "Québec - Rouyn-Noranda"
+    "Label_French_TXT": "Quï¿½bec - Rouyn-Noranda"
   },
   {
     "FieldChoiceId": 652,
     "FieldDefinitionId": 88,
     "Value_TXT": "2487",
     "Label_English_TXT": "Quebec - Abitibi-Ouest",
-    "Label_French_TXT": "Québec - Abitibi-Ouest"
+    "Label_French_TXT": "Quï¿½bec - Abitibi-Ouest"
   },
   {
     "FieldChoiceId": 653,
     "FieldDefinitionId": 88,
     "Value_TXT": "2488",
     "Label_English_TXT": "Quebec - Abitibi",
-    "Label_French_TXT": "Québec - Abitibi"
+    "Label_French_TXT": "Quï¿½bec - Abitibi"
   },
   {
     "FieldChoiceId": 654,
     "FieldDefinitionId": 88,
     "Value_TXT": "2489",
-    "Label_English_TXT": "Quebec - La Vallée-de-lOr",
-    "Label_French_TXT": "Québec - La Vallée-de-lOr"
+    "Label_English_TXT": "Quebec - La Vallï¿½e-de-lOr",
+    "Label_French_TXT": "Quï¿½bec - La Vallï¿½e-de-lOr"
   },
   {
     "FieldChoiceId": 655,
     "FieldDefinitionId": 88,
     "Value_TXT": "2490",
     "Label_English_TXT": "Quebec - La Tuque",
-    "Label_French_TXT": "Québec - La Tuque"
+    "Label_French_TXT": "Quï¿½bec - La Tuque"
   },
   {
     "FieldChoiceId": 656,
     "FieldDefinitionId": 88,
     "Value_TXT": "2491",
     "Label_English_TXT": "Quebec - Le Domaine-du-Roy",
-    "Label_French_TXT": "Québec - Le Domaine-du-Roy"
+    "Label_French_TXT": "Quï¿½bec - Le Domaine-du-Roy"
   },
   {
     "FieldChoiceId": 657,
     "FieldDefinitionId": 88,
     "Value_TXT": "2492",
     "Label_English_TXT": "Quebec - Maria-Chapdelaine",
-    "Label_French_TXT": "Québec - Maria-Chapdelaine"
+    "Label_French_TXT": "Quï¿½bec - Maria-Chapdelaine"
   },
   {
     "FieldChoiceId": 658,
     "FieldDefinitionId": 88,
     "Value_TXT": "2493",
     "Label_English_TXT": "Quebec - Lac-Saint-Jean-Est",
-    "Label_French_TXT": "Québec - Lac-Saint-Jean-Est"
+    "Label_French_TXT": "Quï¿½bec - Lac-Saint-Jean-Est"
   },
   {
     "FieldChoiceId": 659,
     "FieldDefinitionId": 88,
     "Value_TXT": "2494",
     "Label_English_TXT": "Quebec - Le Saguenay-et-son-Fjord",
-    "Label_French_TXT": "Québec - Le Saguenay-et-son-Fjord"
+    "Label_French_TXT": "Quï¿½bec - Le Saguenay-et-son-Fjord"
   },
   {
     "FieldChoiceId": 660,
     "FieldDefinitionId": 88,
     "Value_TXT": "2495",
-    "Label_English_TXT": "Quebec - La Haute-Côte-Nord",
-    "Label_French_TXT": "Québec - La Haute-Côte-Nord"
+    "Label_English_TXT": "Quebec - La Haute-Cï¿½te-Nord",
+    "Label_French_TXT": "Quï¿½bec - La Haute-Cï¿½te-Nord"
   },
   {
     "FieldChoiceId": 661,
     "FieldDefinitionId": 88,
     "Value_TXT": "2496",
     "Label_English_TXT": "Quebec - Manicouagan",
-    "Label_French_TXT": "Québec - Manicouagan"
+    "Label_French_TXT": "Quï¿½bec - Manicouagan"
   },
   {
     "FieldChoiceId": 662,
     "FieldDefinitionId": 88,
     "Value_TXT": "2497",
-    "Label_English_TXT": "Quebec - Sept-Rivières--Caniapiscau",
-    "Label_French_TXT": "Québec - Sept-Rivières--Caniapiscau"
+    "Label_English_TXT": "Quebec - Sept-Riviï¿½res--Caniapiscau",
+    "Label_French_TXT": "Quï¿½bec - Sept-Riviï¿½res--Caniapiscau"
   },
   {
     "FieldChoiceId": 663,
     "FieldDefinitionId": 88,
     "Value_TXT": "2498",
     "Label_English_TXT": "Quebec - Minganie--Le Golfe-du-Saint-Laurent",
-    "Label_French_TXT": "Québec - Minganie--Le Golfe-du-Saint-Laurent"
+    "Label_French_TXT": "Quï¿½bec - Minganie--Le Golfe-du-Saint-Laurent"
   },
   {
     "FieldChoiceId": 664,
     "FieldDefinitionId": 88,
     "Value_TXT": "2499",
-    "Label_English_TXT": "Quebec - Nord-du-Québec",
-    "Label_French_TXT": "Québec - Nord-du-Québec"
+    "Label_English_TXT": "Quebec - Nord-du-Quï¿½bec",
+    "Label_French_TXT": "Quï¿½bec - Nord-du-Quï¿½bec"
   },
   {
     "FieldChoiceId": 665,
@@ -2713,7 +2713,7 @@
     "FieldDefinitionId": 92,
     "Value_TXT": "P4M",
     "Label_English_TXT": "Every four months",
-    "Label_French_TXT": "Trois fois par année"
+    "Label_French_TXT": "Trois fois par annï¿½e"
   },
   {
     "FieldChoiceId": 835,
@@ -2755,14 +2755,14 @@
     "FieldDefinitionId": 92,
     "Value_TXT": "irregular",
     "Label_English_TXT": "Irregular",
-    "Label_French_TXT": "Irrégulier"
+    "Label_French_TXT": "Irrï¿½gulier"
   },
   {
     "FieldChoiceId": 841,
     "FieldDefinitionId": 92,
     "Value_TXT": "not_planned",
     "Label_English_TXT": "Not Planned",
-    "Label_French_TXT": "Non planifié"
+    "Label_French_TXT": "Non planifiï¿½"
   },
   {
     "FieldChoiceId": 842,
@@ -2776,7 +2776,7 @@
     "FieldDefinitionId": 105,
     "Value_TXT": "completed",
     "Label_English_TXT": "Completed",
-    "Label_French_TXT": "Complété"
+    "Label_French_TXT": "Complï¿½tï¿½"
   },
   {
     "FieldChoiceId": 844,
@@ -2790,7 +2790,7 @@
     "FieldDefinitionId": 105,
     "Value_TXT": "obsolete",
     "Label_English_TXT": "Obsolete",
-    "Label_French_TXT": "Périmé"
+    "Label_French_TXT": "Pï¿½rimï¿½"
   },
   {
     "FieldChoiceId": 846,
@@ -2804,7 +2804,7 @@
     "FieldDefinitionId": 105,
     "Value_TXT": "planned",
     "Label_English_TXT": "Planned",
-    "Label_French_TXT": "Planifié"
+    "Label_French_TXT": "Planifiï¿½"
   },
   {
     "FieldChoiceId": 848,
@@ -2825,28 +2825,28 @@
     "FieldDefinitionId": 105,
     "Value_TXT": "proposed",
     "Label_English_TXT": "Proposed",
-    "Label_French_TXT": "Proposé"
+    "Label_French_TXT": "Proposï¿½"
   },
   {
     "FieldChoiceId": 851,
     "FieldDefinitionId": 106,
     "Value_TXT": "cross_reference",
     "Label_English_TXT": "Cross Reference",
-    "Label_French_TXT": "Référence croisée"
+    "Label_French_TXT": "Rï¿½fï¿½rence croisï¿½e"
   },
   {
     "FieldChoiceId": 852,
     "FieldDefinitionId": 106,
     "Value_TXT": "larger_work_citation",
     "Label_English_TXT": "Larger Work Citation",
-    "Label_French_TXT": "Référence générique"
+    "Label_French_TXT": "Rï¿½fï¿½rence gï¿½nï¿½rique"
   },
   {
     "FieldChoiceId": 853,
     "FieldDefinitionId": 106,
     "Value_TXT": "part_of_seamless_database",
     "Label_English_TXT": "Part of Seamless Database",
-    "Label_French_TXT": "Partie de base de données continue"
+    "Label_French_TXT": "Partie de base de donnï¿½es continue"
   },
   {
     "FieldChoiceId": 854,
@@ -2860,14 +2860,14 @@
     "FieldDefinitionId": 106,
     "Value_TXT": "stereo_mate",
     "Label_English_TXT": "Stereo Mate",
-    "Label_French_TXT": "Stéréo associée"
+    "Label_French_TXT": "Stï¿½rï¿½o associï¿½e"
   },
   {
     "FieldChoiceId": 856,
     "FieldDefinitionId": 106,
     "Value_TXT": "is_composed_of",
     "Label_English_TXT": "Is Composed Of",
-    "Label_French_TXT": "Est composé de"
+    "Label_French_TXT": "Est composï¿½ de"
   },
   {
     "FieldChoiceId": 857,
@@ -2902,21 +2902,21 @@
     "FieldDefinitionId": 108,
     "Value_TXT": "stereo_model",
     "Label_English_TXT": "Stereo Model",
-    "Label_French_TXT": "Stéréomodèle"
+    "Label_French_TXT": "Stï¿½rï¿½omodï¿½le"
   },
   {
     "FieldChoiceId": 862,
     "FieldDefinitionId": 108,
     "Value_TXT": "video",
     "Label_English_TXT": "Video",
-    "Label_French_TXT": "Vidéo"
+    "Label_French_TXT": "Vidï¿½o"
   },
   {
     "FieldChoiceId": 863,
     "FieldDefinitionId": 109,
     "Value_TXT": "federal",
     "Label_English_TXT": "Federal",
-    "Label_French_TXT": "Fédérale"
+    "Label_French_TXT": "Fï¿½dï¿½rale"
   },
   {
     "FieldChoiceId": 864,
@@ -2944,7 +2944,7 @@
     "FieldDefinitionId": 111,
     "Value_TXT": "unrestricted",
     "Label_English_TXT": "Unrestricted",
-    "Label_French_TXT": "Non affecté"
+    "Label_French_TXT": "Non affectï¿½"
   },
   {
     "FieldChoiceId": 868,
@@ -2979,7 +2979,7 @@
     "FieldDefinitionId": 115,
     "Value_TXT": "document_digital",
     "Label_English_TXT": "Document Digital",
-    "Label_French_TXT": "Document numérique"
+    "Label_French_TXT": "Document numï¿½rique"
   },
   {
     "FieldChoiceId": 873,
@@ -2993,7 +2993,7 @@
     "FieldDefinitionId": 115,
     "Value_TXT": "image_digital",
     "Label_English_TXT": "Image Digital",
-    "Label_French_TXT": "Image numérique"
+    "Label_French_TXT": "Image numï¿½rique"
   },
   {
     "FieldChoiceId": 875,
@@ -3007,7 +3007,7 @@
     "FieldDefinitionId": 115,
     "Value_TXT": "map_digital",
     "Label_English_TXT": "Map Digital",
-    "Label_French_TXT": "Carte numérique"
+    "Label_French_TXT": "Carte numï¿½rique"
   },
   {
     "FieldChoiceId": 877,
@@ -3021,7 +3021,7 @@
     "FieldDefinitionId": 115,
     "Value_TXT": "model_digital",
     "Label_English_TXT": "Model Digital",
-    "Label_French_TXT": "Modèle numérique"
+    "Label_French_TXT": "Modï¿½le numï¿½rique"
   },
   {
     "FieldChoiceId": 879,
@@ -3035,7 +3035,7 @@
     "FieldDefinitionId": 115,
     "Value_TXT": "profile_digital",
     "Label_English_TXT": "Profile Digital",
-    "Label_French_TXT": "Profil numérique"
+    "Label_French_TXT": "Profil numï¿½rique"
   },
   {
     "FieldChoiceId": 881,
@@ -3049,7 +3049,7 @@
     "FieldDefinitionId": 115,
     "Value_TXT": "table_digital",
     "Label_English_TXT": "Table Digital",
-    "Label_French_TXT": "Table numérique"
+    "Label_French_TXT": "Table numï¿½rique"
   },
   {
     "FieldChoiceId": 883,
@@ -3063,21 +3063,21 @@
     "FieldDefinitionId": 115,
     "Value_TXT": "video_digital",
     "Label_English_TXT": "Video Digital",
-    "Label_French_TXT": "Vidéo numérique"
+    "Label_French_TXT": "Vidï¿½o numï¿½rique"
   },
   {
     "FieldChoiceId": 885,
     "FieldDefinitionId": 115,
     "Value_TXT": "video_hardcopy",
     "Label_English_TXT": "Video Hardcopy",
-    "Label_French_TXT": "Vidéo film"
+    "Label_French_TXT": "Vidï¿½o film"
   },
   {
     "FieldChoiceId": 886,
     "FieldDefinitionId": 115,
     "Value_TXT": "audio_digital",
     "Label_English_TXT": "Audio Digital",
-    "Label_French_TXT": "Audio numérique"
+    "Label_French_TXT": "Audio numï¿½rique"
   },
   {
     "FieldChoiceId": 887,
@@ -3091,21 +3091,21 @@
     "FieldDefinitionId": 115,
     "Value_TXT": "multimedia_digital",
     "Label_English_TXT": "Multimedia Digital",
-    "Label_French_TXT": "Multimédia numérique"
+    "Label_French_TXT": "Multimï¿½dia numï¿½rique"
   },
   {
     "FieldChoiceId": 889,
     "FieldDefinitionId": 115,
     "Value_TXT": "multimedia_hardcopy",
     "Label_English_TXT": "Multimedia Hardcopy",
-    "Label_French_TXT": "Multimédia analogique"
+    "Label_French_TXT": "Multimï¿½dia analogique"
   },
   {
     "FieldChoiceId": 890,
     "FieldDefinitionId": 115,
     "Value_TXT": "diagram_digital",
     "Label_English_TXT": "Diagram Digital",
-    "Label_French_TXT": "Diagramme numérique"
+    "Label_French_TXT": "Diagramme numï¿½rique"
   },
   {
     "FieldChoiceId": 891,

@@ -70,21 +70,23 @@ namespace Datahub.Core.Data
             }
         }
 
+		public string Department { get; set; }
 
-        /// <summary>
-        /// Static ctor to create from GraphUser
-        /// </summary>
-        /// <param name="user"></param>
-        /// <returns></returns>
-        public static GraphUser Create(User user)
+		/// <summary>
+		/// Static ctor to create from GraphUser
+		/// </summary>
+		/// <param name="user"></param>
+		/// <returns></returns>
+		public static GraphUser Create(User user)
         {
             var email = user.Mail ?? "unknown@unknown.com";
-            var instance = new GraphUser() {
+            var instance = new GraphUser() 
+            {
                 Id = user.Id,
                 DisplayName = user.DisplayName,
-                mailAddress = new MailAddress(email)
+                mailAddress = new MailAddress(email),
+                Department = user.Department
             };
-
             return instance;
         }
     }
