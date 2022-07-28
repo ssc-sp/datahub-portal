@@ -3,63 +3,53 @@
 @using Datahub.Portal.Services
 @inject ServiceAuthManager ServiceAuthManager
 
-<div id="sidebar">
-    <div class="sidebar-sticky">
-        <div class="logo">
-            <img src="_content/Datahub.Core/img/datahub-logo-v2.png"/>
-        </div>
-        <div class="links">
-            @foreach (var (href, icon, label) in GetLinks())
-            {
-                <NavLink class="@icon.Color" href="@href" Match="NavLinkMatch.Prefix" ActiveClass="active">
-                    <i class="@icon.Name"></i>
-                    @Localizer[label]
-                </NavLink>
-            }
-            @foreach (var link in GetAuthorizedLinks())
-            {
-                <AuthorizeView Roles="@string.Join(',', link.Roles)">
-                    <NavLink class="@link.Icon.Color" href="@link.Href" Match="NavLinkMatch.Prefix" ActiveClass="active">
-                        <i class="@link.Icon.Name"></i>
-                        @Localizer[@link.Label]
-                    </NavLink>
-                </AuthorizeView>
-            }
-        </div>
-    </div>
-</div>
+
+<MudNavMenu>
+    @foreach (var (href, icon, label) in GetLinks())
+    {
+        <MudNavLink Href="@href" Icon="@icon" Match="NavLinkMatch.Prefix">
+            @Localizer[label]
+        </MudNavLink>
+    }
+    @foreach (var (href, icon, label, roles) in GetAuthorizedLinks())
+    {
+        <AuthorizeView Roles="@string.Join(',', roles)">
+            <MudNavLink Href="@href" Icon="@icon" Match="NavLinkMatch.Prefix">
+                @Localizer[label]
+            </MudNavLink>
+        </AuthorizeView>
+    }
+</MudNavMenu>
 
 @code {
 
 
-    private List<(string Href, Icon Icon, string Label)> GetLinks()
+    private List<(string Href, string Icon, string Label)> GetLinks()
     {
-        return new List<(string, Icon, string)>()
+        return new List<(string, string, string)>()
         {
-            ("/home", Icon.HOME, "SIDEBAR.Home"),
+            ("/home", Icons.Filled.Home, "SIDEBAR.Home"),
     //("/data", Icon.STORAGE, "SIDEBAR.Storage"),
-            ($"/{UrlPathSegment.PROJECTS}", Icon.PROJECT, "SIDEBAR.DataProjects"),
-            ("/resources", Icon.RESOURCES, "SIDEBAR.Resources"),
-            ("/tools", Icon.TOOLS, "SIDEBAR.Tools"),
+            ($"/{UrlPathSegment.PROJECTS}", Icons.Filled.Category, "SIDEBAR.DataProjects"),
+            ("/resources", Icons.Filled.MenuBook, "SIDEBAR.Resources"),
+            ("/tools", Icons.Filled.Construction, "SIDEBAR.Tools"),
     //("/datasets", Icon.DATASETS, "SIDEBAR.Datasets"),
     //("/powerbi", Icon.POWERBI, "SIDEBAR.PowerBI"),      
         };
     }
 
-    private List<(string Href, Icon Icon, string Label, List<string> Roles)> GetAuthorizedLinks()
+    private List<(string Href, string Icon, string Label, List<string> Roles)> GetAuthorizedLinks()
     {
         var projects = ServiceAuthManager.GetAdminProjectRoles();
         if (projects.Any())
         {
-            return new List<(string, Icon, string, List<string>)>()
+            return new List<(string, string, string, List<string>)>()
             {
-                ("/administration", Icon.ADMIN, "SIDEBAR.Admin", projects),
+                ("/administration", Icons.Filled.AdminPanelSettings, "SIDEBAR.Admin", projects),
             };
         }
-        else
-        {
-            return new List<(string, Icon, string, List<string>)>();
-        }
+
+        return new List<(string, string, string, List<string>)>();
     }
 
 }

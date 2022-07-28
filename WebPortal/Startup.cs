@@ -37,6 +37,7 @@ using Datahub.Core.Configuration;
 using Datahub.Core.Modules;
 using Datahub.Portal.Services.Storage;
 using Microsoft.AspNetCore.Authorization.Infrastructure;
+using MudBlazor.Services;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]
 namespace Datahub.Portal
@@ -114,6 +115,7 @@ namespace Datahub.Portal
             //TimeZoneService provides the user time zone to the server using JS Interop
             services.AddScoped<TimeZoneService>();
             services.AddElemental();
+            services.AddMudServices();
             services.AddSingleton(moduleManager);
 
 
