@@ -1,56 +1,65 @@
 ﻿@inherits LayoutComponentBase
 
-@using Microsoft.Extensions.Configuration
 @using Microsoft.Identity.Web
 
-@inject IMSGraphService _msGraphService
 @inject MyDataService _apiService
-@inject NavigationManager _navigationManager
-@inject UserLocationManagerService _userLocationManagerService
 @inject IDatahubAuditingService _auditingService
 @inject IUserCircuitCounterService _userCircuitCounterService
 @inject MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
 @inject IConfiguration _configuration
 
+<MudThemeProvider Theme="_theme"/>
+<MudDialogProvider/>
+<MudSnackbarProvider/>
+
 <PageTitle>@Localizer[_configuration["Title"]]</PageTitle>
 
 <AuthorizeView>
-    <Authorized>        
-        <div class="application-wrapper">
-            <Sidebar />
-            <div class="main-layout">
-                <Topbar />
-                <div class="ui-control">
-                    <div class="main-page">
-                        <ErrorBoundary @ref="_errorBoundary">
-                            <ChildContent>
-                                @if (_isSessionEnabled == true)
-                                {
-                                    @Body
-                                }
-                                @if (_isSessionEnabled == false)
-                                {
-                                    <TooManyTabs />
-                                }                                
-                            </ChildContent>
-                            <ErrorContent Context="ex">
-                                @if (HandleException(@ex)) 
-                                {
-                                    <Error CorrelationId=@_correlationId />
-                                }
-                                else
-                                {
-                                    @Body
-                                }
+    <Authorized>
+        <MudLayout>
+            <MudAppBar Elevation="1">
+                <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
+                <Topbar/>
+            </MudAppBar>
+            <MudDrawer @bind-Open="_drawerOpen" Elevation="2" ClipMode="DrawerClipMode.Always" Variant="DrawerVariant.Mini">
+                <Sidebar/>
+            </MudDrawer>
+            <MudMainContent>
+                <div class="application-wrapper">
+                    <div class="main-layout">
+                        <div class="ui-control">
+                            <div class="main-page">
+                                <ErrorBoundary @ref="_errorBoundary">
+                                    <ChildContent>
+                                        @if (_isSessionEnabled == true)
+                                        {
+                                            @Body
+                                        }
+                                        @if (_isSessionEnabled == false)
+                                        {
+                                            <TooManyTabs/>
+                                        }
+                                    </ChildContent>
+                                    <ErrorContent Context="ex">
+                                        @if (HandleException(@ex))
+                                        {
+                                            <Error CorrelationId=@_correlationId/>
+                                        }
+                                        else
+                                        {
+                                            @Body
+                                        }
 
-                            </ErrorContent>
-                        </ErrorBoundary>
+                                    </ErrorContent>
+                                </ErrorBoundary>
+                            </div>
+                            <RightSidebar/>
+                            <Modal/>
+                        </div>
                     </div>
-                    <RightSidebar />
-                    <Modal />
                 </div>
-            </div>
-        </div>
+            </MudMainContent>
+        </MudLayout>
     </Authorized>
     <NotAuthorized>
         <div>@Localizer["ERROR-PAGE.ConnectionLost-Label"]</div>
@@ -61,15 +70,29 @@
 {
     [CascadingParameter]
     private Task<AuthenticationState> _authenticationStateTask { get; set; }
-    
+
     private ErrorBoundary _errorBoundary;
     private string _correlationId;
     private Exception _lastException;
     private bool? _isSessionEnabled;
 
+    private MudTheme _theme;
+    bool _drawerOpen = true;
+
+    void DrawerToggle()
+    {
+        _drawerOpen = !_drawerOpen;
+    }
+
     protected override void OnParametersSet()
     {
         _errorBoundary?.Recover();
+    }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        _theme = new MudTheme();
     }
 
     protected override async Task OnInitializedAsync()
@@ -84,11 +107,11 @@
             _consentHandler.ChallengeUser(scopes);
             return;
         }
-        
-        try 
+
+        try
         {
             _isSessionEnabled = await _userCircuitCounterService.IsSessionEnabled();
-        } 
+        }
         catch (Exception ex)
         {
             _consentHandler.HandleException(ex);
