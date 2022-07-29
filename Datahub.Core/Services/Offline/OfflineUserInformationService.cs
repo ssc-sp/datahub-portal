@@ -99,5 +99,10 @@ namespace Datahub.Core.Services
                 UserPrincipalName = "me@me.com"
             });
         }
+
+        public Task<bool> IsUserWithoutInitiatives()
+        {
+            return Task.FromResult(false);
+        }
     }
 }

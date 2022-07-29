@@ -3,6 +3,7 @@
 @using Datahub.Core.Utils
 @using Datahub.Portal.Services
 @inject ServiceAuthManager ServiceAuthManager
+@inject IUserInformationService UserInformationService
 @inject IConfiguration Configuration
 
 <div id="sidebar">
@@ -35,16 +36,21 @@
 </div>
 
 @code {
+    private bool _userHasInitiatives;
 
+    protected override async Task OnInitializedAsync()
+    {
+        _userHasInitiatives = !(await UserInformationService.IsUserWithoutInitiatives());
+    }
     private List<(string Href, Icon Icon, string Label, bool enabled)> GetLinks()
     {
         return new()
         {
             ("/home", Icon.HOME, "SIDEBAR.Home", true),
             ($"/{UrlPathSegment.PROJECTS}", Icon.PROJECT, "SIDEBAR.DataProjects", true),
-            ("/resources", Icon.RESOURCES, "SIDEBAR.Resources", true),
+            ("/resources", Icon.RESOURCES, "SIDEBAR.Resources", _userHasInitiatives),
             ("/tools", Icon.TOOLS, "SIDEBAR.Tools", true),
-            ("/discovery", Icon.CATALOG, "SIDEBAR.Catalog", IsFeatureEnabled("DataCatalog"))
+            ("/discovery", Icon.CATALOG, "SIDEBAR.Catalog", (IsFeatureEnabled("DataCatalog") && _userHasInitiatives))
             //("/data", Icon.STORAGE, "SIDEBAR.Storage"),
             //("/datasets", Icon.DATASETS, "SIDEBAR.Datasets"),
             //("/powerbi", Icon.POWERBI, "SIDEBAR.PowerBI"),      
@@ -53,6 +59,7 @@
 
     private List<(string Href, Icon Icon, string Label, List<string> Roles)> GetAuthorizedLinks()
     {
+
         var projects = ServiceAuthManager.GetAdminProjectRoles();
         if (projects.Any())
         {
