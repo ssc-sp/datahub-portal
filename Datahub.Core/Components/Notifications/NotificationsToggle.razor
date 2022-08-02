@@ -1,0 +1,29 @@
+﻿@using Datahub.Core.EFCore
+
+<MudIconButton OnClick="@ToggleNotifications" Icon="@Icons.Filled.Notifications" Style="color: #fff;"/>
+<MudPopover
+    Class="pa-8"
+    Open="@_showNotifications" 
+    AnchorOrigin="Origin.BottomRight" 
+    TransformOrigin="Origin.TopRight">
+    <NotificationsList />
+</MudPopover>
+
+@code {
+
+    private bool _showNotifications;
+    private void ToggleNotifications() => _showNotifications = !_showNotifications;
+
+
+    private string GetUnreadCssClass(SystemNotification notification)
+    {
+        return notification.Read_FLAG ? "far fa-envelope" : "fas fa-envelope-open";
+    }
+
+    private string GetNotificationCardCssClass(SystemNotification notification)
+    {
+        var unread = notification.Read_FLAG ? "" : "unread";
+        return $"notification-item {unread}";
+    }
+
+}
