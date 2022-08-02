@@ -7,6 +7,7 @@
 
 @using Microsoft.Identity.Web
 @using Datahub.Core.Components.Common
+@using Datahub.Core.Components.Notifications
 @using Microsoft.Identity.Web
 @using System.Timers
 @using System.Reflection
@@ -21,7 +22,7 @@
 <Search/>
 <MudSpacer/>
 
-<NotificationsIcon/>
+<NotificationsToggle/>
 
 @*<div class="inbox icon-container">
       <NavLink href="/onboarding/applications"><i class="fad fa-inbox"></i></NavLink>
@@ -60,9 +61,13 @@
 
 <div class="profile">
     <AuthorizeView>
+        <MudButton>
+            <MudText>@UserName</MudText>
+            <ProfileCircle FullName="@UserName" style="margin-left: 1rem"/>
+            <MudIcon Icon="@Icons.Filled.ArrowDropDown" />
+        </MudButton>
         <div class="toggle" @onclick="ToggleUserPopup">
             <Typography>@UserName</Typography>
-            <ProfileCircle FullName="@UserName" style="margin-left: 1rem"/>
             <i class="fal fa-chevron-down" style="padding-left: 0.75rem;"></i>
         </div>
         <Popup Show="_showUserPopup" class="nrcan-popup top-nav-popup user-popup" OnCloseClick="ToggleUserPopup">
