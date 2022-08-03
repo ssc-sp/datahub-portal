@@ -15,11 +15,13 @@
 
 <PageTitle>@Localizer[_configuration["Title"]]</PageTitle>
 
+<CascadingValue Value="_theme"></CascadingValue>
 <AuthorizeView>
     <Authorized>
+        
         <MudLayout>
             <MudAppBar Elevation="0">
-                <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Dark" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
+                <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Dark" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())"/>
                 <Topbar/>
             </MudAppBar>
             <MudDrawer @bind-Open="_drawerOpen" Elevation="0" ClipMode="DrawerClipMode.Always" Variant="DrawerVariant.Mini">
@@ -98,6 +100,10 @@
             Palette =
             {
                 AppbarBackground = Colors.Shades.White
+            },
+            PaletteDark =
+            {
+                AppbarBackground = Colors.Grey.Darken3
             }
         };
     }
