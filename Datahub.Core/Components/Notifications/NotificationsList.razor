@@ -11,13 +11,24 @@
 @using MudBlazor.Utilities
 
 <span>
-    <MudBadge Content="_unreadNotificationCount" Color="Color.Primary" Overlap>
+    @if (_unreadNotificationCount > 0)
+    {
+        <MudBadge Content="_unreadNotificationCount" Color="Color.Primary" Overlap>
+            <MudToggleIconButton
+                ToggledIcon="@Icons.Filled.Notifications"
+                ToggledChanged="@ToggleNotifications"
+                Toggled="_showNotifications"
+                Icon="@Icons.Outlined.Notifications"/>
+        </MudBadge>
+    }
+    else
+    {
         <MudToggleIconButton
             ToggledIcon="@Icons.Filled.Notifications"
             ToggledChanged="@ToggleNotifications"
             Toggled="_showNotifications"
             Icon="@Icons.Outlined.Notifications"/>
-    </MudBadge>
+    }
 
     <MudPopover
         Style="@_style"
