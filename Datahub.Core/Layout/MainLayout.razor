@@ -17,11 +17,11 @@
 <AuthorizeView>
     <Authorized>
         <MudLayout>
-            <MudAppBar Elevation="1">
-                <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
+            <MudAppBar Elevation="0">
+                <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Dark" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
                 <Topbar/>
             </MudAppBar>
-            <MudDrawer @bind-Open="_drawerOpen" Elevation="2" ClipMode="DrawerClipMode.Always" Variant="DrawerVariant.Mini">
+            <MudDrawer @bind-Open="_drawerOpen" Elevation="0" ClipMode="DrawerClipMode.Always" Variant="DrawerVariant.Mini">
                 <Sidebar/>
             </MudDrawer>
             <MudMainContent>
@@ -92,7 +92,13 @@
     protected override void OnInitialized()
     {
         base.OnInitialized();
-        _theme = new MudTheme();
+        _theme = new MudTheme()
+        {
+            Palette =
+            {
+                AppbarBackground = Colors.Shades.White
+            }
+        };
     }
 
     protected override async Task OnInitializedAsync()

@@ -2,6 +2,8 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Datahub.Core.EFCore;
+using MudBlazor;
+using MudBlazor.Utilities;
 
 
 namespace Datahub.Core.Components.Notifications;
@@ -19,19 +21,9 @@ public partial class NotificationsList
     {
         _isLoading = true;
         StateHasChanged();
-        TotalNotificationCount = await _systemNotificationService.GetNotificationCountForUser(CurrentUserId, UnreadOnly);
-
-        UnreadNotificationCount = UnreadOnly ?
-            TotalNotificationCount :
-            await _systemNotificationService.GetNotificationCountForUser(CurrentUserId, true);
-
-        _notifications = await _systemNotificationService.GetNotificationsForUser(CurrentUserId, UnreadOnly, CurrentPage);
-        
-        _notifications.Add(_notifications.First());
-        _notifications.Add(_notifications.First());
-        _notifications.Add(_notifications.First());
-        _notifications.Add(_notifications.First());
-        _notifications.Add(_notifications.First());
+        _unreadNotificationCount =  await _systemNotificationService.GetNotificationCountForUser(_currentUserId, true);
+        _totalNotificationCount = await _systemNotificationService.GetNotificationCountForUser(_currentUserId);
+        _notifications = await _systemNotificationService.GetNotificationsForUser(_currentUserId, _unreadOnly, _currentPage -1);
         _isLoading = false;
         StateHasChanged();
     }
@@ -51,39 +43,36 @@ public partial class NotificationsList
     
     private async Task ToggleShowUnreadOnly()
     {
-        UnreadOnly = !UnreadOnly;
-        CurrentPage = 0;
-        await RefreshNotifications();
-    }
-    
-    private async Task FirstPage()
-    {
-        CurrentPage = 0;
+        _unreadOnly = !_unreadOnly;
+        _currentPage = 0;
         await RefreshNotifications();
     }
 
-    private async Task NextPage()
+    private async Task PageChanged(int i)
     {
-        CurrentPage = Math.Min(CurrentPage + 1, MaxPage);
+        _currentPage = i;
         await RefreshNotifications();
     }
 
-    private async Task PrevPage()
+    private async Task CheckChanged(bool value)
     {
-        CurrentPage = Math.Max(CurrentPage - 1, 0);
+        _unreadOnly = value;
+        _currentPage = 1;
         await RefreshNotifications();
-    }
-    
-    public void Dispose()
-    {
-        _systemNotificationService.Notify -= OnNotify;
     }
     
     private async Task OnNotify(string userId)
     {
-        if (userId == CurrentUserId)
+        if (userId == _currentUserId)
         {
             await InvokeAsync(RefreshNotifications);
         }
+    }
+    
+    private static string BuildNotificationStyle(SystemNotification notification)
+    {
+        return new StyleBuilder()
+            .AddStyle("border-left", $"4px solid var(--mud-palette-primary)", when: !notification.Read_FLAG)
+            .Build();
     }
 }
