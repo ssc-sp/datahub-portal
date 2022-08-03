@@ -7,6 +7,7 @@
 @inject IMSGraphService _msGraphService
 @inject TranslationService _translationService
 @inject IMetadataBrokerService _metadataService
+@inject UIControlsService UI
 
 @* TODO create binding variables for security classifications rather than binding to the metadta editor property directly *@
 
@@ -84,6 +85,10 @@
                             </Header>
                             <ChildContent>
                                 <div>
+                                    @if (!WorkspaceBeingEdited.IsInPowerBi)
+                                    {
+                                        <PowerBIItemNotFoundWarning OnDeleteClicked=@PromptToDelete />
+                                    }
                                     <div style="margin-bottom: 16px;">
                                         <label>
                                             <AeFlex Vertical>
@@ -148,6 +153,11 @@
                                 <AeTypography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.Dataset"]: @DatasetBeingEdited.DbDatasetName</AeTypography>
                             </Header>
                             <ChildContent>
+                                @if (!DatasetBeingEdited.IsInPowerBi)
+                                {
+                                    <PowerBIItemNotFoundWarning OnDeleteClicked=@PromptToDelete />
+                                }
+
                                 @if (!DatasetBeingEdited.IsLinkedToProject)
                                 {
                                     <AeTypography Variant="p" class="warning">@Localizer[$"{LOCALIZATION_PREFIX}.UnassignedWarning"]</AeTypography>
@@ -167,7 +177,7 @@
                                         </AeFlex>
                                     </label>
                                 }
-
+                                
                                 <ObjectMetadataEditor 
                                     ObjectId=@DatasetBeingEdited.DatasetId.ToString()
                                     Location="PowerBI"
@@ -205,10 +215,16 @@
                                 <AeTypography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.Report"]: @ReportBeingEdited.DbReportName</AeTypography>
                             </Header>
                             <ChildContent>
+                                @if (!ReportBeingEdited.IsInPowerBi)
+                                {
+                                    <PowerBIItemNotFoundWarning OnDeleteClicked=@PromptToDelete />
+                                }
+
                                 @if (!ReportBeingEdited.IsLinkedToProject)
                                 {
                                     <AeTypography Variant="p" class="warning">@Localizer[$"{LOCALIZATION_PREFIX}.UnassignedWarning"]</AeTypography>
                                 }
+
                                 <AeTypography Variant="h4">@Localizer[$"{LOCALIZATION_PREFIX}.Metadata"]</AeTypography>
                                 @if (_reportMetadata != null)
                                 {
@@ -382,7 +398,11 @@
     private List<PowerBiAdminWorkspaceTreeItem> AllWorkspaceTreeItems { get; set; } = new();
     private List<PowerBiAdminWorkspaceTreeItem> WorkspacesToBeUpdated => AllWorkspaceTreeItems.Where(w => w.NeedsUpdate).ToList();
     private List<PowerBiAdminWorkspaceTreeItem> RemovedWorkspaces => AllWorkspaceTreeItems.Where(w => !w.IsInPowerBi).ToList();
-    private List<PowerBiAdminWorkspaceTreeItem> ManagedWorkspaces => AllWorkspaceTreeItems.Where(w => w.IsInDb && w.IsInPowerBi).ToList();
+    private List<PowerBiAdminWorkspaceTreeItem> ManagedWorkspaces => AllWorkspaceTreeItems.Where(w => w.IsInDb).ToList();
+
+    private Dictionary<Guid, Microsoft.PowerBI.Api.Models.Group> PowerBiWorkspacesById = new();
+    private Dictionary<Guid, Microsoft.PowerBI.Api.Models.Dataset> PowerBiDatasetsById = new();
+    private Dictionary<Guid, Microsoft.PowerBI.Api.Models.Report> PowerBiReportsById = new();
 
     private bool IsLoadingWorkspaceTreeItems { get; set; } = false;
     private bool IsImportingPowerBiItems { get; set; } = false;
@@ -464,7 +484,7 @@
         var pbiWorkspaces = await _powerBiServiceApi.GetWorkspaces();
         var dbWorkspacesList = await _powerBiDataService.GetAllWorkspaces();
 
-        var pbiWorkspaceDict = pbiWorkspaces.ToDictionary(w => w.Id);
+        PowerBiWorkspacesById = pbiWorkspaces.ToDictionary(w => w.Id);
         var dbWorkspaceDict = dbWorkspacesList.ToDictionary(w => w.Workspace_ID);
 
         var allWorkspaceIds = pbiWorkspaces.Select(w => w.Id)
@@ -474,7 +494,7 @@
         var treeItems = allWorkspaceIds.Select(id =>
         {
             var dbWorkspace = dbWorkspaceDict.GetValueOrDefault(id);
-            var pbiWorkspace = pbiWorkspaceDict.GetValueOrDefault(id);
+            var pbiWorkspace = PowerBiWorkspacesById.GetValueOrDefault(id);
             return new PowerBiAdminWorkspaceTreeItem(pbiWorkspace, dbWorkspace);
         });
 
@@ -498,7 +518,8 @@
     private async Task<List<PowerBiAdminDatasetTreeItem>> LoadDatasetTreeItems()
     {
         var pbiDatasets = await _powerBiServiceApi.GetWorkspaceDatasetsAsync();
-        var pbiDatasetIds = pbiDatasets.Select(d => Guid.Parse(d.Dataset.Id)).ToHashSet();
+        PowerBiDatasetsById = pbiDatasets.ToDictionary(d => Guid.Parse(d.Dataset.Id), d => d.Dataset);
+        var pbiDatasetIds = PowerBiDatasetsById.Keys.ToHashSet();
         var dbDatasets = await _powerBiDataService.GetAllDatasets();
         var dbDatasetDict = dbDatasets.ToDictionary(d => d.DataSet_ID);
 
@@ -519,7 +540,8 @@
     private async Task<List<PowerBiAdminReportTreeItem>> LoadReportTreeItems()
     {
         var pbiReports = await _powerBiServiceApi.GetWorkspaceReportsAsync();
-        var pbiReportIds = pbiReports.Select(r => r.Report.Id).ToHashSet();
+        PowerBiReportsById = pbiReports.ToDictionary(t => t.Report.Id, t => t.Report);
+        var pbiReportIds = PowerBiReportsById.Keys.ToHashSet();
         var dbReports = await _powerBiDataService.GetAllReports();
         var dbReportDict = dbReports.ToDictionary(d => d.Report_ID);
 
@@ -556,18 +578,21 @@
         if (item.ItemType == PowerBiAdminTreeItemType.Workspace)
         {
             var workspace = await _powerBiDataService.GetWorkspaceById(item.Id);
-            WorkspaceBeingEdited = new(null, workspace);
+            var pbiWorkspace = PowerBiWorkspacesById.GetValueOrDefault(item.Id);
+            WorkspaceBeingEdited = new(pbiWorkspace, workspace);
         }
         else if (item.ItemType == PowerBiAdminTreeItemType.Dataset)
         {
             var dataset = await _powerBiDataService.GetDatasetById(item.Id);
-            DatasetBeingEdited = new(null, dataset, null);
+            var pbiDataset = PowerBiDatasetsById.GetValueOrDefault(item.Id);
+            DatasetBeingEdited = new(pbiDataset, dataset, null);
             DatasetBeingEdited.ProjectId = item.ProjectId;
         }
         else if (item.ItemType == PowerBiAdminTreeItemType.Report)
         {
             var report = await _powerBiDataService.GetReportById(item.Id);
-            ReportBeingEdited = new(null, report, null);
+            var pbiReport = PowerBiReportsById.GetValueOrDefault(item.Id);
+            ReportBeingEdited = new(pbiReport, report, null);
             ReportBeingEdited.ProjectId = item.ProjectId;
         }
 
@@ -575,6 +600,139 @@
         _tempLastClickedType = item.ItemType.ToString();
         StateHasChanged();
         await Task.CompletedTask;
+    }
+
+    private PowerBiAdminTreeItemType? DetermineCurrentlyOpenEditorType()
+    {
+        if (ReportBeingEdited != null)
+        {
+            return PowerBiAdminTreeItemType.Report;
+        }
+        else if (DatasetBeingEdited != null)
+        {
+            return PowerBiAdminTreeItemType.Dataset;
+        }
+        else if (WorkspaceBeingEdited != null)
+        {
+            return PowerBiAdminTreeItemType.Workspace;
+        }
+
+        return default;
+    }
+
+    private async Task PromptToDelete()
+    {
+        var currentlyOpenType = DetermineCurrentlyOpenEditorType();
+
+        var which = currentlyOpenType switch
+        {
+            PowerBiAdminTreeItemType.Workspace => Localizer[$"{LOCALIZATION_PREFIX}.Workspace"],
+            PowerBiAdminTreeItemType.Dataset => Localizer[$"{LOCALIZATION_PREFIX}.Dataset"],
+            PowerBiAdminTreeItemType.Report => Localizer[$"{LOCALIZATION_PREFIX}.Report"],
+            _ => string.Empty
+        };
+
+        var promptTitle = Localizer[$"{LOCALIZATION_PREFIX}.DeleteX", which];
+
+        var itemsToDelete = new List<string>() { Localizer[$"{LOCALIZATION_PREFIX}.DeletePromptIntro"] };
+        switch (currentlyOpenType)
+        {
+            case PowerBiAdminTreeItemType.Workspace:
+                var workspaceId = WorkspaceBeingEdited.WorkspaceId;
+                var workspace = await _powerBiDataService.GetWorkspaceById(workspaceId, true);
+                itemsToDelete.Add(string.Format("{0}: {1}", Localizer[$"{LOCALIZATION_PREFIX}.Workspace"], workspace.Workspace_Name));
+                itemsToDelete.AddRange(workspace.Reports.Select(r => string.Format("{0}: {1}", Localizer[$"{LOCALIZATION_PREFIX}.Report"], r.Report_Name)));
+                itemsToDelete.AddRange(workspace.Datasets.Select(d => string.Format("{0}: {1}", Localizer[$"{LOCALIZATION_PREFIX}.Dataset"], d.DataSet_Name)));
+                break;
+            case PowerBiAdminTreeItemType.Report:
+                var reportId = ReportBeingEdited.ReportId;
+                var datasetxId = ReportBeingEdited.DatasetId;
+                var report = await _powerBiDataService.GetReportById(reportId);
+                var datasetx = datasetxId.HasValue? await _powerBiDataService.GetDatasetById(datasetxId.Value) : await Task.FromResult(default(PowerBi_DataSet));
+                itemsToDelete.Add(string.Format("{0}: {1}", Localizer[$"{LOCALIZATION_PREFIX}.Report"], report.Report_Name));
+                if (datasetx != null)
+                {
+                    itemsToDelete.Add(string.Format("{0}: {1}", Localizer[$"{LOCALIZATION_PREFIX}.Dataset"], datasetx.DataSet_Name));
+                }
+                break;
+            case PowerBiAdminTreeItemType.Dataset:
+                var datasetId = DatasetBeingEdited.DatasetId;
+                var dataset = await _powerBiDataService.GetDatasetById(datasetId);
+                itemsToDelete.Add(string.Format("{0}: {1}", Localizer[$"{LOCALIZATION_PREFIX}.Dataset"], dataset.DataSet_Name));
+                break;
+            default:
+                break;
+        }
+
+        RenderFragment promptDialog = 
+        @<UserChoiceModal 
+            HeaderText=@promptTitle
+            ChoiceTextList=@itemsToDelete
+            OnDecision=@HandleDelete
+            ConfirmText=@Localizer["COMMON.Yes"]
+            CancelText=@Localizer["COMMON.No"]
+        />;
+
+        await UI.ToggleModal(promptDialog);
+    }
+
+    private async Task HandleDelete(bool confirm)
+    {
+        if (confirm)
+        {
+            var currentlyOpen = DetermineCurrentlyOpenEditorType();
+            switch (currentlyOpen)
+            {
+                case PowerBiAdminTreeItemType.Workspace:
+                    await DeleteWorkspace();
+                    break;
+                case PowerBiAdminTreeItemType.Report:
+                    await DeleteReport();
+                    break;
+                case PowerBiAdminTreeItemType.Dataset:
+                    await DeleteDataset();
+                    break;
+                default:
+                    break;
+            }
+
+            await Task.WhenAny(CloseItemBeingEdited(), LoadWorkspaceTreeItems());
+        }
+
+        await UI.ToggleModal();
+    }
+
+    private async Task DeleteReport()
+    {
+        var reportId = ReportBeingEdited?.ReportId;
+        var datasetId = ReportBeingEdited?.DatasetId;
+
+        if (reportId.HasValue)
+        {
+            await _powerBiDataService.DeleteReport(reportId.Value, datasetId);
+            await _metadataService.DeleteFromCatalog(reportId?.ToString());
+            await _metadataService.DeleteFromCatalog(datasetId?.ToString());
+        }
+    }
+
+    private async Task DeleteDataset()
+    {
+        var datasetId = DatasetBeingEdited?.DatasetId;
+
+        if (datasetId.HasValue)
+        {
+            await _powerBiDataService.DeleteDataset(datasetId.Value);
+        }
+    }
+
+    private async Task DeleteWorkspace()
+    {
+        var workspaceId = WorkspaceBeingEdited?.WorkspaceId;
+
+        if (workspaceId.HasValue)
+        {
+            await _powerBiDataService.DeleteWorkspace(workspaceId.Value);
+        }
     }
 
 
