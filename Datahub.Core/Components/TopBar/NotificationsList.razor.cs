@@ -6,7 +6,7 @@ using MudBlazor;
 using MudBlazor.Utilities;
 
 
-namespace Datahub.Core.Components.Notifications;
+namespace Datahub.Core.Components.TopBar;
 
 public partial class NotificationsList
 {

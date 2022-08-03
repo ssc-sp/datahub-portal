@@ -7,10 +7,6 @@
 
 @using Microsoft.Identity.Web
 @using Datahub.Core.Components.Common
-@using Datahub.Core.Components.Notifications
-@using Microsoft.Identity.Web
-@using System.Timers
-@using System.Reflection
 
 <MudStack Row AlignItems="AlignItems.Center" Class="ml-4">
     <MudImage src="_content/Datahub.Core/img/datahub-logo-v2.png" Alt="datahub logo" Height="40"/>
@@ -23,41 +19,8 @@
 <MudSpacer/>
 
 <NotificationsList/>
+<HelpPopup />
 
-@*<div class="inbox icon-container">
-      <NavLink href="/onboarding/applications"><i class="fad fa-inbox"></i></NavLink>
-    </div>*@
-
-<div class="help-wrapper">
-    <div class="help icon-container" @onclick="ToggleHelp">
-        <i class="fad fa-question-circle"></i>
-    </div>
-    <Popup Show="_showHelp" class="nrcan-popup top-nav-popup help-popup" OnCloseClick="ToggleHelp">
-        <ChildContent>
-            <Typography Variant="h3">@Localizer["Help"]</Typography>
-            <Typography>@Localizer["Need a hand? We've got you covered."]</Typography>
-            <Typography>@Localizer["Whether you need to report an issue or just want some guidance on setting up and using your account, send us an email at:"]</Typography>
-            <div class="email-wrapper">
-                <i class="fal fa-envelope"></i>
-                <a href="mailto:Datahub.mcan@canada.ca">Datahub.mcan@canada.ca</a>
-            </div>
-            <div style="margin-top: 1rem;">
-                <Typography>@Localizer["Release"]: @VersionService.ReleaseVersion</Typography>
-            </div>
-        </ChildContent>
-        <Footer>
-            <div class="help-links">
-                <div class="link-wrapper" @onclick="NavigateToPrivacyStatement">
-                    <a>@Localizer["Privacy Policy"]</a>
-                </div>
-
-                <div class="link-wrapper" @onclick="NavigateToTermsOfUse">
-                    <a>@Localizer["Terms and Conditions"]</a>
-                </div>
-            </div>
-        </Footer>
-    </Popup>
-</div>
 
 <div class="profile">
     <AuthorizeView>
