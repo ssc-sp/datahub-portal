@@ -218,7 +218,10 @@
       "SecurityClassification": "Classification de la sécurité",
       "Metadata": "Metadata",
       "UpdateAssignment": "Mise à jour",
-      "IncludeInCatalog": "Inclure dans le catalogue"
+      "IncludeInCatalog": "Inclure dans le catalogue",
+      "DeleteX": "Supprimer {0}",
+      "DeletePromptIntro": "Les éléments suivants seront supprimés:",
+      "ItemNotFoundWarning": "Cet élément n'a pas été trouvé dans Power BI. Il a peut-être été déplacé ou supprimé, ou votre compte utilisateur n'a peut-être pas un accès suffisant pour le voir. Si vous êtes sûr que l'élément n'existe pas dans Power BI, veuillez supprimer son entrée dans DataHub."
     }
   },
   "RESOURCE_REQUEST_INFO_PANEL": {
