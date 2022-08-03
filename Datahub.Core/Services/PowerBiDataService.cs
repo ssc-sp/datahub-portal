@@ -247,10 +247,17 @@ namespace Datahub.Core.Services
             return success;
         }
 
-        public async Task<PowerBi_Workspace> GetWorkspaceById(Guid id)
+        public async Task<PowerBi_Workspace> GetWorkspaceById(Guid id, bool includeChildren = false)
         {
             using var ctx = await _contextFactory.CreateDbContextAsync();
-            var result = await ctx.PowerBi_Workspaces.FirstOrDefaultAsync(w => w.Workspace_ID == id);
+
+            var query = ctx.PowerBi_Workspaces.Where(w => w.Workspace_ID == id);
+            if (includeChildren)
+            {
+                query = query.Include(w => w.Reports).Include(w => w.Datasets);
+            }
+
+            var result = await query.FirstOrDefaultAsync();
             return result;
         }
 
@@ -366,6 +373,98 @@ namespace Datahub.Core.Services
                 rep.Validation_Code = report.Validation_Code;
                 await ctx.TrackSaveChangesAsync(_auditingService);
             }
+        }
+
+        public async Task<bool> DeleteWorkspace(Guid id)
+        {
+            using var ctx = await _contextFactory.CreateDbContextAsync();
+            using var tran = await ctx.Database.BeginTransactionAsync();
+
+            var workspace = await ctx.PowerBi_Workspaces
+                .Include(w => w.Reports)
+                .Include(w => w.Datasets)
+                .FirstOrDefaultAsync(w => w.Workspace_ID == id);
+
+            var success = true;
+
+            try
+            {
+                if (workspace != null)
+                {
+                    ctx.PowerBi_Reports.RemoveRange(workspace.Reports);
+                    ctx.PowerBi_DataSets.RemoveRange(workspace.Datasets);
+                    ctx.PowerBi_Workspaces.Remove(workspace);
+
+                    await ctx.TrackSaveChangesAsync(_auditingService);
+                    await tran.CommitAsync();
+                }
+            } 
+            catch (Exception e)
+            {
+                success = false;
+                _logger.LogError(e, $"Error deleting Power BI workspace {id} and/or its children");
+                await tran.RollbackAsync();
+            }
+
+            return await Task.FromResult(success);
+        }
+
+        public async Task<bool> DeleteDataset(Guid id)
+        {
+            using var ctx = await _contextFactory.CreateDbContextAsync();
+            var dataset = await ctx.PowerBi_DataSets.FirstOrDefaultAsync(d => d.DataSet_ID == id);
+            var success = true;
+            if (dataset != null)
+            {
+                try
+                {
+                    ctx.PowerBi_DataSets.Remove(dataset);
+                    await ctx.TrackSaveChangesAsync(_auditingService);
+                }
+                catch (Exception e)
+                {
+                    success = false;
+                    _logger.LogError(e, $"Error deleting Power BI dataset {id}");
+                }
+            }
+
+            return await Task.FromResult(success);
+        }
+
+        public async Task<bool> DeleteReport(Guid id, Guid? datasetId)
+        {
+            using var ctx = await _contextFactory.CreateDbContextAsync();
+            using var tran = await ctx.Database.BeginTransactionAsync();
+            var success = true;
+
+            var report = await ctx.PowerBi_Reports.FirstOrDefaultAsync(r => r.Report_ID == id);
+            var dataset = datasetId.HasValue? 
+                await ctx.PowerBi_DataSets.FirstOrDefaultAsync(d => d.DataSet_ID == datasetId.Value): 
+                await Task.FromResult(default(PowerBi_DataSet));
+
+            try
+            {
+                if (report != null)
+                {
+                    ctx.PowerBi_Reports.Remove(report);
+                }
+
+                if (dataset != null)
+                {
+                    ctx.PowerBi_DataSets.Remove(dataset);
+                }
+
+                await ctx.TrackSaveChangesAsync(_auditingService);
+                await tran.CommitAsync();
+            }
+            catch (Exception e)
+            {
+                success = false;
+                _logger.LogError(e, $"Error deleting Power BI report {id} and/or dataset {datasetId}");
+                await tran.RollbackAsync();
+            }
+
+            return await Task.FromResult(success);
         }
     }
 }
