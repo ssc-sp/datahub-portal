@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using MudBlazor;
 
 namespace Datahub.Core.Data
 {
@@ -16,55 +17,55 @@ namespace Datahub.Core.Data
         public static readonly Icon HOME = new()
         {
             Name = "fad fa-home",
-            Color = "blue",
+            Color = Colors.Blue.Default,
         };
 
         public static readonly Icon STORAGE = new()
         {
             Name = "fad fa-hdd",
-            Color = "indigo",
+            Color = Colors.Indigo.Default,
         };
 
         public static readonly Icon RESOURCES = new()
         {
             Name = "fad fa-books",
-            Color = "purple",
+            Color = Colors.Purple.Default,
         };
 
         public static readonly Icon TOOLS = new()
         {            
             Name = "fad fa-tools",
-            Color = "orange",
+            Color = Colors.Orange.Default,
         };
 
         public static readonly Icon DATASETS = new()
         {
             Name = "fad fa-cabinet-filing",
-            Color = "pink",
+            Color = Colors.Pink.Default,
         };
 
         public static readonly Icon POWERBI = new()
         {
             Name = "fad fa-chart-bar",
-            Color = "yellow",
+            Color = Colors.Yellow.Default,
         };
 
         public static readonly Icon ADMIN = new()
         {
             Name = "fad fa-user-cog",
-            Color = "green",
+            Color = Colors.Green.Default,
         };
 
         public static readonly Icon DATAENTRY = new()
         {
             Name = "fad fa-keyboard",
-            Color = "grey",
+            Color = Colors.Grey.Default,
         };
 
         public static readonly Icon PROJECT = new()
         {
             Name = "fad fa-project-diagram",
-            Color = "yellow",
+            Color = Colors.Yellow.Default,
         };
     }
 }
