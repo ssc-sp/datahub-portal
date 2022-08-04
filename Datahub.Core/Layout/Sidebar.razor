@@ -4,17 +4,17 @@
 @inject ServiceAuthManager ServiceAuthManager
 
 
-<MudNavMenu>
+<MudNavMenu Bordered Color="Color.Primary">
     @foreach (var (href, icon, label) in GetLinks())
     {
-        <MudNavLink Href="@href" Icon="@icon" Match="NavLinkMatch.Prefix">
+        <MudNavLink Href="@href" Icon="@icon.Name" Match="NavLinkMatch.Prefix">
             @Localizer[label]
         </MudNavLink>
     }
     @foreach (var (href, icon, label, roles) in GetAuthorizedLinks())
     {
         <AuthorizeView Roles="@string.Join(',', roles)">
-            <MudNavLink Href="@href" Icon="@icon" Match="NavLinkMatch.Prefix">
+            <MudNavLink Href="@href" Icon="@icon.Name" Match="NavLinkMatch.Prefix">
                 @Localizer[label]
             </MudNavLink>
         </AuthorizeView>
@@ -24,32 +24,32 @@
 @code {
 
 
-    private List<(string Href, string Icon, string Label)> GetLinks()
+    private List<(string Href, Icon Icon, string Label)> GetLinks()
     {
-        return new List<(string, string, string)>()
+        return new List<(string, Icon, string)>()
         {
-            ("/home", Icons.Filled.Home, "SIDEBAR.Home"),
+            ("/home", Icon.HOME, "SIDEBAR.Home"),
     //("/data", Icon.STORAGE, "SIDEBAR.Storage"),
-            ($"/{UrlPathSegment.PROJECTS}", Icons.Filled.Category, "SIDEBAR.DataProjects"),
-            ("/resources", Icons.Filled.MenuBook, "SIDEBAR.Resources"),
-            ("/tools", Icons.Filled.Construction, "SIDEBAR.Tools"),
+            ($"/{UrlPathSegment.PROJECTS}", Icon.PROJECT, "SIDEBAR.DataProjects"),
+            ("/resources", Icon.RESOURCES, "SIDEBAR.Resources"),
+            ("/tools", Icon.TOOLS, "SIDEBAR.Tools"),
     //("/datasets", Icon.DATASETS, "SIDEBAR.Datasets"),
     //("/powerbi", Icon.POWERBI, "SIDEBAR.PowerBI"),      
         };
     }
 
-    private List<(string Href, string Icon, string Label, List<string> Roles)> GetAuthorizedLinks()
+    private List<(string Href, Icon Icon, string Label, List<string> Roles)> GetAuthorizedLinks()
     {
         var projects = ServiceAuthManager.GetAdminProjectRoles();
         if (projects.Any())
         {
-            return new List<(string, string, string, List<string>)>()
+            return new List<(string, Icon, string, List<string>)>()
             {
-                ("/administration", Icons.Filled.AdminPanelSettings, "SIDEBAR.Admin", projects),
+                ("/administration", Icon.ADMIN, "SIDEBAR.Admin", projects),
             };
         }
 
-        return new List<(string, string, string, List<string>)>();
+        return new List<(string, Icon, string, List<string>)>();
     }
 
 }

@@ -18,7 +18,6 @@
 <CascadingValue Value="_theme"></CascadingValue>
 <AuthorizeView>
     <Authorized>
-        
         <MudLayout>
             <MudAppBar Elevation="0">
                 <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Dark" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())"/>
@@ -97,9 +96,17 @@
         base.OnInitialized();
         _theme = new MudTheme()
         {
+            Typography =
+            {
+                Default  =
+                {
+                    FontFamily = new [] {"Open Sans", "sans-serif"},
+                }
+            },
             Palette =
             {
-                AppbarBackground = Colors.Shades.White
+                AppbarBackground = Colors.Shades.White,
+                Background = Colors.Grey.Lighten5
             },
             PaletteDark =
             {
