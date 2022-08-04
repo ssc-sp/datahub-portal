@@ -1,40 +1,71 @@
 @using Datahub.Core.Data
 @using Datahub.Core.Utils
 @using Datahub.Portal.Services
+@using MudBlazor.Utilities
 @inject ServiceAuthManager ServiceAuthManager
 
 
-<MudNavMenu Bordered Color="Color.Primary">
+<MudNavMenu Bordered>
     @foreach (var (href, icon, label) in GetLinks())
     {
-        <MudNavLink Href="@href" Icon="@icon.Name" Match="NavLinkMatch.Prefix">
-            @Localizer[label]
-        </MudNavLink>
+        <div class="mud-nav-item">
+            <NavLink class="mud-nav-link mud-ripple px-0 py-4 justify-center" style="@GetNavStyle(icon)" href="@href" Match="NavLinkMatch.Prefix" ActiveClass="active">
+                <MudStack AlignItems="AlignItems.Center" Spacing="1">
+                    <MudIcon Icon="@icon.Name"/>
+                    <MudText Typo="Typo.body2" Style="@_navTextStyle">
+                        @Localizer[label]
+                    </MudText>
+                </MudStack>
+            </NavLink>
+        </div>
     }
     @foreach (var (href, icon, label, roles) in GetAuthorizedLinks())
     {
         <AuthorizeView Roles="@string.Join(',', roles)">
-            <MudNavLink Href="@href" Icon="@icon.Name" Match="NavLinkMatch.Prefix">
-                @Localizer[label]
-            </MudNavLink>
+            <div class="mud-nav-item">
+                <NavLink class="mud-nav-link mud-ripple px-0 py-4 justify-center" href="@href" Match="NavLinkMatch.Prefix" ActiveClass="active">
+                    <MudStack AlignItems="AlignItems.Center">
+                        <MudIcon Icon="@icon.Name"/>
+                        <MudText Typo="Typo.body2" Style="@_navTextStyle">
+                            @Localizer[label]
+                        </MudText>
+                    </MudStack>
+                </NavLink>
+            </div>
         </AuthorizeView>
     }
 </MudNavMenu>
 
 @code {
 
+    private string _navTextStyle;
+    private string _navLinkStyle;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        _navTextStyle = new StyleBuilder()
+            .AddStyle("font-size", ".5rem")
+            .AddStyle("text-transform", "uppercase")
+            .Build();
+    }
+
+    private string GetNavStyle(Icon icon)
+    {
+        return new StyleBuilder()
+            .AddStyle("--mud-palette-primary", icon.HexColor)
+            .Build();
+    }
 
     private List<(string Href, Icon Icon, string Label)> GetLinks()
     {
         return new List<(string, Icon, string)>()
         {
             ("/home", Icon.HOME, "SIDEBAR.Home"),
-    //("/data", Icon.STORAGE, "SIDEBAR.Storage"),
             ($"/{UrlPathSegment.PROJECTS}", Icon.PROJECT, "SIDEBAR.DataProjects"),
             ("/resources", Icon.RESOURCES, "SIDEBAR.Resources"),
             ("/tools", Icon.TOOLS, "SIDEBAR.Tools"),
-    //("/datasets", Icon.DATASETS, "SIDEBAR.Datasets"),
-    //("/powerbi", Icon.POWERBI, "SIDEBAR.PowerBI"),      
         };
     }
 
