@@ -104,8 +104,7 @@ namespace Datahub.Core.Services
             authenticatedUser ??= (await _authenticationStateProvider.GetAuthenticationStateAsync()).User;
             var claims = authenticatedUser.Claims.Where(c => c.Type == ClaimTypes.Role).ToList();
 
-            return (claims.Count() == 0 || (claims.Count() == 1 && claims[0].Value == "default")); 
-            
+            return (claims.Count() == 0 || (claims.Count() == 1 && claims[0].Value == "default"));             
         }
 
         private async Task GetUserAsyncInternal()

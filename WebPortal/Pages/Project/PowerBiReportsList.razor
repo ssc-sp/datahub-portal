@@ -3,8 +3,19 @@
 
 <div style="padding-left: 2rem;padding-right: 2rem">
 
-    <AeTypography Variant="h1">@Localizer["Power BI Reports"]</AeTypography>
-
+    <AeCard>
+        <ChildContent>
+            <AeTypography Variant="h1">@Localizer[$"Power BI Reports for"] @projectAcronym</AeTypography>
+            <AeTypography Variant="p">This page displays a list of Power BI reports that have been created for this initiative. 
+                The names of the reports are set in Power BI and are displayed as is (without any translating). The table will show either French
+                or English reports, depending on which ones have been created. The 'External Access' column allows users to request the creation of
+                external reports that can be be shared with non-nrcan users. 
+            </AeTypography>
+            <AeTypography Variant="p">
+                The sandbox workspaces are hidden by default and can be toggled using the option at the bottom of the page
+            </AeTypography>
+        </ChildContent>
+    </AeCard>
     <AeCard>
                 
         <ChildContent>
@@ -14,7 +25,7 @@
             }
             else if (_powerBiReports.Count < 1)
             {
-                <AeTypography Variant="p">@Localizer["There are no reports available for this project."]</AeTypography>
+                <AeTypography Variant="p">@Localizer["No_Reports_Available"]</AeTypography>
             }
             else
             {
@@ -37,7 +48,7 @@
         <Footer>
             <label>
                 <input type="checkbox" checked=@IncludeSandbox @oninput=@IncludeSandboxChanged />
-                @Localizer["Include sandbox workspaces"]
+                @Localizer["Include_Sandbox_Workspaces"]
             </label>
         </Footer>
     </AeCard>        
@@ -64,10 +75,8 @@
         _currentPage = pageIndex;
     }
 
-    private List<string> headers = new List<string>
-    {
-        "Report Name", "Workspace", "Report", "External Access"
-    };
+    private List<string> headers;
+
 
     private List<string> LocalizeHeaders(List<string> input) => input.Select(s => Localizer[s].ToString()).ToList();
 
@@ -76,10 +85,18 @@
         renderers = new()
         {
             null,
-            WorkspaceLinkFragment,
+            ReportLinkFragment,
             ReportLinkFragment,
             ExternalReport
         };
+
+        headers = new()
+            {
+                Localizer["Power BI Workspace"],
+                Localizer["English_Power_BI_Report"],
+                Localizer["French_Power_BI_Report"],
+                Localizer["External_Access"]
+            };
 
         if (projectAcronym != null)
         {
@@ -121,8 +138,8 @@
 
     private List<Func<PowerBi_Report, string>> accessors = new()
         {
-            r => r.Report_Name,
             r => r.Workspace?.Workspace_Name ?? string.Empty,
+            r => r.Report_Name,
             r => r.Report_Name,
             null
         };

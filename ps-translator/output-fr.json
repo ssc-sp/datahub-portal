@@ -1,5 +1,10 @@
 {
-  "Last_Updated_DT": "Date de la dernière mise à jour",
-  "Submitted_DT": "Date de soumission"
-}
+  "Revoke Active Sharing": "Révoquer le partage actif",
+  "Requested": "Demandé",
+  "Request External Report": "Demander un rapport externe"
+}u bac à sable",
+  "English_Power_BI_Report": "Rapport Power BI en anglais",
+  "French_Power_BI_Report": "Rapport Power BI français",
+  "External_Access": "Accès externe",
+  "Power BI Reports for {}": "Rapports Power BI pour {}"
 }
