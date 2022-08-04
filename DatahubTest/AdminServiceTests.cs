@@ -6,6 +6,7 @@ using Moq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -43,6 +44,27 @@ namespace Datahub.Tests
                 .ToListAsync();
             //var dups = await ctx.Project_Users_Requests.GroupBy(a => new { a.Project, a.User_ID }).SelectMany(grp => grp.Skip(1)).ToListAsync();
 
+        }
+
+        [Fact]
+        public async Task CheckClaims()
+        {
+            var identity = new ClaimsIdentity(new[]
+                {
+                new Claim(ClaimTypes.Name, "Offline User"),
+                new Claim(ClaimTypes.Role, "default"),
+            }, "Fake authentication type");
+
+            var user = new ClaimsPrincipal(identity);
+
+            var totalRoles = user.Claims.Where(c => c.Type == ClaimTypes.Role).Count();
+            //var claim = user.Claims.Where(c => c.Type == ClaimTypes.Role && c.Value == "default").FirstOrDefault();
+
+            var claim = user.Claims.Where(c => c.Type == ClaimTypes.Role).ToList();
+
+            Assert.True(user is not null);
+            Assert.True(claim.Count() == 1);
+            Assert.True(claim[0].Value == "default");
         }
     }
 }
