@@ -273,6 +273,7 @@ namespace Datahub.Core.Services
             {
                 GetSearchTextCondition(request.Keywords, request.IsFrench ? "Search_French_TXT" : "Search_English_TXT"),
                 GetOrSearchCondition(request.Classifications, "Classification_Type"),
+                GetOrSearchCondition(request.Languages, "Language"),
                 GetOrSearchCondition(request.ObjectTypes.Select(o => (int)o), "DataType"),
                 GetOrSearchCondition(request.Sectors, "Sector_NUM"),
                 GetOrSearchCondition(request.Branches, "Branch_NUM")
@@ -325,8 +326,8 @@ namespace Datahub.Core.Services
         static string GetOrSearchCondition(IEnumerable<int> values, string fieldName) =>
             string.Join(" OR ", values.Select(v => $"{fieldName} = {v}"));
 
-        static string GetOrSearchCondition(IEnumerable<ClassificationType> values, string fieldName) =>
-            string.Join(" OR ", values.Select(v => $"{fieldName} = {(int)v}"));
+        static string GetOrSearchCondition<T>(IEnumerable<T> values, string fieldName) where T: Enum =>
+            string.Join(" OR ", values.Select(v => $"{fieldName} = {Convert.ToInt32(v)}"));
 
         static IEnumerable<char> PreProcessSearchText(string text)
         {

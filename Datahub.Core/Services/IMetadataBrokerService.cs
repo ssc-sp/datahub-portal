@@ -37,6 +37,7 @@ namespace Datahub.Core.Services
         int PageSize,
         bool IsFrench,
         List<string> Keywords,
+        List<CatalogObjectLanguage> Languages,
         List<ClassificationType> Classifications,
         List<MetadataObjectType> ObjectTypes,
         List<int> Sectors,
