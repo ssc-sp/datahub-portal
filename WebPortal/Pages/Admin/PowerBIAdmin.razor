@@ -722,6 +722,7 @@
         if (datasetId.HasValue)
         {
             await _powerBiDataService.DeleteDataset(datasetId.Value);
+            await _metadataService.DeleteFromCatalog(datasetId.ToString());
         }
     }
 
@@ -731,7 +732,16 @@
 
         if (workspaceId.HasValue)
         {
+            var workspace = await _powerBiDataService.GetWorkspaceById(workspaceId.Value, true);
+
+            var catalogItemIds = workspace.Datasets
+                .Select(d => d.DataSet_ID)
+                .Concat(workspace.Reports.Select(r => r.Report_ID))
+                .Append(workspace.Workspace_ID)
+                .Select(g => g.ToString());
+
             await _powerBiDataService.DeleteWorkspace(workspaceId.Value);
+            await _metadataService.DeleteMultipleFromCatalog(catalogItemIds);
         }
     }
 
