@@ -220,7 +220,7 @@
       "UpdateAssignment": "Mise à jour",
       "IncludeInCatalog": "Inclure dans le catalogue",
       "DeleteX": "Supprimer {0}",
-      "DeletePromptIntro": "Les éléments suivants seront supprimés:",
+      "DeletePromptIntro": "Les éléments suivants seront supprimés de DataHub:",
       "ItemNotFoundWarning": "Cet élément n'a pas été trouvé dans Power BI. Il a peut-être été déplacé ou supprimé, ou votre compte utilisateur n'a peut-être pas un accès suffisant pour le voir. Si vous êtes sûr que l'élément n'existe pas dans Power BI, veuillez supprimer son entrée dans DataHub."
     }
   },
