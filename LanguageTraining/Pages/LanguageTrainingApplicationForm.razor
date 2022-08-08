@@ -53,6 +53,8 @@
     private Microsoft.Graph.User _user;
     private bool _isUserAdmin;
     private List<string> headers;
+    private bool _isNewApp;
+    private bool _isFrench;
 
     private async void OpenExcel()
     {
@@ -65,6 +67,7 @@
         Context = DbFactory.CreateDbContext();
         _user = await UserInformationService.GetUserAsync();
         _isUserAdmin = await ServiceAuthManager.IsProjectAdmin(_user.Id, PROJECTACRONYM);
+        _isFrench = CultureInfo.CurrentCulture.Name.StartsWith("fr", StringComparison.InvariantCulture);
         headers = new List<string>
         {
             DataLocalizer["User"],DataLocalizer["Sector"],DataLocalizer["Manager"], DataLocalizer["Request"], DataLocalizer["Manager Decision"]
@@ -89,9 +92,9 @@
         _formMetadata.SaveButtonText = DataLocalizer["Submit"];
         var filters = new List<(Delegate Label, Delegate Choices)>() { (() => "Status", () => new List<string> { "All", "Pending", "Approved", "Declined" }) };
         _formMetadata.FilterProperties = filters;
-        var isFrench = CultureInfo.CurrentCulture.Name.StartsWith("fr", StringComparison.InvariantCulture);
-        var introfile = isFrench ? "FormIntroFr.md" : "FormIntro.md";
-        var footerfile = isFrench ? "FormFooterWarningFr.md" : "FormFooterWarning.md";
+        
+        var introfile = _isFrench ? "FormIntroFr.md" : "FormIntro.md";
+        var footerfile = _isFrench ? "FormFooterWarningFr.md" : "FormFooterWarning.md";
         _formMetadata.MarkDownContent = File.ReadAllLines($@"Pages\Forms\LanguageTraining\{introfile}").ToList();
         _formMetadata.MarkDownContentFooter = File.ReadAllLines($@"Pages\Forms\LanguageTraining\{footerfile}").ToList();    
     }
@@ -290,20 +293,21 @@
         context.SetVisible<LanguageTrainingApplication>(p => p.Employee_equity_group, _languageTrainingApplication.Completed_LETP_Assessment);
         context.SetVisible<LanguageTrainingApplication>(p => p.Employee_language_profile_raised, _languageTrainingApplication.Completed_LETP_Assessment);
         context.SetVisible<LanguageTrainingApplication>(p => p.Employee_professional_dev_program, _languageTrainingApplication.Completed_LETP_Assessment);
-        
+
         context.SetVisible<LanguageTrainingApplication>(p => p.Employee_In_Pardp, _languageTrainingApplication.Completed_LETP_Assessment);
         context.SetVisible<LanguageTrainingApplication>(p => p.Employee_talent_management_exercise, _languageTrainingApplication.Completed_LETP_Assessment);
 
-        context.SetVisible<LanguageTrainingApplication>(p => p.Manager_First_Name, _isUserAdmin || _languageTrainingApplication.Delegated_Manager_Email?.ToLower() == _user.Mail.ToLower());
-        context.SetVisible<LanguageTrainingApplication>(p => p.Manager_Last_Name, _isUserAdmin || _languageTrainingApplication.Delegated_Manager_Email?.ToLower() == _user.Mail.ToLower());
-        context.SetVisible<LanguageTrainingApplication>(p => p.Manager_Email_Address, _isUserAdmin || _languageTrainingApplication.Delegated_Manager_Email?.ToLower() == _user.Mail.ToLower());
-        context.SetVisible<LanguageTrainingApplication>(p => p.Manager_Decision, _isUserAdmin || _languageTrainingApplication.Delegated_Manager_Email?.ToLower() == _user.Mail.ToLower());
+        var isDelegatedManager = _languageTrainingApplication.Delegated_Manager_Email?.ToLower() == _user.Mail.ToLower();
+
+        context.SetVisible<LanguageTrainingApplication>(p => p.Manager_First_Name, _isUserAdmin || isDelegatedManager);
+        context.SetVisible<LanguageTrainingApplication>(p => p.Manager_Last_Name, _isUserAdmin || isDelegatedManager);
+        context.SetVisible<LanguageTrainingApplication>(p => p.Manager_Email_Address, _isUserAdmin || isDelegatedManager);
+        context.SetVisible<LanguageTrainingApplication>(p => p.Manager_Decision, _isUserAdmin || isDelegatedManager);
         context.SetVisible<LanguageTrainingApplication>(p => p.Decision, _isUserAdmin);
 
-        var isFrench = CultureInfo.CurrentCulture.Name.StartsWith("fr", StringComparison.InvariantCulture);        
         
-        _formMetadata.IsSubmitEnabled = _languageTrainingApplication.Completed_LETP_Assessment;
-        var footerfile = _formMetadata.IsSubmitEnabled ? (isFrench ? "FormFooterFr.md" : "FormFooter.md") : (isFrench ? "FormFooterWarningFr.md" : "FormFooterWarning.md");
+        _formMetadata.IsSubmitEnabled = _isUserAdmin || isDelegatedManager || (_isNewApp && _languageTrainingApplication.Completed_LETP_Assessment);
+        var footerfile = _formMetadata.IsSubmitEnabled ? (_isFrench ? "FormFooterFr.md" : "FormFooter.md") : (_isNewApp ? (_isFrench ? "FormFooterWarningFr.md" : "FormFooterWarning.md") : (_isFrench ? "FormFooterSubmittedFr.md" : "FormFooterSubmitted.md"));
 
         _formMetadata.MarkDownContentFooter = File.ReadAllLines($@"Pages\Forms\LanguageTraining\{footerfile}").ToList();
         _onchange = false;
@@ -317,6 +321,7 @@
 
     private void CreateNewApplication()
     {
+        _isNewApp = true;
         _languageTrainingApplication = new LanguageTrainingApplication() { Last_Updated_DT = DateTime.Now, Manager_Decision = "Pending" };
         //var user = await UserInformationService.GetUserAsync();
         _languageTrainingApplication.Email_Address_EMAIL = _user.Mail;
@@ -328,7 +333,10 @@
 
     private void SetFormEdit(LanguageTrainingApplication application)
     {
+        _isNewApp = false;
         _languageTrainingApplication = application;
+
+
         StateHasChanged();
     }
 
