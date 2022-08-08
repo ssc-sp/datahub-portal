@@ -221,7 +221,7 @@
       "UpdateAssignment": "Update",
       "IncludeInCatalog": "Include in catalog",
       "DeleteX": "Delete {0}",
-      "DeletePromptIntro": "The following items will be deleted:",
+      "DeletePromptIntro": "The following items will be deleted from DataHub:",
       "ItemNotFoundWarning": "This item was not found in Power BI. It may have been moved or deleted, or your user account may not have sufficient access to see it. If you are sure that the item doesn't exist in Power BI, please delete its entry in DataHub."
     }
   },

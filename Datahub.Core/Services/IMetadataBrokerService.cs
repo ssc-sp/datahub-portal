@@ -29,6 +29,7 @@ namespace Datahub.Core.Services
         Task<CatalogObjectResult> GetCatalogObjectByObjectId(string objectId);
         Task<bool> IsObjectCatalogued(string objectId);
         Task DeleteFromCatalog(string objectId);
+        Task DeleteMultipleFromCatalog(IEnumerable<string> objectIds);
     }
     
     public record CatalogSearchRequest

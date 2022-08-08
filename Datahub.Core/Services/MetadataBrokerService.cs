@@ -512,8 +512,38 @@ namespace Datahub.Core.Services
                     ctx.CatalogObjects.Remove(catalogObject);
                 }
 
-                await ctx.SaveChangesAsync();
+                await ctx.TrackSaveChangesAsync(_auditingService);
             }
+        }
+
+        public async Task DeleteMultipleFromCatalog(IEnumerable<string> objectIds)
+        {
+            using var ctx = await _contextFactory.CreateDbContextAsync();
+            using var tran = await ctx.Database.BeginTransactionAsync();
+
+            var existingObjects = await ctx.CatalogObjects
+                .Where(o => objectIds.Contains(o.ObjectMetadata.ObjectId_TXT))
+                .ToListAsync();
+
+            try
+            {
+                if (existingObjects?.Count > 0)
+                {
+                    ctx.CatalogObjects.RemoveRange(existingObjects);
+                    await ctx.TrackSaveChangesAsync(_auditingService);
+                    await tran.CommitAsync();
+                }
+                else
+                {
+                    await tran.RollbackAsync();
+                }
+
+            }
+            catch (Exception)
+            {
+                await tran.RollbackAsync();
+            }
+
         }
     }
 }

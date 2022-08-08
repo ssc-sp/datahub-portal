@@ -95,7 +95,13 @@
 	<ProjectReference Include="..\Datahub.PIP\Datahub.PIP.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <None Update="Pages\Forms\LanguageTraining\FormFooterSubmitted.md">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Pages\Forms\LanguageTraining\FormFooterWarning.md">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Pages\Forms\LanguageTraining\FormFooterSubmittedFr.md">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Pages\Forms\LanguageTraining\FormFooterWarningFr.md">
