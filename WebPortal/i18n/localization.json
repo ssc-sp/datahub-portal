@@ -177,7 +177,7 @@
     "(All Branches)": "(All Branches)",
     "HideIncomplete": "Hide Incomplete Catalogs",
     "Bilingual": "Bilingual",
-    "Language":  "Language"
+    "Language": "Language"
   },
   "DISCOVERY-DATA-TYPES": {
     "File": "File",
@@ -998,5 +998,6 @@
   "(any)": "(any)",
   "Expand": "Expand",
   "Collapse": "Collapse",
-  "Resources": "Resources"
+  "Resources": "Resources",
+  "LanguageTableDisclaimer": "Only one registration permitted per student per session."
 }
