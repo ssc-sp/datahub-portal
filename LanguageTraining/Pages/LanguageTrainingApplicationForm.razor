@@ -92,7 +92,7 @@
         _formMetadata.SaveButtonText = DataLocalizer["Submit"];
         var filters = new List<(Delegate Label, Delegate Choices)>() { (() => "Status", () => new List<string> { "All", "Pending", "Approved", "Declined" }) };
         _formMetadata.FilterProperties = filters;
-        
+        _formMetadata.TableDisclaimer = DataLocalizer["LanguageTableDisclaimer"];
         var introfile = _isFrench ? "FormIntroFr.md" : "FormIntro.md";
         var footerfile = _isFrench ? "FormFooterWarningFr.md" : "FormFooterWarning.md";
         _formMetadata.MarkDownContent = File.ReadAllLines($@"Pages\Forms\LanguageTraining\{introfile}").ToList();
