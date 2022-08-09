@@ -1622,6 +1622,7 @@
     "ClickToReadPDF": "Cliquez pour lire le PDF",
     "ClickToApprove": "Cliquez pour approuver la publication"
   },
-  
-  "Resources": "Ressources"
+
+  "Resources": "Ressources",
+  "LanguageTableDisclaimer": "Une seule inscription est autorisée par étudiant et par session."
 }
