@@ -264,7 +264,7 @@
             context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Completed_Training_Session, () => Language_Constants.QUARTERS);
             context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Manager_Decision, () => new[] { "Pending", "Approved", "Declined"});
             context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Training_Type, () => GetTrainingTypes());
-            context.RegisterFieldNotes<LanguageTrainingApplication>(p => p.Manager_Decision, "The manager must approve or decline this appication to proceed");
+            context.RegisterFieldNotes<LanguageTrainingApplication>(p => p.Manager_Decision, "The manager must approve or decline this application to proceed");
         }
 
         ToggleVisibility(context);
