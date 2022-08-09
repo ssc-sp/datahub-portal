@@ -225,6 +225,11 @@
       "ItemNotFoundWarning": "This item was not found in Power BI. It may have been moved or deleted, or your user account may not have sufficient access to see it. If you are sure that the item doesn't exist in Power BI, please delete its entry in DataHub."
     }
   },
+  "POWER_BI_REPORT": {
+    "ReturnToX": "Return to {0}",
+    "ErrorLoadingReport": "Error loading Power BI report",
+    "ErrorDescription": "The specified report could not be found in Power BI, or you do not have sufficient access to view it."
+  },
   "RESOURCE_REQUEST_INFO_PANEL": {
     "RequestInformation": "Request Information",
     "InputParameters": "Input Parameters",
