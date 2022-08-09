@@ -268,10 +268,19 @@ namespace Datahub.Core.Services
             return result;
         }
 
-        public async Task<PowerBi_Report> GetReportById(Guid id)
+        public async Task<PowerBi_Report> GetReportById(Guid id, bool includeWorkspace = false)
         {
             using var ctx = await _contextFactory.CreateDbContextAsync();
-            var result = await ctx.PowerBi_Reports.FirstOrDefaultAsync(r => r.Report_ID == id);
+
+            var query = ctx.PowerBi_Reports.Where(r => r.Report_ID == id);
+
+            if (includeWorkspace)
+            {
+                query = query.Include(r => r.Workspace)
+                    .ThenInclude(w => w.Project);
+            }
+
+            var result = await query.FirstOrDefaultAsync();
             return result;
         }
 
