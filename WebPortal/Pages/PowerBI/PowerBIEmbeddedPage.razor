@@ -18,7 +18,7 @@
 @inject MicrosoftIdentityConsentAndConditionalAccessHandler ConsentHandler
 @inject IPowerBiDataService PowerBiDataService
 
-@if (reportTitle != null)
+@if (!string.IsNullOrEmpty(reportTitle))
 {
     <AeTypography Variant="h1">@reportTitle</AeTypography>
 }
@@ -27,10 +27,10 @@
 {
     <AeCard>
         <Header>
-            <AeTypography Variant="h3">Error loading Power BI report</AeTypography>
+            <AeTypography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.ErrorLoadingReport"]</AeTypography>
         </Header>
         <ChildContent>
-            <AeTypography Variant="p">The specified report could not be found in Power BI, or you do not have sufficient access to view it.</AeTypography>
+            <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.ErrorDescription"]</AeTypography>
         </ChildContent>
     </AeCard>
 }
@@ -39,14 +39,15 @@ else
     <div @ref="@PowerBIElement" style="width:100%;height:600px;max-width: 2000px" />
 }
 
-@if (projectAcronym != null)
+@if (!string.IsNullOrEmpty(projectAcronym))
 {
     <div>
-        <DHLink DataProject=@projectAcronym>Return to @projectAcronym</DHLink>
+        <DHLink DataProject=@projectAcronym>@Localizer[$"{LOCALIZATION_PREFIX}.ReturnToX", @projectAcronym]</DHLink>
     </div>
 }
 
 @code {
+    private const string LOCALIZATION_PREFIX = "POWER_BI_REPORT";
 
     [Parameter]
     public string ReportId {  get;  set; }

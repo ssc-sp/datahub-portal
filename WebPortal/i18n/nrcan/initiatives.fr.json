@@ -224,6 +224,11 @@
       "ItemNotFoundWarning": "Cet élément n'a pas été trouvé dans Power BI. Il a peut-être été déplacé ou supprimé, ou votre compte utilisateur n'a peut-être pas un accès suffisant pour le voir. Si vous êtes sûr que l'élément n'existe pas dans Power BI, veuillez supprimer son entrée dans DataHub."
     }
   },
+  "POWER_BI_REPORT": {
+    "ReturnToX": "Retour à {0}",
+    "ErrorLoadingReport": "Erreur de chargement du rapport Power BI",
+    "ErrorDescription": "Le rapport spécifié n'a pas pu être trouvé dans Power BI, ou vous n'avez pas un accès suffisant pour le visualiser."
+  },
   "RESOURCE_REQUEST_INFO_PANEL": {
     "RequestInformation": "Information sur la demande",
     "InputParameters": "Paramètres d'entrée",
