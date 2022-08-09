@@ -1,0 +1,24 @@
+@page "/profile"
+
+@inject IUserInformationService _userInformationService
+
+@using Microsoft.Graph
+
+@if (_user is null)
+{
+    <Skeleton />
+}
+
+<h3>ProfilePage</h3>
+
+@code {
+
+
+    private User _user;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        _user = await _userInformationService.GetUserAsync();
+    }
+}
