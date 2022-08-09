@@ -16,8 +16,35 @@
 @inject PowerBiServiceApi PowerBiServiceApi
 @using Microsoft.Identity.Web
 @inject MicrosoftIdentityConsentAndConditionalAccessHandler ConsentHandler
+@inject IPowerBiDataService PowerBiDataService
 
-<div @ref="@PowerBIElement" style="width:100%;height:600px;max-width: 2000px" />
+@if (reportTitle != null)
+{
+    <AeTypography Variant="h1">@reportTitle</AeTypography>
+}
+
+@if (ErrorLoadingReport)
+{
+    <AeCard>
+        <Header>
+            <AeTypography Variant="h3">Error loading Power BI report</AeTypography>
+        </Header>
+        <ChildContent>
+            <AeTypography Variant="p">The specified report could not be found in Power BI, or you do not have sufficient access to view it.</AeTypography>
+        </ChildContent>
+    </AeCard>
+}
+else
+{
+    <div @ref="@PowerBIElement" style="width:100%;height:600px;max-width: 2000px" />
+}
+
+@if (projectAcronym != null)
+{
+    <div>
+        <DHLink DataProject=@projectAcronym>Return to @projectAcronym</DHLink>
+    </div>
+}
 
 @code {
 
@@ -31,24 +58,62 @@
     [SupplyParameterFromQuery]
     public bool ReadOnly { get; set; }
 
+    private Guid ReportIdGuid;
+
     private ElementReference PowerBIElement;
 
     private Report report;
     private string reportToken;
 
+    private bool ErrorLoadingReport = false;
+
+    private PowerBi_Report dbReport = null;
+
+    private PowerBi_Workspace dbWorkspace => dbReport?.Workspace;
+    private Datahub_Project project => dbWorkspace?.Project;
+    private string projectAcronym => project?.Project_Acronym_CD;
+    private string reportTitle => dbReport?.Report_Name;
+
     protected override async Task OnInitializedAsync()
     {
+        if (!Guid.TryParse(ReportId, out ReportIdGuid))
+        {
+            // it's invalid and will fail later
+            // maybe do something here
+        }
+
         try
         {
             if (GroupId is null)
+            {
                 report = await PowerBiServiceApi.GetReport(ReportId);                
+            }
             else
+            {
                 report = await PowerBiServiceApi.GetReport(ReportId, GroupId);                
+            }
+
             reportToken = await PowerBiServiceApi.GetAccessTokenAsync();
-        } catch (Exception ex)
+            
+        } 
+        catch (MicrosoftIdentityWebChallengeUserException e)
         {
-            ConsentHandler.HandleException(ex);
+            // user isn't logged into Power BI -> redirect to Microsoft
+            ConsentHandler.HandleException(e);
         }
+        catch (HttpOperationException)
+        {
+            // couldn't load the report - missing or unauthorized
+            ErrorLoadingReport = true;
+        }
+        catch (Exception)
+        {
+            // some other exception, crash and log like normal
+            throw;
+        }
+        
+        dbReport = await PowerBiDataService.GetReportById(ReportIdGuid, true);
+
         var pbiSettings = new PowerBISettings();
         if (ReadOnly)
         {
