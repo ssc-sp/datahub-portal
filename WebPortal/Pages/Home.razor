@@ -27,7 +27,7 @@
     private int TabIndexParsed => int.TryParse(TabIndex, out var tabIndex) ? tabIndex : 0;
     private bool _isUserValid = true;
 
-    private readonly List<string> _languages = new() {"English", "Français"};
+    private readonly List<string> _languages = new() { "English", "Français" };
     private User _user;
 
     protected override async Task OnInitializedAsync()
@@ -51,7 +51,7 @@
     {
         _uiControlsService.AllowEscape = false;
 
-    // Check if the user has a language set?
+        // Check if the user has a language set?
         var language = await _userInformationService.GetUserLanguage();
         if (string.IsNullOrWhiteSpace(language))
         {
