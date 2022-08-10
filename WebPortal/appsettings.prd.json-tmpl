@@ -9,6 +9,7 @@
     "SignedOutCallbackPath ": "/signout-callback-oidc",
     "AppIDURL": ""
   },
+  "DbDriver": "azure",
   "Graph": {
     "BaseUrl": "https://graph.microsoft.com/v1.0",
     "Scopes": "user.read"
@@ -54,8 +55,8 @@
     "OpenDataApprovalPdfBaseUrl": "",
     "OpenDataApprovalPdfFormIdParam": "rp:p_approval_form_id",
     "PublicFileSharingDomain": ""
-  },  
-  "Azure:SignalR:StickyServerMode": "Required",  
+  },
+  "Azure:SignalR:StickyServerMode": "Required",
   "AllowedHosts": "*"
 }
 

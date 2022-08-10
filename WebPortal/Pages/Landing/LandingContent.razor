@@ -35,19 +35,17 @@
     [CascadingParameter(Name = "GraphUser")]
     public Microsoft.Graph.User User { get; set; }
 
-    List<UserRecentLink> links = null;
-
     private List<(string Control, RenderFragment Content)> GetTabs()
     {
         var res = new List<(string, RenderFragment)>
         {
-            (Localizer["Projects"], @<ProjectsTab/>)
+            (Localizer["Initiatives"], @<ProjectsTab/>)
         };
 
         if (DataProjectsConfiguration.Value.Databricks)
             res.Add((Localizer["Databricks Workbooks"], @<DatabricksTab/>));
         if (DataProjectsConfiguration.Value.PowerBI)
-            res.Add((Localizer["Power BI Reports"], @<PowerBITab/>));
+            res.Add((Localizer["PowerBI Reports"], @<PowerBITab/>));
         if (DataProjectsConfiguration.Value.WebForms)
             res.Add((Localizer["Data Entry"], @<DataEntryTab/>));
 

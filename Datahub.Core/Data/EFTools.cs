@@ -17,7 +17,7 @@ namespace Datahub.Core.Data
 
     public enum DbDriver
     {
-        SqlServer, Sqlite
+        SqlServer, Sqlite, SqlLocalDB, Memory, Azure
     }
     public static class EFTools
     {        
@@ -63,10 +63,14 @@ namespace Datahub.Core.Data
             return configuration.GetConnectionString(name) ?? throw new ArgumentNullException($"ASPNETCORE_CONNECTION STRING ({name}) in Enviroment ({environment.EnvironmentName}).");
         }
 
-        public static DbDriver GetDriver(this IConfiguration configuration) => (configuration.GetValue(typeof(string), "DbDriver", "SqlServer").ToString().ToLowerInvariant()) switch
+        public static DbDriver GetDriver(this IConfiguration configuration) => (configuration.GetValue(typeof(string), "DbDriver", "azure").ToString().ToLowerInvariant()) switch
         {
             "sqlite" => DbDriver.Sqlite,
-            _ => DbDriver.SqlServer
+            "memory" => DbDriver.Memory,
+            "sqlserver" => DbDriver.SqlServer,
+            "azure" => DbDriver.Azure,
+            "sqllocaldb" => DbDriver.SqlLocalDB,
+            _ => DbDriver.Azure
         };
 
         public static void ConfigureDbContext<T>(this IServiceCollection services, IConfiguration configuration, string connectionStringName, DbDriver dbDriver) where T : DbContext
@@ -75,7 +79,13 @@ namespace Datahub.Core.Data
             if (string.IsNullOrWhiteSpace(connectionStringName) || string.IsNullOrWhiteSpace(connectionString)) throw new InvalidProgramException($"Cannot configure {typeof(T).Name} - no connection string for '{connectionStringName}':{connectionString}");
             switch (dbDriver)
             {
+                case DbDriver.Memory:
+                    services.AddPooledDbContextFactory<T>(options => options.UseSqlServer(connectionString));
+                    services.AddDbContextPool<T>(options => options.UseSqlServer(connectionString));
+                    break;
                 case DbDriver.SqlServer:
+                case DbDriver.SqlLocalDB:
+                case DbDriver.Azure:
                     services.AddPooledDbContextFactory<T>(options => options.UseSqlServer(connectionString));
                     services.AddDbContextPool<T>(options => options.UseSqlServer(connectionString));
                     break;

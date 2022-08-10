@@ -1,8 +1,10 @@
+@*Sidebar.razor*@
 @using Datahub.Core.Data
 @using Datahub.Core.Utils
 @using Datahub.Portal.Services
 @using MudBlazor.Utilities
 @inject ServiceAuthManager ServiceAuthManager
+@inject IConfiguration Configuration
 
 
 <MudNavMenu Bordered>
@@ -39,7 +41,6 @@
 @code {
 
     private string _navTextStyle;
-    private string _navLinkStyle;
 
     protected override void OnInitialized()
     {
@@ -60,7 +61,7 @@
 
     private List<(string Href, Icon Icon, string Label)> GetLinks()
     {
-        return new List<(string, Icon, string)>()
+        return new()
         {
             ("/home", Icon.HOME, "SIDEBAR.Home"),
             ($"/{UrlPathSegment.PROJECTS}", Icon.PROJECT, "SIDEBAR.DataProjects"),
@@ -74,7 +75,7 @@
         var projects = ServiceAuthManager.GetAdminProjectRoles();
         if (projects.Any())
         {
-            return new List<(string, Icon, string, List<string>)>()
+            return new()
             {
                 ("/administration", Icon.ADMIN, "SIDEBAR.Admin", projects),
             };
@@ -83,4 +84,8 @@
         return new List<(string, Icon, string, List<string>)>();
     }
 
+    private bool IsFeatureEnabled(string name)
+    {
+        return Configuration[name] == "enabled";
+    }
 }

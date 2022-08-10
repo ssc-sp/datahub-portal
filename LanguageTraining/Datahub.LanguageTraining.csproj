@@ -7,6 +7,14 @@
 		<AddRazorSupportForMvc>true</AddRazorSupportForMvc>
 	</PropertyGroup>
 
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+	  <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+	  <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
+	</PropertyGroup>
+
 	<ItemGroup>
 		<FrameworkReference Include="Microsoft.AspNetCore.App" />
 	</ItemGroup>
@@ -16,7 +24,7 @@
 	</ItemGroup>	
 	
   <ItemGroup>
-    <PackageReference Include="AElemental.Blazor" Version="1.6.22132.3" />
+    <PackageReference Include="AElemental.Blazor" Version="1.6.22173.2" />
   </ItemGroup>
 
   <ItemGroup>

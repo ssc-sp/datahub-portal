@@ -1,0 +1,87 @@
+﻿@page "/internal-powerbi-report/{lang}/{eng_guid}/{fre_guid}"
+@using System.Net.Http
+@using System.Threading.Tasks
+@using Microsoft.Identity.Client
+@using Microsoft.PowerBI.Api
+@using Microsoft.PowerBI.Api.Models
+@using Microsoft.Rest
+@using Newtonsoft.Json.Linq
+@using Microsoft.Extensions.Configuration
+@inject IJSRuntime JSRuntime
+@inject IConfiguration _configuration
+
+@inject IStringLocalizer<DataLabels> DataLocalizer
+@inject NavigationManager NavigationManager
+@inject PowerBiServiceApi PowerBiServiceApi
+@using Microsoft.Identity.Web
+@inject MicrosoftIdentityConsentAndConditionalAccessHandler ConsentHandler
+
+<div @ref="@PowerBIElement" style="width:100%;height:600px;max-width: 2000px" />
+
+@code {
+    [Parameter]
+    public string? lang { get; set; } = "en";
+
+    [Parameter]
+    public string? eng_guid { get; set; }
+
+    [Parameter]
+    public string? fre_guid { get; set; }
+
+
+    //protected override async Task OnAfterRenderAsync(bool firstRender)
+    //{
+    //    await JSRuntime.InvokeVoidAsync("ResizeIFrame","#powerbi-iframe");
+    //}
+
+    private ElementReference PowerBIElement;
+
+    private Report report;
+    private string reportToken;
+    private string _reportLanguage;
+    private bool _readOnly = true;
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _reportLanguage = lang;
+            if (_reportLanguage == "en")
+                report = await PowerBiServiceApi.GetReport(eng_guid);                
+            else
+                report = await PowerBiServiceApi.GetReport(fre_guid);                
+
+            reportToken = await PowerBiServiceApi.GetAccessTokenAsync();
+        } catch (Exception ex)
+        {
+            ConsentHandler.HandleException(ex);
+        }
+        var pbiSettings = new PowerBISettings();
+        
+        if (_readOnly)
+        {
+            pbiSettings.bars.actionBar.visible = false;
+            pbiSettings.navContentPaneEnabled = false;
+            pbiSettings.filterPaneEnabled = false;
+            
+        }
+
+        if (report != null)
+        {
+            await JSRuntime.InvokeAsync<object>(
+                "ShowMyPowerBI.showReport",
+                PowerBIElement, reportToken, report.EmbedUrl,
+                report.Id.ToString(), pbiSettings);
+        }
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // ??
+        }
+    }
+
+    private const string AuthorityFormat = "https://login.microsoftonline.com/{0}/v2.0";
+    private const string MSGraphScope = "https://analysis.windows.net/powerbi/api/.default";
+}

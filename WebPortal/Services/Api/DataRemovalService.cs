@@ -24,12 +24,12 @@ namespace Datahub.Portal.Services
         private ICognitiveSearchService _cognitiveSearchService;
         private DataLakeClientService _dataLakeClientService;
         private DataRetrievalService _dataRetrievalService;
-        private readonly MyDataService myDataService;
+        private readonly IMyDataService myDataService;
 
         public DataRemovalService(ILogger<DataRemovalService> logger,
                                   DataLakeClientService dataLakeClientService,
                                   DataRetrievalService dataRetrievalService,
-                                  MyDataService myDataService,
+                                  IMyDataService myDataService,
                                   ICognitiveSearchService cognitiveSearchService,
                                   NavigationManager navigationManager,
                                   UIControlsService uiService)
