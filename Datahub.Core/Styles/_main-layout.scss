@@ -2,8 +2,8 @@
 
 .application-wrapper {
     display: grid;
-    grid-template-columns: #{c.$sidebarWidth} 1fr;
-    grid-template-areas: "sidebar main";
+    grid-template-columns: 1fr;
+    grid-template-areas: "main";
     
     height: 100vh;
 
