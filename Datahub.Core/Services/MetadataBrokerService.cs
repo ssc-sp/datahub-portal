@@ -293,6 +293,20 @@ namespace Datahub.Core.Services
                           .ToList();
         }
 
+        public async Task<List<CatalogObjectResult>> GetCatalogGroup(Guid groupId)
+        {
+            using var ctx = _contextFactory.CreateDbContext();
+
+            var definitions = await GetLatestMetadataDefinition(ctx);
+            var group = await ctx.CatalogObjects
+                                 .Where(e => e.GroupId == groupId)
+                                 .Include(e => e.ObjectMetadata)
+                                 .ThenInclude(s => s.FieldValues)
+                                 .Select(c => TransformCatalogObject(c, definitions))
+                                 .ToListAsync();
+            return group;
+        }
+
         private async Task<ObjectMetadata> GetObjectMetadata(MetadataDbContext ctx, string objectId)
         {
             return await ctx.ObjectMetadataSet.Include(e => e.FieldValues).FirstOrDefaultAsync(e => e.ObjectId_TXT == objectId);
@@ -457,6 +471,7 @@ namespace Datahub.Core.Services
                 Language = catObj.Language,
                 Url_English = catObj.Url_English_TXT,
                 Url_French = catObj.Url_French_TXT,
+                GroupId = catObj.GroupId,
                 Metadata = new FieldValueContainer(catObj.ObjectMetadata.ObjectMetadataId, catObj.ObjectMetadata.ObjectId_TXT, definitions, 
                     catObj.ObjectMetadata.FieldValues)
             };
