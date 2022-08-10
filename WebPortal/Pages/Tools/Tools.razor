@@ -1,0 +1,73 @@
+﻿@page "/tools"
+@using Datahub.Core.Modules
+@using Microsoft.Extensions.Configuration
+@inject IConfiguration configuration
+@inject ModuleManager ModuleManager
+
+<div class="dh-page-header mt-6 mb-12">
+    <MudText Typo="Typo.h3">@Localizer["DataHub Tools"]</MudText>
+</div>
+
+<MudGrid Spacing="4" Justify="Justify.FlexStart">
+
+    <MudItem xs="4">
+        <DHToolsCard Icon="fad fa-truck-loading fa-xs" Title="Onboarding Form" Description="Have a new project? Start your collaboration with us by completing the Onboarding Form">
+            <DHLink LinkType="DatahubLinkType.Onboarding">@Localizer["Open"]</DHLink>
+        </DHToolsCard>
+    </MudItem>
+
+    <MudItem xs="4">
+        <DHToolsCard Icon="fad fa-hdd card-icon fa-xs" Title="Storage Cost Estimator" Description="Looking for storage costs? Use the Storage Cost Estimator to estimate your storage needs">
+            <DHLink LinkType="DatahubLinkType.StorageCostEstimator">@Localizer["Open"]</DHLink>
+        </DHToolsCard>
+    </MudItem>
+
+    <MudItem xs="4">
+        <DHToolsCard Icon="fad fa-microchip card-icon fa-xs" Title="Compute Cost Estimator" Description="Looking for compute costs? Use the Compute Cost Estimator to estimate your compute needs">
+            <DHLink LinkType="DatahubLinkType.ComputeCostEstimator">@Localizer["Open"]</DHLink>
+        </DHToolsCard>
+    </MudItem>
+
+    <MudItem xs="4">
+        <DHToolsCard Href="/data" Icon="fad fa-folder-plus card-icon fa-xs" Title="My Files" Description="User area for file storage and sharing">
+            @Localizer["Open"]
+        </DHToolsCard>
+    </MudItem>
+
+    @if (ModuleManager.IsEnabled("M365FormsModule"))
+    {
+        <MudItem xs="4">
+            <DHToolsCard Icon="fad fa-folder-plus card-icon fa-xs" Title="M365 teams Application" Description="Application to create a m365 team">
+                <DHLink LinkType="DatahubLinkType.M365Form">@Localizer["Open"]</DHLink>
+            </DHToolsCard>
+        </MudItem>
+    }
+    @if (CatalogReport.Exists())
+    {
+        <MudItem xs="4">
+            <DHToolsCard Icon="fad fa-album-collection card-icon fa-xs" Title="Data Catalog Report" Description="Data Cataloging status for PowerBI, Tableau and files">
+                <DHLink LinkType="DatahubLinkType.PowerBI" PBIReportId="@(CatalogReport.GetValue<string>("Report"))" PBIWorkspaceId="@(CatalogReport.GetValue<string>("Workspace"))">@Localizer["Open"]</DHLink>
+            </DHToolsCard>
+        </MudItem>
+    }
+
+    <DHEnvironment IsDevelopment="true">
+        <MudItem xs="4">
+            <DHToolsCard Href="/discovery" Icon="fad fa-album-collection card-icon fa-xs" Title="Discovery (beta)"
+                         Description="Search the Datahub catalog.">
+                @Localizer["Open"]
+            </DHToolsCard>
+        </MudItem>
+
+    </DHEnvironment>
+</MudGrid>
+
+@code {
+
+    private IConfigurationSection CatalogReport;
+
+    protected override void OnInitialized()
+    {
+        CatalogReport = configuration.GetSection("PowerBI:CatalogReport");
+    }
+}
