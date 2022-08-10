@@ -2,8 +2,9 @@
 @using Datahub.Core.Utils
 @using Datahub.Portal.Services
 @using MudBlazor.Utilities
-@inject ServiceAuthManager ServiceAuthManager
 
+@inject ServiceAuthManager ServiceAuthManager
+@inject IUserInformationService _userInformationService
 
 <MudNavMenu Bordered>
     @foreach (var (href, icon, label) in GetLinks())
@@ -19,7 +20,7 @@
             </NavLink>
         </div>
     }
-    @foreach (var (href, icon, label, roles) in GetAuthorizedLinks())
+    @foreach (var (href, icon, label, roles) in _authorizedLinks)
     {
         <AuthorizeView Roles="@string.Join(',', roles)">
             <div class="mud-nav-item">
@@ -41,6 +42,8 @@
     private string _navTextStyle;
     private string _navLinkStyle;
 
+    private List<(string Href, Icon Icon, string Label, List<string> Roles)> _authorizedLinks = new();
+
     protected override void OnInitialized()
     {
         base.OnInitialized();
@@ -49,6 +52,14 @@
             .AddStyle("font-size", ".5rem")
             .AddStyle("text-transform", "uppercase")
             .Build();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        var user = await _userInformationService.GetUserAsync();
+        
+        _authorizedLinks = GetAuthorizedLinks(user.Id);
     }
 
     private string GetNavStyle(Icon icon)
@@ -69,9 +80,9 @@
         };
     }
 
-    private List<(string Href, Icon Icon, string Label, List<string> Roles)> GetAuthorizedLinks()
+    private List<(string Href, Icon Icon, string Label, List<string> Roles)> GetAuthorizedLinks(string userId = null)
     {
-        var projects = ServiceAuthManager.GetAdminProjectRoles();
+        var projects = ServiceAuthManager.GetAdminProjectRoles(userId);
         if (projects.Any())
         {
             return new List<(string, Icon, string, List<string>)>()
