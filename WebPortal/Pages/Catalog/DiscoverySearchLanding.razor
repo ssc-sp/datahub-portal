@@ -1,0 +1,92 @@
+﻿@*DiscoverySearchLanding.razor*@
+<AeFlex Vertical>
+	<h1>@Localizer["DataHub Data Catalog"]</h1>
+	
+	<div>
+		@Localizer["The DataHub Data Catalog provides a collection of various NRCan data assets, such as DataHub files and initiatives; CFS data catalog items; and Power BI datasets, reports and workspaces."]
+	</div>
+
+	<AeFlex Vertical>
+		<div>
+			<h2>@Localizer["Browse by Sector"]</h2>
+		</div>
+
+		<div class="ae flex wrap">
+			@foreach (var sector in Sectors)
+			{
+				<AeCard class="facard1" CardPosition="AeCard.CardStyle.Horizontal" onclick=@(() => ClickSector(sector))>
+					<Header>
+						<div style="width:120px">                        
+							<AeIcon class=@GetIconClass(sector.Id) />
+						</div>
+					</Header>
+					<ChildContent>                   
+							<h3>@(IsFrench ? sector.FrenchLabel : sector.EnglishLabel)</h3>
+					</ChildContent>
+					<Footer>
+					</Footer>
+				</AeCard>
+			}
+		</div>
+	<div>
+		<h2>@Localizer["Search"]</h2>
+		<div>
+			@Localizer["Search the Data Catalog to find and discover NRCan datasets on energy, finance, science, forestry or human resources, and more."]
+		</div>
+	</div>
+	<div>
+		<h2>@Localizer["Publish"]</h2>
+		<div>
+			@Localizer["Contact the DataHub team (datahub@nrcan-rncan.gc.ca) for details on how to publish your data to the Data Catalog."]
+		</div>
+	</div>
+	</AeFlex>
+</AeFlex>
+
+@code {
+
+	[Parameter]
+	public List<OrganizationLevel> Sectors { get; set; } = new();
+
+	[Parameter]
+	public bool IsFrench { get; set; }
+
+	[Parameter]
+	public EventCallback<OrganizationLevel> OnClickSector { get; set; }
+
+	static Dictionary<int, string> _icons = GetIcons();
+
+	private async void ClickSector(OrganizationLevel sector)
+	{
+		await OnClickSector.InvokeAsync(sector);
+	}
+
+	private string GetIconClass(int id)
+	{
+		var iconClass = _icons.ContainsKey(id) ? _icons[id] : "fa-info-circle";
+		return $"fad {iconClass} card-icon fa-xs";
+	}
+
+	static Dictionary<int, string> GetIcons()
+	{
+		return new()
+		{
+			{ 526,		"fa-trees" },			// Canadian Forest Service
+			{ 2,		"fa-search-dollar" },	// Audit and Evaluation Branch 
+			{ 43,		"fa-fire" },			// Energy Systems Sector
+			{ 81,		"fa-building" },		// Corporate Management and Services Sector
+			{ 133,		"fa-balance-scale" },	// Legal Services
+			{ 7291,		"fa-lightbulb-dollar" },// Energy Efficiency and Technology Sector
+			{ 9752,		"fa-stream" },			// Northern Pipeline Agency
+			{ 7891,		"fa-lightbulb-on" },	// Strategic Policy and Innovation Sector
+			{ 11573,	"fa-project-diagram" },	// Major Projects Management Office
+			{ 11993,	"fa-broadcast-tower" },	// Communications and Portfolio Sector
+			{ 15433,	"fa-chair-office" },	// Office of the Chief Scientist
+			{ 14913,	"fa-share" },			// Shared Services Canada
+			{ 16493,	"fa-mountains" },		// Lands and Minerals Sector
+			{ 16873,	"fa-gas-pump" },		// Fuels Sector
+			{ 16393,	"fa-phone-office" },	// Associate Deputy Minister's Office
+			{ 16613,	"fa-leaf-maple" }		// Indigenous Affairs and Reconciliation Sector
+		};
+	}
+}

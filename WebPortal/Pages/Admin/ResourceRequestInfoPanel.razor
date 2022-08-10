@@ -1,16 +1,17 @@
 ﻿@inject RequestManagementService _requestService;
 @using Datahub.Core.EFCore;
-@using Datahub.Metadata.DTO
+@using Datahub.Metadata.DTO;
+@using Datahub.Portal.Data.ProjectResource;
 
 @* TODO: localize text *@
 
-<AeTypography Variant="h4">Request Information</AeTypography>
+<AeTypography Variant="h4">@Localizer[$"{LOCALIZATION_PREFIX}.RequestInformation"]</AeTypography>
 
-<PropertyList PropertyDict=@RequestInfo Headers=@new()/>
+<PropertyList PropertyDict=@RequestInfo Headers=@new() KeyTransformer=@LocalizeInfoKey/>
 
 @if (ShowInputParams && FormParamsLoaded)
 {
-    <AeTypography Variant="h5">Input parameters</AeTypography>
+    <AeTypography Variant="h5">@Localizer[$"{LOCALIZATION_PREFIX}.InputParameters"]</AeTypography>
     @foreach(var r in _editableResources)
     {
         <AeCard>
@@ -28,14 +29,16 @@
             @if (r.IsEditing)
             {
                 <div>
-                    <AeButton OnClickEvent=@(async () => await SaveInputParams(r)) Disabled=@_isSaving>Save</AeButton>
-                    <AeButton class="light" OnClickEvent=@(async () => await CancelEditing(r)) Disabled=@_isSaving>Cancel</AeButton>
+                    <AeButton OnClickEvent=@(async () => await SaveInputParams(r)) Disabled=@_isSaving>@Localizer["BUTTONS.Save"]</AeButton>
+                    <AeButton class="light" OnClickEvent=@(async () => await CancelEditing(r)) Disabled=@_isSaving>@Localizer["BUTTONS.Cancel"]</AeButton>
                     <SuccessIndicator @bind-IsLoading=@_isSaving @ref=@_savingInd />
                 </div>
             }
-            else
+            else if (!r.IsAlreadyCreated)
             {
-                <AeButton OnClickEvent=@(() => r.IsEditing = !r.IsEditing) Disabled=@_isEditingAny><i class="fad fa-pencil"></i></AeButton>
+                <AeButton OnClickEvent=@(() => r.IsEditing = !r.IsEditing) Disabled=@(_isEditingAny)>
+                    <i class="fad fa-pencil"></i>
+                </AeButton>
             }
         </div>
         </AeCard>
@@ -44,6 +47,7 @@
 
 
 @code {
+    private const string LOCALIZATION_PREFIX = "RESOURCE_REQUEST_INFO_PANEL";
 
     [Parameter]
     public Datahub_ProjectServiceRequests Request { get; set; }
@@ -56,27 +60,30 @@
         public Dictionary<string, string> SettingsDict { get; set; }
         public FieldValueContainer FieldValues { get; set; }
         public bool IsEditing { get; set; }
+        public bool IsAlreadyCreated => ResourceRecord?.TimeCreated != null;
         private EditableResource(Project_Resources2 res)
         {
             ResourceRecord = res;
             SettingsDict = res.GetInputParamsDictionary();
             IsEditing = false;
-            ResetFieldValues();
         }
-        public void ResetFieldValues()
+        public static EditableResource BuildForResource(Project_Resources2 res, FieldDefinitions fieldDefs)
         {
-            FieldValues = ProjectResourceFormHelper.BuildFieldValues(SettingsDict, ResourceRecord.ResourceType);
-        }
-        public static EditableResource BuildForResource(Project_Resources2 res)
-        {
-            if (res.HasInputParams)
+            if (res.HasInputParams && fieldDefs != null)
             {
-                return new EditableResource(res);
+                var result = new EditableResource(res);
+                result.ResetValues(fieldDefs);
+                return result;
             }
             else
             {
                 return default;
             }
+        }
+        public void ResetValues(FieldDefinitions fieldDefs)
+        {
+            var objectId = FieldValues?.ObjectId;
+            FieldValues = ProjectResourceFormHelper.BuildFieldValues(fieldDefs, SettingsDict, objectId);
         }
     }
 
@@ -91,13 +98,15 @@
             {
                 _requestInfo = new();
                 _requestInfo.Add("projectName", Request.Project.ProjectName);
-                _requestInfo.Add("serviceType", Request.ServiceType);
+                _requestInfo.Add("serviceType", Localizer[$"RESOURCE-TYPE.{Request.ServiceType}"]);
                 _requestInfo.Add("requestingUser", Request.User_Name);
             }
 
             return _requestInfo;
         }
     }
+
+    private string LocalizeInfoKey(string k) => Localizer[$"{LOCALIZATION_PREFIX}.{k}"];
 
     private bool ShowInputParams => _resources.Count > 0 && _resources.Any(r => r.HasInputParams);
 
@@ -126,7 +135,7 @@
     private async Task CancelEditing(EditableResource r)
     {
         r.SettingsDict = r.ResourceRecord.GetInputParamsDictionary();
-        r.ResetFieldValues();
+        r.ResetValues(_formParams.FieldDefinitions);
         r.IsEditing = false;
         await Task.CompletedTask;
     }
@@ -151,20 +160,22 @@
     private async Task LoadResources()
     {
         _resources = await _requestService.GetResourcesByRequest(Request);
+
         _editableResources = _resources
-            .Select(r => EditableResource.BuildForResource(r))
+            .Select(r => EditableResource.BuildForResource(r, _formParams?.FieldDefinitions))
             .Where(r => r != null)
             .ToList();
     }
 
     private async Task LoadResourceFormParams()
     {
-        _formParams = await Task.FromResult(ProjectResourceFormHelper.GetProjectResourceParams(Request.ServiceType));
+        _formParams = await _requestService.CreateResourceInputFormParams(Request.ServiceType);
     }
 
     protected override async Task OnInitializedAsync()
     {
-        await Task.WhenAll(LoadResources(), LoadResourceFormParams());
+        await LoadResourceFormParams();
+        await LoadResources();
     }
 
 }

@@ -4,6 +4,7 @@
 @inject IUserInformationService _userInformationService
 @inject ServiceAuthManager _serviceAuthManager
 @page "/administration"
+@page "/admin"
 
 <DHPageTitle PageTitleKey="@Localizer["Admin"]"/>
 
@@ -95,7 +96,8 @@
 
         if (IsDataHubAdmin)
         {
-            result.Add((Localizer["DataHub Tools"], @<DatahubTools/>));
+            result.Add((Localizer["External PowerBi Requests"], @<ExternalPowerBiRequests /> ));
+            result.Add((Localizer["DataHub Tools"], @<DatahubTools />));
         }
         return result;
     }
