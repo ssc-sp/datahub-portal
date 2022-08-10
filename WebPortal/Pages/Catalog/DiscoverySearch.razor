@@ -3,6 +3,7 @@
 @using Datahub.Metadata.DTO
 @using Datahub.Core.Utils
 @using Datahub.Metadata.Model
+@inject UIControlsService uiControlService;
 
 @* TODO: transfer these rules to scss, apply it to metadata keywords *@
 <style>
@@ -176,7 +177,9 @@
 											  CatalogResult=@item
 											  Project=@GetProject(item)
 											  MapSector=@GetSector
-											  MapBranch=@GetBranch>
+											  MapBranch=@GetBranch
+											  OnShowLinks=@HandleShowLinks
+											  ShowLinks>
 										@GetDownLoadFragment(item)
 									</CatalogCards>
 								</ItemTemplate>
@@ -283,6 +286,8 @@
 	private bool _clearFilterDisabled => !_filtersActive;
 
 	private Dictionary<string, Datahub_Project> _projects = new();
+
+	private List<CatalogObjectResult> _currentGroup = new();
 
 	protected override async Task OnInitializedAsync()
 	{
@@ -480,7 +485,8 @@
 	private RenderFragment GetUnauthorizedDownload(CatalogObjectResult result)
 	{
 		var label = result.ClassificationType == ClassificationType.ProtectedA ? Localizer["Protected A - Request Access"] : Localizer["Protected B - Request Access"];
-		return @<AeButton class="red" onclick=@(() => HandleDownload(result))>@label</AeButton>;
+		return @<AeButton class="red" onclick=@(() => HandleDownload(result))>@label</AeButton>
+	;
 	}
 
 	private async Task HandleDownload(CatalogObjectResult result)
@@ -597,12 +603,17 @@
 			_lastQueryCount = results.Count;
 
 			// apply localization on bilingual entries
-			foreach (var r in results)
-			{
-				r.IsFrench = r.Language == CatalogObjectLanguage.Bilingual ? _isFrench : r.Language == CatalogObjectLanguage.French;
-			}
+			ApplyLocalization(results);
 
 			return results;
+		}
+	}
+
+	private void ApplyLocalization(List<CatalogObjectResult> results)
+	{
+		foreach (var r in results)
+		{
+			r.IsFrench = r.Language == CatalogObjectLanguage.Bilingual ? _isFrench : r.Language == CatalogObjectLanguage.French;
 		}
 	}
 
@@ -622,22 +633,46 @@
 		return !string.IsNullOrWhiteSpace(_searchKeywords) || _filteredSectors.Any() || _filteredDataTypes.Any() || _filteredClassificationTypes.Any() || _filteredLanguageTypes.Any();
 	}
 
-    private async Task<IEnumerable<CatalogObjectResult>> GetMore(InfiniteScrollingItemsProviderRequest<CatalogObjectResult> request)
-    {
-        var newRequest = _catalogSearchRequest with
-            {
-                LastPageId = request.Items.LastOrDefault()?.CatalogObjectId ?? 0
-            };
+	private async Task<IEnumerable<CatalogObjectResult>> GetMore(InfiniteScrollingItemsProviderRequest<CatalogObjectResult> request)
+	{
+		var newRequest = _catalogSearchRequest with
+        {
+            LastPageId = request.Items.LastOrDefault()?.CatalogObjectId ?? 0
+        };
 
 		var newResults = await MetadataBrokerService.SearchCatalog(newRequest, CheckMetadataCompleted);
 		_searchResults.AddRange(newResults);
 
-        // just for the demo
-        await Task.Delay(TimeSpan.FromSeconds(1));
+		return newResults;
+	}
 
-        // just for the demo
-        await Task.Delay(TimeSpan.FromSeconds(1));
+	private async Task ShowGroup(List<CatalogObjectResult> group)
+    {
+        RenderFragment groupFragment = 
+		@<div class="cards">
+			<div class="catalog-cards">
+				<CatalogCardGroup
+					CatalogResults=@group
+					GetProject=@GetProject
+					MapSector=@GetSector
+					MapBranch=@GetBranch
+					GetDownLoadFragment=@GetDownLoadFragment
+				/>
+			</div>
+		</div>;
+		await uiControlService.ToggleModal(@<RenderFragmentModal Fragment=@groupFragment />);
+	}
 
-        return newResults;
-    }
+	private async Task HandleShowLinks(CatalogObjectResult result)
+	{
+		if (result.GroupId.HasValue)
+		{
+			var group = await MetadataBrokerService.GetCatalogGroup(result.GroupId.Value);
+
+			// apply localization on bilingual entries
+			ApplyLocalization(group);
+
+			await ShowGroup(group);
+		}
+	}
 }

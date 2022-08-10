@@ -1,4 +1,6 @@
-﻿namespace Datahub.Metadata.Model
+﻿using System;
+
+namespace Datahub.Metadata.Model
 {
     public class CatalogObject
     {
@@ -58,6 +60,10 @@
         /// ClassificationType: Unclassified, Protected A or Protected B
         /// </summary>
         public ClassificationType Classification_Type { get; set; }
+        /// <summary>
+        /// Grouping for linking catalog objects
+        /// </summary>
+        public Guid? GroupId { get; set; }
     }
 
     public enum CatalogObjectLanguage

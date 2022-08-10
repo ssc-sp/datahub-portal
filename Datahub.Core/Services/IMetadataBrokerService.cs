@@ -24,6 +24,7 @@ namespace Datahub.Core.Services
         Task UpdateCatalog(long objectId, Entities.MetadataObjectType dataType, string objectName, string location, 
             int sector, int branch, string contact, ClassificationType securityClass, string englishText, string frenchText);
         Task<List<CatalogObjectResult>> SearchCatalog(CatalogSearchRequest request, Func<CatalogObjectResult, bool> validateResult);
+        Task<List<CatalogObjectResult>> GetCatalogGroup(Guid groupId);
         Task<FieldDefinitions> GetFieldDefinitions();
         Task<CatalogObjectResult> GetCatalogObjectByMetadataId(long metadataId);
         Task<CatalogObjectResult> GetCatalogObjectByObjectId(string objectId);
