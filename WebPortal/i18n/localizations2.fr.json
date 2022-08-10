@@ -101,5 +101,14 @@
   "Databricks Workbooks": "Classeurs databricks",
   "PowerBI Reports": "Rapports PowerBI",
   "Last_Updated_DT": "Date de la dernière mise à jour",
-  "Submitted_DT": "Date de soumission"
+  "Submitted_DT": "Date de soumission",
+  "No_Reports_Available": "Il n'y a pas de rapports disponibles pour ce projet",
+  "Include_Sandbox_Workspaces": "Inclure les espaces de travail du bac à sable",
+  "English_Power_BI_Report": "Rapport Power BI en anglais",
+  "French_Power_BI_Report": "Rapport Power BI français",
+  "External_Access": "Accès externe",
+  "Power BI Reports for": "Rapports Power BI pour ",
+  "Revoke Active Sharing": "Révoquer le partage actif",
+  "Requested": "Demandé",
+  "Request External Report": "Demander un rapport externe"
 }

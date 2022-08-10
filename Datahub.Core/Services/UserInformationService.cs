@@ -99,6 +99,14 @@ namespace Datahub.Core.Services
             return $"{domain}/{prefix}";
         }
 
+        public async Task<bool> IsUserWithoutInitiatives()
+        {
+            authenticatedUser ??= (await _authenticationStateProvider.GetAuthenticationStateAsync()).User;
+            var claims = authenticatedUser.Claims.Where(c => c.Type == ClaimTypes.Role).ToList();
+
+            return (claims.Count() == 0 || (claims.Count() == 1 && claims[0].Value == "default"));             
+        }
+
         private async Task GetUserAsyncInternal()
         {
             if (CurrentUser != null) return;
@@ -141,75 +149,7 @@ namespace Datahub.Core.Services
             await CheckUser();
             return CurrentUser;
         }
-
-        //public async Task<string> GetMePhotoAsync()
-        //{
-        //    try
-        //    {
-
-        //        //var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
-        //        //var claimsList = authState.User.Claims.ToList();
-        //        //var email = authState.User.Identity.Name;
-        //        //PrepareAuthenticatedClient();
-        //        //Stream photoresponse = await graphServiceClient.Users[email].Photo.Content.Request().GetAsync();
-
-        //        //if (photoresponse != null)
-        //        //{
-        //        //    MemoryStream ms = new MemoryStream();
-        //        //    photoresponse.CopyTo(ms);
-        //        //    System.Drawing.Image i = System.Drawing.Image.FromStream(ms);
-
-        //        //    byte[] imgBytes = turnImageToByteArray(i);
-        //        //    string imgString = Convert.ToBase64String(imgBytes);
-        //        //    return String.Format($@"<img src=""data:image/Bmp;base64,{imgString}"">");
-        //        //}
-        //        //else
-        //        //{
-        //        //    return string.Empty;
-        //        //}
-
-        //        byte[] imgBytes = await GetStreamWithAuthAsync();
-        //        string imgString = Convert.ToBase64String(imgBytes);
-        //        return String.Format($@"<img src=""data:image/Bmp;base64,{imgString}"">");
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        Console.WriteLine($"Error getting signed-in user profilephoto: {ex.Message}");
-        //        throw;
-        //    }
-        //}
-
-        //private async Task<byte[]> GetStreamWithAuthAsync()
-        //{
-        //    //TODO figure out length of time of authtoken
-        //    PrepareAuthenticatedClient();
-        //    var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
-        //    var claimsList = authState.User.Claims.ToList();
-        //    var email = authState.User.Identity.Name;
-        //    var endpoint = @$"https://graph.microsoft.com/v1.0/users/0403528c-5abc-423f-9201-9c945f628595/photo/$value";
-        //    var client = _httpClient.CreateClient();
-        //    client.DefaultRequestHeaders.Add("Authorization", "Bearer " + accessToken);
-        //    client.DefaultRequestHeaders.Add("Accept", "application/json");
-        //    using (var response = await client.GetAsync(endpoint))
-        //    {
-        //        if (response.IsSuccessStatusCode)
-        //        {
-        //            var stream = await response.Content.ReadAsStreamAsync();
-        //            byte[] bytes = new byte[stream.Length];
-        //            stream.Read(bytes, 0, (int)stream.Length);
-        //            return bytes;
-        //        }
-        //        else
-        //            return null;
-        //    }
-        //}
-
-        //private byte[] turnImageToByteArray(System.Drawing.Image img)
-        //{
-        //    MemoryStream ms = new MemoryStream();
-        //    img.Save(ms, System.Drawing.Imaging.ImageFormat.Bmp);
-        //    return ms.ToArray();
-        //}
+        
 
         private void PrepareAuthenticatedClient()
         {

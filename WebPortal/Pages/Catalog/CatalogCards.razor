@@ -19,6 +19,13 @@ else
                     <span>@GetOtherLangauge()</span>
                 </a>
             }
+            else
+            {
+                <span>
+                    <i class="fad fa-globe"></i>
+                    <span>@GetObjectLanguage()</span>
+                </span>
+            }
             
             <div style="@($"--security-text-color: {_securityClassColor}")" class="securityclass">
                 <i class="@($"fad fa-{_projectIcon}")"></i>
@@ -256,5 +263,6 @@ else
         StateHasChanged();
     }
 
+    private string GetObjectLanguage() => CatalogResult.Language == CatalogObjectLanguage.French ? "Français" : "English";
     private string GetOtherLangauge() => IsFrench ? "English" : "Français";
 }

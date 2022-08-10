@@ -175,7 +175,9 @@
     "Data Type": "Data Type",
     "(All Sectors)": "(All Sectors)",
     "(All Branches)": "(All Branches)",
-    "HideIncomplete": "Hide Incomplete Catalogs"
+    "HideIncomplete": "Hide Incomplete Catalogs",
+    "Bilingual": "Bilingual",
+    "Language": "Language"
   },
   "DISCOVERY-DATA-TYPES": {
     "File": "File",
@@ -188,7 +190,10 @@
     "Unclassified": "Unclassified",
     "ProtectedA": "Protected A",
     "ProtectedB": "Protected B",
-    "DatasetUrl": "Dataset Url"
+    "DatasetUrl": "Dataset Url",
+    "Bilingual": "Bilingual",
+    "English": "English",
+    "French": "French"
   },
   "RESOURCE-TYPE": {
     "psql": "PostgreSQL",
@@ -993,5 +998,6 @@
   "(any)": "(any)",
   "Expand": "Expand",
   "Collapse": "Collapse",
-  "Resources": "Resources"
+  "Resources": "Resources",
+  "LanguageTableDisclaimer": "Only one registration permitted per student per session."
 }

@@ -7,21 +7,21 @@
 {
     <div @onclick="() => OnRevokeClick(PowerBi_Report.Report_ID)" style="cursor:pointer;">
         <i class="far fa-check-square"></i>
-        <a>Revoke Active Sharing</a>
+        <a>@Localizer["Revoke Active Sharing"]</a>
     </div>
 }
 else if (_isReportRequested)
 {
     <div>
         <i class="fad fa-hourglass-half"></i>
-        <a>Requested</a>
+        <a>@Localizer["Requested"]</a>
     </div>
 }
 else
 {
     <div @onclick="() => OnCreateClick(PowerBi_Report.Report_ID)" style="cursor:pointer;">
         <i class="far fa-plus-square"></i>
-        <a>Request External Report</a>
+        <a>@Localizer["Request External Report"]</a>
     </div>                
 }
 

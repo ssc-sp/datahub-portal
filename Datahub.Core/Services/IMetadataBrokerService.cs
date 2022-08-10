@@ -29,6 +29,7 @@ namespace Datahub.Core.Services
         Task<CatalogObjectResult> GetCatalogObjectByObjectId(string objectId);
         Task<bool> IsObjectCatalogued(string objectId);
         Task DeleteFromCatalog(string objectId);
+        Task DeleteMultipleFromCatalog(IEnumerable<string> objectIds);
     }
     
     public record CatalogSearchRequest
@@ -37,6 +38,7 @@ namespace Datahub.Core.Services
         int PageSize,
         bool IsFrench,
         List<string> Keywords,
+        List<CatalogObjectLanguage> Languages,
         List<ClassificationType> Classifications,
         List<MetadataObjectType> ObjectTypes,
         List<int> Sectors,
