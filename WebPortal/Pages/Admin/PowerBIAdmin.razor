@@ -1,5 +1,8 @@
 ﻿@page "/admin/powerbi"
 @page "/admin/powerbi/{ProjectAcronym}"
+@page "/admin/powerbi/report/{ReportId}"
+@page "/admin/powerbi/dataset/{DatasetId}"
+@page "/admin/powerbi/workspace/{WorkspaceId}"
 @inject IPowerBiDataService _powerBiDataService
 @inject PowerBiServiceApi _powerBiServiceApi
 @inject Microsoft.Identity.Web.MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
@@ -392,6 +395,15 @@
 
     [Parameter]
     public string ProjectAcronym { get; set; }
+    
+    [Parameter]
+    public string ReportId { get; set; }
+    
+    [Parameter]
+    public string DatasetId { get; set; }
+    
+    [Parameter]
+    public string WorkspaceId { get; set; }
 
     private bool IsAdminView => string.IsNullOrEmpty(ProjectAcronym);
 
@@ -579,21 +591,27 @@
         {
             var workspace = await _powerBiDataService.GetWorkspaceById(item.Id);
             var pbiWorkspace = PowerBiWorkspacesById.GetValueOrDefault(item.Id);
-            WorkspaceBeingEdited = new(pbiWorkspace, workspace);
+            if (workspace != null) {
+                WorkspaceBeingEdited = new(pbiWorkspace, workspace);
+            }
         }
         else if (item.ItemType == PowerBiAdminTreeItemType.Dataset)
         {
             var dataset = await _powerBiDataService.GetDatasetById(item.Id);
             var pbiDataset = PowerBiDatasetsById.GetValueOrDefault(item.Id);
-            DatasetBeingEdited = new(pbiDataset, dataset, null);
-            DatasetBeingEdited.ProjectId = item.ProjectId;
+            if (dataset != null) {
+                DatasetBeingEdited = new(pbiDataset, dataset, null);
+                DatasetBeingEdited.ProjectId = item.ProjectId;
+            }
         }
         else if (item.ItemType == PowerBiAdminTreeItemType.Report)
         {
             var report = await _powerBiDataService.GetReportById(item.Id);
             var pbiReport = PowerBiReportsById.GetValueOrDefault(item.Id);
-            ReportBeingEdited = new(pbiReport, report, null);
-            ReportBeingEdited.ProjectId = item.ProjectId;
+            if (report != null) {
+                ReportBeingEdited = new(pbiReport, report, null);
+                ReportBeingEdited.ProjectId = item.ProjectId;
+            }
         }
 
         _tempLastClickedItem = item.Label;
@@ -1056,12 +1074,32 @@
         await LoadGlobalPowerBiAdmins();
     }
 
+    private async Task OpenDeepLink()
+    {
+        if (Guid.TryParse(ReportId, out var reportGuid))
+        {
+            var reportItem = new PowerBiAdminTreeItem(string.Empty, PowerBiAdminTreeItemType.Report, reportGuid);
+            await OpenItemEditor(reportItem);
+        }
+        else if (Guid.TryParse(WorkspaceId, out var workspaceGuid))
+        {
+            var workspaceItem = new PowerBiAdminTreeItem(string.Empty, PowerBiAdminTreeItemType.Workspace, workspaceGuid);
+            await OpenItemEditor(workspaceItem);
+        }
+        else if (Guid.TryParse(DatasetId, out var datasetGuid))
+        {
+            var datasetItem = new PowerBiAdminTreeItem(string.Empty, PowerBiAdminTreeItemType.Dataset, datasetGuid);
+            await OpenItemEditor(datasetItem);
+        }
+    }
+
     protected override async Task OnInitializedAsync()
     {
         try
         {
             _userSearchThrottler = new(TimeSpan.FromSeconds(0.3), InvokeSearchUsers);
             await LoadWorkspaceTreeItems();
+            await OpenDeepLink();
             await Task.WhenAll(LoadProjects(), LoadGlobalPowerBiAdmins());
         }
         catch (Exception ex)
