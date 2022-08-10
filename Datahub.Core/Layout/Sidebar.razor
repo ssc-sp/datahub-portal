@@ -2,52 +2,72 @@
 @using Datahub.Core.Data
 @using Datahub.Core.Utils
 @using Datahub.Portal.Services
+@using MudBlazor.Utilities
 @inject ServiceAuthManager ServiceAuthManager
 @inject IConfiguration Configuration
 
-<div id="sidebar">
-    <div class="sidebar-sticky">
-        <div class="logo">
-            <img src="_content/Datahub.Core/img/datahub-logo-v2.png"/>
-        </div>
-        <div class="links">
-            @foreach (var (href, icon, label, enabled) in GetLinks())
-            {
-                @if (enabled)
-                {
-                    <NavLink class="@icon.Color" href="@href" Match="NavLinkMatch.Prefix" ActiveClass="active">
-                        <i class="@icon.Name"></i>
+
+<MudNavMenu Bordered>
+    @foreach (var (href, icon, label) in GetLinks())
+    {
+        <div class="mud-nav-item">
+            <NavLink class="mud-nav-link mud-ripple px-0 py-4 justify-center" style="@GetNavStyle(icon)" href="@href" Match="NavLinkMatch.Prefix" ActiveClass="active">
+                <MudStack AlignItems="AlignItems.Center" Spacing="1">
+                    <MudIcon Icon="@icon.Name"/>
+                    <MudText Typo="Typo.body2" Style="@_navTextStyle">
                         @Localizer[label]
-                    </NavLink>
-                }
-            }
-            @foreach (var link in GetAuthorizedLinks())
-            {
-                <AuthorizeView Roles="@string.Join(',', link.Roles)">
-                    <NavLink class="@link.Icon.Color" href="@link.Href" Match="NavLinkMatch.Prefix" ActiveClass="active">
-                        <i class="@link.Icon.Name"></i>
-                        @Localizer[@link.Label]
-                    </NavLink>
-                </AuthorizeView>
-            }
+                    </MudText>
+                </MudStack>
+            </NavLink>
         </div>
-    </div>
-</div>
+    }
+    @foreach (var (href, icon, label, roles) in GetAuthorizedLinks())
+    {
+        <AuthorizeView Roles="@string.Join(',', roles)">
+            <div class="mud-nav-item">
+                <NavLink class="mud-nav-link mud-ripple px-0 py-4 justify-center" href="@href" Match="NavLinkMatch.Prefix" ActiveClass="active">
+                    <MudStack AlignItems="AlignItems.Center">
+                        <MudIcon Icon="@icon.Name"/>
+                        <MudText Typo="Typo.body2" Style="@_navTextStyle">
+                            @Localizer[label]
+                        </MudText>
+                    </MudStack>
+                </NavLink>
+            </div>
+        </AuthorizeView>
+    }
+</MudNavMenu>
 
 @code {
 
-    private List<(string Href, Icon Icon, string Label, bool enabled)> GetLinks()
+    private string _navTextStyle;
+    private string _navLinkStyle;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        _navTextStyle = new StyleBuilder()
+            .AddStyle("font-size", ".5rem")
+            .AddStyle("text-transform", "uppercase")
+            .Build();
+    }
+
+    private string GetNavStyle(Icon icon)
+    {
+        return new StyleBuilder()
+            .AddStyle("--mud-palette-primary", icon.HexColor)
+            .Build();
+    }
+
+    private List<(string Href, Icon Icon, string Label)> GetLinks()
     {
         return new()
         {
-            ("/home", Icon.HOME, "SIDEBAR.Home", true),
-            ($"/{UrlPathSegment.PROJECTS}", Icon.PROJECT, "SIDEBAR.DataProjects", true),
-            ("/resources", Icon.RESOURCES, "SIDEBAR.Resources", true),
-            ("/tools", Icon.TOOLS, "SIDEBAR.Tools", true),
-            ("/discovery", Icon.CATALOG, "SIDEBAR.Catalog", IsFeatureEnabled("DataCatalog"))
-            //("/data", Icon.STORAGE, "SIDEBAR.Storage"),
-            //("/datasets", Icon.DATASETS, "SIDEBAR.Datasets"),
-            //("/powerbi", Icon.POWERBI, "SIDEBAR.PowerBI"),      
+            ("/home", Icon.HOME, "SIDEBAR.Home"),
+            ($"/{UrlPathSegment.PROJECTS}", Icon.PROJECT, "SIDEBAR.DataProjects"),
+            ("/resources", Icon.RESOURCES, "SIDEBAR.Resources"),
+            ("/tools", Icon.TOOLS, "SIDEBAR.Tools"),
         };
     }
 
@@ -61,10 +81,8 @@
                 ("/administration", Icon.ADMIN, "SIDEBAR.Admin", projects),
             };
         }
-        else
-        {
-            return new();
-        }
+
+        return new List<(string, Icon, string, List<string>)>();
     }
 
     private bool IsFeatureEnabled(string name)
