@@ -66,10 +66,18 @@ else
             }
         </AuthorizeView>
         <AeFlex id="buttonBar">
-        <div class="icon-container" style="margin-bottom: 10px; margin-left: 5px;">
-            <FAButton Text="@_addButton" Icon="far fa-plus-square" onclick="CreateNewRecord" />
-        </div>
-    </AeFlex>
+            <div class="icon-container" style="margin-bottom: 10px; margin-left: 5px;">
+                <FAButton Text="@_addButton" Icon="far fa-plus-square" onclick="CreateNewRecord" />
+            </div>        
+        </AeFlex>
+        @if (!string.IsNullOrWhiteSpace(Metadata.TableDisclaimer))
+        {
+            <AeFlex>
+                <div style="margin-left: 5px;">
+                    <AeTypography Variant="p no-margin"><b>@Metadata.TableDisclaimer</b></AeTypography>
+                </div>
+            </AeFlex>
+        }
 </AeCard>
 
 @if (SelectedRecord != null)
