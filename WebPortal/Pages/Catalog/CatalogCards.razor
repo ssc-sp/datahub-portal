@@ -12,31 +12,32 @@ else
 {
     <div class="card" style="padding: 16px;">
         <div class="topright">
-
-            @if (CanShowLinks())
-            {
-                <a @onclick="HandleShowLinks" style="cursor: pointer;">
-                        <i class="fad fa-link"></i>
-                        <span>@Localizer["Links"]</span>
-                </a>
-            }
-            else
-            {
-                if (CatalogResult.Language == CatalogObjectLanguage.Bilingual)
+            <div class="language">
+                @if (CanShowLinks())
                 {
-                    <a @onclick="SwitchLanguage" style="cursor: pointer;">
-                        <i class="fad fa-repeat"></i>
-                        <span>@GetOtherLangauge()</span>
+                    <a @onclick="HandleShowLinks" style="cursor: pointer;">
+                            <i class="fad fa-link"></i>
+                            <span>@Localizer["Links"]</span>
                     </a>
                 }
                 else
                 {
-                    <span>
-                        <i class="fad fa-globe"></i>
-                        <span>@GetObjectLanguage()</span>
-                    </span>
+                    if (CatalogResult.Language == CatalogObjectLanguage.Bilingual)
+                    {
+                        <a @onclick="SwitchLanguage" style="cursor: pointer;">
+                            <i class="fad fa-repeat"></i>
+                            <span>@GetOtherLangauge()</span>
+                        </a>
+                    }
+                    else
+                    {
+                        <span>
+                            <i class="fad fa-globe"></i>
+                            <span>@GetObjectLanguage()</span>
+                        </span>
+                    }
                 }
-            }
+            </div>
             
             <div style="@($"--security-text-color: {_securityClassColor}")" class="securityclass">
                 <i class="@($"fad fa-{_projectIcon}")"></i>
