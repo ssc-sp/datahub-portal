@@ -35,5 +35,7 @@ namespace Datahub.Core.Services
         public Task<ExternalPowerBiReport> GetExternalReportRecord(Guid reportId);
         public Task<List<ExternalPowerBiReport>> GetRequestedExternalReports();
         public Task UpdateExternalPowerBiRecord(ExternalPowerBiReport report);
+
+        public Task NotifyOfMissingReport(Guid reportId);
     }
 }

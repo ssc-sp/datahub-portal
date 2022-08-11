@@ -15,6 +15,7 @@ namespace Datahub.Core.Services
         private readonly ILogger<PowerBiDataService> _logger;
         private readonly IMiscStorageService _miscStorageService;
         private readonly IDatahubAuditingService _auditingService;
+        private readonly ISystemNotificationService _notificationService;
 
         private static readonly string GLOBAL_POWERBI_ADMIN_LIST_KEY = "GlobalPowerBiAdmins";
 
@@ -22,12 +23,14 @@ namespace Datahub.Core.Services
             IDbContextFactory<DatahubProjectDBContext> contextFactory,
             ILogger<PowerBiDataService> logger,
             IMiscStorageService miscStorageService,
-            IDatahubAuditingService auditingService)
+            IDatahubAuditingService auditingService,
+            ISystemNotificationService notificationService)
         {
             _contextFactory = contextFactory;
             _logger = logger;
             _miscStorageService = miscStorageService;
             _auditingService = auditingService;
+            _notificationService = notificationService;
         }
 
         public async Task<IList<PowerBi_Workspace>> GetAllWorkspaces()
@@ -474,6 +477,19 @@ namespace Datahub.Core.Services
             }
 
             return await Task.FromResult(success);
+        }
+
+        public async Task NotifyOfMissingReport(Guid reportId)
+        {
+            var report = await GetReportById(reportId, true);
+            var powerBiAdmins = await GetGlobalPowerBiAdmins();
+            var localizationPrefix = "POWER_BI_REPORT";
+            var textKey = $"{localizationPrefix}.NotFoundReportNotificationText";
+            var linkKey = $"{localizationPrefix}.NotFoundReportNotificationLink";
+            var actionLink = $"/admin/powerbi/report/{reportId}";
+            var projectName = new BilingualStringArgument(report.Workspace.Project.Project_Name, report.Workspace.Project.Project_Name_Fr);
+
+            await _notificationService.CreateSystemNotificationsWithLink(powerBiAdmins, actionLink, linkKey, textKey, report.Report_Name, projectName);
         }
     }
 }

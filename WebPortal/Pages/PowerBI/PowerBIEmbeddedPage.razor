@@ -31,6 +31,17 @@
         </Header>
         <ChildContent>
             <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.ErrorDescription"]</AeTypography>
+                <div>
+                    @if (ErrorNotificationSent)
+                    {
+                        <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.NotificationSentMessage"]</AeTypography>
+                    }
+                    else
+                    {
+                        <AeButton OnClickEvent=@SendNotFoundNotification Disabled=@SendingErrorNotification>@Localizer[$"{LOCALIZATION_PREFIX}.SendNotificationButton"]</AeButton>   
+                    }
+                    <SuccessIndicator @ref=@NotificationSuccessInd @bind-IsLoading=@SendingErrorNotification />
+                </div>
         </ChildContent>
     </AeCard>
 }
@@ -68,6 +79,10 @@ else
 
     private bool ErrorLoadingReport = false;
 
+    private bool ErrorNotificationSent = false;
+    private bool SendingErrorNotification = false;
+    private SuccessIndicator NotificationSuccessInd;
+
     private PowerBi_Report dbReport = null;
 
     private PowerBi_Workspace dbWorkspace => dbReport?.Workspace;
@@ -95,7 +110,7 @@ else
             }
 
             reportToken = await PowerBiServiceApi.GetAccessTokenAsync();
-            
+
         } 
         catch (MicrosoftIdentityWebChallengeUserException e)
         {
@@ -112,7 +127,7 @@ else
             // some other exception, crash and log like normal
             throw;
         }
-        
+
         dbReport = await PowerBiDataService.GetReportById(ReportIdGuid, true);
 
         var pbiSettings = new PowerBISettings();
@@ -129,6 +144,18 @@ else
                 PowerBIElement, reportToken, report.EmbedUrl,
                 report.Id.ToString(), pbiSettings);
         }
+    }
+
+    private async Task SendNotFoundNotification()
+    {
+        SendingErrorNotification = true;
+        await InvokeAsync(StateHasChanged);
+
+        await PowerBiDataService.NotifyOfMissingReport(ReportIdGuid);
+
+        ErrorNotificationSent = true;
+        await NotificationSuccessInd.SignalSuccess();
+        await InvokeAsync(StateHasChanged);
     }
 
     protected override void OnAfterRender(bool firstRender)
