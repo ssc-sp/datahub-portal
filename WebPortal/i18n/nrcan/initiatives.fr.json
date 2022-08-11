@@ -227,7 +227,11 @@
   "POWER_BI_REPORT": {
     "ReturnToX": "Retour à {0}",
     "ErrorLoadingReport": "Erreur de chargement du rapport Power BI",
-    "ErrorDescription": "Le rapport spécifié n'a pas pu être trouvé dans Power BI, ou vous n'avez pas un accès suffisant pour le visualiser."
+    "ErrorDescription": "Le rapport spécifié n'a pas pu être trouvé dans Power BI, ou vous n'avez pas un accès suffisant pour le visualiser.",
+    "NotFoundReportNotificationText": "Le rapport Power BI {0} dans l'initiative de données {1} a été signalé comme invalide. Veuillez vérifier son statut et supprimer l'enregistrement de DataHub si le rapport n'est plus disponible.",
+    "NotFoundReportNotificationLink": "Voir dans Power BI Admin",
+    "SendNotificationButton": "Envoyer une notification",
+    "NotificationSentMessage": "Une notification a été envoyée aux administrateurs de Power BI."
   },
   "RESOURCE_REQUEST_INFO_PANEL": {
     "RequestInformation": "Information sur la demande",

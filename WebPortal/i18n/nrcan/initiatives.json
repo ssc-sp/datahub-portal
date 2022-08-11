@@ -228,7 +228,11 @@
   "POWER_BI_REPORT": {
     "ReturnToX": "Return to {0}",
     "ErrorLoadingReport": "Error loading Power BI report",
-    "ErrorDescription": "The specified report could not be found in Power BI, or you do not have sufficient access to view it."
+    "ErrorDescription": "The specified report could not be found in Power BI, or you do not have sufficient access to view it.",
+    "NotFoundReportNotificationText": "The Power BI report {0} in data initiative {1} was flagged as invalid. Please verify its status and delete the record from DataHub if the report is no longer available.",
+    "NotFoundReportNotificationLink": "View in Power BI Admin",
+    "SendNotificationButton": "Send Notification",
+    "NotificationSentMessage": "A notification has been sent to the Power BI administrators."
   },
   "RESOURCE_REQUEST_INFO_PANEL": {
     "RequestInformation": "Request Information",
