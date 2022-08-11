@@ -1,4 +1,5 @@
 ﻿using Datahub.Metadata.Model;
+using System;
 
 namespace Datahub.Metadata.DTO
 {
@@ -19,6 +20,7 @@ namespace Datahub.Metadata.DTO
         public CatalogObjectLanguage Language { get; init; }
         public bool IsCatalogComplete { get; set; } = true;
         public bool IsFrench { get; set; }
+        public Guid? GroupId { get; set; }
         public FieldValueContainer Metadata { get; set; }
     }
 }
