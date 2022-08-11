@@ -132,7 +132,7 @@
 		foreach (var browserFile in e.GetMultipleFiles())
 		{
 			var stream = browserFile.OpenReadStream();
-			await CatalogImportService.Import(browserFile.OpenReadStream());
+			await CatalogImportService.Import(stream);
 		}
 	}
 }
