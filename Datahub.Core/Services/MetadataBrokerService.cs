@@ -1,16 +1,16 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Datahub.Metadata.DTO;
 using Datahub.Metadata.Model;
 using Datahub.Metadata.Utils;
-using System.Threading.Tasks;
-using System.Linq;
-using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore;
 using System;
-using Datahub.Metadata.DTO;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Entities = Datahub.Metadata.Model;
 
 namespace Datahub.Core.Services
 {
-    public class MetadataBrokerService : IMetadataBrokerService
+	public class MetadataBrokerService : IMetadataBrokerService
     {
         readonly IDbContextFactory<MetadataDbContext> _contextFactory;
         readonly IDatahubAuditingService _auditingService;
@@ -558,7 +558,34 @@ namespace Datahub.Core.Services
             {
                 await tran.RollbackAsync();
             }
+        }
 
+        public async Task<Guid> GroupCatalogObjects(IEnumerable<string> objectIds)
+		{
+            var groupId = Guid.NewGuid();
+            using var ctx = await _contextFactory.CreateDbContextAsync();
+
+            // assign group id
+            foreach (var objectId in objectIds)
+			{
+                await SetCatalogObjectGroup(ctx, objectId, groupId);
+            }
+
+            await ctx.TrackSaveChangesAsync(_auditingService);
+
+            return groupId;
+        }
+
+        private async Task SetCatalogObjectGroup(MetadataDbContext ctx, string objectId, Guid groupId)
+        {
+            var metadata = await ctx.ObjectMetadataSet.Include(e => e.CatalogObjects).Where(e => e.ObjectId_TXT == objectId).FirstOrDefaultAsync();
+            if (metadata is not null)
+			{
+                foreach (var catalogObject in metadata.CatalogObjects)
+				{
+                    catalogObject.GroupId = groupId;
+                }
+			}
         }
     }
 }
