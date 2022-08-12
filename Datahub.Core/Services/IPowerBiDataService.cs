@@ -20,7 +20,7 @@ namespace Datahub.Core.Services
         public Task<bool> DeleteDataset(Guid id);
         public Task<IList<PowerBi_Report>> GetAllReports();
         public Task<bool> AddOrUpdateCataloguedReports(IEnumerable<PowerBi_ReportDefinition> reportDefinitions);
-        public Task<PowerBi_Report> GetReportById(Guid id);
+        public Task<PowerBi_Report> GetReportById(Guid id, bool includeWorkspace = false);
         public Task<bool> DeleteReport(Guid id, Guid? datasetId);
         public Task<bool> BulkAddOrUpdatePowerBiItems(IEnumerable<PowerBi_WorkspaceDefinition> workspaceDefinitions, IEnumerable<PowerBi_DataSetDefinition> datasetDefinitions, IEnumerable<PowerBi_ReportDefinition> reportDefinitions);
 
@@ -35,5 +35,7 @@ namespace Datahub.Core.Services
         public Task<ExternalPowerBiReport> GetExternalReportRecord(Guid reportId);
         public Task<List<ExternalPowerBiReport>> GetRequestedExternalReports();
         public Task UpdateExternalPowerBiRecord(ExternalPowerBiReport report);
+
+        public Task NotifyOfMissingReport(Guid reportId);
     }
 }

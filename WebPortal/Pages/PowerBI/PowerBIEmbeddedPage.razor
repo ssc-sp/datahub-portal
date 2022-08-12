@@ -16,10 +16,49 @@
 @inject PowerBiServiceApi PowerBiServiceApi
 @using Microsoft.Identity.Web
 @inject MicrosoftIdentityConsentAndConditionalAccessHandler ConsentHandler
+@inject IPowerBiDataService PowerBiDataService
 
-<div @ref="@PowerBIElement" style="width:100%;height:600px;max-width: 2000px" />
+@if (!string.IsNullOrEmpty(reportTitle))
+{
+    <AeTypography Variant="h1">@reportTitle</AeTypography>
+}
+
+@if (ErrorLoadingReport)
+{
+    <AeCard>
+        <Header>
+            <AeTypography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.ErrorLoadingReport"]</AeTypography>
+        </Header>
+        <ChildContent>
+            <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.ErrorDescription"]</AeTypography>
+                <div>
+                    @if (ErrorNotificationSent)
+                    {
+                        <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.NotificationSentMessage"]</AeTypography>
+                    }
+                    else
+                    {
+                        <AeButton OnClickEvent=@SendNotFoundNotification Disabled=@SendingErrorNotification>@Localizer[$"{LOCALIZATION_PREFIX}.SendNotificationButton"]</AeButton>   
+                    }
+                    <SuccessIndicator @ref=@NotificationSuccessInd @bind-IsLoading=@SendingErrorNotification />
+                </div>
+        </ChildContent>
+    </AeCard>
+}
+else
+{
+    <div @ref="@PowerBIElement" style="width:100%;height:600px;max-width: 2000px" />
+}
+
+@if (!string.IsNullOrEmpty(projectAcronym))
+{
+    <div>
+        <DHLink DataProject=@projectAcronym>@Localizer[$"{LOCALIZATION_PREFIX}.ReturnToX", @projectAcronym]</DHLink>
+    </div>
+}
 
 @code {
+    private const string LOCALIZATION_PREFIX = "POWER_BI_REPORT";
 
     [Parameter]
     public string ReportId {  get;  set; }
@@ -31,24 +70,66 @@
     [SupplyParameterFromQuery]
     public bool ReadOnly { get; set; }
 
+    private Guid ReportIdGuid;
+
     private ElementReference PowerBIElement;
 
     private Report report;
     private string reportToken;
 
+    private bool ErrorLoadingReport = false;
+
+    private bool ErrorNotificationSent = false;
+    private bool SendingErrorNotification = false;
+    private SuccessIndicator NotificationSuccessInd;
+
+    private PowerBi_Report dbReport = null;
+
+    private PowerBi_Workspace dbWorkspace => dbReport?.Workspace;
+    private Datahub_Project project => dbWorkspace?.Project;
+    private string projectAcronym => project?.Project_Acronym_CD;
+    private string reportTitle => dbReport?.Report_Name;
+
     protected override async Task OnInitializedAsync()
     {
+        if (!Guid.TryParse(ReportId, out ReportIdGuid))
+        {
+            // it's invalid and will fail later
+            // maybe do something here
+        }
+
         try
         {
             if (GroupId is null)
+            {
                 report = await PowerBiServiceApi.GetReport(ReportId);                
+            }
             else
+            {
                 report = await PowerBiServiceApi.GetReport(ReportId, GroupId);                
+            }
+
             reportToken = await PowerBiServiceApi.GetAccessTokenAsync();
-        } catch (Exception ex)
+
+        } 
+        catch (MicrosoftIdentityWebChallengeUserException e)
         {
-            ConsentHandler.HandleException(ex);
+            // user isn't logged into Power BI -> redirect to Microsoft
+            ConsentHandler.HandleException(e);
         }
+        catch (HttpOperationException)
+        {
+            // couldn't load the report - missing or unauthorized
+            ErrorLoadingReport = true;
+        }
+        catch (Exception)
+        {
+            // some other exception, crash and log like normal
+            throw;
+        }
+
+        dbReport = await PowerBiDataService.GetReportById(ReportIdGuid, true);
+
         var pbiSettings = new PowerBISettings();
         if (ReadOnly)
         {
@@ -63,6 +144,18 @@
                 PowerBIElement, reportToken, report.EmbedUrl,
                 report.Id.ToString(), pbiSettings);
         }
+    }
+
+    private async Task SendNotFoundNotification()
+    {
+        SendingErrorNotification = true;
+        await InvokeAsync(StateHasChanged);
+
+        await PowerBiDataService.NotifyOfMissingReport(ReportIdGuid);
+
+        ErrorNotificationSent = true;
+        await NotificationSuccessInd.SignalSuccess();
+        await InvokeAsync(StateHasChanged);
     }
 
     protected override void OnAfterRender(bool firstRender)
