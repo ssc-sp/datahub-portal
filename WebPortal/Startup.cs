@@ -33,6 +33,7 @@ using Datahub.CKAN.Service;
 using Datahub.Core.UserTracking;
 using System.Runtime.CompilerServices;
 using Blazored.LocalStorage;
+using Datahub.Achievements;
 using Datahub.Core.Configuration;
 using Datahub.Core.Modules;
 using Datahub.Portal.Services.Storage;
@@ -114,6 +115,7 @@ namespace Datahub.Portal
             services.AddScoped<GetDimensionsService>();
             //TimeZoneService provides the user time zone to the server using JS Interop
             services.AddScoped<TimeZoneService>();
+            services.AddScoped<AchievementService>();
             services.AddElemental();
             services.AddMudServices();
             services.AddSingleton(moduleManager);

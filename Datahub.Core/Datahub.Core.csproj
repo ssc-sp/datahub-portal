@@ -85,6 +85,9 @@
 	<ItemGroup>
 		<GitHookFiles Include="../.githooks/*.*" />
 	</ItemGroup>
+	<ItemGroup>
+	  <Folder Include="Services\Achievements" />
+	</ItemGroup>
 
 	<Target Name="CopyCustomContent" AfterTargets="AfterBuild">
 		<Copy SourceFiles="@(GitHookFiles)" DestinationFolder="../.git/hooks/" SkipUnchangedFiles="true" />
