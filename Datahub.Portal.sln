@@ -63,6 +63,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Functions", "Datahu
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Datahub.GeoCore", "Datahub.GeoCore\Datahub.GeoCore.csproj", "{80F3D52C-9396-4C7C-A717-6314813E6493}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Datahub.Achievements", "Datahub.Achievements\Datahub.Achievements.csproj", "{716CCB96-2C59-48EF-A7A7-18F0807DE3D2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Datahub.Achievements.Test", "Datahub.Achievements.Test\Datahub.Achievements.Test.csproj", "{72C2A522-FAC2-439B-97D2-B9CDF289BE8A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -132,6 +136,14 @@ Global
 		{D49B255D-3B8D-473C-8BFA-094440AE9CED}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D49B255D-3B8D-473C-8BFA-094440AE9CED}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D49B255D-3B8D-473C-8BFA-094440AE9CED}.Release|Any CPU.Build.0 = Release|Any CPU
+		{716CCB96-2C59-48EF-A7A7-18F0807DE3D2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{716CCB96-2C59-48EF-A7A7-18F0807DE3D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{716CCB96-2C59-48EF-A7A7-18F0807DE3D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{716CCB96-2C59-48EF-A7A7-18F0807DE3D2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{72C2A522-FAC2-439B-97D2-B9CDF289BE8A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{72C2A522-FAC2-439B-97D2-B9CDF289BE8A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{72C2A522-FAC2-439B-97D2-B9CDF289BE8A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{72C2A522-FAC2-439B-97D2-B9CDF289BE8A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
