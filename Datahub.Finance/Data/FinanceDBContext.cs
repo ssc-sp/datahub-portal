@@ -14,6 +14,9 @@ namespace Datahub.Portal.Data.Finance
         public DbSet<SectorAndBranch> SectorAndBranches { get; set; }
         public DbSet<Budget> Budgets { get; set; }
 
+        public DbSet<HierarchyLevel> HierarchyLevels { get; set; }
+        public DbSet<FundCenter> FundCenters  { get; set; }
+
         public DbSet<Sector> Sectors { get; set; }
 
         public DbSet<Branch> Branches { get; set; }
