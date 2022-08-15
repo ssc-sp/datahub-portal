@@ -38,6 +38,7 @@ using Datahub.Core.Modules;
 using Datahub.Portal.Services.Storage;
 using Microsoft.AspNetCore.Authorization.Infrastructure;
 using Datahub.GeoCore.Service;
+using MudBlazor.Services;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]
 namespace Datahub.Portal
