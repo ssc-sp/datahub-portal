@@ -4,9 +4,9 @@
 
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JsInterop
-@page "/finance/programs"
+@page "/finance/fundcenters"
 
-<Datahub.Core.Components.FormTemplate 
+<Datahub.Core.Components.MudFormTemplate 
         T="SectorAndBranch" 
         U="FinanceDBContext"
         Metadata="@_formMetadata" 
@@ -128,7 +128,7 @@
         return DataLocalizer[propName];
     }
 
-    private void OnConfigure( Elemental.Components.IModelFormContext context)
+    private void OnConfigure(MudBlazor.Forms.IModelFormContext context)
     {
         context.RegisterOptionValueProperty<SectorAndBranch>(s => s.Sector_TXT, () => _sectorLookup.Select(s => s.SectorNameEn));
 

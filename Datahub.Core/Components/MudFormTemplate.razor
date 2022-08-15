@@ -8,7 +8,7 @@
 @inherits HtmlElement
 @inject IDatahubAuditingService AuditingService
 @using System.Reflection
-@using Elemental.Components
+@using MudBlazor.Forms
 
 @if(Metadata is null || !Metadata.IsLoaded())
 {
@@ -93,7 +93,7 @@ else
         </AeCard>
     }
     <AeCard class="facardForms" CardPosition="AeCard.CardStyle.Horizontal">
-    <AeModelForm Model="SelectedRecord"
+    <MudModelForm Model="SelectedRecord"
                  T="@T"
                  OnValidSubmit="HandleFormSubmit"
                  OnInvalidSubmit="HandleFormInvalidSubmit"
@@ -101,7 +101,7 @@ else
                  OnConfigure="OnConfigure"
                  CancelLabel="Cancel"
                  SubmitLabel="@Metadata.SaveButtonText"
-                 OnChange="OnChange"
+                 @*OnChange="OnChange"*@
                  LabelForPropertyFunc="@GetDataLabel"
                  LabelsOnTop="true"
                  LocalizerFunction="@GetDataLabel"
@@ -129,9 +129,9 @@ else
     [Parameter]
     public EventCallback<EditContext> HandleInvalidSubmit { get; set; }
     [Parameter]
-    public EventCallback<Elemental.Components.IModelFormContext> OnConfigureForms { get; set; }
+    public EventCallback<MudBlazor.Forms.IModelFormContext> OnConfigureForms { get; set; }
     [Parameter]
-    public EventCallback<Elemental.Components.ModelFormChangeArgs> OnChangeForms { get; set; }
+    public EventCallback<MudBlazor.Forms.IModelFormContext> OnChangeForms { get; set; }
     [Parameter]
     public EventCallback CreateNewRecord { get; set; }
     [Parameter]
@@ -223,7 +223,7 @@ else
         }
     }
 
-    private async Task OnConfigure(Elemental.Components.IModelFormContext context)
+    private async Task OnConfigure(MudBlazor.Forms.IModelFormContext context)
     {        
         if (context != null)
         {
@@ -231,13 +231,13 @@ else
         }        
     }
 
-    private async Task OnChange(Elemental.Components.ModelFormChangeArgs args)
-    {        
-        if (args != null)
-        {
-            await OnChangeForms.InvokeAsync(args);            
-        }        
-    }
+    //private async Task OnChange(MudBlazor.Forms.IModelFormContext args)
+    //{        
+    //    if (args != null)
+    //    {
+    //        await OnChangeForms.InvokeAsync(args);            
+    //    }        
+    //}
 
     private async Task<T> ClearForm()
     {
