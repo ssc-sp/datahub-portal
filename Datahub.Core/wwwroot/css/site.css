@@ -3460,8 +3460,8 @@ code {
 
 .application-wrapper {
   display: grid;
-  grid-template-columns: 80px 1fr;
-  grid-template-areas: "sidebar main";
+  grid-template-columns: 1fr;
+  grid-template-areas: "main";
   height: 100vh;
 }
 .application-wrapper .main-layout {

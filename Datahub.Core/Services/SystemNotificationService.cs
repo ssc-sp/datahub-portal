@@ -159,29 +159,20 @@ namespace Datahub.Core.Services
             }
         }
 
-        private static Expression<Func<SystemNotification, bool>> CreateUserNotificationCondition(string userId, bool unreadOnly)
-        {
-            var lowerUserId = userId.ToLower();
-            return (unreadOnly ?
-                n => n.ReceivingUser_ID.ToLower() == userId && !n.Read_FLAG :
-                n => n.ReceivingUser_ID.ToLower() == userId);
-        }
-
         public async Task<int> GetNotificationCountForUser(string userId, bool unreadOnly = false)
         {
-            var condition = CreateUserNotificationCondition(userId, unreadOnly);
-
-            using var ctx = _dbContextFactory.CreateDbContext();
-            return await ctx.SystemNotifications.CountAsync(condition);
+            await using var ctx = await _dbContextFactory.CreateDbContextAsync();
+            return await ctx.SystemNotifications
+                .CountAsync(n => n.ReceivingUser_ID.ToLower() == userId
+                    && (!unreadOnly || !n.Read_FLAG));
         }
-
+        
         public async Task<List<SystemNotification>> GetNotificationsForUser(string userId, bool unreadOnly = false, int pageNumber = 0)
         {
-            var condition = CreateUserNotificationCondition(userId, unreadOnly);
-
-            using var ctx = _dbContextFactory.CreateDbContext();
+            await using var ctx = await _dbContextFactory.CreateDbContextAsync();
             return await ctx.SystemNotifications
-                .Where(condition)
+                .Where(n => n.ReceivingUser_ID.ToLower() == userId 
+                            && (!unreadOnly || !n.Read_FLAG))
                 .OrderByDescending(n => n.Generated_TS)
                 .Skip(pageNumber * _notificationPageSize)
                 .Take(_notificationPageSize)
