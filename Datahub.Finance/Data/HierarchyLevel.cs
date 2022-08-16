@@ -20,7 +20,10 @@ namespace Datahub.Portal.Data.Finance
         public string ParentCode { get; set; }
         public string FundCenterNameEnglish { get; set; }
         public string FundCenterNameFrench { get; set; }
+        
+        public DateTime ExpiryDate { get; set; }
         public bool IsActive { get; set; }
+
         
     }
 }
