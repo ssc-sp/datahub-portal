@@ -576,6 +576,24 @@ namespace Datahub.Core.Services
             return groupId;
         }
 
+        public async Task<List<string>> GetObjectCatalogGroup(string objectId)
+        {
+            using var ctx = await _contextFactory.CreateDbContextAsync();
+
+            var metadata = await ctx.ObjectMetadataSet.Include(e => e.CatalogObjects).Where(e => e.ObjectId_TXT == objectId).FirstOrDefaultAsync();
+            var catalogGroupId = metadata?.CatalogObjects?.FirstOrDefault()?.GroupId;
+
+            if (catalogGroupId is null)
+                return new();
+
+            var groupIds = await ctx.CatalogObjects
+                                    .Include(e => e.ObjectMetadata)
+                                    .Where(e => e.GroupId == catalogGroupId.Value)
+                                    .Select(e => e.ObjectMetadata.ObjectId_TXT)
+                                    .ToListAsync();
+            return groupIds;
+        }
+
         private async Task SetCatalogObjectGroup(MetadataDbContext ctx, string objectId, Guid groupId)
         {
             var metadata = await ctx.ObjectMetadataSet.Include(e => e.CatalogObjects).Where(e => e.ObjectId_TXT == objectId).FirstOrDefaultAsync();

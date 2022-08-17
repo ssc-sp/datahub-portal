@@ -32,6 +32,7 @@ namespace Datahub.Core.Services
         Task DeleteFromCatalog(string objectId);
         Task DeleteMultipleFromCatalog(IEnumerable<string> objectIds);
         Task<Guid> GroupCatalogObjects(IEnumerable<string> objectIds);
+        Task<List<string>> GetObjectCatalogGroup(string objectId);
     }
     
     public record CatalogSearchRequest
