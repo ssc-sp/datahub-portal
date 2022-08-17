@@ -21,4 +21,10 @@
       <ProjectReference Include="..\Datahub.Achievements\Datahub.Achievements.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <None Update="Achievements\**.achievement.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
 </Project>
