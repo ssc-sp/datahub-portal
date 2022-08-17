@@ -259,13 +259,31 @@
                                     OnNewMetadataCreated=@AutoFillNewMetadataFields
                                     OnExistingMetadataLoaded=@DetectIfCurrentItemIsInCatalog
                                 />
+
                                 <div>
                                     <label>
                                         <input type="checkbox" @bind=@IncludeCurrentItemInCatalog />
                                         <AeTypography style="display: inline-block;"><strong><span>@Localizer[$"{LOCALIZATION_PREFIX}.IncludeInCatalog"]</span></strong></AeTypography>
                                     </label>
                                 </div>
-                                <div>
+
+                                @if (ReportBeingEdited.SiblingReports.Count > 0)
+                                {
+                                    <div style="width: 100%">
+                                        <AeFlex Vertical>
+                                            <AeTypography><strong><span>@Localizer[$"Group with"]</span></strong></AeTypography>
+                                            <select @bind="_groupWithId" class="ae input" disabled=@DisabledReportGrouping>
+                                                <option value=""></option>
+                                                @foreach(var report in ReportBeingEdited.SiblingReports)
+                                                {
+                                                    <option value="@report.Report_ID.ToString()">@report.Report_Name</option>
+                                                }
+                                            </select>
+                                        </AeFlex>
+                                    </div>
+                                }
+
+                                <div style="margin-top: 1rem;">
                                     <AeButton OnClickEvent=@SaveReport Disabled=@SaveReportDisabled>@Localizer[$"BUTTONS.Save"]</AeButton>
                                     <AeButton class="light" OnClickEvent=@CloseItemBeingEdited>@Localizer[$"BUTTONS.Cancel"]</AeButton>
                                     <SuccessIndicator @bind-IsLoading=@IsSavingReport @ref=@_saveReportInd />
@@ -395,13 +413,13 @@
 
     [Parameter]
     public string ProjectAcronym { get; set; }
-    
+
     [Parameter]
     public string ReportId { get; set; }
-    
+
     [Parameter]
     public string DatasetId { get; set; }
-    
+
     [Parameter]
     public string WorkspaceId { get; set; }
 
@@ -431,8 +449,21 @@
     private PowerBiAdminWorkspaceTreeItem WorkspaceBeingEdited { get; set; }
     private PowerBiAdminDatasetTreeItem DatasetBeingEdited { get; set; }
     private PowerBiAdminReportTreeItem ReportBeingEdited { get; set; }
+    private string _groupWithId;
 
-    private bool IncludeCurrentItemInCatalog { get; set; } = true;
+    private bool IncludeCurrentItemInCatalog 
+    { 
+        get => ReportBeingEdited?.InCatalog == true; 
+        set
+        {
+            if (ReportBeingEdited is not null)
+            {
+                ReportBeingEdited.InCatalog = value;
+            }
+        }
+    }
+
+    private bool DisabledReportGrouping => !IncludeCurrentItemInCatalog;
 
     private ObjectMetadataEditor _workspaceMetadata;
     private bool IsSavingWorkspace { get; set; } = false;
@@ -608,9 +639,12 @@
         {
             var report = await _powerBiDataService.GetReportById(item.Id);
             var pbiReport = PowerBiReportsById.GetValueOrDefault(item.Id);
-            if (report != null) {
+            if (report != null) 
+            {
                 ReportBeingEdited = new(pbiReport, report, null);
                 ReportBeingEdited.ProjectId = item.ProjectId;
+                ReportBeingEdited.SiblingReports = await GetReportsForGrouping(report);
+                _groupWithId = await GetGroupedWidth(report);
             }
         }
 
@@ -618,6 +652,19 @@
         _tempLastClickedType = item.ItemType.ToString();
         StateHasChanged();
         await Task.CompletedTask;
+    }
+
+    private async Task<List<PowerBi_Report>> GetReportsForGrouping(PowerBi_Report report)
+    {
+        var siblings = await _powerBiDataService.GetWorkspaceReports(report.Workspace_Id);
+        return siblings.Where(r => r.InCatalog && r.Report_ID != report.Report_ID).ToList();
+    }
+
+    private async Task<string> GetGroupedWidth(PowerBi_Report report)
+    {
+        var reportId = report.Report_ID.ToString().ToLower();
+        var group = await _metadataService.GetObjectCatalogGroup(reportId);
+        return group.FirstOrDefault(id => !id.Equals(reportId, StringComparison.OrdinalIgnoreCase));
     }
 
     private PowerBiAdminTreeItemType? DetermineCurrentlyOpenEditorType()
@@ -683,13 +730,14 @@
         }
 
         RenderFragment promptDialog = 
-        @<UserChoiceModal 
+    @<UserChoiceModal 
             HeaderText=@promptTitle
             ChoiceTextList=@itemsToDelete
             OnDecision=@HandleDelete
             ConfirmText=@Localizer["COMMON.Yes"]
             CancelText=@Localizer["COMMON.No"]
-        />;
+                />
+    ;
 
         await UI.ToggleModal(promptDialog);
     }
@@ -836,9 +884,24 @@
 
         var success = await _reportMetadata.SaveChanges();
 
-        if (success && !IncludeCurrentItemInCatalog)
+        if (success)
         {
-            await _metadataService.DeleteFromCatalog(_reportMetadata.ObjectId);
+            if (IncludeCurrentItemInCatalog)
+            {
+                // group the report
+                if (!string.IsNullOrEmpty(_groupWithId))
+                {
+                    var group = new List<string> { ReportBeingEdited.ReportId.ToString(), _groupWithId };
+                    await _metadataService.GroupCatalogObjects(group);
+                }
+            }
+            else
+            {
+                // todo: ungroup the report
+                await _metadataService.DeleteFromCatalog(_reportMetadata.ObjectId);
+            }
+            // update the in catalog flag
+            await _powerBiDataService.UpdateReportCatalogStatus(ReportBeingEdited.ReportId, IncludeCurrentItemInCatalog);
         }
 
         if (success)

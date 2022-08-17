@@ -264,6 +264,15 @@ namespace Datahub.Core.Services
             return result;
         }
 
+        public async Task<List<PowerBi_Report>> GetWorkspaceReports(Guid id)
+        {
+            using var ctx = await _contextFactory.CreateDbContextAsync();
+
+            var workspace = await ctx.PowerBi_Workspaces.Where(w => w.Workspace_ID == id).Include(w => w.Reports).FirstOrDefaultAsync();
+
+            return workspace is not null ? new(workspace.Reports) : new List<PowerBi_Report>(); 
+        }
+
         public async Task<PowerBi_DataSet> GetDatasetById(Guid id)
         {
             using var ctx = await _contextFactory.CreateDbContextAsync();
@@ -490,6 +499,17 @@ namespace Datahub.Core.Services
             var projectName = new BilingualStringArgument(report.Workspace.Project.Project_Name, report.Workspace.Project.Project_Name_Fr);
 
             await _notificationService.CreateSystemNotificationsWithLink(powerBiAdmins, actionLink, linkKey, textKey, report.Report_Name, projectName);
+        }
+
+        public async Task UpdateReportCatalogStatus(Guid reportId, bool inCatalog)
+        {
+            using var ctx = await _contextFactory.CreateDbContextAsync();
+            var report = await ctx.PowerBi_Reports.FirstOrDefaultAsync(r => r.Report_ID == reportId);
+            if (report is not null)
+            {
+                report.InCatalog = inCatalog;
+                await ctx.TrackSaveChangesAsync(_auditingService);
+            }
         }
     }
 }
