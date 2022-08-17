@@ -3,7 +3,7 @@ namespace Datahub.Achievements;
 public class DatahubUserTelemetry
 {
     public string? UserId { get; set; }
-    public bool JoinedAProject { get; set; }
+    public bool ViewedTheirProfile { get; set; }
     
     
     // bytes uploaded, 
