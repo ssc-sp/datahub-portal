@@ -1,7 +1,6 @@
 ﻿@inject IStringLocalizer DataLocalizer
 @implements IDisposable
 @inject IDbContextFactory<FinanceDBContext> DbFactory
-
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JsInterop
 @page "/finance/fundcenters"
@@ -12,9 +11,10 @@
         Metadata="@_formMetadata" 
         HandleSubmit="HandleValidSubmit"
         OnConfigureForms="OnConfigure"
+        OnChangeForms="OnChange"
         CreateNewRecord="CreateNewProject"
         SelectedRecord="@_fundcenter"
-        SetFormEditRecord="SetFormEdit"
+        SetFormEditRecord="SetFormEdit"        
         Context=@Context/>
 
 @code {
@@ -24,10 +24,9 @@
     private FinanceDBContext Context;
 
     private List<HierarchyLevel> _sectors = new();
-    private List<HierarchyLevel> _allBranches = new();
-    private List<HierarchyLevel> _branches = new();
-    private List<HierarchyLevel> _allDivisions = new();
+    private List<HierarchyLevel> _branches = new();    
     private List<HierarchyLevel> _divisions = new();
+    private List<FiscalYear> _fiscalYears = new();
 
 
 
@@ -44,13 +43,22 @@
     {
         // load projects
         Context = DbFactory.CreateDbContext();
-        _fundcenters = Context.FundCenters.ToList();        
+
+        _fiscalYears = Context.FiscalYears.ToList();
+        _fiscalYears.Insert(0, null);
+        LoadData();
+    }
+
+    private void LoadData()
+    { 
+        _fundcenters = Context.FundCenters.Include(f => f.Sector).Include(f => f.Branch).Include(f => f.Division).ToList();
         _formMetadata.Header = "Finance Forms";
         _formMetadata.SubHeader = "Step 1: Select/Enter Fund Center Information";
         _formMetadata.DataSet = _fundcenters;
         _formMetadata.AccessorFunctions = accessorFunctions;
         _formMetadata.Headers = headers;
-        _formMetadata.GridTemplateColumns = "4fr 8fr";
+        _formMetadata.GridTemplateColumns = "6fr 6fr 6fr";
+        _formMetadata.IsSubmitEnabled = true;
     }
 
     private async Task GoToNextSheet()
@@ -62,7 +70,8 @@
     private List<Func<FundCenter, string>> accessorFunctions = new List<Func<FundCenter, string>>
 {
         new Func<FundCenter, string>(p => { return p.Sector.FundCenterNameEnglish; }),
-        new Func<FundCenter, string>(p => { return p.Branch.FundCenterNameEnglish; }),
+        new Func<FundCenter, string>(p => { return p.Branch?.FundCenterNameEnglish ?? "N/A"; }),
+        new Func<FundCenter, string>(p => { return p.Division?.FundCenterNameEnglish ?? "N/A"; }),
     };
 
     private string getColor(FundCenter current)
@@ -76,7 +85,7 @@
 
     private List<string> headers = new List<string>
 {
-        "Sector","Branch"
+        "Sector", "Branch", "Division"
     };
 
     private void SetFormEdit(FundCenter project)
@@ -94,16 +103,20 @@
 
     private async Task HandleValidSubmit()
     {
+
         if (_fundcenter != null)
         {
-
-
+            if (_fundcenter.FundCenter_ID == 0)
+            {
+                _fundcenter = Context.FundCenters.Add(_fundcenter).Entity;
+            }
+            _fundcenter.Last_Updated_DT = DateTime.Now;
             await Context.SaveChangesAsync();
-            //_fundcenters = Context.SectorAndBranches.ToList();
-            ////_tombstone = null;
+            LoadData(); ;
+            _fundcenter = null;
         }
 
-        _fundcenter = null;
+
         StateHasChanged();
     }
 
@@ -122,61 +135,83 @@
     private List<HierarchyLevel> GetSectors()
     {
         if (!_sectors.Any())
-            _sectors = Context.HierarchyLevels.Where(p => p.Level == 1 && p.IsActive).ToList();
+            _sectors = Context.HierarchyLevels.Where(p => p.Level == 2 && p.IsActive).ToList();
 
         _sectors.Insert(0, null);
         return _sectors;
     }
 
     private List<HierarchyLevel> GetBranches()
-    {
-        if (!_allBranches.Any())
-            _allBranches = Context.HierarchyLevels.Where(p => p.Level == 2).ToList();
-
-        _allBranches.Insert(0, null);
-        return _allBranches;
+    {        
+        if (!_branches.Any())
+        {
+            RefreshBranches(null, null);
+        }
+        return _branches;
     }
 
     private List<HierarchyLevel> GetDivisions()
     {
-        if (!_allDivisions.Any())
-            _allDivisions = Context.HierarchyLevels.Where(p => p.Level == 3).ToList();
-
-        _allDivisions.Insert(0, null);
-        return _allDivisions;
+        if (!_divisions.Any())
+        {
+            RefreshDivisions(null, null);
+        }
+        return _divisions;
     }
 
     private void OnConfigure(MudBlazor.Forms.IModelFormContext context)
     {
 
-        context.RegisterOptionValueProperty<FundCenter, HierarchyLevel>(l => l.Sector, p => p?.FundCenterNameEnglish ?? "N/A", () => GetSectors());
-        context.RegisterOptionValueProperty<FundCenter, HierarchyLevel>(l => l.Branch, p => p?.FundCenterNameEnglish ?? "N/A", () => GetBranches());
+        context.RegisterOptionValueProperty<FundCenter, FiscalYear>(l => l.FiscalYear, p => p?.Year ?? "N/A", () => _fiscalYears);
+        context.RegisterOptionValueProperty<FundCenter, HierarchyLevel>(l => l.Sector, p => p?.FundCenterNameEnglish ?? "N/A", () => GetSectors(), s => RefreshBranches(s, context));
+        context.RegisterOptionValueProperty<FundCenter, HierarchyLevel>(l => l.Branch, p => p?.FundCenterNameEnglish ?? "N/A", () => GetBranches(), s => RefreshDivisions(s, context));
         context.RegisterOptionValueProperty<FundCenter, HierarchyLevel>(l => l.Division, p => p?.FundCenterNameEnglish ?? "N/A", () => GetDivisions());
-        //context.RegisterOptionValueProperty<SectorAndBranch>(s => s.Sector_TXT, () => _sectorLookup.Select(s => s.SectorNameEn));
 
-
-
-        //List<Branch> branchesList = new();
-        //_sectorLookup.ForEach(s => branchesList.AddRange(s.Branches));
-        ////var branchesList =_sectorLookup.Where(s => s.SectorId == _sector.Sector.SectorId).FirstOrDefault().Branches;
-
-        ////branchesList.AddRange()
-
-        ////(s => branchesList.AddRange(s.Branches));
-        //context.RegisterOptionValueProperty<SectorAndBranch>(s => s.Branch_TXT, () => branchesList.Select(bn => bn.BranchNameEn));
     }
 
-    //private async Task OnChange(ModelFormChangeArgs args)
-    //{
-    //    var context = args.Context;
-    //    if (args.HasPropertyChanged<SectorAndBranch>(s => s.Sector_TXT))
-    //    {
-    //        // _sector = _sectorLookup.Where(s => s.SectorNameEn == args.EditContext.)
 
-    //        var branchesList = _sectorLookup.Where(s => s.SectorId == _sector.Sector.SectorId).FirstOrDefault().Branches;
-    //        context.RegisterOptionValueProperty<SectorAndBranch>(s => s.Branch_TXT, () => branchesList.Select(bn => bn.BranchNameEn));
-    //    }
-    //}
+    private void RefreshDivisions(HierarchyLevel branch, IModelFormContext context)
+    {
+        if (branch is not null)
+        {
+            _divisions.Clear();
+            _divisions = Context.HierarchyLevels.Where(b => b.ParentCode == branch.FCCode).ToList();
+            _divisions.Insert(0, null);
+        }
+        else
+        {
+            _divisions = new() { null };
+        }
+
+        if (context is not null)
+        {
+            context.RefreshOptions<FundCenter>(f => f.Division);
+        }
+    }
+
+    private void RefreshBranches(HierarchyLevel sector, IModelFormContext context)
+    {
+        if (sector is not null)
+        {
+            _branches.Clear();
+            _branches = Context.HierarchyLevels.Where(b => b.ParentCode == sector.FCCode).ToList();
+            _branches.Insert(0, null);
+        }
+        else
+        {
+            _branches = new() { null };
+        }
+
+        if (context is not null)
+        {
+            context.RefreshOptions<FundCenter>(f => f.Branch);
+        }
+    }
+
+    private void OnChange(ModelFormChangeArgs args)
+    {
+        OnConfigure(args.Context);
+    }
 
     public void Dispose() 
     { 
