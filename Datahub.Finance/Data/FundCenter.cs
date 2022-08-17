@@ -1,4 +1,4 @@
-﻿using Elemental.Components;
+﻿using MudBlazor.Forms;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -17,17 +17,17 @@ namespace Datahub.Portal.Data.Finance
         [Required]
         public int FiscalYear { get; set; }
 
-        [AeLabel(isDropDown: true)]
+        [MudForm(IsDropDown = true)]
         [Required]
-        public string Sector { get; set; }
+        public HierarchyLevel Sector { get; set; }
 
-        [AeLabel(isDropDown: true)]
+        [MudForm(IsDropDown = true)]
         [Required]
-        public string Branch { get; set; }
+        public HierarchyLevel Branch { get; set; }
 
-        [AeLabel(isDropDown: true)]
+        [MudForm(IsDropDown = true)]
         [Required]
-        public string Division { get; set; }
+        public HierarchyLevel Division { get; set; }
 
         public double? AttritionRate { get; set; }
 

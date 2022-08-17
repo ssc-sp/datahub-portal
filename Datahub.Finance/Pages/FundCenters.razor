@@ -23,6 +23,14 @@
     //private List<Sector> _sectorLookup;
     private FinanceDBContext Context;
 
+    private List<HierarchyLevel> _sectors = new();
+    private List<HierarchyLevel> _allBranches = new();
+    private List<HierarchyLevel> _branches = new();
+    private List<HierarchyLevel> _allDivisions = new();
+    private List<HierarchyLevel> _divisions = new();
+
+
+
     private int _lastClicked = 0;
 
     private FormMetadata<FundCenter> _formMetadata = new();
@@ -36,8 +44,7 @@
     {
         // load projects
         Context = DbFactory.CreateDbContext();
-        _fundcenters = Context.FundCenters.ToList();
-        
+        _fundcenters = Context.FundCenters.ToList();        
         _formMetadata.Header = "Finance Forms";
         _formMetadata.SubHeader = "Step 1: Select/Enter Fund Center Information";
         _formMetadata.DataSet = _fundcenters;
@@ -48,15 +55,14 @@
 
     private async Task GoToNextSheet()
     {
-        var sector = _fundcenter;
         await HandleValidSubmit();
-       // NavigationManager.NavigateTo($"/finance/budgets/{sector.SectorBranch_ID}");
+        // NavigationManager.NavigateTo($"/finance/budgets/{sector.SectorBranch_ID}");
     }
 
     private List<Func<FundCenter, string>> accessorFunctions = new List<Func<FundCenter, string>>
 {
-        new Func<FundCenter, string>(p => { return p.Sector; }),
-        new Func<FundCenter, string>(p => { return p.Branch; }),
+        new Func<FundCenter, string>(p => { return p.Sector.FundCenterNameEnglish; }),
+        new Func<FundCenter, string>(p => { return p.Branch.FundCenterNameEnglish; }),
     };
 
     private string getColor(FundCenter current)
@@ -91,21 +97,7 @@
         if (_fundcenter != null)
         {
 
-            ////this is temporary, it loads ALL the branches. will need to change when on change is working. 
-            //List<Branch> branchesList = new();
-            //_sectorLookup.ForEach(s => branchesList.AddRange(s.Branches));
-            //var sector = _sectorLookup.Where(s => s.SectorNameEn == _fundcenter.Sector_TXT).FirstOrDefault();
-            //var branch = branchesList.Where(b => b.BranchNameEn == _fundcenter.Branch_TXT).FirstOrDefault();
 
-
-            //_fundcenter.Sector = sector ?? null;
-            //_fundcenter.Branch = branch ?? null;
-
-            //if (_fundcenter.SectorBranch_ID == 0)
-            //{
-            //    _fundcenter = Context.SectorAndBranches.Add(_fundcenter).Entity;
-            //}
-            //_fundcenter.Last_Updated_DT = DateTime.Now;
             await Context.SaveChangesAsync();
             //_fundcenters = Context.SectorAndBranches.ToList();
             ////_tombstone = null;
@@ -127,9 +119,42 @@
         return DataLocalizer[propName];
     }
 
+    private List<HierarchyLevel> GetSectors()
+    {
+        if (!_sectors.Any())
+            _sectors = Context.HierarchyLevels.Where(p => p.Level == 1 && p.IsActive).ToList();
+
+        _sectors.Insert(0, null);
+        return _sectors;
+    }
+
+    private List<HierarchyLevel> GetBranches()
+    {
+        if (!_allBranches.Any())
+            _allBranches = Context.HierarchyLevels.Where(p => p.Level == 2).ToList();
+
+        _allBranches.Insert(0, null);
+        return _allBranches;
+    }
+
+    private List<HierarchyLevel> GetDivisions()
+    {
+        if (!_allDivisions.Any())
+            _allDivisions = Context.HierarchyLevels.Where(p => p.Level == 3).ToList();
+
+        _allDivisions.Insert(0, null);
+        return _allDivisions;
+    }
+
     private void OnConfigure(MudBlazor.Forms.IModelFormContext context)
     {
+
+        context.RegisterOptionValueProperty<FundCenter, HierarchyLevel>(l => l.Sector, p => p?.FundCenterNameEnglish ?? "N/A", () => GetSectors());
+        context.RegisterOptionValueProperty<FundCenter, HierarchyLevel>(l => l.Branch, p => p?.FundCenterNameEnglish ?? "N/A", () => GetBranches());
+        context.RegisterOptionValueProperty<FundCenter, HierarchyLevel>(l => l.Division, p => p?.FundCenterNameEnglish ?? "N/A", () => GetDivisions());
         //context.RegisterOptionValueProperty<SectorAndBranch>(s => s.Sector_TXT, () => _sectorLookup.Select(s => s.SectorNameEn));
+
+
 
         //List<Branch> branchesList = new();
         //_sectorLookup.ForEach(s => branchesList.AddRange(s.Branches));

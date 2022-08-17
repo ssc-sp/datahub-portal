@@ -4,6 +4,7 @@ using Datahub.Portal.Data.Finance;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Datahub.Portal.Migrations.Forms.Finance
 {
     [DbContext(typeof(FinanceDBContext))]
-    partial class FinanceDBContextModelSnapshot : ModelSnapshot
+    [Migration("20220816155452_newtypeforhierarchy")]
+    partial class newtypeforhierarchy
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1120,12 +1122,6 @@ namespace Datahub.Portal.Migrations.Forms.Finance
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
-                    b.Property<string>("FundCenterModifiedEnglish")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("FundCenterModifiedFrench")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("FundCenterNameEnglish")
                         .HasColumnType("nvarchar(max)");
 
@@ -1134,9 +1130,6 @@ namespace Datahub.Portal.Migrations.Forms.Finance
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
-
-                    b.Property<int>("Level")
-                        .HasColumnType("int");
 
                     b.Property<string>("ParentCode")
                         .IsRequired()
