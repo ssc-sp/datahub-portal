@@ -4,6 +4,7 @@ using Datahub.Portal.Data.Finance;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Datahub.Portal.Migrations.Forms.Finance
 {
     [DbContext(typeof(FinanceDBContext))]
-    partial class FinanceDBContextModelSnapshot : ModelSnapshot
+    [Migration("20220817162330_addedfiscalyear")]
+    partial class addedfiscalyear
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1090,7 +1092,7 @@ namespace Datahub.Portal.Migrations.Forms.Finance
                     b.Property<int>("DivisionHierarchyLevelID")
                         .HasColumnType("int");
 
-                    b.Property<int>("FiscalYearYearId")
+                    b.Property<int>("FiscalYear")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("Last_Updated_DT")
@@ -1112,8 +1114,6 @@ namespace Datahub.Portal.Migrations.Forms.Finance
                     b.HasIndex("BranchHierarchyLevelID");
 
                     b.HasIndex("DivisionHierarchyLevelID");
-
-                    b.HasIndex("FiscalYearYearId");
 
                     b.HasIndex("SectorHierarchyLevelID");
 
@@ -1385,12 +1385,6 @@ namespace Datahub.Portal.Migrations.Forms.Finance
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Datahub.Finance.Data.FiscalYear", "FiscalYear")
-                        .WithMany()
-                        .HasForeignKey("FiscalYearYearId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("Datahub.Portal.Data.Finance.HierarchyLevel", "Sector")
                         .WithMany()
                         .HasForeignKey("SectorHierarchyLevelID")
@@ -1400,8 +1394,6 @@ namespace Datahub.Portal.Migrations.Forms.Finance
                     b.Navigation("Branch");
 
                     b.Navigation("Division");
-
-                    b.Navigation("FiscalYear");
 
                     b.Navigation("Sector");
                 });

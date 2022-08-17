@@ -1,4 +1,5 @@
-﻿using MudBlazor.Forms;
+﻿
+using MudBlazor.Forms;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -14,23 +15,29 @@ namespace Datahub.Portal.Data.Finance
         [AeFormIgnore]
         public int FundCenter_ID { get; set; }
 
+        [AeFormCategory("Sector Information")]
         [Required]
-        public int FiscalYear { get; set; }
+        public FiscalYear FiscalYear { get; set; }
 
+        [AeFormCategory("Sector Information")]
         [MudForm(IsDropDown = true)]
         [Required]
         public HierarchyLevel Sector { get; set; }
 
+        [AeFormCategory("Sector Information")]
         [MudForm(IsDropDown = true)]
         [Required]
         public HierarchyLevel Branch { get; set; }
 
+        [AeFormCategory("Sector Information")]
         [MudForm(IsDropDown = true)]
         [Required]
         public HierarchyLevel Division { get; set; }
 
+        [AeFormCategory("Sector Information")]
         public double? AttritionRate { get; set; }
 
+        [AeFormCategory("Sector Information")]
         [MaxLength(4000)]
         public string Description { get; set; }
 

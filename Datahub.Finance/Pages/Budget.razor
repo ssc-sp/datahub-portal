@@ -6,7 +6,7 @@
 @inject IJSRuntime JsInterop
 @using Datahub.Finance.Components
 @page "/finance/budgets/{sector}"
-
+@using Elemental.Components
 <h1>Sector and Branch</h1>
 
 <SectorTable sector="@sector"></SectorTable>
@@ -177,7 +177,7 @@
         _budgets = Context.Budgets.Where(p => p.SectorAndBranch.SectorBranch_ID == _sector.SectorBranch_ID).ToList();
     }
 
-    private void OnConfigure(IModelFormContext context)
+    private void OnConfigure(Elemental.Components.IModelFormContext context)
     {       
         context.RegisterOptionValueProperty<Datahub.Portal.Data.Finance.Budget>(s => s.Departmental_Priorities_TXT, () => new[] { "DepPriority 1", "DepPriority 2", "DepPriority 3", "DepPriority 4", "DepPriority 5", "DepPriority 6" });
         context.RegisterOptionValueProperty<Datahub.Portal.Data.Finance.Budget>(s => s.Sector_Priorities_TXT, () => new[] { "SectPriority 1", "SectPriority 2", "SectPriority 3", "SectPriority 4", "SectPriority 5", "SectPriority 6", "SectPriority 7", "SectPriority 8" });
