@@ -53,7 +53,6 @@ public class Tests
         var input = new DatahubUserTelemetry()
         {
             UserId = userId,
-            JoinedAProject = true
         };
 
         var result = await achievementService.RunRulesEngine(input, AchievementDirectoryPath);
