@@ -10,23 +10,31 @@ public class AchievementService
 {
     public event EventHandler<AchievementEarnedEventArgs>? AchievementEarned;
 
-    private readonly string? _achievementPath;
+    private readonly AchievementServiceOptions? _options;
     private readonly ILogger<AchievementService> _logger;
 
     public AchievementService(ILogger<AchievementService> logger, IOptions<AchievementServiceOptions> options)
     {
         _logger = logger;
-        _achievementPath = options.Value.AchievementDirectoryPath;
+        _options = options.Value;
     }
 
     protected virtual void OnAchievementEarned(AchievementEarnedEventArgs args)
     {
-        AchievementEarned?.Invoke(this, args);
+        if (_options?.Enabled ?? false)
+        {
+            AchievementEarned?.Invoke(this, args);
+        }
     }
 
     public async Task<List<RuleResultTree>> RunRulesEngine(DatahubUserTelemetry? input)
     {
-        var achievementFactory = await AchievementFactory.CreateFromFilesAsync(_achievementPath);
+        if (!_options?.Enabled ?? true)
+        {
+            return new List<RuleResultTree>();
+        }
+        
+        var achievementFactory = await AchievementFactory.CreateFromFilesAsync(_options?.AchievementDirectoryPath);
 
         var rulesEngine = new RulesEngine.RulesEngine(new[] { achievementFactory.CreateWorkflow() }, _logger);
         var response =
