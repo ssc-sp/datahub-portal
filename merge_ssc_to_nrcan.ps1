@@ -1,9 +1,29 @@
+[cmdletbinding()]
+param(
+    [Parameter(Mandatory=$True)]
+    [ValidateSet('ssc','nrcan')]
+    [string]$Source
+)
+
 git pull
-git remote add ssc https://github.com/ssc-sp/datahub-portal.git
-#git fetch ssc
-$branchName = "ssc_updates_$(get-date -Format "yyyyMMdd")"
-git fetch ssc develop:$branchName
+switch ($Source)
+{
+    "ssc" {git remote add $Source https://github.com/ssc-sp/datahub-portal.git}
+    "nrcan" {git remote add $Source https://github.com/ssc-sp/datahub-portal.git}
+}
+
+#git fetch $Source
+$branchName = "$Source_updates_$(get-date -Format "yyyyMMdd")"
+git fetch $Source develop:$branchName
 git push origin $branchName
 #try to merge develop into current branch
-
-$prLink =  "https://github.com/NRCan/datahub-portal/pull/new/$branchName"
+git checkout $branchName
+$prLink = switch ($Source)
+{
+    "ssc" {"https://github.com/NRCan/datahub-portal/pull/new/$branchName"}
+    "nrcan" {"https://github.com/ssc-sp/datahub-portal/pull/new/$branchName"}
+}
+git merge develop #likely to fail
+git commit -m "merged recent develop changes"
+git push
+Start-Process $prLink
