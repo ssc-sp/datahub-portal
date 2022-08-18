@@ -190,7 +190,10 @@
       "SandboxLabel": "Bac à sable",
       "WorkspaceNameTitle": "Nom de l'espace de travail",
       "Title": "Power BI Request Confirmation",
-      "ReturnToProject": "Return to project"
+      "ReturnToProject": "Return to project",
+      "CreateNewWorkspaces": "Créer des espaces de travail",
+      "ApproveOnlyMessage": "Le service Power BI sera activé pour cette initiative, mais aucun espace de travail ne sera automatiquement créé à ce moment-là. Les espaces de travail peuvent être liés à l'initiative à l'aide des fonctions d'administration de Power BI.",
+      "ServiceApprovedMessage": "Le service Power BI a été activé pour cette initiative."
     },
     "POWER_BI_ADMIN": {
       "Title": "Power BI Administration",
