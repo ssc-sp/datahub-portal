@@ -9,6 +9,7 @@ using Microsoft.Graph.Auth;
 using Microsoft.Identity.Client;
 using Datahub.Core.Data;
 using System.Threading;
+using System.Linq;
 
 namespace Datahub.Core.Services
 {
@@ -141,5 +142,29 @@ namespace Datahub.Core.Services
             }
             return new();
         }
-    }
+
+		public async Task<GraphUser> GetUserFromSamAccountNameAsync(string userName, CancellationToken token)
+		{
+            await PrepareAuthenticatedClient();
+            try
+			{
+                var queryOptions = new List<Microsoft.Graph.Option>()
+                {
+                    new Microsoft.Graph.QueryOption("$search", $"\"onPremisesSamAccountName:{userName}\""),
+                    new Microsoft.Graph.QueryOption("$select", "mail,department"),
+                    new Microsoft.Graph.HeaderOption("ConsistencyLevel", "eventual")
+                };
+
+                var users = await _graphServiceClient.Users.Request(queryOptions).GetAsync(token);
+                var foundUser = users.FirstOrDefault();
+
+                return foundUser is null ? null : GraphUser.Create(foundUser);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error fetching user: {userName}: {ex.Message}");
+            }
+            return new();
+        }
+	}
 }

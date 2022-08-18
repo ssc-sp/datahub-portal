@@ -94,7 +94,7 @@
                 ValidateRequired=true
                 ProfileName="catalog"
                 ObjectType=@MetadataObjectType.File
-                UpdateCatalog=@Readonly
+                UpdateCatalog=@(!Readonly)
                 Preview=@Readonly
             />;
         await _uiControlService.ToggleModal(@<RenderFragmentModal Fragment=@metadataEditor />);

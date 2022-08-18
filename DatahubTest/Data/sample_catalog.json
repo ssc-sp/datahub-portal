@@ -1,0 +1,21 @@
+[
+  {
+		"id": "CFS_0389",
+		"name_en": "Black spruce Range-Wide Provenance Trial (copy)",
+		"name_fr": "pas disponible",
+		"contact": "adick",
+		"subjects": [
+			{
+				"id": "13",
+				"name_en": "Science and Technology",
+				"name_fr": "Sciences et technologie"
+			}
+		],
+		"classification": "Protected B",
+		"programs": "",
+		"keywords_en": ["spruce"],
+		"keywords_fr": ["spruce"],
+		"url_en": "https://applications.cfl.scf.rncan.gc.ca/ids/en/data/view/389",
+		"url_fr": "https://applications.cfl.scf.rncan.gc.ca/ids/fr/data/view/389"
+	}
+]

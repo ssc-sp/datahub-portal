@@ -1,16 +1,16 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Datahub.Metadata.DTO;
 using Datahub.Metadata.Model;
 using Datahub.Metadata.Utils;
-using System.Threading.Tasks;
-using System.Linq;
-using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore;
 using System;
-using Datahub.Metadata.DTO;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Entities = Datahub.Metadata.Model;
 
 namespace Datahub.Core.Services
 {
-    public class MetadataBrokerService : IMetadataBrokerService
+	public class MetadataBrokerService : IMetadataBrokerService
     {
         readonly IDbContextFactory<MetadataDbContext> _contextFactory;
         readonly IDatahubAuditingService _auditingService;
@@ -217,7 +217,7 @@ namespace Datahub.Core.Services
         }
 
         public async Task UpdateCatalog(long objectMetadataId, MetadataObjectType dataType, string objectName, string location,
-            int sector, int branch, string contact, string securityClass, string englishText, string frenchText)
+            int sector, int branch, string contact, ClassificationType securityClass, string englishText, string frenchText)
         {
             using var ctx = _contextFactory.CreateDbContext();
 
@@ -241,7 +241,7 @@ namespace Datahub.Core.Services
                     Sector_NUM = sector,
                     Branch_NUM = branch,
                     Contact_TXT = contact,
-                    SecurityClass_TXT = !string.IsNullOrEmpty(securityClass) ? securityClass : SecurityClassification.Unclassified,
+                    Classification_Type = securityClass,
                     Search_English_TXT = englishText,
                     Search_French_TXT = frenchText
                 };
@@ -272,7 +272,8 @@ namespace Datahub.Core.Services
             var conditions = new List<string>()
             {
                 GetSearchTextCondition(request.Keywords, request.IsFrench ? "Search_French_TXT" : "Search_English_TXT"),
-                GetOrSearchCondition(request.Classifications, "SecurityClass_TXT"),
+                GetOrSearchCondition(request.Classifications, "Classification_Type"),
+                GetOrSearchCondition(request.Languages, "Language"),
                 GetOrSearchCondition(request.ObjectTypes.Select(o => (int)o), "DataType"),
                 GetOrSearchCondition(request.Sectors, "Sector_NUM"),
                 GetOrSearchCondition(request.Branches, "Branch_NUM")
@@ -290,6 +291,20 @@ namespace Datahub.Core.Services
                           .Where(validateResult)
                           .Take(request.PageSize)
                           .ToList();
+        }
+
+        public async Task<List<CatalogObjectResult>> GetCatalogGroup(Guid groupId)
+        {
+            using var ctx = _contextFactory.CreateDbContext();
+
+            var definitions = await GetLatestMetadataDefinition(ctx);
+            var group = await ctx.CatalogObjects
+                                 .Where(e => e.GroupId == groupId)
+                                 .Include(e => e.ObjectMetadata)
+                                 .ThenInclude(s => s.FieldValues)
+                                 .Select(c => TransformCatalogObject(c, definitions))
+                                 .ToListAsync();
+            return group;
         }
 
         private async Task<ObjectMetadata> GetObjectMetadata(MetadataDbContext ctx, string objectId)
@@ -325,8 +340,8 @@ namespace Datahub.Core.Services
         static string GetOrSearchCondition(IEnumerable<int> values, string fieldName) =>
             string.Join(" OR ", values.Select(v => $"{fieldName} = {v}"));
 
-        static string GetOrSearchCondition(IEnumerable<MetadataClassificationType> values, string fieldName) =>
-            string.Join(" OR ", values.Select(v => $"{fieldName} = '{v}'"));
+        static string GetOrSearchCondition<T>(IEnumerable<T> values, string fieldName) where T: Enum =>
+            string.Join(" OR ", values.Select(v => $"{fieldName} = {Convert.ToInt32(v)}"));
 
         static IEnumerable<char> PreProcessSearchText(string text)
         {
@@ -451,7 +466,12 @@ namespace Datahub.Core.Services
                 Sector = catObj.Sector_NUM,
                 Branch = catObj.Branch_NUM,
                 Contact = catObj.Contact_TXT,
-                SecurityClass = catObj.SecurityClass_TXT,
+                //SecurityClass = catObj.SecurityClass_TXT,
+                ClassificationType = catObj.Classification_Type,
+                Language = catObj.Language,
+                Url_English = catObj.Url_English_TXT,
+                Url_French = catObj.Url_French_TXT,
+                GroupId = catObj.GroupId,
                 Metadata = new FieldValueContainer(catObj.ObjectMetadata.ObjectMetadataId, catObj.ObjectMetadata.ObjectId_TXT, definitions, 
                     catObj.ObjectMetadata.FieldValues)
             };
@@ -481,6 +501,91 @@ namespace Datahub.Core.Services
                 .FirstOrDefaultAsync();
 
             return await Task.FromResult(TransformCatalogObject(result, definitions));
+        }
+
+        public async Task<bool> IsObjectCatalogued(string objectId)
+        {
+            using var ctx = await _contextFactory.CreateDbContextAsync();
+
+            var count = await ctx.CatalogObjects.CountAsync(o => o.ObjectMetadata.ObjectId_TXT == objectId);
+
+            return count > 0;
+        }
+
+        public async Task DeleteFromCatalog(string objectId)
+        {
+            using var ctx = await _contextFactory.CreateDbContextAsync();
+
+            var existingObjects = await ctx.CatalogObjects
+                .Where(o => o.ObjectMetadata.ObjectId_TXT == objectId)
+                .ToListAsync();
+
+            if (existingObjects?.Count > 0)
+            {
+                foreach(var catalogObject in existingObjects)
+                {
+                    ctx.CatalogObjects.Remove(catalogObject);
+                }
+
+                await ctx.TrackSaveChangesAsync(_auditingService);
+            }
+        }
+
+        public async Task DeleteMultipleFromCatalog(IEnumerable<string> objectIds)
+        {
+            using var ctx = await _contextFactory.CreateDbContextAsync();
+            using var tran = await ctx.Database.BeginTransactionAsync();
+
+            var existingObjects = await ctx.CatalogObjects
+                .Where(o => objectIds.Contains(o.ObjectMetadata.ObjectId_TXT))
+                .ToListAsync();
+
+            try
+            {
+                if (existingObjects?.Count > 0)
+                {
+                    ctx.CatalogObjects.RemoveRange(existingObjects);
+                    await ctx.TrackSaveChangesAsync(_auditingService);
+                    await tran.CommitAsync();
+                }
+                else
+                {
+                    await tran.RollbackAsync();
+                }
+
+            }
+            catch (Exception)
+            {
+                await tran.RollbackAsync();
+            }
+        }
+
+        public async Task<Guid> GroupCatalogObjects(IEnumerable<string> objectIds)
+		{
+            var groupId = Guid.NewGuid();
+            using var ctx = await _contextFactory.CreateDbContextAsync();
+
+            // assign group id
+            foreach (var objectId in objectIds)
+			{
+                await SetCatalogObjectGroup(ctx, objectId, groupId);
+            }
+
+            await ctx.TrackSaveChangesAsync(_auditingService);
+
+            return groupId;
+        }
+
+        private async Task SetCatalogObjectGroup(MetadataDbContext ctx, string objectId, Guid groupId)
+        {
+            var metadata = await ctx.ObjectMetadataSet.Include(e => e.CatalogObjects).Where(e => e.ObjectId_TXT == objectId).FirstOrDefaultAsync();
+            if (metadata is not null)
+			{
+                foreach (var catalogObject in metadata.CatalogObjects)
+				{
+                    catalogObject.GroupId = groupId;
+                }
+			}
         }
     }
 }

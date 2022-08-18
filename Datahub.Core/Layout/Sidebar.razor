@@ -10,7 +10,7 @@
 
 
 <MudNavMenu Bordered>
-    @foreach (var (href, icon, label) in GetLinks())
+    @foreach (var (href, icon, label,_) in GetLinks().Where(t => t.enabled))
     {
         <div class="mud-nav-item">
             <NavLink class="mud-nav-link mud-ripple px-0 py-4 justify-center" style="@GetNavStyle(icon)" href="@href" Match="NavLinkMatch.Prefix" ActiveClass="active">
@@ -42,26 +42,23 @@
 
 @code {
 
+    private bool _userHasInitiatives;
     private string _navTextStyle;
 
     private List<(string Href, Icon Icon, string Label, List<string> Roles)> _authorizedLinks = new();
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        base.OnInitialized();
-
+        await base.OnInitializedAsync();
+        
+        var user = await _userInformationService.GetUserAsync();
+        _authorizedLinks = GetAuthorizedLinks(user.Id);
+        
+        _userHasInitiatives = !(await _userInformationService.IsUserWithoutInitiatives());
         _navTextStyle = new StyleBuilder()
             .AddStyle("font-size", ".5rem")
             .AddStyle("text-transform", "uppercase")
             .Build();
-    }
-
-    protected override async Task OnInitializedAsync()
-    {
-        await base.OnInitializedAsync();
-        var user = await _userInformationService.GetUserAsync();
-        
-        _authorizedLinks = GetAuthorizedLinks(user.Id);
     }
 
     private string GetNavStyle(Icon icon)
@@ -71,14 +68,18 @@
             .Build();
     }
 
-    private List<(string Href, Icon Icon, string Label)> GetLinks()
+    private List<(string Href, Icon Icon, string Label, bool enabled)> GetLinks()
     {
         return new()
         {
-            ("/home", Icon.HOME, "SIDEBAR.Home"),
-            ($"/{UrlPathSegment.PROJECTS}", Icon.PROJECT, "SIDEBAR.DataProjects"),
-            ("/resources", Icon.RESOURCES, "SIDEBAR.Resources"),
-            ("/tools", Icon.TOOLS, "SIDEBAR.Tools"),
+            ("/home", Icon.HOME, "SIDEBAR.Home", true),
+            ($"/{UrlPathSegment.PROJECTS}", Icon.PROJECT, "SIDEBAR.DataProjects", true),
+            ("/resources", Icon.RESOURCES, "SIDEBAR.Resources", _userHasInitiatives),
+            ("/tools", Icon.TOOLS, "SIDEBAR.Tools", true),
+            ("/discovery", Icon.CATALOG, "SIDEBAR.Catalog", (IsFeatureEnabled("DataCatalog") && _userHasInitiatives))
+            //("/data", Icon.STORAGE, "SIDEBAR.Storage"),
+            //("/datasets", Icon.DATASETS, "SIDEBAR.Datasets"),
+            //("/powerbi", Icon.POWERBI, "SIDEBAR.PowerBI"),      
         };
     }
 

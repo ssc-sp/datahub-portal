@@ -538,8 +538,8 @@
   "Province_Territory": "Province/Territoire",
   "Employment_Status": "Statut d’emploi",
   "I_am_seeking": "Je recherche",
-  "Completed_LETP_Assessment": "Avez-vous effectué une évaluation PEFL auprès de l’École de langues de RNCan au cours des deux (2) dernières années",
-  "Language_Training_Since_LETP_Assessment": "Avez-vous suivi une formation linguistique depuis votre évaluation PEFL",
+  "Completed_LETP_Assessment": "Avez-vous effectué une évaluation ELPF auprès de l’École de langues de RNCan au cours des deux (2) dernières années",
+  "Language_Training_Since_LETP_Assessment": "Avez-vous suivi une formation linguistique depuis votre évaluation ELPF",
   "Language_Training_Provided_By": "La formation linguistique a été dispensée par",
   "Last_Course_Successfully_Completed": "Quel est le dernier cours que vous avez terminé avec succès",
   "Completed_Training_Year": "Année",
@@ -557,9 +557,9 @@
   "Delegate_Manager_First_Name": "Prénom",
   "Delegated_Manager_Last_Name": "Nom de famille",
   "Delegated_Manager_Email": "Courriel",
-  "Employee_Appointed_NonImperative_Basis": "Employé nommé sur une base non impérative",
+  "Employee_Appointed_NonImperative_Basis": "Employé nommé sur une base non-impérative",
   "Employee_language_profile_raised": "Employé occupant un poste où le profil linguistique a été relevé",
-  "Employee_In_Pardp": "Participant in the PARDP program",
+  "Employee_In_Pardp": "Participant dans le Programme de recrutement et de perfectionnement d'analystes de politiques (PRPAP)",
   "Employee_professional_dev_program": "Employé participant à un programme de perfectionnement professionnel",
   "Employee_talent_management_exercise": "Employé identifié dans le cadre d’un exercice de gestion des talents",
   "Employee_equity_group": "Employé qui s’est identifié comme membre d’un groupe visé par l’équité en matière d’emploi",
@@ -685,7 +685,7 @@
   "Intermediate 6 (BBB) - Test Oral Proficiency – B level": "Intermédiaire 6 (BBB) - Test de compétence orale – niveau B",
   "Advanced 6 (CBC) - Test Oral Proficiency – C level": "Avancé 6 (CBC) - Test de compétence orale – niveau C",
   "Training accepted": "Formation acceptée ",
-  "Requires LETP assessment": "Nécessite une évaluation PEFL ",
+  "Requires LETP assessment": "Nécessite une évaluation ELPF ",
   "Insufficient interest at level": "Intérêt insuffisant au niveau demandé ",
   "Demand exceeds capacity": "La demande dépasse la capacité ",
   "Late application": "Demande tardive ",
@@ -1622,6 +1622,7 @@
     "ClickToReadPDF": "Cliquez pour lire le PDF",
     "ClickToApprove": "Cliquez pour approuver la publication"
   },
-  
-  "Resources": "Ressources"
+
+  "Resources": "Ressources",
+  "LanguageTableDisclaimer": "Une seule inscription est autorisée par étudiant et par session."
 }

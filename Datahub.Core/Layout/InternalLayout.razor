@@ -15,39 +15,41 @@
 <PageTitle>@Localizer[_configuration["Title"]]</PageTitle>
 
 <AuthorizeView>
-    <Authorized>        
+    <Authorized>
         <div class="application-wrapper">
             <InternalSidebar />
-            <div class="main-layout">
-                <TopbarLite />
-                <div class="ui-control" style="background-color:white">
-                    <div class="main-page">
-                        <ErrorBoundary @ref="_errorBoundary">
-                            <ChildContent>
-                                @if (_isSessionEnabled == true)
-                                {
-                                    @Body
-                                }
-                                @if (_isSessionEnabled == false)
-                                {
-                                    <TooManyTabs />
-                                }                                
-                            </ChildContent>
-                            <ErrorContent Context="ex">
-                                @if (HandleException(@ex)) 
-                                {
-                                    <Error CorrelationId=@_correlationId />
-                                }
-                                else
-                                {
-                                    @Body
-                                }
+            <CascadingValue Value="@_userLanguage" Name="UserLanguage">
+                <div class="main-layout">
+                    <TopbarLite />
+                    <div class="ui-control" style="background-color:white">
+                        <div class="main-page">
+                            <ErrorBoundary @ref="_errorBoundary">
+                                <ChildContent>
+                                    @if (_isSessionEnabled == true)
+                                    {
+                                        @Body
+                                    }
+                                    @if (_isSessionEnabled == false)
+                                    {
+                                        <TooManyTabs />
+                                    }
+                                </ChildContent>
+                                <ErrorContent Context="ex">
+                                    @if (HandleException(@ex))
+                                    {
+                                        <Error CorrelationId=@_correlationId />
+                                    }
+                                    else
+                                    {
+                                        @Body
+                                    }
 
-                            </ErrorContent>
-                        </ErrorBoundary>
+                                </ErrorContent>
+                            </ErrorBoundary>
+                        </div>
                     </div>
                 </div>
-            </div>
+            </CascadingValue>
         </div>
     </Authorized>
     <NotAuthorized>
@@ -59,7 +61,17 @@
 {
     [CascadingParameter]
     private Task<AuthenticationState> _authenticationStateTask { get; set; }
-    
+
+
+    private string _currentLanguage = "en";
+    private void SetLanguage(string language)
+    {
+        _currentLanguage = language;
+
+        StateHasChanged();
+    }
+
+    private (Func<string> currentLanguage, Action<string> setLanguage) _userLanguage;
     private ErrorBoundary _errorBoundary;
     private string _correlationId;
     private Exception _lastException;
@@ -74,7 +86,7 @@
     {
         var authState = await _authenticationStateTask;
         var user = authState.User;
-
+        _userLanguage = (() => _currentLanguage, (s) => SetLanguage(s));
         if (!user.Identity?.IsAuthenticated ?? true)
         {
             var scopes = _configuration["Graph:Scopes"]
@@ -82,11 +94,11 @@
             _consentHandler.ChallengeUser(scopes);
             return;
         }
-        
-        try 
+
+        try
         {
             _isSessionEnabled = await _userCircuitCounterService.IsSessionEnabled();
-        } 
+        }
         catch (Exception ex)
         {
             _consentHandler.HandleException(ex);

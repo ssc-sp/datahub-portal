@@ -119,7 +119,8 @@ namespace Datahub.Portal
             services.AddAchievementService(opts =>
             {
                 opts.Enabled = Configuration.GetValue("Achievements:Enabled", false);
-                opts.AchievementDirectoryPath = "../Datahub.Achievements/Achievements";
+                opts.AchievementDirectoryPath = Path.Join(_currentEnvironment.ContentRootPath,
+                    "../Datahub.Achievements/Achievements");
             });
             
             services.AddElemental();
@@ -152,6 +153,8 @@ namespace Datahub.Portal
 
             services.Configure<PortalVersion>(Configuration.GetSection("PortalVersion"));
             services.AddScoped<IPortalVersionService, PortalVersionService>();
+
+            services.AddScoped<CatalogImportService>();
 
             services.AddSignalRCore();
 

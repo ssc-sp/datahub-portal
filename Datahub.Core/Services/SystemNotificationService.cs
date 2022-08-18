@@ -20,6 +20,7 @@ namespace Datahub.Core.Services
         private readonly IStringLocalizer<SystemNotificationService> _localizer;
         private readonly ILogger<SystemNotificationService> _logger;
         private readonly IPropagationService _propagationService;
+        private readonly IMSGraphService _msGraphService;
 
         private readonly CultureInfo enCulture;
         private readonly CultureInfo frCulture;
@@ -32,13 +33,14 @@ namespace Datahub.Core.Services
             IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
             IStringLocalizer<SystemNotificationService> localizer,
             ILogger<SystemNotificationService> logger,
-            IPropagationService propagationService
-            )
+            IPropagationService propagationService,
+            IMSGraphService msGraphService)
         {
             _dbContextFactory = dbContextFactory;
             _localizer = localizer;
             _logger = logger;
             _propagationService = propagationService;
+            _msGraphService = msGraphService;
 
             _propagationService.UpdateSystemNotifications += DoNotifyUsers;
 
@@ -69,11 +71,11 @@ namespace Datahub.Core.Services
             }
         }
 
-        public async Task<int> CreateSystemNotifications(List<string> userIds, string textKey, params object[] arguments)
+        public async Task<int> CreateSystemNotifications(IEnumerable<string> userIds, string textKey, params object[] arguments)
         {
             return await DoCreateSystemNotifications(userIds, textKey, arguments);
         }
-        public async Task<int> CreateSystemNotificationsWithLink(List<string> userIds, string actionLink,  string linkKey, string textKey, params object[] arguments)
+        public async Task<int> CreateSystemNotificationsWithLink(IEnumerable<string> userIds, string actionLink,  string linkKey, string textKey, params object[] arguments)
         {
             return await DoCreateSystemNotifications(userIds, textKey, arguments, actionLink, linkKey);
         }
@@ -102,13 +104,27 @@ namespace Datahub.Core.Services
             }
         }
 
-        private async Task<int> DoCreateSystemNotifications(List<string> userIds, string textKey, object[] arguments, string actionLink = null, string linkKey = null)
+        private async Task<string> GetUserId(string emailOrUid)
+        {
+            if (Guid.TryParse(emailOrUid, out _))
+            {
+                return await Task.FromResult(emailOrUid);
+            }
+            else
+            {
+                return await _msGraphService.GetUserIdFromEmailAsync(emailOrUid, default);
+            }
+        }
+
+        private async Task<int> DoCreateSystemNotifications(IEnumerable<string> userIds, string textKey, object[] arguments, string actionLink = null, string linkKey = null)
         {
             var textEn = GetLocalizedString(enCulture, textKey, arguments);
             var textFr = GetLocalizedString(frCulture, textKey, arguments);
             var now = DateTime.UtcNow;
 
-            var notifications = userIds
+            var realUserIds = await Task.WhenAll(userIds.Select(s => GetUserId(s)));
+
+            var notifications = realUserIds
                 .Select(userId => new SystemNotification()
                 {
                     Generated_TS = now,
@@ -124,12 +140,12 @@ namespace Datahub.Core.Services
             await ctx.SystemNotifications.AddRangeAsync(notifications);
             var result = await ctx.SaveChangesAsync();
 
-            await NotifyUsers(userIds);
+            await NotifyUsers(realUserIds);
 
             return result;
         }
 
-        private async Task NotifyUsers(List<string> userIds)
+        private async Task NotifyUsers(IEnumerable<string> userIds)
         {
             await _propagationService.PropagateSystemNotificationUpdate(userIds);
         }

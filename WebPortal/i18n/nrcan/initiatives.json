@@ -13,7 +13,7 @@
     "PowerBI": "Power BI",
     "Admin": "Admin",
     "Tools": "Tools",
-    "Catalog":  "Data"
+    "Catalog":  "Catalog"
   },
   "OPENDATA-WIZARD": {
     "Page_Title": "Share on Open Data",
@@ -218,8 +218,21 @@
       "Datasets": "Datasets",
       "Reports": "Reports",
       "SecurityClassification": "Security Classification",
-      "UpdateAssignment": "Update"
+      "UpdateAssignment": "Update",
+      "IncludeInCatalog": "Include in catalog",
+      "DeleteX": "Delete {0}",
+      "DeletePromptIntro": "The following items will be deleted from DataHub:",
+      "ItemNotFoundWarning": "This item was not found in Power BI. It may have been moved or deleted, or your user account may not have sufficient access to see it. If you are sure that the item doesn't exist in Power BI, please delete its entry in DataHub."
     }
+  },
+  "POWER_BI_REPORT": {
+    "ReturnToX": "Return to {0}",
+    "ErrorLoadingReport": "Error loading Power BI report",
+    "ErrorDescription": "The specified report could not be found in Power BI, or you do not have sufficient access to view it.",
+    "NotFoundReportNotificationText": "The Power BI report {0} in data initiative {1} was flagged as invalid. Please verify its status and delete the record from DataHub if the report is no longer available.",
+    "NotFoundReportNotificationLink": "View in Power BI Admin",
+    "SendNotificationButton": "Send Notification",
+    "NotificationSentMessage": "A notification has been sent to the Power BI administrators."
   },
   "RESOURCE_REQUEST_INFO_PANEL": {
     "RequestInformation": "Request Information",

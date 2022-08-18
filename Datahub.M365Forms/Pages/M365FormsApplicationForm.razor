@@ -245,6 +245,8 @@
         context.SetVisible<M365FormsApplication>(p => p.M365FormStatus!, _isUserAdmin);
         context.SetVisible<M365FormsApplication>(p => p.Comments!, _isUserAdmin);
         context.SetVisible<M365FormsApplication>(p => p.IsOrganizationalTeam!, _isUserAdmin);
+        context.SetVisible<M365FormsApplication>(p => p.Last_Updated_DT!, _isUserAdmin);
+        context.SetVisible<M365FormsApplication>(p => p.Submitted_DT!, _isUserAdmin);
         _onchange = false;
     }
 
@@ -257,7 +259,7 @@
 
     private void CreateNewApplication()
     {
-        m365FormApplication = new M365FormsApplication() { Last_Updated_DT = DateTime.Now, Expected_Lifespan_DT = DateTime.Now, SubmittedBy = _user.Mail };
+        m365FormApplication = new M365FormsApplication() { Last_Updated_DT = DateTime.Now, Expected_Lifespan_DT = DateTime.Now, SubmittedBy = _user.Mail, Submitted_DT = DateTime.Now };
         //var user = await UserInformationService.GetUserAsync();        
         _formMetadata.IsSubmitEnabled = true;
         StateHasChanged();
