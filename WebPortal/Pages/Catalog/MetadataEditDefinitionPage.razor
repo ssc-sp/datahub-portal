@@ -1,6 +1,8 @@
 ﻿@page "/metadata/definition/{Id}"
 @page "/metadata/newdefinition"
 @using Datahub.Metadata.Model
+
+@inject IUserInformationService _userInformationService
 @inject IDbContextFactory<MetadataDbContext> ContextFactory
 @inject NavigationManager NavigationManager
 @inject ServiceAuthManager ServiceAuthManager
@@ -43,7 +45,9 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _authorizedRoles = ServiceAuthManager.GetAdminProjectRoles();
+        
+        var user = await _userInformationService.GetUserAsync();
+        _authorizedRoles = ServiceAuthManager.GetAdminProjectRoles(user.Id);
 
         _form = new();
         var defId = Id is not null ? int.Parse(Id) : 0;
