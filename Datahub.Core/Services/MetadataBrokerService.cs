@@ -537,6 +537,16 @@ namespace Datahub.Core.Services
 
             if (existingObjects?.Count > 0)
             {
+                var groupIds = existingObjects.Where(e => e.GroupId.HasValue).Select(e => e.GroupId).ToList();
+                foreach (var groupId in groupIds)
+                {
+                    var groupObjects = await ctx.CatalogObjects.Where(o => o.GroupId == groupId).ToListAsync();
+                    foreach (var catalogObject in groupObjects)
+                    {
+                        catalogObject.GroupId = null;
+                    }
+                }
+
                 foreach(var catalogObject in existingObjects)
                 {
                     ctx.CatalogObjects.Remove(catalogObject);
