@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
 
 namespace Datahub.Achievements.Test;
@@ -8,6 +9,12 @@ public class AchievementValidationTests
     private static readonly string AchievementDirectoryPath =
         Path.Join(Directory.GetCurrentDirectory(), "../../../../Datahub.Achievements/Achievements");
     private static readonly string UserId = Guid.NewGuid().ToString();
+    
+    private static readonly IOptions<AchievementServiceOptions> Options = 
+        new OptionsWrapper<AchievementServiceOptions>(new AchievementServiceOptions
+    {
+        AchievementDirectoryPath = AchievementDirectoryPath
+    });
 
     private static readonly Dictionary<string, (DatahubUserTelemetry, DatahubUserTelemetry)> EarnedUserTelemetryDictionary = new()
     {
@@ -40,16 +47,13 @@ public class AchievementValidationTests
         });
     }
 
-
-    
-
     [Test]
     [TestCaseSource(nameof(EarnedAchievementParams))]
     [Parallelizable(ParallelScope.None)]
     public async Task EarnedIfConditionsMet(string code, Achievement achievement, DatahubUserTelemetry userTelemetry)
     {
         var mockLogger = new Mock<ILogger<AchievementService>>();
-        var achievementService = new AchievementService(mockLogger.Object);
+        var achievementService = new AchievementService(mockLogger.Object, Options);
         achievementService!.AchievementEarned += (_, e) =>
         {
             Assert.Multiple(() =>
@@ -63,7 +67,7 @@ public class AchievementValidationTests
             Assert.Pass();
         };
         
-        await achievementService!.RunRulesEngine(userTelemetry, AchievementDirectoryPath);
+        await achievementService!.RunRulesEngine(userTelemetry);
     }
     
     [Test]
@@ -72,7 +76,7 @@ public class AchievementValidationTests
     public async Task NotEarnedIfConditionsNotMet(string code, Achievement achievement, DatahubUserTelemetry userTelemetry)
     {
         var mockLogger = new Mock<ILogger<AchievementService>>();
-        var achievementService = new AchievementService(mockLogger.Object);
+        var achievementService = new AchievementService(mockLogger.Object, Options);
         achievementService!.AchievementEarned += (_, e) =>
         {
             Assert.Multiple(() =>
@@ -86,6 +90,6 @@ public class AchievementValidationTests
             Assert.Fail();
         };
 
-        await achievementService!.RunRulesEngine(userTelemetry, AchievementDirectoryPath);
+        await achievementService!.RunRulesEngine(userTelemetry);
     }
 }

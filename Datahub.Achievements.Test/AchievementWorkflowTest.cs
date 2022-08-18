@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
 using RulesEngine.Models;
 
@@ -6,8 +7,14 @@ namespace Datahub.Achievements.Test;
 
 public class Tests
 {
-    private readonly string AchievementDirectoryPath =
+    private static readonly string AchievementDirectoryPath =
         Path.Join(Directory.GetCurrentDirectory(), "../../../Achievements");
+    
+    private static readonly IOptions<AchievementServiceOptions> Options = 
+        new OptionsWrapper<AchievementServiceOptions>(new AchievementServiceOptions
+        {
+            AchievementDirectoryPath = AchievementDirectoryPath
+        });
 
 
     [SetUp]
@@ -25,11 +32,11 @@ public class Tests
     public async Task CanRunRulesEngineWithAchievementWorkflow()
     {
         var mockLogger = new Mock<ILogger<AchievementService>>();
-        var achievementService = new AchievementService(mockLogger.Object);
+        var achievementService = new AchievementService(mockLogger.Object, Options);
 
         var input = new DatahubUserTelemetry();
 
-        var result = await achievementService.RunRulesEngine(input, AchievementDirectoryPath);
+        var result = await achievementService.RunRulesEngine(input);
         Assert.That(result, Is.TypeOf(typeof(List<RuleResultTree>)));
     }
 
@@ -37,7 +44,7 @@ public class Tests
     public async Task TriggersAchievementEvent()
     {
         var mockLogger = new Mock<ILogger<AchievementService>>();
-        var achievementService = new AchievementService(mockLogger.Object);
+        var achievementService = new AchievementService(mockLogger.Object, Options);
 
         var userId = Guid.NewGuid().ToString();
 
@@ -55,7 +62,7 @@ public class Tests
             UserId = userId,
         };
 
-        var result = await achievementService.RunRulesEngine(input, AchievementDirectoryPath);
+        var result = await achievementService.RunRulesEngine(input);
         Assert.That(result, Is.TypeOf(typeof(List<RuleResultTree>)));
     }
 }

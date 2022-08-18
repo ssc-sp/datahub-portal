@@ -115,7 +115,11 @@ namespace Datahub.Portal
             services.AddScoped<GetDimensionsService>();
             //TimeZoneService provides the user time zone to the server using JS Interop
             services.AddScoped<TimeZoneService>();
-            services.AddScoped<AchievementService>();
+            services.AddAchievementService(opts =>
+            {
+                opts.AchievementDirectoryPath = "../Datahub.Achievements/Achievements";
+            });
+            
             services.AddElemental();
             services.AddMudServices();
             services.AddSingleton(moduleManager);
