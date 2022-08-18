@@ -1,11 +1,13 @@
 @using Microsoft.Extensions.Options
 @using Datahub.Portal.Pages.Project.DataProject.ProjectTools
 
+@inject ServiceAuthManager _serviceAuthManager
+@inject IUserInformationService _userInformationService
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject IOptions<DataProjectsConfiguration> _configuration
 @inject ServiceAuthManager ServiceAuthManager
 
-<AuthorizeView Roles="@($"{ProjectAcronym}, {ProjectAcronym}-admin, {RoleConstants.DATAHUB_ROLE_ADMIN}")">
+<AuthorizeView Roles="@string.Join(',', _authorizedRoles)">
 
     <div class="project-tools">
 
@@ -108,7 +110,18 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _authorizedRoles = ServiceAuthManager.GetAdminProjectRoles();
+        
+        var user = await _userInformationService.GetUserAsync();
+        _authorizedRoles = new List<string>
+        {
+            ProjectAcronym, $"{ProjectAcronym}-admin"
+        };
+
+        if (!_serviceAuthManager.GetViewingAsGuest(user.Id))
+        {
+            _authorizedRoles.Add(RoleConstants.DATAHUB_ROLE_ADMIN);
+        }
+        
         _user = (await authenticationStateTask).User;
 
         await using var projectDbContext = await _dbFactoryProject.CreateDbContextAsync();
