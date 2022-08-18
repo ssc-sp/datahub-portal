@@ -190,7 +190,10 @@
       "ProductionLabel": "Production",
       "SandboxLabel": "Sandbox",
       "ReturnToProject": "Return to initiative",
-      "WorkspaceNameTitle": "Workspace Name"
+      "WorkspaceNameTitle": "Workspace Name",
+      "CreateNewWorkspaces": "Create new workspaces",
+      "ApproveOnlyMessage": "The Power BI service will be enabled for this initiative, but no workspaces will be automatically created at this time. Workspaces can be linked to the initiative using the Power BI administration features.",
+      "ServiceApprovedMessage": "The Power BI service has been enabled for this initiative."
     },
     "POWER_BI_ADMIN": {
       "Title": "Power BI Administration",
