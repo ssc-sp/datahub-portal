@@ -1,6 +1,6 @@
 [![Gitter](https://badges.gitter.im/Science-Program/community.svg)](https://gitter.im/Science-Program/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
-# Welcome to the Science Program DataHub Portal
+# Welcome to the DataHub Portal
 
 This repository contains the source code the NRCan DataHub. The DataHub is an enterprise portal designed to manage, connect and bridge existing cloud tools and simplify scientific and corporate workflows.
 
