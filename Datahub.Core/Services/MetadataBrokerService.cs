@@ -27,6 +27,7 @@ namespace Datahub.Core.Services
             return await ctx.Profiles
                             .Include(p => p.Sections)
                             .ThenInclude(s => s.Fields)
+                            .AsSingleQuery()
                             .FirstOrDefaultAsync(p => p.Name == name);
         }
 
@@ -302,6 +303,7 @@ namespace Datahub.Core.Services
                                  .Where(e => e.GroupId == groupId)
                                  .Include(e => e.ObjectMetadata)
                                  .ThenInclude(s => s.FieldValues)
+                                 .AsSingleQuery()
                                  .Select(c => TransformCatalogObject(c, definitions))
                                  .ToListAsync();
             return group;
@@ -309,12 +311,18 @@ namespace Datahub.Core.Services
 
         private async Task<ObjectMetadata> GetObjectMetadata(MetadataDbContext ctx, string objectId)
         {
-            return await ctx.ObjectMetadataSet.Include(e => e.FieldValues).FirstOrDefaultAsync(e => e.ObjectId_TXT == objectId);
+            return await ctx.ObjectMetadataSet
+                            .Include(e => e.FieldValues)
+                            .AsSingleQuery()
+                            .FirstOrDefaultAsync(e => e.ObjectId_TXT == objectId);
         }
 
         private async Task<ObjectMetadata> GetObjectMetadata(MetadataDbContext ctx, long objectMetadataId)
         {
-            return await ctx.ObjectMetadataSet.Include(e => e.FieldValues).FirstOrDefaultAsync(e => e.ObjectMetadataId == objectMetadataId);
+            return await ctx.ObjectMetadataSet
+                            .Include(e => e.FieldValues)
+                            .AsSingleQuery()
+                            .FirstOrDefaultAsync(e => e.ObjectMetadataId == objectMetadataId);
         }
 
         private async Task<List<ObjectFieldValue>> CloneMetadataValues(MetadataDbContext ctx, string objectId)
@@ -360,6 +368,7 @@ namespace Datahub.Core.Services
 
             return await ctx.Subjects
                 .Include(e => e.SubSubjects)
+                .AsSingleQuery()
                 .Where(e => e.Subject_TXT == subjectId)
                 .FirstOrDefaultAsync();
         }
@@ -377,7 +386,10 @@ namespace Datahub.Core.Services
 
         private async Task<ObjectMetadata> FetchObjectMetadata(MetadataDbContext ctx, string objectId)
         {
-            return await ctx.ObjectMetadataSet.Include(e => e.FieldValues).FirstOrDefaultAsync(e => e.ObjectId_TXT == objectId);
+            return await ctx.ObjectMetadataSet
+                            .Include(e => e.FieldValues)
+                            .AsSingleQuery()
+                            .FirstOrDefaultAsync(e => e.ObjectId_TXT == objectId);
         }
 
         private async Task<ObjectMetadata> CreateNewObjectMetadata(MetadataDbContext ctx, string objectId, int metadataVersionId)
@@ -417,6 +429,7 @@ namespace Datahub.Core.Services
 
             var latestDefinitions = await ctx.FieldDefinitions
                     .Include(e => e.Choices)
+                    .AsSingleQuery()
                     .Where(e => e.MetadataVersionId == versionId || e.Custom_Field_FLAG)
                     .ToListAsync();
 
@@ -485,6 +498,7 @@ namespace Datahub.Core.Services
             var result = await ctx.CatalogObjects.Where(c => c.ObjectMetadataId == metadataId)
                 .Include(e => e.ObjectMetadata)
                 .ThenInclude(s => s.FieldValues)
+                .AsSingleQuery()
                 .FirstOrDefaultAsync();
 
             return await Task.FromResult(TransformCatalogObject(result, definitions));
@@ -498,6 +512,7 @@ namespace Datahub.Core.Services
             var result = await ctx.CatalogObjects.Where(c => c.ObjectMetadata.ObjectId_TXT == objectId)
                 .Include(e => e.ObjectMetadata)
                 .ThenInclude(s => s.FieldValues)
+                .AsSingleQuery()  
                 .FirstOrDefaultAsync();
 
             return await Task.FromResult(TransformCatalogObject(result, definitions));
@@ -563,12 +578,35 @@ namespace Datahub.Core.Services
         public async Task<Guid> GroupCatalogObjects(IEnumerable<string> objectIds)
 		{
             var groupId = Guid.NewGuid();
+
             using var ctx = await _contextFactory.CreateDbContextAsync();
 
-            // assign group id
+            // collect entries to update
+            var updateList = new List<CatalogObject>();
             foreach (var objectId in objectIds)
+            {
+                // technically there will be one catalog object per object id, but we could suport one-to-many
+                var catalogObjects = await ctx.CatalogObjects.Where(e => e.ObjectMetadata.ObjectId_TXT == objectId).ToListAsync();
+                updateList.AddRange(catalogObjects);
+            }
+
+            // collect groups
+            var groupIds = updateList.Where(o => o.GroupId.HasValue).Select(o => o.GroupId).Distinct().ToList();
+
+            // blank groups
+            foreach (var id in groupIds)
+            {
+                var catalogObjects = await ctx.CatalogObjects.Where(e => e.GroupId == id).ToListAsync();
+                foreach (var catalogObject in catalogObjects)
+                {
+                    catalogObject.GroupId = null;
+                }
+            }
+
+            // assign group id
+            foreach (var catalogObject in updateList)
 			{
-                await SetCatalogObjectGroup(ctx, objectId, groupId);
+                catalogObject.GroupId = groupId;
             }
 
             await ctx.TrackSaveChangesAsync(_auditingService);
@@ -580,7 +618,12 @@ namespace Datahub.Core.Services
         {
             using var ctx = await _contextFactory.CreateDbContextAsync();
 
-            var metadata = await ctx.ObjectMetadataSet.Include(e => e.CatalogObjects).Where(e => e.ObjectId_TXT == objectId).FirstOrDefaultAsync();
+            var metadata = await ctx.ObjectMetadataSet
+                                    .Include(e => e.CatalogObjects)
+                                    .AsSingleQuery()
+                                    .Where(e => e.ObjectId_TXT == objectId)
+                                    .FirstOrDefaultAsync();
+
             var catalogGroupId = metadata?.CatalogObjects?.FirstOrDefault()?.GroupId;
 
             if (catalogGroupId is null)
@@ -588,22 +631,16 @@ namespace Datahub.Core.Services
 
             var groupIds = await ctx.CatalogObjects
                                     .Include(e => e.ObjectMetadata)
+                                    .AsSplitQuery()
                                     .Where(e => e.GroupId == catalogGroupId.Value)
                                     .Select(e => e.ObjectMetadata.ObjectId_TXT)
                                     .ToListAsync();
             return groupIds;
         }
 
-        private async Task SetCatalogObjectGroup(MetadataDbContext ctx, string objectId, Guid groupId)
+        private async Task<List<CatalogObject>> UpdateCatalogObjectGroup(MetadataDbContext ctx,  string objectId)
         {
-            var metadata = await ctx.ObjectMetadataSet.Include(e => e.CatalogObjects).Where(e => e.ObjectId_TXT == objectId).FirstOrDefaultAsync();
-            if (metadata is not null)
-			{
-                foreach (var catalogObject in metadata.CatalogObjects)
-				{
-                    catalogObject.GroupId = groupId;
-                }
-			}
+            return await ctx.CatalogObjects.Where(e => e.ObjectMetadata.ObjectId_TXT == objectId).ToListAsync();
         }
     }
 }
