@@ -3,7 +3,7 @@
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject IUserInformationService _userInformationService
-
+@inject ServiceAuthManager _serviceAuthManager
 
 @page "/projects/{ProjectAcronymParam}"
 
@@ -48,7 +48,7 @@
         _userId = await _userInformationService.GetUserIdString();
         _user = await _userInformationService.GetUserAsync();
         var authUser = (await authenticationStateTask).User;
-        _isDatahubAdmin = authUser.IsInRole(RoleConstants.DATAHUB_ROLE_ADMIN);
+        _isDatahubAdmin = !_serviceAuthManager.GetViewingAsGuest(_userId) && authUser.IsInRole(RoleConstants.DATAHUB_ROLE_ADMIN);
     }
 
 }
