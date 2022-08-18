@@ -16,7 +16,8 @@
         OnChangeForms="OnChange"
         CreateNewRecord="CreateNewProject"
         SelectedRecord="@_fundcenter"
-        SetFormEditRecord="SetFormEdit"        
+        SetFormEditRecord="SetFormEdit"    
+        HandleFilterChange="HandleFilterChange"
         Context=@Context/>
 
 @code {
@@ -31,7 +32,7 @@
     private List<HierarchyLevel> _branches = new();    
     private List<HierarchyLevel> _divisions = new();
     private List<FiscalYear> _fiscalYears = new();
-
+    private string _searchFilter = string.Empty;
 
 
     private int _lastClicked = 0;
@@ -51,15 +52,31 @@
         _isUserAdmin = await ServiceAuthManager.IsProjectAdmin(_user.Id, PROJECTACRONYM);
         _fiscalYears = Context.FiscalYears.ToList();
         _fiscalYears.Insert(0, null);
-        LoadData();
+        LoadData(_searchFilter);
     }
 
-    private void LoadData()
-    { 
+    private void LoadData(string searchfilter)
+    {
         _fundcenters = Context.FundCenters.Include(f => f.Sector).Include(f => f.Branch).Include(f => f.Division).ToList();
+        var fundcenters = _fundcenters;
+        if (!string.IsNullOrWhiteSpace(searchfilter))
+        {
+            fundcenters = _fundcenters.Where(fundcenter =>
+            {
+                if (string.IsNullOrWhiteSpace(searchfilter))
+                    return true;
+                if (fundcenter.Division.FundCenterModifiedEnglish.Contains(searchfilter, StringComparison.OrdinalIgnoreCase))
+                    return true;
+                if (fundcenter.Branch.FundCenterModifiedEnglish.Contains(searchfilter, StringComparison.OrdinalIgnoreCase))
+                    return true;
+                if (fundcenter.Sector.FundCenterModifiedEnglish.Contains(searchfilter, StringComparison.OrdinalIgnoreCase))
+                    return true;
+                return false;
+            }).ToList();
+        }
         _formMetadata.Header = "Finance Forms";
-        _formMetadata.SubHeader = "Step 1: Select/Enter Fund Center Information";
-        _formMetadata.DataSet = _fundcenters;
+        _formMetadata.SubHeader = "Fund Centers";
+        _formMetadata.DataSet = fundcenters;
         _formMetadata.AccessorFunctions = accessorFunctions;
         _formMetadata.Headers = headers;
         _formMetadata.GridTemplateColumns = "3fr 6fr 6fr 6fr 3fr";
@@ -75,9 +92,9 @@
     private List<Func<FundCenter, string>> accessorFunctions = new List<Func<FundCenter, string>>
     {
         new Func<FundCenter, string>(p => { return p.FiscalYear?.Year ?? "N/A"; }),
-        new Func<FundCenter, string>(p => { return p.Sector?.FundCenterNameEnglish ?? "N/A"; }),
-        new Func<FundCenter, string>(p => { return p.Branch?.FundCenterNameEnglish ?? "N/A"; }),
-        new Func<FundCenter, string>(p => { return p.Division?.FundCenterNameEnglish ?? "N/A"; }),
+        new Func<FundCenter, string>(p => { return p.Sector?.FundCenterModifiedEnglish ?? "N/A"; }),
+        new Func<FundCenter, string>(p => { return p.Branch?.FundCenterModifiedEnglish ?? "N/A"; }),
+        new Func<FundCenter, string>(p => { return p.Division?.FundCenterModifiedEnglish ?? "N/A"; }),
         new Func<FundCenter, string>(p => { return $"{p.AttritionRate.ToString()}%"; }),
     };
 
@@ -119,7 +136,7 @@
             }
             _fundcenter.Last_Updated_DT = DateTime.Now;
             await Context.SaveChangesAsync();
-            LoadData(); ;
+            LoadData(_searchFilter); ;
             _fundcenter = null;
         }
 
@@ -213,6 +230,14 @@
         {
             context.RefreshOptions<FundCenter>(f => f.Branch);
         }
+    }
+
+
+    private async void HandleFilterChange(string selection)
+    {
+        _searchFilter = selection;
+        LoadData(_searchFilter);
+        await InvokeAsync(StateHasChanged);
     }
 
     private void OnChange(ModelFormChangeArgs args)
