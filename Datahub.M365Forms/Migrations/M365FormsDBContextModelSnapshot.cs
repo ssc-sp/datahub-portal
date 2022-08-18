@@ -17,7 +17,7 @@ namespace Datahub.M365Forms.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "6.0.3")
+                .HasAnnotation("ProductVersion", "6.0.7")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
@@ -63,6 +63,7 @@ namespace Datahub.M365Forms.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("GCdocs_Hyperlink_URL")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Information_and_Data_Security_Classification")
@@ -107,6 +108,9 @@ namespace Datahub.M365Forms.Migrations
 
                     b.Property<string>("SubmittedBy")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("Submitted_DT")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Team_Function")
                         .HasColumnType("nvarchar(max)");

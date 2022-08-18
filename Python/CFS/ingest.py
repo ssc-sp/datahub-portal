@@ -93,6 +93,7 @@ for e in datasheets:
         url_en=build_url("en", e.id),
         url_fr=build_url("fr", e.id))
     output.append(ds)
+    update_row = f"update CatalogObjects set Url_English_TXT='{ds.url_en}', Url_French_TXT='{ds.url_fr}' where "
 
 # output 
 with open("cfs_catalog.json", 'w') as f:

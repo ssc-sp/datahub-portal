@@ -17,7 +17,7 @@ namespace Datahub.Metadata.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "6.0.3")
+                .HasAnnotation("ProductVersion", "6.0.7")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
@@ -141,11 +141,20 @@ namespace Datahub.Metadata.Migrations
                     b.Property<int>("Branch_NUM")
                         .HasColumnType("int");
 
+                    b.Property<byte>("Classification_Type")
+                        .HasColumnType("tinyint");
+
                     b.Property<string>("Contact_TXT")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<byte>("DataType")
                         .HasColumnType("tinyint");
+
+                    b.Property<Guid?>("GroupId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Language")
+                        .HasColumnType("int");
 
                     b.Property<string>("Location_TXT")
                         .HasColumnType("nvarchar(max)");
@@ -175,7 +184,15 @@ namespace Datahub.Metadata.Migrations
                         .HasColumnType("nvarchar(max)")
                         .HasDefaultValue("Unclassified");
 
+                    b.Property<string>("Url_English_TXT")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Url_French_TXT")
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("CatalogObjectId");
+
+                    b.HasIndex("GroupId");
 
                     b.HasIndex("ObjectMetadataId");
 

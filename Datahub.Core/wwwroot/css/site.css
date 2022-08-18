@@ -3308,6 +3308,21 @@ code {
   border-radius: 4rem;
   background-color: #1e293b;
 }
+#topbarlite .profile .user-popup {
+  right: 0;
+  width: 150px;
+  height: 50px;
+}
+#topbarlite .profile .user-popup .user-section {
+  display: flex;
+}
+#topbarlite .profile .user-popup .user-section .language-toggle {
+  margin-left: 20px;
+}
+#topbarlite .profile .user-popup .user-section .language-toggle .nrcan-typography:hover {
+  text-decoration: underline;
+  cursor: pointer;
+}
 
 .swiper-container {
   width: 100%;
@@ -6023,6 +6038,14 @@ code {
   flex-direction: row;
   flex-wrap: nowrap;
   font-size: 1rem;
+}
+.catalog-cards .card .topright .language {
+  display: flex;
+  justify-content: flex-end;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  font-size: 1rem;
+  margin-bottom: 1rem;
 }
 
 .catalog-page {

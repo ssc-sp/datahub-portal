@@ -1,4 +1,5 @@
 @page "/ContactEn"
+@inject IConfiguration Configuration
 
 <div class="swiper-slide alt-bg" style="padding: 2rem;">
     <div class="nrcan-title">
@@ -8,7 +9,7 @@
         <div class=" text-center">
             <p>If you have questions about DataHub’s features, pilots, trials, pricing or need a demo,<br> our team is ready to answer all of your questions!</p>
             <br>
-            <a href="mailto:Datahub.rncan@canada.ca?subject=Hello DataHub Team!" class="btn btn-blue2 btn-sm">Get In Touch</a>
+            <a href=@($"mailto:{Configuration[$"{ConfigurationConstants.CONTACT_EMAIL}"] ?? ConfigurationConstants.DEFAULT_EMAIL}?subject=Hello DataHub Team!") class="btn btn-blue2 btn-sm">Get In Touch</a>
             <br><br>
             <p>
                 <span class="block"><h4 class="font300 margin-top-20">Support Hours</h4></span>

@@ -88,6 +88,17 @@
   "Replication": "Replication",
   "Versioning": "Versioning",
   "Url": "Url",
-  "Review PowerBI Request": "Review PowerBI Request"
+  "Review PowerBI Request": "Review PowerBI Request",
+  "Last_Updated_DT": "Last Updated Date",
+  "Submitted_DT": "Submitted Date",
+  "No_Reports_Available": "There are no reports available for this project",
+  "Include_Sandbox_Workspaces": "Include sandbox workspaces",
+  "English_Power_BI_Report": "English Power BI Report",
+  "French_Power_BI_Report": "French Power BI Report",
+  "External_Access": "External Access",
+  "Power BI Reports for": "Power BI Reports for ",
+  "Revoke Active Sharing": "Revoke Active Sharing",
+  "Requested": "Requested",
+  "Request External Report": "Request External Report"
 
 }

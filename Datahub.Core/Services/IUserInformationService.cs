@@ -17,7 +17,8 @@ namespace Datahub.Core.Services
         Task<string> GetUserEmailDomain();
         Task<string> GetUserEmailPrefix();
         bool SetLanguage(string language);
-        Task<string> GetUserRootFolder();        
+        Task<string> GetUserRootFolder();
+        Task<bool> IsUserWithoutInitiatives();
     }
 
     public static class UserInformationServiceConstants
