@@ -631,7 +631,7 @@ namespace Datahub.Core.Services
 
             var groupIds = await ctx.CatalogObjects
                                     .Include(e => e.ObjectMetadata)
-                                    .AsSplitQuery()
+                                    .AsSingleQuery()
                                     .Where(e => e.GroupId == catalogGroupId.Value)
                                     .Select(e => e.ObjectMetadata.ObjectId_TXT)
                                     .ToListAsync();
