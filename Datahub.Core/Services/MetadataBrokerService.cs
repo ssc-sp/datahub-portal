@@ -6,12 +6,9 @@ using System.Linq;
 using System.Collections.Generic;
 using System;
 using Datahub.Metadata.DTO;
-using ShareWorkflow = Datahub.Portal.Data.Forms.ShareWorkflow;
-using Datahub.Core.Utils;
-using Datahub.Core.Services;
-using Microsoft.Data.SqlClient;
+using Entities = Datahub.Metadata.Model;
 
-namespace Datahub.Portal.Services
+namespace Datahub.Core.Services
 {
     public class MetadataBrokerService : IMetadataBrokerService
     {
@@ -141,44 +138,32 @@ namespace Datahub.Portal.Services
             }
         }
 
-        public async Task<ShareWorkflow.ApprovalForm> GetApprovalForm(int approvalFormId)
+        public async Task<Entities.ApprovalForm> GetApprovalForm(int approvalFormId)
         {
             using var ctx = _contextFactory.CreateDbContext();
-
-            var approvalFormEntity = await GetApprovalFormEntity(ctx, approvalFormId);
-            if (approvalFormEntity != null)
-            {
-                var approvalForm = new ShareWorkflow.ApprovalForm();
-                approvalFormEntity.CopyPublicPropertiesTo(approvalForm, true);
-                return approvalForm;
-            }
-
-            return null;
+            return await GetApprovalFormEntity(ctx, approvalFormId);
         }
 
-        public async Task<int> SaveApprovalForm(ShareWorkflow.ApprovalForm form)
+        public async Task<int> SaveApprovalForm(ApprovalForm form)
         {
             using var ctx = _contextFactory.CreateDbContext();
 
-            var approvalFormEntity = new ApprovalForm();
-            form.CopyPublicPropertiesTo(approvalFormEntity, true);
+            // this is calculated field to simplify the doc generation
+            UpdateRequiresBlanketApproval(form);
 
-            // this is calculated field to simplify the PBI PDF generation
-            UpdateRequiresBlanketApproval(approvalFormEntity);
-
-            if (approvalFormEntity.ApprovalFormId == 0)
+            if (form.ApprovalFormId == 0)
             {
-                ctx.ApprovalForms.Add(approvalFormEntity);
+                ctx.ApprovalForms.Add(form);
             }
             else
             {
-                ctx.Attach(approvalFormEntity);
-                ctx.ApprovalForms.Update(approvalFormEntity);
+                ctx.Attach(form);
+                ctx.ApprovalForms.Update(form);
             }
 
             await ctx.SaveChangesAsync();
 
-            return approvalFormEntity.ApprovalFormId;
+            return form.ApprovalFormId;
         }
 
         public async Task<List<string>> GetSuggestedEnglishKeywords(string text, int max)
@@ -274,20 +259,37 @@ namespace Datahub.Portal.Services
             }
         }
 
-        public async Task<List<CatalogObjectResult>> SearchCatalogEnglish(string searchText)
-        {
-            return await SearchCatalog(searchText, "Search_English_TXT");
-        }
-
-        public async Task<List<CatalogObjectResult>> SearchCatalogFrench(string searchText)
-        {
-            return await SearchCatalog(searchText, "Search_French_TXT");
-        }
-
         public async Task<FieldDefinitions> GetFieldDefinitions()
         {
             using var ctx = _contextFactory.CreateDbContext();
             return await GetLatestMetadataDefinition(ctx);
+        }
+
+        public async Task<List<CatalogObjectResult>> SearchCatalog(CatalogSearchRequest request, Func<CatalogObjectResult, bool> validateResult)
+        {
+            using var ctx = _contextFactory.CreateDbContext();
+
+            var conditions = new List<string>()
+            {
+                GetSearchTextCondition(request.Keywords, request.IsFrench ? "Search_French_TXT" : "Search_English_TXT"),
+                GetOrSearchCondition(request.Classifications, "SecurityClass_TXT"),
+                GetOrSearchCondition(request.ObjectTypes.Select(o => (int)o), "DataType"),
+                GetOrSearchCondition(request.Sectors, "Sector_NUM"),
+                GetOrSearchCondition(request.Branches, "Branch_NUM")
+            };
+            var whereCondition = string.Join(" AND ", conditions.Where(s => !string.IsNullOrEmpty(s)).Select(s => $"({s})"));
+
+            var query = string.IsNullOrEmpty(whereCondition)
+                ? $"SELECT * FROM CatalogObjects WHERE CatalogObjectId > {request.LastPageId}"
+                : $"SELECT * FROM CatalogObjects WHERE CatalogObjectId > {request.LastPageId} AND {whereCondition}";
+
+            var definitions = await GetLatestMetadataDefinition(ctx);
+            var results = await ctx.QueryCatalog(query);
+
+            return results.Select(e => TransformCatalogObject(e, definitions))
+                          .Where(validateResult)
+                          .Take(request.PageSize)
+                          .ToList();
         }
 
         private async Task<ObjectMetadata> GetObjectMetadata(MetadataDbContext ctx, string objectId)
@@ -317,32 +319,14 @@ namespace Datahub.Portal.Services
             return values;
         }
 
-        private async Task<List<CatalogObjectResult>> SearchCatalog(string searchText, string fieldName)
-        {
-            using var ctx = _contextFactory.CreateDbContext();
+        static string GetSearchTextCondition(IEnumerable<string> keywords, string fieldName) => 
+            string.Join(" AND ", keywords.Select(kw => $"{fieldName} LIKE '%{string.Concat(PreProcessSearchText(kw))}%'"));
 
-            var query = PrepareCatalogSearchQuery(searchText, fieldName);
-            if (string.IsNullOrEmpty(query))
-                return new();
+        static string GetOrSearchCondition(IEnumerable<int> values, string fieldName) =>
+            string.Join(" OR ", values.Select(v => $"{fieldName} = {v}"));
 
-            var results = await ctx.QueryCatalog(query);
-
-            return results.Select(TransformCatalogObject).ToList();
-        }
-
-        static string PrepareCatalogSearchQuery(string searchText, string fieldName)
-        {
-            var filteredSearchText = string
-                .Concat(PreProcessSearchText(searchText))
-                .Split(' ', StringSplitOptions.RemoveEmptyEntries)
-                .Select(word => $"{fieldName} LIKE '%{word}%'");
-
-            var whereCondition = string.Join(" AND ", filteredSearchText);
-            if (string.IsNullOrEmpty(whereCondition))
-                return "SELECT * FROM CatalogObjects";
-
-            return $"SELECT * FROM CatalogObjects WHERE {whereCondition}";
-        }
+        static string GetOrSearchCondition(IEnumerable<MetadataClassificationType> values, string fieldName) =>
+            string.Join(" OR ", values.Select(v => $"{fieldName} = '{v}'"));
 
         static IEnumerable<char> PreProcessSearchText(string text)
         {
@@ -350,7 +334,7 @@ namespace Datahub.Portal.Services
             {
                 if (char.IsLetterOrDigit(c))
                     yield return c;
-                else if (char.IsWhiteSpace(c))
+                else if (char.IsWhiteSpace(c) || char.IsPunctuation(c))
                     yield return ' ';
             }
         }
@@ -451,35 +435,52 @@ namespace Datahub.Portal.Services
             return await ctx.ObjectMetadataSet.FirstOrDefaultAsync(m => m.ObjectId_TXT == objectId);
         }
 
-        private static CatalogObjectResult TransformCatalogObject(CatalogObject catObj) => catObj == null ? null : new CatalogObjectResult
+        private static CatalogObjectResult TransformCatalogObject(CatalogObject catObj, FieldDefinitions definitions)
         {
-            ObjectMetadataId = catObj.ObjectMetadataId,
-            DataType = catObj.DataType,
-            Name = catObj.Name_TXT,
-            Location = catObj.Location_TXT,
-            Sector = catObj.Sector_NUM,
-            Branch = catObj.Branch_NUM,
-            Contact = catObj.Contact_TXT,
-            SecurityClass = catObj.SecurityClass_TXT
-        };
+            if (catObj == null)
+                return null;
 
+            return new CatalogObjectResult()
+            {
+                CatalogObjectId = catObj.CatalogObjectId,
+                ObjectMetadataId = catObj.ObjectMetadataId,
+                DataType = catObj.DataType,
+                Name_English = catObj.Name_TXT,
+                Name_French = catObj.Name_French_TXT,
+                Location = catObj.Location_TXT,
+                Sector = catObj.Sector_NUM,
+                Branch = catObj.Branch_NUM,
+                Contact = catObj.Contact_TXT,
+                SecurityClass = catObj.SecurityClass_TXT,
+                Metadata = new FieldValueContainer(catObj.ObjectMetadata.ObjectMetadataId, catObj.ObjectMetadata.ObjectId_TXT, definitions, 
+                    catObj.ObjectMetadata.FieldValues)
+            };
+        } 
 
         public async Task<CatalogObjectResult> GetCatalogObjectByMetadataId(long metadataId)
         {
             using var ctx = await _contextFactory.CreateDbContextAsync();
 
-            var result = await ctx.CatalogObjects.Where(c => c.ObjectMetadataId == metadataId).FirstOrDefaultAsync();
+            var definitions = await GetLatestMetadataDefinition(ctx);
+            var result = await ctx.CatalogObjects.Where(c => c.ObjectMetadataId == metadataId)
+                .Include(e => e.ObjectMetadata)
+                .ThenInclude(s => s.FieldValues)
+                .FirstOrDefaultAsync();
 
-            return await Task.FromResult(TransformCatalogObject(result));
+            return await Task.FromResult(TransformCatalogObject(result, definitions));
         }
 
         public async Task<CatalogObjectResult> GetCatalogObjectByObjectId(string objectId)
         {
             using var ctx = await _contextFactory.CreateDbContextAsync();
 
-            var result = await ctx.CatalogObjects.Where(c => c.ObjectMetadata.ObjectId_TXT == objectId).FirstOrDefaultAsync();
+            var definitions = await GetLatestMetadataDefinition(ctx);
+            var result = await ctx.CatalogObjects.Where(c => c.ObjectMetadata.ObjectId_TXT == objectId)
+                .Include(e => e.ObjectMetadata)
+                .ThenInclude(s => s.FieldValues)
+                .FirstOrDefaultAsync();
 
-            return await Task.FromResult(TransformCatalogObject(result));
+            return await Task.FromResult(TransformCatalogObject(result, definitions));
         }
     }
 }

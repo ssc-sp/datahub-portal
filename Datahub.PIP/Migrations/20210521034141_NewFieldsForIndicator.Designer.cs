@@ -6,7 +6,6 @@ using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Datahub.Portal.Data.PIP;
-using Datahub.Portal.Data.PIP;
 
 namespace Datahub.Portal.Migrations.Forms.PIP
 {

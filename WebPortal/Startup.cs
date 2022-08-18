@@ -39,6 +39,7 @@ using Datahub.Core.Modules;
 using Datahub.Portal.Services.Storage;
 using Microsoft.AspNetCore.Authorization.Infrastructure;
 using MudBlazor.Services;
+using Datahub.GeoCore.Service;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]
 namespace Datahub.Portal
@@ -136,13 +137,14 @@ namespace Datahub.Portal
             // configure db contexts in this method
             ConfigureDbContexts(services);
 
-            services.Configure<DataProjectsConfiguration>(Configuration.GetSection("DataProjects"));
+            services.Configure<DataProjectsConfiguration>(Configuration.GetSection("ProjectTools"));
 
             services.Configure<APITarget>(Configuration.GetSection("APITargets"));
 
             services.Configure<TelemetryConfiguration>(Configuration.GetSection("ApplicationInsights"));
 
             services.Configure<CKANConfiguration>(Configuration.GetSection("CKAN"));
+            services.Configure<GeoCoreConfiguration>(Configuration.GetSection("GeoCore"));
 
             services.Configure<SessionsConfig>(Configuration.GetSection("Sessions"));
 
@@ -299,10 +301,12 @@ namespace Datahub.Portal
             var defaultCulture = cultureSection.GetValue<string>("Default");
             var supportedCultures = cultureSection.GetValue<string>("SupportedCultures");
             var supportedCultureInfos = new HashSet<CultureInfo>(ParseCultures(supportedCultures));
+            
             services.AddJsonLocalization(options =>
             {
                 options.CacheDuration = TimeSpan.FromMinutes(15);
                 options.ResourcesPath = "i18n";
+                options.AdditionalResourcePaths = new[] { $"i18n/{Program.GetDataHubProfile()}" };
                 options.UseBaseName = false;
                 options.IsAbsolutePath = true;
                 options.LocalizationMode = Askmethat.Aspnet.JsonLocalizer.JsonOptions.LocalizationMode.I18n;
@@ -339,7 +343,7 @@ namespace Datahub.Portal
                 services.AddScoped<IUserInformationService, UserInformationService>();
                 services.AddSingleton<IMSGraphService, MSGraphService>();
 
-                services.AddScoped<MyDataService>();
+                services.AddScoped<IMyDataService, MyDataService>();
 
                 services.AddScoped<IPublicDataFileService, PublicDataFileService>();
 
@@ -371,7 +375,7 @@ namespace Datahub.Portal
                 services.AddScoped<IUserInformationService, OfflineUserInformationService>();
                 services.AddSingleton<IMSGraphService, OfflineMSGraphService>();
 
-                services.AddScoped<MyDataService, OfflineMyDataService>();
+                services.AddScoped<IMyDataService, OfflineMyDataService>();
                 
                 services.AddScoped<IProjectDatabaseService, OfflineProjectDatabaseService>();
 
@@ -410,6 +414,8 @@ namespace Datahub.Portal
             services.AddCKANService();
             services.AddSingleton<IOpenDataService, OpenDataService>();
 
+            services.AddGeoCoreService();
+
             services.AddSingleton<IGlobalSessionManager, GlobalSessionManager>();
             services.AddScoped<IUserCircuitCounterService, UserCircuitCounterService>();
 
@@ -424,7 +430,7 @@ namespace Datahub.Portal
         {
             ConfigureDbContext<DatahubProjectDBContext>(services, "datahub-mssql-project", Configuration.GetDriver());
             ConfigureDbContext<PIPDBContext>(services, "datahub-mssql-pip", Configuration.GetDriver());
-            if (Configuration.GetDriver() == DbDriver.SqlServer)
+            if (Configuration.GetDriver() == DbDriver.Azure)
             {
                 ConfigureCosmosDbContext<UserTrackingContext>(services, "datahub-cosmosdb", "datahub-catalog-db");
             }

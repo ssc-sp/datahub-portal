@@ -1,10 +1,12 @@
 ﻿@page "/project/{ProjectAcronym}/powerbirequest"
-@using global::Datahub.Core.Components
-@using global::Datahub.Core.EFCore
-@using global::Datahub.Core.Services
-@using global::Datahub.Portal.Data
-@using global::Datahub.Portal.Services
-@using global::Microsoft.Extensions.Logging
+
+@*@using Datahub.Core.Components
+@using Datahub.Core.EFCore
+@using Datahub.Core.Services
+@using Datahub.Portal.Data
+@using Datahub.Portal.Services
+@using Microsoft.Extensions.Logging
+*@
 
 @inject IDbContextFactory<DatahubProjectDBContext> _contextFactory
 @inject PowerBiServiceApi _powerBiApi

@@ -1,3 +1,4 @@
+@using Datahub.Portal.Data.ProjectResource
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject RequestManagementService _requestManagementService
 
@@ -103,7 +104,7 @@ else
             User_Name = GraphUser.UserPrincipalName
         };
 
-        await _requestManagementService.RequestService(serviceRequest);
+        await _requestManagementService.RequestServiceWithDefaults(serviceRequest);
         _databricksServiceRequested = true;
     }
 

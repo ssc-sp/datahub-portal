@@ -21,7 +21,7 @@ namespace Datahub.Portal.Services
         private readonly IUserInformationService _userInformationService;
         private readonly DataLakeClientService _dataLakeClientService;
         private readonly DataRetrievalService _dataRetrievalService;
-        private readonly MyDataService myDataService;
+        private readonly IMyDataService myDataService;
         private readonly ICognitiveSearchService _cognitiveSearchService;
 
         public DataUpdatingService(ILogger<DataUpdatingService> logger,
@@ -30,7 +30,7 @@ namespace Datahub.Portal.Services
                     DataLakeClientService dataLakeClientService,
                     ICognitiveSearchService cognitiveSearchService,
                     DataRetrievalService dataRetrievalService,
-                    MyDataService myDataService,
+                    IMyDataService myDataService,
                     NavigationManager navigationManager,
                     UIControlsService uiService)
             : base(navigationManager, uiService)

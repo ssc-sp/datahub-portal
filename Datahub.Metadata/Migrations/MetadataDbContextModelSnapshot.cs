@@ -150,6 +150,9 @@ namespace Datahub.Metadata.Migrations
                     b.Property<string>("Location_TXT")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Name_French_TXT")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Name_TXT")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");

@@ -31,7 +31,7 @@ namespace Datahub.Core.Data
 
         public static readonly Icon RESOURCES = new()
         {
-            Name = "fad fa-books",
+            Name = "fad fa-sitemap",
             Color = "purple",
             HexColor = Colors.DeepPurple.Default,
         };
@@ -41,6 +41,12 @@ namespace Datahub.Core.Data
             Name = "fad fa-tools",
             Color = "orange",
             HexColor = Colors.Orange.Default,
+        };
+
+        public static readonly Icon CATALOG = new()
+        {
+            Name = "fad fa-books",
+            Color = "grey",
         };
 
         public static readonly Icon DATASETS = new()

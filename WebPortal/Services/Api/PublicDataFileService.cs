@@ -9,6 +9,7 @@ using Microsoft.Graph;
 using Datahub.Core.Data;
 using Datahub.Core.EFCore;
 using Datahub.Core.Services;
+using Datahub.Core.Templates;
 using System.Net;
 using Datahub.Portal.Components;
 using Datahub.Portal.Services.Storage;
@@ -29,7 +30,6 @@ namespace Datahub.Portal.Services
     {
         private readonly DatahubProjectDBContext _projectDbContext;
         private readonly DataRetrievalService dataRetrievalService;
-        private readonly MyDataService _apiService;
         private readonly ILogger<IPublicDataFileService> _logger;
         private readonly IMetadataBrokerService _metadataService;
         private readonly IDatahubAuditingService _datahubAuditingService;
@@ -39,7 +39,6 @@ namespace Datahub.Portal.Services
         public static readonly string PUBLIC_FILE_SHARING_CONFIG_ROOT_KEY = "PublicFileSharing";
 
         public PublicDataFileService(
-            MyDataService apiService,
             DatahubProjectDBContext projectDbContext,
             DataRetrievalService dataRetrievalService,
             ILogger<IPublicDataFileService> logger,
@@ -49,7 +48,6 @@ namespace Datahub.Portal.Services
             IConfiguration config
         )
         {
-            _apiService = apiService;
             _projectDbContext = projectDbContext;
             this.dataRetrievalService = dataRetrievalService;
             _logger = logger;
@@ -456,18 +454,32 @@ namespace Datahub.Portal.Services
             await _projectDbContext.TrackSaveChangesAsync(_datahubAuditingService);
         }
 
-        public async Task NotifySignedPDFUploaded()
+        public async Task NotifySignedDocumentUploaded()
         {
             Dictionary<string, object> parameters = new()
             {
                 { "UserName", _config.OpenDataApproverName },
-                { "Url", _emailNotificationService.BuildAppLink("/opendata/dashboard") }
+                { "Url", _emailNotificationService.BuildAppLink("/share/dashboard") }
             };
             
-            var emailBody = await _emailNotificationService.RenderTemplate<OpenDataApprovalNotificationEmail>(parameters);
+            var emailBody = await _emailNotificationService.RenderTemplate<RequestForApprovalNotificationEmail>(parameters);
             var emailRecipients = new List<string>() { _config.OpenDataApproverEmail };
 
             await _emailNotificationService.SendEmailMessage(_config.OpenDataApproverEmailSubject, emailBody, emailRecipients, true);
+        }
+
+        public async Task NotifySignedDocumentApproved(string userName, string email, string requestTitle, string url)
+        {
+            Dictionary<string, object> parameters = new()
+            {
+                { "UserName", userName },
+                { "Url", _emailNotificationService.BuildAppLink(url) },
+                { "RequestTitle", requestTitle }
+            };
+            var emailBody = await _emailNotificationService.RenderTemplate<ShareApprovedNotificationEmail>(parameters);
+            var emailRecipients = new List<string>() { email };
+
+            await _emailNotificationService.SendEmailMessage("Share approved / Partage approuvé", emailBody, emailRecipients, true);
         }
     }
 }

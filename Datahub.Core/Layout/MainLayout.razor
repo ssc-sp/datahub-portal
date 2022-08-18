@@ -7,9 +7,9 @@
 @using System.Security.Principal
 
 
+@inject IMyDataService _apiService
 @inject ISnackbar _snackbar
 @inject AchievementService _achievementsService
-@inject MyDataService _apiService
 @inject IDatahubAuditingService _auditingService
 @inject IUserCircuitCounterService _userCircuitCounterService
 @inject MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
@@ -93,7 +93,6 @@
 
     private MudTheme _theme;
     private string _style;
-    bool _drawerOpen = true;
 
     protected override void OnParametersSet()
     {

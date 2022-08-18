@@ -241,7 +241,7 @@
     private void ToggleVisibility(IModelFormContext context)
     {
         context.SetVisible<M365FormsApplication>(p => p.Other_Txt!, m365FormApplication?.Other == true);
-        context.SetVisible<M365FormsApplication>(p => p.Expected_Lifespan_DT, m365FormApplication?.Ongoing_Lifespan != true);
+        context.SetVisible<M365FormsApplication>(p => p.Expected_Lifespan_DT!, m365FormApplication?.Ongoing_Lifespan != true);
         context.SetVisible<M365FormsApplication>(p => p.M365FormStatus!, _isUserAdmin);
         context.SetVisible<M365FormsApplication>(p => p.Comments!, _isUserAdmin);
         context.SetVisible<M365FormsApplication>(p => p.IsOrganizationalTeam!, _isUserAdmin);
