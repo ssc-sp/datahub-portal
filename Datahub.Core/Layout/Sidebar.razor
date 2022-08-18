@@ -54,7 +54,7 @@
         var user = await _userInformationService.GetUserAsync();
         _authorizedLinks = GetAuthorizedLinks(user.Id);
         
-        _userHasInitiatives = !(await UserInformationService.IsUserWithoutInitiatives());
+        _userHasInitiatives = !(await _userInformationService.IsUserWithoutInitiatives());
         _navTextStyle = new StyleBuilder()
             .AddStyle("font-size", ".5rem")
             .AddStyle("text-transform", "uppercase")
