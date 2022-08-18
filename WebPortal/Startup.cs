@@ -117,6 +117,7 @@ namespace Datahub.Portal
             services.AddScoped<TimeZoneService>();
             services.AddAchievementService(opts =>
             {
+                opts.Enabled = Configuration.GetValue("Achievements:Enabled", false);
                 opts.AchievementDirectoryPath = "../Datahub.Achievements/Achievements";
             });
             

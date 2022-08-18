@@ -16,5 +16,6 @@ public static class AchievementServiceCollectionExtension
 
 public class AchievementServiceOptions
 {
+    public bool Enabled { get; set; } = false;
     public string AchievementDirectoryPath { get; set; } = "./Achievements";
 }
