@@ -3,7 +3,12 @@
 @using Microsoft.Identity.Web
 @using Datahub.Core.Components.TopBar
 @using MudBlazor.Utilities
+@using Datahub.Achievements
+@using System.Security.Principal
 
+
+@inject ISnackbar _snackbar
+@inject AchievementService _achievementsService
 @inject MyDataService _apiService
 @inject IDatahubAuditingService _auditingService
 @inject IUserCircuitCounterService _userCircuitCounterService
@@ -16,65 +21,70 @@
 
 <PageTitle>@Localizer[_configuration["Title"]]</PageTitle>
 
-<CascadingValue Value="_theme"></CascadingValue>
-<AuthorizeView>
-    <Authorized>
-        <MudLayout Style="@_style">
-            <MudAppBar Elevation="0">
-                <Topbar/>
-            </MudAppBar>
-            <MudDrawer
-                Open
-                Elevation="0"
-                ClipMode="DrawerClipMode.Always">
-                <Sidebar/>
-            </MudDrawer>
-            <MudMainContent>
-                <div class="application-wrapper">
-                    <div class="main-layout">
-                        <div class="ui-control">
-                            <div class="main-page">
-                                <ErrorBoundary @ref="_errorBoundary">
-                                    <ChildContent>
-                                        @if (_isSessionEnabled == true)
-                                        {
-                                            @Body
-                                        }
-                                        @if (_isSessionEnabled == false)
-                                        {
-                                            <TooManyTabs/>
-                                        }
-                                    </ChildContent>
-                                    <ErrorContent Context="ex">
-                                        @if (HandleException(@ex))
-                                        {
-                                            <Error CorrelationId=@_correlationId/>
-                                        }
-                                        else
-                                        {
-                                            @Body
-                                        }
+<CascadingValue Value="_theme">
+    <AuthorizeView>
+        <Authorized>
+            <CascadingValue Value="_userTelemetry">
+                <MudLayout Style="@_style">
+                    <MudAppBar Elevation="0">
+                        <Topbar/>
+                    </MudAppBar>
+                    <MudDrawer
+                        Open
+                        Elevation="0"
+                        ClipMode="DrawerClipMode.Always">
+                        <Sidebar/>
+                    </MudDrawer>
+                    <MudMainContent>
+                        <div class="application-wrapper">
+                            <div class="main-layout">
+                                <div class="ui-control">
+                                    <div class="main-page">
+                                        <ErrorBoundary @ref="_errorBoundary">
+                                            <ChildContent>
+                                                @if (_isSessionEnabled == true)
+                                                {
+                                                    @Body
+                                                }
+                                                @if (_isSessionEnabled == false)
+                                                {
+                                                    <TooManyTabs/>
+                                                }
+                                            </ChildContent>
+                                            <ErrorContent Context="ex">
+                                                @if (HandleException(@ex))
+                                                {
+                                                    <Error CorrelationId=@_correlationId/>
+                                                }
+                                                else
+                                                {
+                                                    @Body
+                                                }
 
-                                    </ErrorContent>
-                                </ErrorBoundary>
+                                            </ErrorContent>
+                                        </ErrorBoundary>
+                                    </div>
+                                    <RightSidebar/>
+                                    <Modal/>
+                                </div>
                             </div>
-                            <RightSidebar/>
-                            <Modal/>
                         </div>
-                    </div>
-                </div>
-            </MudMainContent>
-        </MudLayout>
-    </Authorized>
-    <NotAuthorized>
-        <div>@Localizer["ERROR-PAGE.ConnectionLost-Label"]</div>
-    </NotAuthorized>
-</AuthorizeView>
+                    </MudMainContent>
+                </MudLayout>
+            </CascadingValue>
+        </Authorized>
+        <NotAuthorized>
+            <div>@Localizer["ERROR-PAGE.ConnectionLost-Label"]</div>
+        </NotAuthorized>
+    </AuthorizeView>
+</CascadingValue>
 
 @code
 {
     [CascadingParameter]
     private Task<AuthenticationState> _authenticationStateTask { get; set; }
+
+    private DatahubUserTelemetry _userTelemetry;
 
     private ErrorBoundary _errorBoundary;
     private string _correlationId;
@@ -141,6 +151,22 @@
             _consentHandler.HandleException(ex);
         }
         await _apiService.SetupUserFolders();
+
+
+        await SetupAchievementNotifications(user);
+    }
+
+    private async Task SetupAchievementNotifications(IPrincipal user)
+    {
+    // fetch telemtery data
+        await Task.Delay(100);
+        _userTelemetry = new DatahubUserTelemetry()
+        {
+            UserId = user.Identity?.Name
+        };
+
+        _snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopCenter;
+        _achievementsService.AchievementEarned += (_, e) => { _snackbar.Add(e.Achievement!.Name, Severity.Normal, config => { config.Icon = e.Achievement!.Icon; }); };
     }
 
     private bool IsValidException(Exception ex)

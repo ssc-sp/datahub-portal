@@ -88,6 +88,9 @@
 	<ItemGroup>
 	  <Folder Include="Services\Achievements" />
 	</ItemGroup>
+	<ItemGroup>
+	  <ProjectReference Include="..\Datahub.Achievements\Datahub.Achievements.csproj" />
+	</ItemGroup>
 
 	<Target Name="CopyCustomContent" AfterTargets="AfterBuild">
 		<Copy SourceFiles="@(GitHookFiles)" DestinationFolder="../.git/hooks/" SkipUnchangedFiles="true" />
