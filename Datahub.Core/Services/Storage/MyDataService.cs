@@ -22,7 +22,7 @@ using Datahub.Portal.Services.Storage;
 
 namespace Datahub.Core.Services
 {
-    public class MyDataService
+    public class MyDataService: IMyDataService
     {
         private IOptions<APITarget> _targets;
         private DataLakeClientService _dataLakeClientService;

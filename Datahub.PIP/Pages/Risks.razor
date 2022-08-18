@@ -115,7 +115,6 @@
     private PIP_Risks _risk;
     private List<PIP_Tombstone> _tombstones;
     private PIP_Tombstone _tombstone;
-    private bool _navToEdit = false;
     private string SubmitLabel = "Save";
     private Microsoft.Graph.User CurrentUser;
     private string navigationUrl = string.Empty;
@@ -267,7 +266,7 @@
     {
         _risk = null;
         StateHasChanged();
-        return null;
+        return await Task.FromResult((PIP_Risks)null);
     }
 
   
@@ -287,7 +286,6 @@
 
             SubmitLabel = "Save";
             StateHasChanged();
-            _navToEdit = true;
         }
     }
 
@@ -327,11 +325,10 @@
 	    "Risk Title","Risk Description", "Risk Area", "Inherent Risk Level", "Residual Risk Level", "Target Risk Level", "Admin Tasks"
     };
 
-    private async Task CreateNewRisk()
+    private void CreateNewRisk()
     {
         _risk = new PIP_Risks() { PIP_Tombstone = _tombstone, Last_Updated_DT = DateTime.Now };
         StateHasChanged();
-        _navToEdit = true;
     }
 
     public string GetDataLabel(string propName)
@@ -339,12 +336,12 @@
         return DataLocalizer[propName];
     }
 
-    private async Task OnChange(ModelFormChangeArgs args)
+    private void OnChange(ModelFormChangeArgs args)
     {
         StateHasChanged();
     }
 
-    private async Task OnConfigure(IModelFormContext context)
+    private void OnConfigure(IModelFormContext context)
     {
         context.RegisterOptionValueProperty<PIP_Risks>(r => r.Risk_Category, () => new[] { "Strategic", "Operational" });
 

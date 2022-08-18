@@ -8,8 +8,12 @@ namespace Datahub.Portal.Data
 {
     public class PowerBiManagementConstants
     {
-        public static readonly string POWERBI_MANAGEMENT_LOCALIZATION_ROOT_KEY = "POWER_BI_MANAGEMENT";
-        public readonly static string SANDBOX_WORKSPACE_SUFFIX = "[Development]";
+        public const string POWERBI_MANAGEMENT_LOCALIZATION_ROOT_KEY = "POWER_BI_MANAGEMENT";
+        public const string SANDBOX_WORKSPACE_SUFFIX = "[Development]";
+
+        public const string TITLE_EN_METADATA_FIELD = "title_translated_en";
+        public const string TITLE_FR_METADATA_FIELD = "title_translated_fr";
+        public const string CONTACT_INFO_METADATA_FIELD = "contact_information";
     }
 
     public class PowerBiAdminDatasetTreeItem
@@ -39,6 +43,8 @@ namespace Datahub.Portal.Data
         private string _dbDatasetName;
         private Guid? _pbiWorkspaceId;
         private Guid? _dbWorkspaceId;
+
+        private int? _projectId;
 
         private readonly Dataset _pbiDataset;
         private readonly PowerBi_DataSet _dbDataset;
@@ -78,9 +84,17 @@ namespace Datahub.Portal.Data
             set => _pbiWorkspaceId = value;
         }
 
+        public int ProjectId
+        {
+            get => _projectId ?? -1;
+            set => _projectId = (value < 0) ? null : value;
+        }
+
+        public bool IsLinkedToProject => _projectId != null;
+
         public Guid AnyWorkspaceId => _pbiWorkspaceId ?? _dbWorkspaceId ?? Guid.Empty;
         public PowerBi_DataSetDefinition Definition => new(_datasetId, _pbiDatasetName ?? _dbDatasetName, AnyWorkspaceId);
-        public PowerBiAdminTreeItem ManagementTreeItem => new(DbDatasetName, PowerBiAdminTreeItemType.Dataset, DatasetId);
+        public PowerBiAdminTreeItem ManagementTreeItem => new(DbDatasetName, PowerBiAdminTreeItemType.Dataset, DatasetId, _projectId);
     }
 
     public class PowerBiAdminReportTreeItem
@@ -102,6 +116,8 @@ namespace Datahub.Portal.Data
         private string _dbReportName;
         private Guid? _pbiWorkspaceId;
         private Guid? _dbWorkspaceId;
+
+        private int? _projectId;
 
         private readonly Report _pbiReport;
         private readonly PowerBi_Report _dbReport;
@@ -141,9 +157,32 @@ namespace Datahub.Portal.Data
             set => _dbWorkspaceId = value;
         }
 
+        public int ProjectId
+        {
+            get => _projectId ?? -1;
+            set => _projectId = (value < 0) ? null : value;
+        }
+
+        public bool IsLinkedToProject => _projectId != null;
+
+        public Guid? DatasetId
+        {
+            get
+            {
+                if (Guid.TryParse(_pbiReport?.DatasetId, out var datasetId))
+                {
+                    return datasetId;
+                }
+                else
+                {
+                    return null;
+                }
+            }
+        }
+
         public Guid AnyWorkspaceId => _pbiWorkspaceId ??_dbWorkspaceId ?? Guid.Empty;
         public PowerBi_ReportDefinition Definition => new(_reportId, _pbiReportName ?? _dbReportName, AnyWorkspaceId);
-        public PowerBiAdminTreeItem ManagementTreeItem => new(DbReportName, PowerBiAdminTreeItemType.Report, ReportId);
+        public PowerBiAdminTreeItem ManagementTreeItem => new(DbReportName, PowerBiAdminTreeItemType.Report, ReportId, _projectId);
     }
 
     public class PowerBiAdminWorkspaceTreeItem
@@ -157,8 +196,7 @@ namespace Datahub.Portal.Data
             _workspaceId = pbiWorkspace?.Id ?? dbWorkspace?.Workspace_ID ?? Guid.Empty;
             _dbWorkspaceName = dbWorkspace?.Workspace_Name;
             _pbiWorkspaceName = pbiWorkspace?.Name;
-            _sandboxFlag = dbWorkspace?.Sandbox_Flag ?? false;
-            _projectId = dbWorkspace?.Project_Id;
+            RevertProjectAssignment();
         }
 
         private Guid _workspaceId;
@@ -179,6 +217,14 @@ namespace Datahub.Portal.Data
         public bool NeedsUpdate => !IsInDb || ChildrenNeedUpdate || _nameWasChanged;
         public bool ChildrenNeedUpdate => Datasets.Any(d => d.NeedsUpdate) || Reports.Any(r => r.NeedsUpdate);
         private bool _nameWasChanged => PbiWorkspaceName != null && DbWorkspaceName != null && PbiWorkspaceName != DbWorkspaceName;
+
+        public bool ProjectAssignmentChanged => _dbWorkspace == null || _dbWorkspace.Sandbox_Flag != _sandboxFlag || _dbWorkspace.Project_Id != _projectId;
+
+        public void RevertProjectAssignment()
+        {
+            _sandboxFlag = _dbWorkspace?.Sandbox_Flag ?? false;
+            _projectId = _dbWorkspace?.Project_Id;
+        }
 
         public Guid WorkspaceId
         {
@@ -223,7 +269,7 @@ namespace Datahub.Portal.Data
         }
 
         public PowerBi_WorkspaceDefinition Definition => new(_workspaceId, _pbiWorkspaceName ?? _dbWorkspaceName, _sandboxFlag, _projectId);
-        public PowerBiAdminTreeItem ManagementTreeItem => new(DbWorkspaceName, PowerBiAdminTreeItemType.Workspace, WorkspaceId);
+        public PowerBiAdminTreeItem ManagementTreeItem => new(DbWorkspaceName, PowerBiAdminTreeItemType.Workspace, WorkspaceId, _projectId);
     }
 
 
@@ -236,25 +282,25 @@ namespace Datahub.Portal.Data
         Report
     }
 
-    /*
-     *  root
-     *      project
-     *          workspace
-     *              container (datasets)
-     *                  dataset
-     *              container (reports)
-     *                  report
-     * */
-
     public class PowerBiAdminTreeItem
     {
-        public PowerBiAdminTreeItem(string label, PowerBiAdminTreeItemType itemType, Guid id = default)
+        public PowerBiAdminTreeItem(string label, PowerBiAdminTreeItemType itemType, Guid id = default, int? projectId = null)
         {
             Label = label;
             ItemType = itemType;
             Children = new();
             Id = id;
+            _projectId = projectId;
         }
+
+        private static readonly Dictionary<PowerBiAdminTreeItemType, string> ICON_MAP = new()
+        {
+            { PowerBiAdminTreeItemType.Project, "project-diagram" },
+            { PowerBiAdminTreeItemType.Workspace, "folder-open" },
+            { PowerBiAdminTreeItemType.Dataset, "table" },
+            { PowerBiAdminTreeItemType.Report, "chart-bar" },
+            { PowerBiAdminTreeItemType.Container, "inbox" }
+        };
 
         public Guid Id { get; private set; }
         public string Label { get; private set; }
@@ -263,6 +309,13 @@ namespace Datahub.Portal.Data
         public void AddChild(PowerBiAdminTreeItem item) => Children.Add(item);
         public void AddChildren(IEnumerable<PowerBiAdminTreeItem> items) => Children.AddRange(items);
         public bool HasChildren => Children.Count > 0;
+        private int? _projectId;
+        public int ProjectId
+        {
+            get => _projectId ?? -1;
+            set => _projectId = (value < 0) ? null : value;
+        }
+        public string Icon => ICON_MAP[ItemType];
     }
 
     public class PowerBiAdminGroupUser

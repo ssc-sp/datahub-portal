@@ -17,8 +17,6 @@
         SetFormEditRecord="SetFormEdit"
         Context=@Context/>
 
-
-
 @code {
     private List<SectorAndBranch> _sectors;
     private SectorAndBranch _sector;
@@ -26,7 +24,6 @@
     private FinanceDBContext Context;
 
     private int _lastClicked = 0;
-    private IPageableComponent _myTable;
 
     private FormMetadata<SectorAndBranch> _formMetadata = new();
 
@@ -35,13 +32,12 @@
         _lastClicked = pageIndex;
     }
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
         // load projects
         Context = DbFactory.CreateDbContext();
         _sectors = Context.SectorAndBranches.ToList();
         _sectorLookup = Context.Sectors.Include(s => s.Branches).ToList();
-
 
         _formMetadata.Header = "Finance Forms";
         _formMetadata.SubHeader = "Step 1: Select/Enter Sector and Branch Information";
@@ -50,7 +46,6 @@
         _formMetadata.Headers = headers;
         _formMetadata.GridTemplateColumns = "4fr 8fr";
     }
-
 
     private async Task GoToNextSheet()
     {
@@ -85,18 +80,15 @@
         StateHasChanged();
     }
 
-    private async Task CreateNewProject()
+    private void CreateNewProject()
     {
         var defaultBranch = _sectorLookup.Where(s => s.SectorId == 1).First().Branches.Where(b => b.BranchId == 1).First();
         _sector = new SectorAndBranch() { Last_Updated_DT = DateTime.Now, Sector = _sectorLookup.Where(s => s.SectorId == 1).First(), Branch = defaultBranch };
         StateHasChanged();
     }
 
-
     private async Task HandleValidSubmit()
     {
-
-
         if (_sector != null)
         {
 
@@ -128,7 +120,7 @@
     {
         _sector = null;
         StateHasChanged();
-        return null;
+        return await Task.FromResult((SectorAndBranch)null);
     }
 
     private string GetDataLabel(string propName)
@@ -136,7 +128,7 @@
         return DataLocalizer[propName];
     }
 
-    private async Task OnConfigure(IModelFormContext context)
+    private void OnConfigure(IModelFormContext context)
     {
         context.RegisterOptionValueProperty<SectorAndBranch>(s => s.Sector_TXT, () => _sectorLookup.Select(s => s.SectorNameEn));
 
@@ -148,20 +140,22 @@
 
         //(s => branchesList.AddRange(s.Branches));
         context.RegisterOptionValueProperty<SectorAndBranch>(s => s.Branch_TXT, () => branchesList.Select(bn => bn.BranchNameEn));
-
     }
 
-    private async Task OnChange(ModelFormChangeArgs args)
-    {
-        var context = args.Context;
-        if (args.HasPropertyChanged<SectorAndBranch>(s => s.Sector_TXT))
-        {
-            // _sector = _sectorLookup.Where(s => s.SectorNameEn == args.EditContext.)
+    //private async Task OnChange(ModelFormChangeArgs args)
+    //{
+    //    var context = args.Context;
+    //    if (args.HasPropertyChanged<SectorAndBranch>(s => s.Sector_TXT))
+    //    {
+    //        // _sector = _sectorLookup.Where(s => s.SectorNameEn == args.EditContext.)
 
-            var branchesList = _sectorLookup.Where(s => s.SectorId == _sector.Sector.SectorId).FirstOrDefault().Branches;
-            context.RegisterOptionValueProperty<SectorAndBranch>(s => s.Branch_TXT, () => branchesList.Select(bn => bn.BranchNameEn));
-        }
+    //        var branchesList = _sectorLookup.Where(s => s.SectorId == _sector.Sector.SectorId).FirstOrDefault().Branches;
+    //        context.RegisterOptionValueProperty<SectorAndBranch>(s => s.Branch_TXT, () => branchesList.Select(bn => bn.BranchNameEn));
+    //    }
+    //}
+
+    public void Dispose() 
+    { 
+        Context.Dispose(); 
     }
-
-    public void Dispose() { Context.Dispose(); }
 }

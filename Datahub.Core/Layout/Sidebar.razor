@@ -1,3 +1,4 @@
+@*Sidebar.razor*@
 @using Datahub.Core.Data
 @using Datahub.Core.Utils
 @using Datahub.Portal.Services
@@ -5,6 +6,8 @@
 
 @inject ServiceAuthManager ServiceAuthManager
 @inject IUserInformationService _userInformationService
+@inject IConfiguration Configuration
+
 
 <MudNavMenu Bordered>
     @foreach (var (href, icon, label) in GetLinks())
@@ -40,7 +43,6 @@
 @code {
 
     private string _navTextStyle;
-    private string _navLinkStyle;
 
     private List<(string Href, Icon Icon, string Label, List<string> Roles)> _authorizedLinks = new();
 
@@ -71,7 +73,7 @@
 
     private List<(string Href, Icon Icon, string Label)> GetLinks()
     {
-        return new List<(string, Icon, string)>()
+        return new()
         {
             ("/home", Icon.HOME, "SIDEBAR.Home"),
             ($"/{UrlPathSegment.PROJECTS}", Icon.PROJECT, "SIDEBAR.DataProjects"),
@@ -85,7 +87,7 @@
         var projects = ServiceAuthManager.GetAdminProjectRoles(userId);
         if (projects.Any())
         {
-            return new List<(string, Icon, string, List<string>)>()
+            return new()
             {
                 ("/administration", Icon.ADMIN, "SIDEBAR.Admin", projects),
             };
@@ -94,4 +96,8 @@
         return new List<(string, Icon, string, List<string>)>();
     }
 
+    private bool IsFeatureEnabled(string name)
+    {
+        return Configuration[name] == "enabled";
+    }
 }

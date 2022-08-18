@@ -71,7 +71,7 @@
         "Date","Comment"
     };
 
-    private async Task AddNewComment()
+    private void AddNewComment()
     {
         _comment = new Datahub_ProjectComment() { Comment_Date_DT = DateTime.Now, Project = _project };
         StateHasChanged();
@@ -85,9 +85,10 @@
     };
 
     private DatahubProjectDBContext projectContext;
+
     //Service Types - 1 = DataBricks, 2 = PowerBi
     //Service Status - 0 = pending creation, 1 = created
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
         projectContext = DbFactoryProject.CreateDbContext();   
         _project = projectContext.Projects.Include(p => p.Comments)

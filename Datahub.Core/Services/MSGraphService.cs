@@ -1,15 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
 using Microsoft.Graph.Auth;
 using Microsoft.Identity.Client;
-using Microsoft.Identity.Web;
 using Datahub.Core.Data;
 using System.Threading;
 
@@ -17,93 +14,67 @@ namespace Datahub.Core.Services
 {
     public class MSGraphService : IMSGraphService
     {
-        private GraphServiceClient graphServiceClient;
-        private IConfiguration _configuration;
-        private ILogger<MSGraphService> _logger;
-        private IHttpClientFactory _httpClientFactory;
+        private readonly IConfiguration _configuration;
+        private readonly ILogger<MSGraphService> _logger;
+        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IKeyVaultService _keyVaultService;
+        private GraphServiceClient _graphServiceClient;
 
         public Dictionary<string, GraphUser> UsersDict { get; set; }
 
-        public MSGraphService(IConfiguration configureOptions, 
-            ILogger<MSGraphService> logger,
-            IHttpClientFactory clientFactory)
+        public MSGraphService(IConfiguration configureOptions, ILogger<MSGraphService> logger, IHttpClientFactory clientFactory,
+            IKeyVaultService keyVaultService)
         {
-            //clientSecret = configuration["ClientAppSecret"];            
             _configuration = configureOptions;
             _logger = logger;
             _httpClientFactory = clientFactory;
-        }
-    
-        public async Task<GraphUser> GetUserAsync(string userId, CancellationToken tkn = default)
-        {
-            PrepareAuthenticatedClient();
-            try
-            {
-                var user = await graphServiceClient.Users.Request()
-                    .Filter($"(id eq '{userId}') Or (mail eq '{userId}')")
-                    .GetAsync(tkn);
-                return user == null ? null : GraphUser.Create(user[0]);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error fetching user: {userId}: {ex.Message}");
-            }
-            return new GraphUser();
+            _keyVaultService = keyVaultService;
         }
 
-        public async Task<string> GetUserName(string userId, CancellationToken tkn)
+        public async Task<GraphUser> GetUserAsync(string userId, CancellationToken token)
+        {
+            return await QueryUserAsync($"id eq '{userId}'", token);
+        }
+
+        public async Task<GraphUser> GetUserFromEmailAsync(string email, CancellationToken token)
+        {
+            return await QueryUserAsync($"mail eq '{email}'", token);
+        }
+
+        public async Task<string> GetUserName(string userId, CancellationToken token)
         {
             if (!string.IsNullOrWhiteSpace(userId))
-            {             
-                var user = await GetUserAsync(userId, tkn);
+            {
+                var user = await GetUserAsync(userId, token);
                 return user?.DisplayName ?? "...";
             }
-
             return "...";
         }
 
-
-
-        public async Task<string> GetUserEmail(string userId, CancellationToken tkn)
+        public async Task<string> GetUserEmail(string userId, CancellationToken token)
         {
-            var user = await GetUserAsync(userId, tkn);
+            var user = await GetUserAsync(userId, token);
             return user?.Mail;
         }
 
-
-
-        public async Task<string> GetUserIdFromEmailAsync(string email, CancellationToken tkn)
+        public async Task<string> GetUserIdFromEmailAsync(string email, CancellationToken token)
         {
-            PrepareAuthenticatedClient();
-            try
-            {
-                var user = await graphServiceClient.Users.Request()
-                    .Filter($"mail eq '{email}'")
-                    .GetAsync(tkn);
-                return user[0].Id ?? string.Empty;
-            }
-            catch(Exception ex)
-            {
-                _logger.LogError($"Error fetching user id for email: {email}: {ex.Message}");
-            }
-
-            return string.Empty;
+            var user = await GetUserFromEmailAsync(email, token);
+            return user?.Id ?? string.Empty;
         }
-        
 
-        public async Task<Dictionary<string, GraphUser>> GetUsersListAsync(string filterText, CancellationToken tkn)
+        public async Task<Dictionary<string, GraphUser>> GetUsersListAsync(string filterText, CancellationToken token)
         {
             Dictionary<string, GraphUser> users = new();
-            PrepareAuthenticatedClient();
+            await PrepareAuthenticatedClient();
 
             var options = new List<Option>();
-            options.Add(new QueryOption("$filter",$"startswith(mail,'{filterText}')"));
+            options.Add(new QueryOption("$filter", $"startswith(mail,'{filterText}')"));
             options.Add(new HeaderOption("ConsistencyLevel", "eventual"));
             options.Add(new QueryOption("$count", "true"));
 
 
-            var usersPage = await graphServiceClient.Users.Request(options)                
-                .GetAsync(tkn);
+            var usersPage = await _graphServiceClient.Users.Request(options).GetAsync(token);
 
             if (usersPage?.CurrentPage.Count > 0)
             {
@@ -127,25 +98,25 @@ namespace Datahub.Core.Services
 
             return users;
         }
- 
-        private void PrepareAuthenticatedClient()
+
+        private async Task PrepareAuthenticatedClient()
         {
-            if (graphServiceClient == null)
+            if (_graphServiceClient == null)
             {
+                var clientSecret = await _keyVaultService.GetClientSecret();
                 try
                 {
-                    //var graphService = _configuration.GetValue<MicrosoftIdentityOptions>("AzureAd");
                     IConfidentialClientApplication confidentialClientApplication = ConfidentialClientApplicationBuilder
                                     .Create(_configuration.GetSection("AzureAd").GetValue<string>("ClientId"))
                                     .WithTenantId(_configuration.GetSection("AzureAd").GetValue<string>("TenantId"))
-                                    .WithClientSecret(_configuration.GetSection("AzureAd").GetValue<string>("ClientSecret"))
+                                    .WithClientSecret(clientSecret)
                                     .Build();
                     ClientCredentialProvider authProvider = new ClientCredentialProvider(confidentialClientApplication);
 
                     var httpClient = _httpClientFactory.CreateClient();
-                    graphServiceClient = new GraphServiceClient(httpClient);
+                    _graphServiceClient = new(httpClient);
 
-                    graphServiceClient.AuthenticationProvider = authProvider;
+                    _graphServiceClient.AuthenticationProvider = authProvider;
 
                 }
                 catch (Exception e)
@@ -154,6 +125,21 @@ namespace Datahub.Core.Services
                     throw;
                 }
             }
+        }
+
+        private async Task<GraphUser> QueryUserAsync(string filter, CancellationToken token)
+        {
+            await PrepareAuthenticatedClient();
+            try
+            {
+                var user = await _graphServiceClient.Users.Request().Filter(filter).GetAsync(token);
+                return user == null ? null : GraphUser.Create(user[0]);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error fetching user: {filter}: {ex.Message}");
+            }
+            return new();
         }
     }
 }
