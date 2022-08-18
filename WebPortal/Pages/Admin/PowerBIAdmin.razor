@@ -451,18 +451,7 @@
     private PowerBiAdminReportTreeItem ReportBeingEdited { get; set; }
     private string _groupWithId;
 
-    private bool IncludeCurrentItemInCatalog 
-    { 
-        get => ReportBeingEdited?.InCatalog == true; 
-        set
-        {
-            if (ReportBeingEdited is not null)
-            {
-                ReportBeingEdited.InCatalog = value;
-            }
-        }
-    }
-
+    private bool IncludeCurrentItemInCatalog { get; set; } = true;
     private bool DisabledReportGrouping => !IncludeCurrentItemInCatalog;
 
     private ObjectMetadataEditor _workspaceMetadata;
@@ -644,6 +633,7 @@
                 ReportBeingEdited = new(pbiReport, report, null);
                 ReportBeingEdited.ProjectId = item.ProjectId;
                 ReportBeingEdited.SiblingReports = await GetReportsForGrouping(report);
+                IncludeCurrentItemInCatalog = report.InCatalog;
                 _groupWithId = await GetGroupedWidth(report);
             }
         }
