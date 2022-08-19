@@ -1,8 +1,7 @@
 ﻿@page "/metadata/definitions"
-@inject NavigationManager NavigationManager
+
 @inject ServiceAuthManager ServiceAuthManager
-@using Datahub.Metadata.Model
-@using Datahub.Metadata.DTO
+@inject IUserInformationService _userInformationService
 
 <DHPageTitle PageTitleKey=@Localizer["Metadata Definitions"] />
 <AuthorizeView Roles="@string.Join(',', _authorizedRoles)">
@@ -33,8 +32,11 @@
 
     private List<string> _authorizedRoles = new();
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        _authorizedRoles = ServiceAuthManager.GetAdminProjectRoles();
+        await base.OnInitializedAsync();
+        
+        var user = await _userInformationService.GetUserAsync();
+        _authorizedRoles = ServiceAuthManager.GetAdminProjectRoles(user.Id);
     }
 }

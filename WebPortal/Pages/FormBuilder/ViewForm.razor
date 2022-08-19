@@ -124,7 +124,7 @@
     {
         null,
         (f => @<a href=@($"/{UrlPathSegment.PROJECTS}/{f.WebForm.Project.Project_Acronym_CD}/forms/fields/{f.FieldID}")>@f.Field_DESC</a>),
-        (f => f.Mandatory_FLAG? @<AeIcon class="fas fa-asterisk" /> : @<span></span>
+        (f => f.Mandatory_FLAG? @<MudIcon Icon="fas fa-asterisk" /> : @<span></span>
     ),
         null,
         null
