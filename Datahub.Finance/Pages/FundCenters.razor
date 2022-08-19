@@ -104,16 +104,23 @@
 
     private void LoadSortExpressions()
     { 
-        var parameterExpression = Expression.Parameter(typeof(FundCenter), "f");
-        Expression prop = parameterExpression;
+        var parameterExpression = Expression.Parameter(typeof(FundCenter), "f");        
+        var lambda = GetLambaExpression("Branch.FundCenterNameEnglish", parameterExpression);
+        _sortAccessors.Add("branch", lambda.Compile());
+        lambda = GetLambaExpression("Sector.FundCenterNameEnglish", parameterExpression);
+        _sortAccessors.Add("sector", lambda.Compile());
+        lambda = GetLambaExpression("Division.FundCenterNameEnglish", parameterExpression);
+        _sortAccessors.Add("division", lambda.Compile());
+    }
 
-        foreach (var member in "Branch.FundCenterNameEnglish".Split('.'))
+    private Expression<Func<FundCenter, String>> GetLambaExpression(string field, ParameterExpression parameterExpression)
+    {
+        Expression prop = parameterExpression;
+        foreach (var member in field.Split('.'))
         {
             prop = Expression.PropertyOrField(prop, member);
         }
-        //var prop = Expression.Property(parameterExpression, "FundCenterModifiedEnglish");
-        var lambda = Expression.Lambda<Func<FundCenter, string>>(prop, parameterExpression);
-        _sortAccessors.Add("branch", lambda.Compile());
+        return Expression.Lambda<Func<FundCenter, string>>(prop, parameterExpression);
     }
 
     //private List<Func<FundCenter, string>> sortFunctions = new List<Func<FundCenter, string>>

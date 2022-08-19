@@ -170,31 +170,12 @@ else
 
         totalItems = data.Count();
         List<HierarchyLevel> emptyList = new();
-        var func = SortAccessors["branch"];
-        if (state.SortLabel == "branch")
-        {
-            //data = data.OrderByDirection(state.SortDirection, SortAccessors["branch"]);
+
+        if (!string.IsNullOrWhiteSpace(state.SortLabel) && SortAccessors.ContainsKey(state.SortLabel))
+        { 
+            var func = SortAccessors[state.SortLabel];
             data = data.OrderByDirection<T, string>(state.SortDirection, func);
         }
-
-        //switch (state.SortLabel)
-        //{
-        //    case "nr_field":
-        //        data = data.OrderByDirection(state.SortDirection, o => o.Number);
-        //        break;
-        //    case "sign_field":
-        //        data = data.OrderByDirection(state.SortDirection, o => o.Sign);
-        //        break;
-        //    case "name_field":
-        //        data = data.OrderByDirection(state.SortDirection, o => o.Name);
-        //        break;
-        //    case "position_field":
-        //        data = data.OrderByDirection(state.SortDirection, o => o.Position);
-        //        break;
-        //    case "mass_field":
-        //        data = data.OrderByDirection(state.SortDirection, o => o.Molar);
-        //        break;
-        //}
 
         pagedData = data.Skip(state.Page * state.PageSize).Take(state.PageSize).ToArray();
         return new TableData<T>() { TotalItems = totalItems, Items = pagedData };
