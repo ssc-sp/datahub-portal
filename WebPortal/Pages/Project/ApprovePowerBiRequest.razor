@@ -307,14 +307,14 @@
             notificationRecipients.Remove(requestingUserId);
             notificationTasks.Add(_emailService.SendServiceCreationRequestApprovedIndividual(liveProjectRequest.ServiceType, projectInfo, requestingUserId));
             notificationTasks.Add(_systemNotificationService.CreateSystemNotificationWithLink(requestingUserId, 
-                $"/project/{project.Project_Acronym_CD}", "SYSTEM-NOTIFICATION.GoToProject",
+                $"/projects/{project.Project_Acronym_CD}", "SYSTEM-NOTIFICATION.GoToProject",
                 "SYSTEM-NOTIFICATION.NOTIFICATION-TEXT.ServiceCreatedIndividual",
                 liveProjectRequest.ServiceType, new BilingualStringArgument(projectInfo.ProjectNameEn, projectInfo.ProjectNameFr)));
         }
 
         notificationTasks.Add(_emailService.SendServiceCreationGroupNotification(liveProjectRequest.ServiceType, projectInfo, notificationRecipients.ToList()));
         notificationTasks.Add(_systemNotificationService.CreateSystemNotificationsWithLink(notificationRecipients.ToList(), 
-            $"/project/{project.Project_Acronym_CD}", "SYSTEM-NOTIFICATION.GoToProject",
+            $"/projects/{project.Project_Acronym_CD}", "SYSTEM-NOTIFICATION.GoToProject",
             "SYSTEM-NOTIFICATION.NOTIFICATION-TEXT.ServiceCreatedGroup",
             liveProjectRequest.ServiceType, new BilingualStringArgument(projectInfo.ProjectNameEn, projectInfo.ProjectNameFr)));
 
