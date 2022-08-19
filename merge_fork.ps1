@@ -9,7 +9,7 @@ git pull
 switch ($Source)
 {
     "ssc" {git remote add $Source https://github.com/ssc-sp/datahub-portal.git}
-    "nrcan" {git remote add $Source https://github.com/ssc-sp/datahub-portal.git}
+    "nrcan" {git remote add $Source https://github.com/NRCan/datahub-portal.git}
 }
 
 #git fetch $Source
