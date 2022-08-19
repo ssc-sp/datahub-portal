@@ -3,6 +3,10 @@
 @page "/admin/powerbi/report/{ReportId}"
 @page "/admin/powerbi/dataset/{DatasetId}"
 @page "/admin/powerbi/workspace/{WorkspaceId}"
+@page "/admin/powerbi/{ProjectAcronym}/report/{ReportId}"
+@page "/admin/powerbi/{ProjectAcronym}/dataset/{DatasetId}"
+@page "/admin/powerbi/{ProjectAcronym}/workspace/{WorkspaceId}"
+
 @inject IPowerBiDataService _powerBiDataService
 @inject PowerBiServiceApi _powerBiServiceApi
 @inject Microsoft.Identity.Web.MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
