@@ -6,6 +6,7 @@
 @inject ServiceAuthManager ServiceAuthManager
 @inject IUserInformationService UserInformationService
 @page "/finance/fundcenters"
+@using System.Linq.Expressions
 
 <Datahub.Core.Components.MudFormTemplate 
         T="FundCenter" 
@@ -18,6 +19,7 @@
         SelectedRecord="@_fundcenter"
         SetFormEditRecord="SetFormEdit"    
         HandleFilterChange="HandleFilterChange"
+        SortAccessors="@_sortAccessors"
         Context=@Context/>
 
 @code {
@@ -25,6 +27,7 @@
     private List<FundCenter> _fundcenters;
     private FundCenter _fundcenter;
     //private List<Sector> _sectorLookup;
+    private Dictionary<string, Func<FundCenter, string>> _sortAccessors = new();
     private FinanceDBContext Context;
     private Microsoft.Graph.User _user = null!;
     private bool _isUserAdmin;
@@ -48,6 +51,7 @@
     {
         // load projects
         Context = DbFactory.CreateDbContext();
+        LoadSortExpressions();
         _user = await UserInformationService.GetUserAsync();
         _isUserAdmin = await ServiceAuthManager.IsProjectAdmin(_user.Id, PROJECTACRONYM);
         _fiscalYears = Context.FiscalYears.ToList();
@@ -97,6 +101,29 @@
         new Func<FundCenter, string>(p => { return p.Division?.FundCenterModifiedEnglish ?? "N/A"; }),
         new Func<FundCenter, string>(p => { return $"{p.AttritionRate.ToString()}%"; }),
     };
+
+    private void LoadSortExpressions()
+    { 
+        var parameterExpression = Expression.Parameter(typeof(FundCenter), "f");
+        Expression prop = parameterExpression;
+
+        foreach (var member in "Branch.FundCenterNameEnglish".Split('.'))
+        {
+            prop = Expression.PropertyOrField(prop, member);
+        }
+        //var prop = Expression.Property(parameterExpression, "FundCenterModifiedEnglish");
+        var lambda = Expression.Lambda<Func<FundCenter, string>>(prop, parameterExpression);
+        _sortAccessors.Add("branch", lambda.Compile());
+    }
+
+    //private List<Func<FundCenter, string>> sortFunctions = new List<Func<FundCenter, string>>
+    //{
+    //    new Func<FundCenter, string>(p => { return p.FiscalYear; }),
+    //    new Func<FundCenter, string>(p => { return p.Sector?.FundCenterModifiedEnglish ?? "N/A"; }),
+    //    new Func<FundCenter, string>(p => { return p.Branch?.FundCenterModifiedEnglish ?? "N/A"; }),
+    //    new Func<FundCenter, string>(p => { return p.Division?.FundCenterModifiedEnglish ?? "N/A"; }),
+    //    new Func<FundCenter, string>(p => { return $"{p.AttritionRate.ToString()}%"; }),
+    //};
 
     private string getColor(FundCenter current)
     {
