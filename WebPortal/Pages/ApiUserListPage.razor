@@ -1,6 +1,7 @@
 ﻿@page "/apiusers"
+
 @inject ServiceAuthManager ServiceAuthManager
-@using Datahub.Core.EFCore
+@inject IUserInformationService _userInformationService
 @inject IDbContextFactory<DatahubProjectDBContext> ContextFactory
 @inject IKeyVaultService _keyVaultService
 @inject IJSRuntime JsInterop
@@ -66,7 +67,9 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _authorizedRoles = ServiceAuthManager.GetAdminProjectRoles();
+        
+        var user = await _userInformationService.GetUserAsync();
+        _authorizedRoles = ServiceAuthManager.GetAdminProjectRoles(user.Id);
 
         using var ctx = ContextFactory.CreateDbContext();
         _apiUsers = await ctx.Project_ApiUsers.ToListAsync();
