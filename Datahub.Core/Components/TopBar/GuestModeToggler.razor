@@ -5,13 +5,15 @@
 
 @if (_isDataHubAdmin)
 {
-    <MudTooltip Text="@_tooltipText">
-        <MudToggleIconButton
-            Icon="@Icons.Outlined.SupervisedUserCircle"
-            ToggledIcon="@Icons.Filled.SupervisedUserCircle"
-            Toggled="@_isViewAsGuest"
-            ToggledChanged="ToggleGuestMode"/>
-    </MudTooltip>
+    <MudStack Row>
+        <MudSwitch 
+            T="bool"
+            Color="Color.Primary"
+            Checked="@_isViewAsGuest"
+            CheckedChanged="ToggleGuestMode" />
+        <MudText Typo="Typo.body2">@Localizer["Enable Guest View"]</MudText>
+    </MudStack>
+
 }
 
 @code {
