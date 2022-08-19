@@ -85,7 +85,7 @@
             </MudExpansionPanels>
         }
         <MudStack Row>
-            <MudCheckBox Checked="_unreadOnly" CheckedChanged="@CheckChanged" T="bool" Label="@(Localizer[$"{LocalizationPrefix}.ShowUnreadOnly"])"></MudCheckBox>
+            <MudCheckBox Checked=@_unreadOnly CheckedChanged=@ToggleUnreadOnly T="bool" Label=@Localizer[$"{LocalizationPrefix}.ShowUnreadOnly"] />
             <MudPagination
                 Color="Color.Primary"
                 Count="_totalNotificationCount"
@@ -117,6 +117,8 @@
     private bool _showNotifications;
     private void ToggleNotifications() => _showNotifications = !_showNotifications;
     private int _notificationBadge;
+    private bool _showNotificationBadge => _unreadNotificationCount > 0;
+    private string _notificationIcon => _showNotificationBadge ? Icons.Filled.Notifications : Icons.Outlined.Notifications;
 
     protected override async Task OnInitializedAsync()
     {
@@ -136,7 +138,7 @@
         _notificationBadge = await _systemNotificationService.GetNotificationCountForUser(_currentUserId, true);
 
 
-    // prepare the timezone service so timestamps get rendered properly right away
+        // prepare the timezone service so timestamps get rendered properly right away
         await _timezoneService.GetLocalDateTime(DateTime.UtcNow);
         _systemNotificationService.Notify += OnNotify;
     }

@@ -43,6 +43,8 @@ namespace Datahub.Core.EFCore
 
         [NotMapped]
         public bool IsExternalReportActive { get; set; }
+
+        public bool InCatalog { get; set; }
     }
 
     public record class PowerBi_ReportDefinition(Guid ReportId, string ReportName, Guid WorkspaceId);

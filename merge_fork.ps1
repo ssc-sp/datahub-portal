@@ -13,7 +13,7 @@ switch ($Source)
 }
 
 #git fetch $Source
-$branchName = "$Source_updates_$(get-date -Format "yyyyMMdd")"
+$branchName = "$($Source)_updates_$(get-date -Format "yyyyMMdd")"
 git fetch $Source develop:$branchName
 git push origin $branchName
 #try to merge develop into current branch
