@@ -4,11 +4,15 @@
 @using Datahub.Core.Data
 @typeparam T
 @typeparam U where U : DbContext
+
 @inject UIControlsService UI
 @inherits HtmlElement
 @inject IDatahubAuditingService AuditingService
 @using System.Reflection
 @using MudBlazor.Forms
+@using System.Text.RegularExpressions
+@using System.Linq.Expressions
+@using Datahub.Portal.Data.Finance;
 
 @if(Metadata is null || !Metadata.IsLoaded())
 {
@@ -36,7 +40,7 @@ else
                     <HeaderContent>
                         @foreach(var header in Metadata.Headers.ToList())
                         {
-                            <MudTh><MudTableSortLabel SortLabel="nr_field" T="T">@header</MudTableSortLabel></MudTh>
+                            <MudTh><MudTableSortLabel SortLabel="@header.Replace(" ", string.Empty).ToLower()" T="T">@header</MudTableSortLabel></MudTh>
                         }                    
                     </HeaderContent>
                     <RowTemplate Context="RowContext" >                   
@@ -143,6 +147,8 @@ else
     public U Context { get; set; }
     [Parameter]
     public bool DisableFirstSort { get; set; }
+    [Parameter]
+    public Dictionary<string, Func<T, string>> SortAccessors { get; set; }
 
 
     //Mud variables/properties
@@ -151,7 +157,7 @@ else
     private int totalItems;
     private string searchString = null;
     //end Mud
-
+    private static readonly Regex sWhitespace = new Regex(@"\s+");
     private string _addButton => Localizer["Add New"];
 
 
@@ -160,9 +166,17 @@ else
 
         IEnumerable<T> data = Metadata.DataSet;
         await Task.Delay(300);
-       
+
 
         totalItems = data.Count();
+        List<HierarchyLevel> emptyList = new();
+        var func = SortAccessors["branch"];
+        if (state.SortLabel == "branch")
+        {
+            //data = data.OrderByDirection(state.SortDirection, SortAccessors["branch"]);
+            data = data.OrderByDirection<T, string>(state.SortDirection, func);
+        }
+
         //switch (state.SortLabel)
         //{
         //    case "nr_field":
@@ -194,6 +208,10 @@ else
     }
 
     
+    public string ReplaceWhitespace(string input, string replacement)
+    {
+        return sWhitespace.Replace(input, replacement);
+    }
 
     private async Task SetFormEdit(T selectedRecord)
     {

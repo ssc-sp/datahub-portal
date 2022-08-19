@@ -1,9 +1,13 @@
 ﻿using Datahub.Core.EFCore;
 using Datahub.Core.Utils;
+using Datahub.Portal.Data.Finance;
+using System;
+using System.Linq.Expressions;
 using Xunit;
 
 namespace Datahub.Tests.Forms
 {
+
     public class FieldCodeGeneratorTests
     {
         [Fact]
@@ -234,6 +238,15 @@ namespace Datahub.Tests.Forms
             var csharp = generator.GenerateCSharp(field);
 
             Assert.Contains("[Column(TypeName=\"Money\")]", csharp);
+        }
+
+        [Fact]
+        public void ExpressionTest()
+        {
+            
+            var parameterExpression = Expression.Parameter(typeof(HierarchyLevel), "fc");
+            var prop = Expression.Property(parameterExpression, "FundCenterModifiedEnglish");
+            var lambda = Expression.Lambda<Func<HierarchyLevel, string>>(prop, parameterExpression);
         }
 
         static int DummyMap(string section) => 1;
