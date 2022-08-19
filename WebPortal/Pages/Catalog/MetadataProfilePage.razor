@@ -2,6 +2,8 @@
 @page "/metadata/newprofile"
 @using Datahub.Metadata.Model
 @using Datahub.Metadata.DTO
+
+@inject IUserInformationService _userInformationService
 @inject ServiceAuthManager ServiceAuthManager
 @inject NavigationManager NavigationManager
 @inject IDbContextFactory<MetadataDbContext> ContextFactory
@@ -106,7 +108,9 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _authorizedRoles = ServiceAuthManager.GetAdminProjectRoles();
+        
+        var user = await _userInformationService.GetUserAsync();
+        _authorizedRoles = ServiceAuthManager.GetAdminProjectRoles(user.Id);
 
         using var ctx = ContextFactory.CreateDbContext();        
 

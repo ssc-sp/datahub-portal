@@ -1,0 +1,45 @@
+@using Datahub.Core.Data
+@inject ServiceAuthManager _serviceAuthManager
+@inject IUserInformationService _userInformationService
+@inject NavigationManager _navigationManager
+
+@if (_isDataHubAdmin)
+{
+    <MudTooltip Text="@_tooltipText">
+        <MudToggleIconButton
+            Icon="@Icons.Outlined.SupervisedUserCircle"
+            ToggledIcon="@Icons.Filled.SupervisedUserCircle"
+            Toggled="@_isViewAsGuest"
+            ToggledChanged="ToggleGuestMode"/>
+    </MudTooltip>
+}
+
+@code {
+
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthenticationStateTask { get; set; }
+
+    private Microsoft.Graph.User _user;
+    private bool _isViewAsGuest;
+
+    private bool _isDataHubAdmin = false;
+
+    private string _tooltipText => _isViewAsGuest ? Localizer["View portal as admin"] : Localizer["View portal as guest"];
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        _user = await _userInformationService.GetUserAsync();
+        _isViewAsGuest = _serviceAuthManager.GetViewingAsGuest(_user.Id);
+
+        var userClaims = (await AuthenticationStateTask).User;
+        _isDataHubAdmin = userClaims.IsInRole(RoleConstants.DATAHUB_ROLE_ADMIN);
+    }
+
+    private void ToggleGuestMode(bool newValue)
+    {
+        _serviceAuthManager.SetViewingAsGuest(_user.Id, newValue);
+        _navigationManager.NavigateTo(_navigationManager.Uri, true);
+    }
+
+}
