@@ -218,7 +218,8 @@ namespace Datahub.Core.Services
         }
 
         public async Task UpdateCatalog(long objectMetadataId, MetadataObjectType dataType, string objectName, string location,
-            int sector, int branch, string contact, ClassificationType securityClass, string englishText, string frenchText)
+            int sector, int branch, string contact, ClassificationType securityClass, string englishText, string frenchText, 
+            CatalogObjectLanguage language)
         {
             using var ctx = _contextFactory.CreateDbContext();
 
@@ -244,7 +245,8 @@ namespace Datahub.Core.Services
                     Contact_TXT = contact,
                     Classification_Type = securityClass,
                     Search_English_TXT = englishText,
-                    Search_French_TXT = frenchText
+                    Search_French_TXT = frenchText,
+                    Language = language
                 };
 
                 ctx.CatalogObjects.Add(catalogObject);
