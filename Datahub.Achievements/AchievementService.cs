@@ -95,6 +95,9 @@ public class AchievementService
     public async Task InitializeAchievements(string? userName)
     {
         var achievementFactory = await AchievementFactory.CreateFromFilesAsync(_options?.AchievementDirectoryPath);
+        
+        await SetupEmptyAchievements(achievementFactory, userName);
+        
         var userAchievements = await _localStorage.GetItemAsync<Dictionary<string, UserAchievement>>(AchievementContainerName) ??
                                await SetupEmptyAchievements(achievementFactory, userName);
     }
