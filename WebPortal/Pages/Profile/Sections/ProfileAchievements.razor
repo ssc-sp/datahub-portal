@@ -13,9 +13,17 @@
                 .OrderByDescending(a => a.Earned)
                 .ThenBy(a => a.Achievement?.Code))
             {
-                <MudItem xs="1">
-                    <MudTooltip Text="@userAchievement!.Achievement!.Name">
-                        <MudIconButton Color="@(userAchievement.Earned ? Color.Secondary : Color.Default)" Icon="@userAchievement!.Achievement!.Icon" aria-label="@userAchievement!.Achievement!.Name"/>
+                <MudItem xs="1" Class="d-flex justify-center">
+                    <MudTooltip Placement="Placement.Top">
+                        <ChildContent>
+                            <MudIconButton Color="@(userAchievement.Earned ? Color.Secondary : Color.Default)" Icon="@userAchievement!.Achievement!.Icon" aria-label="@userAchievement!.Achievement!.Name"/>
+                        </ChildContent>
+                        <TooltipContent>
+                            <MudStack AlignItems="AlignItems.Center" Class="pa-2" Spacing="1">
+                                <MudText Style="text-transform: uppercase" Typo="Typo.overline">@userAchievement!.Achievement!.Name</MudText>
+                                <MudText Typo="Typo.body2">@userAchievement!.Achievement!.Description</MudText>
+                            </MudStack>
+                        </TooltipContent>
                     </MudTooltip>
                 </MudItem>
             }
@@ -27,7 +35,7 @@
 
     [Parameter]
     public Microsoft.Graph.User User { get; set; }
-    
+
     private Dictionary<string, UserAchievement> _achievements;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
