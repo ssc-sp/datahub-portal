@@ -1,16 +1,24 @@
+@inject AchievementService _achievementService;
+
 <MudStack>
     <MudStack Row AlignItems="AlignItems.Baseline">
         <MudText Typo="Typo.h6">@Localizer["Achievements"]</MudText>
         <MudLink Href="/profile" Typo="Typo.caption">@Localizer["View all"]</MudLink>
     </MudStack>
     <MudGrid>
-        @foreach (var achievement in _achievements)
+        @if (_achievements != null)
         {
-            <MudItem xs="1">
-                <MudTooltip Text="Another one bites the dust">
-                    <MudIconButton Icon="@achievement" aria-label="@achievement"/>
-                </MudTooltip>
-            </MudItem>
+            @foreach (var userAchievement in _achievements
+                .Values
+                .OrderByDescending(a => a.Earned)
+                .ThenBy(a => a.Achievement?.Code))
+            {
+                <MudItem xs="1">
+                    <MudTooltip Text="@userAchievement!.Achievement!.Name">
+                        <MudIconButton Color="@(userAchievement.Earned ? Color.Secondary : Color.Default)" Icon="@userAchievement!.Achievement!.Icon" aria-label="@userAchievement!.Achievement!.Name"/>
+                    </MudTooltip>
+                </MudItem>
+            }
         }
     </MudGrid>
 </MudStack>
@@ -19,24 +27,18 @@
 
     [Parameter]
     public Microsoft.Graph.User User { get; set; }
+    
+    private Dictionary<string, UserAchievement> _achievements;
 
-    private List<string> _achievements = new()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        Icons.Filled._1k,
-        Icons.Filled._10k,
-        Icons.Filled.Air,
-        Icons.Filled.Alarm,
-        Icons.Filled.NearbyError,
-        Icons.Filled.Fastfood,
-        Icons.Filled.East,
-        Icons.Filled.NorthEast,
-        Icons.Filled.Quiz,
-        Icons.Filled.Fastfood,
-        Icons.Filled.Face,
-        Icons.Filled.NearbyError,
-        Icons.Filled.Image,
-        Icons.Filled.Radio,
-        Icons.Filled.Javascript,
-    };
+        await base.OnAfterRenderAsync(firstRender);
+
+        if (firstRender)
+        {
+            _achievements = await _achievementService.GetUserAchievements(User.Id);
+            StateHasChanged();
+        }
+    }
 
 }
