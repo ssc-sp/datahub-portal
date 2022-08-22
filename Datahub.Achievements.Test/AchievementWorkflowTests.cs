@@ -1,3 +1,4 @@
+using Blazored.LocalStorage;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -5,7 +6,7 @@ using RulesEngine.Models;
 
 namespace Datahub.Achievements.Test;
 
-public class Tests
+public class AchievementWorkflowTests
 {
     private static readonly string AchievementDirectoryPath =
         Path.Join(Directory.GetCurrentDirectory(), "../../../Achievements");
@@ -32,7 +33,8 @@ public class Tests
     public async Task CanRunRulesEngineWithAchievementWorkflow()
     {
         var mockLogger = new Mock<ILogger<AchievementService>>();
-        var achievementService = new AchievementService(mockLogger.Object, Options);
+        var mockStorage = new Mock<ILocalStorageService>();
+        var achievementService = new AchievementService(mockLogger.Object, mockStorage.Object, Options);
 
         var input = new DatahubUserTelemetry();
 
@@ -44,7 +46,8 @@ public class Tests
     public async Task TriggersAchievementEvent()
     {
         var mockLogger = new Mock<ILogger<AchievementService>>();
-        var achievementService = new AchievementService(mockLogger.Object, Options);
+        var mockStorage = new Mock<ILocalStorageService>();
+        var achievementService = new AchievementService(mockLogger.Object, mockStorage.Object, Options);
 
         var userId = Guid.NewGuid().ToString();
 

@@ -1,3 +1,4 @@
+using Blazored.LocalStorage;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -18,7 +19,10 @@ public class AchievementValidationTests
 
     private static readonly Dictionary<string, (DatahubUserTelemetry, DatahubUserTelemetry)> EarnedUserTelemetryDictionary = new()
     {
-        { "EXP-006", (new DatahubUserTelemetry() { UserId = UserId, ViewedTheirProfile = true}, new DatahubUserTelemetry() { UserId = UserId, ViewedTheirProfile = false}) }
+        { "EXP-001", (new DatahubUserTelemetry() { UserId = UserId, VisitDatahub = true}, new DatahubUserTelemetry() { UserId = UserId, VisitDatahub = false}) },
+        { "EXP-002", (new DatahubUserTelemetry() { UserId = UserId, VisitStorageExplorer = true}, new DatahubUserTelemetry() { UserId = UserId, VisitStorageExplorer = false}) },
+        { "EXP-003", (new DatahubUserTelemetry() { UserId = UserId, VisitDatabricks = true}, new DatahubUserTelemetry() { UserId = UserId, VisitDatabricks = false}) },
+        { "EXP-006", (new DatahubUserTelemetry() { UserId = UserId, VisitProfile = true}, new DatahubUserTelemetry() { UserId = UserId, VisitProfile = false}) },
     };
 
     private static IEnumerable<object[]> EarnedAchievementParams()
@@ -53,7 +57,9 @@ public class AchievementValidationTests
     public async Task EarnedIfConditionsMet(string code, Achievement achievement, DatahubUserTelemetry userTelemetry)
     {
         var mockLogger = new Mock<ILogger<AchievementService>>();
-        var achievementService = new AchievementService(mockLogger.Object, Options);
+        var mockStorage = new Mock<ILocalStorageService>();
+        var achievementService = new AchievementService(mockLogger.Object, mockStorage.Object, Options);
+        
         achievementService!.AchievementEarned += (_, e) =>
         {
             Assert.Multiple(() =>
@@ -76,7 +82,9 @@ public class AchievementValidationTests
     public async Task NotEarnedIfConditionsNotMet(string code, Achievement achievement, DatahubUserTelemetry userTelemetry)
     {
         var mockLogger = new Mock<ILogger<AchievementService>>();
-        var achievementService = new AchievementService(mockLogger.Object, Options);
+        var mockStorage = new Mock<ILocalStorageService>();
+        var achievementService = new AchievementService(mockLogger.Object, mockStorage.Object, Options);
+        
         achievementService!.AchievementEarned += (_, e) =>
         {
             Assert.Multiple(() =>

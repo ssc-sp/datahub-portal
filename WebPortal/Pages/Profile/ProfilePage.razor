@@ -54,6 +54,8 @@
     {
         base.OnInitialized();
 
+        var x = Icons.Filled.Celebration;
+
         _imageStyle = new StyleBuilder()
             .AddStyle("background", string.Join("linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, black 100%)",
                 $"url('{GetBackground()}') no-repeat center center fixed"))
@@ -81,8 +83,9 @@
         
         if (firstRender)
         {
-            DatahubUserTelemetry.ViewedTheirProfile = true;
+            DatahubUserTelemetry.VisitProfile = true;
             await _achievementsService.RunRulesEngine(DatahubUserTelemetry);
+            StateHasChanged();
         }
     }
 
