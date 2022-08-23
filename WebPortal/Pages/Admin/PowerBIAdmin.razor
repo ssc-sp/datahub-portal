@@ -276,7 +276,7 @@
                                 <div style="margin-top: 0.5rem; width: 100%">
                                     <AeTypography><strong><span>@Localizer[$"Language"]</span></strong></AeTypography>
                                     <select class="ae input" @bind="_catalogObjectLanguage" disabled=@NotIncludedCurrentItemInCatalog>
-                                        <option value=@CatalogObjectLanguage.Bilingual></option>
+                                        <option value=@CatalogObjectLanguage.Bilingual>@Localizer["Bilingual"]</option>
                                         <option value=@CatalogObjectLanguage.English>@Localizer["English"]</option> 
                                         <option value=@CatalogObjectLanguage.French>@Localizer["French"]</option> 
                                     </select>
@@ -651,7 +651,7 @@
                 ReportBeingEdited.SiblingReports = await GetReportsForGrouping(report);
                 IncludeCurrentItemInCatalog = report.InCatalog;
                 _groupWithId = await GetGroupedWidth(report);
-                _catalogObjectLanguage = CatalogObjectLanguage.English; // todo read language
+                _catalogObjectLanguage = await _metadataService.GetCatalogObjectLanguage(report.Report_ID.ToString()) ?? CatalogObjectLanguage.Bilingual;
             }
         }
 

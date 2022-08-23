@@ -650,6 +650,15 @@ namespace Datahub.Core.Services
             return groupIds;
         }
 
+        public async Task<CatalogObjectLanguage?> GetCatalogObjectLanguage(string objectId)
+        {
+            using var ctx = await _contextFactory.CreateDbContextAsync();
+
+            var catalogObject = await ctx.CatalogObjects.FirstOrDefaultAsync(e => e.ObjectMetadata.ObjectId_TXT == objectId);
+
+            return catalogObject?.Language;
+        }
+
         private async Task<List<CatalogObject>> UpdateCatalogObjectGroup(MetadataDbContext ctx,  string objectId)
         {
             return await ctx.CatalogObjects.Where(e => e.ObjectMetadata.ObjectId_TXT == objectId).ToListAsync();
