@@ -21,7 +21,7 @@ public class AchievementFactory
     {
         
         var pathName = directoryPath ?? $"{Directory.GetCurrentDirectory()}/Achievements";
-        var files = Directory.GetFiles(pathName, "*.achievement.json");
+        var files = Directory.GetFiles(pathName, "*.achievement.json", SearchOption.AllDirectories);
         Achievements = new Dictionary<string, Achievement>();
         foreach (var fileData in files)
         {

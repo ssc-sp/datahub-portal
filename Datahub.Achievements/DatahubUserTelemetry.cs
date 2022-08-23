@@ -8,6 +8,7 @@ public class DatahubUserTelemetry
     public bool VisitDatabricks { get; set; }
     public bool VisitDatahub { get; set; }
     
+    public int NumberOfUsersInvited { get; set; }
     
     // bytes uploaded, 
     // number of invites sent,
