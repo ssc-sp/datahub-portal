@@ -23,6 +23,7 @@ public class AchievementValidationTests
     private const string STORAGE_EXPLORER_URL = "/projects/ABC/filelist";
     private const string DATABRICKS_URL = "/projects/ABC/databricks";
     private const string PROFILE_URL = "/profile";
+    private const string RESOURCES_URL = "/resources";
 
     private static readonly Dictionary<string, (DatahubUserTelemetry, DatahubUserTelemetry)> ParameterizedUserTelemetryDictionary = new()
     {
@@ -40,6 +41,12 @@ public class AchievementValidationTests
             (
                 new DatahubUserTelemetry { UserId = UserId, VisitedUrls = new Dictionary<string, int> { {DATABRICKS_URL, 1}}},
                 new DatahubUserTelemetry { UserId = UserId, VisitedUrls = new Dictionary<string, int> { {DATABRICKS_URL, 0}}}
+            )
+        },
+        { "EXP-004", 
+            (
+                new DatahubUserTelemetry { UserId = UserId, VisitedUrls = new Dictionary<string, int> { {RESOURCES_URL, 1}}},
+                new DatahubUserTelemetry { UserId = UserId, VisitedUrls = new Dictionary<string, int> { {RESOURCES_URL, 0}}}
             )
         },
         { "EXP-006", 
