@@ -1,0 +1,58 @@
+@using Datahub.Achievements
+@using Blazored.LocalStorage
+
+@inject AchievementService _achievementsService
+@inject ISnackbar _snackbar
+@inject NavigationManager _navigationManager
+@inject ILocalStorageService _localStorage;
+
+@implements IDisposable
+
+@code {
+    
+    [CascadingParameter]
+    private Task<AuthenticationState> _authenticationStateTask { get; set; }
+
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        _navigationManager.LocationChanged += OnLocationChanged;
+    }
+    
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await _authenticationStateTask;
+        var user = authState.User;
+
+        // fetch telemetry data
+        await _achievementsService.InitializeAchievements(user.Identity?.Name);
+        
+        _snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopCenter;
+        _achievementsService.AchievementEarned += (_, e) => { _snackbar.Add(e.Achievement!.Name, Severity.Normal, config => { config.Icon = e.Achievement!.Icon; }); };
+    }
+
+    private void OnLocationChanged(object sender, LocationChangedEventArgs e)
+    {
+        var relativeUrl = new Uri(e.Location).PathAndQuery;
+        var visitedUrls = _achievementsService.DatahubUserTelemetry.VisitedUrls;
+        
+        if (!visitedUrls.ContainsKey(relativeUrl))
+        {
+            visitedUrls.Add(relativeUrl, 0);
+        }
+        
+        visitedUrls[relativeUrl] += 1;
+        
+        InvokeAsync(async () =>
+        {
+            await _achievementsService.RunRulesEngine();
+            StateHasChanged();
+        });
+    }
+    
+    void IDisposable.Dispose()
+    {
+        _navigationManager.LocationChanged -= OnLocationChanged;
+    }
+}
