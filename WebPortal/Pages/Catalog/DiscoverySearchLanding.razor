@@ -21,7 +21,7 @@
 				<AeCard class="facard1" style="cursor: pointer;" CardPosition="AeCard.CardStyle.Horizontal" onclick=@(() => ClickSector(sector))>
 					<Header>
 						<div style="width:120px">                        
-							<MudIcon Icon=@GetIconClass(sector.Id) />
+							<MudIcon Icon=@GetIconClass(sector.Id) Size="Size.Large" />
 						</div>
 					</Header>
 					<ChildContent>                   
@@ -30,6 +30,21 @@
 					<Footer>
 					</Footer>
 				</AeCard>
+				@*<MudCard>
+					<MudCardHeader>
+						<CardHeaderAvatar>
+							<MudIcon Icon=@GetIconClass(sector.Id) Size="Size.Large" />
+						</CardHeaderAvatar>
+						<CardHeaderContent>
+							<MudText Typo="Typo.body1">
+								@(IsFrench ? sector.FrenchLabel : sector.EnglishLabel)
+							</MudText>
+						</CardHeaderContent>
+						<CardHeaderActions>
+								<MudIconButton Icon="@Icons.Material.Filled.Settings" Color="Color.Default" />
+						</CardHeaderActions>
+					</MudCardHeader>				
+				</MudCard>*@
 			}
 		</div>
 		<div>
@@ -45,35 +60,29 @@
 					<div>
 						@Localizer["Since you are an Admin in Datahub use the Upload button below to import a valid catalog dump file."]
 					</div>
+
 					<div></div>
+
 					<div>
-						<a href="/resources/Catalog-Import-Format">@Localizer["Import file format documentation"]</a>
-					</div>
-					<div class="file-list">
-						<UploadSnackbar UploadingFiles="_uploadingFiles">
-							<DropZone MaxHeight OnFilesDrop="UploadFiles">
-								<p>&nbsp;</p>
-							</DropZone>
-						</UploadSnackbar>
-						<AeButton class="button-tool" onclick="document.querySelector('.file-list .dropzone-container input').click();">
-							<i class="fas fa-upload"></i>
+						<InputFile id="fileInput" OnChange="UploadFiles" hidden />
+						<MudButton HtmlTag="label"
+								   Variant="Variant.Filled"
+								   Color="Color.Primary"
+								   StartIcon="@Icons.Filled.CloudUpload"
+								   for="fileInput">
 							@Localizer["Upload"]
-						</AeButton>
+						</MudButton>
 					</div>
 				</Authorized>
-
 				<NotAuthorized>
 					<div>
 						@Localizer[$"Contact the DataHub team ({(Configuration[$"{ConfigurationConstants.CONTACT_EMAIL}"] ?? ConfigurationConstants.DEFAULT_EMAIL)}) for details on how to publish your data to the Data Catalog."]
 					</div>
 				</NotAuthorized>
 			</AuthorizeView>
-
 		</div>
 
-		<div style="margin-top: 16px;"></div>
-
-
+		@*<div style="margin-top: 16px;"></div>*@
 	</AeFlex>
 
 </AeFlex>
@@ -90,8 +99,6 @@
 	public EventCallback<OrganizationLevel> OnClickSector { get; set; }
 
 	static Dictionary<int, string> _icons = GetIcons();
-
-	private List<FileMetaData> _uploadingFiles = new();
 
 	private async void ClickSector(OrganizationLevel sector)
 	{
