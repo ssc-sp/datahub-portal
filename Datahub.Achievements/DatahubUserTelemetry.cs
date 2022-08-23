@@ -6,7 +6,7 @@ public class DatahubUserTelemetry
     public bool VisitProfile { get; set; }
     public bool VisitStorageExplorer { get; set; }
     public bool VisitDatabricks { get; set; }
-    public bool VisitDatahub { get; set; }
+    public int NumberOfLogins { get; set; }
     
     public int NumberOfUsersInvited { get; set; }
     

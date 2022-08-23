@@ -24,7 +24,7 @@ public class AchievementValidationTests
         // Code, Earned, Not Earned
         { "PRJ-001", (new DatahubUserTelemetry() { UserId = UserId, NumberOfUsersInvited = 1}, new DatahubUserTelemetry() { UserId = UserId, NumberOfUsersInvited = 0}) },
         
-        { "EXP-001", (new DatahubUserTelemetry() { UserId = UserId, VisitDatahub = true}, new DatahubUserTelemetry() { UserId = UserId, VisitDatahub = false}) },
+        { "EXP-001", (new DatahubUserTelemetry() { UserId = UserId, NumberOfLogins = 1}, new DatahubUserTelemetry() { UserId = UserId, NumberOfLogins = 0}) },
         { "EXP-002", (new DatahubUserTelemetry() { UserId = UserId, VisitStorageExplorer = true}, new DatahubUserTelemetry() { UserId = UserId, VisitStorageExplorer = false}) },
         { "EXP-003", (new DatahubUserTelemetry() { UserId = UserId, VisitDatabricks = true}, new DatahubUserTelemetry() { UserId = UserId, VisitDatabricks = false}) },
         { "EXP-006", (new DatahubUserTelemetry() { UserId = UserId, VisitProfile = true}, new DatahubUserTelemetry() { UserId = UserId, VisitProfile = false}) },
