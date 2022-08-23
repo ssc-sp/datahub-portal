@@ -44,7 +44,8 @@ public class AchievementService
         var userAchievements = await _localStorage.GetItemAsync<Dictionary<string, UserAchievement>>(AchievementContainerName) ??
                                await SetupEmptyAchievements(achievementFactory, input?.UserId);
 
-        var rulesEngine = new RulesEngine.RulesEngine(new[] { achievementFactory.CreateWorkflow() }, _logger);
+        var rulesEngineSettings = new ReSettings { CustomTypes = new Type[] { typeof(Utils) } };
+        var rulesEngine = new RulesEngine.RulesEngine(new[] { achievementFactory.CreateWorkflow() }, _logger, rulesEngineSettings);
         var response =
             await rulesEngine.ExecuteAllRulesAsync(AchievementFactory.AchievementWorkflowName, input);
 
