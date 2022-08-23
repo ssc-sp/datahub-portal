@@ -5,6 +5,8 @@ using Datahub.Core.Services;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.Graph;
+using static System.Formats.Asn1.AsnWriter;
 
 namespace Datahub.Core
 {
@@ -57,7 +59,7 @@ namespace Datahub.Core
                 [nameof(changeType)] = changeType.ToString()
             };
             await AppendIdentity(properties);
-            _telemetryClient.TrackEvent("SecurityEvent", AppendDetails(properties, details));
+            _telemetryClient.TrackEvent("AdminEvent", AppendDetails(properties, details));
             _telemetryClient.Flush();
         }
 
@@ -67,6 +69,15 @@ namespace Datahub.Core
             var properties = new Dictionary<string, string>();
             await AppendIdentity(properties);
             _telemetryClient.TrackException(exception, AppendDetails(properties, details));
+            _telemetryClient.Flush();
+        }
+
+        /// <inheritdoc>
+        public async Task TrackEvent(string name, params (string key, string value)[] details)
+        {
+            var properties = new Dictionary<string, string>();
+            await AppendIdentity(properties);
+            _telemetryClient.TrackEvent(name, AppendDetails(properties, details));
             _telemetryClient.Flush();
         }
 

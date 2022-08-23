@@ -60,6 +60,14 @@ namespace Datahub.Core.Services
         /// <param name="details"></param>
         /// <returns></returns>
         Task TrackException(Exception exception, params (string key, string value)[] details);
+
+        /// <summary>
+        /// Track simple message event
+        /// </summary>
+        /// <param name="message"></param>
+        /// <param name="details"></param>
+        /// <returns></returns>
+        Task TrackEvent(string message, params (string key, string value)[] details);
     }
 
     public static class IDatahubAuditingServiceExtensions
