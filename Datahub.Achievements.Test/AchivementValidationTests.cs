@@ -2,6 +2,7 @@ using Blazored.LocalStorage;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
+using NUnit.Framework.Constraints;
 
 namespace Datahub.Achievements.Test;
 
@@ -14,15 +15,20 @@ public class AchievementValidationTests
     private static readonly IOptions<AchievementServiceOptions> Options = 
         new OptionsWrapper<AchievementServiceOptions>(new AchievementServiceOptions
     {
-        AchievementDirectoryPath = AchievementDirectoryPath
+        AchievementDirectoryPath = AchievementDirectoryPath,
+        Enabled = true
     });
 
-    private static readonly Dictionary<string, (DatahubUserTelemetry, DatahubUserTelemetry)> EarnedUserTelemetryDictionary = new()
+    private static readonly Dictionary<string, (DatahubUserTelemetry, DatahubUserTelemetry)> ParameterizedUserTelemetryDictionary = new()
     {
+        // Code, Earned, Not Earned
+        { "PRJ-001", (new DatahubUserTelemetry() { UserId = UserId, NumberOfUsersInvited = 1}, new DatahubUserTelemetry() { UserId = UserId, NumberOfUsersInvited = 0}) },
+        
         { "EXP-001", (new DatahubUserTelemetry() { UserId = UserId, VisitDatahub = true}, new DatahubUserTelemetry() { UserId = UserId, VisitDatahub = false}) },
         { "EXP-002", (new DatahubUserTelemetry() { UserId = UserId, VisitStorageExplorer = true}, new DatahubUserTelemetry() { UserId = UserId, VisitStorageExplorer = false}) },
         { "EXP-003", (new DatahubUserTelemetry() { UserId = UserId, VisitDatabricks = true}, new DatahubUserTelemetry() { UserId = UserId, VisitDatabricks = false}) },
         { "EXP-006", (new DatahubUserTelemetry() { UserId = UserId, VisitProfile = true}, new DatahubUserTelemetry() { UserId = UserId, VisitProfile = false}) },
+        
     };
 
     private static IEnumerable<object[]> EarnedAchievementParams()
@@ -34,7 +40,7 @@ public class AchievementValidationTests
         {
             kvp.Key,
             kvp.Value,
-            EarnedUserTelemetryDictionary[kvp.Key].Item1,
+            ParameterizedUserTelemetryDictionary[kvp.Key].Item1,
         });
     }
     
@@ -47,18 +53,19 @@ public class AchievementValidationTests
         {
             kvp.Key,
             kvp.Value,
-            EarnedUserTelemetryDictionary[kvp.Key].Item2,
+            ParameterizedUserTelemetryDictionary[kvp.Key].Item2,
         });
     }
 
     [Test]
     [TestCaseSource(nameof(EarnedAchievementParams))]
-    [Parallelizable(ParallelScope.None)]
+    [Parallelizable(ParallelScope.All)]
     public async Task EarnedIfConditionsMet(string code, Achievement achievement, DatahubUserTelemetry userTelemetry)
     {
         var mockLogger = new Mock<ILogger<AchievementService>>();
         var mockStorage = new Mock<ILocalStorageService>();
         var achievementService = new AchievementService(mockLogger.Object, mockStorage.Object, Options);
+        var passed = false;
         
         achievementService!.AchievementEarned += (_, e) =>
         {
@@ -69,20 +76,21 @@ public class AchievementValidationTests
             });
 
             if (e.Achievement?.Code != code) return;
-            
-            Assert.Pass();
+            passed = true;
         };
         
         await achievementService!.RunRulesEngine(userTelemetry);
+        Assert.That(passed, Is.True);
     }
     
     [Test]
     [TestCaseSource(nameof(NotEarnedAchievementParams))]
-    [Parallelizable(ParallelScope.None)]
+    [Parallelizable(ParallelScope.All)]
     public async Task NotEarnedIfConditionsNotMet(string code, Achievement achievement, DatahubUserTelemetry userTelemetry)
     {
         var mockLogger = new Mock<ILogger<AchievementService>>();
         var mockStorage = new Mock<ILocalStorageService>();
+        
         var achievementService = new AchievementService(mockLogger.Object, mockStorage.Object, Options);
         
         achievementService!.AchievementEarned += (_, e) =>
@@ -97,6 +105,8 @@ public class AchievementValidationTests
             
             Assert.Fail();
         };
+        
+        
 
         await achievementService!.RunRulesEngine(userTelemetry);
     }
