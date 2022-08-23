@@ -19,16 +19,35 @@ public class AchievementValidationTests
         Enabled = true
     });
 
+
+    private const string STORAGE_EXPLORER_URL = "/projects/ABC/filelist";
+    private const string DATABRICKS_URL = "/projects/ABC/databricks";
+    private const string PROFILE_URL = "/profile";
+
     private static readonly Dictionary<string, (DatahubUserTelemetry, DatahubUserTelemetry)> ParameterizedUserTelemetryDictionary = new()
     {
         // Code, Earned, Not Earned
         { "PRJ-001", (new DatahubUserTelemetry() { UserId = UserId, NumberOfUsersInvited = 1}, new DatahubUserTelemetry() { UserId = UserId, NumberOfUsersInvited = 0}) },
         
         { "EXP-001", (new DatahubUserTelemetry() { UserId = UserId, NumberOfLogins = 1}, new DatahubUserTelemetry() { UserId = UserId, NumberOfLogins = 0}) },
-        { "EXP-002", (new DatahubUserTelemetry() { UserId = UserId, VisitStorageExplorer = true}, new DatahubUserTelemetry() { UserId = UserId, VisitStorageExplorer = false}) },
-        { "EXP-003", (new DatahubUserTelemetry() { UserId = UserId, VisitDatabricks = true}, new DatahubUserTelemetry() { UserId = UserId, VisitDatabricks = false}) },
-        { "EXP-006", (new DatahubUserTelemetry() { UserId = UserId, VisitProfile = true}, new DatahubUserTelemetry() { UserId = UserId, VisitProfile = false}) },
-        
+        { "EXP-002", 
+            (
+                new DatahubUserTelemetry { UserId = UserId, VisitedUrls = new Dictionary<string, int> { {STORAGE_EXPLORER_URL, 1}}},
+                new DatahubUserTelemetry { UserId = UserId, VisitedUrls = new Dictionary<string, int> { {STORAGE_EXPLORER_URL, 0}}}
+            )
+        },
+        { "EXP-003", 
+            (
+                new DatahubUserTelemetry { UserId = UserId, VisitedUrls = new Dictionary<string, int> { {DATABRICKS_URL, 1}}},
+                new DatahubUserTelemetry { UserId = UserId, VisitedUrls = new Dictionary<string, int> { {DATABRICKS_URL, 0}}}
+            )
+        },
+        { "EXP-006", 
+            (
+                new DatahubUserTelemetry { UserId = UserId, VisitedUrls = new Dictionary<string, int> { {PROFILE_URL, 1}}},
+                new DatahubUserTelemetry { UserId = UserId, VisitedUrls = new Dictionary<string, int> { {PROFILE_URL, 0}}}
+            )
+        },
     };
 
     private static IEnumerable<object[]> EarnedAchievementParams()
