@@ -18,6 +18,8 @@ public class AchievementService
     private readonly ILogger<AchievementService> _logger;
     private readonly ILocalStorageService _localStorage;
 
+    public DatahubUserTelemetry DatahubUserTelemetry { get; set; } = new();
+
     public AchievementService(ILogger<AchievementService> logger, ILocalStorageService localStorage, IOptions<AchievementServiceOptions> options)
     {
         _logger = logger;
@@ -33,18 +35,20 @@ public class AchievementService
         }
     }
 
-    public async Task<List<RuleResultTree>> RunRulesEngine(DatahubUserTelemetry? input)
+    public async Task<List<RuleResultTree>> RunRulesEngine(DatahubUserTelemetry? input = null)
     {
         if (!_options?.Enabled ?? true)
         {
             return new List<RuleResultTree>();
         }
         
+        input ??= DatahubUserTelemetry;
+        
         var achievementFactory = await AchievementFactory.CreateFromFilesAsync(_options?.AchievementDirectoryPath);
         var userAchievements = await _localStorage.GetItemAsync<Dictionary<string, UserAchievement>>(AchievementContainerName) ??
-                               await SetupEmptyAchievements(achievementFactory, input?.UserId);
+                               await SetupEmptyAchievements(achievementFactory, input.UserId);
 
-        var rulesEngineSettings = new ReSettings { CustomTypes = new Type[] { typeof(Utils) } };
+        var rulesEngineSettings = new ReSettings { CustomTypes = new[] { typeof(Utils) } };
         var rulesEngine = new RulesEngine.RulesEngine(new[] { achievementFactory.CreateWorkflow() }, _logger, rulesEngineSettings);
         var response =
             await rulesEngine.ExecuteAllRulesAsync(AchievementFactory.AchievementWorkflowName, input);
@@ -99,5 +103,10 @@ public class AchievementService
         
         var userAchievements = await _localStorage.GetItemAsync<Dictionary<string, UserAchievement>>(AchievementContainerName) ??
                                await SetupEmptyAchievements(achievementFactory, userName);
+        
+        DatahubUserTelemetry = new DatahubUserTelemetry
+        {
+            UserId = userName ?? "UserId not found",
+        };
     }
 }

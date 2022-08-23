@@ -3,13 +3,10 @@
 @inject IUserInformationService _userInformationService
 @inject IConfiguration _configuration
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
-@inject AchievementService _achievementsService
-
 
 @using Microsoft.Graph
 @using MudBlazor.Utilities
 @using Datahub.Portal.Pages.Profile.Sections
-@using Datahub.Achievements
 
 @if (_user is null)
 {
@@ -42,9 +39,6 @@
 
 @code {
 
-    [CascadingParameter]
-    public DatahubUserTelemetry DatahubUserTelemetry { get; set; }
-    
     private User _user;
     private List<Datahub_Project> _projects = new();
 
@@ -75,18 +69,6 @@
             .Where(u => u.User_ID == _user.Id)
             .Select(u => u.Project)
             .ToListAsync();
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        await base.OnAfterRenderAsync(firstRender);
-        
-        if (firstRender)
-        {
-            DatahubUserTelemetry.VisitProfile = true;
-            await _achievementsService.RunRulesEngine(DatahubUserTelemetry);
-            StateHasChanged();
-        }
     }
 
     private string GetBackground()
