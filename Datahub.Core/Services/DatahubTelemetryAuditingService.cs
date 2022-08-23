@@ -1,12 +1,10 @@
-﻿using Microsoft.ApplicationInsights;
+﻿using Datahub.Core.Services;
+using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.Options;
-using Datahub.Core.Services;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.Graph;
-using static System.Formats.Asn1.AsnWriter;
 
 namespace Datahub.Core
 {
