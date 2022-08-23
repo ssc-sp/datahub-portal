@@ -6,6 +6,7 @@
 @inject IDbContextFactory<MetadataDbContext> ContextFactory
 @inject NavigationManager NavigationManager
 @inject ServiceAuthManager ServiceAuthManager
+@inject IDatahubAuditingService AuditingService
 
 <DHPageTitle PageTitleKey=@Localizer["Edit Field Definition"] />
 <div style="margin: 2rem">
@@ -45,7 +46,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        
+
         var user = await _userInformationService.GetUserAsync();
         _authorizedRoles = ServiceAuthManager.GetAdminProjectRoles(user.Id);
 
@@ -80,7 +81,7 @@
                 ctx.FieldDefinitions.Update(def);
             }
 
-            await ctx.SaveChangesAsync();
+            await ctx.TrackSaveChangesAsync(AuditingService);
 
             if (isNewDefinition && !string.IsNullOrEmpty(_form.Choices_TXT))
             {
@@ -88,8 +89,10 @@
                 {
                     ctx.FieldChoices.Add(choice);
                 }
-                await ctx.SaveChangesAsync();
+                await ctx.TrackSaveChangesAsync(AuditingService);
             }
+
+            await AuditingService.TrackAdminEvent("metadata", "MetadataDefinitions", AuditChangeType.Edit);
 
             transation.Commit();
         }
