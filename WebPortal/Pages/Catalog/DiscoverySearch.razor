@@ -251,8 +251,8 @@
 	public IDbContextFactory<DatahubProjectDBContext> DatahubProjectDbFactory { get; set; }
 
 	[Parameter]
-	[SupplyParameterFromQuery(Name = "hide")]
-	public string QueryHideIncomplete { get; set; }
+	[SupplyParameterFromQuery(Name = "excl")]
+	public string QueryExcludeIncomplete { get; set; }
 
 	[Parameter]
 	[SupplyParameterFromQuery(Name = "kws")]
@@ -313,7 +313,7 @@
 	private bool _securityFilterSectionOpen = true;
 	private bool _sectorFilterSectionOpen = true;
 	private bool _filterSectionOpen = true;
-	private bool _excludeIncompleteCatalogs = true;
+	private bool _excludeIncompleteCatalogs;
 	private string _filterSectionOpenIconClass => $"fad fa-caret-circle-{(_filterSectionOpen ? "down" : "right")}";
 	private string _filterSectionOpenTitle => _filterSectionOpen ? Localizer["Collapse"] : Localizer["Expand"];
 	private string _filterActiveIconClass => $"{(_filtersActive ? "fas" : "fad")} fa-filter";
@@ -351,7 +351,7 @@
 
 	private void ParseHideIncomplete()
 	{
-		_excludeIncompleteCatalogs = QueryHideIncomplete == "1";
+		_excludeIncompleteCatalogs = QueryExcludeIncomplete == "1";
 	}
 
 	private void ParseLanguages()
@@ -758,6 +758,9 @@
 
 		if (_filterBranch != NO_FILTER_SELECTED)
 			query.Add($"brn={_filterBranch}");
+
+		if (_excludeIncompleteCatalogs)
+			query.Add($"excl=1");
 
 		return string.Join("&", query);
 	}
