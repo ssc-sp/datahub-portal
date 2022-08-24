@@ -374,7 +374,7 @@
 		var values = (text ?? "").Split(sep, StringSplitOptions.RemoveEmptyEntries);
 		foreach (var v in values)
 		{
-			// note: this because the CatalogObjectLanguage is a not byte type enum
+			// note: this is because the CatalogObjectLanguage is a not byte type enum
 			if (isByte)
 			{
 				if (byte.TryParse(v, out byte ordValue) && Enum.IsDefined(typeof(E), ordValue))
