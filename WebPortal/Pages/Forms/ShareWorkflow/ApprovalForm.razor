@@ -1,7 +1,9 @@
 ﻿@using System.Linq
+@using Forms = MudBlazor.Forms
+
 
 <div style="margin-right: 1rem;">
-    <AeModelForm Model="_approvalForm"
+    <MudBlazor.Forms.MudModelForm Model="_approvalForm"
                  T="Data.Forms.ShareWorkflow.ApprovalForm"
                  OnValidSubmit="HandleValidSubmit"
                  OnCancel="ClearForm"
@@ -155,7 +157,7 @@
         return await Task.FromResult(_approvalForm);
     }
 
-    private void OnConfigure(IModelFormContext context)
+    private void OnConfigure(Forms.IModelFormContext context)
     {
         context.RegisterOptionValueProperty<Data.Forms.ShareWorkflow.ApprovalForm>(p => p.Type_Of_Data_TXT, () => new string[] { "Data", "Info" });
 
@@ -197,7 +199,7 @@
         });
     }
 
-    private void RefreshBranches(IModelFormContext context)
+    private void RefreshBranches(Forms.IModelFormContext context)
     {
         _branchId = -1;
         _approvalForm.Branch_NAME = string.Empty;
@@ -205,7 +207,7 @@
         RefreshDivisions(context);
     }
 
-    private void RefreshDivisions(IModelFormContext context)
+    private void RefreshDivisions(Forms.IModelFormContext context)
     {
         _divisionId = -1;
         _approvalForm.Division_NAME = string.Empty;
@@ -213,7 +215,7 @@
         RefreshSections(context);
     }
 
-    private void RefreshSections(IModelFormContext context)
+    private void RefreshSections(Forms.IModelFormContext context)
     {
         _sectionId = -1;
         _approvalForm.Section_NAME = string.Empty;
