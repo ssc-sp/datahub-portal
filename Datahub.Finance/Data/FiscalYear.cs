@@ -17,6 +17,8 @@ namespace Datahub.Portal.Data.Finance
 
         [MaxLength(20)]
         public string Year { get; set; }
+
+        public List<FundCenter> FundCenters { get; set; }
         
     }
 }

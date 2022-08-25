@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Threading.Tasks;
 
 namespace Datahub.Portal.Data.Finance
@@ -19,7 +20,28 @@ namespace Datahub.Portal.Data.Finance
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<FundCenter>()
+                .HasOne(e => e.Sector)
+                .WithMany(e => e.SectorFundCenters)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<FundCenter>()
+                .HasOne(e => e.Branch)
+                .WithMany(e => e.BranchFundCenters)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<FundCenter>()
+                .HasOne(e => e.Division)
+                .WithMany(e => e.DivisionFundCenters)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<FundCenter>()
+                .HasOne(e => e.FiscalYear)
+                .WithMany(e => e.FundCenters)
+                .OnDelete(DeleteBehavior.NoAction);
+
             //BuildSectors(modelBuilder);
+
             //BuildBranches(modelBuilder);
 
             //modelBuilder.Entity<SectorAndBranch>()

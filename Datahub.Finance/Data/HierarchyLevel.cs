@@ -23,6 +23,11 @@ namespace Datahub.Portal.Data.Finance
 
         public string FundCenterModifiedEnglish { get; set; }
         public string FundCenterModifiedFrench { get; set; }
+        
+        public List<FundCenter> SectorFundCenters { get; set; }
+        public List<FundCenter> BranchFundCenters { get; set; }
+        public List<FundCenter> DivisionFundCenters { get; set; }
+
         public int Level { get; set; }
         public DateTime ExpiryDate { get; set; }
         public bool IsActive { get; set; }
