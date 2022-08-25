@@ -1,38 +1,39 @@
 # [UC001] New user and new project
-As a new user, I want to sign up my project for DataHub
 
+## User Creation
+### Sequence Diagram
 ```mermaid
 sequenceDiagram
-    actor A as DataHub Admin
-    actor U as User
+    actor U as New User
     participant P as DataHub Portal
     participant F as Graph Function
 
-    U->>+P: /register/new
-    P->>P: insert registration request (requested)
-    P-->>U: notify pending
-    P-->>A: notify pending
-    deactivate P
-    activate A
+    U->>P: /register/new
+    P-->>U: show sign up page
 
-    
-    A->>-P: approve
-    activate P
-    P->>P: create project
-    P->>P: create storage request for project
+    U->>P: submit account info (email, password)
+    opt is GC email
+    P-->>U: request department info
+    U->>P: submit department info
+    end
+
     P->>+F: create user
-    F->>U: email notification
+    F->>U: email validation
     activate U
-    F->>-P: notify success
+    F-->>-P: notify success
+    P-->>+U: notify to confirm account
 
-    P->>P: set user as project admin
-    P->>P: update registration status (created) 
-    deactivate P
-
-    U->>-P: login to portal
-    activate P
-    P->>-P: update registration status (logged in)
+    U->>-P: select email validation link
+    P->>F: confirm account
+    F-->>P: notify success
+    P-->>U: notify success
 ```
+### Mockups
+![user sign up button](./images/user-sign-up-button.jpg)
+![user registration](./images/user-information.jpg)
+![user registration gov](./images/user-information-gov.jpg)
+![email validation](./images/email-verification.webp)
+
 
 # [UC002] New user and existing project
 As a new user, I want to sign up to an existing project in DataHub
@@ -121,4 +122,38 @@ sequenceDiagram
     P->>P: add user to project
     P->>U: email notification
     deactivate P
+```
+
+### Old (TEMP!)
+```mermaid
+sequenceDiagram
+    actor A as DataHub Admin
+    actor U as User
+    participant P as DataHub Portal
+    participant F as Graph Function
+
+    U->>+P: /register/new
+    P->>P: insert registration request (requested)
+    P-->>U: notify pending
+    P-->>A: notify pending
+    deactivate P
+    activate A
+
+    
+    A->>-P: approve
+    activate P
+    P->>P: create project
+    P->>P: create storage request for project
+    P->>+F: create user
+    F->>U: email notification
+    activate U
+    F->>-P: notify success
+
+    P->>P: set user as project admin
+    P->>P: update registration status (created) 
+    deactivate P
+
+    U->>-P: login to portal
+    activate P
+    P->>-P: update registration status (logged in)
 ```
