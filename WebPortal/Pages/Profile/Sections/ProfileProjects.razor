@@ -1,0 +1,57 @@
+@using MudBlazor.Utilities
+@if (Projects is null)
+{
+    <MudStack>
+        <MudText Typo="Typo.h6">Projects</MudText>
+        <MudGrid>
+            @for (var i = 0; i < 3; i++)
+            {
+                <MudItem xs="4">
+                    <Skeleton/>
+                </MudItem>
+            }
+        </MudGrid>
+    </MudStack>
+
+    return;
+}
+
+<MudStack>
+    <MudText Typo="Typo.h6">@Localizer["Projects"]</MudText>
+    <MudGrid>
+        @foreach (var project in Projects)
+        {
+            <MudItem xs="4">
+                <MudCard>
+                    <MudCardContent>
+                        <MudText>@project.Project_Name</MudText>
+                        <MudText Style="@_projectDescriptionStyle" Typo="Typo.body2">@project.ProjectDescription</MudText>
+                    </MudCardContent>
+                    <MudCardActions>
+                        <MudButton Variant="Variant.Text" Color="Color.Primary" Href="@($"/projects/{project.Project_Acronym_CD}")">@Localizer["View Project"]</MudButton>
+                    </MudCardActions>
+                </MudCard>
+            </MudItem>
+        }
+    </MudGrid>
+</MudStack>
+
+@code {
+
+    [Parameter]
+    public List<Datahub_Project> Projects { get; set; }
+
+    private string _projectDescriptionStyle;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        _projectDescriptionStyle = new StyleBuilder()
+            .AddStyle("text-overflow", "ellipsis")
+            .AddStyle("white-space", "nowrap")
+            .AddStyle("overflow", "hidden")
+            .Build();
+    }
+
+}

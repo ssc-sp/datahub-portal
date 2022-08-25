@@ -17,7 +17,7 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "6.0.3")
+                .HasAnnotation("ProductVersion", "6.0.7")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
@@ -693,6 +693,9 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.Property<Guid>("Report_ID")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("InCatalog")
+                        .HasColumnType("bit");
 
                     b.Property<string>("Report_Name")
                         .HasColumnType("nvarchar(max)");

@@ -18,8 +18,6 @@
 
 using System.Collections.Generic;
 using System.Net;
-using Microsoft.Azure.Functions.Worker;
-using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
@@ -31,30 +29,34 @@ using Azure.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Microsoft.Azure.Services.AppAuthentication;
+using Microsoft.Azure.WebJobs;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.WebJobs.Extensions.Http;
+using Microsoft.AspNetCore.Http;
+using System.Text;
 
 namespace NRCanDataHub
 {
     public static class SyncDbUsersFunction
     {
-        [Function("SyncDbUsers")]
-        public static async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
-            FunctionContext executionContext)
+        [FunctionName("SyncDbUsers")]
+        public static async Task<IActionResult> RunAsync([HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequest req)
         {
             try
             {
                 //var logger = executionContext.GetLogger("SyncDbUsers");
                 //logger.LogInformation("C# HTTP trigger function processed a request.");
 
-                var response = req.CreateResponse(HttpStatusCode.OK);
-                response.Headers.Add("Content-Type", "text/plain; charset=utf-8");
-
+                //
+                //response.Headers.Add("Content-Type", "text/plain; charset=utf-8");
+                var content = new StringBuilder();
                 var projects = await (new ProjectFactory(new EnvConfiguration())).GetUsersFromProjects().ConfigureAwait(false);
 
-                response.WriteString($"{System.Environment.GetEnvironmentVariable("projectDbConnectionString")}\n");
+                content.AppendLine($"{System.Environment.GetEnvironmentVariable("projectDbConnectionString")}\n");
 
                 if (projects == null)
                 {
-                    response.WriteString("No projects found");
+                    content.AppendLine("No projects found");
                 }
                 else
                 {
@@ -63,28 +65,28 @@ namespace NRCanDataHub
                         var logs = await (new DatabaseUsersCreator(project)).Create();
                         foreach (var log in logs)
                         {
-                            response.WriteString($"{log}\n");
+                            content.AppendLine($"{log}\n");
                         }
                     }
                 }
 
                 var token = await (new AzureServiceTokenProvider()).GetAccessTokenAsync("https://database.windows.net/");
-                response.WriteString($"{token}\n");
+                content.AppendLine($"{token}\n");
 
-                return response;
+                return new OkObjectResult(content.ToString());
             }
             catch (Exception ex)
             {
-                var response1 = req.CreateResponse(HttpStatusCode.OK);
+                //var response1 = req.CreateResponse(HttpStatusCode.OK);
 
-                response1.WriteString($"{System.Environment.GetEnvironmentVariable("projectDbConnectionString")}\n");
-
-                var token = await (new AzureServiceTokenProvider()).GetAccessTokenAsync("https://database.windows.net/");
+                //response1.WriteString($"{System.Environment.GetEnvironmentVariable("projectDbConnectionString")}\n");
+                throw;
+                //var token = await (new AzureServiceTokenProvider()).GetAccessTokenAsync("https://database.windows.net/");
                 //response1.WriteString($"{token}\n");
 
                 // write the error
-                response1.WriteString(ex.ToString());
-                return response1;
+                //return new ErrorObject (ex.ToString());
+                //return response1;
             }
         }
     }

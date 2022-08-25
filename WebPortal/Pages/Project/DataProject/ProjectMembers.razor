@@ -37,7 +37,7 @@
 }
 else
 {
-    <AuthorizeView Roles="@($"{ProjectAcronym}, {ProjectAcronym}-admin, {RoleConstants.DATAHUB_ROLE_ADMIN}")">
+    <AuthorizeView Roles="@string.Join(',', _authorizedRoles)">
         <NotAuthorized>
             <div class="access-denied">
                 <AeTypography Variant="h3">@Localizer["Access Denied"]</AeTypography>
@@ -111,6 +111,7 @@ else
     private bool _isLoading = true;
     private bool _isProjectUserPendingApproval;
 
+    private List<string> _authorizedRoles = new();
     private Datahub_Project _project;
 
     private List<ProjectMember> _projectUsers;
@@ -136,6 +137,16 @@ else
 
         _projectUsers = await _serviceAuthManager.GetProjectMembers(ProjectAcronym);
 
+        _authorizedRoles = new List<string>
+        {
+            ProjectAcronym, $"{ProjectAcronym}-admin"
+        };
+
+        if (!_serviceAuthManager.GetViewingAsGuest(_user.Id))
+        {
+            _authorizedRoles.Add(RoleConstants.DATAHUB_ROLE_ADMIN);
+        }
+        
         _isLoading = false;
     }
 

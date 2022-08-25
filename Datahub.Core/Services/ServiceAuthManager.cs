@@ -3,6 +3,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Primitives;
 using Datahub.Core.EFCore;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -17,16 +18,16 @@ namespace Datahub.Core.Services
     public class ServiceAuthManager
     {
         private IMemoryCache serviceAuthCache;
-        private readonly IMemoryCache projectAdminCache;
         private readonly IDbContextFactory<DatahubProjectDBContext> dbFactory;
         private readonly IMSGraphService mSGraphService;
         private const int AUTH_KEY = 1;
         private const int PROJECT_ADMIN_KEY = 2;
 
-        public ServiceAuthManager(IMemoryCache serviceAuthCache, IMemoryCache projectAdminCache, IDbContextFactory<DatahubProjectDBContext> dbFactory, IMSGraphService mSGraphService)
+        private ConcurrentDictionary<string, bool> _viewingAsGuest = new ();
+
+        public ServiceAuthManager(IMemoryCache serviceAuthCache, IDbContextFactory<DatahubProjectDBContext> dbFactory, IMSGraphService mSGraphService)
         {
             this.serviceAuthCache = serviceAuthCache;
-            this.projectAdminCache = projectAdminCache;
             this.dbFactory = dbFactory;
             this.mSGraphService = mSGraphService;
         }
@@ -36,9 +37,24 @@ namespace Datahub.Core.Services
             using var ctx = dbFactory.CreateDbContext();
             return ctx.Projects.Where(p => p.Project_Acronym_CD != null).Select(p => p.Project_Acronym_CD).ToList();
         }
-
-        public List<string> GetAdminProjectRoles()
+        
+        public void SetViewingAsGuest(string userId, bool isGuest)
         {
+            _viewingAsGuest.AddOrUpdate(userId, isGuest, (k, v) => isGuest);
+        }
+
+        public bool GetViewingAsGuest(string userId)
+        {
+            return _viewingAsGuest.ContainsKey(userId) && _viewingAsGuest[userId];
+        }
+
+        public List<string> GetAdminProjectRoles(string userId)
+        {
+            if(userId != null && _viewingAsGuest.ContainsKey(userId) && _viewingAsGuest[userId])
+            {
+                return new List<string>();
+            }
+            
             var projects = GetAllProjects();
             projects = projects.Select(x => $"{x}-admin").ToList();
             return projects;

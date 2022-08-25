@@ -36,9 +36,13 @@
                     </CardHeaderActions>
                 </MudCardHeader>
                 <MudCardContent>
-                    <MudText>
-                        @Localizer.GetString("You have used {0} of your allocated {1}", DatahubTools.BytesToString(_totalSpaceUsed), _maxAllocatedSpace)
-                    </MudText>
+                    <MudStack>
+                        <MudLink Href="/profile">@Localizer["View your profile"]</MudLink>
+                        <MudText>
+                            @Localizer.GetString("You have used {0} of your allocated {1}", DatahubTools.BytesToString(_totalSpaceUsed), _maxAllocatedSpace)
+                        </MudText>
+                        <GuestModeToggler />
+                    </MudStack>
                 </MudCardContent>
                 <MudCardActions>
                     <MudStack Row Class="flex-grow-1" Justify="Justify.SpaceBetween">

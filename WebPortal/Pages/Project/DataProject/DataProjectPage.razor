@@ -3,7 +3,8 @@
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject IUserInformationService _userInformationService
-
+@inject ServiceAuthManager _serviceAuthManager
+@inject IDatahubAuditingService _auditingService
 
 @page "/projects/{ProjectAcronymParam}"
 
@@ -28,6 +29,7 @@
 
     [Parameter]
     public string ProjectAcronymParam { get; set; }
+
     [CascadingParameter]
     private Task<AuthenticationState> authenticationStateTask { get; set; }
 
@@ -48,7 +50,8 @@
         _userId = await _userInformationService.GetUserIdString();
         _user = await _userInformationService.GetUserAsync();
         var authUser = (await authenticationStateTask).User;
-        _isDatahubAdmin = authUser.IsInRole(RoleConstants.DATAHUB_ROLE_ADMIN);
-    }
+        _isDatahubAdmin = !_serviceAuthManager.GetViewingAsGuest(_userId) && authUser.IsInRole(RoleConstants.DATAHUB_ROLE_ADMIN);
 
+        await _auditingService.TrackEvent("Open Initiative", ("Initiative", _projectName), ("Acronym", ProjectAcronymParam));
+    }
 }
