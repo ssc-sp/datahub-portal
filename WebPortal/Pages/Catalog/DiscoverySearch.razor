@@ -170,7 +170,7 @@
 						</AeCollapse>
 
 						<div>
-							<AeButton OnClickEvent=@ClearFilters Disabled=@_clearFilterDisabled>@Localizer["BUTTONS.Clear"]</AeButton>
+							<AeButton OnClickEvent=@ClearFilters Disabled=@ClearFilterDisabled>@Localizer["BUTTONS.Clear"]</AeButton>
 						</div>
 					</AeFlex>
 				</div>
@@ -322,7 +322,7 @@
 	private Dictionary<int, OrganizationLevel> _sectors = new();
 	private Dictionary<int, OrganizationLevel> _branches = new();
 	private bool _filtersActive = false;
-	private bool _clearFilterDisabled => !_filtersActive;
+	private bool ClearFilterDisabled => !HasValidFilters();
 
 	private Dictionary<string, Datahub_Project> _projects = new();
 
@@ -524,6 +524,7 @@
 	private async Task ClearFilters()
 	{
 		_searchKeywords = string.Empty;
+		QueryKeywords = string.Empty;
 
 		if (_languageTypeFilter != null)
 		{
