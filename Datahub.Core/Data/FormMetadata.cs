@@ -24,6 +24,7 @@ namespace Datahub.Core.Data
 
         public IList<string> MarkDownContentFooter { get; set; }
 
+        public IList<Func<T, (string, string)>> NavigateUrls { get; set; }
         public IList<(Delegate Label, Delegate Choices)> FilterProperties { get; set; }
 
         public bool IsSubmitEnabled { get; set; }

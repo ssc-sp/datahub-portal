@@ -12,7 +12,7 @@
 @using MudBlazor.Forms
 @using System.Text.RegularExpressions
 @using System.Linq.Expressions
-@using Datahub.Portal.Data.Finance;
+@inject NavigationManager NavigationManager
 
 @if(Metadata is null || !Metadata.IsLoaded())
 {
@@ -63,8 +63,8 @@ else
 
         
             <AeFlex id="buttonBar">
-                <div class="icon-container" style="margin-bottom: 10px; margin-left: 5px;">
-                    <FAButton Text="@_addButton" Icon="far fa-plus-square" onclick="CreateNewRecord" />
+                <div class="icon-container" style="margin-top: 10px; margin-left: 5px;">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="CreateNewRecord">@_addButton</MudButton>
                 </div>        
             </AeFlex>
             @if (!string.IsNullOrWhiteSpace(Metadata.TableDisclaimer))
@@ -91,7 +91,16 @@ else
             </MudCardContent>
         </MudCard>
     }
-    <MudCard>
+
+    <MudCard style="margin-top: 1rem">
+        <MudCardHeader>
+            <CardHeaderContent>
+                @foreach (var navigationUrl in Metadata.NavigateUrls)
+                {
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" onclick="@(() => NavigationManager.NavigateTo(@navigationUrl.Invoke(SelectedRecord).Item1))">@navigationUrl.Invoke(SelectedRecord).Item2</MudButton>
+                }
+            </CardHeaderContent>
+        </MudCardHeader>
         <MudCardContent>
             <MudModelForm Model="SelectedRecord"
                          T="@T"
@@ -107,6 +116,9 @@ else
                          LocalizerFunction="@GetDataLabel"
                          IsSubmitEnabled="Metadata.IsSubmitEnabled" />
         </MudCardContent>
+        <MudCardActions>
+
+        </MudCardActions>
     </MudCard>
 
     @if (Metadata.MarkDownContentFooter?.Any() ?? false)
@@ -169,7 +181,6 @@ else
 
 
         totalItems = data.Count();
-        List<HierarchyLevel> emptyList = new();
 
         if (!string.IsNullOrWhiteSpace(state.SortLabel) && SortAccessors.ContainsKey(state.SortLabel))
         { 
@@ -188,7 +199,12 @@ else
         table.ReloadServerData();
     }
 
+    //public async void NavigateTo(string url)
+    //{ 
     
+    
+    //}
+
     public string ReplaceWhitespace(string input, string replacement)
     {
         return sWhitespace.Replace(input, replacement);

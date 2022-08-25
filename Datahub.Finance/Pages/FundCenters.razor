@@ -55,7 +55,8 @@
         _user = await UserInformationService.GetUserAsync();
         _isUserAdmin = await ServiceAuthManager.IsProjectAdmin(_user.Id, PROJECTACRONYM);
         _fiscalYears = Context.FiscalYears.ToList();
-        _fiscalYears.Insert(0, null);
+        if(_fiscalYears[0] is not null)
+            _fiscalYears.Insert(0, null);
         LoadData(_searchFilter);
     }
 
@@ -82,10 +83,17 @@
         _formMetadata.SubHeader = "Fund Centers";
         _formMetadata.DataSet = fundcenters;
         _formMetadata.AccessorFunctions = accessorFunctions;
+        _formMetadata.NavigateUrls = buttonFunctions;
         _formMetadata.Headers = headers;
         _formMetadata.GridTemplateColumns = "3fr 6fr 6fr 6fr 3fr";
         _formMetadata.IsSubmitEnabled = true;
     }
+
+    private List<Func<FundCenter, (string, string)>> buttonFunctions = new List<Func<FundCenter, (string, string)>>
+    {
+        new Func<FundCenter, (string, string)>(p => { return ("Forecasts", $"/finance/forecasts/{p.FundCenter_ID.ToString()}"); }) 
+        //new Func<FundCenter, (string, string)>(p => { return ("Forecasts", $"/finance/forecasts/{p.FundCenter_ID.ToString()}"); })
+    };
 
     private async Task GoToNextSheet()
     {
@@ -110,16 +118,6 @@
     }
 
 
-
-    //private List<Func<FundCenter, string>> sortFunctions = new List<Func<FundCenter, string>>
-    //{
-    //    new Func<FundCenter, string>(p => { return p.FiscalYear; }),
-    //    new Func<FundCenter, string>(p => { return p.Sector?.FundCenterModifiedEnglish ?? "N/A"; }),
-    //    new Func<FundCenter, string>(p => { return p.Branch?.FundCenterModifiedEnglish ?? "N/A"; }),
-    //    new Func<FundCenter, string>(p => { return p.Division?.FundCenterModifiedEnglish ?? "N/A"; }),
-    //    new Func<FundCenter, string>(p => { return $"{p.AttritionRate.ToString()}%"; }),
-    //};
-
     private string getColor(FundCenter current)
     {
         if (current == _fundcenter)
@@ -143,7 +141,9 @@
     private void CreateNewProject()
     {
         //var defaultBranch = _sectorLookup.Where(s => s.SectorId == 1).First().Branches.Where(b => b.BranchId == 1).First();
-        _fundcenter = new FundCenter() { Last_Updated_DT = DateTime.Now, Created_DT = DateTime.Now, Created_UserId = _user.Mail, Last_Updated_UserId = _user.Mail };
+        _fundcenter = new FundCenter() { Last_Updated_DT = DateTime.Now, Created_DT = DateTime.Now, Created_UserId = _user.Mail, Last_Updated_UserId = _user.Mail, Sector = null };
+        RefreshBranches(null, null);
+        RefreshDivisions(null, null);
         StateHasChanged();
     }
 
@@ -182,8 +182,8 @@
     {
         if (!_sectors.Any())
             _sectors = Context.HierarchyLevels.Where(p => p.Level == 2 && p.IsActive).ToList();
-
-        _sectors.Insert(0, null);
+        if (_sectors[0] is not null)
+            _sectors.Insert(0, null);
         return _sectors;
     }
 
