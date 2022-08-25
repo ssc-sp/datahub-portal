@@ -19,6 +19,10 @@ namespace Datahub.Core.Services
         bool SetLanguage(string language);
         Task<string> GetUserRootFolder();
         Task<bool> IsUserWithoutInitiatives();
+        Task<bool> IsViewingAsGuest();
+        Task<bool> IsViewingAsVisitor();
+        Task SetViewingAsGuest(bool isGuest);
+        Task SetViewingAsVisitor(bool isVisitor);
     }
 
     public static class UserInformationServiceConstants

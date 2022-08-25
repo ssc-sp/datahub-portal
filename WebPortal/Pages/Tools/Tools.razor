@@ -72,6 +72,7 @@
     protected override async Task OnInitializedAsync()
     {
         CatalogReport = configuration.GetSection("PowerBI:CatalogReport");
+        var isViewAsGuest = UserInformationService.IsViewingAsGuest();
         _userHasInitiatives = !(await UserInformationService.IsUserWithoutInitiatives());
     }
 }
