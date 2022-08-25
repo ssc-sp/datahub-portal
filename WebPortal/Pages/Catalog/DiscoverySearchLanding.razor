@@ -127,8 +127,15 @@
 	{
 		foreach (var browserFile in e.GetMultipleFiles())
 		{
-			var stream = browserFile.OpenReadStream();
-			await CatalogImportService.Import(stream);
+			try
+			{
+				var stream = browserFile.OpenReadStream(int.MaxValue);
+				await CatalogImportService.Import(stream);
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine(ex.Message);
+			}
 		}
 	}
 }
