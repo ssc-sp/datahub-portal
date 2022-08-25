@@ -10,8 +10,11 @@
             T="bool"
             Color="Color.Primary"
             Checked="@_isViewAsGuest"
-            CheckedChanged="ToggleGuestMode" />
-        <MudText Typo="Typo.body2">@Localizer["Enable Guest View"]</MudText>
+            CheckedChanged="ToggleGuestMode">@Localizer["Enable Guest View"]</MudSwitch>
+        <MudSwitch T="bool"
+               Color="Color.Primary"
+               Checked="@_isViewAsVisitor"
+               CheckedChanged="ToggleVisitorMode">@Localizer["Enable Visitor View"]</MudSwitch>
     </MudStack>
 
 }
@@ -21,8 +24,8 @@
     [CascadingParameter]
     private Task<AuthenticationState> AuthenticationStateTask { get; set; }
 
-    private Microsoft.Graph.User _user;
     private bool _isViewAsGuest;
+    private bool _isViewAsVisitor = false;
 
     private bool _isDataHubAdmin = false;
 
@@ -31,16 +34,24 @@
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        _user = await _userInformationService.GetUserAsync();
-        _isViewAsGuest = _serviceAuthManager.GetViewingAsGuest(_user.Id);
+        _isViewAsGuest = await _userInformationService.IsViewingAsGuest();
 
         var userClaims = (await AuthenticationStateTask).User;
         _isDataHubAdmin = userClaims.IsInRole(RoleConstants.DATAHUB_ROLE_ADMIN);
     }
 
-    private void ToggleGuestMode(bool newValue)
+    private async Task ToggleGuestMode(bool newValue)
     {
-        _serviceAuthManager.SetViewingAsGuest(_user.Id, newValue);
+        await _userInformationService.SetViewingAsGuest(newValue);
+        _navigationManager.NavigateTo(_navigationManager.Uri, true);
+    }
+
+    private async Task ToggleVisitorMode(bool newValue)
+    {
+        _isViewAsVisitor = newValue;
+        _isViewAsGuest = false;
+        await _userInformationService.SetViewingAsGuest(false);
+        await _userInformationService.SetViewingAsVisitor(newValue);
         _navigationManager.NavigateTo(_navigationManager.Uri, true);
     }
 
