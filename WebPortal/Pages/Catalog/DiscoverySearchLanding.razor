@@ -2,6 +2,7 @@
 @using Datahub.Core.Components.FileUpload
 @inject CatalogImportService CatalogImportService
 @inject IConfiguration Configuration
+@inject ILogger<DiscoverySearchLanding> Logger
 
 <AeFlex Vertical>
 	<h1>@Localizer["DataHub Data Catalog"]</h1>
@@ -134,7 +135,7 @@
 			}
 			catch (Exception ex)
 			{
-				Console.WriteLine(ex.Message);
+				Logger.LogError(ex, "Failed to upload the file.");
 			}
 		}
 	}
