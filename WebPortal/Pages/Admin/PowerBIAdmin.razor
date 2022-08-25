@@ -786,7 +786,8 @@
         await InvokeAsync(StateHasChanged);
 
         var dbWorkspace = await _powerBiDataService.GetWorkspaceById(workspace.WorkspaceId);
-        WorkspaceBeingEdited = new(null, dbWorkspace);
+        var pbiWorkspace = PowerBiWorkspacesById.GetValueOrDefault(workspace.WorkspaceId);
+        WorkspaceBeingEdited = new(pbiWorkspace, dbWorkspace);
 
         await InvokeAsync(StateHasChanged);
         await workspaceTreeTask;
