@@ -92,6 +92,9 @@
     public MetadataObjectType ObjectType { get; set; } = MetadataObjectType.File;
 
     [Parameter]
+    public CatalogObjectLanguage CatalogLanguage { get; set; } = CatalogObjectLanguage.Bilingual;
+
+    [Parameter]
     public bool UpdateCatalog { get; set; }
 
     [Parameter]
@@ -276,7 +279,8 @@
             digest.Contact, 
             GetClassificationType(SecurityClass),
             digest.EnglishCatalog, 
-            digest.FrenchCatalog
+            digest.FrenchCatalog,
+            CatalogLanguage
         );
     }
 

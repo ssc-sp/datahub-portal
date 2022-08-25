@@ -218,7 +218,8 @@ namespace Datahub.Core.Services
         }
 
         public async Task UpdateCatalog(long objectMetadataId, MetadataObjectType dataType, string objectName, string location,
-            int sector, int branch, string contact, ClassificationType securityClass, string englishText, string frenchText)
+            int sector, int branch, string contact, ClassificationType securityClass, string englishText, string frenchText, 
+            CatalogObjectLanguage language)
         {
             using var ctx = _contextFactory.CreateDbContext();
 
@@ -244,7 +245,8 @@ namespace Datahub.Core.Services
                     Contact_TXT = contact,
                     Classification_Type = securityClass,
                     Search_English_TXT = englishText,
-                    Search_French_TXT = frenchText
+                    Search_French_TXT = frenchText,
+                    Language = language
                 };
 
                 ctx.CatalogObjects.Add(catalogObject);
@@ -646,6 +648,15 @@ namespace Datahub.Core.Services
                                     .Select(e => e.ObjectMetadata.ObjectId_TXT)
                                     .ToListAsync();
             return groupIds;
+        }
+
+        public async Task<CatalogObjectLanguage?> GetCatalogObjectLanguage(string objectId)
+        {
+            using var ctx = await _contextFactory.CreateDbContextAsync();
+
+            var catalogObject = await ctx.CatalogObjects.FirstOrDefaultAsync(e => e.ObjectMetadata.ObjectId_TXT == objectId);
+
+            return catalogObject?.Language;
         }
 
         private async Task<List<CatalogObject>> UpdateCatalogObjectGroup(MetadataDbContext ctx,  string objectId)

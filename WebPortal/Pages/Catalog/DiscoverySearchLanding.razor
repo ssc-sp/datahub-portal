@@ -10,72 +10,70 @@
 		@Localizer["The DataHub Data Catalog provides a collection of various NRCan data assets, such as DataHub files and initiatives; CFS data catalog items; and Power BI datasets, reports and workspaces."]
 	</div>
 
-	<AeFlex Vertical>
-		<div>
-			<h2>@Localizer["Browse by Sector"]</h2>
-		</div>
-
-		<div class="ae flex wrap">
-			@foreach (var sector in Sectors)
-			{
-				<AeCard class="facard1" style="cursor: pointer;" CardPosition="AeCard.CardStyle.Horizontal" onclick=@(() => ClickSector(sector))>
-					<Header>
-						<div style="width:120px">                        
-							<MudIcon Icon=@GetIconClass(sector.Id) />
-						</div>
-					</Header>
-					<ChildContent>                   
-							<h3>@(IsFrench ? sector.FrenchLabel : sector.EnglishLabel)</h3>
-					</ChildContent>
-					<Footer>
-					</Footer>
-				</AeCard>
-			}
-		</div>
-		<div>
-			<h2>@Localizer["Search"]</h2>
+	@if (Sectors.Any())
+	{
+		<AeFlex Vertical>
 			<div>
-				@Localizer["Search the Data Catalog to find and discover NRCan datasets on energy, finance, science, forestry or human resources, and more."]
+				<h2>@Localizer["Browse by Sector"]</h2>
 			</div>
-		</div>
-		<div>
-			<h2>@Localizer["Publish"]</h2>
-			<AuthorizeView>
-				<Authorized>
-					<div>
-						@Localizer["Since you are an Admin in Datahub use the Upload button below to import a valid catalog dump file."]
-					</div>
-					<div></div>
-					<div>
-						<a href="/resources/Catalog-Import-Format">@Localizer["Import file format documentation"]</a>
-					</div>
-					<div class="file-list">
-						<UploadSnackbar UploadingFiles="_uploadingFiles">
-							<DropZone MaxHeight OnFilesDrop="UploadFiles">
-								<p>&nbsp;</p>
-							</DropZone>
-						</UploadSnackbar>
-						<AeButton class="button-tool" onclick="document.querySelector('.file-list .dropzone-container input').click();">
-							<i class="fas fa-upload"></i>
-							@Localizer["Upload"]
-						</AeButton>
-					</div>
-				</Authorized>
 
-				<NotAuthorized>
-					<div>
-						@Localizer[$"Contact the DataHub team ({(Configuration[$"{ConfigurationConstants.CONTACT_EMAIL}"] ?? ConfigurationConstants.DEFAULT_EMAIL)}) for details on how to publish your data to the Data Catalog."]
-					</div>
-				</NotAuthorized>
-			</AuthorizeView>
+			<div class="ae flex wrap">
+				@foreach (var sector in Sectors)
+				{
+					<AeCard class="facard1" style="cursor: pointer;" CardPosition="AeCard.CardStyle.Horizontal" onclick=@(() => ClickSector(sector))>
+						<Header>
+							<div style="width:120px">                        
+								<MudIcon Icon=@GetIconClass(sector.Id) Size="Size.Large" />
+							</div>
+						</Header>
+						<ChildContent>                   
+							<h3>@(
+							IsFrench ? sector.FrenchLabel : sector.EnglishLabel
+							)</h3>
+						</ChildContent>
+						<Footer>
+						</Footer>
+					</AeCard>
+				}
+			</div>
+			<div>
+				<h2>@Localizer["Search"]</h2>
+				<div>
+					@Localizer["Search the Data Catalog to find and discover NRCan datasets on energy, finance, science, forestry or human resources, and more."]
+				</div>
+			</div>
+			<div>
+				<h2>@Localizer["Publish"]</h2>
+				<AuthorizeView>
+					<Authorized>
+						<div>
+							@Localizer["Since you are an Admin in Datahub use the Upload button below to import a valid catalog dump file."]
+						</div>
 
-		</div>
+						<div></div>
 
-		<div style="margin-top: 16px;"></div>
+						<div>
+							<InputFile id="fileInput" OnChange="UploadFiles" hidden />
+							<MudButton HtmlTag="label"
+								   Variant="Variant.Filled"
+								   Color="Color.Primary"
+								   StartIcon="@Icons.Filled.CloudUpload"
+								   for="fileInput">
+								@Localizer["Upload"]
+							</MudButton>
+						</div>
+					</Authorized>
+					<NotAuthorized>
+						<div>
+							@Localizer[$"Contact the DataHub team ({(Configuration[$"{ConfigurationConstants.CONTACT_EMAIL}"] ?? ConfigurationConstants.DEFAULT_EMAIL)}) for details on how to publish your data to the Data Catalog."]
+						</div>
+					</NotAuthorized>
+				</AuthorizeView>
+			</div>
 
-
-	</AeFlex>
-
+			@*<div style="margin-top: 16px;"></div>*@
+		</AeFlex>
+	}
 </AeFlex>
 
 @code {
@@ -90,8 +88,6 @@
 	public EventCallback<OrganizationLevel> OnClickSector { get; set; }
 
 	static Dictionary<int, string> _icons = GetIcons();
-
-	private List<FileMetaData> _uploadingFiles = new();
 
 	private async void ClickSector(OrganizationLevel sector)
 	{

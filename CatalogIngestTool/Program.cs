@@ -267,4 +267,9 @@ class DummyDatahubAuditingService : IDatahubAuditingService
     {
         return Task.CompletedTask;
     }
+
+    public Task TrackEvent(string message, params (string key, string value)[] details)
+    {
+        return Task.CompletedTask;
+    }
 }
