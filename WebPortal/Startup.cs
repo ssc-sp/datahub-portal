@@ -40,6 +40,7 @@ using Microsoft.AspNetCore.Authorization.Infrastructure;
 using MudBlazor.Services;
 using Datahub.GeoCore.Service;
 using MudBlazor.Services;
+using Datahub.Core.Services.Offline;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]
 namespace Datahub.Portal
@@ -370,6 +371,7 @@ namespace Datahub.Portal
                 services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
                 services.AddScoped<IUserInformationService, OfflineUserInformationService>();
                 services.AddSingleton<IMSGraphService, OfflineMSGraphService>();
+                services.AddScoped<IPowerBiDataService, OfflinePowerBiDataService>();
 
                 services.AddScoped<IMyDataService, OfflineMyDataService>();
                 
