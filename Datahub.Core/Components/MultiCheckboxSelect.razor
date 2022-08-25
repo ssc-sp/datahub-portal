@@ -53,6 +53,9 @@
     [Parameter]
     public Func<T, string> OptionLabelFunction { get; set; } = t => t.ToString();
 
+    [Parameter]
+    public HashSet<T> DefaultOptions { get; set; } = new();
+
     private Dictionary<T, bool> _selectOptions = new();
 
     private async Task ChangeDataTypeFilter(T t, ChangeEventArgs e)
@@ -95,15 +98,8 @@
         }
     }
 
-    protected override async Task OnParametersSetAsync()
+    protected override void OnParametersSet()
     {
-        // if the options param is null, we want an empty dict
-        // otherwise, only update if the options are different
-        if (Options?.Except(_selectOptions.Keys).Any() ?? true)
-        {
-            _selectOptions = Options?.ToDictionary(t => t, t => false) ?? new();
-            await TriggerSelectionChanged(new List<T>());
-        }
+        _selectOptions = Options?.ToDictionary(t => t, t => DefaultOptions?.Contains(t) ?? false) ?? new();
     }
-
 }
