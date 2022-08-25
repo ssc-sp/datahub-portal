@@ -27,6 +27,7 @@ namespace Datahub.Core.Services
         private NavigationManager _navigationManager;
 
         private IConfiguration _configuration;
+        private readonly ServiceAuthManager serviceAuthManager;
 
         //private GraphServiceClient _graphServiceClient;
         public string imageHtml;
@@ -40,7 +41,7 @@ namespace Datahub.Core.Services
             ILogger<UserInformationService> logger,
             AuthenticationStateProvider authenticationStateProvider,
             NavigationManager navigationManager,
-            IConfiguration configureOptions,
+            IConfiguration configureOptions, ServiceAuthManager serviceAuthManager,
             GraphServiceClient graphServiceClient,
             IDbContextFactory<UserTrackingContext> contextFactory
         )
@@ -49,7 +50,7 @@ namespace Datahub.Core.Services
             _authenticationStateProvider = authenticationStateProvider;
             _navigationManager = navigationManager;
             _configuration = configureOptions;
-
+            this.serviceAuthManager = serviceAuthManager;
             this.graphServiceClient = graphServiceClient;
             this.contextFactory = contextFactory;
         }
@@ -101,6 +102,8 @@ namespace Datahub.Core.Services
 
         public async Task<bool> IsUserWithoutInitiatives()
         {
+            if (isViewingAsVisitor)
+                return true;
             authenticatedUser ??= (await _authenticationStateProvider.GetAuthenticationStateAsync()).User;
             var claims = authenticatedUser.Claims.Where(c => c.Type == ClaimTypes.Role).ToList();
 
@@ -319,6 +322,29 @@ namespace Datahub.Core.Services
                 _logger.LogError(e, "Error Loading User");
                 return null;
             }
+        }
+
+        public async Task<bool> IsViewingAsGuest()
+        {
+            return serviceAuthManager.GetViewingAsGuest((await GetUserAsync()).Id);
+        }
+
+        public async Task SetViewingAsGuest(bool isGuest)
+        {
+            serviceAuthManager.SetViewingAsGuest((await GetUserAsync()).Id,isGuest);
+        }
+
+        private bool isViewingAsVisitor = false;
+
+        public Task<bool> IsViewingAsVisitor()
+        {
+            return Task.FromResult(isViewingAsVisitor);
+        }
+
+        public Task SetViewingAsVisitor(bool isVisitor)
+        {
+            isViewingAsVisitor = isVisitor;
+            return Task.CompletedTask;
         }
     }
 }
