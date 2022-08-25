@@ -4,6 +4,7 @@ using Datahub.Portal.Data.Finance;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Datahub.Portal.Migrations.Forms.Finance
 {
     [DbContext(typeof(FinanceDBContext))]
-    partial class FinanceDBContextModelSnapshot : ModelSnapshot
+    [Migration("20220824142638_updatedforecastfields")]
+    partial class updatedforecastfields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1082,10 +1084,12 @@ namespace Datahub.Portal.Migrations.Forms.Finance
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Employee_First_Name")
+                        .IsRequired()
                         .HasMaxLength(400)
                         .HasColumnType("nvarchar(400)");
 
                     b.Property<string>("Employee_Last_Name")
+                        .IsRequired()
                         .HasMaxLength(400)
                         .HasColumnType("nvarchar(400)");
 
@@ -1108,6 +1112,7 @@ namespace Datahub.Portal.Migrations.Forms.Finance
                         .HasColumnType("int");
 
                     b.Property<string>("Incremental_Replacement")
+                        .IsRequired()
                         .HasMaxLength(4000)
                         .HasColumnType("nvarchar(4000)");
 
@@ -1121,10 +1126,12 @@ namespace Datahub.Portal.Migrations.Forms.Finance
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Location_Of_Hiring")
+                        .IsRequired()
                         .HasMaxLength(4000)
                         .HasColumnType("nvarchar(4000)");
 
                     b.Property<string>("Potential_Hiring_Process")
+                        .IsRequired()
                         .HasMaxLength(4000)
                         .HasColumnType("nvarchar(4000)");
 

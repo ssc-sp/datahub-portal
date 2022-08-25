@@ -4,6 +4,7 @@ using Datahub.Portal.Data.Finance;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Datahub.Portal.Migrations.Forms.Finance
 {
     [DbContext(typeof(FinanceDBContext))]
-    partial class FinanceDBContextModelSnapshot : ModelSnapshot
+    [Migration("20220823025716_classificationfield")]
+    partial class classificationfield
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1072,8 +1074,8 @@ namespace Datahub.Portal.Migrations.Forms.Finance
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Forecast_ID"), 1L, 1);
 
                     b.Property<string>("Classification")
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
 
                     b.Property<DateTime>("Created_DT")
                         .HasColumnType("datetime2");
@@ -1082,10 +1084,12 @@ namespace Datahub.Portal.Migrations.Forms.Finance
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Employee_First_Name")
+                        .IsRequired()
                         .HasMaxLength(400)
                         .HasColumnType("nvarchar(400)");
 
                     b.Property<string>("Employee_Last_Name")
+                        .IsRequired()
                         .HasMaxLength(400)
                         .HasColumnType("nvarchar(400)");
 
@@ -1101,13 +1105,14 @@ namespace Datahub.Portal.Migrations.Forms.Finance
                         .HasColumnType("float");
 
                     b.Property<string>("Fund")
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
 
                     b.Property<int?>("FundCenter_ID")
                         .HasColumnType("int");
 
                     b.Property<string>("Incremental_Replacement")
+                        .IsRequired()
                         .HasMaxLength(4000)
                         .HasColumnType("nvarchar(4000)");
 
@@ -1121,10 +1126,12 @@ namespace Datahub.Portal.Migrations.Forms.Finance
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Location_Of_Hiring")
+                        .IsRequired()
                         .HasMaxLength(4000)
                         .HasColumnType("nvarchar(4000)");
 
                     b.Property<string>("Potential_Hiring_Process")
+                        .IsRequired()
                         .HasMaxLength(4000)
                         .HasColumnType("nvarchar(4000)");
 
@@ -1434,84 +1441,6 @@ namespace Datahub.Portal.Migrations.Forms.Finance
                     b.ToTable("SectorAndBranches");
                 });
 
-            modelBuilder.Entity("Datahub.Portal.Data.Finance.SummaryForecast", b =>
-                {
-                    b.Property<int>("Forecast_ID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Forecast_ID"), 1L, 1);
-
-                    b.Property<double?>("AdditionalNotes")
-                        .HasColumnType("float");
-
-                    b.Property<double?>("Budget")
-                        .HasColumnType("float");
-
-                    b.Property<double?>("Contribution")
-                        .HasColumnType("float");
-
-                    b.Property<DateTime>("Created_DT")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Created_UserId")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Fund")
-                        .IsRequired()
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)");
-
-                    b.Property<int?>("FundCenter_ID")
-                        .HasColumnType("int");
-
-                    b.Property<double?>("Grants")
-                        .HasColumnType("float");
-
-                    b.Property<string>("Key_Activity")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("Key_Driver")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<DateTime>("Last_Updated_DT")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Last_Updated_UserId")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<double?>("Non_Personel")
-                        .HasColumnType("float");
-
-                    b.Property<double?>("Other_OnM")
-                        .HasColumnType("float");
-
-                    b.Property<double?>("Personel")
-                        .HasColumnType("float");
-
-                    b.Property<double?>("SFT_Forecast")
-                        .HasColumnType("float");
-
-                    b.Property<double?>("THC")
-                        .HasColumnType("float");
-
-                    b.Property<byte[]>("Timestamp")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("rowversion");
-
-                    b.Property<double?>("Total_Forecast")
-                        .HasColumnType("float");
-
-                    b.HasKey("Forecast_ID");
-
-                    b.HasIndex("FundCenter_ID");
-
-                    b.ToTable("Summaryorecasts");
-                });
-
             modelBuilder.Entity("Datahub.Portal.Data.Finance.Branch", b =>
                 {
                     b.HasOne("Datahub.Portal.Data.Finance.Sector", "Sector")
@@ -1589,15 +1518,6 @@ namespace Datahub.Portal.Migrations.Forms.Finance
                     b.Navigation("Branch");
 
                     b.Navigation("Sector");
-                });
-
-            modelBuilder.Entity("Datahub.Portal.Data.Finance.SummaryForecast", b =>
-                {
-                    b.HasOne("Datahub.Portal.Data.Finance.FundCenter", "FundCenter")
-                        .WithMany()
-                        .HasForeignKey("FundCenter_ID");
-
-                    b.Navigation("FundCenter");
                 });
 
             modelBuilder.Entity("Datahub.Portal.Data.Finance.Branch", b =>

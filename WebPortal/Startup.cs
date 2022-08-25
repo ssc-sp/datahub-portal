@@ -124,7 +124,7 @@ namespace Datahub.Portal
             moduleManager.LoadModules(Configuration.GetValue<string>("DataHubModules", "*"));
             foreach (var module in moduleManager.Modules)
             {
-                Console.Write($"Configuring module {module.Name}");
+                Console.Write($"Configuring module {module.Name}\n");
                 services.AddModule(module,Configuration);
             }
 
@@ -213,7 +213,7 @@ namespace Datahub.Portal
 
             foreach (var module in moduleManager.Modules)
             {
-                logger.LogInformation($"Configuring module {module.Name}");
+                logger.LogInformation($"Configuring module {module.Name}\n");
                 app.ConfigureModule(module);
             }
 
