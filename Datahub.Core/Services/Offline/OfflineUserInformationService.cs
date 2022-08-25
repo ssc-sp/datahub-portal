@@ -104,5 +104,26 @@ namespace Datahub.Core.Services
         {
             return Task.FromResult(false);
         }
+
+        public Task<bool> IsViewingAsGuest()
+        {
+            return Task.FromResult(false);
+        }
+
+        public Task SetViewingAsGuest(bool isGuest)
+        {
+            // do nothing
+            return Task.Delay(0);
+        }
+
+        public Task<bool> IsViewingAsVisitor()
+        {
+            return Task.FromResult(false);
+        }
+
+        public Task SetViewingAsVisitor(bool isVisitor)
+        {
+            return Task.CompletedTask;
+        }
     }
 }

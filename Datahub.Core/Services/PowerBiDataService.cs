@@ -4,7 +4,6 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Datahub.Core.Services
@@ -264,6 +263,15 @@ namespace Datahub.Core.Services
             return result;
         }
 
+        public async Task<List<PowerBi_Report>> GetWorkspaceReports(Guid id)
+        {
+            using var ctx = await _contextFactory.CreateDbContextAsync();
+
+            var workspace = await ctx.PowerBi_Workspaces.Where(w => w.Workspace_ID == id).Include(w => w.Reports).FirstOrDefaultAsync();
+
+            return workspace is not null ? new(workspace.Reports) : new List<PowerBi_Report>(); 
+        }
+
         public async Task<PowerBi_DataSet> GetDatasetById(Guid id)
         {
             using var ctx = await _contextFactory.CreateDbContextAsync();
@@ -479,17 +487,49 @@ namespace Datahub.Core.Services
             return await Task.FromResult(success);
         }
 
+        private async Task<IEnumerable<string>> GetProjectAdmins(int projectId)
+        {
+            using var ctx = await _contextFactory.CreateDbContextAsync();
+            var projectUsers = await ctx.Project_Users
+                .Where(u => u.Project.Project_ID == projectId && u.IsAdmin)
+                .ToListAsync();
+
+            return projectUsers.Select(u => u.User_ID);
+        }
+
         public async Task NotifyOfMissingReport(Guid reportId)
         {
             var report = await GetReportById(reportId, true);
             var powerBiAdmins = await GetGlobalPowerBiAdmins();
+            
+            if (report.Workspace.Project_Id.HasValue)
+            {
+                var projectAdmins = await GetProjectAdmins(report.Workspace.Project_Id.Value);
+                // notification service will remove duplicates when sending, so we don't need to worry about it here
+                powerBiAdmins.AddRange(projectAdmins);
+            }
+
             var localizationPrefix = "POWER_BI_REPORT";
             var textKey = $"{localizationPrefix}.NotFoundReportNotificationText";
             var linkKey = $"{localizationPrefix}.NotFoundReportNotificationLink";
-            var actionLink = $"/admin/powerbi/report/{reportId}";
+
+            var projectAcronym = report.Workspace.Project.Project_Acronym_CD;
+
+            var actionLink = string.IsNullOrEmpty(projectAcronym) ? $"/admin/powerbi/report/{reportId}" : $"/admin/powerbi/{projectAcronym}/report/{reportId}";
             var projectName = new BilingualStringArgument(report.Workspace.Project.Project_Name, report.Workspace.Project.Project_Name_Fr);
 
             await _notificationService.CreateSystemNotificationsWithLink(powerBiAdmins, actionLink, linkKey, textKey, report.Report_Name, projectName);
+        }
+
+        public async Task UpdateReportCatalogStatus(Guid reportId, bool inCatalog)
+        {
+            using var ctx = await _contextFactory.CreateDbContextAsync();
+            var report = await ctx.PowerBi_Reports.FirstOrDefaultAsync(r => r.Report_ID == reportId);
+            if (report is not null)
+            {
+                report.InCatalog = inCatalog;
+                await ctx.TrackSaveChangesAsync(_auditingService);
+            }
         }
     }
 }

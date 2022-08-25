@@ -33,6 +33,7 @@ using Datahub.CKAN.Service;
 using Datahub.Core.UserTracking;
 using System.Runtime.CompilerServices;
 using Blazored.LocalStorage;
+using Datahub.Achievements;
 using Datahub.Core.Configuration;
 using Datahub.Core.Modules;
 using Datahub.Portal.Services.Storage;
@@ -43,6 +44,7 @@ using MudBlazor.Services;
 using Datahub.Core.Services.Offline;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]
+
 namespace Datahub.Portal
 {
     public class Startup
@@ -117,6 +119,12 @@ namespace Datahub.Portal
             services.AddScoped<GetDimensionsService>();
             //TimeZoneService provides the user time zone to the server using JS Interop
             services.AddScoped<TimeZoneService>();
+            services.AddAchievementService(opts =>
+            {
+                opts.Enabled = Configuration.GetValue("Achievements:Enabled", false);
+                opts.AchievementDirectoryPath = Path.Join(AppContext.BaseDirectory, "Achievements");
+            });
+
             services.AddElemental();
             services.AddMudServices();
             services.AddSingleton(moduleManager);
@@ -162,8 +170,9 @@ namespace Datahub.Portal
 
                 services.AddHttpLogging(logging =>
                 {
-                    logging.LoggingFields = HttpLoggingFields.RequestPropertiesAndHeaders | HttpLoggingFields.ResponsePropertiesAndHeaders;
-                    
+                    logging.LoggingFields = HttpLoggingFields.RequestPropertiesAndHeaders |
+                                            HttpLoggingFields.ResponsePropertiesAndHeaders;
+
                     if (requestHeaders != null && requestHeaders.Length > 0)
                     {
                         foreach (var h in requestHeaders)
@@ -189,12 +198,14 @@ namespace Datahub.Portal
                 .HandleTransientHttpError()
                 .OrResult(msg => msg.StatusCode == System.Net.HttpStatusCode.NotFound)
                 .WaitAndRetryAsync(6, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2,
-                                                                            retryAttempt)));
+                    retryAttempt)));
         }
 
-        private void InitializeDatabase<T>(ILogger logger, IDbContextFactory<T> dbContextFactory, bool migrate = true, bool ensureDeleteinOffline = true) where T : DbContext
+        private void InitializeDatabase<T>(ILogger logger, IDbContextFactory<T> dbContextFactory, bool migrate = true,
+            bool ensureDeleteinOffline = true) where T : DbContext
         {
-            EFTools.InitializeDatabase<T>(logger, Configuration, dbContextFactory, ResetDB, migrate, ensureDeleteinOffline);
+            EFTools.InitializeDatabase<T>(logger, Configuration, dbContextFactory, ResetDB, migrate,
+                ensureDeleteinOffline);
         }
 
 
@@ -206,7 +217,6 @@ namespace Datahub.Portal
             IDbContextFactory<MetadataDbContext> metadataFactory,
             IDbContextFactory<DatahubETLStatusContext> etlFactory)
         {
-
             if (Configuration.GetValue<bool>("HttpLogging:Enabled"))
             {
                 app.UseHttpLogging();
@@ -224,7 +234,8 @@ namespace Datahub.Portal
             InitializeDatabase(logger, pipFactory);
             InitializeDatabase(logger, metadataFactory, true, false);
 
-            app.UseRequestLocalization(app.ApplicationServices.GetService<IOptions<RequestLocalizationOptions>>().Value);
+            app.UseRequestLocalization(app.ApplicationServices.GetService<IOptions<RequestLocalizationOptions>>()
+                .Value);
 
             if (Debug)
             {
@@ -251,7 +262,6 @@ namespace Datahub.Portal
                 endpoints.MapControllers();
                 endpoints.MapFallbackToPage("/_Host");
             });
-
         }
 
         private void ConfigureAuthentication(IServiceCollection services)
@@ -271,8 +281,6 @@ namespace Datahub.Portal
 
             if (!Offline)
             {
-
-
                 //services.AddAuthentication(AzureADDefaults.AuthenticationScheme)               
                 //        .AddAzureAD(options => Configuration.Bind("AzureAd", options));
                 var scopes = new List<string>();
@@ -287,7 +295,7 @@ namespace Datahub.Portal
                     .AddInMemoryTokenCaches();
 
                 services.AddControllersWithViews()
-                        .AddMicrosoftIdentityUI();
+                    .AddMicrosoftIdentityUI();
             }
         }
 
@@ -298,7 +306,7 @@ namespace Datahub.Portal
             var defaultCulture = cultureSection.GetValue<string>("Default");
             var supportedCultures = cultureSection.GetValue<string>("SupportedCultures");
             var supportedCultureInfos = new HashSet<CultureInfo>(ParseCultures(supportedCultures));
-            
+
             services.AddJsonLocalization(options =>
             {
                 options.CacheDuration = TimeSpan.FromMinutes(15);
@@ -307,7 +315,9 @@ namespace Datahub.Portal
                 options.UseBaseName = false;
                 options.IsAbsolutePath = true;
                 options.LocalizationMode = Askmethat.Aspnet.JsonLocalizer.JsonOptions.LocalizationMode.I18n;
-                options.MissingTranslationLogBehavior = trackTranslations ? MissingTranslationLogBehavior.CollectToJSON : MissingTranslationLogBehavior.Ignore;
+                options.MissingTranslationLogBehavior = trackTranslations
+                    ? MissingTranslationLogBehavior.CollectToJSON
+                    : MissingTranslationLogBehavior.Ignore;
                 options.FileEncoding = Encoding.GetEncoding("UTF-8");
                 options.SupportedCultureInfos = supportedCultureInfos;
             });
@@ -353,7 +363,7 @@ namespace Datahub.Portal
                 services.AddScoped<IDataRemovalService, DataRemovalService>();
 
                 services.AddSingleton<ICognitiveSearchService, CognitiveSearchService>();
-                
+
                 services.AddScoped<IAzurePriceListService, AzurePriceListService>();
 
                 services.AddScoped<PowerBiServiceApi>();
@@ -374,7 +384,7 @@ namespace Datahub.Portal
                 services.AddScoped<IPowerBiDataService, OfflinePowerBiDataService>();
 
                 services.AddScoped<IMyDataService, OfflineMyDataService>();
-                
+
                 services.AddScoped<IProjectDatabaseService, OfflineProjectDatabaseService>();
 
                 services.AddScoped<IDataUpdatingService, OfflineDataUpdatingService>();
@@ -436,20 +446,24 @@ namespace Datahub.Portal
             {
                 ConfigureDbContext<UserTrackingContext>(services, "datahub-cosmosdb", Configuration.GetDriver());
             }
+
             ConfigureDbContext<WebAnalyticsContext>(services, "datahub-mssql-webanalytics", Configuration.GetDriver());
             ConfigureDbContext<DatahubETLStatusContext>(services, "datahub-mssql-etldb", Configuration.GetDriver());
             ConfigureDbContext<MetadataDbContext>(services, "datahub-mssql-metadata", Configuration.GetDriver());
         }
 
-        private void ConfigureDbContext<T>(IServiceCollection services, string connectionStringName, DbDriver dbDriver) where T : DbContext
+        private void ConfigureDbContext<T>(IServiceCollection services, string connectionStringName, DbDriver dbDriver)
+            where T : DbContext
         {
             services.ConfigureDbContext<T>(Configuration, connectionStringName, dbDriver);
         }
 
-        private void ConfigureCosmosDbContext<T>(IServiceCollection services, string connectionStringName, string catalogName) where T : DbContext
+        private void ConfigureCosmosDbContext<T>(IServiceCollection services, string connectionStringName,
+            string catalogName) where T : DbContext
         {
             var connectionString = Configuration.GetConnectionString(_currentEnvironment, connectionStringName);
-            services.AddPooledDbContextFactory<T>(options => options.UseCosmos(connectionString, databaseName: catalogName));
+            services.AddPooledDbContextFactory<T>(options =>
+                options.UseCosmos(connectionString, databaseName: catalogName));
             services.AddDbContextPool<T>(options => options.UseCosmos(connectionString, databaseName: catalogName));
         }
     }

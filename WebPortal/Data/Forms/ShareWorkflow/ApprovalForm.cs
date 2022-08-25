@@ -1,5 +1,5 @@
-﻿using Elemental.Components;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
+using MudBlazor.Forms;
 
 namespace Datahub.Portal.Data.Forms.ShareWorkflow
 {
@@ -21,7 +21,6 @@ namespace Datahub.Portal.Data.Forms.ShareWorkflow
         /** Section: Business Partner **/
         [StringLength(256)]
         [AeFormCategory("Business Owner")]
-        [AeLabel(isDropDown: true, placeholder: " ")]
         public string Sector_NAME { get; set; }
 
         [AeFormIgnore]
@@ -30,19 +29,16 @@ namespace Datahub.Portal.Data.Forms.ShareWorkflow
         /** Section: Business Partner **/
         [StringLength(256)]
         [AeFormCategory("Business Owner")]
-        [AeLabel(isDropDown: true, placeholder: " ")]
         public string Branch_NAME { get; set; }
 
         /** Section: Business Partner **/
         [StringLength(256)]
         [AeFormCategory("Business Owner")]
-        [AeLabel(isDropDown: true, placeholder: " ")]
         public string Division_NAME { get; set; }
 
         /** Section: Business Partner **/
         [StringLength(256)]
         [AeFormCategory("Business Owner")]
-        [AeLabel(isDropDown: true, placeholder: " ")]
         public string Section_NAME { get; set; }
 
         /** Section: Business Partner **/
@@ -72,11 +68,10 @@ namespace Datahub.Portal.Data.Forms.ShareWorkflow
         [Required]
         [StringLength(16)]
         [AeFormCategory("Source Information")]
-        [AeLabel(isDropDown: true)]
         public string Type_Of_Data_TXT { get; set; }
 
         /** Section: Legal / Licensing / Copyright **/
-        [AeFormCategory("Mandatory Release Criteria")]        
+        [AeFormCategory("Mandatory Release Criteria")]
         public bool Copyright_Restrictions_FLAG { get; set; }
 
         /** Section: Authority to Release **/

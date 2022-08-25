@@ -22,11 +22,12 @@ public partial class NotificationsList
         _isLoading = true;
         StateHasChanged();
         _unreadNotificationCount =  await _systemNotificationService.GetNotificationCountForUser(_currentUserId, true);
-        _totalNotificationCount = await _systemNotificationService.GetNotificationCountForUser(_currentUserId);
+        _totalNotificationCount = await _systemNotificationService.GetNotificationCountForUser(_currentUserId, _unreadOnly);
         _notifications = await _systemNotificationService.GetNotificationsForUser(_currentUserId, _unreadOnly, _currentPage -1);
         _isLoading = false;
         StateHasChanged();
     }
+
     private async Task ToggleUnread(SystemNotification notification)
     {
         await _systemNotificationService.SetReadStatus(notification.Notification_ID, !notification.Read_FLAG);
@@ -34,27 +35,23 @@ public partial class NotificationsList
 
     private async Task GoToActionLink(SystemNotification notification)
     {
-        await ToggleUnread(notification);
+        var t = _systemNotificationService.SetReadStatus(notification.Notification_ID, true);
+
         if (!string.IsNullOrEmpty(notification.ActionLink_URL))
         {
             _navigationManager.NavigateTo(notification.ActionLink_URL);
         }
+
+        await t;
     }
     
-    private async Task ToggleShowUnreadOnly()
-    {
-        _unreadOnly = !_unreadOnly;
-        _currentPage = 0;
-        await RefreshNotifications();
-    }
-
     private async Task PageChanged(int i)
     {
         _currentPage = i;
         await RefreshNotifications();
     }
 
-    private async Task CheckChanged(bool value)
+    private async Task ToggleUnreadOnly(bool value)
     {
         _unreadOnly = value;
         _currentPage = 1;
