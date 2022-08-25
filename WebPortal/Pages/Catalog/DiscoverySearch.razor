@@ -1,9 +1,11 @@
 ﻿@*DiscoverySearch.razor*@
+
 @page "/discovery"
 @using Datahub.Metadata.DTO
 @using Datahub.Core.Utils
 @using Datahub.Metadata.Model
-@inject UIControlsService uiControlService;
+@inject UIControlsService uiControlService
+@inject IJSRuntime jsRuntime
 
 @* TODO: transfer these rules to scss, apply it to metadata keywords *@
 <style>
@@ -29,6 +31,7 @@
 						<div>
 							<AeSearchInput id="search"
 										   Placeholder=@Localizer["DISCOVERY-FILTERS.Enter Keywords"]
+										   DefaultValue=@QueryKeywords
 										   OnInputChangeWithLastKey=@HandleSearch
 										   SearchIconFAClass=null
 										   ClearIconFAClass=null />
@@ -41,7 +44,7 @@
 							<span>@Localizer["DISCOVERY-FILTERS.HideIncomplete"]</span>
 						</label>
 
-						<AeCollapse OnSectionToggled=@OnLanguageFilterToggled>
+						<AeCollapse>
 							<AeCollapseSection DefaultOpen=@_languageFilterSectionOpen>
 								<Header>
 									<AeTypography Variant="h4">
@@ -61,6 +64,7 @@
 																 OptionLabelFunction=@(t => GetLocalizedLanguageType(t))
 																 OptionSortFunction=@(t => GetLocalizedLanguageType(t))
 																 OnSelectionChanged=@UpdateLanguageFilter
+																 DefaultOptions=@_filteredLanguageTypes
 																 @ref=@_languageTypeFilter />
 										</div>
 									</AeFlex>
@@ -68,7 +72,7 @@
 							</AeCollapseSection>
 						</AeCollapse>
 
-						<AeCollapse OnSectionToggled=@OnSecurityFilterToggled>
+						<AeCollapse>
 							<AeCollapseSection DefaultOpen=@_securityFilterSectionOpen>
 								<Header>
 									<AeTypography Variant="h4">
@@ -88,6 +92,7 @@
 																 OptionLabelFunction=@(t => GetLocalizedClassificationType(t))
 																 OptionSortFunction=@(t => GetLocalizedClassificationType(t))
 																 OnSelectionChanged=@UpdateClassificationTypeFilter
+																 DefaultOptions=@_filteredClassificationTypes
 																 @ref=@_classificationTypeFilter />
 										</div>
 									</AeFlex>
@@ -95,7 +100,7 @@
 							</AeCollapseSection>
 						</AeCollapse>
 
-						<AeCollapse OnSectionToggled=@OnFilterToggled>
+						<AeCollapse>
 							<AeCollapseSection DefaultOpen=@_filterSectionOpen>
 								<Header>
 									<AeTypography Variant="h4">
@@ -114,6 +119,7 @@
 																 OptionLabelFunction=@(t => GetLocalizedDataType(t))
 																 OptionSortFunction=@(t => GetLocalizedDataType(t))
 																 OnSelectionChanged=@UpdateDataTypeFilter
+																 DefaultOptions=@_filteredDataTypes
 																 @ref=@_objectTypeFilter />
 										</div>
 									</AeFlex>
@@ -121,7 +127,7 @@
 							</AeCollapseSection>
 						</AeCollapse>
 
-						<AeCollapse OnSectionToggled=@OnSectorFilterToggled>
+						<AeCollapse>
 							<AeCollapseSection DefaultOpen=@_sectorFilterSectionOpen>
 								<Header>
 									<AeTypography Variant="h4">
@@ -141,6 +147,7 @@
 																 OptionLabelFunction=@(t => _isFrench ? t.FrenchLabel : t.EnglishLabel)
 																 OptionSortFunction=@(t => _isFrench ? t.FrenchLabel : t.EnglishLabel)
 																 OnSelectionChanged=@UpdateSectorFilter
+																 DefaultOptions=@_filteredSectors
 																 @ref=@_sectorFilter />
 										</div>
 										<div class="dropdowns">
@@ -243,6 +250,38 @@
 	[Inject]
 	public IDbContextFactory<DatahubProjectDBContext> DatahubProjectDbFactory { get; set; }
 
+	[Parameter]
+	[SupplyParameterFromQuery(Name = "excl")]
+	public string QueryExcludeIncomplete { get; set; }
+
+	[Parameter]
+	[SupplyParameterFromQuery(Name = "kws")]
+	public string QueryKeywords { get; set; }
+
+	[Parameter]
+	[SupplyParameterFromQuery(Name = "lngs")]
+	public string QueryLanguages { get; set; }
+
+	[Parameter]
+	[SupplyParameterFromQuery(Name = "orgs")]
+	public string QuerySectors { get; set; }
+
+	[Parameter]
+	[SupplyParameterFromQuery(Name = "org")]
+	public string QuerySector { get; set; }
+
+	[Parameter]
+	[SupplyParameterFromQuery(Name = "brn")]
+	public string QueryBranch { get; set; }
+
+	[Parameter]
+	[SupplyParameterFromQuery(Name = "tps")]
+	public string QueryTypes { get; set; }
+
+	[Parameter]
+	[SupplyParameterFromQuery(Name = "cls")]
+	public string QueryClassifications { get; set; }
+
 	private const int NO_FILTER_SELECTED = -1;
 	private const int PAGE_SIZE = 10;
 
@@ -274,7 +313,7 @@
 	private bool _securityFilterSectionOpen = true;
 	private bool _sectorFilterSectionOpen = true;
 	private bool _filterSectionOpen = true;
-	private bool _excludeIncompleteCatalogs = true;
+	private bool _excludeIncompleteCatalogs;
 	private string _filterSectionOpenIconClass => $"fad fa-caret-circle-{(_filterSectionOpen ? "down" : "right")}";
 	private string _filterSectionOpenTitle => _filterSectionOpen ? Localizer["Collapse"] : Localizer["Expand"];
 	private string _filterActiveIconClass => $"{(_filtersActive ? "fas" : "fad")} fa-filter";
@@ -298,8 +337,75 @@
 
 		await LoadProjects();
 
-		_searchThrottler = new(TimeSpan.FromSeconds(0.5), ThrottleSearch);
-		await _searchThrottler.SetQuery(string.Empty);
+		ParseHideIncomplete();
+		ParseLanguages();
+		ParseClassification();
+		ParseDataTypes();
+		ParseSectorAndBranches();
+
+		_searchThrottler = new(TimeSpan.FromSeconds(1), ThrottleSearch);
+		await _searchThrottler.SetQuery(QueryKeywords ?? string.Empty);
+
+		_filtersActive = HasValidFilters();
+	}
+
+	private void ParseHideIncomplete()
+	{
+		_excludeIncompleteCatalogs = QueryExcludeIncomplete == "1";
+	}
+
+	private void ParseLanguages()
+	{
+		_filteredLanguageTypes = new(ParseSet<CatalogObjectLanguage>(QueryLanguages, ',', isByte: false));
+	}
+
+	private void ParseClassification()
+	{
+		_filteredClassificationTypes = new(ParseSet<ClassificationType>(QueryClassifications, ',', isByte: true));
+	}
+
+	private void ParseDataTypes()
+	{
+		_filteredDataTypes = new(ParseSet<MetadataObjectType>(QueryTypes, ',', isByte: true));
+	}
+
+	private IEnumerable<E> ParseSet<E>(string text, char sep, bool isByte) where E: Enum
+	{
+		var values = (text ?? "").Split(sep, StringSplitOptions.RemoveEmptyEntries);
+		foreach (var v in values)
+		{
+			// note: this is because the CatalogObjectLanguage is a not byte type enum
+			if (isByte)
+			{
+				if (byte.TryParse(v, out byte ordValue) && Enum.IsDefined(typeof(E), ordValue))
+				{
+					yield return (E)Enum.ToObject(typeof(E), ordValue);
+				}
+			}
+			else
+			{
+				if (int.TryParse(v, out int ordValue) && Enum.IsDefined(typeof(E), ordValue))
+				{
+					yield return (E)Enum.ToObject(typeof(E), ordValue);
+				}
+			}
+		}
+	}
+
+	private void ParseSectorAndBranches()
+	{
+		var sectors = new HashSet<OrganizationLevel>();
+		var values = (QuerySectors ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries);
+		foreach (var v in values)
+		{
+			if (int.TryParse(v, out int ordValue) && _sectors.TryGetValue(ordValue, out OrganizationLevel s))
+			{
+				sectors.Add(s);
+			}
+		}
+		_filteredSectors = sectors;
+		_filterSector = int.TryParse(QuerySector, out int sector) ? sector : NO_FILTER_SELECTED;
+		_filterBranch = int.TryParse(QueryBranch, out int branch) ? sector : NO_FILTER_SELECTED;
 	}
 
 	private async Task LoadProjects()
@@ -387,7 +493,7 @@
 	private async Task UpdateFilter()
 	{
 		await ThrottleSearch(_searchKeywords);
-		_filtersActive = _filteredSectors.Count > 0 || _filteredDataTypes.Count > 0 || _filteredClassificationTypes.Count > 0 || _filterBranch != NO_FILTER_SELECTED || !string.IsNullOrEmpty(_securityFilter);
+		_filtersActive = HasValidFilters();
 	}
 
 	private bool CheckMetadataCompleted(CatalogObjectResult result)
@@ -417,6 +523,8 @@
 
 	private async Task ClearFilters()
 	{
+		_searchKeywords = string.Empty;
+
 		if (_languageTypeFilter != null)
 		{
 			await _languageTypeFilter.Clear();
@@ -588,6 +696,9 @@
 		{
 			_catalogSearchRequest = null;
 			_lastQueryCount = 0;
+
+			await RewriteQueryString();
+
 			return new();
 		}
 		else
@@ -605,9 +716,61 @@
 			// apply localization on bilingual entries
 			ApplyLocalization(results);
 
+			await RewriteQueryString();
+
 			return results;
-		}
+		}		
 	}
+
+	private async Task RewriteQueryString()
+	{
+		var queryString = GetQueryFromFilters();
+		var baseUrl = GetBaseUrl();
+		var newUrl = string.IsNullOrEmpty(queryString) ? baseUrl : $"{baseUrl}?{queryString}";
+		await jsRuntime.InvokeVoidAsync("overrideUrl", newUrl);
+	}
+
+	private string GetQueryFromFilters()
+	{
+		var query = new List<string>();
+
+		if (!string.IsNullOrEmpty(_searchKeywords))
+			query.Add($"kws={_searchKeywords}");
+
+		var langs = string.Join(",", _filteredLanguageTypes.Select(v => (int)v));
+		if (!string.IsNullOrEmpty(langs))
+			query.Add($"lngs={langs}");
+
+		var classifications = string.Join(",", _filteredClassificationTypes.Select(v => (int)v));
+		if (!string.IsNullOrEmpty(classifications))
+			query.Add($"cls={classifications}");
+		
+		var types = string.Join(",", _filteredDataTypes.Select(v => (int)v));
+		if (!string.IsNullOrEmpty(types))
+			query.Add($"tps={types}");
+
+		var sectors = string.Join(",", _filteredSectors.Select(s => s.Id));
+		if (!string.IsNullOrEmpty(sectors))
+			query.Add($"orgs={sectors}");
+
+		if (_filterSector != NO_FILTER_SELECTED)
+			query.Add($"org={_filterSector}");
+
+		if (_filterBranch != NO_FILTER_SELECTED)
+			query.Add($"brn={_filterBranch}");
+
+		if (_excludeIncompleteCatalogs)
+			query.Add($"excl=1");
+
+		return string.Join("&", query);
+	}
+
+	private string GetBaseUrl()
+    {
+		var url = NavigationManager.Uri;
+		var hashIndex = url.IndexOf('?');
+        return hashIndex > 0 ? url.Substring(0, hashIndex) : url;
+    }
 
 	private void ApplyLocalization(List<CatalogObjectResult> results)
 	{
@@ -628,9 +791,10 @@
 		await JSRuntime.InvokeAsync<object>("open", url, "_blank");
 	}
 
-	private bool HasValidFilters()
+	private bool HasValidFilters(string query = null)
 	{
-		return !string.IsNullOrWhiteSpace(_searchKeywords) || _filteredSectors.Any() || _filteredDataTypes.Any() || _filteredClassificationTypes.Any() || _filteredLanguageTypes.Any();
+		return !string.IsNullOrWhiteSpace(query) || !string.IsNullOrWhiteSpace(_searchKeywords) || _filteredLanguageTypes.Any() ||
+			_filteredSectors.Any() || _filteredDataTypes.Any() || _filteredClassificationTypes.Any() || _filteredLanguageTypes.Any();
 	}
 
 	private async Task<IEnumerable<CatalogObjectResult>> GetMore(InfiniteScrollingItemsProviderRequest<CatalogObjectResult> request)
