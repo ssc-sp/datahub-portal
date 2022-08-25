@@ -2,6 +2,7 @@
 @using Datahub.Core.Components.FileUpload
 @inject CatalogImportService CatalogImportService
 @inject IConfiguration Configuration
+@inject ILogger<DiscoverySearchLanding> Logger
 
 <AeFlex Vertical>
 	<h1>@Localizer["DataHub Data Catalog"]</h1>
@@ -127,8 +128,15 @@
 	{
 		foreach (var browserFile in e.GetMultipleFiles())
 		{
-			var stream = browserFile.OpenReadStream();
-			await CatalogImportService.Import(stream);
+			try
+			{
+				var stream = browserFile.OpenReadStream(int.MaxValue);
+				await CatalogImportService.Import(stream);
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError(ex, "Failed to upload the file.");
+			}
 		}
 	}
 }
