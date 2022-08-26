@@ -109,6 +109,11 @@ namespace Datahub.Core.Services.Offline
             throw new NotImplementedException();
         }
 
+        public Task<List<PowerBi_Report>> GetWorkspaceReports(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task NotifyOfMissingReport(Guid reportId)
         {
             throw new NotImplementedException();
@@ -125,6 +130,11 @@ namespace Datahub.Core.Services.Offline
         }
 
         public Task UpdateExternalPowerBiRecord(ExternalPowerBiReport report)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task UpdateReportCatalogStatus(Guid reportId, bool inCatalog)
         {
             throw new NotImplementedException();
         }
