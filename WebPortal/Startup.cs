@@ -40,6 +40,8 @@ using Datahub.Portal.Services.Storage;
 using Microsoft.AspNetCore.Authorization.Infrastructure;
 using MudBlazor.Services;
 using Datahub.GeoCore.Service;
+using MudBlazor.Services;
+using Datahub.Core.Services.Offline;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]
 
@@ -58,6 +60,7 @@ namespace Datahub.Portal
         private ModuleManager moduleManager = new ModuleManager();
 
         private bool ResetDB => (Configuration.GetSection("InitialSetup")?.GetValue<bool>("ResetDB", false) ?? false);
+        private bool EnsureDeleteinOffline => (Configuration.GetSection("InitialSetup")?.GetValue<bool>("EnsureDeleteinOffline", false) ?? false);
         private bool Offline => Configuration.GetValue<bool>("Offline", false);
 
         private bool Debug => Configuration.GetValue<bool>("DebugMode", false);
@@ -131,8 +134,8 @@ namespace Datahub.Portal
             moduleManager.LoadModules(Configuration.GetValue<string>("DataHubModules", "*"));
             foreach (var module in moduleManager.Modules)
             {
-                Console.Write($"Configuring module {module.Name}");
-                services.AddModule(module, Configuration);
+                Console.Write($"Configuring module {module.Name}\n");
+                services.AddModule(module,Configuration);
             }
 
             // configure db contexts in this method
@@ -199,11 +202,10 @@ namespace Datahub.Portal
                     retryAttempt)));
         }
 
-        private void InitializeDatabase<T>(ILogger logger, IDbContextFactory<T> dbContextFactory, bool migrate = true,
-            bool ensureDeleteinOffline = true) where T : DbContext
+        private void InitializeDatabase<T>(ILogger logger, IDbContextFactory<T> dbContextFactory, bool migrate = true) where T : DbContext
         {
             EFTools.InitializeDatabase<T>(logger, Configuration, dbContextFactory, ResetDB, migrate,
-                ensureDeleteinOffline);
+                EnsureDeleteinOffline);
         }
 
 
@@ -222,7 +224,7 @@ namespace Datahub.Portal
 
             foreach (var module in moduleManager.Modules)
             {
-                logger.LogInformation($"Configuring module {module.Name}");
+                logger.LogInformation($"Configuring module {module.Name}\n");
                 app.ConfigureModule(module);
             }
 
@@ -230,7 +232,7 @@ namespace Datahub.Portal
             InitializeDatabase(logger, userTrackingFactory, false);
             InitializeDatabase(logger, etlFactory);
             InitializeDatabase(logger, pipFactory);
-            InitializeDatabase(logger, metadataFactory, true, false);
+            InitializeDatabase(logger, metadataFactory, true);
 
             app.UseRequestLocalization(app.ApplicationServices.GetService<IOptions<RequestLocalizationOptions>>()
                 .Value);
@@ -379,6 +381,7 @@ namespace Datahub.Portal
                 services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
                 services.AddScoped<IUserInformationService, OfflineUserInformationService>();
                 services.AddSingleton<IMSGraphService, OfflineMSGraphService>();
+                services.AddScoped<IPowerBiDataService, OfflinePowerBiDataService>();
 
                 services.AddScoped<IMyDataService, OfflineMyDataService>();
 

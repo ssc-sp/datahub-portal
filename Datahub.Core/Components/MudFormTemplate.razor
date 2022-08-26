@@ -1,0 +1,306 @@
+﻿@inject IStringLocalizer DataLocalizer
+@using Datahub.Core.Views.Modals
+@using Microsoft.EntityFrameworkCore
+@using Datahub.Core.Data
+@typeparam T
+@typeparam U where U : DbContext
+
+@inject UIControlsService UI
+@inherits HtmlElement
+@inject IDatahubAuditingService AuditingService
+@using System.Reflection
+@using MudBlazor.Forms
+@using System.Text.RegularExpressions
+@using System.Linq.Expressions
+@inject NavigationManager NavigationManager
+
+@if(Metadata is null || !Metadata.IsLoaded())
+{
+    <Spinner></Spinner>
+}
+else
+{
+
+
+
+ <MudCard>
+     <MudCardContent>
+        <AeTypography Variant="h3">@DataLocalizer[Metadata.Header]</AeTypography>
+
+         
+            <AuthorizeView Roles="@Metadata.TableRoles">
+
+                <MudTable ServerData="@(new Func<TableState, Task<TableData<T>>>(ServerReload))" Dense="true" Hover="true" Striped="true" @ref="table">
+                    <ToolBarContent>
+                        <MudText Typo="Typo.h6">@Metadata.SubHeader</MudText>
+                        <MudSpacer />
+                        <MudTextField T="string" ValueChanged="@(s=>OnSearch(s))" Placeholder="Search" Adornment="Adornment.Start"
+                                      AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+                    </ToolBarContent>
+                    <HeaderContent>
+                        @foreach(var header in Metadata.Headers.ToList())
+                        {
+                            <MudTh><MudTableSortLabel SortLabel="@header.Replace(" ", string.Empty).ToLower()" T="T">@header</MudTableSortLabel></MudTh>
+                        }                    
+                    </HeaderContent>
+                    <RowTemplate Context="RowContext" >                   
+                        @foreach(var accessor in Metadata.AccessorFunctions)
+                        {
+                            <MudTd @onclick="async () => await SetFormEdit(RowContext)">@accessor?.Invoke(RowContext)</MudTd>
+                        }     
+                    </RowTemplate>
+                    <NoRecordsContent>
+                        <MudText>No matching records found</MudText>
+                    </NoRecordsContent>
+                    <LoadingContent>
+                        <MudText>Loading...</MudText>
+                    </LoadingContent>
+                    <PagerContent>
+                        <MudTablePager />
+                    </PagerContent>
+                </MudTable>
+            </AuthorizeView>
+
+        
+            <AeFlex id="buttonBar">
+                <div class="icon-container" style="margin-top: 10px; margin-left: 5px;">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="CreateNewRecord">@_addButton</MudButton>
+                </div>        
+            </AeFlex>
+            @if (!string.IsNullOrWhiteSpace(Metadata.TableDisclaimer))
+            {
+                <AeFlex>
+                    <div style="margin-left: 5px;">
+                        <AeTypography Variant="p no-margin"><b>@Metadata.TableDisclaimer</b></AeTypography>
+                    </div>
+                </AeFlex>
+            }
+        </MudCardContent>
+</MudCard>
+
+@if (SelectedRecord != null)
+{
+    @if (Metadata.MarkDownContent?.Any() ?? false)
+    {
+        <MudCard>
+            <MudCardContent>
+                @foreach (var content in Metadata.MarkDownContent)
+                {
+                    <AeMarkdown Content="@($"{content}")"></AeMarkdown>
+                }
+            </MudCardContent>
+        </MudCard>
+    }
+
+    <MudCard style="margin-top: 1rem">
+        <MudCardHeader>
+            <CardHeaderContent>
+                @foreach (var navigationUrl in Metadata.NavigateUrls)
+                {
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" onclick="@(() => NavigationManager.NavigateTo(@navigationUrl.Invoke(SelectedRecord).Item1))">@navigationUrl.Invoke(SelectedRecord).Item2</MudButton>
+                }
+            </CardHeaderContent>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudModelForm Model="SelectedRecord"
+                         T="@T"
+                         OnValidSubmit="HandleFormSubmit"
+                         OnInvalidSubmit="HandleFormInvalidSubmit"
+                         OnCancel="ClearForm"
+                         OnConfigure="OnConfigure"
+                         CancelLabel="Cancel"
+                         SubmitLabel="@Metadata.SaveButtonText"
+                         OnChange="OnChange"
+                         LabelForPropertyFunc="@GetDataLabel"
+                         LabelsOnTop="true"
+                         LocalizerFunction="@GetDataLabel"
+                         IsSubmitEnabled="Metadata.IsSubmitEnabled" />
+        </MudCardContent>
+        <MudCardActions>
+
+        </MudCardActions>
+    </MudCard>
+
+    @if (Metadata.MarkDownContentFooter?.Any() ?? false)
+    {
+        <MudCard>
+            <MudCardContent>
+                @foreach (var content in Metadata.MarkDownContentFooter)
+                {
+                    <AeMarkdown Content="@($"{content}")"></AeMarkdown>
+                }
+            </MudCardContent>
+        </MudCard>
+    }
+
+}
+}
+@code {
+
+    [Parameter]
+    public FormMetadata<T> Metadata { get; set; }
+    [Parameter]
+    public EventCallback<EditContext> HandleSubmit { get; set; }
+    [Parameter]
+    public EventCallback<EditContext> HandleInvalidSubmit { get; set; }
+    [Parameter]
+    public EventCallback<MudBlazor.Forms.IModelFormContext> OnConfigureForms { get; set; }
+    [Parameter]
+    public EventCallback<MudBlazor.Forms.ModelFormChangeArgs> OnChangeForms { get; set; }
+    [Parameter]
+    public EventCallback CreateNewRecord { get; set; }
+    [Parameter]
+    public T SelectedRecord { get; set; }
+    [Parameter]
+    public EventCallback<T> SetFormEditRecord { get; set; }
+    [Parameter]
+    public Action<string> HandleFilterChange { get; set; }
+    [Parameter]
+    public U Context { get; set; }
+    [Parameter]
+    public bool DisableFirstSort { get; set; }
+    [Parameter]
+    public Dictionary<string, Func<T, string>> SortAccessors { get; set; }
+
+
+    //Mud variables/properties
+    private IEnumerable<T> pagedData;
+    private MudTable<T> table;
+    private int totalItems;
+    private string searchString = null;
+    //end Mud
+    private static readonly Regex sWhitespace = new Regex(@"\s+");
+    private string _addButton => Localizer["Add New"];
+
+
+    private async Task<TableData<T>> ServerReload(TableState state)
+    {
+
+        IEnumerable<T> data = Metadata.DataSet;
+        await Task.Delay(300);
+
+
+        totalItems = data.Count();
+
+        if (!string.IsNullOrWhiteSpace(state.SortLabel) && SortAccessors.ContainsKey(state.SortLabel))
+        { 
+            var func = SortAccessors[state.SortLabel];
+            data = data.OrderByDirection<T, string>(state.SortDirection, func);
+        }
+
+        pagedData = data.Skip(state.Page * state.PageSize).Take(state.PageSize).ToArray();
+        return new TableData<T>() { TotalItems = totalItems, Items = pagedData };
+    }
+
+    private void OnSearch(string text)
+    {
+        searchString = text;
+        HandleFilterChange.Invoke(text);
+        table.ReloadServerData();
+    }
+
+    //public async void NavigateTo(string url)
+    //{ 
+    
+    
+    //}
+
+    public string ReplaceWhitespace(string input, string replacement)
+    {
+        return sWhitespace.Replace(input, replacement);
+    }
+
+    private async Task SetFormEdit(T selectedRecord)
+    {
+
+        if (Context.ChangeTracker.HasChanges())
+        {
+            var messages = new List<string>() { "Would you like to save the current record?" };
+            await UI.ToggleModal(@<UserChoiceModal HeaderText="Save Data" ChoiceTextList=@messages OnDecision="(a) => OnConfirmSave(a, selectedRecord)" ConfirmText="Yes" CancelText="No" />);
+        }
+        await ClearForm();
+        await SetFormEditRecord.InvokeAsync(selectedRecord);
+
+    }
+
+    private async void OnConfirmSave(bool isConfirmed, dynamic item)
+    {
+        var changedEntries = Context.ChangeTracker.Entries();
+        if (isConfirmed)
+        {
+
+            foreach (var entry in changedEntries)
+            {
+                entry.Property("Last_Updated_DT").CurrentValue = DateTime.Now;
+                entry.Property("Last_Updated_UserId").CurrentValue = Metadata.UserId;                
+            }
+            await Context.TrackSaveChangesAsync(AuditingService);
+
+        }
+        else
+        {
+            foreach (var entry in changedEntries)
+            {
+                foreach (var property in entry.OriginalValues.Properties)  
+                {
+                    var propertyName = property.Name;
+                    entry.Property(propertyName).CurrentValue = entry.Property(propertyName).OriginalValue;
+                    entry.State = EntityState.Unchanged;
+                }
+            }                          
+        }
+        await UI.ToggleModal();                
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        // You must re-render after the components are initialized in order for the 
+        // component reference to not be null
+        if(firstRender){
+            StateHasChanged();
+        }
+    }
+
+    private async Task OnConfigure(MudBlazor.Forms.IModelFormContext context)
+    {        
+        if (context != null)
+        {
+            await OnConfigureForms.InvokeAsync(context);            
+        }        
+    }
+
+    private async Task OnChange(MudBlazor.Forms.ModelFormChangeArgs args)
+    {        
+        if (args != null)
+        {
+            await OnChangeForms.InvokeAsync(args);            
+        }        
+    }
+
+
+    private async Task<T> ClearForm()
+    {
+        SelectedRecord = default(T);
+        StateHasChanged();    
+        return await Task.FromResult(default(T));
+    }
+
+    private string GetDataLabel(string propName)
+    {
+        if (!string.IsNullOrEmpty(propName))
+            return DataLocalizer[propName];
+
+        return string.Empty;
+    }
+
+    private async Task HandleFormSubmit(EditContext editContext)
+    {
+        await HandleSubmit.InvokeAsync(editContext);
+    }
+
+    private async Task HandleFormInvalidSubmit(EditContext editContext)
+    {
+        await HandleInvalidSubmit.InvokeAsync(editContext);
+    }
+
+}
