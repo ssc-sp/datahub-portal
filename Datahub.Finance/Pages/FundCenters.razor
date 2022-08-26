@@ -55,7 +55,7 @@
         _user = await UserInformationService.GetUserAsync();
         _isUserAdmin = await ServiceAuthManager.IsProjectAdmin(_user.Id, PROJECTACRONYM);
         _fiscalYears = Context.FiscalYears.ToList();
-        if(_fiscalYears[0] is not null)
+        if(_fiscalYears.Any() && _fiscalYears[0] is not null)
             _fiscalYears.Insert(0, null);
         LoadData(_searchFilter);
     }
