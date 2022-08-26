@@ -33,7 +33,9 @@ namespace Datahub.Core
 
         public void InitializeDatabase<T>(IConfiguration configuration, bool migrate = true, bool ensureDeleteinOffline = true) where T : DbContext
         {
-            EFTools.InitializeDatabase<T>(logger, configuration, serviceProvider, offline, migrate, ensureDeleteinOffline);
+            var deleteInOffline = configuration.GetSection("InitialSetup")?.GetValue<bool>("EnsureDeleteinOffline", false) ?? false;
+            var resetDb = configuration.GetSection("InitialSetup")?.GetValue<bool>("ResetDB", false) ?? false;
+            EFTools.InitializeDatabase<T>(logger, configuration, serviceProvider, resetDb, migrate, deleteInOffline);
         }
 
 
