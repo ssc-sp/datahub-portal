@@ -175,25 +175,27 @@
 					</AeFlex>
 				</div>
 				<div class="cards">
-					<div class="catalog-cards">
+					<div>
 						@if (_searchResults.Any())
 						{
-							<InfiniteScrolling Preloaded=@_searchResults ItemsProvider=@GetMore>
-								<ItemTemplate Context="item">
-									<CatalogCards @key=@item
-											  CatalogResult=@item
-											  Project=@GetProject(item)
-											  MapSector=@GetSector
-											  MapBranch=@GetBranch
-											  OnShowLinks=@HandleShowLinks
-											  ShowLinks>
-										@GetDownLoadFragment(item)
-									</CatalogCards>
-								</ItemTemplate>
-								<LoadingTemplate>
-									<div>@Localizer["Loading..."]</div>
-								</LoadingTemplate>
-							</InfiniteScrolling>
+							<div class="catalog-cards">
+								<InfiniteScrolling Preloaded=@_searchResults ItemsProvider=@GetMore>
+									<ItemTemplate Context="item">
+										<CatalogCards @key=@item
+												  CatalogResult=@item
+												  Project=@GetProject(item)
+												  MapSector=@GetSector
+												  MapBranch=@GetBranch
+												  OnShowLinks=@HandleShowLinks
+												  ShowLinks>
+											@GetDownLoadFragment(item)
+										</CatalogCards>
+									</ItemTemplate>
+									<LoadingTemplate>
+										<div>@Localizer["Loading..."]</div>
+									</LoadingTemplate>
+								</InfiniteScrolling>
+							</div>
 						}
 						else
 						{
