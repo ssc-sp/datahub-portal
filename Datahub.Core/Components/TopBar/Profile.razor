@@ -35,15 +35,15 @@
                         <MudIconButton Icon="@Icons.Filled.Close" OnClick="@ToggleProfile" />
                     </CardHeaderActions>
                 </MudCardHeader>
-@*                <MudCardContent>
+                <MudCardContent>
                     <MudStack>
                         <MudLink Href="/profile">@Localizer["View your profile"]</MudLink>
-                        <MudText>
+@*                        <MudText>
                             @Localizer.GetString("You have used {0} of your allocated {1}", DatahubTools.BytesToString(_totalSpaceUsed), _maxAllocatedSpace)
-                        </MudText>
+                        </MudText>*@
                         <GuestModeToggler />
                     </MudStack>
-                </MudCardContent>*@
+                </MudCardContent>
                 <MudCardActions>
                     <MudStack Row Class="flex-grow-1" Justify="Justify.SpaceBetween">
                         <MudButton Variant="Variant.Text">
