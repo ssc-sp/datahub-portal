@@ -14,7 +14,7 @@
 @using System.Linq.Expressions
 @inject NavigationManager NavigationManager
 
-@if(Metadata is null || !Metadata.IsLoaded())
+@if(Metadata is null || !Metadata.IsMudLoaded())
 {
     <Spinner></Spinner>
 }
@@ -25,8 +25,10 @@ else
 
  <MudCard>
      <MudCardContent>
-        <AeTypography Variant="h3">@DataLocalizer[Metadata.Header]</AeTypography>
-
+            @if (!string.IsNullOrWhiteSpace(Metadata.Header))
+            {
+                <AeTypography Variant="h3">@DataLocalizer[Metadata.Header]</AeTypography>
+            }
          
             <AuthorizeView Roles="@Metadata.TableRoles">
 
@@ -94,10 +96,10 @@ else
 
     <MudCard style="margin-top: 1rem">
         <MudCardHeader>
-            <CardHeaderContent>
+            <CardHeaderContent>                
                 @foreach (var navigationUrl in Metadata.NavigateUrls)
                 {
-                    <MudButton Variant="Variant.Filled" Color="Color.Primary" onclick="@(() => NavigationManager.NavigateTo(@navigationUrl.Invoke(SelectedRecord).Item1))">@navigationUrl.Invoke(SelectedRecord).Item2</MudButton>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => NavigationManager.NavigateTo(@navigationUrl.Invoke(SelectedRecord).Item2))">@navigationUrl.Invoke(SelectedRecord).Item1</MudButton>
                 }
             </CardHeaderContent>
         </MudCardHeader>
