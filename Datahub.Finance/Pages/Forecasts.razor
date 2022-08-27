@@ -7,6 +7,27 @@
 @inject IUserInformationService UserInformationService
 @page "/finance/forecasts/{fundcenterId}"
 @using System.Linq.Expressions
+@using MudBlazor
+
+<MudCard>    
+    <MudCardContent>
+        <MudTable Items="@_fundCenters" Hover="true" Loading="@_isLoading">
+            <ToolBarContent>
+                <MudText Typo="Typo.h6">Fund Center Details</MudText>
+            </ToolBarContent>
+            <HeaderContent>
+                <MudTh>Sector</MudTh>
+                <MudTh>Branch</MudTh>
+                <MudTh>Division</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd>@context.Sector?.FundCenterModifiedEnglish</MudTd>
+                <MudTd>@context.Branch?.FundCenterModifiedEnglish</MudTd>
+                <MudTd>@context.Division?.FundCenterModifiedEnglish</MudTd>
+            </RowTemplate>
+        </MudTable>
+    </MudCardContent>
+</MudCard>
 
 <Datahub.Core.Components.MudFormTemplate T="Forecast"
                                          U="FinanceDBContext"
@@ -21,20 +42,30 @@
         SortAccessors="@_sortAccessors"
         Context=@Context/>
 
+
+<MudCard>
+    <MudCardContent>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => NavigationManager.NavigateTo("finance/fundcenters"))">Fund Centers</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => NavigationManager.NavigateTo("finance/summaryforecasts"))">Summary Forecasts</MudButton>
+    </MudCardContent>
+</MudCard>
+
+
 @code {
 
     [Parameter]
-    public int fundcenterId { get; set; }
+    public string fundcenterId { get; set; }
 
     private const string PROJECTACRONYM = "FINGC";
 
     private FinanceDBContext Context;
     private Microsoft.Graph.User _user = null!;
     private bool _isUserAdmin;
+    private bool _isLoading = true;
     private string _searchFilter = string.Empty;
     private int _lastClicked = 0;
 
-
+    private List<FundCenter> _fundCenters;
     private List<Forecast> _forecasts;
     private Forecast _forecast;
     private Dictionary<string, Func<Forecast, string>> _sortAccessors = new();
@@ -55,10 +86,12 @@
         _isUserAdmin = await ServiceAuthManager.IsProjectAdmin(_user.Id, PROJECTACRONYM);
 
         LoadData(_searchFilter);
+        _isLoading = false;
     }
 
     private void LoadData(string searchfilter)
     {
+        _fundCenters = Context.FundCenters.Include(f => f.Sector).Include(f => f.Branch).Include(f => f.Division).Where(f => f.FundCenter_ID.ToString() == fundcenterId).ToList();
         _forecasts = Context.Forecasts.ToList();
         //var fundcenters = _forecasts;
         //if (!string.IsNullOrWhiteSpace(searchfilter))
@@ -76,18 +109,13 @@
         //        return false;
         //    }).ToList();
         //}
-        _formMetadata.Header = "Finance Forms";
+        _formMetadata.Header = string.Empty;
         _formMetadata.SubHeader = "Salary Forecasts";
         _formMetadata.DataSet = _forecasts; //change when filters added
         _formMetadata.AccessorFunctions = accessorFunctions;
         _formMetadata.Headers = headers;
+        _formMetadata.NavigateUrls = new List<Func<Forecast, (string, string)>>();
         _formMetadata.IsSubmitEnabled = true;
-    }
-
-    private async Task GoToNextSheet()
-    {
-        await HandleValidSubmit();
-        // NavigationManager.NavigateTo($"/finance/budgets/{sector.SectorBranch_ID}");
     }
 
     private List<Func<Forecast, string>> accessorFunctions = new List<Func<Forecast, string>>
@@ -123,9 +151,8 @@
     }
 
     private void CreateNewProject()
-    {
-        //var defaultBranch = _sectorLookup.Where(s => s.SectorId == 1).First().Branches.Where(b => b.BranchId == 1).First();
-        _forecast = new Forecast() { Last_Updated_DT = DateTime.Now, Created_DT = DateTime.Now, Created_UserId = _user.Mail};
+    {        
+        _forecast = new Forecast() { Last_Updated_DT = DateTime.Now, Created_DT = DateTime.Now, Created_UserId = _user.Mail, FundCenter = _fundCenters[0]};
         StateHasChanged();
     }
 
@@ -154,12 +181,6 @@
         return await Task.FromResult((Forecast)null);
     }
 
-    private string GetDataLabel(string propName)
-    {
-        return DataLocalizer[propName];
-    }
-
-    
     private void OnConfigure(MudBlazor.Forms.IModelFormContext context)
     {
 
