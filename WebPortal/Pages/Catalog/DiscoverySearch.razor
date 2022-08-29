@@ -331,16 +331,19 @@
 	private void ParseLanguages()
 	{
 		_filteredLanguageTypes = new(ParseSet<CatalogObjectLanguage>(QueryLanguages, ',', isByte: false));
+		_languageFilterSectionOpen = _filteredLanguageTypes.Count > 0;
 	}
 
 	private void ParseClassification()
 	{
 		_filteredClassificationTypes = new(ParseSet<ClassificationType>(QueryClassifications, ',', isByte: true));
+		_securityFilterSectionOpen = _filteredClassificationTypes.Count > 0;
 	}
 
 	private void ParseDataTypes()
 	{
 		_filteredDataTypes = new(ParseSet<MetadataObjectType>(QueryTypes, ',', isByte: true));
+		_dataTypeFilterSectionOpen = _filteredDataTypes.Count > 0;
 	}
 
 	private IEnumerable<E> ParseSet<E>(string text, char sep, bool isByte) where E: Enum
@@ -380,6 +383,7 @@
 		_filteredSectors = sectors;
 		_filterSector = int.TryParse(QuerySector, out int sector) ? sector : NO_FILTER_SELECTED;
 		_filterBranch = int.TryParse(QueryBranch, out int branch) ? sector : NO_FILTER_SELECTED;
+		_sectorFilterSectionOpen = sectors.Count > 0;
 	}
 
 	private async Task LoadProjects()
