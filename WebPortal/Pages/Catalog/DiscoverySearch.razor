@@ -311,16 +311,8 @@
 		ParseDataTypes();
 		ParseSectorAndBranches();
 
-		if (!string.IsNullOrWhiteSpace(QueryKeywords))
-		{
-			_searchKeywords = QueryKeywords;
-			await UpdateFilter();
-		}
-
-		//_searchThrottler = new(TimeSpan.FromSeconds(1), ThrottleSearch);
-		//await _searchThrottler.SetQuery(QueryKeywords ?? string.Empty);
-
-		_filtersActive = HasValidFilters();
+		_searchKeywords = (QueryKeywords ?? string.Empty).Trim();
+		await UpdateFilter();
 	}
 
 	private void ParseHideIncomplete()
