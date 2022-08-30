@@ -5,6 +5,7 @@
 @inject IJSRuntime JsInterop
 @inject ServiceAuthManager ServiceAuthManager
 @inject IUserInformationService UserInformationService
+@inject IDialogService DialogService
 @page "/finance/summaryforecasts/{fundcenterId}"
 @using System.Linq.Expressions
 @using MudBlazor
@@ -40,7 +41,8 @@
         SetFormEditRecord="SetFormEdit"    
         HandleFilterChange="HandleFilterChange"
         SortAccessors="@_sortAccessors"
-        Context=@Context/>
+        Context=@Context
+        @key=_formMetadata/>
 
 
 <MudCard>
@@ -172,7 +174,7 @@
     private async Task HandleValidSubmit()
     {
 
-        if (_summaryForecast != null)
+        if (_summaryForecast != null && IsValidSubmission())
         {
             if (_summaryForecast.Forecast_ID == 0)
             {
@@ -183,9 +185,24 @@
             LoadData(_searchFilter); ;
             _summaryForecast = null;
         }
+        else
+        {
+            bool? result = await DialogService.ShowMessageBox(
+                "Warning",
+                "This Fund already exists, please update the existing record",
+                yesText: "Ok");
+        }
 
         StateHasChanged();
     }
+
+    private bool IsValidSubmission()
+    {
+        var doesFundExist = Context.SummaryForecasts.Any(sf => sf.Fund == _summaryForecast.Fund && sf.FundCenter.FundCenter_ID.ToString() == fundcenterId);
+        return !doesFundExist;
+    
+    }
+
 
     private async Task<SummaryForecast> ClearForm()
     {

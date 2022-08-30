@@ -32,7 +32,7 @@ else
          
             <AuthorizeView Roles="@Metadata.TableRoles">
 
-                <MudTable ServerData="@(new Func<TableState, Task<TableData<T>>>(ServerReload))" Dense="true" Hover="true" Striped="true" @ref="table">
+                <MudTable ServerData="@(new Func<TableState, Task<TableData<T>>>(ServerReload))" Dense="true" Hover="true" Striped="true" @ref="table" @key="@Metadata.DataSet">
                     <ToolBarContent>
                         <MudText Typo="Typo.h6">@Metadata.SubHeader</MudText>
                         <MudSpacer />

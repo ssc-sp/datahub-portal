@@ -5,6 +5,7 @@
 @inject IJSRuntime JsInterop
 @inject ServiceAuthManager ServiceAuthManager
 @inject IUserInformationService UserInformationService
+@inject IDialogService DialogService
 @page "/finance/forecasts/{fundcenterId}"
 @using System.Linq.Expressions
 @using MudBlazor
@@ -40,7 +41,8 @@
         SetFormEditRecord="SetFormEdit"    
         HandleFilterChange="HandleFilterChange"
         SortAccessors="@_sortAccessors"
-        Context=@Context/>
+        Context=@Context
+        @key="@_formMetadata"/>
 
 
 <MudCard>
@@ -152,14 +154,14 @@
 
     private void CreateNewProject()
     {        
-        _forecast = new Forecast() { Last_Updated_DT = DateTime.Now, Created_DT = DateTime.Now, Created_UserId = _user.Mail, FundCenter = _fundCenters[0]};
+        _forecast = new Forecast() { Last_Updated_DT = DateTime.Now, Created_DT = DateTime.Now, Created_UserId = _user.Mail, FundCenter = _fundCenters[0], Start_Date = DateTime.Now, End_Date = DateTime.Now };
         StateHasChanged();
     }
 
     private async Task HandleValidSubmit()
     {
 
-        if (_forecast != null)
+        if (_forecast != null && IsValidSubmission())
         {
             if (_forecast.Forecast_ID == 0)
             {
@@ -176,10 +178,15 @@
         StateHasChanged();
     }
 
+    private bool IsValidSubmission()
+    {
+        return true;
+    }
+
     private async Task UpdateSummaryForecasts()
     {
         var sum = Context.Forecasts.Where(f => f.FundCenter == _fundCenters[0]).Select(t => t.Salary ?? 0).Sum();
-        var fund = Context.SummaryForecasts.Where(f => f.Fund == _forecast.Fund).FirstOrDefault();
+        var fund = Context.SummaryForecasts.Where(f => f.Fund == _forecast.Fund && f.FundCenter == _forecast.FundCenter).FirstOrDefault();
         if (fund is not null)
         {
             fund.SFT_Forecast = sum;
