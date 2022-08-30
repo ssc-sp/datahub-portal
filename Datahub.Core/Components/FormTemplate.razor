@@ -8,6 +8,7 @@
 @inherits HtmlElement
 @inject IDatahubAuditingService AuditingService
 @using System.Reflection
+@using Elemental.Components
 
 @if(Metadata is null || !Metadata.IsLoaded())
 {
@@ -128,9 +129,9 @@ else
     [Parameter]
     public EventCallback<EditContext> HandleInvalidSubmit { get; set; }
     [Parameter]
-    public EventCallback<IModelFormContext> OnConfigureForms { get; set; }
+    public EventCallback<Elemental.Components.IModelFormContext> OnConfigureForms { get; set; }
     [Parameter]
-    public EventCallback<ModelFormChangeArgs> OnChangeForms { get; set; }
+    public EventCallback<Elemental.Components.ModelFormChangeArgs> OnChangeForms { get; set; }
     [Parameter]
     public EventCallback CreateNewRecord { get; set; }
     [Parameter]
@@ -222,7 +223,7 @@ else
         }
     }
 
-    private async Task OnConfigure(IModelFormContext context)
+    private async Task OnConfigure(Elemental.Components.IModelFormContext context)
     {        
         if (context != null)
         {
@@ -230,7 +231,7 @@ else
         }        
     }
 
-    private async Task OnChange(ModelFormChangeArgs args)
+    private async Task OnChange(Elemental.Components.ModelFormChangeArgs args)
     {        
         if (args != null)
         {

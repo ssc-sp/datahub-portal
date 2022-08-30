@@ -1,75 +1,132 @@
 ﻿@inherits LayoutComponentBase
 
-@using Microsoft.Extensions.Configuration
 @using Microsoft.Identity.Web
+@using Datahub.Core.Components.TopBar
+@using MudBlazor.Utilities
+@using Datahub.Achievements
+@using System.Security.Principal
 
-@inject IMSGraphService _msGraphService
+
 @inject IMyDataService _apiService
-@inject NavigationManager _navigationManager
-@inject UserLocationManagerService _userLocationManagerService
+@inject ISnackbar _snackbar
+@inject AchievementService _achievementsService
 @inject IDatahubAuditingService _auditingService
 @inject IUserCircuitCounterService _userCircuitCounterService
 @inject MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
 @inject IConfiguration _configuration
 
+<MudThemeProvider Theme="_theme"/>
+<MudDialogProvider/>
+<MudSnackbarProvider/>
+
 <PageTitle>@Localizer[_configuration["Title"]]</PageTitle>
 
-<AuthorizeView>
-    <Authorized>        
-        <div class="application-wrapper">
-            <Sidebar />
-            <div class="main-layout">
-                <Topbar />
-                <div class="ui-control">
-                    <div class="main-page">
-                        <ErrorBoundary @ref="_errorBoundary">
-                            <ChildContent>
-                                @if (_isSessionEnabled == true)
-                                {
-                                    @Body
-                                }
-                                @if (_isSessionEnabled == false)
-                                {
-                                    <TooManyTabs />
-                                }                                
-                            </ChildContent>
-                            <ErrorContent Context="ex">
-                                @if (HandleException(@ex)) 
-                                {
-                                    <Error CorrelationId=@_correlationId />
-                                }
-                                else
-                                {
-                                    @Body
-                                }
+<CascadingValue Value="_theme">
+    <AuthorizeView>
+        <Authorized>
+            <CascadingValue Value="_userTelemetry">
+                <MudLayout Style="@_style">
+                    <MudAppBar Elevation="0">
+                        <Topbar/>
+                    </MudAppBar>
+                    <MudDrawer
+                        Open
+                        DisableOverlay="true"
+                        Elevation="0"
+                        ClipMode="DrawerClipMode.Always">
+                        <Sidebar/>
+                    </MudDrawer>
+                    <MudMainContent>
+                        <div class="application-wrapper">
+                            <div class="main-layout">
+                                <div class="ui-control">
+                                    <div class="main-page">
+                                        <ErrorBoundary @ref="_errorBoundary">
+                                            <ChildContent>
+                                                @if (_isSessionEnabled == true)
+                                                {
+                                                    @Body
+                                                }
+                                                @if (_isSessionEnabled == false)
+                                                {
+                                                    <TooManyTabs/>
+                                                }
+                                            </ChildContent>
+                                            <ErrorContent Context="ex">
+                                                @if (HandleException(@ex))
+                                                {
+                                                    <Error CorrelationId=@_correlationId/>
+                                                }
+                                                else
+                                                {
+                                                    @Body
+                                                }
 
-                            </ErrorContent>
-                        </ErrorBoundary>
-                    </div>
-                    <RightSidebar />
-                    <Modal />
-                </div>
-            </div>
-        </div>
-    </Authorized>
-    <NotAuthorized>
-        <div>@Localizer["ERROR-PAGE.ConnectionLost-Label"]</div>
-    </NotAuthorized>
-</AuthorizeView>
+                                            </ErrorContent>
+                                        </ErrorBoundary>
+                                    </div>
+                                    <RightSidebar/>
+                                    <Modal/>
+                                </div>
+                            </div>
+                        </div>
+                    </MudMainContent>
+                </MudLayout>
+            </CascadingValue>
+        </Authorized>
+        <NotAuthorized>
+            <div>@Localizer["ERROR-PAGE.ConnectionLost-Label"]</div>
+        </NotAuthorized>
+    </AuthorizeView>
+</CascadingValue>
 
 @code
 {
     [CascadingParameter]
     private Task<AuthenticationState> _authenticationStateTask { get; set; }
-    
+
+    private DatahubUserTelemetry _userTelemetry;
+
     private ErrorBoundary _errorBoundary;
     private string _correlationId;
     private Exception _lastException;
     private bool? _isSessionEnabled;
 
+    private MudTheme _theme;
+    private string _style;
+
     protected override void OnParametersSet()
     {
         _errorBoundary?.Recover();
+    }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        _style = new StyleBuilder()
+            .AddStyle("--mud-drawer-width-left", "80px")
+            .Build();
+
+        _theme = new MudTheme()
+        {
+            Typography =
+            {
+                Default =
+                {
+                    FontFamily = new[] { "Open Sans", "sans-serif" },
+                }
+            },
+            Palette =
+            {
+                AppbarBackground = Colors.Shades.White,
+                Background = Colors.Grey.Lighten5
+            },
+            PaletteDark =
+            {
+                AppbarBackground = Colors.Grey.Darken3
+            }
+        };
     }
 
     protected override async Task OnInitializedAsync()
@@ -84,16 +141,33 @@
             _consentHandler.ChallengeUser(scopes);
             return;
         }
-        
-        try 
+
+        try
         {
             _isSessionEnabled = await _userCircuitCounterService.IsSessionEnabled();
-        } 
+            await _auditingService.TrackEvent("Login");
+        }
         catch (Exception ex)
         {
             _consentHandler.HandleException(ex);
         }
         await _apiService.SetupUserFolders();
+
+
+        await SetupAchievementNotifications(user);
+    }
+
+    private async Task SetupAchievementNotifications(IPrincipal user)
+    {
+    // fetch telemtery data
+        await Task.Delay(100);
+        _userTelemetry = new DatahubUserTelemetry()
+        {
+            UserId = user.Identity?.Name
+        };
+
+        _snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopCenter;
+        _achievementsService.AchievementEarned += (_, e) => { _snackbar.Add(e.Achievement!.Name, Severity.Normal, config => { config.Icon = e.Achievement!.Icon; }); };
     }
 
     private bool IsValidException(Exception ex)

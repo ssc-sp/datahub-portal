@@ -1,13 +1,5 @@
 ﻿@page "/project/{ProjectAcronym}/powerbirequest"
 
-@*@using Datahub.Core.Components
-@using Datahub.Core.EFCore
-@using Datahub.Core.Services
-@using Datahub.Portal.Data
-@using Datahub.Portal.Services
-@using Microsoft.Extensions.Logging
-*@
-
 @inject IDbContextFactory<DatahubProjectDBContext> _contextFactory
 @inject PowerBiServiceApi _powerBiApi
 @inject IPowerBiDataService _powerBiDataService
@@ -37,112 +29,136 @@
                 }
                 else if (PowerBiServiceSuccessfullyApproved)
                 {
-                    <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.WorkspacesCreated"]</AeTypography>
-                    @foreach(var which in new List<(string Title, string WorkspaceName, List<PowerBiAdminGroupUser> NotAssignedUsers)>()
+                    if (CreateNewWorkspaces)
                     {
-                        (Localizer[$"{LOCALIZATION_PREFIX}.ProductionLabel"], ProdWorkspaceToCreate, ProdUsersNotAssigned),
-                        (Localizer[$"{LOCALIZATION_PREFIX}.SandboxLabel"], SandboxWorkspaceToCreate, SandboxUsersNotAssigned)
-                    })
-                    {
-                        <AeTypography Variant="h5">@which.Title: @which.WorkspaceName</AeTypography>
-                        @if (which.NotAssignedUsers.Count > 0)
+                        <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.WorkspacesCreated"]</AeTypography>
+                        foreach(var which in new List<(string Title, string WorkspaceName, List<PowerBiAdminGroupUser> NotAssignedUsers)>()
                         {
-                            <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.UsersNotAssigned"]</AeTypography>
-                            <ul>
-                                @foreach(var u in which.NotAssignedUsers)
-                                {
-                                    <li>@UserLabel(u)</li>
-                                }
-                            </ul>
+                            (Localizer[$"{LOCALIZATION_PREFIX}.ProductionLabel"], ProdWorkspaceToCreate, ProdUsersNotAssigned),
+                            (Localizer[$"{LOCALIZATION_PREFIX}.SandboxLabel"], SandboxWorkspaceToCreate, SandboxUsersNotAssigned)
+                        })
+                        {
+                            <AeTypography Variant="h5">@which.Title: @which.WorkspaceName</AeTypography>
+                            if (which.NotAssignedUsers.Count > 0)
+                            {
+                                <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.UsersNotAssigned"]</AeTypography>
+                                <ul>
+                                    @foreach(var u in which.NotAssignedUsers)
+                                    {
+                                        <li>@UserLabel(u)</li>
+                                    }
+                                </ul>
+                            }
                         }
+
                     }
-                }
+                    else
+                    {
+                        <AeTypography>@Localizer[$"{LOCALIZATION_PREFIX}.ServiceApprovedMessage"]</AeTypography>
+                    }
+                } // successfully approved
                 else if (PowerBiRequestAlreadyCompleted)
                 {
                     <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.PowerBiAlreadyEnabled"]</AeTypography>
                 }
                 else
                 {
-                    
                     <div>
-                        <AeTypography Variant="h5">Workspace Name</AeTypography>
+                        <label>
+                            <input type="checkbox" @bind=@CreateNewWorkspaces disabled=@DisableWorkspaceCheckbox />
+                            <AeTypography style="display: inline-block;"><strong><span>@Localizer[$"{LOCALIZATION_PREFIX}.CreateNewWorkspaces"]</span></strong></AeTypography>
+                        </label>
+                    </div>
 
-                        <ul style="list-style: none">
-                            <li>
-                                <label class="ae input-wrapper">
-                                    <span>@Localizer[$"{LOCALIZATION_PREFIX}.BranchLabel"]: &nbsp;</span>
-                                    <input type="text" @bind-value=@WorkspaceName.Branch disabled=@NotEditingWorkspace class="ae input" />
-                                </label>
-                            </li>
-                            <li>
+                    if (CreateNewWorkspaces)
+                    {
+                        <div>
+                            <AeTypography Variant="h5">Workspace Name</AeTypography>
+
+                            <ul style="list-style: none">
+                                <li>
+                                    <label class="ae input-wrapper">
+                                        <span>@Localizer[$"{LOCALIZATION_PREFIX}.BranchLabel"]: &nbsp;</span>
+                                        <input type="text" @bind-value=@WorkspaceName.Branch disabled=@NotEditingWorkspace class="ae input" />
+                                    </label>
+                                </li>
+                                <li>
                                 
-                                <label class="ae input-wrapper">
-                                    @Localizer[$"{LOCALIZATION_PREFIX}.ProjectAcronymLabel"]: &nbsp;
-                                    @*<input type="text" @bind-value=@WorkspaceName.ProjectAcronym disabled class="ae input" />*@
-                                    @WorkspaceName.ProjectAcronym
-                                </label>
-                            </li>
-                            <li>
-                                <label class="ae input-wrapper">
-                                    <span>@Localizer[$"{LOCALIZATION_PREFIX}.NameLabel"]: &nbsp;</span>
-                                    <input type="text" @bind-value=@WorkspaceName.Name disabled=@NotEditingWorkspace class="ae input" />
-                                </label>
-                            </li>
-                        </ul>
-                        @if (IsEditingWorkspace)
+                                    <label class="ae input-wrapper">
+                                        @Localizer[$"{LOCALIZATION_PREFIX}.ProjectAcronymLabel"]: &nbsp;
+                                        @WorkspaceName.ProjectAcronym
+                                    </label>
+                                </li>
+                                <li>
+                                    <label class="ae input-wrapper">
+                                        <span>@Localizer[$"{LOCALIZATION_PREFIX}.NameLabel"]: &nbsp;</span>
+                                        <input type="text" @bind-value=@WorkspaceName.Name disabled=@NotEditingWorkspace class="ae input" />
+                                    </label>
+                                </li>
+                            </ul>
+                        
+                            @if (IsEditingWorkspace)
+                            {
+                                <AeButton OnClickEvent=@PrepareParameters>@Localizer["BUTTONS.Save"]</AeButton>
+                                <AeButton OnClickEvent=@WorkspaceName.Revert>@Localizer["BUTTONS.Revert"]</AeButton>
+                            }
+                            else
+                            {
+                                <AeButton OnClickEvent=@(() => IsEditingWorkspace = true)>@Localizer["BUTTONS.Edit"]</AeButton>
+                            }
+                        </div>
+
+                        if (HasProblem)
                         {
-                            <AeButton OnClickEvent=@PrepareParameters>@Localizer["BUTTONS.Save"]</AeButton>
-                            <AeButton OnClickEvent=@WorkspaceName.Revert>@Localizer["BUTTONS.Revert"]</AeButton>
+                            <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.WorkspaceNameConflict"]</AeTypography>
+                            <ul>
+                                <li>@Localizer[$"{LOCALIZATION_PREFIX}.ProductionLabel"]: @ProdWorkspaceToCreate</li>
+                                <li>@Localizer[$"{LOCALIZATION_PREFIX}.SandboxLabel"]: @SandboxWorkspaceToCreate</li>
+                            </ul>
+                            <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.WorkspaceNameConflictInstruction"]</AeTypography>
                         }
                         else
                         {
-                            <AeButton OnClickEvent=@(() => IsEditingWorkspace = true)>@Localizer["BUTTONS.Edit"]</AeButton>
-                        }
-                    </div>
-                    
-                    if (HasProblem)
-                    {
-                        <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.WorkspaceNameConflict"]</AeTypography>
-                        <ul>
-                            <li>@Localizer[$"{LOCALIZATION_PREFIX}.ProductionLabel"]: @ProdWorkspaceToCreate</li>
-                            <li>@Localizer[$"{LOCALIZATION_PREFIX}.SandboxLabel"]: @SandboxWorkspaceToCreate</li>
-                        </ul>
-                        <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.WorkspaceNameConflictInstruction"]</AeTypography>
-                    }
+                            <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.WorkspacesToBeCreated"]</AeTypography>
+                            <ul>
+                                <li>@Localizer[$"{LOCALIZATION_PREFIX}.ProductionLabel"]: @ProdWorkspaceToCreate</li>
+                                <li>@Localizer[$"{LOCALIZATION_PREFIX}.SandboxLabel"]: @SandboxWorkspaceToCreate</li>
+                            </ul>
+
+                            <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.UsersToBeAdded"]</AeTypography>
+                            <ul>
+                                @foreach(var user in UsersToAssign)
+                                {
+                                    <li>@UserLabel(user)</li>
+                                }
+                            </ul>
+                        } // !HasProblem
+                    } // CreateNewWorkspace
                     else
                     {
-                        <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.WorkspacesToBeCreated"]</AeTypography>
-                        <ul>
-                            <li>@Localizer[$"{LOCALIZATION_PREFIX}.ProductionLabel"]: @ProdWorkspaceToCreate</li>
-                            <li>@Localizer[$"{LOCALIZATION_PREFIX}.SandboxLabel"]: @SandboxWorkspaceToCreate</li>
-                        </ul>
+                        <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.ApproveOnlyMessage"]</AeTypography>
+                    }
 
-                        <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.UsersToBeAdded"]</AeTypography>
-                        <ul>
-                            @foreach(var user in UsersToAssign)
-                            {
-                                <li>@UserLabel(user)</li>
-                            }
-                        </ul>
-
+                    if (!HasProblem)
+                    {
                         <div>
                             <AeButton OnClickEvent=@ApproveRequest Disabled=@DisableApproveButton>@Localizer[$"{LOCALIZATION_PREFIX}.ApproveButton"]</AeButton>
                             <SuccessIndicator @bind-IsLoading=@IsWorking @ref=@_workingInd />
                         </div>
+                    }
 
-                        @if (ErrorDuringApproval)
+                    @if (ErrorDuringApproval)
+                    {
+                        if (PowerBiWriteAccessForbidden)
                         {
-                            if (PowerBiWriteAccessForbidden)
-                            {
-                                <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.NoPowerBiPermission"]</AeTypography>
-                            }
-                            else
-                            {
-                                <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.ErrorApproving"]</AeTypography>
-                            }
+                            <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.NoPowerBiPermission"]</AeTypography>
+                        }
+                        else
+                        {
+                            <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.ErrorApproving"]</AeTypography>
                         }
                     }
-                }
+                } // request is valid, wasn't already done
             }
 
         </AeCard>
@@ -177,6 +193,7 @@
     private bool PowerBiWriteAccessForbidden { get; set; } = false;
     private bool ErrorDuringApproval { get; set; } = false;
     private bool PowerBiServiceSuccessfullyApproved { get; set; } = false;
+    private bool CreateNewWorkspaces { get; set; } = true;
 
     private PowerBiAdminWorkspaceName WorkspaceName { get; set; }
     private string SandboxWorkspaceToCreate => WorkspaceName.SandboxName;
@@ -192,6 +209,7 @@
     private bool IsWorking { get; set; } = false;
     private SuccessIndicator _workingInd;
     private bool DisableApproveButton => IsWorking;
+    private bool DisableWorkspaceCheckbox => IsWorking;
 
     private string BuildPowerBIWorkspaceUrl(Guid workspaceId) => $"https://app.powerbi.com/groups/{workspaceId.ToString()}/list";
     private string UserLabel(PowerBiAdminGroupUser u) => u.UserEmail + (u.IsAdmin ? " " + Localizer[$"{LOCALIZATION_PREFIX}.AdminUserTag"] : string.Empty);
@@ -289,14 +307,14 @@
             notificationRecipients.Remove(requestingUserId);
             notificationTasks.Add(_emailService.SendServiceCreationRequestApprovedIndividual(liveProjectRequest.ServiceType, projectInfo, requestingUserId));
             notificationTasks.Add(_systemNotificationService.CreateSystemNotificationWithLink(requestingUserId, 
-                $"/project/{project.Project_Acronym_CD}", "SYSTEM-NOTIFICATION.GoToProject",
+                $"/projects/{project.Project_Acronym_CD}", "SYSTEM-NOTIFICATION.GoToProject",
                 "SYSTEM-NOTIFICATION.NOTIFICATION-TEXT.ServiceCreatedIndividual",
                 liveProjectRequest.ServiceType, new BilingualStringArgument(projectInfo.ProjectNameEn, projectInfo.ProjectNameFr)));
         }
 
         notificationTasks.Add(_emailService.SendServiceCreationGroupNotification(liveProjectRequest.ServiceType, projectInfo, notificationRecipients.ToList()));
         notificationTasks.Add(_systemNotificationService.CreateSystemNotificationsWithLink(notificationRecipients.ToList(), 
-            $"/project/{project.Project_Acronym_CD}", "SYSTEM-NOTIFICATION.GoToProject",
+            $"/projects/{project.Project_Acronym_CD}", "SYSTEM-NOTIFICATION.GoToProject",
             "SYSTEM-NOTIFICATION.NOTIFICATION-TEXT.ServiceCreatedGroup",
             liveProjectRequest.ServiceType, new BilingualStringArgument(projectInfo.ProjectNameEn, projectInfo.ProjectNameFr)));
 
@@ -313,21 +331,26 @@
         var projectId = ProjectRequest.Project.Project_ID;
         var success = true;
 
+        var tempWorkspaceId = Guid.Empty;
+
         try
         {
-            var sandboxWsId = await CreateOrReuseWorkspace(SandboxWorkspaceToCreate);
-            var prodWsId = await CreateOrReuseWorkspace(ProdWorkspaceToCreate);
-
-            SandboxUsersNotAssigned = await _powerBiApi.AssignUsersToWorkspace(sandboxWsId, UsersToAssign);
-            ProdUsersNotAssigned = await _powerBiApi.AssignUsersToWorkspace(prodWsId, UsersToAssign);
-
-            var workspacesToCreate = new List<PowerBi_WorkspaceDefinition>
+            if (CreateNewWorkspaces)
             {
-                new(sandboxWsId, SandboxWorkspaceToCreate, true, projectId),
-                new(prodWsId, ProdWorkspaceToCreate, false, projectId)
-            };
+                var sandboxWsId = await CreateOrReuseWorkspace(SandboxWorkspaceToCreate);
+                tempWorkspaceId = await CreateOrReuseWorkspace(ProdWorkspaceToCreate);
 
-            success &= await _powerBiDataService.AddOrUpdateCataloguedWorkspaces(workspacesToCreate);
+                SandboxUsersNotAssigned = await _powerBiApi.AssignUsersToWorkspace(sandboxWsId, UsersToAssign);
+                ProdUsersNotAssigned = await _powerBiApi.AssignUsersToWorkspace(tempWorkspaceId, UsersToAssign);
+
+                var workspacesToCreate = new List<PowerBi_WorkspaceDefinition>
+                {
+                    new(sandboxWsId, SandboxWorkspaceToCreate, true, projectId),
+                    new(tempWorkspaceId, ProdWorkspaceToCreate, false, projectId)
+                };
+
+                success &= await _powerBiDataService.AddOrUpdateCataloguedWorkspaces(workspacesToCreate);
+            }
 
             if (success)
             {
@@ -338,7 +361,7 @@
                     .FirstOrDefaultAsync(r => r.ServiceRequests_ID == ProjectRequest.ServiceRequests_ID);
 
                 liveProjectRequest.Is_Completed = DateTime.UtcNow;
-                liveProjectRequest.Project.PowerBI_URL = BuildPowerBIWorkspaceUrl(prodWsId);
+                liveProjectRequest.Project.PowerBI_URL = BuildPowerBIWorkspaceUrl(tempWorkspaceId);
 
                 await SendServiceCreatedNotifications(liveProjectRequest);
 

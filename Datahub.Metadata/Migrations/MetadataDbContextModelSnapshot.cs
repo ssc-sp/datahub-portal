@@ -150,6 +150,9 @@ namespace Datahub.Metadata.Migrations
                     b.Property<byte>("DataType")
                         .HasColumnType("tinyint");
 
+                    b.Property<Guid?>("GroupId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<int>("Language")
                         .HasColumnType("int");
 
@@ -188,6 +191,8 @@ namespace Datahub.Metadata.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("CatalogObjectId");
+
+                    b.HasIndex("GroupId");
 
                     b.HasIndex("ObjectMetadataId");
 

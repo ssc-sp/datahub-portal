@@ -25,7 +25,6 @@ namespace Datahub.Tests
             var serviceProvider = services.BuildServiceProvider();
 
             var serviceAuthCache = serviceProvider.GetService<IMemoryCache>();
-            var adminCache = serviceProvider.GetService<IMemoryCache>();
             var mockDbFactory = new Mock<IDbContextFactory<DatahubProjectDBContext>>();
             ctx = new DatahubProjectDBContext(new DbContextOptionsBuilder<DatahubProjectDBContext>()
                     .UseInMemoryDatabase("InMemoryTest")
@@ -33,7 +32,7 @@ namespace Datahub.Tests
             mockDbFactory.Setup(f => f.CreateDbContext())
                 .Returns(ctx);
             var mockGraph = new Mock<IMSGraphService>();
-            _authManager = new ServiceAuthManager(serviceAuthCache, adminCache, mockDbFactory.Object,mockGraph.Object);
+            _authManager = new ServiceAuthManager(serviceAuthCache, mockDbFactory.Object,mockGraph.Object);
         }
 
         public void Dispose()

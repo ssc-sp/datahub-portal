@@ -30,7 +30,6 @@ namespace Datahub.Core.Data
 
         public static void InitializeDatabase<T>(ILogger logger, IConfiguration configuration, IDbContextFactory<T> factory, bool resetDB, bool migrate = true, bool ensureDeleteinOffline = true) where T : DbContext
         {
-            //bool offline, ILogger logger, IDbContextFactory<T> factory, 
             using var context = factory.CreateDbContext();
             try
             {

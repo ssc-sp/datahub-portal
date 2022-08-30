@@ -1,0 +1,274 @@
+﻿@inject IStringLocalizer DataLocalizer
+@implements IDisposable
+@inject IDbContextFactory<FinanceDBContext> DbFactory
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JsInterop
+@inject ServiceAuthManager ServiceAuthManager
+@inject IUserInformationService UserInformationService
+@page "/finance/fundcenters"
+@using System.Linq.Expressions
+
+<Datahub.Core.Components.MudFormTemplate 
+        T="FundCenter" 
+        U="FinanceDBContext"
+        Metadata="@_formMetadata" 
+        HandleSubmit="HandleValidSubmit"
+        OnConfigureForms="OnConfigure"
+        OnChangeForms="OnChange"
+        CreateNewRecord="CreateNewProject"
+        SelectedRecord="@_fundcenter"
+        SetFormEditRecord="SetFormEdit"    
+        HandleFilterChange="HandleFilterChange"
+        SortAccessors="@_sortAccessors"
+        Context=@Context/>
+
+@code {
+    private const string PROJECTACRONYM = "FINGC";
+    private List<FundCenter> _fundcenters;
+    private FundCenter _fundcenter;
+    //private List<Sector> _sectorLookup;
+    private Dictionary<string, Func<FundCenter, string>> _sortAccessors = new();
+    private FinanceDBContext Context;
+    private Microsoft.Graph.User _user = null!;
+    private bool _isUserAdmin;
+    private List<HierarchyLevel> _sectors = new();
+    private List<HierarchyLevel> _branches = new();    
+    private List<HierarchyLevel> _divisions = new();
+    private List<FiscalYear> _fiscalYears = new();
+    private string _searchFilter = string.Empty;
+
+
+    private int _lastClicked = 0;
+
+    private FormMetadata<FundCenter> _formMetadata = new();
+
+    private void OnPageClick(int pageIndex)
+    {
+        _lastClicked = pageIndex;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        // load projects
+        Context = DbFactory.CreateDbContext();
+        LoadSortExpressions();
+        _user = await UserInformationService.GetUserAsync();
+        _isUserAdmin = await ServiceAuthManager.IsProjectAdmin(_user.Id, PROJECTACRONYM);
+        _fiscalYears = Context.FiscalYears.ToList();
+        if(_fiscalYears.Any() && _fiscalYears[0] is not null)
+            _fiscalYears.Insert(0, null);
+        LoadData(_searchFilter);
+    }
+
+    private void LoadData(string searchfilter)
+    {
+        _fundcenters = Context.FundCenters.Include(f => f.Sector).Include(f => f.Branch).Include(f => f.Division).ToList();
+        var fundcenters = _fundcenters;
+        if (!string.IsNullOrWhiteSpace(searchfilter))
+        {
+            fundcenters = _fundcenters.Where(fundcenter =>
+            {
+                if (string.IsNullOrWhiteSpace(searchfilter))
+                    return true;
+                if (fundcenter.Division.FundCenterModifiedEnglish.Contains(searchfilter, StringComparison.OrdinalIgnoreCase))
+                    return true;
+                if (fundcenter.Branch.FundCenterModifiedEnglish.Contains(searchfilter, StringComparison.OrdinalIgnoreCase))
+                    return true;
+                if (fundcenter.Sector.FundCenterModifiedEnglish.Contains(searchfilter, StringComparison.OrdinalIgnoreCase))
+                    return true;
+                return false;
+            }).ToList();
+        }
+        _formMetadata.Header = "Finance Forms";
+        _formMetadata.SubHeader = "Fund Centers";
+        _formMetadata.DataSet = fundcenters;
+        _formMetadata.AccessorFunctions = accessorFunctions;
+        _formMetadata.NavigateUrls = buttonFunctions;
+        _formMetadata.Headers = headers;
+        _formMetadata.GridTemplateColumns = "3fr 6fr 6fr 6fr 3fr";
+        _formMetadata.IsSubmitEnabled = true;
+    }
+
+    private List<Func<FundCenter, (string, string)>> buttonFunctions = new List<Func<FundCenter, (string, string)>>
+    {
+        new Func<FundCenter, (string, string)>(p => { return ("Forecasts", $"/finance/forecasts/{p.FundCenter_ID.ToString()}"); }) 
+        //new Func<FundCenter, (string, string)>(p => { return ("Forecasts", $"/finance/forecasts/{p.FundCenter_ID.ToString()}"); })
+    };
+
+    private async Task GoToNextSheet()
+    {
+        await HandleValidSubmit();
+        // NavigationManager.NavigateTo($"/finance/budgets/{sector.SectorBranch_ID}");
+    }
+
+    private List<Func<FundCenter, string>> accessorFunctions = new List<Func<FundCenter, string>>
+    {
+        new Func<FundCenter, string>(p => { return p.FiscalYear?.Year ?? "N/A"; }),
+        new Func<FundCenter, string>(p => { return p.Sector?.FundCenterModifiedEnglish ?? "N/A"; }),
+        new Func<FundCenter, string>(p => { return p.Branch?.FundCenterModifiedEnglish ?? "N/A"; }),
+        new Func<FundCenter, string>(p => { return p.Division?.FundCenterModifiedEnglish ?? "N/A"; }),
+        new Func<FundCenter, string>(p => { return $"{p.AttritionRate.ToString()}%"; }),
+    };
+
+    private void LoadSortExpressions()
+    { 
+        _sortAccessors.Add("branch", t => t.Branch.FundCenterNameEnglish);
+        _sortAccessors.Add("sector", t => t.Sector.FundCenterNameEnglish);
+        _sortAccessors.Add("division", t => t.Division.FundCenterNameEnglish);
+    }
+
+
+    private string getColor(FundCenter current)
+    {
+        if (current == _fundcenter)
+        {
+            return "yellow";
+        }
+        return "";
+    }
+
+    private List<string> headers = new List<string>
+{
+        "Fiscal Year", "Sector", "Branch", "Division", "Attrition Rate"
+    };
+
+    private void SetFormEdit(FundCenter project)
+    {
+        _fundcenter = project;
+        StateHasChanged();
+    }
+
+    private void CreateNewProject()
+    {
+        //var defaultBranch = _sectorLookup.Where(s => s.SectorId == 1).First().Branches.Where(b => b.BranchId == 1).First();
+        _fundcenter = new FundCenter() { Last_Updated_DT = DateTime.Now, Created_DT = DateTime.Now, Created_UserId = _user.Mail, Last_Updated_UserId = _user.Mail, Sector = null };
+        RefreshBranches(null, null);
+        RefreshDivisions(null, null);
+        StateHasChanged();
+    }
+
+    private async Task HandleValidSubmit()
+    {
+
+        if (_fundcenter != null)
+        {
+            if (_fundcenter.FundCenter_ID == 0)
+            {
+                _fundcenter = Context.FundCenters.Add(_fundcenter).Entity;
+            }
+            _fundcenter.Last_Updated_DT = DateTime.Now;
+            await Context.SaveChangesAsync();
+            LoadData(_searchFilter); ;
+            _fundcenter = null;
+        }
+
+
+        StateHasChanged();
+    }
+
+    private async Task<FundCenter> ClearForm()
+    {
+        _fundcenter = null;
+        StateHasChanged();
+        return await Task.FromResult((FundCenter)null);
+    }
+
+    private string GetDataLabel(string propName)
+    {
+        return DataLocalizer[propName];
+    }
+
+    private List<HierarchyLevel> GetSectors()
+    {
+        if (!_sectors.Any())
+            _sectors = Context.HierarchyLevels.Where(p => p.Level == 2 && p.IsActive).ToList();
+        if (_sectors[0] is not null)
+            _sectors.Insert(0, null);
+        return _sectors;
+    }
+
+    private List<HierarchyLevel> GetBranches()
+    {        
+        if (!_branches.Any())
+        {
+            RefreshBranches(null, null);
+        }
+        return _branches;
+    }
+
+    private List<HierarchyLevel> GetDivisions()
+    {
+        if (!_divisions.Any())
+        {
+            RefreshDivisions(null, null);
+        }
+        return _divisions;
+    }
+
+    private void OnConfigure(MudBlazor.Forms.IModelFormContext context)
+    {
+
+        context.RegisterOptionValueProperty<FundCenter, FiscalYear>(l => l.FiscalYear, p => p?.Year ?? "N/A", () => _fiscalYears);
+        context.RegisterOptionValueProperty<FundCenter, HierarchyLevel>(l => l.Sector, p => p?.FundCenterNameEnglish ?? "N/A", () => GetSectors(), s => RefreshBranches(s, context));
+        context.RegisterOptionValueProperty<FundCenter, HierarchyLevel>(l => l.Branch, p => p?.FundCenterNameEnglish ?? "N/A", () => GetBranches(), s => RefreshDivisions(s, context));
+        context.RegisterOptionValueProperty<FundCenter, HierarchyLevel>(l => l.Division, p => p?.FundCenterNameEnglish ?? "N/A", () => GetDivisions());
+
+    }
+
+
+    private void RefreshDivisions(HierarchyLevel branch, IModelFormContext context)
+    {
+        if (branch is not null)
+        {
+            _divisions.Clear();
+            _divisions = Context.HierarchyLevels.Where(b => b.ParentCode == branch.FCCode).ToList();
+            _divisions.Insert(0, null);
+        }
+        else
+        {
+            _divisions = new() { null };
+        }
+
+        if (context is not null)
+        {
+            context.RefreshOptions<FundCenter>(f => f.Division);
+        }
+    }
+
+    private void RefreshBranches(HierarchyLevel sector, IModelFormContext context)
+    {
+        if (sector is not null)
+        {
+            _branches.Clear();
+            _branches = Context.HierarchyLevels.Where(b => b.ParentCode == sector.FCCode).ToList();
+            _branches.Insert(0, null);
+        }
+        else
+        {
+            _branches = new() { null };
+        }
+
+        if (context is not null)
+        {
+            context.RefreshOptions<FundCenter>(f => f.Branch);
+        }
+    }
+
+
+    private async void HandleFilterChange(string selection)
+    {
+        _searchFilter = selection;
+        LoadData(_searchFilter);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void OnChange(ModelFormChangeArgs args)
+    {
+        OnConfigure(args.Context);
+    }
+
+    public void Dispose() 
+    { 
+        Context.Dispose(); 
+    }
+}

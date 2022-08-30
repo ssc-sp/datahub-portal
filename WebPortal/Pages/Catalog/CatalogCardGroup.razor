@@ -1,0 +1,37 @@
+﻿@*CatalogCardGroup.razor*@
+@using Datahub.Metadata.DTO
+
+<div>
+    <InfiniteScrolling Preloaded=@CatalogResults>
+		<ItemTemplate Context="item">
+			<CatalogCards @key=@item
+                      CatalogResult=@item
+                      Project=@GetProject(item)
+                      MapSector=@MapSector
+                      MapBranch=@MapBranch>
+			    @GetDownLoadFragment(item)
+		    </CatalogCards>
+		</ItemTemplate>
+		<LoadingTemplate>
+			<div></div>
+		</LoadingTemplate>
+	</InfiniteScrolling>
+</div>
+
+@code {
+
+    [Parameter]
+    public List<CatalogObjectResult> CatalogResults { get; init; } = new();
+
+    [Parameter]
+    public Func<CatalogObjectResult, Datahub_Project> GetProject { get; set; }
+
+    [Parameter]
+    public Func<CatalogObjectResult, bool, string> MapSector { get; set; }
+
+    [Parameter]
+    public Func<CatalogObjectResult, bool, string> MapBranch { get; set; }
+
+    [Parameter]
+    public Func<CatalogObjectResult, RenderFragment> GetDownLoadFragment { get; set; }
+}

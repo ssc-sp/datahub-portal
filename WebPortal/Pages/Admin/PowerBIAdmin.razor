@@ -1,5 +1,13 @@
 ﻿@page "/admin/powerbi"
 @page "/admin/powerbi/{ProjectAcronym}"
+@page "/admin/powerbi/report/{ReportId}"
+@page "/admin/powerbi/dataset/{DatasetId}"
+@page "/admin/powerbi/workspace/{WorkspaceId}"
+@page "/admin/powerbi/{ProjectAcronym}/report/{ReportId}"
+@page "/admin/powerbi/{ProjectAcronym}/dataset/{DatasetId}"
+@page "/admin/powerbi/{ProjectAcronym}/workspace/{WorkspaceId}"
+@using Datahub.Metadata.Model
+
 @inject IPowerBiDataService _powerBiDataService
 @inject PowerBiServiceApi _powerBiServiceApi
 @inject Microsoft.Identity.Web.MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
@@ -251,18 +259,46 @@
                                     ValidateRequired=@false
                                     Name=@ReportBeingEdited.DbReportName
                                     HideSaveButton
+                                    CatalogLanguage=@_catalogObjectLanguage
                                     OnValuesChanged=@(() => StateHasChanged())
                                     DefaultMetadataId=@GetProjectMetadataUid(ReportBeingEdited.ProjectId)
                                     OnNewMetadataCreated=@AutoFillNewMetadataFields
                                     OnExistingMetadataLoaded=@DetectIfCurrentItemIsInCatalog
                                 />
+
                                 <div>
                                     <label>
                                         <input type="checkbox" @bind=@IncludeCurrentItemInCatalog />
                                         <AeTypography style="display: inline-block;"><strong><span>@Localizer[$"{LOCALIZATION_PREFIX}.IncludeInCatalog"]</span></strong></AeTypography>
                                     </label>
                                 </div>
-                                <div>
+
+                                <div style="margin-top: 0.5rem; width: 100%">
+                                    <AeTypography><strong><span>@Localizer[$"Language"]</span></strong></AeTypography>
+                                    <select class="ae input" @bind="_catalogObjectLanguage" disabled=@NotIncludedCurrentItemInCatalog>
+                                        <option value=@CatalogObjectLanguage.Bilingual>@Localizer["Bilingual"]</option>
+                                        <option value=@CatalogObjectLanguage.English>@Localizer["English"]</option> 
+                                        <option value=@CatalogObjectLanguage.French>@Localizer["French"]</option> 
+                                    </select>
+                                </div>                                
+
+                                @if (ReportBeingEdited.SiblingReports.Count > 0)
+                                {
+                                    <div style="margin-top: 0.5rem; width: 100%">
+                                        <AeFlex Vertical>
+                                            <AeTypography><strong><span>@Localizer[$"Grouped with"]</span></strong></AeTypography>
+                                            <select @bind="_groupWithId" class="ae input" disabled=@NotIncludedCurrentItemInCatalog>
+                                                <option value=""></option>
+                                                @foreach(var report in ReportBeingEdited.SiblingReports)
+                                                {
+                                                    <option value="@report.Report_ID.ToString()">@report.Report_Name</option>
+                                                }
+                                            </select>
+                                        </AeFlex>
+                                    </div>
+                                }
+
+                                <div style="margin-top: 1rem;">
                                     <AeButton OnClickEvent=@SaveReport Disabled=@SaveReportDisabled>@Localizer[$"BUTTONS.Save"]</AeButton>
                                     <AeButton class="light" OnClickEvent=@CloseItemBeingEdited>@Localizer[$"BUTTONS.Cancel"]</AeButton>
                                     <SuccessIndicator @bind-IsLoading=@IsSavingReport @ref=@_saveReportInd />
@@ -393,6 +429,15 @@
     [Parameter]
     public string ProjectAcronym { get; set; }
 
+    [Parameter]
+    public string ReportId { get; set; }
+
+    [Parameter]
+    public string DatasetId { get; set; }
+
+    [Parameter]
+    public string WorkspaceId { get; set; }
+
     private bool IsAdminView => string.IsNullOrEmpty(ProjectAcronym);
 
     private List<PowerBiAdminWorkspaceTreeItem> AllWorkspaceTreeItems { get; set; } = new();
@@ -419,8 +464,11 @@
     private PowerBiAdminWorkspaceTreeItem WorkspaceBeingEdited { get; set; }
     private PowerBiAdminDatasetTreeItem DatasetBeingEdited { get; set; }
     private PowerBiAdminReportTreeItem ReportBeingEdited { get; set; }
+    private string _groupWithId;
+    private CatalogObjectLanguage _catalogObjectLanguage;
 
     private bool IncludeCurrentItemInCatalog { get; set; } = true;
+    private bool NotIncludedCurrentItemInCatalog => !IncludeCurrentItemInCatalog;
 
     private ObjectMetadataEditor _workspaceMetadata;
     private bool IsSavingWorkspace { get; set; } = false;
@@ -579,27 +627,51 @@
         {
             var workspace = await _powerBiDataService.GetWorkspaceById(item.Id);
             var pbiWorkspace = PowerBiWorkspacesById.GetValueOrDefault(item.Id);
-            WorkspaceBeingEdited = new(pbiWorkspace, workspace);
+            if (workspace != null) {
+                WorkspaceBeingEdited = new(pbiWorkspace, workspace);
+            }
         }
         else if (item.ItemType == PowerBiAdminTreeItemType.Dataset)
         {
             var dataset = await _powerBiDataService.GetDatasetById(item.Id);
             var pbiDataset = PowerBiDatasetsById.GetValueOrDefault(item.Id);
-            DatasetBeingEdited = new(pbiDataset, dataset, null);
-            DatasetBeingEdited.ProjectId = item.ProjectId;
+            if (dataset != null) {
+                DatasetBeingEdited = new(pbiDataset, dataset, null);
+                DatasetBeingEdited.ProjectId = item.ProjectId;
+            }
         }
         else if (item.ItemType == PowerBiAdminTreeItemType.Report)
         {
             var report = await _powerBiDataService.GetReportById(item.Id);
             var pbiReport = PowerBiReportsById.GetValueOrDefault(item.Id);
-            ReportBeingEdited = new(pbiReport, report, null);
-            ReportBeingEdited.ProjectId = item.ProjectId;
+            if (report != null) 
+            {
+                ReportBeingEdited = new(pbiReport, report, null);
+                ReportBeingEdited.ProjectId = item.ProjectId;
+                ReportBeingEdited.SiblingReports = await GetReportsForGrouping(report);
+                IncludeCurrentItemInCatalog = report.InCatalog;
+                _groupWithId = await GetGroupedWidth(report);
+                _catalogObjectLanguage = await _metadataService.GetCatalogObjectLanguage(report.Report_ID.ToString()) ?? CatalogObjectLanguage.Bilingual;
+            }
         }
 
         _tempLastClickedItem = item.Label;
         _tempLastClickedType = item.ItemType.ToString();
         StateHasChanged();
         await Task.CompletedTask;
+    }
+
+    private async Task<List<PowerBi_Report>> GetReportsForGrouping(PowerBi_Report report)
+    {
+        var siblings = await _powerBiDataService.GetWorkspaceReports(report.Workspace_Id);
+        return siblings.Where(r => r.InCatalog && r.Report_ID != report.Report_ID).ToList();
+    }
+
+    private async Task<string> GetGroupedWidth(PowerBi_Report report)
+    {
+        var reportId = report.Report_ID.ToString().ToLower();
+        var group = await _metadataService.GetObjectCatalogGroup(reportId);
+        return group.FirstOrDefault(id => !id.Equals(reportId, StringComparison.OrdinalIgnoreCase));
     }
 
     private PowerBiAdminTreeItemType? DetermineCurrentlyOpenEditorType()
@@ -665,13 +737,14 @@
         }
 
         RenderFragment promptDialog = 
-        @<UserChoiceModal 
+    @<UserChoiceModal 
             HeaderText=@promptTitle
             ChoiceTextList=@itemsToDelete
             OnDecision=@HandleDelete
             ConfirmText=@Localizer["COMMON.Yes"]
             CancelText=@Localizer["COMMON.No"]
-        />;
+                />
+    ;
 
         await UI.ToggleModal(promptDialog);
     }
@@ -768,7 +841,8 @@
         await InvokeAsync(StateHasChanged);
 
         var dbWorkspace = await _powerBiDataService.GetWorkspaceById(workspace.WorkspaceId);
-        WorkspaceBeingEdited = new(null, dbWorkspace);
+        var pbiWorkspace = PowerBiWorkspacesById.GetValueOrDefault(workspace.WorkspaceId);
+        WorkspaceBeingEdited = new(pbiWorkspace, dbWorkspace);
 
         await InvokeAsync(StateHasChanged);
         await workspaceTreeTask;
@@ -818,9 +892,24 @@
 
         var success = await _reportMetadata.SaveChanges();
 
-        if (success && !IncludeCurrentItemInCatalog)
+        if (success)
         {
-            await _metadataService.DeleteFromCatalog(_reportMetadata.ObjectId);
+            if (IncludeCurrentItemInCatalog)
+            {
+                // group the report
+                if (!string.IsNullOrEmpty(_groupWithId))
+                {
+                    var group = new List<string> { ReportBeingEdited.ReportId.ToString(), _groupWithId };
+                    await _metadataService.GroupCatalogObjects(group);
+                }
+            }
+            else
+            {
+                // todo: ungroup the report
+                await _metadataService.DeleteFromCatalog(_reportMetadata.ObjectId);
+            }
+            // update the in catalog flag
+            await _powerBiDataService.UpdateReportCatalogStatus(ReportBeingEdited.ReportId, IncludeCurrentItemInCatalog);
         }
 
         if (success)
@@ -1056,12 +1145,32 @@
         await LoadGlobalPowerBiAdmins();
     }
 
+    private async Task OpenDeepLink()
+    {
+        if (Guid.TryParse(ReportId, out var reportGuid))
+        {
+            var reportItem = new PowerBiAdminTreeItem(string.Empty, PowerBiAdminTreeItemType.Report, reportGuid);
+            await OpenItemEditor(reportItem);
+        }
+        else if (Guid.TryParse(WorkspaceId, out var workspaceGuid))
+        {
+            var workspaceItem = new PowerBiAdminTreeItem(string.Empty, PowerBiAdminTreeItemType.Workspace, workspaceGuid);
+            await OpenItemEditor(workspaceItem);
+        }
+        else if (Guid.TryParse(DatasetId, out var datasetGuid))
+        {
+            var datasetItem = new PowerBiAdminTreeItem(string.Empty, PowerBiAdminTreeItemType.Dataset, datasetGuid);
+            await OpenItemEditor(datasetItem);
+        }
+    }
+
     protected override async Task OnInitializedAsync()
     {
         try
         {
             _userSearchThrottler = new(TimeSpan.FromSeconds(0.3), InvokeSearchUsers);
             await LoadWorkspaceTreeItems();
+            await OpenDeepLink();
             await Task.WhenAll(LoadProjects(), LoadGlobalPowerBiAdmins());
         }
         catch (Exception ex)
