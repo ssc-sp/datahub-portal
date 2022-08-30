@@ -1,193 +1,157 @@
 ﻿@*DiscoverySearch.razor*@
-
 @page "/discovery"
 @using Datahub.Metadata.DTO
 @using Datahub.Core.Utils
 @using Datahub.Metadata.Model
-@inject UIControlsService uiControlService
-@inject IJSRuntime jsRuntime
 
-@* TODO: transfer these rules to scss, apply it to metadata keywords *@
-<style>
-	div.with-bottom-margin {
-		margin-bottom: 0.5rem;
-	}
-</style>
-
-<div style="margin: 2rem">
+<div>
 	<DHPageTitle PageTitleKey=@Localizer["DISCOVERY-FILTERS.Search Catalog"] />
-	<AeCard>
-		<ChildContent>
-			<div class="catalog-page">
-				<div class="filter">
-					<AeFlex Vertical>
-						<AeTypography Variant="h3">
-							@*<span title=@_filterSectionOpenTitle>
-							<MudIcon Icon=@_filterSectionOpenIconClass />
-							</span>*@
-							<span>@Localizer["DISCOVERY-FILTERS.Keyword Search"]</span>
-							@*<MudIcon Icon=@_filterActiveIconClass />*@
-						</AeTypography>
-						<div>
-							<AeSearchInput id="search"
-										   Placeholder=@Localizer["DISCOVERY-FILTERS.Enter Keywords"]
-										   DefaultValue=@QueryKeywords
-										   OnInputChangeWithLastKey=@HandleSearch
-										   SearchIconFAClass=null
-										   ClearIconFAClass=null />
-						</div>
+	<MudCard>
+		<MudCardContent>
+			<MudGrid Spacing="4">
+				@*left side - filters*@
+				<MudItem xs="3">
+					<MudStack>
+						@*search keywords*@
+						<MudFocusTrap>
+							<MudTextField 
+								@ref="_searchField"
+								DebounceInterval="1000" 
+								T="string"	
+								OnDebounceIntervalElapsed="HandleSearchIntervalElapsed" 
+								@bind-Value=@_searchKeywords
+								Label=@Localizer["Search"]
+								Variant="Variant.Outlined" 
+								Clearable="true"
+								Adornment="Adornment.End" 
+								AdornmentIcon="@Icons.Filled.Search" />
+						</MudFocusTrap>
 
-						<AeTypography Variant="h3">@Localizer["DISCOVERY-FILTERS.Filters"]</AeTypography>
+						<MudList Clickable="false">
+							@*header*@
+							<MudListItem>
+								<MudPaper Class="d-flex justify-space-between flex-grow-1" Elevation="0">
+									<MudText Typo="Typo.h6">@Localizer["Filters"]</MudText>
+									<MudIconButton Icon="@Icons.Material.Filled.Clear" 
+												   Disabled=@ClearFilterDisabled
+												   OnClick=@ClearFilters												   													
+												   aria-label=@Localizer["Clear"]>
+									</MudIconButton>
+								</MudPaper>
+							</MudListItem>
 
-						<label>
-							<input type="checkbox" checked=@_excludeIncompleteCatalogs @onchange=@ChangeIncompleteCatalogFilter />
-							<span>@Localizer["DISCOVERY-FILTERS.HideIncomplete"]</span>
-						</label>
+							@*hide incomplete*@ 
+							<MudListItem>
+								<MudCheckBox 
+									T="bool" 
+									Checked=@_excludeIncompleteCatalogs 
+									CheckedChanged=@HandleHideIncompledChanged
+									Label=@Localizer["DISCOVERY-FILTERS.HideIncomplete"]
+								/>
+							</MudListItem>
 
-						<AeCollapse>
-							<AeCollapseSection DefaultOpen=@_languageFilterSectionOpen>
-								<Header>
-									<AeTypography Variant="h4">
-										<span title=@_filterSectionOpenTitle>
-											<MudIcon Icon=@_filterSectionOpenIconClass />
-										</span>
-										<span>@Localizer["DISCOVERY-FILTERS.Language"]</span>
-										<MudIcon Icon=@_filterActiveIconClass />
-									</AeTypography>
-								</Header>
+							@*language filter*@
+							<MudListItem Text=@Localizer["DISCOVERY-FILTERS.Language"] 
+										 @bind-Expanded=@_languageFilterSectionOpen
+										 Icon=@FilterIconClass>
+								<NestedList>
+									<CheckboxList 
+										T=CatalogObjectLanguage
+										Options=@(Enum.GetValues<CatalogObjectLanguage>())
+										OptionLabelFunction=@(t => GetLocalizedLanguageType(t))
+										OptionSortFunction=@(t => GetLocalizedLanguageType(t))
+										OnSelectionChanged=@UpdateLanguageFilter
+										DefaultOptions=@_filteredLanguageTypes
+										@ref=@_languageTypeFilter 
+									/>
+								</NestedList>
+							</MudListItem>
 
-								<ChildContent>
-									<AeFlex Vertical>
-										<div class="with-bottom-margin">
-											<MultiCheckboxSelect T=CatalogObjectLanguage
-																 Options=@(Enum.GetValues<CatalogObjectLanguage>())
-																 OptionLabelFunction=@(t => GetLocalizedLanguageType(t))
-																 OptionSortFunction=@(t => GetLocalizedLanguageType(t))
-																 OnSelectionChanged=@UpdateLanguageFilter
-																 DefaultOptions=@_filteredLanguageTypes
-																 @ref=@_languageTypeFilter />
-										</div>
-									</AeFlex>
-								</ChildContent>
-							</AeCollapseSection>
-						</AeCollapse>
+							@*security classification*@
+							<MudListItem Text=@Localizer["DISCOVERY-FILTERS.Security Classification"] 
+										 @bind-Expanded=@_securityFilterSectionOpen
+										 Icon=@FilterIconClass>
+								<NestedList>
+									<CheckboxList 
+										T=ClassificationType
+										Options=@(Enum.GetValues<ClassificationType>())
+										OptionLabelFunction=@(t => GetLocalizedClassificationType(t))
+										OptionSortFunction=@(t => GetLocalizedClassificationType(t))
+										OnSelectionChanged=@UpdateClassificationTypeFilter
+										DefaultOptions=@_filteredClassificationTypes
+										@ref=@_classificationTypeFilter 
+									/>
+								</NestedList>
+							</MudListItem>
 
-						<AeCollapse>
-							<AeCollapseSection DefaultOpen=@_securityFilterSectionOpen>
-								<Header>
-									<AeTypography Variant="h4">
-										<span title=@_filterSectionOpenTitle>
-											<MudIcon Icon=@_filterSectionOpenIconClass />
-										</span>
-										<span>@Localizer["DISCOVERY-FILTERS.Security Classification"]</span>
-										<MudIcon Icon=@_filterActiveIconClass />
-									</AeTypography>
-								</Header>
+							@*data types*@
+							<MudListItem Text=@Localizer["DISCOVERY-FILTERS.Data Type"] 
+										 @bind-Expanded=@_dataTypeFilterSectionOpen
+										 Icon=@FilterIconClass>
+								<NestedList>
+									<CheckboxList 
+										T=MetadataObjectType
+										Options=@(Enum.GetValues<MetadataObjectType>())
+										OptionLabelFunction=@(t => GetLocalizedDataType(t))
+										OptionSortFunction=@(t => GetLocalizedDataType(t))
+										OnSelectionChanged=@UpdateDataTypeFilter
+										DefaultOptions=@_filteredDataTypes
+										@ref=@_objectTypeFilter 
+									/>
+								</NestedList>
+							</MudListItem>
 
-								<ChildContent>
-									<AeFlex Vertical>
-										<div class="with-bottom-margin">
-											<MultiCheckboxSelect T=ClassificationType
-																 Options=@(Enum.GetValues<ClassificationType>())
-																 OptionLabelFunction=@(t => GetLocalizedClassificationType(t))
-																 OptionSortFunction=@(t => GetLocalizedClassificationType(t))
-																 OnSelectionChanged=@UpdateClassificationTypeFilter
-																 DefaultOptions=@_filteredClassificationTypes
-																 @ref=@_classificationTypeFilter />
-										</div>
-									</AeFlex>
-								</ChildContent>
-							</AeCollapseSection>
-						</AeCollapse>
-
-						<AeCollapse>
-							<AeCollapseSection DefaultOpen=@_filterSectionOpen>
-								<Header>
-									<AeTypography Variant="h4">
-										<span title=@_filterSectionOpenTitle>
-											<MudIcon Icon=@_filterSectionOpenIconClass />
-										</span>
-										<span>@Localizer["DISCOVERY-FILTERS.Data Type"]</span>
-										<MudIcon Icon=@_filterActiveIconClass />
-									</AeTypography>
-								</Header>
-								<ChildContent>
-									<AeFlex Vertical>
-										<div class="with-bottom-margin">
-											<MultiCheckboxSelect T=MetadataObjectType
-																 Options=@(Enum.GetValues<MetadataObjectType>())
-																 OptionLabelFunction=@(t => GetLocalizedDataType(t))
-																 OptionSortFunction=@(t => GetLocalizedDataType(t))
-																 OnSelectionChanged=@UpdateDataTypeFilter
-																 DefaultOptions=@_filteredDataTypes
-																 @ref=@_objectTypeFilter />
-										</div>
-									</AeFlex>
-								</ChildContent>
-							</AeCollapseSection>
-						</AeCollapse>
-
-						<AeCollapse>
-							<AeCollapseSection DefaultOpen=@_sectorFilterSectionOpen>
-								<Header>
-									<AeTypography Variant="h4">
-										<span title=@_filterSectionOpenTitle>
-											<MudIcon Icon=@_filterSectionOpenIconClass />
-										</span>
-										<span>@Localizer["Sectors"]</span>
-										<MudIcon Icon=@_filterActiveIconClass />
-									</AeTypography>
-								</Header>
-
-								<ChildContent>
-									<AeFlex Vertical>
-										<div class="with-bottom-margin">
-											<MultiCheckboxSelect T=OrganizationLevel
-																 Options=@(_allSectors)
-																 OptionLabelFunction=@(t => _isFrench ? t.FrenchLabel : t.EnglishLabel)
-																 OptionSortFunction=@(t => _isFrench ? t.FrenchLabel : t.EnglishLabel)
-																 OnSelectionChanged=@UpdateSectorFilter
-																 DefaultOptions=@_filteredSectors
-																 @ref=@_sectorFilter />
-										</div>
-										<div class="dropdowns">
-											<label>
-												@if (_filteredBranches.Count > 0)
-												{
-													<select class="ae input" @bind=@BranchFilter title=@Localizer["Branch"]>
-														<option value=@NO_FILTER_SELECTED>@Localizer["DISCOVERY-FILTERS.(All Branches)"]</option>
-														@foreach (var branch in _filteredBranches)
-														{
-															<option value=@branch.Id>@GetLabel(branch, _isFrench)</option>
-														}
-													</select>
-												}
-											</label>
-										</div>
-									</AeFlex>
-								</ChildContent>
-							</AeCollapseSection>
-						</AeCollapse>
-
-						<div>
-							<AeButton OnClickEvent=@ClearFilters Disabled=@ClearFilterDisabled>@Localizer["BUTTONS.Clear"]</AeButton>
-						</div>
-					</AeFlex>
-				</div>
-				<div class="cards">
+							@*sectors*@
+							<MudListItem Text=@Localizer["Sectors"] 
+										 @bind-Expanded=@_sectorFilterSectionOpen
+										 Icon=@FilterIconClass>
+								<NestedList>
+									<CheckboxList 
+										T=OrganizationLevel
+										Options=@(_allSectors)
+										OptionLabelFunction=@(t => _isFrench ? t.FrenchLabel : t.EnglishLabel)
+										OptionSortFunction=@(t => _isFrench ? t.FrenchLabel : t.EnglishLabel)
+										OnSelectionChanged=@UpdateSectorFilter
+										DefaultOptions=@_filteredSectors
+										@ref=@_sectorFilter
+									/>
+									@*branches*@
+									@{
+										var filteredBranches = GetFilteredBranches();
+										if (filteredBranches.Count > 0)
+										{
+											<MudListItem>
+												<select class="ae input" @bind=@BranchFilter title=@Localizer["Branch"]>
+													<option value=@NO_FILTER_SELECTED>@Localizer["DISCOVERY-FILTERS.(All Branches)"]</option>
+													@foreach (var branch in filteredBranches)
+													{
+														<option value=@branch.Id>@GetLabel(branch, _isFrench)</option>
+													}
+												</select>
+											</MudListItem>
+										}
+									}
+								</NestedList>
+							</MudListItem>
+						</MudList>
+					</MudStack>
+				</MudItem>
+				@*right side - catalog results*@
+				<MudItem xs="9">
 					<div>
 						@if (_searchResults.Any())
 						{
 							<div class="catalog-cards">
 								<InfiniteScrolling Preloaded=@_searchResults ItemsProvider=@GetMore>
 									<ItemTemplate Context="item">
-										<CatalogCards @key=@item
-												  CatalogResult=@item
-												  Project=@GetProject(item)
-												  MapSector=@GetSector
-												  MapBranch=@GetBranch
-												  OnShowLinks=@HandleShowLinks
-												  ShowLinks>
+										<CatalogCards 
+											@key=@item
+											CatalogResult=@item
+											Project=@GetProject(item)
+											MapSector=@GetSector
+											MapBranch=@GetBranch
+											OnShowLinks=@HandleShowLinks
+											ShowLinks>
 											@GetDownLoadFragment(item)
 										</CatalogCards>
 									</ItemTemplate>
@@ -208,25 +172,24 @@
 								if (HasValidFilters())
 								{
 									<div>
-										No catalog records found, try different keyword and filters.
+										@Localizer["No catalog records found, try different keyword and filters."]
 									</div>
 								}
 								else
 								{
 									<div>
-                                        <DiscoverySearchLanding Sectors=@_allSectors 
-                                                                IsFrench=@_isFrench 
-                                                                OnClickSector=@SelectSector />
+										<DiscoverySearchLanding Sectors=@_allSectors
+													IsFrench=@_isFrench
+													OnClickSector=@SelectSector />
 									</div>
 								}
 							}
 						}
 					</div>
-				</div>
-			</div>
-
-		</ChildContent>
-	</AeCard>
+				</MudItem>
+			</MudGrid>
+		</MudCardContent>
+	</MudCard>
 </div>
 
 @code {
@@ -251,6 +214,12 @@
 
 	[Inject]
 	public IDbContextFactory<DatahubProjectDBContext> DatahubProjectDbFactory { get; set; }
+
+	[Inject]
+	public UIControlsService uiControlService { get; set; }
+
+	[Inject]
+	public IJSRuntime jsRuntime { get; set; }
 
 	[Parameter]
 	[SupplyParameterFromQuery(Name = "excl")]
@@ -284,12 +253,13 @@
 	[SupplyParameterFromQuery(Name = "cls")]
 	public string QueryClassifications { get; set; }
 
+	private MudTextField<string> _searchField;
+
 	private const int NO_FILTER_SELECTED = -1;
 	private const int PAGE_SIZE = 10;
 
 	private bool _searching;
 	private string _searchKeywords;
-	private QueryThrottler<string> _searchThrottler;
 	private List<CatalogObjectResult> _searchResults = new();
 	private bool _isFrench;
 	private CatalogSearchRequest _catalogSearchRequest;
@@ -300,31 +270,27 @@
 	private HashSet<MetadataObjectType> _filteredDataTypes = new();
 	private HashSet<ClassificationType> _filteredClassificationTypes = new();
 
-	private MultiCheckboxSelect<CatalogObjectLanguage> _languageTypeFilter;
-	private MultiCheckboxSelect<OrganizationLevel> _sectorFilter;
-	private MultiCheckboxSelect<MetadataObjectType> _objectTypeFilter;
-	private MultiCheckboxSelect<ClassificationType> _classificationTypeFilter;
+	private bool _filtersActive = false;
+	private string FilterIconClass => $"{(_filtersActive ? "fas" : "fad")} fa-filter";
+	private bool ClearFilterDisabled => !HasValidFilters();
+
+	private bool _excludeIncompleteCatalogs;
+	private CheckboxList<CatalogObjectLanguage> _languageTypeFilter;
+	private CheckboxList<ClassificationType> _classificationTypeFilter;
+	private CheckboxList<MetadataObjectType> _objectTypeFilter;
+	private CheckboxList<OrganizationLevel> _sectorFilter;
 
 	private int _filterSector = NO_FILTER_SELECTED;
 	private int _filterBranch = NO_FILTER_SELECTED;
-	private string _securityFilter = string.Empty;
-	private List<OrganizationLevel> _filteredBranches => _branches.Values.Where(b => b.ParentId == _filterSector).OrderBy(b => GetLabel(b, _isFrench)).ToList();
 
-	private bool _searchFilterSectionOpen = true;
-	private bool _languageFilterSectionOpen = true;
-	private bool _securityFilterSectionOpen = true;
-	private bool _sectorFilterSectionOpen = true;
-	private bool _filterSectionOpen = true;
-	private bool _excludeIncompleteCatalogs;
-	private string _filterSectionOpenIconClass => $"fad fa-caret-circle-{(_filterSectionOpen ? "down" : "right")}";
-	private string _filterSectionOpenTitle => _filterSectionOpen ? Localizer["Collapse"] : Localizer["Expand"];
-	private string _filterActiveIconClass => $"{(_filtersActive ? "fas" : "fad")} fa-filter";
+	private bool _languageFilterSectionOpen = false;
+	private bool _securityFilterSectionOpen = false;
+	private bool _dataTypeFilterSectionOpen = false;
+	private bool _sectorFilterSectionOpen = false;
 
 	private List<OrganizationLevel> _allSectors = new();
 	private Dictionary<int, OrganizationLevel> _sectors = new();
 	private Dictionary<int, OrganizationLevel> _branches = new();
-	private bool _filtersActive = false;
-	private bool ClearFilterDisabled => !HasValidFilters();
 
 	private Dictionary<string, Datahub_Project> _projects = new();
 
@@ -345,8 +311,14 @@
 		ParseDataTypes();
 		ParseSectorAndBranches();
 
-		_searchThrottler = new(TimeSpan.FromSeconds(1), ThrottleSearch);
-		await _searchThrottler.SetQuery(QueryKeywords ?? string.Empty);
+		if (!string.IsNullOrWhiteSpace(QueryKeywords))
+		{
+			_searchKeywords = QueryKeywords;
+			await UpdateFilter();
+		}
+
+		//_searchThrottler = new(TimeSpan.FromSeconds(1), ThrottleSearch);
+		//await _searchThrottler.SetQuery(QueryKeywords ?? string.Empty);
 
 		_filtersActive = HasValidFilters();
 	}
@@ -359,16 +331,19 @@
 	private void ParseLanguages()
 	{
 		_filteredLanguageTypes = new(ParseSet<CatalogObjectLanguage>(QueryLanguages, ',', isByte: false));
+		_languageFilterSectionOpen = _filteredLanguageTypes.Count > 0;
 	}
 
 	private void ParseClassification()
 	{
 		_filteredClassificationTypes = new(ParseSet<ClassificationType>(QueryClassifications, ',', isByte: true));
+		_securityFilterSectionOpen = _filteredClassificationTypes.Count > 0;
 	}
 
 	private void ParseDataTypes()
 	{
 		_filteredDataTypes = new(ParseSet<MetadataObjectType>(QueryTypes, ',', isByte: true));
+		_dataTypeFilterSectionOpen = _filteredDataTypes.Count > 0;
 	}
 
 	private IEnumerable<E> ParseSet<E>(string text, char sep, bool isByte) where E: Enum
@@ -408,6 +383,7 @@
 		_filteredSectors = sectors;
 		_filterSector = int.TryParse(QuerySector, out int sector) ? sector : NO_FILTER_SELECTED;
 		_filterBranch = int.TryParse(QueryBranch, out int branch) ? sector : NO_FILTER_SELECTED;
+		_sectorFilterSectionOpen = sectors.Count > 0;
 	}
 
 	private async Task LoadProjects()
@@ -448,8 +424,9 @@
 
 	private async Task SelectSector(OrganizationLevel sector)
 	{
-		await _sectorFilter.Clear();
-		await _sectorFilter.Select(sector);
+		_filteredSectors.Clear();
+		_filteredSectors.Add(sector);
+		await UpdateFilter();
 	}
 
 	private async Task UpdateDataTypeFilter(IEnumerable<MetadataObjectType> filteredTypes)
@@ -528,56 +505,21 @@
 		_searchKeywords = string.Empty;
 		QueryKeywords = string.Empty;
 
-		if (_languageTypeFilter != null)
-		{
-			await _languageTypeFilter.Clear();
-		}
-
-		if (_objectTypeFilter != null)
-		{
-			await _objectTypeFilter.Clear();
-		}
-
-		if (_sectorFilter != null)
-		{
-			await _sectorFilter.Clear();
-		}
-
-		if (_classificationTypeFilter != null)
-		{
-			await _classificationTypeFilter.Clear();
-		}
+		_filteredLanguageTypes.Clear();
+		_filteredClassificationTypes.Clear();
+		_filteredDataTypes.Clear();
+		_filteredSectors.Clear();
 
 		_filterSector = NO_FILTER_SELECTED;
 		_filterBranch = NO_FILTER_SELECTED;
-		_securityFilter = string.Empty;
+
+		_languageFilterSectionOpen = false;
+		_securityFilterSectionOpen = false;
+		_dataTypeFilterSectionOpen = false;
+		_sectorFilterSectionOpen = false;
 
 		await UpdateFilter();
-	}
-
-	private void OnFilterToggled((AeCollapseSection Section, bool Open) e)
-	{
-		_filterSectionOpen = e.Open;
-	}
-
-	private void OnSearchFilterToggled((AeCollapseSection Section, bool Open) e)
-	{
-		_searchFilterSectionOpen = e.Open;
-	}
-
-	private void OnSecurityFilterToggled((AeCollapseSection Section, bool Open) e)
-	{
-		_securityFilterSectionOpen = e.Open;
-	}
-
-	private void OnSectorFilterToggled((AeCollapseSection Section, bool Open) e)
-	{
-		_sectorFilterSectionOpen = e.Open;
-	}
-
-	private void OnLanguageFilterToggled((AeCollapseSection Section, bool Open) e)
-	{
-		_languageFilterSectionOpen = e.Open;
+		await _searchField.FocusAsync();
 	}
 
     private string GetSector(CatalogObjectResult result, bool french) => GetLabel(_sectors.GetValueOrDefault(result.Sector), french);
@@ -596,8 +538,7 @@
 	private RenderFragment GetUnauthorizedDownload(CatalogObjectResult result)
 	{
 		var label = result.ClassificationType == ClassificationType.ProtectedA ? Localizer["Protected A - Request Access"] : Localizer["Protected B - Request Access"];
-		return @<AeButton class="red" onclick=@(() => HandleDownload(result))>@label</AeButton>
-	;
+		return @<AeButton class="red" onclick=@(() => HandleDownload(result))>@label</AeButton>;
 	}
 
 	private async Task HandleDownload(CatalogObjectResult result)
@@ -671,9 +612,9 @@
 		await Task.Run(() => RedirectAndDownload(result.Location));
 	}
 
-	private async void HandleSearch(string newValue, KeyboardEventArgs ev)
+	private async void HandleSearchIntervalElapsed(string newValue)
 	{
-		await _searchThrottler.SetQuery(newValue);
+		await UpdateFilter();
 	}
 
 	private async Task ThrottleSearch(string searchText)
@@ -816,17 +757,16 @@
 	private async Task ShowGroup(List<CatalogObjectResult> group)
     {
         RenderFragment groupFragment = 
-		@<div class="cards">
-			<div class="catalog-cards">
-				<CatalogCardGroup
-					CatalogResults=@group
-					GetProject=@GetProject
-					MapSector=@GetSector
-					MapBranch=@GetBranch
-					GetDownLoadFragment=@GetDownLoadFragment
-				/>
-			</div>
-		</div>;
+			@<div class="cards">
+				<div class="catalog-cards">
+					<CatalogCardGroup
+						CatalogResults=@group
+						GetProject=@GetProject
+						MapSector=@GetSector
+						MapBranch=@GetBranch
+						GetDownLoadFragment=@GetDownLoadFragment />
+				</div>
+			</div>;
 		await uiControlService.ToggleModal(@<RenderFragmentModal Fragment=@groupFragment />);
 	}
 
@@ -841,5 +781,19 @@
 
 			await ShowGroup(group);
 		}
+	}
+
+	private async Task HandleHideIncompledChanged(bool value)
+	{
+		_excludeIncompleteCatalogs = value;
+		await UpdateFilter();
+	}
+
+	private List<OrganizationLevel> GetFilteredBranches()
+	{
+		return _branches.Values
+			.Where(b => b.ParentId == _filterSector)
+			.OrderBy(b => GetLabel(b, _isFrench))
+			.ToList();
 	}
 }
