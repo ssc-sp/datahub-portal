@@ -74,12 +74,19 @@ namespace Datahub.Core.Services
 
 					fieldValues.SetValue("sector", $"{sector?.Id ?? 0}");
 					fieldValues.SetValue("collection", "primary");
-					fieldValues.SetValue("title_translated_en", entry.name_en);
-					fieldValues.SetValue("title_translated_fr", entry.name_fr);
-					fieldValues.SetValue("contact_information", graphUser?.Mail ?? entry.contact);
+
+					fieldValues.SetValue("title_translated_en", entry.name_en ?? string.Empty);
+					fieldValues.SetValue("title_translated_fr", entry.name_fr ?? string.Empty);
+
+                    fieldValues.SetValue("notes_translated_en", entry.desc_en ?? string.Empty);
+                    fieldValues.SetValue("notes_translated_fr", entry.desc_fr ?? string.Empty);
+
+                    fieldValues.SetValue("contact_information", graphUser?.Mail ?? entry.contact);
 					fieldValues.SetValue("subject", subjectValues);
+
 					fieldValues.SetValue("keywords_en", String.Join(",", entry.keywords_en));
 					fieldValues.SetValue("keywords_fr", String.Join(",", entry.keywords_fr));
+
 					await _metadataBrokerService.SaveMetadata(fieldValues, true);
 
 					var catalogObj = new CatalogObject()

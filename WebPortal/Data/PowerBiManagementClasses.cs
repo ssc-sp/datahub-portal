@@ -183,6 +183,9 @@ namespace Datahub.Portal.Data
         public Guid AnyWorkspaceId => _pbiWorkspaceId ??_dbWorkspaceId ?? Guid.Empty;
         public PowerBi_ReportDefinition Definition => new(_reportId, _pbiReportName ?? _dbReportName, AnyWorkspaceId);
         public PowerBiAdminTreeItem ManagementTreeItem => new(DbReportName, PowerBiAdminTreeItemType.Report, ReportId, _projectId);
+
+        public bool InCatalog { get; set; }
+        public List<PowerBi_Report> SiblingReports { get; set; } = new();
     }
 
     public class PowerBiAdminWorkspaceTreeItem

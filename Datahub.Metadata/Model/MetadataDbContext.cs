@@ -210,6 +210,8 @@ namespace Datahub.Metadata.Model
 
                 entity.Property(e => e.Name_TXT).IsRequired();
                 entity.Property(e => e.SecurityClass_TXT).HasDefaultValue("Unclassified").IsRequired();
+
+                entity.HasIndex(e => e.GroupId);
             });
         }
     }

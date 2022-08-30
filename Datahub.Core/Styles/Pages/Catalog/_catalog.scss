@@ -130,6 +130,16 @@
                 flex-wrap: nowrap;
                 font-size: 1rem;
             }
+
+            .language {
+                display: flex;
+                justify-content: flex-end;
+                flex-direction: row;
+                flex-wrap: nowrap;
+                font-size: 1rem;
+                margin-bottom: 1rem;
+            }
+
         }
     }
 }

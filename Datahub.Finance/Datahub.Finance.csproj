@@ -24,11 +24,18 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<PackageReference Include="Ae.MudBlazor.Forms" Version="0.5.22223.6-beta" />
 		<PackageReference Include="AElemental.Blazor" Version="1.6.22173.2" />
+		<PackageReference Include="MudBlazor" Version="6.0.14" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\Datahub.Core\Datahub.Core.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Components\" />
+	  <Folder Include="Migrations\" />
 	</ItemGroup>
 
 </Project>

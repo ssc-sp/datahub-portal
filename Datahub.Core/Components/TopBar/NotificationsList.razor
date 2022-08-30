@@ -1,0 +1,159 @@
+@inject TimeZoneService _timezoneService
+@inject ISystemNotificationService _systemNotificationService
+@inject NavigationManager _navigationManager
+@inject IUserInformationService _userInformationService
+
+@implements IDisposable
+
+@using Datahub.Core.EFCore
+@using System.Globalization
+@using Datahub.Core.Data
+@using MudBlazor.Utilities
+
+<span>
+    @if (_unreadNotificationCount > 0)
+    {
+        <MudBadge Dot Color="Color.Primary" Overlap>
+            <MudToggleIconButton
+                ToggledIcon="@Icons.Filled.Notifications"
+                ToggledChanged="@ToggleNotifications"
+                Toggled="_showNotifications"
+                Icon="@Icons.Outlined.Notifications"/>
+        </MudBadge>
+    }
+    else
+    {
+        <MudToggleIconButton
+            ToggledIcon="@Icons.Filled.Notifications"
+            ToggledChanged="@ToggleNotifications"
+            Toggled="_showNotifications"
+            Icon="@Icons.Outlined.Notifications"/>
+    }
+
+    <MudPopover
+        Style="@_style"
+        Class="pa-8"
+        Open="@_showNotifications"
+        AnchorOrigin="Origin.BottomRight"
+        TransformOrigin="Origin.TopRight">
+
+
+        @if (_notifications == null || _isLoading)
+        {
+            @for (var i = 0; i < 3; i++)
+            {
+                <MudSkeleton/>
+                <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="300px" Height="110px"/>
+            }
+        }
+        else
+        {
+            <MudExpansionPanels Elevation="0" Style="@_notificationsStyle">
+                @foreach (var notification in _notifications)
+                {
+                    var time = GetLocalTime(notification).Result;
+                    <MudExpansionPanel Text="@time" Style="@BuildNotificationStyle(notification)">
+                        <MudCard Outlined>
+                            <MudCardContent>
+                                <MudText>
+                                    @(_userLanguageIsFrench ? notification.NotificationTextFr_TXT : notification.NotificationTextEn_TXT)
+                                </MudText>
+                            </MudCardContent>
+
+                            @if (!string.IsNullOrEmpty(notification.ActionLink_URL))
+                            {
+                                <MudCardActions>
+                                    <MudStack Row Justify="Justify.SpaceBetween">
+                                        <MudButton
+                                            OnClick="@(async () => await GoToActionLink(notification))"
+                                            EndIcon="@Icons.Filled.Send"
+                                            Variant="Variant.Filled"
+                                            Color="Color.Primary">
+                                            @Localizer[notification.ActionLink_Key ?? $"{LocalizationPrefix}.DefaultActionLinkText"]
+                                        </MudButton>
+                                        <MudButton
+                                            OnClick="@(async () => await ToggleUnread(notification))"
+                                            Variant="Variant.Text">
+                                            @(notification.Read_FLAG ? @Localizer[$"{LocalizationPrefix}.MarkUnread"] : @Localizer[$"{LocalizationPrefix}.MarkRead"])
+                                        </MudButton>
+                                    </MudStack>
+                                </MudCardActions>
+                            }
+                        </MudCard>
+                    </MudExpansionPanel>
+                }
+            </MudExpansionPanels>
+        }
+        <MudStack Row>
+            <MudCheckBox Checked=@_unreadOnly CheckedChanged=@ToggleUnreadOnly T="bool" Label=@Localizer[$"{LocalizationPrefix}.ShowUnreadOnly"] />
+            <MudPagination
+                Color="Color.Primary"
+                Count="_totalNotificationCount"
+                Selected="@_currentPage"
+                SelectedChanged="PageChanged"/>
+        </MudStack>
+        
+    </MudPopover>
+</span>
+
+
+@code {
+    private string _currentUserId;
+
+    private static readonly string LocalizationPrefix = "SYSTEM-NOTIFICATION";
+    private List<SystemNotification> _notifications;
+    private bool _isLoading = true;
+
+    private int _unreadNotificationCount;
+    private int _totalNotificationCount;
+    private bool _unreadOnly = true;
+
+
+    private bool _userLanguageIsFrench => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName.ToLowerInvariant() == "fr";
+
+    private int _currentPage = 1;
+
+    private string _style;
+    private string _notificationsStyle;
+    private bool _showNotifications;
+    private void ToggleNotifications() => _showNotifications = !_showNotifications;
+    private int _notificationBadge;
+    private bool _showNotificationBadge => _unreadNotificationCount > 0;
+    private string _notificationIcon => _showNotificationBadge ? Icons.Filled.Notifications : Icons.Outlined.Notifications;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        _style = new StyleBuilder()
+            .AddStyle("width", "550px")
+            .Build();
+
+        _notificationsStyle = new StyleBuilder()
+            .AddStyle("max-height", "400px")
+            .AddStyle("overflow-y", "auto")
+            .Build();
+
+
+        _currentUserId = await _userInformationService.GetUserIdString();
+        _notificationBadge = await _systemNotificationService.GetNotificationCountForUser(_currentUserId, true);
+
+
+        // prepare the timezone service so timestamps get rendered properly right away
+        await _timezoneService.GetLocalDateTime(DateTime.UtcNow);
+        _systemNotificationService.Notify += OnNotify;
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await base.OnParametersSetAsync();
+
+        await RefreshNotifications();
+    }
+
+    public void Dispose()
+    {
+        _systemNotificationService.Notify -= OnNotify;
+    }
+
+}

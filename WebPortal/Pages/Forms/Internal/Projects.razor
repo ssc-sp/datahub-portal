@@ -327,6 +327,10 @@
     private void SetFormEdit(Datahub_Project project)
     {
         _project = project;
+
+        _sectorId = GetChoiceId(_sectors, _project.Sector_Name);
+        _branchId = GetChoiceId(_branches, _project.Branch_Name, _sectorId);
+        _divisionId = GetChoiceId(_divisions, _project.Division_Name, _branchId);
         //Context.Entry(_project).Reload();
         _comment = null;
         SubmitLabel = "Save Changes";
