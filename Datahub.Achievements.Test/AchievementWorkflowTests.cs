@@ -1,4 +1,6 @@
 using Blazored.LocalStorage;
+using Datahub.Achievements.Models;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -10,18 +12,14 @@ public class AchievementWorkflowTests
 {
     private static readonly string AchievementDirectoryPath =
         Path.Join(Directory.GetCurrentDirectory(), "../../../Achievements");
-    
-    private static readonly IOptions<AchievementServiceOptions> Options = 
+
+    private static readonly IOptions<AchievementServiceOptions> Options =
         new OptionsWrapper<AchievementServiceOptions>(new AchievementServiceOptions
         {
-            AchievementDirectoryPath = AchievementDirectoryPath
+            AchievementDirectoryPath = AchievementDirectoryPath,
+            LocalAchievementsOnly = true,
+            Enabled = true
         });
-
-
-    [SetUp]
-    public void Setup()
-    {
-    }
 
     [Test]
     public void SanityCheck()
@@ -32,24 +30,44 @@ public class AchievementWorkflowTests
     [Test]
     public async Task CanRunRulesEngineWithAchievementWorkflow()
     {
+        var userId = Guid.NewGuid().ToString();
+
         var mockLogger = new Mock<ILogger<AchievementService>>();
         var mockStorage = new Mock<ILocalStorageService>();
-        var achievementService = new AchievementService(mockLogger.Object, mockStorage.Object, Options);
+        var mockCosmosDb = new Mock<IDbContextFactory<AchievementContext>>();
+        var achievementService =
+            new AchievementService(mockLogger.Object, mockCosmosDb.Object, mockStorage.Object, Options);
+        await achievementService.InitializeAchievementServiceForUser(userId);
 
-        var input = new DatahubUserTelemetry();
+        mockStorage.Setup(s => s.GetItemAsync<UserObject>(It.IsAny<string>(), null))
+            .ReturnsAsync(new UserObject
+            {
+                UserId = userId,
+                Telemetry = new DatahubUserTelemetry()
+            });
 
-        var result = await achievementService.RunRulesEngine(input);
+        var result = await achievementService.RunRulesEngine();
         Assert.That(result, Is.TypeOf(typeof(List<RuleResultTree>)));
     }
 
     [Test]
     public async Task TriggersAchievementEvent()
     {
+        var userId = Guid.NewGuid().ToString();
+
         var mockLogger = new Mock<ILogger<AchievementService>>();
         var mockStorage = new Mock<ILocalStorageService>();
-        var achievementService = new AchievementService(mockLogger.Object, mockStorage.Object, Options);
+        var mockCosmosDb = new Mock<IDbContextFactory<AchievementContext>>();
+        var achievementService =
+            new AchievementService(mockLogger.Object, mockCosmosDb.Object, mockStorage.Object, Options);
+        await achievementService.InitializeAchievementServiceForUser(userId);
 
-        var userId = Guid.NewGuid().ToString();
+        mockStorage.Setup(s => s.GetItemAsync<UserObject>(It.IsAny<string>(), null))
+            .ReturnsAsync(new UserObject
+            {
+                UserId = userId,
+                Telemetry = new DatahubUserTelemetry()
+            });
 
         achievementService.AchievementEarned += (_, e) =>
         {
@@ -65,7 +83,7 @@ public class AchievementWorkflowTests
             UserId = userId,
         };
 
-        var result = await achievementService.RunRulesEngine(input);
+        var result = await achievementService.RunRulesEngine();
         Assert.That(result, Is.TypeOf(typeof(List<RuleResultTree>)));
     }
 }

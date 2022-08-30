@@ -1,16 +1,19 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using RulesEngine.Models;
 
-namespace Datahub.Achievements;
+namespace Datahub.Achievements.Models;
 
-public class Achievement
+public record Achievement
 {
+    [Key]
     public string? Code { get; set; }
     public string? Name { get; set; }
     public string? Description { get; set; }
     public string? Icon { get; set; }
     public List<string>? RuleExpressions { get; init; }
 
+    [NotMapped]
     public List<Rule> Rules
     {
         get

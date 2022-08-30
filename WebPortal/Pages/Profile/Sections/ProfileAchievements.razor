@@ -1,3 +1,4 @@
+@using Datahub.Achievements.Models
 @inject AchievementService _achievementService;
 
 <MudStack>
@@ -19,8 +20,9 @@
                             <MudIconButton Color="@(userAchievement.Earned ? Color.Secondary : Color.Default)" Icon="@userAchievement!.Achievement!.Icon" aria-label="@userAchievement!.Achievement!.Name"/>
                         </ChildContent>
                         <TooltipContent>
-                            <MudStack AlignItems="AlignItems.Center" Class="pa-2" Spacing="1">
-                                <MudText Style="text-transform: uppercase" Typo="Typo.overline">@userAchievement!.Achievement!.Name</MudText>
+                            <MudStack AlignItems="AlignItems.Center" Class="pa-2" Spacing="0">
+                                <MudText Style="text-transform: uppercase" Typo="Typo.h6">@userAchievement!.Achievement!.Name</MudText>
+                                <MudText Typo="Typo.caption">@userAchievement!.Date?.ToString("dd-MMM-yyyy")</MudText>
                                 <MudText Typo="Typo.body2">@userAchievement!.Achievement!.Description</MudText>
                             </MudStack>
                         </TooltipContent>

@@ -1,4 +1,6 @@
 using Blazored.LocalStorage;
+using Datahub.Achievements.Models;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -10,14 +12,16 @@ public class AchievementValidationTests
 {
     private static readonly string AchievementDirectoryPath =
         Path.Join(Directory.GetCurrentDirectory(), "../../../../Datahub.Achievements/Achievements");
+
     private static readonly string UserId = Guid.NewGuid().ToString();
-    
-    private static readonly IOptions<AchievementServiceOptions> Options = 
+
+    private static readonly IOptions<AchievementServiceOptions> Options =
         new OptionsWrapper<AchievementServiceOptions>(new AchievementServiceOptions
-    {
-        AchievementDirectoryPath = AchievementDirectoryPath,
-        Enabled = true
-    });
+        {
+            AchievementDirectoryPath = AchievementDirectoryPath,
+            Enabled = true,
+            LocalAchievementsOnly = true
+        });
 
 
     private const string STORAGE_EXPLORER_URL = "/projects/ABC/filelist";
@@ -25,37 +29,80 @@ public class AchievementValidationTests
     private const string PROFILE_URL = "/profile";
     private const string RESOURCES_URL = "/resources";
 
-    private static readonly Dictionary<string, (DatahubUserTelemetry, DatahubUserTelemetry)> ParameterizedUserTelemetryDictionary = new()
-    {
-        // Code, Earned, Not Earned
-        { "PRJ-001", (new DatahubUserTelemetry() { UserId = UserId, NumberOfUsersInvited = 1}, new DatahubUserTelemetry() { UserId = UserId, NumberOfUsersInvited = 0}) },
-        
-        { "EXP-001", (new DatahubUserTelemetry() { UserId = UserId, NumberOfLogins = 1}, new DatahubUserTelemetry() { UserId = UserId, NumberOfLogins = 0}) },
-        { "EXP-002", 
-            (
-                new DatahubUserTelemetry { UserId = UserId, VisitedUrls = new Dictionary<string, int> { {STORAGE_EXPLORER_URL, 1}}},
-                new DatahubUserTelemetry { UserId = UserId, VisitedUrls = new Dictionary<string, int> { {STORAGE_EXPLORER_URL, 0}}}
-            )
-        },
-        { "EXP-003", 
-            (
-                new DatahubUserTelemetry { UserId = UserId, VisitedUrls = new Dictionary<string, int> { {DATABRICKS_URL, 1}}},
-                new DatahubUserTelemetry { UserId = UserId, VisitedUrls = new Dictionary<string, int> { {DATABRICKS_URL, 0}}}
-            )
-        },
-        { "EXP-004", 
-            (
-                new DatahubUserTelemetry { UserId = UserId, VisitedUrls = new Dictionary<string, int> { {RESOURCES_URL, 1}}},
-                new DatahubUserTelemetry { UserId = UserId, VisitedUrls = new Dictionary<string, int> { {RESOURCES_URL, 0}}}
-            )
-        },
-        { "EXP-006", 
-            (
-                new DatahubUserTelemetry { UserId = UserId, VisitedUrls = new Dictionary<string, int> { {PROFILE_URL, 1}}},
-                new DatahubUserTelemetry { UserId = UserId, VisitedUrls = new Dictionary<string, int> { {PROFILE_URL, 0}}}
-            )
-        },
-    };
+    private static readonly Dictionary<string, (DatahubUserTelemetry, DatahubUserTelemetry)>
+        ParameterizedUserTelemetryDictionary = new()
+        {
+            // Code, Earned, Not Earned
+            {
+                "PRJ-001", (
+                    new DatahubUserTelemetry
+                    {
+                        UserId = UserId,
+                        EventMetrics = new Dictionary<string, int>
+                            { { DatahubUserTelemetry.TelemetryEvents.UserSentInvite, 1 } }
+                    },
+                    new DatahubUserTelemetry
+                    {
+                        UserId = UserId,
+                        EventMetrics = new Dictionary<string, int>
+                            { { DatahubUserTelemetry.TelemetryEvents.UserSentInvite, 0 } }
+                    }
+                )
+            },
+
+            {
+                "EXP-001", (
+                    new DatahubUserTelemetry
+                    {
+                        UserId = UserId,
+                        EventMetrics = new Dictionary<string, int>
+                            { { DatahubUserTelemetry.TelemetryEvents.UserLogin, 1 } }
+                    },
+                    new DatahubUserTelemetry
+                    {
+                        UserId = UserId,
+                        EventMetrics = new Dictionary<string, int>
+                            { { DatahubUserTelemetry.TelemetryEvents.UserLogin, 0 } }
+                    }
+                )
+            },
+            {
+                "EXP-002",
+                (
+                    new DatahubUserTelemetry
+                        { UserId = UserId, EventMetrics = new Dictionary<string, int> { { STORAGE_EXPLORER_URL, 1 } } },
+                    new DatahubUserTelemetry
+                        { UserId = UserId, EventMetrics = new Dictionary<string, int> { { STORAGE_EXPLORER_URL, 0 } } }
+                )
+            },
+            {
+                "EXP-003",
+                (
+                    new DatahubUserTelemetry
+                        { UserId = UserId, EventMetrics = new Dictionary<string, int> { { DATABRICKS_URL, 1 } } },
+                    new DatahubUserTelemetry
+                        { UserId = UserId, EventMetrics = new Dictionary<string, int> { { DATABRICKS_URL, 0 } } }
+                )
+            },
+            {
+                "EXP-004",
+                (
+                    new DatahubUserTelemetry
+                        { UserId = UserId, EventMetrics = new Dictionary<string, int> { { RESOURCES_URL, 1 } } },
+                    new DatahubUserTelemetry
+                        { UserId = UserId, EventMetrics = new Dictionary<string, int> { { RESOURCES_URL, 0 } } }
+                )
+            },
+            {
+                "EXP-006",
+                (
+                    new DatahubUserTelemetry
+                        { UserId = UserId, EventMetrics = new Dictionary<string, int> { { PROFILE_URL, 1 } } },
+                    new DatahubUserTelemetry
+                        { UserId = UserId, EventMetrics = new Dictionary<string, int> { { PROFILE_URL, 0 } } }
+                )
+            },
+        };
 
     private static IEnumerable<object[]> EarnedAchievementParams()
     {
@@ -69,7 +116,7 @@ public class AchievementValidationTests
             ParameterizedUserTelemetryDictionary[kvp.Key].Item1,
         });
     }
-    
+
     private static IEnumerable<object[]> NotEarnedAchievementParams()
     {
         var achievementFactory =
@@ -90,9 +137,19 @@ public class AchievementValidationTests
     {
         var mockLogger = new Mock<ILogger<AchievementService>>();
         var mockStorage = new Mock<ILocalStorageService>();
-        var achievementService = new AchievementService(mockLogger.Object, mockStorage.Object, Options);
+        mockStorage.Setup(s => s.GetItemAsync<UserObject>(It.IsAny<string>(), null))
+            .ReturnsAsync(new UserObject
+            {
+                UserId = UserId,
+                Telemetry = userTelemetry,
+            });
+
+        var mockCosmosDb = new Mock<IDbContextFactory<AchievementContext>>();
+        var achievementService =
+            new AchievementService(mockLogger.Object, mockCosmosDb.Object, mockStorage.Object, Options);
+        await achievementService.InitializeAchievementServiceForUser(UserId);
         var passed = false;
-        
+
         achievementService!.AchievementEarned += (_, e) =>
         {
             Assert.Multiple(() =>
@@ -104,21 +161,32 @@ public class AchievementValidationTests
             if (e.Achievement?.Code != code) return;
             passed = true;
         };
-        
-        await achievementService!.RunRulesEngine(userTelemetry);
+
+        await achievementService.RunRulesEngine();
         Assert.That(passed, Is.True);
     }
-    
+
     [Test]
     [TestCaseSource(nameof(NotEarnedAchievementParams))]
     [Parallelizable(ParallelScope.All)]
-    public async Task NotEarnedIfConditionsNotMet(string code, Achievement achievement, DatahubUserTelemetry userTelemetry)
+    public async Task NotEarnedIfConditionsNotMet(string code, Achievement achievement,
+        DatahubUserTelemetry userTelemetry)
     {
         var mockLogger = new Mock<ILogger<AchievementService>>();
         var mockStorage = new Mock<ILocalStorageService>();
-        
-        var achievementService = new AchievementService(mockLogger.Object, mockStorage.Object, Options);
-        
+        var mockCosmosDb = new Mock<IDbContextFactory<AchievementContext>>();
+        var achievementService =
+            new AchievementService(mockLogger.Object, mockCosmosDb.Object, mockStorage.Object, Options);
+        await achievementService.InitializeAchievementServiceForUser(UserId);
+
+        mockStorage.Setup(s => s.GetItemAsync<UserObject>(It.IsAny<string>(), null))
+            .ReturnsAsync(new UserObject
+            {
+                UserId = UserId,
+                Telemetry = new DatahubUserTelemetry()
+            });
+
+
         achievementService!.AchievementEarned += (_, e) =>
         {
             Assert.Multiple(() =>
@@ -128,12 +196,10 @@ public class AchievementValidationTests
             });
 
             if (e.Achievement?.Code != code) return;
-            
+
             Assert.Fail();
         };
-        
-        
 
-        await achievementService!.RunRulesEngine(userTelemetry);
+        await achievementService!.RunRulesEngine();
     }
 }
