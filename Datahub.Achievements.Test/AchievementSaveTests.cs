@@ -14,7 +14,7 @@ public class AchievementFetchTests
 
     private static readonly string UserId = Guid.NewGuid().ToString();
 
-    private static readonly IOptions<AchievementServiceOptions> Options =
+    private static readonly IOptions<AchievementServiceOptions> LocalOptions =
         new OptionsWrapper<AchievementServiceOptions>(new AchievementServiceOptions
         {
             AchievementDirectoryPath = AchievementDirectoryPath,
@@ -84,7 +84,7 @@ public class AchievementFetchTests
             .ReturnsAsync(_userObject);
 
         var achievementService =
-            new AchievementService(mockLogger.Object, mockCosmosDb.Object, mockStorage.Object, Options);
+            new AchievementService(mockLogger.Object, mockCosmosDb.Object, mockStorage.Object, LocalOptions);
 
         await achievementService.InitializeAchievementServiceForUser(UserId);
 
@@ -105,7 +105,7 @@ public class AchievementFetchTests
             .ReturnsAsync(_userObject);
 
         var achievementService =
-            new AchievementService(mockLogger.Object, mockCosmosDb.Object, mockStorage.Object, Options);
+            new AchievementService(mockLogger.Object, mockCosmosDb.Object, mockStorage.Object, LocalOptions);
         await achievementService.InitializeAchievementServiceForUser(UserId);
 
         var result = await achievementService.GetUserAchievements();

@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Datahub.Achievements.Models;
 using RulesEngine.Models;
 
 namespace Datahub.Achievements;
@@ -40,14 +41,13 @@ public class AchievementFactory
     }
     private AchievementFactory() { }
     
-    public Workflow CreateWorkflow()
+    public static Workflow CreateWorkflow(IEnumerable<Achievement> achievements)
     {
-
         var rules = new List<Rule>();
-        if (Achievements == null)
+        if (achievements == null)
             throw new Exception("No achievements found");
 
-        foreach (var (code, achievement) in Achievements)
+        foreach (var achievement in achievements)
         {
             achievement.Rules.ForEach(rules.Add);
         }

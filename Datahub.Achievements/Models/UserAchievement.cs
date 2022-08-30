@@ -1,10 +1,7 @@
-using System.ComponentModel.DataAnnotations;
+namespace Datahub.Achievements.Models;
 
-namespace Datahub.Achievements;
-
-public class UserAchievement
+public record UserAchievement
 {
-    
     public string? UserId { get; set; }
     
     public DateTime? Date { get; set; }
