@@ -6,7 +6,7 @@
 @inject ServiceAuthManager ServiceAuthManager
 @inject IUserInformationService UserInformationService
 @inject IDialogService DialogService
-@page "/finance/forecasts/{fundcenterId}"
+@page "/finance/summaryforecasts/{fundcenterId}"
 @using System.Linq.Expressions
 @using MudBlazor
 
@@ -32,30 +32,30 @@
     </MudCardContent>
 </MudCard>
 
-<Datahub.Core.Components.MudFormTemplate T="Forecast"
+<Datahub.Core.Components.MudFormTemplate T="SummaryForecast"
                                          U="FinanceDBContext"
         Metadata="@_formMetadata" 
         HandleSubmit="HandleValidSubmit"
         OnConfigureForms="OnConfigure"
         OnChangeForms="OnChange"
         CreateNewRecord="CreateNewProject"
-        SelectedRecord="@_forecast"
+        SelectedRecord="@_summaryForecast"
         SetFormEditRecord="SetFormEdit"    
         HandleFilterChange="HandleFilterChange"
         SortAccessors="@_sortAccessors"
         Context=@Context
-        @key="@_formMetadata"/>
+        @key=_formMetadata/>
 
 
 <MudCard>
     <MudCardContent>
         <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => NavigationManager.NavigateTo("finance/fundcenters"))">Fund Centers</MudButton>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => NavigationManager.NavigateTo($"finance/summaryforecasts/{_fundCenters[0].FundCenter_ID}"))">Summary Forecasts</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => NavigationManager.NavigateTo($"finance/forecasts/{_fundCenters[0].FundCenter_ID}"))">Forecasts</MudButton>
     </MudCardContent>
 </MudCard>
 
 
-@code {
+    @code {
 
     [Parameter]
     public string fundcenterId { get; set; }
@@ -66,14 +66,15 @@
     private Microsoft.Graph.User _user = null!;
     private bool _isUserAdmin;
     private bool _isLoading = true;
+    private bool _isNew;
     private string _searchFilter = string.Empty;
     private int _lastClicked = 0;
 
     private List<FundCenter> _fundCenters;
-    private List<Forecast> _forecasts;
-    private Forecast _forecast;
-    private Dictionary<string, Func<Forecast, string>> _sortAccessors = new();
-    private FormMetadata<Forecast> _formMetadata = new();
+    private List<SummaryForecast> _summaryForecasts;
+    private SummaryForecast _summaryForecast;
+    private Dictionary<string, Func<SummaryForecast, string>> _sortAccessors = new();
+    private FormMetadata<SummaryForecast> _formMetadata = new();
 
 
     private void OnPageClick(int pageIndex)
@@ -96,7 +97,7 @@
     private void LoadData(string searchfilter)
     {
         _fundCenters = Context.FundCenters.Include(f => f.Sector).Include(f => f.Branch).Include(f => f.Division).Where(f => f.FundCenter_ID.ToString() == fundcenterId).ToList();
-        _forecasts = Context.Forecasts.Where(f => f.FundCenter == _fundCenters[0]).ToList();
+        _summaryForecasts = Context.SummaryForecasts.Where(f => f.FundCenter == _fundCenters[0]).ToList();
         //var fundcenters = _forecasts;
         //if (!string.IsNullOrWhiteSpace(searchfilter))
         //{
@@ -114,26 +115,28 @@
         //    }).ToList();
         //}
         _formMetadata.Header = string.Empty;
-        _formMetadata.SubHeader = "Salary Forecasts";
-        _formMetadata.DataSet = _forecasts; //change when filters added
+        _formMetadata.SubHeader = "Summary Forecasts";
+        _formMetadata.DataSet = _summaryForecasts; //change when filters added
         _formMetadata.AccessorFunctions = accessorFunctions;
         _formMetadata.Headers = headers;
-        _formMetadata.NavigateUrls = new List<Func<Forecast, (string, string)>>();
+        _formMetadata.NavigateUrls = new List<Func<SummaryForecast, (string, string)>>();
         _formMetadata.IsSubmitEnabled = true;
     }
 
-    private List<Func<Forecast, string>> accessorFunctions = new List<Func<Forecast, string>>
+    private List<Func<SummaryForecast, string>> accessorFunctions = new List<Func<SummaryForecast, string>>
     {
-        new Func<Forecast, string>(p => { return p.Employee_Planned_Staffing ?? ""; }),
-        new Func<Forecast, string>(p => { return p.Employee_Last_Name ?? ""; }),
-        new Func<Forecast, string>(p => { return p.Employee_First_Name ?? ""; }),
-        new Func<Forecast, string>(p => { return p.Is_Indeterminate ? "True" : "False"; }),
-        new Func<Forecast, string>(p => { return p.Classification; }),
-        new Func<Forecast, string>(p => { return p.Fund; }),
-        new Func<Forecast, string>(p => { return p.Start_Date.ToShortDateString(); }),
-        new Func<Forecast, string>(p => { return p.End_Date.ToShortDateString(); }),
-        new Func<Forecast, string>(p => { return p.FTE.Value.ToString("C"); }),
-        new Func<Forecast, string>(p => { return p.Salary.Value.ToString("C"); }),
+        new Func<SummaryForecast, string>(p => { return p.Fund ?? ""; }),
+        new Func<SummaryForecast, string>(p => { return p.Key_Activity ?? ""; }),
+        new Func<SummaryForecast, string>(p => { return p.Key_Driver ?? ""; }),
+        new Func<SummaryForecast, string>(p => { return p.Budget == null ? "$0.00" : p.Budget.Value.ToString("C"); }),
+        new Func<SummaryForecast, string>(p => { return p.SFT_Forecast == null ? "$0.00" : p.SFT_Forecast.Value.ToString("C"); }),
+        new Func<SummaryForecast, string>(p => { return p.THC == null ? "$0.00" : p.THC.Value.ToString("C"); }),
+        new Func<SummaryForecast, string>(p => { return p.Other_OnM == null ? "$0.00" : p.Other_OnM.Value.ToString("C"); }),
+        new Func<SummaryForecast, string>(p => { return p.Personel == null ? "$0.00" : p.Personel.Value.ToString("C"); }),
+        new Func<SummaryForecast, string>(p => { return p.Non_Personel == null ? "$0.00" : p.Non_Personel.Value.ToString("C"); }),
+        new Func<SummaryForecast, string>(p => { return p.Grants == null ? "$0.00" : p.Grants.Value.ToString("C"); }),
+        new Func<SummaryForecast, string>(p => { return p.Contribution == null ? "$0.00" : p.Contribution.Value.ToString("C"); }),
+        new Func<SummaryForecast, string>(p => { return p.Total_Forecast == null ? "$0.00" : p.Total_Forecast.Value.ToString("C"); }),
     };
 
     private void LoadSortExpressions()
@@ -145,77 +148,73 @@
 
     private List<string> headers = new List<string>
     {
-        "Planned Staffing", "Last Name", "First Name", "Indeterminate", "Classification", "Fund", "Start Date", "End Date", "FTE", "Salary"
+        "Fund", 
+        "Key Activity", 
+        "Key Driver", 
+        "Budget", 
+        "SFT", 
+        "THC", 
+        "Other O&M", 
+        "Personel", 
+        "Non Personel", 
+        "Grants",
+        "Contribution",
+        "Total Forecast"
     };
 
-    private void SetFormEdit(Forecast project)
+    private void SetFormEdit(SummaryForecast project)
     {
-        _forecast = project;
+        _summaryForecast = project;
+        _isNew = false;
         StateHasChanged();
     }
 
     private void CreateNewProject()
     {        
-        _forecast = new Forecast() { Last_Updated_DT = DateTime.Now, Created_DT = DateTime.Now, Created_UserId = _user.Mail, FundCenter = _fundCenters[0], Start_Date = DateTime.Now, End_Date = DateTime.Now };
+        _summaryForecast = new SummaryForecast() { Last_Updated_DT = DateTime.Now, Created_DT = DateTime.Now, Created_UserId = _user.Mail, FundCenter = _fundCenters[0] };
+        _isNew = true;
         StateHasChanged();
     }
 
     private async Task HandleValidSubmit()
     {
 
-        if (_forecast != null && IsValidSubmission())
+        if (_summaryForecast != null && IsValidSubmission())
         {
-            if (_forecast.Forecast_ID == 0)
+            if (_summaryForecast.Forecast_ID == 0)
             {
-                _forecast = Context.Forecasts.Add(_forecast).Entity;
+                _summaryForecast = Context.SummaryForecasts.Add(_summaryForecast).Entity;
             }
-            _forecast.Last_Updated_DT = DateTime.Now;
+            _summaryForecast.Last_Updated_DT = DateTime.Now;
             await Context.SaveChangesAsync();
-            await UpdateSummaryForecasts();
             LoadData(_searchFilter); ;
-            _forecast = null;
+            _summaryForecast = null;
+            _isNew = false;
         }
-
+        else
+        {
+            bool? result = await DialogService.ShowMessageBox(
+                "Warning",
+                "This Fund already exists, please update the existing record",
+                yesText: "Ok");
+        }
 
         StateHasChanged();
     }
 
     private bool IsValidSubmission()
     {
-        return true;
+        var doesFundExist = Context.SummaryForecasts.Any(sf => sf.Fund == _summaryForecast.Fund && sf.FundCenter.FundCenter_ID.ToString() == fundcenterId);
+        return !_isNew || !doesFundExist;
+    
     }
 
-    private async Task UpdateSummaryForecasts()
-    {
-        var sum = Context.Forecasts.Where(f => f.FundCenter == _fundCenters[0]).Select(t => t.Salary ?? 0).Sum();
-        var fund = Context.SummaryForecasts.Where(f => f.Fund == _forecast.Fund && f.FundCenter == _forecast.FundCenter).FirstOrDefault();
-        var attritionRate = Context.FundCenters.Where(f => f.FundCenter_ID.ToString() == fundcenterId).Select(a => a.AttritionRate).FirstOrDefault() ?? 0;
-        if (fund is not null)
-        {
-            fund.SFT_Forecast = sum * ((100 - attritionRate) / 100);
-        }
-        else
-        {
-            var newFund = new SummaryForecast()
-                {
-                    Fund = _forecast.Fund,
-                    SFT_Forecast = (_forecast.Salary * ((100 - attritionRate)/100)),
-                    Last_Updated_DT = DateTime.Now,
-                    Created_DT = DateTime.Now,
-                    Created_UserId = _user.Mail,
-                    FundCenter = _fundCenters[0]
-                };
 
-            Context.SummaryForecasts.Add(newFund);
-        }
-        await Context.SaveChangesAsync();
-    }
-
-    private async Task<Forecast> ClearForm()
+    private async Task<SummaryForecast> ClearForm()
     {
-        _forecast = null;
+        _summaryForecast = null;
         StateHasChanged();
-        return await Task.FromResult((Forecast)null);
+        return await Task.FromResult((SummaryForecast)null);
     }
 
     private void OnConfigure(MudBlazor.Forms.IModelFormContext context)

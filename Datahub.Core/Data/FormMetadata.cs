@@ -35,5 +35,9 @@ namespace Datahub.Core.Data
         {
             return Header != null && DataSet != null && AccessorFunctions != null && Headers != null && GridTemplateColumns != null;
         }
+        public bool IsMudLoaded()
+        {
+            return Header != null && DataSet != null && AccessorFunctions != null && Headers != null;
+        }
     }
 }
