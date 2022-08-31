@@ -171,7 +171,7 @@
     "Data Type": "Type de données",
     "(All Sectors)": "(Tous les secteurs)",
     "(All Branches)": "(Toutes les branches)",
-    "HideIncomplete": "Masquer les catalogues incomplets"
+    "HideIncomplete": "Masquer les entrées incompletes"
   },
   "DISCOVERY-DATA-TYPES": {
     "File": "Fichier",
