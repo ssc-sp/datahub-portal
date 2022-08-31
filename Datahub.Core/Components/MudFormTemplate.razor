@@ -4,10 +4,11 @@
 @using Datahub.Core.Data
 @typeparam T
 @typeparam U where U : DbContext
-
 @inject UIControlsService UI
 @inherits HtmlElement
+@inject IDialogService DialogService
 @inject IDatahubAuditingService AuditingService
+
 @using System.Reflection
 @using MudBlazor.Forms
 @using System.Text.RegularExpressions
@@ -99,11 +100,11 @@ else
             <CardHeaderContent>                
                 @foreach (var navigationUrl in Metadata.NavigateUrls)
                 {
-                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => NavigationManager.NavigateTo(@navigationUrl.Invoke(SelectedRecord).Item2))">@navigationUrl.Invoke(SelectedRecord).Item1</MudButton>
-                }
+                    <MudButton style="margin-right: 0.2rem" Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => NavigationManager.NavigateTo(@navigationUrl.Invoke(SelectedRecord).Item2))">@navigationUrl.Invoke(SelectedRecord).Item1</MudButton>
+                }                
             </CardHeaderContent>
         </MudCardHeader>
-        <MudCardContent>
+        <MudCardContent>               
             <MudModelForm Model="SelectedRecord"
                          T="@T"
                          OnValidSubmit="HandleFormSubmit"
@@ -203,8 +204,8 @@ else
 
     //public async void NavigateTo(string url)
     //{ 
-    
-    
+
+
     //}
 
     public string ReplaceWhitespace(string input, string replacement)
@@ -217,21 +218,24 @@ else
 
         if (Context.ChangeTracker.HasChanges())
         {
-            var messages = new List<string>() { "Would you like to save the current record?" };
-            await UI.ToggleModal(@<UserChoiceModal HeaderText="Save Data" ChoiceTextList=@messages OnDecision="(a) => OnConfirmSave(a, selectedRecord)" ConfirmText="Yes" CancelText="No" />);
+            bool? result = await DialogService.ShowMessageBox(
+                "Warning",
+                "Would you like to save the current record?",
+                yesText: "Ok", noText: "Cancel");
+            await OnConfirmSave(result);
         }
         await ClearForm();
         await SetFormEditRecord.InvokeAsync(selectedRecord);
 
     }
 
-    private async void OnConfirmSave(bool isConfirmed, dynamic item)
+    private async Task OnConfirmSave(bool? isConfirmed)
     {
         var changedEntries = Context.ChangeTracker.Entries();
-        if (isConfirmed)
+        if (isConfirmed is true)
         {
 
-            foreach (var entry in changedEntries)
+            foreach (var entry in changedEntries.Where(c => c.State == EntityState.Modified))
             {
                 entry.Property("Last_Updated_DT").CurrentValue = DateTime.Now;
                 entry.Property("Last_Updated_UserId").CurrentValue = Metadata.UserId;                

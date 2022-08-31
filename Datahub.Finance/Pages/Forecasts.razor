@@ -20,11 +20,13 @@
                 <MudTh>Sector</MudTh>
                 <MudTh>Branch</MudTh>
                 <MudTh>Division</MudTh>
+                <MudTh>Attrition Rate</MudTh>
             </HeaderContent>
             <RowTemplate>
                 <MudTd>@context.Sector?.FundCenterModifiedEnglish</MudTd>
                 <MudTd>@context.Branch?.FundCenterModifiedEnglish</MudTd>
                 <MudTd>@context.Division?.FundCenterModifiedEnglish</MudTd>
+                <MudTd>@($"{context.AttritionRate.ToString()}%")</MudTd>
             </RowTemplate>
         </MudTable>
     </MudCardContent>
@@ -187,16 +189,17 @@
     {
         var sum = Context.Forecasts.Where(f => f.FundCenter == _fundCenters[0]).Select(t => t.Salary ?? 0).Sum();
         var fund = Context.SummaryForecasts.Where(f => f.Fund == _forecast.Fund && f.FundCenter == _forecast.FundCenter).FirstOrDefault();
+        var attritionRate = Context.FundCenters.Where(f => f.FundCenter_ID.ToString() == fundcenterId).Select(a => a.AttritionRate).FirstOrDefault() ?? 0;
         if (fund is not null)
         {
-            fund.SFT_Forecast = sum;
+            fund.SFT_Forecast = sum * ((100 - attritionRate) / 100);
         }
         else
         {
             var newFund = new SummaryForecast()
                 {
                     Fund = _forecast.Fund,
-                    SFT_Forecast = _forecast.Salary,
+                    SFT_Forecast = (_forecast.Salary * ((100 - attritionRate)/100)),
                     Last_Updated_DT = DateTime.Now,
                     Created_DT = DateTime.Now,
                     Created_UserId = _user.Mail,
