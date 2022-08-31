@@ -59,7 +59,6 @@
 										T=CatalogObjectLanguage
 										Options=@(Enum.GetValues<CatalogObjectLanguage>())
 										OptionLabelFunction=@(t => GetLocalizedLanguageType(t))
-										OptionSortFunction=@(t => GetLocalizedLanguageType(t))
 										OnSelectionChanged=@UpdateLanguageFilter
 										DefaultOptions=@_filteredLanguageTypes
 										@ref=@_languageTypeFilter 
@@ -400,11 +399,11 @@
 		}
 	}
 
-	private string GetLocalizedDataType(MetadataObjectType dataType) => Localizer[$"DISCOVERY-DATA-TYPES.{dataType}"];
+	private string GetLocalizedDataType(MetadataObjectType value) => Localizer[$"DISCOVERY-DATA-TYPES.{value}"];
 
-	private string GetLocalizedClassificationType(ClassificationType dataType) => Localizer[$"DISCOVERY-DATA-TYPES.{dataType}"];
+	private string GetLocalizedClassificationType(ClassificationType value) => Localizer[$"DISCOVERY-CLASSIFICATION-TYPES.{value}"];
 
-	private string GetLocalizedLanguageType(CatalogObjectLanguage dataType) => Localizer[$"DISCOVERY-DATA-TYPES.{dataType}"];
+	private string GetLocalizedLanguageType(CatalogObjectLanguage value) => Localizer[$"DISCOVERY-LANGUAGE-TYPES.{value}"];
 
 	private async Task UpdateSectorFilter(IEnumerable<OrganizationLevel> filteredTypes)
 	{

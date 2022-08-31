@@ -5,14 +5,14 @@
 
 <AuthorizeView Roles=@($"{RoleConstants.DATAHUB_ROLE_ADMIN},{RoleConstants.DATAHUB_ROLE_ADMIN_AS_GUEST}")>
     <MudStack Row>
-        <MudTooltip Text="@Localizer["Project admin and global admin priviledges"]">
+        <MudTooltip Text="@Localizer["Initiative admin and global admin priviledges"]">
             <MudSwitch 
                 T="bool"
                 Color="Color.Primary"
                 Checked="@_isViewAsAdmin"
                 CheckedChanged="ToggleAdminMode">@Localizer["Admin Access Enabled"]</MudSwitch>
         </MudTooltip>
-        <MudTooltip Text="@Localizer["Project membership"]">
+        <MudTooltip Text="@Localizer["Initiative membership"]">
             <MudSwitch T="bool"
                    Color="Color.Primary"
                    Checked="@_isViewAsVisitor"
