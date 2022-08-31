@@ -4,78 +4,66 @@
 @inject IConfiguration Configuration
 @inject ILogger<DiscoverySearchLanding> Logger
 
-<AeFlex Vertical>
-	<h1>@Localizer["DataHub Data Catalog"]</h1>
+<MudStack>
+	<MudText Typo="Typo.h4">@Localizer["DataHub Data Catalog"]</MudText>
 	
-	<div>
+	<MudText>
 		@Localizer["The DataHub Data Catalog provides a collection of various NRCan data assets, such as DataHub files and initiatives; CFS data catalog items; and Power BI datasets, reports and workspaces."]
-	</div>
+	</MudText>
 
 	@if (Sectors.Any())
 	{
-		<AeFlex Vertical>
-			<div>
-				<h2>@Localizer["Browse by Sector"]</h2>
-			</div>
-
-			<div class="ae flex wrap">
+		<MudStack>
+			<MudText Typo="Typo.h5">@Localizer["Browse by Sector"]</MudText>
+			<MudGrid>
 				@foreach (var sector in Sectors)
 				{
-					<AeCard class="facard1" style="cursor: pointer;" CardPosition="AeCard.CardStyle.Horizontal" onclick=@(() => ClickSector(sector))>
-						<Header>
-							<div style="width:120px">                        
-								<MudIcon Icon=@GetIconClass(sector.Id) Size="Size.Large" />
-							</div>
-						</Header>
-						<ChildContent>                   
-							<h3>@(
-							IsFrench ? sector.FrenchLabel : sector.EnglishLabel
-							)</h3>
-						</ChildContent>
-						<Footer>
-						</Footer>
-					</AeCard>
+					<MudItem xs="6" sm="6" onclick=@(() => ClickSector(sector)) style="cursor: pointer;">
+						<MudCard Class="d-flex align-center justify-center mud-width-full pa-8" style="height: 100%">
+							<MudGrid>
+								<MudItem sm="2">
+									<MudIcon Icon=@GetIconClass(sector.Id) Size="Size.Large" />
+								</MudItem>
+								<MudItem sm="8">
+									<MudText Typo="Typo.h6">@(IsFrench ? sector.FrenchLabel : sector.EnglishLabel)</MudText>
+								</MudItem>
+							</MudGrid>
+						</MudCard>
+					</MudItem>
 				}
-			</div>
-			<div>
-				<h2>@Localizer["Search"]</h2>
-				<div>
-					@Localizer["Search the Data Catalog to find and discover NRCan datasets on energy, finance, science, forestry or human resources, and more."]
-				</div>
-			</div>
-			<div>
-				<h2>@Localizer["Publish"]</h2>
+			</MudGrid>
+
+			<MudStack Class="mt-4">
+				<MudText Typo="Typo.h5">@Localizer["Search"]</MudText>
+				<MudText>@Localizer["Search the Data Catalog to find and discover NRCan datasets on energy, finance, science, forestry or human resources, and more."]</MudText>
+			</MudStack>
+
+			<MudStack Class="mt-4">
+				<MudText Typo="Typo.h5">@Localizer["Publish"]</MudText>
 				<AuthorizeView>
 					<Authorized>
-						<div>
-							@Localizer["Since you are an Admin in Datahub use the Upload button below to import a valid catalog dump file."]
-						</div>
-
-						<div></div>
-
-						<div>
-							<InputFile id="fileInput" OnChange="UploadFiles" hidden />
-							<MudButton HtmlTag="label"
-								   Variant="Variant.Filled"
-								   Color="Color.Primary"
-								   StartIcon="@Icons.Filled.CloudUpload"
-								   for="fileInput">
-								@Localizer["Upload"]
-							</MudButton>
-						</div>
+						<MudStack>
+							<MudText>@Localizer["Since you are an Admin in Datahub use the Upload button below to import a valid catalog dump file."]</MudText>
+							<MudStack Class="mt-4">
+								<InputFile id="fileInput" OnChange="UploadFiles" accept=".json" hidden />
+								<MudButton HtmlTag="label"
+									   Variant="Variant.Text"
+									   Color="Color.Primary"
+									   StartIcon="@Icons.Filled.CloudUpload"
+									   for="fileInput">
+									@Localizer["Upload"]
+								</MudButton>
+							</MudStack>
+						</MudStack>
 					</Authorized>
 					<NotAuthorized>
-						<div>
-							@Localizer[$"Contact the DataHub team ({(Configuration[$"{ConfigurationConstants.CONTACT_EMAIL}"] ?? ConfigurationConstants.DEFAULT_EMAIL)}) for details on how to publish your data to the Data Catalog."]
-						</div>
+						<MudText>@GetContactDatahubTeamMessage()</MudText>
 					</NotAuthorized>
 				</AuthorizeView>
-			</div>
-
-			@*<div style="margin-top: 16px;"></div>*@
-		</AeFlex>
+			</MudStack>
+		</MudStack>
 	}
-</AeFlex>
+</MudStack>
 
 @code {
 
@@ -99,6 +87,17 @@
 	{
 		var iconClass = _icons.ContainsKey(id) ? _icons[id] : "fa-info-circle";
 		return $"fad {iconClass} card-icon fa-xs";
+	}
+
+	private string GetContactDatahubTeamMessage()
+	{
+		var localized = Localizer[$"Contact the DataHub team (EMAIL_PLACEHOLDER) for details on how to publish your data to the Data Catalog."].ToString();
+		return localized.Replace("EMAIL_PLACEHOLDER", GetConfiguredEmail());
+	}
+
+	private string GetConfiguredEmail()
+	{
+		return Configuration[ConfigurationConstants.CONTACT_EMAIL] ?? ConfigurationConstants.DEFAULT_EMAIL;
 	}
 
 	static Dictionary<int, string> GetIcons()
