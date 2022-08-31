@@ -1,4 +1,4 @@
-<AuthorizeView Roles=@_authorizedRole Context="Admin_Card">
+<AuthorizeView Roles=@RoleConstants.DATAHUB_ROLE_ADMIN Context="Admin_Card">
     <ToolCard
         Title="@Localizer["PROJECT-PAGE.ADMIN-CARD.Title"]"
         Description="@Localizer["Manage the settings and actions for this project. "]">
@@ -41,23 +41,4 @@
 @code {
     [CascadingParameter(Name = "ProjectAcronym")]
     public string ProjectAcronym { get; set; }
-
-    [CascadingParameter(Name = "IsDatahubAdmin")]
-    public bool IsDatahubAdmin { get; set; }
-
-    private string _authorizedRole;
-
-    protected async override Task OnInitializedAsync()
-    {
-        if (IsDatahubAdmin)
-        {
-            _authorizedRole = RoleConstants.DATAHUB_ROLE_ADMIN;
-        }
-        else
-        {
-            _authorizedRole = RoleConstants.LOCKED_OUT_ROLE;
-        }
-
-        await base.OnInitializedAsync();
-    }
 }
