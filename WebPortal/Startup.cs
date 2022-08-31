@@ -40,7 +40,6 @@ using Datahub.Portal.Services.Storage;
 using Microsoft.AspNetCore.Authorization.Infrastructure;
 using MudBlazor.Services;
 using Datahub.GeoCore.Service;
-using MudBlazor.Services;
 using Datahub.Core.Services.Offline;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]

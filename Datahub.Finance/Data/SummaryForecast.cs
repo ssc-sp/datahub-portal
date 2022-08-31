@@ -59,10 +59,11 @@ namespace Datahub.Portal.Data.Finance
         public double? Contribution { get; set; }
 
         [AeFormCategory("Total Forecast")]
-        public double? Total_Forecast { get; set; }
+        [Editable(false)]
+        public double? Total_Forecast => SFT_Forecast + THC + Other_OnM + Personel + Non_Personel + Grants + Contribution;
 
         [AeFormCategory("Total Forecast")]
-        public double? AdditionalNotes { get; set; }
+        public string AdditionalNotes { get; set; }
 
 
         [AeFormIgnore]

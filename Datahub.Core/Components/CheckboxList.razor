@@ -1,0 +1,47 @@
+﻿@*CheckboxList.razor*@
+@typeparam T
+
+<MudList Clickable="false">
+    @foreach (var t in _selectOptions.Keys.OrderBy(t => OptionSortFunction(t)))
+    {
+        <MudListItem>
+            <MudCheckBox T="bool" Label=@OptionLabelFunction(t) Checked=@IsChecked(t) CheckedChanged=@(v => HandleChecked(t, v)) />
+        </MudListItem>
+    }
+</MudList>
+
+@code {
+    
+    [Parameter]
+    public IEnumerable<T> Options { get; set; }
+
+    [Parameter]
+    public EventCallback<IEnumerable<T>> OnSelectionChanged { get; set; }
+
+    [Parameter]
+    public Func<T, IComparable> OptionSortFunction { get; set; } = t => t.ToString();
+
+    [Parameter]
+    public Func<T, string> OptionLabelFunction { get; set; } = t => t.ToString();
+
+    [Parameter]
+    public HashSet<T> DefaultOptions { get; set; } = new();
+
+    private Dictionary<T, bool> _selectOptions = new();
+
+    protected override void OnParametersSet()
+    {
+        _selectOptions = Options?.ToDictionary(t => t, t => DefaultOptions?.Contains(t) ?? false) ?? new();
+    }
+
+    private bool IsChecked(T value) => DefaultOptions.Contains(value);
+
+    private async Task HandleChecked(T value, bool isChecked)
+    {
+        if (isChecked)
+            DefaultOptions.Add(value);
+        else
+            DefaultOptions.Remove(value);
+        await OnSelectionChanged.InvokeAsync(DefaultOptions);
+    }
+}
