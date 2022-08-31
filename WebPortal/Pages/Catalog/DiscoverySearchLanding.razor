@@ -40,7 +40,7 @@
 
 			<MudStack Class="mt-4">
 				<MudText Typo="Typo.h5">@Localizer["Publish"]</MudText>
-				<AuthorizeView>
+				<AuthorizeView Roles=@RoleConstants.DATAHUB_ROLE_ADMIN>
 					<Authorized>
 						<MudStack>
 							<MudText>@Localizer["Since you are an Admin in Datahub use the Upload button below to import a valid catalog dump file."]</MudText>
