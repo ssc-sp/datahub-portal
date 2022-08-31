@@ -187,10 +187,14 @@
     "FileUrl": "File URL",
     "GeoObject": "Geo Object",
     "Database": "Database",
+    "DatasetUrl": "Dataset Url"
+  },
+  "DISCOVERY-CLASSIFICATION-TYPES": {
     "Unclassified": "Unclassified",
     "ProtectedA": "Protected A",
-    "ProtectedB": "Protected B",
-    "DatasetUrl": "Dataset Url",
+    "ProtectedB": "Protected B"
+  },
+  "DISCOVERY-LANGUAGE-TYPES": {
     "Bilingual": "Bilingual",
     "English": "English",
     "French": "French"
