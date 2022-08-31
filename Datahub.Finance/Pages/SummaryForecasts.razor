@@ -20,11 +20,13 @@
                 <MudTh>Sector</MudTh>
                 <MudTh>Branch</MudTh>
                 <MudTh>Division</MudTh>
+                <MudTh>Attrition Rate</MudTh>
             </HeaderContent>
             <RowTemplate>
                 <MudTd>@context.Sector?.FundCenterModifiedEnglish</MudTd>
                 <MudTd>@context.Branch?.FundCenterModifiedEnglish</MudTd>
                 <MudTd>@context.Division?.FundCenterModifiedEnglish</MudTd>
+                <MudTd>@($"{context.AttritionRate.ToString()}%")</MudTd>
             </RowTemplate>
         </MudTable>
     </MudCardContent>
@@ -53,7 +55,7 @@
 </MudCard>
 
 
-@code {
+    @code {
 
     [Parameter]
     public string fundcenterId { get; set; }
@@ -64,6 +66,7 @@
     private Microsoft.Graph.User _user = null!;
     private bool _isUserAdmin;
     private bool _isLoading = true;
+    private bool _isNew;
     private string _searchFilter = string.Empty;
     private int _lastClicked = 0;
 
@@ -162,12 +165,14 @@
     private void SetFormEdit(SummaryForecast project)
     {
         _summaryForecast = project;
+        _isNew = false;
         StateHasChanged();
     }
 
     private void CreateNewProject()
     {        
         _summaryForecast = new SummaryForecast() { Last_Updated_DT = DateTime.Now, Created_DT = DateTime.Now, Created_UserId = _user.Mail, FundCenter = _fundCenters[0] };
+        _isNew = true;
         StateHasChanged();
     }
 
@@ -184,6 +189,7 @@
             await Context.SaveChangesAsync();
             LoadData(_searchFilter); ;
             _summaryForecast = null;
+            _isNew = false;
         }
         else
         {
@@ -199,7 +205,7 @@
     private bool IsValidSubmission()
     {
         var doesFundExist = Context.SummaryForecasts.Any(sf => sf.Fund == _summaryForecast.Fund && sf.FundCenter.FundCenter_ID.ToString() == fundcenterId);
-        return !doesFundExist;
+        return !_isNew || !doesFundExist;
     
     }
 
