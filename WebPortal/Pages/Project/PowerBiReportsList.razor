@@ -1,5 +1,6 @@
 ﻿@page "/powerbi/{projectAcronym}"
 @inject IPowerBiDataService PowerBiDataService
+@inject UIControlsService UiControls
 
 <div style="padding-left: 2rem;padding-right: 2rem">
 
@@ -37,6 +38,7 @@
                     @ref=@_reportTable
                     Page=@_currentPage
                     PageSize="20"
+                    GridTemplateColumns="4fr 4fr 1fr 3fr"
                     @key=@_powerBiReports/>
                         
                 <AePagination Pageable=@_reportTable OnPageClick=@OnPageClick> 
@@ -75,7 +77,29 @@
         _currentPage = pageIndex;
     }
 
-    private List<string> headers;
+    private List<string> headers = new()
+    //{
+    //    "Power BI Workspace",
+    //    "English_Power_BI_Report",
+    //    "French_Power_BI_Report",
+    //    "External_Access"
+    //};
+    {
+        "Power BI Workspace",
+        "Power BI Report",
+        "Catalog Entry",
+        "External_Access"
+    };
+
+    private List<Func<PowerBi_Report, string>> accessors = new()
+    {
+        r => r.Workspace?.Workspace_Name ?? string.Empty,
+        r => r.Report_Name,
+        r => r.InCatalog.ToString(),
+        null
+    };
+
+    private List<Func<PowerBi_Report, RenderFragment>> renderers = new();
 
 
     private List<string> LocalizeHeaders(List<string> input) => input.Select(s => Localizer[s].ToString()).ToList();
@@ -86,17 +110,9 @@
         {
             null,
             ReportLinkFragment,
-            ReportLinkFragment,
+            CatalogEntryFragment,
             ExternalReport
         };
-
-        headers = new()
-            {
-                Localizer["Power BI Workspace"],
-                Localizer["English_Power_BI_Report"],
-                Localizer["French_Power_BI_Report"],
-                Localizer["External_Access"]
-            };
 
         if (projectAcronym != null)
         {
@@ -136,15 +152,8 @@
         }
     }
 
-    private List<Func<PowerBi_Report, string>> accessors = new()
-        {
-            r => r.Workspace?.Workspace_Name ?? string.Empty,
-            r => r.Report_Name,
-            r => r.Report_Name,
-            null
-        };
 
-    private List<Func<PowerBi_Report, RenderFragment>> renderers = new();
+
 
 
     public async void RefreshTable()
@@ -153,9 +162,15 @@
         StateHasChanged();
     }
 
+    private async Task OpenMetadataEditor(PowerBi_Report r)
+    {
+        RenderFragment bloomp = @<div>@r.Report_Name</div>;
+        await UiControls.ToggleModal(@<RenderFragmentModal Fragment=bloomp /> );
+    }
+
     private RenderFragment ExternalReport(PowerBi_Report r) =>
     @<AeTypography>
-        <ExternalReportRequest PowerBi_Report=@(r) RefreshTable=RefreshTable/>        
+        <ExternalReportRequest PowerBi_Report=@(r) RefreshTable=RefreshTable/>
     </AeTypography>;
 
     private RenderFragment WorkspaceLinkFragment(PowerBi_Report r) =>
@@ -178,7 +193,21 @@
                 Name=@(r.Report_Name)>
             @r.Report_Name
         </DHLink>
-    </AeTypography>
+        </AeTypography>
+    ;
+
+    private RenderFragment InCatalogIcon = @<MudIcon Color=@Color.Success Icon=@Icons.Filled.Check />;
+    private RenderFragment NotInCatalogIcon = @<MudIcon Color=@Color.Error Icon=@Icons.Filled.Close />;
+
+    private RenderFragment CatalogEntryFragment(PowerBi_Report r) =>
+    @<MudStack Row AlignItems=@AlignItems.Center>
+        @(r.InCatalog? InCatalogIcon: NotInCatalogIcon)
+        <MudIconButton 
+            Icon=@Icons.Filled.Edit
+            OnClick=@(() => OpenMetadataEditor(r))
+            
+        />
+    </MudStack>
     ;
 
 }
