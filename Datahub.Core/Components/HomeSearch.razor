@@ -52,6 +52,12 @@
 
     void IDisposable.Dispose()
     {
-        NavigationManager.LocationChanged -= LocationChanged;
+        try
+        {
+            NavigationManager.LocationChanged -= LocationChanged;
+        }
+        catch (Exception)
+        {
+        }
     }
 }
