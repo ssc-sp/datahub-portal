@@ -9,7 +9,9 @@
 
 <DHPageAlert Title=@Localizer["Welcome to Data Projects"] Key="@PageAlert.Projects" WikiLinkEN="Onboarding---Data-Projects" WikiLinkFR="Onboarding---Data-Projects"/>
 
-<AeTypography Variant="h1">@Localizer["Featured Projects"]</AeTypography>
+@*<AeTypography Variant="h1">@Localizer["Featured Projects"]</AeTypography>*@
+<MudText Typo="Typo.h4">@Localizer["Featured Projects"]</MudText>
+
 <div class="featured-projects-container">
     @foreach (var p in _featured)
     {
@@ -17,15 +19,30 @@
     }
 </div>
 
-<AeTypography Variant="h1">@Localizer["All Projects"]</AeTypography>
+@*<AeTypography Variant="h1">@Localizer["All Projects"]</AeTypography>*@
+<MudText Typo="Typo.h4">@Localizer["All Projects"]</MudText>
 
 <div class="all-projects-container">
 
-    <AeSearchInput
+    @*<AeSearchInput
         class="all-projects-search"
         SearchIconFAClass="fas fa-filter"
         Placeholder=@Localizer["Filter projects"]
-        OnInputChange="HandleAllProjectSearch"/>
+        OnInputChange="HandleAllProjectSearch"/>*@
+
+    <MudGrid>
+        <MudItem sm="4">
+            <MudTextField DebounceInterval="1000"
+                          T="string"
+                          OnDebounceIntervalElapsed="HandleAllProjectSearch"
+                          Label=@Localizer["Filter projects"]
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          Clearable="true"
+                          Adornment="Adornment.End"
+                          AdornmentIcon="@Icons.Filled.Search" />
+        </MudItem>
+    </MudGrid>
 
     <div class="all-projects">
         @if (_filteredProjects.Any())
