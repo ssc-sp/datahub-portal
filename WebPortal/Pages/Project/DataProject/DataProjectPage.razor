@@ -16,9 +16,10 @@
         <CascadingValue Value="_userId" Name="UserId">
             <CascadingValue Value="_isDatahubAdmin" Name="IsDatahubAdmin">
                 <CascadingValue Value="_user" Name="GraphUser">
-                    <ProjectInfo/>
-                    <ProjectMembers/>
-                    <ProjectToolListing/>
+                    <ProjectInfo />
+                    <ProjectCatalog ProjectId=@_projectId IsFrench=@_isFrench />
+                    <ProjectMembers />
+                    <ProjectToolListing />
                 </CascadingValue>
             </CascadingValue>
         </CascadingValue>
@@ -36,16 +37,21 @@
     private Microsoft.Graph.User _user;
     private string _userId;
     private string _projectName;
+    private int _projectId;
     private bool _isDatahubAdmin;
+    private bool _isFrench;
 
     protected override async Task OnInitializedAsync()
     {
         await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
 
-        _projectName = await projectContext.Projects
+        var project = await projectContext.Projects
             .Where(p => p.Project_Acronym_CD == ProjectAcronymParam)
-            .Select(p => p.ProjectName)
             .FirstOrDefaultAsync();
+
+        _isFrench = Thread.CurrentThread.CurrentCulture.Name.Equals("fr-ca", StringComparison.OrdinalIgnoreCase);
+        _projectName = project?.ProjectName;
+        _projectId = project?.Project_ID ?? 0;
 
         _userId = await _userInformationService.GetUserIdString();
         _user = await _userInformationService.GetUserAsync();
