@@ -117,6 +117,9 @@
     [Parameter]
     public EventCallback OnExistingMetadataLoaded { get; set; }
 
+    [Parameter]
+    public int? ProjectId { get; set; }
+
     public bool SaveDisabled => _savingData || !_requiredFieldsAreValid;
 
     private FieldValueContainer _fieldValues;
@@ -279,7 +282,8 @@
             GetClassificationType(SecurityClass),
             digest.EnglishCatalog, 
             digest.FrenchCatalog,
-            CatalogLanguage
+            CatalogLanguage,
+            ProjectId
         );
     }
 

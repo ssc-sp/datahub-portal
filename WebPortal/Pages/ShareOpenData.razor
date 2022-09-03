@@ -27,6 +27,7 @@
 
             @if (ShowMetadataEditor && _isOwnRequest)
             {
+                // fix this!
                 <ObjectMetadataEditor @ref=@_metadataEditor 
                                       ObjectId=@FileId 
                                       SaveButtonLabel=@Localizer["OPENDATA-WIZARD.Save_button"] 
@@ -427,7 +428,8 @@
             ClassificationType.Unclassified,
             digest.EnglishCatalog, 
             digest.FrenchCatalog,
-            CatalogObjectLanguage.Bilingual
+            CatalogObjectLanguage.Bilingual,
+            null // >> fix!
         );
     }
 
@@ -594,6 +596,8 @@
         {
             var loadTask = PublicFileService.LoadOpenDataSharedFileInfo(_fileIdGuid);
             var currentUser = await UserInformationService.GetUserAsync();
+
+            // >> read project id..
 
             _stepInfo = _steps.ToDictionary(s => s, s => GetStepPair(s));
             _stepStates = _steps.ToDictionary(s => s, s => AeSteps<OpenDataSharingStatus>.StepState.Queued);

@@ -1,0 +1,70 @@
+﻿@using Datahub.Metadata.DTO
+@using Datahub.Metadata.Model
+
+@if (_results.Count > 0)
+{
+    <MudStack>
+        <MudText Typo="Typo.h4">@Localizer["Public Initiatives"]</MudText>
+        <MudGrid>
+            @foreach (var result in _results)
+            {
+                <MudItem sm="4">
+                    <MudCard Class="d-flex align-center justify-center mud-width-full pa-8" style="height: 100%">
+                        <MudGrid>
+                            <MudItem sm="2">
+                                <MudIcon Icon=@GetIconClass(result.DataType) Size="Size.Medium" />
+                            </MudItem>
+                            <MudItem sm="8">
+                                <MudText Typo="Typo.body1">@(IsFrench ? result.Name_French : result.Name_English)</MudText>
+                            </MudItem>
+                        </MudGrid>
+                    </MudCard>
+                </MudItem>
+            }
+        </MudGrid>
+    </MudStack>
+}
+else
+{
+    if (_loading)
+    {
+        <Spinner />
+    }    
+}
+
+@code {
+
+    [Inject]
+    public IMetadataBrokerService _metadataBrokerService { get; set; }
+
+    [Parameter]
+    public int ProjectId { get; set; }
+
+    [Parameter]
+    public bool IsFrench { get; set; }
+
+    private List<CatalogObjectResult> _results { get; set; } = new();
+    private bool _loading;
+
+    protected override void OnInitialized()
+    {
+        _loading = true;
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _results = await _metadataBrokerService.GetProjectCatalogItems(ProjectId);
+        _loading = false;
+    }
+
+    private string GetIconClass(MetadataObjectType type)
+    {
+        var iconClass = type switch
+        {
+            MetadataObjectType.File => "file",
+            MetadataObjectType.PowerBIReport => "chart-bar",
+            _ => "square"
+        };
+        return $"fas fa-{iconClass}";
+    }
+}
