@@ -1,21 +1,22 @@
 using System.Text.RegularExpressions;
+using Datahub.Achievements.Models;
 
 namespace Datahub.Achievements;
 
 public static class Utils
 {
-    public static int EventMetricRegexCount(string regexPattern, Dictionary<string, int> visitedUrls)
+    public static int EventMetricRegexCount(string regexPattern, IEnumerable<DatahubTelemetryEventMetric> visitedUrls)
     {
         var regex = new Regex(regexPattern);
         return visitedUrls
-            .Where(kvp => regex.IsMatch(kvp.Key))
-            .Sum(kvp => visitedUrls[kvp.Key]);
+            .Where(e => regex.IsMatch(e.Name))
+            .Sum(e => e.Value);
     }
     
-    public static int EventMetricExactCount(string metricName, Dictionary<string, int> eventMetrics)
+    public static int EventMetricExactCount(string metricName, IEnumerable<DatahubTelemetryEventMetric> eventMetrics)
     {
         return eventMetrics
-            .Where(kvp => kvp.Key == metricName)
-            .Sum(kvp => eventMetrics[kvp.Key]);
+            .Where(e => e.Name == metricName)
+            .Sum(e => e.Value);
     }
 }

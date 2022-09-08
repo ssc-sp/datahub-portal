@@ -81,6 +81,7 @@ public class AchievementTelemetryTests
 
         var achievementService =
             new AchievementService(mockLogger.Object, mockCosmosDb.Object, mockStorage.Object, Options);
+
         await achievementService.InitializeAchievementServiceForUser(UserId);
         var passed = false;
 
@@ -101,11 +102,8 @@ public class AchievementTelemetryTests
         };
 
         var result = await achievementService.AddOrIncrementTelemetryEvent(eventName, value);
-        Assert.Multiple(() =>
-        {
-            Assert.That(result, Is.TypeOf<int>());
-            Assert.That(result, Is.EqualTo(value));
-            Assert.That(passed, Is.True);
-        });
+        Assert.That(result, Is.TypeOf<int>());
+        Assert.That(result, Is.EqualTo(value));
+        Assert.That(passed, Is.True);
     }
 }
