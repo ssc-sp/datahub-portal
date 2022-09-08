@@ -8,16 +8,23 @@ public class AchievementContext : DbContext
         : base(options)
     {
     }
-    
+
     public DbSet<UserObject>? UserObjects { get; set; }
-    
+
+    public DbSet<DatahubTelemetryEventMetric>? DatahubTelemetryEventMetrics { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
         modelBuilder.Entity<UserObject>()
-            .OwnsOne(u => u.Telemetry);
+            .OwnsOne(u => u.Telemetry)
+            .OwnsMany(m => m.EventMetrics);
         modelBuilder.Entity<UserObject>()
-            .OwnsOne(u => u.UserAchievements);
+            .OwnsMany(u => u.UserAchievements)
+            .OwnsOne(a => a.Achievement)
+            .Property(a => a.RuleExpressions)
+            .HasConversion(v => string.Join(',', v!),
+                v => v.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList());
     }
 }
