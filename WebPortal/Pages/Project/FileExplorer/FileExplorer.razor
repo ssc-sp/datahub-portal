@@ -110,7 +110,7 @@
                 else
                 {
                     var file = _files.FirstOrDefault(f => f.name.Equals(_selectedItem, StringComparison.OrdinalIgnoreCase));
-                    <FileProperties File=@file Readonly="!OwnsFile(file)"/>
+                    <FileProperties ProjectId=@ProjectId File=@file Readonly="!OwnsFile(file)"/>
                 }
             </div>
         </div>
@@ -127,10 +127,12 @@
     public Microsoft.Graph.User GraphUser { get; set; }
 
     [Parameter]
+    public int? ProjectId { get; set; }
+
+    [Parameter]
     public string ContainerName { get; set; }
 
     private string _userId;
-
 
     private bool _loading = true;
     private List<FileMetaData> _uploadingFiles;

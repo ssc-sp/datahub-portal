@@ -13,13 +13,19 @@
     }
     else
     {
-        <AeTypography class="project-data-sensitivity">@Localizer[_project.Data_Sensitivity]</AeTypography>
-        <AeTypography class="project-title" Variant="h1">
+        <MudChip Color=@GetProtectionColor()>@Localizer[_project.Data_Sensitivity]</MudChip>
+
+        <MudStack Row="true" Spacing="3" Class="mt-2 mb-2">
+            <MudIcon Class="align-self-center" Icon=@_projectIcon Size="Size.Large" />
+            <MudText Class="align-self-center ml-2" Typo="Typo.h3">@_project.ProjectName</MudText>
+        </MudStack>
+
+        @*<AeTypography class="project-title" Variant="h1">
             <span class="project-icon">
                 <i class="@($"{_projectIcon}")"></i>
             </span>
             @_project.ProjectName
-        </AeTypography>
+        </AeTypography>*@
         <DHMarkdown class="description" Content="@($"{_project.ProjectDescription}")"/>
     }
 </div>
@@ -45,4 +51,11 @@
         _loading = false;
     }
 
+    private Color GetProtectionColor() => (_project?.Data_Sensitivity ?? "").ToUpper() switch
+    {
+        "CLASSIFIED" or
+        "PROTECTED B" => Color.Secondary,
+        "PROTECTED A" => Color.Error,
+        _ => Color.Dark
+    };
 }

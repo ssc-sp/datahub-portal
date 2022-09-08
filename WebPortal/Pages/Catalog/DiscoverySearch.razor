@@ -583,8 +583,7 @@
 
 	private async Task ViewPowerBIReport(CatalogObjectResult result)
 	{
-		var metadata = await MetadataBrokerService.GetMetadata(result.ObjectMetadataId);
-		if (Guid.TryParse(metadata.ObjectId_TXT, out var guid))
+		if (Guid.TryParse(result.MetadataObjectId_TXT, out var guid))
 		{
 			var report = await PowerBiDataService.GetReportById(guid);
 			// TODO this url template is also used in DHLink; should only be in raw form in one place
