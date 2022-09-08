@@ -3,41 +3,76 @@
 
 @if (_results.Count > 0)
 {
-    <MudStack>
-        <MudText Typo="Typo.h4">@Localizer["Public Initiatives"]</MudText>
-        <MudGrid>
-            @foreach (var result in _results)
-            {
-                <MudItem sm="4">
-                    <MudCard Class="d-flex align-center justify-center mud-width-full pa-8" style="height: 100%">
-                        <MudGrid>
-                            <MudItem sm="2">
-                                <MudIcon Icon=@GetIconClass(result.DataType) Size="Size.Medium" />
-                            </MudItem>
-                            <MudItem sm="8">
-                                <MudText Typo="Typo.body1">@(IsFrench ? result.Name_French : result.Name_English)</MudText>
-                            </MudItem>
-                        </MudGrid>
-                    </MudCard>
-                </MudItem>
-            }
-        </MudGrid>
-    </MudStack>
+    <div class="project-tools">
+        <MudStack>
+            <MudText Typo="Typo.h4">@Localizer["Public Datasets"]</MudText>
+            <MudGrid>
+                @foreach (var result in _results)
+                {
+                    <MudItem sm="4">
+                        <MudCard Class="d-flex align-center justify-center mud-width-full pa-8" 
+                                 style="height: 100%; cursor: pointer;" 
+                                 onclick=@(async () => await OpenCard(result))>
+                            <MudGrid>
+                                <MudItem sm="2">
+                                    <MudStack Row="false">
+                                        <MudIcon Icon=@GetIconClass(result.DataType) Size="Size.Medium" />
+                                    </MudStack>
+                                </MudItem>
+                                <MudItem sm="8">
+                                    <MudStack>
+                                        <MudText Typo="Typo.body1">@(IsFrench ? result.Name_French : result.Name_English)</MudText>
+                                        <MudText Typo="Typo.caption">@GetObjectType(result.DataType)</MudText>
+                                    </MudStack>
+                                </MudItem>
+                            </MudGrid>
+                        </MudCard>
+                    </MudItem>
+                }
+            </MudGrid>
+        </MudStack>
+    </div>
 }
 else
 {
     if (_loading)
     {
-        <Spinner />
+        <MudStack>
+            <MudText Typo="Typo.h4">@Localizer["Public Datasets"]</MudText>
+            <MudGrid>
+                @for (var i = 0; i < 6; i++)
+                {
+                    <MudItem sm="4">
+                        <span style="display: flex; margin: 1rem 0">
+                            <Skeleton Circle Width="2rem" Height="2rem" />
+                            <span style="display: block; width: .5rem"></span>
+                            <Skeleton Width="150px" Height="2rem" />
+                        </span>
+                    </MudItem>
+                }
+            </MudGrid>
+        </MudStack>
     }    
 }
 
 @code {
 
     [Inject]
+    public NavigationManager _navigationManager { get; set; }
+
+    [Inject]
     public IMetadataBrokerService _metadataBrokerService { get; set; }
 
-    [Parameter]
+    [Inject]
+    public IPowerBiDataService _powerBiDataService { get; set; }
+
+    [Inject]
+    public DataRetrievalService _retrievalService { get; set; }
+
+    [Inject]
+    public IJSRuntime JSRuntime { get; set; }
+
+    [CascadingParameter(Name = "ProjectId")]
     public int ProjectId { get; set; }
 
     [Parameter]
@@ -46,13 +81,9 @@ else
     private List<CatalogObjectResult> _results { get; set; } = new();
     private bool _loading;
 
-    protected override void OnInitialized()
-    {
-        _loading = true;
-    }
-
     protected override async Task OnParametersSetAsync()
     {
+        _loading = true;
         _results = await _metadataBrokerService.GetProjectCatalogItems(ProjectId);
         _loading = false;
     }
@@ -62,9 +93,37 @@ else
         var iconClass = type switch
         {
             MetadataObjectType.File => "file",
-            MetadataObjectType.PowerBIReport => "chart-bar",
+            MetadataObjectType.PowerBIWorkspace or
+            MetadataObjectType.PowerBIReport or 
+            MetadataObjectType.PowerBIDataset => "chart-bar",
             _ => "square"
         };
         return $"fas fa-{iconClass}";
+    }
+
+    private string GetObjectType(MetadataObjectType type) => Localizer[$"DISCOVERY-DATA-TYPES.{type}"];
+
+    private async Task OpenCard(CatalogObjectResult result)
+    {
+        if (result.DataType == MetadataObjectType.PowerBIReport)
+            await ViewPowerBIReport(result);
+        if (result.DataType == MetadataObjectType.File)
+            await DownloadFile(result);
+    }
+
+    private async Task ViewPowerBIReport(CatalogObjectResult result)
+    {
+        if (Guid.TryParse(result.MetadataObjectId_TXT, out var guid))
+        {
+            var report = await _powerBiDataService.GetReportById(guid);
+            if (report is not null)
+                _navigationManager.NavigateTo($"/powerbi-report/{report.Workspace_Id}/{report.Report_ID}");
+        }
+    }
+
+    private async Task DownloadFile(CatalogObjectResult result)
+    {
+        var uri = await _retrievalService.GetDownloadAccessToSasBlob(DataRetrievalService.DEFAULT_CONTAINER_NAME, fileName: result.Name_English, projectUploadCode: result.Location);
+        await JSRuntime.InvokeAsync<object>("open", uri.ToString(), "_blank");
     }
 }

@@ -11,15 +11,18 @@
 <DHPageAlert Title="Welcome to your Data Project" Key="@PageAlert.ProjectFeatures" WikiLinkEN="Onboarding---Data-Project" WikiLinkFR="Onboarding---Data-Project"/>
 
 <DHPageTitle PageTitleKey="@_projectName"/>
+
 <div class="project-page">
-    <CascadingValue Value="@ProjectAcronymParam" Name="ProjectAcronym">
-        <CascadingValue Value="_userId" Name="UserId">
-            <CascadingValue Value="_isDatahubAdmin" Name="IsDatahubAdmin">
-                <CascadingValue Value="_user" Name="GraphUser">
-                    <ProjectInfo />
-                    <ProjectCatalog ProjectId=@_projectId IsFrench=@_isFrench />
-                    <ProjectMembers />
-                    <ProjectToolListing />
+    <CascadingValue Value=@ProjectAcronymParam Name="ProjectAcronym">
+        <CascadingValue Value=@_userId Name="UserId">
+            <CascadingValue Value=@_isDatahubAdmin Name="IsDatahubAdmin">
+                <CascadingValue Value=@_user Name="GraphUser">
+                    <CascadingValue Value=@_projectId Name="ProjectId">
+                        <ProjectInfo />
+                        <ProjectCatalog IsFrench=@_isFrench />
+                        <ProjectMembers />
+                        <ProjectToolListing />
+                    </CascadingValue>
                 </CascadingValue>
             </CascadingValue>
         </CascadingValue>

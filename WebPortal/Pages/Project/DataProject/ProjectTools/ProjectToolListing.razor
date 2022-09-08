@@ -11,7 +11,9 @@
 
     <div class="project-tools">
 
-        <AeTypography Variant="h2">@Localizer["Project Tools"]</AeTypography>
+        @*<AeTypography Variant="h2">@Localizer["Project Tools"]</AeTypography>*@
+        <MudText Typo="Typo.h4">@Localizer["Project Tools"]</MudText>
+
         <div class="controls">
             <span class="icon-wrapper @(_isDense ? "active" : "")" @onclick="@(() => ToggleDense(true))">
                 <i class="fas fa-list-ul"></i>
