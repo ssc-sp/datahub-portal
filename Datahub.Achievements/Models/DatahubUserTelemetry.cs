@@ -1,31 +1,41 @@
+using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore;
+
 namespace Datahub.Achievements.Models;
 
 public class DatahubUserTelemetry
 {
     public string? UserId { get; set; }
 
-    public Dictionary<string, int> EventMetrics { get; set; } = new();
+    public List<DatahubTelemetryEventMetric> EventMetrics { get; set; } = new();
     
     public int GetEventMetric(string eventName)
     {
-        if (!EventMetrics.ContainsKey(eventName))
+        var metric = EventMetrics.FirstOrDefault(e => e.Name == eventName);
+
+        if (metric is null)
         {
-            EventMetrics[eventName] = 0;
+            metric = new DatahubTelemetryEventMetric { Name = eventName, Value = 0 };
+            EventMetrics.Add(metric);
         }
-        return EventMetrics[eventName];
+
+        return metric.Value;
     }
     public int AddOrIncrementEventMetric(string eventName, int value)
     {
-        if (EventMetrics.ContainsKey(eventName))
+        var metric = EventMetrics.FirstOrDefault(e => e.Name == eventName);
+
+        if (metric is null)
         {
-            EventMetrics[eventName] += value;
+            metric = new DatahubTelemetryEventMetric { Name = eventName, Value = value };
+            EventMetrics.Add(metric);
         }
         else
         {
-            EventMetrics.Add(eventName, value);
+            metric.Value += value;
         }
 
-        return EventMetrics[eventName];
+        return metric.Value;
     }
 
     public struct TelemetryEvents

@@ -29,91 +29,62 @@ public class AchievementValidationTests
     private const string PROFILE_URL = "/profile";
     private const string RESOURCES_URL = "/resources";
 
-    private static readonly Dictionary<string, (DatahubUserTelemetry, DatahubUserTelemetry)>
-        ParameterizedUserTelemetryDictionary = new()
-        {
-            // Code, Earned, Not Earned
-            {
-                "PRJ-001", (
-                    new DatahubUserTelemetry
-                    {
-                        UserId = UserId,
-                        EventMetrics = new Dictionary<string, int>
-                            { { DatahubUserTelemetry.TelemetryEvents.UserSentInvite, 1 } }
-                    },
-                    new DatahubUserTelemetry
-                    {
-                        UserId = UserId,
-                        EventMetrics = new Dictionary<string, int>
-                            { { DatahubUserTelemetry.TelemetryEvents.UserSentInvite, 0 } }
-                    }
-                )
-            },
+    private static Dictionary<string, (DatahubUserTelemetry, DatahubUserTelemetry)> GenerateTelemetry()
+    {
+        var telemetry = new Dictionary<string, (DatahubUserTelemetry, DatahubUserTelemetry)>();
 
-            {
-                "EXP-001", (
-                    new DatahubUserTelemetry
+        foreach (var (code, eventName, validValue, invalidValue) in new List<(string, string, int, int)>
+                 {
+                     ("PRJ-001", DatahubUserTelemetry.TelemetryEvents.UserSentInvite, 1, 0),
+                     ("EXP-001", DatahubUserTelemetry.TelemetryEvents.UserLogin, 1, 0),
+                     ("EXP-002", STORAGE_EXPLORER_URL, 1, 0),
+                     ("EXP-003", DATABRICKS_URL, 1, 0),
+                     ("EXP-004", RESOURCES_URL, 1, 0),
+                     // ("EXP-005", DatahubUserTelemetry.TelemetryEvents.UserLogin, 1, 0),
+                     ("EXP-006", PROFILE_URL, 1, 0),
+                 })
+        {
+            telemetry.Add(code, (
+                new DatahubUserTelemetry
+                {
+                    UserId = UserId,
+                    EventMetrics = new List<DatahubTelemetryEventMetric>
                     {
-                        UserId = UserId,
-                        EventMetrics = new Dictionary<string, int>
-                            { { DatahubUserTelemetry.TelemetryEvents.UserLogin, 1 } }
-                    },
-                    new DatahubUserTelemetry
-                    {
-                        UserId = UserId,
-                        EventMetrics = new Dictionary<string, int>
-                            { { DatahubUserTelemetry.TelemetryEvents.UserLogin, 0 } }
+                        new()
+                        {
+                            Name = eventName,
+                            Value = validValue
+                        }
                     }
-                )
-            },
-            {
-                "EXP-002",
-                (
-                    new DatahubUserTelemetry
-                        { UserId = UserId, EventMetrics = new Dictionary<string, int> { { STORAGE_EXPLORER_URL, 1 } } },
-                    new DatahubUserTelemetry
-                        { UserId = UserId, EventMetrics = new Dictionary<string, int> { { STORAGE_EXPLORER_URL, 0 } } }
-                )
-            },
-            {
-                "EXP-003",
-                (
-                    new DatahubUserTelemetry
-                        { UserId = UserId, EventMetrics = new Dictionary<string, int> { { DATABRICKS_URL, 1 } } },
-                    new DatahubUserTelemetry
-                        { UserId = UserId, EventMetrics = new Dictionary<string, int> { { DATABRICKS_URL, 0 } } }
-                )
-            },
-            {
-                "EXP-004",
-                (
-                    new DatahubUserTelemetry
-                        { UserId = UserId, EventMetrics = new Dictionary<string, int> { { RESOURCES_URL, 1 } } },
-                    new DatahubUserTelemetry
-                        { UserId = UserId, EventMetrics = new Dictionary<string, int> { { RESOURCES_URL, 0 } } }
-                )
-            },
-            {
-                "EXP-006",
-                (
-                    new DatahubUserTelemetry
-                        { UserId = UserId, EventMetrics = new Dictionary<string, int> { { PROFILE_URL, 1 } } },
-                    new DatahubUserTelemetry
-                        { UserId = UserId, EventMetrics = new Dictionary<string, int> { { PROFILE_URL, 0 } } }
-                )
-            },
-        };
+                },
+                new DatahubUserTelemetry
+                {
+                    UserId = UserId,
+                    EventMetrics = new List<DatahubTelemetryEventMetric>
+                    {
+                        new()
+                        {
+                            Name = eventName, Value = invalidValue
+                        }
+                    }
+                }));
+        }
+
+        return telemetry;
+    }
 
     private static IEnumerable<object[]> EarnedAchievementParams()
     {
         var achievementFactory =
             AchievementFactory.CreateFromFilesAsync(AchievementDirectoryPath).GetAwaiter().GetResult();
 
+        var parameterizedUserTelemetryDictionary = GenerateTelemetry();
+
         return achievementFactory.Achievements!.Select(kvp => new object[]
         {
             kvp.Key,
             kvp.Value,
-            ParameterizedUserTelemetryDictionary[kvp.Key].Item1,
+            parameterizedUserTelemetryDictionary[kvp.Key].Item1,
         });
     }
 
@@ -122,11 +93,13 @@ public class AchievementValidationTests
         var achievementFactory =
             AchievementFactory.CreateFromFilesAsync(AchievementDirectoryPath).GetAwaiter().GetResult();
 
+        var parameterizedUserTelemetryDictionary = GenerateTelemetry();
+
         return achievementFactory.Achievements!.Select(kvp => new object[]
         {
             kvp.Key,
             kvp.Value,
-            ParameterizedUserTelemetryDictionary[kvp.Key].Item2,
+            parameterizedUserTelemetryDictionary[kvp.Key].Item2,
         });
     }
 

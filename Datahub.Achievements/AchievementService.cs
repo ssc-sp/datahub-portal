@@ -3,7 +3,6 @@ using Datahub.Achievements.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using MudBlazor;
 using RulesEngine.Extensions;
 using RulesEngine.Models;
 
@@ -72,7 +71,6 @@ public class AchievementService
     /// <summary>
     /// Runs the rules engine off the user's telemetry data to determine if they have earned any achievements.
     /// </summary>
-    /// <param name="userId"></param>
     /// <returns></returns>
     public async Task<List<RuleResultTree>> RunRulesEngine()
     {
@@ -84,7 +82,7 @@ public class AchievementService
         var userObject = await GetUserObject();
 
         var achievementList = userObject.UserAchievements
-            .Select(kvp => kvp.Value.Achievement)
+            .Select(u => u.Achievement)
             .ToList(); 
 
         var rulesEngineSettings = new ReSettings { CustomTypes = new[] { typeof(Utils) } };
@@ -94,8 +92,9 @@ public class AchievementService
 
         response.OnSuccess((successEvent) =>
         {
+            var userAchievement = userObject.UserAchievements.FirstOrDefault(u => u.Code == successEvent);
             // check for existing achievements
-            if (userObject.UserAchievements[successEvent].Earned)
+            if (userAchievement?.Earned ?? false)
             {
                 return;
             }
@@ -103,9 +102,18 @@ public class AchievementService
             // if it's a new one then save
             Task.Run(async () =>
             {
-                userObject.UserAchievements[successEvent].Date = DateTime.UtcNow;
-                // TODO - save cosmos db too
-                await _localStorage.SetItemAsync(AchievementContainerName, userObject);
+                userAchievement!.Date = DateTime.UtcNow;
+                
+                if (_options!.LocalAchievementsOnly)
+                {
+                    await _localStorage.SetItemAsync(AchievementContainerName, userObject);
+                }
+                else
+                {
+                    await using var ctx = await _contextFactory.CreateDbContextAsync();
+                    ctx.UserObjects!.Update(userObject);
+                    await ctx.SaveChangesAsync();
+                }
             });
 
             // and raise the event
@@ -128,8 +136,8 @@ public class AchievementService
     private async Task<UserObject> InitializeEmptyAchievements(UserObject? userObject = null)
     {
         var achievementFactory = await AchievementFactory.CreateFromFilesAsync(_options?.AchievementDirectoryPath);
-        var emptyAchievements = achievementFactory!.Achievements!
-            .ToDictionary(kvp => kvp.Key, kvp => new UserAchievement
+        var emptyAchievements = achievementFactory.Achievements!
+            .Select(kvp => new UserAchievement
             {
                 UserId = _userId,
                 Achievement = kvp.Value,
@@ -199,9 +207,9 @@ public class AchievementService
     /// Retrieves the user's achievements from storage.
     /// </summary>
     /// <returns>The dictionary of achievements for the user where the key is the achievement's code</returns>
-    public async Task<Dictionary<string, UserAchievement>> GetUserAchievements()
+    public async Task<List<UserAchievement>> GetUserAchievements()
     {
-        return (await GetUserObject()).UserAchievements;
+        return (await GetUserObject()).UserAchievements.ToList();
     }
     
     public async Task<int> AddOrIncrementTelemetryEvent(string eventName, int value)

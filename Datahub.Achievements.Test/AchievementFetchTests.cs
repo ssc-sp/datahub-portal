@@ -32,43 +32,37 @@ public class AchievementFetchTests
         {
             UserId = UserId
         },
-        UserAchievements = new Dictionary<string, UserAchievement>
+        UserAchievements = new List<UserAchievement>
         {
+            new()
             {
-                EarnedAchievementCode1, new UserAchievement
+                UserId = UserId,
+                Achievement = new Achievement
                 {
-                    UserId = UserId,
-                    Achievement = new Achievement
-                    {
-                        Name = "Earned 1",
-                        Code = EarnedAchievementCode1
-                    },
-                    Date = DateTime.Now.Subtract(TimeSpan.FromDays(1)),
-                }
+                    Name = "Earned 1",
+                    Code = EarnedAchievementCode1
+                },
+                Date = DateTime.Now.Subtract(TimeSpan.FromDays(1)),
             },
+            new()
             {
-                EarnedAchievementCode2, new UserAchievement
+                UserId = UserId,
+                Achievement = new Achievement
                 {
-                    UserId = UserId,
-                    Achievement = new Achievement
-                    {
-                        Name = "Earned 2",
-                        Code = EarnedAchievementCode2,
-                    },
-                    Date = DateTime.Now.Subtract(TimeSpan.FromDays(3)),
-                }
+                    Name = "Earned 2",
+                    Code = EarnedAchievementCode2,
+                },
+                Date = DateTime.Now.Subtract(TimeSpan.FromDays(3)),
             },
+            new()
             {
-                NotEarnedAchievementCode, new UserAchievement
+                UserId = UserId,
+                Achievement = new Achievement
                 {
-                    UserId = UserId,
-                    Achievement = new Achievement
-                    {
-                        Name = "Not Earned",
-                        Code = NotEarnedAchievementCode
-                    },
-                    Date = DateTime.Now.Subtract(TimeSpan.FromDays(1)),
-                }
+                    Name = "Not Earned",
+                    Code = NotEarnedAchievementCode
+                },
+                Date = DateTime.Now.Subtract(TimeSpan.FromDays(1)),
             }
         }
     };
@@ -90,8 +84,8 @@ public class AchievementFetchTests
 
         var result = await achievementService.GetUserAchievements();
 
-        Assert.That(result, Is.TypeOf<Dictionary<string, UserAchievement>>());
-        Assert.That(result, Has.Count.EqualTo(_userObject.UserAchievements.Count));
+        Assert.That(result, Is.TypeOf<List<UserAchievement>>());
+        Assert.That(result, Has.Count.EqualTo(_userObject.UserAchievements.Count()));
     }
 
     [Test]
@@ -110,7 +104,10 @@ public class AchievementFetchTests
 
         var result = await achievementService.GetUserAchievements();
 
-        Assert.That(result, Is.TypeOf<Dictionary<string, UserAchievement>>());
-        Assert.That(result.Count(r => r.Value.Earned), Is.EqualTo(_userObject.UserAchievements.Count(r => r.Value.Earned)));
+        Assert.That(result, Is.TypeOf<List<UserAchievement>>());
+        Assert.That(result.Count(r => r.Earned),
+            Is.EqualTo(_userObject.UserAchievements.Count(r => r.Earned)));
     }
+
+
 }
