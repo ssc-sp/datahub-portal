@@ -219,7 +219,7 @@ namespace Datahub.Core.Services
 
         public async Task UpdateCatalog(long objectMetadataId, MetadataObjectType dataType, string objectName, string location,
             int sector, int branch, string contact, ClassificationType securityClass, string englishText, string frenchText, 
-            CatalogObjectLanguage language)
+            CatalogObjectLanguage language, int? projectId, bool anonymous = false)
         {
             using var ctx = _contextFactory.CreateDbContext();
 
@@ -231,7 +231,7 @@ namespace Datahub.Core.Services
                 foreach (var obj in catalogObjects)
                     ctx.CatalogObjects.Remove(obj);
 
-                await ctx.SaveChangesAsync();
+                await ctx.TrackSaveChangesAsync(_auditingService, anonymous);
 
                 // add new object
                 CatalogObject catalogObject = new()
@@ -246,12 +246,13 @@ namespace Datahub.Core.Services
                     Classification_Type = securityClass,
                     Search_English_TXT = englishText,
                     Search_French_TXT = frenchText,
-                    Language = language
+                    Language = language,
+                    ProjectId = projectId
                 };
 
                 ctx.CatalogObjects.Add(catalogObject);
 
-                await ctx.SaveChangesAsync();
+                await ctx.TrackSaveChangesAsync(_auditingService, anonymous);
 
                 transation.Commit();
             }
@@ -474,6 +475,7 @@ namespace Datahub.Core.Services
             {
                 CatalogObjectId = catObj.CatalogObjectId,
                 ObjectMetadataId = catObj.ObjectMetadataId,
+                MetadataObjectId_TXT = catObj.ObjectMetadata.ObjectId_TXT,
                 DataType = catObj.DataType,
                 Name_English = catObj.Name_TXT,
                 Name_French = catObj.Name_French_TXT,
@@ -481,7 +483,6 @@ namespace Datahub.Core.Services
                 Sector = catObj.Sector_NUM,
                 Branch = catObj.Branch_NUM,
                 Contact = catObj.Contact_TXT,
-                //SecurityClass = catObj.SecurityClass_TXT,
                 ClassificationType = catObj.Classification_Type,
                 Language = catObj.Language,
                 Url_English = catObj.Url_English_TXT,
@@ -657,6 +658,21 @@ namespace Datahub.Core.Services
             var catalogObject = await ctx.CatalogObjects.FirstOrDefaultAsync(e => e.ObjectMetadata.ObjectId_TXT == objectId);
 
             return catalogObject?.Language;
+        }
+
+        public async Task<List<CatalogObjectResult>> GetProjectCatalogItems(int projectId)
+        {
+            using var ctx = await _contextFactory.CreateDbContextAsync();
+
+            var definitions = await GetLatestMetadataDefinition(ctx);
+
+            return await ctx.CatalogObjects
+                            .Where(e => e.ProjectId == projectId && e.Classification_Type == ClassificationType.Unclassified)
+                            .Include(e => e.ObjectMetadata)
+                            .ThenInclude(s => s.FieldValues)
+                            .AsSingleQuery()
+                            .Select(e => TransformCatalogObject(e, definitions))
+                            .ToListAsync();
         }
 
         private async Task<List<CatalogObject>> UpdateCatalogObjectGroup(MetadataDbContext ctx,  string objectId)
