@@ -475,6 +475,7 @@ namespace Datahub.Core.Services
             {
                 CatalogObjectId = catObj.CatalogObjectId,
                 ObjectMetadataId = catObj.ObjectMetadataId,
+                MetadataObjectId_TXT = catObj.ObjectMetadata.ObjectId_TXT,
                 DataType = catObj.DataType,
                 Name_English = catObj.Name_TXT,
                 Name_French = catObj.Name_French_TXT,
@@ -482,7 +483,6 @@ namespace Datahub.Core.Services
                 Sector = catObj.Sector_NUM,
                 Branch = catObj.Branch_NUM,
                 Contact = catObj.Contact_TXT,
-                //SecurityClass = catObj.SecurityClass_TXT,
                 ClassificationType = catObj.Classification_Type,
                 Language = catObj.Language,
                 Url_English = catObj.Url_English_TXT,
