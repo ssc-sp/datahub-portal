@@ -17,9 +17,10 @@
 							<MudTextField 
 								@ref="_searchField"
 								DebounceInterval="1000" 
+								Text=@_searchKeywords
+								Immediate="true"
 								T="string"	
-								OnDebounceIntervalElapsed="HandleSearchIntervalElapsed" 
-								@bind-Value=@_searchKeywords
+								ValueChanged=@HandleSearchTextChanged 
 								Label=@Localizer["Search"]
 								Variant="Variant.Outlined" 
 								Clearable="true"
@@ -462,7 +463,7 @@
 
 	private async Task UpdateFilter()
 	{
-		await ThrottleSearch(_searchKeywords);
+		await ThrottleSearch();
 		_filtersActive = HasValidFilters();
 	}
 
@@ -583,8 +584,7 @@
 
 	private async Task ViewPowerBIReport(CatalogObjectResult result)
 	{
-		var metadata = await MetadataBrokerService.GetMetadata(result.ObjectMetadataId);
-		if (Guid.TryParse(metadata.ObjectId_TXT, out var guid))
+		if (Guid.TryParse(result.MetadataObjectId_TXT, out var guid))
 		{
 			var report = await PowerBiDataService.GetReportById(guid);
 			// TODO this url template is also used in DHLink; should only be in raw form in one place
@@ -603,20 +603,23 @@
 		await Task.Run(() => RedirectAndDownload(result.Location));
 	}
 
-	private async void HandleSearchIntervalElapsed(string newValue)
+	private async void HandleSearchTextChanged(string newValue)
 	{
-		await UpdateFilter();
+		if (_searchKeywords != newValue)
+		{
+			_searchKeywords = newValue;
+			await UpdateFilter();
+		}
 	}
 
-	private async Task ThrottleSearch(string searchText)
+	private async Task ThrottleSearch()
 	{
 		_searchResults.Clear();
 		_searching = true;
 		await InvokeAsync(StateHasChanged);
 		try
 		{
-			_searchKeywords = searchText;
-			_searchResults = await SearchCatalog(searchText);
+			_searchResults = await SearchCatalog(_searchKeywords);
 		}
 		finally
 		{

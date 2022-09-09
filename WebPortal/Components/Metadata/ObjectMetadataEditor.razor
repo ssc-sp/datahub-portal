@@ -47,7 +47,6 @@
 </div>
 
 @code {
-    private static readonly string DEFAULT_SECURITY_CLASS = SecurityClassification.Unclassified;
 
     [Inject]
     public IMetadataBrokerService MetadataBrokerService { get; set; }
@@ -62,7 +61,7 @@
     public string ObjectId { get; set; }
 
     /// <summary>
-    /// Object ID to prefill default metadata value (optional)
+    /// Object ID to prefill default metadata values (optional)
     /// </summary>
     [Parameter]
     public string DefaultMetadataId { get; set; }
@@ -77,7 +76,7 @@
     public string Location { get; set; }
 
     [Parameter]
-    public string SecurityClass { get; set; } = DEFAULT_SECURITY_CLASS;
+    public string SecurityClass { get; set; } = SecurityClassification.Unclassified;
 
     [Parameter]
     public string ProfileName { get; set; } = "opendata";
@@ -117,6 +116,9 @@
 
     [Parameter]
     public EventCallback OnExistingMetadataLoaded { get; set; }
+
+    [Parameter]
+    public int? ProjectId { get; set; }
 
     public bool SaveDisabled => _savingData || !_requiredFieldsAreValid;
 
@@ -280,7 +282,8 @@
             GetClassificationType(SecurityClass),
             digest.EnglishCatalog, 
             digest.FrenchCatalog,
-            CatalogLanguage
+            CatalogLanguage,
+            ProjectId
         );
     }
 
