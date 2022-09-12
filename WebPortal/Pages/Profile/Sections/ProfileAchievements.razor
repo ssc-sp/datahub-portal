@@ -10,7 +10,6 @@
         @if (_achievements != null)
         {
             @foreach (var userAchievement in _achievements
-                .Values
                 .OrderByDescending(a => a.Earned)
                 .ThenBy(a => a.Achievement?.Code))
             {
@@ -38,7 +37,7 @@
     [Parameter]
     public Microsoft.Graph.User User { get; set; }
 
-    private Dictionary<string, UserAchievement> _achievements;
+    private IEnumerable<UserAchievement> _achievements;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -46,7 +45,7 @@
 
         if (firstRender)
         {
-            _achievements = await _achievementService.GetUserAchievements(User.Id);
+            _achievements = await _achievementService.GetUserAchievements();
             StateHasChanged();
         }
     }

@@ -141,8 +141,9 @@ public class AchievementService
             {
                 UserId = _userId,
                 Achievement = kvp.Value,
-            });
-
+            })
+            .ToList();
+        
         userObject ??= new UserObject
         {
             UserId = _userId,
@@ -216,9 +217,28 @@ public class AchievementService
     {
         var userObject = await GetUserObject();
         userObject.Telemetry.AddOrIncrementEventMetric(eventName, value);
-
+        
+        await SaveUserObject(userObject);
         await RunRulesEngine();
 
         return userObject.Telemetry.GetEventMetric(eventName);
+    }
+
+    /// <summary>
+    /// Saves the user's object to storage (local or cosmos).
+    /// </summary>
+    /// <param name="userObject"></param>
+    private async Task SaveUserObject(UserObject userObject)
+    {
+        if (_options!.LocalAchievementsOnly)
+        {
+            await _localStorage.SetItemAsync(AchievementContainerName, userObject);
+        }
+        else
+        {
+            await using var ctx = await _contextFactory.CreateDbContextAsync();
+            ctx.UserObjects!.Update(userObject);
+            await ctx.SaveChangesAsync();
+        }
     }
 }

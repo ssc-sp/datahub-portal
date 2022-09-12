@@ -9,6 +9,6 @@ public record UserObject
     
     public DatahubUserTelemetry Telemetry { get; set; } = new();
     
-    public IEnumerable<UserAchievement> UserAchievements { get; set; } =  new List<UserAchievement>();
+    public ICollection<UserAchievement> UserAchievements { get; set; } =  new List<UserAchievement>();
     
 }
