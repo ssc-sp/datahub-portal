@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Datahub.Achievements.Models;
 using RulesEngine.Models;
 
 namespace Datahub.Achievements;
@@ -6,6 +7,7 @@ namespace Datahub.Achievements;
 public class AchievementFactory
 {
     public const string AchievementWorkflowName = "Achievement Workflow";
+
 
     public Dictionary<string, Achievement>? Achievements { get; private set; }
 
@@ -20,7 +22,7 @@ public class AchievementFactory
     {
         
         var pathName = directoryPath ?? $"{Directory.GetCurrentDirectory()}/Achievements";
-        var files = Directory.GetFiles(pathName, "*.achievement.json");
+        var files = Directory.GetFiles(pathName, "*.achievement.json", SearchOption.AllDirectories);
         Achievements = new Dictionary<string, Achievement>();
         foreach (var fileData in files)
         {
@@ -39,14 +41,13 @@ public class AchievementFactory
     }
     private AchievementFactory() { }
     
-    public Workflow CreateWorkflow()
+    public static Workflow CreateWorkflow(IEnumerable<Achievement> achievements)
     {
-
         var rules = new List<Rule>();
-        if (Achievements == null)
+        if (achievements == null)
             throw new Exception("No achievements found");
 
-        foreach (var (code, achievement) in Achievements)
+        foreach (var achievement in achievements)
         {
             achievement.Rules.ForEach(rules.Add);
         }
