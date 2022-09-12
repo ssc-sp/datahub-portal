@@ -1,41 +1,82 @@
-# [UC001] New user and new project
-As a new user, I want to sign up my project for DataHub
-
+# [UC001] New User
+## Sequence Diagram
 ```mermaid
 sequenceDiagram
-    actor A as DataHub Admin
-    actor U as User
+    actor U as New User
     participant P as DataHub Portal
     participant F as Graph Function
 
-    U->>+P: /register/new
-    P->>P: insert registration request (requested)
-    P-->>U: notify pending
-    P-->>A: notify pending
-    deactivate P
-    activate A
+    U->>P: /register/new
+    P-->>U: show sign up page
 
-    
-    A->>-P: approve
-    activate P
-    P->>P: create project
-    P->>P: create storage request for project
+    U->>P: submit account info (email, password)
+    opt is GC email
+    P-->>U: request department info
+    U->>P: submit department info
+    end
+
     P->>+F: create user
-    F->>U: email notification
+    F->>U: email validation
     activate U
-    F->>-P: notify success
+    F-->>-P: notify success
+    P-->>+U: notify to confirm account
 
-    P->>P: set user as project admin
-    P->>P: update registration status (created) 
-    deactivate P
+    U->>-P: select email validation link
+    P->>F: confirm account
+    F-->>P: notify success
+    P-->>U: notify success
+```
+## Mockups
+![user sign up button](./images/user-sign-up-button.jpg)
+Sign-in button appears in top right of screen
 
-    U->>-P: login to portal
+![user registration](./images/user-information.jpg)
+A similar user registration form is shown
+
+![user registration gov](./images/user-information-gov.jpg)
+If email entered is a GC email, request department
+
+![email validation](./images/email-verification.webp)
+An email verification will be sent to the user
+
+# [UC002] Project Creation (GC Users only)
+As a **GC user**, I want to create a new project (Initiative)
+
+## Sequence Diagram
+```mermaid
+sequenceDiagram
+    actor U as User
+    participant P as DataHub Portal
+    actor D as DataHub Admin
+
+    U->>P: request new project with project name
     activate P
-    P->>-P: update registration status (logged in)
+    P->>P: provision limited project
+    P->>P: add user as admin to project
+    P-->>U: show limited project page
+    deactivate P
+    activate U
+    U->>P: submit DMP form
+    deactivate U
+    P->>D: request approval
+    D-->>P: approve
+    P->>P: provision full-access project
+    P-->>U: email notification
 ```
 
-# [UC002] New user and existing project
+## Mockups
+![new initiative](./images/create-new%20initative.jpg)
+A card for new project will be displayed, amongst an other projects the user has.
+
+The user will be required to enter the name of the project.
+
+![project unconfirmed page](./images/unconfirmed-project.jpg)
+Once the user fills out the name of the project, they will be required to fill out the DMP form before gaining full access.
+# [UC003] New user and existing project
+
 As a new user, I want to sign up to an existing project in DataHub
+
+## Sequence Diagram
 
 ```mermaid
 sequenceDiagram
@@ -74,29 +115,12 @@ sequenceDiagram
     P->>-P: update registration status (logged in)
 ```
 
-# [UC003] Existing user and new project
-As an existing user, I want to create a new project in DataHub
 
-```mermaid
-sequenceDiagram
-    actor U as User
-    participant P as DataHub Portal
-    actor D as DataHub Admin
 
-    U->>P: request new project
-    activate U
-    activate P
-    P->>+D: request approval
-    P-->>U: notify pending
-    deactivate U
-    D-->>-P: approve
-    P->>P: provision project
-    P->>P: add user as admin to project
-    P->>-U: email notification
-```
-
-# [UC003] Existing user and existing project
+# [UC004] Existing user and existing project
 As an existing user, I want to join an existing project in DataHub
+
+## Sequence Diagram
 
 ```mermaid
 sequenceDiagram
