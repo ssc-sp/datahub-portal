@@ -26,14 +26,6 @@
         <MudItem xs="8">
             <ProfileAchievements User="@_user" />
         </MudItem>
-        <MudItem xs="8">
-            <MudStack>
-                @foreach (var prop in _user.GetType().GetProperties())
-                {
-                        <MudText>@prop.Name: @prop.GetValue(_user)</MudText>
-                }
-            </MudStack>
-        </MudItem>
     </MudGrid>
 </MudContainer>
 
