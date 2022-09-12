@@ -11,8 +11,6 @@ public class AchievementContext : DbContext
 
     public DbSet<UserObject>? UserObjects { get; set; }
 
-    public DbSet<DatahubTelemetryEventMetric>? DatahubTelemetryEventMetrics { get; set; }
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
