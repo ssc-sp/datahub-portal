@@ -23,23 +23,23 @@ else
                     {
                         <li>
                             <DHLink Variant="h3" DataProject="@ProjectAcronym" LinkType="DatahubLinkType.PowerBIReport">
-                                <AeButton class="light">@Localizer["Open Power BI"]</AeButton>
+                                <MudButton Variant="Variant.Text" Color="Color.Primary">@Localizer["Open Power BI"]</MudButton>
                             </DHLink>
                         </li>
                     }
                     else if (_powerBiAccessRequested)
                     {
                         <li>
-                            <AeTypography class="light">@Localizer["Access Request is being reviewed"]</AeTypography>
+                            <MudText>@Localizer["Access Request is being reviewed"]</MudText>
                         </li>
                     }
                     else
                     {
                         <li>
-                            <AeTypography class="light">@Localizer["Access not authorized"]</AeTypography>
+                            <MudText> @Localizer["Access not authorized"]</MudText>
                         </li>
                         <li>
-                            <AeButton class="light" @onclick="@HandleRequestAccess" Disabled=@_isWorking>@Localizer["Request Access"]</AeButton>
+                            <MudButton @onclick="@HandleRequestAccess" Disabled=@_isWorking>@Localizer["Request Access"]</MudButton>
                             <SuccessIndicator @bind-IsLoading=@_isWorking @ref=@_accessReqInd />
                         </li>
                     }
@@ -50,13 +50,13 @@ else
                         <Authorized>
                             <li>
                                 <NavLink href="@($"/project/{ProjectAcronym}/powerbirequest")">
-                                    <AeButton class="light">@Localizer["Review PowerBI Request"]</AeButton>
+                                    <MudButton >@Localizer["Review PowerBI Request"]</MudButton>
                                 </NavLink>
                             </li>
                         </Authorized>
                         <NotAuthorized>
                             <li>
-                                <AeTypography class="light">@Localizer["Service Request is being reviewed"]</AeTypography>
+                                <MudButton>@Localizer["Service Request is being reviewed"]</MudButton>
                             </li>
                         </NotAuthorized>
                     </AuthorizeView>
@@ -64,7 +64,7 @@ else
                 else
                 {
                     <li>
-                        <AeButton class="light" @onclick="@HandleRequestService" Disabled=@_isWorking>@Localizer["Request Service Creation"]</AeButton>
+                        <MudButton @onclick="@HandleRequestService" Disabled=@_isWorking>@Localizer["Request Service Creation"]</MudButton>
                         <SuccessIndicator @bind-IsLoading=@_isWorking @ref=@_serviceReqInd />
                     </li>
                 }

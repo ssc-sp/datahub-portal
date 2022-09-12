@@ -165,9 +165,6 @@ $first-column-max-width: 1200px;
       grid-column: 1 / span 2;
       
       --grid-template-columns: 1fr 1fr;
-      --logo-width: 40px;
-      --logo-height: 60px;
-      --logo-margin-top: 0;
       
       --tool-grid-template-columns: var(--logo-width) 1fr;
       --tool-grid-template-rows: auto minmax(80px, auto) 1fr;
@@ -181,6 +178,8 @@ $first-column-max-width: 1200px;
 
       --title-font-size: 1.5rem;
       --title-margin-top: .5rem;
+
+      --tool-descrition-margin-top: .5rem;
       
       &.dense {
         --grid-template-columns: 1fr 1fr;
@@ -235,6 +234,7 @@ $first-column-max-width: 1200px;
           display: var(--tool-description-display);
           grid-column: 1 / span 2;
           grid-row: 2;
+          margin-top: var(--tool-descrition-margin-top);
         }
 
         .tool-actions {

@@ -20,7 +20,7 @@ else
                 {
                     <li>
                         <DHLink DataProject="@ProjectAcronym" DatabricksURL="@_project.Databricks_URL">
-                            <AeButton class="light">@Localizer["Open Azure Databricks"]</AeButton>
+                            <MudButton Variant="Variant.Text" Color="Color.Primary">@Localizer["Open Azure Databricks"]</MudButton>
                         </DHLink>
                     </li>
                 }
@@ -29,19 +29,19 @@ else
                     if (_databricksServiceRequested)
                     {
                         <li>
-                            <AeTypography class="access-text">@Localizer["Service Request is being reviewed"]</AeTypography>
+                            <MudText class="access-text">@Localizer["Service Request is being reviewed"]</MudText>
                         </li>
                     }
                     else
                     {
                         <li>
-                            <AeButton class="light" @onclick="@HandleRequestService">
+                            <MudButton Variant="Variant.Text" OnClick="@HandleRequestService" Color="Color.Primary">
                                 @if (_databricksServiceRequestPending)
                                 {
                                     <i class="fas fa-spinner-third pending"></i>
                                 }
                                 @Localizer["Request Service Creation"]
-                            </AeButton>
+                            </MudButton>
                         </li>
                     }
                 }

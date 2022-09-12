@@ -10,11 +10,11 @@
 
 @inherits HtmlElement
 
-<a class="@_classname" @onclick="Navigate" @attributes="@InputAttributesWithoutClass">@ChildContent</a>
+<a class="@_classname" @onclick="Navigate" @attributes="@InputAttributesWithoutClass" >@ChildContent</a>
 
 @code {
 
-    private string _classname => $"ae typography {Variant} a {_inputClass}";
+    private string _classname => $"{Variant} {_inputClass}";
 
     [Parameter]
     public DatahubLinkType LinkType { get; set; } = DatahubLinkType.Undefined;

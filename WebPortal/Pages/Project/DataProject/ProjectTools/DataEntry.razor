@@ -10,15 +10,13 @@ else
     <ToolCard Title=@Localizer["Data Entry"]
               Description=@Localizer["Start the Data Entry application enabled for this project"]>
         <Logo>
-            <div class="purple" style="width:180px">
-                <AeIcon class="fad fa-keyboard card-icon fa-xs"/>
-            </div>
+            <AeIcon class="fad fa-keyboard card-icon fa-3x"/>
         </Logo>
         <ToolActionsList>
             @if (!string.IsNullOrWhiteSpace(_project.WebForms_URL) && _webFormsAuthorized)
             {
                 <DHLink Variant="h3" DataProject="@ProjectAcronym" WebFormsURL="@_project.WebForms_URL">
-                    <AeButton>@Localizer["Open Data Entry Application"]</AeButton>                    
+                    <MudButton Variant="Variant.Text" Color="Color.Primary">@Localizer["Open Data Entry Application"]</MudButton>                    
                 </DHLink>
             }
             @if (!_webFormsAuthorized)
@@ -29,7 +27,7 @@ else
                 }
                 else
                 {
-                    <AeButton @onclick="@HandleRequestAccess">@Localizer["Request Access"]</AeButton>
+                    <MudButton @onclick="@HandleRequestAccess">@Localizer["Request Access"]</MudButton>
                 }
             }
 
