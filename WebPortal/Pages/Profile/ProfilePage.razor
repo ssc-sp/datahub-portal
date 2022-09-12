@@ -21,10 +21,10 @@
             <ProfileTitle User="@_user" />
         </MudItem>
         <MudItem xs="8">
-            <ProfileAchievements User="@_user" />
+            <ProfileProjects />
         </MudItem>
         <MudItem xs="8">
-            <ProfileProjects Projects="@_projects"/>
+            <ProfileAchievements User="@_user" />
         </MudItem>
         <MudItem xs="8">
             <MudStack>
@@ -40,15 +40,12 @@
 @code {
 
     private User _user;
-    private List<Datahub_Project> _projects = new();
 
     private string _imageStyle;
 
     protected override void OnInitialized()
     {
         base.OnInitialized();
-
-        var x = Icons.Filled.Celebration;
 
         _imageStyle = new StyleBuilder()
             .AddStyle("background", string.Join("linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, black 100%)",
@@ -63,12 +60,6 @@
     {
         await base.OnInitializedAsync();
         _user = await _userInformationService.GetUserAsync();
-
-        await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
-        _projects = await dbContext.Project_Users
-            .Where(u => u.User_ID == _user.Id)
-            .Select(u => u.Project)
-            .ToListAsync();
     }
 
     private string GetBackground()
