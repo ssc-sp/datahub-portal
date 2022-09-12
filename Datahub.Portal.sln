@@ -70,6 +70,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Achievements", "Dat
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Achievements.Test", "Datahub.Achievements.Test\Datahub.Achievements.Test.csproj", "{72C2A522-FAC2-439B-97D2-B9CDF289BE8A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Datahub.CatalogSearch", "Datahub.CatalogSearch\Datahub.CatalogSearch.csproj", "{304A5D8A-8665-424B-8DD8-23D65753F645}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Datahub.CatalogSearch.Tests", "Datahub.CatalogSearch.Tests\Datahub.CatalogSearch.Tests.csproj", "{EE5EC583-4088-4D50-99A4-C3EAB0C48811}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -151,6 +155,14 @@ Global
 		{72C2A522-FAC2-439B-97D2-B9CDF289BE8A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{72C2A522-FAC2-439B-97D2-B9CDF289BE8A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{72C2A522-FAC2-439B-97D2-B9CDF289BE8A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{304A5D8A-8665-424B-8DD8-23D65753F645}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{304A5D8A-8665-424B-8DD8-23D65753F645}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{304A5D8A-8665-424B-8DD8-23D65753F645}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{304A5D8A-8665-424B-8DD8-23D65753F645}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EE5EC583-4088-4D50-99A4-C3EAB0C48811}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EE5EC583-4088-4D50-99A4-C3EAB0C48811}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EE5EC583-4088-4D50-99A4-C3EAB0C48811}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EE5EC583-4088-4D50-99A4-C3EAB0C48811}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -168,8 +180,8 @@ Global
 		{C7E9370C-84AF-461F-A073-43AD43B3AF21} = {99B35301-CA50-489C-B1BF-E77559140B1E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		RESX_ConfirmAddLanguageFile = True
-		RESX_AutoCreateNewLanguageFiles = True
 		SolutionGuid = {9DC4B901-16FF-4FF2-9ED6-B286EA17048E}
+		RESX_AutoCreateNewLanguageFiles = True
+		RESX_ConfirmAddLanguageFile = True
 	EndGlobalSection
 EndGlobal
