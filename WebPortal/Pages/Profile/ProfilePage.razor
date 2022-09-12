@@ -3,13 +3,10 @@
 @inject IUserInformationService _userInformationService
 @inject IConfiguration _configuration
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
-@inject AchievementService _achievementsService
-
 
 @using Microsoft.Graph
 @using MudBlazor.Utilities
 @using Datahub.Portal.Pages.Profile.Sections
-@using Datahub.Achievements
 
 @if (_user is null)
 {
@@ -24,10 +21,10 @@
             <ProfileTitle User="@_user" />
         </MudItem>
         <MudItem xs="8">
-            <ProfileAchievements User="@_user" />
+            <ProfileProjects />
         </MudItem>
         <MudItem xs="8">
-            <ProfileProjects Projects="@_projects"/>
+            <ProfileAchievements User="@_user" />
         </MudItem>
         <MudItem xs="8">
             <MudStack>
@@ -42,11 +39,7 @@
 
 @code {
 
-    [CascadingParameter]
-    public DatahubUserTelemetry DatahubUserTelemetry { get; set; }
-    
     private User _user;
-    private List<Datahub_Project> _projects = new();
 
     private string _imageStyle;
 
@@ -67,23 +60,6 @@
     {
         await base.OnInitializedAsync();
         _user = await _userInformationService.GetUserAsync();
-
-        await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
-        _projects = await dbContext.Project_Users
-            .Where(u => u.User_ID == _user.Id)
-            .Select(u => u.Project)
-            .ToListAsync();
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        await base.OnAfterRenderAsync(firstRender);
-        
-        if (firstRender)
-        {
-            DatahubUserTelemetry.ViewedTheirProfile = true;
-            await _achievementsService.RunRulesEngine(DatahubUserTelemetry);
-        }
     }
 
     private string GetBackground()
