@@ -78,12 +78,6 @@
     }
 
     private List<string> headers = new()
-    //{
-    //    "Power BI Workspace",
-    //    "English_Power_BI_Report",
-    //    "French_Power_BI_Report",
-    //    "External_Access"
-    //};
     {
         "Power BI Workspace",
         "Power BI Report",
@@ -154,18 +148,26 @@
 
 
 
+    public async Task CloseDialog(bool reload)
+    {
+        var refreshTask = reload ? RefreshTable() : Task.CompletedTask;
+        await UiControls.ToggleModal();
+        await refreshTask;
+    }
 
-
-    public async void RefreshTable()
+    public async Task RefreshTable()
     {
         _powerBiReports = await PowerBiDataService.GetReportsForProjectWithExternalReportInfo(projectAcronym, IncludeSandbox);
-        StateHasChanged();
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task OpenMetadataEditor(PowerBi_Report r)
     {
-        RenderFragment bloomp = @<div>@r.Report_Name</div>;
-        await UiControls.ToggleModal(@<RenderFragmentModal Fragment=bloomp /> );
+        RenderFragment reportEditor = @<Datahub.Portal.Pages.PowerBI.PowerBiReportMetadataEditor 
+            PowerBiReportId=@r.Report_ID 
+            ProjectAcronym=@projectAcronym 
+            OnCloseDialog=@CloseDialog />;
+        await UiControls.ToggleModal(@<RenderFragmentModal Fragment=reportEditor />);
     }
 
     private RenderFragment ExternalReport(PowerBi_Report r) =>
