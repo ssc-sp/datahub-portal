@@ -1,35 +1,35 @@
 @using Datahub.Achievements.Models
+@using MudBlazor.Utilities
 @inject AchievementService _achievementService;
 
-<MudStack>
+<MudStack Class="my-4">
     <MudStack Row AlignItems="AlignItems.Baseline">
-        <MudText Typo="Typo.h6">@Localizer["Achievements"]</MudText>
-        <MudLink Href="/profile" Typo="Typo.caption">@Localizer["View all"]</MudLink>
+        <MudText Typo="Typo.h5">@Localizer["Achievements"]</MudText>
     </MudStack>
-    <MudGrid>
+    <MudStack>
         @if (_achievements != null)
         {
             @foreach (var userAchievement in _achievements
                 .OrderByDescending(a => a.Earned)
                 .ThenBy(a => a.Achievement?.Code))
             {
-                <MudItem xs="1" Class="d-flex justify-center">
-                    <MudTooltip Placement="Placement.Top">
-                        <ChildContent>
-                            <MudIconButton Color="@(userAchievement.Earned ? Color.Secondary : Color.Default)" Icon="@userAchievement!.Achievement!.Icon" aria-label="@userAchievement!.Achievement!.Name"/>
-                        </ChildContent>
-                        <TooltipContent>
-                            <MudStack AlignItems="AlignItems.Center" Class="pa-2" Spacing="0">
-                                <MudText Style="text-transform: uppercase" Typo="Typo.h6">@userAchievement!.Achievement!.Name</MudText>
-                                <MudText Typo="Typo.caption">@userAchievement!.Date?.ToString("dd-MMM-yyyy")</MudText>
-                                <MudText Typo="Typo.body2">@userAchievement!.Achievement!.Description</MudText>
-                            </MudStack>
-                        </TooltipContent>
-                    </MudTooltip>
-                </MudItem>
+                <MudCard Outlined Style="@(userAchievement.Earned ? _achievementEarnedStyle : _achievementNotEarnedStyle)">
+                    <MudCardHeader>
+                        <CardHeaderAvatar>
+                            <MudIcon Size="Size.Large" Color="@(userAchievement.Earned ? Color.Secondary : Color.Default)" Icon="@userAchievement!.Achievement!.Icon"/>
+                        </CardHeaderAvatar>
+                        <CardHeaderContent>
+                            <MudText Typo="Typo.h6">@userAchievement.Achievement?.Name</MudText>
+                            <MudText Typo="Typo.caption">@userAchievement!.Date?.ToString("dd-MMM-yyyy")</MudText>
+                        </CardHeaderContent>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <MudText Typo="Typo.body2">@userAchievement.Achievement?.Description</MudText>
+                    </MudCardContent>
+                </MudCard>
             }
         }
-    </MudGrid>
+    </MudStack>
 </MudStack>
 
 @code {
@@ -38,6 +38,8 @@
     public Microsoft.Graph.User User { get; set; }
 
     private IEnumerable<UserAchievement> _achievements;
+    private string _achievementEarnedStyle;
+    private string _achievementNotEarnedStyle;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -48,6 +50,19 @@
             _achievements = await _achievementService.GetUserAchievements();
             StateHasChanged();
         }
+    }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        _achievementEarnedStyle = new StyleBuilder()
+            .AddStyle("background-color", "var(--mud-palette-secondary)")
+            .AddStyle("color", "var(--mud-palette-on-secondary)")
+            .Build();
+        
+        _achievementNotEarnedStyle = new StyleBuilder()
+            .AddStyle("opacity", "0.5")
+            .Build();
     }
 
 }
