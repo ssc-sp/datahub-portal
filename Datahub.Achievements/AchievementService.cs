@@ -19,7 +19,7 @@ public class AchievementService
     private readonly ILogger<AchievementService> _logger;
     private readonly ILocalStorageService _localStorage;
     private readonly IDbContextFactory<AchievementContext> _contextFactory;
-    
+
     private string? _userId;
 
     public AchievementService(
@@ -41,7 +41,7 @@ public class AchievementService
             AchievementEarned?.Invoke(this, args);
         }
     }
-    
+
     /// <summary>
     /// Ensures that the user has the specified record for their achievements and that the scoped service is tied to the user.
     /// </summary>
@@ -49,7 +49,7 @@ public class AchievementService
     public async Task InitializeAchievementServiceForUser(string? userId)
     {
         _userId = userId ?? throw new ArgumentNullException(nameof(userId));
-        
+
         UserObject? userObject;
 
         if (_options!.LocalAchievementsOnly)
@@ -78,51 +78,49 @@ public class AchievementService
         {
             return new List<RuleResultTree>();
         }
-        
+
         var userObject = await GetUserObject();
 
         var achievementList = userObject.UserAchievements
             .Select(u => u.Achievement)
-            .ToList(); 
+            .ToList();
 
         var rulesEngineSettings = new ReSettings { CustomTypes = new[] { typeof(Utils) } };
-        var rulesEngine = new RulesEngine.RulesEngine(new[] { AchievementFactory.CreateWorkflow(achievementList!) }, _logger, rulesEngineSettings);
+        var workflows = AchievementFactory.CreateWorkflow(achievementList!);
+        var rulesEngine = new RulesEngine.RulesEngine(new [] {workflows}, _logger, rulesEngineSettings);
+        
+        // var result = await rulesEngine.ExecuteActionWorkflowAsync().ExecuteAsync(userObject);
         var response =
-            await rulesEngine.ExecuteAllRulesAsync(AchievementFactory.AchievementWorkflowName, userObject.Telemetry );
+            await rulesEngine.ExecuteAllRulesAsync(AchievementFactory.AchievementWorkflowName, userObject.Telemetry);
 
-        response.OnSuccess((successEvent) =>
+        foreach (var userAchievement in from ruleResultTree in response 
+                                        where ruleResultTree.IsSuccess 
+                                        select userObject.UserAchievements
+                                            .FirstOrDefault(u => u.Code == ruleResultTree.Rule.SuccessEvent && u.Earned == false) 
+                                        into userAchievement 
+                                        where userAchievement is not null 
+                                        select userAchievement)
         {
-            var userAchievement = userObject.UserAchievements.FirstOrDefault(u => u.Code == successEvent);
-            // check for existing achievements
-            if (userAchievement?.Earned ?? false)
-            {
-                return;
-            }
-
             // if it's a new one then save
-            Task.Run(async () =>
+            userAchievement!.Date = DateTime.UtcNow;
+            if (_options!.LocalAchievementsOnly)
             {
-                userAchievement!.Date = DateTime.UtcNow;
-                
-                if (_options!.LocalAchievementsOnly)
-                {
-                    await _localStorage.SetItemAsync(AchievementContainerName, userObject);
-                }
-                else
-                {
-                    await using var ctx = await _contextFactory.CreateDbContextAsync();
-                    ctx.UserObjects!.Update(userObject);
-                    await ctx.SaveChangesAsync();
-                }
-            });
-
+                await _localStorage.SetItemAsync(AchievementContainerName, userObject);
+            }
+            else
+            {
+                await using var ctx = await _contextFactory.CreateDbContextAsync();
+                ctx.UserObjects!.Update(userObject);
+                await ctx.SaveChangesAsync();
+            }
+            
             // and raise the event
             OnAchievementEarned(new AchievementEarnedEventArgs()
             {
                 UserId = _userId,
-                Achievement = achievementList.FirstOrDefault(a => a!.Code == successEvent)
+                Achievement = userAchievement.Achievement
             });
-        });
+        }
 
         return response;
     }
@@ -143,7 +141,7 @@ public class AchievementService
                 Achievement = kvp.Value,
             })
             .ToList();
-        
+
         userObject ??= new UserObject
         {
             UserId = _userId,
@@ -153,12 +151,12 @@ public class AchievementService
             },
         };
         userObject.UserAchievements = emptyAchievements;
-        
+
         if (_options is { LocalAchievementsOnly: true })
         {
             var exists = await _localStorage.GetItemAsync<UserObject>(AchievementContainerName);
             if (exists is not null) return exists;
-            
+
             await _localStorage.SetItemAsync(AchievementContainerName, userObject);
         }
         else
@@ -166,25 +164,26 @@ public class AchievementService
             await using var ctx = await _contextFactory.CreateDbContextAsync();
             var exists = await ctx.UserObjects!.FirstOrDefaultAsync(u => u.UserId == _userId);
             if (exists is not null) return exists;
-            
+
             await ctx.UserObjects!.AddAsync(userObject);
             await ctx.SaveChangesAsync();
         }
 
         return userObject;
     }
-    
+
     /// <summary>
     /// Retrieves the user's object from storage.
     /// </summary>
     /// <returns>The root object that holds all the user's achievement information</returns>
     private async Task<UserObject> GetUserObject()
     {
-        if(_userId is null)
+        if (_userId is null)
         {
-            throw new InvalidOperationException("User ID not set, please call InitializeAchievementServiceForUser first.");
+            throw new InvalidOperationException(
+                "User ID not set, please call InitializeAchievementServiceForUser first.");
         }
-        
+
         UserObject? userObject;
         if (_options!.LocalAchievementsOnly)
         {
@@ -200,7 +199,7 @@ public class AchievementService
         {
             return await InitializeEmptyAchievements(userObject);
         }
-        
+
         return userObject;
     }
 
@@ -212,12 +211,12 @@ public class AchievementService
     {
         return (await GetUserObject()).UserAchievements.ToList();
     }
-    
+
     public async Task<int> AddOrIncrementTelemetryEvent(string eventName, int value)
     {
         var userObject = await GetUserObject();
         userObject.Telemetry.AddOrIncrementEventMetric(eventName, value);
-        
+
         await SaveUserObject(userObject);
         await RunRulesEngine();
 

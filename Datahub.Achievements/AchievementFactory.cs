@@ -20,7 +20,6 @@ public class AchievementFactory
 
     private async Task InitializeAchievements(string? directoryPath = null)
     {
-        
         var pathName = directoryPath ?? $"{Directory.GetCurrentDirectory()}/Achievements";
         var files = Directory.GetFiles(pathName, "*.achievement.json", SearchOption.AllDirectories);
         Achievements = new Dictionary<string, Achievement>();
@@ -59,6 +58,28 @@ public class AchievementFactory
         };
 
         return achievementWorkflow;
+    }
+    
+    public static Workflow[] CreateWorkflows(IEnumerable<Achievement> achievements)
+    {
+        if (achievements == null)
+            throw new Exception("No achievements found");
+
+        var workflows = new List<Workflow>();
+
+        foreach (var achievement in achievements)
+        {
+            var rules = new List<Rule>();
+            achievement.Rules.ForEach(rules.Add);
+            var workflow = new Workflow
+            {
+                WorkflowName = achievement.Code,
+                Rules = rules
+            };
+            workflows.Add(workflow);
+        }
+
+        return workflows.ToArray();
     }
     
     public Achievement FromCode(string code)

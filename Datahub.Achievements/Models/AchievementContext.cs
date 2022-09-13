@@ -22,7 +22,7 @@ public class AchievementContext : DbContext
             .OwnsMany(u => u.UserAchievements)
             .OwnsOne(a => a.Achievement)
             .Property(a => a.RuleExpressions)
-            .HasConversion(v => string.Join(',', v!),
-                v => v.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList());
+            .HasConversion(v => string.Join(';', v!),
+                v => v.Split(';', StringSplitOptions.RemoveEmptyEntries).ToList());
     }
 }

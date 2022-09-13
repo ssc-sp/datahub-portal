@@ -9,7 +9,7 @@ public static class Utils
     {
         var regex = new Regex(regexPattern);
         return visitedUrls
-            .Where(e => regex.IsMatch(e.Name))
+            .Where(e => regex.IsMatch(e.Name!))
             .Sum(e => e.Value);
     }
     
