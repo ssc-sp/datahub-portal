@@ -23,7 +23,7 @@
 else
 {
     @*Allows for component to be wrapped in NavLink or DHLink*@
-    <div Disabled="Disabled" @onclick="@OnClick" class="@getButtonClass()">
+    <div @onclick="@OnClick" class="@getButtonClass()">
 
         @if (LinkType == LinkType.Pending)
         {
