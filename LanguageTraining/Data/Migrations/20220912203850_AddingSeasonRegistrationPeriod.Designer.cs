@@ -4,6 +4,7 @@ using Datahub.Portal.Data.LanguageTraining;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Datahub.Portal.Migrations
 {
     [DbContext(typeof(LanguageTrainingDBContext))]
-    partial class LanguageTrainingDBContextModelSnapshot : ModelSnapshot
+    [Migration("20220912203850_AddingSeasonRegistrationPeriod")]
+    partial class AddingSeasonRegistrationPeriod
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -224,9 +226,6 @@ namespace Datahub.Portal.Migrations
                     b.Property<string>("Training_Type")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("Year_For_Language_Training")
-                        .HasColumnType("int");
 
                     b.HasKey("Application_ID");
 
