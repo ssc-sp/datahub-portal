@@ -108,6 +108,4 @@ public class AchievementFetchTests
         Assert.That(result.Count(r => r.Earned),
             Is.EqualTo(_userObject.UserAchievements.Count(r => r.Earned)));
     }
-
-
 }
