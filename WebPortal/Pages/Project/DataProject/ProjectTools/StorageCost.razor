@@ -1,0 +1,27 @@
+﻿@if (ProjectAcronym is null)
+{
+        <ToolCard Loading/>
+}
+else
+{
+        <ToolCard
+        Title=@Localizer["Storage Cost Estimator"]
+          Description="@Localizer["Looking for storage costs? Use the Storage Cost Estimator to estimate your storage needs."]">
+            <Logo>
+            <i class="fad fa-truck-loading fa-2x" />
+            </Logo>
+            <ToolActionsList>
+                <DHLink LinkType="DatahubLinkType.StorageCostEstimator">
+                    <MudButton Variant="Variant.Text" Color="Color.Primary">
+                        @Localizer["Open"]
+                    </MudButton>
+                </DHLink>
+            </ToolActionsList>
+        </ToolCard>
+}
+
+
+@code {
+    [CascadingParameter(Name = "ProjectAcronym")]
+    public string ProjectAcronym { get; set; }
+}

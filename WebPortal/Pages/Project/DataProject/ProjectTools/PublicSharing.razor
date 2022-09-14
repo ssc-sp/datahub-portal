@@ -12,18 +12,12 @@ else
         Title=@Localizer["PROJECT-PAGE.PUBLIC-SHARING-CARD.Title"]
         Description=@Description>
         <Logo>
-            <div class="blue" style="width:180px">
-                <AeIcon class="fad fa-file-alt card-icon fa-xs"/>
-            </div>
+            <i class="fad fa-file-alt card-icon fa-2x"/>
         </Logo>
         <ToolActionsList>
-             <ul>
-                <li>
-                    <DHLink Variant="h3" DataProject="@ProjectAcronym" LinkType="DatahubLinkType.DataSharingDashboard">
-                        <AeButton class="light">@Localizer["PROJECT-PAGE.PUBLIC-SHARING-CARD.Title"]</AeButton>
-                    </DHLink>
-                </li>
-             </ul>
+            <DHLink Variant="h3" DataProject="@ProjectAcronym" LinkType="DatahubLinkType.DataSharingDashboard">
+                <MudButton Variant="Variant.Text" Color="Color.Primary">@Localizer["PROJECT-PAGE.PUBLIC-SHARING-CARD.Title"]</MudButton>
+            </DHLink>
         </ToolActionsList>
     </ToolCard>
 }
