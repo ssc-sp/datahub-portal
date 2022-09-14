@@ -38,64 +38,36 @@ public class AchievementSaveTests
         var mockStorage = new Mock<ILocalStorageService>();
         var mockCosmosDb = new Mock<IDbContextFactory<AchievementContext>>();
 
-        var optionsBuilder =
-            new DbContextOptionsBuilder<AchievementContext>().UseInMemoryDatabase("LocalOptionsHitLocalStorageTest");
-        var achievementContext = new AchievementContext(optionsBuilder.Options);
-
         var achievementService =
             new AchievementService(mockLogger.Object, mockCosmosDb.Object, mockStorage.Object, LocalOptions);
         await achievementService.InitializeAchievementServiceForUser(UserId);
 
-        const string eventName = "right";
-        const string incorrectEventName = "wrong";
-
-        mockStorage.Setup(s => s.GetItemAsync<UserObject>(It.IsAny<string>(), null))
-            .ReturnsAsync(new UserObject
+        mockStorage.Setup(s =>
+                s.SetItemAsync(It.IsAny<string>(), It.IsAny<UserObject>(), CancellationToken.None))
+            .Callback<string, UserObject, CancellationToken?>((_, _, _) =>
             {
-                UserId = UserId,
-                Telemetry = new DatahubUserTelemetry { UserId = UserId },
-                UserAchievements = new List<UserAchievement>
-                {
-                    new() { Achievement = new Achievement { Code = eventName } }
-                }
+                Assert.Pass();
+            });
+        
+        mockCosmosDb.Setup(s => s.CreateDbContextAsync(CancellationToken.None))
+            .Callback<CancellationToken?>(_ =>
+            {
+                Assert.Fail();
             });
 
-        mockCosmosDb.Setup(s => s.CreateDbContextAsync(CancellationToken.None))
-            .ReturnsAsync(achievementContext);
-
-        await achievementContext.UserObjects!.AddAsync(new UserObject
-        {
-            UserId = UserId,
-            Telemetry = new DatahubUserTelemetry { UserId = UserId },
-            UserAchievements = new List<UserAchievement>
-            {
-                new() { Achievement = new Achievement { Code = incorrectEventName } }
-            }
-        });
-        await achievementContext.SaveChangesAsync();
-
-        var userAchievements = await achievementService.GetUserAchievements();
-        Assert.That(userAchievements, Is.Not.Empty);
-        Assert.That(userAchievements.All(u => u.Code == eventName), Is.True);
+        await achievementService.GetUserAchievements();
     }
 
     [Test]
     public async Task NonLocalOptionsHitCosmosDbStorageTest()
     {
-        const string eventName = "right";
-        const string incorrectEventName = "wrong";
-        
         var mockLogger = new Mock<ILogger<AchievementService>>();
         var mockStorage = new Mock<ILocalStorageService>();
-        mockStorage.Setup(s => s.GetItemAsync<UserObject>(It.IsAny<string>(), null))
-            .ReturnsAsync(new UserObject
+        mockStorage.Setup(s =>
+                s.SetItemAsync(It.IsAny<string>(), It.IsAny<UserObject>(), CancellationToken.None))
+            .Callback<string, UserObject, CancellationToken?>((_, _, _) =>
             {
-                UserId = UserId,
-                Telemetry = new DatahubUserTelemetry { UserId = UserId },
-                UserAchievements = new List<UserAchievement>
-                {
-                    new() { Achievement = new Achievement { Code = incorrectEventName } }
-                }
+                Assert.Fail();
             });
 
         var optionsBuilder =
@@ -105,23 +77,21 @@ public class AchievementSaveTests
         {
             UserId = UserId,
             Telemetry = new DatahubUserTelemetry { UserId = UserId },
-            UserAchievements = new List<UserAchievement>
-            {
-                new() { Achievement = new Achievement { Code = eventName } }
-            }
+            UserAchievements = new List<UserAchievement>()
         });
         await achievementContext.SaveChangesAsync();
         
         var mockCosmosDb = new Mock<IDbContextFactory<AchievementContext>>();
         mockCosmosDb.Setup(s => s.CreateDbContextAsync(CancellationToken.None))
-            .ReturnsAsync(() => new AchievementContext(optionsBuilder.Options));
+            .Callback<CancellationToken?>(_ =>
+            {
+                Assert.Pass();
+            });
         
         var achievementService =
             new AchievementService(mockLogger.Object, mockCosmosDb.Object, mockStorage.Object, NotLocalOptions);
         await achievementService.InitializeAchievementServiceForUser(UserId);
 
-        var userAchievements = await achievementService.GetUserAchievements();
-        Assert.That(userAchievements, Is.Not.Empty);
-        Assert.That(userAchievements.All(u => u.Code == eventName), Is.True);
+        await achievementService.GetUserAchievements();
     }
 }
