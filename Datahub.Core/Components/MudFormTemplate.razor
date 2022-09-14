@@ -64,12 +64,14 @@ else
                 </MudTable>
             </AuthorizeView>
 
-        
-            <AeFlex id="buttonBar">
-                <div class="icon-container" style="margin-top: 10px; margin-left: 5px;">
+            @if (Metadata.IsAddEnabled)
+            {
+                <AeFlex id="buttonBar">
+                    <div class="icon-container" style="margin-top: 10px; margin-left: 5px;">
                     <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="CreateNewRecord">@_addButton</MudButton>
-                </div>        
-            </AeFlex>
+                    </div>        
+                </AeFlex>
+            }
             @if (!string.IsNullOrWhiteSpace(Metadata.TableDisclaimer))
             {
                 <AeFlex>
@@ -163,8 +165,7 @@ else
     [Parameter]
     public bool DisableFirstSort { get; set; }
     [Parameter]
-    public Dictionary<string, Func<T, string>> SortAccessors { get; set; }
-
+    public Dictionary<string, Func<T, string>> SortAccessors { get; set; }    
 
     //Mud variables/properties
     private IEnumerable<T> pagedData;

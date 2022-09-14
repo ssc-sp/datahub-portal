@@ -51,9 +51,11 @@ namespace Datahub.Portal.Data.Finance
         public DateTime End_Date { get; set; }
 
         [AeFormCategory("Salary Data")]
+        [DisplayFormat(DataFormatString = "C2")]
         public double? FTE { get; set; }
 
         [AeFormCategory("Salary Data")]
+        [DisplayFormat(DataFormatString = "C2")]
         public double? Salary { get; set; }
 
         [AeFormCategory("Planned Staffing")]
