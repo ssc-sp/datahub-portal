@@ -16,10 +16,14 @@ else
         <ToolActionsList>
             <MudStack Row>
                 <DHLink LinkType="DatahubLinkType.Storage">
-                    <MudButton Color="Color.Primary">@Localizer["Manage Devices"]</MudButton>
+                    <ToolActionButton LinkType="LinkType.Internal">
+                        @Localizer["Manage Devices"]
+                    </ToolActionButton>
                 </DHLink>
                 <DHLink LinkType="DatahubLinkType.Storage">
-                    <MudButton Color="Color.Primary">@Localizer["Connect New Device"]</MudButton>
+                    <ToolActionButton LinkType="LinkType.Internal">
+                        @Localizer["Connect New Device"]
+                    </ToolActionButton>
                 </DHLink>
             </MudStack>
         </ToolActionsList>

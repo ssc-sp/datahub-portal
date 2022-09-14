@@ -21,7 +21,9 @@ else
                 {
                     <li>
                         <DHLink DataProject="@ProjectAcronym" LinkType="DatahubLinkType.Storage">
-                            <MudButton Variant="Variant.Text" Color="Color.Primary">@Localizer["View Storage"]</MudButton>
+                            <ToolActionButton LinkType="LinkType.Internal">
+                                @Localizer["View Storage"]
+                            </ToolActionButton>
                         </DHLink>
                     </li>
                 }
@@ -35,13 +37,9 @@ else
                     }
                     else
                     {
-                        <MudButton OnClick="@HandleRequestService">
-                            @if (_storageServiceRequestPending)
-                            {
-                                <i class="fas fa-spinner-third pending"></i>
-                            }
+                        <ToolActionButton OnClick="@HandleRequestService" LinkType="_storageServiceRequestPending ? LinkType.Pending : LinkType.Request">
                             @Localizer["Request Service Creation"]
-                        </MudButton>
+                        </ToolActionButton>
                     }
                 }
             </ul>
