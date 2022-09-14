@@ -35,32 +35,39 @@ namespace Datahub.Portal.Data.Finance
         public string Key_Driver { get; set; }
 
         [AeFormCategory("Fund Information")]
+        [DisplayFormat(DataFormatString = "C2")]
         public double? Budget { get; set; }
 
-
+        [DisplayFormat(DataFormatString = "C2")]
         [AeFormCategory("Salary Forecast")]
         public double? SFT_Forecast { get; set; }
 
-
+        [DisplayFormat(DataFormatString = "C2")]
         [AeFormCategory("O&M Forecast")]
         public double? THC { get; set; }
         [AeFormCategory("O&M Forecast")]
+        [DisplayFormat(DataFormatString = "C2")]
         public double? Other_OnM { get; set; }
 
-
+        [DisplayFormat(DataFormatString = "C2")]
         [AeFormCategory("Capital Forecast")]
         public double? Personel { get; set; }
         [AeFormCategory("Capital Forecast")]
+        [DisplayFormat(DataFormatString = "C2")]
         public double? Non_Personel { get; set; }
 
+        [DisplayFormat(DataFormatString = "C2")]
         [AeFormCategory("G&C Forecast")]
         public double? Grants { get; set; }
         [AeFormCategory("G&C Forecast")]
+        [DisplayFormat(DataFormatString = "C2")]
         public double? Contribution { get; set; }
 
+
+        [DisplayFormat(DataFormatString = "C2")]
         [AeFormCategory("Total Forecast")]
         [Editable(false)]
-        public double? Total_Forecast => SFT_Forecast + THC + Other_OnM + Personel + Non_Personel + Grants + Contribution;
+        public double? Total_Forecast => (SFT_Forecast ?? 0) + (THC ?? 0)+ (Other_OnM ?? 0) + (Personel ?? 0) + (Non_Personel ?? 0) + (Grants ?? 0) + (Contribution ?? 0);
 
         [AeFormCategory("Total Forecast")]
         public string AdditionalNotes { get; set; }

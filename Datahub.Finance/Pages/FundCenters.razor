@@ -79,20 +79,21 @@
                 return false;
             }).ToList();
         }
-        _formMetadata.Header = "Finance Forms";
-        _formMetadata.SubHeader = "Fund Centers";
+        _formMetadata.Header = "Integrated Business Planning - Financial Information";
+        _formMetadata.SubHeader = "FC Details";
         _formMetadata.DataSet = fundcenters;
         _formMetadata.AccessorFunctions = accessorFunctions;
         _formMetadata.NavigateUrls = buttonFunctions;
         _formMetadata.Headers = headers;
         _formMetadata.GridTemplateColumns = "3fr 6fr 6fr 6fr 3fr";
         _formMetadata.IsSubmitEnabled = true;
+        _formMetadata.IsAddEnabled = false;
     }
 
     private List<Func<FundCenter, (string, string)>> buttonFunctions = new List<Func<FundCenter, (string, string)>>
     {
-        new Func<FundCenter, (string, string)>(p => { return ("Forecasts", $"/finance/forecasts/{p.FundCenter_ID.ToString()}"); }), 
-        new Func<FundCenter, (string, string)>(p => { return ("Summary Forecasts", $"/finance/summaryforecasts/{p.FundCenter_ID.ToString()}"); }) 
+        new Func<FundCenter, (string, string)>(p => { return ("SFT Details", $"/finance/forecasts/{p.FundCenter_ID.ToString()}"); }), 
+        new Func<FundCenter, (string, string)>(p => { return ("Forecasts by Vote", $"/finance/summaryforecasts/{p.FundCenter_ID.ToString()}"); }) 
     };
 
     private async Task GoToNextSheet()
