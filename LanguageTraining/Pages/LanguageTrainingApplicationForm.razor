@@ -10,6 +10,7 @@
 @inject IDatahubAuditingService AuditingService
 @page "/languagetraining/applications"
 @page "/languagetraining/applications/{AppId}"
+@using Datahub.LanguageTraining.Data
 
 <Datahub.Core.Components.FormTemplate 
         T="LanguageTrainingApplication"
@@ -33,6 +34,7 @@
         </div>
     </AeCard>
 </AuthorizeView>
+
 @code {
 
     // IP: please enable nullable and review every warning it produces, 
@@ -55,6 +57,8 @@
     private List<string> headers;
     private bool _isNewApp;
     private bool _isFrench;
+    private SeasonRegistrationPeriod _currentPeriod;
+    private SeasonRegistrationPeriod _nextPeriod;
 
     private async void OpenExcel()
     {
@@ -74,14 +78,19 @@
         };
         _formMetadata = new();
         await LoadApps(string.Empty);
-        PrepareMetadata();
 
+        var date = DateTime.Now.Date;
+        _currentPeriod = Context.SeasonRegistrationPeriods.FirstOrDefault(e => e.Open_DT <= date && date <= e.Close_DT);
+        _nextPeriod = Context.SeasonRegistrationPeriods.FirstOrDefault(e => e.Open_DT > date);
+
+        PrepareMetadata();
     }
 
     private void PrepareMetadata()
     {
         var baseuri = NavigationManager.BaseUri;
         _formMetadata.Header = "NRCan Language Training Application Form";
+        _formMetadata.SubHeader = GetFormSubHeader();
         _formMetadata.TableRoles = "default";
         _formMetadata.DataSet = _languageTrainingApplications;
         _formMetadata.UserId = _user.Id;
@@ -96,8 +105,44 @@
         var introfile = _isFrench ? "FormIntroFr.md" : "FormIntro.md";
         var footerfile = _isFrench ? "FormFooterWarningFr.md" : "FormFooterWarning.md";
         _formMetadata.MarkDownContent = File.ReadAllLines($@"Pages\Forms\LanguageTraining\{introfile}").ToList();
-        _formMetadata.MarkDownContentFooter = File.ReadAllLines($@"Pages\Forms\LanguageTraining\{footerfile}").ToList();    
+        _formMetadata.MarkDownContentFooter = File.ReadAllLines($@"Pages\Forms\LanguageTraining\{footerfile}").ToList();
+        _formMetadata.DisableNew = _currentPeriod is null;
     }
+
+    private string GetFormSubHeader()
+    {
+        if (_currentPeriod is null)
+        {
+            if (_nextPeriod is null)
+                return DataLocalizer["Registrations are currently closed."].ToString();
+
+            var template = DataLocalizer["The {0} {1} registrations will open from {2} to {3}."];
+            var openFormatted = _nextPeriod.Open_DT.ToShortDateString();
+            var closeFormatted = _nextPeriod.Close_DT.ToShortDateString();
+
+            return string.Format(template, GetSeason(_nextPeriod.Quarter_NUM), GetFiscalYear(_nextPeriod), openFormatted, closeFormatted);
+        }
+        else
+        {
+            var template = DataLocalizer["Registrations open for {0} {1} until {2}."];
+            var formattedDate = _currentPeriod.Close_DT.ToShortDateString();
+            return string.Format(template, GetSeason(_currentPeriod.Quarter_NUM), GetFiscalYear(_currentPeriod), formattedDate);
+        }
+    }
+
+    static string GetSeason(byte season) => season switch
+    {
+        1 => "Spring",
+        2 => "Summer",
+        3 => "Fall",
+        _ => "Winter"
+    };
+
+    static int GetFiscalYear(SeasonRegistrationPeriod period) => period.Quarter_NUM switch
+    {
+        4 => period.Year_NUM + 1,
+        _ => period.Year_NUM
+    };
 
     private List<Func<LanguageTrainingApplication, string>> accessorFunctions = new List<Func<LanguageTrainingApplication, string>>
     {
@@ -258,7 +303,7 @@
             context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.SLE_Results_Reading, () => Language_Constants.SLESTATUS);
             context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.SLE_Results_Writing, () => Language_Constants.SLESTATUS);
             context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.SLE_Results_Oral, () => Language_Constants.SLESTATUS);
-            context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Session_For_Language_Training, () => Language_Constants.QUARTERS);
+            //context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Session_For_Language_Training, () => Language_Constants.QUARTERS);
             context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Class_For_Language_Training, () => Language_Constants.CLASSES_E);        
             context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Decision, () => Language_Constants.LANGUAGE_SCHOOL_SELECTION);
             context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Completed_Training_Session, () => Language_Constants.QUARTERS);
@@ -305,7 +350,7 @@
         context.SetVisible<LanguageTrainingApplication>(p => p.Manager_Decision, _isUserAdmin || isDelegatedManager);
         context.SetVisible<LanguageTrainingApplication>(p => p.Decision, _isUserAdmin);
 
-        
+
         _formMetadata.IsSubmitEnabled = _isUserAdmin || isDelegatedManager || (_isNewApp && _languageTrainingApplication.Completed_LETP_Assessment);
         var footerfile = _formMetadata.IsSubmitEnabled ? (_isFrench ? "FormFooterFr.md" : "FormFooter.md") : (_isNewApp ? (_isFrench ? "FormFooterWarningFr.md" : "FormFooterWarning.md") : (_isFrench ? "FormFooterSubmittedFr.md" : "FormFooterSubmitted.md"));
 
@@ -328,7 +373,23 @@
         _languageTrainingApplication.First_Name = _user.GivenName;
         _languageTrainingApplication.Last_Name = _user.Surname;
 
+        // _currentPeriod shouldn't be null here!
+        _languageTrainingApplication.Year_For_Language_Training = _currentPeriod is not null ? GetFiscalYear(_currentPeriod) : DateTime.Now.Year;
+        _languageTrainingApplication.Session_For_Language_Training = GetSessionForTraining();
+
         StateHasChanged();
+    }
+
+    private string GetSessionForTraining()
+    {
+        return _currentPeriod?.Quarter_NUM switch
+        {
+            null => string.Empty,
+            1 => "Q1 - April to June",
+            2 => "Q2 - July to September",
+            3 => "Q3 - October to December",
+            _ => "Q4 - January to March",
+        };
     }
 
     private void SetFormEdit(LanguageTrainingApplication application)
