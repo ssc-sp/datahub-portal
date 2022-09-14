@@ -5579,8 +5579,6 @@ code {
 }
 .project-page .project-tools .tools-container.dense {
   --grid-template-columns: 1fr 1fr;
-  --logo-width: 20px;
-  --logo-height: 30px;
   --logo-margin-top: 8px;
   --tool-grid-template-columns: var(--logo-width) 250px 1fr;
   --tool-grid-template-rows: auto 1fr;
