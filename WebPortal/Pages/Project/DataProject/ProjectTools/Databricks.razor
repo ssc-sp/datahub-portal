@@ -18,9 +18,12 @@ else
             <ul>
                 @if (!string.IsNullOrWhiteSpace(_project.Databricks_URL))
                 {
-                    <li>
+                    <li>                                
                         <DHLink DataProject="@ProjectAcronym" DatabricksURL="@_project.Databricks_URL">
-                            <MudButton Variant="Variant.Text" Color="Color.Primary">@Localizer["Open Azure Databricks"]</MudButton>
+
+                            <ToolActionButton LinkType="LinkType.External">
+                                    @Localizer["Open Azure Databricks"]
+                            </ToolActionButton>
                         </DHLink>
                     </li>
                 }
@@ -35,13 +38,9 @@ else
                     else
                     {
                         <li>
-                            <MudButton Variant="Variant.Text" OnClick="@HandleRequestService" Color="Color.Primary">
-                                @if (_databricksServiceRequestPending)
-                                {
-                                    <i class="fas fa-spinner-third pending"></i>
-                                }
+                            <ToolActionButton LinkType="_databricksServiceRequestPending ? LinkType.Pending : LinkType.Request" OnClick="@HandleRequestService">
                                 @Localizer["Request Service Creation"]
-                            </MudButton>
+                            </ToolActionButton>
                         </li>
                     }
                 }

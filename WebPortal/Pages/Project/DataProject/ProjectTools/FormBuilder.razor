@@ -14,7 +14,9 @@ else
              <ul>
                 <li>
                     <DHLink Variant="h3" DataProject="@ProjectAcronym" LinkType="DatahubLinkType.FormBuilder">
-                        <MudButton Variant="Variant.Text" Color="Color.Primary">@Localizer["Open Form Builder"]</MudButton>
+                        <ToolActionButton LinkType="LinkType.Internal">
+                            @Localizer["Open Form Builder"]
+                        </ToolActionButton>
                     </DHLink>
                 </li>
              </ul>

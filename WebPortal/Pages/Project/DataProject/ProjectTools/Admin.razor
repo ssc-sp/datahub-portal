@@ -8,19 +8,29 @@
         <ToolActionsList>
             <MudStack Row AlignItems="AlignItems.Center">
                 <NavLink href="@($"/edit-project/{ProjectAcronym}")">
-                    <MudButton Variant="Variant.Text" Color="Color.Primary">@Localizer["Edit Project"]</MudButton>
+                    <ToolActionButton LinkType="LinkType.Internal">
+                        @Localizer["Edit Project"]
+                    </ToolActionButton>
                 </NavLink>
                 <NavLink href="@($"/tracker/{ProjectAcronym}")">
-                    <MudButton Variant="Variant.Text" Color="Color.Primary">@Localizer["Project Tracker"]</MudButton>
+                    <ToolActionButton LinkType="LinkType.Internal">
+                        @Localizer["Project Tracker"]
+                    </ToolActionButton>
                 </NavLink>
                 <NavLink href="@($"/admin/powerbi/{ProjectAcronym}")">
-                    <MudButton Variant="Variant.Text" Color="Color.Primary">@Localizer["Power BI Links"]</MudButton>
+                    <ToolActionButton LinkType="LinkType.Internal">
+                        @Localizer["Power BI Links"]
+                    </ToolActionButton>
                 </NavLink>
                 <NavLink href="@($"/admin/onboardusers/{ProjectAcronym}")">
-                    <MudButton Variant="Variant.Text" Color="Color.Primary">@Localizer["Onboard Users"]</MudButton>
+                    <ToolActionButton LinkType="LinkType.Internal">
+                        @Localizer["Onboard Users"]
+                    </ToolActionButton>
                 </NavLink>
                 <NavLink href="@($"/admin/metadata/{ProjectAcronym}")">
-                    <MudButton Variant="Variant.Text" Color="Color.Primary">@Localizer["Metadata"]</MudButton>
+                    <ToolActionButton LinkType="LinkType.Internal">
+                        @Localizer["Metadata"]
+                    </ToolActionButton>
                 </NavLink>
 
             </MudStack>

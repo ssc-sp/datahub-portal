@@ -47,7 +47,9 @@ else
                             else
                             {
                                 <div>
-                                    <AeButton OnClickEvent=@GetPostgresToken Disabled=@_awaitingToken>@Localizer[$"{LOCALIZATION_PREFIX}.GetToken_button"]</AeButton>
+                                    <ToolActionButton LinkType="LinkType.Internal" OnClick=@GetPostgresToken Disabled=@_awaitingToken>
+                                        @Localizer[$"{LOCALIZATION_PREFIX}.GetToken_button"]
+                                    </ToolActionButton>
                                     @if (_awaitingToken)
                                     {
                                         <div style="display: inline-block;">
@@ -59,7 +61,11 @@ else
                         }
                         @if (_showPostgresInstructionsButton)
                         {
-                            <div><AeButton OnClickEvent=@ShowPostgresResources class="light">@Localizer[$"{LOCALIZATION_PREFIX}.PostgresResources"]</AeButton></div>
+                            <div>
+                                <ToolActionButton LinkType="LinkType.Internal" OnClick=@ShowPostgresResources>
+                                    @Localizer[$"{LOCALIZATION_PREFIX}.PostgresResources"]
+                                </ToolActionButton>
+                            </div>
                         }
                         else if (_showPostgresInstructionError)
                         {
@@ -76,7 +82,11 @@ else
                             <AeInput disabled DefaultValue=@BuildSqlServerConnectionString(_databaseResource) class="formuserinput" id="sqlConnString" />
                         </div>
                     }
-                    <div><AeButton OnClickEvent=@ShowMetadataEditor>@Localizer[$"{LOCALIZATION_PREFIX}.EditMetadata"]</AeButton></div>
+                    <div>
+                        <ToolActionButton LinkType="LinkType.Internal"  OnClick=@ShowMetadataEditor>
+                            @Localizer[$"{LOCALIZATION_PREFIX}.EditMetadata"]
+                        </ToolActionButton>
+                    </div>
                 }
                 else if (_showExistingRequest)
                 {
@@ -87,10 +97,14 @@ else
                 else if (_showRequestButtons)
                 {
                     <div>
-                        <MudButton OnClick="@RequestPostgres">@Localizer["Request PostgreSQL Database"]</MudButton>
+                        <ToolActionButton LinkType="LinkType.Request" OnClick="@RequestPostgres">
+                            @Localizer["Request PostgreSQL Database"]
+                        </ToolActionButton>
                     </div>
                     <div>
-                        <MudButton OnClick="@RequestSqlServer">@Localizer["Request SQL Server Database"]</MudButton>
+                        <ToolActionButton OnClick="@RequestSqlServer" LinkType="LinkType.Request">
+                            @Localizer["Request SQL Server Database"]
+                        </ToolActionButton>
                     </div>
                 }
                 else

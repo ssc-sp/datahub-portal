@@ -16,7 +16,9 @@ else
         </Logo>
         <ToolActionsList>
             <DHLink Variant="h3" DataProject="@ProjectAcronym" LinkType="DatahubLinkType.DataSharingDashboard">
-                <MudButton Variant="Variant.Text" Color="Color.Primary">@Localizer["PROJECT-PAGE.PUBLIC-SHARING-CARD.Title"]</MudButton>
+                <ToolActionButton LinkType="LinkType.Internal">
+                    @Localizer["PROJECT-PAGE.PUBLIC-SHARING-CARD.Title"]
+                </ToolActionButton>
             </DHLink>
         </ToolActionsList>
     </ToolCard>
