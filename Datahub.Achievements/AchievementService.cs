@@ -229,14 +229,18 @@ public class AchievementService
         else
         {
             await using var ctx = await _contextFactory.CreateDbContextAsync();
-            var exists = await ctx.UserObjects!.FirstOrDefaultAsync(u => u.UserId == userObject.UserId);
+            var exists = await ctx.UserObjects!
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.UserId == userObject.UserId);
             if (exists is not null)
             {
-                ctx.UserObjects!.Remove(exists);
-                await ctx.SaveChangesAsync();
+                ctx.UserObjects!.Update(userObject);
+            }
+            else
+            {
+                await ctx.UserObjects!.AddAsync(userObject);
             }
 
-            await ctx.UserObjects!.AddAsync(userObject);
             await ctx.SaveChangesAsync();
         }
     }
