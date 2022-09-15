@@ -83,6 +83,9 @@ namespace Datahub.Portal.Data.Finance
         public DateTime Created_DT { get; set; }
 
         [AeFormIgnore]
+        public bool Is_Deleted { get; set; }
+
+        [AeFormIgnore]
         [Timestamp]
         public byte[] Timestamp { get; set; }
     }

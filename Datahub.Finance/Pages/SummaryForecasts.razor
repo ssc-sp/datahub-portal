@@ -6,6 +6,7 @@
 @inject ServiceAuthManager ServiceAuthManager
 @inject IUserInformationService UserInformationService
 @inject IDialogService DialogService
+@inject IDatahubAuditingService AuditingService
 @page "/finance/summaryforecasts/{fundcenterId}"
 @using System.Linq.Expressions
 @using MudBlazor
@@ -40,7 +41,8 @@
         OnChangeForms="OnChange"
         CreateNewRecord="CreateNewProject"
         SelectedRecord="@_summaryForecast"
-        SetFormEditRecord="SetFormEdit"    
+        SetFormEditRecord="SetFormEdit"
+        DeleteRecord="DeleteRecord"
         HandleFilterChange="HandleFilterChange"
         SortAccessors="@_sortAccessors"
         Context=@Context
@@ -96,7 +98,7 @@
     private void LoadData(string searchfilter)
     {
         _fundCenters = Context.FundCenters.Include(f => f.Sector).Include(f => f.Branch).Include(f => f.Division).Where(f => f.FundCenter_ID.ToString() == fundcenterId).ToList();
-        _summaryForecasts = Context.SummaryForecasts.Where(f => f.FundCenter == _fundCenters[0]).ToList();
+        _summaryForecasts = Context.SummaryForecasts.Where(f => f.FundCenter == _fundCenters[0] && !f.Is_Deleted).ToList();
         //var fundcenters = _forecasts;
         //if (!string.IsNullOrWhiteSpace(searchfilter))
         //{
@@ -116,8 +118,9 @@
         _formMetadata.Header = string.Empty;
         _formMetadata.SubHeader = "Summary Forecasts";
         _formMetadata.DataSet = _summaryForecasts; //change when filters added
-        _formMetadata.AccessorFunctions = accessorFunctions;
+        _formMetadata.AccessorFunctions = accessorFunctions;        
         _formMetadata.Headers = headers;
+        _formMetadata.AllowDelete = true;
         _formMetadata.NavigateUrls = new List<Func<SummaryForecast, (string, string)>>();
         _formMetadata.IsSubmitEnabled = true;
     }
@@ -170,6 +173,20 @@
         StateHasChanged();
     }
 
+    private async Task DeleteRecord(SummaryForecast forecast)
+    {
+        var summaryForecast = Context.SummaryForecasts.Where(f => f == forecast).SingleOrDefault();
+        if (summaryForecast is not null)
+        { 
+            summaryForecast.Is_Deleted = true;
+            await Context.TrackSaveChangesAsync(AuditingService);
+        }
+        _summaryForecast = null;
+        _isNew = false;
+        LoadData(_searchFilter);
+        StateHasChanged();
+    }
+
     private void CreateNewProject()
     {        
         _summaryForecast = new SummaryForecast() { Last_Updated_DT = DateTime.Now, Created_DT = DateTime.Now, Created_UserId = _user.Mail, FundCenter = _fundCenters[0] };
@@ -187,7 +204,7 @@
                 _summaryForecast = Context.SummaryForecasts.Add(_summaryForecast).Entity;
             }
             _summaryForecast.Last_Updated_DT = DateTime.Now;
-            await Context.SaveChangesAsync();
+            await Context.TrackSaveChangesAsync(AuditingService);
             LoadData(_searchFilter); ;
             _summaryForecast = null;
             _isNew = false;
