@@ -1,0 +1,67 @@
+using System;
+using System.IO;
+using System.Linq.Expressions;
+using System.Threading;
+using System.Threading.Tasks;
+using Blazored.LocalStorage;
+using Datahub.Achievements.Models;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Moq;
+using NUnit.Framework;
+
+namespace Datahub.Achievements.Test;
+
+public class AchievementUserObjectTests
+{
+    private static readonly string AchievementDirectoryPath =
+        Path.Join(Directory.GetCurrentDirectory(), "../../../Achievements");
+
+    private static readonly string UserId = Guid.NewGuid().ToString();
+
+    
+    private static readonly IOptions<AchievementServiceOptions> NotLocalOptions =
+        new OptionsWrapper<AchievementServiceOptions>(new AchievementServiceOptions
+        {
+            AchievementDirectoryPath = AchievementDirectoryPath,
+            LocalAchievementsOnly = false,
+            Enabled = true
+        });
+
+    [Test]
+    public async Task UserObjectSaveTest()
+    {
+       var mockLogger = new Mock<ILogger<AchievementService>>();
+       var mockStorage = new Mock<ILocalStorageService>();
+       mockStorage.Setup(s =>
+               s.SetItemAsync(It.IsAny<string>(), It.IsAny<UserObject>(), CancellationToken.None))
+           .Callback<string, UserObject, CancellationToken?>((_, _, _) =>
+           {
+               Assert.Fail();
+           });
+
+       var optionsBuilder =
+           new DbContextOptionsBuilder<AchievementContext>().UseInMemoryDatabase("UserObjectSaveTest");
+       
+       var mockCosmosDb = new Mock<IDbContextFactory<AchievementContext>>();
+       mockCosmosDb.Setup(s => s.CreateDbContextAsync(CancellationToken.None))
+           .ReturnsAsync(() => new AchievementContext(optionsBuilder.Options));
+       
+       var achievementService =
+           new AchievementService(mockLogger.Object, mockCosmosDb.Object, mockStorage.Object, NotLocalOptions);
+       await achievementService.InitializeAchievementServiceForUser(UserId);
+
+       await achievementService.AddOrIncrementTelemetryEvent("test", 1);
+       
+       await achievementService.GetUserAchievements();
+       var achievementFactory = await AchievementFactory.CreateFromFilesAsync(NotLocalOptions.Value.AchievementDirectoryPath);
+       
+       await achievementService.RunRulesEngine();
+       await achievementService.GetUserAchievements();
+       await achievementService.GetUserAchievements();
+       var result = await achievementService.GetUserAchievements();
+       
+       Assert.That(result, Has.Count.EqualTo(achievementFactory.Achievements!.Count));
+    }
+}
