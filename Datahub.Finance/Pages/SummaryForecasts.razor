@@ -49,8 +49,7 @@
 
 <MudCard>
     <MudCardContent>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => NavigationManager.NavigateTo("finance/fundcenters"))">Fund Centers</MudButton>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => NavigationManager.NavigateTo($"finance/forecasts/{_fundCenters[0].FundCenter_ID}"))">Forecasts</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => NavigationManager.NavigateTo($"finance/forecasts/{_fundCenters[0].FundCenter_ID}"))">Back</MudButton>
     </MudCardContent>
 </MudCard>
 
@@ -129,6 +128,7 @@
         new Func<SummaryForecast, string>(p => { return p.Key_Activity ?? ""; }),
         new Func<SummaryForecast, string>(p => { return p.Key_Driver ?? ""; }),
         new Func<SummaryForecast, string>(p => { return p.Budget == null ? "$0.00" : p.Budget.Value.ToString("C"); }),
+        new Func<SummaryForecast, string>(p => { return p.SFT_Forecast_Gross == null ? "$0.00" : p.SFT_Forecast_Gross.Value.ToString("C"); }),
         new Func<SummaryForecast, string>(p => { return p.SFT_Forecast == null ? "$0.00" : p.SFT_Forecast.Value.ToString("C"); }),
         new Func<SummaryForecast, string>(p => { return p.THC == null ? "$0.00" : p.THC.Value.ToString("C"); }),
         new Func<SummaryForecast, string>(p => { return p.Other_OnM == null ? "$0.00" : p.Other_OnM.Value.ToString("C"); }),
@@ -152,7 +152,8 @@
         "Key Activity", 
         "Key Driver", 
         "Budget", 
-        "SFT", 
+        "SFT Gross",
+        "SFT With Attrition", 
         "THC", 
         "Other O&M", 
         "Personel", 
