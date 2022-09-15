@@ -52,7 +52,7 @@ public class AchievementUserObjectTests
            new AchievementService(mockLogger.Object, mockCosmosDb.Object, mockStorage.Object, NotLocalOptions);
        await achievementService.InitializeAchievementServiceForUser(UserId);
 
-       await achievementService.AddOrIncrementTelemetryEvent("user_object_save_test", 1, UserId);
+       await achievementService.AddOrIncrementTelemetryEvent("user_object_save_test", 1);
        
        var achievementFactory = await AchievementFactory.CreateFromFilesAsync(NotLocalOptions.Value.AchievementDirectoryPath);
        var result = await achievementService.GetUserAchievements();
