@@ -40,6 +40,10 @@ namespace Datahub.Portal.Data.Finance
 
         [DisplayFormat(DataFormatString = "C2")]
         [AeFormCategory("Salary Forecast")]
+        public double? SFT_Forecast_Gross { get; set; }
+
+        [DisplayFormat(DataFormatString = "C2")]
+        [AeFormCategory("Salary Forecast")]
         public double? SFT_Forecast { get; set; }
 
         [DisplayFormat(DataFormatString = "C2")]
