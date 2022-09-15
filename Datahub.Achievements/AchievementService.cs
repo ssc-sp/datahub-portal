@@ -83,19 +83,19 @@ public class AchievementService
 
         var rulesEngineSettings = new ReSettings { CustomTypes = new[] { typeof(Utils) } };
         var workflows = AchievementFactory.CreateWorkflow(achievementList!);
-        var rulesEngine = new RulesEngine.RulesEngine(new [] {workflows}, _logger, rulesEngineSettings);
-        
+        var rulesEngine = new RulesEngine.RulesEngine(new[] { workflows }, _logger, rulesEngineSettings);
+
         // var result = await rulesEngine.ExecuteActionWorkflowAsync().ExecuteAsync(userObject);
         var response =
             await rulesEngine.ExecuteAllRulesAsync(AchievementFactory.AchievementWorkflowName, userObject.Telemetry);
 
-        foreach (var userAchievement in from ruleResultTree in response 
-                                        where ruleResultTree.IsSuccess 
-                                        select userObject.UserAchievements
-                                            .FirstOrDefault(u => u.Code == ruleResultTree.Rule.SuccessEvent && u.Earned == false) 
-                                        into userAchievement 
-                                        where userAchievement is not null 
-                                        select userAchievement)
+        foreach (var userAchievement in from ruleResultTree in response
+                 where ruleResultTree.IsSuccess
+                 select userObject.UserAchievements
+                     .FirstOrDefault(u => u.Code == ruleResultTree.Rule.SuccessEvent && u.Earned == false)
+                 into userAchievement
+                 where userAchievement is not null
+                 select userAchievement)
         {
             // if it's a new one then save
             userAchievement!.Date = DateTime.UtcNow;
@@ -109,7 +109,7 @@ public class AchievementService
                 ctx.UserObjects!.Update(userObject);
                 await ctx.SaveChangesAsync();
             }
-            
+
             // and raise the event
             OnAchievementEarned(new AchievementEarnedEventArgs()
             {
@@ -173,22 +173,22 @@ public class AchievementService
             },
             UserAchievements = new List<UserAchievement>()
         };
-        
+
         var achievementFactory = await AchievementFactory.CreateFromFilesAsync(_options?.AchievementDirectoryPath);
 
         var userAchievementsByCode = userObject.UserAchievements
             .ToDictionary(u => u.Code!, u => u);
-        
+
         var updatedUserAchievements = achievementFactory.Achievements!
             .ToDictionary(pair => pair.Key, pair => new UserAchievement()
             {
                 UserId = _userId,
                 Achievement = pair.Value,
-                Date = userAchievementsByCode.TryGetValue(pair.Key, out var userAchievement) 
-                    ? userAchievement.Date 
+                Date = userAchievementsByCode.TryGetValue(pair.Key, out var userAchievement)
+                    ? userAchievement.Date
                     : null
             });
-        
+
         userObject.UserAchievements = updatedUserAchievements.Values.ToList();
 
         await SaveUserObject(userObject);
@@ -232,12 +232,11 @@ public class AchievementService
             var exists = await ctx.UserObjects!.FirstOrDefaultAsync(u => u.UserId == userObject.UserId);
             if (exists is not null)
             {
-                ctx.UserObjects!.Update(userObject);
+                ctx.UserObjects!.Remove(exists);
+                await ctx.SaveChangesAsync();
             }
-            else
-            {
-                await ctx.UserObjects!.AddAsync(userObject);
-            }
+
+            await ctx.UserObjects!.AddAsync(userObject);
             await ctx.SaveChangesAsync();
         }
     }
