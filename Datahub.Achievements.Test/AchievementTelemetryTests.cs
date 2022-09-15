@@ -38,6 +38,8 @@ public class AchievementTelemetryTests
         var achievementService =
             new AchievementService(mockLogger.Object, mockCosmosDb.Object, mockStorage.Object, Options);
         await achievementService.InitializeAchievementServiceForUser(UserId);
+        
+        var userObject = new UserObject() {UserId = UserId};
 
         mockStorage.Setup(s => s.GetItemAsync<UserObject>(It.IsAny<string>(), null))
             .ReturnsAsync(new UserObject() { UserId = UserId });
