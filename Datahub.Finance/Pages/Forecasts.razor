@@ -49,13 +49,13 @@
 
 <MudCard>
     <MudCardContent>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => NavigationManager.NavigateTo("finance/fundcenters"))">Fund Centers</MudButton>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => NavigationManager.NavigateTo($"finance/summaryforecasts/{_fundCenters[0].FundCenter_ID}"))">Summary Forecasts</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => NavigationManager.NavigateTo("finance/fundcenters"))">Back</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => NavigationManager.NavigateTo($"finance/summaryforecasts/{_fundCenters[0].FundCenter_ID}"))">Next</MudButton>
     </MudCardContent>
 </MudCard>
 
 
-@code {
+    @code {
 
     [Parameter]
     public string fundcenterId { get; set; }
@@ -193,12 +193,14 @@
         if (fund is not null)
         {
             fund.SFT_Forecast = sum * ((100 - attritionRate) / 100);
+            fund.SFT_Forecast_Gross = sum;
         }
         else
         {
             var newFund = new SummaryForecast()
                 {
                     Fund = _forecast.Fund,
+                    SFT_Forecast_Gross = _forecast.Salary,
                     SFT_Forecast = (_forecast.Salary * ((100 - attritionRate)/100)),
                     Last_Updated_DT = DateTime.Now,
                     Created_DT = DateTime.Now,

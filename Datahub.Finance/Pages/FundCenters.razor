@@ -92,8 +92,7 @@
 
     private List<Func<FundCenter, (string, string)>> buttonFunctions = new List<Func<FundCenter, (string, string)>>
     {
-        new Func<FundCenter, (string, string)>(p => { return ("SFT Details", $"/finance/forecasts/{p.FundCenter_ID.ToString()}"); }), 
-        new Func<FundCenter, (string, string)>(p => { return ("Forecasts by Vote", $"/finance/summaryforecasts/{p.FundCenter_ID.ToString()}"); }) 
+        new Func<FundCenter, (string, string)>(p => { return ("Next", $"/finance/forecasts/{p.FundCenter_ID.ToString()}"); }),         
     };
 
     private async Task GoToNextSheet()

@@ -99,12 +99,7 @@ else
 
     <MudCard style="margin-top: 1rem">
         <MudCardHeader>
-            <CardHeaderContent>                
-                @foreach (var navigationUrl in Metadata.NavigateUrls)
-                {
-                    <MudButton style="margin-right: 0.2rem" Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => NavigationManager.NavigateTo(@navigationUrl.Invoke(SelectedRecord).Item2))">@navigationUrl.Invoke(SelectedRecord).Item1</MudButton>
-                }                
-            </CardHeaderContent>
+         
         </MudCardHeader>
         <MudCardContent>               
             <MudModelForm Model="SelectedRecord"
@@ -122,7 +117,10 @@ else
                          IsSubmitEnabled="Metadata.IsSubmitEnabled" />
         </MudCardContent>
         <MudCardActions>
-
+                @foreach (var navigationUrl in Metadata.NavigateUrls)
+                {
+                    <MudButton style="margin-right: 0.2rem" Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => NavigationManager.NavigateTo(@navigationUrl.Invoke(SelectedRecord).Item2))">@navigationUrl.Invoke(SelectedRecord).Item1</MudButton>
+                }                            
         </MudCardActions>
     </MudCard>
 
