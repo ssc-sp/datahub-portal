@@ -1,6 +1,6 @@
 using System;
 using System.IO;
-using System.Linq.Expressions;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Blazored.LocalStorage;
@@ -52,16 +52,12 @@ public class AchievementUserObjectTests
            new AchievementService(mockLogger.Object, mockCosmosDb.Object, mockStorage.Object, NotLocalOptions);
        await achievementService.InitializeAchievementServiceForUser(UserId);
 
-       await achievementService.AddOrIncrementTelemetryEvent("test", 1);
+       await achievementService.AddOrIncrementTelemetryEvent("user_object_save_test", 1, UserId);
        
-       await achievementService.GetUserAchievements();
        var achievementFactory = await AchievementFactory.CreateFromFilesAsync(NotLocalOptions.Value.AchievementDirectoryPath);
-       
-       await achievementService.RunRulesEngine();
-       await achievementService.GetUserAchievements();
-       await achievementService.GetUserAchievements();
        var result = await achievementService.GetUserAchievements();
        
        Assert.That(result, Has.Count.EqualTo(achievementFactory.Achievements!.Count));
+       Assert.That(result.Where(a => a.Earned && a.Code == "TST-004").ToList(), Has.Count.EqualTo(1));
     }
 }
