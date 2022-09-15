@@ -44,13 +44,21 @@ else
                         @foreach(var header in Metadata.Headers.ToList())
                         {
                             <MudTh><MudTableSortLabel SortLabel="@header.Replace(" ", string.Empty).ToLower()" T="T">@header</MudTableSortLabel></MudTh>
-                        }                    
+                        }
+                        @if (Metadata.AllowDelete)
+                        {
+                            <MudTh>Delete</MudTh>
+                        }
                     </HeaderContent>
                     <RowTemplate Context="RowContext" >                   
                         @foreach(var accessor in Metadata.AccessorFunctions)
                         {
                             <MudTd @onclick="async () => await SetFormEdit(RowContext)">@accessor?.Invoke(RowContext)</MudTd>
                         }     
+                        @if (Metadata.AllowDelete)
+                        {
+                            <MudTd @onclick="async () => await DeleteRow(RowContext)"><MudIcon Icon="@Icons.Filled.DeleteOutline" Size="Size.Small" Style="cursor:pointer" /></MudTd>
+                        }
                     </RowTemplate>
                     <NoRecordsContent>
                         <MudText>No matching records found</MudText>
@@ -157,6 +165,8 @@ else
     [Parameter]
     public EventCallback<T> SetFormEditRecord { get; set; }
     [Parameter]
+    public EventCallback<T> DeleteRecord { get; set; }
+    [Parameter]
     public Action<string> HandleFilterChange { get; set; }
     [Parameter]
     public U Context { get; set; }
@@ -210,6 +220,19 @@ else
     public string ReplaceWhitespace(string input, string replacement)
     {
         return sWhitespace.Replace(input, replacement);
+    }
+
+    private async Task DeleteRow(T selectedRecord)
+    { 
+        bool? result = await DialogService.ShowMessageBox(
+            "Warning",
+            "Would you like to delete the current record?",
+            yesText: "Ok", noText: "Cancel");
+
+        if (result is true)
+        {
+            await DeleteRecord.InvokeAsync(selectedRecord);
+        }
     }
 
     private async Task SetFormEdit(T selectedRecord)

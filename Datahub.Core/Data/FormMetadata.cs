@@ -31,6 +31,8 @@ namespace Datahub.Core.Data
         public bool IsAddEnabled { get; set; } = true;
         public string SaveButtonText { get; set; } = "Save";
 
+        public bool AllowDelete { get; set; }
+
         public string TableRoles { get; set; }
         public bool IsLoaded()
         {

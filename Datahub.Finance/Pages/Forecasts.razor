@@ -5,6 +5,7 @@
 @inject IJSRuntime JsInterop
 @inject ServiceAuthManager ServiceAuthManager
 @inject IUserInformationService UserInformationService
+@inject IDatahubAuditingService AuditingService
 @inject IDialogService DialogService
 @page "/finance/forecasts/{fundcenterId}"
 @using System.Linq.Expressions
@@ -44,6 +45,7 @@
         HandleFilterChange="HandleFilterChange"
         SortAccessors="@_sortAccessors"
         Context=@Context
+        DeleteRecord="DeleteRecord"
         @key="@_formMetadata"/>
 
 
@@ -96,7 +98,7 @@
     private void LoadData(string searchfilter)
     {
         _fundCenters = Context.FundCenters.Include(f => f.Sector).Include(f => f.Branch).Include(f => f.Division).Where(f => f.FundCenter_ID.ToString() == fundcenterId).ToList();
-        _forecasts = Context.Forecasts.Where(f => f.FundCenter == _fundCenters[0]).ToList();
+        _forecasts = Context.Forecasts.Where(f => f.FundCenter == _fundCenters[0] && !f.Is_Deleted).ToList();
         //var fundcenters = _forecasts;
         //if (!string.IsNullOrWhiteSpace(searchfilter))
         //{
@@ -118,8 +120,25 @@
         _formMetadata.DataSet = _forecasts; //change when filters added
         _formMetadata.AccessorFunctions = accessorFunctions;
         _formMetadata.Headers = headers;
+        _formMetadata.AllowDelete = true;
         _formMetadata.NavigateUrls = new List<Func<Forecast, (string, string)>>();
         _formMetadata.IsSubmitEnabled = true;
+    }
+
+    private async Task DeleteRecord(Forecast forecast)
+    {
+        var fund = forecast.Fund;
+        var summaryForecast = Context.Forecasts.Where(f => f == forecast).SingleOrDefault();
+        if (summaryForecast is not null)
+        {
+            summaryForecast.Is_Deleted = true;
+            await Context.TrackSaveChangesAsync(AuditingService);
+        }
+        _forecast = forecast;
+        await UpdateSummaryForecasts();
+        _forecast = null;
+        LoadData(_searchFilter);
+        StateHasChanged();
     }
 
     private List<Func<Forecast, string>> accessorFunctions = new List<Func<Forecast, string>>
@@ -170,7 +189,7 @@
                 _forecast = Context.Forecasts.Add(_forecast).Entity;
             }
             _forecast.Last_Updated_DT = DateTime.Now;
-            await Context.SaveChangesAsync();
+            await Context.TrackSaveChangesAsync(AuditingService);
             await UpdateSummaryForecasts();
             LoadData(_searchFilter); ;
             _forecast = null;
@@ -185,10 +204,12 @@
         return true;
     }
 
-    private async Task UpdateSummaryForecasts()
+    private async Task UpdateSummaryForecasts(Forecast forecast = null)
     {
-        var sum = Context.Forecasts.Where(f => f.FundCenter == _fundCenters[0]).Select(t => t.Salary ?? 0).Sum();
+        var sum = Context.Forecasts.Where(f => f.FundCenter == _fundCenters[0] && !f.Is_Deleted).Select(t => t.Salary ?? 0).Sum();
         var fund = Context.SummaryForecasts.Where(f => f.Fund == _forecast.Fund && f.FundCenter == _forecast.FundCenter).FirstOrDefault();
+        
+
         var attritionRate = Context.FundCenters.Where(f => f.FundCenter_ID.ToString() == fundcenterId).Select(a => a.AttritionRate).FirstOrDefault() ?? 0;
         if (fund is not null)
         {
