@@ -126,12 +126,12 @@ public class AchievementService
     /// Retrieves the user's object from storage.
     /// </summary>
     /// <returns>The root object that holds all the user's achievement information</returns>
-    private async Task<UserObject> GetUserObject(string? userId = null)
+    private async Task<UserObject> GetUserObject()
     {
-        if (_userId is null && userId is null)
+        if (_userId is null)
         {
             throw new InvalidOperationException(
-                "User ID not set, please call InitializeAchievementServiceForUser first or pass a User ID.");
+                "User ID not set, please call InitializeAchievementServiceForUser first.");
         }
 
         UserObject? userObject;
@@ -142,7 +142,7 @@ public class AchievementService
         else
         {
             await using var ctx = await _contextFactory.CreateDbContextAsync();
-            userObject = await ctx.UserObjects!.FirstOrDefaultAsync(u => u.UserId == (userId ?? _userId));
+            userObject = await ctx.UserObjects!.FirstOrDefaultAsync(u => u.UserId == _userId);
         }
 
         return await SynchronizeUserObjectWithLatest(userObject);
@@ -200,14 +200,14 @@ public class AchievementService
     /// Retrieves the user's achievements from storage.
     /// </summary>
     /// <returns>The dictionary of achievements for the user where the key is the achievement's code</returns>
-    public async Task<List<UserAchievement>> GetUserAchievements(string? userId = null)
+    public async Task<List<UserAchievement>> GetUserAchievements()
     {
-        return (await GetUserObject(userId)).UserAchievements.ToList();
+        return (await GetUserObject()).UserAchievements.ToList();
     }
 
-    public async Task<int> AddOrIncrementTelemetryEvent(string eventName, int value, string? userId = null)
+    public async Task<int> AddOrIncrementTelemetryEvent(string eventName, int value)
     {
-        var userObject = await GetUserObject(userId);
+        var userObject = await GetUserObject();
         userObject.Telemetry.AddOrIncrementEventMetric(eventName, value);
 
         await SaveUserObject(userObject);
@@ -234,11 +234,13 @@ public class AchievementService
                 .FirstOrDefaultAsync(u => u.UserId == userObject.UserId);
             if (exists is not null)
             {
-                ctx.UserObjects!.Remove(exists);
-                await ctx.SaveChangesAsync();
+                ctx.UserObjects!.Update(userObject);
+            }
+            else
+            {
+                await ctx.UserObjects!.AddAsync(userObject);
             }
 
-            await ctx.UserObjects!.AddAsync(userObject);
             await ctx.SaveChangesAsync();
         }
     }
