@@ -57,7 +57,7 @@ public class AchievementValidationTests
         ("EXP-009", FRIEND_PROFILE_URL, 1, 0),
 
         ("PRJ-001", DatahubUserTelemetry.TelemetryEvents.UserSentInvite, 1, 0),
-        ("PRJ-002", DatahubUserTelemetry.TelemetryEvents.UserAcceptedInvite, 1, 0),
+        ("PRJ-002", DatahubUserTelemetry.TelemetryEvents.UserJoinedProject, 1, 0),
         ("PRJ-003", DatahubUserTelemetry.TelemetryEvents.UserUploadFile, 1, 0),
         ("PRJ-004", DatahubUserTelemetry.TelemetryEvents.UserShareFile, 1, 0),
         ("PRJ-005", DatahubUserTelemetry.TelemetryEvents.UserDownloadFile, 1, 0),
@@ -67,7 +67,7 @@ public class AchievementValidationTests
         // include the events for unlocking all of the 01 project
         ("PRJ-008", "garbage", 1, 0),
         ("PRJ-008", DatahubUserTelemetry.TelemetryEvents.UserSentInvite, 1, 0),
-        ("PRJ-008", DatahubUserTelemetry.TelemetryEvents.UserAcceptedInvite, 1, 0),
+        ("PRJ-008", DatahubUserTelemetry.TelemetryEvents.UserJoinedProject, 1, 0),
         ("PRJ-008", DatahubUserTelemetry.TelemetryEvents.UserUploadFile, 1, 0),
         ("PRJ-008", DatahubUserTelemetry.TelemetryEvents.UserShareFile, 1, 0),
         ("PRJ-008", DatahubUserTelemetry.TelemetryEvents.UserDownloadFile, 1, 0),
