@@ -13,7 +13,7 @@ public record Achievement
     public string? Icon { get; set; }
     public List<string>? RuleExpressions { get; init; }
 
-    public bool CombineExpressionsIntoSingleExpression { get; set; }
+    public bool MetaAchievement { get; set; }
 
     [NotMapped]
     public List<Rule> Rules
@@ -25,7 +25,7 @@ public record Achievement
                 return new List<Rule>();
             }
             
-            if(CombineExpressionsIntoSingleExpression)
+            if(MetaAchievement)
             {
                 return new List<Rule>()
                 {
@@ -40,11 +40,11 @@ public record Achievement
                 };
             }
             
-            return RuleExpressions.Select(exp => new Rule
+            return RuleExpressions.Select((exp, i) => new Rule
             {
-                RuleName = Code,
+                RuleName = $"{Code}-{i}",
                 SuccessEvent = Code,
-                ErrorMessage = Code,
+                ErrorMessage = $"{Code}-{i}",
                 Expression = exp,
                 RuleExpressionType = RuleExpressionType.LambdaExpression
             }).ToList();

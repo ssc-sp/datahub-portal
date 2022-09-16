@@ -39,7 +39,7 @@ public class DatahubUserTelemetry
     {
         // EXP
         public const string UserLogin = "user_login";
-        public const string UserOpenDatabricks = "user_open_databricks";
+        public const string UserOpenDatabricks = "user_click_databricks_link";
         public const string UserViewProjectNotMemberOf = "user_view_project_not_member_of";
         public const string UserRecentLink = "user_recent_link";
         public const string UserToggleCulture = "user_toggle_culture";
