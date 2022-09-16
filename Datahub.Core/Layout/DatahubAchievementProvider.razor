@@ -11,13 +11,10 @@
 
 @code {
     
-    [CascadingParameter]
-    private Task<AuthenticationState> _authenticationStateTask { get; set; }
-
-
     protected override void OnInitialized()
     {
         base.OnInitialized();
+        
         _navigationManager.LocationChanged += OnLocationChanged;
         _achievementsService.AchievementEarned += OnAchievementEarned;
         _snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopCenter;
@@ -25,15 +22,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var authState = await _authenticationStateTask;
-        var user = authState.User;
-
-        // initialize telemetry data
-        if (user.Identity?.Name is not null)
-        {
-            await _achievementsService.InitializeAchievementServiceForUser(user.Identity?.Name);
-            await _achievementsService.AddOrIncrementTelemetryEvent(DatahubUserTelemetry.TelemetryEvents.UserLogin, 1);
-        }
+        await _achievementsService.AddOrIncrementTelemetryEvent(DatahubUserTelemetry.TelemetryEvents.UserLogin, 1);
     }
 
     private void OnAchievementEarned(object sender, AchievementEarnedEventArgs e)

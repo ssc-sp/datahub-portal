@@ -39,7 +39,6 @@ public class AchievementValidationTests
 
     private static readonly List<(string code, string eventName, int validValue, int invalidValue)> Metrics = new()
     {
-        ("PRJ-001", DatahubUserTelemetry.TelemetryEvents.UserSentInvite, 1, 0),
         ("EXP-001", DatahubUserTelemetry.TelemetryEvents.UserLogin, 1, 0),
         ("EXP-002", STORAGE_EXPLORER_URL, 1, 0),
         ("EXP-003", DatahubUserTelemetry.TelemetryEvents.UserOpenDatabricks, 1, 0),
@@ -51,6 +50,19 @@ public class AchievementValidationTests
         ("EXP-009", ALL_EXPLORATION_PREFIX, 1, 0),
         ("EXP-010", PROJECT_URL, 1, 0),
         ("EXP-011", FRIEND_PROFILE_URL, 1, 0),
+        
+        // include the events for unlocking all of the 01 exploration
+        ("EXP-009", DatahubUserTelemetry.TelemetryEvents.UserLogin, 1, 0),
+        ("EXP-009", STORAGE_EXPLORER_URL, 1, 0),
+        ("EXP-009", DatahubUserTelemetry.TelemetryEvents.UserOpenDatabricks, 1, 0),
+        ("EXP-009", RESOURCES_URL, 1, 0),
+        ("EXP-009", DatahubUserTelemetry.TelemetryEvents.UserViewProjectNotMemberOf, 1, 0),
+        ("EXP-009", PROFILE_URL, 1, 0),
+        ("EXP-009", DatahubUserTelemetry.TelemetryEvents.UserRecentLink, 1, 0),
+        ("EXP-009", DatahubUserTelemetry.TelemetryEvents.UserToggleCulture, 1, 0),
+        // ("EXP-009", ALL_EXPLORATION_PREFIX, 1, 0),
+        ("EXP-009", PROJECT_URL, 1, 0),
+        ("EXP-009", FRIEND_PROFILE_URL, 1, 0),
 
         ("PRJ-001", DatahubUserTelemetry.TelemetryEvents.UserSentInvite, 1, 0),
         ("PRJ-002", DatahubUserTelemetry.TelemetryEvents.UserAcceptedInvite, 1, 0),
@@ -61,110 +73,59 @@ public class AchievementValidationTests
         ("PRJ-007", DatahubUserTelemetry.TelemetryEvents.UserCreateFolder, 1, 0),
     };
 
-    private static Dictionary<string, (DatahubUserTelemetry, DatahubUserTelemetry)> GenerateTelemetry()
-    {
-        var telemetry = new Dictionary<string, (DatahubUserTelemetry, DatahubUserTelemetry)>();
 
-        foreach (var (code, eventName, validValue, invalidValue) in Metrics)
-        {
-            if (eventName == ALL_EXPLORATION_PREFIX)
-            {
-                AddTelemetry(telemetry, code, Metrics
-                    .Where(m => m.Item1.StartsWith(ALL_EXPLORATION_PREFIX))
-                    .Select(m => (m.eventName, m.validValue, m.invalidValue))
-                    .ToList());
-
-                continue;
-            }
-
-            AddTelemetry(telemetry, code, new List<(string, int, int)> { (eventName, validValue, invalidValue)});
-        }
-
-        return telemetry;
-    }
-
-    private static void AddTelemetry(IDictionary<string, (DatahubUserTelemetry, DatahubUserTelemetry)> telemetry,
-        string code, IReadOnlyCollection<(string eventName, int validValue, int invalidValue)> events)
-    {
-        if (!telemetry.ContainsKey(code))
-        {
-            telemetry.Add(code, (
-                new DatahubUserTelemetry
-                {
-                    UserId = UserId,
-                    EventMetrics = new List<DatahubTelemetryEventMetric>()
-                },
-                new DatahubUserTelemetry
-                {
-                    UserId = UserId,
-                    EventMetrics = new List<DatahubTelemetryEventMetric>()
-                }));
-        }
-
-        telemetry[code].Item1.EventMetrics.AddRange(
-            events.Select(e =>
-                new DatahubTelemetryEventMetric
-                {
-                    Name = e.eventName,
-                    Value = e.validValue
-                }));
-        telemetry[code].Item2.EventMetrics.AddRange(
-            events.Select(e =>
-                new DatahubTelemetryEventMetric
-                {
-                    Name = e.eventName,
-                    Value = e.invalidValue
-                }));
-    }
-
-    private static IEnumerable<object[]> EarnedAchievementParams()
+    private static IEnumerable<object[]> EarnedAchievementTelemetryParams()
     {
         var achievementFactory =
             AchievementFactory.CreateFromFilesAsync(AchievementDirectoryPath).GetAwaiter().GetResult();
 
-        var parameterizedUserTelemetryDictionary = GenerateTelemetry();
-
         return achievementFactory.Achievements!.Select(kvp => new object[]
         {
             kvp.Key,
-            kvp.Value,
-            parameterizedUserTelemetryDictionary[kvp.Key].Item1,
+            Metrics
+                .Where(m => m.code == kvp.Key)
+                .Select(m => (m.eventName, m.validValue))
+                .ToList()
         });
     }
-
-    private static IEnumerable<object[]> NotEarnedAchievementParams()
+    
+    private static IEnumerable<object[]> NotEarnedAchievementTelemetryParams()
     {
         var achievementFactory =
             AchievementFactory.CreateFromFilesAsync(AchievementDirectoryPath).GetAwaiter().GetResult();
 
-        var parameterizedUserTelemetryDictionary = GenerateTelemetry();
-
         return achievementFactory.Achievements!.Select(kvp => new object[]
         {
             kvp.Key,
-            kvp.Value,
-            parameterizedUserTelemetryDictionary[kvp.Key].Item2,
+            Metrics
+                .Where(m => m.code == kvp.Key)
+                .Select(m => (m.eventName, m.invalidValue))
+                .ToList()
         });
     }
 
     [Test]
-    [TestCaseSource(nameof(EarnedAchievementParams))]
+    [TestCaseSource(nameof(EarnedAchievementTelemetryParams))]
     [Parallelizable(ParallelScope.All)]
-    public async Task EarnedIfConditionsMet(string code, Achievement achievement, DatahubUserTelemetry userTelemetry)
+    public async Task EarnedIfConditionsMet(string code, List<(string, int)> telemetryEvents)
     {
+        var userObject = new UserObject
+        {
+            UserId = UserId,
+            Telemetry = new DatahubUserTelemetry(),
+        };
+        
+        
         var mockLogger = new Mock<ILogger<AchievementService>>();
         var mockStorage = new Mock<ILocalStorageService>();
         mockStorage.Setup(s => s.GetItemAsync<UserObject>(It.IsAny<string>(), null))
-            .ReturnsAsync(new UserObject
-            {
-                UserId = UserId,
-                Telemetry = userTelemetry,
-            });
+            .ReturnsAsync(userObject);
 
         var mockCosmosDb = new Mock<IDbContextFactory<AchievementContext>>();
+        
+        var mockAuth = Utils.CreateMockAuth(UserId);
         var achievementService =
-            new AchievementService(mockLogger.Object, mockCosmosDb.Object, mockStorage.Object, Options);
-        await achievementService.InitializeAchievementServiceForUser(UserId);
+            new AchievementService(mockLogger.Object, mockCosmosDb.Object, mockStorage.Object, mockAuth.Object, Options);
         var passed = false;
 
         achievementService!.AchievementEarned += (_, e) =>
@@ -179,29 +140,33 @@ public class AchievementValidationTests
             passed = true;
         };
 
-        await achievementService.RunRulesEngine();
+        foreach (var (eventName, value) in telemetryEvents)
+        {
+            await achievementService.AddOrIncrementTelemetryEvent(eventName, value);
+        }
         Assert.That(passed, Is.True);
     }
 
     [Test]
-    [TestCaseSource(nameof(NotEarnedAchievementParams))]
+    [TestCaseSource(nameof(NotEarnedAchievementTelemetryParams))]
     [Parallelizable(ParallelScope.All)]
-    public async Task NotEarnedIfConditionsNotMet(string code, Achievement achievement,
-        DatahubUserTelemetry userTelemetry)
+    public async Task NotEarnedIfConditionsNotMet(string code, List<(string, int)> telemetryEvents)
     {
+        var userObject = new UserObject
+        {
+            UserId = UserId,
+            Telemetry = new DatahubUserTelemetry(),
+        };
+        
         var mockLogger = new Mock<ILogger<AchievementService>>();
         var mockStorage = new Mock<ILocalStorageService>();
         var mockCosmosDb = new Mock<IDbContextFactory<AchievementContext>>();
+        var mockAuth = Utils.CreateMockAuth(UserId);
         var achievementService =
-            new AchievementService(mockLogger.Object, mockCosmosDb.Object, mockStorage.Object, Options);
-        await achievementService.InitializeAchievementServiceForUser(UserId);
+            new AchievementService(mockLogger.Object, mockCosmosDb.Object, mockStorage.Object, mockAuth.Object, Options);
 
         mockStorage.Setup(s => s.GetItemAsync<UserObject>(It.IsAny<string>(), null))
-            .ReturnsAsync(new UserObject
-            {
-                UserId = UserId,
-                Telemetry = new DatahubUserTelemetry()
-            });
+            .ReturnsAsync(userObject);
 
 
         achievementService!.AchievementEarned += (_, e) =>
@@ -216,7 +181,10 @@ public class AchievementValidationTests
 
             Assert.Fail();
         };
-
-        await achievementService!.RunRulesEngine();
+        
+        foreach (var (eventName, value) in telemetryEvents)
+        {
+            await achievementService.AddOrIncrementTelemetryEvent(eventName, value);
+        }
     }
 }

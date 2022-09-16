@@ -2,10 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq.Expressions;
+using System.Security.Claims;
+using System.Security.Principal;
 using System.Threading;
 using System.Threading.Tasks;
 using Blazored.LocalStorage;
 using Datahub.Achievements.Models;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -43,10 +46,10 @@ public class AchievementSaveTests
         var mockLogger = new Mock<ILogger<AchievementService>>();
         var mockStorage = new Mock<ILocalStorageService>();
         var mockCosmosDb = new Mock<IDbContextFactory<AchievementContext>>();
-
+        
+        var mockAuth = Utils.CreateMockAuth(UserId);
         var achievementService =
-            new AchievementService(mockLogger.Object, mockCosmosDb.Object, mockStorage.Object, LocalOptions);
-        await achievementService.InitializeAchievementServiceForUser(UserId);
+            new AchievementService(mockLogger.Object, mockCosmosDb.Object, mockStorage.Object, mockAuth.Object, LocalOptions);
 
         mockStorage.Setup(s =>
                 s.SetItemAsync(It.IsAny<string>(), It.IsAny<UserObject>(), CancellationToken.None))
@@ -60,6 +63,8 @@ public class AchievementSaveTests
             {
                 Assert.Fail();
             });
+        
+
 
         await achievementService.GetUserAchievements();
     }
@@ -75,6 +80,8 @@ public class AchievementSaveTests
             {
                 Assert.Fail();
             });
+        
+        var mockAuth = Utils.CreateMockAuth(UserId);
 
         var optionsBuilder =
             new DbContextOptionsBuilder<AchievementContext>().UseInMemoryDatabase("NonLocalOptionsHitCosmosDbStorageTest");
@@ -95,9 +102,10 @@ public class AchievementSaveTests
             });
         
         var achievementService =
-            new AchievementService(mockLogger.Object, mockCosmosDb.Object, mockStorage.Object, NotLocalOptions);
-        await achievementService.InitializeAchievementServiceForUser(UserId);
+            new AchievementService(mockLogger.Object, mockCosmosDb.Object, mockStorage.Object, mockAuth.Object, NotLocalOptions);
 
         await achievementService.GetUserAchievements();
     }
+
+
 }
