@@ -1,7 +1,10 @@
 @using Blazored.LocalStorage
+@using Datahub.Achievements
+@using Datahub.Achievements.Models
 
 @inject IUserInformationService _userInformationService
 @inject ILocalStorageService _localStorage
+@inject AchievementService _achievementService
 
 <span @onclick="() => ChangeLanguage(Language)" style="cursor:pointer;">
     @LanguageDisplay
@@ -15,7 +18,8 @@
     private async void ChangeLanguage(string language)
     {
         await _userInformationService.RegisterUserLanguage(language);
-        //    return;
+
+        await _achievementService.AddOrIncrementTelemetryEvent(DatahubUserTelemetry.TelemetryEvents.UserToggleCulture);
         
         _userInformationService.SetLanguage(language);
         await _localStorage.SetItemAsStringAsync("language", language);
