@@ -1,6 +1,5 @@
 ﻿using Datahub.CKAN.Service;
 using Datahub.Metadata.DTO;
-using System.Threading.Tasks;
 
 namespace Datahub.Portal.Services
 {

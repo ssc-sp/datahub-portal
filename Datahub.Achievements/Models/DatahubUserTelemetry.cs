@@ -1,6 +1,3 @@
-using System.ComponentModel.DataAnnotations;
-using Microsoft.EntityFrameworkCore;
-
 namespace Datahub.Achievements.Models;
 
 public class DatahubUserTelemetry

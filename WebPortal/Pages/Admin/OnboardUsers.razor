@@ -1,11 +1,7 @@
 ﻿@page "/admin/onboardusers/{projectAcronym}"
-
-@using Microsoft.EntityFrameworkCore.Query
-@using Microsoft.EntityFrameworkCore;
 @inject NavigationManager NavigationManager
 @inject IMSGraphService MSGraphService
 @inject IJSRuntime JSRuntime
-@using Microsoft.Identity.Web
 @inject IDbContextFactory<DatahubProjectDBContext> DbFactory
 @inject IUserInformationService UserInformationService
 @inject IDatahubAuditingService AuditingService
