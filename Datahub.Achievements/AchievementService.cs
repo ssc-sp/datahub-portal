@@ -170,11 +170,8 @@ public class AchievementService
         
         userObject.Telemetry.AddOrIncrementEventMetric(eventName, value);
         
-        var hasEarnedNewAchievement = await RunRulesEngine(userObject);
-        if (hasEarnedNewAchievement)
-        {
-            await SaveUserObject(userObject);
-        }
+        await RunRulesEngine(userObject);
+        await SaveUserObject(userObject);
 
         return userObject.Telemetry.GetEventMetric(eventName);
     }
