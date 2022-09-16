@@ -20,9 +20,14 @@
         _snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopCenter;
     }
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        await _achievementsService.AddOrIncrementTelemetryEvent(DatahubUserTelemetry.TelemetryEvents.UserLogin, 1);
+        await base.OnAfterRenderAsync(firstRender);
+        
+        if (firstRender)
+        {
+            await _achievementsService.AddOrIncrementTelemetryEvent(DatahubUserTelemetry.TelemetryEvents.UserLogin, 1);
+        }
     }
 
     private void OnAchievementEarned(object sender, AchievementEarnedEventArgs e)
