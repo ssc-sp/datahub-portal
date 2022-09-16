@@ -18,7 +18,7 @@ public class DatahubUserTelemetry
 
         return metric.Value;
     }
-    public int AddOrIncrementEventMetric(string eventName, int value)
+    public int AddOrIncrementEventMetric(string eventName, int value = 1)
     {
         var metric = EventMetrics.FirstOrDefault(e => e.Name == eventName);
 
@@ -31,6 +31,37 @@ public class DatahubUserTelemetry
         {
             metric.Value += value;
         }
+
+        return metric.Value;
+    }
+    
+    public int AddOrSetEventMetric(string eventName, int value)
+    {
+        var metric = EventMetrics.FirstOrDefault(e => e.Name == eventName);
+
+        if (metric is null)
+        {
+            metric = new DatahubTelemetryEventMetric { Name = eventName, Value = value };
+            EventMetrics.Add(metric);
+        }
+        
+        metric.Value = value;
+
+        return metric.Value;
+    }
+    
+    
+    public int AddOrSetTelemetryEventKeepMax(string eventName, int value)
+    {
+        var metric = EventMetrics.FirstOrDefault(e => e.Name == eventName);
+
+        if (metric is null)
+        {
+            metric = new DatahubTelemetryEventMetric { Name = eventName, Value = value };
+            EventMetrics.Add(metric);
+        }
+        
+        metric.Value = Math.Max(value, metric.Value);
 
         return metric.Value;
     }
@@ -47,7 +78,7 @@ public class DatahubUserTelemetry
         
         // PRJ
         public const string UserSentInvite = "user_sent_invite";
-        public const string UserAcceptedInvite = "user_accepted_invite";
+        public const string UserJoinedProject = "user_joined_project";
         public const string UserUploadFile = "user_upload_file";
         public const string UserShareFile = "user_share_file";
         public const string UserDownloadFile = "user_download_file";

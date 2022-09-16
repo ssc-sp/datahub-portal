@@ -175,6 +175,30 @@ public class AchievementService
 
         return userObject.Telemetry.GetEventMetric(eventName);
     }
+    
+    public async Task<int> AddOrSetTelemetryEvent(string eventName, int value, string? userId = null)
+    {
+        var userObject = await GetUserObject(userId);
+        
+        userObject.Telemetry.AddOrSetEventMetric(eventName, value);
+        
+        await RunRulesEngine(userObject);
+        await SaveUserObject(userObject);
+
+        return userObject.Telemetry.GetEventMetric(eventName);
+    }
+    
+    public async Task<int> AddOrSetTelemetryEventKeepMax(string eventName, int value, string? userId = null)
+    {
+        var userObject = await GetUserObject(userId);
+        
+        userObject.Telemetry.AddOrSetTelemetryEventKeepMax(eventName, value);
+        
+        await RunRulesEngine(userObject);
+        await SaveUserObject(userObject);
+
+        return userObject.Telemetry.GetEventMetric(eventName);
+    }
 
     private async Task SaveUserObject(UserObject userObject)
     {

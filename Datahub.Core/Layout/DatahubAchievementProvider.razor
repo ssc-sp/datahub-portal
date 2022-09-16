@@ -1,11 +1,17 @@
 @using Datahub.Achievements
 @using Blazored.LocalStorage
 @using Datahub.Achievements.Models
+@using Datahub.Core.Data
+@using Datahub.Core.EFCore
+@using Microsoft.EntityFrameworkCore
+@using System.Linq
 
 @inject AchievementService _achievementsService
 @inject ISnackbar _snackbar
 @inject NavigationManager _navigationManager
 @inject ILocalStorageService _localStorage;
+@inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
+@inject IUserInformationService _userInformationService
 
 @implements IDisposable
 
@@ -26,7 +32,15 @@
         
         if (firstRender)
         {
-            await _achievementsService.AddOrIncrementTelemetryEvent(DatahubUserTelemetry.TelemetryEvents.UserLogin, 1);
+            await _achievementsService.AddOrIncrementTelemetryEvent(DatahubUserTelemetry.TelemetryEvents.UserLogin);
+            
+            await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
+            var userId = await _userInformationService.GetUserIdString();
+        
+            var numberOfProjects = projectContext.Project_Users
+                .Count(p => p.User_ID == userId);
+
+            await _achievementsService.AddOrSetTelemetryEventKeepMax(DatahubUserTelemetry.TelemetryEvents.UserJoinedProject, numberOfProjects);
         }
     }
 

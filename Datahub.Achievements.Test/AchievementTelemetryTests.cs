@@ -68,6 +68,64 @@ public class AchievementTelemetryTests
             Assert.That(result, Is.EqualTo(expectedSum));
         }
     }
+    
+    [Test]
+    public async Task CanSetTelemetryEvent()
+    {
+        var mockLogger = new Mock<ILogger<AchievementService>>();
+        var mockStorage = new Mock<ILocalStorageService>();
+        var mockCosmosDb = new Mock<IDbContextFactory<AchievementContext>>();
+
+        const string eventName = "test";
+        const int initialValue = 21;
+        var mockAuth = Utils.CreateMockAuth(UserId);
+        var achievementService =
+            new AchievementService(mockLogger.Object, mockCosmosDb.Object, mockStorage.Object, mockAuth.Object, Options);
+
+        mockStorage.Setup(s => s.GetItemAsync<UserObject>(It.IsAny<string>(), null))
+            .ReturnsAsync(new UserObject() { UserId = UserId });
+
+        var result = await achievementService.AddOrSetTelemetryEvent(eventName, initialValue);
+        Assert.That(result, Is.TypeOf<int>());
+        Assert.That(result, Is.EqualTo(initialValue));
+        
+        result = await achievementService.AddOrSetTelemetryEvent(eventName, initialValue * 2);
+        Assert.That(result, Is.TypeOf<int>());
+        Assert.That(result, Is.EqualTo(initialValue * 2));
+        
+        result = await achievementService.AddOrSetTelemetryEvent(eventName, initialValue);
+        Assert.That(result, Is.TypeOf<int>());
+        Assert.That(result, Is.EqualTo(initialValue));
+    }
+    
+    [Test]
+    public async Task CanSetButKeepMaxTelemetryEvent()
+    {
+        var mockLogger = new Mock<ILogger<AchievementService>>();
+        var mockStorage = new Mock<ILocalStorageService>();
+        var mockCosmosDb = new Mock<IDbContextFactory<AchievementContext>>();
+
+        const string eventName = "test";
+        const int initialValue = 21;
+        var mockAuth = Utils.CreateMockAuth(UserId);
+        var achievementService =
+            new AchievementService(mockLogger.Object, mockCosmosDb.Object, mockStorage.Object, mockAuth.Object, Options);
+
+        mockStorage.Setup(s => s.GetItemAsync<UserObject>(It.IsAny<string>(), null))
+            .ReturnsAsync(new UserObject() { UserId = UserId });
+
+        var result = await achievementService.AddOrSetTelemetryEventKeepMax(eventName, initialValue);
+        Assert.That(result, Is.TypeOf<int>());
+        Assert.That(result, Is.EqualTo(initialValue));
+        
+        result = await achievementService.AddOrSetTelemetryEventKeepMax(eventName, initialValue * 2);
+        Assert.That(result, Is.TypeOf<int>());
+        Assert.That(result, Is.EqualTo(initialValue * 2));
+        
+        result = await achievementService.AddOrSetTelemetryEventKeepMax(eventName, initialValue);
+        Assert.That(result, Is.TypeOf<int>());
+        Assert.That(result, Is.EqualTo(initialValue * 2));
+    }
 
     [Test]
     public async Task RunsRulesEngineAfterTelemetryEvent()
