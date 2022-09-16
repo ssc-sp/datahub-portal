@@ -3,6 +3,7 @@
 @using Microsoft.Extensions.Logging 
 @using System.Text.RegularExpressions
 @using Datahub.Achievements
+@using Datahub.Achievements.Models
 @using Datahub.Core.Utils
 @inject ILogger<DHLink> Logger
 @inject NavigationManager NavigationManager
@@ -59,6 +60,7 @@
             link = UserRecentLink;
             link.accessedTime = DateTimeOffset.Now;
             await UserLocationManagerService.RegisterNavigation(link, false);
+            await _achievementService.AddOrIncrementTelemetryEvent(DatahubUserTelemetry.TelemetryEvents.UserRecentLink);
         }
         else
         {
