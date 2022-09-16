@@ -1,5 +1,4 @@
-﻿using System.Threading.Tasks;
-using Microsoft.Graph;
+﻿using Microsoft.Graph;
 using Datahub.Core.Services;
 
 namespace Datahub.Portal.Services

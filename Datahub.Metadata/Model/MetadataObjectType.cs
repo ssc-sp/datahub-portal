@@ -1,6 +1,4 @@
-﻿using System.ComponentModel;
-
-namespace Datahub.Metadata.Model
+﻿namespace Datahub.Metadata.Model
 {
     public enum MetadataObjectType : byte
     {

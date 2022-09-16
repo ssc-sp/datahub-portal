@@ -11,7 +11,6 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Datahub.Core.Data.DTO;
-using Microsoft.IdentityModel.Tokens;
 
 namespace Datahub.Core.Services
 {
