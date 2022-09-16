@@ -47,10 +47,10 @@ public class AchievementUserObjectTests
        var mockCosmosDb = new Mock<IDbContextFactory<AchievementContext>>();
        mockCosmosDb.Setup(s => s.CreateDbContextAsync(CancellationToken.None))
            .ReturnsAsync(() => new AchievementContext(optionsBuilder.Options));
-       
+
+       var mockAuth = Utils.CreateMockAuth(UserId);
        var achievementService =
-           new AchievementService(mockLogger.Object, mockCosmosDb.Object, mockStorage.Object, NotLocalOptions);
-       await achievementService.InitializeAchievementServiceForUser(UserId);
+           new AchievementService(mockLogger.Object, mockCosmosDb.Object, mockStorage.Object, mockAuth.Object, NotLocalOptions);
 
        await achievementService.AddOrIncrementTelemetryEvent("user_object_save_test", 1);
        
