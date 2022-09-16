@@ -75,8 +75,13 @@ public class AchievementWorkflowTests
             {
                 UserId = userId,
                 Telemetry = new DatahubUserTelemetry()
+                {
+                    UserId = userId
+                }
             });
 
+        var triggeredEvent = false;
+        
         achievementService.AchievementEarned += (_, e) =>
         {
             Assert.Multiple(() =>
@@ -84,9 +89,16 @@ public class AchievementWorkflowTests
                 Assert.That(e.Achievement, Is.TypeOf(typeof(Achievement)));
                 Assert.That(e.UserId, Is.EqualTo(userId));
             });
+
+            triggeredEvent = true;
         };
 
         var result = await achievementService.AddOrIncrementTelemetryEvent("test", 1);
-        Assert.That(result, Is.TypeOf(typeof(List<RuleResultTree>)));
+        
+        Assert.Multiple(() =>
+        {
+            Assert.That(result, Is.TypeOf(typeof(int)));
+            Assert.That(triggeredEvent, Is.True);
+        });
     }
 }
