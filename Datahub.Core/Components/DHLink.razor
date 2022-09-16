@@ -2,11 +2,13 @@
 @using Datahub.Core.UserTracking
 @using Microsoft.Extensions.Logging 
 @using System.Text.RegularExpressions
+@using Datahub.Achievements
 @using Datahub.Core.Utils
 @inject ILogger<DHLink> Logger
 @inject NavigationManager NavigationManager
 @inject UserLocationManagerService UserLocationManagerService
 @inject IJSRuntime _jsRuntime
+@inject AchievementService _achievementService
 
 @inherits HtmlElement
 
@@ -85,6 +87,8 @@
         }
         
         await UserLocationManagerService.RegisterNavigation(link, true);
+        
+        await _achievementService.AddOrIncrementTelemetryEvent($"user_click_{link.LinkType.ToString().ToLower()}_link");
         
         switch (LinkType)
         {

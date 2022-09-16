@@ -56,14 +56,29 @@ public class AchievementService
             .ToList();
 
         var rulesEngineSettings = new ReSettings { CustomTypes = new[] { typeof(Utils) } };
-        var workflows = AchievementFactory.CreateWorkflow(achievementList!);
-        var rulesEngine = new RulesEngine.RulesEngine(new[] { workflows }, _logger, rulesEngineSettings);
-
-        var response =
-            await rulesEngine.ExecuteAllRulesAsync(AchievementFactory.AchievementWorkflowName, userObject.Telemetry);
+        var workflows = AchievementFactory.CreateWorkflows(achievementList!);
+        var rulesEngine = new RulesEngine.RulesEngine(workflows, _logger, rulesEngineSettings);
 
         var hasEarnedNewAchievement = false;
+            var response =
+                await rulesEngine.ExecuteAllRulesAsync(AchievementFactory.AchievementWorkflowName, userObject.Telemetry);
+            hasEarnedNewAchievement = HandleRuleResponses(userObject, response);
+        
+        // if there are any meta achievements present, run the rules engine again
+        if (workflows.Any(w => w.WorkflowName == AchievementFactory.MetaAchievementWorkflowName))
+        {
+            var metaResponse =
+                await rulesEngine.ExecuteAllRulesAsync(AchievementFactory.MetaAchievementWorkflowName, response);
 
+            hasEarnedNewAchievement = HandleRuleResponses(userObject, metaResponse) || hasEarnedNewAchievement;
+        }
+
+        return hasEarnedNewAchievement;
+    }
+
+    private bool HandleRuleResponses(UserObject userObject, IEnumerable<RuleResultTree> response)
+    {
+        var hasEarnedNewAchievement = false;
         foreach (var userAchievement in from ruleResultTree in response
                  where ruleResultTree.IsSuccess
                  select userObject.UserAchievements
@@ -149,7 +164,7 @@ public class AchievementService
         return (await GetUserObject(userId)).UserAchievements.ToList();
     }
 
-    public async Task<int> AddOrIncrementTelemetryEvent(string eventName, int value, string? userId = null)
+    public async Task<int> AddOrIncrementTelemetryEvent(string eventName, int value = 1, string? userId = null)
     {
         var userObject = await GetUserObject(userId);
         
