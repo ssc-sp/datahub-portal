@@ -6,6 +6,7 @@
         {
             HashSet<string> suggestions = new();
             var searchWords = SplitWords(searchText);
+            var joinedSearchText = string.Join(" ", searchWords);
             foreach (var hit in hits)
             {
                 var hitWords = SplitWords(hit);
@@ -16,7 +17,6 @@
 
                 if (index.Value < hitWords.Length)
                 {
-                    var joinedSearchText = string.Join(" ", searchWords);
                     var suggestion = $"{joinedSearchText} {hitWords[index.Value]}";
                     if (!suggestions.Contains(suggestion))
                     {
