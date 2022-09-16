@@ -17,5 +17,20 @@ namespace Datahub.CatalogSearch.Tests
 
             Assert.Equal(expected, actual);
         }
+
+        [Fact]
+        public void AutoComplete_ReturnsExpected()
+        {
+            LanguageCatalogSearch engine = new("en");
+            engine.AddDocument("1", "annual reports catalogues directories wood form descriptors");
+            engine.AddDocument("1", "corporate management and services sector");
+            engine.FlushIndexes();
+
+            var autocompletes = engine.GetAutocompleteSuggestions("annual reports catalogues directories", 10).ToList();
+
+            var expected = "annual reports catalogues directories wood";
+            var actual = autocompletes[0];
+            Assert.Equal(expected, actual);
+        }
     }
 }

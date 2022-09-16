@@ -6,12 +6,14 @@ using Lucene.Net.Store;
 using Lucene.Net.Documents;
 using Lucene.Net.Search;
 using Lucene.Net.QueryParsers.Classic;
+using Datahub.CatalogSearch.Utils;
 
 namespace Datahub.CatalogSearch.Lucene
 {
     public class LanguageCatalogSearch : ILanguageCatalogSearch
     {
         const LuceneVersion LUCENE_VERSION = LuceneVersion.LUCENE_48;
+        const string ID_FIELD = "id";
         const string CONTENT_FIELD = "content";
 
         private readonly IndexWriter _writer;
@@ -45,14 +47,9 @@ namespace Datahub.CatalogSearch.Lucene
         public void AddDocument(string id, string content)
         {
             var doc = new Document();
-            doc.Add(new StringField("id", id, Field.Store.YES));
-            doc.Add(new TextField("content", content, Field.Store.YES));
+            doc.Add(new StringField(ID_FIELD, id, Field.Store.YES));
+            doc.Add(new TextField(CONTENT_FIELD, content, Field.Store.YES));
             _writer.AddDocument(doc);
-        }
-
-        public IEnumerable<string> GetAutocompleteSuggestions(string text, int maxResults)
-        {
-            throw new NotImplementedException();
         }
 
         public IEnumerable<string> SearchDocuments(string text, int maxResults)
@@ -66,8 +63,21 @@ namespace Datahub.CatalogSearch.Lucene
             foreach (var d in topDocs.ScoreDocs)
             {
                 Document resultDoc = searcher.Doc(d.Doc);
-                yield return resultDoc.Get("id");
+                yield return resultDoc.Get(ID_FIELD);
             }
+        }
+
+        public IEnumerable<string> GetAutocompleteSuggestions(string text, int maxResults)
+        {
+            using DirectoryReader reader = _writer.GetReader(applyAllDeletes: true);
+            var searcher = new IndexSearcher(reader);
+
+            Query query = _queryParser.Parse(text);
+            TopDocs topDocs = searcher.Search(query, maxResults);
+
+            var hits = topDocs.ScoreDocs.Select(d => searcher.Doc(d.Doc).Get(CONTENT_FIELD)).ToList();
+
+            return AutocompleteUtils.GetSuggestions(hits, text).ToList();
         }
 
         public void FlushIndexes()
