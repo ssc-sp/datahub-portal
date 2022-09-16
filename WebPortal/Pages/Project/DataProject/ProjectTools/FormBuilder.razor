@@ -8,15 +8,15 @@ else
         Title=@Localizer["Form Builder"]
         Description="@Localizer["Design custom data entry forms"]">
         <Logo>
-            <div class="blue" style="width:180px">
-                <AeIcon class="fad fa-file-alt card-icon fa-xs"/>
-            </div>
+            <AeIcon class="fad fa-file-alt card-icon fa-2x"/>
         </Logo>
         <ToolActionsList>
              <ul>
                 <li>
                     <DHLink Variant="h3" DataProject="@ProjectAcronym" LinkType="DatahubLinkType.FormBuilder">
-                        <AeButton class="light">@Localizer["Open Form Builder"]</AeButton>
+                        <ToolActionButton LinkType="LinkType.Internal">
+                            @Localizer["Open Form Builder"]
+                        </ToolActionButton>
                     </DHLink>
                 </li>
              </ul>
