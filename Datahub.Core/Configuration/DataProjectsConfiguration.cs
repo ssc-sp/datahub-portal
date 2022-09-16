@@ -20,6 +20,8 @@
         public bool ProjectDatabases { get; set; } = true;
         public bool DataManagement { get; set; } = true;
         public bool IoT { get; set; } = true;
+        public bool StorageCost { get; set; } = true;
+        public bool ComputeCost { get; set; } = true;
 
     }
 }
