@@ -95,8 +95,9 @@ namespace Datahub.Core.Services
 						DataType = MetadataObjectType.DatasetUrl,
 						Name_TXT = entry.name_en,
 						Name_French_TXT = entry.name_fr,
-						Location_TXT = entry.url_en,
-						SecurityClass_TXT = entry.classification ?? "Unclassified",
+						Url_English_TXT = entry.url_en,
+						Url_French_TXT = entry.url_fr,
+                        SecurityClass_TXT = entry.classification ?? "Unclassified",
 						Classification_Type = GetClassificationType(entry.classification),
 						Sector_NUM = sector?.Id ?? 0,
 						Branch_NUM = 0, // no branch for now
@@ -189,20 +190,29 @@ namespace Datahub.Core.Services
 
 		static string GetCatalogText(IEnumerable<string> subjects, IEnumerable<string> programs, string sector, string branch, string objectName, IEnumerable<string> keywords)
 		{
-			return new StringBuilder()
-			  .AppendJoin(' ', keywords)
-			  .Append(' ')
-			  .AppendJoin(' ', subjects)
-			  .Append(' ')
-			  .AppendJoin(' ', programs.Where(p => p != "none"))
-			  .Append(' ')
-			  .Append($"{sector} {branch} {objectName}")
-			  .ToString()
-			  .ToLower()
-			  .Trim();
-		}
+            //return new StringBuilder()
+            //  .AppendJoin(' ', keywords)
+            //  .Append(' ')
+            //  .AppendJoin(' ', subjects)
+            //  .Append(' ')
+            //  .AppendJoin(' ', programs.Where(p => p != "none"))
+            //  .Append(' ')
+            //  .Append($"{sector} {branch} {objectName}")
+            //  .ToString()
+            //  .ToLower()
+            //  .Trim();
+            return new StringBuilder()
+              .AppendJoin(' ', keywords)
+              .Append(' ')
+              .AppendJoin(' ', programs.Where(p => p != "none"))
+              .Append(' ')
+              .Append(objectName)
+              .ToString()
+              .ToLower()
+              .Trim();
+        }
 
-		static ClassificationType GetClassificationType(string value)
+        static ClassificationType GetClassificationType(string value)
 		{
 			var normalized = string.Join("", (value ?? "").Split(' ')).ToLower();
 			return normalized switch
