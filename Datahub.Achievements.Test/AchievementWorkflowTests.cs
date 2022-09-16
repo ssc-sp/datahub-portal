@@ -47,10 +47,12 @@ public class AchievementWorkflowTests
         var userObject = new UserObject
         {
             UserId = userId,
-            Telemetry = new DatahubUserTelemetry()
+            Telemetry = new DatahubUserTelemetry(),
         };
         mockStorage.Setup(s => s.GetItemAsync<UserObject>(It.IsAny<string>(), null))
             .ReturnsAsync(userObject);
+
+        await achievementService.AddOrIncrementTelemetryEvent("test", 1);
 
         var result = await achievementService.RunRulesEngine(userObject);
         Assert.That(result, Is.TypeOf(typeof(bool)));
