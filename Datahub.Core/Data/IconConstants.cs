@@ -16,6 +16,13 @@ namespace Datahub.Core.Data
             Color = "blue",
             HexColor = Colors.Blue.Default,
         };
+        
+        public static readonly Icon PROFILE = new()
+        {
+            Name = "fad fa-user",
+            Color = "pink",
+            HexColor = Colors.Pink.Default,
+        };
 
         public static readonly Icon STORAGE = new()
         {
