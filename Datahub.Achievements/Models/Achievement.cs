@@ -14,6 +14,7 @@ public record Achievement
     public List<string>? RuleExpressions { get; init; }
 
     public bool MetaAchievement { get; set; }
+    public string? ParentAchievementCode { get; set; }
 
     [NotMapped]
     public List<Rule> Rules
