@@ -7,25 +7,36 @@
         <MudText Typo="Typo.h5">@Localizer["Achievements"]</MudText>
     </MudStack>
     <MudStack>
-        @if (_achievements != null)
+        @if (_metaAchievements != null)
         {
-            @foreach (var userAchievement in _achievements
-                .OrderByDescending(a => a.Earned)
-                .ThenBy(a => a.Achievement?.Code))
-            {
-                <MudPaper Style="@(userAchievement.Earned ? _achievementEarnedStyle : _achievementNotEarnedStyle)" Class="py-4 px-6" Elevation="0">
-                    <MudStack Row Justify="Justify.SpaceBetween" >
-                        <MudStack Row Spacing="6" AlignItems="AlignItems.Center">
-                            <MudIcon Size="Size.Large" Color="@(userAchievement.Earned ? Color.Tertiary : Color.Default)" Icon="@userAchievement!.Achievement!.Icon"/>
-                            <MudStack>
-                                <MudText Typo="Typo.h6">@userAchievement.Achievement?.Name</MudText>
-                                <MudText Typo="Typo.body2">@userAchievement.Achievement?.Description</MudText>
-                            </MudStack>
-                        </MudStack>
-                        <MudText Typo="Typo.caption">@Localizer[(userAchievement.Earned ? "Earned on" : "Not Earned")] @userAchievement!.Date?.ToString("dd-MMM-yyyy")</MudText>
-                    </MudStack>
-                </MudPaper>
-            }
+            <MudExpansionPanels Elevation="0" MultiExpansion>
+
+                @foreach (var metaAchievement in _metaAchievements
+                    .OrderBy(a => a.Code))
+                {
+                    var subAchievements = _achievementsByParentCode[metaAchievement.Code!]
+                        .OrderByDescending(a => a.Earned)
+                        .ThenBy(a => a.Achievement?.Code)
+                        .ToList();
+
+                    var completion = (subAchievements.Count(a => a.Earned), subAchievements.Count);
+                    
+                    <MudExpansionPanel>
+                        <TitleContent>
+                            <AchievementCard UserAchievement="metaAchievement" Completion="completion"/>
+                        </TitleContent>
+                        <ChildContent>
+                            @foreach (var userAchievement in _achievementsByParentCode[metaAchievement.Code!]
+                                .OrderByDescending(a => a.Earned)
+                                .ThenBy(a => a.Achievement?.Code))
+                            {
+                                <AchievementCard UserAchievement="userAchievement"/>
+                            }
+                        </ChildContent>
+                    </MudExpansionPanel>
+                }
+
+            </MudExpansionPanels>
         }
     </MudStack>
 </MudStack>
@@ -35,9 +46,8 @@
     [Parameter]
     public GraphUser User { get; set; }
 
-    private IEnumerable<UserAchievement> _achievements;
-    private string _achievementEarnedStyle;
-    private string _achievementNotEarnedStyle;
+    private Dictionary<string, List<UserAchievement>> _achievementsByParentCode;
+    private List<UserAchievement> _metaAchievements;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -45,20 +55,14 @@
 
         if (firstRender)
         {
-            _achievements = await _achievementService.GetUserAchievements(User.Mail);
+            var achievements = await _achievementService.GetUserAchievements(User.Mail);
+            _achievementsByParentCode = achievements
+                .GroupBy(a => a.Achievement?.ParentAchievementCode ?? "None")
+                .ToDictionary(a => a.Key, a => a.ToList());
+
+            _metaAchievements = achievements.Where(a => a.Achievement is { MetaAchievement: true }).ToList();
             StateHasChanged();
         }
-    }
-
-    protected override void OnInitialized()
-    {
-        base.OnInitialized();
-        _achievementEarnedStyle = new StyleBuilder()
-            .Build();
-
-        _achievementNotEarnedStyle = new StyleBuilder()
-            .AddStyle("opacity", "0.3")
-            .Build();
     }
 
 }
