@@ -33,7 +33,7 @@
 @code {
 
     [Parameter]
-    public Microsoft.Graph.User User { get; set; }
+    public GraphUser User { get; set; }
 
     private IEnumerable<UserAchievement> _achievements;
     private string _achievementEarnedStyle;
@@ -45,7 +45,7 @@
 
         if (firstRender)
         {
-            _achievements = await _achievementService.GetUserAchievements();
+            _achievements = await _achievementService.GetUserAchievements(User.Mail);
             StateHasChanged();
         }
     }

@@ -72,6 +72,7 @@ public class DatahubUserTelemetry
         public const string UserLogin = "user_login";
         public const string UserOpenDatabricks = "user_click_databricks_link";
         public const string UserViewProjectNotMemberOf = "user_view_project_not_member_of";
+        public const string UserViewOtherProfile = "user_view_other_profile";
         public const string UserRecentLink = "user_click_recent_link";
         public const string UserToggleCulture = "user_click_toggle_culture";
         

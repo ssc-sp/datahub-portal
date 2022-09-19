@@ -1,12 +1,15 @@
 @page "/profile"
+@page "/profile/{UserIdBase64}"
 
 @inject IUserInformationService _userInformationService
 @inject IConfiguration _configuration
-@inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
+@inject IMSGraphService _mSGraphService;
+@inject AchievementService _achievementService;
 
-@using Microsoft.Graph
 @using MudBlazor.Utilities
 @using Datahub.Portal.Pages.Profile.Sections
+@using Datahub.Achievements.Models
+@using Datahub.Core.Extensions
 
 @if (_user is null)
 {
@@ -14,24 +17,36 @@
     return;
 }
 
+@if (_user.Id is null)
+{
+    <MudText>Sorry, that user does not exist</MudText>
+    return;
+}
+
 <MudContainer Class="mt-16 px-8" MaxWidth="MaxWidth.Large">
     <MudGrid Justify="Justify.Center">
         <MudItem xs="12" Style="@_imageStyle" Class="rounded-lg mud-elevation-4"/>
         <MudItem xs="10" Class="">
-            <ProfileTitle User="@_user" />
+            <ProfileTitle User="@_user"/>
         </MudItem>
         <MudItem xs="8">
-            <ProfileProjects />
+            <ProfileProjects/>
         </MudItem>
         <MudItem xs="8">
-            <ProfileAchievements User="@_user" />
+            <ProfileAchievements User="@_user"/>
         </MudItem>
     </MudGrid>
 </MudContainer>
 
 @code {
 
-    private User _user;
+    [Parameter]
+    public string UserIdBase64 { get; set; }
+    
+    // yan's id: e828f0bf-a85e-42c3-b13e-08e267b05e0c
+    // base64 encoded: ZTgyOGYwYmYtYTg1ZS00MmMzLWIxM2UtMDhlMjY3YjA1ZTBj
+
+    private GraphUser _user;
 
     private string _imageStyle;
 
@@ -51,8 +66,22 @@
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        _user = await _userInformationService.GetUserAsync();
+        var user = await _userInformationService.GetUserAsync();
+        if (string.IsNullOrWhiteSpace(UserIdBase64))
+        {
+            _user = await _mSGraphService.GetUserAsync(user.Id, CancellationToken.None);
+        }
+        else
+        {
+            var decodedUserId = UserIdBase64.Base64Decode();
+            _user = await _mSGraphService.GetUserAsync(decodedUserId, CancellationToken.None);
+            if (_user?.Id != null && user?.Id != decodedUserId)
+            {
+                await _achievementService.AddOrIncrementTelemetryEvent(DatahubUserTelemetry.TelemetryEvents.UserViewOtherProfile);
+            }
+        }
     }
+
 
     private string GetBackground()
     {

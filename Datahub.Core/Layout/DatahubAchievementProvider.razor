@@ -5,6 +5,7 @@
 @using Datahub.Core.EFCore
 @using Microsoft.EntityFrameworkCore
 @using System.Linq
+@using Microsoft.Graph
 
 @inject AchievementService _achievementsService
 @inject ISnackbar _snackbar
@@ -12,6 +13,7 @@
 @inject ILocalStorageService _localStorage;
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject IUserInformationService _userInformationService
+@inject ILogger<DatahubAchievementProvider> _logger
 
 @implements IDisposable
 
@@ -32,15 +34,22 @@
         
         if (firstRender)
         {
-            await _achievementsService.AddOrIncrementTelemetryEvent(DatahubUserTelemetry.TelemetryEvents.UserLogin);
+            try
+            {
+                await _achievementsService.AddOrIncrementTelemetryEvent(DatahubUserTelemetry.TelemetryEvents.UserLogin);
             
-            await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
-            var userId = await _userInformationService.GetUserIdString();
+                await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
+                var userId = await _userInformationService.GetUserIdString();
         
-            var numberOfProjects = projectContext.Project_Users
-                .Count(p => p.User_ID == userId);
+                var numberOfProjects = projectContext.Project_Users
+                    .Count(p => p.User_ID == userId);
 
-            await _achievementsService.AddOrSetTelemetryEventKeepMax(DatahubUserTelemetry.TelemetryEvents.UserJoinedProject, numberOfProjects);
+                await _achievementsService.AddOrSetTelemetryEventKeepMax(DatahubUserTelemetry.TelemetryEvents.UserJoinedProject, numberOfProjects);
+            }
+            catch (AuthenticationException)
+            {
+                _logger.LogInformation("Authentication unsuccessful for achievement service. User is not logged in and is likely being redirected to challenge");
+            }
         }
     }
 
