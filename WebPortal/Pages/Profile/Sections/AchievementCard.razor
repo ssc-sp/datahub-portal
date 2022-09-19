@@ -23,7 +23,7 @@
             {
                 var progress = Completion is null ? 1d : (Completion.Value.Item1 / (double) Completion.Value.Item2) * 100;
                 <MudProgressLinear Value="progress">
-                    <MudText Typo="Typo.caption">
+                    <MudText Class="mb-6" Typo="Typo.caption" Color="Color.Dark">
                         @if (Completion is null)
                         {
                             <span>0 / 1</span>
