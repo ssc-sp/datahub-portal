@@ -5,7 +5,7 @@
     <MudGrid Class="align-center">
         <MudItem xs="9" Style="@_textOpacityStyle">
             <MudStack Row Spacing="6" AlignItems="AlignItems.Center">
-                <MudIcon Color="@(UserAchievement.Earned ? Color.Tertiary : Color.Default)" Icon="@UserAchievement!.Achievement!.Icon"/>
+                <MudIcon Style="" Color="@(UserAchievement.Earned ? Color.Tertiary : Color.Default)" Icon="@UserAchievement!.Achievement!.Icon"/>
                 <MudStack Spacing="0">
                     <MudText Typo="Typo.body1">
                         <b>@UserAchievement.Achievement?.Name</b>

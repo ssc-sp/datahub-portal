@@ -19,7 +19,7 @@ namespace Datahub.Core.Data
         
         public static readonly Icon PROFILE = new()
         {
-            Name = "fad fa-user",
+            Name = "fad fa-user-astronaut",
             Color = "pink",
             HexColor = Colors.Pink.Default,
         };
