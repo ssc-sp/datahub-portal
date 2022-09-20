@@ -213,6 +213,8 @@
         context.RegisterOptionValueProperty<FundCenter, HierarchyLevel>(l => l.Branch, p => p?.FundCenterNameEnglish ?? "N/A", () => GetBranches(), s => RefreshDivisions(s, context));
         context.RegisterOptionValueProperty<FundCenter, HierarchyLevel>(l => l.Division, p => p?.FundCenterNameEnglish ?? "N/A", () => GetDivisions());
 
+        context.RegisterFieldNotes<FundCenter>(f => f.AttritionRate, "This is the attrition rate note");
+
     }
 
 
