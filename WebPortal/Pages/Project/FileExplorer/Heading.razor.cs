@@ -1,3 +1,4 @@
+using Datahub.Achievements.Models;
 using Datahub.Portal.Services.Storage;
 using Microsoft.JSInterop;
 
@@ -19,6 +20,7 @@ public partial class Heading
         foreach (var download in downloads)
         {
             await OnFileDownload.InvokeAsync(download);
+            await _achievementService.AddOrIncrementTelemetryEvent(DatahubUserTelemetry.TelemetryEvents.UserDownloadFile);
         }
     }
 
@@ -28,8 +30,10 @@ public partial class Heading
         await _module.InvokeAsync<string>("azSyncDown", uri.ToString(), _dotNetHelper);
     }
 
-    private void HandleShare()
+    private async Task HandleShare()
     {
+        await _achievementService.AddOrIncrementTelemetryEvent(DatahubUserTelemetry.TelemetryEvents.UserShareFile);
+
         var selectedFile = _selectedFiles.FirstOrDefault();
         if (selectedFile is null)
             return;
@@ -49,7 +53,6 @@ public partial class Heading
             sb.Append("&folderpath=");
             sb.Append(selectedFile.folderpath);
         }
-
         _navigationManager.NavigateTo(sb.ToString());
     }
 

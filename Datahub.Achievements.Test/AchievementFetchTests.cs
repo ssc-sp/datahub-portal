@@ -26,7 +26,7 @@ public class AchievementFetchTests
     private const string EarnedAchievementCode1 = "earned1";
     private const string EarnedAchievementCode2 = "earned2";
 
-    private static readonly UserObject _userObject = new()
+    private static readonly UserObject UserObject = new()
     {
         Telemetry = new DatahubUserTelemetry()
         {
@@ -75,17 +75,16 @@ public class AchievementFetchTests
         var mockCosmosDb = new Mock<IDbContextFactory<AchievementContext>>();
 
         mockStorage.Setup(s => s.GetItemAsync<UserObject>(It.IsAny<string>(), null))
-            .ReturnsAsync(_userObject);
+            .ReturnsAsync(UserObject);
 
+        var mockAuth = Utils.CreateMockAuth(UserId);
         var achievementService =
-            new AchievementService(mockLogger.Object, mockCosmosDb.Object, mockStorage.Object, Options);
-
-        await achievementService.InitializeAchievementServiceForUser(UserId);
+            new AchievementService(mockLogger.Object, mockCosmosDb.Object, mockStorage.Object, mockAuth.Object, Options);
 
         var result = await achievementService.GetUserAchievements();
 
         Assert.That(result, Is.TypeOf<List<UserAchievement>>());
-        Assert.That(result, Has.Count.EqualTo(_userObject.UserAchievements.Count()));
+        Assert.That(result, Has.Count.EqualTo(UserObject.UserAchievements.Count));
     }
 
     [Test]
@@ -96,18 +95,16 @@ public class AchievementFetchTests
         var mockCosmosDb = new Mock<IDbContextFactory<AchievementContext>>();
 
         mockStorage.Setup(s => s.GetItemAsync<UserObject>(It.IsAny<string>(), null))
-            .ReturnsAsync(_userObject);
+            .ReturnsAsync(UserObject);
 
+        var mockAuth = Utils.CreateMockAuth(UserId);
         var achievementService =
-            new AchievementService(mockLogger.Object, mockCosmosDb.Object, mockStorage.Object, Options);
-        await achievementService.InitializeAchievementServiceForUser(UserId);
+            new AchievementService(mockLogger.Object, mockCosmosDb.Object, mockStorage.Object, mockAuth.Object, Options);
 
         var result = await achievementService.GetUserAchievements();
 
         Assert.That(result, Is.TypeOf<List<UserAchievement>>());
         Assert.That(result.Count(r => r.Earned),
-            Is.EqualTo(_userObject.UserAchievements.Count(r => r.Earned)));
+            Is.EqualTo(UserObject.UserAchievements.Count(r => r.Earned)));
     }
-
-
 }

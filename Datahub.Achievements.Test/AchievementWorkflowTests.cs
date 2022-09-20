@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
-using RulesEngine.Models;
 
 namespace Datahub.Achievements.Test;
 
@@ -35,19 +34,22 @@ public class AchievementWorkflowTests
         var mockLogger = new Mock<ILogger<AchievementService>>();
         var mockStorage = new Mock<ILocalStorageService>();
         var mockCosmosDb = new Mock<IDbContextFactory<AchievementContext>>();
+        var mockAuth = Utils.CreateMockAuth(userId);
         var achievementService =
-            new AchievementService(mockLogger.Object, mockCosmosDb.Object, mockStorage.Object, Options);
-        await achievementService.InitializeAchievementServiceForUser(userId);
+            new AchievementService(mockLogger.Object, mockCosmosDb.Object, mockStorage.Object, mockAuth.Object, Options);
 
+        var userObject = new UserObject
+        {
+            UserId = userId,
+            Telemetry = new DatahubUserTelemetry(),
+        };
         mockStorage.Setup(s => s.GetItemAsync<UserObject>(It.IsAny<string>(), null))
-            .ReturnsAsync(new UserObject
-            {
-                UserId = userId,
-                Telemetry = new DatahubUserTelemetry()
-            });
+            .ReturnsAsync(userObject);
 
-        var result = await achievementService.RunRulesEngine();
-        Assert.That(result, Is.TypeOf(typeof(List<RuleResultTree>)));
+        await achievementService.AddOrIncrementTelemetryEvent("test", 1);
+
+        var result = await achievementService.RunRulesEngine(userObject);
+        Assert.That(result, Is.TypeOf(typeof(bool)));
     }
 
     [Test]
@@ -58,17 +60,22 @@ public class AchievementWorkflowTests
         var mockLogger = new Mock<ILogger<AchievementService>>();
         var mockStorage = new Mock<ILocalStorageService>();
         var mockCosmosDb = new Mock<IDbContextFactory<AchievementContext>>();
+        var mockAuth = Utils.CreateMockAuth(userId);
         var achievementService =
-            new AchievementService(mockLogger.Object, mockCosmosDb.Object, mockStorage.Object, Options);
-        await achievementService.InitializeAchievementServiceForUser(userId);
+            new AchievementService(mockLogger.Object, mockCosmosDb.Object, mockStorage.Object, mockAuth.Object, Options);
 
         mockStorage.Setup(s => s.GetItemAsync<UserObject>(It.IsAny<string>(), null))
             .ReturnsAsync(new UserObject
             {
                 UserId = userId,
                 Telemetry = new DatahubUserTelemetry()
+                {
+                    UserId = userId
+                }
             });
 
+        var triggeredEvent = false;
+        
         achievementService.AchievementEarned += (_, e) =>
         {
             Assert.Multiple(() =>
@@ -76,14 +83,16 @@ public class AchievementWorkflowTests
                 Assert.That(e.Achievement, Is.TypeOf(typeof(Achievement)));
                 Assert.That(e.UserId, Is.EqualTo(userId));
             });
+
+            triggeredEvent = true;
         };
 
-        var input = new DatahubUserTelemetry()
+        var result = await achievementService.AddOrIncrementTelemetryEvent("test", 1);
+        
+        Assert.Multiple(() =>
         {
-            UserId = userId,
-        };
-
-        var result = await achievementService.RunRulesEngine();
-        Assert.That(result, Is.TypeOf(typeof(List<RuleResultTree>)));
+            Assert.That(result, Is.TypeOf(typeof(int)));
+            Assert.That(triggeredEvent, Is.True);
+        });
     }
 }

@@ -1,9 +1,11 @@
 ﻿@using Datahub.Portal.Pages.Project.DataProject.ProjectTools
 @using Datahub.Core.Components.PageBanner
+@using Datahub.Achievements.Models
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject IUserInformationService _userInformationService
 @inject ServiceAuthManager _serviceAuthManager
+@inject AchievementService _achievementService
 
 @page "/projects/{ProjectAcronymParam}"
 
@@ -49,6 +51,14 @@
         _user = await _userInformationService.GetUserAsync();
         var authUser = (await authenticationStateTask).User;
         _isDatahubAdmin = !_serviceAuthManager.GetViewingAsGuest(_userId) && authUser.IsInRole(RoleConstants.DATAHUB_ROLE_ADMIN);
+        
+        var isMemberOfProject = projectContext.Project_Users
+            .Any(p => p.User_ID == _userId && p.Project.Project_Acronym_CD == ProjectAcronymParam);
+
+        if (!isMemberOfProject)
+        {
+            await _achievementService.AddOrIncrementTelemetryEvent(DatahubUserTelemetry.TelemetryEvents.UserViewProjectNotMemberOf);
+        }
     }
 
 }

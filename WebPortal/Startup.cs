@@ -1,7 +1,5 @@
 using System.Globalization;
 using Datahub.Portal.Services;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.Identity.Web;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.Identity.Web.UI;
@@ -38,7 +36,6 @@ using Datahub.Achievements.Models;
 using Datahub.Core.Configuration;
 using Datahub.Core.Modules;
 using Datahub.Portal.Services.Storage;
-using Microsoft.AspNetCore.Authorization.Infrastructure;
 using MudBlazor.Services;
 using Datahub.GeoCore.Service;
 

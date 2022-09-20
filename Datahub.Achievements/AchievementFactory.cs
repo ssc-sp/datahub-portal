@@ -7,6 +7,7 @@ namespace Datahub.Achievements;
 public class AchievementFactory
 {
     public const string AchievementWorkflowName = "Achievement Workflow";
+    public const string MetaAchievementWorkflowName = "Meta Achievement Workflow";
 
 
     public Dictionary<string, Achievement>? Achievements { get; private set; }
@@ -20,7 +21,6 @@ public class AchievementFactory
 
     private async Task InitializeAchievements(string? directoryPath = null)
     {
-        
         var pathName = directoryPath ?? $"{Directory.GetCurrentDirectory()}/Achievements";
         var files = Directory.GetFiles(pathName, "*.achievement.json", SearchOption.AllDirectories);
         Achievements = new Dictionary<string, Achievement>();
@@ -41,24 +41,47 @@ public class AchievementFactory
     }
     private AchievementFactory() { }
     
-    public static Workflow CreateWorkflow(IEnumerable<Achievement> achievements)
+    public static Workflow[] CreateWorkflows(IEnumerable<Achievement> achievements)
     {
-        var rules = new List<Rule>();
         if (achievements == null)
             throw new Exception("No achievements found");
+        
+        var rules = new List<Rule>();
+        var metaRules = new List<Rule>();
 
         foreach (var achievement in achievements)
         {
-            achievement.Rules.ForEach(rules.Add);
+            if (achievement.MetaAchievement)
+            {
+                achievement.Rules.ForEach(metaRules.Add);
+            }
+            else
+            {
+                achievement.Rules.ForEach(rules.Add);
+            }
         }
 
-        var achievementWorkflow = new Workflow()
-        {
-            WorkflowName = AchievementWorkflowName,
-            Rules = rules
-        };
+        var result = new List<Workflow>();
 
-        return achievementWorkflow;
+        if (rules.Any())
+        {
+            result.Add(new Workflow
+            {
+                WorkflowName = AchievementWorkflowName,
+                Rules = rules
+            });
+        }
+
+        if (metaRules.Any())
+        {
+            result.Add(new Workflow
+            {
+                WorkflowName = MetaAchievementWorkflowName,
+                Rules = metaRules
+            });
+        }
+
+        return result.ToArray();
     }
     
     public Achievement FromCode(string code)
