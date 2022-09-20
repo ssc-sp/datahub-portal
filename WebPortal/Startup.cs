@@ -41,6 +41,7 @@ using Microsoft.AspNetCore.Authorization.Infrastructure;
 using MudBlazor.Services;
 using Datahub.GeoCore.Service;
 using Datahub.Core.Services.Offline;
+using Datahub.CatalogSearch;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]
 
@@ -157,6 +158,7 @@ namespace Datahub.Portal
             services.AddScoped<IPortalVersionService, PortalVersionService>();
 
             services.AddScoped<CatalogImportService>();
+            services.AddSingleton<ICatalogSearchEngine, CatalogSearchEngine>();
 
             services.AddSignalRCore();
 

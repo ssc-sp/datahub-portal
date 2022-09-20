@@ -1,5 +1,6 @@
 ﻿@*DiscoverySearch.razor*@
 @page "/discovery"
+@using Datahub.CatalogSearch
 @using Datahub.Metadata.DTO
 @using Datahub.Core.Utils
 @using Datahub.Metadata.Model
@@ -14,18 +15,21 @@
 					<MudStack>
 						@*search keywords*@
 						<MudFocusTrap>
-							<MudTextField 
+							<MudAutocomplete 
+								T="string"
 								@ref="_searchField"
-								DebounceInterval="1000" 
-								Text=@_searchKeywords
-								Immediate="true"
-								T="string"	
-								ValueChanged=@HandleSearchTextChanged 
 								Label=@Localizer["Search"]
-								Variant="Variant.Outlined" 
+								Text=@_searchKeywords
+								ValueChanged=@AutocompleteValueChanged
+								SearchFunc="@AutocompleteSearch"
+								OnAdornmentClick="HandleAutocompleteSearch"
+								ResetValueOnEmptyText="true"
+								CoerceText="false" 
+								CoerceValue="false"
 								Clearable="true"
+								Variant="Variant.Outlined"
 								Adornment="Adornment.End" 
-								AdornmentIcon="@Icons.Filled.Search" />
+								AdornmentIcon="@Icons.Filled.Search"/>
 						</MudFocusTrap>
 
 						<MudList Clickable="false">
@@ -194,6 +198,10 @@
 
 @code {
 
+
+	[Inject]
+	public ICatalogSearchEngine CatalogSearchEngine { get; set; }
+
 	[Inject]
 	public IMetadataBrokerService MetadataBrokerService { get; set; }
 
@@ -253,12 +261,13 @@
 	[SupplyParameterFromQuery(Name = "cls")]
 	public string QueryClassifications { get; set; }
 
-	private MudTextField<string> _searchField;
+	private MudAutocomplete<string> _searchField;
 
 	private const int NO_FILTER_SELECTED = -1;
 	private const int PAGE_SIZE = 10;
 
 	private bool _searching;
+	private string _autoCompleteText;
 	private string _searchKeywords;
 	private List<CatalogObjectResult> _searchResults = new();
 	private bool _isFrench;
@@ -603,13 +612,39 @@
 		await Task.Run(() => RedirectAndDownload(result.Location));
 	}
 
-	private async void HandleSearchTextChanged(string newValue)
+	private async Task HandleSearchTextChanged(string newValue)
 	{
 		if (_searchKeywords != newValue)
 		{
 			_searchKeywords = newValue;
 			await UpdateFilter();
 		}
+	}
+
+	private async Task<IEnumerable<string>> AutocompleteSearch(string text)
+	{
+		if (!string.IsNullOrWhiteSpace(text))
+		{
+			List<string> results = new() { text };
+			var searchEngine = _isFrench ? CatalogSearchEngine.GetFrenchSearchEngine() : CatalogSearchEngine.GetEnglishSearchEngine();
+			results.AddRange(searchEngine.GetAutocompleteSuggestions(text, 10));
+			return await Task.FromResult(results);
+		}
+		else
+		{
+			return new string[0];
+		}
+	}
+
+	private async Task AutocompleteValueChanged(string value)
+	{
+		_autoCompleteText = value;
+		await HandleSearchTextChanged(value);
+	}
+
+	private async Task HandleAutocompleteSearch(MouseEventArgs e)
+	{
+		await HandleSearchTextChanged(_autoCompleteText);
 	}
 
 	private async Task ThrottleSearch()
