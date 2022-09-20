@@ -1,5 +1,8 @@
-﻿@page "/powerbi-report/embed/{ReportId}"
+﻿@page "/powerbi-report/embed/{ObjectId}"
+@page "/powerbi-report/embed/{ObjectId}/{Language}"
 @inject UIControlsService UI
+@inject IPowerBiDataService _powerBiDataService
+@inject IMetadataBrokerService _metadataService
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @layout PublicLayout
 @inject NavigationManager NavManager
@@ -13,6 +16,8 @@
 
 @using System.Security.Cryptography;
 @using Microsoft.AspNetCore.Cryptography.KeyDerivation;
+
+
 @if (!_isAccessible)
 {
     <div style="padding:10px">
@@ -23,12 +28,47 @@
 }
 <div @ref="@PowerBIElement" style="width:100%;height:600px;max-width: 2000px">@_errorMessage</div>
 
+@if (catalogObjects?.Count > 0)
+{
+    <MudContainer>
+        <MudText>Debug</MudText>
+
+        @*<MudPopover Open=@_relatedVisible Class="pa-8" TransformOrigin=@Origin.BottomLeft>*@
+            <MudList>
+                @foreach(var related in catalogObjects)
+                {
+                    <MudListItem>
+                        <MudStack Row>
+                            @if (related == currentCatalogObject)
+                            {
+                                <MudText Color=@Color.Primary>@related.Name_English</MudText>
+                            }
+                            else
+                            {
+                                <MudText>@related.Name_English</MudText>
+                            }
+                            <MudText>@related.Language</MudText>
+                        </MudStack>
+                    </MudListItem>
+                }
+            </MudList>
+            <MudText>Selected language: @selectedLanguage</MudText>
+
+        @*</MudPopover>*@
+        @*<MudButton OnClick=@(() => _relatedVisible = !_relatedVisible)>
+            Related reports
+        </MudButton>*@
+        
+    </MudContainer>
+}
+
 @code {
 
     [Parameter]
-    public string ReportId {  get;  set; }
+    public string ObjectId {  get;  set; }
 
-
+    [Parameter]
+    public string Language { get; set; }
 
     [Parameter]
     [SupplyParameterFromQuery]
@@ -41,12 +81,101 @@
     private string _errorMessage;
     private bool _isAccessible = false;
 
+    private bool _relatedVisible = false;
 
+    private Guid? _reportId;
+    private Guid? _groupId;
+
+    private List<Metadata.DTO.CatalogObjectResult> catalogObjects;
+    private Metadata.DTO.CatalogObjectResult currentCatalogObject;
+
+    // TODO
+    private Metadata.Model.CatalogObjectLanguage selectedLanguage => Language?.ToLowerInvariant() switch
+    {
+        "en" => Metadata.Model.CatalogObjectLanguage.English,
+        "fr" => Metadata.Model.CatalogObjectLanguage.French,
+        _ => Metadata.Model.CatalogObjectLanguage.Bilingual
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        Guid objectGuid;
+        if (!Guid.TryParse(ObjectId, out objectGuid))
+        {
+            NavManager.NavigateTo("/");
+        }
+
+        var report = await _powerBiDataService.GetExternalReportRecord(objectGuid);
+        var group = await _metadataService.GetCatalogGroup(objectGuid);
+
+        if (report != null)
+        {
+            await PopulateFromReport(report);
+        }
+        else if (group?.Count > 0)
+        {
+            await RedirectFromGroup(group);
+        }
+    }
+
+    private bool IsWrongLanguage(Metadata.Model.CatalogObjectLanguage reportLanguage) => selectedLanguage != Metadata.Model.CatalogObjectLanguage.Bilingual
+        && reportLanguage != Metadata.Model.CatalogObjectLanguage.Bilingual
+        && reportLanguage != selectedLanguage;
+
+    private async Task PopulateFromReport(ExternalPowerBiReport report)
+    {
+        _reportId = report.Report_ID;
+        ExtReport = report;
+        var reportIdStr = _reportId.ToString();
+
+        var catalogReport = await _metadataService.GetCatalogObjectByObjectId(reportIdStr);
+        _groupId = catalogReport?.GroupId;
+
+        if (_groupId.HasValue)
+        {
+            var group = await _metadataService.GetCatalogGroup(_groupId.Value);
+
+            catalogObjects = group;
+            currentCatalogObject = group.FirstOrDefault(r => r.Metadata.ObjectId == reportIdStr);
+        }
+
+        if (IsWrongLanguage(catalogReport.Language))
+        {
+            await RedirectFromGroup(catalogObjects);
+        }
+    }
+
+    private async Task RedirectFromGroup(IEnumerable<Metadata.DTO.CatalogObjectResult> catalogObjects)
+    {        
+        var newReport = FindMatchingLanguageReport(catalogObjects);
+        if (newReport != null)
+        {
+            var newGuid = Guid.Parse(newReport.Metadata.ObjectId);
+            var extReportTask = _powerBiDataService.GetExternalReportRecord(newGuid);
+            var url = _powerBiDataService.GenerateExternalReportLink(newGuid, selectedLanguage);
+            NavManager.NavigateTo(url, replace: true);
+            await PopulateFromReport(await extReportTask);
+        }
+    }
+
+    private Metadata.DTO.CatalogObjectResult FindMatchingLanguageReport(IEnumerable<Metadata.DTO.CatalogObjectResult> catalogObjects)
+    {
+        if (selectedLanguage == Metadata.Model.CatalogObjectLanguage.Bilingual)
+        {
+            return catalogObjects.FirstOrDefault();
+        }
+        else
+        {
+            return catalogObjects.FirstOrDefault(r => r.Language == selectedLanguage) ??
+                catalogObjects.FirstOrDefault(r => r.Language == Metadata.Model.CatalogObjectLanguage.Bilingual);
+        }
+    }
 
     private async Task OnOpenReport()
     {
-        using var context = _dbFactoryProject.CreateDbContext();
-        ExtReport = await context.ExternalPowerBiReports.Where(r => r.Report_ID.ToString() == ReportId).FirstOrDefaultAsync();
+        //using var context = _dbFactoryProject.CreateDbContext();
+        //ExtReport = await context.ExternalPowerBiReports.Where(r => r.Report_ID.ToString() == ReportId).FirstOrDefaultAsync();
+        
 
         await ValidateUser();
     }
@@ -100,8 +229,8 @@
 
     private void HandleError(Exception ex)
     {
-            _errorMessage = $"Internal error loading report {ReportId}.";
-           
+        //_errorMessage = $"Internal error loading report {ReportId}.";
+        _errorMessage = $"Internal error loading report {ObjectId}.";
     }
 
 

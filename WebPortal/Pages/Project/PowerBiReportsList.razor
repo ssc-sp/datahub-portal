@@ -1,5 +1,7 @@
 ﻿@page "/powerbi/{projectAcronym}"
 @inject IPowerBiDataService PowerBiDataService
+@inject IUserInformationService UserInfoService
+@inject IMSGraphService MsGraphService
 @inject UIControlsService UiControls
 
 <div style="padding-left: 2rem;padding-right: 2rem">
@@ -67,6 +69,7 @@
     private int _currentPage = 0;
     private IPageableComponent _reportTable;
 
+    private string currentUserEmail;
 
     private bool IncludeSandbox { get; set; } = false;
 
@@ -100,6 +103,9 @@
 
     protected override async Task OnInitializedAsync()
     {
+        var currentUser = await UserInfoService.GetUserAsync();
+        currentUserEmail = currentUser.Mail;
+
         renderers = new()
         {
             null,
@@ -158,32 +164,34 @@
     public async Task RefreshTable()
     {
         _powerBiReports = await PowerBiDataService.GetReportsForProjectWithExternalReportInfo(projectAcronym, IncludeSandbox);
-        await InvokeAsync(StateHasChanged);
+        //await InvokeAsync(StateHasChanged);
     }
 
     private async Task OpenMetadataEditor(PowerBi_Report r)
     {
-        RenderFragment reportEditor = @<Datahub.Portal.Pages.PowerBI.PowerBiReportMetadataEditor 
+        RenderFragment reportEditor = 
+    @<Datahub.Portal.Pages.PowerBI.PowerBiReportMetadataEditor 
             PowerBiReportId=@r.Report_ID 
             ProjectAcronym=@projectAcronym 
             OnCloseDialog=@CloseDialog />;
         await UiControls.ToggleModal(@<RenderFragmentModal Fragment=reportEditor />);
     }
 
-    private RenderFragment ExternalReport(PowerBi_Report r) =>
-    @<AeTypography>
-        <ExternalReportRequest PowerBi_Report=@(r) RefreshTable=RefreshTable/>
-    </AeTypography>;
+    private RenderFragment ExternalReport(PowerBi_Report r) => @<ExternalReportRequest Report=@(r) RefreshTable=RefreshTable CurrentUserEmail=@currentUserEmail/>;
 
-    private RenderFragment WorkspaceLinkFragment(PowerBi_Report r) =>
-    @<AeTypography>
-        <DHLink 
-                LinkType=@DatahubLinkType.PowerBIWorkspace 
-                PBIWorkspaceId=@(r.Workspace_Id.ToString())>
-            @r.Workspace.Workspace_Name
-        </DHLink>
-    </AeTypography>
-    ;
+    //private RenderFragment ExternalReportNotInCatalog(PowerBi_Report r) => @<MudText>Nope</MudText>;
+
+    //private RenderFragment ExternalReportIfAllowed(PowerBi_Report r) => r.InCatalog ? ExternalReport(r) : ExternalReportNotInCatalog(r);
+
+    //private RenderFragment WorkspaceLinkFragment(PowerBi_Report r) =>
+    //@<AeTypography>
+    //    <DHLink 
+    //            LinkType=@DatahubLinkType.PowerBIWorkspace 
+    //            PBIWorkspaceId=@(r.Workspace_Id.ToString())>
+    //        @r.Workspace.Workspace_Name
+    //    </DHLink>
+    //</AeTypography>
+    //;
 
     private RenderFragment ReportLinkFragment(PowerBi_Report r) =>
     @<AeTypography>
@@ -209,7 +217,7 @@
             OnClick=@(() => OpenMetadataEditor(r))
             
         />
-    </MudStack>
-    ;
+    </MudStack>;
+
 
 }
