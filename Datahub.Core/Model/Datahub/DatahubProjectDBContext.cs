@@ -1,14 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Datahub.Core.Data;
-using Datahub.Core.EFCore;
 using Datahub.Core.Model.Onboarding;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Datahub.Core.EFCore
 {

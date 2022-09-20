@@ -1,0 +1,19 @@
+{
+  "Code": "EXP-009",
+  "Name": "To Infinity and beyond",
+  "Description": "Unlock all the initial release exploration achievements",
+  "Icon": "fas fa-map-marked-alt",
+  "MetaAchievement": true,
+  "RuleExpressions": [
+    "Utils.MetaAchievementPassed(\"EXP-001\", input1)",
+    "Utils.MetaAchievementPassed(\"EXP-002\", input1)",
+    "Utils.MetaAchievementPassed(\"EXP-003\", input1)",
+    "Utils.MetaAchievementPassed(\"EXP-004\", input1)",
+    "Utils.MetaAchievementPassed(\"EXP-005\", input1)",
+    "Utils.MetaAchievementPassed(\"EXP-006\", input1)",
+    "Utils.MetaAchievementPassed(\"EXP-007\", input1)",
+    "Utils.MetaAchievementPassed(\"EXP-008\", input1)",
+    "Utils.MetaAchievementPassed(\"EXP-010\", input1)",
+    "Utils.MetaAchievementPassed(\"EXP-011\", input1)"
+  ]
+}

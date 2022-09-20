@@ -1,8 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authentication;
-using Datahub.Portal.Services;
 using Datahub.Core.Services;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;

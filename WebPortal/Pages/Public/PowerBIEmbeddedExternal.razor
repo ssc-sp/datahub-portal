@@ -4,14 +4,8 @@
 @layout PublicLayout
 @inject NavigationManager NavManager
 @using Datahub.Portal.Layout
-@using Microsoft.PowerBI.Api
-@using Microsoft.PowerBI.Api.Models
-@using Newtonsoft.Json.Linq
-@using Microsoft.Extensions.Configuration
 @inject IJSRuntime JSRuntime
 @inject IConfiguration _configuration
-
-@using System.Security.Cryptography;
 @using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 @if (!_isAccessible)
 {

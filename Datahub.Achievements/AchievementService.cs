@@ -1,9 +1,10 @@
+using System.Security.Authentication;
 using Blazored.LocalStorage;
 using Datahub.Achievements.Models;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using RulesEngine.Extensions;
 using RulesEngine.Models;
 
 namespace Datahub.Achievements;
@@ -13,24 +14,25 @@ public class AchievementService
     public event EventHandler<AchievementEarnedEventArgs>? AchievementEarned;
 
     private const string AchievementVersion = "1.0.4";
-    private const string AchievementContainerName = $"User Achievements v{AchievementVersion}";
+    public const string AchievementContainerName = $"User Achievements v{AchievementVersion}";
 
     private readonly AchievementServiceOptions? _options;
     private readonly ILogger<AchievementService> _logger;
     private readonly ILocalStorageService _localStorage;
     private readonly IDbContextFactory<AchievementContext> _contextFactory;
-    
-    private string? _userId;
+    private readonly AuthenticationStateProvider _authenticationStateProvider;
 
     public AchievementService(
         ILogger<AchievementService> logger,
         IDbContextFactory<AchievementContext> achievementContextFactory,
         ILocalStorageService localStorage,
+        AuthenticationStateProvider authenticationStateProvider,
         IOptions<AchievementServiceOptions> options)
     {
         _logger = logger;
         _localStorage = localStorage;
         _contextFactory = achievementContextFactory;
+        _authenticationStateProvider = authenticationStateProvider;
         _options = options.Value;
     }
 
@@ -41,17 +43,79 @@ public class AchievementService
             AchievementEarned?.Invoke(this, args);
         }
     }
-    
-    /// <summary>
-    /// Ensures that the user has the specified record for their achievements and that the scoped service is tied to the user.
-    /// </summary>
-    /// <param name="userId">The user's ID</param>
-    public async Task InitializeAchievementServiceForUser(string? userId)
-    {
-        _userId = userId ?? throw new ArgumentNullException(nameof(userId));
-        
-        UserObject? userObject;
 
+    public async Task<bool> RunRulesEngine(UserObject userObject)
+    {
+        if (!_options?.Enabled ?? true)
+        {
+            return false;
+        }
+
+        var achievementList = userObject.UserAchievements
+            .Select(u => u.Achievement)
+            .ToList();
+
+        var rulesEngineSettings = new ReSettings { CustomTypes = new[] { typeof(Utils) } };
+        var workflows = AchievementFactory.CreateWorkflows(achievementList!);
+        var rulesEngine = new RulesEngine.RulesEngine(workflows, _logger, rulesEngineSettings);
+
+        var hasEarnedNewAchievement = false;
+            var response =
+                await rulesEngine.ExecuteAllRulesAsync(AchievementFactory.AchievementWorkflowName, userObject.Telemetry);
+            hasEarnedNewAchievement = HandleRuleResponses(userObject, response);
+        
+        // if there are any meta achievements present, run the rules engine again
+        if (workflows.Any(w => w.WorkflowName == AchievementFactory.MetaAchievementWorkflowName))
+        {
+            var metaResponse =
+                await rulesEngine.ExecuteAllRulesAsync(AchievementFactory.MetaAchievementWorkflowName, response);
+
+            hasEarnedNewAchievement = HandleRuleResponses(userObject, metaResponse) || hasEarnedNewAchievement;
+        }
+
+        return hasEarnedNewAchievement;
+    }
+
+    private bool HandleRuleResponses(UserObject userObject, IEnumerable<RuleResultTree> response)
+    {
+        var hasEarnedNewAchievement = false;
+        foreach (var userAchievement in from ruleResultTree in response
+                 where ruleResultTree.IsSuccess
+                 select userObject.UserAchievements
+                     .FirstOrDefault(u => u.Code == ruleResultTree.Rule.SuccessEvent && u.Earned == false)
+                 into userAchievement
+                 where userAchievement is not null
+                 select userAchievement)
+        {
+            // if it's a new one then record and flag for save
+            userAchievement!.Date = DateTime.UtcNow;
+            hasEarnedNewAchievement = true;
+
+            // and raise the event
+            OnAchievementEarned(new AchievementEarnedEventArgs()
+            {
+                UserId = userObject.UserId,
+                Achievement = userAchievement.Achievement
+            });
+        }
+
+        return hasEarnedNewAchievement;
+    }
+
+    private async Task<UserObject> GetUserObject(string? userId = null)
+    {
+        if (userId is null)
+        {
+            var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
+            userId = authState.User.Identity?.Name;
+
+            if (userId is null)
+            {
+                throw new AuthenticationException("Self fetching user is not authenticated");
+            }
+        }
+
+        UserObject? userObject;
         if (_options!.LocalAchievementsOnly)
         {
             userObject = await _localStorage.GetItemAsync<UserObject>(AchievementContainerName);
@@ -61,183 +125,102 @@ public class AchievementService
             await using var ctx = await _contextFactory.CreateDbContextAsync();
             userObject = await ctx.UserObjects!.FirstOrDefaultAsync(u => u.UserId == userId);
         }
-
-        if (userObject is null || !userObject.UserAchievements.Any())
-        {
-            await InitializeEmptyAchievements(userObject);
-        }
-    }
-
-    /// <summary>
-    /// Runs the rules engine off the user's telemetry data to determine if they have earned any achievements.
-    /// </summary>
-    /// <returns></returns>
-    public async Task<List<RuleResultTree>> RunRulesEngine()
-    {
-        if (!_options?.Enabled ?? true)
-        {
-            return new List<RuleResultTree>();
-        }
-        
-        var userObject = await GetUserObject();
-
-        var achievementList = userObject.UserAchievements
-            .Select(u => u.Achievement)
-            .ToList(); 
-
-        var rulesEngineSettings = new ReSettings { CustomTypes = new[] { typeof(Utils) } };
-        var rulesEngine = new RulesEngine.RulesEngine(new[] { AchievementFactory.CreateWorkflow(achievementList!) }, _logger, rulesEngineSettings);
-        var response =
-            await rulesEngine.ExecuteAllRulesAsync(AchievementFactory.AchievementWorkflowName, userObject.Telemetry );
-
-        response.OnSuccess((successEvent) =>
-        {
-            var userAchievement = userObject.UserAchievements.FirstOrDefault(u => u.Code == successEvent);
-            // check for existing achievements
-            if (userAchievement?.Earned ?? false)
-            {
-                return;
-            }
-
-            // if it's a new one then save
-            Task.Run(async () =>
-            {
-                userAchievement!.Date = DateTime.UtcNow;
-                
-                if (_options!.LocalAchievementsOnly)
-                {
-                    await _localStorage.SetItemAsync(AchievementContainerName, userObject);
-                }
-                else
-                {
-                    await using var ctx = await _contextFactory.CreateDbContextAsync();
-                    ctx.UserObjects!.Update(userObject);
-                    await ctx.SaveChangesAsync();
-                }
-            });
-
-            // and raise the event
-            OnAchievementEarned(new AchievementEarnedEventArgs()
-            {
-                UserId = _userId,
-                Achievement = achievementList.FirstOrDefault(a => a!.Code == successEvent)
-            });
-        });
-
-        return response;
-    }
-
-
-    /// <summary>
-    /// Reads the achievement files and creates a dictionary of UserAchievements for the user.
-    /// </summary>
-    /// <param name="userObject">(Optional) The user object</param>
-    /// <returns>The root object that holds all the user's achievement information</returns>
-    private async Task<UserObject> InitializeEmptyAchievements(UserObject? userObject = null)
-    {
-        var achievementFactory = await AchievementFactory.CreateFromFilesAsync(_options?.AchievementDirectoryPath);
-        var emptyAchievements = achievementFactory.Achievements!
-            .Select(kvp => new UserAchievement
-            {
-                UserId = _userId,
-                Achievement = kvp.Value,
-            })
-            .ToList();
         
         userObject ??= new UserObject
         {
-            UserId = _userId,
+            UserId = userId,
             Telemetry = new DatahubUserTelemetry()
             {
-                UserId = _userId
+                UserId = userId
             },
+            UserAchievements = new List<UserAchievement>()
         };
-        userObject.UserAchievements = emptyAchievements;
-        
-        if (_options is { LocalAchievementsOnly: true })
-        {
-            var exists = await _localStorage.GetItemAsync<UserObject>(AchievementContainerName);
-            if (exists is not null) return exists;
-            
-            await _localStorage.SetItemAsync(AchievementContainerName, userObject);
-        }
-        else
-        {
-            await using var ctx = await _contextFactory.CreateDbContextAsync();
-            var exists = await ctx.UserObjects!.FirstOrDefaultAsync(u => u.UserId == _userId);
-            if (exists is not null) return exists;
-            
-            await ctx.UserObjects!.AddAsync(userObject);
-            await ctx.SaveChangesAsync();
-        }
 
-        return userObject;
-    }
-    
-    /// <summary>
-    /// Retrieves the user's object from storage.
-    /// </summary>
-    /// <returns>The root object that holds all the user's achievement information</returns>
-    private async Task<UserObject> GetUserObject()
-    {
-        if(_userId is null)
-        {
-            throw new InvalidOperationException("User ID not set, please call InitializeAchievementServiceForUser first.");
-        }
-        
-        UserObject? userObject;
-        if (_options!.LocalAchievementsOnly)
-        {
-            userObject = await _localStorage.GetItemAsync<UserObject>(AchievementContainerName);
-        }
-        else
-        {
-            await using var ctx = await _contextFactory.CreateDbContextAsync();
-            userObject = await ctx.UserObjects!.FirstOrDefaultAsync(u => u.UserId == _userId);
-        }
-
-        if (userObject is null || !userObject.UserAchievements.Any())
-        {
-            return await InitializeEmptyAchievements(userObject);
-        }
-        
+        userObject.UserAchievements = await SynchronizeUserAchievements(userObject);
         return userObject;
     }
 
-    /// <summary>
-    /// Retrieves the user's achievements from storage.
-    /// </summary>
-    /// <returns>The dictionary of achievements for the user where the key is the achievement's code</returns>
-    public async Task<List<UserAchievement>> GetUserAchievements()
+    private async Task<List<UserAchievement>> SynchronizeUserAchievements(UserObject userObject)
     {
-        return (await GetUserObject()).UserAchievements.ToList();
+        var achievementFactory = await AchievementFactory.CreateFromFilesAsync(_options?.AchievementDirectoryPath);
+        var userAchievementsByCode = userObject.UserAchievements
+            .ToDictionary(u => u.Code!, u => u);
+
+        var updatedUserAchievements = achievementFactory.Achievements!
+            .ToDictionary(pair => pair.Key, pair => new UserAchievement
+            {
+                UserId = userObject.UserId,
+                Achievement = pair.Value,
+                Date = userAchievementsByCode.TryGetValue(pair.Key, out var userAchievement)
+                    ? userAchievement.Date
+                    : null
+            });
+
+        return updatedUserAchievements.Values.ToList();
     }
-    
-    public async Task<int> AddOrIncrementTelemetryEvent(string eventName, int value)
+
+    public async Task<List<UserAchievement>> GetUserAchievements(string? userId = null)
     {
-        var userObject = await GetUserObject();
+        return (await GetUserObject(userId)).UserAchievements.ToList();
+    }
+
+    public async Task<int> AddOrIncrementTelemetryEvent(string eventName, int value = 1, string? userId = null)
+    {
+        var userObject = await GetUserObject(userId);
+        
         userObject.Telemetry.AddOrIncrementEventMetric(eventName, value);
         
+        await RunRulesEngine(userObject);
         await SaveUserObject(userObject);
-        await RunRulesEngine();
+
+        return userObject.Telemetry.GetEventMetric(eventName);
+    }
+    
+    public async Task<int> AddOrSetTelemetryEvent(string eventName, int value, string? userId = null)
+    {
+        var userObject = await GetUserObject(userId);
+        
+        userObject.Telemetry.AddOrSetEventMetric(eventName, value);
+        
+        await RunRulesEngine(userObject);
+        await SaveUserObject(userObject);
+
+        return userObject.Telemetry.GetEventMetric(eventName);
+    }
+    
+    public async Task<int> AddOrSetTelemetryEventKeepMax(string eventName, int value, string? userId = null)
+    {
+        var userObject = await GetUserObject(userId);
+        
+        userObject.Telemetry.AddOrSetTelemetryEventKeepMax(eventName, value);
+        
+        await RunRulesEngine(userObject);
+        await SaveUserObject(userObject);
 
         return userObject.Telemetry.GetEventMetric(eventName);
     }
 
-    /// <summary>
-    /// Saves the user's object to storage (local or cosmos).
-    /// </summary>
-    /// <param name="userObject"></param>
     private async Task SaveUserObject(UserObject userObject)
     {
-        if (_options!.LocalAchievementsOnly)
+        if (_options is { LocalAchievementsOnly: true })
         {
-            await _localStorage.SetItemAsync(AchievementContainerName, userObject);
+            await _localStorage.SetItemAsync(AchievementContainerName, userObject, CancellationToken.None);
         }
         else
         {
             await using var ctx = await _contextFactory.CreateDbContextAsync();
-            ctx.UserObjects!.Update(userObject);
+            var exists = await ctx.UserObjects!
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.UserId == userObject.UserId);
+            if (exists is not null)
+            {
+                ctx.UserObjects!.Update(userObject);
+            }
+            else
+            {
+                await ctx.UserObjects!.AddAsync(userObject);
+            }
+
             await ctx.SaveChangesAsync();
         }
     }

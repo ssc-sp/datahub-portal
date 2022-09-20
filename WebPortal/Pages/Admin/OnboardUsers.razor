@@ -1,15 +1,13 @@
 ﻿@page "/admin/onboardusers/{projectAcronym}"
-
-@using Microsoft.EntityFrameworkCore.Query
-@using Microsoft.EntityFrameworkCore;
+@using Datahub.Achievements.Models
 @inject NavigationManager NavigationManager
 @inject IMSGraphService MSGraphService
 @inject IJSRuntime JSRuntime
-@using Microsoft.Identity.Web
 @inject IDbContextFactory<DatahubProjectDBContext> DbFactory
 @inject IUserInformationService UserInformationService
 @inject IDatahubAuditingService AuditingService
 @inject ServiceAuthManager ServiceAuthManager
+@inject AchievementService _achievementService
 
 <div class="manage-access">
     <AeFlex Vertical>
@@ -182,6 +180,7 @@
         _chosenUsers.Add(user);
         _inputValue = string.Empty;
         Context.Project_Users.Add(user);
+        await _achievementService.AddOrIncrementTelemetryEvent(DatahubUserTelemetry.TelemetryEvents.UserSentInvite);
         await RefreshData(true);
     }
 

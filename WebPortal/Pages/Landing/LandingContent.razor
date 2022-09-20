@@ -8,7 +8,7 @@
 @inject NavigationManager NavigationManager
 @inject IOptions<DataProjectsConfiguration> DataProjectsConfiguration
 
-<MudText Typo="Typo.h6" Class="mt-12">My Places</MudText>
+<MudText Typo="Typo.h6" Class="mt-12">@Localizer["My Places"]</MudText>
 <AeFlex class="landing-content-wrapper">
     <AeFlex class="landing-content">
         <TabControl TabIndex="@TabIndex" OnChangeTab="@OnChangeTab">

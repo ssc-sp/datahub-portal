@@ -3,7 +3,7 @@
 @inject UserLocationManagerService _userLocationManagerService
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 
-<MudText Typo="Typo.h6" Class="mt-12">Recent Places</MudText>
+<MudText Typo="Typo.h6" Class="mt-12">@Localizer["Recent Places"]</MudText>
 <div class="recent-card-container">
     @if (_recentLinks is null)
     {

@@ -1,10 +1,4 @@
-﻿using Elemental.Components;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace Datahub.Portal.Data.PIP
+﻿namespace Datahub.Portal.Data.PIP
 {
     public class PIP_Constants
     {
