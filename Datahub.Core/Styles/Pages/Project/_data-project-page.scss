@@ -47,13 +47,8 @@ $first-column-max-width: 1200px;
 
     .project-data-sensitivity {
       text-transform: uppercase;
-      font-weight: bold;
       font-family: monospace;
-      background-color: c.$grey-800;
-      color: c.$white;
       border-radius: 4px;
-      display: inline-block;
-      padding: 0 0.5rem;
     }
 
     .project-title {
