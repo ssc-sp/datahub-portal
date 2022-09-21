@@ -2,13 +2,13 @@ using System;
 using System.Globalization;
 using System.Text.Json.Nodes;
 
-namespace Datahub.Graph.Functions;
+namespace Datahub.Graph.Functions.CostManagement;
 
 public class CostManagementRow
 {
-    public double TotalCost { get; init; }
+    public decimal TotalCost { get; init; }
     // ReSharper disable once InconsistentNaming
-    public double TotalCostUSD { get; init; }
+    public decimal TotalCostUSD { get; init; }
     public DateTime UsageDate { get; init; }
     public string TagKey { get; init; }
     public string? TagName { get; init; }
@@ -19,8 +19,8 @@ public class CostManagementRow
     
     public CostManagementRow(JsonArray row)
     {
-        TotalCost = (double?)row[0] ?? 0;
-        TotalCostUSD = (double?)row[1] ?? 0;
+        TotalCost = (decimal?)row[0] ?? 0;
+        TotalCostUSD = (decimal?)row[1] ?? 0;
         // ReSharper disable once StringLiteralTypo
         UsageDate = DateTime.ParseExact(row[2].ToString(), "yyyyMMdd", CultureInfo.InvariantCulture );
         TagKey = (string)row[3] ?? string.Empty;
