@@ -29,19 +29,17 @@ public class UpdateProjectMonthlyCost
     
     // This Azure Function will be triggered everyday at 2:00 AM UTC and will capture the current cost for the month using the Azure forecast API
     // The function will then store the data in a Azure SQL database
+    // This is temporarily triggered via a HTTP request to allow for testing. Will be replace with:
     //[TimerTrigger("0 0 2 * * *")]TimerInfo myTimer  
     [FunctionName("UpdateProjectMonthlyCost")]
     public async Task Run([HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)]
-    HttpRequest req, ILogger log)
+        HttpRequest req, ILogger log)
     {
         //Get the required environment variables
-        // Get Subscription ID from Environment Variable
         var subscriptionId = Environment.GetEnvironmentVariable(SUBSCRIPTION_ID);
         var tenantId = Environment.GetEnvironmentVariable(TENANT_ID);
         var clientId = Environment.GetEnvironmentVariable(CLIENT_ID);
         var clientSecret = Environment.GetEnvironmentVariable(CLIENT_SECRET);
-        //TEMPORARILY Get Token from Environment Variable
-        //var token = Environment.GetEnvironmentVariable(TOKEN);
 
         //Acquire the access token
         var token = await GetAccessTokenAsync(tenantId, clientId, clientSecret);
@@ -49,8 +47,8 @@ public class UpdateProjectMonthlyCost
         //Get current month cost for each resource
         var currentMonthlyCosts = await GetCurrentMonthlyCostAsync(subscriptionId, token);
         
-        //group monthly cost by project
-        await UpdateOrAddProjectMonthlyCostAsync(currentMonthlyCosts.ToList());
+        //group monthly cost by project and update the database
+        await UpdateProjectMonthlyCostToDateAsync(currentMonthlyCosts.ToList());
 
     }
     
@@ -93,7 +91,7 @@ public class UpdateProjectMonthlyCost
         return rows?.Select(r => new CostManagementRow(r as JsonArray)).Where(d => d.TagName is not null);
     }
     
-    private async Task UpdateOrAddProjectMonthlyCostAsync(List<CostManagementRow> currentMonthlyCosts)
+    private async Task UpdateProjectMonthlyCostToDateAsync(List<CostManagementRow> currentMonthlyCosts)
     {
         var projectsMonthlyCost = currentMonthlyCosts.GroupBy(c => c.TagName)
             .Select(g => new Project_Current_Monthly_Cost()
@@ -119,10 +117,5 @@ public class UpdateProjectMonthlyCost
             }
         }
         await _dbContext.SaveChangesAsync();
-    }
-    
-    private Datahub_Project GetProjectByAcronym(string acronym)
-    {
-        return _dbContext.Projects.First(p => p.Project_Acronym_CD.Equals(acronym, StringComparison.InvariantCultureIgnoreCase));
     }
 }
