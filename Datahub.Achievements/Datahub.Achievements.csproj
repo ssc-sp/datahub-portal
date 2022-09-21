@@ -16,10 +16,10 @@
     </ItemGroup>
 
     <ItemGroup>
-      <None Remove="Achievements\**\*.achievement.json" />
-      <EmbeddedResource Include="Achievements\**\*.achievement.json">
+      <Content Include="Achievements\**\*.achievement.json">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </EmbeddedResource>
+        <CopyToPublishDirectory>Always</CopyToPublishDirectory>
+      </Content>
     </ItemGroup>
 
 </Project>
