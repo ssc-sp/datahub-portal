@@ -51,7 +51,8 @@ namespace Datahub.Portal.Data.Finance
         public DateTime End_Date { get; set; }
 
         [AeFormCategory("Salary Data")]
-        [DisplayFormat(DataFormatString = "C2")]
+        //[DisplayFormat(DataFormatString = "D")]
+        [Range(0, 1, ErrorMessage = "Only a number between 0 and 1 is allowed")]
         public double? FTE { get; set; }
 
         [AeFormCategory("Salary Data")]

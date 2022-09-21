@@ -10,6 +10,7 @@
 @inject IDatahubAuditingService AuditingService
 
 @using System.Reflection
+@using Microsoft.EntityFrameworkCore.ChangeTracking
 @using MudBlazor.Forms
 @using System.Text.RegularExpressions
 @using System.Linq.Expressions
@@ -267,18 +268,25 @@ else
         }
         else
         {
-            foreach (var entry in changedEntries)
-            {
-                foreach (var property in entry.OriginalValues.Properties)  
-                {
-                    var propertyName = property.Name;
-                    entry.Property(propertyName).CurrentValue = entry.Property(propertyName).OriginalValue;
-                    entry.State = EntityState.Unchanged;
-                }
-            }                          
+            ResetRecordChanges(changedEntries);                  
         }
         await UI.ToggleModal();                
     }
+
+    private void ResetRecordChanges(IEnumerable<EntityEntry> entityEntries)
+    { 
+        foreach (var entry in entityEntries)
+        {
+            foreach (var property in entry.OriginalValues.Properties)
+            {
+                var propertyName = property.Name;
+                entry.Property(propertyName).CurrentValue = entry.Property(propertyName).OriginalValue;
+                entry.State = EntityState.Unchanged;
+            }
+        }
+    }
+
+
 
     protected override void OnAfterRender(bool firstRender)
     {
@@ -309,6 +317,8 @@ else
     private async Task<T> ClearForm()
     {
         SelectedRecord = default(T);
+        var changedEntries = Context.ChangeTracker.Entries();
+        ResetRecordChanges(changedEntries);
         StateHasChanged();    
         return await Task.FromResult(default(T));
     }

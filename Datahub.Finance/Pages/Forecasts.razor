@@ -151,7 +151,7 @@
         new Func<Forecast, string>(p => { return p.Fund; }),
         new Func<Forecast, string>(p => { return p.Start_Date.ToShortDateString(); }),
         new Func<Forecast, string>(p => { return p.End_Date.ToShortDateString(); }),
-        new Func<Forecast, string>(p => { return p.FTE.Value.ToString("C"); }),
+        new Func<Forecast, string>(p => { return p.FTE.ToString(); }),
         new Func<Forecast, string>(p => { return p.Salary.Value.ToString("C"); }),
     };
 
@@ -198,6 +198,8 @@
 
         StateHasChanged();
     }
+
+
 
     private bool IsValidSubmission()
     {
