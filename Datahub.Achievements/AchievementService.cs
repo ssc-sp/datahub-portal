@@ -142,7 +142,7 @@ public class AchievementService
 
     private async Task<List<UserAchievement>> SynchronizeUserAchievements(UserObject userObject)
     {
-        var achievementFactory = await AchievementFactory.CreateFromFilesAsync(_options?.AchievementDirectoryPath);
+        var achievementFactory = await AchievementFactory.CreateFromFilesAsync(_options?.AchievementDirectoryPath, _logger);
         var userAchievementsByCode = userObject.UserAchievements
             .ToDictionary(u => u.Code!, u => u);
 
