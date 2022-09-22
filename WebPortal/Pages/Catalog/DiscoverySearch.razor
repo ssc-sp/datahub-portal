@@ -14,23 +14,21 @@
 				<MudItem xs="3">
 					<MudStack>
 						@*search keywords*@
-						<MudFocusTrap>
-							<MudAutocomplete 
-								T="string"
-								@ref="_searchField"
-								Label=@Localizer["Search"]
-								Text=@_searchKeywords
-								ValueChanged=@AutocompleteValueChanged
-								SearchFunc="@AutocompleteSearch"
-								OnAdornmentClick="HandleAutocompleteSearch"
-								ResetValueOnEmptyText="true"
-								CoerceText="false" 
-								CoerceValue="false"
-								Clearable="true"
-								Variant="Variant.Outlined"
-								Adornment="Adornment.End" 
-								AdornmentIcon="@Icons.Filled.Search"/>
-						</MudFocusTrap>
+						<MudAutocomplete 
+							T="string"
+							@ref="_searchField"
+							Label=@Localizer["Search"]
+							Text=@_searchKeywords
+							ValueChanged=@AutocompleteValueChanged
+							SearchFunc="@AutocompleteSearch"
+							OnAdornmentClick="HandleAutocompleteSearch"
+							ResetValueOnEmptyText="true"
+							CoerceText="false" 
+							CoerceValue="false"
+							Clearable="true"
+							Variant="Variant.Outlined"
+							Adornment="Adornment.End" 
+							AdornmentIcon="@Icons.Filled.Search"/>
 
 						<MudList Clickable="false">
 							@*header*@
@@ -625,9 +623,10 @@
 	{
 		if (!string.IsNullOrWhiteSpace(text))
 		{
-			List<string> results = new() { text };
+			var searchText = text.ToLower();
+			List<string> results = new() { searchText };
 			var searchEngine = _isFrench ? CatalogSearchEngine.GetFrenchSearchEngine() : CatalogSearchEngine.GetEnglishSearchEngine();
-			results.AddRange(searchEngine.GetAutocompleteSuggestions(text, 10));
+			results.AddRange(searchEngine.GetAutocompleteSuggestions(searchText, 10));
 			return await Task.FromResult(results);
 		}
 		else
@@ -772,6 +771,10 @@
 
 	private async Task<IEnumerable<CatalogObjectResult>> GetMore(InfiniteScrollingItemsProviderRequest<CatalogObjectResult> request)
 	{
+		// if keywords are used there is no more results
+		if (_catalogSearchRequest.Keywords.Count > 0)
+			return new List<CatalogObjectResult>();
+
 		var newRequest = _catalogSearchRequest with
         {
             LastPageId = request.Items.LastOrDefault()?.CatalogObjectId ?? 0

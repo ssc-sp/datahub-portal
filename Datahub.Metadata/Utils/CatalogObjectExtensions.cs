@@ -9,13 +9,14 @@ namespace Datahub.Metadata.Utils
     {
         public static async Task<List<CatalogObject>> QueryCatalog(this MetadataDbContext ctx, string query)
         {
-            var results = await ctx.CatalogObjects
+            var results = ctx.CatalogObjects
                 .FromSqlRaw(query)
                 .Include(e => e.ObjectMetadata)
-                .ThenInclude(s => s.FieldValues)
-                .ToListAsync();
+                .ThenInclude(s => s.FieldValues);
 
-            return results;
+            System.Console.WriteLine(results);
+
+            return await results.ToListAsync();
         }
     }
 }
