@@ -1,8 +1,7 @@
-﻿namespace Datahub.CatalogSearch
+﻿namespace Datahub.CatalogSearch;
+
+public interface ICatalogSearchEngine
 {
-    public interface ICatalogSearchEngine
-    {
-        ILanguageCatalogSearch GetEnglishSearchEngine();
-        ILanguageCatalogSearch GetFrenchSearchEngine();
-    }
+    ILanguageCatalogSearch GetEnglishSearchEngine();
+    ILanguageCatalogSearch GetFrenchSearchEngine();
 }

@@ -93,6 +93,7 @@
 		<GitHookFiles Include="../.githooks/*.*" />
 	</ItemGroup>
 	<ItemGroup>
+	  <ProjectReference Include="..\Datahub.CatalogSearch\Datahub.CatalogSearch.csproj" />
 	  <ProjectReference Include="..\Datahub.Metadata\Datahub.Metadata.csproj" />
 	  <ProjectReference Include="..\Datahub.Achievements\Datahub.Achievements.csproj" />
 	</ItemGroup>
