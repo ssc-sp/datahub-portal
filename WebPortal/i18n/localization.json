@@ -1003,5 +1003,10 @@
   "Expand": "Expand",
   "Collapse": "Collapse",
   "Resources": "Resources",
-  "LanguageTableDisclaimer": "Only one registration permitted per student per session."
+  "LanguageTrainingApplication": {
+    "LanguageTableDisclaimer": "Only one registration permitted per student per session.",
+    "Registrations_closed": "Registrations are currently closed.",
+    "Registrations_open_from_to": "The {0} {1} registrations will open from {2} to {3}.",
+    "Registrations_open_until": "Registrations open for {0} {1} until {2}, {3} {4}, {5} by 6:00 PM (EDT)"
+  }
 }
