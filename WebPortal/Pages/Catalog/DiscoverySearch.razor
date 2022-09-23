@@ -93,12 +93,20 @@
 								<NestedList>
 									<CheckboxList 
 										T=MetadataObjectType
-										Options=@(Enum.GetValues<MetadataObjectType>())
+										Options=@GetNonPBITypes()
 										OptionLabelFunction=@(t => GetLocalizedDataType(t))
 										OptionSortFunction=@(t => GetLocalizedDataType(t))
 										OnSelectionChanged=@UpdateDataTypeFilter
 										DefaultOptions=@_filteredDataTypes
-										@ref=@_objectTypeFilter 
+									/>
+									<MudListItem>Power BI</MudListItem>
+									<CheckboxList 
+										T=MetadataObjectType
+										Options=@_pbiDataTypes
+										OptionLabelFunction=@(t => GetLocalizedDataType(t))
+										OptionSortFunction=@(t => GetLocalizedDataType(t))
+										OnSelectionChanged=@UpdateDataTypeFilter
+										DefaultOptions=@_filteredDataTypes
 									/>
 								</NestedList>
 							</MudListItem>
@@ -272,6 +280,8 @@
 	private CatalogSearchRequest _catalogSearchRequest;
 	private int _lastQueryCount = 0;
 
+	private List<MetadataObjectType> _pbiDataTypes = new() { MetadataObjectType.PowerBIWorkspace, MetadataObjectType.PowerBIReport, MetadataObjectType.PowerBIDataset };
+
 	private HashSet<CatalogObjectLanguage> _filteredLanguageTypes = new();
 	private HashSet<OrganizationLevel> _filteredSectors = new();
 	private HashSet<MetadataObjectType> _filteredDataTypes = new();
@@ -284,7 +294,6 @@
 	private bool _excludeIncompleteCatalogs;
 	private CheckboxList<CatalogObjectLanguage> _languageTypeFilter;
 	private CheckboxList<ClassificationType> _classificationTypeFilter;
-	private CheckboxList<MetadataObjectType> _objectTypeFilter;
 	private CheckboxList<OrganizationLevel> _sectorFilter;
 
 	private int _filterSector = NO_FILTER_SELECTED;
@@ -827,5 +836,10 @@
 			.Where(b => b.ParentId == _filterSector)
 			.OrderBy(b => GetLabel(b, _isFrench))
 			.ToList();
+	}
+
+	private IEnumerable<MetadataObjectType> GetNonPBITypes()
+	{
+		return Enum.GetValues<MetadataObjectType>().Where(t => !_pbiDataTypes.Contains(t));
 	}
 }
