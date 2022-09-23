@@ -133,7 +133,7 @@
             // Inscriptions ouvertes pour {0} {1} au plus tard vendredi, le {2} {décembre} {2022}, à 18 h 00 (HAE).
             var template = DataLocalizer["LanguageTrainingApplication.Registrations_open_until"];
             var closeDateTime = _currentPeriod.Close_DT;
-            var season = DataLocalizer[GetSeason(_currentPeriod.Quarter_NUM)];
+            var season = DataLocalizer["LanguageTrainingApplication." + GetSeason(_currentPeriod.Quarter_NUM)];
             var fiscalYear = GetFiscalYear(_currentPeriod);
             var dowText = DataLocalizer[closeDateTime.DayOfWeek.ToString()];
             var monthText = DataLocalizer[GetMonth(closeDateTime.Month)];
