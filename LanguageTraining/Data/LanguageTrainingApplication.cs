@@ -114,6 +114,9 @@ namespace Datahub.Portal.Data.LanguageTraining
         public int Year_For_Language_Training { get; set; }
         [AeFormCategory("Language Training Application", 30)]
         [AeFormIgnore]
+        public byte Quarter_NUM { get; set; }
+        [AeFormCategory("Language Training Application", 30)]
+        [AeFormIgnore]
         public string Session_For_Language_Training { get; set; }
         [AeFormCategory("Language Training Application", 30)]
         [AeLabel(isDropDown: true)]

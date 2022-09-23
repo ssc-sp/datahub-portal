@@ -64,8 +64,19 @@
 
     private async void OpenExcel()
     {
-        var powerBiTargets = Configuration["PowerBiTargets:LT"];
-        await JsInterop.InvokeAsync<object>("open", powerBiTargets, "_blank");
+        var date = DateTime.UtcNow.ConvertUtcToEasternTime().Date;
+        var lastPeriod = Context.SeasonRegistrationPeriods
+                                .OrderByDescending(e => e.Open_DT)
+                                .FirstOrDefault(e => e.Open_DT < date);
+        if (lastPeriod is not null)
+        {
+            var powerBiTargets = Configuration["PowerBiTargets:LT"] ?? "";
+            var joinChar = powerBiTargets.Contains('?') ? '&' : '?';
+            var fiscalYear = GetFiscalYear(lastPeriod);
+            var parameters = $"year={fiscalYear}&quarter={lastPeriod.Quarter_NUM}";
+            var url = $"{powerBiTargets}{joinChar}{parameters}";
+            await JsInterop.InvokeAsync<object>("open", url, "_blank");
+        }
     }
 
     protected override async Task OnInitializedAsync()
@@ -81,7 +92,8 @@
         _formMetadata = new();
         await LoadApps(string.Empty);
 
-        var date = DateTime.Now.Date;
+        // period dates are EST time based
+        var date = DateTime.UtcNow.ConvertUtcToEasternTime().Date;
         _currentPeriod = GetCurrentPeriod(Context);
         _nextPeriod = Context.SeasonRegistrationPeriods.FirstOrDefault(e => e.Open_DT > date);
 
@@ -409,6 +421,7 @@
 
         // _currentPeriod shouldn't be null here!
         _languageTrainingApplication.Year_For_Language_Training = _currentPeriod is not null ? GetFiscalYear(_currentPeriod) : DateTime.Now.Year;
+        _languageTrainingApplication.Quarter_NUM = _currentPeriod?.Quarter_NUM ?? 1;
         _languageTrainingApplication.Session_For_Language_Training = GetSessionForTraining();
 
         StateHasChanged();
