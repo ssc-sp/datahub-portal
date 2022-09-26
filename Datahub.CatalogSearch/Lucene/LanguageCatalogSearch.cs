@@ -51,11 +51,17 @@ public class LanguageCatalogSearch : ILanguageCatalogSearch
         var doc = new Document();
         doc.Add(new StringField(ID_FIELD, id, Field.Store.YES));
 
-        var titleField = new TextField(TITLE_FIELD, title, Field.Store.YES) { Boost = 2 };
-        doc.Add(titleField);
+        if (!string.IsNullOrEmpty(title))
+        {
+            var titleField = new TextField(TITLE_FIELD, title, Field.Store.YES) { Boost = 2 };
+            doc.Add(titleField);
+        }
 
-        var contentField = new TextField(CONTENT_FIELD, content, Field.Store.YES);
-        doc.Add(contentField);
+        if (!string.IsNullOrEmpty(content))
+        {
+            var contentField = new TextField(CONTENT_FIELD, content, Field.Store.YES);
+            doc.Add(contentField);
+        }
 
         _writer.AddDocument(doc);
     }
