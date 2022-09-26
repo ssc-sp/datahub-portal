@@ -5428,13 +5428,8 @@ code {
 }
 .project-page .project-info .project-data-sensitivity {
   text-transform: uppercase;
-  font-weight: bold;
   font-family: monospace;
-  background-color: #1e293b;
-  color: #fff;
   border-radius: 4px;
-  display: inline-block;
-  padding: 0 0.5rem;
 }
 .project-page .project-info .project-title {
   margin-top: 0.5rem;
