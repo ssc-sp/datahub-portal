@@ -15,7 +15,7 @@
     <MudCardContent>
         <MudTable Items="@_fundCenters" Hover="true" Loading="@_isLoading">
             <ToolBarContent>
-                <MudText Typo="Typo.h6">Fund Center Details</MudText>
+                <MudText Typo="Typo.h6">FC Details</MudText>
             </ToolBarContent>
             <HeaderContent>
                 <MudTh>Sector</MudTh>
@@ -99,6 +99,9 @@
     {
         _fundCenters = Context.FundCenters.Include(f => f.Sector).Include(f => f.Branch).Include(f => f.Division).Where(f => f.FundCenter_ID.ToString() == fundcenterId).ToList();
         _summaryForecasts = Context.SummaryForecasts.Where(f => f.FundCenter == _fundCenters[0] && !f.Is_Deleted).ToList();
+        //SET Non-db Dropdowns
+        _summaryForecasts.ForEach(c => c.KA_Values = Finance_Constants.Key_Activities[c.Key_Activity]);
+        _summaryForecasts.ForEach(c => c.KD_Values = Finance_Constants.Key_Drivers[c.Key_Driver]);
         //var fundcenters = _forecasts;
         //if (!string.IsNullOrWhiteSpace(searchfilter))
         //{
@@ -116,7 +119,7 @@
         //    }).ToList();
         //}
         _formMetadata.Header = string.Empty;
-        _formMetadata.SubHeader = "Summary Forecasts";
+        _formMetadata.SubHeader = "Forecast by Vote";
         _formMetadata.DataSet = _summaryForecasts; //change when filters added
         _formMetadata.AccessorFunctions = accessorFunctions;        
         _formMetadata.Headers = headers;
@@ -128,9 +131,10 @@
     private List<Func<SummaryForecast, string>> accessorFunctions = new List<Func<SummaryForecast, string>>
     {
         new Func<SummaryForecast, string>(p => { return p.Fund ?? ""; }),
-        new Func<SummaryForecast, string>(p => { return p.Key_Activity ?? ""; }),
-        new Func<SummaryForecast, string>(p => { return p.Key_Driver ?? ""; }),
+        new Func<SummaryForecast, string>(p => { return p.KA_Values?.EnglishText ?? "N/A"; }),
+        new Func<SummaryForecast, string>(p => { return p.KD_Values?.EnglishText ?? "N/A"; }),
         new Func<SummaryForecast, string>(p => { return p.Budget == null ? "$0.00" : p.Budget.Value.ToString("C"); }),
+        new Func<SummaryForecast, string>(p => { return p.FTE_Sum == null ? "0" : p.FTE_Sum.ToString(); }),
         new Func<SummaryForecast, string>(p => { return p.SFT_Forecast_Gross == null ? "$0.00" : p.SFT_Forecast_Gross.Value.ToString("C"); }),
         new Func<SummaryForecast, string>(p => { return p.SFT_Forecast == null ? "$0.00" : p.SFT_Forecast.Value.ToString("C"); }),
         new Func<SummaryForecast, string>(p => { return p.THC == null ? "$0.00" : p.THC.Value.ToString("C"); }),
@@ -155,6 +159,7 @@
         "Key Activity", 
         "Key Driver", 
         "Budget", 
+        "FTE",
         "SFT Gross",
         "SFT With Attrition", 
         "THC", 
@@ -204,6 +209,8 @@
                 _summaryForecast = Context.SummaryForecasts.Add(_summaryForecast).Entity;
             }
             _summaryForecast.Last_Updated_DT = DateTime.Now;
+            _summaryForecast.Key_Activity = _summaryForecast.KA_Values.Id;
+            _summaryForecast.Key_Driver = _summaryForecast.KD_Values.Id;
             await Context.TrackSaveChangesAsync(AuditingService);
             LoadData(_searchFilter); ;
             _summaryForecast = null;
@@ -237,11 +244,8 @@
 
     private void OnConfigure(MudBlazor.Forms.IModelFormContext context)
     {
-
-        //context.RegisterOptionValueProperty<FundCenter, FiscalYear>(l => l.FiscalYear, p => p?.Year ?? "N/A", () => _fiscalYears);
-        //context.RegisterOptionValueProperty<FundCenter, HierarchyLevel>(l => l.Sector, p => p?.FundCenterNameEnglish ?? "N/A", () => GetSectors(), s => RefreshBranches(s, context));
-        //context.RegisterOptionValueProperty<FundCenter, HierarchyLevel>(l => l.Branch, p => p?.FundCenterNameEnglish ?? "N/A", () => GetBranches(), s => RefreshDivisions(s, context));
-        //context.RegisterOptionValueProperty<FundCenter, HierarchyLevel>(l => l.Division, p => p?.FundCenterNameEnglish ?? "N/A", () => GetDivisions());
+        context.RegisterOptionValueProperty<SummaryForecast, DropDownContainer>(l => l.KA_Values, p => p?.EnglishText ?? "N/A", () => Finance_Constants.Key_Activities);
+        context.RegisterOptionValueProperty<SummaryForecast, DropDownContainer>(l => l.KD_Values, p => p?.EnglishText ?? "N/A", () => Finance_Constants.Key_Drivers);
 
     }
 

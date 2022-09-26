@@ -1,4 +1,5 @@
 ﻿
+using Datahub.Core.Data;
 using MudBlazor.Forms;
 using System;
 using System.Collections.Generic;
@@ -51,7 +52,6 @@ namespace Datahub.Portal.Data.Finance
         public DateTime End_Date { get; set; }
 
         [AeFormCategory("Salary Data")]
-        //[DisplayFormat(DataFormatString = "D")]
         [Range(0, 1, ErrorMessage = "Only a number between 0 and 1 is allowed")]
         public double? FTE { get; set; }
 
@@ -59,17 +59,26 @@ namespace Datahub.Portal.Data.Finance
         [DisplayFormat(DataFormatString = "C2")]
         public double? Salary { get; set; }
 
+        [AeFormIgnore]
+        public int Incremental_Replacement { get; set; }
+
+        [NotMapped]
         [AeFormCategory("Planned Staffing")]
-        [MaxLength(4000)]        
-        public string Incremental_Replacement { get; set; }
+        [MudForm(IsDropDown = true)]
+        public DropDownContainer IR_Values { get; set; }
+
 
         [AeFormCategory("Planned Staffing")]
         [MaxLength(4000)]
         public string Location_Of_Hiring { get; set; }
 
-        [AeFormCategory("Planned Staffing")]
-        [MaxLength(4000)]
-        public string Potential_Hiring_Process { get; set; }
+        [AeFormIgnore]
+        public int Potential_Hiring_Process { get; set; }
+
+        [NotMapped]
+        [AeFormCategory("Planned Staffing")]        
+        [MudForm(IsDropDown = true)]
+        public DropDownContainer PHP_Values { get; set; }
 
         [AeFormIgnore]
         public string Last_Updated_UserId { get; set; }

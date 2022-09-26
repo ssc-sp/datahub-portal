@@ -24,17 +24,26 @@ else
 {
 
 
-
  <MudCard>
      <MudCardContent>
             @if (!string.IsNullOrWhiteSpace(Metadata.Header))
             {
-                <AeTypography Variant="h3">@DataLocalizer[Metadata.Header]</AeTypography>
+                <MudText Typo="Typo.h4">@DataLocalizer[Metadata.Header]</MudText>
             }
-         
+            
+            <MudText Typo="Typo.body2">Select your division from entries below or use the search bar to search for your division by Fund Center number of name. Use the "Division Description" field to provide a description of the type of work your division provides</MudText>
+
             <AuthorizeView Roles="@Metadata.TableRoles">
 
-                <MudTable ServerData="@(new Func<TableState, Task<TableData<T>>>(ServerReload))" Dense="true" Hover="true" Striped="true" @ref="table" @key="@Metadata.DataSet">
+                <MudTable ServerData="@(new Func<TableState, Task<TableData<T>>>(ServerReload))" 
+                    Dense="true"
+                    Hover="true" 
+                    Striped="true" 
+                    Outlined="true"
+                    Elevation=2
+                    @ref="table" 
+                    @key="@Metadata.DataSet">
+
                     <ToolBarContent>
                         <MudText Typo="Typo.h6">@Metadata.SubHeader</MudText>
                         <MudSpacer />
