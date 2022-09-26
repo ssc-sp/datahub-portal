@@ -18,10 +18,8 @@
 							T="string"
 							@ref="_searchField"
 							Label=@Localizer["Search"]
-							Text=@_searchKeywords
 							ValueChanged=@AutocompleteValueChanged
 							SearchFunc="@AutocompleteSearch"
-							OnAdornmentClick="HandleAutocompleteSearch"
 							ResetValueOnEmptyText="true"
 							CoerceText="false" 
 							CoerceValue="false"
@@ -327,7 +325,7 @@
 		ParseDataTypes();
 		ParseSectorAndBranches();
 
-		_searchKeywords = (QueryKeywords ?? string.Empty).Trim();
+		_searchKeywords = (QueryKeywords ?? string.Empty).Trim(); 
 		await UpdateFilter();
 	}
 
@@ -527,6 +525,7 @@
 		_sectorFilterSectionOpen = false;
 
 		await UpdateFilter();
+		await _searchField.Clear();
 		await _searchField.FocusAsync();
 	}
 
@@ -640,7 +639,7 @@
 		}
 		else
 		{
-			return new string[0];
+			return await Task.FromResult(new string[0]);
 		}
 	}
 
@@ -648,11 +647,6 @@
 	{
 		_autoCompleteText = value;
 		await HandleSearchTextChanged(value);
-	}
-
-	private async Task HandleAutocompleteSearch(MouseEventArgs e)
-	{
-		await HandleSearchTextChanged(_autoCompleteText);
 	}
 
 	private async Task ThrottleSearch()
