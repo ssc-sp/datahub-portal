@@ -43,7 +43,7 @@ public class CatalogSearchEngine : ICatalogSearchEngine
         {
             var lowerTitle = (document.Title ?? "").ToLower();
             var lowerContent = (document.Content ?? "").ToLower();
-            if (!string.IsNullOrWhiteSpace(lowerTitle) && !string.IsNullOrWhiteSpace(lowerContent))
+            if (!string.IsNullOrWhiteSpace(lowerTitle) || !string.IsNullOrWhiteSpace(lowerContent))
             {
                 catalogSearch.AddDocument(document.Id, lowerTitle, lowerContent);
             }
