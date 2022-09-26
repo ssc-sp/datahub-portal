@@ -36,6 +36,8 @@ namespace Datahub.Core.EFCore
         public DbSet<SystemNotification> SystemNotifications { get; set; }
 
         public DbSet<Datahub_Project_Costs> Project_Costs { get; set; }
+        
+        public DbSet<Project_Current_Monthly_Cost> Project_Current_Monthly_Costs { get; set; }
 
         public DbSet<MiscStoredObject> MiscStoredObjects { get; set; }
 
@@ -153,6 +155,10 @@ namespace Datahub.Core.EFCore
 
             modelBuilder.Entity<SpatialObjectShare>()
                 .ToTable("SpatialObjectShares");
+            
+            modelBuilder.Entity<Project_Current_Monthly_Cost>()
+                .Property(mc => mc.Id)
+                .ValueGeneratedOnAdd();
         }
     }
 }
