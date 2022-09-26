@@ -1,4 +1,5 @@
 ﻿
+using Datahub.Core.Data;
 using MudBlazor.Forms;
 using System;
 using System.Collections.Generic;
@@ -26,24 +27,41 @@ namespace Datahub.Portal.Data.Finance
         public string Fund { get; set; }
 
 
-        [AeFormCategory("Fund Information")]
-        [MaxLength(50)]
-        public string Key_Activity { get; set; }
+        [AeFormIgnore]
+        public int Key_Activity { get; set; }
+        [NotMapped]
+        [AeFormCategory("Planned Staffing")]
+        [MudForm(IsDropDown = true)]
+        public DropDownContainer KA_Values { get; set; }
 
-        [AeFormCategory("Fund Information")]
-        [MaxLength(100)]
-        public string Key_Driver { get; set; }
+
+        [AeFormIgnore]
+        public int Key_Driver { get; set; }
+        
+        [NotMapped]
+        [AeFormCategory("Planned Staffing")]
+        [MudForm(IsDropDown = true)]
+        public DropDownContainer KD_Values { get; set; }
+
+
 
         [AeFormCategory("Fund Information")]
         [DisplayFormat(DataFormatString = "C2")]
         public double? Budget { get; set; }
 
+        [AeFormCategory("Salary Forecast")]
+        [Editable(false)]
+        public double? FTE_Sum { get; set; }
+
+
         [DisplayFormat(DataFormatString = "C2")]
         [AeFormCategory("Salary Forecast")]
+        [Editable(false)]
         public double? SFT_Forecast_Gross { get; set; }
 
         [DisplayFormat(DataFormatString = "C2")]
         [AeFormCategory("Salary Forecast")]
+        [Editable(false)]
         public double? SFT_Forecast { get; set; }
 
         [DisplayFormat(DataFormatString = "C2")]

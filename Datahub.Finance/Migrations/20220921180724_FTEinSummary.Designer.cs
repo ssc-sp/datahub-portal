@@ -4,6 +4,7 @@ using Datahub.Portal.Data.Finance;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Datahub.Finance.Migrations
 {
     [DbContext(typeof(FinanceDBContext))]
-    partial class FinanceDBContextModelSnapshot : ModelSnapshot
+    [Migration("20220921180724_FTEinSummary")]
+    partial class FTEinSummary
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -80,8 +82,9 @@ namespace Datahub.Finance.Migrations
                     b.Property<int?>("FundCenter_ID")
                         .HasColumnType("int");
 
-                    b.Property<int>("Incremental_Replacement")
-                        .HasColumnType("int");
+                    b.Property<string>("Incremental_Replacement")
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
 
                     b.Property<bool>("Is_Deleted")
                         .HasColumnType("bit");
@@ -99,8 +102,9 @@ namespace Datahub.Finance.Migrations
                         .HasMaxLength(4000)
                         .HasColumnType("nvarchar(4000)");
 
-                    b.Property<int>("Potential_Hiring_Process")
-                        .HasColumnType("int");
+                    b.Property<string>("Potential_Hiring_Process")
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
 
                     b.Property<double?>("Salary")
                         .HasColumnType("float");
@@ -261,11 +265,13 @@ namespace Datahub.Finance.Migrations
                     b.Property<bool>("Is_Deleted")
                         .HasColumnType("bit");
 
-                    b.Property<int>("Key_Activity")
-                        .HasColumnType("int");
+                    b.Property<string>("Key_Activity")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
-                    b.Property<int>("Key_Driver")
-                        .HasColumnType("int");
+                    b.Property<string>("Key_Driver")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<DateTime>("Last_Updated_DT")
                         .HasColumnType("datetime2");
