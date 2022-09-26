@@ -1,4 +1,5 @@
-﻿@inject IStringLocalizer DataLocalizer
+﻿@*LanguageTrainingApplicationForm.razor*@
+@inject IStringLocalizer DataLocalizer
 @inject IEmailNotificationService EmailService
 @implements IDisposable
 @inject IDbContextFactory<LanguageTrainingDBContext> DbFactory
@@ -11,6 +12,7 @@
 @page "/languagetraining/applications"
 @page "/languagetraining/applications/{AppId}"
 @using Datahub.LanguageTraining.Data
+@using Datahub.LanguageTraining.Utils
 
 <Datahub.Core.Components.FormTemplate 
         T="LanguageTrainingApplication"
@@ -62,8 +64,19 @@
 
     private async void OpenExcel()
     {
-        var powerBiTargets = Configuration["PowerBiTargets:LT"];
-        await JsInterop.InvokeAsync<object>("open", powerBiTargets, "_blank");
+        var date = DateTime.UtcNow.ConvertUtcToEasternTime().Date;
+        var lastPeriod = Context.SeasonRegistrationPeriods
+                                .OrderByDescending(e => e.Open_DT)
+                                .FirstOrDefault(e => e.Open_DT < date);
+        if (lastPeriod is not null)
+        {
+            var powerBiTargets = Configuration["PowerBiTargets:LT"] ?? "";
+            var joinChar = powerBiTargets.Contains('?') ? '&' : '?';
+            var fiscalYear = GetFiscalYear(lastPeriod);
+            var parameters = $"year={fiscalYear}&quarter={lastPeriod.Quarter_NUM}";
+            var url = $"{powerBiTargets}{joinChar}{parameters}";
+            await JsInterop.InvokeAsync<object>("open", url, "_blank");
+        }
     }
 
     protected override async Task OnInitializedAsync()
@@ -79,8 +92,9 @@
         _formMetadata = new();
         await LoadApps(string.Empty);
 
-        var date = DateTime.Now.Date;
-        _currentPeriod = Context.SeasonRegistrationPeriods.FirstOrDefault(e => e.Open_DT <= date && date <= e.Close_DT);
+        // period dates are EST time based
+        var date = DateTime.UtcNow.ConvertUtcToEasternTime().Date;
+        _currentPeriod = GetCurrentPeriod(Context);
         _nextPeriod = Context.SeasonRegistrationPeriods.FirstOrDefault(e => e.Open_DT > date);
 
         PrepareMetadata();
@@ -101,7 +115,7 @@
         _formMetadata.SaveButtonText = DataLocalizer["Submit"];
         var filters = new List<(Delegate Label, Delegate Choices)>() { (() => "Status", () => new List<string> { "All", "Pending", "Approved", "Declined" }) };
         _formMetadata.FilterProperties = filters;
-        _formMetadata.TableDisclaimer = DataLocalizer["LanguageTableDisclaimer"];
+        _formMetadata.TableDisclaimer = DataLocalizer["LanguageTrainingApplication.LanguageTableDisclaimer"];
         var introfile = _isFrench ? "FormIntroFr.md" : "FormIntro.md";
         var footerfile = _isFrench ? "FormFooterWarningFr.md" : "FormFooterWarning.md";
         _formMetadata.MarkDownContent = File.ReadAllLines($@"Pages\Forms\LanguageTraining\{introfile}").ToList();
@@ -114,21 +128,36 @@
         if (_currentPeriod is null)
         {
             if (_nextPeriod is null)
-                return DataLocalizer["Registrations are currently closed."].ToString();
+                return DataLocalizer["LanguageTrainingApplication.Registrations_closed"].ToString();
 
-            var template = DataLocalizer["The {0} {1} registrations will open from {2} to {3}."];
+            var template = DataLocalizer["LanguageTrainingApplication.Registrations_open_from_to"];
+
             var openFormatted = _nextPeriod.Open_DT.ToShortDateString();
             var closeFormatted = _nextPeriod.Close_DT.ToShortDateString();
+            var season = DataLocalizer[GetSeason(_nextPeriod.Quarter_NUM)];
+            var fiscalYear = GetFiscalYear(_nextPeriod);
 
-            return string.Format(template, GetSeason(_nextPeriod.Quarter_NUM), GetFiscalYear(_nextPeriod), openFormatted, closeFormatted);
+            return string.Format(template, season, fiscalYear, openFormatted, closeFormatted);
         }
         else
         {
-            var template = DataLocalizer["Registrations open for {0} {1} until {2}."];
+            // Registrations open for {0} {1} until {Friday}, {December} {2}, {2022} by 6:00 PM (EDT).
+            // Inscriptions ouvertes pour {0} {1} au plus tard vendredi, le {2} {décembre} {2022}, à 18 h 00 (HAE).
+            var template = DataLocalizer["LanguageTrainingApplication.Registrations_open_until"];
+            var closeDateTime = _currentPeriod.Close_DT;
+            var season = DataLocalizer["LanguageTrainingApplication." + GetSeason(_currentPeriod.Quarter_NUM)];
+            var fiscalYear = GetFiscalYear(_currentPeriod);
+            var dowText = DataLocalizer[closeDateTime.DayOfWeek.ToString()];
+            var monthText = DataLocalizer[GetMonth(closeDateTime.Month)];
+            var year = closeDateTime.Year;
+            var day = closeDateTime.Day;
+
             var formattedDate = _currentPeriod.Close_DT.ToShortDateString();
-            return string.Format(template, GetSeason(_currentPeriod.Quarter_NUM), GetFiscalYear(_currentPeriod), formattedDate);
+            return string.Format(template, season, fiscalYear, ToLowerIfFrench(dowText), ToLowerIfFrench(monthText), day, year);
         }
     }
+
+    private string ToLowerIfFrench(string text) => _isFrench ? text.ToLower() : text;
 
     static string GetSeason(byte season) => season switch
     {
@@ -136,6 +165,23 @@
         2 => "Summer",
         3 => "Fall",
         _ => "Winter"
+    };
+
+    static string GetMonth(int month) => month switch
+    {
+        01 => "January",
+        02 => "February",
+        03 => "March",
+        04 => "April",
+        05 => "May",
+        06 => "June",
+        07 => "July",
+        08 => "August",
+        09 => "September",
+        10 => "October",
+        11 => "November",
+        12 => "December",
+        _  => "Unknown"
     };
 
     static int GetFiscalYear(SeasonRegistrationPeriod period) => period.Quarter_NUM switch
@@ -375,6 +421,7 @@
 
         // _currentPeriod shouldn't be null here!
         _languageTrainingApplication.Year_For_Language_Training = _currentPeriod is not null ? GetFiscalYear(_currentPeriod) : DateTime.Now.Year;
+        _languageTrainingApplication.Quarter_NUM = _currentPeriod?.Quarter_NUM ?? 1;
         _languageTrainingApplication.Session_For_Language_Training = GetSessionForTraining();
 
         StateHasChanged();
@@ -396,10 +443,29 @@
     {
         _isNewApp = false;
         _languageTrainingApplication = application;
-
-
         StateHasChanged();
     }
 
-    public void Dispose() { Context.Dispose(); }
+    private static SeasonRegistrationPeriod GetCurrentPeriod(LanguageTrainingDBContext ctx)
+    {
+        var estDateTimeNow = DateTime.UtcNow.ConvertUtcToEasternTime();
+
+        var date = estDateTimeNow.Date;
+        var period = ctx.SeasonRegistrationPeriods.FirstOrDefault(e => e.Open_DT <= date && date <= e.Close_DT);
+
+        if (period is null)
+            return null;
+        
+        if (estDateTimeNow > GetCloseDateExact(period.Close_DT))
+            return null;
+
+        return period;
+    }
+
+    private static DateTime GetCloseDateExact(DateTime date) => date.Date + TimeSpan.FromHours(18); // 6:00PM
+
+    public void Dispose() 
+    { 
+        Context.Dispose(); 
+    }
 }
