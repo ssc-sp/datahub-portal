@@ -1,7 +1,9 @@
-﻿using Datahub.Metadata.DTO;
+﻿using Datahub.CatalogSearch;
+using Datahub.Metadata.DTO;
 using Datahub.Metadata.Model;
 using Datahub.Metadata.Utils;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,13 +14,18 @@ namespace Datahub.Core.Services
 {
 	public class MetadataBrokerService : IMetadataBrokerService
     {
-        readonly IDbContextFactory<MetadataDbContext> _contextFactory;
-        readonly IDatahubAuditingService _auditingService;
+        private readonly IDbContextFactory<MetadataDbContext> _contextFactory;
+        private readonly ILogger<MetadataBrokerService> _logger;
+        private readonly IDatahubAuditingService _auditingService;
+        private readonly ICatalogSearchEngine _catalogSearchEngine;
 
-        public MetadataBrokerService(IDbContextFactory<MetadataDbContext> contextFactory, IDatahubAuditingService auditingService)
+        public MetadataBrokerService(IDbContextFactory<MetadataDbContext> contextFactory, ILogger<MetadataBrokerService> logger,
+            IDatahubAuditingService auditingService, ICatalogSearchEngine catalogSearchEngine)
         {
             _contextFactory = contextFactory;
+            _logger = logger;
             _auditingService = auditingService;
+            _catalogSearchEngine = catalogSearchEngine;
         }
 
         public async Task<MetadataProfile> GetProfile(string name)
@@ -269,32 +276,75 @@ namespace Datahub.Core.Services
             return await GetLatestMetadataDefinition(ctx);
         }
 
+        const int MaxKeywordResults = 50;
+
         public async Task<List<CatalogObjectResult>> SearchCatalog(CatalogSearchRequest request, Func<CatalogObjectResult, bool> validateResult)
         {
+            _logger.LogInformation(">>> SearchCatalog start...");
+            
             using var ctx = _contextFactory.CreateDbContext();
 
-            var conditions = new List<string>()
-            {
-                GetSearchTextCondition(request.Keywords, request.IsFrench ? "Search_French_TXT" : "Search_English_TXT"),
-                GetOrSearchCondition(request.Classifications, "Classification_Type"),
-                GetOrSearchCondition(request.Languages, "Language"),
-                GetOrSearchCondition(request.ObjectTypes.Select(o => (int)o), "DataType"),
-                GetOrSearchCondition(request.Sectors, "Sector_NUM"),
-                GetOrSearchCondition(request.Branches, "Branch_NUM")
-            };
-            var whereCondition = string.Join(" AND ", conditions.Where(s => !string.IsNullOrEmpty(s)).Select(s => $"({s})"));
+            var query = ctx.CatalogObjects
+                .Include(e => e.ObjectMetadata)
+                .ThenInclude(s => s.FieldValues)
+                .AsQueryable();
 
-            var query = string.IsNullOrEmpty(whereCondition)
-                ? $"SELECT * FROM CatalogObjects WHERE CatalogObjectId > {request.LastPageId}"
-                : $"SELECT * FROM CatalogObjects WHERE CatalogObjectId > {request.LastPageId} AND {whereCondition}";
+            var containsKeywords = request.Keywords.Count > 0;
+            var pageSize = request.PageSize; 
+
+            List<long> hits = new();
+            if (containsKeywords)
+            {
+                var kwSearch = request.IsFrench ? _catalogSearchEngine.GetFrenchSearchEngine() : _catalogSearchEngine.GetEnglishSearchEngine();
+                
+                hits = kwSearch.SearchDocuments(string.Join(" ", request.Keywords.Select(s => s.ToLower())), MaxKeywordResults)
+                               .Select(long.Parse)
+                               .ToList();
+
+                pageSize = hits.Count;
+
+                query = query.Where(e => hits.Contains(e.CatalogObjectId));
+            }
+
+            if (request.Classifications.Count > 0)
+                query = query.Where(e => request.Classifications.Contains(e.Classification_Type));
+
+            if (request.Languages.Count > 0)
+                query = query.Where(e => request.Languages.Contains(e.Language));
+
+            if (request.ObjectTypes.Count > 0)
+                query = query.Where(e => request.ObjectTypes.Contains(e.DataType));
+
+            if (request.Sectors.Count > 0)
+                query = query.Where(e => request.Sectors.Contains(e.Sector_NUM));
+
+            if (request.Branches.Count > 0)
+                query = query.Where(e => request.Branches.Contains(e.Branch_NUM));
+
+            if (!containsKeywords)
+                query = query.Where(e => e.CatalogObjectId > request.LastPageId);
 
             var definitions = await GetLatestMetadataDefinition(ctx);
-            var results = await ctx.QueryCatalog(query);
 
-            return results.Select(e => TransformCatalogObject(e, definitions))
+            var results = query.Select(e => TransformCatalogObject(e, definitions))
                           .Where(validateResult)
-                          .Take(request.PageSize)
+                          .Take(pageSize)
                           .ToList();
+
+            if (containsKeywords)
+            {
+                // build dictionary<objectId, index>
+                var sortMap = hits.Select((Id, Index) => new { Id, Index }).ToDictionary(p => p.Id, p => p.Index);
+                // sort results
+                results = results.Select(r => new { Index = sortMap[r.CatalogObjectId], Result = r })
+                                 .OrderBy(p => p.Index)
+                                 .Select(p => p.Result)
+                                 .ToList();
+            }
+
+            _logger.LogInformation("<<< SearchCatalog end...");
+
+            return results;
         }
 
         public async Task<List<CatalogObjectResult>> GetCatalogGroup(Guid groupId)
