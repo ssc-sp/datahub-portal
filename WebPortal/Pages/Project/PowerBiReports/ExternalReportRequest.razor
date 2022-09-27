@@ -192,10 +192,10 @@ else
     private IEnumerable<string> GetReportLinks()
     {
         var mainLanguage = reportCatalogObject?.Language ?? CatalogObjectLanguage.Bilingual;
-        var mainUrl = PowerBiDataService.GenerateExternalReportLink(Report.Report_ID, mainLanguage);
+        var mainUrl = PowerBiDataService.GeneratePublishedInternalReportLink(Report.Report_ID, mainLanguage);
 
         var links = new List<string>() { mainUrl };
-        links.AddRange(relatedCatalogObjects.Select(r => PowerBiDataService.GenerateExternalReportLink(Guid.Parse(r.Metadata.ObjectId), r.Language)));
+        links.AddRange(relatedCatalogObjects.Select(r => PowerBiDataService.GeneratePublishedInternalReportLink(Guid.Parse(r.Metadata.ObjectId), r.Language)));
 
         return links;
     }

@@ -152,7 +152,7 @@
         {
             var newGuid = Guid.Parse(newReport.Metadata.ObjectId);
             var extReportTask = _powerBiDataService.GetExternalReportRecord(newGuid);
-            var url = _powerBiDataService.GenerateExternalReportLink(newGuid, selectedLanguage);
+            var url = _powerBiDataService.GeneratePublishedInternalReportLink(newGuid, selectedLanguage);
             NavManager.NavigateTo(url, replace: true);
             await PopulateFromReport(await extReportTask);
         }
