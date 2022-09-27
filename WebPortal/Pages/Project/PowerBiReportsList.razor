@@ -8,15 +8,9 @@
 
     <AeCard>
         <ChildContent>
-            <AeTypography Variant="h1">@Localizer[$"Power BI Reports for"] @projectAcronym</AeTypography>
-            <AeTypography Variant="p">This page displays a list of Power BI reports that have been created for this initiative. 
-                The names of the reports are set in Power BI and are displayed as is (without any translating). The table will show either French
-                or English reports, depending on which ones have been created. The 'External Access' column allows users to request the creation of
-                external reports that can be be shared with non-nrcan users. 
-            </AeTypography>
-            <AeTypography Variant="p">
-                The sandbox workspaces are hidden by default and can be toggled using the option at the bottom of the page
-            </AeTypography>
+            <AeTypography Variant="h1">@Localizer["PowerBiReportsFor", projectAcronym]</AeTypography>
+            <AeTypography Variant="p">@Localizer["PowerBiReportListIntro"]</AeTypography>
+            <AeTypography Variant="p">@Localizer["PowerBiReportListSandbox"]</AeTypography>
         </ChildContent>
     </AeCard>
     <AeCard>
@@ -83,8 +77,8 @@
     private List<string> headers = new()
     {
         "Power BI Workspace",
-        "Power BI Report",
-        "Catalog Entry",
+        "PowerBiReport",
+        "CatalogEntry",
         "External_Access"
     };
 
@@ -136,8 +130,6 @@
         StateHasChanged();
         _powerBiReports = await PowerBiDataService.GetReportsForProjectWithExternalReportInfo(projectAcronym, IncludeSandbox);
 
-
-
         _isLoading = false;
         StateHasChanged();
     }
@@ -164,13 +156,11 @@
     public async Task RefreshTable()
     {
         _powerBiReports = await PowerBiDataService.GetReportsForProjectWithExternalReportInfo(projectAcronym, IncludeSandbox);
-        //await InvokeAsync(StateHasChanged);
     }
 
     private async Task OpenMetadataEditor(PowerBi_Report r)
     {
-        RenderFragment reportEditor = 
-    @<Datahub.Portal.Pages.PowerBI.PowerBiReportMetadataEditor 
+        RenderFragment reportEditor = @<Datahub.Portal.Pages.PowerBI.PowerBiReportMetadataEditor 
             PowerBiReportId=@r.Report_ID 
             ProjectAcronym=@projectAcronym 
             OnCloseDialog=@CloseDialog />;
@@ -179,22 +169,8 @@
 
     private RenderFragment ExternalReport(PowerBi_Report r) => @<ExternalReportRequest Report=@(r) RefreshTable=RefreshTable CurrentUserEmail=@currentUserEmail/>;
 
-    //private RenderFragment ExternalReportNotInCatalog(PowerBi_Report r) => @<MudText>Nope</MudText>;
-
-    //private RenderFragment ExternalReportIfAllowed(PowerBi_Report r) => r.InCatalog ? ExternalReport(r) : ExternalReportNotInCatalog(r);
-
-    //private RenderFragment WorkspaceLinkFragment(PowerBi_Report r) =>
-    //@<AeTypography>
-    //    <DHLink 
-    //            LinkType=@DatahubLinkType.PowerBIWorkspace 
-    //            PBIWorkspaceId=@(r.Workspace_Id.ToString())>
-    //        @r.Workspace.Workspace_Name
-    //    </DHLink>
-    //</AeTypography>
-    //;
-
     private RenderFragment ReportLinkFragment(PowerBi_Report r) =>
-    @<AeTypography>
+    @<MudText>
         <DHLink 
                 LinkType=@DatahubLinkType.PowerBI
                 DataProject=@(r.Workspace.Project?.Project_Acronym_CD) 
@@ -203,8 +179,7 @@
                 Name=@(r.Report_Name)>
             @r.Report_Name
         </DHLink>
-        </AeTypography>
-    ;
+    </MudText>;
 
     private RenderFragment InCatalogIcon = @<MudIcon Color=@Color.Success Icon=@Icons.Filled.Check />;
     private RenderFragment NotInCatalogIcon = @<MudIcon Color=@Color.Error Icon=@Icons.Filled.Close />;
@@ -215,7 +190,6 @@
         <MudIconButton 
             Icon=@Icons.Filled.Edit
             OnClick=@(() => OpenMetadataEditor(r))
-            
         />
     </MudStack>;
 

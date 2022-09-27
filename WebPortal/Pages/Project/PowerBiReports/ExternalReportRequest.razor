@@ -2,36 +2,33 @@
 @using Datahub.Metadata.Model
 @inject IPowerBiDataService PowerBiDataService
 @inject IUserInformationService UserInformationService
-@inject IMSGraphService MSGraphService
 @inject ServiceAuthManager ServiceAuthManager
 @inject IEmailNotificationService EmailService
-@inject IMetadataBrokerService MetadataService
 
+<AuthorizeView Roles=@RoleConstants.DATAHUB_ROLE_ADMIN>
+    @if (!currentUserIsAdmin)
+    {
+        currentUserIsAdmin = true;
+    }
+</AuthorizeView>
 
 @if (_isWorking)
 {
     <MudStack Row AlignItems=@AlignItems.Center>
         <MudProgressCircular Indeterminate/>
-        <MudText>Working...</MudText>
+        <MudText>@Localizer["Working"]</MudText>
     </MudStack>
 }
-else if (externalReport == null && _isReportCatalogued)
+else if (externalReport == null)
 {
     <MudStack Row AlignItems=@AlignItems.Center @onclick="() => _requestPopupOpen = !_requestPopupOpen" style="cursor:pointer;">
         <MudIcon Icon=@Icons.TwoTone.AddBox />
         <MudText>@Localizer["Request External Report"]</MudText>
         <MudPopover Class="pa-8" Open=@_requestPopupOpen TransformOrigin=@Origin.TopRight>
-            <MudText>Request external sharing for @Report.Report_Name ?</MudText>
-            <MudButton Color=@Color.Primary Variant=@Variant.Filled OnClick=@(() => OnCreateClick(Report.Report_ID))>Confirm</MudButton>
-            <MudButton OnClick=@(() => _requestPopupOpen = false)>Cancel</MudButton>
+            <MudText>@Localizer["RequestExternalSharingFor", @Report.Report_Name]</MudText>
+            <MudButton Color=@Color.Primary Variant=@Variant.Filled OnClick=@(() => OnCreateClick(Report.Report_ID))>@Localizer["BUTTONS.Confirm"]</MudButton>
+            <MudButton OnClick=@(() => _requestPopupOpen = false)>@Localizer["BUTTONS.Cancel"]</MudButton>
         </MudPopover>
-    </MudStack>
-}
-else if (externalReport == null)
-{
-    <MudStack Row AlignItems=@AlignItems.Center>
-        <MudIcon Icon=@Icons.Filled.Block />
-        <MudText>N/A - Report must be catalogued</MudText>
     </MudStack>
 }
 else
@@ -41,65 +38,26 @@ else
         <MudIcon Icon=@StatusIcon />
         <MudText>@StatusText</MudText>
         <MudPopover Open=@_infoPopupOpen TransformOrigin=@Origin.TopRight Class="pa-8">
-            <MudText>Requesting user: @externalReport.RequestingUser</MudText>
-            @if (_reportCatalogObjectExists)
-            {
-                <MudText>Title: @GetCatalogTitle()</MudText>
-                <MudText>Language: @Localizer[$"{reportCatalogObject.Language}"]</MudText>
-            }
-
-            @if (!_isReportCatalogued)
-            {
-                <MudAlert Severity=@Severity.Warning>This report is not in the catalog, so some features may be unavailable.</MudAlert>
-            }
-
+            <MudText>@Localizer["RequestingUser"]: @externalReport.RequestingUser</MudText>
+            
             @if(_isReportActive)
             {
-                <MudList>
-                    @foreach(var link in GetReportLinks())
-                    {
-                        <MudListItem><a href=@link>@link</a></MudListItem>
-                    }
-                </MudList>
+                <MudText>@Localizer["TemporaryExternalLink"]: <MudLink Href=@TempExternalReportLink>@Report.Report_Name</MudLink></MudText>
             }
 
-            @if (externalReport.RequestingUser == CurrentUserEmail)
+            @if (_canRevokeExternalLink)
             {
                 <MudButton Color=@Color.Error OnClick=@(() => _revokePopupOpen = true)>@RevokeButtonCaption</MudButton>
             }
 
             <MudPopover Class="pa-8" Open=@_revokePopupOpen >
                 <MudText>@RevokeDialogPrompt</MudText>
-                <MudButton Color=@Color.Error Variant=@Variant.Filled OnClick=@(() => OnRevokeClick(Report.Report_ID))>Confirm</MudButton>
-                <MudButton OnClick=@(() => _revokePopupOpen = false)>Cancel</MudButton>
+                <MudButton Color=@Color.Error Variant=@Variant.Filled OnClick=@(() => OnRevokeClick(Report.Report_ID))>@Localizer["BUTTONS.Confirm"]</MudButton>
+                <MudButton OnClick=@(() => _revokePopupOpen = false)>@Localizer["BUTTONS.Cancel"]</MudButton>
             </MudPopover>
         </MudPopover>
     </MudStack>
 }
-
-
-    @*
-    @if (_isReportActive)
-    {
-        <div @onclick="() => OnRevokeClick(PowerBi_Report.Report_ID)" style="cursor:pointer;">
-            <i class="far fa-check-square"></i>
-            <a>@Localizer["Revoke Active Sharing"]</a>
-        </div>
-    }
-    else if (_isReportRequested)
-    {
-        <div>
-            <i class="fad fa-hourglass-half"></i>
-            <a>@Localizer["Requested"]</a>
-        </div>
-    }
-    else
-    {
-        <div @onclick="() => OnCreateClick(PowerBi_Report.Report_ID)" style="cursor:pointer;">
-            <i class="far fa-plus-square"></i>
-            <a>@Localizer["Request External Report"]</a>
-        </div>                
-    }*@
 
 @code {
 
@@ -115,14 +73,11 @@ else
     public EventCallback RefreshTable { get; set; }
 
     private ExternalPowerBiReport externalReport;
-    private CatalogObjectResult reportCatalogObject;
-    private List<CatalogObjectResult> relatedCatalogObjects = new();
-    //private string currentUserEmail;
-    private bool currentUserIsFrench;
 
-    //private bool _isReportRequested;
-    //private bool _isReportActive;
-    //private bool _isReportCatalogued;
+    private bool currentUserIsFrench;
+    private bool currentUserIsAdmin = false;
+
+    private bool _canRevokeExternalLink => currentUserIsAdmin || externalReport?.RequestingUser == CurrentUserEmail;
 
 
     private bool _infoPopupOpen = false;
@@ -130,9 +85,6 @@ else
     private bool _revokePopupOpen = false;
     private bool _isWorking = true;
 
-    private bool _isReportCatalogued => Report.InCatalog;
-    private bool _reportCatalogObjectExists => reportCatalogObject != null;
-    private bool _catalogStatusMismatch => _isReportCatalogued != _reportCatalogObjectExists;
 
     private bool _reportExists => externalReport != null;
     private bool _reportNotExpired => !externalReport.IsExpired;
@@ -141,90 +93,30 @@ else
     private bool _isReportRequested => _reportExists && _reportNotExpired && !externalReport.Is_Created;
 
     private string StatusIcon => _isReportActive ? Icons.TwoTone.CheckBox : Icons.TwoTone.HourglassBottom;
-    private string StatusText => _isReportActive ? "Show info" : "Requested";
-    private string RevokeButtonCaption => _isReportActive ? "Revoke external sharing" : "Cancel external sharing request";
-    private string RevokeDialogPrompt => _isReportActive ? $"Revoke external sharing for {Report.Report_Name}?" : $"Cancel external sharing request for {Report.Report_Name}?";
+    private string StatusKey => _isReportActive ? "Show info" : "Requested";
+    private string StatusText => Localizer[StatusKey];
+    private string RevokeButtonKey => _isReportActive ? "Revoke external sharing" : "Cancel external sharing request";
+    private string RevokeButtonCaption => Localizer[RevokeButtonKey];
+    private string RevokeDialogKey => _isReportActive ? $"RevokeExtSharingFor" : $"CancelExtSharingRequestFor";
+    private string RevokeDialogPrompt => Localizer[RevokeDialogKey, Report.Report_Name];
+
+    private string TempExternalReportLink => $"/powerbi-report/embed/{Report.Report_ID.ToString()}";
 
     protected override async Task OnInitializedAsync()
     {
         _isWorking = true;
 
-        //Console.WriteLine($"{DateTime.Now} ding {Report.Report_ID}");
-
         externalReport = await PowerBiDataService.GetExternalReportRecord(Report.Report_ID);
-        reportCatalogObject = await MetadataService.GetCatalogObjectByObjectId(Report.Report_ID.ToString());
-        //var currentUserGuid = await UserInformationService.GetUserIdString();
-        //currentUserEmail = await MSGraphService.GetUserEmail(currentUserGuid, default);
         currentUserIsFrench = await UserInformationService.IsFrench();
-
-        if (reportCatalogObject != null)
-        {
-            var reportGroup = await MetadataService.GetObjectCatalogGroup(Report.Report_ID.ToString());
-            reportGroup.Remove(Report.Report_ID.ToString());
-            relatedCatalogObjects = (await Task.WhenAll(
-                reportGroup.Select(async r => await MetadataService.GetCatalogObjectByObjectId(r)))
-            ).ToList();
-        }
-
-
-        //_isReportCatalogued = Report.InCatalog;
-
-        //if (externalReport is null || externalReport.IsExpired)
-        //{
-        //    _isReportRequested = false;
-        //}
-        //else if (!externalReport.Is_Created)
-        //{
-        //    _isReportRequested = true;
-        //}
-        //else if (externalReport.Is_Created && ! externalReport.IsExpired)
-        //{
-        //    //_isReportActive = true;
-        //}
-        //else
-        //{
-        //    _isReportRequested = false;
-        //}
-
+        
         _isWorking = false;
     }
-
-    private IEnumerable<string> GetReportLinks()
-    {
-        var mainLanguage = reportCatalogObject?.Language ?? CatalogObjectLanguage.Bilingual;
-        var mainUrl = PowerBiDataService.GeneratePublishedInternalReportLink(Report.Report_ID, mainLanguage);
-
-        var links = new List<string>() { mainUrl };
-        links.AddRange(relatedCatalogObjects.Select(r => PowerBiDataService.GeneratePublishedInternalReportLink(Guid.Parse(r.Metadata.ObjectId), r.Language)));
-
-        return links;
-    }
-
-    private string GetCatalogTitle()
-    {
-        if (!_reportCatalogObjectExists)
-        {
-            return null;
-        }
-
-        var title = reportCatalogObject.Language switch
-        {
-            CatalogObjectLanguage.English => reportCatalogObject.Name_English,
-            CatalogObjectLanguage.French => reportCatalogObject.Name_French,
-            CatalogObjectLanguage.Bilingual => currentUserIsFrench? reportCatalogObject.Name_French: reportCatalogObject.Name_English,
-            _ => currentUserIsFrench ? reportCatalogObject.Name_French : reportCatalogObject.Name_English
-        };
-
-        return title;
-    }
-
+    
     private async void OnCreateClick(Guid reportId)
     {
         _requestPopupOpen = false;
         _isWorking = true;
 
-        //var currentUserId = await UserInformationService.GetUserIdString();
-        //var requestingUserEmail = await MSGraphService.GetUserEmail(currentUserId, CancellationToken.None);
         await PowerBiDataService.CreateExternalPowerBiReportRequest(CurrentUserEmail, reportId);
         PowerBiExternalReportParameters powerbiExternalParameters = new() { 
                             AppUrl = $"/administration",
