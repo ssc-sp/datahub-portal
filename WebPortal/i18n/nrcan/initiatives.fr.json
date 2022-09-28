@@ -219,6 +219,7 @@
       "InstructionsAdmin": "Dans cette vue d'administration, vous avez accès aux espaces de travail Power BI pour toutes les initiatives de données dans DataHub.",
       "Workspace": "Espace de travail",
       "Reports": "Rapports",
+      "LoadingReport": "Chargement du rapport",
       "SecurityClassification": "Classification de la sécurité",
       "Metadata": "Metadata",
       "UpdateAssignment": "Mise à jour",
