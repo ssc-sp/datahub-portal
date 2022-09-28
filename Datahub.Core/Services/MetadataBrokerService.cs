@@ -224,8 +224,8 @@ namespace Datahub.Core.Services
             return keywords;
         }
 
-        public async Task UpdateCatalog(long objectMetadataId, MetadataObjectType dataType, string objectName, string location,
-            int sector, int branch, string contact, ClassificationType securityClass, string englishText, string frenchText, 
+        public async Task UpdateCatalog(long objectMetadataId, MetadataObjectType dataType, string englishName, string frenchName, 
+            string location, int sector, int branch, string contact, ClassificationType securityClass, string englishText, string frenchText, 
             CatalogObjectLanguage language, int? projectId, bool anonymous = false)
         {
             using var ctx = _contextFactory.CreateDbContext();
@@ -245,7 +245,8 @@ namespace Datahub.Core.Services
                 {
                     ObjectMetadataId = objectMetadataId,
                     DataType = dataType,
-                    Name_TXT = objectName,
+                    Name_TXT = englishName,
+                    Name_French_TXT = frenchName,
                     Location_TXT = location,
                     Sector_NUM = sector,
                     Branch_NUM = branch,
@@ -268,6 +269,16 @@ namespace Datahub.Core.Services
                 transation.Rollback();
                 throw;
             }
+            // update search indexes
+            UpdateCatalogIndex($"{objectMetadataId}", englishName, englishText, false);
+            UpdateCatalogIndex($"{objectMetadataId}", frenchName, frenchText, true);
+        }
+
+        private void UpdateCatalogIndex(string docId, string title, string content, bool isFrench)
+        {
+            var catalogSearch = isFrench ? _catalogSearchEngine.GetFrenchSearchEngine() : _catalogSearchEngine.GetEnglishSearchEngine();
+            catalogSearch.AddDocument(docId, (title ?? "").ToLower(), (content ?? "").ToLower());
+            catalogSearch.FlushIndexes();
         }
 
         public async Task<FieldDefinitions> GetFieldDefinitions()
