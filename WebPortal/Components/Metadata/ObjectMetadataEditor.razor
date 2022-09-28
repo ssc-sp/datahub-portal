@@ -274,7 +274,8 @@
         (
             objectMetadataId, 
             ObjectType, 
-            digest.Name, 
+            _fieldValues["title_translated_en"]?.Value_TXT ?? digest.Name,
+            _fieldValues["title_translated_fr"]?.Value_TXT ?? digest.Name,
             Location, 
             digest.Sector, 
             digest.Branch, 

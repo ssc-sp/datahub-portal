@@ -433,6 +433,7 @@
 	{
 		_filteredSectors.Clear();
 		_filteredSectors.Add(sector);
+		_sectorFilterSectionOpen = true;
 		await UpdateFilter();
 	}
 
@@ -482,8 +483,9 @@
 		_filtersActive = HasValidFilters();
 	}
 
-	private bool CheckMetadataCompleted(CatalogObjectResult result)
+	private bool CheckValidResult(CatalogObjectResult result)
 	{
+		// filter incomplete metadata
 		if (_excludeIncompleteCatalogs)
 		{
 			var fieldValues = result.Metadata;
@@ -504,6 +506,15 @@
 			if (string.IsNullOrEmpty(fieldValues.GetValue(_isFrench ? "title_translated_fr" : "title_translated_en")))
 				return false;
 		}
+
+		// filter Power BI workspaces
+		if (result.DataType == MetadataObjectType.PowerBIWorkspace && !_filteredDataTypes.Contains(MetadataObjectType.PowerBIWorkspace))
+			return false;
+
+		// filter Power BI datasets
+		if (result.DataType == MetadataObjectType.PowerBIDataset && !_filteredDataTypes.Contains(MetadataObjectType.PowerBIDataset))
+			return false;
+
 		return true;
 	}
 
@@ -696,7 +707,7 @@
 			_catalogSearchRequest = new(0, 10, _isFrench, keywords, 
 				_filteredLanguageTypes.ToList(), _filteredClassificationTypes.ToList(), _filteredDataTypes.ToList(), sectors, branches);
 
-			var results = await MetadataBrokerService.SearchCatalog(_catalogSearchRequest, CheckMetadataCompleted);
+			var results = await MetadataBrokerService.SearchCatalog(_catalogSearchRequest, CheckValidResult);
 			_lastQueryCount = results.Count;
 
 			// apply localization on bilingual entries
@@ -794,7 +805,7 @@
             LastPageId = request.Items.LastOrDefault()?.CatalogObjectId ?? 0
         };
 
-		var newResults = await MetadataBrokerService.SearchCatalog(newRequest, CheckMetadataCompleted);
+		var newResults = await MetadataBrokerService.SearchCatalog(newRequest, CheckValidResult);
 		_searchResults.AddRange(newResults);
 
 		return newResults;
