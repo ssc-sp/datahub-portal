@@ -1,4 +1,5 @@
 ﻿using Datahub.Core.EFCore;
+using Datahub.Metadata.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -45,6 +46,11 @@ namespace Datahub.Core.Services.Offline
         }
 
         public Task<bool> DeleteWorkspace(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public string GeneratePublishedInternalReportLink(string reportId, CatalogObjectLanguage language = CatalogObjectLanguage.Bilingual)
         {
             throw new NotImplementedException();
         }
