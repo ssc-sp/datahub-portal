@@ -26,7 +26,8 @@ namespace Datahub.Core.Services
             {
                 DisplayName = "Offline User",
                 Id = UserGuid.ToString(),
-                UserPrincipalName = "me@me.com"
+                UserPrincipalName = "me@me.com",
+                Mail = "nabeel.bader@nrcan-rncan.gc.ca"
             });
         }
 

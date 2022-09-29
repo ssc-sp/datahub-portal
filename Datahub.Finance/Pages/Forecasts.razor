@@ -1,4 +1,4 @@
-﻿@inject IStringLocalizer DataLocalizer
+﻿@inject IStringLocalizer Localizer
 @implements IDisposable
 @inject IDbContextFactory<FinanceDBContext> DbFactory
 @inject NavigationManager NavigationManager
@@ -11,29 +11,36 @@
 @using System.Linq.Expressions
 @using MudBlazor
 
-<MudCard>    
-    <MudCardContent>
-        <MudTable Items="@_fundCenters" Hover="true" Loading="@_isLoading">
-            <ToolBarContent>
-                <MudText Typo="Typo.h6">FC Details</MudText>
-            </ToolBarContent>
-            <HeaderContent>
-                <MudTh>Sector</MudTh>
-                <MudTh>Branch</MudTh>
-                <MudTh>Division</MudTh>
-                <MudTh>Attrition Rate</MudTh>
-            </HeaderContent>
-            <RowTemplate>
-                <MudTd>@context.Sector?.FundCenterModifiedEnglish</MudTd>
-                <MudTd>@context.Branch?.FundCenterModifiedEnglish</MudTd>
-                <MudTd>@context.Division?.FundCenterModifiedEnglish</MudTd>
-                <MudTd>@($"{context.AttritionRate.ToString()}%")</MudTd>
-            </RowTemplate>
-        </MudTable>
-    </MudCardContent>
-</MudCard>
+@if (!string.IsNullOrEmpty(_branch))
+{
+    <Datahub.Finance.Components.AccessControl Branch="@_branch" Email="@_user.Mail" IsValid=@AllowAccess></Datahub.Finance.Components.AccessControl>
+}
 
-<Datahub.Core.Components.MudFormTemplate T="Forecast"
+@if (_isAuthorized)
+{
+    <MudCard>    
+        <MudCardContent>
+            <MudTable Items="@_fundCenters" Hover="true" Loading="@_isLoading">
+                <ToolBarContent>
+                    <MudText Typo="Typo.h6">FC Details</MudText>
+                </ToolBarContent>
+                <HeaderContent>
+                    <MudTh>@Localizer["Sector"]</MudTh>
+                    <MudTh>@Localizer["Branch"]</MudTh>
+                    <MudTh>@Localizer["Division"]"</MudTh>
+                    <MudTh>@Localizer["Attrition Rate"]</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd>@context.Sector?.FundCenterModifiedEnglish</MudTd>
+                    <MudTd>@context.Branch?.FundCenterModifiedEnglish</MudTd>
+                    <MudTd>@context.Division?.FundCenterModifiedEnglish</MudTd>
+                    <MudTd>@Localizer[($"{context.AttritionRate.ToString()}%")]</MudTd>
+                </RowTemplate>
+            </MudTable>
+        </MudCardContent>
+    </MudCard>
+
+    <Datahub.Core.Components.MudFormTemplate T="Forecast"
                                          U="FinanceDBContext"
         Metadata="@_formMetadata" 
         HandleSubmit="HandleValidSubmit"
@@ -49,20 +56,23 @@
         @key="@_formMetadata"/>
 
 
-<MudCard>
-    <MudCardContent>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => NavigationManager.NavigateTo("finance/fundcenters"))">Back</MudButton>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => NavigationManager.NavigateTo($"finance/summaryforecasts/{_fundCenters[0].FundCenter_ID}"))">Next</MudButton>
-    </MudCardContent>
-</MudCard>
+    <MudCard>
+        <MudCardContent>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => NavigationManager.NavigateTo("finance/fundcenters"))">Back</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => NavigationManager.NavigateTo($"finance/summaryforecasts/{_fundCenters[0].FundCenter_ID}"))">Next</MudButton>
+        </MudCardContent>
+    </MudCard>
+}
 
-
-    @code {
+@code {
 
     [Parameter]
     public string fundcenterId { get; set; }
 
     private const string PROJECTACRONYM = "FINGC";
+
+    private bool _isAuthorized = false;
+    private string _branch = string.Empty;    
 
     private FinanceDBContext Context;
     private Microsoft.Graph.User _user = null!;
@@ -76,7 +86,7 @@
     private Forecast _forecast;
     private Dictionary<string, Func<Forecast, string>> _sortAccessors = new();
     private FormMetadata<Forecast> _formMetadata = new();
-
+    private List<string> _headers = new();
 
     private void OnPageClick(int pageIndex)
     {
@@ -90,7 +100,22 @@
         LoadSortExpressions();
         _user = await UserInformationService.GetUserAsync();
         _isUserAdmin = await ServiceAuthManager.IsProjectAdmin(_user.Id, PROJECTACRONYM);
-
+        _headers = new List<string>
+        {
+            Localizer["Planned Staffing"], 
+            Localizer["Last Name"], 
+            Localizer["First Name"], 
+            Localizer["Indeterminate"], 
+            Localizer["Classification"], 
+            Localizer["Fund"], 
+            Localizer["Start Date"], 
+            Localizer["End Date"], 
+            Localizer["FTE"], 
+            Localizer["Salary"], 
+            Localizer["Incremental Replacement"], 
+            Localizer["Location of Hiring"], 
+            Localizer["Potential Hiring Process"]
+        };
         LoadData(_searchFilter);
         _isLoading = false;
     }
@@ -98,8 +123,8 @@
     private void LoadData(string searchfilter)
     {
         _fundCenters = Context.FundCenters.Include(f => f.Sector).Include(f => f.Branch).Include(f => f.Division).Where(f => f.FundCenter_ID.ToString() == fundcenterId).ToList();
-        _forecasts = Context.Forecasts.Where(f => f.FundCenter == _fundCenters[0] && !f.Is_Deleted).ToList();
-        //SET Non-db Dropdowns
+        _branch = _fundCenters[0].Branch.FCCode;
+        _forecasts = Context.Forecasts.Where(f => f.FundCenter == _fundCenters[0] && !f.Is_Deleted).ToList();        
         _forecasts.ForEach(c => c.PHP_Values = Finance_Constants.Potential_Hiring_Process[c.Potential_Hiring_Process]);
         _forecasts.ForEach(c => c.IR_Values = Finance_Constants.Incremental_Replacements[c.Incremental_Replacement]);
         //var fundcenters = _forecasts;
@@ -122,10 +147,16 @@
         _formMetadata.SubHeader = "SFT Details";
         _formMetadata.DataSet = _forecasts; //change when filters added
         _formMetadata.AccessorFunctions = accessorFunctions;
-        _formMetadata.Headers = headers;
+        _formMetadata.Headers = _headers;
         _formMetadata.AllowDelete = true;
         _formMetadata.NavigateUrls = new List<Func<Forecast, (string, string)>>();
         _formMetadata.IsSubmitEnabled = true;
+    }
+
+    private void AllowAccess(bool isChecked)
+    {
+        _branch = string.Empty;
+        _isAuthorized = true;
     }
 
     private async Task DeleteRecord(Forecast forecast)
@@ -167,12 +198,7 @@
         //_sortAccessors.Add("sector", t => t.Sector.FundCenterNameEnglish);
         //_sortAccessors.Add("division", t => t.Division.FundCenterNameEnglish);
     }
-
-    private List<string> headers = new List<string>
-    {
-        "Planned Staffing", "Last Name", "First Name", "Indeterminate", "Classification", "Fund", "Start Date", "End Date", "FTE", "Salary", "Incremental Replacement", "Location of Hiring", "Potential Hiring Process"
-    };
-
+    
     private void SetFormEdit(Forecast project)
     {
         _forecast = project;
@@ -257,14 +283,7 @@
     private void OnConfigure(MudBlazor.Forms.IModelFormContext context)
     {
         context.RegisterOptionValueProperty<Forecast, DropDownContainer>(l => l.PHP_Values, p => p?.EnglishText ?? "N/A", () => Finance_Constants.Potential_Hiring_Process);
-        context.RegisterOptionValueProperty<Forecast, DropDownContainer>(l => l.IR_Values, p => p?.EnglishText ?? "N/A", () => Finance_Constants.Incremental_Replacements);
-        //context.RegisterOptionValueProperty<Forecast, DropDownContainer>(l => l.PHP_Values, p => p?.EnglishText ?? "N/A", () => new List<DropDownContainer>());
-        //context.RegisterOptionValueProperty<Forecast, DropDownContainer>(l => l.Employee_Planned_Staffing, p => p?.Year ?? "N/A", () => _fiscalYears);
-        //context.RegisterOptionValueProperty<FundCenter, FiscalYear>(l => l.FiscalYear, p => p?.Year ?? "N/A", () => _fiscalYears);
-        //context.RegisterOptionValueProperty<FundCenter, HierarchyLevel>(l => l.Sector, p => p?.FundCenterNameEnglish ?? "N/A", () => GetSectors(), s => RefreshBranches(s, context));
-        //context.RegisterOptionValueProperty<FundCenter, HierarchyLevel>(l => l.Branch, p => p?.FundCenterNameEnglish ?? "N/A", () => GetBranches(), s => RefreshDivisions(s, context));
-        //context.RegisterOptionValueProperty<FundCenter, HierarchyLevel>(l => l.Division, p => p?.FundCenterNameEnglish ?? "N/A", () => GetDivisions());
-
+        context.RegisterOptionValueProperty<Forecast, DropDownContainer>(l => l.IR_Values, p => p?.EnglishText ?? "N/A", () => Finance_Constants.Incremental_Replacements);        
     }
 
 
