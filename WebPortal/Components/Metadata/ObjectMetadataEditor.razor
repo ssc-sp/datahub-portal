@@ -117,6 +117,9 @@
     [Parameter]
     public EventCallback OnExistingMetadataLoaded { get; set; }
 
+    [Parameter]
+    public int? ProjectId { get; set; }
+
     public bool SaveDisabled => _savingData || !_requiredFieldsAreValid;
 
     private FieldValueContainer _fieldValues;
@@ -271,7 +274,8 @@
         (
             objectMetadataId, 
             ObjectType, 
-            digest.Name, 
+            _fieldValues["title_translated_en"]?.Value_TXT ?? digest.Name,
+            _fieldValues["title_translated_fr"]?.Value_TXT ?? digest.Name,
             Location, 
             digest.Sector, 
             digest.Branch, 
@@ -279,7 +283,8 @@
             GetClassificationType(SecurityClass),
             digest.EnglishCatalog, 
             digest.FrenchCatalog,
-            CatalogLanguage
+            CatalogLanguage,
+            ProjectId
         );
     }
 

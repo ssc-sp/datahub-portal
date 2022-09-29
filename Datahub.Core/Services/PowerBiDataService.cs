@@ -1,4 +1,5 @@
 ﻿using Datahub.Core.EFCore;
+using Datahub.Metadata.Model;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
@@ -17,6 +18,8 @@ namespace Datahub.Core.Services
         private readonly ISystemNotificationService _notificationService;
 
         private static readonly string GLOBAL_POWERBI_ADMIN_LIST_KEY = "GlobalPowerBiAdmins";
+
+        private const string POWERBI_PUBLISHED_INTERNAL_LINK_PREFIX = "/internal-published-report";
 
         public PowerBiDataService(
             IDbContextFactory<DatahubProjectDBContext> contextFactory,
@@ -531,5 +534,24 @@ namespace Datahub.Core.Services
                 await ctx.TrackSaveChangesAsync(_auditingService);
             }
         }
+
+        public static string GeneratePublishedInternalReportLinkStatic(string reportId, CatalogObjectLanguage language = CatalogObjectLanguage.Bilingual)
+        {
+            if (language == CatalogObjectLanguage.Bilingual)
+            {
+                return $"{POWERBI_PUBLISHED_INTERNAL_LINK_PREFIX}/{reportId}";
+            }
+            else
+            {
+                var languageSuffix = (language == CatalogObjectLanguage.French) ? "fr" : "en";
+                return $"{POWERBI_PUBLISHED_INTERNAL_LINK_PREFIX}/{reportId}/{languageSuffix}";
+            }
+        }
+
+        // in the future, this may require reading config values or something else that needs a properly setup service
+        // for now, the static method is ok
+        public string GeneratePublishedInternalReportLink(string reportId, CatalogObjectLanguage language = CatalogObjectLanguage.Bilingual) 
+            => GeneratePublishedInternalReportLinkStatic(reportId, language);
+
     }
 }

@@ -107,7 +107,7 @@
   "English_Power_BI_Report": "Rapport Power BI en anglais",
   "French_Power_BI_Report": "Rapport Power BI français",
   "External_Access": "Accès externe",
-  "Power BI Reports for": "Rapports Power BI pour ",
+  "PowerBiReportsFor": "Rapports Power BI pour {0}",
   "Revoke Active Sharing": "Révoquer le partage actif",
   "Requested": "Demandé",
   "Request External Report": "Demander un rapport externe",
@@ -159,4 +159,19 @@
   "AdditionalNotes": "Notes supplémentaires",
   "SFT Details": "Détails SFT",
   "Forecast by Vote": "Prévisions par vote"
+  "Request External Report": "Demander un rapport externe",
+  "PowerBiReport": "Rapport Power BI",
+  "CatalogEntry": "Entrée du catalogue",
+  "Grouped with": "Groupé avec",
+  "PowerBiReportListIntro": "Cette page affiche une liste des rapports Power BI qui ont été créés pour cette initiative. Les noms des rapports sont définis dans Power BI et sont affichés tels quels (sans aucune traduction). Le tableau affichera les rapports en français ou en anglais, en fonction de ceux qui ont été créés. La colonne \"Accès externe\" permet aux utilisateurs de demander la création de rapports externes qui peuvent être partagés avec des utilisateurs non RNCan.",
+  "PowerBiReportListSandbox": "Les espaces de travail du bac à sable sont masqués par défaut et peuvent être activés à l'aide de l'option située en bas de la page.",
+  "RequestExternalSharingFor": "Demander un partage externe pour {0}?",
+  "Show info": "Afficher l'info",
+  "Revoke external sharing": "Révoquer le partage externe",
+  "Cancel external sharing request": "Annuler la demande de partage externe",
+  "RevokeExtSharingFor": "Révoquer le partage externe pour {0}?",
+  "CancelExtSharingRequestFor": "Annuler la demande de partage externe pour {0}?",
+  "Working": "Travaillant...",
+  "TemporaryExternalLink": "Lien externe temporaire",
+  "RequestingUser": "Utilisateur demandeur"
 }

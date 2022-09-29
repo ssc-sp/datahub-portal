@@ -28,6 +28,8 @@ namespace Datahub.Core.Data
         public IList<Func<T, (string, string)>> NavigateUrls { get; set; }
         public IList<(Delegate Label, Delegate Choices)> FilterProperties { get; set; }
         public bool AllowSearch { get; set; }
+
+        public bool DisableNew { get; set; }
         public bool IsSubmitEnabled { get; set; }
         public bool IsAddEnabled { get; set; } = true;
         public string SaveButtonText { get; set; } = "Save";

@@ -5,9 +5,9 @@
 { 
     <MudFocusTrap DefaultFocus="DefaultFocus.FirstChild">
         <MudTextField 
-		    DebounceInterval="1500" 
+		    DebounceInterval="1000" 
 		    T="string"
-		    OnDebounceIntervalElapsed="HandleSearchIntervalElapsed"
+		    ValueChanged="HandleSearchTextChanged"
             Label=@Localizer["Search"]
 		    Variant="Variant.Outlined"
             Margin="Margin.Dense"
@@ -33,7 +33,7 @@
         RefreshEnabled();
     }
 
-    private void HandleSearchIntervalElapsed(string newValue)
+    private void HandleSearchTextChanged(string newValue)
     {
         if (!string.IsNullOrWhiteSpace(newValue))
             NavigationManager.NavigateTo($"/discovery?kws={newValue}");
