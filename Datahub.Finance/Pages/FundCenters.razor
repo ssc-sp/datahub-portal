@@ -7,6 +7,7 @@
 @inject IUserInformationService UserInformationService
 @page "/finance/fundcenters"
 @using System.Linq.Expressions
+@using System.Security.Claims
 
 <Datahub.Core.Components.MudFormTemplate 
         T="FundCenter" 
@@ -23,20 +24,25 @@
         Context=@Context/>
 
 @code {
+
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
     private const string PROJECTACRONYM = "FINGC";
+
     private List<FundCenter> _fundcenters;
     private FundCenter _fundcenter;
     //private List<Sector> _sectorLookup;
     private Dictionary<string, Func<FundCenter, string>> _sortAccessors = new();
     private FinanceDBContext Context;
     private Microsoft.Graph.User _user = null!;
+    private ClaimsPrincipal _claimsUser = null;
     private bool _isUserAdmin;
     private List<HierarchyLevel> _sectors = new();
     private List<HierarchyLevel> _branches = new();    
     private List<HierarchyLevel> _divisions = new();
     private List<FiscalYear> _fiscalYears = new();
+    private List<string> _branchAccess = new();
     private string _searchFilter = string.Empty;
-
 
     private int _lastClicked = 0;
 
@@ -50,9 +56,11 @@
     protected override async Task OnInitializedAsync()
     {
         // load projects
+        _user = await UserInformationService.GetUserAsync();
+        _claimsUser = (await authenticationStateTask).User;
         Context = DbFactory.CreateDbContext();
         LoadSortExpressions();
-        _user = await UserInformationService.GetUserAsync();
+        _branchAccess = Context.BranchAccess.Where(u => u.User.ToLower() == _user.Mail.ToLower()).Select(r => r.BranchFundCenter).ToList();
         _isUserAdmin = await ServiceAuthManager.IsProjectAdmin(_user.Id, PROJECTACRONYM);
         _fiscalYears = Context.FiscalYears.ToList();
         if(_fiscalYears.Any() && _fiscalYears[0] is not null)
@@ -63,6 +71,12 @@
     private void LoadData(string searchfilter)
     {
         _fundcenters = Context.FundCenters.Include(f => f.Sector).Include(f => f.Branch).Include(f => f.Division).ToList();
+
+        var isUserAdmin = _claimsUser.IsInRole($"{PROJECTACRONYM}-admin");
+        if (!isUserAdmin)
+        {
+            _fundcenters = _fundcenters.Where(x => _branchAccess.Any(branchcode => branchcode == x.Branch.FCCode)).ToList();
+        }
         var fundcenters = _fundcenters;
         if (!string.IsNullOrWhiteSpace(searchfilter))
         {
@@ -80,11 +94,13 @@
             }).ToList();
         }
         _formMetadata.Header = "Integrated Business Planning - Financial Information";
+        _formMetadata.HeaderSubText = @"Select your division from entries below or use the search bar to search for your division by Fund Center number of name. Use the 'Division Description' field to provide a description of the type of work your division provides";
         _formMetadata.SubHeader = "FC Details";
         _formMetadata.DataSet = fundcenters;
         _formMetadata.AccessorFunctions = accessorFunctions;
         _formMetadata.NavigateUrls = buttonFunctions;
         _formMetadata.Headers = headers;
+        _formMetadata.AllowSearch = true;
         _formMetadata.GridTemplateColumns = "3fr 6fr 6fr 6fr 3fr";
         _formMetadata.IsSubmitEnabled = true;
         _formMetadata.IsAddEnabled = false;

@@ -45,7 +45,7 @@ namespace Datahub.Portal.Data.Finance
 
 
 
-        [AeFormCategory("Fund Information")]
+        [AeFormCategory("Salary Forecast")]
         [DisplayFormat(DataFormatString = "C2")]
         public double? Budget { get; set; }
 

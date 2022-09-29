@@ -31,8 +31,12 @@ else
                 <MudText Typo="Typo.h4">@DataLocalizer[Metadata.Header]</MudText>
             }
             
-            <MudText Typo="Typo.body2">Select your division from entries below or use the search bar to search for your division by Fund Center number of name. Use the "Division Description" field to provide a description of the type of work your division provides</MudText>
-
+            @if (!string.IsNullOrWhiteSpace(Metadata.HeaderSubText))
+            {
+                <div style="margin-top: 1rem; margin-bottom: 0.5rem">
+                    <MudText Typo="Typo.body2">@DataLocalizer[Metadata.HeaderSubText]</MudText>
+                </div>
+            }
             <AuthorizeView Roles="@Metadata.TableRoles">
 
                 <MudTable ServerData="@(new Func<TableState, Task<TableData<T>>>(ServerReload))" 
@@ -47,8 +51,11 @@ else
                     <ToolBarContent>
                         <MudText Typo="Typo.h6">@Metadata.SubHeader</MudText>
                         <MudSpacer />
-                        <MudTextField T="string" ValueChanged="@(s=>OnSearch(s))" Placeholder="Search" Adornment="Adornment.Start"
-                                      AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+                        @if(Metadata.AllowSearch)
+                        {
+                            <MudTextField T="string" ValueChanged="@(s=>OnSearch(s))" Placeholder="Search" Adornment="Adornment.Start"
+                                AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+                        }
                     </ToolBarContent>
                     <HeaderContent>
                         @foreach(var header in Metadata.Headers.ToList())
