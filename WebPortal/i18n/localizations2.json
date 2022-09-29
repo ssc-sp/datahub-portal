@@ -36,7 +36,6 @@
   "Associate Deputy Minister\u0027s Office": "Associate Deputy Minister\u0027s Office",
   "Audit and Evaluation Branch": "Audit and Evaluation Branch",
   "Add New": "Add New",
-  "": "",
   "Chief Audit and Evaluation Executive\u0027s Office": "Chief Audit and Evaluation Executive\u0027s Office",
   "Great Lakes Forestry Centre": "Great Lakes Forestry Centre",
   "Director General\u0027s Office": "Director General\u0027s Office",
@@ -147,9 +146,7 @@
   "Total_Forecast": "Total Forecast",
   "AdditionalNotes": "Additional Notes",
   "SFT Details": "SFT Details",
-  "Forecast by Vote": "Forecast by Vote"
-
-  "Request External Report": "Request External Report",
+  "Forecast by Vote": "Forecast by Vote",
   "PowerBiReport": "Power BI Report",
   "CatalogEntry": "Catalog Entry",
   "Grouped with": "Grouped with",
