@@ -1,4 +1,4 @@
-﻿@inject IStringLocalizer DataLocalizer
+﻿@inject IStringLocalizer Localizer
 @implements IDisposable
 @inject IDbContextFactory<FinanceDBContext> DbFactory
 @inject NavigationManager NavigationManager
@@ -6,33 +6,40 @@
 @inject ServiceAuthManager ServiceAuthManager
 @inject IUserInformationService UserInformationService
 @inject IDialogService DialogService
+@inject IDatahubAuditingService AuditingService
 @page "/finance/summaryforecasts/{fundcenterId}"
 @using System.Linq.Expressions
 @using MudBlazor
+@if (!string.IsNullOrEmpty(_branch))
+{
+    <Datahub.Finance.Components.AccessControl Branch="@_branch" Email="@_user.Mail" IsValid=@AllowAccess></Datahub.Finance.Components.AccessControl>
+}
 
-<MudCard>    
-    <MudCardContent>
-        <MudTable Items="@_fundCenters" Hover="true" Loading="@_isLoading">
-            <ToolBarContent>
-                <MudText Typo="Typo.h6">Fund Center Details</MudText>
-            </ToolBarContent>
-            <HeaderContent>
-                <MudTh>Sector</MudTh>
-                <MudTh>Branch</MudTh>
-                <MudTh>Division</MudTh>
-                <MudTh>Attrition Rate</MudTh>
-            </HeaderContent>
-            <RowTemplate>
-                <MudTd>@context.Sector?.FundCenterModifiedEnglish</MudTd>
-                <MudTd>@context.Branch?.FundCenterModifiedEnglish</MudTd>
-                <MudTd>@context.Division?.FundCenterModifiedEnglish</MudTd>
-                <MudTd>@($"{context.AttritionRate.ToString()}%")</MudTd>
-            </RowTemplate>
-        </MudTable>
-    </MudCardContent>
-</MudCard>
+@if (_isAuthorized)
+{
+    <MudCard>    
+        <MudCardContent>
+            <MudTable Items="@_fundCenters" Hover="true" Loading="@_isLoading">
+                <ToolBarContent>
+                    <MudText Typo="Typo.h6">FC Details</MudText>
+                </ToolBarContent>
+                <HeaderContent>
+                    <MudTh>@Localizer["Sector"]</MudTh>
+                    <MudTh>@Localizer["Branch"]</MudTh>
+                    <MudTh>@Localizer["Division"]"</MudTh>
+                    <MudTh>@Localizer["Attrition Rate"]</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd>@context.Sector?.FundCenterModifiedEnglish</MudTd>
+                    <MudTd>@context.Branch?.FundCenterModifiedEnglish</MudTd>
+                    <MudTd>@context.Division?.FundCenterModifiedEnglish</MudTd>
+                    <MudTd>@Localizer[($"{context.AttritionRate.ToString()}%")]</MudTd>
+                </RowTemplate>
+            </MudTable>
+        </MudCardContent>
+    </MudCard>
 
-<Datahub.Core.Components.MudFormTemplate T="SummaryForecast"
+    <Datahub.Core.Components.MudFormTemplate T="SummaryForecast"
                                          U="FinanceDBContext"
         Metadata="@_formMetadata" 
         HandleSubmit="HandleValidSubmit"
@@ -40,28 +47,29 @@
         OnChangeForms="OnChange"
         CreateNewRecord="CreateNewProject"
         SelectedRecord="@_summaryForecast"
-        SetFormEditRecord="SetFormEdit"    
+        SetFormEditRecord="SetFormEdit"
+        DeleteRecord="DeleteRecord"
         HandleFilterChange="HandleFilterChange"
         SortAccessors="@_sortAccessors"
         Context=@Context
         @key=_formMetadata/>
 
 
-<MudCard>
-    <MudCardContent>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => NavigationManager.NavigateTo("finance/fundcenters"))">Fund Centers</MudButton>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => NavigationManager.NavigateTo($"finance/forecasts/{_fundCenters[0].FundCenter_ID}"))">Forecasts</MudButton>
-    </MudCardContent>
-</MudCard>
+    <MudCard>
+        <MudCardContent>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => NavigationManager.NavigateTo($"finance/forecasts/{_fundCenters[0].FundCenter_ID}"))">Back</MudButton>
+        </MudCardContent>
+    </MudCard>
+}
 
-
-    @code {
+@code {
 
     [Parameter]
     public string fundcenterId { get; set; }
 
     private const string PROJECTACRONYM = "FINGC";
-
+    private bool _isAuthorized = false;
+    private string _branch = string.Empty;
     private FinanceDBContext Context;
     private Microsoft.Graph.User _user = null!;
     private bool _isUserAdmin;
@@ -75,7 +83,7 @@
     private SummaryForecast _summaryForecast;
     private Dictionary<string, Func<SummaryForecast, string>> _sortAccessors = new();
     private FormMetadata<SummaryForecast> _formMetadata = new();
-
+    private List<string> _headers = new();
 
     private void OnPageClick(int pageIndex)
     {
@@ -89,7 +97,23 @@
         LoadSortExpressions();
         _user = await UserInformationService.GetUserAsync();
         _isUserAdmin = await ServiceAuthManager.IsProjectAdmin(_user.Id, PROJECTACRONYM);
-
+        _headers = new List<string>()
+        {
+            Localizer["Fund"],
+            Localizer["Key Activity"],
+            Localizer["Key Driver"],
+            Localizer["Budget"],
+            Localizer["FTE"],
+            Localizer["SFT Gross"],
+            Localizer["SFT With Attrition"],
+            Localizer["THC"],
+            Localizer["Other O&M"],
+            Localizer["Personel"],
+            Localizer["Non Personel"],
+            Localizer["Grants"],
+            Localizer["Contribution"],
+            Localizer["Total Forecast"]
+        };
         LoadData(_searchFilter);
         _isLoading = false;
     }
@@ -97,7 +121,11 @@
     private void LoadData(string searchfilter)
     {
         _fundCenters = Context.FundCenters.Include(f => f.Sector).Include(f => f.Branch).Include(f => f.Division).Where(f => f.FundCenter_ID.ToString() == fundcenterId).ToList();
-        _summaryForecasts = Context.SummaryForecasts.Where(f => f.FundCenter == _fundCenters[0]).ToList();
+        _branch = _fundCenters[0].Branch.FCCode;
+        _summaryForecasts = Context.SummaryForecasts.Where(f => f.FundCenter == _fundCenters[0] && !f.Is_Deleted).ToList();
+        //SET Non-db Dropdowns
+        _summaryForecasts.ForEach(c => c.KA_Values = Finance_Constants.Key_Activities[c.Key_Activity]);
+        _summaryForecasts.ForEach(c => c.KD_Values = Finance_Constants.Key_Drivers[c.Key_Driver]);
         //var fundcenters = _forecasts;
         //if (!string.IsNullOrWhiteSpace(searchfilter))
         //{
@@ -115,20 +143,27 @@
         //    }).ToList();
         //}
         _formMetadata.Header = string.Empty;
-        _formMetadata.SubHeader = "Summary Forecasts";
+        _formMetadata.SubHeader = "Forecast by Vote";
         _formMetadata.DataSet = _summaryForecasts; //change when filters added
-        _formMetadata.AccessorFunctions = accessorFunctions;
-        _formMetadata.Headers = headers;
+        _formMetadata.AccessorFunctions = accessorFunctions;        
+        _formMetadata.Headers = _headers;
+        _formMetadata.AllowDelete = true;
         _formMetadata.NavigateUrls = new List<Func<SummaryForecast, (string, string)>>();
         _formMetadata.IsSubmitEnabled = true;
     }
-
+    private void AllowAccess(bool isChecked)
+    {
+        _branch = string.Empty;
+        _isAuthorized = true;
+    }
     private List<Func<SummaryForecast, string>> accessorFunctions = new List<Func<SummaryForecast, string>>
     {
         new Func<SummaryForecast, string>(p => { return p.Fund ?? ""; }),
-        new Func<SummaryForecast, string>(p => { return p.Key_Activity ?? ""; }),
-        new Func<SummaryForecast, string>(p => { return p.Key_Driver ?? ""; }),
+        new Func<SummaryForecast, string>(p => { return p.KA_Values?.EnglishText ?? "N/A"; }),
+        new Func<SummaryForecast, string>(p => { return p.KD_Values?.EnglishText ?? "N/A"; }),
         new Func<SummaryForecast, string>(p => { return p.Budget == null ? "$0.00" : p.Budget.Value.ToString("C"); }),
+        new Func<SummaryForecast, string>(p => { return p.FTE_Sum == null ? "0" : p.FTE_Sum.ToString(); }),
+        new Func<SummaryForecast, string>(p => { return p.SFT_Forecast_Gross == null ? "$0.00" : p.SFT_Forecast_Gross.Value.ToString("C"); }),
         new Func<SummaryForecast, string>(p => { return p.SFT_Forecast == null ? "$0.00" : p.SFT_Forecast.Value.ToString("C"); }),
         new Func<SummaryForecast, string>(p => { return p.THC == null ? "$0.00" : p.THC.Value.ToString("C"); }),
         new Func<SummaryForecast, string>(p => { return p.Other_OnM == null ? "$0.00" : p.Other_OnM.Value.ToString("C"); }),
@@ -146,26 +181,26 @@
         //_sortAccessors.Add("division", t => t.Division.FundCenterNameEnglish);
     }
 
-    private List<string> headers = new List<string>
-    {
-        "Fund", 
-        "Key Activity", 
-        "Key Driver", 
-        "Budget", 
-        "SFT", 
-        "THC", 
-        "Other O&M", 
-        "Personel", 
-        "Non Personel", 
-        "Grants",
-        "Contribution",
-        "Total Forecast"
-    };
+    
 
     private void SetFormEdit(SummaryForecast project)
     {
         _summaryForecast = project;
         _isNew = false;
+        StateHasChanged();
+    }
+
+    private async Task DeleteRecord(SummaryForecast forecast)
+    {
+        var summaryForecast = Context.SummaryForecasts.Where(f => f == forecast).SingleOrDefault();
+        if (summaryForecast is not null)
+        { 
+            summaryForecast.Is_Deleted = true;
+            await Context.TrackSaveChangesAsync(AuditingService);
+        }
+        _summaryForecast = null;
+        _isNew = false;
+        LoadData(_searchFilter);
         StateHasChanged();
     }
 
@@ -186,7 +221,9 @@
                 _summaryForecast = Context.SummaryForecasts.Add(_summaryForecast).Entity;
             }
             _summaryForecast.Last_Updated_DT = DateTime.Now;
-            await Context.SaveChangesAsync();
+            _summaryForecast.Key_Activity = _summaryForecast.KA_Values.Id;
+            _summaryForecast.Key_Driver = _summaryForecast.KD_Values.Id;
+            await Context.TrackSaveChangesAsync(AuditingService);
             LoadData(_searchFilter); ;
             _summaryForecast = null;
             _isNew = false;
@@ -219,11 +256,8 @@
 
     private void OnConfigure(MudBlazor.Forms.IModelFormContext context)
     {
-
-        //context.RegisterOptionValueProperty<FundCenter, FiscalYear>(l => l.FiscalYear, p => p?.Year ?? "N/A", () => _fiscalYears);
-        //context.RegisterOptionValueProperty<FundCenter, HierarchyLevel>(l => l.Sector, p => p?.FundCenterNameEnglish ?? "N/A", () => GetSectors(), s => RefreshBranches(s, context));
-        //context.RegisterOptionValueProperty<FundCenter, HierarchyLevel>(l => l.Branch, p => p?.FundCenterNameEnglish ?? "N/A", () => GetBranches(), s => RefreshDivisions(s, context));
-        //context.RegisterOptionValueProperty<FundCenter, HierarchyLevel>(l => l.Division, p => p?.FundCenterNameEnglish ?? "N/A", () => GetDivisions());
+        context.RegisterOptionValueProperty<SummaryForecast, DropDownContainer>(l => l.KA_Values, p => p?.EnglishText ?? "N/A", () => Finance_Constants.Key_Activities);
+        context.RegisterOptionValueProperty<SummaryForecast, DropDownContainer>(l => l.KD_Values, p => p?.EnglishText ?? "N/A", () => Finance_Constants.Key_Drivers);
 
     }
 

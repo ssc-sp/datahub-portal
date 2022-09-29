@@ -4,6 +4,7 @@ using Datahub.Portal.Data.Finance;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Datahub.Finance.Migrations
 {
     [DbContext(typeof(FinanceDBContext))]
-    partial class FinanceDBContextModelSnapshot : ModelSnapshot
+    [Migration("20220923184638_dropdownattempt")]
+    partial class dropdownattempt
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,30 +23,6 @@ namespace Datahub.Finance.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
-
-            modelBuilder.Entity("Datahub.Portal.Data.Finance.BranchAccess", b =>
-                {
-                    b.Property<int>("BranchAccess_ID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("BranchAccess_ID"), 1L, 1);
-
-                    b.Property<string>("BranchFundCenter")
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<bool>("IsInactive")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("User")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.HasKey("BranchAccess_ID");
-
-                    b.ToTable("BranchAccess");
-                });
 
             modelBuilder.Entity("Datahub.Portal.Data.Finance.FiscalYear", b =>
                 {
@@ -104,8 +82,9 @@ namespace Datahub.Finance.Migrations
                     b.Property<int?>("FundCenter_ID")
                         .HasColumnType("int");
 
-                    b.Property<int>("Incremental_Replacement")
-                        .HasColumnType("int");
+                    b.Property<string>("Incremental_Replacement")
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
 
                     b.Property<bool>("Is_Deleted")
                         .HasColumnType("bit");
@@ -124,6 +103,7 @@ namespace Datahub.Finance.Migrations
                         .HasColumnType("nvarchar(4000)");
 
                     b.Property<int>("Potential_Hiring_Process")
+                        .HasMaxLength(4000)
                         .HasColumnType("int");
 
                     b.Property<double?>("Salary")
@@ -285,11 +265,13 @@ namespace Datahub.Finance.Migrations
                     b.Property<bool>("Is_Deleted")
                         .HasColumnType("bit");
 
-                    b.Property<int>("Key_Activity")
-                        .HasColumnType("int");
+                    b.Property<string>("Key_Activity")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
-                    b.Property<int>("Key_Driver")
-                        .HasColumnType("int");
+                    b.Property<string>("Key_Driver")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<DateTime>("Last_Updated_DT")
                         .HasColumnType("datetime2");
