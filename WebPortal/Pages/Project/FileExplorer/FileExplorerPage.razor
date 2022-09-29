@@ -38,7 +38,10 @@
     public string ProjectAcronymParam { get; set; }
 
     private int _tabIndex;
+
+    private int? _projectId;
     private string _projectName;
+
     private List<(RenderFragment, RenderFragment, bool)> _tabs = new();
     private User _user;
 
@@ -48,10 +51,12 @@
 
         _user = await _userInformationService.GetUserAsync();
 
-        _projectName = await projectContext.Projects
+        var project = await projectContext.Projects
             .Where(p => p.Project_Acronym_CD == ProjectAcronymParam)
-            .Select(p => p.ProjectName)
             .FirstOrDefaultAsync();
+
+        _projectName = project?.ProjectName;
+        _projectId = project?.Project_ID;
 
         _tabs = await GetTabs();
     }
@@ -67,10 +72,11 @@
 
         var tabs = new List<(RenderFragment, RenderFragment, bool)>();
         containers.ForEach(container =>
-            tabs.Add((@<AeTypography>
+            tabs.Add((
+                    @<AeTypography>
                          <i class="fas fa-hdd"></i>
                          @Localizer[container]
-                     </AeTypography>, @<FileExplorer ContainerName="@container"/>, false)));
+                     </AeTypography>, @<FileExplorer ProjectId=@_projectId ContainerName="@container"/>, false)));
         
         tabs.Add((@<AeTypography>
                       <i class="fas fa-plus"></i>

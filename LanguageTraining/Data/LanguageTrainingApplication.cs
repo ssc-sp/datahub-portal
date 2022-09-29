@@ -110,11 +110,18 @@ namespace Datahub.Portal.Data.LanguageTraining
         [AeFormCategory("Language Training Application", 30)]
         public DateTime SLE_Test_Date { get; set; }
         [AeFormCategory("Language Training Application", 30)]
-        [AeLabel(isDropDown: true)]
+        [AeFormIgnore]
+        public int Year_For_Language_Training { get; set; }
+        [AeFormCategory("Language Training Application", 30)]
+        [AeFormIgnore]
+        public byte Quarter_NUM { get; set; }
+        [AeFormCategory("Language Training Application", 30)]
+        [AeFormIgnore]
         public string Session_For_Language_Training { get; set; }
         [AeFormCategory("Language Training Application", 30)]
         [AeLabel(isDropDown: true)]
         public string Class_For_Language_Training { get; set; }
+
 
         [AeFormCategory("Commitment and Approval", 40)]
         [Required]

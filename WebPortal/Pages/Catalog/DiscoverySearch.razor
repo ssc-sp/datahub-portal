@@ -1,5 +1,6 @@
 ﻿@*DiscoverySearch.razor*@
 @page "/discovery"
+@using Datahub.CatalogSearch
 @using Datahub.Metadata.DTO
 @using Datahub.Core.Utils
 @using Datahub.Metadata.Model
@@ -13,19 +14,19 @@
 				<MudItem xs="3">
 					<MudStack>
 						@*search keywords*@
-						<MudFocusTrap>
-							<MudTextField 
-								@ref="_searchField"
-								DebounceInterval="1000" 
-								T="string"	
-								OnDebounceIntervalElapsed="HandleSearchIntervalElapsed" 
-								@bind-Value=@_searchKeywords
-								Label=@Localizer["Search"]
-								Variant="Variant.Outlined" 
-								Clearable="true"
-								Adornment="Adornment.End" 
-								AdornmentIcon="@Icons.Filled.Search" />
-						</MudFocusTrap>
+						<MudAutocomplete 
+							T="string"
+							@ref="_searchField"
+							Label=@Localizer["Search"]
+							@bind-Value=@AutoCompleteText
+							SearchFunc=@AutocompleteSearch
+							ResetValueOnEmptyText="true"
+							CoerceText="false" 
+							CoerceValue="false"
+							Clearable="true"
+							Variant="Variant.Outlined"
+							Adornment="Adornment.End" 
+							AdornmentIcon="@Icons.Filled.Search"/>
 
 						<MudList Clickable="false">
 							@*header*@
@@ -90,12 +91,20 @@
 								<NestedList>
 									<CheckboxList 
 										T=MetadataObjectType
-										Options=@(Enum.GetValues<MetadataObjectType>())
+										Options=@GetNonPBITypes()
 										OptionLabelFunction=@(t => GetLocalizedDataType(t))
 										OptionSortFunction=@(t => GetLocalizedDataType(t))
 										OnSelectionChanged=@UpdateDataTypeFilter
 										DefaultOptions=@_filteredDataTypes
-										@ref=@_objectTypeFilter 
+									/>
+									<MudListItem>Power BI</MudListItem>
+									<CheckboxList 
+										T=MetadataObjectType
+										Options=@_pbiDataTypes
+										OptionLabelFunction=@(t => GetLocalizedDataType(t))
+										OptionSortFunction=@(t => GetLocalizedDataType(t))
+										OnSelectionChanged=@UpdateDataTypeFilter
+										DefaultOptions=@_filteredDataTypes
 									/>
 								</NestedList>
 							</MudListItem>
@@ -193,6 +202,10 @@
 
 @code {
 
+
+	[Inject]
+	public ICatalogSearchEngine CatalogSearchEngine { get; set; }
+
 	[Inject]
 	public IMetadataBrokerService MetadataBrokerService { get; set; }
 
@@ -252,17 +265,20 @@
 	[SupplyParameterFromQuery(Name = "cls")]
 	public string QueryClassifications { get; set; }
 
-	private MudTextField<string> _searchField;
+	private MudAutocomplete<string> _searchField;
 
 	private const int NO_FILTER_SELECTED = -1;
 	private const int PAGE_SIZE = 10;
 
 	private bool _searching;
+	private string _autoCompleteText;
 	private string _searchKeywords;
 	private List<CatalogObjectResult> _searchResults = new();
 	private bool _isFrench;
 	private CatalogSearchRequest _catalogSearchRequest;
 	private int _lastQueryCount = 0;
+
+	private List<MetadataObjectType> _pbiDataTypes = new() { MetadataObjectType.PowerBIWorkspace, MetadataObjectType.PowerBIReport, MetadataObjectType.PowerBIDataset };
 
 	private HashSet<CatalogObjectLanguage> _filteredLanguageTypes = new();
 	private HashSet<OrganizationLevel> _filteredSectors = new();
@@ -276,7 +292,6 @@
 	private bool _excludeIncompleteCatalogs;
 	private CheckboxList<CatalogObjectLanguage> _languageTypeFilter;
 	private CheckboxList<ClassificationType> _classificationTypeFilter;
-	private CheckboxList<MetadataObjectType> _objectTypeFilter;
 	private CheckboxList<OrganizationLevel> _sectorFilter;
 
 	private int _filterSector = NO_FILTER_SELECTED;
@@ -310,7 +325,8 @@
 		ParseDataTypes();
 		ParseSectorAndBranches();
 
-		_searchKeywords = (QueryKeywords ?? string.Empty).Trim();
+		_autoCompleteText = (QueryKeywords ?? string.Empty).Trim(); 
+		_searchKeywords = _autoCompleteText; 
 		await UpdateFilter();
 	}
 
@@ -417,6 +433,7 @@
 	{
 		_filteredSectors.Clear();
 		_filteredSectors.Add(sector);
+		_sectorFilterSectionOpen = true;
 		await UpdateFilter();
 	}
 
@@ -462,12 +479,13 @@
 
 	private async Task UpdateFilter()
 	{
-		await ThrottleSearch(_searchKeywords);
+		await ThrottleSearch();
 		_filtersActive = HasValidFilters();
 	}
 
-	private bool CheckMetadataCompleted(CatalogObjectResult result)
+	private bool CheckValidResult(CatalogObjectResult result)
 	{
+		// filter incomplete metadata
 		if (_excludeIncompleteCatalogs)
 		{
 			var fieldValues = result.Metadata;
@@ -488,6 +506,15 @@
 			if (string.IsNullOrEmpty(fieldValues.GetValue(_isFrench ? "title_translated_fr" : "title_translated_en")))
 				return false;
 		}
+
+		// filter Power BI workspaces
+		if (result.DataType == MetadataObjectType.PowerBIWorkspace && !_filteredDataTypes.Contains(MetadataObjectType.PowerBIWorkspace))
+			return false;
+
+		// filter Power BI datasets
+		if (result.DataType == MetadataObjectType.PowerBIDataset && !_filteredDataTypes.Contains(MetadataObjectType.PowerBIDataset))
+			return false;
+
 		return true;
 	}
 
@@ -510,6 +537,7 @@
 		_sectorFilterSectionOpen = false;
 
 		await UpdateFilter();
+		await _searchField.Clear();
 		await _searchField.FocusAsync();
 	}
 
@@ -583,8 +611,7 @@
 
 	private async Task ViewPowerBIReport(CatalogObjectResult result)
 	{
-		var metadata = await MetadataBrokerService.GetMetadata(result.ObjectMetadataId);
-		if (Guid.TryParse(metadata.ObjectId_TXT, out var guid))
+		if (Guid.TryParse(result.MetadataObjectId_TXT, out var guid))
 		{
 			var report = await PowerBiDataService.GetReportById(guid);
 			// TODO this url template is also used in DHLink; should only be in raw form in one place
@@ -603,20 +630,55 @@
 		await Task.Run(() => RedirectAndDownload(result.Location));
 	}
 
-	private async void HandleSearchIntervalElapsed(string newValue)
+	private async Task HandleSearchTextChanged(string newValue)
 	{
-		await UpdateFilter();
+		if (_searchKeywords != newValue)
+		{
+			_searchKeywords = newValue;
+			await UpdateFilter();
+		}
 	}
 
-	private async Task ThrottleSearch(string searchText)
+	private async Task<IEnumerable<string>> AutocompleteSearch(string text)
+	{
+		if (!string.IsNullOrWhiteSpace(text))
+		{
+			var searchText = text.ToLower();
+			List<string> results = new() { searchText };
+			var searchEngine = _isFrench ? CatalogSearchEngine.GetFrenchSearchEngine() : CatalogSearchEngine.GetEnglishSearchEngine();
+			results.AddRange(searchEngine.GetAutocompleteSuggestions(searchText, 10));
+			return await Task.FromResult(results);
+		}
+		else
+		{
+			return await Task.FromResult(new string[0]);
+		}
+	}
+
+	private string AutoCompleteText
+	{
+		get 
+		{
+			return _autoCompleteText;
+		}
+		set 
+		{
+			if (_autoCompleteText != value)
+			{
+				_autoCompleteText = value;
+				_ = HandleSearchTextChanged(value);
+			}
+		}
+	}
+
+	private async Task ThrottleSearch()
 	{
 		_searchResults.Clear();
 		_searching = true;
 		await InvokeAsync(StateHasChanged);
 		try
 		{
-			_searchKeywords = searchText;
-			_searchResults = await SearchCatalog(searchText);
+			_searchResults = await SearchCatalog(_searchKeywords);
 		}
 		finally
 		{
@@ -645,7 +707,7 @@
 			_catalogSearchRequest = new(0, 10, _isFrench, keywords, 
 				_filteredLanguageTypes.ToList(), _filteredClassificationTypes.ToList(), _filteredDataTypes.ToList(), sectors, branches);
 
-			var results = await MetadataBrokerService.SearchCatalog(_catalogSearchRequest, CheckMetadataCompleted);
+			var results = await MetadataBrokerService.SearchCatalog(_catalogSearchRequest, CheckValidResult);
 			_lastQueryCount = results.Count;
 
 			// apply localization on bilingual entries
@@ -734,12 +796,16 @@
 
 	private async Task<IEnumerable<CatalogObjectResult>> GetMore(InfiniteScrollingItemsProviderRequest<CatalogObjectResult> request)
 	{
+		// if keywords are used there is no more results
+		if (_catalogSearchRequest.Keywords.Count > 0)
+			return new List<CatalogObjectResult>();
+
 		var newRequest = _catalogSearchRequest with
         {
             LastPageId = request.Items.LastOrDefault()?.CatalogObjectId ?? 0
         };
 
-		var newResults = await MetadataBrokerService.SearchCatalog(newRequest, CheckMetadataCompleted);
+		var newResults = await MetadataBrokerService.SearchCatalog(newRequest, CheckValidResult);
 		_searchResults.AddRange(newResults);
 
 		return newResults;
@@ -786,5 +852,10 @@
 			.Where(b => b.ParentId == _filterSector)
 			.OrderBy(b => GetLabel(b, _isFrench))
 			.ToList();
+	}
+
+	private IEnumerable<MetadataObjectType> GetNonPBITypes()
+	{
+		return Enum.GetValues<MetadataObjectType>().Where(t => !_pbiDataTypes.Contains(t));
 	}
 }

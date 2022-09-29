@@ -244,6 +244,7 @@ else
                             ProfileName="catalog"
                             ObjectType=@Metadata.Model.MetadataObjectType.Database
                             UpdateCatalog=@true
+                            ProjectId=@_project.Project_ID
                             ValidateRequired=@false
                             Name=@_databaseResource.Database_Name
                             OnSave=@HandleClose

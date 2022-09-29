@@ -1,4 +1,5 @@
 ﻿using Datahub.Core.EFCore;
+using Datahub.Metadata.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -41,5 +42,9 @@ namespace Datahub.Core.Services
         public Task NotifyOfMissingReport(Guid reportId);
 
         public Task UpdateReportCatalogStatus(Guid reportId, bool inCatalog);
+
+        string GeneratePublishedInternalReportLink(string reportId, CatalogObjectLanguage language = CatalogObjectLanguage.Bilingual);
+        string GeneratePublishedInternalReportLink(Guid reportId, CatalogObjectLanguage language = CatalogObjectLanguage.Bilingual) 
+            => GeneratePublishedInternalReportLink(reportId.ToString(), language);
     }
 }

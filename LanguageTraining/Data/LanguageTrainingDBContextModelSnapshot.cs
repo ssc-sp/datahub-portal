@@ -17,10 +17,38 @@ namespace Datahub.Portal.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "6.0.3")
+                .HasAnnotation("ProductVersion", "6.0.7")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
+
+            modelBuilder.Entity("Datahub.LanguageTraining.Data.SeasonRegistrationPeriod", b =>
+                {
+                    b.Property<int>("SeasonRegistrationPeriod_ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SeasonRegistrationPeriod_ID"), 1L, 1);
+
+                    b.Property<DateTime>("Close_DT")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("Open_DT")
+                        .HasColumnType("datetime2");
+
+                    b.Property<byte>("Quarter_NUM")
+                        .HasColumnType("tinyint");
+
+                    b.Property<int>("Year_NUM")
+                        .HasColumnType("int");
+
+                    b.HasKey("SeasonRegistrationPeriod_ID");
+
+                    b.HasIndex("Year_NUM", "Quarter_NUM")
+                        .IsUnique();
+
+                    b.ToTable("SeasonRegistrationPeriods");
+                });
 
             modelBuilder.Entity("Datahub.Portal.Data.LanguageTraining.LanguageTrainingApplication", b =>
                 {
@@ -163,6 +191,9 @@ namespace Datahub.Portal.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<byte>("Quarter_NUM")
+                        .HasColumnType("tinyint");
+
                     b.Property<bool>("Report_Sent_To_NRCan_Language_School")
                         .HasColumnType("bit");
 
@@ -196,6 +227,9 @@ namespace Datahub.Portal.Migrations
                     b.Property<string>("Training_Type")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Year_For_Language_Training")
+                        .HasColumnType("int");
 
                     b.HasKey("Application_ID");
 
