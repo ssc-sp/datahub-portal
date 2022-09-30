@@ -22,6 +22,30 @@ namespace Datahub.Finance.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
 
+            modelBuilder.Entity("Datahub.Portal.Data.Finance.BranchAccess", b =>
+                {
+                    b.Property<int>("BranchAccess_ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("BranchAccess_ID"), 1L, 1);
+
+                    b.Property<string>("BranchFundCenter")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<bool>("IsInactive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("User")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("BranchAccess_ID");
+
+                    b.ToTable("BranchAccess");
+                });
+
             modelBuilder.Entity("Datahub.Portal.Data.Finance.FiscalYear", b =>
                 {
                     b.Property<int>("YearId")
@@ -80,9 +104,11 @@ namespace Datahub.Finance.Migrations
                     b.Property<int?>("FundCenter_ID")
                         .HasColumnType("int");
 
-                    b.Property<string>("Incremental_Replacement")
-                        .HasMaxLength(4000)
-                        .HasColumnType("nvarchar(4000)");
+                    b.Property<int>("Incremental_Replacement")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("Is_Deleted")
+                        .HasColumnType("bit");
 
                     b.Property<bool>("Is_Indeterminate")
                         .HasColumnType("bit");
@@ -97,9 +123,8 @@ namespace Datahub.Finance.Migrations
                         .HasMaxLength(4000)
                         .HasColumnType("nvarchar(4000)");
 
-                    b.Property<string>("Potential_Hiring_Process")
-                        .HasMaxLength(4000)
-                        .HasColumnType("nvarchar(4000)");
+                    b.Property<int>("Potential_Hiring_Process")
+                        .HasColumnType("int");
 
                     b.Property<double?>("Salary")
                         .HasColumnType("float");
@@ -243,6 +268,9 @@ namespace Datahub.Finance.Migrations
                     b.Property<string>("Created_UserId")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<double?>("FTE_Sum")
+                        .HasColumnType("float");
+
                     b.Property<string>("Fund")
                         .IsRequired()
                         .HasMaxLength(10)
@@ -254,13 +282,14 @@ namespace Datahub.Finance.Migrations
                     b.Property<double?>("Grants")
                         .HasColumnType("float");
 
-                    b.Property<string>("Key_Activity")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                    b.Property<bool>("Is_Deleted")
+                        .HasColumnType("bit");
 
-                    b.Property<string>("Key_Driver")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                    b.Property<int>("Key_Activity")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Key_Driver")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("Last_Updated_DT")
                         .HasColumnType("datetime2");
@@ -280,6 +309,9 @@ namespace Datahub.Finance.Migrations
                     b.Property<double?>("SFT_Forecast")
                         .HasColumnType("float");
 
+                    b.Property<double?>("SFT_Forecast_Gross")
+                        .HasColumnType("float");
+
                     b.Property<double?>("THC")
                         .HasColumnType("float");
 
@@ -287,9 +319,6 @@ namespace Datahub.Finance.Migrations
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("rowversion");
-
-                    b.Property<double?>("Total_Forecast")
-                        .HasColumnType("float");
 
                     b.HasKey("Forecast_ID");
 

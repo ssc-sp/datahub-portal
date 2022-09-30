@@ -220,6 +220,7 @@
       "Workspace": "Workspace",
       "Datasets": "Datasets",
       "Reports": "Reports",
+      "LoadingReport": "Loading Report",
       "SecurityClassification": "Security Classification",
       "UpdateAssignment": "Update",
       "IncludeInCatalog": "Include in catalog",
