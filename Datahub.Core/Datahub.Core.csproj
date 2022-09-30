@@ -20,7 +20,7 @@
 		</None>
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="Ae.MudBlazor.Forms" Version="0.5.22240.2-beta" />
+		<PackageReference Include="Ae.MudBlazor.Forms" Version="0.5.22262.2-beta" />
 		<PackageReference Include="AElemental.Blazor" Version="1.6.22173.2" />
 		<PackageReference Include="AElemental.Blazor.Theme" Version="1.6.22173.2" />
 		<PackageReference Include="AngleSharp" Version="1.0.0-alpha-844" />
@@ -71,7 +71,7 @@
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 			<PrivateAssets>all</PrivateAssets>
 		</PackageReference>
-		<PackageReference Include="MudBlazor" Version="6.0.14" />
+		<PackageReference Include="MudBlazor" Version="6.0.16" />
 		<PackageReference Include="System.Drawing.Common" Version="6.0.0" />
 		<PackageReference Include="Tewr.Blazor.FileReader" Version="3.3.1.21360" />
 	</ItemGroup>
@@ -93,6 +93,7 @@
 		<GitHookFiles Include="../.githooks/*.*" />
 	</ItemGroup>
 	<ItemGroup>
+	  <ProjectReference Include="..\Datahub.CatalogSearch\Datahub.CatalogSearch.csproj" />
 	  <ProjectReference Include="..\Datahub.Metadata\Datahub.Metadata.csproj" />
 	  <ProjectReference Include="..\Datahub.Achievements\Datahub.Achievements.csproj" />
 	</ItemGroup>

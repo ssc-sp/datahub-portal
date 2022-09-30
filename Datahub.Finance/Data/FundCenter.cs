@@ -35,6 +35,7 @@ namespace Datahub.Portal.Data.Finance
         public HierarchyLevel Division { get; set; }
 
         [AeFormCategory("Sector Information")]
+        [Range(0, 100, ErrorMessage = "Attrition rate should be set between 0 and 100")]
         public double? AttritionRate { get; set; }
 
         [AeFormCategory("Sector Information")]

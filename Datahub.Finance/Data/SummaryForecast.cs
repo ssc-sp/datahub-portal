@@ -1,4 +1,5 @@
 ﻿
+using Datahub.Core.Data;
 using MudBlazor.Forms;
 using System;
 using System.Collections.Generic;
@@ -26,41 +27,69 @@ namespace Datahub.Portal.Data.Finance
         public string Fund { get; set; }
 
 
-        [AeFormCategory("Fund Information")]
-        [MaxLength(50)]
-        public string Key_Activity { get; set; }
+        [AeFormIgnore]
+        public int Key_Activity { get; set; }
+        [NotMapped]
+        [AeFormCategory("Planned Staffing")]
+        [MudForm(IsDropDown = true)]
+        public DropDownContainer KA_Values { get; set; }
 
-        [AeFormCategory("Fund Information")]
-        [MaxLength(100)]
-        public string Key_Driver { get; set; }
 
-        [AeFormCategory("Fund Information")]
-        public double? Budget { get; set; }
+        [AeFormIgnore]
+        public int Key_Driver { get; set; }
+        
+        [NotMapped]
+        [AeFormCategory("Planned Staffing")]
+        [MudForm(IsDropDown = true)]
+        public DropDownContainer KD_Values { get; set; }
+
 
 
         [AeFormCategory("Salary Forecast")]
+        [DisplayFormat(DataFormatString = "C2")]
+        public double? Budget { get; set; }
+
+        [AeFormCategory("Salary Forecast")]
+        [Editable(false)]
+        public double? FTE_Sum { get; set; }
+
+
+        [DisplayFormat(DataFormatString = "C2")]
+        [AeFormCategory("Salary Forecast")]
+        [Editable(false)]
+        public double? SFT_Forecast_Gross { get; set; }
+
+        [DisplayFormat(DataFormatString = "C2")]
+        [AeFormCategory("Salary Forecast")]
+        [Editable(false)]
         public double? SFT_Forecast { get; set; }
 
-
+        [DisplayFormat(DataFormatString = "C2")]
         [AeFormCategory("O&M Forecast")]
         public double? THC { get; set; }
         [AeFormCategory("O&M Forecast")]
+        [DisplayFormat(DataFormatString = "C2")]
         public double? Other_OnM { get; set; }
 
-
+        [DisplayFormat(DataFormatString = "C2")]
         [AeFormCategory("Capital Forecast")]
         public double? Personel { get; set; }
         [AeFormCategory("Capital Forecast")]
+        [DisplayFormat(DataFormatString = "C2")]
         public double? Non_Personel { get; set; }
 
+        [DisplayFormat(DataFormatString = "C2")]
         [AeFormCategory("G&C Forecast")]
         public double? Grants { get; set; }
         [AeFormCategory("G&C Forecast")]
+        [DisplayFormat(DataFormatString = "C2")]
         public double? Contribution { get; set; }
 
+
+        [DisplayFormat(DataFormatString = "C2")]
         [AeFormCategory("Total Forecast")]
         [Editable(false)]
-        public double? Total_Forecast => SFT_Forecast + THC + Other_OnM + Personel + Non_Personel + Grants + Contribution;
+        public double? Total_Forecast => (SFT_Forecast ?? 0) + (THC ?? 0)+ (Other_OnM ?? 0) + (Personel ?? 0) + (Non_Personel ?? 0) + (Grants ?? 0) + (Contribution ?? 0);
 
         [AeFormCategory("Total Forecast")]
         public string AdditionalNotes { get; set; }
@@ -77,6 +106,9 @@ namespace Datahub.Portal.Data.Finance
 
         [AeFormIgnore]
         public DateTime Created_DT { get; set; }
+
+        [AeFormIgnore]
+        public bool Is_Deleted { get; set; }
 
         [AeFormIgnore]
         [Timestamp]
