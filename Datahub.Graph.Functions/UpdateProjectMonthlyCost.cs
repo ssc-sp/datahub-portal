@@ -8,6 +8,7 @@ using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using Datahub.Core.EFCore;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
@@ -29,11 +30,37 @@ public class UpdateProjectMonthlyCost
     
     // This Azure Function will be triggered everyday at 2:00 AM UTC and will capture the current cost for the month using the Azure forecast API
     // The function will then store the data in a Azure SQL database
-    // This is temporarily triggered via a HTTP request to allow for testing. Will be replace with:
-    //[TimerTrigger("0 0 2 * * *")]TimerInfo myTimer  
-    [FunctionName("UpdateProjectMonthlyCost")]
-    public async Task Run([HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)]
+    [FunctionName("UpdateProjectMonthlyCostScheduled")]
+    public async Task RunScheduledUpdate([TimerTrigger("0 0 2 * * *")]TimerInfo myTimer, ILogger log)
+    {
+        await Run();
+    }
+    // Same as above but can be triggered manually
+    [FunctionName("UpdateProjectMonthlyCostHttp")]
+    public async Task<IActionResult> RunHttpUpdate([HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)]
         HttpRequest req, ILogger log)
+    {
+        try
+        {
+
+            var returnRecord = await RunAndReturnUpdatedProjects();
+            return new OkObjectResult(returnRecord);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            log.Log(LogLevel.Error, "Error updating project monthly cost");
+            return new BadRequestObjectResult(e.Message);
+        }
+    }
+
+    private async Task Run()
+    {
+        await RunAndReturnUpdatedProjects();
+
+    }
+
+    private async Task<CostReturnRecord> RunAndReturnUpdatedProjects()
     {
         //Get the required environment variables
         var subscriptionId = Environment.GetEnvironmentVariable(SUBSCRIPTION_ID);
@@ -45,11 +72,14 @@ public class UpdateProjectMonthlyCost
         var token = await GetAccessTokenAsync(tenantId, clientId, clientSecret);
         
         //Get current month cost for each resource
-        var currentMonthlyCosts = await GetCurrentMonthlyCostAsync(subscriptionId, token);
+        var currentMonthlyCosts = (await GetCurrentMonthlyCostAsync(subscriptionId, token)).ToList();
         
         //group monthly cost by project and update the database
-        await UpdateProjectMonthlyCostToDateAsync(currentMonthlyCosts.ToList());
-
+        await UpdateProjectMonthlyCostToDateAsync(currentMonthlyCosts);
+        return new CostReturnRecord
+        {
+            NumberOfProjectsUpdated = currentMonthlyCosts.Count
+        };
     }
     
     //Given tenantId, clientId, and clientSecret this function will return an access token
