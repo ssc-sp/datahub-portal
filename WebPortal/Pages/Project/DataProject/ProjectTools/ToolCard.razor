@@ -1,4 +1,5 @@
 @using Datahub.Core.Components.Skeleton
+@using MudBlazor.Utilities
 
 @if (Loading)
 {
@@ -19,42 +20,57 @@
 }
 else
 {
-    <div class="tool-card">
-        <span class="tool-image">
-            @if (Logo != null)
-            {
-                @Logo
-            }
-            else
-            {
-                <i class="fas fa-tools"></i>
-            }
-        </span>
-        <AeTypography class="tool-title" Variant="h3">@Title</AeTypography>
-        <AeTypography class="tool-description">@Description</AeTypography>
+    
+    <MudCard Class="tool-card">
+        <MudCardContent>
+            <div class="d-flex align-center">
+                <div style="@getLogoStyle()" class="d-flex align-center jusitfy-center">
+                    @if (Logo != null)
+                    {
+                        @Logo
+                    }
+                    else
+                    {
+                        <i class="fas fa-tools"></i>
+                    }
+                </div>
+                <AeTypography Variant="h3">@Title</AeTypography>
+            </div>
+            <MudText Class="tool-description">@Description</MudText>
+        </MudCardContent>
         @if (ToolActionsList != null)
         {
-            <div class="tool-actions">
+            
+        <MudCardActions>
                 @ToolActionsList
-            </div>
+        </MudCardActions>
         }
-    </div>
+    </MudCard>
 }
 
 @code {
 
     [Parameter]
     public bool Loading { get; set; }
-    
+
     [Parameter]
     public RenderFragment Logo { get; set; }
-    
+
     [Parameter]
     public RenderFragment ToolActionsList { get; set; }
-    
+
     [Parameter]
     public string Title { get; set; } = "Project Storage";
 
     [Parameter]
     public string Description { get; set; } = "The cloud blows with riddle, sail the quarter-deck before it screams. The sail fires with endurance, loot the lighthouse. ";
+
+    public string getLogoStyle()
+    {
+        return new StyleBuilder()
+            .AddStyle("height", "40px")
+            .AddStyle("width", "40px")
+            .AddStyle("margin-right", "8px")
+            .Build();
+    }
 }

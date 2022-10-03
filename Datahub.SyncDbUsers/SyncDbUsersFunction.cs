@@ -16,18 +16,12 @@
  * 
 */
 
-using System.Collections.Generic;
 using System.Net;
+using Microsoft.Azure.Functions.Worker;
+using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
-using Microsoft.Data.SqlClient;
-using Newtonsoft.Json;
 using System;
-using Azure;
-using Azure.Core;
-using Azure.Identity;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Options;
 using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Azure.WebJobs;
 using Microsoft.AspNetCore.Mvc;

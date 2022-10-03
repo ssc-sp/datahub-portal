@@ -1,0 +1,10 @@
+{
+  "Code": "EXP-001",
+  "Name": "I have arrived",
+  "Description": "Logged in to Datahub",
+  "ParentAchievementCode": "EXP-009",
+  "Icon": "fas fa-birthday-cake",
+  "RuleExpressions": [
+    "Utils.EventMetricExactCount(\"user_login\", EventMetrics) > 0"
+  ]
+}

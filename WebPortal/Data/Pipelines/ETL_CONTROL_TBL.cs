@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace Datahub.Portal.Data
+﻿namespace Datahub.Portal.Data
 {
     public class ETL_CONTROL_TBL
     {

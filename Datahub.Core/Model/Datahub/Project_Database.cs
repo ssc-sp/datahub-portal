@@ -1,7 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System;
-using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
 namespace Datahub.Core.EFCore
 {

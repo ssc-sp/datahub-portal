@@ -9,6 +9,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="6.0.8" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.1.0" />
         <PackageReference Include="Moq" Version="4.17.2" />
         <PackageReference Include="NUnit" Version="3.13.3" />
@@ -28,7 +29,9 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="ValidationTests" />
+      <Reference Include="Microsoft.AspNetCore.Components.Authorization">
+        <HintPath>..\..\..\..\..\..\Program Files\dotnet\shared\Microsoft.AspNetCore.App\6.0.9\Microsoft.AspNetCore.Components.Authorization.dll</HintPath>
+      </Reference>
     </ItemGroup>
 
 </Project>

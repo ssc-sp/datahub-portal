@@ -4,9 +4,11 @@
         <AzureFunctionsVersion>V4</AzureFunctionsVersion>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="Azure.Identity" Version="1.5.0" />
+        <PackageReference Include="Azure.Identity" Version="1.6.0" />
         <PackageReference Include="Azure.Security.KeyVault.Secrets" Version="4.1.0" />
-        <PackageReference Include="Microsoft.Graph" Version="4.21.0" />
+        <PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.1.0" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.9" />
+        <PackageReference Include="Microsoft.Graph" Version="4.34.0" />
         <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="4.1.0" />
     </ItemGroup>
     <ItemGroup>
@@ -17,5 +19,8 @@
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
             <CopyToPublishDirectory>Never</CopyToPublishDirectory>
         </None>
+    </ItemGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\Datahub.Core\Datahub.Core.csproj" />
     </ItemGroup>
 </Project>
