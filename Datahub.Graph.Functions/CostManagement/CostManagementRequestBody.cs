@@ -18,7 +18,7 @@ public class Aggregation
 
 public class DataSet
 {
-    public string granularity { get; } = "Daily";
+    public string granularity { get; } = "None";
     public Aggregation aggregation { get;  } = new();
     public List<Sorting> sorting { get; } = new() { new Sorting() };
 
