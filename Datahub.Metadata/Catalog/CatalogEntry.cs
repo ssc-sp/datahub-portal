@@ -7,6 +7,8 @@ namespace Datahub.Metadata.Catalog
         public string id { get; set; }
         public string name_en { get; set; }
         public string name_fr { get; set; }
+        public string desc_en { get; set; }
+        public string desc_fr { get; set; }
         public string contact { get; set; }
         public List<CatalogEntrySubject> subjects { get; set; }
         public string programs { get; set; }

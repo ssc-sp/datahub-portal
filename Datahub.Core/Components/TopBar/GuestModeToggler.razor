@@ -3,43 +3,55 @@
 @inject IUserInformationService _userInformationService
 @inject NavigationManager _navigationManager
 
-@if (_isDataHubAdmin)
-{
-    <MudTooltip Text="@_tooltipText">
-        <MudToggleIconButton
-            Icon="@Icons.Outlined.SupervisedUserCircle"
-            ToggledIcon="@Icons.Filled.SupervisedUserCircle"
-            Toggled="@_isViewAsGuest"
-            ToggledChanged="ToggleGuestMode"/>
-    </MudTooltip>
-}
+<AuthorizeView Roles=@($"{RoleConstants.DATAHUB_ROLE_ADMIN},{RoleConstants.DATAHUB_ROLE_ADMIN_AS_GUEST}")>
+    <MudStack Row>
+        <MudTooltip Text="@Localizer["Initiative admin and global admin priviledges"]">
+            <MudSwitch 
+                T="bool"
+                Color="Color.Primary"
+                Checked="@_isViewAsAdmin"
+                CheckedChanged="ToggleAdminMode">@Localizer["Admin Access Enabled"]</MudSwitch>
+        </MudTooltip>
+        <MudTooltip Text="@Localizer["Initiative membership"]">
+            <MudSwitch T="bool"
+                   Color="Color.Primary"
+                   Checked="@_isViewAsVisitor"
+                   Disabled="@_isViewAsAdmin"
+                   CheckedChanged="ToggleVisitorMode">@Localizer["View As Visitor"]</MudSwitch>
+        </MudTooltip>
+    </MudStack>
+</AuthorizeView>
 
 @code {
 
     [CascadingParameter]
     private Task<AuthenticationState> AuthenticationStateTask { get; set; }
 
-    private Microsoft.Graph.User _user;
-    private bool _isViewAsGuest;
+    private bool _isViewAsAdmin;
+    private bool _isViewAsVisitor = false;
 
-    private bool _isDataHubAdmin = false;
-
-    private string _tooltipText => _isViewAsGuest ? Localizer["View portal as admin"] : Localizer["View portal as guest"];
+    private string _tooltipText => _isViewAsAdmin ? Localizer["View portal as admin"] : Localizer["View portal as guest"];
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        _user = await _userInformationService.GetUserAsync();
-        _isViewAsGuest = _serviceAuthManager.GetViewingAsGuest(_user.Id);
-
+        _isViewAsAdmin = !(await _userInformationService.IsViewingAsGuest());
+        _isViewAsVisitor = await _userInformationService.IsViewingAsVisitor();
         var userClaims = (await AuthenticationStateTask).User;
-        _isDataHubAdmin = userClaims.IsInRole(RoleConstants.DATAHUB_ROLE_ADMIN);
     }
 
-    private void ToggleGuestMode(bool newValue)
+    private async Task ToggleAdminMode(bool newValue)
     {
-        _serviceAuthManager.SetViewingAsGuest(_user.Id, newValue);
+        await _userInformationService.SetViewingAsGuest(!newValue);
         _navigationManager.NavigateTo(_navigationManager.Uri, true);
+    }
+
+    private async Task ToggleVisitorMode(bool newValue)
+    {        
+        _isViewAsVisitor = newValue;
+        await _userInformationService.SetViewingAsVisitor(newValue);
+        StateHasChanged();
+        //_navigationManager.NavigateTo(_navigationManager.Uri, true);
     }
 
 }

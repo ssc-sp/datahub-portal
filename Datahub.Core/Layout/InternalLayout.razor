@@ -10,6 +10,11 @@
 @inject MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
 @inject IConfiguration _configuration
 
+<MudThemeProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+
 <PageTitle>@Localizer[_configuration["Title"]]</PageTitle>
 
 <AuthorizeView>

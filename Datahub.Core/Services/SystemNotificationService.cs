@@ -122,6 +122,7 @@ namespace Datahub.Core.Services
             var realUserIds = await Task.WhenAll(userIds.Select(s => GetUserId(s)));
 
             var notifications = realUserIds
+                .ToHashSet()
                 .Select(userId => new SystemNotification()
                 {
                     Generated_TS = now,

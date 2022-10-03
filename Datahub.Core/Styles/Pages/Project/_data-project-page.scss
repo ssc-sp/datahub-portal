@@ -135,7 +135,7 @@ $first-column-max-width: 1200px;
 
 
   .project-tools {
-    max-width: $first-column-max-width;
+    /*max-width: $first-column-max-width;*/
     
     display: grid;
     grid-template-columns: 1fr auto;

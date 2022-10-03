@@ -5,6 +5,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Datahub.Core.Data;
 
 namespace Datahub.Core.RoleManagement
 {
@@ -41,7 +42,14 @@ namespace Datahub.Core.RoleManagement
                     {
                         if (await serviceAuthManager.IsProjectAdmin(userId, project))
                         {
-                            ((ClaimsIdentity)principal.Identity).AddClaim(new Claim(ClaimTypes.Role, $"{project}-admin"));
+                            if (project == RoleConstants.DATAHUB_ADMIN_PROJECT && serviceAuthManager.GetViewingAsGuest(userId))
+                            {
+                                ((ClaimsIdentity)principal.Identity).AddClaim(new Claim(ClaimTypes.Role, RoleConstants.DATAHUB_ROLE_ADMIN_AS_GUEST));
+                            } 
+                            else
+                            {
+                                ((ClaimsIdentity)principal.Identity).AddClaim(new Claim(ClaimTypes.Role, $"{project}{RoleConstants.ADMIN_SUFFIX}"));
+                            }
                         }
                     }
                     foreach (var project in authorizedProjects)

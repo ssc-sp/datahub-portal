@@ -20,6 +20,8 @@ class CatalogObject:
     id: str	
     name_en: str
     name_fr: str
+    desc_en: str
+    desc_fr: str
     contact: str
     subjects: list[Subject]	
     programs: str
@@ -78,13 +80,18 @@ def map_to_subject(e: Entity) -> dict:
     #return Subject(id=e.id, name_en=e.name_en, name_fr=e.name_fr)    
     return { "id": e.id, "name_en": e.name_en, "name_fr": e.name_fr }
 
+def filter_pas_disponible(text: str) -> str:
+    return text if text != "pas disponible" else ""
+
 output = list()
 for e in datasheets:
     keyword_ids = get_datasheet_keywords(e.id)
     ds = CatalogObject(
-        id=f"CFS_{e.id}", 
+        id=f"CFS_ID_{e.id}", 
         name_en=e.name_en, 
-        name_fr=e.name_fr,
+        name_fr=filter_pas_disponible(e.name_fr),
+        desc_en=e.datDescEN,
+        desc_fr=filter_pas_disponible(e.datDesc),
         contact=e.datLeadContact,
         subjects=get_subjects(e.id),
         programs=e.datRelProg,
@@ -96,8 +103,8 @@ for e in datasheets:
     update_row = f"update CatalogObjects set Url_English_TXT='{ds.url_en}', Url_French_TXT='{ds.url_fr}' where "
 
 # output 
-with open("cfs_catalog.json", 'w') as f:
-    json.dump([o.__dict__ for o in output], f)
+with open("cfs_catalog_ex.json", 'w') as f:
+    json.dump([o.__dict__ for o in output], f, indent=4)
     
 # Closing file
 f.close()

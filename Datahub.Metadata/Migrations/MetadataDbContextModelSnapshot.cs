@@ -169,6 +169,9 @@ namespace Datahub.Metadata.Migrations
                     b.Property<long>("ObjectMetadataId")
                         .HasColumnType("bigint");
 
+                    b.Property<int?>("ProjectId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Search_English_TXT")
                         .HasColumnType("nvarchar(max)");
 

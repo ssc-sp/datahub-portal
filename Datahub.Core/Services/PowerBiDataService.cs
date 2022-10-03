@@ -1,4 +1,5 @@
 ﻿using Datahub.Core.EFCore;
+using Datahub.Metadata.Model;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
@@ -17,6 +18,8 @@ namespace Datahub.Core.Services
         private readonly ISystemNotificationService _notificationService;
 
         private static readonly string GLOBAL_POWERBI_ADMIN_LIST_KEY = "GlobalPowerBiAdmins";
+
+        private const string POWERBI_PUBLISHED_INTERNAL_LINK_PREFIX = "/internal-published-report";
 
         public PowerBiDataService(
             IDbContextFactory<DatahubProjectDBContext> contextFactory,
@@ -487,14 +490,35 @@ namespace Datahub.Core.Services
             return await Task.FromResult(success);
         }
 
+        private async Task<IEnumerable<string>> GetProjectAdmins(int projectId)
+        {
+            using var ctx = await _contextFactory.CreateDbContextAsync();
+            var projectUsers = await ctx.Project_Users
+                .Where(u => u.Project.Project_ID == projectId && u.IsAdmin)
+                .ToListAsync();
+
+            return projectUsers.Select(u => u.User_ID);
+        }
+
         public async Task NotifyOfMissingReport(Guid reportId)
         {
             var report = await GetReportById(reportId, true);
             var powerBiAdmins = await GetGlobalPowerBiAdmins();
+            
+            if (report.Workspace.Project_Id.HasValue)
+            {
+                var projectAdmins = await GetProjectAdmins(report.Workspace.Project_Id.Value);
+                // notification service will remove duplicates when sending, so we don't need to worry about it here
+                powerBiAdmins.AddRange(projectAdmins);
+            }
+
             var localizationPrefix = "POWER_BI_REPORT";
             var textKey = $"{localizationPrefix}.NotFoundReportNotificationText";
             var linkKey = $"{localizationPrefix}.NotFoundReportNotificationLink";
-            var actionLink = $"/admin/powerbi/report/{reportId}";
+
+            var projectAcronym = report.Workspace.Project.Project_Acronym_CD;
+
+            var actionLink = string.IsNullOrEmpty(projectAcronym) ? $"/admin/powerbi/report/{reportId}" : $"/admin/powerbi/{projectAcronym}/report/{reportId}";
             var projectName = new BilingualStringArgument(report.Workspace.Project.Project_Name, report.Workspace.Project.Project_Name_Fr);
 
             await _notificationService.CreateSystemNotificationsWithLink(powerBiAdmins, actionLink, linkKey, textKey, report.Report_Name, projectName);
@@ -510,5 +534,24 @@ namespace Datahub.Core.Services
                 await ctx.TrackSaveChangesAsync(_auditingService);
             }
         }
+
+        public static string GeneratePublishedInternalReportLinkStatic(string reportId, CatalogObjectLanguage language = CatalogObjectLanguage.Bilingual)
+        {
+            if (language == CatalogObjectLanguage.Bilingual)
+            {
+                return $"{POWERBI_PUBLISHED_INTERNAL_LINK_PREFIX}/{reportId}";
+            }
+            else
+            {
+                var languageSuffix = (language == CatalogObjectLanguage.French) ? "fr" : "en";
+                return $"{POWERBI_PUBLISHED_INTERNAL_LINK_PREFIX}/{reportId}/{languageSuffix}";
+            }
+        }
+
+        // in the future, this may require reading config values or something else that needs a properly setup service
+        // for now, the static method is ok
+        public string GeneratePublishedInternalReportLink(string reportId, CatalogObjectLanguage language = CatalogObjectLanguage.Bilingual) 
+            => GeneratePublishedInternalReportLinkStatic(reportId, language);
+
     }
 }

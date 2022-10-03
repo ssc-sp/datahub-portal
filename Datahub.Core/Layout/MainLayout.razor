@@ -136,6 +136,7 @@
         try
         {
             _isSessionEnabled = await _userCircuitCounterService.IsSessionEnabled();
+            await _auditingService.TrackEvent("Login");
         }
         catch (Exception ex)
         {

@@ -6,6 +6,7 @@ namespace Datahub.Core.Data
     public class FormMetadata<T>
     {
         public string Header { get; set; }
+        public string HeaderSubText { get; set; }
         public string SubHeader { get; set; }
         public string UserId { get; set; }
         public string TableDisclaimer { get; set; }
@@ -21,15 +22,25 @@ namespace Datahub.Core.Data
 
         public IList<string> MarkDownContentFooter { get; set; }
 
+        public IList<Func<T, (string, string)>> NavigateUrls { get; set; }
         public IList<(Delegate Label, Delegate Choices)> FilterProperties { get; set; }
+        public bool AllowSearch { get; set; }
 
+        public bool DisableNew { get; set; }
         public bool IsSubmitEnabled { get; set; }
+        public bool IsAddEnabled { get; set; } = true;
         public string SaveButtonText { get; set; } = "Save";
+
+        public bool AllowDelete { get; set; }
 
         public string TableRoles { get; set; }
         public bool IsLoaded()
         {
             return Header != null && DataSet != null && AccessorFunctions != null && Headers != null && GridTemplateColumns != null;
+        }
+        public bool IsMudLoaded()
+        {
+            return Header != null && DataSet != null && AccessorFunctions != null && Headers != null;
         }
     }
 }
