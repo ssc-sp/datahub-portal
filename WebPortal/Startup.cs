@@ -368,6 +368,8 @@ namespace Datahub.Portal
                 services.AddScoped<IPowerBiDataService, PowerBiDataService>();
 
                 services.AddScoped<RegistrationService>();
+                
+                services.AddScoped<UpdateProjectMonthlyCostService>();
             }
             else
             {
