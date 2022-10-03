@@ -10,7 +10,9 @@ else
     <ToolCard Title=@Localizer["Data Entry"]
               Description=@Localizer["Start the Data Entry application enabled for this project"]>
         <Logo>
-            <AeIcon class="fad fa-keyboard card-icon fa-2x"/>
+            <div class="purple" style="width:180px">
+                <MudIcon Icon="fad fa-keyboard card-icon fa-xs"/>
+            </div>
         </Logo>
         <ToolActionsList>
             @if (!string.IsNullOrWhiteSpace(_project.WebForms_URL) && _webFormsAuthorized)

@@ -1,0 +1,63 @@
+﻿@*HomeSearch.razor*@
+@implements IDisposable
+
+@if (_enabled)
+{ 
+    <MudFocusTrap DefaultFocus="DefaultFocus.FirstChild">
+        <MudTextField 
+		    DebounceInterval="1000" 
+		    T="string"
+		    ValueChanged="HandleSearchTextChanged"
+            Label=@Localizer["Search"]
+		    Variant="Variant.Outlined"
+            Margin="Margin.Dense"
+		    Adornment="Adornment.End" 
+		    AdornmentIcon="@Icons.Filled.Search" />
+    </MudFocusTrap>
+}
+
+@code
+{
+    [Inject]
+    public IConfiguration Configuration { get; set; }
+
+    [Inject]
+    public NavigationManager NavigationManager { get; set; }
+
+    private DefaultFocus _defaultFocus { get; set; } = DefaultFocus.FirstChild;
+    private bool _enabled; 
+
+    protected override void OnInitialized()
+    {
+        NavigationManager.LocationChanged += LocationChanged;
+        RefreshEnabled();
+    }
+
+    private void HandleSearchTextChanged(string newValue)
+    {
+        if (!string.IsNullOrWhiteSpace(newValue))
+            NavigationManager.NavigateTo($"/discovery?kws={newValue}");
+    }
+
+    private async void LocationChanged(object sender, LocationChangedEventArgs e)
+    {
+        RefreshEnabled();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void RefreshEnabled()
+    {
+        _enabled = Configuration["DataCatalog"] == "enabled" && !NavigationManager.Uri.Contains("discovery", StringComparison.InvariantCultureIgnoreCase);
+    }
+
+    void IDisposable.Dispose()
+    {
+        try
+        {
+            NavigationManager.LocationChanged -= LocationChanged;
+        }
+        catch (Exception)
+        {
+        }
+    }
+}

@@ -7,15 +7,14 @@
         @Localizer["MainTitle"]
     </MudText>
 </MudStack>
+
 <MudSpacer/>
-<Search/>
+<HomeSearch />
 <MudSpacer/>
 
-<GuestModeToggler />
 <NotificationsList/>
 <HelpPopup/>
 <TopBarProfileButton />
-
 
 @code {
 
@@ -24,10 +23,9 @@
     protected override void OnInitialized()
     {
         base.OnInitialized();
-        
+
         _titleStyle = new StyleBuilder()
             .AddStyle("color", "var(--mud-palette-text-primary)")
             .Build();
     }
-
 }

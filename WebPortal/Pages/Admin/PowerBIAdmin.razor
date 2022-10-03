@@ -3,6 +3,11 @@
 @page "/admin/powerbi/report/{ReportId}"
 @page "/admin/powerbi/dataset/{DatasetId}"
 @page "/admin/powerbi/workspace/{WorkspaceId}"
+@page "/admin/powerbi/{ProjectAcronym}/report/{ReportId}"
+@page "/admin/powerbi/{ProjectAcronym}/dataset/{DatasetId}"
+@page "/admin/powerbi/{ProjectAcronym}/workspace/{WorkspaceId}"
+@using Datahub.Metadata.Model
+
 @inject IPowerBiDataService _powerBiDataService
 @inject PowerBiServiceApi _powerBiServiceApi
 @inject Microsoft.Identity.Web.MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
@@ -254,6 +259,7 @@
                                     ValidateRequired=@false
                                     Name=@ReportBeingEdited.DbReportName
                                     HideSaveButton
+                                    CatalogLanguage=@_catalogObjectLanguage
                                     OnValuesChanged=@(() => StateHasChanged())
                                     DefaultMetadataId=@GetProjectMetadataUid(ReportBeingEdited.ProjectId)
                                     OnNewMetadataCreated=@AutoFillNewMetadataFields
@@ -267,12 +273,21 @@
                                     </label>
                                 </div>
 
+                                <div style="margin-top: 0.5rem; width: 100%">
+                                    <AeTypography><strong><span>@Localizer[$"Language"]</span></strong></AeTypography>
+                                    <select class="ae input" @bind="_catalogObjectLanguage" disabled=@NotIncludedCurrentItemInCatalog>
+                                        <option value=@CatalogObjectLanguage.Bilingual>@Localizer["Bilingual"]</option>
+                                        <option value=@CatalogObjectLanguage.English>@Localizer["English"]</option> 
+                                        <option value=@CatalogObjectLanguage.French>@Localizer["French"]</option> 
+                                    </select>
+                                </div>                                
+
                                 @if (ReportBeingEdited.SiblingReports.Count > 0)
                                 {
-                                    <div style="width: 100%">
+                                    <div style="margin-top: 0.5rem; width: 100%">
                                         <AeFlex Vertical>
-                                            <AeTypography><strong><span>@Localizer[$"Group with"]</span></strong></AeTypography>
-                                            <select @bind="_groupWithId" class="ae input" disabled=@DisabledReportGrouping>
+                                            <AeTypography><strong><span>@Localizer[$"Grouped with"]</span></strong></AeTypography>
+                                            <select @bind="_groupWithId" class="ae input" disabled=@NotIncludedCurrentItemInCatalog>
                                                 <option value=""></option>
                                                 @foreach(var report in ReportBeingEdited.SiblingReports)
                                                 {
@@ -450,9 +465,10 @@
     private PowerBiAdminDatasetTreeItem DatasetBeingEdited { get; set; }
     private PowerBiAdminReportTreeItem ReportBeingEdited { get; set; }
     private string _groupWithId;
+    private CatalogObjectLanguage _catalogObjectLanguage;
 
     private bool IncludeCurrentItemInCatalog { get; set; } = true;
-    private bool DisabledReportGrouping => !IncludeCurrentItemInCatalog;
+    private bool NotIncludedCurrentItemInCatalog => !IncludeCurrentItemInCatalog;
 
     private ObjectMetadataEditor _workspaceMetadata;
     private bool IsSavingWorkspace { get; set; } = false;
@@ -635,6 +651,7 @@
                 ReportBeingEdited.SiblingReports = await GetReportsForGrouping(report);
                 IncludeCurrentItemInCatalog = report.InCatalog;
                 _groupWithId = await GetGroupedWidth(report);
+                _catalogObjectLanguage = await _metadataService.GetCatalogObjectLanguage(report.Report_ID.ToString()) ?? CatalogObjectLanguage.Bilingual;
             }
         }
 

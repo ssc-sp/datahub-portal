@@ -28,7 +28,7 @@
         }
         <AeTypography class="project-title" Variant="h1">
             <span class="project-icon">
-                <i class="@($"fad fa-{_projectIcon}")"></i>
+                <i class="@($"{_projectIcon}")"></i>
             </span>
             @_project.ProjectName
         </AeTypography>
@@ -86,4 +86,12 @@
             return projectName + Localizer["is nearing budget"];
         return projectName + Localizer["is under budget"];
     }
+
+    private Color GetProtectionColor() => (_project?.Data_Sensitivity ?? "").ToUpper() switch
+    {
+        "CLASSIFIED" or
+        "PROTECTED B" => Color.Secondary,
+        "PROTECTED A" => Color.Error,
+        _ => Color.Dark
+    };
 }

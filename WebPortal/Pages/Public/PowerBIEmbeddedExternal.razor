@@ -7,6 +7,7 @@
 @inject IJSRuntime JSRuntime
 @inject IConfiguration _configuration
 @using Microsoft.AspNetCore.Cryptography.KeyDerivation;
+
 @if (!_isAccessible)
 {
     <div style="padding:10px">
@@ -22,8 +23,6 @@
     [Parameter]
     public string ReportId {  get;  set; }
 
-
-
     [Parameter]
     [SupplyParameterFromQuery]
     public bool ReadOnly { get; set; }
@@ -35,13 +34,11 @@
     private string _errorMessage;
     private bool _isAccessible = false;
 
-
-
     private async Task OnOpenReport()
     {
         using var context = _dbFactoryProject.CreateDbContext();
         ExtReport = await context.ExternalPowerBiReports.Where(r => r.Report_ID.ToString() == ReportId).FirstOrDefaultAsync();
-
+        
         await ValidateUser();
     }
 
@@ -94,8 +91,7 @@
 
     private void HandleError(Exception ex)
     {
-            _errorMessage = $"Internal error loading report {ReportId}.";
-           
+        _errorMessage = $"Internal error loading report {ReportId}.";
     }
 
 

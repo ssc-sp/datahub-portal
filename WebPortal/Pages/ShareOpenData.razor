@@ -390,7 +390,7 @@
                 UpdateShareFileStatus(updatedFile);
 
                 // catalog the shared object
-                await CatalogSharedObject(fieldValues);
+                //await CatalogSharedObject(fieldValues);
 
                 await InvokeAsync(StateHasChanged);
             }
@@ -405,30 +405,32 @@
         }
     }
 
-    private async Task CatalogSharedObject(FieldValueContainer fieldValues)
-    {
-        var isUrl = !string.IsNullOrEmpty(_fileUrl);
-        var objectType = isUrl ? MetadataObjectType.FileUrl : MetadataObjectType.File;
-        var location = isUrl ? _fileUrl : _projectCode;
+    //private async Task CatalogSharedObject(FieldValueContainer fieldValues)
+    //{
+    //    var isUrl = !string.IsNullOrEmpty(_fileUrl);
+    //    var objectType = isUrl ? MetadataObjectType.FileUrl : MetadataObjectType.File;
+    //    var location = isUrl ? _fileUrl : _projectCode;
 
-        // allow the name to be indexed as well
-        fieldValues.SetValue("name", _requestFilename); 
-        var digest = fieldValues.GetCatalogDigest();
+    //    // allow the name to be indexed as well
+    //    fieldValues.SetValue("name", _requestFilename); 
+    //    var digest = fieldValues.GetCatalogDigest();
 
-        await MetadataBrokerService.UpdateCatalog
-        (
-            fieldValues.MetadataId, 
-            objectType, 
-            _requestFilename, 
-            location, 
-            _approvalFormSectorId, 
-            _approvalFormBranchId, 
-            _requestingUser?.Mail, 
-            ClassificationType.Unclassified,
-            digest.EnglishCatalog, 
-            digest.FrenchCatalog
-        );
-    }
+    //    await MetadataBrokerService.UpdateCatalog
+    //    (
+    //        fieldValues.MetadataId, 
+    //        objectType, 
+    //        _requestFilename, 
+    //        location, 
+    //        _approvalFormSectorId, 
+    //        _approvalFormBranchId, 
+    //        _requestingUser?.Mail, 
+    //        ClassificationType.Unclassified,
+    //        digest.EnglishCatalog, 
+    //        digest.FrenchCatalog,
+    //        CatalogObjectLanguage.Bilingual,
+    //        null // >> fix!
+    //    );
+    //}
 
     private async Task UploadAndPublish()
     {
@@ -444,7 +446,7 @@
             _uploadStatus = OpenDataUploadStatus.UploadingFile;
             StartOpenDataUploadTimer();
 
-            await CatalogSharedObject(fieldValues);
+            //await CatalogSharedObject(fieldValues);
 
             await InvokeAsync(StateHasChanged);
         }

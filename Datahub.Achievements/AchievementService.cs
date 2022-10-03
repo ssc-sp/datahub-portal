@@ -57,7 +57,7 @@ public class AchievementService
 
         var rulesEngineSettings = new ReSettings { CustomTypes = new[] { typeof(Utils) } };
         var workflows = AchievementFactory.CreateWorkflows(achievementList!);
-        var rulesEngine = new RulesEngine.RulesEngine(workflows, _logger, rulesEngineSettings);
+        var rulesEngine = new RulesEngine.RulesEngine(workflows, rulesEngineSettings);
 
         var hasEarnedNewAchievement = false;
             var response =

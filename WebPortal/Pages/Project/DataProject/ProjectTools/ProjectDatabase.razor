@@ -17,7 +17,9 @@ else
         Description=@CardDescription>
 
         <Logo>
-            <AeIcon class="fad fa-database card-icon fa-2x"/>
+            <div>
+                <MudIcon Icon="fad fa-database card-icon fa-xs"/>
+            </div>
         </Logo>
 
         <ToolActionsList>
@@ -256,6 +258,7 @@ else
                             ProfileName="catalog"
                             ObjectType=@Metadata.Model.MetadataObjectType.Database
                             UpdateCatalog=@true
+                            ProjectId=@_project.Project_ID
                             ValidateRequired=@false
                             Name=@_databaseResource.Database_Name
                             OnSave=@HandleClose

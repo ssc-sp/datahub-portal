@@ -26,7 +26,8 @@ namespace Datahub.Core.Services
             {
                 DisplayName = "Offline User",
                 Id = UserGuid.ToString(),
-                UserPrincipalName = "me@me.com"
+                UserPrincipalName = "me@me.com",
+                Mail = "nabeel.bader@nrcan-rncan.gc.ca"
             });
         }
 
@@ -103,6 +104,27 @@ namespace Datahub.Core.Services
         public Task<bool> IsUserWithoutInitiatives()
         {
             return Task.FromResult(false);
+        }
+
+        public Task<bool> IsViewingAsGuest()
+        {
+            return Task.FromResult(false);
+        }
+
+        public Task SetViewingAsGuest(bool isGuest)
+        {
+            // do nothing
+            return Task.Delay(0);
+        }
+
+        public Task<bool> IsViewingAsVisitor()
+        {
+            return Task.FromResult(false);
+        }
+
+        public Task SetViewingAsVisitor(bool isVisitor)
+        {
+            return Task.CompletedTask;
         }
     }
 }

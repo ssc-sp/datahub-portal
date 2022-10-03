@@ -37,7 +37,8 @@
     "Finish": "Terminer",
     "Restore": "Restaurer",
     "Submit": "Soumettre",
-    "Upload": "Upload"
+    "Upload": "Upload",
+    "Save": "Sauvegarder"
   },
   "COMMON": {
     "Yes": "Oui",
@@ -171,7 +172,7 @@
     "Data Type": "Type de données",
     "(All Sectors)": "(Tous les secteurs)",
     "(All Branches)": "(Toutes les branches)",
-    "HideIncomplete": "Masquer les catalogues incomplets"
+    "HideIncomplete": "Masquer les entrées incompletes"
   },
   "DISCOVERY-DATA-TYPES": {
     "File": "Fichier",
@@ -181,9 +182,17 @@
     "File Url": "URL du fichier",
     "Geo Object": "Géo Objet",
     "Database": "Base de données",
+    "DatasetUrl": "URL du jeu de données"
+  },
+  "DISCOVERY-CLASSIFICATION-TYPES": {
     "Unclassified": "Non classifié",
     "ProtectedA": "Protégé A",
     "ProtectedB": "Protégé B"
+  },
+  "DISCOVERY-LANGUAGE-TYPES": {
+    "Bilingual": "Bilingue",
+    "English": "Anglais",
+    "French": "Français"
   },
   "METADATA-PAGE": {
     "ShowMore": "Afficher les champs optionnels",
@@ -1622,7 +1631,22 @@
     "ClickToReadPDF": "Cliquez pour lire le PDF",
     "ClickToApprove": "Cliquez pour approuver la publication"
   },
-
   "Resources": "Ressources",
-  "LanguageTableDisclaimer": "Une seule inscription est autorisée par étudiant et par session."
+  "LanguageTableDisclaimer": "Une seule inscription est autorisée par étudiant et par session.",
+  "Initiatives": "Initiatives",
+  "Initiative Home": "Accueil de l'initiative",
+  "View your profile": "Voir votre profil",
+  "Initiative admin and global admin priviledges": "Privilèges d'administrateur d'initiative et d'administrateur global",
+  "Initiative membership": "Adhésion à l'initiative",
+  "Admin Access Enabled": "Accès Admin activé",
+  "View As Visitor": "Voir en tant que visiteur",
+  "LanguageTrainingApplication": {
+    "Registrations_closed": "Les inscriptions sont actuellement fermées.",
+    "Registrations_open_from_to": "Les inscriptions pour {0} de {1} seront ouvertes de {2} à {3}.",
+    "Registrations_open_until": "Les inscriptions seront ouvertes pour la session {0} {1} jusqu'au {2}, le {4} {3} {5}, à 18 h 00 (HAE).",
+    "Spring": "de printemps",
+    "Summer": "d'été",
+    "Fall": "d'automne",
+    "Winter": "d'hiver"
+  }
 }
