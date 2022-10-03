@@ -263,15 +263,24 @@ namespace Datahub.Core.Services
                 await ctx.TrackSaveChangesAsync(_auditingService, anonymous);
 
                 transation.Commit();
+
+                try
+                {
+                    // update search indexes
+                    var id = $"{catalogObject.CatalogObjectId}";
+                    UpdateCatalogIndex(id, englishName, englishText, false);
+                    UpdateCatalogIndex(id, frenchName, frenchText, true);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError("Indexing catalog object failed!", ex);
+                }
             }
             catch (Exception)
             {
                 transation.Rollback();
                 throw;
             }
-            // update search indexes
-            UpdateCatalogIndex($"{objectMetadataId}", englishName, englishText, false);
-            UpdateCatalogIndex($"{objectMetadataId}", frenchName, frenchText, true);
         }
 
         private void UpdateCatalogIndex(string docId, string title, string content, bool isFrench)
@@ -345,7 +354,7 @@ namespace Datahub.Core.Services
             if (containsKeywords)
             {
                 // build dictionary<objectId, index>
-                var sortMap = hits.Select((Id, Index) => new { Id, Index }).ToDictionary(p => p.Id, p => p.Index);
+                var sortMap = hits.Distinct().Select((Id, Index) => new { Id, Index }).ToDictionary(p => p.Id, p => p.Index);
                 // sort results
                 results = results.Select(r => new { Index = sortMap[r.CatalogObjectId], Result = r })
                                  .OrderBy(p => p.Index)
