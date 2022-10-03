@@ -6,11 +6,6 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
-    <ItemGroup>
-      <Reference Include="Microsoft.Extensions.Logging.Abstractions">
-        <HintPath>..\WebPortal\bin\Debug\net6.0\Microsoft.Extensions.Logging.Abstractions.dll</HintPath>
-      </Reference>
-    </ItemGroup>
 
     <ItemGroup>
       <PackageReference Include="MudBlazor" Version="6.0.16" />
