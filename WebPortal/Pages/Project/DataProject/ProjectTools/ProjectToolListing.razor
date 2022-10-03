@@ -58,7 +58,6 @@
                 {
                     <Costing/>
                 }
-
                 @if (_configuration.Value.DataManagement)
                 {
                     <IoT/>
@@ -83,9 +82,17 @@
                         }
                     }
                 }
-
-
                 <Admin/>
+
+                @if (_configuration.Value.StorageCost)
+                {
+                    <StorageCost />
+                }
+
+                @if (_configuration.Value.ComputeCost)
+                {
+                    <ComputeCost />
+                }
             </div>
         }
     </div>

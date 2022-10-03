@@ -1,11 +1,8 @@
 ﻿using Azure.Storage.Files.DataLake;
 using Azure.Storage.Files.DataLake.Models;
 using Microsoft.AspNetCore.Components;
-using Microsoft.Extensions.Logging;
 using Datahub.Core.Data;
 using Datahub.Core.Services;
-using System;
-using System.Threading.Tasks;
 
 namespace Datahub.Portal.Services
 {

@@ -112,8 +112,10 @@
  * 2. Prevent adjustments of font size after orientation changes in iOS.
  */
 html {
-  line-height: 1.15; /* 1 */
-  -webkit-text-size-adjust: 100%; /* 2 */
+  line-height: 1.15;
+  /* 1 */
+  -webkit-text-size-adjust: 100%;
+  /* 2 */
 }
 
 /* Sections
@@ -148,9 +150,12 @@ h1 {
  * 2. Show the overflow in Edge and IE.
  */
 hr {
-  box-sizing: content-box; /* 1 */
-  height: 0; /* 1 */
-  overflow: visible; /* 2 */
+  box-sizing: content-box;
+  /* 1 */
+  height: 0;
+  /* 1 */
+  overflow: visible;
+  /* 2 */
 }
 
 /**
@@ -158,8 +163,10 @@ hr {
  * 2. Correct the odd `em` font sizing in all browsers.
  */
 pre {
-  font-family: monospace, monospace; /* 1 */
-  font-size: 1em; /* 2 */
+  font-family: monospace, monospace;
+  /* 1 */
+  font-size: 1em;
+  /* 2 */
 }
 
 /* Text-level semantics
@@ -176,9 +183,12 @@ a {
  * 2. Add the correct text decoration in Chrome, Edge, IE, Opera, and Safari.
  */
 abbr[title] {
-  border-bottom: none; /* 1 */
-  text-decoration: underline; /* 2 */
-  text-decoration: underline dotted; /* 2 */
+  border-bottom: none;
+  /* 1 */
+  text-decoration: underline;
+  /* 2 */
+  text-decoration: underline dotted;
+  /* 2 */
 }
 
 /**
@@ -196,8 +206,10 @@ strong {
 code,
 kbd,
 samp {
-  font-family: monospace, monospace; /* 1 */
-  font-size: 1em; /* 2 */
+  font-family: monospace, monospace;
+  /* 1 */
+  font-size: 1em;
+  /* 2 */
 }
 
 /**
@@ -247,10 +259,14 @@ input,
 optgroup,
 select,
 textarea {
-  font-family: inherit; /* 1 */
-  font-size: 100%; /* 1 */
-  line-height: 1.15; /* 1 */
-  margin: 0; /* 2 */
+  font-family: inherit;
+  /* 1 */
+  font-size: 100%;
+  /* 1 */
+  line-height: 1.15;
+  /* 1 */
+  margin: 0;
+  /* 2 */
 }
 
 /**
@@ -258,7 +274,8 @@ textarea {
  * 1. Show the overflow in Edge.
  */
 button,
-input { /* 1 */
+input {
+  /* 1 */
   overflow: visible;
 }
 
@@ -267,7 +284,8 @@ input { /* 1 */
  * 1. Remove the inheritance of text transform in Firefox.
  */
 button,
-select { /* 1 */
+select {
+  /* 1 */
   text-transform: none;
 }
 
@@ -316,12 +334,18 @@ fieldset {
  *    `fieldset` elements in all browsers.
  */
 legend {
-  box-sizing: border-box; /* 1 */
-  color: inherit; /* 2 */
-  display: table; /* 1 */
-  max-width: 100%; /* 1 */
-  padding: 0; /* 3 */
-  white-space: normal; /* 1 */
+  box-sizing: border-box;
+  /* 1 */
+  color: inherit;
+  /* 2 */
+  display: table;
+  /* 1 */
+  max-width: 100%;
+  /* 1 */
+  padding: 0;
+  /* 3 */
+  white-space: normal;
+  /* 1 */
 }
 
 /**
@@ -344,8 +368,10 @@ textarea {
  */
 [type=checkbox],
 [type=radio] {
-  box-sizing: border-box; /* 1 */
-  padding: 0; /* 2 */
+  box-sizing: border-box;
+  /* 1 */
+  padding: 0;
+  /* 2 */
 }
 
 /**
@@ -361,8 +387,10 @@ textarea {
  * 2. Correct the outline style in Safari.
  */
 [type=search] {
-  -webkit-appearance: textfield; /* 1 */
-  outline-offset: -2px; /* 2 */
+  -webkit-appearance: textfield;
+  /* 1 */
+  outline-offset: -2px;
+  /* 2 */
 }
 
 /**
@@ -377,8 +405,10 @@ textarea {
  * 2. Change font properties to `inherit` in Safari.
  */
 ::-webkit-file-upload-button {
-  -webkit-appearance: button; /* 1 */
-  font: inherit; /* 2 */
+  -webkit-appearance: button;
+  /* 1 */
+  font: inherit;
+  /* 2 */
 }
 
 /* Interactive
@@ -3348,7 +3378,8 @@ code {
     background: $gray-700 !important;
 }
 */
-.ad-title { /* Title for the ad. */
+.ad-title {
+  /* Title for the ad. */
   font-family: "Open Sans", sans-serif;
   font-weight: 700;
   display: block;
@@ -3357,7 +3388,8 @@ code {
   padding: 80px 0px 10px 200px;
 }
 
-.ad-subtitle { /* Subitle for the ad. */
+.ad-subtitle {
+  /* Subitle for the ad. */
   display: block;
   text-align: left;
   font-size: 1.5vw;
@@ -3502,8 +3534,10 @@ code {
   height: 100%;
   overflow: hidden;
   outline: 0;
-  background-color: rgb(0, 0, 0); /* Fallback color */
-  background-color: rgba(0, 0, 0, 0.4); /* Black w/ opacity */
+  background-color: black;
+  /* Fallback color */
+  background-color: rgba(0, 0, 0, 0.4);
+  /* Black w/ opacity */
   /* Modal Body */
   /* Modal Footer */
 }
@@ -3521,10 +3555,12 @@ code {
 }
 .application-wrapper .main-layout .ui-control .page-modal .modal-content {
   background-color: #fff;
-  margin: 5% auto; /* 15% from the top and centered */
+  margin: 5% auto;
+  /* 15% from the top and centered */
   padding: 20px;
   border: 1px solid #888;
-  width: 30%; /* Could be more or less, depending on screen size */
+  width: 30%;
+  /* Could be more or less, depending on screen size */
 }
 .application-wrapper .main-layout .ui-control .page-modal .modal-background {
   z-index: -1;
@@ -3533,8 +3569,10 @@ code {
   position: fixed;
   width: 100%;
   height: 100%;
-  background-color: rgb(0, 0, 0); /* Fallback color */
-  background-color: rgba(0, 0, 0, 0.4); /* Black w/ opacity */
+  background-color: black;
+  /* Fallback color */
+  background-color: rgba(0, 0, 0, 0.4);
+  /* Black w/ opacity */
 }
 .application-wrapper .main-layout .ui-control .page-modal .modal-header {
   padding: 2px 16px;
@@ -4322,8 +4360,10 @@ code {
 }
 
 .tacdivbox {
-  width: 50rem; /* or whatever width you want. */
-  max-width: 47rem; /* or whatever width you want. */
+  width: 50rem;
+  /* or whatever width you want. */
+  max-width: 47rem;
+  /* or whatever width you want. */
   height: 15rem;
   display: inline-block;
   overflow-y: auto;
@@ -5163,7 +5203,7 @@ code {
 }
 
 .welcome-banner {
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgb(0, 0, 0) 100%), url("/img/landing/earth-background.jpg") no-repeat center center fixed;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, black 100%), url("/img/landing/earth-background.jpg") no-repeat center center fixed;
   -webkit-background-size: cover;
   -moz-background-size: cover;
   -o-background-size: cover;
@@ -5388,13 +5428,8 @@ code {
 }
 .project-page .project-info .project-data-sensitivity {
   text-transform: uppercase;
-  font-weight: bold;
   font-family: monospace;
-  background-color: #1e293b;
-  color: #fff;
   border-radius: 4px;
-  display: inline-block;
-  padding: 0 0.5rem;
 }
 .project-page .project-info .project-title {
   margin-top: 0.5rem;
@@ -5521,9 +5556,6 @@ code {
 .project-page .project-tools .tools-container {
   grid-column: 1/span 2;
   --grid-template-columns: 1fr 1fr;
-  --logo-width: 40px;
-  --logo-height: 60px;
-  --logo-margin-top: 0;
   --tool-grid-template-columns: var(--logo-width) 1fr;
   --tool-grid-template-rows: auto minmax(80px, auto) 1fr;
   --tool-column-gap: 1rem;
@@ -5535,14 +5567,13 @@ code {
   --tool-actions-border-left: none;
   --title-font-size: 1.5rem;
   --title-margin-top: .5rem;
+  --tool-descrition-margin-top: .5rem;
   display: grid;
   grid-template-columns: var(--grid-template-columns);
   gap: 1rem;
 }
 .project-page .project-tools .tools-container.dense {
   --grid-template-columns: 1fr 1fr;
-  --logo-width: 20px;
-  --logo-height: 30px;
   --logo-margin-top: 8px;
   --tool-grid-template-columns: var(--logo-width) 250px 1fr;
   --tool-grid-template-rows: auto 1fr;
@@ -5581,6 +5612,7 @@ code {
   display: var(--tool-description-display);
   grid-column: 1/span 2;
   grid-row: 2;
+  margin-top: var(--tool-descrition-margin-top);
 }
 .project-page .project-tools .tools-container .tool-card .tool-actions {
   grid-column: var(--tool-actions-column);
@@ -6434,11 +6466,16 @@ img {
 }
 
 pre {
-  white-space: pre-wrap; /* css-3 */
-  white-space: -moz-pre-wrap; /* Mozilla, since 1999 */
-  white-space: -pre-wrap; /* Opera 4-6 */
-  white-space: -o-pre-wrap; /* Opera 7 */
-  word-wrap: break-word; /* Internet Explorer 5.5+ */
+  white-space: pre-wrap;
+  /* css-3 */
+  white-space: -moz-pre-wrap;
+  /* Mozilla, since 1999 */
+  white-space: -pre-wrap;
+  /* Opera 4-6 */
+  white-space: -o-pre-wrap;
+  /* Opera 7 */
+  word-wrap: break-word;
+  /* Internet Explorer 5.5+ */
 }
 
 .page-alert {

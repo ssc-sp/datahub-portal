@@ -3,11 +3,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Datahub.Portal.Data.LanguageTraining;
 using Datahub.Core;
 using Datahub.Core.Data;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Datahub.LanguageTraining
 {

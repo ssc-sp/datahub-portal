@@ -1,3 +1,4 @@
+using Datahub.Achievements.Models;
 using Datahub.Core.Data;
 using Datahub.Core.Services;
 using Datahub.Portal.Services;
@@ -28,7 +29,7 @@ public partial class FileExplorer
     }
 
     
-    private void HandleNewFolder(string newFolderName)
+    private async Task HandleNewFolder(string newFolderName)
     {
         if (_folders.Contains(newFolderName))
             return;
@@ -38,6 +39,7 @@ public partial class FileExplorer
             .Trim();
 
         _folders.Add($"{_currentFolder}{newFolderName}/");
+        await _achievementService.AddOrIncrementTelemetryEvent(DatahubUserTelemetry.TelemetryEvents.UserCreateFolder);
     }
     
     private async Task HandleFileDelete(string filename)
@@ -50,6 +52,7 @@ public partial class FileExplorer
         }
 
         _selectedItems = new HashSet<string> {_currentFolder};
+        await _achievementService.AddOrIncrementTelemetryEvent(DatahubUserTelemetry.TelemetryEvents.UserDeleteFile);
 
     }
 
@@ -135,6 +138,8 @@ public partial class FileExplorer
                 _files.RemoveAll(f => f.name == fileMetadata.name);
                 _files.Add(fileMetadata);
             }
+
+            await _achievementService.AddOrIncrementTelemetryEvent(DatahubUserTelemetry.TelemetryEvents.UserUploadFile);
             StateHasChanged();
         });
 

@@ -1,8 +1,5 @@
-using System;
-using System.Threading.Tasks;
 using Microsoft.Graph;
 using Datahub.Core.Data;
-using System.Collections.Generic;
 using Datahub.Core.EFCore;
 using System.Net;
 
