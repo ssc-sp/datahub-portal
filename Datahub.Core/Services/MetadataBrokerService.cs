@@ -1,7 +1,6 @@
 ﻿using Datahub.CatalogSearch;
 using Datahub.Metadata.DTO;
 using Datahub.Metadata.Model;
-using Datahub.Metadata.Utils;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
@@ -12,7 +11,7 @@ using Entities = Datahub.Metadata.Model;
 
 namespace Datahub.Core.Services
 {
-	public class MetadataBrokerService : IMetadataBrokerService
+    public class MetadataBrokerService : IMetadataBrokerService
     {
         private readonly IDbContextFactory<MetadataDbContext> _contextFactory;
         private readonly ILogger<MetadataBrokerService> _logger;
@@ -263,22 +262,24 @@ namespace Datahub.Core.Services
                 await ctx.TrackSaveChangesAsync(_auditingService, anonymous);
 
                 transation.Commit();
+
+                try
+                {
+                    // update search indexes
+                    var id = $"{catalogObject.CatalogObjectId}";
+                    UpdateCatalogIndex(id, englishName, englishText, false);
+                    UpdateCatalogIndex(id, frenchName, frenchText, true);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError("Indexing catalog object failed!", ex);
+                }
             }
             catch (Exception)
             {
                 transation.Rollback();
                 throw;
             }
-            // update search indexes
-            UpdateCatalogIndex($"{objectMetadataId}", englishName, englishText, false);
-            UpdateCatalogIndex($"{objectMetadataId}", frenchName, frenchText, true);
-        }
-
-        private void UpdateCatalogIndex(string docId, string title, string content, bool isFrench)
-        {
-            var catalogSearch = isFrench ? _catalogSearchEngine.GetFrenchSearchEngine() : _catalogSearchEngine.GetEnglishSearchEngine();
-            catalogSearch.AddDocument(docId, (title ?? "").ToLower(), (content ?? "").ToLower());
-            catalogSearch.FlushIndexes();
         }
 
         public async Task<FieldDefinitions> GetFieldDefinitions()
@@ -345,7 +346,7 @@ namespace Datahub.Core.Services
             if (containsKeywords)
             {
                 // build dictionary<objectId, index>
-                var sortMap = hits.Select((Id, Index) => new { Id, Index }).ToDictionary(p => p.Id, p => p.Index);
+                var sortMap = hits.Distinct().Select((Id, Index) => new { Id, Index }).ToDictionary(p => p.Id, p => p.Index);
                 // sort results
                 results = results.Select(r => new { Index = sortMap[r.CatalogObjectId], Result = r })
                                  .OrderBy(p => p.Index)
@@ -373,22 +374,6 @@ namespace Datahub.Core.Services
             return group;
         }
 
-        private async Task<ObjectMetadata> GetObjectMetadata(MetadataDbContext ctx, string objectId)
-        {
-            return await ctx.ObjectMetadataSet
-                            .Include(e => e.FieldValues)
-                            .AsSingleQuery()
-                            .FirstOrDefaultAsync(e => e.ObjectId_TXT == objectId);
-        }
-
-        private async Task<ObjectMetadata> GetObjectMetadata(MetadataDbContext ctx, long objectMetadataId)
-        {
-            return await ctx.ObjectMetadataSet
-                            .Include(e => e.FieldValues)
-                            .AsSingleQuery()
-                            .FirstOrDefaultAsync(e => e.ObjectMetadataId == objectMetadataId);
-        }
-
         private async Task<List<ObjectFieldValue>> CloneMetadataValues(MetadataDbContext ctx, string objectId)
         {
             List<ObjectFieldValue> values = new();
@@ -404,26 +389,6 @@ namespace Datahub.Core.Services
             }
 
             return values;
-        }
-
-        static string GetSearchTextCondition(IEnumerable<string> keywords, string fieldName) => 
-            string.Join(" AND ", keywords.Select(kw => $"{fieldName} LIKE '%{string.Concat(PreProcessSearchText(kw))}%'"));
-
-        static string GetOrSearchCondition(IEnumerable<int> values, string fieldName) =>
-            string.Join(" OR ", values.Select(v => $"{fieldName} = {v}"));
-
-        static string GetOrSearchCondition<T>(IEnumerable<T> values, string fieldName) where T: Enum =>
-            string.Join(" OR ", values.Select(v => $"{fieldName} = {Convert.ToInt32(v)}"));
-
-        static IEnumerable<char> PreProcessSearchText(string text)
-        {
-            foreach (char c in text)
-            {
-                if (char.IsLetterOrDigit(c))
-                    yield return c;
-                else if (char.IsWhiteSpace(c) || char.IsPunctuation(c))
-                    yield return ' ';
-            }
         }
 
         private async Task<Subject> GetSubject(string subjectId)
@@ -736,9 +701,27 @@ namespace Datahub.Core.Services
                             .ToListAsync();
         }
 
-        private async Task<List<CatalogObject>> UpdateCatalogObjectGroup(MetadataDbContext ctx,  string objectId)
+        private async Task<ObjectMetadata> GetObjectMetadata(MetadataDbContext ctx, string objectId)
         {
-            return await ctx.CatalogObjects.Where(e => e.ObjectMetadata.ObjectId_TXT == objectId).ToListAsync();
+            return await ctx.ObjectMetadataSet
+                            .Include(e => e.FieldValues)
+                            .AsSingleQuery()
+                            .FirstOrDefaultAsync(e => e.ObjectId_TXT == objectId);
+        }
+
+        private async Task<ObjectMetadata> GetObjectMetadata(MetadataDbContext ctx, long objectMetadataId)
+        {
+            return await ctx.ObjectMetadataSet
+                            .Include(e => e.FieldValues)
+                            .AsSingleQuery()
+                            .FirstOrDefaultAsync(e => e.ObjectMetadataId == objectMetadataId);
+        }
+
+        private void UpdateCatalogIndex(string docId, string title, string content, bool isFrench)
+        {
+            var catalogSearch = isFrench ? _catalogSearchEngine.GetFrenchSearchEngine() : _catalogSearchEngine.GetEnglishSearchEngine();
+            catalogSearch.AddDocument(docId, (title ?? "").ToLower(), (content ?? "").ToLower());
+            catalogSearch.FlushIndexes();
         }
     }
 }
