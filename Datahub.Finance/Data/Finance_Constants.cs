@@ -12,7 +12,6 @@ namespace Datahub.Portal.Data.Finance
     {
         public static List<DropDownContainer> Potential_Hiring_Process = new List<DropDownContainer>()
         {
-            null,
             new DropDownContainer() { Id = 1, EnglishText = "Candidate identified - finalizing appointment", FrenchText = "Candidate Identified - Finalizing Appointment"},
             new DropDownContainer() { Id = 2, EnglishText = "Process currently being run / expected appointment from pool", FrenchText = "Process currently being run / expected appointment from pool"},
             new DropDownContainer() { Id = 3, EnglishText = "Process to be run - external to the public service", FrenchText = "Process to be run - external to the public service"},
@@ -22,7 +21,6 @@ namespace Datahub.Portal.Data.Finance
 
         public static List<DropDownContainer> Key_Activities = new List<DropDownContainer>()
         {
-            null,
             new DropDownContainer() { Id = 1, EnglishText = "Research, Development and Demonstration to support innovation", FrenchText = "Research, Development and Demonstration to support innovation"},
             new DropDownContainer() { Id = 2, EnglishText = "Science and Technology to better understand Canada’s resources and environment", FrenchText = "Science and Technology to better understand Canada’s resources and environment"},
             new DropDownContainer() { Id = 3, EnglishText = "Policy Advice and Development", FrenchText = "Policy Advice and Development"},
@@ -39,7 +37,6 @@ namespace Datahub.Portal.Data.Finance
 
         public static List<DropDownContainer> Key_Drivers = new List<DropDownContainer>()
         {
-            null,
             new DropDownContainer() { Id = 1, EnglishText = "Research, Development and Demonstration to support innovation", FrenchText = "Research, Development and Demonstration to support innovation"},
             new DropDownContainer() { Id = 2, EnglishText = "Science and Technology to better understand Canada’s resources and environment", FrenchText = "Science and Technology to better understand Canada’s resources and environment"},
             new DropDownContainer() { Id = 3, EnglishText = "Policy Advice and Development", FrenchText = "Policy Advice and Development"},
@@ -56,7 +53,6 @@ namespace Datahub.Portal.Data.Finance
 
         public static List<DropDownContainer> Incremental_Replacements = new List<DropDownContainer>()
         {
-            null,
             new DropDownContainer() { Id = 1, EnglishText = "New", FrenchText = "New"},
             new DropDownContainer() { Id = 2, EnglishText = "Replacement", FrenchText = "Replacement"},            
         };

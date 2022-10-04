@@ -124,9 +124,10 @@
     {
         _fundCenters = Context.FundCenters.Include(f => f.Sector).Include(f => f.Branch).Include(f => f.Division).Where(f => f.FundCenter_ID.ToString() == fundcenterId).ToList();
         _branch = _fundCenters[0].Branch.FCCode;
-        _forecasts = Context.Forecasts.Where(f => f.FundCenter == _fundCenters[0] && !f.Is_Deleted).ToList();        
-        _forecasts.ForEach(c => c.PHP_Values = Finance_Constants.Potential_Hiring_Process[c.Potential_Hiring_Process]);
-        _forecasts.ForEach(c => c.IR_Values = Finance_Constants.Incremental_Replacements[c.Incremental_Replacement]);
+        _forecasts = Context.Forecasts.Where(f => f.FundCenter == _fundCenters[0] && !f.Is_Deleted).ToList();      
+        _forecasts.ForEach(c => { if (c.Potential_Hiring_Process != null) { c.PHP_Values = Finance_Constants.Potential_Hiring_Process[c.Potential_Hiring_Process.GetValueOrDefault()]; } });
+        _forecasts.ForEach(c => { if (c.Incremental_Replacement != null) { c.IR_Values = Finance_Constants.Incremental_Replacements[c.Incremental_Replacement.GetValueOrDefault()]; } });
+        
         //var fundcenters = _forecasts;
         //if (!string.IsNullOrWhiteSpace(searchfilter))
         //{
@@ -221,8 +222,8 @@
                 _forecast = Context.Forecasts.Add(_forecast).Entity;
             }
             _forecast.Last_Updated_DT = DateTime.Now;
-            _forecast.Potential_Hiring_Process = _forecast.PHP_Values.Id;
-            _forecast.Incremental_Replacement = _forecast.IR_Values.Id;
+            _forecast.Potential_Hiring_Process = _forecast.PHP_Values?.Id ?? null;
+            _forecast.Incremental_Replacement = _forecast.IR_Values?.Id ?? null;
             await Context.TrackSaveChangesAsync(AuditingService);
             await UpdateSummaryForecasts();
             LoadData(_searchFilter); ;
@@ -282,8 +283,8 @@
 
     private void OnConfigure(MudBlazor.Forms.IModelFormContext context)
     {
-        context.RegisterOptionValueProperty<Forecast, DropDownContainer>(l => l.PHP_Values, p => p?.EnglishText ?? "N/A", () => Finance_Constants.Potential_Hiring_Process);
-        context.RegisterOptionValueProperty<Forecast, DropDownContainer>(l => l.IR_Values, p => p?.EnglishText ?? "N/A", () => Finance_Constants.Incremental_Replacements);        
+        context.RegisterOptionValueProperty<Forecast, DropDownContainer>(l => l.PHP_Values, p => p?.EnglishText ?? "-", () => Finance_Constants.Potential_Hiring_Process);
+        context.RegisterOptionValueProperty<Forecast, DropDownContainer>(l => l.IR_Values, p => p?.EnglishText ?? "-", () => Finance_Constants.Incremental_Replacements);        
     }
 
 

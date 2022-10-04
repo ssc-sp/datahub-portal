@@ -124,8 +124,8 @@
         _branch = _fundCenters[0].Branch.FCCode;
         _summaryForecasts = Context.SummaryForecasts.Where(f => f.FundCenter == _fundCenters[0] && !f.Is_Deleted).ToList();
         //SET Non-db Dropdowns
-        _summaryForecasts.ForEach(c => c.KA_Values = Finance_Constants.Key_Activities[c.Key_Activity]);
-        _summaryForecasts.ForEach(c => c.KD_Values = Finance_Constants.Key_Drivers[c.Key_Driver]);
+        _summaryForecasts.ForEach(c => { if (c.Key_Activity != null) { c.KA_Values = Finance_Constants.Key_Activities[c.Key_Activity.GetValueOrDefault()]; } });
+        _summaryForecasts.ForEach(c => { if (c.Key_Driver != null) { c.KD_Values = Finance_Constants.Key_Drivers[c.Key_Driver.GetValueOrDefault()]; } });
         //var fundcenters = _forecasts;
         //if (!string.IsNullOrWhiteSpace(searchfilter))
         //{
@@ -221,8 +221,8 @@
                 _summaryForecast = Context.SummaryForecasts.Add(_summaryForecast).Entity;
             }
             _summaryForecast.Last_Updated_DT = DateTime.Now;
-            _summaryForecast.Key_Activity = _summaryForecast.KA_Values.Id;
-            _summaryForecast.Key_Driver = _summaryForecast.KD_Values.Id;
+            _summaryForecast.Key_Activity = _summaryForecast.KA_Values?.Id ?? null; 
+            _summaryForecast.Key_Driver = _summaryForecast.KD_Values?.Id ?? null;
             await Context.TrackSaveChangesAsync(AuditingService);
             LoadData(_searchFilter); ;
             _summaryForecast = null;
@@ -256,8 +256,8 @@
 
     private void OnConfigure(MudBlazor.Forms.IModelFormContext context)
     {
-        context.RegisterOptionValueProperty<SummaryForecast, DropDownContainer>(l => l.KA_Values, p => p?.EnglishText ?? "N/A", () => Finance_Constants.Key_Activities);
-        context.RegisterOptionValueProperty<SummaryForecast, DropDownContainer>(l => l.KD_Values, p => p?.EnglishText ?? "N/A", () => Finance_Constants.Key_Drivers);
+        context.RegisterOptionValueProperty<SummaryForecast, DropDownContainer>(l => l.KA_Values, p => p?.EnglishText ?? "-", () => Finance_Constants.Key_Activities);
+        context.RegisterOptionValueProperty<SummaryForecast, DropDownContainer>(l => l.KD_Values, p => p?.EnglishText ?? "-", () => Finance_Constants.Key_Drivers);
 
     }
 
