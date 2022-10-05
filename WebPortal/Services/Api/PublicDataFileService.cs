@@ -1,17 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
 using Datahub.Core.Data;
 using Datahub.Core.EFCore;
 using Datahub.Core.Services;
 using Datahub.Core.Templates;
 using System.Net;
-using Datahub.Portal.Components;
 using Datahub.Portal.Services.Storage;
 
 namespace Datahub.Portal.Services

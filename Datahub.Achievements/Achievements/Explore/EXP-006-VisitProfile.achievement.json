@@ -1,0 +1,10 @@
+{
+  "Code": "EXP-006",
+  "Name": "Mirror, mirror on the wall",
+  "Description": "View your profile",
+  "ParentAchievementCode": "EXP-009",
+  "Icon": "fas fa-head-vr",
+  "RuleExpressions": [
+    "Utils.EventMetricRegexCount(\"\\/profile$\", EventMetrics) > 0"
+  ]
+}
