@@ -1,4 +1,3 @@
-using Datahub.Graph.Functions.CostManagement;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,6 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
+using Datahub.Core.Services.AzureCosting;
 
 namespace Datahub.Graph.Functions;
 
@@ -67,7 +67,7 @@ public class UpdateProjectMonthlyCost
         var clientId = Environment.GetEnvironmentVariable(CLIENT_ID);
         var clientSecret = Environment.GetEnvironmentVariable(CLIENT_SECRET);
 
-        var service = new CostManagementService(_dbContext);
+        var service = new AzureCostManagementService(_dbContext);
         //Acquire the access token
         var token = await GetAccessTokenAsync(tenantId, clientId, clientSecret);
         
@@ -100,3 +100,8 @@ public class UpdateProjectMonthlyCost
     }
 
 }
+
+public record CostReturnRecord
+{
+    public int NumberOfProjectsUpdated { get; init; }
+};

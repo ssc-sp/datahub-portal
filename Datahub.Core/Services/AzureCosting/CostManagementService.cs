@@ -9,14 +9,14 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 
-namespace Datahub.Graph.Functions.CostManagement
+namespace Datahub.Core.Services.AzureCosting
 {
-    public class CostManagementService
+    public class AzureCostManagementService
     {
         private const string AZURE_BASE_URL = "https://management.azure.com/";
         private DatahubProjectDBContext _dbContext;
 
-        public CostManagementService(DatahubProjectDBContext dbContext)
+        public AzureCostManagementService(DatahubProjectDBContext dbContext)
         {
             _dbContext = dbContext;
         }
