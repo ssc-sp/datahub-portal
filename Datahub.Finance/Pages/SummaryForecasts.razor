@@ -126,22 +126,6 @@
         //SET Non-db Dropdowns
         _summaryForecasts.ForEach(c => { if (c.Key_Activity != null) { c.KA_Values = Finance_Constants.Key_Activities[c.Key_Activity.GetValueOrDefault()]; } });
         _summaryForecasts.ForEach(c => { if (c.Key_Driver != null) { c.KD_Values = Finance_Constants.Key_Drivers[c.Key_Driver.GetValueOrDefault()]; } });
-        //var fundcenters = _forecasts;
-        //if (!string.IsNullOrWhiteSpace(searchfilter))
-        //{
-        //    fundcenters = _forecasts.Where(fundcenter =>
-        //    {
-        //        if (string.IsNullOrWhiteSpace(searchfilter))
-        //            return true;
-        //        if (fundcenter.Division.FundCenterModifiedEnglish.Contains(searchfilter, StringComparison.OrdinalIgnoreCase))
-        //            return true;
-        //        if (fundcenter.Branch.FundCenterModifiedEnglish.Contains(searchfilter, StringComparison.OrdinalIgnoreCase))
-        //            return true;
-        //        if (fundcenter.Sector.FundCenterModifiedEnglish.Contains(searchfilter, StringComparison.OrdinalIgnoreCase))
-        //            return true;
-        //        return false;
-        //    }).ToList();
-        //}
         _formMetadata.Header = string.Empty;
         _formMetadata.SubHeader = "Forecast by Vote";
         _formMetadata.DataSet = _summaryForecasts; //change when filters added
@@ -181,7 +165,7 @@
         //_sortAccessors.Add("division", t => t.Division.FundCenterNameEnglish);
     }
 
-    
+
 
     private void SetFormEdit(SummaryForecast project)
     {
@@ -192,16 +176,27 @@
 
     private async Task DeleteRecord(SummaryForecast forecast)
     {
-        var summaryForecast = Context.SummaryForecasts.Where(f => f == forecast).SingleOrDefault();
-        if (summaryForecast is not null)
-        { 
-            summaryForecast.Is_Deleted = true;
-            await Context.TrackSaveChangesAsync(AuditingService);
+        if (forecast.Fund == "1001")
+        {
+            bool? result = await DialogService.ShowMessageBox(
+                "Error",
+                "This Fund cannot be deleted",
+                yesText: "Ok");
+
         }
-        _summaryForecast = null;
-        _isNew = false;
-        LoadData(_searchFilter);
-        StateHasChanged();
+        else
+        {
+            var summaryForecast = Context.SummaryForecasts.Where(f => f == forecast).SingleOrDefault();
+            if (summaryForecast is not null)
+            {
+                summaryForecast.Is_Deleted = true;
+                await Context.TrackSaveChangesAsync(AuditingService);
+            }
+            _summaryForecast = null;
+            _isNew = false;
+            LoadData(_searchFilter);
+            StateHasChanged();
+        }
     }
 
     private void CreateNewProject()
