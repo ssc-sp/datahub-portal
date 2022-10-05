@@ -60,10 +60,10 @@ public class AchievementService
         var rulesEngine = new RulesEngine.RulesEngine(workflows, rulesEngineSettings);
 
         var hasEarnedNewAchievement = false;
-            var response =
-                await rulesEngine.ExecuteAllRulesAsync(AchievementFactory.AchievementWorkflowName, userObject.Telemetry);
-            hasEarnedNewAchievement = HandleRuleResponses(userObject, response);
-        
+        var response =
+            await rulesEngine.ExecuteAllRulesAsync(AchievementFactory.AchievementWorkflowName, userObject.Telemetry);
+        hasEarnedNewAchievement = HandleRuleResponses(userObject, response);
+
         // if there are any meta achievements present, run the rules engine again
         if (workflows.Any(w => w.WorkflowName == AchievementFactory.MetaAchievementWorkflowName))
         {
@@ -80,12 +80,12 @@ public class AchievementService
     {
         var hasEarnedNewAchievement = false;
         foreach (var userAchievement in from ruleResultTree in response
-                 where ruleResultTree.IsSuccess
-                 select userObject.UserAchievements
-                     .FirstOrDefault(u => u.Code == ruleResultTree.Rule.SuccessEvent && u.Earned == false)
+                                        where ruleResultTree.IsSuccess
+                                        select userObject.UserAchievements
+                                            .FirstOrDefault(u => u.Code == ruleResultTree.Rule.SuccessEvent && u.Earned == false)
                  into userAchievement
-                 where userAchievement is not null
-                 select userAchievement)
+                                        where userAchievement is not null
+                                        select userAchievement)
         {
             // if it's a new one then record and flag for save
             userAchievement!.Date = DateTime.UtcNow;
@@ -125,7 +125,7 @@ public class AchievementService
             await using var ctx = await _contextFactory.CreateDbContextAsync();
             userObject = await ctx.UserObjects!.FirstOrDefaultAsync(u => u.UserId == userId);
         }
-        
+
         userObject ??= new UserObject
         {
             UserId = userId,
@@ -166,38 +166,62 @@ public class AchievementService
 
     public async Task<int> AddOrIncrementTelemetryEvent(string eventName, int value = 1, string? userId = null)
     {
-        var userObject = await GetUserObject(userId);
-        
-        userObject.Telemetry.AddOrIncrementEventMetric(eventName, value);
-        
-        await RunRulesEngine(userObject);
-        await SaveUserObject(userObject);
+        try
+        {
+            var userObject = await GetUserObject(userId);
 
-        return userObject.Telemetry.GetEventMetric(eventName);
+            userObject.Telemetry.AddOrIncrementEventMetric(eventName, value);
+
+            await RunRulesEngine(userObject);
+            await SaveUserObject(userObject);
+
+            return userObject.Telemetry.GetEventMetric(eventName);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error while trying to increment event '{eventName}'");
+            return 0;
+        }
     }
-    
+
     public async Task<int> AddOrSetTelemetryEvent(string eventName, int value, string? userId = null)
     {
-        var userObject = await GetUserObject(userId);
-        
-        userObject.Telemetry.AddOrSetEventMetric(eventName, value);
-        
-        await RunRulesEngine(userObject);
-        await SaveUserObject(userObject);
+        try
+        {
+            var userObject = await GetUserObject(userId);
 
-        return userObject.Telemetry.GetEventMetric(eventName);
+            userObject.Telemetry.AddOrSetEventMetric(eventName, value);
+
+            await RunRulesEngine(userObject);
+            await SaveUserObject(userObject);
+
+            return userObject.Telemetry.GetEventMetric(eventName);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error while trying to increment event '{eventName}'");
+            return 0;
+        }
     }
-    
+
     public async Task<int> AddOrSetTelemetryEventKeepMax(string eventName, int value, string? userId = null)
     {
-        var userObject = await GetUserObject(userId);
-        
-        userObject.Telemetry.AddOrSetTelemetryEventKeepMax(eventName, value);
-        
-        await RunRulesEngine(userObject);
-        await SaveUserObject(userObject);
+        try
+        {
+            var userObject = await GetUserObject(userId);
 
-        return userObject.Telemetry.GetEventMetric(eventName);
+            userObject.Telemetry.AddOrSetTelemetryEventKeepMax(eventName, value);
+
+            await RunRulesEngine(userObject);
+            await SaveUserObject(userObject);
+
+            return userObject.Telemetry.GetEventMetric(eventName);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error while trying to increment event '{eventName}'");
+            return 0;
+        }
     }
 
     private async Task SaveUserObject(UserObject userObject)
