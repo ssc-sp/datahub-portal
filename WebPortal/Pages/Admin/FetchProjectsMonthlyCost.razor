@@ -1,0 +1,47 @@
+@inject UpdateProjectMonthlyCostService UpdateProjectMonthlyCostService
+
+<MudPaper Class="pa-6">
+    <MudText Typo="Typo.h4" Class="my-4">@Localizer["Fetch Project Monthly Cost"]</MudText>
+    @if(_numberOfProjectsUpdated < 0)
+    {
+        <MudAlert Severity="Severity.Error" ShowCloseIcon="true" Style="width: fit-content"
+                  CloseIconClicked="(() => _numberOfProjectsUpdated = null)" Class="my-4">
+            <MudText Typo="Typo.body1">@Localizer[UNABLE_TO_UPDATE_COSTS]</MudText>
+        </MudAlert>
+    }
+    else if (_numberOfProjectsUpdated > 0)
+    {
+        <MudAlert Severity="Severity.Success" ShowCloseIcon="true" Style="width: fit-content"
+                  CloseIconClicked="(() => _numberOfProjectsUpdated = null)" Class="my-4">
+            <MudText Typo="Typo.body1">@Localizer["Updated"] @(_numberOfProjectsUpdated) @Localizer["projects"]</MudText>
+        </MudAlert>
+    }
+    <MudButton Disabled="@_processing" OnClick="FetchCosts" Variant="Variant.Filled" Color="Color.Primary">
+        @if (_processing)
+        {
+            <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
+            <MudText Class="ms-2">@Localizer["Processing"]</MudText>
+        }
+        else
+        {
+            <MudText>@Localizer["Update Costs"]</MudText>
+        }
+    </MudButton>
+</MudPaper>
+
+@code {
+    private bool _processing = false;
+    #nullable enable
+    private int? _numberOfProjectsUpdated;
+    #nullable disable
+    private const string UNABLE_TO_UPDATE_COSTS = "Unable to update projects. Check to make sure UpdateProjectMonthlyCost function is running";
+
+    async Task FetchCosts()
+    {
+        _processing = true;
+        _numberOfProjectsUpdated = null;
+        await Task.Delay(1);
+        _numberOfProjectsUpdated = await UpdateProjectMonthlyCostService.UpdateProjectMonthlyCost();
+        _processing = false;
+    }
+}

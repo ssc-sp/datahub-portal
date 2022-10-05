@@ -1,0 +1,13 @@
+{
+    "IsEncrypted": false,
+    "Values": {
+        "TENANT_ID": "TENANT_ID",
+        "FUNC_SP_CLIENT_ID": "CLIENT_ID",
+        "FUNC_SP_CLIENT_SECRET": "CLIENT_SECRET",
+        "SUBSCRIPTION_ID": "SUBSCRIPTION_ID",
+        "datahub-mssql-project": "datahub-mssql-project-connection-string",
+        "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+        "AzureWebJobsDashboard": "UseDevelopmentStorage=true",
+        "FUNCTIONS_WORKER_RUNTIME": "dotnet"
+    }
+}

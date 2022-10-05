@@ -1,4 +1,3 @@
-using System.IO;
 public class FileList
 {
     public string FileName { get; set; }
