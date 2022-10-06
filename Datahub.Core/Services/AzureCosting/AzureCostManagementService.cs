@@ -20,8 +20,14 @@ namespace Datahub.Core.Services.AzureCosting
         {
             _dbContext = dbContext;
         }
+
         public async Task<IEnumerable<CostManagementRow>> GetCurrentMonthlyCostAsync(string subscriptionId, string token)
         {
+            if (token is null)
+            {
+                throw new ArgumentNullException(nameof(token));
+            }
+
             var body = new CostManagementRequestBody();
             var firstDayOfMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
             body.timePeriod = new TimePeriod()
@@ -37,6 +43,7 @@ namespace Datahub.Core.Services.AzureCosting
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, $"subscriptions/{subscriptionId}/providers/Microsoft.CostManagement/query?api-version=2021-10-01");
             request.Content = new StringContent(serializedBody, System.Text.Encoding.UTF8, "application/json");
             var response = await client.SendAsync(request);
+            if (!response.IsSuccessStatusCode) throw new InvalidOperationException($"Error accessing billing API: {response.StatusCode.ToString()}");
             var content = await response.Content.ReadAsStringAsync();
             var rows = JsonNode.Parse(content)?["properties"]?["rows"] as JsonArray;
             return rows?.Select(r => new CostManagementRow(r as JsonArray)).Where(d => d.TagName is not null);
