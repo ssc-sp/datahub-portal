@@ -1,42 +1,68 @@
-<MudStack>
+@using Datahub.Achievements.Models
+@using MudBlazor.Utilities
+@inject AchievementService _achievementService;
+
+<MudStack Class="my-4">
     <MudStack Row AlignItems="AlignItems.Baseline">
-        <MudText Typo="Typo.h6">@Localizer["Achievements"]</MudText>
-        <MudLink Href="/profile" Typo="Typo.caption">@Localizer["View all"]</MudLink>
+        <MudText Typo="Typo.h5">@Localizer["Achievements"]</MudText>
     </MudStack>
-    <MudGrid>
-        @foreach (var achievement in _achievements)
+    <MudStack>
+        @if (_metaAchievements != null)
         {
-            <MudItem xs="1">
-                <MudTooltip Text="Another one bites the dust">
-                    <MudIconButton Icon="@achievement" aria-label="@achievement"/>
-                </MudTooltip>
-            </MudItem>
+            <MudExpansionPanels Elevation="0" MultiExpansion>
+
+                @foreach (var metaAchievement in _metaAchievements
+                    .OrderBy(a => a.Code))
+                {
+                    var subAchievements = _achievementsByParentCode[metaAchievement.Code!]
+                        .OrderByDescending(a => a.Earned)
+                        .ThenBy(a => a.Achievement?.Code)
+                        .ToList();
+
+                    var completion = (subAchievements.Count(a => a.Earned), subAchievements.Count);
+                    
+                    <MudExpansionPanel>
+                        <TitleContent>
+                            <AchievementCard UserAchievement="metaAchievement" Completion="completion"/>
+                        </TitleContent>
+                        <ChildContent>
+                            @foreach (var userAchievement in _achievementsByParentCode[metaAchievement.Code!]
+                                .OrderByDescending(a => a.Earned)
+                                .ThenBy(a => a.Achievement?.Code))
+                            {
+                                <AchievementCard UserAchievement="userAchievement"/>
+                            }
+                        </ChildContent>
+                    </MudExpansionPanel>
+                }
+
+            </MudExpansionPanels>
         }
-    </MudGrid>
+    </MudStack>
 </MudStack>
 
 @code {
 
     [Parameter]
-    public Microsoft.Graph.User User { get; set; }
+    public GraphUser User { get; set; }
 
-    private List<string> _achievements = new()
+    private Dictionary<string, List<UserAchievement>> _achievementsByParentCode;
+    private List<UserAchievement> _metaAchievements;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        Icons.Filled._1k,
-        Icons.Filled._10k,
-        Icons.Filled.Air,
-        Icons.Filled.Alarm,
-        Icons.Filled.NearbyError,
-        Icons.Filled.Fastfood,
-        Icons.Filled.East,
-        Icons.Filled.NorthEast,
-        Icons.Filled.Quiz,
-        Icons.Filled.Fastfood,
-        Icons.Filled.Face,
-        Icons.Filled.NearbyError,
-        Icons.Filled.Image,
-        Icons.Filled.Radio,
-        Icons.Filled.Javascript,
-    };
+        await base.OnAfterRenderAsync(firstRender);
+
+        if (firstRender)
+        {
+            var achievements = await _achievementService.GetUserAchievements(User.Mail);
+            _achievementsByParentCode = achievements
+                .GroupBy(a => a.Achievement?.ParentAchievementCode ?? "None")
+                .ToDictionary(a => a.Key, a => a.ToList());
+
+            _metaAchievements = achievements.Where(a => a.Achievement is { MetaAchievement: true }).ToList();
+            StateHasChanged();
+        }
+    }
 
 }

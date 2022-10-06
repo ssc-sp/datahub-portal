@@ -1,7 +1,4 @@
 ﻿using Datahub.Metadata.Model;
-using Microsoft.AspNetCore.Components;
-using System;
-using System.Collections.Generic;
 
 namespace Datahub.Portal.Components.Metadata
 {

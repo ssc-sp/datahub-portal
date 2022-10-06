@@ -7,6 +7,7 @@
     @if (_loading)
     {
         <Skeleton Height="2.5rem" Width="150px"/>
+        <Skeleton Height="2.5rem" Width="150px"/>
         <Skeleton Height="5rem" Width="650px"/>
         <Skeleton Height="2rem" Width="900px"/>
         <Skeleton Height="2rem" Width="900px"/>
@@ -14,12 +15,24 @@
     }
     else
     {
-        <MudChip Color=@GetProtectionColor()>@Localizer[GetProjectDataSensitivity()]</MudChip>
-
-        <MudStack Row="true" Spacing="3" Class="mt-2 mb-2">
-            <MudIcon Class="align-self-center" Icon=@_projectIcon Size="Size.Large" />
-            <MudText Class="align-self-center ml-2" Typo="Typo.h3">@_project.ProjectName</MudText>
-        </MudStack>
+        <MudChip Color="Color.Dark" class="project-data-sensitivity">@Localizer[_project.Data_Sensitivity]</MudChip>
+        @if (_currentProjectMonthlyCost is not null)
+        {
+            <MudTooltip Text="@GetToolTipText()" Arrow="true">
+                <MudBadge Icon="@Icons.Filled.QuestionMark" Color="GetCostChipColor()" Overlap="true" Bordered="true">  
+                    <MudChip Icon="@Icons.Filled.AttachMoney" IconColor="GetCostChipColor()" Variant="Variant.Text"
+                             Color="GetCostChipColor()" class="project-data-sensitivity">
+                        @($"{_currentProjectMonthlyCost:F} / {Localizer["month"]}")
+                    </MudChip>
+                </MudBadge>
+            </MudTooltip>
+        }
+        <AeTypography class="project-title" Variant="h1">
+            <span class="project-icon">
+                <i class="@($"{_projectIcon}")"></i>
+            </span>
+            @_project.ProjectName
+        </AeTypography>
         
         <DHMarkdown class="description" Content="@($"{_project.ProjectDescription}")"/>
     }
@@ -30,7 +43,12 @@
     [CascadingParameter(Name = "ProjectAcronym")]
     public string ProjectAcronym { get; set; }
 
+    //Todo: Remove default value
+    [Parameter]
+    public decimal ProjectBudget { get; set; } = 1000m;
+    
     private Datahub_Project _project;
+    private decimal? _currentProjectMonthlyCost;
     private string _projectIcon => $"fas fa-{_project?.Project_Icon ?? Icon.DEFAULT_PROJECT_ICON}";
 
     private bool _loading = true;
@@ -42,8 +60,33 @@
         await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
         _project = await projectContext.Projects
             .SingleAsync(p => p.Project_Acronym_CD == ProjectAcronym);
+        var projectMonthlyCost = await projectContext.Project_Current_Monthly_Costs
+            .SingleOrDefaultAsync(mc => mc.ProjectAcronym == ProjectAcronym.ToLower());
+        if (projectMonthlyCost != null)
+            _currentProjectMonthlyCost = projectMonthlyCost.TotalCost;
 
         _loading = false;
+    }
+    
+    private Color GetCostChipColor()
+    {
+        if (_currentProjectMonthlyCost < 0.01m)
+            return Color.Dark;
+        if (_currentProjectMonthlyCost >= ProjectBudget)
+            return Color.Error;
+        if (_currentProjectMonthlyCost >= 0.75m * ProjectBudget)
+            return Color.Warning;
+        return Color.Default;
+    }
+    
+    private string GetToolTipText()
+    {
+        var projectName = $"{_project.ProjectName} ";
+        if (_currentProjectMonthlyCost >= ProjectBudget)
+            return projectName +  Localizer["is over budget"];
+        if (_currentProjectMonthlyCost >= 0.75m * ProjectBudget)
+            return projectName + Localizer["is nearing budget"];
+        return projectName + Localizer["is under budget"];
     }
 
     private Color GetProtectionColor() => (_project?.Data_Sensitivity ?? "").ToUpper() switch
