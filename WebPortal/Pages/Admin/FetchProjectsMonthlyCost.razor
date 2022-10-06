@@ -1,4 +1,12 @@
-@inject UpdateProjectMonthlyCostService UpdateProjectMonthlyCostService
+@using Datahub.Core.Services.AzureCosting
+@using Microsoft.Azure.Services.AppAuthentication
+@using Microsoft.Identity.Web
+@using Microsoft.Rest
+@inject AzureCostManagementService AzureCostManagementService
+@inject ITokenAcquisition tokenAcquisition
+@inject IConfiguration configuration
+@inject Microsoft.Identity.Web.MicrosoftIdentityConsentAndConditionalAccessHandler ConsentHandler
+@inject ILogger<FetchProjectsMonthlyCost> logger
 
 <MudPaper Class="pa-6">
     <MudText Typo="Typo.h4" Class="my-4">@Localizer["Fetch Project Monthly Cost"]</MudText>
@@ -14,6 +22,13 @@
         <MudAlert Severity="Severity.Success" ShowCloseIcon="true" Style="width: fit-content"
                   CloseIconClicked="(() => _numberOfProjectsUpdated = null)" Class="my-4">
             <MudText Typo="Typo.body1">@Localizer["Updated"] @(_numberOfProjectsUpdated) @Localizer["projects"]</MudText>
+        </MudAlert>
+    }
+    @if (error != null)
+    {
+        <MudAlert Severity="Severity.Error" ShowCloseIcon="true" Style="width: fit-content"
+                  CloseIconClicked="(() => _numberOfProjectsUpdated = null)" Class="my-4">
+            <MudText Typo="Typo.body1">@error</MudText>
         </MudAlert>
     }
     <MudButton Disabled="@_processing" OnClick="FetchCosts" Variant="Variant.Filled" Color="Color.Primary">
@@ -36,12 +51,61 @@
     #nullable disable
     private const string UNABLE_TO_UPDATE_COSTS = "Unable to update projects. Check to make sure UpdateProjectMonthlyCost function is running";
 
+    public static readonly string[] RequiredScopes = new string[] {
+        "https://management.azure.com/.default"
+    };
+
+    private bool ErrorLoadingToken = false;
+    private string token;
+    private string error = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        try
+        {
+            token = await this.tokenAcquisition.GetAccessTokenForUserAsync(RequiredScopes);
+        }
+        catch (MicrosoftIdentityWebChallengeUserException e)
+        {
+            // user isn't logged into Power BI -> redirect to Microsoft
+            ConsentHandler.HandleException(e);
+        }
+        catch (HttpOperationException)
+        {
+            // couldn't load the report - missing or unauthorized
+            ErrorLoadingToken = true;
+        }
+        catch (Exception)
+        {
+            // some other exception, crash and log like normal
+            throw;
+        }
+
+    }
+
+
+
     async Task FetchCosts()
     {
-        _processing = true;
-        _numberOfProjectsUpdated = null;
-        await Task.Delay(1);
-        _numberOfProjectsUpdated = await UpdateProjectMonthlyCostService.UpdateProjectMonthlyCost();
-        _processing = false;
+        try {
+            _processing = true;
+            _numberOfProjectsUpdated = null;
+            await Task.Delay(1);
+
+            var subscriptionId = configuration.GetSection("Billing").GetValue<string>("AzureSubscription");
+            //Get current month cost for each resource
+            var currentMonthlyCosts = (await AzureCostManagementService.GetCurrentMonthlyCostAsync(subscriptionId, token)).ToList();
+
+            //group monthly cost by project and update the database
+            await AzureCostManagementService.UpdateProjectMonthlyCostToDateAsync(currentMonthlyCosts);
+            var numberOfProjectsUpdated = currentMonthlyCosts.Count;
+            _processing = false;
+        } catch (Exception ex)
+        {
+            logger.LogCritical(ex, $"Cannot retrieve Azure Costs");
+            error = ex.Message;
+            _processing = false;
+        }
     }
 }
