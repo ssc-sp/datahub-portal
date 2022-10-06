@@ -1,6 +1,7 @@
 @using Datahub.Core.Components.Skeleton
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
+@inject UIControlsService _uiControlService;
 
 <div class="project-info">
     @if (_loading)
@@ -13,19 +14,13 @@
     }
     else
     {
-        <MudChip Color=@GetProtectionColor()>@Localizer[_project.Data_Sensitivity]</MudChip>
+        <MudChip Color=@GetProtectionColor()>@Localizer[GetProjectDataSensitivity()]</MudChip>
 
         <MudStack Row="true" Spacing="3" Class="mt-2 mb-2">
             <MudIcon Class="align-self-center" Icon=@_projectIcon Size="Size.Large" />
             <MudText Class="align-self-center ml-2" Typo="Typo.h3">@_project.ProjectName</MudText>
         </MudStack>
-
-        @*<AeTypography class="project-title" Variant="h1">
-            <span class="project-icon">
-                <i class="@($"{_projectIcon}")"></i>
-            </span>
-            @_project.ProjectName
-        </AeTypography>*@
+        
         <DHMarkdown class="description" Content="@($"{_project.ProjectDescription}")"/>
     }
 </div>
@@ -58,4 +53,9 @@
         "PROTECTED A" => Color.Error,
         _ => Color.Dark
     };
+
+    private string GetProjectDataSensitivity()
+    {
+        return !string.IsNullOrWhiteSpace(_project?.Data_Sensitivity) ? _project.Data_Sensitivity : "Unclassified";
+    }
 }

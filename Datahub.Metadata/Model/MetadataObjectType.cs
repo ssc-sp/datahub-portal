@@ -11,6 +11,8 @@ namespace Datahub.Metadata.Model
         FileUrl,
         GeoObject,
         Database,
-        DatasetUrl
+        DatasetUrl,
+        DataInitiative,
+        DatabrickNotebook
     }
 }
