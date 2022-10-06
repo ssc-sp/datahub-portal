@@ -18,4 +18,5 @@ public class AchievementServiceOptions
 {
     public bool Enabled { get; set; } = false;
     public string AchievementDirectoryPath { get; set; } = "./Achievements";
+    public bool LocalAchievementsOnly { get; set; } = false;
 }

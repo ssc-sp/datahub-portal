@@ -15,13 +15,11 @@ else
             <MudIcon Icon="fad fa-file-alt fa-xs"/>
         </Logo>
         <ToolActionsList>
-             <ul>
-                <li>
-                    <DHLink Variant="h3" DataProject="@ProjectAcronym" LinkType="DatahubLinkType.DataSharingDashboard">
-                        <AeButton class="light">@Localizer["PROJECT-PAGE.PUBLIC-SHARING-CARD.Title"]</AeButton>
-                    </DHLink>
-                </li>
-             </ul>
+            <DHLink Variant="h3" DataProject="@ProjectAcronym" LinkType="DatahubLinkType.DataSharingDashboard">
+                <ToolActionButton LinkType="LinkType.Internal">
+                    @Localizer["PROJECT-PAGE.PUBLIC-SHARING-CARD.Title"]
+                </ToolActionButton>
+            </DHLink>
         </ToolActionsList>
     </ToolCard>
 }

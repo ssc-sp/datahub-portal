@@ -1,0 +1,10 @@
+{
+  "Code": "PRJ-003",
+  "Name": "Beam us up, Scotty",
+  "Description": "Upload a file using the project's Storage Explorer",
+  "ParentAchievementCode": "PRJ-008",
+  "Icon": "fas fa-rocket",
+  "RuleExpressions": [
+    "Utils.EventMetricExactCount(\"user_upload_file\", EventMetrics) > 0"
+  ]
+}

@@ -17,8 +17,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.IO;
-using Azure.Storage.Blobs.Specialized;
-using Microsoft.Azure.Storage.Blob;
 
 namespace Datahub.Portal.Services.Storage
 {

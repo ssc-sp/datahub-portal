@@ -1,0 +1,10 @@
+{
+  "Code": "EXP-011",
+  "Name": "Why, hello there!",
+  "Description": "View another person's profile",
+  "ParentAchievementCode": "EXP-009",
+  "Icon": "fas fa-glass-citrus",
+  "RuleExpressions": [
+    "Utils.EventMetricExactCount(\"user_view_other_profile\", EventMetrics) > 0"
+  ]
+}

@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using System.Web.Http;
@@ -9,7 +10,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Azure.WebJobs.Host;
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
 using Newtonsoft.Json;
@@ -93,9 +93,9 @@ public static class CreateGraphUser
         var groupId = Environment.GetEnvironmentVariable(SP_GROUP_ID);
             
         log.LogInformation("Adding invited user {UserID} to group {GroupID}", result.InvitedUser.Id, groupId);
-        await AddToGroup(result.InvitedUser.Id, groupId, graphClient);
+        await AddToGroup(result.InvitedUser.Id, groupId, graphClient, log);
             
-        log.LogInformation("Success inviting {UserEmail} ({UserID}) to group {GroupID}", userEmail,
+        log.LogInformation("Success, {UserEmail} ({UserID}) is in group {GroupID}", userEmail,
             result.InvitedUser.Id, groupId);
         
         var response = new JsonObject
@@ -111,16 +111,25 @@ public static class CreateGraphUser
         return new OkObjectResult(response.ToString());
     }
 
-    private static async Task AddToGroup(string userId, string groupId, GraphServiceClient graphClient)
+    private static async Task AddToGroup(string userId, string groupId, GraphServiceClient graphClient, ILogger log)
     {
         var userDirectoryObject = new DirectoryObject
         {
             Id = userId
         };
 
-        await graphClient.Groups[groupId].Members.References
-            .Request()
-            .AddAsync(userDirectoryObject);
+        var exists = graphClient.Groups[groupId].Members.Request().GetAsync().Result.Any(m => m.Id == userId);
+        if (!exists)
+        {
+            await graphClient.Groups[groupId].Members.References
+                .Request()
+                .AddAsync(userDirectoryObject);
+            log.LogInformation("Added user {UserID} to group {GroupID}", userId, groupId);
+        }
+        else
+        {
+            log.LogInformation("User {UserID} already exists in group {GroupID}", userId, groupId);
+        }
     }
 
     private static async Task<Invitation> SendInvitation(string userEmail, GraphServiceClient graphClient)

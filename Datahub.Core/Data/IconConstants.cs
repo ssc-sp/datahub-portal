@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using MudBlazor;
+﻿using MudBlazor;
 
 namespace Datahub.Core.Data
 {
@@ -20,6 +15,14 @@ namespace Datahub.Core.Data
             Name = "fad fa-home",
             Color = "blue",
             HexColor = Colors.Blue.Default,
+        };
+        
+        public static readonly Icon PROFILE = new()
+        {
+            //Name = "fad fa-user-astronaut",
+            Name = "fad fa-user-helmet-safety",
+            Color = "pink",
+            HexColor = Colors.Pink.Default,
         };
 
         public static readonly Icon STORAGE = new()
