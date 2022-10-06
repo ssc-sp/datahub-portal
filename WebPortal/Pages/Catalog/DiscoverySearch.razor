@@ -215,9 +215,6 @@
 	public DataRetrievalService RetrievalService { get; set; }
 
 	[Inject]
-	public IJSRuntime JSRuntime { get; set; }
-
-	[Inject]
 	public IPowerBiDataService PowerBiDataService { get; set; }
 
 	[Inject]
@@ -784,7 +781,7 @@
 
 	private async Task RedirectAndDownload(string url)
 	{
-		await JSRuntime.InvokeAsync<object>("open", url, "_blank");
+		await jsRuntime.InvokeAsync<object>("open", url, "_blank");
 	}
 
 	private bool HasValidFilters(string query = null)

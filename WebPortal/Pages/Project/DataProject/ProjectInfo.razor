@@ -1,6 +1,7 @@
 @using Datahub.Core.Components.Skeleton
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
+@inject UIControlsService _uiControlService;
 
 <div class="project-info">
     @if (_loading)
@@ -32,6 +33,7 @@
             </span>
             @_project.ProjectName
         </AeTypography>
+        
         <DHMarkdown class="description" Content="@($"{_project.ProjectDescription}")"/>
     }
 </div>
@@ -94,4 +96,9 @@
         "PROTECTED A" => Color.Error,
         _ => Color.Dark
     };
+
+    private string GetProjectDataSensitivity()
+    {
+        return !string.IsNullOrWhiteSpace(_project?.Data_Sensitivity) ? _project.Data_Sensitivity : "Unclassified";
+    }
 }
