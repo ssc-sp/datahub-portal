@@ -140,8 +140,17 @@
 
 
         // prepare the timezone service so timestamps get rendered properly right away
-        await _timezoneService.GetLocalDateTime(DateTime.UtcNow);
         _systemNotificationService.Notify += OnNotify;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+        
+        if (firstRender)
+        {
+            await _timezoneService.GetLocalDateTime(DateTime.UtcNow);
+        }
     }
 
     protected override async Task OnParametersSetAsync()

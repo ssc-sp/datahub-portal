@@ -123,7 +123,8 @@ public class AchievementService
         else
         {
             await using var ctx = await _contextFactory.CreateDbContextAsync();
-            userObject = await ctx.UserObjects!.FirstOrDefaultAsync(u => u.UserId == userId);
+            var lowerUserId = userId.ToLower();
+            userObject = await ctx.UserObjects!.FirstOrDefaultAsync(u => u.UserId == lowerUserId);
         }
 
         userObject ??= new UserObject
@@ -233,6 +234,7 @@ public class AchievementService
         else
         {
             await using var ctx = await _contextFactory.CreateDbContextAsync();
+            userObject.UserId = userObject.UserId.ToLower();
             var exists = await ctx.UserObjects!
                 .AsNoTracking()
                 .FirstOrDefaultAsync(u => u.UserId == userObject.UserId);
