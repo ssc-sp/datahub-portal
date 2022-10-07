@@ -45,7 +45,7 @@ steps:
   inputs:
     command: publish
     publishWebProjects: false
-    projects: 'datahub-portal/Datahub.Graph.Functions/*.csproj'
+    projects: 'Datahub.Graph.Functions/*.csproj'
 
 - task: PowerShell@2
   inputs:
