@@ -579,6 +579,10 @@
 		{
 			NavigationManager.NavigateTo($"projects/{result.Location}");
 		}
+		else if (result.DataType == MetadataObjectType.DatabrickNotebook)
+		{
+			await RedirectAndDownload(result.Location);
+		}
 	}
 
 	private string GetButtonText(CatalogObjectResult result)
