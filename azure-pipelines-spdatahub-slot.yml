@@ -59,6 +59,7 @@ steps:
     command: publish
     publishWebProjects: false
     projects: 'Datahub.Graph.Functions/*.csproj'
+    zipAfterPublish: true
 
 - task: DotNetCoreCLI@2
   displayName: dotnet build
@@ -106,7 +107,7 @@ steps:
     azureSubscription: 'AZRM - DataSolutions'
     appType: 'functionApp'
     appName: 'spdatahub-portal-func-dotnet-sand'
-    package: '$(System.DefaultWorkingDirectory)/Datahub.Graph.Functions/**/*Functions*.zip'
+    package: '$(System.DefaultWorkingDirectory)/Datahub.Graph.Functions/**/*.zip'
 
 - task: AzureAppServiceSettings@1
   displayName: Azure App Service Settings
