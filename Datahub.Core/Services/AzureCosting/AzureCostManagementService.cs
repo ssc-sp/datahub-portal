@@ -9,20 +9,27 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 
-namespace Datahub.Graph.Functions.CostManagement
+namespace Datahub.Core.Services.AzureCosting
 {
-    public class CostManagementService
+    public class AzureCostManagementService
     {
         private const string AZURE_BASE_URL = "https://management.azure.com/";
         private DatahubProjectDBContext _dbContext;
 
-        public CostManagementService(DatahubProjectDBContext dbContext)
+        public AzureCostManagementService(DatahubProjectDBContext dbContext)
         {
             _dbContext = dbContext;
         }
-        public async Task<IEnumerable<CostManagementRow>> GetCurrentMonthlyCostAsync(string subscriptionId, string token)
+
+        public async Task<IEnumerable<CostManagementRow>> GetCurrentMonthlyCostAsync(string subscriptionId, string token, string resourceGroup = null)
         {
-            var body = new CostManagementRequestBody();
+            if (token is null)
+            {
+                throw new ArgumentNullException(nameof(token));
+            }
+            var resourceGroupFilter = resourceGroup is null?string.Empty:$"/resourceGroups/{resourceGroup}";
+
+			var body = new CostManagementRequestBody();
             var firstDayOfMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
             body.timePeriod = new TimePeriod()
             {
@@ -33,10 +40,12 @@ namespace Datahub.Graph.Functions.CostManagement
             var client = new HttpClient();
             client.BaseAddress = new Uri(AZURE_BASE_URL);
             client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
-            //Add the request body to the request
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, $"subscriptions/{subscriptionId}/providers/Microsoft.CostManagement/query?api-version=2021-10-01");
+			//Add the request body to the request
+			///
+			HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, $"subscriptions/{subscriptionId}{resourceGroupFilter}/providers/Microsoft.CostManagement/query?api-version=2021-10-01");
             request.Content = new StringContent(serializedBody, System.Text.Encoding.UTF8, "application/json");
             var response = await client.SendAsync(request);
+            if (!response.IsSuccessStatusCode) throw new InvalidOperationException($"Error accessing billing API: {response.StatusCode.ToString()}");
             var content = await response.Content.ReadAsStringAsync();
             var rows = JsonNode.Parse(content)?["properties"]?["rows"] as JsonArray;
             return rows?.Select(r => new CostManagementRow(r as JsonArray)).Where(d => d.TagName is not null);
