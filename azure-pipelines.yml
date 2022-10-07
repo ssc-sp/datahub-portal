@@ -46,6 +46,7 @@ steps:
     command: publish
     publishWebProjects: false
     projects: 'Datahub.Graph.Functions/*.csproj'
+    zipAfterPublish: true
 
 - task: PowerShell@2
   inputs:
