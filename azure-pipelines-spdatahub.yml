@@ -84,11 +84,11 @@ steps:
     DeploymentType: 'webDeploy'
 
 - task: AzureFunctionApp@1
-  displayName: 'Azure Function App Deploy: dh-portal-func-dev'
+  displayName: 'Azure Function App Deploy: spdatahub-portal-func-dotnet-sand'
   inputs:
-    azureSubscription: 'datahub-dev-service-connection'
+    azureSubscription: 'AZRM - DataSolutions'
     appType: 'functionApp'
-    appName: 'dh-portal-func-dev'
+    appName: 'spdatahub-portal-func-dotnet-sand'
     package: '$(System.DefaultWorkingDirectory)/Datahub.Graph.Functions/**/*.zip'
 
 - task: AzureAppServiceSettings@1
