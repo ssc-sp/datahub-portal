@@ -1,0 +1,76 @@
+@*Breadcrumbs.razor*@
+@implements IDisposable
+@inherits LayoutComponentBase
+@using MudBlazor
+@using System.Globalization
+
+<MudBreadcrumbs Items="@_items" MaxItems="7" Separator=">"></MudBreadcrumbs>
+
+@code {
+
+    [Inject]
+    NavigationManager _navigationManager { get; set; }
+
+    [Parameter]
+    public List<BreadcrumbItem> _items { get; set; }
+
+    private CultureInfo _cultureInfo = Thread.CurrentThread.CurrentCulture;
+
+    private string _currentPath;
+
+    protected override void OnInitialized()
+    {
+        _navigationManager.LocationChanged += OnLocationChanged;
+        var relativeLocation = _navigationManager.ToBaseRelativePath(_navigationManager.Uri);
+
+    //Set new breadcrumb items on each invocation
+        SetBreadcrumbs(relativeLocation);
+
+        base.OnInitialized();
+    }
+
+    private void OnLocationChanged(object sender, LocationChangedEventArgs e)
+    {
+        var relativeLocation = _navigationManager.ToBaseRelativePath(e.Location);
+        SetBreadcrumbs(relativeLocation);
+    }
+
+    private void SetBreadcrumbs(string relativeLocation)
+    {
+        _items = new List<BreadcrumbItem>
+        {
+    // Government of Canada Base Path
+            new(
+                href: @Localizer["https://www.canada.ca/en.html"],
+                text: "Canada.ca"
+                )
+        };
+
+        _currentPath = _navigationManager.Uri;
+        var url = _currentPath.Replace(_navigationManager.BaseUri, "");
+        _items.Add(new BreadcrumbItem(
+            href: _navigationManager.BaseUri,
+            disabled: _currentPath == _navigationManager.BaseUri,
+            text: @Localizer[_cultureInfo.TextInfo.ToTitleCase("Home")]
+            ));
+
+        var path = url.Split('/');
+        foreach (var link in path)
+        {
+            if (link == "home") continue;
+
+            _items.Add(new BreadcrumbItem(
+                href: $"{_items.Last().Href}/{link}",
+                disabled: link == path.Last(),
+                text: _cultureInfo.TextInfo.ToTitleCase(link)
+                ));
+        }
+        StateHasChanged();
+    }
+
+    void IDisposable.Dispose()
+    {
+        _navigationManager.LocationChanged -= OnLocationChanged;
+    }
+
+}
