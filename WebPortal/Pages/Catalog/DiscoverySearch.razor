@@ -575,35 +575,26 @@
 		{
 			await RedirectAndDownload(result.IsFrench ? result.Url_French : result.Url_English);
 		}
+		else if (result.DataType == MetadataObjectType.DataInitiative)
+		{
+			NavigationManager.NavigateTo($"projects/{result.Location}");
+		}
 	}
 
 	private string GetButtonText(CatalogObjectResult result)
 	{
-		if (result.DataType == MetadataObjectType.File || result.DataType == MetadataObjectType.FileUrl)
+		return result.DataType switch
 		{
-			return Localizer["Download File"];
-		}
-		else if (result.DataType == MetadataObjectType.PowerBIReport)
-		{
-			return Localizer["Open Report"];
-		}
-		else if (result.DataType == MetadataObjectType.PowerBIWorkspace)
-		{
-			return Localizer["Open Workspace"];
-		}
-		else if (result.DataType == MetadataObjectType.PowerBIDataset)
-		{
-			return Localizer["Open Dataset"];
-		}
-		else if (result.DataType == MetadataObjectType.Database)
-		{
-			return Localizer["Open Database"];
-		}
-		else if (result.DataType == MetadataObjectType.GeoObject)
-		{
-			return Localizer["Open Geo Object"];
-		}
-		return Localizer["Download File"];
+			MetadataObjectType.File or MetadataObjectType.FileUrl => Localizer["Download File"],
+			MetadataObjectType.PowerBIReport => Localizer["Open Report"],
+			MetadataObjectType.PowerBIWorkspace => Localizer["Open Workspace"],
+			MetadataObjectType.PowerBIDataset => Localizer["Open Dataset"],
+			MetadataObjectType.Database => Localizer["Open Database"],
+			MetadataObjectType.GeoObject => Localizer["Open Geo Object"],
+			MetadataObjectType.DataInitiative => Localizer["Open Initiative"],
+			MetadataObjectType.DatabrickNotebook => Localizer["Open Notebook"],
+			_ => Localizer["Download"]
+		};
 	}
 
 	private async Task ViewPowerBIReport(CatalogObjectResult result)
