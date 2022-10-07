@@ -18,56 +18,59 @@
 <MudStack>
     <MudStack Row>
         <MudText Typo=@Typo.h3>
-            @if (_showReportTitle)
+            @if (_showReportInfo)
             {
                 @_catalogReport.Name_English
             }
-            else
+            else if (_isWorking)
             {
                 <MudProgressCircular Indeterminate />
             }
         </MudText>
-        <MudSpacer />
-        <MudButton OnClick=@(() => _relatedMenuOpen = true)>@Localizer[$"{LOCALIZATION_PREFIX}.ReportInformation"]</MudButton>
-        <MudPopover TransformOrigin=@Origin.TopRight AnchorOrigin=@Origin.TopRight Open=@_relatedMenuOpen Paper Style="max-width: 50em;">
-            <MudContainer>
-                <MudStack Row>
-                    <MudSpacer />
-                    <MudIconButton Icon=@Icons.Filled.Close OnClick=@(() => _relatedMenuOpen = false)/>
-                </MudStack>
-                <MudText>@Localizer[$"{LOCALIZATION_PREFIX}.ReportLanguage"]: @Localizer[_catalogReport.Language.ToString()]</MudText>
-                <MudText>@Localizer[$"{LOCALIZATION_PREFIX}.ContactInformation"]: @_catalogReport.Contact</MudText>
-                @if (!string.IsNullOrEmpty(_sectorName))
-                {
-                    <MudText>@Localizer[$"{LOCALIZATION_PREFIX}.Sector"]: @_sectorName</MudText>
-                }
-                @if (!string.IsNullOrEmpty(_branchName))
-                {
-                    <MudText>@Localizer[$"{LOCALIZATION_PREFIX}.Branch"]: @_branchName</MudText>
-                }
 
-                @*<MudText>User language: @UserLanguagePreference</MudText>
-                <MudText>Selected language: @SelectedLanguage</MudText>*@
-                @if (_relatedCatalogItems?.Count > 0)
-                {
-                    <MudDivider />
-                    <MudText Typo=@Typo.h5>@Localizer[$"{LOCALIZATION_PREFIX}.RelatedReports"]</MudText>
-                    <MudList>
-                        @foreach (var report in _relatedCatalogItems)
-                        {
-                            @if (report != _catalogReport)
+        @if (_showReportInfo)
+        {
+            <MudSpacer />
+            <MudButton OnClick=@(() => _relatedMenuOpen = true)>@Localizer[$"{LOCALIZATION_PREFIX}.ReportInformation"]</MudButton>
+            <MudPopover TransformOrigin=@Origin.TopRight AnchorOrigin=@Origin.TopRight Open=@_relatedMenuOpen Paper Style="max-width: 50em;">
+                <MudContainer>
+                    <MudStack Row>
+                        <MudSpacer />
+                        <MudIconButton Icon=@Icons.Filled.Close OnClick=@(() => _relatedMenuOpen = false)/>
+                    </MudStack>
+                    <MudText>@Localizer[$"{LOCALIZATION_PREFIX}.ReportLanguage"]: @Localizer[_catalogReport.Language.ToString()]</MudText>
+                    <MudText>@Localizer[$"{LOCALIZATION_PREFIX}.ContactInformation"]: @_catalogReport.Contact</MudText>
+                    @if (!string.IsNullOrEmpty(_sectorName))
+                    {
+                        <MudText>@Localizer[$"{LOCALIZATION_PREFIX}.Sector"]: @_sectorName</MudText>
+                    }
+                    @if (!string.IsNullOrEmpty(_branchName))
+                    {
+                        <MudText>@Localizer[$"{LOCALIZATION_PREFIX}.Branch"]: @_branchName</MudText>
+                    }
+
+                    @if (_relatedCatalogItems?.Count > 0)
+                    {
+                        <MudDivider />
+                        <MudText Typo=@Typo.h5>@Localizer[$"{LOCALIZATION_PREFIX}.RelatedReports"]</MudText>
+                        <MudList>
+                            @foreach (var report in _relatedCatalogItems)
                             {
-                                <MudListItem>
-                                    <MudLink Href=@GenerateReportLink(report) @onclick=@(async () => await ChangeReport(report))>
-                                        @report.Name_English - @Localizer[@report.Language.ToString()]
-                                    </MudLink>
-                                </MudListItem>
+                                @if (report != _catalogReport)
+                                {
+                                    <MudListItem>
+                                        <MudLink Href=@GenerateReportLink(report) @onclick=@(async () => await ChangeReport(report))>
+                                            @report.Name_English - @Localizer[@report.Language.ToString()]
+                                        </MudLink>
+                                    </MudListItem>
+                                }
                             }
-                        }
-                    </MudList>
-                }
-            </MudContainer>
-        </MudPopover>
+                        </MudList>
+                    }
+                </MudContainer>
+            </MudPopover>
+        }
+
     </MudStack>
     <MudContainer>
         @foreach(var keyword in _catalogKeywords)
@@ -94,17 +97,13 @@
 
 
 @code {
-    private const string LOCALIZATION_PREFIX = "TEMP-POWERBI";
+    private const string LOCALIZATION_PREFIX = "POWER_BI_SHARED_INTERNAL";
 
     [Parameter]
     public string ObjectId { get; set; }
 
     [Parameter]
     public string Language { get; set; }
-
-    //[CascadingParameter(Name = "UserLanguage")]
-    //public (Func<string> currentLanguage, Action<string> setLanguage) UserLanguage { get; set; }
-
 
     private bool _isWorking = true;
     private bool _invalidReport = false;
@@ -126,14 +125,7 @@
 
     private string _userLanguagePreferenceOnLoad;
 
-    private bool _showReportTitle => !_invalidReport && !_isWorking && _catalogReport != null;
-
-    //private LanguageEnum UserLanguagePreference => UserLanguage.currentLanguage() switch
-    //{
-    //    "en" => LanguageEnum.English,
-    //    "fr" => LanguageEnum.French,
-    //    _ => LanguageEnum.Bilingual
-    //};
+    private bool _showReportInfo => !_invalidReport && !_isWorking && _catalogReport != null;
 
     private LanguageEnum UserLangPreference => _userLanguagePreferenceOnLoad?.ToLowerInvariant() switch
     {
@@ -151,7 +143,13 @@
         _ => UserLangPreference
     };
 
-    private bool ReportIsFrench => (_catalogReport?.IsFrench ?? false) || (SelectedLanguage == LanguageEnum.French);
+    private bool ReportIsFrench => (_catalogReport?.Language == LanguageEnum.French) || (SelectedLanguage == LanguageEnum.French);
+
+    private void InvalidateReport()
+    {
+        _invalidReport = true;
+        _isWorking = false;
+    }
 
     private async Task LoadReportPage(Guid objectGuid)
     {
@@ -170,7 +168,7 @@
                 _reportId = objectGuid;
                 await PopulateFromCatalogReport();
             }
-            else if (_relatedCatalogItems != null)
+            else if (_relatedCatalogItems?.Count > 0)
             {
                 _groupId = objectGuid;
                 RedirectFromGroup(_relatedCatalogItems);
@@ -178,9 +176,10 @@
             }
             else
             {
-                _invalidReport = true;
+                InvalidateReport();
             }
 
+            // after everything is loaded, remove language from url
             if (_reportId.HasValue)
             {
                 SilentlyUpdateUrl(_reportId.Value, LanguageEnum.Bilingual);
@@ -194,21 +193,13 @@
         catch (Microsoft.Rest.HttpOperationException)
         {
             // couldn't load the report - missing or unauthorized
-            _invalidReport = true;
+            InvalidateReport();
         }
         catch (Exception)
         {
             // some other exception, crash and log like normal
             throw;
         }
-    }
-
-    private void TempSetCulture(LanguageEnum lang)
-    {
-        var langCode = lang == LanguageEnum.French ? "fr-ca" : "en-ca";
-        var culture = CultureInfo.GetCultureInfoByIetfLanguageTag(langCode);
-        Thread.CurrentThread.CurrentCulture = culture;
-        Thread.CurrentThread.CurrentUICulture = culture;
     }
 
     private string DetectCurrentLanguage()
@@ -223,19 +214,18 @@
             _userInfoService.SetLanguage($"{Language}-ca");
         }
 
-        //_userLanguagePreferenceOnLoad = UserLanguage.currentLanguage();
-        //_userLanguagePreferenceOnLoad = await _userInfoService.GetUserLanguage();
         _userLanguagePreferenceOnLoad = DetectCurrentLanguage();
-
 
         Guid objectGuid;
         if (!Guid.TryParse(ObjectId, out objectGuid))
         {
-            //_navManager.NavigateTo("/");
-            _invalidReport = true;
+            InvalidateReport();
         }
 
-        await LoadReportPage(objectGuid);
+        if (!_invalidReport)
+        {
+            await LoadReportPage(objectGuid);
+        }
     }
 
     private bool IsWrongLanguage(LanguageEnum reportLanguage) => SelectedLanguage != LanguageEnum.Bilingual
@@ -282,24 +272,14 @@
             await ShowEmbeddedReport();
         }
 
-        //if (IsWrongLanguage(_catalogReport.Language))
-        //{
-        //    await RedirectFromGroup(_relatedCatalogItems);
-        //}
-        //else
-        //{
-        //    _pbiReport = await _pbiApiService.GetReport(_reportId.ToString());
-        //    await ShowEmbeddedReport();
-        //}
-
         if (_catalogReport != null)
         {
-            SetAllTags();
+            GetReportTags();
             await GetSectorAndBranchInfo();
         }
     }
 
-    private void SetAllTags()
+    private void GetReportTags()
     {
         _catalogKeywords = new();
         var keywords = ReportIsFrench ? "keywords_fr" : "keywords_en";
@@ -321,7 +301,8 @@
         else
         {
             return catalogObjects.FirstOrDefault(r => r.Language == SelectedLanguage) ??
-                catalogObjects.FirstOrDefault(r => r.Language == LanguageEnum.Bilingual);
+                catalogObjects.FirstOrDefault(r => r.Language == LanguageEnum.Bilingual) ??
+                catalogObjects.FirstOrDefault();
         }
     }
 
@@ -338,14 +319,9 @@
         {
             _catalogReport = newReport;
             _reportId = Guid.Parse(newReport.Metadata.ObjectId);
-            //var extReportTask = _powerBiDataService.GetExternalReportRecord(newGuid);
-            //var url = _pbiDataService.GeneratePublishedInternalReportLink(_reportId.Value, SelectedLanguage);
-            //_navManager.NavigateTo(url, replace: true);
             SilentlyUpdateUrl(_reportId.Value, SelectedLanguage);
             var newLang = SelectedLanguage == LanguageEnum.French ? "fr-ca" : "en-ca";
             return _userInfoService.SetLanguage(newLang);
-
-            //await PopulateFromCatalogReport();
         }
         else 
         {
@@ -360,7 +336,7 @@
 
         _pbiSettings = new();
 
-        // if readonly
+        // readonly settings
         _pbiSettings.bars.actionBar.visible = true;
         _pbiSettings.navContentPaneEnabled = true;
         _pbiSettings.filterPaneEnabled = true;
@@ -391,32 +367,5 @@
         _navManager.NavigateTo(GenerateReportLink(report), forceLoad: true);
         await Task.CompletedTask;
     }
-
-    private async Task ChangeReportOld(CatalogItem report)
-    {
-        _relatedMenuOpen = false;
-        if (Guid.TryParse(report.Metadata.ObjectId, out var objectGuid))
-        {
-            await LoadReportPage(objectGuid);
-        }
-        else
-        {
-            _invalidReport = true;
-        }
-    }
-
-    //protected override void OnAfterRender(bool firstRender)
-    //{
-    //    if (!firstRender)
-    //    {
-    //        var newLang = UserLanguage.currentLanguage();
-    //        if (newLang != _userLanguagePreferenceOnLoad)
-    //        {
-    //            _userLanguagePreferenceOnLoad = newLang;
-    //            var redirectUrl = _pbiDataService.GeneratePublishedInternalReportLink(_reportId.Value, UserLanguagePreference);
-    //            _navManager.NavigateTo(redirectUrl, forceLoad: true);
-    //        }
-    //    }
-    //}
 
 }
