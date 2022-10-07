@@ -686,14 +686,18 @@ namespace Datahub.Core.Services
             return catalogObject?.Language;
         }
 
+        /// <summary>
+        /// GetProjectCatalogItems will only list Files and Power BI reports for now.
+        /// </summary>
         public async Task<List<CatalogObjectResult>> GetProjectCatalogItems(int projectId)
         {
             using var ctx = await _contextFactory.CreateDbContextAsync();
 
             var definitions = await GetLatestMetadataDefinition(ctx);
+            List<MetadataObjectType> listedTypes = new() { MetadataObjectType.File, MetadataObjectType.PowerBIReport }; 
 
             return await ctx.CatalogObjects
-                            .Where(e => e.ProjectId == projectId && e.Classification_Type == ClassificationType.Unclassified)
+                            .Where(e => e.ProjectId == projectId && e.Classification_Type == ClassificationType.Unclassified && listedTypes.Contains(e.DataType))
                             .Include(e => e.ObjectMetadata)
                             .ThenInclude(s => s.FieldValues)
                             .AsSingleQuery()

@@ -55,8 +55,9 @@ else
         
         _project = await projectDbContext.Projects
             .Include(p => p.Requests)
-            .SingleAsync(p => p.Project_Acronym_CD == ProjectAcronym);
-        
+            .AsSingleQuery()
+            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == ProjectAcronym);
+
         if (UserId != null)
         {
             _isDataApprover = await projectDbContext.Project_Users
