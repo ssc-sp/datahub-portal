@@ -67,17 +67,28 @@
                             }
                         </MudList>
                     }
+                    else
+                    {
+                        <MudText>&nbsp;</MudText>
+                    }
                 </MudContainer>
             </MudPopover>
         }
 
     </MudStack>
-    <MudContainer>
+    <MudStack Row>
         @foreach(var keyword in _catalogKeywords)
         {
             <MudChip>@keyword</MudChip>
         }
-    </MudContainer>
+        <MudSpacer />
+        @if (_catalogReport != null)
+        {
+            <MudChip Color=@SecurityClassColour Icon=@SecurityClassIcon>
+                @Localizer["DISCOVERY-LABELS.DATA SENSITIVITY"]: @Localizer[SecurityClassKey]
+            </MudChip>
+        }
+    </MudStack>
 
     <MudContainer>
         @if (_invalidReport)
@@ -144,6 +155,17 @@
     };
 
     private bool ReportIsFrench => (_catalogReport?.Language == LanguageEnum.French) || (SelectedLanguage == LanguageEnum.French);
+
+    private Color SecurityClassColour => _catalogReport?.ClassificationType switch
+    {
+        Metadata.Model.ClassificationType.ProtectedA => Color.Warning,
+        Metadata.Model.ClassificationType.ProtectedB => Color.Error,
+        _ => Color.Success
+    };
+
+    private string SecurityClassKey => SecurityClassification.GetSecurityClassification(_catalogReport?.ClassificationType ?? Metadata.Model.ClassificationType.Unclassified);
+
+    private string SecurityClassIcon => _catalogReport?.ClassificationType != Metadata.Model.ClassificationType.Unclassified ? Icons.Filled.Lock : Icons.Filled.LockOpen;
 
     private void InvalidateReport()
     {
