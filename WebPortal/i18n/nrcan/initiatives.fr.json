@@ -238,6 +238,16 @@
     "SendNotificationButton": "Envoyer une notification",
     "NotificationSentMessage": "Une notification a été envoyée aux administrateurs de Power BI."
   },
+  "POWER_BI_SHARED_INTERNAL": {
+    "ReportInformation": "Information sur le rapport",
+    "ReportLanguage": "Langage du rapport",
+    "ContactInformation": "Informations de contact",
+    "Sector": "Secteur",
+    "Branch": "Branche",
+    "RelatedReports": "Rapport(s) connexe(s)",
+    "Loading": "Chargement",
+    "InvalidReport": "Rapport non valide"
+  },
   "RESOURCE_REQUEST_INFO_PANEL": {
     "RequestInformation": "Information sur la demande",
     "InputParameters": "Paramètres d'entrée",

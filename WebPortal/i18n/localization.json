@@ -201,6 +201,11 @@
     "English": "English",
     "French": "French"
   },
+  "LANGUAGE_TYPES_SHORT": {
+    "Bilingual": "BI",
+    "English": "EN",
+    "French": "FR"
+  },
   "RESOURCE-TYPE": {
     "psql": "PostgreSQL",
     "sql": "SQL Server",
