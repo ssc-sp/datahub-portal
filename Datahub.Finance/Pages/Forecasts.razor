@@ -245,7 +245,7 @@
     {
         var sum = Context.Forecasts.Where(f => f.FundCenter == _fundCenters[0] && !f.Is_Deleted).Select(t => t.Salary ?? 0).Sum();
         var fteSum = Context.Forecasts.Where(f => f.FundCenter == _fundCenters[0] && !f.Is_Deleted).Select(t => t.FTE ?? 0).Sum();
-        var fund = Context.SummaryForecasts.Where(f => f.Fund == _forecast.Fund && f.FundCenter == _forecast.FundCenter).FirstOrDefault();
+        var fund = Context.SummaryForecasts.Where(f => f.Fund == _forecast.Fund && f.FundCenter == _forecast.FundCenter && !f.Is_Deleted).FirstOrDefault();
 
 
         var attritionRate = Context.FundCenters.Where(f => f.FundCenter_ID.ToString() == fundcenterId).Select(a => a.AttritionRate).FirstOrDefault() ?? 0;
