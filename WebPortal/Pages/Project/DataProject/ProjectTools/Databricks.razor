@@ -1,6 +1,7 @@
 @using Datahub.Portal.Data.ProjectResource
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject RequestManagementService _requestManagementService
+@inject NavigationManager NavigationManager
 
 @if (_project is null)
 {
@@ -25,6 +26,9 @@ else
                                     @Localizer["Open Azure Databricks"]
                             </ToolActionButton>
                         </DHLink>
+                    </li>
+                    <li>
+                        <AeButton class="light" OnClickEvent="HandleEditMetadata">@Localizer["Edit Metadata"]</AeButton>
                     </li>
                 }
                 else
@@ -73,7 +77,8 @@ else
 
         _project = await projectDbContext.Projects
             .Include(p => p.Requests)
-            .SingleAsync(p => p.Project_Acronym_CD == ProjectAcronym);
+            .AsSingleQuery()
+            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == ProjectAcronym);
 
         if (UserId != null)
         {
@@ -107,4 +112,8 @@ else
         _databricksServiceRequested = true;
     }
 
+    private void HandleEditMetadata()
+    {
+        NavigationManager.NavigateTo($"/admin/databricks/metadata/{ProjectAcronym}");
+    }
 }

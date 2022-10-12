@@ -59,12 +59,11 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        await base.OnInitializedAsync();
-
         await using var projectDbContext = await _dbFactoryProject.CreateDbContextAsync();
         _project = await projectDbContext.Projects
             .Include(p => p.Requests)
-            .SingleAsync(p => p.Project_Acronym_CD == ProjectAcronym);
+            .AsSingleQuery()
+            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == ProjectAcronym);
 
         if (UserId != null)
         {
