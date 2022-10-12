@@ -1,4 +1,6 @@
 using System.Text.Json;
+using Datahub.Achievements.Models;
+using Microsoft.Extensions.Logging;
 using RulesEngine.Models;
 
 namespace Datahub.Achievements;
@@ -6,24 +8,27 @@ namespace Datahub.Achievements;
 public class AchievementFactory
 {
     public const string AchievementWorkflowName = "Achievement Workflow";
+    public const string MetaAchievementWorkflowName = "Meta Achievement Workflow";
+
 
     public Dictionary<string, Achievement>? Achievements { get; private set; }
 
-    public static async Task<AchievementFactory> CreateFromFilesAsync(string? directoryPath = null)
+    public static async Task<AchievementFactory> CreateFromFilesAsync(string? directoryPath = null,  ILogger? logger = null)
     {
         var achievementFactory = new AchievementFactory();
-        await achievementFactory.InitializeAchievements(directoryPath);
+        await achievementFactory.InitializeAchievements(directoryPath, logger);
         return achievementFactory;
     }
 
-    private async Task InitializeAchievements(string? directoryPath = null)
+    private async Task InitializeAchievements(string? directoryPath = null, ILogger? logger = null)
     {
-        
         var pathName = directoryPath ?? $"{Directory.GetCurrentDirectory()}/Achievements";
-        var files = Directory.GetFiles(pathName, "*.achievement.json");
+        logger?.LogInformation("Loading achievements from {PathName}", pathName);
+        var files = Directory.GetFiles(pathName, "*.achievement.json", SearchOption.AllDirectories);
         Achievements = new Dictionary<string, Achievement>();
         foreach (var fileData in files)
         {
+            logger?.LogInformation("Loading achievement from {FileName}", fileData);
             var file = await File.ReadAllTextAsync(fileData);
             using var document = JsonDocument.Parse(file);
 
@@ -39,25 +44,47 @@ public class AchievementFactory
     }
     private AchievementFactory() { }
     
-    public Workflow CreateWorkflow()
+    public static Workflow[] CreateWorkflows(IEnumerable<Achievement> achievements)
     {
-
-        var rules = new List<Rule>();
-        if (Achievements == null)
+        if (achievements == null)
             throw new Exception("No achievements found");
+        
+        var rules = new List<Rule>();
+        var metaRules = new List<Rule>();
 
-        foreach (var (code, achievement) in Achievements)
+        foreach (var achievement in achievements)
         {
-            achievement.Rules.ForEach(rules.Add);
+            if (achievement.MetaAchievement)
+            {
+                achievement.Rules.ForEach(metaRules.Add);
+            }
+            else
+            {
+                achievement.Rules.ForEach(rules.Add);
+            }
         }
 
-        var achievementWorkflow = new Workflow()
-        {
-            WorkflowName = AchievementWorkflowName,
-            Rules = rules
-        };
+        var result = new List<Workflow>();
 
-        return achievementWorkflow;
+        if (rules.Any())
+        {
+            result.Add(new Workflow
+            {
+                WorkflowName = AchievementWorkflowName,
+                Rules = rules
+            });
+        }
+
+        if (metaRules.Any())
+        {
+            result.Add(new Workflow
+            {
+                WorkflowName = MetaAchievementWorkflowName,
+                Rules = metaRules
+            });
+        }
+
+        return result.ToArray();
     }
     
     public Achievement FromCode(string code)

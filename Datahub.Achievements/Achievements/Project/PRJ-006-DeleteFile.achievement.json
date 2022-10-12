@@ -1,0 +1,10 @@
+{
+  "Code": "PRJ-006",
+  "Name": "Another one bytes the dust",
+  "Description": "Delete a file from the project with the Storage Explorer",
+  "ParentAchievementCode": "PRJ-008",
+  "Icon": "fas fa-sun-dust",
+  "RuleExpressions": [
+    "Utils.EventMetricExactCount(\"user_delete_file\", EventMetrics) > 0"
+  ]
+}

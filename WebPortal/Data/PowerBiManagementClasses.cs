@@ -1,8 +1,5 @@
 ﻿using Datahub.Core.EFCore;
 using Microsoft.PowerBI.Api.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Datahub.Portal.Data
 {

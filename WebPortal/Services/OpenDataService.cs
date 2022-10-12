@@ -2,11 +2,6 @@
 using Datahub.Core.EFCore;
 using Datahub.Metadata.DTO;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.IO;
-using System.Linq;
-using System.Net.Http;
-using System.Threading.Tasks;
 
 namespace Datahub.Portal.Services
 {

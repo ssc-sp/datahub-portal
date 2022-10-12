@@ -53,6 +53,10 @@
       }
     }
   },
+  "UpdateProjectMonthlyCostFunction": {
+      "FunctionUrl": "",
+      "FunctionCode": ""
+  },
   "KeyVault": {
     "UserName": ""
   },

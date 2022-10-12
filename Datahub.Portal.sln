@@ -70,9 +70,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Achievements", "Dat
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Achievements.Test", "Datahub.Achievements.Test\Datahub.Achievements.Test.csproj", "{72C2A522-FAC2-439B-97D2-B9CDF289BE8A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Datahub.CatalogSearch", "Datahub.CatalogSearch\Datahub.CatalogSearch.csproj", "{304A5D8A-8665-424B-8DD8-23D65753F645}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.CatalogSearch", "Datahub.CatalogSearch\Datahub.CatalogSearch.csproj", "{304A5D8A-8665-424B-8DD8-23D65753F645}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Datahub.CatalogSearch.Tests", "Datahub.CatalogSearch.Tests\Datahub.CatalogSearch.Tests.csproj", "{EE5EC583-4088-4D50-99A4-C3EAB0C48811}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.CatalogSearch.Tests", "Datahub.CatalogSearch.Tests\Datahub.CatalogSearch.Tests.csproj", "{EE5EC583-4088-4D50-99A4-C3EAB0C48811}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Graph.Functions", "Datahub.Graph.Functions\Datahub.Graph.Functions.csproj", "{EDB44E0F-DF37-4717-943C-58A4EC672A4F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureCostSyncCLI", "AzureCostSyncCLI\AzureCostSyncCLI.csproj", "{9E36CAF6-992C-4661-9A21-2FAC3EFD31F7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -163,6 +167,14 @@ Global
 		{EE5EC583-4088-4D50-99A4-C3EAB0C48811}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EE5EC583-4088-4D50-99A4-C3EAB0C48811}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EE5EC583-4088-4D50-99A4-C3EAB0C48811}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EDB44E0F-DF37-4717-943C-58A4EC672A4F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EDB44E0F-DF37-4717-943C-58A4EC672A4F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EDB44E0F-DF37-4717-943C-58A4EC672A4F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EDB44E0F-DF37-4717-943C-58A4EC672A4F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9E36CAF6-992C-4661-9A21-2FAC3EFD31F7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9E36CAF6-992C-4661-9A21-2FAC3EFD31F7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9E36CAF6-992C-4661-9A21-2FAC3EFD31F7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9E36CAF6-992C-4661-9A21-2FAC3EFD31F7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -178,10 +190,11 @@ Global
 		{52436CFD-EEE3-4249-AB82-53BBEE7F8251} = {2B936783-B7E9-401F-9AB4-2D60D9F1E95E}
 		{D49B255D-3B8D-473C-8BFA-094440AE9CED} = {D678C794-D1AE-4372-9097-A8C8E0469613}
 		{C7E9370C-84AF-461F-A073-43AD43B3AF21} = {99B35301-CA50-489C-B1BF-E77559140B1E}
+		{9E36CAF6-992C-4661-9A21-2FAC3EFD31F7} = {99B35301-CA50-489C-B1BF-E77559140B1E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		RESX_ConfirmAddLanguageFile = True
-		RESX_AutoCreateNewLanguageFiles = True
 		SolutionGuid = {9DC4B901-16FF-4FF2-9ED6-B286EA17048E}
+		RESX_AutoCreateNewLanguageFiles = True
+		RESX_ConfirmAddLanguageFile = True
 	EndGlobalSection
 EndGlobal
