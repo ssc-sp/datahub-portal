@@ -1,0 +1,10 @@
+{
+  "Code": "PRJ-002",
+  "Name": "Can I help?",
+  "Description": "Join a project",
+  "ParentAchievementCode": "PRJ-008",
+  "Icon": "fas fa-person-sign",
+  "RuleExpressions": [
+    "Utils.EventMetricExactCount(\"user_joined_project\", EventMetrics) > 0"
+  ]
+}

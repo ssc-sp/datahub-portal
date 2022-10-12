@@ -64,12 +64,9 @@ namespace Datahub.Metadata.Model
         /// Grouping for linking catalog objects
         /// </summary>
         public Guid? GroupId { get; set; }
-    }
-
-    public enum CatalogObjectLanguage
-    {
-        Bilingual,
-        English,
-        French
+        /// <summary>
+        /// Optional project id
+        /// </summary>
+        public int? ProjectId { get; set; }
     }
 }

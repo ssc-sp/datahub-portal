@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection.Metadata;
 using System.Threading.Tasks;
 
 namespace Datahub.Portal.Data.Finance
@@ -17,6 +16,7 @@ namespace Datahub.Portal.Data.Finance
         public DbSet<FiscalYear> FiscalYears { get; set; }
         public DbSet<Forecast> Forecasts { get; set; }
         public DbSet<SummaryForecast> SummaryForecasts { get; set; }
+        public DbSet<BranchAccess> BranchAccess { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

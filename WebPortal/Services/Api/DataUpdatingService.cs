@@ -1,15 +1,10 @@
-﻿using System;
-using System.Net.Http;
-using System.Threading.Tasks;
-using Azure.Storage.Files.DataLake;
+﻿using Azure.Storage.Files.DataLake;
 using Microsoft.AspNetCore.Components;
-using Microsoft.Extensions.Logging;
 using Datahub.Core.Data;
 using Datahub.Core.Services;
 using Datahub.Portal.Services.Storage;
 using Microsoft.Azure.Storage;
 using Microsoft.Azure.Storage.Blob;
-using Microsoft.Graph;
 using Folder = Datahub.Core.Data.Folder;
 
 namespace Datahub.Portal.Services

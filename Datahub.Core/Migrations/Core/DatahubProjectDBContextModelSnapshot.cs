@@ -732,6 +732,31 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.ToTable("PowerBi_Workspaces");
                 });
 
+            modelBuilder.Entity("Datahub.Core.EFCore.Project_Current_Monthly_Cost", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<string>("ProjectAcronym")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("TotalCost")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("TotalCostUSD")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Project_Current_Monthly_Costs");
+                });
+
             modelBuilder.Entity("Datahub.Core.EFCore.Project_Resources", b =>
                 {
                     b.Property<int>("Id")

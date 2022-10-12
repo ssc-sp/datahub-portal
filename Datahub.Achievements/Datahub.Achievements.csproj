@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
@@ -6,22 +6,20 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
-    <ItemGroup>
-      <Reference Include="Microsoft.Extensions.Logging.Abstractions">
-        <HintPath>..\WebPortal\bin\Debug\net6.0\Microsoft.Extensions.Logging.Abstractions.dll</HintPath>
-      </Reference>
-    </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Blazored.LocalStorage" Version="4.2.0" />
+		<PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="6.0.*" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.*" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.*" />
+		<PackageReference Include="MudBlazor" Version="6.0.16" />
+		<PackageReference Include="RulesEngine" Version="4.0.0" />
+	</ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="MudBlazor" Version="6.0.13" />
-      <PackageReference Include="RulesEngine" Version="3.5.0" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <None Remove="Achievements\**\*.achievement.json" />
-      <EmbeddedResource Include="Achievements\**\*.achievement.json">
+      <Content Include="Achievements\**\*.achievement.json">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </EmbeddedResource>
+        <CopyToPublishDirectory>Always</CopyToPublishDirectory>
+      </Content>
     </ItemGroup>
 
 </Project>

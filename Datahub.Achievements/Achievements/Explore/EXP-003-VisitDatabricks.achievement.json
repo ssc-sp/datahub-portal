@@ -1,0 +1,10 @@
+{
+  "Code": "EXP-003",
+  "Name": "Let's analyze!",
+  "Description": "Navigate to the Databricks page of a project",
+  "ParentAchievementCode": "EXP-009",
+  "Icon": "fas fa-analytics",
+  "RuleExpressions": [
+    "Utils.EventMetricExactCount(\"user_click_databricks_link\", EventMetrics) > 0"
+  ]
+}

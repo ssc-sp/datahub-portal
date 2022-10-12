@@ -1,13 +1,7 @@
-﻿using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Graph;
-using Microsoft.Graph.Auth;
-using Microsoft.Identity.Client;
+﻿using Microsoft.Extensions.Configuration;
 using Datahub.Core.Data;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using System.Threading;
 
