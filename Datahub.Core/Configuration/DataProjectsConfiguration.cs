@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Datahub.Core.Configuration
+﻿namespace Datahub.Core.Configuration
 {
     public record DataProjectsConfiguration
     {
@@ -26,6 +20,8 @@ namespace Datahub.Core.Configuration
         public bool ProjectDatabases { get; set; } = true;
         public bool DataManagement { get; set; } = true;
         public bool IoT { get; set; } = true;
+        public bool StorageCost { get; set; } = true;
+        public bool ComputeCost { get; set; } = true;
 
     }
 }

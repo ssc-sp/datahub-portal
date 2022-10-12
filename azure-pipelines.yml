@@ -32,7 +32,22 @@ steps:
     command: restore
     projects: 'WebPortal/*.csproj'
     includeNuGetOrg: true
-    
+
+- task: DotNetCoreCLI@2
+  displayName: dotnet restore function
+  inputs:
+    command: restore
+    projects: 'Datahub.Graph.Functions/*.csproj'
+    includeNuGetOrg: true
+
+- task: DotNetCoreCLI@2
+  displayName: 'Publish Azure function'
+  inputs:
+    command: publish
+    publishWebProjects: false
+    projects: 'Datahub.Graph.Functions/*.csproj'
+    zipAfterPublish: true
+
 - task: PowerShell@2
   inputs:
     targetType: 'inline'
@@ -60,6 +75,14 @@ steps:
     package: '$(System.DefaultWorkingDirectory)/WebPortal/**/*.zip'
     enableCustomDeployment: true
     DeploymentType: 'webDeploy'
+
+- task: AzureFunctionApp@1
+  displayName: 'Azure Function App Deploy: dh-portal-func-dev'
+  inputs:
+    azureSubscription: 'datahub-dev-service-connection'
+    appType: 'functionApp'
+    appName: 'dh-portal-func-dev'
+    package: '$(System.DefaultWorkingDirectory)/Datahub.Graph.Functions/**/*.zip'
 
 - task: AzureAppServiceSettings@1
   displayName: Azure App Service Settings

@@ -187,7 +187,9 @@
     "FileUrl": "File URL",
     "GeoObject": "Geo Object",
     "Database": "Database",
-    "DatasetUrl": "Dataset Url"
+    "DatasetUrl": "Dataset Url",
+    "DataInitiative": "Data Initiative",
+    "DatabrickNotebook": "Databricks Notebook"
   },
   "DISCOVERY-CLASSIFICATION-TYPES": {
     "Unclassified": "Unclassified",

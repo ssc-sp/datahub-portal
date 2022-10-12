@@ -1,0 +1,16 @@
+{
+  "Code": "PRJ-008",
+  "Name": "Now we're cooking with gas",
+  "Description": "Unlock all the initial release project achievements",
+  "Icon": "fas fa-cauldron",
+  "MetaAchievement": true,
+  "RuleExpressions": [
+    "Utils.MetaAchievementPassed(\"PRJ-001\", input1)",
+    "Utils.MetaAchievementPassed(\"PRJ-002\", input1)",
+    "Utils.MetaAchievementPassed(\"PRJ-003\", input1)",
+    "Utils.MetaAchievementPassed(\"PRJ-004\", input1)",
+    "Utils.MetaAchievementPassed(\"PRJ-005\", input1)",
+    "Utils.MetaAchievementPassed(\"PRJ-006\", input1)",
+    "Utils.MetaAchievementPassed(\"PRJ-007\", input1)"
+  ]
+}
