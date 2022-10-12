@@ -1,0 +1,10 @@
+{
+  "Code": "EXP-004",
+  "Name": "How do I turn this thing on",
+  "Description": "View the resources section of Data Hub",
+  "ParentAchievementCode": "EXP-009",
+  "Icon": "fas fa-key-skeleton",
+  "RuleExpressions": [
+    "Utils.EventMetricRegexCount(\"\\/resources$\", EventMetrics) > 0"
+  ]
+}

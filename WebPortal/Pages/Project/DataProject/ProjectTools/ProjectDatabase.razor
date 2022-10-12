@@ -23,85 +23,99 @@ else
         </Logo>
 
         <ToolActionsList>
-            <ul>
+            <MudStack>
                 @if (_showDatabaseInfo)
                 {
-                    <li>@Localizer[$"{LOCALIZATION_PREFIX}.DatabaseType"]: @Localizer[$"RESOURCE-TYPE.{_databaseResource.Database_Type}"]</li>
-                    <li>@Localizer[$"{LOCALIZATION_PREFIX}.DatabaseServer"]: @_databaseResource.Database_Server</li>
-                    <li>@Localizer[$"{LOCALIZATION_PREFIX}.DatabaseName"]: @_databaseResource.Database_Name</li>
+                    <div>@Localizer[$"{LOCALIZATION_PREFIX}.DatabaseType"]: @Localizer[$"RESOURCE-TYPE.{_databaseResource.Database_Type}"]</div>
+                    <div>@Localizer[$"{LOCALIZATION_PREFIX}.DatabaseServer"]: @_databaseResource.Database_Server</div>
+                    <div>@Localizer[$"{LOCALIZATION_PREFIX}.DatabaseName"]: @_databaseResource.Database_Name</div>
                     @if (_showPostgresInfo)
                     {
-                        <li>@Localizer[$"{LOCALIZATION_PREFIX}.DbUsername"]: @($"{GraphUser.Mail.ToLowerInvariant()}@{_databaseResource.Database_Server}")</li>
-                        <li>@Localizer[$"{LOCALIZATION_PREFIX}.DbHostname"]: @($"{_databaseResource.Database_Server}.{POSTGRES_HOST_SUFFIX}")</li>
-                        @if (_showPostgresTokenSection)
+                        <div>@Localizer[$"{LOCALIZATION_PREFIX}.DbUsername"]: @($"{GraphUser.Mail.ToLowerInvariant()}@{_databaseResource.Database_Server}")</div>
+                        <div>@Localizer[$"{LOCALIZATION_PREFIX}.DbHostname"]: @($"{_databaseResource.Database_Server}.{POSTGRES_HOST_SUFFIX}")</div>
+                        @if (_showPostgresTokenSection && _showPostgresToken)
                         {
-                            @if(_showPostgresToken)
+                            <div>
+                                <label>@Localizer[$"{LOCALIZATION_PREFIX}.AccessToken"]:</label>
+                                <a href="#" onclick="copyToClipboard('dbAccessToken')" @onclick:preventDefault=@true>
+                                    <i class="fas fa-copy" title=@Localizer[$"{LOCALIZATION_PREFIX}.Copy"]>&nbsp;</i>
+                                </a>
+                                <AeInput disabled DefaultValue=@_postgresAuthResult.AccessToken class="formuserinput" id="dbAccessToken"/>
+                            </div>
+                            <div>@Localizer[$"{LOCALIZATION_PREFIX}.Expires"]: @_postgresAuthResult.ExpiresOn.ToLocalTime()</div>
+                            
+                        }
+                        else if (_showPostgresInstructionError)
+                        {
+                            <div><AeTypography>@Localizer[$"{LOCALIZATION_PREFIX}.ErrorLoadingPostgresInfo"]</AeTypography></div>
+                        }
+                    }
+                    else if (_showSqlServerInfo)
+                    {
+                        <div>
+                            <label>@Localizer[$"{LOCALIZATION_PREFIX}.ConnectionString"]:</label>
+                            <a href="#" onclick="copyToClipboard('sqlConnString')" @onclick:preventDefault=@true>
+                                <i class="fas fa-copy" title=@Localizer[$"{LOCALIZATION_PREFIX}.Copy"]>&nbsp;</i>
+                            </a>
+                            <AeInput disabled DefaultValue=@BuildSqlServerConnectionString(_databaseResource) class="formuserinput" id="sqlConnString"/>
+                        </div>
+                    }
+                }
+                else if (_showExistingRequest)
+                {
+                    <div>
+                        <AeTypography class="light">@Localizer[$"{LOCALIZATION_PREFIX}.RequestBeingReviewed", Localizer[$"RESOURCE-TYPE.{_existingRequestType}"]]</AeTypography>
+                    </div>
+                }
+                
+                else if (!_showRequestButtons)
+                {
+                    <div>
+                        <MudText>@Localizer[$"{LOCALIZATION_PREFIX}.ErrorLoadingDisplaying", ProjectAcronym]</MudText>
+                    </div>
+                }
+                <MudStack Row>
+                    @if (_showDatabaseInfo)
+                    {
+                        @if (_showPostgresInfo)
+                        {
+                            @if (_showPostgresTokenSection && !_showPostgresToken)
                             {
-                                <li>
-                                    <label>@Localizer[$"{LOCALIZATION_PREFIX}.AccessToken"]:</label>
-                                    <a href="#" onclick="copyToClipboard('dbAccessToken')" @onclick:preventDefault=@true>
-                                        <i class="fas fa-copy" title=@Localizer[$"{LOCALIZATION_PREFIX}.Copy"] >&nbsp;</i>
-                                    </a>
-                                    <AeInput disabled DefaultValue=@_postgresAuthResult.AccessToken class="formuserinput" id="dbAccessToken" />
-                                </li>
-                                <li>@Localizer[$"{LOCALIZATION_PREFIX}.Expires"]: @_postgresAuthResult.ExpiresOn.ToLocalTime()</li>
-                            }
-                            else
-                            {
-                                <li>
-                                    <AeButton OnClickEvent=@GetPostgresToken Disabled=@_awaitingToken>@Localizer[$"{LOCALIZATION_PREFIX}.GetToken_button"]</AeButton>
+                                <div>
+                                    <ToolActionButton LinkType="LinkType.Internal" OnClick=@GetPostgresToken Disabled=@_awaitingToken>
+                                        @Localizer[$"{LOCALIZATION_PREFIX}.GetToken_button"]
+                                    </ToolActionButton>
                                     @if (_awaitingToken)
                                     {
                                         <div style="display: inline-block;">
                                             <Spinner Small/>
                                         </div>
                                     }
-                                </li>
+                                </div>
+                            }
+                            @if (_showPostgresInstructionsButton)
+                            {
+                                <ToolActionButton LinkType="LinkType.Internal" OnClick=@ShowPostgresResources>
+                                    @Localizer[$"{LOCALIZATION_PREFIX}.PostgresResources"]
+                                </ToolActionButton>
                             }
                         }
-                        @if (_showPostgresInstructionsButton)
-                        {
-                            <li><AeButton OnClickEvent=@ShowPostgresResources class="light">@Localizer[$"{LOCALIZATION_PREFIX}.PostgresResources"]</AeButton></li>
-                        }
-                        else if (_showPostgresInstructionError)
-                        {
-                            <li><AeTypography>@Localizer[$"{LOCALIZATION_PREFIX}.ErrorLoadingPostgresInfo"]</AeTypography></li>
-                        }
+                        
+                        <ToolActionButton LinkType="LinkType.Internal" OnClick=@ShowMetadataEditor>
+                            @Localizer[$"{LOCALIZATION_PREFIX}.EditMetadata"]
+                        </ToolActionButton>
                     }
-                    else if (_showSqlServerInfo)
+                    else if (_showRequestButtons)
                     {
-                        <li>
-                            <label>@Localizer[$"{LOCALIZATION_PREFIX}.ConnectionString"]:</label>
-                            <a href="#" onclick="copyToClipboard('sqlConnString')" @onclick:preventDefault=@true>
-                                <i class="fas fa-copy" title=@Localizer[$"{LOCALIZATION_PREFIX}.Copy"] >&nbsp;</i>
-                            </a>
-                            <AeInput disabled DefaultValue=@BuildSqlServerConnectionString(_databaseResource) class="formuserinput" id="sqlConnString" />
-                        </li>
+                        <ToolActionButton LinkType="LinkType.Request" OnClick="@RequestPostgres">
+                            @Localizer["Request PostgreSQL Database"]
+                        </ToolActionButton>
+                        <ToolActionButton OnClick="@RequestSqlServer" LinkType="LinkType.Request">
+                            @Localizer["Request SQL Server Database"]
+                        </ToolActionButton>
                     }
-                    <li><AeButton OnClickEvent=@ShowMetadataEditor>@Localizer[$"{LOCALIZATION_PREFIX}.EditMetadata"]</AeButton></li>
-                }
-                else if (_showExistingRequest)
-                {
-                    <li>
-                        <AeTypography class="light">@Localizer[$"{LOCALIZATION_PREFIX}.RequestBeingReviewed", Localizer[$"RESOURCE-TYPE.{_existingRequestType}"]]</AeTypography>
-                    </li>
-                }
-                else if (_showRequestButtons)
-                {
-                    <li>
-                        <AeButton OnClickEvent=@RequestPostgres>@Localizer["Request PostgreSQL Database"]</AeButton>
-                    </li>
-                    <li>
-                        <AeButton OnClickEvent=@RequestSqlServer>@Localizer["Request SQL Server Database"]</AeButton>
-                    </li>
-                }
-                else
-                {
-                    <li>
-                        <AeTypography>@Localizer[$"{LOCALIZATION_PREFIX}.ErrorLoadingDisplaying", ProjectAcronym]</AeTypography>
-                    </li>
-                }
-            </ul>
+                </MudStack>
+            </MudStack>
         </ToolActionsList>
 
 
@@ -244,6 +258,7 @@ else
                             ProfileName="catalog"
                             ObjectType=@Metadata.Model.MetadataObjectType.Database
                             UpdateCatalog=@true
+                            ProjectId=@_project.Project_ID
                             ValidateRequired=@false
                             Name=@_databaseResource.Database_Name
                             OnSave=@HandleClose

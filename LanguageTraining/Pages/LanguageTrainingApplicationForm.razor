@@ -1,4 +1,5 @@
-﻿@inject IStringLocalizer DataLocalizer
+﻿@*LanguageTrainingApplicationForm.razor*@
+@inject IStringLocalizer DataLocalizer
 @inject IEmailNotificationService EmailService
 @implements IDisposable
 @inject IDbContextFactory<LanguageTrainingDBContext> DbFactory
@@ -10,6 +11,8 @@
 @inject IDatahubAuditingService AuditingService
 @page "/languagetraining/applications"
 @page "/languagetraining/applications/{AppId}"
+@using Datahub.LanguageTraining.Data
+@using Datahub.LanguageTraining.Utils
 
 <Datahub.Core.Components.FormTemplate 
         T="LanguageTrainingApplication"
@@ -33,6 +36,7 @@
         </div>
     </AeCard>
 </AuthorizeView>
+
 @code {
 
     // IP: please enable nullable and review every warning it produces, 
@@ -55,11 +59,24 @@
     private List<string> headers;
     private bool _isNewApp;
     private bool _isFrench;
+    private SeasonRegistrationPeriod _currentPeriod;
+    private SeasonRegistrationPeriod _nextPeriod;
 
     private async void OpenExcel()
     {
-        var powerBiTargets = Configuration["PowerBiTargets:LT"];
-        await JsInterop.InvokeAsync<object>("open", powerBiTargets, "_blank");
+        var date = DateTime.UtcNow.ConvertUtcToEasternTime().Date;
+        var lastPeriod = Context.SeasonRegistrationPeriods
+                                .OrderByDescending(e => e.Open_DT)
+                                .FirstOrDefault(e => e.Open_DT < date);
+        if (lastPeriod is not null)
+        {
+            var powerBiTargets = Configuration["PowerBiTargets:LT"] ?? "";
+            var joinChar = powerBiTargets.Contains('?') ? '&' : '?';
+            var fiscalYear = GetFiscalYear(lastPeriod);
+            var parameters = $"year={fiscalYear}&quarter={lastPeriod.Quarter_NUM}";
+            var url = $"{powerBiTargets}{joinChar}{parameters}";
+            await JsInterop.InvokeAsync<object>("open", url, "_blank");
+        }
     }
 
     protected override async Task OnInitializedAsync()
@@ -74,14 +91,20 @@
         };
         _formMetadata = new();
         await LoadApps(string.Empty);
-        PrepareMetadata();
 
+        // period dates are EST time based
+        var date = DateTime.UtcNow.ConvertUtcToEasternTime().Date;
+        _currentPeriod = GetCurrentPeriod(Context);
+        _nextPeriod = Context.SeasonRegistrationPeriods.FirstOrDefault(e => e.Open_DT > date);
+
+        PrepareMetadata();
     }
 
     private void PrepareMetadata()
     {
         var baseuri = NavigationManager.BaseUri;
         _formMetadata.Header = "NRCan Language Training Application Form";
+        _formMetadata.SubHeader = GetFormSubHeader();
         _formMetadata.TableRoles = "default";
         _formMetadata.DataSet = _languageTrainingApplications;
         _formMetadata.UserId = _user.Id;
@@ -92,12 +115,80 @@
         _formMetadata.SaveButtonText = DataLocalizer["Submit"];
         var filters = new List<(Delegate Label, Delegate Choices)>() { (() => "Status", () => new List<string> { "All", "Pending", "Approved", "Declined" }) };
         _formMetadata.FilterProperties = filters;
-        _formMetadata.TableDisclaimer = DataLocalizer["LanguageTableDisclaimer"];
+        _formMetadata.TableDisclaimer = DataLocalizer["LanguageTrainingApplication.LanguageTableDisclaimer"];
         var introfile = _isFrench ? "FormIntroFr.md" : "FormIntro.md";
         var footerfile = _isFrench ? "FormFooterWarningFr.md" : "FormFooterWarning.md";
         _formMetadata.MarkDownContent = File.ReadAllLines($@"Pages\Forms\LanguageTraining\{introfile}").ToList();
-        _formMetadata.MarkDownContentFooter = File.ReadAllLines($@"Pages\Forms\LanguageTraining\{footerfile}").ToList();    
+        _formMetadata.MarkDownContentFooter = File.ReadAllLines($@"Pages\Forms\LanguageTraining\{footerfile}").ToList();
+        _formMetadata.DisableNew = _currentPeriod is null;
     }
+
+    private string GetFormSubHeader()
+    {
+        if (_currentPeriod is null)
+        {
+            if (_nextPeriod is null)
+                return DataLocalizer["LanguageTrainingApplication.Registrations_closed"].ToString();
+
+            var template = DataLocalizer["LanguageTrainingApplication.Registrations_open_from_to"];
+
+            var openFormatted = _nextPeriod.Open_DT.ToShortDateString();
+            var closeFormatted = _nextPeriod.Close_DT.ToShortDateString();
+            var season = DataLocalizer[GetSeason(_nextPeriod.Quarter_NUM)];
+            var fiscalYear = GetFiscalYear(_nextPeriod);
+
+            return string.Format(template, season, fiscalYear, openFormatted, closeFormatted);
+        }
+        else
+        {
+            // Registrations open for {0} {1} until {Friday}, {December} {2}, {2022} by 6:00 PM (EDT).
+            // Inscriptions ouvertes pour {0} {1} au plus tard vendredi, le {2} {décembre} {2022}, à 18 h 00 (HAE).
+            var template = DataLocalizer["LanguageTrainingApplication.Registrations_open_until"];
+            var closeDateTime = _currentPeriod.Close_DT;
+            var season = DataLocalizer["LanguageTrainingApplication." + GetSeason(_currentPeriod.Quarter_NUM)];
+            var fiscalYear = GetFiscalYear(_currentPeriod);
+            var dowText = DataLocalizer[closeDateTime.DayOfWeek.ToString()];
+            var monthText = DataLocalizer[GetMonth(closeDateTime.Month)];
+            var year = closeDateTime.Year;
+            var day = closeDateTime.Day;
+
+            var formattedDate = _currentPeriod.Close_DT.ToShortDateString();
+            return string.Format(template, season, fiscalYear, ToLowerIfFrench(dowText), ToLowerIfFrench(monthText), day, year);
+        }
+    }
+
+    private string ToLowerIfFrench(string text) => _isFrench ? text.ToLower() : text;
+
+    static string GetSeason(byte season) => season switch
+    {
+        1 => "Spring",
+        2 => "Summer",
+        3 => "Fall",
+        _ => "Winter"
+    };
+
+    static string GetMonth(int month) => month switch
+    {
+        01 => "January",
+        02 => "February",
+        03 => "March",
+        04 => "April",
+        05 => "May",
+        06 => "June",
+        07 => "July",
+        08 => "August",
+        09 => "September",
+        10 => "October",
+        11 => "November",
+        12 => "December",
+        _  => "Unknown"
+    };
+
+    static int GetFiscalYear(SeasonRegistrationPeriod period) => period.Quarter_NUM switch
+    {
+        4 => period.Year_NUM + 1,
+        _ => period.Year_NUM
+    };
 
     private List<Func<LanguageTrainingApplication, string>> accessorFunctions = new List<Func<LanguageTrainingApplication, string>>
     {
@@ -258,7 +349,7 @@
             context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.SLE_Results_Reading, () => Language_Constants.SLESTATUS);
             context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.SLE_Results_Writing, () => Language_Constants.SLESTATUS);
             context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.SLE_Results_Oral, () => Language_Constants.SLESTATUS);
-            context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Session_For_Language_Training, () => Language_Constants.QUARTERS);
+            //context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Session_For_Language_Training, () => Language_Constants.QUARTERS);
             context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Class_For_Language_Training, () => Language_Constants.CLASSES_E);        
             context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Decision, () => Language_Constants.LANGUAGE_SCHOOL_SELECTION);
             context.RegisterOptionValueProperty<LanguageTrainingApplication>(p => p.Completed_Training_Session, () => Language_Constants.QUARTERS);
@@ -305,7 +396,7 @@
         context.SetVisible<LanguageTrainingApplication>(p => p.Manager_Decision, _isUserAdmin || isDelegatedManager);
         context.SetVisible<LanguageTrainingApplication>(p => p.Decision, _isUserAdmin);
 
-        
+
         _formMetadata.IsSubmitEnabled = _isUserAdmin || isDelegatedManager || (_isNewApp && _languageTrainingApplication.Completed_LETP_Assessment);
         var footerfile = _formMetadata.IsSubmitEnabled ? (_isFrench ? "FormFooterFr.md" : "FormFooter.md") : (_isNewApp ? (_isFrench ? "FormFooterWarningFr.md" : "FormFooterWarning.md") : (_isFrench ? "FormFooterSubmittedFr.md" : "FormFooterSubmitted.md"));
 
@@ -328,17 +419,53 @@
         _languageTrainingApplication.First_Name = _user.GivenName;
         _languageTrainingApplication.Last_Name = _user.Surname;
 
+        // _currentPeriod shouldn't be null here!
+        _languageTrainingApplication.Year_For_Language_Training = _currentPeriod is not null ? GetFiscalYear(_currentPeriod) : DateTime.Now.Year;
+        _languageTrainingApplication.Quarter_NUM = _currentPeriod?.Quarter_NUM ?? 1;
+        _languageTrainingApplication.Session_For_Language_Training = GetSessionForTraining();
+
         StateHasChanged();
+    }
+
+    private string GetSessionForTraining()
+    {
+        return _currentPeriod?.Quarter_NUM switch
+        {
+            null => string.Empty,
+            1 => "Q1 - April to June",
+            2 => "Q2 - July to September",
+            3 => "Q3 - October to December",
+            _ => "Q4 - January to March",
+        };
     }
 
     private void SetFormEdit(LanguageTrainingApplication application)
     {
         _isNewApp = false;
         _languageTrainingApplication = application;
-
-
         StateHasChanged();
     }
 
-    public void Dispose() { Context.Dispose(); }
+    private static SeasonRegistrationPeriod GetCurrentPeriod(LanguageTrainingDBContext ctx)
+    {
+        var estDateTimeNow = DateTime.UtcNow.ConvertUtcToEasternTime();
+
+        var date = estDateTimeNow.Date;
+        var period = ctx.SeasonRegistrationPeriods.FirstOrDefault(e => e.Open_DT <= date && date <= e.Close_DT);
+
+        if (period is null)
+            return null;
+        
+        if (estDateTimeNow > GetCloseDateExact(period.Close_DT))
+            return null;
+
+        return period;
+    }
+
+    private static DateTime GetCloseDateExact(DateTime date) => date.Date + TimeSpan.FromHours(18); // 6:00PM
+
+    public void Dispose() 
+    { 
+        Context.Dispose(); 
+    }
 }

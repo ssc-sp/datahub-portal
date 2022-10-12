@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace Datahub.Core.Data.CostEstimator
 {

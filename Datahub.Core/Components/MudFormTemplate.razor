@@ -10,6 +10,7 @@
 @inject IDatahubAuditingService AuditingService
 
 @using System.Reflection
+@using Microsoft.EntityFrameworkCore.ChangeTracking
 @using MudBlazor.Forms
 @using System.Text.RegularExpressions
 @using System.Linq.Expressions
@@ -23,34 +24,58 @@ else
 {
 
 
-
  <MudCard>
      <MudCardContent>
             @if (!string.IsNullOrWhiteSpace(Metadata.Header))
             {
-                <AeTypography Variant="h3">@DataLocalizer[Metadata.Header]</AeTypography>
+                <MudText Typo="Typo.h4">@DataLocalizer[Metadata.Header]</MudText>
             }
-         
+            
+            @if (!string.IsNullOrWhiteSpace(Metadata.HeaderSubText))
+            {
+                <div style="margin-top: 1rem; margin-bottom: 0.5rem">
+                    <MudText Typo="Typo.body2">@DataLocalizer[Metadata.HeaderSubText]</MudText>
+                </div>
+            }
             <AuthorizeView Roles="@Metadata.TableRoles">
 
-                <MudTable ServerData="@(new Func<TableState, Task<TableData<T>>>(ServerReload))" Dense="true" Hover="true" Striped="true" @ref="table" @key="@Metadata.DataSet">
+                <MudTable ServerData="@(new Func<TableState, Task<TableData<T>>>(ServerReload))" 
+                    Dense="true"
+                    Hover="true" 
+                    Striped="true" 
+                    Outlined="true"
+                    Elevation=2
+                    @ref="table" 
+                    @key="@Metadata.DataSet">
+
                     <ToolBarContent>
                         <MudText Typo="Typo.h6">@Metadata.SubHeader</MudText>
                         <MudSpacer />
-                        <MudTextField T="string" ValueChanged="@(s=>OnSearch(s))" Placeholder="Search" Adornment="Adornment.Start"
-                                      AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+                        @if(Metadata.AllowSearch)
+                        {
+                            <MudTextField T="string" ValueChanged="@(s=>OnSearch(s))" Placeholder="Search" Adornment="Adornment.Start"
+                                AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+                        }
                     </ToolBarContent>
                     <HeaderContent>
                         @foreach(var header in Metadata.Headers.ToList())
                         {
                             <MudTh><MudTableSortLabel SortLabel="@header.Replace(" ", string.Empty).ToLower()" T="T">@header</MudTableSortLabel></MudTh>
-                        }                    
+                        }
+                        @if (Metadata.AllowDelete)
+                        {
+                            <MudTh>Delete</MudTh>
+                        }
                     </HeaderContent>
                     <RowTemplate Context="RowContext" >                   
                         @foreach(var accessor in Metadata.AccessorFunctions)
                         {
                             <MudTd @onclick="async () => await SetFormEdit(RowContext)">@accessor?.Invoke(RowContext)</MudTd>
                         }     
+                        @if (Metadata.AllowDelete)
+                        {
+                            <MudTd @onclick="async () => await DeleteRow(RowContext)"><MudIcon Icon="@Icons.Filled.DeleteOutline" Size="Size.Small" Style="cursor:pointer" /></MudTd>
+                        }
                     </RowTemplate>
                     <NoRecordsContent>
                         <MudText>No matching records found</MudText>
@@ -64,12 +89,14 @@ else
                 </MudTable>
             </AuthorizeView>
 
-        
-            <AeFlex id="buttonBar">
-                <div class="icon-container" style="margin-top: 10px; margin-left: 5px;">
+            @if (Metadata.IsAddEnabled)
+            {
+                <AeFlex id="buttonBar">
+                    <div class="icon-container" style="margin-top: 10px; margin-left: 5px;">
                     <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="CreateNewRecord">@_addButton</MudButton>
-                </div>        
-            </AeFlex>
+                    </div>        
+                </AeFlex>
+            }
             @if (!string.IsNullOrWhiteSpace(Metadata.TableDisclaimer))
             {
                 <AeFlex>
@@ -97,12 +124,7 @@ else
 
     <MudCard style="margin-top: 1rem">
         <MudCardHeader>
-            <CardHeaderContent>                
-                @foreach (var navigationUrl in Metadata.NavigateUrls)
-                {
-                    <MudButton style="margin-right: 0.2rem" Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => NavigationManager.NavigateTo(@navigationUrl.Invoke(SelectedRecord).Item2))">@navigationUrl.Invoke(SelectedRecord).Item1</MudButton>
-                }                
-            </CardHeaderContent>
+         
         </MudCardHeader>
         <MudCardContent>               
             <MudModelForm Model="SelectedRecord"
@@ -120,7 +142,10 @@ else
                          IsSubmitEnabled="Metadata.IsSubmitEnabled" />
         </MudCardContent>
         <MudCardActions>
-
+                @foreach (var navigationUrl in Metadata.NavigateUrls)
+                {
+                    <MudButton style="margin-right: 0.2rem" Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => NavigationManager.NavigateTo(@navigationUrl.Invoke(SelectedRecord).Item2))">@navigationUrl.Invoke(SelectedRecord).Item1</MudButton>
+                }                            
         </MudCardActions>
     </MudCard>
 
@@ -157,14 +182,15 @@ else
     [Parameter]
     public EventCallback<T> SetFormEditRecord { get; set; }
     [Parameter]
+    public EventCallback<T> DeleteRecord { get; set; }
+    [Parameter]
     public Action<string> HandleFilterChange { get; set; }
     [Parameter]
     public U Context { get; set; }
     [Parameter]
     public bool DisableFirstSort { get; set; }
     [Parameter]
-    public Dictionary<string, Func<T, string>> SortAccessors { get; set; }
-
+    public Dictionary<string, Func<T, string>> SortAccessors { get; set; }    
 
     //Mud variables/properties
     private IEnumerable<T> pagedData;
@@ -213,6 +239,19 @@ else
         return sWhitespace.Replace(input, replacement);
     }
 
+    private async Task DeleteRow(T selectedRecord)
+    { 
+        bool? result = await DialogService.ShowMessageBox(
+            "Warning",
+            "Would you like to delete the current record?",
+            yesText: "Ok", noText: "Cancel");
+
+        if (result is true)
+        {
+            await DeleteRecord.InvokeAsync(selectedRecord);
+        }
+    }
+
     private async Task SetFormEdit(T selectedRecord)
     {
 
@@ -245,18 +284,25 @@ else
         }
         else
         {
-            foreach (var entry in changedEntries)
-            {
-                foreach (var property in entry.OriginalValues.Properties)  
-                {
-                    var propertyName = property.Name;
-                    entry.Property(propertyName).CurrentValue = entry.Property(propertyName).OriginalValue;
-                    entry.State = EntityState.Unchanged;
-                }
-            }                          
+            ResetRecordChanges(changedEntries);                  
         }
         await UI.ToggleModal();                
     }
+
+    private void ResetRecordChanges(IEnumerable<EntityEntry> entityEntries)
+    { 
+        foreach (var entry in entityEntries)
+        {
+            foreach (var property in entry.OriginalValues.Properties)
+            {
+                var propertyName = property.Name;
+                entry.Property(propertyName).CurrentValue = entry.Property(propertyName).OriginalValue;
+                entry.State = EntityState.Unchanged;
+            }
+        }
+    }
+
+
 
     protected override void OnAfterRender(bool firstRender)
     {
@@ -287,6 +333,8 @@ else
     private async Task<T> ClearForm()
     {
         SelectedRecord = default(T);
+        var changedEntries = Context.ChangeTracker.Entries();
+        ResetRecordChanges(changedEntries);
         StateHasChanged();    
         return await Task.FromResult(default(T));
     }

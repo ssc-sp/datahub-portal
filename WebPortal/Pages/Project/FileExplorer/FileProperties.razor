@@ -54,6 +54,9 @@
     public string ProjectAcronym { get; set; }
 
     [Parameter]
+    public int? ProjectId { get; set; }
+
+    [Parameter]
     public FileMetaData File { get; set; }
 
     [Parameter]
@@ -96,6 +99,7 @@
                 ObjectType=@MetadataObjectType.File
                 UpdateCatalog=@(!Readonly)
                 Preview=@Readonly
+                ProjectId=@ProjectId
             />;
         await _uiControlService.ToggleModal(@<RenderFragmentModal Fragment=@metadataEditor />);
     }

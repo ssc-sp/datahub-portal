@@ -1,0 +1,10 @@
+{
+  "Code": "PRJ-005",
+  "Name": "It wasn't a car",
+  "Description": "Download a file using the project's Storage Explorer",
+  "ParentAchievementCode": "PRJ-008",
+  "Icon": "fas fa-car",
+  "RuleExpressions": [
+    "Utils.EventMetricExactCount(\"user_download_file\", EventMetrics) > 0"
+  ]
+}

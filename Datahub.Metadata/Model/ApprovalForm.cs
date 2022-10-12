@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace Datahub.Metadata.Model
+﻿namespace Datahub.Metadata.Model
 {
     public class ApprovalForm
     {

@@ -1,7 +1,5 @@
 using System.Globalization;
 using Datahub.Portal.Services;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.Identity.Web;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.Identity.Web.UI;
@@ -34,13 +32,15 @@ using Datahub.Core.UserTracking;
 using System.Runtime.CompilerServices;
 using Blazored.LocalStorage;
 using Datahub.Achievements;
+using Datahub.Achievements.Models;
 using Datahub.Core.Configuration;
 using Datahub.Core.Modules;
 using Datahub.Portal.Services.Storage;
-using Microsoft.AspNetCore.Authorization.Infrastructure;
 using MudBlazor.Services;
 using Datahub.GeoCore.Service;
 using Datahub.Core.Services.Offline;
+using Datahub.CatalogSearch;
+using Datahub.Core.Services.AzureCosting;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]
 
@@ -157,6 +157,7 @@ namespace Datahub.Portal
             services.AddScoped<IPortalVersionService, PortalVersionService>();
 
             services.AddScoped<CatalogImportService>();
+            services.AddSingleton<ICatalogSearchEngine, CatalogSearchEngine>();
 
             services.AddSignalRCore();
 
@@ -212,6 +213,7 @@ namespace Datahub.Portal
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILogger<Startup> logger,
             IDbContextFactory<DatahubProjectDBContext> datahubFactory,
             IDbContextFactory<UserTrackingContext> userTrackingFactory,
+            IDbContextFactory<AchievementContext> achievementFactory,
             IDbContextFactory<PIPDBContext> pipFactory,
             IDbContextFactory<MetadataDbContext> metadataFactory,
             IDbContextFactory<DatahubETLStatusContext> etlFactory)
@@ -229,6 +231,7 @@ namespace Datahub.Portal
 
             InitializeDatabase(logger, datahubFactory);
             InitializeDatabase(logger, userTrackingFactory, false);
+            InitializeDatabase(logger, achievementFactory, false);
             InitializeDatabase(logger, etlFactory);
             InitializeDatabase(logger, pipFactory);
             InitializeDatabase(logger, metadataFactory, true);
@@ -369,6 +372,8 @@ namespace Datahub.Portal
                 services.AddScoped<IPowerBiDataService, PowerBiDataService>();
 
                 services.AddScoped<RegistrationService>();
+                
+                services.AddScoped<UpdateProjectMonthlyCostService>();
             }
             else
             {
@@ -411,6 +416,7 @@ namespace Datahub.Portal
             services.AddScoped<NotificationsService>();
             services.AddScoped<UIControlsService>();
             services.AddScoped<NotifierService>();
+            services.AddScoped<AzureCostManagementService>();
 
             services.AddScoped<IEmailNotificationService, EmailNotificationService>();
             services.AddScoped<ISystemNotificationService, SystemNotificationService>();
@@ -440,10 +446,12 @@ namespace Datahub.Portal
             if (Configuration.GetDriver() == DbDriver.Azure)
             {
                 ConfigureCosmosDbContext<UserTrackingContext>(services, "datahub-cosmosdb", "datahub-catalog-db");
+                ConfigureCosmosDbContext<AchievementContext>(services, "datahub-cosmosdb", "datahub-catalog-db");
             }
             else
             {
                 ConfigureDbContext<UserTrackingContext>(services, "datahub-cosmosdb", Configuration.GetDriver());
+                ConfigureDbContext<AchievementContext>(services, "datahub-cosmosdb", Configuration.GetDriver());
             }
 
             ConfigureDbContext<WebAnalyticsContext>(services, "datahub-mssql-webanalytics", Configuration.GetDriver());

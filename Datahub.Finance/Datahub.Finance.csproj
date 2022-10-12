@@ -24,9 +24,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Ae.MudBlazor.Forms" Version="0.5.22240.2-beta" />
+		<PackageReference Include="Ae.MudBlazor.Forms" Version="0.5.22262.2-beta" />
 		<PackageReference Include="AElemental.Blazor" Version="1.6.22173.2" />
-		<PackageReference Include="MudBlazor" Version="6.0.14" />
+		<PackageReference Include="MudBlazor" Version="6.0.16" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -34,7 +34,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Folder Include="Components\" />
 	  <Folder Include="Migrations\" />
 	</ItemGroup>
 

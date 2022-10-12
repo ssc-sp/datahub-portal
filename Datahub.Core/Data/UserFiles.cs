@@ -6,7 +6,6 @@ using System.IO;
 using System.Linq;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Components.Forms;
-using Tewr.Blazor.FileReader;
 
 namespace Datahub.Core.Data
 {

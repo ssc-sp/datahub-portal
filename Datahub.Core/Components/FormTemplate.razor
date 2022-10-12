@@ -16,15 +16,17 @@
 }
 else
 {
+    <AeCard class="facardForms" CardPosition="AeCard.CardStyle.Horizontal">
+        @*Title*@
+        <AeTypography Variant="h3">@DataLocalizer[Metadata.Header]</AeTypography>
 
-
-
-<AeCard class="facardForms" CardPosition="AeCard.CardStyle.Horizontal">
-    <AeTypography Variant="h3">@DataLocalizer[Metadata.Header]</AeTypography>
-
+        @*Subtitle*@
+        @if (!string.IsNullOrEmpty(Metadata.SubHeader))
+        {
+            <AeTypography Variant="p"><strong>@DataLocalizer[Metadata.SubHeader]</strong></AeTypography>
+        }
             
         <AuthorizeView Roles="@Metadata.TableRoles">
-            
 
             @if ((Metadata.DataSet.Any() && Metadata.FilterProperties != null) || _selectedFilter != "All")
             {
@@ -40,7 +42,6 @@ else
                 </AeFlex>
             }
 
-
             @if (Metadata.DataSet.Any())
             {
                 <AePaginatedTable 
@@ -55,22 +56,22 @@ else
                     Page="@_lastClicked"
                     PageSize="10"
                     DisableFirstSort="DisableFirstSort"
-                    @ref=_myTable
-                    />
+                    @ref=_myTable 
+                />
 
-                <AePagination 
-                Pageable="@_myTable" 
-                OnPageClick="OnPageClick"> 
-                <LeftIcon><i class='fad fa-chevron-double-left'></i></LeftIcon> 
-                <RightIcon><i class='fad fa-chevron-double-right'></i></RightIcon>
+                <AePagination Pageable="@_myTable" OnPageClick="OnPageClick"> 
+                    <LeftIcon><i class='fad fa-chevron-double-left'></i></LeftIcon> 
+                    <RightIcon><i class='fad fa-chevron-double-right'></i></RightIcon>
                 </AePagination> 
             }
         </AuthorizeView>
+
         <AeFlex id="buttonBar">
             <div class="icon-container" style="margin-bottom: 10px; margin-left: 5px;">
-                <FAButton Text="@_addButton" Icon="far fa-plus-square" onclick="CreateNewRecord" />
+                <FAButton Text="@_addButton" Icon="far fa-plus-square" onclick="CreateNewRecord" Disabled=@Metadata.DisableNew />
             </div>        
-        </AeFlex>
+        </AeFlex>               
+
         @if (!string.IsNullOrWhiteSpace(Metadata.TableDisclaimer))
         {
             <AeFlex>
@@ -79,46 +80,46 @@ else
                 </div>
             </AeFlex>
         }
-</AeCard>
-
-@if (SelectedRecord != null)
-{
-    @if (Metadata.MarkDownContent?.Any() ?? false)
-    {
-        <AeCard class="facardForms" CardPosition="AeCard.CardStyle.Horizontal">
-            @foreach (var content in Metadata.MarkDownContent)
-            {
-                <AeMarkdown Content="@($"{content}")"></AeMarkdown>
-            }
-        </AeCard>
-    }
-    <AeCard class="facardForms" CardPosition="AeCard.CardStyle.Horizontal">
-    <AeModelForm Model="SelectedRecord"
-                 T="@T"
-                 OnValidSubmit="HandleFormSubmit"
-                 OnInvalidSubmit="HandleFormInvalidSubmit"
-                 OnCancel="ClearForm"
-                 OnConfigure="OnConfigure"
-                 CancelLabel="Cancel"
-                 SubmitLabel="@Metadata.SaveButtonText"
-                 OnChange="OnChange"
-                 LabelForPropertyFunc="@GetDataLabel"
-                 LabelsOnTop="true"
-                 LocalizerFunction="@GetDataLabel"
-                 IsSubmitEnabled="Metadata.IsSubmitEnabled" />
     </AeCard>
 
-    @if (Metadata.MarkDownContentFooter?.Any() ?? false)
+    @if (SelectedRecord != null)
     {
+        @if (Metadata.MarkDownContent?.Any() ?? false)
+        {
+            <AeCard class="facardForms" CardPosition="AeCard.CardStyle.Horizontal">
+                @foreach (var content in Metadata.MarkDownContent)
+                {
+                    <AeMarkdown Content="@($"{content}")"></AeMarkdown>
+                }
+            </AeCard>
+        }
         <AeCard class="facardForms" CardPosition="AeCard.CardStyle.Horizontal">
-            @foreach (var content in Metadata.MarkDownContentFooter)
-            {
-                <AeMarkdown Content="@($"{content}")"></AeMarkdown>
-            }
+        <AeModelForm Model="SelectedRecord"
+                     T="@T"
+                     OnValidSubmit="HandleFormSubmit"
+                     OnInvalidSubmit="HandleFormInvalidSubmit"
+                     OnCancel="ClearForm"
+                     OnConfigure="OnConfigure"
+                     CancelLabel="Cancel"
+                     SubmitLabel="@Metadata.SaveButtonText"
+                     OnChange="OnChange"
+                     LabelForPropertyFunc="@GetDataLabel"
+                     LabelsOnTop="true"
+                     LocalizerFunction="@GetDataLabel"
+                     IsSubmitEnabled="Metadata.IsSubmitEnabled" />
         </AeCard>
-    }
 
-}
+        @if (Metadata.MarkDownContentFooter?.Any() ?? false)
+        {
+            <AeCard class="facardForms" CardPosition="AeCard.CardStyle.Horizontal">
+                @foreach (var content in Metadata.MarkDownContentFooter)
+                {
+                    <AeMarkdown Content="@($"{content}")"></AeMarkdown>
+                }
+            </AeCard>
+        }
+
+    }
 }
 @code {
 
@@ -263,5 +264,4 @@ else
     {
         await HandleInvalidSubmit.InvokeAsync(editContext);
     }
-
 }

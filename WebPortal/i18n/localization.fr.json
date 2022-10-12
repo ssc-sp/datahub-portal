@@ -1644,5 +1644,14 @@
   "Initiative admin and global admin priviledges": "Privilèges d'administrateur d'initiative et d'administrateur global",
   "Initiative membership": "Adhésion à l'initiative",
   "Admin Access Enabled": "Accès Admin activé",
-  "View As Visitor": "Voir en tant que visiteur"
+  "View As Visitor": "Voir en tant que visiteur",
+  "LanguageTrainingApplication": {
+    "Registrations_closed": "Les inscriptions sont actuellement fermées.",
+    "Registrations_open_from_to": "Les inscriptions pour {0} de {1} seront ouvertes de {2} à {3}.",
+    "Registrations_open_until": "Les inscriptions seront ouvertes pour la session {0} {1} jusqu'au {2}, le {4} {3} {5}, à 18 h 00 (HAE).",
+    "Spring": "de printemps",
+    "Summer": "d'été",
+    "Fall": "d'automne",
+    "Winter": "d'hiver"
+  }
 }

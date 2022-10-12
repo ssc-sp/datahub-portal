@@ -2,19 +2,22 @@
 @using Datahub.Core.UserTracking
 @using Microsoft.Extensions.Logging 
 @using System.Text.RegularExpressions
+@using Datahub.Achievements
+@using Datahub.Achievements.Models
 @using Datahub.Core.Utils
 @inject ILogger<DHLink> Logger
 @inject NavigationManager NavigationManager
 @inject UserLocationManagerService UserLocationManagerService
 @inject IJSRuntime _jsRuntime
+@inject AchievementService _achievementService
 
 @inherits HtmlElement
 
-<a class="@_classname" @onclick="Navigate" @attributes="@InputAttributesWithoutClass">@ChildContent</a>
+<a class="@_classname" @onclick="Navigate" @attributes="@InputAttributesWithoutClass" >@ChildContent</a>
 
 @code {
 
-    private string _classname => $"ae typography {Variant} a {_inputClass}";
+    private string _classname => $"{Variant} {_inputClass}";
 
     [Parameter]
     public DatahubLinkType LinkType { get; set; } = DatahubLinkType.Undefined;
@@ -57,6 +60,7 @@
             link = UserRecentLink;
             link.accessedTime = DateTimeOffset.Now;
             await UserLocationManagerService.RegisterNavigation(link, false);
+            await _achievementService.AddOrIncrementTelemetryEvent(DatahubUserTelemetry.TelemetryEvents.UserRecentLink);
         }
         else
         {
@@ -85,6 +89,8 @@
         }
         
         await UserLocationManagerService.RegisterNavigation(link, true);
+        
+        await _achievementService.AddOrIncrementTelemetryEvent($"user_click_{link.LinkType.ToString().ToLower()}_link");
         
         switch (LinkType)
         {
