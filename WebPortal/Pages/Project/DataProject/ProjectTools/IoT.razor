@@ -36,10 +36,9 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        await base.OnInitializedAsync();
-
         await using var projectDbContext = await _dbFactoryProject.CreateDbContextAsync();
 
+        // review this!!
         _project = await projectDbContext.Projects
             .Include(p => p.Requests)
             .FirstAsync();

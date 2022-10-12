@@ -109,7 +109,6 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        await base.OnInitializedAsync();
         await LoadProjectAndRequests();
     }
 
@@ -119,7 +118,8 @@ else
 
         _project = await projectDbContext.Projects
             .Include(p => p.Requests)
-            .SingleAsync(p => p.Project_Acronym_CD == ProjectAcronym);
+            .AsSingleQuery()
+            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == ProjectAcronym);
 
         var _serviceRequests = await projectDbContext.Project_Requests
             .Where(p => p.Project == _project)

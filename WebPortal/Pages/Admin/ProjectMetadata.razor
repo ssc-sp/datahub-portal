@@ -1,36 +1,20 @@
 ﻿@*ProjectMetadata.razor*@
-
 @page "/admin/metadata/{ProjectAcronym}"
 @using Datahub.Metadata.Model
-@inject NavigationManager NavigationManager
-@inject IDbContextFactory<DatahubProjectDBContext> ContextFactory
-@inject IOrganizationLevelsService OrganizationLevelsService
 
 <div class="manage-access"> 
 
     <AeFlex Vertical>
-        <h1>@($"{ProjectAcronym} {Localizer["Project Metadata"]}")</h1>
+        <h1>@($"{ProjectAcronym} {Localizer["Initiative Metadata"]}")</h1>
     </AeFlex>    
 
-    @if (_project is not null)
-    {
-        <AeCard>
-            <ObjectMetadataEditor 
-                @ref="_editor"
-                ProfileName="project"
-                ObjectId=@ProjectAcronym
-                Location=@ProjectAcronym
-                ProjectId=@_project.Project_ID
-                ObjectType=@MetadataObjectType.DataInitiative
-                SecurityClass=@GetProjectSensitivity()
-                SaveButtonLabel=@Localizer["OPENDATA-WIZARD.Save_button"]
-                OnSave=@HandleBack
-                OnDiscard=@HandleBack
-                OnNewMetadataCreated=@OnMetadataCreated
-                OnExistingMetadataLoaded=@OnMetadataCreated
-                UpdateCatalog="true" />
-        </AeCard>
-    }    
+    <ProjectObjectMetadata 
+        ProfileName="project"
+        ObjectId=@ProjectAcronym
+        Location=@ProjectAcronym
+        ProjectAcronym=@ProjectAcronym 
+        ObjectType=@MetadataObjectType.DataInitiative
+        OnProjectLoaded=@HandleProjectLoaded />
 </div>
 
 
@@ -39,62 +23,7 @@
     [Parameter]
     public string ProjectAcronym { get; set; }
 
-    private Datahub_Project _project;
-    private int? _sector;
-    private int? _branch;    
-    private ObjectMetadataEditor _editor;
-
-    protected override async Task OnInitializedAsync()
+    private void HandleProjectLoaded(Datahub_Project project)
     {
-        var ctx = await ContextFactory.CreateDbContextAsync();
-        _project = await ctx.Projects.FirstOrDefaultAsync(p => p.Project_Acronym_CD == ProjectAcronym);
-        if (_project is not null)
-        {
-            await TryReadProjectSectorAndBranch();
-        }        
-    }
-
-    private async Task TryReadProjectSectorAndBranch()
-    {
-        var sectors = await OrganizationLevelsService.GetSectors();
-        _sector = FindOrganizationLevelId(sectors, _project.Sector_Name);
-        var branches = await OrganizationLevelsService.GetBranches();
-        _branch = FindOrganizationLevelId(branches, _project.Branch_Name);
-    }
-
-    private int? FindOrganizationLevelId(List<OrganizationLevel> levels, string value) 
-    {
-        var org = levels.FirstOrDefault(l => value.Equals(l.EnglishLabel, StringComparison.OrdinalIgnoreCase) || value.Equals(l.FrenchLabel, StringComparison.OrdinalIgnoreCase));
-        return org?.Id;
-    }
-
-    private void OnMetadataCreated()
-    {
-        _editor.SetValue("title_translated_en", _project.Project_Name);
-        _editor.SetValue("title_translated_fr", _project.Project_Name_Fr);
-        _editor.SetValue("contact_information", _project.Project_Admin);
-
-        if (_sector.HasValue)
-            _editor.SetValue("sector", _sector.ToString());
-
-        if (_branch.HasValue)
-            _editor.SetValue("branch", _branch.ToString());
-    }
-
-    private void HandleBack()
-    {
-        NavigationManager.NavigateTo($"/projects/{ProjectAcronym}");
-    }
-
-    private string GetProjectSensitivity()
-    {
-        var sensitivity = (_project?.Data_Sensitivity ?? "").ToUpper();
-        return sensitivity switch
-        {
-            "CLASSIFIED" or
-            "PROTECTED B" => SecurityClassification.ProtectedB,
-            "PROTECTED A" => SecurityClassification.ProtectedA,
-            _ => SecurityClassification.Unclassified
-        };
     }
 }
