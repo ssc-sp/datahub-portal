@@ -52,6 +52,8 @@ namespace Datahub.Core.EFCore
         public DbSet<SpatialObjectShare> GeoObjectShares { get; set; }
         public DbSet<ExternalPowerBiReport> ExternalPowerBiReports { get; set; }
 
+        public DbSet<Client_Engagement> Client_Engagements { get; set; }
+
         public void Seed(DatahubProjectDBContext context, IConfiguration configuration)
         {
             var p1 = context.Projects.Add(new Datahub_Project()
