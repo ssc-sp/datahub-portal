@@ -4,16 +4,18 @@ using Datahub.Core.EFCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
+namespace Datahub.Core.Migrations.Core
 {
     [DbContext(typeof(DatahubProjectDBContext))]
-    partial class DatahubProjectDBContextModelSnapshot : ModelSnapshot
+    [Migration("20221012181943_clientengagements")]
+    partial class clientengagements
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -71,9 +73,6 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.Property<DateTime?>("Phase2_Testing_EndDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<int?>("Project_ID")
-                        .HasColumnType("int");
-
                     b.Property<DateTime?>("Requirements_Gathering_ActualEndDate")
                         .HasColumnType("datetime2");
 
@@ -81,8 +80,6 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                         .HasColumnType("datetime2");
 
                     b.HasKey("Engagement_ID");
-
-                    b.HasIndex("Project_ID");
 
                     b.ToTable("Client_Engagements");
                 });
@@ -1332,15 +1329,6 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                         .HasColumnType("int");
 
                     b.ToTable("OpenDataSharedFile");
-                });
-
-            modelBuilder.Entity("Datahub.Core.EFCore.Client_Engagement", b =>
-                {
-                    b.HasOne("Datahub.Core.EFCore.Datahub_Project", "Project")
-                        .WithMany()
-                        .HasForeignKey("Project_ID");
-
-                    b.Navigation("Project");
                 });
 
             modelBuilder.Entity("Datahub.Core.EFCore.Datahub_Project_Access_Request", b =>

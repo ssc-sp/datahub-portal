@@ -1,0 +1,97 @@
+﻿@page "/admin/engagements/{projectAcronym}"
+@using Datahub.Achievements.Models
+@using System.Security.Claims
+@inject NavigationManager NavigationManager
+@inject IMSGraphService MSGraphService
+@inject IJSRuntime JSRuntime
+@inject IDbContextFactory<DatahubProjectDBContext> DbFactory
+@inject IUserInformationService UserInformationService
+@inject IDatahubAuditingService AuditingService
+@inject ServiceAuthManager ServiceAuthManager
+@inject AchievementService _achievementService
+
+<Datahub.Core.Components.MudFormTemplate T="Client_Engagement"
+                                         U="DatahubProjectDBContext"
+                                         Metadata="@_formMetadata"
+                                         HandleSubmit="HandleValidSubmit"
+                                         OnConfigureForms="OnConfigure"
+                                         OnChangeForms="OnChange"
+                                         CreateNewRecord="CreateNewProject"
+                                         SelectedRecord="@_clientengagement"
+                                         SetFormEditRecord="SetFormEdit"
+                                         HandleFilterChange="HandleFilterChange"
+                                         SortAccessors="@_sortAccessors"
+                                         Context=@Context />
+
+@code {
+
+    [Parameter]
+    public string projectAcronym { get; set; }
+    private FormMetadata<Client_Engagement> _formMetadata = new();
+
+    private List<Client_Engagement> _clientengagements;
+    private Client_Engagement _clientengagement;
+    //private List<Sector> _sectorLookup;
+    private Dictionary<string, Func<Client_Engagement, string>> _sortAccessors = new();
+    private FinanceDBContext Context;
+    private Microsoft.Graph.User _user = null!;
+    private ClaimsPrincipal _claimsUser = null;
+    private bool _isUserAdmin;    
+    private string _searchFilter = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        
+        Context = DbFactory.CreateDbContext();
+        _project = Context.Projects.Single(p => p.Project_Acronym_CD == projectAcronym);
+       
+    }
+
+    private async Task HandleValidSubmit()
+    {
+
+        if (_clientengagement != null)
+        {
+            if (_clientengagement.clientengagement_ID == 0)
+            {
+                _clientengagement = Context.clientengagements.Add(_clientengagement).Entity;
+            }
+            _clientengagement.Last_Updated_DT = DateTime.Now;
+            await Context.SaveChangesAsync();
+            LoadData(_searchFilter); ;
+            _clientengagement = null;
+        }
+
+
+        StateHasChanged();
+    }
+
+    private async Task<clientengagement> ClearForm()
+    {
+        _clientengagement = null;
+        StateHasChanged();
+        return await Task.FromResult((clientengagement)null);
+    }
+
+    private string GetDataLabel(string propName)
+    {
+        return DataLocalizer[propName];
+    }
+    
+    private async void HandleFilterChange(string selection)
+    {
+        _searchFilter = selection;
+        LoadData(_searchFilter);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void OnChange(ModelFormChangeArgs args)
+    {
+        OnConfigure(args.Context);
+    }
+
+    public void Dispose()
+    {
+        Context.Dispose();
+    }
+}
