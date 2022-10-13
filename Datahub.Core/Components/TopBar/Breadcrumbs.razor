@@ -4,66 +4,67 @@
 @using MudBlazor
 @using System.Globalization
 
-<MudBreadcrumbs Items="@_items" MaxItems="7" Separator=">"></MudBreadcrumbs>
+<MudBreadcrumbs Items="@_items" MaxItems="7" Separator=">"/>
 
 @code {
 
     [Inject]
-    NavigationManager _navigationManager { get; set; }
+    private NavigationManager _navigationManager { get; set; }
 
     [Parameter]
     public List<BreadcrumbItem> _items { get; set; }
 
-    private CultureInfo _cultureInfo = Thread.CurrentThread.CurrentCulture;
-
-    private string _currentPath;
+    private TextInfo _textInfo = CultureInfo.CurrentCulture.TextInfo;
+    private string _lang = CultureInfo.CurrentCulture.TwoLetterISOLanguageName;
 
     protected override void OnInitialized()
     {
         _navigationManager.LocationChanged += OnLocationChanged;
-        var relativeLocation = _navigationManager.ToBaseRelativePath(_navigationManager.Uri);
+        var relativePath = _navigationManager.ToBaseRelativePath(_navigationManager.Uri);
 
-    //Set new breadcrumb items on each invocation
-        SetBreadcrumbs(relativeLocation);
+    // Set new breadcrumb items on each invocation
+        SetBreadcrumbs(relativePath);
 
         base.OnInitialized();
     }
 
     private void OnLocationChanged(object sender, LocationChangedEventArgs e)
     {
-        var relativeLocation = _navigationManager.ToBaseRelativePath(e.Location);
-        SetBreadcrumbs(relativeLocation);
+        var relativePath = _navigationManager.ToBaseRelativePath(e.Location);
+        SetBreadcrumbs(relativePath);
     }
 
-    private void SetBreadcrumbs(string relativeLocation)
+    private void SetBreadcrumbs(string path)
     {
+        var pathItems = path.Split('/');
+
+    // Always initialize with GoC and Home as base breadcrumb
         _items = new List<BreadcrumbItem>
         {
     // Government of Canada Base Path
             new(
-                href: @Localizer["https://www.canada.ca/en.html"],
+                href: $"https://www.canada.ca/{_lang}.html",
                 text: "Canada.ca"
+                ),
+            new(
+                href: "/home",
+                disabled: "home" == pathItems.Last(),
+                text: @Localizer["Home"]
                 )
         };
 
-        _currentPath = _navigationManager.Uri;
-        var url = _currentPath.Replace(_navigationManager.BaseUri, "");
-        _items.Add(new BreadcrumbItem(
-            href: _navigationManager.BaseUri,
-            disabled: _currentPath == _navigationManager.BaseUri,
-            text: @Localizer[_cultureInfo.TextInfo.ToTitleCase("Home")]
-            ));
-
-        var path = url.Split('/');
-        foreach (var link in path)
+    // keep track of previous crumbs to avoid appending /home
+        var prev = "";
+        foreach (var crumb in pathItems)
         {
-            if (link == "home") continue;
-
+            if (crumb == "home") continue;
+            var crumbText = _textInfo.ToTitleCase(crumb);
             _items.Add(new BreadcrumbItem(
-                href: $"{_items.Last().Href}/{link}",
-                disabled: link == path.Last(),
-                text: _cultureInfo.TextInfo.ToTitleCase(link)
+                href: $"{prev}/{crumb}",
+                disabled: crumb == pathItems.Last(),
+                text: @Localizer[crumbText]
                 ));
+            prev += $"/{crumb}";
         }
         StateHasChanged();
     }
