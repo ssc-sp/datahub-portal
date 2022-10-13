@@ -1,0 +1,10 @@
+{
+  "Code": "PRJ-004",
+  "Name": "Check this out",
+  "Description": "Share a file using the project's Storage Explorer",
+  "ParentAchievementCode": "PRJ-008",
+  "Icon": "fas fa-walkie-talkie",
+  "RuleExpressions": [
+    "Utils.EventMetricExactCount(\"user_share_file\", EventMetrics) > 0"
+  ]
+}

@@ -17,21 +17,25 @@ namespace Datahub.Portal.Data.Finance
 
         [AeFormCategory("Sector Information")]
         [Required]
+        [Editable(false)]
         public FiscalYear FiscalYear { get; set; }
 
         [AeFormCategory("Sector Information")]
         [MudForm(IsDropDown = true)]
         [Required]
+        [Editable(false)]
         public HierarchyLevel Sector { get; set; }
 
         [AeFormCategory("Sector Information")]
         [MudForm(IsDropDown = true)]
         [Required]
+        [Editable(false)]
         public HierarchyLevel Branch { get; set; }
 
         [AeFormCategory("Sector Information")]
         [MudForm(IsDropDown = true)]
         [Required]
+        [Editable(false)]
         public HierarchyLevel Division { get; set; }
 
         [AeFormCategory("Sector Information")]

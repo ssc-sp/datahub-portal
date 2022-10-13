@@ -28,7 +28,7 @@ namespace Datahub.Portal.Data.Finance
 
 
         [AeFormIgnore]
-        public int Key_Activity { get; set; }
+        public int? Key_Activity { get; set; }
         [NotMapped]
         [AeFormCategory("Planned Staffing")]
         [MudForm(IsDropDown = true)]
@@ -36,7 +36,7 @@ namespace Datahub.Portal.Data.Finance
 
 
         [AeFormIgnore]
-        public int Key_Driver { get; set; }
+        public int? Key_Driver { get; set; }
         
         [NotMapped]
         [AeFormCategory("Planned Staffing")]

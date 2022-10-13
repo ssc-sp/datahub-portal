@@ -1,15 +1,26 @@
 @using MudBlazor.Utilities
-@if (Projects is null)
+@using Microsoft.Graph
+@inject IUserInformationService _userInformationService
+@inject IConfiguration _configuration
+@inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
+
+
+@if (_userRoles is null)
 {
     <MudStack>
         <MudText Typo="Typo.h6">Projects</MudText>
         <MudGrid>
-            @for (var i = 0; i < 3; i++)
-            {
-                <MudItem xs="4">
-                    <Skeleton/>
-                </MudItem>
-            }
+            <MudItem xs="6">
+                <MudCard Outlined Class="pa-2">
+                    <MudCardContent>
+                        <Skeleton Width="120px" Height="32px"/>
+                        <Skeleton Width="250px" Height="42px"/>
+                    </MudCardContent>
+                    <MudCardActions>
+                        <Skeleton style="margin-left: 8px"  Width="200px" Height="48px"/>
+                    </MudCardActions>
+                </MudCard>
+            </MudItem>
         </MudGrid>
     </MudStack>
 
@@ -17,18 +28,19 @@
 }
 
 <MudStack>
-    <MudText Typo="Typo.h6">@Localizer["Projects"]</MudText>
+    <MudText Typo="Typo.h5">@Localizer["Projects"]</MudText>
     <MudGrid>
-        @foreach (var project in Projects)
+        @foreach (var userRole in _userRoles)
         {
-            <MudItem xs="4">
-                <MudCard>
+            var project = userRole.Project;
+            <MudItem xs="6">
+                <MudCard Outlined Class="pa-2">
                     <MudCardContent>
-                        <MudText>@project.Project_Name</MudText>
-                        <MudText Style="@_projectDescriptionStyle" Typo="Typo.body2">@project.ProjectDescription</MudText>
+                        <MudChip Style="@_chipStyle" Label Size="Size.Small" Color="@RoleColor(userRole)">@Localizer[RoleLabel(userRole)]</MudChip>
+                        <MudText Typo="Typo.h6">@project.Project_Name</MudText>
                     </MudCardContent>
                     <MudCardActions>
-                        <MudButton Variant="Variant.Text" Color="Color.Primary" Href="@($"/projects/{project.Project_Acronym_CD}")">@Localizer["View Project"]</MudButton>
+                        <MudButton EndIcon="@Icons.Filled.Login" Variant="Variant.Text" Color="Color.Primary" Href="@($"/projects/{project.Project_Acronym_CD}")">@Localizer["View Project"]</MudButton>
                     </MudCardActions>
                 </MudCard>
             </MudItem>
@@ -38,20 +50,46 @@
 
 @code {
 
-    [Parameter]
-    public List<Datahub_Project> Projects { get; set; }
+    private User _user;
+    private List<Datahub_Project_User> _userRoles;
+    private string _chipStyle;
 
-    private string _projectDescriptionStyle;
-
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        base.OnInitialized();
+        await base.OnInitializedAsync();
 
-        _projectDescriptionStyle = new StyleBuilder()
-            .AddStyle("text-overflow", "ellipsis")
-            .AddStyle("white-space", "nowrap")
-            .AddStyle("overflow", "hidden")
+        _chipStyle = new StyleBuilder()
+            .AddStyle("margin-left", "0")
+            .AddStyle("margin-bottom", "0")
             .Build();
+
+        _user = await _userInformationService.GetUserAsync();
+
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
+        _userRoles = await dbContext.Project_Users
+            .Where(u => u.User_ID == _user.Id)
+            .Include(u => u.Project)
+            .ToListAsync();
+    }
+
+    private Color RoleColor(Datahub_Project_User userRole)
+    {
+        if (userRole.IsAdmin)
+        {
+            return Color.Primary;
+        }
+
+        return userRole.IsDataApprover ? Color.Secondary : Color.Default;
+    }
+
+    private string RoleLabel(Datahub_Project_User userRole)
+    {
+        if (userRole.IsAdmin)
+        {
+            return "Admin";
+        }
+
+        return userRole.IsDataApprover ? "Data Approver" : "Member";
     }
 
 }

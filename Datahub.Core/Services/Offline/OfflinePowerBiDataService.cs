@@ -55,6 +55,11 @@ namespace Datahub.Core.Services.Offline
             throw new NotImplementedException();
         }
 
+        public Task<IEnumerable<CatalogLanguageLink>> GeneratePublishedInternalReportLinksFromCatalogAsync(string reportId)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<IList<PowerBi_DataSet>> GetAllDatasets()
         {
             return Task.FromResult<IList<PowerBi_DataSet>>(new List<PowerBi_DataSet>());

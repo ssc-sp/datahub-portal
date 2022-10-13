@@ -1,6 +1,4 @@
-﻿using System.ComponentModel;
-
-namespace Datahub.Metadata.Model
+﻿namespace Datahub.Metadata.Model
 {
     public enum MetadataObjectType : byte
     {
@@ -11,6 +9,8 @@ namespace Datahub.Metadata.Model
         FileUrl,
         GeoObject,
         Database,
-        DatasetUrl
+        DatasetUrl,
+        DataInitiative,
+        DatabrickNotebook
     }
 }
