@@ -1,5 +1,4 @@
-﻿using System;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using NRCanDataHub;
 
 namespace SyncDBUsersConsole

@@ -491,7 +491,7 @@
 
       private void LoadIndicators()
     {            
-        _indicators = Context.IndicatorAndResults.Where(p => p.PIP_Tombstone.Tombstone_ID == _tombstone.Tombstone_ID && !p.IsDeleted && p.FiscalYear == _fiscalYear).ToList();
+        _indicators = Context.IndicatorAndResults.OrderBy(o => o.Indicator_DESC).Where(p => p.PIP_Tombstone.Tombstone_ID == _tombstone.Tombstone_ID && !p.IsDeleted && p.FiscalYear == _fiscalYear).ToList();
     }
 
     // public void CleanEditingUser()

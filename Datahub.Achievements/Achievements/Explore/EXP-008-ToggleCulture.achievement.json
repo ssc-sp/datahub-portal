@@ -1,0 +1,10 @@
+{
+  "Code": "EXP-008",
+  "Name": "C'est mieux comme ça",
+  "Description": "Switch languages in the portal",
+  "ParentAchievementCode": "EXP-009",
+  "Icon": "fas fa-archway",
+  "RuleExpressions": [
+    "Utils.EventMetricExactCount(\"user_click_toggle_culture\", EventMetrics) > 0"
+  ]
+}

@@ -11,21 +11,21 @@ else
         Title="@Localizer["IoT Devices"]"
         Description="@Localizer["Access the connection details for the IoT devices connected to this project"]">
         <Logo>
-            <i class="fas fa-router"></i>
+            <i class="fas fa-router fa-2x"></i>
         </Logo>
         <ToolActionsList>
-            <ul>
-                <li>
-                    <DHLink LinkType="DatahubLinkType.Storage">
-                        <AeButton class="light">@Localizer["Manage Devices"]</AeButton>
-                    </DHLink>
-                </li>
-                <li>
-                    <DHLink LinkType="DatahubLinkType.Storage">
-                        <AeButton class="light">@Localizer["Connect New Device"]</AeButton>
-                    </DHLink>
-                </li>
-            </ul>
+            <MudStack Row>
+                <DHLink LinkType="DatahubLinkType.Storage">
+                    <ToolActionButton LinkType="LinkType.Internal">
+                        @Localizer["Manage Devices"]
+                    </ToolActionButton>
+                </DHLink>
+                <DHLink LinkType="DatahubLinkType.Storage">
+                    <ToolActionButton LinkType="LinkType.Internal">
+                        @Localizer["Connect New Device"]
+                    </ToolActionButton>
+                </DHLink>
+            </MudStack>
         </ToolActionsList>
     </ToolCard>
 }
@@ -36,10 +36,9 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        await base.OnInitializedAsync();
-
         await using var projectDbContext = await _dbFactoryProject.CreateDbContextAsync();
 
+        // review this!!
         _project = await projectDbContext.Projects
             .Include(p => p.Requests)
             .FirstAsync();

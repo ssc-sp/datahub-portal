@@ -1,0 +1,10 @@
+{
+  "Code": "EXP-010",
+  "Name": "Home, sweet home",
+  "Description": "Visit one of your own projects",
+  "ParentAchievementCode": "EXP-009",
+  "Icon": "fas fa-hot-tub",
+  "RuleExpressions": [
+    "Utils.EventMetricRegexCount(\"\\/projects\\/.[^\\/]+$\", EventMetrics) > 0"
+  ]
+}

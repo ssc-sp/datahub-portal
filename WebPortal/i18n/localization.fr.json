@@ -194,6 +194,11 @@
     "English": "Anglais",
     "French": "Français"
   },
+  "LANGUAGE_TYPES_SHORT": {
+    "Bilingual": "BI",
+    "English": "AN",
+    "French": "FR"
+  },
   "METADATA-PAGE": {
     "ShowMore": "Afficher les champs optionnels",
     "ShowLess": "Masquer les champs optionnels",

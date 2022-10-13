@@ -187,7 +187,9 @@
     "FileUrl": "File URL",
     "GeoObject": "Geo Object",
     "Database": "Database",
-    "DatasetUrl": "Dataset Url"
+    "DatasetUrl": "Dataset Url",
+    "DataInitiative": "Data Initiative",
+    "DatabrickNotebook": "Databricks Notebook"
   },
   "DISCOVERY-CLASSIFICATION-TYPES": {
     "Unclassified": "Unclassified",
@@ -198,6 +200,11 @@
     "Bilingual": "Bilingual",
     "English": "English",
     "French": "French"
+  },
+  "LANGUAGE_TYPES_SHORT": {
+    "Bilingual": "BI",
+    "English": "EN",
+    "French": "FR"
   },
   "RESOURCE-TYPE": {
     "psql": "PostgreSQL",
@@ -1007,7 +1014,7 @@
     "LanguageTableDisclaimer": "Only one registration permitted per student per session.",
     "Registrations_closed": "Registrations are currently closed.",
     "Registrations_open_from_to": "The {0} {1} registrations will open from {2} to {3}.",
-    "Registrations_open_until": "Registrations open for {0} {1} until {2}, {3} {4}, {5} by 6:00 PM (EDT)",
+    "Registrations_open_until": "The registrations are open for the {0} {1} session until {2}, {3} {4}, {5} by 6:00 PM (EDT)",
     "Spring": "Spring",
     "Summer": "Summer",
     "Fall": "Fall",

@@ -42,8 +42,16 @@ steps:
   displayName: dotnet restore
   inputs:
     command: restore
-    projects: 'WebPortal/*.csproj'
+    projects: |
+      Datahub.Portal.sln
     includeNuGetOrg: true
+
+- task: DotNetCoreCLI@2
+  displayName: dotnet build
+  inputs:
+    command: build
+    projects: |
+      Datahub.Portal.sln
     
 - task: PowerShell@2
   inputs:

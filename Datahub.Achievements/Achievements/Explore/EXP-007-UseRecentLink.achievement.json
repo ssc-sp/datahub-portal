@@ -1,0 +1,10 @@
+{
+  "Code": "EXP-007",
+  "Name": "Deja Vu",
+  "Description": "Use a recent link to get to the same page again",
+  "ParentAchievementCode": "EXP-009",
+  "Icon": "fas fa-repeat-alt",
+  "RuleExpressions": [
+    "Utils.EventMetricExactCount(\"user_click_recent_link\", EventMetrics) > 0"
+  ]
+}

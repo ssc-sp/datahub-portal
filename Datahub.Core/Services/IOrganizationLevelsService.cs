@@ -9,6 +9,9 @@ namespace Datahub.Core.Services
         Task<List<OrganizationLevel>> GetDivisions();
         Task<List<OrganizationLevel>> GetSectors();
         Task<List<OrganizationLevel>> GetSections();
+
+        Task<OrganizationLevel> GetSector(int sectorId);
+        Task<OrganizationLevel> GetBranch(int branchId);
     }
 
     public record OrganizationLevel(int Id, int ParentId, string EnglishLabel, string FrenchLabel);

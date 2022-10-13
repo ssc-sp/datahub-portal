@@ -2,8 +2,6 @@
 using Datahub.Metadata.Model;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Datahub.Core.Services
@@ -46,5 +44,11 @@ namespace Datahub.Core.Services
         string GeneratePublishedInternalReportLink(string reportId, CatalogObjectLanguage language = CatalogObjectLanguage.Bilingual);
         string GeneratePublishedInternalReportLink(Guid reportId, CatalogObjectLanguage language = CatalogObjectLanguage.Bilingual) 
             => GeneratePublishedInternalReportLink(reportId.ToString(), language);
+
+        Task<IEnumerable<CatalogLanguageLink>> GeneratePublishedInternalReportLinksFromCatalogAsync(string reportId);
+        Task<IEnumerable<CatalogLanguageLink>> GeneratePublishedInternalReportLinksFromCatalogAsync(Guid reportId) 
+            => GeneratePublishedInternalReportLinksFromCatalogAsync(reportId.ToString());
     }
+
+    public record CatalogLanguageLink(CatalogObjectLanguage Language, string Url);
 }

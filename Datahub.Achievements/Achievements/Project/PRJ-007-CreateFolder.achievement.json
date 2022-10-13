@@ -1,0 +1,10 @@
+{
+  "Code": "PRJ-007",
+  "Name": "It's turtles all the way down",
+  "Description": "Create a folder in the project's Storage Explorer",
+  "ParentAchievementCode": "PRJ-008",
+  "Icon": "fas fa-turtle",
+  "RuleExpressions": [
+    "Utils.EventMetricExactCount(\"user_create_folder\", EventMetrics) > 0"
+  ]
+}

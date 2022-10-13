@@ -104,7 +104,7 @@ namespace Datahub.Finance.Migrations
                     b.Property<int?>("FundCenter_ID")
                         .HasColumnType("int");
 
-                    b.Property<int>("Incremental_Replacement")
+                    b.Property<int?>("Incremental_Replacement")
                         .HasColumnType("int");
 
                     b.Property<bool>("Is_Deleted")
@@ -123,7 +123,7 @@ namespace Datahub.Finance.Migrations
                         .HasMaxLength(4000)
                         .HasColumnType("nvarchar(4000)");
 
-                    b.Property<int>("Potential_Hiring_Process")
+                    b.Property<int?>("Potential_Hiring_Process")
                         .HasColumnType("int");
 
                     b.Property<double?>("Salary")
@@ -285,10 +285,10 @@ namespace Datahub.Finance.Migrations
                     b.Property<bool>("Is_Deleted")
                         .HasColumnType("bit");
 
-                    b.Property<int>("Key_Activity")
+                    b.Property<int?>("Key_Activity")
                         .HasColumnType("int");
 
-                    b.Property<int>("Key_Driver")
+                    b.Property<int?>("Key_Driver")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("Last_Updated_DT")
