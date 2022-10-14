@@ -38,9 +38,9 @@
         
         <DHMarkdown class="description" Content="@($"{_project.ProjectDescription}")"/>
 
-        @if (_showCosts && _currentProjectMonthlyCost.HasValue && _currentProjectMonthlyCost.Value < ProjectBudget)
+        @if (_showCosts && _currentProjectMonthlyCost.HasValue && _currentProjectMonthlyCost.Value < _projectBudget)
         {
-            <ProjectCosting ProjectBudget=@ProjectBudget ConsumedBudget=@_currentProjectMonthlyCost.Value />
+            <ProjectCosting ProjectBudget=@_projectBudget ConsumedBudget=@_currentProjectMonthlyCost.Value />
         }
     }
 </div>
@@ -50,14 +50,10 @@
     [CascadingParameter(Name = "ProjectAcronym")]
     public string ProjectAcronym { get; set; }
 
-    //Todo: Remove default value
-    [Parameter]
-    public decimal ProjectBudget { get; set; } = 1000m;
-
     private Datahub_Project _project;
     private decimal? _currentProjectMonthlyCost;
     private string _projectIcon => $"fas fa-{_project?.Project_Icon ?? Icon.DEFAULT_PROJECT_ICON}";
-
+    private decimal _projectBudget;
     private bool _loading = true;
     private bool _showCosts;
 
@@ -71,6 +67,9 @@
         if (projectMonthlyCost != null)
             _currentProjectMonthlyCost = projectMonthlyCost.TotalCost;
 
+        // TODO: read the project budget from the proper location 
+        _projectBudget = 500m;
+
         _loading = false;
     }
 
@@ -80,9 +79,9 @@
         {
             if (_currentProjectMonthlyCost < 0.01m)
                 return Color.Dark;
-            if (_currentProjectMonthlyCost >= ProjectBudget)
+            if (_currentProjectMonthlyCost >= _projectBudget)
                 return Color.Error;
-            if (_currentProjectMonthlyCost >= 0.75m * ProjectBudget)
+            if (_currentProjectMonthlyCost >= 0.75m * _projectBudget)
                 return Color.Warning;
         }
         return Color.Default;
@@ -91,9 +90,9 @@
     private string GetToolTipText()
     {
         var projectName = $"{_project.ProjectName} ";
-        if (_currentProjectMonthlyCost >= ProjectBudget)
+        if (_currentProjectMonthlyCost >= _projectBudget)
             return projectName +  Localizer["is over budget"];
-        if (_currentProjectMonthlyCost >= 0.75m * ProjectBudget)
+        if (_currentProjectMonthlyCost >= 0.75m * _projectBudget)
             return projectName + Localizer["is nearing budget"];
         return projectName + Localizer["is under budget"];
     }
