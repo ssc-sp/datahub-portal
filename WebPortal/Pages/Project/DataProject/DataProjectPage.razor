@@ -20,7 +20,7 @@
             <CascadingValue Value=@_isDatahubAdmin Name="IsDatahubAdmin">
                 <CascadingValue Value=@_user Name="GraphUser">
                     <CascadingValue Value=@_projectId Name="ProjectId">
-                        <ProjectInfo />
+                        <ProjectInfo ProjectBudget=500 />
                         <ProjectCatalog IsFrench=@_isFrench />
                         <ProjectMembers />
                         <ProjectToolListing />
@@ -45,6 +45,7 @@
     private int _projectId;
     private bool _isDatahubAdmin;
     private bool _isFrench;
+    private bool _showCosts;
 
     protected override async Task OnInitializedAsync()
     {
@@ -62,7 +63,7 @@
         _user = await _userInformationService.GetUserAsync();
         var authUser = (await authenticationStateTask).User;
         _isDatahubAdmin = !_serviceAuthManager.GetViewingAsGuest(_userId) && authUser.IsInRole(RoleConstants.DATAHUB_ROLE_ADMIN);
-        
+
         var isMemberOfProject = projectContext.Project_Users
             .Any(p => p.User_ID == _userId && p.Project.Project_Acronym_CD == ProjectAcronymParam);
 
@@ -72,5 +73,10 @@
         }
 
         await _auditingService.TrackEvent("Open Initiative", ("Initiative", _projectName), ("Acronym", ProjectAcronymParam));
+    }
+
+    private void HandleToggleCosts()
+    {
+        _showCosts = !_showCosts;
     }
 }
