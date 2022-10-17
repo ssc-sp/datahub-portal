@@ -159,7 +159,7 @@
 											MapBranch=@GetBranch
 											OnShowLinks=@HandleShowLinks
 											ShowLinks>
-											@GetDownLoadFragment(item)
+											@RenderTypeSpecificDownloadFragment(item)
 										</CatalogCards>
 									</ItemTemplate>
 									<LoadingTemplate>
@@ -537,52 +537,59 @@
 		await _searchField.FocusAsync();
 	}
 
-    private string GetSector(CatalogObjectResult result, bool french) => GetLabel(_sectors.GetValueOrDefault(result.Sector), french);
+	private string GetSector(CatalogObjectResult result, bool french) => GetLabel(_sectors.GetValueOrDefault(result.Sector), french);
 
-    private string GetBranch(CatalogObjectResult result, bool french) => GetLabel(_branches.GetValueOrDefault(result.Branch), french);
+	private string GetBranch(CatalogObjectResult result, bool french) => GetLabel(_branches.GetValueOrDefault(result.Branch), french);
 
-    private string GetLabel(OrganizationLevel orgLevel, bool french) => (french ? orgLevel?.FrenchLabel : orgLevel?.EnglishLabel) ?? "-";
+	private string GetLabel(OrganizationLevel orgLevel, bool french) => (french ? orgLevel?.FrenchLabel : orgLevel?.EnglishLabel) ?? "-";
 
-    // renderer functions
-    private RenderFragment GetDownLoadFragment(CatalogObjectResult result) => 
-		result.ClassificationType == ClassificationType.Unclassified ? GetAuthorizedDownload(result) : GetUnauthorizedDownload(result);
-
-    private RenderFragment GetAuthorizedDownload(CatalogObjectResult result) =>
-		@<AeButton class="blue" onclick=@(() => HandleDownload(result))>@Localizer[GetButtonText(result)]</AeButton>;
-
-	private RenderFragment GetUnauthorizedDownload(CatalogObjectResult result)
+	// renderer functions
+	private Action GetButtonAction(CatalogObjectResult result) => result.DataType switch
 	{
-		var label = result.ClassificationType == ClassificationType.ProtectedA ? Localizer["Protected A - Request Access"] : Localizer["Protected B - Request Access"];
-		return @<AeButton class="red" onclick=@(() => HandleDownload(result))>@label</AeButton>;
+		MetadataObjectType.File => async () => await DownloadFile(result),
+		MetadataObjectType.FileUrl => async () => await DownloadFileUrl(result),
+		MetadataObjectType.PowerBIReport => async () => await ViewPowerBIReport(result),
+		MetadataObjectType.DatasetUrl => async () => await DownloadDatasetUrl(result),
+		MetadataObjectType.DataInitiative => () => NavigationManager.NavigateTo($"projects/{result.Location}"),
+		MetadataObjectType.DatabrickNotebook => async () => await RedirectAndDownload(result.Location),
+		_ => null
+	};
+
+	private string GetButtonCaption(CatalogObjectResult result) => result.ClassificationType switch
+	{
+		ClassificationType.ProtectedA => Localizer["Protected A - Request Access"],
+		ClassificationType.ProtectedB => Localizer["Protected B - Request Access"],
+		_ => GetButtonText(result)
+	};
+
+	private string GetButtonClass(CatalogObjectResult result) => result.ClassificationType == ClassificationType.Unclassified ? "blue" : "red";
+
+	private RenderFragment RenderGenericDownloadButton(CatalogObjectResult result)
+	{
+		var action = GetButtonAction(result);
+		if (action == null)
+		{
+			return @<MudSpacer/>;
+		}
+		else
+		{
+			return @<AeButton class=@GetButtonClass(result) onclick=@GetButtonAction(result)>@GetButtonCaption(result)</AeButton>;
+		}
 	}
 
-	private async Task HandleDownload(CatalogObjectResult result)
+	private RenderFragment RenderPowerBiReportFragment(CatalogObjectResult result) =>
+		@<MudStack Row AlignItems=@AlignItems.Center>
+			<Datahub.Portal.Pages.PowerBI.InternalPublishedPowerBIReportLinks ReportID=@result.MetadataObjectId_TXT />
+			@RenderGenericDownloadButton(result)
+		</MudStack>;
+
+	private  RenderFragment RenderTypeSpecificDownloadFragment(CatalogObjectResult result) => result.DataType switch
 	{
-		if (result.DataType == MetadataObjectType.File)
-		{
-			await DownloadFile(result);
-		}
-		else if (result.DataType == MetadataObjectType.FileUrl)
-		{
-			await DownloadFileUrl(result);
-		}
-		else if (result.DataType == MetadataObjectType.PowerBIReport)
-		{
-			await ViewPowerBIReport(result);
-		}
-		else if (result.DataType == MetadataObjectType.DatasetUrl)
-		{
-			await RedirectAndDownload(result.IsFrench ? result.Url_French : result.Url_English);
-		}
-		else if (result.DataType == MetadataObjectType.DataInitiative)
-		{
-			NavigationManager.NavigateTo($"projects/{result.Location}");
-		}
-		else if (result.DataType == MetadataObjectType.DatabrickNotebook)
-		{
-			await RedirectAndDownload(result.Location);
-		}
-	}
+		MetadataObjectType.PowerBIReport => RenderPowerBiReportFragment(result),
+		_ => RenderGenericDownloadButton(result)
+	};
+
+	private async Task DownloadDatasetUrl(CatalogObjectResult result) => await RedirectAndDownload(result.IsFrench ? result.Url_French : result.Url_English);
 
 	private string GetButtonText(CatalogObjectResult result)
 	{
@@ -812,7 +819,7 @@
 						GetProject=@GetProject
 						MapSector=@GetSector
 						MapBranch=@GetBranch
-						GetDownLoadFragment=@GetDownLoadFragment />
+						GetDownLoadFragment=@RenderTypeSpecificDownloadFragment />
 				</div>
 			</div>;
 		await uiControlService.ToggleModal(@<RenderFragmentModal Fragment=@groupFragment />);
