@@ -1,4 +1,6 @@
-﻿using MudBlazor.Forms;
+﻿using Microsoft.Graph;
+using MudBlazor;
+using MudBlazor.Forms;
 using System;
 using System.ComponentModel.DataAnnotations;
 
@@ -10,39 +12,39 @@ namespace Datahub.Core.EFCore
         [Key]
         public int Engagement_ID { get; set; }
 
-        [AeFormCategory("Engagement Details")]
+        [AeFormCategory("Projected Engagement Details")]
         [Required]
         [MaxLength(2000)]
         public string Engagement_Name { get; set; }
         [AeFormIgnore]
         public Datahub_Project Project { get; set; }
-        [AeFormCategory("Engagement Details")]
+        [AeFormCategory("Projected Engagement Details")]
         public DateTime? Engagement_Start_Date { get; set; }
-        [AeFormCategory("Engagement Details")]
+        [AeFormCategory("Projected Engagement Details")]
         public DateTime? Requirements_Gathering_EndDate { get; set; }
-        [AeFormCategory("Engagement Details")]
-        public DateTime? Requirements_Gathering_ActualEndDate { get; set; }
-        [AeFormCategory("Engagement Details")]
+        [AeFormCategory("Projected Engagement Details")]
         public DateTime? Phase1_Development_EndDate { get; set; }
-        [AeFormCategory("Engagement Details")]
-        public DateTime? Phase1_Development_ActualEndDate { get; set; }
-        [AeFormCategory("Engagement Details")]
+        [AeFormCategory("Projected Engagement Details")]
         public DateTime? Phase1_Testing_EndDate { get; set; }
-        [AeFormCategory("Engagement Details")]
-        public DateTime? Phase1_Testing_ActualEndDate { get; set; }
-        [AeFormCategory("Engagement Details")]
+        [AeFormCategory("Projected Engagement Details")]
         public DateTime? Phase2_Development_EndDate { get; set; }
-        [AeFormCategory("Engagement Details")]
-        public DateTime? Phase2_Development_ActualEndDate { get; set; }
-        [AeFormCategory("Engagement Details")]
+        [AeFormCategory("Projected Engagement Details")]
         public DateTime? Phase2_Testing_EndDate { get; set; }
-        [AeFormCategory("Engagement Details")]
-        public DateTime? Phase2_Testing_ActualEndDate { get; set; }
-        [AeFormCategory("Engagement Details")]
+        [AeFormCategory("Projected Engagement Details")]
         public DateTime? Final_Updates_EndDate { get; set; }
-        [AeFormCategory("Engagement Details")]
+        [AeFormCategory("Projected Engagement Details")]
         public DateTime? Final_Release_Date { get; set; }
-        [AeFormCategory("Engagement Details")]
+        [AeFormCategory("Actual Engagement Details")]
+        public DateTime? Requirements_Gathering_ActualEndDate { get; set; }
+        [AeFormCategory("Actual Engagement Details")]
+        public DateTime? Phase1_Development_ActualEndDate { get; set; }
+        [AeFormCategory("Actual Engagement Details")]
+        public DateTime? Phase1_Testing_ActualEndDate { get; set; }
+        [AeFormCategory("Actual Engagement Details")]
+        public DateTime? Phase2_Development_ActualEndDate { get; set; }
+        [AeFormCategory("Actual Engagement Details")]
+        public DateTime? Phase2_Testing_ActualEndDate { get; set; }
+        [AeFormCategory("Actual Engagement Details")]
         public DateTime? Actual_Release_Date { get; set; }
 
         [AeFormIgnore]
@@ -61,5 +63,61 @@ namespace Datahub.Core.EFCore
         [Timestamp]
         public byte[] Timestamp { get; set; }
 
+
+        //Timeline.
+        //StartDate
+        //Requirements completed date
+        //Phase 1 dev completed date
+        //phase 1 testing completed date
+        //Phase 2 dev completed date
+        //phase 2 testing completed date
+        //final release date
+        //support ?
+
+
+        public bool IsRequirementsComplete => Requirements_Gathering_ActualEndDate != null;
+        public bool IsPhase1DevComplete => Phase1_Development_ActualEndDate != null;
+        public bool IsPhase1TestComplete => Phase1_Testing_ActualEndDate != null;
+        public bool IsPhase2DevComplete => Phase2_Development_ActualEndDate != null;
+        public bool IsPhase2TestComplete => Phase2_Testing_ActualEndDate != null;
+        public bool IsReleased => Actual_Release_Date != null;
+
+        public (Color, Severity) RequirementsStatus()
+        {
+            if (!IsRequirementsComplete)
+            {
+                if (Requirements_Gathering_EndDate is null)
+                {
+                    return (Color.Info, Severity.Info);
+                }
+                else
+                {
+                    return Requirements_Gathering_EndDate <= DateTime.Now.Date ? (Color.Success, Severity.Success) : (Color.Error, Severity.Error);
+                }
+            }
+            else
+            {
+                return Requirements_Gathering_EndDate <= Requirements_Gathering_ActualEndDate ? (Color.Success, Severity.Success) : (Color.Error, Severity.Error);
+            }
+        }
+
+        public (Color, Severity) TimelineStatus(bool isComplete, DateTime? estimatedEndDate, DateTime? actualEndDate)
+        {
+            if (!isComplete)
+            {
+                if (estimatedEndDate is null)
+                {
+                    return (Color.Info, Severity.Info);
+                }
+                else
+                {
+                    return estimatedEndDate >= DateTime.Now.Date ? (Color.Success, Severity.Success) : (Color.Error, Severity.Error);
+                }
+            }
+            else
+            {
+                return estimatedEndDate >= actualEndDate ? (Color.Success, Severity.Success) : (Color.Error, Severity.Error);
+            }
+        }
     }
 }
