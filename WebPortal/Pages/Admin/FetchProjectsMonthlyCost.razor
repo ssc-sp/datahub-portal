@@ -70,7 +70,6 @@
 	//	//"https://management.azure.com/Microsoft.Billing/billingProperty/read"
 	//};
 
-	private bool ErrorLoadingToken = false;
 	private string token;
 	private string error = null;
 
@@ -89,7 +88,6 @@
 		catch (HttpOperationException)
 		{
 			// couldn't load the report - missing or unauthorized
-			ErrorLoadingToken = true;
 		}
 		catch (Exception)
 		{
