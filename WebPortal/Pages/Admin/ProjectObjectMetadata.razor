@@ -73,7 +73,7 @@
 
     private int? FindOrganizationLevelId(List<OrganizationLevel> levels, string value) 
     {
-        var org = levels.FirstOrDefault(l => value.Equals(l.EnglishLabel, StringComparison.OrdinalIgnoreCase) || value.Equals(l.FrenchLabel, StringComparison.OrdinalIgnoreCase));
+        var org = !string.IsNullOrEmpty(value) ? levels.FirstOrDefault(l => value.Equals(l.EnglishLabel, StringComparison.OrdinalIgnoreCase) || value.Equals(l.FrenchLabel, StringComparison.OrdinalIgnoreCase)) : null;
         return org?.Id;
     }
 
