@@ -76,7 +76,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.CatalogSearch.Tests
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Graph.Functions", "Datahub.Graph.Functions\Datahub.Graph.Functions.csproj", "{EDB44E0F-DF37-4717-943C-58A4EC672A4F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureCostSyncCLI", "AzureCostSyncCLI\AzureCostSyncCLI.csproj", "{9E36CAF6-992C-4661-9A21-2FAC3EFD31F7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureCostSyncCLI", "AzureCostSyncCLI\AzureCostSyncCLI.csproj", "{9E36CAF6-992C-4661-9A21-2FAC3EFD31F7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -193,8 +193,8 @@ Global
 		{9E36CAF6-992C-4661-9A21-2FAC3EFD31F7} = {99B35301-CA50-489C-B1BF-E77559140B1E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {9DC4B901-16FF-4FF2-9ED6-B286EA17048E}
-		RESX_AutoCreateNewLanguageFiles = True
 		RESX_ConfirmAddLanguageFile = True
+		RESX_AutoCreateNewLanguageFiles = True
+		SolutionGuid = {9DC4B901-16FF-4FF2-9ED6-B286EA17048E}
 	EndGlobalSection
 EndGlobal
