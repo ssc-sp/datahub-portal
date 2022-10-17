@@ -246,7 +246,8 @@
     "Branch": "Branche",
     "RelatedReports": "Rapport(s) connexe(s)",
     "Loading": "Chargement",
-    "InvalidReport": "Rapport non valide"
+    "InvalidReport": "Rapport non valide",
+    "PublicationLinks": "Lien(s) pour publication"
   },
   "RESOURCE_REQUEST_INFO_PANEL": {
     "RequestInformation": "Information sur la demande",
