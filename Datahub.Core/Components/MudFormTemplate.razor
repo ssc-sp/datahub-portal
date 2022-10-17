@@ -139,7 +139,8 @@ else
                          LabelForPropertyFunc="@GetDataLabel"
                          LabelsOnTop="true"
                          LocalizerFunction="@GetDataLabel"
-                         IsSubmitEnabled="Metadata.IsSubmitEnabled" />
+                         IsSubmitEnabled="Metadata.IsSubmitEnabled"
+                         AreFieldsNullable="true"/>
         </MudCardContent>
         <MudCardActions>
                 @foreach (var navigationUrl in Metadata.NavigateUrls)

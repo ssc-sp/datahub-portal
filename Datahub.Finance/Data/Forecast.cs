@@ -60,7 +60,7 @@ namespace Datahub.Portal.Data.Finance
         public double? Salary { get; set; }
 
         [AeFormIgnore]
-        public int Incremental_Replacement { get; set; }
+        public int? Incremental_Replacement { get; set; }
 
         [NotMapped]
         [AeFormCategory("Planned Staffing")]
@@ -73,7 +73,7 @@ namespace Datahub.Portal.Data.Finance
         public string Location_Of_Hiring { get; set; }
 
         [AeFormIgnore]
-        public int Potential_Hiring_Process { get; set; }
+        public int? Potential_Hiring_Process { get; set; }
 
         [NotMapped]
         [AeFormCategory("Planned Staffing")]        
