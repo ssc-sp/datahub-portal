@@ -1647,7 +1647,6 @@
     "ClickToApprove": "Cliquez pour approuver la publication"
   },
   "Resources": "Ressources",
-  "LanguageTableDisclaimer": "Une seule inscription est autorisée par étudiant et par session.",
   "Initiatives": "Initiatives",
   "Initiative Home": "Accueil de l'initiative",
   "View your profile": "Voir votre profil",
@@ -1656,9 +1655,10 @@
   "Admin Access Enabled": "Accès Admin activé",
   "View As Visitor": "Voir en tant que visiteur",
   "LanguageTrainingApplication": {
+    "LanguageTableDisclaimer": "Une seule inscription est autorisée par étudiant et par session.",
     "Registrations_closed": "Les inscriptions sont actuellement fermées.",
     "Registrations_open_from_to": "Les inscriptions pour {0} de {1} seront ouvertes de {2} à {3}.",
-    "Registrations_open_until": "Les inscriptions seront ouvertes pour la session {0} {1} jusqu'au {2}, le {4} {3} {5}, à 18 h 00 (HAE).",
+    "Registrations_open_until": "Les inscriptions seront ouvertes pour la session {0} {1} jusqu'au {2}, le {4} {3} {5}, à 18 h 00 (HAE). En s'inscrivant l’apprenant assistera aux deux premières semaines de la session, c’est obligatoire. ",
     "Spring": "de printemps",
     "Summer": "d'été",
     "Fall": "d'automne",
