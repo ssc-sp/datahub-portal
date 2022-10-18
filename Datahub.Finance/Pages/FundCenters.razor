@@ -229,8 +229,7 @@
         context.RegisterOptionValueProperty<FundCenter, HierarchyLevel>(l => l.Branch, p => p?.FundCenterNameEnglish ?? "N/A", () => GetBranches(), s => RefreshDivisions(s, context));
         context.RegisterOptionValueProperty<FundCenter, HierarchyLevel>(l => l.Division, p => p?.FundCenterNameEnglish ?? "N/A", () => GetDivisions());
 
-        context.RegisterFieldNotes<FundCenter>(f => f.AttritionRate, "This is the attrition rate note");
-
+        context.RegisterFieldNotes<FundCenter>(f => f.AttritionRate, @"Identify the attrition % for your division. This % will be applied to all forecasted salaries on the SFT Forecast page. Attrition represents an estimated percentage of salary costs currently forecasted that will likely not materialize due to unplanned vacancies (the gap between unplanned departure and replacement of an employee).");
     }
 
 
