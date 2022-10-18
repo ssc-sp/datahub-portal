@@ -67,8 +67,7 @@
         if (projectMonthlyCost != null)
             _currentProjectMonthlyCost = projectMonthlyCost.TotalCost;
 
-        // TODO: read the project budget from the proper location 
-        _projectBudget = 500m;
+        _projectBudget = _project.Project_Budget;
 
         _loading = false;
     }
