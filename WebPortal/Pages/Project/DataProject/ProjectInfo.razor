@@ -67,7 +67,7 @@
         if (projectMonthlyCost != null)
             _currentProjectMonthlyCost = projectMonthlyCost.TotalCost;
 
-        _projectBudget = _project.Project_Budget;
+        _projectBudget = _project.Project_Budget ?? 0;
 
         _loading = false;
     }
