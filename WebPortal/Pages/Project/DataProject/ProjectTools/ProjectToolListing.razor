@@ -134,8 +134,7 @@
         _user = (await authenticationStateTask).User;
 
         await using var projectDbContext = await _dbFactoryProject.CreateDbContextAsync();
-        _project = await projectDbContext.Projects
-            .SingleOrDefaultAsync(p => p.Project_Acronym_CD == ProjectAcronym);
+        _project = await projectDbContext.Projects.FirstOrDefaultAsync(p => p.Project_Acronym_CD == ProjectAcronym);
 
         var _serviceRequests = await projectDbContext.Project_Requests
             .Where(p => p.Project == _project)
