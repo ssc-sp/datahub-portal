@@ -246,7 +246,8 @@
     "Branch": "Branch",
     "RelatedReports": "Related report(s)",
     "Loading": "Loading",
-    "InvalidReport": "Invalid report"
+    "InvalidReport": "Invalid report",
+    "PublicationLinks": "Link(s) for publication"
   },
   "RESOURCE_REQUEST_INFO_PANEL": {
     "RequestInformation": "Request Information",

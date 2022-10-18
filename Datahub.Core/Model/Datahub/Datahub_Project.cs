@@ -46,6 +46,9 @@ namespace Datahub.Core.EFCore
         [StringLength(10)]
         public string Project_Acronym_CD { get; set; }
 
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal Project_Budget { get; set; }
+
         public string Project_Admin { get; set; }
         public string Project_Summary_Desc { get; set; }
         public string Project_Summary_Desc_Fr { get; set; }
