@@ -1027,5 +1027,31 @@
     "Summer": "Summer",
     "Fall": "Fall",
     "Winter": "Winter"
+  },
+  "ADMINISTRATION": {
+    "CARD_TITLES": {
+      "ManageInitiatives": "Manage Initiatives",
+      "ExternalSharing": "External Sharing",
+      "ManageServices": "Manage Services in Initiatives",
+      "PowerBI": "Power BI",
+      "Registrations": "Registrations",
+      "SharingAPIs": "Datahub Sharing APIs",
+      "Metadata": "Metadata Management",
+      "MonthlyCost": "Monthly Cost"
+    },
+    "CARD_DESCRIPTIONS": {
+      "ManageInitiatives": "Approve initiative requests and user access",
+      "ExternalSharing": "Manage external sharing for files and Power BI reports",
+      "ManageServices": "Approve service creation and access requests",
+      "PowerBI": "Link Power BI workspaces, reports and data sets with Datahub initiatives",
+      "Registrations": "???",
+      "SharingAPIs": "Manage API keys for external users",
+      "Metadata": "Manage the Datahub metadata model",
+      "MonthlyCost": "Refresh monthly cost for initiatives"
+    },
+    "BUTTON_CAPTIONS": {
+      "OpenPage": "Open Page",
+      "UpdateCosts": "Update Costs"
+    }
   }
 }
