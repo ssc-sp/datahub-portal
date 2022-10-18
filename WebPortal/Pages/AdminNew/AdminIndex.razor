@@ -1,0 +1,117 @@
+﻿@inject IUserInformationService _userInformationService
+@inject ServiceAuthManager _serviceAuthManager
+
+@page "/administration"
+@page "/admin"
+
+
+<DHPageTitle PageTitleKey="@Localizer["Admin"]" />
+
+<MudText Typo=Typo.h3>@Localizer["DataHub Administration"]</MudText>
+
+<MudText>
+    @_toggle
+</MudText>
+
+<AuthorizeView Roles="@string.Join(',', _authorizedRoles)">
+    <Authorized>
+        <CascadingValue Value="CurrentUserId" Name="UserId">
+            <CascadingValue Value="IsDataHubAdmin" Name="IsDatahubAdmin">
+                <CascadingValue Value="CurrentUserEmail" Name="CurrentUserEmail">
+                    <MudGrid>
+                        @foreach(var card in _adminCards)
+                        {
+                            <MudItem xs="4">
+                                <AdminCard CardDefinition=@card />
+                            </MudItem>
+                        }
+                    </MudGrid>
+                </CascadingValue>
+            </CascadingValue>
+        </CascadingValue>
+    </Authorized>
+    <NotAuthorized>
+        <MudText Typo=@Typo.h3>@Localizer["This page is limited for DataHub administrators"]</MudText>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    private const string LOCALIZATION_PREFIX = "ADMINISTRATION";
+    private const string CARD_TITLE_PREFIX = $"{LOCALIZATION_PREFIX}.CARD_TITLES";
+    private const string CARD_DESC_PREFIX = $"{LOCALIZATION_PREFIX}.CARD_DESCRIPTIONS";
+    private const string BUTTON_PREFIX = $"{LOCALIZATION_PREFIX}.BUTTON_CAPTIONS";
+
+    public abstract record AdminCardAction(String Caption) { }
+    public record AdminCardUrlAction(string Caption, string Url) : AdminCardAction(Caption);
+    public record AdminCardCodeAction(string Caption, Action Action) : AdminCardAction(Caption);
+    public record AdminCardDef(string Title, string Description, AdminCardAction Action);
+
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthenticationStateTask { get; set; }
+
+    private System.Security.Claims.ClaimsPrincipal _user;
+    private string CurrentUserId { get; set; }
+    private string CurrentUserName { get; set; }
+    private string CurrentUserEmail { get; set; }
+    private bool IsDataHubAdmin { get; set; }
+    private List<string> _authorizedRoles;
+
+
+    private List<AdminCardDef> _adminCards = new()
+    {
+        new("ManageInitiatives", "ManageInitiatives", new AdminCardUrlAction("OpenPage", "/admin/initiatives")),
+        new("ExternalSharing", "ExternalSharing", new AdminCardUrlAction("OpenPage", "/admin/externalsharing")),
+        new("ManageServices","ManageServices", new AdminCardUrlAction("OpenPage", "/admin/services")),
+        new("PowerBI", "PowerBI", new AdminCardUrlAction("OpenPage", "/admin/powerbi")),
+        new("Registrations", "Registrations", new AdminCardUrlAction("OpenPage", "/admin/registrations")),
+        new("SharingAPIs", "SharingAPIs", new AdminCardUrlAction("OpenPage", "/admin/sharingapis")),
+        new("Metadata","Metadata", new AdminCardUrlAction("OpenPage","/admin/metadata"))
+        //new("MonthlyCost", "MonthlyCost", new AdminCardCodeAction("UpdateCosts", () => UpdateMonthlyInitiativeCosts()))
+    };
+
+    private bool _toggle = true;
+
+    private AdminCardAction LocalizeAdminCardAction(AdminCardAction action)
+    {
+        var result = default(AdminCardAction);
+
+        if (action is AdminCardUrlAction)
+        {
+            result = new AdminCardUrlAction(Localizer[$"{BUTTON_PREFIX}.{action.Caption}"], ((AdminCardUrlAction)action).Url);
+        }
+        else if (action is AdminCardCodeAction)
+        {
+            result = new AdminCardCodeAction(Localizer[$"{BUTTON_PREFIX}.{action.Caption}"], ((AdminCardCodeAction)action).Action);
+        }
+
+        return result;
+    }
+
+    private AdminCardDef LocalizeCardDef(AdminCardDef def) => 
+        new(Localizer[$"{CARD_TITLE_PREFIX}.{def.Title}"], Localizer[$"{CARD_DESC_PREFIX}.{def.Description}"], LocalizeAdminCardAction(def.Action));
+
+    private async Task UpdateMonthlyInitiativeCosts()
+    {
+        _toggle = !_toggle;
+        await Task.CompletedTask;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var user = await _userInformationService.GetUserAsync();
+        _authorizedRoles = _serviceAuthManager.GetAdminProjectRoles(user.Id);
+        _user = (await AuthenticationStateTask).User;
+
+        CurrentUserId = await _userInformationService.GetUserIdString();
+        CurrentUserEmail = _user.Identity?.Name;
+        CurrentUserName = _user.Claims.FirstOrDefault(c => c.Type == "name")?.Value;
+        IsDataHubAdmin = _user.IsInRole(RoleConstants.DATAHUB_ROLE_ADMIN);
+
+        _adminCards = _adminCards.Select(c => LocalizeCardDef(c))
+            .Append(LocalizeCardDef(new("MonthlyCost", "MonthlyCost", new AdminCardCodeAction("UpdateCosts", async () => await UpdateMonthlyInitiativeCosts()))))
+            .ToList();
+
+        await Task.CompletedTask;
+    }
+
+}
