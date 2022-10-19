@@ -194,8 +194,13 @@ else
 
             foreach (var entry in changedEntries)
             {
-                entry.Property("Last_Updated_DT").CurrentValue = DateTime.Now;
-                entry.Property("Last_Updated_UserId").CurrentValue = Metadata.UserId;                
+                var lastUpdated = entry.Property("Last_Updated_DT");
+                if (lastUpdated is not null)
+                    lastUpdated.CurrentValue = DateTime.Now;
+
+                var lastUpdatedUser = entry.Property("Last_Updated_UserId");
+                if (lastUpdatedUser is not null)
+                    lastUpdatedUser.CurrentValue = Metadata.UserId;                
             }
             await Context.TrackSaveChangesAsync(AuditingService);
 
