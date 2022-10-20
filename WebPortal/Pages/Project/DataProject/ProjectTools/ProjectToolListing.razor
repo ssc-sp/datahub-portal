@@ -117,7 +117,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        
+
         var user = await _userInformationService.GetUserAsync();
         _authorizedRoles = new List<string>
         {
@@ -128,7 +128,7 @@
         {
             _authorizedRoles.Add(RoleConstants.DATAHUB_ROLE_ADMIN);
         }
-        
+
         _user = await _userInformationService.GetAuthenticatedUser();
 
         await using var projectDbContext = await _dbFactoryProject.CreateDbContextAsync();

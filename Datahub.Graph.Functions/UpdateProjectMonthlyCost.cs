@@ -32,7 +32,7 @@ public class UpdateProjectMonthlyCost
     [FunctionName("UpdateProjectMonthlyCostScheduled")]
     public async Task RunScheduledUpdate([TimerTrigger("0 0 2 * * *")]TimerInfo myTimer, ILogger log)
     {
-        await Run();
+        await Run(log);
     }
     // Same as above but can be triggered manually
     [FunctionName("UpdateProjectMonthlyCostHttp")]
@@ -42,7 +42,7 @@ public class UpdateProjectMonthlyCost
         try
         {
 
-            var returnRecord = await RunAndReturnUpdatedProjects();
+            var returnRecord = await RunAndReturnUpdatedProjects(log);
             return new OkObjectResult(returnRecord);
         }
         catch (Exception e)
@@ -53,13 +53,13 @@ public class UpdateProjectMonthlyCost
         }
     }
 
-    private async Task Run()
+    private async Task Run(ILogger log)
     {
-        await RunAndReturnUpdatedProjects();
+        await RunAndReturnUpdatedProjects(log);
 
     }
 
-    private async Task<CostReturnRecord> RunAndReturnUpdatedProjects()
+    private async Task<CostReturnRecord> RunAndReturnUpdatedProjects(ILogger log)
     {
         //Get the required environment variables
         var subscriptionId = Environment.GetEnvironmentVariable(SUBSCRIPTION_ID);
@@ -67,7 +67,7 @@ public class UpdateProjectMonthlyCost
         var clientId = Environment.GetEnvironmentVariable(CLIENT_ID);
         var clientSecret = Environment.GetEnvironmentVariable(CLIENT_SECRET);
 
-        var service = new AzureCostManagementService(_dbContext);
+        var service = new AzureCostManagementService(_dbContext, (ILogger<AzureCostManagementService>) log);
         //Acquire the access token
         var token = await GetAccessTokenAsync(tenantId, clientId, clientSecret);
         
