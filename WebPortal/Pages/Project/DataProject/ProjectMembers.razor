@@ -120,27 +120,21 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        await base.OnInitializedAsync();
-
         await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
+
         _project = await projectContext.Projects
             .Include(p => p.Pipelines)
-            .SingleAsync(p => p.Project_Acronym_CD == ProjectAcronym);
+            .AsSingleQuery()
+            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == ProjectAcronym);
 
         _user = await _userInformationService.GetUserAsync();
 
         _isProjectUserPendingApproval = projectContext.Project_Users_Requests
-            .Any(u =>
-                u.User_ID == _user.Id &&
-                _project == u.Project &&
-                u.Approved_DT == null);
+            .Any(u => u.User_ID == _user.Id && _project == u.Project && u.Approved_DT == null);
 
         _projectUsers = await _serviceAuthManager.GetProjectMembers(ProjectAcronym);
 
-        _authorizedRoles = new List<string>
-        {
-            ProjectAcronym, $"{ProjectAcronym}-admin"
-        };
+        _authorizedRoles = new() { ProjectAcronym, $"{ProjectAcronym}-admin" };
 
         if (!_serviceAuthManager.GetViewingAsGuest(_user.Id))
         {
