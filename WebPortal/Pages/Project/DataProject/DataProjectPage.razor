@@ -7,6 +7,7 @@
 @inject ServiceAuthManager _serviceAuthManager
 @inject AchievementService _achievementService
 @inject IDatahubAuditingService _auditingService
+@inject ILogger<DataProjectPage> logger
 
 @page "/projects/{ProjectAcronymParam}"
 
@@ -57,6 +58,8 @@
         _projectId = project?.Project_ID ?? 0;
 
         _userId = await _userInformationService.GetUserIdString();
+        if (_userId is null) logger.LogError("UserId is null");
+
         _user = await _userInformationService.GetUserAsync();
         var authUser = (await _userInformationService.GetAuthenticatedUser());
         _isDatahubAdmin = !_serviceAuthManager.GetViewingAsGuest(_userId) && authUser.IsInRole(RoleConstants.DATAHUB_ROLE_ADMIN);
