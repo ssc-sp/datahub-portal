@@ -36,9 +36,6 @@
     [Parameter]
     public string ProjectAcronymParam { get; set; }
 
-    [CascadingParameter]
-    private Task<AuthenticationState> authenticationStateTask { get; set; }
-
     private Microsoft.Graph.User _user;
     private string _userId;
     private string _projectName;
@@ -61,7 +58,7 @@
 
         _userId = await _userInformationService.GetUserIdString();
         _user = await _userInformationService.GetUserAsync();
-        var authUser = (await authenticationStateTask).User;
+        var authUser = (await _userInformationService.GetAuthenticatedUser());
         _isDatahubAdmin = !_serviceAuthManager.GetViewingAsGuest(_userId) && authUser.IsInRole(RoleConstants.DATAHUB_ROLE_ADMIN);
 
         var isMemberOfProject = projectContext.Project_Users
