@@ -9,15 +9,10 @@
             <ObjectMetadataEditor 
                 @ref="_objectMetadataEditor" 
                 ObjectId=@ObjectId 
-                ProfileName="test" 
-                Name="Sample file with name" 
-                UpdateCatalog="true"/>
+                ProfileName="catalog" 
+                UpdateCatalog="false"
+                Preview />
         </ChildContent>
-        <Footer>
-            @*<AeButton @onclick="TogglePreview" style="margin: 5px;">Toggle Preview</AeButton>*@
-            @*<input @bind=@_searchText/>
-            <AeButton @onclick="TestSearch" style="margin: 5px;">Search</AeButton>*@
-        </Footer>
     </AeCard>
 </div>
 
