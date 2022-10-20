@@ -9,6 +9,7 @@
 @inject IUserCircuitCounterService _userCircuitCounterService
 @inject MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
 @inject IConfiguration _configuration
+@inject IUserInformationService _userInformationService
 
 <PageTitle>@Localizer[_configuration["Title"]]</PageTitle>
 
@@ -31,7 +32,7 @@
 
 @code
 {
-    
+
     private ErrorBoundary _errorBoundary;
     private string _correlationId;
     private Exception _lastException;
@@ -44,8 +45,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var authState = await _authenticationStateTask;
-        var user = authState.User;
+        var user = await _userInformationService.GetAuthenticatedUser(true);
         if (!user.Identity?.IsAuthenticated ?? true)
         {
             var scopes = _configuration["Graph:Scopes"]

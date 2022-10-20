@@ -55,7 +55,7 @@
     {
         // load projects
         _user = await UserInformationService.GetUserAsync();
-        _claimsUser = (await authenticationStateTask).User;
+        _claimsUser = (await UserInformationService.GetAuthenticatedUser());
         Context = DbFactory.CreateDbContext();
         LoadSortExpressions();
         _branchAccess = Context.BranchAccess.Where(u => u.User.ToLower() == _user.Mail.ToLower()).Select(r => r.BranchFundCenter).ToList();

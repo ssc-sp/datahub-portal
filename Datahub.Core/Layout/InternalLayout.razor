@@ -9,6 +9,7 @@
 @inject IUserCircuitCounterService _userCircuitCounterService
 @inject MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
 @inject IConfiguration _configuration
+@inject IUserInformationService _userInformationService
 
 <MudThemeProvider />
 <MudDialogProvider />
@@ -83,8 +84,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var authState = await _authenticationStateTask;
-        var user = authState.User;
+        var user = await _userInformationService.GetAuthenticatedUser(true);
         _userLanguage = (() => _currentLanguage, (s) => SetLanguage(s));
         if (!user.Identity?.IsAuthenticated ?? true)
         {
