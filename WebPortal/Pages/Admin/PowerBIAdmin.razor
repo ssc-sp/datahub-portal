@@ -130,7 +130,7 @@
                                     ProfileName="catalog"
                                     ObjectType=@Metadata.Model.MetadataObjectType.PowerBIWorkspace
                                     UpdateCatalog=@IncludeCurrentItemInCatalog
-                                    ValidateRequired=@false
+                                    ValidateRequired
                                     Name=@WorkspaceBeingEdited.DbWorkspaceName
                                     HideSaveButton
                                     OnValuesChanged=@(() => StateHasChanged())
@@ -179,9 +179,9 @@
                                     ProfileName="catalog"
                                     ObjectType=@Metadata.Model.MetadataObjectType.PowerBIDataset
                                     UpdateCatalog=@IncludeCurrentItemInCatalog
-                                    ValidateRequired=@false
                                     Name=@DatasetBeingEdited.DbDatasetName
                                     HideSaveButton
+                                    ValidateRequired
                                     OnValuesChanged=@(() => StateHasChanged())
                                     DefaultMetadataId=@GetProjectMetadataUid(DatasetBeingEdited.ProjectId)
                                     @ref=@_datasetMetadata
@@ -230,9 +230,9 @@
                                     ProfileName="catalog"
                                     ObjectType=@Metadata.Model.MetadataObjectType.PowerBIReport
                                     UpdateCatalog=@IncludeCurrentItemInCatalog
-                                    ValidateRequired=@false
                                     Name=@ReportBeingEdited.DbReportName
                                     HideSaveButton
+                                    ValidateRequired
                                     CatalogLanguage=@_catalogObjectLanguage
                                     OnValuesChanged=@(() => StateHasChanged())
                                     DefaultMetadataId=@GetProjectMetadataUid(ReportBeingEdited.ProjectId)
