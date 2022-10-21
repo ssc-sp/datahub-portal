@@ -17,16 +17,16 @@
     else
     {
         <MudChip Color="Color.Dark" class="project-data-sensitivity">@Localizer[_project.Data_Sensitivity]</MudChip>
-        @if (_currentProjectMonthlyCost is not null)
+        @if (_currentProjectMonthlyCost is not null && _projectBudget > 0)
         {
-            <MudTooltip Text="@GetToolTipText()" Arrow="true">
+@*            <MudTooltip Text="@GetToolTipText()" Arrow="true">*@
                 <MudBadge Icon="@Icons.Filled.QuestionMark" Color="GetCostChipColor()" Overlap="true" Bordered="true">  
                     <MudChip Icon="@Icons.Filled.AttachMoney" IconColor="GetCostChipColor()" Variant="Variant.Text"
                              Color="GetCostChipColor()" class="project-data-sensitivity" OnClick=@HandleToggleCosts>
-                        @($"{_currentProjectMonthlyCost:C} / {Localizer["month"]}")
+                        @($"{_currentProjectMonthlyCost:C} {Localizer["Azure cost for current month"]}")
                     </MudChip>
                 </MudBadge>
-            </MudTooltip>
+            @*</MudTooltip>*@
         }
 
         <AeTypography class="project-title" Variant="h1">
@@ -67,8 +67,7 @@
         if (projectMonthlyCost != null)
             _currentProjectMonthlyCost = projectMonthlyCost.TotalCost;
 
-        // TODO: read the project budget from the proper location 
-        _projectBudget = 500m;
+        _projectBudget = _project.Project_Budget ?? 0;
 
         _loading = false;
     }

@@ -102,8 +102,6 @@
 
     [CascadingParameter(Name = "ProjectAcronym")]
     public string ProjectAcronym { get; set; }
-    [CascadingParameter]
-    private Task<AuthenticationState> authenticationStateTask { get; set; }
     [CascadingParameter(Name = "IsDatahubAdmin")]
     public bool IsDatahubAdmin { get; set; }
 
@@ -119,7 +117,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        
+
         var user = await _userInformationService.GetUserAsync();
         _authorizedRoles = new List<string>
         {
@@ -130,12 +128,11 @@
         {
             _authorizedRoles.Add(RoleConstants.DATAHUB_ROLE_ADMIN);
         }
-        
-        _user = (await authenticationStateTask).User;
+
+        _user = await _userInformationService.GetAuthenticatedUser();
 
         await using var projectDbContext = await _dbFactoryProject.CreateDbContextAsync();
-        _project = await projectDbContext.Projects
-            .SingleOrDefaultAsync(p => p.Project_Acronym_CD == ProjectAcronym);
+        _project = await projectDbContext.Projects.FirstOrDefaultAsync(p => p.Project_Acronym_CD == ProjectAcronym);
 
         var _serviceRequests = await projectDbContext.Project_Requests
             .Where(p => p.Project == _project)

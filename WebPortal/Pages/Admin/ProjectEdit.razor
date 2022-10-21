@@ -1,112 +1,93 @@
-﻿@implements IDisposable
-
-@inject IStringLocalizer<ProjectEdit> DataLocalizer
-@inject NavigationManager NavigationManager
-@inject IUserInformationService UserInformationService
-@inject IDbContextFactory<DatahubProjectDBContext> DbFactoryProject
-@inject IDbContextFactory<DatahubETLStatusContext> DbFactoryEtl
-@inject IPublicDataFileService PublicDataFileService
-@inject TranslationService TranslationService
-
+﻿@*ProjectEdit.razor*@
 @page "/edit-project/{projectAcronym}"
-<AuthorizeView Roles="@RoleConstants.DATAHUB_ROLE_ADMIN">
-    <Authorized>
-<div style="padding-left: 2rem;padding-right: 2rem">
-    <AeFlex Vertical>
-        <h2>Edit Data Project</h2>
-    </AeFlex>
-    <AeCard CardPosition="AeCard.CardStyle.Horizontal">
-        <Header>
-            <div style="width:180px;">
-                <i class="@($"fad fa-{_project.Project_Icon}")" />
+@inject IDbContextFactory<DatahubProjectDBContext> DbFactoryProject
+@inject TranslationService TranslationService
+@inject IOrganizationLevelsService OrganizationLevelsService
+@implements IDisposable
+
+@if (_project is not null)
+{
+    <AuthorizeView Roles="@RoleConstants.DATAHUB_ROLE_ADMIN">
+        <Authorized>
+            <div style="padding-left: 2rem;padding-right: 2rem">
+                <AeFlex Vertical>
+                    <h2>Edit Data Project</h2>
+                </AeFlex>
+                <AeCard CardPosition="AeCard.CardStyle.Horizontal">
+                    <Header>
+                        <div style="width:180px;">
+                            <i class="@($"fad fa-{_project.Project_Icon}")" />
+                        </div>
+                    </Header>
+                    <ChildContent>
+                        <AeTypography Variant="h1">@_project.ProjectName</AeTypography>
+                        <AeMarkdown Content="@($"{_project.ProjectDescription}")"></AeMarkdown>
+                        <AeTypography>@Localizer["Data Sensitivity"]</AeTypography>
+                        <AeTypography Variant="h2">@Localizer[_project.Data_Sensitivity]</AeTypography>
+                    </ChildContent>
+                </AeCard>
+                <AeCard>
+                    <AeButton @onclick="SuggestTranslation">@Localizer["Suggest French Translation"]</AeButton>
+                    <AeModelForm Model="_project"
+                             T="Datahub_Project"
+                             OnValidSubmit="HandleValidSubmit"
+                             LabelForPropertyFunc="Localize"
+                             CancelLabel="Cancel"
+                             SubmitLabel="Save Changes"
+                             LocalizerFunction="Localize"
+                             OnConfigure="OnConfigure" />
+                </AeCard>
             </div>
-        </Header>
-        <ChildContent>
-            <AeTypography Variant="h1">@_project.ProjectName</AeTypography>
-            <AeMarkdown Content="@($"{_project.ProjectDescription}")"></AeMarkdown>
-            <AeTypography>@DataLocalizer["Data Sensitivity"]</AeTypography>
-            <AeTypography Variant="h2">@DataLocalizer[_project.Data_Sensitivity]</AeTypography>
-        </ChildContent>
-    </AeCard>
-
-    <AeCard>
-        <AeButton @onclick="SuggestTranslation">@DataLocalizer["Suggest French Translation"]</AeButton>
-        <AeModelForm Model="_project"
-            T="Datahub_Project"
-            OnValidSubmit="HandleValidSubmit"
-            LabelForPropertyFunc="Localize"
-            CancelLabel="Cancel"
-            SubmitLabel="Save Changes"  
-            LocalizerFunction="Localize"
-            OnConfigure="OnConfigure"/>
-    </AeCard>
-
-</div>
-
-    </Authorized>
-</AuthorizeView>
+        </Authorized>
+    </AuthorizeView>
+}
 
 @code {
-    //Service Types - 1 = DataBricks, 2 = PowerBi
-    //Service Status - 0 = pending creation, 1 = created
-
+    
+    private Datahub_Project _project;
     private DatahubProjectDBContext projectContext;
 
-    // Define the headers at the top of the table
-    private List<string> pipelineHeaders = new List<string>
-    {
-    "Data Factory Pipeline", "Last Update", "Result", "Data Quality & Integrity Checks"
-    };
+    private List<OrganizationLevel> _sectors = new();
+    private List<OrganizationLevel> _branches = new();
+    private List<OrganizationLevel> _divisions = new();
 
-    // Accessor functions to retrieve cell value
-    private List<Func<ETL_CONTROL_TBL, string>> accessorFunctions = new List<Func<ETL_CONTROL_TBL, string>>
-    {
-    new Func<ETL_CONTROL_TBL, string>(etl => etl.PROCESS_NM),
-    new Func<ETL_CONTROL_TBL, string>(etl => etl.END_TS?.ToString("g")),
-    new Func<ETL_CONTROL_TBL, string>(etl => etl.STATUS_FLAG),
-    new Func<ETL_CONTROL_TBL, string>(etl => "S")
-    };
+    private int _sectorId = -1;
+    private int _branchId = -1;
+    private int _divisionId = -1;
 
-    private List<Func<ETL_CONTROL_TBL, RenderFragment>> renderFunctions = new List<Func<ETL_CONTROL_TBL, RenderFragment>>
-    {
-    null,
-    null,
-    new Func<ETL_CONTROL_TBL, RenderFragment>(etl =>  { if (etl.STATUS_FLAG == "S")
-                                                        return 
-    @<div><i class="fad fa-check"></i> OK</div>
-    ;
-                                                    else
-                                                        return 
-    @<div><i class="fad fa-exclamation-triangle"></i> Error</div>
-    ;}),
-    new Func<ETL_CONTROL_TBL, RenderFragment>(etl => { return 
-    @<div><i class="fad fa-check"></i> OK</div>
-    ; })
-    };
+    private bool _isFrench;
 
     [Parameter]
     public string projectAcronym { get; set; }
 
-    public async Task SuggestTranslation()
+    protected override async Task OnInitializedAsync()
+    {
+        _isFrench = CultureInfo.CurrentCulture.Name.StartsWith("fr", StringComparison.InvariantCulture);
+        _sectors = await OrganizationLevelsService.GetSectors();
+        _branches = await OrganizationLevelsService.GetBranches();
+        _divisions = await OrganizationLevelsService.GetDivisions();
+
+        projectContext = DbFactoryProject.CreateDbContext();
+        _project = await projectContext.Projects
+            .Include(p => p.Requests)
+            .Include(p => p.Pipelines)
+            .AsSingleQuery()
+            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronym);
+    }
+
+    private async Task SuggestTranslation()
     {
         _project.Project_Name_Fr = await TranslationService.GetFrenchTranslation(_project.Project_Name);
         _project.Project_Summary_Desc_Fr = await TranslationService.GetFrenchTranslation(_project.Project_Summary_Desc);
-        //TranslationService
     }
 
-    public string Localize(string propName)
-    {
-        return propName is null?null:DataLocalizer[propName];
-    }
-
-    private Datahub_Project _project;
+    private string Localize(string propName) => Localizer[propName ?? ""];
 
     private async Task UpdateFeatured(bool changed)
     {
         _project.Is_Featured = changed;
         await projectContext.SaveChangesAsync();
-        StateHasChanged();
-
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task HandleValidSubmit()
@@ -114,36 +95,94 @@
         _project.Last_Updated_DT = DateTime.Now;
         //update admins here
         await projectContext.SaveChangesAsync();
-
     }
 
-    protected override void OnInitialized()
+    private List<string> LocalizeChoices(IEnumerable<OrganizationLevel> levels)
     {
-        projectContext = DbFactoryProject.CreateDbContext();   
-        _project = projectContext.Projects.Include(p => p.Requests).Include(p => p.Pipelines).Single(p => p.Project_Acronym_CD == projectAcronym);        
+        return levels.Select(s => !_isFrench ? s.EnglishLabel : s.FrenchLabel).OrderBy(s => s).ToList();
+    }
+
+    private List<string> Sectors => LocalizeChoices(_sectors);
+    private List<string> Branches => LocalizeChoices(_branches.Where(b => b.ParentId == _sectorId));
+    private List<string> Divisions => LocalizeChoices(_divisions.Where(d => d.ParentId == _branchId));
+
+    private int GetChoiceId(List<OrganizationLevel> choices, string value, int? parentId = null)
+    {
+        return choices.FirstOrDefault(c => (!parentId.HasValue || c.ParentId == parentId.Value) && (c.EnglishLabel.Equals(value) || c.FrenchLabel.Equals(value)))?.Id ?? -1;
     }
 
     private void OnConfigure(IModelFormContext context)
     {
-        context.RegisterOptionValueProperty<Datahub_Project>(s => s.Project_Category, () => new[] { "Guidance & Recommendations",
-                                                                "Presentations",
-                                                                "Data Sci. & Machine Learn.",
-                                                                "Data Pipelines",
-                                                                "Full Stack",
-                                                                "Storage",
-                                                                "Dashboards",
-                                                                "Web Forms"
-                                                                 });
-        context.RegisterOptionValueProperty<Datahub_Project>(s => s.Project_Phase, () => new[] {"Initiation",
-                                                                "Requirements",
-                                                                "Development/Design",
-                                                                "Implementation",
-                                                                "Testing",
-                                                                "Deployment",
-                                                                "Ongoing Maintenance and Support"
-                                                                 });
+        context.RegisterOptionValueProperty<Datahub_Project>(s => s.Project_Category, () => new[] 
+        { 
+            "Data Pipeline",
+            "Data Science",
+            "Full Stack",
+            "Guidance",
+            "Power BI Reports",
+            "Storage",
+            "Web Forms",
+            "Unknown",
+            "Other",
+            "Presentations",
+            "Dashboards"
+        });
+
+        context.RegisterOptionValueProperty<Datahub_Project>(s => s.Project_Phase, () => new[] 
+        {
+            "Initiation",
+            "Requirements",
+            "Development/Design",
+            "Implementation",
+            "Testing",
+            "Deployment",
+            "Ongoing Maintenance and Support"
+        });
+
+        context.RegisterOptionValueProperty<Datahub_Project>(p => p.Sector_Name, () => Sectors, s =>
+        {
+            var id = GetChoiceId(_sectors, s);
+            if (_sectorId != id)
+            {
+                _sectorId = id;
+                RefreshBranches(context);
+            }
+        });
+
+        context.RegisterOptionValueProperty<Datahub_Project>(p => p.Branch_Name, () => Branches, b =>
+        {
+            var id = GetChoiceId(_branches, b, _sectorId);
+            if (_branchId != id)
+            {
+                _branchId = id;
+                RefreshDivisions(context);
+            }
+        });
+
+        context.RegisterOptionValueProperty<Datahub_Project>(p => p.Division_Name, () => Divisions, d =>
+        {
+            var id = GetChoiceId(_divisions, d, _branchId);
+            if (_divisionId != id)
+            {
+                _divisionId = id;
+            }
+        });
     }
 
+    private void RefreshBranches(IModelFormContext context)
+    {
+        _branchId = -1;
+        _project.Branch_Name = string.Empty;
+        context.RefreshOptions<Datahub_Project>(p => p.Branch_Name);
+        RefreshDivisions(context);
+    }
+
+    private void RefreshDivisions(IModelFormContext context)
+    {
+        _divisionId = -1;
+        _project.Division_Name = string.Empty;
+        context.RefreshOptions<Datahub_Project>(p => p.Division_Name);
+    }
 
     public void Dispose()
     {

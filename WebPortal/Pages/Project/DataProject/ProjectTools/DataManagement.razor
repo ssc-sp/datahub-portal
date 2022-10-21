@@ -37,8 +37,7 @@ else
 
         await using var projectDbContext = await _dbFactoryProject.CreateDbContextAsync();
 
-        _project = await projectDbContext.Projects
-            .Include(p => p.Requests)
-            .FirstAsync();
+        // review this!!
+        _project = await projectDbContext.Projects.FirstOrDefaultAsync();
     }
 }
