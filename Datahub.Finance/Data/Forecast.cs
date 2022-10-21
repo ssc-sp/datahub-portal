@@ -97,6 +97,10 @@ namespace Datahub.Portal.Data.Finance
         [MudForm(IsDropDown = true)]
         public DropDownContainer FTE_Accomodations_Location_Values { get; set; }
 
+        [AeFormCategory("Planned Staffing")]
+        [MaxLength(500)]
+        public string Other_Locations { get; set; }
+
         [AeFormIgnore]
         public int? Position_Workspace_Type { get; set; }
 

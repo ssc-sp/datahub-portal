@@ -128,6 +128,7 @@ namespace Datahub.Portal.Data.Finance
             new DropDownContainer() { Id = 52, EnglishText = "WINNIPEG, Winnipeg Office, 365 Hargrave Street", FrenchText = "WINNIPEG, Winnipeg Office, 365 Hargrave Street"},
             new DropDownContainer() { Id = 53, EnglishText = "YELLOWKNIFE, NWT Regional Operations Centre, 5101 50th Avenue, P.O. Box 668", FrenchText = "YELLOWKNIFE, NWT Regional Operations Centre, 5101 50th Avenue, P.O. Box 668"},
             new DropDownContainer() { Id = 54, EnglishText = "YELLOWKNIFE, Yellowknife Geophysical Observatory, Lot 1018, P.O. Box 2399", FrenchText = "YELLOWKNIFE, Yellowknife Geophysical Observatory, Lot 1018, P.O. Box 2399"},
+            new DropDownContainer() { Id = 55, EnglishText = "Other", FrenchText = "Autre"},
         };
     }
 }
