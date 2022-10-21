@@ -29,13 +29,16 @@ namespace Datahub.Portal
                     // standalone package Microsoft.Extensions.Logging.ApplicationInsights
                     // or if you want to capture logs from early in the application startup
                     // pipeline from Startup.cs or Program.cs itself.
-                    
-                    var appInsightsConfig = hostingContext.Configuration.GetSection("ApplicationInsights");
-                    //logBuilder.AddApplicationInsights(appInsightsConfig.GetValue<string>("InstrumentationKey"));
-                    logBuilder.AddApplicationInsights(config => 
-                    { 
-                        config.ConnectionString = appInsightsConfig.GetValue<string>("ConnectionString"); 
-                    }, options => {});
+
+
+                    var key = hostingContext.Configuration.GetSection("ApplicationInsights").GetValue<string>("InstrumentationKey");
+                    logBuilder.AddApplicationInsights(key);
+
+                    //var appInsightsConfig = hostingContext.Configuration.GetSection("ApplicationInsights");
+                    //logBuilder.AddApplicationInsights(config => 
+                    //{ 
+                    //    config.ConnectionString = appInsightsConfig.GetValue<string>("ConnectionString"); 
+                    //}, options => {});
 
                     logBuilder.AddAzureWebAppDiagnostics();
 
