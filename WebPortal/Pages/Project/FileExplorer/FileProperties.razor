@@ -94,10 +94,10 @@
                 SaveButtonLabel=@Localizer["OPENDATA-WIZARD.Save_button"] 
                 OnSave=@HandleClose
                 OnDiscard=@HandleClose
-                ValidateRequired=true
                 ProfileName="catalog"
                 ObjectType=@MetadataObjectType.File
                 UpdateCatalog=@(!Readonly)
+                ValidateRequired
                 Preview=@Readonly
                 ProjectId=@ProjectId
             />;

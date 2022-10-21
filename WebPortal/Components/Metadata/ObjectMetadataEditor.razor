@@ -331,30 +331,43 @@
             switch (definition.Field_Name_TXT)
             {
                 case "sector":
-                    definition.Choices = GetOrganizationChoices(await OrganizationLevelsService.GetSectors(), false);
+                    definition.Choices = GetOrganizationChoices(await OrganizationLevelsService.GetSectors(), false).ToList();
                     break;
                 case "branch":
-                    definition.Choices = GetOrganizationChoices(await OrganizationLevelsService.GetBranches(), true);
+                    definition.Choices = GetOrganizationChoices(await OrganizationLevelsService.GetBranches(), true).ToList();
                     break;
                 case "division":
-                    definition.Choices = GetOrganizationChoices(await OrganizationLevelsService.GetDivisions(), true);
+                    definition.Choices = GetOrganizationChoices(await OrganizationLevelsService.GetDivisions(), true).ToList();
                     break;
                 case "section":
-                    definition.Choices = GetOrganizationChoices(await OrganizationLevelsService.GetSections(), true);
+                    definition.Choices = GetOrganizationChoices(await OrganizationLevelsService.GetSections(), true).ToList();
                     break;
             }
         }
     }
 
-    private List<FieldChoice> GetOrganizationChoices(List<OrganizationLevel> levels, bool cascades)
+    private IEnumerable<FieldChoice> GetOrganizationChoices(List<OrganizationLevel> levels, bool cascades)
     {
-        return levels.Select(l => new FieldChoice()
+        if (cascades)
         {
-            Value_TXT = $"{l.Id}",
-            Cascading_Value_TXT = cascades ? $"{l.ParentId}" : null,
-            Label_English_TXT = l.EnglishLabel,
-            Label_French_TXT = l.FrenchLabel
-        }).ToList();
+            yield return new FieldChoice()
+            {
+                Value_TXT = $"0",
+                Cascading_Value_TXT = "*",
+                Label_English_TXT = "-",
+                Label_French_TXT = "-"
+            };
+        }        
+        foreach (var l in levels)
+        {
+            yield return new FieldChoice()
+            {
+                Value_TXT = $"{l.Id}",
+                Cascading_Value_TXT = cascades ? $"{l.ParentId}" : null,
+                Label_English_TXT = l.EnglishLabel,
+                Label_French_TXT = l.FrenchLabel
+            };
+        }
     }
 
     public void SetValue(string fieldName, string fieldValue)

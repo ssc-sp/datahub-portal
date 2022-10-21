@@ -257,9 +257,9 @@ else
                             Location="Azure"
                             ProfileName="catalog"
                             ObjectType=@Metadata.Model.MetadataObjectType.Database
-                            UpdateCatalog=@true
                             ProjectId=@_project.Project_ID
-                            ValidateRequired=@false
+                            UpdateCatalog
+                            ValidateRequired
                             Name=@_databaseResource.Database_Name
                             OnSave=@HandleClose
                             OnDiscard=@HandleClose
