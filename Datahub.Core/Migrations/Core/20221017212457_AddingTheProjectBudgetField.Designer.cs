@@ -4,16 +4,18 @@ using Datahub.Core.EFCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
+namespace Datahub.Core.Migrations.Core
 {
     [DbContext(typeof(DatahubProjectDBContext))]
-    partial class DatahubProjectDBContextModelSnapshot : ModelSnapshot
+    [Migration("20221017212457_AddingTheProjectBudgetField")]
+    partial class AddingTheProjectBudgetField
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -105,7 +107,7 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.Property<string>("Project_Admin")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<decimal?>("Project_Budget")
+                    b.Property<decimal>("Project_Budget")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("Project_Category")
@@ -153,9 +155,6 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                         .HasColumnType("nvarchar(400)");
 
                     b.HasKey("Project_ID");
-
-                    b.HasIndex("Project_Acronym_CD")
-                        .IsUnique();
 
                     b.ToTable("Projects");
                 });

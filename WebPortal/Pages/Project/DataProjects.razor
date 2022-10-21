@@ -49,7 +49,7 @@
                         <i class="@($"fad fa-{p.Project_Icon ?? Icon.DEFAULT_PROJECT_ICON}")"></i>
                         @Localizer[p.Sector_Name ?? "N/A"]
                     </AeTypography>
-                    <DHLink class="name" DataProject="@p.Project_Acronym_CD">
+                    <DHLink class="name" DataProject="@p.Project_Acronym_CD" style="cursor: pointer;">
                         <i class="fas fa-external-link"></i>
                         @p.ProjectName
                     </DHLink>
