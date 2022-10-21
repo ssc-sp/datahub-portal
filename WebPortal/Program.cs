@@ -24,13 +24,19 @@ namespace Datahub.Portal
                 {
                     logBuilder.ClearProviders();
                     logBuilder.AddConsole();
-                    
+
                     // Providing an instrumentation key here is required if you're using
                     // standalone package Microsoft.Extensions.Logging.ApplicationInsights
                     // or if you want to capture logs from early in the application startup
                     // pipeline from Startup.cs or Program.cs itself.
-                    var key = hostingContext.Configuration.GetSection("ApplicationInsights").GetValue<string>("InstrumentationKey");
-                    logBuilder.AddApplicationInsights(key);
+                    
+                    var appInsightsConfig = hostingContext.Configuration.GetSection("ApplicationInsights");
+                    //logBuilder.AddApplicationInsights(appInsightsConfig.GetValue<string>("InstrumentationKey"));
+                    logBuilder.AddApplicationInsights(config => 
+                    { 
+                        config.ConnectionString = appInsightsConfig.GetValue<string>("ConnectionString"); 
+                    }, options => {});
+
                     logBuilder.AddAzureWebAppDiagnostics();
 
                     // event log only works if app is hosted in a Windows enviroment
