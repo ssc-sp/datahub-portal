@@ -76,7 +76,7 @@
     public string Location { get; set; }
 
     [Parameter]
-    public string SecurityClass { get; set; } = SecurityClassification.Unclassified;
+    public string SecurityClass { get; set; }
 
     [Parameter]
     public string ProfileName { get; set; } = "opendata";
@@ -162,30 +162,22 @@
         if (long.TryParse(ObjectId, out long metadataObjectId))
         {
             _fieldValues = await MetadataBrokerService.GetObjectMetadataValues(metadataObjectId, DefaultMetadataId);
-            if (UpdateCatalog)
-            {
-                var catalogResult = await MetadataBrokerService.GetCatalogObjectByMetadataId(metadataObjectId);
-                SecurityClass = SecurityClassification.GetSecurityClassification(catalogResult?.ClassificationType ?? ClassificationType.Unclassified);
-            }
         }
         else
         {
             _fieldValues = await MetadataBrokerService.GetObjectMetadataValues(ObjectId, DefaultMetadataId);
-            if (UpdateCatalog)
-            {
-                var catalogResult = await MetadataBrokerService.GetCatalogObjectByObjectId(ObjectId);
-                SecurityClass = SecurityClassification.GetSecurityClassification(catalogResult?.ClassificationType ?? ClassificationType.Unclassified);
-            }
         }
+
+        SetSecurityClassification();
 
         _definitions = _fieldValues.Definitions;
         _lastObjectId = ObjectId;
 
-        if (_fieldValues.IsNew && OnNewMetadataCreated.HasDelegate)
+        if (_fieldValues.IsNew)
         {
             await OnNewMetadataCreated.InvokeAsync();
         }
-        else if (!_fieldValues.IsNew && OnExistingMetadataLoaded.HasDelegate)
+        else
         {
             // !IsNew is explicitly checked to avoid calling On..Loaded for new metadata without an On..Created delegate
             await OnExistingMetadataLoaded.InvokeAsync();
@@ -199,12 +191,22 @@
 
     public string GetTitle()
     {
-        return _fieldValues["title_translated_en"]?.Value_TXT ?? string.Empty;
+        return _fieldValues.GetValue("title_translated_en");
     }
 
     public void TogglePreview()
     {
         Preview = !Preview;
+    }
+
+    private void SetSecurityClassification()
+    {
+        var secClsName = "security_classification";
+        var secClsValue = _fieldValues.GetValue(secClsName);
+        if (string.IsNullOrEmpty(secClsValue) && !string.IsNullOrEmpty(SecurityClass))
+        {
+            _fieldValues.SetValue(secClsName, GetClassificationTypeAsText(SecurityClass));
+        }
     }
 
     private bool CheckRequiredFieldValues()
@@ -274,13 +276,13 @@
         (
             objectMetadataId, 
             ObjectType, 
-            _fieldValues["title_translated_en"]?.Value_TXT ?? digest.Name,
-            _fieldValues["title_translated_fr"]?.Value_TXT ?? digest.Name,
+            digest.TitleEnglish,
+            digest.TitleFrench,
             Location, 
             digest.Sector, 
             digest.Branch, 
             digest.Contact, 
-            GetClassificationType(SecurityClass),
+            digest.Classification,
             digest.EnglishCatalog, 
             digest.FrenchCatalog,
             CatalogLanguage,
@@ -296,6 +298,11 @@
             SecurityClassification.ProtectedB => ClassificationType.ProtectedB,
             _ => ClassificationType.Unclassified
         };
+    }
+
+    private string GetClassificationTypeAsText(string securityClass)
+    {
+        return ((byte)GetClassificationType(securityClass)).ToString();
     }
 
     private void SetObjectName()
