@@ -35,13 +35,10 @@ namespace Datahub.Portal.Data.Finance
         public DropDownContainer KA_Values { get; set; }
 
 
-        [AeFormIgnore]
-        public int? Key_Driver { get; set; }
-        
-        [NotMapped]
+
         [AeFormCategory("Planned Staffing")]
-        [MudForm(IsDropDown = true)]
-        public DropDownContainer KD_Values { get; set; }
+        [MaxLength(5000)]        
+        public string Key_Activity_Additional_Information { get; set; }
 
 
 
