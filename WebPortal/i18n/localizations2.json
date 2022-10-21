@@ -160,5 +160,16 @@
   "CancelExtSharingRequestFor": "Cancel external sharing request for {0}?",
   "Working": "Working...",
   "TemporaryExternalLink": "Temporary external link",
-  "RequestingUser": "Requesting user"
+  "RequestingUser": "Requesting user",
+  "Last Name": "Last Name",
+  "First Name": "First Name",
+  "Indeterminate": "Indeterminate",
+  "Start Date": "Start Date",
+  "End Date": "End Date",
+  "FTE_Accomodations_Req_Values": "FTE Accommodations Requirements",
+  "FTE_Accomodations_Location_Values": "FTE Accommodations: Intended Location",
+  "Position_Workspace_Type_Values": "Position Workspace Type",
+  "Key_Activity_Additional_Information": "Key Activity Additional Information",
+  "SFT With Attrition": "SFT With Attrition"
+  
 }
