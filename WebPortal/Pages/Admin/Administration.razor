@@ -41,9 +41,6 @@
 
 @code {
 
-    [CascadingParameter]
-    private Task<AuthenticationState> AuthenticationStateTask { get; set; }
-
     private System.Security.Claims.ClaimsPrincipal _user;
 
     private string CurrentUserId { get; set; }
@@ -55,8 +52,8 @@
 
     protected override void OnAfterRender(bool firstRender)
     {
-    // You must re-render after the components are initialized in order for the 
-    // component reference to not be null
+        // You must re-render after the components are initialized in order for the 
+        // component reference to not be null
         if (firstRender)
         {
             StateHasChanged();
@@ -65,10 +62,10 @@
 
     protected override async Task OnInitializedAsync()
     {
-        
+
         var user = await _userInformationService.GetUserAsync();
         _authorizedRoles = _serviceAuthManager.GetAdminProjectRoles(user.Id);
-        _user = (await AuthenticationStateTask).User;
+        _user = await _userInformationService.GetAuthenticatedUser();
 
         CurrentUserId = await _userInformationService.GetUserIdString();
         CurrentUserEmail = _user.Identity?.Name;
