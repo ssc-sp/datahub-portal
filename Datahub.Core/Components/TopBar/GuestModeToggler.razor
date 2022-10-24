@@ -24,8 +24,6 @@
 
 @code {
 
-    [CascadingParameter]
-    private Task<AuthenticationState> AuthenticationStateTask { get; set; }
 
     private bool _isViewAsAdmin;
     private bool _isViewAsVisitor = false;
@@ -36,8 +34,7 @@
     {
         await base.OnInitializedAsync();
         _isViewAsAdmin = !(await _userInformationService.IsViewingAsGuest());
-        _isViewAsVisitor = await _userInformationService.IsViewingAsVisitor();
-        var userClaims = (await AuthenticationStateTask).User;
+        _isViewAsVisitor = await _userInformationService.IsViewingAsVisitor();        
     }
 
     private async Task ToggleAdminMode(bool newValue)

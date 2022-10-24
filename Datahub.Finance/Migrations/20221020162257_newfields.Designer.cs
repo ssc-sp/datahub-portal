@@ -4,6 +4,7 @@ using Datahub.Portal.Data.Finance;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Datahub.Finance.Migrations
 {
     [DbContext(typeof(FinanceDBContext))]
-    partial class FinanceDBContextModelSnapshot : ModelSnapshot
+    [Migration("20221020162257_newfields")]
+    partial class newfields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -128,10 +130,6 @@ namespace Datahub.Finance.Migrations
                     b.Property<string>("Location_Of_Hiring")
                         .HasMaxLength(4000)
                         .HasColumnType("nvarchar(4000)");
-
-                    b.Property<string>("Other_Locations")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
 
                     b.Property<int?>("Position_Workspace_Type")
                         .HasColumnType("int");
