@@ -194,7 +194,8 @@
   "DISCOVERY-CLASSIFICATION-TYPES": {
     "Unclassified": "Unclassified",
     "ProtectedA": "Protected A",
-    "ProtectedB": "Protected B"
+    "ProtectedB": "Protected B",
+    "ProtectedC": "Protected C"
   },
   "DISCOVERY-LANGUAGE-TYPES": {
     "Bilingual": "Bilingual",
