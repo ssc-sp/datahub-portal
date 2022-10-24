@@ -9,6 +9,7 @@
 @inject IUserCircuitCounterService _userCircuitCounterService
 @inject MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
 @inject IConfiguration _configuration
+@inject IUserInformationService _userInformationService
 
 <MudThemeProvider Theme="_theme"/>
 <MudDialogProvider/>
@@ -75,8 +76,6 @@
 
 @code
 {
-    [CascadingParameter]
-    private Task<AuthenticationState> _authenticationStateTask { get; set; }
 
     private ErrorBoundary _errorBoundary;
     private string _correlationId;
@@ -122,8 +121,8 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var authState = await _authenticationStateTask;
-        var user = authState.User;
+
+        var user = await _userInformationService.GetAuthenticatedUser(true);
 
         if (!user.Identity?.IsAuthenticated ?? true)
         {

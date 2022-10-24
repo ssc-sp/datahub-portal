@@ -36,9 +36,6 @@ else
 
 @code
 {
-    [CascadingParameter]
-    private Task<AuthenticationState> authenticationStateTask { get; set; }
-
     public bool isLoaded { get; set; }
 
     private string userId;
@@ -48,7 +45,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        var user = (await authenticationStateTask).User;
+        var user = await UserInformationService.GetAuthenticatedUser(true);
         userName = user.Identity.Name;
         userId = user.Claims.FirstOrDefault(c => c.Type == "uid")?.Value;
         oid = await UserInformationService.GetUserIdString();

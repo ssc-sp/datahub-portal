@@ -23,21 +23,7 @@ else
         <ChildContent>
         
             <AeTypography Variant="h4">@Localizer[$"{LOCALIZATION_PREFIX}.Metadata"]</AeTypography>
-            @if (_reportMetadata != null)
-            {
-                <label>
-                    <AeFlex Vertical>
-                        <AeTypography><strong><span>@Localizer[$"{LOCALIZATION_PREFIX}.SecurityClassification"]</span></strong></AeTypography>
-                        <select @bind=@_reportMetadata.SecurityClass class="ae input">
-                            @foreach(var sec in SecurityClassification.SECURITY_CLASSES)
-                            {
-                                <option value=@sec>@Localizer[@sec]</option>
-                            }
-                        </select>
-                    </AeFlex>
-                </label>
-            }
-
+            
             <ObjectMetadataEditor 
                 @ref=@_reportMetadata
                 ObjectId=@PowerBiReportId.ToString()
@@ -45,7 +31,7 @@ else
                 ProfileName="catalog"
                 ObjectType=@Metadata.Model.MetadataObjectType.PowerBIReport
                 UpdateCatalog=@_includeInCatalog
-                ValidateRequired=@false
+                ValidateRequired
                 Name=@_report.Report_Name
                 HideSaveButton
                 CatalogLanguage=@_catalogObjectLanguage

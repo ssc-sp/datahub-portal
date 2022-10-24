@@ -1,4 +1,5 @@
 ﻿using Microsoft.Graph;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace Datahub.Core.Services
@@ -23,7 +24,9 @@ namespace Datahub.Core.Services
         Task<bool> IsViewingAsVisitor();
         Task SetViewingAsGuest(bool isGuest);
         Task SetViewingAsVisitor(bool isVisitor);
-    }
+        Task<ClaimsPrincipal> GetAuthenticatedUser(bool forceReload = false);
+
+	}
 
     public static class UserInformationServiceConstants
     {

@@ -109,13 +109,20 @@
 
 			var subscriptionId = configuration.GetSection("Billing").GetValue<string>("AzureSubscription");
 			var resourceGroup = configuration.GetSection("Billing").GetValue<string>("ResourceGroup");
-			if (string.IsNullOrWhiteSpace(resourceGroup)) resourceGroup = null;
-			//Get current month cost for each resource
-			var currentMonthlyCosts = (await AzureCostManagementService.GetCurrentMonthlyCostAsync(subscriptionId, token, resourceGroup)).ToList();
+			if (string.IsNullOrWhiteSpace(resourceGroup))
+			{
+				error = "Subscription is not configured";
+			}
+			else
+			{
+				if (string.IsNullOrWhiteSpace(resourceGroup)) resourceGroup = null;
+				//Get current month cost for each resource
+				var currentMonthlyCosts = (await AzureCostManagementService.GetCurrentMonthlyCostAsync(subscriptionId, token, resourceGroup)).ToList();
 
-			//group monthly cost by project and update the database
-			await AzureCostManagementService.UpdateProjectMonthlyCostToDateAsync(currentMonthlyCosts);
-			var numberOfProjectsUpdated = currentMonthlyCosts.Count;
+				//group monthly cost by project and update the database
+				await AzureCostManagementService.UpdateProjectMonthlyCostToDateAsync(currentMonthlyCosts);
+				var numberOfProjectsUpdated = currentMonthlyCosts.Count;
+			}
 			_processing = false;
 		}
 		catch (Exception ex)
