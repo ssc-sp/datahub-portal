@@ -354,7 +354,9 @@ namespace Datahub.Core.Services
 
             _logger.LogInformation("<<< SearchCatalog end...");
 
-            return results;
+            // return grouped results
+            var uiLanguage = request.IsFrench ? CatalogObjectLanguage.French : CatalogObjectLanguage.English;
+            return GroupResults(results, uiLanguage).ToList();
         }
 
         public async Task<List<CatalogObjectResult>> GetCatalogGroup(Guid groupId)
@@ -370,6 +372,42 @@ namespace Datahub.Core.Services
                                  .Select(c => TransformCatalogObject(c, definitions))
                                  .ToListAsync();
             return group;
+        }
+
+        private IEnumerable<CatalogObjectResult> GroupResults(List<CatalogObjectResult> results, CatalogObjectLanguage language)
+        {
+            // create a dict[groupId]
+            var groups = new Dictionary<Guid, CatalogObjectResult>();
+            foreach (var result in results)
+            {
+                if (result.GroupId.HasValue)
+                {
+                    var key = result.GroupId.Value;
+                    if (groups.TryGetValue(key, out CatalogObjectResult current))
+                    {
+                        if (result.Language == language && current.Language != language)
+                            groups[key] = result;
+                    }
+                    else
+                    {
+                        groups.Add(key, result);
+                    }
+                }
+            }
+
+            // enumerate on the results from the group matching the passed language
+            foreach (var result in results)
+            {
+                if (result.GroupId.HasValue)
+                {
+                    if (groups.TryGetValue(result.GroupId.Value, out CatalogObjectResult current) && current == result)
+                        yield return result;
+                }
+                else
+                {
+                    yield return result;
+                }
+            }
         }
 
         private async Task<List<ObjectFieldValue>> CloneMetadataValues(MetadataDbContext ctx, string objectId)
