@@ -14,5 +14,5 @@ namespace Datahub.Core.Services
         Task<OrganizationLevel> GetBranch(int branchId);
     }
 
-    public record OrganizationLevel(int Id, int ParentId, string EnglishLabel, string FrenchLabel);
+    public record OrganizationLevel(int Id, int ParentId, string EnglishLabel, string FrenchLabel, string EnglishAcronym, string FrenchAcronym);
 }

@@ -187,7 +187,8 @@
   "DISCOVERY-CLASSIFICATION-TYPES": {
     "Unclassified": "Non classifié",
     "ProtectedA": "Protégé A",
-    "ProtectedB": "Protégé B"
+    "ProtectedB": "Protégé B",
+    "ProtectedC": "Protégé C"
   },
   "DISCOVERY-LANGUAGE-TYPES": {
     "Bilingual": "Bilingue",
@@ -238,6 +239,7 @@
   "PrivacyPolicy": "Politique de confidentialité",
   "Protected A": "Protégé A",
   "Protected B": "Protégé B",
+  "ProtectedC": "Protégé C",
   "Rename": "Renommer",
   "RequiredField": " = champs requis",
   "Role": "Role",
