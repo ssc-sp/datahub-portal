@@ -22,6 +22,7 @@ namespace Datahub.Metadata.DTO
         public bool IsCatalogComplete { get; set; } = true;
         public bool IsFrench { get; set; }
         public Guid? GroupId { get; set; }
+        public int? ProjectId { get; set; }
         public FieldValueContainer Metadata { get; set; }
     }
 }
