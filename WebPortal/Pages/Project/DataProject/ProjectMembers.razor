@@ -4,7 +4,6 @@
 @inject ServiceAuthManager _serviceAuthManager
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject IUserInformationService _userInformationService
-@inject IEmailNotificationService _emailNotificationService
 
 
 @if (_isLoading)
@@ -38,22 +37,6 @@
 else
 {
     <AuthorizeView Roles="@string.Join(',', _authorizedRoles)">
-        <NotAuthorized>
-            <div class="access-denied">
-                <AeTypography Variant="h3">@Localizer["Access Denied"]</AeTypography>
-                <AeTypography class="danger">@Localizer["You currently do not have access to this project."]</AeTypography>
-                @if (_isProjectUserPendingApproval)
-                {
-                    <AeTypography class="access-request-reviewing">@Localizer["Access Request is being reviewed"]</AeTypography>
-                }
-                else
-                {
-                    <span class="button-wrapper">
-                        <AeButton @onclick="RequestProjectAccess">@Localizer["Request Access"]</AeButton>
-                    </span>
-                }
-            </div>
-        </NotAuthorized>
         <Authorized>
             <div class="project-members">
 
@@ -109,7 +92,6 @@ else
     public string ProjectAcronym { get; set; }
 
     private bool _isLoading = true;
-    private bool _isProjectUserPendingApproval;
 
     private List<string> _authorizedRoles = new();
     private Datahub_Project _project;
@@ -129,9 +111,6 @@ else
 
         _user = await _userInformationService.GetUserAsync();
 
-        _isProjectUserPendingApproval = projectContext.Project_Users_Requests
-            .Any(u => u.User_ID == _user.Id && _project == u.Project && u.Approved_DT == null);
-
         _projectUsers = await _serviceAuthManager.GetProjectMembers(ProjectAcronym);
 
         _authorizedRoles = new() { ProjectAcronym, $"{ProjectAcronym}-admin" };
@@ -142,50 +121,6 @@ else
         }
         
         _isLoading = false;
-    }
-
-    private async Task RequestProjectAccess()
-    {
-        await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
-
-        projectContext.Attach(_project);
-
-        var request = new Datahub_Project_User_Request()
-        {
-            User_ID = _user.Id,
-            Project = _project,
-            Requested_DT = DateTime.Now
-        };
-
-
-        projectContext.Project_Users_Requests.Add(request);
-        await projectContext.SaveChangesAsync();
-
-        var admins = await GetProjectAdministratorEmailsAndIds();
-        
-
-        await _emailNotificationService.SendServiceAccessRequestNotification(_user.DisplayName, "project", _project.ProjectInfo, admins);
-
-        _isProjectUserPendingApproval = true;
-    }
-
-    private async Task<List<string>> GetProjectAdministratorEmailsAndIds()
-    {
-        await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
-        projectContext.Attach(_project);
-        var loadUsersTask = projectContext
-            .Entry(_project)
-            .Collection(p => p.Users)
-            .LoadAsync();
-
-        await loadUsersTask;
-
-        var adminUsers = _project.Users
-            .Where(u => u.IsAdmin)
-            .Select(u => u.User_ID)
-            .ToList();
-
-        return adminUsers;
     }
 
 }
