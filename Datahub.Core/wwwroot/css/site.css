@@ -5423,6 +5423,12 @@ code {
   grid-template-rows: auto auto;
   gap: 2rem;
 }
+
+.project-page-no-grid {
+    display: grid;
+    gap: 2rem;
+}
+
 .project-page .project-info {
   max-width: 1200px;
 }
@@ -5516,9 +5522,10 @@ code {
   background-color: #f1f5f9 !important;
 }
 .project-page .project-tools {
-  max-width: 1200px;
-  display: grid;
-  grid-template-columns: 1fr auto;
+    max-width: 1200px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-column: 1;
 }
 .project-page .project-tools .controls {
   display: flex;
