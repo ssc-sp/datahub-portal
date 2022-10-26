@@ -1,5 +1,6 @@
-@using Datahub.Core.Components.Skeleton
+@*ProjectInfo.razor*@
 
+@using Datahub.Core.Components.Skeleton
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject UIControlsService _uiControlService;
 
@@ -16,17 +17,18 @@
     else
     {
         <MudChip Color="Color.Dark" class="project-data-sensitivity">@Localizer[_project.Data_Sensitivity]</MudChip>
-        @if (_currentProjectMonthlyCost is not null)
+        @if (_currentProjectMonthlyCost is not null && _projectBudget > 0)
         {
-            <MudTooltip Text="@GetToolTipText()" Arrow="true">
+@*            <MudTooltip Text="@GetToolTipText()" Arrow="true">*@
                 <MudBadge Icon="@Icons.Filled.QuestionMark" Color="GetCostChipColor()" Overlap="true" Bordered="true">  
                     <MudChip Icon="@Icons.Filled.AttachMoney" IconColor="GetCostChipColor()" Variant="Variant.Text"
-                             Color="GetCostChipColor()" class="project-data-sensitivity">
-                        @($"{_currentProjectMonthlyCost:F} / {Localizer["month"]}")
+                             Color="GetCostChipColor()" class="project-data-sensitivity" OnClick=@HandleToggleCosts>
+                        @($"{_currentProjectMonthlyCost:C} {Localizer["Azure cost for current month"]}")
                     </MudChip>
                 </MudBadge>
-            </MudTooltip>
+            @*</MudTooltip>*@
         }
+
         <AeTypography class="project-title" Variant="h1">
             <span class="project-icon">
                 <i class="@($"{_projectIcon}")"></i>
@@ -35,6 +37,11 @@
         </AeTypography>
         
         <DHMarkdown class="description" Content="@($"{_project.ProjectDescription}")"/>
+
+        @if (_showCosts && _currentProjectMonthlyCost.HasValue && _currentProjectMonthlyCost.Value < _projectBudget)
+        {
+            <ProjectCosting ProjectBudget=@_projectBudget ConsumedBudget=@_currentProjectMonthlyCost.Value />
+        }
     }
 </div>
 
@@ -43,48 +50,48 @@
     [CascadingParameter(Name = "ProjectAcronym")]
     public string ProjectAcronym { get; set; }
 
-    //Todo: Remove default value
-    [Parameter]
-    public decimal ProjectBudget { get; set; } = 1000m;
-    
     private Datahub_Project _project;
     private decimal? _currentProjectMonthlyCost;
     private string _projectIcon => $"fas fa-{_project?.Project_Icon ?? Icon.DEFAULT_PROJECT_ICON}";
-
+    private decimal _projectBudget;
     private bool _loading = true;
+    private bool _showCosts;
 
     protected override async Task OnInitializedAsync()
     {
-        await base.OnInitializedAsync();
+        using var projectContext = _dbFactoryProject.CreateDbContext();
 
-        await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
-        _project = await projectContext.Projects
-            .SingleAsync(p => p.Project_Acronym_CD == ProjectAcronym);
-        var projectMonthlyCost = await projectContext.Project_Current_Monthly_Costs
-            .SingleOrDefaultAsync(mc => mc.ProjectAcronym == ProjectAcronym.ToLower());
+        _project = await projectContext.Projects.FirstOrDefaultAsync(p => p.Project_Acronym_CD == ProjectAcronym);
+
+        var projectMonthlyCost = await projectContext.Project_Current_Monthly_Costs.FirstOrDefaultAsync(mc => mc.ProjectAcronym == ProjectAcronym.ToLower());
         if (projectMonthlyCost != null)
             _currentProjectMonthlyCost = projectMonthlyCost.TotalCost;
 
+        _projectBudget = _project.Project_Budget ?? 0;
+
         _loading = false;
     }
-    
+
     private Color GetCostChipColor()
     {
-        if (_currentProjectMonthlyCost < 0.01m)
-            return Color.Dark;
-        if (_currentProjectMonthlyCost >= ProjectBudget)
-            return Color.Error;
-        if (_currentProjectMonthlyCost >= 0.75m * ProjectBudget)
-            return Color.Warning;
+        if (_currentProjectMonthlyCost.HasValue)
+        {
+            if (_currentProjectMonthlyCost < 0.01m)
+                return Color.Dark;
+            if (_currentProjectMonthlyCost >= _projectBudget)
+                return Color.Error;
+            if (_currentProjectMonthlyCost >= 0.75m * _projectBudget)
+                return Color.Warning;
+        }
         return Color.Default;
     }
-    
+
     private string GetToolTipText()
     {
         var projectName = $"{_project.ProjectName} ";
-        if (_currentProjectMonthlyCost >= ProjectBudget)
+        if (_currentProjectMonthlyCost >= _projectBudget)
             return projectName +  Localizer["is over budget"];
-        if (_currentProjectMonthlyCost >= 0.75m * ProjectBudget)
+        if (_currentProjectMonthlyCost >= 0.75m * _projectBudget)
             return projectName + Localizer["is nearing budget"];
         return projectName + Localizer["is under budget"];
     }
@@ -100,5 +107,10 @@
     private string GetProjectDataSensitivity()
     {
         return !string.IsNullOrWhiteSpace(_project?.Data_Sensitivity) ? _project.Data_Sensitivity : "Unclassified";
+    }
+
+    private void HandleToggleCosts(MouseEventArgs args)
+    {
+        _showCosts = !_showCosts;
     }
 }

@@ -62,23 +62,6 @@
     private SeasonRegistrationPeriod _currentPeriod;
     private SeasonRegistrationPeriod _nextPeriod;
 
-    private async void OpenExcel()
-    {
-        var date = DateTime.UtcNow.ConvertUtcToEasternTime().Date;
-        var lastPeriod = Context.SeasonRegistrationPeriods
-                                .OrderByDescending(e => e.Open_DT)
-                                .FirstOrDefault(e => e.Open_DT < date);
-        if (lastPeriod is not null)
-        {
-            var powerBiTargets = Configuration["PowerBiTargets:LT"] ?? "";
-            var joinChar = powerBiTargets.Contains('?') ? '&' : '?';
-            var fiscalYear = GetFiscalYear(lastPeriod);
-            var parameters = $"year={fiscalYear}&quarter={lastPeriod.Quarter_NUM}";
-            var url = $"{powerBiTargets}{joinChar}{parameters}";
-            await JsInterop.InvokeAsync<object>("open", url, "_blank");
-        }
-    }
-
     protected override async Task OnInitializedAsync()
     {        
         Context = DbFactory.CreateDbContext();
@@ -98,6 +81,29 @@
         _nextPeriod = Context.SeasonRegistrationPeriods.FirstOrDefault(e => e.Open_DT > date);
 
         PrepareMetadata();
+    }
+
+    private async void OpenExcel()
+    {
+        var lastPeriod = GetLatestPeriod();
+        if (lastPeriod is not null)
+        {
+            var powerBiTargets = Configuration["PowerBiTargets:LT"] ?? "";
+            var joinChar = powerBiTargets.Contains('?') ? '&' : '?';
+            var fiscalYear = GetFiscalYear(lastPeriod);
+            var parameters = $"year={fiscalYear}&quarter={lastPeriod.Quarter_NUM}";
+            var url = $"{powerBiTargets}{joinChar}{parameters}";
+            await JsInterop.InvokeAsync<object>("open", url, "_blank");
+        }
+    }
+
+    private SeasonRegistrationPeriod GetLatestPeriod()
+    {
+        var date = DateTime.UtcNow.ConvertUtcToEasternTime().Date;
+        var lastPeriod = Context.SeasonRegistrationPeriods
+                                .OrderByDescending(e => e.Open_DT)
+                                .FirstOrDefault(e => e.Open_DT < date);
+        return lastPeriod;
     }
 
     private void PrepareMetadata()
@@ -304,9 +310,15 @@
 
     private async Task LoadApps(string filter)
     {
+        var latestPeriod = GetLatestPeriod();
+        var quarter = latestPeriod.Quarter_NUM;
+        var year = GetFiscalYear(latestPeriod);
+
         if (_isUserAdmin)
         {
-            _languageTrainingApplications = await Context.LanguageTrainingApplications.ToListAsync();
+            _languageTrainingApplications = await Context.LanguageTrainingApplications
+                .Where(a => a.Year_For_Language_Training == year && a.Quarter_NUM == quarter)
+                .ToListAsync();
             if (!string.IsNullOrEmpty(AppId))
             {
                 _languageTrainingApplication = Context.LanguageTrainingApplications.Where(a => a.Application_ID == Convert.ToInt32(AppId)).FirstOrDefault();
@@ -314,7 +326,10 @@
         }
         else
         {
-            _languageTrainingApplications = Context.LanguageTrainingApplications.Where(r => (r.Email_Address_EMAIL.ToLower() == _user.Mail.ToLower()) || (r.Delegated_Manager_Email.ToLower() == _user.Mail.ToLower())).ToList();
+            _languageTrainingApplications = Context.LanguageTrainingApplications
+                .Where(a => a.Year_For_Language_Training == year && a.Quarter_NUM == quarter)
+                .Where(r => (r.Email_Address_EMAIL.ToLower() == _user.Mail.ToLower()) || (r.Delegated_Manager_Email.ToLower() == _user.Mail.ToLower()))
+                .ToList();
         }
 
         if (filter == "All" || string.IsNullOrEmpty(filter))
@@ -375,7 +390,7 @@
         context.SetVisible<LanguageTrainingApplication>(p => p.SLE_Results_Oral, _languageTrainingApplication.Completed_LETP_Assessment && _languageTrainingApplication.Second_Language_Evaluation_Results);
         context.SetVisible<LanguageTrainingApplication>(p => p.Training_Type, _languageTrainingApplication.Completed_LETP_Assessment);
         context.SetVisible<LanguageTrainingApplication>(p => p.SLE_Test_Date, _languageTrainingApplication.Completed_LETP_Assessment && (_languageTrainingApplication.Training_Type == "Individual - Coaching" || _languageTrainingApplication.Training_Type == "Encadrement individuel"));
-        context.SetVisible<LanguageTrainingApplication>(p => p.Session_For_Language_Training, _languageTrainingApplication.Completed_LETP_Assessment && !(_languageTrainingApplication.Training_Type == "Private training: Coaching**" || _languageTrainingApplication.Training_Type == "Individual - Coaching"));
+        //context.SetVisible<LanguageTrainingApplication>(p => p.Session_For_Language_Training, _languageTrainingApplication.Completed_LETP_Assessment && !(_languageTrainingApplication.Training_Type == "Private training: Coaching**" || _languageTrainingApplication.Training_Type == "Individual - Coaching"));
         context.SetVisible<LanguageTrainingApplication>(p => p.Class_For_Language_Training, _languageTrainingApplication.Completed_LETP_Assessment && !(_languageTrainingApplication.Training_Type == "Private training: Coaching**" || _languageTrainingApplication.Training_Type == "Individual - Coaching"));
         context.SetVisible<LanguageTrainingApplication>(p => p.Delegate_Manager_First_Name, _languageTrainingApplication.Completed_LETP_Assessment);
         context.SetVisible<LanguageTrainingApplication>(p => p.Delegated_Manager_Last_Name, _languageTrainingApplication.Completed_LETP_Assessment);

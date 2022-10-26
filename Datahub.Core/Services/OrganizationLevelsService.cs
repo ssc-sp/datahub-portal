@@ -33,7 +33,7 @@ namespace Datahub.Core.Services
             using var ctx = _dbContextFactory.CreateDbContext();
             return await ctx.Organization_Levels
                 .Where(l => l.Org_Level == level)
-                .Select(l => new OrganizationLevel(l.Organization_ID, l.Superior_OrgId ?? 0, l.Org_Name_E, l.Org_Name_F))
+                .Select(l => new OrganizationLevel(l.Organization_ID, l.Superior_OrgId ?? 0, l.Org_Name_E, l.Org_Name_F, l.Org_Acronym_E, l.Org_Acronym_F))
                 .ToListAsync();
         }
 
@@ -42,7 +42,7 @@ namespace Datahub.Core.Services
             using var ctx = await _dbContextFactory.CreateDbContextAsync();
             return await ctx.Organization_Levels
                 .Where(l => l.Organization_ID == id && l.Org_Level == level)
-                .Select(l => new OrganizationLevel(l.Organization_ID, l.Superior_OrgId ?? 0, l.Org_Name_E, l.Org_Name_F))
+                .Select(l => new OrganizationLevel(l.Organization_ID, l.Superior_OrgId ?? 0, l.Org_Name_E, l.Org_Name_F, l.Org_Acronym_E, l.Org_Acronym_F))
                 .FirstOrDefaultAsync();
         }
 
