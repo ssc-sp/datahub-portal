@@ -18,6 +18,10 @@ namespace Datahub.Core.EFCore
         public string Engagement_Name { get; set; }
         [AeFormIgnore]
         public Datahub_Project Project { get; set; }
+
+        [AeFormCategory("Projected Engagement Details")]
+        public bool Is_Engagement_Active { get; set; }
+
         [AeFormCategory("Projected Engagement Details")]
         public DateTime? Engagement_Start_Date { get; set; }
         [AeFormCategory("Projected Engagement Details")]
@@ -64,22 +68,17 @@ namespace Datahub.Core.EFCore
         public byte[] Timestamp { get; set; }
 
 
-        //Timeline.
-        //StartDate
-        //Requirements completed date
-        //Phase 1 dev completed date
-        //phase 1 testing completed date
-        //Phase 2 dev completed date
-        //phase 2 testing completed date
-        //final release date
-        //support ?
-
-
+        [AeFormIgnore]
         public bool IsRequirementsComplete => Requirements_Gathering_ActualEndDate != null;
+        [AeFormIgnore]
         public bool IsPhase1DevComplete => Phase1_Development_ActualEndDate != null;
+        [AeFormIgnore]
         public bool IsPhase1TestComplete => Phase1_Testing_ActualEndDate != null;
+        [AeFormIgnore]
         public bool IsPhase2DevComplete => Phase2_Development_ActualEndDate != null;
+        [AeFormIgnore]
         public bool IsPhase2TestComplete => Phase2_Testing_ActualEndDate != null;
+        [AeFormIgnore]
         public bool IsReleased => Actual_Release_Date != null;
 
         public (Color, Severity) RequirementsStatus()
