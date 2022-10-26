@@ -1,6 +1,7 @@
 ﻿using Datahub.CatalogSearch;
 using Datahub.Metadata.DTO;
 using Datahub.Metadata.Model;
+using Datahub.Metadata.Utils;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
@@ -354,7 +355,9 @@ namespace Datahub.Core.Services
 
             _logger.LogInformation("<<< SearchCatalog end...");
 
-            return results;
+            // return grouped results
+            var uiLanguage = request.IsFrench ? CatalogObjectLanguage.French : CatalogObjectLanguage.English;
+            return CatalogUtils.GroupResults(results, uiLanguage);
         }
 
         public async Task<List<CatalogObjectResult>> GetCatalogGroup(Guid groupId)
@@ -696,7 +699,7 @@ namespace Datahub.Core.Services
             List<MetadataObjectType> listedTypes = new() { MetadataObjectType.File, MetadataObjectType.PowerBIReport }; 
 
             return await ctx.CatalogObjects
-                            .Where(e => e.ProjectId == projectId && e.Classification_Type == ClassificationType.Unclassified && listedTypes.Contains(e.DataType))
+                            .Where(e => e.ProjectId == projectId && listedTypes.Contains(e.DataType))
                             .Include(e => e.ObjectMetadata)
                             .ThenInclude(s => s.FieldValues)
                             .AsSingleQuery()
