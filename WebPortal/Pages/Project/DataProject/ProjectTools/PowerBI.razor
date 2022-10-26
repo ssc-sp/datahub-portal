@@ -2,6 +2,7 @@
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject RequestManagementService _requestManagementService
 @inject ILogger<PowerBI> _logger
+@inject IUserInformationService _userInformationService
 
 @if (_project is null)
 {
@@ -98,7 +99,6 @@ else
     [CascadingParameter(Name = "ProjectAcronym")]
     public string ProjectAcronym { get; set; }
 
-    [CascadingParameter(Name = "UserId")]
     public string UserId { get; set; }
 
     [CascadingParameter(Name = "GraphUser")]
@@ -135,6 +135,7 @@ else
             .Where(p => p.Project == _project)
             .ToListAsync();
 
+        UserId = await _userInformationService.GetUserIdString();
         if (UserId != null)
         {
             _powerBiServiceRequested = _serviceRequests.Any(r => r.ServiceType == RequestManagementService.POWERBI && r.Is_Completed == null);
