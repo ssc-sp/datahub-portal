@@ -699,7 +699,7 @@ namespace Datahub.Core.Services
             List<MetadataObjectType> listedTypes = new() { MetadataObjectType.File, MetadataObjectType.PowerBIReport }; 
 
             return await ctx.CatalogObjects
-                            .Where(e => e.ProjectId == projectId && e.Classification_Type == ClassificationType.Unclassified && listedTypes.Contains(e.DataType))
+                            .Where(e => e.ProjectId == projectId && listedTypes.Contains(e.DataType))
                             .Include(e => e.ObjectMetadata)
                             .ThenInclude(s => s.FieldValues)
                             .AsSingleQuery()
