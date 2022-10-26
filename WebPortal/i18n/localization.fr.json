@@ -187,7 +187,8 @@
   "DISCOVERY-CLASSIFICATION-TYPES": {
     "Unclassified": "Non classifié",
     "ProtectedA": "Protégé A",
-    "ProtectedB": "Protégé B"
+    "ProtectedB": "Protégé B",
+    "ProtectedC": "Protégé C"
   },
   "DISCOVERY-LANGUAGE-TYPES": {
     "Bilingual": "Bilingue",
@@ -238,6 +239,7 @@
   "PrivacyPolicy": "Politique de confidentialité",
   "Protected A": "Protégé A",
   "Protected B": "Protégé B",
+  "ProtectedC": "Protégé C",
   "Rename": "Renommer",
   "RequiredField": " = champs requis",
   "Role": "Role",
@@ -802,6 +804,16 @@
   "Committee": "Comité",
   "Event": "Évènement",
   "Project_Or_Initiative": "Projet ou Initiative",
+  "Project_Cost_Since": "Consommation depuis le 1er {0} :",
+  "Project_Remaining_Credit_label": "Crédit restant:",
+  "Project_Remaining_Credit_text": "{0:C} sur {1:C} par mois.",
+  "Storage Equivalent:": "Équivalent stockage :",
+  "Project_Remaining_Credit_Storage": "{0:C} utilisé pour le stockage = {1} de données stockées dans Azure.",
+  "Compute Equivalent:": "Équivalent de calcul :",
+  "Project_Remaining_Credit_Compute": "{0:C} utilisés pour le calcul",
+  "Project_Remaining_Credit_Compute_Small": "= {0} heures de Databricks pour un petit cluster.",
+  "Project_Remaining_Credit_Compute_Medium": "= {0} heures de Databricks pour un cluster moyen.",
+  "Project_Remaining_Credit_Compute_Large": "= {0} heures de Databricks pour un cluster de grande taille.",
   "Other": "Autre",
   "IsOrganizationalTeam": "Équipe à l’échelle de l’organisation",
   "Visibility": "Visibilité - *NOTE* Protégé B doit être Privé ",
@@ -1637,7 +1649,6 @@
     "ClickToApprove": "Cliquez pour approuver la publication"
   },
   "Resources": "Ressources",
-  "LanguageTableDisclaimer": "Une seule inscription est autorisée par étudiant et par session.",
   "Initiatives": "Initiatives",
   "Initiative Home": "Accueil de l'initiative",
   "View your profile": "Voir votre profil",
@@ -1646,12 +1657,14 @@
   "Admin Access Enabled": "Accès Admin activé",
   "View As Visitor": "Voir en tant que visiteur",
   "LanguageTrainingApplication": {
+    "LanguageTableDisclaimer": "Une seule inscription est autorisée par étudiant et par session.",
     "Registrations_closed": "Les inscriptions sont actuellement fermées.",
     "Registrations_open_from_to": "Les inscriptions pour {0} de {1} seront ouvertes de {2} à {3}.",
-    "Registrations_open_until": "Les inscriptions seront ouvertes pour la session {0} {1} jusqu'au {2}, le {4} {3} {5}, à 18 h 00 (HAE).",
+    "Registrations_open_until": "Les inscriptions seront ouvertes pour la session {0} {1} jusqu'au {2}, le {4} {3} {5}, à 18 h 00 (HAE). En s'inscrivant l’apprenant assistera aux deux premières semaines de la session, c’est obligatoire. ",
     "Spring": "de printemps",
     "Summer": "d'été",
     "Fall": "d'automne",
     "Winter": "d'hiver"
-  }
+  },
+  "Public Datasets": "Ensembles de données publiques"
 }

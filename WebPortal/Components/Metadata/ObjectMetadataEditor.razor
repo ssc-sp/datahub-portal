@@ -76,7 +76,7 @@
     public string Location { get; set; }
 
     [Parameter]
-    public string SecurityClass { get; set; } = SecurityClassification.Unclassified;
+    public string SecurityClass { get; set; }
 
     [Parameter]
     public string ProfileName { get; set; } = "opendata";
@@ -162,30 +162,22 @@
         if (long.TryParse(ObjectId, out long metadataObjectId))
         {
             _fieldValues = await MetadataBrokerService.GetObjectMetadataValues(metadataObjectId, DefaultMetadataId);
-            if (UpdateCatalog)
-            {
-                var catalogResult = await MetadataBrokerService.GetCatalogObjectByMetadataId(metadataObjectId);
-                SecurityClass = SecurityClassification.GetSecurityClassification(catalogResult?.ClassificationType ?? ClassificationType.Unclassified);
-            }
         }
         else
         {
             _fieldValues = await MetadataBrokerService.GetObjectMetadataValues(ObjectId, DefaultMetadataId);
-            if (UpdateCatalog)
-            {
-                var catalogResult = await MetadataBrokerService.GetCatalogObjectByObjectId(ObjectId);
-                SecurityClass = SecurityClassification.GetSecurityClassification(catalogResult?.ClassificationType ?? ClassificationType.Unclassified);
-            }
         }
+
+        SetSecurityClassification();
 
         _definitions = _fieldValues.Definitions;
         _lastObjectId = ObjectId;
 
-        if (_fieldValues.IsNew && OnNewMetadataCreated.HasDelegate)
+        if (_fieldValues.IsNew)
         {
             await OnNewMetadataCreated.InvokeAsync();
         }
-        else if (!_fieldValues.IsNew && OnExistingMetadataLoaded.HasDelegate)
+        else
         {
             // !IsNew is explicitly checked to avoid calling On..Loaded for new metadata without an On..Created delegate
             await OnExistingMetadataLoaded.InvokeAsync();
@@ -199,12 +191,22 @@
 
     public string GetTitle()
     {
-        return _fieldValues["title_translated_en"]?.Value_TXT ?? string.Empty;
+        return _fieldValues.GetValue("title_translated_en");
     }
 
     public void TogglePreview()
     {
         Preview = !Preview;
+    }
+
+    private void SetSecurityClassification()
+    {
+        var secClsName = "security_classification";
+        var secClsValue = _fieldValues.GetValue(secClsName);
+        if (string.IsNullOrEmpty(secClsValue) && !string.IsNullOrEmpty(SecurityClass))
+        {
+            _fieldValues.SetValue(secClsName, GetClassificationTypeAsText(SecurityClass));
+        }
     }
 
     private bool CheckRequiredFieldValues()
@@ -274,13 +276,13 @@
         (
             objectMetadataId, 
             ObjectType, 
-            _fieldValues["title_translated_en"]?.Value_TXT ?? digest.Name,
-            _fieldValues["title_translated_fr"]?.Value_TXT ?? digest.Name,
+            digest.TitleEnglish,
+            digest.TitleFrench,
             Location, 
             digest.Sector, 
             digest.Branch, 
             digest.Contact, 
-            GetClassificationType(SecurityClass),
+            digest.Classification,
             digest.EnglishCatalog, 
             digest.FrenchCatalog,
             CatalogLanguage,
@@ -294,8 +296,14 @@
         {
             SecurityClassification.ProtectedA => ClassificationType.ProtectedA,
             SecurityClassification.ProtectedB => ClassificationType.ProtectedB,
+            SecurityClassification.ProtectedC => ClassificationType.ProtectedC,
             _ => ClassificationType.Unclassified
         };
+    }
+
+    private string GetClassificationTypeAsText(string securityClass)
+    {
+        return ((byte)GetClassificationType(securityClass)).ToString();
     }
 
     private void SetObjectName()
@@ -324,30 +332,43 @@
             switch (definition.Field_Name_TXT)
             {
                 case "sector":
-                    definition.Choices = GetOrganizationChoices(await OrganizationLevelsService.GetSectors(), false);
+                    definition.Choices = GetOrganizationChoices(await OrganizationLevelsService.GetSectors(), false).ToList();
                     break;
                 case "branch":
-                    definition.Choices = GetOrganizationChoices(await OrganizationLevelsService.GetBranches(), true);
+                    definition.Choices = GetOrganizationChoices(await OrganizationLevelsService.GetBranches(), true).ToList();
                     break;
                 case "division":
-                    definition.Choices = GetOrganizationChoices(await OrganizationLevelsService.GetDivisions(), true);
+                    definition.Choices = GetOrganizationChoices(await OrganizationLevelsService.GetDivisions(), true).ToList();
                     break;
                 case "section":
-                    definition.Choices = GetOrganizationChoices(await OrganizationLevelsService.GetSections(), true);
+                    definition.Choices = GetOrganizationChoices(await OrganizationLevelsService.GetSections(), true).ToList();
                     break;
             }
         }
     }
 
-    private List<FieldChoice> GetOrganizationChoices(List<OrganizationLevel> levels, bool cascades)
+    private IEnumerable<FieldChoice> GetOrganizationChoices(List<OrganizationLevel> levels, bool cascades)
     {
-        return levels.Select(l => new FieldChoice()
+        if (cascades)
         {
-            Value_TXT = $"{l.Id}",
-            Cascading_Value_TXT = cascades ? $"{l.ParentId}" : null,
-            Label_English_TXT = l.EnglishLabel,
-            Label_French_TXT = l.FrenchLabel
-        }).ToList();
+            yield return new FieldChoice()
+            {
+                Value_TXT = $"0",
+                Cascading_Value_TXT = "*",
+                Label_English_TXT = "-",
+                Label_French_TXT = "-"
+            };
+        }        
+        foreach (var l in levels)
+        {
+            yield return new FieldChoice()
+            {
+                Value_TXT = $"{l.Id}",
+                Cascading_Value_TXT = cascades ? $"{l.ParentId}" : null,
+                Label_English_TXT = l.EnglishLabel,
+                Label_French_TXT = l.FrenchLabel
+            };
+        }
     }
 
     public void SetValue(string fieldName, string fieldValue)

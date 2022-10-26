@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
 using System;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace Datahub.Core.Services
@@ -125,6 +126,11 @@ namespace Datahub.Core.Services
         public Task SetViewingAsVisitor(bool isVisitor)
         {
             return Task.CompletedTask;
+        }
+
+        public Task<ClaimsPrincipal> GetAuthenticatedUser(bool forceReload = false)
+        {
+            return Task.FromResult(new ClaimsPrincipal());
         }
     }
 }

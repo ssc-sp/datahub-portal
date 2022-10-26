@@ -25,8 +25,6 @@
 
 @code {
 
-    [CascadingParameter]
-    private Task<AuthenticationState> authenticationStateTask { get; set; }
     private const string PROJECTACRONYM = "FINGC";
     private FormMetadata<FundCenter> _formMetadata = new();
 
@@ -44,6 +42,8 @@
     private List<FiscalYear> _fiscalYears = new();
     private List<string> _branchAccess = new();
     private string _searchFilter = string.Empty;
+    private List<string> _headers = new();
+    private string _next;
 
     private int _lastClicked = 0;
 
@@ -57,7 +57,7 @@
     {
         // load projects
         _user = await UserInformationService.GetUserAsync();
-        _claimsUser = (await authenticationStateTask).User;
+        _claimsUser = (await UserInformationService.GetAuthenticatedUser());
         Context = DbFactory.CreateDbContext();
         LoadSortExpressions();
         _branchAccess = Context.BranchAccess.Where(u => u.User.ToLower() == _user.Mail.ToLower()).Select(r => r.BranchFundCenter).ToList();
@@ -65,6 +65,12 @@
         _fiscalYears = Context.FiscalYears.ToList();
         if(_fiscalYears.Any() && _fiscalYears[0] is not null)
             _fiscalYears.Insert(0, null);
+        _next = DataLocalizer["Next"];
+        _headers = new List<string>
+        {
+            DataLocalizer["Fiscal Year"], DataLocalizer["Sector"], DataLocalizer["Branch"], DataLocalizer["Division"], DataLocalizer["AttritionRate"]
+        };
+
         LoadData(_searchFilter);
     }
 
@@ -93,13 +99,13 @@
                 return false;
             }).ToList();
         }
-        _formMetadata.Header = "Integrated Business Planning - Financial Information";
-        _formMetadata.HeaderSubText = @"Select your division from entries below or use the search bar to search for your division by Fund Center number of name. Use the 'Division Description' field to provide a description of the type of work your division provides";
-        _formMetadata.SubHeader = "FC Details";
+        _formMetadata.Header = DataLocalizer["Integrated Business Planning - Financial Information"];
+        _formMetadata.HeaderSubText = DataLocalizer[@"Select your division from entries below or use the search bar to search for your division by Fund Center number of name. Use the 'Division Description' field to provide a description of the type of work your division provides"];
+        _formMetadata.SubHeader = DataLocalizer["FC Details"];
         _formMetadata.DataSet = fundcenters;
         _formMetadata.AccessorFunctions = accessorFunctions;
         _formMetadata.NavigateUrls = buttonFunctions;
-        _formMetadata.Headers = headers;
+        _formMetadata.Headers = _headers;
         _formMetadata.AllowSearch = true;
         _formMetadata.GridTemplateColumns = "3fr 6fr 6fr 6fr 3fr";
         _formMetadata.IsSubmitEnabled = true;
@@ -108,7 +114,7 @@
 
     private List<Func<FundCenter, (string, string)>> buttonFunctions = new List<Func<FundCenter, (string, string)>>
     {
-        new Func<FundCenter, (string, string)>(p => { return ("Next", $"/finance/forecasts/{p.FundCenter_ID.ToString()}"); }),         
+        new Func<FundCenter, (string, string)>(p => { return ("Next" , $"/finance/forecasts/{p.FundCenter_ID.ToString()}"); }),
     };
 
     private async Task GoToNextSheet()
@@ -142,11 +148,6 @@
         }
         return "";
     }
-
-    private List<string> headers = new List<string>
-{
-        "Fiscal Year", "Sector", "Branch", "Division", "Attrition Rate"
-    };
 
     private void SetFormEdit(FundCenter project)
     {
@@ -229,8 +230,7 @@
         context.RegisterOptionValueProperty<FundCenter, HierarchyLevel>(l => l.Branch, p => p?.FundCenterNameEnglish ?? "N/A", () => GetBranches(), s => RefreshDivisions(s, context));
         context.RegisterOptionValueProperty<FundCenter, HierarchyLevel>(l => l.Division, p => p?.FundCenterNameEnglish ?? "N/A", () => GetDivisions());
 
-        context.RegisterFieldNotes<FundCenter>(f => f.AttritionRate, "This is the attrition rate note");
-
+        context.RegisterFieldNotes<FundCenter>(f => f.AttritionRate, @"Identify the attrition % for your division. This % will be applied to all forecasted salaries on the SFT Forecast page. Attrition represents an estimated percentage of salary costs currently forecasted that will likely not materialize due to unplanned vacancies (the gap between unplanned departure and replacement of an employee).");
     }
 
 

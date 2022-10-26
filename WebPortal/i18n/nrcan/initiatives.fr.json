@@ -246,7 +246,8 @@
     "Branch": "Branche",
     "RelatedReports": "Rapport(s) connexe(s)",
     "Loading": "Chargement",
-    "InvalidReport": "Rapport non valide"
+    "InvalidReport": "Rapport non valide",
+    "PublicationLinks": "Lien(s) pour publication"
   },
   "RESOURCE_REQUEST_INFO_PANEL": {
     "RequestInformation": "Information sur la demande",
@@ -307,5 +308,6 @@
   "You currently do not have access to this project": "Vous n’avez actuellement pas accès à cette initiative",
   "You currently do not have access to this project.": "Vous n’avez actuellement pas accès à cette initiative.",
   "Project Information": "Informations sur le projet",
-  "Welcome to your Data Project": "Bienvenue a votre initiative de données"
+  "Welcome to your Data Project": "Bienvenue a votre initiative de données",
+  "You are not a member of this project.": "Vous n'êtes pas un membre de cette initiative."
 }

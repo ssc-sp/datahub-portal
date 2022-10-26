@@ -60,7 +60,7 @@ namespace Datahub.Portal.Data.Finance
         public double? Salary { get; set; }
 
         [AeFormIgnore]
-        public int Incremental_Replacement { get; set; }
+        public int? Incremental_Replacement { get; set; }
 
         [NotMapped]
         [AeFormCategory("Planned Staffing")]
@@ -73,12 +73,41 @@ namespace Datahub.Portal.Data.Finance
         public string Location_Of_Hiring { get; set; }
 
         [AeFormIgnore]
-        public int Potential_Hiring_Process { get; set; }
+        public int? Potential_Hiring_Process { get; set; }
 
         [NotMapped]
         [AeFormCategory("Planned Staffing")]        
         [MudForm(IsDropDown = true)]
         public DropDownContainer PHP_Values { get; set; }
+
+
+        [AeFormIgnore]
+        public int? FTE_Accomodations_Requirements { get; set; }
+
+        [NotMapped]
+        [AeFormCategory("Planned Staffing")]
+        [MudForm(IsDropDown = true)]
+        public DropDownContainer FTE_Accomodations_Req_Values { get; set; }
+
+        [AeFormIgnore]
+        public int? FTE_Accomodations_Location { get; set; }
+
+        [NotMapped]
+        [AeFormCategory("Planned Staffing")]
+        [MudForm(IsDropDown = true)]
+        public DropDownContainer FTE_Accomodations_Location_Values { get; set; }
+
+        [AeFormCategory("Planned Staffing")]
+        [MaxLength(500)]
+        public string Other_Locations { get; set; }
+
+        [AeFormIgnore]
+        public int? Position_Workspace_Type { get; set; }
+
+        [NotMapped]
+        [AeFormCategory("Planned Staffing")]
+        [MudForm(IsDropDown = true)]
+        public DropDownContainer Position_Workspace_Type_Values { get; set; }
 
         [AeFormIgnore]
         public string Last_Updated_UserId { get; set; }

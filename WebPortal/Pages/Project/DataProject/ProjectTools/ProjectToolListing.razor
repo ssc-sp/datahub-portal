@@ -6,104 +6,120 @@
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject IOptions<DataProjectsConfiguration> _configuration
 @inject ServiceAuthManager ServiceAuthManager
+@inject IEmailNotificationService _emailNotificationService
 
-<AuthorizeView Roles="@string.Join(',', _authorizedRoles)">
+<div class="project-tools">
 
-    <div class="project-tools">
-
-        @*<AeTypography Variant="h2">@Localizer["Project Tools"]</AeTypography>*@
-        <MudText Typo="Typo.h4">@Localizer["Project Tools"]</MudText>
-
-        <div class="controls">
-            <span class="icon-wrapper @(_isDense ? "active" : "")" @onclick="@(() => ToggleDense(true))">
-                <i class="fas fa-list-ul"></i>
-            </span>
-            <span class="icon-wrapper @(!_isDense ? "active" : "")" @onclick="@(() => ToggleDense(false))">
-                <i class="fas fa-th-large"></i>
-            </span>
-        </div>
-        @if (_isLoading)
-        {
-            @*<Spinner/>*@
-        }
-        else
-        {
-            <div class="tools-container @(_isDense ? "dense" : "")">
-                @if (_configuration.Value.Databricks && _canViewDatabricks)
+    <MudText Typo="Typo.h4">@Localizer["Project Tools"]</MudText>
+    <AuthorizeView Roles="@string.Join(',', _authorizedRoles)">
+        <NotAuthorized>
+            <div class="access-denied">
+                <AeTypography Variant="h3">@Localizer["Access Denied"]</AeTypography>
+                <AeTypography class="danger">@Localizer["You are not a member of this project."]</AeTypography>
+                @if (_isProjectUserPendingApproval)
                 {
-                    <Databricks/>
+                    <AeTypography class="access-request-reviewing">@Localizer["Access Request is being reviewed"]</AeTypography>
                 }
-                @if (_configuration.Value.PowerBI && _canViewPowerBi)
+                else
                 {
-                    <PowerBI/>
-                }
-                @if (!string.IsNullOrEmpty(_project.WebForms_URL) && _configuration.Value.WebForms)
-                {
-                    <DataEntry/>
-                }
-                @if (_configuration.Value.WebForms)
-                {
-                    <FormBuilder/>
-                }
-                @if (_configuration.Value.Storage)
-                {
-                    <Storage/>
-                }
-                @if (_configuration.Value.PublicSharing)
-                {
-                    <PublicSharing/>
-                }
-
-                @if (_configuration.Value.Costing)
-                {
-                    <Costing/>
-                }
-                @if (_configuration.Value.DataManagement)
-                {
-                    <IoT/>
-                }
-
-                @if (_configuration.Value.IoT)
-                {
-                    <DataManagement/>
-                }
-
-                @if (_configuration.Value.PostgreSQL)
-                {
-                    @if (_projectDatabaseResources.Count < 1)
-                    {
-                        <ProjectDatabase />
-                    }
-                    else
-                    {
-                        foreach(var db in _projectDatabaseResources)
-                        {
-                            <ProjectDatabase ResourceID=@db.ResourceId />
-                        }
-                    }
-                }
-                <Admin/>
-
-                @if (_configuration.Value.StorageCost)
-                {
-                    <StorageCost />
-                }
-
-                @if (_configuration.Value.ComputeCost)
-                {
-                    <ComputeCost />
+                    <span class="button-wrapper">
+                        <AeButton @onclick="RequestProjectAccess">@Localizer["Request Access"]</AeButton>
+                    </span>
                 }
             </div>
-        }
-    </div>
-</AuthorizeView>
+        </NotAuthorized>
+        <Authorized>
+
+
+            <div class="controls">
+                <span class="icon-wrapper @(_isDense ? "active" : "")" @onclick="@(() => ToggleDense(true))">
+                    <i class="fas fa-list-ul"></i>
+                </span>
+                <span class="icon-wrapper @(!_isDense ? "active" : "")" @onclick="@(() => ToggleDense(false))">
+                    <i class="fas fa-th-large"></i>
+                </span>
+            </div>
+            @if (_isLoading)
+            {
+                @*<Spinner/>*@
+            }
+            else
+            {
+                <div class="tools-container @(_isDense ? "dense" : "")">
+                    @if (_configuration.Value.Databricks && _canViewDatabricks)
+                    {
+                        <Databricks/>
+                    }
+                    @if (_configuration.Value.PowerBI && _canViewPowerBi)
+                    {
+                        <PowerBI/>
+                    }
+                    @if (!string.IsNullOrEmpty(_project.WebForms_URL) && _configuration.Value.WebForms)
+                    {
+                        <DataEntry/>
+                    }
+                    @if (_configuration.Value.WebForms)
+                    {
+                        <FormBuilder/>
+                    }
+                    @if (_configuration.Value.Storage)
+                    {
+                        <Storage/>
+                    }
+                    @if (_configuration.Value.PublicSharing)
+                    {
+                        <PublicSharing/>
+                    }
+
+                    @if (_configuration.Value.Costing)
+                    {
+                        <Costing/>
+                    }
+                    @if (_configuration.Value.DataManagement)
+                    {
+                        <IoT/>
+                    }
+
+                    @if (_configuration.Value.IoT)
+                    {
+                        <DataManagement/>
+                    }
+
+                    @if (_configuration.Value.PostgreSQL)
+                    {
+                        @if (_projectDatabaseResources.Count < 1)
+                        {
+                            <ProjectDatabase />
+                        }
+                        else
+                        {
+                            foreach(var db in _projectDatabaseResources)
+                            {
+                                <ProjectDatabase ResourceID=@db.ResourceId />
+                            }
+                        }
+                    }
+                    <Admin/>
+
+                    @if (_configuration.Value.StorageCost)
+                    {
+                        <StorageCost />
+                    }
+
+                    @if (_configuration.Value.ComputeCost)
+                    {
+                        <ComputeCost />
+                    }
+                </div>
+            }
+        </Authorized>
+    </AuthorizeView>
+</div>
 
 @code {
 
     [CascadingParameter(Name = "ProjectAcronym")]
     public string ProjectAcronym { get; set; }
-    [CascadingParameter]
-    private Task<AuthenticationState> authenticationStateTask { get; set; }
     [CascadingParameter(Name = "IsDatahubAdmin")]
     public bool IsDatahubAdmin { get; set; }
 
@@ -114,12 +130,17 @@
     private bool _canViewDatabricks;
     private bool _canViewPowerBi;
     private List<string> _authorizedRoles;
+    private Microsoft.Graph.User _graphUser;
 
     private List<Project_Resources2> _projectDatabaseResources = new();
 
+    private bool _isProjectUserPendingApproval;
+
+
     protected override async Task OnInitializedAsync()
     {
-        
+        await using var projectDbContext = await _dbFactoryProject.CreateDbContextAsync();
+
         var user = await _userInformationService.GetUserAsync();
         _authorizedRoles = new List<string>
         {
@@ -130,12 +151,17 @@
         {
             _authorizedRoles.Add(RoleConstants.DATAHUB_ROLE_ADMIN);
         }
-        
-        _user = (await authenticationStateTask).User;
 
-        await using var projectDbContext = await _dbFactoryProject.CreateDbContextAsync();
-        _project = await projectDbContext.Projects
-            .SingleOrDefaultAsync(p => p.Project_Acronym_CD == ProjectAcronym);
+        _user = await _userInformationService.GetAuthenticatedUser();
+
+        _graphUser = await _userInformationService.GetUserAsync();
+
+
+        _isProjectUserPendingApproval = projectDbContext.Project_Users_Requests
+            .Any(u => u.User_ID == _graphUser.Id && _project == u.Project && u.Approved_DT == null);
+
+
+        _project = await projectDbContext.Projects.FirstOrDefaultAsync(p => p.Project_Acronym_CD == ProjectAcronym);
 
         var _serviceRequests = await projectDbContext.Project_Requests
             .Where(p => p.Project == _project)
@@ -156,6 +182,50 @@
             .ToList();
 
         _isLoading = false;
+    }
+
+    private async Task RequestProjectAccess()
+    {
+        await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
+
+        projectContext.Attach(_project);
+
+        var request = new Datahub_Project_User_Request()
+            {
+                User_ID = _graphUser.Id,
+                Project = _project,
+                Requested_DT = DateTime.Now
+            };
+
+
+        projectContext.Project_Users_Requests.Add(request);
+        await projectContext.SaveChangesAsync();
+
+        var admins = await GetProjectAdministratorEmailsAndIds();
+
+
+        await _emailNotificationService.SendServiceAccessRequestNotification(_graphUser.DisplayName, "project", _project.ProjectInfo, admins);
+
+        _isProjectUserPendingApproval = true;
+    }
+
+    private async Task<List<string>> GetProjectAdministratorEmailsAndIds()
+    {
+        await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
+        projectContext.Attach(_project);
+        var loadUsersTask = projectContext
+            .Entry(_project)
+            .Collection(p => p.Users)
+            .LoadAsync();
+
+        await loadUsersTask;
+
+        var adminUsers = _project.Users
+            .Where(u => u.IsAdmin)
+            .Select(u => u.User_ID)
+            .ToList();
+
+        return adminUsers;
     }
 
     private void ToggleDense(bool isDense)

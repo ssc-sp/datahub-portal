@@ -1,5 +1,6 @@
 ﻿using Datahub.Core.EFCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,14 +16,17 @@ namespace Datahub.Core.Services.AzureCosting
     {
         private const string AZURE_BASE_URL = "https://management.azure.com/";
         private DatahubProjectDBContext _dbContext;
+        private readonly ILogger<AzureCostManagementService> logger;
 
-        public AzureCostManagementService(DatahubProjectDBContext dbContext)
+        public AzureCostManagementService(DatahubProjectDBContext dbContext, ILogger<AzureCostManagementService> logger)
         {
             _dbContext = dbContext;
+            this.logger = logger;
         }
 
         public async Task<IEnumerable<CostManagementRow>> GetCurrentMonthlyCostAsync(string subscriptionId, string token, string resourceGroup = null)
         {
+            logger.LogDebug($"Querying Azure for subscription '{subscriptionId}' - Resource Group: '{resourceGroup}'");
             if (token is null)
             {
                 throw new ArgumentNullException(nameof(token));
@@ -40,9 +44,11 @@ namespace Datahub.Core.Services.AzureCosting
             var client = new HttpClient();
             client.BaseAddress = new Uri(AZURE_BASE_URL);
             client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
-			//Add the request body to the request
-			///
-			HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, $"subscriptions/{subscriptionId}{resourceGroupFilter}/providers/Microsoft.CostManagement/query?api-version=2021-10-01");
+            //Add the request body to the request
+            ///
+            var requestUrl = $"subscriptions/{subscriptionId}{resourceGroupFilter}/providers/Microsoft.CostManagement/query?api-version=2021-10-01";
+            logger.LogDebug($"Request: {requestUrl}");
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, requestUrl);
             request.Content = new StringContent(serializedBody, System.Text.Encoding.UTF8, "application/json");
             var response = await client.SendAsync(request);
             if (!response.IsSuccessStatusCode) throw new InvalidOperationException($"Error accessing billing API: {response.StatusCode.ToString()}");

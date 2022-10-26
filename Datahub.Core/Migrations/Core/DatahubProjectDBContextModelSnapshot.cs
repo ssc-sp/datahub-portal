@@ -187,6 +187,9 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.Property<string>("Project_Admin")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<decimal?>("Project_Budget")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<string>("Project_Category")
                         .HasColumnType("nvarchar(max)");
 
@@ -232,6 +235,9 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                         .HasColumnType("nvarchar(400)");
 
                     b.HasKey("Project_ID");
+
+                    b.HasIndex("Project_Acronym_CD")
+                        .IsUnique();
 
                     b.ToTable("Projects");
                 });
