@@ -89,11 +89,18 @@
         if (lastPeriod is not null)
         {
             var powerBiTargets = Configuration["PowerBiTargets:LT"] ?? "";
-            var joinChar = powerBiTargets.Contains('?') ? '&' : '?';
-            var fiscalYear = GetFiscalYear(lastPeriod);
-            var parameters = $"year={fiscalYear}&quarter={lastPeriod.Quarter_NUM}";
-            var url = $"{powerBiTargets}{joinChar}{parameters}";
-            await JsInterop.InvokeAsync<object>("open", url, "_blank");
+            if (!string.IsNullOrEmpty(powerBiTargets))
+            {
+                var fiscalYear = GetFiscalYear(lastPeriod);
+                var url = string.Format(powerBiTargets, fiscalYear, lastPeriod.Quarter_NUM);
+                try
+                {
+                    await JsInterop.InvokeAsync<object>("open", url, "_blank");
+                }
+                catch (Exception)
+                {
+                }
+            }
         }
     }
 
