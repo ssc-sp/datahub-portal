@@ -193,7 +193,17 @@
             else
             {
                 await _submitApprovalInd.SignalSuccess();
-                NavigationManager.NavigateTo($"/admin/metadata/{_newProjectAcronym}");
+
+                OnboardingParameters onboardingParameters = new()
+                {
+                    AppUrl = $"/admin/metadata/{_newProjectAcronym}",
+                    App = _onboardingApplication,
+                    AdminEmailAddresses = ServiceAuthManager.GetProjectMailboxEmails(PROJECTACRONYM)
+                };
+
+                await EmailService.SendOnboardingMetadataEditRequest(onboardingParameters);
+
+                NavigationManager.NavigateTo("/onboarding/confirmation");
             }
         }
     }
@@ -251,12 +261,12 @@
 
             await Context.TrackSaveChangesAsync(AuditingService);
 
-            OnboardingParameters onboardingParameters = new() { 
-                            AppUrl = $"/onboarding/applications/{_onboardingApplication.Application_ID}",
-                            App = _onboardingApplication, 
-                            AdminEmailAddresses =  ServiceAuthManager.GetProjectMailboxEmails(PROJECTACRONYM)
-                        };
-
+            OnboardingParameters onboardingParameters = new() 
+            { 
+                AppUrl = $"/onboarding/applications/{_onboardingApplication.Application_ID}",
+                App = _onboardingApplication, 
+                AdminEmailAddresses =  ServiceAuthManager.GetProjectMailboxEmails(PROJECTACRONYM)
+            };
 
             await EmailService.SendOnboardingConfirmations(onboardingParameters, _onboardingApplication.NotificationsSent);
 
