@@ -19,6 +19,17 @@ namespace Datahub.Core.EFCore
         [Required]
         [MaxLength(2000)]
         public string Engagement_Name { get; set; }
+
+        [AeFormCategory("Projected Engagement Details")]
+        [Required]
+        [MaxLength(2000)]
+        public string Engagment_Owners { get; set; }
+
+        [AeFormCategory("Projected Engagement Details")]
+        [Required]
+        [MaxLength(2000)]
+        public string Engagment_Lead{ get; set; }
+
         [MudBlazor.Forms.AeFormIgnoreAttribute]
         public Datahub_Project Project { get; set; }
 
