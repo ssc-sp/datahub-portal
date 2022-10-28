@@ -26,6 +26,7 @@
 @code {
 
     private const string PROJECTACRONYM = "FINGC";
+    private FormMetadata<FundCenter> _formMetadata = new();
 
     private List<FundCenter> _fundcenters;
     private FundCenter _fundcenter;
@@ -46,7 +47,6 @@
 
     private int _lastClicked = 0;
 
-    private FormMetadata<FundCenter> _formMetadata = new();
 
     private void OnPageClick(int pageIndex)
     {

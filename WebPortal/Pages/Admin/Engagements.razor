@@ -1,0 +1,172 @@
+﻿@page "/admin/engagements/{projectAcronym}"
+@inject IStringLocalizer DataLocalizer
+@implements IDisposable
+@using Datahub.Achievements.Models
+@using System.Security.Claims
+@inject NavigationManager NavigationManager
+@inject IMSGraphService MSGraphService
+@inject IJSRuntime JSRuntime
+@inject IDbContextFactory<DatahubProjectDBContext> DbFactory
+@inject IUserInformationService UserInformationService
+@inject IDatahubAuditingService AuditingService
+@inject ServiceAuthManager ServiceAuthManager
+@inject AchievementService _achievementService
+
+<Datahub.Core.Components.MudFormTemplate T="Client_Engagement"
+                                         U="DatahubProjectDBContext"
+                                         Metadata="@_formMetadata"
+                                         HandleSubmit="HandleValidSubmit"
+                                         OnConfigureForms="OnConfigure"
+                                         OnChangeForms="OnChange"
+                                         CreateNewRecord="CreateNewProject"
+                                         SelectedRecord="@_clientengagement"
+                                         SetFormEditRecord="SetFormEdit"
+                                         HandleFilterChange="HandleFilterChange"
+                                         SortAccessors="@_sortAccessors"
+                                         Context=@Context />
+
+@code {
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+
+    [Parameter]
+    public string projectAcronym { get; set; }
+    private FormMetadata<Client_Engagement> _formMetadata = new();
+
+    private List<Client_Engagement> _clientengagements;
+    private Client_Engagement _clientengagement;
+    //private List<Sector> _sectorLookup;
+    private Dictionary<string, Func<Client_Engagement, string>> _sortAccessors = new();
+    private DatahubProjectDBContext Context;
+    private Datahub_Project _project;
+    private Microsoft.Graph.User _user = null!;
+    private ClaimsPrincipal _claimsUser = null;
+    private bool _isUserAdmin;
+    private string _searchFilter = string.Empty;
+
+    protected async override Task OnInitializedAsync()
+    {
+        _user = await UserInformationService.GetUserAsync();
+        _claimsUser = (await authenticationStateTask).User;
+        Context = DbFactory.CreateDbContext();
+        _project = Context.Projects.Single(p => p.Project_Acronym_CD == projectAcronym);
+        LoadData(_searchFilter);
+    }
+
+
+    private void OnConfigure(MudBlazor.Forms.IModelFormContext context)
+    {
+
+    }
+
+    private void CreateNewProject()
+    {
+        _clientengagement = new Client_Engagement() { Last_Updated_DT = DateTime.Now, Created_DT = DateTime.Now, Created_UserId = _user.Mail, Last_Updated_UserId = _user.Mail, Project = _project };
+        StateHasChanged();
+    }
+
+    private void LoadData(string searchfilter)
+    {
+        _clientengagements = Context.Client_Engagements.Where(ce => ce.Project == _project).ToList();
+
+        var isUserAdmin = _claimsUser.IsInRole(RoleConstants.DATAHUB_ROLE_ADMIN);
+        var clientengagements = _clientengagements;
+        //if (!string.IsNullOrWhiteSpace(searchfilter))
+        //{
+        //    clientengagements = _clientengagements.Where(fundcenter =>
+        //    {
+        //        if (string.IsNullOrWhiteSpace(searchfilter))
+        //            return true;
+        //        if (fundcenter.Division.FundCenterModifiedEnglish.Contains(searchfilter, StringComparison.OrdinalIgnoreCase))
+        //            return true;
+        //        if (fundcenter.Branch.FundCenterModifiedEnglish.Contains(searchfilter, StringComparison.OrdinalIgnoreCase))
+        //            return true;
+        //        if (fundcenter.Sector.FundCenterModifiedEnglish.Contains(searchfilter, StringComparison.OrdinalIgnoreCase))
+        //            return true;
+        //        return false;
+        //    }).ToList();
+        //}
+        _formMetadata.Header = "Client Engagements";
+        _formMetadata.HeaderSubText = @"Below is a list of all engagements for the current initiative";
+        _formMetadata.SubHeader = "Engagement Details";
+        _formMetadata.DataSet = clientengagements;
+        _formMetadata.AccessorFunctions = accessorFunctions;
+        _formMetadata.Headers = headers;
+        _formMetadata.AllowSearch = true;
+        _formMetadata.IsSubmitEnabled = true;
+        _formMetadata.IsAddEnabled = true;
+    }
+
+    private List<Func<Client_Engagement, string>> accessorFunctions = new List<Func<Client_Engagement, string>>
+    {
+        new Func<Client_Engagement, string>(p => { return p.Engagement_Name; }),
+        new Func<Client_Engagement, string>(p => { return p.Engagement_Start_Date?.Date.ToShortDateString(); }),
+        new Func<Client_Engagement, string>(p => { return p.Requirements_Gathering_EndDate?.Date.ToShortDateString(); }),
+        new Func<Client_Engagement, string>(p => { return p.Phase1_Development_EndDate?.Date.ToShortDateString(); }),
+        new Func<Client_Engagement, string>(p => { return p.Phase1_Testing_EndDate?.Date.ToShortDateString(); }),
+        new Func<Client_Engagement, string>(p => { return p.Phase2_Development_EndDate?.Date.ToShortDateString(); }),
+        new Func<Client_Engagement, string>(p => { return p.Phase2_Testing_EndDate?.Date.ToShortDateString(); }),
+        new Func<Client_Engagement, string>(p => { return p.Final_Updates_EndDate?.Date.ToShortDateString(); }),
+        new Func<Client_Engagement, string>(p => { return p.Final_Release_Date?.Date.ToShortDateString(); }),
+    };
+
+
+    private async Task HandleValidSubmit()
+    {
+
+        if (_clientengagement != null)
+        {
+            if (_clientengagement.Engagement_ID == 0)
+            {
+                _clientengagement = Context.Client_Engagements.Add(_clientengagement).Entity;
+            }
+            _clientengagement.Last_Updated_DT = DateTime.Now;
+            await Context.SaveChangesAsync();
+            LoadData(_searchFilter); ;
+            _clientengagement = null;
+        }
+
+
+        StateHasChanged();
+    }
+
+    private List<string> headers = new List<string>
+    {
+        "Engangement Name", "Engagement Start Date", "Requirements End Date", "Phase 1 End Date", "Phase 1 QA End Date", "Phase 2 End Date", "Phase 2 QA End Date", "Final Dev End Date", "Release Date"
+    };
+
+    private async Task<Client_Engagement> ClearForm()
+    {
+        _clientengagement = null;
+        StateHasChanged();
+        return await Task.FromResult((Client_Engagement)null);
+    }
+
+    private string GetDataLabel(string propName)
+    {
+        return DataLocalizer[propName];
+    }
+
+    private async void HandleFilterChange(string selection)
+    {
+        _searchFilter = selection;
+        LoadData(_searchFilter);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void SetFormEdit(Client_Engagement engagement)
+    {
+        _clientengagement = engagement;
+        StateHasChanged();
+    }
+
+    private void OnChange(MudBlazor.Forms.ModelFormChangeArgs args)
+    {
+        OnConfigure(args.Context);
+    }
+
+    public void Dispose()
+    {
+        Context.Dispose();
+    }
+}
