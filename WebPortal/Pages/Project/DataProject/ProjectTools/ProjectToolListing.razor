@@ -54,7 +54,7 @@
                     {
                         <PowerBI/>
                     }
-                    @if (!string.IsNullOrEmpty(_project.WebForms_URL) && _configuration.Value.WebForms)
+                    @if (!string.IsNullOrEmpty(Project.WebForms_URL) && _configuration.Value.WebForms)
                     {
                         <DataEntry/>
                     }
@@ -118,24 +118,25 @@
 
 @code {
 
-    [CascadingParameter(Name = "ProjectAcronym")]
-    public string ProjectAcronym { get; set; }
+    [CascadingParameter(Name = "Project")]
+    private Datahub_Project Project { get; set; }
+
     [CascadingParameter(Name = "IsDatahubAdmin")]
     public bool IsDatahubAdmin { get; set; }
 
     private bool _isLoading = true;
     private bool _isDense = false;
-    private Datahub_Project _project;
     private System.Security.Claims.ClaimsPrincipal _user;
     private bool _canViewDatabricks;
     private bool _canViewPowerBi;
     private List<string> _authorizedRoles;
     private Microsoft.Graph.User _graphUser;
 
+    private string ProjectAcronym => Project?.Project_Acronym_CD;
+
     private List<Project_Resources2> _projectDatabaseResources = new();
 
     private bool _isProjectUserPendingApproval;
-
 
     protected override async Task OnInitializedAsync()
     {
@@ -158,24 +159,20 @@
 
 
         _isProjectUserPendingApproval = projectDbContext.Project_Users_Requests
-            .Any(u => u.User_ID == _graphUser.Id && _project == u.Project && u.Approved_DT == null);
+            .Any(u => u.User_ID == _graphUser.Id && Project == u.Project && u.Approved_DT == null);
 
 
-        _project = await projectDbContext.Projects.FirstOrDefaultAsync(p => p.Project_Acronym_CD == ProjectAcronym);
-
-        var _serviceRequests = await projectDbContext.Project_Requests
-            .Where(p => p.Project == _project)
-            .ToListAsync();
+        var _serviceRequests = await projectDbContext.Project_Requests.Where(p => p.Project == Project).ToListAsync();
 
         var isUserAdmin = _user.IsInRole($"{ProjectAcronym}-admin");
-        _canViewDatabricks = isUserAdmin || !string.IsNullOrEmpty(_project.Databricks_URL) || IsDatahubAdmin;
+        _canViewDatabricks = isUserAdmin || !string.IsNullOrEmpty(Project.Databricks_URL) || IsDatahubAdmin;
 
-        var isPowerBiActiveForNonAdmin = !string.IsNullOrEmpty(_project.PowerBI_URL) || 
-                _serviceRequests.Any(r => r.ServiceType == RequestManagementService.POWERBI && r.Is_Completed.HasValue);
+        var isPowerBiActiveForNonAdmin = !string.IsNullOrEmpty(Project.PowerBI_URL) || 
+            _serviceRequests.Any(r => r.ServiceType == RequestManagementService.POWERBI && r.Is_Completed.HasValue);
 
         _canViewPowerBi = isUserAdmin || isPowerBiActiveForNonAdmin || IsDatahubAdmin;
 
-        var allProjectResources = await projectDbContext.Project_Resources2.Where(r => r.Project == _project).ToListAsync();
+        var allProjectResources = await projectDbContext.Project_Resources2.Where(r => r.Project == Project).ToListAsync();
 
         _projectDatabaseResources = allProjectResources
             .Where(r => r.ResourceType == RequestManagementService.POSTGRESQL || r.ResourceType == RequestManagementService.SQLSERVER)
@@ -188,23 +185,21 @@
     {
         await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
 
-        projectContext.Attach(_project);
+        projectContext.Attach(Project);
 
         var request = new Datahub_Project_User_Request()
-            {
-                User_ID = _graphUser.Id,
-                Project = _project,
-                Requested_DT = DateTime.Now
-            };
-
+        {
+            User_ID = _graphUser.Id,
+            Project = Project,
+            Requested_DT = DateTime.Now
+        };
 
         projectContext.Project_Users_Requests.Add(request);
         await projectContext.SaveChangesAsync();
 
         var admins = await GetProjectAdministratorEmailsAndIds();
 
-
-        await _emailNotificationService.SendServiceAccessRequestNotification(_graphUser.DisplayName, "project", _project.ProjectInfo, admins);
+        await _emailNotificationService.SendServiceAccessRequestNotification(_graphUser.DisplayName, "project", Project.ProjectInfo, admins);
 
         _isProjectUserPendingApproval = true;
     }
@@ -212,15 +207,15 @@
     private async Task<List<string>> GetProjectAdministratorEmailsAndIds()
     {
         await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
-        projectContext.Attach(_project);
+        projectContext.Attach(Project);
         var loadUsersTask = projectContext
-            .Entry(_project)
+            .Entry(Project)
             .Collection(p => p.Users)
             .LoadAsync();
 
         await loadUsersTask;
 
-        var adminUsers = _project.Users
+        var adminUsers = Project.Users
             .Where(u => u.IsAdmin)
             .Select(u => u.User_ID)
             .ToList();
