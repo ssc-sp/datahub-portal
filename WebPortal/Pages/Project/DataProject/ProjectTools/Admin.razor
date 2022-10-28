@@ -32,7 +32,11 @@
                         @Localizer["Metadata"]
                     </ToolActionButton>
                 </NavLink>
-
+                <NavLink href="@($"/admin/engagements/{ProjectAcronym}")">
+                    <ToolActionButton LinkType="LinkType.Internal">
+                        @Localizer["Engagements"]
+                    </ToolActionButton>
+                </NavLink>
             </MudStack>
         </ToolActionsList>
     </ToolCard>

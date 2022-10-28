@@ -142,12 +142,15 @@ else
                          IsSubmitEnabled="Metadata.IsSubmitEnabled"
                          AreFieldsNullable="true"/>
         </MudCardContent>
-        <MudCardActions>
+        @if (Metadata.NavigateUrls is not null)
+        {
+            <MudCardActions>
                 @foreach (var navigationUrl in Metadata.NavigateUrls)
                 {
                     <MudButton style="margin-right: 0.2rem" Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => NavigationManager.NavigateTo(@navigationUrl.Invoke(SelectedRecord).Item2))">@navigationUrl.Invoke(SelectedRecord).Item1</MudButton>
                 }                            
-        </MudCardActions>
+            </MudCardActions>
+        }
     </MudCard>
 
     @if (Metadata.MarkDownContentFooter?.Any() ?? false)
