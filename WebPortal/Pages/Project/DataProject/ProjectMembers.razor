@@ -94,20 +94,13 @@ else
     private bool _isLoading = true;
 
     private List<string> _authorizedRoles = new();
-    private Datahub_Project _project;
 
     private List<ProjectMember> _projectUsers;
     private Microsoft.Graph.User _user;
 
-
     protected override async Task OnInitializedAsync()
     {
         await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
-
-        _project = await projectContext.Projects
-            .Include(p => p.Pipelines)
-            .AsSingleQuery()
-            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == ProjectAcronym);
 
         _user = await _userInformationService.GetUserAsync();
 
@@ -122,5 +115,4 @@ else
         
         _isLoading = false;
     }
-
 }

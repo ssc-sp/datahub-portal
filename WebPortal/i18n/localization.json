@@ -189,13 +189,12 @@
     "Database": "Database",
     "DatasetUrl": "Dataset Url",
     "DataInitiative": "Data Initiative",
-    "DatabrickNotebook": "Databricks Notebook"
+    "Databricks": "Databricks"
   },
   "DISCOVERY-CLASSIFICATION-TYPES": {
     "Unclassified": "Unclassified",
     "ProtectedA": "Protected A",
-    "ProtectedB": "Protected B",
-    "ProtectedC": "Protected C"
+    "ProtectedB": "Protected B"
   },
   "DISCOVERY-LANGUAGE-TYPES": {
     "Bilingual": "Bilingual",
@@ -686,7 +685,6 @@
   "Data_Set_Security_Level_Classified": "Data Set Security Classified",
   "Data_Set_Security_Level_ProtectedA": "Data Set Security Protected A",
   "Data_Set_Security_Level_ProtectedB": "Data Set Security Protected B",
-  "Data_Set_Security_Level_ProtectedC": "Data Set Security Protected C",
   "Data_Set_Security_Level_UnClassified": "Data Set Security Unclassified",
   "Data_Set_Security_Level": "Data Set Security",
   "Questions_for_the_DataHub_Team": "Questions for the DataHub Team",

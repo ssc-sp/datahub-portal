@@ -15,6 +15,6 @@
             "Other"
         };
 
-        public static readonly string[] SECURITYLEVEL = { "Unclassified", "Protected A", "Protected B", "Protected C" };
+        public static readonly string[] SECURITYLEVEL = { "Unclassified", "Protected A", "Protected B" };
     }
 }

@@ -4,7 +4,7 @@
 @inject ILogger<PowerBI> _logger
 @inject IUserInformationService _userInformationService
 
-@if (_project is null)
+@if (Project is null)
 {
     <ToolCard Loading/>
 }
@@ -96,8 +96,8 @@ else
 
 @code {
 
-    [CascadingParameter(Name = "ProjectAcronym")]
-    public string ProjectAcronym { get; set; }
+    [CascadingParameter(Name = "Project")]
+    private Datahub_Project Project { get; set; }
 
     public string UserId { get; set; }
 
@@ -115,7 +115,7 @@ else
     private SuccessIndicator _serviceReqInd;
     private SuccessIndicator _accessReqInd;
 
-    private Datahub_Project _project;
+    private string ProjectAcronym => Project?.Project_Acronym_CD;
 
     protected override async Task OnInitializedAsync()
     {
@@ -126,20 +126,15 @@ else
     {
         await using var projectDbContext = await _dbFactoryProject.CreateDbContextAsync();
 
-        _project = await projectDbContext.Projects
-            .Include(p => p.Requests)
-            .AsSingleQuery()
-            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == ProjectAcronym);
-
         var _serviceRequests = await projectDbContext.Project_Requests
-            .Where(p => p.Project == _project)
+            .Where(p => p.Project == Project)
             .ToListAsync();
 
         UserId = await _userInformationService.GetUserIdString();
         if (UserId != null)
         {
             _powerBiServiceRequested = _serviceRequests.Any(r => r.ServiceType == RequestManagementService.POWERBI && r.Is_Completed == null);
-            _powerBiServiceCreated = !string.IsNullOrEmpty(_project.PowerBI_URL) || 
+            _powerBiServiceCreated = !string.IsNullOrEmpty(Project.PowerBI_URL) || 
                 _serviceRequests.Any(r => r.ServiceType == RequestManagementService.POWERBI && r.Is_Completed.HasValue);
 
             //var userAcessRequests = _project.Requests.Where(r => r.User_ID == UserId && r.PowerBI);
@@ -162,7 +157,7 @@ else
             Request_DT = DateTime.Now,
             User_Name = GraphUser.UserPrincipalName,
             User_ID = UserId,
-            Project = _project,
+            Project = Project,
             PowerBI = true
         };
 
@@ -200,7 +195,7 @@ else
             ServiceType = RequestManagementService.POWERBI,
             ServiceRequests_Date_DT = DateTime.Now,
             Is_Completed = null,
-            Project = _project,
+            Project = Project,
             User_ID = UserId,
             User_Name = GraphUser.UserPrincipalName
         };
