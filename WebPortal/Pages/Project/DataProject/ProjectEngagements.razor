@@ -3,73 +3,76 @@
 @inject UIControlsService _uiControlService;
 
 
+@if (_clientEngagements.Any())
+{
+    <div class="project-info">
+        <AuthorizeView Roles=@RoleConstants.DATAHUB_ROLE_ADMIN Context="Engagement_Card">
+            <MudCard>
+                <MudExpansionPanel IsExpanded="true" Dense="true" DisableGutters="true">
+                    <TitleContent>
+                        <div class="d-flex">
+                            <MudText Typo="Typo.h4">Client Engagements</MudText>
+                        </div>
+                    </TitleContent>
+                    <ChildContent>
+                        <MudCardContent>
+                            @foreach (var engagement in _clientEngagements)
+                            {
+                                <MudText Typo="Typo.h6">@engagement.Engagement_Name</MudText>
+                                <MudText Typo="Typo.caption">@engagement.Engagment_Owners</MudText>
+                                <MudTimeline TimelineOrientation="TimelineOrientation.Horizontal" TimelinePosition="TimelinePosition.Bottom">
+                                    <MudTimelineItem Color="engagement.TimelineStatus(engagement.IsRequirementsComplete, engagement.Requirements_Gathering_EndDate, engagement.Requirements_Gathering_ActualEndDate).Item1" Variant="Variant.Outlined" Size="Size.Small">
+                                        <ItemContent>
+                                            <MudAlert Dense="true" Class="my-2" Severity="engagement.TimelineStatus(engagement.IsRequirementsComplete, engagement.Requirements_Gathering_EndDate, engagement.Requirements_Gathering_ActualEndDate).Item2">Requirements Gathering</MudAlert>
+                                            <MudText Typo="Typo.body2" Align="Align.Center" Color="engagement.TimelineStatus(engagement.IsRequirementsComplete, engagement.Requirements_Gathering_EndDate, engagement.Requirements_Gathering_ActualEndDate).Item1">@engagement.Requirements_Gathering_EndDate?.ToShortDateString()</MudText>
+                                            <MudText Typo="Typo.body2" Align="Align.Center" Color="engagement.TimelineStatus(engagement.IsRequirementsComplete, engagement.Requirements_Gathering_EndDate, engagement.Requirements_Gathering_ActualEndDate).Item1">@engagement.Requirements_Gathering_ActualEndDate?.ToShortDateString()</MudText>
+                                        </ItemContent>                                
+                                    </MudTimelineItem>
+                                    <MudTimelineItem Color="engagement.TimelineStatus(engagement.IsPhase1DevComplete, engagement.Phase1_Development_EndDate, engagement.Phase1_Development_ActualEndDate).Item1" Variant="Variant.Outlined" Size="Size.Small">
+                                        <ItemContent>
+                                            <MudAlert Dense="true" Class="my-2" Severity="engagement.TimelineStatus(engagement.IsPhase1DevComplete, engagement.Phase1_Development_EndDate, engagement.Phase1_Development_ActualEndDate).Item2">Phase 1 development</MudAlert>
+                                            <MudText Typo="Typo.body2" Align="Align.Center" Color="engagement.TimelineStatus(engagement.IsPhase1DevComplete, engagement.Phase1_Development_EndDate, engagement.Phase1_Development_ActualEndDate).Item1">@engagement.Phase1_Development_EndDate?.ToShortDateString()</MudText>
+                                            <MudText Typo="Typo.body2" Align="Align.Center" Color="engagement.TimelineStatus(engagement.IsPhase1DevComplete, engagement.Phase1_Development_EndDate, engagement.Phase1_Development_ActualEndDate).Item1">@engagement.Phase1_Development_ActualEndDate?.ToShortDateString()</MudText>
+                                        </ItemContent>                                 
+                                    </MudTimelineItem>
+                                    <MudTimelineItem Color="engagement.TimelineStatus(engagement.IsPhase1TestComplete, engagement.Phase1_Testing_EndDate, engagement.Phase1_Testing_ActualEndDate).Item1"  Variant="Variant.Outlined" Size="Size.Small">
+                                        <ItemContent>
+                                            <MudAlert Dense="true" Class="my-2" Severity="engagement.TimelineStatus(engagement.IsPhase1TestComplete, engagement.Phase1_Testing_EndDate, engagement.Phase1_Testing_ActualEndDate).Item2">Client testing</MudAlert>
+                                            <MudText Typo="Typo.body2" Align="Align.Center" Color="engagement.TimelineStatus(engagement.IsPhase1TestComplete, engagement.Phase1_Testing_EndDate, engagement.Phase1_Testing_ActualEndDate).Item1">@engagement.Phase1_Testing_EndDate?.ToShortDateString()</MudText>
+                                            <MudText Typo="Typo.body2" Align="Align.Center" Color="engagement.TimelineStatus(engagement.IsPhase1TestComplete, engagement.Phase1_Testing_EndDate, engagement.Phase1_Testing_ActualEndDate).Item1">@engagement.Phase1_Testing_ActualEndDate?.ToShortDateString()</MudText>
+                                        </ItemContent>                            
+                                    </MudTimelineItem>
+                                    <MudTimelineItem Color="engagement.TimelineStatus(engagement.IsPhase2DevComplete, engagement.Phase2_Development_EndDate, engagement.Phase2_Development_ActualEndDate).Item1" Variant="Variant.Outlined" Size="Size.Small">
+                                        <ItemContent>
+                                            <MudAlert Dense="true" Class="my-2" Severity="engagement.TimelineStatus(engagement.IsPhase2DevComplete, engagement.Phase2_Development_EndDate, engagement.Phase2_Development_ActualEndDate).Item2">Phase 2 development</MudAlert>
+                                            <MudText Typo="Typo.body2" Align="Align.Center" Color="engagement.TimelineStatus(engagement.IsPhase2DevComplete, engagement.Phase2_Development_EndDate, engagement.Phase2_Development_ActualEndDate).Item1">@engagement.Phase2_Development_EndDate?.ToShortDateString()</MudText>
+                                            <MudText Typo="Typo.body2" Align="Align.Center" Color="engagement.TimelineStatus(engagement.IsPhase2DevComplete, engagement.Phase2_Development_EndDate, engagement.Phase2_Development_ActualEndDate).Item1">@engagement.Phase2_Development_ActualEndDate?.ToShortDateString()</MudText>
+                                        </ItemContent>                                    
+                                    </MudTimelineItem>
+                                    <MudTimelineItem Color="engagement.TimelineStatus(engagement.IsPhase2TestComplete, engagement.Phase2_Testing_EndDate, engagement.Phase2_Testing_ActualEndDate).Item1" Variant="Variant.Outlined" Size="Size.Small">
+                                        <ItemContent>
+                                            <MudAlert Dense="true" Class="my-2" Severity="engagement.TimelineStatus(engagement.IsPhase2TestComplete, engagement.Phase2_Testing_EndDate, engagement.Phase2_Testing_ActualEndDate).Item2">Client testing</MudAlert>
+                                            <MudText Typo="Typo.body2" Align="Align.Center" Color="engagement.TimelineStatus(engagement.IsPhase2TestComplete, engagement.Phase2_Testing_EndDate, engagement.Phase2_Testing_ActualEndDate).Item1">@engagement.Phase2_Testing_EndDate?.ToShortDateString()</MudText>
+                                            <MudText Typo="Typo.body2" Align="Align.Center" Color="engagement.TimelineStatus(engagement.IsPhase2TestComplete, engagement.Phase2_Testing_EndDate, engagement.Phase2_Testing_ActualEndDate).Item1">@engagement.Phase2_Testing_ActualEndDate?.ToShortDateString()</MudText>
+                                        </ItemContent>
+                                    </MudTimelineItem>
+                                    <MudTimelineItem Color="engagement.TimelineStatus(engagement.IsReleased, engagement.Final_Release_Date, engagement.Actual_Release_Date).Item1" Variant="Variant.Outlined" Size="Size.Small">
+                                        <ItemContent>
+                                            <MudAlert Dense="true" Class="my-2" Severity="engagement.TimelineStatus(engagement.IsReleased, engagement.Final_Release_Date, engagement.Actual_Release_Date).Item2">Release Date</MudAlert>
+                                            <MudText Typo="Typo.body2" Align="Align.Center" Color="engagement.TimelineStatus(engagement.IsReleased, engagement.Final_Release_Date, engagement.Actual_Release_Date).Item1">@engagement.Final_Release_Date?.ToShortDateString()</MudText>
+                                            <MudText Typo="Typo.body2" Align="Align.Center" Color="engagement.TimelineStatus(engagement.IsReleased, engagement.Final_Release_Date, engagement.Actual_Release_Date).Item1">@engagement.Actual_Release_Date?.ToShortDateString()</MudText>
+                                        </ItemContent>                            
+                                    </MudTimelineItem>
+                                </MudTimeline>
+                            }
+                        </MudCardContent>
+                    </ChildContent>
+                </MudExpansionPanel>
+            </MudCard>
+        </AuthorizeView>
 
-<div class="project-info">
-    <AuthorizeView Roles=@RoleConstants.DATAHUB_ROLE_ADMIN Context="Engagement_Card">
-        <MudCard>
-    <MudExpansionPanel>
-                <TitleContent>
-                    <div class="d-flex">
-                        <MudText Typo="Typo.h4">Client Engagements</MudText>
-                    </div>
-                </TitleContent>
-                <ChildContent>
-            <MudCardContent>
-                    @foreach (var engagement in _clientEngagements)
-                    {
-                        <MudText Typo="Typo.h6">@engagement.Engagement_Name</MudText>
-                        <MudTimeline TimelineOrientation="TimelineOrientation.Horizontal" TimelinePosition="TimelinePosition.Bottom">
-                            <MudTimelineItem Color="engagement.TimelineStatus(engagement.IsRequirementsComplete, engagement.Requirements_Gathering_EndDate, engagement.Requirements_Gathering_ActualEndDate).Item1" Variant="Variant.Outlined" Size="Size.Small">
-                                <ItemContent>
-                                    <MudAlert Dense="true" Class="my-2" Severity="engagement.TimelineStatus(engagement.IsRequirementsComplete, engagement.Requirements_Gathering_EndDate, engagement.Requirements_Gathering_ActualEndDate).Item2">Requirements Gathering</MudAlert>
-                                    <MudText Typo="Typo.body2" Align="Align.Center" Color="engagement.TimelineStatus(engagement.IsRequirementsComplete, engagement.Requirements_Gathering_EndDate, engagement.Requirements_Gathering_ActualEndDate).Item1">@engagement.Requirements_Gathering_EndDate?.ToShortDateString()</MudText>
-                                    <MudText Typo="Typo.body2" Align="Align.Center" Color="engagement.TimelineStatus(engagement.IsRequirementsComplete, engagement.Requirements_Gathering_EndDate, engagement.Requirements_Gathering_ActualEndDate).Item1">@engagement.Requirements_Gathering_ActualEndDate?.ToShortDateString()</MudText>
-                                </ItemContent>                                
-                            </MudTimelineItem>
-                            <MudTimelineItem Color="engagement.TimelineStatus(engagement.IsPhase1DevComplete, engagement.Phase1_Development_EndDate, engagement.Phase1_Development_ActualEndDate).Item1" Variant="Variant.Outlined" Size="Size.Small">
-                                <ItemContent>
-                                    <MudAlert Dense="true" Class="my-2" Severity="engagement.TimelineStatus(engagement.IsPhase1DevComplete, engagement.Phase1_Development_EndDate, engagement.Phase1_Development_ActualEndDate).Item2">Phase 1 development</MudAlert>
-                                    <MudText Typo="Typo.body2" Align="Align.Center" Color="engagement.TimelineStatus(engagement.IsPhase1DevComplete, engagement.Phase1_Development_EndDate, engagement.Phase1_Development_ActualEndDate).Item1">@engagement.Phase1_Development_EndDate?.ToShortDateString()</MudText>
-                                    <MudText Typo="Typo.body2" Align="Align.Center" Color="engagement.TimelineStatus(engagement.IsPhase1DevComplete, engagement.Phase1_Development_EndDate, engagement.Phase1_Development_ActualEndDate).Item1">@engagement.Phase1_Development_ActualEndDate?.ToShortDateString()</MudText>
-                                </ItemContent>                                 
-                            </MudTimelineItem>
-                            <MudTimelineItem Color="engagement.TimelineStatus(engagement.IsPhase1TestComplete, engagement.Phase1_Testing_EndDate, engagement.Phase1_Testing_ActualEndDate).Item1"  Variant="Variant.Outlined" Size="Size.Small">
-                                <ItemContent>
-                                    <MudAlert Dense="true" Class="my-2" Severity="engagement.TimelineStatus(engagement.IsPhase1TestComplete, engagement.Phase1_Testing_EndDate, engagement.Phase1_Testing_ActualEndDate).Item2">Client testing</MudAlert>
-                                    <MudText Typo="Typo.body2" Align="Align.Center" Color="engagement.TimelineStatus(engagement.IsPhase1TestComplete, engagement.Phase1_Testing_EndDate, engagement.Phase1_Testing_ActualEndDate).Item1">@engagement.Phase1_Testing_EndDate?.ToShortDateString()</MudText>
-                                    <MudText Typo="Typo.body2" Align="Align.Center" Color="engagement.TimelineStatus(engagement.IsPhase1TestComplete, engagement.Phase1_Testing_EndDate, engagement.Phase1_Testing_ActualEndDate).Item1">@engagement.Phase1_Testing_ActualEndDate?.ToShortDateString()</MudText>
-                                </ItemContent>                            
-                            </MudTimelineItem>
-                            <MudTimelineItem Color="engagement.TimelineStatus(engagement.IsPhase2DevComplete, engagement.Phase2_Development_EndDate, engagement.Phase2_Development_ActualEndDate).Item1" Variant="Variant.Outlined" Size="Size.Small">
-                                <ItemContent>
-                                    <MudAlert Dense="true" Class="my-2" Severity="engagement.TimelineStatus(engagement.IsPhase2DevComplete, engagement.Phase2_Development_EndDate, engagement.Phase2_Development_ActualEndDate).Item2">Phase 2 development</MudAlert>
-                                    <MudText Typo="Typo.body2" Align="Align.Center" Color="engagement.TimelineStatus(engagement.IsPhase2DevComplete, engagement.Phase2_Development_EndDate, engagement.Phase2_Development_ActualEndDate).Item1">@engagement.Phase2_Development_EndDate?.ToShortDateString()</MudText>
-                                    <MudText Typo="Typo.body2" Align="Align.Center" Color="engagement.TimelineStatus(engagement.IsPhase2DevComplete, engagement.Phase2_Development_EndDate, engagement.Phase2_Development_ActualEndDate).Item1">@engagement.Phase2_Development_ActualEndDate?.ToShortDateString()</MudText>
-                                </ItemContent>                                    
-                            </MudTimelineItem>
-                            <MudTimelineItem Color="engagement.TimelineStatus(engagement.IsPhase2TestComplete, engagement.Phase2_Testing_EndDate, engagement.Phase2_Testing_ActualEndDate).Item1" Variant="Variant.Outlined" Size="Size.Small">
-                                <ItemContent>
-                                    <MudAlert Dense="true" Class="my-2" Severity="engagement.TimelineStatus(engagement.IsPhase2TestComplete, engagement.Phase2_Testing_EndDate, engagement.Phase2_Testing_ActualEndDate).Item2">Client testing</MudAlert>
-                                    <MudText Typo="Typo.body2" Align="Align.Center" Color="engagement.TimelineStatus(engagement.IsPhase2TestComplete, engagement.Phase2_Testing_EndDate, engagement.Phase2_Testing_ActualEndDate).Item1">@engagement.Phase2_Testing_EndDate?.ToShortDateString()</MudText>
-                                    <MudText Typo="Typo.body2" Align="Align.Center" Color="engagement.TimelineStatus(engagement.IsPhase2TestComplete, engagement.Phase2_Testing_EndDate, engagement.Phase2_Testing_ActualEndDate).Item1">@engagement.Phase2_Testing_ActualEndDate?.ToShortDateString()</MudText>
-                                </ItemContent>
-                            </MudTimelineItem>
-                            <MudTimelineItem Color="engagement.TimelineStatus(engagement.IsReleased, engagement.Final_Release_Date, engagement.Actual_Release_Date).Item1" Variant="Variant.Outlined" Size="Size.Small">
-                                <ItemContent>
-                                    <MudAlert Dense="true" Class="my-2" Severity="engagement.TimelineStatus(engagement.IsReleased, engagement.Final_Release_Date, engagement.Actual_Release_Date).Item2">Release Date</MudAlert>
-                                    <MudText Typo="Typo.body2" Align="Align.Center" Color="engagement.TimelineStatus(engagement.IsReleased, engagement.Final_Release_Date, engagement.Actual_Release_Date).Item1">@engagement.Final_Release_Date?.ToShortDateString()</MudText>
-                                    <MudText Typo="Typo.body2" Align="Align.Center" Color="engagement.TimelineStatus(engagement.IsReleased, engagement.Final_Release_Date, engagement.Actual_Release_Date).Item1">@engagement.Actual_Release_Date?.ToShortDateString()</MudText>
-                                </ItemContent>                            
-                            </MudTimelineItem>
-                        </MudTimeline>
-                    }
-            </MudCardContent>
-            </ChildContent>
-    </MudExpansionPanel>
-        </MudCard>
-</AuthorizeView>
-
-</div>
+    </div>
+}
 @code {
 
     [CascadingParameter(Name = "ProjectAcronym")]
