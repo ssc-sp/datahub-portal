@@ -1,8 +1,9 @@
+@*PublicSharing.razor*@
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject RequestManagementService _requestManagementService
 @inject IPublicDataFileService _publicDataFileService
 
-@if (_project is null)
+@if (Project is null)
 {
     <ToolCard Loading/>
 }
@@ -26,8 +27,8 @@ else
 
 @code {
 
-    [CascadingParameter(Name = "ProjectAcronym")]
-    public string ProjectAcronym { get; set; }
+    [CascadingParameter(Name = "Project")]
+    private Datahub_Project Project { get; set; }
 
     [CascadingParameter(Name = "UserId")]
     public string UserId { get; set; }
@@ -43,23 +44,15 @@ else
     private int _sharingRequestAwaitingApprovalCount;
     private int _ownSharingRequestCount;
 
-    private Datahub_Project _project;
+    private string ProjectAcronym => Project?.Project_Acronym_CD;
 
     protected override async Task OnInitializedAsync()
     {
-        await base.OnInitializedAsync();
-
         await using var projectDbContext = await _dbFactoryProject.CreateDbContextAsync();
-        
-        _project = await projectDbContext.Projects
-            .Include(p => p.Requests)
-            .AsSingleQuery()
-            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == ProjectAcronym);
-
         if (UserId != null)
         {
             _isDataApprover = await projectDbContext.Project_Users
-                .Where(u => u.User_ID == UserId && _project == u.Project)
+                .Where(u => u.User_ID == UserId && Project == u.Project)
                 .AnyAsync(u => u.IsDataApprover);
                 
             _sharingRequestAwaitingApprovalCount = await _publicDataFileService.GetDataSharingRequestsAwaitingApprovalCount(ProjectAcronym);

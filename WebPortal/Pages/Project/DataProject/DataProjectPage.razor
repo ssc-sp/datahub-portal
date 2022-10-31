@@ -15,29 +15,35 @@
 
 <DHPageTitle PageTitleKey="@_projectName"/>
 
-<div class="project-page">
-    <CascadingValue Value=@ProjectAcronymParam Name="ProjectAcronym">
-        <CascadingValue Value=@_userId Name="UserId">
-            <CascadingValue Value=@_isDatahubAdmin Name="IsDatahubAdmin">
-                <CascadingValue Value=@_user Name="GraphUser">
-                    <CascadingValue Value=@_projectId Name="ProjectId">
-                        <ProjectInfo />
-                        <ProjectEngagements />
-                        <ProjectCatalog IsFrench=@_isFrench />
-                        <ProjectMembers />
-                        <ProjectToolListing />
+@if (_project is not null)
+{
+    <div class="project-page">
+        <CascadingValue Value=@_project Name="Project">
+            <CascadingValue Value=@ProjectAcronymParam Name="ProjectAcronym">
+                <CascadingValue Value=@_userId Name="UserId">
+                    <CascadingValue Value=@_isDatahubAdmin Name="IsDatahubAdmin">
+                        <CascadingValue Value=@_user Name="GraphUser">
+                            <CascadingValue Value=@_projectId Name="ProjectId">
+                                <ProjectInfo />
+                                <ProjectEngagements />
+                                <ProjectCatalog IsFrench=@_isFrench />
+                                <ProjectMembers />
+                                <ProjectToolListing />
+                            </CascadingValue>
+                        </CascadingValue>
                     </CascadingValue>
                 </CascadingValue>
             </CascadingValue>
         </CascadingValue>
-    </CascadingValue>
-</div>
+    </div>
+}
 
 @code {
 
     [Parameter]
     public string ProjectAcronymParam { get; set; }
 
+    private Datahub_Project _project;
     private Microsoft.Graph.User _user;
     private string _userId;
     private string _projectName;
@@ -45,21 +51,22 @@
     private bool _isDatahubAdmin;
     private bool _isFrench;
     private bool _showCosts;
-
-    //project-page-no-grid
-
-
+    
     protected override async Task OnInitializedAsync()
     {
         await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
 
-        var project = await projectContext.Projects
+        _project = await projectContext.Projects
+            .Include(p => p.Requests)
+            .Include(p => p.ServiceRequests)
+            .Include(p => p.Pipelines)
+            .AsSingleQuery()
             .Where(p => p.Project_Acronym_CD == ProjectAcronymParam)
             .FirstOrDefaultAsync();
 
         _isFrench = Thread.CurrentThread.CurrentCulture.Name.Equals("fr-ca", StringComparison.OrdinalIgnoreCase);
-        _projectName = project?.ProjectName;
-        _projectId = project?.Project_ID ?? 0;
+        _projectName = _project?.ProjectName;
+        _projectId = _project?.Project_ID ?? 0;
 
         _userId = await _userInformationService.GetUserIdString();
         if (_userId is null) logger.LogError("UserId is null");

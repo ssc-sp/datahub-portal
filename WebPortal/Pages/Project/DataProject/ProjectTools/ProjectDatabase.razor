@@ -130,8 +130,8 @@ else
 
     private readonly string POSTGRES_RESOURCES_URL = "https://raw.githubusercontent.com/wiki/NRCan/datahub-portal/Postgresql-Resources.md";
 
-    [CascadingParameter(Name = "ProjectAcronym")]
-    public string ProjectAcronym { get; set; }
+    [CascadingParameter(Name = "Project")]
+    private Datahub_Project Project { get; set; }
 
     [CascadingParameter(Name = "UserId")]
     public string UserId { get; set; }
@@ -158,11 +158,12 @@ else
 
     private string BuildSqlServerConnectionString(ProjectResource_Database db) => $"Server={db.Database_Server};Database={db.Database_Name};Authentication=Active Directory Integrated;";
 
-    private Datahub_Project _project;
     private Project_Resources2 _resource;
     private List<Datahub_ProjectServiceRequests> _databaseRequests = new();
     private string _existingRequestType;
     private ProjectResource_Database _databaseResource;
+
+    private string ProjectAcronym => Project?.Project_Acronym_CD;
 
     private string CardTitle
     {
@@ -257,7 +258,7 @@ else
                             Location="Azure"
                             ProfileName="catalog"
                             ObjectType=@Metadata.Model.MetadataObjectType.Database
-                            ProjectId=@_project.Project_ID
+                            ProjectId=@Project.Project_ID
                             UpdateCatalog
                             ValidateRequired
                             Name=@_databaseResource.Database_Name
@@ -286,11 +287,6 @@ else
     private async Task LoadProjectsAndRequests()
     {
         using var projectDbContext = await _dbFactoryProject.CreateDbContextAsync();
-        _project = await projectDbContext.Projects
-            .Include(p => p.Requests)
-            .Include(p => p.ServiceRequests)
-            .AsSingleQuery()
-            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == ProjectAcronym);
 
         if (ResourceID.HasValue)
         {
@@ -302,7 +298,7 @@ else
             }
         }
 
-        _databaseRequests = _project?.ServiceRequests
+        _databaseRequests = Project?.ServiceRequests
             .Where(r => r.ServiceType == RequestManagementService.POSTGRESQL || r.ServiceType == RequestManagementService.SQLSERVER)
             .ToList();
 
@@ -320,7 +316,7 @@ else
             ServiceType = which,
             ServiceRequests_Date_DT = DateTime.Now,
             Is_Completed = null,
-            Project = _project,
+            Project = Project,
             User_ID = UserId,
             User_Name = GraphUser.UserPrincipalName
         };
@@ -329,5 +325,4 @@ else
         await LoadProjectsAndRequests();
         StateHasChanged();
     }
-
 }

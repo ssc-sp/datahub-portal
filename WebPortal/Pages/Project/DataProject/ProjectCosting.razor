@@ -40,6 +40,10 @@
                 </MudStack>
             </MudStack>
         }
+        @if (_loading)
+        {
+            <Spinner Small />
+        }
     </MudCard>
 </MudStack>
 
@@ -55,11 +59,14 @@
     private SpendingEstimation _spendingEstimation;
     private string _storageEquivalentFormatted;
 
+    private bool _loading = true;
+
     protected override async Task OnInitializedAsync()
     {
         _remainingBudget = ProjectBudget - ConsumedBudget;
         _spendingEstimation = await GetSpendingEstimations(_remainingBudget);
         _storageEquivalentFormatted = FormatStorageCapacity(_spendingEstimation.Storage);
+        _loading = false;
     }
 
     private async Task<SpendingEstimation> GetSpendingEstimations(decimal amount)

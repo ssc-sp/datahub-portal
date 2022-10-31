@@ -1,7 +1,5 @@
-@inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
-@inject RequestManagementService _requestManagementService
-
-@if (_project is null)
+@*DataManagement.razor*@
+@if (Project is null)
 {
     <ToolCard Loading/>
 }
@@ -29,15 +27,7 @@ else
 
 @code {
 
-    private Datahub_Project _project;
+    [CascadingParameter(Name = "Project")]
+    private Datahub_Project Project { get; set; }
 
-    protected override async Task OnInitializedAsync()
-    {
-        await base.OnInitializedAsync();
-
-        await using var projectDbContext = await _dbFactoryProject.CreateDbContextAsync();
-
-        // review this!!
-        _project = await projectDbContext.Projects.FirstOrDefaultAsync();
-    }
 }
