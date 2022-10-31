@@ -5478,12 +5478,44 @@ code {
 .project-page .project-members .member-list .members li {
   padding: 0.5rem;
   display: grid;
-  grid-template-columns: 2rem 1fr 2rem;
+  grid-template-columns: 2rem 1fr 2rem 2rem;
   gap: 0.5rem;
   align-items: baseline;
 }
 .project-page .project-members .member-list .members li:hover {
   background-color: #e2e8f0;
+}
+.project-page .project-members .member-list .members li .profile-icon {
+    color: #94a3b8;
+    border-radius: 8px;
+    width: 2rem;
+    height: 2rem;
+    font-size: 1rem;
+    text-decoration: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0.8;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+.project-page .project-members .member-list .members li .profile-icon:hover:not(.active) {
+    cursor: pointer;
+    color: #1e293b;
+    opacity: 1;
+    background-color: #e2e8f0;
+    transform: translateY(-1px);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02), 0 1px 2px rgba(0, 0, 0, 0.14);
+}
+
+.project-page .project-members .member-list .members li .profile-icon.active {
+    color: #1e293b;
+    opacity: 1;
+    background-color: #e2e8f0;
+    box-shadow: inset 4px 8px 8px -8px rgba(0, 0, 0, 0.16) !important;
+}
+
+.project-page .project-members .member-list .members li .profile-icon:hover {
+    background-color: #f1f5f9 !important;
 }
 .project-page .project-members .member-list .members li .email-icon {
   color: #94a3b8;
