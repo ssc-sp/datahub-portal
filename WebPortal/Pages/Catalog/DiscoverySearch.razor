@@ -552,7 +552,7 @@
 		MetadataObjectType.PowerBIReport => async () => await ViewPowerBIReport(result),
 		MetadataObjectType.DatasetUrl => async () => await DownloadDatasetUrl(result),
 		MetadataObjectType.DataInitiative => () => NavigationManager.NavigateTo($"projects/{result.Location}"),
-		MetadataObjectType.DatabrickNotebook => async () => await RedirectAndDownload(result.Location),
+		MetadataObjectType.Databricks => async () => await RedirectAndDownload(result.Location),
 		_ => null
 	};
 
@@ -603,7 +603,7 @@
 			MetadataObjectType.Database => Localizer["Open Database"],
 			MetadataObjectType.GeoObject => Localizer["Open Geo Object"],
 			MetadataObjectType.DataInitiative => Localizer["Open Initiative"],
-			MetadataObjectType.DatabrickNotebook => Localizer["Open Workspace"],
+			MetadataObjectType.Databricks => Localizer["Open Databricks"],
 			_ => Localizer["Download"]
 		};
 	}
