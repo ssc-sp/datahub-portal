@@ -1035,7 +1035,7 @@
       "ManageServices": "Manage Services in Initiatives",
       "PowerBI": "Power BI",
       "Registrations": "Registrations",
-      "SharingAPIs": "Datahub Sharing APIs",
+      "SharingAPIs": "DataHub Sharing APIs",
       "Metadata": "Metadata Management",
       "MonthlyCost": "Monthly Cost"
     },
@@ -1044,7 +1044,7 @@
       "ExternalSharing": "Manage external sharing for files and Power BI reports",
       "ManageServices": "Approve service creation and access requests",
       "PowerBI": "Link Power BI workspaces, reports and data sets with Datahub initiatives",
-      "Registrations": "???",
+      "Registrations": "Manage registrations",
       "SharingAPIs": "Manage API keys for external users",
       "Metadata": "Manage the Datahub metadata model",
       "MonthlyCost": "Refresh monthly cost for initiatives"
@@ -1052,6 +1052,9 @@
     "BUTTON_CAPTIONS": {
       "OpenPage": "Open Page",
       "UpdateCosts": "Update Costs"
-    }
+    },
+    "StartingCostUpdate": "Starting initiative cost update",
+    "UpdatedNCosts": "Updated costs for {0} initiatives",
+    "ErrorUpdatingCosts": "Error updating costs: {0}"
   }
 }
