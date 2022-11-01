@@ -9,6 +9,8 @@
         FileUrl,
         GeoObject,
         Database,
-        DatasetUrl
+        DatasetUrl,
+        DataInitiative,
+        Databricks
     }
 }

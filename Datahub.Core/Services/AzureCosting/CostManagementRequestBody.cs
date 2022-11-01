@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 // ReSharper disable InconsistentNaming
 
-namespace Datahub.Graph.Functions.CostManagement;
+namespace Datahub.Core.Services.AzureCosting;
 public class CostManagementRequestBody
 {
     public string type { get; } = "ActualCost";

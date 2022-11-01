@@ -5,7 +5,6 @@
 @inject ServiceAuthManager ServiceAuthManager
 @inject IDbContextFactory<DatahubProjectDBContext> DbFactory
 @inject IUserInformationService UserInformationService
-@inject NavigationManager NavigationManager
 @inject IJSRuntime JsInterop
 @inject UIControlsService UI
 @inject IDatahubAuditingService AuditingService
@@ -155,17 +154,21 @@
             {
                 Localizer[$"The program acronym already exists, enter a different one."]
             };
-            await UI.ToggleModal(
-    @<WarningModal OnDecision="HandleWarningDecision" WarningTextString=@textList />
-    );
+            await UI.ToggleModal(@<WarningModal OnDecision="HandleWarningDecision" WarningTextString=@textList/>);
         }
         else
         {
             _submittingApproval = true;
-            var orgAcronym = Context.Organization_Levels.Where(s => s.Org_Name_E == _onboardingApplication.Client_Sector).Select(a => a.Org_Acronym_E).FirstOrDefault();
+
+            // pick the sector acronym
+            var orgAcronym = Context.Organization_Levels
+                .Where(s => s.Org_Name_E == _onboardingApplication.Client_Sector || s.Org_Name_F == _onboardingApplication.Client_Sector)
+                .Select(a => a.Org_Acronym_E)
+                .FirstOrDefault();
+
             var project = new Datahub_Project();
             project.Project_Acronym_CD = _newProjectAcronym;
-            project.Sector_Name = orgAcronym;
+            project.Sector_Name = orgAcronym ?? _onboardingApplication.Client_Sector;
             project.Branch_Name = _onboardingApplication.Client_Branch;
             project.Division_Name = _onboardingApplication.Client_Division;
             project.Contact_List = CreateContactList();
@@ -190,8 +193,18 @@
             else
             {
                 await _submitApprovalInd.SignalSuccess();
-            }
 
+                OnboardingParameters onboardingParameters = new()
+                {
+                    AppUrl = $"/admin/metadata/{_newProjectAcronym}",
+                    App = _onboardingApplication,
+                    AdminEmailAddresses = ServiceAuthManager.GetProjectMailboxEmails(PROJECTACRONYM)
+                };
+
+                await EmailService.SendOnboardingMetadataEditRequest(onboardingParameters);
+
+                NavigationManager.NavigateTo("/onboarding/confirmation");
+            }
         }
     }
 
@@ -248,12 +261,12 @@
 
             await Context.TrackSaveChangesAsync(AuditingService);
 
-            OnboardingParameters onboardingParameters = new() { 
-                            AppUrl = $"/onboarding/applications/{_onboardingApplication.Application_ID}",
-                            App = _onboardingApplication, 
-                            AdminEmailAddresses =  ServiceAuthManager.GetProjectMailboxEmails(PROJECTACRONYM)
-                        };
-
+            OnboardingParameters onboardingParameters = new() 
+            { 
+                AppUrl = $"/onboarding/applications/{_onboardingApplication.Application_ID}",
+                App = _onboardingApplication, 
+                AdminEmailAddresses =  ServiceAuthManager.GetProjectMailboxEmails(PROJECTACRONYM)
+            };
 
             await EmailService.SendOnboardingConfirmations(onboardingParameters, _onboardingApplication.NotificationsSent);
 

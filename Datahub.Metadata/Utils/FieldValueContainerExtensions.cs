@@ -1,4 +1,5 @@
 ﻿using Datahub.Metadata.DTO;
+using Datahub.Metadata.Model;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -30,7 +31,29 @@ namespace Datahub.Metadata.Utils
             var frenchCatalog = GetCatalogText(subjects.Select(s => s.Label_French_TXT), programs.Select(p => p.Value_TXT),
                 sectorChoice?.Label_French_TXT, branchChoice?.Label_French_TXT, objectName, frenchKeywords);
 
-            return new(objectName, contact, sector, branch, englishCatalog, frenchCatalog);
+            var titleEnglish = fields.GetValue("title_translated_en", objectName);
+            var titleFrench = fields.GetValue("title_translated_fr", objectName);
+
+            return new(titleEnglish, titleFrench, contact, sector, branch, englishCatalog, frenchCatalog, 
+                fields.GetSecurityClassification());
+        }
+
+        const string SecurityClassificationName = "security_classification";
+
+        public static ClassificationType GetSecurityClassification(this FieldValueContainer fields)
+        {
+            return fields.GetValue(SecurityClassificationName, "0") switch
+            {
+                "1" => ClassificationType.ProtectedA,
+                "2" => ClassificationType.ProtectedB,
+                _   => ClassificationType.Unclassified
+            };
+        }
+
+        public static void EnforceSecurityClassification(this FieldValueContainer fields)
+        {
+            if (string.IsNullOrEmpty(fields.GetValue(SecurityClassificationName)))
+                fields.SetValue(SecurityClassificationName, "0");
         }
 
         static string GetCatalogText(IEnumerable<string> subjects, IEnumerable<string> programs, string sector, string branch, string objectName, IEnumerable<string> keywords)

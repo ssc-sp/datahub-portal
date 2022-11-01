@@ -16,6 +16,7 @@ namespace Datahub.Core.Services
         private readonly IMiscStorageService _miscStorageService;
         private readonly IDatahubAuditingService _auditingService;
         private readonly ISystemNotificationService _notificationService;
+        private readonly IMetadataBrokerService _metadataService;
 
         private static readonly string GLOBAL_POWERBI_ADMIN_LIST_KEY = "GlobalPowerBiAdmins";
 
@@ -26,13 +27,15 @@ namespace Datahub.Core.Services
             ILogger<PowerBiDataService> logger,
             IMiscStorageService miscStorageService,
             IDatahubAuditingService auditingService,
-            ISystemNotificationService notificationService)
+            ISystemNotificationService notificationService,
+            IMetadataBrokerService metadataService)
         {
             _contextFactory = contextFactory;
             _logger = logger;
             _miscStorageService = miscStorageService;
             _auditingService = auditingService;
             _notificationService = notificationService;
+            _metadataService = metadataService;
         }
 
         public async Task<IList<PowerBi_Workspace>> GetAllWorkspaces()
@@ -553,5 +556,30 @@ namespace Datahub.Core.Services
         public string GeneratePublishedInternalReportLink(string reportId, CatalogObjectLanguage language = CatalogObjectLanguage.Bilingual) 
             => GeneratePublishedInternalReportLinkStatic(reportId, language);
 
+        public async Task<IEnumerable<CatalogLanguageLink>> GeneratePublishedInternalReportLinksFromCatalogAsync(string reportId)
+        {
+            var catalogItem = await _metadataService.GetCatalogObjectByObjectId(reportId);
+            if (catalogItem != null)
+            {
+                if (catalogItem.GroupId.HasValue)
+                {
+                    var groupItems = await _metadataService.GetCatalogGroup(catalogItem.GroupId.Value);
+                    return groupItems.Select(i => new CatalogLanguageLink(i.Language, GeneratePublishedInternalReportLink(i.Metadata.ObjectId, i.Language)));
+                }
+                else if (catalogItem.Language == CatalogObjectLanguage.Bilingual)
+                {
+                    var bothLangs = new List<CatalogObjectLanguage>() { CatalogObjectLanguage.English, CatalogObjectLanguage.French };
+                    return bothLangs.Select(l => new CatalogLanguageLink(l, GeneratePublishedInternalReportLink(reportId, l)));
+                }
+                else
+                {
+                    return new List<CatalogLanguageLink>() { new(catalogItem.Language, GeneratePublishedInternalReportLink(reportId, catalogItem.Language)) };
+                }
+            }
+            else
+            {
+                return Enumerable.Empty<CatalogLanguageLink>();
+            }
+        }
     }
 }

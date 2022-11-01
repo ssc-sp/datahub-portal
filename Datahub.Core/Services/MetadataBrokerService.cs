@@ -12,7 +12,7 @@ using Entities = Datahub.Metadata.Model;
 
 namespace Datahub.Core.Services
 {
-	public class MetadataBrokerService : IMetadataBrokerService
+    public class MetadataBrokerService : IMetadataBrokerService
     {
         private readonly IDbContextFactory<MetadataDbContext> _contextFactory;
         private readonly ILogger<MetadataBrokerService> _logger;
@@ -233,52 +233,52 @@ namespace Datahub.Core.Services
             var transation = ctx.Database.BeginTransaction();
             try
             {
-                // delete existing catalog object
+                // get catalog objects
                 var catalogObjects = await ctx.CatalogObjects.Where(e => e.ObjectMetadataId == objectMetadataId).ToListAsync();
-                foreach (var obj in catalogObjects)
-                    ctx.CatalogObjects.Remove(obj);
 
-                await ctx.TrackSaveChangesAsync(_auditingService, anonymous);
-
-                // add new object
-                CatalogObject catalogObject = new()
+                CatalogObject catalogObject = catalogObjects.FirstOrDefault() ?? new();
                 {
-                    ObjectMetadataId = objectMetadataId,
-                    DataType = dataType,
-                    Name_TXT = englishName,
-                    Name_French_TXT = frenchName,
-                    Location_TXT = location,
-                    Sector_NUM = sector,
-                    Branch_NUM = branch,
-                    Contact_TXT = contact,
-                    Classification_Type = securityClass,
-                    Search_English_TXT = englishText,
-                    Search_French_TXT = frenchText,
-                    Language = language,
-                    ProjectId = projectId
+                    catalogObject.ObjectMetadataId = objectMetadataId;
+                    catalogObject.DataType = dataType;
+                    catalogObject.Name_TXT = englishName;
+                    catalogObject.Name_French_TXT = frenchName;
+                    catalogObject.Location_TXT = location;
+                    catalogObject.Sector_NUM = sector;
+                    catalogObject.Branch_NUM = branch;
+                    catalogObject.Contact_TXT = contact;
+                    catalogObject.Classification_Type = securityClass;
+                    catalogObject.Search_English_TXT = englishText;
+                    catalogObject.Search_French_TXT = frenchText;
+                    catalogObject.Language = language;
+                    catalogObject.ProjectId = projectId;
                 };
 
-                ctx.CatalogObjects.Add(catalogObject);
+                if (catalogObject.CatalogObjectId == 0)
+                    ctx.CatalogObjects.Add(catalogObject);
+                else
+                    ctx.CatalogObjects.Update(catalogObject);
 
                 await ctx.TrackSaveChangesAsync(_auditingService, anonymous);
 
                 transation.Commit();
+
+                try
+                {
+                    // update search indexes
+                    var id = $"{catalogObject.CatalogObjectId}";
+                    UpdateCatalogIndex(id, englishName, englishText, false);
+                    UpdateCatalogIndex(id, frenchName, frenchText, true);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError("Indexing catalog object failed!", ex);
+                }
             }
             catch (Exception)
             {
                 transation.Rollback();
                 throw;
             }
-            // update search indexes
-            UpdateCatalogIndex($"{objectMetadataId}", englishName, englishText, false);
-            UpdateCatalogIndex($"{objectMetadataId}", frenchName, frenchText, true);
-        }
-
-        private void UpdateCatalogIndex(string docId, string title, string content, bool isFrench)
-        {
-            var catalogSearch = isFrench ? _catalogSearchEngine.GetFrenchSearchEngine() : _catalogSearchEngine.GetEnglishSearchEngine();
-            catalogSearch.AddDocument(docId, (title ?? "").ToLower(), (content ?? "").ToLower());
-            catalogSearch.FlushIndexes();
         }
 
         public async Task<FieldDefinitions> GetFieldDefinitions()
@@ -345,7 +345,7 @@ namespace Datahub.Core.Services
             if (containsKeywords)
             {
                 // build dictionary<objectId, index>
-                var sortMap = hits.Select((Id, Index) => new { Id, Index }).ToDictionary(p => p.Id, p => p.Index);
+                var sortMap = hits.Distinct().Select((Id, Index) => new { Id, Index }).ToDictionary(p => p.Id, p => p.Index);
                 // sort results
                 results = results.Select(r => new { Index = sortMap[r.CatalogObjectId], Result = r })
                                  .OrderBy(p => p.Index)
@@ -355,7 +355,9 @@ namespace Datahub.Core.Services
 
             _logger.LogInformation("<<< SearchCatalog end...");
 
-            return results;
+            // return grouped results
+            var uiLanguage = request.IsFrench ? CatalogObjectLanguage.French : CatalogObjectLanguage.English;
+            return CatalogUtils.GroupResults(results, uiLanguage);
         }
 
         public async Task<List<CatalogObjectResult>> GetCatalogGroup(Guid groupId)
@@ -373,22 +375,6 @@ namespace Datahub.Core.Services
             return group;
         }
 
-        private async Task<ObjectMetadata> GetObjectMetadata(MetadataDbContext ctx, string objectId)
-        {
-            return await ctx.ObjectMetadataSet
-                            .Include(e => e.FieldValues)
-                            .AsSingleQuery()
-                            .FirstOrDefaultAsync(e => e.ObjectId_TXT == objectId);
-        }
-
-        private async Task<ObjectMetadata> GetObjectMetadata(MetadataDbContext ctx, long objectMetadataId)
-        {
-            return await ctx.ObjectMetadataSet
-                            .Include(e => e.FieldValues)
-                            .AsSingleQuery()
-                            .FirstOrDefaultAsync(e => e.ObjectMetadataId == objectMetadataId);
-        }
-
         private async Task<List<ObjectFieldValue>> CloneMetadataValues(MetadataDbContext ctx, string objectId)
         {
             List<ObjectFieldValue> values = new();
@@ -404,26 +390,6 @@ namespace Datahub.Core.Services
             }
 
             return values;
-        }
-
-        static string GetSearchTextCondition(IEnumerable<string> keywords, string fieldName) => 
-            string.Join(" AND ", keywords.Select(kw => $"{fieldName} LIKE '%{string.Concat(PreProcessSearchText(kw))}%'"));
-
-        static string GetOrSearchCondition(IEnumerable<int> values, string fieldName) =>
-            string.Join(" OR ", values.Select(v => $"{fieldName} = {v}"));
-
-        static string GetOrSearchCondition<T>(IEnumerable<T> values, string fieldName) where T: Enum =>
-            string.Join(" OR ", values.Select(v => $"{fieldName} = {Convert.ToInt32(v)}"));
-
-        static IEnumerable<char> PreProcessSearchText(string text)
-        {
-            foreach (char c in text)
-            {
-                if (char.IsLetterOrDigit(c))
-                    yield return c;
-                else if (char.IsWhiteSpace(c) || char.IsPunctuation(c))
-                    yield return ' ';
-            }
         }
 
         private async Task<Subject> GetSubject(string subjectId)
@@ -549,6 +515,7 @@ namespace Datahub.Core.Services
                 Url_English = catObj.Url_English_TXT,
                 Url_French = catObj.Url_French_TXT,
                 GroupId = catObj.GroupId,
+                ProjectId = catObj.ProjectId,
                 Metadata = new FieldValueContainer(catObj.ObjectMetadata.ObjectMetadataId, catObj.ObjectMetadata.ObjectId_TXT, definitions, 
                     catObj.ObjectMetadata.FieldValues)
             };
@@ -721,14 +688,18 @@ namespace Datahub.Core.Services
             return catalogObject?.Language;
         }
 
+        /// <summary>
+        /// GetProjectCatalogItems will only list Files and Power BI reports for now.
+        /// </summary>
         public async Task<List<CatalogObjectResult>> GetProjectCatalogItems(int projectId)
         {
             using var ctx = await _contextFactory.CreateDbContextAsync();
 
             var definitions = await GetLatestMetadataDefinition(ctx);
+            List<MetadataObjectType> listedTypes = new() { MetadataObjectType.File, MetadataObjectType.PowerBIReport }; 
 
             return await ctx.CatalogObjects
-                            .Where(e => e.ProjectId == projectId && e.Classification_Type == ClassificationType.Unclassified)
+                            .Where(e => e.ProjectId == projectId && listedTypes.Contains(e.DataType))
                             .Include(e => e.ObjectMetadata)
                             .ThenInclude(s => s.FieldValues)
                             .AsSingleQuery()
@@ -736,9 +707,27 @@ namespace Datahub.Core.Services
                             .ToListAsync();
         }
 
-        private async Task<List<CatalogObject>> UpdateCatalogObjectGroup(MetadataDbContext ctx,  string objectId)
+        private async Task<ObjectMetadata> GetObjectMetadata(MetadataDbContext ctx, string objectId)
         {
-            return await ctx.CatalogObjects.Where(e => e.ObjectMetadata.ObjectId_TXT == objectId).ToListAsync();
+            return await ctx.ObjectMetadataSet
+                            .Include(e => e.FieldValues)
+                            .AsSingleQuery()
+                            .FirstOrDefaultAsync(e => e.ObjectId_TXT == objectId);
+        }
+
+        private async Task<ObjectMetadata> GetObjectMetadata(MetadataDbContext ctx, long objectMetadataId)
+        {
+            return await ctx.ObjectMetadataSet
+                            .Include(e => e.FieldValues)
+                            .AsSingleQuery()
+                            .FirstOrDefaultAsync(e => e.ObjectMetadataId == objectMetadataId);
+        }
+
+        private void UpdateCatalogIndex(string docId, string title, string content, bool isFrench)
+        {
+            var catalogSearch = isFrench ? _catalogSearchEngine.GetFrenchSearchEngine() : _catalogSearchEngine.GetEnglishSearchEngine();
+            catalogSearch.AddDocument(docId, (title ?? "").ToLower(), (content ?? "").ToLower());
+            catalogSearch.FlushIndexes();
         }
     }
 }

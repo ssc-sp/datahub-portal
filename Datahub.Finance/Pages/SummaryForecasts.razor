@@ -26,8 +26,8 @@
                 <HeaderContent>
                     <MudTh>@Localizer["Sector"]</MudTh>
                     <MudTh>@Localizer["Branch"]</MudTh>
-                    <MudTh>@Localizer["Division"]"</MudTh>
-                    <MudTh>@Localizer["Attrition Rate"]</MudTh>
+                    <MudTh>@Localizer["Division"]</MudTh>
+                    <MudTh>@Localizer["AttritionRate"]</MudTh>
                 </HeaderContent>
                 <RowTemplate>
                     <MudTd>@context.Sector?.FundCenterModifiedEnglish</MudTd>
@@ -100,16 +100,15 @@
         _headers = new List<string>()
         {
             Localizer["Fund"],
-            Localizer["Key Activity"],
-            Localizer["Key Driver"],
+            Localizer["Key_Activity"],
             Localizer["Budget"],
-            Localizer["FTE"],
-            Localizer["SFT Gross"],
+            Localizer["FTE_Sum"],
+            Localizer["SFT_Forecast_Gross"],
             Localizer["SFT With Attrition"],
             Localizer["THC"],
-            Localizer["Other O&M"],
+            Localizer["Other_OnM"],
             Localizer["Personel"],
-            Localizer["Non Personel"],
+            Localizer["Non_Personel"],
             Localizer["Grants"],
             Localizer["Contribution"],
             Localizer["Total Forecast"]
@@ -124,26 +123,10 @@
         _branch = _fundCenters[0].Branch.FCCode;
         _summaryForecasts = Context.SummaryForecasts.Where(f => f.FundCenter == _fundCenters[0] && !f.Is_Deleted).ToList();
         //SET Non-db Dropdowns
-        _summaryForecasts.ForEach(c => c.KA_Values = Finance_Constants.Key_Activities[c.Key_Activity]);
-        _summaryForecasts.ForEach(c => c.KD_Values = Finance_Constants.Key_Drivers[c.Key_Driver]);
-        //var fundcenters = _forecasts;
-        //if (!string.IsNullOrWhiteSpace(searchfilter))
-        //{
-        //    fundcenters = _forecasts.Where(fundcenter =>
-        //    {
-        //        if (string.IsNullOrWhiteSpace(searchfilter))
-        //            return true;
-        //        if (fundcenter.Division.FundCenterModifiedEnglish.Contains(searchfilter, StringComparison.OrdinalIgnoreCase))
-        //            return true;
-        //        if (fundcenter.Branch.FundCenterModifiedEnglish.Contains(searchfilter, StringComparison.OrdinalIgnoreCase))
-        //            return true;
-        //        if (fundcenter.Sector.FundCenterModifiedEnglish.Contains(searchfilter, StringComparison.OrdinalIgnoreCase))
-        //            return true;
-        //        return false;
-        //    }).ToList();
-        //}
+        _summaryForecasts.ForEach(c => { if (c.Key_Activity != null) { c.KA_Values = Finance_Constants.Key_Activities.Where(p => p.Id == c.Key_Activity.GetValueOrDefault()).SingleOrDefault(); } }); 
+   
         _formMetadata.Header = string.Empty;
-        _formMetadata.SubHeader = "Forecast by Vote";
+        _formMetadata.SubHeader = Localizer["Forecast by Vote"];
         _formMetadata.DataSet = _summaryForecasts; //change when filters added
         _formMetadata.AccessorFunctions = accessorFunctions;        
         _formMetadata.Headers = _headers;
@@ -160,7 +143,6 @@
     {
         new Func<SummaryForecast, string>(p => { return p.Fund ?? ""; }),
         new Func<SummaryForecast, string>(p => { return p.KA_Values?.EnglishText ?? "N/A"; }),
-        new Func<SummaryForecast, string>(p => { return p.KD_Values?.EnglishText ?? "N/A"; }),
         new Func<SummaryForecast, string>(p => { return p.Budget == null ? "$0.00" : p.Budget.Value.ToString("C"); }),
         new Func<SummaryForecast, string>(p => { return p.FTE_Sum == null ? "0" : p.FTE_Sum.ToString(); }),
         new Func<SummaryForecast, string>(p => { return p.SFT_Forecast_Gross == null ? "$0.00" : p.SFT_Forecast_Gross.Value.ToString("C"); }),
@@ -181,7 +163,7 @@
         //_sortAccessors.Add("division", t => t.Division.FundCenterNameEnglish);
     }
 
-    
+
 
     private void SetFormEdit(SummaryForecast project)
     {
@@ -192,16 +174,27 @@
 
     private async Task DeleteRecord(SummaryForecast forecast)
     {
-        var summaryForecast = Context.SummaryForecasts.Where(f => f == forecast).SingleOrDefault();
-        if (summaryForecast is not null)
-        { 
-            summaryForecast.Is_Deleted = true;
-            await Context.TrackSaveChangesAsync(AuditingService);
+        if (forecast.Fund == "1001")
+        {
+            bool? result = await DialogService.ShowMessageBox(
+                "Error",
+                "This Fund cannot be deleted",
+                yesText: "Ok");
+
         }
-        _summaryForecast = null;
-        _isNew = false;
-        LoadData(_searchFilter);
-        StateHasChanged();
+        else
+        {
+            var summaryForecast = Context.SummaryForecasts.Where(f => f == forecast).SingleOrDefault();
+            if (summaryForecast is not null)
+            {
+                summaryForecast.Is_Deleted = true;
+                await Context.TrackSaveChangesAsync(AuditingService);
+            }
+            _summaryForecast = null;
+            _isNew = false;
+            LoadData(_searchFilter);
+            StateHasChanged();
+        }
     }
 
     private void CreateNewProject()
@@ -221,8 +214,7 @@
                 _summaryForecast = Context.SummaryForecasts.Add(_summaryForecast).Entity;
             }
             _summaryForecast.Last_Updated_DT = DateTime.Now;
-            _summaryForecast.Key_Activity = _summaryForecast.KA_Values.Id;
-            _summaryForecast.Key_Driver = _summaryForecast.KD_Values.Id;
+            _summaryForecast.Key_Activity = _summaryForecast.KA_Values?.Id ?? null; 
             await Context.TrackSaveChangesAsync(AuditingService);
             LoadData(_searchFilter); ;
             _summaryForecast = null;
@@ -256,9 +248,7 @@
 
     private void OnConfigure(MudBlazor.Forms.IModelFormContext context)
     {
-        context.RegisterOptionValueProperty<SummaryForecast, DropDownContainer>(l => l.KA_Values, p => p?.EnglishText ?? "N/A", () => Finance_Constants.Key_Activities);
-        context.RegisterOptionValueProperty<SummaryForecast, DropDownContainer>(l => l.KD_Values, p => p?.EnglishText ?? "N/A", () => Finance_Constants.Key_Drivers);
-
+        context.RegisterOptionValueProperty<SummaryForecast, DropDownContainer>(l => l.KA_Values, p => p?.EnglishText ?? "-", () => Finance_Constants.Key_Activities);                
     }
 
 

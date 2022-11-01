@@ -1,0 +1,117 @@
+﻿@*ProjectCosting.razor*@
+
+@using Core.Data.CostEstimator
+@inject IAzurePriceListService AzurePriceListService
+
+<MudStack Class="mt-4 mb-4">
+    <MudText Typo="Typo.h4">@Localizer["Costing"]</MudText>
+
+    <MudCard Class="pa-8">
+        <MudText Class="mb-4">
+            <b>@(string.Format(Localizer["Project_Cost_Since"], DateTime.Now.ToString("MMMM")))</b> @($"{ConsumedBudget:C}")
+        </MudText>
+
+        @if (_remainingBudget > 0 && _spendingEstimation != null)
+        {
+            <MudText Class="mb-4">
+                <b>@Localizer["Project_Remaining_Credit_label"]</b> @(string.Format(Localizer["Project_Remaining_Credit_text"], _remainingBudget, ProjectBudget))
+            </MudText>
+
+            <MudText Class="mb-4">
+                <b>@Localizer["Storage Equivalent:"]</b> @(string.Format(Localizer["Project_Remaining_Credit_Storage"], _remainingBudget, _storageEquivalentFormatted))
+            </MudText>
+
+            <MudStack Row>
+                <MudStack>
+                    <MudText>
+                        <b>@Localizer["Compute Equivalent:"]</b> @(string.Format(Localizer["Project_Remaining_Credit_Compute"], _remainingBudget))
+                    </MudText>
+                </MudStack>
+                <MudStack>
+                    <MudText>
+                        @(string.Format(Localizer["Project_Remaining_Credit_Compute_Small"], _spendingEstimation.ComputeSmall))
+                    </MudText>
+                    <MudText>
+                        @(string.Format(Localizer["Project_Remaining_Credit_Compute_Medium"], _spendingEstimation.ComputeMedium))
+                    </MudText>
+                    <MudText>
+                        @(string.Format(Localizer["Project_Remaining_Credit_Compute_Large"], _spendingEstimation.ComputeLarge))
+                    </MudText>
+                </MudStack>
+            </MudStack>
+        }
+        @if (_loading)
+        {
+            <Spinner Small />
+        }
+    </MudCard>
+</MudStack>
+
+@code {
+
+    [Parameter]
+    public decimal ProjectBudget { get; set; }
+
+    [Parameter]
+    public decimal ConsumedBudget { get; set; }
+
+    private decimal _remainingBudget;
+    private SpendingEstimation _spendingEstimation;
+    private string _storageEquivalentFormatted;
+
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _remainingBudget = ProjectBudget - ConsumedBudget;
+        _spendingEstimation = await GetSpendingEstimations(_remainingBudget);
+        _storageEquivalentFormatted = FormatStorageCapacity(_spendingEstimation.Storage);
+        _loading = false;
+    }
+
+    private async Task<SpendingEstimation> GetSpendingEstimations(decimal amount)
+    {
+        // storage
+        var storageCostGrid = await AzurePriceListService.GetAzureStoragePriceLists();
+
+        var searchKey = IAzurePriceListService.GenerateAzureStoragePriceListKey(AccessTierType.Hot, DataRedundancyType.LRS);
+        var priceList = storageCostGrid.PriceLists[searchKey];
+        var storage = decimal.ToDouble(amount / priceList.Capacity.BasePrice);
+
+        // compute
+        var compCostGrid = await AzurePriceListService.GetAzureComputeCostPrices();
+
+        var smPerHour = CalculateComputeCost(5, compCostGrid.Ds3VmPrice, compCostGrid.DbuPrice, 0.75M, 1);
+        var mdPerHour = CalculateComputeCost(3, compCostGrid.Ds4VmPrice, compCostGrid.DbuPrice, 1.50M, 1);
+        var lgPerHour = CalculateComputeCost(3, compCostGrid.Ds5VmPrice, compCostGrid.DbuPrice, 3.00M, 1);
+
+        var small = Math.Truncate(decimal.ToDouble(amount / smPerHour));
+        var medium = Math.Truncate(decimal.ToDouble(amount / mdPerHour));
+        var large = Math.Truncate(decimal.ToDouble(amount / lgPerHour));
+
+        return new(storage, small, medium, large);
+    }
+
+    private decimal CalculateComputeCost(int numVms, decimal vmCost, decimal dbuPrice, decimal dbuFactor, int numHours)
+    {
+        var totalHours = numVms * numHours;
+        var vmPrice = totalHours * vmCost;
+        var dbuUnits = totalHours * dbuFactor;
+        var dbuPriceTotal = dbuUnits * dbuPrice;
+        return 1.1M * (vmPrice + dbuPriceTotal);
+    }
+
+    private string FormatStorageCapacity(double gigabytes)
+    {
+        var rounded = Math.Truncate(gigabytes * 100) / 100.0;
+
+        if (Math.Truncate(rounded) < 1024)
+            return $"{rounded} GB";
+
+        rounded = Math.Truncate((gigabytes / 1024) * 100) / 100.0;
+
+        return $"{rounded} TB";
+    }
+
+    record SpendingEstimation(double Storage, double ComputeSmall, double ComputeMedium, double ComputeLarge);
+}

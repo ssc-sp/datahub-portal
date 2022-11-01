@@ -4,6 +4,6 @@
     { 
         Unclassified,
         ProtectedA,
-        ProtectedB  
+        ProtectedB
     }
 }
