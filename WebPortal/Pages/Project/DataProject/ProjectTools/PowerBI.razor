@@ -2,8 +2,9 @@
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject RequestManagementService _requestManagementService
 @inject ILogger<PowerBI> _logger
+@inject IUserInformationService _userInformationService
 
-@if (_project is null)
+@if (Project is null)
 {
     <ToolCard Loading/>
 }
@@ -17,66 +18,74 @@ else
         </Logo>
         <ToolActionsList>
             <ul>
-                @if (_powerBiServiceCreated)
+                @if (!ServiceError)
                 {
-                    @if (_powerBiAuthorized)
+                    @if (_powerBiServiceCreated)
                     {
-                        <li>
-                            <DHLink Variant="h3" DataProject="@ProjectAcronym" LinkType="DatahubLinkType.PowerBIReport">
-                                <ToolActionButton LinkType="LinkType.External">
-                                    @Localizer["Open Power BI"]
+                        @if (_powerBiAuthorized)
+                        {
+                            <li>
+                                <DHLink Variant="h3" DataProject="@ProjectAcronym" LinkType="DatahubLinkType.PowerBIReport">
+                                    <ToolActionButton LinkType="LinkType.External">
+                                        @Localizer["Open Power BI"]
+                                    </ToolActionButton>
+                                </DHLink>
+                            </li>
+                        }
+                        else if (_powerBiAccessRequested)
+                        {
+                            <li>
+                                <MudText>@Localizer["Access Request is being reviewed"]</MudText>
+                            </li>
+                        }
+                        else
+                        {
+                            <li>
+                                <MudText> @Localizer["Access not authorized"]</MudText>
+                            </li>
+                            <li>
+                                <ToolActionButton OnClick="@HandleRequestAccess" LinkType="LinkType.Request">
+                                    @Localizer["Request Access"]
                                 </ToolActionButton>
-                            </DHLink>
-                        </li>
+                                <SuccessIndicator @bind-IsLoading=@_isWorking @ref=@_accessReqInd />
+                            </li>
+                        }
                     }
-                    else if (_powerBiAccessRequested)
+                    else if (_powerBiServiceRequested)
                     {
-                        <li>
-                            <MudText>@Localizer["Access Request is being reviewed"]</MudText>
-                        </li>
+                        <AuthorizeView Roles=@RoleConstants.DATAHUB_ROLE_ADMIN Context="PowerBi_admin">
+                            <Authorized>
+                                <li>
+                                    <NavLink href="@($"/project/{ProjectAcronym}/powerbirequest")">
+                                        <ToolActionButton LinkType="LinkType.Request" >
+                                            @Localizer["Review PowerBI Request"]
+                                        </ToolActionButton>
+                                    </NavLink>
+                                </li>
+                            </Authorized>
+                            <NotAuthorized>
+                                <li>
+                                    <ToolActionButton LinkType="LinkType.Request">
+                                        @Localizer["Service Request is being reviewed"]
+                                    </ToolActionButton>
+                                </li>
+                            </NotAuthorized>
+                        </AuthorizeView>
                     }
                     else
                     {
                         <li>
-                            <MudText> @Localizer["Access not authorized"]</MudText>
-                        </li>
-                        <li>
-                            <ToolActionButton OnClick="@HandleRequestAccess" LinkType="LinkType.Request">
-                                @Localizer["Request Access"]
+                            <ToolActionButton LinkType="LinkType.Request"  OnClick="@HandleRequestService" Disabled=@_isWorking>
+                                @Localizer["Request Service Creation"]
                             </ToolActionButton>
-                            <SuccessIndicator @bind-IsLoading=@_isWorking @ref=@_accessReqInd />
+                            <SuccessIndicator @bind-IsLoading=@_isWorking @ref=@_serviceReqInd />
                         </li>
                     }
-                }
-                else if (_powerBiServiceRequested)
+                } else
                 {
-                    <AuthorizeView Roles=@RoleConstants.DATAHUB_ROLE_ADMIN Context="PowerBi_admin">
-                        <Authorized>
-                            <li>
-                                <NavLink href="@($"/project/{ProjectAcronym}/powerbirequest")">
-                                    <ToolActionButton LinkType="LinkType.Request" >
-                                        @Localizer["Review PowerBI Request"]
-                                    </ToolActionButton>
-                                </NavLink>
-                            </li>
-                        </Authorized>
-                        <NotAuthorized>
-                            <li>
-                                <ToolActionButton LinkType="LinkType.Request">
-                                    @Localizer["Service Request is being reviewed"]
-                                </ToolActionButton>
-                            </li>
-                        </NotAuthorized>
-                    </AuthorizeView>
-                }
-                else
-                {
-                    <li>
-                        <ToolActionButton LinkType="LinkType.Request"  OnClick="@HandleRequestService" Disabled=@_isWorking>
-                            @Localizer["Request Service Creation"]
-                        </ToolActionButton>
-                        <SuccessIndicator @bind-IsLoading=@_isWorking @ref=@_serviceReqInd />
-                    </li>
+                    <MudAlert Severity="Severity.Error" Style="width: fit-content" Class="my-4">
+                        <MudText Typo="Typo.body1">@Localizer["Error configuring PowerBI service"]</MudText>
+                    </MudAlert>
                 }
             </ul>
         </ToolActionsList>
@@ -87,10 +96,9 @@ else
 
 @code {
 
-    [CascadingParameter(Name = "ProjectAcronym")]
-    public string ProjectAcronym { get; set; }
+    [CascadingParameter(Name = "Project")]
+    private Datahub_Project Project { get; set; }
 
-    [CascadingParameter(Name = "UserId")]
     public string UserId { get; set; }
 
     [CascadingParameter(Name = "GraphUser")]
@@ -101,15 +109,16 @@ else
     private bool _powerBiAccessRequested = false;
     private bool _powerBiAuthorized = false;
 
+    private bool ServiceError { get; set; } = false;
+
     private bool _isWorking { get; set; } = false;
     private SuccessIndicator _serviceReqInd;
     private SuccessIndicator _accessReqInd;
 
-    private Datahub_Project _project;
+    private string ProjectAcronym => Project?.Project_Acronym_CD;
 
     protected override async Task OnInitializedAsync()
     {
-        await base.OnInitializedAsync();
         await LoadProjectAndRequests();
     }
 
@@ -117,23 +126,24 @@ else
     {
         await using var projectDbContext = await _dbFactoryProject.CreateDbContextAsync();
 
-        _project = await projectDbContext.Projects
-            .Include(p => p.Requests)
-            .SingleAsync(p => p.Project_Acronym_CD == ProjectAcronym);
-
         var _serviceRequests = await projectDbContext.Project_Requests
-            .Where(p => p.Project == _project)
+            .Where(p => p.Project == Project)
             .ToListAsync();
 
+        UserId = await _userInformationService.GetUserIdString();
         if (UserId != null)
         {
             _powerBiServiceRequested = _serviceRequests.Any(r => r.ServiceType == RequestManagementService.POWERBI && r.Is_Completed == null);
-            _powerBiServiceCreated = !string.IsNullOrEmpty(_project.PowerBI_URL) || 
+            _powerBiServiceCreated = !string.IsNullOrEmpty(Project.PowerBI_URL) || 
                 _serviceRequests.Any(r => r.ServiceType == RequestManagementService.POWERBI && r.Is_Completed.HasValue);
 
             //var userAcessRequests = _project.Requests.Where(r => r.User_ID == UserId && r.PowerBI);
             _powerBiAccessRequested = false;//userAcessRequests.Any(r => r.Completion_DT is null);
             _powerBiAuthorized = true;//userAcessRequests.Any(r => r.Completion_DT.HasValue);
+        }
+        else
+        {
+            ServiceError = true;
         }
     }
 
@@ -147,7 +157,7 @@ else
             Request_DT = DateTime.Now,
             User_Name = GraphUser.UserPrincipalName,
             User_ID = UserId,
-            Project = _project,
+            Project = Project,
             PowerBI = true
         };
 
@@ -185,7 +195,7 @@ else
             ServiceType = RequestManagementService.POWERBI,
             ServiceRequests_Date_DT = DateTime.Now,
             Is_Completed = null,
-            Project = _project,
+            Project = Project,
             User_ID = UserId,
             User_Name = GraphUser.UserPrincipalName
         };

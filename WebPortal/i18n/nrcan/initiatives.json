@@ -13,7 +13,7 @@
     "PowerBI": "Power BI",
     "Admin": "Admin",
     "Tools": "Tools",
-    "Catalog":  "Catalog"
+    "Catalog": "Catalog"
   },
   "OPENDATA-WIZARD": {
     "Page_Title": "Share on Open Data",
@@ -238,6 +238,17 @@
     "SendNotificationButton": "Send Notification",
     "NotificationSentMessage": "A notification has been sent to the Power BI administrators."
   },
+  "POWER_BI_SHARED_INTERNAL": {
+    "ReportInformation": "Report Information",
+    "ReportLanguage": "Report language",
+    "ContactInformation": "Contact information",
+    "Sector": "Sector",
+    "Branch": "Branch",
+    "RelatedReports": "Related report(s)",
+    "Loading": "Loading",
+    "InvalidReport": "Invalid report",
+    "PublicationLinks": "Link(s) for publication"
+  },
   "RESOURCE_REQUEST_INFO_PANEL": {
     "RequestInformation": "Request Information",
     "InputParameters": "Input Parameters",
@@ -285,5 +296,6 @@
   "DataHub Project Tracker": "DataHub Initiative Tracker",
   "The current project has {0} active file shared": "The current initiative has {0} active file shared",
   "Project Resource Definitions": "Initiative Resource Definitions",
-  "Welcome to your Data Project": "Welcome to your Data Initiative"
+  "Welcome to your Data Project": "Welcome to your Data Initiative",
+  "You are not a member of this project.": "You are not a member of this initiative."
 }

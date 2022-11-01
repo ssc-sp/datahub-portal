@@ -22,13 +22,13 @@
         <MudCardContent>
             <MudTable Items="@_fundCenters" Hover="true" Loading="@_isLoading">
                 <ToolBarContent>
-                    <MudText Typo="Typo.h6">FC Details</MudText>
+                    <MudText Typo="Typo.h6">@Localizer["FC Details"]</MudText>
                 </ToolBarContent>
                 <HeaderContent>
                     <MudTh>@Localizer["Sector"]</MudTh>
                     <MudTh>@Localizer["Branch"]</MudTh>
-                    <MudTh>@Localizer["Division"]"</MudTh>
-                    <MudTh>@Localizer["Attrition Rate"]</MudTh>
+                    <MudTh>@Localizer["Division"]</MudTh>
+                    <MudTh>@Localizer["AttritionRate"]</MudTh>
                 </HeaderContent>
                 <RowTemplate>
                     <MudTd>@context.Sector?.FundCenterModifiedEnglish</MudTd>
@@ -112,9 +112,9 @@
             Localizer["End Date"], 
             Localizer["FTE"], 
             Localizer["Salary"], 
-            Localizer["Incremental Replacement"], 
-            Localizer["Location of Hiring"], 
-            Localizer["Potential Hiring Process"]
+            Localizer["Incremental_Replacement"], 
+            Localizer["Location_of_Hiring"], 
+            Localizer["Potential_Hiring_Process"]
         };
         LoadData(_searchFilter);
         _isLoading = false;
@@ -124,27 +124,15 @@
     {
         _fundCenters = Context.FundCenters.Include(f => f.Sector).Include(f => f.Branch).Include(f => f.Division).Where(f => f.FundCenter_ID.ToString() == fundcenterId).ToList();
         _branch = _fundCenters[0].Branch.FCCode;
-        _forecasts = Context.Forecasts.Where(f => f.FundCenter == _fundCenters[0] && !f.Is_Deleted).ToList();        
-        _forecasts.ForEach(c => c.PHP_Values = Finance_Constants.Potential_Hiring_Process[c.Potential_Hiring_Process]);
-        _forecasts.ForEach(c => c.IR_Values = Finance_Constants.Incremental_Replacements[c.Incremental_Replacement]);
-        //var fundcenters = _forecasts;
-        //if (!string.IsNullOrWhiteSpace(searchfilter))
-        //{
-        //    fundcenters = _forecasts.Where(fundcenter =>
-        //    {
-        //        if (string.IsNullOrWhiteSpace(searchfilter))
-        //            return true;
-        //        if (fundcenter.Division.FundCenterModifiedEnglish.Contains(searchfilter, StringComparison.OrdinalIgnoreCase))
-        //            return true;
-        //        if (fundcenter.Branch.FundCenterModifiedEnglish.Contains(searchfilter, StringComparison.OrdinalIgnoreCase))
-        //            return true;
-        //        if (fundcenter.Sector.FundCenterModifiedEnglish.Contains(searchfilter, StringComparison.OrdinalIgnoreCase))
-        //            return true;
-        //        return false;
-        //    }).ToList();
-        //}
+        _forecasts = Context.Forecasts.Where(f => f.FundCenter == _fundCenters[0] && !f.Is_Deleted).ToList();
+        _forecasts.ForEach(c => { if (c.Potential_Hiring_Process != null && c.Potential_Hiring_Process.GetValueOrDefault() > 0) { c.PHP_Values = Finance_Constants.Potential_Hiring_Process.Where(p => p.Id == c.Potential_Hiring_Process.GetValueOrDefault()).SingleOrDefault(); } });
+        _forecasts.ForEach(c => { if (c.Incremental_Replacement != null && c.Incremental_Replacement.GetValueOrDefault() > 0) { c.IR_Values = Finance_Constants.Incremental_Replacements.Where(p => p.Id == c.Incremental_Replacement.GetValueOrDefault()).SingleOrDefault(); } });
+        _forecasts.ForEach(c => { if (c.FTE_Accomodations_Location != null && c.FTE_Accomodations_Location.GetValueOrDefault() > 0) { c.FTE_Accomodations_Location_Values = Finance_Constants.FTE_Intended_Location.Where(p => p.Id == c.FTE_Accomodations_Location.GetValueOrDefault()).SingleOrDefault(); } });
+        _forecasts.ForEach(c => { if (c.FTE_Accomodations_Requirements != null && c.FTE_Accomodations_Requirements.GetValueOrDefault() > 0) { c.FTE_Accomodations_Req_Values = Finance_Constants.FTE_Accomodation_Requirements.Where(p => p.Id == c.FTE_Accomodations_Requirements.GetValueOrDefault()).SingleOrDefault(); } });
+        _forecasts.ForEach(c => { if (c.Position_Workspace_Type != null && c.Position_Workspace_Type.GetValueOrDefault() > 0) { c.Position_Workspace_Type_Values = Finance_Constants.Position_Workspace_Type.Where(p => p.Id == c.Position_Workspace_Type.GetValueOrDefault()).SingleOrDefault(); } });
+
         _formMetadata.Header = string.Empty;
-        _formMetadata.SubHeader = "SFT Details";
+        _formMetadata.SubHeader = Localizer["SFT Details"];
         _formMetadata.DataSet = _forecasts; //change when filters added
         _formMetadata.AccessorFunctions = accessorFunctions;
         _formMetadata.Headers = _headers;
@@ -198,7 +186,7 @@
         //_sortAccessors.Add("sector", t => t.Sector.FundCenterNameEnglish);
         //_sortAccessors.Add("division", t => t.Division.FundCenterNameEnglish);
     }
-    
+
     private void SetFormEdit(Forecast project)
     {
         _forecast = project;
@@ -221,8 +209,12 @@
                 _forecast = Context.Forecasts.Add(_forecast).Entity;
             }
             _forecast.Last_Updated_DT = DateTime.Now;
-            _forecast.Potential_Hiring_Process = _forecast.PHP_Values.Id;
-            _forecast.Incremental_Replacement = _forecast.IR_Values.Id;
+            _forecast.Potential_Hiring_Process = _forecast.PHP_Values?.Id ?? null;
+            _forecast.Incremental_Replacement = _forecast.IR_Values?.Id ?? null;
+            _forecast.FTE_Accomodations_Location = _forecast.FTE_Accomodations_Location_Values?.Id ?? null;
+            _forecast.FTE_Accomodations_Requirements = _forecast.FTE_Accomodations_Req_Values?.Id ?? null;
+            _forecast.Position_Workspace_Type = _forecast.Position_Workspace_Type_Values?.Id ?? null;
+
             await Context.TrackSaveChangesAsync(AuditingService);
             await UpdateSummaryForecasts();
             LoadData(_searchFilter); ;
@@ -244,7 +236,7 @@
     {
         var sum = Context.Forecasts.Where(f => f.FundCenter == _fundCenters[0] && !f.Is_Deleted).Select(t => t.Salary ?? 0).Sum();
         var fteSum = Context.Forecasts.Where(f => f.FundCenter == _fundCenters[0] && !f.Is_Deleted).Select(t => t.FTE ?? 0).Sum();
-        var fund = Context.SummaryForecasts.Where(f => f.Fund == _forecast.Fund && f.FundCenter == _forecast.FundCenter).FirstOrDefault();
+        var fund = Context.SummaryForecasts.Where(f => f.Fund == _forecast.Fund && f.FundCenter == _forecast.FundCenter && !f.Is_Deleted).FirstOrDefault();
 
 
         var attritionRate = Context.FundCenters.Where(f => f.FundCenter_ID.ToString() == fundcenterId).Select(a => a.AttritionRate).FirstOrDefault() ?? 0;
@@ -282,8 +274,13 @@
 
     private void OnConfigure(MudBlazor.Forms.IModelFormContext context)
     {
-        context.RegisterOptionValueProperty<Forecast, DropDownContainer>(l => l.PHP_Values, p => p?.EnglishText ?? "N/A", () => Finance_Constants.Potential_Hiring_Process);
-        context.RegisterOptionValueProperty<Forecast, DropDownContainer>(l => l.IR_Values, p => p?.EnglishText ?? "N/A", () => Finance_Constants.Incremental_Replacements);        
+        context.RegisterOptionValueProperty<Forecast, DropDownContainer>(l => l.PHP_Values, p => p?.EnglishText ?? "-", () => Finance_Constants.Potential_Hiring_Process);
+        context.RegisterOptionValueProperty<Forecast, DropDownContainer>(l => l.IR_Values, p => p?.EnglishText ?? "-", () => Finance_Constants.Incremental_Replacements);
+        context.RegisterOptionValueProperty<Forecast, DropDownContainer>(l => l.FTE_Accomodations_Location_Values, p => p?.EnglishText ?? "-", () => Finance_Constants.FTE_Intended_Location);
+        context.RegisterOptionValueProperty<Forecast, DropDownContainer>(l => l.FTE_Accomodations_Req_Values, p => p?.EnglishText ?? "-", () => Finance_Constants.FTE_Accomodation_Requirements);
+        context.RegisterOptionValueProperty<Forecast, DropDownContainer>(l => l.Position_Workspace_Type_Values, p => p?.EnglishText ?? "-", () => Finance_Constants.Position_Workspace_Type);
+
+        context.SetVisible<Forecast>(p => p.Other_Locations, _forecast.FTE_Accomodations_Location_Values?.EnglishText == "Other");
     }
 
 

@@ -274,6 +274,6 @@
 
     private List<FieldChoice> GetChoices()
     {
-        return FieldDefinition.Choices.Where(c => c.Cascading_Value_TXT == CascadingValue).ToList();
+        return FieldDefinition.Choices.Where(c => c.Cascading_Value_TXT == "*" || c.Cascading_Value_TXT == CascadingValue).ToList();
     }
 }

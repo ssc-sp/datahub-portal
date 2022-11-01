@@ -1,0 +1,32 @@
+﻿@*ProjectMetadata.razor*@
+@page "/admin/databricks/metadata/{ProjectAcronym}"
+@using Datahub.Metadata.Model
+
+<div class="manage-access"> 
+
+    <AeFlex Vertical>
+        <h1>@($"{ProjectAcronym} {Localizer["Initiative Databricks Metadata"]}")</h1>
+    </AeFlex>    
+
+    <ProjectObjectMetadata 
+        ProfileName="catalog"
+        ObjectId=@($"{ProjectAcronym}-Databricks")
+        Location=@_databricksNotebookUrl
+        ProjectAcronym=@ProjectAcronym 
+        ObjectType=@MetadataObjectType.Databricks
+        OnProjectLoaded=@HandleProjectLoaded />
+</div>
+
+
+@code {
+
+    [Parameter]
+    public string ProjectAcronym { get; set; }
+
+    private string _databricksNotebookUrl;
+
+    private void HandleProjectLoaded(Datahub_Project project)
+    {
+        _databricksNotebookUrl = project.Databricks_URL;
+    }
+}

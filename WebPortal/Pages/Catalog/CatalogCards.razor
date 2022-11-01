@@ -180,7 +180,8 @@ else
                     OnDiscard="HandleClose"
                     ValidateRequired=true
                     ProfileName="catalog"
-                    ObjectType=@MetadataObjectType.File
+                    ObjectType=@CatalogResult.DataType
+                    ProjectId=@CatalogResult.ProjectId
                     UpdateCatalog=true
             />;
         await uiControlService.ToggleModal(@<RenderFragmentModal Fragment=@metadataEditor />);

@@ -130,12 +130,13 @@
                                     ProfileName="catalog"
                                     ObjectType=@Metadata.Model.MetadataObjectType.PowerBIWorkspace
                                     UpdateCatalog=@IncludeCurrentItemInCatalog
-                                    ValidateRequired=@false
+                                    ValidateRequired
                                     Name=@WorkspaceBeingEdited.DbWorkspaceName
                                     HideSaveButton
                                     OnValuesChanged=@(() => StateHasChanged())
                                     @ref=@_workspaceMetadata
                                     DefaultMetadataId=@GetProjectMetadataUid(WorkspaceBeingEdited.ProjectId)
+                                    ProjectId=WorkspaceBeingEdited.ProjectId
                                     OnNewMetadataCreated=@AutoFillNewMetadataFields
                                     OnExistingMetadataLoaded=@DetectIfCurrentItemIsInCatalog
                                 />
@@ -171,20 +172,7 @@
                                     <AeTypography Variant="p" class="warning">@Localizer[$"{LOCALIZATION_PREFIX}.UnassignedWarning"]</AeTypography>
                                 }
                                 <AeTypography Variant="h4">@Localizer[$"{LOCALIZATION_PREFIX}.Metadata"]</AeTypography>
-                                @if (_datasetMetadata != null)
-                                {
-                                    <label>
-                                        <AeFlex Vertical>
-                                            <AeTypography><strong><span>@Localizer[$"{LOCALIZATION_PREFIX}.SecurityClassification"]</span></strong></AeTypography>
-                                            <select @bind=@_datasetMetadata.SecurityClass class="ae input">
-                                                @foreach(var sec in SecurityClassification.SECURITY_CLASSES)
-                                                {
-                                                    <option value=@sec>@Localizer[@sec]</option>
-                                                }
-                                            </select>
-                                        </AeFlex>
-                                    </label>
-                                }
+
                                 
                                 <ObjectMetadataEditor 
                                     ObjectId=@DatasetBeingEdited.DatasetId.ToString()
@@ -192,11 +180,12 @@
                                     ProfileName="catalog"
                                     ObjectType=@Metadata.Model.MetadataObjectType.PowerBIDataset
                                     UpdateCatalog=@IncludeCurrentItemInCatalog
-                                    ValidateRequired=@false
                                     Name=@DatasetBeingEdited.DbDatasetName
                                     HideSaveButton
+                                    ValidateRequired
                                     OnValuesChanged=@(() => StateHasChanged())
                                     DefaultMetadataId=@GetProjectMetadataUid(DatasetBeingEdited.ProjectId)
+                                    ProjectId=WorkspaceBeingEdited.ProjectId
                                     @ref=@_datasetMetadata
                                     OnNewMetadataCreated=@AutoFillNewMetadataFields
                                     OnExistingMetadataLoaded=@DetectIfCurrentItemIsInCatalog
@@ -234,20 +223,7 @@
                                 }
 
                                 <AeTypography Variant="h4">@Localizer[$"{LOCALIZATION_PREFIX}.Metadata"]</AeTypography>
-                                @if (_reportMetadata != null)
-                                {
-                                    <label>
-                                        <AeFlex Vertical>
-                                            <AeTypography><strong><span>@Localizer[$"{LOCALIZATION_PREFIX}.SecurityClassification"]</span></strong></AeTypography>
-                                            <select @bind=@_reportMetadata.SecurityClass class="ae input">
-                                                @foreach(var sec in SecurityClassification.SECURITY_CLASSES)
-                                                {
-                                                    <option value=@sec>@Localizer[@sec]</option>
-                                                }
-                                            </select>
-                                        </AeFlex>
-                                    </label>
-                                }
+                                
 
                                 <ObjectMetadataEditor 
                                     @ref=@_reportMetadata
@@ -256,12 +232,13 @@
                                     ProfileName="catalog"
                                     ObjectType=@Metadata.Model.MetadataObjectType.PowerBIReport
                                     UpdateCatalog=@IncludeCurrentItemInCatalog
-                                    ValidateRequired=@false
                                     Name=@ReportBeingEdited.DbReportName
                                     HideSaveButton
+                                    ValidateRequired
                                     CatalogLanguage=@_catalogObjectLanguage
                                     OnValuesChanged=@(() => StateHasChanged())
                                     DefaultMetadataId=@GetProjectMetadataUid(ReportBeingEdited.ProjectId)
+                                    ProjectId=WorkspaceBeingEdited.ProjectId
                                     OnNewMetadataCreated=@AutoFillNewMetadataFields
                                     OnExistingMetadataLoaded=@DetectIfCurrentItemIsInCatalog
                                 />

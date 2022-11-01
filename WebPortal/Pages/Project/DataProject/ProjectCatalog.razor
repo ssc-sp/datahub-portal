@@ -83,9 +83,12 @@ else
 
     protected override async Task OnParametersSetAsync()
     {
-        _loading = true;
-        _results = await _metadataBrokerService.GetProjectCatalogItems(ProjectId);
-        _loading = false;
+        if (ProjectId != 0)
+        {
+            _loading = true;
+            _results = await _metadataBrokerService.GetProjectCatalogItems(ProjectId);
+            _loading = false;
+        }        
     }
 
     private string GetIconClass(MetadataObjectType type)

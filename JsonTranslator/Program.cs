@@ -3,7 +3,7 @@ using Microsoft.Extensions.Configuration;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 
-var src = @"C:\code\DataHub\datahub-portal\ps-translator\data.json";
+var src = @"C:\code\datahub-portal\ps-translator\data.json";
 var fPath = Path.GetFullPath(src);
 if (!File.Exists(fPath))
 {

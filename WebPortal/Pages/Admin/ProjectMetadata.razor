@@ -1,23 +1,20 @@
 ﻿@*ProjectMetadata.razor*@
-
 @page "/admin/metadata/{ProjectAcronym}"
-@inject NavigationManager NavigationManager
+@using Datahub.Metadata.Model
 
 <div class="manage-access"> 
 
     <AeFlex Vertical>
-        <h1>@($"{ProjectAcronym} {Localizer["Project Metadata"]}")</h1>
+        <h1>@($"{ProjectAcronym} {Localizer["Initiative Metadata"]}")</h1>
     </AeFlex>    
 
-    <AeCard>
-        <ObjectMetadataEditor 
-            ProfileName="project"
-            ObjectId=@ProjectAcronym
-            SaveButtonLabel=@Localizer["OPENDATA-WIZARD.Save_button"]
-            OnSave=@HandleBack
-            OnDiscard=@HandleBack
-        />    
-    </AeCard>
+    <ProjectObjectMetadata 
+        ProfileName="project"
+        ObjectId=@ProjectAcronym
+        Location=@ProjectAcronym
+        ProjectAcronym=@ProjectAcronym 
+        ObjectType=@MetadataObjectType.DataInitiative
+        OnProjectLoaded=@HandleProjectLoaded />
 </div>
 
 
@@ -26,8 +23,7 @@
     [Parameter]
     public string ProjectAcronym { get; set; }
 
-    private void HandleBack()
+    private void HandleProjectLoaded(Datahub_Project project)
     {
-        NavigationManager.NavigateTo($"/projects/{ProjectAcronym}");
     }
 }
