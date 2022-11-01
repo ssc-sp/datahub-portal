@@ -39,7 +39,7 @@ public class AchievementFactory
                 throw new Exception("Achievement Code is null or not found");
             }
 
-            Achievements.Add(achievement.Code, achievement);
+            Achievements[achievement.Code] = achievement;
         }
     }
     private AchievementFactory() { }

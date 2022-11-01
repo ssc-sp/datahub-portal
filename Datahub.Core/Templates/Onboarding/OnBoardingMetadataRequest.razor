@@ -1,0 +1,17 @@
+﻿@*OnBoardingMetadataRequest.razor*@
+@namespace Datahub.Core.Templates
+
+<p>@ApplicationParameters.App.Client_Contact_Name</p>
+
+<p>Your initiative @ApplicationParameters.App.Product_Name has been created.</p>
+
+<p>Please click the following link to complete the initiative’s required Metadata.</p>
+
+<p>@ApplicationParameters.AppUrl</p>
+
+@code {
+
+    [Parameter]
+    public OnboardingParameters ApplicationParameters { get; set; }
+
+}

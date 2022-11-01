@@ -74,8 +74,18 @@
 
     private int? FindOrganizationLevelId(List<OrganizationLevel> levels, string value) 
     {
-        var org = !string.IsNullOrEmpty(value) ? levels.FirstOrDefault(l => value.Equals(l.EnglishLabel, StringComparison.OrdinalIgnoreCase) || value.Equals(l.FrenchLabel, StringComparison.OrdinalIgnoreCase)) : null;
-        return org?.Id;
+        if (!string.IsNullOrEmpty(value))
+            return levels.FirstOrDefault(l => MatchesLevelWithName(l, value))?.Id;
+        return default;
+    }
+
+    private bool MatchesLevelWithName(OrganizationLevel level, string value)
+    {
+        var mode = StringComparison.OrdinalIgnoreCase;
+        return value.Equals(level.EnglishLabel, mode) || 
+               value.Equals(level.FrenchLabel, mode) ||
+               value.Equals(level.EnglishAcronym, mode) ||
+               value.Equals(level.FrenchAcronym, mode);
     }
 
     private void OnMetadataCreated()

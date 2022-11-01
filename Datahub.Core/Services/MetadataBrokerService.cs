@@ -1,6 +1,7 @@
 ﻿using Datahub.CatalogSearch;
 using Datahub.Metadata.DTO;
 using Datahub.Metadata.Model;
+using Datahub.Metadata.Utils;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
@@ -232,32 +233,30 @@ namespace Datahub.Core.Services
             var transation = ctx.Database.BeginTransaction();
             try
             {
-                // delete existing catalog object
+                // get catalog objects
                 var catalogObjects = await ctx.CatalogObjects.Where(e => e.ObjectMetadataId == objectMetadataId).ToListAsync();
-                foreach (var obj in catalogObjects)
-                    ctx.CatalogObjects.Remove(obj);
 
-                await ctx.TrackSaveChangesAsync(_auditingService, anonymous);
-
-                // add new object
-                CatalogObject catalogObject = new()
+                CatalogObject catalogObject = catalogObjects.FirstOrDefault() ?? new();
                 {
-                    ObjectMetadataId = objectMetadataId,
-                    DataType = dataType,
-                    Name_TXT = englishName,
-                    Name_French_TXT = frenchName,
-                    Location_TXT = location,
-                    Sector_NUM = sector,
-                    Branch_NUM = branch,
-                    Contact_TXT = contact,
-                    Classification_Type = securityClass,
-                    Search_English_TXT = englishText,
-                    Search_French_TXT = frenchText,
-                    Language = language,
-                    ProjectId = projectId
+                    catalogObject.ObjectMetadataId = objectMetadataId;
+                    catalogObject.DataType = dataType;
+                    catalogObject.Name_TXT = englishName;
+                    catalogObject.Name_French_TXT = frenchName;
+                    catalogObject.Location_TXT = location;
+                    catalogObject.Sector_NUM = sector;
+                    catalogObject.Branch_NUM = branch;
+                    catalogObject.Contact_TXT = contact;
+                    catalogObject.Classification_Type = securityClass;
+                    catalogObject.Search_English_TXT = englishText;
+                    catalogObject.Search_French_TXT = frenchText;
+                    catalogObject.Language = language;
+                    catalogObject.ProjectId = projectId;
                 };
 
-                ctx.CatalogObjects.Add(catalogObject);
+                if (catalogObject.CatalogObjectId == 0)
+                    ctx.CatalogObjects.Add(catalogObject);
+                else
+                    ctx.CatalogObjects.Update(catalogObject);
 
                 await ctx.TrackSaveChangesAsync(_auditingService, anonymous);
 
@@ -356,7 +355,9 @@ namespace Datahub.Core.Services
 
             _logger.LogInformation("<<< SearchCatalog end...");
 
-            return results;
+            // return grouped results
+            var uiLanguage = request.IsFrench ? CatalogObjectLanguage.French : CatalogObjectLanguage.English;
+            return CatalogUtils.GroupResults(results, uiLanguage);
         }
 
         public async Task<List<CatalogObjectResult>> GetCatalogGroup(Guid groupId)
@@ -514,6 +515,7 @@ namespace Datahub.Core.Services
                 Url_English = catObj.Url_English_TXT,
                 Url_French = catObj.Url_French_TXT,
                 GroupId = catObj.GroupId,
+                ProjectId = catObj.ProjectId,
                 Metadata = new FieldValueContainer(catObj.ObjectMetadata.ObjectMetadataId, catObj.ObjectMetadata.ObjectId_TXT, definitions, 
                     catObj.ObjectMetadata.FieldValues)
             };
@@ -697,7 +699,7 @@ namespace Datahub.Core.Services
             List<MetadataObjectType> listedTypes = new() { MetadataObjectType.File, MetadataObjectType.PowerBIReport }; 
 
             return await ctx.CatalogObjects
-                            .Where(e => e.ProjectId == projectId && e.Classification_Type == ClassificationType.Unclassified && listedTypes.Contains(e.DataType))
+                            .Where(e => e.ProjectId == projectId && listedTypes.Contains(e.DataType))
                             .Include(e => e.ObjectMetadata)
                             .ThenInclude(s => s.FieldValues)
                             .AsSingleQuery()

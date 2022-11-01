@@ -3,7 +3,7 @@
 @inject RequestManagementService _requestManagementService
 @inject NavigationManager NavigationManager
 
-@if (_project is null)
+@if (Project is null)
 {
     <ToolCard Loading/>
 }
@@ -17,11 +17,10 @@ else
         </Logo>
         <ToolActionsList>
             <ul>
-                @if (!string.IsNullOrWhiteSpace(_project.Databricks_URL))
+                @if (!string.IsNullOrWhiteSpace(Project.Databricks_URL))
                 {
                     <li>                                
-                        <DHLink DataProject="@ProjectAcronym" DatabricksURL="@_project.Databricks_URL">
-
+                        <DHLink DataProject="@ProjectAcronym" DatabricksURL="@Project.Databricks_URL">
                             <ToolActionButton LinkType="LinkType.External">
                                     @Localizer["Open Azure Databricks"]
                             </ToolActionButton>
@@ -55,8 +54,8 @@ else
 
 @code {
 
-    [CascadingParameter(Name = "ProjectAcronym")]
-    public string ProjectAcronym { get; set; }
+    [CascadingParameter(Name = "Project")]
+    private Datahub_Project Project { get; set; }
 
     [CascadingParameter(Name = "UserId")]
     public string UserId { get; set; }
@@ -67,7 +66,7 @@ else
     private bool _databricksServiceRequested;
     private bool _databricksServiceRequestPending;
 
-    private Datahub_Project _project;
+    private string ProjectAcronym => Project?.Project_Acronym_CD;
 
     protected override async Task OnInitializedAsync()
     {
@@ -75,15 +74,10 @@ else
 
         await using var projectDbContext = await _dbFactoryProject.CreateDbContextAsync();
 
-        _project = await projectDbContext.Projects
-            .Include(p => p.Requests)
-            .AsSingleQuery()
-            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == ProjectAcronym);
-
         if (UserId != null)
         {
             _databricksServiceRequested = await projectDbContext.Project_Requests
-                .Where(p => p.Project == _project)
+                .Where(p => p.Project == Project)
                 .AnyAsync(r =>
                     r.ServiceType == RequestManagementService.DATABRICKS
                     && r.Is_Completed == null);
@@ -103,7 +97,7 @@ else
             ServiceType = RequestManagementService.DATABRICKS,
             ServiceRequests_Date_DT = DateTime.Now,
             Is_Completed = null,
-            Project = _project,
+            Project = Project,
             User_ID = UserId,
             User_Name = GraphUser.UserPrincipalName
         };

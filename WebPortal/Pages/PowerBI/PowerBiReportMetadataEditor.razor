@@ -2,6 +2,7 @@
 @inject IPowerBiDataService _powerBiDataService
 @inject TranslationService _translationService
 @inject IMetadataBrokerService _metadataService
+@inject IDbContextFactory<DatahubProjectDBContext> _projectDbFactory
 
 @if (_report == null)
 {
@@ -37,6 +38,7 @@ else
                 CatalogLanguage=@_catalogObjectLanguage
                 OnValuesChanged=@(() => StateHasChanged())
                 DefaultMetadataId=@ProjectAcronym
+                ProjectId=@_projectId
                 OnNewMetadataCreated=@AutoFillNewMetadataFields
                 OnExistingMetadataLoaded=@DetectIfCurrentItemIsInCatalog
             />
@@ -102,6 +104,7 @@ else
     private string _groupWithId;
 
     private ObjectMetadataEditor _reportMetadata;
+    private int _projectId;
 
     private bool _isSavingReport;
     private bool SaveReportDisabled => _isSavingReport || (_reportMetadata?.SaveDisabled ?? false);
@@ -228,6 +231,13 @@ else
         _siblingReports = await GetReportsForGrouping(_report);
         _groupWithId = await GetGroupedWith(_report);
         _catalogObjectLanguage = await _metadataService.GetCatalogObjectLanguage(PowerBiReportId.ToString()) ?? CatalogObjectLanguage.Bilingual;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = await _projectDbFactory.CreateDbContextAsync();
+        var project = await ctx.Projects.FirstOrDefaultAsync(p => p.Project_Acronym_CD == ProjectAcronym);
+        _projectId = project?.Project_ID ?? 0;
     }
 
 }

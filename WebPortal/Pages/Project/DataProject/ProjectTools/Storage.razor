@@ -1,9 +1,9 @@
+@*Storage.razor*@
 @using Datahub.Portal.Data.ProjectResource
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject RequestManagementService _requestManagementService
 
-
-@if (_project is null)
+@if (Project is null)
 {
     <ToolCard Loading/>
 }
@@ -49,8 +49,8 @@ else
 
 @code {
 
-    [CascadingParameter(Name = "ProjectAcronym")]
-    public string ProjectAcronym { get; set; }
+    [CascadingParameter(Name = "Project")]
+    private Datahub_Project Project { get; set; }
 
     [CascadingParameter(Name = "UserId")]
     public string UserId { get; set; }
@@ -62,28 +62,21 @@ else
     private bool _storageServiceRequestPending;
     private bool _storageDeployed;
 
-    private Datahub_Project _project;
+    private string ProjectAcronym => Project?.Project_Acronym_CD;
 
     protected override async Task OnInitializedAsync()
     {
-        await base.OnInitializedAsync();
-
         await using var projectDbContext = await _dbFactoryProject.CreateDbContextAsync();
-
-        _project = await projectDbContext.Projects
-            .Include(p => p.Requests)
-            .AsSingleQuery()
-            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == ProjectAcronym);
-
         if (UserId != null)
         {
             var storageServiceRequests = await projectDbContext.Project_Requests
-                .Where(pr => pr.Project == _project)
+                .Where(pr => pr.Project == Project)
                 .Where(pr => pr.ServiceType == RequestManagementService.STORAGE)
                 .ToListAsync();
 
             _storageDeployed = storageServiceRequests
                 .Any(pr => pr.Is_Completed != null);
+
             _storageServiceRequested = storageServiceRequests
                 .Any(pr => pr.Is_Completed == null);
         }
@@ -102,7 +95,7 @@ else
             ServiceType = RequestManagementService.STORAGE,
             ServiceRequests_Date_DT = DateTime.Now,
             Is_Completed = null,
-            Project = _project,
+            Project = Project,
             User_ID = UserId,
             User_Name = GraphUser.UserPrincipalName
         };
@@ -110,5 +103,4 @@ else
         await _requestManagementService.RequestServiceWithDefaults(serviceRequest);
         _storageServiceRequested = true;
     }
-
 }
