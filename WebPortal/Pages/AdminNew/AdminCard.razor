@@ -1,5 +1,4 @@
 ﻿
-
 <MudCard>
     <MudCardHeader>
         <MudText Typo=@Typo.h5>@CardDefinition.Title</MudText>
@@ -15,7 +14,7 @@
 
 @code {
     [Parameter]
-    public AdminIndex.AdminCardDef CardDefinition { get; set; }
+    public AdminCardDefinition CardDefinition { get; set; }
 
     [CascadingParameter(Name = "UserId")]
     public string UserId { get; set; }
@@ -26,17 +25,33 @@
     [CascadingParameter(Name = "IsDatahubAdmin")]
     public bool IsDatahubAdmin { get; set; }
 
+    private bool _isProcessing => CardDefinition.IsProcessing;
+
+    public void UpdateState()
+    {
+        StateHasChanged();
+    }
+
     private RenderFragment GenerateActionButton()
     {
-        if (CardDefinition.Action is AdminIndex.AdminCardUrlAction)
+        if (CardDefinition.Action is AdminCardUrlAction)
         {
-            var url = ((AdminIndex.AdminCardUrlAction)CardDefinition.Action).Url;
+            var url = ((AdminCardUrlAction)CardDefinition.Action).Url;
             return @<MudButton Href=@url Color=@Color.Primary Variant=Variant.Filled>@CardDefinition.Action.Caption</MudButton>;
         }
-        else if (CardDefinition.Action is AdminIndex.AdminCardCodeAction)
+        else if (CardDefinition.Action is AdminCardCodeAction)
         {
-            var action = ((AdminIndex.AdminCardCodeAction)CardDefinition.Action).Action;
-            return @<MudButton OnClick=action Color=@Color.Primary Variant=Variant.Filled>@CardDefinition.Action.Caption</MudButton>;
+            var action = ((AdminCardCodeAction)CardDefinition.Action).Action;
+            return 
+            @<MudButton OnClick=action Color=@Color.Secondary Variant=Variant.Filled Disabled=@_isProcessing>
+                <MudStack Row>
+                    @if (_isProcessing)
+                    {
+                        <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                    }
+                    <MudText>@CardDefinition.Action.Caption</MudText>
+                </MudStack>
+            </MudButton>;
         }
 
         return @<MudSpacer />;
