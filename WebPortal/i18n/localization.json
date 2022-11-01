@@ -1053,8 +1053,19 @@
       "OpenPage": "Open Page",
       "UpdateCosts": "Update Costs"
     },
+    "SECTIONS": {
+      "InitiativeAdmin": "Initiative Administration",
+      "DataHubInitiativeTracker": "DataHub Initiative Tracker",
+      "InitiativeTrackerDesc": "Create, edit, and manage data initiatives",
+      "InitiativeAccessRequests": "Initiative Access Requests",
+      "ServiceAdmin": "Service Administration",
+      "ServiceCreationRequests": "Service Creation Requests",
+      "ServiceAccessRequests": "Service Access Requests",
+      "Registrations": "Registrations"
+    },
     "StartingCostUpdate": "Starting initiative cost update",
     "UpdatedNCosts": "Updated costs for {0} initiatives",
-    "ErrorUpdatingCosts": "Error updating costs: {0}"
+    "ErrorUpdatingCosts": "Error updating costs: {0}",
+    "ReturnToAdmin": "Return to Administration"
   }
 }
