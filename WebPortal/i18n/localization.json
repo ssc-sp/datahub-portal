@@ -1077,7 +1077,8 @@
       "ServiceAdmin": "Service Administration",
       "ServiceCreationRequests": "Service Creation Requests",
       "ServiceAccessRequests": "Service Access Requests",
-      "Registrations": "Registrations"
+      "Registrations": "Registrations",
+      "ExternalSharing": "External Power BI Requests"
     },
     "StartingCostUpdate": "Starting initiative cost update",
     "UpdatedNCosts": "Updated costs for {0} initiatives",

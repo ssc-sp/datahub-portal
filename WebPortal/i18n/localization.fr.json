@@ -1714,7 +1714,8 @@
       "ServiceAdmin": "Administration des services",
       "ServiceCreationRequests": "Demandes de création des services",
       "ServiceAccessRequests": "Demandes d'accès aux services",
-      "Registrations": "Enregistrements"
+      "Registrations": "Enregistrements",
+      "ExternalSharing": "Demandes externes de Power BI"
     },
     "StartingCostUpdate": "Commence la mise à jour du coût de l'initiative",
     "UpdatedNCosts": "Mise à jour des coûts pour {0} initiatives",
