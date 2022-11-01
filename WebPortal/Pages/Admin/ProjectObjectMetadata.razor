@@ -1,0 +1,120 @@
+﻿@*ProjectObjectMetadata.razor*@
+
+@using Datahub.Metadata.DTO
+@using Datahub.Metadata.Model
+@inject NavigationManager NavigationManager
+@inject IDbContextFactory<DatahubProjectDBContext> ContextFactory
+@inject IOrganizationLevelsService OrganizationLevelsService
+
+@if (_project is not null)
+{
+    <AeCard>
+        <ObjectMetadataEditor 
+            @ref="_editor"
+            @key=@ObjectId
+            ObjectId=@ObjectId
+            ProfileName=@ProfileName
+            Location=@Location
+            ProjectId=@_project.Project_ID
+            ObjectType=@ObjectType
+            SecurityClass=@GetProjectSensitivity()
+            SaveButtonLabel=@Localizer["OPENDATA-WIZARD.Save_button"]
+            OnSave=@HandleBack
+            OnDiscard=@HandleBack
+            OnNewMetadataCreated=@OnMetadataCreated
+            OnExistingMetadataLoaded=@OnMetadataCreated
+            UpdateCatalog
+            ValidateRequired />
+    </AeCard>
+}
+
+@code {
+
+    [Parameter]
+    public string ProjectAcronym { get; set; }
+
+    [Parameter]
+    public string ProfileName { get; set; }
+
+    [Parameter]
+    public string ObjectId { get; set; }
+
+    [Parameter]
+    public MetadataObjectType ObjectType { get; set; }
+
+    [Parameter]
+    public string Location { get; set; }
+
+    [Parameter]
+    public EventCallback<Datahub_Project> OnProjectLoaded { get; set; }
+
+    private Datahub_Project _project;
+    private int? _sector;
+    private int? _branch;    
+    private ObjectMetadataEditor _editor;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = await ContextFactory.CreateDbContextAsync();
+        _project = await ctx.Projects.FirstOrDefaultAsync(p => p.Project_Acronym_CD == ProjectAcronym);
+        if (_project is not null)
+        {
+            await TryReadProjectSectorAndBranch();
+            await OnProjectLoaded.InvokeAsync(_project);
+        }        
+    }
+
+    private async Task TryReadProjectSectorAndBranch()
+    {
+        var sectors = await OrganizationLevelsService.GetSectors();
+        _sector = FindOrganizationLevelId(sectors, _project.Sector_Name);
+        var branches = await OrganizationLevelsService.GetBranches();
+        _branch = FindOrganizationLevelId(branches, _project.Branch_Name);
+    }
+
+    private int? FindOrganizationLevelId(List<OrganizationLevel> levels, string value) 
+    {
+        if (!string.IsNullOrEmpty(value))
+            return levels.FirstOrDefault(l => MatchesLevelWithName(l, value))?.Id;
+        return default;
+    }
+
+    private bool MatchesLevelWithName(OrganizationLevel level, string value)
+    {
+        var mode = StringComparison.OrdinalIgnoreCase;
+        return value.Equals(level.EnglishLabel, mode) || 
+               value.Equals(level.FrenchLabel, mode) ||
+               value.Equals(level.EnglishAcronym, mode) ||
+               value.Equals(level.FrenchAcronym, mode);
+    }
+
+    private void OnMetadataCreated()
+    {
+        _editor.SetValue("title_translated_en", _project.Project_Name);
+        _editor.SetValue("title_translated_fr", _project.Project_Name_Fr);
+        _editor.SetValue("contact_information", _project.Project_Admin);
+
+        if (_sector.HasValue)
+            _editor.SetValue("sector", _sector.ToString());
+
+        if (_branch.HasValue)
+            _editor.SetValue("branch", _branch.ToString());
+    }
+
+    private void HandleBack()
+    {
+        NavigationManager.NavigateTo($"/projects/{ProjectAcronym}");
+    }
+
+    private string GetProjectSensitivity()
+    {
+        var sensitivity = (_project?.Data_Sensitivity ?? "").ToUpper();
+        return sensitivity switch
+        {
+            "CLASSIFIED" or
+            "PROTECTED B" => SecurityClassification.ProtectedB,
+            "PROTECTED A" => SecurityClassification.ProtectedA,
+            _ => SecurityClassification.Unclassified
+        };
+    }
+}

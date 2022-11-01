@@ -7,6 +7,7 @@
 @inject ServiceAuthManager _serviceAuthManager
 @inject AchievementService _achievementService
 @inject IDatahubAuditingService _auditingService
+@inject ILogger<DataProjectPage> logger
 
 @page "/projects/{ProjectAcronymParam}"
 
@@ -14,55 +15,66 @@
 
 <DHPageTitle PageTitleKey="@_projectName"/>
 
-<div class="project-page">
-    <CascadingValue Value=@ProjectAcronymParam Name="ProjectAcronym">
-        <CascadingValue Value=@_userId Name="UserId">
-            <CascadingValue Value=@_isDatahubAdmin Name="IsDatahubAdmin">
-                <CascadingValue Value=@_user Name="GraphUser">
-                    <CascadingValue Value=@_projectId Name="ProjectId">
-                        <ProjectInfo />
-                        <ProjectCatalog IsFrench=@_isFrench />
-                        <ProjectMembers />
-                        <ProjectToolListing />
+@if (_project is not null)
+{
+    <div class="project-page">
+        <CascadingValue Value=@_project Name="Project">
+            <CascadingValue Value=@ProjectAcronymParam Name="ProjectAcronym">
+                <CascadingValue Value=@_userId Name="UserId">
+                    <CascadingValue Value=@_isDatahubAdmin Name="IsDatahubAdmin">
+                        <CascadingValue Value=@_user Name="GraphUser">
+                            <CascadingValue Value=@_projectId Name="ProjectId">
+                                <ProjectInfo />
+                                <ProjectEngagements />
+                                <ProjectCatalog IsFrench=@_isFrench />
+                                <ProjectMembers />
+                                <ProjectToolListing />
+                            </CascadingValue>
+                        </CascadingValue>
                     </CascadingValue>
                 </CascadingValue>
             </CascadingValue>
         </CascadingValue>
-    </CascadingValue>
-</div>
+    </div>
+}
 
 @code {
 
     [Parameter]
     public string ProjectAcronymParam { get; set; }
 
-    [CascadingParameter]
-    private Task<AuthenticationState> authenticationStateTask { get; set; }
-
+    private Datahub_Project _project;
     private Microsoft.Graph.User _user;
     private string _userId;
     private string _projectName;
     private int _projectId;
     private bool _isDatahubAdmin;
     private bool _isFrench;
-
+    private bool _showCosts;
+    
     protected override async Task OnInitializedAsync()
     {
         await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
 
-        var project = await projectContext.Projects
+        _project = await projectContext.Projects
+            .Include(p => p.Requests)
+            .Include(p => p.ServiceRequests)
+            .Include(p => p.Pipelines)
+            .AsSingleQuery()
             .Where(p => p.Project_Acronym_CD == ProjectAcronymParam)
             .FirstOrDefaultAsync();
 
         _isFrench = Thread.CurrentThread.CurrentCulture.Name.Equals("fr-ca", StringComparison.OrdinalIgnoreCase);
-        _projectName = project?.ProjectName;
-        _projectId = project?.Project_ID ?? 0;
+        _projectName = _project?.ProjectName;
+        _projectId = _project?.Project_ID ?? 0;
 
         _userId = await _userInformationService.GetUserIdString();
+        if (_userId is null) logger.LogError("UserId is null");
+
         _user = await _userInformationService.GetUserAsync();
-        var authUser = (await authenticationStateTask).User;
+        var authUser = (await _userInformationService.GetAuthenticatedUser());
         _isDatahubAdmin = !_serviceAuthManager.GetViewingAsGuest(_userId) && authUser.IsInRole(RoleConstants.DATAHUB_ROLE_ADMIN);
-        
+
         var isMemberOfProject = projectContext.Project_Users
             .Any(p => p.User_ID == _userId && p.Project.Project_Acronym_CD == ProjectAcronymParam);
 
@@ -85,4 +97,9 @@
         }
     }
 
+
+    private void HandleToggleCosts()
+    {
+        _showCosts = !_showCosts;
+    }
 }
