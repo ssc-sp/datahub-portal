@@ -117,16 +117,21 @@ else
 
         rawCardDefs.Add(new("ManageInitiatives", "ManageInitiatives", new AdminCardUrlAction("OpenPage", "/admin/initiatives")));
         rawCardDefs.Add(new("ManageServices", "ManageServices", new AdminCardUrlAction("OpenPage", "/admin/services")));
-        rawCardDefs.Add(new("PowerBI", "PowerBI", new AdminCardUrlAction("OpenPage", "/admin/powerbi")));
-        //rawCardDefs.Add(new("ExternalSharing", "ExternalSharing", new AdminCardUrlAction("OpenPage", "/admin/externalsharing")));
         rawCardDefs.Add(new("Registrations", "Registrations", new AdminCardUrlAction("OpenPage", "/admin/registrations")));
-        rawCardDefs.Add(new("SharingAPIs", "SharingAPIs", new AdminCardUrlAction("OpenPage", "/apiusers")));
-        rawCardDefs.Add(new("Metadata", "Metadata", new AdminCardUrlAction("OpenPage", "/metadata/definitions")));
 
-        _updateCostsDef = LocalizeCardDef(new("MonthlyCost", "MonthlyCost", new AdminCardCodeAction("UpdateCosts", async () => await UpdateMonthlyInitiativeCosts())));
-        rawCardDefs.Add(_updateCostsDef);
+        if (IsDataHubAdmin)
+        {
+            rawCardDefs.Add(new("PowerBI", "PowerBI", new AdminCardUrlAction("OpenPage", "/admin/powerbi")));
+            rawCardDefs.Add(new("SharingAPIs", "SharingAPIs", new AdminCardUrlAction("OpenPage", "/apiusers")));
+            rawCardDefs.Add(new("Metadata", "Metadata", new AdminCardUrlAction("OpenPage", "/metadata/definitions")));
+            
+            // TODO: if we figure out external power bi sharing, re-enable this section
+            //rawCardDefs.Add(new("ExternalSharing", "ExternalSharing", new AdminCardUrlAction("OpenPage", "/admin/externalsharing")));
 
-        //TODO add more
+            _updateCostsDef = LocalizeCardDef(new("MonthlyCost", "MonthlyCost", new AdminCardCodeAction("UpdateCosts", async () => await UpdateMonthlyInitiativeCosts())));
+            rawCardDefs.Add(_updateCostsDef);
+        }
+
 
         return rawCardDefs.Select(r => LocalizeCardDef(r));
     }
