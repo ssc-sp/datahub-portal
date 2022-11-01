@@ -1,35 +1,22 @@
 ﻿@inject IUserInformationService _userInformationService
 @inject ServiceAuthManager _serviceAuthManager
 
-@page "/admin/initiatives"
+@page "/admin/services"
 
-<DHPageTitle PageTitleKey=@Localizer[$"{ADMIN_SECTION_LOCALIZATION_PREFIX}.InitiativeAdmin"] />
+<DHPageTitle PageTitleKey=@Localizer[$"{ADMIN_SECTION_LOCALIZATION_PREFIX}.ServiceAdmin"] />
 
-<MudText Typo=Typo.h3>@Localizer[$"{ADMIN_SECTION_LOCALIZATION_PREFIX}.InitiativeAdmin"]</MudText>
+<MudText Typo=Typo.h3>@Localizer[$"{ADMIN_SECTION_LOCALIZATION_PREFIX}.ServiceAdmin"]</MudText>
 
 <AuthorizeView Roles=@RoleConstants.DATAHUB_ROLE_ADMIN>
     <CascadingValue Value="CurrentUserId" Name="UserId">
         <CascadingValue Value="IsDataHubAdmin" Name="IsDatahubAdmin">
             <CascadingValue Value="CurrentUserEmail" Name="CurrentUserEmail">
                 <MudTabs>
-                    <MudTabPanel Text=@Localizer[$"{ADMIN_SECTION_LOCALIZATION_PREFIX}.DataHubInitiativeTracker"]>
-                        <MudCard Class="pa-8">
-                            <MudCardHeader>
-                                <MudText Typo=@Typo.h5>@Localizer[$"{ADMIN_SECTION_LOCALIZATION_PREFIX}.DataHubInitiativeTracker"]</MudText>
-                            </MudCardHeader>
-                            <MudCardContent>
-                                <MudStack Row>
-                                    <MudText>@Localizer[$"{ADMIN_SECTION_LOCALIZATION_PREFIX}.InitiativeTrackerDesc"]</MudText>
-                                    <MudSpacer/>
-                                    <MudButton Href=@($"/datahub/{UrlPathSegment.PROJECTS}") Variant=@Variant.Filled Color=@Color.Primary>
-                                        @Localizer["ADMINISTRATION.BUTTON_CAPTIONS.OpenPage"]
-                                    </MudButton>
-                                </MudStack>
-                            </MudCardContent>
-                        </MudCard>
+                    <MudTabPanel Text=@Localizer[$"{ADMIN_SECTION_LOCALIZATION_PREFIX}.ServiceCreationRequests"]>
+                        <Datahub.Portal.Pages.Admin.Requests.ServiceCreationRequestTable />
                     </MudTabPanel>
-                    <MudTabPanel Text=@Localizer[$"{ADMIN_SECTION_LOCALIZATION_PREFIX}.InitiativeAccessRequests"]>
-                        <Datahub.Portal.Pages.Admin.Requests.ProjectAccessRequestTable />
+                    <MudTabPanel Text=@Localizer[$"{ADMIN_SECTION_LOCALIZATION_PREFIX}.ServiceAccessRequests"]>
+                        <Datahub.Portal.Pages.Admin.Requests.ServiceAccessRequestTable />
                     </MudTabPanel>
                 </MudTabs>
             </CascadingValue>
@@ -41,8 +28,8 @@
     <MudLink Href="/administration">@Localizer[$"{ADMIN_LOCALIZATION_PREFIX}.ReturnToAdmin"]</MudLink>
 </MudText>
 
-
 @code {
+
     private const string ADMIN_LOCALIZATION_PREFIX = "ADMINISTRATION";
     private const string ADMIN_SECTION_LOCALIZATION_PREFIX = $"{ADMIN_LOCALIZATION_PREFIX}.SECTIONS";
 
@@ -62,5 +49,6 @@
         IsDataHubAdmin = _user.IsInRole(RoleConstants.DATAHUB_ROLE_ADMIN);
 
     }
+
 
 }
