@@ -17,7 +17,7 @@ namespace Datahub.Finance.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "6.0.7")
+                .HasAnnotation("ProductVersion", "6.0.9")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
@@ -97,6 +97,12 @@ namespace Datahub.Finance.Migrations
                     b.Property<double?>("FTE")
                         .HasColumnType("float");
 
+                    b.Property<int?>("FTE_Accomodations_Location")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("FTE_Accomodations_Requirements")
+                        .HasColumnType("int");
+
                     b.Property<string>("Fund")
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
@@ -104,7 +110,7 @@ namespace Datahub.Finance.Migrations
                     b.Property<int?>("FundCenter_ID")
                         .HasColumnType("int");
 
-                    b.Property<int>("Incremental_Replacement")
+                    b.Property<int?>("Incremental_Replacement")
                         .HasColumnType("int");
 
                     b.Property<bool>("Is_Deleted")
@@ -123,7 +129,14 @@ namespace Datahub.Finance.Migrations
                         .HasMaxLength(4000)
                         .HasColumnType("nvarchar(4000)");
 
-                    b.Property<int>("Potential_Hiring_Process")
+                    b.Property<string>("Other_Locations")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int?>("Position_Workspace_Type")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("Potential_Hiring_Process")
                         .HasColumnType("int");
 
                     b.Property<double?>("Salary")
@@ -285,11 +298,12 @@ namespace Datahub.Finance.Migrations
                     b.Property<bool>("Is_Deleted")
                         .HasColumnType("bit");
 
-                    b.Property<int>("Key_Activity")
+                    b.Property<int?>("Key_Activity")
                         .HasColumnType("int");
 
-                    b.Property<int>("Key_Driver")
-                        .HasColumnType("int");
+                    b.Property<string>("Key_Activity_Additional_Information")
+                        .HasMaxLength(5000)
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("Last_Updated_DT")
                         .HasColumnType("datetime2");

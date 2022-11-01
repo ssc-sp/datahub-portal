@@ -172,5 +172,15 @@
   "CancelExtSharingRequestFor": "Annuler la demande de partage externe pour {0}?",
   "Working": "Travaillant...",
   "TemporaryExternalLink": "Lien externe temporaire",
-  "RequestingUser": "Utilisateur demandeur"
+  "RequestingUser": "Utilisateur demandeur",
+  "Last Name": "Nom de famille",
+  "First Name": "Prénom",
+  "Indeterminate": "Indéterminé",
+  "End Date": "Date de fin",
+  "FTE_Accomodations_Req_Values": "Exigences en matière d'aménagement de l'ETP",
+  "FTE_Accomodations_Location_Values": "Hébergement ETP : Emplacement prévu",
+  "Position_Workspace_Type_Values": "Poste Type d'espace de travail",
+  "Key_Activity_Additional_Information": "Activité clé Informations complémentaires",
+  "SFT With Attrition": "SFT avec attrition",
+  "Start Date": "Date de début"
 }

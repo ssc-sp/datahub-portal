@@ -532,6 +532,14 @@ namespace Datahub.Core.Services
 
         }
 
+        public async Task SendOnboardingMetadataEditRequest(OnboardingParameters parameters)
+        {
+            var parametersDict = BuildOnboardingParameters(parameters);
+            var subject = $"Complete Metadata request – {parameters.App.Product_Name}";
+            var html = await RenderTemplate<OnBoardingMetadataRequest>(parametersDict);
+            await SendEmailMessage(subject, html, parameters.App.Client_Email, parameters.App.Client_Contact_Name);
+        }
+
         public async Task SendExternalPowerBiCreationRequested(PowerBiExternalReportParameters parameters)
         {
             var parametersDict = BuildPowerBiExternalReportParameters(parameters);

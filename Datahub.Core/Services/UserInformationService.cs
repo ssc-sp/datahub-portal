@@ -54,6 +54,13 @@ namespace Datahub.Core.Services
             this.contextFactory = contextFactory;
         }
 
+        public async Task<ClaimsPrincipal> GetAuthenticatedUser(bool forceReload = false)
+        {
+            if ( _authenticationStateProvider == null || forceReload)
+			    authenticatedUser = (await _authenticationStateProvider.GetAuthenticationStateAsync()).User;
+			return authenticatedUser;
+        }
+
         public string UserLanguage { get; set; }
 
         public async Task<string> GetUserIdString()
@@ -103,8 +110,7 @@ namespace Datahub.Core.Services
         {
             if (isViewingAsVisitor)
                 return true;
-            authenticatedUser ??= (await _authenticationStateProvider.GetAuthenticationStateAsync()).User;
-            var claims = authenticatedUser.Claims.Where(c => c.Type == ClaimTypes.Role).ToList();
+            var claims = (await GetAuthenticatedUser()).Claims.Where(c => c.Type == ClaimTypes.Role).ToList();
 
             return (claims.Count() == 0 || (claims.Count() == 1 && claims[0].Value == "default"));             
         }
@@ -114,8 +120,7 @@ namespace Datahub.Core.Services
             if (CurrentUser != null) return;
             try
             {
-                authenticatedUser ??= (await _authenticationStateProvider.GetAuthenticationStateAsync()).User;
-                var email = authenticatedUser?.Identity?.Name;
+                var email = (await GetAuthenticatedUser())?.Identity?.Name;
                 var userId = GetOid();
                 if (email is null)
                 {

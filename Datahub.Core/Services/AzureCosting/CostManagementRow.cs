@@ -1,6 +1,6 @@
 using System.Text.Json.Nodes;
 
-namespace Datahub.Graph.Functions.CostManagement;
+namespace Datahub.Core.Services.AzureCosting;
 
 public class CostManagementRow
 {

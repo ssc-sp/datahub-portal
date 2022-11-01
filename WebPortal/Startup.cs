@@ -40,6 +40,7 @@ using MudBlazor.Services;
 using Datahub.GeoCore.Service;
 using Datahub.Core.Services.Offline;
 using Datahub.CatalogSearch;
+using Datahub.Core.Services.AzureCosting;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]
 
@@ -415,6 +416,7 @@ namespace Datahub.Portal
             services.AddScoped<NotificationsService>();
             services.AddScoped<UIControlsService>();
             services.AddScoped<NotifierService>();
+            services.AddScoped<AzureCostManagementService>();
 
             services.AddScoped<IEmailNotificationService, EmailNotificationService>();
             services.AddScoped<ISystemNotificationService, SystemNotificationService>();
