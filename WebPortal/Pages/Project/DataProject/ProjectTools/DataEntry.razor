@@ -1,7 +1,7 @@
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject RequestManagementService _requestManagementService
 
-@if (_project is null)
+@if (Project is null)
 {
     <ToolCard Loading/>
 }
@@ -15,9 +15,9 @@ else
             </div>
         </Logo>
         <ToolActionsList>
-            @if (!string.IsNullOrWhiteSpace(_project.WebForms_URL) && _webFormsAuthorized)
+            @if (!string.IsNullOrWhiteSpace(Project.WebForms_URL) && _webFormsAuthorized)
             {
-                <DHLink Variant="h3" DataProject="@ProjectAcronym" WebFormsURL="@_project.WebForms_URL">
+                <DHLink Variant="h3" DataProject="@ProjectAcronym" WebFormsURL="@Project.WebForms_URL">
                     <ToolActionButton LinkType="LinkType.Internal">
                         @Localizer["Open Data Entry Application"]
                     </ToolActionButton>                    
@@ -43,8 +43,8 @@ else
 
 @code {
 
-    [CascadingParameter(Name = "ProjectAcronym")]
-    public string ProjectAcronym { get; set; }
+    [CascadingParameter(Name = "Project")]
+    private Datahub_Project Project { get; set; }
 
     [CascadingParameter(Name = "UserId")]
     public string UserId { get; set; }
@@ -55,20 +55,14 @@ else
     private bool _webFormsRequested;
     private bool _webFormsAuthorized;
 
-    private Datahub_Project _project;
+    private string ProjectAcronym => Project?.Project_Acronym_CD;
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
-        await using var projectDbContext = await _dbFactoryProject.CreateDbContextAsync();
-        _project = await projectDbContext.Projects
-            .Include(p => p.Requests)
-            .AsSingleQuery()
-            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == ProjectAcronym);
-
         if (UserId != null)
         {
-            _webFormsRequested = _project.Requests.Where(r => r.User_ID == UserId && r.Completion_DT == null).Any(r => r.WebForms);
-            _webFormsAuthorized = _project.Requests
+            _webFormsRequested = Project.Requests.Where(r => r.User_ID == UserId && r.Completion_DT == null).Any(r => r.WebForms);
+            _webFormsAuthorized = Project.Requests
                 .Where(r => r.User_ID == UserId && r.Completion_DT != null)
                 .Any(r => r.WebForms);
         }
@@ -81,7 +75,7 @@ else
             Request_DT = DateTime.Now,
             User_Name = GraphUser.UserPrincipalName,
             User_ID = UserId,
-            Project = _project,
+            Project = Project,
             WebForms = true
         };
 

@@ -42,7 +42,7 @@ namespace Datahub.Tests
         }
 
         [Fact]
-        public async Task CheckClaims()
+        public void CheckClaims()
         {
             var identity = new ClaimsIdentity(new[]
                 {

@@ -31,8 +31,8 @@ namespace Datahub.Tests.Meta_Data
             expected = "kf1 kf2 subject1 p1 sector_fr1 branch_fr1 name1";
             Assert.Equal(actual.FrenchCatalog, expected);
 
-            expected = "Name1";
-            Assert.Equal(actual.Name, expected);
+            //expected = "Name1";
+            //Assert.Equal(actual.Name, expected);
 
             expected = "user1@email.com";
             Assert.Equal(actual.Contact, expected);

@@ -173,8 +173,12 @@ namespace Datahub.Portal.Data.PIP
         [AeFormCategory("Actual Results", 30)]
         public string Explanation { get; set; }
 
+        [MaxLength(8000)]
+        [AeLabel(row: "22", column: "1")]
+        [AeFormCategory("Actual Results", 30)]
+        public string Midyear_Results { get; set; }
+
         [AeFormIgnore]
-        [AeLabel(row: "21", column: "1")]
         [MaxLength(8000)]
         [AeFormCategory("Actual Results", 30)]
         public string Trend_Rationale { get; set; }

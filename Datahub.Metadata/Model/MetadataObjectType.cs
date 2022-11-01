@@ -11,6 +11,6 @@
         Database,
         DatasetUrl,
         DataInitiative,
-        DatabrickNotebook
+        Databricks
     }
 }

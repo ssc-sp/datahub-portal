@@ -88,12 +88,16 @@
         var lastPeriod = GetLatestPeriod();
         if (lastPeriod is not null)
         {
-            var powerBiTargets = Configuration["PowerBiTargets:LT"] ?? "";
-            var joinChar = powerBiTargets.Contains('?') ? '&' : '?';
-            var fiscalYear = GetFiscalYear(lastPeriod);
-            var parameters = $"year={fiscalYear}&quarter={lastPeriod.Quarter_NUM}";
-            var url = $"{powerBiTargets}{joinChar}{parameters}";
-            await JsInterop.InvokeAsync<object>("open", url, "_blank");
+            try
+            {
+                var powerBiTargets = @"https://app.powerbi.com/groups/dabe2469-0692-42c4-b492-bd2872fa779c/rdlreports/ad9e392e-2949-49d4-8848-92d6ba59907d?rp:p_year_for_language_training={0}&rp:p_quarter_num={1}&rdl:format=EXCELOPENXML";
+                var fiscalYear = GetFiscalYear(lastPeriod);
+                var url = string.Format(powerBiTargets, fiscalYear, lastPeriod.Quarter_NUM);
+                await JsInterop.InvokeAsync<object>("open", url, "_blank");
+            }
+            catch (Exception)
+            {
+            }
         }
     }
 

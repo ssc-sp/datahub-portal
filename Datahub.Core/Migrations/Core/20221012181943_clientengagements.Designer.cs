@@ -4,16 +4,18 @@ using Datahub.Core.EFCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
+namespace Datahub.Core.Migrations.Core
 {
     [DbContext(typeof(DatahubProjectDBContext))]
-    partial class DatahubProjectDBContextModelSnapshot : ModelSnapshot
+    [Migration("20221012181943_clientengagements")]
+    partial class clientengagements
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -33,12 +35,6 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.Property<DateTime?>("Actual_Release_Date")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime>("Created_DT")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Created_UserId")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("Engagement_Name")
                         .IsRequired()
                         .HasMaxLength(2000)
@@ -47,30 +43,11 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.Property<DateTime?>("Engagement_Start_Date")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("Engagment_Lead")
-                        .IsRequired()
-                        .HasMaxLength(2000)
-                        .HasColumnType("nvarchar(2000)");
-
-                    b.Property<string>("Engagment_Owners")
-                        .IsRequired()
-                        .HasMaxLength(2000)
-                        .HasColumnType("nvarchar(2000)");
-
                     b.Property<DateTime?>("Final_Release_Date")
                         .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("Final_Updates_EndDate")
                         .HasColumnType("datetime2");
-
-                    b.Property<bool>("Is_Engagement_Active")
-                        .HasColumnType("bit");
-
-                    b.Property<DateTime>("Last_Updated_DT")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Last_Updated_UserId")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("Phase1_Development_ActualEndDate")
                         .HasColumnType("datetime2");
@@ -96,23 +73,13 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.Property<DateTime?>("Phase2_Testing_EndDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<int?>("Project_ID")
-                        .HasColumnType("int");
-
                     b.Property<DateTime?>("Requirements_Gathering_ActualEndDate")
                         .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("Requirements_Gathering_EndDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<byte[]>("Timestamp")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("rowversion");
-
                     b.HasKey("Engagement_ID");
-
-                    b.HasIndex("Project_ID");
 
                     b.ToTable("Client_Engagements");
                 });
@@ -200,9 +167,6 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.Property<string>("Project_Admin")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<decimal?>("Project_Budget")
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<string>("Project_Category")
                         .HasColumnType("nvarchar(max)");
 
@@ -248,9 +212,6 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                         .HasColumnType("nvarchar(400)");
 
                     b.HasKey("Project_ID");
-
-                    b.HasIndex("Project_Acronym_CD")
-                        .IsUnique();
 
                     b.ToTable("Projects");
                 });
@@ -1368,15 +1329,6 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                         .HasColumnType("int");
 
                     b.ToTable("OpenDataSharedFile");
-                });
-
-            modelBuilder.Entity("Datahub.Core.EFCore.Client_Engagement", b =>
-                {
-                    b.HasOne("Datahub.Core.EFCore.Datahub_Project", "Project")
-                        .WithMany()
-                        .HasForeignKey("Project_ID");
-
-                    b.Navigation("Project");
                 });
 
             modelBuilder.Entity("Datahub.Core.EFCore.Datahub_Project_Access_Request", b =>
