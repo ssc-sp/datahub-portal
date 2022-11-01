@@ -1689,8 +1689,19 @@
       "OpenPage": "Ouvrir la page",
       "UpdateCosts": "Mise à jour des coûts"
     },
+    "SECTIONS": {
+      "InitiativeAdmin": "Administration des initiatives",
+      "DataHubInitiativeTracker": "Suivi de l'initiative DataHub",
+      "InitiativeTrackerDesc": "Create, edit, and manage data initiatives",
+      "InitiativeAccessRequests": "Créer, modifier et gérer les initiatives en matière de données",
+      "ServiceAdmin": "Administration des services",
+      "ServiceCreationRequests": "Demandes de création des services",
+      "ServiceAccessRequests": "Demandes d'accès aux services",
+      "Registrations": "Enregistrements"
+    },
     "StartingCostUpdate": "Commence la mise à jour du coût de l'initiative",
     "UpdatedNCosts": "Mise à jour des coûts pour {0} initiatives",
-    "ErrorUpdatingCosts": "Erreur de mise à jour des coûts : {0}"
+    "ErrorUpdatingCosts": "Erreur de mise à jour des coûts : {0}",
+    "ReturnToAdmin": "Retourner à l'administration"
   }
 }
