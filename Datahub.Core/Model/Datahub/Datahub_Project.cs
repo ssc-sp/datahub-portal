@@ -5,6 +5,9 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Threading;
+using MudBlazor.Forms;
+using AeFormCategoryAttribute = MudBlazor.Forms.AeFormCategoryAttribute;
+using AeFormIgnoreAttribute = MudBlazor.Forms.AeFormIgnoreAttribute;
 
 namespace Datahub.Core.EFCore
 {
@@ -22,16 +25,41 @@ namespace Datahub.Core.EFCore
 
         public int Project_ID { get; set; }
 
+
+
+
+        [AeFormCategory("Sector Information")]
+        [MudForm(IsDropDown = true)]
+        [Required]
+        [Editable(false)]
+        public OrganizationLevel Sector { get; set; }
+
+        [AeFormCategory("Sector Information")]
+        [MudForm(IsDropDown = true)]
+        [Required]
+        [Editable(false)]
+        public OrganizationLevel Branch { get; set; }
+
+        [AeFormCategory("Sector Information")]
+        [MudForm(IsDropDown = true)]
+        [Required]
+        [Editable(false)]
+        public OrganizationLevel Division { get; set; }
+
         [Required]
         [StringLength(4000)]
+        [AeFormIgnore]
         [AeLabel(isDropDown: true, placeholder: " ")]
         public string Sector_Name { get; set; }
 
+
         [StringLength(200)]
         [AeLabel(isDropDown: true, placeholder: " ")]
+        [AeFormIgnore]
         public string Branch_Name { get; set; }
 
         [AeLabel(isDropDown: true, placeholder: " ")]
+        [AeFormIgnore]
         public string Division_Name { get; set; }
 
         public string Contact_List { get; set; }
@@ -93,6 +121,10 @@ namespace Datahub.Core.EFCore
 
         [AeFormIgnore]
         public DateTime Last_Updated_DT { get; set; }
+
+        [AeFormIgnore]
+        public DateTime Last_Updated_UserId { get; set; }
+        
 
         [AeFormIgnore]
         public DateTime? Deleted_DT { get; set; }
