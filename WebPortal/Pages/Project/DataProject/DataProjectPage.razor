@@ -54,6 +54,7 @@
     private bool _isProjectAdmin;
     private bool _isFrench;
     private bool _showCosts;
+    private List<Client_Engagement> _clientEngagements = new();
     
     protected override async Task OnInitializedAsync()
     {
@@ -86,7 +87,7 @@
         {
             await _achievementService.AddOrIncrementTelemetryEvent(DatahubUserTelemetry.TelemetryEvents.UserViewProjectNotMemberOf);
         }
-
+        _clientEngagements = await projectContext.Client_Engagements.Where(ce => ce.Project == _project && ce.Is_Engagement_Active).ToListAsync();
         await _auditingService.TrackEvent("Open Initiative", ("Initiative", _projectName), ("Acronym", ProjectAcronymParam));
     }
 
