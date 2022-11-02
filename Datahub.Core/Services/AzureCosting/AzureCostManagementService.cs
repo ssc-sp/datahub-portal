@@ -19,20 +19,13 @@ namespace Datahub.Core.Services.AzureCosting
 {
     public class AzureCostManagementService
     {
-        private const string AZURE_BASE_URL = "https://management.azure.com/";
-        private const string BILLING_CONFIG_SECTION = "Billing";
-        private const string SUBSCRIPTION_ID_CONFIG_KEY = "AzureSubscription";
-        private const string RESOURCE_GROUP_CONFIG_KEY = "ResourceGroup";
+        public const string AZURE_BASE_URL = "https://management.azure.com/";
+        public const string BILLING_CONFIG_SECTION = "Billing";
+        public const string SUBSCRIPTION_ID_CONFIG_KEY = "AzureSubscription";
+        public const string RESOURCE_GROUP_CONFIG_KEY = "ResourceGroup";
 
         private DatahubProjectDBContext _dbContext;
-        private readonly ILogger<AzureCostManagementService> logger;
-        private ITokenAcquisition _tokenAcquisition;
-        private MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler;
-
-
-
-        private string _subscriptionId;
-        private string _resourceGroup;
+        private readonly ILogger<AzureCostManagementService> logger;       
 
         public static readonly string[] RequiredScopes = new string[]
         {
@@ -42,51 +35,12 @@ namespace Datahub.Core.Services.AzureCosting
 
         public AzureCostManagementService(
             DatahubProjectDBContext dbContext, 
-            ILogger<AzureCostManagementService> logger, 
-            ITokenAcquisition tokenAcquisition, 
-            MicrosoftIdentityConsentAndConditionalAccessHandler consentHandler,
-            IConfiguration configuration)
+            ILogger<AzureCostManagementService> logger)
         {
             _dbContext = dbContext;
             this.logger = logger;
-            _tokenAcquisition = tokenAcquisition;
-            _consentHandler = consentHandler;
-            _subscriptionId = configuration.GetSection(BILLING_CONFIG_SECTION).GetValue<string>(SUBSCRIPTION_ID_CONFIG_KEY);
-            _resourceGroup = configuration.GetSection(BILLING_CONFIG_SECTION).GetValue<string>(RESOURCE_GROUP_CONFIG_KEY);
 
-            if (string.IsNullOrEmpty(_resourceGroup))
-            {
-                _resourceGroup = null;
-            }
         }
-
-        public async Task<string> GetAccessTokenAsync()
-        {
-            var token = default(string);
-
-            try
-            {
-                token = await _tokenAcquisition.GetAccessTokenForUserAsync(RequiredScopes);
-            }
-            catch (MicrosoftIdentityWebChallengeUserException e)
-            {
-                // user isn't logged into Power BI -> redirect to Microsoft
-                _consentHandler.HandleException(e);
-            }
-            catch (HttpOperationException)
-            {
-                // couldn't load the report - missing or unauthorized
-            }
-            catch (Exception)
-            {
-                // some other exception, crash and log like normal
-                throw;
-            }
-
-            return await Task.FromResult(token);
-        }
-
-        public async Task<IEnumerable<CostManagementRow>> GetCurrentMonthlyCostAsync(string token) => await GetCurrentMonthlyCostAsync(_subscriptionId, token, _resourceGroup);
 
         public async Task<IEnumerable<CostManagementRow>> GetCurrentMonthlyCostAsync(string subscriptionId, string token, string resourceGroup = null)
         {
