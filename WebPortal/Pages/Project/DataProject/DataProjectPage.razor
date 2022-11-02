@@ -90,6 +90,18 @@
         await _auditingService.TrackEvent("Open Initiative", ("Initiative", _projectName), ("Acronym", ProjectAcronymParam));
     }
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+
+        if (firstRender)
+        {
+            // refresh auth due to server pre-rendering
+            StateHasChanged();
+        }
+    }
+
+
     private void HandleToggleCosts()
     {
         _showCosts = !_showCosts;

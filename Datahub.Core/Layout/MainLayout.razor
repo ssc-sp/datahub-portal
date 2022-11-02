@@ -14,13 +14,13 @@
 <MudThemeProvider Theme="_theme"/>
 <MudDialogProvider/>
 <MudSnackbarProvider/>
-<DatahubAchievementProvider/>
 
 <PageTitle>@Localizer[_configuration["Title"]]</PageTitle>
 
 <CascadingValue Value="_theme">
     <AuthorizeView>
         <Authorized>
+            <DatahubAchievementProvider />
             <MudLayout Style="@_style">
                 <MudAppBar Elevation="0">
                     <Topbar/>
