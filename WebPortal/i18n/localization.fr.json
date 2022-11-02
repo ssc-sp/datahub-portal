@@ -1681,5 +1681,48 @@
     "Fall": "d'automne",
     "Winter": "d'hiver"
   },
+  "ADMINISTRATION": {
+    "CARD_TITLES": {
+      "ManageInitiatives": "Gestion des initiatives",
+      "ExternalSharing": "Partage externe",
+      "ManageServices": "Gérer les services dans les initiatives",
+      "PowerBI": "Power BI",
+      "Registrations": "Enregistrements",
+      "SharingAPIs": "Les API de partage de DataHub",
+      "Metadata": "Gestion des métadonnées",
+      "MonthlyCost": "Coûts mensuels",
+      "InitiativeResourceDefinitions": "Définitions des ressources d'initiative"
+    },
+    "CARD_DESCRIPTIONS": {
+      "ManageInitiatives": "Approuver les demandes d'initiatives et l'accès des utilisateurs",
+      "ExternalSharing": "Gérer le partage externe des fichiers et des rapports Power BI",
+      "ManageServices": "Approuver la création de services et les demandes d'accès",
+      "PowerBI": "Lier les espaces de travail, les rapports et les ensembles de données de Power BI aux initiatives de Datahub",
+      "Registrations": "Gérer les enregistrements",
+      "SharingAPIs": "Gérer les clés API pour les utilisateurs externes",
+      "Metadata": "Gérer le modèle de métadonnées de Datahub",
+      "MonthlyCost": "Rafraîchir le coûts mensuels des initiatives",
+      "InitiativeResourceDefinitions": "Gérer les paramètres des ressources de l'initiative"
+    },
+    "BUTTON_CAPTIONS": {
+      "OpenPage": "Ouvrir la page",
+      "UpdateCosts": "Mise à jour des coûts"
+    },
+    "SECTIONS": {
+      "InitiativeAdmin": "Administration des initiatives",
+      "DataHubInitiativeTracker": "Suivi de l'initiative DataHub",
+      "InitiativeTrackerDesc": "Create, edit, and manage data initiatives",
+      "InitiativeAccessRequests": "Créer, modifier et gérer les initiatives en matière de données",
+      "ServiceAdmin": "Administration des services",
+      "ServiceCreationRequests": "Demandes de création des services",
+      "ServiceAccessRequests": "Demandes d'accès aux services",
+      "Registrations": "Enregistrements",
+      "ExternalSharing": "Demandes externes de Power BI"
+    },
+    "StartingCostUpdate": "Commence la mise à jour du coût de l'initiative",
+    "UpdatedNCosts": "Mise à jour des coûts pour {0} initiatives",
+    "ErrorUpdatingCosts": "Erreur de mise à jour des coûts : {0}",
+    "ReturnToAdmin": "Retourner à l'administration"
+  },
   "Public Datasets": "Ensembles de données publiques"
 }
