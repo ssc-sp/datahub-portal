@@ -1,6 +1,6 @@
 using Microsoft.JSInterop;
 
-namespace Datahub.Portal.Pages.AdminLegacy.Requests.Registration;
+namespace Datahub.Portal.Pages.Admin.Requests.Registration;
 
 public partial class RegistrationActions
 {

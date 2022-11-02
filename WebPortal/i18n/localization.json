@@ -1053,7 +1053,8 @@
       "Registrations": "Registrations",
       "SharingAPIs": "DataHub Sharing APIs",
       "Metadata": "Metadata Management",
-      "MonthlyCost": "Monthly Cost"
+      "MonthlyCost": "Monthly Cost",
+      "InitiativeResourceDefinitions": "Initiative Resource Definitions"
     },
     "CARD_DESCRIPTIONS": {
       "ManageInitiatives": "Approve initiative requests and user access",
@@ -1063,7 +1064,8 @@
       "Registrations": "Manage registrations",
       "SharingAPIs": "Manage API keys for external users",
       "Metadata": "Manage the Datahub metadata model",
-      "MonthlyCost": "Refresh monthly cost for initiatives"
+      "MonthlyCost": "Refresh monthly cost for initiatives",
+      "InitiativeResourceDefinitions": "Manage initiative resource settings"
     },
     "BUTTON_CAPTIONS": {
       "OpenPage": "Open Page",
