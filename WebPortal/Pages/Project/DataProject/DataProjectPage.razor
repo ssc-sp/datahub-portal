@@ -26,7 +26,10 @@
                             <CascadingValue Value=@_user Name="GraphUser">
                                 <CascadingValue Value=@_projectId Name="ProjectId">
                                     <ProjectInfo />
-                                    <ProjectEngagements />
+                                    @if (_clientEngagements.Any())
+                                    {
+                                        <ProjectEngagements />
+                                    }                                    
                                     <ProjectCatalog IsFrench=@_isFrench />
                                     <ProjectMembers />
                                     <ProjectToolListing />
