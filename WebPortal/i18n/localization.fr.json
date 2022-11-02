@@ -1690,7 +1690,8 @@
       "Registrations": "Enregistrements",
       "SharingAPIs": "Les API de partage de DataHub",
       "Metadata": "Gestion des métadonnées",
-      "MonthlyCost": "Coûts mensuels"
+      "MonthlyCost": "Coûts mensuels",
+      "InitiativeResourceDefinitions": "Définitions des ressources d'initiative"
     },
     "CARD_DESCRIPTIONS": {
       "ManageInitiatives": "Approuver les demandes d'initiatives et l'accès des utilisateurs",
@@ -1700,7 +1701,8 @@
       "Registrations": "Gérer les enregistrements",
       "SharingAPIs": "Gérer les clés API pour les utilisateurs externes",
       "Metadata": "Gérer le modèle de métadonnées de Datahub",
-      "MonthlyCost": "Rafraîchir le coûts mensuels des initiatives"
+      "MonthlyCost": "Rafraîchir le coûts mensuels des initiatives",
+      "InitiativeResourceDefinitions": "Gérer les paramètres des ressources de l'initiative"
     },
     "BUTTON_CAPTIONS": {
       "OpenPage": "Ouvrir la page",
