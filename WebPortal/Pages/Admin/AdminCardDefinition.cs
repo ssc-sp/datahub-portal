@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 
-namespace Datahub.Portal.Pages.AdminNew
+namespace Datahub.Portal.Pages.Admin
 {
     public abstract record AdminCardAction(string Caption);
     public record AdminCardUrlAction(string Caption, string Url) : AdminCardAction(Caption);

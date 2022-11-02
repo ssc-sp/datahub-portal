@@ -3,11 +3,15 @@
 @inject Datahub.Core.Services.AzureCosting.AzureCostManagementService _azureCostService
 @inject ILogger<AdminIndex> _logger
 @inject ISnackbar _snackbar
+@inject ITokenAcquisition _tokenAcquisition
+@inject IConfiguration _configuration
+@inject MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
 
 @page "/administration"
 @page "/admin"
-
-
+@using Datahub.Core.Services.AzureCosting;
+@using Microsoft.Identity.Web;
+@using Microsoft.Rest;
 
 <DHPageTitle PageTitleKey="@Localizer["Admin"]" />
 
@@ -65,6 +69,35 @@ else
 
     private bool _toggle = true;
 
+    private async Task UpdateMonthlyInitiativeCosts()
+    {
+        try
+        {
+            _updateCostsDef.IsProcessing = true;
+
+            _snackbar.Add(Localizer[$"{LOCALIZATION_PREFIX}.StartingCostUpdate"]);
+            var subscriptionId = _configuration.GetSection(AzureCostManagementService.BILLING_CONFIG_SECTION).GetValue<string>(AzureCostManagementService.SUBSCRIPTION_ID_CONFIG_KEY);
+            var resourceGroup = _configuration.GetSection(AzureCostManagementService.BILLING_CONFIG_SECTION).GetValue<string>(AzureCostManagementService.RESOURCE_GROUP_CONFIG_KEY);
+
+            var currentMonthlyCosts = await _azureCostService.GetCurrentMonthlyCostAsync(subscriptionId, _azureCostToken, resourceGroup);
+            var updateTask = _azureCostService.UpdateProjectMonthlyCostToDateAsync(currentMonthlyCosts.ToList());
+            var successMsg = Localizer[$"{LOCALIZATION_PREFIX}.UpdatedNCosts", currentMonthlyCosts.Count()];
+            await updateTask;
+            _snackbar.Add(successMsg, Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogCritical(ex, "Cannot retrieve Azure Costs");
+            var msg = Localizer[$"{LOCALIZATION_PREFIX}.ErrorUpdatingCosts", ex.Message];
+            _snackbar.Add(msg, Severity.Error);
+        }
+        finally
+        {
+            _updateCostsDef.IsProcessing = false;
+        }
+    } 
+
+
     private AdminCardAction LocalizeAdminCardAction(AdminCardAction action)
     {
         var result = default(AdminCardAction);
@@ -84,32 +117,6 @@ else
     private AdminCardDefinition LocalizeCardDef(AdminCardDefinition def) => def.Localized ? 
         def :
         new(Localizer[$"{CARD_TITLE_PREFIX}.{def.Title}"], Localizer[$"{CARD_DESC_PREFIX}.{def.Description}"], LocalizeAdminCardAction(def.Action), true);
-
-    private async Task UpdateMonthlyInitiativeCosts()
-    {
-        try
-        {
-            _updateCostsDef.IsProcessing = true;
-
-            _snackbar.Add(Localizer[$"{LOCALIZATION_PREFIX}.StartingCostUpdate"]);
-
-            var currentMonthlyCosts = await _azureCostService.GetCurrentMonthlyCostAsync(_azureCostToken);
-            var updateTask = _azureCostService.UpdateProjectMonthlyCostToDateAsync(currentMonthlyCosts.ToList());
-            var successMsg = Localizer[$"{LOCALIZATION_PREFIX}.UpdatedNCosts", currentMonthlyCosts.Count()];
-            await updateTask;
-            _snackbar.Add(successMsg, Severity.Success);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogCritical(ex, "Cannot retrieve Azure Costs");
-            var msg = Localizer[$"{LOCALIZATION_PREFIX}.ErrorUpdatingCosts", ex.Message];
-            _snackbar.Add(msg, Severity.Error);
-        }
-        finally
-        {
-            _updateCostsDef.IsProcessing = false;
-        }
-    }
 
     private IEnumerable<AdminCardDefinition> GenerateAdminCards()
     {
@@ -136,9 +143,36 @@ else
         return rawCardDefs.Select(r => LocalizeCardDef(r));
     }
 
+    public async Task<string> GetAccessTokenForUserAsync()
+    {
+        var token = default(string);
+
+        try
+        {
+            token = await _tokenAcquisition.GetAccessTokenForUserAsync(AzureCostManagementService.RequiredScopes);
+        }
+        catch (MicrosoftIdentityWebChallengeUserException e)
+        {
+            // user isn't logged into Power BI -> redirect to Microsoft
+            _consentHandler.HandleException(e);
+        }
+        catch (HttpOperationException)
+        {
+            // couldn't load the report - missing or unauthorized
+        }
+        catch (Exception)
+        {
+            // some other exception, crash and log like normal
+            throw;
+        }
+
+        return await Task.FromResult(token);
+    }
+
+
     protected override async Task OnInitializedAsync()
     {
-        _azureCostToken = await _azureCostService.GetAccessTokenAsync();
+        _azureCostToken = await GetAccessTokenForUserAsync();
 
         var user = await _userInformationService.GetUserAsync();
         _authorizedRoles = _serviceAuthManager.GetAdminProjectRoles(user.Id);
