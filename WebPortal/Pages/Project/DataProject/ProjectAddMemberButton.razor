@@ -1,0 +1,32 @@
+@inherits HtmlElement
+
+@inject IDialogService _dialogService
+
+<div class="@_classname" @attributes="InputAttributesWithoutClass">
+    <MudIcon Icon="@Icons.Filled.Add" Title="Add Member" Size="Size.Medium"/>
+</div>
+<AeTypography class="name">@Localizer["Add New Member"]</AeTypography>
+<a/>
+<a class="email-icon" @onclick="OpenDialog">
+    <i class="fas fa-plus"></i>
+</a>
+
+@code {
+    // TODO : Plus icon is dark
+
+    private string _classname => $"profile-circle {_inputClass}";
+
+    private void OpenDialog()
+    {
+        var closeOnEscapeKey = new DialogOptions()
+        {
+            CloseOnEscapeKey = true,
+            MaxWidth = MaxWidth.Medium,
+            FullWidth = true,
+            CloseButton = true
+        };
+
+        _dialogService.Show<ProjectAddMemberDialog>("Invite New User", closeOnEscapeKey);
+    }
+
+}

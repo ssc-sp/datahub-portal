@@ -1,0 +1,27 @@
+@using Microsoft.Graph
+<MudDialog>
+    <DialogContent>
+        <span style="display: grid; align: center; height: 2rem">
+            <MudText>Email</MudText>
+            <MudTextField Required="true" Label="Email" @bind-Value="user.Mail"/>
+        </span>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit">Ok</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    // TODO : Email overlaps buttons
+
+    [CascadingParameter]
+    MudDialogInstance MudDialog { get; set; }
+
+    [Parameter]
+    public User user { get; set; } = new User();
+
+    void Submit() => MudDialog.Close(DialogResult.Ok(true));
+    void Cancel() => MudDialog.Cancel();
+
+}
