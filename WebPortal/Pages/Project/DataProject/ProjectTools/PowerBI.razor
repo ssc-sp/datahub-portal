@@ -22,8 +22,6 @@ else
                 {
                     @if (_powerBiServiceCreated)
                     {
-                        @if (_powerBiAuthorized)
-                        {
                             <li>
                                 <DHLink Variant="h3" DataProject="@ProjectAcronym" LinkType="DatahubLinkType.PowerBIReport">
                                     <ToolActionButton LinkType="LinkType.External">
@@ -31,25 +29,6 @@ else
                                     </ToolActionButton>
                                 </DHLink>
                             </li>
-                        }
-                        else if (_powerBiAccessRequested)
-                        {
-                            <li>
-                                <MudText>@Localizer["Access Request is being reviewed"]</MudText>
-                            </li>
-                        }
-                        else
-                        {
-                            <li>
-                                <MudText> @Localizer["Access not authorized"]</MudText>
-                            </li>
-                            <li>
-                                <ToolActionButton OnClick="@HandleRequestAccess" LinkType="LinkType.Request">
-                                    @Localizer["Request Access"]
-                                </ToolActionButton>
-                                <SuccessIndicator @bind-IsLoading=@_isWorking @ref=@_accessReqInd />
-                            </li>
-                        }
                     }
                     else if (_powerBiServiceRequested)
                     {
@@ -106,8 +85,6 @@ else
 
     private bool _powerBiServiceRequested = false;
     private bool _powerBiServiceCreated = false;
-    private bool _powerBiAccessRequested = false;
-    private bool _powerBiAuthorized = false;
 
     private bool ServiceError { get; set; } = false;
 
@@ -136,10 +113,6 @@ else
             _powerBiServiceRequested = _serviceRequests.Any(r => r.ServiceType == RequestManagementService.POWERBI && r.Is_Completed == null);
             _powerBiServiceCreated = !string.IsNullOrEmpty(Project.PowerBI_URL) || 
                 _serviceRequests.Any(r => r.ServiceType == RequestManagementService.POWERBI && r.Is_Completed.HasValue);
-
-            //var userAcessRequests = _project.Requests.Where(r => r.User_ID == UserId && r.PowerBI);
-            _powerBiAccessRequested = false;//userAcessRequests.Any(r => r.Completion_DT is null);
-            _powerBiAuthorized = true;//userAcessRequests.Any(r => r.Completion_DT.HasValue);
         }
         else
         {
@@ -151,36 +124,6 @@ else
     {
         _isWorking = true;
         StateHasChanged();
-
-        var request = new Datahub_Project_Access_Request()
-        {
-            Request_DT = DateTime.Now,
-            User_Name = GraphUser.UserPrincipalName,
-            User_ID = UserId,
-            Project = Project,
-            PowerBI = true
-        };
-
-        var success = true;
-
-        try
-        {
-            await _requestManagementService.RequestAccess(request);
-        }
-        catch (Exception ex)
-        {
-            success = false;
-            _logger.LogError(ex, $"Error while requesting PowerBI access in project {ProjectAcronym}");
-        }
-
-        if (success)
-        {
-            await _accessReqInd.SignalSuccess();
-        }
-        else
-        {
-            await _accessReqInd.SignalFailure();
-        }
 
         await LoadProjectAndRequests();
     }

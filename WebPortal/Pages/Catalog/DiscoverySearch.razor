@@ -741,7 +741,7 @@
 		var classifications = string.Join(",", _filteredClassificationTypes.Select(v => (int)v));
 		if (!string.IsNullOrEmpty(classifications))
 			query.Add($"cls={classifications}");
-		
+
 		var types = string.Join(",", _filteredDataTypes.Select(v => (int)v));
 		if (!string.IsNullOrEmpty(types))
 			query.Add($"tps={types}");
@@ -763,11 +763,11 @@
 	}
 
 	private string GetBaseUrl()
-    {
+	{
 		var url = NavigationManager.Uri;
 		var hashIndex = url.IndexOf('?');
-        return hashIndex > 0 ? url.Substring(0, hashIndex) : url;
-    }
+		return hashIndex > 0 ? url.Substring(0, hashIndex) : url;
+	}
 
 	private void ApplyLocalization(List<CatalogObjectResult> results)
 	{
@@ -806,9 +806,17 @@
         };
 
 		var newResults = await MetadataBrokerService.SearchCatalog(newRequest, CheckValidResult);
-		_searchResults.AddRange(newResults);
 
-		return newResults;
+		// select the groups
+		var groups = new HashSet<Guid>(_searchResults.Where(r => r.GroupId.HasValue).Select(r => r.GroupId.Value));
+		
+		// filter new results not grouped
+		var validNewResults = newResults.Where(r => !r.GroupId.HasValue || !groups.Contains(r.GroupId.Value)).ToList();
+
+		// add new items not grouped
+		_searchResults.AddRange(validNewResults);
+
+		return validNewResults;
 	}
 
 	private async Task ShowGroup(List<CatalogObjectResult> group)
