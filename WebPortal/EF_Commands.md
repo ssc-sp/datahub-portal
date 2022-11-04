@@ -6,6 +6,9 @@
 
 [Documentation](https://docs.microsoft.com/en-us/ef/core/managing-schemas/migrations/?tabs=dotnet-core-cli)
 
+- install tools: `dotnet tool install --global dotnet-ef`
+- update tools: `dotnet tool update --global dotnet-ef`
+
 1. Update database
 
 - Go into project directory (e.g. `C:\code\nrcan\portal\DatahubPBILicenseForms`)
