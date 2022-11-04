@@ -36,10 +36,15 @@ namespace Datahub.Metadata.DTO
         public IEnumerable<FieldChoice> GetSelectedChoices(string fieldName)
         {
             var fieldValue = this[fieldName];
+            
+            var definition = GetFieldDefinition(fieldValue);
+            if (definition?.Choices is null)
+                yield break;
+
             var choiceValues = (fieldValue?.Value_TXT ?? "").Split(ChoiceSeparator, StringSplitOptions.RemoveEmptyEntries);
             foreach (var choiceValue in choiceValues)
             {
-                var choice = GetFieldDefinition(fieldValue).Choices.FirstOrDefault(c => choiceValue == c.Value_TXT);
+                var choice = definition.Choices.FirstOrDefault(c => choiceValue == c.Value_TXT);
                 if (choice is not null)
                     yield return choice;
             }

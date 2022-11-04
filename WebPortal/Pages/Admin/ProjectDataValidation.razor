@@ -1,0 +1,91 @@
+﻿@*ProjectDataValidation.razor*@
+@page "/project/validate/{ProjectAcronym}"
+@using Datahub.Metadata.DTO
+@using Datahub.Metadata.Model
+
+<div class="d-flex flex-column align-center">
+    <MudPagination Count="4" @bind-Selected=@_step Color="Color.Primary" />
+    <MudText Class="mt-2 mb-2" Typo="Typo.h4">@GetStepHeader()</MudText>
+</div>
+
+<MudGrid>
+    <MudItem xs="12">
+
+        @if (_step == 1)
+        {
+            <ProjectObjectMetadata ProfileName="initiative_onboarding"
+                                   ObjectId=@ProjectAcronym
+                                   Location=@ProjectAcronym
+                                   ProjectAcronym=@ProjectAcronym
+                                   AllowDiscard="false"
+                                   UpdateCatalog="false"
+                                   HideTranslationNote
+                                   NavigateToProject="false"
+                                   SaveButtonLabel=@Localizer["Save"]
+                                   ObjectType=@MetadataObjectType.DataInitiative
+                                   OnMetadataSaved=@HandleOnboardingMetadataSaved />
+
+        }
+
+        @if (_step == 2)
+        {
+            <MudText>Step: @_step</MudText>
+        }
+
+        @if (_step == 3)
+        {
+            <ProjectObjectMetadata ProfileName="project"
+                                   ObjectId=@ProjectAcronym
+                                   Location=@ProjectAcronym
+                                   ProjectAcronym=@ProjectAcronym
+                                   AllowDiscard="false"
+                                   NavigateToProject="false"
+                                   SaveButtonLabel=@Localizer["Save"]
+                                   ObjectType=@MetadataObjectType.DataInitiative
+                                   OnMetadataSaved=@HandleMetadataSaved />
+        }
+
+        @if (_step == 4)
+        {
+            <MudText>Step: @_step</MudText>
+        }
+
+    </MudItem>
+    
+</MudGrid>
+
+@code {
+
+    [Parameter]
+    public string ProjectAcronym { get; set; }
+
+    private int _step = 3;
+
+    private string GetStepHeader()
+    {
+        return _step switch
+        {
+            1 => Localizer["Verify or Edit Initiative Details"],
+            2 => Localizer["Confirm Initiative Members​"],
+            3 => Localizer["Initiative Metadata"],
+            _ => Localizer["Thank you"],
+        };
+    }
+
+    private void HandleSaveOnboardingData(FieldValueContainer values)
+    {
+        _step++;
+    }
+
+    private void HandleOnboardingMetadataSaved(Datahub_Project project)
+    {
+        project.MetadataAdded = true;
+        _step++;
+    }
+
+    private void HandleMetadataSaved(Datahub_Project project)
+    {
+        project.MetadataAdded = true;
+        _step++;
+    }
+}

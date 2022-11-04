@@ -18,12 +18,13 @@
             ProjectId=@_project.Project_ID
             ObjectType=@ObjectType
             SecurityClass=@GetProjectSensitivity()
-            SaveButtonLabel=@Localizer["OPENDATA-WIZARD.Save_button"]
+            SaveButtonLabel=@GetSaveButtonLabel()
             OnSave=@HandleSave
-            OnDiscard=@NavigateToProject
+            OnDiscard=@(AllowDiscard ? HandleNavigateToProject : null)
             OnNewMetadataCreated=@OnMetadataCreated
             OnExistingMetadataLoaded=@OnMetadataCreated
-            UpdateCatalog
+            HideTranslationNote
+            UpdateCatalog=@UpdateCatalog
             ValidateRequired />
     </AeCard>
 }
@@ -46,10 +47,25 @@
     public string Location { get; set; }
 
     [Parameter]
+    public bool UpdateCatalog { get; set; } = true;
+
+    [Parameter]
+    public string SaveButtonLabel { get; set; }
+
+    [Parameter]
+    public bool HideTranslationNote { get; set; }
+
+    [Parameter]
+    public bool NavigateToProject { get; set; } = true;
+
+    [Parameter]
     public EventCallback<Datahub_Project> OnProjectLoaded { get; set; }
 
     [Parameter]
     public EventCallback<Datahub_Project> OnMetadataSaved { get; set; }
+
+    [Parameter]
+    public bool AllowDiscard { get; set; } = true;
 
     private Datahub_Project _project;
     private int? _sector;
@@ -106,20 +122,23 @@
 
     private async Task HandleSave()
     {
-        if (OnMetadataSaved.HasDelegate)
-        {
-            await OnMetadataSaved.InvokeAsync(_project);
-            var ctx = await ContextFactory.CreateDbContextAsync();
-            ctx.Attach(_project);
-            ctx.Projects.Update(_project);
-            await ctx.SaveChangesAsync();
-        }
-        NavigateToProject();
+        await OnMetadataSaved.InvokeAsync(_project);
+
+        _project.Sector_Name = _editor.GetSelectedChoices("sector").FirstOrDefault()?.Label ?? "";
+        _project.Branch_Name = _editor.GetSelectedChoices("branch").FirstOrDefault()?.Label ?? "";
+
+        var ctx = await ContextFactory.CreateDbContextAsync();
+        ctx.Attach(_project);
+        ctx.Projects.Update(_project);
+        await ctx.SaveChangesAsync();
+
+        HandleNavigateToProject();
     }
 
-    private void NavigateToProject()
+    private void HandleNavigateToProject()
     {
-        NavigationManager.NavigateTo($"/projects/{ProjectAcronym}");
+        if (NavigateToProject)
+            NavigationManager.NavigateTo($"/projects/{ProjectAcronym}");
     }
 
     private string GetProjectSensitivity()
@@ -133,4 +152,6 @@
             _ => SecurityClassification.Unclassified
         };
     }
+
+    private string GetSaveButtonLabel() => SaveButtonLabel ?? Localizer["OPENDATA-WIZARD.Save_button"];
 }
