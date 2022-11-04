@@ -40,28 +40,6 @@ namespace Datahub.Core.Services
             _miscStorageService = miscStorageService;
         }
 
-        public async Task RequestAccess(Datahub_Project_Access_Request request)
-        {
-            await using var ctx = await _dbContextFactory.CreateDbContextAsync();
-            ctx.Projects.Attach(request.Project);
-
-            var exists = await ctx.Access_Requests
-                .AnyAsync(a => a.User_ID == request.User_ID
-                               && a.Project == request.Project
-                               && a.Databricks == request.Databricks
-                               && a.PowerBI == request.PowerBI
-                               && a.WebForms == request.WebForms
-                );
-
-            if (!exists)
-            {
-                await ctx.Access_Requests.AddAsync(request);
-            }
-        
-            await ctx.SaveChangesAsync();
-            await NotifyProjectAdminsOfAccessRequest(request);
-        }
-
         public async Task RequestService(Datahub_ProjectServiceRequests request, Dictionary<string, string> inputParams = null)
         {
             await using var ctx = await _dbContextFactory.CreateDbContextAsync();
@@ -173,27 +151,6 @@ namespace Datahub.Core.Services
                 "SYSTEM-NOTIFICATION.NOTIFICATION-TEXT.ServiceCreationRequested",
                 user.UserPrincipalName, request.ServiceType, new BilingualStringArgument(request.Project.ProjectInfo.ProjectNameEn, request.Project.ProjectInfo.ProjectNameFr));
 
-        }
-        
-        private async Task NotifyProjectAdminsOfAccessRequest(Datahub_Project_Access_Request request)
-        {
-            var serviceName = request.RequestServiceType;
-
-            var admins = await GetProjectAdministratorEmailsAndIds(request.Project.Project_ID);
-            await _emailNotificationService.SendServiceAccessRequestNotification(request.User_Name, serviceName,
-                request.Project.ProjectInfo, admins);
-            
-            var adminUserIds = admins
-                .Where(a => Guid.TryParse(a, out _))
-                .ToList();
-            
-            var user = await _userInformationService.GetUserAsync();
-
-            await _systemNotificationService.CreateSystemNotificationsWithLink(adminUserIds, $"/administration",
-                "SYSTEM-NOTIFICATION.GoToAdminPage",
-                "SYSTEM-NOTIFICATION.NOTIFICATION-TEXT.ServiceAccessRequested",
-                user.UserPrincipalName, serviceName,
-                new BilingualStringArgument(request.Project.ProjectInfo.ProjectNameEn, request.Project.ProjectInfo.ProjectNameFr));
         }
         
         private async Task<List<string>> GetProjectAdministratorEmailsAndIds(int projectId)
