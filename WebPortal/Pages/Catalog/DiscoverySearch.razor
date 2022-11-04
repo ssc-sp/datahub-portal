@@ -614,7 +614,8 @@
 		{
 			var report = await PowerBiDataService.GetReportById(guid);
 			// TODO this url template is also used in DHLink; should only be in raw form in one place
-			NavigationManager.NavigateTo($"/powerbi-report/{report.Workspace_Id}/{report.Report_ID}");
+			if (report is not null)
+				NavigationManager.NavigateTo($"/powerbi-report/{report.Workspace_Id}/{report.Report_ID}");
 		}
 	}
 

@@ -148,8 +148,11 @@ namespace Datahub.Core.Services
             }
 
             var recipient = await BuildRecipient(userIdOrAddress, recipientName);
-            var recipients = new List<MailboxAddress>() { recipient };
-            await SendEmailMessage(subject, body, recipients, isHtml);
+            if (recipient is not null)
+            {
+                var recipients = new List<MailboxAddress>() { recipient };
+                await SendEmailMessage(subject, body, recipients, isHtml);
+            }
         }
 
         public async Task SendEmailMessage(string subject, string body, IList<string> userIdsOrAddresses, bool isHtml = true)
@@ -535,7 +538,7 @@ namespace Datahub.Core.Services
         public async Task SendOnboardingMetadataEditRequest(OnboardingParameters parameters)
         {
             var parametersDict = BuildOnboardingParameters(parameters);
-            var subject = $"Complete Metadata request – {parameters.App.Product_Name}";
+            var subject = $"Please complete the details for your DataHub Initiative – {parameters.App.Product_Name}";
             var html = await RenderTemplate<OnBoardingMetadataRequest>(parametersDict);
             await SendEmailMessage(subject, html, parameters.App.Client_Email, parameters.App.Client_Contact_Name);
         }
