@@ -19,8 +19,8 @@
             ObjectType=@ObjectType
             SecurityClass=@GetProjectSensitivity()
             SaveButtonLabel=@Localizer["OPENDATA-WIZARD.Save_button"]
-            OnSave=@HandleBack
-            OnDiscard=@HandleBack
+            OnSave=@HandleSave
+            OnDiscard=@NavigateToProject
             OnNewMetadataCreated=@OnMetadataCreated
             OnExistingMetadataLoaded=@OnMetadataCreated
             UpdateCatalog
@@ -47,6 +47,9 @@
 
     [Parameter]
     public EventCallback<Datahub_Project> OnProjectLoaded { get; set; }
+
+    [Parameter]
+    public EventCallback<Datahub_Project> OnMetadataSaved { get; set; }
 
     private Datahub_Project _project;
     private int? _sector;
@@ -101,7 +104,20 @@
             _editor.SetValue("branch", _branch.ToString());
     }
 
-    private void HandleBack()
+    private async Task HandleSave()
+    {
+        if (OnMetadataSaved.HasDelegate)
+        {
+            await OnMetadataSaved.InvokeAsync(_project);
+            var ctx = await ContextFactory.CreateDbContextAsync();
+            ctx.Attach(_project);
+            ctx.Projects.Update(_project);
+            await ctx.SaveChangesAsync();
+        }
+        NavigateToProject();
+    }
+
+    private void NavigateToProject()
     {
         NavigationManager.NavigateTo($"/projects/{ProjectAcronym}");
     }
