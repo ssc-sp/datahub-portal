@@ -61,7 +61,6 @@
         await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
 
         _project = await projectContext.Projects
-            .Include(p => p.Requests)
             .Include(p => p.ServiceRequests)
             .Include(p => p.Pipelines)
             .AsSingleQuery()
