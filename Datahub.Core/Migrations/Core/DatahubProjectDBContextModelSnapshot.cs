@@ -114,7 +114,7 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
 
                     b.HasIndex("Project_ID");
 
-                    b.ToTable("Client_Engagements");
+                    b.ToTable("Client_Engagements", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.EFCore.Datahub_Project", b =>
@@ -255,7 +255,54 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.HasIndex("Project_Acronym_CD")
                         .IsUnique();
 
-                    b.ToTable("Projects");
+                    b.ToTable("Projects", (string)null);
+                });
+
+            modelBuilder.Entity("Datahub.Core.EFCore.Datahub_Project_Access_Request", b =>
+                {
+                    b.Property<int>("Request_ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Request_ID"), 1L, 1);
+
+                    b.Property<DateTime?>("Completion_DT")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("Databricks")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("PowerBI")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("Project_ID")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("Request_DT")
+                        .HasColumnType("datetime2");
+
+                    b.Property<byte[]>("Timestamp")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<string>("User_ID")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("User_Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<bool>("WebForms")
+                        .HasColumnType("bit");
+
+                    b.HasKey("Request_ID");
+
+                    b.HasIndex("Project_ID");
+
+                    b.ToTable("Access_Requests", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.EFCore.Datahub_Project_Costs", b =>
@@ -284,7 +331,7 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
 
                     b.HasKey("ProjectCosts_ID");
 
-                    b.ToTable("Project_Costs");
+                    b.ToTable("Project_Costs", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.EFCore.Datahub_Project_Pipeline_Lnk", b =>
@@ -297,7 +344,7 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
 
                     b.HasKey("Project_ID", "Process_Nm");
 
-                    b.ToTable("Project_Pipeline_Links");
+                    b.ToTable("Project_Pipeline_Links", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.EFCore.Datahub_Project_Sectors_And_Branches", b =>
@@ -344,7 +391,7 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
 
                     b.HasKey("SectorAndBranchS_ID");
 
-                    b.ToTable("Organization_Levels");
+                    b.ToTable("Organization_Levels", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.EFCore.Datahub_Project_User", b =>
@@ -387,7 +434,7 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
 
                     b.HasIndex("Project_ID");
 
-                    b.ToTable("Project_Users");
+                    b.ToTable("Project_Users", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.EFCore.Datahub_Project_User_Request", b =>
@@ -423,7 +470,7 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
 
                     b.HasIndex("Project_ID");
 
-                    b.ToTable("Project_Users_Requests");
+                    b.ToTable("Project_Users_Requests", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.EFCore.Datahub_ProjectApiUser", b =>
@@ -455,7 +502,7 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
 
                     b.HasKey("ProjectApiUser_ID");
 
-                    b.ToTable("Project_ApiUsers");
+                    b.ToTable("Project_ApiUsers", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.EFCore.Datahub_ProjectComment", b =>
@@ -484,7 +531,7 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
 
                     b.HasIndex("Project_ID");
 
-                    b.ToTable("Project_Comments");
+                    b.ToTable("Project_Comments", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.EFCore.Datahub_ProjectServiceRequests", b =>
@@ -532,7 +579,7 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
 
                     b.HasIndex("Project_StorageId");
 
-                    b.ToTable("Project_Requests");
+                    b.ToTable("Project_Requests", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.EFCore.Datahub_Registration_Request", b =>
@@ -588,7 +635,7 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
 
                     b.HasKey("Id");
 
-                    b.ToTable("Registration_Requests");
+                    b.ToTable("Registration_Requests", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.EFCore.ExternalPowerBiReport", b =>
@@ -626,7 +673,7 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
 
                     b.HasKey("ExternalPowerBiReport_ID");
 
-                    b.ToTable("ExternalPowerBiReports");
+                    b.ToTable("ExternalPowerBiReports", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.EFCore.MiscStoredObject", b =>
@@ -651,7 +698,7 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
 
                     b.HasAlternateKey("TypeName", "Id");
 
-                    b.ToTable("MiscStoredObjects");
+                    b.ToTable("MiscStoredObjects", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.EFCore.PBI_License_Request", b =>
@@ -695,7 +742,7 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.HasIndex("Project_ID")
                         .IsUnique();
 
-                    b.ToTable("PowerBI_License_Requests");
+                    b.ToTable("PowerBI_License_Requests", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.EFCore.PBI_User_License_Request", b =>
@@ -723,7 +770,7 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
 
                     b.HasIndex("RequestID");
 
-                    b.ToTable("PowerBI_License_User_Requests");
+                    b.ToTable("PowerBI_License_User_Requests", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.EFCore.PowerBi_DataSet", b =>
@@ -742,7 +789,7 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
 
                     b.HasIndex("Workspace_Id");
 
-                    b.ToTable("PowerBi_DataSets");
+                    b.ToTable("PowerBi_DataSets", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.EFCore.PowerBi_Report", b =>
@@ -764,7 +811,7 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
 
                     b.HasIndex("Workspace_Id");
 
-                    b.ToTable("PowerBi_Reports");
+                    b.ToTable("PowerBi_Reports", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.EFCore.PowerBi_Workspace", b =>
@@ -786,7 +833,7 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
 
                     b.HasIndex("Project_Id");
 
-                    b.ToTable("PowerBi_Workspaces");
+                    b.ToTable("PowerBi_Workspaces", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.EFCore.Project_Current_Monthly_Cost", b =>
@@ -811,7 +858,7 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
 
                     b.HasKey("Id");
 
-                    b.ToTable("Project_Current_Monthly_Costs");
+                    b.ToTable("Project_Current_Monthly_Costs", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.EFCore.Project_Resources", b =>
@@ -856,7 +903,7 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
 
                     b.HasIndex("Project_ID");
 
-                    b.ToTable("Project_Resources");
+                    b.ToTable("Project_Resources", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.EFCore.Project_Resources2", b =>
@@ -894,7 +941,7 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
 
                     b.HasIndex("ProjectId");
 
-                    b.ToTable("Project_Resources2");
+                    b.ToTable("Project_Resources2", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.EFCore.Project_Storage", b =>
@@ -917,7 +964,7 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
 
                     b.HasIndex("Datahub_ProjectProject_ID");
 
-                    b.ToTable("Project_Storage");
+                    b.ToTable("Project_Storage", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.EFCore.PublicDataFile", b =>
@@ -966,7 +1013,7 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.HasIndex("File_ID")
                         .IsUnique();
 
-                    b.ToTable("PublicDataFiles");
+                    b.ToTable("PublicDataFiles", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.EFCore.SharedDataFile", b =>
@@ -1027,7 +1074,7 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.HasIndex("File_ID")
                         .IsUnique();
 
-                    b.ToTable("SharedDataFiles");
+                    b.ToTable("SharedDataFiles", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.EFCore.SpatialObjectShare", b =>
@@ -1102,7 +1149,7 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
 
                     b.HasKey("Notification_ID");
 
-                    b.ToTable("SystemNotifications");
+                    b.ToTable("SystemNotifications", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.EFCore.WebForm", b =>
@@ -1128,7 +1175,7 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
 
                     b.HasIndex("Project_ID");
 
-                    b.ToTable("WebForms");
+                    b.ToTable("WebForms", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.EFCore.WebForm_DBCodes", b =>
@@ -1148,7 +1195,7 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
 
                     b.HasKey("DBCode");
 
-                    b.ToTable("DBCodes");
+                    b.ToTable("DBCodes", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.EFCore.WebForm_Field", b =>
@@ -1207,7 +1254,7 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
 
                     b.HasIndex("WebForm_ID");
 
-                    b.ToTable("Fields");
+                    b.ToTable("Fields", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Onboarding.OnboardingApp", b =>
@@ -1292,7 +1339,7 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
 
                     b.HasKey("Application_ID");
 
-                    b.ToTable("OnboardingApps");
+                    b.ToTable("OnboardingApps", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.EFCore.OpenDataSharedFile", b =>
@@ -1323,7 +1370,7 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.Property<int>("UploadStatus_CD")
                         .HasColumnType("int");
 
-                    b.ToTable("OpenDataSharedFile");
+                    b.ToTable("OpenDataSharedFile", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.EFCore.Client_Engagement", b =>
