@@ -26,25 +26,28 @@ namespace Datahub.Core.EFCore
         public int Project_ID { get; set; }
 
 
+        [AeFormIgnore]
+        public int SectorId { get; set; }
+        
+        [AeFormCategory("Sector Information")]
+        [MudForm(IsDropDown = true)]
+        [ForeignKey("SectorId")]
+        public Organization_Level Sector { get; set; }
 
+        [AeFormIgnore]
+        public int BranchId { get; set; }
+        [AeFormCategory("Sector Information")]
+        [MudForm(IsDropDown = true)]
+        [ForeignKey("BranchId")]
+        public Organization_Level Branch { get; set; }
+        
+        [AeFormIgnore]
+        public int DivisionId { get; set; }
 
         [AeFormCategory("Sector Information")]
         [MudForm(IsDropDown = true)]
-        [Required]
-        [Editable(false)]
-        public OrganizationLevel Sector { get; set; }
-
-        [AeFormCategory("Sector Information")]
-        [MudForm(IsDropDown = true)]
-        [Required]
-        [Editable(false)]
-        public OrganizationLevel Branch { get; set; }
-
-        [AeFormCategory("Sector Information")]
-        [MudForm(IsDropDown = true)]
-        [Required]
-        [Editable(false)]
-        public OrganizationLevel Division { get; set; }
+        [ForeignKey("DivisionId")]
+        public Organization_Level Division { get; set; }
 
         [Required]
         [StringLength(4000)]
@@ -123,7 +126,7 @@ namespace Datahub.Core.EFCore
         public DateTime Last_Updated_DT { get; set; }
 
         [AeFormIgnore]
-        public DateTime Last_Updated_UserId { get; set; }
+        public string Last_Updated_UserId { get; set; }
         
 
         [AeFormIgnore]
