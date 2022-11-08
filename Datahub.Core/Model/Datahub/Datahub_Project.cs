@@ -144,6 +144,9 @@ namespace Datahub.Core.EFCore
         public int OnboardingApplicationId { get; set; }
 
         [AeFormIgnore]
+        public bool? MetadataAdded { get; set; }
+
+        [AeFormIgnore]
         [NotMapped]
         public string ProjectName
         {

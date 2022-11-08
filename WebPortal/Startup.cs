@@ -195,6 +195,7 @@ namespace Datahub.Portal
                     }
                 });
             }
+            services.AddMiniProfiler().AddEntityFramework();
         }
 
         static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
@@ -255,13 +256,14 @@ namespace Datahub.Portal
             }
 
             app.UseHttpsRedirection();
+
+            app.UseMiniProfiler();
             app.UseStaticFiles();
 
             app.UseRouting();
 
             app.UseAuthentication();
             app.UseAuthorization();
-
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapBlazorHub();
