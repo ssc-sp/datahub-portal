@@ -83,21 +83,6 @@ namespace Datahub.Metadata.DTO
             return fieldValueObj;
         }
 
-        public FieldValueContainer GetReadonlyCopy()
-        {
-            return new FieldValueContainer(MetadataId, ObjectId, Definitions, CloneFieldsReadonly());
-        }
-
-        private IEnumerable<ObjectFieldValue> CloneFieldsReadonly()
-        {
-            foreach (var fieldValue in this)
-            {
-                var cloned = fieldValue.Clone();
-                cloned.FieldDefinition ??= Definitions.Get(fieldValue.FieldDefinitionId);
-                yield return cloned;
-            }
-        }
-
         private FieldDefinition GetFieldDefinition(ObjectFieldValue value) => value.FieldDefinition ?? Definitions.Get(value.FieldDefinitionId);
 
         private ObjectFieldValue GetFieldValueByName(string fieldName)

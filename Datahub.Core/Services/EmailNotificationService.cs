@@ -538,7 +538,7 @@ namespace Datahub.Core.Services
         public async Task SendOnboardingMetadataEditRequest(OnboardingParameters parameters)
         {
             var parametersDict = BuildOnboardingParameters(parameters);
-            var subject = $"Please complete the details for your DataHub Initiative – {parameters.App.Product_Name}";
+            var subject = $"Please complete the details for your DataHub Initiative";
             var html = await RenderTemplate<OnBoardingMetadataRequest>(parametersDict);
             await SendEmailMessage(subject, html, parameters.App.Client_Email, parameters.App.Client_Contact_Name);
         }

@@ -196,7 +196,7 @@
 
                 OnboardingParameters onboardingParameters = new()
                 {
-                    AppUrl = $"/admin/metadata/{_newProjectAcronym}",
+                    AppUrl = $"/initiatives/validate/{_newProjectAcronym}",
                     App = _onboardingApplication,
                     AdminEmailAddresses = ServiceAuthManager.GetProjectMailboxEmails(PROJECTACRONYM)
                 };
