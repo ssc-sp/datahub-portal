@@ -175,7 +175,7 @@ else
     {
         _azureCostToken = await GetAccessTokenForUserAsync();
 
-        var user = await _userInformationService.GetUserAsync();
+        var user = await _userInformationService.GetCurrentGraphUserAsync();
         _authorizedRoles = _serviceAuthManager.GetAdminProjectRoles(user.Id);
         // if user has no admin roles, add Datahub Admin as a requirement (at least one role must be specified for AuthorizedView)
         if (_authorizedRoles.Count < 1)

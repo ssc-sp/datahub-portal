@@ -2,8 +2,11 @@ using Microsoft.Graph;
 using Datahub.Core.Data;
 using Datahub.Core.EFCore;
 using System.Net;
+using System.Threading.Tasks;
+using System;
+using System.Collections.Generic;
 
-namespace Datahub.Portal.Services
+namespace Datahub.Core.Services
 {
     public interface IPublicDataFileService
     {

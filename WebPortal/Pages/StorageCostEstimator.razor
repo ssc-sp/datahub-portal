@@ -524,7 +524,7 @@
     {
         IsSending = true;
 
-        var user = await userService.GetUserAsync();
+        var user = await userService.GetCurrentGraphUserAsync();
 
         var parameters = new Dictionary<string, object>()
             {

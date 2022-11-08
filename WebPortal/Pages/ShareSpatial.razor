@@ -164,7 +164,7 @@
 
         _requestingUser = await GraphService.GetUserFromEmailAsync(_sharedObject.Email_Contact_TXT, CancellationToken.None);
 
-        var currentUser = await UserInformationService.GetUserAsync();
+        var currentUser = await UserInformationService.GetCurrentGraphUserAsync();
         _isOwnRequest = currentUser.Id == _requestingUser.Id;
 
         _requestSummary = JsonSerializer.Deserialize<GeoDataShareRequest>(_sharedObject.Json_TXT);
