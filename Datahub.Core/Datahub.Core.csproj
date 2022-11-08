@@ -37,6 +37,7 @@
 		<PackageReference Include="DeepL" Version="0.4.1" />
 		<PackageReference Include="Localization.AspNetCore.TagHelpers" Version="0.6.0" />
 		<PackageReference Include="MailKit" Version="3.4.1" />
+		<PackageReference Include="Markdig" Version="0.30.4" />
 		<PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.21.0" />
 		<PackageReference Include="Microsoft.AspNetCore.ApplicationInsights.HostingStartup" Version="2.2.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.AzureAD.UI" Version="6.0.9" />
