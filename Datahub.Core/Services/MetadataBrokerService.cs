@@ -3,6 +3,7 @@ using Datahub.Metadata.DTO;
 using Datahub.Metadata.Model;
 using Datahub.Metadata.Utils;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -144,6 +145,35 @@ namespace Datahub.Core.Services
                 transation.Rollback();
                 throw;
             }
+        }
+
+        public async Task<bool> CreateChildMetadata(string parentId, string childId, Entities.MetadataObjectType dataType, bool includeCatalog)
+        {
+            var childFields = await GetObjectMetadataValues(childId, parentId);
+
+            // if child metadata exists do not override it
+            if (!childFields.IsNew)
+                return false;
+
+            // save the metadata
+            var childMetadata = await SaveMetadata(childFields);
+
+            // read parent catalog
+            var parentCatalog = await GetCatalogObjectCopy(parentId);
+            if (parentCatalog is null)
+                return false;
+
+            // save the new catalog entry
+            var childCatalog = parentCatalog.Clone();
+            childCatalog.ObjectMetadata = null;
+            childCatalog.ObjectMetadataId = childMetadata.ObjectMetadataId;
+            childCatalog.DataType = dataType;
+
+            var ctx = await _contextFactory.CreateDbContextAsync();
+            ctx.CatalogObjects.Add(childCatalog);
+            await ctx.SaveChangesAsync();
+
+            return true;
         }
 
         public async Task<Entities.ApprovalForm> GetApprovalForm(int approvalFormId)
@@ -728,6 +758,12 @@ namespace Datahub.Core.Services
             var catalogSearch = isFrench ? _catalogSearchEngine.GetFrenchSearchEngine() : _catalogSearchEngine.GetEnglishSearchEngine();
             catalogSearch.AddDocument(docId, (title ?? "").ToLower(), (content ?? "").ToLower());
             catalogSearch.FlushIndexes();
+        }
+
+        private async Task<CatalogObject> GetCatalogObjectCopy(string objectId)
+        {
+            using var ctx = _contextFactory.CreateDbContext();
+            return await ctx.CatalogObjects.FirstOrDefaultAsync(c => c.ObjectMetadata.ObjectId_TXT == objectId);
         }
     }
 }

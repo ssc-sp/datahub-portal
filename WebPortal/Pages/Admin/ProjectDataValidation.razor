@@ -1,11 +1,19 @@
 ﻿@*ProjectDataValidation.razor*@
-@page "/project/validate/{ProjectAcronym}"
+
+@page "/initiatives/validate/{ProjectAcronym}"
 @using Datahub.Metadata.DTO
 @using Datahub.Metadata.Model
+@inject NavigationManager NavigationManager
 
 <div class="d-flex flex-column align-center">
     <MudPagination Count="4" @bind-Selected=@_step Color="Color.Primary" />
+
     <MudText Class="mt-2 mb-2" Typo="Typo.h4">@GetStepHeader()</MudText>
+
+    @if (_step == 4)
+    {
+        <AeButton OnClickEvent=@HandleFinish>@Localizer["Finish"]</AeButton>
+    }
 </div>
 
 <MudGrid>
@@ -24,30 +32,27 @@
                                    SaveButtonLabel=@Localizer["Save"]
                                    ObjectType=@MetadataObjectType.DataInitiative
                                    OnMetadataSaved=@HandleOnboardingMetadataSaved />
-
         }
 
         @if (_step == 2)
         {
-            <MudText>Step: @_step</MudText>
+            <OnboardUsers projectAcronym=@ProjectAcronym 
+                          ShowTitle="false" 
+                          OnCompleted=@HandleOnboardingUserCompleted />
         }
 
         @if (_step == 3)
         {
-            <ProjectObjectMetadata ProfileName="project"
+            <ProjectObjectMetadata ProfileName="initiative_profile"
                                    ObjectId=@ProjectAcronym
                                    Location=@ProjectAcronym
                                    ProjectAcronym=@ProjectAcronym
                                    AllowDiscard="false"
+                                   UpdateCatalog="true"
                                    NavigateToProject="false"
                                    SaveButtonLabel=@Localizer["Save"]
                                    ObjectType=@MetadataObjectType.DataInitiative
                                    OnMetadataSaved=@HandleMetadataSaved />
-        }
-
-        @if (_step == 4)
-        {
-            <MudText>Step: @_step</MudText>
         }
 
     </MudItem>
@@ -59,7 +64,7 @@
     [Parameter]
     public string ProjectAcronym { get; set; }
 
-    private int _step = 3;
+    private int _step = 1;
 
     private string GetStepHeader()
     {
@@ -67,7 +72,7 @@
         {
             1 => Localizer["Verify or Edit Initiative Details"],
             2 => Localizer["Confirm Initiative Members​"],
-            3 => Localizer["Initiative Metadata"],
+            3 => Localizer["Initiative Profile"],
             _ => Localizer["Thank you"],
         };
     }
@@ -79,7 +84,6 @@
 
     private void HandleOnboardingMetadataSaved(Datahub_Project project)
     {
-        project.MetadataAdded = true;
         _step++;
     }
 
@@ -87,5 +91,15 @@
     {
         project.MetadataAdded = true;
         _step++;
+    }
+
+    private void HandleOnboardingUserCompleted()
+    {
+        _step++;
+    }
+
+    private void HandleFinish()
+    {
+        NavigationManager.NavigateTo($"/projects/{ProjectAcronym}");
     }
 }
