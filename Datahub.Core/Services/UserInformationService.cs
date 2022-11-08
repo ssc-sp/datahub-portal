@@ -151,7 +151,7 @@ namespace Datahub.Core.Services
                 .FirstOrDefault(c => c.Type == "http://schemas.microsoft.com/identity/claims/objectidentifier")?? throw new InvalidOperationException("Cannot access user claims")).Value;
         }
 
-        public async Task<User> GetUserAsync()
+        public async Task<User> GetCurrentGraphUserAsync()
         {
             await CheckUser();
             return CurrentUser;
@@ -299,12 +299,12 @@ namespace Datahub.Core.Services
             }
         }
 
-        public Task<User> GetAnonymousUserAsync()
+        public Task<User> GetAnonymousGraphUserAsync()
         {
             return Task.FromResult(AnonymousUser);
         }
 
-        public async Task<User> GetUserAsync(string userId)
+        public async Task<User> GetGraphUserAsync(string userId)
         {
             try
             {
@@ -330,12 +330,12 @@ namespace Datahub.Core.Services
 
         public async Task<bool> IsViewingAsGuest()
         {
-            return serviceAuthManager.GetViewingAsGuest((await GetUserAsync()).Id);
+            return serviceAuthManager.GetViewingAsGuest((await GetCurrentGraphUserAsync()).Id);
         }
 
         public async Task SetViewingAsGuest(bool isGuest)
         {
-            serviceAuthManager.SetViewingAsGuest((await GetUserAsync()).Id,isGuest);
+            serviceAuthManager.SetViewingAsGuest((await GetCurrentGraphUserAsync()).Id,isGuest);
         }
 
         private bool isViewingAsVisitor = false;

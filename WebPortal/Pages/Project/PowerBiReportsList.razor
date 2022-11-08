@@ -97,7 +97,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var currentUser = await UserInfoService.GetUserAsync();
+        var currentUser = await UserInfoService.GetCurrentGraphUserAsync();
         currentUserEmail = currentUser.Mail;
 
         renderers = new()

@@ -376,7 +376,7 @@
         }
 
         var loadTask = PublicFileService.LoadPublicUrlSharedFileInfo(_fileIdGuid);
-        var currentUserTask = UserInformationService.GetUserAsync();
+        var currentUserTask = UserInformationService.GetCurrentGraphUserAsync();
 
         _stepInfo = _steps.ToDictionary(s => s, s => GetStepPair(s));
         _stepStates = _steps.ToDictionary(s => s, s => AeSteps<PublicUrlSharingStatus>.StepState.Queued);

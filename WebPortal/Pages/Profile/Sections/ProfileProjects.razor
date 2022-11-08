@@ -63,7 +63,7 @@
             .AddStyle("margin-bottom", "0")
             .Build();
 
-        _user = await _userInformationService.GetUserAsync();
+        _user = await _userInformationService.GetCurrentGraphUserAsync();
 
         await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
         _userRoles = await dbContext.Project_Users

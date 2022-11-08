@@ -172,7 +172,7 @@ else
     protected override async Task OnInitializedAsync()
     {
         isLoading = true;
-        CurrentUser = await UserInformationService.GetUserAsync();
+        CurrentUser = await UserInformationService.GetCurrentGraphUserAsync();
 
         if (IsProjectStorage)
         {

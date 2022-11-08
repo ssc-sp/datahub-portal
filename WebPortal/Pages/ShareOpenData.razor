@@ -594,7 +594,7 @@
         if (Guid.TryParse(FileId, out _fileIdGuid))
         {
             var loadTask = PublicFileService.LoadOpenDataSharedFileInfo(_fileIdGuid);
-            var currentUser = await UserInformationService.GetUserAsync();
+            var currentUser = await UserInformationService.GetCurrentGraphUserAsync();
 
             _stepInfo = _steps.ToDictionary(s => s, s => GetStepPair(s));
             _stepStates = _steps.ToDictionary(s => s, s => AeSteps<OpenDataSharingStatus>.StepState.Queued);

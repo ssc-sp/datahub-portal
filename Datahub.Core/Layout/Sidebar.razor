@@ -51,7 +51,7 @@
     {
         await base.OnInitializedAsync();
         
-        var user = await _userInformationService.GetUserAsync();
+        var user = await _userInformationService.GetCurrentGraphUserAsync();
         _authorizedLinks = GetAuthorizedLinks(user.Id);
         
         _userHasInitiatives = !(await _userInformationService.IsUserWithoutInitiatives());

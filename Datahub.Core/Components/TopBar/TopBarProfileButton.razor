@@ -81,7 +81,7 @@
     {
         try
         {
-            _user = await _userInformationService.GetUserAsync();
+            _user = await _userInformationService.GetCurrentGraphUserAsync();
         }
         catch (Exception ex)
         {

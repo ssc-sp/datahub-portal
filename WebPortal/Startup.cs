@@ -41,6 +41,7 @@ using Datahub.GeoCore.Service;
 using Datahub.Core.Services.Offline;
 using Datahub.CatalogSearch;
 using Datahub.Core.Services.AzureCosting;
+using Datahub.Portal.Services.Resources;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]
 
@@ -155,6 +156,9 @@ namespace Datahub.Portal
 
             services.Configure<PortalVersion>(Configuration.GetSection("PortalVersion"));
             services.AddScoped<IPortalVersionService, PortalVersionService>();
+            services.AddProjectResources();
+
+
 
             services.AddScoped<CatalogImportService>();
             services.AddSingleton<ICatalogSearchEngine, CatalogSearchEngine>();

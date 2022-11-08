@@ -145,7 +145,7 @@ namespace Datahub.Core.Services
             var adminUserIds = admins.
                 Where(a => Guid.TryParse(a, out _))
                 .ToList();
-            var user = await _userInformationService.GetUserAsync();
+            var user = await _userInformationService.GetCurrentGraphUserAsync();
             
             await _systemNotificationService.CreateSystemNotificationsWithLink(adminUserIds, $"/administration", "SYSTEM-NOTIFICATION.GoToAdminPage",
                 "SYSTEM-NOTIFICATION.NOTIFICATION-TEXT.ServiceCreationRequested",
