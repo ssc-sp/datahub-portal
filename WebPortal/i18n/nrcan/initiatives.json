@@ -297,5 +297,6 @@
   "The current project has {0} active file shared": "The current initiative has {0} active file shared",
   "Project Resource Definitions": "Initiative Resource Definitions",
   "Welcome to your Data Project": "Welcome to your Data Initiative",
-  "You are not a member of this project.": "You are not a member of this initiative."
+  "You are not a member of this project.": "You are not a member of this initiative.",
+  "InititativeRestricted": "Restricted to initiative members"
 }
