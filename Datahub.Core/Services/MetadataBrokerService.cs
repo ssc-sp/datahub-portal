@@ -147,33 +147,42 @@ namespace Datahub.Core.Services
             }
         }
 
-        public async Task<bool> CreateChildMetadata(string parentId, string childId, Entities.MetadataObjectType dataType, bool includeCatalog)
+        public async Task<bool> CreateChildMetadata(string parentId, string childId, Entities.MetadataObjectType dataType, string location, bool includeCatalog)
         {
-            var childFields = await GetObjectMetadataValues(childId, parentId);
+            try
+            {
+                // read child catalog
+                using var ctx = await _contextFactory.CreateDbContextAsync();
+                if (await CatalogExists(ctx, childId))
+                    return false;
 
-            // if child metadata exists do not override it
-            if (!childFields.IsNew)
+                // read parent catalog
+                var parentCatalog = await GetCatalogObjectCopy(ctx, parentId);
+                if (parentCatalog is null)
+                    return false;
+
+                // save the child metadata
+                var childFields = await GetObjectMetadataValues(childId, parentId);
+                var childMetadata = await SaveMetadata(childFields);
+
+                // save the new catalog entry
+                var childCatalog = parentCatalog.Clone();
+                childCatalog.CatalogObjectId = 0;
+                childCatalog.ObjectMetadata = null;
+                childCatalog.ObjectMetadataId = childMetadata.ObjectMetadataId;
+                childCatalog.DataType = dataType;
+                childCatalog.Location_TXT = location;
+
+                ctx.CatalogObjects.Add(childCatalog);
+                await ctx.SaveChangesAsync();
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Create Child Metadata failed!");
                 return false;
-
-            // save the metadata
-            var childMetadata = await SaveMetadata(childFields);
-
-            // read parent catalog
-            var parentCatalog = await GetCatalogObjectCopy(parentId);
-            if (parentCatalog is null)
-                return false;
-
-            // save the new catalog entry
-            var childCatalog = parentCatalog.Clone();
-            childCatalog.ObjectMetadata = null;
-            childCatalog.ObjectMetadataId = childMetadata.ObjectMetadataId;
-            childCatalog.DataType = dataType;
-
-            var ctx = await _contextFactory.CreateDbContextAsync();
-            ctx.CatalogObjects.Add(childCatalog);
-            await ctx.SaveChangesAsync();
-
-            return true;
+            }
         }
 
         public async Task<Entities.ApprovalForm> GetApprovalForm(int approvalFormId)
@@ -760,10 +769,16 @@ namespace Datahub.Core.Services
             catalogSearch.FlushIndexes();
         }
 
-        private async Task<CatalogObject> GetCatalogObjectCopy(string objectId)
+        private async Task<CatalogObject> GetCatalogObjectCopy(MetadataDbContext ctx, string objectId)
         {
-            using var ctx = _contextFactory.CreateDbContext();
+            //using var ctx = _contextFactory.CreateDbContext();
             return await ctx.CatalogObjects.FirstOrDefaultAsync(c => c.ObjectMetadata.ObjectId_TXT == objectId);
+        }
+
+        private async Task<bool> CatalogExists(MetadataDbContext ctx, string objectId)
+        {
+            //using var ctx = await _contextFactory.CreateDbContextAsync();
+            return await ctx.CatalogObjects.AnyAsync(c => c.ObjectMetadata.ObjectId_TXT == objectId);
         }
     }
 }
