@@ -78,7 +78,9 @@
     protected override async Task OnInitializedAsync()
     {
         var ctx = await ContextFactory.CreateDbContextAsync();
-        _project = await ctx.Projects.FirstOrDefaultAsync(p => p.Project_Acronym_CD == ProjectAcronym);
+        _project = await ctx.Projects.Include(p => p.Resources)
+                                     .AsSingleQuery()
+                                     .FirstOrDefaultAsync(p => p.Project_Acronym_CD == ProjectAcronym);
         if (_project is not null)
         {
             await TryReadProjectSectorAndBranch();
@@ -112,9 +114,20 @@
 
     private void OnMetadataCreated()
     {
-        _editor.SetValue("title_translated_en", _project.Project_Name);
-        _editor.SetValue("title_translated_fr", _project.Project_Name_Fr);
-        _editor.SetValue("contact_information", _project.Project_Admin);
+        if (string.IsNullOrEmpty(_editor.GetValue("title_translated_en")))
+            _editor.SetValue("title_translated_en", _project.Project_Name);
+
+        if (string.IsNullOrEmpty(_editor.GetValue("title_translated_fr")))
+            _editor.SetValue("title_translated_fr", _project.Project_Name_Fr);
+
+        if (string.IsNullOrEmpty(_editor.GetValue("notes_translated_en")))
+            _editor.SetValue("notes_translated_en", _project.Project_Name);
+
+        if (string.IsNullOrEmpty(_editor.GetValue("notes_translated_fr")))
+            _editor.SetValue("notes_translated_fr", _project.Project_Name_Fr);
+
+        if (string.IsNullOrEmpty(_editor.GetValue("contact_information")))
+            _editor.SetValue("contact_information", _project.Project_Admin);
 
         if (_sector.HasValue)
             _editor.SetValue("sector", _sector.ToString());

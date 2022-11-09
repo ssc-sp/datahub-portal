@@ -36,7 +36,9 @@ namespace Datahub.Metadata.DTO
         public IEnumerable<FieldChoice> GetSelectedChoices(string fieldName)
         {
             var fieldValue = this[fieldName];
-            
+            if (fieldValue is null)
+                yield break;
+
             var definition = GetFieldDefinition(fieldValue);
             if (definition?.Choices is null)
                 yield break;
