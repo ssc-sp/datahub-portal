@@ -771,13 +771,11 @@ namespace Datahub.Core.Services
 
         private async Task<CatalogObject> GetCatalogObjectCopy(MetadataDbContext ctx, string objectId)
         {
-            //using var ctx = _contextFactory.CreateDbContext();
             return await ctx.CatalogObjects.FirstOrDefaultAsync(c => c.ObjectMetadata.ObjectId_TXT == objectId);
         }
 
         private async Task<bool> CatalogExists(MetadataDbContext ctx, string objectId)
         {
-            //using var ctx = await _contextFactory.CreateDbContextAsync();
             return await ctx.CatalogObjects.AnyAsync(c => c.ObjectMetadata.ObjectId_TXT == objectId);
         }
     }
