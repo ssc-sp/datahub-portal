@@ -11,6 +11,9 @@
     <None Remove="Data\open_data_definitions.json" />
     <None Remove="Data\open_data_definition_choices.json" />
     <None Remove="Data\sample_catalog.json" />
+    <None Update="testsettings.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Content Include="Data\sample_catalog.json">
