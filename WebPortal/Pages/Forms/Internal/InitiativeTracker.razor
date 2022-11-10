@@ -10,7 +10,9 @@
 @inject TranslationService TranslationService
 @inject IDatahubAuditingService AuditingService
 @inject IOrganizationLevelsService OrganizationLevelsService
+@inject IEmailNotificationService EmailService
 @using System.Security.Claims
+@using Datahub.Core.Model.Onboarding
 @using MudBlazor.Forms;
 @page "/datahub/initiatives"
 
@@ -56,8 +58,7 @@
 
         // load projects        
         Context = DbFactory.CreateDbContext();
-        LoadData(string.Empty);
-
+        LoadSortExpressions();
         _headers = new List<string>
         {
             DataLocalizer["Status"],
@@ -67,8 +68,9 @@
             DataLocalizer["Last Contact"],
             DataLocalizer["Contacts"],
             DataLocalizer["Metadata"],
-
         };
+
+        LoadData(_searchFilter);
 
         //filterProperties.Add((() => "Status", () => new List<string> { "All", "Closed", "On Hold", "Ongoing" }));
 
@@ -85,28 +87,52 @@
         StateHasChanged();
     }
 
-    private void LoadData(string searchFilter)
+    private void LoadData(string searchfilter)
     {
         _projects = Context.Projects.Include(f => f.Sector).Include(f => f.Branch).Include(f => f.Division).ToList();
 
+        var projects = _projects;
+        if (!string.IsNullOrWhiteSpace(searchfilter))
+        {
+            projects = _projects.Where(project =>
+            {
+                if (string.IsNullOrWhiteSpace(searchfilter))
+                    return true;
+                if (!string.IsNullOrWhiteSpace(project.ProjectName) && project.ProjectName.Contains(searchfilter, StringComparison.OrdinalIgnoreCase))
+                    return true;
+                if (!string.IsNullOrWhiteSpace(project.Project_Acronym_CD) && project.Project_Acronym_CD.Contains(searchfilter, StringComparison.OrdinalIgnoreCase))
+                    return true;
+                if (!string.IsNullOrWhiteSpace(project.Contact_List) && project.Contact_List.Contains(searchfilter, StringComparison.OrdinalIgnoreCase))
+                    return true;
+                if (project.Sector is not null && project.Sector.Org_Name_E.Contains(searchfilter, StringComparison.OrdinalIgnoreCase))
+                    return true;
+                if (project.Sector is not null && project.Sector.Org_Name_F.Contains(searchfilter, StringComparison.OrdinalIgnoreCase))
+                    return true;
+                return false;
+            }).ToList();
+        }
+
         _formMetadata.Header = DataLocalizer["Initiatives"];
-        _formMetadata.HeaderSubText = DataLocalizer[@"Select Initiative"];
+        _formMetadata.HeaderSubText = DataLocalizer[@""];
         _formMetadata.SubHeader = DataLocalizer[""];
-        _formMetadata.DataSet = _projects;
+        _formMetadata.DataSet = projects;
         _formMetadata.AccessorFunctions = accessorFunctions;
-        //_formMetadata.NavigateUrls = null;
+        _formMetadata.RenderFunctions = renderFunctions;        
         _formMetadata.Headers = _headers;
-        _formMetadata.AllowSearch = true;
-        _formMetadata.GridTemplateColumns = "3fr 6fr 6fr 6fr 3fr";
+        _formMetadata.AllowSearch = true;        
         _formMetadata.IsSubmitEnabled = true;
         _formMetadata.IsAddEnabled = true;
     }
 
-    private List<Func<FundCenter, (string, string)>> buttonFunctions = new List<Func<FundCenter, (string, string)>>
+   
+    private void LoadSortExpressions()
     {
-        new Func<FundCenter, (string, string)>(p => { return ("Next" , $"/finance/forecasts/{p.FundCenter_ID.ToString()}"); }),
-    };
-
+        _sortAccessors.Add("status", t => t.Project_Status_Desc);
+        _sortAccessors.Add("sector", t => t.Sector?.Org_Name_E ?? "");
+        _sortAccessors.Add("initiative", t => t.Project_Acronym_CD);
+        _sortAccessors.Add("name", t => t.ProjectName);
+        _sortAccessors.Add("lastcontact", t => t?.Last_Contact_DT?.ToShortDateString());
+    }
 
 
     private List<Func<Datahub_Project, string>> accessorFunctions = new List<Func<Datahub_Project, string>>
@@ -116,9 +142,65 @@
         new Func<Datahub_Project, string>(p => { return p.Project_Acronym_CD ?? "N/A"; }),
         new Func<Datahub_Project, string>(p => { return p.ProjectName ?? "N/A"; }),
         new Func<Datahub_Project, string>(p => { return p?.Last_Contact_DT?.ToShortDateString(); }),
-        new Func<Datahub_Project, string>(p => { return ShortenContactList(p?.Contact_List); })
-
+        new Func<Datahub_Project, string>(p => { return ShortenContactList(p?.Contact_List); }),
+        null
     };
+
+    private List<Func<Datahub_Project, RenderFragment>> renderFunctions => new()
+    {
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        GetMetadataFragment
+    };
+
+    private RenderFragment GetMetadataFragment(Datahub_Project p)
+    {
+        if (p != null && !p.MetadataAdded.HasValue)
+            return@<a @onclick="() => RequestEnterMetadata(p)" style="cursor: pointer;">@DataLocalizer["Request"]</a>;
+        return @<span>&nbsp;</span>;
+    }
+
+    private async Task RequestEnterMetadata(Datahub_Project p)
+    {
+        var ctx = await DbFactory.CreateDbContextAsync();
+
+        var appForm = await ctx.OnboardingApps.FirstOrDefaultAsync(e => e.Application_ID == p.OnboardingApplicationId);
+        appForm ??= GetOnboardingApplicationFromProject(p);
+
+        if (appForm is not null)
+        {
+            OnboardingParameters onboardingParameters = new()
+                {
+                    AppUrl = $"/admin/metadata/{p.Project_Acronym_CD}",
+                    App = appForm,
+                    AdminEmailAddresses = ServiceAuthManager.GetProjectMailboxEmails(PROJECTACRONYM)
+                };
+
+            await EmailService.SendOnboardingMetadataEditRequest(onboardingParameters);
+
+            p.MetadataAdded = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private OnboardingApp GetOnboardingApplicationFromProject(Datahub_Project p)
+    {
+        // cannot contact the admin
+        if (string.IsNullOrEmpty(p.Project_Admin))
+            return null;
+
+        // return a temp app form
+        return new()
+            {
+                Product_Name = p.ProjectName,
+                Client_Email = p.Project_Admin,
+                Client_Contact_Name = "{p.Project_Acronym_CD} Admin"
+            };
+    }
 
     private async Task HandleValidSubmit()
     {
@@ -131,7 +213,7 @@
             }
             _project.Last_Updated_DT = DateTime.Now;
             await Context.SaveChangesAsync();
-            LoadData(string.Empty); 
+            LoadData(_searchFilter); 
             _project = null;
         }
 
