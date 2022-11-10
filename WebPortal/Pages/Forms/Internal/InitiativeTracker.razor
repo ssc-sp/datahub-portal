@@ -45,6 +45,7 @@
     private List<Organization_Level> _sectors = new();
     private List<Organization_Level> _branches = new();
     private List<Organization_Level> _divisions = new();
+    private List<string> _headers = new();
     private bool _isFrench;
 
 
@@ -56,6 +57,18 @@
         // load projects        
         Context = DbFactory.CreateDbContext();
         LoadData(string.Empty);
+
+        _headers = new List<string>
+        {
+            DataLocalizer["Status"],
+            DataLocalizer["Sector"], 
+            DataLocalizer["Project"], 
+            DataLocalizer["Name"],
+            DataLocalizer["Last Contact"],
+            DataLocalizer["Contacts"],
+            DataLocalizer["Metadata"],
+
+        };
 
         //filterProperties.Add((() => "Status", () => new List<string> { "All", "Closed", "On Hold", "Ongoing" }));
 
@@ -74,8 +87,38 @@
 
     private void LoadData(string searchFilter)
     {
-        _projects = Context.Projects.Include(r => r.Comments).Where(p => p.Deleted_DT == null).ToList();
+        _projects = Context.Projects.Include(f => f.Sector).Include(f => f.Branch).Include(f => f.Division).ToList();
+
+        _formMetadata.Header = DataLocalizer["Initiatives"];
+        _formMetadata.HeaderSubText = DataLocalizer[@"Select Initiative"];
+        _formMetadata.SubHeader = DataLocalizer[""];
+        _formMetadata.DataSet = _projects;
+        _formMetadata.AccessorFunctions = accessorFunctions;
+        //_formMetadata.NavigateUrls = null;
+        _formMetadata.Headers = _headers;
+        _formMetadata.AllowSearch = true;
+        _formMetadata.GridTemplateColumns = "3fr 6fr 6fr 6fr 3fr";
+        _formMetadata.IsSubmitEnabled = true;
+        _formMetadata.IsAddEnabled = true;
     }
+
+    private List<Func<FundCenter, (string, string)>> buttonFunctions = new List<Func<FundCenter, (string, string)>>
+    {
+        new Func<FundCenter, (string, string)>(p => { return ("Next" , $"/finance/forecasts/{p.FundCenter_ID.ToString()}"); }),
+    };
+
+
+
+    private List<Func<Datahub_Project, string>> accessorFunctions = new List<Func<Datahub_Project, string>>
+    {        
+        new Func<Datahub_Project, string>(p => { return p.Project_Status_Desc ?? "N/A"; }),
+        new Func<Datahub_Project, string>(p => { return p.Sector?.Org_Name_E ?? "N/A"; }),
+        new Func<Datahub_Project, string>(p => { return p.Project_Acronym_CD ?? "N/A"; }),
+        new Func<Datahub_Project, string>(p => { return p.ProjectName ?? "N/A"; }),
+        new Func<Datahub_Project, string>(p => { return p?.Last_Contact_DT?.ToShortDateString(); }),
+        new Func<Datahub_Project, string>(p => { return ShortenContactList(p?.Contact_List); })
+
+    };
 
     private async Task HandleValidSubmit()
     {
@@ -99,7 +142,7 @@
     {
 
         //context.RegisterOptionValueProperty<FundCenter, FiscalYear>(l => l.FiscalYear, p => p?.Year ?? "N/A", () => _fiscalYears);
-        context.RegisterOptionValueProperty<Datahub_Project, Organization_Level>(l => l.Sector, p => p?.Org_Name_E ?? "N/A", () => _sectors, s => RefreshBranches(s, context));
+        context.RegisterOptionValueProperty<Datahub_Project, Organization_Level>(l => l.Sector, p => p?.Org_Name_E ?? "N/A", () => GetSectors(), s => RefreshBranches(s, context));
         context.RegisterOptionValueProperty<Datahub_Project, Organization_Level>(l => l.Branch, p => p?.Org_Name_E ?? "N/A", () => GetBranches(), s => RefreshDivisions(s, context));
         context.RegisterOptionValueProperty<Datahub_Project, Organization_Level>(l => l.Division, p => p?.Org_Name_E ?? "N/A", () => GetDivisions());
 
@@ -197,4 +240,19 @@
     {
         Context.Dispose();
     }
+
+    private static string ShortenEntry(string entry)
+    {
+        var leqPos = entry.IndexOf('<');
+        if (leqPos == -1) return entry;
+        return entry.Substring(0, leqPos - 1).Trim();
+    }
+
+    public static string ShortenContactList(string contacts)
+    {
+        if (contacts is null) return null;
+        var list = contacts.Split(";", StringSplitOptions.RemoveEmptyEntries);
+        return string.Join(", ", list.Select(el => ShortenEntry(el)).ToList());
+    }
+
 }
