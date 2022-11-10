@@ -24,7 +24,7 @@ namespace Datahub.Core.Services
         Task<bool> IsViewingAsVisitor();
         Task SetViewingAsGuest(bool isGuest);
         Task SetViewingAsVisitor(bool isVisitor);
-        Task<ClaimsPrincipal> GetAuthenticatedUser(bool forceReload = false);
+        Task<ClaimsPrincipal>  GetAuthenticatedUser(bool forceReload = false);
 
 	}
 
