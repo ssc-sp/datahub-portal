@@ -47,6 +47,16 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.Property<DateTime?>("Engagement_Start_Date")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("Engagment_Lead")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("Engagment_Owners")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
                     b.Property<DateTime?>("Final_Release_Date")
                         .HasColumnType("datetime2");
 
@@ -175,6 +185,9 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.Property<DateTime>("Last_Updated_DT")
                         .HasColumnType("datetime2");
 
+                    b.Property<bool?>("MetadataAdded")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Last_Updated_UserId")
                         .HasColumnType("nvarchar(max)");
 
@@ -261,53 +274,6 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.HasIndex("SectorId");
 
                     b.ToTable("Projects");
-                });
-
-            modelBuilder.Entity("Datahub.Core.EFCore.Datahub_Project_Access_Request", b =>
-                {
-                    b.Property<int>("Request_ID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Request_ID"), 1L, 1);
-
-                    b.Property<DateTime?>("Completion_DT")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("Databricks")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("PowerBI")
-                        .HasColumnType("bit");
-
-                    b.Property<int?>("Project_ID")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("Request_DT")
-                        .HasColumnType("datetime2");
-
-                    b.Property<byte[]>("Timestamp")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("rowversion");
-
-                    b.Property<string>("User_ID")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<string>("User_Name")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<bool>("WebForms")
-                        .HasColumnType("bit");
-
-                    b.HasKey("Request_ID");
-
-                    b.HasIndex("Project_ID");
-
-                    b.ToTable("Access_Requests");
                 });
 
             modelBuilder.Entity("Datahub.Core.EFCore.Datahub_Project_Costs", b =>
@@ -1593,8 +1559,6 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.Navigation("Pipelines");
 
                     b.Navigation("PowerBi_Workspaces");
-
-                    b.Navigation("Requests");
 
                     b.Navigation("Resources");
 

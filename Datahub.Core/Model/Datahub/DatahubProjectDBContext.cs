@@ -15,7 +15,6 @@ namespace Datahub.Core.EFCore
         public DbSet<PBI_License_Request> PowerBI_License_Requests { get; set; }
         public DbSet<PBI_User_License_Request> PowerBI_License_User_Requests { get; set; }
         public DbSet<Datahub_ProjectComment> Project_Comments { get; set; }
-        public DbSet<Datahub_Project_Access_Request> Access_Requests { get; set; }
         public DbSet<WebForm_Field> Fields { get; set; }
         public DbSet<WebForm> WebForms { get; set; }
         public DbSet<WebForm_DBCodes> DBCodes { get; set; }

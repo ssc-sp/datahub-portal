@@ -69,7 +69,6 @@
 
         projectContext = DbFactoryProject.CreateDbContext();
         _project = await projectContext.Projects
-            .Include(p => p.Requests)
             .Include(p => p.Pipelines)
             .AsSingleQuery()
             .FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronym);

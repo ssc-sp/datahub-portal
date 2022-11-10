@@ -1,0 +1,34 @@
+﻿@*OnBoardingMetadataRequest.razor*@
+@namespace Datahub.Core.Templates
+
+<p>Thank you for collaborating with the DataHub team. There is one last step before your DataHub initiative ‘@ApplicationParameters.App.Product_Name’ is ready.</p>
+
+<p>You will need to provide the following information for your initiative: </p>
+<ul>
+    <li>Keywords (example: finance, forestry, energy, etc.)</li>
+    <li>Subject (example: Economics and Industry, Nature and Environment)</li>
+</ul>
+
+<p>This information is used by the DataHub to maintain a catalog of key assets, such as Power BI reports, Databricks notebooks, etc., generated during the engagement and allows your initiative to be searchable in the catalog.</p>
+
+<p>The form can be opened with the following link:</p>
+
+<p>@ApplicationParameters.AppUrl</p>
+
+<p>If you have any questions regarding the form, please contact the DataHub team at <a href="mailto:datahub@nrcan-rncan.gc.ca">datahub@nrcan-rncan.gc.ca</a></p>
+
+<p>Thanks</p>
+
+<p>
+    <b>DataHub Team | L’équipe DataHub</b><br />
+    Corporate Management and Services Sector | Secteur de la gestion et des services intégrés<br />
+    Natural Resources Canada / Government of Canada | Ressources naturelles Canada / Gouvernement du Canada<br />
+    datahub@nrcan-rncan.gc.ca
+</p>
+
+@code {
+
+    [Parameter]
+    public OnboardingParameters ApplicationParameters { get; set; }
+
+}

@@ -3,8 +3,8 @@
 
 @inject IUserInformationService _userInformationService
 @inject ServiceAuthManager _serviceAuthManager
-@page "/administration"
-@page "/admin"
+@page "/legacy/administration"
+@page "/legacy/admin"
 
 <DHPageTitle PageTitleKey="@Localizer["Admin"]"/>
 
@@ -83,7 +83,6 @@
         var result = new List<(string, RenderFragment)>
         {
             (Localizer["Project Requests"], @<ProjectAccessRequestTable/>),
-            (Localizer["Authorize Users"], @<ServiceAccessRequestTable/>),
             (Localizer["Service Requests"], @<ServiceCreationRequestTable/>),
             (Localizer["Registration Requests"], @<ViewRegistrationRequests/>),
         };
@@ -98,6 +97,7 @@
             result.Add((Localizer["External PowerBi Requests"], @<ExternalPowerBiRequests /> ));
             result.Add((Localizer["DataHub Tools"], @<DatahubTools />));
             result.Add((Localizer["Fetch Projects Monthly Cost"], @<FetchProjectsMonthlyCost />));
+            result.Add((Localizer["Profiler"], @<MiniProfilerView />));
         }
         return result;
     }

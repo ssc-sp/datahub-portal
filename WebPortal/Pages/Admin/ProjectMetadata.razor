@@ -14,7 +14,7 @@
         Location=@ProjectAcronym
         ProjectAcronym=@ProjectAcronym 
         ObjectType=@MetadataObjectType.DataInitiative
-        OnProjectLoaded=@HandleProjectLoaded />
+        OnMetadataSaved=@HandleMetadataSaved />
 </div>
 
 
@@ -23,7 +23,8 @@
     [Parameter]
     public string ProjectAcronym { get; set; }
 
-    private void HandleProjectLoaded(Datahub_Project project)
+    private void HandleMetadataSaved(Datahub_Project project)
     {
+        project.MetadataAdded = true;
     }
 }

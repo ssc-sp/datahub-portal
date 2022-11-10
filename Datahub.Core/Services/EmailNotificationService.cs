@@ -148,8 +148,11 @@ namespace Datahub.Core.Services
             }
 
             var recipient = await BuildRecipient(userIdOrAddress, recipientName);
-            var recipients = new List<MailboxAddress>() { recipient };
-            await SendEmailMessage(subject, body, recipients, isHtml);
+            if (recipient is not null)
+            {
+                var recipients = new List<MailboxAddress>() { recipient };
+                await SendEmailMessage(subject, body, recipients, isHtml);
+            }
         }
 
         public async Task SendEmailMessage(string subject, string body, IList<string> userIdsOrAddresses, bool isHtml = true)
@@ -530,6 +533,14 @@ namespace Datahub.Core.Services
                     await SendEmailMessage(subject, html, parameters.App.Additional_Contact_Email_EMAIL, parameters.App.Additional_Contact_Email_EMAIL);
             }
 
+        }
+
+        public async Task SendOnboardingMetadataEditRequest(OnboardingParameters parameters)
+        {
+            var parametersDict = BuildOnboardingParameters(parameters);
+            var subject = $"Please complete the details for your DataHub Initiative – {parameters.App.Product_Name}";
+            var html = await RenderTemplate<OnBoardingMetadataRequest>(parametersDict);
+            await SendEmailMessage(subject, html, parameters.App.Client_Email, parameters.App.Client_Contact_Name);
         }
 
         public async Task SendExternalPowerBiCreationRequested(PowerBiExternalReportParameters parameters)
