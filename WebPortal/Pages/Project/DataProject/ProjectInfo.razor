@@ -2,7 +2,8 @@
 
 @using Datahub.Core.Components.Skeleton
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
-@inject UIControlsService _uiControlService;
+@inject UIControlsService _uiControlService
+@inject NavigationManager NavigationManager
 
 <div class="project-info">
     @if (_loading)
@@ -16,27 +17,38 @@
     }
     else
     {
-        <MudChip Color="Color.Dark" class="project-data-sensitivity">@Localizer[_project.Data_Sensitivity]</MudChip>
+        <MudChip Color="Color.Dark" class="project-data-sensitivity">@Localizer[Project.Data_Sensitivity]</MudChip>
+
         @if (_currentProjectMonthlyCost is not null && _projectBudget > 0)
         {
-@*            <MudTooltip Text="@GetToolTipText()" Arrow="true">*@
-                <MudBadge Icon="@Icons.Filled.QuestionMark" Color="GetCostChipColor()" Overlap="true" Bordered="true">  
-                    <MudChip Icon="@Icons.Filled.AttachMoney" IconColor="GetCostChipColor()" Variant="Variant.Text"
-                             Color="GetCostChipColor()" class="project-data-sensitivity" OnClick=@HandleToggleCosts>
-                        @($"{_currentProjectMonthlyCost:C} {Localizer["Azure cost for current month"]}")
-                    </MudChip>
-                </MudBadge>
-            @*</MudTooltip>*@
+            <MudBadge Icon="@Icons.Filled.QuestionMark" Color="GetCostChipColor()" Overlap="true" Bordered="true">  
+                <MudChip Icon="@Icons.Filled.AttachMoney" IconColor="GetCostChipColor()" Variant="Variant.Text"
+                            Color="GetCostChipColor()" class="project-data-sensitivity" OnClick=@HandleToggleCosts>
+                    @($"{_currentProjectMonthlyCost:C} {Localizer["Azure cost for current month"]}")
+                </MudChip>
+            </MudBadge>
+        }
+
+        @if ((IsProjectAdmin || IsDatahubAdmin) && Project.MetadataAdded != true)
+        {
+            <MudChip Icon="@Icons.Filled.Info"
+                     IconColor="Color.Warning" 
+                     Variant="Variant.Text"
+                     Color="Color.Warning"
+                     class="project-data-sensitivity"
+                     OnClick=@HandleEditMetadata>
+                     @Localizer["Edit Metadata"]
+            </MudChip>
         }
 
         <AeTypography class="project-title" Variant="h1">
             <span class="project-icon">
                 <i class="@($"{_projectIcon}")"></i>
             </span>
-            @_project.ProjectName
+            @Project.ProjectName
         </AeTypography>
         
-        <DHMarkdown class="description" Content="@($"{_project.ProjectDescription}")"/>
+        <DHMarkdown class="description" Content="@($"{Project.ProjectDescription}")"/>
 
         @if (_showCosts && _currentProjectMonthlyCost.HasValue && _currentProjectMonthlyCost.Value < _projectBudget)
         {
@@ -47,12 +59,19 @@
 
 @code {
 
-    [CascadingParameter(Name = "ProjectAcronym")]
-    public string ProjectAcronym { get; set; }
+    [CascadingParameter(Name = "Project")]
+    private Datahub_Project Project { get; set; }
 
-    private Datahub_Project _project;
+    [CascadingParameter(Name = "IsProjectAdmin")]
+    private bool IsProjectAdmin { get; set; }
+
+    [CascadingParameter(Name = "IsDatahubAdmin")]
+    private bool IsDatahubAdmin { get; set; }
+
+    private string ProjectAcronym => Project?.Project_Acronym_CD;
+
     private decimal? _currentProjectMonthlyCost;
-    private string _projectIcon => $"fas fa-{_project?.Project_Icon ?? Icon.DEFAULT_PROJECT_ICON}";
+    private string _projectIcon => $"fas fa-{Project?.Project_Icon ?? Icon.DEFAULT_PROJECT_ICON}";
     private decimal _projectBudget;
     private bool _loading = true;
     private bool _showCosts;
@@ -61,13 +80,11 @@
     {
         using var projectContext = _dbFactoryProject.CreateDbContext();
 
-        _project = await projectContext.Projects.FirstOrDefaultAsync(p => p.Project_Acronym_CD == ProjectAcronym);
-
         var projectMonthlyCost = await projectContext.Project_Current_Monthly_Costs.FirstOrDefaultAsync(mc => mc.ProjectAcronym == ProjectAcronym.ToLower());
         if (projectMonthlyCost != null)
             _currentProjectMonthlyCost = projectMonthlyCost.TotalCost;
 
-        _projectBudget = _project.Project_Budget ?? 0;
+        _projectBudget = Project.Project_Budget ?? 0;
 
         _loading = false;
     }
@@ -88,7 +105,7 @@
 
     private string GetToolTipText()
     {
-        var projectName = $"{_project.ProjectName} ";
+        var projectName = $"{Project.ProjectName} ";
         if (_currentProjectMonthlyCost >= _projectBudget)
             return projectName +  Localizer["is over budget"];
         if (_currentProjectMonthlyCost >= 0.75m * _projectBudget)
@@ -96,21 +113,27 @@
         return projectName + Localizer["is under budget"];
     }
 
-    private Color GetProtectionColor() => (_project?.Data_Sensitivity ?? "").ToUpper() switch
+    private Color GetProtectionColor() => (Project?.Data_Sensitivity ?? "").ToUpper() switch
     {
-        "CLASSIFIED" or
-        "PROTECTED B" => Color.Secondary,
+        "CLASSIFIED"  or
+        "PROTECTED B" or
+        "PROTECTED C" => Color.Secondary,
         "PROTECTED A" => Color.Error,
         _ => Color.Dark
     };
 
     private string GetProjectDataSensitivity()
     {
-        return !string.IsNullOrWhiteSpace(_project?.Data_Sensitivity) ? _project.Data_Sensitivity : "Unclassified";
+        return !string.IsNullOrWhiteSpace(Project?.Data_Sensitivity) ? Project.Data_Sensitivity : "Unclassified";
     }
 
     private void HandleToggleCosts(MouseEventArgs args)
     {
         _showCosts = !_showCosts;
+    }
+
+    private void HandleEditMetadata(MouseEventArgs args)
+    {
+        NavigationManager.NavigateTo($"/admin/metadata/{Project.Project_Acronym_CD}");
     }
 }

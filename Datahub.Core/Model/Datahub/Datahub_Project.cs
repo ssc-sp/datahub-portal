@@ -136,8 +136,6 @@ namespace Datahub.Core.EFCore
 
         public List<Datahub_Project_User> Users { get; set; }
 
-        public List<Datahub_Project_Access_Request> Requests { get; set; }
-
         public List<Datahub_ProjectServiceRequests> ServiceRequests { get; set; }
 
         [StringLength(400)]
@@ -179,6 +177,9 @@ namespace Datahub.Core.EFCore
 
         [AeFormIgnore]
         public int OnboardingApplicationId { get; set; }
+
+        [AeFormIgnore]
+        public bool? MetadataAdded { get; set; }
 
         [AeFormIgnore]
         [NotMapped]

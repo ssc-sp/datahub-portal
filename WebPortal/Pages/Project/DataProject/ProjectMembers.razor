@@ -1,5 +1,6 @@
 @using Datahub.Core.Data.DTO
 @using Datahub.Core.Components.Skeleton
+@using System
 
 @inject ServiceAuthManager _serviceAuthManager
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
@@ -53,7 +54,9 @@ else
                             <li>
                                 <ProfileCircle FullName="@admin.Name"/>
                                 <AeTypography class="name">@admin.Name</AeTypography>
-
+                                <a class="profile-icon" href="/profile/@System.Convert.ToBase64String(@System.Text.Encoding.UTF8.GetBytes(@admin.UserId))">
+                                    <i class="fa-solid fa-user"></i>
+                                </a>
                                 <a class="email-icon" href="@($"mailto:{admin.Email}")">
                                     <i class="fas fa-envelope"></i>
                                 </a>
@@ -73,7 +76,9 @@ else
                             <li>
                                 <ProfileCircle FullName="@member.Name"/>
                                 <AeTypography class="name">@member.Name</AeTypography>
-
+                                <a class="profile-icon" href="/profile/@System.Convert.ToBase64String(@System.Text.Encoding.UTF8.GetBytes(@member.UserId))">
+                                    <i class="fa-solid fa-user"></i>
+                                </a>
                                 <a class="email-icon" href="@($"mailto:{member.Email}")">
                                     <i class="fas fa-envelope"></i>
                                 </a>
@@ -94,20 +99,13 @@ else
     private bool _isLoading = true;
 
     private List<string> _authorizedRoles = new();
-    private Datahub_Project _project;
 
     private List<ProjectMember> _projectUsers;
     private Microsoft.Graph.User _user;
 
-
     protected override async Task OnInitializedAsync()
     {
         await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
-
-        _project = await projectContext.Projects
-            .Include(p => p.Pipelines)
-            .AsSingleQuery()
-            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == ProjectAcronym);
 
         _user = await _userInformationService.GetUserAsync();
 
@@ -122,5 +120,4 @@ else
         
         _isLoading = false;
     }
-
 }

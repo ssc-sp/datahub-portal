@@ -1,8 +1,13 @@
 ﻿using Datahub.Core.EFCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Identity.Web;
+using Microsoft.Rest;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
@@ -14,14 +19,27 @@ namespace Datahub.Core.Services.AzureCosting
 {
     public class AzureCostManagementService
     {
-        private const string AZURE_BASE_URL = "https://management.azure.com/";
-        private DatahubProjectDBContext _dbContext;
-        private readonly ILogger<AzureCostManagementService> logger;
+        public const string AZURE_BASE_URL = "https://management.azure.com/";
+        public const string BILLING_CONFIG_SECTION = "Billing";
+        public const string SUBSCRIPTION_ID_CONFIG_KEY = "AzureSubscription";
+        public const string RESOURCE_GROUP_CONFIG_KEY = "ResourceGroup";
 
-        public AzureCostManagementService(DatahubProjectDBContext dbContext, ILogger<AzureCostManagementService> logger)
+        private DatahubProjectDBContext _dbContext;
+        private readonly ILogger<AzureCostManagementService> logger;       
+
+        public static readonly string[] RequiredScopes = new string[]
+        {
+            "https://management.azure.com/user_impersonation"
+        };
+
+
+        public AzureCostManagementService(
+            DatahubProjectDBContext dbContext, 
+            ILogger<AzureCostManagementService> logger)
         {
             _dbContext = dbContext;
             this.logger = logger;
+
         }
 
         public async Task<IEnumerable<CostManagementRow>> GetCurrentMonthlyCostAsync(string subscriptionId, string token, string resourceGroup = null)

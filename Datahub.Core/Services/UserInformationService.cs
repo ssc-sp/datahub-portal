@@ -135,20 +135,20 @@ namespace Datahub.Core.Services
                 if (e.InnerException is MsalUiRequiredException ||
                     e.InnerException is MicrosoftIdentityWebChallengeUserException)
                     throw;
-                _logger.LogError(e, "Error Loading User");
+                //_logger.LogError(e, "Error Loading User");
                 throw new InvalidOperationException("Cannot retrieve user", e);
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Error Loading User");
+                //_logger.LogError(e, "Error Loading User"); redundant
                 throw new InvalidOperationException("Cannot retrieve user list", e);
             }
         }
 
         private string GetOid()
         {
-            return authenticatedUser.Claims
-                .First(c => c.Type == "http://schemas.microsoft.com/identity/claims/objectidentifier").Value;
+            return (authenticatedUser?.Claims?
+                .FirstOrDefault(c => c.Type == "http://schemas.microsoft.com/identity/claims/objectidentifier")?? throw new InvalidOperationException("Cannot access user claims")).Value;
         }
 
         public async Task<User> GetUserAsync()

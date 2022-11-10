@@ -189,13 +189,12 @@
     "Database": "Database",
     "DatasetUrl": "Dataset Url",
     "DataInitiative": "Data Initiative",
-    "DatabrickNotebook": "Databricks Notebook"
+    "Databricks": "Databricks"
   },
   "DISCOVERY-CLASSIFICATION-TYPES": {
     "Unclassified": "Unclassified",
     "ProtectedA": "Protected A",
-    "ProtectedB": "Protected B",
-    "ProtectedC": "Protected C"
+    "ProtectedB": "Protected B"
   },
   "DISCOVERY-LANGUAGE-TYPES": {
     "Bilingual": "Bilingual",
@@ -686,7 +685,6 @@
   "Data_Set_Security_Level_Classified": "Data Set Security Classified",
   "Data_Set_Security_Level_ProtectedA": "Data Set Security Protected A",
   "Data_Set_Security_Level_ProtectedB": "Data Set Security Protected B",
-  "Data_Set_Security_Level_ProtectedC": "Data Set Security Protected C",
   "Data_Set_Security_Level_UnClassified": "Data Set Security Unclassified",
   "Data_Set_Security_Level": "Data Set Security",
   "Questions_for_the_DataHub_Team": "Questions for the DataHub Team",
@@ -1045,6 +1043,49 @@
     "Summer": "Summer",
     "Fall": "Fall",
     "Winter": "Winter"
+  },
+  "ADMINISTRATION": {
+    "CARD_TITLES": {
+      "ManageInitiatives": "Manage Initiatives",
+      "ExternalSharing": "External Sharing",
+      "ManageServices": "Manage Services in Initiatives",
+      "PowerBI": "Power BI",
+      "Registrations": "Registrations",
+      "SharingAPIs": "DataHub Sharing APIs",
+      "Metadata": "Metadata Management",
+      "MonthlyCost": "Monthly Cost",
+      "InitiativeResourceDefinitions": "Initiative Resource Definitions"
+    },
+    "CARD_DESCRIPTIONS": {
+      "ManageInitiatives": "Approve initiative requests and user access",
+      "ExternalSharing": "Manage external sharing for files and Power BI reports",
+      "ManageServices": "Approve service creation and access requests",
+      "PowerBI": "Link Power BI workspaces, reports and data sets with Datahub initiatives",
+      "Registrations": "Manage registrations",
+      "SharingAPIs": "Manage API keys for external users",
+      "Metadata": "Manage the Datahub metadata model",
+      "MonthlyCost": "Refresh monthly cost for initiatives",
+      "InitiativeResourceDefinitions": "Manage initiative resource settings"
+    },
+    "BUTTON_CAPTIONS": {
+      "OpenPage": "Open Page",
+      "UpdateCosts": "Update Costs"
+    },
+    "SECTIONS": {
+      "InitiativeAdmin": "Initiative Administration",
+      "DataHubInitiativeTracker": "DataHub Initiative Tracker",
+      "InitiativeTrackerDesc": "Create, edit, and manage data initiatives",
+      "InitiativeAccessRequests": "Initiative Access Requests",
+      "ServiceAdmin": "Service Administration",
+      "ServiceCreationRequests": "Service Creation Requests",
+      "ServiceAccessRequests": "Service Access Requests",
+      "Registrations": "Registrations",
+      "ExternalSharing": "External Power BI Requests"
+    },
+    "StartingCostUpdate": "Starting initiative cost update",
+    "UpdatedNCosts": "Updated costs for {0} initiatives",
+    "ErrorUpdatingCosts": "Error updating costs: {0}",
+    "ReturnToAdmin": "Return to Administration"
   }
 
 }

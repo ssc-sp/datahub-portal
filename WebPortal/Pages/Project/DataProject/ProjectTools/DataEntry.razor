@@ -1,90 +1,42 @@
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject RequestManagementService _requestManagementService
 
-@if (_project is null)
+@if (!string.IsNullOrWhiteSpace(Project.WebForms_URL))
 {
-    <ToolCard Loading/>
-}
-else
-{
-    <ToolCard Title=@Localizer["Data Entry"]
+    @if (Project is null)
+    {
+        <ToolCard Loading/>
+    }
+    else
+    {
+        <ToolCard Title=@Localizer["Data Entry"]
               Description=@Localizer["Start the Data Entry application enabled for this project"]>
-        <Logo>
-            <div class="purple" style="width:180px">
-                <MudIcon Icon="fad fa-keyboard card-icon fa-xs"/>
-            </div>
-        </Logo>
-        <ToolActionsList>
-            @if (!string.IsNullOrWhiteSpace(_project.WebForms_URL) && _webFormsAuthorized)
-            {
-                <DHLink Variant="h3" DataProject="@ProjectAcronym" WebFormsURL="@_project.WebForms_URL">
+            <Logo>
+                <div style="width:180px">
+                    <MudIcon Color="Color.Secondary" Icon="fad fa-keyboard card-icon fa-xs" />
+                </div>
+            </Logo>
+            <ToolActionsList>
+                <DHLink Variant="h3" DataProject="@ProjectAcronym" WebFormsURL="@Project.WebForms_URL">
                     <ToolActionButton LinkType="LinkType.Internal">
                         @Localizer["Open Data Entry Application"]
                     </ToolActionButton>                    
-                </DHLink>
-            }
-            @if (!_webFormsAuthorized)
-            {
-                @if (_webFormsRequested)
-                {
-                    <AeTypography class="access-text">@Localizer["Access Request is being reviewed"]</AeTypography>
-                }
-                else
-                {
-                    <ToolActionButton LinkType="LinkType.Request" OnClick="@HandleRequestAccess">
-                        @Localizer["Request Access"]
-                    </ToolActionButton>
-                }
-            }
+                </DHLink>            
+            </ToolActionsList>
+        </ToolCard>
+    }
 
-        </ToolActionsList>
-    </ToolCard>
 }
 
 @code {
 
-    [CascadingParameter(Name = "ProjectAcronym")]
-    public string ProjectAcronym { get; set; }
-
-    [CascadingParameter(Name = "UserId")]
-    public string UserId { get; set; }
+    [CascadingParameter(Name = "Project")]
+    private Datahub_Project Project { get; set; }
 
     [CascadingParameter(Name = "GraphUser")]
     public Microsoft.Graph.User GraphUser { get; set; }
 
-    private bool _webFormsRequested;
-    private bool _webFormsAuthorized;
 
-    private Datahub_Project _project;
+    private string ProjectAcronym => Project?.Project_Acronym_CD;
 
-    protected override async Task OnInitializedAsync()
-    {
-        await using var projectDbContext = await _dbFactoryProject.CreateDbContextAsync();
-        _project = await projectDbContext.Projects
-            .Include(p => p.Requests)
-            .AsSingleQuery()
-            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == ProjectAcronym);
-
-        if (UserId != null)
-        {
-            _webFormsRequested = _project.Requests.Where(r => r.User_ID == UserId && r.Completion_DT == null).Any(r => r.WebForms);
-            _webFormsAuthorized = _project.Requests
-                .Where(r => r.User_ID == UserId && r.Completion_DT != null)
-                .Any(r => r.WebForms);
-        }
-    }
-
-    private async Task HandleRequestAccess()
-    {
-        var request = new Datahub_Project_Access_Request()
-        {
-            Request_DT = DateTime.Now,
-            User_Name = GraphUser.UserPrincipalName,
-            User_ID = UserId,
-            Project = _project,
-            WebForms = true
-        };
-
-        await _requestManagementService.RequestAccess(request);
-    }
 }
