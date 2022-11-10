@@ -27,7 +27,7 @@ namespace Datahub.Core.EFCore
 
 
         [AeFormIgnore]
-        public int SectorId { get; set; }
+        public int? SectorId { get; set; }
         
         [AeFormCategory("Sector Information")]
         [MudForm(IsDropDown = true)]
@@ -35,14 +35,14 @@ namespace Datahub.Core.EFCore
         public Organization_Level Sector { get; set; }
 
         [AeFormIgnore]
-        public int BranchId { get; set; }
+        public int? BranchId { get; set; }
         [AeFormCategory("Sector Information")]
         [MudForm(IsDropDown = true)]
         [ForeignKey("BranchId")]
         public Organization_Level Branch { get; set; }
         
         [AeFormIgnore]
-        public int DivisionId { get; set; }
+        public int? DivisionId { get; set; }
 
         [AeFormCategory("Sector Information")]
         [MudForm(IsDropDown = true)]
