@@ -1,5 +1,4 @@
 ﻿@*MetadataEditor.razor*@
-@*MetadataEditor.razor*@
 @using Datahub.Metadata.Model
 @using Datahub.Metadata.DTO
 @using Datahub.Metadata.Utils
@@ -39,7 +38,7 @@
                 if (fieldValue != null)
                 {
                     var fieldPair = _fieldPairs.BindField(definition.Field_Name_TXT, fieldValue);
-                    <MetadataFieldEditorMud 
+                    <MetadataFieldEditor 
                         @key=@fieldValue
                         Preview=@Preview
                         Required="IsFieldRequired(definition)"
