@@ -160,7 +160,8 @@ namespace Datahub.Portal
             services.AddScoped<CatalogImportService>();
             services.AddSingleton<ICatalogSearchEngine, CatalogSearchEngine>();
 
-            services.AddScoped<IResourcesService, ResourcesService>();
+            // TODO FIXME this will likely change when proper caching is implemented
+            services.AddSingleton<IResourcesService, ResourcesService>();
 
             services.AddSignalRCore();
 
