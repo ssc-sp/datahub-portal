@@ -65,61 +65,81 @@ namespace Datahub.Core.EFCore
         [AeFormIgnore]
         public string Division_Name { get; set; }
 
+
+        [AeFormCategory("Initiative Information")]
         public string Contact_List { get; set; }
 
         [StringLength(100)]
+        [AeFormCategory("Initiative Information")]
         public string Project_Name { get; set; }
 
         [StringLength(100)]
+        [AeFormCategory("Initiative Information")]
         public string Project_Name_Fr { get; set; }
 
         [Required]
         [StringLength(10)]
+        [AeFormCategory("Initiative Information")]
         public string Project_Acronym_CD { get; set; }
 
         [Column(TypeName = "decimal(18,2)")]
+        [AeFormCategory("Initiative Information")]
         public decimal? Project_Budget { get; set; }
 
+        [AeFormCategory("Initiative Information")]
         public string Project_Admin { get; set; }
+        [AeFormCategory("Initiative Information")]
         public string Project_Summary_Desc { get; set; }
+        [AeFormCategory("Initiative Information")]
         public string Project_Summary_Desc_Fr { get; set; }
 
+        [AeFormCategory("Initiative Information")]
+        public string Project_Goal { get; set; }
+
+        [AeFormCategory("Initiative Information")]
         [AeLabel(isDropDown: true)]
         public string Project_Category { get; set; }
+        [AeFormCategory("Initiative Information")]
         public DateTime Initial_Meeting_DT { get; set; }
 
+        [AeFormCategory("Initiative Information")]
         public int? Number_Of_Users_Involved { get; set; }
+        [AeFormCategory("Initiative Information")]
         public bool Is_Private { get; set; }
 
-
+        [AeFormCategory("Initiative Information")]
         public bool Is_Featured { get; set; }
-
+        [AeFormCategory("Initiative Information")]
         [Required]
         [AeLabel(validValues: new[] { "Unclassified", "Protected A", "Protected B" })]
         public string Data_Sensitivity { get; set; } = "Unclassified";
 
+        [AeFormCategory("Initiative Information")]
         public string Stage_Desc { get; set; }
 
 
-
+        [AeFormCategory("Initiative Information")]
         [Required]
         [AeLabel(validValues: new[] { ONGOING, CLOSED, ON_HOLD })]
         public string Project_Status_Desc { get; set; }
 
+        [AeFormCategory("Initiative Information")]
         [AeLabel(isDropDown: true)]
         public string Project_Phase { get; set; }
 
+        [AeFormCategory("Initiative Information")]
         public string GC_Docs_URL { get; set; }
 
+        [AeFormCategory("Initiative Information")]
         public string Project_Icon { get; set; }
 
         [AeFormIgnore]
         public string Comments_NT { get; set; }
-
+        [AeFormCategory("Initiative Information")]
         public DateTime? Last_Contact_DT { get; set; }
-
+        [AeFormCategory("Initiative Information")]
         public DateTime? Next_Meeting_DT { get; set; }
-
+        [AeFormCategory("Initiative Information")]
         public PBI_License_Request PBI_License_Request { get; set; }
 
         [AeFormIgnore]
@@ -139,11 +159,12 @@ namespace Datahub.Core.EFCore
         public List<Datahub_ProjectServiceRequests> ServiceRequests { get; set; }
 
         [StringLength(400)]
+        [AeFormCategory("Initiative Connections")]
         public string Databricks_URL { get; set; }
-
+        [AeFormCategory("Initiative Connections")]
         [StringLength(400)]
         public string PowerBI_URL { get; set; }
-
+        [AeFormCategory("Initiative Connections")]
         [StringLength(400)]
         public string WebForms_URL { get; set; }
 
@@ -153,18 +174,22 @@ namespace Datahub.Core.EFCore
         [Timestamp]
         public byte[] Timestamp { get; set; }
 
+        [AeFormCategory("Initiative Connections")]
         [StringLength(128)]
         public string DB_Name { get; set; }
-
+        [AeFormCategory("Initiative Connections")]
         [StringLength(128)]
         public string DB_Server { get; set; }
-
+        [AeFormCategory("Initiative Connections")]
         [StringLength(100)]
         [AeLabel(validValues: new[] { SQL_SERVER_DB_TYPE, POSTGRES_DB_TYPE })]
         public string DB_Type { get; set; }
 
+        [AeFormCategory("Initiative Connections")]
         public bool IsDatabasePostgres => DB_Type == POSTGRES_DB_TYPE;
+        [AeFormCategory("Initiative Connections")]
         public bool IsDatabaseSqlServer => DB_Type == SQL_SERVER_DB_TYPE;
+        [AeFormCategory("Initiative Connections")]
         public bool HasAssociatedDatabase => IsDatabasePostgres || IsDatabaseSqlServer;
 
         public List<Datahub_Project_Pipeline_Lnk> Pipelines { get; set; }
