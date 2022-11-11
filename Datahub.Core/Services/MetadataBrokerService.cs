@@ -3,6 +3,7 @@ using Datahub.Metadata.DTO;
 using Datahub.Metadata.Model;
 using Datahub.Metadata.Utils;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -143,6 +144,44 @@ namespace Datahub.Core.Services
             {
                 transation.Rollback();
                 throw;
+            }
+        }
+
+        public async Task<bool> CreateChildMetadata(string parentId, string childId, Entities.MetadataObjectType dataType, string location, bool includeCatalog)
+        {
+            try
+            {
+                // read child catalog
+                using var ctx = await _contextFactory.CreateDbContextAsync();
+                if (await CatalogExists(ctx, childId))
+                    return false;
+
+                // read parent catalog
+                var parentCatalog = await GetCatalogObjectCopy(ctx, parentId);
+                if (parentCatalog is null)
+                    return false;
+
+                // save the child metadata
+                var childFields = await GetObjectMetadataValues(childId, parentId);
+                var childMetadata = await SaveMetadata(childFields);
+
+                // save the new catalog entry
+                var childCatalog = parentCatalog.Clone();
+                childCatalog.CatalogObjectId = 0;
+                childCatalog.ObjectMetadata = null;
+                childCatalog.ObjectMetadataId = childMetadata.ObjectMetadataId;
+                childCatalog.DataType = dataType;
+                childCatalog.Location_TXT = location;
+
+                ctx.CatalogObjects.Add(childCatalog);
+                await ctx.SaveChangesAsync();
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Create Child Metadata failed!");
+                return false;
             }
         }
 
@@ -728,6 +767,16 @@ namespace Datahub.Core.Services
             var catalogSearch = isFrench ? _catalogSearchEngine.GetFrenchSearchEngine() : _catalogSearchEngine.GetEnglishSearchEngine();
             catalogSearch.AddDocument(docId, (title ?? "").ToLower(), (content ?? "").ToLower());
             catalogSearch.FlushIndexes();
+        }
+
+        private async Task<CatalogObject> GetCatalogObjectCopy(MetadataDbContext ctx, string objectId)
+        {
+            return await ctx.CatalogObjects.FirstOrDefaultAsync(c => c.ObjectMetadata.ObjectId_TXT == objectId);
+        }
+
+        private async Task<bool> CatalogExists(MetadataDbContext ctx, string objectId)
+        {
+            return await ctx.CatalogObjects.AnyAsync(c => c.ObjectMetadata.ObjectId_TXT == objectId);
         }
     }
 }

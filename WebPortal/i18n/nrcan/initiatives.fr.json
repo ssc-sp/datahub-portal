@@ -309,5 +309,6 @@
   "You currently do not have access to this project.": "Vous n’avez actuellement pas accès à cette initiative.",
   "Project Information": "Informations sur le projet",
   "Welcome to your Data Project": "Bienvenue a votre initiative de données",
-  "You are not a member of this project.": "Vous n'êtes pas un membre de cette initiative."
+  "You are not a member of this project.": "Vous n'êtes pas un membre de cette initiative.",
+  "InititativeRestricted": "Réservé aux membres de l'initiative"
 }

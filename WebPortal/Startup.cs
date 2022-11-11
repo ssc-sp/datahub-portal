@@ -159,6 +159,8 @@ namespace Datahub.Portal
             services.AddScoped<CatalogImportService>();
             services.AddSingleton<ICatalogSearchEngine, CatalogSearchEngine>();
 
+            services.AddSingleton<CultureService>();
+
             services.AddSignalRCore();
 
             var httpLoggingConfig = Configuration.GetSection("HttpLogging");
