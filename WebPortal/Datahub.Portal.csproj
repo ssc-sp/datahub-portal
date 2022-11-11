@@ -8,7 +8,7 @@
     <DockerfileContext>.</DockerfileContext>
     <ImplicitUsings>enable</ImplicitUsings>
     <ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
-    <UserSecretsId>b1e84dc3-b45f-428e-bf71-7eec3434b232</UserSecretsId>
+    <UserSecretsId>bd21693c-bc26-41fc-a92f-9d0b2e2460e9</UserSecretsId>
   </PropertyGroup>
   <ItemGroup>
     <Content Remove="package.json" />
@@ -97,6 +97,7 @@
     <ProjectReference Include="..\Datahub.Core\Datahub.Core.csproj" />
     <ProjectReference Include="..\Datahub.GeoCore\Datahub.GeoCore.csproj" />
     <ProjectReference Include="..\Datahub.Metadata\Datahub.Metadata.csproj" />
+    <ProjectReference Include="..\Datahub.PowerBI\Datahub.PowerBI.csproj" />
     <ProjectReference Include="..\LanguageTraining\Datahub.LanguageTraining.csproj" />
 	<ProjectReference Include="..\Datahub.M365Forms\Datahub.M365Forms.csproj" />
     <ProjectReference Include="..\Datahub.Finance\Datahub.Finance.csproj" />

@@ -13,6 +13,7 @@
                         Definitions=@_definitions
                         FieldValues=@_fieldValues
                         ShowAll=@_showAll
+                        HideTranslationNote=@HideTranslationNote
                         OnFieldChanged=@FieldChanged />
 
         @if (!Preview)
@@ -119,6 +120,9 @@
 
     [Parameter]
     public int? ProjectId { get; set; }
+
+    [Parameter]
+    public bool HideTranslationNote { get; set; } = false;
 
     public bool SaveDisabled => _savingData || !_requiredFieldsAreValid;
 
@@ -385,6 +389,8 @@
     }
 
     public string GetValue(string fieldName) => _fieldValues.GetValue(fieldName);
+
+    public IEnumerable<FieldChoice> GetSelectedChoices(string fieldName) => _fieldValues.GetSelectedChoices(fieldName);
 
     public Dictionary<string, string> GetAllValues()
     {
