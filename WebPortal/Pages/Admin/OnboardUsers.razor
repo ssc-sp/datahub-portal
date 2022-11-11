@@ -13,7 +13,7 @@
 
     @if (ShowTitle)
     {
-        <MudText Typo="Typo.h4">@($"{projectAcronym} {Localizer["Project Users"]}")</MudText>
+        <MudText Typo="Typo.h4">@($"{ProjectAcronym} {Localizer["Project Users"]}")</MudText>
     }
 
     <AeCard class="facardForms" CardPosition="AeCard.CardStyle.Horizontal">
@@ -80,7 +80,7 @@
 @code {
 
     [Parameter]
-    public string projectAcronym { get; set; }
+    public string ProjectAcronym { get; set; }
 
     [Parameter]
     public bool ShowTitle { get; set; } = true;
@@ -111,7 +111,7 @@
         //var currentUserId = await UserInformationService.GetUserIdString();
 
         Context = DbFactory.CreateDbContext();
-        _project = Context.Projects.Single(p => p.Project_Acronym_CD == projectAcronym);
+        _project = Context.Projects.Single(p => p.Project_Acronym_CD == ProjectAcronym);
         _chosenUsers = Context.Project_Users.Where(p => p.Project == _project).ToList();
         FillAccessorFunctions();
 
