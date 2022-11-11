@@ -128,7 +128,7 @@
     private void LoadSortExpressions()
     {
         _sortAccessors.Add("status", t => t.Project_Status_Desc);
-        _sortAccessors.Add("sector", t => t.Sector?.Org_Name_E ?? "");
+        _sortAccessors.Add("sector", t => t.Sector?.Full_Acronym_E ?? "");
         _sortAccessors.Add("initiative", t => t.Project_Acronym_CD);
         _sortAccessors.Add("name", t => t.ProjectName);
         _sortAccessors.Add("lastcontact", t => t?.Last_Contact_DT?.ToShortDateString());
@@ -138,7 +138,7 @@
     private List<Func<Datahub_Project, string>> accessorFunctions = new List<Func<Datahub_Project, string>>
     {        
         new Func<Datahub_Project, string>(p => { return p.Project_Status_Desc ?? "N/A"; }),
-        new Func<Datahub_Project, string>(p => { return p.Sector?.Org_Name_E ?? "N/A"; }),
+        new Func<Datahub_Project, string>(p => { return p.Sector?.Full_Acronym_E ?? "N/A"; }),
         new Func<Datahub_Project, string>(p => { return p.Project_Acronym_CD ?? "N/A"; }),
         new Func<Datahub_Project, string>(p => { return p.ProjectName ?? "N/A"; }),
         new Func<Datahub_Project, string>(p => { return p?.Last_Contact_DT?.ToShortDateString(); }),
@@ -284,7 +284,7 @@
 
         if (context is not null)
         {
-            context.RefreshOptions<Organization_Level>(f => f.Org_Name_E);
+            context.RefreshOptions<Datahub_Project>(f => f.Division);
         }
     }
 
@@ -303,7 +303,7 @@
 
         if (context is not null)
         {
-            context.RefreshOptions<Organization_Level>(f => f.Org_Name_E);
+            context.RefreshOptions<Datahub_Project>(f => f.Branch);
         }
     }
 
