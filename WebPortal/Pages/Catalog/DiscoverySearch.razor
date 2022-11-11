@@ -551,8 +551,8 @@
 		MetadataObjectType.FileUrl => async () => await DownloadFileUrl(result),
 		MetadataObjectType.PowerBIReport => async () => await ViewPowerBIReport(result),
 		MetadataObjectType.DatasetUrl => async () => await DownloadDatasetUrl(result),
-		MetadataObjectType.DataInitiative or  
-		MetadataObjectType.Database => () => NavigationManager.NavigateTo($"projects/{result.Location}"),
+		MetadataObjectType.Database or
+		MetadataObjectType.DataInitiative => () => NavigationManager.NavigateTo($"projects/{result.Location}"),
 		MetadataObjectType.Databricks => async () => await RedirectAndDownload(result.Location),
 		_ => null
 	};
@@ -600,9 +600,9 @@
 			MetadataObjectType.File or MetadataObjectType.FileUrl => Localizer["Download File"],
 			MetadataObjectType.PowerBIReport => Localizer["Open Report"],
 			MetadataObjectType.PowerBIWorkspace => Localizer["Open Workspace"],
-			MetadataObjectType.PowerBIDataset => Localizer["Open Dataset"],
-			MetadataObjectType.Database => Localizer["Open Database"],
+			MetadataObjectType.PowerBIDataset => Localizer["Open Dataset"],			
 			MetadataObjectType.GeoObject => Localizer["Open Geo Object"],
+			MetadataObjectType.Database or
 			MetadataObjectType.DataInitiative => Localizer["Open Initiative"],
 			MetadataObjectType.Databricks => Localizer["Open Databricks"],
 			_ => Localizer["Download"]
