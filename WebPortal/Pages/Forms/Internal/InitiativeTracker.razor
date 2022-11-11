@@ -224,6 +224,7 @@
     {
 
         //context.RegisterOptionValueProperty<FundCenter, FiscalYear>(l => l.FiscalYear, p => p?.Year ?? "N/A", () => _fiscalYears);
+        //ntext.RegisterOptionValueProperty<FundCenter, HierarchyLevel>(l => l.Sector, p => p?.FundCenterNameEnglish ?? "N/A", () => GetSectors(), s => RefreshBranches(s, context));
         context.RegisterOptionValueProperty<Datahub_Project, Organization_Level>(l => l.Sector, p => p?.Org_Name_E ?? "N/A", () => GetSectors(), s => RefreshBranches(s, context));
         context.RegisterOptionValueProperty<Datahub_Project, Organization_Level>(l => l.Branch, p => p?.Org_Name_E ?? "N/A", () => GetBranches(), s => RefreshDivisions(s, context));
         context.RegisterOptionValueProperty<Datahub_Project, Organization_Level>(l => l.Division, p => p?.Org_Name_E ?? "N/A", () => GetDivisions());
@@ -244,8 +245,8 @@
     {
         if (!_sectors.Any())
             _sectors = Context.Organization_Levels.Where(l => l.Org_Level == "3").ToList();
-        if (_sectors[0] is not null)
-            _sectors.Insert(0, null);
+        //if (_sectors[0] is not null)
+        //    _sectors.Insert(0, null);
         return _sectors;
     }
 
@@ -274,11 +275,11 @@
         {
             _divisions.Clear();
             _divisions = Context.Organization_Levels.Where(b => b.Superior_OrgId == branch.Organization_ID).ToList();
-            _divisions.Insert(0, null);
+            //_divisions.Insert(0, null);
         }
         else
         {
-            _divisions = new() { null };
+            _divisions = new();
         }
 
         if (context is not null)
@@ -293,11 +294,11 @@
         {
             _branches.Clear();
             _branches = Context.Organization_Levels.Where(b => b.Superior_OrgId == sector.Organization_ID).ToList();
-            _branches.Insert(0, null);
+            //_branches.Insert(0, null);
         }
         else
         {
-            _branches = new() { null };
+            _branches = new();
         }
 
         if (context is not null)
