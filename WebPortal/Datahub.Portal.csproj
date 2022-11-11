@@ -8,6 +8,7 @@
     <DockerfileContext>.</DockerfileContext>
     <ImplicitUsings>enable</ImplicitUsings>
     <ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
+    <UserSecretsId>b1e84dc3-b45f-428e-bf71-7eec3434b232</UserSecretsId>
   </PropertyGroup>
   <ItemGroup>
     <Content Remove="package.json" />
