@@ -5,6 +5,7 @@
 @page "/resources/"
 @page "/resources/{PageName}"
 
+@*
 <MudCard>
     <DHMarkdown @ref=@_markdownElement
                 Content=@_markdownContent
@@ -34,6 +35,83 @@
         <MudButton OnClick=@TestButton>Test</MudButton>
     </MudCardContent>
 </MudCard>
+*@
+
+@if (PageIsLoading)
+{
+    <MudContainer>
+        <MudProgressCircular Indeterminate Color=@Color.Primary />
+    </MudContainer>
+}
+else
+{
+    <MudGrid>
+        <MudItem xs="3">
+            <MudList>
+                <MudListItem>
+                    <MudLink Href="/resources/"><MudIcon Icon=@Icons.Filled.Home /></MudLink>
+                </MudListItem>
+                @foreach(var cat in _resourceRoot.Categories)
+                {
+                    <MudListItem>
+                        <MudLink Href=@BuildResourceLink(cat)>
+                            @if (cat == _currentResourceCategory)
+                            {
+                                <MudChip Color=@Color.Primary Icon=@Icons.Filled.Star>
+                                    @cat.Title
+                                </MudChip>
+                            }
+                            else
+                            {
+                                <MudText>@cat.Title</MudText>
+                            }
+                        </MudLink>
+                    </MudListItem>
+                }
+            </MudList>
+        </MudItem>
+        <MudItem xs="9">
+            @if (ShowCards)
+            {
+                <MudGrid>
+                    @foreach(var card in CardsToShow)
+                    {
+                        <MudItem xs="4">
+                            <MudCard>
+                                <MudCardHeader>
+                                    <MudText Typo=@Typo.h5>@card.Title</MudText>
+                                </MudCardHeader>
+                                <MudCardContent>
+                                    <MudText Typo=@Typo.caption>@card.Preview</MudText>
+                                </MudCardContent>
+                                <MudCardActions>
+                                    <MudButton Href=@BuildResourceLink(card)>Read More</MudButton>
+                                </MudCardActions>
+                            </MudCard>
+                        </MudItem>
+                    }
+                </MudGrid>
+            }
+            else
+            {
+                <MudCard>
+                    @if (ArticleIsLoading)
+                    {
+                        <MudText Typo=@Typo.h3>@_currentResource.Title</MudText>
+                        <MudProgressCircular Indeterminate />
+                    }
+                    else
+                    {
+                        <DHMarkdown @ref=@_markdownElement
+                            Content=@_markdownContent
+                            LinkRewriter="@RewriteLink" />
+                    }
+                </MudCard>
+            }
+        </MudItem>
+    </MudGrid>
+}
+
 
 @code {
 
@@ -43,12 +121,24 @@
     [Parameter]
     public List<(string,string)> Substitutions { get; set; }
 
+    private ResourceLanguageRoot _resourceRoot;
+    private ResourceCategory _currentResourceCategory;
+    private AbstractResource _currentResource;
+
+    private bool PageIsLoading => _resourceRoot is null;
+    private bool ShowCards => _currentResource is ResourceLanguageRoot || _currentResource is ResourceCategory;
+    private bool ArticleIsLoading => !ShowCards && string.IsNullOrEmpty(_markdownContent);
+
+    public IEnumerable<ResourceCard> CardsToShow => _currentResourceCategory?.Cards ?? _resourceRoot.AllCards;
+
     private const string DefaultPage = "Home";
     private string _markdownContent = string.Empty;
     private string _baseUrl = "/resources";
 
     private DHMarkdown _markdownElement;
     private bool _needsStyleRefresh;
+
+    private string BuildResourceLink(AbstractResource res) => $"/resources/{res.Title}";
 
     private string RewriteLink(string link)
     {
@@ -59,8 +149,31 @@
 
     protected override async Task OnParametersSetAsync()
     {
-        _markdownContent = await _resourcesService.LoadPage(PageName ?? DefaultPage, Substitutions) ?? Localizer["Invalid link"];
-        _needsStyleRefresh = true;
+        _currentResource = string.IsNullOrEmpty(PageName) ?
+            _resourceRoot :
+            _resourceRoot[PageName];
+
+        _markdownContent = string.Empty;
+        _currentResourceCategory = null;
+
+
+        if (_currentResource == null)
+        {
+            _markdownContent = "Error";
+        }
+        else if (_currentResource is ResourceCategory)
+        {
+            _currentResourceCategory = _currentResource as ResourceCategory;
+        }
+        else if (_currentResource is ResourceCard)
+        {
+            var card = _currentResource as ResourceCard;
+            _currentResourceCategory = card.ParentCategory;
+            _markdownContent = await _resourcesService.LoadResourcePage(card);
+        }
+
+        //_markdownContent = await _resourcesService.LoadPage(PageName ?? DefaultPage, Substitutions) ?? Localizer["Invalid link"];
+        //_needsStyleRefresh = true;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -74,28 +187,18 @@
         }
     }
 
+    protected override async Task OnInitializedAsync()
+    {
+        
+        //TODO update this
+        var isFrench = Thread.CurrentThread.CurrentCulture.TwoLetterISOLanguageName.ToLowerInvariant() == "fr";
+
+        _resourceRoot = await _resourcesService.LoadLanguageRoot(isFrench);
+
+        
+        await Task.CompletedTask;
+    }
+
     private void TestButton() => _resourcesService.Test();
-
-    //private async Task<string> LoadPage(string name, List<(string,string)> substitutions = null)
-    //{
-    //    name.TrimStart('/');
-
-    //    var wikiRoot = "f";// _configuration["WikiURL"];
-    //    var fullUrl = $"{wikiRoot}{name}.md";
-    //    using var client = new HttpClient();
-    //    try
-    //    {
-    //        var content = await client.GetStringAsync(fullUrl);
-    //        if (substitutions == null)
-    //            return content;
-    //        return substitutions
-    //            .Aggregate(content, (current, s) => current.Replace(s.Item1, s.Item2));
-    //    }
-    //    catch (Exception ex)
-    //    {
-    //        //_logger.LogError(ex, "Cannot load page url: {FullUrl}", fullUrl);
-    //        return null;
-    //    }
-    //}
 
 }
