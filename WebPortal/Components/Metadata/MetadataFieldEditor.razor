@@ -1,110 +1,90 @@
-﻿@using Datahub.Metadata.Model
+﻿@*MetadataFieldEditor.razor*@
+@using Datahub.Metadata.Model
 
-<div style="margin-bottom: 16px;">
-
-    <AeFlex Vertical="true">
-    
-        <!-- field name -->
-        <div>
-            <div>
-                <AeTypography style="cursor: pointer;">
-                    @if (!Preview && Required && FieldValueEmpty)
-                    {
-                        <strong style="color: red">*&nbsp;</strong>
-                    }
-                    <strong><span @onclick="SelectField" title=@FieldDefinition.Description>@FieldDefinition.Name</span></strong>
-
-                    @if (CanAcceptTranslation())
-                    {
-                        <AeButton style="float: right" title=@GetTranslationHint() @onclick=@HandleTranslateField Disabled=@TranslatePairDisabled()>
-                            <i class="fa fa-language" aria-hidden="true"></i>
-                        </AeButton>
-                    }
-                </AeTypography>
-
-                <AeTypography style="font-size: 0.8em;">
-                    @FieldDefinition.Description
-                </AeTypography>
-            </div>
-        </div>
-
-        <!-- value -->
-        <div>
-            <div class="customuserinput">
-                @if (Preview)
+<MudStack>
+    @if (Preview)
+    {
+        <MudTextField Value=@(!FieldDefinition.HasChoices ? BoundValue : ChoiceDisplay)
+                      Label=@FieldDefinition.Name
+                      HelperText=@FieldDefinition.Description
+                      DisableUnderLine="true"
+                      ReadOnly="true"                       
+                      Variant="Variant.Filled" />
+    }
+    else
+    {
+        var fieldChoices = GetChoices();
+        if (fieldChoices.Count == 0)
+        {
+            if (IsKeywordField())
+            {
+                <KeywordInput FieldValue="FieldValue" 
+                              FieldDefinition=@FieldDefinition
+                              English="@IsEnglishField()"
+                              Subject="@Subject"
+                              FieldPair=@FieldPair
+                              OnFieldChanged="OnFieldChanged" />
+            }
+            else
+            {
+                if (FieldDefinition.IsDateField)
                 {
-                    _fieldType = FieldType.Preview;
-                    <span style="font-weight: bold; font-size: 0.9em;">
-                        @(!FieldDefinition.HasChoices ? BoundValue : ChoiceDisplay)
-                    </span>
+                    <MudDatePicker @bind-Date="BoundDate" 
+                                   Label=@FieldDefinition.Name 
+                                   HelperText=@FieldDefinition.Description 
+                                   Variant="Variant.Outlined"
+                                   DateFormat="yyyy-MM-dd"  />
                 }
                 else
                 {
-                    var fieldChoices = GetChoices();
-                    if (fieldChoices.Count == 0) //(!FieldDefinition.HasChoices)
-                    {
-                        if (IsKeywordField())
-                        {
-                            _fieldType = FieldType.Keyword;
-                            <KeywordInput @ref="_keywordInputRef" 
-                                          FieldValue="FieldValue" 
-                                          English="@IsEnglishField()"
-                                          Subject="@Subject"
-                                          FieldPair=@FieldPair
-                                          OnFieldChanged="OnFieldChanged" />
-                        }
-                        else
-                        {
-                            _fieldType = FieldType.Input;
-                            <input class="ae input"
-                                   type="@InputFieldType"
-                                   @bind="BoundValue"
-                                   @ref="_fieldValueInput"
-                                   disabled="@Preview"
-                                   style="@FieldStyle" />
-                        }
-                    }
-                    else
-                    {
-                        if (!FieldDefinition.MultiSelect_FLAG)
-                        {
-                            _fieldType = FieldType.SingleChoice;
-
-                            var oneChoice = FieldDefinition.Choices.Count == 1;
-                            var allowEmptyOption = !oneChoice && string.IsNullOrEmpty(FieldDefinition.Default_Value_TXT);
-                            
-                            <select class="ae input"
-                                    style="@FieldStyle"
-                                    disabled=@oneChoice
-                                    @bind="BoundValue"
-                                    @ref="_fieldValueInput">
-
-                                @if (allowEmptyOption)
-                                {
-                                    <option value=""></option>
-                                }
-
-                                @foreach (var choice in fieldChoices)
-                                {
-                                    <option value="@choice.Value_TXT">@choice.Label</option>
-                                }
-                            </select>
-                        }
-                        else
-                        {
-                            _fieldType = FieldType.MultipleChoice;
-                            <MultiSelectList FieldDefinition="FieldDefinition" 
-                                             FieldValue="FieldValue" 
-                                             OnFieldChanged="OnFieldChanged" />
-                        }
-                    }
+                    var canTranslate = CanAcceptTranslation();
+                    <MudTextField @bind-Value="BoundValue"
+                                  Label=@FieldDefinition.Name
+                                  HelperText=@FieldDefinition.Description
+                                  Clearable
+                                  DebounceInterval="250"
+                                  Required=@Required
+                                  Adornment=@(canTranslate ? Adornment.End : Adornment.None)
+                                  AdornmentIcon=@Icons.Filled.GTranslate
+                                  AdornmentAriaLabel=@(canTranslate ? GetTranslationHint() : "")
+                                  OnAdornmentClick=@HandleTranslateField
+                                  RequiredError=@(FieldDefinition.Description ?? Localizer["Required"])
+                                  Variant="Variant.Outlined" />
                 }
-            </div>
-        </div>
+            }
+        }
+        else
+        {
+            if (!FieldDefinition.MultiSelect_FLAG)
+            {
+                var oneChoice = FieldDefinition.Choices.Count == 1;
+                var allowEmptyOption = !oneChoice && string.IsNullOrEmpty(FieldDefinition.Default_Value_TXT);
 
-    </AeFlex>
+                <MudSelect T="string"
+                            Label=@FieldDefinition.Name
+                            @bind-Value=@BoundValue
+                            Variant="Variant.Outlined" 
+                            AnchorOrigin="Origin.BottomCenter"
+                            AdornmentIcon=@Icons.Filled.ArrowDropDown>
 
-</div>
+                    @if (allowEmptyOption)
+                    {
+                        <MudSelectItem T="string" />
+                    }
+
+                    @foreach (var choice in fieldChoices)
+                    {
+                        <MudSelectItem T="string" Value=@choice.Value_TXT>@choice.Label</MudSelectItem>
+                    }
+                </MudSelect>
+            }
+            else
+            {
+                <MultiSelectList FieldDefinition="FieldDefinition" FieldValue="FieldValue" OnFieldChanged="OnFieldChanged" />
+            }
+        }
+    }
+</MudStack>
 
 @code {
 
@@ -138,44 +118,10 @@
     [Parameter]
     public string CascadingValue { get; set; }
 
-    private string BoundValue
-    {
-        get => FieldValue.Value_TXT;
-        set
-        {
-            if (value != FieldValue.Value_TXT)
-            {
-                FieldValue.Value_TXT = value;
-                OnFieldChanged.InvokeAsync(FieldValue);
-            }
-        }
-    }
-
-    private string ChoiceDisplay => !FieldDefinition.MultiSelect_FLAG ? GetChoiceLabel(FieldValue.Value_TXT) : GetMultiChoiceLabels(FieldValue.Value_TXT);
-
-    private string FieldStyle => "width: 100%;";
-    private string InputFieldType => FieldDefinition.IsDateField ? "date" : "text";
-
-    private bool FieldValueEmpty => string.IsNullOrEmpty(BoundValue);
-
-    enum FieldType
-    {
-        Preview,
-        Input,
-        Keyword,
-        SingleChoice,
-        MultipleChoice
-    }
-
-    private FieldType _fieldType;
-    private KeywordInput _keywordInputRef;
-    private ElementReference _fieldValueInput;
-
     private string _cascadingValue;
 
     protected override void OnInitialized()
     {
-        base.OnInitialized();
         _cascadingValue = CascadingValue;
     }
 
@@ -192,6 +138,35 @@
         }
     }
 
+    private string BoundValue
+    {
+        get => FieldValue.Value_TXT;
+        set
+        {
+            if (value != FieldValue.Value_TXT)
+            {
+                FieldValue.Value_TXT = value;
+                OnFieldChanged.InvokeAsync(FieldValue);
+            }
+        }
+    }
+
+    private DateTime? BoundDate 
+    {
+        get
+        {
+            return DateTime.TryParse(FieldValue.Value_TXT, out DateTime date) ? date : DateTime.Today;
+        }
+        set 
+        {
+            var txtDate = value?.ToShortDateString() ?? "";
+            FieldValue.Value_TXT = txtDate;
+            OnFieldChanged.InvokeAsync(FieldValue);
+        }
+    }
+
+    private string ChoiceDisplay => !FieldDefinition.MultiSelect_FLAG ? GetChoiceLabel(FieldValue.Value_TXT) : GetMultiChoiceLabels(FieldValue.Value_TXT);
+
     private string GetChoiceLabel(string name)
     {
         return FieldDefinition.Choices.FirstOrDefault(c => c.Value_TXT == name)?.Label;
@@ -200,23 +175,7 @@
     private string GetMultiChoiceLabels(string values)
     {
         var labels = (values ?? string.Empty).Split('|').Select(GetChoiceLabel);
-        // it is better to display it separated by comas
         return string.Join(", ", labels); 
-    }
-
-    private void ClearField()
-    {
-        BoundValue = string.Empty;
-        SelectField();
-    }
-
-    private async void SelectField()
-    {
-        if (_fieldType == FieldType.Input)
-            await _fieldValueInput.FocusAsync();
-
-        if (_fieldType == FieldType.Keyword)
-            await _keywordInputRef.FocusAsync();
     }
 
     private bool IsKeywordField()
@@ -264,7 +223,6 @@
                 FieldValue.Value_TXT = translation ?? FieldValue.Value_TXT;
 
                 await OnFieldChanged.InvokeAsync(FieldValue);
-                await InvokeAsync(SelectField);
             }
         }
         catch (Exception)

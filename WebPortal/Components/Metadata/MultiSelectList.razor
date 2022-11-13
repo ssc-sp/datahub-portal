@@ -3,16 +3,21 @@
 
 @if (FieldValue != null && FieldDefinition != null)
 {
-    <div>
-        <select class="ae input" multiple style="width: 100%">
-            @foreach (var c in FieldDefinition.Choices)
-            {
-                <option value="@c.Value_TXT" @onclick="(e) => OnClick(e, c.Value_TXT)" selected="@IsSelected(c.Value_TXT)">
-                    @c.Label
-                </option>
-            }
-        </select>
-    </div>
+    <MudSelect T="string"
+               MultiSelectionTextFunc="@(new Func<List<string>, string>(GetMultiSelectionText))"
+               SelectedValues=@_selection
+               SelectedValuesChanged=@HandleSelectedValuesChanged
+               Label=@FieldDefinition.Name
+               MultiSelection="true"
+               Variant="Variant.Outlined"
+               AnchorOrigin="Origin.BottomCenter"
+               AdornmentIcon=@Icons.Filled.ArrowDropDown>
+
+        @foreach (var c in FieldDefinition.Choices)
+        {
+            <MudSelectItem T="string" Value=@c.Value_TXT>@c.Label</MudSelectItem>
+        }
+    </MudSelect>
 }
 
 @code {
@@ -36,34 +41,27 @@
 
     const char splitChar = '|';
 
-    private void OnClick(MouseEventArgs e, string optionValue)
-    {
-        if (e.CtrlKey)
-        {
-            if (_selection.Contains(optionValue))
-            {
-                _selection.Remove(optionValue);
-            }
-            else
-            {
-                _selection.Add(optionValue);
-            }
-        }
-        else
-        {
-            _selection.Clear();
-            _selection.Add(optionValue);
-        }
-
-        FieldValue.Value_TXT = string.Join(splitChar.ToString(), _selection);
-
-        OnFieldChanged.InvokeAsync(FieldValue);
-    }
-
-    private bool IsSelected(string option) => _selection.Contains(option);
-
     private IEnumerable<string> GetSelectedValues()
     {
         return (FieldValue.Value_TXT ?? string.Empty).Split(splitChar).Where(v => !string.IsNullOrEmpty(v));
+    }
+
+    private void HandleSelectedValuesChanged(IEnumerable<string> values)
+    {
+        _selection = new HashSet<string>(values);
+        FieldValue.Value_TXT = string.Join(splitChar.ToString(), values);
+        OnFieldChanged.InvokeAsync(FieldValue);
+    }
+
+    private string GetMultiSelectionText(List<string> selectedValues)
+    {
+        var selection = new HashSet<string>(selectedValues);
+        List<string> labels = new();
+        foreach (var c in FieldDefinition.Choices)
+        {
+            if (selection.Contains(c.Value_TXT))
+                labels.Add(c.Label);
+        }
+        return string.Join(", ", labels);
     }
 }
