@@ -11,8 +11,10 @@
 @inject IDatahubAuditingService AuditingService
 @inject IOrganizationLevelsService OrganizationLevelsService
 @inject IEmailNotificationService EmailService
+@inject IDialogService DialogService
 @using System.Security.Claims
 @using Datahub.Core.Model.Onboarding
+@using Datahub.Portal.Components.Dialogs
 @using MudBlazor.Forms;
 @page "/datahub/initiatives"
 
@@ -68,6 +70,7 @@
             DataLocalizer["Last Contact"],
             DataLocalizer["Contacts"],
             DataLocalizer["Metadata"],
+            DataLocalizer["Comments"],
         };
 
         LoadData(_searchFilter);
@@ -89,7 +92,7 @@
 
     private void LoadData(string searchfilter)
     {
-        _projects = Context.Projects.Include(f => f.Sector).Include(f => f.Branch).Include(f => f.Division).ToList();
+        _projects = Context.Projects.Include(f => f.Sector).Include(f => f.Branch).Include(f => f.Division).Include(r => r.Comments).ToList();
 
         var projects = _projects;
         if (!string.IsNullOrWhiteSpace(searchfilter))
@@ -124,7 +127,7 @@
         _formMetadata.IsAddEnabled = true;
     }
 
-   
+
     private void LoadSortExpressions()
     {
         _sortAccessors.Add("status", t => t.Project_Status_Desc);
@@ -143,6 +146,7 @@
         new Func<Datahub_Project, string>(p => { return p.ProjectName ?? "N/A"; }),
         new Func<Datahub_Project, string>(p => { return p?.Last_Contact_DT?.ToShortDateString(); }),
         new Func<Datahub_Project, string>(p => { return ShortenContactList(p?.Contact_List); }),
+        null,
         null
     };
 
@@ -154,14 +158,27 @@
         null,
         null,
         null,
-        GetMetadataFragment
+        GetMetadataFragment,
+        GetCommentIcon
     };
 
+    private RenderFragment GetCommentIcon(Datahub_Project p)
+    {
+        return@<MudIconButton @onclick="() => OpenComments(p)" Icon="@Icons.Filled.InsertComment" Color="Color.Default" />;
+    }
     private RenderFragment GetMetadataFragment(Datahub_Project p)
     {
         if (p != null && !p.MetadataAdded.HasValue)
             return@<a @onclick="() => RequestEnterMetadata(p)" style="cursor: pointer;">@DataLocalizer["Request"]</a>;
         return @<span>&nbsp;</span>;
+    }
+
+    private async Task OpenComments(Datahub_Project p)
+    { 
+        var parameters = new DialogParameters();
+        parameters.Add("Project", p);
+        DialogOptions fullScreen = new DialogOptions() { FullScreen = true, CloseButton = true };
+        DialogService.Show<TrackerComments>("Confirm", parameters, fullScreen);
     }
 
     private async Task RequestEnterMetadata(Datahub_Project p)
