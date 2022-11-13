@@ -1,30 +1,29 @@
 ﻿@*MetadataEditor.razor*@
-@*MetadataEditor.razor*@
 @using Datahub.Metadata.Model
 @using Datahub.Metadata.DTO
 @using Datahub.Metadata.Utils
 
 @if (Definitions != null && FieldValues != null && Profile != null)
 {
-    var translationNote = new MarkupString(Localizer["METADATA-PAGE.TranslationNote"]);
-    
-    <div>
+    <MudStack>
         @if (_showTranslationNote)
         {
-            <div>
-                <AeTypography Variant="p" style="color: #57C4EC;">
-                    <i class="fa fa-language" aria-hidden="true"></i>&nbsp;@translationNote
-                </AeTypography>               
-            </div>
+            <MudItem Class="mb-4">
+                <MudAlert Severity="Severity.Info" Icon="@Icons.Filled.GTranslate">
+                    @(new MarkupString(Localizer["METADATA-PAGE.TranslationNote"]))
+                </MudAlert>
+            </MudItem>
         }
+
+        @{ _totalFields = 0; }
 
         @foreach (var s in Profile.Sections)
         {
             if (Profile.Sections.Count > 1)
             {
-                <div style="border-bottom: 1px solid #edf2f7; margin-bottom: 16px;">
-                    <AeTypography Variant="h4">@s.Name</AeTypography>
-                </div>
+                <MudText Typo="Typo.subtitle1">
+                    @s.Name
+                </MudText>
             }
 
             var sectionDefinitions = EnumerateFields(s, !ShowAll);
@@ -35,27 +34,31 @@
                     continue;
 
                 var fieldValue = GetFieldValue(definition, Preview);
-
                 if (fieldValue != null)
                 {
                     var fieldPair = _fieldPairs.BindField(definition.Field_Name_TXT, fieldValue);
-                    <MetadataFieldEditorMud 
-                        @key=@fieldValue
-                        Preview=@Preview
-                        Required="IsFieldRequired(definition)"
-                        FieldValue=@fieldValue
-                        FieldDefinition=@definition
-                        FieldLabel=@definition.Name
-                        Subject=@_subject
-                        FieldPair=@fieldPair
-                        CascadingValue=@GetCascadingValue(definition)
-                        OnFieldChanged=@FieldChanged 
-                    />
+                    <MetadataFieldEditor @key=@fieldValue
+                                         Preview=@Preview
+                                         Required="IsFieldRequired(definition)"
+                                         FieldValue=@fieldValue
+                                         FieldDefinition=@definition
+                                         FieldLabel=@definition.Name
+                                         Subject=@_subject
+                                         FieldPair=@fieldPair
+                                         CascadingValue=@GetCascadingValue(definition)
+                                         OnFieldChanged=@FieldChanged />
+                    _totalFields++;
                 }
             }
         }
 
-    </div>       
+        @if (_totalFields == 0)
+        {
+            <MudItem Class="ma-4">
+                <MudAlert Severity="Severity.Info">@Localizer["No metadata found."]</MudAlert>
+            </MudItem>
+        }
+    </MudStack>       
 }
 
 @code {
@@ -82,7 +85,8 @@
     public bool HideTranslationNote { get; set; } = false;
 
     private HashSet<int> _requiredFieldIds = new(); 
-
+    private int _totalFields = 0;
+    
     private int? _subjectFieldId;
     private string _subject { get; set; }
     private bool _showTranslationNote => !Preview && !HideTranslationNote;
