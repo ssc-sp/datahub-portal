@@ -1,6 +1,6 @@
+using MudBlazor.Forms;
 using System;
 using System.ComponentModel.DataAnnotations;
-using Elemental.Components;
 
 namespace Datahub.Core.EFCore;
 
@@ -8,7 +8,6 @@ public class Datahub_ProjectComment
 {
     [Key]
     [AeFormIgnore]
-
     public int Comment_ID { get; set; }
 
     public DateTime Comment_Date_DT { get; set; }
@@ -19,4 +18,16 @@ public class Datahub_ProjectComment
     [Timestamp]
     public byte[] Timestamp { get; set; }
     public Datahub_Project Project { get; set; }
+
+    [AeFormIgnore]
+    public string Last_Updated_UserId { get; set; }
+
+    [AeFormIgnore]
+    public DateTime Last_Updated_DT { get; set; }
+
+    [AeFormIgnore]
+    public string Created_UserId { get; set; }
+
+    [AeFormIgnore]
+    public DateTime Created_DT { get; set; }
 }
