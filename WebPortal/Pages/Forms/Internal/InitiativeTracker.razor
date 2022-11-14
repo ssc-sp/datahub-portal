@@ -69,6 +69,7 @@
             DataLocalizer["Name"],
             DataLocalizer["Last Contact"],
             DataLocalizer["Contacts"],
+            DataLocalizer["Last Comment Date"],
             DataLocalizer["Metadata"],
             DataLocalizer["Comments"],
         };
@@ -146,12 +147,14 @@
         new Func<Datahub_Project, string>(p => { return p.ProjectName ?? "N/A"; }),
         new Func<Datahub_Project, string>(p => { return p?.Last_Contact_DT?.ToShortDateString(); }),
         new Func<Datahub_Project, string>(p => { return ShortenContactList(p?.Contact_List); }),
+        new Func<Datahub_Project, string>(p => { return p.Comments.OrderByDescending(d => d.Comment_Date_DT).FirstOrDefault()?.Comment_Date_DT.ToShortDateString() ?? string.Empty; }),
         null,
         null
     };
 
     private List<Func<Datahub_Project, RenderFragment>> renderFunctions => new()
     {
+        null,
         null,
         null,
         null,
