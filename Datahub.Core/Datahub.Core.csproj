@@ -25,10 +25,10 @@
 		<PackageReference Include="AElemental.Blazor.Theme" Version="1.6.22173.2" />
 		<PackageReference Include="AngleSharp" Version="1.0.0-alpha-844" />
 		<PackageReference Include="Askmethat.Aspnet.JsonLocalizer" Version="4.0.1" />
-		<PackageReference Include="Azure.Identity" Version="1.7.0" />
+		<PackageReference Include="Azure.Identity" Version="1.8.0" />
 		<PackageReference Include="Azure.Search.Documents" Version="11.4.0" />
-		<PackageReference Include="Azure.Storage.Blobs" Version="12.13.1" />
-		<PackageReference Include="Azure.Storage.Files.DataLake" Version="12.11.0" />
+		<PackageReference Include="Azure.Storage.Blobs" Version="12.14.1" />
+		<PackageReference Include="Azure.Storage.Files.DataLake" Version="12.12.1" />
 		<PackageReference Include="BlazorDownloadFile" Version="2.4.0.2" />
 		<PackageReference Include="Blazored.LocalStorage" Version="4.2.0" />
 		<PackageReference Include="BlazorInputFile" Version="0.2.0" />
