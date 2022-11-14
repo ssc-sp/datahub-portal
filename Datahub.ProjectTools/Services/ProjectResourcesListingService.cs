@@ -1,14 +1,17 @@
-﻿using Datahub.Core.EFCore;
-using Datahub.Core.Resources;
+﻿using Datahub.Core.Data;
+using Datahub.Core.EFCore;
 using Datahub.Core.Services;
+using Datahub.ProjectTools;
+using Datahub.ProjectTools.Catalog;
 using Microsoft.Extensions.Azure;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Datahub.Portal.Services.Resources
+namespace Datahub.ProjectTools.Services
 {
 
     public static class ProjectResourcesListingServiceExtensions
@@ -45,16 +48,20 @@ namespace Datahub.Portal.Services.Resources
             var services = new ServiceCollection();            
             
             using var serviceScope = serviceProvider.CreateScope();
-            
+            var authUser = await userInformationService.GetAuthenticatedUser();
             var output = new List<IProjectResource>();
+            var isUserAdmin = await userInformationService.IsUserProjectAdmin(project.Project_Acronym_CD);
+            var isUserDHAdmin = await userInformationService.IsUserDatahubAdmin();
             foreach (var item in ResourceProviders)
             {
                 var dhResource = serviceScope.ServiceProvider.GetRequiredService(item) as IProjectResource;
-                await dhResource.Initialize(project, await userInformationService.GetUserIdString(), await userInformationService.GetCurrentGraphUserAsync());
+                await dhResource.InitializeAsync(project, await userInformationService.GetUserIdString(), await userInformationService.GetCurrentGraphUserAsync(), isUserAdmin || isUserDHAdmin);
                 output.Add(dhResource);
             }
             return output;
 
         }
+
+
     }
 }

@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Datahub.Core.Resources
+namespace Datahub.ProjectTools
 {
 #nullable enable
     public interface IProjectResource
@@ -18,6 +18,6 @@ namespace Datahub.Core.Resources
         public string? GetCostEstimatorLink();
 
         public string[] GetTags();
-        Task Initialize(Datahub_Project project, string userId, User graphUser);
+        Task InitializeAsync(Datahub_Project project, string userId, User graphUser, bool isProjectAdmin);
     }
 }

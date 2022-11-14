@@ -1,21 +1,22 @@
+@using Datahub.Core.Components.Resources
 @*PublicSharing.razor*@
 
     @*<ToolCard Loading/>*@
 
-    <ToolCard
-        Title=@Localizer["PROJECT-PAGE.PUBLIC-SHARING-CARD.Title"]
-        Description=@Description>
-        <Logo>
-            <MudIcon Icon="fad fa-file-alt fa-xs"/>
-        </Logo>
-        <ToolActionsList>
-            <DHLink Variant="h3" DataProject="@ProjectAcronym" LinkType="DatahubLinkType.DataSharingDashboard">
-                <ToolActionButton LinkType="LinkType.Internal">
-                    @Localizer["PROJECT-PAGE.PUBLIC-SHARING-CARD.Title"]
-                </ToolActionButton>
-            </DHLink>
-        </ToolActionsList>
-    </ToolCard>
+<ToolCard
+    Title=@Localizer["PROJECT-PAGE.PUBLIC-SHARING-CARD.Title"]
+    Description=@Description>
+    <Logo>
+        <MudIcon Icon="fad fa-file-alt fa-xs"/>
+    </Logo>
+    <ToolActionsList>
+        <DHLink Variant="h3" DataProject="@ProjectAcronym" LinkType="DatahubLinkType.DataSharingDashboard">
+            <ToolActionButton LinkType="LinkType.Internal">
+                @Localizer["PROJECT-PAGE.PUBLIC-SHARING-CARD.Title"]
+            </ToolActionButton>
+        </DHLink>
+    </ToolActionsList>
+</ToolCard>
 
 
 @code {

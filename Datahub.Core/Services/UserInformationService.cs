@@ -14,6 +14,7 @@ using Microsoft.Identity.Client;
 using Microsoft.Identity.Web;
 using Datahub.Core.UserTracking;
 using System.Security.Claims;
+using Datahub.Core.Data;
 
 namespace Datahub.Core.Services
 {
@@ -350,5 +351,17 @@ namespace Datahub.Core.Services
             isViewingAsVisitor = isVisitor;
             return Task.CompletedTask;
         }
+
+        public async Task<bool> IsUserProjectAdmin(string projectAcronym)
+        {            
+            return (await GetAuthenticatedUser()).IsInRole($"{projectAcronym}-admin");
+        }
+
+        public async Task<bool> IsUserDatahubAdmin()
+        {
+            return (await GetAuthenticatedUser()).IsInRole(RoleConstants.DATAHUB_ROLE_ADMIN);
+        }
+
+        //IsDataHubAdmin = ;
     }
 }

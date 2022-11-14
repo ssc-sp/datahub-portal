@@ -12,33 +12,31 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Datahub.Core.Resources
+namespace Datahub.ProjectTools.Catalog
 {
 
 #nullable enable
     public class DHPublicSharing : IProjectResource
     {
         private readonly IDbContextFactory<DatahubProjectDBContext> dbFactoryProject;
-        private readonly RequestManagementService requestManagementService;
         private readonly IPublicDataFileService publicDataFileService;
         private readonly bool isEnabled;
         private bool isDataApprover;
         private int sharingRequestAwaitingApprovalCount;
         private int ownSharingRequestCount;
 
-        public DHPublicSharing(IDbContextFactory<DatahubProjectDBContext> dbFactoryProject, 
-            RequestManagementService requestManagementService, IPublicDataFileService publicDataFileService,
+        public DHPublicSharing(IDbContextFactory<DatahubProjectDBContext> dbFactoryProject,
+            IPublicDataFileService publicDataFileService,
             IOptions<DataProjectsConfiguration> configuration)
         {
             this.dbFactoryProject = dbFactoryProject;
-            this.requestManagementService = requestManagementService;
             this.publicDataFileService = publicDataFileService;
             isEnabled = configuration.Value.PublicSharing;
         }
 
         private Dictionary<string, object> parameters = new Dictionary<string, object>();
 
-        public async Task Initialize(Datahub_Project project, string userId, Microsoft.Graph.User graphUser)
+        public async Task InitializeAsync(Datahub_Project project, string userId, Microsoft.Graph.User graphUser, bool isProjectAdmin)
         {
             await using var projectDbContext = await dbFactoryProject.CreateDbContextAsync();
             if (userId != null)
@@ -84,4 +82,5 @@ namespace Datahub.Core.Resources
             return new[] { "Public Sharing", "Open Data" };
         }
     }
+#nullable disable
 }
