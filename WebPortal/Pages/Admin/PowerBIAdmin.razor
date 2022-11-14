@@ -185,7 +185,7 @@
                                     ValidateRequired
                                     OnValuesChanged=@(() => StateHasChanged())
                                     DefaultMetadataId=@GetProjectMetadataUid(DatasetBeingEdited.ProjectId)
-                                    ProjectId=WorkspaceBeingEdited.ProjectId
+                                    ProjectId=DatasetBeingEdited.ProjectId
                                     @ref=@_datasetMetadata
                                     OnNewMetadataCreated=@AutoFillNewMetadataFields
                                     OnExistingMetadataLoaded=@DetectIfCurrentItemIsInCatalog
@@ -238,7 +238,7 @@
                                     CatalogLanguage=@_catalogObjectLanguage
                                     OnValuesChanged=@(() => StateHasChanged())
                                     DefaultMetadataId=@GetProjectMetadataUid(ReportBeingEdited.ProjectId)
-                                    ProjectId=WorkspaceBeingEdited.ProjectId
+                                    ProjectId=ReportBeingEdited.ProjectId
                                     OnNewMetadataCreated=@AutoFillNewMetadataFields
                                     OnExistingMetadataLoaded=@DetectIfCurrentItemIsInCatalog
                                 />
