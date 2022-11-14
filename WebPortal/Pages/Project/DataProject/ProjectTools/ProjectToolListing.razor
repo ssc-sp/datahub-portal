@@ -1,5 +1,4 @@
-@using Datahub.Core.Resources;
-@using Datahub.Portal.Services.Resources;
+@using Datahub.ProjectTools.Services;
 @using Microsoft.Extensions.Options
 @using Datahub.Portal.Pages.Project.DataProject.ProjectTools
 
@@ -54,10 +53,6 @@
                         {
                             <DynamicComponent Parameters="active.parameters" Type="active.type" />
                         }
-                        @if (_configuration.Value.Databricks && _canViewDatabricks)
-                        {
-                            <Databricks/>
-                        }
                         @if (_configuration.Value.PowerBI && _canViewPowerBi)
                         {
                             <PowerBI/>
@@ -75,14 +70,14 @@
                             <Storage/>
                         }
 
-                        @if (_configuration.Value.Costing)
+@*                        @if (_configuration.Value.Costing)
                         {
                             <Costing/>
                         }
                         @if (_configuration.Value.DataManagement)
                         {
                             <IoT/>
-                        }
+                        }*@
 
                         @if (_configuration.Value.IoT)
                         {
@@ -156,13 +151,9 @@
     [CascadingParameter(Name = "Project")]
     private Datahub_Project Project { get; set; }
 
-    [CascadingParameter(Name = "IsDatahubAdmin")]
-    public bool IsDatahubAdmin { get; set; }
-
     private bool _isLoading = true;
     private bool _isDense = false;
     private System.Security.Claims.ClaimsPrincipal _user;
-    private bool _canViewDatabricks;
     private bool _canViewPowerBi;
     private List<string> _authorizedRoles;
     private Microsoft.Graph.User _graphUser;
@@ -201,9 +192,6 @@
 
 
         var _serviceRequests = await projectDbContext.Project_Requests.Where(p => p.Project == Project).ToListAsync();
-
-        var isUserAdmin = _user.IsInRole($"{ProjectAcronym}-admin");
-        _canViewDatabricks = isUserAdmin || !string.IsNullOrEmpty(Project.Databricks_URL) || IsDatahubAdmin;
 
         var isPowerBiActiveForNonAdmin = !string.IsNullOrEmpty(Project.PowerBI_URL) || 
             _serviceRequests.Any(r => r.ServiceType == RequestManagementService.POWERBI && r.Is_Completed.HasValue);

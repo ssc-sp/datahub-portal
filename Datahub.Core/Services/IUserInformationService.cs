@@ -25,8 +25,10 @@ namespace Datahub.Core.Services
         Task SetViewingAsGuest(bool isGuest);
         Task SetViewingAsVisitor(bool isVisitor);
         Task<ClaimsPrincipal> GetAuthenticatedUser(bool forceReload = false);
+        Task<bool> IsUserProjectAdmin(string projectAcronym);
+        Task<bool> IsUserDatahubAdmin();
 
-	}
+    }
 
     public static class UserInformationServiceConstants
     {

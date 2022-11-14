@@ -41,7 +41,7 @@ using Datahub.GeoCore.Service;
 using Datahub.Core.Services.Offline;
 using Datahub.CatalogSearch;
 using Datahub.Core.Services.AzureCosting;
-using Datahub.Portal.Services.Resources;
+using Datahub.ProjectTools.Services;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]
 

@@ -132,5 +132,15 @@ namespace Datahub.Core.Services
         {
             return Task.FromResult(new ClaimsPrincipal());
         }
+
+        public Task<bool> IsUserProjectAdmin(string projectAcronym)
+        {
+            return Task.FromResult(false);
+        }
+
+        public Task<bool> IsUserDatahubAdmin()
+        {
+            return Task.FromResult(false);
+        }
     }
 }
