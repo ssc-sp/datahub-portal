@@ -1,10 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace Datahub.Finance.Migrations
 {
-    public partial class newdropdowns : Migration
+    public partial class Newdropdowns : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {

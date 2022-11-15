@@ -1,8 +1,11 @@
 @*ProjectInfo.razor*@
 
 @using Datahub.Core.Components.Skeleton
+@using Datahub.Metadata.DTO
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject UIControlsService _uiControlService
+@inject NavigationManager NavigationManager
+@inject IMetadataBrokerService MetadataBrokerService
 
 <div class="project-info">
     @if (_loading)
@@ -17,16 +20,27 @@
     else
     {
         <MudChip Color="Color.Dark" class="project-data-sensitivity">@Localizer[Project.Data_Sensitivity]</MudChip>
+
         @if (_currentProjectMonthlyCost is not null && _projectBudget > 0)
         {
-@*            <MudTooltip Text="@GetToolTipText()" Arrow="true">*@
-                <MudBadge Icon="@Icons.Filled.QuestionMark" Color="GetCostChipColor()" Overlap="true" Bordered="true">  
-                    <MudChip Icon="@Icons.Filled.AttachMoney" IconColor="GetCostChipColor()" Variant="Variant.Text"
-                             Color="GetCostChipColor()" class="project-data-sensitivity" OnClick=@HandleToggleCosts>
-                        @($"{_currentProjectMonthlyCost:C} {Localizer["Azure cost for current month"]}")
-                    </MudChip>
-                </MudBadge>
-            @*</MudTooltip>*@
+            <MudBadge Icon="@Icons.Filled.QuestionMark" Color="GetCostChipColor()" Overlap="true" Bordered="true">  
+                <MudChip Icon="@Icons.Filled.AttachMoney" IconColor="GetCostChipColor()" Variant="Variant.Text"
+                            Color="GetCostChipColor()" class="project-data-sensitivity" OnClick=@HandleToggleCosts>
+                    @($"{_currentProjectMonthlyCost:C} {Localizer["Azure cost for current month"]}")
+                </MudChip>
+            </MudBadge>
+        }
+
+        @if ((IsProjectAdmin || IsDatahubAdmin) && Project.MetadataAdded != true)
+        {
+            <MudChip Icon="@Icons.Filled.Info"
+                     IconColor="Color.Warning" 
+                     Variant="Variant.Text"
+                     Color="Color.Warning"
+                     class="project-data-sensitivity"
+                     OnClick=@HandleEditMetadata>
+                     @Localizer["Edit Metadata"]
+            </MudChip>
         }
 
         <AeTypography class="project-title" Variant="h1">
@@ -35,8 +49,8 @@
             </span>
             @Project.ProjectName
         </AeTypography>
-        
-        <DHMarkdown class="description" Content="@($"{Project.ProjectDescription}")"/>
+
+        <DHMarkdown class="description" Content=@GetProjectDescription() />
 
         @if (_showCosts && _currentProjectMonthlyCost.HasValue && _currentProjectMonthlyCost.Value < _projectBudget)
         {
@@ -50,6 +64,12 @@
     [CascadingParameter(Name = "Project")]
     private Datahub_Project Project { get; set; }
 
+    [CascadingParameter(Name = "IsProjectAdmin")]
+    private bool IsProjectAdmin { get; set; }
+
+    [CascadingParameter(Name = "IsDatahubAdmin")]
+    private bool IsDatahubAdmin { get; set; }
+
     private string ProjectAcronym => Project?.Project_Acronym_CD;
 
     private decimal? _currentProjectMonthlyCost;
@@ -57,6 +77,7 @@
     private decimal _projectBudget;
     private bool _loading = true;
     private bool _showCosts;
+    private FieldValueContainer _projectMetadata;
 
     protected override async Task OnInitializedAsync()
     {
@@ -67,6 +88,8 @@
             _currentProjectMonthlyCost = projectMonthlyCost.TotalCost;
 
         _projectBudget = Project.Project_Budget ?? 0;
+
+        _projectMetadata = await MetadataBrokerService.GetObjectMetadataValues(ProjectAcronym);
 
         _loading = false;
     }
@@ -112,5 +135,16 @@
     private void HandleToggleCosts(MouseEventArgs args)
     {
         _showCosts = !_showCosts;
+    }
+
+    private void HandleEditMetadata(MouseEventArgs args)
+    {
+        NavigationManager.NavigateTo($"/admin/metadata/{Project.Project_Acronym_CD}");
+    }
+
+    private string GetProjectDescription()
+    {
+        var description = _projectMetadata.GetValue($"notes_translated_{CultureService.Culture}", null);
+        return description ?? Project.ProjectDescription; 
     }
 }

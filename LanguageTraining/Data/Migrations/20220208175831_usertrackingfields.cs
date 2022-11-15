@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace Datahub.Portal.Migrations
 {
-    public partial class usertrackingfields : Migration
+    public partial class Usertrackingfields : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {

@@ -13,17 +13,19 @@
             @ref="_editor"
             @key=@ObjectId
             ObjectId=@ObjectId
+            DefaultMetadataId=@DefaultMetadaId
             ProfileName=@ProfileName
             Location=@Location
             ProjectId=@_project.Project_ID
             ObjectType=@ObjectType
             SecurityClass=@GetProjectSensitivity()
-            SaveButtonLabel=@Localizer["OPENDATA-WIZARD.Save_button"]
-            OnSave=@HandleBack
-            OnDiscard=@HandleBack
+            SaveButtonLabel=@GetSaveButtonLabel()
+            OnSave=@HandleSave
+            OnDiscard=@(AllowDiscard ? HandleNavigateToProject : null)
             OnNewMetadataCreated=@OnMetadataCreated
             OnExistingMetadataLoaded=@OnMetadataCreated
-            UpdateCatalog
+            HideTranslationNote
+            UpdateCatalog=@UpdateCatalog
             ValidateRequired />
     </AeCard>
 }
@@ -46,7 +48,27 @@
     public string Location { get; set; }
 
     [Parameter]
+    public bool UpdateCatalog { get; set; } = true;
+
+    [Parameter]
+    public string SaveButtonLabel { get; set; }
+
+    [Parameter]
+    public bool HideTranslationNote { get; set; }
+
+    [Parameter]
+    public bool NavigateToProject { get; set; } = true;
+
+    [Parameter]
     public EventCallback<Datahub_Project> OnProjectLoaded { get; set; }
+
+    [Parameter]
+    public EventCallback<Datahub_Project> OnMetadataSaved { get; set; }
+
+    [Parameter]
+    public bool AllowDiscard { get; set; } = true;
+
+    private string DefaultMetadaId => ObjectId != ProjectAcronym ? ProjectAcronym : null;
 
     private Datahub_Project _project;
     private int? _sector;
@@ -56,7 +78,9 @@
     protected override async Task OnInitializedAsync()
     {
         var ctx = await ContextFactory.CreateDbContextAsync();
-        _project = await ctx.Projects.FirstOrDefaultAsync(p => p.Project_Acronym_CD == ProjectAcronym);
+        _project = await ctx.Projects.Include(p => p.Resources)
+                                     .AsSingleQuery()
+                                     .FirstOrDefaultAsync(p => p.Project_Acronym_CD == ProjectAcronym);
         if (_project is not null)
         {
             await TryReadProjectSectorAndBranch();
@@ -90,9 +114,20 @@
 
     private void OnMetadataCreated()
     {
-        _editor.SetValue("title_translated_en", _project.Project_Name);
-        _editor.SetValue("title_translated_fr", _project.Project_Name_Fr);
-        _editor.SetValue("contact_information", _project.Project_Admin);
+        if (string.IsNullOrEmpty(_editor.GetValue("title_translated_en")))
+            _editor.SetValue("title_translated_en", _project.Project_Name);
+
+        if (string.IsNullOrEmpty(_editor.GetValue("title_translated_fr")))
+            _editor.SetValue("title_translated_fr", _project.Project_Name_Fr);
+
+        if (string.IsNullOrEmpty(_editor.GetValue("notes_translated_en")))
+            _editor.SetValue("notes_translated_en", _project.Project_Name);
+
+        if (string.IsNullOrEmpty(_editor.GetValue("notes_translated_fr")))
+            _editor.SetValue("notes_translated_fr", _project.Project_Name_Fr);
+
+        if (string.IsNullOrEmpty(_editor.GetValue("contact_information")))
+            _editor.SetValue("contact_information", _project.Project_Admin);
 
         if (_sector.HasValue)
             _editor.SetValue("sector", _sector.ToString());
@@ -101,9 +136,25 @@
             _editor.SetValue("branch", _branch.ToString());
     }
 
-    private void HandleBack()
+    private async Task HandleSave()
     {
-        NavigationManager.NavigateTo($"/projects/{ProjectAcronym}");
+        await OnMetadataSaved.InvokeAsync(_project);
+
+        _project.Sector_Name = _editor.GetSelectedChoices("sector").FirstOrDefault()?.Label ?? "";
+        _project.Branch_Name = _editor.GetSelectedChoices("branch").FirstOrDefault()?.Label ?? "";
+
+        var ctx = await ContextFactory.CreateDbContextAsync();
+        ctx.Attach(_project);
+        ctx.Projects.Update(_project);
+        await ctx.SaveChangesAsync();
+
+        HandleNavigateToProject();
+    }
+
+    private void HandleNavigateToProject()
+    {
+        if (NavigateToProject)
+            NavigationManager.NavigateTo($"/projects/{ProjectAcronym}");
     }
 
     private string GetProjectSensitivity()
@@ -117,4 +168,6 @@
             _ => SecurityClassification.Unclassified
         };
     }
+
+    private string GetSaveButtonLabel() => SaveButtonLabel ?? Localizer["OPENDATA-WIZARD.Save_button"];
 }

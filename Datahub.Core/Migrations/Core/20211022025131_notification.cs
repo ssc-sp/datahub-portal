@@ -1,8 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Datahub.Core.Migrations.Core
 {
-    public partial class notification : Migration
+    public partial class Notification : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
