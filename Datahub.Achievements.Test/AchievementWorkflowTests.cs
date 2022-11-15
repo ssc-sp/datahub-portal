@@ -43,7 +43,7 @@ public class AchievementWorkflowTests
             UserId = userId,
             Telemetry = new DatahubUserTelemetry(),
         };
-        mockStorage.Setup(s => s.GetItemAsync<UserObject>(It.IsAny<string>(), null))
+        mockStorage.Setup(s => s.GetItemAsync<UserObject>(It.IsAny<string>(), CancellationToken.None))
             .ReturnsAsync(userObject);
 
         await achievementService.AddOrIncrementTelemetryEvent("test", 1);
@@ -64,7 +64,7 @@ public class AchievementWorkflowTests
         var achievementService =
             new AchievementService(mockLogger.Object, mockCosmosDb.Object, mockStorage.Object, mockAuth.Object, Options);
 
-        mockStorage.Setup(s => s.GetItemAsync<UserObject>(It.IsAny<string>(), null))
+        mockStorage.Setup(s => s.GetItemAsync<UserObject>(It.IsAny<string>(), CancellationToken.None))
             .ReturnsAsync(new UserObject
             {
                 UserId = userId,
