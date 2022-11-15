@@ -37,7 +37,7 @@
     <PackageReference Include="Azure.Storage.Blobs" Version="12.14.1" />
     <PackageReference Include="Azure.Storage.Files.DataLake" Version="12.12.1" />
     <PackageReference Include="BlazorDownloadFile" Version="2.4.0.2" />
-    <PackageReference Include="Blazored.LocalStorage" Version="4.2.0" />
+    <PackageReference Include="Blazored.LocalStorage" Version="4.3.0" />
     <PackageReference Include="ByteSize" Version="2.1.1" />
     <PackageReference Include="DocumentFormat.OpenXml" Version="2.18.0" />
     <PackageReference Include="Localization.AspNetCore.TagHelpers" Version="0.6.0" />
@@ -57,12 +57,12 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Http.Polly" Version="7.0.*" />
-    <PackageReference Include="Microsoft.Graph" Version="4.42.0" />
+    <PackageReference Include="Microsoft.Graph" Version="4.47.0" />
     <PackageReference Include="Microsoft.Graph.Auth" Version="1.0.0-preview.5" />
-    <PackageReference Include="Microsoft.Identity.Web" Version="1.25.3" />
-    <PackageReference Include="Microsoft.Identity.Web.MicrosoftGraph" Version="1.25.3" />
-    <PackageReference Include="Microsoft.Identity.Web.UI" Version="1.25.3" />
-    <PackageReference Include="Microsoft.PowerBI.Api" Version="4.10.0" />
+    <PackageReference Include="Microsoft.Identity.Web" Version="1.25.5" />
+    <PackageReference Include="Microsoft.Identity.Web.MicrosoftGraph" Version="1.25.5" />
+    <PackageReference Include="Microsoft.Identity.Web.UI" Version="1.25.5" />
+    <PackageReference Include="Microsoft.PowerBI.Api" Version="4.11.0" />
     <PackageReference Include="Microsoft.PowerBI.JavaScript" Version="2.22.0" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.17.0" />
     <PackageReference Include="Microsoft.Azure.Search.Data" Version="10.1.0" />
@@ -79,8 +79,8 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>  
     </PackageReference>
-    <PackageReference Include="MudBlazor" Version="6.0.17" />
-    <PackageReference Include="System.Drawing.Common" Version="6.0.0" />
+    <PackageReference Include="MudBlazor" Version="6.1.2" />
+    <PackageReference Include="System.Drawing.Common" Version="7.0.0" />
     <PackageReference Include="Tewr.Blazor.FileReader" Version="3.3.1.21360" />
   </ItemGroup>
   <ItemGroup>
