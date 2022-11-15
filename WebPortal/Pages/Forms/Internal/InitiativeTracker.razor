@@ -180,8 +180,15 @@
     { 
         var parameters = new DialogParameters();
         parameters.Add("Project", p);
+        parameters.Add("Context", Context);
         DialogOptions fullScreen = new DialogOptions() { FullScreen = true, CloseButton = true };
-        DialogService.Show<TrackerComments>("Confirm", parameters, fullScreen);
+        var dialog = DialogService.Show<TrackerComments>("Confirm", parameters, fullScreen);
+        var result = await dialog.Result;
+
+        if (!result.Cancelled)
+        { 
+            LoadData(_searchFilter);
+        }
     }
 
     private async Task RequestEnterMetadata(Datahub_Project p)
