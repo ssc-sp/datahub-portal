@@ -98,6 +98,7 @@
     <ProjectReference Include="..\Datahub.Core\Datahub.Core.csproj" />
     <ProjectReference Include="..\Datahub.GeoCore\Datahub.GeoCore.csproj" />
     <ProjectReference Include="..\Datahub.Metadata\Datahub.Metadata.csproj" />
+    <ProjectReference Include="..\Datahub.Portal.Metadata\Datahub.Portal.Metadata.csproj" />
     <ProjectReference Include="..\Datahub.PowerBI\Datahub.PowerBI.csproj" />
     <ProjectReference Include="..\LanguageTraining\Datahub.LanguageTraining.csproj" />
 	<ProjectReference Include="..\Datahub.M365Forms\Datahub.M365Forms.csproj" />
