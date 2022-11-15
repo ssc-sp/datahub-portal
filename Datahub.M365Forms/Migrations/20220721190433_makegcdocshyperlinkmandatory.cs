@@ -1,10 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace Datahub.M365Forms.Migrations
 {
-    public partial class makegcdocshyperlinkmandatory : Migration
+    public partial class Makegcdocshyperlinkmandatory : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
