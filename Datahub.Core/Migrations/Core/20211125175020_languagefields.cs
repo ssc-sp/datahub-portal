@@ -1,8 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Datahub.Core.Migrations.Core
 {
-    public partial class languagefields : Migration
+    public partial class Languagefields : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {

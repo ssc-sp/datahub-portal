@@ -23,11 +23,11 @@ var config = new ConfigurationBuilder()
      .AddJsonFile($"appsettings.Development.json")
      .Build();
 
-string projectDbConnectionString  = config[nameof(projectDbConnectionString)];
-string metadataDbConnectionString = config[nameof(metadataDbConnectionString)];
-string tenantId = config["TenantId"];
-string clientId = config["ClientId"];
-string clientSecret = config["ClientSecret"];
+string projectDbConnectionString  = config[nameof(projectDbConnectionString)]!;
+string metadataDbConnectionString = config[nameof(metadataDbConnectionString)]!;
+string tenantId = config["TenantId"]!;
+string clientId = config["ClientId"]!;
+string clientSecret = config["ClientSecret"]!;
 
 #endregion
 

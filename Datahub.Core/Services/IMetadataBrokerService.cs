@@ -15,6 +15,7 @@ namespace Datahub.Core.Services
         Task<Entities.ObjectMetadata> SaveMetadata(FieldValueContainer fieldValues, bool anonymous = false);
         Task<Entities.ObjectMetadata> GetMetadata(long objectMetadataId);
         Task<Entities.ObjectMetadata> GetMetadata(string objectId);
+        Task<bool> CreateChildMetadata(string parentId, string childId, Entities.MetadataObjectType dataType, string location, bool includeCatalog);
         Task<Entities.ApprovalForm> GetApprovalForm(int ApprovalFormId);
         Task DeleteApprovalForm(int approvalFormId);
         Task<int> SaveApprovalForm(Entities.ApprovalForm form);

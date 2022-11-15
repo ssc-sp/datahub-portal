@@ -163,6 +163,8 @@ namespace Datahub.Portal
             // TODO FIXME this will likely change when proper caching is implemented
             services.AddSingleton<IResourcesService, ResourcesService>();
 
+            services.AddSingleton<CultureService>();
+
             services.AddSignalRCore();
 
             var httpLoggingConfig = Configuration.GetSection("HttpLogging");
@@ -195,6 +197,7 @@ namespace Datahub.Portal
                     }
                 });
             }
+            services.AddMiniProfiler().AddEntityFramework();
         }
 
         static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
@@ -255,13 +258,14 @@ namespace Datahub.Portal
             }
 
             app.UseHttpsRedirection();
+
+            app.UseMiniProfiler();
             app.UseStaticFiles();
 
             app.UseRouting();
 
             app.UseAuthentication();
             app.UseAuthorization();
-
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapBlazorHub();
