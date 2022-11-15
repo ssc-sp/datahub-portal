@@ -1,7 +1,7 @@
 ﻿using Datahub.Core.EFCore;
 using Microsoft.PowerBI.Api.Models;
 
-namespace Datahub.Portal.Data
+namespace Datahub.PowerBI.Data
 {
     public class PowerBiManagementConstants
     {
