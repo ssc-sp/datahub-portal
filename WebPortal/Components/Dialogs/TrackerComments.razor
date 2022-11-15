@@ -32,8 +32,8 @@
 
     [CascadingParameter] MudDialogInstance MudDialog { get; set; }
     [Parameter] public Datahub_Project Project { get; set; }
-
-    private DatahubProjectDBContext Context;
+    [Parameter] public DatahubProjectDBContext Context { get; set; }
+    //private DatahubProjectDBContext Context;
     private Microsoft.Graph.User _user = null!;
 
     private List<string> _headers = new();
@@ -42,11 +42,11 @@
     private List<Datahub_ProjectComment> _comments;
     private string _searchFilter = string.Empty;
     private Dictionary<string, Func<Datahub_ProjectComment, string>> _sortAccessors = new();
+    private bool refreshTracker;
 
     protected override async Task OnInitializedAsync()
     {
         // load projects
-        Context = DbFactory.CreateDbContext();
         //LoadSortExpressions();
         _user = await UserInformationService.GetUserAsync();
 
@@ -61,7 +61,7 @@
 
     private void LoadData(string searchfilter)
     {
-        _comments = Context.Project_Comments.Where(p => p.Project == Project).OrderByDescending(d => d.Comment_Date_DT).ToList();
+        _comments = Project.Comments.OrderByDescending(d => d.Comment_Date_DT).ToList();
 
         _formMetadata.Header = string.Empty;
         _formMetadata.SubHeader = Localizer["Comments"];
@@ -81,17 +81,17 @@
     {
 
         if (_comment != null)
-        {
-            if (_comment.Comment_ID == 0)
-            {
-                _comment = Context.Project_Comments.Add(_comment).Entity;
-                _comment.Comment_Date_DT = DateTime.Now;
-            }
-
+        {            
             _comment.Last_Updated_DT = DateTime.Now;
             _comment.Last_Updated_UserId = _user.Mail;
+            if (_comment.Comment_ID == 0)
+            {
+                _comment.Comment_Date_DT = DateTime.Now;
+                Project.Comments.Add(_comment);
+                refreshTracker = true;
+            }
             await Context.TrackSaveChangesAsync(AuditingService);
-            
+
             LoadData(_searchFilter); ;
             _comment = null;
         }
@@ -121,11 +121,15 @@
 
     private void Cancel()
     {
-        MudDialog.Cancel();
+        if (refreshTracker)
+        {
+            MudDialog.Close(DialogResult.Ok(Project.Project_ID));
+        }
+        else
+        {
+            MudDialog.Cancel();
+        }
     }
 
-    public void Dispose()
-    {
-        Context.Dispose();
-    }
+    
 }
