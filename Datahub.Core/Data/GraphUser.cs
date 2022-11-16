@@ -4,7 +4,7 @@ using Microsoft.Graph;
 namespace Datahub.Core.Data
 {
     /// <summary>
-    /// Use class to hold info on the MSGraph user list (keep it minimal as this could kill memory)
+    /// Use class To hold info on the MSGraph user list (keep it minimal as this could kill memory)
     /// </summary>
     public class GraphUser
     {
