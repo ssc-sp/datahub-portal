@@ -41,7 +41,7 @@
                     <MudTextField @bind-Value="BoundValue"
                                   Label=@FieldDefinition.Name
                                   HelperText=@FieldDefinition.Description
-                                  Clearable
+                                  Clearable="!canTranslate"
                                   DebounceInterval="250"
                                   Required=@Required
                                   Adornment=@(canTranslate ? Adornment.End : Adornment.None)

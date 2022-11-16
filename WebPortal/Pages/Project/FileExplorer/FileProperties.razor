@@ -82,7 +82,7 @@
         _fileLinkUrl = $"https://{_commonAzureServices.StorageAccountName}.blob.core.windows.net/datahub/{File.folderpath}/{File.filename}";
     }
 
-    private async Task ShowMetadataEditor()
+    private void ShowMetadataEditor()
     {
         RenderFragment metadataEditor = @<ObjectMetadataEditor 
                 @key=@File.fileid 
@@ -100,13 +100,14 @@
                 ValidateRequired
                 Preview=@Readonly
                 ProjectId=@ProjectId
-            />;
-        await _uiControlService.ToggleModal(@<RenderFragmentModal Fragment=@metadataEditor />);
+            />
+    ;
+        _uiControlService.ShowDialog(Localizer["Metadata"], metadataEditor);
     }
 
-    private async Task HandleClose()
+    private void HandleClose()
     {
-        await _uiControlService.ToggleModal();
+        _uiControlService.HideDialog();
     }
 }
 
