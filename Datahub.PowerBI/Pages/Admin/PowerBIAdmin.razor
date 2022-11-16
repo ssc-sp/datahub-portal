@@ -6,7 +6,6 @@
 @page "/admin/powerbi/{ProjectAcronym}/report/{ReportId}"
 @page "/admin/powerbi/{ProjectAcronym}/dataset/{DatasetId}"
 @page "/admin/powerbi/{ProjectAcronym}/workspace/{WorkspaceId}"
-@using Datahub.Metadata.Model
 
 @inject IPowerBiDataService _powerBiDataService
 @inject PowerBiServiceApi _powerBiServiceApi
@@ -185,7 +184,7 @@
                                     ValidateRequired
                                     OnValuesChanged=@(() => StateHasChanged())
                                     DefaultMetadataId=@GetProjectMetadataUid(DatasetBeingEdited.ProjectId)
-                                    ProjectId=WorkspaceBeingEdited.ProjectId
+                                    ProjectId=DatasetBeingEdited.ProjectId
                                     @ref=@_datasetMetadata
                                     OnNewMetadataCreated=@AutoFillNewMetadataFields
                                     OnExistingMetadataLoaded=@DetectIfCurrentItemIsInCatalog
@@ -238,7 +237,7 @@
                                     CatalogLanguage=@_catalogObjectLanguage
                                     OnValuesChanged=@(() => StateHasChanged())
                                     DefaultMetadataId=@GetProjectMetadataUid(ReportBeingEdited.ProjectId)
-                                    ProjectId=WorkspaceBeingEdited.ProjectId
+                                    ProjectId=ReportBeingEdited.ProjectId
                                     OnNewMetadataCreated=@AutoFillNewMetadataFields
                                     OnExistingMetadataLoaded=@DetectIfCurrentItemIsInCatalog
                                 />

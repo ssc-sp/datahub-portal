@@ -1,4 +1,5 @@
-﻿using Datahub.Portal.Data;
+﻿using Datahub.PowerBI.Data;
+using Microsoft.Extensions.Logging;
 using Microsoft.Identity.Web;
 using Microsoft.PowerBI.Api;
 using Microsoft.PowerBI.Api.Models;
