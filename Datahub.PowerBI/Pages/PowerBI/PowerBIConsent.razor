@@ -1,14 +1,14 @@
 ﻿@page "/powerbi-consent/{ReportId}/{ExternalReportId}"
 @inject IDbContextFactory<DatahubProjectDBContext> DbFactoryProject
-@using Microsoft.PowerBI.Api.Models
 @inject IJSRuntime JSRuntime
 @inject IConfiguration _configuration
 @inject IEmailNotificationService EmailService
 @inject IPowerBiDataService PowerBiDataService
 @inject PowerBiServiceApi PowerBiServiceApi
-@inject IStringLocalizer<DataLabels> DataLocalizer
+@inject IStringLocalizer<PowerBIConsent> DataLocalizer
 @inject NavigationManager NavigationManager
 @inject PowerBiServiceApi PowerBiServiceApi
+@using Datahub.PowerBI.Data;
 @using Microsoft.Identity.Web
 @using System.Security.Cryptography;
 @using Microsoft.AspNetCore.Cryptography.KeyDerivation;

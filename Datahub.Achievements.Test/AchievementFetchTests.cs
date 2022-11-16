@@ -74,7 +74,7 @@ public class AchievementFetchTests
         var mockStorage = new Mock<ILocalStorageService>();
         var mockCosmosDb = new Mock<IDbContextFactory<AchievementContext>>();
 
-        mockStorage.Setup(s => s.GetItemAsync<UserObject>(It.IsAny<string>(), null))
+        mockStorage.Setup(s => s.GetItemAsync<UserObject>(It.IsAny<string>(), CancellationToken.None))
             .ReturnsAsync(UserObject);
 
         var mockAuth = Utils.CreateMockAuth(UserId);
@@ -94,7 +94,7 @@ public class AchievementFetchTests
         var mockStorage = new Mock<ILocalStorageService>();
         var mockCosmosDb = new Mock<IDbContextFactory<AchievementContext>>();
 
-        mockStorage.Setup(s => s.GetItemAsync<UserObject>(It.IsAny<string>(), null))
+        mockStorage.Setup(s => s.GetItemAsync<UserObject>(It.IsAny<string>(), CancellationToken.None))
             .ReturnsAsync(UserObject);
 
         var mockAuth = Utils.CreateMockAuth(UserId);
