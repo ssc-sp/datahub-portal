@@ -112,10 +112,8 @@
  * 2. Prevent adjustments of font size after orientation changes in iOS.
  */
 html {
-  line-height: 1.15;
-  /* 1 */
-  -webkit-text-size-adjust: 100%;
-  /* 2 */
+  line-height: 1.15; /* 1 */
+  -webkit-text-size-adjust: 100%; /* 2 */
 }
 
 /* Sections
@@ -150,12 +148,9 @@ h1 {
  * 2. Show the overflow in Edge and IE.
  */
 hr {
-  box-sizing: content-box;
-  /* 1 */
-  height: 0;
-  /* 1 */
-  overflow: visible;
-  /* 2 */
+  box-sizing: content-box; /* 1 */
+  height: 0; /* 1 */
+  overflow: visible; /* 2 */
 }
 
 /**
@@ -163,10 +158,8 @@ hr {
  * 2. Correct the odd `em` font sizing in all browsers.
  */
 pre {
-  font-family: monospace, monospace;
-  /* 1 */
-  font-size: 1em;
-  /* 2 */
+  font-family: monospace, monospace; /* 1 */
+  font-size: 1em; /* 2 */
 }
 
 /* Text-level semantics
@@ -183,12 +176,9 @@ a {
  * 2. Add the correct text decoration in Chrome, Edge, IE, Opera, and Safari.
  */
 abbr[title] {
-  border-bottom: none;
-  /* 1 */
-  text-decoration: underline;
-  /* 2 */
-  text-decoration: underline dotted;
-  /* 2 */
+  border-bottom: none; /* 1 */
+  text-decoration: underline; /* 2 */
+  text-decoration: underline dotted; /* 2 */
 }
 
 /**
@@ -206,10 +196,8 @@ strong {
 code,
 kbd,
 samp {
-  font-family: monospace, monospace;
-  /* 1 */
-  font-size: 1em;
-  /* 2 */
+  font-family: monospace, monospace; /* 1 */
+  font-size: 1em; /* 2 */
 }
 
 /**
@@ -259,14 +247,10 @@ input,
 optgroup,
 select,
 textarea {
-  font-family: inherit;
-  /* 1 */
-  font-size: 100%;
-  /* 1 */
-  line-height: 1.15;
-  /* 1 */
-  margin: 0;
-  /* 2 */
+  font-family: inherit; /* 1 */
+  font-size: 100%; /* 1 */
+  line-height: 1.15; /* 1 */
+  margin: 0; /* 2 */
 }
 
 /**
@@ -274,8 +258,7 @@ textarea {
  * 1. Show the overflow in Edge.
  */
 button,
-input {
-  /* 1 */
+input { /* 1 */
   overflow: visible;
 }
 
@@ -284,8 +267,7 @@ input {
  * 1. Remove the inheritance of text transform in Firefox.
  */
 button,
-select {
-  /* 1 */
+select { /* 1 */
   text-transform: none;
 }
 
@@ -334,18 +316,12 @@ fieldset {
  *    `fieldset` elements in all browsers.
  */
 legend {
-  box-sizing: border-box;
-  /* 1 */
-  color: inherit;
-  /* 2 */
-  display: table;
-  /* 1 */
-  max-width: 100%;
-  /* 1 */
-  padding: 0;
-  /* 3 */
-  white-space: normal;
-  /* 1 */
+  box-sizing: border-box; /* 1 */
+  color: inherit; /* 2 */
+  display: table; /* 1 */
+  max-width: 100%; /* 1 */
+  padding: 0; /* 3 */
+  white-space: normal; /* 1 */
 }
 
 /**
@@ -368,10 +344,8 @@ textarea {
  */
 [type=checkbox],
 [type=radio] {
-  box-sizing: border-box;
-  /* 1 */
-  padding: 0;
-  /* 2 */
+  box-sizing: border-box; /* 1 */
+  padding: 0; /* 2 */
 }
 
 /**
@@ -387,10 +361,8 @@ textarea {
  * 2. Correct the outline style in Safari.
  */
 [type=search] {
-  -webkit-appearance: textfield;
-  /* 1 */
-  outline-offset: -2px;
-  /* 2 */
+  -webkit-appearance: textfield; /* 1 */
+  outline-offset: -2px; /* 2 */
 }
 
 /**
@@ -405,10 +377,8 @@ textarea {
  * 2. Change font properties to `inherit` in Safari.
  */
 ::-webkit-file-upload-button {
-  -webkit-appearance: button;
-  /* 1 */
-  font: inherit;
-  /* 2 */
+  -webkit-appearance: button; /* 1 */
+  font: inherit; /* 2 */
 }
 
 /* Interactive
@@ -3378,8 +3348,7 @@ code {
     background: $gray-700 !important;
 }
 */
-.ad-title {
-  /* Title for the ad. */
+.ad-title { /* Title for the ad. */
   font-family: "Open Sans", sans-serif;
   font-weight: 700;
   display: block;
@@ -3388,8 +3357,7 @@ code {
   padding: 80px 0px 10px 200px;
 }
 
-.ad-subtitle {
-  /* Subitle for the ad. */
+.ad-subtitle { /* Subitle for the ad. */
   display: block;
   text-align: left;
   font-size: 1.5vw;
@@ -3534,10 +3502,8 @@ code {
   height: 100%;
   overflow: hidden;
   outline: 0;
-  background-color: black;
-  /* Fallback color */
-  background-color: rgba(0, 0, 0, 0.4);
-  /* Black w/ opacity */
+  background-color: rgb(0, 0, 0); /* Fallback color */
+  background-color: rgba(0, 0, 0, 0.4); /* Black w/ opacity */
   /* Modal Body */
   /* Modal Footer */
 }
@@ -3555,12 +3521,10 @@ code {
 }
 .application-wrapper .main-layout .ui-control .page-modal .modal-content {
   background-color: #fff;
-  margin: 5% auto;
-  /* 15% from the top and centered */
+  margin: 5% auto; /* 15% from the top and centered */
   padding: 20px;
   border: 1px solid #888;
-  width: 30%;
-  /* Could be more or less, depending on screen size */
+  width: 30%; /* Could be more or less, depending on screen size */
 }
 .application-wrapper .main-layout .ui-control .page-modal .modal-background {
   z-index: -1;
@@ -3569,10 +3533,8 @@ code {
   position: fixed;
   width: 100%;
   height: 100%;
-  background-color: black;
-  /* Fallback color */
-  background-color: rgba(0, 0, 0, 0.4);
-  /* Black w/ opacity */
+  background-color: rgb(0, 0, 0); /* Fallback color */
+  background-color: rgba(0, 0, 0, 0.4); /* Black w/ opacity */
 }
 .application-wrapper .main-layout .ui-control .page-modal .modal-header {
   padding: 2px 16px;
@@ -4360,10 +4322,8 @@ code {
 }
 
 .tacdivbox {
-  width: 50rem;
-  /* or whatever width you want. */
-  max-width: 47rem;
-  /* or whatever width you want. */
+  width: 50rem; /* or whatever width you want. */
+  max-width: 47rem; /* or whatever width you want. */
   height: 15rem;
   display: inline-block;
   overflow-y: auto;
@@ -5203,7 +5163,7 @@ code {
 }
 
 .welcome-banner {
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, black 100%), url("/img/landing/earth-background.jpg") no-repeat center center fixed;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgb(0, 0, 0) 100%), url("/img/landing/earth-background.jpg") no-repeat center center fixed;
   -webkit-background-size: cover;
   -moz-background-size: cover;
   -o-background-size: cover;
@@ -5423,12 +5383,6 @@ code {
   grid-template-rows: auto auto;
   gap: 2rem;
 }
-
-.project-page-no-grid {
-    display: grid;
-    gap: 2rem;
-}
-
 .project-page .project-info {
   max-width: 1200px;
 }
@@ -5484,44 +5438,12 @@ code {
 .project-page .project-members .member-list .members li {
   padding: 0.5rem;
   display: grid;
-  grid-template-columns: 2rem 1fr 2rem 2rem;
+  grid-template-columns: 2rem 1fr 2rem;
   gap: 0.5rem;
   align-items: baseline;
 }
 .project-page .project-members .member-list .members li:hover {
   background-color: #e2e8f0;
-}
-.project-page .project-members .member-list .members li .profile-icon {
-    color: #94a3b8;
-    border-radius: 8px;
-    width: 2rem;
-    height: 2rem;
-    font-size: 1rem;
-    text-decoration: none;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    opacity: 0.8;
-    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-}
-.project-page .project-members .member-list .members li .profile-icon:hover:not(.active) {
-    cursor: pointer;
-    color: #1e293b;
-    opacity: 1;
-    background-color: #e2e8f0;
-    transform: translateY(-1px);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02), 0 1px 2px rgba(0, 0, 0, 0.14);
-}
-
-.project-page .project-members .member-list .members li .profile-icon.active {
-    color: #1e293b;
-    opacity: 1;
-    background-color: #e2e8f0;
-    box-shadow: inset 4px 8px 8px -8px rgba(0, 0, 0, 0.16) !important;
-}
-
-.project-page .project-members .member-list .members li .profile-icon:hover {
-    background-color: #f1f5f9 !important;
 }
 .project-page .project-members .member-list .members li .email-icon {
   color: #94a3b8;
@@ -5554,10 +5476,9 @@ code {
   background-color: #f1f5f9 !important;
 }
 .project-page .project-tools {
-    max-width: 1200px;
-    display: grid;
-    grid-template-columns: 1fr auto;
-    grid-column: 1;
+  /*max-width: $first-column-max-width;*/
+  display: grid;
+  grid-template-columns: 1fr auto;
 }
 .project-page .project-tools .controls {
   display: flex;
@@ -6028,6 +5949,8 @@ code {
   flex-direction: column;
 }
 .catalog-cards .card .topleft .datasetname {
+  display: flex;
+  flex-direction: row;
   line-height: 1;
   font-size: 1.5rem;
   font-weight: 525;
@@ -6505,16 +6428,11 @@ img {
 }
 
 pre {
-  white-space: pre-wrap;
-  /* css-3 */
-  white-space: -moz-pre-wrap;
-  /* Mozilla, since 1999 */
-  white-space: -pre-wrap;
-  /* Opera 4-6 */
-  white-space: -o-pre-wrap;
-  /* Opera 7 */
-  word-wrap: break-word;
-  /* Internet Explorer 5.5+ */
+  white-space: pre-wrap; /* css-3 */
+  white-space: -moz-pre-wrap; /* Mozilla, since 1999 */
+  white-space: -pre-wrap; /* Opera 4-6 */
+  white-space: -o-pre-wrap; /* Opera 7 */
+  word-wrap: break-word; /* Internet Explorer 5.5+ */
 }
 
 .page-alert {

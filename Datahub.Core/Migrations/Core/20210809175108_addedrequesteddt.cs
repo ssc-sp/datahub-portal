@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
 {
-    public partial class addedrequesteddt : Migration
+    public partial class Addedrequesteddt : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {

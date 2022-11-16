@@ -139,7 +139,7 @@
         _validMandatoryCheckboxes = ValidMandatoryReleaseCriteria();
         if (_validMandatoryCheckboxes)
         {
-            var dbForm = new Metadata.Model.ApprovalForm();
+            var dbForm = new Datahub.Metadata.Model.ApprovalForm();
             _approvalForm.CopyPublicPropertiesTo(dbForm);
 
             _approvalForm.ApprovalFormId = await MetadataBrokerService.SaveApprovalForm(dbForm);
