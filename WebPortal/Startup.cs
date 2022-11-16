@@ -41,6 +41,7 @@ using Datahub.GeoCore.Service;
 using Datahub.Core.Services.Offline;
 using Datahub.CatalogSearch;
 using Datahub.Core.Services.AzureCosting;
+using Datahub.Core.Services.Resources;
 using Datahub.ProjectTools.Services;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]
@@ -162,6 +163,11 @@ namespace Datahub.Portal
 
             services.AddScoped<CatalogImportService>();
             services.AddSingleton<ICatalogSearchEngine, CatalogSearchEngine>();
+
+            // TODO FIXME this will likely change when proper caching is implemented
+            services.AddSingleton<IResourcesService, ResourcesService>();
+
+            services.AddSingleton<CultureService>();
 
             services.AddSignalRCore();
 
