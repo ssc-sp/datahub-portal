@@ -11,8 +11,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Core", "Datahub.Cor
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{B6CC5ED1-A990-4AC7-89C7-B0F62FFEEC26}"
 	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
 		COPYRIGHT.md = COPYRIGHT.md
 		WebPortal\EF_Commands.md = WebPortal\EF_Commands.md
+		fix_CS8981.ps1 = fix_CS8981.ps1
+		global.json = global.json
 		LICENSE.md = LICENSE.md
 		merge_fork.ps1 = merge_fork.ps1
 		nuget.config = nuget.config
@@ -21,9 +24,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Devops", "Devops", "{FA743C91-03DD-4DB2-A88D-73155C6500C6}"
 	ProjectSection(SolutionItems) = preProject
-		azure-pipelines-1.yml = azure-pipelines-1.yml
-		azure-pipelines-2.yml = azure-pipelines-2.yml
+		azure-pipelines-forms.yml = azure-pipelines-forms.yml
+		azure-pipelines-spdatahub-slot.yml = azure-pipelines-spdatahub-slot.yml
+		azure-pipelines-spdatahub.yml = azure-pipelines-spdatahub.yml
 		azure-pipelines.yml = azure-pipelines.yml
+		build-pipelines.yml = build-pipelines.yml
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FormTests", "FormTests\FormTests.csproj", "{C74EAD65-0161-425B-B121-30C69BED59A3}"
@@ -77,7 +82,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Graph.Functions", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureCostSyncCLI", "AzureCostSyncCLI\AzureCostSyncCLI.csproj", "{9E36CAF6-992C-4661-9A21-2FAC3EFD31F7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Datahub.PowerBI", "Datahub.PowerBI\Datahub.PowerBI.csproj", "{8F6909AF-B174-4116-B99B-6759BB3B89C9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.PowerBI", "Datahub.PowerBI\Datahub.PowerBI.csproj", "{8F6909AF-B174-4116-B99B-6759BB3B89C9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

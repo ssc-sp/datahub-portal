@@ -1,8 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Datahub.Core.Migrations.Core
 {
-    public partial class updatedstringfield : Migration
+    public partial class Updatedstringfield : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
