@@ -254,7 +254,7 @@ else
         await _uiControlService.ToggleModal(@<RenderFragmentModal Fragment=@popupHtml/>);
     }
 
-    private async Task ShowMetadataEditor()
+    private void ShowMetadataEditor()
     {
         RenderFragment metadataEditor = @<ObjectMetadataEditor 
                             ObjectId=@ResourceID.ToString()
@@ -268,13 +268,12 @@ else
                             OnSave=@HandleClose
                             OnDiscard=@HandleClose
                         />;
-        await _uiControlService.ToggleModal(@<RenderFragmentModal Fragment=@metadataEditor />
-    );
+        _uiControlService.ShowDialog(Localizer["Metadata"], metadataEditor);
     }
 
-    private async Task HandleClose()
+    private void HandleClose()
     {
-        await _uiControlService.ToggleModal();
+        _uiControlService.HideDialog();
     }
 
     private async Task GetPostgresToken()
