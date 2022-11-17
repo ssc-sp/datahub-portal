@@ -1,0 +1,129 @@
+﻿@using Datahub.Core.Data
+@inject IDialogService DialogService
+@typeparam T
+
+<MudTable ServerData="@(new Func<TableState, Task<TableData<T>>>(ServerReload))"
+          Dense="true"
+          Hover="true"
+          Striped="true"
+          Outlined="true"
+          Elevation=2
+          @ref="table"
+          @key="@Metadata.DataSet">
+
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">@Metadata.SubHeader</MudText>
+        <MudSpacer />
+        @if (Metadata.AllowSearch)
+        {
+            <MudTextField T="string" ValueChanged="@(s=>OnSearch(s))" Placeholder="Search" Adornment="Adornment.Start"
+                      AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+        }
+    </ToolBarContent>
+    <HeaderContent>
+        @foreach (var header in Metadata.Headers.ToList())
+        {
+            <MudTh><MudTableSortLabel SortLabel="@header.Replace(" ", string.Empty).ToLower()" T="T">@header</MudTableSortLabel></MudTh>
+        }
+        @if (Metadata.AllowDelete)
+        {
+            <MudTh>Delete</MudTh>
+        }
+    </HeaderContent>
+    <RowTemplate Context="RowContext">
+
+        @foreach (var (item, index) in Metadata.AccessorFunctions.WithIndex())
+        {
+            @if (item is not null)
+            {
+                <MudTd @onclick="async () => await SetFormEdit(RowContext)">@item?.Invoke(RowContext)</MudTd>
+            }
+            else if (Metadata.RenderFunctions is not null)
+            {
+                <MudTd>@Metadata.RenderFunctions[index]?.Invoke(RowContext)</MudTd>
+            }
+            else
+            {
+                <MudTd></MudTd>
+            }
+        }
+        @if (Metadata.AllowDelete)
+        {
+            <MudTd @onclick="async () => await DeleteRow(RowContext)"><MudIcon Icon="@Icons.Filled.DeleteOutline" Size="Size.Small" Style="cursor:pointer" /></MudTd>
+        }
+
+    </RowTemplate>
+    <NoRecordsContent>
+        <MudText>No matching records found</MudText>
+    </NoRecordsContent>
+    <LoadingContent>
+        <MudText>Loading...</MudText>
+    </LoadingContent>
+    <PagerContent>
+        <MudTablePager />
+    </PagerContent>
+</MudTable>
+@code {
+
+    [Parameter]
+    public FormMetadata<T> Metadata { get; set; }
+    [Parameter]
+    public EventCallback<T> SetFormEditRecord { get; set; }
+    [Parameter]
+    public EventCallback<T> DeleteRecord { get; set; }
+    [Parameter]
+    public Dictionary<string, Func<T, string>> SortAccessors { get; set; }
+    [Parameter]
+    public Action<string> HandleFilterChange { get; set; }
+
+    private int totalItems;
+
+    private IEnumerable<T> pagedData;
+    private MudTable<T> table;
+    private string searchString = null;
+
+    private async Task DeleteRow(T selectedRecord)
+    {
+        bool? result = await DialogService.ShowMessageBox(
+            "Warning",
+            "Would you like to delete the current record?",
+            yesText: "Ok", noText: "Cancel");
+
+        if (result is true)
+        {
+            await DeleteRecord.InvokeAsync(selectedRecord);
+        }
+    }
+
+    private async Task SetFormEdit(T selectedRecord)
+    {
+        await SetFormEditRecord.InvokeAsync(selectedRecord);
+    }
+
+    private void OnSearch(string text)
+    {
+        searchString = text;
+        HandleFilterChange.Invoke(text);
+        table.ReloadServerData();
+    }
+
+
+    private async Task<TableData<T>> ServerReload(TableState state)
+    {
+
+        IEnumerable<T> data = Metadata.DataSet;
+        await Task.Delay(300);
+
+
+        totalItems = data.Count();
+
+        if (!string.IsNullOrWhiteSpace(state.SortLabel) && SortAccessors.ContainsKey(state.SortLabel))
+        {
+            var func = SortAccessors[state.SortLabel];
+            data = data.OrderByDirection<T, string>(state.SortDirection, func);
+        }
+
+        pagedData = data.Skip(state.Page * state.PageSize).Take(state.PageSize).ToArray();
+        return new TableData<T>() { TotalItems = totalItems, Items = pagedData };
+    }
+}
