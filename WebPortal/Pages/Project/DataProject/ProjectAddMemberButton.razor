@@ -2,19 +2,15 @@
 
 @inject IDialogService _dialogService
 
-<div class="@_classname" @attributes="InputAttributesWithoutClass">
-    <MudIcon Icon="@Icons.Filled.Add" Title="Add Member" Size="Size.Medium"/>
-</div>
-<AeTypography class="name">@Localizer["Add New Member"]</AeTypography>
-<a/>
-<a class="email-icon" @onclick="OpenDialog">
-    <i class="fas fa-plus"></i>
+<a class="add-member-button" @onclick="OpenDialog">
+    <AeTypography class="name" style="color:white; font-weight:bold; width:95%">@Localizer["Add New Member"]</AeTypography>
+    <i class="fas fa-plus" style="color:white; justify-self:flex-end"></i>
 </a>
+
+
 
 @code {
     // TODO : Plus icon is dark
-
-    private string _classname => $"profile-circle {_inputClass}";
 
     private void OpenDialog()
     {
