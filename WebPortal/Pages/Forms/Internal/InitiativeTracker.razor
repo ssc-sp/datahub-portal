@@ -281,7 +281,7 @@
     {        
         if (!_branches.Any())
         {
-            RefreshBranches(null, null);
+            RefreshBranches(_project.Sector, null);
         }
         return _branches;
     }
@@ -290,7 +290,7 @@
     {
         if (!_divisions.Any())
         {
-            RefreshDivisions(null, null);
+            RefreshDivisions(_project.Branch, null);
         }
         return _divisions;
     }
