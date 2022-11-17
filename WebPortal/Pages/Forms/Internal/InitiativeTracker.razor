@@ -53,7 +53,7 @@
     private bool _isFrench;
 
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
         _isFrench = CultureInfo.CurrentCulture.Name.StartsWith("fr", StringComparison.InvariantCulture);
 
@@ -75,14 +75,7 @@
         };
 
         LoadData(_searchFilter);
-
-        //filterProperties.Add((() => "Status", () => new List<string> { "All", "Closed", "On Hold", "Ongoing" }));
-
-        //ValidDisplayValues = new();
-        //ValidDisplayValues = filterProperties[0].Choices.DynamicInvoke() as List<string>;
-        //filterLabel = filterProperties[0].Label.DynamicInvoke() as string;
-        //filterLabelValue = $"{filterLabel}: {ValidDisplayValues[0]}";
-        //filterClass = "filterDropdown";
+        
     }
 
     private void SetFormEdit(Datahub_Project project)
@@ -131,7 +124,7 @@
 
     private void LoadSortExpressions()
     {
-        _sortAccessors.Add("status", t => t.Project_Status_Desc);
+        _sortAccessors.Add("status", t => t.GetProjectStatus());
         _sortAccessors.Add("sector", t => t.Sector?.Full_Acronym_E ?? "");
         _sortAccessors.Add("initiative", t => t.Project_Acronym_CD);
         _sortAccessors.Add("name", t => t.ProjectName);
@@ -141,7 +134,7 @@
 
     private List<Func<Datahub_Project, string>> accessorFunctions = new List<Func<Datahub_Project, string>>
     {        
-        new Func<Datahub_Project, string>(p => { return p.Project_Status_Desc ?? "N/A"; }),
+        new Func<Datahub_Project, string>(p => { return p.GetProjectStatus() ?? "N/A"; }),
         new Func<Datahub_Project, string>(p => { return p.Sector?.Full_Acronym_E ?? "N/A"; }),
         new Func<Datahub_Project, string>(p => { return p.Project_Acronym_CD ?? "N/A"; }),
         new Func<Datahub_Project, string>(p => { return p.ProjectName ?? "N/A"; }),
