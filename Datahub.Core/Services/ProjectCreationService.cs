@@ -1,12 +1,17 @@
+#nullable enable
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
-using System.Net.Http.Json;
+using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
+using Datahub.Core.Data;
 using Datahub.Core.Data.ResourceProvisioner;
 using Datahub.Core.EFCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Identity.Web;
 
 namespace Datahub.Core.Services;
 
@@ -16,9 +21,11 @@ public class ProjectCreationService : IProjectCreationService
     private readonly HttpClient _httpClient;
     private readonly IDbContextFactory<DatahubProjectDBContext> _datahubProjectDbFactory;
     private readonly IUserInformationService _userInformationService;
+    private readonly ITokenAcquisition _tokenAcquisition;
+    private readonly IConfiguration _configuration;
 
     private const string NewProjectDataSensitivity = "Setup";
-    public const string ResourceRunEndpoint = "ResourceRun";
+    private const string ResourceRunEndpoint = "api/ResourceRun";
     private static readonly ResourceTemplate CreateResourceTemplate = new()
     {
         Name = "new-project-template",
@@ -27,11 +34,13 @@ public class ProjectCreationService : IProjectCreationService
     
     public ProjectCreationService(HttpClient httpClient,
         IDbContextFactory<DatahubProjectDBContext> datahubProjectDbFactory,
-        IUserInformationService userInformationService)
+        IUserInformationService userInformationService, ITokenAcquisition tokenAcquisition, IConfiguration configuration)
     {
         _httpClient = httpClient;
         _datahubProjectDbFactory = datahubProjectDbFactory;
         _userInformationService = userInformationService;
+        _tokenAcquisition = tokenAcquisition;
+        _configuration = configuration;
     }
     public async Task<string> GenerateProjectAcronymAsync(string projectName)
     {
@@ -58,22 +67,22 @@ public class ProjectCreationService : IProjectCreationService
         return await Task.FromResult(acronym);
     }
 
-    public async Task CreateProjectAsync(string projectName, string organization)
+    public async Task<bool> CreateProjectAsync(string projectName, string organization)
     {
         var acronym = await GenerateProjectAcronymAsync(projectName);
-        await CreateProjectAsync(projectName, acronym, organization);
+        return await CreateProjectAsync(projectName, acronym, organization);
     }
-    public async Task CreateProjectAsync(string projectName, string acronym, string organization)
+    public async Task<bool> CreateProjectAsync(string projectName, string? acronym, string organization)
     {
         acronym ??= await GenerateProjectAcronymAsync(projectName);
-        var requestSuccessful = await SendProvisionerRequestAsync(projectName, acronym, organization);
-        if (requestSuccessful)
-        {
-            var user = await _userInformationService.GetAuthenticatedUser();
-            await CreateProjectAsync(projectName, acronym, organization, user.Identity?.Name);
-        }
+        var sectorName = GovernmentDepartment.Departments.TryGetValue(organization, out var sector) ? sector : acronym;
+        var user = await _userInformationService.GetAuthenticatedUser();
+        var scopes = _configuration["ResourceProvisionerApi:Scopes"].Split(' ');
+        var token = await _tokenAcquisition.GetAccessTokenForUserAsync(scopes);
+        await AddProjectToDb(projectName, acronym, organization, user.Identity?.Name);
+        return await SendProvisionerRequestAsync(projectName, acronym, organization, sectorName, token);
     }
-    private async Task<bool> SendProvisionerRequestAsync(string projectName, string acronym, string organization)
+    private async Task<bool> SendProvisionerRequestAsync(string projectName, string acronym, string organization, string sector, string token)
     {
         var requestBody = new CreateResourceData
         {
@@ -81,26 +90,37 @@ public class ProjectCreationService : IProjectCreationService
             Workspace = new ResourceWorkspace()
             {
                 Name = projectName,
-                Acronym = acronym
-            }
+                Acronym = acronym,
+                Organization = new WorkspaceOrganization()
+                {
+                    Code = sector,
+                    Name = organization,
+                },
+                
+                Users = new List<WorkspaceUser>(),
+            },
         };
-        var response = await _httpClient.PostAsJsonAsync(ResourceRunEndpoint, requestBody);
+        var stringContent = new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json");
+        _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+        var response = await _httpClient.PostAsync(ResourceRunEndpoint, stringContent);
         return response.IsSuccessStatusCode;
     }
-    private async Task CreateProjectAsync(string projectName, string acronym, string organization, string userEmail) 
+    private async Task AddProjectToDb(string projectName, string acronym, string organization, string? userEmail) 
     {
+        var sectorName = GovernmentDepartment.Departments.TryGetValue(organization, out var sector) ? sector : acronym;
         var project = new Datahub_Project()
         {
             Project_Acronym_CD = acronym,
             Project_Name = projectName,
-            Branch_Name = organization,
+            Sector_Name = sectorName,
             Contact_List = userEmail,
             Project_Admin = userEmail,
             Data_Sensitivity = NewProjectDataSensitivity,
+            Project_Status_Desc = "Test",
         };
         await using var db = await _datahubProjectDbFactory.CreateDbContextAsync();
         await db.Projects.AddAsync(project);
         await db.SaveChangesAsync();
     }
-    
+
 }
