@@ -10,5 +10,9 @@
   "LandingBgFolder": "nrcan",
   "LandingBgImgCount": 12,
   "Title": "NRCan Datahub",
-  "DataHubModules": "*"
+  "DataHubModules": "*",
+  "ResourceProvisionerApi" : {
+        "BaseUrl": "",
+        "Scopes": ""
+      }
 }
