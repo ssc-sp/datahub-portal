@@ -8,9 +8,14 @@ using System.Threading;
 using MudBlazor.Forms;
 using AeFormCategoryAttribute = MudBlazor.Forms.AeFormCategoryAttribute;
 using AeFormIgnoreAttribute = MudBlazor.Forms.AeFormIgnoreAttribute;
+using System.Linq;
 
 namespace Datahub.Core.EFCore
 {
+    public enum ProjectStatus
+    {
+        OnHold, InProgress, Support, Closed
+    }
     public class Datahub_Project : IComparable<Datahub_Project>
     {
         public const string ONGOING = "Ongoing";
@@ -158,6 +163,8 @@ namespace Datahub.Core.EFCore
 
         public List<Datahub_ProjectServiceRequests> ServiceRequests { get; set; }
 
+        public List<Client_Engagement> Client_Engagements { get; set; }
+
         [StringLength(400)]
         [AeFormCategory("Initiative Connections")]
         public string Databricks_URL { get; set; }
@@ -249,6 +256,29 @@ namespace Datahub.Core.EFCore
             if (Project_Acronym_CD is null || other.Project_Acronym_CD is null)
                 return Project_ID.CompareTo(other.Project_ID);
             return Project_Acronym_CD.CompareTo(other.Project_Acronym_CD);
+        }
+
+
+        public string GetProjectStatus()
+        {
+            if (Project_Status_Desc == "Closed")
+            {
+                return Project_Status_Desc;
+            }
+            else if (Client_Engagements is null)
+            { 
+                return "On Hold";                            
+            }
+            else if (Client_Engagements.Where(e => e.Is_Engagement_Active).Any())
+            {
+                return "In Progress";
+            }
+            else if (Client_Engagements.Any())
+            {
+                return "Support";
+            }
+
+            return "On Hold";
         }
     }
 }
