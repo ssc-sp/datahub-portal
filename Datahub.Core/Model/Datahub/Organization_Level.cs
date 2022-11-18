@@ -1,8 +1,10 @@
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Datahub.Core.EFCore;
 
-public class Datahub_Project_Sectors_And_Branches
+public class Organization_Level
 {
     [Key]
     public int SectorAndBranchS_ID { get; set; }
@@ -24,4 +26,12 @@ public class Datahub_Project_Sectors_And_Branches
     [StringLength(1)]
     public string Org_Level { get; set; }
     public int? Superior_OrgId { get; set; }
+
+    //[ForeignKey("SectorId")]
+    public List<Datahub_Project> Sectors { get; set; }
+    //[ForeignKey("BranchId")]
+    public List<Datahub_Project> Branches { get; set; }
+    //[ForeignKey("DivisionId")]
+    public List<Datahub_Project> Divisions { get; set; }
+
 }

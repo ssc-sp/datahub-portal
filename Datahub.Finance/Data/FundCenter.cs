@@ -22,20 +22,19 @@ namespace Datahub.Portal.Data.Finance
 
         [AeFormCategory("Sector Information")]
         [MudForm(IsDropDown = true)]
-        [Required]
-        [Editable(false)]
+        [Required]        
         public HierarchyLevel Sector { get; set; }
 
         [AeFormCategory("Sector Information")]
         [MudForm(IsDropDown = true)]
         [Required]
-        [Editable(false)]
+        
         public HierarchyLevel Branch { get; set; }
 
         [AeFormCategory("Sector Information")]
         [MudForm(IsDropDown = true)]
         [Required]
-        [Editable(false)]
+        
         public HierarchyLevel Division { get; set; }
 
         [AeFormCategory("Sector Information")]

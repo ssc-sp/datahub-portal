@@ -67,15 +67,28 @@ else
                             <MudTh>Delete</MudTh>
                         }
                     </HeaderContent>
-                    <RowTemplate Context="RowContext" >                   
-                        @foreach(var accessor in Metadata.AccessorFunctions)
+                    <RowTemplate Context="RowContext" >
+
+                        @foreach (var (item, index) in Metadata.AccessorFunctions.WithIndex())
                         {
-                            <MudTd @onclick="async () => await SetFormEdit(RowContext)">@accessor?.Invoke(RowContext)</MudTd>
-                        }     
+                            @if (item is not null)
+                            {
+                                <MudTd @onclick="async () => await SetFormEdit(RowContext)">@item?.Invoke(RowContext)</MudTd>
+                            }
+                            else if (Metadata.RenderFunctions is not null)
+                            {
+                                <MudTd>@Metadata.RenderFunctions[index]?.Invoke(RowContext)</MudTd>
+                            }
+                            else
+                            {
+                                <MudTd></MudTd>
+                            }
+                        }
                         @if (Metadata.AllowDelete)
                         {
                             <MudTd @onclick="async () => await DeleteRow(RowContext)"><MudIcon Icon="@Icons.Filled.DeleteOutline" Size="Size.Small" Style="cursor:pointer" /></MudTd>
                         }
+
                     </RowTemplate>
                     <NoRecordsContent>
                         <MudText>No matching records found</MudText>
