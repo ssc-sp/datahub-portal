@@ -1,10 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace Datahub.Portal.Migrations.Forms.PIP
 {
-    public partial class removingMandatoryTombstoneFields : Migration
+    public partial class RemovingMandatoryTombstoneFields : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
