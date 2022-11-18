@@ -109,7 +109,8 @@
     {
         if (string.IsNullOrEmpty(field.Value_TXT))
         {
-            FieldValues.Remove(field);
+            // don't do this causes a re-rendering that makes 'required' fields not to render properly. 
+            //FieldValues.Remove(field);
         }
         else if (!FieldValues.Contains(field))
         {
