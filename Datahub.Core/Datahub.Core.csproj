@@ -33,6 +33,7 @@
 		<PackageReference Include="Blazored.LocalStorage" Version="4.2.0" />
 		<PackageReference Include="BlazorInputFile" Version="0.2.0" />
 		<PackageReference Include="BlazorTemplater" Version="1.5.0" />
+		<PackageReference Include="BuildWebCompiler2022" Version="1.14.8" />
 		<PackageReference Include="ByteSize" Version="2.1.1" />
 		<PackageReference Include="DeepL" Version="0.4.1" />
 		<PackageReference Include="Localization.AspNetCore.TagHelpers" Version="0.6.0" />
@@ -73,6 +74,7 @@
 			<PrivateAssets>all</PrivateAssets>
 		</PackageReference>
 		<PackageReference Include="MudBlazor" Version="6.0.17" />
+		<PackageReference Include="MudBlazor.Markdown" Version="0.0.12" />
 		<PackageReference Include="System.Drawing.Common" Version="6.0.0" />
 		<PackageReference Include="Tewr.Blazor.FileReader" Version="3.3.1.21360" />
 	</ItemGroup>
@@ -92,6 +94,9 @@
 	<!-- githook deployment to local git -->
 	<ItemGroup>
 		<GitHookFiles Include="../.githooks/*.*" />
+	</ItemGroup>
+	<ItemGroup>
+	  <None Remove="Components\DHMarkdown.razor.js" />
 	</ItemGroup>
 	<ItemGroup>
 	  <ProjectReference Include="..\Datahub.CatalogSearch\Datahub.CatalogSearch.csproj" />

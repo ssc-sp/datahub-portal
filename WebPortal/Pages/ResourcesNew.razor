@@ -37,6 +37,11 @@
 </MudCard>
 *@
 
+
+<MudCard>
+    <DHMarkdown Content=@_markdownTestContent LinkRewriter=@RewriteLink />
+</MudCard>
+
 @if (PageIsLoading)
 {
     <MudContainer>
@@ -121,6 +126,22 @@ else
     [Parameter]
     public List<(string,string)> Substitutions { get; set; }
 
+    // XXX REMOVE THIS
+    string _markdownTestContent = @"# Heading 1
+## Heading 2
+### Heading 3
+#### Heading 4
+##### Heading 5
+###### Heading 6
+Now style it.
+";
+    private async Task LoadMarkdownTest()
+    {
+        //https://raw.githubusercontent.com/mxstbr/markdown-test-file/master/TEST.md
+        using var client = new HttpClient();
+        _markdownTestContent = await client.GetStringAsync("https://raw.githubusercontent.com/mxstbr/markdown-test-file/master/TEST.md");
+    }
+
     private ResourceLanguageRoot _resourceRoot;
     private ResourceCategory _currentResourceCategory;
     private AbstractResource _currentResource;
@@ -170,22 +191,23 @@ else
             var card = _currentResource as ResourceCard;
             _currentResourceCategory = card.ParentCategory;
             _markdownContent = await _resourcesService.LoadResourcePage(card);
+            _needsStyleRefresh = true;
         }
 
         //_markdownContent = await _resourcesService.LoadPage(PageName ?? DefaultPage, Substitutions) ?? Localizer["Invalid link"];
         //_needsStyleRefresh = true;
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        await base.OnAfterRenderAsync(firstRender);
+    //protected override async Task OnAfterRenderAsync(bool firstRender)
+    //{
+    //    await base.OnAfterRenderAsync(firstRender);
 
-        if (!firstRender && _needsStyleRefresh)
-        {
-            await _markdownElement.StyleCodeblocks();
-            _needsStyleRefresh = false;
-        }
-    }
+    //    if (!firstRender && _needsStyleRefresh)
+    //    {
+    //        await _markdownElement.StyleCodeblocks();
+    //        _needsStyleRefresh = false;
+    //    }
+    //}
 
     protected override async Task OnInitializedAsync()
     {
