@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Components;
+using System;
 using System.Collections.Generic;
 
 namespace Datahub.Core.Data
@@ -13,6 +14,8 @@ namespace Datahub.Core.Data
         public List<T> DataSet { get; set; }
 
         public IList<Func<T, string>> AccessorFunctions { get; set; }
+
+        public IList<Func<T, RenderFragment>> RenderFunctions { get; set; }
 
         public IList<string> Headers { get; set; }
 
