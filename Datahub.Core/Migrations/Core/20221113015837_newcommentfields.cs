@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace Datahub.Core.Migrations.Core
 {
-    public partial class newcommentfields : Migration
+    public partial class Newcommentfields : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
