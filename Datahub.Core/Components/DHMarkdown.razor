@@ -1,12 +1,14 @@
+@using Markdig
 @inject IJSRuntime _jsRuntime;
 
 @if (Content != null)
 {
-    <span @ref="_elementReference">
-        <AeMarkdown
+    <span @ref="_elementReference" class="markdown-container">
+        @*<AeMarkdown
             @attributes="@InputAttributes"
             Content="@Content"
-            LinkRewriter="@LinkRewriter"/>
+            LinkRewriter="@LinkRewriter"/>*@
+        <MudMarkdown Value=@Content OverrideLinkUrl=@OverrideLinkUrl />
     </span>
 }
 
@@ -22,6 +24,12 @@
     public Dictionary<string, object> InputAttributes { get; set; }
 
     private ElementReference _elementReference;
+
+    private MarkdownPipeline _pipeline;
+
+    private MarkupString RenderedContent => (MarkupString)RenderHTML();
+
+    private string OverrideLinkUrl(Markdig.Syntax.Inlines.LinkInline linkElement) => LinkRewriter(linkElement.Url);
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -40,4 +48,25 @@
         await module.InvokeVoidAsync("styleCodeblocks", _elementReference);
     }
 
+    protected override void OnInitialized()
+    {
+        var builder = new MarkdownPipelineBuilder()
+            .UseAdvancedExtensions();
+        builder.Extensions.AddIfNotAlready<Datahub.Core.Components.Markdown.MudMDStyleExtension>();
+        _pipeline = builder.Build();
+    }
+
+    private string RenderHTML()
+    {
+        var contentToRender = Content ?? string.Empty;
+
+        using var writer = new System.IO.StringWriter();
+        var renderer = new Markdig.Renderers.HtmlRenderer(writer);
+        renderer.LinkRewriter += LinkRewriter;
+        _pipeline.Setup(renderer);
+        var doc = Markdig.Markdown.Parse(contentToRender, _pipeline);
+        renderer.Render(doc);
+        writer.Flush();
+        return writer.ToString();
+    }
 }

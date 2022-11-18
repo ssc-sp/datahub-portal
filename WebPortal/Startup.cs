@@ -42,6 +42,7 @@ using Datahub.Core.Services.Offline;
 using Datahub.CatalogSearch;
 using Datahub.Core.Services.AzureCosting;
 using Datahub.Core.Services.Resources;
+using MudBlazor;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]
 
@@ -128,6 +129,7 @@ namespace Datahub.Portal
 
             services.AddElemental();
             services.AddMudServices();
+            services.AddMudMarkdownServices();
             services.AddSingleton(moduleManager);
 
 
