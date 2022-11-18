@@ -35,6 +35,7 @@ namespace Datahub.Core.Services
         Task SendM365FormsConfirmations(M365FormsParameters parameters);
         Task SendPowerBiExternalUrlEmail(PowerBiExternalReportParameters parameters);
         Task SendExternalPowerBiCreationRequested(PowerBiExternalReportParameters parameters);
+        Task EmailErrorToDatahub(string subject, string fromUser, string message, string appInsightsMessage, string stackTrace);
     }
 
     public record DatahubProjectInfo(string ProjectNameEn, string ProjectNameFr, string ProjectCode);

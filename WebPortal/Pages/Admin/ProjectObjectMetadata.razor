@@ -10,23 +10,25 @@
 {
     <MudCard>
         <MudCardContent>
-            <ObjectMetadataEditor @ref="_editor"
-                                  @key=@ObjectId
-                                  ObjectId=@ObjectId
-                                  DefaultMetadataId=@DefaultMetadaId
-                                  ProfileName=@ProfileName
-                                  Location=@Location
-                                  ProjectId=@_project.Project_ID
-                                  ObjectType=@ObjectType
-                                  SecurityClass=@GetProjectSensitivity()
-                                  SaveButtonLabel=@GetSaveButtonLabel()
-                                  OnSave=@HandleSave
-                                  OnDiscard=@(AllowDiscard ? HandleNavigateToProject : null)
-                                  OnNewMetadataCreated=@OnMetadataCreated
-                                  OnExistingMetadataLoaded=@OnMetadataCreated
-                                  HideTranslationNote
-                                  UpdateCatalog=@UpdateCatalog
-                                  ValidateRequired />
+            <MudItem Class="pa-2">
+                <ObjectMetadataEditor @ref="_editor"
+                                      @key=@ObjectId
+                                      ObjectId=@ObjectId
+                                      DefaultMetadataId=@DefaultMetadaId
+                                      ProfileName=@ProfileName
+                                      Location=@Location
+                                      ProjectId=@_project.Project_ID
+                                      ObjectType=@ObjectType
+                                      SecurityClass=@GetProjectSensitivity()
+                                      SaveButtonLabel=@GetSaveButtonLabel()
+                                      OnSave=@HandleSave
+                                      OnDiscard=@(AllowDiscard ? HandleNavigateToProject : null)
+                                      OnNewMetadataCreated=@OnMetadataCreated
+                                      OnExistingMetadataLoaded=@OnMetadataCreated
+                                      HideTranslationNote
+                                      UpdateCatalog=@UpdateCatalog
+                                      ValidateRequired />
+            </MudItem>
         </MudCardContent>
     </MudCard>
 }

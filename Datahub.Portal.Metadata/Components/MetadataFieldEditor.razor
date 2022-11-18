@@ -30,10 +30,12 @@
                 if (FieldDefinition.IsDateField)
                 {
                     <MudDatePicker @bind-Date="BoundDate" 
-                                   Label=@FieldDefinition.Name 
+                                   Label=@FieldDefinition.Name
+                                   Required=@Required
                                    HelperText=@FieldDefinition.Description 
                                    Variant="Variant.Outlined"
-                                   DateFormat="yyyy-MM-dd"  />
+                                   DateFormat="yyyy-MM-dd"
+                                   Margin="Margin.Dense" />
                 }
                 else
                 {
@@ -42,14 +44,14 @@
                                   Label=@FieldDefinition.Name
                                   HelperText=@FieldDefinition.Description
                                   Clearable="!canTranslate"
-                                  DebounceInterval="250"
                                   Required=@Required
                                   Adornment=@(canTranslate ? Adornment.End : Adornment.None)
                                   AdornmentIcon=@Icons.Filled.GTranslate
                                   AdornmentAriaLabel=@(canTranslate ? GetTranslationHint() : "")
                                   OnAdornmentClick=@HandleTranslateField
                                   RequiredError=@(FieldDefinition.Description ?? Localizer["Required"])
-                                  Variant="Variant.Outlined" />
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Dense" />
                 }
             }
         }
@@ -61,11 +63,14 @@
                 var allowEmptyOption = !oneChoice && string.IsNullOrEmpty(FieldDefinition.Default_Value_TXT);
 
                 <MudSelect T="string"
-                            Label=@FieldDefinition.Name
-                            @bind-Value=@BoundValue
-                            Variant="Variant.Outlined" 
-                            AnchorOrigin="Origin.BottomCenter"
-                            AdornmentIcon=@Icons.Filled.ArrowDropDown>
+                           Label=@FieldDefinition.Name
+                           @bind-Value=@BoundValue
+                           Required=@Required
+                           Variant="Variant.Outlined"
+                           HelperText=@FieldDefinition.Description
+                           AnchorOrigin="Origin.BottomCenter"
+                           AdornmentIcon=@Icons.Filled.ArrowDropDown
+                           Margin="Margin.Dense">
 
                     @if (allowEmptyOption)
                     {
