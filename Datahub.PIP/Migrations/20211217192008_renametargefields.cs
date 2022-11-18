@@ -1,10 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace Datahub.Portal.Migrations.Forms.PIP
 {
-    public partial class renametargefields : Migration
+    public partial class Renametargefields : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
