@@ -5,6 +5,7 @@ namespace Datahub.Core.Services;
 
 public interface IProjectCreationService
 {
+    public Task<bool> AcronymExists(string acronym);
     public Task<string> GenerateProjectAcronymAsync(string projectName);
     public Task<string> GenerateProjectAcronymAsync(string projectName, IEnumerable<string> existingAcronyms);
     //token needs to be acquired by component so that exception handling can be done there
