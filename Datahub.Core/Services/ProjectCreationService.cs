@@ -42,6 +42,12 @@ public class ProjectCreationService : IProjectCreationService
         _tokenAcquisition = tokenAcquisition;
         _configuration = configuration;
     }
+    
+    public async Task<bool> AcronymExists(string acronym)
+    {
+        await using var db = await _datahubProjectDbFactory.CreateDbContextAsync();
+        return await db.Projects.AnyAsync(p => p.Project_Acronym_CD == acronym);
+    }
     public async Task<string> GenerateProjectAcronymAsync(string projectName)
     {
         await using var db = await _datahubProjectDbFactory.CreateDbContextAsync();
@@ -58,7 +64,7 @@ public class ProjectCreationService : IProjectCreationService
             2 => string.Concat(words[0].AsSpan(0, 2), words[1].AsSpan(0, 2)).ToUpperInvariant(),
             _ => words.Select(w => w[0]).Aggregate("", (a, b) => a + b).ToUpperInvariant()
         };
-        var enumerable = existingAcronyms as string[] ?? existingAcronyms.ToArray();
+        var enumerable = existingAcronyms.ToArray();
         if (!enumerable.Contains(acronym)) return acronym;
         var largestNumber = enumerable.Where(a => a.StartsWith(acronym)).
             Select(a => a.Length > acronym.Length && int.TryParse(a[acronym.Length..], out var n) ? n : 0
