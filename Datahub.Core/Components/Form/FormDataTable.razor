@@ -9,7 +9,7 @@
           Outlined="true"
           Elevation=2
           @ref="table"
-          @key="@Metadata.DataSet">
+          @key="@DataSet">
 
     <ToolBarContent>
         <MudText Typo="Typo.h6">@Metadata.SubHeader</MudText>
@@ -68,6 +68,8 @@
     [Parameter]
     public FormMetadata<T> Metadata { get; set; }
     [Parameter]
+    public List<T> DataSet { get; set; }
+    [Parameter]
     public EventCallback<T> SetFormEditRecord { get; set; }
     [Parameter]
     public EventCallback<T> DeleteRecord { get; set; }
@@ -111,7 +113,7 @@
     private async Task<TableData<T>> ServerReload(TableState state)
     {
 
-        IEnumerable<T> data = Metadata.DataSet;
+        IEnumerable<T> data = DataSet;
         await Task.Delay(300);
 
 

@@ -37,16 +37,40 @@ else
                     <MudText Typo="Typo.body2">@DataLocalizer[Metadata.HeaderSubText]</MudText>
                 </div>
             }
+
             <AuthorizeView Roles="@Metadata.TableRoles">
+            @if (Metadata.DataSet.Any())
+            {
                 <FormDataTable
                     T="@T"
                     Metadata="@Metadata"
+                    DataSet="@Metadata.DataSet"
                     DeleteRecord="DeleteRow"
                     HandleFilterChange="OnSearch"
                     SetFormEditRecord="SetFormEdit" 
                     SortAccessors="SortAccessors"
-                />
-               
+                />                               
+            }
+            else
+            {            
+                    <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-6">
+                    @foreach (var dataset in Metadata.TabbedDataSets)
+                    {
+                        var header = $"{Localizer[dataset.Key]} ({dataset.Value.Count()})";
+                        <MudTabPanel Text="@header">
+                            <FormDataTable
+                                T="@T"
+                                Metadata="@Metadata"
+                                DataSet="@dataset.Value"
+                                DeleteRecord="DeleteRow"
+                                HandleFilterChange="OnSearch"
+                                SetFormEditRecord="SetFormEdit" 
+                                SortAccessors="SortAccessors"
+                           />               
+                        </MudTabPanel>
+                    }
+                    </MudTabs>                    
+            }
             </AuthorizeView>
 
             @if (Metadata.IsAddEnabled)
