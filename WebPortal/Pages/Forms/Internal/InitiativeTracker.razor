@@ -38,6 +38,8 @@
     private FormMetadata<Datahub_Project> _formMetadata = new();
 
     private List<Datahub_Project> _projects;
+    private Dictionary<string, List<Datahub_Project>> _tabbedProjects;
+
     private Datahub_Project _project;// = new Datahub_Project();
     private Datahub_ProjectComment _comment;
     private const string EMAIL = "offline@nrcan-cnrcan.gc.ca";
@@ -75,7 +77,7 @@
         };
 
         LoadData(_searchFilter);
-        
+
     }
 
     private void SetFormEdit(Datahub_Project project)
@@ -109,13 +111,21 @@
             }).ToList();
         }
 
+        _tabbedProjects = new();
+        _tabbedProjects.Add("All", _projects);
+        _tabbedProjects.Add("In Progress", _projects.Where(p => p.GetProjectStatus() == "In Progress").ToList());
+        _tabbedProjects.Add("Support", _projects.Where(p => p.GetProjectStatus() == "Support").ToList());
+        _tabbedProjects.Add("On Hold", _projects.Where(p => p.GetProjectStatus() == "On Hold").ToList());
+        _tabbedProjects.Add("Closed", _projects.Where(p => p.GetProjectStatus() == "Closed").ToList());
+
         _formMetadata.Header = DataLocalizer["Initiatives"];
         _formMetadata.HeaderSubText = DataLocalizer[@""];
         _formMetadata.SubHeader = DataLocalizer[""];
-        _formMetadata.DataSet = projects;
+        _formMetadata.DataSet = new();
+        _formMetadata.TabbedDataSets = _tabbedProjects;
         _formMetadata.AccessorFunctions = accessorFunctions;
         _formMetadata.RenderFunctions = renderFunctions;        
-        _formMetadata.Headers = _headers;
+        _formMetadata.Headers = _headers;;
         _formMetadata.AllowSearch = true;        
         _formMetadata.IsSubmitEnabled = true;
         _formMetadata.IsAddEnabled = true;
@@ -131,6 +141,7 @@
         _sortAccessors.Add("lastcontact", t => t?.Last_Contact_DT?.ToShortDateString());
     }
 
+    
 
     private List<Func<Datahub_Project, string>> accessorFunctions = new List<Func<Datahub_Project, string>>
     {        
@@ -265,26 +276,18 @@
     {
         if (!_sectors.Any())
             _sectors = Context.Organization_Levels.Where(l => l.Org_Level == "3").ToList();
-        //if (_sectors[0] is not null)
-        //    _sectors.Insert(0, null);
         return _sectors;
     }
 
     private List<Organization_Level> GetBranches()
     {        
-        if (!_branches.Any())
-        {
-            RefreshBranches(_project.Sector, null);
-        }
+        RefreshBranches(_project.Sector, null);        
         return _branches;
     }
 
     private List<Organization_Level> GetDivisions()
     {
-        if (!_divisions.Any())
-        {
-            RefreshDivisions(_project.Branch, null);
-        }
+        RefreshDivisions(_project.Branch, null);        
         return _divisions;
     }
 
