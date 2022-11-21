@@ -56,9 +56,8 @@
 
     private MarkupString GetGeneralErrorText()
     {
-        var errorLabel = Localizer["ERROR-PAGE.ErrorExplanation-Text"].ToString();
-        var placeholder = "<>";
-        return new MarkupString(errorLabel.Replace(placeholder, $"<strong>{CorrelationId}</strong>"));
+        var template = Localizer["ERROR-PAGE.ErrorExplanation-Text"].ToString();
+        return new MarkupString(string.Format(template, $"<strong>{CorrelationId}</strong>"));
     }    
 
     private string AppInsightsQuery => $"exceptions\n| where customDimensions.correlationId == '{CorrelationId}'";
