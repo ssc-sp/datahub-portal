@@ -54,7 +54,7 @@
     "InnerException-Label": "Exception intérieure: ",
     "SomethingWentWrong-Label": "Une erreur s'est produite",
     "TechnicalDetails-Label": "DÉTAILS TECHNIQUES",
-    "ErrorExplanation-Text": "Une erreur s'est produite sur le serveur DataHub. L'erreur a été enregistrée. L'ID de corrélation pour cette erreur est <>. Pour éviter les problèmes de réseau, si vous êtes actuellement sur le VPN, essayez de déconnecter le VPN et réessayez vos actions.",
+    "ErrorExplanation-Text": "Une erreur s'est produite sur le serveur DataHub. L'erreur a été enregistrée. L'ID de corrélation pour cette erreur est {0}. Pour éviter les problèmes de réseau, si vous êtes actuellement sur le VPN, essayez de déconnecter le VPN et réessayez vos actions.",
     "ConnectionToServer-Label": "Connexion au serveur...",
     "AttemptingToReConnect-Label": "Tentative de reconnexion au serveur, veuillez patienter...",
     "FailedToConnect-Label": "La connexion a échoué, veuillez réessayer plus tard",
