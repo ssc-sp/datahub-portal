@@ -145,7 +145,7 @@
                                         @Localizer["OPENDATA-WIZARD.Upload_Last_Error"] @_uploadFileErrorMessage
                                     </AeTypography>
                                     <div>
-                                        <AeButton OnClickEvent=@EmailUploadFileErrorToDatahub>
+                                        <AeButton OnClickEvent=@EmailUploadFileErrorToDatahub Disabled=@_emailSent>
                                             @Localizer["Email Datahub"]
                                         </AeButton>
                                     </div>
