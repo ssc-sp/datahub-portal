@@ -230,7 +230,7 @@ namespace Datahub.Portal.Controllers
             return Ok(url);
         }
 
-        private string GetAuthorizationToken() => Request.Headers["DH-Auth-Key"];
+        private string GetAuthorizationToken() => Request.Headers["DH-Auth-Key"]!;
 
         private bool IsDisabledOrExpired(Datahub_ProjectApiUser apiUser) 
             => !apiUser.Enabled || (apiUser.Expiration_DT.HasValue && apiUser.Expiration_DT.Value > DateTime.UtcNow);
