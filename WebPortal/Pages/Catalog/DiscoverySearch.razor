@@ -787,7 +787,7 @@
 
 	private async Task RedirectAndDownload(string url)
 	{
-		await jsRuntime.InvokeAsync<object>("open", url, "_blank");
+		await jsRuntime.InvokeVoidAsync("open", url, "_blank");
 	}
 
 	private bool HasValidFilters(string query = null)
