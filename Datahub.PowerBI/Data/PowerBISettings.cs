@@ -1,4 +1,4 @@
-﻿namespace Datahub.Portal.Data
+﻿namespace Datahub.PowerBI.Data
 {
     public record PowerBIActionBar
     {

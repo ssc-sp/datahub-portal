@@ -181,7 +181,7 @@ else
         NavigationManager.NavigateTo($"projects/{Project.Project_Acronym_CD}");
     }
 
-    private async Task ShowMetadataEditor()
+    private void ShowMetadataEditor()
     {
         RenderFragment metadataEditor = 
             @<ObjectMetadataEditor 
@@ -200,20 +200,20 @@ else
                     ProjectId=@CatalogResult.ProjectId
                     UpdateCatalog=true
             />;
-        await uiControlService.ToggleModal(@<RenderFragmentModal Fragment=@metadataEditor />);
+        uiControlService.ShowDialog(Localizer["Metadata"], metadataEditor);
     }
 
-    private async Task HandleSave(FieldValueContainer values)
+    private void HandleSave(FieldValueContainer values)
     {
         IndexFieldValues(values);
         UpdateCatalogData(values);
-        await InvokeAsync(StateHasChanged);
-        await uiControlService.ToggleModal();
+        StateHasChanged();
+        uiControlService.HideDialog();
     }
 
-    private async Task HandleClose()
+    private void HandleClose()
     {
-        await uiControlService.ToggleModal();
+        uiControlService.HideDialog();
     }
 
     private void UpdateCatalogData(FieldValueContainer values)

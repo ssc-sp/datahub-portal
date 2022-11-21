@@ -720,10 +720,25 @@ namespace Datahub.Core.Services
             var tasks = new List<Task>()
             {
                 SendEmailMessage(subject, html, estimatingUser.Mail),
-                SendEmailMessage(adminSubject, adminHtml, adminEmails)
+                SendEmailMessage(adminSubject, adminHtml, adminEmails) 
             };
 
             await Task.WhenAll(tasks);
+        }
+
+        public async Task EmailErrorToDatahub(string subject, string fromUser, string message, string appInsightsMessage, string stackTrace)
+        {
+            var adminEmails = _serviceAuthManager.GetProjectAdminsEmails(DATAHUB_ADMIN_PROJECT_CODE);
+            var parameters = new Dictionary<string, object>()
+            {
+                { "Date", $"{DateTime.UtcNow} UTC" },
+                { "User", fromUser },
+                { "Message", message },
+                { "AppInsightsMessage", appInsightsMessage },
+                { "StackTrace", stackTrace }
+            };
+            var bodyHtml = await RenderTemplate<GlobalErrorNotification>(parameters);
+            await SendEmailMessage(subject, bodyHtml, adminEmails);
         }
     }
 

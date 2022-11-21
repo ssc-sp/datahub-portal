@@ -3,50 +3,39 @@
 @using Datahub.Core.Utils
 @implements IDisposable
 
-<div>
-    @if (!Preview)
-    {
-        <div>
-            <input class="ae input"
-                   autocomplete="off"
-                   @ref="_fieldValueInput"
-                   style="width: 100%;" @bind="InputKeyword" @bind:event="oninput" placeholder=@Localizer["METADATA-PAGE.EnterKeyword-Placeholder"] />
-        </div>
-    }
-
-    <AeFlex Vertical="true">
-        <ul class="ae" style="margin: 0; padding: 0; list-style-type: none; list-style-image: none;">
-            @foreach (var keyword in _keywordList)
-            {
-                <li style="float: left; margin: 5px 5px 0px 0px; padding: 4px 8px 4px 4px; border-width: 1px; border: 1px solid grey; border-radius: 5px; ">
-                    @if (!Preview)
-                    {
-                        <a style="text-decoration: none; cursor: pointer;"
-                           @onclick="() => DeleteKeyword(keyword, false)"
-                           @onclick:preventDefault>&nbsp;x&nbsp;</a>
-                    }
-                    <span><b>@keyword</b></span>
-                </li>
-            }
-        </ul>
-
-        @if (!Preview)
+<MudStack Row="false" Spacing="0">
+    @*keyword input*@
+    <MudTextField @bind-Value="InputKeyword"
+                  @ref=@_fieldValueInput
+                  Label=@FieldDefinition.Name
+                  HelperText=@FieldDefinition.Description
+                  DebounceInterval="250"
+                  Adornment=@(string.IsNullOrEmpty(_inputKeyword) ? Adornment.None : Adornment.End)
+                  AdornmentColor="Color.Info"
+                  AdornmentIcon="@Icons.Filled.Add"
+                  OnAdornmentClick=HandleAddKeyword
+                  Variant="Variant.Outlined" 
+                  Margin="Margin.Dense" />
+    <MudChipSet AllClosable="false">
+        @*selected keywords*@
+        @foreach (var keyword in _keywordList)
         {
-            <ul class="ae" style="margin: 0; padding: 0; list-style-type: none; list-style-image: none;">
-                @foreach (var word in _suggestions)
-                {
-                    <li style="float: left; margin: 5px 5px 0px 0px; padding: 4px 8px 4px 4px; border-width: 1px; border: 1px dotted grey; border-radius: 5px; background-color: #f2f2f2;">
-                        <a style="text-decoration: none; cursor: pointer;"
-                           @onclick="() => PickKeyword(word, false)"
-                           @onclick:preventDefault 
-                           title=@GetKeywordHint(word)>&nbsp;<span>@word</span>&nbsp;</a>
-                    </li>
-                }
-            </ul>
+            <MudChip Text="@keyword" 
+                     OnClose=@HandleKeywordDeleted
+                     Variant="Variant.Filled" 
+                     Color="Color.Dark" />
         }
-    </AeFlex>
-
-</div>
+        @*suggested keywords*@
+        @foreach (var keyword in _suggestions)
+        {
+            <MudChip Text="@keyword" 
+                     Variant="Variant.Filled" 
+                     Color="Color.Default"
+                     Icon="@Icons.Filled.AddCircle"
+                     OnClick=@(async () => await PickKeyword(keyword, false)) />
+        }
+    </MudChipSet>
+</MudStack>
 
 @code {
 
@@ -57,7 +46,7 @@
     public ObjectFieldValue FieldValue { get; set; }
 
     [Parameter]
-    public bool Preview { get; set; }
+    public FieldDefinition FieldDefinition { get; set; }
 
     [Parameter]
     public int SuggestionCount { get; set; } = 5;
@@ -79,18 +68,12 @@
     private List<string> _suggestions { get; set; } = new List<string>();
     private List<SubjectKeyword> _subjectKeywords { get; set; } = new List<SubjectKeyword>();
     private string _lastSubject;
-    private ElementReference _fieldValueInput;
+    private MudTextField<string> _fieldValueInput;
     private QueryThrottler<string> _suggestionThrottler;
-
-    public async Task FocusAsync()
-    {
-        if (!Preview)
-            await _fieldValueInput.FocusAsync();
-    }
 
     protected override async Task OnInitializedAsync()
     {
-        _keywordList = new List<string>(ParseKeywords(FieldValue?.Value_TXT));
+        _keywordList = new List<string>(SplitKeyword(FieldValue?.Value_TXT));
         _suggestionThrottler = new QueryThrottler<string>(TimeSpan.FromSeconds(0.5), TriggerAutoCompleteAsync);
 
         FieldPair.OnKeywordPicked += OnKeywordPicked;
@@ -114,12 +97,19 @@
         }
     }
 
-    private IEnumerable<string> ParseKeywords(string keywords)
+    private async Task FocusAsync()
     {
-        return (keywords ?? "").Split(',').Where(v => !string.IsNullOrWhiteSpace(v)).Select(k => k.Trim());
+        await _fieldValueInput.FocusAsync();
     }
 
     private string JoinKeywords(IEnumerable<string> keywords) => string.Join(", ", keywords);
+
+    private IEnumerable<string> SplitKeyword(string keyword)
+    {
+        return (keyword ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries)
+                              .Select(kw => kw.Trim())
+                              .Where(kw => !string.IsNullOrWhiteSpace(kw));
+    }
 
     private async Task UpdateSubjectKeywords()
     {
@@ -127,6 +117,8 @@
         _subjectKeywords = await MetadataBrokerService.GetSubjectKeywords(subjectIds);
         ApplySubjectSuggestions();
     }
+
+    private void HandleKeywordDeleted(MudChip chip) => DeleteKeyword(chip.Text, false);
 
     private string InputKeyword
     {
@@ -138,15 +130,8 @@
         {
             if (value != _inputKeyword)
             {
-                if (value != null && value.EndsWith(','))
-                {
-                    PickKeyword(_inputKeyword, false);
-                }
-                else
-                {
-                    _inputKeyword = value;
-                    TriggerSuggestion(value);
-                }
+                _inputKeyword = value;
+                TriggerSuggestion(value);
             }
         }
     }
@@ -167,7 +152,7 @@
     {
         if (args.Source != FieldValue)
         {
-            PickKeyword(args.Keyword, true);
+            _ = PickKeyword(args.Keyword, true);
         }
     }
 
@@ -179,19 +164,27 @@
         }
     }
 
-    private void PickKeyword(string keyword, bool isCallback)
+    private async Task PickKeyword(string keyword, bool isCallback)
     {
-        if (NotAKeyword(keyword))
+        var changed = false;
+        foreach (var kw in SplitKeyword(keyword))
         {
-            _keywordList.Add(keyword);
+            if (NotAKeyword(kw))
+            {
+                _keywordList.Add(kw);
+                changed = true;
+            }
+        }
+        if (changed)
+        {
             UpdateField();
             ApplySubjectSuggestions();
-        }
-        if (!isCallback)
-        {
-            TriggerPairFieldEvent(keyword, FieldPair.OnKeywordPicked);
-            _inputKeyword = string.Empty;
-            _ = FocusAsync();
+            if (!isCallback)
+            {
+                TriggerPairFieldEvent(keyword, FieldPair.OnKeywordPicked);
+                _inputKeyword = string.Empty;
+                await FocusAsync();
+            }
         }
     }
 
@@ -255,4 +248,13 @@
     private string SelectAlternateKeyword(SubjectKeyword kw) => !English ? kw.English : kw.French;
 
     private string GetKeywordHint(string keyword) => $"{Localizer["METADATA-PAGE.KeywordHint"]} '{keyword}'";
+
+    private async Task HandleAddKeyword(MouseEventArgs args)
+    {
+        if (!string.IsNullOrEmpty(_inputKeyword))
+        {
+            await PickKeyword(_inputKeyword, false);
+            await InvokeAsync(StateHasChanged);
+        }
+    }
 }
