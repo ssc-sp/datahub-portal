@@ -186,7 +186,7 @@
         if ((filterValue ?? "").Length > 3)
         {
             filteredUsersList = await MSGraphService.GetUsersListAsync(filterValue, CancellationToken.None);
-            await JSRuntime.InvokeAsync<object>("toggleMenuWithBool", $"usermenu", "true");
+            await JSRuntime.InvokeVoidAsync("toggleMenuWithBool", $"usermenu", "true");
         }
     }
 
@@ -199,7 +199,7 @@
             filteredUsersList = await MSGraphService.GetUsersListAsync(_inputValue, CancellationToken.None);
             toggleMenu = "true";
         }
-        await JSRuntime.InvokeAsync<object>("toggleMenuWithBool", $"usermenu", toggleMenu);
+        await JSRuntime.InvokeVoidAsync("toggleMenuWithBool", $"usermenu", toggleMenu);
     }
 
     private async void OnUserClick(GraphUser chosenUser)

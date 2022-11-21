@@ -21,7 +21,7 @@
             await InvokeAsync(StateHasChanged);
             try
             {
-                await jsRuntime.InvokeAsync<object>("open", File.SignedApprovalForm_URL, "_blank");
+                await jsRuntime.InvokeVoidAsync("open", File.SignedApprovalForm_URL, "_blank");
             }
             catch (Exception)
             {
