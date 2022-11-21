@@ -337,7 +337,7 @@
     {
         try
         {
-            await jsRuntime.InvokeAsync<object>("open", GenerateApprovalDocumentUrl, "_blank");
+            await jsRuntime.InvokeVoidAsync("open", GenerateApprovalDocumentUrl, "_blank");
         }
         catch (Exception)
         {

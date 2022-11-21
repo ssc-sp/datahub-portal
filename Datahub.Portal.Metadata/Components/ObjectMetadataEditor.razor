@@ -158,8 +158,8 @@
     {
         await LoadFieldValues();
         _profile = await MetadataBrokerService.GetProfile(ProfileName);
-        _requiredFieldsAreValid = CheckRequiredFieldValues();
         _requiredFieldIds = _profile.GetRequiredFieldSet();
+        _requiredFieldsAreValid = CheckRequiredFieldValues();
         await TriggerValuesChanged();
     }
 
