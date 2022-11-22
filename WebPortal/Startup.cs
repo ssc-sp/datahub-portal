@@ -43,6 +43,7 @@ using Datahub.CatalogSearch;
 using Datahub.Core.Services.AzureCosting;
 using Datahub.Core.Services.Resources;
 using Datahub.ProjectTools.Services;
+using Datahub.Core.Services.Projects;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]
 
@@ -444,7 +445,7 @@ namespace Datahub.Portal
             services.AddSingleton<IGlobalSessionManager, GlobalSessionManager>();
             services.AddScoped<IUserCircuitCounterService, UserCircuitCounterService>();
 
-            services.AddScoped<RequestManagementService>();
+            services.AddScoped<IRequestManagementService, RequestManagementService>();
 
             services.AddScoped<CustomNavigation>();
 

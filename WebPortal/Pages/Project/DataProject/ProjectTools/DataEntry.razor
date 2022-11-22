@@ -1,6 +1,7 @@
+@using Datahub.Core.Services.Projects;
 @using Datahub.ProjectTools.Services;
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
-@inject RequestManagementService _requestManagementService
+@inject IRequestManagementService _requestManagementService
 
 @if (!string.IsNullOrWhiteSpace(Project.WebForms_URL))
 {

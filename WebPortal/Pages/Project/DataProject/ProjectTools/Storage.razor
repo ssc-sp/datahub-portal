@@ -1,7 +1,8 @@
+@using Datahub.Core.Services.Projects;
 @using Datahub.ProjectTools.Services;
 @*Storage.razor*@
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
-@inject RequestManagementService _requestManagementService
+@inject IRequestManagementService _requestManagementService
 
 @if (Project is null)
 {
@@ -71,7 +72,7 @@ else
         {
             var storageServiceRequests = await projectDbContext.Project_Requests
                 .Where(pr => pr.Project == Project)
-                .Where(pr => pr.ServiceType == RequestManagementService.STORAGE)
+                .Where(pr => pr.ServiceType == IRequestManagementService.STORAGE)
                 .ToListAsync();
 
             _storageDeployed = storageServiceRequests
@@ -92,7 +93,7 @@ else
 
         var serviceRequest = new Datahub_ProjectServiceRequests()
         {
-            ServiceType = RequestManagementService.STORAGE,
+            ServiceType = IRequestManagementService.STORAGE,
             ServiceRequests_Date_DT = DateTime.Now,
             Is_Completed = null,
             Project = Project,

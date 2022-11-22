@@ -1,3 +1,4 @@
+@using Datahub.Core.Services.Projects;
 @using Datahub.ProjectTools.Services;
 @using Microsoft.Extensions.Options
 @using Datahub.Portal.Pages.Project.DataProject.ProjectTools
@@ -53,7 +54,7 @@
                         {
                             <DynamicComponent Parameters="active.parameters" Type="active.type" />
                         }
-                        @if (_configuration.Value.PowerBI && _canViewPowerBi)
+                        @*                        @if (_configuration.Value.PowerBI && _canViewPowerBi)
                         {
                             <PowerBI/>
                         }
@@ -69,8 +70,7 @@
                         {
                             <Storage/>
                         }
-
-@*                        @if (_configuration.Value.Costing)
+                        @if (_configuration.Value.Costing)
                         {
                             <Costing/>
                         }
@@ -194,14 +194,14 @@
         var _serviceRequests = await projectDbContext.Project_Requests.Where(p => p.Project == Project).ToListAsync();
 
         var isPowerBiActiveForNonAdmin = !string.IsNullOrEmpty(Project.PowerBI_URL) || 
-            _serviceRequests.Any(r => r.ServiceType == RequestManagementService.POWERBI && r.Is_Completed.HasValue);
+            _serviceRequests.Any(r => r.ServiceType == IRequestManagementService.POWERBI && r.Is_Completed.HasValue);
 
-        _canViewPowerBi = isUserAdmin || isPowerBiActiveForNonAdmin || IsDatahubAdmin;
+        //_canViewPowerBi = isUserAdmin || isPowerBiActiveForNonAdmin || IsDatahubAdmin;
 
         var allProjectResources = await projectDbContext.Project_Resources2.Where(r => r.Project == Project).ToListAsync();
 
         _projectDatabaseResources = allProjectResources
-            .Where(r => r.ResourceType == RequestManagementService.POSTGRESQL || r.ResourceType == RequestManagementService.SQLSERVER)
+            .Where(r => r.ResourceType == IRequestManagementService.POSTGRESQL || r.ResourceType == IRequestManagementService.SQLSERVER)
             .ToList();
 
         var allResources = await ProjectResourcesListingService.GetResourcesForProject(Project);

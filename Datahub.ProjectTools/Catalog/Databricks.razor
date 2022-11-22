@@ -1,7 +1,8 @@
 @using Datahub.Core.Components.Resources
 @using Datahub.Core.EFCore;
+@using Datahub.Core.Services.Projects;
 @using Datahub.ProjectTools.Services;
-@inject RequestManagementService _requestManagementService
+@inject IRequestManagementService _requestManagementService
 @inject NavigationManager NavigationManager
 
 <ToolCard
@@ -66,7 +67,7 @@
         StateHasChanged();
 
 
-        await RequestManagementService.HandleRequestService(Project, RequestManagementService.DATABRICKS);
+        await RequestManagementService.HandleRequestService(Project, IRequestManagementService.DATABRICKS);
         _databricksServiceRequested = true;
     }
 

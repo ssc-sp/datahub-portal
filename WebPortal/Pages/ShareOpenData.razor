@@ -458,7 +458,7 @@
         {
             _emailSent = true;
             await InvokeAsync(StateHasChanged);
-            var currentUser = await UserInformationService.GetUserAsync();
+            var currentUser = await UserInformationService.GetCurrentGraphUserAsync();
             await EmailNotificationService.EmailErrorToDatahub(subject, currentUser?.Mail, message, "", "");
         }
         catch (Exception)
