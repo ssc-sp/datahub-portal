@@ -202,6 +202,7 @@
 
     private Dictionary<string, Guid> WorkspaceIdsByName { get; set; } = new();
 
+    private bool IsProjectUnclassified => ProjectRequest?.Project?.Data_Sensitivity == SecurityClassification.Unclassified;
 
     private List<PowerBiAdminGroupUser> UsersToAssign { get; set; } = new();
     private List<PowerBiAdminGroupUser> SandboxUsersNotAssigned { get; set; } = new();
@@ -344,8 +345,14 @@
                 SandboxUsersNotAssigned = await _powerBiApi.AssignUsersToWorkspace(sandboxWsId, UsersToAssign);
                 ProdUsersNotAssigned = await _powerBiApi.AssignUsersToWorkspace(tempWorkspaceId, UsersToAssign);
 
-                var groupAddedToSandbox = await _powerBiApi.AssignGroupToWorkspace(sandboxWsId);
-                var groupAddedToProd = await _powerBiApi.AssignGroupToWorkspace(tempWorkspaceId);
+                if (IsProjectUnclassified)
+                {
+                    var groupAddedToProd = await _powerBiApi.AssignGroupToWorkspace(tempWorkspaceId);
+                    if (groupAddedToProd) 
+                    {
+                        _logger.LogInformation($"NRCan-RNCan group access added to workspace {ProdWorkspaceToCreate}");
+                    }
+                }
 
                 var workspacesToCreate = new List<PowerBi_WorkspaceDefinition>
                 {

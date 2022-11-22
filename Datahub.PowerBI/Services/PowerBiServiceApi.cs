@@ -293,7 +293,8 @@ namespace Datahub.Portal.Services
         {
             using var pbiClient = await GetPowerBiClientAsync();
 
-            var groupUser = new GroupUser(groupId, PrincipalType.Group, GroupUserAccessRight.Viewer);
+            // in order for embedding to work for unregistered users, the group needs to be at least Contributor level
+            var groupUser = new GroupUser(groupId, PrincipalType.Group, GroupUserAccessRight.Contributor);
             try
             {
                 await pbiClient.Groups.AddGroupUserAsync(workspaceId, groupUser);
