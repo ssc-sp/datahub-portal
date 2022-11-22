@@ -24,6 +24,8 @@ namespace Datahub.Portal.Services
     public class PowerBiServiceApi
     {
 
+        public const string NRCAN_GROUP_ID = "23b07362-8dc6-4714-a213-1fff95ef025c";
+
         private ITokenAcquisition tokenAcquisition { get; }
 
         private readonly ILogger<PowerBiServiceApi> logger;
@@ -284,6 +286,23 @@ namespace Datahub.Portal.Services
             }));
             
             return errorUsers.Where(u => u != null).ToList();
+        }
+
+        public async Task<bool> AssignGroupToWorkspace(Guid workspaceId, string groupId = NRCAN_GROUP_ID)
+        {
+            using var pbiClient = await GetPowerBiClientAsync();
+
+            var groupUser = new GroupUser(groupId, PrincipalType.Group, GroupUserAccessRight.Viewer);
+            try
+            {
+                await pbiClient.Groups.AddGroupUserAsync(workspaceId, groupUser);
+                return await Task.FromResult(true);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, $"Couldn't add group {groupId} to Power BI workspace {workspaceId}");
+                return await Task.FromResult(false);
+            }
         }
 
         public async Task TestCreateUser(Guid workspaceId, string userId)

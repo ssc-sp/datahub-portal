@@ -343,6 +343,9 @@
                 SandboxUsersNotAssigned = await _powerBiApi.AssignUsersToWorkspace(sandboxWsId, UsersToAssign);
                 ProdUsersNotAssigned = await _powerBiApi.AssignUsersToWorkspace(tempWorkspaceId, UsersToAssign);
 
+                var groupAddedToSandbox = await _powerBiApi.AssignGroupToWorkspace(sandboxWsId);
+                var groupAddedToProd = await _powerBiApi.AssignGroupToWorkspace(tempWorkspaceId);
+
                 var workspacesToCreate = new List<PowerBi_WorkspaceDefinition>
                 {
                     new(sandboxWsId, SandboxWorkspaceToCreate, true, projectId),
