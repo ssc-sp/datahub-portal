@@ -4,10 +4,10 @@
 @using Datahub.Metadata.Utils;
 @using System.Text
 
-<div style="width: 100%">
-    @if (_fieldValues != null && _profile != null && _definitions != null)
-    {
-
+@if (_fieldValues != null && _profile != null && _definitions != null)
+{
+    <MudStack>
+        @*metadata field editor*@
         <MetadataEditor Preview=@Preview
                         Profile=@_profile
                         Definitions=@_definitions
@@ -16,36 +16,50 @@
                         HideTranslationNote=@HideTranslationNote
                         OnFieldChanged=@FieldChanged />
 
+        @*actions*@
         @if (!Preview)
         {
-            <div>
+            <MudStack Row="true" Justify="Justify.SpaceBetween" Class="mb-2">
                 @if (_profile.HasOptionalFields())
                 {
-                    <AeFlex>
-                        <div>
-                            <AeButton class="light" @onclick=@ToggleShowAll>
-                                @(_showAll ? Localizer["METADATA-PAGE.ShowLess"] : Localizer["METADATA-PAGE.ShowMore"])
-                            </AeButton>
-                        </div>
-                    </AeFlex>                    
+                    <MudButton OnClick=@ToggleShowAll>
+                        <MudText>@(_showAll ? Localizer["METADATA-PAGE.ShowLess"] : Localizer["METADATA-PAGE.ShowMore"])</MudText>
+                    </MudButton>
                 }
-                <AeFlex Vertical="false" style="margin-top: 16px">
+                else
+                {
+                    <MudSpacer></MudSpacer>
+                }
+
+                <MudStack Row="true" Justify="Justify.FlexEnd">
                     @if (ShowDiscardButton)
                     {
-                        <AeButton OnClickEvent=@HandleDiscard style="margin-right: 1rem;">@Localizer["Discard"]</AeButton>
+                        <MudButton OnClick=@HandleDiscard Variant="Variant.Outlined" Color="Color.Default">
+                            <MudText>@Localizer["Discard"]</MudText>
+                        </MudButton>
                     }
                     @if (ShowSaveButton)
                     {
-                        <div>
-                            <AeButton OnClickEvent=@HandleSaveButton Disabled=@SaveDisabled>@SaveButtonLabel</AeButton>
-                            <SuccessIndicator @bind-IsLoading=@_savingData @ref=@_saveInd />
-                        </div>
+                        <MudButton OnClick=@HandleSaveButton 
+                                   Disabled=@SaveDisabled                                   
+                                   Variant="Variant.Outlined" 
+                                   Color="Color.Primary">
+                            @if (_savingData)
+                            {
+                                <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                                <MudText Class="ms-2">@SaveButtonLabel</MudText>
+                            }
+                            else
+                            {
+                                <MudText>@SaveButtonLabel</MudText>
+                            }
+                        </MudButton>
                     }
-                </AeFlex>
-            </div>
+                </MudStack>
+            </MudStack>
         }
-    }
-</div>
+    </MudStack>
+}
 
 @code {
 
@@ -135,8 +149,6 @@
     private bool _savingData;
     private bool _requiredFieldsAreValid;
 
-    private SuccessIndicator _saveInd;
-
     private HashSet<int> _requiredFieldIds = new();
 
     private bool ShowSaveButton => !HideSaveButton;
@@ -146,8 +158,8 @@
     {
         await LoadFieldValues();
         _profile = await MetadataBrokerService.GetProfile(ProfileName);
-        _requiredFieldsAreValid = CheckRequiredFieldValues();
         _requiredFieldIds = _profile.GetRequiredFieldSet();
+        _requiredFieldsAreValid = CheckRequiredFieldValues();
         await TriggerValuesChanged();
     }
 
@@ -256,15 +268,8 @@
     {
         if (!SaveDisabled)
         {
+            await Task.Delay(500);
             var success = await DoSaveChanges();
-            if (success)
-            {
-                await _saveInd.SignalSuccess();
-            }
-            else
-            {
-                await _saveInd.SignalFailure();
-            }
         }
     }
 
