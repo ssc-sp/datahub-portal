@@ -1,5 +1,6 @@
 ﻿using Datahub.Core.EFCore;
 using Datahub.Core.Services;
+using Datahub.Core.Services.Projects;
 using Datahub.Metadata.DTO;
 using Datahub.Metadata.Model;
 using Microsoft.EntityFrameworkCore;
@@ -7,9 +8,8 @@ using Newtonsoft.Json;
 
 namespace Datahub.ProjectTools.Services
 {
-    public record ProjectResourceFormParams(FieldDefinitions FieldDefinitions, MetadataProfile Profile);
 
-    public class RequestManagementService
+    public class RequestManagementService : IRequestManagementService
     {
         private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory;
         private readonly IEmailNotificationService _emailNotificationService;
@@ -18,20 +18,14 @@ namespace Datahub.ProjectTools.Services
         private readonly IDatahubAuditingService _datahubAuditingService;
         private readonly IMiscStorageService _miscStorageService;
 
-        public const string DATABRICKS = ProjectResourceConstants.SERVICE_TYPE_DATABRICKS;
-        public const string POWERBI = ProjectResourceConstants.SERVICE_TYPE_POWERBI;
-        public const string STORAGE = ProjectResourceConstants.SERVICE_TYPE_STORAGE;
-        public const string SQLSERVER = ProjectResourceConstants.SERVICE_TYPE_SQL_SERVER;
-        public const string POSTGRESQL = ProjectResourceConstants.SERVICE_TYPE_POSTGRES;
-
         private const string RESOURCE_REQUEST_INPUT_JSON_PREFIX = "ResourceInput";
 
         public RequestManagementService(
             IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
             IEmailNotificationService emailNotificationService,
-            ISystemNotificationService systemNotificationService, 
+            ISystemNotificationService systemNotificationService,
             IUserInformationService userInformationService,
-            IDatahubAuditingService datahubAuditingService, 
+            IDatahubAuditingService datahubAuditingService,
             IMiscStorageService miscStorageService)
         {
             _dbContextFactory = dbContextFactory;
@@ -79,11 +73,11 @@ namespace Datahub.ProjectTools.Services
 
             switch (request.ServiceType)
             {
-                case POSTGRESQL:
-                case SQLSERVER:
+                case IRequestManagementService.POSTGRESQL:
+                case IRequestManagementService.SQLSERVER:
                     resource.SetResourceObject(default(ProjectResource_Database));
                     break;
-                case STORAGE:
+                case IRequestManagementService.STORAGE:
                     resource.SetResourceObject(default(ProjectResource_Storage));
                     break;
                 default:
@@ -106,7 +100,7 @@ namespace Datahub.ProjectTools.Services
             return resources;
         }
 
-        public async Task<bool> UpdateResourceInputParameters(Guid resourceId, Dictionary<string,string> inputParams)
+        public async Task<bool> UpdateResourceInputParameters(Guid resourceId, Dictionary<string, string> inputParams)
         {
             using var ctx = await _dbContextFactory.CreateDbContextAsync();
             var resource = await ctx.Project_Resources2.FirstOrDefaultAsync(r => r.ResourceId == resourceId);
@@ -139,22 +133,22 @@ namespace Datahub.ProjectTools.Services
 
         private async Task NotifyProjectAdminsOfServiceRequest(Datahub_ProjectServiceRequests request)
         {
-            
+
             var admins = await GetProjectAdministratorEmailsAndIds(request.Project.Project_ID);
-            
+
             await _emailNotificationService.SendServiceCreationRequestNotification(request.User_Name, request.ServiceType, request.Project.ProjectInfo, admins);
-            
+
             var adminUserIds = admins.
                 Where(a => Guid.TryParse(a, out _))
                 .ToList();
             var user = await _userInformationService.GetCurrentGraphUserAsync();
-            
+
             await _systemNotificationService.CreateSystemNotificationsWithLink(adminUserIds, $"/administration", "SYSTEM-NOTIFICATION.GoToAdminPage",
                 "SYSTEM-NOTIFICATION.NOTIFICATION-TEXT.ServiceCreationRequested",
                 user.UserPrincipalName, request.ServiceType, new BilingualStringArgument(request.Project.ProjectInfo.ProjectNameEn, request.Project.ProjectInfo.ProjectNameFr));
 
         }
-        
+
         private async Task<List<string>> GetProjectAdministratorEmailsAndIds(int projectId)
         {
             await using var ctx = await _dbContextFactory.CreateDbContextAsync();
@@ -162,7 +156,7 @@ namespace Datahub.ProjectTools.Services
             var project = await ctx.Projects
                 .Include(p => p.Users)
                 .FirstAsync(p => p.Project_ID == projectId);
-            
+
 
             var adminEmails = ServiceAuthManager.ExtractEmails(project.Project_Admin ?? string.Empty);
 

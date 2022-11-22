@@ -84,10 +84,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzureCostSyncCLI", "AzureCo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.PowerBI", "Datahub.PowerBI\Datahub.PowerBI.csproj", "{8F6909AF-B174-4116-B99B-6759BB3B89C9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Datahub.Portal.Metadata", "Datahub.Portal.Metadata\Datahub.Portal.Metadata.csproj", "{3420A972-F39F-4A81-A7CB-3BD461F46CA1}"
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.PowerBI", "Datahub.PowerBI\Datahub.PowerBI.csproj", "{8F6909AF-B174-4116-B99B-6759BB3B89C9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Portal.Metadata", "Datahub.Portal.Metadata\Datahub.Portal.Metadata.csproj", "{3420A972-F39F-4A81-A7CB-3BD461F46CA1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Datahub.ProjectTools", "Datahub.ProjectTools\Datahub.ProjectTools.csproj", "{91E65687-B756-45C5-8080-F807E95CE5B0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.ProjectTools", "Datahub.ProjectTools\Datahub.ProjectTools.csproj", "{91E65687-B756-45C5-8080-F807E95CE5B0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -190,14 +189,14 @@ Global
 		{8F6909AF-B174-4116-B99B-6759BB3B89C9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8F6909AF-B174-4116-B99B-6759BB3B89C9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8F6909AF-B174-4116-B99B-6759BB3B89C9}.Release|Any CPU.Build.0 = Release|Any CPU
-		{91E65687-B756-45C5-8080-F807E95CE5B0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{91E65687-B756-45C5-8080-F807E95CE5B0}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{91E65687-B756-45C5-8080-F807E95CE5B0}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{91E65687-B756-45C5-8080-F807E95CE5B0}.Release|Any CPU.Build.0 = Release|Any CPU
 		{3420A972-F39F-4A81-A7CB-3BD461F46CA1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{3420A972-F39F-4A81-A7CB-3BD461F46CA1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3420A972-F39F-4A81-A7CB-3BD461F46CA1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3420A972-F39F-4A81-A7CB-3BD461F46CA1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{91E65687-B756-45C5-8080-F807E95CE5B0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{91E65687-B756-45C5-8080-F807E95CE5B0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{91E65687-B756-45C5-8080-F807E95CE5B0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{91E65687-B756-45C5-8080-F807E95CE5B0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -216,8 +215,8 @@ Global
 		{9E36CAF6-992C-4661-9A21-2FAC3EFD31F7} = {99B35301-CA50-489C-B1BF-E77559140B1E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		RESX_ConfirmAddLanguageFile = True
-		RESX_AutoCreateNewLanguageFiles = True
 		SolutionGuid = {9DC4B901-16FF-4FF2-9ED6-B286EA17048E}
+		RESX_AutoCreateNewLanguageFiles = True
+		RESX_ConfirmAddLanguageFile = True
 	EndGlobalSection
 EndGlobal

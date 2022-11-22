@@ -1,6 +1,7 @@
+@using Datahub.Core.Services.Projects;
 @using Datahub.ProjectTools.Services;
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
-@inject RequestManagementService _requestManagementService
+@inject IRequestManagementService _requestManagementService
 @inject ILogger<PowerBI> _logger
 @inject IUserInformationService _userInformationService
 
@@ -109,9 +110,9 @@ else
         UserId = await _userInformationService.GetUserIdString();
         if (UserId != null)
         {
-            _powerBiServiceRequested = _serviceRequests.Any(r => r.ServiceType == RequestManagementService.POWERBI && r.Is_Completed == null);
+            _powerBiServiceRequested = _serviceRequests.Any(r => r.ServiceType == IRequestManagementService.POWERBI && r.Is_Completed == null);
             _powerBiServiceCreated = !string.IsNullOrEmpty(Project.PowerBI_URL) || 
-                _serviceRequests.Any(r => r.ServiceType == RequestManagementService.POWERBI && r.Is_Completed.HasValue);
+                _serviceRequests.Any(r => r.ServiceType == IRequestManagementService.POWERBI && r.Is_Completed.HasValue);
         }
         else
         {
@@ -134,7 +135,7 @@ else
 
         var serviceRequest = new Datahub_ProjectServiceRequests()
         {
-            ServiceType = RequestManagementService.POWERBI,
+            ServiceType = IRequestManagementService.POWERBI,
             ServiceRequests_Date_DT = DateTime.Now,
             Is_Completed = null,
             Project = Project,
