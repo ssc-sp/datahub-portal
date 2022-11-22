@@ -9,7 +9,8 @@
                       HelperText=@FieldDefinition.Description
                       DisableUnderLine="true"
                       ReadOnly="true"                       
-                      Variant="Variant.Filled" />
+                      Variant="Variant.Filled"
+                      Margin="Margin.Dense" />
     }
     else
     {
@@ -41,6 +42,7 @@
                 {
                     var canTranslate = CanAcceptTranslation();
                     <MudTextField @bind-Value="BoundValue"
+                                  DebounceInterval="250"  
                                   Label=@FieldDefinition.Name
                                   HelperText=@FieldDefinition.Description
                                   Clearable="!canTranslate"
@@ -152,6 +154,7 @@
             {
                 FieldValue.Value_TXT = value;
                 OnFieldChanged.InvokeAsync(FieldValue);
+                StateHasChanged();
             }
         }
     }
@@ -198,7 +201,7 @@
         if (Preview || IsKeywordField())
             return false;
 
-        return FieldPair?.GetPaired(FieldValue) is not null;
+        return FieldPair?.GetPaired(FieldValue) is not null && string.IsNullOrEmpty(FieldValue.Value_TXT);
     }
 
     private bool TranslatePairDisabled()
@@ -225,9 +228,10 @@
                     ? await _translationService.GetEnglishTranslation(pairedText)
                     : await _translationService.GetFrenchTranslation(pairedText);
 
-                FieldValue.Value_TXT = translation ?? FieldValue.Value_TXT;
-
-                await OnFieldChanged.InvokeAsync(FieldValue);
+                if (!string.IsNullOrEmpty(translation))
+                {
+                    BoundValue = translation;
+                }
             }
         }
         catch (Exception)
