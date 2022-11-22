@@ -127,6 +127,6 @@ else
     private async Task DownloadFile(CatalogObjectResult result)
     {
         var uri = await _retrievalService.GetDownloadAccessToSasBlob(DataRetrievalService.DEFAULT_CONTAINER_NAME, fileName: result.Name_English, projectUploadCode: result.Location);
-        await JSRuntime.InvokeAsync<object>("open", uri.ToString(), "_blank");
+        await JSRuntime.InvokeVoidAsync("open", uri.ToString(), "_blank");
     }
 }

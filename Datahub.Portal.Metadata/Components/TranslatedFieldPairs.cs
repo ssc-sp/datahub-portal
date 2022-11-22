@@ -1,13 +1,13 @@
 ﻿using Datahub.Metadata.Model;
 
-namespace Datahub.Portal.Components.Metadata
+namespace Datahub.Portal.Metadata.Components
 {
     public record KeywordArgs(ObjectFieldValue Source, string Keyword);
-    
+
     public class TranslatedFieldPair
     {
         public string RootName { get; init; }
-        public ObjectFieldValue FieldEnglish {  get; set; }
+        public ObjectFieldValue FieldEnglish { get; set; }
         public ObjectFieldValue FieldFrench { get; set; }
         public EventHandler<KeywordArgs> OnKeywordPicked { get; set; }
         public EventHandler<KeywordArgs> OnKeywordDeleted { get; set; }
@@ -33,16 +33,16 @@ namespace Datahub.Portal.Components.Metadata
                 return null;
 
             var rootName = GetFieldNameRoot(fieldName);
-            
+
             if (!_pairs.TryGetValue(rootName, out var pair))
             {
                 pair = new TranslatedFieldPair() { RootName = rootName };
                 _pairs[rootName] = pair;
             }
 
-            switch (GetFieldLanguage(fieldName)) 
+            switch (GetFieldLanguage(fieldName))
             {
-                case "en": 
+                case "en":
                     pair.FieldEnglish = value;
                     break;
                 case "fr":
