@@ -418,18 +418,18 @@ else
     private async Task OnEllipsisClick(FileMetaData file, MouseEventArgs args)
     {
         SelectRow(file);
-        await JSRuntime.InvokeAsync<object>("toggleMenu", $"{file.id}Menu", "show", args.ClientX, args.ClientY);
+        await JSRuntime.InvokeVoidAsync("toggleMenu", $"{file.id}Menu", "show", args.ClientX, args.ClientY);
     }
 
     private async Task OnEllipsisClick(Folder folder, MouseEventArgs args)
     {
         SelectRow(folder);
-        await JSRuntime.InvokeAsync<object>("toggleMenu", $"{FileMetaDataExtensions.GetFolderIdForJS(folder.id)}Menu", "show", args.ClientX, args.ClientY);
+        await JSRuntime.InvokeVoidAsync("toggleMenu", $"{FileMetaDataExtensions.GetFolderIdForJS(folder.id)}Menu", "show", args.ClientX, args.ClientY);
     }
 
     private async Task RedirectAndDownload(Uri uri)
     {
-        await JSRuntime.InvokeAsync<object>("open", uri.ToString(), "_blank");
+        await JSRuntime.InvokeVoidAsync("open", uri.ToString(), "_blank");
     }
 
     private void SelectRow(BaseMetadata item)
@@ -448,7 +448,7 @@ else
     private async Task ToggleMenu(BaseMetadata item)
     {
         selectedMetaData = item;
-        await JSRuntime.InvokeAsync<object>("toggleMenu", $"{FileMetaDataExtensions.GetFolderIdForJS(item.id)}Div", "selected-item");
+        await JSRuntime.InvokeVoidAsync("toggleMenu", $"{FileMetaDataExtensions.GetFolderIdForJS(item.id)}Div", "selected-item");
         StateHasChanged();
     }
 

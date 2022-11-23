@@ -337,7 +337,7 @@
     {
         try
         {
-            await jsRuntime.InvokeAsync<object>("open", GenerateApprovalDocumentUrl, "_blank");
+            await jsRuntime.InvokeVoidAsync("open", GenerateApprovalDocumentUrl, "_blank");
         }
         catch (Exception)
         {
@@ -459,6 +459,32 @@
             _emailSent = true;
             await InvokeAsync(StateHasChanged);
             var currentUser = await UserInformationService.GetCurrentGraphUserAsync();
+            await EmailNotificationService.EmailErrorToDatahub(subject, currentUser?.Mail, message, "", "");
+        }
+        catch (Exception)
+        {
+            _emailSent = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task EmailUploadFileErrorToDatahub()
+    {
+        await EmailErrorToDatahub(Localizer["OpenData Share file upload error"], _uploadFileErrorMessage);
+    }
+
+    private async Task EmailShareURLErrorToDatahub()
+    {
+        await EmailErrorToDatahub(Localizer["OpenData Share file as URL error"], _urlPublishError);
+    }
+
+    private async Task EmailErrorToDatahub(string subject, string message)
+    {
+        try
+        {
+            _emailSent = true;
+            await InvokeAsync(StateHasChanged);
+            var currentUser = await UserInformationService.GetUserAsync();
             await EmailNotificationService.EmailErrorToDatahub(subject, currentUser?.Mail, message, "", "");
         }
         catch (Exception)

@@ -190,9 +190,7 @@
 
     private string StepTitle(SpatialObjectShareStatus status) => Localizer[$"{PREFIX}.{status}.Title"];
     private string StepMessage(SpatialObjectShareStatus status) => Localizer[$"{PREFIX}.{status}.Description"];
-    private RenderFragment CheckIcon => 
-    @<i class="fa fa-check"></i>
-    ;
+    private RenderFragment CheckIcon => @<i class="fa fa-check"></i>;
 
     private void ManuallyShowApprovalForm()
     {
@@ -203,7 +201,7 @@
     {
         try
         {
-            await jsRuntime.InvokeAsync<object>("open", GenerateApprovalDocumentUrl, "_blank");
+            await jsRuntime.InvokeVoidAsync("open", GenerateApprovalDocumentUrl, "_blank");
         }
         catch (Exception)
         {
