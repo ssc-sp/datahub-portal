@@ -75,7 +75,7 @@
 
     private Datahub_Project _project;
     private int? _sector;
-    private int? _branch;    
+    private int? _branch;
     private ObjectMetadataEditor _editor;
 
     protected override async Task OnInitializedAsync()
@@ -132,11 +132,14 @@
         if (string.IsNullOrEmpty(_editor.GetValue("contact_information")))
             _editor.SetValue("contact_information", _project.Project_Admin);
 
-        if (_sector.HasValue)
+        if (string.IsNullOrEmpty(_editor.GetValue("sector")) && _sector.HasValue)
             _editor.SetValue("sector", _sector.ToString());
 
-        if (_branch.HasValue)
+        if (string.IsNullOrEmpty(_editor.GetValue("branch")) && _branch.HasValue)
             _editor.SetValue("branch", _branch.ToString());
+
+        if (string.IsNullOrEmpty(_editor.GetValue("initiative_goal")))
+            _editor.SetValue("initiative_goal", _project.Project_Goal);
     }
 
     private async Task HandleSave()
