@@ -25,6 +25,9 @@ namespace Datahub.Portal.Data.Finance
         public string Employee_Planned_Staffing { get; set; }
 
         [AeFormCategory("Salary Data")]
+        public int? Employee_Position_Number { get; set; }
+
+        [AeFormCategory("Salary Data")]
         [MaxLength(400)]        
         public string Employee_Last_Name { get; set; }
 
@@ -70,6 +73,7 @@ namespace Datahub.Portal.Data.Finance
 
         [AeFormCategory("Planned Staffing")]
         [MaxLength(4000)]
+        [AeFormIgnore]
         public string Location_Of_Hiring { get; set; }
 
         [AeFormIgnore]

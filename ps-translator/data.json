@@ -1,18 +1,4 @@
 {
-  "Is_Engagement_Active": "Is Engagement Active",
-  "Engagement_Start_Date": "Engagement Start Date",
-  "Requirements_Gathering_EndDate": "Requirements Gathering End Date",
-  "Phase1_Development_EndDate": "Phase1 Development End Date",
-  "Phase1_Testing_EndDate": "Phase1 Testing End Date",
-  "Phase2_Development_EndDate": "Phase2 Development End Date",
-  "Phase2_Testing_EndDate": "Phase2 Testing End Date",
-  "Final_Updates_EndDate": "Final Updates End Date",
-  "Final_Release_Date": "Final Release Date",
-  "Requirements_Gathering_ActualEndDate": "Requirements Gathering Actual End Date",
-  "Phase1_Development_ActualEndDate": "Phase1 Development Actual End Date",
-  "Phase1_Testing_ActualEndDate": "Phase1 Testing Actual End Date",
-  "Phase2_Development_ActualEndDate": "Phase2 Development Actual End Date",
-  "Phase2_Testing_ActualEndDate": "Phase2 Testing Actual End Date",
-  "Actual_Release_Date": "Actual Release Date"
+  "FiscalYear": "Fiscal Year"
 }
 
