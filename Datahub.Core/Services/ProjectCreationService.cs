@@ -57,7 +57,7 @@ public class ProjectCreationService : IProjectCreationService
 
     public async Task<string> GenerateProjectAcronymAsync(string projectName, IEnumerable<string> existingAcronyms)
     {
-        var words = projectName.Split(' ');
+        var words = projectName.Split(' ').Select(w => new string(w.Where(char.IsLetterOrDigit).ToArray())).ToArray();
         var acronym = words.Length switch
         {
             1 => words[0][..3].ToUpperInvariant(),
