@@ -347,7 +347,7 @@
 
                 if (IsProjectUnclassified)
                 {
-                    var groupAddedToProd = await _powerBiApi.AssignGroupToWorkspace(tempWorkspaceId);
+                    var groupAddedToProd = await _powerBiApi.AssignGroupToWorkspace(tempWorkspaceId, _powerBiApi.InternalPublicationGroupId);
                     if (groupAddedToProd) 
                     {
                         _logger.LogInformation($"NRCan-RNCan group access added to workspace {ProdWorkspaceToCreate}");
