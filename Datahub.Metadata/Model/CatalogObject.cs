@@ -68,5 +68,7 @@ namespace Datahub.Metadata.Model
         /// Optional project id
         /// </summary>
         public int? ProjectId { get; set; }
+
+        public CatalogObject Clone() => MemberwiseClone() as CatalogObject;
     }
 }

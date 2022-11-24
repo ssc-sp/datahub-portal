@@ -1,8 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Datahub.Portal.Migrations
 {
-    public partial class decisionreq : Migration
+    public partial class Decisionreq : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
