@@ -92,7 +92,11 @@
     </MudStack>
 
     <MudContainer>
-        @if (_invalidReport)
+        @if (_invalidReport && _reportId.HasValue)
+        {
+            <EmbeddedReportAccessError ReportIdGuid=@_reportId.Value />
+        }
+        else if (_invalidReport)
         {
             <MudText>@Localizer[$"{LOCALIZATION_PREFIX}.InvalidReport"]</MudText>
         }
