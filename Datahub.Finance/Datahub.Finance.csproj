@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
 
 	<PropertyGroup>
-		<TargetFramework>net6.0</TargetFramework>
+		<TargetFramework>net7.0</TargetFramework>
 		<Nullable>disable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<AddRazorSupportForMvc>true</AddRazorSupportForMvc>
@@ -26,7 +26,7 @@
 	<ItemGroup>
 		<PackageReference Include="Ae.MudBlazor.Forms" Version="0.5.22285.2-beta" />
 		<PackageReference Include="AElemental.Blazor" Version="1.6.22173.2" />
-		<PackageReference Include="MudBlazor" Version="6.0.17" />
+		<PackageReference Include="MudBlazor" Version="6.1.2" />
 	</ItemGroup>
 
 	<ItemGroup>

@@ -1,10 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace Datahub.M365Forms.Migrations
 {
-    public partial class nullvalueupdates : Migration
+    public partial class Nullvalueupdates : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {

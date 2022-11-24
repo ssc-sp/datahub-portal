@@ -119,7 +119,7 @@ public class AchievementValidationTests
         
         var mockLogger = new Mock<ILogger<AchievementService>>();
         var mockStorage = new Mock<ILocalStorageService>();
-        mockStorage.Setup(s => s.GetItemAsync<UserObject>(It.IsAny<string>(), null))
+        mockStorage.Setup(s => s.GetItemAsync<UserObject>(It.IsAny<string>(), CancellationToken.None))
             .ReturnsAsync(userObject);
 
         var mockCosmosDb = new Mock<IDbContextFactory<AchievementContext>>();
@@ -166,7 +166,7 @@ public class AchievementValidationTests
         var achievementService =
             new AchievementService(mockLogger.Object, mockCosmosDb.Object, mockStorage.Object, mockAuth.Object, Options);
 
-        mockStorage.Setup(s => s.GetItemAsync<UserObject>(It.IsAny<string>(), null))
+        mockStorage.Setup(s => s.GetItemAsync<UserObject>(It.IsAny<string>(), CancellationToken.None))
             .ReturnsAsync(userObject);
 
 

@@ -1724,5 +1724,6 @@
     "ErrorUpdatingCosts": "Erreur de mise à jour des coûts : {0}",
     "ReturnToAdmin": "Retourner à l'administration"
   },
-  "Public Datasets": "Ensembles de données publiques"
+  "Public Datasets": "Ensembles de données publiques",
+  "Achievement Unlocked": "Trophée débloqué"
 }

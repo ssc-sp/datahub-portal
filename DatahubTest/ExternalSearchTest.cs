@@ -182,7 +182,7 @@ namespace Datahub.Tests
             // options are populated in the same order each time, thankfully
             // first two have a "null" string in all the fields
             // the third one has something
-            // if ever we update the class to ignore/remove the null ones, we may need to update this
+            // if ever we update the class To ignore/remove the null ones, we may need To update this
             var option = optionsList[2]; 
             Assert.Equal("Vector dataset of the 900A map", option.Name.En);
             _fixture.Logger.LogInformation("Expected option matches");
