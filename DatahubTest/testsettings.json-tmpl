@@ -21,5 +21,10 @@
         "BaseUrl": "",
         "Scopes": "",
         "AccessToken": ""
+    },
+    
+    "ProjectCreationQueue": {
+        "ConnectionString": "",
+        "Name": ""
     }
 }
