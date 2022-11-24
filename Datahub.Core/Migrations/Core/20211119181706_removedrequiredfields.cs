@@ -1,8 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Datahub.Core.Migrations.Core
 {
-    public partial class removedrequiredfields : Migration
+    public partial class Removedrequiredfields : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {

@@ -86,21 +86,7 @@
     public string ProjectAcronym { get; set; }
 
     [Parameter]
-    public string FormId 
-    {
-        get { return _formId?.ToString(); }
-        set 
-        {
-            try
-            {
-                _formId = int.Parse(value);
-            }
-            catch (Exception ex) when (ex is ArgumentNullException || ex is FormatException || ex is OverflowException)
-            {
-                _formId = null;
-            }
-        }
-    }
+    public string FormId { get; set; }
 
     private int? _formId { get; set;}
 
@@ -136,6 +122,8 @@
 
     protected override async Task OnInitializedAsync()
     {
+        _formId = int.TryParse(FormId, out int id) ? id : null;
+
         projectContext = DbFactory.CreateDbContext();
         if (_formId.HasValue)
         {

@@ -10,6 +10,7 @@
 @inject IUserInformationService UserInformationService
 @inject IMetadataBrokerService MetadataBrokerService
 @inject IOpenDataService OpenDataService
+@inject IEmailNotificationService EmailNotificationService
 @inject IJSRuntime jsRuntime
 
 <AeTypography style="margin-left: 2rem;" Variant="h2">@Localizer["OPENDATA-WIZARD.Page_Title"]</AeTypography>
@@ -121,6 +122,11 @@
                                 <AeTypography Variant="p" style="font-size: 0.8em">
                                     @Localizer["OPENDATA-WIZARD.Upload_Last_Error"] @_urlPublishError
                                 </AeTypography>
+                                <div>
+                                    <AeButton OnClickEvent=@EmailShareURLErrorToDatahub>
+                                        @Localizer["Email Datahub"]
+                                    </AeButton>
+                                </div>
                             }
                         </AeFlex>
 
@@ -138,6 +144,11 @@
                                     <AeTypography Variant="p" style="font-size: 0.8em">
                                         @Localizer["OPENDATA-WIZARD.Upload_Last_Error"] @_uploadFileErrorMessage
                                     </AeTypography>
+                                    <div>
+                                        <AeButton OnClickEvent=@EmailUploadFileErrorToDatahub Disabled=@_emailSent>
+                                            @Localizer["Email Datahub"]
+                                        </AeButton>
+                                    </div>
                                 }
                             </AeFlex>
                         }
@@ -268,6 +279,8 @@
     private OpenDataUploadStatus _uploadStatus = OpenDataUploadStatus.NotStarted;
     private string _uploadFileErrorMessage;
 
+    private bool _emailSent;
+
     private int _approvalFormId = 0;
     private int _approvalFormSectorId = 0;
     private int _approvalFormBranchId = 0;
@@ -324,7 +337,7 @@
     {
         try
         {
-            await jsRuntime.InvokeAsync<object>("open", GenerateApprovalDocumentUrl, "_blank");
+            await jsRuntime.InvokeVoidAsync("open", GenerateApprovalDocumentUrl, "_blank");
         }
         catch (Exception)
         {
@@ -405,33 +418,6 @@
         }
     }
 
-    //private async Task CatalogSharedObject(FieldValueContainer fieldValues)
-    //{
-    //    var isUrl = !string.IsNullOrEmpty(_fileUrl);
-    //    var objectType = isUrl ? MetadataObjectType.FileUrl : MetadataObjectType.File;
-    //    var location = isUrl ? _fileUrl : _projectCode;
-
-    //    // allow the name to be indexed as well
-    //    fieldValues.SetValue("name", _requestFilename); 
-    //    var digest = fieldValues.GetCatalogDigest();
-
-    //    await MetadataBrokerService.UpdateCatalog
-    //    (
-    //        fieldValues.MetadataId, 
-    //        objectType, 
-    //        _requestFilename, 
-    //        location, 
-    //        _approvalFormSectorId, 
-    //        _approvalFormBranchId, 
-    //        _requestingUser?.Mail, 
-    //        ClassificationType.Unclassified,
-    //        digest.EnglishCatalog, 
-    //        digest.FrenchCatalog,
-    //        CatalogObjectLanguage.Bilingual,
-    //        null // >> fix!
-    //    );
-    //}
-
     private async Task UploadAndPublish()
     {
         try
@@ -453,6 +439,32 @@
         finally
         {
             _savingData = false;
+        }
+    }
+
+    private async Task EmailUploadFileErrorToDatahub()
+    {
+        await EmailErrorToDatahub(Localizer["OpenData Share file upload error"], _uploadFileErrorMessage);
+    }
+
+    private async Task EmailShareURLErrorToDatahub()
+    {
+        await EmailErrorToDatahub(Localizer["OpenData Share file as URL error"], _urlPublishError);
+    }
+
+    private async Task EmailErrorToDatahub(string subject, string message)
+    {
+        try
+        {
+            _emailSent = true;
+            await InvokeAsync(StateHasChanged);
+            var currentUser = await UserInformationService.GetUserAsync();
+            await EmailNotificationService.EmailErrorToDatahub(subject, currentUser?.Mail, message, "", "");
+        }
+        catch (Exception)
+        {
+            _emailSent = false;
+            await InvokeAsync(StateHasChanged);
         }
     }
 
