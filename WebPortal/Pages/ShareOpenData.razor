@@ -281,6 +281,7 @@
                 </MudCard>
             }
 
+            @*return to initiative link*@
             <MudItem>
                 <MudLink Href=@($"/projects/{_projectCode}") Underline="Underline.None">
                     @Localizer[$"{LOCALIZATION_PREFIX}.ReturnToProject"]
@@ -289,6 +290,7 @@
         </MudStack>
     </MudItem>
 
+    @*right side steps*@
     <MudItem xs="6">
         <div id="stepsDiv">
             <AeSteps T=@OpenDataSharingStatus
