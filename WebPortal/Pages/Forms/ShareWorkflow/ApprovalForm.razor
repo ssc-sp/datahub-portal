@@ -2,7 +2,7 @@
 @using Forms = MudBlazor.Forms
 
 
-<div style="margin-right: 1rem;">
+<MudItem Class="ma-2">
     <MudBlazor.Forms.MudModelForm Model="_approvalForm"
                  T="Data.Forms.ShareWorkflow.ApprovalForm"
                  OnValidSubmit="HandleValidSubmit"
@@ -15,11 +15,11 @@
     
     @if (!_validMandatoryCheckboxes)
     {
-        <AeTypography Variant="p" class="warning">
+        <MudAlert Severity="Severity.Warning">
             @(new MarkupString(Localizer["OPENDATA-WIZARD.MustAcknowledgeMandatoryReleaseCriteria"]))
-        </AeTypography>
+        </MudAlert>
     }    
-</div>
+</MudItem>
 
 @code {
 
