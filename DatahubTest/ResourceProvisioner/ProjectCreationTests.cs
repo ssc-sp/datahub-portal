@@ -4,8 +4,10 @@ using Xunit;
 using System;
 using System.Collections;
 using System.Threading.Tasks;
+using Datahub.Core.Data.ResourceProvisioner;
 using Datahub.Core.EFCore;
 using Datahub.Core.Services;
+using Foundatio.Queues;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,7 +18,7 @@ namespace Datahub.Tests.ResourceProvisioner;
 public class ProjectCreationTests
 {
     private IConfiguration _config;
-    private const string ResourceProvisionerUrl = "https://localhost:7275"; 
+    private const string ResourceProvisionerUrl = "https://localhost:7275";
     private static IEnumerable<T> LoadCollectionGeneric<TS,T>(ServiceProvider provider, Func<TS, IEnumerable> loadSource) where TS:DbContext
     {            
         //Expression<Func<S, IEnumerable>> expression = d => d.Projects;
@@ -72,12 +74,25 @@ public class ProjectCreationTests
     [Fact]
     public async Task GivenDatahubProjectWithoutAcronym_CreateResourcesAndAddProject()
     {
-        var projectCreationService =
-            SetupServices().GetRequiredService<IProjectCreationService>();
-        var resourceProvisionerTriggered = await projectCreationService.CreateProjectAsync(projectName: "Datahub Unit Testing", organization: "Unit Testing");
+        const string projectName = "Datahub Unit Testing";
+        const string organization = "Unit Testing";
+        var serviceProvider = SetupServices();
+        var projectCreationService = serviceProvider.GetRequiredService<IProjectCreationService>();
+        var config = serviceProvider.GetRequiredService<IConfiguration>();
+        var resourceProvisionerTriggered = await projectCreationService.CreateProjectAsync(projectName, organization);
         var projects = LoadCollectionGeneric<DatahubProjectDBContext, Datahub_Project>(SetupServices(), d => d.Projects);
         Assert.Single(projects);
+        //test api success
         Assert.True(resourceProvisionerTriggered);
+        using IQueue<CreateResourceData> queue = new AzureStorageQueue<CreateResourceData>(new AzureStorageQueueOptions<CreateResourceData>()
+        {
+            ConnectionString = config["ProjectCreationQueue:ConnectionString"],
+            Name = config["ProjectCreationQueue:Name"],
+        });
+        //test queue success
+        var project = await queue.DequeueAsync();
+        Assert.Equal(projectName, project.Value.Workspace.Name);
+        Assert.Equal(organization, project.Value.Workspace.Organization.Name);
     }
 
     private IConfiguration Configuration
