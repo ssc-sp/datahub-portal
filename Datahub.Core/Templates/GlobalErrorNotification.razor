@@ -1,0 +1,45 @@
+﻿<h2>Datahub Application Error</h2>
+
+<p>Date: @Date</p>
+
+<p>Reported by: @User</p>
+
+@if (!string.IsNullOrEmpty(Message))
+{
+    <p>@Message</p>
+}
+
+@if (!string.IsNullOrEmpty(AppInsightsMessage))
+{
+    <p>ApplicationInsights query:</p>
+    <pre>
+        @AppInsightsMessage
+    </pre>
+}
+
+@if (!string.IsNullOrEmpty(StackTrace))
+{
+    <p>Stak trace:</p>
+    <pre>
+        @StackTrace
+    </pre>
+}
+
+@code {
+
+    [Parameter]
+    public string Date { get; set; }
+
+    [Parameter]
+    public string User { get; set; }
+
+    [Parameter]
+    public string Message { get; set; }
+
+    [Parameter]
+    public string AppInsightsMessage { get; set; }
+
+    [Parameter]
+    public string StackTrace { get; set; }
+
+}

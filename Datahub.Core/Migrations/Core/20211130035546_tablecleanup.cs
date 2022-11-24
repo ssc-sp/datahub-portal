@@ -1,8 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Datahub.Core.Migrations.Core
 {
-    public partial class tablecleanup : Migration
+    public partial class Tablecleanup : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {

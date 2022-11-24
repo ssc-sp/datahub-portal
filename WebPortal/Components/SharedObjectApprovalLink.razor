@@ -24,7 +24,7 @@
             try
             {
                 Object.Read = true;
-                await jsRuntime.InvokeAsync<object>("open", Object.DocumentUrl, "_blank");
+                await jsRuntime.InvokeVoidAsync("open", Object.DocumentUrl, "_blank");
                 await OnRead.InvokeAsync(Object);
             }
             catch (Exception)

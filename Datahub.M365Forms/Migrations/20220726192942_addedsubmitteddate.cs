@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace Datahub.M365Forms.Migrations
 {
-    public partial class addedsubmitteddate : Migration
+    public partial class Addedsubmitteddate : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
