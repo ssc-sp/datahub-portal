@@ -26,19 +26,19 @@ public class MockTokenAcquisitionService : ITokenAcquisition
     public Task<AuthenticationResult> GetAuthenticationResultForUserAsync(IEnumerable<string> scopes, string authenticationScheme, string tenantId = null,
         string userFlow = null, ClaimsPrincipal user = null, TokenAcquisitionOptions tokenAcquisitionOptions = null)
     {
-        return Task.FromResult<>(null);
+        return Task.FromResult<AuthenticationResult>(null);
     }
 
     public Task<string> GetAccessTokenForAppAsync(string scope, string authenticationScheme, string tenant = null,
         TokenAcquisitionOptions tokenAcquisitionOptions = null)
     {
-        return Task.FromResult<>(null);
+        return Task.FromResult<string>(null);
     }
 
     public Task<AuthenticationResult> GetAuthenticationResultForAppAsync(string scope, string authenticationScheme, string tenant = null,
         TokenAcquisitionOptions tokenAcquisitionOptions = null)
     {
-        return Task.FromResult<>(null);
+        return Task.FromResult<AuthenticationResult>(null);
     }
 
     public void ReplyForbiddenWithWwwAuthenticateHeader(IEnumerable<string> scopes, MsalUiRequiredException msalServiceException,
@@ -55,6 +55,6 @@ public class MockTokenAcquisitionService : ITokenAcquisition
     public Task ReplyForbiddenWithWwwAuthenticateHeaderAsync(IEnumerable<string> scopes, MsalUiRequiredException msalServiceException,
         HttpResponse httpResponse = null)
     {
-        return Task.FromResult<>(null);
+        return Task.CompletedTask;
     }
 }

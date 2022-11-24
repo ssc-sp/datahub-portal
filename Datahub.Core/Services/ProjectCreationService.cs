@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Datahub.Core.Data;
 using Datahub.Core.Data.ResourceProvisioner;
 using Datahub.Core.EFCore;
+using Foundatio.Queues;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Identity.Web;
@@ -26,11 +27,6 @@ public class ProjectCreationService : IProjectCreationService
 
     private const string NewProjectDataSensitivity = "Setup";
     private const string ResourceRunEndpoint = "api/ResourceRun";
-    private static readonly ResourceTemplate CreateResourceTemplate = new()
-    {
-        Name = "new-project-template",
-        Version = "latest",
-    };
     
     public ProjectCreationService(HttpClient httpClient,
         IDbContextFactory<DatahubProjectDBContext> datahubProjectDbFactory,
@@ -78,6 +74,7 @@ public class ProjectCreationService : IProjectCreationService
         var acronym = await GenerateProjectAcronymAsync(projectName);
         return await CreateProjectAsync(projectName, acronym, organization);
     }
+    
     public async Task<bool> CreateProjectAsync(string projectName, string? acronym, string organization)
     {
         acronym ??= await GenerateProjectAcronymAsync(projectName);
@@ -86,27 +83,13 @@ public class ProjectCreationService : IProjectCreationService
         var scopes = _configuration["ResourceProvisionerApi:Scopes"].Split(' ');
         var token = await _tokenAcquisition.GetAccessTokenForUserAsync(scopes);
         await AddProjectToDb(projectName, acronym, organization, user.Identity?.Name);
-        return await SendProvisionerRequestAsync(projectName, acronym, organization, sectorName, token);
+        var project = new CreateResourceData(projectName, acronym, sectorName, organization);
+        await AddProjectToStorageQueue(project);
+        return await SendProvisionerRequestAsync(project, token);
     }
-    private async Task<bool> SendProvisionerRequestAsync(string projectName, string acronym, string organization, string sector, string token)
+    private async Task<bool> SendProvisionerRequestAsync(CreateResourceData project, string token)
     {
-        var requestBody = new CreateResourceData
-        {
-            Templates = new List<ResourceTemplate>() { CreateResourceTemplate },
-            Workspace = new ResourceWorkspace()
-            {
-                Name = projectName,
-                Acronym = acronym,
-                Organization = new WorkspaceOrganization()
-                {
-                    Code = sector,
-                    Name = organization,
-                },
-                
-                Users = new List<WorkspaceUser>(),
-            },
-        };
-        var stringContent = new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json");
+        var stringContent = new StringContent(JsonSerializer.Serialize(project), Encoding.UTF8, "application/json");
         _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
         var response = await _httpClient.PostAsync(ResourceRunEndpoint, stringContent);
         return response.IsSuccessStatusCode;
@@ -127,6 +110,17 @@ public class ProjectCreationService : IProjectCreationService
         await using var db = await _datahubProjectDbFactory.CreateDbContextAsync();
         await db.Projects.AddAsync(project);
         await db.SaveChangesAsync();
+    }
+
+
+    private async Task AddProjectToStorageQueue(CreateResourceData project)
+    {
+        using IQueue<CreateResourceData> queue = new AzureStorageQueue<CreateResourceData>(new AzureStorageQueueOptions<CreateResourceData>()
+        {
+            ConnectionString = _configuration["ProjectCreationQueue:ConnectionString"],
+            Name = _configuration["ProjectCreationQueue:Name"],
+        });
+        await queue.EnqueueAsync(project);
     }
 
 }
