@@ -15,14 +15,7 @@
         "CallbackPath": "",
         "SignedOutCallbackPath ": "",
         "AppIDURL": ""
-    },
-
-    "ResourceProvisionerApi" : {
-        "BaseUrl": "",
-        "Scopes": "",
-        "AccessToken": ""
-    },
-    
+    },    
     "ProjectCreationQueue": {
         "ConnectionString": "",
         "Name": ""

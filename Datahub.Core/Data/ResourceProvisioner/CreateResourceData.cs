@@ -11,7 +11,8 @@ public record CreateResourceData
 
     public ResourceWorkspace Workspace { get; init; }
 
-    public CreateResourceData(string projectName, string acronym, string sector, string organization)
+    public CreateResourceData(string projectName, string acronym, string sector, string organization,
+        string userEmail, string userId)
     {
         Templates = new List<ResourceTemplate>() { ResourceTemplate.Default };
         Workspace = new ResourceWorkspace()
@@ -23,10 +24,18 @@ public record CreateResourceData
                 Code = sector,
                 Name = organization,
             },
-            
-            Users = new List<WorkspaceUser>(),
+
+            Users = new List<WorkspaceUser>()
+            {
+                new WorkspaceUser()
+                {
+                    Email = userEmail,
+                    Guid = userId,
+                }
+            }
         };
     }
+    
     public CreateResourceData(){}
 
 }

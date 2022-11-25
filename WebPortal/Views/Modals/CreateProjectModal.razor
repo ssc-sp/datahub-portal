@@ -17,12 +17,20 @@
         }
     </MudForm>
     <MudStack Row Spacing="3" Justify="Justify.FlexEnd">
-        <MudButton Variant="Variant.Text">@Localizer[CancelButton]</MudButton>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="!_success">@Localizer[CreateButton]</MudButton>
+        @if (ShowCancel)
+        {
+            <MudButton Variant="Variant.Text">@Localizer[CancelButton]</MudButton>
+        }
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="!_success" OnClick="CreateWorkspace">
+            @Localizer[CreateButton]
+        </MudButton>
     </MudStack>
 </MudPaper> 
 
 @code {
+
+    [Parameter]
+    public bool ShowCancel { get; set; } = true;
 #nullable enable
     private const string Title = "Create a new Workspace";
     private const string Description = "Required information to create a collaborative workspace";  
@@ -49,14 +57,14 @@
     
     private async Task GenerateAcronym()
     {
-            if (string.IsNullOrWhiteSpace(_workspaceTitle))
-            {
+        if (string.IsNullOrWhiteSpace(_workspaceTitle))
+        {
             _errorMessage = Localizer[WorkspaceRequiredToGenerateAcronym];
             return;
         }
         
         _workspaceAcronym = await ProjectCreationService.GenerateProjectAcronymAsync(_workspaceTitle);
-        //_success = true;
+        _success = true;
         _acronymField?.ResetValidation();    
     }
 
@@ -77,5 +85,13 @@
         SetFunc = value => value?.ToUpperInvariant() ?? string.Empty,
         GetFunc = text => text?.ToUpperInvariant() ?? string.Empty,
     };
+    
+    private async Task CreateWorkspace()
+    {
+        if (_success)
+        {
+            await ProjectCreationService.CreateProjectAsync(_workspaceTitle, _workspaceAcronym);
+        }
+    }
 #nullable disable
 }
