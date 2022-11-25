@@ -31,19 +31,13 @@ public class ProjectCreationTests
     private ServiceProvider SetupServices()
     {
         var services = new ServiceCollection();
+        services.AddLogging();
         services.AddPooledDbContextFactory<DatahubProjectDBContext>(options => options.UseInMemoryDatabase("datahubProjects"));
         services.AddScoped<IProjectCreationService, ProjectCreationService>();
         
         //dependency for ProjectCreationService
         services.AddSingleton(Configuration);
-        services.AddScoped<ITokenAcquisition, MockTokenAcquisitionService>();
-        services.AddHttpClient<IProjectCreationService, ProjectCreationService>(client =>
-        {
-            client.BaseAddress = new Uri(ResourceProvisionerUrl);
-            client.DefaultRequestHeaders.Add("Accept", "*/*");
-            client.DefaultRequestHeaders.Add("Accept-Encoding", "gzip, deflate, br");
-            client.DefaultRequestHeaders.Add("Connection", "keep-alive");
-        });      
+        
         services.AddScoped<IUserInformationService, OfflineUserInformationService>();
         return services.BuildServiceProvider();
     }
@@ -79,11 +73,10 @@ public class ProjectCreationTests
         var serviceProvider = SetupServices();
         var projectCreationService = serviceProvider.GetRequiredService<IProjectCreationService>();
         var config = serviceProvider.GetRequiredService<IConfiguration>();
-        var resourceProvisionerTriggered = await projectCreationService.CreateProjectAsync(projectName, organization);
+        await projectCreationService.CreateProjectAsync(projectName, organization);
         var projects = LoadCollectionGeneric<DatahubProjectDBContext, Datahub_Project>(SetupServices(), d => d.Projects);
         Assert.Single(projects);
         //test api success
-        Assert.True(resourceProvisionerTriggered);
         using IQueue<CreateResourceData> queue = new AzureStorageQueue<CreateResourceData>(new AzureStorageQueueOptions<CreateResourceData>()
         {
             ConnectionString = config["ProjectCreationQueue:ConnectionString"],

@@ -376,10 +376,6 @@ namespace Datahub.Portal
                 
                 services.AddScoped<UpdateProjectMonthlyCostService>();
                 services.AddScoped<IProjectCreationService, ProjectCreationService>();
-                services.AddHttpClient<IProjectCreationService, ProjectCreationService>(client =>
-                {
-                    client.BaseAddress = new Uri(Configuration["ResourceProvisionerApi:BaseUrl"]);
-                });
 
             }
             else

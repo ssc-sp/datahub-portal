@@ -2,9 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
-using System.Text;
-using System.Text.Json;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Datahub.Core.Data;
 using Datahub.Core.Data.ResourceProvisioner;
@@ -12,30 +10,23 @@ using Datahub.Core.EFCore;
 using Foundatio.Queues;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Identity.Web;
 
 namespace Datahub.Core.Services;
 
 public class ProjectCreationService : IProjectCreationService
 {
     
-    private readonly HttpClient _httpClient;
     private readonly IDbContextFactory<DatahubProjectDBContext> _datahubProjectDbFactory;
     private readonly IUserInformationService _userInformationService;
-    private readonly ITokenAcquisition _tokenAcquisition;
     private readonly IConfiguration _configuration;
 
     private const string NewProjectDataSensitivity = "Setup";
-    private const string ResourceRunEndpoint = "api/ResourceRun";
     
-    public ProjectCreationService(HttpClient httpClient,
-        IDbContextFactory<DatahubProjectDBContext> datahubProjectDbFactory,
-        IUserInformationService userInformationService, ITokenAcquisition tokenAcquisition, IConfiguration configuration)
+    public ProjectCreationService(IDbContextFactory<DatahubProjectDBContext> datahubProjectDbFactory,
+        IUserInformationService userInformationService, IConfiguration configuration)
     {
-        _httpClient = httpClient;
         _datahubProjectDbFactory = datahubProjectDbFactory;
         _userInformationService = userInformationService;
-        _tokenAcquisition = tokenAcquisition;
         _configuration = configuration;
     }
     
@@ -69,30 +60,20 @@ public class ProjectCreationService : IProjectCreationService
         return await Task.FromResult(acronym);
     }
 
-    public async Task<bool> CreateProjectAsync(string projectName, string organization)
+    public async Task CreateProjectAsync(string projectName, string organization)
     {
         var acronym = await GenerateProjectAcronymAsync(projectName);
-        return await CreateProjectAsync(projectName, acronym, organization);
+        await CreateProjectAsync(projectName, acronym, organization);
     }
     
-    public async Task<bool> CreateProjectAsync(string projectName, string? acronym, string organization)
+    public async Task CreateProjectAsync(string projectName, string? acronym, string organization)
     {
         acronym ??= await GenerateProjectAcronymAsync(projectName);
         var sectorName = GovernmentDepartment.Departments.TryGetValue(organization, out var sector) ? sector : acronym;
-        var user = await _userInformationService.GetAuthenticatedUser();
-        var scopes = _configuration["ResourceProvisionerApi:Scopes"].Split(' ');
-        var token = await _tokenAcquisition.GetAccessTokenForUserAsync(scopes);
-        await AddProjectToDb(projectName, acronym, organization, user.Identity?.Name);
-        var project = new CreateResourceData(projectName, acronym, sectorName, organization);
+        var user = await _userInformationService.GetUserAsync();
+        await AddProjectToDb(projectName, acronym, organization, user?.Mail);
+        var project = new CreateResourceData(projectName, acronym, sectorName, organization, user?.Mail, user?.Id);
         await AddProjectToStorageQueue(project);
-        return await SendProvisionerRequestAsync(project, token);
-    }
-    private async Task<bool> SendProvisionerRequestAsync(CreateResourceData project, string token)
-    {
-        var stringContent = new StringContent(JsonSerializer.Serialize(project), Encoding.UTF8, "application/json");
-        _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
-        var response = await _httpClient.PostAsync(ResourceRunEndpoint, stringContent);
-        return response.IsSuccessStatusCode;
     }
     private async Task AddProjectToDb(string projectName, string acronym, string organization, string? userEmail) 
     {
@@ -105,7 +86,7 @@ public class ProjectCreationService : IProjectCreationService
             Contact_List = userEmail,
             Project_Admin = userEmail,
             Data_Sensitivity = NewProjectDataSensitivity,
-            Project_Status_Desc = "Test",
+            Project_Status_Desc = "Ongoing",
         };
         await using var db = await _datahubProjectDbFactory.CreateDbContextAsync();
         await db.Projects.AddAsync(project);

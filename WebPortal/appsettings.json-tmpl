@@ -11,10 +11,6 @@
   "LandingBgImgCount": 12,
   "Title": "NRCan Datahub",
   "DataHubModules": "*",
-  "ResourceProvisionerApi" : {
-    "BaseUrl": "",
-    "Scopes": ""
-  },
   "ProjectCreationQueue": {
     "ConnectionString": "",
     "Name": ""
