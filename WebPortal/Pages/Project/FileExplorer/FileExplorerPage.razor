@@ -1,7 +1,6 @@
 ﻿@inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject DataRetrievalService _dataRetrievalService
 @inject IUserInformationService _userInformationService
-@inject ServiceAuthManager ServiceAuthManager;
 
 @page "/projects/{ProjectAcronymParam}/filelist"
 @using Datahub.Core.Components.PageBanner
@@ -16,25 +15,21 @@
 <CascadingValue Value="@ProjectAcronymParam" Name="ProjectAcronym">
     <CascadingValue Value="@_project" Name="Project">
         <CascadingValue Value="_user" Name="GraphUser">
-            <CascadingValue Value="_isDatahubAdmin" Name="IsDatahubAdmin">
-                <CascadingValue Value="@_isProjectMember" Name="IsProjectMember">
-                    <div class="file-explorer-layout-wrapper">
-                        <TabControl TabIndex="@_tabIndex" OnChangeTab="@OnChangeTab">
-                            @foreach (var (control, content, forceGapLeft) in _tabs)
-                            {
-                                <TabPage ForceGapToLeft="forceGapLeft">
-                                    <Control>
-                                        @control
-                                    </Control>
-                                    <ChildContent>
-                                        @content
-                                    </ChildContent>
-                                </TabPage>
-                            }
-                        </TabControl>
-                    </div>
-                </CascadingValue>
-            </CascadingValue>
+            <div class="file-explorer-layout-wrapper">
+                <TabControl TabIndex="@_tabIndex" OnChangeTab="@OnChangeTab">
+                    @foreach (var (control, content, forceGapLeft) in _tabs)
+                    {
+                        <TabPage ForceGapToLeft="forceGapLeft">
+                            <Control>
+                                @control
+                            </Control>
+                            <ChildContent>
+                                @content
+                            </ChildContent>
+                        </TabPage>
+                    }
+                </TabControl>
+            </div>
         </CascadingValue>
     </CascadingValue>
 </CascadingValue>
@@ -71,11 +66,6 @@
         _projectId = _project?.Project_ID;
 
         _tabs = await GetTabs();
-
-        var authUser = await _userInformationService.GetAuthenticatedUser();
-        _isDatahubAdmin = authUser.IsInRole(RoleConstants.DATAHUB_ROLE_ADMIN);
-
-        _isProjectMember = await IsCurrentUserMemberOfProject();
     }
 
     private void OnChangeTab(int tabIndex)
@@ -110,18 +100,5 @@
                   </AeTypography>, @<Databricks/>, false));
 
         return tabs;
-    }
-
-    private async Task<bool> IsCurrentUserMemberOfProject()
-    {
-        if (_user is null || _project is null)    
-            return false;
-
-        var userIds = _project.Users.Select(u => u.User_ID?.ToLowerInvariant() ).ToArray();
-        var userId = (_user.Id ?? "").ToLowerInvariant();
-        if (userIds.Contains(userId))
-            return true;
-
-        return await ServiceAuthManager.IsProjectAdmin(userId, ProjectAcronymParam);
     }
 }
