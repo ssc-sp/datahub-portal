@@ -14,6 +14,7 @@
 @inject MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
 @inject IOrganizationLevelsService _orgLevelService
 @inject IUserInformationService _userInfoService
+@inject ILogger<InternalPublishedPowerBiReportEmbeddedPage> _logger
 
 <MudStack>
     <MudStack Row>
@@ -91,7 +92,11 @@
     </MudStack>
 
     <MudContainer>
-        @if (_invalidReport)
+        @if (_invalidReport && _reportId.HasValue)
+        {
+            <EmbeddedReportAccessError ReportIdGuid=@_reportId.Value />
+        }
+        else if (_invalidReport)
         {
             <MudText>@Localizer[$"{LOCALIZATION_PREFIX}.InvalidReport"]</MudText>
         }
@@ -212,9 +217,10 @@
             // user isn't logged into Power BI -> redirect to Microsoft
             _consentHandler.HandleException(e);
         }
-        catch (Microsoft.Rest.HttpOperationException)
+        catch (Microsoft.Rest.HttpOperationException ex)
         {
             // couldn't load the report - missing or unauthorized
+            _logger.LogError(ex, $"Couldn't load Power BI report {_reportId?.ToString()}");
             InvalidateReport();
         }
         catch (Exception)

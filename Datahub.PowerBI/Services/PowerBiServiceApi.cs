@@ -1,4 +1,5 @@
 ﻿using Datahub.PowerBI.Data;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Identity.Web;
 using Microsoft.PowerBI.Api;
@@ -25,6 +26,9 @@ namespace Datahub.Portal.Services
     public class PowerBiServiceApi
     {
 
+        private const string POWER_BI_CONFIG_SECTION_KEY = "PowerBI";
+        private const string POWER_BI_INTERNAL_PUBLICATION_GROUP_ID_CONFIG_KEY = "InternalPublicationGroupId";
+
         private ITokenAcquisition tokenAcquisition { get; }
 
         private readonly ILogger<PowerBiServiceApi> logger;
@@ -34,12 +38,15 @@ namespace Datahub.Portal.Services
 
         public const string POWERBI_ROOT_URL = "https://api.powerbi.com/";
 
-        public PowerBiServiceApi(ITokenAcquisition tokenAcquisition, ILogger<PowerBiServiceApi> logger)
+        public string? InternalPublicationGroupId { get; private set; }
+
+        public PowerBiServiceApi(ITokenAcquisition tokenAcquisition, ILogger<PowerBiServiceApi> logger, IConfiguration config)
         {
             //IConfiguration configuration, 
             this.urlPowerBiServiceApiRoot = POWERBI_ROOT_URL;
             this.tokenAcquisition = tokenAcquisition;
             this.logger = logger;
+            InternalPublicationGroupId = config.GetSection(POWER_BI_CONFIG_SECTION_KEY).GetValue<string>(POWER_BI_INTERNAL_PUBLICATION_GROUP_ID_CONFIG_KEY);
         }
 
         public static readonly string[] RequiredScopes = new string[] {
@@ -285,6 +292,29 @@ namespace Datahub.Portal.Services
             }));
             
             return errorUsers.Where(u => u != null).ToList();
+        }
+
+        public async Task<bool> AssignGroupToWorkspace(Guid workspaceId, string? groupId)
+        {
+            if (string.IsNullOrEmpty(groupId))
+            {
+                return await Task.FromResult(false);
+            }
+
+            using var pbiClient = await GetPowerBiClientAsync();
+
+            // in order for embedding to work for unregistered users, the group needs to be at least Contributor level
+            var groupUser = new GroupUser(groupId, PrincipalType.Group, GroupUserAccessRight.Contributor);
+            try
+            {
+                await pbiClient.Groups.AddGroupUserAsync(workspaceId, groupUser);
+                return await Task.FromResult(true);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, $"Couldn't add group {groupId} to Power BI workspace {workspaceId}");
+                return await Task.FromResult(false);
+            }
         }
 
         public async Task TestCreateUser(Guid workspaceId, string userId)

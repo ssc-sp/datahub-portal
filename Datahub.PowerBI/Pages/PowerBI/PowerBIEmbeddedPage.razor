@@ -1,16 +1,13 @@
 ﻿@page "/powerbi-report/{GroupId}/{ReportId}"
 @page "/powerbi-report/{ReportId}"
-@using Microsoft.PowerBI.Api.Models
-@using Microsoft.Rest
-@inject IJSRuntime JSRuntime
-@inject IConfiguration _configuration
 
-@inject IStringLocalizer<PowerBIEmbeddedPage> DataLocalizer
-@inject NavigationManager NavigationManager
-@inject PowerBiServiceApi PowerBiServiceApi
+@using Microsoft.Rest
 @using Microsoft.Identity.Web
-@inject MicrosoftIdentityConsentAndConditionalAccessHandler ConsentHandler
-@inject IPowerBiDataService PowerBiDataService
+
+@inject IJSRuntime _jsRuntime
+@inject PowerBiServiceApi _powerBiServiceApi
+@inject MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
+@inject IPowerBiDataService _powerBiDataService
 
 @if (!string.IsNullOrEmpty(reportTitle))
 {
@@ -19,25 +16,7 @@
 
 @if (ErrorLoadingReport)
 {
-    <AeCard>
-        <Header>
-            <AeTypography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.ErrorLoadingReport"]</AeTypography>
-        </Header>
-        <ChildContent>
-            <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.ErrorDescription"]</AeTypography>
-                <div>
-                    @if (ErrorNotificationSent)
-                    {
-                        <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.NotificationSentMessage"]</AeTypography>
-                    }
-                    else
-                    {
-                        <AeButton OnClickEvent=@SendNotFoundNotification Disabled=@SendingErrorNotification>@Localizer[$"{LOCALIZATION_PREFIX}.SendNotificationButton"]</AeButton>   
-                    }
-                    <SuccessIndicator @ref=@NotificationSuccessInd @bind-IsLoading=@SendingErrorNotification />
-                </div>
-        </ChildContent>
-    </AeCard>
+    <EmbeddedReportAccessError ReportIdGuid=@ReportIdGuid />
 }
 else
 {
@@ -73,10 +52,6 @@ else
 
     private bool ErrorLoadingReport = false;
 
-    private bool ErrorNotificationSent = false;
-    private bool SendingErrorNotification = false;
-    private SuccessIndicator NotificationSuccessInd;
-
     private PowerBi_Report dbReport = null;
 
     private PowerBi_Workspace dbWorkspace => dbReport?.Workspace;
@@ -96,20 +71,20 @@ else
         {
             if (GroupId is null)
             {
-                report = await PowerBiServiceApi.GetReport(ReportId);                
+                report = await _powerBiServiceApi.GetReport(ReportId);                
             }
             else
             {
-                report = await PowerBiServiceApi.GetReport(ReportId, GroupId);                
+                report = await _powerBiServiceApi.GetReport(ReportId, GroupId);                
             }
 
-            reportToken = await PowerBiServiceApi.GetAccessTokenAsync();
+            reportToken = await _powerBiServiceApi.GetAccessTokenAsync();
 
         } 
         catch (MicrosoftIdentityWebChallengeUserException e)
         {
             // user isn't logged into Power BI -> redirect to Microsoft
-            ConsentHandler.HandleException(e);
+            _consentHandler.HandleException(e);
         }
         catch (HttpOperationException)
         {
@@ -122,7 +97,7 @@ else
             throw;
         }
 
-        dbReport = await PowerBiDataService.GetReportById(ReportIdGuid, true);
+        dbReport = await _powerBiDataService.GetReportById(ReportIdGuid, true);
 
         var pbiSettings = new PowerBISettings();
         if (ReadOnly)
@@ -133,25 +108,12 @@ else
 
         if (report != null)
         {
-            await JSRuntime.InvokeAsync<object>(
+            await _jsRuntime.InvokeAsync<object>(
                 "ShowMyPowerBI.showReport",
                 PowerBIElement, reportToken, report.EmbedUrl,
                 report.Id.ToString(), pbiSettings);
         }
     }
-
-    private async Task SendNotFoundNotification()
-    {
-        SendingErrorNotification = true;
-        await InvokeAsync(StateHasChanged);
-
-        await PowerBiDataService.NotifyOfMissingReport(ReportIdGuid);
-
-        ErrorNotificationSent = true;
-        await NotificationSuccessInd.SignalSuccess();
-        await InvokeAsync(StateHasChanged);
-    }
-
     protected override void OnAfterRender(bool firstRender)
     {
         if (firstRender)

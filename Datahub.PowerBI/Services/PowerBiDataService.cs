@@ -503,7 +503,7 @@ namespace Datahub.Core.Services
             return projectUsers.Select(u => u.User_ID);
         }
 
-        public async Task NotifyOfMissingReport(Guid reportId)
+        public async Task NotifyOfMissingReport(Guid reportId, string userEmail)
         {
             var report = await GetReportById(reportId, true);
             var powerBiAdmins = await GetGlobalPowerBiAdmins();
@@ -519,12 +519,19 @@ namespace Datahub.Core.Services
             var textKey = $"{localizationPrefix}.NotFoundReportNotificationText";
             var linkKey = $"{localizationPrefix}.NotFoundReportNotificationLink";
 
-            var projectAcronym = report.Workspace.Project.Project_Acronym_CD;
+            var projectAcronym = report.Workspace.Project?.Project_Acronym_CD;
 
             var actionLink = string.IsNullOrEmpty(projectAcronym) ? $"/admin/powerbi/report/{reportId}" : $"/admin/powerbi/{projectAcronym}/report/{reportId}";
-            var projectName = new BilingualStringArgument(report.Workspace.Project.Project_Name, report.Workspace.Project.Project_Name_Fr);
 
-            await _notificationService.CreateSystemNotificationsWithLink(powerBiAdmins, actionLink, linkKey, textKey, report.Report_Name, projectName);
+            if (report.Workspace.Project == null)
+            {
+                await _notificationService.CreateSystemNotificationsWithLink(powerBiAdmins, actionLink, linkKey, textKey, report.Report_Name, report.Workspace.Workspace_Name, userEmail);
+            }
+            else
+            {
+                var projectName = new BilingualStringArgument(report.Workspace.Project.Project_Name, report.Workspace.Project.Project_Name_Fr);
+                await _notificationService.CreateSystemNotificationsWithLink(powerBiAdmins, actionLink, linkKey, textKey, report.Report_Name, projectName, userEmail);
+            }
         }
 
         public async Task UpdateReportCatalogStatus(Guid reportId, bool inCatalog)
