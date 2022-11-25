@@ -106,9 +106,15 @@ else
         </MudCard>
     }
 
+
+
     <MudCard style="margin-top: 1rem">
         <MudCardHeader>
-         
+                @foreach (var button in Metadata.FormButtons)
+                {
+                    @button;
+                }
+                
         </MudCardHeader>
         <MudCardContent>               
             <MudModelForm Model="SelectedRecord"
