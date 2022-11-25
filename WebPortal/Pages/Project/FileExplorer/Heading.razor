@@ -17,9 +17,8 @@
         }
     </div>
     <div class="actions">
-        <AeButton class="button-tool" onclick="document.querySelector('.file-list .dropzone-container input').click();">
-            <i class="fas fa-upload"></i>
-            @Localizer["Upload"]
+        <AeButton class="button-tool" onclick="document.querySelector('.file-list .dropzone-container input').click();" Disabled="IsActionDisabled(ButtonAction.Upload)">
+            <i class="fas fa-upload"></i>@Localizer["Upload"]
         </AeButton>
 
         <AeButton class="button-tool" @onclick="HandleDownload" Disabled="IsActionDisabled(ButtonAction.Download)">
@@ -67,6 +66,12 @@
 
     [CascadingParameter(Name = "GraphUser")]
     public Microsoft.Graph.User GraphUser { get; set; }
+
+    [CascadingParameter(Name="IsDatahubAdmin")]
+    public bool IsDatahubAdmin { get; set; }    
+    
+    [CascadingParameter(Name = "IsProjectMember")]
+    public bool IsProjectMember { get; set; }
 
     [Parameter]
     public string CurrentFolder { get; set; }

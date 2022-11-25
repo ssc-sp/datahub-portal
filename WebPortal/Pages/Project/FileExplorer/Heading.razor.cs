@@ -14,6 +14,9 @@ public partial class Heading
 
     private async Task HandleDownload()
     {
+        if (IsActionDisabled(ButtonAction.Download))
+            return;
+
         var downloads = SelectedItems
             .Where(selectedItem => Files?.Any(f => f.name == selectedItem) ?? false);
 
@@ -94,6 +97,7 @@ public partial class Heading
 
     private enum ButtonAction
     {
+        Upload,
         Download,
         Share,
         Delete,
@@ -105,8 +109,9 @@ public partial class Heading
     {
         return buttonAction switch
         {
-            ButtonAction.AzSync     => !_isElectron,
-            ButtonAction.Download => _selectedFiles is null || !_selectedFiles.Any() || !_ownsSelectedFiles,
+            ButtonAction.Upload   => !(IsDatahubAdmin || IsProjectMember),
+            ButtonAction.AzSync   => !_isElectron,
+            ButtonAction.Download => _selectedFiles is null || !_selectedFiles.Any() || !(IsDatahubAdmin || IsProjectMember),
             ButtonAction.Share    => _selectedFiles is null || !_selectedFiles.Any() || !_ownsSelectedFiles || SelectedItems.Count > 1,
             ButtonAction.Delete   => _selectedFiles is null || !_selectedFiles.Any() || !_ownsSelectedFiles,
             ButtonAction.Rename   => _selectedFiles is null || !_selectedFiles.Any() || !_ownsSelectedFiles || SelectedItems.Count > 1,
