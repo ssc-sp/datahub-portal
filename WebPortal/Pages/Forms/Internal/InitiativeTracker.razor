@@ -112,11 +112,11 @@
         }
 
         _tabbedProjects = new();
-        _tabbedProjects.Add("All", _projects);
-        _tabbedProjects.Add("In Progress", _projects.Where(p => p.GetProjectStatus() == "In Progress").ToList());
-        _tabbedProjects.Add("Support", _projects.Where(p => p.GetProjectStatus() == "Support").ToList());
-        _tabbedProjects.Add("On Hold", _projects.Where(p => p.GetProjectStatus() == "On Hold").ToList());
-        _tabbedProjects.Add("Closed", _projects.Where(p => p.GetProjectStatus() == "Closed").ToList());
+        _tabbedProjects.Add("All", projects);
+        _tabbedProjects.Add("In Progress", projects.Where(p => p.GetProjectStatus() == "In Progress").ToList());
+        _tabbedProjects.Add("Support", projects.Where(p => p.GetProjectStatus() == "Support").ToList());
+        _tabbedProjects.Add("On Hold", projects.Where(p => p.GetProjectStatus() == "On Hold").ToList());
+        _tabbedProjects.Add("Closed", projects.Where(p => p.GetProjectStatus() == "Closed").ToList());
 
         _formMetadata.Header = DataLocalizer["Initiatives"];
         _formMetadata.HeaderSubText = DataLocalizer[@""];
@@ -129,6 +129,7 @@
         _formMetadata.AllowSearch = true;        
         _formMetadata.IsSubmitEnabled = true;
         _formMetadata.IsAddEnabled = true;
+        _formMetadata.FormButtons = GetFormButtons();
     }
 
 
@@ -141,7 +142,7 @@
         _sortAccessors.Add("lastcontact", t => t?.Last_Contact_DT?.ToShortDateString());
     }
 
-    
+
 
     private List<Func<Datahub_Project, string>> accessorFunctions = new List<Func<Datahub_Project, string>>
     {        
@@ -169,6 +170,16 @@
         GetCommentIcon
     };
 
+    private List<RenderFragment> GetFormButtons()
+    {
+        var buttons = new List<RenderFragment>();
+        buttons.Add(@<MudButton style="margin-right: 0.2rem" Variant="Variant.Filled" Color="Color.Primary" @onclick=@SuggestTranslation Disabled=@DisabledSuggestTranslation>@DataLocalizer["Suggest French Translation"]</MudButton>);
+        return buttons;
+    }
+
+     
+        
+
     private RenderFragment GetCommentIcon(Datahub_Project p)
     {
         return@<MudIconButton @onclick="() => OpenComments(p)" Icon="@Icons.Filled.InsertComment" Color="Color.Default" />;
@@ -192,6 +203,20 @@
         if (!result.Cancelled)
         { 
             LoadData(_searchFilter);
+        }
+    }
+
+    private bool DisabledSuggestTranslation => string.IsNullOrEmpty(_project?.Project_Name) || string.IsNullOrEmpty(_project?.Project_Summary_Desc);
+
+    public async Task SuggestTranslation()
+    {
+        if (!string.IsNullOrEmpty(_project.Project_Name))
+        {
+            _project.Project_Name_Fr = await TranslationService.GetFrenchTranslation(_project.Project_Name);
+        }
+        if (!string.IsNullOrEmpty(_project.Project_Summary_Desc))
+        {
+            _project.Project_Summary_Desc_Fr = await TranslationService.GetFrenchTranslation(_project.Project_Summary_Desc);
         }
     }
 

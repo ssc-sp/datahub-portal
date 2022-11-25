@@ -17,7 +17,7 @@ namespace Datahub.Core.Data
         public IList<Func<T, string>> AccessorFunctions { get; set; }
 
         public IList<Func<T, RenderFragment>> RenderFunctions { get; set; }
-
+        public IList<RenderFragment> FormButtons { get; set; }
         public IList<string> Headers { get; set; }
         public string GridTemplateColumns { get; set; }
 
