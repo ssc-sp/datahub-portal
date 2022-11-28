@@ -221,6 +221,15 @@
                                     <AeTypography Variant="p" class="warning">@Localizer[$"{LOCALIZATION_PREFIX}.UnassignedWarning"]</AeTypography>
                                 }
 
+                                <MudText Typo=@Typo.body1>
+                                    @Localizer[$"{LOCALIZATION_PREFIX}.ManageAccessLabel"]
+                                    <MudButton 
+                                        Href=@GetPowerBiWorkspaceUrl(ReportBeingEdited.AnyWorkspaceId) 
+                                        Target="_blank" 
+                                        Variant=@Variant.Outlined
+                                        StartIcon=@Icons.Filled.Launch>@Localizer[$"{LOCALIZATION_PREFIX}.PowerBIButton"]</MudButton>
+                                </MudText>
+
                                 <AeTypography Variant="h4">@Localizer[$"{LOCALIZATION_PREFIX}.Metadata"]</AeTypography>
                                 
 
@@ -471,6 +480,8 @@
 
     private string GetProjectMetadataUid(int projectId) => AvailableProjects.FirstOrDefault(p => p.Project_ID == projectId)?.Project_Acronym_CD;
     private string GetProjectAdmins(int projectId) => AvailableProjects.FirstOrDefault(p => p.Project_ID == projectId)?.Project_Admin;
+
+    private string GetPowerBiWorkspaceUrl(Guid workspaceId) => $"https://app.powerbi.com/groups/{workspaceId.ToString()}";
 
     private string CountChildrenToUpdate(PowerBiAdminWorkspaceTreeItem workspace)
     {

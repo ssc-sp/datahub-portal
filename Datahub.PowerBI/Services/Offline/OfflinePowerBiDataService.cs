@@ -125,7 +125,7 @@ namespace Datahub.Core.Services.Offline
             throw new NotImplementedException();
         }
 
-        public Task NotifyOfMissingReport(Guid reportId)
+        public Task NotifyOfMissingReport(Guid reportId, string userEmail)
         {
             throw new NotImplementedException();
         }
