@@ -18,7 +18,7 @@
 @using MudBlazor.Forms;
 @page "/datahub/initiatives"
 
-<Datahub.Core.Components.MudFormTemplate T="Datahub_Project"
+<Datahub.Core.Components.Form.MudFormTemplate T="Datahub_Project"
                                          U="DatahubProjectDBContext"
                                          Metadata="@_formMetadata"
                                          HandleSubmit="HandleValidSubmit"
@@ -38,6 +38,8 @@
     private FormMetadata<Datahub_Project> _formMetadata = new();
 
     private List<Datahub_Project> _projects;
+    private Dictionary<string, List<Datahub_Project>> _tabbedProjects;
+
     private Datahub_Project _project;// = new Datahub_Project();
     private Datahub_ProjectComment _comment;
     private const string EMAIL = "offline@nrcan-cnrcan.gc.ca";
@@ -53,7 +55,7 @@
     private bool _isFrench;
 
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
         _isFrench = CultureInfo.CurrentCulture.Name.StartsWith("fr", StringComparison.InvariantCulture);
 
@@ -76,13 +78,6 @@
 
         LoadData(_searchFilter);
 
-        //filterProperties.Add((() => "Status", () => new List<string> { "All", "Closed", "On Hold", "Ongoing" }));
-
-        //ValidDisplayValues = new();
-        //ValidDisplayValues = filterProperties[0].Choices.DynamicInvoke() as List<string>;
-        //filterLabel = filterProperties[0].Label.DynamicInvoke() as string;
-        //filterLabelValue = $"{filterLabel}: {ValidDisplayValues[0]}";
-        //filterClass = "filterDropdown";
     }
 
     private void SetFormEdit(Datahub_Project project)
@@ -116,22 +111,31 @@
             }).ToList();
         }
 
+        _tabbedProjects = new();
+        _tabbedProjects.Add("All", projects);
+        _tabbedProjects.Add("In Progress", projects.Where(p => p.GetProjectStatus() == "In Progress").ToList());
+        _tabbedProjects.Add("Support", projects.Where(p => p.GetProjectStatus() == "Support").ToList());
+        _tabbedProjects.Add("On Hold", projects.Where(p => p.GetProjectStatus() == "On Hold").ToList());
+        _tabbedProjects.Add("Closed", projects.Where(p => p.GetProjectStatus() == "Closed").ToList());
+
         _formMetadata.Header = DataLocalizer["Initiatives"];
         _formMetadata.HeaderSubText = DataLocalizer[@""];
         _formMetadata.SubHeader = DataLocalizer[""];
-        _formMetadata.DataSet = projects;
+        _formMetadata.DataSet = new();
+        _formMetadata.TabbedDataSets = _tabbedProjects;
         _formMetadata.AccessorFunctions = accessorFunctions;
         _formMetadata.RenderFunctions = renderFunctions;        
-        _formMetadata.Headers = _headers;
+        _formMetadata.Headers = _headers;;
         _formMetadata.AllowSearch = true;        
         _formMetadata.IsSubmitEnabled = true;
         _formMetadata.IsAddEnabled = true;
+        _formMetadata.FormButtons = GetFormButtons();
     }
 
 
     private void LoadSortExpressions()
     {
-        _sortAccessors.Add("status", t => t.Project_Status_Desc);
+        _sortAccessors.Add("status", t => t.GetProjectStatus());
         _sortAccessors.Add("sector", t => t.Sector?.Full_Acronym_E ?? "");
         _sortAccessors.Add("initiative", t => t.Project_Acronym_CD);
         _sortAccessors.Add("name", t => t.ProjectName);
@@ -139,9 +143,10 @@
     }
 
 
+
     private List<Func<Datahub_Project, string>> accessorFunctions = new List<Func<Datahub_Project, string>>
     {        
-        new Func<Datahub_Project, string>(p => { return p.Project_Status_Desc ?? "N/A"; }),
+        new Func<Datahub_Project, string>(p => { return p.GetProjectStatus() ?? "N/A"; }),
         new Func<Datahub_Project, string>(p => { return p.Sector?.Full_Acronym_E ?? "N/A"; }),
         new Func<Datahub_Project, string>(p => { return p.Project_Acronym_CD ?? "N/A"; }),
         new Func<Datahub_Project, string>(p => { return p.ProjectName ?? "N/A"; }),
@@ -164,6 +169,16 @@
         GetMetadataFragment,
         GetCommentIcon
     };
+
+    private List<RenderFragment> GetFormButtons()
+    {
+        var buttons = new List<RenderFragment>();
+        buttons.Add(@<MudButton style="margin-right: 0.2rem" Variant="Variant.Filled" Color="Color.Primary" @onclick=@SuggestTranslation Disabled=@DisabledSuggestTranslation>@DataLocalizer["Suggest French Translation"]</MudButton>);
+        return buttons;
+    }
+
+     
+        
 
     private RenderFragment GetCommentIcon(Datahub_Project p)
     {
@@ -188,6 +203,20 @@
         if (!result.Cancelled)
         { 
             LoadData(_searchFilter);
+        }
+    }
+
+    private bool DisabledSuggestTranslation => string.IsNullOrEmpty(_project?.Project_Name) || string.IsNullOrEmpty(_project?.Project_Summary_Desc);
+
+    public async Task SuggestTranslation()
+    {
+        if (!string.IsNullOrEmpty(_project.Project_Name))
+        {
+            _project.Project_Name_Fr = await TranslationService.GetFrenchTranslation(_project.Project_Name);
+        }
+        if (!string.IsNullOrEmpty(_project.Project_Summary_Desc))
+        {
+            _project.Project_Summary_Desc_Fr = await TranslationService.GetFrenchTranslation(_project.Project_Summary_Desc);
         }
     }
 
@@ -272,26 +301,18 @@
     {
         if (!_sectors.Any())
             _sectors = Context.Organization_Levels.Where(l => l.Org_Level == "3").ToList();
-        //if (_sectors[0] is not null)
-        //    _sectors.Insert(0, null);
         return _sectors;
     }
 
     private List<Organization_Level> GetBranches()
     {        
-        if (!_branches.Any())
-        {
-            RefreshBranches(null, null);
-        }
+        RefreshBranches(_project.Sector, null);        
         return _branches;
     }
 
     private List<Organization_Level> GetDivisions()
     {
-        if (!_divisions.Any())
-        {
-            RefreshDivisions(null, null);
-        }
+        RefreshDivisions(_project.Branch, null);        
         return _divisions;
     }
 
