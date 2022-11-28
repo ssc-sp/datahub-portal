@@ -3,6 +3,7 @@
 @using Datahub.CatalogSearch
 @using Datahub.Metadata.DTO
 @using Datahub.Metadata.Model
+@using Datahub.PowerBI.Pages.PowerBI
 
 <div>
 	<DHPageTitle PageTitleKey=@Localizer["DISCOVERY-FILTERS.Search Catalog"] />
@@ -581,7 +582,7 @@
 
 	private RenderFragment RenderPowerBiReportFragment(CatalogObjectResult result) =>
 		@<MudStack Row AlignItems=@AlignItems.Center>
-			<Datahub.Portal.Pages.PowerBI.InternalPublishedPowerBIReportLinks ReportID=@result.MetadataObjectId_TXT />
+			<InternalPublishedPowerBIReportLinks ReportID=@result.MetadataObjectId_TXT />
 			@RenderGenericDownloadButton(result)
 		</MudStack>;
 
@@ -786,7 +787,7 @@
 
 	private async Task RedirectAndDownload(string url)
 	{
-		await jsRuntime.InvokeAsync<object>("open", url, "_blank");
+		await jsRuntime.InvokeVoidAsync("open", url, "_blank");
 	}
 
 	private bool HasValidFilters(string query = null)
