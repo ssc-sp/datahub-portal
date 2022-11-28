@@ -1,3 +1,14 @@
 {
-  "FiscalYear": "Année fiscale"
+  "Is_Private": "Privé",
+  "Is_Featured": "En vedette :"
+}t_Status_Desc": "Statut du projet",
+  "Databricks_URL": "URL de Databricks",
+  "PowerBI_URL": "URL de PowerBI",
+  "WebForms_URL": "URL de WebForms",
+  "DB_Name": "Nom de la base de données",
+  "DB_Server": "Serveur de base de données",
+  "DB_Type": "Type de base de données",
+  "IsDatabasePostgres": "Base de données Postgres",
+  "IsDatabaseSqlServer": "Base de données SQL Server",
+  "HasAssociatedDatabase": "A Associté la base de données"
 }
