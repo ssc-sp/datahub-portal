@@ -91,6 +91,9 @@ namespace Datahub.Finance.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<int?>("Employee_Position_Number")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("End_Date")
                         .HasColumnType("datetime2");
 

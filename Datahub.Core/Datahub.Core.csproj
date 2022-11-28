@@ -18,9 +18,10 @@
 		<None Include="package.json">
 			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
 		</None>
+		<None Include="Components\DialogModalFrame.razor" />
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="Ae.MudBlazor.Forms" Version="0.5.22285.2-beta" />
+		<PackageReference Include="Ae.MudBlazor.Forms" Version="0.5.22329.4-beta" />
 		<PackageReference Include="AElemental.Blazor" Version="1.6.22173.2" />
 		<PackageReference Include="AElemental.Blazor.Theme" Version="1.6.22173.2" />
 		<PackageReference Include="AngleSharp" Version="1.0.0-alpha-844" />
@@ -95,6 +96,9 @@
 		<GitHookFiles Include="../.githooks/*.*" />
 	</ItemGroup>
 	<ItemGroup>
+	  <Content Remove="Services\DialogModalFrame.razor" />
+	</ItemGroup>
+	<ItemGroup>
 	  <None Remove="Components\DHMarkdown.razor.js" />
 	</ItemGroup>
 	<ItemGroup>
@@ -109,4 +113,12 @@
 	<Target Name="CopyCustomContent" AfterTargets="AfterBuild">
 		<Copy SourceFiles="@(GitHookFiles)" DestinationFolder="../.git/hooks/" SkipUnchangedFiles="true" />
 	</Target>
+
+	<ItemGroup>
+	  <UpToDateCheckInput Remove="Services\DialogModalFrame.razor" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <_ContentIncludedByDefault Remove="Services\DialogModalFrame.razor" />
+	</ItemGroup>
 </Project>

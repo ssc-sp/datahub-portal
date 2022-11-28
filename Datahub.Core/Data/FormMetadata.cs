@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Components;
+using System;
 using System.Collections.Generic;
 
 namespace Datahub.Core.Data
@@ -11,11 +12,13 @@ namespace Datahub.Core.Data
         public string UserId { get; set; }
         public string TableDisclaimer { get; set; }
         public List<T> DataSet { get; set; }
+        public Dictionary<string, List<T>> TabbedDataSets {get; set;}
 
         public IList<Func<T, string>> AccessorFunctions { get; set; }
 
+        public IList<Func<T, RenderFragment>> RenderFunctions { get; set; }
+        public IList<RenderFragment> FormButtons { get; set; }
         public IList<string> Headers { get; set; }
-
         public string GridTemplateColumns { get; set; }
 
         public IList<string> MarkDownContent { get; set; }

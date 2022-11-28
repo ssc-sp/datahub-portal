@@ -1,5 +1,4 @@
 ﻿@*ProjectDataValidation.razor*@
-
 @page "/initiatives/validate/{ProjectAcronym}"
 @using Datahub.Metadata.DTO
 @using Datahub.Metadata.Model
@@ -9,6 +8,7 @@
     <MudPagination Count="4" @bind-Selected=@_step Color="Color.Primary" />
 
     <MudText Class="mt-2 mb-2" Typo="Typo.h4">@GetStepHeader()</MudText>
+    <MudText Class="mb-2">@GetStepText()</MudText>
 
     @if (_step == 4)
     {
@@ -36,8 +36,8 @@
 
         @if (_step == 2)
         {
-            <OnboardUsers projectAcronym=@ProjectAcronym 
-                          ShowTitle="false" 
+            <OnboardUsers projectAcronym=@ProjectAcronym
+                          ShowTitle="false"
                           OnCompleted=@HandleOnboardingUserCompleted />
         }
 
@@ -54,9 +54,7 @@
                                    ObjectType=@MetadataObjectType.DataInitiative
                                    OnMetadataSaved=@HandleMetadataSaved />
         }
-
     </MudItem>
-    
 </MudGrid>
 
 @code {
@@ -70,10 +68,21 @@
     {
         return _step switch
         {
-            1 => Localizer["Verify or Edit Initiative Details"],
+            1 => Localizer["Initiative Details"],
             2 => Localizer["Confirm Initiative Members​"],
             3 => Localizer["Initiative Subject and Keywords"],
             _ => Localizer["Thank you"],
+        };
+    }
+
+    private string GetStepText()
+    {
+        return _step switch
+        {
+            1 => Localizer["Verify or edit the initiative details. Provide all the required fields, including the initiative goals and the onboarding timeline."],
+            2 => Localizer["Add the initiative members​ using the search functionality. This is not required, if you do not have the list at this point, the users can be added later in the initiative page."],
+            3 => Localizer["Select the subjects related to this initiative and select keywords in order to catalog the initiative and its resources."],
+            _ => "",
         };
     }
 
