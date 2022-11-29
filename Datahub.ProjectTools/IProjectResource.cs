@@ -18,6 +18,6 @@ namespace Datahub.ProjectTools
         public string? GetCostEstimatorLink();
 
         public string[] GetTags();
-        Task InitializeAsync(Datahub_Project project, string userId, User graphUser, bool isProjectAdmin);
+        Task<bool> InitializeAsync(Datahub_Project project, string userId, User graphUser, bool isProjectAdmin);
     }
 }

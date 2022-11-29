@@ -97,11 +97,11 @@ namespace Datahub.ProjectTools.Catalog
             throw new NotImplementedException();
         }
 
-        public async Task InitializeAsync(Datahub_Project project, string userId, User graphUser, bool isProjectAdmin)
+        public async Task<bool> InitializeAsync(Datahub_Project project, string userId, User graphUser, bool isProjectAdmin)
         {
             _project = project;
             _canViewDatabricks = isProjectAdmin || !string.IsNullOrEmpty(project.Databricks_URL);
-
+            return true;
         }
     }
 }

@@ -31,6 +31,8 @@
             </div>
         </NotAuthorized>
         <Authorized>
+            @if (_activeResources.Count > 0)
+            {
             <div class="project-tools">
                 <MudText Typo="Typo.h4">@Localizer["Active Project Tools"]</MudText>
 
@@ -77,12 +79,12 @@
                         @if (_configuration.Value.DataManagement)
                         {
                             <IoT/>
-                        }*@
+                        }
 
                         @if (_configuration.Value.IoT)
                         {
                             <DataManagement/>
-                        }
+                    }
 
                         @if (_configuration.Value.PostgreSQL)
                         {
@@ -108,10 +110,11 @@
                         @if (_configuration.Value.ComputeCost)
                         {
                             <ComputeCost />
-                        }
+                    }*@
                 </div>
             }
             </div>
+            }
 
             @if (_inactiveResources?.Count > 0)
             {

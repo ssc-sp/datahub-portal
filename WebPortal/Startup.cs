@@ -44,12 +44,13 @@ using Datahub.Core.Services.AzureCosting;
 using Datahub.Core.Services.Resources;
 using Datahub.ProjectTools.Services;
 using Datahub.Core.Services.Projects;
+using Datahub.ProjectTools.Services.Offline;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]
 
 namespace Datahub.Portal
 {
-    public class Startup
+	public class Startup
     {
         public Startup(IConfiguration configuration, IWebHostEnvironment env)
         {

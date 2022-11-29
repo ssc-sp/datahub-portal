@@ -3,6 +3,7 @@ using Datahub.Core.EFCore;
 using Datahub.Core.Services;
 using Datahub.ProjectTools;
 using Datahub.ProjectTools.Catalog;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -27,15 +28,16 @@ namespace Datahub.ProjectTools.Services
     {
         private readonly IServiceProvider serviceProvider;
         private readonly IUserInformationService userInformationService;
+        private readonly IDbContextFactory<DatahubProjectDBContext> dbFactoryProject;
 
-        public ProjectResourcesListingService(IServiceProvider serviceProvider, IUserInformationService userInformationService)
+        public ProjectResourcesListingService(IServiceProvider serviceProvider, IUserInformationService userInformationService, IDbContextFactory<DatahubProjectDBContext> dbFactoryProject)
         {
             this.serviceProvider = serviceProvider;
             this.userInformationService = userInformationService;
+            this.dbFactoryProject = dbFactoryProject;
         }
 
-        //private static Type[] ResourceProviders = new[] { typeof(DHDatabricksResource), typeof(DHPublicSharing), typeof(DHStorageResource)}; 
-        private static Type[] ResourceProviders = new[] { typeof(DHPublicSharing)}; 
+        private static Type[] ResourceProviders = new[] { typeof(DHDatabricksResource), typeof(DHPublicSharing), typeof(DHStorageResource), typeof(DHPowerBIResource) }; 
 
         public static void RegisterResources(IServiceCollection services)
         {
@@ -45,6 +47,9 @@ namespace Datahub.ProjectTools.Services
 
         public async Task<List<IProjectResource>> GetResourcesForProject(Datahub_Project project)
         {
+            using var ctx = dbFactoryProject.CreateDbContext();
+            //load requests for project
+            await ctx.Entry(project).Collection(b => b.ServiceRequests).LoadAsync();
             var services = new ServiceCollection();            
             
             using var serviceScope = serviceProvider.CreateScope();
