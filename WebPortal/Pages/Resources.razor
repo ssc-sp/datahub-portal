@@ -110,7 +110,6 @@ display: -webkit-box";
     private string _baseUrl = "/resources";
 
     private DHMarkdown _markdownElement;
-    private bool _needsStyleRefresh;
 
     private string BuildResourceLink(AbstractResource res) => $"/resources/{res.Title}";
 
@@ -159,7 +158,6 @@ display: -webkit-box";
             var card = _currentResource as ResourceCard;
             _currentResourceCategory = card.ParentCategory;
             _markdownContent = await _resourcesService.LoadResourcePage(card);
-            _needsStyleRefresh = true;
         }
     }
 
