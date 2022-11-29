@@ -36,20 +36,19 @@ namespace Datahub.ProjectTools.Catalog
 
         private Dictionary<string, object> parameters = new Dictionary<string, object>();
 
-        public async Task InitializeAsync(Datahub_Project project, string userId, Microsoft.Graph.User graphUser, bool isProjectAdmin)
+        public async Task<bool> InitializeAsync(Datahub_Project project, string userId, Microsoft.Graph.User graphUser, bool isProjectAdmin)
         {
             await using var projectDbContext = await dbFactoryProject.CreateDbContextAsync();
-            if (userId != null)
-            {
-                isDataApprover = await projectDbContext.Project_Users
-                    .Where(u => u.User_ID == userId && project == u.Project)
-                    .AnyAsync(u => u.IsDataApprover);
-                parameters.Add(nameof(isDataApprover), isDataApprover);
-                sharingRequestAwaitingApprovalCount = await publicDataFileService.GetDataSharingRequestsAwaitingApprovalCount(project.Project_Acronym_CD);
-                parameters.Add(nameof(sharingRequestAwaitingApprovalCount), sharingRequestAwaitingApprovalCount);
-                ownSharingRequestCount = await publicDataFileService.GetUsersOwnDataSharingRequestsCount(project.Project_Acronym_CD, userId);
-                parameters.Add(nameof(ownSharingRequestCount), ownSharingRequestCount);
-            }
+            isDataApprover = await projectDbContext.Project_Users
+                .Where(u => u.User_ID == userId && project == u.Project)
+                .AnyAsync(u => u.IsDataApprover);
+            parameters.Add(nameof(PublicSharing.isDataApprover), isDataApprover);
+            sharingRequestAwaitingApprovalCount = await publicDataFileService.GetDataSharingRequestsAwaitingApprovalCount(project.Project_Acronym_CD);
+            parameters.Add(nameof(PublicSharing.sharingRequestAwaitingApprovalCount), sharingRequestAwaitingApprovalCount);
+            ownSharingRequestCount = await publicDataFileService.GetUsersOwnDataSharingRequestsCount(project.Project_Acronym_CD, userId);
+            parameters.Add(nameof(PublicSharing.ownSharingRequestCount), ownSharingRequestCount);
+
+            return true;
         }
 
         private (Type type, IDictionary<string, object> parameters) GetComponent()

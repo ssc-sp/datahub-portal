@@ -1,0 +1,28 @@
+@inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
+@inject IRequestManagementService _requestManagementService
+@inject ILogger<PowerBI> _logger
+
+
+<ToolCard
+    Title=@Localizer["Power BI Workspace"]
+    Description="@Localizer["Access the project Workspace in the Power BI Service"]">
+    <Logo>
+        <img src="/icons/svg/powerbi.svg" alt="Power bi">
+    </Logo>
+    <ToolActionsList>
+        <ul>
+            <li>
+                <DHLink Variant="h3" DataProject="@(Project.Project_Acronym_CD)" LinkType="DatahubLinkType.PowerBIReport">
+                    <ToolActionButton LinkType="LinkType.External">
+                        @Localizer["Open Power BI"]
+                    </ToolActionButton>
+                </DHLink>
+            </li>
+        </ul>
+    </ToolActionsList>
+</ToolCard>
+
+@code {
+    [Parameter] public Datahub_Project Project { get; set; }
+}
+
