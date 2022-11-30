@@ -28,12 +28,6 @@
                 <DHLink LinkType="DatahubLinkType.ComputeCostEstimator">@Localizer["Open"]</DHLink>
             </DHToolsCard>
         </MudItem>
-
-        <MudItem xs="4">
-        <DHToolsCard Href="/data" Icon="fad fa-folder-plus card-icon fa-xs" Title="My Files" Description="User area for file storage and sharing">
-            @Localizer["Open"]
-        </DHToolsCard>
-    </MudItem>
     }
     @if (ModuleManager.IsEnabled("M365FormsModule"))
     {
@@ -52,15 +46,6 @@
         </MudItem>
     }
 
-    <DHEnvironment IsDevelopment="true">
-        <MudItem xs="4">
-            <DHToolsCard Href="/discovery" Icon="fad fa-album-collection card-icon fa-xs" Title="Discovery (beta)"
-                         Description="Search the Datahub catalog.">
-                @Localizer["Open"]
-            </DHToolsCard>
-        </MudItem>
-
-    </DHEnvironment>
 </MudGrid>
 
 @code {
