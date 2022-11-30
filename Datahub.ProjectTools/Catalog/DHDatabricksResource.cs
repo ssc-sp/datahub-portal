@@ -1,6 +1,7 @@
 ﻿using Datahub.Core.Configuration;
 using Datahub.Core.EFCore;
 using Datahub.Core.Services;
+using Datahub.Core.Services.Projects;
 using Datahub.ProjectTools.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
@@ -18,7 +19,7 @@ namespace Datahub.ProjectTools.Catalog
     public class DHDatabricksResource : IProjectResource
     {
         private readonly IDbContextFactory<DatahubProjectDBContext> dbFactoryProject;
-        private readonly RequestManagementService requestManagementService;
+        private readonly IRequestManagementService requestManagementService;
         private readonly IPublicDataFileService publicDataFileService;
         private readonly bool isEnabled;
         private bool isDataApprover;
@@ -28,7 +29,7 @@ namespace Datahub.ProjectTools.Catalog
         private bool _canViewDatabricks;
 
         public DHDatabricksResource(IDbContextFactory<DatahubProjectDBContext> dbFactoryProject,
-            RequestManagementService requestManagementService, IPublicDataFileService publicDataFileService,
+            IRequestManagementService requestManagementService, IPublicDataFileService publicDataFileService,
             IOptions<DataProjectsConfiguration> configuration)
         {
             this.dbFactoryProject = dbFactoryProject;

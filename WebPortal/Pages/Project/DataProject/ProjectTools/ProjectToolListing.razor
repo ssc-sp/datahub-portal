@@ -31,7 +31,7 @@
             </div>
         </NotAuthorized>
         <Authorized>
-            @if (_activeResources.Count > 0)
+            @if (_activeResources?.Count > 0)
             {
             <div class="project-tools">
                 <MudText Typo="Typo.h4">@Localizer["Active Project Tools"]</MudText>

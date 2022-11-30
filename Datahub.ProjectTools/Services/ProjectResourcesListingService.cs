@@ -49,6 +49,7 @@ namespace Datahub.ProjectTools.Services
         {
             using var ctx = dbFactoryProject.CreateDbContext();
             //load requests for project
+            ctx.Attach(project);
             await ctx.Entry(project).Collection(b => b.ServiceRequests).LoadAsync();
             var services = new ServiceCollection();            
             
@@ -60,8 +61,11 @@ namespace Datahub.ProjectTools.Services
             foreach (var item in ResourceProviders)
             {
                 var dhResource = serviceScope.ServiceProvider.GetRequiredService(item) as IProjectResource;
-                await dhResource.InitializeAsync(project, await userInformationService.GetUserIdString(), await userInformationService.GetCurrentGraphUserAsync(), isUserAdmin || isUserDHAdmin);
-                output.Add(dhResource);
+                if (dhResource != null)
+                {
+                    await dhResource.InitializeAsync(project, await userInformationService.GetUserIdString(), await userInformationService.GetCurrentGraphUserAsync(), isUserAdmin || isUserDHAdmin);
+                    output.Add(dhResource);
+                }
             }
             return output;
 
