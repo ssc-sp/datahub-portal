@@ -29,7 +29,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Ae.MudBlazor.Forms" Version="0.5.22285.2-beta" />
+    <PackageReference Include="Ae.MudBlazor.Forms" Version="0.5.22329.4-beta" />
     <PackageReference Include="AElemental.Blazor" Version="1.6.22173.2" />
     <PackageReference Include="Askmethat.Aspnet.JsonLocalizer" Version="4.0.1" />
     <PackageReference Include="Azure.Identity" Version="1.8.0" />

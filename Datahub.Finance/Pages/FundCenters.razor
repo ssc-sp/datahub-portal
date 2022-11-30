@@ -9,7 +9,7 @@
 @using System.Linq.Expressions
 @using System.Security.Claims
 
-<Datahub.Core.Components.MudFormTemplate 
+<Datahub.Core.Components.Form.MudFormTemplate 
         T="FundCenter" 
         U="FinanceDBContext"
         Metadata="@_formMetadata" 
@@ -68,7 +68,7 @@
         _next = DataLocalizer["Next"];
         _headers = new List<string>
         {
-            DataLocalizer["Fiscal Year"], DataLocalizer["Sector"], DataLocalizer["Branch"], DataLocalizer["Division"], DataLocalizer["AttritionRate"]
+            DataLocalizer["FiscalYear"], DataLocalizer["Sector"], DataLocalizer["Branch"], DataLocalizer["Division"], DataLocalizer["AttritionRate"]
         };
 
         LoadData(_searchFilter);

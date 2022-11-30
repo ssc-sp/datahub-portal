@@ -1,7 +1,9 @@
 @inject NavigationManager _navigationManager
 @inject DataRetrievalService _dataRetrievalService
+@inject IUserInformationService _userInformationService
 @inject IJSRuntime _jsRuntime
 @inject AchievementService _achievementService
+@inject ServiceAuthManager ServiceAuthManager
 
 @using Datahub.Core.Components.Common
 
@@ -17,9 +19,8 @@
         }
     </div>
     <div class="actions">
-        <AeButton class="button-tool" onclick="document.querySelector('.file-list .dropzone-container input').click();">
-            <i class="fas fa-upload"></i>
-            @Localizer["Upload"]
+        <AeButton class="button-tool" onclick="document.querySelector('.file-list .dropzone-container input').click();" Disabled="IsActionDisabled(ButtonAction.Upload)">
+            <i class="fas fa-upload"></i>@Localizer["Upload"]
         </AeButton>
 
         <AeButton class="button-tool" @onclick="HandleDownload" Disabled="IsActionDisabled(ButtonAction.Download)">
@@ -68,6 +69,9 @@
     [CascadingParameter(Name = "GraphUser")]
     public Microsoft.Graph.User GraphUser { get; set; }
 
+    [CascadingParameter(Name = "Project")]
+    public Datahub_Project Project { get; set; }
+
     [Parameter]
     public string CurrentFolder { get; set; }
 
@@ -85,7 +89,7 @@
 
     [Parameter]
     public EventCallback<string> OnFileDelete { get; set; }
-    
+
     [Parameter]
     public EventCallback<string> OnFileDownload { get; set; }
 
@@ -101,9 +105,23 @@
     private bool _ownsSelectedFiles;
     private bool _isElectron = true;
 
+    private bool _isDatahubAdmin;
+    private bool _isProjectMember;
+
     private List<Toast> _toasts = new();
     private DotNetObjectReference<Heading> _dotNetHelper;
-    
+
+    protected override async Task OnInitializedAsync()
+    {
+        // is datahub admin
+        var authUser = await _userInformationService.GetAuthenticatedUser();
+        _isDatahubAdmin = authUser.IsInRole(RoleConstants.DATAHUB_ROLE_ADMIN) && !ServiceAuthManager.GetViewingAsGuest(GraphUser.Id);
+
+        // is project admin
+        var adminProjectRoles = ServiceAuthManager.GetAdminProjectRoles(GraphUser.Id);
+        _isProjectMember = (adminProjectRoles.Count > 0) && (await IsCurrentUserMemberOfProject());
+    }
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         await base.OnAfterRenderAsync(firstRender);
@@ -115,8 +133,6 @@
             _dotNetHelper = DotNetObjectReference.Create(this);
         }
     }
-
-   
 
     protected override void OnParametersSet()
     {
@@ -169,6 +185,19 @@
             await Task.Delay(500);
             StateHasChanged();
         }
+    }
+
+    private async Task<bool> IsCurrentUserMemberOfProject()
+    {
+        if (GraphUser is null || Project is null)
+            return false;
+
+        var userIds = Project.Users.Select(u => u.User_ID?.ToLowerInvariant()).ToList();
+        var userId = (GraphUser.Id ?? "").ToLowerInvariant();
+        if (userIds.Contains(userId))
+            return true;
+
+        return await ServiceAuthManager.IsProjectAdmin(userId, ProjectAcronym);
     }
     
     private const string JobStatusComplete = "Completed";

@@ -21,7 +21,7 @@
 		<None Include="Components\DialogModalFrame.razor" />
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="Ae.MudBlazor.Forms" Version="0.5.22285.2-beta" />
+		<PackageReference Include="Ae.MudBlazor.Forms" Version="0.5.22329.4-beta" />
 		<PackageReference Include="AElemental.Blazor" Version="1.6.22173.2" />
 		<PackageReference Include="AElemental.Blazor.Theme" Version="1.6.22173.2" />
 		<PackageReference Include="AngleSharp" Version="1.0.0-alpha-844" />

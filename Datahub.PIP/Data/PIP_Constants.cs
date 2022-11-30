@@ -133,7 +133,8 @@
 "Grants in support of Home Retrofits (voted)",
 "Payments to the Nova Scotia Offshore Revenue Account (Statutory)",
 "Payment to support students and youth impacted by Covid-19",
-"Fund for Safety measures in forest sector operations (COVID-19)"
+"Fund for Safety measures in forest sector operations (COVID-19)",
+"Critical Minerals Research, Development and Demonstration"
         };
 
         public static readonly string[] TRANSFER_PROGRAMS_LESS5 = {"Grants in support of Outreach and Engagement, Energy Efficiency and Energy Innovation (voted)",
