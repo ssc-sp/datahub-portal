@@ -13,22 +13,24 @@
 <AeTypography style="margin-top: 0;" Variant="h1">@Localizer["Storage Explorer"]</AeTypography>
 
 <CascadingValue Value="@ProjectAcronymParam" Name="ProjectAcronym">
-    <CascadingValue Value="_user" Name="GraphUser">
-        <div class="file-explorer-layout-wrapper">
-            <TabControl TabIndex="@_tabIndex" OnChangeTab="@OnChangeTab">
-                @foreach (var (control, content, forceGapLeft) in _tabs)
-                {
-                    <TabPage ForceGapToLeft="forceGapLeft">
-                        <Control>
-                            @control
-                        </Control>
-                        <ChildContent>
-                            @content
-                        </ChildContent>
-                    </TabPage>
-                }
-            </TabControl>
-        </div>
+    <CascadingValue Value="@_project" Name="Project">
+        <CascadingValue Value="_user" Name="GraphUser">
+            <div class="file-explorer-layout-wrapper">
+                <TabControl TabIndex="@_tabIndex" OnChangeTab="@OnChangeTab">
+                    @foreach (var (control, content, forceGapLeft) in _tabs)
+                    {
+                        <TabPage ForceGapToLeft="forceGapLeft">
+                            <Control>
+                                @control
+                            </Control>
+                            <ChildContent>
+                                @content
+                            </ChildContent>
+                        </TabPage>
+                    }
+                </TabControl>
+            </div>
+        </CascadingValue>
     </CascadingValue>
 </CascadingValue>
 
@@ -39,6 +41,7 @@
 
     private int _tabIndex;
 
+    private Datahub_Project _project;
     private int? _projectId;
     private string _projectName;
 
@@ -51,12 +54,14 @@
 
         _user = await _userInformationService.GetUserAsync();
 
-        var project = await projectContext.Projects
+        _project = await projectContext.Projects
+            .Include(p => p.Users)
+            .AsSingleQuery()
             .Where(p => p.Project_Acronym_CD == ProjectAcronymParam)
             .FirstOrDefaultAsync();
 
-        _projectName = project?.ProjectName;
-        _projectId = project?.Project_ID;
+        _projectName = _project?.ProjectName;
+        _projectId = _project?.Project_ID;
 
         _tabs = await GetTabs();
     }
@@ -94,5 +99,4 @@
 
         return tabs;
     }
-
 }

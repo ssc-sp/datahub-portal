@@ -1,0 +1,389 @@
+﻿@*InitiativeTracker.razor*@
+
+@inject IStringLocalizer DataLocalizer
+@inject IDbContextFactory<DatahubProjectDBContext> DbFactory
+@inject ServiceAuthManager ServiceAuthManager
+@inject IUserInformationService UserInformationService
+@inject NavigationManager NavigationManager
+@inject Elemental.Services.UIControlsService UIControlService
+@inject IJSRuntime JsInterop
+@inject TranslationService TranslationService
+@inject IDatahubAuditingService AuditingService
+@inject IOrganizationLevelsService OrganizationLevelsService
+@inject IEmailNotificationService EmailService
+@inject IDialogService DialogService
+@using System.Security.Claims
+@using Datahub.Core.Model.Onboarding
+@using Datahub.Portal.Components.Dialogs
+@using MudBlazor.Forms;
+@page "/datahub/initiatives"
+
+<Datahub.Core.Components.Form.MudFormTemplate T="Datahub_Project"
+                                         U="DatahubProjectDBContext"
+                                         Metadata="@_formMetadata"
+                                         HandleSubmit="HandleValidSubmit"
+                                         OnConfigureForms="OnConfigure"
+                                         OnChangeForms="OnChange"
+                                         CreateNewRecord="CreateNewProject"
+                                         SelectedRecord="@_project"
+                                         SetFormEditRecord="SetFormEdit"
+                                         HandleFilterChange="HandleFilterChange"
+                                         SortAccessors="@_sortAccessors"
+                                         Context=@Context />
+
+
+@code {
+
+    private const string PROJECTACRONYM = "DHPGLIST";
+    private FormMetadata<Datahub_Project> _formMetadata = new();
+
+    private List<Datahub_Project> _projects;
+    private Dictionary<string, List<Datahub_Project>> _tabbedProjects;
+
+    private Datahub_Project _project;// = new Datahub_Project();
+    private Datahub_ProjectComment _comment;
+    private const string EMAIL = "offline@nrcan-cnrcan.gc.ca";
+    private Microsoft.Graph.User _user = null!;
+    private ClaimsPrincipal _claimsUser = null;
+    private DatahubProjectDBContext Context;
+    private string _searchFilter = string.Empty;
+    private Dictionary<string, Func<Datahub_Project, string>> _sortAccessors = new();
+    private List<Organization_Level> _sectors = new();
+    private List<Organization_Level> _branches = new();
+    private List<Organization_Level> _divisions = new();
+    private List<string> _headers = new();
+    private bool _isFrench;
+
+
+    protected override void OnInitialized()
+    {
+        _isFrench = CultureInfo.CurrentCulture.Name.StartsWith("fr", StringComparison.InvariantCulture);
+
+
+        // load projects        
+        Context = DbFactory.CreateDbContext();
+        LoadSortExpressions();
+        _headers = new List<string>
+        {
+            DataLocalizer["Status"],
+            DataLocalizer["Sector"], 
+            DataLocalizer["Project"], 
+            DataLocalizer["Name"],
+            DataLocalizer["Last Contact"],
+            DataLocalizer["Contacts"],
+            DataLocalizer["Last Comment Date"],
+            DataLocalizer["Metadata"],
+            DataLocalizer["Comments"],
+        };
+
+        LoadData(_searchFilter);
+
+    }
+
+    private void SetFormEdit(Datahub_Project project)
+    {
+        _project = project;
+        StateHasChanged();
+    }
+
+    private void LoadData(string searchfilter)
+    {
+        _projects = Context.Projects.Include(f => f.Sector).Include(f => f.Branch).Include(f => f.Division).Include(r => r.Comments).ToList();
+
+        var projects = _projects;
+        if (!string.IsNullOrWhiteSpace(searchfilter))
+        {
+            projects = _projects.Where(project =>
+            {
+                if (string.IsNullOrWhiteSpace(searchfilter))
+                    return true;
+                if (!string.IsNullOrWhiteSpace(project.ProjectName) && project.ProjectName.Contains(searchfilter, StringComparison.OrdinalIgnoreCase))
+                    return true;
+                if (!string.IsNullOrWhiteSpace(project.Project_Acronym_CD) && project.Project_Acronym_CD.Contains(searchfilter, StringComparison.OrdinalIgnoreCase))
+                    return true;
+                if (!string.IsNullOrWhiteSpace(project.Contact_List) && project.Contact_List.Contains(searchfilter, StringComparison.OrdinalIgnoreCase))
+                    return true;
+                if (project.Sector is not null && project.Sector.Org_Name_E.Contains(searchfilter, StringComparison.OrdinalIgnoreCase))
+                    return true;
+                if (project.Sector is not null && project.Sector.Org_Name_F.Contains(searchfilter, StringComparison.OrdinalIgnoreCase))
+                    return true;
+                return false;
+            }).ToList();
+        }
+
+        _tabbedProjects = new();
+        _tabbedProjects.Add("All", projects);
+        _tabbedProjects.Add("In Progress", projects.Where(p => p.GetProjectStatus() == "In Progress").ToList());
+        _tabbedProjects.Add("Support", projects.Where(p => p.GetProjectStatus() == "Support").ToList());
+        _tabbedProjects.Add("On Hold", projects.Where(p => p.GetProjectStatus() == "On Hold").ToList());
+        _tabbedProjects.Add("Closed", projects.Where(p => p.GetProjectStatus() == "Closed").ToList());
+
+        _formMetadata.Header = DataLocalizer["Initiatives"];
+        _formMetadata.HeaderSubText = DataLocalizer[@""];
+        _formMetadata.SubHeader = DataLocalizer[""];
+        _formMetadata.DataSet = new();
+        _formMetadata.TabbedDataSets = _tabbedProjects;
+        _formMetadata.AccessorFunctions = accessorFunctions;
+        _formMetadata.RenderFunctions = renderFunctions;        
+        _formMetadata.Headers = _headers;;
+        _formMetadata.AllowSearch = true;        
+        _formMetadata.IsSubmitEnabled = true;
+        _formMetadata.IsAddEnabled = true;
+        _formMetadata.FormButtons = GetFormButtons();
+    }
+
+
+    private void LoadSortExpressions()
+    {
+        _sortAccessors.Add("status", t => t.GetProjectStatus());
+        _sortAccessors.Add("sector", t => t.Sector?.Full_Acronym_E ?? "");
+        _sortAccessors.Add("initiative", t => t.Project_Acronym_CD);
+        _sortAccessors.Add("name", t => t.ProjectName);
+        _sortAccessors.Add("lastcontact", t => t?.Last_Contact_DT?.ToShortDateString());
+    }
+
+
+
+    private List<Func<Datahub_Project, string>> accessorFunctions = new List<Func<Datahub_Project, string>>
+    {        
+        new Func<Datahub_Project, string>(p => { return p.GetProjectStatus() ?? "N/A"; }),
+        new Func<Datahub_Project, string>(p => { return p.Sector?.Full_Acronym_E ?? "N/A"; }),
+        new Func<Datahub_Project, string>(p => { return p.Project_Acronym_CD ?? "N/A"; }),
+        new Func<Datahub_Project, string>(p => { return p.ProjectName ?? "N/A"; }),
+        new Func<Datahub_Project, string>(p => { return p?.Last_Contact_DT?.ToShortDateString(); }),
+        new Func<Datahub_Project, string>(p => { return ShortenContactList(p?.Contact_List); }),
+        new Func<Datahub_Project, string>(p => { return p.Comments.OrderByDescending(d => d.Comment_Date_DT).FirstOrDefault()?.Comment_Date_DT.ToShortDateString() ?? string.Empty; }),
+        null,
+        null
+    };
+
+    private List<Func<Datahub_Project, RenderFragment>> renderFunctions => new()
+    {
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        GetMetadataFragment,
+        GetCommentIcon
+    };
+
+    private List<RenderFragment> GetFormButtons()
+    {
+        var buttons = new List<RenderFragment>();
+        buttons.Add(@<MudButton style="margin-right: 0.2rem" Variant="Variant.Filled" Color="Color.Primary" @onclick=@SuggestTranslation Disabled=@DisabledSuggestTranslation>@DataLocalizer["Suggest French Translation"]</MudButton>);
+        return buttons;
+    }
+
+     
+        
+
+    private RenderFragment GetCommentIcon(Datahub_Project p)
+    {
+        return@<MudIconButton @onclick="() => OpenComments(p)" Icon="@Icons.Filled.InsertComment" Color="Color.Default" />;
+    }
+    private RenderFragment GetMetadataFragment(Datahub_Project p)
+    {
+        if (p != null && !p.MetadataAdded.HasValue)
+            return@<a @onclick="() => RequestEnterMetadata(p)" style="cursor: pointer;">@DataLocalizer["Request"]</a>;
+        return @<span>&nbsp;</span>;
+    }
+
+    private async Task OpenComments(Datahub_Project p)
+    { 
+        var parameters = new DialogParameters();
+        parameters.Add("Project", p);
+        parameters.Add("Context", Context);
+        DialogOptions fullScreen = new DialogOptions() { FullScreen = true, CloseButton = true };
+        var dialog = DialogService.Show<TrackerComments>("Confirm", parameters, fullScreen);
+        var result = await dialog.Result;
+
+        if (!result.Cancelled)
+        { 
+            LoadData(_searchFilter);
+        }
+    }
+
+    private bool DisabledSuggestTranslation => string.IsNullOrEmpty(_project?.Project_Name) || string.IsNullOrEmpty(_project?.Project_Summary_Desc);
+
+    public async Task SuggestTranslation()
+    {
+        if (!string.IsNullOrEmpty(_project.Project_Name))
+        {
+            _project.Project_Name_Fr = await TranslationService.GetFrenchTranslation(_project.Project_Name);
+        }
+        if (!string.IsNullOrEmpty(_project.Project_Summary_Desc))
+        {
+            _project.Project_Summary_Desc_Fr = await TranslationService.GetFrenchTranslation(_project.Project_Summary_Desc);
+        }
+    }
+
+    private async Task RequestEnterMetadata(Datahub_Project p)
+    {
+        var ctx = await DbFactory.CreateDbContextAsync();
+
+        var appForm = await ctx.OnboardingApps.FirstOrDefaultAsync(e => e.Application_ID == p.OnboardingApplicationId);
+        appForm ??= GetOnboardingApplicationFromProject(p);
+
+        if (appForm is not null)
+        {
+            OnboardingParameters onboardingParameters = new()
+                {
+                    AppUrl = $"/admin/metadata/{p.Project_Acronym_CD}",
+                    App = appForm,
+                    AdminEmailAddresses = ServiceAuthManager.GetProjectMailboxEmails(PROJECTACRONYM)
+                };
+
+            await EmailService.SendOnboardingMetadataEditRequest(onboardingParameters);
+
+            p.MetadataAdded = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private OnboardingApp GetOnboardingApplicationFromProject(Datahub_Project p)
+    {
+        // cannot contact the admin
+        if (string.IsNullOrEmpty(p.Project_Admin))
+            return null;
+
+        // return a temp app form
+        return new()
+            {
+                Product_Name = p.ProjectName,
+                Client_Email = p.Project_Admin,
+                Client_Contact_Name = "{p.Project_Acronym_CD} Admin"
+            };
+    }
+
+    private async Task HandleValidSubmit()
+    {
+
+        if (_project != null)
+        {
+            if (_project.Project_ID == 0)
+            {
+                _project = Context.Projects.Add(_project).Entity;
+            }
+            _project.Last_Updated_DT = DateTime.Now;
+            await Context.SaveChangesAsync();
+            LoadData(_searchFilter); 
+            _project = null;
+        }
+
+        StateHasChanged();
+    }
+
+    private void OnConfigure(MudBlazor.Forms.IModelFormContext context)
+    {
+
+        //context.RegisterOptionValueProperty<FundCenter, FiscalYear>(l => l.FiscalYear, p => p?.Year ?? "N/A", () => _fiscalYears);
+        //ntext.RegisterOptionValueProperty<FundCenter, HierarchyLevel>(l => l.Sector, p => p?.FundCenterNameEnglish ?? "N/A", () => GetSectors(), s => RefreshBranches(s, context));
+        context.RegisterOptionValueProperty<Datahub_Project, Organization_Level>(l => l.Sector, p => p?.Org_Name_E ?? "N/A", () => GetSectors(), s => RefreshBranches(s, context));
+        context.RegisterOptionValueProperty<Datahub_Project, Organization_Level>(l => l.Branch, p => p?.Org_Name_E ?? "N/A", () => GetBranches(), s => RefreshDivisions(s, context));
+        context.RegisterOptionValueProperty<Datahub_Project, Organization_Level>(l => l.Division, p => p?.Org_Name_E ?? "N/A", () => GetDivisions());
+
+        //context.RegisterFieldNotes<FundCenter>(f => f.AttritionRate, @"Identify the attrition % for your division. This % will be applied to all forecasted salaries on the SFT Forecast page. Attrition represents an estimated percentage of salary costs currently forecasted that will likely not materialize due to unplanned vacancies (the gap between unplanned departure and replacement of an employee).");
+    }
+
+    private void CreateNewProject()
+    {
+        //var defaultBranch = _sectorLookup.Where(s => s.SectorId == 1).First().Branches.Where(b => b.BranchId == 1).First();
+        _project = new Datahub_Project() { Last_Updated_DT = DateTime.Now };
+        RefreshBranches(null, null);
+        RefreshDivisions(null, null);
+        StateHasChanged();
+    }
+
+    private List<Organization_Level> GetSectors()
+    {
+        if (!_sectors.Any())
+            _sectors = Context.Organization_Levels.Where(l => l.Org_Level == "3").ToList();
+        return _sectors;
+    }
+
+    private List<Organization_Level> GetBranches()
+    {        
+        RefreshBranches(_project.Sector, null);        
+        return _branches;
+    }
+
+    private List<Organization_Level> GetDivisions()
+    {
+        RefreshDivisions(_project.Branch, null);        
+        return _divisions;
+    }
+
+
+    private void RefreshDivisions(Organization_Level branch, MudBlazor.Forms.IModelFormContext context)
+    {
+        if (branch is not null)
+        {
+            _divisions.Clear();
+            _divisions = Context.Organization_Levels.Where(b => b.Superior_OrgId == branch.Organization_ID).ToList();
+            //_divisions.Insert(0, null);
+        }
+        else
+        {
+            _divisions = new();
+        }
+
+        if (context is not null)
+        {
+            context.RefreshOptions<Datahub_Project>(f => f.Division);
+        }
+    }
+
+    private void RefreshBranches(Organization_Level sector, MudBlazor.Forms.IModelFormContext context)
+    {
+        if (sector is not null)
+        {
+            _branches.Clear();
+            _branches = Context.Organization_Levels.Where(b => b.Superior_OrgId == sector.Organization_ID).ToList();
+            //_branches.Insert(0, null);
+        }
+        else
+        {
+            _branches = new();
+        }
+
+        if (context is not null)
+        {
+            context.RefreshOptions<Datahub_Project>(f => f.Branch);
+        }
+    }
+
+    private void OnChange(MudBlazor.Forms.ModelFormChangeArgs args)
+    {
+        OnConfigure(args.Context);
+    }
+
+    private async void HandleFilterChange(string selection)
+    {
+        _searchFilter = selection;
+        LoadData(_searchFilter);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        Context.Dispose();
+    }
+
+    private static string ShortenEntry(string entry)
+    {
+        var leqPos = entry.IndexOf('<');
+        if (leqPos == -1) return entry;
+        return entry.Substring(0, leqPos - 1).Trim();
+    }
+
+    public static string ShortenContactList(string contacts)
+    {
+        if (contacts is null) return null;
+        var list = contacts.Split(";", StringSplitOptions.RemoveEmptyEntries);
+        return string.Join(", ", list.Select(el => ShortenEntry(el)).ToList());
+    }
+
+}

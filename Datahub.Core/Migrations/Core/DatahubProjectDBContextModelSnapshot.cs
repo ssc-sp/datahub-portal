@@ -125,6 +125,9 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Project_ID"), 1L, 1);
 
+                    b.Property<int?>("BranchId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Branch_Name")
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
@@ -158,6 +161,9 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.Property<DateTime?>("Deleted_DT")
                         .HasColumnType("datetime2");
 
+                    b.Property<int?>("DivisionId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Division_Name")
                         .HasColumnType("nvarchar(max)");
 
@@ -178,6 +184,12 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
 
                     b.Property<DateTime>("Last_Updated_DT")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("Last_Updated_UserId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool?>("MetadataAdded")
+                        .HasColumnType("bit");
 
                     b.Property<DateTime?>("Next_Meeting_DT")
                         .HasColumnType("datetime2");
@@ -206,6 +218,9 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.Property<string>("Project_Category")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Project_Goal")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Project_Icon")
                         .HasColumnType("nvarchar(max)");
 
@@ -230,6 +245,9 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.Property<string>("Project_Summary_Desc_Fr")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("SectorId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Sector_Name")
                         .IsRequired()
                         .HasMaxLength(4000)
@@ -249,57 +267,16 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
 
                     b.HasKey("Project_ID");
 
+                    b.HasIndex("BranchId");
+
+                    b.HasIndex("DivisionId");
+
                     b.HasIndex("Project_Acronym_CD")
                         .IsUnique();
 
+                    b.HasIndex("SectorId");
+
                     b.ToTable("Projects");
-                });
-
-            modelBuilder.Entity("Datahub.Core.EFCore.Datahub_Project_Access_Request", b =>
-                {
-                    b.Property<int>("Request_ID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Request_ID"), 1L, 1);
-
-                    b.Property<DateTime?>("Completion_DT")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("Databricks")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("PowerBI")
-                        .HasColumnType("bit");
-
-                    b.Property<int?>("Project_ID")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("Request_DT")
-                        .HasColumnType("datetime2");
-
-                    b.Property<byte[]>("Timestamp")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("rowversion");
-
-                    b.Property<string>("User_ID")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<string>("User_Name")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<bool>("WebForms")
-                        .HasColumnType("bit");
-
-                    b.HasKey("Request_ID");
-
-                    b.HasIndex("Project_ID");
-
-                    b.ToTable("Access_Requests");
                 });
 
             modelBuilder.Entity("Datahub.Core.EFCore.Datahub_Project_Costs", b =>
@@ -342,53 +319,6 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.HasKey("Project_ID", "Process_Nm");
 
                     b.ToTable("Project_Pipeline_Links");
-                });
-
-            modelBuilder.Entity("Datahub.Core.EFCore.Datahub_Project_Sectors_And_Branches", b =>
-                {
-                    b.Property<int>("SectorAndBranchS_ID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SectorAndBranchS_ID"), 1L, 1);
-
-                    b.Property<string>("Full_Acronym_E")
-                        .HasMaxLength(4000)
-                        .HasColumnType("nvarchar(4000)");
-
-                    b.Property<string>("Full_Acronym_F")
-                        .HasMaxLength(4000)
-                        .HasColumnType("nvarchar(4000)");
-
-                    b.Property<string>("Org_Acronym_E")
-                        .HasMaxLength(4000)
-                        .HasColumnType("nvarchar(4000)");
-
-                    b.Property<string>("Org_Acronym_F")
-                        .HasMaxLength(4000)
-                        .HasColumnType("nvarchar(4000)");
-
-                    b.Property<string>("Org_Level")
-                        .HasMaxLength(1)
-                        .HasColumnType("nvarchar(1)");
-
-                    b.Property<string>("Org_Name_E")
-                        .HasMaxLength(4000)
-                        .HasColumnType("nvarchar(4000)");
-
-                    b.Property<string>("Org_Name_F")
-                        .HasMaxLength(4000)
-                        .HasColumnType("nvarchar(4000)");
-
-                    b.Property<int>("Organization_ID")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("Superior_OrgId")
-                        .HasColumnType("int");
-
-                    b.HasKey("SectorAndBranchS_ID");
-
-                    b.ToTable("Organization_Levels");
                 });
 
             modelBuilder.Entity("Datahub.Core.EFCore.Datahub_Project_User", b =>
@@ -514,6 +444,18 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Comment_NT")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("Created_DT")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Created_UserId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("Last_Updated_DT")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Last_Updated_UserId")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("Project_ID")
@@ -696,6 +638,53 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.HasAlternateKey("TypeName", "Id");
 
                     b.ToTable("MiscStoredObjects");
+                });
+
+            modelBuilder.Entity("Datahub.Core.EFCore.Organization_Level", b =>
+                {
+                    b.Property<int>("SectorAndBranchS_ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SectorAndBranchS_ID"), 1L, 1);
+
+                    b.Property<string>("Full_Acronym_E")
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<string>("Full_Acronym_F")
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<string>("Org_Acronym_E")
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<string>("Org_Acronym_F")
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<string>("Org_Level")
+                        .HasMaxLength(1)
+                        .HasColumnType("nvarchar(1)");
+
+                    b.Property<string>("Org_Name_E")
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<string>("Org_Name_F")
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<int>("Organization_ID")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("Superior_OrgId")
+                        .HasColumnType("int");
+
+                    b.HasKey("SectorAndBranchS_ID");
+
+                    b.ToTable("Organization_Levels");
                 });
 
             modelBuilder.Entity("Datahub.Core.EFCore.PBI_License_Request", b =>
@@ -1379,13 +1368,28 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.Navigation("Project");
                 });
 
-            modelBuilder.Entity("Datahub.Core.EFCore.Datahub_Project_Access_Request", b =>
+            modelBuilder.Entity("Datahub.Core.EFCore.Datahub_Project", b =>
                 {
-                    b.HasOne("Datahub.Core.EFCore.Datahub_Project", "Project")
-                        .WithMany("Requests")
-                        .HasForeignKey("Project_ID");
+                    b.HasOne("Datahub.Core.EFCore.Organization_Level", "Branch")
+                        .WithMany("Branches")
+                        .HasForeignKey("BranchId")
+                        .OnDelete(DeleteBehavior.NoAction);
 
-                    b.Navigation("Project");
+                    b.HasOne("Datahub.Core.EFCore.Organization_Level", "Division")
+                        .WithMany("Divisions")
+                        .HasForeignKey("DivisionId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Datahub.Core.EFCore.Organization_Level", "Sector")
+                        .WithMany("Sectors")
+                        .HasForeignKey("SectorId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.Navigation("Branch");
+
+                    b.Navigation("Division");
+
+                    b.Navigation("Sector");
                 });
 
             modelBuilder.Entity("Datahub.Core.EFCore.Datahub_Project_Pipeline_Lnk", b =>
@@ -1562,8 +1566,6 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
 
                     b.Navigation("PowerBi_Workspaces");
 
-                    b.Navigation("Requests");
-
                     b.Navigation("Resources");
 
                     b.Navigation("ServiceRequests");
@@ -1573,6 +1575,15 @@ namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
                     b.Navigation("Users");
 
                     b.Navigation("WebForms");
+                });
+
+            modelBuilder.Entity("Datahub.Core.EFCore.Organization_Level", b =>
+                {
+                    b.Navigation("Branches");
+
+                    b.Navigation("Divisions");
+
+                    b.Navigation("Sectors");
                 });
 
             modelBuilder.Entity("Datahub.Core.EFCore.PBI_License_Request", b =>

@@ -166,14 +166,23 @@
                 .Select(a => a.Org_Acronym_E)
                 .FirstOrDefault();
 
+            var sector = Context.Organization_Levels.Where(s => s.Org_Name_E == _onboardingApplication.Client_Sector).SingleOrDefault();
+            var branch = Context.Organization_Levels.Where(s => s.Org_Name_E == _onboardingApplication.Client_Branch && s.Superior_OrgId == sector.Organization_ID).SingleOrDefault();
+            var division = Context.Organization_Levels.Where(s => s.Org_Name_E == _onboardingApplication.Client_Division && s.Superior_OrgId == branch.Organization_ID).SingleOrDefault();
             var project = new Datahub_Project();
             project.Project_Acronym_CD = _newProjectAcronym;
+            project.Sector = sector;
+            project.Branch = branch;
+            project.Division = division;
             project.Sector_Name = orgAcronym ?? _onboardingApplication.Client_Sector;
             project.Branch_Name = _onboardingApplication.Client_Branch;
             project.Division_Name = _onboardingApplication.Client_Division;
             project.Contact_List = CreateContactList();
+            project.Project_Goal = _onboardingApplication.Project_Goal;
             project.Project_Name = _onboardingApplication.Product_Name;
+            project.Project_Name_Fr = _onboardingApplication.Product_Name;
             project.Project_Summary_Desc = _onboardingApplication.Project_Summary_Description;
+            project.Project_Summary_Desc_Fr = _onboardingApplication.Project_Summary_Description;
             project.Project_Category = _onboardingApplication.Project_Engagement_Category;
             project.OnboardingApplicationId = _onboardingApplication.Application_ID;
             project.Data_Sensitivity = _onboardingApplication.Data_Security_Level ?? "Unclassified";
@@ -196,7 +205,7 @@
 
                 OnboardingParameters onboardingParameters = new()
                 {
-                    AppUrl = $"/admin/metadata/{_newProjectAcronym}",
+                    AppUrl = $"/initiatives/validate/{_newProjectAcronym}",
                     App = _onboardingApplication,
                     AdminEmailAddresses = ServiceAuthManager.GetProjectMailboxEmails(PROJECTACRONYM)
                 };

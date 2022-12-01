@@ -1,4 +1,4 @@
-﻿@using Datahub.Portal.Layout
+﻿@using Datahub.Core.Layout
 <Router AppAssembly="@typeof(Program).Assembly"
         AdditionalAssemblies=@_additionalAssemblies>
     <Found Context="routeData">
@@ -19,7 +19,7 @@
     </Found>
     <NotFound>
         <CascadingAuthenticationState>
-            <LayoutView Layout="@typeof(Datahub.Portal.Layout.PortalLayout)">
+            <LayoutView Layout="@typeof(Datahub.Core.Layout.PortalLayout)">
                 <p>@Localizer["404-Page-error"]</p>
             </LayoutView>
         </CascadingAuthenticationState>
@@ -35,7 +35,9 @@
         typeof(Datahub.LanguageTraining.LanguageTrainingModule).Assembly,
         typeof(Datahub.Finance.FinanceModule).Assembly,
         typeof(Datahub.M365Forms.M365FormsModule).Assembly,
-        typeof(Datahub.PIP.PIPFormsModule).Assembly
+        typeof(Datahub.PIP.PIPFormsModule).Assembly,
+        typeof(Datahub.PowerBI.Data.PowerBISettings).Assembly        
+
     };
 
         private const string InternalPublicPageNamespace = "Datahub.Portal.Pages.InternalPublic";

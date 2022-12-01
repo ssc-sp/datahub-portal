@@ -1,12 +1,12 @@
 ﻿@*ProjectMetadata.razor*@
+
 @page "/admin/metadata/{ProjectAcronym}"
 @using Datahub.Metadata.Model
+@inject IMetadataBrokerService MetadataBrokerService
 
 <div class="manage-access"> 
 
-    <AeFlex Vertical>
-        <h1>@($"{ProjectAcronym} {Localizer["Initiative Metadata"]}")</h1>
-    </AeFlex>    
+    <MudText Typo="Typo.h4">@(ProjectAcronym)&nbsp;@(Localizer["Initiative Metadata"])</MudText>    
 
     <ProjectObjectMetadata 
         ProfileName="project"
@@ -14,16 +14,35 @@
         Location=@ProjectAcronym
         ProjectAcronym=@ProjectAcronym 
         ObjectType=@MetadataObjectType.DataInitiative
-        OnProjectLoaded=@HandleProjectLoaded />
+        OnMetadataSaved=@HandleMetadataSaved />
 </div>
-
 
 @code {
 
     [Parameter]
     public string ProjectAcronym { get; set; }
 
-    private void HandleProjectLoaded(Datahub_Project project)
+    private void HandleMetadataSaved(Datahub_Project project)
     {
+        project.MetadataAdded = true;
+
+        if (!string.IsNullOrEmpty(project.Databricks_URL))
+        {
+            MetadataBrokerService.CreateChildMetadata(project.Project_Acronym_CD, $"{project.Project_Acronym_CD}-Databricks", 
+                MetadataObjectType.Databricks, project.Databricks_URL, true);
+        }
+
+        foreach (var db in GetDbs(project))
+        {
+            MetadataBrokerService.CreateChildMetadata(project.Project_Acronym_CD, db.ResourceId.ToString(), 
+                MetadataObjectType.Database, project.Project_Acronym_CD, true);
+        }
+    }
+
+    private IEnumerable<Project_Resources2> GetDbs(Datahub_Project project)
+    {
+        return project.Resources
+                      .Where(r => r.ResourceType == RequestManagementService.POSTGRESQL || r.ResourceType == RequestManagementService.SQLSERVER)
+                      .ToList();
     }
 }
