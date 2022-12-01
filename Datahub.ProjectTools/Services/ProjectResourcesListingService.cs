@@ -37,7 +37,11 @@ namespace Datahub.ProjectTools.Services
             this.dbFactoryProject = dbFactoryProject;
         }
 
-        private static Type[] ResourceProviders = new[] { typeof(DHDatabricksResource), typeof(DHPublicSharing), typeof(DHStorageResource), typeof(DHPowerBIResource) }; 
+        private static Type[] ResourceProviders = new[] { 
+            typeof(DHDatabricksResource), typeof(DHPublicSharing),
+            typeof(DHStorageResource), typeof(DHPowerBIResource),
+            typeof(DHDataEntry)
+        }; 
 
         public static void RegisterResources(IServiceCollection services)
         {
