@@ -39,7 +39,7 @@ else
             }
 
             <AuthorizeView Roles="@Metadata.TableRoles">
-            @if (Metadata.DataSet.Any())
+                @if (Metadata.TabbedDataSets is null || !Metadata.TabbedDataSets.Any())
             {
                 <FormDataTable
                     T="@T"
@@ -109,13 +109,15 @@ else
 
 
     <MudCard style="margin-top: 1rem">
-        <MudCardHeader>
-                @foreach (var button in Metadata.FormButtons)
-                {
-                    @button;
-                }
-                
-        </MudCardHeader>
+            @if (Metadata.FormButtons is not null)
+            {
+                <MudCardHeader>
+                        @foreach (var button in Metadata.FormButtons)
+                        {
+                            @button;
+                        }                
+                </MudCardHeader>
+            }
         <MudCardContent>               
             <MudModelForm Model="SelectedRecord"
                          T="@T"
