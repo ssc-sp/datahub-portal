@@ -73,6 +73,7 @@
 			<PrivateAssets>all</PrivateAssets>
 		</PackageReference>
 		<PackageReference Include="MudBlazor" Version="6.1.2" />
+		<PackageReference Include="MudBlazor.Markdown" Version="0.0.12" />
 		<PackageReference Include="System.Drawing.Common" Version="7.0.0" />
 		<PackageReference Include="Tewr.Blazor.FileReader" Version="3.3.1.21360" />
 	</ItemGroup>
@@ -95,6 +96,9 @@
 	</ItemGroup>
 	<ItemGroup>
 	  <Content Remove="Services\DialogModalFrame.razor" />
+	</ItemGroup>
+	<ItemGroup>
+	  <None Remove="Components\DHMarkdown.razor.js" />
 	</ItemGroup>
 	<ItemGroup>
 	  <ProjectReference Include="..\Datahub.CatalogSearch\Datahub.CatalogSearch.csproj" />
