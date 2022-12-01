@@ -10,213 +10,327 @@
 @inject IUserInformationService UserInformationService
 @inject IMetadataBrokerService MetadataBrokerService
 @inject IOpenDataService OpenDataService
+@inject IEmailNotificationService EmailNotificationService
 @inject IJSRuntime jsRuntime
 
-<AeTypography style="margin-left: 2rem;" Variant="h2">@Localizer["OPENDATA-WIZARD.Page_Title"]</AeTypography>
+<MudText Typo="Typo.h4">
+    @Localizer["OPENDATA-WIZARD.Page_Title"]
+</MudText>
 
-<AeFlex>
-    <AeFlex Vertical style="margin-left: 2rem; width: 50%;">
-
-        <AeCard>
-            <AeTypography Variant="h3">@GetStepTitle(OpenDataSharingStatus.EnterMetadata)</AeTypography>
-
-            @if (!string.IsNullOrEmpty(_requestFilename))
-            {
-                <AeTypography Variant="p">@Localizer["Filename"]: @_requestFilename</AeTypography>
-            }
-
-            @if (ShowMetadataEditor && _isOwnRequest)
-            {
-                <ObjectMetadataEditor @ref=@_metadataEditor 
-                                      ObjectId=@FileId 
-                                      SaveButtonLabel=@Localizer["OPENDATA-WIZARD.Save_button"] 
-                                      OnSave=@HandleSaveMetadata />
-            }
-            else if (_isOwnRequest)
-            {
-                <AeButton OnClickEvent=@ManuallyShowMetadataEditor Disabled=@_savingData>
-                    @Localizer["OPENDATA-WIZARD.Edit_button"]
-                </AeButton>
-            }
-            else 
-            {
-                @if (_requestingUser != null) 
-                {
-                    <AeTypography Variant="p">@Localizer["Requesting User"]: @_requestingUser.DisplayName</AeTypography>
-                }
-            }
-        </AeCard>
-
-        @if (ShowApprovalCards)
-        {
-            @if (ShowApprovalForm)
-            {
-                <AeCard>
-                    <AeTypography Variant="h3">@GetStepTitle(OpenDataSharingStatus.OpenGovApprovalForm)</AeTypography>
-                    <Datahub.Portal.Pages.Forms.ShareWorkflow.ApprovalForm 
-                        ApprovalFormId=@_approvalFormId 
-                        OnSubmitForm=@UpdateApprovalFormId 
-                        DatasetTitle=@_datasetTitle
-                        User=@_requestingUser/>
-                    <div>&nbsp;</div>
-                </AeCard>
-            }
-            else if (ApprovalFormSubmitted)
-            {
-                <AeCard>
-                    <AeTypography Variant="h3">@GetStepTitle(OpenDataSharingStatus.OpenGovApprovalForm)</AeTypography>
-                    <AeFlex Vertical="true" style="margin: 1rem 1rem 1rem 0rem;">
-                        <AeTypography Variant="p">@Localizer["OPENDATA-WIZARD.Approval_Filled_out_1"]</AeTypography>
-                        <AeTypography Variant="p">@Localizer["OPENDATA-WIZARD.Approval_Filled_out_2"]</AeTypography> 
-                        <AeTypography Variant="p">@Localizer["OPENDATA-WIZARD.Approval_Filled_out_3"]</AeTypography>
-                    </AeFlex>
-                    <AeFlex>
-                        <AeButton OnClickEvent=@GenerateApprovalDocument>@Localizer["OPENDATA-WIZARD.GenerateDOCX_button"]</AeButton>
-                        <div>&nbsp;</div>
-                        <AeButton OnClickEvent=@ManuallyShowApprovalForm>@Localizer["OPENDATA-WIZARD.AmendApprovalForm_button"]</AeButton>
-                    </AeFlex>
-                </AeCard>
-
-                @if (ShowSignedPdfPanel)
-                {
-                    <AeCard>
-                        <AeTypography Variant="h3">@GetStepTitle(OpenDataSharingStatus.SubmitSignedPDF)</AeTypography>
-                        <AeFlex Vertical="true" style="margin: 1rem 1rem 1rem 0rem;">
-                            <AeTypography>@Localizer["OPENDATA-WIZARD.EnterGcDocsUrl"]:</AeTypography>
-                            <input @bind=@_signedApprovalFormUrl class="ae input" style="width: 100%" @bind:event="oninput"/>
-                        </AeFlex>
-                        <AeFlex>
-                            <AeButton OnClickEvent=@UploadSignedDocument Disabled=@UploadSignedDocumentDisabled()>@Localizer["BUTTONS.Submit"]</AeButton>
-                            <div>
-                                @if (_savingData)
-                                {
-                                    <Spinner Small=@true/>
-                                }
-                            </div>
-                        </AeFlex>
-                    </AeCard>
-                }
-            }
-        }
-
-        @if (ShowUploadCard)
-        {
-            <AeCard>
-                <ChildContent>
-                    <AeTypography Variant="h3">@GetStepTitle(OpenDataSharingStatus.PendingUpload)</AeTypography>
-
-                    @if (!OpenDataFileUploading)
-                    {
-                        <AeFlex Vertical="true">
-                            <AeTypography Variant="div">
-                                <p>@(new MarkupString(Localizer["OPENDATA-WIZARD.Publish_As_URL_Desc1"]))</p>
-                                <p>@(new MarkupString(Localizer["OPENDATA-WIZARD.Publish_As_URL_Desc2"]))</p>
-                            </AeTypography>
-
-                            <div>
-                                <AeButton OnClickEvent=@PublishAsUrl Disabled=@_savingData>@Localizer["OPENDATA-WIZARD.Publish_As_URL"]</AeButton>
-                            </div>
-                            @if (!string.IsNullOrEmpty(_urlPublishError))
-                            {
-                                <AeTypography Variant="p" style="font-size: 0.8em">
-                                    @Localizer["OPENDATA-WIZARD.Upload_Last_Error"] @_urlPublishError
-                                </AeTypography>
-                            }
-                        </AeFlex>
-
-                        @if (string.IsNullOrEmpty(_fileUrl))
+<MudGrid Spacing="2" Justify="Justify.SpaceBetween">
+    <MudItem xs="6">
+        <MudStack>
+            @*metadata*@
+            <MudCard>
+                <MudCardHeader>
+                    <MudStack>
+                        <MudText Typo="Typo.h5">
+                            @GetStepTitle(OpenDataSharingStatus.EnterMetadata)
+                        </MudText>
+                        @if (!string.IsNullOrEmpty(_requestFilename))
                         {
-                            <div>&nbsp;</div>
-                            <div><b>@Localizer["Or"]</b></div>
-                            <AeFlex Vertical="true">
-                                <AeTypography Variant="p">@(new MarkupString(Localizer["OPENDATA-WIZARD.Upload_And_Publish_Desc"]))</AeTypography>
-                                <div>
-                                    <AeButton OnClickEvent=@UploadAndPublish Disabled=@_savingData>@Localizer["OPENDATA-WIZARD.Upload_And_Publish"]</AeButton>
-                                </div>
-                                @if (_uploadStatus == OpenDataUploadStatus.Failed)
-                                {
-                                    <AeTypography Variant="p" style="font-size: 0.8em">
-                                        @Localizer["OPENDATA-WIZARD.Upload_Last_Error"] @_uploadFileErrorMessage
-                                    </AeTypography>
-                                }
-                            </AeFlex>
+                            <MudText Typo="Typo.caption"><b>@Localizer["Filename"]:</b>&nbsp;@_requestFilename</MudText>
                         }
+                    </MudStack>
+                </MudCardHeader>
+                <MudCardContent>
+                    @if (ShowMetadataEditor && _isOwnRequest)
+                    {
+                        <ObjectMetadataEditor @ref=@_metadataEditor
+                                          ObjectId=@FileId
+                                          SaveButtonLabel=@Localizer["OPENDATA-WIZARD.Save_button"]
+                                          OnDiscard=@(_editSavedMetadata ? HandleDiscardMetadata : null)
+                                          OnSave=@HandleSaveMetadata />
+                    }
+                    else if (_isOwnRequest)
+                    {
+                        <MudButton OnClick=@ManuallyShowMetadataEditor Disabled=@_savingData Variant="Variant.Outlined" Color="Color.Primary">
+                            <MudText>@Localizer["OPENDATA-WIZARD.Edit_button"]</MudText>
+                        </MudButton>
                     }
                     else
                     {
-                        <AeTypography Variant="p">@Localizer["OPENDATA-WIZARD.Uploading_file_in_progress"]</AeTypography>
-                    }
-
-                    <div>
-                        @if (_savingData)
+                        @if (_requestingUser != null)
                         {
-                            <Spinner Small=@true/>
+                            <MudText>@Localizer["Requesting User"]: @_requestingUser.DisplayName</MudText>
                         }
-                    </div>
-                </ChildContent>
-            </AeCard>
-        }
+                    }
+                </MudCardContent>
+            </MudCard>
 
-        @if (ShowPublicationDatePanel)
-        {
-            <AeCard>
-                <AeTypography Variant="h3">@Localizer["OPENDATA-WIZARD.PublicationDate"]</AeTypography>
-                <p>@_publicationDateText</p>
-            </AeCard>
-        }
-
-        @if (ShowCancelPanel)
-        {
-            <AeCard style="margin-top: 1rem;">
-                <Typography Variant="h3">@Localizer["OPENDATA-WIZARD.CancelSharing"]</Typography>
-                <p>@Localizer["OPENDATA-WIZARD.CancelSharingDescription"]</p>
-                <AeButton OnClickEvent=@ShowCancelRequestDialog>@Localizer["BUTTONS.Cancel"]</AeButton>
-            </AeCard>
-        }
-
-        <div>&nbsp;</div>
-
-        <div>
-            <DHLink DataProject=@_projectCode>@Localizer[$"{LOCALIZATION_PREFIX}.ReturnToProject"]</DHLink>
-        </div>
-
-    </AeFlex>
-
-    <div id="stepsDiv" style="width: 50%;">
-        <AeSteps T=@OpenDataSharingStatus
-            CurrentStepState=@GetState
-            StepItems=@_steps
-            StepTitle=@StepTitle
-            StepMessage=@StepMessage
-            PassedIcon=@_checkIcon
-            />
-
-    @if (ShowPublicUrl)
-    {
-        var publicUrl = GetOpenDataFileUrl();
-        <AeCard>
-            <AeTypography Variant="h3">@Localizer["OPENDATA-WIZARD.PublicUrl"]</AeTypography>
-            @if (!_unpublishedDate.HasValue)
+            @if (ShowApprovalCards)
             {
-                <p><a href=@publicUrl target="_blank">@publicUrl</a></p>
-                @if (_isOwnRequest)
+                @if (ShowApprovalForm)
                 {
-                    <div>
-                        <AeButton OnClickEvent=@ShowCancelSharingFileDialog Disabled=@_savingData>@Localizer["OPENDATA-WIZARD.UnpublishFile"]</AeButton>
-                    </div>
+                    @*approvalForm form*@
+                    <MudCard>
+                        <MudCardHeader>
+                            <MudText Typo="Typo.h5">
+                                @GetStepTitle(OpenDataSharingStatus.OpenGovApprovalForm)
+                            </MudText>
+                        </MudCardHeader>
+                        <MudCardContent>
+                            <Datahub.Portal.Pages.Forms.ShareWorkflow.ApprovalForm 
+                                ApprovalFormId=@_approvalFormId
+                                OnSubmitForm=@UpdateApprovalFormId
+                                DatasetTitle=@_datasetTitle
+                                User=@_requestingUser 
+                            />
+                        </MudCardContent>
+                    </MudCard>
+                }
+                else if (ApprovalFormSubmitted)
+                {
+                    @*approval form submitted*@
+                    <MudCard>
+                        <MudCardHeader>
+                            <MudText Typo="Typo.h5">
+                                @GetStepTitle(OpenDataSharingStatus.OpenGovApprovalForm)
+                            </MudText>
+                        </MudCardHeader>
+                        <MudCardContent>
+                            <MudStack Spacing="3">
+                                <MudStack>
+                                    <MudText>
+                                        @Localizer["OPENDATA-WIZARD.Approval_Filled_out_1"]
+                                    </MudText>
+                                    <MudText>
+                                        @Localizer["OPENDATA-WIZARD.Approval_Filled_out_2"]
+                                    </MudText>
+                                    <MudText>
+                                        @Localizer["OPENDATA-WIZARD.Approval_Filled_out_3"]
+                                    </MudText>
+                                </MudStack>
+                                <MudStack Row>
+                                    <MudButton OnClick=@GenerateApprovalDocument Variant="Variant.Outlined" Color="Color.Primary">
+                                        @Localizer["OPENDATA-WIZARD.GenerateDOCX_button"]
+                                    </MudButton>
+                                    <MudButton OnClick=@ManuallyShowApprovalForm Variant="Variant.Outlined" Color="Color.Primary">
+                                        @Localizer["OPENDATA-WIZARD.AmendApprovalForm_button"]
+                                    </MudButton>
+                                </MudStack>
+                            </MudStack>
+                        </MudCardContent>
+                    </MudCard>
+
+                    @if (ShowSignedPdfPanel)
+                    {
+                        @*show signed pdf panel*@
+                        <MudCard>
+                            <MudCardHeader>
+                                <MudText Typo="Typo.h5">@GetStepTitle(OpenDataSharingStatus.SubmitSignedPDF)</MudText>
+                            </MudCardHeader>
+                            <MudCardContent>
+                                <MudStack>
+                                    <MudStack Row>
+                                        <MudTextField @bind-Value="_signedApprovalFormUrl"
+                                          DebounceInterval="250"
+                                          Label=@Localizer["OPENDATA-WIZARD.EnterGcDocsUrl"]
+                                          Clearable="true"
+                                          Variant="Variant.Outlined"
+                                          Margin="Margin.Dense" />
+
+                                        <MudButton Variant="Variant.Outlined"
+                                                   Color="Color.Primary" 
+                                                   OnClick=@UploadSignedDocument 
+                                                   Disabled=@UploadSignedDocumentDisabled()>
+                                            @if (_savingData)
+                                            {
+                                                <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                                                <MudText Class="ms-2">@Localizer["BUTTONS.Submit"]</MudText>
+                                            }
+                                            else
+                                            {
+                                                <MudText>@Localizer["BUTTONS.Submit"]</MudText>
+                                            }
+                                        </MudButton>
+                                    </MudStack>
+                                </MudStack>
+                            </MudCardContent>
+                        </MudCard>
+                    }
                 }
             }
-            else
+
+            @if (ShowUploadCard)
             {
-                <AeTypography Variant="p">@Localizer["OPENDATA-WIZARD.UnpublishFileLabel"]</AeTypography>
+                @*open data sharing status*@
+                <MudCard>
+                    <MudCardHeader>
+                        <MudText Typo="Typo.h5">
+                            @GetStepTitle(OpenDataSharingStatus.PendingUpload)
+                        </MudText>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        @if (!OpenDataFileUploading)
+                        {
+                            <MudStack Class="mb-2">
+                                <MudText>
+                                    @(new MarkupString(Localizer["OPENDATA-WIZARD.Publish_As_URL_Desc1"]))
+                                </MudText>
+                                <MudText>
+                                    @(new MarkupString(Localizer["OPENDATA-WIZARD.Publish_As_URL_Desc2"]))
+                                </MudText>
+
+                                <MudItem>
+                                    <MudButton Variant="Variant.Outlined" OnClick=@PublishAsUrl Disabled=@_savingData Color="Color.Primary">
+                                        @if (_savingData)
+                                        {
+                                            <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                                            <MudText Class="ms-2">@Localizer["OPENDATA-WIZARD.Publish_As_URL"]</MudText>
+                                        }
+                                        else
+                                        {
+                                            <MudText>@Localizer["OPENDATA-WIZARD.Publish_As_URL"]</MudText>
+                                        }
+                                    </MudButton>
+                                </MudItem>
+
+                                @if (!string.IsNullOrEmpty(_urlPublishError))
+                                {
+                                    @* url publication error*@
+                                    <MudStack>
+                                        <MudAlert Severity="Severity.Error">
+                                            @Localizer["OPENDATA-WIZARD.Upload_Last_Error"]&nbsp;@_urlPublishError
+                                        </MudAlert>
+                                        <MudButton Variant="Variant.Outlined" OnClick=@EmailShareURLErrorToDatahub Disabled=@_emailSent Color="Color.Primary">
+                                            <MudText>@Localizer["Email Datahub"]</MudText>
+                                        </MudButton>
+                                    </MudStack>
+                                }
+                            </MudStack>
+
+                            @if (string.IsNullOrEmpty(_fileUrl))
+                            {
+                                <MudSpacer></MudSpacer>
+                                <MudText><b>@Localizer["Or"]</b></MudText>
+                                <MudSpacer></MudSpacer>
+                                <MudStack>
+                                    <MudText>
+                                        @(new MarkupString(Localizer["OPENDATA-WIZARD.Upload_And_Publish_Desc"]))
+                                    </MudText>
+
+                                    <MudItem>
+                                        <MudButton Variant="Variant.Outlined" OnClick=@UploadAndPublish Disabled=@_savingData Color="Color.Primary">
+                                            @if (_savingData)
+                                            {
+                                                <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                                                <MudText Class="ms-2">@Localizer["OPENDATA-WIZARD.Upload_And_Publish"]</MudText>
+                                            }
+                                            else
+                                            {
+                                                <MudText>@Localizer["OPENDATA-WIZARD.Upload_And_Publish"]</MudText>
+                                            }
+                                        </MudButton>
+                                    </MudItem>
+
+                                    @if (_uploadStatus == OpenDataUploadStatus.Failed)
+                                    {
+                                        <MudStack>
+                                            <MudAlert Severity="Severity.Error">
+                                                @Localizer["OPENDATA-WIZARD.Upload_Last_Error"] @_uploadFileErrorMessage
+                                            </MudAlert>
+                                            <MudItem>
+                                                <MudButton Variant="Variant.Outlined" OnClick=@EmailUploadFileErrorToDatahub Disabled=@_emailSent Color="Color.Primary">
+                                                    <MudText>@Localizer["Email Datahub"]</MudText>
+                                                </MudButton>
+                                            </MudItem>                                            
+                                        </MudStack>
+                                    }
+                                </MudStack>
+                            }
+                        }
+                        else
+                        {
+                            <MudText>@Localizer["OPENDATA-WIZARD.Uploading_file_in_progress"]</MudText>
+                        }
+                    </MudCardContent>
+                </MudCard>
             }
-        </AeCard>
-    }
-    </div>
 
-</AeFlex>
+            @if (ShowPublicationDatePanel)
+            {
+                @*show publication date panel*@
+                <MudCard>
+                    <MudCardHeader>
+                        <MudText Typo="Typo.h5">@Localizer["OPENDATA-WIZARD.PublicationDate"]</MudText>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        @_publicationDateText
+                    </MudCardContent>
+                </MudCard>
+            }
 
-<div>&nbsp;</div>
+            @if (ShowCancelPanel)
+            {
+                @*show cancel panel*@
+                <MudCard>
+                    <MudCardHeader>
+                        <MudText Typo="Typo.h5">@Localizer["OPENDATA-WIZARD.CancelSharing"]</MudText>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <MudText Class="mb-4">
+                            @Localizer["OPENDATA-WIZARD.CancelSharingDescription"]
+                        </MudText>
+                        <MudButton Variant="Variant.Outlined" 
+                                   Color="Color.Primary" 
+                                   OnClick=@ShowCancelRequestDialog>
+                            <MudText>@Localizer["BUTTONS.Cancel"]</MudText>                            
+                        </MudButton>
+                    </MudCardContent>
+                </MudCard>
+            }
+
+            @*return to initiative link*@
+            <MudItem>
+                <MudLink Href=@($"/projects/{_projectCode}") Underline="Underline.None">
+                    @Localizer[$"{LOCALIZATION_PREFIX}.ReturnToProject"]
+                </MudLink>
+            </MudItem>
+        </MudStack>
+    </MudItem>
+
+    @*right side steps*@
+    <MudItem xs="6">
+        <div id="stepsDiv">
+            <AeSteps T=@OpenDataSharingStatus
+                     CurrentStepState=@GetState
+                     StepItems=@_steps
+                     StepTitle=@StepTitle
+                     StepMessage=@StepMessage
+                     PassedIcon=@_checkIcon />
+
+            @if (ShowPublicUrl)
+            {
+                var publicUrl = GetOpenDataFileUrl();
+                <MudCard>
+                    <MudCardHeader>
+                        <MudText Typo="Typo.h5">@Localizer["OPENDATA-WIZARD.PublicUrl"]</MudText>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        @if (!_unpublishedDate.HasValue)
+                        {
+                            <MudLink Href=@publicUrl Underline="Underline.None">@publicUrl</MudLink>
+                            @if (_isOwnRequest)
+                            {
+                                <MudItem Class="mt-2">
+                                    <MudButton Variant="Variant.Outlined" OnClick=@ShowCancelSharingFileDialog Disabled=@_savingData>
+                                        <MudText>@Localizer["OPENDATA-WIZARD.UnpublishFile"]</MudText>
+                                    </MudButton>
+                                </MudItem>
+                            }
+                        }
+                        else
+                        {
+                            <MudText>@Localizer["OPENDATA-WIZARD.UnpublishFileLabel"]</MudText>
+                        }
+
+                    </MudCardContent>
+                </MudCard>
+            }
+        </div>
+    </MudItem>
+</MudGrid>
 
 @code {
     private static readonly string LOCALIZATION_PREFIX = "OPENDATA-WIZARD";
@@ -267,6 +381,8 @@
     private long _sharedDataFileId;
     private OpenDataUploadStatus _uploadStatus = OpenDataUploadStatus.NotStarted;
     private string _uploadFileErrorMessage;
+
+    private bool _emailSent;
 
     private int _approvalFormId = 0;
     private int _approvalFormSectorId = 0;
@@ -324,7 +440,7 @@
     {
         try
         {
-            await jsRuntime.InvokeAsync<object>("open", GenerateApprovalDocumentUrl, "_blank");
+            await jsRuntime.InvokeVoidAsync("open", GenerateApprovalDocumentUrl, "_blank");
         }
         catch (Exception)
         {
@@ -405,33 +521,6 @@
         }
     }
 
-    //private async Task CatalogSharedObject(FieldValueContainer fieldValues)
-    //{
-    //    var isUrl = !string.IsNullOrEmpty(_fileUrl);
-    //    var objectType = isUrl ? MetadataObjectType.FileUrl : MetadataObjectType.File;
-    //    var location = isUrl ? _fileUrl : _projectCode;
-
-    //    // allow the name to be indexed as well
-    //    fieldValues.SetValue("name", _requestFilename); 
-    //    var digest = fieldValues.GetCatalogDigest();
-
-    //    await MetadataBrokerService.UpdateCatalog
-    //    (
-    //        fieldValues.MetadataId, 
-    //        objectType, 
-    //        _requestFilename, 
-    //        location, 
-    //        _approvalFormSectorId, 
-    //        _approvalFormBranchId, 
-    //        _requestingUser?.Mail, 
-    //        ClassificationType.Unclassified,
-    //        digest.EnglishCatalog, 
-    //        digest.FrenchCatalog,
-    //        CatalogObjectLanguage.Bilingual,
-    //        null // >> fix!
-    //    );
-    //}
-
     private async Task UploadAndPublish()
     {
         try
@@ -453,6 +542,32 @@
         finally
         {
             _savingData = false;
+        }
+    }
+
+    private async Task EmailUploadFileErrorToDatahub()
+    {
+        await EmailErrorToDatahub(Localizer["OpenData Share file upload error"], _uploadFileErrorMessage);
+    }
+
+    private async Task EmailShareURLErrorToDatahub()
+    {
+        await EmailErrorToDatahub(Localizer["OpenData Share file as URL error"], _urlPublishError);
+    }
+
+    private async Task EmailErrorToDatahub(string subject, string message)
+    {
+        try
+        {
+            _emailSent = true;
+            await InvokeAsync(StateHasChanged);
+            var currentUser = await UserInformationService.GetUserAsync();
+            await EmailNotificationService.EmailErrorToDatahub(subject, currentUser?.Mail, message, "", "");
+        }
+        catch (Exception)
+        {
+            _emailSent = false;
+            await InvokeAsync(StateHasChanged);
         }
     }
 
@@ -537,6 +652,11 @@
         {
             _editSavedMetadata = false;
         }
+    }
+
+    private void HandleDiscardMetadata()
+    {
+        _editSavedMetadata = false;
     }
 
     static string GetBaseUrl(string url)

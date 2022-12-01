@@ -36,10 +36,17 @@ namespace Datahub.Metadata.DTO
         public IEnumerable<FieldChoice> GetSelectedChoices(string fieldName)
         {
             var fieldValue = this[fieldName];
+            if (fieldValue is null)
+                yield break;
+
+            var definition = GetFieldDefinition(fieldValue);
+            if (definition?.Choices is null)
+                yield break;
+
             var choiceValues = (fieldValue?.Value_TXT ?? "").Split(ChoiceSeparator, StringSplitOptions.RemoveEmptyEntries);
             foreach (var choiceValue in choiceValues)
             {
-                var choice = GetFieldDefinition(fieldValue).Choices.FirstOrDefault(c => choiceValue == c.Value_TXT);
+                var choice = definition.Choices.FirstOrDefault(c => choiceValue == c.Value_TXT);
                 if (choice is not null)
                     yield return choice;
             }
@@ -76,21 +83,6 @@ namespace Datahub.Metadata.DTO
             }
 
             return fieldValueObj;
-        }
-
-        public FieldValueContainer GetReadonlyCopy()
-        {
-            return new FieldValueContainer(MetadataId, ObjectId, Definitions, CloneFieldsReadonly());
-        }
-
-        private IEnumerable<ObjectFieldValue> CloneFieldsReadonly()
-        {
-            foreach (var fieldValue in this)
-            {
-                var cloned = fieldValue.Clone();
-                cloned.FieldDefinition ??= Definitions.Get(fieldValue.FieldDefinitionId);
-                yield return cloned;
-            }
         }
 
         private FieldDefinition GetFieldDefinition(ObjectFieldValue value) => value.FieldDefinition ?? Definitions.Get(value.FieldDefinitionId);

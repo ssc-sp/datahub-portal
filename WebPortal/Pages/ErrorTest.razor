@@ -1,0 +1,9 @@
+﻿@page "/errortest"
+
+<Error CorrelationId="123456"></Error>
+
+<MudButton OnClick="() => throw new Exception()">BOOM!</MudButton>
+
+@code {
+
+}

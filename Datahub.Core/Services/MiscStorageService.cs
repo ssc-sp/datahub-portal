@@ -26,19 +26,21 @@ namespace Datahub.Core.Services
             _auditingService = auditingService;
         }
 
+        private static string GetTypeName<T>() => typeof(T).ToString();
+
         private static MiscStoredObject CreateGenericObject<T>(T obj, string id) => new()
         {
             GeneratedId = Guid.NewGuid(),
-            TypeName = typeof(T).FullName,
+            TypeName = GetTypeName<T>(),
             Id = id,
             JsonContent = JsonConvert.SerializeObject(obj)
         };
 
         private static async Task<MiscStoredObject> GetRawObject<T>(DatahubProjectDBContext ctx, string id) => await ctx.MiscStoredObjects
-            .FirstOrDefaultAsync(e => e.TypeName == typeof(T).FullName && e.Id == id);
+            .FirstOrDefaultAsync(e => e.TypeName == GetTypeName<T>() && e.Id == id);
 
         private static async Task<IEnumerable<MiscStoredObject>> GetAllRawObjects<T>(DatahubProjectDBContext ctx) => await ctx.MiscStoredObjects
-            .Where(e => e.TypeName == typeof(T).FullName)
+            .Where(e => e.TypeName == GetTypeName<T>())
             .ToListAsync();
 
         public async Task<T> GetObject<T>(string id)
@@ -72,7 +74,7 @@ namespace Datahub.Core.Services
             }
             catch (JsonSerializationException ex)
             {
-                _logger.LogError(ex, "Type {} cannot be deserialized.", typeof(T).FullName);
+                _logger.LogError(ex, "Type {} cannot be deserialized.", GetTypeName<T>());
                 throw;
             }
         }

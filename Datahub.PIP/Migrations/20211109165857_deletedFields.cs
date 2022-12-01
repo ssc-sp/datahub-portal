@@ -1,8 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Datahub.Portal.Migrations.Forms.PIP
 {
-    public partial class deletedFields : Migration
+    public partial class DeletedFields : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {

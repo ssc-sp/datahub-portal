@@ -1,4 +1,4 @@
-﻿using Azure.Search.Documents.Indexes;
+using Azure.Search.Documents.Indexes;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -461,7 +461,7 @@ namespace Datahub.Core.Data
     }
     
     /// <summary>
-    /// Keep this class as it is used by retrieval api
+    /// Keep this clAss As it is used by retrieval api
     /// </summary>
     public class UserFiles
     {

@@ -1,10 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace Datahub.Portal.Migrations.Forms.PIP
 {
-    public partial class programnoteslockedfield : Migration
+    public partial class Programnoteslockedfield : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {

@@ -1,8 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Datahub.Portal.Migrations.Forms.DatahubProjectDB
 {
-    public partial class moreuserfields : Migration
+    public partial class Moreuserfields : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
