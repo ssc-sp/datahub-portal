@@ -55,6 +55,8 @@ namespace Datahub.ProjectTools.Catalog
         protected override bool IsServiceConfigured => _isServiceConfigured;
 
         protected override bool IsServiceAvailable => _dataEntryServiceCreated;
+        protected override bool IsRequestAvailable => false;
+
 
         public override string[] GetTags()
         {

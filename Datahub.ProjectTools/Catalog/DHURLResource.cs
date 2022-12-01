@@ -37,11 +37,13 @@ namespace Datahub.ProjectTools.Catalog
         protected abstract string Icon { get; }
         protected abstract bool IsIconSVG { get; }
 
+        protected virtual bool IsRequestAvailable { get; } = true;
+
         public Datahub_Project Project { get; private set; }
 
         public (Type type, IDictionary<string, object> parameters)? GetInactiveResource()
         {
-            if (!IsServiceConfigured || IsServiceAvailable)
+            if (!IsServiceConfigured || IsServiceAvailable || !IsRequestAvailable)
                 return null;
             return (typeof(InactiveResource), GetInactiveParameters());
         }
