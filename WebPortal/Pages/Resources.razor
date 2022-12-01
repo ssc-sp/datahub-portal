@@ -72,6 +72,22 @@ else
                         <DHMarkdown @ref=@_markdownElement
                             Content=@_markdownContent
                             LinkRewriter="@RewriteLink" />
+
+                        @if (CurrentCard is not null)
+                        {
+                            <AuthorizeView Roles=@RoleConstants.DATAHUB_ROLE_ADMIN>
+                                <MudContainer Style="padding: 1rem; margin: 1rem 0">
+                                    <MudButton 
+                                        Href=@_resourcesService.GetEditUrl(CurrentCard) 
+                                        Color=@Color.Primary 
+                                        Variant=@Variant.Filled 
+                                        StartIcon=@Icons.Filled.Launch
+                                        Target="_blank" >
+                                        @Localizer["BUTTONS.Edit"]
+                                    </MudButton>
+                                </MudContainer>
+                            </AuthorizeView>
+                        }
                     }
                 </MudCard>
             }
@@ -99,6 +115,8 @@ display: -webkit-box";
     private ResourceLanguageRoot _resourceRoot;
     private ResourceCategory _currentResourceCategory;
     private AbstractResource _currentResource;
+
+    private ResourceCard CurrentCard => _currentResource as ResourceCard;
 
     private bool PageIsLoading => _resourceRoot is null;
     private bool ShowCards => _currentResource is ResourceLanguageRoot || _currentResource is ResourceCategory;
