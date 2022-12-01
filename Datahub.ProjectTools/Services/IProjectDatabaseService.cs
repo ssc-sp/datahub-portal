@@ -7,6 +7,6 @@ namespace Datahub.ProjectTools.Services
     {
         Task<string> GetPostgresToken();
         Task<AppAuthenticationResult> GetPostgresAuthenticationObject();
-        bool IsServiceAvailable();
+        bool IsServiceAvailable { get; }
     }
 }

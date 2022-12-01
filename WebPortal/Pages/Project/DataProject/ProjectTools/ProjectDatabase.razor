@@ -152,7 +152,7 @@ else
     private bool _showDatabaseInfo => _databaseResource != null;
     private bool _showPostgresInfo => _showDatabaseInfo && _databaseResource.IsPostgres;
     private bool _showSqlServerInfo => _showDatabaseInfo && _databaseResource.IsSqlServer;
-    private bool _showPostgresTokenSection => _showPostgresInfo && _projectDatabaseService.IsServiceAvailable();
+    private bool _showPostgresTokenSection => _showPostgresInfo && _projectDatabaseService.IsServiceAvailable;
     private bool _showPostgresToken => _postgresAuthResult != null;
     private bool _showPostgresInstructionsButton => !string.IsNullOrEmpty(_postgresInstructionsMd);
     private bool _showPostgresInstructionError = false;

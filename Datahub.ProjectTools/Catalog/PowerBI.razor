@@ -3,11 +3,17 @@
 @inject ILogger<PowerBI> _logger
 
 
-<ToolCard
-    Title=@Localizer["Power BI Workspace"]
-    Description="@Localizer["Access the project Workspace in the Power BI Service"]">
+<ToolCard Title=@Localizer[Title]
+          Description="@Localizer[Description]">
     <Logo>
-        <img src="/icons/svg/powerbi.svg" alt="Power bi">
+        @if (IsIconSVG)
+        {
+            <img src="@Icon" alt="@Localizer[Title]">
+        }
+        else
+        {
+            <MudIcon Icon="@Icon" Color="Color.Secondary" />
+        }
     </Logo>
     <ToolActionsList>
         <ul>
@@ -24,5 +30,9 @@
 
 @code {
     [Parameter] public Datahub_Project Project { get; set; }
+    [Parameter] public string Title { get; set; }
+    [Parameter] public string Description { get; set; }
+    [Parameter] public string Icon { get; set; }
+    [Parameter] public bool IsIconSVG { get; set; }
 }
 

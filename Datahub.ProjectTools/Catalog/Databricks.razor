@@ -1,75 +1,43 @@
-@using Datahub.Core.Components.Resources
-@using Datahub.Core.EFCore;
-@using Datahub.Core.Services.Projects;
-@using Datahub.ProjectTools.Services;
+@inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject IRequestManagementService _requestManagementService
+@inject ILogger<PowerBI> _logger
 @inject NavigationManager NavigationManager
 
-<ToolCard
-        Title="@Localizer["Azure Databricks"]"
-        Description="@Localizer["Run your Python, R and SQL notebooks in the cloud with Databricks for analytics, machine learning and data pipelines"]">
-        <Logo>
-            <img src="/icons/svg/databricks.svg" alt="Databricks">
-        </Logo>
-        <ToolActionsList>
-            <ul>
-                @if (!string.IsNullOrWhiteSpace(Project.Databricks_URL))
-                {
-                    <li>                                
-                        <DHLink DataProject="@(Project.Project_Acronym_CD)" DatabricksURL="@Project.Databricks_URL">
-                            <ToolActionButton LinkType="LinkType.External">
-                                    @Localizer["Open Azure Databricks"]
-                            </ToolActionButton>
-                        </DHLink>
-                    </li>
-                    <li>
-                        <AeButton class="light" OnClickEvent="HandleEditMetadata">@Localizer["Edit Metadata"]</AeButton>
-                    </li>
-                }
-                else
-                {
-                    if (_databricksServiceRequested)
-                    {
-                        <li>
-                            <MudText class="access-text">@Localizer["Service Request is being reviewed"]</MudText>
-                        </li>
-                    }
-                    else
-                    {
-                        <li>
-                            <ToolActionButton LinkType="_databricksServiceRequestPending ? LinkType.Pending : LinkType.Request" OnClick="@HandleRequestService">
-                                @Localizer["Request Service Creation"]
-                            </ToolActionButton>
-                        </li>
-                    }
-                }
-            </ul>
-        </ToolActionsList>
-    </ToolCard>
+<ToolCard Title=@Localizer[Title]
+          Description="@Localizer[Description]">
+    <Logo>
+        @if (IsIconSVG)
+        {
+            <img src="@Icon" alt="@Localizer[Title]">
+        }
+        else
+        {
+            <MudIcon Icon="@Icon" Color="Color.Secondary" />
+        }
+    </Logo>
+    <ToolActionsList>
+        <ul>
+            <li>
+                <DHLink DataProject="@(Project.Project_Acronym_CD)" DatabricksURL="@Project.Databricks_URL">
+                    <ToolActionButton LinkType="LinkType.External">
+                        @Localizer["Open Azure Databricks"]
+                    </ToolActionButton>
+                </DHLink>
+            </li>
+            <li>
+                <AeButton class="light" OnClickEvent="HandleEditMetadata">@Localizer["Edit Metadata"]</AeButton>
+            </li>
+        </ul>
+    </ToolActionsList>
+</ToolCard>
 
 @code {
+    [Parameter] public Datahub_Project Project { get; set; }
+    [Parameter] public string Title { get; set; }
+    [Parameter] public string Description { get; set; }
+    [Parameter] public string Icon { get; set; }
+    [Parameter] public bool IsIconSVG { get; set; }
 
-    [Parameter]
-    public RequestManagementService RequestManagementService { get; set; }
-
-    [Parameter]
-    public Datahub_Project Project { get; set; }
-
-    private bool _databricksServiceRequested;
-    private bool _databricksServiceRequestPending;
-
-    private async Task HandleRequestService()
-    {
-        if (_databricksServiceRequestPending)
-            return;
-
-        _databricksServiceRequestPending = true;
-        StateHasChanged();
-
-
-        await RequestManagementService.HandleRequestService(Project, IRequestManagementService.DATABRICKS);
-        _databricksServiceRequested = true;
-    }
 
     private void HandleEditMetadata()
     {
