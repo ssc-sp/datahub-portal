@@ -15,18 +15,18 @@ namespace Datahub.ProjectTools.Catalog
             return null;
         }
 
-        protected Dictionary<string, object> parameters = new Dictionary<string, object>();
+        protected Dictionary<string, object> parameters;
 
         public (Type, IDictionary<string, object>)[] GetActiveResources()
         {
-            if (IsServiceAvailable() && IsServiceConfigured())
+            if (IsServiceAvailable && IsServiceConfigured)
                 return new[] { GetComponent() };
             else
                 return Array.Empty<(Type type, IDictionary<string, object> parameters)>();
         }
 
-        protected abstract bool IsServiceConfigured();
-        protected abstract bool IsServiceAvailable();
+        protected abstract bool IsServiceConfigured { get; }
+        protected abstract bool IsServiceAvailable { get; }
 
         protected abstract Type ComponentType { get; }
 
@@ -41,7 +41,7 @@ namespace Datahub.ProjectTools.Catalog
 
         public (Type type, IDictionary<string, object> parameters)? GetInactiveResource()
         {
-            if (!IsServiceConfigured())
+            if (!IsServiceConfigured || IsServiceAvailable)
                 return null;
             return (typeof(InactiveResource), GetInactiveParameters());
         }
@@ -55,6 +55,12 @@ namespace Datahub.ProjectTools.Catalog
             if (userId is null)
                 return false;
             Project = project;
+            parameters = new Dictionary<string, object>
+                {
+                    { nameof(InactiveResource.Title), Title },
+                    { nameof(InactiveResource.Description), Description },
+                    { nameof(InactiveResource.Icon), Icon },
+                    { nameof(InactiveResource.IsIconSVG), IsIconSVG } };
             await InitializeAsync(userId, graphUser, isProjectAdmin);
             return true;
         }

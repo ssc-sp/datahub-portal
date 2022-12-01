@@ -16,9 +16,6 @@ namespace Datahub.ProjectTools.Services.Offline
 			return await Task.FromResult<string>(null);
 		}
 
-		public bool IsServiceAvailable()
-		{
-			return false;
-		}
+		public bool IsServiceAvailable => false;
 	}
 }

@@ -28,8 +28,7 @@ namespace Datahub.ProjectTools.Catalog
             await using var projectDbContext = await dbFactoryProject.CreateDbContextAsync();
             var serviceRequests = Project.ServiceRequests;
             _powerBiServiceRequested = serviceRequests.Any(r => r.ServiceType == IRequestManagementService.POWERBI && r.Is_Completed == null);
-            _powerBiServiceCreated = !string.IsNullOrEmpty(Project.PowerBI_URL) ||
-                serviceRequests.Any(r => r.ServiceType == IRequestManagementService.POWERBI && r.Is_Completed.HasValue);
+            _powerBiServiceCreated = !string.IsNullOrEmpty(Project.PowerBI_URL);
             parameters.Add(nameof(PowerBI.Project), Project);            
         }
 
@@ -40,11 +39,11 @@ namespace Datahub.ProjectTools.Catalog
 
         protected override Type ComponentType => typeof(PowerBI);
 
-        protected override bool IsServiceRequested => _powerBiServiceRequested;
+        protected override bool IsServiceRequested => _powerBiServiceRequested && !_powerBiServiceCreated;
 
-        protected override bool IsServiceConfigured() => isServiceConfigured;
+        protected override bool IsServiceConfigured => isServiceConfigured;
 
-        protected override bool IsServiceAvailable() => _powerBiServiceCreated;
+        protected override bool IsServiceAvailable => _powerBiServiceCreated;
 
         public override string[] GetTags()
         {

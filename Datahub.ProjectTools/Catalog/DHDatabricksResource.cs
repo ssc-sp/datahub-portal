@@ -16,93 +16,53 @@ using System.Threading.Tasks;
 
 namespace Datahub.ProjectTools.Catalog
 {
-    public class DHDatabricksResource : IProjectResource
-    {
-        private readonly IDbContextFactory<DatahubProjectDBContext> dbFactoryProject;
-        private readonly IRequestManagementService requestManagementService;
-        private readonly IPublicDataFileService publicDataFileService;
-        private readonly bool isEnabled;
-        private bool isDataApprover;
-        private int sharingRequestAwaitingApprovalCount;
-        private int ownSharingRequestCount;
-        private Datahub_Project _project;
-        private bool _canViewDatabricks;
 
-        public DHDatabricksResource(IDbContextFactory<DatahubProjectDBContext> dbFactoryProject,
-            IRequestManagementService requestManagementService, IPublicDataFileService publicDataFileService,
+#nullable enable
+    public class DHDatabricksResource : DHURLResource
+    { 
+
+        private readonly IDbContextFactory<DatahubProjectDBContext> dbFactoryProject;
+        private readonly bool _isServiceConfigured;
+        private readonly bool isServiceConfigured;
+
+        public DHDatabricksResource(IDbContextFactory<DatahubProjectDBContext> dbFactoryProject,            
             IOptions<DataProjectsConfiguration> configuration)
         {
             this.dbFactoryProject = dbFactoryProject;
-            this.requestManagementService = requestManagementService;
-            this.publicDataFileService = publicDataFileService;
-            isEnabled = configuration.Value.Databricks;
+            _isServiceConfigured = configuration.Value.Databricks;
         }
 
-        private static string GetPropertyName<T>(Expression<Func<T,object>> expression)
+        private bool _databricksServiceRequested = false;
+        private bool _databricksServiceCreated = false;
+
+        protected override async Task InitializeAsync(string userId, Microsoft.Graph.User graphUser, bool isProjectAdmin)
         {
-            return GetMemberName(expression.Body);
+            await using var projectDbContext = await dbFactoryProject.CreateDbContextAsync();
+            var serviceRequests = Project.ServiceRequests;
+            _databricksServiceRequested = serviceRequests.Any(r => r.ServiceType == IRequestManagementService.DATABRICKS && r.Is_Completed == null);
+            _databricksServiceCreated = !string.IsNullOrEmpty(Project.Databricks_URL);
+            parameters.Add(nameof(Databricks.Project), Project);
         }
 
-        private static string GetMemberName(Expression expression)
+        protected override string Title => "Azure Databricks";
+        protected override string Description => "Run your Python, R and SQL notebooks in the cloud with Databricks for analytics, machine learning and data pipelines";
+        protected override string Icon => "/icons/svg/databricks.svg";
+        protected override bool IsIconSVG => true;
+
+        protected override Type ComponentType => typeof(Databricks);
+
+        protected override bool IsServiceRequested => _databricksServiceRequested && !_databricksServiceCreated;
+
+        protected override bool IsServiceConfigured => _isServiceConfigured;
+
+        protected override bool IsServiceAvailable => _databricksServiceCreated;
+
+        public override string[] GetTags()
         {
-            switch (expression.NodeType)
-            {
-                case ExpressionType.MemberAccess:
-                    return ((MemberExpression)expression).Member.Name;
-                case ExpressionType.Convert:
-                    return GetMemberName(((UnaryExpression)expression).Operand);
-                default:
-                    throw new NotSupportedException(expression.NodeType.ToString());
-            }
+            return new[] { "Databricks", "Jupyter Notebooks", "Analytics" };
         }
 
-        private (Type type, IDictionary<string, object> parameters) GetComponent()
-        {
-            var parameters = new Dictionary<string, object>();            
-            parameters.Add(GetPropertyName<Databricks>(t => t.RequestManagementService), requestManagementService);
-            parameters.Add(GetPropertyName<Databricks>(t => t.Project), _project);
-            return (typeof(Databricks), parameters);
-        }
 
-        public (Type type, IDictionary<string, object> parameters)[] GetActiveResources()
-        {
-            if (!isEnabled || !_canViewDatabricks)
-            {
-                return Array.Empty<(Type type, IDictionary<string, object> parameters)>();
-            }
-            else
-            {
-                return new[] { GetComponent() }; 
-            }
-        }
-
-        public string GetCostEstimatorLink()
-        {
-            throw new NotImplementedException();
-        }
-
-        public (Type type, IDictionary<string, object> parameters)? GetInactiveResource()
-        {
-            if (!isEnabled || !_canViewDatabricks)
-            {
-                return null;
-            }
-            else
-            {
-                return GetComponent();
-            }
-        }
-
-        public string[] GetTags()
-        {
-            throw new NotImplementedException();
-        }
-
-        public async Task<bool> InitializeAsync(Datahub_Project project, string userId, User graphUser, bool isProjectAdmin)
-        {
-            _project = project;
-            _canViewDatabricks = isProjectAdmin || !string.IsNullOrEmpty(project.Databricks_URL);
-            return true;
-        }
     }
+#nullable disable
 }

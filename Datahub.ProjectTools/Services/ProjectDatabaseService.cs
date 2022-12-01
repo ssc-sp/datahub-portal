@@ -22,9 +22,6 @@ namespace Datahub.ProjectTools.Services
 			return token;
 		}
 
-		public bool IsServiceAvailable()
-		{
-			return true;
-		}
+		public bool IsServiceAvailable => true;
 	}
 }
