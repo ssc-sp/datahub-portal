@@ -56,21 +56,9 @@
                         {
                             <DynamicComponent Parameters="active.parameters" Type="active.type" />
                         }
-                        @*                        @if (_configuration.Value.PowerBI && _canViewPowerBi)
-                        {
-                            <PowerBI/>
-                        }
-                        @if (!string.IsNullOrEmpty(Project.WebForms_URL) && _configuration.Value.WebForms)
-                        {
-                            <DataEntry/>
-                        }
-                        @if (_configuration.Value.WebForms)
+@*                        @if (_configuration.Value.WebForms)
                         {
                             <FormBuilder/>
-                        }
-                        @if (_configuration.Value.Storage)
-                        {
-                            <Storage/>
                         }
                         @if (_configuration.Value.Costing)
                         {
@@ -84,7 +72,7 @@
                         @if (_configuration.Value.IoT)
                         {
                             <DataManagement/>
-                    }
+                        }
 
                         @if (_configuration.Value.PostgreSQL)
                         {
@@ -99,7 +87,7 @@
                                     <ProjectDatabase ResourceID=@db.ResourceId />
                                 }
                             }
-                        }
+                        }*@
                         <Admin/>
 
                         @if (_configuration.Value.StorageCost)
@@ -110,7 +98,7 @@
                         @if (_configuration.Value.ComputeCost)
                         {
                             <ComputeCost />
-                    }*@
+                    }
                 </div>
             }
             </div>
