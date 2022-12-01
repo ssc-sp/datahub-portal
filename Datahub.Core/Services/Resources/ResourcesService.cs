@@ -104,6 +104,12 @@ namespace Datahub.Core.Services.Resources
             var path = GetPath(category);
             var linkUrlMD = $"{link.Url}.md";
             var content = await LoadWikiPage(linkUrlMD, path);
+
+            if (string.IsNullOrEmpty(content))
+            {
+                return await Task.FromResult(default(ResourceCard));
+            }
+
             var cardDoc = Markdown.Parse(content);
             var cardDocFlattened = cardDoc.Descendants();
             
@@ -218,7 +224,8 @@ namespace Datahub.Core.Services.Resources
             var httpClient = _httpClientFactory.CreateClient();
             try
             {
-                return await httpClient.GetStringAsync(url);
+                var result = await httpClient.GetStringAsync(url);
+                return result;
             }
             catch (Exception e)
             {

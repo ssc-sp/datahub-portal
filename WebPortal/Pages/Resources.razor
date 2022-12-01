@@ -46,7 +46,12 @@ else
                         <MudItem xs="4">
                             <MudCard>
                                 <MudCardHeader>
-                                    <MudText Typo=@Typo.h5>@card.Title</MudText>
+                                    <CardHeaderAvatar>
+                                        <MudIcon Icon=@Icons.Filled.MenuBook />
+                                    </CardHeaderAvatar>
+                                    <CardHeaderContent>
+                                        <MudText Typo=@Typo.h5>@card.Title</MudText>
+                                    </CardHeaderContent>
                                 </MudCardHeader>
                                 <MudCardContent>
                                     <MudText Typo=@Typo.body1 Style=@BOX_TEXT_STYLE >@card.Preview</MudText>
@@ -62,21 +67,21 @@ else
             else
             {
                 <MudCard>
-                    @if (ArticleIsLoading)
-                    {
-                        <MudText Typo=@Typo.h3>@_currentResource.Title</MudText>
-                        <MudProgressCircular Indeterminate />
-                    }
-                    else
-                    {
-                        <DHMarkdown @ref=@_markdownElement
-                            Content=@_markdownContent
-                            LinkRewriter="@RewriteLink" />
-
-                        @if (CurrentCard is not null)
+                    <MudCardContent>
+                        @if (ArticleIsLoading)
                         {
-                            <AuthorizeView Roles=@RoleConstants.DATAHUB_ROLE_ADMIN>
-                                <MudContainer Style="padding: 1rem; margin: 1rem 0">
+                            <MudText Typo=@Typo.h3>@_currentResource.Title</MudText>
+                            <MudProgressCircular Indeterminate />
+                        }
+                        else
+                        {
+                            <DHMarkdown @ref=@_markdownElement
+                                Content=@_markdownContent
+                                LinkRewriter="@RewriteLink" />
+
+                            @if (CurrentCard is not null)
+                            {
+                                <AuthorizeView Roles=@RoleConstants.DATAHUB_ROLE_ADMIN>
                                     <MudButton 
                                         Href=@_resourcesService.GetEditUrl(CurrentCard) 
                                         Color=@Color.Primary 
@@ -85,10 +90,10 @@ else
                                         Target="_blank" >
                                         @Localizer["BUTTONS.Edit"]
                                     </MudButton>
-                                </MudContainer>
-                            </AuthorizeView>
+                                </AuthorizeView>
+                            }
                         }
-                    }
+                    </MudCardContent>
                 </MudCard>
             }
         </MudItem>
