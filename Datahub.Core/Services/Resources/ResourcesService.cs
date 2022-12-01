@@ -16,10 +16,12 @@ namespace Datahub.Core.Services.Resources
     public class ResourcesService : IResourcesService
     {
         private readonly string _wikiRoot;
+        private readonly string _wikiEditPrefix;
         private readonly ILogger<ResourcesService> _logger;
         private readonly IHttpClientFactory _httpClientFactory;
 
         private const string WIKIROOT_CONFIG_KEY = "WikiURL";
+        private const string WIKI_EDIT_URL_CONFIG_KEY = "EditWikiURLPrefix";
 
         //TODO use proper caching
         private ResourceLanguageRoot EnglishLanguageRoot;
@@ -28,6 +30,7 @@ namespace Datahub.Core.Services.Resources
         public ResourcesService(IConfiguration config, ILogger<ResourcesService> logger, IHttpClientFactory httpClientFactory)
         {
             _wikiRoot = config[WIKIROOT_CONFIG_KEY];
+            _wikiEditPrefix = config[WIKI_EDIT_URL_CONFIG_KEY];
             _logger = logger;
             _httpClientFactory = httpClientFactory;
         }
@@ -99,8 +102,8 @@ namespace Datahub.Core.Services.Resources
         private async Task<ResourceCard> PopulateResourceCard(LinkInline link, ResourceCategory category)
         {
             var path = GetPath(category);
-            var linkUrl = $"{link.Url}.md";
-            var content = await LoadWikiPage(linkUrl, path);
+            var linkUrlMD = $"{link.Url}.md";
+            var content = await LoadWikiPage(linkUrlMD, path);
             var cardDoc = Markdown.Parse(content);
             var cardDocFlattened = cardDoc.Descendants();
             
@@ -110,7 +113,7 @@ namespace Datahub.Core.Services.Resources
             var title = firstHeading.Inline.FirstChild.ToString();
             var preview = firstPara.Inline.FirstChild.ToString();
 
-            var card = new ResourceCard(title, preview, linkUrl, category);
+            var card = new ResourceCard(title, preview, link.Url, category);
 
             return await Task.FromResult(card);
         }
@@ -238,8 +241,10 @@ namespace Datahub.Core.Services.Resources
         public async Task<string> LoadResourcePage(ResourceCard card)
         {
             var path = GetPath(card.ParentCategory);
-            var name = card.Url;
+            var name = $"{card.Url}.md";
             return await LoadWikiPage(name, path);
         }
+
+        public string GetEditUrl(ResourceCard card) => $"{_wikiEditPrefix}{card.Url}/_edit";
     }
 }
