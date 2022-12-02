@@ -1,6 +1,6 @@
-export function styleCodeblocks(element){
+export function styleCodeblocks(element) {
     if(hljs && element && element.querySelectorAll){
-        element.querySelectorAll('pre code')
+        element.querySelectorAll('pre code:not(.copy-icon-added)')
             .forEach(el => {
                 hljs.highlightElement(el);
                 appendCopyIcon(el);
@@ -37,6 +37,7 @@ export function appendCopyIcon(element) {
     });
 
     element.appendChild(copyIcon);
+    element.classList.add('copy-icon-added');
 }
 
 function toggleClassList(el, classes = []){
