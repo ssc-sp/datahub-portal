@@ -95,7 +95,7 @@
         // load projects
         Context = DbFactory.CreateDbContext();
         LoadSortExpressions();
-        _user = await UserInformationService.GetUserAsync();
+        _user = await UserInformationService.GetCurrentGraphUserAsync();
         _isUserAdmin = await ServiceAuthManager.IsProjectAdmin(_user.Id, PROJECTACRONYM);
         _headers = new List<string>()
         {

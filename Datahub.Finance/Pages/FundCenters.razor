@@ -56,7 +56,7 @@
     protected override async Task OnInitializedAsync()
     {
         // load projects
-        _user = await UserInformationService.GetUserAsync();
+        _user = await UserInformationService.GetCurrentGraphUserAsync();
         _claimsUser = (await UserInformationService.GetAuthenticatedUser());
         Context = DbFactory.CreateDbContext();
         LoadSortExpressions();

@@ -1,0 +1,65 @@
+@using Datahub.Core.Services.Projects;
+@using Datahub.ProjectTools.Services;
+@*Storage.razor*@
+@inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
+@inject IRequestManagementService RequestManagementService
+
+
+<ToolCard Title="@Localizer[Title]"
+            Description="@Localizer[Description]">
+    <Logo>
+        @if (IsIconSVG)
+        {
+            <img src="@Icon" alt="@Localizer[Title]">
+        }
+        else
+        {
+        <MudIcon Icon="@Icon" Color="Color.Secondary"/>
+        }
+    </Logo>
+    <ToolActionsList>
+        <ul>
+
+            @if (isRunning)
+            {
+                <MudProgressCircular Color="Color.Default" Indeterminate="true" />
+            }
+            else if (ResourceRequested)
+            {
+                <li>
+                    <AeTypography class="access-text">@Localizer["Service Request is being reviewed"]</AeTypography>
+                </li>
+            }
+            else
+            {
+                <ToolActionButton OnClick="@HandleRequestService" LinkType="LinkType.Request">
+                    @Localizer["Request Service Creation"]
+                </ToolActionButton>
+            }
+                
+        </ul>
+    </ToolActionsList>
+</ToolCard>
+
+
+@code {
+
+    [Parameter] public string Title { get; set; }
+    [Parameter] public string Description { get; set; }
+    [Parameter] public string Icon { get; set; }
+    [Parameter] public bool IsIconSVG { get; set; }
+    [Parameter] public string ResourceType { get; set; }
+    [Parameter] public bool ResourceRequested { get; set; }
+    [Parameter] public Datahub_Project Project { get; set; }
+
+    private bool isRunning = false;
+
+    private async Task HandleRequestService()
+    {
+        isRunning = true;
+        await RequestManagementService.HandleRequestService(Project, ResourceType);
+        isRunning = false;
+    }
+
+
+}

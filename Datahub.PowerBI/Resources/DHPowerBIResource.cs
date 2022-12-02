@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Datahub.Core.Resources
+namespace Datahub.PowerBI.Resources
 {
-    internal class DHStorageResource
+    public class DHPowerBIResource
     {
     }
 }
