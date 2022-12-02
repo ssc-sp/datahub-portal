@@ -1,4 +1,5 @@
 ﻿@page "/powerbi/{projectAcronym}"
+@using Datahub.PowerBI.Pages.PowerBI
 @inject IPowerBiDataService PowerBiDataService
 @inject IUserInformationService UserInfoService
 @inject IMSGraphService MsGraphService
@@ -160,7 +161,7 @@
 
     private async Task OpenMetadataEditor(PowerBi_Report r)
     {
-        RenderFragment reportEditor = @<Datahub.Portal.Pages.PowerBI.PowerBiReportMetadataEditor 
+        RenderFragment reportEditor = @<PowerBiReportMetadataEditor 
             PowerBiReportId=@r.Report_ID 
             ProjectAcronym=@projectAcronym 
             OnCloseDialog=@CloseDialog />;
