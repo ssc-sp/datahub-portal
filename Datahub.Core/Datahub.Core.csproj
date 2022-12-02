@@ -81,9 +81,6 @@
 		<Content Update="Layout\ExternalLayout.razor">
 		  <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
 		</Content>
-		<Content Update="Resources\SharedResources.json">
-			<CustomToolNamespace>Resources</CustomToolNamespace>
-		</Content>
 		<Content Update="i18n\SharedResources.fr.json">
 			<CustomToolNamespace>Resources</CustomToolNamespace>
 		</Content>

@@ -21,7 +21,7 @@ namespace Datahub.Core.Services
 
      
 
-        public Task<User> GetUserAsync()
+        public Task<User> GetCurrentGraphUserAsync()
         {
             return Task.FromResult(new User
             {
@@ -82,7 +82,7 @@ namespace Datahub.Core.Services
             return true;
         }
 
-        public Task<User> GetAnonymousUserAsync()
+        public Task<User> GetAnonymousGraphUserAsync()
         {
             return Task.FromResult(AnonymousUser);
         }
@@ -92,7 +92,7 @@ namespace Datahub.Core.Services
             return Task.FromResult(UserGuid.ToString());
         }
 
-        public Task<User> GetUserAsync(string userId)
+        public Task<User> GetGraphUserAsync(string userId)
         {
             return Task.FromResult(new User
             {
@@ -131,6 +131,16 @@ namespace Datahub.Core.Services
         public Task<ClaimsPrincipal> GetAuthenticatedUser(bool forceReload = false)
         {
             return Task.FromResult(new ClaimsPrincipal());
+        }
+
+        public Task<bool> IsUserProjectAdmin(string projectAcronym)
+        {
+            return Task.FromResult(false);
+        }
+
+        public Task<bool> IsUserDatahubAdmin()
+        {
+            return Task.FromResult(false);
         }
     }
 }

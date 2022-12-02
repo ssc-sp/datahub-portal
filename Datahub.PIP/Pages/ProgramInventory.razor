@@ -157,7 +157,7 @@
     protected override async Task OnInitializedAsync()
     {        
         Context = DbFactory.CreateDbContext();
-        CurrentUser = await UserInformationService.GetUserAsync();
+        CurrentUser = await UserInformationService.GetCurrentGraphUserAsync();
         _isUserAdmin = await ServiceAuthManager.IsProjectAdmin(CurrentUser.Id, PROJECTACRONYM);
         _fiscalYears = new();
         _fiscalYears = Context.FiscalYears.OrderByDescending(i => i.YearId).Select(i => i.FiscalYear).ToList();
