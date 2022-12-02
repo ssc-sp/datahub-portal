@@ -81,7 +81,7 @@ namespace Datahub.Core
 
         private async Task AppendIdentity(Dictionary<string, string> dictionary, bool anonymous = false)
         {
-            var user = anonymous ? await _userInformationService.GetAnonymousUserAsync() : await _userInformationService.GetUserAsync();
+            var user = anonymous ? await _userInformationService.GetAnonymousGraphUserAsync() : await _userInformationService.GetCurrentGraphUserAsync();
             if (user != null)
             {
                 dictionary["userId"] = user.Id;

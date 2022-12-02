@@ -1,7 +1,8 @@
-﻿@inject RequestManagementService _requestService;
+﻿@inject IRequestManagementService _requestService;
 @using Datahub.Core.EFCore;
+@using Datahub.Core.Services.Projects;
 @using Datahub.Metadata.DTO;
-@using Datahub.Portal.Data.ProjectResource;
+@using Datahub.ProjectTools.Services;
 
 @* TODO: localize text *@
 
@@ -83,7 +84,7 @@
         public void ResetValues(FieldDefinitions fieldDefs)
         {
             var objectId = FieldValues?.ObjectId;
-            FieldValues = ProjectResourceFormHelper.BuildFieldValues(fieldDefs, SettingsDict, objectId);
+            FieldValues = RequestManagementService.BuildFieldValues(fieldDefs, SettingsDict, objectId);
         }
     }
 

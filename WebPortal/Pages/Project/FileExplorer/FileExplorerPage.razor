@@ -52,7 +52,7 @@
     {
         await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
 
-        _user = await _userInformationService.GetUserAsync();
+        _user = await _userInformationService.GetCurrentGraphUserAsync();
 
         _project = await projectContext.Projects
             .Include(p => p.Users)

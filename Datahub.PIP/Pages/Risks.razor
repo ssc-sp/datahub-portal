@@ -140,7 +140,7 @@
     protected override async Task OnInitializedAsync()
     {
         Context = DbFactory.CreateDbContext();
-        CurrentUser = await UserInformationService.GetUserAsync();
+        CurrentUser = await UserInformationService.GetCurrentGraphUserAsync();
         _isUserAdmin = await ServiceAuthManager.IsProjectAdmin(CurrentUser.Id, PROJECTACRONYM);
         // load projects
         _tombstones = Context.Tombstones.Where(p => p.Tombstone_ID == Convert.ToInt32(tombstone)).ToList();
