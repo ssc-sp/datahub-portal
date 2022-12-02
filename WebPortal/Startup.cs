@@ -45,6 +45,7 @@ using Datahub.Core.Services.Resources;
 using Datahub.ProjectTools.Services;
 using Datahub.Core.Services.Projects;
 using Datahub.ProjectTools.Services.Offline;
+using MudBlazor;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]
 
@@ -131,6 +132,7 @@ namespace Datahub.Portal
 
             services.AddElemental();
             services.AddMudServices();
+            services.AddMudMarkdownServices();
             services.AddSingleton(moduleManager);
 
 

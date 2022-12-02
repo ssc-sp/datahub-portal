@@ -1,12 +1,13 @@
+@using Markdig
 @inject IJSRuntime _jsRuntime;
 
 @if (Content != null)
 {
-    <span @ref="_elementReference">
-        <AeMarkdown
-            @attributes="@InputAttributes"
-            Content="@Content"
-            LinkRewriter="@LinkRewriter"/>
+    <span @ref="_elementReference" class="markdown-container">
+        <MudMarkdown 
+            Value=@Content 
+            OverrideLinkUrl=@OverrideLinkUrl 
+            OverrideHeaderTypo=@SubstituteHeaderTypo />
     </span>
 }
 
@@ -23,6 +24,8 @@
 
     private ElementReference _elementReference;
 
+    private string OverrideLinkUrl(Markdig.Syntax.Inlines.LinkInline linkElement) => LinkRewriter(linkElement.Url);
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         await base.OnAfterRenderAsync(firstRender);
@@ -31,6 +34,18 @@
         {
             await StyleCodeblocks();
         }
+    }
+
+    private Typo SubstituteHeaderTypo(Typo typo)
+    {
+        return typo switch
+        {
+            Typo.h1 => Typo.h3,
+            Typo.h2 => Typo.h4,
+            Typo.h3 => Typo.h5,
+            Typo.h4 => Typo.h6,
+            _ => typo
+        };
     }
 
     public async Task StyleCodeblocks()
