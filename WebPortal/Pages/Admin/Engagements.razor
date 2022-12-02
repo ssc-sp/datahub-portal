@@ -45,7 +45,7 @@
 
     protected async override Task OnInitializedAsync()
     {
-        _user = await UserInformationService.GetUserAsync();
+        _user = await UserInformationService.GetCurrentGraphUserAsync();
         _claimsUser = (await authenticationStateTask).User;
         Context = DbFactory.CreateDbContext();
         _project = Context.Projects.Single(p => p.Project_Acronym_CD == projectAcronym);

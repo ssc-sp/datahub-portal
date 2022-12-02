@@ -118,7 +118,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        var userTask = _userInfoService.GetUserAsync();
+        var userTask = _userInfoService.GetCurrentGraphUserAsync();
 
         Guid fileIdGuid;
         if (!Guid.TryParse(FileId, out fileIdGuid))

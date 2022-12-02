@@ -89,7 +89,7 @@ namespace Datahub.Portal.Services.Offline
 
         public async Task PopulateOtherMetadata(FileMetaData fileMetadata)
         {
-            var authState = await _userInformationService.GetUserAsync();
+            var authState = await _userInformationService.GetCurrentGraphUserAsync();
             fileMetadata.createdby = authState.Id;
             fileMetadata.lastmodifiedby = authState.Id; //TODO this will need to change edit functionality
             fileMetadata.ownedby = authState.Id; //TODO this will need to change edit functionality
