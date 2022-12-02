@@ -54,7 +54,6 @@ namespace Datahub.Core.EFCore
         [ForeignKey("DivisionId")]
         public Organization_Level Division { get; set; }
 
-        [Required]
         [StringLength(4000)]
         [AeFormIgnore]
         [AeLabel(isDropDown: true, placeholder: " ")]
