@@ -84,7 +84,7 @@
     protected override async Task OnParametersSetAsync()
     {
         try {
-            User = await UserInformationService.GetUserAsync();
+            User = await UserInformationService.GetCurrentGraphUserAsync();
             _language = UserLanguage.currentLanguage() == "en" ? "Français" : "English";
         } catch (Exception ex)
         {

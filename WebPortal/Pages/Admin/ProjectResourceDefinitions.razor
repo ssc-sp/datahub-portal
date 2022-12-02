@@ -1,6 +1,8 @@
 ﻿@page "/admin/resourcedefinition"
+@using Datahub.Core.Services.Projects;
+@using Datahub.ProjectTools.Services;
 
-@inject RequestManagementService _requestService;
+@inject IRequestManagementService _requestService;
 
 <AeTypography Variant="h1">@Localizer["Resources"]</AeTypography>
 

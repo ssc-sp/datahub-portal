@@ -64,7 +64,7 @@
     protected override async Task OnInitializedAsync()
     {
 
-        var user = await _userInformationService.GetUserAsync();
+        var user = await _userInformationService.GetCurrentGraphUserAsync();
         _authorizedRoles = _serviceAuthManager.GetAdminProjectRoles(user.Id);
         _user = await _userInformationService.GetAuthenticatedUser();
 
