@@ -31,7 +31,7 @@ namespace Datahub.Core.Services
         {
             try
             {
-                var user = await _userInformationService.GetUserAsync();
+                var user = await _userInformationService.GetCurrentGraphUserAsync();
                 var userId = user.Id;
 
                 await using var efCoreDatahubContext = await _userTrackingContextFactory.CreateDbContextAsync();

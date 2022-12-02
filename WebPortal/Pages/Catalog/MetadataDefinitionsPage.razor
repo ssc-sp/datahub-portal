@@ -36,7 +36,7 @@
     {
         await base.OnInitializedAsync();
         
-        var user = await _userInformationService.GetUserAsync();
+        var user = await _userInformationService.GetCurrentGraphUserAsync();
         _authorizedRoles = ServiceAuthManager.GetAdminProjectRoles(user.Id);
     }
 }
