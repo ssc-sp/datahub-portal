@@ -149,7 +149,7 @@
     public async Task CloseDialog(bool reload)
     {
         var refreshTask = reload ? RefreshTable() : Task.CompletedTask;
-        await UiControls.ToggleModal();
+        UiControls.HideDialog();
         await refreshTask;
     }
 
@@ -158,13 +158,13 @@
         _powerBiReports = await PowerBiDataService.GetReportsForProjectWithExternalReportInfo(projectAcronym, IncludeSandbox);
     }
 
-    private async Task OpenMetadataEditor(PowerBi_Report r)
+    private void OpenMetadataEditor(PowerBi_Report r)
     {
         RenderFragment reportEditor = @<Datahub.PowerBI.Pages.PowerBI.PowerBiReportMetadataEditor 
             PowerBiReportId=@r.Report_ID 
             ProjectAcronym=@projectAcronym 
             OnCloseDialog=@CloseDialog />;
-        await UiControls.ToggleModal(@<RenderFragmentModal Fragment=reportEditor />);
+        UiControls.ShowDialog(r.Report_Name, @<RenderFragmentModal Fragment=reportEditor />);
     }
 
     private RenderFragment ExternalReport(PowerBi_Report r) => @<Datahub.PowerBI.Pages.Project.PowerBiReports.ExternalReportRequest Report=@(r) RefreshTable=RefreshTable CurrentUserEmail=@currentUserEmail/>;
