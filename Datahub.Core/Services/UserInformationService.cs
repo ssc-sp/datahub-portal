@@ -14,6 +14,7 @@ using Microsoft.Identity.Client;
 using Microsoft.Identity.Web;
 using Datahub.Core.UserTracking;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Datahub.Core.Services
 {
@@ -258,7 +259,7 @@ namespace Datahub.Core.Services
             var userSetting = eFCoreDatahubContext.UserSettings.FirstOrDefault(u => u.UserId == userId);
             return userSetting != null ? userSetting.Language : string.Empty;
         }
-
+        [AllowAnonymous]
         public bool SetLanguage(string language)
         {
             if (!Thread.CurrentThread.CurrentCulture.Name.Equals(language, StringComparison.OrdinalIgnoreCase))
