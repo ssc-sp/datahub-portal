@@ -89,7 +89,7 @@ steps:
     azureSubscription: 'AZRM - DataSolutions'
     appType: 'functionApp'
     appName: 'spdatahub-portal-func-dotnet-sand'
-    package: '$(System.DefaultWorkingDirectory)/Datahub.Graph.Functions/**/*.zip'
+    package: '$(System.DefaultWorkingDirectory)/Datahub.Graph.Functions/bin/Release/**/*.zip'
 
 - task: AzureAppServiceSettings@1
   displayName: Azure App Service Settings
