@@ -1,25 +1,21 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using Elemental.Components;
 
 namespace Datahub.Portal.Data.Forms;
 
-public class BasicIntakeForm
+public class BasicRegistrationForm
 {
     [Required]
-    [RegularExpression(@"^([\w\.\-]+)@([\w\-]+)((\.(\w){2,3})+)$", ErrorMessage = "Invalid Email Address")]
-    [StringLength(20, ErrorMessage = "Identifier too long (16 character limit).")]
-    [AeLabel(placeholder: "Please enter your email")]
+    [RegularExpression(@"(^([\w\.\-]+)@([\w\-]+)((.gc.ca))$)|(^([\w\.\-]+)@(canada\.ca)$)", ErrorMessage = "Invalid Email Address")]
+    [StringLength(320, ErrorMessage = "Identifier too long (320 character limit).")]
+    [AeLabel(placeholder: "Email")]
     public string Email { get; set; }
 
     [Required]
     [AeLabel("Department Name", isDropDown: true)]
     public string DepartmentName { get; set; }
 
-    [Required]
-    [StringLength(200, ErrorMessage = "Project Name too long (200 character limit).")]
-    [AeLabel("Project Name", "Please enter the name of your project")]
-    public string ProjectName { get; set; }
-
+    public string ProjectName = "null";
 
     [AeFormIgnore]
     public static Dictionary<string, string> DepartmentDictionary { get; } = new()
