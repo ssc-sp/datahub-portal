@@ -12,7 +12,7 @@ public class BasicIntakeForm
     public string Email { get; set; }
 
     [Required]
-    [AeLabel("Department Name", isDropDown: true)]
+    [AeLabel("Department Name", isDropDown: true)] 
     public string DepartmentName { get; set; }
 
     [Required]
@@ -21,7 +21,7 @@ public class BasicIntakeForm
     public string ProjectName { get; set; }
 
 
-    [AeFormIgnore]
+    [AeFormIgnore] 
     public static Dictionary<string, string> DepartmentDictionary { get; } = new()
     {
         {"Accessibility Standards Canada", "ASC"}, {"Administrative Tribunals Support Service of Canada", "ATSSC"},
