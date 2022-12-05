@@ -1,4 +1,4 @@
 #!/bin/sh
 echo 
-exec pwsh -File './.githooks/pre-commit-hook.ps1'
+exec pwsh -File './.git/hooks/pre-commit-hook.ps1'
 exit
