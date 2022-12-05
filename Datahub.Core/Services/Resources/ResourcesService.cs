@@ -162,7 +162,7 @@ namespace Datahub.Core.Services.Resources
             return await Task.FromResult(langRoot);
         }
 
-        public async Task Test() => await LoadResourceTree();
+        public async Task RefreshCache() => await LoadResourceTree();
 
         private async Task LoadResourceTree()
         {

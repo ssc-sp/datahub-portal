@@ -12,7 +12,6 @@ namespace Datahub.Core.Services.Resources
         Task<ResourceLanguageRoot> LoadLanguageRoot(bool isFrench);
         Task<string> LoadResourcePage(ResourceCard card);
         string GetEditUrl(ResourceCard card);
-
-        Task Test();
+        Task RefreshCache();
     }
 }

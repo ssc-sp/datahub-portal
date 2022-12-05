@@ -98,8 +98,42 @@ else
             }
         </MudItem>
     </MudGrid>
-}
+    
+    <MudContainer Class="ma-8">
+        <AuthorizeView Roles=@RoleConstants.DATAHUB_ROLE_ADMIN>
+            <MudCard>
+                <MudCardHeader>
+                    <CardHeaderAvatar>
+                        <MudIcon Icon=@Icons.Filled.AdminPanelSettings />
+                    </CardHeaderAvatar>
+                    <CardHeaderContent>
+                        @Localizer["Administration"]
+                    </CardHeaderContent>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudStack Row AlignItems=@AlignItems.Center>
+                        @if (_cacheIsRefreshing)
+                        {
+                            <MudProgressCircular Indeterminate Color=@Color.Secondary />
+                        }
+                        else
+                        {
+                            <MudButton 
+                                OnClick=@RefreshCache
+                                StartIcon=@Icons.Filled.Refresh 
+                                Variant=@Variant.Filled 
+                                Color=@Color.Secondary>Refresh</MudButton>
+                        }
 
+                        <MudText>
+                            Refresh the cache. Please note, it can take Github a few minutes to update its resources, so this may not work right away after editing the wiki.
+                        </MudText>
+                    </MudStack>
+                </MudCardContent>
+            </MudCard>
+        </AuthorizeView>
+    </MudContainer>
+}
 
 @code {
 
@@ -126,6 +160,8 @@ display: -webkit-box";
     private bool PageIsLoading => _resourceRoot is null;
     private bool ShowCards => _currentResource is ResourceLanguageRoot || _currentResource is ResourceCategory;
     private bool ArticleIsLoading => !ShowCards && string.IsNullOrEmpty(_markdownContent);
+
+    private bool _cacheIsRefreshing = false;
 
     public IEnumerable<ResourceCard> CardsToShow => _currentResourceCategory?.Cards ?? _resourceRoot.AllCards;
 
@@ -156,6 +192,19 @@ display: -webkit-box";
         }
 
         return value;
+    }
+
+    private async Task RefreshCache()
+    {
+        _cacheIsRefreshing = true;
+        await InvokeAsync(StateHasChanged);
+
+        await _resourcesService.RefreshCache();
+
+        await OnInitializedAsync();
+
+        _cacheIsRefreshing = false;
+        await InvokeAsync(StateHasChanged);
     }
 
     protected override async Task OnParametersSetAsync()
