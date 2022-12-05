@@ -184,9 +184,7 @@
   "IsDatabaseSqlServer": "SQL Server Database",
   "HasAssociatedDatabase": "Has Associtated Database",
   "Is_Private": "Private",
-  "Is_Featured": "Featured"
-
-  "SFT With Attrition": "SFT With Attrition",
+  "Is_Featured": "Featured",
   "Welcome to the Government of Canada's new one-stop hub for science data solutions.": "Welcome to the Government of Canada's new one-stop hub for science data solutions.",
   "Hosted by SSC (Proof-of-Concept Phase)": "Hosted by SSC (Proof-of-Concept Phase)",
   "<b>Onboard here to escape the silos.</b> With one simple sign-on, you can:": "<b>Onboard here to escape the silos.</b> With one simple sign-on, you can:",
