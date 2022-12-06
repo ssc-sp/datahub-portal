@@ -4,8 +4,10 @@
 @inject IJSRuntime _jsRuntime
 @inject AchievementService _achievementService
 @inject ServiceAuthManager ServiceAuthManager
+@inject IMetadataBrokerService MetadataBrokerService
 
 @using Datahub.Core.Components.Common
+@using Datahub.Metadata.Model;
 
 <Toaster Toasts="_toasts" >
     
@@ -40,7 +42,7 @@
 
         <span class="tool-divider"></span>
 
-        <AeButton class="button-tool" @onclick="HandleShare" Disabled="IsActionDisabled(ButtonAction.Share)">
+        <AeButton class="button-tool" @onclick="HandleShare" Disabled="!_isUnclassifiedSingleFile">
             <i class="fas fa-share-square"></i>
             @Localizer["Share"]
         </AeButton>
@@ -99,10 +101,14 @@
     [Parameter]
     public EventCallback<string> OnNewFolder { get; set; }
 
+    [Parameter]
+    public Guid MetadataSignature { get; set; } = Guid.NewGuid();
+
     private IJSObjectReference _module;
 
     private List<FileMetaData> _selectedFiles;
     private bool _ownsSelectedFiles;
+    private bool _isUnclassifiedSingleFile;
     private bool _isElectron = true;
 
     private bool _isDatahubAdmin;
@@ -134,13 +140,13 @@
         }
     }
 
-    protected override void OnParametersSet()
+    protected override async void OnParametersSet()
     {
         _selectedFiles = Files?
             .Where(f => SelectedItems.Contains(f.name))
             .ToList();
 
-    // TODO: This is a hack until SSC properly sets the owner of a file
+        // TODO: This is a hack until SSC properly sets the owner of a file
         if (Environment.GetEnvironmentVariable("HostingProfile") == "ssc")
         {
             _ownsSelectedFiles = _selectedFiles != null;
@@ -150,9 +156,19 @@
             _ownsSelectedFiles = _selectedFiles?
                 .TrueForAll(file => file?.ownedby?.Equals(GraphUser.Id, StringComparison.InvariantCulture) ?? false)
                 .Equals(true) ?? false;
+
+            if (_ownsSelectedFiles && _selectedFiles.Count == 1)
+            {
+                var fileClassification = await MetadataBrokerService.GetObjectClassification(_selectedFiles[0].id);
+                _isUnclassifiedSingleFile = (fileClassification ?? ClassificationType.Unclassified) == ClassificationType.Unclassified;
+            }
+            else
+            {
+                _isUnclassifiedSingleFile = false;
+            }
+            await InvokeAsync(StateHasChanged);
         }
     }
-    
     
     [JSInvokable]
     public async Task AzCopyProgress(string jobStatus, string percentComplete)

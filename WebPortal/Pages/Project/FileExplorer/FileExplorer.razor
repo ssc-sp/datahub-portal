@@ -16,11 +16,12 @@
         SelectedItems="@_selectedItems"
         Files="@_files"
         Folders="@_folders"
+        MetadataSignature=@_metadataSignature
         OnNewFolder="HandleNewFolder"
         SetCurrentFolder="SetCurrentFolder"
         OnFileDelete="HandleFileDelete"
         OnFileDownload="HandleFileDownload"
-        OnFileRename="HandleFileRename"/>
+        OnFileRename="HandleFileRename" />
 
     <div class="file-list">
         <div class="file-list-header">
@@ -111,7 +112,11 @@
                 else
                 {
                     var file = _files.FirstOrDefault(f => f.name.Equals(_selectedItem, StringComparison.OrdinalIgnoreCase));
-                    <FileProperties ProjectId=@ProjectId File=@file Readonly="!OwnsFile(file)"/>
+                    <FileProperties 
+                        ProjectId=@ProjectId 
+                        File=@file 
+                        Readonly="!OwnsFile(file)" 
+                        OnMetadataChanged=@HandleMetadataChanged />
                 }
             </div>
         </div>
@@ -148,7 +153,7 @@
     private List<string> _folders = new();
     private List<FileMetaData> _files = new();
     private string _filterValue = string.Empty;
-    
+
     private IJSObjectReference _module;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -176,4 +181,11 @@
     }
 
     private bool OwnsFile(FileMetaData file) => (file?.ownedby ?? "").Equals(_userId, StringComparison.InvariantCulture);
+
+    private Guid _metadataSignature = Guid.NewGuid();
+
+    private void HandleMetadataChanged()
+    {
+        _metadataSignature = Guid.NewGuid();
+    }
 }
