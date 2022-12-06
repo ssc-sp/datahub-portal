@@ -27,12 +27,24 @@ namespace Datahub.Core.Services.Resources
         private ResourceLanguageRoot EnglishLanguageRoot;
         private ResourceLanguageRoot FrenchLanguageRoot;
 
+        private IList<TimestampedResourceError> _errorList;
+
+        public event Func<Task> NotifyRefreshErrors;
+
         public ResourcesService(IConfiguration config, ILogger<ResourcesService> logger, IHttpClientFactory httpClientFactory)
         {
             _wikiRoot = config[WIKIROOT_CONFIG_KEY];
             _wikiEditPrefix = config[WIKI_EDIT_URL_CONFIG_KEY];
             _logger = logger;
             _httpClientFactory = httpClientFactory;
+            _errorList = new List<TimestampedResourceError>();
+        }
+
+        private async Task AddErrorMessage(string message)
+        {
+            var error = new TimestampedResourceError(DateTime.UtcNow, message);
+            _errorList.Add(error);
+            await InvokeNotifyRefreshErrors();
         }
 
         public async Task<string> LoadPage(string name, List<(string, string)> substitutions = null)
@@ -164,8 +176,20 @@ namespace Datahub.Core.Services.Resources
 
         public async Task RefreshCache() => await LoadResourceTree();
 
+        private async Task InvokeNotifyRefreshErrors()
+        {
+            if (NotifyRefreshErrors != null)
+            {
+                await NotifyRefreshErrors.Invoke();
+            }
+        }
+
         private async Task LoadResourceTree()
         {
+            _errorList = new List<TimestampedResourceError>();
+
+            await AddErrorMessage("Loading resources");
+
             var rootSidebar = await LoadSidebar();
             var rootLinks = GetListedLinks(rootSidebar);
 
@@ -174,6 +198,8 @@ namespace Datahub.Core.Services.Resources
 
             EnglishLanguageRoot = await PopulateResourceLanguageRoot(enLink);
             FrenchLanguageRoot = await PopulateResourceLanguageRoot(frLink);
+
+            await AddErrorMessage("Finished loading resources");
 
             await Task.CompletedTask;
         }
@@ -230,6 +256,8 @@ namespace Datahub.Core.Services.Resources
             catch (Exception e)
             {
                 _logger.LogError(e, "Error loading {url}", url);
+                await AddErrorMessage($"Error loading {url}");
+
                 return await Task.FromResult(default(string));
             }
         }
@@ -253,5 +281,7 @@ namespace Datahub.Core.Services.Resources
         }
 
         public string GetEditUrl(ResourceCard card) => $"{_wikiEditPrefix}{card.Url}/_edit";
+
+        public IReadOnlyList<TimestampedResourceError> GetErrorList() => _errorList.AsReadOnly();
     }
 }

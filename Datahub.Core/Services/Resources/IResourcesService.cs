@@ -13,5 +13,9 @@ namespace Datahub.Core.Services.Resources
         Task<string> LoadResourcePage(ResourceCard card);
         string GetEditUrl(ResourceCard card);
         Task RefreshCache();
+        IReadOnlyList<TimestampedResourceError> GetErrorList();
+        event Func<Task> NotifyRefreshErrors;
     }
+
+    public record TimestampedResourceError(DateTime Timestamp, string Message);
 }
