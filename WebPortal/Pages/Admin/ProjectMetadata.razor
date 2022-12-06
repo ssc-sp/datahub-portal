@@ -1,8 +1,10 @@
 ﻿@*ProjectMetadata.razor*@
 
 @page "/admin/metadata/{ProjectAcronym}"
+@using Datahub.Core.Services.Projects;
 @using Datahub.Metadata.Model
 @inject IMetadataBrokerService MetadataBrokerService
+@inject IRequestManagementService RequestManagementService
 
 <div class="manage-access"> 
 
@@ -42,7 +44,7 @@
     private IEnumerable<Project_Resources2> GetDbs(Datahub_Project project)
     {
         return project.Resources
-                      .Where(r => r.ResourceType == RequestManagementService.POSTGRESQL || r.ResourceType == RequestManagementService.SQLSERVER)
+                      .Where(r => r.ResourceType == IRequestManagementService.POSTGRESQL || r.ResourceType == IRequestManagementService.SQLSERVER)
                       .ToList();
     }
 }

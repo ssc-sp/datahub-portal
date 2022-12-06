@@ -38,7 +38,12 @@ namespace Datahub.Core.Data
                 {
 
                     if (migrate)
+                    {
                         context.Database.Migrate();
+                        //TODO:
+                        //GetMigrations()
+                        //GetAppliedMigrations()
+                    }
                     else
                         CreateAndSeedDB(logger, context, configuration);
                 }
@@ -112,7 +117,7 @@ namespace Datahub.Core.Data
                 }
                 catch (RuntimeBinderException ex)
                 {
-                    logger.LogCritical(ex, "Method doesn't exist");
+                    logger.LogCritical(ex, "Seed(context, configuration) method doesn't exist");
                 }
 
                 //var seedable = context as ISeedable<T>;

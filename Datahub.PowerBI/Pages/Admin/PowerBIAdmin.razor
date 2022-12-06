@@ -230,64 +230,71 @@
                                         StartIcon=@Icons.Filled.Launch>@Localizer[$"{LOCALIZATION_PREFIX}.PowerBIButton"]</MudButton>
                                 </MudText>
 
-                                <AeTypography Variant="h4">@Localizer[$"{LOCALIZATION_PREFIX}.Metadata"]</AeTypography>
-                                
+                                @*catalog*@
+                                <MudStack Class="mt-4">
+                                    <MudText Typo="Typo.h6">@Localizer[$"Catalog"]</MudText>
 
-                                <ObjectMetadataEditor 
-                                    @ref=@_reportMetadata
-                                    ObjectId=@ReportBeingEdited.ReportId.ToString()
-                                    Location="PowerBI"
-                                    ProfileName="catalog"
-                                    ObjectType=@Metadata.Model.MetadataObjectType.PowerBIReport
-                                    UpdateCatalog=@IncludeCurrentItemInCatalog
-                                    Name=@ReportBeingEdited.DbReportName
-                                    HideSaveButton
-                                    ValidateRequired
-                                    CatalogLanguage=@_catalogObjectLanguage
-                                    OnValuesChanged=@(() => StateHasChanged())
-                                    DefaultMetadataId=@GetProjectMetadataUid(ReportBeingEdited.ProjectId)
-                                    ProjectId=ReportBeingEdited.ProjectId
-                                    OnNewMetadataCreated=@AutoFillNewMetadataFields
-                                    OnExistingMetadataLoaded=@DetectIfCurrentItemIsInCatalog
-                                />
-
-                                <div>
-                                    <label>
-                                        <input type="checkbox" @bind=@IncludeCurrentItemInCatalog />
-                                        <AeTypography style="display: inline-block;"><strong><span>@Localizer[$"{LOCALIZATION_PREFIX}.IncludeInCatalog"]</span></strong></AeTypography>
-                                    </label>
-                                </div>
-
-                                <div style="margin-top: 0.5rem; width: 100%">
-                                    <AeTypography><strong><span>@Localizer[$"Language"]</span></strong></AeTypography>
-                                    <select class="ae input" @bind="_catalogObjectLanguage" disabled=@NotIncludedCurrentItemInCatalog>
-                                        <option value=@CatalogObjectLanguage.Bilingual>@Localizer["Bilingual"]</option>
-                                        <option value=@CatalogObjectLanguage.English>@Localizer["English"]</option> 
-                                        <option value=@CatalogObjectLanguage.French>@Localizer["French"]</option> 
-                                    </select>
-                                </div>                                
-
-                                @if (ReportBeingEdited.SiblingReports.Count > 0)
-                                {
-                                    <div style="margin-top: 0.5rem; width: 100%">
-                                        <AeFlex Vertical>
-                                            <AeTypography><strong><span>@Localizer[$"Grouped with"]</span></strong></AeTypography>
-                                            <select @bind="_groupWithId" class="ae input" disabled=@NotIncludedCurrentItemInCatalog>
-                                                <option value=""></option>
-                                                @foreach(var report in ReportBeingEdited.SiblingReports)
-                                                {
-                                                    <option value="@report.Report_ID.ToString()">@report.Report_Name</option>
-                                                }
-                                            </select>
-                                        </AeFlex>
+                                    <div>
+                                        <label>
+                                            <input type="checkbox" @bind=@IncludeCurrentItemInCatalog />
+                                            <AeTypography style="display: inline-block;"><strong><span>@Localizer[$"{LOCALIZATION_PREFIX}.IncludeInCatalog"]</span></strong></AeTypography>
+                                        </label>
                                     </div>
-                                }
 
-                                <div style="margin-top: 1rem;">
-                                    <AeButton OnClickEvent=@SaveReport Disabled=@SaveReportDisabled>@Localizer[$"BUTTONS.Save"]</AeButton>
-                                    <AeButton class="light" OnClickEvent=@CloseItemBeingEdited>@Localizer[$"BUTTONS.Cancel"]</AeButton>
-                                    <SuccessIndicator @bind-IsLoading=@IsSavingReport @ref=@_saveReportInd />
-                                </div>
+                                    <div style="margin-top: 0.5rem; width: 100%">
+                                        <AeTypography><strong><span>@Localizer[$"Language"]</span></strong></AeTypography>
+                                        <select class="ae input" @bind="_catalogObjectLanguage" disabled=@NotIncludedCurrentItemInCatalog>
+                                            <option value=@CatalogObjectLanguage.Bilingual>@Localizer["Bilingual"]</option>
+                                            <option value=@CatalogObjectLanguage.English>@Localizer["English"]</option> 
+                                            <option value=@CatalogObjectLanguage.French>@Localizer["French"]</option> 
+                                        </select>
+                                    </div>                                
+
+                                    @if (ReportBeingEdited.SiblingReports.Count > 0)
+                                    {
+                                        <div style="margin-top: 0.5rem; width: 100%">
+                                            <AeFlex Vertical>
+                                                <AeTypography><strong><span>@Localizer[$"Grouped with"]</span></strong></AeTypography>
+                                                <select @bind="@GroupWithId" class="ae input" disabled=@NotIncludedCurrentItemInCatalog>
+                                                    <option value=""></option>
+                                                    @foreach(var report in ReportBeingEdited.SiblingReports)
+                                                    {
+                                                        <option value="@report.Report_ID.ToString()">@report.Report_Name</option>
+                                                    }
+                                                </select>
+                                            </AeFlex>
+                                        </div>
+                                    }
+                                </MudStack>
+
+                                @*metadata*@
+                                <MudStack Class="mt-4">
+                                    <MudText Typo="Typo.h6">@Localizer[$"{LOCALIZATION_PREFIX}.Metadata"]</MudText>
+
+                                    <ObjectMetadataEditor 
+                                        @ref=@_reportMetadata
+                                        ObjectId=@ReportBeingEdited.ReportId.ToString()
+                                        Location="PowerBI"
+                                        ProfileName="catalog"
+                                        ObjectType=@Metadata.Model.MetadataObjectType.PowerBIReport
+                                        UpdateCatalog=@IncludeCurrentItemInCatalog
+                                        Name=@ReportBeingEdited.DbReportName
+                                        HideSaveButton
+                                        ValidateRequired
+                                        CatalogLanguage=@_catalogObjectLanguage
+                                        OnValuesChanged=@(() => StateHasChanged())
+                                        DefaultMetadataId=@GetProjectMetadataUid(ReportBeingEdited.ProjectId)
+                                        ProjectId=ReportBeingEdited.ProjectId
+                                        OnNewMetadataCreated=@AutoFillNewMetadataFields
+                                        OnExistingMetadataLoaded=@DetectIfCurrentItemIsInCatalog
+                                    />
+
+                                    <div style="margin-top: 1rem;">
+                                        <AeButton OnClickEvent=@SaveReport Disabled=@SaveReportDisabled>@Localizer[$"BUTTONS.Save"]</AeButton>
+                                        <AeButton class="light" OnClickEvent=@CloseItemBeingEdited>@Localizer[$"BUTTONS.Cancel"]</AeButton>
+                                        <SuccessIndicator @bind-IsLoading=@IsSavingReport @ref=@_saveReportInd />
+                                    </div>
+                                </MudStack>
                             </ChildContent>
                         </AeCard>
                     }
@@ -451,6 +458,22 @@
     private PowerBiAdminReportTreeItem ReportBeingEdited { get; set; }
     private string _groupWithId;
     private CatalogObjectLanguage _catalogObjectLanguage;
+
+    private string GroupWithId
+    {
+        get
+        {
+            return _groupWithId;
+        }
+        set
+        {
+            _groupWithId = value;
+            if (!string.IsNullOrEmpty(value))
+            {
+                _ = _reportMetadata.CopyMetadataFrom(value);
+            }
+        }
+    }
 
     private bool IncludeCurrentItemInCatalog { get; set; } = true;
     private bool NotIncludedCurrentItemInCatalog => !IncludeCurrentItemInCatalog;
