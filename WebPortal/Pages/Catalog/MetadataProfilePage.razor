@@ -109,7 +109,7 @@
     protected override async Task OnInitializedAsync()
     {
         
-        var user = await _userInformationService.GetUserAsync();
+        var user = await _userInformationService.GetCurrentGraphUserAsync();
         _authorizedRoles = ServiceAuthManager.GetAdminProjectRoles(user.Id);
 
         using var ctx = ContextFactory.CreateDbContext();        
