@@ -300,5 +300,7 @@
   "Project Resource Definitions": "Initiative Resource Definitions",
   "Welcome to your Data Project": "Welcome to your Data Initiative",
   "You are not a member of this project.": "You are not a member of this initiative.",
-  "InititativeRestricted": "Restricted to initiative members"
+  "InititativeRestricted": "Restricted to initiative members",
+  "Active Project Tools": "Active Data Initiative Tools",
+  "Available Project Tools":  "Available Data Initiative Tools"
 }

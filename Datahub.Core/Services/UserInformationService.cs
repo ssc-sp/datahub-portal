@@ -14,6 +14,7 @@ using Microsoft.Identity.Client;
 using Microsoft.Identity.Web;
 using Datahub.Core.UserTracking;
 using System.Security.Claims;
+using Datahub.Core.Data;
 
 namespace Datahub.Core.Services
 {
@@ -151,7 +152,7 @@ namespace Datahub.Core.Services
                 .FirstOrDefault(c => c.Type == "http://schemas.microsoft.com/identity/claims/objectidentifier")?? throw new InvalidOperationException("Cannot access user claims")).Value;
         }
 
-        public async Task<User> GetUserAsync()
+        public async Task<User> GetCurrentGraphUserAsync()
         {
             await CheckUser();
             return CurrentUser;
@@ -258,7 +259,7 @@ namespace Datahub.Core.Services
             var userSetting = eFCoreDatahubContext.UserSettings.FirstOrDefault(u => u.UserId == userId);
             return userSetting != null ? userSetting.Language : string.Empty;
         }
-
+        
         public bool SetLanguage(string language)
         {
             if (!Thread.CurrentThread.CurrentCulture.Name.Equals(language, StringComparison.OrdinalIgnoreCase))
@@ -299,12 +300,12 @@ namespace Datahub.Core.Services
             }
         }
 
-        public Task<User> GetAnonymousUserAsync()
+        public Task<User> GetAnonymousGraphUserAsync()
         {
             return Task.FromResult(AnonymousUser);
         }
 
-        public async Task<User> GetUserAsync(string userId)
+        public async Task<User> GetGraphUserAsync(string userId)
         {
             try
             {
@@ -330,12 +331,12 @@ namespace Datahub.Core.Services
 
         public async Task<bool> IsViewingAsGuest()
         {
-            return serviceAuthManager.GetViewingAsGuest((await GetUserAsync()).Id);
+            return serviceAuthManager.GetViewingAsGuest((await GetCurrentGraphUserAsync()).Id);
         }
 
         public async Task SetViewingAsGuest(bool isGuest)
         {
-            serviceAuthManager.SetViewingAsGuest((await GetUserAsync()).Id,isGuest);
+            serviceAuthManager.SetViewingAsGuest((await GetCurrentGraphUserAsync()).Id,isGuest);
         }
 
         private bool isViewingAsVisitor = false;
@@ -350,5 +351,17 @@ namespace Datahub.Core.Services
             isViewingAsVisitor = isVisitor;
             return Task.CompletedTask;
         }
+
+        public async Task<bool> IsUserProjectAdmin(string projectAcronym)
+        {            
+            return (await GetAuthenticatedUser()).IsInRole($"{projectAcronym}-admin");
+        }
+
+        public async Task<bool> IsUserDatahubAdmin()
+        {
+            return (await GetAuthenticatedUser()).IsInRole(RoleConstants.DATAHUB_ROLE_ADMIN);
+        }
+
+        //IsDataHubAdmin = ;
     }
 }

@@ -2,7 +2,6 @@
 using Datahub.Core.EFCore;
 using Datahub.Core.Services;
 using Datahub.Portal.Model;
-using Datahub.Portal.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;

@@ -10,5 +10,10 @@
   "LandingBgFolder": "nrcan",
   "LandingBgImgCount": 12,
   "Title": "NRCan Datahub",
-  "DataHubModules": "*"
+  "DataHubModules": "*",
+  "ProjectCreationQueue": {
+    "ConnectionString": "",
+    "Name": ""
+  }
+      
 }

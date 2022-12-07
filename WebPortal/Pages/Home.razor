@@ -33,7 +33,7 @@
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        _user = await _userInformationService.GetUserAsync();
+        _user = await _userInformationService.GetCurrentGraphUserAsync();
 
         _isUserValid = await _userInformationService.HasUserAcceptedTAC();
         if (_isUserValid)

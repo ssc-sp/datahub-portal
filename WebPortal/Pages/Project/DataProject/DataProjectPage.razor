@@ -77,7 +77,7 @@
         _userId = await _userInformationService.GetUserIdString();
         if (_userId is null) logger.LogError("UserId is null");
 
-        _user = await _userInformationService.GetUserAsync();
+        _user = await _userInformationService.GetCurrentGraphUserAsync();
         var authUser = (await _userInformationService.GetAuthenticatedUser());
         _isDatahubAdmin = !_serviceAuthManager.GetViewingAsGuest(_userId) && authUser.IsInRole(RoleConstants.DATAHUB_ROLE_ADMIN);
         _isProjectAdmin = !_serviceAuthManager.GetViewingAsGuest(_userId) && authUser.IsInRole($"{_project?.Project_Acronym_CD}-admin");

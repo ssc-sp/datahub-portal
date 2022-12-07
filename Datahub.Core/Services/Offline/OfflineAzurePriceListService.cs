@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Datahub.Core.Services
+namespace Datahub.Core.Services.Offline
 {
     public class OfflineAzurePriceListService : IAzurePriceListService
     {
@@ -59,7 +59,7 @@ namespace Datahub.Core.Services
                 OtherOperations = new(0.004M, 10000),
                 GeoReplication = new(0.022M, 1000)
             };
-            
+
             var priceLists = new Dictionary<string, StorageCostEstimatorPriceList>()
             {
                 {IAzurePriceListService.GenerateAzureStoragePriceListKey(AccessTierType.Hot, DataRedundancyType.LRS), hotPrices },

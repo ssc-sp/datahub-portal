@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Datahub.Core.Services.Resources
@@ -11,6 +8,7 @@ namespace Datahub.Core.Services.Resources
         Task<string> LoadPage(string name, List<(string, string)> substitutions = null);
         Task<ResourceLanguageRoot> LoadLanguageRoot(bool isFrench);
         Task<string> LoadResourcePage(ResourceCard card);
+        string GetEditUrl(ResourceCard card);
 
         Task Test();
     }

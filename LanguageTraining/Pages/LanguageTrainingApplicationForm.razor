@@ -65,7 +65,7 @@
     protected override async Task OnInitializedAsync()
     {        
         Context = DbFactory.CreateDbContext();
-        _user = await UserInformationService.GetUserAsync();
+        _user = await UserInformationService.GetCurrentGraphUserAsync();
         _isUserAdmin = await ServiceAuthManager.IsProjectAdmin(_user.Id, PROJECTACRONYM);
         _isFrench = CultureInfo.CurrentCulture.Name.StartsWith("fr", StringComparison.InvariantCulture);
         headers = new List<string>

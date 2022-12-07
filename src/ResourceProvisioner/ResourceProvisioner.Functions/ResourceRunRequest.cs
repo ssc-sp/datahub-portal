@@ -5,7 +5,6 @@ using System.Threading;
 using ResourceProvisioner.Application.ResourceRun.Commands.CreateResourceRun;
 using FluentValidation;
 using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Host;
 using Microsoft.Extensions.Logging;
 
 namespace ResourceProvisioner.Functions;

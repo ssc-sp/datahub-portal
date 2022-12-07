@@ -143,7 +143,7 @@
     {
         chosenUser = null;
         selectedPermission = string.Empty;
-        _currentUser = await UserInformationService.GetUserAsync();
+        _currentUser = await UserInformationService.GetCurrentGraphUserAsync();
         _ownedBy = await MSGraphService.GetUserName(SelectedFile.ownedby, CancellationToken.None);
         await DataSharingService.LoadSharedUsers(SelectedFile);
     }

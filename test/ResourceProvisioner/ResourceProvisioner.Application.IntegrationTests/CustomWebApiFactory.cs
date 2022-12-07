@@ -1,14 +1,9 @@
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Moq;
-
-using ResourceProvisioner.Application.Services;
 using Microsoft.AspNetCore.Hosting;
 
 namespace ResourceProvisioner.Application.IntegrationTests;
 
-using static Testing;
 internal class CustomWebApiFactory : WebApplicationFactory<Program>
 {
     protected override void ConfigureWebHost(IWebHostBuilder builder)

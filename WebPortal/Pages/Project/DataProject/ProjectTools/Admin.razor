@@ -6,6 +6,7 @@
             <i class="fas fa-user-crown fa-2x"></i>
         </Logo>
         <ToolActionsList>
+            <MudStack>
             <MudStack Row AlignItems="AlignItems.Center">
                 <NavLink href="@($"/edit-project/{ProjectAcronym}")">
                     <ToolActionButton LinkType="LinkType.Internal">
@@ -22,6 +23,8 @@
                         @Localizer["Power BI Links"]
                     </ToolActionButton>
                 </NavLink>
+            </MudStack>
+            <MudStack Row AlignItems="AlignItems.Center">
                 <NavLink href="@($"/admin/onboardusers/{ProjectAcronym}")">
                     <ToolActionButton LinkType="LinkType.Internal">
                         @Localizer["Onboard Users"]
@@ -37,6 +40,7 @@
                         @Localizer["Engagements"]
                     </ToolActionButton>
                 </NavLink>
+            </MudStack>
             </MudStack>
         </ToolActionsList>
     </ToolCard>
