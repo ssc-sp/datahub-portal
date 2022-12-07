@@ -1,4 +1,3 @@
-using System.Security.Authentication;
 using Blazored.LocalStorage;
 using Datahub.Achievements.Models;
 using Microsoft.AspNetCore.Components.Authorization;
