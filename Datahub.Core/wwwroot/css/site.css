@@ -3734,6 +3734,27 @@ code {
   display: none;
 }
 
+.add-member-button {
+    display: flex;
+    flex-direction: row;
+    margin-top: 2em;
+    padding: 10px 10px 10px 10px;
+    align-items: center;
+    background-color: rgb(51,65,85);
+    border-radius: 20px;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.add-member-button:hover:not(.active) {
+    cursor: pointer;
+    transform: translateY(-1px);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02), 0 1px 2px rgba(0, 0, 0, 0.14);
+}
+
+.add-member-button.active {
+    box-shadow: 4px 8px 8px 8px rgba(0, 0, 0, 0.16) !important;
+}
+
 .icon-color {
   color: #57C4EC;
 }
