@@ -2,6 +2,7 @@
 using Datahub.Core.EFCore;
 using Datahub.Core.Services;
 using Datahub.Core.Services.Projects;
+using Datahub.Core.Services.Security;
 using Datahub.Metadata.DTO;
 using Datahub.Metadata.Model;
 using Microsoft.EntityFrameworkCore;

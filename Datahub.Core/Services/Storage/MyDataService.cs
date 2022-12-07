@@ -19,14 +19,18 @@ using System.Diagnostics;
 using Folder = Datahub.Core.Data.Folder;
 using Microsoft.Graph;
 using Datahub.Portal.Services.Storage;
+using Datahub.Core.Services.Security;
 
 namespace Datahub.Core.Services
 {
-    public class MyDataService: IMyDataService
+    /// <summary>
+    /// Important note - MyDataService is not used but the code is here because 
+    /// this service has all the logic to work with ACLs
+    /// </summary>
+    public class MyDataService
     {
         private IOptions<APITarget> _targets;
         private DataLakeClientService _dataLakeClientService;
-        private ICognitiveSearchService _cognitiveSearchService;
         private readonly IHttpClientFactory _httpClient;
         private readonly ILogger _logger;
         private readonly IUserInformationService _userInformationService;
@@ -46,7 +50,6 @@ namespace Datahub.Core.Services
                     NotifierService notifierService,
                     IJSRuntime jSRuntime,
                     DataRetrievalService dataRetrievalService,
-                    ICognitiveSearchService cognitiveSearchService,
                     DataLakeClientService dataLakeClientService,
                     ApiTelemetryService telemetryService,
                     IDatahubAuditingService auditingService,
@@ -61,7 +64,6 @@ namespace Datahub.Core.Services
             this.dataRetrievalService = dataRetrievalService;
             _targets = targets;
             _dataLakeClientService = dataLakeClientService;
-            _cognitiveSearchService = cognitiveSearchService;
             LastException = null;
             _commonAzureServices = commonAzureServices;
             _telemetryService = telemetryService;
@@ -206,7 +208,7 @@ namespace Datahub.Core.Services
                 if (string.IsNullOrEmpty(projectUploadCode))
                 {
                     await UploadToGen2Storage(fileMetadata);
-                    await _cognitiveSearchService.AddDocumentToIndex(fileMetadata);
+                    //await _cognitiveSearchService.AddDocumentToIndex(fileMetadata);
                 }
                 else
                 {

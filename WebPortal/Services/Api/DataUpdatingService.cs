@@ -6,26 +6,27 @@ using Datahub.Portal.Services.Storage;
 using Microsoft.Azure.Storage;
 using Microsoft.Azure.Storage.Blob;
 using Folder = Datahub.Core.Data.Folder;
+using Datahub.Core.Services.Data;
 
 namespace Datahub.Portal.Services
 {
-    public class DataUpdatingService : BaseService, IDataUpdatingService
+    /// <summary>
+    /// Important note - This service is not used but is kept because it has the code
+    /// to work with Gen2 storage and ACL
+    /// </summary>
+    public class DataUpdatingService : BaseService
     {
         private readonly ILogger<DataUpdatingService> _logger;
         private readonly IHttpClientFactory _httpClient;
         private readonly IUserInformationService _userInformationService;
         private readonly DataLakeClientService _dataLakeClientService;
         private readonly DataRetrievalService _dataRetrievalService;
-        private readonly IMyDataService myDataService;
-        private readonly ICognitiveSearchService _cognitiveSearchService;
 
         public DataUpdatingService(ILogger<DataUpdatingService> logger,
                     IHttpClientFactory clientFactory,
                     IUserInformationService userInformationService,
                     DataLakeClientService dataLakeClientService,
-                    ICognitiveSearchService cognitiveSearchService,
                     DataRetrievalService dataRetrievalService,
-                    IMyDataService myDataService,
                     NavigationManager navigationManager,
                     UIControlsService uiService)
             : base(navigationManager, uiService)
@@ -33,10 +34,8 @@ namespace Datahub.Portal.Services
             _logger = logger;
             _httpClient = clientFactory;
             _userInformationService = userInformationService;
-            _cognitiveSearchService = cognitiveSearchService;
             _dataLakeClientService = dataLakeClientService;
             _dataRetrievalService = dataRetrievalService;
-            this.myDataService = myDataService;
         }
 
         public async Task<bool> RenameFolder(Folder folder, string newFolderName, Microsoft.Graph.User currentUser)
@@ -53,7 +52,7 @@ namespace Datahub.Portal.Services
 
                 // Because we may have files in this or sub folders of this folder
                 // We need to update their folderpaths...
-                folder = await myDataService.GetFolderStructure(folder, currentUser, false);
+                //folder = await myDataService.GetFolderStructure(folder, currentUser, false);
 
                 await UpdateFilesWithNewFolderPath(fileSystemClient, folder, currentUser);
 
@@ -166,7 +165,7 @@ namespace Datahub.Portal.Services
 
                 fileClient.SetMetadata(file.GenerateMetadata());
 
-                await _cognitiveSearchService.EditDocument(file);
+                //await _cognitiveSearchService.EditDocument(file);
 
                 _logger.LogDebug($"File's parent folder path changed from: {oldFolderpath} to: {file.parent.fullPathFromRoot} User: {currentUser.DisplayName} SUCCEEDED.");
             }
@@ -198,7 +197,7 @@ namespace Datahub.Portal.Services
                     file.lastmodifiedby = currentUser.Id;
                     response.Value.SetMetadata(file.GenerateMetadata());
 
-                    await _cognitiveSearchService.EditDocument(file);
+                    //await _cognitiveSearchService.EditDocument(file);
                 }
 
                 return true;

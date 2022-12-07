@@ -6,7 +6,7 @@ using Azure.Search.Documents.Indexes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Datahub.Core.Data;
-using Datahub.Core.Services;
+using Datahub.Core.Services.Security;
 
 public class CommonAzureServices
 {    

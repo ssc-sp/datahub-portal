@@ -48,8 +48,6 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.Azure.Search.Data" Version="10.1.0" />
-    <PackageReference Include="Microsoft.Azure.Search" Version="10.1.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Datahub.CKAN\Datahub.CKAN.csproj" />

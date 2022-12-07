@@ -48,7 +48,7 @@ namespace Datahub.Tests.ProjetTools
 
         public GithubDiscoveryTest()
         {
-            var c = new Connection(new ProductHeaderValue("ssc-datahub"));
+            var c = new Connection(new ProductHeaderValue("datahub"));
             var connection = new ApiConnection(c);
             contentClient = new RepositoryContentsClient(connection);
             errors = new List<RepositoryDescriptorErrors>();

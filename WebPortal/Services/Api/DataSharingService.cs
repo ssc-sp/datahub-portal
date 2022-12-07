@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Components;
 using Datahub.Core.Data;
 using Datahub.Core.Services;
+using Datahub.Core.Services.Data;
 
 namespace Datahub.Portal.Services
 {
@@ -9,18 +10,14 @@ namespace Datahub.Portal.Services
     {
         private ILogger<DataSharingService> _logger;
         private DataLakeClientService _dataLakeClientService;
-        private ICognitiveSearchService _cognitiveSearchService;
-
         public DataSharingService(ILogger<DataSharingService> logger,
                                   DataLakeClientService dataLakeClientService,
                                   NavigationManager navigationManager,
-                                  ICognitiveSearchService cognitiveSearchService,
                                   UIControlsService uiService)
             : base(navigationManager, uiService)
         {
             _logger = logger;
             _dataLakeClientService = dataLakeClientService;
-            _cognitiveSearchService = cognitiveSearchService;
         }
 
         public async Task<bool> ChangeFileOwner(FileMetaData file, GraphUser newOwner, string currentUserId)
@@ -48,7 +45,7 @@ namespace Datahub.Portal.Services
                 file.lastmodifiedts = DateTime.UtcNow;
                 fileClient.SetMetadata(file.GenerateMetadata());
 
-                await _cognitiveSearchService.EditDocument(file);
+                //await _cognitiveSearchService.EditDocument(file);
 
                 // STEP 3: Assign us back as a shared user
                 await AddSharedUsers(file, currentUserId, AccessPermissions.Editor);

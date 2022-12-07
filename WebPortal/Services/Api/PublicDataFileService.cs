@@ -6,6 +6,8 @@ using Datahub.Core.Services;
 using Datahub.Core.Templates;
 using System.Net;
 using Datahub.Portal.Services.Storage;
+using Datahub.Core.Services.Metadata;
+using Datahub.Core.Services.Search;
 
 namespace Datahub.Portal.Services
 {

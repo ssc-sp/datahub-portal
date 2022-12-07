@@ -1,4 +1,4 @@
-﻿using Datahub.Core.Services;
+﻿using Datahub.Core.Services.UserManagement;
 using Microsoft.Extensions.Options;
 using Moq;
 using System;

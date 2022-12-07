@@ -4,7 +4,6 @@
 @using Datahub.Core.Components.TopBar
 @using MudBlazor.Utilities
 
-@inject IMyDataService _apiService
 @inject IDatahubAuditingService _auditingService
 @inject IUserCircuitCounterService _userCircuitCounterService
 @inject MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
@@ -143,7 +142,6 @@
         {
             _consentHandler.HandleException(ex);
         }
-        await _apiService.SetupUserFolders();
     }
 
     private bool IsValidException(Exception ex)

@@ -1,6 +1,5 @@
 @inject IUserInformationService _userInformationService
 @inject MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
-@inject IMyDataService _myDataService
 @inject UIControlsService _uiControlsService
 
 
@@ -38,9 +37,6 @@
                 <MudCardContent>
                     <MudStack>
                         <MudLink Href="/profile">@Localizer["View your profile"]</MudLink>
-@*                        <MudText>
-                            @Localizer.GetString("You have used {0} of your allocated {1}", DatahubTools.BytesToString(_totalSpaceUsed), _maxAllocatedSpace)
-                        </MudText>*@
                         <GuestModeToggler />
                     </MudStack>
                 </MudCardContent>
@@ -63,8 +59,7 @@
 
     private Microsoft.Graph.User _user;
     //private string _maxAllocatedSpace = "10TB";
-    private long _totalSpaceUsed = 0;
-    
+
     private bool _showProfile = false;
     private string _style;
 
@@ -89,9 +84,8 @@
         }
     }
 
-    private async Task ToggleProfile()
+    private void ToggleProfile()
     {
-        _totalSpaceUsed = await _myDataService.GetUserUsedDataTotal(_user);
         _showProfile = !_showProfile;
     }
 
