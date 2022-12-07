@@ -9,6 +9,8 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Tewr.Blazor.FileReader;
+using Datahub.Core.Services.Security;
+using Datahub.Core.Services.UserManagement;
 
 namespace Datahub.Tests
 {
@@ -20,8 +22,6 @@ namespace Datahub.Tests
             services.AddSingleton<IMSGraphService, MSGraphService>();
             services.AddSingleton<IKeyVaultService, KeyVaultService>();
             services.AddScoped<DataLakeClientService>();
-            services.AddSingleton<CognitiveSearchService>();
-            services.AddScoped<IMyDataService, MyDataService>();
             services.AddScoped<IWebHostEnvironment, FakeWebHostEnvironment>();
             services.AddScoped<IJSRuntime, FakeJSRuntime>();
             //services.AddScoped<DataUpdatingService>();

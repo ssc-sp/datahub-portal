@@ -7,6 +7,8 @@ using Xunit;
 using Datahub.Core.UserTracking;
 using Microsoft.Extensions.Configuration;
 using System.Threading;
+using Datahub.Core.Services.UserManagement;
+using Datahub.Core.Services.Security;
 
 namespace Datahub.Tests
 {
@@ -137,7 +139,6 @@ namespace Datahub.Tests
             serviceCollection.AddScoped<IUserInformationService, UserInformationService>();
             serviceCollection.AddSingleton<IMSGraphService, MSGraphService>();
 
-            serviceCollection.AddScoped<IMyDataService, MyDataService>();
 
             _serviceProvider = serviceCollection.BuildServiceProvider();
         }

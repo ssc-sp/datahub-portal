@@ -46,12 +46,17 @@ using Datahub.ProjectTools.Services;
 using Datahub.Core.Services.Projects;
 using Datahub.ProjectTools.Services.Offline;
 using MudBlazor;
+using Datahub.Core.Services.UserManagement;
+using Datahub.Core.Services.Security;
+using Datahub.Core.Services.Data;
+using Datahub.Core.Services.Search;
+using Datahub.Core.Services.Metadata;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]
 
 namespace Datahub.Portal
 {
-	public class Startup
+    public class Startup
     {
         public Startup(IConfiguration configuration, IWebHostEnvironment env)
         {
@@ -368,19 +373,13 @@ namespace Datahub.Portal
                 services.AddScoped<IUserInformationService, UserInformationService>();
                 services.AddSingleton<IMSGraphService, MSGraphService>();
 
-                services.AddScoped<IMyDataService, MyDataService>();
-
-                services.AddScoped<IPublicDataFileService, PublicDataFileService>();
 
                 services.AddScoped<IProjectDatabaseService, ProjectDatabaseService>();
 
-                services.AddScoped<IDataUpdatingService, DataUpdatingService>();
                 services.AddScoped<IDataSharingService, DataSharingService>();
                 services.AddScoped<IDataCreatorService, DataCreatorService>();
                 services.AddScoped<DataRetrievalService>();
                 services.AddScoped<IDataRemovalService, DataRemovalService>();
-
-                services.AddSingleton<ICognitiveSearchService, CognitiveSearchService>();
 
                 services.AddScoped<IAzurePriceListService, AzurePriceListService>();
 
@@ -403,19 +402,14 @@ namespace Datahub.Portal
                 services.AddSingleton<IMSGraphService, OfflineMSGraphService>();
                 services.AddScoped<IPowerBiDataService, OfflinePowerBiDataService>();
 
-                services.AddScoped<IMyDataService, OfflineMyDataService>();
-
                 services.AddScoped<IProjectDatabaseService, OfflineProjectDatabaseService>();
 
-                services.AddScoped<IDataUpdatingService, OfflineDataUpdatingService>();
                 services.AddScoped<IDataSharingService, OfflineDataSharingService>();
                 services.AddScoped<IDataCreatorService, OfflineDataCreatorService>();
                 services.AddScoped<DataRetrievalService, OfflineDataRetrievalService>();
                 services.AddScoped<IDataRemovalService, OfflineDataRemovalService>();
 
                 services.AddScoped<IAzurePriceListService, OfflineAzurePriceListService>();
-
-                services.AddSingleton<ICognitiveSearchService, OfflineCognitiveSearchService>();
             }
 
             services.AddSingleton<IExternalSearchService, ExternalSearchService>();
