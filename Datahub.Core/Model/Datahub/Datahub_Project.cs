@@ -129,6 +129,10 @@ namespace Datahub.Core.EFCore
         public string Project_Status_Desc { get; set; }
 
         [AeFormCategory("Initiative Information")]
+        [MudForm(IsDropDown = true)]
+        public int Project_Status { get; set; }
+
+        [AeFormCategory("Initiative Information")]
         [AeLabel(isDropDown: true)]
         public string Project_Phase { get; set; }
 
