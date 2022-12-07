@@ -1,5 +1,3 @@
-using System.Threading.Tasks;
-using Datahub.Core.Services.Resources;
 using Microsoft.Azure.Services.AppAuthentication;
 
 namespace Datahub.ProjectTools.Services

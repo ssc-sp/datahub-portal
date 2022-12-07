@@ -1,18 +1,7 @@
 ﻿using Datahub.Core.Configuration;
 using Datahub.Core.EFCore;
-using Datahub.Core.Services;
-using Datahub.Core.Services.Projects;
-using Datahub.ProjectTools.Services;
-using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using Microsoft.Graph;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Datahub.ProjectTools.Catalog
 {

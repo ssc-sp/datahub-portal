@@ -260,7 +260,7 @@ namespace Datahub.Core.Services.UserManagement
             var userSetting = eFCoreDatahubContext.UserSettings.FirstOrDefault(u => u.UserId == userId);
             return userSetting != null ? userSetting.Language : string.Empty;
         }
-
+        
         public bool SetLanguage(string language)
         {
             if (!Thread.CurrentThread.CurrentCulture.Name.Equals(language, StringComparison.OrdinalIgnoreCase))

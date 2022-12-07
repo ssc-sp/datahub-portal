@@ -1,6 +1,5 @@
 
 using System;
-using System.Configuration;
 using Datahub.Core.EFCore;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
