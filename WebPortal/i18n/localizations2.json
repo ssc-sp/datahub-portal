@@ -184,6 +184,19 @@
   "IsDatabaseSqlServer": "SQL Server Database",
   "HasAssociatedDatabase": "Has Associtated Database",
   "Is_Private": "Private",
-  "Is_Featured": "Featured"
-
+  "Is_Featured": "Featured",
+  "Welcome to the Government of Canada's new one-stop hub for science data solutions.": "Welcome to the Government of Canada's new one-stop hub for science data solutions.",
+  "Hosted by SSC (Proof-of-Concept Phase)": "Hosted by SSC (Proof-of-Concept Phase)",
+  "<b>Onboard here to escape the silos.</b> With one simple sign-on, you can:": "<b>Onboard here to escape the silos.</b> With one simple sign-on, you can:",
+  "Access fit-for-purpose, scalable <b>storage</b> for GC science Data": "Easily <b>share</b> your data with your GC colleagues",
+  "Easily <b>share</b> your data with your GC colleagues": "Easily <b>share</b> your data with your GC colleagues",
+  "Perform <b>analytics</b> and <b>collaborate</b> with your GC science partners in an interactive environment": "Perform <b>analytics</b> and <b>collaborate</b> with your GC science partners in an interactive environment",
+  "Thank you for registering with DataHub.": "Thank you for registering with DataHub.",
+  "You will receive an email with your account details.": "You will receive an email with your account details.",
+  "already registered?": "already registered?",
+  "Log in instead": "Log in instead",
+  "Government of Canada email address is required": "Government of Canada email address is required",
+  "REGISTER": "REGISTER",
+  "Log in": "Log in",
+  "You will be redirected to the log in page.": "You will be redirected to the log in page."
 }

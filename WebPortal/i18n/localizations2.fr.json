@@ -196,5 +196,19 @@
   "IsDatabaseSqlServer": "Base de données SQL Server",
   "HasAssociatedDatabase": "A Associté la base de données",
   "Is_Private": "Privé",
-  "Is_Featured": "En vedette :"
+  "Is_Featured": "En vedette :",
+  "Welcome to the Government of Canada's new one-stop hub for science data solutions": "Bienvenue au nouveau carrefour du gouvernement du Canada pour les solutions de données scientifiques.",
+  "Hosted by SSC (Proof-of-Concept Phase)": "Hébergé par SPC (phase de validation de principe)",
+  "<b>Onboard here to escape the silos.</b> With one simple sign-on, you can:": "<b>À bord pour échapper aux silos. </b> Avec une simple connexion, vous pouvez :",
+  "Access fit-for-purpose, scalable <b>storage</b> for GC science Data": "Accès adapté et évolutif au <b>stockage</b>des données scientifiques du GC",
+  "Easily <b>share</b> your data with your GC colleagues": "<b>Partagez</b> facilement vos données avec vos collègues du GC",
+  "Perform <b>analytics</b> and <b>collaborate</b> with your GC science partners in an interactive environment": "Effectuer des <b>analyses</b> et <b>collaborer</b> avec vos partenaires scientifiques du GC dans un environnement interactif",
+  "Thank you for registering with DataHub.": "Merci de votre inscription au DataHub.",
+  "You will receive an email with your account details.": "Vous recevrez un e-mail avec les détails de votre compte.",
+  "already registered?": "déjà enregistré?",
+  "Log in instead": "Se connecter à la place",
+  "Government of Canada email address is required": "L’adresse courriel du gouvernement du Canada est requise",
+  "REGISTER": "S'INSCRIRE",
+  "Log in": "Se connecter",
+  "You will be redirected to the log in page.": "Vous serez redirigé vers la page d’ouverture de session."
 }
