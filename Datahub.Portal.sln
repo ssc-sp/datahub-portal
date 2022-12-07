@@ -88,31 +88,33 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Portal.Metadata", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.ProjectTools", "Datahub.ProjectTools\Datahub.ProjectTools.csproj", "{91E65687-B756-45C5-8080-F807E95CE5B0}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{48CAB0F7-CFCC-443B-B71D-E015878CE5B7}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ResourceProvisioner", "ResourceProvisioner", "{A3E0CF47-6B1D-41C1-B1A4-B4A92985E05F}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{40919C7D-5119-4821-9E51-96141E058E04}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ResourceProvisioner", "ResourceProvisioner", "{31A98289-17D2-4C64-B937-46A30CC0170E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ResourceProvisioner.Application.IntegrationTests", "test\ResourceProvisioner\ResourceProvisioner.Application.IntegrationTests\ResourceProvisioner.Application.IntegrationTests.csproj", "{E94EF665-2394-4C18-82F2-9150D0801CDE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ResourceProvisioner.Application.IntegrationTests", "test\ResourceProvisioner\ResourceProvisioner.Application.IntegrationTests\ResourceProvisioner.Application.IntegrationTests.csproj", "{E94EF665-2394-4C18-82F2-9150D0801CDE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ResourceProvisioner.Application.UnitTests", "test\ResourceProvisioner\ResourceProvisioner.Application.UnitTests\ResourceProvisioner.Application.UnitTests.csproj", "{EAADD301-947A-41AB-8036-BBB6B960C4FF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ResourceProvisioner.Application.UnitTests", "test\ResourceProvisioner\ResourceProvisioner.Application.UnitTests\ResourceProvisioner.Application.UnitTests.csproj", "{EAADD301-947A-41AB-8036-BBB6B960C4FF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ResourceProvisioner.Domain.UnitTests", "test\ResourceProvisioner\ResourceProvisioner.Domain.UnitTests\ResourceProvisioner.Domain.UnitTests.csproj", "{E73E776F-8787-40D3-B1EC-D97E29069945}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ResourceProvisioner.Domain.UnitTests", "test\ResourceProvisioner\ResourceProvisioner.Domain.UnitTests\ResourceProvisioner.Domain.UnitTests.csproj", "{E73E776F-8787-40D3-B1EC-D97E29069945}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ResourceProvisioner.Infrastructure.UnitTests", "test\ResourceProvisioner\ResourceProvisioner.Infrastructure.UnitTests\ResourceProvisioner.Infrastructure.UnitTests.csproj", "{AA32ADBD-EA7E-4849-AEB2-5BB19844B326}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ResourceProvisioner.Infrastructure.UnitTests", "test\ResourceProvisioner\ResourceProvisioner.Infrastructure.UnitTests\ResourceProvisioner.Infrastructure.UnitTests.csproj", "{AA32ADBD-EA7E-4849-AEB2-5BB19844B326}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ResourceProvisioner.API", "src\ResourceProvisioner\ResourceProvisioner.API\ResourceProvisioner.API.csproj", "{2C3C6AD3-F329-4A20-BAC6-3F12B9B48F32}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ResourceProvisioner.API", "src\ResourceProvisioner\ResourceProvisioner.API\ResourceProvisioner.API.csproj", "{2C3C6AD3-F329-4A20-BAC6-3F12B9B48F32}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ResourceProvisioner.Application", "src\ResourceProvisioner\ResourceProvisioner.Application\ResourceProvisioner.Application.csproj", "{FB5038B6-DF75-4167-8FB7-FDA3E5D9488E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ResourceProvisioner.Application", "src\ResourceProvisioner\ResourceProvisioner.Application\ResourceProvisioner.Application.csproj", "{FB5038B6-DF75-4167-8FB7-FDA3E5D9488E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ResourceProvisioner.Domain", "src\ResourceProvisioner\ResourceProvisioner.Domain\ResourceProvisioner.Domain.csproj", "{CF8DE3C8-8B81-4569-8075-AAD80B478B5F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ResourceProvisioner.Domain", "src\ResourceProvisioner\ResourceProvisioner.Domain\ResourceProvisioner.Domain.csproj", "{CF8DE3C8-8B81-4569-8075-AAD80B478B5F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ResourceProvisioner.Infrastructure", "src\ResourceProvisioner\ResourceProvisioner.Infrastructure\ResourceProvisioner.Infrastructure.csproj", "{C2913060-0D92-4094-AEED-5D5DF2646CFD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ResourceProvisioner.Infrastructure", "src\ResourceProvisioner\ResourceProvisioner.Infrastructure\ResourceProvisioner.Infrastructure.csproj", "{C2913060-0D92-4094-AEED-5D5DF2646CFD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ResourceProvisioner.Functions", "src\ResourceProvisioner\ResourceProvisioner.Functions\ResourceProvisioner.Functions.csproj", "{33C6B018-24B5-453F-973F-6412331C7921}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ResourceProvisioner.Functions", "src\ResourceProvisioner\ResourceProvisioner.Functions\ResourceProvisioner.Functions.csproj", "{33C6B018-24B5-453F-973F-6412331C7921}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Portal", "Portal", "{9044D7D6-8639-4FD6-A57F-2D6BAE6E8C69}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Portal", "Portal", "{77819352-3E3D-4B28-8C55-CC7D7B25D8C9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -264,18 +266,32 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
+		{7C55A80E-F420-45A7-A85E-BBF054533EE3} = {77819352-3E3D-4B28-8C55-CC7D7B25D8C9}
+		{9437DD2A-0322-47ED-8FA2-96B8B87928CB} = {9044D7D6-8639-4FD6-A57F-2D6BAE6E8C69}
+		{E536F8EC-31D3-4C07-AEB2-C2A8D8634480} = {77819352-3E3D-4B28-8C55-CC7D7B25D8C9}
+		{C74EAD65-0161-425B-B121-30C69BED59A3} = {9044D7D6-8639-4FD6-A57F-2D6BAE6E8C69}
+		{11A4651C-6BC9-45E2-847D-025F466B8345} = {77819352-3E3D-4B28-8C55-CC7D7B25D8C9}
 		{94F1AACD-69F3-4B14-A0B5-9E2676C017C7} = {2B936783-B7E9-401F-9AB4-2D60D9F1E95E}
 		{AEB7AF13-E06C-4650-ADBD-5EF1BD5F645B} = {D678C794-D1AE-4372-9097-A8C8E0469613}
 		{FA17FE2D-2E5E-4992-92E0-A3F7B7E295DE} = {D678C794-D1AE-4372-9097-A8C8E0469613}
 		{806B4AB9-428B-45FC-A6BD-F314E56A85DA} = {2B936783-B7E9-401F-9AB4-2D60D9F1E95E}
 		{C305FB95-C2BD-49D7-95F5-4AEEA39306C3} = {2B936783-B7E9-401F-9AB4-2D60D9F1E95E}
 		{13C0760C-F9A3-4582-94F6-B34FDF871EAD} = {2B936783-B7E9-401F-9AB4-2D60D9F1E95E}
+		{32A1AB80-7426-48E9-BBC2-14B6FE6FBABD} = {77819352-3E3D-4B28-8C55-CC7D7B25D8C9}
 		{6DF3ED4E-088F-423B-B766-69243BD9ADF0} = {99B35301-CA50-489C-B1BF-E77559140B1E}
 		{52436CFD-EEE3-4249-AB82-53BBEE7F8251} = {2B936783-B7E9-401F-9AB4-2D60D9F1E95E}
 		{D49B255D-3B8D-473C-8BFA-094440AE9CED} = {D678C794-D1AE-4372-9097-A8C8E0469613}
+		{80F3D52C-9396-4C7C-A717-6314813E6493} = {77819352-3E3D-4B28-8C55-CC7D7B25D8C9}
 		{C7E9370C-84AF-461F-A073-43AD43B3AF21} = {99B35301-CA50-489C-B1BF-E77559140B1E}
+		{716CCB96-2C59-48EF-A7A7-18F0807DE3D2} = {77819352-3E3D-4B28-8C55-CC7D7B25D8C9}
+		{72C2A522-FAC2-439B-97D2-B9CDF289BE8A} = {9044D7D6-8639-4FD6-A57F-2D6BAE6E8C69}
+		{304A5D8A-8665-424B-8DD8-23D65753F645} = {77819352-3E3D-4B28-8C55-CC7D7B25D8C9}
+		{EE5EC583-4088-4D50-99A4-C3EAB0C48811} = {9044D7D6-8639-4FD6-A57F-2D6BAE6E8C69}
+		{EDB44E0F-DF37-4717-943C-58A4EC672A4F} = {77819352-3E3D-4B28-8C55-CC7D7B25D8C9}
 		{9E36CAF6-992C-4661-9A21-2FAC3EFD31F7} = {99B35301-CA50-489C-B1BF-E77559140B1E}
-		{A3E0CF47-6B1D-41C1-B1A4-B4A92985E05F} = {48CAB0F7-CFCC-443B-B71D-E015878CE5B7}
+		{8F6909AF-B174-4116-B99B-6759BB3B89C9} = {77819352-3E3D-4B28-8C55-CC7D7B25D8C9}
+		{3420A972-F39F-4A81-A7CB-3BD461F46CA1} = {77819352-3E3D-4B28-8C55-CC7D7B25D8C9}
+		{91E65687-B756-45C5-8080-F807E95CE5B0} = {77819352-3E3D-4B28-8C55-CC7D7B25D8C9}
 		{31A98289-17D2-4C64-B937-46A30CC0170E} = {40919C7D-5119-4821-9E51-96141E058E04}
 		{E94EF665-2394-4C18-82F2-9150D0801CDE} = {31A98289-17D2-4C64-B937-46A30CC0170E}
 		{EAADD301-947A-41AB-8036-BBB6B960C4FF} = {31A98289-17D2-4C64-B937-46A30CC0170E}
@@ -286,10 +302,11 @@ Global
 		{CF8DE3C8-8B81-4569-8075-AAD80B478B5F} = {A3E0CF47-6B1D-41C1-B1A4-B4A92985E05F}
 		{C2913060-0D92-4094-AEED-5D5DF2646CFD} = {A3E0CF47-6B1D-41C1-B1A4-B4A92985E05F}
 		{33C6B018-24B5-453F-973F-6412331C7921} = {A3E0CF47-6B1D-41C1-B1A4-B4A92985E05F}
+		{9044D7D6-8639-4FD6-A57F-2D6BAE6E8C69} = {40919C7D-5119-4821-9E51-96141E058E04}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {9DC4B901-16FF-4FF2-9ED6-B286EA17048E}
-		RESX_AutoCreateNewLanguageFiles = True
 		RESX_ConfirmAddLanguageFile = True
+		RESX_AutoCreateNewLanguageFiles = True
+		SolutionGuid = {9DC4B901-16FF-4FF2-9ED6-B286EA17048E}
 	EndGlobalSection
 EndGlobal
