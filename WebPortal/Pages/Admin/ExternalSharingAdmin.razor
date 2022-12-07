@@ -1,8 +1,9 @@
-﻿@inject IUserInformationService _userInformationService
+﻿@using Datahub.PowerBI.Pages.Admin
+
+@inject IUserInformationService _userInformationService
 @inject ServiceAuthManager _serviceAuthManager
 
 @page "/admin/externalsharing"
-@using Datahub.PowerBI.Pages.Admin
 
 <DHPageTitle PageTitleKey=@Localizer[$"{ADMIN_SECTION_LOCALIZATION_PREFIX}.ExternalSharing"] />
 
@@ -21,7 +22,6 @@
 <MudText>
     <MudLink Href="/administration">@Localizer[$"{ADMIN_LOCALIZATION_PREFIX}.ReturnToAdmin"]</MudLink>
 </MudText>
-
 
 @code {
 

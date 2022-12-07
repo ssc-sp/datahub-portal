@@ -1,8 +1,8 @@
 ﻿@inject DataRetrievalService DataRetreivalService
-@inject IMyDataService MyDataService
 @inject UIControlsService UI
 @inject NotifierService NotifierService
 
+@* TODO: this is a legacy page part of the my data - keeping this in the code because it has logic to work with blob versions in ACL storage*@
 <h4 class="nrcan-typography h4">@Localizer["VERSION-PAGE.Header", File.filename]</h4>
 <p class="nrcan-typography paragragh">@Localizer["VERSION-PAGE.Introduction1"]</p>
 <p class="nrcan-typography paragragh">@Localizer["VERSION-PAGE.Introduction2"]</p>
@@ -43,7 +43,7 @@ else
     {
         if (restore)
         {
-            await MyDataService.RestoreVersionOfBlob(selectedVersionId, File.fileid);
+            //await MyDataService.RestoreVersionOfBlob(selectedVersionId, File.fileid);
             await NotifierService.Update("filegrid", true);
         }
         await UI.ToggleModal();

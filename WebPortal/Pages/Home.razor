@@ -3,7 +3,6 @@
 @using Microsoft.Graph
 
 @inject IUserInformationService _userInformationService
-@inject IMyDataService _myDataService
 @inject IDataCreatorService _dataCreatorService
 @inject UIControlsService _uiControlsService
 @inject NavigationManager _navigationManager
@@ -21,6 +20,8 @@
 
 @code
 {
+    public const string LOGOUT_URL = "/signout-oidc";
+
     [Parameter]
     public string TabIndex { get; set; }
 
@@ -69,11 +70,6 @@
         var rootFolder = await _userInformationService.GetUserRootFolder();
 
         await _dataCreatorService.CreateRootFolderIfNotExist(_user.Id, rootFolder);
-
-    // Set the user folder ID!
-        _myDataService.MyDataFolder.id = rootFolder;
-        _myDataService.SharedDataFolder.id = rootFolder;
-        _myDataService.SearchDataFolder.id = rootFolder;
     }
 
     private async void HandleAlertDecision(bool isContinue)
@@ -94,7 +90,7 @@
             return;
         }
 
-        _navigationManager.NavigateTo(_myDataService.LogoutURL, forceLoad: true);
+        _navigationManager.NavigateTo(LOGOUT_URL, forceLoad: true);
     }
 
     private async Task AdjustLanguage()
@@ -122,7 +118,7 @@
         }
         else
         {
-            _navigationManager.NavigateTo(_myDataService.LogoutURL, forceLoad: true);
+            _navigationManager.NavigateTo(LOGOUT_URL, forceLoad: true);
         }
     }
 
