@@ -297,24 +297,23 @@ namespace Datahub.Portal
             // Token acquisition service based on MSAL.NET
             // and chosen token cache implementation
 
-            if (!Offline)
-            {
-                //services.AddAuthentication(AzureADDefaults.AuthenticationScheme)               
-                //        .AddAzureAD(options => Configuration.Bind("AzureAd", options));
-                var scopes = new List<string>();
-                //scopes.AddRange(PowerBiServiceApi.RequiredReadScopes);
-                scopes.Add("user.read");
-                //scopes.Add("PowerBI.Read.All");
+            if (Offline) return;
+            //services.AddAuthentication(AzureADDefaults.AuthenticationScheme)               
+            //        .AddAzureAD(options => Configuration.Bind("AzureAd", options));
+            var graphScopes = new List<string> {
+                "user.read",
+            };
+            //scopes.Add("PowerBI.Read.All");
 
-                services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
-                    .AddMicrosoftIdentityWebApp(Configuration, "AzureAd")
-                    .EnableTokenAcquisitionToCallDownstreamApi(scopes)
-                    .AddMicrosoftGraph(Configuration.GetSection("Graph"))
-                    .AddInMemoryTokenCaches();
+            services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
+                .AddMicrosoftIdentityWebApp(Configuration, "AzureAd")
+                .EnableTokenAcquisitionToCallDownstreamApi(graphScopes)
+                .AddMicrosoftGraph(Configuration.GetSection("Graph"))
+                //.AddDownstreamWebApi("ResourceProvisionerApi", Configuration.GetSection("ResourceProvisionerApi"))
+                .AddInMemoryTokenCaches();
 
-                services.AddControllersWithViews()
-                    .AddMicrosoftIdentityUI();
-            }
+            services.AddControllersWithViews()
+                .AddMicrosoftIdentityUI();
         }
 
         private void ConfigureLocalization(IServiceCollection services)
@@ -390,6 +389,8 @@ namespace Datahub.Portal
                 services.AddScoped<RegistrationService>();
                 
                 services.AddScoped<UpdateProjectMonthlyCostService>();
+                services.AddScoped<IProjectCreationService, ProjectCreationService>();
+
             }
             else
             {
