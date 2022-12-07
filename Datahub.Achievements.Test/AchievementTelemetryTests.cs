@@ -35,7 +35,7 @@ public class AchievementTelemetryTests
         var achievementService =
             new AchievementService(mockLogger.Object, mockCosmosDb.Object, mockStorage.Object, mockAuth.Object, Options);
 
-        mockStorage.Setup(s => s.GetItemAsync<UserObject>(It.IsAny<string>(), null))
+        mockStorage.Setup(s => s.GetItemAsync<UserObject>(It.IsAny<string>(), CancellationToken.None))
             .ReturnsAsync(new UserObject() { UserId = UserId });
 
         var result = await achievementService.AddOrIncrementTelemetryEvent(eventName, initialValue);
@@ -55,7 +55,7 @@ public class AchievementTelemetryTests
         var achievementService =
             new AchievementService(mockLogger.Object, mockCosmosDb.Object, mockStorage.Object, mockAuth.Object, Options);
 
-        mockStorage.Setup(s => s.GetItemAsync<UserObject>(It.IsAny<string>(), null))
+        mockStorage.Setup(s => s.GetItemAsync<UserObject>(It.IsAny<string>(), CancellationToken.None))
             .ReturnsAsync(new UserObject() { UserId = UserId });
 
 
@@ -82,7 +82,7 @@ public class AchievementTelemetryTests
         var achievementService =
             new AchievementService(mockLogger.Object, mockCosmosDb.Object, mockStorage.Object, mockAuth.Object, Options);
 
-        mockStorage.Setup(s => s.GetItemAsync<UserObject>(It.IsAny<string>(), null))
+        mockStorage.Setup(s => s.GetItemAsync<UserObject>(It.IsAny<string>(), CancellationToken.None))
             .ReturnsAsync(new UserObject() { UserId = UserId });
 
         var result = await achievementService.AddOrSetTelemetryEvent(eventName, initialValue);
@@ -111,7 +111,7 @@ public class AchievementTelemetryTests
         var achievementService =
             new AchievementService(mockLogger.Object, mockCosmosDb.Object, mockStorage.Object, mockAuth.Object, Options);
 
-        mockStorage.Setup(s => s.GetItemAsync<UserObject>(It.IsAny<string>(), null))
+        mockStorage.Setup(s => s.GetItemAsync<UserObject>(It.IsAny<string>(), CancellationToken.None))
             .ReturnsAsync(new UserObject() { UserId = UserId });
 
         var result = await achievementService.AddOrSetTelemetryEventKeepMax(eventName, initialValue);
@@ -134,7 +134,7 @@ public class AchievementTelemetryTests
         var mockStorage = new Mock<ILocalStorageService>();
         var mockCosmosDb = new Mock<IDbContextFactory<AchievementContext>>();
 
-        mockStorage.Setup(s => s.GetItemAsync<UserObject>(It.IsAny<string>(), null))
+        mockStorage.Setup(s => s.GetItemAsync<UserObject>(It.IsAny<string>(), CancellationToken.None))
             .ReturnsAsync(new UserObject { UserId = UserId });
 
         var mockAuth = Utils.CreateMockAuth(UserId);

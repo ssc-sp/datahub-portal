@@ -35,8 +35,8 @@
 @using Datahub.Core.Utils
 @using Datahub.Core.Configuration
 @using Datahub.Core.Layout
+@using Datahub.Core.Components.Resources
 @using Datahub.Achievements
-
 
 @using Datahub.GeoCore.Service
 
@@ -44,7 +44,7 @@
 @using Datahub.Portal.Services
 @using Datahub.Portal.Components
 @using Datahub.Portal.Components.FileGridComponents
-@using Datahub.Portal.Components.Metadata
+@using Datahub.Portal.Metadata.Components
 @using Datahub.Portal.Views
 @using Datahub.Portal.Views.Modals
 @using Datahub.Portal.Components.Versions
@@ -53,7 +53,8 @@
 @using Datahub.Portal.Data;
 @using Datahub.Portal.Data.LanguageTraining;
 @using Datahub.Portal.Data.WebAnalytics;
-@using Datahub.Portal.Pages.Project.PowerBiReports
+
+@using Datahub.ProjectTools.Services;
 
 @using Datahub.LanguageTraining;
 
@@ -63,3 +64,4 @@
 @using MudBlazor;
 
 @inject IStringLocalizer Localizer
+@inject CultureService CultureService

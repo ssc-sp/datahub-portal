@@ -111,7 +111,8 @@ public class AchievementService
 
             if (userId is null)
             {
-                throw new AuthenticationException("Self fetching user is not authenticated");
+                return null;
+                //throw new AuthenticationException("Self fetching user is not authenticated");
             }
         }
 
@@ -165,12 +166,18 @@ public class AchievementService
         return (await GetUserObject(userId)).UserAchievements.ToList();
     }
 
+    private const int ERROR_TELEMETRY = -1;
+
     public async Task<int> AddOrIncrementTelemetryEvent(string eventName, int value = 1, string? userId = null)
     {
         try
         {
             var userObject = await GetUserObject(userId);
-
+            if (userObject is null)
+            {
+                _logger.LogWarning($"Error while trying to increment event '{eventName}' - user data is not available");
+                return ERROR_TELEMETRY;
+            }
             userObject.Telemetry.AddOrIncrementEventMetric(eventName, value);
 
             await RunRulesEngine(userObject);
@@ -180,7 +187,7 @@ public class AchievementService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error while trying to increment event '{eventName}'");
+            _logger.LogWarning(ex, $"Error while trying to increment event '{eventName}'");
             return 0;
         }
     }

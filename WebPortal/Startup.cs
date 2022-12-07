@@ -41,12 +41,17 @@ using Datahub.GeoCore.Service;
 using Datahub.Core.Services.Offline;
 using Datahub.CatalogSearch;
 using Datahub.Core.Services.AzureCosting;
+using Datahub.Core.Services.Resources;
+using Datahub.ProjectTools.Services;
+using Datahub.Core.Services.Projects;
+using Datahub.ProjectTools.Services.Offline;
+using MudBlazor;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]
 
 namespace Datahub.Portal
 {
-    public class Startup
+	public class Startup
     {
         public Startup(IConfiguration configuration, IWebHostEnvironment env)
         {
@@ -127,6 +132,7 @@ namespace Datahub.Portal
 
             services.AddElemental();
             services.AddMudServices();
+            services.AddMudMarkdownServices();
             services.AddSingleton(moduleManager);
 
 
@@ -155,9 +161,17 @@ namespace Datahub.Portal
 
             services.Configure<PortalVersion>(Configuration.GetSection("PortalVersion"));
             services.AddScoped<IPortalVersionService, PortalVersionService>();
+            services.AddProjectResources();
+
+
 
             services.AddScoped<CatalogImportService>();
             services.AddSingleton<ICatalogSearchEngine, CatalogSearchEngine>();
+
+            // TODO FIXME this will likely change when proper caching is implemented
+            services.AddSingleton<IResourcesService, ResourcesService>();
+
+            services.AddSingleton<CultureService>();
 
             services.AddSignalRCore();
 
@@ -435,7 +449,7 @@ namespace Datahub.Portal
             services.AddSingleton<IGlobalSessionManager, GlobalSessionManager>();
             services.AddScoped<IUserCircuitCounterService, UserCircuitCounterService>();
 
-            services.AddScoped<RequestManagementService>();
+            services.AddScoped<IRequestManagementService, RequestManagementService>();
 
             services.AddScoped<CustomNavigation>();
 

@@ -1,3 +1,5 @@
+@using Datahub.Core.Services.Projects;
+@using Datahub.ProjectTools.Services;
 @using Microsoft.Extensions.Options
 @using Datahub.Portal.Pages.Project.DataProject.ProjectTools
 
@@ -7,10 +9,10 @@
 @inject IOptions<DataProjectsConfiguration> _configuration
 @inject ServiceAuthManager ServiceAuthManager
 @inject IEmailNotificationService _emailNotificationService
+@inject ProjectResourcesListingService ProjectResourcesListingService
 
-<div class="project-tools">
+<div>
 
-    <MudText Typo="Typo.h4">@Localizer["Project Tools"]</MudText>
     <AuthorizeView Roles="@string.Join(',', _authorizedRoles)">
         <NotAuthorized>
             <div class="access-denied">
@@ -29,88 +31,107 @@
             </div>
         </NotAuthorized>
         <Authorized>
-
-
-            <div class="controls">
-                <span class="icon-wrapper @(_isDense ? "active" : "")" @onclick="@(() => ToggleDense(true))">
-                    <i class="fas fa-list-ul"></i>
-                </span>
-                <span class="icon-wrapper @(!_isDense ? "active" : "")" @onclick="@(() => ToggleDense(false))">
-                    <i class="fas fa-th-large"></i>
-                </span>
-            </div>
-            @if (_isLoading)
+            @if (_activeResources?.Count > 0)
             {
-                @*<Spinner/>*@
-            }
-            else
-            {
-                <div class="tools-container @(_isDense ? "dense" : "")">
-                    @if (_configuration.Value.Databricks && _canViewDatabricks)
-                    {
-                        <Databricks/>
-                    }
-                    @if (_configuration.Value.PowerBI && _canViewPowerBi)
-                    {
-                        <PowerBI/>
-                    }
-                    @if (!string.IsNullOrEmpty(Project.WebForms_URL) && _configuration.Value.WebForms)
-                    {
-                        <DataEntry/>
-                    }
-                    @if (_configuration.Value.WebForms)
-                    {
-                        <FormBuilder/>
-                    }
-                    @if (_configuration.Value.Storage)
-                    {
-                        <Storage/>
-                    }
-                    @if (_configuration.Value.PublicSharing)
-                    {
-                        <PublicSharing/>
-                    }
+                <div class="project-tools" style="margin-bottom: 2rem;">
+                <MudText Typo="Typo.h4">@Localizer["Active Project Tools"]</MudText>
 
-                    @if (_configuration.Value.Costing)
-                    {
-                        <Costing/>
-                    }
-                    @if (_configuration.Value.DataManagement)
-                    {
-                        <IoT/>
-                    }
 
-                    @if (_configuration.Value.IoT)
-                    {
-                        <DataManagement/>
-                    }
-
-                    @if (_configuration.Value.PostgreSQL)
-                    {
-                        @if (_projectDatabaseResources.Count < 1)
+                <div class="controls">
+                    <span class="icon-wrapper @(_isDense ? "active" : "")" @onclick="@(() => ToggleDense(true))">
+                        <i class="fas fa-list-ul"></i>
+                    </span>
+                    <span class="icon-wrapper @(!_isDense ? "active" : "")" @onclick="@(() => ToggleDense(false))">
+                        <i class="fas fa-th-large"></i>
+                    </span>
+                </div>
+                @if (_isLoading)
+                {
+                    @*<Spinner/>*@
+                }
+                else
+                {
+                    <div class="tools-container @(_isDense ? "dense" : "")">
+                        @foreach (var active in _activeResources)
                         {
-                            <ProjectDatabase />
+                            <DynamicComponent Parameters="active.parameters" Type="active.type" />
                         }
-                        else
+@*                        @if (_configuration.Value.WebForms)
                         {
-                            foreach(var db in _projectDatabaseResources)
+                            <FormBuilder/>
+                        }
+                        @if (_configuration.Value.Costing)
+                        {
+                            <Costing/>
+                        }
+                        @if (_configuration.Value.DataManagement)
+                        {
+                            <IoT/>
+                        }
+
+                        @if (_configuration.Value.IoT)
+                        {
+                            <DataManagement/>
+                        }
+
+                        @if (_configuration.Value.PostgreSQL)
+                        {
+                            @if (_projectDatabaseResources.Count < 1)
                             {
-                                <ProjectDatabase ResourceID=@db.ResourceId />
+                                <ProjectDatabase />
                             }
+                            else
+                            {
+                                foreach(var db in _projectDatabaseResources)
+                                {
+                                    <ProjectDatabase ResourceID=@db.ResourceId />
+                                }
+                            }
+                        }*@
+                        <Admin/>
+
+                        @if (_configuration.Value.StorageCost)
+                        {
+                            <StorageCost />
                         }
-                    }
-                    <Admin/>
 
-                    @if (_configuration.Value.StorageCost)
-                    {
-                        <StorageCost />
-                    }
-
-                    @if (_configuration.Value.ComputeCost)
-                    {
-                        <ComputeCost />
+                        @if (_configuration.Value.ComputeCost)
+                        {
+                            <ComputeCost />
                     }
                 </div>
+            }
+            </div>
+            }
+
+            @if (_inactiveResources?.Count > 0)
+            {
+            <div class="project-tools">
+                <MudText Typo="Typo.h4">@Localizer["Available Project Tools"]</MudText>
+
+
+                <div class="controls">
+                    <span class="icon-wrapper @(_isDense ? "active" : "")" @onclick="@(() => ToggleDense(true))">
+                        <i class="fas fa-list-ul"></i>
+                    </span>
+                    <span class="icon-wrapper @(!_isDense ? "active" : "")" @onclick="@(() => ToggleDense(false))">
+                        <i class="fas fa-th-large"></i>
+                    </span>
+                </div>
+                @if (_isLoading)
+                {
+                    @*<Spinner/>*@
+                }
+                else
+                {
+                    <div class="tools-container @(_isDense ? "dense" : "")">
+                        @foreach (var resource in _inactiveResources)
+                        {
+                                <DynamicComponent Parameters="resource.parameters" Type="resource.type" />
+                        }
+                    </div>
+                }
+            </div>
             }
         </Authorized>
     </AuthorizeView>
@@ -121,13 +142,9 @@
     [CascadingParameter(Name = "Project")]
     private Datahub_Project Project { get; set; }
 
-    [CascadingParameter(Name = "IsDatahubAdmin")]
-    public bool IsDatahubAdmin { get; set; }
-
     private bool _isLoading = true;
     private bool _isDense = false;
     private System.Security.Claims.ClaimsPrincipal _user;
-    private bool _canViewDatabricks;
     private bool _canViewPowerBi;
     private List<string> _authorizedRoles;
     private Microsoft.Graph.User _graphUser;
@@ -138,11 +155,14 @@
 
     private bool _isProjectUserPendingApproval;
 
+    private List<(Type type, IDictionary<string, object> parameters)> _activeResources;
+    private List<(Type type, IDictionary<string, object> parameters)> _inactiveResources;
+
     protected override async Task OnInitializedAsync()
     {
         await using var projectDbContext = await _dbFactoryProject.CreateDbContextAsync();
 
-        var user = await _userInformationService.GetUserAsync();
+        var user = await _userInformationService.GetCurrentGraphUserAsync();
         _authorizedRoles = new List<string>
         {
             ProjectAcronym, $"{ProjectAcronym}-admin"
@@ -155,7 +175,7 @@
 
         _user = await _userInformationService.GetAuthenticatedUser();
 
-        _graphUser = await _userInformationService.GetUserAsync();
+        _graphUser = await _userInformationService.GetCurrentGraphUserAsync();
 
 
         _isProjectUserPendingApproval = projectDbContext.Project_Users_Requests
@@ -164,20 +184,20 @@
 
         var _serviceRequests = await projectDbContext.Project_Requests.Where(p => p.Project == Project).ToListAsync();
 
-        var isUserAdmin = _user.IsInRole($"{ProjectAcronym}-admin");
-        _canViewDatabricks = isUserAdmin || !string.IsNullOrEmpty(Project.Databricks_URL) || IsDatahubAdmin;
-
         var isPowerBiActiveForNonAdmin = !string.IsNullOrEmpty(Project.PowerBI_URL) || 
-            _serviceRequests.Any(r => r.ServiceType == RequestManagementService.POWERBI && r.Is_Completed.HasValue);
+            _serviceRequests.Any(r => r.ServiceType == IRequestManagementService.POWERBI && r.Is_Completed.HasValue);
 
-        _canViewPowerBi = isUserAdmin || isPowerBiActiveForNonAdmin || IsDatahubAdmin;
+        //_canViewPowerBi = isUserAdmin || isPowerBiActiveForNonAdmin || IsDatahubAdmin;
 
         var allProjectResources = await projectDbContext.Project_Resources2.Where(r => r.Project == Project).ToListAsync();
 
         _projectDatabaseResources = allProjectResources
-            .Where(r => r.ResourceType == RequestManagementService.POSTGRESQL || r.ResourceType == RequestManagementService.SQLSERVER)
+            .Where(r => r.ResourceType == IRequestManagementService.POSTGRESQL || r.ResourceType == IRequestManagementService.SQLSERVER)
             .ToList();
 
+        var allResources = await ProjectResourcesListingService.GetResourcesForProject(Project);
+        _activeResources = allResources.SelectMany(a => a.GetActiveResources()).ToList();
+        _inactiveResources = allResources.Select(a => a.GetInactiveResource()).Where(a => a != null).Select(a => a.Value).ToList();
         _isLoading = false;
     }
 

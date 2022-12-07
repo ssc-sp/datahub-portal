@@ -106,6 +106,7 @@
   "Planned Staffing": "Planned Staffing",
   "FundCenter": "Fund Center",
   "Employee_Planned_Staffing": "Employee Planned Staffing",
+  "Employee_Position_Number": "Position Number",
   "Employee_Last_Name": "Employee LastName",
   "Employee_First_Name": "Employee First Name",
   "Is_Indeterminate": "Is Indeterminate",
@@ -170,6 +171,19 @@
   "FTE_Accomodations_Location_Values": "FTE Accommodations: Intended Location",
   "Position_Workspace_Type_Values": "Position Workspace Type",
   "Key_Activity_Additional_Information": "Key Activity Additional Information",
-  "SFT With Attrition": "SFT With Attrition"
-  
+  "SFT With Attrition": "SFT With Attrition",
+  "Data_Sensitivity": "Data Sensitivity",
+  "Project_Status_Desc": "Project Status",
+  "Databricks_URL": "Databricks URL",
+  "PowerBI_URL": "PowerBI URL",
+  "WebForms_URL": "WebForms URL",
+  "DB_Name": "Database Name",
+  "DB_Server": "Database Server",
+  "DB_Type": "Database Type",
+  "IsDatabasePostgres": "Postgres Database",
+  "IsDatabaseSqlServer": "SQL Server Database",
+  "HasAssociatedDatabase": "Has Associtated Database",
+  "Is_Private": "Private",
+  "Is_Featured": "Featured"
+
 }

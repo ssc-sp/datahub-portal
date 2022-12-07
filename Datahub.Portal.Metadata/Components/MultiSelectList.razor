@@ -1,0 +1,69 @@
+﻿@using Datahub.Metadata
+@using Datahub.Metadata.Model
+
+@if (FieldValue != null && FieldDefinition != null)
+{
+    <MudSelect T="string"
+               MultiSelectionTextFunc="@(new Func<List<string>, string>(GetMultiSelectionText))"
+               SelectedValues=@_selection
+               SelectedValuesChanged=@HandleSelectedValuesChanged
+               Label=@FieldDefinition.Name
+               HelperText=@FieldDefinition.Description
+               MultiSelection="true"
+               Variant="Variant.Outlined"
+               AnchorOrigin="Origin.BottomCenter"
+               AdornmentIcon=@Icons.Filled.ArrowDropDown
+               Margin="Margin.Dense">
+
+        @foreach (var c in FieldDefinition.Choices)
+        {
+            <MudSelectItem T="string" Value=@c.Value_TXT>@c.Label</MudSelectItem>
+        }
+    </MudSelect>
+}
+
+@code {
+
+    [Parameter]
+    public ObjectFieldValue FieldValue { get; set; }
+
+    [Parameter]
+    public FieldDefinition FieldDefinition { get; set; }
+
+    [Parameter]
+    public EventCallback<ObjectFieldValue> OnFieldChanged { get; set; }
+
+    private HashSet<string> _selection;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        _selection = new HashSet<string>(GetSelectedValues());
+    }
+
+    const char splitChar = '|';
+
+    private IEnumerable<string> GetSelectedValues()
+    {
+        return (FieldValue.Value_TXT ?? string.Empty).Split(splitChar).Where(v => !string.IsNullOrEmpty(v));
+    }
+
+    private void HandleSelectedValuesChanged(IEnumerable<string> values)
+    {
+        _selection = new HashSet<string>(values);
+        FieldValue.Value_TXT = string.Join(splitChar.ToString(), values);
+        OnFieldChanged.InvokeAsync(FieldValue);
+    }
+
+    private string GetMultiSelectionText(List<string> selectedValues)
+    {
+        var selection = new HashSet<string>(selectedValues);
+        List<string> labels = new();
+        foreach (var c in FieldDefinition.Choices)
+        {
+            if (selection.Contains(c.Value_TXT))
+                labels.Add(c.Label);
+        }
+        return string.Join(", ", labels);
+    }
+}

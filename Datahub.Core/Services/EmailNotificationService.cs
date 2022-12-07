@@ -148,8 +148,11 @@ namespace Datahub.Core.Services
             }
 
             var recipient = await BuildRecipient(userIdOrAddress, recipientName);
-            var recipients = new List<MailboxAddress>() { recipient };
-            await SendEmailMessage(subject, body, recipients, isHtml);
+            if (recipient is not null)
+            {
+                var recipients = new List<MailboxAddress>() { recipient };
+                await SendEmailMessage(subject, body, recipients, isHtml);
+            }
         }
 
         public async Task SendEmailMessage(string subject, string body, IList<string> userIdsOrAddresses, bool isHtml = true)
@@ -535,7 +538,7 @@ namespace Datahub.Core.Services
         public async Task SendOnboardingMetadataEditRequest(OnboardingParameters parameters)
         {
             var parametersDict = BuildOnboardingParameters(parameters);
-            var subject = $"Complete Metadata request – {parameters.App.Product_Name}";
+            var subject = $"Please complete the details for your DataHub Initiative";
             var html = await RenderTemplate<OnBoardingMetadataRequest>(parametersDict);
             await SendEmailMessage(subject, html, parameters.App.Client_Email, parameters.App.Client_Contact_Name);
         }
@@ -717,10 +720,25 @@ namespace Datahub.Core.Services
             var tasks = new List<Task>()
             {
                 SendEmailMessage(subject, html, estimatingUser.Mail),
-                SendEmailMessage(adminSubject, adminHtml, adminEmails)
+                SendEmailMessage(adminSubject, adminHtml, adminEmails) 
             };
 
             await Task.WhenAll(tasks);
+        }
+
+        public async Task EmailErrorToDatahub(string subject, string fromUser, string message, string appInsightsMessage, string stackTrace)
+        {
+            var adminEmails = _serviceAuthManager.GetProjectAdminsEmails(DATAHUB_ADMIN_PROJECT_CODE);
+            var parameters = new Dictionary<string, object>()
+            {
+                { "Date", $"{DateTime.UtcNow} UTC" },
+                { "User", fromUser },
+                { "Message", message },
+                { "AppInsightsMessage", appInsightsMessage },
+                { "StackTrace", stackTrace }
+            };
+            var bodyHtml = await RenderTemplate<GlobalErrorNotification>(parameters);
+            await SendEmailMessage(subject, bodyHtml, adminEmails);
         }
     }
 

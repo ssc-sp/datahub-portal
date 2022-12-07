@@ -9,7 +9,7 @@
 @using System.Linq.Expressions
 @using System.Security.Claims
 
-<Datahub.Core.Components.MudFormTemplate 
+<Datahub.Core.Components.Form.MudFormTemplate 
         T="FundCenter" 
         U="FinanceDBContext"
         Metadata="@_formMetadata" 
@@ -56,7 +56,7 @@
     protected override async Task OnInitializedAsync()
     {
         // load projects
-        _user = await UserInformationService.GetUserAsync();
+        _user = await UserInformationService.GetCurrentGraphUserAsync();
         _claimsUser = (await UserInformationService.GetAuthenticatedUser());
         Context = DbFactory.CreateDbContext();
         LoadSortExpressions();
@@ -68,7 +68,7 @@
         _next = DataLocalizer["Next"];
         _headers = new List<string>
         {
-            DataLocalizer["Fiscal Year"], DataLocalizer["Sector"], DataLocalizer["Branch"], DataLocalizer["Division"], DataLocalizer["AttritionRate"]
+            DataLocalizer["FiscalYear"], DataLocalizer["Sector"], DataLocalizer["Branch"], DataLocalizer["Division"], DataLocalizer["AttritionRate"]
         };
 
         LoadData(_searchFilter);
@@ -175,7 +175,7 @@
             }
             _fundcenter.Last_Updated_DT = DateTime.Now;
             await Context.SaveChangesAsync();
-            LoadData(_searchFilter); ;
+            LoadData(_searchFilter);
             _fundcenter = null;
         }
 

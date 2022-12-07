@@ -1,10 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace Datahub.Finance.Migrations
 {
-    public partial class userstable : Migration
+    public partial class Userstable : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {

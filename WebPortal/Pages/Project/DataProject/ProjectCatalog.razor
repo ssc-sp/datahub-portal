@@ -5,7 +5,7 @@
 {
     <div class="project-tools">
         <MudStack>
-            <MudText Typo="Typo.h4">@Localizer["Public Datasets"]</MudText>
+            <MudText Typo="Typo.h4">@Localizer["Shared Datasets"]</MudText>
             <MudGrid>
                 @foreach (var result in _results)
                 {
@@ -38,7 +38,7 @@ else
     if (_loading)
     {
         <MudStack>
-            <MudText Typo="Typo.h4">@Localizer["Public Datasets"]</MudText>
+            <MudText Typo="Typo.h4">@Localizer["Shared Datasets"]</MudText>
             <MudGrid>
                 @for (var i = 0; i < 6; i++)
                 {
@@ -127,6 +127,6 @@ else
     private async Task DownloadFile(CatalogObjectResult result)
     {
         var uri = await _retrievalService.GetDownloadAccessToSasBlob(DataRetrievalService.DEFAULT_CONTAINER_NAME, fileName: result.Name_English, projectUploadCode: result.Location);
-        await JSRuntime.InvokeAsync<object>("open", uri.ToString(), "_blank");
+        await JSRuntime.InvokeVoidAsync("open", uri.ToString(), "_blank");
     }
 }

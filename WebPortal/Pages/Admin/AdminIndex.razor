@@ -1,0 +1,196 @@
+﻿@inject IUserInformationService _userInformationService
+@inject ServiceAuthManager _serviceAuthManager
+@inject Datahub.Core.Services.AzureCosting.AzureCostManagementService _azureCostService
+@inject ILogger<AdminIndex> _logger
+@inject ISnackbar _snackbar
+@inject ITokenAcquisition _tokenAcquisition
+@inject IConfiguration _configuration
+@inject MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
+
+@page "/administration"
+@page "/admin"
+@using Datahub.Core.Services.AzureCosting;
+@using Microsoft.Identity.Web;
+@using Microsoft.Rest;
+
+<DHPageTitle PageTitleKey="@Localizer["Admin"]" />
+
+<MudText Typo=Typo.h3>@Localizer["DataHub Administration"]</MudText>
+
+@if (_authorizedRoles?.Count > 0)
+{
+    
+    <AuthorizeView Roles="@string.Join(',', _authorizedRoles)">
+        <Authorized>
+            <CascadingValue Value="CurrentUserId" Name="UserId">
+                <CascadingValue Value="IsDataHubAdmin" Name="IsDatahubAdmin">
+                    <CascadingValue Value="CurrentUserEmail" Name="CurrentUserEmail">
+                        <MudGrid>
+                            @foreach(var card in _adminCards)
+                            {
+                                <MudItem xs="4">
+                                    <AdminCard CardDefinition=@card @ref=@card.AdminCard />
+                                </MudItem>
+                            }
+                        </MudGrid>
+                    </CascadingValue>
+                </CascadingValue>
+            </CascadingValue>
+        </Authorized>
+        <NotAuthorized>
+            <MudText Typo=@Typo.h5>@Localizer["This page is limited for DataHub administrators"]</MudText>
+        </NotAuthorized>
+    </AuthorizeView>
+}
+else
+{
+    <MudText Typo=@Typo.h5>@Localizer["Please wait"]</MudText>
+}
+
+
+@code {
+    private const string LOCALIZATION_PREFIX = "ADMINISTRATION";
+    private const string CARD_TITLE_PREFIX = $"{LOCALIZATION_PREFIX}.CARD_TITLES";
+    private const string CARD_DESC_PREFIX = $"{LOCALIZATION_PREFIX}.CARD_DESCRIPTIONS";
+    private const string BUTTON_PREFIX = $"{LOCALIZATION_PREFIX}.BUTTON_CAPTIONS";
+
+    private System.Security.Claims.ClaimsPrincipal _user;
+    private string CurrentUserId { get; set; }
+    private string CurrentUserName { get; set; }
+    private string CurrentUserEmail { get; set; }
+    private bool IsDataHubAdmin { get; set; }
+
+    private List<string> _authorizedRoles;
+
+    private string _azureCostToken;
+    private AdminCardDefinition _updateCostsDef;
+
+    private IEnumerable<AdminCardDefinition> _adminCards = new List<AdminCardDefinition>();
+
+    private async Task UpdateMonthlyInitiativeCosts()
+    {
+        try
+        {
+            _updateCostsDef.IsProcessing = true;
+
+            _snackbar.Add(Localizer[$"{LOCALIZATION_PREFIX}.StartingCostUpdate"]);
+            var subscriptionId = _configuration.GetSection(AzureCostManagementService.BILLING_CONFIG_SECTION).GetValue<string>(AzureCostManagementService.SUBSCRIPTION_ID_CONFIG_KEY);
+            var resourceGroup = _configuration.GetSection(AzureCostManagementService.BILLING_CONFIG_SECTION).GetValue<string>(AzureCostManagementService.RESOURCE_GROUP_CONFIG_KEY);
+
+            var currentMonthlyCosts = await _azureCostService.GetCurrentMonthlyCostAsync(subscriptionId, _azureCostToken, resourceGroup);
+            var updateTask = _azureCostService.UpdateProjectMonthlyCostToDateAsync(currentMonthlyCosts.ToList());
+            var successMsg = Localizer[$"{LOCALIZATION_PREFIX}.UpdatedNCosts", currentMonthlyCosts.Count()];
+            await updateTask;
+            _snackbar.Add(successMsg, Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogCritical(ex, "Cannot retrieve Azure Costs");
+            var msg = Localizer[$"{LOCALIZATION_PREFIX}.ErrorUpdatingCosts", ex.Message];
+            _snackbar.Add(msg, Severity.Error);
+        }
+        finally
+        {
+            _updateCostsDef.IsProcessing = false;
+        }
+    } 
+
+
+    private AdminCardAction LocalizeAdminCardAction(AdminCardAction action)
+    {
+        var result = default(AdminCardAction);
+
+        if (action is AdminCardUrlAction)
+        {
+            result = new AdminCardUrlAction(Localizer[$"{BUTTON_PREFIX}.{action.Caption}"], ((AdminCardUrlAction)action).Url);
+        }
+        else if (action is AdminCardCodeAction)
+        {
+            result = new AdminCardCodeAction(Localizer[$"{BUTTON_PREFIX}.{action.Caption}"], ((AdminCardCodeAction)action).Action);
+        }
+
+        return result;
+    }
+
+    private AdminCardDefinition LocalizeCardDef(AdminCardDefinition def) => def.Localized ? 
+        def :
+        new(Localizer[$"{CARD_TITLE_PREFIX}.{def.Title}"], Localizer[$"{CARD_DESC_PREFIX}.{def.Description}"], LocalizeAdminCardAction(def.Action), true);
+
+    private IEnumerable<AdminCardDefinition> GenerateAdminCards()
+    {
+        var rawCardDefs = new List<AdminCardDefinition>();
+
+        rawCardDefs.Add(new("ManageInitiatives", "ManageInitiatives", new AdminCardUrlAction("OpenPage", "/admin/initiatives")));
+        rawCardDefs.Add(new("ManageServices", "ManageServices", new AdminCardUrlAction("OpenPage", "/admin/services")));
+        rawCardDefs.Add(new("Registrations", "Registrations", new AdminCardUrlAction("OpenPage", "/admin/registrations")));
+
+        if (IsDataHubAdmin)
+        {
+            rawCardDefs.Add(new("PowerBI", "PowerBI", new AdminCardUrlAction("OpenPage", "/admin/powerbi")));
+            rawCardDefs.Add(new("SharingAPIs", "SharingAPIs", new AdminCardUrlAction("OpenPage", "/apiusers")));
+            rawCardDefs.Add(new("Metadata", "Metadata", new AdminCardUrlAction("OpenPage", "/metadata/definitions")));
+            rawCardDefs.Add(new("InitiativeResourceDefinitions", "InitiativeResourceDefinitions", new AdminCardUrlAction("OpenPage", "/admin/resourcedefinition")));
+            
+            // TODO: if we figure out external power bi sharing, re-enable this section
+            //rawCardDefs.Add(new("ExternalSharing", "ExternalSharing", new AdminCardUrlAction("OpenPage", "/admin/externalsharing")));
+
+            _updateCostsDef = LocalizeCardDef(new("MonthlyCost", "MonthlyCost", new AdminCardCodeAction("UpdateCosts", async () => await UpdateMonthlyInitiativeCosts())));
+            rawCardDefs.Add(_updateCostsDef);
+        }
+
+
+        return rawCardDefs.Select(r => LocalizeCardDef(r));
+    }
+
+    public async Task<string> GetAccessTokenForUserAsync()
+    {
+        var token = default(string);
+
+        try
+        {
+            token = await _tokenAcquisition.GetAccessTokenForUserAsync(AzureCostManagementService.RequiredScopes);
+        }
+        catch (MicrosoftIdentityWebChallengeUserException e)
+        {
+            // user isn't logged into Power BI -> redirect to Microsoft
+            _consentHandler.HandleException(e);
+        }
+        catch (HttpOperationException)
+        {
+            // couldn't load the report - missing or unauthorized
+        }
+        catch (Exception)
+        {
+            // some other exception, crash and log like normal
+            throw;
+        }
+
+        return await Task.FromResult(token);
+    }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        _azureCostToken = await GetAccessTokenForUserAsync();
+
+        var user = await _userInformationService.GetCurrentGraphUserAsync();
+        _authorizedRoles = _serviceAuthManager.GetAdminProjectRoles(user.Id);
+        // if user has no admin roles, add Datahub Admin as a requirement (at least one role must be specified for AuthorizedView)
+        if (_authorizedRoles.Count < 1)
+        {
+            _authorizedRoles.Add(RoleConstants.DATAHUB_ROLE_ADMIN);
+        }
+
+        _user = await _userInformationService.GetAuthenticatedUser();
+
+        CurrentUserId = await _userInformationService.GetUserIdString();
+        CurrentUserEmail = _user.Identity?.Name;
+        CurrentUserName = _user.Claims.FirstOrDefault(c => c.Type == "name")?.Value;
+        IsDataHubAdmin = _user.IsInRole(RoleConstants.DATAHUB_ROLE_ADMIN);
+
+        _adminCards = GenerateAdminCards();
+
+        await Task.CompletedTask;
+    }
+
+}

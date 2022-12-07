@@ -15,7 +15,6 @@ namespace Datahub.Core.EFCore
         public DbSet<PBI_License_Request> PowerBI_License_Requests { get; set; }
         public DbSet<PBI_User_License_Request> PowerBI_License_User_Requests { get; set; }
         public DbSet<Datahub_ProjectComment> Project_Comments { get; set; }
-        public DbSet<Datahub_Project_Access_Request> Access_Requests { get; set; }
         public DbSet<WebForm_Field> Fields { get; set; }
         public DbSet<WebForm> WebForms { get; set; }
         public DbSet<WebForm_DBCodes> DBCodes { get; set; }
@@ -23,7 +22,7 @@ namespace Datahub.Core.EFCore
         public DbSet<Datahub_Project_User_Request> Project_Users_Requests { get; set; }
         public DbSet<Datahub_ProjectServiceRequests> Project_Requests { get; set; }
         public DbSet<Datahub_Project_Pipeline_Lnk> Project_Pipeline_Links { get; set; }
-        public DbSet<Datahub_Project_Sectors_And_Branches> Organization_Levels { get; set; }
+        public DbSet<Organization_Level> Organization_Levels { get; set; }
         public DbSet<OnboardingApp> OnboardingApps {  get; set; }
         public DbSet<Project_Resources> Project_Resources { get; set; }
         public DbSet<Project_Resources2> Project_Resources2 { get; set; }
@@ -136,9 +135,26 @@ namespace Datahub.Core.EFCore
                 .HasOne<PowerBi_Workspace>(d => d.Workspace)
                 .WithMany(w => w.Datasets)
                 .HasForeignKey(d => d.Workspace_Id);
-                
 
-            //modelBuilder.Entity<Datahub_ProjectServiceRequests>().HasOne(c => c.Project).WithOne(p => p.Branch_Name);
+
+            modelBuilder.Entity<Datahub_Project>()
+               .HasOne(w => w.Sector)
+               .WithMany(p => p.Sectors)
+               .HasForeignKey(f => f.SectorId)
+               .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<Datahub_Project>()
+               .HasOne(w => w.Branch)
+               .WithMany(p => p.Branches)
+               .HasForeignKey(f => f.BranchId)
+               .OnDelete(DeleteBehavior.NoAction);
+
+
+            modelBuilder.Entity<Datahub_Project>()
+               .HasOne(w => w.Division)
+               .WithMany(p => p.Divisions)
+               .HasForeignKey(f => f.DivisionId)
+               .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<PBI_User_License_Request>()
                 .HasOne(p => p.LicenseRequest)

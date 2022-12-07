@@ -1,7 +1,4 @@
 @using Datahub.Core.Data.DTO
-@using Datahub.Core.Components.Skeleton
-@using System
-
 @inject ServiceAuthManager _serviceAuthManager
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject IUserInformationService _userInformationService
@@ -10,7 +7,7 @@
 @if (_isLoading)
 {
     <span class="project-members-skeleton-positioning">
-        <Skeleton Width="100px" Height="1.5rem" />
+        <Skeleton Width="100px" Height="1.5rem"/>
         <span style="display: flex; margin: 1rem 0">
             <Skeleton Circle Width="2rem" Height="2rem"/>
             <span style="display: block; width: .5rem"></span>
@@ -21,10 +18,10 @@
             <span style="display: block; width: .5rem"></span>
             <Skeleton Width="150px" Height="2rem"/>
         </span>
-        
+
         <span style="display: block; height: 2rem"></span>
-        
-        <Skeleton Width="100px" Height="1.5rem" />
+
+        <Skeleton Width="100px" Height="1.5rem"/>
         @for (var i = 0; i < 10; i++)
         {
             <span style="display: flex; margin: 1rem 0">
@@ -85,6 +82,9 @@ else
                             </li>
                         }
                     </ul>
+                    <div class="add-member">
+                            <ProjectAddMemberButton/>
+                    </div>
                 </div>
             </div>
         </Authorized>
@@ -107,7 +107,7 @@ else
     {
         await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
 
-        _user = await _userInformationService.GetUserAsync();
+        _user = await _userInformationService.GetCurrentGraphUserAsync();
 
         _projectUsers = await _serviceAuthManager.GetProjectMembers(ProjectAcronym);
 
@@ -117,7 +117,8 @@ else
         {
             _authorizedRoles.Add(RoleConstants.DATAHUB_ROLE_ADMIN);
         }
-        
+
         _isLoading = false;
     }
+
 }

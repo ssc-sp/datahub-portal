@@ -1,10 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace Datahub.Core.Migrations.Core
 {
-    public partial class externalpowerbivalidationsalt : Migration
+    public partial class Externalpowerbivalidationsalt : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {

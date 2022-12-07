@@ -1,10 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace Datahub.Core.Migrations.Core
 {
-    public partial class renameproducttoproject : Migration
+    public partial class Renameproducttoproject : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
