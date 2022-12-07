@@ -40,7 +40,7 @@
         </MudCardContent>
     </MudCard>
 
-    <Datahub.Core.Components.MudFormTemplate T="Forecast"
+    <Datahub.Core.Components.Form.MudFormTemplate T="Forecast"
                                          U="FinanceDBContext"
         Metadata="@_formMetadata" 
         HandleSubmit="HandleValidSubmit"
@@ -98,11 +98,12 @@
         // load projects
         Context = DbFactory.CreateDbContext();
         LoadSortExpressions();
-        _user = await UserInformationService.GetUserAsync();
+        _user = await UserInformationService.GetCurrentGraphUserAsync();
         _isUserAdmin = await ServiceAuthManager.IsProjectAdmin(_user.Id, PROJECTACRONYM);
         _headers = new List<string>
         {
-            Localizer["Planned Staffing"], 
+            Localizer["Planned Staffing"],
+            Localizer["Position Number"],
             Localizer["Last Name"], 
             Localizer["First Name"], 
             Localizer["Indeterminate"], 
@@ -113,7 +114,6 @@
             Localizer["FTE"], 
             Localizer["Salary"], 
             Localizer["Incremental_Replacement"], 
-            Localizer["Location_of_Hiring"], 
             Localizer["Potential_Hiring_Process"]
         };
         LoadData(_searchFilter);
@@ -166,6 +166,7 @@
     private List<Func<Forecast, string>> accessorFunctions = new List<Func<Forecast, string>>
     {
         new Func<Forecast, string>(p => { return p.Employee_Planned_Staffing ?? ""; }),
+        new Func<Forecast, string>(p => { return p.Employee_Position_Number?.ToString() ?? ""; }),
         new Func<Forecast, string>(p => { return p.Employee_Last_Name ?? ""; }),
         new Func<Forecast, string>(p => { return p.Employee_First_Name ?? ""; }),
         new Func<Forecast, string>(p => { return p.Is_Indeterminate ? "True" : "False"; }),
@@ -176,7 +177,6 @@
         new Func<Forecast, string>(p => { return p.FTE.ToString(); }),
         new Func<Forecast, string>(p => { return p.Salary.Value.ToString("C"); }),
         new Func<Forecast, string>(p => { return p.IR_Values?.EnglishText ?? "N/A"; }),
-        new Func<Forecast, string>(p => { return p.Location_Of_Hiring ?? ""; }),
         new Func<Forecast, string>(p => { return p.PHP_Values?.EnglishText ?? "N/A"; }),
     };
 

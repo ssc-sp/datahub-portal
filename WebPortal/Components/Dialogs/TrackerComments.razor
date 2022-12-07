@@ -1,0 +1,135 @@
+﻿@inject IDbContextFactory<DatahubProjectDBContext> DbFactory
+@inject IUserInformationService UserInformationService
+@inject IDatahubAuditingService AuditingService
+
+<MudDialog Style="overflow-y: scroll">
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.CommentBank" Class="mr-3 mb-n1" />
+           @Project.ProjectName - @Project.Project_Acronym_CD
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+            <Datahub.Core.Components.Form.MudFormTemplate T="Datahub_ProjectComment"
+                                                     U="DatahubProjectDBContext"
+                                                     Metadata="@_formMetadata"
+                                                     HandleSubmit="HandleValidSubmit"
+                                                     CreateNewRecord="CreateNewComment"
+                                                     SelectedRecord="@_comment"
+                                                     SetFormEditRecord="SetFormEdit"
+                                                     HandleFilterChange="HandleFilterChange"
+                                                     SortAccessors="@_sortAccessors"
+                                                     Context=@Context
+                                                     @key="@_formMetadata" />        
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Close</MudButton>
+        @*<MudButton Color="Color.Error" OnClick="DeleteServer">Delete Server</MudButton>*@
+    </DialogActions>
+</MudDialog>
+
+@code {
+
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    [Parameter] public Datahub_Project Project { get; set; }
+    [Parameter] public DatahubProjectDBContext Context { get; set; }
+    //private DatahubProjectDBContext Context;
+    private Microsoft.Graph.User _user = null!;
+
+    private List<string> _headers = new();
+    private FormMetadata<Datahub_ProjectComment> _formMetadata = new();
+    private Datahub_ProjectComment _comment;
+    private List<Datahub_ProjectComment> _comments;
+    private string _searchFilter = string.Empty;
+    private Dictionary<string, Func<Datahub_ProjectComment, string>> _sortAccessors = new();
+    private bool refreshTracker;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // load projects
+        //LoadSortExpressions();
+        _user = await UserInformationService.GetCurrentGraphUserAsync();
+
+        _headers = new List<string>
+        {
+            Localizer["Comment Date"],
+            Localizer["Comment"],
+        };
+
+        LoadData(_searchFilter);
+    }
+
+    private void LoadData(string searchfilter)
+    {
+        _comments = Project.Comments.OrderByDescending(d => d.Comment_Date_DT).ToList();
+
+        _formMetadata.Header = string.Empty;
+        _formMetadata.SubHeader = Localizer["Comments"];
+        _formMetadata.DataSet = _comments; 
+        _formMetadata.AccessorFunctions = accessorFunctions;
+        _formMetadata.Headers = _headers;
+        _formMetadata.AllowDelete = false;
+        _formMetadata.IsSubmitEnabled = true;
+    }
+    private List<Func<Datahub_ProjectComment, string>> accessorFunctions = new List<Func<Datahub_ProjectComment, string>>
+    {
+        new Func<Datahub_ProjectComment, string>(p => { return p.Comment_Date_DT.ToShortDateString();}),
+        new Func<Datahub_ProjectComment, string>(p => { return p.Comment_NT ?? ""; }),
+    };
+
+    private async Task HandleValidSubmit()
+    {
+
+        if (_comment != null)
+        {            
+            _comment.Last_Updated_DT = DateTime.Now;
+            _comment.Last_Updated_UserId = _user.Mail;
+            if (_comment.Comment_ID == 0)
+            {
+                _comment.Comment_Date_DT = DateTime.Now;
+                Project.Comments.Add(_comment);
+                refreshTracker = true;
+            }
+            await Context.TrackSaveChangesAsync(AuditingService);
+
+            LoadData(_searchFilter); ;
+            _comment = null;
+        }
+
+
+        StateHasChanged();
+    }
+
+    private void CreateNewComment()
+    {
+        _comment = new Datahub_ProjectComment() { Comment_Date_DT = DateTime.Now, Created_DT = DateTime.Now, Created_UserId = _user.Mail, Project = Project };
+        StateHasChanged();
+    }
+
+    private void SetFormEdit(Datahub_ProjectComment comment)
+    {
+        _comment = comment;
+        StateHasChanged();
+    }
+
+    private async void HandleFilterChange(string selection)
+    {
+        _searchFilter = selection;
+        LoadData(_searchFilter);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void Cancel()
+    {
+        if (refreshTracker)
+        {
+            MudDialog.Close(DialogResult.Ok(Project.Project_ID));
+        }
+        else
+        {
+            MudDialog.Cancel();
+        }
+    }
+
+    
+}

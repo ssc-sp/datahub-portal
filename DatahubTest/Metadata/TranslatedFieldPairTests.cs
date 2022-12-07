@@ -1,5 +1,6 @@
 ﻿using Datahub.Metadata.Model;
-using Datahub.Portal.Components.Metadata;
+using Datahub.Portal.Metadata.Components;
+//using Datahub.Portal.Components.Metadata;
 using Xunit;
 
 /// <summary>

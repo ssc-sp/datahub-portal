@@ -1,0 +1,50 @@
+﻿@using System.Net.Http
+@using System.IO
+@using System.Threading
+@using System.Globalization
+
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Components.Routing
+@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.JSInterop
+
+@using Microsoft.Extensions.Localization
+@using Microsoft.AspNetCore.Mvc.Localization
+
+@using Microsoft.EntityFrameworkCore;
+@using Microsoft.Extensions.Configuration
+
+
+@using Tewr.Blazor.FileReader
+@using Microsoft.Extensions.Hosting
+
+
+@using Askmethat.Aspnet.JsonLocalizer.Localizer
+
+@using Datahub.Core.EFCore
+@using Datahub.Core.UserTracking;
+@using Datahub.Core.Data
+@using Datahub.Core.Services
+@using Datahub.Core.Components
+@using Datahub.Core.Components.Skeleton
+@using Datahub.Core.Components.TopBar
+@using Datahub.Core.Views
+@using Datahub.Core.Views.Modals
+@using Datahub.Core.Utils
+@using Datahub.Core.Configuration
+@using Datahub.Core.Layout
+@using Datahub.Achievements
+
+@using Datahub.Portal.Services.Storage
+@using Datahub.Portal.Services
+@using Datahub.Portal.Components
+
+@using Elemental.Components;
+
+@using Blazored.LocalStorage;
+@using MudBlazor;
+
+@inject IStringLocalizer Localizer
+@inject CultureService CultureService

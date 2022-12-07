@@ -1,18 +1,14 @@
 {
-  "Is_Engagement_Active": "L'engagement est-il actif ?",
-  "Engagement_Start_Date": "Date de début de l'engagement",
-  "Requirements_Gathering_EndDate": "Date de fin du recueil des besoins",
-  "Phase1_Development_EndDate": "Date de fin du développement de la phase 1",
-  "Phase1_Testing_EndDate": "Date de fin des tests de la phase 1",
-  "Phase2_Development_EndDate": "Date de fin du développement de la phase 2",
-  "Phase2_Testing_EndDate": "Date de fin des tests de la phase 2",
-  "Final_Updates_EndDate": "Date de fin des mises à jour finales",
-  "Final_Release_Date": "Date de sortie définitive",
-  "Requirements_Gathering_ActualEndDate": "Collecte des exigences Date de fin réelle",
-  "Phase1_Development_ActualEndDate": "Date de fin effective du développement de la phase 1",
-  "Phase1_Testing_ActualEndDate": "Date de fin réelle des tests de la phase 1",
-  "Phase2_Development_ActualEndDate": "Date de fin effective de la phase 2 du développement",
-  "Phase2_Testing_ActualEndDate": "Date de fin réelle des tests de la phase 2",
-  "Actual_Release_Date": "Date de sortie réelle"
-} sortie réelle"
+  "Is_Private": "Privé",
+  "Is_Featured": "En vedette :"
+}t_Status_Desc": "Statut du projet",
+  "Databricks_URL": "URL de Databricks",
+  "PowerBI_URL": "URL de PowerBI",
+  "WebForms_URL": "URL de WebForms",
+  "DB_Name": "Nom de la base de données",
+  "DB_Server": "Serveur de base de données",
+  "DB_Type": "Type de base de données",
+  "IsDatabasePostgres": "Base de données Postgres",
+  "IsDatabaseSqlServer": "Base de données SQL Server",
+  "HasAssociatedDatabase": "A Associté la base de données"
 }

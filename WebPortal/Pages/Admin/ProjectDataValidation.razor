@@ -1,0 +1,114 @@
+﻿@*ProjectDataValidation.razor*@
+@page "/initiatives/validate/{ProjectAcronym}"
+@using Datahub.Metadata.DTO
+@using Datahub.Metadata.Model
+@inject NavigationManager NavigationManager
+
+<div class="d-flex flex-column align-center">
+    <MudPagination Count="4" @bind-Selected=@_step Color="Color.Primary" />
+
+    <MudText Class="mt-2 mb-2" Typo="Typo.h4">@GetStepHeader()</MudText>
+    <MudText Class="mb-2">@GetStepText()</MudText>
+
+    @if (_step == 4)
+    {
+        <AeButton OnClickEvent=@HandleFinish>@Localizer["Finish"]</AeButton>
+    }
+</div>
+
+<MudGrid>
+    <MudItem xs="12">
+
+        @if (_step == 1)
+        {
+            <ProjectObjectMetadata ProfileName="initiative_onboarding"
+                                   ObjectId=@ProjectAcronym
+                                   Location=@ProjectAcronym
+                                   ProjectAcronym=@ProjectAcronym
+                                   AllowDiscard="false"
+                                   UpdateCatalog="false"
+                                   HideTranslationNote
+                                   NavigateToProject="false"
+                                   SaveButtonLabel=@Localizer["Save"]
+                                   ObjectType=@MetadataObjectType.DataInitiative
+                                   OnMetadataSaved=@HandleOnboardingMetadataSaved />
+        }
+
+        @if (_step == 2)
+        {
+            <OnboardUsers projectAcronym=@ProjectAcronym
+                          ShowTitle="false"
+                          OnCompleted=@HandleOnboardingUserCompleted />
+        }
+
+        @if (_step == 3)
+        {
+            <ProjectObjectMetadata ProfileName="initiative_profile"
+                                   ObjectId=@ProjectAcronym
+                                   Location=@ProjectAcronym
+                                   ProjectAcronym=@ProjectAcronym
+                                   AllowDiscard="false"
+                                   UpdateCatalog="true"
+                                   NavigateToProject="false"
+                                   SaveButtonLabel=@Localizer["Save"]
+                                   ObjectType=@MetadataObjectType.DataInitiative
+                                   OnMetadataSaved=@HandleMetadataSaved />
+        }
+    </MudItem>
+</MudGrid>
+
+@code {
+
+    [Parameter]
+    public string ProjectAcronym { get; set; }
+
+    private int _step = 1;
+
+    private string GetStepHeader()
+    {
+        return _step switch
+        {
+            1 => Localizer["Initiative Details"],
+            2 => Localizer["Confirm Initiative Members​"],
+            3 => Localizer["Initiative Subject and Keywords"],
+            _ => Localizer["Thank you"],
+        };
+    }
+
+    private string GetStepText()
+    {
+        return _step switch
+        {
+            1 => Localizer["Verify or edit the initiative details. Provide all the required fields, including the initiative goals and the onboarding timeline."],
+            2 => Localizer["Add the initiative members​ using the search functionality. This is not required, if you do not have the list at this point, the users can be added later in the initiative page."],
+            3 => Localizer["Select the subjects related to this initiative and select keywords in order to catalog the initiative and its resources."],
+            _ => "",
+        };
+    }
+
+    private void HandleSaveOnboardingData(FieldValueContainer values)
+    {
+        _step++;
+    }
+
+    private void HandleOnboardingMetadataSaved(Datahub_Project project)
+    {
+        _step++;
+    }
+
+    private void HandleMetadataSaved(Datahub_Project project)
+    {
+        project.MetadataAdded = true;
+        _step++;
+    }
+
+    private void HandleOnboardingUserCompleted()
+    {
+        _step++;
+    }
+
+    private void HandleFinish()
+    {
+        NavigationManager.NavigateTo($"/projects/{ProjectAcronym}");
+    }
+}

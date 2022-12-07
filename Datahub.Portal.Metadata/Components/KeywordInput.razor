@@ -1,0 +1,260 @@
+﻿@using Datahub.Metadata.DTO
+@using Datahub.Metadata.Model
+@using Datahub.Core.Utils
+@implements IDisposable
+
+<MudStack Row="false" Spacing="0">
+    @*keyword input*@
+    <MudTextField @bind-Value="InputKeyword"
+                  @ref=@_fieldValueInput
+                  Label=@FieldDefinition.Name
+                  HelperText=@FieldDefinition.Description
+                  DebounceInterval="250"
+                  Adornment=@(string.IsNullOrEmpty(_inputKeyword) ? Adornment.None : Adornment.End)
+                  AdornmentColor="Color.Info"
+                  AdornmentIcon="@Icons.Filled.Add"
+                  OnAdornmentClick=HandleAddKeyword
+                  Variant="Variant.Outlined" 
+                  Margin="Margin.Dense" />
+    <MudChipSet AllClosable="false">
+        @*selected keywords*@
+        @foreach (var keyword in _keywordList)
+        {
+            <MudChip Text="@keyword" 
+                     OnClose=@HandleKeywordDeleted
+                     Variant="Variant.Filled" 
+                     Color="Color.Dark" />
+        }
+        @*suggested keywords*@
+        @foreach (var keyword in _suggestions)
+        {
+            <MudChip Text="@keyword" 
+                     Variant="Variant.Filled" 
+                     Color="Color.Default"
+                     Icon="@Icons.Filled.AddCircle"
+                     OnClick=@(async () => await PickKeyword(keyword, false)) />
+        }
+    </MudChipSet>
+</MudStack>
+
+@code {
+
+    [Inject]
+    public IMetadataBrokerService MetadataBrokerService { get; set; }
+
+    [Parameter]
+    public ObjectFieldValue FieldValue { get; set; }
+
+    [Parameter]
+    public FieldDefinition FieldDefinition { get; set; }
+
+    [Parameter]
+    public int SuggestionCount { get; set; } = 5;
+
+    [Parameter]
+    public bool English { get; set; } = true;
+
+    [Parameter]
+    public string Subject { get; set; }
+
+    [Parameter]
+    public TranslatedFieldPair FieldPair { get; set; }
+
+    [Parameter]
+    public EventCallback<ObjectFieldValue> OnFieldChanged { get; set; }
+
+    private List<string> _keywordList { get; set; }
+    private string _inputKeyword;
+    private List<string> _suggestions { get; set; } = new List<string>();
+    private List<SubjectKeyword> _subjectKeywords { get; set; } = new List<SubjectKeyword>();
+    private string _lastSubject;
+    private MudTextField<string> _fieldValueInput;
+    private QueryThrottler<string> _suggestionThrottler;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _keywordList = new List<string>(SplitKeyword(FieldValue?.Value_TXT));
+        _suggestionThrottler = new QueryThrottler<string>(TimeSpan.FromSeconds(0.5), TriggerAutoCompleteAsync);
+
+        FieldPair.OnKeywordPicked += OnKeywordPicked;
+        FieldPair.OnKeywordDeleted += OnKeywordDeleted;
+
+        await UpdateSubjectKeywords();
+    }
+
+    void IDisposable.Dispose()
+    {
+        FieldPair.OnKeywordPicked -= OnKeywordPicked;
+        FieldPair.OnKeywordDeleted -= OnKeywordDeleted;
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (_lastSubject != Subject)
+        {
+            await UpdateSubjectKeywords();
+            _lastSubject = Subject;
+        }
+    }
+
+    private async Task FocusAsync()
+    {
+        await _fieldValueInput.FocusAsync();
+    }
+
+    private string JoinKeywords(IEnumerable<string> keywords) => string.Join(", ", keywords);
+
+    private IEnumerable<string> SplitKeyword(string keyword)
+    {
+        return (keyword ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries)
+                              .Select(kw => kw.Trim())
+                              .Where(kw => !string.IsNullOrWhiteSpace(kw));
+    }
+
+    private async Task UpdateSubjectKeywords()
+    {
+        var subjectIds = (Subject ?? "").Split('|');
+        _subjectKeywords = await MetadataBrokerService.GetSubjectKeywords(subjectIds);
+        ApplySubjectSuggestions();
+    }
+
+    private void HandleKeywordDeleted(MudChip chip) => DeleteKeyword(chip.Text, false);
+
+    private string InputKeyword
+    {
+        get
+        {
+            return _inputKeyword;
+        }
+        set
+        {
+            if (value != _inputKeyword)
+            {
+                _inputKeyword = value;
+                TriggerSuggestion(value);
+            }
+        }
+    }
+
+    private void TriggerSuggestion(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            ApplySubjectSuggestions();
+        }
+        else
+        {
+            _ = _suggestionThrottler.SetQuery(text);
+        }
+    }
+
+    private void OnKeywordPicked(object sender, KeywordArgs args)
+    {
+        if (args.Source != FieldValue)
+        {
+            _ = PickKeyword(args.Keyword, true);
+        }
+    }
+
+    private void OnKeywordDeleted(object sender, KeywordArgs args)
+    {
+        if (args.Source != FieldValue)
+        {
+            DeleteKeyword(args.Keyword, true);
+        }
+    }
+
+    private async Task PickKeyword(string keyword, bool isCallback)
+    {
+        var changed = false;
+        foreach (var kw in SplitKeyword(keyword))
+        {
+            if (NotAKeyword(kw))
+            {
+                _keywordList.Add(kw);
+                changed = true;
+            }
+        }
+        if (changed)
+        {
+            UpdateField();
+            ApplySubjectSuggestions();
+            if (!isCallback)
+            {
+                TriggerPairFieldEvent(keyword, FieldPair.OnKeywordPicked);
+                _inputKeyword = string.Empty;
+                await FocusAsync();
+            }
+        }
+    }
+
+    private void DeleteKeyword(string keyword, bool isCallback)
+    {
+        _keywordList.Remove(keyword);
+        UpdateField();
+        ApplySubjectSuggestions();
+        if (!isCallback)
+        {
+            TriggerPairFieldEvent(keyword, FieldPair.OnKeywordDeleted);
+        }
+    }
+
+    private void TriggerPairFieldEvent(string keyword, EventHandler<KeywordArgs> handler)
+    {
+        var translKeyword = _subjectKeywords.FirstOrDefault(kw => keyword.Equals(SelectLanguageKeyword(kw)));
+        if (translKeyword is not null)
+        {
+            handler.Invoke(this, new KeywordArgs(FieldValue, SelectAlternateKeyword(translKeyword)));    
+        }
+    }
+
+    private async Task TriggerAutoCompleteAsync(string text)
+    {
+        if (string.IsNullOrWhiteSpace(_inputKeyword))
+        {
+            ApplySubjectSuggestions();
+        }
+        else
+        {
+            if (English)
+            {
+                ApplySuggestions(await MetadataBrokerService.GetSuggestedEnglishKeywords(text, SuggestionCount));
+            }
+            else
+            {
+                ApplySuggestions(await MetadataBrokerService.GetSuggestedFrenchKeywords(text, SuggestionCount));
+            }
+        }
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void ApplySubjectSuggestions() => ApplySuggestions(_subjectKeywords.Select(SelectLanguageKeyword));
+
+    private void ApplySuggestions(IEnumerable<string> suggestions)
+    {
+        _suggestions = suggestions.Where(s => NotAKeyword(s)).ToList();
+    }
+
+    private bool NotAKeyword(string text) => !_keywordList.Any(k => k.Equals(text, StringComparison.OrdinalIgnoreCase));
+
+    private void UpdateField()
+    {
+        FieldValue.Value_TXT = JoinKeywords(_keywordList);
+        OnFieldChanged.InvokeAsync(FieldValue);
+    }
+
+    private string SelectLanguageKeyword(SubjectKeyword kw) => English ? kw.English : kw.French;
+
+    private string SelectAlternateKeyword(SubjectKeyword kw) => !English ? kw.English : kw.French;
+
+    private string GetKeywordHint(string keyword) => $"{Localizer["METADATA-PAGE.KeywordHint"]} '{keyword}'";
+
+    private async Task HandleAddKeyword(MouseEventArgs args)
+    {
+        if (!string.IsNullOrEmpty(_inputKeyword))
+        {
+            await PickKeyword(_inputKeyword, false);
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+}

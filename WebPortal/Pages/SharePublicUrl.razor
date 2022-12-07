@@ -7,156 +7,224 @@
 @inject IEmailNotificationService EmailNotificationService
 @inject ISystemNotificationService SystemNotificationService
 
-<AeTypography style="margin-left: 2rem;" Variant="h2">@Localizer[$"{LOCALIZATION_PREFIX}.Page_Title"]</AeTypography>
+<MudText Typo="Typo.h4">
+    @Localizer[$"{LOCALIZATION_PREFIX}.Page_Title"]
+</MudText>
 
-<AeFlex>
-    <AeFlex Vertical style="margin-left: 2rem; width: 50%">
-
-        <AeCard>
-            <AeTypography Variant="h3">@GetStepTitle(PublicUrlSharingStatus.EnterMetadata)</AeTypography>
-
-            @if (!string.IsNullOrEmpty(_requestFilename))
-            {
-                <AeTypography Variant="p">@Localizer["Filename"]: @_requestFilename</AeTypography>
-            }
-
-            @if (_isOwnRequest)
-            {
-                if (ShowMetadataEditor)
-                {
-                    <ObjectMetadataEditor @ref=@_metadataEditor
-                                      ObjectId=@FileId
-                                      SaveButtonLabel=@Localizer[$"{LOCALIZATION_PREFIX}.Save_Metadata_button"]
-                                      ValidateRequired=false
-                                      OnSave=@HandleSaveMetadata />
-                }
-                else
-                {
-                    <AeButton OnClickEvent=@ManuallyShowMetadataEditor Disabled=@_savingData>@Localizer[$"{LOCALIZATION_PREFIX}.Edit_button"]</AeButton>    
-                }
-            }
-            else
-            {
-                @if (_requestingUser != null)
-                {
-                    <div>@Localizer[$"{LOCALIZATION_PREFIX}.RequestingUser"]: @_requestingUser.DisplayName</div>
-                }
-            }
-
-        </AeCard>
-
-        @if (ShowSubmitApproval && _isOwnRequest)
-        {
-            <AeCard>
-                <AeTypography Variant="h3">@GetStepTitle(PublicUrlSharingStatus.RequestApproval)</AeTypography>
-                <AeFlex>
-                    <AeButton OnClickEvent=@SubmitForApproval Disabled=@_savingData>@Localizer["BUTTONS.Submit"]</AeButton>
-                    <SuccessIndicator @bind-IsLoading=@_submittingApproval @ref=@_submitApprovalInd />
-                </AeFlex>
-                <div>&nbsp;</div>
-            </AeCard>
-        }
-
-        @if (ShowPublicationDate)
-        {
-            <AeCard>
-                <AeTypography Variant="h3">@GetStepTitle(PublicUrlSharingStatus.PendingPublication)</AeTypography>
-                <p>@_publicationDateStr</p>
-            </AeCard>
-        }
-
-        @if (ShowPendingApprovalPanel)
-        {
-            <AeCard>
-                <AeTypography Variant="h3">@GetStepTitle(PublicUrlSharingStatus.PendingApproval)</AeTypography>
-                <AeTypography Variant="h5">@Localizer[$"{LOCALIZATION_PREFIX}.DataApprovers"]</AeTypography>
-                <ul>
-                    @foreach (var userid in _dataApproverUserIds)
+<MudGrid Spacing="2" Justify="Justify.SpaceBetween">
+    @*left side content*@
+    <MudItem xs="6">
+        <MudStack>
+            @*metadata*@ 
+            <MudCard>
+                <MudCardHeader>
+                    <MudStack>
+                        <MudText Typo="Typo.h5">
+                            @GetStepTitle(PublicUrlSharingStatus.EnterMetadata)
+                        </MudText>
+                        @if (!string.IsNullOrEmpty(_requestFilename))
+                        {
+                            <MudText Typo="Typo.caption"><b>@Localizer["Filename"]:</b>&nbsp;@_requestFilename</MudText>
+                        }
+                    </MudStack>
+                </MudCardHeader>
+                <MudCardContent>
+                    @if (_isOwnRequest)
                     {
-                        <li><GraphUserInformation UserId=@userid IsUserNameRequested=@true /></li>
+                        if (ShowMetadataEditor)
+                        {
+                            <ObjectMetadataEditor @ref=@_metadataEditor
+                                              ObjectId=@FileId
+                                              SaveButtonLabel=@Localizer[$"{LOCALIZATION_PREFIX}.Save_Metadata_button"]
+                                              ValidateRequired=false
+                                              OnDiscard=@(_editSavedMetadata ? HandleDiscardMetadata : null)
+                                              OnSave=@HandleSaveMetadata />
+                        }
+                        else
+                        {
+                            <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick=@ManuallyShowMetadataEditor Disabled=@_savingData>
+                                <MudText>@Localizer[$"{LOCALIZATION_PREFIX}.Edit_button"]</MudText>
+                            </MudButton>
+                        }
                     }
-                </ul>
-            </AeCard>
-        }
-
-        @if (ShowExpiryDatePanel && _isOwnRequest)
-        {
-            <AeCard>
-                <AeTypography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.TempSharingTitle"]</AeTypography>
-                <AeTypography Variant="p">@Localizer[$"{LOCALIZATION_PREFIX}.TempSharingDesc"]</AeTypography>
-                <EditForm EditContext=@_editContext>
-                    <div>
-                        <label>
-                            <InputCheckbox id="tempSharingToggle" @bind-Value=@_dateHolder.EnableTempSharing />
-                            @Localizer[$"{LOCALIZATION_PREFIX}.EnableTempSharing"]
-                        </label>
-                    </div>
-                    @if (_dateHolder.EnableTempSharing)
+                    else
                     {
-                        <div>
-                            <label for="expiryDateInput">
-                                @Localizer[$"{LOCALIZATION_PREFIX}.ExpirationDate"]
-                            </label>
-                            <InputDate id="expiryDateInput" @bind-Value=@_dateHolder.Date class="ae input" />
-                        </div>
-                        <ValidationMessage For="()=>_dateHolder.Date" />
+                        @if (_requestingUser != null)
+                        {
+                            <MudText>@Localizer[$"{LOCALIZATION_PREFIX}.RequestingUser"]: @_requestingUser.DisplayName</MudText>
+                        }
                     }
-                </EditForm>
-                <div>
-                    <AeButton OnClickEvent=@SaveExpiryDate Disabled=@_savingData>@Localizer[$"{LOCALIZATION_PREFIX}.Save_button"]</AeButton>
-                    <SuccessIndicator @bind-IsLoading=@_savingExpiryDate @ref=@_tempDateInd />
-                </div>
-            </AeCard>
-        }
+                </MudCardContent>
+            </MudCard>
+        
+            @*request approval*@
+            @if (ShowSubmitApproval && _isOwnRequest)
+            {
+                <MudCard>
+                    <MudCardHeader>
+                        <MudText Typo="Typo.h5">
+                            @GetStepTitle(PublicUrlSharingStatus.RequestApproval)
+                        </MudText>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <MudStack Row>
+                            <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick=@SubmitForApproval Disabled=@_savingData>
+                                <MudText>@Localizer["BUTTONS.Submit"]</MudText>
+                            </MudButton>
+                            <SuccessIndicator @bind-IsLoading=@_submittingApproval @ref=@_submitApprovalInd />
+                        </MudStack>
+                    </MudCardContent>
+                </MudCard>
+            }
 
-        @if (ShowCancelPanel)
-        {
-            <AeCard style="margin-top: 1rem;">
-                <AeTypography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.CancelSharing"]</AeTypography>
-                <p>@Localizer[$"{LOCALIZATION_PREFIX}.CancelSharingDescription"]</p>
-                <AeButton OnClickEvent=@ShowCancelRequestDialog Disabled=@_savingData>@Localizer["BUTTONS.Cancel"]</AeButton>
-            </AeCard>
-        }
+            @*show publication date*@
+            @if (ShowPublicationDate)
+            {
+                <MudCard>
+                    <MudCardHeader>
+                        <MudText Typo="Typo.h5">
+                            @GetStepTitle(PublicUrlSharingStatus.PendingPublication)
+                        </MudText>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <MudText>@_publicationDateStr</MudText>
+                    </MudCardContent>
+                </MudCard>
+            }
+        
+            @*show pending approval*@
+            @if (ShowPendingApprovalPanel)
+            {
+                <MudCard>
+                    <MudCardHeader>
+                        <MudStack>
+                            <MudText Typo="Typo.h5">@GetStepTitle(PublicUrlSharingStatus.PendingApproval)</MudText>
+                        </MudStack>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <MudText Typo="Typo.h6">@Localizer[$"{LOCALIZATION_PREFIX}.DataApprovers"]</MudText>
+                        <MudList>
+                            @foreach (var userid in _dataApproverUserIds)
+                            {
+                                <MudListItem>
+                                    <GraphUserInformation UserId=@userid IsUserNameRequested=@true />
+                                </MudListItem>
+                            }
+                        </MudList>
+                    </MudCardContent>
+                </MudCard>
+            }
+            
+            @*show expiry date panel*@
+            @if (ShowExpiryDatePanel && _isOwnRequest)
+            {
+                <MudCard>
+                    <MudCardHeader>
+                        <MudText Typo="Typo.h5">@Localizer[$"{LOCALIZATION_PREFIX}.TempSharingTitle"]</MudText>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <MudStack>
+                            <MudText>@Localizer[$"{LOCALIZATION_PREFIX}.TempSharingDesc"]</MudText>
+                            <EditForm EditContext=@_editContext>
+                                <MudStack Spacing="2">
+                                    <div>
+                                        <label>
+                                            <InputCheckbox id="tempSharingToggle" @bind-Value=@_dateHolder.EnableTempSharing />
+                                            @Localizer[$"{LOCALIZATION_PREFIX}.EnableTempSharing"]
+                                        </label>
+                                    </div>
+                                    @if (_dateHolder.EnableTempSharing)
+                                    {
+                                        <div>
+                                            <label for="expiryDateInput">
+                                                @Localizer[$"{LOCALIZATION_PREFIX}.ExpirationDate"]
+                                            </label>
+                                            <InputDate id="expiryDateInput" @bind-Value=@_dateHolder.Date class="ae input" />
+                                        </div>
+                                        <ValidationMessage For="()=>_dateHolder.Date" />
+                                    }
+                                </MudStack>
+                            </EditForm>
+                            <MudStack Row>
+                                <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick=@SaveExpiryDate Disabled=@_savingData>
+                                    <MudText>@Localizer[$"{LOCALIZATION_PREFIX}.Save_button"]</MudText>
+                                </MudButton>
+                                <SuccessIndicator @bind-IsLoading=@_savingExpiryDate @ref=@_tempDateInd />
+                            </MudStack>
+                        </MudStack>
+                    </MudCardContent>
+                </MudCard>
+            }
 
-        @if (ShowDeletePanel)
-        {
-            <AeCard style="margin-top: 1rem;">
-                <Typography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.DeleteExpired"]</Typography>
-                <p>@Localizer[$"{LOCALIZATION_PREFIX}.DeleteExpiredDescription"]</p>
-                <AeButton OnClickEvent=@ShowDeleteExpiredDialog>@Localizer[$"{LOCALIZATION_PREFIX}.Delete_button"]</AeButton>
-            </AeCard>
-        }
+            @*cancel panel*@
+            @if (ShowCancelPanel)
+            {
+                <MudCard>
+                    <MudCardHeader>
+                        <MudText Typo="Typo.h5">@Localizer[$"{LOCALIZATION_PREFIX}.CancelSharing"]</MudText>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <MudStack>
+                            <MudText>@Localizer[$"{LOCALIZATION_PREFIX}.CancelSharingDescription"]</MudText>
+                            <MudItem>
+                                <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick=@ShowCancelRequestDialog Disabled=@_savingData>
+                                    <MudText>@Localizer["BUTTONS.Cancel"]</MudText>
+                                </MudButton>
+                            </MudItem>
+                        </MudStack>
+                    </MudCardContent>
+                </MudCard>
+            }
+        
+            @*show delete panel*@
+            @if (ShowDeletePanel)
+            {
+                <MudCard>
+                    <MudCardHeader>
+                        <MudText Typo="Typo.h4">@Localizer[$"{LOCALIZATION_PREFIX}.DeleteExpired"]</MudText>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <MudStack>
+                            <MudText>@Localizer[$"{LOCALIZATION_PREFIX}.DeleteExpiredDescription"]</MudText>
+                            <MudItem>
+                                <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick=@ShowDeleteExpiredDialog>
+                                    <MudText>@Localizer[$"{LOCALIZATION_PREFIX}.Delete_button"]</MudText>
+                                </MudButton>
+                            </MudItem>
+                        </MudStack>
+                    </MudCardContent>
+                </MudCard>
+            }
 
-        <div>&nbsp;</div>
+            @*return to initiative link*@
+            <MudItem>
+                <MudLink Href=@($"/projects/{_projectCode}") Underline="Underline.None">
+                    @Localizer[$"{LOCALIZATION_PREFIX}.ReturnToProject"]
+                </MudLink>
+            </MudItem>
+        </MudStack>
+    </MudItem>
 
-        <div>
-            <DHLink DataProject=@_projectCode>@Localizer[$"{LOCALIZATION_PREFIX}.ReturnToProject"]</DHLink>
+    @*right side content*@
+    <MudItem xs="6">
+        <div id="stepsDiv">
+            <AeSteps T=@PublicUrlSharingStatus
+                     CurrentStepState=@GetState
+                     StepItems=@_steps
+                     StepTitle=@StepTitle
+                     StepMessage=@StepMessage
+                     PassedIcon=@_checkIcon></AeSteps>
+
+            @if (ShowPublicUrl)
+            {
+                <AeCard>
+                    <AeTypography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.PublicUrl"]</AeTypography>
+                    <p><a href=@PublicUrl target="_blank">@PublicUrl</a></p>
+                </AeCard>
+            }
         </div>
-
-    </AeFlex>
-
-    <div id="stepsDiv" style="width: 50%;">
-        <AeSteps T=@PublicUrlSharingStatus
-                 CurrentStepState=@GetState
-                 StepItems=@_steps
-                 StepTitle=@StepTitle
-                 StepMessage=@StepMessage
-                 PassedIcon=@_checkIcon></AeSteps>
-
-        @if (ShowPublicUrl)
-        {
-            <AeCard>
-                <AeTypography Variant="h3">@Localizer[$"{LOCALIZATION_PREFIX}.PublicUrl"]</AeTypography>
-                <p><a href=@PublicUrl target="_blank">@PublicUrl</a></p>
-            </AeCard>
-        }
-
-    </div>
-
-</AeFlex>
-
-<div>&nbsp;</div>
-
+    </MudItem>
+</MudGrid>
 
 @code {
 
@@ -218,9 +286,15 @@
         public DateTime? Date { get; set; }
         public bool EnableTempSharing { get; set; } = false;
     }
+
     private ExpirationDateHolder _dateHolder = new();
     private EditContext _editContext;
     private ValidationMessageStore _validationMessageStore;
+
+    private void HandleDiscardMetadata()
+    {
+        _editSavedMetadata = false;
+    }
 
     private async Task HandleSaveMetadata()
     {
@@ -376,7 +450,7 @@
         }
 
         var loadTask = PublicFileService.LoadPublicUrlSharedFileInfo(_fileIdGuid);
-        var currentUserTask = UserInformationService.GetUserAsync();
+        var currentUserTask = UserInformationService.GetCurrentGraphUserAsync();
 
         _stepInfo = _steps.ToDictionary(s => s, s => GetStepPair(s));
         _stepStates = _steps.ToDictionary(s => s, s => AeSteps<PublicUrlSharingStatus>.StepState.Queued);

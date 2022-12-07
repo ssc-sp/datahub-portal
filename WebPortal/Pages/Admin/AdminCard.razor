@@ -1,0 +1,60 @@
+﻿
+<MudCard>
+    <MudCardHeader>
+        <MudText Typo=@Typo.h5>@CardDefinition.Title</MudText>
+    </MudCardHeader>
+    <MudCardContent>
+        <MudText>@CardDefinition.Description</MudText>
+    </MudCardContent>
+    <MudCardActions>
+        @GenerateActionButton()
+    </MudCardActions>
+</MudCard>
+
+
+@code {
+    [Parameter]
+    public AdminCardDefinition CardDefinition { get; set; }
+
+    [CascadingParameter(Name = "UserId")]
+    public string UserId { get; set; }
+
+    [CascadingParameter(Name = "CurrentUserEmail")]
+    public string CurrentUserEmail { get; set; }
+
+    [CascadingParameter(Name = "IsDatahubAdmin")]
+    public bool IsDatahubAdmin { get; set; }
+
+    private bool _isProcessing => CardDefinition.IsProcessing;
+
+    public void UpdateState()
+    {
+        StateHasChanged();
+    }
+
+    private RenderFragment GenerateActionButton()
+    {
+        if (CardDefinition.Action is AdminCardUrlAction)
+        {
+            var url = ((AdminCardUrlAction)CardDefinition.Action).Url;
+            return @<MudButton Href=@url Color=@Color.Primary Variant=Variant.Filled>@CardDefinition.Action.Caption</MudButton>;
+        }
+        else if (CardDefinition.Action is AdminCardCodeAction)
+        {
+            var action = ((AdminCardCodeAction)CardDefinition.Action).Action;
+            return 
+            @<MudButton OnClick=action Color=@Color.Secondary Variant=Variant.Filled Disabled=@_isProcessing>
+                <MudStack Row>
+                    @if (_isProcessing)
+                    {
+                        <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                    }
+                    <MudText>@CardDefinition.Action.Caption</MudText>
+                </MudStack>
+            </MudButton>;
+        }
+
+        return @<MudSpacer />;
+    }
+
+}

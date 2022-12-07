@@ -66,7 +66,7 @@
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        var user = await _userInformationService.GetUserAsync();
+        var user = await _userInformationService.GetCurrentGraphUserAsync();
         if (string.IsNullOrWhiteSpace(UserIdBase64))
         {
             _user = await _mSGraphService.GetUserAsync(user.Id, CancellationToken.None);

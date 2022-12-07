@@ -32,10 +32,10 @@
             font-size: 1.5rem;
             display: flex;
             flex-direction: column;
-
-
-
+            
             .datasetname {
+                display: flex;
+                flex-direction: row;
                 line-height: 1;
                 font-size: 1.5rem;
                 font-weight: 525;

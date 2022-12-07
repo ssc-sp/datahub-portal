@@ -1,4 +1,5 @@
-﻿@inject IDbContextFactory<DatahubProjectDBContext> dbFactory
+﻿@using Datahub.Core.Services.Projects;
+@inject IDbContextFactory<DatahubProjectDBContext> dbFactory
 @inject IEmailNotificationService EmailService
 @inject ISystemNotificationService SystemNotificationService
 @inject UIControlsService _uiControlService
@@ -168,7 +169,7 @@
 
     private RenderFragment RequestCompletedTimeFragment(Datahub_ProjectServiceRequests request)
     {
-        if (request.ServiceType == RequestManagementService.POWERBI && !request.Is_Completed.HasValue)
+        if (request.ServiceType == IRequestManagementService.POWERBI && !request.Is_Completed.HasValue)
         {
             var projectCode = request.Project.Project_Acronym_CD;
             return @<NavLink href="@($"/project/{projectCode}/powerbirequest")">

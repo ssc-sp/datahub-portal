@@ -6,9 +6,9 @@ namespace Datahub.Core.Services
 {
     public interface IUserInformationService
     {
-        Task<User> GetUserAsync();
-        Task<User> GetUserAsync(string userId);
-        Task<User> GetAnonymousUserAsync();
+        Task<User> GetCurrentGraphUserAsync();
+        Task<User> GetGraphUserAsync(string userId);
+        Task<User> GetAnonymousGraphUserAsync();
         Task<string> GetUserIdString();
         Task<bool> HasUserAcceptedTAC();
         Task<bool> RegisterUserTAC();
@@ -24,9 +24,11 @@ namespace Datahub.Core.Services
         Task<bool> IsViewingAsVisitor();
         Task SetViewingAsGuest(bool isGuest);
         Task SetViewingAsVisitor(bool isVisitor);
-        Task<ClaimsPrincipal>  GetAuthenticatedUser(bool forceReload = false);
+        Task<ClaimsPrincipal> GetAuthenticatedUser(bool forceReload = false);
+        Task<bool> IsUserProjectAdmin(string projectAcronym);
+        Task<bool> IsUserDatahubAdmin();
 
-	}
+    }
 
     public static class UserInformationServiceConstants
     {

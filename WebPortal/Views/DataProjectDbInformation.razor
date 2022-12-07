@@ -29,7 +29,7 @@
             </div>
             <div>@Localizer[$"{LOCALIZATION_PREFIX}.Expires"]: @_authResult.ExpiresOn.ToLocalTime()</div>
         }
-        else if (ProjectDbService.IsServiceAvailable())
+        else if (ProjectDbService.IsServiceAvailable)
         {
             <div>
                 <AeButton OnClickEvent=@GetPostgresToken Disabled=@awaitingToken>@Localizer[$"{LOCALIZATION_PREFIX}.GetToken_button"]</AeButton>
@@ -126,7 +126,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var loadUserTask = UserInformationService.GetUserAsync();
+        var loadUserTask = UserInformationService.GetCurrentGraphUserAsync();
         var postgresContentTask = LoadPostgresResourcesContent();
 
         dbInfoKeyTransformer = k => Localizer[$"{LOCALIZATION_PREFIX}.{k}"].ToString();

@@ -1,10 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace Datahub.M365Forms.Migrations
 {
-    public partial class renamestatus : Migration
+    public partial class Renamestatus : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
