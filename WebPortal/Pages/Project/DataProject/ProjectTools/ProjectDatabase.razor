@@ -1,9 +1,9 @@
-﻿@*ProjectDatabase.razor*@
+﻿@using Datahub.Core.Services.Projects;
+@*ProjectDatabase.razor*@
 
 @using Datahub.Metadata.Model;
-@using Datahub.Portal.Data.ProjectResource
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
-@inject RequestManagementService _requestManagementService
+@inject IRequestManagementService _requestManagementService
 @inject IProjectDatabaseService _projectDatabaseService;
 @inject IHttpClientFactory _httpClientFactory;
 @inject ILogger<ProjectDatabase> _logger;
@@ -150,7 +150,7 @@ else
     private bool _showDatabaseInfo => _databaseResource != null;
     private bool _showPostgresInfo => _showDatabaseInfo && _databaseResource.IsPostgres;
     private bool _showSqlServerInfo => _showDatabaseInfo && _databaseResource.IsSqlServer;
-    private bool _showPostgresTokenSection => _showPostgresInfo && _projectDatabaseService.IsServiceAvailable();
+    private bool _showPostgresTokenSection => _showPostgresInfo && _projectDatabaseService.IsServiceAvailable;
     private bool _showPostgresToken => _postgresAuthResult != null;
     private bool _showPostgresInstructionsButton => !string.IsNullOrEmpty(_postgresInstructionsMd);
     private bool _showPostgresInstructionError = false;
@@ -301,15 +301,15 @@ else
         }
 
         _databaseRequests = Project?.ServiceRequests
-            .Where(r => r.ServiceType == RequestManagementService.POSTGRESQL || r.ServiceType == RequestManagementService.SQLSERVER)
+            .Where(r => r.ServiceType == IRequestManagementService.POSTGRESQL || r.ServiceType == IRequestManagementService.SQLSERVER)
             .ToList();
 
         _existingRequestType = _existingRequestType ?? _databaseRequests.FirstOrDefault()?.ServiceType;
     }
 
-    private async Task RequestSqlServer() => await RequestDatabase(RequestManagementService.SQLSERVER);
+    private async Task RequestSqlServer() => await RequestDatabase(IRequestManagementService.SQLSERVER);
 
-    private async Task RequestPostgres() => await RequestDatabase(RequestManagementService.POSTGRESQL);
+    private async Task RequestPostgres() => await RequestDatabase(IRequestManagementService.POSTGRESQL);
 
     private async Task RequestDatabase(string which)
     {

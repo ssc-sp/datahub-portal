@@ -82,7 +82,11 @@
       "Workspace": "6ca76417-b205-43c2-be1b-6aeeedcb84ae"
     }
   },
-  "DataCatalog": "enabled"
+  "DataCatalog": "enabled",
+  "ResourceProvisionerApi" : {
+      "BaseUrl": "",
+      "Scopes": ""
+    }
 }
 
 

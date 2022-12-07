@@ -8,7 +8,6 @@
 @inject IDatahubAuditingService AuditingService
 @inject IDialogService DialogService
 @page "/finance/forecasts/{fundcenterId}"
-@using System.Linq.Expressions
 @using MudBlazor
 
 @if (!string.IsNullOrEmpty(_branch))
@@ -98,7 +97,7 @@
         // load projects
         Context = DbFactory.CreateDbContext();
         LoadSortExpressions();
-        _user = await UserInformationService.GetUserAsync();
+        _user = await UserInformationService.GetCurrentGraphUserAsync();
         _isUserAdmin = await ServiceAuthManager.IsProjectAdmin(_user.Id, PROJECTACRONYM);
         _headers = new List<string>
         {

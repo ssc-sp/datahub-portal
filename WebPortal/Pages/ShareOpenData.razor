@@ -1,7 +1,5 @@
 ﻿@page "/share/opendata/{FileId}"
-@using Datahub.Metadata.Model
 @using Datahub.Metadata.DTO
-@using Datahub.Metadata.Utils
 @inject CustomNavigation NavManager
 @inject IPublicDataFileService PublicFileService
 @inject IDbContextFactory<DatahubProjectDBContext> dbContextFactory
@@ -347,7 +345,7 @@
     private List<OpenDataSharingStatus> _steps = Enum.GetValues<OpenDataSharingStatus>().ToList();
     private OpenDataSharingStatus _currentStep = OpenDataSharingStatus.EnterMetadata;
     private RenderFragment _checkIcon = @<i class="fa fa-check"></i>
-    ;
+        ;
 
     private Dictionary<OpenDataSharingStatus, (string, string)?> _stepInfo = new();
     private Dictionary<OpenDataSharingStatus, AeSteps<OpenDataSharingStatus>.StepState> _stepStates = new();
@@ -358,13 +356,13 @@
 
     private bool ShowMetadataEditor => _currentStep == OpenDataSharingStatus.EnterMetadata || _editSavedMetadata;
     private bool ShowSkipMetadata => _currentStep == OpenDataSharingStatus.EnterMetadata;
-    private bool ShowApprovalCards => _isOwnRequest && _currentStep < OpenDataSharingStatus.PendingApproval && !_editSavedMetadata; 
+    private bool ShowApprovalCards => _isOwnRequest && _currentStep < OpenDataSharingStatus.PendingApproval && !_editSavedMetadata;
     private bool ShowApprovalForm => _currentStep == OpenDataSharingStatus.OpenGovApprovalForm || _editSubmittedApproval;
     private bool ApprovalFormSubmitted => _stepStates[OpenDataSharingStatus.OpenGovApprovalForm] == AeSteps<OpenDataSharingStatus>.StepState.Passed;
     private bool ShowSignedPdfPanel => _currentStep == OpenDataSharingStatus.SubmitSignedPDF;
     private bool ShowPublicationDatePanel => _currentStep == OpenDataSharingStatus.PendingPublication;
     private bool ShowPublicUrl => _currentStep == OpenDataSharingStatus.AccessOpenData;
-    private bool ShowCancelPanel => _currentStep <= OpenDataSharingStatus.PendingApproval  && _isOwnRequest && !_editSavedMetadata;
+    private bool ShowCancelPanel => _currentStep <= OpenDataSharingStatus.PendingApproval && _isOwnRequest && !_editSavedMetadata;
     private bool ShowUploadCard => _currentStep == OpenDataSharingStatus.PendingUpload && _isOwnRequest && !_editSavedMetadata;
 
     private string GenerateApprovalDocumentUrl => $"/api/OpenDataApproval?id={_approvalFormId}";
@@ -411,7 +409,7 @@
         _editSubmittedApproval = false;
 
         _currentStep = step;
-        _stepStates[step] = passed? AeSteps<OpenDataSharingStatus>.StepState.Passed : AeSteps<OpenDataSharingStatus>.StepState.Running;
+        _stepStates[step] = passed ? AeSteps<OpenDataSharingStatus>.StepState.Passed : AeSteps<OpenDataSharingStatus>.StepState.Running;
 
         foreach (var stepv in Enum.GetValues<OpenDataSharingStatus>())
         {
@@ -455,7 +453,7 @@
             _approvalFormId = args.FormId;
             _approvalFormSectorId = args.SectorId;
             _approvalFormBranchId = args.BranchId;
-            await PublicFileService.UpdateOpenDataApprovalFormId(_fileIdGuid, _approvalFormId);        
+            await PublicFileService.UpdateOpenDataApprovalFormId(_fileIdGuid, _approvalFormId);
         }
         finally
         {
@@ -481,7 +479,7 @@
             await PublicFileService.NotifySignedDocumentUploaded();
 
             _savingData = false;
-            UpdateCurrentStatus(OpenDataSharingStatus.PendingApproval);   
+            UpdateCurrentStatus(OpenDataSharingStatus.PendingApproval);
         }
     }
 
@@ -528,7 +526,7 @@
             _savingData = true;
 
             var fieldValues = await MetadataBrokerService.GetObjectMetadataValues(FileId);
-            var fileUri = await  PublicFileService.DownloadPublicUrlSharedFile(_fileIdGuid);
+            var fileUri = await PublicFileService.DownloadPublicUrlSharedFile(_fileIdGuid);
 
             _ = OpenDataService.PublishFile(fieldValues, _sharedDataFileId, FileId, _requestFilename, fileUri.ToString());
 
@@ -561,7 +559,7 @@
         {
             _emailSent = true;
             await InvokeAsync(StateHasChanged);
-            var currentUser = await UserInformationService.GetUserAsync();
+            var currentUser = await UserInformationService.GetCurrentGraphUserAsync();
             await EmailNotificationService.EmailErrorToDatahub(subject, currentUser?.Mail, message, "", "");
         }
         catch (Exception)
@@ -582,13 +580,13 @@
                 if (result.Succeeded)
                 {
                     _unpublishedDate = DateTime.UtcNow;
-                }            
+                }
                 await InvokeAsync(StateHasChanged);
             }
             finally
             {
                 _savingData = false;
-            }        
+            }
         }
         await UI.ToggleModal();
     }
@@ -626,11 +624,11 @@
                 _openDataUploadTimer.Enabled = false;
                 UpdateShareFileStatus(sharedFile);
                 mustRefresh = true;
-            }        
+            }
 
             if (mustRefresh)
             {
-                await InvokeAsync(StateHasChanged);    
+                await InvokeAsync(StateHasChanged);
             }
         }
     }
@@ -674,25 +672,25 @@
     private async Task ShowCancelRequestDialog()
     {
         var promptText = new List<string>() { Localizer["OPENDATA-WIZARD.CancelSharingPrompt"] };
-        RenderFragment cancelDialog = 
+        RenderFragment cancelDialog =
             @<UserChoiceModal HeaderText=@Localizer["OPENDATA-WIZARD.CancelSharing"]
-                              ChoiceTextList=@promptText
-                              OnDecision="HandleCancel"
-                              ConfirmText=@Localizer["COMMON.Yes"]
-                              CancelText=@Localizer["COMMON.No"]/>
-    ;
+                 ChoiceTextList=@promptText
+                 OnDecision="HandleCancel"
+                 ConfirmText=@Localizer["COMMON.Yes"]
+                 CancelText=@Localizer["COMMON.No"] />
+        ;
         await UI.ToggleModal(cancelDialog);
     }
 
     private async Task ShowCancelSharingFileDialog()
     {
         var promptText = new List<string>() { Localizer["OPENDATA-WIZARD.UnpublishOpenDataSharingPrompt"] };
-        RenderFragment modalDialog = 
+        RenderFragment modalDialog =
             @<UserChoiceModal HeaderText=@Localizer["OPENDATA-WIZARD.UnpublishOpenDataSharing"]
-                              ChoiceTextList=@promptText
-                              OnDecision="UnpublishFile"
-                              ConfirmText=@Localizer["COMMON.Yes"]
-                              CancelText=@Localizer["COMMON.No"]/>
+                 ChoiceTextList=@promptText
+                 OnDecision="UnpublishFile"
+                 ConfirmText=@Localizer["COMMON.Yes"]
+                 CancelText=@Localizer["COMMON.No"] />
     ;
         await UI.ToggleModal(modalDialog);
     }
@@ -714,7 +712,7 @@
         if (Guid.TryParse(FileId, out _fileIdGuid))
         {
             var loadTask = PublicFileService.LoadOpenDataSharedFileInfo(_fileIdGuid);
-            var currentUser = await UserInformationService.GetUserAsync();
+            var currentUser = await UserInformationService.GetCurrentGraphUserAsync();
 
             _stepInfo = _steps.ToDictionary(s => s, s => GetStepPair(s));
             _stepStates = _steps.ToDictionary(s => s, s => AeSteps<OpenDataSharingStatus>.StepState.Queued);
@@ -807,4 +805,3 @@
     }
 }
 
-    

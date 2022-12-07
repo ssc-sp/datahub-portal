@@ -156,7 +156,7 @@
         _markDownContent = File.ReadAllLines($@"Pages\Forms\Pip\PipFormIntro.md").ToList();
         
         _fiscalYear = Context.FiscalYears.Where(f => f.FiscalYear == fiscalYear).First();
-        CurrentUser = await UserInformationService.GetUserAsync();
+        CurrentUser = await UserInformationService.GetCurrentGraphUserAsync();
         _isUserAdmin = await ServiceAuthManager.IsProjectAdmin(CurrentUser.Id, PROJECTACRONYM);
         // load projects
         _tombstone = Context.Tombstones.Where(p => p.Tombstone_ID == Convert.ToInt32(tombstone)).FirstOrDefault();

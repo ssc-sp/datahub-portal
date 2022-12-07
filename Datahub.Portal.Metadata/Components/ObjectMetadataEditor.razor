@@ -215,6 +215,20 @@
         Preview = !Preview;
     }
 
+    public async Task CopyMetadataFrom(string objectId)
+    {
+        var values = await MetadataBrokerService.GetObjectMetadataValues(objectId, DefaultMetadataId);
+        foreach (var fv in values)
+        {
+            var fieldName = fv.FieldDefinition.Field_Name_TXT;
+            if (string.IsNullOrEmpty(_fieldValues.GetValue(fieldName)))
+            {
+                _fieldValues.SetValue(fieldName, fv.Value_TXT);
+            }
+        }
+        await InvokeAsync(StateHasChanged);
+    }
+
     private void SetSecurityClassification()
     {
         var secClsName = "security_classification";

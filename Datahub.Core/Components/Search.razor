@@ -132,7 +132,7 @@
         await base.OnInitializedAsync();
         try
         {
-            _currentUser = await UserInformationService.GetUserAsync();
+            _currentUser = await UserInformationService.GetCurrentGraphUserAsync();
         }
         catch (Exception ex)
         {

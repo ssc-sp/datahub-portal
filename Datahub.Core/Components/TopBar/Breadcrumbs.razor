@@ -1,7 +1,6 @@
 @*Breadcrumbs.razor*@
 @implements IDisposable
 @inherits LayoutComponentBase
-@using MudBlazor
 @using System.Globalization
 
 <MudBreadcrumbs Items="@_items" MaxItems="7" Separator=">"/>
@@ -22,7 +21,7 @@
         _navigationManager.LocationChanged += OnLocationChanged;
         var relativePath = _navigationManager.ToBaseRelativePath(_navigationManager.Uri);
 
-    // Set new breadcrumb items on each invocation
+        // Set new breadcrumb items on each invocation
         SetBreadcrumbs(relativePath);
 
         base.OnInitialized();
@@ -38,7 +37,7 @@
     {
         var pathItems = path.Split('/');
 
-    // Always initialize with GoC and Home as base breadcrumb
+        // Always initialize with GoC and Home as base breadcrumb
         _items = new List<BreadcrumbItem>
         {
     // Government of Canada Base Path
@@ -53,12 +52,12 @@
                 )
         };
 
-    // keep track of previous crumbs to avoid appending /home
+        // keep track of previous crumbs to avoid appending /home
         var prev = "";
         foreach (var crumb in pathItems)
         {
             if (crumb == "home") continue;
-            var crumbText = _textInfo.ToTitleCase(crumb);
+            var crumbText = _textInfo.ToTitleCase(System.Web.HttpUtility.UrlDecode(crumb));
             _items.Add(new BreadcrumbItem(
                 href: $"{prev}/{crumb}",
                 disabled: crumb == pathItems.Last(),

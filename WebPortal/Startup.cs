@@ -42,12 +42,16 @@ using Datahub.Core.Services.Offline;
 using Datahub.CatalogSearch;
 using Datahub.Core.Services.AzureCosting;
 using Datahub.Core.Services.Resources;
+using Datahub.ProjectTools.Services;
+using Datahub.Core.Services.Projects;
+using Datahub.ProjectTools.Services.Offline;
+using MudBlazor;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]
 
 namespace Datahub.Portal
 {
-    public class Startup
+	public class Startup
     {
         public Startup(IConfiguration configuration, IWebHostEnvironment env)
         {
@@ -128,6 +132,7 @@ namespace Datahub.Portal
 
             services.AddElemental();
             services.AddMudServices();
+            services.AddMudMarkdownServices();
             services.AddSingleton(moduleManager);
 
 
@@ -156,6 +161,9 @@ namespace Datahub.Portal
 
             services.Configure<PortalVersion>(Configuration.GetSection("PortalVersion"));
             services.AddScoped<IPortalVersionService, PortalVersionService>();
+            services.AddProjectResources();
+
+
 
             services.AddScoped<CatalogImportService>();
             services.AddSingleton<ICatalogSearchEngine, CatalogSearchEngine>();
@@ -289,24 +297,23 @@ namespace Datahub.Portal
             // Token acquisition service based on MSAL.NET
             // and chosen token cache implementation
 
-            if (!Offline)
-            {
-                //services.AddAuthentication(AzureADDefaults.AuthenticationScheme)               
-                //        .AddAzureAD(options => Configuration.Bind("AzureAd", options));
-                var scopes = new List<string>();
-                //scopes.AddRange(PowerBiServiceApi.RequiredReadScopes);
-                scopes.Add("user.read");
-                //scopes.Add("PowerBI.Read.All");
+            if (Offline) return;
+            //services.AddAuthentication(AzureADDefaults.AuthenticationScheme)               
+            //        .AddAzureAD(options => Configuration.Bind("AzureAd", options));
+            var graphScopes = new List<string> {
+                "user.read",
+            };
+            //scopes.Add("PowerBI.Read.All");
 
-                services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
-                    .AddMicrosoftIdentityWebApp(Configuration, "AzureAd")
-                    .EnableTokenAcquisitionToCallDownstreamApi(scopes)
-                    .AddMicrosoftGraph(Configuration.GetSection("Graph"))
-                    .AddInMemoryTokenCaches();
+            services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
+                .AddMicrosoftIdentityWebApp(Configuration, "AzureAd")
+                .EnableTokenAcquisitionToCallDownstreamApi(graphScopes)
+                .AddMicrosoftGraph(Configuration.GetSection("Graph"))
+                //.AddDownstreamWebApi("ResourceProvisionerApi", Configuration.GetSection("ResourceProvisionerApi"))
+                .AddInMemoryTokenCaches();
 
-                services.AddControllersWithViews()
-                    .AddMicrosoftIdentityUI();
-            }
+            services.AddControllersWithViews()
+                .AddMicrosoftIdentityUI();
         }
 
         private void ConfigureLocalization(IServiceCollection services)
@@ -382,6 +389,8 @@ namespace Datahub.Portal
                 services.AddScoped<RegistrationService>();
                 
                 services.AddScoped<UpdateProjectMonthlyCostService>();
+                services.AddScoped<IProjectCreationService, ProjectCreationService>();
+
             }
             else
             {
@@ -440,7 +449,7 @@ namespace Datahub.Portal
             services.AddSingleton<IGlobalSessionManager, GlobalSessionManager>();
             services.AddScoped<IUserCircuitCounterService, UserCircuitCounterService>();
 
-            services.AddScoped<RequestManagementService>();
+            services.AddScoped<IRequestManagementService, RequestManagementService>();
 
             services.AddScoped<CustomNavigation>();
 
