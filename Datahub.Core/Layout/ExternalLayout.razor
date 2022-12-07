@@ -1,8 +1,8 @@
 ﻿@inherits LayoutComponentBase
+@using Datahub.Core.Services.UserManagement;
 @using Microsoft.Identity.Web
 
 @inject IMSGraphService _msGraphService
-@inject IMyDataService _apiService
 @inject NavigationManager _navigationManager
 @inject UserLocationManagerService _userLocationManagerService
 @inject IDatahubAuditingService _auditingService
@@ -62,7 +62,6 @@
         {
             _consentHandler.HandleException(ex);
         }
-        await _apiService.SetupUserFolders();
     }
 
     private bool IsValidException(Exception ex)

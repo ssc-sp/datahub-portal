@@ -66,7 +66,7 @@ public partial class FileExplorer
             if (await PreventOverwrite(newFilename))
                 return;
             
-            await _dataUpdatingService.RenameStorageBlob(oldFilename, newFilename, ProjectAcronym, ContainerName);
+            //await _dataUpdatingService.RenameStorageBlob(oldFilename, newFilename, ProjectAcronym, ContainerName);
             _files.RemoveAll(f => f.name == oldFilename);
         }
     }
@@ -81,7 +81,7 @@ public partial class FileExplorer
             if (await PreventOverwrite(newFilename))
                 return;
             
-            await _dataUpdatingService.RenameStorageBlob(oldFilename, newFilename, ProjectAcronym, ContainerName);
+            //await _dataUpdatingService.RenameStorageBlob(oldFilename, newFilename, ProjectAcronym, ContainerName);
             var file = _files.First(f => f.name == oldFilename);
             file.name = newFilename;
         }
@@ -121,16 +121,16 @@ public partial class FileExplorer
             BrowserFile = browserFile
         };
 
-        await _apiService.PopulateOtherMetadata(fileMetadata);
+        //await _apiService.PopulateOtherMetadata(fileMetadata);
         _uploadingFiles.Add(fileMetadata);
 
         _ = InvokeAsync(async () =>
         {
-            await _apiService.UploadGen2File(fileMetadata, ProjectAcronym.ToLower(), ContainerName, (uploadedBytes) =>
-            {
-                fileMetadata.uploadedBytes = uploadedBytes;
-                StateHasChanged();
-            });
+            //await _apiService.UploadGen2File(fileMetadata, ProjectAcronym.ToLower(), ContainerName, (uploadedBytes) =>
+            //{
+            //    fileMetadata.uploadedBytes = uploadedBytes;
+            //    StateHasChanged();
+            //});
 
             _uploadingFiles.Remove(fileMetadata);
             if (folder == _currentFolder)

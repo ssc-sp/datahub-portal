@@ -1,5 +1,5 @@
-﻿@inject IJSRuntime JSRuntime
-@inject IMyDataService ApiService
+﻿@using Datahub.Core.Services.Data;
+@inject IJSRuntime JSRuntime
 @inject IMSGraphService MSGraphService
 @inject UIControlsService UI
 @inject NotifierService NotifierService
@@ -253,7 +253,7 @@
             // Save a lookup (ONLY when this is on the chosen user, which is already in memory)
             var newOwner = (chosenUser?.Id == waitingOn.userid) ? chosenUser : await MSGraphService.GetUserAsync(waitingOn.userid, CancellationToken.None);
             // Check if the user has a root folder (i.e. have they logged in)
-            if (await ApiService.DoesFolderExist(newOwner.RootFolder))
+            if (true) //await ApiService.DoesFolderExist(newOwner.RootFolder)
             {
                 if (await DataSharingService.ChangeFileOwner(SelectedFile, newOwner, _currentUser.Id))
                 {

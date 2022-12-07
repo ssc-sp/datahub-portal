@@ -11,6 +11,10 @@ using System.Globalization;
 using System.Text;
 using System.Text.Json;
 using Datahub.GeoCore.Service;
+using Datahub.Core.Services.Security;
+using Datahub.Core.Services.UserManagement;
+using Datahub.Core.Services.Metadata;
+using Datahub.Core.Services.Search;
 
 namespace Datahub.Portal.Controllers
 {
