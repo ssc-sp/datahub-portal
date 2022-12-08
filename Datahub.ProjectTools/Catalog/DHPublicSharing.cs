@@ -47,6 +47,7 @@ namespace Datahub.ProjectTools.Catalog
             parameters.Add(nameof(PublicSharing.sharingRequestAwaitingApprovalCount), sharingRequestAwaitingApprovalCount);
             ownSharingRequestCount = await publicDataFileService.GetUsersOwnDataSharingRequestsCount(project.Project_Acronym_CD, userId);
             parameters.Add(nameof(PublicSharing.ownSharingRequestCount), ownSharingRequestCount);
+            parameters.Add(nameof(PublicSharing.ProjectAcronym), project.Project_Acronym_CD);
 
             return true;
         }
