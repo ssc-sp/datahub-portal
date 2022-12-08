@@ -4,71 +4,70 @@ using MudBlazor;
 using System;
 using System.Threading.Tasks;
 
-namespace Datahub.Core.Services
+namespace Datahub.Core.Services;
+
+public class UIControlsService
 {
-    public class UIControlsService
+    public RenderFragment CurrentRightSidebarRenderFragment { get; set; }
+    public RenderFragment CurrentModalRenderFragment { get; set; }
+    public bool AllowEscape { get; set; } = true;
+
+    public event Action OnRightSidebarChange;
+    public event Action OnModalChange;
+    public event Action OnErrorModalShow;
+
+    private IDialogService _dialogService;
+    private IDialogReference _dialogReference = null;
+
+    public UIControlsService(IDialogService dialogService)
     {
-        public RenderFragment CurrentRightSidebarRenderFragment { get; set; }
-        public RenderFragment CurrentModalRenderFragment { get; set; }
-        public bool AllowEscape { get; set; } = true;
+        _dialogService = dialogService;
+    }
 
-        public event Action OnRightSidebarChange;
-        public event Action OnModalChange;
-        public event Action OnErrorModalShow;
+    private void NotifyRightSidebarChange() => OnRightSidebarChange?.Invoke();
+    private void NotifyModalChange() => OnModalChange?.Invoke();
+    private void NotifyErrorModalShow() => OnErrorModalShow?.Invoke();
 
-        private IDialogService _dialogService;
-        private IDialogReference _dialogReference = null;
+    public void ToggleRightSidebar(RenderFragment rightSidebarRenderFragment = null)
+    {
+        CurrentRightSidebarRenderFragment = (CurrentRightSidebarRenderFragment == rightSidebarRenderFragment) ? null : rightSidebarRenderFragment;
+        NotifyRightSidebarChange();
+    }
 
-        public UIControlsService(IDialogService dialogService)
+    public async Task ToggleModal(RenderFragment modalRenderFragment = null)
+    {
+        await Task.Run(() =>
         {
-            _dialogService = dialogService;
-        }
+            CurrentModalRenderFragment = (CurrentModalRenderFragment == modalRenderFragment) ? null : modalRenderFragment;
+            NotifyModalChange();
+        });            
+    }
 
-        private void NotifyRightSidebarChange() => OnRightSidebarChange?.Invoke();
-        private void NotifyModalChange() => OnModalChange?.Invoke();
-        private void NotifyErrorModalShow() => OnErrorModalShow?.Invoke();
+    public void ShowErrorModal()
+    {
+        NotifyErrorModalShow();
+    }
 
-        public void ToggleRightSidebar(RenderFragment rightSidebarRenderFragment = null)
-        {
-            CurrentRightSidebarRenderFragment = (CurrentRightSidebarRenderFragment == rightSidebarRenderFragment) ? null : rightSidebarRenderFragment;
-            NotifyRightSidebarChange();
-        }
+    public void ShowDialog(string dialogTitle, RenderFragment contentFragment)
+    {
+        var parameters = new DialogParameters();
+        parameters.Add("Content", contentFragment);
 
-        public async Task ToggleModal(RenderFragment modalRenderFragment = null)
-        {
-            await Task.Run(() =>
-            {
-                CurrentModalRenderFragment = (CurrentModalRenderFragment == modalRenderFragment) ? null : modalRenderFragment;
-                NotifyModalChange();
-            });            
-        }
+        var options = new DialogOptions() 
+        { 
+            MaxWidth = MaxWidth.Medium, 
+            FullWidth = true, 
+            CloseButton = true,
+            CloseOnEscapeKey = true,
+            DisableBackdropClick = true
+        };
 
-        public void ShowErrorModal()
-        {
-            NotifyErrorModalShow();
-        }
+        _dialogReference = _dialogService.Show<DialogModalFrame>(dialogTitle, parameters, options);
+    }
 
-        public void ShowDialog(string dialogTitle, RenderFragment contentFragment)
-        {
-            var parameters = new DialogParameters();
-            parameters.Add("Content", contentFragment);
-
-            var options = new DialogOptions() 
-            { 
-                MaxWidth = MaxWidth.Medium, 
-                FullWidth = true, 
-                CloseButton = true,
-                CloseOnEscapeKey = true,
-                DisableBackdropClick = true
-            };
-
-            _dialogReference = _dialogService.Show<DialogModalFrame>(dialogTitle, parameters, options);
-        }
-
-        public void HideDialog()
-        {
-            _dialogReference?.Close();
-            _dialogReference = default;
-        }
+    public void HideDialog()
+    {
+        _dialogReference?.Close();
+        _dialogReference = default;
     }
 }

@@ -1,12 +1,13 @@
 ﻿using Azure.Storage.Files.DataLake;
+using Datahub.Core.Data;
+using Datahub.Core.Services;
+using Datahub.Core.Services.Api;
+using Datahub.Core.Services.Storage;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Azure.Storage;
 using Microsoft.Azure.Storage.Blob;
-using Datahub.Core.Data;
-using Datahub.Core.Services;
-using Datahub.Portal.Services.Storage;
 
-namespace Datahub.Portal.Services
+namespace Datahub.Portal.Services.Api
 {
     public class DataRemovalService : BaseService, IDataRemovalService
     {

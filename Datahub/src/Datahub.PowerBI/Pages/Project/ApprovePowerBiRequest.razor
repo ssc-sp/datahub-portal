@@ -1,6 +1,8 @@
 ﻿@page "/project/{ProjectAcronym}/powerbirequest"
-@using Datahub.PowerBI.Data;
-@using Datahub.Core.Services.UserManagement;
+@using Datahub.PowerBI.Services
+@using Datahub.Core.Model.Datahub
+@using Datahub.Core
+@using Datahub.Core.Services.Notification
 
 @inject IDbContextFactory<DatahubProjectDBContext> _contextFactory
 @inject PowerBiServiceApi _powerBiApi

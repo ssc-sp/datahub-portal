@@ -1,4 +1,6 @@
-﻿@inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
+﻿@using Datahub.Core.Model.Datahub
+@using Datahub.Core.Services.Storage
+@inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject DataRetrievalService _dataRetrievalService
 
 @* @page "/projects/{ProjectAcronym}/filelist" *@

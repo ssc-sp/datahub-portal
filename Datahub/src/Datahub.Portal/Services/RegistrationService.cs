@@ -1,7 +1,7 @@
 using System.Text;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
-using Datahub.Core.EFCore;
+using Datahub.Core.Model.Datahub;
 using Datahub.Core.Services.Security;
 using Datahub.Portal.Data.Forms;
 using Microsoft.EntityFrameworkCore;

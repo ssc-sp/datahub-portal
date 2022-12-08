@@ -1,21 +1,20 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Datahub.Portal.Data.LanguageTraining;
 using Datahub.Core;
 using Datahub.Core.Data;
+using Datahub.LanguageTraining.Data;
 
-namespace Datahub.LanguageTraining
+namespace Datahub.LanguageTraining;
+
+public class LanguageTrainingModule : IDatahubModule
 {
-    public class LanguageTrainingModule : IDatahubModule
+    public void ConfigureDatabases(IServiceCollection serviceProvider, IConfiguration configuration)
     {
-        public void ConfigureDatabases(IServiceCollection serviceProvider, IConfiguration configuration)
-        {
-             serviceProvider.ConfigureDbContext<LanguageTrainingDBContext>(configuration, "datahub-mssql-languagetraining", configuration.GetDriver());
-        }
+        serviceProvider.ConfigureDbContext<LanguageTrainingDBContext>(configuration, "datahub-mssql-languagetraining", configuration.GetDriver());
+    }
 
-        public void InitializeDatabases(DatahubModuleContext ctx, IConfiguration configuration)
-        {
-            ctx.InitializeDatabase<LanguageTrainingDBContext>(configuration);
-        }
+    public void InitializeDatabases(DatahubModuleContext ctx, IConfiguration configuration)
+    {
+        ctx.InitializeDatabase<LanguageTrainingDBContext>(configuration);
     }
 }

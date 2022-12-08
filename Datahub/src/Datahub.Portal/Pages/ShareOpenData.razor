@@ -1,5 +1,8 @@
 ﻿@page "/share/opendata/{FileId}"
 @using Datahub.Metadata.DTO
+@using Datahub.Core.Services.Api
+@using Datahub.Core.Model.Datahub
+@using Datahub.Core.Services.Notification
 @inject CustomNavigation NavManager
 @inject IPublicDataFileService PublicFileService
 @inject IDbContextFactory<DatahubProjectDBContext> dbContextFactory

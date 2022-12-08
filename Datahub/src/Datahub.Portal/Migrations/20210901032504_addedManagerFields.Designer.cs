@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Datahub.Portal.Data.LanguageTraining;
+using Datahub.LanguageTraining.Data;
 
 namespace Datahub.Portal.Migrations
 {

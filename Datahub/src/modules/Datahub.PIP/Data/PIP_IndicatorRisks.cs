@@ -1,12 +1,11 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Datahub.Portal.Data.PIP
+namespace Datahub.PIP.Data;
+
+public class PIP_IndicatorRisks
 {
-    public class PIP_IndicatorRisks
-    {
-        [Key]
-        public int IndicatorRisk_ID { get; set; }
-        public PIP_IndicatorAndResults Pip_Indicator { get; set; }
-        public PIP_Risks Pip_Risk { get; set; }
-    }
+    [Key]
+    public int IndicatorRisk_ID { get; set; }
+    public PIP_IndicatorAndResults Pip_Indicator { get; set; }
+    public PIP_Risks Pip_Risk { get; set; }
 }

@@ -1,4 +1,6 @@
-﻿@inject IJSRuntime jsRuntime
+﻿@using Datahub.Core.Services.Api
+@using Datahub.Core.Model.Datahub
+@inject IJSRuntime jsRuntime
 @inject IPublicDataFileService PublicFileService
 
 <AeButton @onclick=@NavigateToUrl disabled="@Disabled" title=@Localizer["OPENDATA-DASHBOARD.ClickToReadPDF"]>@ChildContent</AeButton>

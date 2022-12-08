@@ -1,19 +1,18 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Datahub.Portal.Data.Finance
+namespace Datahub.Finance.Data;
+
+public class FiscalYear
 {
-    public class FiscalYear
-    {
         
-        [Key, DatabaseGenerated(DatabaseGeneratedOption.None)]
-        [Required]
-        public int YearId { get; set; }
+    [Key, DatabaseGenerated(DatabaseGeneratedOption.None)]
+    [Required]
+    public int YearId { get; set; }
 
-        [MaxLength(20)]
-        public string Year { get; set; }
+    [MaxLength(20)]
+    public string Year { get; set; }
 
-        public List<FundCenter> FundCenters { get; set; }
+    public List<FundCenter> FundCenters { get; set; }
         
-    }
 }

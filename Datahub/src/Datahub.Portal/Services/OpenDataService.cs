@@ -1,5 +1,5 @@
 ﻿using Datahub.CKAN.Service;
-using Datahub.Core.EFCore;
+using Datahub.Core.Model.Datahub;
 using Datahub.Metadata.DTO;
 using Microsoft.EntityFrameworkCore;
 

@@ -1,6 +1,4 @@
 ﻿#nullable enable
-using Datahub.Core.EFCore;
-using Datahub.Core.Services;
 using Datahub.Portal.Model;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -10,11 +8,12 @@ using System.Reflection;
 using System.Globalization;
 using System.Text;
 using System.Text.Json;
+using Datahub.Core.Model.Datahub;
+using Datahub.Core.Services.Api;
 using Datahub.GeoCore.Service;
 using Datahub.Core.Services.Security;
 using Datahub.Core.Services.UserManagement;
 using Datahub.Core.Services.Metadata;
-using Datahub.Core.Services.Search;
 
 namespace Datahub.Portal.Controllers
 {

@@ -5,8 +5,9 @@ using System;
 using System.Collections;
 using System.Threading.Tasks;
 using Datahub.Core.Data.ResourceProvisioner;
-using Datahub.Core.EFCore;
+using Datahub.Core.Model.Datahub;
 using Datahub.Core.Services;
+using Datahub.Core.Services.Offline;
 using Foundatio.Queues;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -67,7 +68,6 @@ public class ProjectCreationTests
     [Fact]
     public async Task GivenDatahubProjectWithoutAcronym_CreateResourcesAndAddProject()
     {
-        // TODO: Use Mocks
         const string projectName = "Datahub Unit Testing";
         const string organization = "Unit Testing";
         var serviceProvider = SetupServices();

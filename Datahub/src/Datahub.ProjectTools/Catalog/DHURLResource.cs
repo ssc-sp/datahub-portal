@@ -1,4 +1,4 @@
-﻿using Datahub.Core.EFCore;
+﻿using Datahub.Core.Model.Datahub;
 using Microsoft.Graph;
 
 namespace Datahub.ProjectTools.Catalog

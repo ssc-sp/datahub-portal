@@ -1,7 +1,7 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Datahub.Core.EFCore;
+using Datahub.Core.Model.Datahub;
 using Datahub.Portal.Data.Forms;
 using Datahub.Portal.Services;
 using Datahub.Tests.Portal;

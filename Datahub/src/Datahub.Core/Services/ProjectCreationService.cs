@@ -5,7 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Datahub.Core.Data;
 using Datahub.Core.Data.ResourceProvisioner;
-using Datahub.Core.EFCore;
+using Datahub.Core.Model.Datahub;
 using Foundatio.Queues;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;

@@ -13,10 +13,10 @@
 @inject IEmailNotificationService EmailService
 @inject IDialogService DialogService
 @using System.Security.Claims
+@using Datahub.Core.Model.Datahub
 @using Datahub.Core.Model.Onboarding
+@using Datahub.Core.Services.Notification
 @using Datahub.Portal.Components.Dialogs
-@using MudBlazor.Forms;
-@using Datahub.Core.Services.Security;
 @page "/datahub/initiatives"
 
 <Datahub.Core.Components.Form.MudFormTemplate T="Datahub_Project"

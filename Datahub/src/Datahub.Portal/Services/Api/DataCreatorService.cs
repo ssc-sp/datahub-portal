@@ -1,10 +1,12 @@
 ﻿using Azure.Storage.Files.DataLake;
 using Azure.Storage.Files.DataLake.Models;
-using Microsoft.AspNetCore.Components;
 using Datahub.Core.Data;
 using Datahub.Core.Services;
+using Datahub.Core.Services.Api;
+using Datahub.Core.Services.Storage;
+using Microsoft.AspNetCore.Components;
 
-namespace Datahub.Portal.Services
+namespace Datahub.Portal.Services.Api
 {
     public class DataCreatorService : BaseService, IDataCreatorService
     {        

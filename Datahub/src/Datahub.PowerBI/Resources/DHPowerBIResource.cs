@@ -1,6 +1,5 @@
-﻿namespace Datahub.PowerBI.Resources
+﻿namespace Datahub.PowerBI.Resources;
+
+public class DHPowerBIResource
 {
-    public class DHPowerBIResource
-    {
-    }
 }

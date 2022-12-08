@@ -1,7 +1,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 
-namespace Datahub.Core.EFCore;
+namespace Datahub.Core.Model.Datahub;
 
 public class Datahub_Project_User_Request
 {

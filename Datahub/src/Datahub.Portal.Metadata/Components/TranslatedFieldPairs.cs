@@ -1,60 +1,59 @@
 ﻿using Datahub.Metadata.Model;
 
-namespace Datahub.Portal.Metadata.Components
+namespace Datahub.Portal.Metadata.Components;
+
+public record KeywordArgs(ObjectFieldValue Source, string Keyword);
+
+public class TranslatedFieldPair
 {
-    public record KeywordArgs(ObjectFieldValue Source, string Keyword);
+    public string RootName { get; init; }
+    public ObjectFieldValue FieldEnglish { get; set; }
+    public ObjectFieldValue FieldFrench { get; set; }
+    public EventHandler<KeywordArgs> OnKeywordPicked { get; set; }
+    public EventHandler<KeywordArgs> OnKeywordDeleted { get; set; }
 
-    public class TranslatedFieldPair
+    public ObjectFieldValue GetPaired(ObjectFieldValue value)
     {
-        public string RootName { get; init; }
-        public ObjectFieldValue FieldEnglish { get; set; }
-        public ObjectFieldValue FieldFrench { get; set; }
-        public EventHandler<KeywordArgs> OnKeywordPicked { get; set; }
-        public EventHandler<KeywordArgs> OnKeywordDeleted { get; set; }
+        return FieldEnglish == value ? FieldFrench : FieldEnglish;
+    }
+}
 
-        public ObjectFieldValue GetPaired(ObjectFieldValue value)
-        {
-            return FieldEnglish == value ? FieldFrench : FieldEnglish;
-        }
+public class TranslatedFieldPairs
+{
+    private readonly Dictionary<string, TranslatedFieldPair> _pairs;
+
+    public TranslatedFieldPairs()
+    {
+        _pairs = new Dictionary<string, TranslatedFieldPair>();
     }
 
-    public class TranslatedFieldPairs
+    public TranslatedFieldPair BindField(string fieldName, ObjectFieldValue value)
     {
-        private readonly Dictionary<string, TranslatedFieldPair> _pairs;
+        if (!IsTranslatedField(fieldName))
+            return null;
 
-        public TranslatedFieldPairs()
+        var rootName = GetFieldNameRoot(fieldName);
+
+        if (!_pairs.TryGetValue(rootName, out var pair))
         {
-            _pairs = new Dictionary<string, TranslatedFieldPair>();
+            pair = new TranslatedFieldPair() { RootName = rootName };
+            _pairs[rootName] = pair;
         }
 
-        public TranslatedFieldPair BindField(string fieldName, ObjectFieldValue value)
+        switch (GetFieldLanguage(fieldName))
         {
-            if (!IsTranslatedField(fieldName))
-                return null;
+            case "en":
+                pair.FieldEnglish = value;
+                break;
+            case "fr":
+                pair.FieldFrench = value;
+                break;
+        };
 
-            var rootName = GetFieldNameRoot(fieldName);
-
-            if (!_pairs.TryGetValue(rootName, out var pair))
-            {
-                pair = new TranslatedFieldPair() { RootName = rootName };
-                _pairs[rootName] = pair;
-            }
-
-            switch (GetFieldLanguage(fieldName))
-            {
-                case "en":
-                    pair.FieldEnglish = value;
-                    break;
-                case "fr":
-                    pair.FieldFrench = value;
-                    break;
-            };
-
-            return pair;
-        }
-
-        static bool IsTranslatedField(string fieldName) => fieldName?.EndsWith("_en") == true || fieldName?.EndsWith("_fr") == true;
-        static string GetFieldNameRoot(string fieldName) => fieldName[0..^3];
-        static string GetFieldLanguage(string fieldName) => fieldName[^2..];
+        return pair;
     }
+
+    static bool IsTranslatedField(string fieldName) => fieldName?.EndsWith("_en") == true || fieldName?.EndsWith("_fr") == true;
+    static string GetFieldNameRoot(string fieldName) => fieldName[0..^3];
+    static string GetFieldLanguage(string fieldName) => fieldName[^2..];
 }

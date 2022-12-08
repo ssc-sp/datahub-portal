@@ -1,4 +1,5 @@
-﻿@namespace Datahub.Core.Templates
+﻿@using Datahub.Core.Services.Notification
+@namespace Datahub.Core.Templates.LanguageTraining
 
 <p>A new request for language training has been approved by the section 34-delegated manager. </p>
 <p>The request can be reviewed via the following link: </p>
@@ -18,7 +19,7 @@
 
 @code {
 
-   [Parameter]
+    [Parameter]
     public LanguageTrainingParameters ApplicationParameters { get; set; }
 
 }

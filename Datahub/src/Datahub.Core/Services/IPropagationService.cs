@@ -2,11 +2,10 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Datahub.Core.Services
+namespace Datahub.Core.Services;
+
+public interface IPropagationService
 {
-    public interface IPropagationService
-    {
-        event Func<IEnumerable<string>, Task> UpdateSystemNotifications;
-        Task PropagateSystemNotificationUpdate(IEnumerable<string> userIds);
-    }
+    event Func<IEnumerable<string>, Task> UpdateSystemNotifications;
+    Task PropagateSystemNotificationUpdate(IEnumerable<string> userIds);
 }

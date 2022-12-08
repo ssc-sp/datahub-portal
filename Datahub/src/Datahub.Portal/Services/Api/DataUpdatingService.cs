@@ -1,14 +1,14 @@
 ﻿using Azure.Storage.Files.DataLake;
-using Microsoft.AspNetCore.Components;
 using Datahub.Core.Data;
 using Datahub.Core.Services;
-using Datahub.Portal.Services.Storage;
+using Datahub.Core.Services.Api;
+using Datahub.Core.Services.Storage;
+using Microsoft.AspNetCore.Components;
 using Microsoft.Azure.Storage;
 using Microsoft.Azure.Storage.Blob;
 using Folder = Datahub.Core.Data.Folder;
-using Datahub.Core.Services.Data;
 
-namespace Datahub.Portal.Services
+namespace Datahub.Portal.Services.Api
 {
     /// <summary>
     /// Important note - This service is not used but is kept because it has the code

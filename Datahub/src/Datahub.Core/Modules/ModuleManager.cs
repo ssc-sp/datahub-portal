@@ -3,43 +3,42 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace Datahub.Core.Modules
+namespace Datahub.Core.Modules;
+
+public class ModuleManager
 {
-    public class ModuleManager
+    public List<Type> Modules { get; private set; }
+
+    public bool IsEnabled(string moduleName)
     {
-        public List<Type> Modules { get; private set; }
+        return Modules.Any(t => string.Equals(t.Name, moduleName, StringComparison.OrdinalIgnoreCase));
+    }
 
-        public bool IsEnabled(string moduleName)
+    private static List<Type> TryFindInAssembly<T>(Assembly asm)
+    {
+        try
         {
-            return Modules.Any(t => string.Equals(t.Name, moduleName, StringComparison.OrdinalIgnoreCase));
+            return asm.GetTypes().Where(t => t.GetInterfaces().Contains(typeof(T))).ToList();
         }
-
-        private static List<Type> TryFindInAssembly<T>(Assembly asm)
+        catch (Exception)
         {
-            try
-            {
-                return asm.GetTypes().Where(t => t.GetInterfaces().Contains(typeof(T))).ToList();
-            }
-            catch (Exception)
-            {
-                return new List<Type>();
-            }
+            return new List<Type>();
         }
+    }
 
 
-        public void LoadModules(string filterString = "*")
+    public void LoadModules(string filterString = "*")
+    {
+        var filters = filterString.Split(',', StringSplitOptions.RemoveEmptyEntries);
+        var allModules = AppDomain.CurrentDomain.GetAssemblies().SelectMany(asm => TryFindInAssembly<IDatahubModule>(asm)).ToList();
+        if (!filters.Contains("*"))
         {
-            var filters = filterString.Split(',', StringSplitOptions.RemoveEmptyEntries);
-            var allModules = AppDomain.CurrentDomain.GetAssemblies().SelectMany(asm => TryFindInAssembly<IDatahubModule>(asm)).ToList();
-            if (!filters.Contains("*"))
-            {
-                var moduleFilters = filters.Select(c => c.ToLowerInvariant()).ToHashSet();
-                Modules = allModules.Where(t => moduleFilters.Contains(t.Name.ToLowerInvariant())).ToList();
-            }
-            else
-            {
-                Modules = allModules;
-            }
+            var moduleFilters = filters.Select(c => c.ToLowerInvariant()).ToHashSet();
+            Modules = allModules.Where(t => moduleFilters.Contains(t.Name.ToLowerInvariant())).ToList();
+        }
+        else
+        {
+            Modules = allModules;
         }
     }
 }

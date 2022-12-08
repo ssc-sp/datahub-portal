@@ -1,3 +1,5 @@
+namespace Datahub.Portal.Model;
+
 public enum MenuActions
 {
     None = 0,

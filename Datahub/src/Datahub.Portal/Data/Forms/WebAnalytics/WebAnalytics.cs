@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using Elemental.Components;
 
-namespace Datahub.Portal.Data.WebAnalytics
+namespace Datahub.Portal.Data.Forms.WebAnalytics
 {
     public class WebAnalytics
     {

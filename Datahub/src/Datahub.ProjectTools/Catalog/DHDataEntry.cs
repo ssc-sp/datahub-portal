@@ -1,5 +1,5 @@
 ﻿using Datahub.Core.Configuration;
-using Datahub.Core.EFCore;
+using Datahub.Core.Model.Datahub;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 

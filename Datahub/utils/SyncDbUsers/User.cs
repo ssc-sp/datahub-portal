@@ -1,8 +1,7 @@
-﻿namespace NRCanDataHub
+﻿namespace SyncDbUsers;
+
+public class User
 {
-    public class User
-    {
-        public string Username { get; set; }
-        public bool IsAdmin { get; set; }
-    }
+    public string Username { get; set; }
+    public bool IsAdmin { get; set; }
 }

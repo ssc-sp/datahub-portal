@@ -1,6 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
-using Datahub.Core.EFCore;
+using Datahub.Core.Model.Datahub;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 

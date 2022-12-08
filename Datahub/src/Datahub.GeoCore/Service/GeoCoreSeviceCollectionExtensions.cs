@@ -1,12 +1,11 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 
-namespace Datahub.GeoCore.Service
+namespace Datahub.GeoCore.Service;
+
+public static class GeoCoreSeviceCollectionExtensions
 {
-    public static class GeoCoreSeviceCollectionExtensions
+    public static void AddGeoCoreService(this IServiceCollection services)
     {
-        public static void AddGeoCoreService(this IServiceCollection services)
-        {
-            services.AddSingleton<IGeoCoreServiceFactory, GeoCoreServiceFactory>();
-        }
+        services.AddSingleton<IGeoCoreServiceFactory, GeoCoreServiceFactory>();
     }
 }

@@ -1,93 +1,92 @@
 using System.Net.Mail;
 using Microsoft.Graph;
 
-namespace Datahub.Core.Data
+namespace Datahub.Core.Data;
+
+/// <summary>
+/// Use class To hold info on the MSGraph user list (keep it minimal as this could kill memory)
+/// </summary>
+public class GraphUser
 {
     /// <summary>
-    /// Use class To hold info on the MSGraph user list (keep it minimal as this could kill memory)
+    /// User Id
     /// </summary>
-    public class GraphUser
-    {
-        /// <summary>
-        /// User Id
-        /// </summary>
-        /// <value></value>
-        public string Id { get; set; } 
+    /// <value></value>
+    public string Id { get; set; } 
 
-        /// <summary>
-        /// Name of user
-        /// </summary>
-        /// <value></value>
-        public string DisplayName { get; set; } 
+    /// <summary>
+    /// Name of user
+    /// </summary>
+    /// <value></value>
+    public string DisplayName { get; set; } 
         
-        /// <summary>
-        /// Mail Address
-        /// </summary>
-        /// <value></value>
-        private MailAddress mailAddress { get; set; }     
+    /// <summary>
+    /// Mail Address
+    /// </summary>
+    /// <value></value>
+    private MailAddress mailAddress { get; set; }     
 
-        /// <summary>
-        /// The user's email address
-        /// </summary>
-        /// <value></value>
-        public string Mail
+    /// <summary>
+    /// The user's email address
+    /// </summary>
+    /// <value></value>
+    public string Mail
+    {
+        get
         {
-            get
-            {
-                return mailAddress?.Address?.ToLower() ?? string.Empty;
-            }
+            return mailAddress?.Address?.ToLower() ?? string.Empty;
         }
+    }
 
-        /// <summary>
-        /// The user's email address
-        /// </summary>
-        /// <value></value>
-        public string UserName
+    /// <summary>
+    /// The user's email address
+    /// </summary>
+    /// <value></value>
+    public string UserName
+    {
+        get
         {
-            get
-            {
-                return mailAddress?.User?.ToLower() ?? string.Empty;
-            }
+            return mailAddress?.User?.ToLower() ?? string.Empty;
         }
+    }
 
-        /// <summary>
-        /// The user's email domain
-        /// </summary>
-        /// <value></value>
-        public string Domain
+    /// <summary>
+    /// The user's email domain
+    /// </summary>
+    /// <value></value>
+    public string Domain
+    {
+        get
         {
-            get
-            {
-                return mailAddress?.Host?.ToLower() ?? string.Empty;
-            }
+            return mailAddress?.Host?.ToLower() ?? string.Empty;
         }
+    }
 
-        public string RootFolder
+    public string RootFolder
+    {
+        get 
         {
-            get 
-            {
-                return $"{Domain}/{UserName}";
-            }
+            return $"{Domain}/{UserName}";
         }
+    }
 
-		public string Department { get; set; }
+    public string Department { get; set; }
 
-		/// <summary>
-		/// Static ctor to create from GraphUser
-		/// </summary>
-		/// <param name="user"></param>
-		/// <returns></returns>
-		public static GraphUser Create(User user)
+    /// <summary>
+    /// Static ctor to create from GraphUser
+    /// </summary>
+    /// <param name="user"></param>
+    /// <returns></returns>
+    public static GraphUser Create(User user)
+    {
+        var email = user.Mail ?? "unknown@unknown.com";
+        var instance = new GraphUser() 
         {
-            var email = user.Mail ?? "unknown@unknown.com";
-            var instance = new GraphUser() 
-            {
-                Id = user.Id,
-                DisplayName = user.DisplayName,
-                mailAddress = new MailAddress(email),
-                Department = user.Department
-            };
-            return instance;
-        }
+            Id = user.Id,
+            DisplayName = user.DisplayName,
+            mailAddress = new MailAddress(email),
+            Department = user.Department
+        };
+        return instance;
     }
 }

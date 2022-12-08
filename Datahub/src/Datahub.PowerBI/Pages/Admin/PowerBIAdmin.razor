@@ -6,6 +6,8 @@
 @page "/admin/powerbi/{ProjectAcronym}/report/{ReportId}"
 @page "/admin/powerbi/{ProjectAcronym}/dataset/{DatasetId}"
 @page "/admin/powerbi/{ProjectAcronym}/workspace/{WorkspaceId}"
+@using Datahub.PowerBI.Services
+@using Datahub.Core.Model.Datahub
 
 @inject IPowerBiDataService _powerBiDataService
 @inject PowerBiServiceApi _powerBiServiceApi

@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-
-namespace Datahub.Portal.Data
+namespace Datahub.Portal.Data.Pipelines
 {
     public class DatahubETLStatusContext : DbContext
     {

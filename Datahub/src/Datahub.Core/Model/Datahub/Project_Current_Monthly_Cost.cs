@@ -2,7 +2,7 @@ using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Datahub.Core.EFCore;
+namespace Datahub.Core.Model.Datahub;
 
 public class Project_Current_Monthly_Cost
 {

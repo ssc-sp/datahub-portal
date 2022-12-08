@@ -3,10 +3,12 @@ using System.Threading.Tasks;
 using Azure;
 using Azure.Search.Documents;
 using Azure.Search.Documents.Indexes;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Datahub.Core.Data;
 using Datahub.Core.Services.Security;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+
+namespace Datahub.Core.Services.Api;
 
 public class CommonAzureServices
 {    
@@ -15,8 +17,8 @@ public class CommonAzureServices
     private readonly IKeyVaultService _keyVaultService;
 
     public CommonAzureServices(ILogger<CommonAzureServices> logger,
-                               IKeyVaultService keyVaultService,
-                               IOptions<APITarget> targets)
+        IKeyVaultService keyVaultService,
+        IOptions<APITarget> targets)
     {
         _logger = logger;
         _keyVaultService = keyVaultService;

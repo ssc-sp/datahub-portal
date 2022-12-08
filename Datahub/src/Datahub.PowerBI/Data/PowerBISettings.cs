@@ -1,24 +1,20 @@
-﻿namespace Datahub.PowerBI.Data
+﻿namespace Datahub.PowerBI.Data;
+
+public record PowerBIActionBar
 {
-    public record PowerBIActionBar
-    {
-        public bool visible { get; set; } = true;
-    }
+    public bool visible { get; set; } = true;
+}
 
-    public record PowerBIBars
-    {
-        public PowerBIActionBar actionBar { get; set; } = new PowerBIActionBar();
-    }
+public record PowerBIBars
+{
+    public PowerBIActionBar actionBar { get; set; } = new PowerBIActionBar();
+}
 
-    public record PowerBISettings
-    {
-        public bool filterPaneEnabled { get; set; } = true;
-        public bool navContentPaneEnabled { get; set; } = true;
+public record PowerBISettings
+{
+    public bool filterPaneEnabled { get; set; } = true;
+    public bool navContentPaneEnabled { get; set; } = true;
 
-        public PowerBIBars bars { get; set; } = new PowerBIBars();
-
-    }
-
-
+    public PowerBIBars bars { get; set; } = new PowerBIBars();
 
 }

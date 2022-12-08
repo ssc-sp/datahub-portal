@@ -1,12 +1,11 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 
-namespace Datahub.CKAN.Service
+namespace Datahub.CKAN.Service;
+
+public static class CKANSeviceCollectionExtensions
 {
-    public static class CKANSeviceCollectionExtensions
+    public static void AddCKANService(this IServiceCollection services)
     {
-        public static void AddCKANService(this IServiceCollection services)
-        {
-            services.AddSingleton<ICKANServiceFactory, CKANServiceFactory>();
-        }
+        services.AddSingleton<ICKANServiceFactory, CKANServiceFactory>();
     }
 }

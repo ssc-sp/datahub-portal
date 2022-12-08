@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components;
-using Datahub.Core.Services;
+
+namespace Datahub.Core.Services.Api;
 
 public class BaseService
 {

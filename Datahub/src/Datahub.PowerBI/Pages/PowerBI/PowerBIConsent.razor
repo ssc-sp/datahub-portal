@@ -10,6 +10,9 @@
 @inject PowerBiServiceApi PowerBiServiceApi
 @using Microsoft.Identity.Web
 @using System.Security.Cryptography;
+@using Datahub.Core.Model.Datahub
+@using Datahub.Core.Services.Notification
+@using Datahub.PowerBI.Services
 @using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 @inject MicrosoftIdentityConsentAndConditionalAccessHandler ConsentHandler
 @inject ILogger<PowerBIConsent> _logger

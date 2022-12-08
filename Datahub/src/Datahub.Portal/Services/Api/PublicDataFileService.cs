@@ -1,15 +1,16 @@
+using System.Net;
+using Datahub.Core.Data;
+using Datahub.Core.Model.Datahub;
+using Datahub.Core.Services;
+using Datahub.Core.Services.Api;
+using Datahub.Core.Services.Metadata;
+using Datahub.Core.Services.Notification;
+using Datahub.Core.Services.Storage;
+using Datahub.Core.Templates;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Graph;
-using Datahub.Core.Data;
-using Datahub.Core.EFCore;
-using Datahub.Core.Services;
-using Datahub.Core.Templates;
-using System.Net;
-using Datahub.Portal.Services.Storage;
-using Datahub.Core.Services.Metadata;
-using Datahub.Core.Services.Search;
 
-namespace Datahub.Portal.Services
+namespace Datahub.Portal.Services.Api
 {
     public class PublicFileSharingConfiguration
     {

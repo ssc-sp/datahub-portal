@@ -1,7 +1,6 @@
-﻿namespace Datahub.GeoCore.Service
+﻿namespace Datahub.GeoCore.Service;
+
+public interface IGeoCoreServiceFactory
 {
-    public interface IGeoCoreServiceFactory
-    {
-        IGeoCoreService CreateService();
-    }
+    IGeoCoreService CreateService();
 }

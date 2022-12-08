@@ -3,32 +3,31 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Datahub.CKAN.Package
+namespace Datahub.CKAN.Package;
+
+class KeywordFieldAgent : FieldAgent
 {
-    class KeywordFieldAgent : FieldAgent
+    const string KeywordPrefix = "keywords_";
+
+    readonly Dictionary<string, string[]> _languages = new();
+
+    public override bool Matches(FieldDefinition definition)
     {
-        const string KeywordPrefix = "keywords_";
+        return definition.Field_Name_TXT.StartsWith(KeywordPrefix, StringComparison.InvariantCulture);
+    }
 
-        readonly Dictionary<string, string[]> _languages = new();
+    public override (bool append, FieldAgent agent) Instantiate(string fieldName, string fieldValue)
+    {
+        var append = _languages.Count == 0;
 
-        public override bool Matches(FieldDefinition definition)
-        {
-            return definition.Field_Name_TXT.StartsWith(KeywordPrefix, StringComparison.InvariantCulture);
-        }
+        var language = fieldName.Substring(KeywordPrefix.Length);
+        _languages[language] = fieldValue.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(k => k.Trim()).ToArray();
 
-        public override (bool append, FieldAgent agent) Instantiate(string fieldName, string fieldValue)
-        {
-            var append = _languages.Count == 0;
+        return (append, this);
+    }
 
-            var language = fieldName.Substring(KeywordPrefix.Length);
-            _languages[language] = fieldValue.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(k => k.Trim()).ToArray();
-
-            return (append, this);
-        }
-
-        public override void RenderField(IDictionary<string, object> data)
-        {
-            data["keywords"] = _languages;
-        }
+    public override void RenderField(IDictionary<string, object> data)
+    {
+        data["keywords"] = _languages;
     }
 }

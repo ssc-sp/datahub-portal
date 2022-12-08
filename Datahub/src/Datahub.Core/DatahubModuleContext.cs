@@ -6,32 +6,31 @@ using Datahub.Core.Data;
 using System;
 using Microsoft.Extensions.Configuration;
 
-namespace Datahub.Core
+namespace Datahub.Core;
+
+public class DatahubModuleContext
 {
-    public class DatahubModuleContext
+
+    private IServiceProvider serviceProvider;
+
+    private bool offline;
+
+    private ILogger<DatahubModuleContext> logger;
+
+    public DatahubModuleContext(IServiceProvider serviceProvider)
     {
-
-        private IServiceProvider serviceProvider;
-
-        private bool offline;
-
-        private ILogger<DatahubModuleContext> logger;
-
-        public DatahubModuleContext(IServiceProvider serviceProvider)
-        {
-            this.serviceProvider = serviceProvider;
-            var environment = serviceProvider.GetService(typeof(IWebHostEnvironment)) as IWebHostEnvironment;
-            this.offline = environment.IsEnvironment("Offline"); ;
-            logger = serviceProvider.GetService(typeof(ILogger<DatahubModuleContext>)) as ILogger<DatahubModuleContext>;
-        }
-
-        public void InitializeDatabase<T>(IConfiguration configuration, bool migrate = true, bool ensureDeleteinOffline = true) where T : DbContext
-        {
-            var deleteInOffline = configuration.GetSection("InitialSetup")?.GetValue<bool>("EnsureDeleteinOffline", false) ?? false;
-            var resetDb = configuration.GetSection("InitialSetup")?.GetValue<bool>("ResetDB", false) ?? false;
-            EFTools.InitializeDatabase<T>(logger, configuration, serviceProvider, resetDb, migrate, deleteInOffline);
-        }
-
-
+        this.serviceProvider = serviceProvider;
+        var environment = serviceProvider.GetService(typeof(IWebHostEnvironment)) as IWebHostEnvironment;
+        this.offline = environment.IsEnvironment("Offline"); ;
+        logger = serviceProvider.GetService(typeof(ILogger<DatahubModuleContext>)) as ILogger<DatahubModuleContext>;
     }
+
+    public void InitializeDatabase<T>(IConfiguration configuration, bool migrate = true, bool ensureDeleteinOffline = true) where T : DbContext
+    {
+        var deleteInOffline = configuration.GetSection("InitialSetup")?.GetValue<bool>("EnsureDeleteinOffline", false) ?? false;
+        var resetDb = configuration.GetSection("InitialSetup")?.GetValue<bool>("ResetDB", false) ?? false;
+        EFTools.InitializeDatabase<T>(logger, configuration, serviceProvider, resetDb, migrate, deleteInOffline);
+    }
+
+
 }

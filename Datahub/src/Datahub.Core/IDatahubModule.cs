@@ -1,11 +1,10 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Datahub.Core
+namespace Datahub.Core;
+
+public interface IDatahubModule
 {
-    public interface IDatahubModule
-    {
-        void InitializeDatabases(DatahubModuleContext ctx, IConfiguration configuration);
-        void ConfigureDatabases(IServiceCollection serviceProvider, IConfiguration configuration);
-    }
+    void InitializeDatabases(DatahubModuleContext ctx, IConfiguration configuration);
+    void ConfigureDatabases(IServiceCollection serviceProvider, IConfiguration configuration);
 }

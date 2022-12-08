@@ -1,7 +1,9 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
+using System.Diagnostics;
+using System.Text;
 using CatalogIngestTool;
-using Datahub.Core.EFCore;
+using Datahub.Core.Model.Datahub;
 using Datahub.Core.Services;
 using Datahub.Core.Services.Metadata;
 using Datahub.Metadata.DTO;
@@ -13,8 +15,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Graph.Auth;
 using Microsoft.Identity.Client;
 using Newtonsoft.Json;
-using System.Diagnostics;
-using System.Text;
 using GraphServiceClient = Microsoft.Graph.GraphServiceClient;
 
 #region Config
@@ -247,30 +247,33 @@ string GetSubjectValues(FieldDefinitions definitions, List<CatalogIngestTool.Sub
 
 #endregion
 
-class DummyDatahubAuditingService : IDatahubAuditingService
+namespace CatalogIngestTool
 {
-    public Task TrackAdminEvent(string scope, string source, AuditChangeType changeType, params (string key, string value)[] details)
+    class DummyDatahubAuditingService : IDatahubAuditingService
     {
-        return Task.CompletedTask;
-    }
+        public Task TrackAdminEvent(string scope, string source, AuditChangeType changeType, params (string key, string value)[] details)
+        {
+            return Task.CompletedTask;
+        }
 
-    public Task TrackDataEvent(string objectId, string table, AuditChangeType changeType, bool anonymous, params (string key, string value)[] details)
-    {
-        return Task.CompletedTask;
-    }
+        public Task TrackDataEvent(string objectId, string table, AuditChangeType changeType, bool anonymous, params (string key, string value)[] details)
+        {
+            return Task.CompletedTask;
+        }
 
-    public Task TrackException(Exception exception, params (string key, string value)[] details)
-    {
-        return Task.CompletedTask;
-    }
+        public Task TrackException(Exception exception, params (string key, string value)[] details)
+        {
+            return Task.CompletedTask;
+        }
 
-    public Task TrackSecurityEvent(string scope, string table, AuditChangeType changeType, params (string key, string value)[] details)
-    {
-        return Task.CompletedTask;
-    }
+        public Task TrackSecurityEvent(string scope, string table, AuditChangeType changeType, params (string key, string value)[] details)
+        {
+            return Task.CompletedTask;
+        }
 
-    public Task TrackEvent(string message, params (string key, string value)[] details)
-    {
-        return Task.CompletedTask;
+        public Task TrackEvent(string message, params (string key, string value)[] details)
+        {
+            return Task.CompletedTask;
+        }
     }
 }

@@ -1,3 +1,5 @@
+namespace Datahub.Portal.Model;
+
 public static class AccessPermissions
 {
     public const string ChangeOwner = "ChangeOwner";
