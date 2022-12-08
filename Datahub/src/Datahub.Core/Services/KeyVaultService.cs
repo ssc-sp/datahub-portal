@@ -12,7 +12,7 @@ using Microsoft.Azure.KeyVault.WebKey;
 using System.Text;
 using System.Security.Cryptography;
 
-namespace Datahub.Core.Services
+namespace Datahub.Core.Services.Security
 {
     public class KeyVaultService : IKeyVaultService
     {
@@ -47,7 +47,7 @@ namespace Datahub.Core.Services
             {
                 _logger.LogError($"Could not retrieve secret: {secretName}");
                 _logger.LogError($"The following error occured: {e.Message}");
-                _logger.LogError(e,$"Could not retrieve secret: {secretName}");
+                _logger.LogError(e, $"Could not retrieve secret: {secretName}");
                 throw;
             }
         }
@@ -75,7 +75,7 @@ namespace Datahub.Core.Services
             }
 
             string keyIdentifier = GetApiKeyIdentifier();
-            var decrypedData = await _keyVaultClient.DecryptAsync(keyIdentifier, JsonWebKeyEncryptionAlgorithm.RSAOAEP, System.Convert.FromBase64String(data));
+            var decrypedData = await _keyVaultClient.DecryptAsync(keyIdentifier, JsonWebKeyEncryptionAlgorithm.RSAOAEP, Convert.FromBase64String(data));
 
             return Encoding.UTF8.GetString(decrypedData.Result);
         }

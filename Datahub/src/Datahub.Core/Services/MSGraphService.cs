@@ -10,8 +10,9 @@ using Microsoft.Identity.Client;
 using Datahub.Core.Data;
 using System.Threading;
 using System.Linq;
+using Datahub.Core.Services.Security;
 
-namespace Datahub.Core.Services
+namespace Datahub.Core.Services.UserManagement
 {
     public class MSGraphService : IMSGraphService
     {
@@ -143,16 +144,16 @@ namespace Datahub.Core.Services
             return new();
         }
 
-		public async Task<GraphUser> GetUserFromSamAccountNameAsync(string userName, CancellationToken token)
-		{
+        public async Task<GraphUser> GetUserFromSamAccountNameAsync(string userName, CancellationToken token)
+        {
             await PrepareAuthenticatedClient();
             try
-			{
-                var queryOptions = new List<Microsoft.Graph.Option>()
+            {
+                var queryOptions = new List<Option>()
                 {
-                    new Microsoft.Graph.QueryOption("$search", $"\"onPremisesSamAccountName:{userName}\""),
-                    new Microsoft.Graph.QueryOption("$select", "mail,department"),
-                    new Microsoft.Graph.HeaderOption("ConsistencyLevel", "eventual")
+                    new QueryOption("$search", $"\"onPremisesSamAccountName:{userName}\""),
+                    new QueryOption("$select", "mail,department"),
+                    new HeaderOption("ConsistencyLevel", "eventual")
                 };
 
                 var users = await _graphServiceClient.Users.Request(queryOptions).GetAsync(token);
@@ -166,5 +167,5 @@ namespace Datahub.Core.Services
             }
             return new();
         }
-	}
+    }
 }

@@ -1,4 +1,5 @@
 ﻿using Datahub.Core.EFCore;
+using Datahub.Core.Services.UserManagement;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;

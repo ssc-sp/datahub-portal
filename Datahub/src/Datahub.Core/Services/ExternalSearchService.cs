@@ -7,7 +7,7 @@ using Newtonsoft.Json;
 using Datahub.Core.Data.External.FGP;
 using Datahub.Core.Data.External.OpenData;
 
-namespace Datahub.Core.Services
+namespace Datahub.Core.Services.Search
 {
     public class ExternalSearchService : IExternalSearchService
     {
@@ -15,7 +15,7 @@ namespace Datahub.Core.Services
         private static readonly string OPEN_DATA_SEARCH_API_URL = "https://open.canada.ca/data/en/api/3/action/package_search";
 
         private readonly HttpClient _httpClient;
-        
+
         private readonly ILogger<ExternalSearchService> _logger;
 
         public ExternalSearchService(ILogger<ExternalSearchService> logger, HttpClient httpClient)
@@ -30,7 +30,7 @@ namespace Datahub.Core.Services
 
             var encKeyword = HttpUtility.UrlEncode(keyword);
 
-            try 
+            try
             {
                 using (var request = new HttpRequestMessage())
                 {
@@ -69,7 +69,7 @@ namespace Datahub.Core.Services
             _logger.LogDebug($"Searching Open Data with keyword '{keyword}' (min: {min} , rows: {rows})");
             var encKeyword = HttpUtility.UrlEncode(keyword);
 
-            try 
+            try
             {
                 using (var request = new HttpRequestMessage())
                 {

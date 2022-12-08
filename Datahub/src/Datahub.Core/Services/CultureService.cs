@@ -1,6 +1,6 @@
 ﻿using System.Globalization;
 
-namespace Datahub.Core.Services
+namespace Datahub.Core.Services.UserManagement
 {
     public class CultureService
     {

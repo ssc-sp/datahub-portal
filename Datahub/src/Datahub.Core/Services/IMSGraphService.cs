@@ -3,9 +3,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Datahub.Core.Data;
 
-namespace Datahub.Core.Services
+namespace Datahub.Core.Services.UserManagement
 {
-	public interface IMSGraphService
+    public interface IMSGraphService
     {
         Dictionary<string, GraphUser> UsersDict { get; set; }
 

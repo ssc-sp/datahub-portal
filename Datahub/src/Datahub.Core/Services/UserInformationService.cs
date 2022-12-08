@@ -15,8 +15,9 @@ using Microsoft.Identity.Web;
 using Datahub.Core.UserTracking;
 using System.Security.Claims;
 using Datahub.Core.Data;
+using Datahub.Core.Services.Security;
 
-namespace Datahub.Core.Services
+namespace Datahub.Core.Services.UserManagement
 {
     public class UserInformationService : IUserInformationService
     {
@@ -57,9 +58,9 @@ namespace Datahub.Core.Services
 
         public async Task<ClaimsPrincipal> GetAuthenticatedUser(bool forceReload = false)
         {
-            if ( _authenticationStateProvider == null || forceReload)
-			    authenticatedUser = (await _authenticationStateProvider.GetAuthenticationStateAsync()).User;
-			return authenticatedUser;
+            if (_authenticationStateProvider == null || forceReload)
+                authenticatedUser = (await _authenticationStateProvider.GetAuthenticationStateAsync()).User;
+            return authenticatedUser;
         }
 
         public string UserLanguage { get; set; }
@@ -113,7 +114,7 @@ namespace Datahub.Core.Services
                 return true;
             var claims = (await GetAuthenticatedUser()).Claims.Where(c => c.Type == ClaimTypes.Role).ToList();
 
-            return (claims.Count() == 0 || (claims.Count() == 1 && claims[0].Value == "default"));             
+            return claims.Count() == 0 || claims.Count() == 1 && claims[0].Value == "default";
         }
 
         private async Task GetUserAsyncInternal()
@@ -149,7 +150,7 @@ namespace Datahub.Core.Services
         private string GetOid()
         {
             return (authenticatedUser?.Claims?
-                .FirstOrDefault(c => c.Type == "http://schemas.microsoft.com/identity/claims/objectidentifier")?? throw new InvalidOperationException("Cannot access user claims")).Value;
+                .FirstOrDefault(c => c.Type == "http://schemas.microsoft.com/identity/claims/objectidentifier") ?? throw new InvalidOperationException("Cannot access user claims")).Value;
         }
 
         public async Task<User> GetCurrentGraphUserAsync()
@@ -157,7 +158,7 @@ namespace Datahub.Core.Services
             await CheckUser();
             return CurrentUser;
         }
-        
+
 
         private void PrepareAuthenticatedClient()
         {
@@ -220,7 +221,7 @@ namespace Datahub.Core.Services
         {
             var userId = await GetUserIdString();
             _logger.LogInformation(
-                "User: {DisplayName} has selected language: {Language}", 
+                "User: {DisplayName} has selected language: {Language}",
                 CurrentUser.DisplayName, language);
 
             try
@@ -229,17 +230,17 @@ namespace Datahub.Core.Services
                 var userSetting = eFCoreDatahubContext.UserSettings.FirstOrDefault(u => u.UserId == userId);
                 if (userSetting == null)
                 {
-                    userSetting = new UserTracking.UserSettings {UserId = userId};
+                    userSetting = new UserTracking.UserSettings { UserId = userId };
                     eFCoreDatahubContext.UserSettings.Add(userSetting);
                 }
 
                 userSetting.UserName = CurrentUser.DisplayName;
                 userSetting.Language = language;
-                if (await eFCoreDatahubContext.SaveChangesAsync() > 0) 
+                if (await eFCoreDatahubContext.SaveChangesAsync() > 0)
                     return true;
-                
+
                 _logger.LogInformation(
-                    "User: {DisplayName} has selected language: {Language}. Changes NOT saved", 
+                    "User: {DisplayName} has selected language: {Language}. Changes NOT saved",
                     CurrentUser.DisplayName, language);
                 return false;
 
@@ -289,7 +290,7 @@ namespace Datahub.Core.Services
             await using var eFCoreDatahubContext = await contextFactory.CreateDbContextAsync();
             var userSetting = eFCoreDatahubContext.UserSettings.FirstOrDefault(u => u.UserId == userId);
 
-            return userSetting is {AcceptedDate: { }};
+            return userSetting is { AcceptedDate: { } };
         }
 
         private async Task CheckUser()
@@ -336,7 +337,7 @@ namespace Datahub.Core.Services
 
         public async Task SetViewingAsGuest(bool isGuest)
         {
-            serviceAuthManager.SetViewingAsGuest((await GetCurrentGraphUserAsync()).Id,isGuest);
+            serviceAuthManager.SetViewingAsGuest((await GetCurrentGraphUserAsync()).Id, isGuest);
         }
 
         private bool isViewingAsVisitor = false;
@@ -353,7 +354,7 @@ namespace Datahub.Core.Services
         }
 
         public async Task<bool> IsUserProjectAdmin(string projectAcronym)
-        {            
+        {
             return (await GetAuthenticatedUser()).IsInRole($"{projectAcronym}-admin");
         }
 

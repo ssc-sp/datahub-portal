@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System;
 using System.Collections.Generic;
 
-namespace Datahub.Core.Services
+namespace Datahub.Core.Services.Search
 {
     public interface IPublicDataFileService
     {

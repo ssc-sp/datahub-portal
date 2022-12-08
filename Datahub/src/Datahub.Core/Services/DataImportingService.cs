@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Datahub.Core.Services
+namespace Datahub.Core.Services.Data
 {
     public class DataImportingService
     {
@@ -12,7 +12,7 @@ namespace Datahub.Core.Services
 
         public DataImportingService(ILogger<DataImportingService> logger)
         {
-            _logger = logger;            
+            _logger = logger;
         }
 
         public List<T> CreateObjects<T>(List<string[]> contents)
@@ -25,7 +25,7 @@ namespace Datahub.Core.Services
 
                 //Check to make sure array length will fit into the object
                 if (item.Count() == properties.Count())
-                {                    
+                {
                     T obj = (T)Activator.CreateInstance(typeof(T));
 
                     int index = 0;
@@ -53,7 +53,7 @@ namespace Datahub.Core.Services
                                     {
                                         if (propertyType == typeof(double?))
                                         {
-                                            objectproperty.SetValue(obj, (double?)outValue);
+                                            objectproperty.SetValue(obj, outValue);
                                         }
                                         else
                                         {
@@ -72,7 +72,7 @@ namespace Datahub.Core.Services
                                     {
                                         if (propertyType == typeof(int?))
                                         {
-                                            objectproperty.SetValue(obj, (int?)outValue);
+                                            objectproperty.SetValue(obj, outValue);
                                         }
                                         else
                                         {

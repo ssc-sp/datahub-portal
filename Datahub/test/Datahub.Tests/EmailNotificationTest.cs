@@ -10,6 +10,7 @@ using Datahub.Core.Services;
 using Xunit;
 using Xunit.Abstractions;
 using System.Threading;
+using Datahub.Core.Services.UserManagement;
 
 namespace Datahub.Tests
 {

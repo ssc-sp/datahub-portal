@@ -2,13 +2,13 @@
 using System;
 using System.Collections.Generic;
 
-namespace Datahub.Core.Services
+namespace Datahub.Core.Services.UserManagement
 {
     public class GlobalSessionManager : IGlobalSessionManager
     {
         private readonly Dictionary<string, int> _sessions;
         private readonly int _maxSessions;
-        
+
         public GlobalSessionManager(IOptions<SessionsConfig> config)
         {
             _sessions = new();

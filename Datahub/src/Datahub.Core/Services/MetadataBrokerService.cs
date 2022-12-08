@@ -10,7 +10,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Entities = Datahub.Metadata.Model;
 
-namespace Datahub.Core.Services
+namespace Datahub.Core.Services.Metadata
 {
     public class MetadataBrokerService : IMetadataBrokerService
     {
@@ -146,7 +146,7 @@ namespace Datahub.Core.Services
             }
         }
 
-        public async Task<bool> CreateChildMetadata(string parentId, string childId, Entities.MetadataObjectType dataType, string location, bool includeCatalog)
+        public async Task<bool> CreateChildMetadata(string parentId, string childId, MetadataObjectType dataType, string location, bool includeCatalog)
         {
             try
             {
@@ -184,7 +184,7 @@ namespace Datahub.Core.Services
             }
         }
 
-        public async Task<Entities.ApprovalForm> GetApprovalForm(int approvalFormId)
+        public async Task<ApprovalForm> GetApprovalForm(int approvalFormId)
         {
             using var ctx = _contextFactory.CreateDbContext();
             return await GetApprovalFormEntity(ctx, approvalFormId);
@@ -262,8 +262,8 @@ namespace Datahub.Core.Services
             return keywords;
         }
 
-        public async Task UpdateCatalog(long objectMetadataId, MetadataObjectType dataType, string englishName, string frenchName, 
-            string location, int sector, int branch, string contact, ClassificationType securityClass, string englishText, string frenchText, 
+        public async Task UpdateCatalog(long objectMetadataId, MetadataObjectType dataType, string englishName, string frenchName,
+            string location, int sector, int branch, string contact, ClassificationType securityClass, string englishText, string frenchText,
             CatalogObjectLanguage language, int? projectId, bool anonymous = false)
         {
             using var ctx = _contextFactory.CreateDbContext();
@@ -330,7 +330,7 @@ namespace Datahub.Core.Services
         public async Task<List<CatalogObjectResult>> SearchCatalog(CatalogSearchRequest request, Func<CatalogObjectResult, bool> validateResult)
         {
             _logger.LogInformation(">>> SearchCatalog start...");
-            
+
             using var ctx = _contextFactory.CreateDbContext();
 
             var query = ctx.CatalogObjects
@@ -339,13 +339,13 @@ namespace Datahub.Core.Services
                 .AsQueryable();
 
             var containsKeywords = request.Keywords.Count > 0;
-            var pageSize = request.PageSize; 
+            var pageSize = request.PageSize;
 
             List<long> hits = new();
             if (containsKeywords)
             {
                 var kwSearch = request.IsFrench ? _catalogSearchEngine.GetFrenchSearchEngine() : _catalogSearchEngine.GetEnglishSearchEngine();
-                
+
                 hits = kwSearch.SearchDocuments(string.Join(" ", request.Keywords.Select(s => s.ToLower())), MaxKeywordResults)
                                .Select(long.Parse)
                                .ToList();
@@ -554,10 +554,10 @@ namespace Datahub.Core.Services
                 Url_French = catObj.Url_French_TXT,
                 GroupId = catObj.GroupId,
                 ProjectId = catObj.ProjectId,
-                Metadata = new FieldValueContainer(catObj.ObjectMetadata.ObjectMetadataId, catObj.ObjectMetadata.ObjectId_TXT, definitions, 
+                Metadata = new FieldValueContainer(catObj.ObjectMetadata.ObjectMetadataId, catObj.ObjectMetadata.ObjectId_TXT, definitions,
                     catObj.ObjectMetadata.FieldValues)
             };
-        } 
+        }
 
         public async Task<CatalogObjectResult> GetCatalogObjectByMetadataId(long metadataId)
         {
@@ -581,7 +581,7 @@ namespace Datahub.Core.Services
             var result = await ctx.CatalogObjects.Where(c => c.ObjectMetadata.ObjectId_TXT == objectId)
                 .Include(e => e.ObjectMetadata)
                 .ThenInclude(s => s.FieldValues)
-                .AsSingleQuery()  
+                .AsSingleQuery()
                 .FirstOrDefaultAsync();
 
             return await Task.FromResult(TransformCatalogObject(result, definitions));
@@ -616,7 +616,7 @@ namespace Datahub.Core.Services
                     }
                 }
 
-                foreach(var catalogObject in existingObjects)
+                foreach (var catalogObject in existingObjects)
                 {
                     ctx.CatalogObjects.Remove(catalogObject);
                 }
@@ -655,7 +655,7 @@ namespace Datahub.Core.Services
         }
 
         public async Task<Guid> GroupCatalogObjects(IEnumerable<string> objectIds)
-		{
+        {
             var groupId = Guid.NewGuid();
 
             using var ctx = await _contextFactory.CreateDbContextAsync();
@@ -684,7 +684,7 @@ namespace Datahub.Core.Services
 
             // assign group id
             foreach (var catalogObject in updateList)
-			{
+            {
                 catalogObject.GroupId = groupId;
             }
 
@@ -734,7 +734,7 @@ namespace Datahub.Core.Services
             using var ctx = await _contextFactory.CreateDbContextAsync();
 
             var definitions = await GetLatestMetadataDefinition(ctx);
-            List<MetadataObjectType> listedTypes = new() { MetadataObjectType.File, MetadataObjectType.PowerBIReport }; 
+            List<MetadataObjectType> listedTypes = new() { MetadataObjectType.File, MetadataObjectType.PowerBIReport };
 
             return await ctx.CatalogObjects
                             .Where(e => e.ProjectId == projectId && listedTypes.Contains(e.DataType))

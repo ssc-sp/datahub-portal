@@ -1,4 +1,5 @@
 ﻿using Datahub.Core.Data;
+using Datahub.Core.Services.Data;
 
 namespace Datahub.Portal.Services.Offline
 {

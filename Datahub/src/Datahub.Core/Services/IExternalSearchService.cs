@@ -2,7 +2,7 @@ using System.Threading.Tasks;
 using Datahub.Core.Data.External.FGP;
 using Datahub.Core.Data.External.OpenData;
 
-namespace Datahub.Core.Services
+namespace Datahub.Core.Services.Search
 {
     public interface IExternalSearchService
     {

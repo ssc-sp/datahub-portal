@@ -3,9 +3,9 @@ using System.Net.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Datahub.Core.Data.External.FGP;
-using Datahub.Core.Services;
 using Xunit;
 using Xunit.Abstractions;
+using Datahub.Core.Services.Search;
 
 namespace Datahub.Tests
 {
