@@ -23,7 +23,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\..\src\ResourceProvisioner\ResourceProvisioner.API\ResourceProvisioner.API.csproj" />
+      <ProjectReference Include="..\..\src\ResourceProvisioner.API\ResourceProvisioner.API.csproj" />
     </ItemGroup>
 
     <ItemGroup>

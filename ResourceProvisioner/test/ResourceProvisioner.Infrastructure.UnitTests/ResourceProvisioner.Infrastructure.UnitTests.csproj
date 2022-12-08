@@ -20,7 +20,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\..\src\ResourceProvisioner\ResourceProvisioner.Infrastructure\ResourceProvisioner.Infrastructure.csproj" />
+      <ProjectReference Include="..\..\src\ResourceProvisioner.Infrastructure\ResourceProvisioner.Infrastructure.csproj" />
     </ItemGroup>
 
     <ItemGroup>

@@ -17,7 +17,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\..\src\ResourceProvisioner\ResourceProvisioner.Domain\ResourceProvisioner.Domain.csproj" />
+      <ProjectReference Include="..\..\src\ResourceProvisioner.Domain\ResourceProvisioner.Domain.csproj" />
     </ItemGroup>
 
 </Project>
