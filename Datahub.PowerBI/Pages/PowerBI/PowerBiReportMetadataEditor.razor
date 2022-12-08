@@ -13,65 +13,90 @@
 else
 {
     <MudStack>
-        <MudText Typo="Typo.h6">@Localizer["Catalog"]</MudText>
+        <MudCheckBox @bind-Checked=@_includeInCatalog>@Localizer["Catalog"]</MudCheckBox>
 
-        <div>
-            <label>
-                <input type="checkbox" @bind=@_includeInCatalog />
-                <AeTypography style="display: inline-block;"><strong><span>@Localizer[$"{LOCALIZATION_PREFIX}.IncludeInCatalog"]</span></strong></AeTypography>
-            </label>
-        </div>
+        <MudSelect T=@CatalogObjectLanguage
+                   Disabled=@NotIncludedCurrentItemInCatalog
+                   Label=@Localizer[$"Language"]
+                   @bind-Value=@_catalogObjectLanguage
+                   Variant="Variant.Outlined"
+                   AnchorOrigin="Origin.BottomCenter"
+                   AdornmentIcon=@Icons.Filled.ArrowDropDown
+                   Margin="Margin.Dense">
 
-        <div style="margin-top: 0.5rem; width: 100%">
-            <AeTypography><strong><span>@Localizer[$"Language"]</span></strong></AeTypography>
-            <select class="ae input" @bind="_catalogObjectLanguage" disabled=@NotIncludedCurrentItemInCatalog>
-                <option value=@CatalogObjectLanguage.Bilingual>@Localizer["Bilingual"]</option>
-                <option value=@CatalogObjectLanguage.English>@Localizer["English"]</option>
-                <option value=@CatalogObjectLanguage.French>@Localizer["French"]</option>
-            </select>
-        </div>
+            <MudSelectItem T=@CatalogObjectLanguage Value=@CatalogObjectLanguage.Bilingual>
+                @Localizer["Bilingual"]
+            </MudSelectItem>
+            
+            <MudSelectItem T=@CatalogObjectLanguage Value=@CatalogObjectLanguage.English>
+                @Localizer["English"]
+            </MudSelectItem>
+            
+            <MudSelectItem T=@CatalogObjectLanguage Value=@CatalogObjectLanguage.French>
+                @Localizer["French"]
+            </MudSelectItem>
+        </MudSelect>
 
         @if (_siblingReports.Count > 0)
         {
-            <div style="margin-top: 0.5rem; width: 100%">
-                <AeFlex Vertical>
-                    <AeTypography><strong><span>@Localizer[$"Grouped with"]</span></strong></AeTypography>
-                    <select @bind="_groupWithId" class="ae input" disabled=@NotIncludedCurrentItemInCatalog>
-                        <option value=""></option>
-                        @foreach (var report in _siblingReports)
-                        {
-                            <option value="@report.Report_ID.ToString()">@report.Report_Name</option>
-                        }
-                    </select>
-                </AeFlex>
-            </div>
+            <MudSelect 
+                T="string" 
+                Disabled=@NotIncludedCurrentItemInCatalog 
+                Label=@Localizer[$"Grouped with"]
+                @bind-Value="@GroupWithId" Variant="Variant.Outlined"
+                AnchorOrigin="Origin.BottomCenter"
+                AdornmentIcon=@Icons.Filled.ArrowDropDown
+                Margin="Margin.Dense">
+
+                <MudSelectItem T="string"></MudSelectItem>
+                @foreach (var report in _siblingReports)
+                {
+                    <MudSelectItem T="string" Value="@report.Report_ID.ToString()">
+                        @report.Report_Name
+                    </MudSelectItem>
+                }
+            </MudSelect> 
         }
     </MudStack>
 
     @*metadata*@
-    <MudStack>
+    <MudStack Class="mt-4 mb-4">
         <MudText Typo="Typo.h6">@Localizer[$"{LOCALIZATION_PREFIX}.Metadata"]</MudText>
-        <ObjectMetadataEditor @ref=@_reportMetadata
-                          ObjectId=@PowerBiReportId.ToString()
-                          Location="PowerBI"
-                          ProfileName="catalog"
-                          ObjectType=@Metadata.Model.MetadataObjectType.PowerBIReport
-                          UpdateCatalog=@_includeInCatalog
-                          ValidateRequired
-                          Name=@_report.Report_Name
-                          HideSaveButton
-                          CatalogLanguage=@_catalogObjectLanguage
-                          OnValuesChanged=@(() => StateHasChanged())
-                          DefaultMetadataId=@ProjectAcronym
-                          ProjectId=@_projectId
-                          OnNewMetadataCreated=@AutoFillNewMetadataFields
-                          OnExistingMetadataLoaded=@DetectIfCurrentItemIsInCatalog />
 
-        <div style="margin-top: 1rem;">
-            <AeButton OnClickEvent=@SaveReport Disabled=@SaveReportDisabled>@Localizer[$"BUTTONS.Save"]</AeButton>
-            <AeButton class="light" OnClickEvent=@CancelEditing>@Localizer[$"BUTTONS.Cancel"]</AeButton>
-            <SuccessIndicator @bind-IsLoading=@_isSavingReport @ref=@_saveReportInd />
-        </div>
+        <ObjectMetadataEditor 
+            @ref=@_reportMetadata
+            ObjectId=@PowerBiReportId.ToString()
+            Location="PowerBI"
+            ProfileName="catalog"
+            ObjectType=@Metadata.Model.MetadataObjectType.PowerBIReport
+            UpdateCatalog=@_includeInCatalog
+            ValidateRequired
+            Name=@_report.Report_Name
+            HideSaveButton
+            CatalogLanguage=@_catalogObjectLanguage
+            OnValuesChanged=@(() => StateHasChanged())
+            DefaultMetadataId=@ProjectAcronym
+            ProjectId=@_projectId
+            OnNewMetadataCreated=@AutoFillNewMetadataFields
+            OnExistingMetadataLoaded=@DetectIfCurrentItemIsInCatalog />
+
+        <MudStack Row>
+            <MudButton OnClick=@SaveReport Disabled=@SaveReportDisabled Variant="Variant.Outlined" Color="Color.Primary">
+                @if (_isSavingReport)
+                {
+                    <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                    <MudText Class="ms-2">@Localizer[$"BUTTONS.Save"]</MudText>
+                }
+                else
+                {
+                    <MudText>@Localizer[$"BUTTONS.Save"]</MudText>
+                }
+            </MudButton>
+
+            <MudButton OnClick=@CancelEditing Variant="Variant.Outlined" Color="Color.Default">
+                <MudText>@Localizer[$"BUTTONS.Cancel"]</MudText>
+            </MudButton>
+        </MudStack>
     </MudStack>
 }
 
@@ -91,6 +116,22 @@ else
     private PowerBi_Report _report;
     private List<PowerBi_Report> _siblingReports;
     private string _groupWithId;
+
+    private string GroupWithId
+    {
+        get
+        {
+            return _groupWithId;
+        }
+        set
+        {
+            _groupWithId = value;
+            if (!string.IsNullOrEmpty(value))
+            {
+                _ = _reportMetadata.CopyMetadataFrom(value);
+            }
+        }
+    }
 
     private ObjectMetadataEditor _reportMetadata;
     private int _projectId;

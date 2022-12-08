@@ -1,5 +1,6 @@
 ﻿@*DiscoverySearchLanding.razor*@
 @using Datahub.Core.Components.FileUpload
+@using Datahub.Metadata.Model;
 @inject CatalogImportService CatalogImportService
 @inject IConfiguration Configuration
 @inject ILogger<DiscoverySearchLanding> Logger
@@ -13,25 +14,57 @@
 
 	@if (Sectors.Any())
 	{
-		<MudStack>
-			<MudText Typo="Typo.h5">@Localizer["Browse by Sector"]</MudText>
-			<MudGrid>
-				@foreach (var sector in Sectors)
-				{
-					<MudItem xs="6" sm="6" onclick=@(() => ClickSector(sector)) style="cursor: pointer;">
+		<MudStack Spacing="2">
+			<MudStack>
+				<MudText Typo="Typo.h5">@Localizer["Browse by Type"]</MudText>
+				<MudGrid>
+					<MudItem xs="6" sm="6" onclick=@(() => ClickType(MetadataObjectType.File)) style="cursor: pointer;">
 						<MudCard Class="d-flex align-center justify-center mud-width-full pa-8" style="height: 100%">
 							<MudGrid>
 								<MudItem sm="2">
-									<MudIcon Icon=@GetIconClass(sector.Id) Size="Size.Large" />
+									<MudIcon Icon="@Icons.Outlined.InsertDriveFile" Size="Size.Large" />
 								</MudItem>
 								<MudItem sm="8">
-									<MudText Typo="Typo.h6">@(IsFrench ? sector.FrenchLabel : sector.EnglishLabel)</MudText>
+									<MudText Typo="Typo.h6">@Localizer["Files"]</MudText>
 								</MudItem>
 							</MudGrid>
 						</MudCard>
 					</MudItem>
-				}
-			</MudGrid>
+					<MudItem xs="6" sm="6" onclick=@(() => ClickType(MetadataObjectType.PowerBIReport)) style="cursor: pointer;">
+						<MudCard Class="d-flex align-center justify-center mud-width-full pa-8" style="height: 100%">
+							<MudGrid>
+								<MudItem sm="2">
+									<MudIcon Icon="@Icons.Outlined.BarChart" Size="Size.Large" />
+								</MudItem>
+								<MudItem sm="8">
+									<MudText Typo="Typo.h6">@Localizer["Power BI Reports"]</MudText>
+								</MudItem>
+							</MudGrid>
+						</MudCard>
+					</MudItem>
+				</MudGrid>
+			</MudStack>
+
+			<MudStack Class="mt-4">
+				<MudText Typo="Typo.h5">@Localizer["Browse by Sector"]</MudText>
+				<MudGrid>
+					@foreach (var sector in Sectors)
+					{
+						<MudItem xs="6" sm="6" onclick=@(() => ClickSector(sector)) style="cursor: pointer;">
+							<MudCard Class="d-flex align-center justify-center mud-width-full pa-8" style="height: 100%">
+								<MudGrid>
+									<MudItem sm="2">
+										<MudIcon Icon=@GetSectorIconClass(sector.Id) Size="Size.Large" />
+									</MudItem>
+									<MudItem sm="8">
+										<MudText Typo="Typo.h6">@(IsFrench ? sector.FrenchLabel : sector.EnglishLabel)</MudText>
+									</MudItem>
+								</MudGrid>
+							</MudCard>
+						</MudItem>
+					}
+				</MudGrid>
+			</MudStack>
 
 			<MudStack Class="mt-4">
 				<MudText Typo="Typo.h5">@Localizer["Search"]</MudText>
@@ -71,21 +104,32 @@
 	public List<OrganizationLevel> Sectors { get; set; } = new();
 
 	[Parameter]
+	public List<MetadataObjectType> ObjectTypes { get; set; } = new() { MetadataObjectType.File, MetadataObjectType.PowerBIReport };
+
+	[Parameter]
 	public bool IsFrench { get; set; }
 
 	[Parameter]
 	public EventCallback<OrganizationLevel> OnClickSector { get; set; }
 
-	static Dictionary<int, string> _icons = GetIcons();
+	[Parameter]
+	public EventCallback<MetadataObjectType> OnClickType { get; set; }
+
+	static Dictionary<int, string> _sectorIcons = GetSectorIcons();
 
 	private async void ClickSector(OrganizationLevel sector)
 	{
 		await OnClickSector.InvokeAsync(sector);
 	}
 
-	private string GetIconClass(int id)
+	private async void ClickType(MetadataObjectType type)
 	{
-		var iconClass = _icons.ContainsKey(id) ? _icons[id] : "fa-info-circle";
+		await OnClickType.InvokeAsync(type);
+	}
+
+	private string GetSectorIconClass(int id)
+	{
+		var iconClass = _sectorIcons.ContainsKey(id) ? _sectorIcons[id] : "fa-info-circle";
 		return $"fad {iconClass} card-icon fa-xs";
 	}
 
@@ -100,7 +144,7 @@
 		return Configuration[ConfigurationConstants.CONTACT_EMAIL] ?? ConfigurationConstants.DEFAULT_EMAIL;
 	}
 
-	static Dictionary<int, string> GetIcons()
+	static Dictionary<int, string> GetSectorIcons()
 	{
 		return new()
 		{

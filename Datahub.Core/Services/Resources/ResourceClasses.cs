@@ -60,7 +60,7 @@ namespace Datahub.Core.Services.Resources
         public IEnumerable<ResourceCategory> Categories => _categories.AsReadOnly();
         public IEnumerable<ResourceCard> AllCards => Categories.SelectMany(c => c.Cards);
 
-        public AbstractResource this[string key] => ResourceIndex[key];
+        public AbstractResource this[string key] => _resourceIndex.TryGetValue(key, out AbstractResource resource) ? resource : null;
 
         public ResourceLanguageRoot(string Language) : base(Language, null)
         {

@@ -40,6 +40,8 @@
                                           ObjectId=@FileId
                                           SaveButtonLabel=@Localizer["OPENDATA-WIZARD.Save_button"]
                                           OnDiscard=@(_editSavedMetadata ? HandleDiscardMetadata : null)
+                                          OnNewMetadataCreated=@HandleMetadataCreated
+                                          OnExistingMetadataLoaded=@HandleMetadataCreated
                                           OnSave=@HandleSaveMetadata />
                     }
                     else if (_isOwnRequest)
@@ -632,6 +634,15 @@
             {
                 await InvokeAsync(StateHasChanged);
             }
+        }
+    }
+
+    private void HandleMetadataCreated()
+    {
+        var datePublished = _metadataEditor.GetValue("date_published");
+        if (string.IsNullOrEmpty(datePublished))
+        {
+            _metadataEditor.SetValue("date_published", DateTime.Now.ToShortDateString());            
         }
     }
 
