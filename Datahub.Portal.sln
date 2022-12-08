@@ -15,15 +15,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Devops", "Devops", "{FA743C91-03DD-4DB2-A88D-73155C6500C6}"
-	ProjectSection(SolutionItems) = preProject
-		azure-pipelines-forms.yml = azure-pipelines-forms.yml
-		azure-pipelines-spdatahub-slot.yml = azure-pipelines-spdatahub-slot.yml
-		azure-pipelines-spdatahub.yml = azure-pipelines-spdatahub.yml
-		azure-pipelines.yml = azure-pipelines.yml
-		build-pipelines.yml = build-pipelines.yml
-	EndProjectSection
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{48CAB0F7-CFCC-443B-B71D-E015878CE5B7}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ResourceProvisioner", "ResourceProvisioner", "{A3E0CF47-6B1D-41C1-B1A4-B4A92985E05F}"
@@ -103,6 +94,17 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Datahub.M365Forms", "Datahub\src\modules\Datahub.M365Forms\Datahub.M365Forms.csproj", "{7B900792-8383-462E-B582-94DA4817B6C4}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Datahub.PIP", "Datahub\src\modules\Datahub.PIP\Datahub.PIP.csproj", "{3065E419-AF1E-43CF-AF17-4EB260F6E02B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "infra", "infra", "{F3058DB1-40C9-40AA-805D-06B3D88B4AC7}"
+	ProjectSection(SolutionItems) = preProject
+		infra\azure-pipelines.yml = infra\azure-pipelines.yml
+		infra\azure-pipelines-forms.yml = infra\azure-pipelines-forms.yml
+		infra\azure-pipelines-prd.yml = infra\azure-pipelines-prd.yml
+		infra\azure-pipelines-spdatahub.yml = infra\azure-pipelines-spdatahub.yml
+		infra\azure-pipelines-spdatahub-slot.yml = infra\azure-pipelines-spdatahub-slot.yml
+		infra\azure-pipelines-tst.yml = infra\azure-pipelines-tst.yml
+		infra\build-pipelines.yml = infra\build-pipelines.yml
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
