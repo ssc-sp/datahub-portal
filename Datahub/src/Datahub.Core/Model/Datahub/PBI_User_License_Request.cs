@@ -1,29 +1,28 @@
-﻿using Elemental.Components;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
+using Elemental.Components;
 
-namespace Datahub.Core.EFCore
+namespace Datahub.Core.Model.Datahub;
+
+public enum PBIUserLicenseType
 {
-    public enum PBIUserLicenseType
-    {
-        FreeUser, ProUser
-    }
+    FreeUser, ProUser
+}
 
-    public class PBI_User_License_Request
-    {
-        [AeFormIgnore]
-        public int ID { get; set; }
+public class PBI_User_License_Request
+{
+    [AeFormIgnore]
+    public int ID { get; set; }
 
-        [StringLength(200)]
-        [Required]
-        public string UserEmail { get; set; }
+    [StringLength(200)]
+    [Required]
+    public string UserEmail { get; set; }
 
-        [Required]
-        [StringLength(10)]
-        public string LicenseType { get; set; }
+    [Required]
+    [StringLength(10)]
+    public string LicenseType { get; set; }
 
-        public int RequestID { get; set; }
+    public int RequestID { get; set; }
 
-        public PBI_License_Request LicenseRequest { get; set; }
+    public PBI_License_Request LicenseRequest { get; set; }
 
-    }
 }

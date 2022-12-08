@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-namespace Datahub.Portal.Data.WebAnalytics
+namespace Datahub.Portal.Data.Forms.WebAnalytics
 {
     public class WebAnalyticsContext : DbContext
     {

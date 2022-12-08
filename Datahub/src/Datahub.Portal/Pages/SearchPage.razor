@@ -1,11 +1,11 @@
 ﻿@inject NavigationManager NavigationManager
 @inject IExternalSearchService ExternalSearchService
 @inject IUserInformationService UserInfoService
-@using global::Datahub.Core.Data.External.FGP
-@using global::Datahub.Core.Data.External.OpenData
 
 @page "/search/"
 @page "/search/{searchtext}"
+@using Datahub.Core.Data.ExternalSearch.FGP
+@using Datahub.Core.Data.ExternalSearch.OpenData
 
 <AeFlex Vertical class="search-page">
 

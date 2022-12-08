@@ -1,3 +1,5 @@
+namespace Datahub.Core.Data;
+
 public static class FileUploadStatus
 {
     public const string None = "None";

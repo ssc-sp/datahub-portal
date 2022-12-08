@@ -101,7 +101,6 @@
 	</ItemGroup>
 	<ItemGroup>
 	  <Folder Include="Data\CostManagement\" />
-	  <Folder Include="Services\ProjectTools\" />
 	</ItemGroup>
 
 	<Target Name="CopyCustomContent" AfterTargets="AfterBuild">

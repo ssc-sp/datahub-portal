@@ -1,11 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace Datahub.Core.Data
+namespace Datahub.Core.Data;
+
+public static class EnumExtentions
 {
-    public static class EnumExtentions
-    {
-        public static IEnumerable<(T item, int index)> WithIndex<T>(this IEnumerable<T> self)
-           => self.Select((item, index) => (item, index));
-    }
+    public static IEnumerable<(T item, int index)> WithIndex<T>(this IEnumerable<T> self)
+        => self.Select((item, index) => (item, index));
 }

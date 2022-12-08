@@ -1,8 +1,8 @@
-using MudBlazor.Forms;
 using System;
 using System.ComponentModel.DataAnnotations;
+using MudBlazor.Forms;
 
-namespace Datahub.Core.EFCore;
+namespace Datahub.Core.Model.Datahub;
 
 public class Datahub_ProjectComment
 {

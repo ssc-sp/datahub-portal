@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-namespace Datahub.Core.EFCore;
+namespace Datahub.Core.Model.Datahub;
 
 public class Organization_Level
 {

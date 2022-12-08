@@ -1,5 +1,7 @@
 using Datahub.Metadata.Model;
 
+namespace Datahub.Core;
+
 public static class SecurityClassification
 {
     public const string Unclassified = "Unclassified";

@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.Extensibility;
 
+namespace Datahub.Core.Services.Api;
+
 public class ApiTelemetryService
 {
     public const string  FileUploadSizeMetricName = "FIleUploadSize";

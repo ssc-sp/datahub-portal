@@ -6,10 +6,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Localization;
 using Moq;
 using Datahub.Core.Data;
-using Datahub.Core.Services;
 using Xunit;
 using Xunit.Abstractions;
 using System.Threading;
+using Datahub.Core.Services.Notification;
 using Datahub.Core.Services.UserManagement;
 
 namespace Datahub.Tests

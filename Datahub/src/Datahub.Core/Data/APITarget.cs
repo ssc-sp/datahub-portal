@@ -1,16 +1,15 @@
-﻿namespace Datahub.Core.Data
+﻿namespace Datahub.Core.Data;
+
+public class APITarget
 {
-    public class APITarget
-    {
-        public string SearchServiceName { get; set; }
-        public string StorageAccountName { get; set; }
-        public string KeyVaultName { get; set; }
-        public string KeyVaultApiKeyPath { get; set; }
-        public string FileSystemName { get; set; }      
-        public string CognitiveSearchURL { get; set; }
-        public string LogoutURL { get; set; }
-        public string LoginURL { get; set; }
-        public string FileIndexName { get; set; }
-        public string FileIndexerName { get; set; }
-    }
+    public string SearchServiceName { get; set; }
+    public string StorageAccountName { get; set; }
+    public string KeyVaultName { get; set; }
+    public string KeyVaultApiKeyPath { get; set; }
+    public string FileSystemName { get; set; }      
+    public string CognitiveSearchURL { get; set; }
+    public string LogoutURL { get; set; }
+    public string LoginURL { get; set; }
+    public string FileIndexName { get; set; }
+    public string FileIndexerName { get; set; }
 }

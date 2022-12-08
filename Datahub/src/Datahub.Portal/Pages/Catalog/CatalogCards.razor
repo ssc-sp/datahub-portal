@@ -2,6 +2,8 @@
 @using Datahub.Metadata.DTO
 @using Datahub.Metadata.Model
 @using Datahub.Metadata.Utils
+@using Datahub.Core.Model.Datahub
+@using Datahub.Core
 @inject UIControlsService uiControlService
 @inject NavigationManager NavigationManager
 
@@ -304,9 +306,9 @@ else
         await OnShowLinks.InvokeAsync(CatalogResult);
     }
 
-    private string GetObjectLanguage() => CatalogResult.Language == CatalogObjectLanguage.French ? "Français" : "English";
+    private string GetObjectLanguage() => CatalogResult.Language == CatalogObjectLanguage.French ? "FranÃ§ais" : "English";
     
-    private string GetOtherLangauge() => IsFrench ? "English" : "Français";
+    private string GetOtherLangauge() => IsFrench ? "English" : "FranÃ§ais";
 
     private bool CanShowLinks() => ShowLinks && CatalogResult.GroupId is not null;
 }

@@ -1,5 +1,4 @@
-﻿using Datahub.Core.EFCore;
-using Datahub.Core.Services.Security;
+﻿using Datahub.Core.Services.Security;
 using Datahub.Core.Services.UserManagement;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
@@ -7,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using System;
 using System.Threading.Tasks;
+using Datahub.Core.Model.Datahub;
 using Xunit;
 
 namespace Datahub.Tests

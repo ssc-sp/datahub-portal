@@ -1,8 +1,8 @@
-﻿using Datahub.Core.EFCore;
-using Datahub.Core.Utils;
-using Datahub.Portal.Data.Finance;
+﻿using Datahub.Core.Utils;
 using System;
 using System.Linq.Expressions;
+using Datahub.Core.Model.Datahub;
+using Datahub.Finance.Data;
 using Xunit;
 
 namespace Datahub.Tests.Forms

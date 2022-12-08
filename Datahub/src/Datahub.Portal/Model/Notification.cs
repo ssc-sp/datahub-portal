@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Datahub.Portal.EFCore
+namespace Datahub.Portal.Model
 { 
     public class Notification
     {

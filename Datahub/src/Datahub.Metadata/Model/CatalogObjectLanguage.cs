@@ -1,9 +1,8 @@
-﻿namespace Datahub.Metadata.Model
+﻿namespace Datahub.Metadata.Model;
+
+public enum CatalogObjectLanguage
 {
-    public enum CatalogObjectLanguage
-    {
-        Bilingual,
-        English,
-        French
-    }
+    Bilingual,
+    English,
+    French
 }

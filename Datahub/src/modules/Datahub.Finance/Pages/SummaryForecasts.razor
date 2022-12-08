@@ -9,6 +9,7 @@
 @inject IDatahubAuditingService AuditingService
 @page "/finance/summaryforecasts/{fundcenterId}"
 @using MudBlazor
+@using Datahub.Finance.Data
 @if (!string.IsNullOrEmpty(_branch))
 {
     <Datahub.Finance.Components.AccessControl Branch="@_branch" Email="@_user.Mail" IsValid=@AllowAccess></Datahub.Finance.Components.AccessControl>

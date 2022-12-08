@@ -1,8 +1,7 @@
-﻿namespace Datahub.Core.Data
+﻿namespace Datahub.Core.Data;
+
+public class PowerBiTarget
 {
-    public class PowerBiTarget
-    {
-        public string SPI { get; set; }
+    public string SPI { get; set; }
       
-    }
 }

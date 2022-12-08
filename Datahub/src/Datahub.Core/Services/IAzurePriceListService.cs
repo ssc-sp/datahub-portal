@@ -1,12 +1,11 @@
-﻿using Datahub.Core.Data.CostEstimator;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
+using Datahub.Core.Data.CostEstimators;
 
-namespace Datahub.Core.Services
+namespace Datahub.Core.Services;
+
+public interface IAzurePriceListService
 {
-    public interface IAzurePriceListService
-    {
-        Task<SavedStorageCostPriceGrid> GetAzureStoragePriceLists();
-        static string GenerateAzureStoragePriceListKey(AccessTierType accessTierType, DataRedundancyType dataRedundancy) => $"{accessTierType}.{dataRedundancy}";
-        Task<ComputeCostEstimatorPrices> GetAzureComputeCostPrices();
-    }
+    Task<SavedStorageCostPriceGrid> GetAzureStoragePriceLists();
+    static string GenerateAzureStoragePriceListKey(AccessTierType accessTierType, DataRedundancyType dataRedundancy) => $"{accessTierType}.{dataRedundancy}";
+    Task<ComputeCostEstimatorPrices> GetAzureComputeCostPrices();
 }

@@ -1,6 +1,5 @@
-﻿namespace Datahub.Portal
+﻿namespace Datahub.Core;
+
+public class DataLabels
 {
-    public class DataLabels
-    {
-    }
 }

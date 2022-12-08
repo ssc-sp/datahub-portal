@@ -1,8 +1,8 @@
 ﻿using Datahub.CKAN.Package;
 using Datahub.Metadata.DTO;
-using Datahub.Tests.Meta_Data;
 using Newtonsoft.Json;
 using System.Collections.Generic;
+using Datahub.Tests.MetadataTests;
 using Xunit;
 
 namespace Datahub.Tests.CKAN

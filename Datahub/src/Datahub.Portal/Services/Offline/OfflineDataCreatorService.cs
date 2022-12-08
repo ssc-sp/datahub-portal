@@ -1,7 +1,7 @@
-﻿using Microsoft.Graph;
-using Datahub.Core.Services;
+﻿using Datahub.Core.Services;
+using Microsoft.Graph;
 
-namespace Datahub.Portal.Services
+namespace Datahub.Portal.Services.Offline
 {
     public class OfflineDataCreatorService : IDataCreatorService
     {

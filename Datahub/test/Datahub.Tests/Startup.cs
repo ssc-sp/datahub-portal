@@ -8,9 +8,12 @@ using Datahub.Core.Services;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Datahub.Core.Services.Offline;
 using Tewr.Blazor.FileReader;
 using Datahub.Core.Services.Security;
+using Datahub.Core.Services.Storage;
 using Datahub.Core.Services.UserManagement;
+using Datahub.Portal.Services.Api;
 
 namespace Datahub.Tests
 {

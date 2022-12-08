@@ -1,4 +1,4 @@
-﻿namespace Datahub.Portal.Data
+﻿namespace Datahub.Portal.Data.Pipelines
 {
     public class ETL_CONTROL_TBL
     {

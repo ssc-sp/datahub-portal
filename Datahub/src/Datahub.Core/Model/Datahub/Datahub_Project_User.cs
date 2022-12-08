@@ -2,7 +2,7 @@ using System;
 using System.ComponentModel.DataAnnotations;
 using Elemental.Components;
 
-namespace Datahub.Core.EFCore;
+namespace Datahub.Core.Model.Datahub;
 
 public class Datahub_Project_User {
 

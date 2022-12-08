@@ -1,135 +1,135 @@
-﻿using Datahub.Core.EFCore;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Datahub.Core.Model;
+using Datahub.Core.Model.Datahub;
 
-namespace Datahub.Core.Services
+namespace Datahub.Core.Services;
+
+public class MiscStorageService : IMiscStorageService
 {
-    public class MiscStorageService : IMiscStorageService
+    private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory;
+    private readonly ILogger<MiscStorageService> _logger;
+    private readonly IDatahubAuditingService _auditingService;
+
+    public MiscStorageService(
+        IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
+        ILogger<MiscStorageService> logger, 
+        IDatahubAuditingService auditingService
+    )
     {
-        private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory;
-        private readonly ILogger<MiscStorageService> _logger;
-        private readonly IDatahubAuditingService _auditingService;
+        _dbContextFactory = dbContextFactory;
+        _logger = logger;
+        _auditingService = auditingService;
+    }
 
-        public MiscStorageService(
-            IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
-            ILogger<MiscStorageService> logger, 
-            IDatahubAuditingService auditingService
-            )
+    private static string GetTypeName<T>() => typeof(T).ToString();
+
+    private static MiscStoredObject CreateGenericObject<T>(T obj, string id) => new()
+    {
+        GeneratedId = Guid.NewGuid(),
+        TypeName = GetTypeName<T>(),
+        Id = id,
+        JsonContent = JsonConvert.SerializeObject(obj)
+    };
+
+    private static async Task<MiscStoredObject> GetRawObject<T>(DatahubProjectDBContext ctx, string id) => await ctx.MiscStoredObjects
+        .FirstOrDefaultAsync(e => e.TypeName == GetTypeName<T>() && e.Id == id);
+
+    private static async Task<IEnumerable<MiscStoredObject>> GetAllRawObjects<T>(DatahubProjectDBContext ctx) => await ctx.MiscStoredObjects
+        .Where(e => e.TypeName == GetTypeName<T>())
+        .ToListAsync();
+
+    public async Task<T> GetObject<T>(string id)
+    {
+        using var ctx = _dbContextFactory.CreateDbContext();
+
+        var rawObject = await GetRawObject<T>(ctx, id);
+
+        if (rawObject == null)
         {
-            _dbContextFactory = dbContextFactory;
-            _logger = logger;
-            _auditingService = auditingService;
+            return default;
         }
 
-        private static string GetTypeName<T>() => typeof(T).ToString();
+        return JsonConvert.DeserializeObject<T>(rawObject.JsonContent);
+    }
 
-        private static MiscStoredObject CreateGenericObject<T>(T obj, string id) => new()
+    public async Task<IEnumerable<T>> GetAllObjects<T>()
+    {
+        using var ctx = _dbContextFactory.CreateDbContext();
+
+        var rawObjects = await GetAllRawObjects<T>(ctx);
+        return rawObjects
+            .Select(r => JsonConvert.DeserializeObject<T>(r.JsonContent));
+    }
+
+    private void VerifyObject<T>(MiscStoredObject obj)
+    {
+        try
         {
-            GeneratedId = Guid.NewGuid(),
-            TypeName = GetTypeName<T>(),
-            Id = id,
-            JsonContent = JsonConvert.SerializeObject(obj)
-        };
-
-        private static async Task<MiscStoredObject> GetRawObject<T>(DatahubProjectDBContext ctx, string id) => await ctx.MiscStoredObjects
-            .FirstOrDefaultAsync(e => e.TypeName == GetTypeName<T>() && e.Id == id);
-
-        private static async Task<IEnumerable<MiscStoredObject>> GetAllRawObjects<T>(DatahubProjectDBContext ctx) => await ctx.MiscStoredObjects
-            .Where(e => e.TypeName == GetTypeName<T>())
-            .ToListAsync();
-
-        public async Task<T> GetObject<T>(string id)
+            var _ = JsonConvert.DeserializeObject<T>(obj.JsonContent);
+        }
+        catch (JsonSerializationException ex)
         {
-            using var ctx = _dbContextFactory.CreateDbContext();
+            _logger.LogError(ex, "Type {} cannot be deserialized.", GetTypeName<T>());
+            throw;
+        }
+    }
 
-            var rawObject = await GetRawObject<T>(ctx, id);
+    public async Task SaveObject<T>(T obj, string id)
+    {
+        using var ctx = _dbContextFactory.CreateDbContext();
 
-            if (rawObject == null)
+        var genericObject = await GetRawObject<T>(ctx, id);
+
+        if (genericObject == null)
+        {
+            genericObject = CreateGenericObject(obj, id);
+            VerifyObject<T>(genericObject);
+            ctx.MiscStoredObjects.Add(genericObject);
+        }
+        else
+        {
+            genericObject.JsonContent = JsonConvert.SerializeObject(obj);
+            VerifyObject<T>(genericObject);
+            ctx.MiscStoredObjects.Update(genericObject);
+        }
+
+        await ctx.TrackSaveChangesAsync(_auditingService);
+    }
+
+    public async Task SaveObjects<T>(IEnumerable<T> objects, Func<T, string> idGenerator)
+    {
+        using var ctx = _dbContextFactory.CreateDbContext();
+
+        var allExistingObjects = (await GetAllRawObjects<T>(ctx)).ToDictionary(o => o.Id);
+
+        var updatedObjects = objects
+            .Where(o => allExistingObjects.ContainsKey(idGenerator(o)))
+            .Select(o =>
             {
-                return default;
-            }
+                var genericObj = allExistingObjects[idGenerator(o)];
+                genericObj.JsonContent = JsonConvert.SerializeObject(o);
+                VerifyObject<T>(genericObj);
+                return genericObj;
+            });
 
-            return JsonConvert.DeserializeObject<T>(rawObject.JsonContent);
-        }
-
-        public async Task<IEnumerable<T>> GetAllObjects<T>()
-        {
-            using var ctx = _dbContextFactory.CreateDbContext();
-
-            var rawObjects = await GetAllRawObjects<T>(ctx);
-            return rawObjects
-                .Select(r => JsonConvert.DeserializeObject<T>(r.JsonContent));
-        }
-
-        private void VerifyObject<T>(MiscStoredObject obj)
-        {
-            try
+        var createdObjects = objects
+            .Where(o => !allExistingObjects.ContainsKey(idGenerator(o)))
+            .Select(o =>
             {
-                var _ = JsonConvert.DeserializeObject<T>(obj.JsonContent);
-            }
-            catch (JsonSerializationException ex)
-            {
-                _logger.LogError(ex, "Type {} cannot be deserialized.", GetTypeName<T>());
-                throw;
-            }
-        }
+                var genericObj = CreateGenericObject(o, idGenerator(o));
+                VerifyObject<T>(genericObj);
+                return genericObj;
+            });
 
-        public async Task SaveObject<T>(T obj, string id)
-        {
-            using var ctx = _dbContextFactory.CreateDbContext();
+        ctx.MiscStoredObjects.UpdateRange(updatedObjects);
+        ctx.MiscStoredObjects.AddRange(createdObjects);
 
-            var genericObject = await GetRawObject<T>(ctx, id);
-
-            if (genericObject == null)
-            {
-                genericObject = CreateGenericObject(obj, id);
-                VerifyObject<T>(genericObject);
-                ctx.MiscStoredObjects.Add(genericObject);
-            }
-            else
-            {
-                genericObject.JsonContent = JsonConvert.SerializeObject(obj);
-                VerifyObject<T>(genericObject);
-                ctx.MiscStoredObjects.Update(genericObject);
-            }
-
-            await ctx.TrackSaveChangesAsync(_auditingService);
-        }
-
-        public async Task SaveObjects<T>(IEnumerable<T> objects, Func<T, string> idGenerator)
-        {
-            using var ctx = _dbContextFactory.CreateDbContext();
-
-            var allExistingObjects = (await GetAllRawObjects<T>(ctx)).ToDictionary(o => o.Id);
-
-            var updatedObjects = objects
-                .Where(o => allExistingObjects.ContainsKey(idGenerator(o)))
-                .Select(o =>
-                {
-                    var genericObj = allExistingObjects[idGenerator(o)];
-                    genericObj.JsonContent = JsonConvert.SerializeObject(o);
-                    VerifyObject<T>(genericObj);
-                    return genericObj;
-                });
-
-            var createdObjects = objects
-                .Where(o => !allExistingObjects.ContainsKey(idGenerator(o)))
-                .Select(o =>
-                {
-                    var genericObj = CreateGenericObject(o, idGenerator(o));
-                    VerifyObject<T>(genericObj);
-                    return genericObj;
-                });
-
-            ctx.MiscStoredObjects.UpdateRange(updatedObjects);
-            ctx.MiscStoredObjects.AddRange(createdObjects);
-
-            await ctx.TrackSaveChangesAsync(_auditingService);
-        }
+        await ctx.TrackSaveChangesAsync(_auditingService);
     }
 }

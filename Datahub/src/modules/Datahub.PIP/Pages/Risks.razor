@@ -5,10 +5,10 @@
 @inject UIControlsService UI
 @inject IMSGraphService MSGraphService
 @page "/pip/risks/{tombstone}"
-@using Datahub.Portal.Data.PIP
 @inject IDatahubAuditingService AuditingService
 @inject ServiceAuthManager ServiceAuthManager
 
+@using Datahub.PIP.Data
 @implements IDisposable
 @inject IDbContextFactory<PIPDBContext> DbFactory
 

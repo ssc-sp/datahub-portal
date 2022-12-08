@@ -1,31 +1,29 @@
-﻿using Datahub.LanguageTraining.Data;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
-namespace Datahub.Portal.Data.LanguageTraining
+namespace Datahub.LanguageTraining.Data;
+
+public class LanguageTrainingDBContext : DbContext
 {
-    public class LanguageTrainingDBContext : DbContext
+    public LanguageTrainingDBContext(DbContextOptions<LanguageTrainingDBContext> options) : base(options)
+    { 
+    }
+
+    public DbSet<LanguageTrainingApplication> LanguageTrainingApplications { get; set; } = null!;
+    public DbSet<SeasonRegistrationPeriod> SeasonRegistrationPeriods { get; set; } = null!;
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        public LanguageTrainingDBContext(DbContextOptions<LanguageTrainingDBContext> options) : base(options)
-        { 
-        }
+        modelBuilder.Entity<SeasonRegistrationPeriod>()
+            .HasIndex(e => new { e.Year_NUM, e.Quarter_NUM })
+            .IsUnique();
+    }
 
-        public DbSet<LanguageTrainingApplication> LanguageTrainingApplications { get; set; } = null!;
-        public DbSet<SeasonRegistrationPeriod> SeasonRegistrationPeriods { get; set; } = null!;
-
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
+    public void Seed(LanguageTrainingDBContext context, IConfiguration configuration)
+    {
+        foreach (var entity in SeedingUtils.GetSeasonRegistrationPeriodSeeding(2022, 100))
         {
-            modelBuilder.Entity<SeasonRegistrationPeriod>()
-                        .HasIndex(e => new { e.Year_NUM, e.Quarter_NUM })
-                        .IsUnique();
-        }
-
-        public void Seed(LanguageTrainingDBContext context, IConfiguration configuration)
-        {
-            foreach (var entity in SeedingUtils.GetSeasonRegistrationPeriodSeeding(2022, 100))
-            {
-                context.SeasonRegistrationPeriods.Add(entity);
-            }
+            context.SeasonRegistrationPeriods.Add(entity);
         }
     }
 }

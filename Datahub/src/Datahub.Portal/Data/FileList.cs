@@ -1,3 +1,5 @@
+namespace Datahub.Portal.Data;
+
 public class FileList
 {
     public string FileName { get; set; }

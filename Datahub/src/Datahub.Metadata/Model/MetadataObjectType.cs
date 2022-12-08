@@ -1,16 +1,15 @@
-﻿namespace Datahub.Metadata.Model
+﻿namespace Datahub.Metadata.Model;
+
+public enum MetadataObjectType : byte
 {
-    public enum MetadataObjectType : byte
-    {
-        File,
-        PowerBIWorkspace,
-        PowerBIDataset,
-        PowerBIReport,
-        FileUrl,
-        GeoObject,
-        Database,
-        DatasetUrl,
-        DataInitiative,
-        Databricks
-    }
+    File,
+    PowerBIWorkspace,
+    PowerBIDataset,
+    PowerBIReport,
+    FileUrl,
+    GeoObject,
+    Database,
+    DatasetUrl,
+    DataInitiative,
+    Databricks
 }

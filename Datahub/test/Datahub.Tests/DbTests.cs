@@ -4,11 +4,13 @@ using Microsoft.Extensions.Logging;
 using Datahub.Core.Services;
 using System;
 using Xunit;
-using Datahub.Core.UserTracking;
 using Microsoft.Extensions.Configuration;
 using System.Threading;
+using Datahub.Core.Model.UserTracking;
+using Datahub.Core.Services.Api;
 using Datahub.Core.Services.UserManagement;
 using Datahub.Core.Services.Security;
+using Datahub.Core.Services.Storage;
 
 namespace Datahub.Tests
 {

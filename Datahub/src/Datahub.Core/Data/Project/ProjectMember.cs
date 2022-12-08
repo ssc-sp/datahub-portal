@@ -1,6 +1,6 @@
-﻿using Datahub.Core.EFCore;
+﻿using Datahub.Core.Model.Datahub;
 
-namespace Datahub.Core.Data.DTO;
+namespace Datahub.Core.Data.Project;
 
 public class ProjectMember
 {

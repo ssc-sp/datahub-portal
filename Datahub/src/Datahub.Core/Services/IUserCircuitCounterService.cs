@@ -1,10 +1,9 @@
 ﻿using System.Threading.Tasks;
 
-namespace Datahub.Core.Services
+namespace Datahub.Core.Services;
+
+public interface IUserCircuitCounterService
 {
-    public interface IUserCircuitCounterService
-    {
-        Task<bool> IsSessionEnabled();
-        int GetSessionCount();
-    }
+    Task<bool> IsSessionEnabled();
+    int GetSessionCount();
 }

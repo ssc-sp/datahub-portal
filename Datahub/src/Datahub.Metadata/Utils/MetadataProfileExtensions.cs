@@ -3,39 +3,38 @@ using Datahub.Metadata.Model;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Datahub.Metadata.Utils
+namespace Datahub.Metadata.Utils;
+
+public static class MetadataProfileExtensions
 {
-    public static class MetadataProfileExtensions
+    public static HashSet<int> GetRequiredFieldSet(this MetadataProfile? profile)
     {
-        public static HashSet<int> GetRequiredFieldSet(this MetadataProfile? profile)
+        HashSet<int> required = new();
+        if (profile != null)
         {
-            HashSet<int> required = new();
-            if (profile != null)
+            foreach (var s in profile.Sections)
             {
-                foreach (var s in profile.Sections)
+                foreach (var f in s.Fields.Where(f => f.Required_FLAG))
                 {
-                    foreach (var f in s.Fields.Where(f => f.Required_FLAG))
-                    {
-                        required.Add(f.FieldDefinitionId);
-                    }
+                    required.Add(f.FieldDefinitionId);
                 }
             }
-            return required;
         }
+        return required;
+    }
 
-        public static HashSet<int> GetRequiredFieldSet(this MetadataSection section)
-        {
-            return new(section.Fields.Where(f => f.Required_FLAG).Select(f => f.FieldDefinitionId));
-        }
+    public static HashSet<int> GetRequiredFieldSet(this MetadataSection section)
+    {
+        return new(section.Fields.Where(f => f.Required_FLAG).Select(f => f.FieldDefinitionId));
+    }
 
-        public static HashSet<int> GetNotRequiredFieldSet(this MetadataSection section)
-        {
-            return new(section.Fields.Where(f => !f.Required_FLAG).Select(f => f.FieldDefinitionId));
-        }
+    public static HashSet<int> GetNotRequiredFieldSet(this MetadataSection section)
+    {
+        return new(section.Fields.Where(f => !f.Required_FLAG).Select(f => f.FieldDefinitionId));
+    }
 
-        public static bool HasOptionalFields(this MetadataProfile profile)
-        {
-            return profile.Sections.Any(s => s.Fields.Any(f => !f.Required_FLAG));
-        }
+    public static bool HasOptionalFields(this MetadataProfile profile)
+    {
+        return profile.Sections.Any(s => s.Fields.Any(f => !f.Required_FLAG));
     }
 }

@@ -1,8 +1,8 @@
 using System;
 using System.Net.Http;
+using Datahub.Core.Data.ExternalSearch.FGP;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using Datahub.Core.Data.External.FGP;
 using Xunit;
 using Xunit.Abstractions;
 using Datahub.Core.Services.Search;

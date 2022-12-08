@@ -1,9 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Datahub.Core.Data;
-using Datahub.Core.Services;
-using Datahub.Portal.Services.Storage;
-using Datahub.Core.Services.Search;
+using Datahub.Core.Services.Api;
+using Datahub.Core.Services.Storage;
 
 namespace Datahub.Portal.Controllers
 {

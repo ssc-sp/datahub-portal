@@ -1,7 +1,7 @@
 using Datahub.Core.Components;
 using Datahub.Core.Data;
-using Datahub.Core.EFCore;
-using Datahub.Core.UserTracking;
+using Datahub.Core.Model.Datahub;
+using Datahub.Core.Model.UserTracking;
 
 namespace Datahub.Portal.Pages.Landing;
 

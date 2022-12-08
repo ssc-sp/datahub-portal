@@ -1,8 +1,7 @@
-﻿namespace Datahub.CKAN.Service
+﻿namespace Datahub.CKAN.Service;
+
+public interface ICKANServiceFactory
 {
-    public interface ICKANServiceFactory
-    {
-        ICKANService CreateService();
-        bool IsStaging();
-    }
+    ICKANService CreateService();
+    bool IsStaging();
 }

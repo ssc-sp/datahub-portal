@@ -1,4 +1,4 @@
-﻿using Datahub.Core.EFCore;
+﻿using Datahub.Core.Model.Datahub;
 using Datahub.Core.Services;
 using Datahub.ProjectTools.Catalog;
 using Microsoft.EntityFrameworkCore;

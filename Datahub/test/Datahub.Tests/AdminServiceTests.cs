@@ -1,10 +1,10 @@
-﻿using Datahub.Core.EFCore;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Moq;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
+using Datahub.Core.Model.Datahub;
 using Xunit;
 
 namespace Datahub.Tests
