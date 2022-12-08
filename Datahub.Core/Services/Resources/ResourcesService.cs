@@ -283,5 +283,9 @@ namespace Datahub.Core.Services.Resources
         public string GetEditUrl(ResourceCard card) => $"{_wikiEditPrefix}{card.Url}/_edit";
 
         public IReadOnlyList<TimestampedResourceError> GetErrorList() => _errorList.AsReadOnly();
+
+        public async Task LogNotFoundError(string pageName, string resourceRoot) => await AddErrorMessage($"{pageName} was not found in {resourceRoot} cache");
+
+        public async Task LogNoArticleSpecifiedError(string url, string resourceRoot) => await AddErrorMessage($"Embedded resource on page {url} does not specify a page name in {resourceRoot}");
     }
 }

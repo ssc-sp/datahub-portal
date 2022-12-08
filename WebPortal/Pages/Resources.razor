@@ -78,7 +78,8 @@ else
                         }
                         else
                         {
-                            <DHMarkdown @ref=@_markdownElement
+                            <DHMarkdown 
+                                Substitutions=@Substitutions
                                 Content=@_markdownContent
                                 LinkRewriter="@RewriteLink" />
 
@@ -193,8 +194,6 @@ display: -webkit-box";
     private string _markdownContent = string.Empty;
     private string _baseUrl = "/resources";
 
-    private DHMarkdown _markdownElement;
-
     private string BuildResourceLink(AbstractResource res) => $"/resources/{res.Title}";
 
     private string RewriteLink(string link)
@@ -245,6 +244,7 @@ display: -webkit-box";
         if (_currentResource == null)
         {
             _markdownContent = "Error";
+            await _resourcesService.LogNotFoundError(PageName, _resourceRoot.Title);
         }
         else if (_currentResource is ResourceCategory)
         {
