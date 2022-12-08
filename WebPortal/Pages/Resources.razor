@@ -70,7 +70,7 @@ else
                     <MudCardContent>
                         @if (ArticleIsLoading)
                         {
-                            <MudText Typo=@Typo.h3>@_currentResource.Title</MudText>
+                            <MudText Typo=@Typo.h3>@_currentResource?.Title</MudText>
                             <MudProgressCircular Indeterminate />
                         }
                         else

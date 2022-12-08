@@ -746,7 +746,38 @@ namespace Datahub.Core.Services
                             .ToListAsync();
         }
 
-        private async Task<ObjectMetadata> GetObjectMetadata(MetadataDbContext ctx, string objectId)
+        public async Task<ClassificationType?> GetObjectClassification(string objectId)
+        {
+			using var ctx = await _contextFactory.CreateDbContextAsync();
+
+            var defId = await GetSecurityClassificationId(ctx);
+            var rowValue = await ctx.ObjectFieldValues
+                .Include(e => e.ObjectMetadata)
+                .AsSingleQuery()
+                .Where(e => e.FieldDefinitionId == defId && e.ObjectMetadata.ObjectId_TXT == objectId)
+                .Select(e => e.Value_TXT)
+                .FirstOrDefaultAsync();
+
+            if (int.TryParse(rowValue, out int value))
+				return (ClassificationType)value;
+
+            return null;
+        }
+
+        private int? _securityClassificationId = null;
+        private async Task<int> GetSecurityClassificationId(MetadataDbContext ctx)
+        {
+			if (_securityClassificationId is null)
+			{
+				_securityClassificationId = await ctx.FieldDefinitions
+					.Where(e => e.Field_Name_TXT == "security_classification")
+					.Select(e => e.FieldDefinitionId)
+					.FirstOrDefaultAsync();
+			}
+			return _securityClassificationId.Value;
+		}
+
+		private async Task<ObjectMetadata> GetObjectMetadata(MetadataDbContext ctx, string objectId)
         {
             return await ctx.ObjectMetadataSet
                             .Include(e => e.FieldValues)

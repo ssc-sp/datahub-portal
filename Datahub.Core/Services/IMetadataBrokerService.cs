@@ -37,7 +37,8 @@ namespace Datahub.Core.Services
         Task<List<string>> GetObjectCatalogGroup(string objectId);
         Task<CatalogObjectLanguage?> GetCatalogObjectLanguage(string objectId);
         Task<List<CatalogObjectResult>> GetProjectCatalogItems(int projectId);
-    }
+        Task<ClassificationType?> GetObjectClassification(string objectId);
+	}
     
     public record CatalogSearchRequest
     (

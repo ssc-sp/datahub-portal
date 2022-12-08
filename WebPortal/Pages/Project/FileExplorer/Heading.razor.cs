@@ -112,7 +112,7 @@ public partial class Heading
             ButtonAction.Upload   => !(_isDatahubAdmin || _isProjectMember),
             ButtonAction.AzSync   => !_isElectron,
             ButtonAction.Download => _selectedFiles is null || !_selectedFiles.Any() || !(_isDatahubAdmin || _isProjectMember),
-            ButtonAction.Share    => _selectedFiles is null || !_selectedFiles.Any() || !_ownsSelectedFiles || SelectedItems.Count > 1,
+            ButtonAction.Share    => !_isUnclassifiedSingleFile,
             ButtonAction.Delete   => _selectedFiles is null || !_selectedFiles.Any() || !_ownsSelectedFiles,
             ButtonAction.Rename   => _selectedFiles is null || !_selectedFiles.Any() || !_ownsSelectedFiles || SelectedItems.Count > 1,
             _ => false
