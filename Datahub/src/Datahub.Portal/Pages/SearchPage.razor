@@ -1,5 +1,4 @@
-﻿@inject IMyDataService ApiService
-@inject NavigationManager NavigationManager
+﻿@inject NavigationManager NavigationManager
 @inject IExternalSearchService ExternalSearchService
 @inject IUserInformationService UserInfoService
 @using global::Datahub.Core.Data.External.FGP
@@ -9,18 +8,6 @@
 @page "/search/{searchtext}"
 
 <AeFlex Vertical class="search-page">
-
-<AeCard>
-    <Header>
-    <AeTypography Variant="h2">@Localizer["File Results"]</AeTypography>
-    </Header>
-    <ChildContent>
-    <div class="search-page-file-grid">
-        <FileGrid SearchText=@searchtext CurrentFolder="ApiService.SearchDataFolder" CanAddData="false" IsSearchResult="true"/>
-    </div>
-    </ChildContent>
-</AeCard>
-
 
 <AeCard>
     <Header>

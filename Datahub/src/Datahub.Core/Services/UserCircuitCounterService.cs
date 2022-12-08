@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-namespace Datahub.Core.Services
+namespace Datahub.Core.Services.UserManagement
 {
     public class UserCircuitCounterService : IDisposable, IUserCircuitCounterService
     {
@@ -38,7 +38,7 @@ namespace Datahub.Core.Services
             {
                 _sessionManager.RemoveSession(_sessionId);
                 _sessionId = null;
-            }                
+            }
         }
     }
 }

@@ -2,7 +2,7 @@
 using System;
 using System.Threading.Tasks;
 
-namespace Datahub.Core.Services
+namespace Datahub.Core.Services.UserManagement
 {
     /// <summary>
     /// https://www.meziantou.net/convert-datetime-to-user-s-time-zone-with-server-side-blazor.htm

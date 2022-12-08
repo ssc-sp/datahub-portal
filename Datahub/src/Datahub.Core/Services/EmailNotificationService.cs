@@ -16,6 +16,8 @@ using Datahub.Core.EFCore;
 using Microsoft.Graph;
 using System.Threading;
 using Datahub.Core.Utils;
+using Datahub.Core.Services.UserManagement;
+using Datahub.Core.Services.Security;
 
 namespace Datahub.Core.Services
 {

@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Datahub.Core.Data;
 
-namespace Datahub.Portal.Services
+namespace Datahub.Core.Services.Data
 {
     public interface IDataSharingService
     {

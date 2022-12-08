@@ -11,25 +11,19 @@ namespace Datahub.Portal.Services
     public class DataRemovalService : BaseService, IDataRemovalService
     {
         private ILogger<DataRemovalService> _logger;
-        private ICognitiveSearchService _cognitiveSearchService;
         private DataLakeClientService _dataLakeClientService;
         private DataRetrievalService _dataRetrievalService;
-        private readonly IMyDataService myDataService;
 
         public DataRemovalService(ILogger<DataRemovalService> logger,
                                   DataLakeClientService dataLakeClientService,
                                   DataRetrievalService dataRetrievalService,
-                                  IMyDataService myDataService,
-                                  ICognitiveSearchService cognitiveSearchService,
                                   NavigationManager navigationManager,
                                   UIControlsService uiService)
             : base(navigationManager, uiService)
         {
             _logger = logger;
-            _cognitiveSearchService = cognitiveSearchService;
             _dataLakeClientService = dataLakeClientService;
             _dataRetrievalService = dataRetrievalService;
-            this.myDataService = myDataService;
         }
 
         public async Task<bool> Delete(Folder folder, Microsoft.Graph.User currentUser)
@@ -83,7 +77,7 @@ namespace Datahub.Portal.Services
 
                 // Deleting a folder means deleting all files underneath,
                 // We need to mark these files as 'isdeleted' for indexer
-                folder = await myDataService.GetFolderStructure(folder, currentUser, false);
+                //folder = await myDataService.GetFolderStructure(folder, currentUser, false);
 
                 await MarkChildFilesForDeletion(fileSystemClient, folder, currentUser);
 
@@ -150,7 +144,7 @@ namespace Datahub.Portal.Services
                 var response = await fileClient.DeleteAsync();
                 if (response.Status == 200)
                 {
-                    await _cognitiveSearchService.DeleteDocumentFromIndex(file.fileid);
+                    //await _cognitiveSearchService.DeleteDocumentFromIndex(file.fileid);
                 }
 
                 var status = (response.Status == 200) ? "SUCCEEDED" : "FAILED";

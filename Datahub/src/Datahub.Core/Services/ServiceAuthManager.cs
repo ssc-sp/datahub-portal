@@ -11,8 +11,9 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Datahub.Core.Data.DTO;
+using Datahub.Core.Services.UserManagement;
 
-namespace Datahub.Core.Services
+namespace Datahub.Core.Services.Security
 {
     public class ServiceAuthManager
     {
@@ -22,7 +23,7 @@ namespace Datahub.Core.Services
         private const int AUTH_KEY = 1;
         private const int PROJECT_ADMIN_KEY = 2;
 
-        private ConcurrentDictionary<string, bool> _viewingAsGuest = new ();
+        private ConcurrentDictionary<string, bool> _viewingAsGuest = new();
 
         public ServiceAuthManager(IMemoryCache serviceAuthCache, IDbContextFactory<DatahubProjectDBContext> dbFactory, IMSGraphService mSGraphService)
         {
@@ -36,7 +37,7 @@ namespace Datahub.Core.Services
             using var ctx = dbFactory.CreateDbContext();
             return ctx.Projects.Where(p => p.Project_Acronym_CD != null).Select(p => p.Project_Acronym_CD).ToList();
         }
-        
+
         public void SetViewingAsGuest(string userId, bool isGuest)
         {
             _viewingAsGuest.AddOrUpdate(userId, isGuest, (k, v) => isGuest);
@@ -49,11 +50,11 @@ namespace Datahub.Core.Services
 
         public List<string> GetAdminProjectRoles(string userId)
         {
-            if(userId != null && _viewingAsGuest.ContainsKey(userId) && _viewingAsGuest[userId])
+            if (userId != null && _viewingAsGuest.ContainsKey(userId) && _viewingAsGuest[userId])
             {
                 return new List<string>();
             }
-            
+
             var projects = GetAllProjects();
             projects = projects.Select(x => $"{x}-admin").ToList();
             return projects;
@@ -88,10 +89,10 @@ namespace Datahub.Core.Services
         public async Task<List<ProjectMember>> GetProjectMembers(string projectAcronym)
         {
             await using var ctx = await dbFactory.CreateDbContextAsync();
-            
+
             var project = await ctx.Projects
                 .FirstAsync(p => p.Project_Acronym_CD.ToLower() == projectAcronym.ToLower());
-            
+
             var users = await ctx.Project_Users
                 .Where(u => u.Project == project)
                 .ToListAsync();
@@ -100,7 +101,7 @@ namespace Datahub.Core.Services
             foreach (var user in users)
             {
                 var username = await mSGraphService.GetUserName(user.User_ID, CancellationToken.None);
-                
+
                 result.Add(new ProjectMember(user)
                 {
                     Name = username
@@ -173,7 +174,7 @@ namespace Datahub.Core.Services
         }
 
         public List<string> GetProjectAdminsEmails(string projectAcronym)
-        { 
+        {
             using var ctx = dbFactory.CreateDbContext();
             var project = ctx.Projects.Where(p => p.Project_Acronym_CD.ToLower() == projectAcronym.ToLower()).First();
 
@@ -190,9 +191,9 @@ namespace Datahub.Core.Services
                 return ExtractEmails(mailboxEmails);
             }
             else
-            { 
-                return GetProjectAdminsEmails(projectAcronym);  
-            }                    
+            {
+                return GetProjectAdminsEmails(projectAcronym);
+            }
         }
         public async Task RegisterProjectAdmin(Datahub_Project project, string currentUserId)
         {
@@ -207,7 +208,7 @@ namespace Datahub.Core.Services
                 var email = await mSGraphService.GetUserEmail(user.User_ID, CancellationToken.None);
                 if (!extractedEmails.Contains(email.ToLower()))
                 {
-                    user.IsAdmin = false;                    
+                    user.IsAdmin = false;
                 }
             }
 

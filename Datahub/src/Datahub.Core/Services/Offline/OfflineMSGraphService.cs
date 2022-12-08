@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Threading;
+using Datahub.Core.Services.UserManagement;
 
 namespace Datahub.Core.Services
 {

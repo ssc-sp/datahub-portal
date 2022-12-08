@@ -8,13 +8,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Datahub.Core.Services.Security;
 
 namespace Datahub.Core.Services
 {
     public class DataLakeClientService
     {
         private const string DatahubSecretName = "Datahub-StorageDL-Secret";
-        private ICognitiveSearchService _cognitiveSearchService;
         private ILogger<DataLakeClientService> _logger;
         private IKeyVaultService _keyVaultService;
         private IOptions<APITarget> _targets;
@@ -23,11 +23,9 @@ namespace Datahub.Core.Services
 
         public DataLakeClientService(ILogger<DataLakeClientService> logger,
                     IKeyVaultService keyVaultService,
-                    IOptions<APITarget> targets,
-                    ICognitiveSearchService cognitiveSearchService
+                    IOptions<APITarget> targets
                     )
         {
-            _cognitiveSearchService = cognitiveSearchService;
             _logger = logger;
             _keyVaultService = keyVaultService;
             _targets = targets;
@@ -104,7 +102,7 @@ namespace Datahub.Core.Services
 
                 file.lastmodifiedts = DateTime.UtcNow;
                 fileClient.SetMetadata(file.GenerateMetadata());
-                await _cognitiveSearchService.EditDocument(file);
+                //await _cognitiveSearchService.EditDocument(file);
 
                 return true;
             }
@@ -129,7 +127,7 @@ namespace Datahub.Core.Services
 
             file.lastmodifiedts = DateTime.UtcNow;
             fileClient.SetMetadata(file.GenerateMetadata());
-            await _cognitiveSearchService.EditDocument(file);
+            //await _cognitiveSearchService.EditDocument(file);
 
             return response.GetRawResponse().Status == 200;
         }

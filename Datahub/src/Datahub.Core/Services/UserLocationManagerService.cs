@@ -6,7 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Datahub.Core.UserTracking;
 
-namespace Datahub.Core.Services
+namespace Datahub.Core.Services.UserManagement
 {
     public class UserLocationManagerService
     {
@@ -38,16 +38,16 @@ namespace Datahub.Core.Services
 
                 var existingEntity = await efCoreDatahubContext.UserRecent
                     .FirstOrDefaultAsync(u => u.UserId == userId);
-                
+
                 if (existingEntity != null)
                 {
                     efCoreDatahubContext.UserRecent.Remove(existingEntity);
                     await efCoreDatahubContext.SaveChangesAsync();
                 }
                 var links = GetRecentLinks(existingEntity, link);
-                var newUserRecent = new UserRecent { UserId = userId, UserRecentActions = links};
+                var newUserRecent = new UserRecent { UserId = userId, UserRecentActions = links };
                 efCoreDatahubContext.UserRecent.Add(newUserRecent);
-                
+
                 await efCoreDatahubContext.SaveChangesAsync();
             }
             catch (Exception ex)
@@ -59,10 +59,10 @@ namespace Datahub.Core.Services
         private static ICollection<UserRecentLink> GetRecentLinks(UserRecent userRecent, UserRecentLink link)
         {
             if (userRecent == null)
-                return new List<UserRecentLink>(){ link };
+                return new List<UserRecentLink>() { link };
 
             userRecent.UserRecentActions.Add(link);
-            
+
             return userRecent.UserRecentActions
                 .OrderByDescending(x => x.accessedTime)
                 .DistinctBy(x => (x.DataProject, x.LinkType))
