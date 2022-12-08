@@ -57,7 +57,7 @@ public partial class Testing
             dir.Delete(true);
             
         }
-        catch (Exception e)
+        catch (Exception)
         {
             // ignored
         }
