@@ -14,6 +14,8 @@ namespace Datahub.Core.Services.Resources
         string GetEditUrl(ResourceCard card);
         Task RefreshCache();
         IReadOnlyList<TimestampedResourceError> GetErrorList();
+        Task LogNotFoundError(string pageName, string resourceRoot);
+        Task LogNoArticleSpecifiedError(string url, string resourceRoot);
         event Func<Task> NotifyRefreshErrors;
     }
 
