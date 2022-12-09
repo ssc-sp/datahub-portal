@@ -9,20 +9,20 @@ namespace Datahub.Core.Services.Metadata;
 
 public interface IMetadataBrokerService
 {
-    Task<MetadataProfile> GetProfile(string name);
+    Task<Entities.MetadataProfile> GetProfile(string name);
     Task<FieldValueContainer> GetObjectMetadataValues(long objectMetadataId, string defaultMetadataId = null);
     Task<FieldValueContainer> GetObjectMetadataValues(string objectId, string defaultMetadataId = null);
-    Task<ObjectMetadata> SaveMetadata(FieldValueContainer fieldValues, bool anonymous = false);
-    Task<ObjectMetadata> GetMetadata(long objectMetadataId);
-    Task<ObjectMetadata> GetMetadata(string objectId);
-    Task<bool> CreateChildMetadata(string parentId, string childId, MetadataObjectType dataType, string location, bool includeCatalog);
-    Task<ApprovalForm> GetApprovalForm(int ApprovalFormId);
+    Task<Entities.ObjectMetadata> SaveMetadata(FieldValueContainer fieldValues, bool anonymous = false);
+    Task<Entities.ObjectMetadata> GetMetadata(long objectMetadataId);
+    Task<Entities.ObjectMetadata> GetMetadata(string objectId);
+    Task<bool> CreateChildMetadata(string parentId, string childId, Entities.MetadataObjectType dataType, string location, bool includeCatalog);
+    Task<Entities.ApprovalForm> GetApprovalForm(int ApprovalFormId);
     Task DeleteApprovalForm(int approvalFormId);
-    Task<int> SaveApprovalForm(ApprovalForm form);
+    Task<int> SaveApprovalForm(Entities.ApprovalForm form);
     Task<List<string>> GetSuggestedEnglishKeywords(string text, int max);
     Task<List<string>> GetSuggestedFrenchKeywords(string text, int max);
     Task<List<SubjectKeyword>> GetSubjectKeywords(IEnumerable<string> subjectIds);
-    Task UpdateCatalog(long objectId, MetadataObjectType dataType, string englishName, string frenchName, string location,
+    Task UpdateCatalog(long objectId, Entities.MetadataObjectType dataType, string englishName, string frenchName, string location,
         int sector, int branch, string contact, ClassificationType securityClass, string englishText, string frenchText,
         CatalogObjectLanguage language, int? projectId, bool anonymous = false);
     Task<List<CatalogObjectResult>> SearchCatalog(CatalogSearchRequest request, Func<CatalogObjectResult, bool> validateResult);
@@ -37,6 +37,7 @@ public interface IMetadataBrokerService
     Task<List<string>> GetObjectCatalogGroup(string objectId);
     Task<CatalogObjectLanguage?> GetCatalogObjectLanguage(string objectId);
     Task<List<CatalogObjectResult>> GetProjectCatalogItems(int projectId);
+    Task<ClassificationType?> GetObjectClassification(string objectId);
 }
 
 public record CatalogSearchRequest
