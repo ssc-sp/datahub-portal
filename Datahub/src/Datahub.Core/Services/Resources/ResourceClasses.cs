@@ -3,6 +3,8 @@ using System.Linq;
 
 namespace Datahub.Core.Services.Resources;
 
+// TODO: This isn't a service and needs to be moved to a different namespace as well as broken up into smaller files for each class
+
 public abstract class AbstractResource
 {
     public string Title { get; private set; }
