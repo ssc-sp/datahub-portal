@@ -1,5 +1,6 @@
 @using Datahub.Core.Components.PageBanner
 @using Datahub.Core.Model.Datahub
+@using Datahub.Portal.Components.Projects
 
 @inject NavigationManager _navigationManager
 @inject IJSRuntime _jsInterop
@@ -13,16 +14,9 @@
              WikiLinkEN="Onboarding---Data-Projects"
              WikiLinkFR="Onboarding---Data-Projects" />
 
-<MudText Typo="Typo.h4">@Localizer["Projects"]</MudText>
+<UserProjects/>
 
-<div class="featured-projects-container">
-    @foreach (var p in _featured)
-    {
-        <FeaturedProject Project="p"/>
-    }
-</div>
-
-<MudText Typo="Typo.h4">@Localizer["All Projects"]</MudText>
+<MudText Typo="Typo.h4" Class="mt-8">@Localizer["All Projects"]</MudText>
 
 <div class="all-projects-container">
 
