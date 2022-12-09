@@ -1,24 +1,33 @@
-# ASP.NET Core (.NET Framework)
-# Build and test ASP.NET Core projects targeting the full .NET Framework.
-# Add steps that publish symbols, save build artifacts, and more:
-# https://docs.microsoft.com/azure/devops/pipelines/languages/dotnet-core
-name: 'Unknown until run'
+# Build the app and modules
+name: 'Known during build'
 
 parameters:
-- name: overwrite_existing_tag
+- name: version_number
+  displayName: 'Version Number (e.g. 1.0)'
+  type: string
+  default: '1.0'
+- name: add_tag
+  displayName: 'Add build tag to repo'
   type: boolean
   default: true
+- name: target_os
+  displayName: 'Target architecture'
+  type: string
+  default: 'win-x64' 
+  values:
+  - win-x64
+  - linux-x64
 
 variables:
   solution: '**/Datahub.Portal.sln'
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
-  version.MajorMinor: '1.0' # Manually adjust the version number as needed for semantic versioning. Revision is auto-incremented.
+  version.MajorMinor: ${{ parameters.version_number }}
   version.Revision: $[counter(variables['version.MajorMinor'], 0)]
   versionNumber: '$(version.MajorMinor).$(version.Revision)'
 
 pool:
-  vmImage: 'windows-latest'
+  vmImage: 'ubuntu-latest'
 
 steps:
 - checkout: self
@@ -26,7 +35,7 @@ steps:
   persistCredentials: true
 
 - task: PowerShell@2
-  displayName: Set the name of the build (i.e. the Build.BuildNumber)
+  displayName: Set build name (i.e. the Build.BuildNumber)
   inputs:
     targetType: 'inline'
     script: |
@@ -38,9 +47,10 @@ steps:
 - task: UseDotNet@2
   displayName: 'Install .NET Core SDK'
   inputs:
-    version: 6.0.x
+    version: 7.0.x
     performMultiLevelLookup: true
     includePreviewVersions: true # Required for preview versions
+    
 - task: NodeTool@0
   displayName: 'install node'
   inputs:
@@ -50,27 +60,48 @@ steps:
   inputs:
     targetType: 'inline'
     script: |
-      $files=Get-Childitem -Path WebPortal,DatahubIntakeForms,.vscode -Include  appsettings*json-tmpl,launch*json-tmpl -File -Recurse -ErrorAction SilentlyContinue  | Where {$_.FullName -notlike "*\Debug\*"}
+      cd Datahub/src
+      $files=Get-Childitem -Path Datahub.Portal -Include appsettings*json-tmpl,launch*json-tmpl -File -Recurse -ErrorAction SilentlyContinue  | Where {$_.FullName -notlike "*\Debug\*"}
       foreach ($file in $files){
         $fileRendered=$file.FullName.trim("-tmpl")
         Write-Host "Processing file: ${file} > $fileRendered"
         Copy-Item $file.FullName -Force -Destination $fileRendered
       }
+      cd Datahub.Portal; mv appsettings.Development.json appsettings.dev.json; Move-Item -Force appsettings.json-tmpl-spdatahub appsettings.json
     
 - task: DotNetCoreCLI@2
+  displayName: 'publish portal app'
   inputs:
     command: 'publish'
-    projects: 'WebPortal/*.csproj'
-    arguments: ' -o $(Build.ArtifactStagingDirectory)/output -r win-x64 --self-contained true'
+    projects: 'Datahub/src/Datahub.Portal/*.csproj'
+    arguments: ' -o $(Build.ArtifactStagingDirectory)/output/portal -r ${{ parameters.target_os }} --self-contained true'
     zipAfterPublish: true
-- task: PublishBuildArtifacts@1
+
+- task: DotNetCoreCLI@2
+  displayName: 'publish function app'
   inputs:
-    PathtoPublish: '$(Build.ArtifactStagingDirectory)/output'
+    command: 'publish'
+    projects: 'Datahub/src/Datahub.Functions/*.csproj'
+    arguments: ' -o $(Build.ArtifactStagingDirectory)/output/function -r ${{ parameters.target_os }} --self-contained true'
+    zipAfterPublish: true
+
+- task: PublishBuildArtifacts@1
+  displayName: 'publish artifact - portal'
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)/output/portal'
     ArtifactName: 'datahub-portal'
     publishLocation: 'Container'
 
+- task: PublishBuildArtifacts@1
+  displayName: 'publish artifact - function'
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)/output/function'
+    ArtifactName: 'datahub-function'
+    publishLocation: 'Container'
+
 - task: PowerShell@2
-  displayName: Add tag
+  condition: ${{ parameters.add_tag }}
+  displayName: 'Add tag to repo'
   inputs:
     targetType: 'inline'
     script: |
