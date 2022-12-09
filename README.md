@@ -72,17 +72,17 @@ The scopes are represented by the following table
 
 | Type | Emoji | Code |
 | --- | --- | --- |
-| feat | ✨ | :sparkles: |
-| fix | 🐛 | :bug: |
-| docs | 📚 | :books: |
-| style | 💎 | :gem: |
-| refactor | 🔨 | :hammer: |
-| deploy | 🚀 | :rocket: |
-| test | 🚨 | :rotating_light: |
-| build | 📦 | :package: |
-| ci | 👷 | :construction_worker: |
-| chore | 🔧 | :wrench: |
-| work in progress (WIP) | 🚧 | :construction: |
+| feat | ✨ | `:sparkles:` |
+| fix | 🐛 | `:bug:` |
+| docs | 📚 | `:books:` |
+| style | 💎 | `:gem:` |
+| refactor | 🔨 | `:hammer:` |
+| deploy | 🚀 | `:rocket:` |
+| test | 🚨 | `:rotating_light:` |
+| build | 📦 | `:package:` |
+| ci | 👷 | `:construction_worker:` |
+| chore | 🔧 | `:wrench:` |
+| work in progress (WIP) | 🚧 | `:construction:` |
 
 ## Branching
 
