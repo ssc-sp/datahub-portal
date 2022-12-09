@@ -186,9 +186,11 @@
 								else
 								{
 									<div>
-										<DiscoverySearchLanding Sectors=@_allSectors
-													IsFrench=@_isFrench
-													OnClickSector=@SelectSector />
+										<DiscoverySearchLanding 
+											Sectors=@_allSectors 
+											IsFrench=@_isFrench 
+											OnClickSector=@SelectSector 
+											OnClickType=@SelectType />
 									</div>
 								}
 							}
@@ -430,6 +432,14 @@
 	{
 		_filteredSectors.Clear();
 		_filteredSectors.Add(sector);
+		_sectorFilterSectionOpen = true;
+		await UpdateFilter();
+	}
+
+	private async Task SelectType(MetadataObjectType type)
+	{
+		_filteredDataTypes.Clear();
+		_filteredDataTypes.Add(type);
 		_sectorFilterSectionOpen = true;
 		await UpdateFilter();
 	}
