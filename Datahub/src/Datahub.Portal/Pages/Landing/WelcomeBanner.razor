@@ -1,0 +1,41 @@
+﻿@namespace Datahub.Portal.Pages.Landing
+@inject TimeZoneService TimeZoneService
+@inject IConfiguration configuration
+
+<AeFlex class="welcome-banner" style=@($"background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, black 100%), url('{GetBackground()}') no-repeat center center fixed;background-size: cover;")>
+  <AeTypography Variant="h2" class="greeting">@GetGreeting()</AeTypography>
+</AeFlex>
+
+
+@code {
+
+    private DateTimeOffset now;
+
+    protected override async Task OnInitializedAsync()
+    {
+        now = await TimeZoneService.GetLocalDateTime(DateTimeOffset.UtcNow);
+    }
+
+    private string GetGreeting(){
+        var hour = now.Hour;
+
+        if(hour < 12){
+            return @Localizer["Good Morning"];
+        }
+        else if(hour < 16){
+            return @Localizer["Good Afternoon"];
+        }
+        return @Localizer["Good Evening"];
+    }
+
+    private string GetBackground()
+    {
+        //earth-background.jpg
+        //LandingBgFolder
+        var folder = configuration["LandingBgFolder"] ?? "nrcan";
+        var imgCount = (configuration.GetSection("LandingBgImgCount").Get<int?>() ?? 12)-1;
+        var randomId = (int)Math.Round(new Random().NextDouble() * imgCount);
+        return $"/img/{folder}/landing{randomId:00}.jpg";
+    }
+}
+
