@@ -1,0 +1,78 @@
+<div id="@($"{FileMetaDataExtensions.GetFolderIdForJS(Folder.item.id)}Div")" class="folder-item @(IsSelected ? "selected" : "")" >
+        <div class="grid-item" style="cursor: pointer; @IndentStyleCss" @onclick="() => SelectFolderEmit()">
+            <i class="far fa-folder"></i>
+        </div>
+        <div class="grid-item" @onclick="() => SelectFolderEmit()" style="cursor: pointer;">
+            <div class="textcontent">
+                @Folder.item.name
+            </div>
+        </div>
+        <div class="grid-item">
+            @if (Folder.hasChildren)
+            {
+                <i class="@ExpandImageClass" @onclick="() => ToggleExpanded()" @onclick:stopPropagation="true"></i>
+            }
+        </div>
+    </div>
+
+    @if (Folder.hasChildren & Folder.expanded)
+    {
+        <div id="@($"{FileMetaDataExtensions.GetFolderIdForJS(Folder.item.id)}Content")" class="folder-list nested">
+            @foreach (var childFolder in Folder.children)
+            {
+                <FolderView Folder="childFolder" SelectedFolder="SelectedFolder" SelectFolder="SelectFolder"/>
+            }
+        </div>
+    }
+
+@code
+{
+    [Parameter]
+    public Action<Folder> SelectFolder { get; set; }
+
+    [Parameter]
+    public Folder SelectedFolder { get; set; }
+
+    [Parameter]
+    public ExpandableItem<Folder> Folder { get; set; }
+
+    public bool IsSelected
+    {
+        get
+        {
+            return SelectedFolder != null && SelectedFolder.Equals(Folder.item);
+        }
+    }
+
+    private string ExpandImageClass
+    {
+        get
+        {
+            return Folder.expanded ? "fas fa-chevron-down" : "fas fa-chevron-right";
+        }
+    }
+
+    private string IndentStyleCss
+    {
+        get
+        {
+            if (Folder.level > 0)
+            {
+                return $"padding-inline-start: {Folder.level * 40}px;";
+            }
+
+            return "";
+        }
+    }
+    private void ToggleExpanded()
+    {
+        Folder.expanded = !Folder.expanded;
+        StateHasChanged();
+    }
+
+    private void SelectFolderEmit()
+    {
+        SelectFolder?.Invoke(Folder.item);
+        StateHasChanged();
+    }
+}

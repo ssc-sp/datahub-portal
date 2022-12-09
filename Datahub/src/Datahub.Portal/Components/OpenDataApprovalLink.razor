@@ -1,0 +1,33 @@
+﻿@using Datahub.Core.Services.Api
+@using Datahub.Core.Model.Datahub
+@inject IJSRuntime jsRuntime
+@inject IPublicDataFileService PublicFileService
+
+<AeButton @onclick=@NavigateToUrl disabled="@Disabled" title=@Localizer["OPENDATA-DASHBOARD.ClickToReadPDF"]>@ChildContent</AeButton>
+
+@code {
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    [Parameter]
+    public OpenDataSharedFile File { get; set; }
+
+    private bool Disabled => File.ApprovalFormRead_FLAG;
+
+    private async void NavigateToUrl()
+    {
+        if (!File.ApprovalFormRead_FLAG)
+        {
+            await PublicFileService.SetPendingApprovalOpenDataAsRead(File);
+            await InvokeAsync(StateHasChanged);
+            try
+            {
+                await jsRuntime.InvokeVoidAsync("open", File.SignedApprovalForm_URL, "_blank");
+            }
+            catch (Exception)
+            {
+            }
+        }
+    }
+}
