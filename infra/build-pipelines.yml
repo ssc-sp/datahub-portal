@@ -54,13 +54,13 @@ steps:
     targetType: 'inline'
     script: |
       cd Datahub/src
-      $files=Get-Childitem -Path Datahub.WebPortal -Include appsettings*json-tmpl,launch*json-tmpl -File -Recurse -ErrorAction SilentlyContinue  | Where {$_.FullName -notlike "*\Debug\*"}
+      $files=Get-Childitem -Path Datahub.Portal -Include appsettings*json-tmpl,launch*json-tmpl -File -Recurse -ErrorAction SilentlyContinue  | Where {$_.FullName -notlike "*\Debug\*"}
       foreach ($file in $files){
         $fileRendered=$file.FullName.trim("-tmpl")
         Write-Host "Processing file: ${file} > $fileRendered"
         Copy-Item $file.FullName -Force -Destination $fileRendered
       }
-      cd Datahub.WebPortal; mv appsettings.Development.json appsettings.dev.json; Move-Item -Force appsettings.json-tmpl-spdatahub appsettings.json
+      cd Datahub.Portal; mv appsettings.Development.json appsettings.dev.json; Move-Item -Force appsettings.json-tmpl-spdatahub appsettings.json
     
 - task: DotNetCoreCLI@2
   displayName: 'publish portal app'
