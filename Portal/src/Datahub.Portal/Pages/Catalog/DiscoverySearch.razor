@@ -1,9 +1,11 @@
 ﻿@*DiscoverySearch.razor*@
 @page "/discovery"
 @using Datahub.CatalogSearch
+@using Datahub.Core.Services.Storage;
 @using Datahub.Metadata.DTO
 @using Datahub.Metadata.Model
 @using Datahub.PowerBI.Pages.PowerBI
+@using Datahub.PowerBI.Services;
 
 <div>
 	<DHPageTitle PageTitleKey=@Localizer["DISCOVERY-FILTERS.Search Catalog"] />
