@@ -32,6 +32,7 @@ namespace Datahub.Core.Services
         public string AppDomain { get; set; }
         public bool DevTestMode { get; set; }
         public string DevTestEmail { get; set; }
+        public string DatahubEmail { get; set; }
     }
 
     public class EmailNotificationService : IEmailNotificationService
@@ -730,7 +731,7 @@ namespace Datahub.Core.Services
 
         public async Task EmailErrorToDatahub(string subject, string fromUser, string message, string appInsightsMessage, string stackTrace)
         {
-            var adminEmails = _serviceAuthManager.GetProjectAdminsEmails(DATAHUB_ADMIN_PROJECT_CODE);
+            var datahubEmail = _config.DatahubEmail ?? "datahub@nrcan-rncan.gc.ca";
             var parameters = new Dictionary<string, object>()
             {
                 { "Date", $"{DateTime.UtcNow} UTC" },
@@ -740,7 +741,7 @@ namespace Datahub.Core.Services
                 { "StackTrace", stackTrace }
             };
             var bodyHtml = await RenderTemplate<GlobalErrorNotification>(parameters);
-            await SendEmailMessage(subject, bodyHtml, adminEmails);
+            await SendEmailMessage(subject, bodyHtml, new List<string>() { datahubEmail });
         }
     }
 

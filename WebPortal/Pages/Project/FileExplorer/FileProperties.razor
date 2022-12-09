@@ -62,6 +62,9 @@
     [Parameter]
     public bool Readonly { get; set; }
 
+    [Parameter]
+    public EventCallback OnMetadataChanged { get; set; }
+
     private List<(string, string)> _properties;
     private string _powerBiPasteText;
     private string _fileLinkUrl;
@@ -91,21 +94,26 @@
                 Name=@File.filename
                 Location=@ProjectAcronym
                 SecurityClass=@File.securityclass
-                SaveButtonLabel=@Localizer["OPENDATA-WIZARD.Save_button"] 
-                OnSave=@HandleClose
-                OnDiscard=@HandleClose
+                SaveButtonLabel=@Localizer["OPENDATA-WIZARD.Save_button"]
+                OnSave=@HandleSaveMetadata
+                OnDiscard=@HandleDiscardMetadata
                 ProfileName="catalog"
                 ObjectType=@MetadataObjectType.File
                 UpdateCatalog=@(!Readonly)
                 ValidateRequired
                 Preview=@Readonly
                 ProjectId=@ProjectId
-            />
-    ;
+            />;
         _uiControlService.ShowDialog(Localizer["Metadata"], metadataEditor);
     }
 
-    private void HandleClose()
+    private async Task HandleSaveMetadata()
+    {
+        _uiControlService.HideDialog();
+        await OnMetadataChanged.InvokeAsync();
+    }
+
+    private void HandleDiscardMetadata()
     {
         _uiControlService.HideDialog();
     }
