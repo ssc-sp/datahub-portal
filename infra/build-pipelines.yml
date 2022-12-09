@@ -10,6 +10,13 @@ parameters:
   displayName: 'Add build tag to repo'
   type: boolean
   default: true
+- name: target_os
+  displayName: 'Target architecture'
+  type: string
+  default: 'win-x64' 
+  values:
+  - win-x64
+  - linux-x64
 
 variables:
   solution: '**/Datahub.Portal.sln'
@@ -67,7 +74,7 @@ steps:
   inputs:
     command: 'publish'
     projects: 'Datahub/src/Datahub.Portal/*.csproj'
-    arguments: ' -o $(Build.ArtifactStagingDirectory)/output/portal -r win-x64 --self-contained true'
+    arguments: ' -o $(Build.ArtifactStagingDirectory)/output/portal -r ${{ parameters.target_os }} --self-contained true'
     zipAfterPublish: true
 
 - task: DotNetCoreCLI@2
@@ -75,7 +82,7 @@ steps:
   inputs:
     command: 'publish'
     projects: 'Datahub/src/Datahub.Functions/*.csproj'
-    arguments: ' -o $(Build.ArtifactStagingDirectory)/output/function -r win-x64 --self-contained true'
+    arguments: ' -o $(Build.ArtifactStagingDirectory)/output/function -r ${{ parameters.target_os }} --self-contained true'
     zipAfterPublish: true
 
 - task: PublishBuildArtifacts@1
@@ -94,7 +101,7 @@ steps:
 
 - task: PowerShell@2
   condition: ${{ parameters.add_tag }}
-  displayName: Add tag to repo
+  displayName: 'Add tag to repo'
   inputs:
     targetType: 'inline'
     script: |
