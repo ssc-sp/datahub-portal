@@ -59,10 +59,31 @@ The DataHub provides localization files for both English et Francais but support
 
 # Github Structure
 
-This project includes multiple repositories
-- **DataHub Web Portal:** This repository contains the code for all the portal and Azure Functions used to automate Databricks tasks.
-- **DataHub Terraform:** The terraform infrastructure for the project is stored in this repository and elements of the terraform script are dynamically generated from the Data Project database. Please contact us for details on the terraform infrastructure.
-- **DataHub Databricks:** Databricks is used in this project for ETL, Data Science and other data transformations. Examples from this repository can be used as template for setting up new tasks.
+This project includes multiple projects
+- **DataHub**, contains the code for the application and presentation layer of the modules.
+- **Resource Provisioner** contains the code to handle the terraform infrastructure for the Datahub
+
+## Commit Messages
+
+The commit messages must loosely follow the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) specification. This enables to automatically generate the changelog and release notes.
+
+The scopes are represented by the following table
 
 
+| Type | Emoji | Code |
+| --- | --- | --- |
+| feat | ✨ | :sparkles: |
+| fix | 🐛 | :bug: |
+| docs | 📚 | :books: |
+| style | 💎 | :gem: |
+| refactor | 🔨 | :hammer: |
+| deploy | 🚀 | :rocket: |
+| test | 🚨 | :rotating_light: |
+| build | 📦 | :package: |
+| ci | 👷 | :construction_worker: |
+| chore | 🔧 | :wrench: |
+| work in progress (WIP) | 🚧 | :construction: |
 
+## Branching
+
+Branches are created from the develop branch and merged back into the develop branch. The master branch is used for releases only. Pull requests are strongly encouraged and should be reviewed by at least one other developer.
