@@ -378,7 +378,6 @@ namespace Datahub.Portal
                 services.AddScoped<IUserInformationService, UserInformationService>();
                 services.AddSingleton<IMSGraphService, MSGraphService>();
 
-
                 services.AddScoped<IProjectDatabaseService, ProjectDatabaseService>();
 
                 services.AddScoped<IDataSharingService, DataSharingService>();
@@ -418,6 +417,9 @@ namespace Datahub.Portal
 
                 services.AddScoped<IAzurePriceListService, OfflineAzurePriceListService>();
             }
+
+
+            services.AddScoped<IPublicDataFileService, PublicDataFileService>();
 
             services.AddSingleton<IExternalSearchService, ExternalSearchService>();
             services.AddHttpClient<IExternalSearchService, ExternalSearchService>();
