@@ -7,16 +7,33 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Runtime.Caching;
+using Markdig.Extensions.Yaml;
+using YamlDotNet.Serialization;
 
 namespace Datahub.Core.Services.ProjectTools
 {
     #nullable enable
 
-    public record GitHubModule(string Name, string Path, string? CalculatorPath, List<GitHubModuleDescriptor> Descriptors);    
+    public record GitHubModule(string Name, string Path,
+        string? CardName,
+        string? CalculatorPath,   
+        string? Icon,
+        List<GitHubModuleDescriptor> Descriptors);    
 
     public record GitHubModuleDescriptor(string Language, string Title, string? Description, string[]? Tags);
 
     public record RepositoryDescriptorErrors(string Path, string Error);
+
+    public class AsyncLazy<T> : Lazy<Task<T>>
+    {
+        public AsyncLazy(Func<T> valueFactory) :
+            base(() => Task.Factory.StartNew(valueFactory))
+        { }
+
+        public AsyncLazy(Func<Task<T>> taskFactory) :
+            base(() => Task.Factory.StartNew(() => taskFactory()).Unwrap())
+        { }
+    }
 
     public class GitHubToolsService
     {
@@ -43,13 +60,13 @@ namespace Datahub.Core.Services.ProjectTools
 
         private const string CACHE_KEY = "GitModules";
 
-        private T AddOrGetExisting<T>(string key, Func<T> valueFactory, CacheItemPolicy? policy = null)
+        private async Task<T> AddOrGetExistingAsync<T>(string key, Func<Task<T>> valueFactory, CacheItemPolicy? policy = null)
         {
-            var newValue = new Lazy<T>(valueFactory);
-            var oldValue = githubCache.AddOrGetExisting(key, newValue, policy ?? new CacheItemPolicy()) as Lazy<T>;
+            var newValue = new AsyncLazy<T>(valueFactory);
+            var oldValue = githubCache.AddOrGetExisting(key, newValue, policy ?? new CacheItemPolicy()) as AsyncLazy<T>;
             try
             {
-                return (oldValue ?? newValue).Value;
+                return await (oldValue ?? newValue).Value;
             }
             catch
             {
@@ -59,20 +76,22 @@ namespace Datahub.Core.Services.ProjectTools
             }
         }
 
-        public async List<GitHubModule> GetAllModules()
+        public async Task<List<GitHubModule>> GetAllModules()
         {
-            return AddOrGetExisting(CACHE_KEY, () =>
+            return await AddOrGetExistingAsync(CACHE_KEY, async () =>
             {
                 var data = await contentClient.GetAllContentsByRef(GitHubToolsService.GitHubOwner, GitHubToolsService.GitHubRepo, GitHubToolsService.GitHubModuleFolder, GitHubToolsService.GitHubBranchName);//, 
                 var folders = data.Where(d => d.Type == ContentType.Dir).ToList();
-                var modules = await folders.ToAsyncEnumerable().SelectAwait(async dir => await service.GetGitHubModule(dir)).Where(d => d != null).ToListAsync();
+                var modules = await folders.ToAsyncEnumerable()
+                .SelectAwait(async dir => await GetGitHubModule(dir))
+                .Where(d => d != null).Select(d => d!).ToListAsync();
                 return modules;
             }, new CacheItemPolicy() {  AbsoluteExpiration = DateTime.Now.AddHours(4)});
         }
 
         internal async Task<GitHubModule?> GetGitHubModule(RepositoryContent dir)
         {            
-            var content = await contentClient.GetAllContentsByRef(GitHubToolsService.GitHubOwner, GitHubToolsService.GitHubRepo, dir.Path, GitHubToolsService.GitHubBranchName);//, 
+            var content = await contentClient.GetAllContentsByRef(GitHubOwner, GitHubToolsService.GitHubRepo, dir.Path, GitHubToolsService.GitHubBranchName);//, 
             var readme = content.Where(c => c.Name.ToLower() == GitHubToolsService.GitHubModuleReadme).FirstOrDefault();
             if (readme is null)
             {
@@ -83,12 +102,15 @@ namespace Datahub.Core.Services.ProjectTools
                 return null;
             }
             var readmeContent = await contentClient.GetRawContentByRef(GitHubOwner, GitHubRepo, readme.Path, GitHubBranchName);
-            var readmeDoc = Markdown.Parse(Encoding.UTF8.GetString(readmeContent!));
+            var builder = new MarkdownPipelineBuilder();
+            builder.UseYamlFrontMatter();            
+            var readmeDoc = Markdown.Parse(Encoding.UTF8.GetString(readmeContent!), builder.Build());
             var readmeDocFlattened = readmeDoc.Descendants().ToList();
             var english = GetSubSections(readmeDocFlattened, "English", 1);
             var descriptors = ExtractSubSections(english, 2);
             var french = GetSubSections(readmeDocFlattened, "Français", 1);
             var descriptors_fr = ExtractSubSections(french, 2);
+            
             //Language            
 
             var en = new GitHubModuleDescriptor(
@@ -105,7 +127,9 @@ namespace Datahub.Core.Services.ProjectTools
             );
             return new GitHubModule(dir.Name,
                 dir.Path,
-                ValidateKey("Calculator", dir, descriptors),
+                GetFrontMatterValue(readmeDoc, "dhcard", dir),
+                GetFrontMatterValue(readmeDoc, "calculator", dir),
+                GetFrontMatterValue(readmeDoc, "icon", dir),
                 new List<GitHubModuleDescriptor>() { en, fr }
             );
         }
@@ -175,6 +199,44 @@ namespace Datahub.Core.Services.ProjectTools
                 }
             }
             return result;
+        }
+
+        private string? GetFrontMatterValue(MarkdownDocument document, string key, RepositoryContent module)
+        {
+            var yamlBlocks = document.Descendants<Markdig.Extensions.Yaml.YamlFrontMatterBlock>()
+                .ToList();
+
+            if (yamlBlocks.Count != 1)
+            {
+                errors.Add(new RepositoryDescriptorErrors(
+                        module.Path,
+                        $"Cannot find yaml front matter in '{GitHubModuleReadme}' file"
+                    ));
+                return null;
+            }
+            var yamlBlock = yamlBlocks[0];
+            var yamlBlockIterator = yamlBlock.Lines.ToCharIterator();
+            var yamlString = new StringBuilder();
+            while (yamlBlockIterator.CurrentChar != '\0')
+            {
+                yamlString.Append(yamlBlockIterator.CurrentChar);
+                yamlBlockIterator.NextChar();
+            }
+
+            var yamlDeserializer = new DeserializerBuilder().Build();
+            try
+            {
+                var yamlObject = yamlDeserializer.Deserialize<Dictionary<string, string>>(new StringReader(yamlString.ToString()));
+                return yamlObject[key];
+            } catch (Exception ex)
+            {
+                errors.Add(new RepositoryDescriptorErrors(
+                        module.Path,
+                        $"Key {key} is missing in '{GitHubModuleReadme}' file"
+                    ));
+                return null;
+            }
+
         }
 
     }
