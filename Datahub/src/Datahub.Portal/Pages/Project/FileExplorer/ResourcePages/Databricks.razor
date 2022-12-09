@@ -1,7 +1,10 @@
 @using Datahub.Core.Services.Storage
 
+@inject CultureService _cultureService
+@inject IConfiguration _configuration
+
 <SASTokenButton OnSubstitutionsChanged="HandleSubstitutionsChanged" ContainerToken />
-<Resources PageName="Access-your-storage-account-in-Databricks" Substitutions="_substitutions"/>
+<ResourcePageRenderer PageName="@GetPageName()" Substitutions="_substitutions"/>
 
 @code {
     [CascadingParameter(Name = "ProjectAcronym")]
@@ -16,5 +19,10 @@
         _substitutions.Add((ResourceSubstitutions.ProjectAcronym, ProjectAcronym));
         _substitutions.Add((ResourceSubstitutions.StorageAccount, ResourceSubstitutions.GetStorageAccountNameFromProjectAcronym(ProjectAcronym)));
         _substitutions.Add((ResourceSubstitutions.ContainerName, DataRetrievalService.DEFAULT_CONTAINER_NAME));
+    }
+    
+    private string GetPageName()
+    {
+        return _configuration[$"WikiPageTitles:DatabricksStorageAccess:{_cultureService.Culture}"];
     }
 }
