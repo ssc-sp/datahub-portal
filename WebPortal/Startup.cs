@@ -51,6 +51,7 @@ using Datahub.Core.Services.Security;
 using Datahub.Core.Services.Data;
 using Datahub.Core.Services.Search;
 using Datahub.Core.Services.Metadata;
+using Datahub.Core.Services.ProjectTools;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]
 
@@ -423,6 +424,7 @@ namespace Datahub.Portal
             services.AddScoped<DataImportingService>();
             services.AddSingleton<DatahubTools>();
             services.AddSingleton<TranslationService>();
+            services.AddSingleton<GitHubToolsService>();
 
             services.AddScoped<NotificationsService>();
             services.AddScoped<UIControlsService>();
