@@ -178,5 +178,9 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
         modelBuilder.Entity<Project_Current_Monthly_Cost>()
             .Property(mc => mc.Id)
             .ValueGeneratedOnAdd();
+
+        modelBuilder.Entity<Datahub_Project_User>()
+            .Property(u => u.User_ID)
+            .ValueGeneratedOnAdd();
     }
 }
