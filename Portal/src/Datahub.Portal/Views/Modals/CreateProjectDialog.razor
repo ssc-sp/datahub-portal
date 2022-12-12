@@ -1,14 +1,12 @@
 @inject IProjectCreationService ProjectCreationService
 
 <MudDialog>
-    @* <MudText Typo="Typo.h3">@Localizer[Title]</MudText> *@
-    
     <DialogContent>
         <MudForm Class="my-8" @bind-IsValid="@_success">
             <MudText Class="mb-4">@Localizer[Description]</MudText>
-            <MudTextField T="string" @bind-Value="_workspaceTitle" Label="@Localizer[WorkspaceLabel]" Required
-                          RequiredError="@Localizer[MissingTitle]" HelperText="@Localizer[WorkspaceHelper]"/>
-            <MudTextField T="string" @bind-Value="_workspaceAcronym" Label="@Localizer[AcronymLabel]" AdornmentIcon="@AcronymGeneratorIcon"
+            <MudTextField T="string" @bind-Value="_projectTitle" Label="@Localizer[ProjectLabel]" Required
+                          RequiredError="@Localizer[MissingTitle]" HelperText="@Localizer[ProjectHelper]"/>
+            <MudTextField T="string" @bind-Value="_projectAcronym" Label="@Localizer[AcronymLabel]" AdornmentIcon="@AcronymGeneratorIcon"
                           HelperText="@Localizer[AcronymHelper]" Adornment="Adornment.End" OnAdornmentClick="GenerateAcronym"
                           RequiredError="@Localizer[MissingAcronym]" Converter="_converter" @ref="_acronymField" Required
                           Validation="new Func<string, Task<string>>(ValidateAcronym)"/>
@@ -25,7 +23,7 @@
         {
             <MudButton Variant="Variant.Text" OnClick="CloseDialog">@Localizer[CancelButton]</MudButton>
         }
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="!_success" OnClick="CreateWorkspace">
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="!_success" OnClick="CreateProject">
             @if (_isCreating)
             {
                 <MudProgressCircular Class="ms-n1 mr-2" Size="Size.Small" Indeterminate="true"/>
@@ -41,44 +39,39 @@
     public bool ShowCancel { get; set; } = true;
 
 #nullable enable
-    private const string Title = "Create a new Workspace";
-    private const string Description = "Required information to create a collaborative workspace";  
-    private const string WorkspaceLabel = "Workspace Title";
-    private const string WorkspaceHelper = "A title that describes the workspace";
-    private const string AcronymLabel = "Workspace Acronym";
-    private const string AcronymHelper = "A unique alphanumeric acronym to identify the workspace";
+    private const string Description = "Required information to create a collaborative project";  
+    private const string ProjectLabel = "Project Title";
+    private const string ProjectHelper = "A title that describes the project";
+    private const string AcronymLabel = "Project Acronym";
+    private const string AcronymHelper = "A unique alphanumeric acronym to identify the project";
     private const string AcronymGeneratorIcon = "fa-light fa-arrows-rotate";
     private const string AcronymGeneratorTooltip = "Generate a unique acronym";
-    private const string ProjectException = "An error occurred while creating the workspace";
-    private const string CreateButton = "Create Workspace";
+    private const string ProjectException = "An error occurred while creating the project";
+    private const string CreateButton = "Create Project";
     private const string CancelButton = "Cancel";
     
-    private const string MissingTitle = "Workspace Title is required";
-    private const string MissingAcronym = "Workspace Acronym is required";
-    private const string AcronymExists = "Workspace Acronym already exists";
-    private const string WorkspaceRequiredToGenerateAcronym = "Workspace Title is required to generate an acronym";
+    private const string MissingTitle = "Project Title is required";
+    private const string MissingAcronym = "Project Acronym is required";
+    private const string AcronymExists = "Project Acronym already exists";
+    private const string ProjectRequiredToGenerateAcronym = "Project Title is required to generate an acronym";
     
     private string? _errorMessage;
-    private string _workspaceTitle = string.Empty;
-    private string _workspaceAcronym = string.Empty;
+    private string _projectTitle = string.Empty;
+    private string _projectAcronym = string.Empty;
     private MudTextField<string>? _acronymField;
 
     private bool _success;
     private bool _isCreating;
 
-    protected override void OnInitialized()
-    {
-        MudDialog.SetTitle(Localizer[Title]);
-    }
 
     private async Task GenerateAcronym()
     {
-        if (string.IsNullOrWhiteSpace(_workspaceTitle))
+        if (string.IsNullOrWhiteSpace(_projectTitle))
         {
-            _errorMessage = Localizer[WorkspaceRequiredToGenerateAcronym];
+            _errorMessage = Localizer[ProjectRequiredToGenerateAcronym];
             return;
         }
-        _workspaceAcronym = await ProjectCreationService.GenerateProjectAcronymAsync(_workspaceTitle);
+        _projectAcronym = await ProjectCreationService.GenerateProjectAcronymAsync(_projectTitle);
         _success = true;
         _acronymField?.ResetValidation();    
     }
@@ -106,7 +99,7 @@
         GetFunc = text => text?.ToUpperInvariant() ?? string.Empty,
     };
     
-    private async Task CreateWorkspace()
+    private async Task CreateProject()
     {
         if (_success)
         {
@@ -116,11 +109,11 @@
             //update Button
             StateHasChanged();
             await Task.Delay(1);
-            var isAdded = await ProjectCreationService.CreateProjectAsync(_workspaceTitle, _workspaceAcronym);
+            var isAdded = await ProjectCreationService.CreateProjectAsync(_projectTitle, _projectAcronym);
             _isCreating = false;
             if (isAdded)
             {
-                MudDialog.Close(DialogResult.Ok(_workspaceAcronym));
+                MudDialog.Close(DialogResult.Ok(_projectAcronym));
             }
             else
             {
