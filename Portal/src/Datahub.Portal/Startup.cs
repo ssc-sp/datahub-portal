@@ -60,438 +60,437 @@ using Tewr.Blazor.FileReader;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]
 
-namespace Datahub.Portal
+namespace Datahub.Portal;
+
+public class Startup
 {
-    public class Startup
+    public Startup(IConfiguration configuration, IWebHostEnvironment env)
     {
-        public Startup(IConfiguration configuration, IWebHostEnvironment env)
+        Configuration = configuration;
+        _currentEnvironment = env;
+    }
+
+    private readonly IConfiguration Configuration;
+    private readonly IWebHostEnvironment _currentEnvironment;
+    private ModuleManager moduleManager = new ModuleManager();
+
+    private bool ResetDB => (Configuration.GetSection("InitialSetup")?.GetValue<bool>("ResetDB", false) ?? false);
+    private bool EnsureDeleteinOffline => (Configuration.GetSection("InitialSetup")?.GetValue<bool>("EnsureDeleteinOffline", false) ?? false);
+    private bool Offline => Configuration.GetValue<bool>("Offline", false);
+
+    private bool Debug => Configuration.GetValue<bool>("DebugMode", false);
+
+    // This method gets called by the runtime. Use this method to add services to the container.
+    // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services.AddApplicationInsightsTelemetry();
+
+        services.AddDistributedMemoryCache();
+
+        services.Configure<CookiePolicyOptions>(options =>
         {
-            Configuration = configuration;
-            _currentEnvironment = env;
+            // This lambda determines whether user consent for non-essential cookies is needed for a given request.
+            options.CheckConsentNeeded = context => true;
+            options.MinimumSameSitePolicy = SameSiteMode.Unspecified;
+            // Handling SameSite cookie according to https://docs.microsoft.com/en-us/aspnet/core/security/samesite?view=aspnetcore-3.1
+            options.HandleSameSiteCookieCompatibility();
+        });
+
+        //required to access existing headers
+        services.AddHttpContextAccessor();
+        services.AddOptions();
+
+        // use this method to setup the authentication and authorization
+        ConfigureAuthentication(services);
+
+        services.AddSession(options =>
+        {
+            options.Cookie.IsEssential = true;
+            options.Cookie.HttpOnly = true;
+        });
+
+        services.AddRazorPages();
+        services.AddServerSideBlazor().AddCircuitOptions(o =>
+        {
+            o.DetailedErrors = true; // todo: to make it 'true' only in development
+        }).AddHubOptions(o =>
+        {
+            o.MaximumReceiveMessageSize = 10 * 1024 * 1024; // 10MB
+        }).AddMicrosoftIdentityConsentHandler();
+
+        services.AddControllers();
+
+        ConfigureLocalization(services);
+
+        // add custom app services in this method
+        ConfigureCoreDatahubServices(services);
+
+        services.AddHttpClient();
+        services.AddHttpClient<GraphServiceClient>().AddPolicyHandler(GetRetryPolicy());
+        services.AddFileReaderService();
+        services.AddBlazorDownloadFile();
+        services.AddBlazoredLocalStorage();
+        services.AddScoped<ApiTelemetryService>();
+        services.AddScoped<GetDimensionsService>();
+        //TimeZoneService provides the user time zone to the server using JS Interop
+        services.AddScoped<TimeZoneService>();
+        services.AddAchievementService(opts =>
+        {
+            opts.Enabled = Configuration.GetValue("Achievements:Enabled", false);
+            opts.AchievementDirectoryPath = Path.Join(AppContext.BaseDirectory, "Achievements");
+        });
+
+        services.AddElemental();
+        services.AddMudServices();
+        services.AddMudMarkdownServices();
+        services.AddSingleton(moduleManager);
+
+
+        moduleManager.LoadModules(Configuration.GetValue<string>("DataHubModules", "*"));
+        foreach (var module in moduleManager.Modules)
+        {
+            Console.Write($"Configuring module {module.Name}\n");
+            services.AddModule(module,Configuration);
         }
 
-        private readonly IConfiguration Configuration;
-        private readonly IWebHostEnvironment _currentEnvironment;
-        private ModuleManager moduleManager = new ModuleManager();
+        // configure db contexts in this method
+        ConfigureDbContexts(services);
 
-        private bool ResetDB => (Configuration.GetSection("InitialSetup")?.GetValue<bool>("ResetDB", false) ?? false);
-        private bool EnsureDeleteinOffline => (Configuration.GetSection("InitialSetup")?.GetValue<bool>("EnsureDeleteinOffline", false) ?? false);
-        private bool Offline => Configuration.GetValue<bool>("Offline", false);
+        services.Configure<DataProjectsConfiguration>(Configuration.GetSection("ProjectTools"));
 
-        private bool Debug => Configuration.GetValue<bool>("DebugMode", false);
+        services.Configure<APITarget>(Configuration.GetSection("APITargets"));
 
-        // This method gets called by the runtime. Use this method to add services to the container.
-        // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
-        public void ConfigureServices(IServiceCollection services)
+        services.Configure<TelemetryConfiguration>(Configuration.GetSection("ApplicationInsights"));
+
+        services.Configure<CKANConfiguration>(Configuration.GetSection("CKAN"));
+        services.Configure<GeoCoreConfiguration>(Configuration.GetSection("GeoCore"));
+
+        services.Configure<SessionsConfig>(Configuration.GetSection("Sessions"));
+
+        services.AddScoped<IClaimsTransformation, RoleClaimTransformer>();
+
+        services.Configure<PortalVersion>(Configuration.GetSection("PortalVersion"));
+        services.AddScoped<IPortalVersionService, PortalVersionService>();
+        services.AddProjectResources();
+
+
+
+        services.AddScoped<CatalogImportService>();
+        services.AddSingleton<ICatalogSearchEngine, CatalogSearchEngine>();
+
+        // TODO FIXME this will likely change when proper caching is implemented
+        services.AddSingleton<IResourcesService, ResourcesService>();
+
+        services.AddSingleton<CultureService>();
+
+        services.AddSignalRCore();
+
+        var httpLoggingConfig = Configuration.GetSection("HttpLogging");
+        var httpLoggingEnabled = httpLoggingConfig != null && httpLoggingConfig.GetValue<bool>("Enabled");
+
+        if (httpLoggingEnabled)
         {
-            services.AddApplicationInsightsTelemetry();
+            var requestHeaders = httpLoggingConfig["RequestHeaders"]?.Split(",");
+            var responseHeaders = httpLoggingConfig["ResponseHeaders"]?.Split(",");
 
-            services.AddDistributedMemoryCache();
-
-            services.Configure<CookiePolicyOptions>(options =>
+            services.AddHttpLogging(logging =>
             {
-                // This lambda determines whether user consent for non-essential cookies is needed for a given request.
-                options.CheckConsentNeeded = context => true;
-                options.MinimumSameSitePolicy = SameSiteMode.Unspecified;
-                // Handling SameSite cookie according to https://docs.microsoft.com/en-us/aspnet/core/security/samesite?view=aspnetcore-3.1
-                options.HandleSameSiteCookieCompatibility();
-            });
+                logging.LoggingFields = HttpLoggingFields.RequestPropertiesAndHeaders |
+                                        HttpLoggingFields.ResponsePropertiesAndHeaders;
 
-            //required to access existing headers
-            services.AddHttpContextAccessor();
-            services.AddOptions();
-
-            // use this method to setup the authentication and authorization
-            ConfigureAuthentication(services);
-
-            services.AddSession(options =>
-            {
-                options.Cookie.IsEssential = true;
-                options.Cookie.HttpOnly = true;
-            });
-
-            services.AddRazorPages();
-            services.AddServerSideBlazor().AddCircuitOptions(o =>
-            {
-                o.DetailedErrors = true; // todo: to make it 'true' only in development
-            }).AddHubOptions(o =>
-            {
-                o.MaximumReceiveMessageSize = 10 * 1024 * 1024; // 10MB
-            }).AddMicrosoftIdentityConsentHandler();
-
-            services.AddControllers();
-
-            ConfigureLocalization(services);
-
-            // add custom app services in this method
-            ConfigureCoreDatahubServices(services);
-
-            services.AddHttpClient();
-            services.AddHttpClient<GraphServiceClient>().AddPolicyHandler(GetRetryPolicy());
-            services.AddFileReaderService();
-            services.AddBlazorDownloadFile();
-            services.AddBlazoredLocalStorage();
-            services.AddScoped<ApiTelemetryService>();
-            services.AddScoped<GetDimensionsService>();
-            //TimeZoneService provides the user time zone to the server using JS Interop
-            services.AddScoped<TimeZoneService>();
-            services.AddAchievementService(opts =>
-            {
-                opts.Enabled = Configuration.GetValue("Achievements:Enabled", false);
-                opts.AchievementDirectoryPath = Path.Join(AppContext.BaseDirectory, "Achievements");
-            });
-
-            services.AddElemental();
-            services.AddMudServices();
-            services.AddMudMarkdownServices();
-            services.AddSingleton(moduleManager);
-
-
-            moduleManager.LoadModules(Configuration.GetValue<string>("DataHubModules", "*"));
-            foreach (var module in moduleManager.Modules)
-            {
-                Console.Write($"Configuring module {module.Name}\n");
-                services.AddModule(module,Configuration);
-            }
-
-            // configure db contexts in this method
-            ConfigureDbContexts(services);
-
-            services.Configure<DataProjectsConfiguration>(Configuration.GetSection("ProjectTools"));
-
-            services.Configure<APITarget>(Configuration.GetSection("APITargets"));
-
-            services.Configure<TelemetryConfiguration>(Configuration.GetSection("ApplicationInsights"));
-
-            services.Configure<CKANConfiguration>(Configuration.GetSection("CKAN"));
-            services.Configure<GeoCoreConfiguration>(Configuration.GetSection("GeoCore"));
-
-            services.Configure<SessionsConfig>(Configuration.GetSection("Sessions"));
-
-            services.AddScoped<IClaimsTransformation, RoleClaimTransformer>();
-
-            services.Configure<PortalVersion>(Configuration.GetSection("PortalVersion"));
-            services.AddScoped<IPortalVersionService, PortalVersionService>();
-            services.AddProjectResources();
-
-
-
-            services.AddScoped<CatalogImportService>();
-            services.AddSingleton<ICatalogSearchEngine, CatalogSearchEngine>();
-
-            // TODO FIXME this will likely change when proper caching is implemented
-            services.AddSingleton<IResourcesService, ResourcesService>();
-
-            services.AddSingleton<CultureService>();
-
-            services.AddSignalRCore();
-
-            var httpLoggingConfig = Configuration.GetSection("HttpLogging");
-            var httpLoggingEnabled = httpLoggingConfig != null && httpLoggingConfig.GetValue<bool>("Enabled");
-
-            if (httpLoggingEnabled)
-            {
-                var requestHeaders = httpLoggingConfig["RequestHeaders"]?.Split(",");
-                var responseHeaders = httpLoggingConfig["ResponseHeaders"]?.Split(",");
-
-                services.AddHttpLogging(logging =>
+                if (requestHeaders != null && requestHeaders.Length > 0)
                 {
-                    logging.LoggingFields = HttpLoggingFields.RequestPropertiesAndHeaders |
-                                            HttpLoggingFields.ResponsePropertiesAndHeaders;
-
-                    if (requestHeaders != null && requestHeaders.Length > 0)
+                    foreach (var h in requestHeaders)
                     {
-                        foreach (var h in requestHeaders)
-                        {
-                            logging.RequestHeaders.Add(h);
-                        }
+                        logging.RequestHeaders.Add(h);
                     }
+                }
 
-                    if (responseHeaders != null && responseHeaders.Length > 0)
+                if (responseHeaders != null && responseHeaders.Length > 0)
+                {
+                    foreach (var h in responseHeaders)
                     {
-                        foreach (var h in responseHeaders)
-                        {
-                            logging.ResponseHeaders.Add(h);
-                        }
+                        logging.ResponseHeaders.Add(h);
                     }
-                });
-            }
-            services.AddMiniProfiler().AddEntityFramework();
-        }
-
-        static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
-        {
-            return HttpPolicyExtensions
-                .HandleTransientHttpError()
-                .OrResult(msg => msg.StatusCode == System.Net.HttpStatusCode.NotFound)
-                .WaitAndRetryAsync(6, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2,
-                    retryAttempt)));
-        }
-
-        private void InitializeDatabase<T>(ILogger logger, IDbContextFactory<T> dbContextFactory, bool migrate = true) where T : DbContext
-        {
-            EFTools.InitializeDatabase<T>(logger, Configuration, dbContextFactory, ResetDB, migrate,
-                EnsureDeleteinOffline);
-        }
-
-
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILogger<Startup> logger,
-            IDbContextFactory<DatahubProjectDBContext> datahubFactory,
-            IDbContextFactory<UserTrackingContext> userTrackingFactory,
-            IDbContextFactory<AchievementContext> achievementFactory,
-            IDbContextFactory<PIPDBContext> pipFactory,
-            IDbContextFactory<MetadataDbContext> metadataFactory,
-            IDbContextFactory<DatahubETLStatusContext> etlFactory)
-        {
-            if (Configuration.GetValue<bool>("HttpLogging:Enabled"))
-            {
-                app.UseHttpLogging();
-            }
-
-            foreach (var module in moduleManager.Modules)
-            {
-                logger.LogInformation($"Configuring module {module.Name}\n");
-                app.ConfigureModule(module);
-            }
-
-            InitializeDatabase(logger, datahubFactory);
-            InitializeDatabase(logger, userTrackingFactory, false);
-            InitializeDatabase(logger, achievementFactory, false);
-            InitializeDatabase(logger, etlFactory);
-            InitializeDatabase(logger, pipFactory);
-            InitializeDatabase(logger, metadataFactory, true);
-
-            app.UseRequestLocalization(app.ApplicationServices.GetService<IOptions<RequestLocalizationOptions>>()
-                .Value);
-
-            if (Debug)
-            {
-                app.UseDeveloperExceptionPage();
-            }
-            else
-            {
-                app.UseExceptionHandler("/Error");
-                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-                app.UseHsts();
-            }
-
-            app.UseHttpsRedirection();
-
-            app.UseMiniProfiler();
-            app.UseStaticFiles();
-
-            app.UseRouting();
-
-            app.UseAuthentication();
-            app.UseAuthorization();
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapBlazorHub();
-                endpoints.MapControllers();
-                endpoints.MapFallbackToPage("/_Host");
+                }
             });
         }
+        services.AddMiniProfiler().AddEntityFramework();
+    }
 
-        private void ConfigureAuthentication(IServiceCollection services)
+    static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
+    {
+        return HttpPolicyExtensions
+            .HandleTransientHttpError()
+            .OrResult(msg => msg.StatusCode == System.Net.HttpStatusCode.NotFound)
+            .WaitAndRetryAsync(6, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2,
+                retryAttempt)));
+    }
+
+    private void InitializeDatabase<T>(ILogger logger, IDbContextFactory<T> dbContextFactory, bool migrate = true) where T : DbContext
+    {
+        EFTools.InitializeDatabase<T>(logger, Configuration, dbContextFactory, ResetDB, migrate,
+            EnsureDeleteinOffline);
+    }
+
+
+    // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+    public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILogger<Startup> logger,
+        IDbContextFactory<DatahubProjectDBContext> datahubFactory,
+        IDbContextFactory<UserTrackingContext> userTrackingFactory,
+        IDbContextFactory<AchievementContext> achievementFactory,
+        IDbContextFactory<PIPDBContext> pipFactory,
+        IDbContextFactory<MetadataDbContext> metadataFactory,
+        IDbContextFactory<DatahubETLStatusContext> etlFactory)
+    {
+        if (Configuration.GetValue<bool>("HttpLogging:Enabled"))
         {
-            //https://docs.microsoft.com/en-us/azure/active-directory/develop/scenario-web-app-call-api-app-configuration?tabs=aspnetcore
-            //services.AddSignIn(Configuration, "AzureAd")
-            //        .AddInMemoryTokenCaches();
-
-            // This is required to be instantiated before the OpenIdConnectOptions starts getting configured.
-            // By default, the claims mapping will map claim names in the old format to accommodate older SAML applications.
-            // 'http://schemas.microsoft.com/ws/2008/06/identity/claims/role' instead of 'roles'
-            // This flag ensures that the ClaimsIdentity claims collection will be built from the claims in the token
-            // JwtSecurityTokenHandler.DefaultMapInboundClaims = false;
-
-            // Token acquisition service based on MSAL.NET
-            // and chosen token cache implementation
-
-            if (Offline) return;
-            //services.AddAuthentication(AzureADDefaults.AuthenticationScheme)               
-            //        .AddAzureAD(options => Configuration.Bind("AzureAd", options));
-            var graphScopes = new List<string> {
-                "user.read",
-            };
-            //scopes.Add("PowerBI.Read.All");
-
-            services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
-                .AddMicrosoftIdentityWebApp(Configuration, "AzureAd")
-                .EnableTokenAcquisitionToCallDownstreamApi(graphScopes)
-                .AddMicrosoftGraph(Configuration.GetSection("Graph"))
-                //.AddDownstreamWebApi("ResourceProvisionerApi", Configuration.GetSection("ResourceProvisionerApi"))
-                .AddInMemoryTokenCaches();
-
-            services.AddControllersWithViews()
-                .AddMicrosoftIdentityUI();
+            app.UseHttpLogging();
         }
 
-        private void ConfigureLocalization(IServiceCollection services)
+        foreach (var module in moduleManager.Modules)
         {
-            var cultureSection = Configuration.GetSection("CultureSettings");
-            var trackTranslations = cultureSection.GetValue<bool>("TrackTranslations", false);
-            var defaultCulture = cultureSection.GetValue<string>("Default");
-            var supportedCultures = cultureSection.GetValue<string>("SupportedCultures");
-            var supportedCultureInfos = new HashSet<CultureInfo>(ParseCultures(supportedCultures));
-
-            services.AddJsonLocalization(options =>
-            {
-                options.CacheDuration = TimeSpan.FromMinutes(15);
-                options.ResourcesPath = "i18n";
-                options.AdditionalResourcePaths = new[] { $"i18n/{Program.GetDataHubProfile()}" };
-                options.UseBaseName = false;
-                options.IsAbsolutePath = true;
-                options.LocalizationMode = Askmethat.Aspnet.JsonLocalizer.JsonOptions.LocalizationMode.I18n;
-                options.MissingTranslationLogBehavior = trackTranslations
-                    ? MissingTranslationLogBehavior.CollectToJSON
-                    : MissingTranslationLogBehavior.Ignore;
-                options.FileEncoding = Encoding.GetEncoding("UTF-8");
-                options.SupportedCultureInfos = supportedCultureInfos;
-            });
-
-            services.Configure<RequestLocalizationOptions>(options =>
-            {
-                options.DefaultRequestCulture = new RequestCulture(defaultCulture);
-                options.SupportedCultures = supportedCultureInfos.ToList();
-                options.SupportedUICultures = supportedCultureInfos.ToList();
-            });
+            logger.LogInformation($"Configuring module {module.Name}\n");
+            app.ConfigureModule(module);
         }
 
-        static IEnumerable<CultureInfo> ParseCultures(string values)
+        InitializeDatabase(logger, datahubFactory);
+        InitializeDatabase(logger, userTrackingFactory, false);
+        InitializeDatabase(logger, achievementFactory, false);
+        InitializeDatabase(logger, etlFactory);
+        InitializeDatabase(logger, pipFactory);
+        InitializeDatabase(logger, metadataFactory, true);
+
+        app.UseRequestLocalization(app.ApplicationServices.GetService<IOptions<RequestLocalizationOptions>>()
+            .Value);
+
+        if (Debug)
         {
-            if (string.IsNullOrWhiteSpace(values))
-                values = "en|fr";
-            return (values ?? "").Split('|').Select(c => new CultureInfo($"{c[..2].ToLower()}-CA"));
+            app.UseDeveloperExceptionPage();
+        }
+        else
+        {
+            app.UseExceptionHandler("/Error");
+            // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+            app.UseHsts();
         }
 
-        private void ConfigureCoreDatahubServices(IServiceCollection services)
+        app.UseHttpsRedirection();
+
+        app.UseMiniProfiler();
+        app.UseStaticFiles();
+
+        app.UseRouting();
+
+        app.UseAuthentication();
+        app.UseAuthorization();
+        app.UseEndpoints(endpoints =>
         {
-            // configure online/offline services
-            if (!Offline)
-            {
-                services.AddSingleton<IKeyVaultService, KeyVaultService>();
-                services.AddScoped<UserLocationManagerService>();
-                services.AddSingleton<CommonAzureServices>();
-                services.AddScoped<DataLakeClientService>();
+            endpoints.MapBlazorHub();
+            endpoints.MapControllers();
+            endpoints.MapFallbackToPage("/_Host");
+        });
+    }
 
-                services.AddScoped<IUserInformationService, UserInformationService>();
-                services.AddSingleton<IMSGraphService, MSGraphService>();
+    private void ConfigureAuthentication(IServiceCollection services)
+    {
+        //https://docs.microsoft.com/en-us/azure/active-directory/develop/scenario-web-app-call-api-app-configuration?tabs=aspnetcore
+        //services.AddSignIn(Configuration, "AzureAd")
+        //        .AddInMemoryTokenCaches();
 
-                services.AddScoped<IProjectDatabaseService, ProjectDatabaseService>();
+        // This is required to be instantiated before the OpenIdConnectOptions starts getting configured.
+        // By default, the claims mapping will map claim names in the old format to accommodate older SAML applications.
+        // 'http://schemas.microsoft.com/ws/2008/06/identity/claims/role' instead of 'roles'
+        // This flag ensures that the ClaimsIdentity claims collection will be built from the claims in the token
+        // JwtSecurityTokenHandler.DefaultMapInboundClaims = false;
 
-                services.AddScoped<IDataSharingService, DataSharingService>();
-                services.AddScoped<IDataCreatorService, DataCreatorService>();
-                services.AddScoped<DataRetrievalService>();
-                services.AddScoped<IDataRemovalService, DataRemovalService>();
+        // Token acquisition service based on MSAL.NET
+        // and chosen token cache implementation
 
-                services.AddScoped<IAzurePriceListService, AzurePriceListService>();
+        if (Offline) return;
+        //services.AddAuthentication(AzureADDefaults.AuthenticationScheme)               
+        //        .AddAzureAD(options => Configuration.Bind("AzureAd", options));
+        var graphScopes = new List<string> {
+            "user.read",
+        };
+        //scopes.Add("PowerBI.Read.All");
 
-                services.AddScoped<PowerBiServiceApi>();
-                services.AddScoped<IPowerBiDataService, PowerBiDataService>();
+        services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
+            .AddMicrosoftIdentityWebApp(Configuration, "AzureAd")
+            .EnableTokenAcquisitionToCallDownstreamApi(graphScopes)
+            .AddMicrosoftGraph(Configuration.GetSection("Graph"))
+            //.AddDownstreamWebApi("ResourceProvisionerApi", Configuration.GetSection("ResourceProvisionerApi"))
+            .AddInMemoryTokenCaches();
 
-                services.AddScoped<RegistrationService>();
+        services.AddControllersWithViews()
+            .AddMicrosoftIdentityUI();
+    }
+
+    private void ConfigureLocalization(IServiceCollection services)
+    {
+        var cultureSection = Configuration.GetSection("CultureSettings");
+        var trackTranslations = cultureSection.GetValue<bool>("TrackTranslations", false);
+        var defaultCulture = cultureSection.GetValue<string>("Default");
+        var supportedCultures = cultureSection.GetValue<string>("SupportedCultures");
+        var supportedCultureInfos = new HashSet<CultureInfo>(ParseCultures(supportedCultures));
+
+        services.AddJsonLocalization(options =>
+        {
+            options.CacheDuration = TimeSpan.FromMinutes(15);
+            options.ResourcesPath = "i18n";
+            options.AdditionalResourcePaths = new[] { $"i18n/{Program.GetDataHubProfile()}" };
+            options.UseBaseName = false;
+            options.IsAbsolutePath = true;
+            options.LocalizationMode = Askmethat.Aspnet.JsonLocalizer.JsonOptions.LocalizationMode.I18n;
+            options.MissingTranslationLogBehavior = trackTranslations
+                ? MissingTranslationLogBehavior.CollectToJSON
+                : MissingTranslationLogBehavior.Ignore;
+            options.FileEncoding = Encoding.GetEncoding("UTF-8");
+            options.SupportedCultureInfos = supportedCultureInfos;
+        });
+
+        services.Configure<RequestLocalizationOptions>(options =>
+        {
+            options.DefaultRequestCulture = new RequestCulture(defaultCulture);
+            options.SupportedCultures = supportedCultureInfos.ToList();
+            options.SupportedUICultures = supportedCultureInfos.ToList();
+        });
+    }
+
+    static IEnumerable<CultureInfo> ParseCultures(string values)
+    {
+        if (string.IsNullOrWhiteSpace(values))
+            values = "en|fr";
+        return (values ?? "").Split('|').Select(c => new CultureInfo($"{c[..2].ToLower()}-CA"));
+    }
+
+    private void ConfigureCoreDatahubServices(IServiceCollection services)
+    {
+        // configure online/offline services
+        if (!Offline)
+        {
+            services.AddSingleton<IKeyVaultService, KeyVaultService>();
+            services.AddScoped<UserLocationManagerService>();
+            services.AddSingleton<CommonAzureServices>();
+            services.AddScoped<DataLakeClientService>();
+
+            services.AddScoped<IUserInformationService, UserInformationService>();
+            services.AddSingleton<IMSGraphService, MSGraphService>();
+
+            services.AddScoped<IProjectDatabaseService, ProjectDatabaseService>();
+
+            services.AddScoped<IDataSharingService, DataSharingService>();
+            services.AddScoped<IDataCreatorService, DataCreatorService>();
+            services.AddScoped<DataRetrievalService>();
+            services.AddScoped<IDataRemovalService, DataRemovalService>();
+
+            services.AddScoped<IAzurePriceListService, AzurePriceListService>();
+
+            services.AddScoped<PowerBiServiceApi>();
+            services.AddScoped<IPowerBiDataService, PowerBiDataService>();
+
+            services.AddScoped<RegistrationService>();
                 
-                services.AddScoped<UpdateProjectMonthlyCostService>();
-                services.AddScoped<IProjectCreationService, ProjectCreationService>();
+            services.AddScoped<UpdateProjectMonthlyCostService>();
+            services.AddScoped<IProjectCreationService, ProjectCreationService>();
 
-            }
-            else
-            {
-                services.AddSingleton<IKeyVaultService, OfflineKeyVaultService>();
-                services.AddScoped<UserLocationManagerService>();
-                services.AddSingleton<CommonAzureServices>();
-                //services.AddScoped<DataLakeClientService>();
-
-                services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
-                services.AddScoped<IUserInformationService, OfflineUserInformationService>();
-                services.AddSingleton<IMSGraphService, OfflineMSGraphService>();
-                services.AddScoped<IPowerBiDataService, OfflinePowerBiDataService>();
-
-                services.AddScoped<IProjectDatabaseService, OfflineProjectDatabaseService>();
-
-                services.AddScoped<IDataSharingService, OfflineDataSharingService>();
-                services.AddScoped<IDataCreatorService, OfflineDataCreatorService>();
-                services.AddScoped<DataRetrievalService, OfflineDataRetrievalService>();
-                services.AddScoped<IDataRemovalService, OfflineDataRemovalService>();
-
-                services.AddScoped<IAzurePriceListService, OfflineAzurePriceListService>();
-            }
-
-
-            services.AddScoped<IPublicDataFileService, PublicDataFileService>();
-
-            services.AddSingleton<IExternalSearchService, ExternalSearchService>();
-            services.AddHttpClient<IExternalSearchService, ExternalSearchService>();
-
-            services.AddScoped<IMetadataBrokerService, MetadataBrokerService>();
-            services.AddScoped<IDatahubAuditingService, DatahubTelemetryAuditingService>();
-            services.AddScoped<IMiscStorageService, MiscStorageService>();
-
-            services.AddScoped<DataImportingService>();
-            services.AddSingleton<DatahubTools>();
-            services.AddSingleton<TranslationService>();
-            services.AddSingleton<GitHubToolsService>();
-
-            services.AddScoped<NotificationsService>();
-            services.AddScoped<UIControlsService>();
-            services.AddScoped<NotifierService>();
-            services.AddScoped<AzureCostManagementService>();
-
-            services.AddScoped<IEmailNotificationService, EmailNotificationService>();
-            services.AddScoped<ISystemNotificationService, SystemNotificationService>();
-            services.AddSingleton<IPropagationService, PropagationService>();
-
-            services.AddSingleton<ServiceAuthManager>();
-
-            services.AddCKANService();
-            services.AddSingleton<IOpenDataService, OpenDataService>();
-
-            services.AddGeoCoreService();
-
-            services.AddSingleton<IGlobalSessionManager, GlobalSessionManager>();
-            services.AddScoped<IUserCircuitCounterService, UserCircuitCounterService>();
-
-            services.AddScoped<IRequestManagementService, RequestManagementService>();
-
-            services.AddScoped<CustomNavigation>();
-
-            services.AddScoped<IOrganizationLevelsService, OrganizationLevelsService>();
         }
-
-        private void ConfigureDbContexts(IServiceCollection services)
+        else
         {
-            ConfigureDbContext<DatahubProjectDBContext>(services, "datahub-mssql-project", Configuration.GetDriver());
-            ConfigureDbContext<PIPDBContext>(services, "datahub-mssql-pip", Configuration.GetDriver());
-            if (Configuration.GetDriver() == DbDriver.Azure)
-            {
-                ConfigureCosmosDbContext<UserTrackingContext>(services, "datahub-cosmosdb", "datahub-catalog-db");
-                ConfigureCosmosDbContext<AchievementContext>(services, "datahub-cosmosdb", "datahub-catalog-db");
-            }
-            else
-            {
-                ConfigureDbContext<UserTrackingContext>(services, "datahub-cosmosdb", Configuration.GetDriver());
-                ConfigureDbContext<AchievementContext>(services, "datahub-cosmosdb", Configuration.GetDriver());
-            }
+            services.AddSingleton<IKeyVaultService, OfflineKeyVaultService>();
+            services.AddScoped<UserLocationManagerService>();
+            services.AddSingleton<CommonAzureServices>();
+            //services.AddScoped<DataLakeClientService>();
 
-            ConfigureDbContext<WebAnalyticsContext>(services, "datahub-mssql-webanalytics", Configuration.GetDriver());
-            ConfigureDbContext<DatahubETLStatusContext>(services, "datahub-mssql-etldb", Configuration.GetDriver());
-            ConfigureDbContext<MetadataDbContext>(services, "datahub-mssql-metadata", Configuration.GetDriver());
+            services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
+            services.AddScoped<IUserInformationService, OfflineUserInformationService>();
+            services.AddSingleton<IMSGraphService, OfflineMSGraphService>();
+            services.AddScoped<IPowerBiDataService, OfflinePowerBiDataService>();
+
+            services.AddScoped<IProjectDatabaseService, OfflineProjectDatabaseService>();
+
+            services.AddScoped<IDataSharingService, OfflineDataSharingService>();
+            services.AddScoped<IDataCreatorService, OfflineDataCreatorService>();
+            services.AddScoped<DataRetrievalService, OfflineDataRetrievalService>();
+            services.AddScoped<IDataRemovalService, OfflineDataRemovalService>();
+
+            services.AddScoped<IAzurePriceListService, OfflineAzurePriceListService>();
         }
 
-        private void ConfigureDbContext<T>(IServiceCollection services, string connectionStringName, DbDriver dbDriver)
-            where T : DbContext
+
+        services.AddScoped<IPublicDataFileService, PublicDataFileService>();
+
+        services.AddSingleton<IExternalSearchService, ExternalSearchService>();
+        services.AddHttpClient<IExternalSearchService, ExternalSearchService>();
+
+        services.AddScoped<IMetadataBrokerService, MetadataBrokerService>();
+        services.AddScoped<IDatahubAuditingService, DatahubTelemetryAuditingService>();
+        services.AddScoped<IMiscStorageService, MiscStorageService>();
+
+        services.AddScoped<DataImportingService>();
+        services.AddSingleton<DatahubTools>();
+        services.AddSingleton<TranslationService>();
+        services.AddSingleton<GitHubToolsService>();
+
+        services.AddScoped<NotificationsService>();
+        services.AddScoped<UIControlsService>();
+        services.AddScoped<NotifierService>();
+        services.AddScoped<AzureCostManagementService>();
+
+        services.AddScoped<IEmailNotificationService, EmailNotificationService>();
+        services.AddScoped<ISystemNotificationService, SystemNotificationService>();
+        services.AddSingleton<IPropagationService, PropagationService>();
+
+        services.AddSingleton<ServiceAuthManager>();
+
+        services.AddCKANService();
+        services.AddSingleton<IOpenDataService, OpenDataService>();
+
+        services.AddGeoCoreService();
+
+        services.AddSingleton<IGlobalSessionManager, GlobalSessionManager>();
+        services.AddScoped<IUserCircuitCounterService, UserCircuitCounterService>();
+
+        services.AddScoped<IRequestManagementService, RequestManagementService>();
+
+        services.AddScoped<CustomNavigation>();
+
+        services.AddScoped<IOrganizationLevelsService, OrganizationLevelsService>();
+    }
+
+    private void ConfigureDbContexts(IServiceCollection services)
+    {
+        ConfigureDbContext<DatahubProjectDBContext>(services, "datahub-mssql-project", Configuration.GetDriver());
+        ConfigureDbContext<PIPDBContext>(services, "datahub-mssql-pip", Configuration.GetDriver());
+        if (Configuration.GetDriver() == DbDriver.Azure)
         {
-            services.ConfigureDbContext<T>(Configuration, connectionStringName, dbDriver);
+            ConfigureCosmosDbContext<UserTrackingContext>(services, "datahub-cosmosdb", "datahub-catalog-db");
+            ConfigureCosmosDbContext<AchievementContext>(services, "datahub-cosmosdb", "datahub-catalog-db");
+        }
+        else
+        {
+            ConfigureDbContext<UserTrackingContext>(services, "datahub-cosmosdb", Configuration.GetDriver());
+            ConfigureDbContext<AchievementContext>(services, "datahub-cosmosdb", Configuration.GetDriver());
         }
 
-        private void ConfigureCosmosDbContext<T>(IServiceCollection services, string connectionStringName,
-            string catalogName) where T : DbContext
-        {
-            var connectionString = Configuration.GetConnectionString(_currentEnvironment, connectionStringName);
-            services.AddPooledDbContextFactory<T>(options =>
-                options.UseCosmos(connectionString, databaseName: catalogName));
-            services.AddDbContextPool<T>(options => options.UseCosmos(connectionString, databaseName: catalogName));
-        }
+        ConfigureDbContext<WebAnalyticsContext>(services, "datahub-mssql-webanalytics", Configuration.GetDriver());
+        ConfigureDbContext<DatahubETLStatusContext>(services, "datahub-mssql-etldb", Configuration.GetDriver());
+        ConfigureDbContext<MetadataDbContext>(services, "datahub-mssql-metadata", Configuration.GetDriver());
+    }
+
+    private void ConfigureDbContext<T>(IServiceCollection services, string connectionStringName, DbDriver dbDriver)
+        where T : DbContext
+    {
+        services.ConfigureDbContext<T>(Configuration, connectionStringName, dbDriver);
+    }
+
+    private void ConfigureCosmosDbContext<T>(IServiceCollection services, string connectionStringName,
+        string catalogName) where T : DbContext
+    {
+        var connectionString = Configuration.GetConnectionString(_currentEnvironment, connectionStringName);
+        services.AddPooledDbContextFactory<T>(options =>
+            options.UseCosmos(connectionString, databaseName: catalogName));
+        services.AddDbContextPool<T>(options => options.UseCosmos(connectionString, databaseName: catalogName));
     }
 }

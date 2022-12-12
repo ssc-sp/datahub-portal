@@ -4,89 +4,88 @@ using Datahub.Core.Data;
 using Datahub.Core.Services.Api;
 using Datahub.Core.Services.Storage;
 
-namespace Datahub.Portal.Controllers
+namespace Datahub.Portal.Controllers;
+
+[Route("[controller]/[action]")]
+[AllowAnonymous]
+public class PublicController: Controller
 {
-    [Route("[controller]/[action]")]
-    [AllowAnonymous]
-    public class PublicController: Controller
+    private readonly DataRetrievalService dataRetrievalService;
+
+    private ILogger<PublicController> _logger { get; set; }
+    private IPublicDataFileService _pubFileService { get; set; }
+
+    public PublicController(
+        ILogger<PublicController> logger, 
+        IPublicDataFileService pubFileService,
+        DataRetrievalService dataRetrievalService
+    )
     {
-        private readonly DataRetrievalService dataRetrievalService;
+        _logger = logger;
+        _pubFileService = pubFileService;
+        this.dataRetrievalService = dataRetrievalService;
+    }
 
-        private ILogger<PublicController> _logger { get; set; }
-        private IPublicDataFileService _pubFileService { get; set; }
+    public IActionResult HelloWorld()
+    {
+        _logger.LogDebug("Unauthenticated hello world");
+        return Ok("hello world");
+    }
 
-        public PublicController(
-            ILogger<PublicController> logger, 
-            IPublicDataFileService pubFileService,
-            DataRetrievalService dataRetrievalService
-            )
+    public async Task<IActionResult> BlobTest()
+    {
+        var filemd = new FileMetaData()
         {
-            _logger = logger;
-            _pubFileService = pubFileService;
-            this.dataRetrievalService = dataRetrievalService;
-        }
+            filename = "privacy.html",
+            name = "privacy.html"
+        };
 
-        public IActionResult HelloWorld()
-        {
-            _logger.LogDebug("Unauthenticated hello world");
-            return Ok("hello world");
-        }
+        var project = "canmetrobo";
 
-        public async Task<IActionResult> BlobTest()
+        _logger.LogDebug($"Downloading {filemd.filename} from project {project}");
+
+        var uri = await dataRetrievalService.GetUserDelegationSasBlob(DataRetrievalService.DEFAULT_CONTAINER_NAME, filemd.filename, project);
+
+        return Redirect(uri.ToString());
+    }
+
+    public async Task<IActionResult> DataLakeTest()
+    {
+        var filemd = new FileMetaData()
         {
-            var filemd = new FileMetaData()
+            folderpath = "nrcan-rncan.gc.ca/alexander.khavich",
+            filename = "serious.gif"
+        };
+
+        _logger.LogDebug($"Downloading {filemd.filename}");
+
+        var uri = await dataRetrievalService.DownloadFile(DataRetrievalService.DEFAULT_CONTAINER_NAME, filemd,null);
+        return Redirect(uri.ToString());
+    }
+
+    [Route("{fileId}")]
+    public async Task<IActionResult> DownloadFile(string fileId)
+    {
+        var remoteIp = HttpContext.Connection.RemoteIpAddress;
+
+        try
+        {
+            var fileIdGuid = Guid.Parse(fileId);
+            var result = await _pubFileService.DownloadPublicUrlSharedFile(fileIdGuid, remoteIp);
+            if (result == null)
             {
-                filename = "privacy.html",
-                name = "privacy.html"
-            };
-
-            var project = "canmetrobo";
-
-            _logger.LogDebug($"Downloading {filemd.filename} from project {project}");
-
-            var uri = await dataRetrievalService.GetUserDelegationSasBlob(DataRetrievalService.DEFAULT_CONTAINER_NAME, filemd.filename, project);
-
-            return Redirect(uri.ToString());
-        }
-
-        public async Task<IActionResult> DataLakeTest()
-        {
-            var filemd = new FileMetaData()
-            {
-                folderpath = "nrcan-rncan.gc.ca/alexander.khavich",
-                filename = "serious.gif"
-            };
-
-            _logger.LogDebug($"Downloading {filemd.filename}");
-
-            var uri = await dataRetrievalService.DownloadFile(DataRetrievalService.DEFAULT_CONTAINER_NAME, filemd,null);
-            return Redirect(uri.ToString());
-        }
-
-        [Route("{fileId}")]
-        public async Task<IActionResult> DownloadFile(string fileId)
-        {
-            var remoteIp = HttpContext.Connection.RemoteIpAddress;
-
-            try
-            {
-                var fileIdGuid = Guid.Parse(fileId);
-                var result = await _pubFileService.DownloadPublicUrlSharedFile(fileIdGuid, remoteIp);
-                if (result == null)
-                {
-                    _logger.LogError($"File not found: {fileId}");
-                    return NotFound();
-                }
-                else
-                {
-                    return Redirect(result.ToString());
-                }
-            }
-            catch (FormatException)
-            {
-                _logger.LogError($"Invalid file id (not a guid): {fileId}");
+                _logger.LogError($"File not found: {fileId}");
                 return NotFound();
             }
+            else
+            {
+                return Redirect(result.ToString());
+            }
+        }
+        catch (FormatException)
+        {
+            _logger.LogError($"Invalid file id (not a guid): {fileId}");
+            return NotFound();
         }
     }
 }
