@@ -1,6 +1,6 @@
-﻿using Microsoft.Playwright;
+using Microsoft.Playwright;
 
-namespace Datahub.UI.Tests;
+namespace Datahub.Specs.PageObjects;
 
 public abstract class BasePageObject
 {
@@ -8,9 +8,9 @@ public abstract class BasePageObject
 
     public abstract IPage Page { get; set; }
 
-    public abstract IBrowser Browser { get;}
+    public abstract IBrowser Browser { get; }
 
-    public async Task NavigateAsync ()
+    public async Task NavigateAsync()
     {
         Page = await Browser.NewPageAsync();
         await Page.GotoAsync(PagePath);
