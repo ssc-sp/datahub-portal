@@ -1,9 +1,6 @@
 ﻿@page "/"
-@namespace Datahub.Portal.Pages ;
-@using Microsoft.Extensions.Localization
+@using Datahub.Portal
 @using Microsoft.AspNetCore.Components.Web
-
-@inject IStringLocalizer Localizer
 
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 @{
@@ -98,7 +95,7 @@
             }
         });
     </script>
-    <component type="typeof(HeadOutlet)" render-mode="ServerPrerendered"/>
+    <component type="typeof(HeadOutlet)" render-mode="ServerPrerendered"/><title></title>
 </head>
 <style>
     #blazor-error-ui {
