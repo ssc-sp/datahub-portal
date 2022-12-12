@@ -112,7 +112,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scripts", "scripts", "{A8C7
 		scripts\merge_fork.ps1 = scripts\merge_fork.ps1
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Datahub.UI.Tests", "Portal\test\Datahub.UI.Tests\Datahub.UI.Tests.csproj", "{71A3C13A-659F-481B-A161-19CEB0D27CA2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Datahub.Specs", "Portal\test\Datahub.Specs\Datahub.Specs.csproj", "{D07C3009-6F0F-486D-91E1-0084B4B4FF46}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -248,10 +248,10 @@ Global
 		{3065E419-AF1E-43CF-AF17-4EB260F6E02B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3065E419-AF1E-43CF-AF17-4EB260F6E02B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3065E419-AF1E-43CF-AF17-4EB260F6E02B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{71A3C13A-659F-481B-A161-19CEB0D27CA2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{71A3C13A-659F-481B-A161-19CEB0D27CA2}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{71A3C13A-659F-481B-A161-19CEB0D27CA2}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{71A3C13A-659F-481B-A161-19CEB0D27CA2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D07C3009-6F0F-486D-91E1-0084B4B4FF46}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D07C3009-6F0F-486D-91E1-0084B4B4FF46}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D07C3009-6F0F-486D-91E1-0084B4B4FF46}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D07C3009-6F0F-486D-91E1-0084B4B4FF46}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -295,7 +295,7 @@ Global
 		{C6553575-C598-483A-AE6F-C9C376A4B9CC} = {175BE71E-CED9-48C7-935C-B9F7FB1FE842}
 		{7B900792-8383-462E-B582-94DA4817B6C4} = {175BE71E-CED9-48C7-935C-B9F7FB1FE842}
 		{3065E419-AF1E-43CF-AF17-4EB260F6E02B} = {175BE71E-CED9-48C7-935C-B9F7FB1FE842}
-		{71A3C13A-659F-481B-A161-19CEB0D27CA2} = {47D68FB0-47FE-485D-AE94-00C48643721E}
+		{D07C3009-6F0F-486D-91E1-0084B4B4FF46} = {47D68FB0-47FE-485D-AE94-00C48643721E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		RESX_ConfirmAddLanguageFile = True
