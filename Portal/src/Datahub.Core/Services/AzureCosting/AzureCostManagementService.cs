@@ -20,8 +20,7 @@ public class AzureCostManagementService
     private DatahubProjectDBContext _dbContext;
     private readonly ILogger<AzureCostManagementService> logger;       
 
-    public static readonly string[] RequiredScopes = new string[]
-    {
+    public static readonly string[] RequiredScopes = {
         "https://management.azure.com/user_impersonation"
     };
 
