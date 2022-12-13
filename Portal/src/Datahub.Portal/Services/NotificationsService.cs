@@ -1,12 +1,11 @@
-namespace Datahub.Portal.Services
+namespace Datahub.Portal.Services;
+
+public class NotificationsService
 {
-    public class NotificationsService
+
+    public NotificationsService()
     {
-
-        public NotificationsService()
-        {
             
-        }        
+    }        
 
-    }
 }

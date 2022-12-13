@@ -49,18 +49,8 @@ public class PowerBiServiceApi
         InternalPublicationGroupId = config.GetSection(POWER_BI_CONFIG_SECTION_KEY).GetValue<string>(POWER_BI_INTERNAL_PUBLICATION_GROUP_ID_CONFIG_KEY);
     }
 
-    public static readonly string[] RequiredScopes = new string[] {
-        "https://analysis.windows.net/powerbi/api/Group.Read.All",
-        "https://analysis.windows.net/powerbi/api/Dashboard.Read.All",
-        "https://analysis.windows.net/powerbi/api/Report.ReadWrite.All",
-        "https://analysis.windows.net/powerbi/api/Dataset.ReadWrite.All",
-        "https://analysis.windows.net/powerbi/api/Dataflow.ReadWrite.All",
-        "https://analysis.windows.net/powerbi/api/Content.Create",
-        "https://analysis.windows.net/powerbi/api/Workspace.ReadWrite.All"
-    };
 
-
-    public static readonly string[] RequiredReadScopes = new string[] {
+    public static readonly string[] REQUIRED_READ_SCOPES = new string[] {
         //"https://analysis.windows.net/powerbi/api/Group.Read.All",
         "https://analysis.windows.net/powerbi/api/Dashboard.Read.All",
         //"https://analysis.windows.net/powerbi/api/Report.Read.All",
@@ -69,12 +59,9 @@ public class PowerBiServiceApi
         "https://analysis.windows.net/powerbi/api/Workspace.Read.All"
     };
 
-
-        
-
     public async Task<string> GetAccessTokenAsync()
     {
-        return await this.tokenAcquisition.GetAccessTokenForUserAsync(RequiredReadScopes);
+        return await this.tokenAcquisition.GetAccessTokenForUserAsync(REQUIRED_READ_SCOPES);
     }
 
     public async Task<EmbedToken> GetEmbedTokenAsync(int durationMinutes, string datasetId, params Guid[] reports)
