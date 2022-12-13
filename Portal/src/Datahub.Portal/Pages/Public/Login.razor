@@ -1,0 +1,29 @@
+@page "/login"
+
+@inject NavigationManager _navigationManager
+@inject IUserInformationService _userInformationService
+
+<h3>Login</h3>
+
+<MudButton @onclick="@HandleLogin">Log in</MudButton>
+
+
+@code {
+    private void HandleLogin()
+    {
+        var url = $"{_navigationManager.BaseUri}MicrosoftIdentity/Account/Challenge?redirectUri={_navigationManager.BaseUri}&scope=user.read%20openid%20offline_access%20profile&loginHint=&domainHint=&claims=&policy=";
+        _navigationManager.NavigateTo(url, true);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        
+        var user = await _userInformationService.GetAuthenticatedUser(true);
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            _navigationManager.NavigateTo("/");
+        }
+    }
+
+}

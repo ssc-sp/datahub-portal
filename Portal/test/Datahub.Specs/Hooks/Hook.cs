@@ -14,9 +14,13 @@ public class Hooks
         var browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
         {
             Headless = false,
-            SlowMo = 1000
+            SlowMo = 5000
         });
+        
         var pageObject = new HomePageObject(browser);
+        await pageObject.Page.SetExtraHTTPHeadersAsync(new Dictionary<string, string>
+        {
+        });
 
         container.RegisterInstanceAs(playwright);
         container.RegisterInstanceAs(browser);
