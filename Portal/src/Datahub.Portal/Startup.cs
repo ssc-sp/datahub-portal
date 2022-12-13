@@ -11,7 +11,6 @@ using Datahub.Core.Data;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.UserTracking;
 using Datahub.Core.Modules;
-using Datahub.Core.RoleManagement;
 using Datahub.Core.Services;
 using Datahub.Core.Services.Api;
 using Datahub.Core.Services.AzureCosting;
@@ -39,8 +38,6 @@ using Datahub.PowerBI.Services.Offline;
 using Datahub.ProjectTools.Services;
 using Datahub.ProjectTools.Services.Offline;
 using Microsoft.ApplicationInsights.Extensibility;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.AspNetCore.Localization;
@@ -48,7 +45,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.Graph;
 using Microsoft.Identity.Web;
-using Microsoft.Identity.Web.UI;
 using MudBlazor;
 using MudBlazor.Services;
 using Polly;
@@ -56,6 +52,11 @@ using Polly.Extensions.Http;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text;
+using Datahub.Portal.Services.Auth;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc.Authorization;
+using Microsoft.Extensions.Azure;
+using Microsoft.Identity.Web.UI;
 using Tewr.Blazor.FileReader;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]
@@ -75,7 +76,10 @@ public class Startup
     private ModuleManager moduleManager = new ModuleManager();
 
     private bool ResetDB => (Configuration.GetSection("InitialSetup")?.GetValue<bool>("ResetDB", false) ?? false);
-    private bool EnsureDeleteinOffline => (Configuration.GetSection("InitialSetup")?.GetValue<bool>("EnsureDeleteinOffline", false) ?? false);
+
+    private bool EnsureDeleteinOffline =>
+        (Configuration.GetSection("InitialSetup")?.GetValue<bool>("EnsureDeleteinOffline", false) ?? false);
+
     private bool Offline => Configuration.GetValue<bool>("Offline", false);
 
     private bool Debug => Configuration.GetValue<bool>("DebugMode", false);
@@ -102,22 +106,19 @@ public class Startup
         services.AddOptions();
 
         // use this method to setup the authentication and authorization
-        ConfigureAuthentication(services);
+        services.AddAuthenticationServices(Configuration);
 
-        services.AddSession(options =>
-        {
-            options.Cookie.IsEssential = true;
-            options.Cookie.HttpOnly = true;
-        });
-
-        services.AddRazorPages();
-        services.AddServerSideBlazor().AddCircuitOptions(o =>
-        {
-            o.DetailedErrors = true; // todo: to make it 'true' only in development
-        }).AddHubOptions(o =>
-        {
-            o.MaximumReceiveMessageSize = 10 * 1024 * 1024; // 10MB
-        }).AddMicrosoftIdentityConsentHandler();
+        services.AddRazorPages()
+            .AddMicrosoftIdentityUI();
+        
+        services.AddServerSideBlazor()
+            .AddCircuitOptions(o =>
+            {
+                o.DetailedErrors = true; // todo: to make it 'true' only in development
+            }).AddHubOptions(o =>
+            {
+                o.MaximumReceiveMessageSize = 10 * 1024 * 1024; // 10MB
+            });
 
         services.AddControllers();
 
@@ -127,7 +128,8 @@ public class Startup
         ConfigureCoreDatahubServices(services);
 
         services.AddHttpClient();
-        services.AddHttpClient<GraphServiceClient>().AddPolicyHandler(GetRetryPolicy());
+        services.AddHttpClient<GraphServiceClient>()
+            .AddPolicyHandler(GetRetryPolicy());
         services.AddFileReaderService();
         services.AddBlazorDownloadFile();
         services.AddBlazoredLocalStorage();
@@ -151,30 +153,20 @@ public class Startup
         foreach (var module in moduleManager.Modules)
         {
             Console.Write($"Configuring module {module.Name}\n");
-            services.AddModule(module,Configuration);
+            services.AddModule(module, Configuration);
         }
 
         // configure db contexts in this method
         ConfigureDbContexts(services);
 
         services.Configure<DataProjectsConfiguration>(Configuration.GetSection("ProjectTools"));
-
         services.Configure<APITarget>(Configuration.GetSection("APITargets"));
-
         services.Configure<TelemetryConfiguration>(Configuration.GetSection("ApplicationInsights"));
-
         services.Configure<CKANConfiguration>(Configuration.GetSection("CKAN"));
         services.Configure<GeoCoreConfiguration>(Configuration.GetSection("GeoCore"));
-
-        services.Configure<SessionsConfig>(Configuration.GetSection("Sessions"));
-
-        services.AddScoped<IClaimsTransformation, RoleClaimTransformer>();
-
         services.Configure<PortalVersion>(Configuration.GetSection("PortalVersion"));
         services.AddScoped<IPortalVersionService, PortalVersionService>();
         services.AddProjectResources();
-
-
 
         services.AddScoped<CatalogImportService>();
         services.AddSingleton<ICatalogSearchEngine, CatalogSearchEngine>();
@@ -199,7 +191,7 @@ public class Startup
                 logging.LoggingFields = HttpLoggingFields.RequestPropertiesAndHeaders |
                                         HttpLoggingFields.ResponsePropertiesAndHeaders;
 
-                if (requestHeaders != null && requestHeaders.Length > 0)
+                if (requestHeaders is { Length: > 0 })
                 {
                     foreach (var h in requestHeaders)
                     {
@@ -207,7 +199,7 @@ public class Startup
                     }
                 }
 
-                if (responseHeaders != null && responseHeaders.Length > 0)
+                if (responseHeaders is { Length: > 0 })
                 {
                     foreach (var h in responseHeaders)
                     {
@@ -216,6 +208,7 @@ public class Startup
                 }
             });
         }
+
         services.AddMiniProfiler().AddEntityFramework();
     }
 
@@ -228,7 +221,8 @@ public class Startup
                 retryAttempt)));
     }
 
-    private void InitializeDatabase<T>(ILogger logger, IDbContextFactory<T> dbContextFactory, bool migrate = true) where T : DbContext
+    private void InitializeDatabase<T>(ILogger logger, IDbContextFactory<T> dbContextFactory, bool migrate = true)
+        where T : DbContext
     {
         EFTools.InitializeDatabase<T>(logger, Configuration, dbContextFactory, ResetDB, migrate,
             EnsureDeleteinOffline);
@@ -287,44 +281,11 @@ public class Startup
         app.UseAuthorization();
         app.UseEndpoints(endpoints =>
         {
+            endpoints.MapRazorPages();
             endpoints.MapBlazorHub();
             endpoints.MapControllers();
             endpoints.MapFallbackToPage("/_Host");
         });
-    }
-
-    private void ConfigureAuthentication(IServiceCollection services)
-    {
-        //https://docs.microsoft.com/en-us/azure/active-directory/develop/scenario-web-app-call-api-app-configuration?tabs=aspnetcore
-        //services.AddSignIn(Configuration, "AzureAd")
-        //        .AddInMemoryTokenCaches();
-
-        // This is required to be instantiated before the OpenIdConnectOptions starts getting configured.
-        // By default, the claims mapping will map claim names in the old format to accommodate older SAML applications.
-        // 'http://schemas.microsoft.com/ws/2008/06/identity/claims/role' instead of 'roles'
-        // This flag ensures that the ClaimsIdentity claims collection will be built from the claims in the token
-        // JwtSecurityTokenHandler.DefaultMapInboundClaims = false;
-
-        // Token acquisition service based on MSAL.NET
-        // and chosen token cache implementation
-
-        if (Offline) return;
-        //services.AddAuthentication(AzureADDefaults.AuthenticationScheme)               
-        //        .AddAzureAD(options => Configuration.Bind("AzureAd", options));
-        var graphScopes = new List<string> {
-            "user.read",
-        };
-        //scopes.Add("PowerBI.Read.All");
-
-        services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
-            .AddMicrosoftIdentityWebApp(Configuration, "AzureAd")
-            .EnableTokenAcquisitionToCallDownstreamApi(graphScopes)
-            .AddMicrosoftGraph(Configuration.GetSection("Graph"))
-            //.AddDownstreamWebApi("ResourceProvisionerApi", Configuration.GetSection("ResourceProvisionerApi"))
-            .AddInMemoryTokenCaches();
-
-        services.AddControllersWithViews()
-            .AddMicrosoftIdentityUI();
     }
 
     private void ConfigureLocalization(IServiceCollection services)
@@ -391,10 +352,9 @@ public class Startup
             services.AddScoped<IPowerBiDataService, PowerBiDataService>();
 
             services.AddScoped<RegistrationService>();
-                
+
             services.AddScoped<UpdateProjectMonthlyCostService>();
             services.AddScoped<IProjectCreationService, ProjectCreationService>();
-
         }
         else
         {
