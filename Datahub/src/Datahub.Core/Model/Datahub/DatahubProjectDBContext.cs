@@ -180,7 +180,7 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
             .ValueGeneratedOnAdd();
 
         modelBuilder.Entity<Datahub_Project_User>()
-            .Property(u => u.User_ID)
+            .Property(u => u.ProjectUser_ID)
             .ValueGeneratedOnAdd();
     }
 }
