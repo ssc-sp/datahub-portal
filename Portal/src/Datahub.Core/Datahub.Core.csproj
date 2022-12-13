@@ -2,7 +2,6 @@
 	<PropertyGroup>
 		<TargetFramework>net7.0</TargetFramework>
 		<AddRazorSupportForMvc>true</AddRazorSupportForMvc>
-		<RootNamespace>Datahub.Core</RootNamespace>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
 	  <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
@@ -115,5 +114,7 @@
 
 	<ItemGroup>
 	  <_ContentIncludedByDefault Remove="Services\DialogModalFrame.razor" />
+	  <_ContentIncludedByDefault Remove="Components\TabControl\TabControl.razor" />
+	  <_ContentIncludedByDefault Remove="Components\TabControl\TabPage.razor" />
 	</ItemGroup>
 </Project>
