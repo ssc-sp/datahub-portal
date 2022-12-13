@@ -73,6 +73,7 @@
     private User _user;
     private List<Datahub_Project_User>? _userRoles;
     private string _chipStyle;
+    private const string PROJECT_CREATION_DIALOG_TITLE = "Create a new Project";
 
     protected override async Task OnInitializedAsync()
     {
@@ -115,7 +116,7 @@
     private async Task ShowProjectDialog()
     {
         var options = new DialogOptions { CloseOnEscapeKey = true };
-        var dialog = await DialogService.ShowAsync<CreateProjectDialog>("Delete Server", options);
+        var dialog = await DialogService.ShowAsync<CreateProjectDialog>(Localizer[PROJECT_CREATION_DIALOG_TITLE], options);
         var dialogResult = await dialog.Result;
         if (!dialogResult.Cancelled)
         {
