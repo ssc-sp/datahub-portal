@@ -9,6 +9,7 @@ using MudBlazor.Forms;
 using AeFormCategoryAttribute = MudBlazor.Forms.AeFormCategoryAttribute;
 using AeFormIgnoreAttribute = MudBlazor.Forms.AeFormIgnoreAttribute;
 using System.Linq;
+using Datahub.Core.Data;
 
 namespace Datahub.Core.EFCore
 {
@@ -128,9 +129,14 @@ namespace Datahub.Core.EFCore
         [AeLabel(validValues: new[] { ONGOING, CLOSED, ON_HOLD })]
         public string Project_Status_Desc { get; set; }
 
+        [AeFormIgnore]
+        public int? Project_Status { get; set; }
+
+        [NotMapped]
         [AeFormCategory("Initiative Information")]
         [MudForm(IsDropDown = true)]
-        public int Project_Status { get; set; }
+        public DropDownContainer Project_Status_Values { get; set; }
+
 
         [AeFormCategory("Initiative Information")]
         [AeLabel(isDropDown: true)]
@@ -265,9 +271,9 @@ namespace Datahub.Core.EFCore
 
         public string GetProjectStatus()
         {
-            if (Project_Status_Desc == "Closed")
+            if (Project_Status == 2)
             {
-                return Project_Status_Desc;
+                return "Closed";
             }
             else if (Client_Engagements is null)
             { 

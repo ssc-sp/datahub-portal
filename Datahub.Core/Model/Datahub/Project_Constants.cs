@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Datahub.Core.EFCore
 {
-    internal class Project_Constants
+    public class Project_Constants
     {
         public static List<DropDownContainer> Project_Status = new List<DropDownContainer>()
         {
