@@ -114,9 +114,9 @@ public class RegistrationService
             Sector_Name = mappedSectorName ?? registrationRequest.DepartmentName,
             Contact_List = registrationRequest.Email,
             Project_Admin = registrationRequest.Email,
-            
-            Databricks_URL = DEFAULT_DATABRICKS_URL,
-            Project_Status_Desc = DEFAULT_PROJECT_STATUS,
+
+            Databricks_URL = DEFAULT_DATABRICKS_URL,            
+            Project_Status = 1,
         };  
         
         await db.Projects.AddAsync(project);

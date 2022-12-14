@@ -186,7 +186,8 @@
             project.Project_Category = _onboardingApplication.Project_Engagement_Category;
             project.OnboardingApplicationId = _onboardingApplication.Application_ID;
             project.Data_Sensitivity = _onboardingApplication.Data_Security_Level ?? "Unclassified";
-            project.Project_Status_Desc = "Ongoing";
+            //project.Project_Status_Desc = "Ongoing";
+            project.Project_Status = 1;
             project.Initial_Meeting_DT = DateTime.Now;
             project.Last_Contact_DT = DateTime.Now;
 

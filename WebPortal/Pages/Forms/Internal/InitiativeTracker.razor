@@ -90,6 +90,10 @@
     {
         _projects = Context.Projects.Include(f => f.Sector).Include(f => f.Branch).Include(f => f.Division).Include(r => r.Comments).ToList();
 
+        //SET Non-db Dropdowns
+        _projects.ForEach(c => { if (c.Project_Status != null) { c.Project_Status_Values = Project_Constants.Project_Status.Where(p => p.Id == c.Project_Status.GetValueOrDefault()).SingleOrDefault(); } });
+
+
         var projects = _projects;
         if (!string.IsNullOrWhiteSpace(searchfilter))
         {
@@ -268,6 +272,7 @@
                 _project = Context.Projects.Add(_project).Entity;
             }
             _project.Last_Updated_DT = DateTime.Now;
+            _project.Project_Status = _project.Project_Status_Values?.Id ?? null;
             await Context.SaveChangesAsync();
             LoadData(_searchFilter); 
             _project = null;
@@ -284,7 +289,7 @@
         context.RegisterOptionValueProperty<Datahub_Project, Organization_Level>(l => l.Sector, p => p?.Org_Name_E ?? "N/A", () => GetSectors(), s => RefreshBranches(s, context));
         context.RegisterOptionValueProperty<Datahub_Project, Organization_Level>(l => l.Branch, p => p?.Org_Name_E ?? "N/A", () => GetBranches(), s => RefreshDivisions(s, context));
         context.RegisterOptionValueProperty<Datahub_Project, Organization_Level>(l => l.Division, p => p?.Org_Name_E ?? "N/A", () => GetDivisions());
-
+        context.RegisterOptionValueProperty<Datahub_Project, DropDownContainer>(l => l.Project_Status_Values, p => p?.EnglishText ?? "-", () => Project_Constants.Project_Status);
         //context.RegisterFieldNotes<FundCenter>(f => f.AttritionRate, @"Identify the attrition % for your division. This % will be applied to all forecasted salaries on the SFT Forecast page. Attrition represents an estimated percentage of salary costs currently forecasted that will likely not materialize due to unplanned vacancies (the gap between unplanned departure and replacement of an employee).");
     }
 

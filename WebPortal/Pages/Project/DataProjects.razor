@@ -78,7 +78,7 @@
         await using var context = await _dbFactory.CreateDbContextAsync();
         _allProjects = context.Projects
             .Where(p =>
-                (p.Project_Status_Desc == Datahub_Project.ONGOING || p.Is_Featured) &&
+                (p.Project_Status == 1 || p.Is_Featured) &&
                 !p.Is_Private && !string.IsNullOrWhiteSpace(p.Project_Acronym_CD)
                 && !string.IsNullOrWhiteSpace(p.Project_Name))
     // .Include(p => p.Users)
