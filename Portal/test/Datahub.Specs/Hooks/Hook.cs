@@ -1,5 +1,6 @@
 using BoDi;
 using Datahub.Specs.PageObjects;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Playwright;
 
 namespace Datahub.Specs.Hooks;
@@ -10,21 +11,24 @@ public class Hooks
     [BeforeScenario("a11y")]
     public async Task BeforeA11yScenario(IObjectContainer container)
     {
+        var config = new ConfigurationBuilder()
+            .AddJsonFile("appsettings.secret.json")
+            .Build();
+        
         var playwright = await Microsoft.Playwright.Playwright.CreateAsync();
         var browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
         {
-            Headless = false,
-            SlowMo = 5000
+            // Headless = false,
+            // SlowMo = 2000
         });
         
-        var pageObject = new HomePageObject(browser);
-        await pageObject.Page.SetExtraHTTPHeadersAsync(new Dictionary<string, string>
-        {
-        });
-
+        var loginPageObject = new LoginPageObject(browser, config);
+        var homePageObject = new HomePageObject(browser, config);
+        
         container.RegisterInstanceAs(playwright);
         container.RegisterInstanceAs(browser);
-        container.RegisterInstanceAs(pageObject);
+        container.RegisterInstanceAs(loginPageObject);
+        container.RegisterInstanceAs(homePageObject);
     }
 
     [AfterScenario("a11y")]
