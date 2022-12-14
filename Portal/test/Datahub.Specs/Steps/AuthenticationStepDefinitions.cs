@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Datahub.Specs.PageObjects;
 using TechTalk.SpecFlow;
 
 namespace Datahub.Specs.Steps
@@ -9,18 +10,17 @@ namespace Datahub.Specs.Steps
     [Binding]
     public sealed class AuthenticationStepDefinitions
     {
-        // For additional details on SpecFlow step definitions see https://go.specflow.org/doc-stepdef
+        private readonly LoginPageObject _loginPageObject;
 
-        private readonly ScenarioContext _scenarioContext;
-
-        public AuthenticationStepDefinitions(ScenarioContext scenarioContext)
+        public AuthenticationStepDefinitions(LoginPageObject loginPageObject)
         {
-            _scenarioContext = scenarioContext;
+            _loginPageObject = loginPageObject;
         }
 
         [Given(@"the user is authenticated")]
-        public void GivenTheUserIsAuthenticated()
+        public async Task GivenTheUserIsAuthenticated()
         {
+            await _loginPageObject.LoginAsync();
         }
     }
 }
