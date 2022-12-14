@@ -3,7 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Datahub.Specs.PageObjects;
+using FluentAssertions;
+using Microsoft.Playwright;
 using TechTalk.SpecFlow;
+using Microsoft.Playwright.NUnit;
+using NUnit.Framework;
+using Playwright.Axe;
 
 namespace Datahub.Specs.Steps;
 
@@ -23,12 +28,15 @@ public sealed class A11yStepDefinitions
     public async Task GivenTheUserIsOnTheHomePage()
     {
         await _homePageObject.NavigateAsync();
+        _homePageObject.Page.Url.Should().EndWith("/home");
     }
 
     [Then(@"there should be no accessibility errors")]
-    public void ThenThereShouldBeNoAccessibilityErrors()
+    public async Task ThenThereShouldBeNoAccessibilityErrors()
     {
-        // ScenarioContext.StepIsPending();
+        await _homePageObject.Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
+        var axeResults = await _homePageObject.Page.RunAxe();
+        axeResults.Violations.Should().BeEmpty();
     }
 
 }
