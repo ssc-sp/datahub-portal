@@ -39,10 +39,10 @@ public class GitHubToolsService
     public const string GitHubOwner = "ssc-sp";
     public const string GitHubRepo = "datahub-resource-modules";
     public const string GitHubBranchName = "main";
-    public const string GitHubModuleFolder = "/modules";
+    public const string GitHubTemplateFolder = "/templates";
 
     public const string GitHubRawURL = "https://raw.githubusercontent.com/ssc-sp/datahub-resource-modules/";
-    private const string GitHubModuleReadme = "datahub.readme.md";
+    private const string GitHubTemplateReadme = "datahub.readme.md";
 
     private readonly RepositoryContentsClient contentClient;
     private readonly List<RepositoryDescriptorErrors> errors;
@@ -79,7 +79,7 @@ public class GitHubToolsService
     {
         return await AddOrGetExistingAsync(CACHE_KEY, async () =>
         {
-            var data = await contentClient.GetAllContentsByRef(GitHubToolsService.GitHubOwner, GitHubToolsService.GitHubRepo, GitHubToolsService.GitHubModuleFolder, GitHubToolsService.GitHubBranchName);//, 
+            var data = await contentClient.GetAllContentsByRef(GitHubToolsService.GitHubOwner, GitHubToolsService.GitHubRepo, GitHubToolsService.GitHubTemplateFolder, GitHubToolsService.GitHubBranchName);//, 
             var folders = data.Where(d => d.Type == ContentType.Dir).ToList();
             var modules = await folders.ToAsyncEnumerable()
                 .SelectAwait(async dir => await GetGitHubModule(dir))
@@ -91,12 +91,12 @@ public class GitHubToolsService
     internal async Task<GitHubModule?> GetGitHubModule(RepositoryContent dir)
     {            
         var content = await contentClient.GetAllContentsByRef(GitHubOwner, GitHubToolsService.GitHubRepo, dir.Path, GitHubToolsService.GitHubBranchName);//, 
-        var readme = content.Where(c => c.Name.ToLower() == GitHubToolsService.GitHubModuleReadme).FirstOrDefault();
+        var readme = content.Where(c => c.Name.ToLower() == GitHubToolsService.GitHubTemplateReadme).FirstOrDefault();
         if (readme is null)
         {
             errors.Add(new RepositoryDescriptorErrors(
                 dir.Path,
-                $"Module {dir.Name} is missing '{GitHubModuleReadme}' file"
+                $"Module {dir.Name} is missing '{GitHubTemplateReadme}' file"
             ));
             return null;
         }
@@ -209,7 +209,7 @@ public class GitHubToolsService
         {
             errors.Add(new RepositoryDescriptorErrors(
                 module.Path,
-                $"Cannot find yaml front matter in '{GitHubModuleReadme}' file"
+                $"Cannot find yaml front matter in '{GitHubTemplateReadme}' file"
             ));
             return null;
         }
@@ -231,7 +231,7 @@ public class GitHubToolsService
         {
             errors.Add(new RepositoryDescriptorErrors(
                 module.Path,
-                $"Key {key} is missing in '{GitHubModuleReadme}' file"
+                $"Key {key} is missing in '{GitHubTemplateReadme}' file"
             ));
             return null;
         }
