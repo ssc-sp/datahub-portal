@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Datahub.Core.EFCore
+namespace Datahub.Core.Model.Datahub
 {
     public class Project_Constants
     {
