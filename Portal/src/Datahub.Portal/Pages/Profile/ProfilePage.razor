@@ -7,6 +7,7 @@
 @inject AchievementService _achievementService;
 
 @using MudBlazor.Utilities
+@using Datahub.Portal.Components.Projects
 @using Datahub.Portal.Pages.Profile.Sections
 @using Datahub.Achievements.Models
 @using Datahub.Core.Extensions
@@ -30,7 +31,7 @@
             <ProfileTitle User="@_user"/>
         </MudItem>
         <MudItem xs="8">
-            <ProfileProjects/>
+            <UserProjects/>
         </MudItem>
         <MudItem xs="8">
             <ProfileAchievements User="@_user"/>
