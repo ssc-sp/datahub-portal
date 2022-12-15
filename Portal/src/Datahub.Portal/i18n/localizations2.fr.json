@@ -185,7 +185,7 @@
   "SFT With Attrition": "SFT avec attrition",
   "Start Date": "Date de début",
   "Data_Sensitivity": "Sensibilité des données",
-  "Project_Status_Desc": "Statut du projet",
+  "Project_Status_Values": "Statut du projet",
   "Databricks_URL": "URL de Databricks",
   "PowerBI_URL": "URL de PowerBI",
   "WebForms_URL": "URL de WebForms",
