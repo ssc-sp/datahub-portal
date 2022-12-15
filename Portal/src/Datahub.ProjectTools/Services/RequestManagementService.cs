@@ -229,6 +229,9 @@ public class RequestManagementService : IRequestManagementService
         {
             try
             {
+                using var ctx = await _dbContextFactory.CreateDbContextAsync();
+                ctx.Attach(project);
+                await ctx.Entry(project).Collection(p => p.Users).LoadAsync();
                 var userId = await _userInformationService.GetUserIdString();
                 var graphUser = await _userInformationService.GetCurrentGraphUserAsync();
                 var serviceRequest = new Datahub_ProjectServiceRequests()
@@ -240,7 +243,7 @@ public class RequestManagementService : IRequestManagementService
                     User_ID = userId,
                     User_Name = graphUser.UserPrincipalName
                 };
-
+                
                 await RequestServiceWithDefaults(serviceRequest);
                 var users = project.Users.Select(u => new WorkspaceUser() { Guid = u.User_ID, Email = u.User_Name }).ToList();
                 var request = new CreateResourceData(project.Project_Name, project.Project_Acronym_CD, terraformTemplate, users);
