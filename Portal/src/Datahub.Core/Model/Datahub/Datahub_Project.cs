@@ -126,9 +126,7 @@ namespace Datahub.Core.Model.Datahub
         public string Stage_Desc { get; set; }
 
 
-        [AeFormCategory("Initiative Information")]
-        [Required]
-        [AeLabel(validValues: new[] { ONGOING, CLOSED, ON_HOLD })]
+        [AeFormIgnore]
         public string Project_Status_Desc { get; set; }
 
         [AeFormIgnore]

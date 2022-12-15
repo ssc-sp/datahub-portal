@@ -84,8 +84,8 @@ public class ProjectCreationService : IProjectCreationService
             Sector_Name = sectorName,
             Contact_List = userEmail,
             Project_Admin = userEmail,
-            Data_Sensitivity = NewProjectDataSensitivity,
-            Project_Status_Desc = "Ongoing",
+            Data_Sensitivity = NewProjectDataSensitivity,            
+            Project_Status = 1
         };
         await using var db = await _datahubProjectDbFactory.CreateDbContextAsync();
         await db.Projects.AddAsync(project);
