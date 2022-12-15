@@ -1,0 +1,81 @@
+﻿@inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
+@inject DataRetrievalService _dataRetrievalService
+@inject IUserInformationService _userInformationService
+
+@page "/projects/{ProjectAcronymParam}/filelist"
+@using Datahub.Core.Components.PageBanner
+@using Datahub.Core.Model.Datahub
+@using Datahub.Core.Services.Storage
+@using Datahub.Portal.Pages.Project.FileExplorer.ResourcePages
+@using Microsoft.Graph
+
+
+<DHPageTitle PageTitleKey="@_projectName"/>
+<DHPageAlert Title="How to use Project Storage" Key="@PageAlert.Storage" WikiLinkEN="Onboarding---Project-Storage" WikiLinkFR="Onboarding---Project-Storage"/>
+
+<MudStack>
+    <MudText Typo="Typo.h4">@Localizer["Storage Explorer"]</MudText>
+    <CascadingValue Value="@ProjectAcronymParam" Name="ProjectAcronym">
+        <CascadingValue Value="@_project" Name="Project">
+            <CascadingValue Value="_user" Name="GraphUser">
+                <MudPaper Elevation="0" Class="file-explorer-layout-wrapper">
+                    <MudTabs PanelClass="pa-6" Elevation="0">
+                        @foreach (var (icon, label, content) in _tabs)
+                        {
+                            <MudTabPanel Text="@label" Icon="@icon">
+                                @content
+                            </MudTabPanel>
+                        }
+                    </MudTabs>
+                </MudPaper>
+            </CascadingValue>
+        </CascadingValue>
+    </CascadingValue>
+</MudStack>
+
+@code {
+
+    [Parameter]
+    public string ProjectAcronymParam { get; set; }
+
+    private Datahub_Project _project;
+    private int? _projectId;
+    private string _projectName;
+
+    private List<(string Icon, string LabelText, RenderFragment Content)> _tabs = new();
+    private User _user;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
+
+        _user = await _userInformationService.GetCurrentGraphUserAsync();
+
+        _project = await projectContext.Projects
+            .Include(p => p.Users)
+            .AsSingleQuery()
+            .Where(p => p.Project_Acronym_CD == ProjectAcronymParam)
+            .FirstOrDefaultAsync();
+
+        _projectName = _project?.ProjectName;
+        _projectId = _project?.Project_ID;
+
+        _tabs = await GetTabs();
+    }
+
+    private async Task<List<(string Icon, string LabelText, RenderFragment Content)>> GetTabs()
+    {
+        var containers = await _dataRetrievalService.GetProjectContainersAsync(ProjectAcronymParam, _user);
+
+        var tabs = new List<(string Icon, string LabelText, RenderFragment Content)>();
+        containers.ForEach(container =>
+            tabs.Add(("fas fa-hdd", Localizer[container], @<FileExplorer ProjectId=@_projectId ContainerName="@container"/>))
+            );
+
+        tabs.Add(("fas fa-info-circle", Localizer["AzCopy"], @<AzCopy/>));
+        tabs.Add(("fas fa-info-circle", Localizer["Databricks Access"], @<Databricks/>));
+
+        return tabs;
+    }
+
+}
