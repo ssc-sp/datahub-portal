@@ -82,6 +82,7 @@ steps:
   inputs:
     command: 'publish'
     projects: 'Portal/src/Datahub.Functions/*.csproj'
+    publishWebProjects: false
     arguments: ' -o $(Build.ArtifactStagingDirectory)/output/function -r ${{ parameters.target_os }} --self-contained true'
     zipAfterPublish: true
 
