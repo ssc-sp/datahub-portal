@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Datahub.Core.Data;
 using Datahub.Core.Data.ResourceProvisioner;
 using Datahub.Core.Model.Datahub;
+using Datahub.Core.Services.ResourceManager;
 using Foundatio.Queues;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -17,16 +18,15 @@ public class ProjectCreationService : IProjectCreationService
     
     private readonly IDbContextFactory<DatahubProjectDBContext> _datahubProjectDbFactory;
     private readonly IUserInformationService _userInformationService;
-    private readonly IConfiguration _configuration;
-
+    private readonly RequestQueueService requestQueueService;
     private const string NewProjectDataSensitivity = "Setup";
     
     public ProjectCreationService(IDbContextFactory<DatahubProjectDBContext> datahubProjectDbFactory,
-        IUserInformationService userInformationService, IConfiguration configuration)
+        IUserInformationService userInformationService, RequestQueueService requestQueueService)
     {
         _datahubProjectDbFactory = datahubProjectDbFactory;
         _userInformationService = userInformationService;
-        _configuration = configuration;
+        this.requestQueueService = requestQueueService;
     }
     
     public async Task<bool> AcronymExists(string acronym)
@@ -72,7 +72,7 @@ public class ProjectCreationService : IProjectCreationService
         var user = await _userInformationService.GetCurrentGraphUserAsync();
         await AddProjectToDb(projectName, acronym, organization, user?.Mail);
         var project = new CreateResourceData(projectName, acronym, sectorName, organization, user?.Mail, user?.Id);
-        await AddProjectToStorageQueue(project);
+        await requestQueueService.AddProjectToStorageQueue(project);
     }
     private async Task AddProjectToDb(string projectName, string acronym, string organization, string? userEmail) 
     {
@@ -93,14 +93,5 @@ public class ProjectCreationService : IProjectCreationService
     }
 
 
-    private async Task AddProjectToStorageQueue(CreateResourceData project)
-    {
-        using IQueue<CreateResourceData> queue = new AzureStorageQueue<CreateResourceData>(new AzureStorageQueueOptions<CreateResourceData>()
-        {
-            ConnectionString = _configuration["ProjectCreationQueue:ConnectionString"],
-            Name = _configuration["ProjectCreationQueue:Name"],
-        });
-        await queue.EnqueueAsync(project);
-    }
 
 }
