@@ -208,6 +208,25 @@ public class RequestManagementService : IRequestManagementService
         await RequestServiceWithDefaults(serviceRequest);
     }
 
+    public static string GetTerraformServiceType(string templateName) => $"terraform:{templateName}";
+
+    public async Task HandleTerraformRequestServiceAsync(Datahub_Project project, string terraformTemplate)
+    {
+        var userId = await _userInformationService.GetUserIdString();
+        var graphUser = await _userInformationService.GetCurrentGraphUserAsync();
+        var serviceRequest = new Datahub_ProjectServiceRequests()
+        {
+            ServiceType = GetTerraformServiceType(terraformTemplate),
+            ServiceRequests_Date_DT = DateTime.Now,
+            Is_Completed = null,
+            Project = project,
+            User_ID = userId,
+            User_Name = graphUser.UserPrincipalName
+        };
+
+        await RequestServiceWithDefaults(serviceRequest);
+    }
+
     public static FieldValueContainer BuildFieldValues(FieldDefinitions fieldDefinitions, Dictionary<string, string> existingValues, string objectId = null)
     {
         if (string.IsNullOrEmpty(objectId))
