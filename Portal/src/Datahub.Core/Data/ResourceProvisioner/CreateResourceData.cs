@@ -10,6 +10,17 @@ public record CreateResourceData
     
 
     public ResourceWorkspace Workspace { get; init; }
+    
+    public CreateResourceData(string projectName, string acronym, string templateName, List<WorkspaceUser> users, string version = "latest")
+    {
+        Templates = new List<ResourceTemplate>() { new ResourceTemplate() {  Name = templateName, Version = version } };
+        Workspace = new ResourceWorkspace()
+        {
+            Name = projectName,
+            Acronym = acronym,
+            Users = users
+        };
+    }
 
     public CreateResourceData(string projectName, string acronym, string sector, string organization,
         string userEmail, string userId)
