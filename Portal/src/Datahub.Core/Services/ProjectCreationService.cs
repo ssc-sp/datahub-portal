@@ -73,8 +73,7 @@ public class ProjectCreationService : IProjectCreationService
     public async Task<bool> CreateProjectAsync(string projectName, string? acronym, string organization)
     {
         using (var scope = new TransactionScope(
-           TransactionScopeOption.Required,
-           new TransactionOptions { IsolationLevel = IsolationLevel.ReadCommitted }))
+           TransactionScopeOption.Required, TransactionScopeAsyncFlowOption.Enabled))
         {
             try
             {

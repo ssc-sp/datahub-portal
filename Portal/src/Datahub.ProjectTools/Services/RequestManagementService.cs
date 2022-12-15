@@ -225,8 +225,7 @@ public class RequestManagementService : IRequestManagementService
     public async Task<bool> HandleTerraformRequestServiceAsync(Datahub_Project project, string terraformTemplate)
     {
         using (var scope = new TransactionScope(
-           TransactionScopeOption.Required,
-           new TransactionOptions { IsolationLevel = IsolationLevel.ReadCommitted }))
+           TransactionScopeOption.Required, TransactionScopeAsyncFlowOption.Enabled))
         {
             try
             {
