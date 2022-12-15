@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Transactions;
 using Datahub.Core.Data;
 using Datahub.Core.Data.ResourceProvisioner;
 using Datahub.Core.Model.Datahub;
@@ -10,6 +11,7 @@ using Datahub.Core.Services.ResourceManager;
 using Foundatio.Queues;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace Datahub.Core.Services;
 
@@ -17,14 +19,17 @@ public class ProjectCreationService : IProjectCreationService
 {
     
     private readonly IDbContextFactory<DatahubProjectDBContext> _datahubProjectDbFactory;
+    private readonly ILogger<ProjectCreationService> logger;
     private readonly IUserInformationService _userInformationService;
     private readonly RequestQueueService requestQueueService;
     private const string NewProjectDataSensitivity = "Setup";
     
     public ProjectCreationService(IDbContextFactory<DatahubProjectDBContext> datahubProjectDbFactory,
+        ILogger<ProjectCreationService> logger,
         IUserInformationService userInformationService, RequestQueueService requestQueueService)
     {
         _datahubProjectDbFactory = datahubProjectDbFactory;
+        this.logger = logger;
         _userInformationService = userInformationService;
         this.requestQueueService = requestQueueService;
     }
@@ -59,20 +64,34 @@ public class ProjectCreationService : IProjectCreationService
         return await Task.FromResult(acronym);
     }
 
-    public async Task CreateProjectAsync(string projectName, string organization)
+    public async Task<bool> CreateProjectAsync(string projectName, string organization)
     {
         var acronym = await GenerateProjectAcronymAsync(projectName);
-        await CreateProjectAsync(projectName, acronym, organization);
+        return await CreateProjectAsync(projectName, acronym, organization);
     }
     
-    public async Task CreateProjectAsync(string projectName, string? acronym, string organization)
+    public async Task<bool> CreateProjectAsync(string projectName, string? acronym, string organization)
     {
-        acronym ??= await GenerateProjectAcronymAsync(projectName);
-        var sectorName = GovernmentDepartment.Departments.TryGetValue(organization, out var sector) ? sector : acronym;
-        var user = await _userInformationService.GetCurrentGraphUserAsync();
-        await AddProjectToDb(projectName, acronym, organization, user?.Mail);
-        var project = new CreateResourceData(projectName, acronym, sectorName, organization, user?.Mail, user?.Id);
-        await requestQueueService.AddProjectToStorageQueue(project);
+        using (var scope = new TransactionScope(
+           TransactionScopeOption.Required,
+           new TransactionOptions { IsolationLevel = IsolationLevel.ReadCommitted }))
+        {
+            try
+            {
+                acronym ??= await GenerateProjectAcronymAsync(projectName);
+                var sectorName = GovernmentDepartment.Departments.TryGetValue(organization, out var sector) ? sector : acronym;
+                var user = await _userInformationService.GetCurrentGraphUserAsync();
+                await AddProjectToDb(projectName, acronym, organization, user?.Mail);
+                var project = new CreateResourceData(projectName, acronym, sectorName, organization, user?.Mail, user?.Id);
+                await requestQueueService.AddProjectToStorageQueue(project);
+                scope.Complete();
+                return true;
+            } catch (Exception ex)
+            {
+                logger.LogError(ex, $"Error creating project {projectName} - {acronym} - {organization}");
+                return false;
+            }
+        }
     }
     private async Task AddProjectToDb(string projectName, string acronym, string organization, string? userEmail) 
     {
