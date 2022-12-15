@@ -1,0 +1,22 @@
+﻿
+@inject IStringLocalizer<DataLabels> DataLocalizer
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JsInterop
+@page "/docs"
+@using Datahub.Core
+
+
+
+<h1>@Localizer["Data Sets"]</h1>
+<div class="ae flex wrap">
+
+<FACard Text="Publication Data From Scopus, Citations and Mentions" NavLink="/docs/scopus" Title="@Localizer["Scopus"]" Icon="fas fa-table" />
+
+
+</div>
+
+@code {
+
+
+
+}
