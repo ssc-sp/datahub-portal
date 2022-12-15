@@ -22,7 +22,7 @@ public interface IRequestManagementService
     Task<string> GetResourceInputDefinitionJson(string resourceType);
     Task<List<Project_Resources2>> GetResourcesByRequest(Datahub_ProjectServiceRequests request);
     Task HandleRequestService(Datahub_Project project, string serviceType);
-    Task HandleTerraformRequestServiceAsync(Datahub_Project project, string terraformTemplate);
+    Task<bool> HandleTerraformRequestServiceAsync(Datahub_Project project, string terraformTemplate);
     Task RequestService(Datahub_ProjectServiceRequests request, Dictionary<string, string> inputParams = null);
     Task RequestServiceWithDefaults(Datahub_ProjectServiceRequests request);
     Task SaveResourceInputDefinitionJson(string resourceType, string jsonContent);
