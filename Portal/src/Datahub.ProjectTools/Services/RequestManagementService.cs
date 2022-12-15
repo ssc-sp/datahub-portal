@@ -242,7 +242,8 @@ public class RequestManagementService : IRequestManagementService
                 };
 
                 await RequestServiceWithDefaults(serviceRequest);
-                var request = new CreateResourceData(project.Project_Name, project.Project_Acronym_CD, terraformTemplate);
+                var users = project.Users.Select(u => new WorkspaceUser() { Guid = u.User_ID, Email = u.User_Name }).ToList();
+                var request = new CreateResourceData(project.Project_Name, project.Project_Acronym_CD, terraformTemplate, users);
                 await requestQueueService.AddProjectToStorageQueue(request);
                 scope.Complete();
                 return true;
