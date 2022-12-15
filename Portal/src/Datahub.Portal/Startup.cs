@@ -58,6 +58,7 @@ using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.Extensions.Azure;
 using Microsoft.Identity.Web.UI;
 using Tewr.Blazor.FileReader;
+using Datahub.Core.Services.ResourceManager;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]
 
@@ -354,7 +355,7 @@ public class Startup
             services.AddScoped<RegistrationService>();
 
             services.AddScoped<UpdateProjectMonthlyCostService>();
-            services.AddScoped<IProjectCreationService, ProjectCreationService>();
+            
         }
         else
         {
@@ -377,7 +378,8 @@ public class Startup
 
             services.AddScoped<IAzurePriceListService, OfflineAzurePriceListService>();
         }
-
+        services.AddSingleton<IProjectCreationService, ProjectCreationService>();
+        services.AddSingleton<RequestQueueService>();
 
         services.AddScoped<IPublicDataFileService, PublicDataFileService>();
 
