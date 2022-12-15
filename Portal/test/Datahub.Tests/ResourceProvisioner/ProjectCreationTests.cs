@@ -73,7 +73,8 @@ public class ProjectCreationTests
         var serviceProvider = SetupServices();
         var projectCreationService = serviceProvider.GetRequiredService<IProjectCreationService>();
         var config = serviceProvider.GetRequiredService<IConfiguration>();
-        await projectCreationService.CreateProjectAsync(projectName, organization);
+        var isAdded = await projectCreationService.CreateProjectAsync(projectName, organization);
+        Assert.True(isAdded);
         var projects = LoadCollectionGeneric<DatahubProjectDBContext, Datahub_Project>(SetupServices(), d => d.Projects);
         Assert.Single(projects);
         //test api success
