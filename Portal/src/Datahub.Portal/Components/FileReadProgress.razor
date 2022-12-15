@@ -1,0 +1,46 @@
+﻿@using Microsoft.Extensions.Logging
+@inject ILogger<UploadProgress> logger
+
+ <div class="progressBarContainer">
+        @*<div class="progress" style="height: 15px">
+            <div class="progress-bar" role="progressbar" style="width:@percentReadProcessed%" aria-valuenow=@percentReadProcessed aria-valuemin="0" aria-valuemax="100">
+                reading
+            </div>
+        </div>*@
+
+        <div class="progress" style="height: 15px; position: relative; min-width: 45px;">
+            <AeProgress Percent="@percentReadProcessed"/>
+            <AeTypography Variant="hint" class="progressBarLabel" style="font-size: 0.6rem;">@Localizer["FILE-UPLOAD.SelectedToUpload"]</AeTypography>
+        </div>
+ </div>
+
+@code
+{
+    [Parameter]
+    public IFileInfo Fileinfo { get; set; }
+
+    private int percentReadProcessed = 0;
+    const int onlyReportProgressAfterThisPercentDelta = 10;
+
+    protected override void OnInitialized()
+    {
+        if (Fileinfo?.PositionInfo != null)
+        {
+            Fileinfo.PositionInfo.PositionChanged += OnPositionChange;
+        }
+
+    }
+
+    private async void OnPositionChange(object sender, IFilePositionInfo e)
+    {
+        if (e.PercentageDeltaSinceAcknowledge > onlyReportProgressAfterThisPercentDelta)
+        {
+            logger.LogInformation($"State Changed here: {percentReadProcessed}");
+            e.Acknowledge();
+            percentReadProcessed = (int)(100.0 * e.Position / Fileinfo.Size);
+            await InvokeAsync(() => StateHasChanged());
+        };
+    }
+}
+
+
