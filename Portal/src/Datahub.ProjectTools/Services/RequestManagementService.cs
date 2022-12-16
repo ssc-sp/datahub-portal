@@ -194,6 +194,11 @@ namespace Datahub.ProjectTools.Services
 
         public async Task HandleRequestService(Datahub_Project project, string serviceType)
         {
+            if (string.IsNullOrEmpty(serviceType))
+            {
+                throw new ArgumentException($"'{nameof(serviceType)}' cannot be null or empty.", nameof(serviceType));
+            }
+
             var userId = await _userInformationService.GetUserIdString();
             var graphUser = await _userInformationService.GetCurrentGraphUserAsync();
             var serviceRequest = new Datahub_ProjectServiceRequests()
