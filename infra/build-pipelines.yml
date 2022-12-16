@@ -19,7 +19,7 @@ parameters:
   - linux-x64
 
 variables:
-  solution: '**/Datahub.Portal.sln'
+  solution: '**/Datahub.sln'
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
   version.MajorMinor: ${{ parameters.version_number }}
@@ -60,7 +60,7 @@ steps:
   inputs:
     targetType: 'inline'
     script: |
-      cd Datahub/src
+      cd Portal/src
       $files=Get-Childitem -Path Datahub.Portal -Include appsettings*json-tmpl,launch*json-tmpl -File -Recurse -ErrorAction SilentlyContinue  | Where {$_.FullName -notlike "*\Debug\*"}
       foreach ($file in $files){
         $fileRendered=$file.FullName.trim("-tmpl")
@@ -73,7 +73,7 @@ steps:
   displayName: 'publish portal app'
   inputs:
     command: 'publish'
-    projects: 'Datahub/src/Datahub.Portal/*.csproj'
+    projects: 'Portal/src/Datahub.Portal/*.csproj'
     arguments: ' -o $(Build.ArtifactStagingDirectory)/output/portal -r ${{ parameters.target_os }} --self-contained true'
     zipAfterPublish: true
 
@@ -81,7 +81,8 @@ steps:
   displayName: 'publish function app'
   inputs:
     command: 'publish'
-    projects: 'Datahub/src/Datahub.Functions/*.csproj'
+    projects: 'Portal/src/Datahub.Functions/*.csproj'
+    publishWebProjects: false
     arguments: ' -o $(Build.ArtifactStagingDirectory)/output/function -r ${{ parameters.target_os }} --self-contained true'
     zipAfterPublish: true
 
