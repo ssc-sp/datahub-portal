@@ -15,7 +15,7 @@
 
 <div>
 
-    <AuthorizeView Roles="@string.Join(',', _authorizedRoles)">
+    <ProjectMemberBlock AdminOnly=false ProjectAcronym="@ProjectAcronym">
         <NotAuthorized>
             <div class="access-denied">
                 <AeTypography Variant="h3">@Localizer["Access Denied"]</AeTypography>
@@ -33,7 +33,7 @@
             </div>
         </NotAuthorized>
         <Authorized>
-            @if (_activeResources?.Count > 0)
+            @if (_activeResources?.Count > 0 || _isProjectAdmin)
             {
                 <div class="project-tools" style="margin-bottom: 2rem;">
                 <MudText Typo="Typo.h4">@Localizer["Active Project Tools"]</MudText>
@@ -100,7 +100,7 @@
                         @if (_configuration.Value.ComputeCost)
                         {
                             <ComputeCost />
-                    }
+                        }
                 </div>
             }
             </div>
@@ -136,7 +136,7 @@
             </div>
             }
         </Authorized>
-    </AuthorizeView>
+    </ProjectMemberBlock>
 </div>
 
 @code {
@@ -148,7 +148,6 @@
     private bool _isDense = false;
     private System.Security.Claims.ClaimsPrincipal _user;
     private bool _canViewPowerBi;
-    private List<string> _authorizedRoles;
     private Microsoft.Graph.User _graphUser;
 
     private string ProjectAcronym => Project?.Project_Acronym_CD;
@@ -156,6 +155,7 @@
     private List<Project_Resources2> _projectDatabaseResources = new();
 
     private bool _isProjectUserPendingApproval;
+    private bool _isProjectAdmin = false;
 
     private List<(Type type, IDictionary<string, object> parameters)> _activeResources;
     private List<(Type type, IDictionary<string, object> parameters)> _inactiveResources;
@@ -165,20 +165,13 @@
         await using var projectDbContext = await _dbFactoryProject.CreateDbContextAsync();
 
         var user = await _userInformationService.GetCurrentGraphUserAsync();
-        _authorizedRoles = new List<string>
-        {
-            ProjectAcronym, $"{ProjectAcronym}-admin"
-        };
 
-        if (!_serviceAuthManager.GetViewingAsGuest(user.Id))
-        {
-            _authorizedRoles.Add(RoleConstants.DATAHUB_ROLE_ADMIN);
-        }
 
         _user = await _userInformationService.GetAuthenticatedUser();
 
         _graphUser = await _userInformationService.GetCurrentGraphUserAsync();
 
+        _isProjectAdmin = await _userInformationService.IsUserProjectAdmin(Project.Project_Acronym_CD);
 
         _isProjectUserPendingApproval = projectDbContext.Project_Users_Requests
             .Any(u => u.User_ID == _graphUser.Id && Project == u.Project && u.Approved_DT == null);

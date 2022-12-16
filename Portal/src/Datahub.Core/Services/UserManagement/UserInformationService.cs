@@ -356,12 +356,17 @@ public class UserInformationService : IUserInformationService
 
     public async Task<bool> IsUserProjectAdmin(string projectAcronym)
     {
-        return (await GetAuthenticatedUser()).IsInRole($"{projectAcronym}-admin");
+        return (!(await IsViewingAsGuest()) && (await GetAuthenticatedUser()).IsInRole($"{projectAcronym}-admin")) || (await IsUserDatahubAdmin());
     }
 
     public async Task<bool> IsUserDatahubAdmin()
     {
-        return (await GetAuthenticatedUser()).IsInRole(RoleConstants.DATAHUB_ROLE_ADMIN);
+        return !(await IsViewingAsGuest()) && (await GetAuthenticatedUser()).IsInRole(RoleConstants.DATAHUB_ROLE_ADMIN);
+    }
+
+    public async Task<bool> IsUserProjectMember(string projectAcronym)
+    {
+        return !(await IsViewingAsGuest()) && (await GetAuthenticatedUser()).IsInRole(projectAcronym); 
     }
 
     //IsDataHubAdmin = ;
