@@ -1,4 +1,4 @@
-<AuthorizeView Roles=@RoleConstants.DATAHUB_ROLE_ADMIN Context="Admin_Card">
+<ProjectMemberBlock AdminOnly="true" ProjectAcronym="@ProjectAcronym">
     <ToolCard
         Title="@Localizer["PROJECT-PAGE.ADMIN-CARD.Title"]"
         Description="@Localizer["Manage the settings and actions for this project. "]">
@@ -44,9 +44,10 @@
             </MudStack>
         </ToolActionsList>
     </ToolCard>
-</AuthorizeView>
+</ProjectMemberBlock>
 
 @code {
     [CascadingParameter(Name = "ProjectAcronym")]
     public string ProjectAcronym { get; set; }
+
 }
