@@ -72,6 +72,7 @@ namespace Datahub.ProjectTools.Catalog
                     { nameof(InactiveResource.IsIconSVG), IsIconSVG },
                     { nameof(InactiveResource.ResourceRequested),IsServiceRequested  },
                     { nameof(InactiveResource.Project), Project },
+                    { nameof(InactiveResource.ResourceType), ComponentType.Name.ToLowerInvariant() },
                 };
     }
 }

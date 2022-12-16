@@ -23,7 +23,7 @@
             {
                 <MudProgressCircular Color="Color.Default" Indeterminate="true" />
             }
-            else if (ResourceRequested)
+            else if (ResourceRequested || _resourceRequested)
             {
                 <li>
                     <AeTypography class="access-text">@Localizer["Service Request is being reviewed"]</AeTypography>
@@ -52,12 +52,15 @@
     [Parameter] public Datahub_Project Project { get; set; }
 
     private bool isRunning = false;
+    private bool _resourceRequested = false;
 
     private async Task HandleRequestService()
     {
         isRunning = true;
         await RequestManagementService.HandleRequestService(Project, ResourceType);
+        _resourceRequested = true;
         isRunning = false;
+
     }
 
 
