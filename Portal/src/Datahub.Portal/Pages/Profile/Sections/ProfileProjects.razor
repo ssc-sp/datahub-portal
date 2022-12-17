@@ -29,7 +29,7 @@
 }
 
 <MudStack>
-    <MudText Typo="Typo.h5">@Localizer["Projects"]</MudText>
+    <MudText Typo="Typo.h3">@Localizer["Projects"]</MudText>
     <MudGrid>
         @foreach (var userRole in _userRoles)
         {
@@ -52,7 +52,7 @@
 @code {
 
     private User _user;
-    private List<Datahub_Project_User> _userRoles;
+    private List<Datahub_Project_User>? _userRoles;
     private string _chipStyle;
 
     protected override async Task OnInitializedAsync()
