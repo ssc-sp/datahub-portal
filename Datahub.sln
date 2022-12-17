@@ -94,6 +94,15 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.PIP", "Portal\src\modules\Datahub.PIP\Datahub.PIP.csproj", "{3065E419-AF1E-43CF-AF17-4EB260F6E02B}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "infra", "infra", "{F3058DB1-40C9-40AA-805D-06B3D88B4AC7}"
+	ProjectSection(SolutionItems) = preProject
+		infra\azure-pipelines.yml = infra\azure-pipelines.yml
+		infra\azure-pipelines-forms.yml = infra\azure-pipelines-forms.yml
+		infra\azure-pipelines-prd.yml = infra\azure-pipelines-prd.yml
+		infra\azure-pipelines-spdatahub.yml = infra\azure-pipelines-spdatahub.yml
+		infra\azure-pipelines-spdatahub-slot.yml = infra\azure-pipelines-spdatahub-slot.yml
+		infra\azure-pipelines-tst.yml = infra\azure-pipelines-tst.yml
+		infra\build-pipelines.yml = infra\build-pipelines.yml
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scripts", "scripts", "{A8C709D8-8A40-45E3-BB40-2549AFECE6E6}"
 	ProjectSection(SolutionItems) = preProject
@@ -102,6 +111,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scripts", "scripts", "{A8C7
 		scripts\initLocalDev.ps1 = scripts\initLocalDev.ps1
 		scripts\merge_fork.ps1 = scripts\merge_fork.ps1
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Datahub.UI.Tests", "Portal\test\Datahub.UI.Tests\Datahub.UI.Tests.csproj", "{71A3C13A-659F-481B-A161-19CEB0D27CA2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -237,6 +248,10 @@ Global
 		{3065E419-AF1E-43CF-AF17-4EB260F6E02B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3065E419-AF1E-43CF-AF17-4EB260F6E02B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3065E419-AF1E-43CF-AF17-4EB260F6E02B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{71A3C13A-659F-481B-A161-19CEB0D27CA2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{71A3C13A-659F-481B-A161-19CEB0D27CA2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{71A3C13A-659F-481B-A161-19CEB0D27CA2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{71A3C13A-659F-481B-A161-19CEB0D27CA2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -280,6 +295,7 @@ Global
 		{C6553575-C598-483A-AE6F-C9C376A4B9CC} = {175BE71E-CED9-48C7-935C-B9F7FB1FE842}
 		{7B900792-8383-462E-B582-94DA4817B6C4} = {175BE71E-CED9-48C7-935C-B9F7FB1FE842}
 		{3065E419-AF1E-43CF-AF17-4EB260F6E02B} = {175BE71E-CED9-48C7-935C-B9F7FB1FE842}
+		{71A3C13A-659F-481B-A161-19CEB0D27CA2} = {47D68FB0-47FE-485D-AE94-00C48643721E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		RESX_ConfirmAddLanguageFile = True

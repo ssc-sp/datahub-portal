@@ -9,39 +9,38 @@ using System.Threading.Tasks;
 using Datahub.Core.Model.Datahub;
 using Xunit;
 
-namespace Datahub.Tests
+namespace Datahub.Tests;
+
+public class ServiceAuthTests:IDisposable
 {
-    public class ServiceAuthTests:IDisposable
+    private readonly DatahubProjectDBContext ctx;
+    private ServiceAuthManager _authManager;
+
+    public ServiceAuthTests()
     {
-        private readonly DatahubProjectDBContext ctx;
-        private ServiceAuthManager _authManager;
+        var services = new ServiceCollection();
+        services.AddMemoryCache();
+        var serviceProvider = services.BuildServiceProvider();
 
-        public ServiceAuthTests()
-        {
-            var services = new ServiceCollection();
-            services.AddMemoryCache();
-            var serviceProvider = services.BuildServiceProvider();
+        var serviceAuthCache = serviceProvider.GetService<IMemoryCache>();
+        var mockDbFactory = new Mock<IDbContextFactory<DatahubProjectDBContext>>();
+        ctx = new DatahubProjectDBContext(new DbContextOptionsBuilder<DatahubProjectDBContext>()
+            .UseInMemoryDatabase("InMemoryTest")
+            .Options);
+        mockDbFactory.Setup(f => f.CreateDbContext())
+            .Returns(ctx);
+        var mockGraph = new Mock<IMSGraphService>();
+        _authManager = new ServiceAuthManager(serviceAuthCache, mockDbFactory.Object,mockGraph.Object);
+    }
 
-            var serviceAuthCache = serviceProvider.GetService<IMemoryCache>();
-            var mockDbFactory = new Mock<IDbContextFactory<DatahubProjectDBContext>>();
-            ctx = new DatahubProjectDBContext(new DbContextOptionsBuilder<DatahubProjectDBContext>()
-                    .UseInMemoryDatabase("InMemoryTest")
-                    .Options);
-            mockDbFactory.Setup(f => f.CreateDbContext())
-                .Returns(ctx);
-            var mockGraph = new Mock<IMSGraphService>();
-            _authManager = new ServiceAuthManager(serviceAuthCache, mockDbFactory.Object,mockGraph.Object);
-        }
+    public void Dispose()
+    {
+        ctx.Dispose();
+    }
 
-        public void Dispose()
-        {
-            ctx.Dispose();
-        }
-
-        [Fact]
-        public async Task GivenUser_RetrieveProjects()
-        {
-            var auths = await _authManager.GetUserAuthorizations("d6d53fcc-9d82-4b0e-8b91-91248c344224");
-        }
+    [Fact]
+    public async Task GivenUser_RetrieveProjects()
+    {
+        var auths = await _authManager.GetUserAuthorizations("d6d53fcc-9d82-4b0e-8b91-91248c344224");
     }
 }
