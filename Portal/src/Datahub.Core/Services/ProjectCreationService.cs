@@ -81,28 +81,21 @@ public class ProjectCreationService : IProjectCreationService
                 acronym ??= await GenerateProjectAcronymAsync(projectName);
                 var sectorName = GovernmentDepartment.Departments.TryGetValue(organization, out var sector) ? sector : acronym;
                 var user = await _userInformationService.GetCurrentGraphUserAsync();
-                await AddProjectToDb(projectName, acronym, organization, user?.Mail);
+                if (user is null) return false;
+                await AddProjectToDb(user, projectName, acronym, organization);
                 var project = new CreateResourceData(projectName, acronym, sectorName, organization, user?.Mail, user?.Id);
                 await requestQueueService.AddProjectToStorageQueue(project);
                 scope.Complete();
                 return true;
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 logger.LogError(ex, $"Error creating project {projectName} - {acronym} - {organization}");
                 return false;
             }
         }
-    public async Task<bool> CreateProjectAsync(string projectName, string? acronym, string organization)
-    {
-        acronym ??= await GenerateProjectAcronymAsync(projectName);
-        var sectorName = GovernmentDepartment.Departments.TryGetValue(organization, out var sector) ? sector : acronym;
-        var user = await _userInformationService.GetCurrentGraphUserAsync();
-        if (user is null) return false;
-        await AddProjectToDb(user, projectName, acronym, organization);
-        var project = new CreateResourceData(projectName, acronym, sectorName, organization, user.Mail, user.Id);
-        await AddProjectToStorageQueue(project);
-        return true;
     }
+    
     private async Task AddProjectToDb(User user, string projectName, string acronym, string organization) 
     {
         var sectorName = GovernmentDepartment.Departments.TryGetValue(organization, out var sector) ? sector : acronym;
