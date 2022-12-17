@@ -1,39 +1,51 @@
-﻿using Datahub.Core.Model.Datahub;
+﻿using Datahub.Core.Data.ResourceProvisioner;
+using Datahub.Core.Model.Datahub;
 using Datahub.Core.Services;
 using Datahub.Core.Services.Notification;
 using Datahub.Core.Services.Projects;
+using Datahub.Core.Services.ResourceManager;
 using Datahub.Core.Services.Security;
 using Datahub.Metadata.DTO;
 using Datahub.Metadata.Model;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using Polly;
+using System.Transactions;
 
 namespace Datahub.ProjectTools.Services;
 
 public class RequestManagementService : IRequestManagementService
 {
+    private readonly ILogger<RequestManagementService> logger;
     private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory;
     private readonly IEmailNotificationService _emailNotificationService;
     private readonly ISystemNotificationService _systemNotificationService;
     private readonly IUserInformationService _userInformationService;
     private readonly IDatahubAuditingService _datahubAuditingService;
+    private readonly RequestQueueService requestQueueService;
     private readonly IMiscStorageService _miscStorageService;
 
     private const string RESOURCE_REQUEST_INPUT_JSON_PREFIX = "ResourceInput";
 
     public RequestManagementService(
+        ILogger<RequestManagementService> logger,
         IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
         IEmailNotificationService emailNotificationService,
         ISystemNotificationService systemNotificationService,
         IUserInformationService userInformationService,
         IDatahubAuditingService datahubAuditingService,
+        RequestQueueService requestQueueService,
         IMiscStorageService miscStorageService)
     {
+        this.logger = logger;
         _dbContextFactory = dbContextFactory;
         _emailNotificationService = emailNotificationService;
         _systemNotificationService = systemNotificationService;
         _userInformationService = userInformationService;
         _datahubAuditingService = datahubAuditingService;
+        this.requestQueueService = requestQueueService;
         _miscStorageService = miscStorageService;
     }
 
@@ -210,21 +222,40 @@ public class RequestManagementService : IRequestManagementService
 
     public static string GetTerraformServiceType(string templateName) => $"terraform:{templateName}";
 
-    public async Task HandleTerraformRequestServiceAsync(Datahub_Project project, string terraformTemplate)
+    public async Task<bool> HandleTerraformRequestServiceAsync(Datahub_Project project, string terraformTemplate)
     {
-        var userId = await _userInformationService.GetUserIdString();
-        var graphUser = await _userInformationService.GetCurrentGraphUserAsync();
-        var serviceRequest = new Datahub_ProjectServiceRequests()
+        using (var scope = new TransactionScope(
+           TransactionScopeOption.Required, TransactionScopeAsyncFlowOption.Enabled))
         {
-            ServiceType = GetTerraformServiceType(terraformTemplate),
-            ServiceRequests_Date_DT = DateTime.Now,
-            Is_Completed = null,
-            Project = project,
-            User_ID = userId,
-            User_Name = graphUser.UserPrincipalName
-        };
-
-        await RequestServiceWithDefaults(serviceRequest);
+            try
+            {
+                using var ctx = await _dbContextFactory.CreateDbContextAsync();
+                ctx.Attach(project);
+                await ctx.Entry(project).Collection(p => p.Users).LoadAsync();
+                var userId = await _userInformationService.GetUserIdString();
+                var graphUser = await _userInformationService.GetCurrentGraphUserAsync();
+                var serviceRequest = new Datahub_ProjectServiceRequests()
+                {
+                    ServiceType = GetTerraformServiceType(terraformTemplate),
+                    ServiceRequests_Date_DT = DateTime.Now,
+                    Is_Completed = null,
+                    Project = project,
+                    User_ID = userId,
+                    User_Name = graphUser.UserPrincipalName
+                };
+                
+                await RequestServiceWithDefaults(serviceRequest);
+                var users = project.Users.Select(u => new WorkspaceUser() { Guid = u.User_ID, Email = u.User_Name }).ToList();
+                var request = new CreateResourceData(project.Project_Name, project.Project_Acronym_CD, terraformTemplate, users);
+                await requestQueueService.AddProjectToStorageQueue(request);
+                scope.Complete();
+                return true;
+            } catch (Exception ex)
+            {
+                logger.LogError(ex, $"Error creating resource {terraformTemplate} for {project.Project_Acronym_CD}");
+                return false;
+            }
+        }
     }
 
     public static FieldValueContainer BuildFieldValues(FieldDefinitions fieldDefinitions, Dictionary<string, string> existingValues, string objectId = null)
