@@ -1,37 +1,36 @@
 ﻿using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Datahub.Portal.Controllers
+namespace Datahub.Portal.Controllers;
+
+[Route("[controller]/[action]")]
+public class CultureController : Controller
 {
-    [Route("[controller]/[action]")]
-    public class CultureController : Controller
+    public CultureController(ILogger<CultureController> logger)
     {
-        public CultureController(ILogger<CultureController> logger)
+        _logger = logger;
+    }
+
+    public ILogger<CultureController> _logger { get; }
+
+    public IActionResult SetCulture(string culture, string redirectionUri)
+    {
+        if (culture != null)
         {
-            _logger = logger;
+            HttpContext.Response.Cookies.Append(
+                CookieRequestCultureProvider.DefaultCookieName,
+                CookieRequestCultureProvider.MakeCookieValue(new RequestCulture(culture)));
         }
 
-        public ILogger<CultureController> _logger { get; }
-
-        public IActionResult SetCulture(string culture, string redirectionUri)
+        _logger.LogInformation($"New Culture = {culture}");
+        _logger.LogInformation($"Redirect URL = {redirectionUri}");
+        _logger.LogInformation($"Current Thread Culture = {Thread.CurrentThread.CurrentCulture.Name}");
+        if (redirectionUri == null)
         {
-            if (culture != null)
-            {
-                HttpContext.Response.Cookies.Append(
-                    CookieRequestCultureProvider.DefaultCookieName,
-                    CookieRequestCultureProvider.MakeCookieValue(new RequestCulture(culture)));
-            }
-
-            _logger.LogInformation($"New Culture = {culture}");
-            _logger.LogInformation($"Redirect URL = {redirectionUri}");
-            _logger.LogInformation($"Current Thread Culture = {Thread.CurrentThread.CurrentCulture.Name}");
-            if (redirectionUri == null)
-            {
-                redirectionUri = "/";
-            }
+            redirectionUri = "/";
+        }
             
-            return LocalRedirect(redirectionUri);
+        return LocalRedirect(redirectionUri);
 
-        }
     }
 }

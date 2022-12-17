@@ -115,5 +115,7 @@
 
 	<ItemGroup>
 	  <_ContentIncludedByDefault Remove="Services\DialogModalFrame.razor" />
+	  <_ContentIncludedByDefault Remove="Components\TabControl\TabControl.razor" />
+	  <_ContentIncludedByDefault Remove="Components\TabControl\TabPage.razor" />
 	</ItemGroup>
 </Project>

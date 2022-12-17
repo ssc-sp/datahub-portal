@@ -1,6 +1,5 @@
-﻿namespace Datahub.ProjectTools.Catalog
+﻿namespace Datahub.ProjectTools.Catalog;
+
+public class DHSqlServerResource
 {
-    public class DHSqlServerResource
-    {
-    }
 }
