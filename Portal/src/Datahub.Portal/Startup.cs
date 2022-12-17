@@ -386,6 +386,7 @@ namespace Datahub.Portal
                 services.AddScoped<IDataRemovalService, DataRemovalService>();
 
                 services.AddScoped<IAzurePriceListService, AzurePriceListService>();
+                services.AddScoped<IPublicDataFileService, PublicDataFileService>();
 
                 services.AddScoped<PowerBiServiceApi>();
                 services.AddScoped<IPowerBiDataService, PowerBiDataService>();
