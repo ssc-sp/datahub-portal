@@ -72,12 +72,12 @@ public class ProjectCreationService : IProjectCreationService
         var sectorName = GovernmentDepartment.Departments.TryGetValue(organization, out var sector) ? sector : acronym;
         var user = await _userInformationService.GetCurrentGraphUserAsync();
         if (user is null) return false;
-        await AddProjectToDb(user, projectName, acronym, organization);
+        await AddProjectToDb(projectName, acronym, organization, user.Mail);
         var project = new CreateResourceData(projectName, acronym, sectorName, organization, user.Mail, user.Id);
         await AddProjectToStorageQueue(project);
         return true;
     }
-    private async Task AddProjectToDb(User user, string projectName, string acronym, string organization) 
+    private async Task AddProjectToDb(string projectName, string acronym, string organization, string? userEmail) 
     {
         var sectorName = GovernmentDepartment.Departments.TryGetValue(organization, out var sector) ? sector : acronym;
         var project = new Datahub_Project()
