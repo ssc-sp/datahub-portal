@@ -7,7 +7,7 @@ pool:
   vmImage: 'windows-latest'
 
 variables:
-  solution: '**/Datahub.Portal.sln'
+  solution: '**/Datahub.sln'
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
 
@@ -30,14 +30,14 @@ steps:
   displayName: dotnet restore
   inputs:
     command: restore
-    projects: 'WebPortal/*.csproj'
+    projects: 'Portal/src/Datahub.Portal/*.csproj'
     includeNuGetOrg: true
 
 - task: DotNetCoreCLI@2
   displayName: dotnet restore function
   inputs:
     command: restore
-    projects: 'Datahub.Graph.Functions/*.csproj'
+    projects: 'Portal/src/Datahub.Graph.Functions/*.csproj'
     includeNuGetOrg: true
 
 - task: DotNetCoreCLI@2
@@ -45,24 +45,24 @@ steps:
   inputs:
     command: publish
     publishWebProjects: false
-    projects: 'Datahub.Graph.Functions/*.csproj'
+    projects: 'Portal/src/Datahub.Graph.Functions/*.csproj'
     zipAfterPublish: true
 
 - task: PowerShell@2
   inputs:
     targetType: 'inline'
     script: |
-      $files=Get-Childitem -Path WebPortal,DatahubIntakeForms,.vscode -Include  appsettings*json-tmpl,launch*json-tmpl -File -Recurse -ErrorAction SilentlyContinue  | Where {$_.FullName -notlike "*\Debug\*"}
+      $files=Get-Childitem -Path Portal/src/Datahub.Portal,.vscode -Include  appsettings*json-tmpl,launch*json-tmpl -File -Recurse -ErrorAction SilentlyContinue  | Where {$_.FullName -notlike "*\Debug\*"}
       foreach ($file in $files) {
         $fileRendered=$file.FullName.trim("-tmpl")
         Write-Host "Processing file: ${file} > $fileRendered"
         Copy-Item $file.FullName -Force -Destination $fileRendered
       }
-      cd WebPortal; mv appsettings.Development.json appsettings.dev.json
+      cd Portal/src/Datahub.Portal; mv appsettings.Development.json appsettings.dev.json
 - task: DotNetCoreCLI@2
   inputs:
     command: 'publish'
-    projects: 'WebPortal/*.csproj'
+    projects: 'Portal/src/Datahub.Portal/*.csproj'
     arguments: ' -r win-x64 --self-contained true '
     zipAfterPublish: true
 
@@ -72,7 +72,7 @@ steps:
     azureSubscription: 'datahub-dev-service-connection'
     appType: 'webApp'
     WebAppName: 'dh-portal-app-dev'
-    package: '$(System.DefaultWorkingDirectory)/WebPortal/**/*.zip'
+    package: '$(System.DefaultWorkingDirectory)/Portal/src/Datahub.Portal/**/*.zip'
     enableCustomDeployment: true
     DeploymentType: 'webDeploy'
 
@@ -82,7 +82,7 @@ steps:
     azureSubscription: 'datahub-dev-service-connection'
     appType: 'functionApp'
     appName: 'dh-portal-func-dev'
-    package: '$(System.DefaultWorkingDirectory)/Datahub.Graph.Functions/**/*.zip'
+    package: '$(System.DefaultWorkingDirectory)/Portal/src/Datahub.Functions/**/*.zip'
 
 - task: AzureAppServiceSettings@1
   displayName: Azure App Service Settings
