@@ -59,6 +59,7 @@ using Microsoft.Extensions.Azure;
 using Microsoft.Identity.Web.UI;
 using Tewr.Blazor.FileReader;
 using Datahub.Core.Services.ResourceManager;
+using Datahub.Core.Services.Resources;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]
 
