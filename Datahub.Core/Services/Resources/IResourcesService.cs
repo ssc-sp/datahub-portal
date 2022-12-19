@@ -12,7 +12,12 @@ namespace Datahub.Core.Services.Resources
         Task<ResourceLanguageRoot> LoadLanguageRoot(bool isFrench);
         Task<string> LoadResourcePage(ResourceCard card);
         string GetEditUrl(ResourceCard card);
-
-        Task Test();
+        Task RefreshCache();
+        IReadOnlyList<TimestampedResourceError> GetErrorList();
+        Task LogNotFoundError(string pageName, string resourceRoot);
+        Task LogNoArticleSpecifiedError(string url, string resourceRoot);
+        event Func<Task> NotifyRefreshErrors;
     }
+
+    public record TimestampedResourceError(DateTime Timestamp, string Message);
 }

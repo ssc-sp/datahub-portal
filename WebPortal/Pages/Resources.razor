@@ -3,6 +3,9 @@
 @inject IResourcesService _resourcesService
 @inject CultureService _cultureService
 @inject NavigationManager _navManager
+@inject TimeZoneService _timezoneService;
+
+@implements IDisposable
 
 @page "/resources/"
 @page "/resources/{PageName}"
@@ -75,7 +78,8 @@ else
                         }
                         else
                         {
-                            <DHMarkdown @ref=@_markdownElement
+                            <DHMarkdown 
+                                Substitutions=@Substitutions
                                 Content=@_markdownContent
                                 LinkRewriter="@RewriteLink" />
 
@@ -98,8 +102,62 @@ else
             }
         </MudItem>
     </MudGrid>
-}
+    
+    <MudContainer Class="ma-8">
+        <AuthorizeView Roles=@RoleConstants.DATAHUB_ROLE_ADMIN>
+            <MudCard>
+                <MudCardHeader>
+                    <CardHeaderAvatar>
+                        <MudIcon Icon=@Icons.Filled.AdminPanelSettings />
+                    </CardHeaderAvatar>
+                    <CardHeaderContent>
+                        @Localizer["Administration"]
+                    </CardHeaderContent>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudStack>
+                        <MudStack Row AlignItems=@AlignItems.Center>
+                            @if (_cacheIsRefreshing)
+                            {
+                                <MudProgressCircular Indeterminate Color=@Color.Secondary />
+                            }
+                            else
+                            {
+                                <MudButton 
+                                    OnClick=@RefreshCache
+                                    StartIcon=@Icons.Filled.Refresh 
+                                    Variant=@Variant.Filled 
+                                    Color=@Color.Secondary>Refresh</MudButton>
+                            }
 
+                            <MudText>
+                                Refresh the cache. Please note, it can take Github a few minutes to update its resources, so this may not work right away after editing the wiki.
+                            </MudText>
+                        </MudStack>
+
+                        <MudContainer>
+                            <MudText Typo=@Typo.h5>Error(s)</MudText>
+                            @if (_formattedErrorList?.Count > 0)
+                            {
+                                <MudList>
+                                    @foreach (var e in _formattedErrorList)
+                                    {
+                                        <MudListItem>@e</MudListItem>
+                                    }
+                                </MudList>
+                            }
+                            else
+                            {
+                                <MudText>None</MudText>
+                            }
+                        </MudContainer>
+
+                    </MudStack>
+                </MudCardContent>
+            </MudCard>
+        </AuthorizeView>
+    </MudContainer>
+}
 
 @code {
 
@@ -121,18 +179,20 @@ display: -webkit-box";
     private ResourceCategory _currentResourceCategory;
     private AbstractResource _currentResource;
 
+    private IReadOnlyList<string> _formattedErrorList;
+
     private ResourceCard CurrentCard => _currentResource as ResourceCard;
 
     private bool PageIsLoading => _resourceRoot is null;
     private bool ShowCards => _currentResource is ResourceLanguageRoot || _currentResource is ResourceCategory;
     private bool ArticleIsLoading => !ShowCards && string.IsNullOrEmpty(_markdownContent);
 
+    private bool _cacheIsRefreshing = false;
+
     public IEnumerable<ResourceCard> CardsToShow => _currentResourceCategory?.Cards ?? _resourceRoot.AllCards;
 
     private string _markdownContent = string.Empty;
     private string _baseUrl = "/resources";
-
-    private DHMarkdown _markdownElement;
 
     private string BuildResourceLink(AbstractResource res) => $"/resources/{res.Title}";
 
@@ -158,6 +218,19 @@ display: -webkit-box";
         return value;
     }
 
+    private async Task RefreshCache()
+    {
+        _cacheIsRefreshing = true;
+        await InvokeAsync(StateHasChanged);
+
+        await _resourcesService.RefreshCache();
+
+        await OnInitializedAsync();
+
+        _cacheIsRefreshing = false;
+        await InvokeAsync(StateHasChanged);
+    }
+
     protected override async Task OnParametersSetAsync()
     {
         _currentResource = string.IsNullOrEmpty(PageName) ?
@@ -171,6 +244,7 @@ display: -webkit-box";
         if (_currentResource == null)
         {
             _markdownContent = "Error";
+            await _resourcesService.LogNotFoundError(PageName, _resourceRoot.Title);
         }
         else if (_currentResource is ResourceCategory)
         {
@@ -184,13 +258,43 @@ display: -webkit-box";
         }
     }
 
+    private async Task<string> FormatErrorMessage(TimestampedResourceError error)
+    {
+        var timestampUtc = DateTime.SpecifyKind(error.Timestamp, DateTimeKind.Utc);
+        var localDatetime = await _timezoneService.GetLocalDateTime(timestampUtc);
+        return $"{localDatetime.ToString("yyyy-MM-dd HH:mm:ss")} - {error.Message}";
+    }
+
+    private async Task RefreshErrorList()
+    {
+        var errors = _resourcesService.GetErrorList();
+
+        _formattedErrorList = await Task.WhenAll(errors.Select(async e => await FormatErrorMessage(e)));
+
+        await InvokeAsync(StateHasChanged);
+    }
+
     protected override async Task OnInitializedAsync()
     {
         var isFrench = _cultureService.IsFrench;
 
         _resourceRoot = await _resourcesService.LoadLanguageRoot(isFrench);
 
+        await RefreshErrorList();
+
+        _resourcesService.NotifyRefreshErrors += OnNotifyRefreshErrors;
+
         await base.OnInitializedAsync();
+    }
+
+    private async Task OnNotifyRefreshErrors()
+    {
+        await RefreshErrorList();
+    }
+
+    public void Dispose()
+    {
+        _resourcesService.NotifyRefreshErrors -= OnNotifyRefreshErrors;
     }
 
 }

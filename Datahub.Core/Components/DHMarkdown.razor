@@ -3,15 +3,16 @@
 
 @if (Content != null)
 {
-    <span @ref="_elementReference" class="markdown-container">
+    <div @ref="_elementReference" @attributes=@InputAttributes>
         <MudMarkdown 
-            Value=@Content 
+            Value=@FinalContent 
             OverrideLinkUrl=@OverrideLinkUrl 
             OverrideHeaderTypo=@SubstituteHeaderTypo />
-    </span>
+    </div>
 }
 
 @code {
+    private const string MARKDOWN_CONTAINER_CLASS = "markdown-container";
 
     [Parameter]
     public string Content { get; set; }
@@ -19,10 +20,37 @@
     [Parameter]
     public Func<string, string> LinkRewriter { get; set; }
 
+    [Parameter]
+    public List<(string, string)> Substitutions { get; set; }
+
     [Parameter(CaptureUnmatchedValues = true)]
     public Dictionary<string, object> InputAttributes { get; set; }
 
     private ElementReference _elementReference;
+
+    private string _finalContent;
+    private bool _needsRefresh = true;
+
+    private string FinalContent
+    {
+        get
+        {
+            if (_needsRefresh)
+            {
+                if (Substitutions?.Count > 0)
+                {
+                    _finalContent = Substitutions.Aggregate(Content, (current, s) => current.Replace(s.Item1, s.Item2));
+                }
+                else
+                {
+                    _finalContent = Content;
+                }
+                _needsRefresh = false;
+            }
+
+            return _finalContent;
+        }
+    }
 
     private string OverrideLinkUrl(Markdig.Syntax.Inlines.LinkInline linkElement) => LinkRewriter(linkElement.Url);
 
@@ -34,6 +62,27 @@
         {
             await StyleCodeblocks();
         }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _needsRefresh = true;
+        await InvokeAsync(StateHasChanged);
+
+        if (InputAttributes == null)
+        {
+            InputAttributes = new()
+            {
+                {"class", MARKDOWN_CONTAINER_CLASS}
+            };
+        }
+        else
+        {
+            var existingClass = InputAttributes.GetValueOrDefault("class") ?? string.Empty;
+            InputAttributes["class"] = $"{MARKDOWN_CONTAINER_CLASS} {existingClass}";
+        }
+
+        await base.OnParametersSetAsync();
     }
 
     private Typo SubstituteHeaderTypo(Typo typo)
