@@ -1,22 +1,17 @@
-using System;
-using System.IO;
-using System.Linq;
 using System.Text.Json.Nodes;
-using System.Threading.Tasks;
-using System.Web.Http;
 using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Extensions.Http;
-using Microsoft.AspNetCore.Http;
+using Microsoft.Azure.Functions.Worker;
+using Microsoft.Azure.Functions.Worker.Http;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
 using Newtonsoft.Json;
 
 namespace Datahub.Functions;
 
-public static class CreateGraphUser
+public class CreateGraphUser
 {
     private const string TENANT_ID = "TENANT_ID";
     private const string CLIENT_ID = "FUNC_SP_CLIENT_ID";
@@ -24,13 +19,22 @@ public static class CreateGraphUser
     private const string SP_GROUP_ID = "SP_GROUP_ID";
 
     private const string PORTAL_URL = "PORTAL_URL";
+    
+    private readonly ILogger _logger;
+    private readonly IConfiguration _configuration;
 
-    [FunctionName("CreateGraphUser")]
-    public static async Task<IActionResult> RunAsync(
-        [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)]
-        HttpRequest req, ILogger log)
+    public CreateGraphUser(ILoggerFactory loggerFactory, IConfiguration configuration)
     {
-        log.LogInformation("C# HTTP trigger function processed a request");
+        _logger = loggerFactory.CreateLogger<CreateGraphUser>();
+        _configuration = configuration;
+    }
+    
+    [Function("CreateGraphUser")]
+    public async Task<IActionResult> RunAsync(
+        [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)]
+        HttpRequestData req)
+    {
+        _logger.LogInformation("C# HTTP trigger function processed a request");
 
         var requestBody = await new StreamReader(req.Body).ReadToEndAsync();
         dynamic data = JsonConvert.DeserializeObject(requestBody);
@@ -46,19 +50,19 @@ public static class CreateGraphUser
             bool isMockInvite = data.mockInvite == "true";
             if (isMockInvite)
             {
-                return MockInviteUser(userEmail, log);
+                return MockInviteUser(userEmail, _logger);
             }
             
-            return await InviteUser(userEmail, log);
+            return await InviteUser(userEmail, _logger);
         }
         catch (Exception e)
         {
-            log.LogError(e, "Error creating user");
-            return new InternalServerErrorResult();
+            _logger.LogError(e, "Error creating user");
+            return new BadRequestResult();
         }
     }
 
-    private static IActionResult MockInviteUser(string userEmail, ILogger log)
+    private IActionResult MockInviteUser(string userEmail, ILogger log)
     {
         log.LogInformation("*** Mocking the AD Graph invitation ***");
         
@@ -67,7 +71,7 @@ public static class CreateGraphUser
         // sanity check the service principal credentials
         var graphClient = GetGraphServiceClientFromEnvVariables();
         
-        var groupId = Environment.GetEnvironmentVariable(SP_GROUP_ID);
+        var groupId = _configuration[SP_GROUP_ID];
         
         var response = new JsonObject
         {
@@ -82,7 +86,7 @@ public static class CreateGraphUser
         return new OkObjectResult(response.ToString());
     }
 
-    private static async Task<IActionResult> InviteUser(string userEmail, ILogger log)
+    private async Task<IActionResult> InviteUser(string userEmail, ILogger log)
     {
         log.LogInformation("Creating graph service client");
         var graphClient = GetGraphServiceClientFromEnvVariables();
@@ -90,7 +94,7 @@ public static class CreateGraphUser
         log.LogInformation("Sending invitation to {UserEmail}", userEmail);
         
         var result = await SendInvitation(userEmail, graphClient);
-        var groupId = Environment.GetEnvironmentVariable(SP_GROUP_ID);
+        var groupId = _configuration[SP_GROUP_ID];
             
         log.LogInformation("Adding invited user {UserID} to group {GroupID}", result.InvitedUser.Id, groupId);
         await AddToGroup(result.InvitedUser.Id, groupId, graphClient, log);
@@ -111,7 +115,7 @@ public static class CreateGraphUser
         return new OkObjectResult(response.ToString());
     }
 
-    private static async Task AddToGroup(string userId, string groupId, GraphServiceClient graphClient, ILogger log)
+    private async Task AddToGroup(string userId, string groupId, GraphServiceClient graphClient, ILogger log)
     {
         var userDirectoryObject = new DirectoryObject
         {
@@ -132,12 +136,12 @@ public static class CreateGraphUser
         }
     }
 
-    private static async Task<Invitation> SendInvitation(string userEmail, GraphServiceClient graphClient)
+    private async Task<Invitation> SendInvitation(string userEmail, GraphServiceClient graphClient)
     {
         var invitation = new Invitation
         {
             InvitedUserEmailAddress = userEmail,
-            InviteRedirectUrl = Environment.GetEnvironmentVariable(PORTAL_URL),
+            InviteRedirectUrl = _configuration[PORTAL_URL],
             SendInvitationMessage = true
         };
 
@@ -147,13 +151,13 @@ public static class CreateGraphUser
         return result;
     }
 
-    private static GraphServiceClient GetGraphServiceClientFromEnvVariables()
+    private GraphServiceClient GetGraphServiceClientFromEnvVariables()
     {
         var scopes = new[] {"https://graph.microsoft.com/.default"};
 
-        var tenantId = Environment.GetEnvironmentVariable(TENANT_ID);
-        var clientId = Environment.GetEnvironmentVariable(CLIENT_ID);
-        var clientSecret = Environment.GetEnvironmentVariable(CLIENT_SECRET);
+        var tenantId = _configuration[TENANT_ID];
+        var clientId = _configuration[CLIENT_ID];
+        var clientSecret = _configuration[CLIENT_SECRET];
 
         var options = new TokenCredentialOptions
         {
@@ -167,11 +171,11 @@ public static class CreateGraphUser
         return graphClient;
     }
 
-    private static async Task<GraphServiceClient> GetGraphServiceClientFromAkv()
+    private async Task<GraphServiceClient> GetGraphServiceClientFromAkv()
     {
         var scopes = new[] {"https://graph.microsoft.com/.default"};
 
-        var keyVaultName = Environment.GetEnvironmentVariable("KEY_VAULT_NAME");
+        var keyVaultName = _configuration["KEY_VAULT_NAME"];
         var kvUri = "https://" + keyVaultName + ".vault.azure.net";
         var secretClient = new SecretClient(new Uri(kvUri), new DefaultAzureCredential());
 

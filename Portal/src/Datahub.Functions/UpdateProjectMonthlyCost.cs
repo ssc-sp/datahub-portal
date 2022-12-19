@@ -1,72 +1,72 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
 using System.Text.Json;
-using System.Threading.Tasks;
 using Datahub.Core.Model.Datahub;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Extensions.Http;
-using Microsoft.Extensions.Logging;
 using Datahub.Core.Services.AzureCosting;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.Functions.Worker;
+using Microsoft.Azure.Functions.Worker.Http;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+
 
 namespace Datahub.Functions;
 
 public class UpdateProjectMonthlyCost
 {
     private readonly DatahubProjectDBContext _dbContext;
+    private readonly IConfiguration _configuration;
+    private readonly ILogger<UpdateProjectMonthlyCost> _logger;
     private const string TENANT_ID = "TENANT_ID";
     private const string CLIENT_ID = "FUNC_SP_CLIENT_ID";
     private const string CLIENT_SECRET = "FUNC_SP_CLIENT_SECRET";
     private const string SUBSCRIPTION_ID = "SUBSCRIPTION_ID";
-    public UpdateProjectMonthlyCost(DatahubProjectDBContext dbContext)
+    public UpdateProjectMonthlyCost(DatahubProjectDBContext dbContext, IConfiguration configuration, ILoggerFactory loggerFactory)
     {
         _dbContext = dbContext;
+        _configuration = configuration;
+        _logger = loggerFactory.CreateLogger<UpdateProjectMonthlyCost>();
     }
     
     // This Azure Function will be triggered everyday at 2:00 AM UTC and will capture the current cost for the month using the Azure forecast API
     // The function will then store the data in a Azure SQL database
-    [FunctionName("UpdateProjectMonthlyCostScheduled")]
-    public async Task RunScheduledUpdate([TimerTrigger("0 0 2 * * *")]TimerInfo myTimer, ILogger log)
+    [Function("UpdateProjectMonthlyCostScheduled")]
+    public async Task RunScheduledUpdate([TimerTrigger("0 0 2 * * *")]MyInfo myTimer)
     {
-        await Run(log);
+        await Run();
     }
-    // Same as above but can be triggered manually
-    [FunctionName("UpdateProjectMonthlyCostHttp")]
+    
+    [Function("UpdateProjectMonthlyCostHttp")]
     public async Task<IActionResult> RunHttpUpdate([HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)]
-        HttpRequest req, ILogger log)
+        HttpRequestData req)
     {
         try
         {
 
-            var returnRecord = await RunAndReturnUpdatedProjects(log);
+            var returnRecord = await RunAndReturnUpdatedProjects();
             return new OkObjectResult(returnRecord);
         }
         catch (Exception e)
         {
             Console.WriteLine(e);
-            log.Log(LogLevel.Error, "Error updating project monthly cost");
+            _logger.Log(LogLevel.Error, "Error updating project monthly cost");
             return new BadRequestObjectResult(e.Message);
         }
     }
 
-    private async Task Run(ILogger log)
+    private async Task Run()
     {
-        await RunAndReturnUpdatedProjects(log);
+        await RunAndReturnUpdatedProjects();
 
     }
 
-    private async Task<CostReturnRecord> RunAndReturnUpdatedProjects(ILogger log)
+    private async Task<CostReturnRecord> RunAndReturnUpdatedProjects()
     {
         //Get the required environment variables
-        var subscriptionId = Environment.GetEnvironmentVariable(SUBSCRIPTION_ID);
-        var tenantId = Environment.GetEnvironmentVariable(TENANT_ID);
-        var clientId = Environment.GetEnvironmentVariable(CLIENT_ID);
-        var clientSecret = Environment.GetEnvironmentVariable(CLIENT_SECRET);
+        var subscriptionId = _configuration[SUBSCRIPTION_ID];
+        var tenantId = _configuration[TENANT_ID];
+        var clientId = _configuration[CLIENT_ID];
+        var clientSecret = _configuration[CLIENT_SECRET];
 
-        var service = new AzureCostManagementService(_dbContext, (ILogger<AzureCostManagementService>) log);
+        var service = new AzureCostManagementService(_dbContext, (ILogger<AzureCostManagementService>) _logger);
         //Acquire the access token
         var token = await GetAccessTokenAsync(tenantId, clientId, clientSecret);
         
@@ -104,3 +104,19 @@ public record CostReturnRecord
 {
     public int NumberOfProjectsUpdated { get; init; }
 };
+
+public class MyInfo
+{
+    public MyScheduleStatus ScheduleStatus { get; set; }
+
+    public bool IsPastDue { get; set; }
+}
+
+public class MyScheduleStatus
+{
+    public DateTime Last { get; set; }
+
+    public DateTime Next { get; set; }
+
+    public DateTime LastUpdated { get; set; }
+}
