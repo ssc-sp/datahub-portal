@@ -3,10 +3,10 @@
 @inject NavigationManager _navigationManager
 @inject IUserInformationService _userInformationService
 
-<h3>Login</h3>
+@*<h3>Login</h3>
 
-<MudButton @onclick="@HandleLogin">Log in</MudButton>
-
+<MudButton @onclick="@HandleLogin">Log in</MudButton>*@
+<MudProgressCircular Color="Color.Primary" Style="height:70px;width:70px;position: fixed;top: 50%;left: 50%;transform: translate(-50%, -50%);" Indeterminate="true" />
 
 @code {
     private void HandleLogin()
@@ -18,11 +18,16 @@
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        
+
         var user = await _userInformationService.GetAuthenticatedUser(true);
         if (user.Identity?.IsAuthenticated == true)
         {
             _navigationManager.NavigateTo("/");
+        }
+        else
+        {
+            var url = $"{_navigationManager.BaseUri}MicrosoftIdentity/Account/Challenge?redirectUri={_navigationManager.BaseUri}&scope=user.read%20openid%20offline_access%20profile&loginHint=&domainHint=&claims=&policy=";
+            _navigationManager.NavigateTo(url, true);
         }
     }
 
