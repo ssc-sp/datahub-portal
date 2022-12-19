@@ -1,10 +1,7 @@
-using System.Threading.Tasks;
-using System;
 using System.Text.Json;
-using System.Threading;
 using ResourceProvisioner.Application.ResourceRun.Commands.CreateResourceRun;
 using FluentValidation;
-using Microsoft.Azure.WebJobs;
+using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 
 namespace ResourceProvisioner.Functions;
@@ -18,7 +15,7 @@ public class ResourceRunRequest
         _commandHandler = commandHandler;
     }
     
-    [FunctionName("ResourceRunRequest")]
+    [Function("ResourceRunRequest")]
     public async Task RunAsync([QueueTrigger("resource-run-request", Connection = "ResourceRunRequestConnectionString")] string myQueueItem, ILogger log)
     {
         log.LogInformation("C# Queue trigger function started");
