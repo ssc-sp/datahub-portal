@@ -142,9 +142,4 @@ public class OfflineUserInformationService : IUserInformationService
     {
         return Task.FromResult(false);
     }
-
-    public Task<bool> IsUserProjectMember(string projectAcronym)
-    {
-        return Task.FromResult(false);
-    }
 }
