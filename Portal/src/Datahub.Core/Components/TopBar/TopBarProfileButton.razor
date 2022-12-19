@@ -1,0 +1,92 @@
+@inject IUserInformationService _userInformationService
+@inject MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
+@inject UIControlsService _uiControlsService
+
+
+@using Microsoft.Identity.Web
+@using MudBlazor.Utilities
+@using Datahub.Core.Components.Common
+
+<AuthorizeView>
+    <span>
+        <MudButton Class="ml-2" OnClick="@ToggleProfile">
+            <MudText>@_user?.DisplayName</MudText>
+            <ProfileCircle FullName="@_user?.DisplayName" style="margin-left: 1rem"/>
+            <MudIcon Icon="@Icons.Filled.ArrowDropDown"/>
+        </MudButton>
+        
+        <MudPopover
+            Style="@_style"
+            Open="_showProfile"
+            AnchorOrigin="Origin.BottomRight"
+            TransformOrigin="Origin.TopRight">
+            
+            <MudCard Elevation="0" Class="py-4 px-6">
+                <MudCardHeader>
+                    <CardHeaderAvatar>
+                        <ProfileCircle FullName="@_user?.DisplayName"/>
+                    </CardHeaderAvatar>
+                    <CardHeaderContent>
+                        <MudText>@_user?.DisplayName</MudText>
+                        <MudText Typo="Typo.body2">@_user?.UserPrincipalName</MudText>
+                    </CardHeaderContent>
+                    <CardHeaderActions>
+                        <MudIconButton Icon="@Icons.Filled.Close" OnClick="@ToggleProfile" />
+                    </CardHeaderActions>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudStack>
+                        <MudLink Href="/profile">@Localizer["View your profile"]</MudLink>
+                        <GuestModeToggler />
+                    </MudStack>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudStack Row Class="flex-grow-1" Justify="Justify.SpaceBetween">
+                        <MudButton Variant="Variant.Text">
+                            <LanguageToggle />
+                        </MudButton>
+                        <MudButton Href="MicrosoftIdentity/Account/SignOut" Variant="Variant.Text">
+                            @Localizer["Sign Out"]
+                        </MudButton>
+                    </MudStack>
+                </MudCardActions>
+            </MudCard>
+        </MudPopover>
+    </span>
+</AuthorizeView>
+
+@code {
+
+    private Microsoft.Graph.User _user;
+    //private string _maxAllocatedSpace = "10TB";
+
+    private bool _showProfile = false;
+    private string _style;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        _style = new StyleBuilder()
+            .AddStyle("width", "600px")
+            .Build();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _user = await _userInformationService.GetCurrentGraphUserAsync();
+        }
+        catch (Exception ex)
+        {
+            _consentHandler.HandleException(ex);
+        }
+    }
+
+    private void ToggleProfile()
+    {
+        _showProfile = !_showProfile;
+    }
+
+}

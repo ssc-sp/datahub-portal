@@ -1,0 +1,19 @@
+{
+  "CultureSettings": {
+    "Default": "en-CA",
+    "SupportedCultures": "fr-CA|en-CA"
+  },
+  "Contact": {
+    "Name": "DataHub",
+    "Email": "datahub@nrcan-rncan.gc.ca"
+  },
+  "LandingBgFolder": "nrcan",
+  "LandingBgImgCount": 12,
+  "Title": "NRCan Datahub",
+  "DataHubModules": "*",
+  "ProjectCreationQueue": {
+    "ConnectionString": "",
+    "Name": ""
+  }
+      
+}

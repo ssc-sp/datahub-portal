@@ -1,0 +1,23 @@
+{
+    "Logging": {
+        "LogLevel": {
+            "Default": "Debug",
+            "System": "Information",
+            "Microsoft": "Information"
+        }
+    },
+    "AzureAd": {
+        "Instance": "/",
+        "Domain": "",
+        "TenantId": "",
+        "ClientId": "",
+        "ClientSecret": "",
+        "CallbackPath": "",
+        "SignedOutCallbackPath ": "",
+        "AppIDURL": ""
+    },    
+    "ProjectCreationQueue": {
+        "ConnectionString": "",
+        "Name": ""
+    }
+}
