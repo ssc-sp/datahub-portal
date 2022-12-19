@@ -111,7 +111,7 @@ public class Startup
 
         services.AddRazorPages()
             .AddMicrosoftIdentityUI();
-        
+
         services.AddServerSideBlazor()
             .AddCircuitOptions(o =>
             {
@@ -347,24 +347,24 @@ public class Startup
             services.AddScoped<DataRetrievalService>();
             services.AddScoped<IDataRemovalService, DataRemovalService>();
 
-                services.AddScoped<IAzurePriceListService, AzurePriceListService>();
-                services.AddScoped<IPublicDataFileService, PublicDataFileService>();
+            services.AddScoped<IAzurePriceListService, AzurePriceListService>();
+            services.AddScoped<IPublicDataFileService, PublicDataFileService>();
 
             services.AddScoped<PowerBiServiceApi>();
             services.AddScoped<IPowerBiDataService, PowerBiDataService>();
 
-                services.AddScoped<RegistrationService>();
-                
-                services.AddScoped<UpdateProjectMonthlyCostService>();
-                services.AddScoped<IProjectCreationService, ProjectCreationService>();
+            services.AddScoped<RegistrationService>();
 
-            }
-            else
-            {
-                services.AddSingleton<IKeyVaultService, OfflineKeyVaultService>();
-                services.AddScoped<UserLocationManagerService>();
-                services.AddSingleton<CommonAzureServices>();
-                //services.AddScoped<DataLakeClientService>();
+            services.AddScoped<UpdateProjectMonthlyCostService>();
+            services.AddScoped<IProjectCreationService, ProjectCreationService>();
+
+        }
+        else
+        {
+            services.AddSingleton<IKeyVaultService, OfflineKeyVaultService>();
+            services.AddScoped<UserLocationManagerService>();
+            services.AddSingleton<CommonAzureServices>();
+            //services.AddScoped<DataLakeClientService>();
 
             services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
             services.AddScoped<IUserInformationService, OfflineUserInformationService>();
@@ -379,7 +379,7 @@ public class Startup
             services.AddScoped<IDataRemovalService, OfflineDataRemovalService>();
             services.AddScoped<IAzurePriceListService, OfflineAzurePriceListService>();
         }
-        services.AddSingleton<IProjectCreationService, ProjectCreationService>();
+        services.AddScoped<IProjectCreationService, ProjectCreationService>();
         services.AddSingleton<RequestQueueService>();
 
 
