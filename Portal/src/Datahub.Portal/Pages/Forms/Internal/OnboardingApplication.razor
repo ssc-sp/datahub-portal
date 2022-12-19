@@ -18,35 +18,34 @@
 
 @if (_isLoaded)
 {
-<Datahub.Core.Components.FormTemplate 
-        T="OnboardingApp" 
-        U="DatahubProjectDBContext"
-        Context="Context"
-        Metadata="@_formMetadata" 
-        HandleSubmit="HandleValidSubmit"
-        OnChangeForms="OnChange"
-        OnConfigureForms="OnConfigure"
-        CreateNewRecord="CreateNewApplication"
-        SelectedRecord="@_onboardingApplication"
-        SetFormEditRecord="SetFormEdit"
-        FormFilterBarOptions="@_filterBarOptions"
-        FilterBarCheckChange="HandleFilterBarCheckChange" />
+    <Datahub.Core.Components.FormTemplate T="OnboardingApp"
+                                          U="DatahubProjectDBContext"
+                                          Context="Context"
+                                          Metadata="@_formMetadata"
+                                          HandleSubmit="HandleValidSubmit"
+                                          OnChangeForms="OnChange"
+                                          OnConfigureForms="OnConfigure"
+                                          CreateNewRecord="CreateNewApplication"
+                                          SelectedRecord="@_onboardingApplication"
+                                          SetFormEditRecord="SetFormEdit"
+                                          FormFilterBarOptions="@_filterBarOptions"
+                                          FilterBarCheckChange="HandleFilterBarCheckChange" />
 
-        @if (_isUserAdmin && _onboardingApplication != null)
-        {
-            <AeCard class="facardForms" CardPosition="AeCard.CardStyle.Horizontal">
-                <AeTypography Variant="h2">@Localizer["Create Initiative"]</AeTypography>
-                <AeTypography Variant="p"><b>@Localizer["Initiative Acronym"]</b></AeTypography>
-                <AeInput class="formuserinput"  @onchange="@SetProjectAcronym"></AeInput>
-                <AeFlex id="buttonBar">
-                    <div class="icon-container" style="margin-top: 5px;">
-                        <FAButton Text="@_addButton" Icon="far fa-plus-square" onclick="CreateNewProject" />
-                        <SuccessIndicator @bind-IsLoading=@_submittingApproval @ref=@_submitApprovalInd />
-                    </div>
-                </AeFlex>
-            </AeCard>
-        }
-  
+    @if (_isUserAdmin && _onboardingApplication != null)
+    {
+        <AeCard class="facardForms" CardPosition="AeCard.CardStyle.Horizontal">
+            <AeTypography Variant="h2">@Localizer["Create Initiative"]</AeTypography>
+            <AeTypography Variant="p"><b>@Localizer["Initiative Acronym"]</b></AeTypography>
+            <AeInput class="formuserinput" @onchange="@SetProjectAcronym"></AeInput>
+            <AeFlex id="buttonBar">
+                <div class="icon-container" style="margin-top: 5px;">
+                    <FAButton Text="@_addButton" Icon="far fa-plus-square" onclick="CreateNewProject" />
+                    <SuccessIndicator @bind-IsLoading=@_submittingApproval @ref=@_submitApprovalInd />
+                </div>
+            </AeFlex>
+        </AeCard>
+    }
+
 }
 
 @code {
@@ -69,8 +68,8 @@
     private bool _isLoaded;
     private string _addButton = "Create";
 
-    private List<OrganizationLevel> _sectors = new(); 
-    private List<OrganizationLevel> _branches = new(); 
+    private List<OrganizationLevel> _sectors = new();
+    private List<OrganizationLevel> _branches = new();
     private List<OrganizationLevel> _divisions = new();
 
     private int _sectorId = -1;
@@ -133,7 +132,7 @@
         _formMetadata.MarkDownContentFooter = new List<string>();
 
         if (New)
-            CreateNewApplication();    
+            CreateNewApplication();
 
         _isLoaded = true;
         StateHasChanged();
@@ -156,7 +155,7 @@
             {
                 Localizer[$"The program acronym already exists, enter a different one."]
             };
-            await UI.ToggleModal(@<WarningModal OnDecision="HandleWarningDecision" WarningTextString=@textList/>);
+            await UI.ToggleModal(@<WarningModal OnDecision="HandleWarningDecision" WarningTextString=@textList />);
         }
         else
         {
@@ -188,8 +187,7 @@
             project.Project_Category = _onboardingApplication.Project_Engagement_Category;
             project.OnboardingApplicationId = _onboardingApplication.Application_ID;
             project.Data_Sensitivity = _onboardingApplication.Data_Security_Level ?? "Unclassified";
-            //project.Project_Status_Desc = "Ongoing";
-            project.Project_Status = 1;
+            project.Project_Status_Desc = "Ongoing";
             project.Initial_Meeting_DT = DateTime.Now;
             project.Last_Contact_DT = DateTime.Now;
 
@@ -199,7 +197,7 @@
 
             var result = await Context.TrackSaveChangesAsync(AuditingService);
             if (result < 1)
-            {   
+            {
                 await _submitApprovalInd.SignalFailure();
             }
             else
@@ -207,11 +205,11 @@
                 await _submitApprovalInd.SignalSuccess();
 
                 OnboardingParameters onboardingParameters = new()
-                {
-                    AppUrl = $"/initiatives/validate/{_newProjectAcronym}",
-                    App = _onboardingApplication,
-                    AdminEmailAddresses = ServiceAuthManager.GetProjectMailboxEmails(PROJECTACRONYM)
-                };
+                    {
+                        AppUrl = $"/initiatives/validate/{_newProjectAcronym}",
+                        App = _onboardingApplication,
+                        AdminEmailAddresses = ServiceAuthManager.GetProjectMailboxEmails(PROJECTACRONYM)
+                    };
 
                 await EmailService.SendOnboardingMetadataEditRequest(onboardingParameters);
 
@@ -258,7 +256,7 @@
 
     private List<string> headers => new List<string>
     {
-        Localizer["Sector"], Localizer["Branch"], Localizer["Division"], Localizer["Contact"], Localizer["Created Date"]        
+        Localizer["Sector"], Localizer["Branch"], Localizer["Division"], Localizer["Contact"], Localizer["Created Date"]
     };
 
     private async Task HandleValidSubmit()
@@ -273,12 +271,12 @@
 
             await Context.TrackSaveChangesAsync(AuditingService);
 
-            OnboardingParameters onboardingParameters = new() 
-            { 
-                AppUrl = $"/onboarding/applications/{_onboardingApplication.Application_ID}",
-                App = _onboardingApplication, 
-                AdminEmailAddresses =  ServiceAuthManager.GetProjectMailboxEmails(PROJECTACRONYM)
-            };
+            OnboardingParameters onboardingParameters = new()
+                {
+                    AppUrl = $"/onboarding/applications/{_onboardingApplication.Application_ID}",
+                    App = _onboardingApplication,
+                    AdminEmailAddresses = ServiceAuthManager.GetProjectMailboxEmails(PROJECTACRONYM)
+                };
 
             await EmailService.SendOnboardingConfirmations(onboardingParameters, _onboardingApplication.NotificationsSent);
 
@@ -295,11 +293,11 @@
 
         if (_filterBarOptions.IsChecked)
         {
-            _onboardingApplications = _onboardingApplications.Where(d => d.ProjectCreatedDate == null).ToList() ;
+            _onboardingApplications = _onboardingApplications.Where(d => d.ProjectCreatedDate == null).ToList();
         }
 
         _formMetadata.DataSet = _onboardingApplications;
-        
+
         if (!string.IsNullOrEmpty(AppId))
         {
             _onboardingApplication = Context.OnboardingApps.Where(a => a.Application_ID == Convert.ToInt32(AppId)).FirstOrDefault();
@@ -314,7 +312,7 @@
     {
         if (!_onchange)
         {
-            context.RegisterOptionValueProperty<OnboardingApp>(p => p.Client_Sector, () => Sectors, s => 
+            context.RegisterOptionValueProperty<OnboardingApp>(p => p.Client_Sector, () => Sectors, s =>
             {
                 var id = GetChoiceId(_sectors, s);
                 if (_sectorId != id)
@@ -324,7 +322,7 @@
                 }
             });
 
-            context.RegisterOptionValueProperty<OnboardingApp>(p => p.Client_Branch, () => Branches, s => 
+            context.RegisterOptionValueProperty<OnboardingApp>(p => p.Client_Branch, () => Branches, s =>
             {
                 var id = GetChoiceId(_branches, s, _sectorId);
                 if (_branchId != id)
@@ -334,7 +332,7 @@
                 }
             });
 
-            context.RegisterOptionValueProperty<OnboardingApp>(p => p.Client_Division, () => Divisions, s => 
+            context.RegisterOptionValueProperty<OnboardingApp>(p => p.Client_Division, () => Divisions, s =>
             {
                 _divisionId = GetChoiceId(_divisions, s, _branchId);
             });
@@ -389,7 +387,7 @@
         _sectorId = GetChoiceId(_sectors, _onboardingApplication.Client_Sector);
         _branchId = GetChoiceId(_branches, _onboardingApplication.Client_Branch, _sectorId);
         _divisionId = GetChoiceId(_divisions, _onboardingApplication.Client_Division, _branchId);
-        
+
         StateHasChanged();
     }
 

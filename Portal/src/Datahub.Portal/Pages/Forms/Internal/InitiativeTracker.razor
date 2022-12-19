@@ -20,17 +20,17 @@
 @page "/datahub/initiatives"
 
 <Datahub.Core.Components.Form.MudFormTemplate T="Datahub_Project"
-                                         U="DatahubProjectDBContext"
-                                         Metadata="@_formMetadata"
-                                         HandleSubmit="HandleValidSubmit"
-                                         OnConfigureForms="OnConfigure"
-                                         OnChangeForms="OnChange"
-                                         CreateNewRecord="CreateNewProject"
-                                         SelectedRecord="@_project"
-                                         SetFormEditRecord="SetFormEdit"
-                                         HandleFilterChange="HandleFilterChange"
-                                         SortAccessors="@_sortAccessors"
-                                         Context=@Context />
+                                              U="DatahubProjectDBContext"
+                                              Metadata="@_formMetadata"
+                                              HandleSubmit="HandleValidSubmit"
+                                              OnConfigureForms="OnConfigure"
+                                              OnChangeForms="OnChange"
+                                              CreateNewRecord="CreateNewProject"
+                                              SelectedRecord="@_project"
+                                              SetFormEditRecord="SetFormEdit"
+                                              HandleFilterChange="HandleFilterChange"
+                                              SortAccessors="@_sortAccessors"
+                                              Context=@Context />
 
 
 @code {
@@ -61,14 +61,14 @@
         _isFrench = CultureInfo.CurrentCulture.Name.StartsWith("fr", StringComparison.InvariantCulture);
 
 
-        // load projects        
+        // load projects
         Context = DbFactory.CreateDbContext();
         LoadSortExpressions();
         _headers = new List<string>
         {
             DataLocalizer["Status"],
-            DataLocalizer["Sector"], 
-            DataLocalizer["Project"], 
+            DataLocalizer["Sector"],
+            DataLocalizer["Project"],
             DataLocalizer["Name"],
             DataLocalizer["Last Contact"],
             DataLocalizer["Contacts"],
@@ -90,10 +90,6 @@
     private void LoadData(string searchfilter)
     {
         _projects = Context.Projects.Include(f => f.Sector).Include(f => f.Branch).Include(f => f.Division).Include(r => r.Comments).ToList();
-
-        //SET Non-db Dropdowns
-        _projects.ForEach(c => { if (c.Project_Status != null) { c.Project_Status_Values = Project_Constants.Project_Status.Where(p => p.Id == c.Project_Status.GetValueOrDefault()).SingleOrDefault(); } });
-
 
         var projects = _projects;
         if (!string.IsNullOrWhiteSpace(searchfilter))
@@ -129,9 +125,9 @@
         _formMetadata.DataSet = new();
         _formMetadata.TabbedDataSets = _tabbedProjects;
         _formMetadata.AccessorFunctions = accessorFunctions;
-        _formMetadata.RenderFunctions = renderFunctions;        
-        _formMetadata.Headers = _headers;;
-        _formMetadata.AllowSearch = true;        
+        _formMetadata.RenderFunctions = renderFunctions;
+        _formMetadata.Headers = _headers; ;
+        _formMetadata.AllowSearch = true;
         _formMetadata.IsSubmitEnabled = true;
         _formMetadata.IsAddEnabled = true;
         _formMetadata.FormButtons = GetFormButtons();
@@ -150,7 +146,7 @@
 
 
     private List<Func<Datahub_Project, string>> accessorFunctions = new List<Func<Datahub_Project, string>>
-    {        
+    {
         new Func<Datahub_Project, string>(p => { return p.GetProjectStatus() ?? "N/A"; }),
         new Func<Datahub_Project, string>(p => { return p.Sector?.Full_Acronym_E ?? "N/A"; }),
         new Func<Datahub_Project, string>(p => { return p.Project_Acronym_CD ?? "N/A"; }),
@@ -182,8 +178,8 @@
         return buttons;
     }
 
-     
-        
+
+
 
     private RenderFragment GetCommentIcon(Datahub_Project p)
     {
@@ -197,7 +193,7 @@
     }
 
     private async Task OpenComments(Datahub_Project p)
-    { 
+    {
         var parameters = new DialogParameters();
         parameters.Add("Project", p);
         parameters.Add("Context", Context);
@@ -206,7 +202,7 @@
         var result = await dialog.Result;
 
         if (!result.Cancelled)
-        { 
+        {
             LoadData(_searchFilter);
         }
     }
@@ -273,9 +269,8 @@
                 _project = Context.Projects.Add(_project).Entity;
             }
             _project.Last_Updated_DT = DateTime.Now;
-            _project.Project_Status = _project.Project_Status_Values?.Id ?? null;
             await Context.SaveChangesAsync();
-            LoadData(_searchFilter); 
+            LoadData(_searchFilter);
             _project = null;
         }
 
@@ -290,7 +285,7 @@
         context.RegisterOptionValueProperty<Datahub_Project, Organization_Level>(l => l.Sector, p => p?.Org_Name_E ?? "N/A", () => GetSectors(), s => RefreshBranches(s, context));
         context.RegisterOptionValueProperty<Datahub_Project, Organization_Level>(l => l.Branch, p => p?.Org_Name_E ?? "N/A", () => GetBranches(), s => RefreshDivisions(s, context));
         context.RegisterOptionValueProperty<Datahub_Project, Organization_Level>(l => l.Division, p => p?.Org_Name_E ?? "N/A", () => GetDivisions());
-        context.RegisterOptionValueProperty<Datahub_Project, DropDownContainer>(l => l.Project_Status_Values, p => p?.EnglishText ?? "-", () => Project_Constants.Project_Status);
+
         //context.RegisterFieldNotes<FundCenter>(f => f.AttritionRate, @"Identify the attrition % for your division. This % will be applied to all forecasted salaries on the SFT Forecast page. Attrition represents an estimated percentage of salary costs currently forecasted that will likely not materialize due to unplanned vacancies (the gap between unplanned departure and replacement of an employee).");
     }
 
@@ -311,14 +306,14 @@
     }
 
     private List<Organization_Level> GetBranches()
-    {        
-        RefreshBranches(_project.Sector, null);        
+    {
+        RefreshBranches(_project.Sector, null);
         return _branches;
     }
 
     private List<Organization_Level> GetDivisions()
     {
-        RefreshDivisions(_project.Branch, null);        
+        RefreshDivisions(_project.Branch, null);
         return _divisions;
     }
 
