@@ -13,23 +13,22 @@
 
 @using Datahub.Core.Model.Onboarding
 @using System.Text
-@using Datahub.Core.Model.Datahub
-@using Datahub.Core.Services.Notification
+@using Datahub.Core.Services.Notification;
 
 @if (_isLoaded)
 {
     <Datahub.Core.Components.FormTemplate T="OnboardingApp"
-                                          U="DatahubProjectDBContext"
-                                          Context="Context"
-                                          Metadata="@_formMetadata"
-                                          HandleSubmit="HandleValidSubmit"
-                                          OnChangeForms="OnChange"
-                                          OnConfigureForms="OnConfigure"
-                                          CreateNewRecord="CreateNewApplication"
-                                          SelectedRecord="@_onboardingApplication"
-                                          SetFormEditRecord="SetFormEdit"
-                                          FormFilterBarOptions="@_filterBarOptions"
-                                          FilterBarCheckChange="HandleFilterBarCheckChange" />
+                                      U="DatahubProjectDBContext"
+                                      Context="Context"
+                                      Metadata="@_formMetadata"
+                                      HandleSubmit="HandleValidSubmit"
+                                      OnChangeForms="OnChange"
+                                      OnConfigureForms="OnConfigure"
+                                      CreateNewRecord="CreateNewApplication"
+                                      SelectedRecord="@_onboardingApplication"
+                                      SetFormEditRecord="SetFormEdit"
+                                      FormFilterBarOptions="@_filterBarOptions"
+                                      FilterBarCheckChange="HandleFilterBarCheckChange" />
 
     @if (_isUserAdmin && _onboardingApplication != null)
     {
@@ -187,7 +186,8 @@
             project.Project_Category = _onboardingApplication.Project_Engagement_Category;
             project.OnboardingApplicationId = _onboardingApplication.Application_ID;
             project.Data_Sensitivity = _onboardingApplication.Data_Security_Level ?? "Unclassified";
-            project.Project_Status_Desc = "Ongoing";
+            //project.Project_Status_Desc = "Ongoing";
+            project.Project_Status = 1;
             project.Initial_Meeting_DT = DateTime.Now;
             project.Last_Contact_DT = DateTime.Now;
 
