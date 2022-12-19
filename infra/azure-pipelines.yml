@@ -37,7 +37,7 @@ steps:
   displayName: dotnet restore function
   inputs:
     command: restore
-    projects: 'Portal/src/Datahub.Graph.Functions/*.csproj'
+    projects: 'Portal/src/Datahub.Functions/*.csproj'
     includeNuGetOrg: true
 
 - task: DotNetCoreCLI@2
@@ -45,7 +45,7 @@ steps:
   inputs:
     command: publish
     publishWebProjects: false
-    projects: 'Portal/src/Datahub.Graph.Functions/*.csproj'
+    projects: 'Portal/src/Datahub.Functions/*.csproj'
     zipAfterPublish: true
 
 - task: PowerShell@2
