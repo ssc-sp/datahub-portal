@@ -27,7 +27,6 @@ public interface IUserInformationService
     Task<ClaimsPrincipal> GetAuthenticatedUser(bool forceReload = false);
     Task<bool> IsUserProjectAdmin(string projectAcronym);
     Task<bool> IsUserDatahubAdmin();
-    Task<bool> IsUserProjectMember(string projectAcronym);
 
 }
 
