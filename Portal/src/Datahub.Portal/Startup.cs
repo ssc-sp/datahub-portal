@@ -294,7 +294,7 @@ public class Startup
     {
         var cultureSection = Configuration.GetSection("CultureSettings");
         var trackTranslations = cultureSection.GetValue<bool>("TrackTranslations", false);
-        var defaultCulture = cultureSection.GetValue<string>("Default");
+        var defaultCulture = cultureSection.GetValue<string>("Default","en-ca");
         var supportedCultures = cultureSection.GetValue<string>("SupportedCultures");
         var supportedCultureInfos = new HashSet<CultureInfo>(ParseCultures(supportedCultures));
 
