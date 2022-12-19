@@ -354,14 +354,30 @@ public class UserInformationService : IUserInformationService
         return Task.CompletedTask;
     }
 
+    private async Task<bool> IsUserInDataHubAdminRole()
+    {
+        if ((await IsViewingAsGuest()) || isViewingAsVisitor)
+            return false;
+        return await IsUserDatahubAdmin();
+    }
+
     public async Task<bool> IsUserProjectAdmin(string projectAcronym)
     {
+        if (await IsUserInDataHubAdminRole())
+            return true;
         return (await GetAuthenticatedUser()).IsInRole($"{projectAcronym}-admin");
     }
 
     public async Task<bool> IsUserDatahubAdmin()
     {
         return (await GetAuthenticatedUser()).IsInRole(RoleConstants.DATAHUB_ROLE_ADMIN);
+    }
+
+    public async Task<bool> IsUserProjectMember(string projectAcronym)
+    {
+        if (await IsUserInDataHubAdminRole())
+            return true;
+        return (await GetAuthenticatedUser()).IsInRole($"{projectAcronym}-admin");
     }
 
     //IsDataHubAdmin = ;

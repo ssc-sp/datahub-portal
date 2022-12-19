@@ -73,6 +73,5 @@ public abstract class DHURLResource : IProjectResource
                     { nameof(InactiveResource.ResourceRequested),IsServiceRequested  },
                     { nameof(InactiveResource.Project), Project },
                     { nameof(InactiveResource.ResourceType), ComponentType.Name.ToLowerInvariant() },
-                };
-    }
+                };    
 }

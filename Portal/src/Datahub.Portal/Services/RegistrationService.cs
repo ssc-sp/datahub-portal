@@ -230,7 +230,7 @@ public class RegistrationService
             Project_Admin = registrationRequest.Email,
             
             Databricks_URL = DEFAULT_DATABRICKS_URL,
-            Project_Status = 1,            
+            Project_Status_Desc = DEFAULT_PROJECT_STATUS,
         };  
         
         await db.Projects.AddAsync(project);
