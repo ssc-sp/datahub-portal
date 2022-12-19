@@ -1,0 +1,11 @@
+@using Datahub.Core.Theme
+@inherits LayoutComponentBase
+
+@attribute [AllowAnonymous]
+
+<MudThemeProvider Theme="@DatahubTheme.DEFAULT_THEME"/>
+<MudDialogProvider/>
+<MudSnackbarProvider/>
+
+
+@Body

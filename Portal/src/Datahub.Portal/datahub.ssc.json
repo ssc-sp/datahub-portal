@@ -1,0 +1,20 @@
+{
+  "WikiURL": "https://raw.githubusercontent.com/wiki/ssc-sp/datahub-portal/",
+  "GlobalSearch": "disabled",
+  "DataCatalog": "disabled",
+  "PortalRunAsManagedIdentity": "disabled",
+  "ProjectTools": {
+    "IoT": false,
+    "DataManagement": true
+  },
+  "WikiPageTitles": {
+    "AzCopyStorageAccess": {
+      "en": "English/Use-AzCopy-to-Interact-with-Azure-Storage-Account",
+      "fr": "Francais/Use-AzCopy-to-Interact-with-Azure-Storage-Account"
+    },
+    "DatabricksStorageAccess": {
+      "en": "English/Access-your-storage-account-in-Databricks",
+      "fr": "Francais/Access-your-storage-account-in-Databricks"
+    }
+  }
+}

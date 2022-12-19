@@ -1,0 +1,112 @@
+# Build the app and modules
+name: 'Known during build'
+
+parameters:
+- name: version_number
+  displayName: 'Version Number (e.g. 1.0)'
+  type: string
+  default: '1.0'
+- name: add_tag
+  displayName: 'Add build tag to repo'
+  type: boolean
+  default: true
+- name: target_os
+  displayName: 'Target architecture'
+  type: string
+  default: 'win-x64' 
+  values:
+  - win-x64
+  - linux-x64
+
+variables:
+  solution: '**/Datahub.sln'
+  buildPlatform: 'Any CPU'
+  buildConfiguration: 'Release'
+  version.MajorMinor: ${{ parameters.version_number }}
+  version.Revision: $[counter(variables['version.MajorMinor'], 0)]
+  versionNumber: '$(version.MajorMinor).$(version.Revision)'
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+- checkout: self
+  clean: true
+  persistCredentials: true
+
+- task: PowerShell@2
+  displayName: Set build name (i.e. the Build.BuildNumber)
+  inputs:
+    targetType: 'inline'
+    script: |
+      [string] $dateCode = (Get-Date -Format 'yyyyMMdd')
+      [string] $buildName = "$(versionNumber)_$dateCode"
+      Write-Host "Setting the name of the build to '$buildName'."
+      Write-Host "##vso[build.updatebuildnumber]$buildName"
+
+- task: UseDotNet@2
+  displayName: 'Install .NET Core SDK'
+  inputs:
+    version: 7.0.x
+    performMultiLevelLookup: true
+    includePreviewVersions: true # Required for preview versions
+    
+- task: NodeTool@0
+  displayName: 'install node'
+  inputs:
+    versionSpec: '15.11.0'
+    
+- task: PowerShell@2
+  inputs:
+    targetType: 'inline'
+    script: |
+      cd Portal/src
+      $files=Get-Childitem -Path Datahub.Portal -Include appsettings*json-tmpl,launch*json-tmpl -File -Recurse -ErrorAction SilentlyContinue  | Where {$_.FullName -notlike "*\Debug\*"}
+      foreach ($file in $files){
+        $fileRendered=$file.FullName.trim("-tmpl")
+        Write-Host "Processing file: ${file} > $fileRendered"
+        Copy-Item $file.FullName -Force -Destination $fileRendered
+      }
+      cd Datahub.Portal; mv appsettings.Development.json appsettings.dev.json; Move-Item -Force appsettings.json-tmpl-spdatahub appsettings.json
+    
+- task: DotNetCoreCLI@2
+  displayName: 'publish portal app'
+  inputs:
+    command: 'publish'
+    projects: 'Portal/src/Datahub.Portal/*.csproj'
+    arguments: ' -o $(Build.ArtifactStagingDirectory)/output/portal -r ${{ parameters.target_os }} --self-contained true'
+    zipAfterPublish: true
+
+- task: DotNetCoreCLI@2
+  displayName: 'publish function app'
+  inputs:
+    command: 'publish'
+    projects: 'Portal/src/Datahub.Functions/*.csproj'
+    publishWebProjects: false
+    arguments: ' -o $(Build.ArtifactStagingDirectory)/output/function -r ${{ parameters.target_os }} --self-contained true'
+    zipAfterPublish: true
+
+- task: PublishBuildArtifacts@1
+  displayName: 'publish artifact - portal'
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)/output/portal'
+    ArtifactName: 'datahub-portal'
+    publishLocation: 'Container'
+
+- task: PublishBuildArtifacts@1
+  displayName: 'publish artifact - function'
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)/output/function'
+    ArtifactName: 'datahub-function'
+    publishLocation: 'Container'
+
+- task: PowerShell@2
+  condition: ${{ parameters.add_tag }}
+  displayName: 'Add tag to repo'
+  inputs:
+    targetType: 'inline'
+    script: |
+      git config --global user.name "AzureDevOps Agent"
+      git tag "$(versionNumber)" --force
+      git push origin "$(versionNumber)" --force
+      Write-Output "Tagging $(Build.Repository.Name) with $(versionNumber)"
