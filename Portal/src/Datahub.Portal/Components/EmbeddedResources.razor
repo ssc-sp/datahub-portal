@@ -1,0 +1,82 @@
+﻿@using Datahub.Core.Services.Resources
+@inject IResourcesService _resourcesService
+@inject CultureService _cultureService
+@inject NavigationManager _navManager
+
+
+<MudCard>
+    <MudCardContent>
+        @if (ArticleIsLoading)
+        {
+            <MudProgressCircular Indeterminate/>
+        }
+        else
+        {
+            <DHMarkdown Substitutions=@Substitutions
+                        Content=@_markdownContent
+                        LinkRewriter="@RewriteLink" />
+        }
+    </MudCardContent>
+</MudCard>
+
+@code {
+
+    [Parameter]
+    public string PageNameEn { get; set; }
+
+    [Parameter]
+    public string PageNameFr { get; set; }
+
+    [Parameter]
+    public List<(string, string)> Substitutions { get; set; }
+
+    private string _baseUrl = "/resources";
+
+    private bool _isFrench;
+    private ResourceLanguageRoot _languageRoot;
+
+    private string _markdownContent = string.Empty;
+
+    private bool ArticleIsLoading => string.IsNullOrEmpty(_markdownContent);
+
+    protected override async Task OnInitializedAsync()
+    {
+        _isFrench = _cultureService.IsFrench;
+        _languageRoot = await _resourcesService.LoadLanguageRoot(_isFrench);
+        await base.OnInitializedAsync();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var pageName = _isFrench ? PageNameFr : PageNameEn;
+
+        if (string.IsNullOrEmpty(pageName))
+        {
+            var url = _navManager.Uri;
+            await _resourcesService.LogNoArticleSpecifiedError(url, _languageRoot.Title);
+            _markdownContent = Localizer["N/A"];
+            return;
+        }
+
+        var card = _languageRoot[pageName] as ResourceCard;
+
+        if (card == null)
+        {
+            await _resourcesService.LogNotFoundError(pageName, _languageRoot.Title);
+            _markdownContent = Localizer["N/A"];
+            return;
+        }
+
+        _markdownContent = await _resourcesService.LoadResourcePage(card);
+
+        await base.OnParametersSetAsync();
+    }
+
+    private string RewriteLink(string link)
+    {
+        if (link.StartsWith("http"))
+            return link;
+        return _baseUrl + "/" + System.Web.HttpUtility.UrlEncode(link);
+    }
+
+}
