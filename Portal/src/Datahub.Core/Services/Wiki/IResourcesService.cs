@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using Datahub.Core.Services.Wiki;
+using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
-
-namespace Datahub.Core.Services.Wiki;
 
 public interface IResourcesService
 {
@@ -9,6 +9,11 @@ public interface IResourcesService
     Task<ResourceLanguageRoot> LoadLanguageRoot(bool isFrench);
     Task<string> LoadResourcePage(ResourceCard card);
     string GetEditUrl(ResourceCard card);
-
-    Task Test();
+    Task RefreshCache();
+    IReadOnlyList<TimestampedResourceError> GetErrorList();
+    Task LogNotFoundError(string pageName, string resourceRoot);
+    Task LogNoArticleSpecifiedError(string url, string resourceRoot);
+    event Func<Task> NotifyRefreshErrors;
 }
+
+public record TimestampedResourceError(DateTime Timestamp, string Message);
