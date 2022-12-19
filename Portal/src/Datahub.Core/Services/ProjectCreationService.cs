@@ -81,19 +81,22 @@ public class ProjectCreationService : IProjectCreationService
                 acronym ??= await GenerateProjectAcronymAsync(projectName);
                 var sectorName = GovernmentDepartment.Departments.TryGetValue(organization, out var sector) ? sector : acronym;
                 var user = await _userInformationService.GetCurrentGraphUserAsync();
-                await AddProjectToDb(projectName, acronym, organization, user?.Mail);
+                if (user is null) return false;
+                await AddProjectToDb(user, projectName, acronym, organization);
                 var project = new CreateResourceData(projectName, acronym, sectorName, organization, user?.Mail, user?.Id);
                 await requestQueueService.AddProjectToStorageQueue(project);
                 scope.Complete();
                 return true;
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 logger.LogError(ex, $"Error creating project {projectName} - {acronym} - {organization}");
                 return false;
             }
         }
     }
-    private async Task AddProjectToDb(string projectName, string acronym, string organization, string? userEmail) 
+    
+    private async Task AddProjectToDb(User user, string projectName, string acronym, string organization) 
     {
         var sectorName = GovernmentDepartment.Departments.TryGetValue(organization, out var sector) ? sector : acronym;
         var project = new Datahub_Project()
@@ -101,13 +104,24 @@ public class ProjectCreationService : IProjectCreationService
             Project_Acronym_CD = acronym,
             Project_Name = projectName,
             Sector_Name = sectorName,
-            Contact_List = userEmail,
-            Project_Admin = userEmail,
+            Contact_List = user.Mail,
+            Project_Admin = user.Mail,
             Data_Sensitivity = NewProjectDataSensitivity,
             Project_Status_Desc = "Ongoing",
         };
+        var projectUser = new Datahub_Project_User()
+        {
+            User_ID = user.Id,
+            Approved_DT = DateTime.Now,
+            ApprovedUser = user.Id,
+            IsAdmin = true,
+            IsDataApprover = true,
+            Project = project,
+            User_Name = user.Mail
+        };
         await using var db = await _datahubProjectDbFactory.CreateDbContextAsync();
         await db.Projects.AddAsync(project);
+        await db.Project_Users.AddAsync(projectUser);
         await db.SaveChangesAsync();
     }
 
