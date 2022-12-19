@@ -1,21 +1,12 @@
-@inject CultureService _cultureService
-@inject IConfiguration _configuration
 
 <SASTokenButton OnSubstitutionsChanged="HandleSubstitutionsChanged" />
-
-<ResourcePageRenderer PageName="@GetPageName()" Substitutions="_substitutions"/>
+<EmbeddedResources PageNameEn="Use AzCopy to Interact with Azure Storage Account" Substitutions="_substitutions" />
 
 @code {
-    
     private List<(string, string)> _substitutions;
-    
+
     private void HandleSubstitutionsChanged(List<(string, string)> substitutions)
     {
         _substitutions = substitutions;
-    }
-    
-    private string GetPageName()
-    {
-        return _configuration[$"WikiPageTitles:AzCopyStorageAccess:{_cultureService.Culture}"];
     }
 }
