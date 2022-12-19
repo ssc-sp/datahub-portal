@@ -58,6 +58,7 @@ using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.Extensions.Azure;
 using Microsoft.Identity.Web.UI;
 using Tewr.Blazor.FileReader;
+using Datahub.Core.Services.ResourceManager;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]
 
@@ -352,17 +353,18 @@ public class Startup
             services.AddScoped<PowerBiServiceApi>();
             services.AddScoped<IPowerBiDataService, PowerBiDataService>();
 
-            services.AddScoped<RegistrationService>();
+                services.AddScoped<RegistrationService>();
+                
+                services.AddScoped<UpdateProjectMonthlyCostService>();
+                services.AddScoped<IProjectCreationService, ProjectCreationService>();
 
-            services.AddScoped<UpdateProjectMonthlyCostService>();
-            services.AddScoped<IProjectCreationService, ProjectCreationService>();
-        }
-        else
-        {
-            services.AddSingleton<IKeyVaultService, OfflineKeyVaultService>();
-            services.AddScoped<UserLocationManagerService>();
-            services.AddSingleton<CommonAzureServices>();
-            //services.AddScoped<DataLakeClientService>();
+            }
+            else
+            {
+                services.AddSingleton<IKeyVaultService, OfflineKeyVaultService>();
+                services.AddScoped<UserLocationManagerService>();
+                services.AddSingleton<CommonAzureServices>();
+                //services.AddScoped<DataLakeClientService>();
 
             services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
             services.AddScoped<IUserInformationService, OfflineUserInformationService>();
@@ -375,9 +377,10 @@ public class Startup
             services.AddScoped<IDataCreatorService, OfflineDataCreatorService>();
             services.AddScoped<DataRetrievalService, OfflineDataRetrievalService>();
             services.AddScoped<IDataRemovalService, OfflineDataRemovalService>();
-
             services.AddScoped<IAzurePriceListService, OfflineAzurePriceListService>();
         }
+        services.AddSingleton<IProjectCreationService, ProjectCreationService>();
+        services.AddSingleton<RequestQueueService>();
 
 
         services.AddScoped<IPublicDataFileService, PublicDataFileService>();
