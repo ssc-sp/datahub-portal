@@ -3,6 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
+namespace Datahub.Core.Services.Wiki;
+    
 public interface IWikiService
 {
     Task<string> LoadPage(string name, List<(string, string)> substitutions = null);

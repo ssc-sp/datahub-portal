@@ -79,9 +79,6 @@
 		<PackageReference Include="Tewr.Blazor.FileReader" Version="3.3.1.21360" />
 	</ItemGroup>
 	<ItemGroup>
-		<Content Update="Layout\ExternalLayout.razor">
-		  <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-		</Content>
 		<Content Update="i18n\SharedResources.fr.json">
 			<CustomToolNamespace>Resources</CustomToolNamespace>
 		</Content>
