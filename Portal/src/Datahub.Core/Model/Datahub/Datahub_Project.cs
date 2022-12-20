@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Threading;
+using Datahub.Core.Data.ResourceProvisioner;
 using Datahub.Core.Services.Notification;
 using Elemental.Components;
 using MudBlazor.Forms;
@@ -279,5 +280,21 @@ public class Datahub_Project : IComparable<Datahub_Project>
         }
 
         return "On Hold";
+    }
+
+    [AeFormIgnore]
+    public ResourceWorkspace ToResourceWorkspace(List<WorkspaceUser> users)
+    {
+        return new ResourceWorkspace()
+        {
+            Name = Project_Name,
+            Acronym = Project_Acronym_CD,
+            Organization = new WorkspaceOrganization()
+            {
+                Name = Branch_Name,
+                Code = "TODO"
+            },
+            Users = users
+        };
     }
 }

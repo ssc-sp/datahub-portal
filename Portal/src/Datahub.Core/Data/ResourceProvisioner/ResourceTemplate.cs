@@ -12,4 +12,13 @@ public record ResourceTemplate
         Name = "new-project-template",
         Version = "latest",
     };
+
+    public static ResourceTemplate LatestFromName(string name)
+    {
+        return new ResourceTemplate()
+        {
+            Name = name,
+            Version = "latest",
+        };
+    }
 }

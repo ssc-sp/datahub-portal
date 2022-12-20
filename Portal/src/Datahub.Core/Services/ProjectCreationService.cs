@@ -83,7 +83,7 @@ public class ProjectCreationService : IProjectCreationService
                 var user = await _userInformationService.GetCurrentGraphUserAsync();
                 if (user is null) return false;
                 await AddProjectToDb(user, projectName, acronym, organization);
-                var project = new CreateResourceData(projectName, acronym, sectorName, organization, user?.Mail, user?.Id);
+                var project = CreateResourceData.NewProjectTemplate(projectName, acronym, sectorName, organization, user.Mail);
                 await requestQueueService.AddProjectToStorageQueue(project);
                 scope.Complete();
                 return true;
