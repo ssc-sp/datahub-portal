@@ -1,5 +1,4 @@
-﻿
-@using Datahub.Core.Services.Wiki
+﻿@using Datahub.Core.Services.Wiki
 @inject IWikiService _resourcesService
 @inject CultureService _cultureService
 @inject NavigationManager _navManager
@@ -26,13 +25,13 @@ else
                 </MudNavLink>
                 @foreach (var cat in _resourceRoot.Categories)
                 {
-                    var isCurrentCat = (_currentResourceCategory == cat);
+                    var isCurrentCat = (_currentMarkdownCategory == cat);
                     var catIcon = isCurrentCat ? Icons.Filled.FolderOpen : Icons.Filled.Folder;
 
                     <MudNavGroup Icon=@catIcon Expanded=@isCurrentCat Title=@cat.Title ExpandedChanged=@((v) => UpdateCategory(cat, v))>
-                        @foreach(var article in cat.Cards)
+                        @foreach (var article in cat.Cards)
                         {
-                            <MudNavLink Href=@BuildResourceLink(article) >
+                            <MudNavLink Href=@BuildResourceLink(article)>
                                 <MudText Typo=@Typo.body2>@article.Title</MudText>
                             </MudNavLink>
                         }
@@ -44,7 +43,7 @@ else
             @if (ShowCards)
             {
                 <MudGrid>
-                    @foreach(var card in CardsToShow)
+                    @foreach (var card in CardsToShow)
                     {
                         <MudItem xs="4">
                             <MudCard>
@@ -57,7 +56,7 @@ else
                                     </CardHeaderContent>
                                 </MudCardHeader>
                                 <MudCardContent>
-                                    <MudText Typo=@Typo.body1 Style=@BOX_TEXT_STYLE >@card.Preview</MudText>
+                                    <MudText Typo=@Typo.body1 Style=@BOX_TEXT_STYLE>@card.Preview</MudText>
                                 </MudCardContent>
                                 <MudCardActions>
                                     <MudButton Href=@BuildResourceLink(card) Color=@Color.Primary Variant=@Variant.Filled>@Localizer["Read more"]</MudButton>
@@ -78,20 +77,18 @@ else
                         }
                         else
                         {
-                            <DHMarkdown 
-                                Substitutions=@Substitutions
-                                Content=@_markdownContent
-                                LinkRewriter="@RewriteLink" />
+                            <DHMarkdown Substitutions=@Substitutions
+                                        Content=@_markdownContent
+                                        LinkRewriter="@RewriteLink" />
 
                             @if (CurrentCard is not null)
                             {
                                 <AuthorizeView Roles=@RoleConstants.DATAHUB_ROLE_ADMIN>
-                                    <MudButton 
-                                        Href=@_resourcesService.GetEditUrl(CurrentCard) 
-                                        Color=@Color.Primary 
-                                        Variant=@Variant.Filled 
-                                        StartIcon=@Icons.Filled.Launch
-                                        Target="_blank" >
+                                    <MudButton Href=@_resourcesService.GetEditUrl(CurrentCard)
+                                               Color=@Color.Primary
+                                               Variant=@Variant.Filled
+                                               StartIcon=@Icons.Filled.Launch
+                                               Target="_blank">
                                         @Localizer["BUTTONS.Edit"]
                                     </MudButton>
                                 </AuthorizeView>
@@ -102,7 +99,7 @@ else
             }
         </MudItem>
     </MudGrid>
-    
+
     <MudContainer Class="ma-8">
         <AuthorizeView Roles=@RoleConstants.DATAHUB_ROLE_ADMIN>
             <MudCard>
@@ -123,11 +120,10 @@ else
                             }
                             else
                             {
-                                <MudButton 
-                                    OnClick=@RefreshCache
-                                    StartIcon=@Icons.Filled.Refresh 
-                                    Variant=@Variant.Filled 
-                                    Color=@Color.Secondary>Refresh</MudButton>
+                                <MudButton OnClick=@RefreshCache
+                                           StartIcon=@Icons.Filled.Refresh
+                                           Variant=@Variant.Filled
+                                           Color=@Color.Secondary>Refresh</MudButton>
                             }
 
                             <MudText>
@@ -165,31 +161,31 @@ else
     public string PageName { get; set; }
 
     [Parameter]
-    public List<(string,string)> Substitutions { get; set; }
+    public List<(string, string)> Substitutions { get; set; }
 
     // this is the recommended way to get an ellipsis on multi-line text: https://developer.mozilla.org/en-US/docs/Web/CSS/-webkit-line-clamp
     private const string BOX_TEXT_STYLE = @"
 height: 3em;
-overflow: hidden; 
--webkit-line-clamp: 2; 
--webkit-box-orient: vertical; 
+overflow: hidden;
+-webkit-line-clamp: 2;
+-webkit-box-orient: vertical;
 display: -webkit-box";
 
     private MarkdownLanguageRoot _resourceRoot;
-    private MarkdownCategory _currentResourceCategory;
+    private MarkdownCategory _currentMarkdownCategory;
     private AbstractMarkdownPage _currentResource;
 
     private IReadOnlyList<string> _formattedErrorList;
 
-    privMarkdownCardCard CurrentCard => _currentResourceMarkdownCardCard;
+    private MarkdownCard CurrentCard => _currentResource as MarkdownCard;
 
     private bool PageIsLoading => _resourceRoot is null;
-    private bool ShowCards => _currentResourceMarkdownLanguageRootRoot || _currentResourceMarkdownCategorygory;
+    private bool ShowCards => _currentResource is MarkdownLanguageRoot || _currentResource is MarkdownCategory;
     private bool ArticleIsLoading => !ShowCards && string.IsNullOrEmpty(_markdownContent);
 
     private bool _cacheIsRefreshing = false;
 
-    public IEnumeraMarkdownCardCard> CardsToShow => _currentResourceCategory?.Cards ?? _resourceRoot.AllCards;
+    public IEnumerable<MarkdownCard> CardsToShow => _currentMarkdownCategory?.Cards ?? _resourceRoot.AllCards;
 
     private string _markdownContent = string.Empty;
     private string _baseUrl = "/resources";
@@ -203,14 +199,14 @@ display: -webkit-box";
         return _baseUrl + "/" + System.Web.HttpUtility.UrlEncode(link);
     }
 
-    private bool UpdateCMarkdownCategoryCategory cat, bool value)
+    private bool UpdateCategory(MarkdownCategory cat, bool value)
     {
-        if (value && cat != _currentResourceCategory)
+        if (value && cat != _currentMarkdownCategory)
         {
-            _currentResourceCategory = cat;
+            _currentMarkdownCategory = cat;
             _navManager.NavigateTo(BuildResourceLink(cat));
         }
-        else if (!value && cat == _currentResourceCategory)
+        else if (!value && cat == _currentMarkdownCategory)
         {
             _navManager.NavigateTo(BuildResourceLink(cat));
         }
@@ -238,7 +234,7 @@ display: -webkit-box";
             _resourceRoot[PageName];
 
         _markdownContent = string.Empty;
-        _currentResourceCategory = null;
+        _currentMarkdownCategory = null;
 
 
         if (_currentResource == null)
@@ -246,14 +242,14 @@ display: -webkit-box";
             _markdownContent = "Error";
             await _resourcesService.LogNotFoundError(PageName, _resourceRoot.Title);
         }
-        else if (_currentResoMarkdownCategoryCategory)
+        else if (_currentResource is MarkdownCategory)
         {
-            _currentResourceCategory = _currentResoMarkdownCategoryCategory;
+            _currentMarkdownCategory = _currentResource as MarkdownCategory;
         }
-        else if (_currentResoMarkdownCardurceCard)
+        else if (_currentResource is MarkdownCard)
         {
-            var card = _currentResoMarkdownCardurceCard;
-            _currentResourceCategory = card.ParentCategory;
+            var card = _currentResource as MarkdownCard;
+            _currentMarkdownCategory = card.ParentCategory;
             _markdownContent = await _resourcesService.LoadResourcePage(card);
         }
     }
