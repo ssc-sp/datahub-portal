@@ -174,7 +174,7 @@ public class Startup
         services.AddSingleton<ICatalogSearchEngine, CatalogSearchEngine>();
 
         // TODO FIXME this will likely change when proper caching is implemented
-        services.AddSingleton<IResourcesService, ResourcesService>();
+        services.AddSingleton<IWikiService, WikiService>();
 
         services.AddSingleton<CultureService>();
 
