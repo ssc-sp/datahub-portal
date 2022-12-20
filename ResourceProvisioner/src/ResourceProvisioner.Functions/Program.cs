@@ -11,6 +11,7 @@ var host = new HostBuilder()
     {
         var config = new ConfigurationBuilder()
             .AddJsonFile("local.settings.json", optional: false, reloadOnChange: true)
+            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
             .Build();
         
         services.AddApplicationServices();
