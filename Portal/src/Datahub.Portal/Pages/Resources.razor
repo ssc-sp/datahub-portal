@@ -1,6 +1,6 @@
 ﻿
 @using Datahub.Core.Services.Wiki
-@inject IResourcesService _resourcesService
+@inject IWikiService _resourcesService
 @inject CultureService _cultureService
 @inject NavigationManager _navManager
 @inject TimeZoneService _timezoneService;
@@ -175,26 +175,26 @@ overflow: hidden;
 -webkit-box-orient: vertical; 
 display: -webkit-box";
 
-    private ResourceLanguageRoot _resourceRoot;
-    private ResourceCategory _currentResourceCategory;
-    private AbstractResource _currentResource;
+    private MarkdownLanguageRoot _resourceRoot;
+    private MarkdownCategory _currentResourceCategory;
+    private AbstractMarkdownPage _currentResource;
 
     private IReadOnlyList<string> _formattedErrorList;
 
-    private ResourceCard CurrentCard => _currentResource as ResourceCard;
+    privMarkdownCardCard CurrentCard => _currentResourceMarkdownCardCard;
 
     private bool PageIsLoading => _resourceRoot is null;
-    private bool ShowCards => _currentResource is ResourceLanguageRoot || _currentResource is ResourceCategory;
+    private bool ShowCards => _currentResourceMarkdownLanguageRootRoot || _currentResourceMarkdownCategorygory;
     private bool ArticleIsLoading => !ShowCards && string.IsNullOrEmpty(_markdownContent);
 
     private bool _cacheIsRefreshing = false;
 
-    public IEnumerable<ResourceCard> CardsToShow => _currentResourceCategory?.Cards ?? _resourceRoot.AllCards;
+    public IEnumeraMarkdownCardCard> CardsToShow => _currentResourceCategory?.Cards ?? _resourceRoot.AllCards;
 
     private string _markdownContent = string.Empty;
     private string _baseUrl = "/resources";
 
-    private string BuildResourceLink(AbstractResource res) => $"/resources/{res.Title}";
+    private string BuildResourceLink(AbstractMarkdownPage res) => $"/resources/{res.Title}";
 
     private string RewriteLink(string link)
     {
@@ -203,7 +203,7 @@ display: -webkit-box";
         return _baseUrl + "/" + System.Web.HttpUtility.UrlEncode(link);
     }
 
-    private bool UpdateCategory(ResourceCategory cat, bool value)
+    private bool UpdateCMarkdownCategoryCategory cat, bool value)
     {
         if (value && cat != _currentResourceCategory)
         {
@@ -246,13 +246,13 @@ display: -webkit-box";
             _markdownContent = "Error";
             await _resourcesService.LogNotFoundError(PageName, _resourceRoot.Title);
         }
-        else if (_currentResource is ResourceCategory)
+        else if (_currentResoMarkdownCategoryCategory)
         {
-            _currentResourceCategory = _currentResource as ResourceCategory;
+            _currentResourceCategory = _currentResoMarkdownCategoryCategory;
         }
-        else if (_currentResource is ResourceCard)
+        else if (_currentResoMarkdownCardurceCard)
         {
-            var card = _currentResource as ResourceCard;
+            var card = _currentResoMarkdownCardurceCard;
             _currentResourceCategory = card.ParentCategory;
             _markdownContent = await _resourcesService.LoadResourcePage(card);
         }

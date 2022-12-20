@@ -14,25 +14,25 @@ using System.Threading.Tasks;
 
 namespace Datahub.Core.Services.Resources
 {
-    public class ResourcesService : IResourcesService
+    public class WikiService : IWikiService
     {
         private readonly string _wikiRoot;
         private readonly string _wikiEditPrefix;
-        private readonly ILogger<ResourcesService> _logger;
+        private readonly ILogger<WikiService> _logger;
         private readonly IHttpClientFactory _httpClientFactory;
 
         private const string WIKIROOT_CONFIG_KEY = "WikiURL";
         private const string WIKI_EDIT_URL_CONFIG_KEY = "EditWikiURLPrefix";
 
         //TODO use proper caching
-        private ResourceLanguageRoot EnglishLanguageRoot;
-        private ResourceLanguageRoot FrenchLanguageRoot;
+        private MarkdownLanguageRoot EnglishLanguageRoot;
+        private MarkdownLanguageRoot FrenchLanguageRoot;
 
         private IList<TimestampedResourceError> _errorList;
 
         public event Func<Task> NotifyRefreshErrors;
 
-        public ResourcesService(IConfiguration config, ILogger<ResourcesService> logger, IHttpClientFactory httpClientFactory)
+        public WikiService(IConfiguration config, ILogger<WikiService> logger, IHttpClientFactory httpClientFactory)
         {
             _wikiRoot = config[WIKIROOT_CONFIG_KEY];
             _wikiEditPrefix = config[WIKI_EDIT_URL_CONFIG_KEY];
@@ -100,7 +100,7 @@ namespace Datahub.Core.Services.Resources
             return deSpaced;
         }
 
-        private IList<string> GetPath(AbstractResource resource)
+        private IList<string> GetPath(AbstractMarkdownPage resource)
         {
             if (resource is null)
             {
@@ -112,7 +112,7 @@ namespace Datahub.Core.Services.Resources
             return parentPath;
         }
 
-        private async Task<ResourceCard> PopulateResourceCard(LinkInline link, ResourceCategory category)
+        private async Task<MarkdownCard> PopulateResourceCard(LinkInline link, MarkdownCategory category)
         {
             var path = GetPath(category);
             var linkUrlMD = $"{link.Url}.md";
@@ -120,7 +120,7 @@ namespace Datahub.Core.Services.Resources
 
             if (string.IsNullOrEmpty(content))
             {
-                return await Task.FromResult(default(ResourceCard));
+                return await Task.FromResult(default(MarkdownCard));
             }
 
             var cardDoc = Markdown.Parse(content);
@@ -132,15 +132,15 @@ namespace Datahub.Core.Services.Resources
             var title = firstHeading.Inline.FirstChild.ToString();
             var preview = firstPara.Inline.FirstChild.ToString();
 
-            var card = new ResourceCard(title, preview, link.Url, category);
+            var card = new MarkdownCard(title, preview, link.Url, category);
 
             return await Task.FromResult(card);
         }
 
-        private async Task<ResourceCategory> PopulateResourceCategory(LinkInline link, ResourceLanguageRoot languageRoot)
+        private async Task<MarkdownCategory> PopulateResourceCategory(LinkInline link, MarkdownLanguageRoot languageRoot)
         {
             var title = link.FirstChild.ToString();
-            var category = new ResourceCategory(title, languageRoot);
+            var category = new MarkdownCategory(title, languageRoot);
 
             var catSidebar = await LoadSidebar(GetPath(category));
             var catLinks = GetListedLinks(catSidebar);
@@ -156,10 +156,10 @@ namespace Datahub.Core.Services.Resources
             return await Task.FromResult(category);
         }
 
-        private async Task<ResourceLanguageRoot> PopulateResourceLanguageRoot(LinkInline link)
+        private async Task<MarkdownLanguageRoot> PopulateResourceLanguageRoot(LinkInline link)
         {
             var title = link.FirstChild.ToString();
-            var langRoot = new ResourceLanguageRoot(title);
+            var langRoot = new MarkdownLanguageRoot(title);
 
             var langSidebar = await LoadSidebar(GetPath(langRoot));
             var langLinks = GetListedLinks(langSidebar);
@@ -263,7 +263,7 @@ namespace Datahub.Core.Services.Resources
             }
         }
 
-        public async Task<ResourceLanguageRoot> LoadLanguageRoot(bool isFrench)
+        public async Task<MarkdownLanguageRoot> LoadLanguageRoot(bool isFrench)
         {
             if (EnglishLanguageRoot == null || FrenchLanguageRoot == null)
             {
@@ -274,14 +274,14 @@ namespace Datahub.Core.Services.Resources
             return await Task.FromResult(result);
         }
 
-        public async Task<string> LoadResourcePage(ResourceCard card)
+        public async Task<string> LoadResourcePage(MarkdownCard card)
         {
             var path = GetPath(card.ParentCategory);
             var name = $"{card.Url}.md";
             return await LoadWikiPage(name, path);
         }
 
-        public string GetEditUrl(ResourceCard card) => $"{_wikiEditPrefix}{card.Url}/_edit";
+        public string GetEditUrl(MarkdownCard card) => $"{_wikiEditPrefix}{card.Url}/_edit";
 
         public IReadOnlyList<TimestampedResourceError> GetErrorList() => _errorList.AsReadOnly();
 
