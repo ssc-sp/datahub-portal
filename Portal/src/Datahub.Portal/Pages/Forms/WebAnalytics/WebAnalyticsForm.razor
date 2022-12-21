@@ -1,0 +1,147 @@
+﻿@inject IStringLocalizer DataLocalizer
+
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JsInterop
+@page "/webanalytics/entry"
+@using Datahub.Portal.Data.Forms.WebAnalytics
+@implements IDisposable
+@inject IDbContextFactory<WebAnalyticsContext> DbFactory
+
+<h1>Web Analytics</h1>
+<h2>Select/Enter Web Analytics Data</h2>
+
+<AeFlex id="buttonBar">
+    <div class="icon-container" style="margin-bottom: 10px; margin-left: 5px;">
+        <FAButton Text="Add New" Icon="far fa-plus-square" onclick="e => CreateNewProject()" />
+    </div>
+</AeFlex>
+
+
+<AeTable Accessors="accessorFunctions"
+         T="WebAnalytics"
+         Dataset="_webanalytics"
+         ColorAccessor="getColor"
+         Headers="headers"
+         GridTemplateColumns="4fr 8fr"
+         MaxHeight="400"
+         OnRowClick="@SetFormEdit" />
+
+@if (_webanalytic != null)
+{
+    if (_webanalytic.WebAnalytics_ID > 0)
+    {
+        <h2>Edit Web Analytic Owner: @(_webanalytic.Owner), URL: #@_webanalytic.URL </h2>
+    }
+    else
+    {
+        <h2>Enter Sector Details</h2>
+    }
+
+    <AeModelForm Model="_webanalytic"
+                 T="WebAnalytics"
+                 OnValidSubmit="HandleValidSubmit"
+                 OnCancel="ClearForm"
+                 CancelLabel="Cancel"
+                 SubmitLabel="@SubmitLabel"
+                 LabelForPropertyFunc="@GetDataLabel" />
+
+
+
+    @*<AeFlex id="buttonBar">
+        <div class="icon-container" style="margin-bottom: 10px; margin-left: 5px;">
+            <FAButton Text="Budgets" Icon="fal fa-arrow-right" IconLocation="right" onclick="e => GoToNextSheet()" />
+        </div>
+    </AeFlex>*@
+}
+
+
+
+@code {
+    private List<WebAnalytics> _webanalytics;
+    private WebAnalytics _webanalytic;
+    private string SubmitLabel = "Save";
+    private WebAnalyticsContext Context;  
+   
+
+    protected override async Task OnInitializedAsync()
+    {
+        // load projects
+        Context = DbFactory.CreateDbContext();
+        _webanalytics = await Context.WebAnalytics.ToListAsync();
+    }
+
+    private async Task GoToNextSheet()
+    {
+        var webanalytic = _webanalytic;
+        await HandleValidSubmit();
+    }
+
+    private List<Func<WebAnalytics, string>> accessorFunctions = new List<Func<WebAnalytics, string>>
+{
+        new Func<WebAnalytics, string>(p => { return p.Owner; }),
+        new Func<WebAnalytics, string>(p => { return p.URL; }),
+    };
+
+   
+
+    private string getColor(WebAnalytics current)
+    {
+        if (current == _webanalytic)
+        {
+            return "yellow";
+        }
+        return "";
+    }
+
+    private List<string> headers = new List<string>
+    {
+        "Owner","Url"
+    };
+
+    private void SetFormEdit(WebAnalytics project)
+    {
+        _webanalytic = project;
+        StateHasChanged();
+    }
+
+    private void CreateNewProject()
+    {
+        _webanalytic = new WebAnalytics() { Last_Updated_DT = DateTime.Now };
+        StateHasChanged();
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (_webanalytic != null)
+        {
+
+            if (_webanalytic.WebAnalytics_ID == 0)
+            {
+                _webanalytic = Context.WebAnalytics.Add(_webanalytic).Entity;
+            }
+            _webanalytic.Last_Updated_DT = DateTime.Now;
+            await Context.SaveChangesAsync();
+            _webanalytics = Context.WebAnalytics.ToList();
+            //_tombstone = null;
+        }
+
+        _webanalytic = null;
+        StateHasChanged();
+    }
+
+    private Task<WebAnalytics> ClearForm()
+    {
+        _webanalytic = null;
+        StateHasChanged();
+        return Task.FromResult((WebAnalytics)null);
+    }
+
+    private string GetDataLabel(string propName)
+    {
+        return DataLocalizer[propName];
+    }
+
+
+    public void Dispose() { Context.Dispose(); }
+
+}
