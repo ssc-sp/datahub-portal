@@ -161,7 +161,7 @@ public class Startup
         // configure db contexts in this method
         ConfigureDbContexts(services);
 
-        services.Configure<DataProjectsConfiguration>(Configuration.GetSection("ProjectTools"));
+        services.Configure<DataProjectsConfiguration>(Configuration.GetSection("DataProjectsConfiguration"));
         services.Configure<APITarget>(Configuration.GetSection("APITargets"));
         services.Configure<TelemetryConfiguration>(Configuration.GetSection("ApplicationInsights"));
         services.Configure<CKANConfiguration>(Configuration.GetSection("CKAN"));
