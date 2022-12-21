@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Transactions;
 using Datahub.Core.Data;
 using Datahub.Core.Data.ResourceProvisioner;
+using Datahub.Core.Enums;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Services.ResourceManager;
 using Foundatio.Queues;
@@ -106,7 +107,7 @@ public class ProjectCreationService : IProjectCreationService
             Sector_Name = sectorName,
             Contact_List = user.Mail,
             Project_Admin = user.Mail,
-            Data_Sensitivity = NewProjectDataSensitivity,
+            Project_Phase = ProjectPhase.PendingApproval,
             Project_Status_Desc = "Ongoing",
         };
         var projectUser = new Datahub_Project_User()
