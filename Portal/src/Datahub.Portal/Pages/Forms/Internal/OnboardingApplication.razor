@@ -1,6 +1,6 @@
 ﻿@page "/onboarding/applications"
 @page "/onboarding/applications/{AppId}"
-@inject IEmailNotificationService EmailService
+@inject PortalEmailService EmailService
 @implements IDisposable
 @inject ServiceAuthManager ServiceAuthManager
 @inject IDbContextFactory<DatahubProjectDBContext> DbFactory
@@ -14,6 +14,7 @@
 @using Datahub.Core.Model.Onboarding
 @using System.Text
 @using Datahub.Core.Services.Notification;
+@using Datahub.Portal.Services.Notification;
 
 @if (_isLoaded)
 {

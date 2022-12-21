@@ -3,13 +3,14 @@
 @using Datahub.Core.Model.Datahub
 @using Datahub.Core
 @using Datahub.Core.Services.Notification
+@using Datahub.ProjectTools.Services;
 
 @inject IDbContextFactory<DatahubProjectDBContext> _contextFactory
 @inject PowerBiServiceApi _powerBiApi
 @inject IPowerBiDataService _powerBiDataService
 @inject Microsoft.Identity.Web.MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
 @inject ILogger<ApprovePowerBiRequest> _logger
-@inject IEmailNotificationService _emailService
+@inject ProjectToolsEmailService _emailService
 @inject ISystemNotificationService _systemNotificationService
 @inject IMSGraphService _msGraphService
 
