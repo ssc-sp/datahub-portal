@@ -70,13 +70,10 @@ public class ProjectResourcesListingService
         var output = new List<IProjectResource>();
         var isUserAdmin = await userInformationService.IsUserProjectAdmin(project.Project_Acronym_CD);
         var isUserDHAdmin = await userInformationService.IsUserDatahubAdmin();
-        var allResourceProviders = new List<Type>(ResourceProviders);
-        if (!configuration.Value.EnableGitModuleRepository) // add legacy Databricks and Storage in case Git Modules are disabled
-        {
-            allResourceProviders.Add(typeof(DHDatabricksResource));
-            allResourceProviders.Add(typeof(DHStorageResource));
-        }
-        foreach (var item in ResourceProviders)
+        
+        var allResourceProviders = GetAllResourceProviders(configuration.Value);
+        
+        foreach (var item in allResourceProviders)
         {
             logger.LogDebug($"Configuring {item.Name} in project {project.Project_ID} ({project.Project_Name})");
             try
@@ -109,5 +106,30 @@ public class ProjectResourcesListingService
 
     }
 
+    private static List<Type> GetAllResourceProviders(DataProjectsConfiguration config)
+    {
+        var allResourceProviders = new List<Type>(ResourceProviders);
 
+        if (config.PowerBI)
+        {
+            allResourceProviders.Add(typeof(DHPowerBIResource));
+        }
+        if(config.PublicSharing)
+        {
+            allResourceProviders.Add(typeof(DHPublicSharing));
+        }
+        if (config.DataEntry)
+        {
+            allResourceProviders.Add(typeof(DHDataEntry));
+        }
+
+        // add legacy Databricks and Storage in case Git Modules are disabled
+        if (!config.EnableGitModuleRepository)
+        {
+            allResourceProviders.Add(typeof(DHDatabricksResource));
+            allResourceProviders.Add(typeof(DHStorageResource));
+        }
+
+        return allResourceProviders;
+    }
 }
