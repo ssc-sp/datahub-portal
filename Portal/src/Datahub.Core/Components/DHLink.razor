@@ -13,7 +13,9 @@
 
 @inherits HtmlElement
 
-<a class="@_classname" @onclick="Navigate" @attributes="@InputAttributesWithoutClass" >@ChildContent</a>
+<MudLink Underline="@Underline" Typo="@Typo" Class="@_classname" @onclick="Navigate" @attributes="@InputAttributesWithoutClass">
+    @ChildContent
+</MudLink>
 
 @code {
 
@@ -27,6 +29,11 @@
 
     [Parameter]
     public string Variant { get; set; }
+
+    [Parameter]
+    public Typo Typo { get; set; } = Typo.body1;
+    [Parameter]
+    public Underline Underline { get; set; } = Underline.Hover;
 
     [Parameter]
     public string DatabricksURL { get; set; }

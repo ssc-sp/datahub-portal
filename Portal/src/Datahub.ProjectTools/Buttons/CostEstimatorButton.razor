@@ -1,0 +1,22 @@
+<MudButton Variant="Variant.Text" EndIcon="fa-solid fa-angles-right" Color="Color.Primary" Size="Size.Small">
+    <DHLink Underline="Underline.None" Typo="Typo.button" LinkType="@TemplateToLinkTypeMap(TemplateName)">
+        Run Cost Estimator
+    </DHLink>
+</MudButton>
+
+@code {
+
+    [Parameter]
+    public string TemplateName { get; set; }
+
+    private DatahubLinkType TemplateToLinkTypeMap(string templateName)
+    {
+        return templateName switch
+        {
+            "azure-storage-blob" => DatahubLinkType.StorageCostEstimator,
+            "azure-databricks" => DatahubLinkType.ComputeCostEstimator,
+            _ => DatahubLinkType.ComputeCostEstimator
+            };
+    }
+
+}
