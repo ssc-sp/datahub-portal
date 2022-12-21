@@ -6,7 +6,7 @@ using Datahub.Core.Services.Api;
 using Datahub.Core.Services.Metadata;
 using Datahub.Core.Services.Notification;
 using Datahub.Core.Services.Storage;
-using Datahub.Core.Templates;
+using Datahub.Portal.Templates;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Graph;
 
