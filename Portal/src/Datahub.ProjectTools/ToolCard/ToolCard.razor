@@ -36,7 +36,6 @@
         <MudCardActions Style="@_cardActionsStyle">
             <div style="flex-grow: 1"></div>
             @ToolActionsList
-            @ToolActionsList
         </MudCardActions>
     }
 </MudCard>
@@ -71,6 +70,7 @@
         _cardActionsStyle = new StyleBuilder()
             .AddStyle("flex-direction", "column")
             .AddStyle("align-items", "flex-start")
+            .AddStyle("min-height", "160px")
             .Build();
     }
 
