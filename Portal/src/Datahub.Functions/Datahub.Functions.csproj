@@ -35,4 +35,6 @@
     <ItemGroup>
         <Using Include="System.Threading.ExecutionContext" Alias="ExecutionContext" />
     </ItemGroup>
+
+    <Import Project="..\..\..\Shared\src\Datahub.Shared\Datahub.Shared.projitems" Label="Shared" />
 </Project>
