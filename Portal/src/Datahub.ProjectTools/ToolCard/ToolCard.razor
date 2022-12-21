@@ -1,0 +1,86 @@
+@using MudBlazor.Utilities
+
+@if (Loading)
+{
+    <MudProgressCircular Color="Color.Primary" Indeterminate="true"/>
+    return;
+}
+
+<MudCard Class="px-4 py-2">
+    <MudCardHeader>
+        <CardHeaderAvatar>
+            @if(Logo != null)
+            {
+                @Logo
+            }
+            else
+            {
+                <MudIcon Icon="fa-solid fa-tools" Size="Size.Large" />
+            }
+        </CardHeaderAvatar>
+        <CardHeaderContent>
+            <MudText Typo="Typo.h5">@Title</MudText>
+        </CardHeaderContent>
+        <CardHeaderActions>
+            <MudIconButton Icon="@Icons.Material.Filled.Settings" Color="Color.Default" />
+        </CardHeaderActions>
+    </MudCardHeader>
+    <MudCardContent Style="@_descriptionStyle">
+        <MudStack>
+            <MudText Typo="Typo.body2">@Description</MudText>
+            
+        </MudStack>
+    </MudCardContent>
+    @if (ToolActionsList != null)
+    {
+        <MudCardActions Style="@_cardActionsStyle">
+            <div style="flex-grow: 1"></div>
+            @ToolActionsList
+            @ToolActionsList
+        </MudCardActions>
+    }
+</MudCard>
+
+@code {
+
+    [Parameter]
+    public bool Loading { get; set; }
+
+    [Parameter]
+    public RenderFragment Logo { get; set; }
+
+    [Parameter]
+    public RenderFragment ToolActionsList { get; set; }
+
+    [Parameter]
+    public string Title { get; set; } = "Project Storage";
+    
+    
+    private string _descriptionStyle;
+    private string _cardActionsStyle;
+
+    [Parameter]
+    public string Description { get; set; } = "The cloud blows with riddle, sail the quarter-deck before it screams. The sail fires with endurance, loot the lighthouse. ";
+
+    protected override void OnInitialized()
+    {
+        _descriptionStyle = new StyleBuilder()
+            .AddStyle("height", "200px")
+            .Build();
+        
+        _cardActionsStyle = new StyleBuilder()
+            .AddStyle("flex-direction", "column")
+            .AddStyle("align-items", "flex-start")
+            .Build();
+    }
+
+    public static string GetLogoStyle()
+    {
+        return new StyleBuilder()
+            .AddStyle("height", "40px")
+            .AddStyle("width", "40px")
+            .AddStyle("margin-right", "8px")
+            .Build();
+    }
+
+}

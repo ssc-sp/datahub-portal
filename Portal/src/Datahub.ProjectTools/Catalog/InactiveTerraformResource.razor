@@ -1,8 +1,7 @@
 @using Datahub.Core.Model.Datahub
 @using Datahub.Core.Services.ProjectTools;
-@using Datahub.Core.Enums
 @using Datahub.ProjectTools.Buttons
-
+@using Datahub.ProjectTools.ToolCard
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject IRequestManagementService RequestManagementService
@@ -21,7 +20,8 @@
         }
     </Logo>
     <ToolActionsList>
-        <RequestingButton IsRunning="isRunning" ResourceRequested="ResourceRequested" Project="Project" OnRequestService="@HandleRequestService" />
+        <CostEstimatorButton TemplateName="@TemplateName" />
+        <RequestingButton IsRunning="isRunning" ResourceRequested="ResourceRequested" Project="Project" OnRequestService="@HandleRequestService"/>
     </ToolActionsList>
 </ToolCard>
 
