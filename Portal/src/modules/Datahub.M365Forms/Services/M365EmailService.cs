@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Datahub.M365Forms.Services
 {
-    internal class M365EmailService
+    public class M365EmailService
     {
         private ILogger<M365EmailService> _logger;
 

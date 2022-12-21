@@ -15,7 +15,7 @@ using static Org.BouncyCastle.Math.EC.ECCurve;
 
 namespace Datahub.LanguageTraining.Services
 {
-    internal class LanguageEmailService
+    public class LanguageEmailService
     {
 
         private ILogger<LanguageEmailService> _logger;
