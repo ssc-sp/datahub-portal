@@ -1,6 +1,8 @@
 @using Datahub.Core.Model.Datahub
 @using Datahub.Core.Services.ProjectTools;
-@*Storage.razor*@
+@using Datahub.ProjectTools.Buttons
+@using Datahub.ProjectTools.ToolCard
+
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject IRequestManagementService RequestManagementService
 
@@ -18,37 +20,34 @@
         }
     </Logo>
     <ToolActionsList>
-        <ul>
-            @if (isRunning)
-            {
-                <MudProgressCircular Color="Color.Default" Indeterminate="true" />
-            }
-            else if (ResourceRequested)
-            {
-                <li>
-                    <AeTypography class="access-text">@Localizer["Service Request is being reviewed"]</AeTypography>
-                </li>
-            }
-            else
-            {
-                <ToolActionButton OnClick="@HandleRequestService" LinkType="LinkType.Request">
-                    @Localizer["Request Service Creation"]
-                </ToolActionButton>
-            }                
-        </ul>
+        <CostEstimatorButton TemplateName="@TemplateName" />
+        <RequestingButton IsRunning="isRunning" ResourceRequested="ResourceRequested" Project="Project" OnRequestService="@HandleRequestService"/>
     </ToolActionsList>
 </ToolCard>
 
 
 @code {
 
-    [Parameter] public string Title { get; set; }
-    [Parameter] public GitHubModuleDescriptor Descriptor { get; set; }
-    [Parameter] public string Icon { get; set; }
-    [Parameter] public bool IsIconSVG { get; set; }
-    [Parameter] public string TemplateName { get; set; }
-    [Parameter] public bool ResourceRequested { get; set; }
-    [Parameter] public Datahub_Project Project { get; set; }
+    [Parameter]
+    public string Title { get; set; }
+
+    [Parameter]
+    public GitHubModuleDescriptor Descriptor { get; set; }
+
+    [Parameter]
+    public string Icon { get; set; }
+
+    [Parameter]
+    public bool IsIconSVG { get; set; }
+
+    [Parameter]
+    public string TemplateName { get; set; }
+
+    [Parameter]
+    public bool ResourceRequested { get; set; }
+
+    [Parameter]
+    public Datahub_Project Project { get; set; }
 
     private bool isRunning = false;
 
