@@ -1,0 +1,60 @@
+@using Datahub.Core.Components.Skeleton
+@using Datahub.Core.Model.Datahub
+@using Datahub.Core.Model.UserTracking
+
+@inject UserLocationManagerService _userLocationManagerService
+@inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
+
+<MudText Typo="Typo.h6" Class="mt-12">@Localizer["Recent Places"]</MudText>
+<div class="recent-card-container">
+    @if (_recentLinks is null)
+    {
+        @for (var i = 0; i < 6; i++)
+        {
+            <Skeleton Height="150px" Style="margin-top: -2rem;"/>
+        }
+    }
+    else
+    {
+        @foreach (var (link, project) in _recentLinks)
+        {
+            <DHLink UserRecentLink="link">
+                <AeFlex class="@($"recent-card {GetIcon(link).Color}")">
+                    <i class="@GetIconName(link, project)"></i>
+                    <AeTypography class="title">@GetLinkDescription(link, project)</AeTypography>
+                    <AeTypography class="subtitle">@GetDescription(link, project)</AeTypography>
+                </AeFlex>
+            </DHLink>
+        }
+    }
+</div>
+
+@code {
+
+    [CascadingParameter(Name = "GraphUser")]
+    public Microsoft.Graph.User User { get; set; }
+
+    private List<(UserRecentLink, Datahub_Project)> _recentLinks;
+    private ushort _maxRecentLinks = 6;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
+        var userRecent = await _userLocationManagerService.ReadRecentNavigations(User.Id);
+
+        _recentLinks = userRecent?.UserRecentActions?
+            .Where(l => l.DataProject != null)
+            .OrderByDescending(l => l.accessedTime)
+            .Take(_maxRecentLinks)
+            .Select(l => (l, project:GetProject(dbContext, l)))
+            .ToList() ?? new List<(UserRecentLink l, Datahub_Project project)>();
+    }
+
+    private Datahub_Project GetProject(DatahubProjectDBContext dbContext, UserRecentLink link)
+    {
+        return dbContext.Projects
+            .FirstOrDefault(p => p.Project_Acronym_CD == link.DataProject.Trim());
+    }
+
+}
+
