@@ -28,7 +28,7 @@ public class WikiService : IWikiService
     private MarkdownLanguageRoot EnglishLanguageRoot;
     private MarkdownLanguageRoot FrenchLanguageRoot;
 
-    private IList<TimestampedResourceError> _errorList;
+    private IList<TimeStampedStatus> _errorList;
 
     public event Func<Task> NotifyRefreshErrors;
 
@@ -38,12 +38,12 @@ public class WikiService : IWikiService
         _wikiEditPrefix = config[WIKI_EDIT_URL_CONFIG_KEY];
         _logger = logger;
         _httpClientFactory = httpClientFactory;
-        _errorList = new List<TimestampedResourceError>();
+        _errorList = new List<TimeStampedStatus>();
     }
 
     private async Task AddErrorMessage(string message)
     {
-        var error = new TimestampedResourceError(DateTime.UtcNow, message);
+        var error = new TimeStampedStatus(DateTime.UtcNow, message);
         _errorList.Add(error);
         await InvokeNotifyRefreshErrors();
     }
@@ -187,7 +187,7 @@ public class WikiService : IWikiService
 
     private async Task LoadResourceTree()
     {
-        _errorList = new List<TimestampedResourceError>();
+        _errorList = new List<TimeStampedStatus>();
 
         await AddErrorMessage("Loading resources");
 
@@ -283,7 +283,7 @@ public class WikiService : IWikiService
 
     public string GetEditUrl(MarkdownCard card) => $"{_wikiEditPrefix}{card.Url}/_edit";
 
-    public IReadOnlyList<TimestampedResourceError> GetErrorList() => _errorList.AsReadOnly();
+    public IReadOnlyList<TimeStampedStatus> GetErrorList() => _errorList.AsReadOnly();
 
     public async Task LogNotFoundError(string pageName, string resourceRoot) => await AddErrorMessage($"{pageName} was not found in {resourceRoot} cache");
 

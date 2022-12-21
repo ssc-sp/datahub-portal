@@ -254,7 +254,7 @@ display: -webkit-box";
         }
     }
 
-    private async Task<string> FormatErrorMessage(TimestampedResourceError error)
+    private async Task<string> FormatErrorMessage(TimeStampedStatus error)
     {
         var timestampUtc = DateTime.SpecifyKind(error.Timestamp, DateTimeKind.Utc);
         var localDatetime = await _timezoneService.GetLocalDateTime(timestampUtc);

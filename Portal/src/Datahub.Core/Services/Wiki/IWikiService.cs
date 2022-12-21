@@ -12,10 +12,10 @@ public interface IWikiService
     Task<string> LoadResourcePage(MarkdownCard card);
     string GetEditUrl(MarkdownCard card);
     Task RefreshCache();
-    IReadOnlyList<TimestampedResourceError> GetErrorList();
+    IReadOnlyList<TimeStampedStatus> GetErrorList();
     Task LogNotFoundError(string pageName, string resourceRoot);
     Task LogNoArticleSpecifiedError(string url, string resourceRoot);
     event Func<Task> NotifyRefreshErrors;
 }
 
-public record TimestampedResourceError(DateTime Timestamp, string Message);
+public record TimeStampedStatus(DateTime Timestamp, string Message);
