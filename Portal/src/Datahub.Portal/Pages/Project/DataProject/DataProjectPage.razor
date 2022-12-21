@@ -18,7 +18,7 @@
 
 @if (_project is not null)
 {
-    <div class="project-page">
+    <MudGrid>
         <CascadingValue Value=@_project Name="Project">
             <CascadingValue Value=@ProjectAcronymParam Name="ProjectAcronym">
                 <CascadingValue Value=@_userId Name="UserId">
@@ -26,14 +26,18 @@
                         <CascadingValue Value="@_isProjectAdmin" Name="IsProjectAdmin">
                             <CascadingValue Value=@_user Name="GraphUser">
                                 <CascadingValue Value=@_projectId Name="ProjectId">
-                                    <ProjectInfo />
-                                    @if (_clientEngagements.Any())
-                                    {
-                                        <ProjectEngagements />
-                                    }                                    
-                                    <ProjectCatalog IsFrench=@_isFrench />
-                                    <ProjectMembers />
-                                    <ProjectToolListing />
+                                    <MudItem xs="9">
+                                        <ProjectInfo/>
+                                        @if (_clientEngagements.Any())
+                                        {
+                                            <ProjectEngagements/>
+                                        }
+                                        <ProjectCatalog IsFrench="@_isFrench"/>
+                                        <ProjectToolListing/>
+                                    </MudItem>
+                                    <MudItem xs="3">
+                                        <ProjectMembers/>
+                                    </MudItem>
                                 </CascadingValue>
                             </CascadingValue>
                         </CascadingValue>
@@ -41,7 +45,7 @@
                 </CascadingValue>
             </CascadingValue>
         </CascadingValue>
-    </div>
+    </MudGrid>
 }
 
 @code {
@@ -59,7 +63,7 @@
     private bool _isFrench;
     private bool _showCosts;
     private List<Client_Engagement> _clientEngagements = new();
-    
+
     protected override async Task OnInitializedAsync()
     {
         await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
@@ -100,7 +104,7 @@
 
         if (firstRender)
         {
-            // refresh auth due to server pre-rendering
+    // refresh auth due to server pre-rendering
             StateHasChanged();
         }
     }
@@ -110,4 +114,5 @@
     {
         _showCosts = !_showCosts;
     }
+
 }
