@@ -53,7 +53,7 @@
         @Project.ProjectName
     </MudText>
 
-    @if (Project.Project_Phase == ProjectPhase.PendingApproval)
+    @if (Project.Project_Phase == TerraformOutputStatus.PendingApproval)
     {
         <MudAlert Severity="Severity.Warning">@Localizer["The project is currently pending approval. No resources can be provisioned until the project is approved by a Datahub Administrator"]</MudAlert>
     }

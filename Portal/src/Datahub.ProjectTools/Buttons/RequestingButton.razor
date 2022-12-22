@@ -11,7 +11,7 @@ else if (ResourceRequested)
 {
     <MudText Typo="Typo.body2">@Localizer["Service Request is being reviewed"]</MudText>
 }
-else if (Project.Project_Phase == ProjectPhase.PendingApproval)
+else if (Project.Project_Phase == TerraformOutputStatus.PendingApproval)
 {
     <ToolActionButton Disabled LinkType="LinkType.Request">
         @Localizer["Pending Approval"]

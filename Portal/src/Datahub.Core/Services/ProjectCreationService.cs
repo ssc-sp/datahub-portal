@@ -107,7 +107,7 @@ public class ProjectCreationService : IProjectCreationService
             Sector_Name = sectorName,
             Contact_List = user.Mail,
             Project_Admin = user.Mail,
-            Project_Phase = ProjectPhase.PendingApproval,
+            Project_Phase = TerraformOutputStatus.PendingApproval,
             Project_Status_Desc = "Ongoing",
         };
         var projectUser = new Datahub_Project_User()
