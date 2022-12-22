@@ -3,31 +3,38 @@
 
 @if (IsRunning)
 {
-    <ToolActionButton LinkType="LinkType.Pending" Disabled>
+    <MudButton Size="Size.Small" Variant="Variant.Filled" Disabled EndIcon="fas fa-spinner-third" Class="pending">
         @Localizer["Requesting Service Creation"]
-    </ToolActionButton>
+    </MudButton>
 }
 else if (ResourceRequested)
 {
-    <MudText Typo="Typo.body2">@Localizer["Service Request is being reviewed"]</MudText>
+    <MudText Size="Size.Small" Typo="Typo.body2">@Localizer["Service Request is being reviewed"]</MudText>
 }
-else if (Project.Project_Phase == TerraformOutputStatus.PendingApproval)
+else if (Project?.Project_Phase == TerraformOutputStatus.PendingApproval)
 {
-    <ToolActionButton Disabled LinkType="LinkType.Request">
+    <MudButton Variant="Variant.Filled" Disabled EndIcon="fas fa-layer-plus">
         @Localizer["Pending Approval"]
-    </ToolActionButton>
+    </MudButton>
 }
 else
 {
-    <ToolActionButton OnClick="@OnRequestService" LinkType="LinkType.Request">
-        @Localizer["Request Service Creation"]
-    </ToolActionButton>
+    <MudButton Size="Size.Small" OnClick="@OnRequestService" Variant="Variant.Filled" EndIcon="fas fa-layer-plus" Color="Color.Primary">
+        @Localizer["Create New"]
+    </MudButton>
 }
 
 @code {
 
-    [Parameter] public Datahub_Project Project { get; set; }
-    [Parameter] public EventCallback OnRequestService { get; set; }
-    [Parameter] public bool ResourceRequested { get; set; }
-    [Parameter] public bool IsRunning { get; set; }
+    [Parameter]
+    public Datahub_Project? Project { get; set; }
+
+    [Parameter]
+    public EventCallback OnRequestService { get; set; }
+
+    [Parameter]
+    public bool ResourceRequested { get; set; }
+
+    [Parameter]
+    public bool IsRunning { get; set; }
 }
