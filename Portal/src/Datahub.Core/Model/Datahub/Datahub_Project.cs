@@ -291,7 +291,7 @@ public class Datahub_Project : IComparable<Datahub_Project>
             Acronym = Project_Acronym_CD,
             Organization = new WorkspaceOrganization()
             {
-                Name = Branch_Name,
+                Name = Branch_Name ?? "TODO",
                 Code = "TODO"
             },
             Users = users
