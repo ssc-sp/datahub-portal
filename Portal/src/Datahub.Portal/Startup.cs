@@ -59,6 +59,7 @@ using Microsoft.Extensions.Azure;
 using Microsoft.Identity.Web.UI;
 using Tewr.Blazor.FileReader;
 using Datahub.Core.Services.ResourceManager;
+using Datahub.Core.Services.Docs;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]
 
@@ -174,6 +175,7 @@ public class Startup
 
         // TODO FIXME this will likely change when proper caching is implemented
         services.AddSingleton<IWikiService, WikiService>();
+        services.AddSingleton<DocumentationService>();
 
         services.AddSingleton<CultureService>();
 
