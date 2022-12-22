@@ -101,7 +101,8 @@ public class TerraformOutputHandler
 
         if (projectRequest is null)
         {
-            throw new Exception($"Project request not found for project acronym {projectAcronym.Value} and service type {terraformServiceType}");
+            _logger.LogInformation("Project request not found for project acronym {ProjectAcronymValue} and service type {TerraformServiceType}", projectAcronym.Value, terraformServiceType);
+            return;
         }
 
         var storageBlobStatus = GetStatusMapping(outputVariables[OutputAzureStorageBlobStatus].Value);
