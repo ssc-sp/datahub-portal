@@ -42,7 +42,14 @@ else
         <MudItem xs="10">
             @if (ShowCards)
             {
-                <MudGrid>
+                @if (docIsLoading || _currentDoc is null)
+                {
+                    <MudText Typo=@Typo.h3>@_currentDoc?.Title</MudText>
+                    <MudProgressCircular Indeterminate />
+                }
+                else
+                {
+                    <MudGrid>
                     @foreach (var card in _currentDoc.Childs)
                     {
                         <MudItem xs="4">
@@ -65,12 +72,13 @@ else
                         </MudItem>
                     }
                 </MudGrid>
+                }
             }
             else
             {
                 <MudCard>
                     <MudCardContent>
-                        @if (ArticleIsLoading)
+                        @if (docIsLoading)
                         {
                             <MudText Typo=@Typo.h3>@_currentDoc?.Title</MudText>
                             <MudProgressCircular Indeterminate />
@@ -178,15 +186,15 @@ display: -webkit-box";
     private IReadOnlyList<string> _formattedErrorList;
 
     private bool PageIsLoading => _resourceRoot is null;
-    private bool ShowCards => _currentDoc.MarkdownPage is null;
-    private bool ArticleIsLoading => !ShowCards && string.IsNullOrEmpty(_markdownContent);
+    private bool ShowCards => _currentDoc?.MarkdownPage is null;
+    private bool docIsLoading;
 
     private bool _cacheIsRefreshing = false;
 
     private string _markdownContent = string.Empty;
     private string _baseUrl = "/resources";
 
-    private string BuildResourceLink(DocItem res) => $"/resources/{res.Title}";
+    private string BuildResourceLink(DocItem res) => $"/resources/{res.GetID()}";
 
     private string RewriteLink(string link)
     {
@@ -226,11 +234,14 @@ display: -webkit-box";
 
     protected override async Task OnParametersSetAsync()
     {
+        docIsLoading = true;
+
         _currentDoc = string.IsNullOrEmpty(PageName) ?
             _resourceRoot :
             _docService.LoadPage(PageName);
 
         await _docService.BuildDocAndPreviews(_currentDoc);
+        docIsLoading = false;
         _markdownContent = string.Empty;
         _currentMarkdownCategory = null;
 
