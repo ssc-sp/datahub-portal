@@ -1,0 +1,296 @@
+﻿@using Datahub.Core.Services.Wiki
+@inject IWikiService _resourcesService
+@inject CultureService _cultureService
+@inject NavigationManager _navManager
+@inject TimeZoneService _timezoneService;
+
+@implements IDisposable
+
+@page "/wiki/"
+@page "/wiki/{PageName}"
+
+@if (PageIsLoading)
+{
+    <MudContainer>
+        <MudProgressCircular Indeterminate Color=@Color.Primary />
+    </MudContainer>
+}
+else
+{
+    <MudGrid>
+        <MudItem xs="2">
+            <MudNavMenu Rounded Color=@Color.Primary>
+                <MudNavLink Href="/resources/" Match=NavLinkMatch.All Icon=@Icons.Filled.Home>
+                    <MudText Inline Typo=@Typo.body1>@Localizer["Overview"]</MudText>
+                </MudNavLink>
+                @foreach (var cat in _resourceRoot.Categories)
+                {
+                    var isCurrentCat = (_currentMarkdownCategory == cat);
+                    var catIcon = isCurrentCat ? Icons.Filled.FolderOpen : Icons.Filled.Folder;
+
+                    <MudNavGroup Icon=@catIcon Expanded=@isCurrentCat Title=@cat.Title ExpandedChanged=@((v) => UpdateCategory(cat, v))>
+                        @foreach (var article in cat.Cards)
+                        {
+                            <MudNavLink Href=@BuildResourceLink(article)>
+                                <MudText Typo=@Typo.body2>@article.Title</MudText>
+                            </MudNavLink>
+                        }
+                    </MudNavGroup>
+                }
+            </MudNavMenu>
+        </MudItem>
+        <MudItem xs="10">
+            @if (ShowCards)
+            {
+                <MudGrid>
+                    @foreach (var card in CardsToShow)
+                    {
+                        <MudItem xs="4">
+                            <MudCard>
+                                <MudCardHeader>
+                                    <CardHeaderAvatar>
+                                        <MudIcon Icon=@Icons.Filled.MenuBook />
+                                    </CardHeaderAvatar>
+                                    <CardHeaderContent>
+                                        <MudText Typo=@Typo.h5>@card.Title</MudText>
+                                    </CardHeaderContent>
+                                </MudCardHeader>
+                                <MudCardContent>
+                                    <MudText Typo=@Typo.body1 Style=@BOX_TEXT_STYLE>@card.Preview</MudText>
+                                </MudCardContent>
+                                <MudCardActions>
+                                    <MudButton Href=@BuildResourceLink(card) Color=@Color.Primary Variant=@Variant.Filled>@Localizer["Read more"]</MudButton>
+                                </MudCardActions>
+                            </MudCard>
+                        </MudItem>
+                    }
+                </MudGrid>
+            }
+            else
+            {
+                <MudCard>
+                    <MudCardContent>
+                        @if (ArticleIsLoading)
+                        {
+                            <MudText Typo=@Typo.h3>@_currentResource?.Title</MudText>
+                            <MudProgressCircular Indeterminate />
+                        }
+                        else
+                        {
+                            <DHMarkdown Substitutions=@Substitutions
+                                        Content=@_markdownContent
+                                        LinkRewriter="@RewriteLink" />
+
+                            @if (CurrentCard is not null)
+                            {
+                                <AuthorizeView Roles=@RoleConstants.DATAHUB_ROLE_ADMIN>
+                                    <MudButton Href=@_resourcesService.GetEditUrl(CurrentCard)
+                                               Color=@Color.Primary
+                                               Variant=@Variant.Filled
+                                               StartIcon=@Icons.Filled.Launch
+                                               Target="_blank">
+                                        @Localizer["BUTTONS.Edit"]
+                                    </MudButton>
+                                </AuthorizeView>
+                            }
+                        }
+                    </MudCardContent>
+                </MudCard>
+            }
+        </MudItem>
+    </MudGrid>
+
+    <MudContainer Class="ma-8">
+        <AuthorizeView Roles=@RoleConstants.DATAHUB_ROLE_ADMIN>
+            <MudCard>
+                <MudCardHeader>
+                    <CardHeaderAvatar>
+                        <MudIcon Icon=@Icons.Filled.AdminPanelSettings />
+                    </CardHeaderAvatar>
+                    <CardHeaderContent>
+                        @Localizer["Administration"]
+                    </CardHeaderContent>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudStack>
+                        <MudStack Row AlignItems=@AlignItems.Center>
+                            @if (_cacheIsRefreshing)
+                            {
+                                <MudProgressCircular Indeterminate Color=@Color.Secondary />
+                            }
+                            else
+                            {
+                                <MudButton OnClick=@RefreshCache
+                                           StartIcon=@Icons.Filled.Refresh
+                                           Variant=@Variant.Filled
+                                           Color=@Color.Secondary>Refresh</MudButton>
+                            }
+
+                            <MudText>
+                                Refresh the cache. Please note, it can take Github a few minutes to update its resources, so this may not work right away after editing the wiki.
+                            </MudText>
+                        </MudStack>
+
+                        <MudContainer>
+                            <MudText Typo=@Typo.h5>Error(s)</MudText>
+                            @if (_formattedErrorList?.Count > 0)
+                            {
+                                <MudList>
+                                    @foreach (var e in _formattedErrorList)
+                                    {
+                                        <MudListItem>@e</MudListItem>
+                                    }
+                                </MudList>
+                            }
+                            else
+                            {
+                                <MudText>None</MudText>
+                            }
+                        </MudContainer>
+
+                    </MudStack>
+                </MudCardContent>
+            </MudCard>
+        </AuthorizeView>
+    </MudContainer>
+}
+
+@code {
+
+    [Parameter]
+    public string PageName { get; set; }
+
+    [Parameter]
+    public List<(string, string)> Substitutions { get; set; }
+
+    // this is the recommended way to get an ellipsis on multi-line text: https://developer.mozilla.org/en-US/docs/Web/CSS/-webkit-line-clamp
+    private const string BOX_TEXT_STYLE = @"
+height: 3em;
+overflow: hidden;
+-webkit-line-clamp: 2;
+-webkit-box-orient: vertical;
+display: -webkit-box";
+
+    private MarkdownLanguageRoot _resourceRoot;
+    private MarkdownCategory _currentMarkdownCategory;
+    private AbstractMarkdownPage _currentResource;
+
+    private IReadOnlyList<string> _formattedErrorList;
+
+    private MarkdownCard CurrentCard => _currentResource as MarkdownCard;
+
+    private bool PageIsLoading => _resourceRoot is null;
+    private bool ShowCards => _currentResource is MarkdownLanguageRoot || _currentResource is MarkdownCategory;
+    private bool ArticleIsLoading => !ShowCards && string.IsNullOrEmpty(_markdownContent);
+
+    private bool _cacheIsRefreshing = false;
+
+    public IEnumerable<MarkdownCard> CardsToShow => _currentMarkdownCategory?.Cards ?? _resourceRoot.AllCards;
+
+    private string _markdownContent = string.Empty;
+    private string _baseUrl = "/resources";
+
+    private string BuildResourceLink(AbstractMarkdownPage res) => $"/resources/{res.Title}";
+
+    private string RewriteLink(string link)
+    {
+        if (link.StartsWith("http"))
+            return link;
+        return _baseUrl + "/" + System.Web.HttpUtility.UrlEncode(link);
+    }
+
+    private bool UpdateCategory(MarkdownCategory cat, bool value)
+    {
+        if (value && cat != _currentMarkdownCategory)
+        {
+            _currentMarkdownCategory = cat;
+            _navManager.NavigateTo(BuildResourceLink(cat));
+        }
+        else if (!value && cat == _currentMarkdownCategory)
+        {
+            _navManager.NavigateTo(BuildResourceLink(cat));
+        }
+
+        return value;
+    }
+
+    private async Task RefreshCache()
+    {
+        _cacheIsRefreshing = true;
+        await InvokeAsync(StateHasChanged);
+
+        await _resourcesService.RefreshCache();
+
+        await OnInitializedAsync();
+
+        _cacheIsRefreshing = false;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _currentResource = string.IsNullOrEmpty(PageName) ?
+            _resourceRoot :
+            _resourceRoot[PageName];
+
+        _markdownContent = string.Empty;
+        _currentMarkdownCategory = null;
+
+
+        if (_currentResource == null)
+        {
+            _markdownContent = "Error";
+            await _resourcesService.LogNotFoundError(PageName, _resourceRoot.Title);
+        }
+        else if (_currentResource is MarkdownCategory)
+        {
+            _currentMarkdownCategory = _currentResource as MarkdownCategory;
+        }
+        else if (_currentResource is MarkdownCard)
+        {
+            var card = _currentResource as MarkdownCard;
+            _currentMarkdownCategory = card.ParentCategory;
+            _markdownContent = await _resourcesService.LoadResourcePage(card);
+        }
+    }
+
+    private async Task<string> FormatErrorMessage(TimeStampedStatus error)
+    {
+        var timestampUtc = DateTime.SpecifyKind(error.Timestamp, DateTimeKind.Utc);
+        var localDatetime = await _timezoneService.GetLocalDateTime(timestampUtc);
+        return $"{localDatetime.ToString("yyyy-MM-dd HH:mm:ss")} - {error.Message}";
+    }
+
+    private async Task RefreshErrorList()
+    {
+        var errors = _resourcesService.GetErrorList();
+
+        _formattedErrorList = await Task.WhenAll(errors.Select(async e => await FormatErrorMessage(e)));
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var isFrench = _cultureService.IsFrench;
+
+        _resourceRoot = await _resourcesService.LoadLanguageRoot(isFrench);
+
+        await RefreshErrorList();
+
+        _resourcesService.NotifyRefreshErrors += OnNotifyRefreshErrors;
+
+        await base.OnInitializedAsync();
+    }
+
+    private async Task OnNotifyRefreshErrors()
+    {
+        await RefreshErrorList();
+    }
+
+    public void Dispose()
+    {
+        _resourcesService.NotifyRefreshErrors -= OnNotifyRefreshErrors;
+    }
+
+}
