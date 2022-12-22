@@ -52,7 +52,10 @@ public class TerraformService : ITerraformService
             }
         }
 
-        var files = Directory.GetFiles(templateSourcePath, "*.*", SearchOption.TopDirectoryOnly);
+        var excludedFileExtensions = new List<string>(new [] {".md"});
+        var files = Directory.GetFiles(templateSourcePath, "*.*", SearchOption.TopDirectoryOnly)
+            .Where(filename => !excludedFileExtensions.Contains(Path.GetExtension(filename)));
+        
         foreach (var file in files)
         {
             var sourceFilename = Path.GetFileName(file);
