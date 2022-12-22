@@ -54,7 +54,8 @@ public class TerraformOutputHandler
 
         if (output is null)
         {
-            throw new ArgumentNullException(nameof(output));
+            _logger.LogInformation("Output is null. C# Queue trigger function processed and finishing");
+            return;
         }
 
         try
@@ -67,7 +68,7 @@ public class TerraformOutputHandler
             throw;
         }
 
-        _logger.LogInformation($"C# Queue trigger function finished");
+        _logger.LogInformation("C# Queue trigger function finished");
     }
 
     private async Task ProcessTerraformOutputVariables(
