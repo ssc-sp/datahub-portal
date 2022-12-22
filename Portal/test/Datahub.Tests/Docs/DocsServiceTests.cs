@@ -1,6 +1,7 @@
 ﻿using Datahub.Core.Services.Docs;
 using Datahub.Tests.Portal;
 using Lucene.Net.Store;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -9,6 +10,7 @@ using Microsoft.Identity.Web.UI.Areas.MicrosoftIdentity.Controllers;
 using Moq;
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
@@ -40,8 +42,9 @@ namespace Datahub.Tests.Docs
             //httpClient.BaseAddress = new Uri("http://nonexisting.domain"); //New code
 
             mockFactory.Setup(_ => _.CreateClient(It.IsAny<string>())).Returns(httpClient);
-
-            _service = new DocumentationService(config, logger, mockFactory.Object);
+            // Arrange
+            var memCache = new MemoryCache(new MemoryCacheOptions());
+            _service = new DocumentationService(config, logger, mockFactory.Object,memCache);
         }
 
         [Fact]
@@ -54,9 +57,24 @@ namespace Datahub.Tests.Docs
         }
 
         [Fact]
-        public async Task Test1LoadLanguageRootEnglish()
+        public async Task Test1LoadEnglishSidebar()
         {
-            var page = await _service.LoadLanguageRoot("en");
+            var root = await _service.GetLanguageRoot("en");
+            Assert.NotNull(root);
+            Assert.True(root.Childs.Count > 10);
+        }
+
+        [Fact]
+        public async Task TestLoadPage()
+        {
+            var root = await _service.GetLanguageRoot("en");
+            Assert.NotNull(root);
+            Assert.True(root.Childs.Count > 10);
+            var pageId = root.Childs[9].GetID();
+            var loadedPage = _service.LoadPage(pageId);
+            Assert.NotNull(loadedPage);
+            var parent = _service.GetParent(loadedPage);
+            Assert.NotNull(parent);
         }
     }
 }

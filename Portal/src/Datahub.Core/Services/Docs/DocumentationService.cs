@@ -2,25 +2,57 @@
 using Markdig;
 using Markdig.Syntax;
 using Markdig.Syntax.Inlines;
-
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using static Lucene.Net.Search.FieldCache;
 
 namespace Datahub.Core.Services.Docs;
 #nullable enable
-public record DocItem(int Level)
+public record DocItem(int Level, bool isRoot = false)
 {
     public string? Title { get; set; }
     public List<DocItem> Childs { get; set; } = new List<DocItem>();
     
+    public string? Preview { get; set; }
+
+    public string? ContentTitle { get; set; }
+
+    public string? Content { get; set; }
+
     public string? MarkdownPage { get; set; }
+
+    public string GetDescription() => $"Card '{Title}' - '{MarkdownPage}'";    
+
+    public string GetID()
+    {
+        if (isRoot) return DocumentationService.GetPageCode("root");
+        if (Title is null && MarkdownPage is null) throw new InvalidDataException($"Page has no Title and no URL");
+        return DocumentationService.GetPageCode(MarkdownPage ?? Title!);
+    }
+
+    public DocItem? LocateID(string id)
+    {
+        if (string.Equals(id, GetID(), StringComparison.InvariantCultureIgnoreCase)) return this;
+        if (Childs is null || Childs.Count == 0)
+            return null;
+        foreach (var item in Childs)
+        {
+            var found = item.LocateID(id);
+            if (found != null)
+                return found;
+        }
+        return null;
+
+    }
 }
 
 public class DocumentationService 
@@ -33,21 +65,23 @@ public class DocumentationService
     private const string DOCS_ROOT_CONFIG_KEY = "docsURL";
     private const string DOCS_EDIT_URL_CONFIG_KEY = "EditdocsURLPrefix";
 
-    //TODO: use proper caching
-    private MarkdownLanguageRoot? EnglishLanguageRoot = default;
-    private MarkdownLanguageRoot? FrenchLanguageRoot = default;
-
     private IList<TimeStampedStatus> _statusMessages;
+    private DocItem? enOutline;
+    private DocItem? frOutline;
+    private readonly IMemoryCache _cache;
 
     public event Func<Task>? NotifyRefreshErrors;
 
-    public DocumentationService(IConfiguration config, ILogger<DocumentationService> logger, IHttpClientFactory httpClientFactory)
+    public DocumentationService(IConfiguration config, ILogger<DocumentationService> logger, 
+        IHttpClientFactory httpClientFactory,
+        IMemoryCache docCache)
     {
         _docsRoot = config.GetValue(DOCS_ROOT_CONFIG_KEY, "https://raw.githubusercontent.com/ssc-sp/datahub-docs/main/")!;
         _docsEditPrefix = config[DOCS_EDIT_URL_CONFIG_KEY]!;
         _logger = logger;
         _httpClientFactory = httpClientFactory;
         _statusMessages = new List<TimeStampedStatus>();
+        _cache = docCache;
     }
 
     private async Task AddStatusMessage(string message)
@@ -63,14 +97,13 @@ public class DocumentationService
 
 
         var fullUrl = $"{_docsRoot}{nameTrimmed}.md";
-        using var client = _httpClientFactory.CreateClient();
         try
         {
-            var content = await client.GetStringAsync(fullUrl);
+            var content = await LoadDocsPage(fullUrl);
 
             var result = substitutions == null ?
                 content :
-                substitutions.Aggregate(content, (current, s) => current.Replace(s.Item1, s.Item2));
+                substitutions.Aggregate(content, (current, s) => current?.Replace(s.Item1, s.Item2));
 
             return result;
         }
@@ -82,7 +115,7 @@ public class DocumentationService
 
     }
 
-    private static IList<LinkInline>? GetListedLinks(string inputMarkdown)
+    private static DocItem? ParseSidebar(string? inputMarkdown)
     {
         if (string.IsNullOrEmpty(inputMarkdown))
         {
@@ -91,14 +124,9 @@ public class DocumentationService
 
         var doc = Markdown.Parse(inputMarkdown);
         
-        
-        var listBlock = doc.FirstOrDefault(e => e is ListBlock);
-        var root = new DocItem(0);
+        var root = new DocItem(0,true);
         ProcessBlock(doc, 0, null, root);
-        return listBlock?.Descendants()
-            .Where(e => e is LinkInline)
-            .Cast<LinkInline>()
-            .ToList();
+        return root;
     }
 
     private static DocItem? ProcessBlock(MarkdownObject markdownObject, int level, DocItem? currentItem,DocItem? parent)
@@ -182,85 +210,39 @@ public class DocumentationService
         return parentPath;
     }
 
-    private async Task<MarkdownCard?> PopulateResourceCard(LinkInline link, MarkdownCategory category)
+    public async Task BuildDocAndPreviews(DocItem doc)
     {
-        var path = GetPath(category);
-        var linkUrlMD = $"{link.Url}.md";
-        var content = await LoadDocsPage(linkUrlMD);
-
-        if (string.IsNullOrEmpty(content))
+        if (doc.Title != null)
         {
-            return default;
+            doc.Content = await LoadDocsPage(doc.Title);
+            await BuildPreview(doc);
         }
+        foreach (var item in doc.Childs)
+        {
+            await BuildDocAndPreviews(item);
+        }
+    }
 
-        var cardDoc = Markdown.Parse(content);
+    private async Task BuildPreview(DocItem doc)
+    {
+        if (string.IsNullOrEmpty(doc.Content)) return;
+        var cardDoc = Markdown.Parse(doc.Content);
         var cardDocFlattened = cardDoc.Descendants();
 
         var firstHeading = cardDocFlattened.FirstOrDefault(e => e is HeadingBlock) as HeadingBlock;
         var firstPara = cardDocFlattened.FirstOrDefault(e => e is ParagraphBlock) as ParagraphBlock;
         if (firstHeading?.Inline?.FirstChild is null || firstPara?.Inline?.FirstChild is null)
         {
-            await AddStatusMessage($"Invalid card {link} - first Header or first Paragraph missing");
-            return default;
+            await AddStatusMessage($"Invalid card {doc.GetDescription()} - first Header or first Paragraph missing");
+            return;
         }
 
         var title = firstHeading.Inline.FirstChild.ToString();
         var preview = firstPara.Inline.FirstChild.ToString();
 
-        var card = new MarkdownCard(title, preview, link.Url, category);
-
-        return await Task.FromResult(card);
+        doc.ContentTitle = title;
+        doc.Preview = preview;
     }
-
-    private async Task<MarkdownCategory?> PopulateResourceCategory(LinkInline link, MarkdownLanguageRoot languageRoot)
-    {
-        if (link?.FirstChild is null)
-        {
-            await AddStatusMessage($"Invalid card {link} - first Header or first Paragraph missing");
-            return default;
-        }
-        var title = link.FirstChild.ToString();
-        var category = new MarkdownCategory(title, languageRoot);
-
-        var catSidebar = await LoadDocsPage(SIDEBAR);
-        var catLinks = GetListedLinks(catSidebar!);
-
-        if (catLinks?.Count > 0)
-        {
-            foreach (var l in catLinks)
-            {
-                await PopulateResourceCard(l, category);
-            }
-        }
-
-        return await Task.FromResult(category);
-    }
-
-    private async Task<MarkdownLanguageRoot?> PopulateResourceLanguageRoot(LinkInline link)
-    {
-        if (link?.FirstChild is null)
-        {
-            await AddStatusMessage($"Invalid card {link} - first Header or first Paragraph missing");
-            return default;
-        }
-        var title = link.FirstChild.ToString();
-        var langRoot = new MarkdownLanguageRoot(title);
-
-        var langSidebar = await LoadDocsPage(SIDEBAR);
-        var langLinks = GetListedLinks(langSidebar!);
-
-        if (langLinks?.Count > 0)
-        {
-            foreach (var l in langLinks)
-            {
-                await PopulateResourceCategory(l, langRoot);
-            }
-        }
-
-        return await Task.FromResult(langRoot);
-    }
-
-    public async Task RefreshCache() => await LoadResourceTree();
 
     private async Task InvokeNotifyRefreshErrors()
     {
@@ -270,27 +252,54 @@ public class DocumentationService
         }
     }
 
-    private async Task LoadResourceTree()
+    private async Task LoadResourceTree(bool useCache = true)
     {
         _statusMessages = new List<TimeStampedStatus>();
 
         await AddStatusMessage("Loading resources");
 
-        var rootSidebar = await LoadDocsPage(SIDEBAR);
-        if (rootSidebar is null)
-            throw new InvalidOperationException("Sidebar is missing");
-        var rootLinks = GetListedLinks(rootSidebar);
-        if (rootLinks is null)
+        enOutline = ParseSidebar(await LoadDocsPage(SIDEBAR, useCache));
+        if (enOutline is null)
             throw new InvalidOperationException("Cannot load sidebar and content");
-        var enLink = rootLinks[0];
-        var frLink = rootLinks[1];
+        frOutline = ParseSidebar(await LoadDocsPage($"fr/{SIDEBAR}", useCache));
+        if (frOutline is null)
+            throw new InvalidOperationException("Cannot load sidebar and content");
+        
+        await AddStatusMessage("Finished loading sidebars");
 
-        EnglishLanguageRoot = await PopulateResourceLanguageRoot(enLink);
-        FrenchLanguageRoot = await PopulateResourceLanguageRoot(frLink);
+    }
 
-        await AddStatusMessage("Finished loading resources");
+    public DocItem? LoadPage(string id)
+    {
+        if (enOutline is null)
+            throw new InvalidOperationException("sidebar not loaded");
+        var enResult = enOutline.LocateID(id);
+        if (enResult != null)
+            return enResult;
+        if (frOutline is null)
+            throw new InvalidOperationException("sidebar not loaded");
+        return frOutline.LocateID(id);
+    }
 
-        await Task.CompletedTask;
+    public DocItem? GetParent(DocItem docItem, DocItem? currentNode = null)
+    {
+        if (docItem == enOutline || docItem == frOutline)
+            return null;
+        if (currentNode is null)
+        {
+            return GetParent(docItem, enOutline) ?? GetParent(docItem, frOutline);
+        }
+        if (currentNode.Childs is null || currentNode.Childs.Count == 0)
+            return null;
+        foreach (var item in currentNode.Childs)
+        {
+            if (item == docItem)
+                return currentNode;
+            var nextLevel = GetParent(docItem, item);
+            if (nextLevel != null)
+                return nextLevel;
+        }
+        return null;
     }
 
     public const string SIDEBAR = "_sidebar.md";
@@ -312,14 +321,29 @@ public class DocumentationService
         return sb.ToString();
     }
 
-    private async Task<string?> LoadDocsPage(string name)
-    {
-        var url = BuildUrl(name);
 
+    private async Task<string?> LoadDocsPage(string name, bool useCache = true)
+    {
+        return await LoadDocs(BuildUrl(name), useCache);
+    }
+
+    private async Task<string?> LoadDocs(string url, bool useCache = true)
+    {
+        if (_cache.TryGetValue(url, out var docContent) && useCache)
+            return docContent as string;
         var httpClient = _httpClientFactory.CreateClient();
         try
         {
-            return await httpClient.GetStringAsync(url);
+            var content = await httpClient.GetStringAsync(url);
+            var key = _cache.CreateEntry(url);
+            // Set cache options.
+            var cacheEntryOptions = new MemoryCacheEntryOptions()
+                // Keep in cache for this time, reset time if accessed.
+                .SetAbsoluteExpiration(DateTime.Now.AddHours(1));
+
+            // Save data in cache.
+            _cache.Set(url, content, cacheEntryOptions);
+            return content;
         }
         catch (Exception e)
         {
@@ -329,6 +353,30 @@ public class DocumentationService
             return default(string);
         }
     }
+    
+    public static long GetStableHashCode(string str)
+    {
+        unchecked
+        {
+            long hash1 = 5381;
+            long hash2 = hash1;
+
+            for (int i = 0; i < str.Length && str[i] != '\0'; i += 2)
+            {
+                hash1 = ((hash1 << 5) + hash1) ^ str[i];
+                if (i == str.Length - 1 || str[i + 1] == '\0')
+                    break;
+                hash2 = ((hash2 << 5) + hash2) ^ str[i + 1];
+            }
+
+            return hash1 + (hash2 * 1566083941);
+        }
+    }
+
+    public static string GetPageCode(string url)
+    {
+        return GetStableHashCode(url).ToString("X").ToLowerInvariant();
+    }
 
     public static bool CompareCulture(string c1, string c2)
     {
@@ -337,24 +385,24 @@ public class DocumentationService
         return ci1.Equals(ci2) || ci1.Parent.Equals(ci2) || ci2.Parent.Equals(ci1);
     }
 
-    public async Task<MarkdownLanguageRoot?> LoadLanguageRoot(string locale)
+    public async Task<DocItem?> GetLanguageRoot(string locale, bool useCache = true)
     {
-        if (EnglishLanguageRoot == null || FrenchLanguageRoot == null)
+        if (enOutline == null || frOutline == null)
         {
-            await LoadResourceTree();
+            await LoadResourceTree(useCache);
         }
 
-        var result = CompareCulture(locale,"fr") ? FrenchLanguageRoot : EnglishLanguageRoot;
+        var result = CompareCulture(locale,"fr") ? frOutline : enOutline;
         return result;
     }
 
-    public async Task<string?> LoadResourcePage(MarkdownCard card)
+    public async Task<string?> LoadResourcePage(DocItem card)
     {
-        var name = $"{card.Url}.md";
+        var name = $"{card.Title}.md";
         return await LoadDocsPage(name);
     }
 
-    public string GetEditUrl(MarkdownCard card) => $"{_docsEditPrefix}{card.Url}/_edit";
+    public string GetEditUrl(DocItem card) => $"{_docsEditPrefix}{card.Title}/_edit";
 
     public IReadOnlyList<TimeStampedStatus> GetErrorList() => _statusMessages.AsReadOnly();
 
