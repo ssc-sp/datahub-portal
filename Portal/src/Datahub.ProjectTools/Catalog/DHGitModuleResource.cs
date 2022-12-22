@@ -33,13 +33,17 @@ public class DHGitModuleResource : IProjectResource
     {
         if (currentModule.Name == "azure-storage-blob")
         {
-            return new[] { (typeof(StorageResourceCard), GetActiveParameters()) };
+            return project.Resources
+                .Where(r => r.ResourceType == "azure-storage-blob")
+                .Select(_ => (typeof(StorageResourceCard), GetActiveParameters()))
+                .ToArray();
         }
         return Array.Empty<(Type type, IDictionary<string, object> parameters)>();
     }
 
     public string? GetCostEstimatorLink()
     {
+        // TODO: Get cost estimator link from module
         return null;
     }
 
