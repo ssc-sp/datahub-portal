@@ -1,6 +1,5 @@
-﻿
-@using Datahub.Core.Services.Wiki
-@inject IResourcesService _resourcesService
+﻿@using Datahub.Core.Services.Docs
+@inject DocumentationService _docService
 @inject CultureService _cultureService
 @inject NavigationManager _navManager
 @inject TimeZoneService _timezoneService;
@@ -24,15 +23,15 @@ else
                 <MudNavLink Href="/resources/" Match=NavLinkMatch.All Icon=@Icons.Filled.Home>
                     <MudText Inline Typo=@Typo.body1>@Localizer["Overview"]</MudText>
                 </MudNavLink>
-                @foreach (var cat in _resourceRoot.Categories)
+                @foreach (var cat in _resourceRoot.Childs)
                 {
-                    var isCurrentCat = (_currentResourceCategory == cat);
+                    var isCurrentCat = (_currentMarkdownCategory == cat);
                     var catIcon = isCurrentCat ? Icons.Filled.FolderOpen : Icons.Filled.Folder;
 
                     <MudNavGroup Icon=@catIcon Expanded=@isCurrentCat Title=@cat.Title ExpandedChanged=@((v) => UpdateCategory(cat, v))>
-                        @foreach(var article in cat.Cards)
+                        @foreach (var article in cat.Childs)
                         {
-                            <MudNavLink Href=@BuildResourceLink(article) >
+                            <MudNavLink Href=@BuildResourceLink(article)>
                                 <MudText Typo=@Typo.body2>@article.Title</MudText>
                             </MudNavLink>
                         }
@@ -43,8 +42,15 @@ else
         <MudItem xs="10">
             @if (ShowCards)
             {
-                <MudGrid>
-                    @foreach(var card in CardsToShow)
+                @if (docIsLoading || _currentDoc is null)
+                {
+                    <MudText Typo=@Typo.h3>@_currentDoc?.Title</MudText>
+                    <MudProgressCircular Indeterminate />
+                }
+                else
+                {
+                    <MudGrid>
+                    @foreach (var card in _currentDoc.Childs)
                     {
                         <MudItem xs="4">
                             <MudCard>
@@ -57,7 +63,7 @@ else
                                     </CardHeaderContent>
                                 </MudCardHeader>
                                 <MudCardContent>
-                                    <MudText Typo=@Typo.body1 Style=@BOX_TEXT_STYLE >@card.Preview</MudText>
+                                    <MudText Typo=@Typo.body1 Style=@BOX_TEXT_STYLE>@card.Preview</MudText>
                                 </MudCardContent>
                                 <MudCardActions>
                                     <MudButton Href=@BuildResourceLink(card) Color=@Color.Primary Variant=@Variant.Filled>@Localizer["Read more"]</MudButton>
@@ -66,32 +72,31 @@ else
                         </MudItem>
                     }
                 </MudGrid>
+                }
             }
             else
             {
                 <MudCard>
                     <MudCardContent>
-                        @if (ArticleIsLoading)
+                        @if (docIsLoading)
                         {
-                            <MudText Typo=@Typo.h3>@_currentResource?.Title</MudText>
+                            <MudText Typo=@Typo.h3>@_currentDoc?.Title</MudText>
                             <MudProgressCircular Indeterminate />
                         }
                         else
                         {
-                            <DHMarkdown 
-                                Substitutions=@Substitutions
-                                Content=@_markdownContent
-                                LinkRewriter="@RewriteLink" />
+                            <DHMarkdown Substitutions=@Substitutions
+                                        Content=@_markdownContent
+                                        LinkRewriter="@RewriteLink" />
 
-                            @if (CurrentCard is not null)
+                            @if (_currentDoc is not null)
                             {
                                 <AuthorizeView Roles=@RoleConstants.DATAHUB_ROLE_ADMIN>
-                                    <MudButton 
-                                        Href=@_resourcesService.GetEditUrl(CurrentCard) 
-                                        Color=@Color.Primary 
-                                        Variant=@Variant.Filled 
-                                        StartIcon=@Icons.Filled.Launch
-                                        Target="_blank" >
+                                    <MudButton Href=@_docService.GetEditUrl(_currentDoc)
+                                               Color=@Color.Primary
+                                               Variant=@Variant.Filled
+                                               StartIcon=@Icons.Filled.Launch
+                                               Target="_blank">
                                         @Localizer["BUTTONS.Edit"]
                                     </MudButton>
                                 </AuthorizeView>
@@ -102,7 +107,7 @@ else
             }
         </MudItem>
     </MudGrid>
-    
+
     <MudContainer Class="ma-8">
         <AuthorizeView Roles=@RoleConstants.DATAHUB_ROLE_ADMIN>
             <MudCard>
@@ -123,11 +128,10 @@ else
                             }
                             else
                             {
-                                <MudButton 
-                                    OnClick=@RefreshCache
-                                    StartIcon=@Icons.Filled.Refresh 
-                                    Variant=@Variant.Filled 
-                                    Color=@Color.Secondary>Refresh</MudButton>
+                                <MudButton OnClick=@RefreshCache
+                                           StartIcon=@Icons.Filled.Refresh
+                                           Variant=@Variant.Filled
+                                           Color=@Color.Secondary>Refresh</MudButton>
                             }
 
                             <MudText>
@@ -165,36 +169,32 @@ else
     public string PageName { get; set; }
 
     [Parameter]
-    public List<(string,string)> Substitutions { get; set; }
+    public List<(string, string)> Substitutions { get; set; }
 
     // this is the recommended way to get an ellipsis on multi-line text: https://developer.mozilla.org/en-US/docs/Web/CSS/-webkit-line-clamp
     private const string BOX_TEXT_STYLE = @"
 height: 3em;
-overflow: hidden; 
--webkit-line-clamp: 2; 
--webkit-box-orient: vertical; 
+overflow: hidden;
+-webkit-line-clamp: 2;
+-webkit-box-orient: vertical;
 display: -webkit-box";
 
-    private ResourceLanguageRoot _resourceRoot;
-    private ResourceCategory _currentResourceCategory;
-    private AbstractResource _currentResource;
+    private DocItem _resourceRoot;
+    private DocItem _currentMarkdownCategory;
+    private DocItem _currentDoc;
 
     private IReadOnlyList<string> _formattedErrorList;
 
-    private ResourceCard CurrentCard => _currentResource as ResourceCard;
-
     private bool PageIsLoading => _resourceRoot is null;
-    private bool ShowCards => _currentResource is ResourceLanguageRoot || _currentResource is ResourceCategory;
-    private bool ArticleIsLoading => !ShowCards && string.IsNullOrEmpty(_markdownContent);
+    private bool ShowCards => _currentDoc?.MarkdownPage is null;
+    private bool docIsLoading;
 
     private bool _cacheIsRefreshing = false;
-
-    public IEnumerable<ResourceCard> CardsToShow => _currentResourceCategory?.Cards ?? _resourceRoot.AllCards;
 
     private string _markdownContent = string.Empty;
     private string _baseUrl = "/resources";
 
-    private string BuildResourceLink(AbstractResource res) => $"/resources/{res.Title}";
+    private string BuildResourceLink(DocItem res) => $"/resources/{res.GetID()}";
 
     private string RewriteLink(string link)
     {
@@ -203,14 +203,14 @@ display: -webkit-box";
         return _baseUrl + "/" + System.Web.HttpUtility.UrlEncode(link);
     }
 
-    private bool UpdateCategory(ResourceCategory cat, bool value)
+    private bool UpdateCategory(DocItem cat, bool value)
     {
-        if (value && cat != _currentResourceCategory)
+        if (value && cat != _currentMarkdownCategory)
         {
-            _currentResourceCategory = cat;
+            _currentMarkdownCategory = cat;
             _navManager.NavigateTo(BuildResourceLink(cat));
         }
-        else if (!value && cat == _currentResourceCategory)
+        else if (!value && cat == _currentMarkdownCategory)
         {
             _navManager.NavigateTo(BuildResourceLink(cat));
         }
@@ -218,13 +218,14 @@ display: -webkit-box";
         return value;
     }
 
+    private bool useCache = true;
+
     private async Task RefreshCache()
     {
         _cacheIsRefreshing = true;
         await InvokeAsync(StateHasChanged);
 
-        await _resourcesService.RefreshCache();
-
+        useCache = false;
         await OnInitializedAsync();
 
         _cacheIsRefreshing = false;
@@ -233,32 +234,35 @@ display: -webkit-box";
 
     protected override async Task OnParametersSetAsync()
     {
-        _currentResource = string.IsNullOrEmpty(PageName) ?
+        docIsLoading = true;
+
+        _currentDoc = string.IsNullOrEmpty(PageName) ?
             _resourceRoot :
-            _resourceRoot[PageName];
+            _docService.LoadPage(PageName);
 
+        await _docService.BuildDocAndPreviews(_currentDoc);
+        docIsLoading = false;
         _markdownContent = string.Empty;
-        _currentResourceCategory = null;
+        _currentMarkdownCategory = null;
 
 
-        if (_currentResource == null)
+        if (_currentDoc == null)
         {
             _markdownContent = "Error";
-            await _resourcesService.LogNotFoundError(PageName, _resourceRoot.Title);
+            await _docService.LogNotFoundError(PageName, _resourceRoot.Title);
         }
-        else if (_currentResource is ResourceCategory)
+        else if (_currentDoc.MarkdownPage is null)
         {
-            _currentResourceCategory = _currentResource as ResourceCategory;
+            _currentMarkdownCategory = _currentDoc;
         }
-        else if (_currentResource is ResourceCard)
+        else if (!string.IsNullOrEmpty(_currentDoc.MarkdownPage))
         {
-            var card = _currentResource as ResourceCard;
-            _currentResourceCategory = card.ParentCategory;
-            _markdownContent = await _resourcesService.LoadResourcePage(card);
+            _currentMarkdownCategory = _docService.GetParent(_currentDoc);
+            _markdownContent = await _docService.LoadResourcePage(_currentDoc);
         }
     }
 
-    private async Task<string> FormatErrorMessage(TimestampedResourceError error)
+    private async Task<string> FormatErrorMessage(Core.Services.Wiki.TimeStampedStatus error)
     {
         var timestampUtc = DateTime.SpecifyKind(error.Timestamp, DateTimeKind.Utc);
         var localDatetime = await _timezoneService.GetLocalDateTime(timestampUtc);
@@ -267,7 +271,7 @@ display: -webkit-box";
 
     private async Task RefreshErrorList()
     {
-        var errors = _resourcesService.GetErrorList();
+        var errors = _docService.GetErrorList();
 
         _formattedErrorList = await Task.WhenAll(errors.Select(async e => await FormatErrorMessage(e)));
 
@@ -278,13 +282,12 @@ display: -webkit-box";
     {
         var isFrench = _cultureService.IsFrench;
 
-        _resourceRoot = await _resourcesService.LoadLanguageRoot(isFrench);
+        _resourceRoot = await _docService.GetLanguageRoot(_cultureService.Culture, useCache);
 
         await RefreshErrorList();
 
-        _resourcesService.NotifyRefreshErrors += OnNotifyRefreshErrors;
+        _docService.NotifyRefreshErrors += OnNotifyRefreshErrors;
 
-        await base.OnInitializedAsync();
     }
 
     private async Task OnNotifyRefreshErrors()
@@ -294,7 +297,7 @@ display: -webkit-box";
 
     public void Dispose()
     {
-        _resourcesService.NotifyRefreshErrors -= OnNotifyRefreshErrors;
+        _docService.NotifyRefreshErrors -= OnNotifyRefreshErrors;
     }
 
 }
