@@ -84,7 +84,7 @@ public class TerraformOutputHandler
         }
     }
 
-    private string GetProjectPhaseMapping(string value)
+    private static string GetProjectPhaseMapping(string value)
     {
         return value switch
         {
