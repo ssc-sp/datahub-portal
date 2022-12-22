@@ -31,6 +31,10 @@ public class DHGitModuleResource : IProjectResource
 
     public (Type type, IDictionary<string, object> parameters)[] GetActiveResources()
     {
+        if (currentModule.Name == "azure-storage-blob")
+        {
+            return new[] { (typeof(StorageResourceCard), GetActiveParameters()) };
+        }
         return Array.Empty<(Type type, IDictionary<string, object> parameters)>();
     }
 
@@ -44,12 +48,24 @@ public class DHGitModuleResource : IProjectResource
         return (typeof(InactiveTerraformResource), GetInactiveParameters());
     }
 
+    private IDictionary<string, object> GetActiveParameters()
+    {
+        return new Dictionary<string, object>()
+        {
+              { nameof(StorageResourceCard.Descriptor), descriptor },
+              { nameof(StorageResourceCard.Icon), currentModule.Icon ?? "fa-solid fa-cloud-question" },
+            { nameof(StorageResourceCard.IsIconSvg), false },
+            { nameof(StorageResourceCard.TemplateName),currentModule.Name  },
+            { nameof(StorageResourceCard.Project), project }
+        };
+    }
+
     protected Dictionary<string, object> GetInactiveParameters()
         => new Dictionary<string, object>
         {
             { nameof(InactiveTerraformResource.Descriptor), descriptor },
             { nameof(InactiveTerraformResource.Icon), currentModule.Icon },
-            { nameof(InactiveTerraformResource.IsIconSVG), false },
+            { nameof(InactiveTerraformResource.IsIconSvg), false },
             { nameof(InactiveTerraformResource.ResourceRequested),serviceRequested  },            
             { nameof(InactiveTerraformResource.TemplateName),currentModule.Name  },
             { nameof(InactiveTerraformResource.Project), project },
