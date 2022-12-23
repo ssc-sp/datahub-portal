@@ -1,9 +1,11 @@
 ﻿@using System.Security.Claims;
+@using Datahub.Core.Modules;
 @inject IUserInformationService UserInformationService
 @inject IDataCreatorService DataCreatorService
 @inject UIControlsService UI
 @inject NavigationManager NavigationManager
 @inject IPortalVersionService VersionService
+@inject ModuleManager Modules
 
 @page "/debug"
 
@@ -31,6 +33,16 @@ else
         <div>Deployment: @VersionService.Release</div>
         <div>Commit: <a href=@GetSourceVersionUrl(VersionService.Commit) target="_blank">@VersionService.Commit</a></div>
     </div>
+    
+    <AeTypography Variant="h2">Modules</AeTypography>
+    @if (!Modules.Modules.Any())
+    {
+        <div>No Modules Loaded</div>    
+    }
+    @foreach (var module in Modules.Modules)
+    {        
+        <div>Loaded Module: @module.Name</div>
+    }
 }
 
 @code
@@ -53,6 +65,7 @@ else
         var roleClaimType = userIdentity.RoleClaimType;
         roles = claims.Where(c => c.Type == roleClaimType).ToList();
         isLoaded = true;
+
     }
 
     private string GetSourceVersionUrl(string commit) => $"https://github.com/NRCan/datahub-portal/commit/{commit}";
