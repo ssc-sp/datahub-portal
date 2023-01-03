@@ -10,5 +10,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)TerraformOutputVariable.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TerraformVariables.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils\TerraformVariableExtraction.cs" />
   </ItemGroup>
 </Project>

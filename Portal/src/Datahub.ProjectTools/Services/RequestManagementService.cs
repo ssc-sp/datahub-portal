@@ -65,8 +65,8 @@ public class RequestManagementService : IRequestManagementService
             ctx.Projects.Attach(request.Project);
 
             await ctx.Project_Requests.AddAsync(request);
-            var projectResource = CreateEmptyProjectResource(request, inputParams);
-            await ctx.Project_Resources2.AddAsync(projectResource);
+            // var projectResource = CreateEmptyProjectResource(request, inputParams);
+            // await ctx.Project_Resources2.AddAsync(projectResource);
 
             await ctx.TrackSaveChangesAsync(_datahubAuditingService);
         }
@@ -74,7 +74,7 @@ public class RequestManagementService : IRequestManagementService
         await NotifyProjectAdminsOfServiceRequest(request);
     }
 
-    private static Project_Resources2 CreateEmptyProjectResource(Datahub_ProjectServiceRequests request,
+    public static Project_Resources2 CreateEmptyProjectResource(Datahub_ProjectServiceRequests request,
         Dictionary<string, string> inputParams)
     {
         var resource = new Project_Resources2()

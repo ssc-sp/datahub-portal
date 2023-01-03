@@ -3,9 +3,8 @@ using System.Text.Json.Nodes;
 using System.Transactions;
 using Datahub.Core.Enums;
 using Datahub.Core.Model.Datahub;
-using Datahub.Core.Services.Projects;
 using Datahub.ProjectTools.Services;
-using DefaultNamespace;
+using Datahub.Shared;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -16,17 +15,6 @@ public class TerraformOutputHandler
 {
     private readonly DatahubProjectDBContext _projectDbContext;
     private readonly ILogger _logger;
-
-    private const string AzureStorageBlobTemplateName = "azure-storage-blob";
-    
-    private const string OutputProjectAcronym = "project_cd";
-    private const string OutputNewProjectTemplate = "new_project_template";
-    
-    private const string OutputAzureStorageAccountName = "azure_storage_account_name";
-    private const string OutputAzureStorageContainerName = "azure_storage_container_name";
-    private const string OutputAzureStorageBlobStatus = "azure_storage_blob_status";
-    
-    private const string AzureStorageType = "blob";
 
     public TerraformOutputHandler(ILoggerFactory loggerFactory, DatahubProjectDBContext projectDbContext)
     {
@@ -90,8 +78,8 @@ public class TerraformOutputHandler
 
     private async Task ProcessAzureStorageBlob(IReadOnlyDictionary<string, TerraformOutputVariable> outputVariables)
     {
-        var projectAcronym = outputVariables[OutputProjectAcronym];
-        var terraformServiceType = RequestManagementService.GetTerraformServiceType(AzureStorageBlobTemplateName);
+        var projectAcronym = outputVariables[TerraformVariables.OutputProjectAcronym];
+        var terraformServiceType = RequestManagementService.GetTerraformServiceType(TerraformVariables.AzureStorageBlobTemplateName);
 
         var projectRequest = _projectDbContext.Project_Requests
             .Include(x => x.Project)
@@ -105,7 +93,7 @@ public class TerraformOutputHandler
             return;
         }
 
-        var storageBlobStatus = GetStatusMapping(outputVariables[OutputAzureStorageBlobStatus].Value);
+        var storageBlobStatus = GetStatusMapping(outputVariables[TerraformVariables.OutputAzureStorageBlobStatus].Value);
         if (storageBlobStatus == TerraformOutputStatus.Completed)
         {
             projectRequest.Is_Completed = DateTime.Now;
@@ -119,24 +107,28 @@ public class TerraformOutputHandler
         var projectResource = _projectDbContext.Project_Resources2
             .Where(x => x.ProjectId == projectRequest.Project.Project_ID)
             .FirstOrDefault(x => x.ResourceType == terraformServiceType);
+        
         if (projectResource is null)
         {
-            throw new Exception($"Project resource not found for project acronym {projectAcronym.Value} and service type {terraformServiceType}");
+            var inputParameters = new Dictionary<string, string>();
+            projectResource = RequestManagementService.CreateEmptyProjectResource(projectRequest, inputParameters);
+            _projectDbContext.Project_Resources2.Add(projectResource);
         }
+        
         if (!projectResource.TimeCreated.HasValue)
         {
-            var accountName = outputVariables[OutputAzureStorageAccountName];
-            var containerName = outputVariables[OutputAzureStorageContainerName];
+            var accountName = outputVariables[TerraformVariables.OutputAzureStorageAccountName];
+            var containerName = outputVariables[TerraformVariables.OutputAzureStorageContainerName];
             var jsonContent = new JsonObject
             {
                 ["storage_account"] = accountName.Value,
                 ["container"] = containerName.Value,
-                ["storage_type"] = AzureStorageType,
+                ["storage_type"] = TerraformVariables.AzureStorageType,
             };
 
             var inputJsonContent = new JsonObject
             {
-                ["storage_type"] = AzureStorageType
+                ["storage_type"] = TerraformVariables.AzureStorageType
             };
             
             projectResource.TimeCreated = DateTime.Now;
@@ -153,7 +145,7 @@ public class TerraformOutputHandler
 
     private async Task ProcessProjectStatus(IReadOnlyDictionary<string, TerraformOutputVariable> outputVariables)
     {
-        var projectAcronym = outputVariables[OutputProjectAcronym];
+        var projectAcronym = outputVariables[TerraformVariables.OutputProjectAcronym];
         var project = await _projectDbContext.Projects
             .FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronym.Value);
 
@@ -163,7 +155,7 @@ public class TerraformOutputHandler
             throw new Exception($"Project not found for acronym {projectAcronym.Value}");
         }
 
-        var outputPhase = GetStatusMapping(outputVariables[OutputNewProjectTemplate].Value);
+        var outputPhase = GetStatusMapping(outputVariables[TerraformVariables.OutputNewProjectTemplate].Value);
         if (project.Project_Phase != outputPhase)
         {
             project.Project_Phase = outputPhase;
