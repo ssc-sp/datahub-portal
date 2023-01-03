@@ -70,7 +70,7 @@ public class RequestManagementService : IRequestManagementService
 
             await ctx.TrackSaveChangesAsync(_datahubAuditingService);
         }
-        
+
         await NotifyProjectAdminsOfServiceRequest(request);
     }
 
@@ -153,10 +153,10 @@ public class RequestManagementService : IRequestManagementService
     {
         var admins = await GetProjectAdministratorEmailsAndIds(request.Project.Project_ID);
 
-        await _emailNotificationService.SendServiceCreationRequestNotification(request.User_Name, request.ServiceType, request.Project.ProjectInfo, admins);
+        await _emailNotificationService.SendServiceCreationRequestNotification(request.User_Name, request.ServiceType,
+            request.Project.ProjectInfo, admins);
 
-        var adminUserIds = admins.
-            Where(a => Guid.TryParse(a, out _))
+        var adminUserIds = admins.Where(a => Guid.TryParse(a, out _))
             .ToList();
         var user = await _userInformationService.GetCurrentGraphUserAsync();
 
@@ -229,43 +229,41 @@ public class RequestManagementService : IRequestManagementService
 
     public async Task<bool> HandleTerraformRequestServiceAsync(Datahub_Project project, string terraformTemplate)
     {
-        using (var scope = new TransactionScope(
-                   TransactionScopeOption.Required, TransactionScopeAsyncFlowOption.Enabled))
+        using var scope = new TransactionScope(
+            TransactionScopeOption.Required, TransactionScopeAsyncFlowOption.Enabled);
+        try
         {
-            try
+            await using var ctx = await _dbContextFactory.CreateDbContextAsync();
+            ctx.Attach(project);
+            await ctx.Entry(project).Collection(p => p.Users).LoadAsync();
+            var userId = await _userInformationService.GetUserIdString();
+            var graphUser = await _userInformationService.GetCurrentGraphUserAsync();
+            var serviceRequest = new Datahub_ProjectServiceRequests()
             {
-                using var ctx = await _dbContextFactory.CreateDbContextAsync();
-                ctx.Attach(project);
-                await ctx.Entry(project).Collection(p => p.Users).LoadAsync();
-                var userId = await _userInformationService.GetUserIdString();
-                var graphUser = await _userInformationService.GetCurrentGraphUserAsync();
-                var serviceRequest = new Datahub_ProjectServiceRequests()
-                {
-                    ServiceType = GetTerraformServiceType(terraformTemplate),
-                    ServiceRequests_Date_DT = DateTime.Now,
-                    Is_Completed = null,
-                    Project = project,
-                    User_ID = userId,
-                    User_Name = graphUser.UserPrincipalName
-                };
+                ServiceType = GetTerraformServiceType(terraformTemplate),
+                ServiceRequests_Date_DT = DateTime.Now,
+                Is_Completed = null,
+                Project = project,
+                User_ID = userId,
+                User_Name = graphUser.UserPrincipalName
+            };
 
-                await RequestServiceWithDefaults(serviceRequest);
-                var users = project.Users.Select(u => new WorkspaceUser() { Guid = u.User_ID, Email = u.User_Name })
-                    .ToList();
+            await RequestServiceWithDefaults(serviceRequest);
+            var users = project.Users.Select(u => new WorkspaceUser() { Guid = u.User_ID, Email = u.User_Name })
+                .ToList();
 
-                var workspace = project.ToResourceWorkspace(users);
-                var templates = new List<ResourceTemplate> { ResourceTemplate.LatestFromName(terraformTemplate) };
+            var workspace = project.ToResourceWorkspace(users);
+            var templates = new List<ResourceTemplate> { ResourceTemplate.LatestFromName(terraformTemplate) };
 
-                var request = CreateResourceData.ResourceRunTemplate(workspace, templates, graphUser.Mail);
-                await requestQueueService.AddProjectToStorageQueue(request);
-                scope.Complete();
-                return true;
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, $"Error creating resource {terraformTemplate} for {project.Project_Acronym_CD}");
-                return false;
-            }
+            var request = CreateResourceData.ResourceRunTemplate(workspace, templates, graphUser.Mail);
+            await requestQueueService.AddProjectToStorageQueue(request);
+            scope.Complete();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, $"Error creating resource {terraformTemplate} for {project.Project_Acronym_CD}");
+            return false;
         }
     }
 
