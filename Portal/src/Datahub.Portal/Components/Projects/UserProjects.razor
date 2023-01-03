@@ -10,7 +10,10 @@
 @if (_userRoles is null)
 {
     <MudStack>
-        <MudText Typo="Typo.h6">Projects</MudText>
+        @if (ShowTitle)
+        {
+            <MudText Typo="Typo.h6">Projects</MudText>
+        }
         <MudGrid>
             <MudItem xs="6">
                 <MudCard Outlined Class="pa-2">
@@ -19,7 +22,7 @@
                         <Skeleton Width="250px" Height="42px"/>
                     </MudCardContent>
                     <MudCardActions>
-                        <Skeleton style="margin-left: 8px"  Width="200px" Height="48px"/>
+                        <Skeleton style="margin-left: 8px" Width="200px" Height="48px"/>
                     </MudCardActions>
                 </MudCard>
             </MudItem>
@@ -30,7 +33,10 @@
 }
 
 <MudStack>
-    <MudText Typo="Typo.h3">@Localizer["Projects"]</MudText>
+    @if (ShowTitle)
+    {
+        <MudText Typo="Typo.h3">@Localizer["Projects"]</MudText>
+    }
     <MudGrid>
         @foreach (var userRole in _userRoles)
         {
@@ -51,22 +57,25 @@
             </MudItem>
         }
         <MudItem xs="6" md="4">
-             <MudCard Outlined Class="pa-2">
-                 <MudCardContent>
-                     <MudChip Style="@_chipStyle" Label Size="Size.Small" Color="Color.Default">@Localizer["Create"]</MudChip>
-                     <MudText Typo="Typo.h6">@Localizer["Create New Project"]</MudText>
-                 </MudCardContent>
-                 <MudCardActions>
-                     <MudButton EndIcon="@UserProjectCreateIcon" Variant="Variant.Text" Color="Color.Primary" OnClick="ShowProjectDialog">
-                         @Localizer["Create Project"]
-                     </MudButton>
-                 </MudCardActions>
-             </MudCard>
-         </MudItem>
+            <MudCard Outlined Class="pa-2">
+                <MudCardContent>
+                    <MudChip Style="@_chipStyle" Label Size="Size.Small" Color="Color.Default">@Localizer["Create"]</MudChip>
+                    <MudText Typo="Typo.h6">@Localizer["Create New Project"]</MudText>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton EndIcon="@UserProjectCreateIcon" Variant="Variant.Text" Color="Color.Primary" OnClick="ShowProjectDialog">
+                        @Localizer["Create Project"]
+                    </MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
     </MudGrid>
 </MudStack>
 
 @code {
+    
+    [Parameter]
+    public bool ShowTitle { get; set; } = true;
 
     private const string UserProjectOpenIcon = "fa-duotone fa-chevrons-right";
     private const string UserProjectCreateIcon = "fa-duotone fa-layer-plus";
