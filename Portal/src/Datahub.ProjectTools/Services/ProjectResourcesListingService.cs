@@ -62,7 +62,14 @@ public class ProjectResourcesListingService
         using var ctx = dbFactoryProject.CreateDbContext();
         //load requests for project
         ctx.Attach(project);
-        await ctx.Entry(project).Collection(b => b.ServiceRequests).LoadAsync();
+        await ctx.Entry(project)
+            .Collection(b => b.ServiceRequests)
+            .LoadAsync();
+        
+        await ctx.Entry(project)
+            .Collection(b => b.Resources)
+            .LoadAsync();
+        
         var services = new ServiceCollection();            
             
         using var serviceScope = serviceProvider.CreateScope();

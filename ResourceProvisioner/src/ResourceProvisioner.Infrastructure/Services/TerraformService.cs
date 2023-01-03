@@ -15,6 +15,7 @@ public class TerraformService : ITerraformService
     private readonly IConfiguration _configuration;
 
     public const string MapAnyType = "map(any)";
+    public const string ListAnyType = "list(any)";
     public const string NewProjectTemplate = "new-project-template";
     
     private const string BackendResourceGroupName = "resource_group_name";
@@ -28,10 +29,10 @@ public class TerraformService : ITerraformService
         _configuration = configuration;
     }
 
-    public Task CopyTemplateAsync(DataHubTemplate template, string workspaceAcronym)
+    public Task CopyTemplateAsync(DataHubTemplate template, Workspace workspace)
     {
         var templateSourcePath = DirectoryUtils.GetTemplatePath(_configuration, template.Name);
-        var projectPath = DirectoryUtils.GetProjectPath(_configuration, workspaceAcronym);
+        var projectPath = DirectoryUtils.GetProjectPath(_configuration, workspace.Acronym);
 
         _logger.LogInformation("Copying template from {ModuleSource} to {ProjectPath}", templateSourcePath,
             projectPath);
@@ -52,7 +53,10 @@ public class TerraformService : ITerraformService
             }
         }
 
-        var files = Directory.GetFiles(templateSourcePath, "*.*", SearchOption.TopDirectoryOnly);
+        var excludedFileExtensions = new List<string>(new [] {".md"});
+        var files = Directory.GetFiles(templateSourcePath, "*.*", SearchOption.TopDirectoryOnly)
+            .Where(filename => !excludedFileExtensions.Contains(Path.GetExtension(filename)));
+        
         foreach (var file in files)
         {
             var sourceFilename = Path.GetFileName(file);
@@ -63,10 +67,10 @@ public class TerraformService : ITerraformService
         return Task.CompletedTask;
     }
 
-    public async Task ExtractVariables(DataHubTemplate template, string workspaceAcronym)
+    public async Task ExtractVariables(DataHubTemplate template, Workspace workspace)
     {
-        var missingVariables = FindMissingVariables(template, workspaceAcronym);
-        await WriteVariablesFile(template, workspaceAcronym, missingVariables);
+        var missingVariables = FindMissingVariables(template, workspace);
+        await WriteVariablesFile(template, workspace, missingVariables);
     }
     
     public async Task ExtractBackendConfig(string workspaceAcronym)
@@ -89,9 +93,9 @@ public class TerraformService : ITerraformService
         await File.WriteAllLinesAsync(backendConfigFilePath, backendConfig.Select(x => $"{x.Key} = \"{x.Value}\""));
     }
 
-    private Dictionary<string, string> FindMissingVariables(DataHubTemplate template, string workspaceAcronym)
+    private Dictionary<string, string> FindMissingVariables(DataHubTemplate template, Workspace workspace)
     {
-        var projectPath = DirectoryUtils.GetProjectPath(_configuration, workspaceAcronym);
+        var projectPath = DirectoryUtils.GetProjectPath(_configuration, workspace.Acronym);
         var templatePath = DirectoryUtils.GetTemplatePath(_configuration, template.Name);
 
         var existingVariables = FindExistingVariables(projectPath);
@@ -112,10 +116,10 @@ public class TerraformService : ITerraformService
         return existingVariables;
     }
 
-    private async Task WriteVariablesFile(DataHubTemplate template, string workspaceAcronym,
+    private async Task WriteVariablesFile(DataHubTemplate template, Workspace workspace,
         Dictionary<string, string> missingVariables)
     {
-        var projectPath = DirectoryUtils.GetProjectPath(_configuration, workspaceAcronym);
+        var projectPath = DirectoryUtils.GetProjectPath(_configuration, workspace.Acronym);
         var variablesFilePath = Path.Join(projectPath, $"{template.Name}.auto.tfvars.json");
 
         if (File.Exists(variablesFilePath))
@@ -125,7 +129,7 @@ public class TerraformService : ITerraformService
                     await File.ReadAllTextAsync(variablesFilePath)) ?? new JsonObject();
             foreach (var (key, value) in missingVariables)
             {
-                preExistingVariables.TryAdd(key, ComputeVariableValue(workspaceAcronym, key, value));
+                preExistingVariables.TryAdd(key, ComputeVariableValue(workspace, key, value));
             }
 
             await File.WriteAllTextAsync(variablesFilePath, JsonSerializer.Serialize(preExistingVariables));
@@ -134,15 +138,20 @@ public class TerraformService : ITerraformService
         {
             await File.WriteAllTextAsync(variablesFilePath,
                 JsonSerializer.Serialize(missingVariables.ToDictionary(mv => mv.Key,
-                    mv => ComputeVariableValue(workspaceAcronym, mv.Key, mv.Value))));
+                    mv => ComputeVariableValue(workspace, mv.Key, mv.Value))));
         }
     }
 
-    private JsonNode ComputeVariableValue(string workspaceAcronym, string variableName, string variableType)
+    private JsonNode ComputeVariableValue(Workspace workspace, string variableName, string variableType)
     {
         if(variableType == MapAnyType)
         {
             return ComputeMapVariableValue(variableName);
+        }
+        
+        if(variableType == ListAnyType)
+        {
+            return ComputeListVariableValue(workspace, variableName);
         }
         
         var configValue = _configuration[$"Terraform:Variables:{variableName}"];
@@ -151,10 +160,20 @@ public class TerraformService : ITerraformService
 
         return (variableName switch
         {
-            "project_cd" => workspaceAcronym,
+            "project_cd" => workspace.Acronym,
             _ => throw new MissingTerraformVariableException(
                 $"Missing variable {variableName}:<{variableType}> in configuration")
         })!;
+    }
+
+    private JsonNode ComputeListVariableValue(Workspace workspace, string variableName)
+    {
+        return variableName switch
+        {
+            "databricks_admin_users" => workspace.ToUserList(),
+            _ => throw new MissingTerraformVariableException(
+                $"Missing variable {variableName}:<{ListAnyType}> in configuration")
+        };
     }
 
 
