@@ -229,7 +229,6 @@ public class RegistrationService
             Contact_List = registrationRequest.Email,
             Project_Admin = registrationRequest.Email,
             
-            Databricks_URL = DEFAULT_DATABRICKS_URL,
             Project_Status_Desc = DEFAULT_PROJECT_STATUS,
         };  
         

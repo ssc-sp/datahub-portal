@@ -1,6 +1,7 @@
 ﻿using Datahub.Core.Configuration;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Services.Projects;
+using Datahub.ProjectTools.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
@@ -28,8 +29,11 @@ public class DHDatabricksResource : DHURLResource
     {
         await using var projectDbContext = await dbFactoryProject.CreateDbContextAsync();
         var serviceRequests = Project.ServiceRequests;
-        _databricksServiceRequested = serviceRequests.Any(r => r.ServiceType == IRequestManagementService.DATABRICKS && r.Is_Completed == null);
-        _databricksServiceCreated = !string.IsNullOrEmpty(Project.Databricks_URL);
+        var serviceTerraformTemplateName =
+            RequestManagementService.GetTerraformServiceType(IRequestManagementService.DATABRICKS);
+        _databricksServiceRequested = serviceRequests.Any(r => r.ServiceType == serviceTerraformTemplateName && r.Is_Completed == null);
+        _databricksServiceCreated = serviceRequests.Any(r => r.ServiceType == serviceTerraformTemplateName && r.Is_Completed != null);
+        
         parameters.Add(nameof(Databricks.Project), Project);
     }
 
