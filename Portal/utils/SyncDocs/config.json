@@ -1,0 +1,4 @@
+{
+    "target": "fr",
+    "excluded": "syncdocs,fr,static,docs"
+}
