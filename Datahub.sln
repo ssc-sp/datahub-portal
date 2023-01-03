@@ -95,12 +95,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.PIP", "Portal\src\m
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "infra", "infra", "{F3058DB1-40C9-40AA-805D-06B3D88B4AC7}"
 	ProjectSection(SolutionItems) = preProject
-		infra\azure-pipelines.yml = infra\azure-pipelines.yml
 		infra\azure-pipelines-forms.yml = infra\azure-pipelines-forms.yml
 		infra\azure-pipelines-prd.yml = infra\azure-pipelines-prd.yml
-		infra\azure-pipelines-spdatahub.yml = infra\azure-pipelines-spdatahub.yml
 		infra\azure-pipelines-spdatahub-slot.yml = infra\azure-pipelines-spdatahub-slot.yml
+		infra\azure-pipelines-spdatahub.yml = infra\azure-pipelines-spdatahub.yml
 		infra\azure-pipelines-tst.yml = infra\azure-pipelines-tst.yml
+		infra\azure-pipelines.yml = infra\azure-pipelines.yml
 		infra\build-pipelines.yml = infra\build-pipelines.yml
 	EndProjectSection
 EndProject
@@ -112,13 +112,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scripts", "scripts", "{A8C7
 		scripts\merge_fork.ps1 = scripts\merge_fork.ps1
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Datahub.Specs", "Portal\test\Datahub.Specs\Datahub.Specs.csproj", "{D07C3009-6F0F-486D-91E1-0084B4B4FF46}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Specs", "Portal\test\Datahub.Specs\Datahub.Specs.csproj", "{D07C3009-6F0F-486D-91E1-0084B4B4FF46}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared", "Shared", "{2E97B44B-1A99-41C1-8F25-EED4740A3ED9}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{839AFC95-740D-4C44-8F05-254250306841}"
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Datahub.Shared", "Shared\src\Datahub.Shared\Datahub.Shared.shproj", "{79DA8E04-5655-493A-80E4-37A07FBEC90E}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SyncDocs", "Portal\utils\SyncDocs\SyncDocs.csproj", "{57703CEC-08B9-40B8-B5E2-064A196B1587}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -258,6 +260,10 @@ Global
 		{D07C3009-6F0F-486D-91E1-0084B4B4FF46}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D07C3009-6F0F-486D-91E1-0084B4B4FF46}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D07C3009-6F0F-486D-91E1-0084B4B4FF46}.Release|Any CPU.Build.0 = Release|Any CPU
+		{57703CEC-08B9-40B8-B5E2-064A196B1587}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{57703CEC-08B9-40B8-B5E2-064A196B1587}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{57703CEC-08B9-40B8-B5E2-064A196B1587}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{57703CEC-08B9-40B8-B5E2-064A196B1587}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -304,10 +310,15 @@ Global
 		{D07C3009-6F0F-486D-91E1-0084B4B4FF46} = {47D68FB0-47FE-485D-AE94-00C48643721E}
 		{839AFC95-740D-4C44-8F05-254250306841} = {2E97B44B-1A99-41C1-8F25-EED4740A3ED9}
 		{79DA8E04-5655-493A-80E4-37A07FBEC90E} = {839AFC95-740D-4C44-8F05-254250306841}
+		{57703CEC-08B9-40B8-B5E2-064A196B1587} = {73AC16BF-F514-4081-8C74-63C6399260E0}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		RESX_ConfirmAddLanguageFile = True
-		RESX_AutoCreateNewLanguageFiles = True
 		SolutionGuid = {9DC4B901-16FF-4FF2-9ED6-B286EA17048E}
+		RESX_AutoCreateNewLanguageFiles = True
+		RESX_ConfirmAddLanguageFile = True
+	EndGlobalSection
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		Shared\src\Datahub.Shared\Datahub.Shared.projitems*{79da8e04-5655-493a-80e4-37a07fbec90e}*SharedItemsImports = 13
+		Shared\src\Datahub.Shared\Datahub.Shared.projitems*{a6a2ece8-6ec5-4dec-b14e-22d9f0e95ae4}*SharedItemsImports = 5
 	EndGlobalSection
 EndGlobal
