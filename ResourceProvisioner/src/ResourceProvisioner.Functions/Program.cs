@@ -5,17 +5,19 @@ using ResourceProvisioner.Application;
 using ResourceProvisioner.Application.ResourceRun.Commands.CreateResourceRun;
 using ResourceProvisioner.Infrastructure;
 
+
 var host = new HostBuilder()
     .ConfigureFunctionsWorkerDefaults()
-    .ConfigureServices(services =>
+    .ConfigureAppConfiguration(builder =>
     {
-        var config = new ConfigurationBuilder()
-            .AddJsonFile("local.settings.json", optional: false, reloadOnChange: true)
+        builder.AddJsonFile("local.settings.json", optional: false, reloadOnChange: true)
             .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
             .Build();
-        
+    })
+    .ConfigureServices((hostContext, services) =>
+    {
         services.AddApplicationServices();
-        services.AddInfrastructureServices(config);
+        services.AddInfrastructureServices(hostContext.Configuration);
         services.AddScoped<CreateResourceRunCommandHandler>();
 
     })

@@ -15,8 +15,8 @@ public interface IRepositoryService
     public Task PushInfrastructureRepository(string workspaceAcronym);
     public Task<PullRequestValueObject> CreateInfrastructurePullRequest(string workspaceAcrynom, string username);
     public Task FetchRepositoriesAndCheckoutProjectBranch(string workspaceAcronym);
-    public Task<List<RepositoryUpdateEvent>> ExecuteResourceRuns(List<DataHubTemplate> modules, string workspaceAcronym, string requestingUsername);
-    public Task<RepositoryUpdateEvent> ExecuteResourceRun(DataHubTemplate templates, string workspaceAcronym, string requestingUsername);
+    public Task<List<RepositoryUpdateEvent>> ExecuteResourceRuns(List<DataHubTemplate> modules, Workspace workspace, string requestingUsername);
+    public Task<RepositoryUpdateEvent> ExecuteResourceRun(DataHubTemplate templates, Workspace workspace, string requestingUsername);
 
     public Task<PullRequestUpdateMessage> HandleResourcing(CreateResourceRunCommand command);
 }

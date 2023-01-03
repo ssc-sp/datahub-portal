@@ -2,6 +2,7 @@
 @using Microsoft.Graph
 
 @using Datahub.Portal.Pages.Landing.Tabs
+@using Datahub.Portal.Components.Projects
 
 @inject IUserInformationService UserInformationService
 @inject UserLocationManagerService UserLocationManagerService
@@ -28,13 +29,13 @@
     public int TabIndex { get; set; }
 
     [CascadingParameter(Name = "GraphUser")]
-    public Microsoft.Graph.User User { get; set; }
+    public User User { get; set; }
 
     private List<(string Control, RenderFragment Content)> GetTabs()
     {
         var res = new List<(string, RenderFragment)>
         {
-            (Localizer["Initiatives"], @<ProjectsTab/>)
+            (Localizer["Initiatives"], @<UserProjects ShowTitle="false"/>)
         };
 
         if (DataProjectsConfiguration.Value.Databricks)
