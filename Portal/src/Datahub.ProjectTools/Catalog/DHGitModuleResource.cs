@@ -1,16 +1,9 @@
 ﻿using Datahub.Core.Model.Datahub;
-using Datahub.Core.Services.Projects;
 using Datahub.Core.Services.ProjectTools;
 using Datahub.Core.Services.UserManagement;
 using Datahub.ProjectTools.Services;
-using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Graph;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Datahub.ProjectTools.Catalog;
 
@@ -33,8 +26,9 @@ public class DHGitModuleResource : IProjectResource
     {
         if (currentModule.Name == "azure-storage-blob")
         {
+            var resourceType = RequestManagementService.GetTerraformServiceType("azure-storage-blob");
             return project.Resources
-                .Where(r => r.ResourceType == "azure-storage-blob")
+                .Where(r => r.ResourceType == resourceType)
                 .Select(_ => (typeof(StorageResourceCard), GetActiveParameters()))
                 .ToArray();
         }

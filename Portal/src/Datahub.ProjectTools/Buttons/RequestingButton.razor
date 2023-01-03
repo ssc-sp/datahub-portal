@@ -3,17 +3,19 @@
 
 @if (IsRunning)
 {
-    <MudButton Size="Size.Small" Variant="Variant.Filled" Disabled EndIcon="fas fa-spinner-third" Class="pending">
+    <MudButton Size="Size.Small" Variant="Variant.Filled" Disabled EndIcon="fa-solid fa-spinner-third fa-spin">
         @Localizer["Requesting Service Creation"]
     </MudButton>
 }
 else if (ResourceRequested)
 {
-    <MudText Size="Size.Small" Typo="Typo.body2">@Localizer["Service Request is being reviewed"]</MudText>
+    <MudButton Size="Size.Small" Variant="Variant.Filled" Disabled EndIcon="fa-solid fa-atom-simple fa-spin">
+        @Localizer["Request is being reviewed"]
+    </MudButton>
 }
 else if (Project?.Project_Phase == TerraformOutputStatus.PendingApproval)
 {
-    <MudButton Variant="Variant.Filled" Disabled EndIcon="fas fa-layer-plus">
+    <MudButton Size="Size.Small" Variant="Variant.Filled" Disabled EndIcon="fas fa-layer-plus">
         @Localizer["Pending Approval"]
     </MudButton>
 }
