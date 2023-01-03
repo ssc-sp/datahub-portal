@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "SyncDocs": {
+      "commandName": "Project",
+      "commandLineArgs": "..\\..\\..\\..\\"
+    }
+  }
+}
