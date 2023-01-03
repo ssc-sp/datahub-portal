@@ -45,7 +45,7 @@ public class RepositoryService : IRepositoryService
 
         _logger.LogInformation("Executing resource runs for user {User}", user);
         var repositoryUpdateEvents =
-            await ExecuteResourceRuns(command.Templates, command.Workspace.Acronym, user);
+            await ExecuteResourceRuns(command.Templates, command.Workspace, user);
 
         _logger.LogInformation("Pushing changes to remote repository for {WorkspaceAcronym}",
             command.Workspace.Acronym);
@@ -271,37 +271,36 @@ public class RepositoryService : IRepositoryService
         await CheckoutInfrastructureBranch(workspaceAcronym);
     }
 
-    public async Task<List<RepositoryUpdateEvent>> ExecuteResourceRuns(List<DataHubTemplate> modules,
-        string workspaceAcronym, string requestingUsername)
+    public async Task<List<RepositoryUpdateEvent>> ExecuteResourceRuns(List<DataHubTemplate> modules, Workspace workspace, string requestingUsername)
     {
         var repositoryUpdateEvents = new List<RepositoryUpdateEvent>();
 
         foreach (var module in modules)
         {
-            var result = await ExecuteResourceRun(module, workspaceAcronym, requestingUsername);
+            var result = await ExecuteResourceRun(module, workspace, requestingUsername);
             repositoryUpdateEvents.Add(result);
         }
 
         return repositoryUpdateEvents;
     }
 
-    public async Task<RepositoryUpdateEvent> ExecuteResourceRun(DataHubTemplate template, string workspaceAcronym,
+    public async Task<RepositoryUpdateEvent> ExecuteResourceRun(DataHubTemplate template, Workspace workspace,
         string requestingUsername)
     {
         try
         {
-            await _terraformService.CopyTemplateAsync(template, workspaceAcronym);
-            await _terraformService.ExtractVariables(template, workspaceAcronym);
+            await _terraformService.CopyTemplateAsync(template, workspace);
+            await _terraformService.ExtractVariables(template, workspace);
             if (template.Name == TerraformService.NewProjectTemplate)
             {
-                await _terraformService.ExtractBackendConfig(workspaceAcronym);
+                await _terraformService.ExtractBackendConfig(workspace.Acronym);
             }
             await CommitDataHubTemplate(template, requestingUsername);
 
             return new RepositoryUpdateEvent()
             {
                 Message =
-                    $"Successfully created resource run for [{template.Version}]{template.Name} in {workspaceAcronym}",
+                    $"Successfully created resource run for [{template.Version}]{template.Name} in {workspace.Acronym}",
                 StatusCode = MessageStatusCode.Success
             };
         }
@@ -309,7 +308,7 @@ public class RepositoryService : IRepositoryService
         {
             return new RepositoryUpdateEvent()
             {
-                Message = $"No changes detected after resource run for [{template.Version}]{template.Name} in {workspaceAcronym}",
+                Message = $"No changes detected after resource run for [{template.Version}]{template.Name} in {workspace.Acronym}",
                 StatusCode = MessageStatusCode.NoChangesDetected
             };
         }
@@ -317,11 +316,11 @@ public class RepositoryService : IRepositoryService
         {
             _logger.LogError(e,
                 "Error while creating resource run for [{ModuleVersion}]{ModuleName} in {WorkspaceAcronym}",
-                template.Version, template.Name, workspaceAcronym);
+                template.Version, template.Name, workspace.Acronym);
 
             return new RepositoryUpdateEvent()
             {
-                Message = $"Error creating resource run for [{template.Version}]{template.Name} in {workspaceAcronym}",
+                Message = $"Error creating resource run for [{template.Version}]{template.Name} in {workspace.Acronym}",
                 StatusCode = MessageStatusCode.Error
             };
         }
