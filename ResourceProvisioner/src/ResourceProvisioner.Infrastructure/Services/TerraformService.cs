@@ -13,11 +13,12 @@ public class TerraformService : ITerraformService
 {
     private readonly ILogger<TerraformService> _logger;
     private readonly IConfiguration _configuration;
+    internal static readonly List<string> EXCLUDED_FILE_EXTENSIONS = new(new[] { ".md" });
 
     public const string MapAnyType = "map(any)";
     public const string ListAnyType = "list(any)";
     public const string NewProjectTemplate = "new-project-template";
-    
+
     private const string BackendResourceGroupName = "resource_group_name";
     private const string BackendStorageAccountName = "storage_account_name";
     private const string BackendContainerName = "container_name";
@@ -53,10 +54,10 @@ public class TerraformService : ITerraformService
             }
         }
 
-        var excludedFileExtensions = new List<string>(new [] {".md"});
+
         var files = Directory.GetFiles(templateSourcePath, "*.*", SearchOption.TopDirectoryOnly)
-            .Where(filename => !excludedFileExtensions.Contains(Path.GetExtension(filename)));
-        
+            .Where(filename => !EXCLUDED_FILE_EXTENSIONS.Contains(Path.GetExtension(filename)));
+
         foreach (var file in files)
         {
             var sourceFilename = Path.GetFileName(file);
@@ -72,7 +73,7 @@ public class TerraformService : ITerraformService
         var missingVariables = FindMissingVariables(template, terraformWorkspace);
         await WriteVariablesFile(template, terraformWorkspace, missingVariables);
     }
-    
+
     public async Task ExtractBackendConfig(string workspaceAcronym)
     {
         var projectPath = DirectoryUtils.GetProjectPath(_configuration, workspaceAcronym);
@@ -88,12 +89,13 @@ public class TerraformService : ITerraformService
             { BackendContainerName, ComputeBackendConfigValue(workspaceAcronym, BackendContainerName) },
             { BackendKeyName, ComputeBackendConfigValue(workspaceAcronym, BackendKeyName) }
         };
-        
+
         // Write the dictionary into a key value pair file
         await File.WriteAllLinesAsync(backendConfigFilePath, backendConfig.Select(x => $"{x.Key} = \"{x.Value}\""));
     }
 
-    private Dictionary<string, string> FindMissingVariables(DataHubTemplate template, TerraformWorkspace terraformWorkspace)
+    private Dictionary<string, string> FindMissingVariables(DataHubTemplate template,
+        TerraformWorkspace terraformWorkspace)
     {
         var projectPath = DirectoryUtils.GetProjectPath(_configuration, terraformWorkspace.Acronym);
         var templatePath = DirectoryUtils.GetTemplatePath(_configuration, template.Name);
@@ -142,18 +144,19 @@ public class TerraformService : ITerraformService
         }
     }
 
-    private JsonNode ComputeVariableValue(TerraformWorkspace terraformWorkspace, string variableName, string variableType)
+    private JsonNode ComputeVariableValue(TerraformWorkspace terraformWorkspace, string variableName,
+        string variableType)
     {
-        if(variableType == MapAnyType)
+        if (variableType == MapAnyType)
         {
             return ComputeMapVariableValue(variableName);
         }
-        
-        if(variableType == ListAnyType)
+
+        if (variableType == ListAnyType)
         {
             return ComputeListVariableValue(terraformWorkspace, variableName);
         }
-        
+
         var configValue = _configuration[$"Terraform:Variables:{variableName}"];
         if (!string.IsNullOrEmpty(configValue))
             return configValue!;
@@ -184,8 +187,8 @@ public class TerraformService : ITerraformService
             .GetChildren()
             .Select(s => new KeyValuePair<string, JsonNode>(s.Key, (s.Value ?? string.Empty)!))
             .ToList();
-        
-            
+
+
         if (configValue.Any())
             return new JsonObject(configValue!);
 
@@ -195,13 +198,14 @@ public class TerraformService : ITerraformService
                 $"Missing variable {variableName}:<Map> in configuration")
         };
     }
-    
+
     private string ComputeBackendConfigValue(string workspaceName, string variableName)
     {
         return (variableName switch
         {
             BackendResourceGroupName => _configuration["Terraform:Backend:ResourceGroupName"],
-            BackendStorageAccountName => $"{_configuration["Terraform:Variables:resource_prefix"]}{_configuration["Terraform:Variables:environment_name"]}terraformbackend",
+            BackendStorageAccountName =>
+                $"{_configuration["Terraform:Variables:resource_prefix"]}{_configuration["Terraform:Variables:environment_name"]}terraformbackend",
             BackendContainerName => $"{_configuration["Terraform:Variables:resource_prefix"]}-project-states",
             BackendKeyName => $"{_configuration["Terraform:Variables:resource_prefix"]}-{workspaceName}.tfstate",
             _ => throw new MissingTerraformVariableException(
