@@ -4,7 +4,7 @@ using ResourceProvisioner.Domain.Entities;
 namespace ResourceProvisioner.Application.Common;
 
 
-public class WorkspaceValidator : AbstractValidator<Workspace>
+public class WorkspaceValidator : AbstractValidator<TerraformWorkspace>
 {
     public WorkspaceValidator()
     {

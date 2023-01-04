@@ -9,7 +9,7 @@ namespace ResourceProvisioner.Application.ResourceRun.Commands.CreateResourceRun
 public class CreateResourceRunCommand : IRequest<PullRequestUpdateMessage>
 {
     public List<DataHubTemplate> Templates { get; set; }
-    public Workspace Workspace { get; set; }
+    public TerraformWorkspace TerraformWorkspace { get; set; }
 
     public string RequestingUserEmail { get; set; }
 }
@@ -31,7 +31,7 @@ public class CreateResourceRunCommandHandler : IRequestHandler<CreateResourceRun
     {
         var pullRequestMessage = await _repositoryService.HandleResourcing(request);
 
-        _logger.LogInformation("Pull request created for {WorkspaceAcronym}", request.Workspace.Acronym);
+        _logger.LogInformation("Pull request created for {WorkspaceAcronym}", request.TerraformWorkspace.Acronym);
         return await Task.FromResult(pullRequestMessage);
     }
 }
