@@ -24,6 +24,10 @@ public class NewProjectTemplateTests
     public async Task ShouldCopyNewProjectTemplate()
     {
         const string workspaceAcronym = "new-template-test";
+        var workspace = new TerraformWorkspace
+        {
+            Acronym = workspaceAcronym
+        };
         await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspaceAcronym);
 
         var module = new DataHubTemplate()
@@ -32,7 +36,7 @@ public class NewProjectTemplateTests
             Version = "latest"
         };
 
-        await _terraformService.CopyTemplateAsync(module, workspaceAcronym);
+        await _terraformService.CopyTemplateAsync(module, workspace);
 
         var moduleSourcePath = DirectoryUtils.GetTemplatePath(_configuration, TerraformService.NewProjectTemplate);
         var moduleDestinationPath = DirectoryUtils.GetProjectPath(_configuration, workspaceAcronym);
@@ -56,6 +60,10 @@ public class NewProjectTemplateTests
     public async Task ShouldExtractNewProjectTemplateVariables()
     {
         const string workspaceAcronym = "ShouldExtractNewProjectTemplateVariables";
+        var workspace = new TerraformWorkspace
+        {
+            Acronym = workspaceAcronym
+        };
 
         var expectedVariables = new JsonObject
         {
@@ -81,10 +89,10 @@ public class NewProjectTemplateTests
         };
 
         await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspaceAcronym);
-        await _terraformService.CopyTemplateAsync(module, workspaceAcronym);
+        await _terraformService.CopyTemplateAsync(module, workspace);
 
 
-        await _terraformService.ExtractVariables(module, workspaceAcronym);
+        await _terraformService.ExtractVariables(module, workspace);
 
         var expectedVariablesFilename = Path.Join(DirectoryUtils.GetProjectPath(_configuration, workspaceAcronym),
             $"{module.Name}.auto.tfvars.json");
@@ -108,6 +116,10 @@ public class NewProjectTemplateTests
     public async Task ShouldExtractNewProjectTemplateVariablesWithoutDuplicates()
     {
         const string workspaceAcronym = "ShouldExtractNewProjectTemplateVariablesWithoutDuplicates";
+        var workspace = new TerraformWorkspace
+        {
+            Acronym = workspaceAcronym
+        };
 
         var expectedVariables = new JsonObject
         {
@@ -133,12 +145,12 @@ public class NewProjectTemplateTests
         };
 
         await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspaceAcronym);
-        await _terraformService.CopyTemplateAsync(module, workspaceAcronym);
+        await _terraformService.CopyTemplateAsync(module, workspace);
 
 
-        await _terraformService.ExtractVariables(module, workspaceAcronym);
-        await _terraformService.ExtractVariables(module, workspaceAcronym);
-        await _terraformService.ExtractVariables(module, workspaceAcronym);
+        await _terraformService.ExtractVariables(module, workspace);
+        await _terraformService.ExtractVariables(module, workspace);
+        await _terraformService.ExtractVariables(module, workspace);
 
         var expectedVariablesFilename = Path.Join(DirectoryUtils.GetProjectPath(_configuration, workspaceAcronym),
             $"{module.Name}.auto.tfvars.json");
@@ -162,6 +174,10 @@ public class NewProjectTemplateTests
     public async Task ShouldExtractBackendConfiguration()
     {
         const string workspaceAcronym = "ShouldExtractBackendConfiguration";
+        var workspace = new TerraformWorkspace
+        {
+            Acronym = workspaceAcronym
+        };
 
         var expectedConfiguration = @"resource_group_name = ""fsdh-core-test-rg""
 storage_account_name = ""fsdhtestterraformbackend""
@@ -176,7 +192,7 @@ key = ""fsdh-ShouldExtractBackendConfiguration.tfstate""
         };
         
         await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspaceAcronym);
-        await _terraformService.CopyTemplateAsync(module, workspaceAcronym);
+        await _terraformService.CopyTemplateAsync(module, workspace);
         await _terraformService.ExtractBackendConfig(workspaceAcronym);
         
         var expectedConfigurationFilename = Path.Join(DirectoryUtils.GetProjectPath(_configuration, workspaceAcronym),
