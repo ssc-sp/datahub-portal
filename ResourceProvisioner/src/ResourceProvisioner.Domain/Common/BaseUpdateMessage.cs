@@ -6,5 +6,5 @@ namespace ResourceProvisioner.Domain.Common;
 public class BaseUpdateMessage
 {
     public List<RepositoryUpdateEvent> Events { get; set; }
-    public Workspace Workspace { get; set; }
+    public TerraformWorkspace TerraformWorkspace { get; set; }
 }
