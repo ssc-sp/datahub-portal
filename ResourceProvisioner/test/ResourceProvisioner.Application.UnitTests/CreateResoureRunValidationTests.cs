@@ -22,7 +22,7 @@ public class CreateResourceRunValidationTests
         const string anyString = "abc";
         var command = new CreateResourceRunCommand
         {
-            Workspace = new Workspace()
+            TerraformWorkspace = new TerraformWorkspace()
             {
                 Acronym = anyString,
                 Name = anyString,

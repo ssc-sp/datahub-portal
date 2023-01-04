@@ -2,7 +2,7 @@
 
 @if (Disabled)
 {
-    <MudButton Disabled="Disabled" OnClick="@OnClick" Variant="variant" Color="color">
+    <MudButton Disabled="Disabled" OnClick="@OnClick" Variant="Variant" Color="color">
 
         @if (LinkType == LinkType.Pending)
         {
@@ -58,8 +58,10 @@ else
     public bool Disabled { get; set; }
     [Parameter]
     public EventCallback OnClick { get; set; }
-
-    private Variant variant = Variant.Text;
+    [Parameter]
+    public Variant Variant { get; set; } = Variant.Text;
+    
+    
     private Color color => LinkType == LinkType.External || LinkType == LinkType.Internal ? Color.Primary : Color.Default;
 
     private string iconClass(string side)
@@ -74,7 +76,7 @@ else
     {
         return new CssBuilder()
             .AddClass("mud-button-root mud-button mud-button-text-size-medium mud-ripple")
-            .AddClass("mud-button-text", when: variant == Variant.Text)
+            .AddClass("mud-button-text", when: Variant == Variant.Text)
             .AddClass("mud-button-text-default", when: color == Color.Default)
             .AddClass("mud-button-text-primary", when: color == Color.Primary)
             .Build();

@@ -15,7 +15,7 @@
 
 
     <ItemGroup>
-        <InternalsVisibleTo Include="Infrastructure.UnitTests" />
+        <InternalsVisibleTo Include="ResourceProvisioner.Infrastructure.UnitTests" />
     </ItemGroup>
 
     <ItemGroup>

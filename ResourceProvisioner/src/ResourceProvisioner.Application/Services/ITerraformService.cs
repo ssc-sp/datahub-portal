@@ -4,7 +4,7 @@ namespace ResourceProvisioner.Application.Services;
 
 public interface ITerraformService
 {
-    Task CopyTemplateAsync(DataHubTemplate template, string workspaceAcronym);
-    Task ExtractVariables(DataHubTemplate template, string workspaceAcronym);
+    Task CopyTemplateAsync(DataHubTemplate template, TerraformWorkspace terraformWorkspace);
+    Task ExtractVariables(DataHubTemplate template, TerraformWorkspace terraformWorkspace);
     Task ExtractBackendConfig(string workspaceAcronym);
 }

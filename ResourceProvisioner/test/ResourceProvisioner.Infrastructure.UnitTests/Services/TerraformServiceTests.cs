@@ -31,7 +31,7 @@ public class TerraformServiceTests
         Assert.That(Directory.Exists(moduleDestinationPath), Is.False);
         Assert.ThrowsAsync<ProjectNotInitializedException>(async () =>
         {
-            await _terraformService.CopyTemplateAsync(module, ProjectAcronym);
+            await _terraformService.CopyTemplateAsync(module, TestingWorkspace);
         });
     }
     

@@ -1,9 +1,11 @@
-namespace DefaultNamespace
+namespace Datahub.Shared;
+
+public class TerraformOutputVariable
 {
-    public class TerraformOutputVariable
-    {
-        public bool Sensitive { get; set; }
-        public string Type { get; set; }
-        public string Value { get; set; }
-    }
+    
+
+    
+    public bool Sensitive { get; set; }
+    public string Type { get; set; }
+    public string Value { get; set; }
 }

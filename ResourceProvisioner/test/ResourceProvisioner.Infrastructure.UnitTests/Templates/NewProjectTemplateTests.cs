@@ -24,6 +24,10 @@ public class NewProjectTemplateTests
     public async Task ShouldCopyNewProjectTemplate()
     {
         const string workspaceAcronym = "new-template-test";
+        var workspace = new TerraformWorkspace
+        {
+            Acronym = workspaceAcronym
+        };
         await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspaceAcronym);
 
         var module = new DataHubTemplate()
@@ -32,18 +36,24 @@ public class NewProjectTemplateTests
             Version = "latest"
         };
 
-        await _terraformService.CopyTemplateAsync(module, workspaceAcronym);
+        await _terraformService.CopyTemplateAsync(module, workspace);
 
         var moduleSourcePath = DirectoryUtils.GetTemplatePath(_configuration, TerraformService.NewProjectTemplate);
         var moduleDestinationPath = DirectoryUtils.GetProjectPath(_configuration, workspaceAcronym);
 
-        // verify all the files are copied
-        Assert.That(Directory.Exists(moduleDestinationPath), Is.True);
-        Assert.That(Directory.GetFiles(moduleSourcePath).Length,
-            Is.EqualTo(Directory.GetFiles(moduleDestinationPath).Length));
+        // verify all the files are copied except for the datahub readme
+        var expectedFiles = Directory.GetFiles(moduleSourcePath, "*.*", SearchOption.TopDirectoryOnly)
+            .Where(filename => !TerraformService.EXCLUDED_FILE_EXTENSIONS.Contains(Path.GetExtension(filename)))
+            .ToList();
+        Assert.Multiple(() =>
+        {
+            Assert.That(Directory.Exists(moduleDestinationPath), Is.True);
+            Assert.That(Directory.GetFiles(moduleDestinationPath),
+                Has.Length.EqualTo(expectedFiles.Count));
+        });
 
         // go through each file and assert that the content is the same
-        foreach (var file in Directory.GetFiles(moduleSourcePath))
+        foreach (var file in expectedFiles)
         {
             var sourceFileContent = await File.ReadAllTextAsync(file);
             var destinationFileContent =
@@ -56,6 +66,10 @@ public class NewProjectTemplateTests
     public async Task ShouldExtractNewProjectTemplateVariables()
     {
         const string workspaceAcronym = "ShouldExtractNewProjectTemplateVariables";
+        var workspace = new TerraformWorkspace
+        {
+            Acronym = workspaceAcronym
+        };
 
         var expectedVariables = new JsonObject
         {
@@ -81,10 +95,10 @@ public class NewProjectTemplateTests
         };
 
         await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspaceAcronym);
-        await _terraformService.CopyTemplateAsync(module, workspaceAcronym);
+        await _terraformService.CopyTemplateAsync(module, workspace);
 
 
-        await _terraformService.ExtractVariables(module, workspaceAcronym);
+        await _terraformService.ExtractVariables(module, workspace);
 
         var expectedVariablesFilename = Path.Join(DirectoryUtils.GetProjectPath(_configuration, workspaceAcronym),
             $"{module.Name}.auto.tfvars.json");
@@ -93,7 +107,7 @@ public class NewProjectTemplateTests
         var actualVariables =
             JsonSerializer.Deserialize<JsonObject>(
                 await File.ReadAllTextAsync(expectedVariablesFilename));
-        
+
         foreach (var (key, value) in actualVariables!)
         {
             Assert.Multiple(() =>
@@ -108,6 +122,10 @@ public class NewProjectTemplateTests
     public async Task ShouldExtractNewProjectTemplateVariablesWithoutDuplicates()
     {
         const string workspaceAcronym = "ShouldExtractNewProjectTemplateVariablesWithoutDuplicates";
+        var workspace = new TerraformWorkspace
+        {
+            Acronym = workspaceAcronym
+        };
 
         var expectedVariables = new JsonObject
         {
@@ -133,12 +151,12 @@ public class NewProjectTemplateTests
         };
 
         await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspaceAcronym);
-        await _terraformService.CopyTemplateAsync(module, workspaceAcronym);
+        await _terraformService.CopyTemplateAsync(module, workspace);
 
 
-        await _terraformService.ExtractVariables(module, workspaceAcronym);
-        await _terraformService.ExtractVariables(module, workspaceAcronym);
-        await _terraformService.ExtractVariables(module, workspaceAcronym);
+        await _terraformService.ExtractVariables(module, workspace);
+        await _terraformService.ExtractVariables(module, workspace);
+        await _terraformService.ExtractVariables(module, workspace);
 
         var expectedVariablesFilename = Path.Join(DirectoryUtils.GetProjectPath(_configuration, workspaceAcronym),
             $"{module.Name}.auto.tfvars.json");
@@ -147,7 +165,7 @@ public class NewProjectTemplateTests
         var actualVariables =
             JsonSerializer.Deserialize<JsonObject>(
                 await File.ReadAllTextAsync(expectedVariablesFilename));
-        
+
         foreach (var (key, value) in actualVariables!)
         {
             Assert.Multiple(() =>
@@ -162,6 +180,10 @@ public class NewProjectTemplateTests
     public async Task ShouldExtractBackendConfiguration()
     {
         const string workspaceAcronym = "ShouldExtractBackendConfiguration";
+        var workspace = new TerraformWorkspace
+        {
+            Acronym = workspaceAcronym
+        };
 
         var expectedConfiguration = @"resource_group_name = ""fsdh-core-test-rg""
 storage_account_name = ""fsdhtestterraformbackend""
@@ -174,14 +196,14 @@ key = ""fsdh-ShouldExtractBackendConfiguration.tfstate""
             Name = TerraformService.NewProjectTemplate,
             Version = "latest"
         };
-        
+
         await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspaceAcronym);
-        await _terraformService.CopyTemplateAsync(module, workspaceAcronym);
+        await _terraformService.CopyTemplateAsync(module, workspace);
         await _terraformService.ExtractBackendConfig(workspaceAcronym);
-        
+
         var expectedConfigurationFilename = Path.Join(DirectoryUtils.GetProjectPath(_configuration, workspaceAcronym),
             "project.tfbackend");
-        
+
         Assert.That(File.Exists(expectedConfigurationFilename), Is.True);
         Assert.That(await File.ReadAllTextAsync(expectedConfigurationFilename), Is.EqualTo(expectedConfiguration));
     }
