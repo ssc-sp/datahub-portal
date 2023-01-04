@@ -16,6 +16,10 @@ public partial class Testing
     
     
     internal const string ProjectAcronym = "TEST";
+    internal static TerraformWorkspace TestingWorkspace => new()
+    {
+        Acronym = ProjectAcronym,
+    };
     internal const string RequestingUser = "Unit Test User";
     internal const string RequestingAdminUser = "Unit Test Admin User";
     internal static readonly DataHubTemplate TestTemplate = new()
