@@ -1,12 +1,9 @@
 ﻿// Console app will replicate all documentation folder structure and try to translate the content of .md files using DeepL
 
-// Requires a DeepL key in the "User Secrets"
-// "DeepL": {
-//      "Key": "<DeepL key>"
-//  }
-
 // Usage > syncdocs <root-path>
 // or    > dotnet run <root-path>
+
+// Note: Expects an enviroment variable named "DEEPL_KEY" with the API key for DeepL
 
 using SyncDocs;
 using Microsoft.Extensions.Configuration;
@@ -20,7 +17,7 @@ var config = builder.Build();
 
 // read the app config
 var configParams = config.Get<ConfigParams>() ?? new();
-var deeplKey = config.GetSection("DeepL").GetValue<string>("Key") ?? "";
+var deeplKey = config.GetSection("DeepL")?.GetValue<string>("Key") ?? Environment.GetEnvironmentVariable("DEEPL_KEY") ?? string.Empty;
 
 // get the source path
 var sourcePath = args.Length == 1 ? args[0] : "./";
