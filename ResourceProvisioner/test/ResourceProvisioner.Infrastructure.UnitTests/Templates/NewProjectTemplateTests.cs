@@ -207,4 +207,36 @@ key = ""fsdh-ShouldExtractBackendConfiguration.tfstate""
         Assert.That(File.Exists(expectedConfigurationFilename), Is.True);
         Assert.That(await File.ReadAllTextAsync(expectedConfigurationFilename), Is.EqualTo(expectedConfiguration));
     }
+    
+    [Test]
+    public async Task ShouldSkipExtractBackendConfigurationIfExists()
+    {
+        const string workspaceAcronym = "ShouldSkipExtractBackendConfigurationIfExists";
+        var workspace = new TerraformWorkspace
+        {
+            Acronym = workspaceAcronym
+        };
+
+        var module = new DataHubTemplate()
+        {
+            Name = TerraformService.NewProjectTemplate,
+            Version = "latest"
+        };
+
+        await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspaceAcronym);
+        await _terraformService.CopyTemplateAsync(module, workspace);
+        
+        // Write a fake backend config before extracting
+        var expectedConfigurationFilename = Path.Join(DirectoryUtils.GetProjectPath(_configuration, workspaceAcronym),
+            "project.tfbackend");
+        var existingConfiguration = "test";
+        Directory.CreateDirectory(Path.Join(DirectoryUtils.GetProjectPath(_configuration, workspaceAcronym)));
+        await File.WriteAllTextAsync(expectedConfigurationFilename, existingConfiguration);
+        
+        
+        await _terraformService.ExtractBackendConfig(workspaceAcronym);
+
+        Assert.That(File.Exists(expectedConfigurationFilename), Is.True);
+        Assert.That(await File.ReadAllTextAsync(expectedConfigurationFilename), Is.EqualTo(existingConfiguration));
+    }
 }
