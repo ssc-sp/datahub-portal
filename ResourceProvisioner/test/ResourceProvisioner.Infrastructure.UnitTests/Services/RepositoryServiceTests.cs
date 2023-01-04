@@ -148,7 +148,7 @@ public class RepositoryServiceTests
             _configuration, mockTerraformService);
 
         var result =
-            await repositoryService.ExecuteResourceRun(TestTemplate, ProjectAcronym, RequestingUser);
+            await repositoryService.ExecuteResourceRun(TestTemplate, TestingWorkspace, RequestingUser);
 
 
         Assert.That(result, Is.TypeOf<RepositoryUpdateEvent>());
@@ -174,7 +174,7 @@ public class RepositoryServiceTests
             _configuration, mockTerraformService);
 
         var result =
-            await repositoryService.ExecuteResourceRun(TestTemplate, ProjectAcronym, RequestingUser);
+            await repositoryService.ExecuteResourceRun(TestTemplate, TestingWorkspace, RequestingUser);
 
         Assert.That(result, Is.TypeOf<RepositoryUpdateEvent>());
         Assert.Multiple(() =>
@@ -206,7 +206,7 @@ public class RepositoryServiceTests
             _configuration, mockTerraformService);
 
         var result =
-            await repositoryService.ExecuteResourceRuns(modules, ProjectAcronym, RequestingUser);
+            await repositoryService.ExecuteResourceRuns(modules, TestingWorkspace, RequestingUser);
 
 
         Assert.That(result, Is.TypeOf<List<RepositoryUpdateEvent>>());
@@ -316,7 +316,7 @@ public class RepositoryServiceTests
 
         mockTerraformService.Setup(tf => tf.CopyTemplateAsync(
                 It.IsAny<DataHubTemplate>(),
-                It.IsAny<string>()))
+                It.IsAny<TerraformWorkspace>()))
             .Returns(() =>
             {
                 if (doNothing)
@@ -328,7 +328,7 @@ public class RepositoryServiceTests
                 return Task.CompletedTask;
             });
 
-        mockTerraformService.Setup(tf => tf.ExtractVariables(It.IsAny<DataHubTemplate>(), It.IsAny<string>()))
+        mockTerraformService.Setup(tf => tf.ExtractVariables(It.IsAny<DataHubTemplate>(), It.IsAny<TerraformWorkspace>()))
             .Returns(Task.CompletedTask);
         return mockTerraformService.Object;
     }

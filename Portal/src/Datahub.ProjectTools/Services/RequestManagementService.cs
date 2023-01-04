@@ -50,20 +50,23 @@ public class RequestManagementService : IRequestManagementService
     }
 
 
-    public async Task RequestService(Datahub_ProjectServiceRequests request, Dictionary<string, string> inputParams = null)
+    public async Task RequestService(Datahub_ProjectServiceRequests request,
+        Dictionary<string, string> inputParams = null)
     {
-        await using var ctx = await _dbContextFactory.CreateDbContextAsync();
-        ctx.Projects.Attach(request.Project);
-
-        var exists = await ctx.Project_Requests
-            .AnyAsync(a => a.Project == request.Project && a.ServiceType == request.ServiceType);
-
-        if (!exists)
+        if (request.Project.ServiceRequests.Any(a => a.ServiceType == request.ServiceType))
         {
-            await ctx.Project_Requests.AddAsync(request);
+            logger.LogInformation("Service request already exists for project {Acronym} and service type {ServiceType}",
+                request.Project.Project_Acronym_CD, request.ServiceType);
+            return;
+        }
 
-            var projectResource = CreateEmptyProjectResource(request, inputParams);
-            await ctx.Project_Resources2.AddAsync(projectResource);
+        await using (var ctx = await _dbContextFactory.CreateDbContextAsync())
+        {
+            ctx.Projects.Attach(request.Project);
+
+            await ctx.Project_Requests.AddAsync(request);
+            // var projectResource = CreateEmptyProjectResource(request, inputParams);
+            // await ctx.Project_Resources2.AddAsync(projectResource);
 
             await ctx.TrackSaveChangesAsync(_datahubAuditingService);
         }
@@ -71,7 +74,8 @@ public class RequestManagementService : IRequestManagementService
         await NotifyProjectAdminsOfServiceRequest(request);
     }
 
-    private static Project_Resources2 CreateEmptyProjectResource(Datahub_ProjectServiceRequests request, Dictionary<string, string> inputParams)
+    public static Project_Resources2 CreateEmptyProjectResource(Datahub_ProjectServiceRequests request,
+        Dictionary<string, string> inputParams)
     {
         var resource = new Project_Resources2()
         {
@@ -100,7 +104,6 @@ public class RequestManagementService : IRequestManagementService
         }
 
         return resource;
-
     }
 
     public async Task<List<Project_Resources2>> GetResourcesByRequest(Datahub_ProjectServiceRequests request)
@@ -130,7 +133,8 @@ public class RequestManagementService : IRequestManagementService
         }
     }
 
-    private string GetResourceInputDefinitionIdentifier(string resourceType) => $"{RESOURCE_REQUEST_INPUT_JSON_PREFIX}-{resourceType}";
+    private string GetResourceInputDefinitionIdentifier(string resourceType) =>
+        $"{RESOURCE_REQUEST_INPUT_JSON_PREFIX}-{resourceType}";
 
     public async Task<string> GetResourceInputDefinitionJson(string resourceType)
     {
@@ -147,20 +151,21 @@ public class RequestManagementService : IRequestManagementService
 
     private async Task NotifyProjectAdminsOfServiceRequest(Datahub_ProjectServiceRequests request)
     {
-
         var admins = await GetProjectAdministratorEmailsAndIds(request.Project.Project_ID);
 
-        await _emailNotificationService.SendServiceCreationRequestNotification(request.User_Name, request.ServiceType, request.Project.ProjectInfo, admins);
+        await _emailNotificationService.SendServiceCreationRequestNotification(request.User_Name, request.ServiceType,
+            request.Project.ProjectInfo, admins);
 
-        var adminUserIds = admins.
-            Where(a => Guid.TryParse(a, out _))
+        var adminUserIds = admins.Where(a => Guid.TryParse(a, out _))
             .ToList();
         var user = await _userInformationService.GetCurrentGraphUserAsync();
 
-        await _systemNotificationService.CreateSystemNotificationsWithLink(adminUserIds, $"/administration", "SYSTEM-NOTIFICATION.GoToAdminPage",
+        await _systemNotificationService.CreateSystemNotificationsWithLink(adminUserIds, $"/administration",
+            "SYSTEM-NOTIFICATION.GoToAdminPage",
             "SYSTEM-NOTIFICATION.NOTIFICATION-TEXT.ServiceCreationRequested",
-            user.UserPrincipalName, request.ServiceType, new BilingualStringArgument(request.Project.ProjectInfo.ProjectNameEn, request.Project.ProjectInfo.ProjectNameFr));
-
+            user.UserPrincipalName, request.ServiceType,
+            new BilingualStringArgument(request.Project.ProjectInfo.ProjectNameEn,
+                request.Project.ProjectInfo.ProjectNameFr));
     }
 
     private async Task<List<string>> GetProjectAdministratorEmailsAndIds(int projectId)
@@ -224,45 +229,46 @@ public class RequestManagementService : IRequestManagementService
 
     public async Task<bool> HandleTerraformRequestServiceAsync(Datahub_Project project, string terraformTemplate)
     {
-        using (var scope = new TransactionScope(
-           TransactionScopeOption.Required, TransactionScopeAsyncFlowOption.Enabled))
+        using var scope = new TransactionScope(
+            TransactionScopeOption.Required, TransactionScopeAsyncFlowOption.Enabled);
+        try
         {
-            try
+            await using var ctx = await _dbContextFactory.CreateDbContextAsync();
+            ctx.Attach(project);
+            await ctx.Entry(project).Collection(p => p.Users).LoadAsync();
+            var userId = await _userInformationService.GetUserIdString();
+            var graphUser = await _userInformationService.GetCurrentGraphUserAsync();
+            var serviceRequest = new Datahub_ProjectServiceRequests()
             {
-                using var ctx = await _dbContextFactory.CreateDbContextAsync();
-                ctx.Attach(project);
-                await ctx.Entry(project).Collection(p => p.Users).LoadAsync();
-                var userId = await _userInformationService.GetUserIdString();
-                var graphUser = await _userInformationService.GetCurrentGraphUserAsync();
-                var serviceRequest = new Datahub_ProjectServiceRequests()
-                {
-                    ServiceType = GetTerraformServiceType(terraformTemplate),
-                    ServiceRequests_Date_DT = DateTime.Now,
-                    Is_Completed = null,
-                    Project = project,
-                    User_ID = userId,
-                    User_Name = graphUser.UserPrincipalName
-                };
-                
-                await RequestServiceWithDefaults(serviceRequest);
-                var users = project.Users.Select(u => new WorkspaceUser() { Guid = u.User_ID, Email = u.User_Name }).ToList();
+                ServiceType = GetTerraformServiceType(terraformTemplate),
+                ServiceRequests_Date_DT = DateTime.Now,
+                Is_Completed = null,
+                Project = project,
+                User_ID = userId,
+                User_Name = graphUser.UserPrincipalName
+            };
 
-                var workspace = project.ToResourceWorkspace(users);
-                var templates = new List<ResourceTemplate> { ResourceTemplate.LatestFromName(terraformTemplate) };
+            await RequestServiceWithDefaults(serviceRequest);
+            var users = project.Users.Select(u => new WorkspaceUser() { Guid = u.User_ID, Email = u.User_Name })
+                .ToList();
 
-                var request = CreateResourceData.ResourceRunTemplate(workspace, templates, graphUser.Mail);
-                await requestQueueService.AddProjectToStorageQueue(request);
-                scope.Complete();
-                return true;
-            } catch (Exception ex)
-            {
-                logger.LogError(ex, $"Error creating resource {terraformTemplate} for {project.Project_Acronym_CD}");
-                return false;
-            }
+            var workspace = project.ToResourceWorkspace(users);
+            var templates = new List<ResourceTemplate> { ResourceTemplate.LatestFromName(terraformTemplate) };
+
+            var request = CreateResourceData.ResourceRunTemplate(workspace, templates, graphUser.Mail);
+            await requestQueueService.AddProjectToStorageQueue(request);
+            scope.Complete();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, $"Error creating resource {terraformTemplate} for {project.Project_Acronym_CD}");
+            return false;
         }
     }
 
-    public static FieldValueContainer BuildFieldValues(FieldDefinitions fieldDefinitions, Dictionary<string, string> existingValues, string objectId = null)
+    public static FieldValueContainer BuildFieldValues(FieldDefinitions fieldDefinitions,
+        Dictionary<string, string> existingValues, string objectId = null)
     {
         if (string.IsNullOrEmpty(objectId))
         {
@@ -371,7 +377,6 @@ public class RequestManagementService : IRequestManagementService
 
 
         return profile;
-
     }
 
     public async Task<ProjectResourceFormParams> CreateResourceInputFormParams(string resourceType)
@@ -402,5 +407,4 @@ public class RequestManagementService : IRequestManagementService
             .Where(f => !string.IsNullOrEmpty(f.Default_Value_TXT))
             .ToDictionary(f => f.Field_Name_TXT, f => f.Default_Value_TXT);
     }
-
 }

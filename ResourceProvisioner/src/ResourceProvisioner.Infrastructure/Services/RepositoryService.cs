@@ -40,25 +40,25 @@ public class RepositoryService : IRepositoryService
         await _semaphore.WaitAsync();
         
         var user = command.RequestingUserEmail ?? throw new NullReferenceException("Requesting user's email is null");
-        _logger.LogInformation("Checking out workspace branch for {WorkspaceAcronym}", command.Workspace.Acronym);
-        await FetchRepositoriesAndCheckoutProjectBranch(command.Workspace.Acronym);
+        _logger.LogInformation("Checking out workspace branch for {WorkspaceAcronym}", command.TerraformWorkspace.Acronym);
+        await FetchRepositoriesAndCheckoutProjectBranch(command.TerraformWorkspace.Acronym);
 
         _logger.LogInformation("Executing resource runs for user {User}", user);
         var repositoryUpdateEvents =
-            await ExecuteResourceRuns(command.Templates, command.Workspace.Acronym, user);
+            await ExecuteResourceRuns(command.Templates, command.TerraformWorkspace, user);
 
         _logger.LogInformation("Pushing changes to remote repository for {WorkspaceAcronym}",
-            command.Workspace.Acronym);
-        await PushInfrastructureRepository(command.Workspace.Acronym);
+            command.TerraformWorkspace.Acronym);
+        await PushInfrastructureRepository(command.TerraformWorkspace.Acronym);
 
-        _logger.LogInformation("Creating pull request for {WorkspaceAcronym}", command.Workspace.Acronym);
+        _logger.LogInformation("Creating pull request for {WorkspaceAcronym}", command.TerraformWorkspace.Acronym);
         var pullRequestValueObject =
-            await CreateInfrastructurePullRequest(command.Workspace.Acronym, user);
+            await CreateInfrastructurePullRequest(command.TerraformWorkspace.Acronym, user);
 
         var pullRequestMessage = new PullRequestUpdateMessage
         {
             PullRequestValueObject = pullRequestValueObject,
-            Workspace = command.Workspace,
+            TerraformWorkspace = command.TerraformWorkspace,
             Events = repositoryUpdateEvents
         };
 
@@ -144,7 +144,7 @@ public class RepositoryService : IRepositoryService
             repo.Branches.Update(branch, b => b.Remote = remote.Name, b => b.UpstreamBranch = branch.CanonicalName);
             Commands.Pull(repo, signature, pullOptions);
         }
-        catch (MergeFetchHeadNotFoundException e)
+        catch (MergeFetchHeadNotFoundException)
         {
             _logger.LogInformation("No upstream updates found");
         }
@@ -271,45 +271,44 @@ public class RepositoryService : IRepositoryService
         await CheckoutInfrastructureBranch(workspaceAcronym);
     }
 
-    public async Task<List<RepositoryUpdateEvent>> ExecuteResourceRuns(List<DataHubTemplate> modules,
-        string workspaceAcronym, string requestingUsername)
+    public async Task<List<RepositoryUpdateEvent>> ExecuteResourceRuns(List<DataHubTemplate> modules, TerraformWorkspace terraformWorkspace, string requestingUsername)
     {
         var repositoryUpdateEvents = new List<RepositoryUpdateEvent>();
 
         foreach (var module in modules)
         {
-            var result = await ExecuteResourceRun(module, workspaceAcronym, requestingUsername);
+            var result = await ExecuteResourceRun(module, terraformWorkspace, requestingUsername);
             repositoryUpdateEvents.Add(result);
         }
 
         return repositoryUpdateEvents;
     }
 
-    public async Task<RepositoryUpdateEvent> ExecuteResourceRun(DataHubTemplate template, string workspaceAcronym,
+    public async Task<RepositoryUpdateEvent> ExecuteResourceRun(DataHubTemplate template, TerraformWorkspace terraformWorkspace,
         string requestingUsername)
     {
         try
         {
-            await _terraformService.CopyTemplateAsync(template, workspaceAcronym);
-            await _terraformService.ExtractVariables(template, workspaceAcronym);
+            await _terraformService.CopyTemplateAsync(template, terraformWorkspace);
+            await _terraformService.ExtractVariables(template, terraformWorkspace);
             if (template.Name == TerraformService.NewProjectTemplate)
             {
-                await _terraformService.ExtractBackendConfig(workspaceAcronym);
+                await _terraformService.ExtractBackendConfig(terraformWorkspace.Acronym);
             }
             await CommitDataHubTemplate(template, requestingUsername);
 
             return new RepositoryUpdateEvent()
             {
                 Message =
-                    $"Successfully created resource run for [{template.Version}]{template.Name} in {workspaceAcronym}",
+                    $"Successfully created resource run for [{template.Version}]{template.Name} in {terraformWorkspace.Acronym}",
                 StatusCode = MessageStatusCode.Success
             };
         }
-        catch (NoChangesDetectedException e)
+        catch (NoChangesDetectedException)
         {
             return new RepositoryUpdateEvent()
             {
-                Message = $"No changes detected after resource run for [{template.Version}]{template.Name} in {workspaceAcronym}",
+                Message = $"No changes detected after resource run for [{template.Version}]{template.Name} in {terraformWorkspace.Acronym}",
                 StatusCode = MessageStatusCode.NoChangesDetected
             };
         }
@@ -317,11 +316,11 @@ public class RepositoryService : IRepositoryService
         {
             _logger.LogError(e,
                 "Error while creating resource run for [{ModuleVersion}]{ModuleName} in {WorkspaceAcronym}",
-                template.Version, template.Name, workspaceAcronym);
+                template.Version, template.Name, terraformWorkspace.Acronym);
 
             return new RepositoryUpdateEvent()
             {
-                Message = $"Error creating resource run for [{template.Version}]{template.Name} in {workspaceAcronym}",
+                Message = $"Error creating resource run for [{template.Version}]{template.Name} in {terraformWorkspace.Acronym}",
                 StatusCode = MessageStatusCode.Error
             };
         }
