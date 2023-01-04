@@ -42,15 +42,18 @@ public class NewProjectTemplateTests
         var moduleDestinationPath = DirectoryUtils.GetProjectPath(_configuration, workspaceAcronym);
 
         // verify all the files are copied except for the datahub readme
-        var expectedFileCount = Directory.GetFiles(moduleSourcePath, "*.*", SearchOption.TopDirectoryOnly)
-            .Where(filename => !TerraformService.EXCLUDED_FILE_EXTENSIONS.Contains(Path.GetExtension(filename)));
-        
-        Assert.That(Directory.Exists(moduleDestinationPath), Is.True);
-        Assert.That(Directory.GetFiles(moduleDestinationPath).Length,
-            Is.EqualTo(expectedFileCount.Count()));
+        var expectedFiles = Directory.GetFiles(moduleSourcePath, "*.*", SearchOption.TopDirectoryOnly)
+            .Where(filename => !TerraformService.EXCLUDED_FILE_EXTENSIONS.Contains(Path.GetExtension(filename)))
+            .ToList();
+        Assert.Multiple(() =>
+        {
+            Assert.That(Directory.Exists(moduleDestinationPath), Is.True);
+            Assert.That(Directory.GetFiles(moduleDestinationPath),
+                Has.Length.EqualTo(expectedFiles.Count));
+        });
 
         // go through each file and assert that the content is the same
-        foreach (var file in Directory.GetFiles(moduleSourcePath))
+        foreach (var file in expectedFiles)
         {
             var sourceFileContent = await File.ReadAllTextAsync(file);
             var destinationFileContent =
@@ -104,7 +107,7 @@ public class NewProjectTemplateTests
         var actualVariables =
             JsonSerializer.Deserialize<JsonObject>(
                 await File.ReadAllTextAsync(expectedVariablesFilename));
-        
+
         foreach (var (key, value) in actualVariables!)
         {
             Assert.Multiple(() =>
@@ -162,7 +165,7 @@ public class NewProjectTemplateTests
         var actualVariables =
             JsonSerializer.Deserialize<JsonObject>(
                 await File.ReadAllTextAsync(expectedVariablesFilename));
-        
+
         foreach (var (key, value) in actualVariables!)
         {
             Assert.Multiple(() =>
@@ -193,14 +196,14 @@ key = ""fsdh-ShouldExtractBackendConfiguration.tfstate""
             Name = TerraformService.NewProjectTemplate,
             Version = "latest"
         };
-        
+
         await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspaceAcronym);
         await _terraformService.CopyTemplateAsync(module, workspace);
         await _terraformService.ExtractBackendConfig(workspaceAcronym);
-        
+
         var expectedConfigurationFilename = Path.Join(DirectoryUtils.GetProjectPath(_configuration, workspaceAcronym),
             "project.tfbackend");
-        
+
         Assert.That(File.Exists(expectedConfigurationFilename), Is.True);
         Assert.That(await File.ReadAllTextAsync(expectedConfigurationFilename), Is.EqualTo(expectedConfiguration));
     }
