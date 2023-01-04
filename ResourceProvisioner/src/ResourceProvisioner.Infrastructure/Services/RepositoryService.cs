@@ -144,7 +144,7 @@ public class RepositoryService : IRepositoryService
             repo.Branches.Update(branch, b => b.Remote = remote.Name, b => b.UpstreamBranch = branch.CanonicalName);
             Commands.Pull(repo, signature, pullOptions);
         }
-        catch (MergeFetchHeadNotFoundException e)
+        catch (MergeFetchHeadNotFoundException)
         {
             _logger.LogInformation("No upstream updates found");
         }
@@ -304,7 +304,7 @@ public class RepositoryService : IRepositoryService
                 StatusCode = MessageStatusCode.Success
             };
         }
-        catch (NoChangesDetectedException e)
+        catch (NoChangesDetectedException)
         {
             return new RepositoryUpdateEvent()
             {

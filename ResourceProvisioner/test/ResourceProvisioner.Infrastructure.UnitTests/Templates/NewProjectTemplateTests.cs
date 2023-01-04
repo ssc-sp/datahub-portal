@@ -41,10 +41,13 @@ public class NewProjectTemplateTests
         var moduleSourcePath = DirectoryUtils.GetTemplatePath(_configuration, TerraformService.NewProjectTemplate);
         var moduleDestinationPath = DirectoryUtils.GetProjectPath(_configuration, workspaceAcronym);
 
-        // verify all the files are copied
+        // verify all the files are copied except for the datahub readme
+        var expectedFileCount = Directory.GetFiles(moduleSourcePath, "*.*", SearchOption.TopDirectoryOnly)
+            .Where(filename => !TerraformService.EXCLUDED_FILE_EXTENSIONS.Contains(Path.GetExtension(filename)));
+        
         Assert.That(Directory.Exists(moduleDestinationPath), Is.True);
-        Assert.That(Directory.GetFiles(moduleSourcePath).Length,
-            Is.EqualTo(Directory.GetFiles(moduleDestinationPath).Length));
+        Assert.That(Directory.GetFiles(moduleDestinationPath).Length,
+            Is.EqualTo(expectedFileCount.Count()));
 
         // go through each file and assert that the content is the same
         foreach (var file in Directory.GetFiles(moduleSourcePath))
