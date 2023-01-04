@@ -2,7 +2,7 @@ using System.Text.Json.Nodes;
 
 namespace ResourceProvisioner.Domain.Entities;
 
-public class Workspace
+public class TerraformWorkspace
 {
     public string Name { get; set; }
     public string Acronym { get; set; }
