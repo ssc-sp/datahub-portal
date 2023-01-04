@@ -7,7 +7,7 @@ public class CreateResourceRunCommandValidator : AbstractValidator<CreateResourc
 {
     public CreateResourceRunCommandValidator()
     {
-        RuleFor(x => x.Workspace)
+        RuleFor(x => x.TerraformWorkspace)
             .NotNull()
             .SetValidator(new WorkspaceValidator());
 

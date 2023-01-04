@@ -29,10 +29,10 @@ public class TerraformService : ITerraformService
         _configuration = configuration;
     }
 
-    public Task CopyTemplateAsync(DataHubTemplate template, Workspace workspace)
+    public Task CopyTemplateAsync(DataHubTemplate template, TerraformWorkspace terraformWorkspace)
     {
         var templateSourcePath = DirectoryUtils.GetTemplatePath(_configuration, template.Name);
-        var projectPath = DirectoryUtils.GetProjectPath(_configuration, workspace.Acronym);
+        var projectPath = DirectoryUtils.GetProjectPath(_configuration, terraformWorkspace.Acronym);
 
         _logger.LogInformation("Copying template from {ModuleSource} to {ProjectPath}", templateSourcePath,
             projectPath);
@@ -67,10 +67,10 @@ public class TerraformService : ITerraformService
         return Task.CompletedTask;
     }
 
-    public async Task ExtractVariables(DataHubTemplate template, Workspace workspace)
+    public async Task ExtractVariables(DataHubTemplate template, TerraformWorkspace terraformWorkspace)
     {
-        var missingVariables = FindMissingVariables(template, workspace);
-        await WriteVariablesFile(template, workspace, missingVariables);
+        var missingVariables = FindMissingVariables(template, terraformWorkspace);
+        await WriteVariablesFile(template, terraformWorkspace, missingVariables);
     }
     
     public async Task ExtractBackendConfig(string workspaceAcronym)
@@ -93,9 +93,9 @@ public class TerraformService : ITerraformService
         await File.WriteAllLinesAsync(backendConfigFilePath, backendConfig.Select(x => $"{x.Key} = \"{x.Value}\""));
     }
 
-    private Dictionary<string, string> FindMissingVariables(DataHubTemplate template, Workspace workspace)
+    private Dictionary<string, string> FindMissingVariables(DataHubTemplate template, TerraformWorkspace terraformWorkspace)
     {
-        var projectPath = DirectoryUtils.GetProjectPath(_configuration, workspace.Acronym);
+        var projectPath = DirectoryUtils.GetProjectPath(_configuration, terraformWorkspace.Acronym);
         var templatePath = DirectoryUtils.GetTemplatePath(_configuration, template.Name);
 
         var existingVariables = FindExistingVariables(projectPath);
@@ -116,10 +116,10 @@ public class TerraformService : ITerraformService
         return existingVariables;
     }
 
-    private async Task WriteVariablesFile(DataHubTemplate template, Workspace workspace,
+    private async Task WriteVariablesFile(DataHubTemplate template, TerraformWorkspace terraformWorkspace,
         Dictionary<string, string> missingVariables)
     {
-        var projectPath = DirectoryUtils.GetProjectPath(_configuration, workspace.Acronym);
+        var projectPath = DirectoryUtils.GetProjectPath(_configuration, terraformWorkspace.Acronym);
         var variablesFilePath = Path.Join(projectPath, $"{template.Name}.auto.tfvars.json");
 
         if (File.Exists(variablesFilePath))
@@ -129,7 +129,7 @@ public class TerraformService : ITerraformService
                     await File.ReadAllTextAsync(variablesFilePath)) ?? new JsonObject();
             foreach (var (key, value) in missingVariables)
             {
-                preExistingVariables.TryAdd(key, ComputeVariableValue(workspace, key, value));
+                preExistingVariables.TryAdd(key, ComputeVariableValue(terraformWorkspace, key, value));
             }
 
             await File.WriteAllTextAsync(variablesFilePath, JsonSerializer.Serialize(preExistingVariables));
@@ -138,11 +138,11 @@ public class TerraformService : ITerraformService
         {
             await File.WriteAllTextAsync(variablesFilePath,
                 JsonSerializer.Serialize(missingVariables.ToDictionary(mv => mv.Key,
-                    mv => ComputeVariableValue(workspace, mv.Key, mv.Value))));
+                    mv => ComputeVariableValue(terraformWorkspace, mv.Key, mv.Value))));
         }
     }
 
-    private JsonNode ComputeVariableValue(Workspace workspace, string variableName, string variableType)
+    private JsonNode ComputeVariableValue(TerraformWorkspace terraformWorkspace, string variableName, string variableType)
     {
         if(variableType == MapAnyType)
         {
@@ -151,7 +151,7 @@ public class TerraformService : ITerraformService
         
         if(variableType == ListAnyType)
         {
-            return ComputeListVariableValue(workspace, variableName);
+            return ComputeListVariableValue(terraformWorkspace, variableName);
         }
         
         var configValue = _configuration[$"Terraform:Variables:{variableName}"];
@@ -160,17 +160,17 @@ public class TerraformService : ITerraformService
 
         return (variableName switch
         {
-            "project_cd" => workspace.Acronym,
+            "project_cd" => terraformWorkspace.Acronym,
             _ => throw new MissingTerraformVariableException(
                 $"Missing variable {variableName}:<{variableType}> in configuration")
         })!;
     }
 
-    private JsonNode ComputeListVariableValue(Workspace workspace, string variableName)
+    private JsonNode ComputeListVariableValue(TerraformWorkspace terraformWorkspace, string variableName)
     {
         return variableName switch
         {
-            "databricks_admin_users" => workspace.ToUserList(),
+            "databricks_admin_users" => terraformWorkspace.ToUserList(),
             _ => throw new MissingTerraformVariableException(
                 $"Missing variable {variableName}:<{ListAnyType}> in configuration")
         };

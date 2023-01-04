@@ -40,25 +40,25 @@ public class RepositoryService : IRepositoryService
         await _semaphore.WaitAsync();
         
         var user = command.RequestingUserEmail ?? throw new NullReferenceException("Requesting user's email is null");
-        _logger.LogInformation("Checking out workspace branch for {WorkspaceAcronym}", command.Workspace.Acronym);
-        await FetchRepositoriesAndCheckoutProjectBranch(command.Workspace.Acronym);
+        _logger.LogInformation("Checking out workspace branch for {WorkspaceAcronym}", command.TerraformWorkspace.Acronym);
+        await FetchRepositoriesAndCheckoutProjectBranch(command.TerraformWorkspace.Acronym);
 
         _logger.LogInformation("Executing resource runs for user {User}", user);
         var repositoryUpdateEvents =
-            await ExecuteResourceRuns(command.Templates, command.Workspace, user);
+            await ExecuteResourceRuns(command.Templates, command.TerraformWorkspace, user);
 
         _logger.LogInformation("Pushing changes to remote repository for {WorkspaceAcronym}",
-            command.Workspace.Acronym);
-        await PushInfrastructureRepository(command.Workspace.Acronym);
+            command.TerraformWorkspace.Acronym);
+        await PushInfrastructureRepository(command.TerraformWorkspace.Acronym);
 
-        _logger.LogInformation("Creating pull request for {WorkspaceAcronym}", command.Workspace.Acronym);
+        _logger.LogInformation("Creating pull request for {WorkspaceAcronym}", command.TerraformWorkspace.Acronym);
         var pullRequestValueObject =
-            await CreateInfrastructurePullRequest(command.Workspace.Acronym, user);
+            await CreateInfrastructurePullRequest(command.TerraformWorkspace.Acronym, user);
 
         var pullRequestMessage = new PullRequestUpdateMessage
         {
             PullRequestValueObject = pullRequestValueObject,
-            Workspace = command.Workspace,
+            TerraformWorkspace = command.TerraformWorkspace,
             Events = repositoryUpdateEvents
         };
 
@@ -271,36 +271,36 @@ public class RepositoryService : IRepositoryService
         await CheckoutInfrastructureBranch(workspaceAcronym);
     }
 
-    public async Task<List<RepositoryUpdateEvent>> ExecuteResourceRuns(List<DataHubTemplate> modules, Workspace workspace, string requestingUsername)
+    public async Task<List<RepositoryUpdateEvent>> ExecuteResourceRuns(List<DataHubTemplate> modules, TerraformWorkspace terraformWorkspace, string requestingUsername)
     {
         var repositoryUpdateEvents = new List<RepositoryUpdateEvent>();
 
         foreach (var module in modules)
         {
-            var result = await ExecuteResourceRun(module, workspace, requestingUsername);
+            var result = await ExecuteResourceRun(module, terraformWorkspace, requestingUsername);
             repositoryUpdateEvents.Add(result);
         }
 
         return repositoryUpdateEvents;
     }
 
-    public async Task<RepositoryUpdateEvent> ExecuteResourceRun(DataHubTemplate template, Workspace workspace,
+    public async Task<RepositoryUpdateEvent> ExecuteResourceRun(DataHubTemplate template, TerraformWorkspace terraformWorkspace,
         string requestingUsername)
     {
         try
         {
-            await _terraformService.CopyTemplateAsync(template, workspace);
-            await _terraformService.ExtractVariables(template, workspace);
+            await _terraformService.CopyTemplateAsync(template, terraformWorkspace);
+            await _terraformService.ExtractVariables(template, terraformWorkspace);
             if (template.Name == TerraformService.NewProjectTemplate)
             {
-                await _terraformService.ExtractBackendConfig(workspace.Acronym);
+                await _terraformService.ExtractBackendConfig(terraformWorkspace.Acronym);
             }
             await CommitDataHubTemplate(template, requestingUsername);
 
             return new RepositoryUpdateEvent()
             {
                 Message =
-                    $"Successfully created resource run for [{template.Version}]{template.Name} in {workspace.Acronym}",
+                    $"Successfully created resource run for [{template.Version}]{template.Name} in {terraformWorkspace.Acronym}",
                 StatusCode = MessageStatusCode.Success
             };
         }
@@ -308,7 +308,7 @@ public class RepositoryService : IRepositoryService
         {
             return new RepositoryUpdateEvent()
             {
-                Message = $"No changes detected after resource run for [{template.Version}]{template.Name} in {workspace.Acronym}",
+                Message = $"No changes detected after resource run for [{template.Version}]{template.Name} in {terraformWorkspace.Acronym}",
                 StatusCode = MessageStatusCode.NoChangesDetected
             };
         }
@@ -316,11 +316,11 @@ public class RepositoryService : IRepositoryService
         {
             _logger.LogError(e,
                 "Error while creating resource run for [{ModuleVersion}]{ModuleName} in {WorkspaceAcronym}",
-                template.Version, template.Name, workspace.Acronym);
+                template.Version, template.Name, terraformWorkspace.Acronym);
 
             return new RepositoryUpdateEvent()
             {
-                Message = $"Error creating resource run for [{template.Version}]{template.Name} in {workspace.Acronym}",
+                Message = $"Error creating resource run for [{template.Version}]{template.Name} in {terraformWorkspace.Acronym}",
                 StatusCode = MessageStatusCode.Error
             };
         }
