@@ -1,4 +1,4 @@
-[![Gitter](https://badges.gitter.im/Science-Program/community.svg)](https://gitter.im/Science-Program/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+[![Gitter](https://badges.gitter.im/Federal-Science-Data-Hub/community.svg)](https://gitter.im/Federal-Science-Data-Hub/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
 # Welcome to the DataHub Portal
 
