@@ -38,7 +38,7 @@ public class CreateResourceRunTests
             {
                 Acronym = "TEST",
                 Name = "Test Project",
-                Organization = new Organization
+                TerraformOrganization = new TerraformOrganization
                 {
                     Name = "SBDA Number 42",
                     Code = "SBDA-42"
