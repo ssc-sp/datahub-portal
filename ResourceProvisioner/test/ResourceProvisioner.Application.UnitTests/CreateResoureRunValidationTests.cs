@@ -26,7 +26,7 @@ public class CreateResourceRunValidationTests
             {
                 Acronym = anyString,
                 Name = anyString,
-                Organization = new Organization()
+                TerraformOrganization = new TerraformOrganization()
                 {
                     Name = anyString,
                     Code = anyString

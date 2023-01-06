@@ -6,7 +6,7 @@ public class TerraformWorkspace
 {
     public string Name { get; set; }
     public string Acronym { get; set; }
-    public Organization Organization { get; set; }
+    public TerraformOrganization TerraformOrganization { get; set; }
     public List<TerraformWorkspaceUser> Users { get; set; }
 
     public JsonNode ToUserList()
