@@ -26,7 +26,7 @@ else
         <Authorized>
             <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Start" Class="mb-4">
                 <MudText Typo="Typo.h5">@Localizer["Admins"]</MudText>
-                @if (CurrentUserIsAdmin())
+                @if (IsProjectAdmin)
                 {
                     <MudButton Variant="Variant.Text" Color="Color.Primary">@Localizer["Manage"]</MudButton>
                 }
@@ -70,6 +70,8 @@ else
 
     [CascadingParameter(Name = "ProjectAcronym")]
     public string ProjectAcronym { get; set; }
+    [CascadingParameter(Name = "IsProjectAdmin")]
+    public bool IsProjectAdmin { get; set; }
 
     private bool _isLoading = true;
 
@@ -94,11 +96,6 @@ else
         }
 
         _isLoading = false;
-    }
-
-    private bool CurrentUserIsAdmin()
-    {
-        return _projectAdmins.Any(x => x.UserId == _user.Id);
     }
     private string GetTextStyle()
     {
