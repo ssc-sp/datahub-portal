@@ -114,4 +114,6 @@
 	  <_ContentIncludedByDefault Remove="Components\TabControl\TabControl.razor" />
 	  <_ContentIncludedByDefault Remove="Components\TabControl\TabPage.razor" />
 	</ItemGroup>
+
+	<Import Project="..\..\..\Shared\src\Datahub.Shared\Datahub.Shared.projitems" Label="Shared" />
 </Project>

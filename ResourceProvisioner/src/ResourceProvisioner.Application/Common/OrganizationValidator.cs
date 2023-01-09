@@ -1,5 +1,5 @@
+using Datahub.Shared;
 using FluentValidation;
-using ResourceProvisioner.Domain.Entities;
 
 namespace ResourceProvisioner.Application.Common;
 

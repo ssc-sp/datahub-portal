@@ -8,10 +8,8 @@ using Datahub.Core.Services.Security;
 using Datahub.Metadata.DTO;
 using Datahub.Metadata.Model;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using Polly;
 using System.Transactions;
 
 namespace Datahub.ProjectTools.Services;

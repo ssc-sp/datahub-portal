@@ -1,3 +1,4 @@
+using Datahub.Shared;
 using ResourceProvisioner.Domain.Entities;
 
 namespace ResourceProvisioner.Application.Services;

@@ -1,3 +1,4 @@
+using Datahub.Shared;
 using ResourceProvisioner.Domain.Entities;
 using ResourceProvisioner.Domain.Messages;
 using MediatR;

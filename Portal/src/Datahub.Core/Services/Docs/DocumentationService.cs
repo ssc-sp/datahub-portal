@@ -13,7 +13,6 @@ using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-using static Lucene.Net.Search.FieldCache;
 
 namespace Datahub.Core.Services.Docs;
 #nullable enable

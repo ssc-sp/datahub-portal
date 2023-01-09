@@ -9,8 +9,11 @@
     <Import_RootNamespace>Datahub.Shared</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Enums\TerraformRole.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TerraformOrganization.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TerraformOutputVariable.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TerraformUser.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TerraformVariables.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utils\TerraformVariableExtraction.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TerraformWorkspace.cs" />
   </ItemGroup>
 </Project>
