@@ -1,9 +1,12 @@
+using Datahub.Shared;
+using Datahub.Shared.Entities;
+
+namespace Datahub.ProjectTools.Utils;
+
 using System.Text.Json;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Services.Projects;
 using Datahub.ProjectTools.Services;
-
-namespace Datahub.Shared.Utils;
 
 public static class TerraformVariableExtraction
 {
@@ -24,7 +27,7 @@ public static class TerraformVariableExtraction
     /// Parses the project resource content to return the databricks url.
     /// </summary>
     /// <param name="projectResourceJsonContent"></param>
-    /// <returns></returns>
+    /// <returns></returns>a
     public static string ExtractDatabricksUrl(string projectResourceJsonContent)
     {
         if(string.IsNullOrWhiteSpace(projectResourceJsonContent))

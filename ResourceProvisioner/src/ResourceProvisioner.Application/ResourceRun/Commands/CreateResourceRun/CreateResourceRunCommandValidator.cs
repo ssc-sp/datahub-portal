@@ -15,7 +15,7 @@ public class CreateResourceRunCommandValidator : AbstractValidator<CreateResourc
             .NotEmpty();
 
         RuleForEach(x => x.Templates)
-            .SetValidator(new DataHubTemplateValidator());
+            .SetValidator(new TerraformTemplateValidator());
 
         RuleFor(x => x.RequestingUserEmail)
             .EmailAddress();

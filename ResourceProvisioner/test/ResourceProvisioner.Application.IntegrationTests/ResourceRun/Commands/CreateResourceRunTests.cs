@@ -1,6 +1,5 @@
-using Datahub.Shared;
+using Datahub.Shared.Entities;
 using ResourceProvisioner.Application.ResourceRun.Commands.CreateResourceRun;
-using ResourceProvisioner.Domain.Entities;
 using FluentAssertions;
 using FluentValidation;
 
@@ -27,7 +26,7 @@ public class CreateResourceRunTests
         
         var command = new CreateResourceRunCommand
         {
-            Templates = new List<DataHubTemplate>
+            Templates = new List<TerraformTemplate>
             {
                 new()
                 {

@@ -1,5 +1,4 @@
-using Datahub.Shared;
-using ResourceProvisioner.Domain.Entities;
+using Datahub.Shared.Entities;
 using ResourceProvisioner.Domain.Messages;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -9,7 +8,7 @@ namespace ResourceProvisioner.Application.ResourceRun.Commands.CreateResourceRun
 
 public class CreateResourceRunCommand : IRequest<PullRequestUpdateMessage>
 {
-    public List<DataHubTemplate> Templates { get; set; }
+    public List<TerraformTemplate> Templates { get; set; }
     public TerraformWorkspace TerraformWorkspace { get; set; }
 
     public string RequestingUserEmail { get; set; }

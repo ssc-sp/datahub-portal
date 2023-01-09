@@ -1,7 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using Datahub.Shared;
-using ResourceProvisioner.Domain.Entities;
+using Datahub.Shared.Entities;
 using ResourceProvisioner.Infrastructure.Common;
 using ResourceProvisioner.Infrastructure.Services;
 
@@ -31,7 +30,7 @@ public class NewProjectTemplateTests
         };
         await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspaceAcronym);
 
-        var module = new DataHubTemplate()
+        var module = new TerraformTemplate()
         {
             Name = TerraformService.NewProjectTemplate,
             Version = "latest"
@@ -89,7 +88,7 @@ public class NewProjectTemplateTests
             },
         };
 
-        var module = new DataHubTemplate()
+        var module = new TerraformTemplate()
         {
             Name = TerraformService.NewProjectTemplate,
             Version = "latest"
@@ -145,7 +144,7 @@ public class NewProjectTemplateTests
             },
         };
 
-        var module = new DataHubTemplate()
+        var module = new TerraformTemplate()
         {
             Name = TerraformService.NewProjectTemplate,
             Version = "latest"
@@ -192,7 +191,7 @@ container_name = ""fsdh-project-states""
 key = ""fsdh-ShouldExtractBackendConfiguration.tfstate""
 ";
 
-        var module = new DataHubTemplate()
+        var module = new TerraformTemplate()
         {
             Name = TerraformService.NewProjectTemplate,
             Version = "latest"
@@ -218,7 +217,7 @@ key = ""fsdh-ShouldExtractBackendConfiguration.tfstate""
             Acronym = workspaceAcronym
         };
 
-        var module = new DataHubTemplate()
+        var module = new TerraformTemplate()
         {
             Name = TerraformService.NewProjectTemplate,
             Version = "latest"

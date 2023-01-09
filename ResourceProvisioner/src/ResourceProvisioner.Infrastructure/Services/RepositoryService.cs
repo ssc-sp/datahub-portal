@@ -1,8 +1,7 @@
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using Datahub.Shared;
-using ResourceProvisioner.Domain.Entities;
+using Datahub.Shared.Entities;
 using ResourceProvisioner.Domain.Enums;
 using ResourceProvisioner.Domain.Events;
 using ResourceProvisioner.Domain.Exceptions;
@@ -153,7 +152,7 @@ public class RepositoryService : IRepositoryService
         return Task.CompletedTask;
     }
 
-    public Task CommitDataHubTemplate(DataHubTemplate template, string username)
+    public Task CommitTerraformTemplate(TerraformTemplate template, string username)
     {
         var repositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(_configuration);
 
@@ -272,7 +271,7 @@ public class RepositoryService : IRepositoryService
         await CheckoutInfrastructureBranch(workspaceAcronym);
     }
 
-    public async Task<List<RepositoryUpdateEvent>> ExecuteResourceRuns(List<DataHubTemplate> modules, TerraformWorkspace terraformWorkspace, string requestingUsername)
+    public async Task<List<RepositoryUpdateEvent>> ExecuteResourceRuns(List<TerraformTemplate> modules, TerraformWorkspace terraformWorkspace, string requestingUsername)
     {
         var repositoryUpdateEvents = new List<RepositoryUpdateEvent>();
 
@@ -285,7 +284,7 @@ public class RepositoryService : IRepositoryService
         return repositoryUpdateEvents;
     }
 
-    public async Task<RepositoryUpdateEvent> ExecuteResourceRun(DataHubTemplate template, TerraformWorkspace terraformWorkspace,
+    public async Task<RepositoryUpdateEvent> ExecuteResourceRun(TerraformTemplate template, TerraformWorkspace terraformWorkspace,
         string requestingUsername)
     {
         try
@@ -296,7 +295,7 @@ public class RepositoryService : IRepositoryService
             {
                 await _terraformService.ExtractBackendConfig(terraformWorkspace.Acronym);
             }
-            await CommitDataHubTemplate(template, requestingUsername);
+            await CommitTerraformTemplate(template, requestingUsername);
 
             return new RepositoryUpdateEvent()
             {

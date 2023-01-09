@@ -1,4 +1,4 @@
-namespace Datahub.Shared;
+namespace Datahub.Shared.Entities;
 
 public class TerraformOutputVariable
 {

@@ -1,4 +1,4 @@
-using Datahub.Shared;
+using Datahub.Shared.Entities;
 using FluentValidation;
 
 namespace ResourceProvisioner.Application.Common;
