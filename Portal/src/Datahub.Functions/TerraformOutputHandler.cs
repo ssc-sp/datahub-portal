@@ -5,6 +5,7 @@ using Datahub.Core.Enums;
 using Datahub.Core.Model.Datahub;
 using Datahub.ProjectTools.Services;
 using Datahub.Shared;
+using Datahub.Shared.Entities;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -78,7 +79,7 @@ public class TerraformOutputHandler
 
     private async Task ProcessAzureStorageBlob(IReadOnlyDictionary<string, TerraformOutputVariable> outputVariables)
     {
-        var projectAcronym = outputVariables[TerraformVariables.OutputProjectAcronym];
+        var projectAcronym = outputVariables[TerraformVariables.ProjectAcronym];
         var terraformServiceType = RequestManagementService.GetTerraformServiceType(TerraformVariables.AzureStorageBlobTemplateName);
 
         var projectRequest = _projectDbContext.Project_Requests
@@ -145,7 +146,7 @@ public class TerraformOutputHandler
 
     private async Task ProcessProjectStatus(IReadOnlyDictionary<string, TerraformOutputVariable> outputVariables)
     {
-        var projectAcronym = outputVariables[TerraformVariables.OutputProjectAcronym];
+        var projectAcronym = outputVariables[TerraformVariables.ProjectAcronym];
         var project = await _projectDbContext.Projects
             .FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronym.Value);
 
@@ -155,7 +156,7 @@ public class TerraformOutputHandler
             throw new Exception($"Project not found for acronym {projectAcronym.Value}");
         }
 
-        var outputPhase = GetStatusMapping(outputVariables[TerraformVariables.OutputNewProjectTemplate].Value);
+        var outputPhase = GetStatusMapping(outputVariables[TerraformVariables.NewProjectTemplate].Value);
         if (project.Project_Phase != outputPhase)
         {
             project.Project_Phase = outputPhase;

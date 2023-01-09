@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace ResourceProvisioner.Domain.Enums;
+namespace Datahub.Shared.Enums;
 
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum Role

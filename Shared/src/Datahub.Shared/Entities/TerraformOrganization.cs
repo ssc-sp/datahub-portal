@@ -1,4 +1,4 @@
-namespace ResourceProvisioner.Domain.Entities;
+namespace Datahub.Shared.Entities;
 
 public class TerraformOrganization
 {

@@ -3,8 +3,8 @@ namespace Datahub.Shared;
 public static class TerraformVariables
 {
     
-    public static readonly string OutputProjectAcronym = "project_cd";
-    public static readonly string OutputNewProjectTemplate = "new_project_template";
+    public static readonly string ProjectAcronym = "project_cd";
+    public static readonly string NewProjectTemplate = "new_project_template";
     
     public static readonly string AzureStorageBlobTemplateName = "azure-storage-blob";
     public static readonly string AzureStorageType = "blob";
