@@ -1,4 +1,4 @@
-using ResourceProvisioner.Domain.Entities;
+using Datahub.Shared;
 using ResourceProvisioner.Domain.Events;
 
 namespace ResourceProvisioner.Domain.Common;

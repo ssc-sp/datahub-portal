@@ -1,4 +1,3 @@
-@using Datahub.Core.Model.Datahub
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 
 <AuthorizeView Roles="@($"{ProjectAcronym}-admin")" Context="Project_Cost">

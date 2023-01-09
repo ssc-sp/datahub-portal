@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using Datahub.Shared;
 using ResourceProvisioner.Domain.Entities;
 using ResourceProvisioner.Domain.Enums;
 using ResourceProvisioner.Domain.Events;

@@ -9,9 +9,7 @@ using Datahub.Core.Data.ResourceProvisioner;
 using Datahub.Core.Enums;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Services.ResourceManager;
-using Foundatio.Queues;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Graph;
 using Microsoft.Extensions.Logging;
 
