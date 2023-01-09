@@ -84,7 +84,6 @@ public class DocumentationService
                 else
                 {
                     currentItem.Title = title;
-                    currentItem.Id = id;
                 }
                 return null;
 
