@@ -1,2 +1,0 @@
-namespace ResourceProvisioner.Domain.Entities;
-

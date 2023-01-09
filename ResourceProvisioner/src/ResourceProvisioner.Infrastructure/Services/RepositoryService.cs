@@ -40,25 +40,25 @@ public class RepositoryService : IRepositoryService
         await _semaphore.WaitAsync();
         
         var user = command.RequestingUserEmail ?? throw new NullReferenceException("Requesting user's email is null");
-        _logger.LogInformation("Checking out workspace branch for {WorkspaceAcronym}", command.TerraformWorkspace.Acronym);
-        await FetchRepositoriesAndCheckoutProjectBranch(command.TerraformWorkspace.Acronym);
+        _logger.LogInformation("Checking out workspace branch for {WorkspaceAcronym}", command.Workspace.Acronym);
+        await FetchRepositoriesAndCheckoutProjectBranch(command.Workspace.Acronym);
 
         _logger.LogInformation("Executing resource runs for user {User}", user);
         var repositoryUpdateEvents =
-            await ExecuteResourceRuns(command.Templates, command.TerraformWorkspace, user);
+            await ExecuteResourceRuns(command.Templates, command.Workspace, user);
 
         _logger.LogInformation("Pushing changes to remote repository for {WorkspaceAcronym}",
-            command.TerraformWorkspace.Acronym);
-        await PushInfrastructureRepository(command.TerraformWorkspace.Acronym);
+            command.Workspace.Acronym);
+        await PushInfrastructureRepository(command.Workspace.Acronym);
 
-        _logger.LogInformation("Creating pull request for {WorkspaceAcronym}", command.TerraformWorkspace.Acronym);
+        _logger.LogInformation("Creating pull request for {WorkspaceAcronym}", command.Workspace.Acronym);
         var pullRequestValueObject =
-            await CreateInfrastructurePullRequest(command.TerraformWorkspace.Acronym, user);
+            await CreateInfrastructurePullRequest(command.Workspace.Acronym, user);
 
         var pullRequestMessage = new PullRequestUpdateMessage
         {
             PullRequestValueObject = pullRequestValueObject,
-            TerraformWorkspace = command.TerraformWorkspace,
+            TerraformWorkspace = command.Workspace,
             Events = repositoryUpdateEvents
         };
 
