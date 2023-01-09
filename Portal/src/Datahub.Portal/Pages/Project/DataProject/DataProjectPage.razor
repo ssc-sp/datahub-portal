@@ -12,7 +12,11 @@
 
 @page "/projects/{ProjectAcronymParam}"
 
-<DHPageAlert Title="Welcome to your Data Project" Key="@PageAlert.ProjectFeatures" WikiLinkEN="Onboarding---Data-Project" WikiLinkFR="Onboarding---Data-Project"/>
+<DHPageAlert 
+    Title=@Localizer["Welcome to your Data Project"] 
+    Key="@PageAlert.ProjectFeatures" 
+    WikiLinkEN="Onboarding---Data-Project"
+    WikiLinkFR="fr/Projet-de-données-d'embarquement" />
 
 <DHPageTitle PageTitleKey="@_projectName"/>
 
