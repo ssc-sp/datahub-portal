@@ -70,8 +70,8 @@ namespace Datahub.Tests.Docs
             var root = await _service.GetLanguageRoot("en");
             Assert.NotNull(root);
             Assert.True(root.Childs.Count > 10);
-            var pageId = root.Childs[9].GetID();
-            var loadedPage = _service.LoadPage(pageId);
+            var pageId = root.Childs[9].Id!;
+            var loadedPage = _service.LoadPage(pageId, false);
             Assert.NotNull(loadedPage);
             var parent = _service.GetParent(loadedPage);
             Assert.NotNull(parent);
