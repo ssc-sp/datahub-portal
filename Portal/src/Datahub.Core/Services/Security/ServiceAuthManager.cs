@@ -109,6 +109,31 @@ public class ServiceAuthManager
         }
         return result;
     }
+    
+    public async Task<List<ProjectMember>> GetProjectAdmins(string projectAcronym)
+    {
+        await using var ctx = await dbFactory.CreateDbContextAsync();
+
+        var project = await ctx.Projects
+            .FirstAsync(p => p.Project_Acronym_CD.ToLower() == projectAcronym.ToLower());
+
+        var users = await ctx.Project_Users
+            .Where(u => u.Project == project)
+            .Where(u => u.IsAdmin)
+            .ToListAsync();
+
+        var result = new List<ProjectMember>();
+        foreach (var user in users)
+        {
+            var username = await mSGraphService.GetUserName(user.User_ID, CancellationToken.None);
+
+            result.Add(new ProjectMember(user)
+            {
+                Name = username
+            });
+        }
+        return result;
+    }
 
     // public async Task<string> GetAdminUserString(string projectAcronym)
     // {
