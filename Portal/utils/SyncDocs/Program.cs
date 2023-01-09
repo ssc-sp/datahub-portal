@@ -25,17 +25,23 @@ var sourcePath = args.Length == 1 ? args[0] : "./";
 // file name cache
 var fileNameCache = new FileNameCache(Path.Combine(sourcePath, configParams.Target, "filenamecache.json"));
 
+// file mapping service
+var fileMappingService = new FileMappingService();
+
 // translation service
 var translationService = new TranslationService(sourcePath, deeplKey);
 
 // replication service
-var replicationService = new ReplicationService(configParams, sourcePath, translationService, fileNameCache);
+var replicationService = new ReplicationService(configParams, sourcePath, translationService, fileNameCache, fileMappingService);
 
 // iterate the provided source folder
 await IteratePath(sourcePath, BuildExcluder(configParams), replicationService);
 
 // save translation cache
 fileNameCache.SaveChanges();
+
+// save the file mappings
+fileMappingService.SaveTo(Path.Combine(sourcePath, "filemappings.json"));
 
 // END
 

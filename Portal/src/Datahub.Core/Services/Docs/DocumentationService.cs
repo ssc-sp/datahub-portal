@@ -8,52 +8,14 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-using static Lucene.Net.Search.FieldCache;
 
 namespace Datahub.Core.Services.Docs;
+
 #nullable enable
-public record DocItem(int Level, bool isRoot = false)
-{
-    public string? Title { get; set; }
-    public List<DocItem> Childs { get; set; } = new List<DocItem>();
-    
-    public string? Preview { get; set; }
-
-    public string? ContentTitle { get; set; }
-
-    public string? Content { get; set; }
-
-    public string? MarkdownPage { get; set; }
-
-    public string GetDescription() => $"Card '{Title}' - '{MarkdownPage}'";    
-
-    public string GetID()
-    {
-        if (isRoot) return DocumentationService.GetPageCode("root");
-        if (Title is null && MarkdownPage is null) throw new InvalidDataException($"Page has no Title and no URL");
-        return DocumentationService.GetPageCode(MarkdownPage ?? Title!);
-    }
-
-    public DocItem? LocateID(string id)
-    {
-        if (string.Equals(id, GetID(), StringComparison.InvariantCultureIgnoreCase)) return this;
-        if (Childs is null || Childs.Count == 0)
-            return null;
-        foreach (var item in Childs)
-        {
-            var found = item.LocateID(id);
-            if (found != null)
-                return found;
-        }
-        return null;
-
-    }
-}
 
 public class DocumentationService 
 {
@@ -77,7 +39,7 @@ public class DocumentationService
         IMemoryCache docCache)
     {
         _docsRoot = config.GetValue(DOCS_ROOT_CONFIG_KEY, "https://raw.githubusercontent.com/ssc-sp/datahub-docs/main/")!;
-        _docsEditPrefix = config[DOCS_EDIT_URL_CONFIG_KEY]!;
+        _docsEditPrefix = config.GetValue(DOCS_EDIT_URL_CONFIG_KEY, "https://github.com/ssc-sp/datahub-docs/edit/main/")!;
         _logger = logger;
         _httpClientFactory = httpClientFactory;
         _statusMessages = new List<TimeStampedStatus>();
@@ -91,31 +53,7 @@ public class DocumentationService
         await InvokeNotifyRefreshErrors();
     }
 
-    public async Task<string?> LoadPage(string name, List<(string, string)>? substitutions = null)
-    {
-        string nameTrimmed = name.TrimStart('/');
-
-
-        var fullUrl = $"{_docsRoot}{nameTrimmed}.md";
-        try
-        {
-            var content = await LoadDocsPage(fullUrl);
-
-            var result = substitutions == null ?
-                content :
-                substitutions.Aggregate(content, (current, s) => current?.Replace(s.Item1, s.Item2));
-
-            return result;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Cannot load page url: {FullUrl}", fullUrl);
-            return null;
-        }
-
-    }
-
-    private static DocItem? ParseSidebar(string? inputMarkdown)
+    private static DocItem? ParseSidebar(string? inputMarkdown, Func<string, string> mapId)
     {
         if (string.IsNullOrEmpty(inputMarkdown))
         {
@@ -123,52 +61,61 @@ public class DocumentationService
         }
 
         var doc = Markdown.Parse(inputMarkdown);
-        
-        var root = new DocItem(0,true);
-        ProcessBlock(doc, 0, null, root);
+
+        var root = DocItem.MakeRoot(GetPageCode("root"));
+
+        ProcessBlock(doc, 0, null, root, mapId);
         return root;
     }
 
-    private static DocItem? ProcessBlock(MarkdownObject markdownObject, int level, DocItem? currentItem,DocItem? parent)
+    private static DocItem? ProcessBlock(MarkdownObject markdownObject, int level, DocItem? currentItem, DocItem? parent, Func<string, string> mapId)
     {
         switch (markdownObject)
         {
             case LiteralInline literalInline:
+                var title = literalInline.ToString();
+                var id = GetPageCode(title ?? "");
                 if (currentItem is null)
                 {
-                    var docItem1 = new DocItem(level) { Title = literalInline.ToString() };
+                    var docItem1 = DocItem.GetItem(id, level, title, null);
                     parent?.Childs.Add(docItem1);
                     return docItem1;
                 }
                 else
                 {
-                    currentItem.Title = literalInline.ToString();
+                    currentItem.Title = title;
+                    currentItem.Id = id;
                 }
                 return null;
+
             case LinkInline linkInline:
                 //[Microservice_Architecture](/Architecture/Microservice_Architecture.md)
-                var docItem = new DocItem(level) { Title = linkInline.Title};
+
+                var itemId = mapId.Invoke(linkInline.Url ?? "");
+                var docItem = DocItem.GetItem(itemId, level, linkInline.Title, linkInline.Url);
                 parent?.Childs.Add(docItem);
-                docItem.MarkdownPage = linkInline.Url;
+
                 foreach (var child in linkInline)
                 {
-                    ProcessBlock(child, level, docItem, parent);
+                    ProcessBlock(child, level, docItem, parent, mapId);
                 }
                 return docItem;
+
             case LeafBlock paragraphBlock:
                 if (paragraphBlock.Inline != null)
-                    return ProcessBlock(paragraphBlock.Inline, level, currentItem,parent);
+                    return ProcessBlock(paragraphBlock.Inline, level, currentItem, parent, mapId);
                 break;
 
             case ContainerInline inline:
                 DocItem? newDoc = null;
                 foreach (var child in inline)
                 {
-                    var res = ProcessBlock(child, level, currentItem,parent);
+                    var res = ProcessBlock(child, level, currentItem, parent, mapId);
                     if (res != null)
                         newDoc = res;
                 }
                 return newDoc;
+
             case ContainerBlock containerBlock:
                 DocItem? currentParent = parent;
                 var currentLevel = level;
@@ -176,14 +123,14 @@ public class DocumentationService
                     currentLevel++;
                 foreach (var child in containerBlock)
                 {
-                    var res2 = ProcessBlock(child, currentLevel, currentItem, (containerBlock is ListItemBlock)?currentParent: parent);
+                    var res2 = ProcessBlock(child, currentLevel, currentItem, 
+                        (containerBlock is ListItemBlock) ? currentParent : parent, mapId);
                     if (res2 != null)
                         currentParent = res2;
                 }
                 return currentParent;
         }
         return null;
-
     }
 
     private string CleanupCharacters(string input)
@@ -212,9 +159,9 @@ public class DocumentationService
 
     public async Task BuildDocAndPreviews(DocItem doc)
     {
-        if (doc.Title != null)
+        if (doc.Title is not null)
         {
-            doc.Content = await LoadDocsPage(doc.Title);
+            doc.Content = await LoadDocsPage(doc.GetMarkdownFileName());
             await BuildPreview(doc);
         }
         foreach (var item in doc.Childs)
@@ -254,14 +201,18 @@ public class DocumentationService
 
     private async Task LoadResourceTree(bool useCache = true)
     {
+        var fileMappings = await LoadDocsPage(FILE_MAPPINGS, useCache);
+        var docFileMappings = new DocumentationFileMapper(fileMappings);
+
         _statusMessages = new List<TimeStampedStatus>();
 
         await AddStatusMessage("Loading resources");
 
-        enOutline = ParseSidebar(await LoadDocsPage(SIDEBAR, useCache));
+        enOutline = ParseSidebar(await LoadDocsPage(SIDEBAR, useCache), docFileMappings.GetEnglishDocumentId);
         if (enOutline is null)
             throw new InvalidOperationException("Cannot load sidebar and content");
-        frOutline = ParseSidebar(await LoadDocsPage($"fr/{SIDEBAR}", useCache));
+
+        frOutline = ParseSidebar(await LoadDocsPage($"fr/{SIDEBAR}", useCache), docFileMappings.GetFrenchDocumentId);
         if (frOutline is null)
             throw new InvalidOperationException("Cannot load sidebar and content");
         
@@ -269,16 +220,12 @@ public class DocumentationService
 
     }
 
-    public DocItem? LoadPage(string id)
+    public DocItem? LoadPage(string id, bool isFrench)
     {
-        if (enOutline is null)
+        var searchRoot = isFrench ? frOutline : enOutline;
+        if (searchRoot is null)
             throw new InvalidOperationException("sidebar not loaded");
-        var enResult = enOutline.LocateID(id);
-        if (enResult != null)
-            return enResult;
-        if (frOutline is null)
-            throw new InvalidOperationException("sidebar not loaded");
-        return frOutline.LocateID(id);
+        return searchRoot.LocateID(id);
     }
 
     public DocItem? GetParent(DocItem docItem, DocItem? currentNode = null)
@@ -303,6 +250,7 @@ public class DocumentationService
     }
 
     public const string SIDEBAR = "_sidebar.md";
+    public const string FILE_MAPPINGS = "filemappings.json";
 
     private string BuildUrl(string name, IList<string>? folders = null)
     {
@@ -321,7 +269,6 @@ public class DocumentationService
         return sb.ToString();
     }
 
-
     private async Task<string?> LoadDocsPage(string name, bool useCache = true)
     {
         return await LoadDocs(BuildUrl(name), useCache);
@@ -331,6 +278,7 @@ public class DocumentationService
     {
         if (_cache.TryGetValue(url, out var docContent) && useCache)
             return docContent as string;
+
         var httpClient = _httpClientFactory.CreateClient();
         try
         {
@@ -354,7 +302,7 @@ public class DocumentationService
         }
     }
     
-    public static long GetStableHashCode(string str)
+    static long GetStableHashCode(string str)
     {
         unchecked
         {
@@ -398,11 +346,16 @@ public class DocumentationService
 
     public async Task<string?> LoadResourcePage(DocItem card)
     {
-        var name = $"{card.Title}.md";
-        return await LoadDocsPage(name);
+        return await LoadDocsPage(card.GetMarkdownFileName());
     }
 
-    public string GetEditUrl(DocItem card) => $"{_docsEditPrefix}{card.Title}/_edit";
+    public string GetEditUrl(DocItem card) => $"{_docsEditPrefix}{card.GetMarkdownFileName()}";
+
+    public void RemoveFromCache(DocItem item)
+    {
+        var url = BuildUrl(item.GetMarkdownFileName());
+        _cache.Remove(url);
+    }
 
     public IReadOnlyList<TimeStampedStatus> GetErrorList() => _statusMessages.AsReadOnly();
 
