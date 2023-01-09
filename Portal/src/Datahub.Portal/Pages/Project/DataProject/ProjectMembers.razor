@@ -1,5 +1,6 @@
 @using Datahub.Core.Model.Datahub
 @using Datahub.Core.Data.Project
+@using MudBlazor.Utilities
 @inject ServiceAuthManager _serviceAuthManager
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject IUserInformationService _userInformationService
@@ -9,21 +10,7 @@
 {
     <span class="project-members-skeleton-positioning">
         <Skeleton Width="100px" Height="1.5rem"/>
-        <span style="display: flex; margin: 1rem 0">
-            <Skeleton Circle Width="2rem" Height="2rem"/>
-            <span style="display: block; width: .5rem"></span>
-            <Skeleton Width="150px" Height="2rem"/>
-        </span>
-        <span style="display: flex; margin: 1rem 0">
-            <Skeleton Circle Width="2rem" Height="2rem"/>
-            <span style="display: block; width: .5rem"></span>
-            <Skeleton Width="150px" Height="2rem"/>
-        </span>
-
-        <span style="display: block; height: 2rem"></span>
-
-        <Skeleton Width="100px" Height="1.5rem"/>
-        @for (var i = 0; i < 10; i++)
+        @for (var i = 0; i < 4; i++)
         {
             <span style="display: flex; margin: 1rem 0">
                 <Skeleton Circle Width="2rem" Height="2rem"/>
@@ -37,57 +24,41 @@ else
 {
     <AuthorizeView Roles="@string.Join(',', _authorizedRoles)">
         <Authorized>
-            <div class="project-members">
+            <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Start" Class="mb-4">
+                <MudText Typo="Typo.h5">@Localizer["Admins"]</MudText>
+                <MudButton Variant="Variant.Text" Color="Color.Primary">@Localizer["Manage"]</MudButton>
+            </MudStack>
+            <MudStack Class="admin-list">
+            
+                @foreach (var admin in _projectUsers.Where(u => u.IsAdmin))
+                {
+                    <MudGrid Class="project-admin" Justify="Justify.SpaceBetween">
+                      
 
-                <div class="member-list">
-                    <span class="group-name">
-                        <AeTypography>
-                            <b>@Localizer["Admins"]</b>
-                        </AeTypography>
-                        <AeTypography class="member-count">@_projectUsers.Count(u => u.IsAdmin) @Localizer["members"]</AeTypography>
-                    </span>
-                    <ul class="members">
-                        @foreach (var admin in _projectUsers.Where(u => u.IsAdmin))
-                        {
-                            <li>
-                                <ProfileCircle FullName="@admin.Name"/>
-                                <AeTypography class="name">@admin.Name</AeTypography>
-                                <a class="profile-icon" href="/profile/@System.Convert.ToBase64String(@System.Text.Encoding.UTF8.GetBytes(@admin.UserId))">
-                                    <i class="fa-solid fa-user"></i>
-                                </a>
-                                <a class="email-icon" href="@($"mailto:{admin.Email}")">
-                                    <i class="fas fa-envelope"></i>
-                                </a>
-                            </li>
-                        }
-                    </ul>
-                    <span style="display: block; height: 2rem"></span>
-                    <span class="group-name">
-                        <AeTypography>
-                            <b>@Localizer["Members"]</b>
-                        </AeTypography>
-                        <AeTypography class="member-count">@_projectUsers.Count(u => !u.IsAdmin) @Localizer["members"]</AeTypography>
-                    </span>
-                    <ul class="members">
-                        @foreach (var member in _projectUsers.Where(u => !u.IsAdmin))
-                        {
-                            <li>
-                                <ProfileCircle FullName="@member.Name"/>
-                                <AeTypography class="name">@member.Name</AeTypography>
-                                <a class="profile-icon" href="/profile/@System.Convert.ToBase64String(@System.Text.Encoding.UTF8.GetBytes(@member.UserId))">
-                                    <i class="fa-solid fa-user"></i>
-                                </a>
-                                <a class="email-icon" href="@($"mailto:{member.Email}")">
-                                    <i class="fas fa-envelope"></i>
-                                </a>
-                            </li>
-                        }
-                    </ul>
-                    <div class="add-member">
-                            <ProjectAddMemberButton/>
-                    </div>
-                </div>
-            </div>
+                        <MudItem>
+                            <ProfileCircle FullName="@admin.Name"/>
+                        </MudItem>
+                        <MudItem Style="width: calc(95% - 2rem - 100px)">
+                            <MudGrid Class="admin-name" Spacing="0">
+                                <MudItem xs="12">
+                                    <MudText Style="@GetTextStyle()" Typo="Typo.subtitle1">@admin.Name</MudText>
+                                </MudItem>
+                                <MudItem xs="12">
+                                    <MudText Style="@GetTextStyle()" Typo="Typo.caption">@admin.Email</MudText>
+                                </MudItem>
+                            </MudGrid>
+                        </MudItem>
+                        <MudItem Style="max-width: 100px">
+                            <MudStack Row Justify="Justify.SpaceBetween">
+                                <MudIconButton Size="Size.Small" Icon="fa-duotone fa-user" Href="@($"/profile/{Convert.ToBase64String(@System.Text.Encoding.UTF8.GetBytes(admin.UserId))}")"/>
+                                       
+                                <MudIconButton Size="Size.Small" Icon="fa-duotone fa-envelope" Href="@($"mailto:{admin.Email}")"/>
+                            </MudStack>
+                        </MudItem>
+                    </MudGrid>
+                }
+            </MudStack>
+                    
         </Authorized>
     </AuthorizeView>
 }
@@ -120,6 +91,16 @@ else
         }
 
         _isLoading = false;
+    }
+
+    private string GetTextStyle()
+    {
+        return new StyleBuilder()
+            .AddStyle("display", "block")
+            .AddStyle("overflow", "hidden")
+            .AddStyle("white-space", "nowrap")
+            .AddStyle("text-overflow", "ellipsis")
+            .Build();
     }
 
 }
