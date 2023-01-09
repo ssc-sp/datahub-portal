@@ -6,13 +6,14 @@
 @inject IJSRuntime _jsInterop
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactory
 
-
 @page "/projects"
 
-<DHPageAlert Title=@Localizer["Welcome to Data Projects"]
-             Key="@PageAlert.Projects"
-             WikiLinkEN="Onboarding---Data-Projects"
-             WikiLinkFR="Onboarding---Data-Projects" />
+<DHPageAlert 
+    Title=@Localizer["Welcome to Data Projects"]
+    Key="@PageAlert.Projects"
+    WikiLinkEN="Onboarding---Data-Projects"
+    WikiLinkFR="fr/Projets-de-données-d'embarquement" 
+/>
 
 <UserProjects />
 
