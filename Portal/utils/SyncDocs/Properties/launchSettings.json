@@ -1,8 +1,7 @@
 {
   "profiles": {
     "SyncDocs": {
-      "commandName": "Project",
-      "commandLineArgs": "C:\\Users\\iroel\\OneDrive\\Desktop\\Temp\\Demo"
+      "commandName": "Project"
     }
   }
 }
