@@ -34,7 +34,7 @@ public class CreateResourceRunTests
                     Version = "latest"
                 }
             },
-            TerraformWorkspace = new TerraformWorkspace
+            Workspace = new TerraformWorkspace
             {
                 Acronym = "TEST",
                 Name = "Test Project",
