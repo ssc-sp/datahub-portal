@@ -6,13 +6,16 @@ internal class ReplicationService
 	private readonly string _sourcePath;
 	private readonly TranslationService _translationService;
     private readonly FileNameCache _fileNameCache;
+    private readonly FileMappingService _mappingService;
 
-    public ReplicationService(ConfigParams config, string sourcePath, TranslationService translationService, FileNameCache fileNameCache)
+    public ReplicationService(ConfigParams config, string sourcePath, TranslationService translationService, 
+        FileNameCache fileNameCache, FileMappingService mappingService)
 	{
 		_config = config;
         _sourcePath = sourcePath;
         _translationService = translationService;
         _fileNameCache = fileNameCache;
+        _mappingService = mappingService;
     }
 
 	public void AddFolder(string path) 
@@ -30,6 +33,7 @@ internal class ReplicationService
 
         // remap the path
         var sourcePath = path[..^sourceFileName.Length];
+        
         var outputPath = GetTargetPath(sourcePath);
 
         // handle file name translation
@@ -37,11 +41,29 @@ internal class ReplicationService
 
         // build output path
         var outputFilePath = Path.Combine(outputPath, translatedName);
+
+        // add file mapping
+        AddFileMapping(path, outputFilePath);
+
         if (!File.Exists(outputFilePath))
         {
             Console.WriteLine($"+ {outputFilePath}");
             await _translationService.TranslateMarkupFile(path, outputFilePath, "_sidebar.md".Equals(translatedName));
         }
+    }
+
+    private void AddFileMapping(string engPath, string frePath)
+    {
+        var id = Guid.NewGuid().ToString();
+        var engUrl = ExtractUrlFromPath(engPath);
+        var freUrl = ExtractUrlFromPath(frePath);
+        _mappingService.AddPair(id, engUrl, freUrl);
+    }
+
+    private string ExtractUrlFromPath(string path)
+    {
+        var url = path[_sourcePath.Length..].Replace('\\', '/');
+        return url.StartsWith('/') ? url : $"/{url}";
     }
 
     private async Task<string> TranslateFileName(string sourceFileName)
