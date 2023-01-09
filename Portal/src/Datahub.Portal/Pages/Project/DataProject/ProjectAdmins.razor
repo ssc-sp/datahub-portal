@@ -26,11 +26,14 @@ else
         <Authorized>
             <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Start" Class="mb-4">
                 <MudText Typo="Typo.h5">@Localizer["Admins"]</MudText>
-                <MudButton Variant="Variant.Text" Color="Color.Primary">@Localizer["Manage"]</MudButton>
+                @if (CurrentUserIsAdmin())
+                {
+                    <MudButton Variant="Variant.Text" Color="Color.Primary">@Localizer["Manage"]</MudButton>
+                }
             </MudStack>
             <MudStack Class="admin-list">
             
-                @foreach (var admin in _projectUsers.Where(u => u.IsAdmin))
+                @foreach (var admin in _projectAdmins)
                 {
                     <MudGrid Class="project-admin" Justify="Justify.SpaceBetween">
                       
@@ -72,7 +75,7 @@ else
 
     private List<string> _authorizedRoles = new();
 
-    private List<ProjectMember> _projectUsers;
+    private List<ProjectMember> _projectAdmins;
     private Microsoft.Graph.User _user;
 
     protected override async Task OnInitializedAsync()
@@ -81,7 +84,7 @@ else
 
         _user = await _userInformationService.GetCurrentGraphUserAsync();
 
-        _projectUsers = await _serviceAuthManager.GetProjectMembers(ProjectAcronym);
+        _projectAdmins = await _serviceAuthManager.GetProjectAdmins(ProjectAcronym);
 
         _authorizedRoles = new() { ProjectAcronym, $"{ProjectAcronym}-admin" };
 
@@ -93,6 +96,10 @@ else
         _isLoading = false;
     }
 
+    private bool CurrentUserIsAdmin()
+    {
+        return _projectAdmins.Any(x => x.UserId == _user.Id);
+    }
     private string GetTextStyle()
     {
         return new StyleBuilder()
