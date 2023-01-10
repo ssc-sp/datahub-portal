@@ -81,9 +81,11 @@
 
     private async Task HandleValidSubmit()
     {
-        var graphid = await _registrationservice.SendUserInvite(_basicIntakeForm.Email);
-        if (graphid != null)
+        var userId = await _registrationservice.SendUserInvite(_basicIntakeForm.Email);
+        if (userId != null)
+        {
             _showThankYou = true;
+        }
     }
 
     private static Task HandleConfigure(IModelFormContext context)
