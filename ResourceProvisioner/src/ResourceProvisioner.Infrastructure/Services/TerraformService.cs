@@ -1,9 +1,9 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using Datahub.Shared.Entities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using ResourceProvisioner.Application.Services;
-using ResourceProvisioner.Domain.Entities;
 using ResourceProvisioner.Domain.Exceptions;
 using ResourceProvisioner.Infrastructure.Common;
 
@@ -30,7 +30,7 @@ public class TerraformService : ITerraformService
         _configuration = configuration;
     }
 
-    public Task CopyTemplateAsync(DataHubTemplate template, TerraformWorkspace terraformWorkspace)
+    public Task CopyTemplateAsync(TerraformTemplate template, TerraformWorkspace terraformWorkspace)
     {
         var templateSourcePath = DirectoryUtils.GetTemplatePath(_configuration, template.Name);
         var projectPath = DirectoryUtils.GetProjectPath(_configuration, terraformWorkspace.Acronym);
@@ -68,7 +68,7 @@ public class TerraformService : ITerraformService
         return Task.CompletedTask;
     }
 
-    public async Task ExtractVariables(DataHubTemplate template, TerraformWorkspace terraformWorkspace)
+    public async Task ExtractVariables(TerraformTemplate template, TerraformWorkspace terraformWorkspace)
     {
         var missingVariables = FindMissingVariables(template, terraformWorkspace);
         await WriteVariablesFile(template, terraformWorkspace, missingVariables);
@@ -94,7 +94,7 @@ public class TerraformService : ITerraformService
         await File.WriteAllLinesAsync(backendConfigFilePath, backendConfig.Select(x => $"{x.Key} = \"{x.Value}\""));
     }
 
-    private Dictionary<string, string> FindMissingVariables(DataHubTemplate template,
+    private Dictionary<string, string> FindMissingVariables(TerraformTemplate template,
         TerraformWorkspace terraformWorkspace)
     {
         var projectPath = DirectoryUtils.GetProjectPath(_configuration, terraformWorkspace.Acronym);
@@ -118,7 +118,7 @@ public class TerraformService : ITerraformService
         return existingVariables;
     }
 
-    private async Task WriteVariablesFile(DataHubTemplate template, TerraformWorkspace terraformWorkspace,
+    private async Task WriteVariablesFile(TerraformTemplate template, TerraformWorkspace terraformWorkspace,
         Dictionary<string, string> missingVariables)
     {
         var projectPath = DirectoryUtils.GetProjectPath(_configuration, terraformWorkspace.Acronym);

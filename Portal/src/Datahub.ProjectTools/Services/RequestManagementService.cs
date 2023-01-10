@@ -8,11 +8,10 @@ using Datahub.Core.Services.Security;
 using Datahub.Metadata.DTO;
 using Datahub.Metadata.Model;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using Polly;
 using System.Transactions;
+using Datahub.Shared.Entities;
 
 namespace Datahub.ProjectTools.Services;
 
@@ -97,6 +96,9 @@ public class RequestManagementService : IRequestManagementService
                 break;
             case IRequestManagementService.STORAGE:
                 resource.SetResourceObject(default(ProjectResource_Storage));
+                break;
+            case IRequestManagementService.DATABRICKS:
+                resource.SetResourceObject(default(ProjectResource_Databricks));
                 break;
             default:
                 resource.SetResourceObject(default(ProjectResource_Blank));
@@ -238,23 +240,27 @@ public class RequestManagementService : IRequestManagementService
             await ctx.Entry(project).Collection(p => p.Users).LoadAsync();
             var userId = await _userInformationService.GetUserIdString();
             var graphUser = await _userInformationService.GetCurrentGraphUserAsync();
-            var serviceRequest = new Datahub_ProjectServiceRequests()
-            {
-                ServiceType = GetTerraformServiceType(terraformTemplate),
-                ServiceRequests_Date_DT = DateTime.Now,
-                Is_Completed = null,
-                Project = project,
-                User_ID = userId,
-                User_Name = graphUser.UserPrincipalName
-            };
-
-            await RequestServiceWithDefaults(serviceRequest);
-            var users = project.Users.Select(u => new WorkspaceUser() { Guid = u.User_ID, Email = u.User_Name })
+            var users = project.Users.Select(u => new TerraformUser() { Guid = u.User_ID, Email = u.User_Name })
                 .ToList();
 
             var workspace = project.ToResourceWorkspace(users);
-            var templates = new List<ResourceTemplate> { ResourceTemplate.LatestFromName(terraformTemplate) };
+            var templates = TerraformTemplate.LatestFromNameWithDependencies(terraformTemplate);
 
+            foreach (var template in templates)
+            {
+                var serviceRequest = new Datahub_ProjectServiceRequests()
+                {
+                    ServiceType = GetTerraformServiceType(template.Name),
+                    ServiceRequests_Date_DT = DateTime.Now,
+                    Is_Completed = null,
+                    Project = project,
+                    User_ID = userId,
+                    User_Name = graphUser.UserPrincipalName
+                };
+
+                await RequestServiceWithDefaults(serviceRequest);
+            }
+            
             var request = CreateResourceData.ResourceRunTemplate(workspace, templates, graphUser.Mail);
             await requestQueueService.AddProjectToStorageQueue(request);
             scope.Complete();

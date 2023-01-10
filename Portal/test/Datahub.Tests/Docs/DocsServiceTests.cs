@@ -1,22 +1,13 @@
 ﻿using Datahub.Core.Services.Docs;
-using Datahub.Tests.Portal;
-using Lucene.Net.Store;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Identity.Web.UI.Areas.MicrosoftIdentity.Controllers;
 using Moq;
-using System;
-using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.Linq;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 using Xunit;
-using static Org.BouncyCastle.Math.EC.ECCurve;
 
 namespace Datahub.Tests.Docs
 {

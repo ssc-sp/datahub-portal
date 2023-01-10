@@ -4,6 +4,7 @@
 @using Datahub.Shared
 @using Datahub.Core.Services.Projects
 @using System.Text.Json
+@using Datahub.Shared.Entities
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 
@@ -47,6 +48,6 @@
 
         var jsonContent =
             JsonSerializer.Deserialize<Dictionary<string, TerraformOutputVariable>>(projectDatabricks.JsonContent, deserializeOptions);
-        _databricksNotebookUrl = jsonContent[TerraformVariables.OutputAzureDatabricksUrl]?.Value;
+        _databricksNotebookUrl = jsonContent[TerraformVariables.OutputAzureDatabricksWorkspaceUrl]?.Value;
     }
 }
