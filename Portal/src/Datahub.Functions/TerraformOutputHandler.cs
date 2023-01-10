@@ -68,6 +68,7 @@ public class TerraformOutputHandler
             using var transactionScope = new TransactionScope(TransactionScopeOption.Required, TransactionScopeAsyncFlowOption.Enabled);
             await ProcessProjectStatus(outputVariables);
             await ProcessAzureStorageBlob(outputVariables);
+            await ProcessAzureDatabricks(outputVariables);
             transactionScope.Complete();
         }
         catch (Exception e)
@@ -77,10 +78,75 @@ public class TerraformOutputHandler
         }
     }
 
+    private async Task ProcessAzureDatabricks(IReadOnlyDictionary<string,TerraformOutputVariable> outputVariables)
+    {
+        var projectAcronym = outputVariables[TerraformVariables.OutputProjectAcronym];
+        var terraformServiceType = RequestManagementService.GetTerraformServiceType(TerraformTemplate.AzureDatabricks);
+
+        var projectRequest = _projectDbContext.Project_Requests
+            .Include(x => x.Project)
+            .Where(x => x.Project.Project_Acronym_CD == projectAcronym.Value)
+            .Where(x => !x.Is_Completed.HasValue)
+            .FirstOrDefault(x => x.ServiceType == terraformServiceType);
+
+        if (projectRequest is null)
+        {
+            _logger.LogInformation("Project request not found for project acronym {ProjectAcronymValue} and service type {TerraformServiceType}", projectAcronym.Value, terraformServiceType);
+            return;
+        }
+        
+        var databricksStatus = GetStatusMapping(outputVariables[TerraformVariables.OutputAzureDatabricksStatus].Value);
+        if (databricksStatus == TerraformOutputStatus.Completed)
+        {
+            projectRequest.Is_Completed = DateTime.Now;
+        }
+        else
+        {
+            _logger.LogInformation("Azure Databricks status is not completed. Status: {Status}", databricksStatus);
+        }
+        
+        var projectResource = _projectDbContext.Project_Resources2
+            .Where(x => x.ProjectId == projectRequest.Project.Project_ID)
+            .FirstOrDefault(x => x.ResourceType == terraformServiceType);
+        
+        if (projectResource is null)
+        {
+            var inputParameters = new Dictionary<string, string>();
+            projectResource = RequestManagementService.CreateEmptyProjectResource(projectRequest, inputParameters);
+            _projectDbContext.Project_Resources2.Add(projectResource);
+        }
+        
+        if (!projectResource.TimeCreated.HasValue)
+        {
+            var workspaceId = outputVariables[TerraformVariables.OutputAzureDatabricksWorkspaceId];
+            var workspaceUrl = outputVariables[TerraformVariables.OutputAzureDatabricksWorkspaceUrl];
+            var workspaceName = outputVariables[TerraformVariables.OutputAzureDatabricksWorkspaceName];
+            
+            var jsonContent = new JsonObject
+            {
+                ["workspace_id"] = workspaceId.Value,
+                ["workspace_url"] = workspaceUrl.Value,
+                ["workspace_name"] = workspaceName.Value
+            };
+
+            var inputJsonContent = new JsonObject();
+            
+            projectResource.TimeCreated = DateTime.Now;
+            projectResource.JsonContent = jsonContent.ToString();
+            projectResource.InputJsonContent = inputJsonContent.ToString();
+        }
+        else
+        {
+            _logger.LogInformation("Project resource already exists for project {ProjectAcronym} and service type {ServiceType}", projectAcronym.Value, terraformServiceType);
+        }
+
+        await _projectDbContext.SaveChangesAsync();
+    }
+
     private async Task ProcessAzureStorageBlob(IReadOnlyDictionary<string, TerraformOutputVariable> outputVariables)
     {
         var projectAcronym = outputVariables[TerraformVariables.OutputProjectAcronym];
-        var terraformServiceType = RequestManagementService.GetTerraformServiceType(TerraformVariables.AzureStorageBlobTemplateName);
+        var terraformServiceType = RequestManagementService.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob);
 
         var projectRequest = _projectDbContext.Project_Requests
             .Include(x => x.Project)

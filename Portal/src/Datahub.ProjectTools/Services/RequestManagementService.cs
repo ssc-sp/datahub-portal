@@ -97,6 +97,9 @@ public class RequestManagementService : IRequestManagementService
             case IRequestManagementService.STORAGE:
                 resource.SetResourceObject(default(ProjectResource_Storage));
                 break;
+            case IRequestManagementService.DATABRICKS:
+                resource.SetResourceObject(default(ProjectResource_Databricks));
+                break;
             default:
                 resource.SetResourceObject(default(ProjectResource_Blank));
                 break;

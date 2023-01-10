@@ -48,6 +48,6 @@
 
         var jsonContent =
             JsonSerializer.Deserialize<Dictionary<string, TerraformOutputVariable>>(projectDatabricks.JsonContent, deserializeOptions);
-        _databricksNotebookUrl = jsonContent[TerraformVariables.OutputAzureDatabricksUrl]?.Value;
+        _databricksNotebookUrl = jsonContent[TerraformVariables.OutputAzureDatabricksWorkspaceUrl]?.Value;
     }
 }

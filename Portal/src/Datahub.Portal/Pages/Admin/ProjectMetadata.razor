@@ -47,7 +47,7 @@
 
             var jsonContent =
                 JsonSerializer.Deserialize<Dictionary<string, TerraformOutputVariable>>(projectDatabricks.JsonContent, deserializeOptions);
-            var databricksUrlVariable = jsonContent[TerraformVariables.OutputAzureDatabricksUrl];
+            var databricksUrlVariable = jsonContent[TerraformVariables.OutputAzureDatabricksWorkspaceUrl];
             
             MetadataBrokerService.CreateChildMetadata(project.Project_Acronym_CD, $"{project.Project_Acronym_CD}-Databricks", 
                 MetadataObjectType.Databricks, databricksUrlVariable.Value, true);
