@@ -40,7 +40,7 @@ public static class TerraformVariableExtraction
 
         var jsonContent =
             JsonSerializer.Deserialize<Dictionary<string, TerraformOutputVariable>>(projectResourceJsonContent, deserializeOptions);
-        var databricksUrlVariable = jsonContent[TerraformVariables.OutputAzureDatabricksUrl];
+        var databricksUrlVariable = jsonContent[TerraformVariables.OutputAzureDatabricksWorkspaceUrl];
         
         return databricksUrlVariable.Value;
     }
