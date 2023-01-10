@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Datahub.Shared.Entities;
 
 namespace Datahub.Core.Data.ResourceProvisioner;
 
@@ -6,10 +7,10 @@ namespace Datahub.Core.Data.ResourceProvisioner;
 public record CreateResourceData
 {
     // ReSharper disable once MemberCanBePrivate.Global
-    public List<ResourceTemplate> Templates { get; init; }
+    public List<TerraformTemplate> Templates { get; init; }
 
 
-    public ResourceWorkspace Workspace { get; init; }
+    public TerraformWorkspace Workspace { get; init; }
 
     public string RequestingUserEmail { get; init; }
 
@@ -21,14 +22,14 @@ public record CreateResourceData
         return new CreateResourceData(projectName, acronym, sector, organization, requestingUserEmail);
     }
 
-    public static CreateResourceData ResourceRunTemplate(ResourceWorkspace workspace,
-        List<ResourceTemplate> resourceTemplates, string requestingUserEmail)
+    public static CreateResourceData ResourceRunTemplate(TerraformWorkspace workspace,
+        List<TerraformTemplate> resourceTemplates, string requestingUserEmail)
     {
         // TODO: Validation
         return new CreateResourceData(workspace, resourceTemplates, requestingUserEmail);
     }
 
-    private CreateResourceData(ResourceWorkspace workspace, List<ResourceTemplate> resourceTemplates,
+    private CreateResourceData(TerraformWorkspace workspace, List<TerraformTemplate> resourceTemplates,
         string requestingUserEmail)
     {
         Workspace = workspace;
@@ -47,18 +48,18 @@ public record CreateResourceData
     private CreateResourceData(string projectName, string acronym, string sector, string organization,
         string requestingUserEmail)
     {
-        Templates = new List<ResourceTemplate>() { ResourceTemplate.Default };
-        Workspace = new ResourceWorkspace()
+        Templates = new List<TerraformTemplate> { TerraformTemplate.Default };
+        Workspace = new TerraformWorkspace()
         {
             Name = projectName,
             Acronym = acronym,
-            Organization = new WorkspaceOrganization()
+            TerraformOrganization = new TerraformOrganization()
             {
                 Code = sector,
                 Name = organization,
             },
 
-            Users = new List<WorkspaceUser>()
+            Users = new List<TerraformUser>()
         };
         RequestingUserEmail = requestingUserEmail;
     }

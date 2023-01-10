@@ -1,7 +1,7 @@
 ﻿using Datahub.Core.Model.Datahub;
-using Datahub.Core.Services.ProjectTools;
 using Datahub.Core.Services.UserManagement;
 using Datahub.ProjectTools.Services;
+using Datahub.Shared.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Graph;
 
@@ -24,12 +24,21 @@ public class DHGitModuleResource : IProjectResource
 
     public (Type type, IDictionary<string, object> parameters)[] GetActiveResources()
     {
-        if (currentModule.Name == "azure-storage-blob")
+        if (currentModule.Name == TerraformTemplate.AzureStorageBlob)
         {
-            var resourceType = RequestManagementService.GetTerraformServiceType("azure-storage-blob");
+            var resourceType = RequestManagementService.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob);
             return project.Resources
                 .Where(r => r.ResourceType == resourceType)
-                .Select(_ => (typeof(StorageResourceCard), GetActiveParameters()))
+                .Select(_ => (typeof(StorageResourceCard), GetActiveParameters(TerraformTemplate.AzureStorageBlob)))
+                .ToArray();
+        }
+
+        if (currentModule.Name == TerraformTemplate.AzureDatabricks)
+        {
+            var resourceType = RequestManagementService.GetTerraformServiceType(TerraformTemplate.AzureDatabricks);
+            return project.Resources
+                .Where(r => r.ResourceType == resourceType)
+                .Select(_ => (typeof(DatabricksResourceCard), GetActiveParameters(TerraformTemplate.AzureDatabricks)))
                 .ToArray();
         }
         return Array.Empty<(Type type, IDictionary<string, object> parameters)>();
@@ -46,16 +55,31 @@ public class DHGitModuleResource : IProjectResource
         return (typeof(InactiveTerraformResource), GetInactiveParameters());
     }
 
-    private IDictionary<string, object> GetActiveParameters()
+    private IDictionary<string, object> GetActiveParameters(string template)
     {
-        return new Dictionary<string, object>()
+        switch (template)
         {
-              { nameof(StorageResourceCard.Descriptor), descriptor },
-              { nameof(StorageResourceCard.Icon), currentModule.Icon ?? "fa-solid fa-cloud-question" },
-            { nameof(StorageResourceCard.IsIconSvg), false },
-            { nameof(StorageResourceCard.TemplateName),currentModule.Name  },
-            { nameof(StorageResourceCard.Project), project }
-        };
+            case TerraformTemplate.AzureStorageBlob:
+                return new Dictionary<string, object>
+                {
+                    { nameof(StorageResourceCard.Descriptor), descriptor },
+                    { nameof(StorageResourceCard.Icon), currentModule.Icon ?? "fa-solid fa-cloud-question" },
+                    { nameof(StorageResourceCard.IsIconSvg), false },
+                    { nameof(StorageResourceCard.TemplateName),currentModule.Name  },
+                    { nameof(StorageResourceCard.Project), project }
+                };
+            case TerraformTemplate.AzureDatabricks:
+                return new Dictionary<string, object>
+                {
+                    { nameof(StorageResourceCard.Descriptor), descriptor },
+                    { nameof(StorageResourceCard.Icon), currentModule.Icon ?? "fa-solid fa-cloud-question" },
+                    { nameof(StorageResourceCard.IsIconSvg), false },
+                    { nameof(StorageResourceCard.TemplateName),currentModule.Name  },
+                    { nameof(StorageResourceCard.Project), project }
+                };
+        }
+
+        return new Dictionary<string, object>();
     }
 
     protected Dictionary<string, object> GetInactiveParameters()

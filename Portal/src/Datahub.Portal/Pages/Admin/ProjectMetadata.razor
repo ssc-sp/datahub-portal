@@ -3,9 +3,9 @@
 @page "/admin/metadata/{ProjectAcronym}"
 @using Datahub.Core.Services.Projects;
 @using Datahub.Metadata.Model
-@using Datahub.Core.Model.Datahub
 @using System.Text.Json
 @using Datahub.Shared
+@using Datahub.Shared.Entities
 @inject IMetadataBrokerService MetadataBrokerService
 @inject IRequestManagementService _requestManagementService
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
@@ -47,7 +47,7 @@
 
             var jsonContent =
                 JsonSerializer.Deserialize<Dictionary<string, TerraformOutputVariable>>(projectDatabricks.JsonContent, deserializeOptions);
-            var databricksUrlVariable = jsonContent[TerraformVariables.OutputAzureDatabricksUrl];
+            var databricksUrlVariable = jsonContent[TerraformVariables.OutputAzureDatabricksWorkspaceUrl];
             
             MetadataBrokerService.CreateChildMetadata(project.Project_Acronym_CD, $"{project.Project_Acronym_CD}-Databricks", 
                 MetadataObjectType.Databricks, databricksUrlVariable.Value, true);
