@@ -1,7 +1,5 @@
 @using Datahub.Core.Model.Datahub
-
-@inject IRequestManagementService RequestManagementService
-
+@using Datahub.ProjectTools.Utils
 
 <ToolCard Title="@Descriptor?.Title" Description="@Descriptor?.Description">
     <Logo>
@@ -15,11 +13,10 @@
         }
     </Logo>
     <ToolActionsList>
-        <RequestingButton IsRunning="_isRunning" ResourceRequested="ResourceRequested" Project="Project" OnRequestService="@HandleRequestService"/>
+        <ViewDatabricksButton DatabricksUrl="@_databricksUrl" />
         <CostEstimatorButton TemplateName="@TemplateName"/>
     </ToolActionsList>
 </ToolCard>
-
 
 @code {
 
@@ -27,7 +24,7 @@
     public GitHubModuleDescriptor? Descriptor { get; set; }
 
     [Parameter]
-    public string? Icon { get; set; } = "fa-solid fa-cloud-question";
+    public string? Icon { get; set; }
 
     [Parameter]
     public bool IsIconSvg { get; set; }
@@ -41,14 +38,16 @@
     [Parameter]
     public Datahub_Project? Project { get; set; }
 
-    private bool _isRunning;
-
-    private async Task HandleRequestService()
+    private string? _databricksUrl;
+    
+    protected override void OnInitialized()
     {
-        _isRunning = true;
-        await RequestManagementService.HandleTerraformRequestServiceAsync(Project, TemplateName);
-        _isRunning = false;
+        base.OnInitialized();
+
+        _databricksUrl = TerraformVariableExtraction.ExtractDatabricksUrl(Project);
+        if (!_databricksUrl?.StartsWith("https://") ?? false)
+        {
+            _databricksUrl = $"https://{_databricksUrl}";
+        }
     }
-
-
 }

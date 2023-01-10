@@ -19,7 +19,6 @@ using Datahub.Core.Services.Metadata;
 using Datahub.Core.Services.Notification;
 using Datahub.Core.Services.Offline;
 using Datahub.Core.Services.Projects;
-using Datahub.Core.Services.ProjectTools;
 using Datahub.Core.Services.Search;
 using Datahub.Core.Services.Security;
 using Datahub.Core.Services.Storage;

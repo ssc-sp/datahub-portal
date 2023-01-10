@@ -16,9 +16,9 @@ public static class TerraformVariableExtraction
     /// </summary>
     /// <param name="project"></param>
     /// <returns></returns>
-    public static string ExtractDatabricksUrl(Datahub_Project project)
+    public static string? ExtractDatabricksUrl(Datahub_Project? project)
     {
-        var databricksTemplateName = RequestManagementService.GetTerraformServiceType(IRequestManagementService.DATABRICKS);
+        var databricksTemplateName = RequestManagementService.GetTerraformServiceType(TerraformTemplate.AzureDatabricks);
         return ExtractDatabricksUrl(
             project?.Resources?.FirstOrDefault(r => r.ResourceType == databricksTemplateName)?.JsonContent);
     }
@@ -28,7 +28,7 @@ public static class TerraformVariableExtraction
     /// </summary>
     /// <param name="projectResourceJsonContent"></param>
     /// <returns></returns>a
-    public static string ExtractDatabricksUrl(string projectResourceJsonContent)
+    private static string? ExtractDatabricksUrl(string? projectResourceJsonContent)
     {
         if(string.IsNullOrWhiteSpace(projectResourceJsonContent))
             return null;
@@ -39,9 +39,9 @@ public static class TerraformVariableExtraction
         };
 
         var jsonContent =
-            JsonSerializer.Deserialize<Dictionary<string, TerraformOutputVariable>>(projectResourceJsonContent, deserializeOptions);
-        var databricksUrlVariable = jsonContent[TerraformVariables.OutputAzureDatabricksWorkspaceUrl];
+            JsonSerializer.Deserialize<Dictionary<string, string>>(projectResourceJsonContent, deserializeOptions);
+        var databricksUrlVariable = jsonContent?["workspace_url"];
         
-        return databricksUrlVariable.Value;
+        return databricksUrlVariable;
     }
 }
