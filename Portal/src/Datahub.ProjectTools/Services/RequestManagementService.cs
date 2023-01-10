@@ -252,7 +252,7 @@ public class RequestManagementService : IRequestManagementService
                 .ToList();
 
             var workspace = project.ToResourceWorkspace(users);
-            var templates = new List<TerraformTemplate> { TerraformTemplate.LatestFromName(terraformTemplate) };
+            var templates = TerraformTemplate.LatestFromNameWithDependencies(terraformTemplate);
 
             var request = CreateResourceData.ResourceRunTemplate(workspace, templates, graphUser.Mail);
             await requestQueueService.AddProjectToStorageQueue(request);
