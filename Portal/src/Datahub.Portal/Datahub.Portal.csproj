@@ -18,6 +18,8 @@
   </ItemGroup>
   <ItemGroup>
     <_ContentIncludedByDefault Remove="efpt.config.json" />
+    <_ContentIncludedByDefault Remove="Pages\Admin\Requests\Registration\RegistrationActions.razor" />
+    <_ContentIncludedByDefault Remove="Pages\Admin\Requests\Registration\ViewRegistrationRequests.razor" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Controllers\OpenDataApprovalForm.docx" />
