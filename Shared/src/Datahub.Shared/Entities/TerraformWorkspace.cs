@@ -1,13 +1,14 @@
+using System.Collections.Generic;
 using System.Text.Json.Nodes;
 
-namespace ResourceProvisioner.Domain.Entities;
+namespace Datahub.Shared.Entities;
 
 public class TerraformWorkspace
 {
     public string Name { get; set; }
     public string Acronym { get; set; }
-    public Organization Organization { get; set; }
-    public List<User> Users { get; set; }
+    public TerraformOrganization TerraformOrganization { get; set; }
+    public IEnumerable<TerraformUser> Users { get; set; }
 
     public JsonNode ToUserList()
     {

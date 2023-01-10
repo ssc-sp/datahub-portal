@@ -38,11 +38,6 @@ public static class DirectoryUtils
         return Path.Join(Environment.CurrentDirectory,
             configuration["ModuleRepository:LocalPath"]);
     }
-    
-    public static string GetModulePath(IConfiguration configuration, string moduleName)
-    {
-        return Path.Join(GetModuleRepositoryPath(configuration), configuration["ModuleRepository:ModulePathPrefix"], moduleName);
-    }
 
     public static string GetTemplatePath(IConfiguration configuration, string templateName)
     {

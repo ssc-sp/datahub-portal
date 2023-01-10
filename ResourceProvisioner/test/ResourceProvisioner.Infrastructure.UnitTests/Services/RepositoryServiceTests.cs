@@ -1,8 +1,8 @@
 using System.Net;
 using System.Text;
 using System.Text.Json.Nodes;
+using Datahub.Shared.Entities;
 using ResourceProvisioner.Application.Services;
-using ResourceProvisioner.Domain.Entities;
 using ResourceProvisioner.Domain.Enums;
 using ResourceProvisioner.Domain.Events;
 using ResourceProvisioner.Domain.ValueObjects;
@@ -121,12 +121,12 @@ public class RepositoryServiceTests
     }
 
     [Test]
-    public async Task ShouldCommitDataHubTemplateChanges()
+    public async Task ShouldCommitTerraformTemplateChanges()
     {
         var repository = InitializeTestInfrastructureRepository();
         CreateFakeFileInTestProject();
 
-        await _repositoryService.CommitDataHubTemplate(TestTemplate, RequestingUser);
+        await _repositoryService.CommitTerraformTemplate(TestTemplate, RequestingUser);
 
         Assert.Multiple(() =>
         {
@@ -192,7 +192,7 @@ public class RepositoryServiceTests
         InitializeTestInfrastructureRepository();
         var mockTerraformService = SetupMockTerraformService();
 
-        var modules = new List<DataHubTemplate>
+        var modules = new List<TerraformTemplate>
         {
             TestTemplate,
             TestTemplate,
@@ -315,7 +315,7 @@ public class RepositoryServiceTests
         var mockTerraformService = new Mock<ITerraformService>();
 
         mockTerraformService.Setup(tf => tf.CopyTemplateAsync(
-                It.IsAny<DataHubTemplate>(),
+                It.IsAny<TerraformTemplate>(),
                 It.IsAny<TerraformWorkspace>()))
             .Returns(() =>
             {
@@ -328,7 +328,7 @@ public class RepositoryServiceTests
                 return Task.CompletedTask;
             });
 
-        mockTerraformService.Setup(tf => tf.ExtractVariables(It.IsAny<DataHubTemplate>(), It.IsAny<TerraformWorkspace>()))
+        mockTerraformService.Setup(tf => tf.ExtractVariables(It.IsAny<TerraformTemplate>(), It.IsAny<TerraformWorkspace>()))
             .Returns(Task.CompletedTask);
         return mockTerraformService.Object;
     }

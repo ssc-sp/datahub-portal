@@ -1,0 +1,1 @@
+namespace Datahub.Core.Utils;

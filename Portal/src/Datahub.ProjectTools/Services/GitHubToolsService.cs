@@ -6,7 +6,7 @@ using Markdig.Syntax;
 using Octokit;
 using YamlDotNet.Serialization;
 
-namespace Datahub.Core.Services.ProjectTools;
+namespace Datahub.ProjectTools.Services;
 #nullable enable
 
 public record GitHubModule(string Name, string Path,

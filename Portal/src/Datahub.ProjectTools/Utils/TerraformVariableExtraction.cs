@@ -1,9 +1,12 @@
+using Datahub.Shared;
+using Datahub.Shared.Entities;
+
+namespace Datahub.ProjectTools.Utils;
+
 using System.Text.Json;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Services.Projects;
 using Datahub.ProjectTools.Services;
-
-namespace Datahub.Shared.Utils;
 
 public static class TerraformVariableExtraction
 {
@@ -13,9 +16,9 @@ public static class TerraformVariableExtraction
     /// </summary>
     /// <param name="project"></param>
     /// <returns></returns>
-    public static string ExtractDatabricksUrl(Datahub_Project project)
+    public static string? ExtractDatabricksUrl(Datahub_Project? project)
     {
-        var databricksTemplateName = RequestManagementService.GetTerraformServiceType(IRequestManagementService.DATABRICKS);
+        var databricksTemplateName = RequestManagementService.GetTerraformServiceType(TerraformTemplate.AzureDatabricks);
         return ExtractDatabricksUrl(
             project?.Resources?.FirstOrDefault(r => r.ResourceType == databricksTemplateName)?.JsonContent);
     }
@@ -24,8 +27,8 @@ public static class TerraformVariableExtraction
     /// Parses the project resource content to return the databricks url.
     /// </summary>
     /// <param name="projectResourceJsonContent"></param>
-    /// <returns></returns>
-    public static string ExtractDatabricksUrl(string projectResourceJsonContent)
+    /// <returns></returns>a
+    private static string? ExtractDatabricksUrl(string? projectResourceJsonContent)
     {
         if(string.IsNullOrWhiteSpace(projectResourceJsonContent))
             return null;
@@ -36,9 +39,9 @@ public static class TerraformVariableExtraction
         };
 
         var jsonContent =
-            JsonSerializer.Deserialize<Dictionary<string, TerraformOutputVariable>>(projectResourceJsonContent, deserializeOptions);
-        var databricksUrlVariable = jsonContent[TerraformVariables.OutputAzureDatabricksUrl];
+            JsonSerializer.Deserialize<Dictionary<string, string>>(projectResourceJsonContent, deserializeOptions);
+        var databricksUrlVariable = jsonContent?["workspace_url"];
         
-        return databricksUrlVariable.Value;
+        return databricksUrlVariable;
     }
 }

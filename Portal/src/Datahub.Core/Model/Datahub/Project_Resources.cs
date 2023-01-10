@@ -130,4 +130,9 @@ public class ProjectResource_Storage
     public bool IsGen2Storage => Storage_Type == ProjectResourceConstants.STORAGE_TYPE_GEN2;
 }
 
+public class ProjectResource_Databricks
+{
+    
+}
+
 public class ProjectResource_Blank { }

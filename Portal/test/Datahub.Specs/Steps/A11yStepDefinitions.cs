@@ -1,13 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Datahub.Specs.PageObjects;
 using FluentAssertions;
 using Microsoft.Playwright;
-using TechTalk.SpecFlow;
-using Microsoft.Playwright.NUnit;
-using NUnit.Framework;
 using Playwright.Axe;
 
 namespace Datahub.Specs.Steps;
