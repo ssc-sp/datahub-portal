@@ -1,17 +1,46 @@
+using System;
+using System.Collections.Generic;
+
 namespace Datahub.Shared.Entities;
 
 public class TerraformTemplate
 {
-        public string Name { get; set; }
-        public string Version { get; set; }
+    public const string NewProjectTemplate = "new-project-template";
+    public const string AzureStorageBlob = "azure-storage-blob";
+    public const string AzureDatabricks = "azure-databricks";
 
-        public static TerraformTemplate Default => LatestFromName(TerraformVariables.NewProjectTemplate);
-        public static TerraformTemplate LatestFromName(string name)
+    public string Name { get; set; }
+    public string Version { get; set; }
+
+    public static TerraformTemplate Default => LatestFromName(NewProjectTemplate);
+
+    public static TerraformTemplate LatestFromName(string name)
+    {
+        return new TerraformTemplate()
         {
-            return new TerraformTemplate()
+            Name = name,
+            Version = "latest",
+        };
+    }
+    
+    public static List<TerraformTemplate> LatestFromNameWithDependencies(string name)
+    {
+        return name switch
+        {
+            NewProjectTemplate => new List<TerraformTemplate>()
             {
-                Name = name,
-                Version = "latest",
-            };
-        }
+                LatestFromName(NewProjectTemplate),
+            },
+            AzureStorageBlob => new List<TerraformTemplate>()
+            {
+                LatestFromName(AzureStorageBlob),
+            },
+            AzureDatabricks => new List<TerraformTemplate>()
+            {
+                LatestFromName(AzureStorageBlob),
+                LatestFromName(AzureDatabricks),
+            },
+            _ => throw new ArgumentException($"Unknown template name: {name}")
+        };
+    }
 }
