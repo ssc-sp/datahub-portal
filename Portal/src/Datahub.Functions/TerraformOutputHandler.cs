@@ -79,7 +79,7 @@ public class TerraformOutputHandler
 
     private async Task ProcessAzureStorageBlob(IReadOnlyDictionary<string, TerraformOutputVariable> outputVariables)
     {
-        var projectAcronym = outputVariables[TerraformVariables.ProjectAcronym];
+        var projectAcronym = outputVariables[TerraformVariables.OutputProjectAcronym];
         var terraformServiceType = RequestManagementService.GetTerraformServiceType(TerraformVariables.AzureStorageBlobTemplateName);
 
         var projectRequest = _projectDbContext.Project_Requests
@@ -146,7 +146,7 @@ public class TerraformOutputHandler
 
     private async Task ProcessProjectStatus(IReadOnlyDictionary<string, TerraformOutputVariable> outputVariables)
     {
-        var projectAcronym = outputVariables[TerraformVariables.ProjectAcronym];
+        var projectAcronym = outputVariables[TerraformVariables.OutputProjectAcronym];
         var project = await _projectDbContext.Projects
             .FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronym.Value);
 
@@ -156,7 +156,7 @@ public class TerraformOutputHandler
             throw new Exception($"Project not found for acronym {projectAcronym.Value}");
         }
 
-        var outputPhase = GetStatusMapping(outputVariables[TerraformVariables.NewProjectTemplate].Value);
+        var outputPhase = GetStatusMapping(outputVariables[TerraformVariables.OutputNewProjectTemplate].Value);
         if (project.Project_Phase != outputPhase)
         {
             project.Project_Phase = outputPhase;
