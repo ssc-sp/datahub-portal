@@ -78,7 +78,7 @@ The scopes are represented by the following table
 | style | 💎 | `:gem:` |
 | refactor | 🔨 | `:hammer:` |
 | deploy | 🚀 | `:rocket:` |
-| test | 🚨 | `:rotating_light:` |
+| test | :test_tube: | `:test_tube:` |
 | build | 📦 | `:package:` |
 | ci | 👷 | `:construction_worker:` |
 | chore | 🔧 | `:wrench:` |
