@@ -13,9 +13,6 @@ public class ProjectUserValidator : AbstractValidator<Datahub_Project_User>
             RuleFor(x => x.User_ID)
                 .NotEmpty();
 
-            RuleFor(x => x.ProjectId)
-                .NotEmpty();
-            
             RuleFor(x => x.ApprovedUser)
                 .NotEmpty();
 
