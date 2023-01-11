@@ -68,13 +68,13 @@ public class ProjectUserManagementServiceTests
         Assert.That(projectUsers, Has.Count.EqualTo(1));
         Assert.Multiple(() =>
         {
-            Assert.That(projectUsers[0].Project_ID, Is.EqualTo(projectId));
+            Assert.That(projectUsers[0].ProjectId, Is.EqualTo(projectId));
             Assert.That(projectUsers[0].User_ID, Is.EqualTo(TestUserId));
         });
     }
 
     [Test]
-    public async Task ShouldThrowException_WhenProjectNotFound()
+    public async Task ShouldThrowException_WhenProjectNotFoundOnUserAdd()
     {
         const string nonExistentProjectAcronym = "NOTFOUND";
         var projectUserManagementService = await InitializeProjectUserManagementService();
@@ -97,6 +97,76 @@ public class ProjectUserManagementServiceTests
         await using var context = await _mockFactory.Object.CreateDbContextAsync();
         var projectUsers = await context.Project_Users.ToListAsync();
         Assert.That(projectUsers, Has.Count.EqualTo(1));
+    }
+
+    [Test]
+    public async Task ShouldRemoveUserFromProject()
+    {
+        var projectUserManagementService = await InitializeProjectUserManagementServiceWithExistingUser();
+        
+        await projectUserManagementService.RemoveUserFromProject(TestProjectAcronym, TestUserId);
+        
+        await using var context = await _mockFactory.Object.CreateDbContextAsync();
+        var projectUsers = await context.Project_Users.ToListAsync();
+        Assert.That(projectUsers, Has.Count.EqualTo(0));
+    }
+
+    [Test]
+    public async Task ShouldThrowException_WhenProjectNotFoundOnUserRemove()
+    {
+        const string nonExistentProjectAcronym = "NOTFOUND";
+        var projectUserManagementService = await InitializeProjectUserManagementServiceWithExistingUser();
+
+        Assert.ThrowsAsync<ProjectNoFoundException>(async () =>
+        {
+            await projectUserManagementService.RemoveUserFromProject(nonExistentProjectAcronym, TestUserId);
+        });
+    }
+
+    [Test]
+    public async Task ShouldDoNothing_WhenUserAlreadyRemoved()
+    {
+        var projectUserManagementService = await InitializeProjectUserManagementServiceWithExistingUser();
+        
+        await projectUserManagementService.RemoveUserFromProject(TestProjectAcronym, TestUserId);
+        await projectUserManagementService.RemoveUserFromProject(TestProjectAcronym, TestUserId);
+        await projectUserManagementService.RemoveUserFromProject(TestProjectAcronym, TestUserId);
+        
+        await using var context = await _mockFactory.Object.CreateDbContextAsync();
+        var projectUsers = await context.Project_Users.ToListAsync();
+        Assert.That(projectUsers, Has.Count.EqualTo(0));
+    }
+
+    private async Task<ProjectUserManagementService> InitializeProjectUserManagementServiceWithExistingUser()
+    {
+        var project = new Datahub_Project
+        {
+            Project_Name = "Test Project",
+            Project_Acronym_CD = TestProjectAcronym,
+            Project_Status_Desc = "Active",
+            Sector_Name = "Test Sector",
+        };
+        
+        var projectUser = new Datahub_Project_User
+        {
+            Project = project,
+            User_ID = TestUserId,
+        };
+
+        await using (var context = await _mockFactory.Object.CreateDbContextAsync())
+        {
+            context.Projects.Add(project);
+            context.Project_Users.Add(projectUser);
+            await context.SaveChangesAsync();
+        }
+
+        var projectUserManagementService = new ProjectUserManagementService(
+            Mock.Of<ILogger<ProjectUserManagementService>>(),
+            _mockFactory.Object,
+            _mockUserInformationService.Object,
+            _mockIMSGraphService.Object);
+        
+        return projectUserManagementService;
     }
 
     private async Task<ProjectUserManagementService> InitializeProjectUserManagementService()
