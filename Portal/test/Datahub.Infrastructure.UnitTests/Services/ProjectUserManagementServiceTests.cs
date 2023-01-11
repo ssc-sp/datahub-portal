@@ -69,7 +69,9 @@ public class ProjectUserManagementServiceTests
         await projectUserManagementService.AddUserToProject(TestProjectAcronym, TestUserId);
 
         await using var context = await _mockFactory.Object.CreateDbContextAsync();
-        var projectUsers = await context.Project_Users.ToListAsync();
+        var projectUsers = await context.Project_Users
+            .Include(p => p.Project)
+            .ToListAsync();
         var projectId = await context.Projects
             .Where(p => p.Project_Acronym_CD == TestProjectAcronym)
             .Select(p => p.Project_ID)
@@ -78,7 +80,7 @@ public class ProjectUserManagementServiceTests
         Assert.That(projectUsers, Has.Count.EqualTo(1));
         Assert.Multiple(() =>
         {
-            Assert.That(projectUsers[0].ProjectId, Is.EqualTo(projectId));
+            Assert.That(projectUsers[0].Project.Project_ID, Is.EqualTo(projectId));
             Assert.That(projectUsers[0].User_ID, Is.EqualTo(TestUserId));
         });
     }

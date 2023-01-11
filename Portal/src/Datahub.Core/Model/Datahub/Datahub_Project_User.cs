@@ -22,8 +22,6 @@ public class Datahub_Project_User {
 
     public bool IsDataApprover { get; set; }
     
-    [ForeignKey("Project_ID")]
-    public int ProjectId { get; set; }
     public Datahub_Project Project { get; set; }
 
     [StringLength(200)]

@@ -52,7 +52,7 @@ public class ProjectUserManagementService : IProjectUserManagementService
         }
 
         var exists = context.Project_Users
-            .Any(u => u.User_ID == userGraphId && u.ProjectId == project.Project_ID);
+            .Any(u => u.User_ID == userGraphId && u.Project.Project_ID == project.Project_ID);
 
         if (exists)
         {
@@ -73,7 +73,7 @@ public class ProjectUserManagementService : IProjectUserManagementService
 
             var newProjectUser = new Datahub_Project_User
             {
-                ProjectId = project.Project_ID,
+                Project = project,
                 User_ID = userGraphId,
                 User_Name = user.Mail,
 
@@ -119,7 +119,7 @@ public class ProjectUserManagementService : IProjectUserManagementService
         }
 
         var exists = await context.Project_Users
-            .FirstOrDefaultAsync(u => u.User_ID == userGraphId && u.ProjectId == project.Project_ID);
+            .FirstOrDefaultAsync(u => u.User_ID == userGraphId && u.Project.Project_ID == project.Project_ID);
 
         if (exists is null)
         {
