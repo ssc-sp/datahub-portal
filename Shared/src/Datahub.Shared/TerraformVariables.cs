@@ -15,5 +15,6 @@ public static class TerraformVariables
     public static readonly string OutputAzureDatabricksStatus = "azure_databricks_module_status";
     public static readonly string OutputAzureDatabricksWorkspaceId = "azure_databricks_workspace_id";
     public static readonly string OutputAzureDatabricksWorkspaceName = "azure_databricks_workspace_name";
-    
+
+    public static readonly string OutputAzureResourceGroupName = "azure_resource_group_name";
 }

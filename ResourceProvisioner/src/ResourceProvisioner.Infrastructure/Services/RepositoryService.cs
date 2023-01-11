@@ -291,7 +291,7 @@ public class RepositoryService : IRepositoryService
         {
             await _terraformService.CopyTemplateAsync(template, terraformWorkspace);
             await _terraformService.ExtractVariables(template, terraformWorkspace);
-            if (template.Name == TerraformService.NewProjectTemplate)
+            if (template.Name == TerraformTemplate.NewProjectTemplate)
             {
                 await _terraformService.ExtractBackendConfig(terraformWorkspace.Acronym);
             }

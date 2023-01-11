@@ -32,13 +32,13 @@ public class NewProjectTemplateTests
 
         var module = new TerraformTemplate()
         {
-            Name = TerraformService.NewProjectTemplate,
+            Name = TerraformTemplate.NewProjectTemplate,
             Version = "latest"
         };
 
         await _terraformService.CopyTemplateAsync(module, workspace);
 
-        var moduleSourcePath = DirectoryUtils.GetTemplatePath(_configuration, TerraformService.NewProjectTemplate);
+        var moduleSourcePath = DirectoryUtils.GetTemplatePath(_configuration, TerraformTemplate.NewProjectTemplate);
         var moduleDestinationPath = DirectoryUtils.GetProjectPath(_configuration, workspaceAcronym);
 
         // verify all the files are copied except for the datahub readme
@@ -90,7 +90,7 @@ public class NewProjectTemplateTests
 
         var module = new TerraformTemplate()
         {
-            Name = TerraformService.NewProjectTemplate,
+            Name = TerraformTemplate.NewProjectTemplate,
             Version = "latest"
         };
 
@@ -146,7 +146,7 @@ public class NewProjectTemplateTests
 
         var module = new TerraformTemplate()
         {
-            Name = TerraformService.NewProjectTemplate,
+            Name = TerraformTemplate.NewProjectTemplate,
             Version = "latest"
         };
 
@@ -193,7 +193,7 @@ key = ""fsdh-ShouldExtractBackendConfiguration.tfstate""
 
         var module = new TerraformTemplate()
         {
-            Name = TerraformService.NewProjectTemplate,
+            Name = TerraformTemplate.NewProjectTemplate,
             Version = "latest"
         };
 
@@ -219,7 +219,7 @@ key = ""fsdh-ShouldExtractBackendConfiguration.tfstate""
 
         var module = new TerraformTemplate()
         {
-            Name = TerraformService.NewProjectTemplate,
+            Name = TerraformTemplate.NewProjectTemplate,
             Version = "latest"
         };
 
