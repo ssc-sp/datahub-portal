@@ -45,7 +45,7 @@ public class ProjectUserManagementService : IProjectUserManagementService
         }
 
         var exists = context.Project_Users
-            .Any(u => u.User_ID == userGraphId && u.Project_ID == project.Project_ID);
+            .Any(u => u.User_ID == userGraphId && u.ProjectId == project.Project_ID);
         
         if (exists)
         {
@@ -61,7 +61,7 @@ public class ProjectUserManagementService : IProjectUserManagementService
 
         var newProjectUser = new Datahub_Project_User
         {
-            Project_ID = project.Project_ID,
+            ProjectId = project.Project_ID,
             User_ID = userGraphId,
             User_Name = user.Mail,
 
@@ -78,9 +78,37 @@ public class ProjectUserManagementService : IProjectUserManagementService
         _logger.LogInformation("User {UserGraphId} added to project {ProjectAcronym}", userGraphId, projectAcronym);
     }
 
-    public Task RemoveUserFromProject(string projectAcronym, string userGraphId)
+    public async Task RemoveUserFromProject(string projectAcronym, string userGraphId)
     {
-        throw new NotImplementedException();
+        _logger.LogInformation("Preparing to remove user {UserGraphId} from project {ProjectAcronym}", userGraphId,
+            projectAcronym);
+
+        await using var context = await _contextFactory.CreateDbContextAsync();
+        var project = await context.Projects
+            .Include(p => p.Users)
+            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronym);
+
+        if (project == null)
+        {
+            _logger.LogError("Project {ProjectAcronym} not found when trying to remove user {UserGraphId}", projectAcronym,
+                userGraphId);
+            throw new ProjectNoFoundException($"Project {projectAcronym} not found");
+        }
+
+        var exists = await context.Project_Users
+            .FirstOrDefaultAsync(u => u.User_ID == userGraphId && u.ProjectId == project.Project_ID);
+        
+        if (exists is null)
+        {
+            _logger.LogInformation("User {UserGraphId} does not exist in project {ProjectAcronym}", userGraphId,
+                projectAcronym);
+            return;
+        }
+
+        context.Project_Users.Remove(exists);
+        await context.SaveChangesAsync();
+
+        _logger.LogInformation("User {UserGraphId} removed from project {ProjectAcronym}", userGraphId, projectAcronym);
     }
 
     public Task UpdateUserInProject(string projectAcronym, Datahub_Project_User user)
