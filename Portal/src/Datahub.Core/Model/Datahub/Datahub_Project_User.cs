@@ -20,6 +20,7 @@ public class Datahub_Project_User {
     public bool IsAdmin { get; set; }
 
     public bool IsDataApprover { get; set; }
+    public int Project_ID { get; set; }
     public Datahub_Project Project { get; set; }
 
     [StringLength(200)]
