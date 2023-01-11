@@ -4,6 +4,7 @@ using Datahub.Core.Model.Datahub;
 using Datahub.Core.Services;
 using Datahub.Core.Services.UserManagement;
 using Datahub.Infrastructure.Services;
+using Datahub.Shared.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -52,7 +53,53 @@ public class ProjectUserManagementServiceTests
     }
 
     [Test]
-    public async Task ShouldAddUserToProjectTest()
+    public async Task ShouldAddUserToProject()
+    {
+        var projectUserManagementService = await InitializeProjectUserManagementService();
+        await projectUserManagementService.AddUserToProject(TestProjectAcronym, TestUserId);
+
+        await using var context = await _mockFactory.Object.CreateDbContextAsync();
+        var projectUsers = await context.Project_Users.ToListAsync();
+        var projectId = await context.Projects
+            .Where(p => p.Project_Acronym_CD == TestProjectAcronym)
+            .Select(p => p.Project_ID)
+            .SingleAsync(); 
+            
+        Assert.That(projectUsers, Has.Count.EqualTo(1));
+        Assert.Multiple(() =>
+        {
+            Assert.That(projectUsers[0].Project_ID, Is.EqualTo(projectId));
+            Assert.That(projectUsers[0].User_ID, Is.EqualTo(TestUserId));
+        });
+    }
+
+    [Test]
+    public async Task ShouldThrowException_WhenProjectNotFound()
+    {
+        const string nonExistentProjectAcronym = "NOTFOUND";
+        var projectUserManagementService = await InitializeProjectUserManagementService();
+
+        Assert.ThrowsAsync<ProjectNoFoundException>(async () =>
+        {
+            await projectUserManagementService.AddUserToProject(nonExistentProjectAcronym, TestUserId);
+        });
+    }
+
+    [Test]
+    public async Task ShouldDoNothing_WhenUserAlreadyAdded()
+    {
+        var projectUserManagementService = await InitializeProjectUserManagementService();
+        
+        await projectUserManagementService.AddUserToProject(TestProjectAcronym, TestUserId);
+        await projectUserManagementService.AddUserToProject(TestProjectAcronym, TestUserId);
+        await projectUserManagementService.AddUserToProject(TestProjectAcronym, TestUserId);
+        
+        await using var context = await _mockFactory.Object.CreateDbContextAsync();
+        var projectUsers = await context.Project_Users.ToListAsync();
+        Assert.That(projectUsers, Has.Count.EqualTo(1));
+    }
+
+    private async Task<ProjectUserManagementService> InitializeProjectUserManagementService()
     {
         var project = new Datahub_Project
         {
@@ -67,29 +114,13 @@ public class ProjectUserManagementServiceTests
             context.Add(project);
             await context.SaveChangesAsync();
         }
-        
+
         var projectUserManagementService = new ProjectUserManagementService(
-            Mock.Of<ILogger<ProjectUserManagementService>>(), 
-            _mockFactory.Object, 
+            Mock.Of<ILogger<ProjectUserManagementService>>(),
+            _mockFactory.Object,
             _mockUserInformationService.Object,
             _mockIMSGraphService.Object);
         
-        await projectUserManagementService.AddUserToProject(TestProjectAcronym, TestUserId);
-        
-        await using (var context = await _mockFactory.Object.CreateDbContextAsync())
-        {
-            var projectUsers = await context.Project_Users.ToListAsync();
-            var projectId = await context.Projects
-                .Where(p => p.Project_Acronym_CD == TestProjectAcronym)
-                .Select(p => p.Project_ID)
-                .SingleAsync(); 
-            
-            Assert.That(projectUsers, Has.Count.EqualTo(1));
-            Assert.Multiple(() =>
-            {
-                Assert.That(projectUsers[0].Project_ID, Is.EqualTo(projectId));
-                Assert.That(projectUsers[0].User_ID, Is.EqualTo(TestUserId));
-            });
-        }
+        return projectUserManagementService;
     }
 }
