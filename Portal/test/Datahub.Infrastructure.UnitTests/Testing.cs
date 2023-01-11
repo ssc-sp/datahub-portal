@@ -18,9 +18,10 @@ public partial class Testing
     internal static IUserEnrollmentService _userEnrollmentService = null!;
 
 
-    internal const string ProjectAcronym = "TEST";
+    internal const string TestProjectAcronym = "TEST";
     internal const string TestUserEmail = "user@email.gc.ca";
     internal const string TestUserId = "123456789";
+    internal const string TestAdminUserId = "987654321";
 
     [OneTimeSetUp]
     public void RunBeforeAnyTests()
