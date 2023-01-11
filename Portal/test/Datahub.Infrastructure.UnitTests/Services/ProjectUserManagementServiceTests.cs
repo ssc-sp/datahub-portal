@@ -192,7 +192,7 @@ public class ProjectUserManagementServiceTests
     }
 
     [Test]
-    public async Task ShouldRefreshTerraformStateOnUserAdd()
+    public async Task ShouldSendTerraformVariableUpdateOnUserAdd()
     {
         var projectUserManagementService = GetProjectUserManagementService();
         
@@ -201,6 +201,21 @@ public class ProjectUserManagementServiceTests
         
         await SeedDatabase();
         await projectUserManagementService.AddUserToProject(TestProjectAcronym, TestUserId);
+
+        _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<Datahub_Project>(),
+            It.Is<string>(s => s == TerraformTemplate.VariableUpdate)), Times.Once);
+    }
+    
+    [Test]
+    public async Task ShouldSendTerraformVariableUpdateOnUserRemove()
+    {
+        var projectUserManagementService = GetProjectUserManagementService();
+        
+        _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<Datahub_Project>(),
+            It.IsAny<string>()), Times.Never);
+        
+        await SeedDatabase(new List<string>{TestUserId});
+        await projectUserManagementService.RemoveUserFromProject(TestProjectAcronym, TestUserId);
 
         _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<Datahub_Project>(),
             It.Is<string>(s => s == TerraformTemplate.VariableUpdate)), Times.Once);
