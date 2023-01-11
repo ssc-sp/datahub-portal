@@ -116,8 +116,12 @@ public class ProjectUserManagementService : IProjectUserManagementService
         throw new NotImplementedException();
     }
 
-    public Task<IEnumerable<Datahub_Project_User>> GetProjectUsers(string projectAcronym)
+    public async Task<IEnumerable<Datahub_Project_User>> GetUsersFromProject(string projectAcronym)
     {
-        throw new NotImplementedException();
+        await using var context = await _contextFactory.CreateDbContextAsync();
+        return await context.Project_Users
+            .Include(u => u.Project)
+            .Where(u => u.Project.Project_Acronym_CD == projectAcronym)
+            .ToListAsync();
     }
 }

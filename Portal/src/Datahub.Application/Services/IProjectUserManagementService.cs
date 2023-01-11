@@ -8,5 +8,5 @@ public interface IProjectUserManagementService
     Task RemoveUserFromProject(string projectAcronym, string userGraphId);
     Task UpdateUserInProject(string projectAcronym, Datahub_Project_User user);
 
-    Task<IEnumerable<Datahub_Project_User>> GetProjectUsers(string projectAcronym);
+    Task<IEnumerable<Datahub_Project_User>> GetUsersFromProject(string projectAcronym);
 }
