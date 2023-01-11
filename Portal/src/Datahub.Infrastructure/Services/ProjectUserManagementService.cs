@@ -86,10 +86,10 @@ public class ProjectUserManagementService : IProjectUserManagementService
 
             context.Project_Users.Add(newProjectUser);
             await context.SaveChangesAsync();
-
             _logger.LogInformation("User {UserGraphId} added to project {ProjectAcronym}", userGraphId, projectAcronym);
 
             await _requestManagementService.HandleTerraformRequestServiceAsync(project, TerraformTemplate.VariableUpdate);
+            _logger.LogInformation("Terraform variable update request created for project {ProjectAcronym}", projectAcronym);
             scope.Complete();
         }
         catch (Exception ex)
@@ -127,11 +127,27 @@ public class ProjectUserManagementService : IProjectUserManagementService
                 projectAcronym);
             return;
         }
+        
+        using var scope = new TransactionScope(
+            TransactionScopeOption.Required, TransactionScopeAsyncFlowOption.Enabled);
 
-        context.Project_Users.Remove(exists);
-        await context.SaveChangesAsync();
+        try
+        {
+            context.Project_Users.Remove(exists);
+            await context.SaveChangesAsync();
+            _logger.LogInformation("User {UserGraphId} removed from project {ProjectAcronym}", userGraphId, projectAcronym);
+            
+            await _requestManagementService.HandleTerraformRequestServiceAsync(project, TerraformTemplate.VariableUpdate);
+            _logger.LogInformation("Terraform variable update request created for project {ProjectAcronym}", projectAcronym);
+            scope.Complete();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error removing user {UserGraphId} from project {ProjectAcronym}", userGraphId,
+                projectAcronym);
+            throw;
+        }
 
-        _logger.LogInformation("User {UserGraphId} removed from project {ProjectAcronym}", userGraphId, projectAcronym);
     }
 
     public Task UpdateUserInProject(string projectAcronym, Datahub_Project_User user)
