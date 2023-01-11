@@ -55,7 +55,9 @@ public class ProjectUserManagementServiceTests
     [Test]
     public async Task ShouldAddUserToProject()
     {
-        var projectUserManagementService = await InitializeProjectUserManagementService();
+        var projectUserManagementService = GetProjectUserManagementService();
+        await SeedDatabase();
+        
         await projectUserManagementService.AddUserToProject(TestProjectAcronym, TestUserId);
 
         await using var context = await _mockFactory.Object.CreateDbContextAsync();
@@ -77,7 +79,11 @@ public class ProjectUserManagementServiceTests
     public async Task ShouldThrowException_WhenProjectNotFoundOnUserAdd()
     {
         const string nonExistentProjectAcronym = "NOTFOUND";
-        var projectUserManagementService = await InitializeProjectUserManagementService();
+        var projectUserManagementService = GetProjectUserManagementService();
+        await SeedDatabase(new List<string>
+        {
+            TestUserId
+        });
 
         Assert.ThrowsAsync<ProjectNoFoundException>(async () =>
         {
@@ -88,7 +94,11 @@ public class ProjectUserManagementServiceTests
     [Test]
     public async Task ShouldDoNothing_WhenUserAlreadyAdded()
     {
-        var projectUserManagementService = await InitializeProjectUserManagementService();
+        var projectUserManagementService = GetProjectUserManagementService();
+        await SeedDatabase(new List<string>
+        {
+            TestUserId
+        });
         
         await projectUserManagementService.AddUserToProject(TestProjectAcronym, TestUserId);
         await projectUserManagementService.AddUserToProject(TestProjectAcronym, TestUserId);
@@ -102,7 +112,11 @@ public class ProjectUserManagementServiceTests
     [Test]
     public async Task ShouldRemoveUserFromProject()
     {
-        var projectUserManagementService = await InitializeProjectUserManagementServiceWithExistingUser();
+        var projectUserManagementService = GetProjectUserManagementService();
+        await SeedDatabase(new List<string>
+        {
+            TestUserId
+        });
         
         await projectUserManagementService.RemoveUserFromProject(TestProjectAcronym, TestUserId);
         
@@ -115,7 +129,11 @@ public class ProjectUserManagementServiceTests
     public async Task ShouldThrowException_WhenProjectNotFoundOnUserRemove()
     {
         const string nonExistentProjectAcronym = "NOTFOUND";
-        var projectUserManagementService = await InitializeProjectUserManagementServiceWithExistingUser();
+        var projectUserManagementService = GetProjectUserManagementService();
+        await SeedDatabase(new List<string>
+        {
+            TestUserId
+        });
 
         Assert.ThrowsAsync<ProjectNoFoundException>(async () =>
         {
@@ -126,7 +144,8 @@ public class ProjectUserManagementServiceTests
     [Test]
     public async Task ShouldDoNothing_WhenUserAlreadyRemoved()
     {
-        var projectUserManagementService = await InitializeProjectUserManagementServiceWithExistingUser();
+        var projectUserManagementService = GetProjectUserManagementService();
+        await SeedDatabase();
         
         await projectUserManagementService.RemoveUserFromProject(TestProjectAcronym, TestUserId);
         await projectUserManagementService.RemoveUserFromProject(TestProjectAcronym, TestUserId);
@@ -136,61 +155,65 @@ public class ProjectUserManagementServiceTests
         var projectUsers = await context.Project_Users.ToListAsync();
         Assert.That(projectUsers, Has.Count.EqualTo(0));
     }
-
-    private async Task<ProjectUserManagementService> InitializeProjectUserManagementServiceWithExistingUser()
+    
+    
+    [Test]
+    [TestCase(11, 0)]
+    [TestCase(12, 10)]
+    [TestCase(0, 11)]
+    [TestCase(0, 0)]
+    [TestCase(6, 6)]
+    public async Task ShouldGetUsersFromProject(int userCount, int dummyCount)
     {
-        var project = new Datahub_Project
-        {
-            Project_Name = "Test Project",
-            Project_Acronym_CD = TestProjectAcronym,
-            Project_Status_Desc = "Active",
-            Sector_Name = "Test Sector",
-        };
-        
-        var projectUser = new Datahub_Project_User
-        {
-            Project = project,
-            User_ID = TestUserId,
-        };
+        var projectUserManagementService = GetProjectUserManagementService();
+        await SeedDatabase(Enumerable.Range(0, userCount).Select(i => $"{TestUserId}{i}").ToList());
 
-        await using (var context = await _mockFactory.Object.CreateDbContextAsync())
-        {
-            context.Projects.Add(project);
-            context.Project_Users.Add(projectUser);
-            await context.SaveChangesAsync();
-        }
-
-        var projectUserManagementService = new ProjectUserManagementService(
-            Mock.Of<ILogger<ProjectUserManagementService>>(),
-            _mockFactory.Object,
-            _mockUserInformationService.Object,
-            _mockIMSGraphService.Object);
+        var dummyProjectAcronym = $"{TestProjectAcronym}DUMMY";
+        await SeedDatabase(Enumerable.Range(0, dummyCount).Select(i => $"{TestUserId}{i}").ToList(), dummyProjectAcronym);
         
-        return projectUserManagementService;
+        var projectUsers = await projectUserManagementService.GetUsersFromProject(TestProjectAcronym);
+        
+        var context = await _mockFactory.Object.CreateDbContextAsync();
+        var totalUserCount = await context.Project_Users.CountAsync();
+        Assert.Multiple(() =>
+        {
+            Assert.That(projectUsers.Count(), Is.EqualTo(userCount));
+            Assert.That(totalUserCount, Is.EqualTo(userCount + dummyCount));
+        });
     }
 
-    private async Task<ProjectUserManagementService> InitializeProjectUserManagementService()
+    private async Task SeedDatabase(IEnumerable<string>? userIds = null, string projectAcronym = TestProjectAcronym)
     {
         var project = new Datahub_Project
         {
             Project_Name = "Test Project",
-            Project_Acronym_CD = TestProjectAcronym,
+            Project_Acronym_CD = projectAcronym,
             Project_Status_Desc = "Active",
             Sector_Name = "Test Sector",
         };
+        
+        var projectUsers = userIds?
+            .Select(id => new Datahub_Project_User
+            {
+                Project = project,
+                User_ID = id
+            })
+            .ToList();
 
-        await using (var context = await _mockFactory.Object.CreateDbContextAsync())
-        {
-            context.Add(project);
-            await context.SaveChangesAsync();
-        }
+        await using var context = await _mockFactory.Object.CreateDbContextAsync();
+        await context.Projects.AddAsync(project);
+        await context.Project_Users.AddRangeAsync(projectUsers?? new List<Datahub_Project_User>());
+        await context.SaveChangesAsync();
+    }
 
+    private ProjectUserManagementService GetProjectUserManagementService()
+    {
         var projectUserManagementService = new ProjectUserManagementService(
             Mock.Of<ILogger<ProjectUserManagementService>>(),
             _mockFactory.Object,
             _mockUserInformationService.Object,
             _mockIMSGraphService.Object);
-        
+
         return projectUserManagementService;
     }
 }
