@@ -17,7 +17,6 @@ public class TerraformService : ITerraformService
 
     public const string MapAnyType = "map(any)";
     public const string ListAnyType = "list(any)";
-    public const string NewProjectTemplate = "new-project-template";
 
     private const string BackendResourceGroupName = "resource_group_name";
     private const string BackendStorageAccountName = "storage_account_name";
@@ -32,6 +31,11 @@ public class TerraformService : ITerraformService
 
     public Task CopyTemplateAsync(TerraformTemplate template, TerraformWorkspace terraformWorkspace)
     {
+        if (template.Name == TerraformTemplate.VariableUpdate)
+        {
+            return Task.CompletedTask;
+        }
+        
         var templateSourcePath = DirectoryUtils.GetTemplatePath(_configuration, template.Name);
         var projectPath = DirectoryUtils.GetProjectPath(_configuration, terraformWorkspace.Acronym);
 
@@ -40,7 +44,7 @@ public class TerraformService : ITerraformService
 
         if (!Directory.Exists(projectPath))
         {
-            if (template.Name == NewProjectTemplate)
+            if (template.Name == TerraformTemplate.NewProjectTemplate)
             {
                 _logger.LogInformation("Creating new project directory {ProjectPath}", projectPath);
                 Directory.CreateDirectory(projectPath);
