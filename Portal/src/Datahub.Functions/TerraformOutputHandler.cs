@@ -186,11 +186,13 @@ public class TerraformOutputHandler
         {
             var accountName = outputVariables[TerraformVariables.OutputAzureStorageAccountName];
             var containerName = outputVariables[TerraformVariables.OutputAzureStorageContainerName];
+            var resourceGroupName = outputVariables[TerraformVariables.OutputAzureResourceGroupName];
             var jsonContent = new JsonObject
             {
                 ["storage_account"] = accountName.Value,
                 ["container"] = containerName.Value,
                 ["storage_type"] = TerraformVariables.AzureStorageType,
+                ["resource_group_name"] = resourceGroupName.Value
             };
 
             var inputJsonContent = new JsonObject
