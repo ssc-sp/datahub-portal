@@ -2,8 +2,10 @@ using System.Net.Mail;
 using Datahub.Core.Data;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Services;
+using Datahub.Core.Services.Projects;
 using Datahub.Core.Services.UserManagement;
 using Datahub.Infrastructure.Services;
+using Datahub.Shared.Entities;
 using Datahub.Shared.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -18,6 +20,7 @@ public class ProjectUserManagementServiceTests
     private Mock<IDbContextFactory<DatahubProjectDBContext>> _mockFactory = null!;
     private Mock<IUserInformationService> _mockUserInformationService = null!;
     private Mock<IMSGraphService> _mockIMSGraphService = null!;
+    private Mock<IRequestManagementService> _mockRequestManagementService = null!;
 
 
     [SetUp]
@@ -29,19 +32,19 @@ public class ProjectUserManagementServiceTests
         var dbContext = new DatahubProjectDBContext(optionsBuilder.Options);
         dbContext.Database.EnsureDeleted();
         dbContext.Database.EnsureCreated();
-        
+
         // create a mock factory to return the db context when CreateDbContextAsync is called
         _mockFactory = new Mock<IDbContextFactory<DatahubProjectDBContext>>();
         _mockFactory
             .Setup(f => f.CreateDbContextAsync(CancellationToken.None))
             .ReturnsAsync(() => new DatahubProjectDBContext(optionsBuilder.Options));
-        
+
         // create a mock user information service to return the current (admin) user when GetUserIdString is called
         _mockUserInformationService = new Mock<IUserInformationService>();
         _mockUserInformationService
             .Setup(f => f.GetUserIdString())
             .ReturnsAsync(TestAdminUserId);
-        
+
         _mockIMSGraphService = new Mock<IMSGraphService>();
         _mockIMSGraphService
             .Setup(f => f.GetUserAsync(It.Is<string>(s => s == TestUserId), CancellationToken.None))
@@ -50,6 +53,11 @@ public class ProjectUserManagementServiceTests
                 mailAddress = new MailAddress(TestUserEmail),
                 Id = TestUserId,
             });
+
+        _mockRequestManagementService = new Mock<IRequestManagementService>();
+        _mockRequestManagementService
+            .Setup(f => f.HandleTerraformRequestServiceAsync(It.IsAny<Datahub_Project>(), It.IsAny<string>()))
+            .ReturnsAsync(true);
     }
 
     [Test]
@@ -57,7 +65,7 @@ public class ProjectUserManagementServiceTests
     {
         var projectUserManagementService = GetProjectUserManagementService();
         await SeedDatabase();
-        
+
         await projectUserManagementService.AddUserToProject(TestProjectAcronym, TestUserId);
 
         await using var context = await _mockFactory.Object.CreateDbContextAsync();
@@ -65,8 +73,8 @@ public class ProjectUserManagementServiceTests
         var projectId = await context.Projects
             .Where(p => p.Project_Acronym_CD == TestProjectAcronym)
             .Select(p => p.Project_ID)
-            .SingleAsync(); 
-            
+            .SingleAsync();
+
         Assert.That(projectUsers, Has.Count.EqualTo(1));
         Assert.Multiple(() =>
         {
@@ -99,11 +107,11 @@ public class ProjectUserManagementServiceTests
         {
             TestUserId
         });
-        
+
         await projectUserManagementService.AddUserToProject(TestProjectAcronym, TestUserId);
         await projectUserManagementService.AddUserToProject(TestProjectAcronym, TestUserId);
         await projectUserManagementService.AddUserToProject(TestProjectAcronym, TestUserId);
-        
+
         await using var context = await _mockFactory.Object.CreateDbContextAsync();
         var projectUsers = await context.Project_Users.ToListAsync();
         Assert.That(projectUsers, Has.Count.EqualTo(1));
@@ -117,9 +125,9 @@ public class ProjectUserManagementServiceTests
         {
             TestUserId
         });
-        
+
         await projectUserManagementService.RemoveUserFromProject(TestProjectAcronym, TestUserId);
-        
+
         await using var context = await _mockFactory.Object.CreateDbContextAsync();
         var projectUsers = await context.Project_Users.ToListAsync();
         Assert.That(projectUsers, Has.Count.EqualTo(0));
@@ -146,17 +154,17 @@ public class ProjectUserManagementServiceTests
     {
         var projectUserManagementService = GetProjectUserManagementService();
         await SeedDatabase();
-        
+
         await projectUserManagementService.RemoveUserFromProject(TestProjectAcronym, TestUserId);
         await projectUserManagementService.RemoveUserFromProject(TestProjectAcronym, TestUserId);
         await projectUserManagementService.RemoveUserFromProject(TestProjectAcronym, TestUserId);
-        
+
         await using var context = await _mockFactory.Object.CreateDbContextAsync();
         var projectUsers = await context.Project_Users.ToListAsync();
         Assert.That(projectUsers, Has.Count.EqualTo(0));
     }
-    
-    
+
+
     [Test]
     [TestCase(11, 0)]
     [TestCase(12, 10)]
@@ -169,10 +177,11 @@ public class ProjectUserManagementServiceTests
         await SeedDatabase(Enumerable.Range(0, userCount).Select(i => $"{TestUserId}{i}").ToList());
 
         var dummyProjectAcronym = $"{TestProjectAcronym}DUMMY";
-        await SeedDatabase(Enumerable.Range(0, dummyCount).Select(i => $"{TestUserId}{i}").ToList(), dummyProjectAcronym);
-        
+        await SeedDatabase(Enumerable.Range(0, dummyCount).Select(i => $"{TestUserId}{i}").ToList(),
+            dummyProjectAcronym);
+
         var projectUsers = await projectUserManagementService.GetUsersFromProject(TestProjectAcronym);
-        
+
         var context = await _mockFactory.Object.CreateDbContextAsync();
         var totalUserCount = await context.Project_Users.CountAsync();
         Assert.Multiple(() =>
@@ -180,6 +189,21 @@ public class ProjectUserManagementServiceTests
             Assert.That(projectUsers.Count(), Is.EqualTo(userCount));
             Assert.That(totalUserCount, Is.EqualTo(userCount + dummyCount));
         });
+    }
+
+    [Test]
+    public async Task ShouldRefreshTerraformStateOnUserAdd()
+    {
+        var projectUserManagementService = GetProjectUserManagementService();
+        
+        _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<Datahub_Project>(),
+            It.IsAny<string>()), Times.Never);
+        
+        await SeedDatabase();
+        await projectUserManagementService.AddUserToProject(TestProjectAcronym, TestUserId);
+
+        _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<Datahub_Project>(),
+            It.Is<string>(s => s == TerraformTemplate.VariableUpdate)), Times.Once);
     }
 
     private async Task SeedDatabase(IEnumerable<string>? userIds = null, string projectAcronym = TestProjectAcronym)
@@ -191,7 +215,7 @@ public class ProjectUserManagementServiceTests
             Project_Status_Desc = "Active",
             Sector_Name = "Test Sector",
         };
-        
+
         var projectUsers = userIds?
             .Select(id => new Datahub_Project_User
             {
@@ -202,7 +226,7 @@ public class ProjectUserManagementServiceTests
 
         await using var context = await _mockFactory.Object.CreateDbContextAsync();
         await context.Projects.AddAsync(project);
-        await context.Project_Users.AddRangeAsync(projectUsers?? new List<Datahub_Project_User>());
+        await context.Project_Users.AddRangeAsync(projectUsers ?? new List<Datahub_Project_User>());
         await context.SaveChangesAsync();
     }
 
@@ -212,7 +236,8 @@ public class ProjectUserManagementServiceTests
             Mock.Of<ILogger<ProjectUserManagementService>>(),
             _mockFactory.Object,
             _mockUserInformationService.Object,
-            _mockIMSGraphService.Object);
+            _mockIMSGraphService.Object,
+            _mockRequestManagementService.Object);
 
         return projectUserManagementService;
     }
