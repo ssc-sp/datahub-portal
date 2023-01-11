@@ -24,7 +24,7 @@ public class GraphUser
     /// Mail Address
     /// </summary>
     /// <value></value>
-    private MailAddress mailAddress { get; set; }     
+    public MailAddress mailAddress { get; set; }     
 
     /// <summary>
     /// The user's email address
