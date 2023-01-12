@@ -1,7 +1,6 @@
 @using Datahub.Core.Model.Datahub
-@using Datahub.ProjectTools.Utils
 
-<ToolCard Title="@Descriptor?.Title" Description="@Descriptor?.Description">
+<ToolCard Title="@Descriptor?.Title" Description="@Descriptor?.ResourceDescription">
     <Logo>
         @if (IsIconSvg)
         {
@@ -13,41 +12,24 @@
         }
     </Logo>
     <ToolActionsList>
-        <ViewDatabricksButton DatabricksUrl="@_databricksUrl" />
+        <ViewStorageButton ProjectAcronym="@Project?.Project_Acronym_CD" />
+        <ViewSharedFilesButton />
         <CostEstimatorButton TemplateName="@TemplateName"/>
     </ToolActionsList>
 </ToolCard>
 
 @code {
-
     [Parameter]
     public GitHubModuleDescriptor? Descriptor { get; set; }
-
     [Parameter]
-    public string? Icon { get; set; }
-
+    public GitHubModule? GitHubModule { get; set; }
     [Parameter]
     public bool IsIconSvg { get; set; }
-
-    [Parameter]
-    public string? TemplateName { get; set; }
-
     [Parameter]
     public bool ResourceRequested { get; set; }
-
     [Parameter]
     public Datahub_Project? Project { get; set; }
-
-    private string? _databricksUrl;
     
-    protected override void OnInitialized()
-    {
-        base.OnInitialized();
-
-        _databricksUrl = TerraformVariableExtraction.ExtractDatabricksUrl(Project);
-        if (!_databricksUrl?.StartsWith("https://") ?? false)
-        {
-            _databricksUrl = $"https://{_databricksUrl}";
-        }
-    }
+    private string Icon => GitHubModule?.Icon ?? "fa-solid fa-cloud-question";
+    private string? TemplateName => GitHubModule?.Name;
 }

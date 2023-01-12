@@ -1,5 +1,6 @@
 ﻿using Datahub.Core.Model.Datahub;
 using Datahub.Core.Services.UserManagement;
+using Datahub.ProjectTools.Catalog.ResourceCards;
 using Datahub.ProjectTools.Services;
 using Datahub.Shared.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -60,21 +61,12 @@ public class DHGitModuleResource : IProjectResource
         switch (template)
         {
             case TerraformTemplate.AzureStorageBlob:
-                return new Dictionary<string, object>
-                {
-                    { nameof(StorageResourceCard.Descriptor), descriptor },
-                    { nameof(StorageResourceCard.Icon), currentModule.Icon ?? "fa-solid fa-cloud-question" },
-                    { nameof(StorageResourceCard.IsIconSvg), false },
-                    { nameof(StorageResourceCard.TemplateName),currentModule.Name  },
-                    { nameof(StorageResourceCard.Project), project }
-                };
             case TerraformTemplate.AzureDatabricks:
                 return new Dictionary<string, object>
                 {
                     { nameof(StorageResourceCard.Descriptor), descriptor },
-                    { nameof(StorageResourceCard.Icon), currentModule.Icon ?? "fa-solid fa-cloud-question" },
+                    { nameof(StorageResourceCard.GitHubModule), currentModule },
                     { nameof(StorageResourceCard.IsIconSvg), false },
-                    { nameof(StorageResourceCard.TemplateName),currentModule.Name  },
                     { nameof(StorageResourceCard.Project), project }
                 };
         }
@@ -83,19 +75,15 @@ public class DHGitModuleResource : IProjectResource
     }
 
     protected Dictionary<string, object> GetInactiveParameters()
-        => new Dictionary<string, object>
+        => new()
         {
             { nameof(InactiveTerraformResource.Descriptor), descriptor },
-            { nameof(InactiveTerraformResource.Icon), currentModule.Icon },
+            { nameof(InactiveTerraformResource.GitHubModule), currentModule},
             { nameof(InactiveTerraformResource.IsIconSvg), false },
             { nameof(InactiveTerraformResource.ResourceRequested),serviceRequested  },            
-            { nameof(InactiveTerraformResource.TemplateName),currentModule.Name  },
             { nameof(InactiveTerraformResource.Project), project },
         };
-
-
     public string[] GetTags() => descriptor.Tags;
-
 
     public async Task<bool> InitializeAsync(Datahub_Project project, string userId, User graphUser, bool isProjectAdmin)
     {
@@ -109,7 +97,6 @@ public class DHGitModuleResource : IProjectResource
     public void ConfigureGitModule(GitHubModule item)
     {
         currentModule = item;
-        //cultureService.IsEnglish ?
         descriptor = item.Descriptors.First(l => l.Language == "en");
         var frDescriptor = item.Descriptors.First(l => l.Language == "fr") ?? descriptor;
         if (cultureService.IsFrench)

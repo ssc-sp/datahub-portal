@@ -27,8 +27,11 @@
     </MudCardHeader>
     <MudCardContent Style="@_descriptionStyle">
         <MudStack>
+            @if (!string.IsNullOrWhiteSpace(Subtitle))
+            {
+                <MudText Typo="Typo.h6">@Subtitle</MudText>
+            }
             <MudText Typo="Typo.body2">@Description</MudText>
-            
         </MudStack>
     </MudCardContent>
     @if (ToolActionsList != null)
@@ -50,16 +53,18 @@
 
     [Parameter]
     public RenderFragment? ToolActionsList { get; set; }
-
+    
     [Parameter]
-    public string Title { get; set; } = "Project Storage";
+    public string? Title { get; set; }
+    [Parameter]
+    public string? Subtitle { get; set; }
+    [Parameter]
+    public string? Description { get; set; }
     
     
     private string? _descriptionStyle;
     private string? _cardActionsStyle;
 
-    [Parameter]
-    public string Description { get; set; } = "The cloud blows with riddle, sail the quarter-deck before it screams. The sail fires with endurance, loot the lighthouse. ";
 
     protected override void OnInitialized()
     {
@@ -70,7 +75,7 @@
         _cardActionsStyle = new StyleBuilder()
             .AddStyle("flex-direction", "column")
             .AddStyle("align-items", "flex-start")
-            .AddStyle("min-height", "120px")
+            .AddStyle("min-height", "140px")
             .AddStyle("gap", "8px")
             .Build();
     }
