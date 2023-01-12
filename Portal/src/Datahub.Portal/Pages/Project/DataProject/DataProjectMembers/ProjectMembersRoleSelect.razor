@@ -20,11 +20,11 @@
 @code {
     [Parameter]
     public ProjectMember ProjectMember { get; set; }
+    [Parameter] 
+    public EventCallback<ProjectMember> OnRoleChanged { get; set; }
 
     private string _valueOfSelect;
 
-    [Parameter] 
-    public EventCallback<ProjectMember> OnRoleChanged { get; set; }
 
     private readonly Dictionary<ProjectMemberRole, string> _roleTitles = new()
     {
@@ -60,7 +60,8 @@
         var newRole = (ProjectMemberRole)role;
         if (newRole == ProjectMember.Role) return;
         ProjectMember.Role = newRole;
-        _valueOfSelect = Localizer[_roleTitles[ProjectMember.Role]];
+        if (newRole != ProjectMemberRole.Remove)
+            _valueOfSelect = Localizer[_roleTitles[ProjectMember.Role]];
         if (OnRoleChanged.HasDelegate)
             await OnRoleChanged.InvokeAsync(ProjectMember);
     }
