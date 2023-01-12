@@ -28,7 +28,9 @@ else
                 <MudText Typo="Typo.h5">@Localizer["Admins"]</MudText>
                 @if (IsProjectAdmin)
                 {
-                    <MudButton Variant="Variant.Text" Color="Color.Primary">@Localizer["Manage"]</MudButton>
+                    <MudButton Variant="Variant.Text" Color="Color.Primary" Href="@($"/projects/{ProjectAcronym}/members")">
+                        @Localizer["Manage"]
+                    </MudButton>
                 }
             </MudStack>
             <MudStack Class="admin-list">

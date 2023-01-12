@@ -7,7 +7,7 @@
 @if (_isLoading)
 {
 
-    <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="90%" Height="600px"/>
+    <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="100%" Height="700px"/>
 }
 else {
     <MudTable Items="@_filteredProjectMembers" Striped Filter="new Func<ProjectMember, bool>(FilterProject)">
@@ -18,7 +18,7 @@ else {
         </ToolBarContent>
         <HeaderContent>
             <MudTh>
-                <MudTableSortLabel SortBy="new Func<ProjectMember, object>(x => x.Name)" InitialDirection="SortDirection.Descending">
+                <MudTableSortLabel SortBy="new Func<ProjectMember, object>(x => x.Name)" InitialDirection="SortDirection.Ascending">
                     @Localizer["Account"]
                 </MudTableSortLabel></MudTh>
             <MudTh>
@@ -44,6 +44,13 @@ else {
             <MudTd>
                 @context.UserAddedProject?.ToString("MMMM dd, yyyy")
             </MudTd>
+            <MudTd>
+                
+                <MudButton Variant="Variant.Text" EndIcon="@PROFILE_LINK_ICON" Color="Color.Primary" 
+                           Href="@($"/profile/{Convert.ToBase64String(@System.Text.Encoding.UTF8.GetBytes(context.UserId))}")">
+                    @Localizer["View Profile"]
+                </MudButton>
+            </MudTd>
         </RowTemplate>
         <PagerContent>
             <MudTablePager/>
@@ -55,6 +62,7 @@ else {
     public string ProjectAcronym { get; set; }
 
     private string _searchString = "";
+    private const string PROFILE_LINK_ICON = "fa-duotone fa-chevrons-right";
     private bool _isLoading = true;
 
     private List<string> _authorizedRoles = new();
