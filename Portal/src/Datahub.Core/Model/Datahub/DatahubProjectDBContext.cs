@@ -50,6 +50,8 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
 
     public DbSet<Client_Engagement> Client_Engagements { get; set; }
 
+    public DbSet<Project_Storage_Capacity> Storage_Capacities { get; set; }
+
     public void Seed(DatahubProjectDBContext context, IConfiguration configuration)
     {
         var p1 = context.Projects.Add(new Datahub_Project()
@@ -154,6 +156,7 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
 
         modelBuilder.Entity<Project_Storage_Capacity>(entity =>
         {
+            entity.ToTable("Project_Storage_Capacities");
             entity.HasKey(e => new { e.ProjectId, e.Type });
             entity.HasOne(e => e.Project)
                   .WithMany(e => e.Storage_Capacities)
