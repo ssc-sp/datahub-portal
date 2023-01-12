@@ -1,35 +1,55 @@
 @using Datahub.Core.Data.Project
+@using Datahub.Application.Services
 @inject ServiceAuthManager ServiceAuthManager
 @inject IDbContextFactory<DatahubProjectDBContext> DbFactoryProject
 @inject IUserInformationService UserInformationService
+@inject IProjectUserManagementService ProjectUserManagementService
+@if (_isLoading)
+{
 
-<MudTable Items="@_projectUsers" Striped Filter="new Func<ProjectMember,bool>(FilterFunc1)">
-    <ToolBarContent>
-        <MudText Typo="Typo.h6">To Be Replaced By Tabs</MudText>
-        <MudSpacer />
-        <MudTextField @bind-Value="_searchString" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
-    </ToolBarContent>
-    <HeaderContent>
-        <MudTh><MudTableSortLabel SortBy="new Func<ProjectMember, object>(x => x.Name)">
-            @Localizer["Account"]
-        </MudTableSortLabel></MudTh>
-        <MudTh><MudTableSortLabel SortBy="new Func<ProjectMember, object>(x => x.Email)">
-            @Localizer["Email"]
-        </MudTableSortLabel></MudTh>
-        <MudTh>@Localizer["Role"]</MudTh>
-        <MudTh>@Localizer["Last Logged In"]</MudTh>
-        <MudTh></MudTh>
-    </HeaderContent>
-    <RowTemplate>
-        <MudTd>@context.Name</MudTd>
-        <MudTd>@context.Email</MudTd>
-        <MudTd>@(context.IsDataApprover ? "Publisher" : context.IsAdmin? "Admin" : "Contributor")</MudTd>
-    </RowTemplate>
-    <PagerContent>
-        <MudTablePager />
-    </PagerContent>
-</MudTable>
+    <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="90%" Height="600px"/>
+}
+else {
+    <MudTable Items="@_filteredProjectMembers" Striped Filter="new Func<ProjectMember, bool>(FilterProject)">
+        <ToolBarContent>
+            <MudText Typo="Typo.h6">To Be Replaced By Tabs</MudText>
+            <MudSpacer/>
+            <MudTextField @bind-Value="_searchString" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+        </ToolBarContent>
+        <HeaderContent>
+            <MudTh>
+                <MudTableSortLabel SortBy="new Func<ProjectMember, object>(x => x.Name)" InitialDirection="SortDirection.Descending">
+                    @Localizer["Account"]
+                </MudTableSortLabel></MudTh>
+            <MudTh>
+                <MudTableSortLabel SortBy="new Func<ProjectMember, object>(x => x.Email)">
+                    @Localizer["Email"]
+                </MudTableSortLabel>
+            </MudTh>
+            <MudTh>@Localizer["Role"]</MudTh>
+            <MudTh>
+                <MudTableSortLabel SortBy="new Func<ProjectMember, object>(x => x.UserAddedProject)">
+                    @Localizer["Added to Project"]
+                </MudTableSortLabel>
+            </MudTh>
+            <MudTh></MudTh>
+        </HeaderContent>
+        <RowTemplate>
 
+            <MudTd>@context.Name</MudTd>
+            <MudTd>@context.Email</MudTd>
+            <MudTd>
+                <ProjectMembersRoleSelect ProjectMember="@context" OnRoleChanged="UpdateProjectMemberRole"/>
+            </MudTd>
+            <MudTd>
+                @context.UserAddedProject?.ToString("MMMM dd, yyyy")
+            </MudTd>
+        </RowTemplate>
+        <PagerContent>
+            <MudTablePager/>
+        </PagerContent>
+    </MudTable>
+}
 @code {
     [CascadingParameter(Name = "ProjectAcronym")]
     public string ProjectAcronym { get; set; }
@@ -40,6 +60,7 @@
     private List<string> _authorizedRoles = new();
 
     private List<ProjectMember> _projectUsers;
+    private List<ProjectMember> _filteredProjectMembers;
     private Microsoft.Graph.User _user;
 
     protected override async Task OnInitializedAsync()
@@ -49,17 +70,30 @@
         _user = await UserInformationService.GetCurrentGraphUserAsync();
 
         _projectUsers = await ServiceAuthManager.GetProjectMembers(ProjectAcronym);
-
+        _filteredProjectMembers = _projectUsers;
 
         _isLoading = false;
     }
     
-    private bool FilterFunc1(ProjectMember item)
+    private bool FilterProject(ProjectMember item)
     {
         if (string.IsNullOrWhiteSpace(_searchString))
             return true;
         if (item.Name?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true)
             return true;
         return item.Email?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true;
+    }
+    
+    private async Task UpdateProjectMemberRole(ProjectMember projectMember)
+    {
+        if (projectMember.Role == ProjectMemberRole.Remove)
+        {
+            await ProjectUserManagementService.RemoveUserFromProject(ProjectAcronym, projectMember.UserId);
+            _projectUsers.Remove(projectMember);
+        }
+        else
+        {
+            await ProjectUserManagementService.UpdateUserInProject(ProjectAcronym, projectMember);
+        }
     }
 }

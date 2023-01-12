@@ -1,5 +1,6 @@
 using System.Net.Mail;
 using Datahub.Core.Data;
+using Datahub.Core.Data.Project;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Services;
 using Datahub.Core.Services.Projects;
@@ -9,6 +10,7 @@ using Datahub.Shared.Entities;
 using Datahub.Shared.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Graph;
 using Moq;
 
 namespace Datahub.Infrastructure.UnitTests.Services;
@@ -95,7 +97,7 @@ public class ProjectUserManagementServiceTests
             TestUserId
         });
 
-        Assert.ThrowsAsync<ProjectNoFoundException>(async () =>
+        Assert.ThrowsAsync<ProjectNotFoundException>(async () =>
         {
             await projectUserManagementService.AddUserToProject(nonExistentProjectAcronym, TestUserId);
         });
@@ -145,7 +147,7 @@ public class ProjectUserManagementServiceTests
             TestUserId
         });
 
-        Assert.ThrowsAsync<ProjectNoFoundException>(async () =>
+        Assert.ThrowsAsync<ProjectNotFoundException>(async () =>
         {
             await projectUserManagementService.RemoveUserFromProject(nonExistentProjectAcronym, TestUserId);
         });
@@ -165,7 +167,96 @@ public class ProjectUserManagementServiceTests
         var projectUsers = await context.Project_Users.ToListAsync();
         Assert.That(projectUsers, Has.Count.EqualTo(0));
     }
+    [Test]
+    public async Task ShouldUpdateUserInProject()
+    {
+        var projectUserManagementService = GetProjectUserManagementService();
+        await SeedDatabase(new List<string>
+        {
+            TestUserId,
+        }, TestProjectAcronym, ProjectMemberRole.Contributor);
+        var projectMember = new ProjectMember()
+        {
+            UserId = TestUserId, Role = ProjectMemberRole.Admin
+            
+        };
+        await projectUserManagementService.UpdateUserInProject(TestProjectAcronym, projectMember);
 
+        await using var context = await _mockFactory.Object.CreateDbContextAsync();
+        var projectUser = await context.Project_Users.FirstAsync();
+        Assert.Multiple(() =>
+        {
+            Assert.That(projectUser.IsAdmin, Is.True);
+            Assert.That(projectUser.IsDataApprover, Is.False);
+        });
+    }
+
+    [Test]
+    public async Task ShouldThrowException_WhenProjectNotFoundOnUserUpdate()
+    {
+        const string nonExistentProjectAcronym = "NOTFOUND";
+        var projectUserManagementService = GetProjectUserManagementService();
+        await SeedDatabase(new List<string>
+        {
+            TestUserId
+        });
+
+        Assert.ThrowsAsync<ProjectNotFoundException>(async () =>
+        {
+            await projectUserManagementService.UpdateUserInProject(nonExistentProjectAcronym, new ProjectMember());
+        });
+    }
+    
+    [Test]
+    public async Task ShouldThrowException_WhenUserNotFoundOnUserUpdate()
+    {
+        const string nonExistentUserId = "THIS_IS_NOT_AN_ID";
+        var projectUserManagementService = GetProjectUserManagementService();
+        await SeedDatabase(new List<string>
+        {
+            TestUserId,
+        }, TestProjectAcronym, ProjectMemberRole.Contributor);
+        var projectMember = new ProjectMember()
+        {
+            UserId = nonExistentUserId, Role = ProjectMemberRole.Admin
+            
+        };
+        Assert.ThrowsAsync<UserNotFoundException>(async () =>
+        {
+            await projectUserManagementService.UpdateUserInProject(TestProjectAcronym, projectMember);
+        });
+    }
+
+    [Test]
+    public async Task ShouldDoNothing_WhenUserRoleHasNotChanged()
+    {
+        var projectUserManagementService = GetProjectUserManagementService();
+        await SeedDatabase(new List<string>
+        {
+            TestUserId,
+        }, TestProjectAcronym, ProjectMemberRole.Publisher);
+        var projectMember = new ProjectMember()
+        {
+            UserId = TestUserId, Role = ProjectMemberRole.Publisher
+            
+        };
+        await using var context = await _mockFactory.Object.CreateDbContextAsync();
+        var projectUser = await context.Project_Users.FirstAsync();
+        Assert.Multiple(() =>
+        {
+            Assert.That(projectUser.IsAdmin, Is.True);
+            Assert.That(projectUser.IsDataApprover, Is.True);
+        });
+        await projectUserManagementService.UpdateUserInProject(TestProjectAcronym, projectMember);
+        await projectUserManagementService.UpdateUserInProject(TestProjectAcronym, projectMember);
+        await projectUserManagementService.UpdateUserInProject(TestProjectAcronym, projectMember);
+        projectUser = await context.Project_Users.FirstAsync();
+        Assert.Multiple(() =>
+        {
+            Assert.That(projectUser.IsAdmin, Is.True);
+            Assert.That(projectUser.IsDataApprover, Is.True);
+        });
+    }
 
     [Test]
     [TestCase(11, 0)]
@@ -223,7 +314,7 @@ public class ProjectUserManagementServiceTests
             It.Is<string>(s => s == TerraformTemplate.VariableUpdate)), Times.Once);
     }
 
-    private async Task SeedDatabase(IEnumerable<string>? userIds = null, string projectAcronym = TestProjectAcronym)
+    private async Task SeedDatabase(IEnumerable<string>? userIds = null, string projectAcronym = TestProjectAcronym, ProjectMemberRole role = ProjectMemberRole.Contributor)
     {
         var project = new Datahub_Project
         {
@@ -237,7 +328,9 @@ public class ProjectUserManagementServiceTests
             .Select(id => new Datahub_Project_User
             {
                 Project = project,
-                User_ID = id
+                User_ID = id,
+                IsAdmin = role is ProjectMemberRole.Admin or ProjectMemberRole.Publisher,
+                IsDataApprover = role is ProjectMemberRole.Publisher
             })
             .ToList();
 
