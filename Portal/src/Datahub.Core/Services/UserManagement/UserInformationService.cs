@@ -377,7 +377,7 @@ public class UserInformationService : IUserInformationService
     {
         if (await IsUserInDataHubAdminRole())
             return true;
-        return (await GetAuthenticatedUser()).IsInRole($"{projectAcronym}-admin");
+        return ((await GetAuthenticatedUser()).IsInRole($"{projectAcronym}-admin") || (await GetAuthenticatedUser()).IsInRole($"{projectAcronym}"));
     }
 
     //IsDataHubAdmin = ;
