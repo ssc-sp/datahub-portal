@@ -52,12 +52,14 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Datahub.Application;
+using Datahub.Application.Services;
 using Datahub.Portal.Services.Auth;
 using Microsoft.Identity.Web.UI;
 using Tewr.Blazor.FileReader;
 using Datahub.Core.Services.ResourceManager;
 using Datahub.Core.Services.Docs;
 using Datahub.Infrastructure;
+using Datahub.Infrastructure.Services;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]
 
@@ -355,7 +357,7 @@ public class Startup
 
             services.AddScoped<UpdateProjectMonthlyCostService>();
             services.AddScoped<IProjectCreationService, ProjectCreationService>();
-
+            services.AddScoped<IProjectUserManagementService, ProjectUserManagementService>();
             services.AddDatahubApplicationServices();
             services.AddDatahubInfrastructureServices(Configuration);
 
