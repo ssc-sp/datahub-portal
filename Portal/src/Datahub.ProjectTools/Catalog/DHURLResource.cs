@@ -47,6 +47,7 @@ public abstract class DHURLResource : IProjectResource
         => (ComponentType, parameters);
 
     public abstract string[] GetTags();
+
     public async Task<bool> InitializeAsync(Datahub_Project project, string userId, User graphUser, bool isProjectAdmin)
     {
         if (userId is null)
@@ -57,21 +58,23 @@ public abstract class DHURLResource : IProjectResource
             { nameof(InactiveResource.Title), Title },
             { nameof(InactiveResource.Description), Description },
             { nameof(InactiveResource.Icon), Icon },
-            { nameof(InactiveResource.IsIconSVG), IsIconSVG } };
+            { nameof(InactiveResource.IsIconSVG), IsIconSVG }
+        };
         await InitializeAsync(userId, graphUser, isProjectAdmin);
         return true;
     }
 
-        protected abstract Task InitializeAsync(string userId, User graphUser, bool isProjectAdmin);
-        protected Dictionary<string, object> GetInactiveParameters()
-            => new Dictionary<string, object>
-                {
-                    { nameof(InactiveResource.Title), Title },
-                    { nameof(InactiveResource.Description), Description },
-                    { nameof(InactiveResource.Icon), Icon },
-                    { nameof(InactiveResource.IsIconSVG), IsIconSVG },
-                    { nameof(InactiveResource.ResourceRequested),IsServiceRequested  },
-                    { nameof(InactiveResource.Project), Project },
-                    { nameof(InactiveResource.ResourceType), ComponentType.Name.ToLowerInvariant() },
-                };    
+    protected abstract Task InitializeAsync(string userId, User graphUser, bool isProjectAdmin);
+
+    protected Dictionary<string, object> GetInactiveParameters()
+        => new Dictionary<string, object>
+        {
+            { nameof(InactiveResource.Title), Title },
+            { nameof(InactiveResource.Description), Description },
+            { nameof(InactiveResource.Icon), Icon },
+            { nameof(InactiveResource.IsIconSVG), IsIconSVG },
+            { nameof(InactiveResource.ResourceRequested), IsServiceRequested },
+            { nameof(InactiveResource.Project), Project },
+            { nameof(InactiveResource.ResourceType), ComponentType.Name.ToLowerInvariant() },
+        };
 }

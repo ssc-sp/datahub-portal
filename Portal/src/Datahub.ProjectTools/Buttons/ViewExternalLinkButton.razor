@@ -1,0 +1,21 @@
+<DHLink Underline="Underline.None" Typo="Typo.button" LinkType="DatahubLinkType.ExternalUrl" ExternalUrl="@ExternalUrl">
+    <MudButton Variant="@Variant" EndIcon="@Icon" Color="Color.Primary" Size="Size.Small">
+        @Text
+    </MudButton>
+</DHLink>
+
+@code {
+
+    [Parameter]
+    public string? ExternalUrl { get; set; }
+
+    [Parameter]
+    public Variant Variant { get; set; } = Variant.Text;
+
+    [Parameter]
+    public string Icon { get; set; } = "fa-solid fa-up-right-from-square";
+
+    [Parameter]
+    public string? Text { get; set; }
+
+}
